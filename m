@@ -2,186 +2,196 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BED6C761A6
-	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 15:07:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54291C77B70
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 15:17:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238950AbjDEPHR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 Apr 2023 11:07:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54454 "EHLO
+        id S238918AbjDEPRF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Apr 2023 11:17:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238792AbjDEPGa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 11:06:30 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ADC061BF;
-        Wed,  5 Apr 2023 08:06:07 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 274B42293C;
-        Wed,  5 Apr 2023 15:06:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1680707165; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=X4mcJLom6ZAm6gh+Qd1GGG3mMDreyMyZXiAcH0v+nJE=;
-        b=E3C7DIPuZcQ5ckXXJkhw97dBSeflzO3De8NBiQlBKzkJyWilzzov31ZlhZrvaM6qBEv9LF
-        BgNnkJ+AwJLkAnA28SLHgOJHj/PYlPvqDP/99rk6emLo1vqI4dNPdZ4umFYXxhyMtxJeGZ
-        w6VbcM7InoKAR87SbTp0vMX+F72xm7k=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1680707165;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=X4mcJLom6ZAm6gh+Qd1GGG3mMDreyMyZXiAcH0v+nJE=;
-        b=cJ+t5MdSDdGmLZipOoCQHDkUf4Wd2RAWkTB44d1La3+Z8S7vVgXgnU5qiIcmRpgdzSXrd+
-        hn/oD8fSciztSoDQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AB1F213A10;
-        Wed,  5 Apr 2023 15:06:04 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id eHbtKFyOLWTPIAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 05 Apr 2023 15:06:04 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     arnd@arndb.de, daniel.vetter@ffwll.ch, deller@gmx.de,
-        javierm@redhat.com, gregkh@linuxfoundation.org
-Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: [PATCH 16/18] arch/sparc: Implement fb_is_primary_device() in source file
-Date:   Wed,  5 Apr 2023 17:05:52 +0200
-Message-Id: <20230405150554.30540-17-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230405150554.30540-1-tzimmermann@suse.de>
-References: <20230405150554.30540-1-tzimmermann@suse.de>
+        with ESMTP id S238148AbjDEPQv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 11:16:51 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0BAE768F;
+        Wed,  5 Apr 2023 08:15:23 -0700 (PDT)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 335Ex0qK002073;
+        Wed, 5 Apr 2023 15:12:47 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=EP7H/BG3XCUIVobBKkorHkQj2TA2B5DpLLQdBFgYKS4=;
+ b=XbWxDBkfY2fo/oPyI6TrXqcU1euUz4IzeWoGlM8pMsRk498yO8yVE/7T1S6eJTb2S1UY
+ Ce4n6uRJXGbJACtJS5PEQm7yDaXiLZ77NckRKQQQ5DNapH75rb5fd/ItpAm5JdaIGkJB
+ EjYbhhlQ0ryc2KE5ooaYTcsk8RJlUZZfLediFtvaH7EkQ1SjyGt/Xzy43DdKyba2DK/C
+ mj3z1Ouz77q3PQdLEc8JzeNlXRNO2YNOk1g5JnRZp+nfYv7EYFBF1bpKeDuLr8vDL+6n
+ b4UH/HRs8HkTZNjSxDyvmPDruJP3v3TVMAV46NXQWSanaU69dM9Hykbwz50y1ICQraWy Mw== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ps9mdkkrq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 05 Apr 2023 15:12:47 +0000
+Received: from m0098417.ppops.net (m0098417.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 335Ena21018706;
+        Wed, 5 Apr 2023 15:12:46 GMT
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ps9mdkkpp-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 05 Apr 2023 15:12:45 +0000
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+        by ppma04fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 335DwTrM010607;
+        Wed, 5 Apr 2023 15:12:43 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+        by ppma04fra.de.ibm.com (PPS) with ESMTPS id 3ppc86tktp-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 05 Apr 2023 15:12:43 +0000
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+        by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 335FCejC27853382
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 5 Apr 2023 15:12:40 GMT
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 7493520040;
+        Wed,  5 Apr 2023 15:12:40 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id CE7A920043;
+        Wed,  5 Apr 2023 15:12:38 +0000 (GMT)
+Received: from [9.155.211.163] (unknown [9.155.211.163])
+        by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Wed,  5 Apr 2023 15:12:38 +0000 (GMT)
+Message-ID: <248a41a536d5a3c9e81e8e865b34c5bf74cd36d4.camel@linux.ibm.com>
+Subject: Re: [PATCH v4] Kconfig: introduce HAS_IOPORT option and select it
+ as necessary
+From:   Niklas Schnelle <schnelle@linux.ibm.com>
+To:     Arnd Bergmann <arnd@arndb.de>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-pci@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Date:   Wed, 05 Apr 2023 17:12:38 +0200
+In-Reply-To: <20230323163354.1454196-1-schnelle@linux.ibm.com>
+References: <20230323163354.1454196-1-schnelle@linux.ibm.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: Chh8ozZVKyRilF6r1sDguQSl3KT7MF3_
+X-Proofpoint-GUID: RSLPMutPzrPKT5ywknWUr1qrnGdzz6Rn
+Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
+ definitions=2023-04-05_09,2023-04-05_01,2023-02-09_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0
+ impostorscore=0 phishscore=0 priorityscore=1501 mlxscore=0
+ lowpriorityscore=0 adultscore=0 clxscore=1011 bulkscore=0 spamscore=0
+ malwarescore=0 mlxlogscore=438 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2303200000 definitions=main-2304050136
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Other architectures implment fb_is_primary_device() in a source
-file. Do the same on sparc. No functional changes, but allows to
-remove several include statement from <asm/fb.h>.
+On Thu, 2023-03-23 at 17:33 +0100, Niklas Schnelle wrote:
+> We introduce a new HAS_IOPORT Kconfig option to indicate support for I/O
+> Port access. In a future patch HAS_IOPORT=3Dn will disable compilation of
+> the I/O accessor functions inb()/outb() and friends on architectures
+> which can not meaningfully support legacy I/O spaces such as s390.
+>=20
+> The following architectures do not select HAS_IOPORT:
+>=20
+> * ARC
+> * C-SKY
+> * Hexagon
+> * Nios II
+> * OpenRISC
+> * s390
+> * User-Mode Linux
+> * Xtensa
+>=20
+> All other architectures select HAS_IOPORT at least conditionally.
+>=20
+> The "depends on" relations on HAS_IOPORT in drivers as well as ifdefs
+> for HAS_IOPORT specific sections will be added in subsequent patches on
+> a per subsystem basis.
+>=20
+> Co-developed-by: Arnd Bergmann <arnd@kernel.org>
+> Signed-off-by: Arnd Bergmann <arnd@kernel.org>
+> Acked-by: Johannes Berg <johannes@sipsolutions.net> # for ARCH=3Dum
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
+> ---
+> Note: This patch is the initial patch of a larger series[0]. This patch
+> introduces the HAS_IOPORT config option while the rest of the series adds
+> driver dependencies and the final patch removes inb() / outb() and friend=
+s on
+> platforms that don't support them.=20
+>=20
+> Thus each of the per-subsystem patches is independent from each other but
+> depends on this patch while the final patch depends on the whole series. =
+Thus
+> splitting this initial patch off allows the per-subsytem HAS_IOPORT depen=
+dency
+> addition be merged separately via different trees without breaking the bu=
+ild.
+>=20
+> [0] https://lore.kernel.org/lkml/20230314121216.413434-1-schnelle@linux.i=
+bm.com/
+>=20
+> Changes since v3:
+> - List archs without HAS_IOPORT in commit message (Arnd)
+> - Select HAS_IOPORT for LoongArch (Arnd)
+> - Use "select HAS_IOPORT if (E)ISA || .." instead of a "depends on" for (=
+E)ISA
+>   for m68k and parisc
+> - Select HAS_IOPORT with config GSC on parisc (Arnd)
+> - Drop "depends on HAS_IOPORT" for um's config ISA (Johannes)
+> - Drop "depends on HAS_IOPORT" for config ISA on x86 and parisc where it =
+is
+>   always selected (Arnd)
+>=20
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
----
- arch/sparc/Makefile         |  1 +
- arch/sparc/include/asm/fb.h | 22 +++++-----------------
- arch/sparc/video/Makefile   |  3 +++
- arch/sparc/video/fbdev.c    | 24 ++++++++++++++++++++++++
- 4 files changed, 33 insertions(+), 17 deletions(-)
- create mode 100644 arch/sparc/video/Makefile
- create mode 100644 arch/sparc/video/fbdev.c
+Gentle ping. As far as I can tell this hasn't been picked to any tree
+sp far but also hasn't seen complains so I'm wondering if I should send
+a new version of the combined series of this patch plus the added
+HAS_IOPORT dependencies per subsystem or wait until this is picked up.
 
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index a4ea5b05f288..95a9211e48e3 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -60,6 +60,7 @@ libs-y                 += arch/sparc/prom/
- libs-y                 += arch/sparc/lib/
- 
- drivers-$(CONFIG_PM) += arch/sparc/power/
-+drivers-$(CONFIG_FB) += arch/sparc/video/
- 
- boot := arch/sparc/boot
- 
-diff --git a/arch/sparc/include/asm/fb.h b/arch/sparc/include/asm/fb.h
-index f699962e9ddf..e4ef1955b2b6 100644
---- a/arch/sparc/include/asm/fb.h
-+++ b/arch/sparc/include/asm/fb.h
-@@ -1,12 +1,14 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef _SPARC_FB_H_
- #define _SPARC_FB_H_
--#include <linux/console.h>
--#include <linux/fb.h>
-+
- #include <linux/fs.h>
-+
- #include <asm/page.h>
- #include <asm/prom.h>
- 
-+struct fb_info;
-+
- static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
- 				unsigned long off)
- {
-@@ -15,20 +17,6 @@ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
- #endif
- }
- 
--static inline int fb_is_primary_device(struct fb_info *info)
--{
--	struct device *dev = info->device;
--	struct device_node *node;
--
--	if (console_set_on_cmdline)
--		return 0;
--
--	node = dev->of_node;
--	if (node &&
--	    node == of_console_device)
--		return 1;
--
--	return 0;
--}
-+int fb_is_primary_device(struct fb_info *info);
- 
- #endif /* _SPARC_FB_H_ */
-diff --git a/arch/sparc/video/Makefile b/arch/sparc/video/Makefile
-new file mode 100644
-index 000000000000..6baddbd58e4d
---- /dev/null
-+++ b/arch/sparc/video/Makefile
-@@ -0,0 +1,3 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+
-+obj-$(CONFIG_FB) += fbdev.o
-diff --git a/arch/sparc/video/fbdev.c b/arch/sparc/video/fbdev.c
-new file mode 100644
-index 000000000000..dadd5799fbb3
---- /dev/null
-+++ b/arch/sparc/video/fbdev.c
-@@ -0,0 +1,24 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/console.h>
-+#include <linux/fb.h>
-+#include <linux/module.h>
-+
-+#include <asm/fb.h>
-+#include <asm/prom.h>
-+
-+int fb_is_primary_device(struct fb_info *info)
-+{
-+	struct device *dev = info->device;
-+	struct device_node *node;
-+
-+	if (console_set_on_cmdline)
-+		return 0;
-+
-+	node = dev->of_node;
-+	if (node && node == of_console_device)
-+		return 1;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(fb_is_primary_device);
--- 
-2.40.0
+Thanks,
+Niklas
 
