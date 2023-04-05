@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 212B7C77B73
-	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 15:06:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2900AC77B75
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 15:06:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238714AbjDEPGS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 Apr 2023 11:06:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53466 "EHLO
+        id S238747AbjDEPGV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Apr 2023 11:06:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238708AbjDEPGN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 11:06:13 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D465E6A5F;
-        Wed,  5 Apr 2023 08:06:03 -0700 (PDT)
+        with ESMTP id S238625AbjDEPGR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 11:06:17 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BED3BCE;
+        Wed,  5 Apr 2023 08:06:04 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 4C148228E5;
-        Wed,  5 Apr 2023 15:06:02 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 46852228D4;
+        Wed,  5 Apr 2023 15:06:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1680707162; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1680707163; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=YNg0lz+7KBHL0Jy2/T4bI8sg52Xj/iVvmLTbUyEhSFc=;
-        b=fPrbqCgMee7/27BS6CMZbzf9x0PNroj6Bun6Nj1xNNnernZPZJpDGFmnhoiPdissax+UMp
-        XQG1Xh6YxWfF2j42ZaAl0U4Ui9h5jR3WiJcVFbEJA5Q38zuXZXvDqfyoifUfzn7WH3p6yf
-        nPn/VV3aYlvOnoyQurDMe5ucdP6KXps=
+        bh=clUDjDH/bPWQSIzDszYi3/oWFwNxlrGwwLdQNX68Lw4=;
+        b=SCCfYtikyJntIkM9ayKnsR2gc1qIo9MhAAmFAvJeAABjvNkYsTyUuzl1P8Wcu+lw0QoH3n
+        bDWOEpiXB6oUD7j4BpqFJSkY1eFEGZAGzWXNdaWMsJfLfFw+PlisVX+Xsvn626hsp7LT//
+        dlGL+jnhOIq7igAIgvxF0gNHwVdhq3U=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1680707162;
+        s=susede2_ed25519; t=1680707163;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=YNg0lz+7KBHL0Jy2/T4bI8sg52Xj/iVvmLTbUyEhSFc=;
-        b=iNTdYP2mjEI2y1hEJSntM0QLmsu11+0hm7e9Vq4U1bzFtNfOYl2PFtObSFHwg2R4o/M426
-        FuHve1fwgsmOTMCw==
+        bh=clUDjDH/bPWQSIzDszYi3/oWFwNxlrGwwLdQNX68Lw4=;
+        b=jD7ude7u+DdXewIRm2eoWHZxO2mneTJDmmt/Zt6iSKj9glRQCIoQc24gh8o0lB2uUOEwUk
+        pYIhM25CQPBYxzBg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E2EB213A92;
-        Wed,  5 Apr 2023 15:06:01 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id CD27A13A10;
+        Wed,  5 Apr 2023 15:06:02 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id WEGANlmOLWTPIAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 05 Apr 2023 15:06:01 +0000
+        id WGQwMVqOLWTPIAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 05 Apr 2023 15:06:02 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     arnd@arndb.de, daniel.vetter@ffwll.ch, deller@gmx.de,
         javierm@redhat.com, gregkh@linuxfoundation.org
@@ -59,10 +59,11 @@ Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org, x86@kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 10/18] video: Move HP PARISC STI core code to shared location
-Date:   Wed,  5 Apr 2023 17:05:46 +0200
-Message-Id: <20230405150554.30540-11-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Subject: [PATCH 12/18] arch/parisc: Implement fb_is_primary_device() under arch/parisc
+Date:   Wed,  5 Apr 2023 17:05:48 +0200
+Message-Id: <20230405150554.30540-13-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.40.0
 In-Reply-To: <20230405150554.30540-1-tzimmermann@suse.de>
 References: <20230405150554.30540-1-tzimmermann@suse.de>
@@ -72,149 +73,143 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-STI core files have been located in console and fbdev code. Move
-the source code and header to the directories for video helpers.
-Also update the config and build rules such that the code depends
-on the config symbol CONFIG_STI_CORE, which STI console and STI
-framebuffer select automatically.
-
-Cleans up the console makefile and prepares PARISC to implement
-fb_is_primary_device() within the arch/ directory. No functional
+Move PARISC's implementation of fb_is_primary_device() into the
+architecture directory. This the place of the declaration and
+where other architectures implement this function. No functional
 changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 ---
- drivers/video/Kconfig                            | 7 +++++++
- drivers/video/Makefile                           | 1 +
- drivers/video/console/Kconfig                    | 1 +
- drivers/video/console/Makefile                   | 4 +---
- drivers/video/console/sticon.c                   | 2 +-
- drivers/video/fbdev/Kconfig                      | 3 +--
- drivers/video/fbdev/stifb.c                      | 2 +-
- drivers/video/{console => }/sticore.c            | 2 +-
- {drivers/video/fbdev => include/video}/sticore.h | 0
- 9 files changed, 14 insertions(+), 8 deletions(-)
- rename drivers/video/{console => }/sticore.c (99%)
- rename {drivers/video/fbdev => include/video}/sticore.h (100%)
+ arch/parisc/Makefile         |  2 ++
+ arch/parisc/include/asm/fb.h |  2 +-
+ arch/parisc/video/Makefile   |  3 +++
+ arch/parisc/video/fbdev.c    | 27 +++++++++++++++++++++++++++
+ drivers/video/sticore.c      | 19 -------------------
+ include/video/sticore.h      |  2 ++
+ 6 files changed, 35 insertions(+), 20 deletions(-)
+ create mode 100644 arch/parisc/video/Makefile
+ create mode 100644 arch/parisc/video/fbdev.c
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index bf05363d8906..8b2b9ac37c3d 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -11,6 +11,13 @@ config APERTURE_HELPERS
- 	  Support tracking and hand-over of aperture ownership. Required
- 	  by graphics drivers for firmware-provided framebuffers.
+diff --git a/arch/parisc/Makefile b/arch/parisc/Makefile
+index 0d049a6f6a60..968ebe17494c 100644
+--- a/arch/parisc/Makefile
++++ b/arch/parisc/Makefile
+@@ -119,6 +119,8 @@ export LIBGCC
  
-+config STI_CORE
-+	bool
-+	depends on PARISC
-+	help
-+	  STI refers to the HP "Standard Text Interface" which is a set of
-+	  BIOS routines contained in a ROM chip in HP PA-RISC based machines.
+ libs-y	+= arch/parisc/lib/ $(LIBGCC)
+ 
++drivers-y += arch/parisc/video/
 +
- config VIDEO_CMDLINE
- 	bool
+ boot	:= arch/parisc/boot
  
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 831c9fa57a6c..6bbc03950899 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -1,6 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
+ PALO := $(shell if (which palo 2>&1); then : ; \
+diff --git a/arch/parisc/include/asm/fb.h b/arch/parisc/include/asm/fb.h
+index 55d29c4f716e..0b9a38ced5c8 100644
+--- a/arch/parisc/include/asm/fb.h
++++ b/arch/parisc/include/asm/fb.h
+@@ -12,7 +12,7 @@ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
+ 	pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
+ }
  
- obj-$(CONFIG_APERTURE_HELPERS)    += aperture.o
-+obj-$(CONFIG_STI_CORE)            += sticore.o
- obj-$(CONFIG_VGASTATE)            += vgastate.o
- obj-$(CONFIG_VIDEO_CMDLINE)       += cmdline.o
- obj-$(CONFIG_VIDEO_NOMODESET)     += nomodeset.o
-diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
-index 22cea5082ac4..a2a88d42edf0 100644
---- a/drivers/video/console/Kconfig
-+++ b/drivers/video/console/Kconfig
-@@ -141,6 +141,7 @@ config STI_CONSOLE
- 	depends on PARISC && HAS_IOMEM
- 	select FONT_SUPPORT
- 	select CRC32
-+	select STI_CORE
- 	default y
- 	help
- 	  The STI console is the builtin display/keyboard on HP-PARISC
-diff --git a/drivers/video/console/Makefile b/drivers/video/console/Makefile
-index db07b784bd2c..fd79016a0d95 100644
---- a/drivers/video/console/Makefile
-+++ b/drivers/video/console/Makefile
-@@ -5,8 +5,6 @@
- 
- obj-$(CONFIG_DUMMY_CONSOLE)       += dummycon.o
- obj-$(CONFIG_SGI_NEWPORT_CONSOLE) += newport_con.o
--obj-$(CONFIG_STI_CONSOLE)         += sticon.o sticore.o
-+obj-$(CONFIG_STI_CONSOLE)         += sticon.o
- obj-$(CONFIG_VGA_CONSOLE)         += vgacon.o
- obj-$(CONFIG_MDA_CONSOLE)         += mdacon.o
--
--obj-$(CONFIG_FB_STI)              += sticore.o
-diff --git a/drivers/video/console/sticon.c b/drivers/video/console/sticon.c
-index 89ad7ade6cf9..d11cfd2d68b5 100644
---- a/drivers/video/console/sticon.c
-+++ b/drivers/video/console/sticon.c
-@@ -50,7 +50,7 @@
- 
- #include <asm/io.h>
- 
--#include "../fbdev/sticore.h"
+-#if defined(CONFIG_FB_STI)
++#if defined(CONFIG_STI_CORE)
+ int fb_is_primary_device(struct fb_info *info);
+ #else
+ static inline int fb_is_primary_device(struct fb_info *info)
+diff --git a/arch/parisc/video/Makefile b/arch/parisc/video/Makefile
+new file mode 100644
+index 000000000000..16a73cce4661
+--- /dev/null
++++ b/arch/parisc/video/Makefile
+@@ -0,0 +1,3 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++obj-$(CONFIG_STI_CORE) += fbdev.o
+diff --git a/arch/parisc/video/fbdev.c b/arch/parisc/video/fbdev.c
+new file mode 100644
+index 000000000000..4a0ae08fc75b
+--- /dev/null
++++ b/arch/parisc/video/fbdev.c
+@@ -0,0 +1,27 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>
++ * Copyright (C) 2001-2020 Helge Deller <deller@gmx.de>
++ * Copyright (C) 2001-2002 Thomas Bogendoerfer <tsbogend@alpha.franken.de>
++ */
++
++#include <linux/module.h>
++
++#include <asm/fb.h>
++
 +#include <video/sticore.h>
- 
- /* switching to graphics mode */
- #define BLANK 0
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 96e91570cdd3..485e8c35d5c6 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -551,10 +551,9 @@ config FB_STI
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select STI_CORE
- 	default y
- 	help
--	  STI refers to the HP "Standard Text Interface" which is a set of
--	  BIOS routines contained in a ROM chip in HP PA-RISC based machines.
- 	  Enabling this option will implement the linux framebuffer device
- 	  using calls to the STI BIOS routines for initialisation.
- 
-diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
-index 99996bc7e6d9..baca6974e288 100644
---- a/drivers/video/fbdev/stifb.c
-+++ b/drivers/video/fbdev/stifb.c
-@@ -69,7 +69,7 @@
- #include <asm/grfioctl.h>	/* for HP-UX compatibility */
- #include <linux/uaccess.h>
- 
--#include "sticore.h"
-+#include <video/sticore.h>
- 
- /* REGION_BASE(fb_info, index) returns the virtual address for region <index> */
- #define REGION_BASE(fb_info, index) \
-diff --git a/drivers/video/console/sticore.c b/drivers/video/sticore.c
-similarity index 99%
-rename from drivers/video/console/sticore.c
-rename to drivers/video/sticore.c
-index 6ea9596a3c4b..f8aaedea437d 100644
---- a/drivers/video/console/sticore.c
++
++int fb_is_primary_device(struct fb_info *info)
++{
++	struct sti_struct *sti;
++
++	sti = sti_get_rom(0);
++
++	/* if no built-in graphics card found, allow any fb driver as default */
++	if (!sti)
++		return true;
++
++	/* return true if it's the default built-in framebuffer driver */
++	return (sti->info == info);
++}
++EXPORT_SYMBOL(fb_is_primary_device);
+diff --git a/drivers/video/sticore.c b/drivers/video/sticore.c
+index f8aaedea437d..7eb925f2ba9c 100644
+--- a/drivers/video/sticore.c
 +++ b/drivers/video/sticore.c
-@@ -32,7 +32,7 @@
+@@ -30,7 +30,6 @@
+ #include <asm/pdc.h>
+ #include <asm/cacheflush.h>
  #include <asm/grfioctl.h>
- #include <asm/fb.h>
+-#include <asm/fb.h>
  
--#include "../fbdev/sticore.h"
-+#include <video/sticore.h>
+ #include <video/sticore.h>
  
- #define STI_DRIVERVERSION "Version 0.9c"
+@@ -1148,24 +1147,6 @@ int sti_call(const struct sti_struct *sti, unsigned long func,
+ 	return ret;
+ }
  
-diff --git a/drivers/video/fbdev/sticore.h b/include/video/sticore.h
-similarity index 100%
-rename from drivers/video/fbdev/sticore.h
-rename to include/video/sticore.h
+-#if defined(CONFIG_FB_STI)
+-/* check if given fb_info is the primary device */
+-int fb_is_primary_device(struct fb_info *info)
+-{
+-	struct sti_struct *sti;
+-
+-	sti = sti_get_rom(0);
+-
+-	/* if no built-in graphics card found, allow any fb driver as default */
+-	if (!sti)
+-		return true;
+-
+-	/* return true if it's the default built-in framebuffer driver */
+-	return (sti->info == info);
+-}
+-EXPORT_SYMBOL(fb_is_primary_device);
+-#endif
+-
+ MODULE_AUTHOR("Philipp Rumpf, Helge Deller, Thomas Bogendoerfer");
+ MODULE_DESCRIPTION("Core STI driver for HP's NGLE series graphics cards in HP PARISC machines");
+ MODULE_LICENSE("GPL v2");
+diff --git a/include/video/sticore.h b/include/video/sticore.h
+index c0879352cde4..fbb78d7e7565 100644
+--- a/include/video/sticore.h
++++ b/include/video/sticore.h
+@@ -2,6 +2,8 @@
+ #ifndef STICORE_H
+ #define STICORE_H
+ 
++struct fb_info;
++
+ /* generic STI structures & functions */
+ 
+ #define MAX_STI_ROMS 4		/* max no. of ROMs which this driver handles */
 -- 
 2.40.0
 
