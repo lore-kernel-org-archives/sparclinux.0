@@ -2,125 +2,103 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D349C761AF
-	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 08:30:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CABEC761A6
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 10:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237495AbjDEIah (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 Apr 2023 04:30:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52184 "EHLO
+        id S237810AbjDEKoF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Apr 2023 06:44:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237111AbjDEIaf (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 04:30:35 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCC8A1FF9;
-        Wed,  5 Apr 2023 01:30:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1680683434; x=1712219434;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=o2D+LfXhLk+QrH3a0th/mLBmSHhjZTr2yV97vm5EWfI=;
-  b=FEU+acUl60xzaexBT4lEK/sOyrPml79xYWAAMKYJv6+bVdHv/HsJt1kt
-   m58JUrDb29h11muh4ZzNEnHV74xZpQNqntEwQGiKuYCXgN/zIBZmKgR+Y
-   JjFAOLUo0OxSsZqoTQZPsXpy2G+RdGT+jKJgmNmFvmKlim3Lwab9nFlO6
-   dFqUc6FUgyrYHaTqS0IFrcrPMTlWf5DtgQxCF+BFZUehd9gnL2SymL3KH
-   fLP6GucbReryfzQfL4hulmNKm28fC60WC0FGkjXOjPIHDnowHbWLXyCl1
-   XispgM/9/Z26IZN/bEdNrRJFOPk2heJGydKDJGlOi9r+zg2BxhqWbtmmm
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="322058589"
-X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
-   d="scan'208";a="322058589"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2023 01:30:34 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="860894821"
-X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
-   d="scan'208";a="860894821"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga005.jf.intel.com with ESMTP; 05 Apr 2023 01:30:23 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pjyX4-00Ckbm-35;
-        Wed, 05 Apr 2023 11:30:18 +0300
-Date:   Wed, 5 Apr 2023 11:30:18 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Juergen Gross <jgross@suse.com>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
-Cc:     Miguel Ojeda <ojeda@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Anatolij Gustschin <agust@denx.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: Re: [PATCH v8 7/7] pcmcia: Convert to use less arguments in
- pci_bus_for_each_resource()
-Message-ID: <ZC0xmk71jQrx3AeH@smile.fi.intel.com>
-References: <20230330162434.35055-1-andriy.shevchenko@linux.intel.com>
- <20230330162434.35055-8-andriy.shevchenko@linux.intel.com>
+        with ESMTP id S237588AbjDEKoE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 06:44:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98E694ECA;
+        Wed,  5 Apr 2023 03:44:02 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2975763C57;
+        Wed,  5 Apr 2023 10:44:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC61C433EF;
+        Wed,  5 Apr 2023 10:44:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1680691441;
+        bh=+ZO/yBxfJv0GaHczUgdJTBFHBjfQ/ykADeJttq42HmQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=RfEi0EWHrVtgDNTDmAkQHpOA1xGMHUdirDcpsD08NWpiRE8In3RAHPfhmz+mLo3Re
+         keFWgaWXAHpSzJgLMWdEzHtCNaP6XaC77hbIAZwK+4PpDX/Zwb9pTItZlq4DbE4Bcj
+         gF37NoMLKD33dyuHM4yV5O3ouVk+s6lLupFGmAHvGBDdJp1MrGsgJ5ZzVLp7GXS7g2
+         UIOMTpAu0+CUNt+73VKyRli+76KWSC33YcG5QeaD76fiXSWmghliODfhBl98LZE/dA
+         PhaBHuqHXYQ037jMpcPmRNTtYCqZtKeIbh0pk5/nikjbQBZDel/38qAxiwMpnOZnDc
+         uqZAC/jHMG+Ow==
+Date:   Wed, 5 Apr 2023 12:43:58 +0200
+From:   Frederic Weisbecker <frederic@kernel.org>
+To:     Yair Podemsky <ypodemsk@redhat.com>
+Cc:     linux@armlinux.org.uk, mpe@ellerman.id.au, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, davem@davemloft.net, tglx@linutronix.de,
+        mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
+        x86@kernel.org, hpa@zytor.com, will@kernel.org,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org,
+        peterz@infradead.org, arnd@arndb.de, keescook@chromium.org,
+        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
+        ardb@kernel.org, juerg.haefliger@canonical.com,
+        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        tony@atomide.com, linus.walleij@linaro.org,
+        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, mtosatti@redhat.com, vschneid@redhat.com,
+        dhildenb@redhat.com, alougovs@redhat.com
+Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
+ only to CPUs in kernel mode
+Message-ID: <ZC1Q7uX4rNLg3vEg@lothringen>
+References: <20230404134224.137038-1-ypodemsk@redhat.com>
+ <20230404134224.137038-4-ypodemsk@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230330162434.35055-8-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20230404134224.137038-4-ypodemsk@redhat.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Mar 30, 2023 at 07:24:34PM +0300, Andy Shevchenko wrote:
-
-...
-
-> @@ -960,12 +960,9 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
->  	 */
->  	if (s->cb_dev->bus->number == 0)
->  		return -EINVAL;
-> -
-> -	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++) {
-> -		res = s->cb_dev->bus->resource[i];
-> -#else
-> -	pci_bus_for_each_resource(s->cb_dev->bus, res, i) {
->  #endif
+On Tue, Apr 04, 2023 at 04:42:24PM +0300, Yair Podemsky wrote:
+> @@ -191,6 +192,20 @@ static void tlb_remove_table_smp_sync(void *arg)
+>  	/* Simply deliver the interrupt */
+>  }
+>  
 > +
-> +	pci_bus_for_each_resource(s->cb_dev->bus, res) {
->  		if (!res)
->  			continue;
+> +#ifdef CONFIG_CONTEXT_TRACKING
+> +static bool cpu_in_kernel(int cpu, void *info)
+> +{
+> +	struct context_tracking *ct = per_cpu_ptr(&context_tracking, cpu);
 
-As pointed out in the reply to Bjorn's email this hunk needs to be revisited,
-since I wrote the documentation for the above call I have started understanding
-the deal behind this special treatment for X86 case.
+Like Peter said, an smp_mb() is required here before the read (unless there is
+already one between the page table modification and that ct->state read?).
 
--- 
-With Best Regards,
-Andy Shevchenko
+So that you have this pairing:
 
+
+           WRITE page_table                  WRITE ct->state
+	   smp_mb()                          smp_mb() // implied by atomic_fetch_or
+           READ ct->state                    READ page_table
+
+> +	int state = atomic_read(&ct->state);
+> +	/* will return true only for cpus in kernel space */
+> +	return state & CT_STATE_MASK == CONTEXT_KERNEL;
+> +}
+
+Also note that this doesn't stricly prevent userspace from being interrupted.
+You may well observe the CPU in kernel but it may receive the IPI later after
+switching to userspace.
+
+We could arrange for avoiding that with marking ct->state with a pending work bit
+to flush upon user entry/exit but that's a bit more overhead so I first need to
+know about your expectations here, ie: can you tolerate such an occasional
+interruption or not?
+
+Thanks.
 
