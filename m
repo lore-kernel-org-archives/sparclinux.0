@@ -2,115 +2,134 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7059CC77B60
-	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 11:51:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9290C76188
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Apr 2023 12:01:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237995AbjDELvM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 Apr 2023 07:51:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39110 "EHLO
+        id S237444AbjDEMBI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Apr 2023 08:01:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237295AbjDELvK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 07:51:10 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B80654203;
-        Wed,  5 Apr 2023 04:51:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1680695464; x=1712231464;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=CNsMJe3NJRh194M0JTRSE7YPi2b+rJpnYVMeT8Rmlsg=;
-  b=Lu3tYDLRXv9qwqJIg+37k1wYWQG7yvee8VxkjgZeKlxj/+CA9vN1eNhh
-   4LAmNkIWIDNrb9vstLnoW6u3bSbou3j4Y7ZA4ZfkBREEtiBzmc05ikxVQ
-   aN0KDmrvCy55qbgK4yQjoNCmpLkZqvbT5WMZTbJQGnppVCFfsWEGs4kQP
-   hASFK/q4xHXz0yAPx3fgzPhGC0ojPUMy2HYQlLros+KWfTc6jqVacYLv5
-   ATWKoQvfF0xlB7TbwH1eEQZKX/WoG5DTEt0sINIe0ta7cYmzv3hF8hlAb
-   rgGA8B9BR6g0nU30KfnHGe7zaPAuISO0qOwGC1HzZEqtH66xNaE5H4X3Q
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="405207773"
-X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
-   d="scan'208";a="405207773"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2023 04:51:02 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10670"; a="797887729"
-X-IronPort-AV: E=Sophos;i="5.98,319,1673942400"; 
-   d="scan'208";a="797887729"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP; 05 Apr 2023 04:50:52 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pk1f5-00ColQ-2n;
-        Wed, 05 Apr 2023 14:50:47 +0300
-Date:   Wed, 5 Apr 2023 14:50:47 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Juergen Gross <jgross@suse.com>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
-Cc:     Miguel Ojeda <ojeda@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Anatolij Gustschin <agust@denx.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: Re: [PATCH v8 5/7] PCI: Allow pci_bus_for_each_resource() to take
- less arguments
-Message-ID: <ZC1glzw4F9F8zCK+@smile.fi.intel.com>
-References: <20230330162434.35055-1-andriy.shevchenko@linux.intel.com>
- <20230330162434.35055-6-andriy.shevchenko@linux.intel.com>
+        with ESMTP id S237308AbjDEMBH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Apr 2023 08:01:07 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 388673C38
+        for <sparclinux@vger.kernel.org>; Wed,  5 Apr 2023 05:00:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680696024;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=RSlHLlJfuqzoKBsSMqongiC+StHcDiIfT1vSmb6xVfw=;
+        b=g7kiVUStmMqlVf6kKVkdAaBI6r+wCGh1ipMKnr0c8EMjpfYZ4c2BiN7Ny8x9g4vBp3WYAM
+        0dfvO5luk2oRbpGJ2yGEIL0bJDqwiYRwBes6k87LtPnkdMElgeeJOKlVuRoSmmNaAeB9Vp
+        mLOBSm9pljj1GFwaDca8gEHWvDFtCXQ=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-68-QSxDQ87_Mjivqr9PLIit7g-1; Wed, 05 Apr 2023 08:00:22 -0400
+X-MC-Unique: QSxDQ87_Mjivqr9PLIit7g-1
+Received: by mail-wm1-f70.google.com with SMTP id bh18-20020a05600c3d1200b003f05a99b571so2825186wmb.8
+        for <sparclinux@vger.kernel.org>; Wed, 05 Apr 2023 05:00:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680696020;
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=RSlHLlJfuqzoKBsSMqongiC+StHcDiIfT1vSmb6xVfw=;
+        b=Pu3ccRPfA9OwqdXddjiKLv1IHsXinv4tGzp2M38jdDbx+nVaKK7ud6V8J2O8e8zCy0
+         feX1CMeyjfP810JeqOmbxGaT/fe7cWxku8rYKrvao3X6Amlw1R8/71vP2QQASF8tuW6l
+         dEOWNGcXflxgIhTVCexFNBWGvPX0ujfCQgm3CEI1iTD1PMWFTQ1vkCOc8TyF8J4BNlQ+
+         9Hwqwp0xkzQHlY1eVNtVrj9ctp6R79QITivIqU6UOwOv2FzOJ761zuWCrh0zQZklRdZf
+         4VubVRvUECzU/N/XAPpJmeX2alphCjRDR+Q2zZUBqpczPCOWlE7wsZoGrRib7xmbSueY
+         U5Pg==
+X-Gm-Message-State: AAQBX9dmpCtXpraSos185NEyPj892ZkGpIwOdo8oKDc3snXdyfFOJyk8
+        i7PdoZkaqLjva0FTwtZvl/AnlG5t0mniqnSsCLmN6HMLTn170HtLRz4QfLVB3PrVxQYq4wjgJhd
+        JsmRCIBTR0cvzAUrkq6nWAA==
+X-Received: by 2002:adf:f851:0:b0:2c6:85ef:4086 with SMTP id d17-20020adff851000000b002c685ef4086mr4082473wrq.32.1680696020601;
+        Wed, 05 Apr 2023 05:00:20 -0700 (PDT)
+X-Google-Smtp-Source: AKy350a1LUfUOKuj3jMotBlpC19SVSB9cyW7enGegvzefcAmYdi8D6SEfOrURf0tsGiN5OpOE9NhWQ==
+X-Received: by 2002:adf:f851:0:b0:2c6:85ef:4086 with SMTP id d17-20020adff851000000b002c685ef4086mr4082439wrq.32.1680696020257;
+        Wed, 05 Apr 2023 05:00:20 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c703:d00:ca74:d9ea:11e0:dfb? (p200300cbc7030d00ca74d9ea11e00dfb.dip0.t-ipconnect.de. [2003:cb:c703:d00:ca74:d9ea:11e0:dfb])
+        by smtp.gmail.com with ESMTPSA id b13-20020adff24d000000b002c573778432sm14717731wrp.102.2023.04.05.05.00.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 05 Apr 2023 05:00:19 -0700 (PDT)
+Message-ID: <480e9492-2043-4788-eaff-4995e9e3b56e@redhat.com>
+Date:   Wed, 5 Apr 2023 14:00:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230330162434.35055-6-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.1
+Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
+ only to CPUs in kernel mode
+Content-Language: en-US
+To:     Peter Zijlstra <peterz@infradead.org>,
+        Frederic Weisbecker <frederic@kernel.org>
+Cc:     Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
+        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
+        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
+        ardb@kernel.org, juerg.haefliger@canonical.com,
+        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        tony@atomide.com, linus.walleij@linaro.org,
+        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, mtosatti@redhat.com, vschneid@redhat.com,
+        dhildenb@redhat.com, alougovs@redhat.com
+References: <20230404134224.137038-1-ypodemsk@redhat.com>
+ <20230404134224.137038-4-ypodemsk@redhat.com> <ZC1Q7uX4rNLg3vEg@lothringen>
+ <ZC1XD/sEJY+zRujE@lothringen>
+ <20230405114148.GA351571@hirez.programming.kicks-ass.net>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20230405114148.GA351571@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Mar 30, 2023 at 07:24:32PM +0300, Andy Shevchenko wrote:
-> Refactor pci_bus_for_each_resource() in the same way as it's done in
-> pci_dev_for_each_resource() case. This will allow to hide iterator
-> inside the loop, where it's not used otherwise.
+On 05.04.23 13:41, Peter Zijlstra wrote:
+> On Wed, Apr 05, 2023 at 01:10:07PM +0200, Frederic Weisbecker wrote:
+>> On Wed, Apr 05, 2023 at 12:44:04PM +0200, Frederic Weisbecker wrote:
+>>> On Tue, Apr 04, 2023 at 04:42:24PM +0300, Yair Podemsky wrote:
+>>>> +	int state = atomic_read(&ct->state);
+>>>> +	/* will return true only for cpus in kernel space */
+>>>> +	return state & CT_STATE_MASK == CONTEXT_KERNEL;
+>>>> +}
+>>>
+>>> Also note that this doesn't stricly prevent userspace from being interrupted.
+>>> You may well observe the CPU in kernel but it may receive the IPI later after
+>>> switching to userspace.
+>>>
+>>> We could arrange for avoiding that with marking ct->state with a pending work bit
+>>> to flush upon user entry/exit but that's a bit more overhead so I first need to
+>>> know about your expectations here, ie: can you tolerate such an occasional
+>>> interruption or not?
+>>
+>> Bah, actually what can we do to prevent from that racy IPI? Not much I fear...
 > 
-> No functional changes intended.
+> Yeah, so I don't think that's actually a problem. The premise is that
+> *IFF* NOHZ_FULL stays in userspace, then it will never observe the IPI.
+> 
+> If it violates this by doing syscalls or other kernel entries; it gets
+> to keep the pieces.
 
-Bjorn, this has wrong author in your tree:
+Yair is currently on vacation, so I'm replying on his behalf.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git/commit/?h=resource&id=46dbad19a59e0dd8f1e7065e5281345797fbb365
-
-Or did I misinterpret something?
+Indeed, RT userspace is supposed to not call into the kernel, that's the 
+premise.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
 
+David / dhildenb
 
