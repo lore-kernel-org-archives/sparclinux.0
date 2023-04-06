@@ -2,67 +2,72 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61672C77B6C
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 19:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E233C76196
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 20:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238153AbjDFTvU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 15:51:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57706 "EHLO
+        id S239890AbjDFUgW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 16:36:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238116AbjDFTvT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 15:51:19 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE334FF;
-        Thu,  6 Apr 2023 12:51:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=Te8ZrH71Rk+Gkv4W+M2hqxOfa8vOSAIYY2ySlw7ZxRA=; b=mbLM1S1EHCt6l2whra0NF3U+Gb
-        1zyY1BAQVrety46BO3vbnVGK9V3iFWQRrKP3L2MDNFYjfQytqINWIsVD7vKcb2is/v9yFJ44NrWGB
-        mvTqgf1LpRKXVa5L087A0RKAjrVq0WP/YHfPIqJqjZKFon5O40uZpVgrvPdif/nWHiDevohmlkIio
-        pQu9uEmp69Q+W/Qw8Y5gyaPiCAhfe8KUKUl0nClHigarZtRYpA+ys2lI6UmeeYutqI7tC21v4vkc6
-        6uUwRkyF9YFPSY9B9Y1gDjNtvDAc78vHi1iWTm4WPJ7YDwbP5rV08TtVq/8CPP/Jv8nVQUOZ+eIZf
-        qdDdp3eQ==;
-Received: from [2601:1c2:980:9ec0::2764]
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pkVdZ-008R7T-2k;
-        Thu, 06 Apr 2023 19:51:13 +0000
-Message-ID: <743b5d56-91b1-0b39-44f2-d353a95d59a0@infradead.org>
-Date:   Thu, 6 Apr 2023 12:51:13 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.0
-Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
-Content-Language: en-US
+        with ESMTP id S240186AbjDFUgA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 16:36:00 -0400
+X-Greylist: delayed 3828 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 13:33:14 PDT
+Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33590A260
+        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 13:33:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=l8/6w9klaVvdwp2WTXDf2J1p95kDaCAQ65h0eknmbVc=;
+        b=rCSQ1WK8yn0jNOJRpqDzuIIvZlrRTbguNr7fODRef03Cb8ib689XUFyCFhWA4VUI/LWMZIG4EehPz
+         lBuJLCBe9F6Dv55trN1ow76zqsW0wknQfuhuiyJfzWqvE33d1N++8riH+FrRkY00oYP117gIeIqM4Z
+         uWe7PFmEr53NBwNHvceBQAwmQsycJLlXYW5SLv4eSc5Np2Ie+95aEKZJeuHaLz5BI65DdPDLOr7lex
+         qK0IUU4kdgEO7Jvq8P5jKQVr8ePqR54oMqBPj5o6JtRwyI4eghJOaR41eg5tWfAo7zPGYSka1Y2ioO
+         DbxYY/I+vaaVeJnWIvwemsP3+FxO/Sw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=l8/6w9klaVvdwp2WTXDf2J1p95kDaCAQ65h0eknmbVc=;
+        b=q9Lz+UdHCdnOHDwXE3ZhFiDI6u3IY3PaglloPegr138WLG2XG9Kn4PkExvzhkqabLyuJYHTziGoGh
+         hlfiZsLAA==
+X-HalOne-ID: 19321619-d4ba-11ed-9908-592bb1efe9dc
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay4 (Halon) with ESMTPSA
+        id 19321619-d4ba-11ed-9908-592bb1efe9dc;
+        Thu, 06 Apr 2023 20:32:09 +0000 (UTC)
+Date:   Thu, 6 Apr 2023 22:32:07 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
 To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     linux-kernel@vger.kernel.org,
+Cc:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org,
         Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
-        linux-parport@lists.infradead.org
+        sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
+Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
+Message-ID: <20230406203207.GA1534216@ravnborg.org>
 References: <20230406160548.25721-1-rdunlap@infradead.org>
  <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
-From:   Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Hi Maciej,
 
-
-On 4/6/23 12:49, Maciej W. Rozycki wrote:
+On Thu, Apr 06, 2023 at 08:49:50PM +0100, Maciej W. Rozycki wrote:
 > On Thu, 6 Apr 2023, Randy Dunlap wrote:
 > 
->> arch/sparc/kernel/ebus.o is only built for SPARC64.
->> ns87303_lock is only built for SPARC64.
->> arch/sparc/include/asm/parport.h says that it is for sparc64.
->> Various documentation on the internet says that ebus is for UltraSPARC
->> systems (64-bit).
->>
->> Therefore don't allow PARPORT_PC to be built for SPARC32.
+> > arch/sparc/kernel/ebus.o is only built for SPARC64.
+> > ns87303_lock is only built for SPARC64.
+> > arch/sparc/include/asm/parport.h says that it is for sparc64.
+> > Various documentation on the internet says that ebus is for UltraSPARC
+> > systems (64-bit).
+> > 
+> > Therefore don't allow PARPORT_PC to be built for SPARC32.
 > 
 >  This looks completely wrong to me, any ordinary PCI parallel port card 
 > ought just to work as long as you have PCI (S390 is special I'm told).  
@@ -78,7 +83,15 @@ On 4/6/23 12:49, Maciej W. Rozycki wrote:
 > or suchlike and let the optimiser get rid of all the unwanted unsupported 
 > stuff.
 
-Fine, please go ahead with that solution.
+arch/sparc/include/asm/parport.h is sparc64 specific - and it will
+result in the wrong result if it is pulled in for sparc32 builds.
+This is what we see today.
 
--- 
-~Randy
+Randy's suggestion is fine, as we avoid building parport support
+for sparc32. If someone shows up and need parport support
+for sparc32 then we could look into how to enable it.
+Until then, we are better helped avoiding building the driver.
+
+Hence, my ack on the patch from Randy.
+
+	Sam
