@@ -2,96 +2,77 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E233C76196
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 20:36:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C292C76196
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 21:01:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239890AbjDFUgW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 16:36:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37354 "EHLO
+        id S238906AbjDFVBz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 17:01:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240186AbjDFUgA (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 16:36:00 -0400
-X-Greylist: delayed 3828 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 13:33:14 PDT
-Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33590A260
-        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 13:33:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=l8/6w9klaVvdwp2WTXDf2J1p95kDaCAQ65h0eknmbVc=;
-        b=rCSQ1WK8yn0jNOJRpqDzuIIvZlrRTbguNr7fODRef03Cb8ib689XUFyCFhWA4VUI/LWMZIG4EehPz
-         lBuJLCBe9F6Dv55trN1ow76zqsW0wknQfuhuiyJfzWqvE33d1N++8riH+FrRkY00oYP117gIeIqM4Z
-         uWe7PFmEr53NBwNHvceBQAwmQsycJLlXYW5SLv4eSc5Np2Ie+95aEKZJeuHaLz5BI65DdPDLOr7lex
-         qK0IUU4kdgEO7Jvq8P5jKQVr8ePqR54oMqBPj5o6JtRwyI4eghJOaR41eg5tWfAo7zPGYSka1Y2ioO
-         DbxYY/I+vaaVeJnWIvwemsP3+FxO/Sw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=l8/6w9klaVvdwp2WTXDf2J1p95kDaCAQ65h0eknmbVc=;
-        b=q9Lz+UdHCdnOHDwXE3ZhFiDI6u3IY3PaglloPegr138WLG2XG9Kn4PkExvzhkqabLyuJYHTziGoGh
-         hlfiZsLAA==
-X-HalOne-ID: 19321619-d4ba-11ed-9908-592bb1efe9dc
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay4 (Halon) with ESMTPSA
-        id 19321619-d4ba-11ed-9908-592bb1efe9dc;
-        Thu, 06 Apr 2023 20:32:09 +0000 (UTC)
-Date:   Thu, 6 Apr 2023 22:32:07 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org,
+        with ESMTP id S239785AbjDFVBd (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 17:01:33 -0400
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 63079B766;
+        Thu,  6 Apr 2023 14:01:18 -0700 (PDT)
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+        id E20EB92009C; Thu,  6 Apr 2023 23:01:16 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by angie.orcam.me.uk (Postfix) with ESMTP id DB91C92009B;
+        Thu,  6 Apr 2023 22:01:16 +0100 (BST)
+Date:   Thu, 6 Apr 2023 22:01:16 +0100 (BST)
+From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
+To:     Sam Ravnborg <sam@ravnborg.org>
+cc:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org,
         Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
         sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
 Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
-Message-ID: <20230406203207.GA1534216@ravnborg.org>
-References: <20230406160548.25721-1-rdunlap@infradead.org>
- <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
+In-Reply-To: <20230406203207.GA1534216@ravnborg.org>
+Message-ID: <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk>
+References: <20230406160548.25721-1-rdunlap@infradead.org> <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk> <20230406203207.GA1534216@ravnborg.org>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Maciej,
+Hi Sam,
 
-On Thu, Apr 06, 2023 at 08:49:50PM +0100, Maciej W. Rozycki wrote:
-> On Thu, 6 Apr 2023, Randy Dunlap wrote:
-> 
-> > arch/sparc/kernel/ebus.o is only built for SPARC64.
-> > ns87303_lock is only built for SPARC64.
-> > arch/sparc/include/asm/parport.h says that it is for sparc64.
-> > Various documentation on the internet says that ebus is for UltraSPARC
-> > systems (64-bit).
+> >  This looks completely wrong to me, any ordinary PCI parallel port card 
+> > ought just to work as long as you have PCI (S390 is special I'm told).  
+> > What needs to be done is AFAICT just making `parport_pc_find_nonpci_ports' 
+> > in arch/sparc/include/asm/parport.h SPARC64-specific, i.e.:
 > > 
-> > Therefore don't allow PARPORT_PC to be built for SPARC32.
+> > static int parport_pc_find_nonpci_ports(int autoirq, int autodma)
+> > {
+> > 	return (IS_ENABLED(CONFIG_SPARC64) &&
+> > 		platform_driver_register(&ecpp_driver));
+> > }
+> > 
+> > or suchlike and let the optimiser get rid of all the unwanted unsupported 
+> > stuff.
 > 
->  This looks completely wrong to me, any ordinary PCI parallel port card 
-> ought just to work as long as you have PCI (S390 is special I'm told).  
-> What needs to be done is AFAICT just making `parport_pc_find_nonpci_ports' 
-> in arch/sparc/include/asm/parport.h SPARC64-specific, i.e.:
+> arch/sparc/include/asm/parport.h is sparc64 specific - and it will
+> result in the wrong result if it is pulled in for sparc32 builds.
+> This is what we see today.
 > 
-> static int parport_pc_find_nonpci_ports(int autoirq, int autodma)
-> {
-> 	return (IS_ENABLED(CONFIG_SPARC64) &&
-> 		platform_driver_register(&ecpp_driver));
-> }
-> 
-> or suchlike and let the optimiser get rid of all the unwanted unsupported 
-> stuff.
+> Randy's suggestion is fine, as we avoid building parport support
+> for sparc32. If someone shows up and need parport support
+> for sparc32 then we could look into how to enable it.
+> Until then, we are better helped avoiding building the driver.
 
-arch/sparc/include/asm/parport.h is sparc64 specific - and it will
-result in the wrong result if it is pulled in for sparc32 builds.
-This is what we see today.
+ I disagree.  Why artificially prevent perfectly good hardware from 
+working with a perfectly good driver especially as the fix is just a 
+trivial exercise?  And I offered a solution.
 
-Randy's suggestion is fine, as we avoid building parport support
-for sparc32. If someone shows up and need parport support
-for sparc32 then we could look into how to enable it.
-Until then, we are better helped avoiding building the driver.
+ I don't have a SPARC toolchain handy or I could even try and build it 
+(but I'm sure there are many people around who can do it without bending 
+backwards).
 
-Hence, my ack on the patch from Randy.
+ NB conversely we have plenty of useless irrelevant stuff presented in 
+configration even if it genuinely makes no sense and won't ever be used 
+for the given platform (e.g. some Intel CPU management stuff shown for 
+RISC-V or even DEC Alpha systems).
 
-	Sam
+  Maciej
