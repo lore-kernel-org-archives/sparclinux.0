@@ -2,100 +2,102 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C9CC77B6E
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 19:35:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F7C3C77B6E
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 19:44:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236625AbjDFTfU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 15:35:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36336 "EHLO
+        id S230001AbjDFTob (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 15:44:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236891AbjDFTfT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 15:35:19 -0400
-Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 886457695
-        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 12:35:16 -0700 (PDT)
-Received: (qmail 22331 invoked from network); 6 Apr 2023 19:08:40 -0000
-Received: from unknown ([2001:9e8:6dc6:3c00:76d4:35ff:feb7:be92]:48442 HELO eto.sf-tec.de) (auth=eike@sf-mail.de)
-        by mail.sf-mail.de (Qsmtpd 0.38dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
-        for <arnd@arndb.de>; Thu, 06 Apr 2023 21:08:40 +0200
-From:   Rolf Eike Beer <eike-kernel@sf-tec.de>
-To:     arnd@arndb.de, daniel.vetter@ffwll.ch, deller@gmx.de,
-        javierm@redhat.com, gregkh@linuxfoundation.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>
-Subject: Re: [PATCH 12/18] arch/parisc: Implement fb_is_primary_device() under arch/parisc
-Date:   Thu, 06 Apr 2023 21:08:33 +0200
-Message-ID: <5921681.lOV4Wx5bFT@eto.sf-tec.de>
-In-Reply-To: <20230405150554.30540-13-tzimmermann@suse.de>
-References: <20230405150554.30540-1-tzimmermann@suse.de> <20230405150554.30540-13-tzimmermann@suse.de>
+        with ESMTP id S230077AbjDFTo2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 15:44:28 -0400
+X-Greylist: delayed 964 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 12:44:27 PDT
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:401::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4601F4209
+        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 12:44:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=HLHJe/pcy2/bBEBBSRuFq11kLkFpNBIK96wm2MVUcKA=;
+        b=WkDEm+nZYCTKHcmsuRr1Ev/Zq0QLxhWsG+BAADCKHaWzspohoOgHwMRQCiw9+Jq2hgrcRmSOnMAKE
+         kGKVWhudMwa+YkkFa7kXA90IHqglxHV1sUTN3vCCeAYvtCK/bVrqbV9U1YW0o7MJ3S3ZGiC+QW7XuL
+         g1C6h2Ex6X2tTY5HWwRmNmfNrkN+V6MXAyz3IyMsaQ4pW0D5qbUVqiQ61Lx0S9LdYgLZmRB3MjIR2Y
+         UtGA6OC+2PHn0zmL94bhBT1qCOJxdgcnTHWOqIW7OLFF/LUnwAjGygJyLfgl42QHgT9srAqYqzqly0
+         lIam8dx2vS1gUcfxO9wFZErkjJb67xg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=HLHJe/pcy2/bBEBBSRuFq11kLkFpNBIK96wm2MVUcKA=;
+        b=kS1/agKGuYJ4mM8yrbEEvQpfNVQP43X0AA1Gg35LVlpmERN8oXNItjlUPCovILva3X+TpJ9jqiWHt
+         nXvVhLVAg==
+X-HalOne-ID: 2eef4e88-d4b1-11ed-82ab-13111ccb208d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay2 (Halon) with ESMTPSA
+        id 2eef4e88-d4b1-11ed-82ab-13111ccb208d;
+        Thu, 06 Apr 2023 19:28:21 +0000 (UTC)
+Date:   Thu, 6 Apr 2023 21:28:19 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        "Maciej W . Rozycki" <macro@orcam.me.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
+Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
+Message-ID: <20230406192819.GA1527307@ravnborg.org>
+References: <20230406160548.25721-1-rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart4819412.31r3eYUQgx"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230406160548.25721-1-rdunlap@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
---nextPart4819412.31r3eYUQgx
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"; protected-headers="v1"
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Date: Thu, 06 Apr 2023 21:08:33 +0200
-Message-ID: <5921681.lOV4Wx5bFT@eto.sf-tec.de>
-In-Reply-To: <20230405150554.30540-13-tzimmermann@suse.de>
-
-Am Mittwoch, 5. April 2023, 17:05:48 CEST schrieb Thomas Zimmermann:
-> Move PARISC's implementation of fb_is_primary_device() into the
-> architecture directory. This the place of the declaration and
-> where other architectures implement this function. No functional
-> changes.
-
-> diff --git a/arch/parisc/video/fbdev.c b/arch/parisc/video/fbdev.c
-> new file mode 100644
-> index 000000000000..4a0ae08fc75b
-> --- /dev/null
-> +++ b/arch/parisc/video/fbdev.c
-> @@ -0,0 +1,27 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>
-> + * Copyright (C) 2001-2020 Helge Deller <deller@gmx.de>
-> + * Copyright (C) 2001-2002 Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> + */
-> +
-> +#include <linux/module.h>
-> +
-> +#include <asm/fb.h>
-> +
-> +#include <video/sticore.h>
-> +
-> +int fb_is_primary_device(struct fb_info *info)
-> +{
-
-Looking at this makes me wonder why the argument to all of these functions 
-isn't const? Not your fault, but could be a candidate for patch #19?
-
-Eike
---nextPart4819412.31r3eYUQgx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCZC8YsQAKCRBcpIk+abn8
-TroxAKCInC1+nDFT2zUZ2BABKO6rWJJXygCfXz1dtt8vvCEpTBZxHF+hSbDdIVk=
-=5z1v
------END PGP SIGNATURE-----
-
---nextPart4819412.31r3eYUQgx--
-
-
-
+On Thu, Apr 06, 2023 at 09:05:48AM -0700, Randy Dunlap wrote:
+> arch/sparc/kernel/ebus.o is only built for SPARC64.
+> ns87303_lock is only built for SPARC64.
+> arch/sparc/include/asm/parport.h says that it is for sparc64.
+> Various documentation on the internet says that ebus is for UltraSPARC
+> systems (64-bit).
+> 
+> Therefore don't allow PARPORT_PC to be built for SPARC32.
+> 
+> Fixes these build errors on SPARC32:
+> 
+> ERROR: modpost: "ebus_dma_irq_enable" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_unregister" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_register" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ns87303_lock" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_enable" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_prepare" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_request" [drivers/parport/parport_pc.ko] undefined!
+> ERROR: modpost: "ebus_dma_residue" [drivers/parport/parport_pc.ko] undefined!
+> 
+> Fixes: 66bcd06099bb ("parport_pc: Also enable driver for PCI systems")
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+> Cc: Maciej W. Rozycki <macro@orcam.me.uk>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+> Cc: Sam Ravnborg <sam@ravnborg.org>
+> Cc: linux-parport@lists.infradead.org
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> ---
+>  drivers/parport/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -- a/drivers/parport/Kconfig b/drivers/parport/Kconfig
+> --- a/drivers/parport/Kconfig
+> +++ b/drivers/parport/Kconfig
+> @@ -42,7 +42,7 @@ if PARPORT
+>  
+>  config PARPORT_PC
+>  	tristate "PC-style hardware"
+> -	depends on ARCH_MIGHT_HAVE_PC_PARPORT || (PCI && !S390)
+> +	depends on ARCH_MIGHT_HAVE_PC_PARPORT || (PCI && !S390 && !SPARC32)
+>  	help
+>  	  You should say Y here if you have a PC-style parallel port. All
+>  	  IBM PC compatible computers and some Alphas have PC-style
