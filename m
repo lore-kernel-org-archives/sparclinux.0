@@ -2,146 +2,108 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D44C7618D
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 14:44:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A01DEC7618D
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 14:52:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239259AbjDFOoK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 10:44:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42522 "EHLO
+        id S239527AbjDFOvn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 10:51:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239401AbjDFOnw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 10:43:52 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFBF69EF8
-        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 07:42:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680792135;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=gj/7YiiNEEJ4+hsVKCJkj1HvadHLyL0uUxvEtZRASmc=;
-        b=fRPD32Ib4dWLXPDgeGO3qeun6Bkf98jXfrPnhdW0GJ9H8SqeAXLs1gbEwjR+0GpbzECyFj
-        fwBLC1fG8/Oqtunb+qPiRLy7xlZJVafR1vYov23ClFCiSEuVTInJ3npPK3YBAGNWUJubx7
-        KXe9r2J4TMuAAV8+vo53wZHtTeNGQa8=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-155--gvolsEIOpq8iEMoJO1bmw-1; Thu, 06 Apr 2023 10:42:07 -0400
-X-MC-Unique: -gvolsEIOpq8iEMoJO1bmw-1
-Received: by mail-wm1-f69.google.com with SMTP id bh18-20020a05600c3d1200b003f05a99b571so4102039wmb.8
-        for <sparclinux@vger.kernel.org>; Thu, 06 Apr 2023 07:42:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680792126; x=1683384126;
-        h=content-transfer-encoding:in-reply-to:subject:organization:from
-         :references:cc:to:content-language:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=gj/7YiiNEEJ4+hsVKCJkj1HvadHLyL0uUxvEtZRASmc=;
-        b=w6oUFL+IBJtXffA0g2L9lmBCtsKpMe+5vyzW1M1cw6nsjStK0RVKAe845IaKBVb3Rr
-         rDnvKw3+etz0CsGZQc0f8S08FcRWI2XgXPcMjlRpcv34iVc+LVsjHxx+Ar73HDZAq6V+
-         vzc/PGFiU2jaqe9JeoiTsspLq/Pw0Wd6HHyyXeB/KFj7AQq8w90zlJTSdJK2wekcf/bo
-         VwnEwwxXW45v7XCLyXKEF07DHIAukmLnUs6oGvZgQaUPqvLwKCCVP2cerOsEIF8i3HI3
-         VvXgXY0NWxjkmc6Hif4Bu/mfxie65LJHjqx0zg9dJ8RNGs4/lQj0OjOnypz4jzmHCHIf
-         BtZg==
-X-Gm-Message-State: AAQBX9e6q+94PwqFi8v3TCM6UwarmIoPWeukzHiTEnycIsdOrcylKbcC
-        F3FRdXqXAMqWpMPAivVLdAg651QIAGjIdnIrhZpNsRVLOxp0vOacw16PtX4U96neGtnvdAF3xr6
-        HHEgU8d7XlA+dTN0DUg+K5g==
-X-Received: by 2002:adf:edd1:0:b0:2cf:e436:f722 with SMTP id v17-20020adfedd1000000b002cfe436f722mr7362239wro.64.1680792125937;
-        Thu, 06 Apr 2023 07:42:05 -0700 (PDT)
-X-Google-Smtp-Source: AKy350aYtbTmofQf/bI+zulYGKU6rzEaLaSQD1iMgTDT9wELk7OW8105qv2TVrk0E+k02OOZTiYupA==
-X-Received: by 2002:adf:edd1:0:b0:2cf:e436:f722 with SMTP id v17-20020adfedd1000000b002cfe436f722mr7362204wro.64.1680792125568;
-        Thu, 06 Apr 2023 07:42:05 -0700 (PDT)
-Received: from ?IPV6:2a09:80c0:192:0:5dac:bf3d:c41:c3e7? ([2a09:80c0:192:0:5dac:bf3d:c41:c3e7])
-        by smtp.gmail.com with ESMTPSA id m8-20020adffe48000000b002c55521903bsm1942945wrs.51.2023.04.06.07.42.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 06 Apr 2023 07:42:04 -0700 (PDT)
-Message-ID: <1654e2d5-5a32-a253-e335-0ee42f69f5ef@redhat.com>
-Date:   Thu, 6 Apr 2023 16:42:02 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Content-Language: en-US
-To:     Peter Zijlstra <peterz@infradead.org>,
-        Marcelo Tosatti <mtosatti@redhat.com>
-Cc:     Frederic Weisbecker <frederic@kernel.org>,
-        Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
-        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
-        ardb@kernel.org, juerg.haefliger@canonical.com,
-        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
-        tony@atomide.com, linus.walleij@linaro.org,
-        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, vschneid@redhat.com, dhildenb@redhat.com,
-        alougovs@redhat.com, jannh@google.com
-References: <20230404134224.137038-1-ypodemsk@redhat.com>
- <20230404134224.137038-4-ypodemsk@redhat.com> <ZC1Q7uX4rNLg3vEg@lothringen>
- <ZC1XD/sEJY+zRujE@lothringen> <ZC3P3Ds/BIcpRNGr@tpad>
- <20230405195226.GB365912@hirez.programming.kicks-ass.net>
- <ZC69Wmqjdwk+I8kn@tpad>
- <20230406132928.GM386572@hirez.programming.kicks-ass.net>
- <20230406140423.GA386634@hirez.programming.kicks-ass.net>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
- only to CPUs in kernel mode
-In-Reply-To: <20230406140423.GA386634@hirez.programming.kicks-ass.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S229764AbjDFOv1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 10:51:27 -0400
+X-Greylist: delayed 349 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 07:50:51 PDT
+Received: from wnew3-smtp.messagingengine.com (wnew3-smtp.messagingengine.com [64.147.123.17])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99956AD3C;
+        Thu,  6 Apr 2023 07:50:51 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailnew.west.internal (Postfix) with ESMTP id 888492B06973;
+        Thu,  6 Apr 2023 10:44:17 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Thu, 06 Apr 2023 10:44:19 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1680792257; x=1680799457; bh=Va
+        G4DIeiqknCp5VUw5TWbqr8Q6Xy/qs0760D+gB2/CE=; b=EWWMukw3BXb4Q/h2C/
+        YS7dzTsU0Ar5/xROCa1/7bm3aePP1XNH9H2e8o71Ztok9LPbZQQCzO/hHG6ZPM1p
+        GoCeoL832i+xKeNkS0KXU8c0WXOWNUN02App/G+QHK5CjSeDsvT54IC+UKLq5y0W
+        7Bj0u+pXCcYRPzXBsUqe5DlmO1VzXH5ZTLEgPjdccmXA/6z2kb2GzEFUrIuyZoJL
+        JE205jnLgaiETXL15uw4jCFU3tP+QRZn/8HvPxiftfXcO7a3UgEoiBimB5zsyODA
+        rh1xpm67rsR3MA5GCAtJVR1sPuC6xq0Wqfo86Rjl+6m1rQKEicJ8/hOQkK2gfgKs
+        SXRQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; t=1680792257; x=1680799457; bh=VaG4DIeiqknCp
+        5VUw5TWbqr8Q6Xy/qs0760D+gB2/CE=; b=rUv6i+tWNj90SnYvslS0D9SQvYEia
+        hbth2DWbO6XoNOCPL0tQo0K5pGEzOxLlpTdzm9k/1tZklpQW57yikfYIpTuH0Oen
+        FpzdiO+ssCVt7O1z6Q5P4IqYIp15PFvYkqBOqnKQnnSdL+YWBrv3O/8kPg6TB3Ty
+        nP4AQs+RY8jkA8BD2EQMS9JAiQfaha8PDirIUX5DMjBpFPvO43av/mIe+ypzD/Mq
+        rQI6lRY09fj7bETJ5kpUkImmWeeGn82AK+9+PegtKb4qJiuKwD1VSSkpLgKQq5Je
+        QuhTYv5sbksq2vqZt7Ajex2obQmTZjZX/Zb5y96hPatPiMCd+y2OEMZZg==
+X-ME-Sender: <xms:wNouZNHPa0TYmwB2r--5RtnOLRPAja0qtAEYACVjkTGVAgZvDkZu9w>
+    <xme:wNouZCVePxlYaemLqrpfpWGxVOOM4y1dgc5cEsXgXvS0KUHqiJTJHrD2ayxERgDtu
+    LARQW9FlguB3_hH47w>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvdejfedgjeejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:wdouZPKrDIYPd5_lNpIWwD1dm3PopYDH_mzSp_r4l6k3ItjXO9cK3g>
+    <xmx:wdouZDEO3BmqQX8s9GpXZv_fvUkhsmGasqLZB0SmcMu_589oaCj0Kg>
+    <xmx:wdouZDXV4YbtggYa_LRgP3NzenKzP1-bmca0EJqhagkOthPGPz6iNg>
+    <xmx:wdouZKMF_xP1FnBqI73ZlUYXbIcQL6US9hEkrDdfk3w-HL8Jt1308E982bM>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id E83EBB60093; Thu,  6 Apr 2023 10:44:16 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-334-g8c072af647-fm-20230330.001-g8c072af6
+Mime-Version: 1.0
+Message-Id: <27c1210f-4e40-4bbc-905b-155427465e00@app.fastmail.com>
+In-Reply-To: <20230406143019.6709-3-tzimmermann@suse.de>
+References: <20230406143019.6709-1-tzimmermann@suse.de>
+ <20230406143019.6709-3-tzimmermann@suse.de>
+Date:   Thu, 06 Apr 2023 16:43:56 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
+        "Daniel Vetter" <daniel.vetter@ffwll.ch>,
+        "Helge Deller" <deller@gmx.de>,
+        "Javier Martinez Canillas" <javierm@redhat.com>,
+        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>
+Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, x86@kernel.org,
+        "Vineet Gupta" <vgupta@kernel.org>
+Subject: Re: [PATCH v2 02/19] arch/arc: Implement <asm/fb.h> with generic helpers
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 06.04.23 16:04, Peter Zijlstra wrote:
-> On Thu, Apr 06, 2023 at 03:29:28PM +0200, Peter Zijlstra wrote:
->> On Thu, Apr 06, 2023 at 09:38:50AM -0300, Marcelo Tosatti wrote:
->>
->>>> To actually hit this path you're doing something really dodgy.
->>>
->>> Apparently khugepaged is using the same infrastructure:
->>>
->>> $ grep tlb_remove_table khugepaged.c
->>> 	tlb_remove_table_sync_one();
->>> 	tlb_remove_table_sync_one();
->>>
->>> So just enabling khugepaged will hit that path.
->>
->> Urgh, WTF..
->>
->> Let me go read that stuff :/
-> 
-> At the very least the one on collapse_and_free_pmd() could easily become
-> a call_rcu() based free.
-> 
-> I'm not sure I'm following what collapse_huge_page() does just yet.
+On Thu, Apr 6, 2023, at 16:30, Thomas Zimmermann wrote:
+> +
+>  static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
+>  				unsigned long off)
+>  {
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>  }
+> +#define fb_pgprotect fb_pgprotect
 
-It wants to replace a leaf page table by a THP (Transparent Huge Page 
-mapped by a PMD). So we want to rip out a leaf page table while other 
-code (GUP-fast) might still be walking it. In contrast to freeing the 
-page table, we put it into a list where it can be reuse when having to 
-PTE-map a THP again.
+I still feel that for architectures like arc that don't have
+pgprot_writecombine(), it would b best to go with the
+generic implementation that currently behaves the exact
+same way. If pgprot_writecombine() gets added in the future,
+it would cause the architecture to behave as expected rather
+than introducing the same bug that mips has.
 
-Now, similar to after freeing the page table, someone else could reuse 
-that page table and modify it.
-
-If we have GUP-fast walking the page table while that is happening, 
-we're in trouble. So we have to make sure GUP-fast is done before 
-enqueuing the now-free page table.
-
-That's why the tlb_remove_table_sync_one() was recently added (by Jann 
-IIRC).
-
--- 
-Thanks,
-
-David / dhildenb
-
+      Arnd
