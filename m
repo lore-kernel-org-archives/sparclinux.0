@@ -2,118 +2,75 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7537EC76196
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 18:28:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DA21C77B73
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 19:34:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239619AbjDFS2x (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 14:28:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46412 "EHLO
+        id S236708AbjDFTeA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 15:34:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229674AbjDFS2w (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 14:28:52 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 451D759FA;
-        Thu,  6 Apr 2023 11:28:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=krRR1rbNljM3A0v7Or9ollBea6RqbuAL/TrS9ntMbko=; b=HYwyP5557eX2aBI0hUlezid1GH
-        5hoyG1Aj5dHjNeznaZOFr7Cy51rbii3Y5i3cE2woInFfeI8EAPtppz3o99BPe2GIduN6vXv6uyaw7
-        R9cuTob59q/BPrQnGdBywtK77Stl8OJJpBnvpSy/YFDL7vPiYkNIMiGQPDEidGAvoA4jROBnBdVah
-        jOoSwHyGjI0QMaTrXlud204St1NXsF+ujX5WasSumcwLZCeKMORJsJy5xkcpHYXjSOgsSKV186/O/
-        cA0kt/u7rjhL3oPljvBtkfjk5sjNe9coia8oht3RGaO73x29c2Bi67dc2zk8arCu3QV+LNr4pLHNl
-        VKwPG5qQ==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pkUKx-00Ad17-2X;
-        Thu, 06 Apr 2023 18:27:55 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id BDA6530008D;
-        Thu,  6 Apr 2023 20:27:49 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id A5453212E36AA; Thu,  6 Apr 2023 20:27:49 +0200 (CEST)
-Date:   Thu, 6 Apr 2023 20:27:49 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Marcelo Tosatti <mtosatti@redhat.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
-        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
-        ardb@kernel.org, juerg.haefliger@canonical.com,
-        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
-        tony@atomide.com, linus.walleij@linaro.org,
-        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, vschneid@redhat.com, dhildenb@redhat.com,
-        alougovs@redhat.com, jannh@google.com,
-        Yang Shi <shy828301@gmail.com>
-Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
- only to CPUs in kernel mode
-Message-ID: <20230406182749.GA405948@hirez.programming.kicks-ass.net>
-References: <20230404134224.137038-4-ypodemsk@redhat.com>
- <ZC1Q7uX4rNLg3vEg@lothringen>
- <ZC1XD/sEJY+zRujE@lothringen>
- <ZC3P3Ds/BIcpRNGr@tpad>
- <20230405195226.GB365912@hirez.programming.kicks-ass.net>
- <ZC69Wmqjdwk+I8kn@tpad>
- <20230406132928.GM386572@hirez.programming.kicks-ass.net>
- <20230406140423.GA386634@hirez.programming.kicks-ass.net>
- <20230406150213.GQ386572@hirez.programming.kicks-ass.net>
- <248392c0-52d1-d09d-75ec-9e930435c053@redhat.com>
+        with ESMTP id S236739AbjDFTd6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 15:33:58 -0400
+X-Greylist: delayed 1601 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 12:33:53 PDT
+Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A697D6E82
+        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 12:33:52 -0700 (PDT)
+Received: (qmail 22137 invoked from network); 6 Apr 2023 19:07:16 -0000
+Received: from unknown ([2001:9e8:6dc6:3c00:76d4:35ff:feb7:be92]:59950 HELO eto.sf-tec.de) (auth=eike@sf-mail.de)
+        by mail.sf-mail.de (Qsmtpd 0.38dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
+        for <arnd@arndb.de>; Thu, 06 Apr 2023 21:07:16 +0200
+From:   Rolf Eike Beer <eike-kernel@sf-tec.de>
+To:     arnd@arndb.de, daniel.vetter@ffwll.ch, deller@gmx.de,
+        javierm@redhat.com, gregkh@linuxfoundation.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, x86@kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: Re: [PATCH 00/18] arch: Consolidate <asm/fb.h>
+Date:   Thu, 06 Apr 2023 21:06:57 +0200
+Message-ID: <2675533.mvXUDI8C0e@eto.sf-tec.de>
+In-Reply-To: <20230405150554.30540-1-tzimmermann@suse.de>
+References: <20230405150554.30540-1-tzimmermann@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <248392c0-52d1-d09d-75ec-9e930435c053@redhat.com>
+Content-Type: multipart/signed; boundary="nextPart12183111.O9o76ZdvQC"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Apr 06, 2023 at 05:51:52PM +0200, David Hildenbrand wrote:
-> On 06.04.23 17:02, Peter Zijlstra wrote:
+--nextPart12183111.O9o76ZdvQC
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"; protected-headers="v1"
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: Re: [PATCH 00/18] arch: Consolidate <asm/fb.h>
+Date: Thu, 06 Apr 2023 21:06:57 +0200
+Message-ID: <2675533.mvXUDI8C0e@eto.sf-tec.de>
+In-Reply-To: <20230405150554.30540-1-tzimmermann@suse.de>
+References: <20230405150554.30540-1-tzimmermann@suse.de>
 
-> > DavidH, what do you thikn about reviving Jann's patches here:
-> > 
-> >    https://bugs.chromium.org/p/project-zero/issues/detail?id=2365#c1
-> > 
-> > Those are far more invasive, but afaict they seem to do the right thing.
-> > 
-> 
-> I recall seeing those while discussed on security@kernel.org. What we
-> currently have was (IMHO for good reasons) deemed better to fix the issue,
-> especially when caring about backports and getting it right.
+Am Mittwoch, 5. April 2023, 17:05:36 CEST schrieb Thomas Zimmermann:
+> Various architectures provide <arm/fb.h> with helpers for fbdev
+                                  ^ *lol*
 
-Yes, and I think that was the right call. However, we can now revisit
-without having the pressure of a known defect and backport
-considerations.
+Eike
+--nextPart12183111.O9o76ZdvQC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-> The alternative that was discussed in that context IIRC was to simply
-> allocate a fresh page table, place the fresh page table into the list
-> instead, and simply free the old page table (then using common machinery).
-> 
-> TBH, I'd wish (and recently raised) that we could just stop wasting memory
-> on page tables for THPs that are maybe never going to get PTE-mapped ... and
-> eventually just allocate on demand (with some caching?) and handle the
-> places where we're OOM and cannot PTE-map a THP in some descend way.
-> 
-> ... instead of trying to figure out how to deal with these page tables we
-> cannot free but have to special-case simply because of GUP-fast.
+-----BEGIN PGP SIGNATURE-----
 
-Not keeping them around sounds good to me, but I'm not *that* familiar
-with the THP code, most of that happened after I stopped tracking mm. So
-I'm not sure how feasible is it.
+iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCZC8YUQAKCRBcpIk+abn8
+Tg14AJ9zd7fmAHjabsNv4XQ0wrtRdP3wSACcCiALyhR78u5AwNndFsBEhTvFQg8=
+=2czj
+-----END PGP SIGNATURE-----
 
-But it does look entirely feasible to rework this page-table freeing
-along the lines Jann did.
+--nextPart12183111.O9o76ZdvQC--
+
+
+
