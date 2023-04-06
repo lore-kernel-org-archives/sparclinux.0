@@ -2,131 +2,116 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D76B3C77B6E
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 10:31:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50C62C7618D
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Apr 2023 13:17:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237111AbjDFKbl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Apr 2023 06:31:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59074 "EHLO
+        id S237615AbjDFNRr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Apr 2023 09:17:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237167AbjDFKbc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 06:31:32 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8DBC1BC1;
-        Thu,  6 Apr 2023 03:31:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1680777085; x=1712313085;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=3ceVcmjc6Ptm9PzaLBlyJdk3QXqcq40nfjFwb4WczVs=;
-  b=kOgwiJmMD8Ijg1BxIDiKzJGlnfh06c4u/a+t6pG62SWIfHGF43vwVcn1
-   l6kS+CWjI97tH1JSPZkOsacTF0JAUvep3W1ya7BUNjaWtSu7hvUBsFwJz
-   BlQ2tzA8zaxvzXb1oiwO6NBUu4WDqTE/TetiEy6DMDrGtz8beNGL74wJD
-   dCyJbcd2nE9qI2kCe1NPga9pgkYVvDi8lCXHSDtjgFmEp3jJFueV16xhT
-   SBGxffan6xHWIQQumEr51X4IvgROVSWHITRTO8w1ZsICins7XqX5z2WvK
-   xY5dytToTv+c5r1i6cuzWbUECnfKoYXigdPJ/pjWqzQorPBjnWriHCQw7
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10671"; a="341435058"
-X-IronPort-AV: E=Sophos;i="5.98,323,1673942400"; 
-   d="scan'208";a="341435058"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2023 03:31:23 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10671"; a="719666156"
-X-IronPort-AV: E=Sophos;i="5.98,323,1673942400"; 
-   d="scan'208";a="719666156"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga001.jf.intel.com with ESMTP; 06 Apr 2023 03:31:12 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pkMtX-00DJOA-0t;
-        Thu, 06 Apr 2023 13:31:07 +0300
-Date:   Thu, 6 Apr 2023 13:31:07 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Juergen Gross <jgross@suse.com>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Anatolij Gustschin <agust@denx.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
- users
-Message-ID: <ZC6fa1vJGOOI7t8a@smile.fi.intel.com>
-References: <ZC0xK4YJrKga7akk@smile.fi.intel.com>
- <20230405201832.GA3638070@bhelgaas>
+        with ESMTP id S237343AbjDFNRq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Apr 2023 09:17:46 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82F3D728C
+        for <sparclinux@vger.kernel.org>; Thu,  6 Apr 2023 06:17:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680787020;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=LyLWq4qOx1xU0bxV6bHK7gb5g8imneWyvQWEYXMsdJw=;
+        b=DOhIqZWh4H53dA0y+MqNq4w8Vi6Xtw8aP/GG3GHEyn2n+iYi1smc55qIkRPRwqR6WsdbdO
+        graA8ERqA49F0PGWIgmue7oi8SybEluj1vO/c4gxlVzNyLrTepc9/YiNV8uTlo5af/IiJo
+        8HCJb5DeWpAR6BKoNOIhfK6IMvL5pww=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-612-LTw34yIZO-qtviR3tWXTcA-1; Thu, 06 Apr 2023 09:16:57 -0400
+X-MC-Unique: LTw34yIZO-qtviR3tWXTcA-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2EF4B857F81;
+        Thu,  6 Apr 2023 13:16:55 +0000 (UTC)
+Received: from tpad.localdomain (ovpn-112-2.gru2.redhat.com [10.97.112.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 86155C1602C;
+        Thu,  6 Apr 2023 13:16:54 +0000 (UTC)
+Received: by tpad.localdomain (Postfix, from userid 1000)
+        id 8BB9E41306EC9; Thu,  6 Apr 2023 09:38:50 -0300 (-03)
+Date:   Thu, 6 Apr 2023 09:38:50 -0300
+From:   Marcelo Tosatti <mtosatti@redhat.com>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Frederic Weisbecker <frederic@kernel.org>,
+        Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
+        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
+        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
+        ardb@kernel.org, juerg.haefliger@canonical.com,
+        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        tony@atomide.com, linus.walleij@linaro.org,
+        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, vschneid@redhat.com, dhildenb@redhat.com,
+        alougovs@redhat.com
+Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
+ only to CPUs in kernel mode
+Message-ID: <ZC69Wmqjdwk+I8kn@tpad>
+References: <20230404134224.137038-1-ypodemsk@redhat.com>
+ <20230404134224.137038-4-ypodemsk@redhat.com>
+ <ZC1Q7uX4rNLg3vEg@lothringen>
+ <ZC1XD/sEJY+zRujE@lothringen>
+ <ZC3P3Ds/BIcpRNGr@tpad>
+ <20230405195226.GB365912@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230405201832.GA3638070@bhelgaas>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20230405195226.GB365912@hirez.programming.kicks-ass.net>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.8
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Apr 05, 2023 at 03:18:32PM -0500, Bjorn Helgaas wrote:
-> On Wed, Apr 05, 2023 at 11:28:27AM +0300, Andy Shevchenko wrote:
-> > On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
-> > > On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
-
-...
-
-> > > I omitted
+On Wed, Apr 05, 2023 at 09:52:26PM +0200, Peter Zijlstra wrote:
+> On Wed, Apr 05, 2023 at 04:45:32PM -0300, Marcelo Tosatti wrote:
+> > On Wed, Apr 05, 2023 at 01:10:07PM +0200, Frederic Weisbecker wrote:
+> > > On Wed, Apr 05, 2023 at 12:44:04PM +0200, Frederic Weisbecker wrote:
+> > > > On Tue, Apr 04, 2023 at 04:42:24PM +0300, Yair Podemsky wrote:
+> > > > > +	int state = atomic_read(&ct->state);
+> > > > > +	/* will return true only for cpus in kernel space */
+> > > > > +	return state & CT_STATE_MASK == CONTEXT_KERNEL;
+> > > > > +}
+> > > > 
+> > > > Also note that this doesn't stricly prevent userspace from being interrupted.
+> > > > You may well observe the CPU in kernel but it may receive the IPI later after
+> > > > switching to userspace.
+> > > > 
+> > > > We could arrange for avoiding that with marking ct->state with a pending work bit
+> > > > to flush upon user entry/exit but that's a bit more overhead so I first need to
+> > > > know about your expectations here, ie: can you tolerate such an occasional
+> > > > interruption or not?
 > > > 
-> > >   [1/7] kernel.h: Split out COUNT_ARGS() and CONCATENATE()"
-> > > 
-> > > only because it's not essential to this series and has only a trivial
-> > > one-line impact on include/linux/pci.h.
+> > > Bah, actually what can we do to prevent from that racy IPI? Not much I fear...
 > > 
-> > I'm not sure I understood what exactly "essentiality" means to you, but
-> > I included that because it makes the split which can be used later by
-> > others and not including kernel.h in the header is the objective I want
-> > to achieve. Without this patch the achievement is going to be deferred.
-> > Yet, this, as you have noticed, allows to compile and use the macros in
-> > the rest of the patches.
+> > Use a different mechanism other than an IPI to ensure in progress
+> > __get_free_pages_fast() has finished execution.
+> > 
+> > Isnt this codepath slow path enough that it can use
+> > synchronize_rcu_expedited?
 > 
-> I haven't followed the kernel.h splitting, and I try to avoid
-> incidental changes outside of the files I maintain, so I just wanted
-> to keep this series purely PCI and avoid any possible objections to a
-> new include file or discussion about how it should be done.
+> To actually hit this path you're doing something really dodgy.
 
-Okay, fair enough :-) Thank you for elaboration, I will send the new version of
-patch 7 separately.
+Apparently khugepaged is using the same infrastructure:
 
--- 
-With Best Regards,
-Andy Shevchenko
+$ grep tlb_remove_table khugepaged.c 
+	tlb_remove_table_sync_one();
+	tlb_remove_table_sync_one();
 
+So just enabling khugepaged will hit that path.
 
