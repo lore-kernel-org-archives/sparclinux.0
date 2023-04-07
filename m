@@ -2,104 +2,91 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20BE4C76196
-	for <sparclinux@archiver.kernel.org>; Fri,  7 Apr 2023 20:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D688C6FD1D
+	for <sparclinux@archiver.kernel.org>; Fri,  7 Apr 2023 21:01:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229643AbjDGUEW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 Apr 2023 16:04:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56900 "EHLO
+        id S230321AbjDGVBx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Apr 2023 17:01:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229516AbjDGUEV (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Apr 2023 16:04:21 -0400
-Received: from mailrelay6-1.pub.mailoutpod2-cph3.one.com (mailrelay6-1.pub.mailoutpod2-cph3.one.com [46.30.211.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58ECB55AA
-        for <sparclinux@vger.kernel.org>; Fri,  7 Apr 2023 13:04:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=GEymfcvEr6OpW+7lKXhrHlUO1pzbFCdBUiRSiKDq8VQ=;
-        b=H0N7zkuxx2RDmVnvXmobY05mWcW+DwZy4b4+y5SPtPtxfj8FG0kP4kMB/8Xvh6ZXqjei4UtRUoi1V
-         Uuewr0RF1TtUgbh5D928JwGKjl3yJdfrmPIkUyIZ5iOFHfiABM10pSBysO3q0Prtemze8lSKTZw1ad
-         Ip6IR/SMCt2qcx9TOS1WPKI/HTYaH9jf9ocF25HfRo55i7h2VjKMJUfMAAdz0DjxtClwQG+mz3UnHx
-         5a87Qh21Axk3qLv4t6MD51Fbw9/arg2GHbDHrGzqKFoCtqLqJS4Y/DiFNZyCrM+v5aXmpzi73y0SZ3
-         S1MK8mUV9nZu8iXk8e1+/ZP7HtEnBhg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=GEymfcvEr6OpW+7lKXhrHlUO1pzbFCdBUiRSiKDq8VQ=;
-        b=x1VIxsS5nyFNRbZpIjO3XfW4Keny72Xht9u/iprZ39y6B+yz2HBVtgywuql2eHtRFzQ0dndifV92s
-         6jyOAEECg==
-X-HalOne-ID: 3a49eb0a-d57f-11ed-9360-6f01c1d0a443
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay6 (Halon) with ESMTPSA
-        id 3a49eb0a-d57f-11ed-9360-6f01c1d0a443;
-        Fri, 07 Apr 2023 20:03:14 +0000 (UTC)
-Date:   Fri, 7 Apr 2023 22:03:13 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org,
+        with ESMTP id S231366AbjDGVBu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Apr 2023 17:01:50 -0400
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CFEA283FB;
+        Fri,  7 Apr 2023 14:01:40 -0700 (PDT)
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+        id B238E92009C; Fri,  7 Apr 2023 23:01:38 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by angie.orcam.me.uk (Postfix) with ESMTP id AB65592009B;
+        Fri,  7 Apr 2023 22:01:38 +0100 (BST)
+Date:   Fri, 7 Apr 2023 22:01:38 +0100 (BST)
+From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
+To:     Sam Ravnborg <sam@ravnborg.org>
+cc:     Niklas Schnelle <schnelle@linux.ibm.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-kernel@vger.kernel.org,
         Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
         sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
 Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
-Message-ID: <20230407200313.GA1655046@ravnborg.org>
-References: <20230406160548.25721-1-rdunlap@infradead.org>
- <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
- <20230406203207.GA1534216@ravnborg.org>
- <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk>
+In-Reply-To: <20230407200313.GA1655046@ravnborg.org>
+Message-ID: <alpine.DEB.2.21.2304072142290.62619@angie.orcam.me.uk>
+References: <20230406160548.25721-1-rdunlap@infradead.org> <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk> <20230406203207.GA1534216@ravnborg.org> <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk> <20230407200313.GA1655046@ravnborg.org>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Maciej,
+On Fri, 7 Apr 2023, Sam Ravnborg wrote:
 
-On Thu, Apr 06, 2023 at 10:01:16PM +0100, Maciej W. Rozycki wrote:
-> Hi Sam,
-> 
-> > >  This looks completely wrong to me, any ordinary PCI parallel port card 
-> > > ought just to work as long as you have PCI (S390 is special I'm told).  
-> > > What needs to be done is AFAICT just making `parport_pc_find_nonpci_ports' 
-> > > in arch/sparc/include/asm/parport.h SPARC64-specific, i.e.:
-> > > 
-> > > static int parport_pc_find_nonpci_ports(int autoirq, int autodma)
-> > > {
-> > > 	return (IS_ENABLED(CONFIG_SPARC64) &&
-> > > 		platform_driver_register(&ecpp_driver));
-> > > }
-> > > 
-> > > or suchlike and let the optimiser get rid of all the unwanted unsupported 
-> > > stuff.
+> > > Randy's suggestion is fine, as we avoid building parport support
+> > > for sparc32. If someone shows up and need parport support
+> > > for sparc32 then we could look into how to enable it.
+> > > Until then, we are better helped avoiding building the driver.
 > > 
-> > arch/sparc/include/asm/parport.h is sparc64 specific - and it will
-> > result in the wrong result if it is pulled in for sparc32 builds.
-> > This is what we see today.
-> > 
-> > Randy's suggestion is fine, as we avoid building parport support
-> > for sparc32. If someone shows up and need parport support
-> > for sparc32 then we could look into how to enable it.
-> > Until then, we are better helped avoiding building the driver.
+> >  I disagree.  Why artificially prevent perfectly good hardware from 
+> > working with a perfectly good driver especially as the fix is just a 
+> > trivial exercise?  And I offered a solution.
 > 
->  I disagree.  Why artificially prevent perfectly good hardware from 
-> working with a perfectly good driver especially as the fix is just a 
-> trivial exercise?  And I offered a solution.
+> There is no sparc32 with a PC style parallel port, so the parport_pc
+> have no value for a sparc32 machine.
 
-There is no sparc32 with a PC style parallel port, so the parport_pc
-have no value for a sparc32 machine.
+ There are PC-style PCI (and PCIe) parallel ports in the form of option 
+cards being sold; I have one in my RISC-V machine (and I had to go through 
+the hassle of figuring out why the heck I am not able to select the driver 
+in configuration; a situation analogous to what Randy's change wants to 
+arrange).  You can plug one into any machine that has PCI slots and my 
+understanding from Linux Kconfig files is there are such 32-bit SPARC 
+machines in existence or the dependency on PCI wouldn't offer the driver.  
+Otherwise just don't enable CONFIG_PCI for 32-bit SPARC.
 
-Some sparc Ultra have PC style parallel ports - but this is sparc64
-machines and they are covered.
+ Apologies if I wasn't clear enough with my reasoning, although I think 
+the lone presence of the PCI dependency in Kconfig ought have to make it 
+clear.
 
-The sparc32 machines have the parport_sunbpp driver for their parallel
-port.
+> The sparc32 machines have the parport_sunbpp driver for their parallel
+> port.
 
-An alternative fix, and better I think, would be to audit all archs
-and let the relevant ones select ARCH_MIGHT_HAVE_PC_PARPORT, so we
-avoided the ugly "|| (PCI && !S390 && !SPARC32)" case for PARPORT_PC.
+ That's an onboard device or an SBus option card though, right?
 
-	Sam
+> An alternative fix, and better I think, would be to audit all archs
+> and let the relevant ones select ARCH_MIGHT_HAVE_PC_PARPORT, so we
+> avoided the ugly "|| (PCI && !S390 && !SPARC32)" case for PARPORT_PC.
+
+ It's only S390 that is special in that it has a limited set of specially 
+crafted PCI options it can ever support (or so I am told; something about 
+the firmware or suchlike).
+
+ Any other platform that has PCI slots will handle PC-style PCI parallel 
+port option cards just fine, as long as it supports PCI I/O read/write 
+commands (some systems such as POWER9 machines don't; Niklas Schnelle has 
+been recently working on a generic way to exclude drivers for devices that 
+require PCI port I/O from being offered with systems that have no support 
+for PCI port I/O).
+
+ Let me know if you find anything here unclear or have any other questions 
+or comments.
+
+  Maciej
