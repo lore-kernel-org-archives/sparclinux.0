@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A61EC76196
-	for <sparclinux@archiver.kernel.org>; Mon, 10 Apr 2023 23:34:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3507C77B61
+	for <sparclinux@archiver.kernel.org>; Mon, 10 Apr 2023 23:46:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229955AbjDJXeL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 10 Apr 2023 19:34:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46438 "EHLO
+        id S229694AbjDJXqS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 Apr 2023 19:46:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229591AbjDJXeK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Apr 2023 19:34:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC034185;
-        Mon, 10 Apr 2023 16:34:09 -0700 (PDT)
+        with ESMTP id S229591AbjDJXqR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Apr 2023 19:46:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 521A3127;
+        Mon, 10 Apr 2023 16:46:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A2F762003;
-        Mon, 10 Apr 2023 23:34:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA5D1C433EF;
-        Mon, 10 Apr 2023 23:34:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DCE9C62025;
+        Mon, 10 Apr 2023 23:46:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B11CC4339C;
+        Mon, 10 Apr 2023 23:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681169648;
-        bh=4qjKROyCkLTd3tcqm+HtKEyO5cWift9JMeTdnjSFJsc=;
+        s=k20201202; t=1681170375;
+        bh=ba5WN/ob26DX2j1mfRdkuBNwsPAtlnnuxEuuEqLz1C8=;
         h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=LbOBOCJdqc8rQMbsKdsk/HEABg4FDzYb5Rx0YEGzbBCJ/hMpXjeoT67UOx7o+JhcZ
-         3EsAcTOE/GCX816H+E6HpgvUIZlotZU3HzX65EiF5zSoiUzPjkRwNUpK7mMLNXud7r
-         w3nqPKz65EAyZ7B+Cbr2r1nGskCO2oGGV/0PQiPMCDiUpTBJFEJgCpByWhh7D6ghY4
-         aKde5VUgKpGhXp5GTWCqBXns5H4w2uDHRKR+Zd+zc72gsEZL/lP+i+x8wb6DYaRDop
-         pNfWvYTPeqDH7oNhrQoCn3S3f1WPHtuQaWcwpl3/MItPkHZtUYx+YN4RvbXB0AB43A
-         DC8OyBuM/4ZNw==
-Received: by mail-oo1-f48.google.com with SMTP id s19-20020a4adb93000000b00540fa505f2dso4364294oou.7;
-        Mon, 10 Apr 2023 16:34:08 -0700 (PDT)
-X-Gm-Message-State: AAQBX9diXWY4lVleFbTmZO+ZpmOF1UTiTYDmveqv/241A4uD/ysMNzjl
-        N1HsmN1v+tfaboQopVJbT+X4NaqcJbanqDJSJD4=
-X-Google-Smtp-Source: AKy350YJRB31Ym8057B3A1ckaL5w1WbJ2oB6Gg438inR9m/dE35xc+XqkqvVhT7LRC3DFs+LWGhoF2v1uQvLsRkHKoY=
-X-Received: by 2002:a4a:c803:0:b0:541:c1bf:e46f with SMTP id
- s3-20020a4ac803000000b00541c1bfe46fmr2218305ooq.1.1681169648120; Mon, 10 Apr
- 2023 16:34:08 -0700 (PDT)
+        b=H9YruaKzVwG77HOg7V50SBlKkzs0L51pVIn+o0XlRzgSEeQjCTLCBHL51cp/Pp47o
+         4meAL5FtIiOMAXUiAhwr+S0s1SbsahrRtnTBu0BmUMHxF+N2b4fups362WRhGzpom3
+         UqjN5KrpLNBc47sK33HYzc7saKKl18CJdgLvfQOuHVpqwC4I60cWc81/oNF4HD1b7b
+         4795Id9pICDUj6QqoRtwa6hwmGN4VRK/lFbWPi6LHgL4Qt6unw+SHd9lAgcfslVrQg
+         4vbGwzl5SfkOJ8/VyMtwnRhN9VY5ed8DnLNxZEwcGBS3IAH8MkvkEU+XtE8ktRrJIz
+         8IsEikzPeRBBw==
+Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-1845f865452so2611157fac.12;
+        Mon, 10 Apr 2023 16:46:15 -0700 (PDT)
+X-Gm-Message-State: AAQBX9clFPArgb4f60u1I5nxGHXoGERmXwI2wPagk15rlFvih0QZb5aF
+        WHaGUQ5ds8R5lmG2x7QbBuTceKCFBK3QpCxPI/Y=
+X-Google-Smtp-Source: AKy350ZILWCd+oIsHOLpDJRwibeS8dcr/Le5Iys4XOH5R1JLJZkWZsJVo3kbTpNawnM7wvQ91VsMZSb/BF4gabBP9RQ=
+X-Received: by 2002:a05:6870:e989:b0:17e:d308:7790 with SMTP id
+ r9-20020a056870e98900b0017ed3087790mr5598150oao.11.1681170374514; Mon, 10 Apr
+ 2023 16:46:14 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230410011316.26564-1-rdunlap@infradead.org>
 In-Reply-To: <20230410011316.26564-1-rdunlap@infradead.org>
 From:   Masahiro Yamada <masahiroy@kernel.org>
-Date:   Tue, 11 Apr 2023 08:33:29 +0900
-X-Gmail-Original-Message-ID: <CAK7LNAQRpbNSwzaG-O95hZdUGa43ubXN-PU8WhpUcDth2f50JQ@mail.gmail.com>
-Message-ID: <CAK7LNAQRpbNSwzaG-O95hZdUGa43ubXN-PU8WhpUcDth2f50JQ@mail.gmail.com>
+Date:   Tue, 11 Apr 2023 08:45:38 +0900
+X-Gmail-Original-Message-ID: <CAK7LNAQGqF-9Tw1ZQQUTcn23P8AKy8YQwVy1BJtc5eX-WEZkUw@mail.gmail.com>
+Message-ID: <CAK7LNAQGqF-9Tw1ZQQUTcn23P8AKy8YQwVy1BJtc5eX-WEZkUw@mail.gmail.com>
 Subject: Re: [PATCH v2] sparc: allow sparc32 alias for archhelp
 To:     Randy Dunlap <rdunlap@infradead.org>
 Cc:     linux-kernel@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
@@ -93,18 +93,38 @@ g> wrote:
 >  # Don't use tabs in echo arguments.
 > -ifeq ($(ARCH),sparc)
 > +ifeq ($(ARCH),$(filter $(ARCH),sparc sparc32))
-
-
-ifneq ($(ARCH),sparc64)
-
-is simpler.
-
-
-
-
-
 >  define archhelp
 >    echo  '* image        - kernel image ($(boot)/image)'
+
+
+BTW, this is strange.
+
+
+The asterisk means it is built by 'all'.
+
+
+But, I only see the following in this Makefile.
+
+
+# Default target
+all: zImage
+
+
+
+
+
+Seeing arch/sparc/boot/Makefile,
+it is true $(boot)/image is generated
+as a side-effect of zImage, but it it true for
+both 32-bit and 64-bit.
+
+I think it is even better to rewrite archhelp
+to unify the 32/64 bits.
+
+
+
+
+
 >    echo  '* zImage       - stripped kernel image ($(boot)/zImage)'
 
 
