@@ -2,48 +2,54 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DFA8C77B6F
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:16:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68F28C76196
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:16:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229595AbjDKOQ2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Apr 2023 10:16:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48288 "EHLO
+        id S229811AbjDKOQa (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Apr 2023 10:16:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229545AbjDKOQ2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Apr 2023 10:16:28 -0400
+        with ESMTP id S229545AbjDKOQ3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Apr 2023 10:16:29 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D2B1700
-        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:15:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEACB120
+        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:15:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681222546;
+        s=mimecast20190719; t=1681222541;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=TCmOrD6a+wU+gQBMdrpGdoWY5w1T2pXs/1sAiD9BNP4=;
-        b=Dul2L5qQFixox/Do3FrprDgH6bo4ZXgGRay0jgsKzx8YAK8CXtA9h4JerC5UO/3PM18lSb
-        5hk4oFf6cfT4Zg/uFVsQyzj7uOnb1Iib/+WqjSwf5Ce4xvVSYNXWqf3vTCc6m9CsC1FJU8
-        606RDYZnsAqO6D0BgcJLY7cNGZN6WK4=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=1ElJXvy3GrdCHxap+2OiSZHKtp+/midD3ZXDx5TNtDM=;
+        b=X4qq5JLd6OktImroBCrPR/4DZAraMxROdhaB8cClMWRI6SK072d03mNokoP7ks1Jy7Wo+s
+        YTQ6JznTMokjjIrtaCHM3zNA1f23fnI35get4PbEyPJosyXiZsRdPcZVjG8i1xQoiJCDLY
+        6iJjxrgC2t5LoPWxCmKqrm+I8UGxj4I=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-197-8t3asOMrN_Sxm6SwwHsM4A-1; Tue, 11 Apr 2023 10:15:42 -0400
-X-MC-Unique: 8t3asOMrN_Sxm6SwwHsM4A-1
+ us-mta-671-Cc7KJ7ZfO2-Ud1XmppAT6w-1; Tue, 11 Apr 2023 10:15:37 -0400
+X-MC-Unique: Cc7KJ7ZfO2-Ud1XmppAT6w-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 14C95185A791;
-        Tue, 11 Apr 2023 14:15:42 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id EB9B31C087A3;
+        Tue, 11 Apr 2023 14:15:35 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.194.95])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 16E57400F285;
-        Tue, 11 Apr 2023 14:15:40 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E710E400F283;
+        Tue, 11 Apr 2023 14:15:32 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, linux-kselftest@vger.kernel.org,
-        sparclinux@vger.kernel.org, David Hildenbrand <david@redhat.com>
-Subject: [PATCH v1 4/6] mm/migrate: revert "mm/migrate: fix wrongly apply write bit after mkdirty on sparc64"
-Date:   Tue, 11 Apr 2023 16:15:27 +0200
-Message-Id: <20230411141529.428991-6-david@redhat.com>
+        sparclinux@vger.kernel.org, David Hildenbrand <david@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Xu <peterx@redhat.com>, Hugh Dickins <hughd@google.com>,
+        Shuah Khan <shuah@kernel.org>, Sam Ravnborg <sam@ravnborg.org>,
+        Yu Zhao <yuzhao@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: [PATCH v1 0/6] mm: (pte|pmd)_mkdirty() should not unconditionally allow for write access
+Date:   Tue, 11 Apr 2023 16:15:23 +0200
+Message-Id: <20230411141529.428991-2-david@redhat.com>
 In-Reply-To: <20230411141529.428991-1-david@redhat.com>
 References: <20230411141529.428991-1-david@redhat.com>
 MIME-Version: 1.0
@@ -53,60 +59,61 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This reverts commit 96a9c287e25d ("mm/migrate: fix wrongly apply write bit
-after mkdirty on sparc64").
+This is the follow-up on [1], adding selftests (testing for known issues
+we added workarounds for and other issues that haven't been fixed yet),
+fixing sparc64, reverting the workarounds, and perform one cleanup.
 
-Now that sparc64 mkdirty handling is fixed and no longer sets a PTE/PMD
-writable that shouldn't be writable, let's revert the temporary fix.
+The patch from [1] was modified slightly (updated/extended patch
+description, dropped one unnecessary NOP instruction from the ASM in
+__pte_mkhwwrite()).
 
-The mkdirty mm selftest still passes with this change on sparc64.
+Retested on x86_64 and sparc64 (sun4u in QEMU).
 
-Note that loongarch handling was fixed in commit bf2f34a506e6 ("LoongArch:
-Set _PAGE_DIRTY only if _PAGE_WRITE is set in {pmd,pte}_mkdirty()").
+I scanned most architectures to make sure their (pte|pmd)_mkdirty()
+handling is correct. To be sure, we can run the selftests and find out if
+other architectures are still affectes (loongarch was fixed recently as
+well).
 
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- mm/huge_memory.c | 6 ++----
- mm/migrate.c     | 2 --
- 2 files changed, 2 insertions(+), 6 deletions(-)
+Based on master for now. I don't expect surprises regarding mm-tress, but
+I can rebase if there are any problems.
 
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 032fb0ef9cd1..ec86bf1d4e81 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -3276,6 +3276,8 @@ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
- 	pmde = mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot));
- 	if (pmd_swp_soft_dirty(*pvmw->pmd))
- 		pmde = pmd_mksoft_dirty(pmde);
-+	if (is_writable_migration_entry(entry))
-+		pmde = maybe_pmd_mkwrite(pmde, vma);
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
- 		pmde = pmd_mkuffd_wp(pmde);
- 	if (!is_migration_entry_young(entry))
-@@ -3283,10 +3285,6 @@ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
- 	/* NOTE: this may contain setting soft-dirty on some archs */
- 	if (PageDirty(new) && is_migration_entry_dirty(entry))
- 		pmde = pmd_mkdirty(pmde);
--	if (is_writable_migration_entry(entry))
--		pmde = maybe_pmd_mkwrite(pmde, vma);
--	else
--		pmde = pmd_wrprotect(pmde);
- 
- 	if (PageAnon(new)) {
- 		rmap_t rmap_flags = RMAP_COMPOUND;
-diff --git a/mm/migrate.c b/mm/migrate.c
-index db3f154446af..3b21c44e2176 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -225,8 +225,6 @@ static bool remove_migration_pte(struct folio *folio,
- 			pte = maybe_mkwrite(pte, vma);
- 		else if (pte_swp_uffd_wp(*pvmw.pte))
- 			pte = pte_mkuffd_wp(pte);
--		else
--			pte = pte_wrprotect(pte);
- 
- 		if (folio_test_anon(folio) && !is_readable_migration_entry(entry))
- 			rmap_flags |= RMAP_EXCLUSIVE;
+[1] https://lkml.kernel.org/r/20221212130213.136267-1-david@redhat.com
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+
+David Hildenbrand (6):
+  selftests/mm: reuse read_pmd_pagesize() in COW selftest
+  selftests/mm: mkdirty: test behavior of (pte|pmd)_mkdirty on VMAs
+    without write permissions
+  sparc/mm: don't unconditionally set HW writable bit when setting PTE
+    dirty on 64bit
+  mm/migrate: revert "mm/migrate: fix wrongly apply write bit after
+    mkdirty on sparc64"
+  mm/huge_memory: revert "Partly revert "mm/thp: carry over dirty bit
+    when thp splits on pmd""
+  mm/huge_memory: conditionally call maybe_mkwrite() and drop
+    pte_wrprotect() in __split_huge_pmd_locked()
+
+ arch/sparc/include/asm/pgtable_64.h           | 116 +++---
+ mm/huge_memory.c                              |  16 +-
+ mm/migrate.c                                  |   2 -
+ tools/testing/selftests/mm/Makefile           |   2 +
+ tools/testing/selftests/mm/cow.c              |  33 +-
+ tools/testing/selftests/mm/khugepaged.c       |   4 +
+ tools/testing/selftests/mm/mkdirty.c          | 379 ++++++++++++++++++
+ tools/testing/selftests/mm/soft-dirty.c       |   3 +
+ .../selftests/mm/split_huge_page_test.c       |   4 +
+ tools/testing/selftests/mm/vm_util.c          |   4 +-
+ 10 files changed, 468 insertions(+), 95 deletions(-)
+ create mode 100644 tools/testing/selftests/mm/mkdirty.c
+
 -- 
 2.39.2
 
