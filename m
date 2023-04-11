@@ -2,47 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7F6FC77B73
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D02C77B74
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230063AbjDKORQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Apr 2023 10:17:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48510 "EHLO
+        id S229949AbjDKORR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Apr 2023 10:17:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229940AbjDKORO (ORCPT
+        with ESMTP id S229907AbjDKORO (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Apr 2023 10:17:14 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89D0C449A
-        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:15:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97F7746B2
+        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:15:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681222548;
+        s=mimecast20190719; t=1681222549;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
         bh=qzK4ogixuaREht4MpkiqqhFPvzGg6ALQmBRRBO9bEhw=;
-        b=gWobc1oKpeYtqh4Tr7G8WIma46DQPs3XzdfAgxpAyO/1QBaRtC2DmNS6+ecvdofOYnUFp9
-        Wkxjy4g9hldUWtqWOjCaQNX0UQsXnreGXNx2999F724QuuefRRYB2miubDcRPNqKRNW51b
-        tSm+MHxUtFAoDZDoglkIh5HhwQ1jVVQ=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        b=O5HGANU+qF5d0nfHuGXP1gE7dUSNt4oVGnJE9KFv6eVEqJt20zepVUtn+JGnF+YovExWUt
+        mbBMO8izAy6NGUWXXj0E9CmyRUeySHXPJXfI9gGFLq8FRdCaEjC7zDQwl7/nPoRWI+wtIf
+        31EsKixb0WNGQwNK/AdDLD/BblM9gH8=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-5-bQTcdzQuNdGs3XWMcEGz2w-1; Tue, 11 Apr 2023 10:15:42 -0400
-X-MC-Unique: bQTcdzQuNdGs3XWMcEGz2w-1
+ us-mta-371-Ckkwz92eO7-IkeIGQlURJg-1; Tue, 11 Apr 2023 10:15:45 -0400
+X-MC-Unique: Ckkwz92eO7-IkeIGQlURJg-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6FBF686A96C;
-        Tue, 11 Apr 2023 14:15:32 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 17DDE1C12991;
+        Tue, 11 Apr 2023 14:15:45 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.194.95])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DB346400F284;
-        Tue, 11 Apr 2023 14:15:30 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 9240D400F281;
+        Tue, 11 Apr 2023 14:15:43 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, linux-kselftest@vger.kernel.org,
         sparclinux@vger.kernel.org, David Hildenbrand <david@redhat.com>
-Subject: [PATCH] mm/huge_memory: conditionally call maybe_mkwrite() and drop pte_wrprotect() in __split_huge_pmd_locked()
-Date:   Tue, 11 Apr 2023 16:15:22 +0200
-Message-Id: <20230411141529.428991-1-david@redhat.com>
+Subject: [PATCH v1 6/6] mm/huge_memory: conditionally call maybe_mkwrite() and drop pte_wrprotect() in __split_huge_pmd_locked()
+Date:   Tue, 11 Apr 2023 16:15:29 +0200
+Message-Id: <20230411141529.428991-8-david@redhat.com>
+In-Reply-To: <20230411141529.428991-1-david@redhat.com>
+References: <20230411141529.428991-1-david@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
