@@ -2,184 +2,109 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0BA2C77B6F
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:17:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB123C77B70
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Apr 2023 14:20:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230161AbjDKORj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Apr 2023 10:17:39 -0400
+        id S230373AbjDKOUU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Apr 2023 10:20:20 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230174AbjDKORT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Apr 2023 10:17:19 -0400
+        with ESMTP id S230223AbjDKOUH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Apr 2023 10:20:07 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 217F744B8
-        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:15:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F2312A
+        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:19:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681222549;
+        s=mimecast20190719; t=1681222742;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=2z0ZWpIzSXqyEF2KVa3LzGMQGesZiayZZfA3zEW/CRA=;
-        b=i7xA683QecK7GaRMRLYmiQ4SE5WOlUUnD+wPZqhqTqpyLVq0FPlATKFZepDeu8Pk+IZAXZ
-        yvRh0BskVXSLtF3Ih/kRhezjXH2lwuygsJupKHAbnSshwUBCQlODvu3ed9oIjQxLIgyHqi
-        7p7lHFvrx0DIFl974VNSIX/qvJxpb0Y=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-120-KgYERSC9NFGw5yGLnWJkng-1; Tue, 11 Apr 2023 10:15:46 -0400
-X-MC-Unique: KgYERSC9NFGw5yGLnWJkng-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id AFDC888718F;
-        Tue, 11 Apr 2023 14:15:37 +0000 (UTC)
-Received: from t480s.redhat.com (unknown [10.39.194.95])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 50396400F281;
-        Tue, 11 Apr 2023 14:15:36 +0000 (UTC)
-From:   David Hildenbrand <david@redhat.com>
+        bh=oAltGiW0DBDAeNvmuGpEYB8uc7AKLZpAtOjrnOVCND0=;
+        b=U6l53ih84Dvkj/sm1paqNwL0r4dDBjC1j4G3cm1cPp82BtN1Agh9r06AW6gVt8FXjuc9Ub
+        CMTUmEH0qUP5/iCmeNDWee+ju67swtxbT0ima1dzhCaUKx2enDw/GOizyPGV4Ss2CcyT6G
+        PNarD+J75VPvIxpH1l2ubUSxm2tYfnQ=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-490-C2-4uelANBy92GryT8f2tw-1; Tue, 11 Apr 2023 10:19:00 -0400
+X-MC-Unique: C2-4uelANBy92GryT8f2tw-1
+Received: by mail-wr1-f71.google.com with SMTP id o26-20020adfa11a000000b002dd3986083bso1195312wro.12
+        for <sparclinux@vger.kernel.org>; Tue, 11 Apr 2023 07:18:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1681222739; x=1683814739;
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oAltGiW0DBDAeNvmuGpEYB8uc7AKLZpAtOjrnOVCND0=;
+        b=woyy5TB1q/LTadgd9g4zIGIZesXBKJwJgiWDeTcu0iGuQFQKKxdH4qx9FTZpwGvgBh
+         aXd7S68QuVIK0u4oDFh6mRewD0IJBfe7dpjyfCuWu26l1PHL/JIiIzLBdSLK1wiZD9yZ
+         v08kGuR0xCObhgoknkl/I/YSRau6vqQNdrR6oMrVdWJaKC022Lf0Hi9DdTapo8VbjygN
+         Z7JbD9bMSy/2vdcZowX45ZHMtWykrHmk22YTvN+dXshB7mczXslNU78adzkCpbdAewhf
+         iTRYyde1DPAxwVcNtIqcDfuvDmGk/r+wfJA2S+R5nuMczHdMtMIh10v1khaVrgWyV9Co
+         TxWg==
+X-Gm-Message-State: AAQBX9d3xGkIw2ecrUsYryKXILCoZY7KOC/4ECC0SbWtYU2k8yuqEunH
+        LGu7UV9ST3TJf3LJzzcoFc4DO02GpnCd4nuO9yzCI1wg1rZlX0IvsCdN3gI5VSnmnN8T4iHHK9H
+        R1SMZ018Uker7oKROMXCsmw==
+X-Received: by 2002:a5d:470d:0:b0:2d7:4c98:78fe with SMTP id y13-20020a5d470d000000b002d74c9878femr8621097wrq.34.1681222738937;
+        Tue, 11 Apr 2023 07:18:58 -0700 (PDT)
+X-Google-Smtp-Source: AKy350bY0p0lov10ncoRRjudSkgQbnGcBkbDWJtshXja6yULgw6jQWdjzluLhiX0b55T0sA76SToJg==
+X-Received: by 2002:a5d:470d:0:b0:2d7:4c98:78fe with SMTP id y13-20020a5d470d000000b002d74c9878femr8621084wrq.34.1681222738612;
+        Tue, 11 Apr 2023 07:18:58 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c706:1300:6f08:1748:eba7:b2a9? (p200300cbc70613006f081748eba7b2a9.dip0.t-ipconnect.de. [2003:cb:c706:1300:6f08:1748:eba7:b2a9])
+        by smtp.gmail.com with ESMTPSA id n4-20020a5d51c4000000b002efb55de21dsm10542399wrv.103.2023.04.11.07.18.57
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 11 Apr 2023 07:18:58 -0700 (PDT)
+Message-ID: <81a2070a-f7aa-2185-8211-26b57815e968@redhat.com>
+Date:   Tue, 11 Apr 2023 16:18:57 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.1
+Subject: Re: [PATCH] mm/huge_memory: conditionally call maybe_mkwrite() and
+ drop pte_wrprotect() in __split_huge_pmd_locked()
+Content-Language: en-US
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, linux-kselftest@vger.kernel.org,
-        sparclinux@vger.kernel.org, David Hildenbrand <david@redhat.com>
-Subject: [PATCH v1 1/6] selftests/mm: reuse read_pmd_pagesize() in COW selftest
-Date:   Tue, 11 Apr 2023 16:15:24 +0200
-Message-Id: <20230411141529.428991-3-david@redhat.com>
-In-Reply-To: <20230411141529.428991-1-david@redhat.com>
+        sparclinux@vger.kernel.org
 References: <20230411141529.428991-1-david@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20230411141529.428991-1-david@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The COW selftest can deal with THP not being configured. So move error
-handling of read_pmd_pagesize() into the callers such that we can reuse
-it in the COW selftest.
+On 11.04.23 16:15, David Hildenbrand wrote:
+> No need to call maybe_mkwrite() to then wrprotect if the source PMD was not
+> writable.
+> 
+> It's worth nothing that this now allows for PTEs to be writable even if
+> the source PMD was not writable: if vma->vm_page_prot includes write
+> permissions.
+> 
+> As documented in commit 931298e103c2 ("mm/userfaultfd: rely on
+> vma->vm_page_prot in uffd_wp_range()"), any mechanism that intends to
+> have pages wrprotected (COW, writenotify, mprotect, uffd-wp, softdirty,
+> ...) has to properly adjust vma->vm_page_prot upfront, to not include
+> write permissions. If vma->vm_page_prot includes write permissions, the
+> PTE/PMD can be writable as default.
+> 
+> This now mimics the handling in mm/migrate.c:remove_migration_pte() and in
+> mm/huge_memory.c:remove_migration_pmd(), which has been in place for a
+> long time (except that 96a9c287e25d ("mm/migrate: fix wrongly apply write
+> bit after mkdirty on sparc64") temporarily changed it).
+> 
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
 
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- tools/testing/selftests/mm/cow.c              | 33 +++----------------
- tools/testing/selftests/mm/khugepaged.c       |  4 +++
- tools/testing/selftests/mm/soft-dirty.c       |  3 ++
- .../selftests/mm/split_huge_page_test.c       |  4 +++
- tools/testing/selftests/mm/vm_util.c          |  4 +--
- 5 files changed, 17 insertions(+), 31 deletions(-)
+Ignore this one, it's a duplicate of 6/6 and I forgot to delete that 
+patch before triggering git send-email ...
 
-diff --git a/tools/testing/selftests/mm/cow.c b/tools/testing/selftests/mm/cow.c
-index 0eb2e8180aa5..dc9d6fe86028 100644
---- a/tools/testing/selftests/mm/cow.c
-+++ b/tools/testing/selftests/mm/cow.c
-@@ -45,34 +45,6 @@ static size_t hugetlbsizes[10];
- static int gup_fd;
- static bool has_huge_zeropage;
- 
--static void detect_thpsize(void)
--{
--	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
--		      O_RDONLY);
--	size_t size = 0;
--	char buf[15];
--	int ret;
--
--	if (fd < 0)
--		return;
--
--	ret = pread(fd, buf, sizeof(buf), 0);
--	if (ret > 0 && ret < sizeof(buf)) {
--		buf[ret] = 0;
--
--		size = strtoul(buf, NULL, 10);
--		if (size < pagesize)
--			size = 0;
--		if (size > 0) {
--			thpsize = size;
--			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
--				       thpsize / 1024);
--		}
--	}
--
--	close(fd);
--}
--
- static void detect_huge_zeropage(void)
- {
- 	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-@@ -1741,7 +1713,10 @@ int main(int argc, char **argv)
- 	int err;
- 
- 	pagesize = getpagesize();
--	detect_thpsize();
-+	thpsize = read_pmd_pagesize();
-+	if (thpsize)
-+		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
-+			       thpsize / 1024);
- 	detect_hugetlbsizes();
- 	detect_huge_zeropage();
- 
-diff --git a/tools/testing/selftests/mm/khugepaged.c b/tools/testing/selftests/mm/khugepaged.c
-index 64126c8cd561..97adc0f34f9c 100644
---- a/tools/testing/selftests/mm/khugepaged.c
-+++ b/tools/testing/selftests/mm/khugepaged.c
-@@ -1476,6 +1476,10 @@ int main(int argc, const char **argv)
- 
- 	page_size = getpagesize();
- 	hpage_pmd_size = read_pmd_pagesize();
-+	if (!hpage_pmd_size) {
-+		printf("Reading PMD pagesize failed");
-+		exit(EXIT_FAILURE);
-+	}
- 	hpage_pmd_nr = hpage_pmd_size / page_size;
- 
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
-diff --git a/tools/testing/selftests/mm/soft-dirty.c b/tools/testing/selftests/mm/soft-dirty.c
-index 21d8830c5f24..cc5f144430d4 100644
---- a/tools/testing/selftests/mm/soft-dirty.c
-+++ b/tools/testing/selftests/mm/soft-dirty.c
-@@ -80,6 +80,9 @@ static void test_hugepage(int pagemap_fd, int pagesize)
- 	int i, ret;
- 	size_t hpage_len = read_pmd_pagesize();
- 
-+	if (!hpage_len)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed");
-+
- 	map = memalign(hpage_len, hpage_len);
- 	if (!map)
- 		ksft_exit_fail_msg("memalign failed\n");
-diff --git a/tools/testing/selftests/mm/split_huge_page_test.c b/tools/testing/selftests/mm/split_huge_page_test.c
-index 76e1c36dd9e5..1dc5804b8b2b 100644
---- a/tools/testing/selftests/mm/split_huge_page_test.c
-+++ b/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -300,6 +300,10 @@ int main(int argc, char **argv)
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
- 	pmd_pagesize = read_pmd_pagesize();
-+	if (!pmd_pagesize) {
-+		printf("Reading PMD pagesize failed\n");
-+		exit(EXIT_FAILURE);
-+	}
- 
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
-diff --git a/tools/testing/selftests/mm/vm_util.c b/tools/testing/selftests/mm/vm_util.c
-index 40e795624ff3..8dc74dd022c2 100644
---- a/tools/testing/selftests/mm/vm_util.c
-+++ b/tools/testing/selftests/mm/vm_util.c
-@@ -84,12 +84,12 @@ uint64_t read_pmd_pagesize(void)
- 
- 	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
- 	if (fd == -1)
--		ksft_exit_fail_msg("Open hpage_pmd_size failed\n");
-+		return 0;
- 
- 	num_read = read(fd, buf, 19);
- 	if (num_read < 1) {
- 		close(fd);
--		ksft_exit_fail_msg("Read hpage_pmd_size failed\n");
-+		return 0;
- 	}
- 	buf[num_read] = '\0';
- 	close(fd);
 -- 
-2.39.2
+Thanks,
+
+David / dhildenb
 
