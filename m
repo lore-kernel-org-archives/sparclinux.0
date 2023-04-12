@@ -2,155 +2,126 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A26FC77B6E
-	for <sparclinux@archiver.kernel.org>; Wed, 12 Apr 2023 09:49:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D43C0C77B73
+	for <sparclinux@archiver.kernel.org>; Wed, 12 Apr 2023 17:27:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230369AbjDLJtO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 Apr 2023 05:49:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36126 "EHLO
+        id S229548AbjDLR1T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 Apr 2023 13:27:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36764 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229945AbjDLJtH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Apr 2023 05:49:07 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5F2D30CB
-        for <sparclinux@vger.kernel.org>; Wed, 12 Apr 2023 02:48:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681292900;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Q5VF2Wz5b80hlOD5M0oVoyLk3sVN8nriejQU685ncfA=;
-        b=Wwk/t3biRONWGmGN4cOGgRAiNAaLzm4gFGophDDXMgXFMNAb/bbojCl/RYxblJ8i/L6hEO
-        KfP5wBS6OePNlf5ADOvGDzSl6uK7dInZbelZ0aO14E7CMhbPxFd+44oYhX02VfePb4d8Ep
-        y91D2++ex46QMixKcC23/qVrXmBVar8=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-355-aXM8EnHHO1Omwue2AGX-Xg-1; Wed, 12 Apr 2023 05:48:18 -0400
-X-MC-Unique: aXM8EnHHO1Omwue2AGX-Xg-1
-Received: by mail-wr1-f71.google.com with SMTP id d28-20020adfa41c000000b002cea6b2d5a9so1669222wra.14
-        for <sparclinux@vger.kernel.org>; Wed, 12 Apr 2023 02:48:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1681292897; x=1683884897;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Q5VF2Wz5b80hlOD5M0oVoyLk3sVN8nriejQU685ncfA=;
-        b=TQDW610WtYVFglPhHExev9s9b3SrxoiB+Tr+neEV5qJvICT00ZucpLkF9/Q45lLL/x
-         B1GT6J3ra0qf2lw16FRffSPiaJB6iJq5Ks8gDlsvu/U0miNcusJwC1q7Irov3TMLytoC
-         UO5Zs2d/P/TxZ/7eHW6ctLet15HG67LdW9qgRFNPKYJctV6DHerGyL+FAddiM2n/eYa3
-         jYnUFCyJbWQRgQRita4dbbaDHhr6OFBiuLR2E5x0nFTuG0p9abKn/XiNG3xcH8kRehH9
-         /ZEi3E2NtVTuStiCJqLq+RtQ0ThX9ysmcOqYQgFrdAY5AK0P6j+a04f4Fs053QmDq7OD
-         YN2A==
-X-Gm-Message-State: AAQBX9f4mkyN7D5wfNC3ywikbJa+TaQGa2LFSaI8K2/xJI+9TJlHSuYq
-        kYYizSkJCXejJDjFwu91Sr1g3Twg6qjTgZl+hz5C8YRIZVA3Z7nmJeEKDv6kF6V3/pRRgsvME4j
-        5rWcXzVeKAFzf4NsUUcugKA==
-X-Received: by 2002:a5d:5682:0:b0:2ef:bbc3:8936 with SMTP id f2-20020a5d5682000000b002efbbc38936mr1593887wrv.40.1681292897710;
-        Wed, 12 Apr 2023 02:48:17 -0700 (PDT)
-X-Google-Smtp-Source: AKy350aZsiU/uaiPPlC1QybmMrBuigRUyz3mJFz3Bo+72gG1fF1Ill/BaB4OTOK2QwUD+JU828v8KA==
-X-Received: by 2002:a5d:5682:0:b0:2ef:bbc3:8936 with SMTP id f2-20020a5d5682000000b002efbbc38936mr1593867wrv.40.1681292897342;
-        Wed, 12 Apr 2023 02:48:17 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c702:4b00:c6fa:b613:dbdc:ab? (p200300cbc7024b00c6fab613dbdc00ab.dip0.t-ipconnect.de. [2003:cb:c702:4b00:c6fa:b613:dbdc:ab])
-        by smtp.gmail.com with ESMTPSA id j12-20020a5d604c000000b002efb5f0cf44sm12355603wrt.3.2023.04.12.02.48.16
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Apr 2023 02:48:16 -0700 (PDT)
-Message-ID: <de93ddc4-29ff-6113-a146-bc278dcce5f9@redhat.com>
-Date:   Wed, 12 Apr 2023 11:48:15 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH v1 RESEND 3/6] sparc/mm: don't unconditionally set HW
- writable bit when setting PTE dirty on 64bit
-Content-Language: en-US
-To:     Sam Ravnborg <sam@ravnborg.org>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org,
+        with ESMTP id S229484AbjDLR1S (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Apr 2023 13:27:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E78D440FB;
+        Wed, 12 Apr 2023 10:27:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 829B0634C9;
+        Wed, 12 Apr 2023 17:27:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DA85C433EF;
+        Wed, 12 Apr 2023 17:27:11 +0000 (UTC)
+Date:   Wed, 12 Apr 2023 18:27:08 +0100
+From:   Catalin Marinas <catalin.marinas@arm.com>
+To:     Justin Forbes <jforbes@fedoraproject.org>
+Cc:     Mike Rapoport <rppt@kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
         "David S. Miller" <davem@davemloft.net>,
-        Peter Xu <peterx@redhat.com>, Hugh Dickins <hughd@google.com>,
-        Shuah Khan <shuah@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>
-References: <20230411142512.438404-1-david@redhat.com>
- <20230411142512.438404-4-david@redhat.com>
- <20230411193548.GA2094947@ravnborg.org>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <20230411193548.GA2094947@ravnborg.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mm@kvack.org, linux-sh@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of
+ ARCH_FORCE_MAX_ORDER
+Message-ID: <ZDbp7LAHES3YFo30@arm.com>
+References: <20230325060828.2662773-1-rppt@kernel.org>
+ <20230325060828.2662773-3-rppt@kernel.org>
+ <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
+ <ZCvQGJzdED+An8an@kernel.org>
+ <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-[...]
-
->> Let's fix the remaining issues and prepare for reverting the workarounds
->> by setting the HW writable bit only if both, the SW dirty bit and the SW
->> writable bit are set.
->>
->> We have to move pte_dirty() and pte_dirty() up. The code patching
-> One of the pte_dirty() should be replaced with pte_write().
+On Tue, Apr 04, 2023 at 06:50:01AM -0500, Justin Forbes wrote:
+> On Tue, Apr 4, 2023 at 2:22 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > On Wed, Mar 29, 2023 at 10:55:37AM -0500, Justin Forbes wrote:
+> > > On Sat, Mar 25, 2023 at 1:09 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > > >
+> > > > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> > > >
+> > > > It is not a good idea to change fundamental parameters of core memory
+> > > > management. Having predefined ranges suggests that the values within
+> > > > those ranges are sensible, but one has to *really* understand
+> > > > implications of changing MAX_ORDER before actually amending it and
+> > > > ranges don't help here.
+> > > >
+> > > > Drop ranges in definition of ARCH_FORCE_MAX_ORDER and make its prompt
+> > > > visible only if EXPERT=y
+> > >
+> > > I do not like suddenly hiding this behind EXPERT for a couple of
+> > > reasons.  Most importantly, it will silently change the config for
+> > > users building with an old kernel config.  If a user has for instance
+> > > "13" set and building with 4K pages, as is the current configuration
+> > > for Fedora and RHEL aarch64 builds, an oldconfig build will now set it
+> > > to 10 with no indication that it is doing so.  And while I think that
+> > > 10 is a fine default for many aarch64 users, there are valid reasons
+> > > for choosing other values. Putting this behind expert makes it much
+> > > less obvious that this is an option.
+> >
+> > That's the idea of EXPERT, no?
+> >
+> > This option was intended to allow allocation of huge pages for
+> > architectures that had PMD_ORDER > MAX_ORDER and not to allow user to
+> > select size of maximal physically contiguous allocation.
+> >
+> > Changes to MAX_ORDER fundamentally change the behaviour of core mm and
+> > unless users *really* know what they are doing there is no reason to choose
+> > non-default values so hiding this option behind EXPERT seems totally
+> > appropriate to me.
 > 
+> It sounds nice in theory. In practice. EXPERT hides too much. When you
+> flip expert, you expose over a 175ish new config options which are
+> hidden behind EXPERT.  You don't have to know what you are doing just
+> with the MAX_ORDER, but a whole bunch more as well.  If everyone were
+> already running 10, this might be less of a problem. At least Fedora
+> and RHEL are running 13 for 4K pages on aarch64. This was not some
+> accidental choice, we had to carry a patch to even allow it for a
+> while.  If this does go in as is, we will likely just carry a patch to
+> remove the "if EXPERT", but that is a bit of a disservice to users who
+> might be trying to debug something else upstream, bisecting upstream
+> kernels or testing a patch.  In those cases, people tend to use
+> pristine upstream sources without distro patches to verify, and they
+> tend to use their existing configs. With this change, their MAX_ORDER
+> will drop to 10 from 13 silently.   That can look like a different
+> issue enough to ruin a bisect or have them give bad feedback on a
+> patch because it introduces a "regression" which is not a regression
+> at all, but a config change they couldn't see.
 
-Indeed, thanks. I assume Andrew can change the latter to pte_write(). 
-[unless I have to resend, of course]
-
-> It would have been nice to separate moving and changes in two patches,
-> but keeping it together works too.
-
-I prefer to not have "move code within the same file around" in separate 
-patches as long as it doesn't add too much noise. Here, I think it's 
-acceptable.
-
-> 
-> 
->> mechanism and handling constants > 22bit is a bit special on sparc64.
->>
->> The ASM logic in pte_mkdirty() and pte_mkwrite() match the logic in
->> pte_mkold() to create the mask depending on the machine type. The ASM
->> logic in __pte_mkhwwrite() matches the logic in pte_present(), just
->> using an "or" instead of an "and" instruction.
->>
->> With this commit (sun4u in QEMU):
->> 	root@debian:~/linux/tools/testing/selftests/mm# ./mkdirty
->> 	# [INFO] detected THP size: 8192 KiB
->> 	TAP version 13
->> 	1..6
->> 	# [INFO] PTRACE write access
->> 	ok 1 SIGSEGV generated, page not modified
->> 	# [INFO] PTRACE write access to THP
->> 	ok 2 SIGSEGV generated, page not modified
->> 	# [INFO] Page migration
->> 	ok 3 SIGSEGV generated, page not modified
->> 	# [INFO] Page migration of THP
->> 	ok 4 SIGSEGV generated, page not modified
->> 	# [INFO] PTE-mapping a THP
->> 	ok 5 SIGSEGV generated, page not modified
->> 	# [INFO] UFFDIO_COPY
->> 	ok 6 SIGSEGV generated, page not modified
->> 	# Totals: pass:6 fail:0 xfail:0 xpass:0 skip:0 error:0
-> Nice!
-> 
->>
->> This handling seems to have been in place forever.
->>
->> [1] https://lkml.kernel.org/r/533a7c3d-3a48-b16b-b421-6e8386e0b142@redhat.com
->>
->> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
->> Signed-off-by: David Hildenbrand <david@redhat.com>
-> 
-> I tried to follow your changes, but my knowledge of gcc assembler failed
-> me. But based on the nice and detailed change log and the code I managed
-> to understand:
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
-
-
-Thanks Sam!
+If we remove EXPERT (as prior to this patch), I'd rather keep the ranges
+and avoid having to explain to people why some random MAX_ORDER doesn't
+build (keeping the range would also make sense for randconfig, not sure
+we got to any conclusion there).
 
 -- 
-Thanks,
-
-David / dhildenb
-
+Catalin
