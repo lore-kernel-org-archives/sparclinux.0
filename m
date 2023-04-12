@@ -2,126 +2,64 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D43C0C77B73
-	for <sparclinux@archiver.kernel.org>; Wed, 12 Apr 2023 17:27:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2984C77B6C
+	for <sparclinux@archiver.kernel.org>; Wed, 12 Apr 2023 21:15:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbjDLR1T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 Apr 2023 13:27:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36764 "EHLO
+        id S229900AbjDLVPM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 Apr 2023 17:15:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbjDLR1S (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Apr 2023 13:27:18 -0400
+        with ESMTP id S229721AbjDLVPL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Apr 2023 17:15:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E78D440FB;
-        Wed, 12 Apr 2023 10:27:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 664D05244;
+        Wed, 12 Apr 2023 14:15:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 829B0634C9;
-        Wed, 12 Apr 2023 17:27:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DA85C433EF;
-        Wed, 12 Apr 2023 17:27:11 +0000 (UTC)
-Date:   Wed, 12 Apr 2023 18:27:08 +0100
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Justin Forbes <jforbes@fedoraproject.org>
-Cc:     Mike Rapoport <rppt@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 02BC261262;
+        Wed, 12 Apr 2023 21:15:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04321C433D2;
+        Wed, 12 Apr 2023 21:15:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1681334109;
+        bh=rUARulnjOQ307xRRVyKm5Rnu9uPFHJQRoc2s3q/8t0c=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Rrr0D4OWLyVLCRnjgYHThscFy+m3+ZBz+6ThAEp6ELd27jTeFGBOxTC5RicER1VCc
+         TJu63jqtoYpV3rjCG/PhpJXDF4U08MrhJP7it6C2b36t/6y265PSgpNR80rSn/PybW
+         cAuNxVHam5iVXb/KudaCh6BzpcsjET3APwu6m2fc=
+Date:   Wed, 12 Apr 2023 14:15:08 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     Sam Ravnborg <sam@ravnborg.org>, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-kselftest@vger.kernel.org,
+        sparclinux@vger.kernel.org,
         "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Will Deacon <will@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mm@kvack.org, linux-sh@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of
- ARCH_FORCE_MAX_ORDER
-Message-ID: <ZDbp7LAHES3YFo30@arm.com>
-References: <20230325060828.2662773-1-rppt@kernel.org>
- <20230325060828.2662773-3-rppt@kernel.org>
- <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
- <ZCvQGJzdED+An8an@kernel.org>
- <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
+        Peter Xu <peterx@redhat.com>, Hugh Dickins <hughd@google.com>,
+        Shuah Khan <shuah@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH v1 RESEND 3/6] sparc/mm: don't unconditionally set HW
+ writable bit when setting PTE dirty on 64bit
+Message-Id: <20230412141508.d91f9e07df9dd840219098ed@linux-foundation.org>
+In-Reply-To: <de93ddc4-29ff-6113-a146-bc278dcce5f9@redhat.com>
+References: <20230411142512.438404-1-david@redhat.com>
+        <20230411142512.438404-4-david@redhat.com>
+        <20230411193548.GA2094947@ravnborg.org>
+        <de93ddc4-29ff-6113-a146-bc278dcce5f9@redhat.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 04, 2023 at 06:50:01AM -0500, Justin Forbes wrote:
-> On Tue, Apr 4, 2023 at 2:22 AM Mike Rapoport <rppt@kernel.org> wrote:
-> > On Wed, Mar 29, 2023 at 10:55:37AM -0500, Justin Forbes wrote:
-> > > On Sat, Mar 25, 2023 at 1:09 AM Mike Rapoport <rppt@kernel.org> wrote:
-> > > >
-> > > > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> > > >
-> > > > It is not a good idea to change fundamental parameters of core memory
-> > > > management. Having predefined ranges suggests that the values within
-> > > > those ranges are sensible, but one has to *really* understand
-> > > > implications of changing MAX_ORDER before actually amending it and
-> > > > ranges don't help here.
-> > > >
-> > > > Drop ranges in definition of ARCH_FORCE_MAX_ORDER and make its prompt
-> > > > visible only if EXPERT=y
-> > >
-> > > I do not like suddenly hiding this behind EXPERT for a couple of
-> > > reasons.  Most importantly, it will silently change the config for
-> > > users building with an old kernel config.  If a user has for instance
-> > > "13" set and building with 4K pages, as is the current configuration
-> > > for Fedora and RHEL aarch64 builds, an oldconfig build will now set it
-> > > to 10 with no indication that it is doing so.  And while I think that
-> > > 10 is a fine default for many aarch64 users, there are valid reasons
-> > > for choosing other values. Putting this behind expert makes it much
-> > > less obvious that this is an option.
-> >
-> > That's the idea of EXPERT, no?
-> >
-> > This option was intended to allow allocation of huge pages for
-> > architectures that had PMD_ORDER > MAX_ORDER and not to allow user to
-> > select size of maximal physically contiguous allocation.
-> >
-> > Changes to MAX_ORDER fundamentally change the behaviour of core mm and
-> > unless users *really* know what they are doing there is no reason to choose
-> > non-default values so hiding this option behind EXPERT seems totally
-> > appropriate to me.
+On Wed, 12 Apr 2023 11:48:15 +0200 David Hildenbrand <david@redhat.com> wrote:
+
+> >> We have to move pte_dirty() and pte_dirty() up. The code patching
+> > One of the pte_dirty() should be replaced with pte_write().
+> > 
 > 
-> It sounds nice in theory. In practice. EXPERT hides too much. When you
-> flip expert, you expose over a 175ish new config options which are
-> hidden behind EXPERT.  You don't have to know what you are doing just
-> with the MAX_ORDER, but a whole bunch more as well.  If everyone were
-> already running 10, this might be less of a problem. At least Fedora
-> and RHEL are running 13 for 4K pages on aarch64. This was not some
-> accidental choice, we had to carry a patch to even allow it for a
-> while.  If this does go in as is, we will likely just carry a patch to
-> remove the "if EXPERT", but that is a bit of a disservice to users who
-> might be trying to debug something else upstream, bisecting upstream
-> kernels or testing a patch.  In those cases, people tend to use
-> pristine upstream sources without distro patches to verify, and they
-> tend to use their existing configs. With this change, their MAX_ORDER
-> will drop to 10 from 13 silently.   That can look like a different
-> issue enough to ruin a bisect or have them give bad feedback on a
-> patch because it introduces a "regression" which is not a regression
-> at all, but a config change they couldn't see.
+> Indeed, thanks. I assume Andrew can change the latter to pte_write(). 
 
-If we remove EXPERT (as prior to this patch), I'd rather keep the ranges
-and avoid having to explain to people why some random MAX_ORDER doesn't
-build (keeping the range would also make sense for randconfig, not sure
-we got to any conclusion there).
-
--- 
-Catalin
+It was a struggle, but I managed to do this ;)
