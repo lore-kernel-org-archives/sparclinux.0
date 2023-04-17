@@ -2,127 +2,141 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5267EC77B7D
-	for <sparclinux@archiver.kernel.org>; Mon, 17 Apr 2023 09:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A307C7EE2A
+	for <sparclinux@archiver.kernel.org>; Mon, 17 Apr 2023 12:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230163AbjDQJcx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 17 Apr 2023 05:32:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34192 "EHLO
+        id S229568AbjDQM5X (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 17 Apr 2023 08:57:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229655AbjDQJcv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 17 Apr 2023 05:32:51 -0400
-X-Greylist: delayed 538 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 17 Apr 2023 02:32:08 PDT
-Received: from wnew2-smtp.messagingengine.com (wnew2-smtp.messagingengine.com [64.147.123.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEE5F5FDF;
-        Mon, 17 Apr 2023 02:32:07 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id DD2C02B066BA;
-        Mon, 17 Apr 2023 05:22:47 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Mon, 17 Apr 2023 05:22:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm2; t=
-        1681723367; x=1681730567; bh=peYP/lOIqmvTTJ2GJZFK05PdIeVxfQrMTMT
-        dWlxN2bY=; b=hoxslnOKq5L0fgq1KZ5uwFxkfCsDUbQoEitttD9Gb157/4VvDaL
-        fzRTYgwNrKhMTGBEWYk5kV4pCoKxj3IQV0FpUtGeddLg5GfVlMhZex8QF6mhL8p9
-        gvwX4MSUzxesv1YcnaqKaa4Hf8aEonHOEB+LqYDIenoy4k9B5AvOOz7WXYv6rPww
-        vauHxzq0EC93J9INj8HpYFP0uokUJZlvJ0DGwXpWQ8LUcqRJMmLECR08O/Gg7C4C
-        FExoluX3ejusbKwfN3AFnDxBNc0Jh1L5n5E2k8MJ529jR2BSvuckTFMjwePw4/jA
-        IVxKZIBctylYcZmrJ3YTpI6yusKyhHnhjmw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-        1681723367; x=1681730567; bh=peYP/lOIqmvTTJ2GJZFK05PdIeVxfQrMTMT
-        dWlxN2bY=; b=MR4yxKuz3/tjr23pAzsFitwD0Txq7SZ+LasC5Fyh1rdL9W+5uLQ
-        QWuTkcsnaN+XbFlYxewK49c7zL/ltjC0cAxyGzvY+pAqila9tzloSXls1fSGTLU8
-        83j+ql9LP2Am/jKxSL+2eFTD9s2a+pAHNF1s4l+85O8VFC4gAEQAX/IiexVaT7mA
-        1njCOrvD++JH4RDb7rqDNfo30GjQVpEJWnie2UNVdXN3+HoTO7VAHqni1UoK4zJb
-        K0nmV8AH3mMhRqTjxdJcDOoA4dxU/4N4+juQYM/HVijErDhMcN+7kkXCY9vJtEKX
-        A6hZ5WwaK7trmU2l173N30Rm9x+GYS13Hyg==
-X-ME-Sender: <xms:5g89ZGh1XGEKu3GOwuyxUAI_aRj0-gXb1yU9cH41yOyGtrZXXEBRxw>
-    <xme:5g89ZHCJrzk8kcvbfI9uoi9xOXxIpgIcnUMY2tPn_xA8atud9UMgflJi8xJj_xxVr
-    3CIR7jk9VrljLNWmYA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvdeliedguddvucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtgfesthhqredtreerjeenucfhrhhomhepfdet
-    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
-    htthgvrhhnpeegfeejhedvledvffeijeeijeeivddvhfeliedvleevheejleetgedukedt
-    gfejveenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    grrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:5g89ZOF82A9szmMdiIKfUdndIY5Y_J2WWepzSI164UFVULZ600rDfg>
-    <xmx:5g89ZPS9rsGZ3-6dQW4K4hejhxqnpa-f-mX9DnhlkCPRmeMFlap6YA>
-    <xmx:5g89ZDzdQ2ec3Pn4h3UEvgarbJnSwOf3ZSGbcWd6YhZnAMBHYJ805Q>
-    <xmx:5w89ZEqvqQ-8qIHbFuXLaLZUzpDWtqOdQ0aVq4skLKD0cgTZu8vkwIppGeY>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 2AD08B60086; Mon, 17 Apr 2023 05:22:46 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-334-g8c072af647-fm-20230330.001-g8c072af6
-Mime-Version: 1.0
-Message-Id: <55abd7af-acb8-47ce-89db-1722bcf0cb9c@app.fastmail.com>
-In-Reply-To: <2b4f75b8-aa83-8e41-7c99-7c8d573c0f31@suse.de>
-References: <20230406143019.6709-1-tzimmermann@suse.de>
- <20230406143019.6709-2-tzimmermann@suse.de>
- <CAMuHMdUfViWzPbB+GcGUwxmGNxAohfq71Jed3DzS=Cb+gBzotg@mail.gmail.com>
- <2b4f75b8-aa83-8e41-7c99-7c8d573c0f31@suse.de>
-Date:   Mon, 17 Apr 2023 11:22:24 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>
-Cc:     "Daniel Vetter" <daniel.vetter@ffwll.ch>,
-        "Helge Deller" <deller@gmx.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        with ESMTP id S231293AbjDQM5R (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 17 Apr 2023 08:57:17 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9267F7EEB;
+        Mon, 17 Apr 2023 05:57:00 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id C065F1FE0A;
+        Mon, 17 Apr 2023 12:56:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1681736218; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ru6aiAlGGFSk3oxv/WkNVYSAAxligUi0QSfc0txZ3k0=;
+        b=v+BfnvmqsA3hgoguS0rFKK5lGuftxV/k4xUjHEH1s6PaTBi+3H5qrzV0wa0wtZWBq0ms0M
+        AQ2Lf/ylSX+IsFEaN1xBPv3bk8m6BzDfj7XNON4V9dqmHXW0C6RbUWX8u5P25zWB+RYDWE
+        dH2j9/Zs85f9Tyno5ISJdBUcbtLmoZE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1681736218;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ru6aiAlGGFSk3oxv/WkNVYSAAxligUi0QSfc0txZ3k0=;
+        b=o+ecwzmhPjA2vClp8xR25gbA+HiLYyTkJiI00+L2E/xobRIO9fas8/92VjSytQXil7eQY+
+        eccV3ufW+YMuTUDw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 67F721391A;
+        Mon, 17 Apr 2023 12:56:58 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id EOqIGBpCPWToWwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 17 Apr 2023 12:56:58 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     arnd@arndb.de, daniel.vetter@ffwll.ch, deller@gmx.de,
+        javierm@redhat.com, gregkh@linuxfoundation.org
+Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
         linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
         loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
         linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v2 01/19] fbdev: Prepare generic architecture helpers
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+        sparclinux@vger.kernel.org, x86@kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v3 01/19] fbdev: Prepare generic architecture helpers
+Date:   Mon, 17 Apr 2023 14:56:33 +0200
+Message-Id: <20230417125651.25126-2-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230417125651.25126-1-tzimmermann@suse.de>
+References: <20230417125651.25126-1-tzimmermann@suse.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Apr 17, 2023, at 11:03, Thomas Zimmermann wrote:
-> Am 11.04.23 um 10:08 schrieb Geert Uytterhoeven:
->> On Thu, Apr 6, 2023 at 4:30=E2=80=AFPM Thomas Zimmermann <tzimmermann=
-@suse.de> wrote:
+Generic implementations of fb_pgprotect() and fb_is_primary_device()
+have been in the source code for a long time. Prepare the header file
+to make use of them.
 
->>> +#ifndef fb_pgprotect
->>> +#define fb_pgprotect fb_pgprotect
->>> +static inline void fb_pgprotect(struct file *file, struct vm_area_s=
-truct *vma,
->>> +                               unsigned long off)
->>=20
->> Does this affect any noMMU platforms that relied on fb_pgprotect()
->> doing nothing before?
->> Perhaps the body below should be protected by "#ifdef CONFIG_MMU"?
->
-> I cannot conclusively answer this question, but I did some grep'ing=20
-> ('git grep ndef | grep CONFIG_MMU'):
->
-> Only the architectures in this patchset provide <asm/fb.h> but nothing=20
-> anywhere uses <asm-generic/fb.h> yet. And of those architectures, only=20
-> arm and m68k have !CONFIG_MMU cases. Those are handled in the rsp=20
-> patches. I think we're good.
+Improve the code by using an inline function for fb_pgprotect()
+and by removing include statements. The default mode set by
+fb_pgprotect() is now writecombine, which is what most platforms
+want.
 
-Agreed. The generic version is just a more elaborate way to do
-nothing here, as the=20
+Symbols are protected by preprocessor guards. Architectures that
+provide a symbol need to define a preprocessor token of the same
+name and value. Otherwise the header file will provide a generic
+implementation. This pattern has been taken from <asm/io.h>.
 
-     vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
+v3:
+	* include the correct header files
+v2:
+	*  use writecombine mappings by default (Arnd)
 
-line on nommu just turns into a self-assignment of the same member
-that was set the line before.
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/asm-generic/fb.h | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
-     Arnd
+diff --git a/include/asm-generic/fb.h b/include/asm-generic/fb.h
+index f9f18101ed36..c8af99f5a535 100644
+--- a/include/asm-generic/fb.h
++++ b/include/asm-generic/fb.h
+@@ -1,13 +1,33 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++
+ #ifndef __ASM_GENERIC_FB_H_
+ #define __ASM_GENERIC_FB_H_
+-#include <linux/fb.h>
+ 
+-#define fb_pgprotect(...) do {} while (0)
++/*
++ * Only include this header file from your architecture's <asm/fb.h>.
++ */
++
++#include <linux/mm_types.h>
++#include <linux/pgtable.h>
++
++struct fb_info;
++struct file;
++
++#ifndef fb_pgprotect
++#define fb_pgprotect fb_pgprotect
++static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
++				unsigned long off)
++{
++	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++}
++#endif
+ 
++#ifndef fb_is_primary_device
++#define fb_is_primary_device fb_is_primary_device
+ static inline int fb_is_primary_device(struct fb_info *info)
+ {
+ 	return 0;
+ }
++#endif
+ 
+ #endif /* __ASM_GENERIC_FB_H_ */
+-- 
+2.40.0
+
