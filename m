@@ -2,151 +2,207 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6538FC77B73
-	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 11:43:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A78C7EE20
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 13:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232930AbjDSLnE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 19 Apr 2023 07:43:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37976 "EHLO
+        id S233543AbjDSNfS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Apr 2023 09:35:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232893AbjDSLnD (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 07:43:03 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 680191447C
-        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 04:41:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681904506;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=i+ljsW3KAuErNDeeE9uh+f3S5vccVtwLnf4UBEcIcgs=;
-        b=aV0nZ0rOPpKxA53CETPSTeR4QDO1q87aYwDQiHgv1z1WGcFZAshbciI0n+UENVZZjNrZ4f
-        gcUt2zOi1qT5w9TheUE3rNg5G9/U7zzOGhobtspCyoKurx9Xx7hsIG30gbTmsFaiwQnB09
-        TWoETCMq4TYG3AokynnYgI2vQnroauQ=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-342-WCYnVo6lNP6ZqvgcTniNgw-1; Wed, 19 Apr 2023 07:41:43 -0400
-X-MC-Unique: WCYnVo6lNP6ZqvgcTniNgw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E9F1A810BD4;
-        Wed, 19 Apr 2023 11:41:40 +0000 (UTC)
-Received: from tpad.localdomain (ovpn-112-2.gru2.redhat.com [10.97.112.2])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 48B721121315;
-        Wed, 19 Apr 2023 11:41:40 +0000 (UTC)
-Received: by tpad.localdomain (Postfix, from userid 1000)
-        id 7E64240512CCB; Wed, 19 Apr 2023 08:39:48 -0300 (-03)
-Date:   Wed, 19 Apr 2023 08:39:48 -0300
-From:   Marcelo Tosatti <mtosatti@redhat.com>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Peter Zijlstra <peterz@infradead.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
-        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
-        ardb@kernel.org, juerg.haefliger@canonical.com,
-        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
-        tony@atomide.com, linus.walleij@linaro.org,
-        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, vschneid@redhat.com, dhildenb@redhat.com,
-        alougovs@redhat.com, jannh@google.com,
-        Yang Shi <shy828301@gmail.com>
-Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
- only to CPUs in kernel mode
-Message-ID: <ZD/TBN5doEex3iag@tpad>
-References: <ZC1XD/sEJY+zRujE@lothringen>
- <ZC3P3Ds/BIcpRNGr@tpad>
- <20230405195226.GB365912@hirez.programming.kicks-ass.net>
- <ZC69Wmqjdwk+I8kn@tpad>
- <20230406132928.GM386572@hirez.programming.kicks-ass.net>
- <20230406140423.GA386634@hirez.programming.kicks-ass.net>
- <20230406150213.GQ386572@hirez.programming.kicks-ass.net>
- <248392c0-52d1-d09d-75ec-9e930435c053@redhat.com>
- <20230406182749.GA405948@hirez.programming.kicks-ass.net>
- <914e826e-3fab-4540-d3a1-24ca39b1cf0a@redhat.com>
+        with ESMTP id S233494AbjDSNfO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 09:35:14 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03AC01544B;
+        Wed, 19 Apr 2023 06:34:28 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-63b73203e0aso16098003b3a.1;
+        Wed, 19 Apr 2023 06:34:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1681911243; x=1684503243;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=PxKBdJz6P62xw3o1oOHy6gvL/UmSXqmJ0vRsGDHfXz4=;
+        b=mzt7zUu9/LUJvSIPaNj+nC+ArFvk3Wmz36d7P4hExfQnu/+5EJ/luadmhJCFNiq8eA
+         5mamh3uH/3u0VIJzJy4W31TNXYt1DvfBn6ZHGOaQZO/LaodxyaE7yMJE8BXQrMBetDD1
+         or6ct0PxWqhNSzFTI7QUR0GNkBsKZpZ79DqaN9iIdwxdDsEv8FenNeci7+RSvuikuLAT
+         68J4r2aw28njQbzjpScT2QNoBA3X+SSSqlRvn9uiCaccB9t2Uwb/G4C4D/IZDIaojb9q
+         azW1GR2HjveVXh0qkoLiSeS/y+b+MPHfKKr5FHg+1Fk7e61fzU4VCdWEM74x3aiYuZwi
+         ZxNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681911243; x=1684503243;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PxKBdJz6P62xw3o1oOHy6gvL/UmSXqmJ0vRsGDHfXz4=;
+        b=RdvipdJz3SEBl3IczYrF1LxYAwgc8CSKZCcn/QNDLKKTTeIb24CwpX5QiLeAaQi5mS
+         hEH9dtGAZu7P60qI/qittUkiRlVM07/XsyZ70zRErmqe0Tn/RYny0raySZLeY2ljpZsw
+         fwOxwO9KhTl7j+6Q/quVd2tRJW5lJkj62YUOkHOX7ZEjV9fwJb8Tli8YCShh6F8OFjh4
+         c5K0BZRALzXMo7Eww10Z1ryRLJV34P6kOD+Ce1UM6+gYcQyrG3qgs/AouR+D2LPuREV0
+         G5NRxO0FZ1RWkt52OCxzHGnzhOqfMiduYoPUBg5gttMDzB+VQ+pV5bh2pI2xPkozgrFr
+         oReg==
+X-Gm-Message-State: AAQBX9cKGTXFtxL7KQUa/OmU/ZgyOaY7GZQxPcacVNGazGv2cpbJrlyf
+        649QX9c8sk2TRPr5TyEYakAuul4JVqSJ9GjO
+X-Google-Smtp-Source: AKy350YIBnQaE7WQxRLYlOkzgJwtc2fN5JwvE5Bu5492IB3LxeDfFswMVcmvTtBOzAP11iX9vi1kMA==
+X-Received: by 2002:a17:90a:c095:b0:247:4e73:cbdd with SMTP id o21-20020a17090ac09500b002474e73cbddmr2798673pjs.9.1681911242426;
+        Wed, 19 Apr 2023 06:34:02 -0700 (PDT)
+Received: from vernon-pc ([114.231.52.113])
+        by smtp.gmail.com with ESMTPSA id fv5-20020a17090b0e8500b0023b4d4ca3a9sm1392755pjb.50.2023.04.19.06.33.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 19 Apr 2023 06:34:02 -0700 (PDT)
+Date:   Wed, 19 Apr 2023 21:33:54 +0800
+From:   Vernon Yang <vernon2gm@gmail.com>
+To:     Vishal Moola <vishal.moola@gmail.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org
+Subject: Re: [PATCH 4/33] mm: add utility functions for ptdesc
+Message-ID: <ZD/syK8RYO9FZ6ks@vernon-pc>
+References: <20230417205048.15870-1-vishal.moola@gmail.com>
+ <20230417205048.15870-5-vishal.moola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <914e826e-3fab-4540-d3a1-24ca39b1cf0a@redhat.com>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
+In-Reply-To: <20230417205048.15870-5-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Apr 19, 2023 at 01:30:57PM +0200, David Hildenbrand wrote:
-> On 06.04.23 20:27, Peter Zijlstra wrote:
-> > On Thu, Apr 06, 2023 at 05:51:52PM +0200, David Hildenbrand wrote:
-> > > On 06.04.23 17:02, Peter Zijlstra wrote:
-> > 
-> > > > DavidH, what do you thikn about reviving Jann's patches here:
-> > > > 
-> > > >     https://bugs.chromium.org/p/project-zero/issues/detail?id=2365#c1
-> > > > 
-> > > > Those are far more invasive, but afaict they seem to do the right thing.
-> > > > 
-> > > 
-> > > I recall seeing those while discussed on security@kernel.org. What we
-> > > currently have was (IMHO for good reasons) deemed better to fix the issue,
-> > > especially when caring about backports and getting it right.
-> > 
-> > Yes, and I think that was the right call. However, we can now revisit
-> > without having the pressure of a known defect and backport
-> > considerations.
-> > 
-> > > The alternative that was discussed in that context IIRC was to simply
-> > > allocate a fresh page table, place the fresh page table into the list
-> > > instead, and simply free the old page table (then using common machinery).
-> > > 
-> > > TBH, I'd wish (and recently raised) that we could just stop wasting memory
-> > > on page tables for THPs that are maybe never going to get PTE-mapped ... and
-> > > eventually just allocate on demand (with some caching?) and handle the
-> > > places where we're OOM and cannot PTE-map a THP in some descend way.
-> > > 
-> > > ... instead of trying to figure out how to deal with these page tables we
-> > > cannot free but have to special-case simply because of GUP-fast.
-> > 
-> > Not keeping them around sounds good to me, but I'm not *that* familiar
-> > with the THP code, most of that happened after I stopped tracking mm. So
-> > I'm not sure how feasible is it.
-> > 
-> > But it does look entirely feasible to rework this page-table freeing
-> > along the lines Jann did.
-> 
-> It's most probably more feasible, although the easiest would be to just
-> allocate a fresh page table to deposit and free the old one using the mmu
-> gatherer.
-> 
-> This way we can avoid the khugepaged of tlb_remove_table_smp_sync(), but not
-> the tlb_remove_table_one() usage. I suspect khugepaged isn't really relevant
-> in RT kernels (IIRC, most of RT setups disable THP completely).
+On Mon, Apr 17, 2023 at 01:50:19PM -0700, Vishal Moola wrote:
+> Introduce utility functions setting the foundation for ptdescs. These
+> will also assist in the splitting out of ptdesc from struct page.
+>
+> ptdesc_alloc() is defined to allocate new ptdesc pages as compound
+> pages. This is to standardize ptdescs by allowing for one allocation
+> and one free function, in contrast to 2 allocation and 2 free functions.
+>
+> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+> ---
+>  include/asm-generic/tlb.h | 11 ++++++++++
+>  include/linux/mm.h        | 44 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/pgtable.h   | 13 ++++++++++++
+>  3 files changed, 68 insertions(+)
+>
+> diff --git a/include/asm-generic/tlb.h b/include/asm-generic/tlb.h
+> index b46617207c93..6bade9e0e799 100644
+> --- a/include/asm-generic/tlb.h
+> +++ b/include/asm-generic/tlb.h
+> @@ -481,6 +481,17 @@ static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
+>  	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
+>  }
+>
+> +static inline void tlb_remove_ptdesc(struct mmu_gather *tlb, void *pt)
+> +{
+> +	tlb_remove_table(tlb, pt);
+> +}
+> +
+> +/* Like tlb_remove_ptdesc, but for page-like page directories. */
+> +static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
+> +{
+> +	tlb_remove_page(tlb, ptdesc_page(pt));
+> +}
+> +
+>  static inline void tlb_change_page_size(struct mmu_gather *tlb,
+>  						     unsigned int page_size)
+>  {
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index b18848ae7e22..ec3cbe2fa665 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2744,6 +2744,45 @@ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long a
+>  }
+>  #endif /* CONFIG_MMU */
+>
+> +static inline struct ptdesc *virt_to_ptdesc(const void *x)
+> +{
+> +	return page_ptdesc(virt_to_head_page(x));
+> +}
+> +
+> +static inline void *ptdesc_to_virt(struct ptdesc *pt)
+> +{
+> +	return page_to_virt(ptdesc_page(pt));
+> +}
+> +
+> +static inline void *ptdesc_address(struct ptdesc *pt)
+> +{
+> +	return folio_address(ptdesc_folio(pt));
+> +}
+> +
+> +static inline bool ptdesc_is_reserved(struct ptdesc *pt)
+> +{
+> +	return folio_test_reserved(ptdesc_folio(pt));
+> +}
+> +
+> +static inline struct ptdesc *ptdesc_alloc(gfp_t gfp, unsigned int order)
+> +{
+> +	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
+> +
+> +	return page_ptdesc(page);
+> +}
+> +
+> +static inline void ptdesc_free(struct ptdesc *pt)
+> +{
+> +	struct page *page = ptdesc_page(pt);
+> +
+> +	__free_pages(page, compound_order(page));
+> +}
+> +
+> +static inline void ptdesc_clear(void *x)
+> +{
+> +	clear_page(x);
+> +}
+> +
+>  #if USE_SPLIT_PTE_PTLOCKS
+>  #if ALLOC_SPLIT_PTLOCKS
+>  void __init ptlock_cache_init(void);
+> @@ -2970,6 +3009,11 @@ static inline void mark_page_reserved(struct page *page)
+>  	adjust_managed_page_count(page, -1);
+>  }
+>
+> +static inline void free_reserved_ptdesc(struct ptdesc *pt)
+> +{
+> +	free_reserved_page(ptdesc_page(pt));
+> +}
+> +
+>  /*
+>   * Default method to free all the __init memory into the buddy system.
+>   * The freed pages will be poisoned with pattern "poison" if it's within
+> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+> index 7cc6ea057ee9..7cd803aa38eb 100644
+> --- a/include/linux/pgtable.h
+> +++ b/include/linux/pgtable.h
+> @@ -97,6 +97,19 @@ TABLE_MATCH(ptl, ptl);
+>  #undef TABLE_MATCH
+>  static_assert(sizeof(struct ptdesc) <= sizeof(struct page));
+>
+> +#define ptdesc_page(pt)			(_Generic((pt),			\
+> +	const struct ptdesc *:		(const struct page *)(pt),	\
+> +	struct ptdesc *:		(struct page *)(pt)))
+> +
+> +#define ptdesc_folio(pt)		(_Generic((pt),			\
+> +	const struct ptdesc *:		(const struct folio *)(pt),	\
+> +	struct ptdesc *:		(struct folio *)(pt)))
+> +
+> +static inline struct ptdesc *page_ptdesc(struct page *page)
+> +{
+> +	return (struct ptdesc *)page;
+> +}
 
-People will disable khugepaged because it causes IPIs (and the fact one
-has to disable khugepaged is a configuration overhead, and a source of
-headache for configuring the realtime system, since one can forget of
-doing that, etc).
+Hi Vishal,
 
-But people do want to run non-RT applications along with RT applications
-(in case you have a single box on a priviledged location, for example).
+I'm a little curious, why is the page_ptdesc() using inline functions instead of macro?
+If this is any magic, please tell me, thank you very much.
 
-> 
-> tlb_remove_table_one() only triggers if __get_free_page(GFP_NOWAIT |
-> __GFP_NOWARN); fails. IIUC, that can happen easily under memory pressure
-> because it doesn't wait for direct reclaim.
-> 
-> I don't know much about RT workloads (so I'd appreciate some feedback), but
-> I guess we can run int memory pressure as well due to some !rt housekeeping
-> task on the system?
-
-Yes, exactly (memory for -RT app will be mlocked).
-
+> +
+>  /*
+>   * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+>   *
+>
+> --
+> 2.39.2
+>
