@@ -2,49 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3AACC77B75
-	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 22:57:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C4DC77B7C
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 22:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232589AbjDSW5D (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 19 Apr 2023 18:57:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57324 "EHLO
+        id S233727AbjDSW5W (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Apr 2023 18:57:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232746AbjDSW5C (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 18:57:02 -0400
-Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60B7D2680
-        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 15:56:59 -0700 (PDT)
-Received: by mail-pl1-x630.google.com with SMTP id d9443c01a7336-1a6c5acf6ccso4184985ad.3
-        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 15:56:59 -0700 (PDT)
+        with ESMTP id S233633AbjDSW5S (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 18:57:18 -0400
+Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1455A1FF6
+        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 15:57:10 -0700 (PDT)
+Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-63b5465fc13so366020b3a.3
+        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 15:57:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1681945019; x=1684537019;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=EfHs6iQcu6f/xzGNIRNs/Y6zNI7wkCv1JLv9sFf5g1M=;
-        b=Hf8STPeTqcCEMBqR/MDrmp1HtnPk6GIH5PFNOTsUN7tPgWqWR1ZyBP8GwDsJkkLKG8
-         AYhZdFrgwCV8MqXtRmCQi31cmL6jiSjz3Nhdqbn+Ydb7KtggmVC0mWLgTkV8h5LrocTx
-         JMSiKPmPNqI9PaMzeCfkSLedwLBMwC/49yavs=
+        d=chromium.org; s=google; t=1681945030; x=1684537030;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Yb6/i5wvA5aqg7D8OxOUWOO0Hm18poXHV7fpSzZnAys=;
+        b=f/keZsFsRpPyIorAm94ME+WfSd7KDG8/BCFf8R105b11Ffbgzo9pzq82YxXSDVqjJO
+         RAL0ohhvLSzGUV9NQcjZjhqrAR/qHB43wWIHePRtjqAsuC10cirRBAifx8Ei2JUh23ob
+         cLyiXukGwpoVOUWteGcvINVlZG2UD8Xz1AuKg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681945019; x=1684537019;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=EfHs6iQcu6f/xzGNIRNs/Y6zNI7wkCv1JLv9sFf5g1M=;
-        b=hSgtoKO8f+tGoKRzkjGJJUHHxxWt0ULn3DRN1GxyZX7Un4koPtVuibsPKdSCn5Xcjt
-         aNR73oUZs9ebLLTwKuWH8tx9eZFVITrQuROqOa5St1b+k1z6+Cr+WMY8jrN3pSOLOBR/
-         koJjmI47/D2Kn4yTb6PJCe4eR1bQuvJMXhHtxI/sePCh7o4UcTNWLvmlGegWD9+JuKDV
-         ifWX9VFusNqo3HAUdrIG5Kl9qdInvHgrRtS8em2RYvebPybgjAupT1BsisnTspwdJxIG
-         e2mYllkfxPvMokEISJCjHgZb4je6SCl1EAjluHt2keFkxuChH+vJSqIlVIMf6y0wNpir
-         TgYg==
-X-Gm-Message-State: AAQBX9cRtrrDNFXztFRO1zlEXTMQ8jc/cFldGkgqgxamaVLEMG25xCKf
-        GF5dSOQobBgoOKUxexKjQS39WQ==
-X-Google-Smtp-Source: AKy350ZiPT69ec5g7FHlxHkgLJsXu49t1r2PGDTeEGKpYVM7Qe0rm8s8+T+i58n9/utMvufCZU7NAA==
-X-Received: by 2002:a17:902:e74a:b0:1a6:46d7:77dc with SMTP id p10-20020a170902e74a00b001a646d777dcmr7987289plf.43.1681945018669;
-        Wed, 19 Apr 2023 15:56:58 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1681945030; x=1684537030;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Yb6/i5wvA5aqg7D8OxOUWOO0Hm18poXHV7fpSzZnAys=;
+        b=Q9Z6NUEmLsmgGV5Xh6wPVlt0lqZ90rZvUdVhdOBL/XeWBLyei+BCSTuVd6uYEFXmfo
+         1reFy2boeJ9l/NDynRYiCzMpwtg8QsxzE2H2+TsjHAxPGV8rcG2TeIP+e+XFtdkX+pRq
+         0YbieAh7s7ol31PLUN4VRKeX5ldmbwR2iGftzn1K/hjfOqzoF6rGBsIRwfmPWuZ/9uR3
+         WR7590sHTk4XkA7gItd93fpUqprD0QoBsubeCG+aoH2sLsqJfylX1hmg25GRUJU1F4BV
+         FyuR7+iZBsSvVrOSF/guW4fbK+vnbXJX8xkItfN3Nt9/r9zLYzZ9XTSC5h10E1hLBhva
+         myBw==
+X-Gm-Message-State: AAQBX9eb/j0eUlI6f9+JJacBA928ZwuDL+MgAG1e9lq9jSHQ/eFVJJVI
+        E10lqKc0N03NF1WYFRDDpWXAXg==
+X-Google-Smtp-Source: AKy350bC/5PM+ohv9/mlWqv8/0FC6IWAoMFnR21tmHI/E3Ye/uJYm0ouOTrfyEROhwU6t4EAkcC5kQ==
+X-Received: by 2002:a05:6a20:3c8d:b0:ee:6c12:6c95 with SMTP id b13-20020a056a203c8d00b000ee6c126c95mr232937pzj.21.1681945030329;
+        Wed, 19 Apr 2023 15:57:10 -0700 (PDT)
 Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:8b1:fa03:670e:b784])
-        by smtp.gmail.com with ESMTPSA id h15-20020a17090aea8f00b00246ea338c96sm1847101pjz.53.2023.04.19.15.56.54
+        by smtp.gmail.com with ESMTPSA id h15-20020a17090aea8f00b00246ea338c96sm1847101pjz.53.2023.04.19.15.57.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 19 Apr 2023 15:56:57 -0700 (PDT)
+        Wed, 19 Apr 2023 15:57:09 -0700 (PDT)
 From:   Douglas Anderson <dianders@chromium.org>
 To:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
@@ -64,8 +65,6 @@ Cc:     ito-yuichi@fujitsu.com, kgdb-bugreport@lists.sourceforge.net,
         Thomas Gleixner <tglx@linutronix.de>,
         linux-perf-users@vger.kernel.org,
         Douglas Anderson <dianders@chromium.org>,
-        Alexandru Elisei <alexandru.elisei@arm.com>,
-        Andrey Konovalov <andreyknvl@gmail.com>,
         Ben Dooks <ben-linux@fluff.org>,
         Borislav Petkov <bp@alien8.de>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
@@ -73,29 +72,23 @@ Cc:     ito-yuichi@fujitsu.com, kgdb-bugreport@lists.sourceforge.net,
         Dave Hansen <dave.hansen@linux.intel.com>,
         "David S. Miller" <davem@davemloft.net>,
         "Eric W. Biederman" <ebiederm@xmission.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
         Gaosheng Cui <cuigaosheng1@huawei.com>,
         "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
         Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
         Huacai Chen <chenhuacai@kernel.org>,
-        Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>,
         "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        Jason Wessel <jason.wessel@windriver.com>,
         Jianmin Lv <lvjianmin@loongson.cn>,
         Jiaxun Yang <jiaxun.yang@flygoat.com>,
         Jinyang He <hejinyang@loongson.cn>,
-        Joey Gouly <joey.gouly@arm.com>,
         Kees Cook <keescook@chromium.org>,
         Laurent Dufour <ldufour@linux.ibm.com>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         "Paul E. McKenney" <paulmck@kernel.org>,
         =?UTF-8?q?Philippe=20Mathieu-Daud=C3=A9?= <f4bug@amsat.org>,
-        Pierre Gondois <Pierre.Gondois@arm.com>,
         Qing Zhang <zhangqing@loongson.cn>,
         "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
         Russell King <linux@armlinux.org.uk>,
@@ -105,106 +98,265 @@ Cc:     ito-yuichi@fujitsu.com, kgdb-bugreport@lists.sourceforge.net,
         linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
         x86@kernel.org
-Subject: [PATCH v8 00/10] arm64: Add framework to turn an IPI as NMI
-Date:   Wed, 19 Apr 2023 15:55:54 -0700
-Message-ID: <20230419225604.21204-1-dianders@chromium.org>
+Subject: [PATCH v8 04/10] nmi: backtrace: Allow runtime arch specific override
+Date:   Wed, 19 Apr 2023 15:55:58 -0700
+Message-ID: <20230419155341.v8.4.I3929b13cb2fab48772537aa308cd89e6f8a6753c@changeid>
 X-Mailer: git-send-email 2.40.0.634.g4ca3ef3211-goog
+In-Reply-To: <20230419225604.21204-1-dianders@chromium.org>
+References: <20230419225604.21204-1-dianders@chromium.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This is an attempt to resurrect Sumit's old patch series [1] that
-allowed us to use the arm64 pseudo-NMI to get backtraces of CPUs and
-also to round up CPUs in kdb/kgdb. The last post from Sumit that I
-could find was v7, so I called this series v8. I haven't copied all of
-his old changelongs here, but you can find them from the link.
+From: Sumit Garg <sumit.garg@linaro.org>
 
-Since v7, I have:
-* Addressed the small amount of feedback that was there for v7.
-* Rebased.
-* Added a new patch that prevents us from spamming the logs with idle
-  tasks.
-* Added an extra patch to gracefully fall back to regular IPIs if
-  pseudo-NMIs aren't there.
+Add a boolean return to arch_trigger_cpumask_backtrace() to support a
+use-case where a particular architecture detects at runtime if it supports
+NMI backtrace or it would like to fallback to default implementation using
+SMP cross-calls.
 
-Since there appear to be a few different patches series related to
-being able to use NMIs to get stack traces of crashed systems, let me
-try to organize them to the best of my understanding:
+Currently such an architecture example is arm64 supporting pseudo NMIs
+feature which is only available on platforms which have support for GICv3
+or later version.
 
-a) This series. On its own, a) will (among other things) enable stack
-   traces of all running processes with the soft lockup detector if
-   you've enabled the sysctl "kernel.softlockup_all_cpu_backtrace". On
-   its own, a) doesn't give a hard lockup detector.
-
-b) A different recently-posted series [2] that adds a hard lockup
-   detector based on perf. On its own, b) gives a stack crawl of the
-   locked up CPU but no stack crawls of other CPUs (even if they're
-   locked too). Together with a) + b) we get everything (full lockup
-   detect, full ability to get stack crawls).
-
-c) The old Android "buddy" hard lockup detector [3] that I'm
-   considering trying to upstream. If b) lands then I believe c) would
-   be redundant (at least for arm64). c) on its own is really only
-   useful on arm64 for platforms that can print CPU_DBGPCSR somehow
-   (see [4]). a) + c) is roughly as good as a) + b).
-
-[1] https://lore.kernel.org/linux-arm-kernel/1604317487-14543-1-git-send-email-sumit.garg@linaro.org/
-[2] https://lore.kernel.org/linux-arm-kernel/20220903093415.15850-1-lecopzer.chen@mediatek.com/
-[3] https://issuetracker.google.com/172213097
-[4] https://issuetracker.google.com/172213129
+Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
+Tested-by: Chen-Yu Tsai <wens@csie.org>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+---
 
 Changes in v8:
-- dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
-- dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
 - Add loongarch support, too
-- Removed "#ifdef CONFIG_SMP" since arm64 is always SMP
-- "Tag the arm64 idle functions as __cpuidle" new for v8
-- "Provide a stub kgdb_nmicallback() if !CONFIG_KGDB" new for v8
-- "Fallback to a regular IPI if NMI isn't enabled" new for v8
 
-Douglas Anderson (3):
-  arm64: idle: Tag the arm64 idle functions as __cpuidle
-  kgdb: Provide a stub kgdb_nmicallback() if !CONFIG_KGDB
-  arm64: ipi_nmi: Fallback to a regular IPI if NMI isn't enabled
+ arch/arm/include/asm/irq.h       |  2 +-
+ arch/arm/kernel/smp.c            |  3 ++-
+ arch/loongarch/include/asm/irq.h |  2 +-
+ arch/loongarch/kernel/process.c  |  3 ++-
+ arch/mips/include/asm/irq.h      |  2 +-
+ arch/mips/kernel/process.c       |  3 ++-
+ arch/powerpc/include/asm/nmi.h   |  2 +-
+ arch/powerpc/kernel/stacktrace.c |  3 ++-
+ arch/sparc/include/asm/irq_64.h  |  2 +-
+ arch/sparc/kernel/process_64.c   |  4 +++-
+ arch/x86/include/asm/irq.h       |  2 +-
+ arch/x86/kernel/apic/hw_nmi.c    |  3 ++-
+ include/linux/nmi.h              | 12 ++++--------
+ 13 files changed, 23 insertions(+), 20 deletions(-)
 
-Sumit Garg (7):
-  arm64: Add framework to turn IPI as NMI
-  irqchip/gic-v3: Enable support for SGIs to act as NMIs
-  arm64: smp: Assign and setup an IPI as NMI
-  nmi: backtrace: Allow runtime arch specific override
-  arm64: ipi_nmi: Add support for NMI backtrace
-  kgdb: Expose default CPUs roundup fallback mechanism
-  arm64: kgdb: Roundup cpus using IPI as NMI
-
- arch/arm/include/asm/irq.h       |   2 +-
- arch/arm/kernel/smp.c            |   3 +-
- arch/arm64/include/asm/irq.h     |   4 ++
- arch/arm64/include/asm/nmi.h     |  17 +++++
- arch/arm64/kernel/Makefile       |   2 +-
- arch/arm64/kernel/idle.c         |   4 +-
- arch/arm64/kernel/ipi_nmi.c      | 103 +++++++++++++++++++++++++++++++
- arch/arm64/kernel/kgdb.c         |  18 ++++++
- arch/arm64/kernel/smp.c          |   8 +++
- arch/loongarch/include/asm/irq.h |   2 +-
- arch/loongarch/kernel/process.c  |   3 +-
- arch/mips/include/asm/irq.h      |   2 +-
- arch/mips/kernel/process.c       |   3 +-
- arch/powerpc/include/asm/nmi.h   |   2 +-
- arch/powerpc/kernel/stacktrace.c |   3 +-
- arch/sparc/include/asm/irq_64.h  |   2 +-
- arch/sparc/kernel/process_64.c   |   4 +-
- arch/x86/include/asm/irq.h       |   2 +-
- arch/x86/kernel/apic/hw_nmi.c    |   3 +-
- drivers/irqchip/irq-gic-v3.c     |  29 ++++++---
- include/linux/kgdb.h             |  13 ++++
- include/linux/nmi.h              |  12 ++--
- kernel/debug/debug_core.c        |   8 ++-
- 23 files changed, 217 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm64/include/asm/nmi.h
- create mode 100644 arch/arm64/kernel/ipi_nmi.c
-
+diff --git a/arch/arm/include/asm/irq.h b/arch/arm/include/asm/irq.h
+index a7c2337b0c7d..e6b62c7d6f0e 100644
+--- a/arch/arm/include/asm/irq.h
++++ b/arch/arm/include/asm/irq.h
+@@ -32,7 +32,7 @@ void init_IRQ(void);
+ #ifdef CONFIG_SMP
+ #include <linux/cpumask.h>
+ 
+-extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
++extern bool arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+ 					   bool exclude_self);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 0b8c25763adc..acb97d9219b1 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -849,7 +849,8 @@ static void raise_nmi(cpumask_t *mask)
+ 	__ipi_send_mask(ipi_desc[IPI_CPU_BACKTRACE], mask);
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
++	return true;
+ }
+diff --git a/arch/loongarch/include/asm/irq.h b/arch/loongarch/include/asm/irq.h
+index a115e8999c69..c7a152d6bf0c 100644
+--- a/arch/loongarch/include/asm/irq.h
++++ b/arch/loongarch/include/asm/irq.h
+@@ -40,7 +40,7 @@ void spurious_interrupt(void);
+ #define NR_IRQS_LEGACY 16
+ 
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask, bool exclude_self);
++bool arch_trigger_cpumask_backtrace(const struct cpumask *mask, bool exclude_self);
+ 
+ #define MAX_IO_PICS 2
+ #define NR_IRQS	(64 + (256 * MAX_IO_PICS))
+diff --git a/arch/loongarch/kernel/process.c b/arch/loongarch/kernel/process.c
+index fa2443c7afb2..8f7f818f5c4e 100644
+--- a/arch/loongarch/kernel/process.c
++++ b/arch/loongarch/kernel/process.c
+@@ -339,9 +339,10 @@ static void raise_backtrace(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	return true;
+ }
+ 
+ #ifdef CONFIG_64BIT
+diff --git a/arch/mips/include/asm/irq.h b/arch/mips/include/asm/irq.h
+index 44f9824c1d8c..daf16173486a 100644
+--- a/arch/mips/include/asm/irq.h
++++ b/arch/mips/include/asm/irq.h
+@@ -77,7 +77,7 @@ extern int cp0_fdc_irq;
+ 
+ extern int get_c0_fdc_int(void);
+ 
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++bool arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+ 				    bool exclude_self);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+diff --git a/arch/mips/kernel/process.c b/arch/mips/kernel/process.c
+index 093dbbd6b843..7d538571830a 100644
+--- a/arch/mips/kernel/process.c
++++ b/arch/mips/kernel/process.c
+@@ -750,9 +750,10 @@ static void raise_backtrace(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	return true;
+ }
+ 
+ int mips_get_process_fp_mode(struct task_struct *task)
+diff --git a/arch/powerpc/include/asm/nmi.h b/arch/powerpc/include/asm/nmi.h
+index c3c7adef74de..135f65adcf63 100644
+--- a/arch/powerpc/include/asm/nmi.h
++++ b/arch/powerpc/include/asm/nmi.h
+@@ -12,7 +12,7 @@ static inline void watchdog_nmi_set_timeout_pct(u64 pct) {}
+ #endif
+ 
+ #ifdef CONFIG_NMI_IPI
+-extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
++extern bool arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+ 					   bool exclude_self);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+diff --git a/arch/powerpc/kernel/stacktrace.c b/arch/powerpc/kernel/stacktrace.c
+index 5de8597eaab8..0fee4bded7ba 100644
+--- a/arch/powerpc/kernel/stacktrace.c
++++ b/arch/powerpc/kernel/stacktrace.c
+@@ -221,8 +221,9 @@ static void raise_backtrace_ipi(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace_ipi);
++	return true;
+ }
+ #endif /* defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI) */
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index 154df2cf19f4..00a0051a9da0 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -87,7 +87,7 @@ static inline unsigned long get_softint(void)
+ 	return retval;
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++bool arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+ 				    bool exclude_self);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 91c2b8124527..f9aea1df3adf 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -236,7 +236,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -291,6 +291,8 @@ void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+ 
+ 	spin_unlock_irqrestore(&global_cpu_snapshot_lock, flags);
++
++	return true;
+ }
+ 
+ #ifdef CONFIG_MAGIC_SYSRQ
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index 768aa234cbb4..f731638cc38e 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -43,7 +43,7 @@ extern void init_ISA_irqs(void);
+ extern void __init init_IRQ(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++bool arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+ 				    bool exclude_self);
+ 
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
+index 34a992e275ef..e7dcd28bc824 100644
+--- a/arch/x86/kernel/apic/hw_nmi.c
++++ b/arch/x86/kernel/apic/hw_nmi.c
+@@ -34,10 +34,11 @@ static void nmi_raise_cpu_backtrace(cpumask_t *mask)
+ 	apic->send_IPI_mask(mask, NMI_VECTOR);
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++bool arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	nmi_trigger_cpumask_backtrace(mask, exclude_self,
+ 				      nmi_raise_cpu_backtrace);
++	return true;
+ }
+ 
+ static int nmi_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 048c0b9aa623..7d8a77cd1e03 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -145,26 +145,22 @@ static inline void touch_nmi_watchdog(void)
+ #ifdef arch_trigger_cpumask_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
+-	return true;
++	return arch_trigger_cpumask_backtrace(cpu_online_mask, false);
+ }
+ 
+ static inline bool trigger_allbutself_cpu_backtrace(void)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
+-	return true;
++	return arch_trigger_cpumask_backtrace(cpu_online_mask, true);
+ }
+ 
+ static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
+ {
+-	arch_trigger_cpumask_backtrace(mask, false);
+-	return true;
++	return arch_trigger_cpumask_backtrace(mask, false);
+ }
+ 
+ static inline bool trigger_single_cpu_backtrace(int cpu)
+ {
+-	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
+-	return true;
++	return arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
+ }
+ 
+ /* generic implementation */
 -- 
 2.40.0.634.g4ca3ef3211-goog
 
