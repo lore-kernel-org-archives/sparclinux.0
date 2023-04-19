@@ -2,102 +2,134 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D66FEC77B75
-	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 11:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76611C6FD18
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 11:20:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230467AbjDSLFl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 19 Apr 2023 07:05:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34864 "EHLO
+        id S231597AbjDSLUf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Apr 2023 07:20:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231527AbjDSLFi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 07:05:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B6A24C19;
-        Wed, 19 Apr 2023 04:05:37 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S232395AbjDSLUe (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 07:20:34 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEBEE15449
+        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 04:19:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1681903134;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=yk2MXIcMGsqVm4bpeyyiPIAlxJgEs4vB5F4slfGpqbs=;
+        b=bnuGJcsLdXXl+pGkEdCAUMQRs0WiTDv0xAXOggGpVKFX0XEAvxgd3QSU80uHbAtgoLhPUK
+        ROnfc1YQjTrvZ6EhiBpiMzO6eFGwv775+bnk5rzgDMzxypl3rn7kF4bRz4AobLDeIg3wgv
+        GecKYANSClbhYpX48NkT/7/sPYIxsZY=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-169-jmHSCGkANleXDaHYHeFrNA-1; Wed, 19 Apr 2023 07:18:51 -0400
+X-MC-Unique: jmHSCGkANleXDaHYHeFrNA-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C896963D4C;
-        Wed, 19 Apr 2023 11:05:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C58FEC433EF;
-        Wed, 19 Apr 2023 11:05:31 +0000 (UTC)
-Date:   Wed, 19 Apr 2023 12:05:28 +0100
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Justin Forbes <jforbes@fedoraproject.org>,
-        Mike Rapoport <rppt@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Will Deacon <will@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mm@kvack.org, linux-sh@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of
- ARCH_FORCE_MAX_ORDER
-Message-ID: <ZD/K+Mof/Dx5yzjQ@arm.com>
-References: <20230325060828.2662773-1-rppt@kernel.org>
- <20230325060828.2662773-3-rppt@kernel.org>
- <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
- <ZCvQGJzdED+An8an@kernel.org>
- <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
- <ZDbp7LAHES3YFo30@arm.com>
- <20230418150557.ea8c87c96ec64c899c88ab08@linux-foundation.org>
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 59BDC101A54F;
+        Wed, 19 Apr 2023 11:18:49 +0000 (UTC)
+Received: from tpad.localdomain (ovpn-112-2.gru2.redhat.com [10.97.112.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 75C83492B05;
+        Wed, 19 Apr 2023 11:18:48 +0000 (UTC)
+Received: by tpad.localdomain (Postfix, from userid 1000)
+        id C0514401344A1; Wed, 19 Apr 2023 08:01:41 -0300 (-03)
+Date:   Wed, 19 Apr 2023 08:01:41 -0300
+From:   Marcelo Tosatti <mtosatti@redhat.com>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Frederic Weisbecker <frederic@kernel.org>,
+        Yair Podemsky <ypodemsk@redhat.com>, linux@armlinux.org.uk,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, will@kernel.org, aneesh.kumar@linux.ibm.com,
+        akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org,
+        paulmck@kernel.org, jpoimboe@kernel.org, samitolvanen@google.com,
+        ardb@kernel.org, juerg.haefliger@canonical.com,
+        rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        tony@atomide.com, linus.walleij@linaro.org,
+        sebastian.reichel@collabora.com, nick.hawkins@hpe.com,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, vschneid@redhat.com, dhildenb@redhat.com,
+        alougovs@redhat.com
+Subject: Re: [PATCH 3/3] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
+ only to CPUs in kernel mode
+Message-ID: <ZD/KFW0BaG1qJr0l@tpad>
+References: <20230404134224.137038-1-ypodemsk@redhat.com>
+ <20230404134224.137038-4-ypodemsk@redhat.com>
+ <ZC1Q7uX4rNLg3vEg@lothringen>
+ <ZC3PUkI7N2uEKy6v@tpad>
+ <20230405195457.GC365912@hirez.programming.kicks-ass.net>
+ <ZC6/0hRXztNwqXg0@tpad>
+ <20230406133206.GN386572@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230418150557.ea8c87c96ec64c899c88ab08@linux-foundation.org>
+In-Reply-To: <20230406133206.GN386572@hirez.programming.kicks-ass.net>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 03:05:57PM -0700, Andrew Morton wrote:
-> On Wed, 12 Apr 2023 18:27:08 +0100 Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > It sounds nice in theory. In practice. EXPERT hides too much. When you
-> > > flip expert, you expose over a 175ish new config options which are
-> > > hidden behind EXPERT.  You don't have to know what you are doing just
-> > > with the MAX_ORDER, but a whole bunch more as well.  If everyone were
-> > > already running 10, this might be less of a problem. At least Fedora
-> > > and RHEL are running 13 for 4K pages on aarch64. This was not some
-> > > accidental choice, we had to carry a patch to even allow it for a
-> > > while.  If this does go in as is, we will likely just carry a patch to
-> > > remove the "if EXPERT", but that is a bit of a disservice to users who
-> > > might be trying to debug something else upstream, bisecting upstream
-> > > kernels or testing a patch.  In those cases, people tend to use
-> > > pristine upstream sources without distro patches to verify, and they
-> > > tend to use their existing configs. With this change, their MAX_ORDER
-> > > will drop to 10 from 13 silently.   That can look like a different
-> > > issue enough to ruin a bisect or have them give bad feedback on a
-> > > patch because it introduces a "regression" which is not a regression
-> > > at all, but a config change they couldn't see.
-> > 
-> > If we remove EXPERT (as prior to this patch), I'd rather keep the ranges
-> > and avoid having to explain to people why some random MAX_ORDER doesn't
-> > build (keeping the range would also make sense for randconfig, not sure
-> > we got to any conclusion there).
+On Thu, Apr 06, 2023 at 03:32:06PM +0200, Peter Zijlstra wrote:
+> On Thu, Apr 06, 2023 at 09:49:22AM -0300, Marcelo Tosatti wrote:
 > 
-> Well this doesn't seem to have got anywhere.  I think I'll send the
-> patchset into Linus for the next merge window as-is.  Please let's take
-> a look at this Kconfig presentation issue during the following -rc
-> cycle.
+> > > > 2) Depends on the application and the definition of "occasional".
+> > > > 
+> > > > For certain types of applications (for example PLC software or
+> > > > RAN processing), upon occurrence of an event, it is necessary to
+> > > > complete a certain task in a maximum amount of time (deadline).
+> > > 
+> > > If the application is properly NOHZ_FULL and never does a kernel entry,
+> > > it will never get that IPI. If it is a pile of shit and does kernel
+> > > entries while it pretends to be NOHZ_FULL it gets to keep the pieces and
+> > > no amount of crying will get me to care.
+> > 
+> > I suppose its common practice to use certain system calls in latency
+> > sensitive applications, for example nanosleep. Some examples:
+> > 
+> > 1) cyclictest		(nanosleep)
+> 
+> cyclictest is not a NOHZ_FULL application, if you tihnk it is, you're
+> deluded.
 
-That's fine by me. I have a slight preference to drop EXPERT and keep
-the ranges in, especially if it affects current distro kernels. Debian
-seems to enable EXPERT already in their arm64 kernel config but I'm not
-sure about the Fedora or other distro kernels. If they don't, we can
-fix/revert this Kconfig entry once the merging window is closed.
+On the field (what end-users do on production):
 
--- 
-Catalin
+cyclictest runs on NOHZ_FULL cores.
+PLC type programs run on NOHZ_FULL cores.
+
+So accordingly to physical reality i observe, i am not deluded.
+
+> > 2) PLC programs		(nanosleep)
+> 
+> What's a PLC? Programmable Logic Circuit?
+
+Programmable logic controller.
+
+> > A system call does not necessarily have to take locks, does it ?
+> 
+> This all is unrelated to locks
+
+OK.
+
+> > Or even if application does system calls, but runs under a VM,
+> > then you are requiring it to never VM-exit.
+> 
+> That seems to be a goal for performance anyway.
+
+Not sure what you mean.
+
+> > This reduces the flexibility of developing such applications.
+> 
+> Yeah, that's the cards you're dealt, deal with it.
+
+This is not what happens on the field. 
+
