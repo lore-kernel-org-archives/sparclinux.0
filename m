@@ -2,115 +2,110 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53936C7EE21
-	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 14:23:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E4A3C7EE20
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Apr 2023 17:23:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233101AbjDSOXQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 19 Apr 2023 10:23:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51006 "EHLO
+        id S232632AbjDSRX2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Apr 2023 13:23:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232952AbjDSOXG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 10:23:06 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DFD2B471
-        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 07:22:52 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-63b5465fc13so2569296b3a.3
-        for <sparclinux@vger.kernel.org>; Wed, 19 Apr 2023 07:22:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1681914172; x=1684506172;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IvT99d3vu2s9u2HdXHuOsCskK0/5VChFq+aBcaoQwKM=;
-        b=eJ51Lyhme8n3XB+0k6fcBFov9PY8/EUmTR8+nuSaGr7xBsijqIoLjwhsLzVxYH/nx0
-         wauVowtfzqnaLMg0Md06tjLXI3lWkSGzsXedNOsMpQwkDCNvEtBTyQ19M/Yyo6D06BSV
-         XNjXn0CGdLZl3nFWqDjNax+yB6CXLq01SwKNwyDS36uGnLYxQFXzNQuK/+7hScqPlZwX
-         z+agJw/VCIGMUixwVDzm2XMnLSn8GR3DsnMXY+jrQCfbr9O1Le1uXDKTi2rYkt7oJ2Ce
-         tyNNGrxSj0L54sdbIeiSTDtndMc3YiWnjyxMJLeRw/TsNRHsyFeDM9KNzzDNKUVPs4Et
-         pKOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681914172; x=1684506172;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IvT99d3vu2s9u2HdXHuOsCskK0/5VChFq+aBcaoQwKM=;
-        b=UjQ86UIR8Inqh/OgKvSj3Ehmx//tkpgq0JdUcqwQC70/JUdyA/u9hJHhb+uy/SXTxr
-         zyFy4USUgz4BePn/NW3DReTSjIBAfvpqYtlNLYtJFFOetEzosKMogv3jJl2gmm0PTHft
-         8mr7fikbtwxbT317dxTkQIpRTZwHIIciJIAcdckmbFZB694TnlIxOXjgfofHkfzcoJIT
-         PQvBNOtbbts67nu/aYlBzFnpte6nBMEeyLCnlrqem3tVcv2p4LJ4MV1I2ZRbKiA+jG9d
-         vxUv49GFv18uV/nLczWscPmQkz8RdQRb9v4rAxGOJVuRYRtNCOeI23pyPNtlebpxJY/l
-         HE/Q==
-X-Gm-Message-State: AAQBX9cxABW4AaEgc7eFR1tgy92fmhHZ9oJeNcVT3OW6uFj0gc1H41i8
-        nkxB1xkYbfNQg/dq6Sjks3PVBQ==
-X-Google-Smtp-Source: AKy350YgrN7zbaEKFT5DU1qrct74Wsi9a0WokbCy4dVCW0VXg9H7v3lPwT87yJxbljWHRWpRpF5B0Q==
-X-Received: by 2002:a05:6a00:130a:b0:63b:859f:f094 with SMTP id j10-20020a056a00130a00b0063b859ff094mr4002975pfu.20.1681914171995;
-        Wed, 19 Apr 2023 07:22:51 -0700 (PDT)
-Received: from localhost ([135.180.227.0])
-        by smtp.gmail.com with ESMTPSA id d2-20020a63d642000000b005140ce70582sm10431557pgj.44.2023.04.19.07.22.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 19 Apr 2023 07:22:51 -0700 (PDT)
-Date:   Wed, 19 Apr 2023 07:22:51 -0700 (PDT)
-X-Google-Original-Date: Wed, 19 Apr 2023 07:22:44 PDT (-0700)
-Subject:     Re: [PATCH 09/21] riscv: dma-mapping: skip invalidation before bidirectional DMA
-In-Reply-To: <20230327121317.4081816-10-arnd@kernel.org>
-CC:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        vgupta@kernel.org, linux@armlinux.org.uk,
-        neil.armstrong@linaro.org, linus.walleij@linaro.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, guoren@kernel.org,
-        bcain@quicinc.com, geert@linux-m68k.org, monstr@monstr.eu,
-        tsbogend@alpha.franken.de, dinguyen@kernel.org, shorne@gmail.com,
-        deller@gmx.de, mpe@ellerman.id.au, christophe.leroy@csgroup.eu,
-        Paul Walmsley <paul.walmsley@sifive.com>, dalias@libc.org,
-        glaubitz@physik.fu-berlin.de, davem@davemloft.net,
-        jcmvbkbc@gmail.com, Christoph Hellwig <hch@lst.de>,
-        robin.murphy@arm.com, prabhakar.mahadev-lad.rj@bp.renesas.com,
-        Conor Dooley <conor.dooley@microchip.com>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-oxnas@groups.io,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     arnd@kernel.org
-Message-ID: <mhng-7529cf5a-4397-456f-b610-faa619d4faca@palmer-ri-x1c9>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S232271AbjDSRXZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Apr 2023 13:23:25 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB90A659B;
+        Wed, 19 Apr 2023 10:23:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
+        t=1681924974; i=deller@gmx.de;
+        bh=C5yrQi1O5H/ZJ6i2wZhc9S+TYhhPSe8koYmOSkrsxpg=;
+        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+        b=refzFEX/nVgK8/0c/yNY2CyfC3AdkpdTH+IYk+xIV5Q+38dlY1vRhZEFTmpMyUDc/
+         9kvkEZP0kVR01Hn28FwdYcvQkmsX1L9UWL+i8vZhz0goEWhOLvIAIfwTtlVmCjbgUD
+         u0lHmNPk61xpVh/6OWDJbveUXhuyj8lAjtP3C/VV7CHk+16/4VihPYwuUHEvivlYBw
+         UlL1VdmKWD8uIdo0Aoh5XASGCGmlY7GyOYsX3ffFnBo5KedAYvGh4FHhvglxT+KgCd
+         xQN6ABCnavylRmWcBFmE/lQHqF7hO3CioLhryov1vpJhVvImQ4wtSXMt4z9yTImXug
+         5i3ajdU7cJ5LA==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [192.168.20.60] ([94.134.144.134]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MatVb-1qRYCj0P8t-00cRzi; Wed, 19
+ Apr 2023 19:22:54 +0200
+Message-ID: <b1f90fa4-85c7-e785-ba14-f32962f87d5e@gmx.de>
+Date:   Wed, 19 Apr 2023 19:22:50 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [PATCH v3 00/19] arch: Consolidate <asm/fb.h>
+Content-Language: en-US
+To:     Thomas Zimmermann <tzimmermann@suse.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org,
+        x86@kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, loongarch@lists.linux.dev,
+        sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+References: <20230417125651.25126-1-tzimmermann@suse.de>
+ <1641007d-7953-426a-a3de-ca9c90f6c5a9@app.fastmail.com>
+ <5fa98536-a4b0-7b71-7342-9ba05158062f@suse.de>
+From:   Helge Deller <deller@gmx.de>
+In-Reply-To: <5fa98536-a4b0-7b71-7342-9ba05158062f@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:H9qZXkCOPDN+3vsO7z+9ttDKPCRSFaiF/4cDmiO5ovofGlBxTzT
+ kMlRPG3r4Q6KYGeHBb//fU40kwtmWj1gVkdx7p7FELLCFOD5Nql8qYPGjnWefhzsS88zNIK
+ xaqD2s84khdceDbFsitlOpU2HidQYYXlykQQ9SD+p1IgyfdLRLZnqUmFoBDr2Oq3uB/Hpmu
+ vy6bniwylk05WNGd4sCJg==
+UI-OutboundReport: notjunk:1;M01:P0:5ox/8AYo9cY=;DXfWBLw0Wfb00Me5ctwgZzfIUZ/
+ 1GcLaW7zyF+rDR6gv5OFGKt/ECtMI2VLnGHaGgup0zhzHr7BbEMURzdNk4ut1hQ/I1Ur1dsc0
+ 1JvQBABCmnEIVKxSHIzxSDISBJC4Qap+OiyTLFMWZ9un0xA1yRdsUs2M1yt+a2EqGcCluQlae
+ 19JYqGAwJcB9zy4M2luWaDfLR+ZKhj9ZKj8YSY34zxXwBPDgYmXrjwHYmJ4VTpPq9lQoP7XYz
+ zFNmrhEsoPBmtBzXWAha6jdgOhp/DgbHDRiAP61aoHFFNbzRmhAGM4NsKuWZgVMGEWTXl21UX
+ RWqLtp/2wf2qeOu3egFZaXc8jYCWg1NlAIcF9HZ3295DdF25gExyuV9did7VXP77oNQQ+QXPc
+ fhCOeNGtft8Mand8MEWSS+3kWNhuIfz07igr9+fsGtxP3ysYKTaY3WPhXV0YMVT8Bep0brJsz
+ it0ElaUn+GMQsDuKpgWJIn6dE2RbkRjrP0KTWEny7DHSk8JEWgia6+A8qE0EY++w+1sCntVun
+ q6L6YvL6bob4Q1BUg6FQGSTaWbEOj1aXk0c3aEh6x+vXVvTOLaLYYUvW1lFtPoRMygYgZx4wQ
+ rJN3kennM/9oLujbd5BqjhpxyFEKAHVCVXS45wO+oSJnirRTWt+IU+XGjNEY0ptfkn3mN4x/q
+ kvGcY6cnurtogkHbIzoeA9JDtK7wJr1dYuVhIbxaw4ROiwNGBzb/BR3lIpmxi2xnCf7zxwLP8
+ po9pTOMtKhkJLo/DaIoVdM7R07TLStHRQWeCtVEbKyLKDvKxPjppGZ6s5Tz5A6AXYgiSFhuW4
+ cGKpK8tRgRhTmcAGp6W5xqVoysF2XWyW46xmjytoEwKEd8r8g4J//wzQ3dLfMvZ9GduabVyKy
+ Tq5+OYpXodvPTj/P2JbKEivhf9ZtS7PrHr8f0DO4nsV7nYIV9I/xwMZ3jymGdPYzWNpnTiyox
+ UXVSng==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 27 Mar 2023 05:13:05 PDT (-0700), arnd@kernel.org wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> For a DMA_BIDIRECTIONAL transfer, the caches have to be cleaned
-> first to let the device see data written by the CPU, and invalidated
-> after the transfer to let the CPU see data written by the device.
->
-> riscv also invalidates the caches before the transfer, which does
-> not appear to serve any purpose.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/riscv/mm/dma-noncoherent.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/riscv/mm/dma-noncoherent.c b/arch/riscv/mm/dma-noncoherent.c
-> index 640f4c496d26..69c80b2155a1 100644
-> --- a/arch/riscv/mm/dma-noncoherent.c
-> +++ b/arch/riscv/mm/dma-noncoherent.c
-> @@ -25,7 +25,7 @@ void arch_sync_dma_for_device(phys_addr_t paddr, size_t size,
->  		ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
->  		break;
->  	case DMA_BIDIRECTIONAL:
-> -		ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
-> +		ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
->  		break;
->  	default:
->  		break;
+Hi Thomas,
 
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+> Am 17.04.23 um 16:12 schrieb Arnd Bergmann:>> On Mon, Apr 17, 2023, at 1=
+4:56, Thomas Zimmermann wrote:
+>>> Various architectures provide <asm/fb.h> with helpers for fbdev
+>>> framebuffer devices. Share the contained code where possible. There
+>>> is already <asm-generic/fb.h>, which implements generic (as in
+>>> 'empty') functions of the fbdev helpers. The header was added in
+>>> commit aafe4dbed0bf ("asm-generic: add generic versions of common
+>>> headers"), but never used.
+>>>
+>>> Each per-architecture header file declares and/or implements fbdev
+>>> helpers and defines a preprocessor token for each. The generic
+>>> header then provides the remaining helpers. It works like the I/O
+>>> helpers in <asm/io.h>.
+>>
+>> Looks all good to me,
+>>
+>> Acked-by: Arnd Bergmann <arnd@arndb.de>
+>
+> Thanks a lot. I know that Helge wants to test the PARISC changes, so
+> I'll keep this series pending for a bit longer. I'd like to merge the
+> patches through the DRM tree, if no one objects.
+
+Yes, patch is good and I've tested it on parisc. Thanks!
+
+You may add:
+Acked-by: Helge Deller <deller@gmx.de>
+to the series and take it through the drm tree.
+
+Helge
