@@ -2,175 +2,67 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8311EC7EE22
-	for <sparclinux@archiver.kernel.org>; Thu, 20 Apr 2023 23:33:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34711C77B61
+	for <sparclinux@archiver.kernel.org>; Mon, 24 Apr 2023 07:49:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229990AbjDTXdp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 20 Apr 2023 19:33:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32974 "EHLO
+        id S231132AbjDXHs6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 24 Apr 2023 03:48:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230463AbjDTXdm (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 20 Apr 2023 19:33:42 -0400
-Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40F0E7D92;
-        Thu, 20 Apr 2023 16:33:05 -0700 (PDT)
-Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-54fb9b1a421so2190767b3.1;
-        Thu, 20 Apr 2023 16:33:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682033582; x=1684625582;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=PN2ixoAK9D3BuA0Ys9lwnMZMdyz2nW/UTyxM+6NXzqI=;
-        b=AX4YGgPJjZWyR0kqu580/PVasSF+uNRiA7gr7gHqMdE/2vLkFpdjQpKmKbwxnvzy1W
-         4jX/DWRv14Hh6L+AuqxNt9TrfsVNFOA+DMslH6msB9ssOPuKNdU5LH4UlZNRkrQgi/yF
-         2C7UqT75y8+OehNqUJfsf2nClBSiv3rZRBTIf/8qXrl8xEYNdOg0mllWNN17Cw7o+BHc
-         Dv7TVavT6/AGmzCH4d7Tksroa3F14WaPTNTcwjLqhrbimQGYJu8Di4n0FcYkgCSZZuxf
-         BRI5CuXSQtBQDqv2Sdnh5lzey/n44xr+tGNe/P6HPq7sE+h81UtCj457v+cM+mPjpeEU
-         pLaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682033582; x=1684625582;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=PN2ixoAK9D3BuA0Ys9lwnMZMdyz2nW/UTyxM+6NXzqI=;
-        b=OvvACIkTQL3V3IPNMoqSXIQtkpzPGin0L4TdxQ1N89DE8wHsDv3e/jzR8LV374nvgq
-         Ocue5UN96GnODo/CIUEpxt+jDvaa3R56s5zFYPCM+IBRujtqlPpAbc2QBi+bCsIaO8ak
-         ijMgNe40xtU2k9buOhnikzwfyCNHTJZMBzWes477KKpPUhAwIcfwwFk92c8V3nikTl9H
-         VmHmWOmU73TZsOIpDUljeKs9NusprE4MTqDxpag2b7pXhNROn8nrfdV6WB+ZApx2pqHM
-         6nU3jqMKduqEN7nf4Rzz0mb8Ja9XUkHofEfn6K7fQyTad7vLi73oKFnNX5601xvfueju
-         ndcw==
-X-Gm-Message-State: AAQBX9e7R6f7vX/vm/XdSkTHkbFM2C7+V4UXWhHf+70NGPt36DbKuYqD
-        ugpJ9tduOWTU2wVmTlczoZhyTnRkEobtVvpPr7ILlrMTK1E=
-X-Google-Smtp-Source: AKy350bopqnJQtT+418DUBi5UUf4Yx/MaaBIpccKeoXBRimnuUzPebu61FMjyfXCRvipIUnUp3uBwA4Azmrc32p/hx0=
-X-Received: by 2002:a0d:f205:0:b0:541:8810:8d7b with SMTP id
- b5-20020a0df205000000b0054188108d7bmr466003ywf.15.1682033581993; Thu, 20 Apr
- 2023 16:33:01 -0700 (PDT)
+        with ESMTP id S231244AbjDXHs5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 Apr 2023 03:48:57 -0400
+X-Greylist: delayed 503 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 24 Apr 2023 00:48:55 PDT
+Received: from mail.camacfoy.pl (mail.camacfoy.pl [195.231.80.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A9E10D2
+        for <sparclinux@vger.kernel.org>; Mon, 24 Apr 2023 00:48:55 -0700 (PDT)
+Received: by mail.camacfoy.pl (Postfix, from userid 1001)
+        id 2E63DA4319; Mon, 24 Apr 2023 08:40:28 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=camacfoy.pl; s=mail;
+        t=1682322029; bh=0DnDcjJl846YrSvLcp0W7cMkWp4Lfhp/OZAq4oBoaY8=;
+        h=Date:From:To:Subject:From;
+        b=aJXgTHZf/m2vSxbzvFa3a8+wtSMGHkGhpqF8+QwwyHyc31PgcZlgDwodLEc2jR+Mh
+         /p8DaJTV7MV9Zed2xkCpQc8/nzQI4LbO2HiIwJEx2kslFLBm+CLXq40U7mFfpU33c7
+         IcEeN+bFuyTgl6AnsJdb6Ev22ulqDN+8EPN4/o1AVZYOWnHi7gjsX3GsgK87XaRKQY
+         EC6/CRW3qKhkBsUXCMhAyCIpiFIhIW1281awYlACu1uYdZyDFGucVf+9gtVw0WC0Py
+         L8d6rAbwrnNzy3J4y6aByNh0SpXC0iXmKOtwA+GDGg3OIdUwwMaKUBRAddamTHrNqq
+         Kp3Kh0OFZrbHw==
+Received: by mail.camacfoy.pl for <sparclinux@vger.kernel.org>; Mon, 24 Apr 2023 07:40:25 GMT
+Message-ID: <20230424074502-0.1.82.biu2.0.44tgdaam2k@camacfoy.pl>
+Date:   Mon, 24 Apr 2023 07:40:25 GMT
+From:   "Krzysztof Maj" <krzysztof.maj@camacfoy.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: biznesowy angielski 
+X-Mailer: mail.camacfoy.pl
 MIME-Version: 1.0
-References: <20230417205048.15870-1-vishal.moola@gmail.com>
- <20230417205048.15870-2-vishal.moola@gmail.com> <da600570-51c7-8088-b46b-7524c9e66e5d@redhat.com>
- <CAOzc2pwpRhNoFbdzdzuvrqbZdf2OsrTvBGs40QCZJjA5fS_q1A@mail.gmail.com> <e0c0ad67-f23f-ff35-80bf-841dcfd43d99@redhat.com>
-In-Reply-To: <e0c0ad67-f23f-ff35-80bf-841dcfd43d99@redhat.com>
-From:   Vishal Moola <vishal.moola@gmail.com>
-Date:   Thu, 20 Apr 2023 16:32:50 -0700
-Message-ID: <CAOzc2pwDtn836Tf0Egh+Z258hxSTVtvwuyU2qiJa1iLa6vZFjQ@mail.gmail.com>
-Subject: Re: [PATCH 01/33] s390: Use _pt_s390_gaddr for gmap address tracking
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Apr 19, 2023 at 12:54=E2=80=AFAM David Hildenbrand <david@redhat.co=
-m> wrote:
->
-> On 18.04.23 23:33, Vishal Moola wrote:
-> > On Tue, Apr 18, 2023 at 8:45=E2=80=AFAM David Hildenbrand <david@redhat=
-.com> wrote:
-> >>
-> >> On 17.04.23 22:50, Vishal Moola (Oracle) wrote:
-> >>> s390 uses page->index to keep track of page tables for the guest addr=
-ess
-> >>> space. In an attempt to consolidate the usage of page fields in s390,
-> >>> replace _pt_pad_2 with _pt_s390_gaddr to replace page->index in gmap.
-> >>>
-> >>> This will help with the splitting of struct ptdesc from struct page, =
-as
-> >>> well as allow s390 to use _pt_frag_refcount for fragmented page table
-> >>> tracking.
-> >>>
-> >>> Since page->_pt_s390_gaddr aliases with mapping, ensure its set to NU=
-LL
-> >>> before freeing the pages as well.
-> >>>
-> >>> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-> >>> ---
-> >>
-> >> [...]
-> >>
-> >>> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> >>> index 3fc9e680f174..2616d64c0e8c 100644
-> >>> --- a/include/linux/mm_types.h
-> >>> +++ b/include/linux/mm_types.h
-> >>> @@ -144,7 +144,7 @@ struct page {
-> >>>                struct {        /* Page table pages */
-> >>>                        unsigned long _pt_pad_1;        /* compound_he=
-ad */
-> >>>                        pgtable_t pmd_huge_pte; /* protected by page->=
-ptl */
-> >>> -                     unsigned long _pt_pad_2;        /* mapping */
-> >>> +                     unsigned long _pt_s390_gaddr;   /* mapping */
-> >>>                        union {
-> >>>                                struct mm_struct *pt_mm; /* x86 pgds o=
-nly */
-> >>>                                atomic_t pt_frag_refcount; /* powerpc =
-*/
-> >>
-> >> The confusing part is, that these gmap page tables are not ordinary
-> >> process page tables that we would ordinarily place into this section
-> >> here. That's why they are also not allocated/freed using the typical
-> >> page table constructor/destructor ...
-> >
-> > I initially thought the same, so I was quite confused when I saw
-> > __gmap_segment_gaddr was using pmd_pgtable_page().
-> >
-> > Although they are not ordinary process page tables, since we
-> > eventually want to move them out of struct page, I think shifting them
-> > to be in ptdescs, being a memory descriptor for page tables, makes
-> > the most sense.
->
-> Seeing utilities like tlb_remove_page_ptdesc() that don't really apply
-> to such page tables, I wonder if we should much rather treat such
-> shadow/auxiliary/... page tables (just like other architectures like
-> x86, arm, ... employ as well) as a distinct type.
->
-> And have ptdesc be the common type for all process page tables.
+Dzie=C5=84 dobry,=20
 
-Although I do like the idea of having a distinct type for them, I'm not sur=
-e
-I see the merits of having another type specifically for those types of
-page tables.
+czy rozwa=C5=BCali Pa=C5=84stwo rozw=C3=B3j kwalifikacji j=C4=99zykowych =
+swoich pracownik=C3=B3w?
 
-As it currently is, tlb_remove_table() is only distinct from tlb_remove_pag=
-e()
-when an architecture defines its own removal function. I'm not too familiar
-with most of their differences, but we can probably continue to let them do
-that. As of now, I'm not too sure what a distinct type would look like that
-could meet all their needs holistically.
+Opracowali=C5=9Bmy kursy j=C4=99zykowe dla r=C3=B3=C5=BCnych bran=C5=BC, =
+w kt=C3=B3rych koncentrujemy si=C4=99 na podniesieniu poziomu s=C5=82owni=
+ctwa i jako=C5=9Bci komunikacji wykorzystuj=C4=85c autorsk=C4=85 metod=C4=
+=99, stworzon=C4=85 specjalnie dla wymagaj=C4=85cego biznesu.=20
 
-> >
-> > Another option is to leave pmd_pgtable_page() as is just for this case.
-> > Or we can revert commit 7e25de77bc5ea which uses the function here
-> > then figure out where these gmap pages table pages will go later.
->
-> I'm always confused when reading gmap code, so let me have another look :=
-)
->
-> The confusing part is that s390x shares the lowest level page tables
-> (PTE tables) between the process and gmap ("guest mapping", similar to
-> EPT on x86-64). It maps these process PTE tables (covering 1 MiB) into
-> gmap-specific PMD tables.
+Niestandardowy kurs on-line, dopasowany do profilu firmy i obszar=C3=B3w =
+=C5=9Bwiadczonych us=C5=82ug, w szybkim czasie przyniesie efekty, kt=C3=B3=
+re zwi=C4=99ksz=C4=85 komfort i jako=C5=9B=C4=87 pracy, rozwijaj=C4=85c m=
+o=C5=BCliwo=C5=9Bci biznesowe.=20
 
-Especially in cases like this. If the architecture wants to share page tabl=
-es
-then everything being in form ptdesc would make that easiest, and
-continue to let them define their own niche functions for their needs.
+Zdalne szkolenie j=C4=99zykowe to m.in. zaj=C4=99cia z native speakerami,=
+ kt=C3=B3re w szybkim czasie naucz=C4=85 pracownik=C3=B3w rozmawia=C4=87 =
+za pomoc=C4=85 jasnego i zwi=C4=99z=C5=82ego j=C4=99zyka Business English=
+=2E
 
-> pmd_pgtable_page() should indeed always give us a gmap-specific
-> PMD-table. In fact, something allocated via gmap_alloc_table().
->
-> Decoupling both concepts sounds like a good idea.
+Czy m=C3=B3g=C5=82bym przedstawi=C4=87 wi=C4=99cej szczeg=C3=B3=C5=82=C3=B3=
+w i opowiedzie=C4=87 jak dzia=C5=82amy?
 
-Yeah, I'm not a fan of how this gmap caller is the only external caller
-using this to get a page for their own purposes. I'll update that in v2.
+
+Pozdrawiam
+Krzysztof Maj
