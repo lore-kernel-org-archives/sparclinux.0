@@ -2,37 +2,37 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34711C77B61
-	for <sparclinux@archiver.kernel.org>; Mon, 24 Apr 2023 07:49:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ADF8C77B61
+	for <sparclinux@archiver.kernel.org>; Tue, 25 Apr 2023 08:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231132AbjDXHs6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 24 Apr 2023 03:48:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36346 "EHLO
+        id S233577AbjDYIWj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 Apr 2023 04:22:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231244AbjDXHs5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 Apr 2023 03:48:57 -0400
-X-Greylist: delayed 503 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 24 Apr 2023 00:48:55 PDT
-Received: from mail.camacfoy.pl (mail.camacfoy.pl [195.231.80.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A9E10D2
-        for <sparclinux@vger.kernel.org>; Mon, 24 Apr 2023 00:48:55 -0700 (PDT)
-Received: by mail.camacfoy.pl (Postfix, from userid 1001)
-        id 2E63DA4319; Mon, 24 Apr 2023 08:40:28 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=camacfoy.pl; s=mail;
-        t=1682322029; bh=0DnDcjJl846YrSvLcp0W7cMkWp4Lfhp/OZAq4oBoaY8=;
+        with ESMTP id S233573AbjDYIWh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Apr 2023 04:22:37 -0400
+X-Greylist: delayed 495 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 25 Apr 2023 01:22:34 PDT
+Received: from mail.dender.pl (mail.dender.pl [94.177.230.78])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7C1E5242
+        for <sparclinux@vger.kernel.org>; Tue, 25 Apr 2023 01:22:34 -0700 (PDT)
+Received: by mail.dender.pl (Postfix, from userid 1002)
+        id 07DB684E13; Tue, 25 Apr 2023 10:11:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=dender.pl; s=mail;
+        t=1682410332; bh=JufhVmsLTWZhIQBjeO3JSJpiPIJrMLzMU4W01rag+7g=;
         h=Date:From:To:Subject:From;
-        b=aJXgTHZf/m2vSxbzvFa3a8+wtSMGHkGhpqF8+QwwyHyc31PgcZlgDwodLEc2jR+Mh
-         /p8DaJTV7MV9Zed2xkCpQc8/nzQI4LbO2HiIwJEx2kslFLBm+CLXq40U7mFfpU33c7
-         IcEeN+bFuyTgl6AnsJdb6Ev22ulqDN+8EPN4/o1AVZYOWnHi7gjsX3GsgK87XaRKQY
-         EC6/CRW3qKhkBsUXCMhAyCIpiFIhIW1281awYlACu1uYdZyDFGucVf+9gtVw0WC0Py
-         L8d6rAbwrnNzy3J4y6aByNh0SpXC0iXmKOtwA+GDGg3OIdUwwMaKUBRAddamTHrNqq
-         Kp3Kh0OFZrbHw==
-Received: by mail.camacfoy.pl for <sparclinux@vger.kernel.org>; Mon, 24 Apr 2023 07:40:25 GMT
-Message-ID: <20230424074502-0.1.82.biu2.0.44tgdaam2k@camacfoy.pl>
-Date:   Mon, 24 Apr 2023 07:40:25 GMT
-From:   "Krzysztof Maj" <krzysztof.maj@camacfoy.pl>
+        b=W5bluek2vDSJsuCw68G3bv7UJV0C7I0NSSMcpl1ueI8JBawUx+42tvN8XIy2Hj5lP
+         zCbusN81mL2anDSNr8t2ohSo5HoB8wk5/scfkp8E+gDYZsOviWxSGIDMWPW2krVzY7
+         vSpls/23UGPJoU6HBYZ08zt/1quCJ+rKX027keFuXCyPv5FLfvhdpgjcwUwqJ3xPCV
+         TOpjJ6DO9XY4Ej1u3NfqaUZpK4YeQEMH2kUGhpRA6P/1d7AhuvK+9V8PwEZBCGpoFe
+         rbwFho2nZkQxQLmLEVV8lrDjbwQJCI1vQvhEkeWTERlDBiS7FzviUd7OfH5qSzF7IX
+         /iAVBezTJHh2g==
+Received: by mail.dender.pl for <sparclinux@vger.kernel.org>; Tue, 25 Apr 2023 08:10:57 GMT
+Message-ID: <20230425084501-0.1.7.sev.0.4dsfneprhk@dender.pl>
+Date:   Tue, 25 Apr 2023 08:10:57 GMT
+From:   "Jakub Daroch" <jakub.daroch@dender.pl>
 To:     <sparclinux@vger.kernel.org>
-Subject: biznesowy angielski 
-X-Mailer: mail.camacfoy.pl
+Subject: Fotowoltaika- propozycja instalacji
+X-Mailer: mail.dender.pl
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -40,29 +40,23 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
-
-czy rozwa=C5=BCali Pa=C5=84stwo rozw=C3=B3j kwalifikacji j=C4=99zykowych =
-swoich pracownik=C3=B3w?
-
-Opracowali=C5=9Bmy kursy j=C4=99zykowe dla r=C3=B3=C5=BCnych bran=C5=BC, =
-w kt=C3=B3rych koncentrujemy si=C4=99 na podniesieniu poziomu s=C5=82owni=
-ctwa i jako=C5=9Bci komunikacji wykorzystuj=C4=85c autorsk=C4=85 metod=C4=
-=99, stworzon=C4=85 specjalnie dla wymagaj=C4=85cego biznesu.=20
-
-Niestandardowy kurs on-line, dopasowany do profilu firmy i obszar=C3=B3w =
-=C5=9Bwiadczonych us=C5=82ug, w szybkim czasie przyniesie efekty, kt=C3=B3=
-re zwi=C4=99ksz=C4=85 komfort i jako=C5=9B=C4=87 pracy, rozwijaj=C4=85c m=
-o=C5=BCliwo=C5=9Bci biznesowe.=20
-
-Zdalne szkolenie j=C4=99zykowe to m.in. zaj=C4=99cia z native speakerami,=
- kt=C3=B3re w szybkim czasie naucz=C4=85 pracownik=C3=B3w rozmawia=C4=87 =
-za pomoc=C4=85 jasnego i zwi=C4=99z=C5=82ego j=C4=99zyka Business English=
-=2E
-
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 wi=C4=99cej szczeg=C3=B3=C5=82=C3=B3=
-w i opowiedzie=C4=87 jak dzia=C5=82amy?
+Dzie=C5=84 dobry,
+=20
+Czy rozwa=C5=BCali Pa=C5=84stwo monta=C5=BC systemu fotowoltaicznego?
+=20
+Instalacja fotowoltaiczna jest najlepszym sposobem na obni=C5=BCenie wyso=
+ko=C5=9Bci rachunk=C3=B3w za pr=C4=85d (pozostaj=C4=85 tylko op=C5=82aty =
+sta=C5=82e) i zabezpieczenie si=C4=99 przed rosn=C4=85cymi cenami energii=
+ elektrycznej. Jest to w pe=C5=82ni odnawialne i bezemisyjne =C5=BAr=C3=B3=
+d=C5=82o energii, dzi=C4=99ki czemu przyczyniamy si=C4=99 do ochrony =C5=9B=
+rodowiska naturalnego.
+=20
+Dzia=C5=82amy od wielu lat na rynku energetycznym. Przygotujemy projekt, =
+wycen=C4=99 oraz kompleksowo wykonamy i zg=C5=82osimy realizacj=C4=99 do =
+zak=C5=82adu energetycznego.=20
+=20
+Czy chc=C4=85 Pa=C5=84stwo pozna=C4=87 nasz=C4=85 propozycj=C4=99? =20
 
 
 Pozdrawiam
-Krzysztof Maj
+Jakub Daroch
