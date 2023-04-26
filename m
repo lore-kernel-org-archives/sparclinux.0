@@ -2,143 +2,138 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0909C77B61
-	for <sparclinux@archiver.kernel.org>; Tue, 25 Apr 2023 16:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B77EDC7EE23
+	for <sparclinux@archiver.kernel.org>; Wed, 26 Apr 2023 13:04:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234696AbjDYQKp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 Apr 2023 12:10:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46960 "EHLO
+        id S240962AbjDZNE1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 26 Apr 2023 09:04:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234690AbjDYQKn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Apr 2023 12:10:43 -0400
-Received: from mail-lf1-x12e.google.com (mail-lf1-x12e.google.com [IPv6:2a00:1450:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57BC530F8
-        for <sparclinux@vger.kernel.org>; Tue, 25 Apr 2023 09:10:33 -0700 (PDT)
-Received: by mail-lf1-x12e.google.com with SMTP id 2adb3069b0e04-4efefbd2c5eso3191230e87.0
-        for <sparclinux@vger.kernel.org>; Tue, 25 Apr 2023 09:10:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxtx.org; s=google; t=1682439032; x=1685031032;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=gzBCWhkUry18zVOWXW5QyNYiFJMq+EJv8KjCsvLzxVI=;
-        b=BTMOhNKncKkgEuXrkg4iVOUvlKOamBULDwD87gwAUY4uTD9Uj8fOtJ8gnRCGGD3Y1Y
-         EtcCG/CbuQPtv6M80WfxId3IXWcwWs9h5Lw0T8BF7gXn5EhdGbVOPoy+A21e0y6npPOT
-         fckBUd7/6mSyrUkCfa67U2Xyq6C+WOQMzpITU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682439032; x=1685031032;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=gzBCWhkUry18zVOWXW5QyNYiFJMq+EJv8KjCsvLzxVI=;
-        b=d6mv2dVX7qZnJuYQrrGzR5ePxnpVVpHQJ6Ta1TgXMbSyoSDl/9qI76FlbL/m6KpPaZ
-         HRctMGhkjuXGUCNjWa7aU24L8kNodNX2qtZZJdfgJMWwQfhY0vAZsnDs5bsS7dbZztjF
-         T+MbG8f94+4FFlU3ujbsXLSrpOMNOBqlfHkWEdWHxgaGMxovLZ4OovHyHNVZTsHi6z4U
-         4MSu/5Dnuf76qEwj+dVmc/4qrIkfGxNng6Z3Pv04AjBTy9Dx2OcszMFcwtsQT679XLsp
-         4Ml1o2wBSCKoDG86+nTlu7lhjAztKCEC3snsUJYuvkRKqbrQ68xU8Oz2PpGGQXa6czWd
-         OLcQ==
-X-Gm-Message-State: AAQBX9dYAVN+B6h2L7RPbP/j00tjMS4u7yi2KmtsPxFcc0H/xY+OV0CO
-        GEc4vky6/kVVuojrh5ZifWfJJiYhvOn0sZBrTq72M2/L
-X-Google-Smtp-Source: AKy350YTfm1D4m2N563T7SVfkkKdb5AFlFcBNrQNAwHB888tofLTEhvPqqdCnvr2YbMfTt4l0LJvKA==
-X-Received: by 2002:ac2:5198:0:b0:4eb:1048:1285 with SMTP id u24-20020ac25198000000b004eb10481285mr4145996lfi.47.1682439032292;
-        Tue, 25 Apr 2023 09:10:32 -0700 (PDT)
-Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com. [209.85.208.177])
-        by smtp.gmail.com with ESMTPSA id q7-20020ac25147000000b004eedddd9de7sm2038265lfd.77.2023.04.25.09.10.31
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 25 Apr 2023 09:10:31 -0700 (PDT)
-Sender: Justin Forbes <jmforbes@linuxtx.org>
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-2a8a600bd05so56849821fa.2
-        for <sparclinux@vger.kernel.org>; Tue, 25 Apr 2023 09:10:31 -0700 (PDT)
-X-Received: by 2002:a05:6512:145:b0:4d7:44c9:9f4c with SMTP id
- m5-20020a056512014500b004d744c99f4cmr4233943lfo.4.1682439010843; Tue, 25 Apr
- 2023 09:10:10 -0700 (PDT)
+        with ESMTP id S240318AbjDZNEZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 26 Apr 2023 09:04:25 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F5CA420C;
+        Wed, 26 Apr 2023 06:04:24 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id F2B2A1FDC9;
+        Wed, 26 Apr 2023 13:04:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1682514263; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=ZvaBzh3f/aiqD52UlKjdoNF7+qwuUVn7MUgqdP2D7Nw=;
+        b=UUB5WwTLuJwXSoCTJ3K7FRWI3bAowE0MAQQnTQ8Woqr9jGn3KSm4fv+l+btYHt/SEzCsD6
+        E6Tz3qvcxaYsO0Ane3YO3a66YgThKstJIJ4Lgjadjm2nGBl3KNTyxPMpou9Mnyuqc/adAL
+        KiMTTGQM90NhVMGC3ytJZ9AIyukntHg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1682514263;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=ZvaBzh3f/aiqD52UlKjdoNF7+qwuUVn7MUgqdP2D7Nw=;
+        b=5Y5kjboljw7Gn1Hlnhprb8RfDWvqxVjp+TudZAikLk9S5eG7QO9FJaa/ij7yCLSwcYk6Zr
+        niVmZqqNbyCVxQAQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 86AF6138F0;
+        Wed, 26 Apr 2023 13:04:22 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id eEa6H1YhSWSBMgAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 26 Apr 2023 13:04:22 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
+        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, davem@davemloft.net,
+        James.Bottomley@HansenPartnership.com, arnd@arndb.de
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-parisc@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 0/5] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
+Date:   Wed, 26 Apr 2023 15:04:15 +0200
+Message-Id: <20230426130420.19942-1-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
-References: <20230325060828.2662773-1-rppt@kernel.org> <20230325060828.2662773-3-rppt@kernel.org>
- <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
- <ZCvQGJzdED+An8an@kernel.org> <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
- <ZDbp7LAHES3YFo30@arm.com> <20230418150557.ea8c87c96ec64c899c88ab08@linux-foundation.org>
-In-Reply-To: <20230418150557.ea8c87c96ec64c899c88ab08@linux-foundation.org>
-From:   Justin Forbes <jforbes@fedoraproject.org>
-Date:   Tue, 25 Apr 2023 11:09:58 -0500
-X-Gmail-Original-Message-ID: <CAFbkSA2hU+2V0i5OG0BBD-s3yNOAZwBmyGmxMLkbzoWZK6cxOQ@mail.gmail.com>
-Message-ID: <CAFbkSA2hU+2V0i5OG0BBD-s3yNOAZwBmyGmxMLkbzoWZK6cxOQ@mail.gmail.com>
-Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of ARCH_FORCE_MAX_ORDER
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Catalin Marinas <catalin.marinas@arm.com>,
-        Mike Rapoport <rppt@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Will Deacon <will@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mm@kvack.org, linux-sh@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 5:22=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
-> On Wed, 12 Apr 2023 18:27:08 +0100 Catalin Marinas <catalin.marinas@arm.c=
-om> wrote:
->
-> > > It sounds nice in theory. In practice. EXPERT hides too much. When yo=
-u
-> > > flip expert, you expose over a 175ish new config options which are
-> > > hidden behind EXPERT.  You don't have to know what you are doing just
-> > > with the MAX_ORDER, but a whole bunch more as well.  If everyone were
-> > > already running 10, this might be less of a problem. At least Fedora
-> > > and RHEL are running 13 for 4K pages on aarch64. This was not some
-> > > accidental choice, we had to carry a patch to even allow it for a
-> > > while.  If this does go in as is, we will likely just carry a patch t=
-o
-> > > remove the "if EXPERT", but that is a bit of a disservice to users wh=
-o
-> > > might be trying to debug something else upstream, bisecting upstream
-> > > kernels or testing a patch.  In those cases, people tend to use
-> > > pristine upstream sources without distro patches to verify, and they
-> > > tend to use their existing configs. With this change, their MAX_ORDER
-> > > will drop to 10 from 13 silently.   That can look like a different
-> > > issue enough to ruin a bisect or have them give bad feedback on a
-> > > patch because it introduces a "regression" which is not a regression
-> > > at all, but a config change they couldn't see.
-> >
-> > If we remove EXPERT (as prior to this patch), I'd rather keep the range=
-s
-> > and avoid having to explain to people why some random MAX_ORDER doesn't
-> > build (keeping the range would also make sense for randconfig, not sure
-> > we got to any conclusion there).
->
-> Well this doesn't seem to have got anywhere.  I think I'll send the
-> patchset into Linus for the next merge window as-is.  Please let's take
-> a look at this Kconfig presentation issue during the following -rc
-> cycle.
+Fbdev provides helpers for framebuffer I/O, such as fb_readl(),
+fb_writel() or fb_memcpy_to_fb(). The implementation of each helper
+depends on the architecture. It's still all located in fbdev's main
+header file <linux/fb.h>. Move all of it into each archtecture's
+<asm/fb.h>, with shared code in <asm-generic/fb.h>.
 
-Well, I am very sorry to see this going in as is.  It will silently
-change people building with oldconfig, and anyone not paying attention
-will not notice until an issue is hit where "it worked before, and my
-config hasn't changed".  If EXPERT is unset, there is no notification,
-just a changed behavior.  While it would be easy for me to carry a
-patch dropping the if EXPERT, it will not help any users building on
-upstream with our configs, whether for their own regular use, or while
-trying to debug other issues,  I expect it will result in a reasonable
-amount of frustration from users trying to do the right thing and
-bisect or test patches upstream.
+The first patch a simple whitespace cleanup.
 
-Justin
+Until now, <linux/fb.h> contained an include of <asm/io.h>. As this
+will go away patches 2 to 4 prepare include statements in the various
+drivers. Source files that use regular I/O helpers, such as readl(),
+now include <linux/io.h>. Source files that use framebuffer I/O
+helpers, such as fb_readl(), now include <asm/fb.h>. The latter now
+includes <linux/io.h> internally.
+
+Patch 5 moves the framebuffer I/O helpers from <linux/fb.h> into
+the various architecture headers. The common case, where the framebuffer
+is located in I/O memory, serves as the generic implemenation.
+
+The patchset has been built for a variety of platforms, such as x86-64,
+arm, aarch64, ppc64, parisc, m64k, mips and sparc.
+
+Thomas Zimmermann (5):
+  fbdev/matrox: Remove trailing whitespaces
+  ipu-v3: Include <linux/io.h>
+  fbdev: Include <linux/io.h> in various drivers
+  fbdev: Include <linux/io.h> via <asm/fb.h>
+  fbdev: Move framebuffer I/O helpers into <asm/fb.h>
+
+ arch/arc/include/asm/fb.h                   | 29 +++++++
+ arch/ia64/include/asm/fb.h                  | 28 +++++++
+ arch/loongarch/include/asm/fb.h             | 29 +++++++
+ arch/m68k/include/asm/fb.h                  | 29 +++++++
+ arch/sparc/include/asm/fb.h                 | 77 +++++++++++++++++
+ drivers/gpu/ipu-v3/ipu-prv.h                |  1 +
+ drivers/video/fbdev/arcfb.c                 |  1 +
+ drivers/video/fbdev/arkfb.c                 |  2 +
+ drivers/video/fbdev/aty/atyfb.h             |  2 +
+ drivers/video/fbdev/aty/mach64_cursor.c     |  2 +-
+ drivers/video/fbdev/chipsfb.c               |  1 +
+ drivers/video/fbdev/cirrusfb.c              |  2 +
+ drivers/video/fbdev/core/cfbcopyarea.c      |  2 +-
+ drivers/video/fbdev/core/cfbfillrect.c      |  1 +
+ drivers/video/fbdev/core/cfbimgblt.c        |  1 +
+ drivers/video/fbdev/core/svgalib.c          |  3 +-
+ drivers/video/fbdev/cyber2000fb.c           |  2 +
+ drivers/video/fbdev/ep93xx-fb.c             |  2 +
+ drivers/video/fbdev/hgafb.c                 |  3 +-
+ drivers/video/fbdev/hitfb.c                 |  2 +-
+ drivers/video/fbdev/kyro/fbdev.c            |  3 +-
+ drivers/video/fbdev/matrox/matroxfb_accel.c |  8 +-
+ drivers/video/fbdev/matrox/matroxfb_base.h  |  6 +-
+ drivers/video/fbdev/pm2fb.c                 |  3 +
+ drivers/video/fbdev/pm3fb.c                 |  2 +
+ drivers/video/fbdev/pvr2fb.c                |  2 +
+ drivers/video/fbdev/s3fb.c                  |  2 +
+ drivers/video/fbdev/sm712fb.c               |  2 +
+ drivers/video/fbdev/sstfb.c                 |  2 +-
+ drivers/video/fbdev/stifb.c                 |  2 +
+ drivers/video/fbdev/tdfxfb.c                |  3 +-
+ drivers/video/fbdev/tridentfb.c             |  2 +
+ drivers/video/fbdev/vga16fb.c               |  3 +-
+ drivers/video/fbdev/vt8623fb.c              |  2 +
+ drivers/video/fbdev/wmt_ge_rops.c           |  2 +
+ include/asm-generic/fb.h                    | 93 +++++++++++++++++++++
+ include/linux/fb.h                          | 53 ------------
+ 37 files changed, 340 insertions(+), 69 deletions(-)
+
+-- 
+2.40.0
+
