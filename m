@@ -2,158 +2,132 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A4EC7EE22
-	for <sparclinux@archiver.kernel.org>; Thu, 27 Apr 2023 07:24:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 237C1C77B61
+	for <sparclinux@archiver.kernel.org>; Thu, 27 Apr 2023 10:20:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239395AbjD0HYF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 27 Apr 2023 03:24:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39472 "EHLO
+        id S243527AbjD0KUi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 27 Apr 2023 06:20:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242817AbjD0HYB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 27 Apr 2023 03:24:01 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF6C549D8;
-        Thu, 27 Apr 2023 00:23:23 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id D50261FDF6;
-        Thu, 27 Apr 2023 07:22:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1682580168; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=mwjDvnTTpUQQAU0S0NYQu7NztQ86BE/cY3YTj2NNeVM=;
-        b=Un7Gx01PokhNQiVoDb02P2s+kOPGU770pEPzJrxxIAFVFRAXtAUqKAYpk5HGhcEcjn2qx3
-        2C9Ze5cftpcNs/R+ie2ctuvNWHI8ZUZH2qu4rexmtorhKnrzH9Uite0TY3cAwazKzLSnM9
-        bSgsC8Qen6ZvcZ9aCUO46+tQxItvtIo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1682580168;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=mwjDvnTTpUQQAU0S0NYQu7NztQ86BE/cY3YTj2NNeVM=;
-        b=MVwyD8XGPiCuNb0tm4gyVIuhyn9YeI8pxDwrB2nQC/aLSapjlluwmmOAV+r89rHGjJ5Ohb
-        IWkBOldoEBcgo0BA==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 628F613910;
-        Thu, 27 Apr 2023 07:22:48 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id SCQXF8giSmT2JQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 27 Apr 2023 07:22:48 +0000
-Message-ID: <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
-Date:   Thu, 27 Apr 2023 09:22:47 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
-Subject: Re: [PATCH 0/5] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
-To:     Sam Ravnborg <sam@ravnborg.org>
-Cc:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
-        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
-        kernel@xen0n.name, davem@davemloft.net,
-        James.Bottomley@hansenpartnership.com, arnd@arndb.de,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org
+        with ESMTP id S243515AbjD0KUe (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 27 Apr 2023 06:20:34 -0400
+Received: from new3-smtp.messagingengine.com (new3-smtp.messagingengine.com [66.111.4.229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6CD046B6;
+        Thu, 27 Apr 2023 03:20:32 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 55E0758242F;
+        Thu, 27 Apr 2023 06:20:30 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Thu, 27 Apr 2023 06:20:30 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1682590830; x=1682598030; bh=Tk
+        KJeIPKG7f6IRUahtFu2q5U2rkyrgs8/HMPUJWIYm8=; b=BXZFSJtImG4lwyWz1R
+        Y7/lcgNiyVd086FQtgLBcSRGmR932Z0spDDCGarBT0Hd/8nD6P8choanmlSJltEP
+        kPoELRuks97NsVV3Y6h6NpezIDi7hRIHdgiPpLL2ZXBfEme25O3IlABm5EUYrwhh
+        AVy2IukqVHoLDG1ROJcetYfjykOEOzLaQqmNvmOBUOKxkupkytgV1BgX9hrDcVc8
+        u/q017GOBJXhJMfD0TxokxxA1KPk6TEpqD/jMoVURAO+UI7jWhsfb8b/pTzReh7b
+        OQfwHDEmY7iUYEiibC97/tc4m/+mw9BLZpZW6mI7sW08rtXqlwCLHwpzyP0CwWM2
+        XOeA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1682590830; x=1682598030; bh=TkKJeIPKG7f6I
+        RUahtFu2q5U2rkyrgs8/HMPUJWIYm8=; b=A3rKNELYfcMLHKjUJRChFjA5jzt0T
+        1toIMbURvcg5t049xzhOMYNofYdB6yeboOlEFCfR1EOa7IaiAj9XVlIi9+gHkyUr
+        YqD3Plzn4WqQjs8OtWvc1wDLL96SLSy9uDfda18B1JThg5FypTFPhyU02rPvKYII
+        wT7HJHrJijZUkheztQQ+CjvRtq9pGnAEBU0BgJ2b9p1tVngJ+yckD93MkqZ/nfPU
+        SpAzo2X/hkUZ932348+SB9kHgQVBu7NfIYCl6zw8DF5DQV4GSOacOGT4pis40Z2q
+        enZAmWIIQ4Q9X3E9sVrABI39o+pMpmvo9OTHOp5lzese3fVWgrB0fF4hw==
+X-ME-Sender: <xms:bUxKZKstBaHBLHM9ok8D-CDswTew4M9CczuZt6yl_INUiaZu7UVgSA>
+    <xme:bUxKZPcv1uFbnzf7MnxdncZeiLlILvVfU0WtPBDJRr_J48scfOqkCp_MRlLS7l-UW
+    UbvRZd-tDmlRL8V7HY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeduiedgvdeiucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:bUxKZFyuXvjEBTGGN_2u9xp4DCMT9wkWrHyk9iZ8ZXliFHGl1tBu8Q>
+    <xmx:bUxKZFNRqpp8n3XQXQIDRiNvmyfD5lVLeVr0M4ZHtC9Ef3kdp8WbyA>
+    <xmx:bUxKZK_2XA45XIQakO42yV7_FYHWvon0ZFDLGHhhdEfdlQBBQ_5TcQ>
+    <xmx:bkxKZNiH4G8Otc3lNEK8AoOIgkWzsOwDMcjHGflEPHn-6p6YJuPCWg>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 2C87BB60086; Thu, 27 Apr 2023 06:20:29 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-374-g72c94f7a42-fm-20230417.001-g72c94f7a
+Mime-Version: 1.0
+Message-Id: <173a9a6c-d47d-487c-b61a-66d021548f5a@app.fastmail.com>
+In-Reply-To: <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
 References: <20230426130420.19942-1-tzimmermann@suse.de>
  <20230426192110.GA3791243@ravnborg.org>
-Content-Language: en-US
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-In-Reply-To: <20230426192110.GA3791243@ravnborg.org>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------7Tnoo09B1y1bqPUqHSpN4Mqn"
+ <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
+Date:   Thu, 27 Apr 2023 11:20:32 +0100
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
+        "Sam Ravnborg" <sam@ravnborg.org>
+Cc:     "Helge Deller" <deller@gmx.de>,
+        "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Javier Martinez Canillas" <javierm@redhat.com>,
+        "Daniel Vetter" <daniel@ffwll.ch>,
+        "Vineet Gupta" <vgupta@kernel.org>,
+        "Huacai Chen" <chenhuacai@kernel.org>,
+        "WANG Xuerui" <kernel@xen0n.name>,
+        "David S . Miller" <davem@davemloft.net>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
+Subject: Re: [PATCH 0/5] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------7Tnoo09B1y1bqPUqHSpN4Mqn
-Content-Type: multipart/mixed; boundary="------------0BnAEdd7ws0JRInwI0tlF7W0";
- protected-headers="v1"
-From: Thomas Zimmermann <tzimmermann@suse.de>
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com, daniel@ffwll.ch,
- vgupta@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
- davem@davemloft.net, James.Bottomley@hansenpartnership.com, arnd@arndb.de,
- linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
- loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
- sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-parisc@vger.kernel.org
-Message-ID: <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
-Subject: Re: [PATCH 0/5] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
-References: <20230426130420.19942-1-tzimmermann@suse.de>
- <20230426192110.GA3791243@ravnborg.org>
-In-Reply-To: <20230426192110.GA3791243@ravnborg.org>
+On Thu, Apr 27, 2023, at 08:22, Thomas Zimmermann wrote:
+> Am 26.04.23 um 21:21 schrieb Sam Ravnborg:
+>> On Wed, Apr 26, 2023 at 03:04:15PM +0200, Thomas Zimmermann wrote:
+>>> Fbdev provides helpers for framebuffer I/O, such as fb_readl(),
+>>> fb_writel() or fb_memcpy_to_fb(). The implementation of each helper
+>>> depends on the architecture. It's still all located in fbdev's main
+>>> header file <linux/fb.h>. Move all of it into each archtecture's
+>>> <asm/fb.h>, with shared code in <asm-generic/fb.h>.
+>> 
+>> For once I think this cleanup is moving things in the wrong direction.
+>> 
+>> The fb_* helpers predates the generic io.h support and try to
+>> add a generic layer for read read / write operations.
+>> 
+>> The right fix would be to migrate fb_* to use the io helpers
+>> we have today - so we use the existing way to handle the architecture
+>> specific details.
+>
+> I looked through the existing versions of the fb_() I/O helpers. They 
+> can apparently be implemented with the regular helpers of similar names.
+>
+> I'm not sure, but even Sparc looks compatible. At least these sbus_ 
+> functions seem to be equivalent to the __raw_() I/O helpers of similar 
+> names. Do you still have that Sparc emulator?
 
---------------0BnAEdd7ws0JRInwI0tlF7W0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+I looked at the current code and came to the same conclusion: all
+architectures we support today do the same thing in __raw_readl()
+and fb_readl() etc, so we can completely remove the latter without
+changing semantics.
 
-SGkgU2FtDQoNCkFtIDI2LjA0LjIzIHVtIDIxOjIxIHNjaHJpZWIgU2FtIFJhdm5ib3JnOg0K
-PiBIaSBUaG9tYXMuDQo+IA0KPiBPbiBXZWQsIEFwciAyNiwgMjAyMyBhdCAwMzowNDoxNVBN
-ICswMjAwLCBUaG9tYXMgWmltbWVybWFubiB3cm90ZToNCj4+IEZiZGV2IHByb3ZpZGVzIGhl
-bHBlcnMgZm9yIGZyYW1lYnVmZmVyIEkvTywgc3VjaCBhcyBmYl9yZWFkbCgpLA0KPj4gZmJf
-d3JpdGVsKCkgb3IgZmJfbWVtY3B5X3RvX2ZiKCkuIFRoZSBpbXBsZW1lbnRhdGlvbiBvZiBl
-YWNoIGhlbHBlcg0KPj4gZGVwZW5kcyBvbiB0aGUgYXJjaGl0ZWN0dXJlLiBJdCdzIHN0aWxs
-IGFsbCBsb2NhdGVkIGluIGZiZGV2J3MgbWFpbg0KPj4gaGVhZGVyIGZpbGUgPGxpbnV4L2Zi
-Lmg+LiBNb3ZlIGFsbCBvZiBpdCBpbnRvIGVhY2ggYXJjaHRlY3R1cmUncw0KPj4gPGFzbS9m
-Yi5oPiwgd2l0aCBzaGFyZWQgY29kZSBpbiA8YXNtLWdlbmVyaWMvZmIuaD4uDQo+IA0KPiBG
-b3Igb25jZSBJIHRoaW5rIHRoaXMgY2xlYW51cCBpcyBtb3ZpbmcgdGhpbmdzIGluIHRoZSB3
-cm9uZyBkaXJlY3Rpb24uDQo+IA0KPiBUaGUgZmJfKiBoZWxwZXJzIHByZWRhdGVzIHRoZSBn
-ZW5lcmljIGlvLmggc3VwcG9ydCBhbmQgdHJ5IHRvDQo+IGFkZCBhIGdlbmVyaWMgbGF5ZXIg
-Zm9yIHJlYWQgcmVhZCAvIHdyaXRlIG9wZXJhdGlvbnMuDQo+IA0KPiBUaGUgcmlnaHQgZml4
-IHdvdWxkIGJlIHRvIG1pZ3JhdGUgZmJfKiB0byB1c2UgdGhlIGlvIGhlbHBlcnMNCj4gd2Ug
-aGF2ZSB0b2RheSAtIHNvIHdlIHVzZSB0aGUgZXhpc3Rpbmcgd2F5IHRvIGhhbmRsZSB0aGUg
-YXJjaGl0ZWN0dXJlDQo+IHNwZWNpZmljIGRldGFpbHMuDQoNCkkgbG9va2VkIHRocm91Z2gg
-dGhlIGV4aXN0aW5nIHZlcnNpb25zIG9mIHRoZSBmYl8oKSBJL08gaGVscGVycy4gVGhleSAN
-CmNhbiBhcHBhcmVudGx5IGJlIGltcGxlbWVudGVkIHdpdGggdGhlIHJlZ3VsYXIgaGVscGVy
-cyBvZiBzaW1pbGFyIG5hbWVzLg0KDQpJJ20gbm90IHN1cmUsIGJ1dCBldmVuIFNwYXJjIGxv
-b2tzIGNvbXBhdGlibGUuIEF0IGxlYXN0IHRoZXNlIHNidXNfIA0KZnVuY3Rpb25zIHNlZW0g
-dG8gYmUgZXF1aXZhbGVudCB0byB0aGUgX19yYXdfKCkgSS9PIGhlbHBlcnMgb2Ygc2ltaWxh
-ciANCm5hbWVzLiBEbyB5b3Ugc3RpbGwgaGF2ZSB0aGF0IFNwYXJjIGVtdWxhdG9yPw0KDQo+
-IA0KPiAgRnJvbSBhIHF1aWNrIGxvb2sgdGhlcmUgc2VlbXMgdG8gYmUgc29tZSBjaGFsbGVu
-Z2VzIGJ1dCB0aGUgY3VycmVudA0KPiBoZWxwZXJzIHRoYXQgcmUtZG8gcGFydCBvZiBpby5o
-IGlzIG5vdCB0aGUgd2F5IGZvcndhcmQgYW5kIGhpZGluZyB0aGVtDQo+IGluIGFyY2gvaW5j
-bHVkZS9hc20vZmIuaCBzZWVtcyBjb3VudGVyIHByb2R1Y3RpdmUuDQoNCldoaWNoIGNoYWxs
-ZW5nZXMgZGlkIHlvdSBzZWU/DQoNCkJlc3QgcmVnYXJkcw0KVGhvbWFzDQoNCj4gDQo+IAlT
-YW0NCg0KLS0gDQpUaG9tYXMgWmltbWVybWFubg0KR3JhcGhpY3MgRHJpdmVyIERldmVsb3Bl
-cg0KU1VTRSBTb2Z0d2FyZSBTb2x1dGlvbnMgR2VybWFueSBHbWJIDQpGcmFua2Vuc3RyYXNz
-ZSAxNDYsIDkwNDYxIE51ZXJuYmVyZywgR2VybWFueQ0KR0Y6IEl2byBUb3RldiwgQW5kcmV3
-IE15ZXJzLCBBbmRyZXcgTWNEb25hbGQsIEJvdWRpZW4gTW9lcm1hbg0KSFJCIDM2ODA5IChB
-RyBOdWVybmJlcmcpDQo=
+I think the original list was necessary since not all architectures
+supported the __raw_ accessors in the past, so they were open-coded
+here for the rest. I thought there were also architectures on which
+__raw_readl() does a byteswap to reverse the swap done in a PCI
+host bridge, but it apears that none of those remain now, if we ever
+had them.
 
---------------0BnAEdd7ws0JRInwI0tlF7W0--
-
---------------7Tnoo09B1y1bqPUqHSpN4Mqn
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
-
------BEGIN PGP SIGNATURE-----
-
-wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmRKIscFAwAAAAAACgkQlh/E3EQov+CT
-oBAA0joPCJExKZHc0py1Nmn46HLD2xkGXPqvlDNyOfv9K2WAzSvDzx5KShE1DzyUEcLTvhQfPm/D
-5nQOnQrSn7HQkCIR4umRPp+nXP2coyxCHOnBIowCq2R5+j9pCCLIke3VDkTBCjo1S2FXNaWQ7akF
-bWxfDg2rsatU/OkSba1nBa3LGj5JxZRa7DPQm4/HBXeL3WIuFiFEvklKelWui99NyANYaoXx7yoW
-enEpmf+18GQR9FDziRZjTgETxW+/HXBqLC8vF6nuig1uqQ5TuuiT6/UomLXEdARPKkDKwq4Qg7Cq
-CkIq8jsFYW3Caq7xfMmVfaz1zjSHoZ9Mc2hWnqzjSEbOgRRUpiwVVp0YmcHvr5ZkRma96jeAqXZx
-YLGHYr6u7/jyNAKDs7rqsVHSwLHrrqNvIStQ0pZTt0yVI5f52dk2FhPeKqC3n3gjEVf5BwAk1gRx
-lLlMhkoWTQBfkYZFtor/haDOuPrjOfKSgtU+mYD+SZVeRocMYVVqkRfvUyrZEH1yvOTYFZoK64aJ
-aiKd4shbSRUdRhYx6kmwsKR35X4Ww+uXrVqOtdjMhMx0uZ7rzQCEVQ312EYW1a15koHLyAWNon2n
-+UfEZE1yEvYWAqdUTcveIJ2B9Hv6jVjx1YO+vppl2GNVWBf8+ms8MW6DrPtR4AYx95gK46rcTnGM
-IJY=
-=bpnU
------END PGP SIGNATURE-----
-
---------------7Tnoo09B1y1bqPUqHSpN4Mqn--
+     Arnd
