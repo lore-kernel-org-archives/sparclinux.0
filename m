@@ -2,119 +2,112 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76176C77B73
-	for <sparclinux@archiver.kernel.org>; Thu, 27 Apr 2023 13:40:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD46C77B61
+	for <sparclinux@archiver.kernel.org>; Thu, 27 Apr 2023 17:18:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243290AbjD0Nkd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 27 Apr 2023 09:40:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49756 "EHLO
+        id S244058AbjD0RSk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 27 Apr 2023 13:18:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243467AbjD0Nkb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 27 Apr 2023 09:40:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5882644AE;
-        Thu, 27 Apr 2023 06:40:25 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E45CE611B3;
-        Thu, 27 Apr 2023 13:40:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF907C433EF;
-        Thu, 27 Apr 2023 13:40:19 +0000 (UTC)
-Date:   Thu, 27 Apr 2023 14:40:16 +0100
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Justin Forbes <jforbes@fedoraproject.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Rapoport <rppt@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Will Deacon <will@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mm@kvack.org, linux-sh@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of
- ARCH_FORCE_MAX_ORDER
-Message-ID: <ZEp7QCZx27MuFYUb@arm.com>
-References: <20230325060828.2662773-1-rppt@kernel.org>
- <20230325060828.2662773-3-rppt@kernel.org>
- <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
- <ZCvQGJzdED+An8an@kernel.org>
- <CAFbkSA38eTA_iJ3ttBvQ8G4Rjj8qB12GxY7Z=qmZ8wm+0tZieA@mail.gmail.com>
- <ZDbp7LAHES3YFo30@arm.com>
- <20230418150557.ea8c87c96ec64c899c88ab08@linux-foundation.org>
- <CAFbkSA2hU+2V0i5OG0BBD-s3yNOAZwBmyGmxMLkbzoWZK6cxOQ@mail.gmail.com>
+        with ESMTP id S243871AbjD0RSi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 27 Apr 2023 13:18:38 -0400
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 647B11708
+        for <sparclinux@vger.kernel.org>; Thu, 27 Apr 2023 10:18:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=3aPWmuilP5wLRilofoqbOrLGxKBwB7pAtJ4SXkaLvoc=;
+        b=TLJMIi0RX8F2D4MECviwMXYvEcVb0lEsEy3+u8aUlSP8SU8rlCRGlNNmsB/nVOCzgK5pBrkqJQZ1F
+         4Pk0P0hLFN1/gQl0wOoX80yo5LMFFkY8AFk8tIjenbcNtBTjLcrXTVOu35BU0ZgXdWnnSf7qi6nZ3E
+         orNHCnRqwI7LiLkgzVpEQaOMbxTZLeop5dV4q915EpZK5kidlhmu8EBhfMffenaiZSY9k7inpdXkTU
+         Jqtqf/GAdMoncZ0gbyd6bbDaxV/c7d0xakYFi8MhdcA4DCSizJdUq7VgNEnQ2ErW0+f+L1lpNilWl3
+         /TH/k1Te5r34DMQFVMUEym1QgkeLrjQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=3aPWmuilP5wLRilofoqbOrLGxKBwB7pAtJ4SXkaLvoc=;
+        b=G5LZPAqKFgpnZqaJfT/ouJ07IZWuTH9E70Iw4lwAnH6U6PTleuFBBWfBI+H0sNsJGesQJZYrDGZOe
+         rwUJGIwDg==
+X-HalOne-ID: 62b9268b-e51f-11ed-ad1f-231b2edd0ed2
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay5 (Halon) with ESMTPSA
+        id 62b9268b-e51f-11ed-ad1f-231b2edd0ed2;
+        Thu, 27 Apr 2023 17:17:31 +0000 (UTC)
+Date:   Thu, 27 Apr 2023 19:17:29 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
+        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, davem@davemloft.net,
+        James.Bottomley@hansenpartnership.com, arnd@arndb.de,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-parisc@vger.kernel.org
+Subject: Re: [PATCH 0/5] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
+Message-ID: <20230427171729.GA3899979@ravnborg.org>
+References: <20230426130420.19942-1-tzimmermann@suse.de>
+ <20230426192110.GA3791243@ravnborg.org>
+ <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAFbkSA2hU+2V0i5OG0BBD-s3yNOAZwBmyGmxMLkbzoWZK6cxOQ@mail.gmail.com>
+In-Reply-To: <3e33ab1d-b478-fdf5-6fbe-6580000182d1@suse.de>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 25, 2023 at 11:09:58AM -0500, Justin Forbes wrote:
-> On Tue, Apr 18, 2023 at 5:22 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> > On Wed, 12 Apr 2023 18:27:08 +0100 Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > > It sounds nice in theory. In practice. EXPERT hides too much. When you
-> > > > flip expert, you expose over a 175ish new config options which are
-> > > > hidden behind EXPERT.  You don't have to know what you are doing just
-> > > > with the MAX_ORDER, but a whole bunch more as well.  If everyone were
-> > > > already running 10, this might be less of a problem. At least Fedora
-> > > > and RHEL are running 13 for 4K pages on aarch64. This was not some
-> > > > accidental choice, we had to carry a patch to even allow it for a
-> > > > while.  If this does go in as is, we will likely just carry a patch to
-> > > > remove the "if EXPERT", but that is a bit of a disservice to users who
-> > > > might be trying to debug something else upstream, bisecting upstream
-> > > > kernels or testing a patch.  In those cases, people tend to use
-> > > > pristine upstream sources without distro patches to verify, and they
-> > > > tend to use their existing configs. With this change, their MAX_ORDER
-> > > > will drop to 10 from 13 silently.   That can look like a different
-> > > > issue enough to ruin a bisect or have them give bad feedback on a
-> > > > patch because it introduces a "regression" which is not a regression
-> > > > at all, but a config change they couldn't see.
-> > >
-> > > If we remove EXPERT (as prior to this patch), I'd rather keep the ranges
-> > > and avoid having to explain to people why some random MAX_ORDER doesn't
-> > > build (keeping the range would also make sense for randconfig, not sure
-> > > we got to any conclusion there).
-> >
-> > Well this doesn't seem to have got anywhere.  I think I'll send the
-> > patchset into Linus for the next merge window as-is.  Please let's take
-> > a look at this Kconfig presentation issue during the following -rc
-> > cycle.
+Hi Thomas,
+
+On Thu, Apr 27, 2023 at 09:22:47AM +0200, Thomas Zimmermann wrote:
+> Hi Sam
 > 
-> Well, I am very sorry to see this going in as is.  It will silently
-> change people building with oldconfig, and anyone not paying attention
-> will not notice until an issue is hit where "it worked before, and my
-> config hasn't changed".  If EXPERT is unset, there is no notification,
-> just a changed behavior.  While it would be easy for me to carry a
-> patch dropping the if EXPERT, it will not help any users building on
-> upstream with our configs, whether for their own regular use, or while
-> trying to debug other issues,  I expect it will result in a reasonable
-> amount of frustration from users trying to do the right thing and
-> bisect or test patches upstream.
+> Am 26.04.23 um 21:21 schrieb Sam Ravnborg:
+> > Hi Thomas.
+> > 
+> > On Wed, Apr 26, 2023 at 03:04:15PM +0200, Thomas Zimmermann wrote:
+> > > Fbdev provides helpers for framebuffer I/O, such as fb_readl(),
+> > > fb_writel() or fb_memcpy_to_fb(). The implementation of each helper
+> > > depends on the architecture. It's still all located in fbdev's main
+> > > header file <linux/fb.h>. Move all of it into each archtecture's
+> > > <asm/fb.h>, with shared code in <asm-generic/fb.h>.
+> > 
+> > For once I think this cleanup is moving things in the wrong direction.
+> > 
+> > The fb_* helpers predates the generic io.h support and try to
+> > add a generic layer for read read / write operations.
+> > 
+> > The right fix would be to migrate fb_* to use the io helpers
+> > we have today - so we use the existing way to handle the architecture
+> > specific details.
+> 
+> I looked through the existing versions of the fb_() I/O helpers. They can
+> apparently be implemented with the regular helpers of similar names.
+> 
+> I'm not sure, but even Sparc looks compatible. At least these sbus_
+> functions seem to be equivalent to the __raw_() I/O helpers of similar
+> names.
 
-As I said in a previous reply, I'm fine with reverting this commit if it
-breaks existing configs. It's only that Andrew had already queued it in
-his tree but we have time until the final 6.4 kernel is released.
+> Do you still have that Sparc emulator?
+I used qemu the last time I played with sparc and saved the instructions
+somewhere how to redo it - but that would use to bohcs driver only I think.
+I have saprc machines, but none of these are easy to get operational.
+We can always ask on sparclinux to get some testing feedback.
 
-That said, would you mind sending a patch reverting it (if removing
-EXPERT, I'd like to keep the ranges)? ;)
+> 
+> > 
+> >  From a quick look there seems to be some challenges but the current
+> > helpers that re-do part of io.h is not the way forward and hiding them
+> > in arch/include/asm/fb.h seems counter productive.
+> 
+> Which challenges did you see?
+sparc was the main thing - but maybe I did not look close enough.
+And then I tried to map the macros to some of the more highlevel ones
+from io.h, but as Arnd says the __raw* is the way to go here.
 
-Thanks.
-
--- 
-Catalin
+	Sam
