@@ -2,307 +2,192 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53C09C77B7E
-	for <sparclinux@archiver.kernel.org>; Sat, 29 Apr 2023 06:34:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00373C7EE25
+	for <sparclinux@archiver.kernel.org>; Sat, 29 Apr 2023 12:26:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231285AbjD2GeN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 29 Apr 2023 02:34:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37350 "EHLO
+        id S231126AbjD2M0S (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 29 Apr 2023 08:26:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229574AbjD2GeL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Apr 2023 02:34:11 -0400
-Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 070872125;
-        Fri, 28 Apr 2023 23:34:10 -0700 (PDT)
-Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-1a69f686345so5691505ad.2;
-        Fri, 28 Apr 2023 23:34:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682750049; x=1685342049;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=cSfv5t4C9cwppYox3U6KqaeYRJrwwcdMCKh0TKYZTfY=;
-        b=jgX+OXrrHnH45akqNjdlWaQFYstsdbpondQ+fh3Msi1/HhjpsmZdFC+yLXih7hP/pU
-         wgdNac4fjcTdjuh5YzDwrfXcFY7nTNG7NTG9OKleR4+VqZlwQQ+dJnUPCKUlMotuGhtK
-         liEvH+GopRM8uHPlGBNbhx8erNYSKJLuBi7f6XaVH16Z1cWL+j0LVG8QPiLpBIa6TEeI
-         zTS1Ra3qCsaeMXU1RmMnIP9HaQN5+5m2TcVeWF6195N9W4Nk/IP8if39MUVzKA4I+Dwp
-         Z2dkFPBFVLF+hUJPQOTD2SFsOLbcA622JvdIeH4gIN3JC30Fskg+YIN5y8gJoIVRkgR5
-         I3Cw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682750049; x=1685342049;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=cSfv5t4C9cwppYox3U6KqaeYRJrwwcdMCKh0TKYZTfY=;
-        b=a/UMIrkjFZvPLW8ia71Q/p9Im8ovIt7o5Q56hij2CjixjcaB0oT2j2ygxOj+y6YhRY
-         ukqh4irMGGlTexaqwZmO4LltSBY3+2ijurQMwrnXzRw+8JBE/bEtOy2K6cf17oX/seKX
-         b5OtnOGUAHrSXLKVkjRMr+5zdAnQdogqZr0O2Az51giIgHhLIAfjGWgHo6zvFigsEQ0K
-         7DGCFiJRcSJ2yf39ZkJ5PYGJjDvkvvbXED2UeyETKhGgglUopYzqzjLG5Qm1znZ+lx25
-         d3gG3ZtAamHOGRlJGBxqaZ46KEog9/HWi2sHz1ZTAJW9i13dleSkw3ZU5Xujo90WH21p
-         L7eA==
-X-Gm-Message-State: AC+VfDwWVs7Pf4YHljI8Ywf34zgETse1A76C3NnIVlAEql0k0UN4dxY6
-        CsNnc2VbGQCVdug0srHaDyE=
-X-Google-Smtp-Source: ACHHUZ7be5oOxy4XCSWaxNypq0CFCL78WwmFg5MLeuSZBRyfSzU6QkTnWKQW9hhiXBkCoxg5Uid8wg==
-X-Received: by 2002:a17:903:2798:b0:1a9:7262:fe55 with SMTP id jw24-20020a170903279800b001a97262fe55mr7208130plb.13.1682750049387;
-        Fri, 28 Apr 2023 23:34:09 -0700 (PDT)
-Received: from wheely.local0.net (14-202-4-83.tpgi.com.au. [14.202.4.83])
-        by smtp.gmail.com with ESMTPSA id h10-20020a170902748a00b001a258041049sm14142470pll.32.2023.04.28.23.33.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 Apr 2023 23:34:08 -0700 (PDT)
-From:   Nicholas Piggin <npiggin@gmail.com>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Nicholas Piggin <npiggin@gmail.com>, linux-arch@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Vineet Gupta <vgupta@kernel.org>,
-        linux-snps-arc@lists.infradead.org, Brian Cain <bcain@quicinc.com>,
-        linux-hexagon@vger.kernel.org, Huacai Chen <chenhuacai@kernel.org>,
-        loongarch@lists.linux.dev,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org, Dinh Nguyen <dinguyen@kernel.org>,
-        Jonas Bonn <jonas@southpole.se>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        Stafford Horne <shorne@gmail.com>,
-        linux-openrisc@vger.kernel.org,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        linux-riscv@lists.infradead.org,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        linux-sh@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        linux-um@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Frederic Weisbecker <frederic@kernel.org>
-Subject: [PATCH] Remove HAVE_VIRT_CPU_ACCOUNTING_GEN option
-Date:   Sat, 29 Apr 2023 16:33:48 +1000
-Message-Id: <20230429063348.125544-1-npiggin@gmail.com>
-X-Mailer: git-send-email 2.40.1
+        with ESMTP id S229507AbjD2M0Q (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Apr 2023 08:26:16 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CD7F199B;
+        Sat, 29 Apr 2023 05:26:15 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 886AE21AD9;
+        Sat, 29 Apr 2023 12:26:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1682771173; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ggHjBqSIfzeqcVtGsNuNiNCmozKORAe1+aPPd89K2Zo=;
+        b=gTmI3qC52L6UapKnmdBrpTYkRo+blaTmZ+xqAtZthGf3NWsd77H1PPxPpBlGcazt6SKDe8
+        vNhd49xkN0Rqx1ocjYvQqNFFBMsShzkqugczm+9ra9L6uYqGgC0TPNVZQLNcs+CFDu9Gn0
+        pIaiu5WIocPIe9hlB/2hwQskx28q5gY=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1682771173;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ggHjBqSIfzeqcVtGsNuNiNCmozKORAe1+aPPd89K2Zo=;
+        b=L4Zc58oyVTd4UKL+MonKy5CY8zkM6HMZb5L7fiOLMtNrFeMy78aWw46Qmn1G9n/fSO1DPL
+        DgTKrJpyZ6IWA6Bg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1F67A138E0;
+        Sat, 29 Apr 2023 12:26:13 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id MgW7BuUMTWRUSAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Sat, 29 Apr 2023 12:26:13 +0000
+Message-ID: <df6fa134-3a62-0872-e008-393e4a29a5ab@suse.de>
+Date:   Sat, 29 Apr 2023 14:26:12 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.10.0
+Subject: Re: [PATCH v2 5/5] fbdev: Define framebuffer I/O from Linux' I/O
+ functions
+To:     Arnd Bergmann <arnd@arndb.de>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Robin Murphy <robin.murphy@arm.com>
+Cc:     Helge Deller <deller@gmx.de>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        "David S . Miller" <davem@davemloft.net>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Sam Ravnborg <sam@ravnborg.org>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
+References: <20230428092711.406-1-tzimmermann@suse.de>
+ <20230428092711.406-6-tzimmermann@suse.de>
+ <430c73f0-45f4-f81e-6506-bc8cc955d936@arm.com>
+ <CAMuHMdUGjtiAR37L4_e0_p8ee2=gxoUj7+e7rqMLTBK+vpV4yw@mail.gmail.com>
+ <f612c682-5767-4a58-82f6-f4a4d1b592a1@app.fastmail.com>
+Content-Language: en-US
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+In-Reply-To: <f612c682-5767-4a58-82f6-f4a4d1b592a1@app.fastmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------MelAIvX5Zq5p7fTWZnZe1KnI"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This option was created in commit 554b0004d0ec4 ("vtime: Add
-HAVE_VIRT_CPU_ACCOUNTING_GEN Kconfig") for architectures to indicate
-they support the 64-bit cputime_t required for VIRT_CPU_ACCOUNTING_GEN.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------MelAIvX5Zq5p7fTWZnZe1KnI
+Content-Type: multipart/mixed; boundary="------------XHeCVpw7PiHVQpg0Jphmy7XG";
+ protected-headers="v1"
+From: Thomas Zimmermann <tzimmermann@suse.de>
+To: Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert@linux-m68k.org>,
+ Robin Murphy <robin.murphy@arm.com>
+Cc: Helge Deller <deller@gmx.de>,
+ Javier Martinez Canillas <javierm@redhat.com>,
+ Daniel Vetter <daniel@ffwll.ch>, Vineet Gupta <vgupta@kernel.org>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ "David S . Miller" <davem@davemloft.net>,
+ "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Sam Ravnborg <sam@ravnborg.org>, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, Linux-Arch <linux-arch@vger.kernel.org>,
+ linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
+Message-ID: <df6fa134-3a62-0872-e008-393e4a29a5ab@suse.de>
+Subject: Re: [PATCH v2 5/5] fbdev: Define framebuffer I/O from Linux' I/O
+ functions
+References: <20230428092711.406-1-tzimmermann@suse.de>
+ <20230428092711.406-6-tzimmermann@suse.de>
+ <430c73f0-45f4-f81e-6506-bc8cc955d936@arm.com>
+ <CAMuHMdUGjtiAR37L4_e0_p8ee2=gxoUj7+e7rqMLTBK+vpV4yw@mail.gmail.com>
+ <f612c682-5767-4a58-82f6-f4a4d1b592a1@app.fastmail.com>
+In-Reply-To: <f612c682-5767-4a58-82f6-f4a4d1b592a1@app.fastmail.com>
 
-The cputime_t type has since been removed, so this doesn't have any
-meaning. Remove it.
+--------------XHeCVpw7PiHVQpg0Jphmy7XG
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: linux-hexagon@vger.kernel.org
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: loongarch@lists.linux.dev
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: linux-mips@vger.kernel.org
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: linux-openrisc@vger.kernel.org
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: linux-parisc@vger.kernel.org
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: linux-riscv@lists.infradead.org
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: linux-sh@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: linux-um@lists.infradead.org
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: x86@kernel.org
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kevin Hilman <khilman@baylibre.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
----
-Hi,
+SGkNCg0KQW0gMjguMDQuMjMgdW0gMTU6MTcgc2NocmllYiBBcm5kIEJlcmdtYW5uOg0KPiBP
+biBGcmksIEFwciAyOCwgMjAyMywgYXQgMTM6MjcsIEdlZXJ0IFV5dHRlcmhvZXZlbiB3cm90
+ZToNCj4+IE9uIEZyaSwgQXByIDI4LCAyMDIzIGF0IDI6MTjigK9QTSBSb2JpbiBNdXJwaHkg
+PHJvYmluLm11cnBoeUBhcm0uY29tPiB3cm90ZToNCj4+PiBPbiAyMDIzLTA0LTI4IDEwOjI3
+LCBUaG9tYXMgWmltbWVybWFubiB3cm90ZToNCj4gDQo+Pj4+IC0NCj4+Pj4gLSNlbGlmIGRl
+ZmluZWQoX19pMzg2X18pIHx8IGRlZmluZWQoX19hbHBoYV9fKSB8fCBkZWZpbmVkKF9feDg2
+XzY0X18pIHx8ICAgICAgXA0KPj4+PiAtICAgICBkZWZpbmVkKF9faHBwYV9fKSB8fCBkZWZp
+bmVkKF9fc2hfXykgfHwgZGVmaW5lZChfX3Bvd2VycGNfXykgfHwgXA0KPj4+PiAtICAgICBk
+ZWZpbmVkKF9fYXJtX18pIHx8IGRlZmluZWQoX19hYXJjaDY0X18pIHx8IGRlZmluZWQoX19t
+aXBzX18pDQo+Pj4+IC0NCj4+Pj4gLSNkZWZpbmUgZmJfcmVhZGIgX19yYXdfcmVhZGINCj4+
+Pj4gLSNkZWZpbmUgZmJfcmVhZHcgX19yYXdfcmVhZHcNCj4+Pj4gLSNkZWZpbmUgZmJfcmVh
+ZGwgX19yYXdfcmVhZGwNCj4+Pj4gLSNkZWZpbmUgZmJfcmVhZHEgX19yYXdfcmVhZHENCj4+
+Pj4gLSNkZWZpbmUgZmJfd3JpdGViIF9fcmF3X3dyaXRlYg0KPj4+PiAtI2RlZmluZSBmYl93
+cml0ZXcgX19yYXdfd3JpdGV3DQo+Pj4+IC0jZGVmaW5lIGZiX3dyaXRlbCBfX3Jhd193cml0
+ZWwNCj4+Pj4gLSNkZWZpbmUgZmJfd3JpdGVxIF9fcmF3X3dyaXRlcQ0KPj4+DQo+Pj4gTm90
+ZSB0aGF0IG9uIGF0IGxlYXN0IHNvbWUgYXJjaGl0ZWN0dXJlcywgdGhlIF9fcmF3IHZhcmlh
+bnRzIGFyZQ0KPj4+IG5hdGl2ZS1lbmRpYW4sIHdoZXJlYXMgdGhlIHJlZ3VsYXIgYWNjZXNz
+b3JzIGFyZSBleHBsaWNpdGx5DQo+Pj4gbGl0dGxlLWVuZGlhbiwgc28gdGhlcmUgaXMgYSBz
+bGlnaHQgcmlzayBvZiBpbmFkdmVydGVudGx5IGNoYW5naW5nDQo+Pj4gYmVoYXZpb3VyIG9u
+IGJpZy1lbmRpYW4gc3lzdGVtcyAoTUlQUyBtb3N0IGxpa2VseSwgYnV0IGEgZmV3IG9sZCBB
+Uk0NCj4+PiBwbGF0Zm9ybXMgcnVuIEJFIGFzIHdlbGwpLg0KPj4NCj4+IEFsc28gb24gbTY4
+aywgd2hlbiBJU0Egb3IgUENJIGFyZSBlbmFibGVkLg0KPj4NCj4+IEluIGFkZGl0aW9uLCB0
+aGUgbm9uLXJhdyB2YXJpYW50cyBtYXkgZG8gc29tZSBleHRyYXMgdG8gZ3VhcmFudGVlDQo+
+PiBvcmRlcmluZywgd2hpY2ggeW91IGRvIG5vdCBuZWVkIG9uIGEgZnJhbWUgYnVmZmVyLg0K
+Pj4NCj4+IFNvIEknZCBnbyBmb3IgdGhlIF9fcmF3XyooKSB2YXJpYW50cyBldmVyeXdoZXJl
+Lg0KPiANCj4gVGhlIG9ubHkgaW1wbGVtZW50YXRpb25zIGluIGZiZGV2IGFyZQ0KPiANCj4g
+ICAxKSBzcGFyYyBzYnVzDQo+ICAgMikgX19yYXdfd3JpdGVsDQo+ICAgMykgZGlyZWN0IHBv
+aW50ZXIgZGVyZWZlcmVuY2UNCj4gDQo+IEJ1dCBub25lIHVzZSB0aGUgYnl0ZS1zd2FwcGlu
+ZyB3cml0ZWwoKSBpbXBsZW1lbnRhdGlvbnMsIGFuZA0KPiB0aGUgb25seSBvbmVzIHRoYXQg
+dXNlIHRoZSBkaXJlY3QgcG9pbnRlciBkZXJlZmVyZW5jZSBvciBzYnVzDQo+IGFyZSB0aGUg
+b25lcyBvbiB3aGljaCB0aGVzZSBhcmUgZGVmaW5lZCB0aGUgc2FtZSBhcyBfX3Jhd193cml0
+ZWwNCg0KQWZ0ZXIgdGhpbmtpbmcgYSBiaXQgbW9yZSBhYm91dCB0aGUgcmVxdWlyZW1lbnRz
+LCBJJ2QgbGlrZSB0byBnb3QgYmFjayANCnRvIHYxLCBidXQgd2l0aCBhIGRpZmZlcmVudCBz
+cGluLiBXZSB3YW50IHRvIGF2b2lkIG9yZGVyaW5nIGd1YXJhbnRlZXMsIA0Kc28gSSBsb29r
+ZWQgYXQgdGhlIF9yZWxheGVkKCkgaGVscGVycywgYnV0IHRoZXkgc2VlbSB0byBzd2FwIGJ5
+dGVzIHRvIA0KbGl0dGxlIGVuZGlhbi4NCg0KSSBndWVzcyB3ZSBjYW4gcmVtb3ZlIHRoZSBm
+Yl9tZW0qKCkgZnVuY3Rpb25zIGVudGlyZWx5LiBUaGV5IGFyZSB0aGUgDQpzYW1lIGFzIHRo
+ZSBub24tZmJfIGNvdW50ZXJwYXJ0cy4gRm9yIHRoZSBmYiByZWFkL3dyaXRlIGhlbHBlcnMs
+IEknZCANCmxpa2UgdG8gYWRkIHRoZW0gdG8gPGFzbS1nZW5lcmljL2ZiLmg+IGluIGEgcGxh
+dGZvcm0tbmV1dHJhbCB3YXkuIFRoZXknZCANCmJlIHdyYXBwZXJzIGFyb3VuZCBfX3Jhd18o
+KSwgYXMgSSB3b3VsZG4ndCB3YW50IGludm9jYXRpb25zIG9mICBfX3Jhd18oKSANCmZ1bmN0
+aW9ucyBpbiB0aGUgZmJkZXYgZHJpdmVycy4NCg0KQmVzdCByZWdhcmRzDQpUaG9tYXMNCg0K
+PiANCj4gICAgICAgIEFybmQNCg0KLS0gDQpUaG9tYXMgWmltbWVybWFubg0KR3JhcGhpY3Mg
+RHJpdmVyIERldmVsb3Blcg0KU1VTRSBTb2Z0d2FyZSBTb2x1dGlvbnMgR2VybWFueSBHbWJI
+DQpGcmFua2Vuc3RyYXNzZSAxNDYsIDkwNDYxIE51ZXJuYmVyZywgR2VybWFueQ0KR0Y6IEl2
+byBUb3RldiwgQW5kcmV3IE15ZXJzLCBBbmRyZXcgTWNEb25hbGQsIEJvdWRpZW4gTW9lcm1h
+bg0KSFJCIDM2ODA5IChBRyBOdWVybmJlcmcpDQo=
 
-Could we tidy this? I don't know what tree it can go in, timers,
-sched, asm-generic, probably doesn't matter.
+--------------XHeCVpw7PiHVQpg0Jphmy7XG--
 
-The only thing this actually does is gate VIRT_CPU_ACCOUNTING_GEN and
-NO_HZ_FULL so if your arch has some other issue that requires this
-then the documentation needs to change. Any concerns from the archs?
-I.e., 32-bit that does *not* define HAVE_VIRT_CPU_ACCOUNTING_GEN
-which looks to be:
+--------------MelAIvX5Zq5p7fTWZnZe1KnI
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
 
-arc
-hexagon
-loongarch 32-bit with SMP
-m68k
-microblaze
-mips 32-bit with SMP
-nios2
-openrisc
-parisc 32-bit
-riscv 32-bit
-sh
-sparc 32-bit
-um 32-bit
-x86 32-bit
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Nick
---
- arch/Kconfig           | 11 -----------
- arch/arm/Kconfig       |  1 -
- arch/csky/Kconfig      |  1 -
- arch/loongarch/Kconfig |  1 -
- arch/mips/Kconfig      |  1 -
- arch/powerpc/Kconfig   |  1 -
- arch/xtensa/Kconfig    |  1 -
- init/Kconfig           |  1 -
- kernel/time/Kconfig    |  2 --
- 9 files changed, 20 deletions(-)
+wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmRNDOQFAwAAAAAACgkQlh/E3EQov+D3
+Lg//UhCZBw81TYQDkk+UDr1YbkaGi4Jm2mT/EtMUo2aiopJRpbN8vontw/beFlngxSqtHGbuE+eV
+/Nw3zAhT/0FwyIfz9cckarUnhgWjtozXXAzefE/fvRNS1IpfOd4Z+/HAFpf14aUFX58Ieonzrx0K
+IAUrczjg9YkqH/rjBuQN6esPDuGO6UAnwoPcfsR0LJ8rYA8u21otEL8TJmc6YrLxV8vRDi8F4pfg
+2psTsyd3crIGm2ldrDL7fc8SCJr7pBcrkEM9LJ8TU4iVcEWQ+VinDr6aiworLArjL7td/jSrX8yL
+NgbWRrsLwsh50JtyFgO68P9ujhhD83DyZ6jRMLVCaUCWYH03srIBWqkf7jePnQ3ZnyRtPGuX13a1
++OchiuFDSLb7gUO4YmnIYiSvrNWi+xAbDZopxKynXrqqOyz9qCY1/pTSnVY4W1BZm1DmpYFa/LJ0
+8ASU+1FXKvGU9rDjh9vdm4aK44qqavzduSEDltIQF5rSGjltfpBMnGXaBr7ZF5B+Q9ty5Bsw63Kh
+ksU8M/nayR7toWgtbiAAuLnzz04kv5VRdLVsgY3AEw+H6wz1alVp0SBJNFGJ1CIwjxQ2tFpEcAp4
++tfWD38puBNHk3K2WeT0O152tqPrzhw+6qws+j8SPgTx/gUaxU0jY4JjSgMXSlnum9vnakiOPQFn
+Jl4=
+=PPwW
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 205fd23e0cad..b77b41d25e40 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -869,17 +869,6 @@ config HAVE_VIRT_CPU_ACCOUNTING_IDLE
- config ARCH_HAS_SCALED_CPUTIME
- 	bool
- 
--config HAVE_VIRT_CPU_ACCOUNTING_GEN
--	bool
--	default y if 64BIT
--	help
--	  With VIRT_CPU_ACCOUNTING_GEN, cputime_t becomes 64-bit.
--	  Before enabling this option, arch code must be audited
--	  to ensure there are no races in concurrent read/write of
--	  cputime_t. For example, reading/writing 64-bit cputime_t on
--	  some 32-bit arches may require multiple accesses, so proper
--	  locking is needed to protect against concurrent accesses.
--
- config HAVE_IRQ_TIME_ACCOUNTING
- 	bool
- 	help
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 0fb4b218f665..9c05f25db4e4 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -123,7 +123,6 @@ config ARM
- 	select HAVE_STACKPROTECTOR
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_UID16
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select IRQ_FORCED_THREADING
- 	select MODULES_USE_ELF_REL
- 	select NEED_DMA_MAP_STATE
-diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
-index 00379a843c37..dd1decc2a22d 100644
---- a/arch/csky/Kconfig
-+++ b/arch/csky/Kconfig
-@@ -73,7 +73,6 @@ config CSKY
- 	select HAVE_ARCH_MMAP_RND_BITS
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select HAVE_CONTEXT_TRACKING_USER
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select HAVE_DEBUG_KMEMLEAK
- 	select HAVE_DYNAMIC_FTRACE
-diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
-index f44f6ea54e46..7dc71c89bfae 100644
---- a/arch/loongarch/Kconfig
-+++ b/arch/loongarch/Kconfig
-@@ -122,7 +122,6 @@ config LOONGARCH
- 	select HAVE_STACKPROTECTOR
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_TIF_NOHZ
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN if !SMP
- 	select IRQ_FORCED_THREADING
- 	select IRQ_LOONGARCH_CPU
- 	select MMU_GATHER_MERGE_VMAS if MMU
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index c2f5498d207f..d84cb8bbee53 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -87,7 +87,6 @@ config MIPS
- 	select HAVE_SPARSE_SYSCALL_NR
- 	select HAVE_STACKPROTECTOR
- 	select HAVE_SYSCALL_TRACEPOINTS
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN if 64BIT || !SMP
- 	select IRQ_FORCED_THREADING
- 	select ISA if EISA
- 	select MODULES_USE_ELF_REL if MODULES
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index acffffbd5d77..185195f349d9 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -271,7 +271,6 @@ config PPC
- 	select HAVE_STATIC_CALL			if PPC32
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_VIRT_CPU_ACCOUNTING
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select HUGETLB_PAGE_SIZE_VARIABLE	if PPC_BOOK3S_64 && HUGETLB_PAGE
- 	select IOMMU_HELPER			if PPC64
- 	select IRQ_DOMAIN
-diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
-index 3c6e5471f025..04f1399d9ce8 100644
---- a/arch/xtensa/Kconfig
-+++ b/arch/xtensa/Kconfig
-@@ -47,7 +47,6 @@ config XTENSA
- 	select HAVE_PERF_EVENTS
- 	select HAVE_STACKPROTECTOR
- 	select HAVE_SYSCALL_TRACEPOINTS
--	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select IRQ_DOMAIN
- 	select MODULES_USE_ELF_RELA
- 	select PERF_USE_VMALLOC
-diff --git a/init/Kconfig b/init/Kconfig
-index 32c24950c4ce..835fb5e78a8f 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -504,7 +504,6 @@ config VIRT_CPU_ACCOUNTING_NATIVE
- config VIRT_CPU_ACCOUNTING_GEN
- 	bool "Full dynticks CPU time accounting"
- 	depends on HAVE_CONTEXT_TRACKING_USER
--	depends on HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	depends on GENERIC_CLOCKEVENTS
- 	select VIRT_CPU_ACCOUNTING
- 	select CONTEXT_TRACKING_USER
-diff --git a/kernel/time/Kconfig b/kernel/time/Kconfig
-index bae8f11070be..d4325dae1f03 100644
---- a/kernel/time/Kconfig
-+++ b/kernel/time/Kconfig
-@@ -121,8 +121,6 @@ config NO_HZ_FULL
- 	# We need at least one periodic CPU for timekeeping
- 	depends on SMP
- 	depends on HAVE_CONTEXT_TRACKING_USER
--	# VIRT_CPU_ACCOUNTING_GEN dependency
--	depends on HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select NO_HZ_COMMON
- 	select RCU_NOCB_CPU
- 	select VIRT_CPU_ACCOUNTING_GEN
--- 
-2.40.1
-
+--------------MelAIvX5Zq5p7fTWZnZe1KnI--
