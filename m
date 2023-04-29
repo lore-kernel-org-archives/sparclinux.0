@@ -2,138 +2,113 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 752EFC77B7C
-	for <sparclinux@archiver.kernel.org>; Sat, 29 Apr 2023 14:11:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D1A5C7EE2E
+	for <sparclinux@archiver.kernel.org>; Sat, 29 Apr 2023 18:25:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231334AbjD2OLl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 29 Apr 2023 10:11:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33200 "EHLO
+        id S229599AbjD2SZC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 29 Apr 2023 14:25:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230005AbjD2OLk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Apr 2023 10:11:40 -0400
-Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A377198A;
-        Sat, 29 Apr 2023 07:11:38 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.nyi.internal (Postfix) with ESMTP id 2DD955C00FB;
-        Sat, 29 Apr 2023 10:11:36 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Sat, 29 Apr 2023 10:11:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm2; t=1682777496; x=1682863896; bh=8d
-        kHZ7/OLsjO2XUx8f1h6VDCdqS9HsgrgUgQPoekbMU=; b=Tt4hmIAKM+NNZGRbGy
-        USiFmRb7ZQ7VESvUpDkvDC9rS9I/kjpxYoq4IidwwhIKTPcYD5vR6RqvLLGr+CaD
-        1I9aUqlKLEp8YNzWVAXHUtUi2kVpAha/zdduG5raE+Wi0wvbUISzk2AadoiGxkiZ
-        fZrZqC1pSn3Zxe1+KbPC8fVvKo3sFwMmI+khbEppmvaKW9CmFCgdX2QktEKQKG96
-        0SC2oHRE3uFMLM/L3dVGCHbScyE7YVtM0HH4gQT9Mh2zq/OoF5XuXAM6yoLd/EIj
-        ZLMzsUC3vaXLLJ6GGE7oLNpIHGXhuLTVOB66jjYD1eINb3WthQd7wDNhLD/+UKGq
-        YWnQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1682777496; x=1682863896; bh=8dkHZ7/OLsjO2
-        XUx8f1h6VDCdqS9HsgrgUgQPoekbMU=; b=L+nvmAfj8gymGhB5xVReToYxjM6wj
-        v8YL/JxVhiXT6yjB2/Yx5h/SGJAuFpH+LYE4mRnIgEwvZrwch6NpT/gSOm3PSm30
-        bwzptyafMGf1520s8iYPvchCZ9FvC7zQx/AofzoW8CnPAm9cpnsX+tvIm8l6CBkt
-        l6Yt2qTVsuFf+UtcSo0isg2MhJafTaqRhqjDh5e0bCdNSt6QOAH4NkSPUTzq6lqg
-        IaNqSJFzzHT4wF8tk6iLVEl76ZIcQvAzUYcqtzZGN7wjqt4YIm/cBFu+jOkocHJJ
-        6aUIjnMFtOd00CnQB01bWd1lVpHN1OGQkflEeBtWUxIcBUtPa00kswySw==
-X-ME-Sender: <xms:lyVNZPz3z-p16274zMKpAKi5nlxUSJ7lk28d3S-Ob8c6-Zv8Bdk-Gw>
-    <xme:lyVNZHQanz9SNk_GaqKBAu-Y-aPLh9z5YLE6AO4jRKX5HaqlB0s8ya2eyd2wC7WEQ
-    j71iw5FIizBJSeFfXU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfedvtddggeekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:lyVNZJXT0voWt151wzrxLt_t0PVcRbC_n0gzPllt-KSJgQjWEnhfPQ>
-    <xmx:lyVNZJhgG76zOedSkzOp0As8nsjokHBAqvY3P4YbxzGMIvgrdkwY3A>
-    <xmx:lyVNZBB11KK0qljfYMVgugmi1r0rm1svPDZhbgiqX_QChEeIGgbRGg>
-    <xmx:mCVNZABxHV6GlowlDf3Y7NrFIlL86oq1NhGnPXRrsYfMgDf0xjmKGw>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 00DD4B60086; Sat, 29 Apr 2023 10:11:34 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-374-g72c94f7a42-fm-20230417.001-g72c94f7a
-Mime-Version: 1.0
-Message-Id: <260ee591-a71b-4c83-a775-5591d4222cec@app.fastmail.com>
-In-Reply-To: <df6fa134-3a62-0872-e008-393e4a29a5ab@suse.de>
-References: <20230428092711.406-1-tzimmermann@suse.de>
- <20230428092711.406-6-tzimmermann@suse.de>
- <430c73f0-45f4-f81e-6506-bc8cc955d936@arm.com>
- <CAMuHMdUGjtiAR37L4_e0_p8ee2=gxoUj7+e7rqMLTBK+vpV4yw@mail.gmail.com>
- <f612c682-5767-4a58-82f6-f4a4d1b592a1@app.fastmail.com>
- <df6fa134-3a62-0872-e008-393e4a29a5ab@suse.de>
-Date:   Sat, 29 Apr 2023 16:11:13 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Robin Murphy" <robin.murphy@arm.com>
-Cc:     "Helge Deller" <deller@gmx.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Daniel Vetter" <daniel@ffwll.ch>,
-        "Vineet Gupta" <vgupta@kernel.org>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "WANG Xuerui" <kernel@xen0n.name>,
-        "David S . Miller" <davem@davemloft.net>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        "Sam Ravnborg" <sam@ravnborg.org>, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
-Subject: Re: [PATCH v2 5/5] fbdev: Define framebuffer I/O from Linux' I/O functions
-Content-Type: text/plain
+        with ESMTP id S230268AbjD2SYy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Apr 2023 14:24:54 -0400
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8A801FF3
+        for <sparclinux@vger.kernel.org>; Sat, 29 Apr 2023 11:24:52 -0700 (PDT)
+Received: by mail-pl1-x633.google.com with SMTP id d9443c01a7336-1aad6f5d10dso4297985ad.1
+        for <sparclinux@vger.kernel.org>; Sat, 29 Apr 2023 11:24:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1682792692; x=1685384692;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=KGl5HMSK57VmBSwKSnwgm3VXr902jH6XBJlNczgIzTY=;
+        b=l+H0JwRFKwAD4TzkKtg69sq/SE0iMjDe/NX6Txlv16Ba4kBdBRnOLJE9cuEp/EtowJ
+         pvTfeswVQQvBqhKyncNpPdAR29BMkNe6LB9ZMzoVyBV5Q9aGwXPM1Fc+6Qr50SDIiKsJ
+         q9xyHClsPNOcAaBRr9fQ8UfCjonz6jsBwXrYvJjTpLiOgKgKgvN8uwk1fTPbl8XK+035
+         m3QY80DvBeDJf799u5hnhHuLgfMpPNb4a9jtTjDBw2OzLziw75OHG2J322CH+dAw1HCw
+         HsmmVI7grjIDtuj7uBS5rk+EMADzgTEglzedbNWVOsorwBluoILEBWp5M0RLFiHKNfCf
+         2+Mg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682792692; x=1685384692;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KGl5HMSK57VmBSwKSnwgm3VXr902jH6XBJlNczgIzTY=;
+        b=OXIPfB3zT7qBQGaw29WiNUzqid/B42uOrp4Xdg8pwA2OuD9Gt/+O2yrxNWL+7GF2rk
+         w988N/tWcHZ1CSeP+tgQ/tDEHTrUPAe6dsXThXcSIJo7007Va9RZVAT4v1kxfxvQZrRl
+         tfNiRssyBmKe7C69BGTIjBp50gFIyXZoOvz8tsgnIpMAnFSWnUCi1I1e9PkGNUqc6COt
+         7/hZ7hYNYQw6yIHwsK9ykvG5FwdKVAyq1fMmmCia09q8f+0oM38jnZ2WNGQ3DkPVxsr2
+         rn0+BDjustSWCLIRec2KXk/0Sb9XFGqtpeypPVzUJ/kGlCdODf5pCrTMO3e9jMDnLCaj
+         GBAw==
+X-Gm-Message-State: AC+VfDwuux+u+R48DMIoUNVheFqUGXgEqMVrbUw/0qxpq5pKrUCNj8aw
+        nJDqLMnTPGrT4zv6uJa72VFVAQ==
+X-Google-Smtp-Source: ACHHUZ6ZiLzN9eR+ckFMqg7tN3D4bPpq4geojnHO1Jqz7HXa46oxZHVvxREPvQQtQygRvSqX/lxFkg==
+X-Received: by 2002:a17:903:124b:b0:1a2:8c7e:f315 with SMTP id u11-20020a170903124b00b001a28c7ef315mr10630845plh.21.1682792692014;
+        Sat, 29 Apr 2023 11:24:52 -0700 (PDT)
+Received: from localhost ([50.221.140.188])
+        by smtp.gmail.com with ESMTPSA id z2-20020a170902708200b001a19196af48sm15137375plk.64.2023.04.29.11.24.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Apr 2023 11:24:51 -0700 (PDT)
+Date:   Sat, 29 Apr 2023 11:24:51 -0700 (PDT)
+X-Google-Original-Date: Sat, 29 Apr 2023 11:24:33 PDT (-0700)
+Subject:     Re: [PATCH 09/19] riscv: cacheinfo: Adjust includes to remove of_device.h
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-9-581e2605fe47@kernel.org>
+CC:     davem@davemloft.net, robh+dt@kernel.org, frowand.list@gmail.com,
+        linux@armlinux.org.uk, wens@csie.org, jernej.skrabec@gmail.com,
+        samuel@sholland.org, Paul Walmsley <paul.walmsley@sifive.com>,
+        aou@eecs.berkeley.edu, Greg KH <gregkh@linuxfoundation.org>,
+        rafael@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de,
+        amit.kachhap@gmail.com, viresh.kumar@linaro.org,
+        lukasz.luba@arm.com, amitk@kernel.org, rui.zhang@intel.com,
+        matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        tiny.windzz@gmail.com, lpieralisi@kernel.org, sudeep.holla@arm.com,
+        agross@kernel.org, andersson@kernel.org, konrad.dybcio@linaro.org,
+        anup@brainfault.org, chenhuacai@kernel.org,
+        jiaxun.yang@flygoat.com, Marc Zyngier <maz@kernel.org>,
+        vireshk@kernel.org, nm@ti.com, sboyd@kernel.org,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-sunxi@lists.linux.dev, linux-riscv@lists.infradead.org,
+        linux-pm@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-tegra@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-mips@vger.kernel.org
+From:   Palmer Dabbelt <palmer@dabbelt.com>
+To:     robh@kernel.org
+Message-ID: <mhng-8827afbb-9f5f-4a6d-b528-4b79b1a32f8a@palmer-ri-x1c9a>
+Mime-Version: 1.0 (MHng)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Apr 29, 2023, at 14:26, Thomas Zimmermann wrote:
-> Am 28.04.23 um 15:17 schrieb Arnd Bergmann:
->> The only implementations in fbdev are
->> 
->>   1) sparc sbus
->>   2) __raw_writel
->>   3) direct pointer dereference
->> 
->> But none use the byte-swapping writel() implementations, and
->> the only ones that use the direct pointer dereference or sbus
->> are the ones on which these are defined the same as __raw_writel
+On Wed, 29 Mar 2023 08:52:06 PDT (-0700), robh@kernel.org wrote:
+> Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
+> implicitly including other includes, and is no longer needed. Adjust the
+> include files with what was implicitly included by of_device.h (cpu.h and
+> of.h) and drop including of_device.h.
 >
-> After thinking a bit more about the requirements, I'd like to got back 
-> to v1, but with a different spin. We want to avoid ordering guarantees, 
-> so I looked at the _relaxed() helpers, but they seem to swap bytes to 
-> little endian.
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+> Please ack and I will take the series via the DT tree.
+> ---
+>  arch/riscv/kernel/cacheinfo.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/arch/riscv/kernel/cacheinfo.c b/arch/riscv/kernel/cacheinfo.c
+> index 3a13113f1b29..e3829d2de5d9 100644
+> --- a/arch/riscv/kernel/cacheinfo.c
+> +++ b/arch/riscv/kernel/cacheinfo.c
+> @@ -5,7 +5,6 @@
+>
+>  #include <linux/cpu.h>
+>  #include <linux/of.h>
+> -#include <linux/of_device.h>
+>  #include <asm/cacheinfo.h>
+>
+>  static struct riscv_cacheinfo_ops *rv_cache_ops;
 
-Right, the _relaxed() oens are clearly wrong, aside from
-the byteswap they also include barriers on some architectures
-where the __raw_* version is more relaxed than the required
-semantics for relaxed.
-
-> I guess we can remove the fb_mem*() functions entirely. They are the 
-> same as the non-fb_ counterparts.
-
-These might actually be different in some cases, or sub-optimal
-at the moment. memcpy()/memset() don't take __iomem pointers, so they
-cause sparse warnings, while the memset_io()/memcpy_fromio()/
-memcpy_toio() sometimes fall back to bytewise access that is slower
-than word-sized copy. I only looked at the readl/writel style 
-functions earlier, no idea what we want here.
-
-> For the fb read/write helpers, I'd 
-> like to add them to <asm-generic/fb.h> in a platform-neutral way. They'd 
-> be wrappers around __raw_(), as I wouldn't want invocations of  __raw_() 
-> functions in the fbdev drivers.
-
-That sounds good to me.
-
-     Arnd
+Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
