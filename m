@@ -2,175 +2,187 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F14BAC7EE29
-	for <sparclinux@archiver.kernel.org>; Sat, 29 Apr 2023 20:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF325C7EE29
+	for <sparclinux@archiver.kernel.org>; Mon,  1 May 2023 19:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230289AbjD2UO3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 29 Apr 2023 16:14:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43764 "EHLO
+        id S233161AbjEAT3J (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 1 May 2023 15:29:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230121AbjD2UO2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Apr 2023 16:14:28 -0400
-Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53B9F1B7
-        for <sparclinux@vger.kernel.org>; Sat, 29 Apr 2023 13:14:25 -0700 (PDT)
-Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-1a50cb65c92so9008195ad.0
-        for <sparclinux@vger.kernel.org>; Sat, 29 Apr 2023 13:14:25 -0700 (PDT)
+        with ESMTP id S233075AbjEAT3G (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 1 May 2023 15:29:06 -0400
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DDE22D43;
+        Mon,  1 May 2023 12:28:35 -0700 (PDT)
+Received: by mail-pl1-x633.google.com with SMTP id d9443c01a7336-1aaed87d8bdso12161785ad.3;
+        Mon, 01 May 2023 12:28:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1682799264; x=1685391264;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=EvNXrGU7f9AyBgQxPAxIH8w5LQ2sGDY5VhYCeQmIsvg=;
-        b=ztXNyujPGJ3TImj9rkWYO2n2FifWKitTQShNykqcCXMnlMDmDVUdGDZxkkAjoc2LxT
-         wjlkNuWu5MpGZ0hx2IY/BfGicm00cVl+x8sMPYhvJYOTMhGVFNRcq+t2+IhK1Zbg1HBm
-         TwPyb5IfXHXgdYm4kQQJO8mCutMWnoA0MAQG1HObQV2DkWdvKA82EPwFFy15NEoVvzDJ
-         YaFLlQv2/hnRBo+Kg2l+LFcBMREq5GVfs5levwZlW+i9w9qFVpvKUrXtIKJRJqUd1KUC
-         DRDHp5Z7Fs9kgbXLfeVSACxaLJ8vDKqbLXNf+pwsIg4BCZFLNo8FmqNy+hScbEds+O2l
-         SL9w==
+        d=gmail.com; s=20221208; t=1682969314; x=1685561314;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ipls6koA+AeH8J6j2WxgUhcq4mmw5a3NH+J2RY9iS6I=;
+        b=eztCo5uQgzZ++c4nibUBiIDXpS2LGO24+qSzaafIbpKx+1BibUdX3vQLCCvqCM9QaK
+         k2szVsQtO5BsNtu2gEbwQ2R1Cp8SZWTwumicPfkwsEEQtcvZx+KCA7E9E8yQbBLG/+U1
+         YuKydYrLelSrUvEFcJOenbExJISoaZaYCzUq7BQHSqP3uoPFqEPYIMH3FrftdGe1VnOk
+         18/QJSaB/qqzmIXnj9u6ae7JwxuEe1M8it5S+Q9K46yajD+0ZkqBf7KewtfRcvygNDOo
+         LlI0LPcK+WO/JxG3p9SD85FYmZExm1luEC4PEkLlS1jz538f0/tapw7EjRytIfe2E8ce
+         OeqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682799264; x=1685391264;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=EvNXrGU7f9AyBgQxPAxIH8w5LQ2sGDY5VhYCeQmIsvg=;
-        b=A878gFkm02M2VcmlIMq1rTdtfhfeG3o8rGuxfXVvZfb0TvmrEcDJc0KaZCqNTqGvjg
-         buG9D6GEhpyLG6+hCGnSud8lKSBSiS6gMOAb9Kz+pAvxKdYlfaOMpDL6p1xfco7DjW/Y
-         /yzJYR+P7735I7Qw8kUaVa5yVGF0UXFKRbfD5QRt09yzdGD1br2bZIoG6Dz0+iJhNeoK
-         EREcCp0i/fydvQGc5FHEr5POtWAeEYDuYz7PLyfS7Gn1x2u98S7rTbv5WjanwyNrYDIu
-         8AK7IfcG/eljVlMoHlzxXyUCR8Vju8SMRxVHnJoqZQvj0tFfslj6G+AeI7GkIGX3gk07
-         WfFw==
-X-Gm-Message-State: AC+VfDzdpHZvjJgiPpD4D0K74pBGFOuO3BvTuRw/l+CY+6xs3S6Uqo/D
-        Ppvh/gmqO5ZD/Bed9IiCSZz/sQ==
-X-Google-Smtp-Source: ACHHUZ7pgoIToYashe1bFzQ1hUq7/0xuSIbhdV55MwhX+AUZI7FSn+oK96sUBgsJukxkcTmiriVdYg==
-X-Received: by 2002:a17:902:ef45:b0:1a6:dd9a:62c5 with SMTP id e5-20020a170902ef4500b001a6dd9a62c5mr8875345plx.10.1682799264493;
-        Sat, 29 Apr 2023 13:14:24 -0700 (PDT)
-Received: from localhost ([50.221.140.188])
-        by smtp.gmail.com with ESMTPSA id g2-20020a170902740200b001a4f7325466sm15179442pll.276.2023.04.29.13.14.23
+        d=1e100.net; s=20221208; t=1682969314; x=1685561314;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ipls6koA+AeH8J6j2WxgUhcq4mmw5a3NH+J2RY9iS6I=;
+        b=WjKB1dBzfMwvDk20nDV9cHccje/2+v+B03AwO6pBNx2LIf47BpM0EtOkhHT9BpTmIK
+         qNNYgqJFcARye89OdbBlJoqMuePKrdsHxC5SNRKEywDb48jFery/By6L1MguoeD5pJyw
+         S4tSGuth3w6v8vGl4BLpeX6w8TBAZy3cb8+65iUr8xNM3iW8P+Kfy1mT3LW3MtHAFf09
+         CogWvAUEuvfPsuW6N4HDz0jr3lSll8Mea7oknlBuvlgtE5uwjBA028q8P2Ucua22w+1J
+         cZKxzLDnSJmzAeJN+PoNMl7nbkYBpXnI2VfO1HVo7ICzhR5e68uE6itd2Z48QVBM9V4i
+         94fQ==
+X-Gm-Message-State: AC+VfDxwYDJfj404qPPaia+pxEN0FNARQ8XCCiI4xvesm6VV+SkWcVPL
+        Kxu6OhKvWL1C7RNqXuTasrY=
+X-Google-Smtp-Source: ACHHUZ4EtcVpfh2GrxC12spi0fGVMtR6JEHjWCZcT25vgipN1a5chaj6S10yX1bBKRrgSrOQ8bpQcQ==
+X-Received: by 2002:a17:903:2310:b0:1a6:54ce:4311 with SMTP id d16-20020a170903231000b001a654ce4311mr18428090plh.43.1682969314058;
+        Mon, 01 May 2023 12:28:34 -0700 (PDT)
+Received: from fedora.hsd1.ca.comcast.net ([2601:644:937f:7f20::9a2c])
+        by smtp.googlemail.com with ESMTPSA id u8-20020a170902bf4800b0019c13d032d8sm18175622pls.253.2023.05.01.12.28.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 29 Apr 2023 13:14:23 -0700 (PDT)
-Date:   Sat, 29 Apr 2023 13:14:23 -0700 (PDT)
-X-Google-Original-Date: Sat, 29 Apr 2023 13:14:07 PDT (-0700)
-Subject:     Re: [PATCH] Remove HAVE_VIRT_CPU_ACCOUNTING_GEN option
-In-Reply-To: <20230429063348.125544-1-npiggin@gmail.com>
-CC:     Arnd Bergmann <arnd@arndb.de>, npiggin@gmail.com,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        vgupta@kernel.org, linux-snps-arc@lists.infradead.org,
-        bcain@quicinc.com, linux-hexagon@vger.kernel.org,
-        chenhuacai@kernel.org, loongarch@lists.linux.dev,
-        geert@linux-m68k.org, linux-m68k@lists.linux-m68k.org,
-        monstr@monstr.eu, tsbogend@alpha.franken.de,
-        linux-mips@vger.kernel.org, dinguyen@kernel.org,
-        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
-        shorne@gmail.com, linux-openrisc@vger.kernel.org,
-        James.Bottomley@HansenPartnership.com, deller@gmx.de,
-        linux-parisc@vger.kernel.org,
+        Mon, 01 May 2023 12:28:33 -0700 (PDT)
+From:   "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>
+Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-openrisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
+        kvm@vger.kernel.org,
+        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        David Hildenbrand <david@redhat.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
         Paul Walmsley <paul.walmsley@sifive.com>,
-        aou@eecs.berkeley.edu, linux-riscv@lists.infradead.org,
-        ysato@users.sourceforge.jp, dalias@libc.org,
-        glaubitz@physik.fu-berlin.de, linux-sh@vger.kernel.org,
-        davem@davemloft.net, sparclinux@vger.kernel.org, richard@nod.at,
-        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
-        linux-um@lists.infradead.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, khilman@baylibre.com, frederic@kernel.org
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     npiggin@gmail.com
-Message-ID: <mhng-7ec0443b-2201-41b7-996c-78c3a61f0230@palmer-ri-x1c9a>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
+        "David S. Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v2 00/34] Split ptdesc from struct page
+Date:   Mon,  1 May 2023 12:27:55 -0700
+Message-Id: <20230501192829.17086-1-vishal.moola@gmail.com>
+X-Mailer: git-send-email 2.39.2
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 28 Apr 2023 23:33:48 PDT (-0700), npiggin@gmail.com wrote:
-> This option was created in commit 554b0004d0ec4 ("vtime: Add
-> HAVE_VIRT_CPU_ACCOUNTING_GEN Kconfig") for architectures to indicate
-> they support the 64-bit cputime_t required for VIRT_CPU_ACCOUNTING_GEN.
->
-> The cputime_t type has since been removed, so this doesn't have any
-> meaning. Remove it.
->
-> Cc: linux-arch@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Vineet Gupta <vgupta@kernel.org>
-> Cc: linux-snps-arc@lists.infradead.org
-> Cc: Brian Cain <bcain@quicinc.com>
-> Cc: linux-hexagon@vger.kernel.org
-> Cc: Huacai Chen <chenhuacai@kernel.org>
-> Cc: loongarch@lists.linux.dev
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: linux-m68k@lists.linux-m68k.org
-> Cc: Michal Simek <monstr@monstr.eu>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: linux-mips@vger.kernel.org
-> Cc: Dinh Nguyen <dinguyen@kernel.org>
-> Cc: Jonas Bonn <jonas@southpole.se>
-> Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-> Cc: Stafford Horne <shorne@gmail.com>
-> Cc: linux-openrisc@vger.kernel.org
-> Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: linux-parisc@vger.kernel.org
-> Cc: Paul Walmsley <paul.walmsley@sifive.com>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Albert Ou <aou@eecs.berkeley.edu>
-> Cc: linux-riscv@lists.infradead.org
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Cc: linux-sh@vger.kernel.org
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: Richard Weinberger <richard@nod.at>
-> Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-> Cc: Johannes Berg <johannes@sipsolutions.net>
-> Cc: linux-um@lists.infradead.org
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: x86@kernel.org
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Kevin Hilman <khilman@baylibre.com>
-> Cc: Frederic Weisbecker <frederic@kernel.org>
-> Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-> ---
-> Hi,
->
-> Could we tidy this? I don't know what tree it can go in, timers,
-> sched, asm-generic, probably doesn't matter.
->
-> The only thing this actually does is gate VIRT_CPU_ACCOUNTING_GEN and
-> NO_HZ_FULL so if your arch has some other issue that requires this
-> then the documentation needs to change. Any concerns from the archs?
-> I.e., 32-bit that does *not* define HAVE_VIRT_CPU_ACCOUNTING_GEN
-> which looks to be:
->
-> arc
-> hexagon
-> loongarch 32-bit with SMP
-> m68k
-> microblaze
-> mips 32-bit with SMP
-> nios2
-> openrisc
-> parisc 32-bit
-> riscv 32-bit
+The MM subsystem is trying to shrink struct page. This patchset
+introduces a memory descriptor for page table tracking - struct ptdesc.
 
-Nothing's jumping out, though I haven't tested this yet so I'm not 100%.  
-I assume this isn't aimed for this merge window, given the timing?  
-Probably best to give this sort of thing time to bake in linux-next, but 
-I doubt anyone is even paying attention to rv32/NO_HZ_FULL so no big 
-deal either way on my end.
+This patchset introduces ptdesc, splits ptdesc from struct page, and
+converts many callers of page table constructor/destructors to use ptdescs.
 
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com> # RISC-V
+Ptdesc is a foundation to further standardize page tables, and eventually
+allow for dynamic allocation of page tables independent of struct page.
+However, the use of pages for page table tracking is quite deeply
+ingrained and varied across archictectures, so there is still a lot of
+work to be done before that can happen.
 
-> sh
-> sparc 32-bit
-> um 32-bit
-> x86 32-bit
->
-> Thanks,
-> Nick
+This is rebased on next-20230428.
+
+v2:
+  Fix a lot of compiler warning/errors
+  Moved definition of ptdesc to outside CONFIG_MMU
+  Revert commit 7e25de77bc5ea which had gmap use pmd_pgtable_page()
+  Allow functions to preserve const-ness where applicable
+  Define folio equivalents for PAGE_TYPE_OPS page functions
+
+Vishal Moola (Oracle) (34):
+  mm: Add PAGE_TYPE_OP folio functions
+  s390: Use _pt_s390_gaddr for gmap address tracking
+  s390: Use pt_frag_refcount for pagetables
+  pgtable: Create struct ptdesc
+  mm: add utility functions for ptdesc
+  mm: Convert pmd_pgtable_page() to pmd_ptdesc()
+  mm: Convert ptlock_alloc() to use ptdescs
+  mm: Convert ptlock_ptr() to use ptdescs
+  mm: Convert pmd_ptlock_init() to use ptdescs
+  mm: Convert ptlock_init() to use ptdescs
+  mm: Convert pmd_ptlock_free() to use ptdescs
+  mm: Convert ptlock_free() to use ptdescs
+  mm: Create ptdesc equivalents for pgtable_{pte,pmd}_page_{ctor,dtor}
+  powerpc: Convert various functions to use ptdescs
+  x86: Convert various functions to use ptdescs
+  s390: Convert various gmap functions to use ptdescs
+  s390: Convert various pgalloc functions to use ptdescs
+  mm: Remove page table members from struct page
+  pgalloc: Convert various functions to use ptdescs
+  arm: Convert various functions to use ptdescs
+  arm64: Convert various functions to use ptdescs
+  csky: Convert __pte_free_tlb() to use ptdescs
+  hexagon: Convert __pte_free_tlb() to use ptdescs
+  loongarch: Convert various functions to use ptdescs
+  m68k: Convert various functions to use ptdescs
+  mips: Convert various functions to use ptdescs
+  nios2: Convert __pte_free_tlb() to use ptdescs
+  openrisc: Convert __pte_free_tlb() to use ptdescs
+  riscv: Convert alloc_{pmd, pte}_late() to use ptdescs
+  sh: Convert pte_free_tlb() to use ptdescs
+  sparc64: Convert various functions to use ptdescs
+  sparc: Convert pgtable_pte_page_{ctor, dtor}() to ptdesc equivalents
+  um: Convert {pmd, pte}_free_tlb() to use ptdescs
+  mm: Remove pgtable_{pmd, pte}_page_{ctor, dtor}() wrappers
+
+ Documentation/mm/split_page_table_lock.rst    |  12 +-
+ .../zh_CN/mm/split_page_table_lock.rst        |  14 +-
+ arch/arm/include/asm/tlb.h                    |  12 +-
+ arch/arm/mm/mmu.c                             |   6 +-
+ arch/arm64/include/asm/tlb.h                  |  14 +-
+ arch/arm64/mm/mmu.c                           |   7 +-
+ arch/csky/include/asm/pgalloc.h               |   4 +-
+ arch/hexagon/include/asm/pgalloc.h            |   8 +-
+ arch/loongarch/include/asm/pgalloc.h          |  27 ++-
+ arch/loongarch/mm/pgtable.c                   |   7 +-
+ arch/m68k/include/asm/mcf_pgalloc.h           |  41 ++--
+ arch/m68k/include/asm/sun3_pgalloc.h          |   8 +-
+ arch/m68k/mm/motorola.c                       |   4 +-
+ arch/mips/include/asm/pgalloc.h               |  31 +--
+ arch/mips/mm/pgtable.c                        |   7 +-
+ arch/nios2/include/asm/pgalloc.h              |   8 +-
+ arch/openrisc/include/asm/pgalloc.h           |   8 +-
+ arch/powerpc/mm/book3s64/mmu_context.c        |  10 +-
+ arch/powerpc/mm/book3s64/pgtable.c            |  32 +--
+ arch/powerpc/mm/pgtable-frag.c                |  46 ++--
+ arch/riscv/include/asm/pgalloc.h              |   8 +-
+ arch/riscv/mm/init.c                          |  16 +-
+ arch/s390/include/asm/pgalloc.h               |   4 +-
+ arch/s390/include/asm/tlb.h                   |   4 +-
+ arch/s390/mm/gmap.c                           | 222 +++++++++++-------
+ arch/s390/mm/pgalloc.c                        | 126 +++++-----
+ arch/sh/include/asm/pgalloc.h                 |   9 +-
+ arch/sparc/mm/init_64.c                       |  17 +-
+ arch/sparc/mm/srmmu.c                         |   5 +-
+ arch/um/include/asm/pgalloc.h                 |  18 +-
+ arch/x86/mm/pgtable.c                         |  46 ++--
+ arch/x86/xen/mmu_pv.c                         |   2 +-
+ include/asm-generic/pgalloc.h                 |  62 +++--
+ include/asm-generic/tlb.h                     |  11 +
+ include/linux/mm.h                            | 138 +++++++----
+ include/linux/mm_types.h                      |  14 --
+ include/linux/page-flags.h                    |  20 +-
+ include/linux/pgtable.h                       |  61 +++++
+ mm/memory.c                                   |   8 +-
+ 39 files changed, 648 insertions(+), 449 deletions(-)
+
+-- 
+2.39.2
+
