@@ -2,157 +2,145 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56AADC7EE2D
-	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 02:22:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 227F0C7EE2F
+	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 13:02:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231915AbjEBCWX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 1 May 2023 22:22:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48296 "EHLO
+        id S234315AbjEBNCh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 2 May 2023 09:02:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232653AbjEBCWT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 1 May 2023 22:22:19 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 468F93AB8;
-        Mon,  1 May 2023 19:22:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1682994127; x=1714530127;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=85LkbDK+KApuWepVvTrNKkbkOtRXRZZHLuh2xgotSTc=;
-  b=SWG2C9mkUi9n7rSt0nciLqhoZZlIgS1cK0m1feX/w1nZ77bfRr6lra8p
-   nAvGgMzUYK3HkUVtkYKeXZgeNURAhOhf6M/AwuVJzvSPOOysfRUgrHk+V
-   3sfvl7u47s005rzV98welPZTZw3zziuKtzFvzkY3DbG+PcNPsNHR9TXvG
-   tQQzG4/IxK9BoZMn/ESTVdIEwj+mgIY/0pP2FtXbnPlfh0chOzBJKms6T
-   34UnUQ3n84LUH6pMRzyPdfu4+r9086uFzMaTllREGcvV4tKNlVOgD3c+N
-   6BavtjK6PDWhF9S57Dy8A2REq3O4vhVwTUmzmKpbvKauKfnK3cPltzr7f
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10697"; a="376342293"
-X-IronPort-AV: E=Sophos;i="5.99,242,1677571200"; 
-   d="scan'208";a="376342293"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 May 2023 19:22:06 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10697"; a="646346632"
-X-IronPort-AV: E=Sophos;i="5.99,242,1677571200"; 
-   d="scan'208";a="646346632"
-Received: from lkp-server01.sh.intel.com (HELO e3434d64424d) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 01 May 2023 19:22:01 -0700
-Received: from kbuild by e3434d64424d with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1ptfeS-0000m8-1s;
-        Tue, 02 May 2023 02:22:00 +0000
-Date:   Tue, 2 May 2023 10:21:30 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        with ESMTP id S234295AbjEBNCa (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 2 May 2023 09:02:30 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86D1D618B;
+        Tue,  2 May 2023 06:02:27 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id B905921F7C;
+        Tue,  2 May 2023 13:02:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1683032545; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=4/HqMKMsbulxem0YZHptZtjI0v2zedDTIGVljFbx4A0=;
+        b=0/jQzGQjxcsbLoXKHnJlmsUT3JVv9NcXNh8VApsEzclPgvqXiOMOMMUZX42s6shx2N3wH5
+        WKHaUtVeQypvLRNNq5+GiVa4PzEli+F2Vu0ozdPBwnWfJ7TE/B8ck8OEhS+oYSIR6iBLCA
+        bcVHsdu2aNC7jCqqUglALcBQKHVFWvM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1683032545;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=4/HqMKMsbulxem0YZHptZtjI0v2zedDTIGVljFbx4A0=;
+        b=pr+0WmwF1A765+pq5Lr5jvAUfbVCp6UWP2ciA0hJDFgk5xiDi/CqmkpdDug/1NYyvo/HBE
+        9l77+O3JrXAysKCQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 58447134FB;
+        Tue,  2 May 2023 13:02:25 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id tiGhFOEJUWRYTQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 02 May 2023 13:02:25 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
+        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, davem@davemloft.net,
+        James.Bottomley@HansenPartnership.com, arnd@arndb.de,
+        sam@ravnborg.org
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
         loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 21/34] arm64: Convert various functions to use ptdescs
-Message-ID: <202305021038.c9jfVDsv-lkp@intel.com>
-References: <20230501192829.17086-22-vishal.moola@gmail.com>
+        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-parisc@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v3 0/6] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
+Date:   Tue,  2 May 2023 15:02:17 +0200
+Message-Id: <20230502130223.14719-1-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230501192829.17086-22-vishal.moola@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Vishal,
+(was: fbdev: Use regular I/O function for framebuffers)
 
-kernel test robot noticed the following build errors:
+Fbdev provides helpers for framebuffer I/O, such as fb_readl(),
+fb_writel() or fb_memcpy_to_fb(). The implementation of each helper
+depends on the architecture, but they are all equivalent to regular
+I/O functions of similar names. So use regular functions instead and
+move all helpers into <asm-generic/fb.h>
 
-[auto build test ERROR on akpm-mm/mm-everything]
-[also build test ERROR on linus/master next-20230428]
-[cannot apply to s390/features powerpc/next powerpc/fixes geert-m68k/for-next geert-m68k/for-linus v6.3]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+The first patch a simple whitespace cleanup.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230502-033042
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-everything
-patch link:    https://lore.kernel.org/r/20230501192829.17086-22-vishal.moola%40gmail.com
-patch subject: [PATCH v2 21/34] arm64: Convert various functions to use ptdescs
-config: arm64-randconfig-r023-20230430 (https://download.01.org/0day-ci/archive/20230502/202305021038.c9jfVDsv-lkp@intel.com/config)
-compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project b1465cd49efcbc114a75220b153f5a055ce7911f)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # install arm64 cross compiling tool for clang build
-        # apt-get install binutils-aarch64-linux-gnu
-        # https://github.com/intel-lab-lkp/linux/commit/8e9481b63b5773d7c914836dcd7fbec2449902bc
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230502-033042
-        git checkout 8e9481b63b5773d7c914836dcd7fbec2449902bc
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm64 olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm64 SHELL=/bin/bash arch/arm64/
+Until now, <linux/fb.h> contained an include of <asm/io.h>. As this
+will go away patches 2 to 4 prepare include statements in the various
+drivers. Source files that use regular I/O helpers, such as readl(),
+now include <linux/io.h>. Source files that use framebuffer I/O
+helpers, such as fb_readl(), also include <asm/fb.h>.
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202305021038.c9jfVDsv-lkp@intel.com/
+Patch 5 replaces the architecture-based if-else branching in 
+<linux/fb.h> by helpers in <asm-generic/fb.h>. All helpers use Linux'
+existing I/O functions.
 
-All errors (new ones prefixed by >>):
+Patch 6 harmonizes naming among fbdev and existing I/O functions.
 
->> arch/arm64/mm/mmu.c:440:10: error: invalid argument type 'void' to unary expression
-                   BUG_ON(!ptdesc_pte_dtor(ptdesc));
-                          ^~~~~~~~~~~~~~~~~~~~~~~~
-   include/asm-generic/bug.h:71:45: note: expanded from macro 'BUG_ON'
-   #define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0)
-                                               ^~~~~~~~~
-   include/linux/compiler.h:78:42: note: expanded from macro 'unlikely'
-   # define unlikely(x)    __builtin_expect(!!(x), 0)
-                                               ^
-   arch/arm64/mm/mmu.c:442:10: error: invalid argument type 'void' to unary expression
-                   BUG_ON(!ptdesc_pte_dtor(ptdesc));
-                          ^~~~~~~~~~~~~~~~~~~~~~~~
-   include/asm-generic/bug.h:71:45: note: expanded from macro 'BUG_ON'
-   #define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0)
-                                               ^~~~~~~~~
-   include/linux/compiler.h:78:42: note: expanded from macro 'unlikely'
-   # define unlikely(x)    __builtin_expect(!!(x), 0)
-                                               ^
-   2 errors generated.
+The patchset has been built for a variety of platforms, such as x86-64,
+arm, aarch64, ppc64, parisc, m64k, mips and sparc.
 
+v3:
+	* add the new helpers in <asm-generic/fb.h>
+	* support reordering and native byte order (Geert, Arnd)
+v2:
+	* use Linux I/O helpers (Sam, Arnd)
 
-vim +/void +440 arch/arm64/mm/mmu.c
+Thomas Zimmermann (6):
+  fbdev/matrox: Remove trailing whitespaces
+  ipu-v3: Include <linux/io.h>
+  fbdev: Include <linux/io.h> in various drivers
+  fbdev: Include <linux/io.h> via <asm/fb.h>
+  fbdev: Move framebuffer I/O helpers into <asm/fb.h>
+  fbdev: Rename fb_mem*() helpers
 
-   425	
-   426	static phys_addr_t pgd_pgtable_alloc(int shift)
-   427	{
-   428		phys_addr_t pa = __pgd_pgtable_alloc(shift);
-   429		struct ptdesc *ptdesc = page_ptdesc(phys_to_page(pa));
-   430	
-   431		/*
-   432		 * Call proper page table ctor in case later we need to
-   433		 * call core mm functions like apply_to_page_range() on
-   434		 * this pre-allocated page table.
-   435		 *
-   436		 * We don't select ARCH_ENABLE_SPLIT_PMD_PTLOCK if pmd is
-   437		 * folded, and if so ptdesc_pte_dtor() becomes nop.
-   438		 */
-   439		if (shift == PAGE_SHIFT)
- > 440			BUG_ON(!ptdesc_pte_dtor(ptdesc));
-   441		else if (shift == PMD_SHIFT)
-   442			BUG_ON(!ptdesc_pte_dtor(ptdesc));
-   443	
-   444		return pa;
-   445	}
-   446	
+ drivers/gpu/ipu-v3/ipu-prv.h                |   1 +
+ drivers/video/fbdev/arcfb.c                 |   1 +
+ drivers/video/fbdev/arkfb.c                 |   2 +
+ drivers/video/fbdev/aty/atyfb.h             |   2 +
+ drivers/video/fbdev/aty/mach64_cursor.c     |   4 +-
+ drivers/video/fbdev/chipsfb.c               |   3 +-
+ drivers/video/fbdev/cirrusfb.c              |   2 +
+ drivers/video/fbdev/core/cfbcopyarea.c      |   2 +-
+ drivers/video/fbdev/core/cfbfillrect.c      |   1 +
+ drivers/video/fbdev/core/cfbimgblt.c        |   1 +
+ drivers/video/fbdev/core/fbmem.c            |   4 +-
+ drivers/video/fbdev/core/svgalib.c          |   3 +-
+ drivers/video/fbdev/cyber2000fb.c           |   2 +
+ drivers/video/fbdev/ep93xx-fb.c             |   2 +
+ drivers/video/fbdev/hgafb.c                 |   3 +-
+ drivers/video/fbdev/hitfb.c                 |   2 +-
+ drivers/video/fbdev/kyro/fbdev.c            |   5 +-
+ drivers/video/fbdev/matrox/matroxfb_accel.c |   8 +-
+ drivers/video/fbdev/matrox/matroxfb_base.h  |   6 +-
+ drivers/video/fbdev/pm2fb.c                 |   3 +
+ drivers/video/fbdev/pm3fb.c                 |   2 +
+ drivers/video/fbdev/pvr2fb.c                |   4 +-
+ drivers/video/fbdev/s3fb.c                  |   2 +
+ drivers/video/fbdev/sm712fb.c               |   2 +
+ drivers/video/fbdev/sstfb.c                 |   4 +-
+ drivers/video/fbdev/stifb.c                 |   6 +-
+ drivers/video/fbdev/tdfxfb.c                |   5 +-
+ drivers/video/fbdev/tridentfb.c             |   2 +
+ drivers/video/fbdev/vga16fb.c               |   3 +-
+ drivers/video/fbdev/vt8623fb.c              |   2 +
+ drivers/video/fbdev/wmt_ge_rops.c           |   2 +
+ include/asm-generic/fb.h                    | 102 ++++++++++++++++++++
+ include/linux/fb.h                          |  53 ----------
+ 33 files changed, 167 insertions(+), 79 deletions(-)
 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+2.40.1
+
