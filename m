@@ -2,58 +2,53 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC809C7EE2D
-	for <sparclinux@archiver.kernel.org>; Mon,  1 May 2023 20:59:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E893EC77B7F
+	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 01:51:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232363AbjEAU7b (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 1 May 2023 16:59:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38470 "EHLO
+        id S233278AbjEBBuA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 1 May 2023 21:50:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232688AbjEAU7a (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 1 May 2023 16:59:30 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E0DB1FDD
-        for <sparclinux@vger.kernel.org>; Mon,  1 May 2023 13:59:26 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-63b5c48ea09so2232415b3a.1
-        for <sparclinux@vger.kernel.org>; Mon, 01 May 2023 13:59:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1682974766; x=1685566766;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=56zwdsQPzBA4Fq57F7zZq8xm3cbpRSpnOmcnA0Dh+zY=;
-        b=dhuoKYDmXvVL9rcvID9l7RqV772Z8lTC+U0WXQUi0tYJbLE9a48GrmSzQs7bEghGbC
-         JAz8rXoL1w4B9KKuEwX7POjH3Ox3r6V4zpIxvsvZpSsylQJD8ptmZ7+Vz+V8jAHJj04w
-         T6FV37TSFDDCD7el69cwAEuuEXi6g8EgNvIcALlfkGBQgAio2kQ2a6bJAUGpYJRLsZzz
-         ZNQyL545JSX++O1LCUyCJsybjwMgrDioUAedrjXfVSqEM2lGIt3XAkC5ujMjWrYDbKAU
-         lx6fFu18ULaY/km5rliSpJC6ISEyi513He8uKlna726VX+0Zf3a2zrJJ6SJgvgEWorgq
-         velw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682974766; x=1685566766;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=56zwdsQPzBA4Fq57F7zZq8xm3cbpRSpnOmcnA0Dh+zY=;
-        b=VuGILrJAJGowtzLel3lGmVihAntuEYCQsangZZj6h9ZUOpicL9+fv7IE207ndSqdQt
-         Q3xvqi6lzYdp3cdeQTCriWTD92eZaEVDSVXyukH5XDVQI2mkC1vzN5Xn4AweNb0PCtG8
-         O9S+xpNYViSoEm5+I5TAP/01/G9DyXiHF7IYv/crx2Q7LUjLMiFr5CZgivCDHFXxaYYZ
-         tKgpYfs2Cv2Z9Et36q/cvPxzjxh2aeJBrRApqOQ8dLGXtv/t2klYRygkYIVaK6hkcH9g
-         4wWr8RH8rCSD3TWw53qxrXBAvLnEjuHC+kH7dV6oxOdWYdB6NvVfxxTr8EiMJ5s/iUTW
-         iU7A==
-X-Gm-Message-State: AC+VfDy59JMp/IhdNMDDIXV0OGaT2gGKRSHCOTGng94Ae8oofhQgHfk8
-        JGzkUYB2atj8gUUisYBFIEp/RA==
-X-Google-Smtp-Source: ACHHUZ7NRh0XptQx7EX4B/2U8oMa1VyQthNvjC4nK5qetnlZ9yiAEbyNISqPVXEejwWKpBkEgu1KUQ==
-X-Received: by 2002:a05:6a00:1301:b0:63d:27a1:d578 with SMTP id j1-20020a056a00130100b0063d27a1d578mr19620776pfu.20.1682974765524;
-        Mon, 01 May 2023 13:59:25 -0700 (PDT)
-Received: from localhost ([50.221.140.188])
-        by smtp.gmail.com with ESMTPSA id x3-20020a628603000000b0063d666566d1sm20322681pfd.72.2023.05.01.13.59.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 May 2023 13:59:24 -0700 (PDT)
-Date:   Mon, 01 May 2023 13:59:24 -0700 (PDT)
-X-Google-Original-Date: Mon, 01 May 2023 13:59:09 PDT (-0700)
-Subject:     Re: [PATCH v2 29/34] riscv: Convert alloc_{pmd, pte}_late() to use ptdescs
-In-Reply-To: <20230501192829.17086-30-vishal.moola@gmail.com>
-CC:     akpm@linux-foundation.org, willy@infradead.org, linux-mm@kvack.org,
+        with ESMTP id S233235AbjEBBt7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 1 May 2023 21:49:59 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CEC62D63;
+        Mon,  1 May 2023 18:49:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1682992198; x=1714528198;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=atYvzhPCCZ/tytx2DE7s23i4jWidElWSRjsH6cc5aEY=;
+  b=ak1Vn81a+8dAupS/otTD66zucPZdGrvtomLGe7D4Tni6Y0ruQurukQ5Z
+   lPll2sQXQq7sDgdusefRyW/RhfhRNb3ursVmH+Z9wWmh3Jpw8FSKzM2PE
+   fET/Jg1NcIt3haKKu9Pot9SuEyi7W/p+FZ59LWbFcDQr0bHpolASW6ylU
+   VN12F5qR1W74MZc7tYVsHE3NgxXn64KVoLcQyQbTwONp3ont+kfwETkgR
+   /p9KsUa2ciXHfPNFGzSCIT9HCQxJCDy3gBDgX9QaJ/TnhehYkj2VyTnQ/
+   EYCjthmrpBOxJioGu3V0FrlNxWlxfAMknCDqCnDM8gDo0SDaaWk2PUNuS
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10697"; a="328651238"
+X-IronPort-AV: E=Sophos;i="5.99,242,1677571200"; 
+   d="scan'208";a="328651238"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 May 2023 18:49:25 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10697"; a="698763727"
+X-IronPort-AV: E=Sophos;i="5.99,242,1677571200"; 
+   d="scan'208";a="698763727"
+Received: from lkp-server01.sh.intel.com (HELO e3434d64424d) ([10.239.97.150])
+  by fmsmga007.fm.intel.com with ESMTP; 01 May 2023 18:49:20 -0700
+Received: from kbuild by e3434d64424d with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1ptf8q-0000ke-0J;
+        Tue, 02 May 2023 01:49:20 +0000
+Date:   Tue, 2 May 2023 09:48:46 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>
+Cc:     oe-kbuild-all@lists.linux.dev,
+        Linux Memory Management List <linux-mm@kvack.org>,
         linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
         loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
@@ -62,85 +57,106 @@ CC:     akpm@linux-foundation.org, willy@infradead.org, linux-mm@kvack.org,
         linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
         xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        vishal.moola@gmail.com, Paul Walmsley <paul.walmsley@sifive.com>
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     vishal.moola@gmail.com
-Message-ID: <mhng-e6f12727-9abe-4a93-a361-15a6cd333f51@palmer-ri-x1c9a>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 21/34] arm64: Convert various functions to use ptdescs
+Message-ID: <202305020914.OGRWcEG1-lkp@intel.com>
+References: <20230501192829.17086-22-vishal.moola@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230501192829.17086-22-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 01 May 2023 12:28:24 PDT (-0700), vishal.moola@gmail.com wrote:
-> As part of the conversions to replace pgtable constructor/destructors with
-> ptdesc equivalents, convert various page table functions to use ptdescs.
->
-> Some of the functions use the *get*page*() helper functions. Convert
-> these to use ptdesc_alloc() and ptdesc_address() instead to help
-> standardize page tables further.
->
-> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-> ---
->  arch/riscv/include/asm/pgalloc.h |  8 ++++----
->  arch/riscv/mm/init.c             | 16 ++++++----------
->  2 files changed, 10 insertions(+), 14 deletions(-)
->
-> diff --git a/arch/riscv/include/asm/pgalloc.h b/arch/riscv/include/asm/pgalloc.h
-> index 59dc12b5b7e8..cb5536403bd8 100644
-> --- a/arch/riscv/include/asm/pgalloc.h
-> +++ b/arch/riscv/include/asm/pgalloc.h
-> @@ -153,10 +153,10 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
->
->  #endif /* __PAGETABLE_PMD_FOLDED */
->
-> -#define __pte_free_tlb(tlb, pte, buf)   \
-> -do {                                    \
-> -	pgtable_pte_page_dtor(pte);     \
-> -	tlb_remove_page((tlb), pte);    \
-> +#define __pte_free_tlb(tlb, pte, buf)			\
-> +do {							\
-> +	ptdesc_pte_dtor(page_ptdesc(pte));		\
-> +	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));\
->  } while (0)
->  #endif /* CONFIG_MMU */
->
-> diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
-> index eb8173a91ce3..8f1982664687 100644
-> --- a/arch/riscv/mm/init.c
-> +++ b/arch/riscv/mm/init.c
-> @@ -353,12 +353,10 @@ static inline phys_addr_t __init alloc_pte_fixmap(uintptr_t va)
->
->  static phys_addr_t __init alloc_pte_late(uintptr_t va)
->  {
-> -	unsigned long vaddr;
-> -
-> -	vaddr = __get_free_page(GFP_KERNEL);
-> -	BUG_ON(!vaddr || !pgtable_pte_page_ctor(virt_to_page(vaddr)));
-> +	struct ptdesc *ptdesc = ptdesc_alloc(GFP_KERNEL, 0);
->
-> -	return __pa(vaddr);
-> +	BUG_ON(!ptdesc || !ptdesc_pte_ctor(ptdesc));
-> +	return __pa((pte_t *)ptdesc_address(ptdesc));
->  }
->
->  static void __init create_pte_mapping(pte_t *ptep,
-> @@ -436,12 +434,10 @@ static phys_addr_t __init alloc_pmd_fixmap(uintptr_t va)
->
->  static phys_addr_t __init alloc_pmd_late(uintptr_t va)
->  {
-> -	unsigned long vaddr;
-> -
-> -	vaddr = __get_free_page(GFP_KERNEL);
-> -	BUG_ON(!vaddr || !pgtable_pmd_page_ctor(virt_to_page(vaddr)));
-> +	struct ptdesc *ptdesc = ptdesc_alloc(GFP_KERNEL, 0);
->
-> -	return __pa(vaddr);
-> +	BUG_ON(!ptdesc || !ptdesc_pmd_ctor(ptdesc));
-> +	return __pa((pmd_t *)ptdesc_address(ptdesc));
->  }
->
->  static void __init create_pmd_mapping(pmd_t *pmdp,
+Hi Vishal,
 
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on akpm-mm/mm-everything]
+[also build test ERROR on linus/master next-20230428]
+[cannot apply to s390/features powerpc/next powerpc/fixes geert-m68k/for-next geert-m68k/for-linus v6.3]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230502-033042
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-everything
+patch link:    https://lore.kernel.org/r/20230501192829.17086-22-vishal.moola%40gmail.com
+patch subject: [PATCH v2 21/34] arm64: Convert various functions to use ptdescs
+config: arm64-allyesconfig (https://download.01.org/0day-ci/archive/20230502/202305020914.OGRWcEG1-lkp@intel.com/config)
+compiler: aarch64-linux-gcc (GCC) 12.1.0
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/8e9481b63b5773d7c914836dcd7fbec2449902bc
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230502-033042
+        git checkout 8e9481b63b5773d7c914836dcd7fbec2449902bc
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm64 olddefconfig
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm64 SHELL=/bin/bash arch/arm64/
+
+If you fix the issue, kindly add following tag where applicable
+| Reported-by: kernel test robot <lkp@intel.com>
+| Link: https://lore.kernel.org/oe-kbuild-all/202305020914.OGRWcEG1-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   In file included from include/linux/build_bug.h:5,
+                    from include/linux/bits.h:21,
+                    from include/linux/bitops.h:6,
+                    from arch/arm64/include/asm/cache.h:39,
+                    from include/linux/cache.h:6,
+                    from arch/arm64/mm/mmu.c:9:
+   arch/arm64/mm/mmu.c: In function 'pgd_pgtable_alloc':
+>> arch/arm64/mm/mmu.c:440:24: error: invalid use of void expression
+     440 |                 BUG_ON(!ptdesc_pte_dtor(ptdesc));
+         |                        ^
+   include/linux/compiler.h:78:45: note: in definition of macro 'unlikely'
+      78 | # define unlikely(x)    __builtin_expect(!!(x), 0)
+         |                                             ^
+   arch/arm64/mm/mmu.c:440:17: note: in expansion of macro 'BUG_ON'
+     440 |                 BUG_ON(!ptdesc_pte_dtor(ptdesc));
+         |                 ^~~~~~
+   arch/arm64/mm/mmu.c:442:24: error: invalid use of void expression
+     442 |                 BUG_ON(!ptdesc_pte_dtor(ptdesc));
+         |                        ^
+   include/linux/compiler.h:78:45: note: in definition of macro 'unlikely'
+      78 | # define unlikely(x)    __builtin_expect(!!(x), 0)
+         |                                             ^
+   arch/arm64/mm/mmu.c:442:17: note: in expansion of macro 'BUG_ON'
+     442 |                 BUG_ON(!ptdesc_pte_dtor(ptdesc));
+         |                 ^~~~~~
+
+
+vim +440 arch/arm64/mm/mmu.c
+
+   425	
+   426	static phys_addr_t pgd_pgtable_alloc(int shift)
+   427	{
+   428		phys_addr_t pa = __pgd_pgtable_alloc(shift);
+   429		struct ptdesc *ptdesc = page_ptdesc(phys_to_page(pa));
+   430	
+   431		/*
+   432		 * Call proper page table ctor in case later we need to
+   433		 * call core mm functions like apply_to_page_range() on
+   434		 * this pre-allocated page table.
+   435		 *
+   436		 * We don't select ARCH_ENABLE_SPLIT_PMD_PTLOCK if pmd is
+   437		 * folded, and if so ptdesc_pte_dtor() becomes nop.
+   438		 */
+   439		if (shift == PAGE_SHIFT)
+ > 440			BUG_ON(!ptdesc_pte_dtor(ptdesc));
+   441		else if (shift == PMD_SHIFT)
+   442			BUG_ON(!ptdesc_pte_dtor(ptdesc));
+   443	
+   444		return pa;
+   445	}
+   446	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests
