@@ -2,51 +2,51 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E85AEC7EE24
-	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 13:03:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB877C7EE21
+	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 13:03:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233958AbjEBNDG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 2 May 2023 09:03:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41882 "EHLO
+        id S233644AbjEBNDI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 2 May 2023 09:03:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234326AbjEBNCk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 2 May 2023 09:02:40 -0400
+        with ESMTP id S234294AbjEBNCi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 2 May 2023 09:02:38 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D009B59E7;
-        Tue,  2 May 2023 06:02:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9836C5B8E;
+        Tue,  2 May 2023 06:02:30 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 6DE9F21FB2;
-        Tue,  2 May 2023 13:02:27 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 4AFB321FD9;
+        Tue,  2 May 2023 13:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1683032547; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1683032548; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=NiIe+W8/KVk4z+vQoB0merwIWEmbGtuxPyODzPQCCGc=;
-        b=QWtuhR4wHDzswQBv4us+KwZsspyvFqq8TFjtcaOayh9THdP2cguppKX8nC+aRceMm8P+FF
-        JrHhaatkjNZ1dA9Ks+5lf8g4ySLnR6hXwcK7j/XOlj1oUzw26XTyVNijcWxjYuMcaP5uaj
-        Fv8xpMzWqDNjyOyufGljFRopU6wsJHE=
+        bh=V5smhVNnov7m4A55DYdhwmZ5Y9gsYQLIUAvwyfQy1iw=;
+        b=YgAQQGGhS9p5y+Qswq2XdSC0Nb5dRapZC8k3SeCH8ou3A7cBdpeF9R1VcV/D98SVwf2rqe
+        0/HTdmP3C415eNlicuQLimYKjbyJJmXE/+RevYro6XFUrrADggGk+JzkjCj37yrvnbcWUc
+        CPnxgHuTmqGD/7I9ChAO48pm4esmuco=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1683032547;
+        s=susede2_ed25519; t=1683032548;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=NiIe+W8/KVk4z+vQoB0merwIWEmbGtuxPyODzPQCCGc=;
-        b=Ac0QGkIf+AHVVsCtosvAEY750LHyRzsNI0FrsKxRfR4yEfgVTdSdteFuSj8zRQy7oPHQZJ
-        A1iogSzzBRE+iFAA==
+        bh=V5smhVNnov7m4A55DYdhwmZ5Y9gsYQLIUAvwyfQy1iw=;
+        b=V6uRErJzJdt0ssGWz2NlWwz2l3uwbLi85IInTKe1+Lc39r1ohNgsoEqJ7rVGTetXUVCdaL
+        Bwkd9zjgj4ixg2AQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 0A664134FB;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DFF23134FB;
         Tue,  2 May 2023 13:02:27 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id cEnCAeMJUWRYTQAAMHmgww
+        id 8NHLNeMJUWRYTQAAMHmgww
         (envelope-from <tzimmermann@suse.de>); Tue, 02 May 2023 13:02:27 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
@@ -61,9 +61,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 4/6] fbdev: Include <linux/io.h> via <asm/fb.h>
-Date:   Tue,  2 May 2023 15:02:21 +0200
-Message-Id: <20230502130223.14719-5-tzimmermann@suse.de>
+Subject: [PATCH v3 6/6] fbdev: Rename fb_mem*() helpers
+Date:   Tue,  2 May 2023 15:02:23 +0200
+Message-Id: <20230502130223.14719-7-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230502130223.14719-1-tzimmermann@suse.de>
 References: <20230502130223.14719-1-tzimmermann@suse.de>
@@ -73,411 +73,180 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Fbdev's main header file, <linux/fb.h>, includes <asm/io.h> to get
-declarations for I/O helper functions. From these declarations, it
-later defines framebuffer I/O helpers, such as fb_{read,write}[bwlq]()
-or fb_memset().
-
-The framebuffer I/O helpers depend on the system architecture and
-will therefore be moved into <asm/fb.h>. Prepare this change by first
-adding an include statement for <linux/io.h> to <asm-generic/fb.h>.
-Include <asm/fb.h> in all source files that use the framebuffer I/O
-helpers, so that they still get the necessary I/O functions.
-
-v3:
-	* fix grammar in commit message
+Update the names of the fb_mem*() helpers to be consistent with their
+regular counterparts. Hence, fb_memset() now becomes fb_memset_io(),
+fb_memcpy_fromfb() now becomes fb_memcpy_fromio() and fb_memcpy_tofb()
+becomes fb_memcpy_toio(). No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/fbdev/arkfb.c                 | 2 ++
- drivers/video/fbdev/aty/mach64_cursor.c     | 2 +-
- drivers/video/fbdev/chipsfb.c               | 1 +
- drivers/video/fbdev/cirrusfb.c              | 2 ++
- drivers/video/fbdev/core/cfbcopyarea.c      | 2 +-
- drivers/video/fbdev/core/cfbfillrect.c      | 1 +
- drivers/video/fbdev/core/cfbimgblt.c        | 1 +
- drivers/video/fbdev/core/svgalib.c          | 3 +--
- drivers/video/fbdev/cyber2000fb.c           | 2 ++
- drivers/video/fbdev/ep93xx-fb.c             | 2 ++
- drivers/video/fbdev/hgafb.c                 | 3 ++-
- drivers/video/fbdev/hitfb.c                 | 2 +-
- drivers/video/fbdev/kyro/fbdev.c            | 3 ++-
- drivers/video/fbdev/matrox/matroxfb_accel.c | 2 ++
- drivers/video/fbdev/matrox/matroxfb_base.h  | 2 +-
- drivers/video/fbdev/pm2fb.c                 | 3 +++
- drivers/video/fbdev/pm3fb.c                 | 2 ++
- drivers/video/fbdev/pvr2fb.c                | 2 ++
- drivers/video/fbdev/s3fb.c                  | 2 ++
- drivers/video/fbdev/sm712fb.c               | 2 ++
- drivers/video/fbdev/sstfb.c                 | 2 +-
- drivers/video/fbdev/stifb.c                 | 2 ++
- drivers/video/fbdev/tdfxfb.c                | 3 ++-
- drivers/video/fbdev/tridentfb.c             | 2 ++
- drivers/video/fbdev/vga16fb.c               | 3 ++-
- drivers/video/fbdev/vt8623fb.c              | 2 ++
- include/asm-generic/fb.h                    | 1 +
- 27 files changed, 45 insertions(+), 11 deletions(-)
+ drivers/video/fbdev/aty/mach64_cursor.c |  2 +-
+ drivers/video/fbdev/chipsfb.c           |  2 +-
+ drivers/video/fbdev/core/fbmem.c        |  4 ++--
+ drivers/video/fbdev/kyro/fbdev.c        |  2 +-
+ drivers/video/fbdev/pvr2fb.c            |  2 +-
+ drivers/video/fbdev/sstfb.c             |  2 +-
+ drivers/video/fbdev/stifb.c             |  4 ++--
+ drivers/video/fbdev/tdfxfb.c            |  2 +-
+ include/asm-generic/fb.h                | 16 ++++++++--------
+ 9 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/video/fbdev/arkfb.c b/drivers/video/fbdev/arkfb.c
-index 60a96fdb5dd8..fd38e8a073b8 100644
---- a/drivers/video/fbdev/arkfb.c
-+++ b/drivers/video/fbdev/arkfb.c
-@@ -27,6 +27,8 @@
- #include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
- #include <video/vga.h>
- 
-+#include <asm/fb.h>
-+
- struct arkfb_info {
- 	int mclk_freq;
- 	int wc_cookie;
 diff --git a/drivers/video/fbdev/aty/mach64_cursor.c b/drivers/video/fbdev/aty/mach64_cursor.c
-index 4ad0331a8c57..a848aaff510c 100644
+index a848aaff510c..6adbcf366a98 100644
 --- a/drivers/video/fbdev/aty/mach64_cursor.c
 +++ b/drivers/video/fbdev/aty/mach64_cursor.c
-@@ -8,7 +8,7 @@
- #include <linux/string.h>
- #include "../core/fb_draw.h"
+@@ -153,7 +153,7 @@ static int atyfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ 	    u8 m, b;
  
--#include <asm/io.h>
-+#include <asm/fb.h>
+ 	    // Clear cursor image with 1010101010...
+-	    fb_memset(dst, 0xaa, 1024);
++	    fb_memset_io(dst, 0xaa, 1024);
  
- #ifdef __sparc__
- #include <asm/fbio.h>
+ 	    offset = align - width*2;
+ 
 diff --git a/drivers/video/fbdev/chipsfb.c b/drivers/video/fbdev/chipsfb.c
-index 7799d52a651f..9f9ee13ba2be 100644
+index 9f9ee13ba2be..297ca6eeac1e 100644
 --- a/drivers/video/fbdev/chipsfb.c
 +++ b/drivers/video/fbdev/chipsfb.c
-@@ -32,6 +32,7 @@
- #ifdef CONFIG_PMAC_BACKLIGHT
- #include <asm/backlight.h>
- #endif
-+#include <asm/fb.h>
+@@ -333,7 +333,7 @@ static const struct fb_var_screeninfo chipsfb_var = {
  
- /*
-  * Since we access the display with inb/outb to fixed port numbers,
-diff --git a/drivers/video/fbdev/cirrusfb.c b/drivers/video/fbdev/cirrusfb.c
-index ba45e2147c52..cc306b3733e2 100644
---- a/drivers/video/fbdev/cirrusfb.c
-+++ b/drivers/video/fbdev/cirrusfb.c
-@@ -57,6 +57,8 @@
- #include <video/vga.h>
- #include <video/cirrus.h>
+ static void init_chips(struct fb_info *p, unsigned long addr)
+ {
+-	fb_memset(p->screen_base, 0, 0x100000);
++	fb_memset_io(p->screen_base, 0, 0x100000);
  
-+#include <asm/fb.h>
-+
- /*****************************************************************
-  *
-  * debugging and utility macros
-diff --git a/drivers/video/fbdev/core/cfbcopyarea.c b/drivers/video/fbdev/core/cfbcopyarea.c
-index 6d4bfeecee35..128fdd0cdcdc 100644
---- a/drivers/video/fbdev/core/cfbcopyarea.c
-+++ b/drivers/video/fbdev/core/cfbcopyarea.c
-@@ -26,8 +26,8 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/fb.h>
-+#include <asm/fb.h>
- #include <asm/types.h>
--#include <asm/io.h>
- #include "fb_draw.h"
+ 	p->fix = chipsfb_fix;
+ 	p->fix.smem_start = addr;
+diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
+index 3fd95a79e4c3..a696399f2160 100644
+--- a/drivers/video/fbdev/core/fbmem.c
++++ b/drivers/video/fbdev/core/fbmem.c
+@@ -804,7 +804,7 @@ fb_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ 	while (count) {
+ 		c  = (count > PAGE_SIZE) ? PAGE_SIZE : count;
+ 		dst = buffer;
+-		fb_memcpy_fromfb(dst, src, c);
++		fb_memcpy_fromio(dst, src, c);
+ 		dst += c;
+ 		src += c;
  
- #if BITS_PER_LONG == 32
-diff --git a/drivers/video/fbdev/core/cfbfillrect.c b/drivers/video/fbdev/core/cfbfillrect.c
-index ba9f58b2a5e8..2c6aac987786 100644
---- a/drivers/video/fbdev/core/cfbfillrect.c
-+++ b/drivers/video/fbdev/core/cfbfillrect.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/string.h>
- #include <linux/fb.h>
-+#include <asm/fb.h>
- #include <asm/types.h>
- #include "fb_draw.h"
+@@ -881,7 +881,7 @@ fb_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+ 			break;
+ 		}
  
-diff --git a/drivers/video/fbdev/core/cfbimgblt.c b/drivers/video/fbdev/core/cfbimgblt.c
-index 9ebda4e0dc7a..d1e071148a4b 100644
---- a/drivers/video/fbdev/core/cfbimgblt.c
-+++ b/drivers/video/fbdev/core/cfbimgblt.c
-@@ -32,6 +32,7 @@
- #include <linux/module.h>
- #include <linux/string.h>
- #include <linux/fb.h>
-+#include <asm/fb.h>
- #include <asm/types.h>
- #include "fb_draw.h"
- 
-diff --git a/drivers/video/fbdev/core/svgalib.c b/drivers/video/fbdev/core/svgalib.c
-index 9e01322fabe3..5ddd498024a8 100644
---- a/drivers/video/fbdev/core/svgalib.c
-+++ b/drivers/video/fbdev/core/svgalib.c
-@@ -15,9 +15,8 @@
- #include <linux/string.h>
- #include <linux/fb.h>
- #include <linux/svga.h>
-+#include <asm/fb.h>
- #include <asm/types.h>
--#include <asm/io.h>
--
- 
- /* Write a CRT register value spread across multiple registers */
- void svga_wcrt_multi(void __iomem *regbase, const struct vga_regset *regset, u32 value)
-diff --git a/drivers/video/fbdev/cyber2000fb.c b/drivers/video/fbdev/cyber2000fb.c
-index 38c0a6866d76..9fbc0994b3ae 100644
---- a/drivers/video/fbdev/cyber2000fb.c
-+++ b/drivers/video/fbdev/cyber2000fb.c
-@@ -48,6 +48,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
- 
-+#include <asm/fb.h>
-+
- #ifdef __arm__
- #include <asm/mach-types.h>
- #endif
-diff --git a/drivers/video/fbdev/ep93xx-fb.c b/drivers/video/fbdev/ep93xx-fb.c
-index 305f1587bd89..5dce00500f0a 100644
---- a/drivers/video/fbdev/ep93xx-fb.c
-+++ b/drivers/video/fbdev/ep93xx-fb.c
-@@ -23,6 +23,8 @@
- 
- #include <linux/platform_data/video-ep93xx.h>
- 
-+#include <asm/fb.h>
-+
- /* Vertical Frame Timing Registers */
- #define EP93XXFB_VLINES_TOTAL			0x0000	/* SW locked */
- #define EP93XXFB_VSYNC				0x0004	/* SW locked */
-diff --git a/drivers/video/fbdev/hgafb.c b/drivers/video/fbdev/hgafb.c
-index 40879d9facdf..b15271c52d05 100644
---- a/drivers/video/fbdev/hgafb.c
-+++ b/drivers/video/fbdev/hgafb.c
-@@ -41,7 +41,8 @@
- #include <linux/init.h>
- #include <linux/ioport.h>
- #include <linux/platform_device.h>
--#include <asm/io.h>
-+
-+#include <asm/fb.h>
- #include <asm/vga.h>
- 
- #if 0
-diff --git a/drivers/video/fbdev/hitfb.c b/drivers/video/fbdev/hitfb.c
-index bbb0f1d953cc..a2b5c58f7b7c 100644
---- a/drivers/video/fbdev/hitfb.c
-+++ b/drivers/video/fbdev/hitfb.c
-@@ -23,7 +23,7 @@
- 
- #include <asm/machvec.h>
- #include <linux/uaccess.h>
--#include <asm/io.h>
-+#include <asm/fb.h>
- #include <asm/hd64461.h>
- #include <cpu/dac.h>
- 
+-		fb_memcpy_tofb(dst, src, c);
++		fb_memcpy_toio(dst, src, c);
+ 		dst += c;
+ 		src += c;
+ 		*ppos += c;
 diff --git a/drivers/video/fbdev/kyro/fbdev.c b/drivers/video/fbdev/kyro/fbdev.c
-index 0596573ef140..8b6c3318bf8c 100644
+index 8b6c3318bf8c..59a6b71fba44 100644
 --- a/drivers/video/fbdev/kyro/fbdev.c
 +++ b/drivers/video/fbdev/kyro/fbdev.c
-@@ -21,9 +21,10 @@
- #include <linux/ioctl.h>
- #include <linux/init.h>
- #include <linux/pci.h>
--#include <asm/io.h>
- #include <linux/uaccess.h>
+@@ -738,7 +738,7 @@ static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 			       info->var.bits_per_pixel);
+ 	size *= info->var.yres_virtual;
  
-+#include <asm/fb.h>
-+
- #include <video/kyro.h>
+-	fb_memset(info->screen_base, 0, size);
++	fb_memset_io(info->screen_base, 0, size);
  
- #include "STG4000Reg.h"
-diff --git a/drivers/video/fbdev/matrox/matroxfb_accel.c b/drivers/video/fbdev/matrox/matroxfb_accel.c
-index ce51227798a1..c982cfe68ab8 100644
---- a/drivers/video/fbdev/matrox/matroxfb_accel.c
-+++ b/drivers/video/fbdev/matrox/matroxfb_accel.c
-@@ -82,6 +82,8 @@
- #include "matroxfb_Ti3026.h"
- #include "matroxfb_misc.h"
- 
-+#include <asm/fb.h>
-+
- #define curr_ydstorg(x)	((x)->curr.ydstorg.pixels)
- 
- #define mga_ydstlen(y,l) mga_outl(M_YDSTLEN | M_EXEC, ((y) << 16) | (l))
-diff --git a/drivers/video/fbdev/matrox/matroxfb_base.h b/drivers/video/fbdev/matrox/matroxfb_base.h
-index c93c69bbcd57..184a6d733b93 100644
---- a/drivers/video/fbdev/matrox/matroxfb_base.h
-+++ b/drivers/video/fbdev/matrox/matroxfb_base.h
-@@ -43,7 +43,7 @@
- #include <linux/spinlock.h>
- #include <linux/kd.h>
- 
--#include <asm/io.h>
-+#include <asm/fb.h>
- #include <asm/unaligned.h>
- 
- #if defined(CONFIG_PPC_PMAC)
-diff --git a/drivers/video/fbdev/pm2fb.c b/drivers/video/fbdev/pm2fb.c
-index 47d212944f30..b6a37aff057e 100644
---- a/drivers/video/fbdev/pm2fb.c
-+++ b/drivers/video/fbdev/pm2fb.c
-@@ -39,6 +39,9 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-+
-+#include <asm/fb.h>
-+
- #include <video/permedia2.h>
- #include <video/cvisionppc.h>
- 
-diff --git a/drivers/video/fbdev/pm3fb.c b/drivers/video/fbdev/pm3fb.c
-index b46a471df9ae..95e152969d30 100644
---- a/drivers/video/fbdev/pm3fb.c
-+++ b/drivers/video/fbdev/pm3fb.c
-@@ -34,6 +34,8 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- 
-+#include <asm/fb.h>
-+
- #include <video/pm3fb.h>
- 
- #if !defined(CONFIG_PCI)
+ 	if (register_framebuffer(info) < 0)
+ 		goto out_unmap;
 diff --git a/drivers/video/fbdev/pvr2fb.c b/drivers/video/fbdev/pvr2fb.c
-index 6888127a5eb8..1dfb75b15eea 100644
+index 1dfb75b15eea..5f85207e91f7 100644
 --- a/drivers/video/fbdev/pvr2fb.c
 +++ b/drivers/video/fbdev/pvr2fb.c
-@@ -74,6 +74,8 @@
- #include <cpu/sq.h>
- #endif
+@@ -800,7 +800,7 @@ static int __maybe_unused pvr2fb_common_init(void)
+ 		goto out_err;
+ 	}
  
-+#include <asm/fb.h>
-+
- #ifndef PCI_DEVICE_ID_NEC_NEON250
- #  define PCI_DEVICE_ID_NEC_NEON250	0x0067
- #endif
-diff --git a/drivers/video/fbdev/s3fb.c b/drivers/video/fbdev/s3fb.c
-index 7d257489edcc..eb16beba10c5 100644
---- a/drivers/video/fbdev/s3fb.c
-+++ b/drivers/video/fbdev/s3fb.c
-@@ -29,6 +29,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
+-	fb_memset(fb_info->screen_base, 0, pvr2_fix.smem_len);
++	fb_memset_io(fb_info->screen_base, 0, pvr2_fix.smem_len);
  
-+#include <asm/fb.h>
-+
- struct s3fb_info {
- 	int chip, rev, mclk_freq;
- 	int wc_cookie;
-diff --git a/drivers/video/fbdev/sm712fb.c b/drivers/video/fbdev/sm712fb.c
-index b528776c7612..ca15938ce603 100644
---- a/drivers/video/fbdev/sm712fb.c
-+++ b/drivers/video/fbdev/sm712fb.c
-@@ -31,6 +31,8 @@
- 
- #include <linux/pm.h>
- 
-+#include <asm/fb.h>
-+
- #include "sm712.h"
- 
- /*
+ 	pvr2_fix.ypanstep	= nopan  ? 0 : 1;
+ 	pvr2_fix.ywrapstep	= nowrap ? 0 : 1;
 diff --git a/drivers/video/fbdev/sstfb.c b/drivers/video/fbdev/sstfb.c
-index da296b2ab54a..1ee4bea467b4 100644
+index 1ee4bea467b4..327831b64b85 100644
 --- a/drivers/video/fbdev/sstfb.c
 +++ b/drivers/video/fbdev/sstfb.c
-@@ -88,10 +88,10 @@
- #include <linux/pci.h>
- #include <linux/delay.h>
- #include <linux/init.h>
--#include <asm/io.h>
- #include <linux/uaccess.h>
- #include <video/sstfb.h>
+@@ -335,7 +335,7 @@ static int sst_calc_pll(const int freq, int *freq_out, struct pll_timing *t)
+ static void sstfb_clear_screen(struct fb_info *info)
+ {
+ 	/* clear screen */
+-	fb_memset(info->screen_base, 0, info->fix.smem_len);
++	fb_memset_io(info->screen_base, 0, info->fix.smem_len);
+ }
  
-+#include <asm/fb.h>
- 
- /* initialized by setup */
  
 diff --git a/drivers/video/fbdev/stifb.c b/drivers/video/fbdev/stifb.c
-index baca6974e288..a3b837a5fb81 100644
+index a3b837a5fb81..93107909155a 100644
 --- a/drivers/video/fbdev/stifb.c
 +++ b/drivers/video/fbdev/stifb.c
-@@ -69,6 +69,8 @@
- #include <asm/grfioctl.h>	/* for HP-UX compatibility */
- #include <linux/uaccess.h>
+@@ -529,8 +529,8 @@ rattlerSetupPlanes(struct stifb_info *fb)
+ 	fb->id = saved_id;
  
-+#include <asm/fb.h>
-+
- #include <video/sticore.h>
+ 	for (y = 0; y < fb->info.var.yres; ++y)
+-		fb_memset(fb->info.screen_base + y * fb->info.fix.line_length,
+-			0xff, fb->info.var.xres * fb->info.var.bits_per_pixel/8);
++		fb_memset_io(fb->info.screen_base + y * fb->info.fix.line_length,
++			     0xff, fb->info.var.xres * fb->info.var.bits_per_pixel/8);
  
- /* REGION_BASE(fb_info, index) returns the virtual address for region <index> */
+ 	CRX24_SET_OVLY_MASK(fb);
+ 	SETUP_FB(fb);
 diff --git a/drivers/video/fbdev/tdfxfb.c b/drivers/video/fbdev/tdfxfb.c
-index d17e5e1472aa..5ed8f670f51c 100644
+index 5ed8f670f51c..bc8108396c22 100644
 --- a/drivers/video/fbdev/tdfxfb.c
 +++ b/drivers/video/fbdev/tdfxfb.c
-@@ -74,7 +74,8 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/pci.h>
--#include <asm/io.h>
-+
-+#include <asm/fb.h>
+@@ -1117,7 +1117,7 @@ static int tdfxfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ 		u8 *mask = (u8 *)cursor->mask;
+ 		int i;
  
- #include <video/tdfx.h>
+-		fb_memset(cursorbase, 0, 1024);
++		fb_memset_io(cursorbase, 0, 1024);
  
-diff --git a/drivers/video/fbdev/tridentfb.c b/drivers/video/fbdev/tridentfb.c
-index 6099b9768ba1..1bd12606c9e0 100644
---- a/drivers/video/fbdev/tridentfb.c
-+++ b/drivers/video/fbdev/tridentfb.c
-@@ -30,6 +30,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
- 
-+#include <asm/fb.h>
-+
- struct tridentfb_par {
- 	void __iomem *io_virt;	/* iospace virtual memory address */
- 	u32 pseudo_pal[16];
-diff --git a/drivers/video/fbdev/vga16fb.c b/drivers/video/fbdev/vga16fb.c
-index 1a8ffdb2be26..2899d4ce0f6f 100644
---- a/drivers/video/fbdev/vga16fb.c
-+++ b/drivers/video/fbdev/vga16fb.c
-@@ -23,7 +23,8 @@
- #include <linux/platform_device.h>
- #include <linux/screen_info.h>
- 
--#include <asm/io.h>
-+#include <asm/fb.h>
-+
- #include <video/vga.h>
- 
- #define MODE_SKIP4	1
-diff --git a/drivers/video/fbdev/vt8623fb.c b/drivers/video/fbdev/vt8623fb.c
-index 034333ee6e45..bc345d4fee9e 100644
---- a/drivers/video/fbdev/vt8623fb.c
-+++ b/drivers/video/fbdev/vt8623fb.c
-@@ -27,6 +27,8 @@
- #include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
- #include <video/vga.h>
- 
-+#include <asm/fb.h>
-+
- struct vt8623fb_info {
- 	char __iomem *mmio_base;
- 	int wc_cookie;
+ 		for (i = 0; i < cursor->image.height; i++) {
+ 			int h = 0;
 diff --git a/include/asm-generic/fb.h b/include/asm-generic/fb.h
-index c8af99f5a535..6922dd248c51 100644
+index 0540eccdbeca..bb7ee9c70e60 100644
 --- a/include/asm-generic/fb.h
 +++ b/include/asm-generic/fb.h
-@@ -7,6 +7,7 @@
-  * Only include this header file from your architecture's <asm/fb.h>.
-  */
+@@ -108,28 +108,28 @@ static inline void fb_writeq(u64 b, volatile void __iomem *addr)
+ #endif
+ #endif
  
-+#include <linux/io.h>
- #include <linux/mm_types.h>
- #include <linux/pgtable.h>
+-#ifndef fb_memcpy_fromfb
+-static inline void fb_memcpy_fromfb(void *to, const volatile void __iomem *from, size_t n)
++#ifndef fb_memcpy_fromio
++static inline void fb_memcpy_fromio(void *to, const volatile void __iomem *from, size_t n)
+ {
+ 	memcpy_fromio(to, from, n);
+ }
+-#define fb_memcpy_fromfb fb_memcpy_fromfb
++#define fb_memcpy_fromio fb_memcpy_fromio
+ #endif
  
+-#ifndef fb_memcpy_tofb
+-static inline void fb_memcpy_tofb(volatile void __iomem *to, const void *from, size_t n)
++#ifndef fb_memcpy_toio
++static inline void fb_memcpy_toio(volatile void __iomem *to, const void *from, size_t n)
+ {
+ 	memcpy_toio(to, from, n);
+ }
+-#define fb_memcpy_tofb fb_memcpy_tofb
++#define fb_memcpy_toio fb_memcpy_toio
+ #endif
+ 
+ #ifndef fb_memset
+-static inline void fb_memset(volatile void __iomem *addr, int c, size_t n)
++static inline void fb_memset_io(volatile void __iomem *addr, int c, size_t n)
+ {
+ 	memset_io(addr, c, n);
+ }
+-#define fb_memset fb_memset
++#define fb_memset fb_memset_io
+ #endif
+ 
+ #endif /* __ASM_GENERIC_FB_H_ */
 -- 
 2.40.1
 
