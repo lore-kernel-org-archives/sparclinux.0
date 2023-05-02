@@ -2,280 +2,179 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E812C7EE29
-	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 13:03:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A448CC77B73
+	for <sparclinux@archiver.kernel.org>; Tue,  2 May 2023 14:24:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234324AbjEBNDH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 2 May 2023 09:03:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41584 "EHLO
+        id S234513AbjEBOYr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 2 May 2023 10:24:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234316AbjEBNCi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 2 May 2023 09:02:38 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 088515FEF;
-        Tue,  2 May 2023 06:02:29 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id D9D141F8C4;
-        Tue,  2 May 2023 13:02:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1683032547; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Xf4+yP0DSQInwFmB+gxRtq5ssDW3pPaN9Wr1JktP/Rg=;
-        b=RZ0P9X9xgvThz+YpFZ/anZoEJmTT88Wfoz9gPxGc2gyyMnzQijmGoPvl1DBHF5y2IcFFN9
-        exxrNhVSCP4C9RavQE4AKLQvXpaK8bMab2I3XIKszV0zKtVTq9y+NFqFD1M5uKXo5KmaJy
-        no6sSXdlb/lsdwDQmrGn85WBWUWqh8k=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1683032547;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Xf4+yP0DSQInwFmB+gxRtq5ssDW3pPaN9Wr1JktP/Rg=;
-        b=8SEUFVodj/UyZ/97/IcTtUjagm/k7522TvbL1LeAOt2HDMe4I90Q225gcB72Vs11RIg8fj
-        Lsp1bKKQ8qvYt1Dg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7360D139D2;
-        Tue,  2 May 2023 13:02:27 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id OMdYG+MJUWRYTQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 02 May 2023 13:02:27 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
-        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
-        kernel@xen0n.name, davem@davemloft.net,
-        James.Bottomley@HansenPartnership.com, arnd@arndb.de,
-        sam@ravnborg.org
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-Date:   Tue,  2 May 2023 15:02:22 +0200
-Message-Id: <20230502130223.14719-6-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230502130223.14719-1-tzimmermann@suse.de>
-References: <20230502130223.14719-1-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S234072AbjEBOYo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 2 May 2023 10:24:44 -0400
+Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 564AB11A;
+        Tue,  2 May 2023 07:24:43 -0700 (PDT)
+Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-1aaebed5bd6so20628785ad.1;
+        Tue, 02 May 2023 07:24:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1683037483; x=1685629483;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=s1aeen3ZK+Eot6IC/oOTAkZg5Jx6a7diThkYUUdZei0=;
+        b=o7eV6bV5rpKciv6EIj9ga4Omoc8JiajzV/SXD9s6GTpCIHwLsqIeUrnFZuC+xAIaiW
+         WjEsJu1B2GKv/VlyiP9foiCAZE6F++nD+BWDCHQtjX8GXp25FXxTTDqEhJfEaCmCRZnW
+         r/TojnhdtU1uIxMuMFFOdIT7Ow7MxYnqTZbrKtm4QgaRKGsCrFqUlZThCmVisJrJf8LM
+         /bNVZ2wUIhggAaUQvPy2HmP3xLnCZxM2nh9Oy/B1JiqMdIiCPGs2rAsKMpXcHd+3R9I1
+         ZjnOJ4VKyNowo/00zxs8soF2kfewUpLu4llf08zWCp8MVLdUhOzj6mQ/SdBcj0q0dUoG
+         ml+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683037483; x=1685629483;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-transfer-encoding:mime-version:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=s1aeen3ZK+Eot6IC/oOTAkZg5Jx6a7diThkYUUdZei0=;
+        b=Vp2KYB/dVQooHRvtO8Cmoq54GsyIemxX5WZAWRDTGMc68kaMwhnuNGoPX44aT3f164
+         S1EHovAn8zb+glJD/iT73jrYOHem6dhdCJsb1/pYIj6wnQ3WJP3jP8INve/bPdR5qhNz
+         L0etZk+4P5tNHF2lU7m5DN5rUBwhjn4n0gmgKzQQP6jSnNv9lw9hNEKm5W2i5FSiBACQ
+         1H3T6TAzfgWv1r/k6OzqhVnZXsXyaIcZTA+qOKD+0GRJukU8fBihYhSOrgFI0shA8812
+         MezhUACyIqj6PX/ZVFnPtkcBBR77OI1tqMLnvjjCBglVJDrQPPisvEnxW5JbcFdXlEhF
+         0t0A==
+X-Gm-Message-State: AC+VfDztUjedFvOFemq5vhf2EG6JFitV6VqzgCUuaXvQk0+eWmSlmDYX
+        4BE4f2wZm3Te0tRC7HqhWo0ot0ldkQLJWQ==
+X-Google-Smtp-Source: ACHHUZ7J8Aas1J2Rc20jnb1KGckFkPjq+j4uXL85mWslpQ5/EpkOpe4cYomHtpe0qtAoy+AsMW7sBg==
+X-Received: by 2002:a17:902:d349:b0:1a9:2823:dad3 with SMTP id l9-20020a170902d34900b001a92823dad3mr18355696plk.42.1683037482638;
+        Tue, 02 May 2023 07:24:42 -0700 (PDT)
+Received: from localhost (118-208-214-188.tpgi.com.au. [118.208.214.188])
+        by smtp.gmail.com with ESMTPSA id x10-20020a170902b40a00b001ab05aaaf8fsm2012505plr.104.2023.05.02.07.24.26
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 02 May 2023 07:24:41 -0700 (PDT)
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date:   Wed, 03 May 2023 00:24:24 +1000
+Message-Id: <CSBUZL6M3MSS.316JRNGXVMLB@wheely>
+Subject: Re: [PATCH] Remove HAVE_VIRT_CPU_ACCOUNTING_GEN option
+From:   "Nicholas Piggin" <npiggin@gmail.com>
+To:     "Palmer Dabbelt" <palmer@dabbelt.com>
+Cc:     "Arnd Bergmann" <arnd@arndb.de>, <linux-arch@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <vgupta@kernel.org>,
+        <linux-snps-arc@lists.infradead.org>, <bcain@quicinc.com>,
+        <linux-hexagon@vger.kernel.org>, <chenhuacai@kernel.org>,
+        <loongarch@lists.linux.dev>, <geert@linux-m68k.org>,
+        <linux-m68k@lists.linux-m68k.org>, <monstr@monstr.eu>,
+        <tsbogend@alpha.franken.de>, <linux-mips@vger.kernel.org>,
+        <dinguyen@kernel.org>, <jonas@southpole.se>,
+        <stefan.kristiansson@saunalahti.fi>, <shorne@gmail.com>,
+        <linux-openrisc@vger.kernel.org>,
+        <James.Bottomley@HansenPartnership.com>, <deller@gmx.de>,
+        <linux-parisc@vger.kernel.org>,
+        "Paul Walmsley" <paul.walmsley@sifive.com>,
+        <aou@eecs.berkeley.edu>, <linux-riscv@lists.infradead.org>,
+        <ysato@users.sourceforge.jp>, <dalias@libc.org>,
+        <glaubitz@physik.fu-berlin.de>, <linux-sh@vger.kernel.org>,
+        <davem@davemloft.net>, <sparclinux@vger.kernel.org>,
+        <richard@nod.at>, <anton.ivanov@cambridgegreys.com>,
+        <johannes@sipsolutions.net>, <linux-um@lists.infradead.org>,
+        <tglx@linutronix.de>, <mingo@redhat.com>, <bp@alien8.de>,
+        <dave.hansen@linux.intel.com>, <x86@kernel.org>, <hpa@zytor.com>,
+        <khilman@baylibre.com>, <frederic@kernel.org>
+X-Mailer: aerc 0.14.0
+References: <20230429063348.125544-1-npiggin@gmail.com>
+ <mhng-7ec0443b-2201-41b7-996c-78c3a61f0230@palmer-ri-x1c9a>
+In-Reply-To: <mhng-7ec0443b-2201-41b7-996c-78c3a61f0230@palmer-ri-x1c9a>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Implement framebuffer I/O helpers, such as fb_read*() and fb_write*(),
-in the architecture's <asm/fb.h> header file or the generic one.
+On Sun Apr 30, 2023 at 6:14 AM AEST, Palmer Dabbelt wrote:
+> On Fri, 28 Apr 2023 23:33:48 PDT (-0700), npiggin@gmail.com wrote:
+> > This option was created in commit 554b0004d0ec4 ("vtime: Add
+> > HAVE_VIRT_CPU_ACCOUNTING_GEN Kconfig") for architectures to indicate
+> > they support the 64-bit cputime_t required for VIRT_CPU_ACCOUNTING_GEN.
+> >
+> > The cputime_t type has since been removed, so this doesn't have any
+> > meaning. Remove it.
+> >
+> > Cc: linux-arch@vger.kernel.org
+> > Cc: linux-kernel@vger.kernel.org
+> > Cc: Vineet Gupta <vgupta@kernel.org>
+> > Cc: linux-snps-arc@lists.infradead.org
+> > Cc: Brian Cain <bcain@quicinc.com>
+> > Cc: linux-hexagon@vger.kernel.org
+> > Cc: Huacai Chen <chenhuacai@kernel.org>
+> > Cc: loongarch@lists.linux.dev
+> > Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> > Cc: linux-m68k@lists.linux-m68k.org
+> > Cc: Michal Simek <monstr@monstr.eu>
+> > Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+> > Cc: linux-mips@vger.kernel.org
+> > Cc: Dinh Nguyen <dinguyen@kernel.org>
+> > Cc: Jonas Bonn <jonas@southpole.se>
+> > Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+> > Cc: Stafford Horne <shorne@gmail.com>
+> > Cc: linux-openrisc@vger.kernel.org
+> > Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+> > Cc: Helge Deller <deller@gmx.de>
+> > Cc: linux-parisc@vger.kernel.org
+> > Cc: Paul Walmsley <paul.walmsley@sifive.com>
+> > Cc: Palmer Dabbelt <palmer@dabbelt.com>
+> > Cc: Albert Ou <aou@eecs.berkeley.edu>
+> > Cc: linux-riscv@lists.infradead.org
+> > Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+> > Cc: Rich Felker <dalias@libc.org>
+> > Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+> > Cc: linux-sh@vger.kernel.org
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: sparclinux@vger.kernel.org
+> > Cc: Richard Weinberger <richard@nod.at>
+> > Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+> > Cc: Johannes Berg <johannes@sipsolutions.net>
+> > Cc: linux-um@lists.infradead.org
+> > Cc: Thomas Gleixner <tglx@linutronix.de>
+> > Cc: Ingo Molnar <mingo@redhat.com>
+> > Cc: Borislav Petkov <bp@alien8.de>
+> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> > Cc: x86@kernel.org
+> > Cc: "H. Peter Anvin" <hpa@zytor.com>
+> > Cc: Kevin Hilman <khilman@baylibre.com>
+> > Cc: Frederic Weisbecker <frederic@kernel.org>
+> > Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+> > ---
+> > Hi,
+> >
+> > Could we tidy this? I don't know what tree it can go in, timers,
+> > sched, asm-generic, probably doesn't matter.
+> >
+> > The only thing this actually does is gate VIRT_CPU_ACCOUNTING_GEN and
+> > NO_HZ_FULL so if your arch has some other issue that requires this
+> > then the documentation needs to change. Any concerns from the archs?
+> > I.e., 32-bit that does *not* define HAVE_VIRT_CPU_ACCOUNTING_GEN
+> > which looks to be:
+> >
+> > arc
+> > hexagon
+> > loongarch 32-bit with SMP
+> > m68k
+> > microblaze
+> > mips 32-bit with SMP
+> > nios2
+> > openrisc
+> > parisc 32-bit
+> > riscv 32-bit
+>
+> Nothing's jumping out, though I haven't tested this yet so I'm not 100%. =
+=20
+> I assume this isn't aimed for this merge window, given the timing? =20
 
-The common case has been the use of regular I/O functions, such as
-__raw_readb() or memset_io(). A few architectures used plain system-
-memory reads and writes. Sparc used helpers for its SBus.
+No, maybe the next one though.
 
-The architectures that used special cases provide the same code in
-their __raw_*() I/O helpers. So the patch replaces this code with the
-__raw_*() functions and moves it to <asm-generic/fb.h> for all
-architectures.
+> Probably best to give this sort of thing time to bake in linux-next, but=
+=20
+> I doubt anyone is even paying attention to rv32/NO_HZ_FULL so no big=20
+> deal either way on my end.
+>
+> Acked-by: Palmer Dabbelt <palmer@rivosinc.com> # RISC-V
 
-v3:
-	* implement all architectures with generic helpers
-	* support reordering and native byte order (Geert, Arnd)
-
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
----
- include/asm-generic/fb.h | 101 +++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h       |  53 --------------------
- 2 files changed, 101 insertions(+), 53 deletions(-)
-
-diff --git a/include/asm-generic/fb.h b/include/asm-generic/fb.h
-index 6922dd248c51..0540eccdbeca 100644
---- a/include/asm-generic/fb.h
-+++ b/include/asm-generic/fb.h
-@@ -31,4 +31,105 @@ static inline int fb_is_primary_device(struct fb_info *info)
- }
- #endif
- 
-+/*
-+ * I/O helpers for the framebuffer. Prefer these functions over their
-+ * regular counterparts. The regular I/O functions provide in-order
-+ * access and swap bytes to/from little-endian ordering. Neither is
-+ * required for framebuffers. Instead, the helpers read and write
-+ * raw framebuffer data. Independent operations can be reordered for
-+ * improved performance.
-+ */
-+
-+#ifndef fb_readb
-+static inline u8 fb_readb(const volatile void __iomem *addr)
-+{
-+	return __raw_readb(addr);
-+}
-+#define fb_readb fb_readb
-+#endif
-+
-+#ifndef fb_readw
-+static inline u16 fb_readw(const volatile void __iomem *addr)
-+{
-+	return __raw_readw(addr);
-+}
-+#define fb_readw fb_readw
-+#endif
-+
-+#ifndef fb_readl
-+static inline u32 fb_readl(const volatile void __iomem *addr)
-+{
-+	return __raw_readl(addr);
-+}
-+#define fb_readl fb_readl
-+#endif
-+
-+#ifndef fb_readq
-+#if defined(__raw_readq)
-+static inline u64 fb_readq(const volatile void __iomem *addr)
-+{
-+	return __raw_readq(addr);
-+}
-+#define fb_readq fb_readq
-+#endif
-+#endif
-+
-+#ifndef fb_writeb
-+static inline void fb_writeb(u8 b, volatile void __iomem *addr)
-+{
-+	__raw_writeb(b, addr);
-+}
-+#define fb_writeb fb_writeb
-+#endif
-+
-+#ifndef fb_writew
-+static inline void fb_writew(u16 b, volatile void __iomem *addr)
-+{
-+	__raw_writew(b, addr);
-+}
-+#define fb_writew fb_writew
-+#endif
-+
-+#ifndef fb_writel
-+static inline void fb_writel(u32 b, volatile void __iomem *addr)
-+{
-+	__raw_writel(b, addr);
-+}
-+#define fb_writel fb_writel
-+#endif
-+
-+#ifndef fb_writeq
-+#if defined(__raw_writeq)
-+static inline void fb_writeq(u64 b, volatile void __iomem *addr)
-+{
-+	__raw_writeq(b, addr);
-+}
-+#define fb_writeq fb_writeq
-+#endif
-+#endif
-+
-+#ifndef fb_memcpy_fromfb
-+static inline void fb_memcpy_fromfb(void *to, const volatile void __iomem *from, size_t n)
-+{
-+	memcpy_fromio(to, from, n);
-+}
-+#define fb_memcpy_fromfb fb_memcpy_fromfb
-+#endif
-+
-+#ifndef fb_memcpy_tofb
-+static inline void fb_memcpy_tofb(volatile void __iomem *to, const void *from, size_t n)
-+{
-+	memcpy_toio(to, from, n);
-+}
-+#define fb_memcpy_tofb fb_memcpy_tofb
-+#endif
-+
-+#ifndef fb_memset
-+static inline void fb_memset(volatile void __iomem *addr, int c, size_t n)
-+{
-+	memset_io(addr, c, n);
-+}
-+#define fb_memset fb_memset
-+#endif
-+
- #endif /* __ASM_GENERIC_FB_H_ */
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 08cb47da71f8..7d80ee62a9d5 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -15,7 +15,6 @@
- #include <linux/list.h>
- #include <linux/backlight.h>
- #include <linux/slab.h>
--#include <asm/io.h>
- 
- struct vm_area_struct;
- struct fb_info;
-@@ -511,58 +510,6 @@ struct fb_info {
-  */
- #define STUPID_ACCELF_TEXT_SHIT
- 
--// This will go away
--#if defined(__sparc__)
--
--/* We map all of our framebuffers such that big-endian accesses
-- * are what we want, so the following is sufficient.
-- */
--
--// This will go away
--#define fb_readb sbus_readb
--#define fb_readw sbus_readw
--#define fb_readl sbus_readl
--#define fb_readq sbus_readq
--#define fb_writeb sbus_writeb
--#define fb_writew sbus_writew
--#define fb_writel sbus_writel
--#define fb_writeq sbus_writeq
--#define fb_memset sbus_memset_io
--#define fb_memcpy_fromfb sbus_memcpy_fromio
--#define fb_memcpy_tofb sbus_memcpy_toio
--
--#elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) ||	\
--	defined(__hppa__) || defined(__sh__) || defined(__powerpc__) ||	\
--	defined(__arm__) || defined(__aarch64__) || defined(__mips__)
--
--#define fb_readb __raw_readb
--#define fb_readw __raw_readw
--#define fb_readl __raw_readl
--#define fb_readq __raw_readq
--#define fb_writeb __raw_writeb
--#define fb_writew __raw_writew
--#define fb_writel __raw_writel
--#define fb_writeq __raw_writeq
--#define fb_memset memset_io
--#define fb_memcpy_fromfb memcpy_fromio
--#define fb_memcpy_tofb memcpy_toio
--
--#else
--
--#define fb_readb(addr) (*(volatile u8 *) (addr))
--#define fb_readw(addr) (*(volatile u16 *) (addr))
--#define fb_readl(addr) (*(volatile u32 *) (addr))
--#define fb_readq(addr) (*(volatile u64 *) (addr))
--#define fb_writeb(b,addr) (*(volatile u8 *) (addr) = (b))
--#define fb_writew(b,addr) (*(volatile u16 *) (addr) = (b))
--#define fb_writel(b,addr) (*(volatile u32 *) (addr) = (b))
--#define fb_writeq(b,addr) (*(volatile u64 *) (addr) = (b))
--#define fb_memset memset
--#define fb_memcpy_fromfb memcpy
--#define fb_memcpy_tofb memcpy
--
--#endif
--
- #define FB_LEFT_POS(p, bpp)          (fb_be_math(p) ? (32 - (bpp)) : 0)
- #define FB_SHIFT_HIGH(p, val, bits)  (fb_be_math(p) ? (val) >> (bits) : \
- 						      (val) << (bits))
--- 
-2.40.1
-
+Thanks,
+Nick
