@@ -2,118 +2,96 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B96C7EE29
-	for <sparclinux@archiver.kernel.org>; Wed,  3 May 2023 08:53:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C328C7EE2D
+	for <sparclinux@archiver.kernel.org>; Wed,  3 May 2023 11:06:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229974AbjECIxZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 3 May 2023 04:53:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40306 "EHLO
+        id S230059AbjECLGw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 3 May 2023 07:06:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbjECIxP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 3 May 2023 04:53:15 -0400
-Received: from wnew2-smtp.messagingengine.com (wnew2-smtp.messagingengine.com [64.147.123.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB138E57;
-        Wed,  3 May 2023 01:52:59 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id E927C2B0695E;
-        Wed,  3 May 2023 04:52:55 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Wed, 03 May 2023 04:52:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1683103975; x=1683111175; bh=IS
-        4EM5wdsuSjV61ICnK1JWQzvfZmpsEGvr2M9gQsBDg=; b=xFunroi/7DC9ShYZYF
-        0mkS1O4uFFPq6Ixts8x5XfA1TtFTRvtgFMSPwmY/QxmzmL4BwSEk1AAGZOWlkaw8
-        G/Qp1sWYevvX+sFvbpTZcf3rjLOBulkJ8Uiuvi16V7J3DjTqeQNEK8iP4a9KjnGf
-        AZFDczkFoeVbNFRXPynwrYtDmJgetJTY2yHzUYvc3J0ZzuF1bobFPZSiPlRGEuYf
-        3e67ij/DjoLjlsBxu1+3uM5MYZv9w2R9m7KD9LMhSly7TtZLqeq0jrg0Gls3kupf
-        1G1xcF49uh5fi9NgbQILKNzf3cG1mEsLRM3xpKbKP5GH0OST4rDQ5eyIyIPDKIcL
-        OBAQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1683103975; x=1683111175; bh=IS4EM5wdsuSjV
-        61ICnK1JWQzvfZmpsEGvr2M9gQsBDg=; b=fOZ/xI4I2hlVOsmaVXohE0GxuJ/WQ
-        5W+sIMqjJ3nKPDW8LmKpdh2luVCCtpTNFkUrKdi1fAsUK6C/2B6+1tLefS1ddRsr
-        MmMAFZgcqtocNbZny1ua3NZ6+E5xbqP8/5bWqckB5cYLDA5DGxh9x+UY8Pw2fq+p
-        S79jlVyAhJjFWrlrypp8EpWc1dMwsc5a9hw/oePA/lCbQIxkR5ZeY/6Xsftlhc+l
-        Htz3SpG1C/s3uhEXjE4MxVAJDLcu8PvU5jAfsiTFb/NVUr9dk100g0e4uViCzcCf
-        84BNNVhGsrK57sej9W1I7Khq+NtVWqm5iYASgfRGRnF5bgsaTBk7l9gdA==
-X-ME-Sender: <xms:5iBSZB6waEbkoZSuAcdjwPbQtxZjM_QjNWuH9Z89bJoEVoKZECP9XQ>
-    <xme:5iBSZO4MbLBKe8qyXRGJZconrK-wkSHbbvOY5Nn3ucu39n3eNmHGgS9BbDQks5mVi
-    9deu1Go1vvXng1b94w>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfedvkedgtdekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:5iBSZIetZ3io1_WwWrG5A5y-vWMtX6jG-iRLHYUbU3H91u2JRZxyIg>
-    <xmx:5iBSZKKYY7kwklx5HX9jBu4cyX4FKYnhz1QuC9yZ8w_mnITQhCunaw>
-    <xmx:5iBSZFJNJdiIT89CdIrMdBTAeYA7OFOs9bKV0VCjpS-TfgXa9njB7Q>
-    <xmx:5yBSZKCtfTyRWweziCf0h6B7K9kpLs7LYO6VLyOu5dz5_qpxplsAo3N_Uvk>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 45BA2B60086; Wed,  3 May 2023 04:52:54 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-386-g2404815117-fm-20230425.001-g24048151
-Mime-Version: 1.0
-Message-Id: <0ecbc92c-7e42-4958-988b-abc265f039bf@app.fastmail.com>
-In-Reply-To: <97bbdb2f-6245-caf2-c0f6-d628873bd6db@suse.de>
-References: <20230502130223.14719-1-tzimmermann@suse.de>
- <20230502130223.14719-5-tzimmermann@suse.de>
- <20230502195429.GA319489@ravnborg.org>
- <563673c0-799d-e353-974c-91b1ab881a22@suse.de>
- <87354dyj9i.fsf@minerva.mail-host-address-is-not-set>
- <97bbdb2f-6245-caf2-c0f6-d628873bd6db@suse.de>
-Date:   Wed, 03 May 2023 10:52:34 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Sam Ravnborg" <sam@ravnborg.org>
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, "Helge Deller" <deller@gmx.de>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        linux-m68k@lists.linux-m68k.org,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        loongarch@lists.linux.dev, "Vineet Gupta" <vgupta@kernel.org>,
-        sparclinux@vger.kernel.org, "WANG Xuerui" <kernel@xen0n.name>,
-        linux-snps-arc@lists.infradead.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 4/6] fbdev: Include <linux/io.h> via <asm/fb.h>
-Content-Type: text/plain
+        with ESMTP id S229821AbjECLGu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 3 May 2023 07:06:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8ABB49CC;
+        Wed,  3 May 2023 04:06:48 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8050662CC1;
+        Wed,  3 May 2023 11:06:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 319CAC433D2;
+        Wed,  3 May 2023 11:06:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1683112007;
+        bh=1Z/abXjYScbaeQJORhJfZ1yaBTS2vU/U1cufhR2GD0M=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=DYeRD57ViS93rxSgHpAWB7YMqFMUVx8+EiMfSRn6yQEG7G9RSDQSNSSe1sxzZ3BLo
+         GvrB3gAjIST0ilFZUg8IMfwBDx8wfH+KA+j3pBm5lWI8UmkhRuaPcCrBRvajh/kKlf
+         sc97elHz9FlAP3leMT4UaefDRJMGkLzMHZE6FdoaOvmUUjuDHCL58u0eFmESKWCS4j
+         iTu0lEr+kmh/c3tzKSar0Ap1ePkXfG5K61exCSLbCF+9ApT/2au8DOYFlhGDOEhdXg
+         2pQvwMWVokBgoPnt+ruSQN7Puaw5HnfRo4DOOVEE3FkCyWkRa5+PjlZzOTI1BYYKE3
+         QatkVXcriRXBA==
+Date:   Wed, 3 May 2023 13:06:44 +0200
+From:   Frederic Weisbecker <frederic@kernel.org>
+To:     Nicholas Piggin <npiggin@gmail.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Vineet Gupta <vgupta@kernel.org>,
+        linux-snps-arc@lists.infradead.org, Brian Cain <bcain@quicinc.com>,
+        linux-hexagon@vger.kernel.org, Huacai Chen <chenhuacai@kernel.org>,
+        loongarch@lists.linux.dev,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org, Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Stafford Horne <shorne@gmail.com>,
+        linux-openrisc@vger.kernel.org,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        linux-riscv@lists.infradead.org,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        linux-sh@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        linux-um@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Kevin Hilman <khilman@baylibre.com>
+Subject: Re: [PATCH] Remove HAVE_VIRT_CPU_ACCOUNTING_GEN option
+Message-ID: <ZFJARBDqWPLSy7Ge@localhost.localdomain>
+References: <20230429063348.125544-1-npiggin@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230429063348.125544-1-npiggin@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 3, 2023, at 10:12, Thomas Zimmermann wrote:
-> Am 03.05.23 um 09:19 schrieb Javier Martinez Canillas:
->> Thomas Zimmermann <tzimmermann@suse.de> writes:
->>>>
->>>> There are countless examples where the above are not followed,
->>>> but to my best understanding the above it the preferred way to do it.
->>>
->>> Where did youher this? I only know about this in the case of asm/io.h
->>> vs. linux/io.h.
->>>
->> 
->> I understand that's the case too. I believe even checkpatch.pl complains
->> about it? (not that the script always get right, but just as an example).
->
-> Do you know if that's the general rule? If so, we might want to 
-> repurpose <asm/fbio.h> for the framebuffer I/O functions.
+Le Sat, Apr 29, 2023 at 04:33:48PM +1000, Nicholas Piggin a écrit :
+> This option was created in commit 554b0004d0ec4 ("vtime: Add
+> HAVE_VIRT_CPU_ACCOUNTING_GEN Kconfig") for architectures to indicate
+> they support the 64-bit cputime_t required for VIRT_CPU_ACCOUNTING_GEN.
+> 
+> The cputime_t type has since been removed, so this doesn't have any
+> meaning. Remove it.
 
-It's certainly the general trend across all of the kernel to have
-drivers prefer including linux/*.h, and to move stuff from asm/*.h
-to linux/*.h as it gets generalized across architectures.
+Well, cputime_t has disappeared but not the u64 type used
+for task/cpu time accounting.
 
-     Arnd
+But now we have the vtime seqcount. Though we already had it
+when we introduced that Kconfig switch so I can't remember why
+this was necessary :-(
+
+It _looks_ OK but I might be missing something...
+
+Thanks.
