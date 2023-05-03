@@ -2,111 +2,93 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 218B3C7EE2A
-	for <sparclinux@archiver.kernel.org>; Wed,  3 May 2023 15:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ABF4C7EE2A
+	for <sparclinux@archiver.kernel.org>; Wed,  3 May 2023 19:03:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230249AbjECPHG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 3 May 2023 11:07:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40244 "EHLO
+        id S230098AbjECTDZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 3 May 2023 15:03:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230175AbjECPHE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 3 May 2023 11:07:04 -0400
-Received: from new3-smtp.messagingengine.com (new3-smtp.messagingengine.com [66.111.4.229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F413A4C15;
-        Wed,  3 May 2023 08:07:02 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.nyi.internal (Postfix) with ESMTP id D7C39580192;
-        Wed,  3 May 2023 11:06:59 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Wed, 03 May 2023 11:06:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1683126419; x=1683133619; bh=VJ
-        t2NCaR1dSCR48usj7TiL9m0aFyTQB4ngpTHc/wzNQ=; b=fWJmhJIQIjPfE0lPmm
-        2UUUsui9hK1EONioNtG6XwBvLEDBvBxWfFLQ9N1tFGkGwliU9yz6nObIhjKeToCC
-        bOuSHwnPUFWVc1GvN6m/EdkHVQKkpb604IurKdO/9InTVd5vTzU5d2iVigisoIm9
-        4gq2jLPIug5jHmpZc0rslk2Xj4l3SvhsCZPAjlEXGarhG7krdPhI3x8NitksJAfo
-        tYDl+DHnKp88gZ0zrjylkyygbSAqCJ34r3G+WSX8xRpLvbG35Kxyh2gNtLoHTEbZ
-        J9eceuXp5T7bkpNuwlU2Nn9ZVhzBpBEZ65RYAxta21HkybOMf+rDE6vuOkjpbFmd
-        k70g==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1683126419; x=1683133619; bh=VJt2NCaR1dSCR
-        48usj7TiL9m0aFyTQB4ngpTHc/wzNQ=; b=iwh/U6vLmswIa3ZMz2TyphQ0p3mxw
-        /PfsOG0YBvIFJiK0YdJok8ez88E84BqeEydOwuMsHbERhRnQWa1jVmo9N6PU0wXj
-        v1msIiMaTbFwQAVnj/LnGQHSHJ4VT2tvqtnNPzD3/1/sQnuUSFnWdyVEggJNwF3i
-        GhqmBsRhzAf61JR15C0WdazOIg1Z9a9ASX/7rHQg8LseB6Ch/Fd+zJUxkqJZWliN
-        A6mPn/RBrGbW1t7grbGpAiFDLa8+UOCaaegmxhtITsCQ/+nqhKZSDww627LKvrLR
-        Akf6DAcnHjAniziM/oUzZ6HGvBtIvoek+KBdspGK9Usi69nxEi00tJLKg==
-X-ME-Sender: <xms:kXhSZN-9H5s1bhLJ6A4BrSSA8u23bM9KPdG9aZBVi6Vx7ttWzwFj4g>
-    <xme:kXhSZBtOpEQrvQSpGvqieF5mg9zfO9L78_hVsMKITr2FmH2UMwYQTD0RcbxdHK-LE
-    fjd2wqoShzKWEE9HP8>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfedvkedgkeduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:kXhSZLDbZTo8b8vLn4_1sIrA2TKPplauxliuy1lkEmJlepSP7t9PIw>
-    <xmx:kXhSZBcW4sv-KQYA40dQFN8qx_vykn6TAKbj5-otIqOh7yBd6gwTfQ>
-    <xmx:kXhSZCPWk3peePgjhptjqH3qDnIMxLup6tjVPNovu7IcIqvBdhS8MA>
-    <xmx:k3hSZLyNTBeb8R9B8Rjvb47iNEFyVIScCzaPoMQcfpENafp15C45lQ>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 10509B60086; Wed,  3 May 2023 11:06:56 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-386-g2404815117-fm-20230425.001-g24048151
-Mime-Version: 1.0
-Message-Id: <2054ae6a-dcf9-42a3-9850-dd2587d40c58@app.fastmail.com>
-In-Reply-To: <dd921bae-0145-09e2-24b1-f08d89a78eba@suse.de>
+        with ESMTP id S230071AbjECTDY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 3 May 2023 15:03:24 -0400
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:401::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49D857D8B
+        for <sparclinux@vger.kernel.org>; Wed,  3 May 2023 12:03:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=VwK1Pxwllknm05RC4IcE4UF09296VmV5/KUmDsmc45k=;
+        b=XsHl84HrOPhHgBPqV3PW6yB/AvFhQII0nRtKV/8h8T+dCcMr5Tik6QMi/wSHQOzhOhtbUHSqfhZgd
+         WSx/Z0hPEz3w+9sT8inTO8HUZ7mXKy80p1Hkngiwyx5WeGAS6L3ICdE9j4k0MYAt439GYTv80H30JL
+         Wa3Kt+e0ozxs6GkaFSJ4Ggac50LASOD5G3YVJoy/Rrtbtu+bkuBlS+VFLgSy90XJkkej9/oXpWU/kv
+         CxJ9i3AgBzyz7jKenTHVv5rGIZw0qOt+yq1IzXFIz2dG2+JZP65n87Ub2Ux9raWeeAjrFYUvEdc0tG
+         etwNu46L2bAupljCsQC8YEYAHO7kJWQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=VwK1Pxwllknm05RC4IcE4UF09296VmV5/KUmDsmc45k=;
+        b=Lew0Bnll2GhHFcWrhU2ydPTnZ0g2qcfs1S5m/vajLVuTjd48PZ0vIjaL11J3Em1kUt7VNpMclPo45
+         R57yfj8Ag==
+X-HalOne-ID: 2a0894ca-e9e5-11ed-9ffc-13111ccb208d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay2 (Halon) with ESMTPSA
+        id 2a0894ca-e9e5-11ed-9ffc-13111ccb208d;
+        Wed, 03 May 2023 19:03:19 +0000 (UTC)
+Date:   Wed, 3 May 2023 21:03:17 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        arnd@arndb.de, deller@gmx.de, chenhuacai@kernel.org,
+        javierm@redhat.com, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org,
+        James.Bottomley@hansenpartnership.com,
+        linux-m68k@lists.linux-m68k.org, geert@linux-m68k.org,
+        linux-parisc@vger.kernel.org, vgupta@kernel.org,
+        sparclinux@vger.kernel.org, kernel@xen0n.name,
+        linux-snps-arc@lists.infradead.org, davem@davemloft.net,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 5/6] fbdev: Move framebuffer I/O helpers into
+ <asm/fb.h>
+Message-ID: <20230503190317.GA422961@ravnborg.org>
 References: <20230502130223.14719-1-tzimmermann@suse.de>
  <20230502130223.14719-6-tzimmermann@suse.de>
- <67d6a188-041f-4604-99a3-548c41af0693@app.fastmail.com>
- <dd921bae-0145-09e2-24b1-f08d89a78eba@suse.de>
-Date:   Wed, 03 May 2023 17:06:36 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Helge Deller" <deller@gmx.de>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Daniel Vetter" <daniel@ffwll.ch>,
-        "Vineet Gupta" <vgupta@kernel.org>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "WANG Xuerui" <kernel@xen0n.name>,
-        "David S . Miller" <davem@davemloft.net>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
-        "Sam Ravnborg" <sam@ravnborg.org>
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
-Subject: Re: [PATCH v3 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-Content-Type: text/plain
+ <20230502200300.GB319489@ravnborg.org>
+ <df767237-2bae-f299-9cbb-1543f76c9c3a@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <df767237-2bae-f299-9cbb-1543f76c9c3a@suse.de>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 3, 2023, at 16:55, Thomas Zimmermann wrote:
-> Am 02.05.23 um 22:06 schrieb Arnd Bergmann:
+Hi Thomas,
 
->> It's probably safe to deal with all the above by either adding
->> architecture specific overrides to the current version, or
->> by doing the semantic changes before the move to asm/fb.h, but
->> one way or the other I'd prefer this to be separate from the
->> consolidation patch that should not have any changes in behavior.
->
-> I think I'll add architecture overrides that contain the current code, 
-> even if they contain some force-casting wrt __iomem. If anyone wants to 
-> fix the issues, they can then address them easily.
+> > But I am missing something somewhere as I cannot see how this builds.
+> > asm-generic now provide the fb_read/fb_write helpers.
+> > But for example sparc has an architecture specifc fb.h so it will not
+> > use the asm-generic variant. So I wonder how sparc get hold of the
+> > asm-generic fb.h file?
+> 
+> All architecture's <asm/fb.h> files include <asm-generic/fb.h>, so that they
+> all get the interfaces which they don't define themselves. For Sparc, this
+> is at [1].
+> 
+> Best regards
+> Thomas
+> 
+> 
+> [1]
+> https://cgit.freedesktop.org/drm/drm-tip/tree/arch/sparc/include/asm/fb.h#n19
+> 
+> > 
+> > Maybe it is obvious, but I miss it.
 
-Ok, sounds good,
+OK, it was obvious and I missed it.
+I looked at the mainline kernel, and not the drm-tip variant.
+Sorry for the noise.
 
-     Arnd
+	Sam
