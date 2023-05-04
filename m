@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 172A9C77B7C
-	for <sparclinux@archiver.kernel.org>; Thu,  4 May 2023 22:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB0FCC77B7C
+	for <sparclinux@archiver.kernel.org>; Thu,  4 May 2023 22:15:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229953AbjEDWO6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 4 May 2023 18:14:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55926 "EHLO
+        id S229943AbjEDWPC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 4 May 2023 18:15:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229736AbjEDWO5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 18:14:57 -0400
+        with ESMTP id S229797AbjEDWPB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 18:15:01 -0400
 Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 955FF12085
-        for <sparclinux@vger.kernel.org>; Thu,  4 May 2023 15:14:56 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-643465067d1so907769b3a.0
-        for <sparclinux@vger.kernel.org>; Thu, 04 May 2023 15:14:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB86F120AB
+        for <sparclinux@vger.kernel.org>; Thu,  4 May 2023 15:14:59 -0700 (PDT)
+Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-64115eef620so15684576b3a.1
+        for <sparclinux@vger.kernel.org>; Thu, 04 May 2023 15:14:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1683238496; x=1685830496;
+        d=chromium.org; s=google; t=1683238499; x=1685830499;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+7chyR54aRty46RzcCdMbqi2QxR3fWS0cburZo/9gxI=;
-        b=NQpIfbqEUQKnsAkyEYKExasyztEP9wJ8o+4IEiw9BxrvOoB0l00+ORgkpCBLFkfl+F
-         PivQOONxkj4PAVC2WcZaYn5EMh53GyKpOpu34BApx4vjHnolGOvX4v2oyvAKoW8Y73KU
-         w1j4yU/Hk37qgrXBksSm+ZQ5W6g5IzmgjL538=
+        bh=aOpu4K0AbTK/Q+LJp4KPhDC1e5615vKmnF8Avzjqp1E=;
+        b=AtjVbUDuDhuC3T5VTZajscYw/VEjMbUiZ2X5khp5ctkS+27M1j/InYQ5Dwvm/plnmd
+         krdbBv8nVdEof2X0yL/YrwWPzFZVjFX99rqofGl1oH4jqhbFnFmnoLtQFzOtxTTSUQ8z
+         KlY7Tr7uge6pyOt+bCScYMrb0Elk2S6F8xzAw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683238496; x=1685830496;
+        d=1e100.net; s=20221208; t=1683238499; x=1685830499;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=+7chyR54aRty46RzcCdMbqi2QxR3fWS0cburZo/9gxI=;
-        b=HjFR2U+/LbiJPyzrTX1qLCzBGp53RAoP2CaW9Riv6Vm/1ukcbSeisbzCv+iPGjBwWz
-         Wu7kdPiRYcNPFUDjHQgjHAq7aAvH4RJ/s59XK7LW6HndEpcxDSEcVdV5AVZtTXofcnNJ
-         r7QvEHCCfLve6hwFuGeqSigherN01y51krjnrnRVm5JEkRFb51VBJK1HOaEo6/+FkfG/
-         Oxih3ySqwfs14wy6dpBstsgDa8usOC2LPyApErjTo7JiIhi9rGntJt30onb8w22Pr5ZQ
-         TZfHEoS/AJs2y7dAVPBALqHxhXV/OaQ7e29aawImATdf+rbJAxkV+QK14Gz6RJmlURLT
-         78uA==
-X-Gm-Message-State: AC+VfDw758iza9EgUeufCjrtG+RWfuor3nLSS7IeTA5T8D9t6iGYzAX2
-        UtPPhuL97Ppw8oT78ZvTZRJvZQ==
-X-Google-Smtp-Source: ACHHUZ6RrkuuKPBgTlGYVBYmU7JHppwAnr7B5nmjdOCKHM4QBI81WKafubaC+FF4dnrAufHF9KP6jQ==
-X-Received: by 2002:a05:6a00:2e06:b0:62d:8376:3712 with SMTP id fc6-20020a056a002e0600b0062d83763712mr4427628pfb.28.1683238496089;
-        Thu, 04 May 2023 15:14:56 -0700 (PDT)
+        bh=aOpu4K0AbTK/Q+LJp4KPhDC1e5615vKmnF8Avzjqp1E=;
+        b=gyEahIZAFV81Vr79Jb87vE4Usy6C4TnQMcFqQFB31pvTQ9Hv2uzSSHqyP2Pwa0Kh6O
+         /+aZ1jt+G7Hqtm5ZYNt4e+jMIsEiOmS4nQQThmaz6IT92O2ECcYxSuZBTXySs7YoCGEV
+         OhHzCxvp5VuqQyXZZXDWN1cYxmzY8sQBvDlT1tAlI9lLPD+mwez6W3pi9mlxdKt+oTSB
+         5JZo0LaJi3u/i1wqTzZPf2MQCHmCc+xVU8HNaA9lI7QdMwn1/pAlxKMnA8ONLlQfHYUE
+         5htSeK4iKXHnh2fA6RcrVC9oXdFX4nZQnoysOwRNtkQYtO4S2OqHoWDPo9p0Af5Sjx1A
+         0nzQ==
+X-Gm-Message-State: AC+VfDzG8zJQfWlWkjLtSq+jv3P3xOYeM/eMMoQFHxP0FWmwMQnKThUc
+        5AQ8GZvsS2zrkX9PzM8FwMRZTA==
+X-Google-Smtp-Source: ACHHUZ6/nKe5trCUHnOhrXovtrUyQ0CQn+r16BvPpklIKc+6VPGovlM2nNhX9qvrY/8nVCSqNXN/Lw==
+X-Received: by 2002:a05:6a00:8086:b0:634:c34f:e214 with SMTP id eh6-20020a056a00808600b00634c34fe214mr3971422pfb.10.1683238499411;
+        Thu, 04 May 2023 15:14:59 -0700 (PDT)
 Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:edf0:7321:6b9e:d5e7])
-        by smtp.gmail.com with ESMTPSA id g26-20020aa7819a000000b006437c0edf9csm169615pfi.16.2023.05.04.15.14.53
+        by smtp.gmail.com with ESMTPSA id g26-20020aa7819a000000b006437c0edf9csm169615pfi.16.2023.05.04.15.14.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 May 2023 15:14:55 -0700 (PDT)
+        Thu, 04 May 2023 15:14:58 -0700 (PDT)
 From:   Douglas Anderson <dianders@chromium.org>
 To:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>
@@ -73,9 +73,9 @@ Cc:     Sumit Garg <sumit.garg@linaro.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Daniel Thompson <daniel.thompson@linaro.org>,
         Douglas Anderson <dianders@chromium.org>
-Subject: [PATCH v4 04/17] watchdog/perf: Ensure CPU-bound context when creating hardlockup detector event
-Date:   Thu,  4 May 2023 15:13:36 -0700
-Message-ID: <20230504151100.v4.4.I654063e53782b11d53e736a8ad4897ffd207406a@changeid>
+Subject: [PATCH v4 05/17] watchdog/hardlockup: Rename touch_nmi_watchdog() to touch_hardlockup_watchdog()
+Date:   Thu,  4 May 2023 15:13:37 -0700
+Message-ID: <20230504151100.v4.5.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid>
 X-Mailer: git-send-email 2.40.1.521.gf1e218fcd8-goog
 In-Reply-To: <20230504221349.1535669-1-dianders@chromium.org>
 References: <20230504221349.1535669-1-dianders@chromium.org>
@@ -85,61 +85,71 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Pingfan Liu <kernelfans@gmail.com>
+In preparation for the buddy hardlockup detector, rename
+touch_nmi_watchdog() to touch_hardlockup_watchdog() to make it clear
+that it will touch whatever hardlockup detector is configured. We'll
+add a #define for the old name (touch_nmi_watchdog) so that we don't
+have to touch every piece of code referring to the old name.
 
-hardlockup_detector_event_create() should create perf_event on the
-current CPU. Preemption could not get disabled because
-perf_event_create_kernel_counter() allocates memory. Instead,
-the CPU locality is achieved by processing the code in a per-CPU
-bound kthread.
+Ideally this change would also rename the arch_touch_nmi_watchdog(),
+but that is harder since arch_touch_nmi_watchdog() is exported with
+EXPORT_SYMBOL() and thus is ABI. Add a comment next to the call to
+hopefully alleviate some of the confusion here.
 
-Add a check to prevent mistakes when calling the code in another
-code path.
-
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 ---
-I yanked this patch from the mailing lists [1] into my series just to
-make it easier to avoid conflicts between my series and the one adding
-the arm64 perf hardlockup detector, in case someone wanted to test
-them both together. This is a nice cleanup and could land together
-with the rest of my series if that makes sense.
-
-I changed the patch prefix to match others in my series.
-
-[1] https://lore.kernel.org/r/20220903093415.15850-4-lecopzer.chen@mediatek.com/
 
 Changes in v4:
-- Pulled ("Ensure CPU-bound context when creating ...") into my series for v4.
+- ("Rename touch_nmi_watchdog() to ...") new for v4.
 
- kernel/watchdog_hld.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/nmi.h | 27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
-diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_hld.c
-index 247bf0b1582c..96b717205952 100644
---- a/kernel/watchdog_hld.c
-+++ b/kernel/watchdog_hld.c
-@@ -165,10 +165,16 @@ static void watchdog_overflow_callback(struct perf_event *event,
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 454fe99c4874..35d09d70f394 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -125,18 +125,35 @@ void watchdog_nmi_disable(unsigned int cpu);
+ void lockup_detector_reconfigure(void);
  
- static int hardlockup_detector_event_create(void)
+ /**
+- * touch_nmi_watchdog - restart NMI watchdog timeout.
++ * touch_hardlockup_watchdog - manually pet the hardlockup watchdog.
+  *
+- * If the architecture supports the NMI watchdog, touch_nmi_watchdog()
+- * may be used to reset the timeout - for code which intentionally
+- * disables interrupts for a long time. This call is stateless.
++ * If we support detecting hardlockups, touch_hardlockup_watchdog() may be
++ * used to pet the watchdog (reset the timeout) - for code which
++ * intentionally disables interrupts for a long time. This call is stateless.
+  */
+-static inline void touch_nmi_watchdog(void)
++static inline void touch_hardlockup_watchdog(void)
  {
--	unsigned int cpu = smp_processor_id();
-+	unsigned int cpu;
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *evt;
- 
 +	/*
-+	 * Preemption is not disabled because memory will be allocated.
-+	 * Ensure CPU-locality by calling this in per-CPU kthread.
++	 * Pass on to the hardlockup detector selected via CONFIG_. Note that
++	 * the hardlockup detector may not be arch-specific nor using NMIs,
++	 * but arch_touch_nmi_watchdog() is exported with EXPORT_SYMBOL() and
++	 * is thus ABI.
 +	 */
-+	WARN_ON(!is_percpu_thread());
-+	cpu = raw_smp_processor_id();
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ 	arch_touch_nmi_watchdog();
++
++	/*
++	 * Touching the hardlock detector implcitily pets the
++	 * softlockup detector too
++	 */
+ 	touch_softlockup_watchdog();
+ }
  
++/*
++ * It's encouraged for code to refer to the new name, but allow the old
++ * name as well.
++ */
++#define touch_nmi_watchdog	touch_hardlockup_watchdog
++
+ /*
+  * Create trigger_all_cpu_backtrace() out of the arch-provided
+  * base function. Return whether such support was available,
 -- 
 2.40.1.521.gf1e218fcd8-goog
 
