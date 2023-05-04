@@ -2,38 +2,38 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A43C77B7C
-	for <sparclinux@archiver.kernel.org>; Thu,  4 May 2023 11:30:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2468C7EE2C
+	for <sparclinux@archiver.kernel.org>; Thu,  4 May 2023 11:31:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230057AbjEDLan (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 4 May 2023 07:30:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48522 "EHLO
+        id S229883AbjEDLbb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 4 May 2023 07:31:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229806AbjEDLab (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 07:30:31 -0400
+        with ESMTP id S229606AbjEDLb3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 07:31:29 -0400
 Received: from 189.cn (ptr.189.cn [183.61.185.102])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BBB373C0F;
-        Thu,  4 May 2023 04:30:30 -0700 (PDT)
-HMM_SOURCE_IP: 10.64.8.31:56734.294361253
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2276B3C0F;
+        Thu,  4 May 2023 04:31:28 -0700 (PDT)
+HMM_SOURCE_IP: 10.64.8.31:55282.482502416
 HMM_ATTACHE_NUM: 0000
 HMM_SOURCE_TYPE: SMTP
 Received: from clientip-114.242.206.180 (unknown [10.64.8.31])
-        by 189.cn (HERMES) with SMTP id 3F9DF10021A;
-        Thu,  4 May 2023 19:25:47 +0800 (CST)
+        by 189.cn (HERMES) with SMTP id 40663100283;
+        Thu,  4 May 2023 19:31:24 +0800 (CST)
 Received: from  ([114.242.206.180])
-        by gateway-151646-dep-85667d6c59-6qwzn with ESMTP id 9f667beeb43d4e3781deb21ab0482b44 for tzimmermann@suse.de;
-        Thu, 04 May 2023 19:25:50 CST
-X-Transaction-ID: 9f667beeb43d4e3781deb21ab0482b44
+        by gateway-151646-dep-85667d6c59-6qwzn with ESMTP id 70d89bba14af4bc3806cb9bbf0733f71 for tzimmermann@suse.de;
+        Thu, 04 May 2023 19:31:27 CST
+X-Transaction-ID: 70d89bba14af4bc3806cb9bbf0733f71
 X-Real-From: 15330273260@189.cn
 X-Receive-IP: 114.242.206.180
 X-MEDUSA-Status: 0
 Sender: 15330273260@189.cn
-Message-ID: <8feb341c-fafa-9ca2-4522-fc907aebb0f1@189.cn>
-Date:   Thu, 4 May 2023 19:25:47 +0800
+Message-ID: <58d2bd17-3b51-bd24-2f30-d849d3f72b0e@189.cn>
+Date:   Thu, 4 May 2023 19:31:24 +0800
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.10.0
-Subject: Re: [v4,1/6] fbdev/matrox: Remove trailing whitespaces
+Subject: Re: [v4,3/6] fbdev: Include <linux/io.h> in various drivers
 Content-Language: en-US
 To:     Thomas Zimmermann <tzimmermann@suse.de>, deller@gmx.de,
         geert@linux-m68k.org, javierm@redhat.com, daniel@ffwll.ch,
@@ -46,9 +46,9 @@ Cc:     linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-m68k@lists.linux-m68k.org, loongarch@lists.linux.dev,
         sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org
-References: <20230504074539.8181-2-tzimmermann@suse.de>
+References: <20230504074539.8181-4-tzimmermann@suse.de>
 From:   Sui Jingfeng <15330273260@189.cn>
-In-Reply-To: <20230504074539.8181-2-tzimmermann@suse.de>
+In-Reply-To: <20230504074539.8181-4-tzimmermann@suse.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -58,63 +58,57 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Reviewed-by: Sui Jingfeng <suijingfeng@loongson.cn>
 
-Tested-by: Sui Jingfeng <suijingfeng@loongson.cn>
-
 
 On 2023/5/4 15:45, Thomas Zimmermann wrote:
-> Fix coding style. No functional changes.
+> The code uses writel() and similar I/O-memory helpers. Include
+> the header file to get the declarations.
 >
 > Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 > Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 > ---
->   drivers/video/fbdev/matrox/matroxfb_accel.c | 6 +++---
->   drivers/video/fbdev/matrox/matroxfb_base.h  | 4 ++--
->   2 files changed, 5 insertions(+), 5 deletions(-)
+>   drivers/video/fbdev/arcfb.c       | 1 +
+>   drivers/video/fbdev/aty/atyfb.h   | 2 ++
+>   drivers/video/fbdev/wmt_ge_rops.c | 2 ++
+>   3 files changed, 5 insertions(+)
 >
-> diff --git a/drivers/video/fbdev/matrox/matroxfb_accel.c b/drivers/video/fbdev/matrox/matroxfb_accel.c
-> index 9cb0685feddd..ce51227798a1 100644
-> --- a/drivers/video/fbdev/matrox/matroxfb_accel.c
-> +++ b/drivers/video/fbdev/matrox/matroxfb_accel.c
-> @@ -88,7 +88,7 @@
+> diff --git a/drivers/video/fbdev/arcfb.c b/drivers/video/fbdev/arcfb.c
+> index 45e64016db32..d631d53f42ad 100644
+> --- a/drivers/video/fbdev/arcfb.c
+> +++ b/drivers/video/fbdev/arcfb.c
+> @@ -41,6 +41,7 @@
+>   #include <linux/vmalloc.h>
+>   #include <linux/delay.h>
+>   #include <linux/interrupt.h>
+> +#include <linux/io.h>
+>   #include <linux/fb.h>
+>   #include <linux/init.h>
+>   #include <linux/arcfb.h>
+> diff --git a/drivers/video/fbdev/aty/atyfb.h b/drivers/video/fbdev/aty/atyfb.h
+> index 465f55beb97f..30da3e82ed3c 100644
+> --- a/drivers/video/fbdev/aty/atyfb.h
+> +++ b/drivers/video/fbdev/aty/atyfb.h
+> @@ -3,8 +3,10 @@
+>    *  ATI Frame Buffer Device Driver Core Definitions
+>    */
 >   
->   static inline void matrox_cfb4_pal(u_int32_t* pal) {
->   	unsigned int i;
-> -	
+> +#include <linux/io.h>
+>   #include <linux/spinlock.h>
+>   #include <linux/wait.h>
 > +
->   	for (i = 0; i < 16; i++) {
->   		pal[i] = i * 0x11111111U;
->   	}
-> @@ -96,7 +96,7 @@ static inline void matrox_cfb4_pal(u_int32_t* pal) {
+>       /*
+>        *  Elements of the hardware specific atyfb_par structure
+>        */
+> diff --git a/drivers/video/fbdev/wmt_ge_rops.c b/drivers/video/fbdev/wmt_ge_rops.c
+> index 42255d27a1db..99c7b0aea615 100644
+> --- a/drivers/video/fbdev/wmt_ge_rops.c
+> +++ b/drivers/video/fbdev/wmt_ge_rops.c
+> @@ -9,7 +9,9 @@
 >   
->   static inline void matrox_cfb8_pal(u_int32_t* pal) {
->   	unsigned int i;
-> -	
+>   #include <linux/module.h>
+>   #include <linux/fb.h>
+> +#include <linux/io.h>
+>   #include <linux/platform_device.h>
 > +
->   	for (i = 0; i < 16; i++) {
->   		pal[i] = i * 0x01010101U;
->   	}
-> @@ -482,7 +482,7 @@ static void matroxfb_1bpp_imageblit(struct matrox_fb_info *minfo, u_int32_t fgx,
->   			/* Tell... well, why bother... */
->   			while (height--) {
->   				size_t i;
-> -				
-> +
->   				for (i = 0; i < step; i += 4) {
->   					/* Hope that there are at least three readable bytes beyond the end of bitmap */
->   					fb_writel(get_unaligned((u_int32_t*)(chardata + i)),mmio.vaddr);
-> diff --git a/drivers/video/fbdev/matrox/matroxfb_base.h b/drivers/video/fbdev/matrox/matroxfb_base.h
-> index 958be6805f87..c93c69bbcd57 100644
-> --- a/drivers/video/fbdev/matrox/matroxfb_base.h
-> +++ b/drivers/video/fbdev/matrox/matroxfb_base.h
-> @@ -301,9 +301,9 @@ struct matrox_altout {
->   	int		(*verifymode)(void* altout_dev, u_int32_t mode);
->   	int		(*getqueryctrl)(void* altout_dev,
->   					struct v4l2_queryctrl* ctrl);
-> -	int		(*getctrl)(void* altout_dev,
-> +	int		(*getctrl)(void *altout_dev,
->   				   struct v4l2_control* ctrl);
-> -	int		(*setctrl)(void* altout_dev,
-> +	int		(*setctrl)(void *altout_dev,
->   				   struct v4l2_control* ctrl);
->   };
+>   #include "core/fb_draw.h"
+>   #include "wmt_ge_rops.h"
 >   
