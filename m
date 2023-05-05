@@ -2,60 +2,58 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96C28C77B73
-	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 02:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28E2CC77B73
+	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 02:51:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229703AbjEECpR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 4 May 2023 22:45:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41866 "EHLO
+        id S230083AbjEECv1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 4 May 2023 22:51:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229514AbjEECpQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 22:45:16 -0400
-Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8890DAD38;
-        Thu,  4 May 2023 19:45:15 -0700 (PDT)
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-1aad6f2be8eso11302405ad.3;
-        Thu, 04 May 2023 19:45:15 -0700 (PDT)
+        with ESMTP id S229929AbjEECv0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 22:51:26 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 606A6120B9;
+        Thu,  4 May 2023 19:51:24 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-64115eef620so16690154b3a.1;
+        Thu, 04 May 2023 19:51:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683254715; x=1685846715;
-        h=in-reply-to:references:cc:to:from:subject:message-id:date
+        d=gmail.com; s=20221208; t=1683255084; x=1685847084;
+        h=in-reply-to:references:subject:cc:to:from:message-id:date
          :content-transfer-encoding:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=VPayZxQXhn5fHUUTNLTNfbsixo+tOxhKRUmk7oh5a/w=;
-        b=WY+pVFDrtbMq8x5EimKII2bW9WUx1lTIueOxBuy+296TzJv/lBCs2CVAl95G11oi+6
-         OZNsCVJXRYwNOUePuVJ0+7z9G92HLzFZEMU/ej0a0B82cu11Q9UTbuSiZAbzM14CvYQr
-         vSBwEP/zedkJKPWlTT86wxJPoMzMwlMsssbc0ETJDwX1uinKmleFDpH+izvPPzVQ2LlX
-         GBO/I7GPjSznEYiBLpenS8d5vQj8J9utS5crxpbEVjZ/mmpFvTw1bfgpr3vdS/SdWaXC
-         fm0hYT4RrH3rTkpnTHaFTuS8OW6QdYF/oypQk9UEjTZoOxeIHIMj1e8JUXXQYGHF51Uc
-         39eQ==
+        bh=gVzHKIeVTs5o2uUKP+mQkds3ksDwFVvhqkKafztg4+4=;
+        b=ktqHNk5loLtU/KCwR//Z7tYcVQSm8JM7u7EDXu2OxKQQsBws43LRUPjwNVbUHAGJBj
+         gc3DxpQtC1/OOyHW26dX3MwFbgdfWwpOVxdtbuQThRVEzgfI1BNUZ5OhrxthomwTTvW9
+         KuWgSVznYjqLHRiyHmWJk+LT2L2s0ufFsPGG+IURgPieshXMcNyyDt/Kzo+DCv0xKjZe
+         DyDKfQZeNNs/8VMonmfGERnmO5tTqr0eHZh+Y875AJRCzvNs9yxUih9l0rhqWFmBJrRo
+         cV/9lUiVQ0pbHb4cFF5mCXAHtl60nbslHtAtfWdEsj03EbDyIlSOcirz6VnmjBK9H4/J
+         ow4g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683254715; x=1685846715;
-        h=in-reply-to:references:cc:to:from:subject:message-id:date
+        d=1e100.net; s=20221208; t=1683255084; x=1685847084;
+        h=in-reply-to:references:subject:cc:to:from:message-id:date
          :content-transfer-encoding:mime-version:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=VPayZxQXhn5fHUUTNLTNfbsixo+tOxhKRUmk7oh5a/w=;
-        b=VLMcL4bySc+b45NoIAbafAr6j5kL07wu5Gd7fGeTx7PGxybx2mJfemQXSp8lkRwT3g
-         luq8RWKHgA/yOUtyI9+s25s5szMhRIAiRAcApixptEIQwM2p4Z2fX9gT+A5fU/lgcon8
-         THouziQy90qkRZ4ZHkbU6W58AkWRYj5x6iSjxaarlOxRZkrC3HVln40lDB19jx/BHwaM
-         W5N+h7IprxpmQNnCkmQ76Rn31naYVHOsTBcZG7JbYR9DqEWXpKyYqPLuAXKt/mxPJ6h3
-         cIGkpQH/683M3iuc3B63V64DQy+wfVIA9lkr0ldWCVz0DE5J4qK7z21liKytC/sAcihE
-         hGSw==
-X-Gm-Message-State: AC+VfDzOsaSVRutPGOkdieRsUPOH4UMaVPv8NEyHRan8szozRdawoon9
-        Jo+Ocqv54x1B+8SzxGOCDyE=
-X-Google-Smtp-Source: ACHHUZ7idBWKbQjk10tpmFWDhGOiQRpg+CYPjBMjjCmko/Hu86hwsF4Jk+5iuKMKBjLrW41Iwy8Stg==
-X-Received: by 2002:a17:902:d315:b0:1ab:13bd:5f96 with SMTP id b21-20020a170902d31500b001ab13bd5f96mr5830962plc.4.1683254714963;
-        Thu, 04 May 2023 19:45:14 -0700 (PDT)
+        bh=gVzHKIeVTs5o2uUKP+mQkds3ksDwFVvhqkKafztg4+4=;
+        b=FPSOrNZxM2XVbwmJ09iFGO1aWAquy5LHRUlXjiduGkuOWU7kOyZ34C/ElMMsEcwZj1
+         bW+kfpZvmzwO6GANy3aPUe8Rw9e/jMKOn9SlLOEw+QSJxLd4P79hsc6FgcFDrW++uKuX
+         zbpdyJ7o/sWVzt42+/2qHoMhnFq6YEtHTv8mk2FxEas/g36AkdQqjZ1R4DgtjZ0N2t6n
+         y/yIRJj7CTnIbDIozrKrgfCYRIRjj3iyZy7wJnAqMZZ1/1rF4dhDFR5RSTuMwT2wGY2a
+         XdupCLGtJbfEKmzhBczkojB/zohaySLxU4+Ue7kzUgpxCx5WQXh76A8H9iLl7wqfuBj6
+         fP7g==
+X-Gm-Message-State: AC+VfDyZmaWOSQiX9iEvXDw/YCTbK6/rozSAUOGJZzuzv/kAtAcwvomP
+        M6b9bJMbmKd0IrhlIehLGh4=
+X-Google-Smtp-Source: ACHHUZ5BRoOs+9WXOczfgGoXbf4YZMUc/Uu5++G5XcOuyogjStZoqiKceepZC/RfSwAcQqdM6F1UUg==
+X-Received: by 2002:a17:902:d48e:b0:1a9:68d2:e4ae with SMTP id c14-20020a170902d48e00b001a968d2e4aemr6701878plg.2.1683255083704;
+        Thu, 04 May 2023 19:51:23 -0700 (PDT)
 Received: from localhost ([203.59.190.92])
-        by smtp.gmail.com with ESMTPSA id o5-20020a1709026b0500b001a6cd1e4205sm320934plk.279.2023.05.04.19.45.03
+        by smtp.gmail.com with ESMTPSA id t4-20020a170902bc4400b001ab29e002fbsm367141plz.17.2023.05.04.19.51.09
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 04 May 2023 19:45:14 -0700 (PDT)
+        Thu, 04 May 2023 19:51:23 -0700 (PDT)
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset=UTF-8
-Date:   Fri, 05 May 2023 12:45:00 +1000
-Message-Id: <CSDZZQEL28W8.1WE80JHITRBKA@wheely>
-Subject: Re: [PATCH v4 03/17] watchdog/hardlockup: change
- watchdog_nmi_enable() to void
+Date:   Fri, 05 May 2023 12:51:06 +1000
+Message-Id: <CSE04EI159N2.2TSXHBN2QLFCM@wheely>
 From:   "Nicholas Piggin" <npiggin@gmail.com>
 To:     "Douglas Anderson" <dianders@chromium.org>,
         "Petr Mladek" <pmladek@suse.com>,
@@ -83,108 +81,94 @@ Cc:     "Sumit Garg" <sumit.garg@linaro.org>,
         "Marc Zyngier" <maz@kernel.org>,
         "Catalin Marinas" <catalin.marinas@arm.com>,
         "Daniel Thompson" <daniel.thompson@linaro.org>
+Subject: Re: [PATCH v4 05/17] watchdog/hardlockup: Rename
+ touch_nmi_watchdog() to touch_hardlockup_watchdog()
 X-Mailer: aerc 0.14.0
 References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.3.Ic3a19b592eb1ac4c6f6eade44ffd943e8637b6e5@changeid>
-In-Reply-To: <20230504151100.v4.3.Ic3a19b592eb1ac4c6f6eade44ffd943e8637b6e5@changeid>
+ <20230504151100.v4.5.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid>
+In-Reply-To: <20230504151100.v4.5.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
-> From: Lecopzer Chen <lecopzer.chen@mediatek.com>
->
-> Nobody cares about the return value of watchdog_nmi_enable(),
-> changing its prototype to void.
->
+> In preparation for the buddy hardlockup detector, rename
+> touch_nmi_watchdog() to touch_hardlockup_watchdog() to make it clear
+> that it will touch whatever hardlockup detector is configured. We'll
+> add a #define for the old name (touch_nmi_watchdog) so that we don't
+> have to touch every piece of code referring to the old name.
 
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Is this really helpful? Now it's got two names Could just leave it.
+If you insist then it'd be better just to rename everything in one
+go at the end of a merge window IMO. Conflicts would be trivial.
 
-> Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-> Reviewed-by: Petr Mladek <pmladek@suse.com>
+> Ideally this change would also rename the arch_touch_nmi_watchdog(),
+> but that is harder since arch_touch_nmi_watchdog() is exported with
+> EXPORT_SYMBOL() and thus is ABI. Add a comment next to the call to
+> hopefully alleviate some of the confusion here.
+
+We don't keep ABI fixed upstream.
+
+Thanks,
+Nick
+
+>
 > Signed-off-by: Douglas Anderson <dianders@chromium.org>
 > ---
-> I yanked this patch from the mailing lists [1] into my series just to
-> make it easier to avoid conflicts between my series and the one adding
-> the arm64 perf hardlockup detector, in case someone wanted to test
-> them both together. This is a nice cleanup and could land together
-> with the rest of my series if that makes sense.
->
-> I changed the patch prefix to match others in my series.
->
-> [1] https://lore.kernel.org/r/20220903093415.15850-3-lecopzer.chen@mediat=
-ek.com/
 >
 > Changes in v4:
-> - Pulled ("change watchdog_nmi_enable() to void") into my series for v4.
+> - ("Rename touch_nmi_watchdog() to ...") new for v4.
 >
->  arch/sparc/kernel/nmi.c | 8 +++-----
->  include/linux/nmi.h     | 2 +-
->  kernel/watchdog.c       | 3 +--
->  3 files changed, 5 insertions(+), 8 deletions(-)
+>  include/linux/nmi.h | 27 ++++++++++++++++++++++-----
+>  1 file changed, 22 insertions(+), 5 deletions(-)
 >
-> diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-> index 060fff95a305..5dcf31f7e81f 100644
-> --- a/arch/sparc/kernel/nmi.c
-> +++ b/arch/sparc/kernel/nmi.c
-> @@ -282,11 +282,11 @@ __setup("nmi_watchdog=3D", setup_nmi_watchdog);
->   * sparc specific NMI watchdog enable function.
->   * Enables watchdog if it is not enabled already.
->   */
-> -int watchdog_nmi_enable(unsigned int cpu)
-> +void watchdog_nmi_enable(unsigned int cpu)
->  {
->  	if (atomic_read(&nmi_active) =3D=3D -1) {
->  		pr_warn("NMI watchdog cannot be enabled or disabled\n");
-> -		return -1;
-> +		return;
->  	}
-> =20
->  	/*
-> @@ -295,11 +295,9 @@ int watchdog_nmi_enable(unsigned int cpu)
->  	 * process first.
->  	 */
->  	if (!nmi_init_done)
-> -		return 0;
-> +		return;
-> =20
->  	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
-> -
-> -	return 0;
->  }
->  /*
->   * sparc specific NMI watchdog disable function.
 > diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-> index 771d77b62bc1..454fe99c4874 100644
+> index 454fe99c4874..35d09d70f394 100644
 > --- a/include/linux/nmi.h
 > +++ b/include/linux/nmi.h
-> @@ -119,7 +119,7 @@ static inline int hardlockup_detector_perf_init(void)=
- { return 0; }
->  void watchdog_nmi_stop(void);
->  void watchdog_nmi_start(void);
->  int watchdog_nmi_probe(void);
-> -int watchdog_nmi_enable(unsigned int cpu);
-> +void watchdog_nmi_enable(unsigned int cpu);
->  void watchdog_nmi_disable(unsigned int cpu);
-> =20
+> @@ -125,18 +125,35 @@ void watchdog_nmi_disable(unsigned int cpu);
 >  void lockup_detector_reconfigure(void);
-> diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> index 582d572e1379..c705a18b26bf 100644
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -93,10 +93,9 @@ __setup("nmi_watchdog=3D", hardlockup_panic_setup);
->   * softlockup watchdog start and stop. The arch must select the
->   * SOFTLOCKUP_DETECTOR Kconfig.
+> =20
+>  /**
+> - * touch_nmi_watchdog - restart NMI watchdog timeout.
+> + * touch_hardlockup_watchdog - manually pet the hardlockup watchdog.
+>   *
+> - * If the architecture supports the NMI watchdog, touch_nmi_watchdog()
+> - * may be used to reset the timeout - for code which intentionally
+> - * disables interrupts for a long time. This call is stateless.
+> + * If we support detecting hardlockups, touch_hardlockup_watchdog() may =
+be
+> + * used to pet the watchdog (reset the timeout) - for code which
+> + * intentionally disables interrupts for a long time. This call is state=
+less.
 >   */
-> -int __weak watchdog_nmi_enable(unsigned int cpu)
-> +void __weak watchdog_nmi_enable(unsigned int cpu)
+> -static inline void touch_nmi_watchdog(void)
+> +static inline void touch_hardlockup_watchdog(void)
 >  {
->  	hardlockup_detector_perf_enable();
-> -	return 0;
+> +	/*
+> +	 * Pass on to the hardlockup detector selected via CONFIG_. Note that
+> +	 * the hardlockup detector may not be arch-specific nor using NMIs,
+> +	 * but arch_touch_nmi_watchdog() is exported with EXPORT_SYMBOL() and
+> +	 * is thus ABI.
+> +	 */
+>  	arch_touch_nmi_watchdog();
+> +
+> +	/*
+> +	 * Touching the hardlock detector implcitily pets the
+> +	 * softlockup detector too
+> +	 */
+>  	touch_softlockup_watchdog();
 >  }
 > =20
->  void __weak watchdog_nmi_disable(unsigned int cpu)
+> +/*
+> + * It's encouraged for code to refer to the new name, but allow the old
+> + * name as well.
+> + */
+> +#define touch_nmi_watchdog	touch_hardlockup_watchdog
+> +
+>  /*
+>   * Create trigger_all_cpu_backtrace() out of the arch-provided
+>   * base function. Return whether such support was available,
 > --=20
 > 2.40.1.521.gf1e218fcd8-goog
 
