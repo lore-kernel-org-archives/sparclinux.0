@@ -2,58 +2,58 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10889C77B73
-	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 03:03:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C9FCC7EE23
+	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 03:07:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229472AbjEEDCc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 4 May 2023 23:02:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46256 "EHLO
+        id S229472AbjEEDHB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 4 May 2023 23:07:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229818AbjEEDCA (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 23:02:00 -0400
-Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CABAB11B7C;
-        Thu,  4 May 2023 20:01:57 -0700 (PDT)
-Received: by mail-pl1-x633.google.com with SMTP id d9443c01a7336-1aad5245571so8527655ad.1;
-        Thu, 04 May 2023 20:01:57 -0700 (PDT)
+        with ESMTP id S229482AbjEEDHA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 May 2023 23:07:00 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0101A11603;
+        Thu,  4 May 2023 20:06:56 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-63b62d2f729so1042920b3a.1;
+        Thu, 04 May 2023 20:06:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683255717; x=1685847717;
+        d=gmail.com; s=20221208; t=1683256016; x=1685848016;
         h=in-reply-to:references:to:from:subject:cc:message-id:date
          :content-transfer-encoding:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4PZDk7grPMVm0G4plF1AOyfal6UfKUjeqMY34ZW+ZAQ=;
-        b=l8NOWx+JbMx094FOTHTTAYeieKLG6l+RoxKooetFCoRg01JgRpRgmVK4EEnqQGp5Rv
-         Wo7jd5ZE+BhoTQ83yfVxkRWDV8+8fYgzKrUQG+mG2SKoUwQzV4PiqCThKZNktLEkx80D
-         dbZRbHCpWflzRiQ+5dUIKlwArRroFaTk4Ds/n3538KW17NDJa0a+h/l5niHUznruDebe
-         bM/9WMTgDrGpzcJNg2dEdXkiWqJTXpKVuu+xjnqek1SKKSYnqTk3zeH62sRwe7eJhyjM
-         UEdL7abKjXNavxqB2b/VypuWuDH+efkVGB6cwaNtCumipgGM0sxe7eY6ZqTznd4UjVkh
-         DJMw==
+        bh=clDf0mag7jSJOcBrV8uy3dVBVfVUaL1M4k8bgRC2I4s=;
+        b=ZgbOpyAhMkj8DW2/1MjEkpRHTBanrpSvOIXdvw2BbjHVmZ3yQvz/iIqqqBoF62VREp
+         0KPDwGbr8UkfcN/CdmloQHP/wMuOlu8WKNZwWqeLgpyxaqRlsAs8yJS74nIG9A+MoQgW
+         GiM4xHJ4mGmhdHZC/EMJNHdHGTLyv2rN2XTODv2WApYaZiJoFXZ/07rkA/ewdFm9ZXrK
+         iqBaFLdxuZpZeOKyIY3Iv1JZRUDo6TdPC/mDg2HHKld1Jiyoa9GXwVjzVX2qUXZO2bkw
+         N4dzuSlzQMFUVCknsGFbdRBLFBpdBeX3NTx4XpMRWbR7QEUT8nPGpfd5Ln1naff9xKgb
+         Pa2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683255717; x=1685847717;
+        d=1e100.net; s=20221208; t=1683256016; x=1685848016;
         h=in-reply-to:references:to:from:subject:cc:message-id:date
          :content-transfer-encoding:mime-version:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=4PZDk7grPMVm0G4plF1AOyfal6UfKUjeqMY34ZW+ZAQ=;
-        b=Ygs6vUg5fCcp0X2SbhMGiWqNTzfwa0n6dboX2JfdfMp/zt5fxU3YWS9vP2mm7YF5aD
-         LwLnoBXIBEoXWQPPjstUgFMWfgtAJuOllqL4jpPF6I+zi34Z4sZ3YdVwBuR2UewIlHGj
-         XI9ZyXWtF0kMrfHZktp9hg2XidPoxpm0OC2WYvDvyCWsIRUYvWsSwpRhHwWTLEYSyhmA
-         skPId+uWE4Fc9QmJJonAZKw3M7ezWMyZtwIbW7jwU/hQqHdsOIWhkHJ17p/evnHykKSU
-         28RjKOSX/NUv/s0jTCLXap3tid1mQpBBqGGa4uxjnAUe4O7dxAOQ0Q7EyLSCtE/d9FDQ
-         JQBA==
-X-Gm-Message-State: AC+VfDx/A6wbo2G3VCsOj+gKQcEpVB7B7yjuZG3pYYiXU52mZUlLjwt7
-        TPaUG5TU3ymzgbfx9YTJGno=
-X-Google-Smtp-Source: ACHHUZ5Ox+yCPXhRH+Zo/Bf0YWlPnoiHwxarQldt5h1nNQM5kPEVVWcuprv1MbKY8J2RKwbHQwgMKQ==
-X-Received: by 2002:a17:903:187:b0:1a2:8c7e:f301 with SMTP id z7-20020a170903018700b001a28c7ef301mr6214939plg.45.1683255717124;
-        Thu, 04 May 2023 20:01:57 -0700 (PDT)
+        bh=clDf0mag7jSJOcBrV8uy3dVBVfVUaL1M4k8bgRC2I4s=;
+        b=fEt3yFMfTA6sYQmS6AQi22JpaHGBR8fzqN32uA5WPKdNXSVe06w1quZdHgLWjZsaVI
+         +d/zR8fiM40CJtlNm2d2nHX9OffZ+k/citUyogUS0jZQXAQ/ear5DUdhkbQMcFJ6Nh7p
+         sDzev+wUHa2BVPl3kIKlGR1eiK5hKFQ8ZocOU1qaDlFo69478Znn8otsglluyqTnoBbi
+         JBKc3JZWAR7fII+fCF+0CXLO+9X7wxmQTJMnEnOToYWQwH2WQSmsDTIyeQ2VsVLbM0uF
+         8U1Ejzw+o7QbEAxMcnMwfGo4zFTeYLxH7erMx2kMgmHhlGNbxeruZX2Pz6KM9b0/jiAu
+         QvdQ==
+X-Gm-Message-State: AC+VfDwAy5M80JJLU3WLeq5b6CznCdzUbge86O48U8fqjdEHhT6KUOVX
+        9rXjDpJ/Av/EhPN3Rzo4Tto=
+X-Google-Smtp-Source: ACHHUZ46P1P4WoTqpa9RKU3PzJiT096JVizromiqphOqiUBMf2I/jgGp4hWYnFU/0f2fFZ7lH7p5+A==
+X-Received: by 2002:a05:6a20:9d8e:b0:ef:bd:38 with SMTP id mu14-20020a056a209d8e00b000ef00bd0038mr4174463pzb.55.1683256016392;
+        Thu, 04 May 2023 20:06:56 -0700 (PDT)
 Received: from localhost ([203.59.190.92])
-        by smtp.gmail.com with ESMTPSA id jj22-20020a170903049600b0019fea4d61c9sm354034plb.198.2023.05.04.20.01.44
+        by smtp.gmail.com with ESMTPSA id b2-20020a170903228200b001aafa2e4716sm356432plh.264.2023.05.04.20.06.44
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 04 May 2023 20:01:56 -0700 (PDT)
+        Thu, 04 May 2023 20:06:55 -0700 (PDT)
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset=UTF-8
-Date:   Fri, 05 May 2023 13:01:41 +1000
-Message-Id: <CSE0CI3TFK72.2I4E5TJIRHDGM@wheely>
+Date:   Fri, 05 May 2023 13:06:41 +1000
+Message-Id: <CSE0GBQQDUAY.1QAJIC3D3OBVU@wheely>
 Cc:     "Sumit Garg" <sumit.garg@linaro.org>,
         "Mark Rutland" <mark.rutland@arm.com>,
         "Matthias Kaehlcke" <mka@chromium.org>,
@@ -77,127 +77,34 @@ Cc:     "Sumit Garg" <sumit.garg@linaro.org>,
         "Marc Zyngier" <maz@kernel.org>,
         "Catalin Marinas" <catalin.marinas@arm.com>,
         "Daniel Thompson" <daniel.thompson@linaro.org>
-Subject: Re: [PATCH v4 08/17] watchdog/hardlockup: Style changes to
- watchdog_hardlockup_check() / ..._is_lockedup()
+Subject: Re: [PATCH v4 11/17] watchdog/hardlockup: Rename some "NMI
+ watchdog" constants/function
 From:   "Nicholas Piggin" <npiggin@gmail.com>
 To:     "Douglas Anderson" <dianders@chromium.org>,
         "Petr Mladek" <pmladek@suse.com>,
         "Andrew Morton" <akpm@linux-foundation.org>
 X-Mailer: aerc 0.14.0
 References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.8.I818492c326b632560b09f20d2608455ecf9d3650@changeid>
-In-Reply-To: <20230504151100.v4.8.I818492c326b632560b09f20d2608455ecf9d3650@changeid>
+ <20230504151100.v4.11.I91f7277bab4bf8c0cb238732ed92e7ce7bbd71a6@changeid>
+In-Reply-To: <20230504151100.v4.11.I91f7277bab4bf8c0cb238732ed92e7ce7bbd71a6@changeid>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
-> These are tiny style changes:
-> - Add a blank line before a "return".
-> - Renames two globals to use the "watchdog_hld" prefix.
+> Do a search and replace of:
+> - NMI_WATCHDOG_ENABLED =3D> HARD_WATCHDOG_ENABLED
+> - watchdog_nmi_ =3D> watchdog_hardlockup_
 
-Particularly static ones don't really need the namespace prefixes.
+These are just making prefixes inconsistent again.
 
-Not sure if processed is better than warn. allcpu_dumped is better
-than dumped_stacks though because the all-CPUs-dump is a particular
-thing.
+If you really want to do a prefix, I would call it hardlockup which
+probably best matches existing code and sysctl / boot stuff, and
+concentrate on non-static symbols.
 
-Other style bits seem fine.
+No problem with minor things like this that touch arch/powerpc
+going through Andrew's tree though. I'm sure sparc maintainers
+wouldn't mind either.
 
 Thanks,
 Nick
-
-> - Store processor id in "unsigned int" rather than "int".
-> - Minor comment rewording.
-> - Use "else" rather than extra returns since it seemed more symmetric.
->
-> Signed-off-by: Douglas Anderson <dianders@chromium.org>
-> ---
->
-> Changes in v4:
-> - ("Style changes to watchdog_hardlockup_check ...") new for v4.
->
->  kernel/watchdog.c | 32 +++++++++++++++-----------------
->  1 file changed, 15 insertions(+), 17 deletions(-)
->
-> diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> index 2d319cdf64b9..f46669c1671d 100644
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -89,8 +89,8 @@ __setup("nmi_watchdog=3D", hardlockup_panic_setup);
-> =20
->  static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
->  static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
-> -static DEFINE_PER_CPU(bool, hard_watchdog_warn);
-> -static unsigned long hardlockup_allcpu_dumped;
-> +static DEFINE_PER_CPU(bool, watchdog_hardlockup_processed);
-> +static unsigned long watchdog_hardlockup_dumped_stacks;
-> =20
->  static bool watchdog_hardlockup_is_lockedup(void)
->  {
-> @@ -100,6 +100,7 @@ static bool watchdog_hardlockup_is_lockedup(void)
->  		return true;
-> =20
->  	__this_cpu_write(hrtimer_interrupts_saved, hrint);
-> +
->  	return false;
->  }
-> =20
-> @@ -110,21 +111,20 @@ static void watchdog_hardlockup_interrupt_count(voi=
-d)
-> =20
->  void watchdog_hardlockup_check(struct pt_regs *regs)
->  {
-> -	/* check for a hardlockup
-> -	 * This is done by making sure our timer interrupt
-> -	 * is incrementing.  The timer interrupt should have
-> -	 * fired multiple times before we overflow'd.  If it hasn't
-> +	/*
-> +	 * Check for a hardlockup by making sure the CPU's timer
-> +	 * interrupt is incrementing. The timer interrupt should have
-> +	 * fired multiple times before we overflow'd. If it hasn't
->  	 * then this is a good indication the cpu is stuck
->  	 */
->  	if (watchdog_hardlockup_is_lockedup()) {
-> -		int this_cpu =3D smp_processor_id();
-> +		unsigned int this_cpu =3D smp_processor_id();
-> =20
-> -		/* only print hardlockups once */
-> -		if (__this_cpu_read(hard_watchdog_warn) =3D=3D true)
-> +		/* Only handle hardlockups once. */
-> +		if (__this_cpu_read(watchdog_hardlockup_processed))
->  			return;
-> =20
-> -		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n",
-> -			 this_cpu);
-> +		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", this_cpu);
->  		print_modules();
->  		print_irqtrace_events(current);
->  		if (regs)
-> @@ -137,18 +137,16 @@ void watchdog_hardlockup_check(struct pt_regs *regs=
-)
->  		 * generating interleaving traces
->  		 */
->  		if (sysctl_hardlockup_all_cpu_backtrace &&
-> -				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
-> +		    !test_and_set_bit(0, &watchdog_hardlockup_dumped_stacks))
->  			trigger_allbutself_cpu_backtrace();
-> =20
->  		if (hardlockup_panic)
->  			nmi_panic(regs, "Hard LOCKUP");
-> =20
-> -		__this_cpu_write(hard_watchdog_warn, true);
-> -		return;
-> +		__this_cpu_write(watchdog_hardlockup_processed, true);
-> +	} else {
-> +		__this_cpu_write(watchdog_hardlockup_processed, false);
->  	}
-> -
-> -	__this_cpu_write(hard_watchdog_warn, false);
-> -	return;
->  }
-> =20
->  #else /* CONFIG_HARDLOCKUP_DETECTOR_PERF */
-> --=20
-> 2.40.1.521.gf1e218fcd8-goog
-
