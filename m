@@ -2,202 +2,142 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4CE2C7EE2C
-	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 13:19:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 796A0C77B7F
+	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 16:36:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232441AbjEENT3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 5 May 2023 09:19:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44232 "EHLO
+        id S232527AbjEEQgG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 5 May 2023 12:36:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232422AbjEENT0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 May 2023 09:19:26 -0400
-Received: from new2-smtp.messagingengine.com (new2-smtp.messagingengine.com [66.111.4.224])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D1E11E9BD;
-        Fri,  5 May 2023 06:19:22 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 1A10F5802A0;
-        Fri,  5 May 2023 09:19:19 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Fri, 05 May 2023 09:19:19 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm3; t=
-        1683292759; x=1683299959; bh=MFewdMftG+wRD887OcQ41hQs0awPz56T0ru
-        yGnj8ABI=; b=T7QiYreOPC+QycowzVZsUb+Flt5SaOjHFxAhKjqZsP+nsbKyqVd
-        vQ8eowoEYwNI/GU+ISyjC+jWPEKamuy6X2bmGmXoFQmBFMRt3DPTZF7imVRis0gr
-        S0EkyyDbQvtLD7pfZ4AsHyrYk42NDSyf8/wa7V9JGjoeIM+dclks9qkVsfuCYS36
-        2bnobzF6Lg7r4sP9JfGrvCZy6bK7TL5qDUup6dDDozkhtlDKoL2JENn8cqmA5ZJ5
-        wLu4/Si0kCVvWmQxVaYqYa+bPXXPogECh5ZRpy0s2bQVgjpqCgavDgb5K4Sf79fl
-        Z2ACYtb7nNPJlBQY7RKS+i0yrfAvSYbn6sQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-        1683292759; x=1683299959; bh=MFewdMftG+wRD887OcQ41hQs0awPz56T0ru
-        yGnj8ABI=; b=FVvu2kHfPB+goofUSO7GBQXw9iAuEK1luvy6mN9DIT3CnY67Gls
-        0KZVLaa6ELu1958ejxqPitibsxtjnQdtVNl7Z4DIo/7t6vSCqKnMSbKFtiZxUfg8
-        SuTynEk2oMcUtF9nJJbJg0GYURVCU7bPEPfG8kEUYCku0K859h+BHBVlobnzbNVb
-        9jCOuQHGR9JdwHKNFMPcOBCnbMbqE970CGlmaHJPbDGFzyO5if6gbd+OUkaHxy+L
-        frNzAleO1fKFLe9X7xNq2nNbq2hrGATg6TTB1yBWoA0Wjb4XH3SHavwUomASSa1B
-        aF2LKjYsYglP/xYL6ASj4zNf9qShE/HNiUg==
-X-ME-Sender: <xms:UwJVZOh9cnZIXMM77LhNvXoz2YNii-arffCBI32Pq_fv4QfUTdVISg>
-    <xme:UwJVZPAntNX3cn4OGLtqo2LRLlqkpl7Dvxks5UPOgyYyhnzhUynPY4VJ3y3azSULF
-    _Z-HMCpBmE7SFSlVlw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeefvddgieefucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtgfesthhqredtreerjeenucfhrhhomhepfdet
-    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
-    htthgvrhhnpeegfeejhedvledvffeijeeijeeivddvhfeliedvleevheejleetgedukedt
-    gfejveenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    grrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:UwJVZGH5NsIuOroPMeDuiba-Tn1p718Jzhmp9sTCmS-1lOWUaiFtVQ>
-    <xmx:UwJVZHTAxF0WKn8MsTwRzrxqsy1jTv31MgcN7ZNnDyiETst0t2wtOQ>
-    <xmx:UwJVZLzt4fDtGxTef6RbmcqquDaW2xXV0M3lt4aM-O0fppZufkssOQ>
-    <xmx:VwJVZHhc7KCJPgnStXUQtZd0bp63LSI-wEqxVbh0vya0G4fcoSCVFw>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 110CDB60089; Fri,  5 May 2023 09:19:15 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-386-g2404815117-fm-20230425.001-g24048151
-Mime-Version: 1.0
-Message-Id: <f460ad77-aa76-43bb-b2bb-e3b6dbcd8b03@app.fastmail.com>
-In-Reply-To: <CAJF2gTT2VCVMJs1NvgK66uD+BhObjM2WNxf2RY7wTZsho4sjVA@mail.gmail.com>
-References: <20230327121317.4081816-1-arnd@kernel.org>
- <20230327121317.4081816-10-arnd@kernel.org>
- <CAJF2gTT2VCVMJs1NvgK66uD+BhObjM2WNxf2RY7wTZsho4sjVA@mail.gmail.com>
-Date:   Fri, 05 May 2023 15:18:54 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     guoren <guoren@kernel.org>, "Arnd Bergmann" <arnd@kernel.org>,
-        "Christoph Hellwig" <hch@lst.de>
-Cc:     linux-kernel@vger.kernel.org, "Vineet Gupta" <vgupta@kernel.org>,
-        "Will Deacon" <will@kernel.org>,
-        "Russell King" <linux@armlinux.org.uk>,
-        "Neil Armstrong" <neil.armstrong@linaro.org>,
-        "Linus Walleij" <linus.walleij@linaro.org>,
-        "Catalin Marinas" <catalin.marinas@arm.com>,
-        "Brian Cain" <bcain@quicinc.com>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Michal Simek" <monstr@monstr.eu>,
-        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
-        "Dinh Nguyen" <dinguyen@kernel.org>,
-        "Stafford Horne" <shorne@gmail.com>,
-        "Helge Deller" <deller@gmx.de>,
-        "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
-        "Paul Walmsley" <paul.walmsley@sifive.com>,
-        "Palmer Dabbelt" <palmer@dabbelt.com>,
-        "Rich Felker" <dalias@libc.org>,
-        "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        "Max Filippov" <jcmvbkbc@gmail.com>,
-        "Robin Murphy" <robin.murphy@arm.com>,
-        "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        "Conor.Dooley" <conor.dooley@microchip.com>,
-        linux-snps-arc@lists.infradead.org,
+        with ESMTP id S232137AbjEEQgF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 May 2023 12:36:05 -0400
+Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA99014E60
+        for <sparclinux@vger.kernel.org>; Fri,  5 May 2023 09:36:02 -0700 (PDT)
+Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-2502346bea0so796926a91.2
+        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:36:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1683304561; x=1685896561;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EpDnC2craXa71PgQOtY/fZMYoEOsNHjFRztUygfINOs=;
+        b=bxLCoKNjp6sDmXLHLr5RClnFOx9SzoDCcFEkF81F12AKTRh8xOUIdxHaJ12j6O5cH/
+         CckmP1nWtZkaacXt5QGEvsmuTHBrFUokZn+lyKFxOPTEs+E6vkMQ4p9dU9trBsZKRRFu
+         N4a3SgwoWA+KVi7iuAyfyZX0Kr+2c3FuEu+ag=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683304561; x=1685896561;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=EpDnC2craXa71PgQOtY/fZMYoEOsNHjFRztUygfINOs=;
+        b=bSoJ0ZlNO9zLZPT5hU56ZojgVxIWLfrAwVb4TjFIyoa/CsmOpC+YRBvlOctHOtBrQo
+         p3XaseQIfTo8n9ygWLKSlDeqZ0eUZane1xn3f8Wg2jDWnwLM+QWsZ3u9fwIj0X9vPf0q
+         DYM9eZBsR7S9J+Nn5qSNYVtizateD6h5/aUQ5ZAixA9zbZEgjGPRqLyTzwjkQTXegL4x
+         Pq5PSVUEh4afBRX0OiGr6bBvE+SP0a+kXcKKNj/rCqfmLrdKZzWBqQqZFfUcWBUvqjuK
+         X2+IqP6w1nrzRoUbpyO9ccg2P96Of/39pYd9lYPfiOYWs/3A+X0yYH7SF6uxOm9HDWFx
+         JJ0g==
+X-Gm-Message-State: AC+VfDylaNnM6ZKjv1MsFcH2XTIWBLd8L6b3VNtbm/z+ejeuEvMepDHT
+        cIDZQFbAGxtc0T/dp4/TKBel9Mu60IxGIwBvGRQ=
+X-Google-Smtp-Source: ACHHUZ62hs7yOl6v/AJk7/cIIBXBwfIG60vtKO5SoE4jE4P8SbDV1QVW7zsUOXfsuNcK7E0oOxz60g==
+X-Received: by 2002:a17:90b:1c8a:b0:24e:f03:6b8f with SMTP id oo10-20020a17090b1c8a00b0024e0f036b8fmr1787163pjb.48.1683304561109;
+        Fri, 05 May 2023 09:36:01 -0700 (PDT)
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com. [209.85.214.175])
+        by smtp.gmail.com with ESMTPSA id ku12-20020a17090b218c00b0023a9564763bsm5281201pjb.29.2023.05.05.09.36.00
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 05 May 2023 09:36:00 -0700 (PDT)
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-1aae90f5ebcso600225ad.1
+        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:36:00 -0700 (PDT)
+X-Received: by 2002:a05:622a:1981:b0:3ed:210b:e698 with SMTP id
+ u1-20020a05622a198100b003ed210be698mr317734qtc.7.1683304539483; Fri, 05 May
+ 2023 09:35:39 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230504221349.1535669-1-dianders@chromium.org>
+ <20230504151100.v4.13.I6bf789d21d0c3d75d382e7e51a804a7a51315f2c@changeid> <CSDZSKA38AEF.FY7J3JXBJX4I@wheely>
+In-Reply-To: <CSDZSKA38AEF.FY7J3JXBJX4I@wheely>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Fri, 5 May 2023 09:35:25 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=XDfbx3UaP7DV63tASE5Md7siS-EnORD_3T-4yYaEQ7ww@mail.gmail.com>
+Message-ID: <CAD=FV=XDfbx3UaP7DV63tASE5Md7siS-EnORD_3T-4yYaEQ7ww@mail.gmail.com>
+Subject: Re: [PATCH v4 13/17] watchdog/hardlockup: detect hard lockups using
+ secondary (buddy) CPUs
+To:     Nicholas Piggin <npiggin@gmail.com>
+Cc:     Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        Stephane Eranian <eranian@google.com>,
+        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Ian Rogers <irogers@google.com>,
         linux-arm-kernel@lists.infradead.org,
-        "linux-oxnas@groups.io" <linux-oxnas@groups.io>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org,
-        "linux-openrisc@vger.kernel.org" <linux-openrisc@vger.kernel.org>,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH 09/21] riscv: dma-mapping: skip invalidation before bidirectional
- DMA
-Content-Type: text/plain;charset=utf-8
+        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
+        davem@davemloft.net, sparclinux@vger.kernel.org,
+        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
+        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
+        Marc Zyngier <maz@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Colin Cross <ccross@android.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, May 5, 2023, at 07:47, Guo Ren wrote:
-> On Mon, Mar 27, 2023 at 8:15=E2=80=AFPM Arnd Bergmann <arnd@kernel.org=
-> wrote:
+Hi,
 
->>
->> riscv also invalidates the caches before the transfer, which does
->> not appear to serve any purpose.
-> Yes, we can't guarantee the CPU pre-load cache lines randomly during
-> dma working.
+On Thu, May 4, 2023 at 7:36=E2=80=AFPM Nicholas Piggin <npiggin@gmail.com> =
+wrote:
 >
-> But I've two purposes to keep invalidates before dma transfer:
->  - We clearly tell the CPU these cache lines are invalid. The caching
-> algorithm would use these invalid slots first instead of replacing
-> valid ones.
->  - Invalidating is very cheap. Actually, flush and clean have the same
-> performance in our machine.
-
-The main purpose of the series was to get consistent behavior on
-all machines, so I really don't want a custom optimization on
-one architecture. You make a good point about cacheline reuse
-after invalidation, but if we do that, I'd suggest doing this
-across all architectures.
-
-> So, how about:
+> On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
+> > From: Colin Cross <ccross@android.com>
+> >
+> > Implement a hardlockup detector that doesn't doesn't need any extra
+> > arch-specific support code to detect lockups. Instead of using
+> > something arch-specific we will use the buddy system, where each CPU
+> > watches out for another one. Specifically, each CPU will use its
+> > softlockup hrtimer to check that the next CPU is processing hrtimer
+> > interrupts by verifying that a counter is increasing.
 >
-> diff --git a/arch/riscv/mm/dma-noncoherent.c b/arch/riscv/mm/dma-nonco=
-herent.c
-> index d919efab6eba..2c52fbc15064 100644
-> --- a/arch/riscv/mm/dma-noncoherent.c
-> +++ b/arch/riscv/mm/dma-noncoherent.c
-> @@ -22,8 +22,6 @@ void arch_sync_dma_for_device(phys_addr_t paddr, siz=
-e_t size,
->                 ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
->                 break;
->         case DMA_FROM_DEVICE:
-> -               ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
-> -               break;
->         case DMA_BIDIRECTIONAL:
->                 ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
->                 break;
+> Powerpc's watchdog has an SMP checker, did you see it?
 
-This is something we can consider. Unfortunately, this is something
-that no architecture (except pa-risc, which has other problems)
-does at the moment, so we'd probably need to have a proper debate
-about this.
+No, I wasn't aware of it. Interesting, it seems to basically enable
+both types of hardlockup detectors together. If that really catches
+more lockups, it seems like we could do the same thing for the buddy
+system. If people want, I don't think it would be very hard to make
+the buddy system _not_ exclusive of the perf system. Instead of having
+the buddy system implement the "weak" functions I could just call the
+buddy functions in the right places directly and leave the "weak"
+functions for a more traditional hardlockup detector to implement.
+Opinions?
 
-We already have two conflicting ways to handle DMA_FROM_DEVICE,
-either invalidate/invalidate, or clean/invalidate. I can see
-that flush/invalidate may be a sensible option as well, but I'd
-want to have that discussion after the series is complete, so
-we can come to a generic solution that has the same documented
-behavior across all architectures.
+Maybe after all this lands, the powerpc watchdog could move to use the
+common code? As evidenced by this patch series, there's not really a
+reason for the SMP detection to be platform specific.
 
-In particular, if we end up moving arm64 and riscv back to the
-traditional invalidate/invalidate for DMA_FROM_DEVICE and
-document that driver must not rely on buffers getting cleaned
-before a partial DMA_FROM_DEVICE, the question between clean
-or flush becomes moot as well.
 
-> @@ -42,7 +40,7 @@ void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t=
- size,
->                 break;
->         case DMA_FROM_DEVICE:
->         case DMA_BIDIRECTIONAL:
->                 /* I'm not sure all drivers have guaranteed cacheline
-> alignment. If not, this inval would cause problems */
-> -               ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
-> +               ALT_CMO_OP(inval, vaddr, size, riscv_cbom_block_size);
->                 break;
+> It's all to
+> all rather than buddy which makes it more complicated but arguably
+> bit better functionality.
 
-This is my original patch, and I would not mix it with the other
-change. The problem with non-aligned DMA_BIDIRECTIONAL buffers in
-is that both flush and inval would be wrong if you get simultaneous
-writes from device and cpu to the same cache line, so there is
-no way to win this. Using inval instead of flush would at least
-work if the CPU data in the cacheline is read-only from the CPU,
-so that seems better than something that is always wrong.
-
-The documented API is that sharing the cache line is not allowed
-at all, so anything that would observe a difference between the
-two is also a bug. One idea that we have considered already is
-that we could overwrite the unused bits of the cacheline with
-poison values and/or mark them as invalid using KASAN for debugging
-purposes, to find drivers that already violate this.
-
-      Arnd
+Can you come up with an example crash where the "all to all" would
+work better than the simple buddy system provided by this patch? It
+seems like they would be equivalent, but I could be missing something.
+Specifically they both need at least one non-locked-up CPU to detect a
+problem. If one or more CPUs is locked up then we'll always detect it.
+I suppose maybe you could provide a better error message at lockup
+time saying that several CPUs were locked up and that could be
+helpful. For now, I'd keep the current buddy system the way it is and
+if you want to provide a patch improving things to be "all-to-all" in
+the future that would be interesting to review.
