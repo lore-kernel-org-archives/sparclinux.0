@@ -2,66 +2,66 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE60C77B7C
-	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 16:38:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6D5C77B75
+	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 16:38:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232902AbjEEQiO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 5 May 2023 12:38:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35312 "EHLO
+        id S232955AbjEEQic (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 5 May 2023 12:38:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232137AbjEEQiN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 May 2023 12:38:13 -0400
-Received: from mail-il1-x12a.google.com (mail-il1-x12a.google.com [IPv6:2607:f8b0:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA7A7160B4
-        for <sparclinux@vger.kernel.org>; Fri,  5 May 2023 09:38:12 -0700 (PDT)
-Received: by mail-il1-x12a.google.com with SMTP id e9e14a558f8ab-33393c4c23dso1402525ab.0
-        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:38:12 -0700 (PDT)
+        with ESMTP id S232137AbjEEQib (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 May 2023 12:38:31 -0400
+Received: from mail-il1-x12c.google.com (mail-il1-x12c.google.com [IPv6:2607:f8b0:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C08C61940D
+        for <sparclinux@vger.kernel.org>; Fri,  5 May 2023 09:38:29 -0700 (PDT)
+Received: by mail-il1-x12c.google.com with SMTP id e9e14a558f8ab-3310c01beb9so14233475ab.2
+        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:38:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1683304692; x=1685896692;
+        d=chromium.org; s=google; t=1683304707; x=1685896707;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+yj1n8SZYpHx6GcDEfBZNc+Nz+lwlz9tugCt27cvkK8=;
-        b=ZOpEQsosTbUmst8Ienf3nWALr0I43tuU6QG5nC9malggLvjl9COYLJOwf+H0XsKvTn
-         l5ggtBESitzNF1+b1OZCsXuHMIB0MST6OOsXxIX0FaXAxgTqaf48l9nLSmwaLV5vDoqG
-         GJdteCFXtZG4TrybH3jjPxNFm2oVJtQqUj2Xc=
+        bh=aPJ3eJX3Wd0Hq9EHdr00dwY2jAtHzFmYEuKOc8G/h4A=;
+        b=GM6bTJMKQFw8PaqWkjnEP0CqGUQH0bmhtZ0hatT9ClX52ITD8Qy/c3IkYzUkwXgi+5
+         uKOxQ2bjSBykOb46htzKC5xtQRZ+R833bYPV+hmeBnm6Q6rRxP3BuY1xsynpOs7aXWII
+         5zK/sg7Pyvxt/ycCTtj4ErpLyMsC7FpATOqho=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683304692; x=1685896692;
+        d=1e100.net; s=20221208; t=1683304707; x=1685896707;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=+yj1n8SZYpHx6GcDEfBZNc+Nz+lwlz9tugCt27cvkK8=;
-        b=jkEvY0aWE9EKhw7rNG8d7X9v5DamI8ho7e3WqPO7AnZFrQQTNGOd8CarbzIA+mJjtx
-         auURqE6YU6H3Tj9VmqSAusBW04NqGmiTop4ydb7S53RJ5VncJ6Q4Ghd4OWACOEgTHCRn
-         p00irkXcZefWvl6wuUf4GJ2N+FhRTAy4y97AglL+8SEgOLF2+lctFqpTWMA6EjUbECo5
-         CX/cpv1TiWO8RDXrO+LSYGOMPGwPZWz6xA1i0TKNEb7oAjJcr3qcKv73RDHxSZedildf
-         /o7qgwVFdj8OkyFAG9wz2UTJ9l0k6yJpuJNe2NL5Lo/jQWxnXwvbwPuZMIHAPQfnyBAt
-         Mp3w==
-X-Gm-Message-State: AC+VfDxSJi7yBGhttwVI6JxJTIKb5LwXcZ/J/PKO0lOX0mli7APxvlZX
-        sp4YcqryVQuS5tUX3V0Gmqd770MvBmn20QBqhl4=
-X-Google-Smtp-Source: ACHHUZ6mdXyxUxeJ6rX91gnN4tVx4kgAuHD0Inyz/496/Ton2A8JD/fJ6x7RdNN6EzK/C5XAOVsdCg==
-X-Received: by 2002:a92:ce05:0:b0:32b:1536:f3e9 with SMTP id b5-20020a92ce05000000b0032b1536f3e9mr1258580ilo.18.1683304691821;
-        Fri, 05 May 2023 09:38:11 -0700 (PDT)
-Received: from mail-il1-f171.google.com (mail-il1-f171.google.com. [209.85.166.171])
-        by smtp.gmail.com with ESMTPSA id f6-20020a056638112600b00411b5ea8576sm51470jar.108.2023.05.05.09.38.10
+        bh=aPJ3eJX3Wd0Hq9EHdr00dwY2jAtHzFmYEuKOc8G/h4A=;
+        b=UKhNHggi6Sqx6GXwtkoNn4B9X1AM8h1dVALKf3O7Et6SuvSENYo+pr7zBjG4qEr6dE
+         veL6QTb1kZqRgXgMMK/OIsB6F8aBOUBJCEBhoKEsYqGJPsnwtvYDcrfzKXwxmsld7avF
+         WgVBesdtpKiJlPn8ociHOBE3NhL8legGb8F+RbADOU6IxGz/xjGI8Hv2KmKSE5tUbybg
+         U7mYwJEYC2v32BudXKXeoUjK5Pclf46pRdOphtgT7cm8sU8XZFU6XrQ3kHRSc8N0INSq
+         csfBGCkaN0fixJ87VGclrhqFtJ/p1GcVpr6SsumToAXj7KWY39ri0bsNVQ+5Ov9mtXit
+         m4mw==
+X-Gm-Message-State: AC+VfDybBTZCfHU1yiBQe4r7cv/CRthu5HYB8REg4aXsA3zfosEtK1Sf
+        dfskQLKMmPhHVAJs5rR/GFLwJzcHOc4KIjj6aGY=
+X-Google-Smtp-Source: ACHHUZ6FavdIfqAo/gj+frB59ltHeJBlCOetp0kRjTllxby40q5DMPlExo+fBEUnIcTBc828Bnq6nw==
+X-Received: by 2002:a92:c60f:0:b0:332:dd0a:c6df with SMTP id p15-20020a92c60f000000b00332dd0ac6dfmr1278997ilm.22.1683304706777;
+        Fri, 05 May 2023 09:38:26 -0700 (PDT)
+Received: from mail-il1-f176.google.com (mail-il1-f176.google.com. [209.85.166.176])
+        by smtp.gmail.com with ESMTPSA id c41-20020a023f69000000b004141e72be1asm41672jaf.175.2023.05.05.09.38.24
         for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 05 May 2023 09:38:11 -0700 (PDT)
-Received: by mail-il1-f171.google.com with SMTP id e9e14a558f8ab-330ec047d3bso798885ab.0
-        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:38:10 -0700 (PDT)
-X-Received: by 2002:a05:622a:206:b0:3db:1c01:9d95 with SMTP id
- b6-20020a05622a020600b003db1c019d95mr335755qtx.4.1683304668543; Fri, 05 May
- 2023 09:37:48 -0700 (PDT)
+        Fri, 05 May 2023 09:38:26 -0700 (PDT)
+Received: by mail-il1-f176.google.com with SMTP id e9e14a558f8ab-330ec047d3bso798955ab.0
+        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:38:24 -0700 (PDT)
+X-Received: by 2002:ac8:5716:0:b0:3ef:330c:8f9e with SMTP id
+ 22-20020ac85716000000b003ef330c8f9emr343597qtw.10.1683304683433; Fri, 05 May
+ 2023 09:38:03 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.5.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid> <CSE04EI159N2.2TSXHBN2QLFCM@wheely>
-In-Reply-To: <CSE04EI159N2.2TSXHBN2QLFCM@wheely>
+ <20230504151100.v4.7.Id4133d3183e798122dc3b6205e7852601f289071@changeid> <CSE09YL4X0XY.1GAQWAFOOEK42@wheely>
+In-Reply-To: <CSE09YL4X0XY.1GAQWAFOOEK42@wheely>
 From:   Doug Anderson <dianders@chromium.org>
-Date:   Fri, 5 May 2023 09:37:35 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=XXzo3m2dqwtNST+uXGQz6NW_e-B6-tWkJMrHoCTZBT9Q@mail.gmail.com>
-Message-ID: <CAD=FV=XXzo3m2dqwtNST+uXGQz6NW_e-B6-tWkJMrHoCTZBT9Q@mail.gmail.com>
-Subject: Re: [PATCH v4 05/17] watchdog/hardlockup: Rename touch_nmi_watchdog()
- to touch_hardlockup_watchdog()
+Date:   Fri, 5 May 2023 09:37:50 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=Vom15dOxnp=x5RFsk7ZCXGVwUjjrA4z1js-cCB=PDLFg@mail.gmail.com>
+Message-ID: <CAD=FV=Vom15dOxnp=x5RFsk7ZCXGVwUjjrA4z1js-cCB=PDLFg@mail.gmail.com>
+Subject: Re: [PATCH v4 07/17] watchdog/hardlockup: Move perf hardlockup
+ checking/panic to common watchdog.c
 To:     Nicholas Piggin <npiggin@gmail.com>
 Cc:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>,
@@ -96,63 +96,34 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Hi,
 
-On Thu, May 4, 2023 at 7:51=E2=80=AFPM Nicholas Piggin <npiggin@gmail.com> =
+On Thu, May 4, 2023 at 7:58=E2=80=AFPM Nicholas Piggin <npiggin@gmail.com> =
 wrote:
 >
 > On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
-> > In preparation for the buddy hardlockup detector, rename
-> > touch_nmi_watchdog() to touch_hardlockup_watchdog() to make it clear
-> > that it will touch whatever hardlockup detector is configured. We'll
-> > add a #define for the old name (touch_nmi_watchdog) so that we don't
-> > have to touch every piece of code referring to the old name.
+> > The perf hardlockup detector works by looking at interrupt counts and
+> > seeing if they change from run to run. The interrupt counts are
+> > managed by the common watchdog code via its watchdog_timer_fn().
+> >
+> > Currently the API between the perf detector and the common code is a
+> > function: is_hardlockup(). When the hard lockup detector sees that
+> > function return true then it handles printing out debug info and
+> > inducing a panic if necessary.
+> >
+> > Let's change the API a little bit in preparation for the buddy
+> > hardlockup detector. The buddy hardlockup detector wants to print
 >
-> Is this really helpful? Now it's got two names Could just leave it.
-> If you insist then it'd be better just to rename everything in one
-> go at the end of a merge window IMO. Conflicts would be trivial.
-
-I'm not picky here. I changed the name since Petr requested names to
-be changed for any code I was touching [1] and so I threw this out as
-a proposal. I agree that having two names can be confusing, but in
-this case it didn't feel too terrible to me.
-
-I'd love to hear Petr's opinion on this name change. I'm happy with:
-
-a) This patch as it is.
-
-b) Dropping this patch (or perhaps just changing it to add comments).
-
-c) Changing this patch to rename all 70 uses of the old name. Assuming
-this will go through Andrew Morton's tree, I'd be interested in
-whether he's OK w/ this.
-
-d) Dropping this patch from this series but putting it on the
-backburner to try to do later (so that the rename can happen at a time
-when it's least disruptive).
-
-
-> > Ideally this change would also rename the arch_touch_nmi_watchdog(),
-> > but that is harder since arch_touch_nmi_watchdog() is exported with
-> > EXPORT_SYMBOL() and thus is ABI. Add a comment next to the call to
-> > hopefully alleviate some of the confusion here.
+> I think the name change is a gratuitous. Especially since it's now
+> static.
 >
-> We don't keep ABI fixed upstream.
+> watchdog_hardlockup_ is a pretty long prefix too, hardlockup_
+> should be enough?
+>
+> Seems okay otherwise though.
 
-I'm happy to be corrected, but my understanding was that kernel devs
-made an effort not to mess with things exported via "EXPORT_SYMBOL",
-but things exported via "EXPORT_SYMBOL_GPL" were fair game.
-
-I guess maybe my patch calling it "ABI" is a stronger statement than
-that, though. Doing a little more research, nobody wants to say that
-things exported with "EXPORT_SYMBOL" are ABI, they just want to say
-that we make an effort to have them be more stable.
-
-So certainly I should adjust my patch series not to call it ABI, but
-I'm still on the fence about whether I should rename this or not. I'd
-love to hear other opinions. This rename actually would be a lot
-easier than the touch_nmi_watchdog() one since the code referencing
-the name "arch_touch_nmi_watchdog" isn't spread so broadly through the
-kernel.
+I went back and forth on names far too much when constructing this
+patch series. Mostly I was trying to balance what looked good to me
+and what Petr suggested [1]. I'm not super picky about the names and
+I'm happy to change them all to a "hardlockup_" prefix. I'd love to
+hear Petr's opinion.
 
 [1] https://lore.kernel.org/r/ZFErmshcrcikrSU1@alley
-
--Doug
