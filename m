@@ -2,114 +2,221 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39AB5C77B7C
-	for <sparclinux@archiver.kernel.org>; Fri,  5 May 2023 16:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E241C7EE2E
+	for <sparclinux@archiver.kernel.org>; Sat,  6 May 2023 07:26:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231350AbjEEQqF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 5 May 2023 12:46:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38230 "EHLO
+        id S230127AbjEFHZ7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 6 May 2023 03:25:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230484AbjEEQqE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 May 2023 12:46:04 -0400
-Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1D6013284
-        for <sparclinux@vger.kernel.org>; Fri,  5 May 2023 09:46:03 -0700 (PDT)
-Received: by mail-io1-xd31.google.com with SMTP id ca18e2360f4ac-763c343b716so45175239f.1
-        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:46:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1683305163; x=1685897163;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hFdQlmBZsVXpMFRWa31Nf9CH5lKcpqbN0ffO9NCLDqk=;
-        b=BtQeOCXcR/e+JBqbcvxaaQdWbQ7K4G+U72N39aucIcWt2TKM9ysmPS/ywahEzEjlYL
-         ZmxdlaXpz8jyVOQvaxjMhIYBt0+GDtnVuYSmligy33ln9C2Njr6dGCziVgRfLqaX9zMz
-         2gwDuhv9dLx/0UVwgZfvh0sGBHm37Ql86Os6c=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683305163; x=1685897163;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=hFdQlmBZsVXpMFRWa31Nf9CH5lKcpqbN0ffO9NCLDqk=;
-        b=GoUhxwR4OLZ6iz5/FvIPXsHQUvR9b7ywvxr/icLyZcYh42ZQlYfRgryKnMKDQZOTw4
-         cGEEIZ3P8mNeZCzhU80lVj6pas0HXRTYsWCUfR9bglwyhEcG6GqeoLXabMaJCBBLc4Fi
-         Vl1y48NtY/I6/7ErFoIwzsprid9yHDKJMlnPiUxEgt1A2LxiCYbPYmlncsuC5BeCSj6x
-         OQoW+gERsJuWJ80T/Oh1MYVIt6WyrdG1rohrUfhTvHJer2lpaX7i4i3uT6SOl2NRoWlu
-         bHTsxEN9kA8GsBHn1UWU8Ku+pQ78bTTX2fkF6PXiAMf27RSYm7LO/R35NyUIFqe6AYLF
-         itHw==
-X-Gm-Message-State: AC+VfDxkd3ZGN7CaFZA1OMGb7vm6Q2g/H2SeSon2T6XjZIxuAKlXLxBf
-        kqKLpOQo2J5o0LyibxFs5uMA+97KaDjmKUgTPqs=
-X-Google-Smtp-Source: ACHHUZ53ya9s+KyqaIkP2iI+Rj8HubvX2Z9QD/d3qh72mQnCFDoLd4QnwJ3bTbZwskZ3hQqTNMNNDg==
-X-Received: by 2002:a92:4a06:0:b0:32b:7df:f753 with SMTP id m6-20020a924a06000000b0032b07dff753mr1143276ilf.11.1683305162795;
-        Fri, 05 May 2023 09:46:02 -0700 (PDT)
-Received: from mail-il1-f180.google.com (mail-il1-f180.google.com. [209.85.166.180])
-        by smtp.gmail.com with ESMTPSA id d7-20020a0566380d4700b004165ce4456fsm67943jak.33.2023.05.05.09.46.02
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 05 May 2023 09:46:02 -0700 (PDT)
-Received: by mail-il1-f180.google.com with SMTP id e9e14a558f8ab-33164ec77ccso601795ab.0
-        for <sparclinux@vger.kernel.org>; Fri, 05 May 2023 09:46:02 -0700 (PDT)
-X-Received: by 2002:ac8:5a8e:0:b0:3ef:3361:75d5 with SMTP id
- c14-20020ac85a8e000000b003ef336175d5mr266034qtc.11.1683304721570; Fri, 05 May
- 2023 09:38:41 -0700 (PDT)
+        with ESMTP id S229714AbjEFHZ5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 6 May 2023 03:25:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CD04A267;
+        Sat,  6 May 2023 00:25:56 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DCE6361827;
+        Sat,  6 May 2023 07:25:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41CA8C433B0;
+        Sat,  6 May 2023 07:25:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1683357955;
+        bh=/pqLqv84J2jWuKl1Lk7AhETw9xQvFqEdpB7kxyH6fI8=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=cUPgDdY7WBdR+obN6ZVonxD9+AqvTjDLZek6hO8Bh5anvhOs4TmU67zRl7ySmPvBp
+         i8FRz1KX+mzHYYI+Z/y0wYNkkGVlDZfw2wNSyJH6w3yIBsRuEiCKsmGiGIf/pZsEal
+         texLImmTg/gCpVHUuWvn14o5Lgf+f1wOysFff2gp10PJHZgoXw6iwYzAwIUxisqWfw
+         u5jsEnyW3YFcIFUx6RL4jWbXoqzOfY/dd8vIcdt+Xq68Ux5KJCIYvI2XApR9C23Nmm
+         Sgkh2cUCXwwJKLy4JCAVy999KDS8Et5jkyt2gkH/o90zp2F9JCGMHuMQgxIkMklZJH
+         mmsRI+wgR/9MQ==
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-50bc4ba28cbso4764522a12.0;
+        Sat, 06 May 2023 00:25:55 -0700 (PDT)
+X-Gm-Message-State: AC+VfDx1fH+AarEJBfLItd5cBE1oD/OYqmgTHedz96Mhy7/Sz0wG3gD+
+        8pXZX7UAVq9WS4X4inu9EdKBwRF8HD2z5O2lsMI=
+X-Google-Smtp-Source: ACHHUZ4qS4i5Im7J3Ox7v0tb1ueCK3xmeH5uM44ArLR4roviIMhnWXngkOBBuBeiDbJ5qp2UGTwR6EkhF28IpBmVniU=
+X-Received: by 2002:a17:907:3d9f:b0:959:5454:1db7 with SMTP id
+ he31-20020a1709073d9f00b0095954541db7mr3511012ejc.3.1683357953246; Sat, 06
+ May 2023 00:25:53 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.11.I91f7277bab4bf8c0cb238732ed92e7ce7bbd71a6@changeid> <CSE0GBQQDUAY.1QAJIC3D3OBVU@wheely>
-In-Reply-To: <CSE0GBQQDUAY.1QAJIC3D3OBVU@wheely>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Fri, 5 May 2023 09:38:27 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=VVhPpTLPv1fmavGz-iwW1xA2P7_Uu_=GKZ-Ofu=vReZw@mail.gmail.com>
-Message-ID: <CAD=FV=VVhPpTLPv1fmavGz-iwW1xA2P7_Uu_=GKZ-Ofu=vReZw@mail.gmail.com>
-Subject: Re: [PATCH v4 11/17] watchdog/hardlockup: Rename some "NMI watchdog" constants/function
-To:     Nicholas Piggin <npiggin@gmail.com>
-Cc:     Petr Mladek <pmladek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Sumit Garg <sumit.garg@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        Stephane Eranian <eranian@google.com>,
-        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Ian Rogers <irogers@google.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
-        davem@davemloft.net, sparclinux@vger.kernel.org,
-        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
-        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
-        Marc Zyngier <maz@kernel.org>,
+References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-10-arnd@kernel.org>
+ <CAJF2gTT2VCVMJs1NvgK66uD+BhObjM2WNxf2RY7wTZsho4sjVA@mail.gmail.com> <f460ad77-aa76-43bb-b2bb-e3b6dbcd8b03@app.fastmail.com>
+In-Reply-To: <f460ad77-aa76-43bb-b2bb-e3b6dbcd8b03@app.fastmail.com>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Sat, 6 May 2023 15:25:41 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTSRuj3-AgynXxZeXc2vGSH8Ohn5eP2hsuKi8rTzSPLhRQ@mail.gmail.com>
+Message-ID: <CAJF2gTSRuj3-AgynXxZeXc2vGSH8Ohn5eP2hsuKi8rTzSPLhRQ@mail.gmail.com>
+Subject: Re: [PATCH 09/21] riscv: dma-mapping: skip invalidation before
+ bidirectional DMA
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Arnd Bergmann <arnd@kernel.org>, Christoph Hellwig <hch@lst.de>,
+        linux-kernel@vger.kernel.org, Vineet Gupta <vgupta@kernel.org>,
+        Will Deacon <will@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>
+        Brian Cain <bcain@quicinc.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Stafford Horne <shorne@gmail.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        "Conor.Dooley" <conor.dooley@microchip.com>,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-oxnas@groups.io" <linux-oxnas@groups.io>,
+        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org,
+        "linux-openrisc@vger.kernel.org" <linux-openrisc@vger.kernel.org>,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
-
-On Thu, May 4, 2023 at 8:07=E2=80=AFPM Nicholas Piggin <npiggin@gmail.com> =
-wrote:
+On Fri, May 5, 2023 at 9:19=E2=80=AFPM Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
-> > Do a search and replace of:
-> > - NMI_WATCHDOG_ENABLED =3D> HARD_WATCHDOG_ENABLED
-> > - watchdog_nmi_ =3D> watchdog_hardlockup_
+> On Fri, May 5, 2023, at 07:47, Guo Ren wrote:
+> > On Mon, Mar 27, 2023 at 8:15=E2=80=AFPM Arnd Bergmann <arnd@kernel.org>=
+ wrote:
 >
-> These are just making prefixes inconsistent again.
+> >>
+> >> riscv also invalidates the caches before the transfer, which does
+> >> not appear to serve any purpose.
+> > Yes, we can't guarantee the CPU pre-load cache lines randomly during
+> > dma working.
+> >
+> > But I've two purposes to keep invalidates before dma transfer:
+> >  - We clearly tell the CPU these cache lines are invalid. The caching
+> > algorithm would use these invalid slots first instead of replacing
+> > valid ones.
+> >  - Invalidating is very cheap. Actually, flush and clean have the same
+> > performance in our machine.
 >
-> If you really want to do a prefix, I would call it hardlockup which
-> probably best matches existing code and sysctl / boot stuff, and
-> concentrate on non-static symbols.
+> The main purpose of the series was to get consistent behavior on
+> all machines, so I really don't want a custom optimization on
+> one architecture. You make a good point about cacheline reuse
+> after invalidation, but if we do that, I'd suggest doing this
+> across all architectures.
+Yes, invalidation of DMA_FROM_DEVICE-for_device is a proposal for all
+architectures.
 
-As with other similar patches, I'm happy to drop this and am doing it
-at Petr's request.
+>
+> > So, how about:
+> >
+> > diff --git a/arch/riscv/mm/dma-noncoherent.c b/arch/riscv/mm/dma-noncoh=
+erent.c
+> > index d919efab6eba..2c52fbc15064 100644
+> > --- a/arch/riscv/mm/dma-noncoherent.c
+> > +++ b/arch/riscv/mm/dma-noncoherent.c
+> > @@ -22,8 +22,6 @@ void arch_sync_dma_for_device(phys_addr_t paddr, size=
+_t size,
+> >                 ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
+> >                 break;
+> >         case DMA_FROM_DEVICE:
+> > -               ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
+> > -               break;
+> >         case DMA_BIDIRECTIONAL:
+> >                 ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
+> >                 break;
+>
+> This is something we can consider. Unfortunately, this is something
+> that no architecture (except pa-risc, which has other problems)
+> does at the moment, so we'd probably need to have a proper debate
+> about this.
+>
+> We already have two conflicting ways to handle DMA_FROM_DEVICE,
+> either invalidate/invalidate, or clean/invalidate. I can see
+I vote to invalidate/invalidate.
 
-[1] https://lore.kernel.org/r/ZFErmshcrcikrSU1@alley
+My key point is to let DMA_FROM_DEVICE-for_device invalidate, and
+DMA_BIDIRECTIONAL contains DMA_FROM_DEVICE.
+So I also agree:
+@@ -22,8 +22,6 @@ void arch_sync_dma_for_device(phys_addr_t paddr, size_t s=
+ize,
+                 ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
+                 break;
+         case DMA_FROM_DEVICE:
+ -               ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
+ +              ALT_CMO_OP(invalidate, vaddr, size, riscv_cbom_block_size);
+                 break;
+         case DMA_BIDIRECTIONAL:
+                 ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
+                 break;
+
+> that flush/invalidate may be a sensible option as well, but I'd
+> want to have that discussion after the series is complete, so
+> we can come to a generic solution that has the same documented
+> behavior across all architectures.
+Yes, I agree to unify them into a generic solution first. My proposal
+could be another topic in the future.
+For that purpose, I give
+Acked-by: Guo Ren <guoren@kernel.org>
+
+>
+> In particular, if we end up moving arm64 and riscv back to the
+> traditional invalidate/invalidate for DMA_FROM_DEVICE and
+> document that driver must not rely on buffers getting cleaned
+After invalidation, the cache lines are also cleaned, right? So why do
+we need to document it additionally?
+
+> before a partial DMA_FROM_DEVICE, the question between clean
+> or flush becomes moot as well.
+>
+> > @@ -42,7 +40,7 @@ void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t =
+size,
+> >                 break;
+> >         case DMA_FROM_DEVICE:
+> >         case DMA_BIDIRECTIONAL:
+> >                 /* I'm not sure all drivers have guaranteed cacheline
+> > alignment. If not, this inval would cause problems */
+> > -               ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
+> > +               ALT_CMO_OP(inval, vaddr, size, riscv_cbom_block_size);
+> >                 break;
+>
+> This is my original patch, and I would not mix it with the other
+> change. The problem with non-aligned DMA_BIDIRECTIONAL buffers in
+> is that both flush and inval would be wrong if you get simultaneous
+> writes from device and cpu to the same cache line, so there is
+> no way to win this. Using inval instead of flush would at least
+> work if the CPU data in the cacheline is read-only from the CPU,
+> so that seems better than something that is always wrong.
+If CPU data in the cacheline is read-only, the cacheline would never
+be dirty. Yes, It's always safe.
+Okay, I agree we must keep cache-line-aligned. I comment it here, just
+worry some dirty drivers couldn't work with the "invalid mechanism"
+because of the CPU data corruption, and device data in the cacheline
+is useless.
+
+>
+> The documented API is that sharing the cache line is not allowed
+> at all, so anything that would observe a difference between the
+> two is also a bug. One idea that we have considered already is
+> that we could overwrite the unused bits of the cacheline with
+> poison values and/or mark them as invalid using KASAN for debugging
+> purposes, to find drivers that already violate this.
+>
+>       Arnd
+
+
+
+--=20
+Best Regards
+ Guo Ren
