@@ -2,136 +2,173 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E10AC77B75
-	for <sparclinux@archiver.kernel.org>; Mon,  8 May 2023 15:47:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C312C77B7F
+	for <sparclinux@archiver.kernel.org>; Mon,  8 May 2023 15:53:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234646AbjEHPrz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 8 May 2023 11:47:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58192 "EHLO
+        id S234673AbjEHPxV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 8 May 2023 11:53:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234436AbjEHPrv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 8 May 2023 11:47:51 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0801EA266;
-        Mon,  8 May 2023 08:47:43 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 348Fl3jg054523;
-        Mon, 8 May 2023 10:47:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1683560823;
-        bh=ThTMpPXBEPh4HdHzswHAKDf5fokfeMb5MpOdHcvdqgE=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=cAwMBQtt+9p61ybgcF82DbpMQgD20dsGzxfdQiMdlKtBtnVK2UXR045dEAVRh0lw2
-         sTOwAqMYxGlLQJ385l3l0Bl8nRyL358LToNs2y2d5uPVKZa1Lk3e+hQ4572pQfyh7L
-         0GnxlXQCzr1YRXEg2m0XQFvatQYp7I0Uu4DaPNUU=
-Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 348Fl3t3121784
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 8 May 2023 10:47:03 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 8
- May 2023 10:47:03 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 8 May 2023 10:47:03 -0500
-Received: from [10.250.149.252] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 348FkvEU003096;
-        Mon, 8 May 2023 10:46:58 -0500
-Message-ID: <a80f540a-492a-0585-9ed1-de3397535e07@ti.com>
-Date:   Mon, 8 May 2023 21:16:56 +0530
+        with ESMTP id S234716AbjEHPxT (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 8 May 2023 11:53:19 -0400
+Received: from mail-qt1-x833.google.com (mail-qt1-x833.google.com [IPv6:2607:f8b0:4864:20::833])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81A189C
+        for <sparclinux@vger.kernel.org>; Mon,  8 May 2023 08:53:09 -0700 (PDT)
+Received: by mail-qt1-x833.google.com with SMTP id d75a77b69052e-3f390fb063cso4230881cf.2
+        for <sparclinux@vger.kernel.org>; Mon, 08 May 2023 08:53:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1683561188; x=1686153188;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7an4MsU+A1D/BiDTLfn7jyyo8mReHeEE9qn6uLYEhzQ=;
+        b=oNYaQUT3rQ4ijau0pTQQVlvIxM8K2nUnc3y4nk747J+Kx626kgonJH8zSTVraIag4V
+         jHyq8slUEb/dTxfPJXjnDQcv7A05MwWo639bmustuj6KJZJY/QBiEpnL91N5wn/5U+ta
+         xf0Thp4fZd5SmMFL65B8c+nMS8lGXkp5nyTXE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683561188; x=1686153188;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7an4MsU+A1D/BiDTLfn7jyyo8mReHeEE9qn6uLYEhzQ=;
+        b=gUnuHOgLlDX/0H7XauqCmmgdFfJCiICHkzh6+4T4DzP1DMAfKd4iaxGa4xAO7c2TDj
+         /gvsgLqhHLEF67kJfYop8chFPAn5BvSuwBRtoo/pkGzzxEl4CJ1vL1aQZLu/wkF26Mfd
+         G+zCy/0wkRLMeChCU7MEju6AxPPdHRYQTGkzMvMh4qEDu795UqC/l5l+/63HralgX7aB
+         J6CiTJQV/i8TX7z3ItOnGXpxJGJXKFOUMsndId9mMHWEjpWXjzQ178GU2QWUH2jg86l7
+         yXVmp+1TkCbdfP0ytoYJzjKhJTo7fyMKRGA1ivDRPwrJ/6f2/K79HACPKVpzb//VhX43
+         IUkw==
+X-Gm-Message-State: AC+VfDzm/luR0AZDbyJ1N8/A3SAfVzzaqelEzx8CyOOb2poJw5yWUaXx
+        ZnLIDnl4xfayqBmJ6FW56H6k9ctvx8Ya/sRtvjA=
+X-Google-Smtp-Source: ACHHUZ52OUExfLLrXR1wAGoKcvM7wa6Mekgzw0TJ1apenaVfxqhzSOv4RvyLoT8ATa+PYxMPoxS5iw==
+X-Received: by 2002:a05:622a:285:b0:3f3:8a0a:f1a8 with SMTP id z5-20020a05622a028500b003f38a0af1a8mr7722218qtw.61.1683561187915;
+        Mon, 08 May 2023 08:53:07 -0700 (PDT)
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com. [209.85.160.181])
+        by smtp.gmail.com with ESMTPSA id c25-20020ae9e219000000b00746b2ca65edsm2628052qkc.75.2023.05.08.08.53.07
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 08 May 2023 08:53:07 -0700 (PDT)
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-3ef34c49cb9so1485201cf.1
+        for <sparclinux@vger.kernel.org>; Mon, 08 May 2023 08:53:07 -0700 (PDT)
+X-Received: by 2002:ac8:57c9:0:b0:3ef:3083:a437 with SMTP id
+ w9-20020ac857c9000000b003ef3083a437mr518031qta.18.1683561166909; Mon, 08 May
+ 2023 08:52:46 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
-Subject: Re: Build regressions/improvements in v6.4-rc1
-Content-Language: en-US
-To:     Pratyush Yadav <pratyush@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-CC:     <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tudor Ambarus <tudor.ambarus@linaro.org>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Chun-Kuang Hu <chunkuang.hu@kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        <linux-um@lists.infradead.org>, <linux-media@vger.kernel.org>,
-        <linux-mtd@lists.infradead.org>, <linux-xfs@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-phy@lists.infradead.org>, <sparclinux@vger.kernel.org>
-References: <CAHk-=wiUxm-NZ1si8dXWVTTJ9n3c+1SRTC0V+Lk7hOE4bDVwJQ@mail.gmail.com>
- <20230508115727.2597864-1-geert@linux-m68k.org>
- <749c2fc2-93dc-585-3826-dea581602d6e@linux-m68k.org>
- <mafs035466ebk.fsf@amazon.de>
-From:   "Raghavendra, Vignesh" <vigneshr@ti.com>
-In-Reply-To: <mafs035466ebk.fsf@amazon.de>
+References: <20230504221349.1535669-1-dianders@chromium.org>
+ <20230504151100.v4.13.I6bf789d21d0c3d75d382e7e51a804a7a51315f2c@changeid>
+ <CSDZSKA38AEF.FY7J3JXBJX4I@wheely> <CAD=FV=XDfbx3UaP7DV63tASE5Md7siS-EnORD_3T-4yYaEQ7ww@mail.gmail.com>
+ <CSGHQJAJHWVS.1UAJOF8P5UXSK@wheely>
+In-Reply-To: <CSGHQJAJHWVS.1UAJOF8P5UXSK@wheely>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Mon, 8 May 2023 08:52:35 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=WEp23wDm2=cFO66uSjqw1UfYSczGSrQh32DGiqHnUDkg@mail.gmail.com>
+Message-ID: <CAD=FV=WEp23wDm2=cFO66uSjqw1UfYSczGSrQh32DGiqHnUDkg@mail.gmail.com>
+Subject: Re: [PATCH v4 13/17] watchdog/hardlockup: detect hard lockups using
+ secondary (buddy) CPUs
+To:     Nicholas Piggin <npiggin@gmail.com>
+Cc:     Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        Stephane Eranian <eranian@google.com>,
+        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Ian Rogers <irogers@google.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
+        davem@davemloft.net, sparclinux@vger.kernel.org,
+        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
+        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
+        Marc Zyngier <maz@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Colin Cross <ccross@android.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Hi,
+
+On Sun, May 7, 2023 at 6:05=E2=80=AFPM Nicholas Piggin <npiggin@gmail.com> =
+wrote:
+>
+> > No, I wasn't aware of it. Interesting, it seems to basically enable
+> > both types of hardlockup detectors together. If that really catches
+> > more lockups, it seems like we could do the same thing for the buddy
+> > system.
+>
+> It doesn't catch more lockups. On powerpc we don't have a reliable
+> periodic NMI hence the SMP checker. But it is preferable that a CPU
+> detects its own lockup because NMI IPIs can result in crashes if
+> they are taken in certain critical sections.
+
+Ah, interesting. Is the fact that NMI IPIs can crash the system
+something specific to the way they're implemented in powerpc, or is
+this something common in Linux? I've been assuming that IPI NMIs would
+be roughly as reliable (or perhaps more reliable) than the NMI
+timer/perf counter.
 
 
-On 5/8/2023 8:49 PM, Pratyush Yadav wrote:
-> On Mon, May 08 2023, Geert Uytterhoeven wrote:
-> 
->> On Mon, 8 May 2023, Geert Uytterhoeven wrote:
->>> Below is the list of build error/warning regressions/improvements in
->>> v6.4-rc1[1] compared to v6.3[2].
->>>
->>> Summarized:
->>>  - build errors: +9/-16
->>>  - build warnings: +1/-1439
->>>
->>> Happy fixing! ;-)
->>>
->>> Thanks to the linux-next team for providing the build service.
->>>
->>> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/ac9a78681b921877518763ba0e89202254349d1b/ (all 152 configs)
->>> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/457391b0380335d5e9a5babdec90ac53928b23b4/ (all 152 configs)
->>>
->>>
-> [...]
->>
->>>  + /kisskb/src/drivers/mtd/spi-nor/spansion.c: error: 'op' is used uninitialized [-Werror=uninitialized]:  => 495:27, 364:27
-> 
-> Hmm, I don't get why we get this warning. Line 495 is in
-> s25fs256t_post_bfpt_fixup(). It declares 'op' and then it does
-> 
->     op = (struct spi_mem_op)
->         CYPRESS_NOR_RD_ANY_REG_OP(nor->params->addr_mode_nbytes,
->                       SPINOR_REG_CYPRESS_ARCFN, 1,
->                       nor->bouncebuf);
->     ret = spi_nor_read_any_reg(nor, &op, nor->reg_proto);
-> 
+> > > It's all to
+> > > all rather than buddy which makes it more complicated but arguably
+> > > bit better functionality.
+> >
+> > Can you come up with an example crash where the "all to all" would
+> > work better than the simple buddy system provided by this patch?
+>
+> CPU2                     CPU3
+> spin_lock_irqsave(A)     spin_lock_irqsave(B)
+> spin_lock_irqsave(B)     spin_lock_irqsave(A)
+>
+> CPU1 will detect the lockup on CPU2, but CPU3's lockup won't be
+> detected so we don't get the trace that can diagnose the bug.
 
-Not all the fields of struct get initialized if you assign later on in
-the function vs at the time of declaration... For example cmd.dtr isn't
-explicitly set to any value here and may have garbage?
-> 
-> which initializes 'op' before using it. Same with line 364 which is in
-> the function cypress_nor_set_addr_mode_nbytes().
-> 
-> Even the compiler warnings [0] don't seem to make much sense to me:
-> 
->     /kisskb/src/drivers/mtd/spi-nor/spansion.c: In function 's25fs256t_post_bfpt_fixup':
->     /kisskb/src/drivers/mtd/spi-nor/spansion.c:495:27: error: 'op' is used uninitialized [-Werror=uninitialized]
->     495 |         struct spi_mem_op op;
->         |                           ^~
->     /kisskb/src/drivers/mtd/spi-nor/spansion.c:495:27: note: 'op' declared here
->     495 |         struct spi_mem_op op;
->         |                           ^~
-> 
-> [0] http://kisskb.ellerman.id.au/kisskb/buildresult/14922057/
-> 
->>
->> um-x86_64-gcc12/um-allyesconfig
->>
-> [...]
-> 
+Ah, that makes sense as a benefit if
+"sysctl_hardlockup_all_cpu_backtrace" is false, which you'd probably
+want if you had massively SMP systems. ...of course, if you had a lot
+of cores then I'd imagine the "all-to-all" might become a lot of
+overhead...
+
+Hmmm, but I don't think you really need "all-to-all" checking to get
+the stacktraces you want, do you? Each CPU can be "watching" exactly
+one other CPU, but then when we actually lock up we could check all of
+them and dump stacks on all the ones that are locked up. I think this
+would be a fairly easy improvement for the buddy system. I'll leave it
+out for now just to keep things simple for the initial landing, but it
+wouldn't be hard to add. Then I think the two SMP systems  (buddy vs.
+all-to-all) would be equivalent in terms of functionality?
+
+
+Thinking about this more, I guess you must be assuming coordination
+between the "SMP" and "non-SMP" checker. Specifically I guess you'd
+want some guarantee that the "SMP" checker always fires before the
+non-SMP checker because that would have a higher chance of getting a
+stack trace without tickling the IPI NMI crash. ...but then once the
+non-SMP checker printed its own stack trace you'd like the SMP checker
+running on the same CPU to check to see if any other CPUs were locked
+up so you could get their stacks as well. With my simplistic solution
+of just allowing the buddy detector to be enabled in parallel with a
+perf-based detector then we wouldn't have this level of coordination,
+but I'll assume that's OK for the initial landing.
+
+
+> Another thing I actually found it useful for is you can easily
+> see if a core (i.e., all threads in the core) or a chip has
+> died. Maybe more useful when doing presilicon and bring up work
+> or firmware hacking, but still useful.
+
+I'm probably biased, but for bringup work and stuff like this I
+usually have kdb/kgdb enabled and then I could get stack traces for
+whichever CPUs I want. :-P
+
+-Doug
