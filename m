@@ -2,153 +2,143 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B7CC7EE22
-	for <sparclinux@archiver.kernel.org>; Tue,  9 May 2023 08:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6CFC7EE2E
+	for <sparclinux@archiver.kernel.org>; Tue,  9 May 2023 09:38:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235029AbjEIIEM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 9 May 2023 04:04:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46120 "EHLO
+        id S234507AbjEIJiR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 9 May 2023 05:38:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235127AbjEIIDx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 9 May 2023 04:03:53 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA44FDC69;
-        Tue,  9 May 2023 01:02:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683619364; x=1715155364;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=M8ldeZ8wYKyjh5+JLiPdYoonZd0SIk7CsE32UJHMbgg=;
-  b=PvQfWnT/MKPtrLGm0AZn3zDSbOtxcwirnY6FRA2PIZnBob8953MdAGhK
-   SQ7S8+bnClvOxVFRnKDrI0Ek9K6b8ivNOk1hwzdsc6Og0pDXYnqkNeRdY
-   3P3voeZ7goldfzSSCt1uyqfgUJP7KziS0OLkG8jozwsAzvrsuf/bpuZFr
-   tBSK/ekvk2vHlM2n/ImvVD/M76PxZP2Vbwsuf18BKwiz55LoD7lWnoLSp
-   8s+wrauzf/guh34mFvCYrdioECCI5SheXkr0caebGXr3/+9Lfg8g3fkQ7
-   uOJhnxdiU7M5kBvZEgKXvR7ksZqob8K8uoK9A56X/n99oLqfd26hB++5Z
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10704"; a="413102456"
-X-IronPort-AV: E=Sophos;i="5.99,261,1677571200"; 
-   d="scan'208";a="413102456"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2023 01:00:36 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10704"; a="763719607"
-X-IronPort-AV: E=Sophos;i="5.99,261,1677571200"; 
-   d="scan'208";a="763719607"
-Received: from lkp-server01.sh.intel.com (HELO dea6d5a4f140) ([10.239.97.150])
-  by fmsmga008.fm.intel.com with ESMTP; 09 May 2023 01:00:31 -0700
-Received: from kbuild by dea6d5a4f140 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pwIGs-0001xM-2i;
-        Tue, 09 May 2023 08:00:30 +0000
-Date:   Tue, 9 May 2023 15:59:42 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Thomas Zimmermann <tzimmermann@suse.de>, deller@gmx.de,
-        geert@linux-m68k.org, javierm@redhat.com, daniel@ffwll.ch,
-        vgupta@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
-        davem@davemloft.net, James.Bottomley@hansenpartnership.com,
-        arnd@arndb.de, sam@ravnborg.org, suijingfeng@loongson.cn
-Cc:     oe-kbuild-all@lists.linux.dev, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
+        with ESMTP id S229527AbjEIJiO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 9 May 2023 05:38:14 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CD9C1BB;
+        Tue,  9 May 2023 02:38:13 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailout.west.internal (Postfix) with ESMTP id 510B53200909;
+        Tue,  9 May 2023 05:38:09 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Tue, 09 May 2023 05:38:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm3; t=1683625088; x=1683711488; bh=JI
+        GYjICWF1iIfi0CDhSvRnlPKKVSNYNlDX65zfQiumM=; b=I4f00STfLlF/8uXCTH
+        3QpblrayO3QWqay0XoJFyDhSGixH93u1NpebSFNfjNuzTOvoj8liVXfe1F94W5Rf
+        OkSrKPsHW5CuU0O1n0k6mggu+GTBSI/aou3nmMYv4bopXJdWnRpImUuuJczssOQ+
+        nlk+zQ5fWguXF4QyfgIy+yXeh/fUk1+OamDH2mE02AK2FeEVzFdjp/ZkYF3f7WIC
+        LIwJOvrGNIHyMm3GfL+mc2A3QpjuHP/knTB/o3RrDaqIa6igFFLXbN2J2tS7W0OZ
+        O9Wt51WwuNP4vEqULDQIoB4aLzCG2tEy390anoUON9826Lqxxh2mvRVv16wDWwRA
+        CvaA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1683625088; x=1683711488; bh=JIGYjICWF1iIf
+        i0CDhSvRnlPKKVSNYNlDX65zfQiumM=; b=irqHQQNUKUqvUAWpf1VIoKg/G9Bt6
+        oINt/vqLIbTfVMwG9Hc5BS3wM0rbLNDlp9dyFIk+K8+Yg+w4CyaCBkMNIzxaClt2
+        5hKEmXIfTpuX0D57VxY0NRbGmHgrdfX9LgmsqsHxxYojoy6cFD/h297xpqpZ2dCm
+        lgjUpyY5EApgsYS6fgKw+ibdPJPY3SWVhfBScpbBw297KiqjtIpYFOEKWx6uVBZE
+        b0R51rMZ6QfJDFCbYlMztsHMKOUmxxlKnwnj3kyD0ejAc+LApjOXTCP8sFBPBWbp
+        FSJfhVLzSwOexCHMh/u/lmkpf2d0AvcvV0c/5voSuhOmrHueXeXY33A2Q==
+X-ME-Sender: <xms:fxRaZA_Ub9iK8xWlXqyIcc6uOkdIYRFhQ2MO1HuoJ9dmIsXEFLaf3w>
+    <xme:fxRaZIvg7GcdRQOpg1jMA0HvMPQftuRhcyc5ZSdsuVGpbWVIflp8kq4JY9m-G-ZJV
+    SnIqkn0V04I_3L7-qg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeegtddgudejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepheekfeduteffkeegieekvdffkedtkeeftefhfeejkeejgefhleekhfelheff
+    vdetnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghdpshhouhhrtggvfigrrhgvrdhorh
+    hgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprghr
+    nhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:fxRaZGDVHJPv_8wICJO5UOx_vULOMBKmGMOLmO0DbqAHdDw2Qx8Sgg>
+    <xmx:fxRaZAeGXsQCwZusXvgF1StxgPbYalneVgw_y3tnkrhLFMC_jy3rjA>
+    <xmx:fxRaZFMfYWVflVj5rOKIcutKIF5dLbPvZi1Iw7dHO-fYBDC-s9lWkg>
+    <xmx:gBRaZCcVsH6XHVXaai7iby-iCY4PxFduF5s1msWOAJRYZEdcbjifDA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 85FE3B60086; Tue,  9 May 2023 05:38:07 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-415-gf2b17fe6c3-fm-20230503.001-gf2b17fe6
+Mime-Version: 1.0
+Message-Id: <b9624545-2c80-49a1-ac3c-39264a591f7b@app.fastmail.com>
+In-Reply-To: <1683615903-10862-1-git-send-email-yangtiezhu@loongson.cn>
+References: <1683615903-10862-1-git-send-email-yangtiezhu@loongson.cn>
+Date:   Tue, 09 May 2023 11:37:46 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Tiezhu Yang" <yangtiezhu@loongson.cn>
+Cc:     linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: Re: [PATCH v5 5/6] fbdev: Move framebuffer I/O helpers into
- <asm/fb.h>
-Message-ID: <202305091533.3zBlgYkC-lkp@intel.com>
-References: <20230508114830.28182-6-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230508114830.28182-6-tzimmermann@suse.de>
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        x86@kernel.org, bpf@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        Linux-Arch <linux-arch@vger.kernel.org>, llvm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, loongson-kernel@lists.loongnix.cn
+Subject: Re: [RFC PATCH] asm-generic: Unify uapi bitsperlong.h
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Thomas,
+On Tue, May 9, 2023, at 09:05, Tiezhu Yang wrote:
+> Now we specify the minimal version of GCC as 5.1 and Clang/LLVM as 11.0.0
+> in Documentation/process/changes.rst, __CHAR_BIT__ and __SIZEOF_LONG__ are
+> usable, just define __BITS_PER_LONG as (__CHAR_BIT__ * __SIZEOF_LONG__) in
+> asm-generic uapi bitsperlong.h, simpler, works everywhere.
+>
+> Remove all the arch specific uapi bitsperlong.h which will be generated as
+> arch/*/include/generated/uapi/asm/bitsperlong.h.
+>
+> Suggested-by: Xi Ruoyao <xry111@xry111.site>
+> Link: 
+> https://lore.kernel.org/all/d3e255e4746de44c9903c4433616d44ffcf18d1b.camel@xry111.site/
+> Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
 
-kernel test robot noticed the following build errors:
+I originally introduced the bitsperlong.h header, and I'd love to
+see it removed if it's no longer needed. Your patch certainly
+seems like it does this well.
 
-[auto build test ERROR on drm-misc/drm-misc-next]
-[cannot apply to deller-parisc/for-next arnd-asm-generic/master linus/master v6.4-rc1 next-20230509]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+There is one minor obstacle to this, which is that the compiler
+requirements for uapi headers are not the same as for kernel
+internal code. In particular, the uapi headers may be included
+by user space code that is built with an older compiler version,
+or with a compiler that is not gcc or clang.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Thomas-Zimmermann/fbdev-matrox-Remove-trailing-whitespaces/20230508-195052
-base:   git://anongit.freedesktop.org/drm/drm-misc drm-misc-next
-patch link:    https://lore.kernel.org/r/20230508114830.28182-6-tzimmermann%40suse.de
-patch subject: [PATCH v5 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-config: mips-randconfig-r016-20230507 (https://download.01.org/0day-ci/archive/20230509/202305091533.3zBlgYkC-lkp@intel.com/config)
-compiler: mips64-linux-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/c64dc7f407b3faa85d4e81ec762407388c5813c1
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Thomas-Zimmermann/fbdev-matrox-Remove-trailing-whitespaces/20230508-195052
-        git checkout c64dc7f407b3faa85d4e81ec762407388c5813c1
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=mips olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=mips SHELL=/bin/bash drivers/video/fbdev/core/
+I think we are completely safe on the architectures that were
+added since the linux-3.x days (arm64, riscv, csky, openrisc,
+loongarch, nios2, and hexagon), but for the older ones there
+is a regression risk. Especially on targets that are not that
+actively maintained (sparc, alpha, ia64, sh, ...) there is
+a good chance that users are stuck on ancient toolchains.
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202305091533.3zBlgYkC-lkp@intel.com/
+It's probably also a safe assumption that anyone with an older
+libc version won't be using the latest kernel headers, so
+I think we can still do this across architectures if both
+glibc and musl already require a compiler that is new enough,
+or alternatively if we know that the kernel headers require
+a new compiler for other reasons and nobody has complained.
 
-All errors (new ones prefixed by >>):
+For glibc, it looks the minimum compiler version was raised
+from gcc-5 to gcc-8 four years ago, so we should be fine.
 
-   drivers/video/fbdev/core/cfbfillrect.c: In function 'bitfill_aligned':
->> drivers/video/fbdev/core/cfbfillrect.c:26:21: error: implicit declaration of function 'fb_writeq'; did you mean 'fb_writel'? [-Werror=implicit-function-declaration]
-      26 | #  define FB_WRITEL fb_writeq
-         |                     ^~~~~~~~~
-   drivers/video/fbdev/core/cfbfillrect.c:50:17: note: in expansion of macro 'FB_WRITEL'
-      50 |                 FB_WRITEL(comp(pat, FB_READL(dst), first), dst);
-         |                 ^~~~~~~~~
->> drivers/video/fbdev/core/cfbfillrect.c:27:21: error: implicit declaration of function 'fb_readq'; did you mean 'fb_readl'? [-Werror=implicit-function-declaration]
-      27 | #  define FB_READL  fb_readq
-         |                     ^~~~~~~~
-   drivers/video/fbdev/core/cfbfillrect.c:50:37: note: in expansion of macro 'FB_READL'
-      50 |                 FB_WRITEL(comp(pat, FB_READL(dst), first), dst);
-         |                                     ^~~~~~~~
-   cc1: some warnings being treated as errors
---
-   drivers/video/fbdev/core/cfbcopyarea.c: In function 'bitcpy':
->> drivers/video/fbdev/core/cfbcopyarea.c:37:21: error: implicit declaration of function 'fb_writeq'; did you mean 'fb_writel'? [-Werror=implicit-function-declaration]
-      37 | #  define FB_WRITEL fb_writeq
-         |                     ^~~~~~~~~
-   drivers/video/fbdev/core/cfbcopyarea.c:73:25: note: in expansion of macro 'FB_WRITEL'
-      73 |                         FB_WRITEL( comp( FB_READL(src), FB_READL(dst), first), dst);
-         |                         ^~~~~~~~~
->> drivers/video/fbdev/core/cfbcopyarea.c:38:21: error: implicit declaration of function 'fb_readq'; did you mean 'fb_readl'? [-Werror=implicit-function-declaration]
-      38 | #  define FB_READL  fb_readq
-         |                     ^~~~~~~~
-   drivers/video/fbdev/core/cfbcopyarea.c:73:42: note: in expansion of macro 'FB_READL'
-      73 |                         FB_WRITEL( comp( FB_READL(src), FB_READL(dst), first), dst);
-         |                                          ^~~~~~~~
-   cc1: some warnings being treated as errors
+In musl, the documentation states that at least gcc-3.4 or
+clang-3.2 are required, which probably predate the
+__SIZEOF_LONG__ macro. On the other hand, musl was only
+released in 2011, and building musl itself explicitly
+does not require kernel uapi headers, so this may not
+be too critical.
 
+There is also uClibc, but I could not find any minimum
+supported compiler version for that. Most commonly, this
+one is used for cross-build environments, so it's also
+less likely to have libc/gcc/headers being wildly out of
+sync. Not sure.
 
-vim +26 drivers/video/fbdev/core/cfbfillrect.c
+      Arnd
 
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  21  
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  22  #if BITS_PER_LONG == 32
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  23  #  define FB_WRITEL fb_writel
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  24  #  define FB_READL  fb_readl
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  25  #else
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16 @26  #  define FB_WRITEL fb_writeq
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16 @27  #  define FB_READL  fb_readq
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  28  #endif
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  29  
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  30      /*
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  31       *  Aligned pattern fill using 32/64-bit memory accesses
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  32       */
-^1da177e4c3f41 drivers/video/cfbfillrect.c Linus Torvalds 2005-04-16  33  
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+[1] https://sourceware.org/pipermail/libc-alpha/2019-January/101010.html
