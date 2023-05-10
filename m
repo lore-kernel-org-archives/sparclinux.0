@@ -2,238 +2,131 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4202AC7EE22
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 15:28:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 774A3C7EE2D
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 15:55:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232714AbjEJP2z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 11:28:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50592 "EHLO
+        id S237436AbjEJPzK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 11:55:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231941AbjEJP2y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 11:28:54 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D13B10D0
-        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:53 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id a640c23a62f3a-966287b0f72so892674766b.0
-        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1683732531; x=1686324531;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qzhn1S4hfKcOd1E/ek0bvXDc8iMvqfYzj4agdzIw7zg=;
-        b=YpJJUKAadz6Hcm6Dq8OD/Im8MgJw5o3BRbOfovL1jnQbRxavSXLWUrnZGdFzY4zgaC
-         yGnpqeJZ8a1Yx/CSigFxoN4hfXP9rxU8G7TMfurSP+9BjpyoeZZV43pHmraasbsfsFKO
-         8KfHG7PMSL95A020rQvcl9MGUAxOmbzqs+p3g=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683732531; x=1686324531;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=qzhn1S4hfKcOd1E/ek0bvXDc8iMvqfYzj4agdzIw7zg=;
-        b=ffaUWhnIsFfSCph3cqAreUXlaUJ8pe0uOHcDhxCTKIlbLSXr0kCEX0VuuEmIK3xFWa
-         +E/I0LAAExEey3qWy3Erm8FJSyYMe5tVd9S1Mg0wJex2LDt4HTz/0xGf08DUF5yweWDJ
-         zF+nk7uGOJ61cX08DWFJ4oGlYfjm+E7unKoebG632RUiFdVtFBZ2A8n1CgDYQe806yLS
-         xu9SM2kUQ9xJYmWZcqwK3qosKO2vIidFkWfYy20wGv6mPY48jY7KOD6+OSOQLpmvMNhi
-         lUR0S3YvYRrTZzRtbL6cNW9U4v9V/OIEt9/SN1XWjZYqgd8LEm2DqQwpdi4+0i2s2fOj
-         4JYA==
-X-Gm-Message-State: AC+VfDxMr9vIRsXvZss6f1U++NBz0ObLfjHRDHJPwzINbjXVyGeEMdZq
-        e8AhwNjIyAM2dZOleqBr9WJ3ZcIKPvtmAjvKbQvvuDGp
-X-Google-Smtp-Source: ACHHUZ5rRjpBY5h7fDBQtvIo/zOUoTkH0wwoBYhSDQRGEZAq9cLb696tBtg4mVPmaU5QhnJbjD/o7Q==
-X-Received: by 2002:a17:907:846:b0:96a:3005:61b1 with SMTP id ww6-20020a170907084600b0096a300561b1mr1980266ejb.11.1683732531824;
-        Wed, 10 May 2023 08:28:51 -0700 (PDT)
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com. [209.85.128.47])
-        by smtp.gmail.com with ESMTPSA id gx1-20020a1709068a4100b00965a0f30fbfsm2790425ejc.186.2023.05.10.08.28.51
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 10 May 2023 08:28:51 -0700 (PDT)
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-3f423c17bafso127415e9.0
-        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:51 -0700 (PDT)
-X-Received: by 2002:a05:600c:600f:b0:3f1:6fe9:4a98 with SMTP id
- az15-20020a05600c600f00b003f16fe94a98mr178073wmb.5.1683732511119; Wed, 10 May
- 2023 08:28:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230419225604.21204-1-dianders@chromium.org>
-In-Reply-To: <20230419225604.21204-1-dianders@chromium.org>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Wed, 10 May 2023 08:28:17 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
-Message-ID: <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
-Subject: Re: [PATCH v8 00/10] arm64: Add framework to turn an IPI as NMI
-To:     Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Sumit Garg <sumit.garg@linaro.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Marc Zyngier <maz@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc:     ito-yuichi@fujitsu.com, kgdb-bugreport@lists.sourceforge.net,
-        Chen-Yu Tsai <wens@csie.org>,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Stephen Boyd <swboyd@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        linux-perf-users@vger.kernel.org,
-        Alexandru Elisei <alexandru.elisei@arm.com>,
-        Andrey Konovalov <andreyknvl@gmail.com>,
-        Ben Dooks <ben-linux@fluff.org>,
-        Borislav Petkov <bp@alien8.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Gaosheng Cui <cuigaosheng1@huawei.com>,
-        "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        Jason Wessel <jason.wessel@windriver.com>,
-        Jianmin Lv <lvjianmin@loongson.cn>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Jinyang He <hejinyang@loongson.cn>,
-        Joey Gouly <joey.gouly@arm.com>,
-        Kees Cook <keescook@chromium.org>,
-        Laurent Dufour <ldufour@linux.ibm.com>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        =?UTF-8?Q?Philippe_Mathieu=2DDaud=C3=A9?= <f4bug@amsat.org>,
-        Pierre Gondois <Pierre.Gondois@arm.com>,
-        Qing Zhang <zhangqing@loongson.cn>,
-        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
-        Russell King <linux@armlinux.org.uk>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        WANG Xuerui <kernel@xen0n.name>, linux-kernel@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        with ESMTP id S237098AbjEJPzI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 11:55:08 -0400
+Received: from new3-smtp.messagingengine.com (new3-smtp.messagingengine.com [66.111.4.229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF40B6EA1;
+        Wed, 10 May 2023 08:55:06 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 7102A580906;
+        Wed, 10 May 2023 11:55:04 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Wed, 10 May 2023 11:55:04 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm3; t=1683734104; x=1683741304; bh=SC
+        KFLRlOu8wMdidaM2MzVAEF3HdgavF0+zWaNr+e62A=; b=A2W0dNaRkjw2NxKUw2
+        y9/WuIWb6k0ZeUb1NuFzsS81Djn7IGJMUkuEFMR7fOflHeNjpOhtvktN1Odc5a0z
+        xPeBgoaCSeAf07UyKrt22YgIieCX3VuYjmzsZ7acBcr9Vhsn43rDMIHBy+tup+62
+        e+b15zL9TwSOE1pwhAWbOyPIs3zDrZiqpL0xF3vLdAvyOzLuSDBSNUGza0tnoSHo
+        GMsx9rsH+NakbnyqBJiDC4rcPPI7eVaCFnr8L802UJnuqWqjK25aunX4hbyjyfUK
+        TAeWqnelfG1gYDmfx0Kz6XhPuM40oPbxxV6++qmIkLZLhhFkjR/B8N0W7z0+yWPj
+        EhEw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1683734104; x=1683741304; bh=SCKFLRlOu8wMd
+        idaM2MzVAEF3HdgavF0+zWaNr+e62A=; b=eIQYFAE5hZb+cnbQVSJEeeGsDPFhq
+        wvSnouTayKkhqt7LWXqhWBFjSVYpoREhn3/6XGgVCsgiUb6sEjigqqvglXS25Pyy
+        X8KK1j6AiBuX7bJeATzfhXCIbvweqMnpWjMHFLv6ODWKcvH6eD1oaw/l5FQuDA8J
+        8ppL8Q4hETUca4ibTrpNmQ9U9eOdtgSe77XLucvhyxq+bxxWUs/X9wHs2KwYV+0J
+        Re8DQdzhPlu/QXxoS/a7Svwl9gcSfF2VIXS6JKfnP6DYDvNYmu863O/WiMzQxNHe
+        n/cwLQVAIPwbhFKgrPGUuqey6mWhQOSMQM9kPgIUqsT/4JmMnP/fmlp7Q==
+X-ME-Sender: <xms:V75bZI0QCyndvyxZhVbdVguFOeHQt11Pw2iNy0w2g7WiqadNq1Ytlw>
+    <xme:V75bZDHWhjp05aUzpFpWCQSYtdCrLKEGuxx9zSEVIglAQacPOJCHfurShIToWBue-
+    2trSsWy2DhMgrv4E4o>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeegiedgjedvucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepveevgeegffejueeiudehfefhhefgudejteejleeujeejffeuiedufeevfffh
+    hfffnecuffhomhgrihhnpegsohhothhlihhnrdgtohhmnecuvehluhhsthgvrhfuihiivg
+    eptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:V75bZA6RZfoG5BTYXRp8gTwgZ97mM-O_9pdcTzrGJBDim0LwUysyjQ>
+    <xmx:V75bZB3DXP8AYHeRD6YAVpZW_OGrMUKEYOBMBP0JZqlkMzywaXOVyA>
+    <xmx:V75bZLHlylKFiZVp5FEdY30IJbVOcNVUqvyVlYjqsg3FINwqU_kuyw>
+    <xmx:WL5bZE11XKy2XwogTzJ8hN3VFODqmdERBDmO_-kO_jNl7o2u12Ii7A>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 2BCEFB60086; Wed, 10 May 2023 11:55:03 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-415-gf2b17fe6c3-fm-20230503.001-gf2b17fe6
+Mime-Version: 1.0
+Message-Id: <743d2b1e-c843-4fb2-b252-0006be2e2bd8@app.fastmail.com>
+In-Reply-To: <49684d58-c19d-b147-5e9f-2ac526dd50f0@suse.de>
+References: <20230510110557.14343-6-tzimmermann@suse.de>
+ <202305102136.eMjTSPwH-lkp@intel.com>
+ <f6b2d541-d235-4e98-afcc-9137fb8afa35@app.fastmail.com>
+ <49684d58-c19d-b147-5e9f-2ac526dd50f0@suse.de>
+Date:   Wed, 10 May 2023 17:54:18 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
+        "kernel test robot" <lkp@intel.com>,
+        "Helge Deller" <deller@gmx.de>,
+        "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Javier Martinez Canillas" <javierm@redhat.com>,
+        "Daniel Vetter" <daniel@ffwll.ch>,
+        "Vineet Gupta" <vgupta@kernel.org>,
+        "Huacai Chen" <chenhuacai@kernel.org>,
+        "WANG Xuerui" <kernel@xen0n.name>,
+        "David S . Miller" <davem@davemloft.net>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        "Sam Ravnborg" <sam@ravnborg.org>, suijingfeng@loongson.cn
+Cc:     oe-kbuild-all@lists.linux.dev,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-m68k@lists.linux-m68k.org,
         loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Wed, May 10, 2023, at 16:27, Thomas Zimmermann wrote:
+> Am 10.05.23 um 16:15 schrieb Arnd Bergmann:
+>> On Wed, May 10, 2023, at 16:03, kernel test robot wrote:
+ 
+>> I think that's a preexisting bug and I have no idea what the
+>> correct solution is. Looking for HD64461 shows it being used
+>> both with inw/outw and readw/writew, so there is no way to have
+>> the correct type. The sh __raw_readw() definition hides this bug,
+>> but that is a problem with arch/sh and it probably hides others
+>> as well.
+>
+> The constant HD64461_IOBASE is defined as integer at
+>
+> 
+> https://elixir.bootlin.com/linux/latest/source/arch/sh/include/asm/hd64461.h#L17
+>
+> but fb_readw() expects a volatile-void pointer. I guess we could add a 
+> cast somewhere to silence the problem. In the current upstream code, 
+> that appears to be done by sh's __raw_readw() internally:
+>
+> 
+> https://elixir.bootlin.com/linux/latest/source/arch/sh/include/asm/io.h#L35
 
-On Wed, Apr 19, 2023 at 3:57=E2=80=AFPM Douglas Anderson <dianders@chromium=
-.org> wrote:
->
-> This is an attempt to resurrect Sumit's old patch series [1] that
-> allowed us to use the arm64 pseudo-NMI to get backtraces of CPUs and
-> also to round up CPUs in kdb/kgdb. The last post from Sumit that I
-> could find was v7, so I called this series v8. I haven't copied all of
-> his old changelongs here, but you can find them from the link.
->
-> Since v7, I have:
-> * Addressed the small amount of feedback that was there for v7.
-> * Rebased.
-> * Added a new patch that prevents us from spamming the logs with idle
->   tasks.
-> * Added an extra patch to gracefully fall back to regular IPIs if
->   pseudo-NMIs aren't there.
->
-> Since there appear to be a few different patches series related to
-> being able to use NMIs to get stack traces of crashed systems, let me
-> try to organize them to the best of my understanding:
->
-> a) This series. On its own, a) will (among other things) enable stack
->    traces of all running processes with the soft lockup detector if
->    you've enabled the sysctl "kernel.softlockup_all_cpu_backtrace". On
->    its own, a) doesn't give a hard lockup detector.
->
-> b) A different recently-posted series [2] that adds a hard lockup
->    detector based on perf. On its own, b) gives a stack crawl of the
->    locked up CPU but no stack crawls of other CPUs (even if they're
->    locked too). Together with a) + b) we get everything (full lockup
->    detect, full ability to get stack crawls).
->
-> c) The old Android "buddy" hard lockup detector [3] that I'm
->    considering trying to upstream. If b) lands then I believe c) would
->    be redundant (at least for arm64). c) on its own is really only
->    useful on arm64 for platforms that can print CPU_DBGPCSR somehow
->    (see [4]). a) + c) is roughly as good as a) + b).
->
-> [1] https://lore.kernel.org/linux-arm-kernel/1604317487-14543-1-git-send-=
-email-sumit.garg@linaro.org/
-> [2] https://lore.kernel.org/linux-arm-kernel/20220903093415.15850-1-lecop=
-zer.chen@mediatek.com/
-> [3] https://issuetracker.google.com/172213097
-> [4] https://issuetracker.google.com/172213129
->
-> Changes in v8:
-> - dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
-> - dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
-> - Add loongarch support, too
-> - Removed "#ifdef CONFIG_SMP" since arm64 is always SMP
-> - "Tag the arm64 idle functions as __cpuidle" new for v8
-> - "Provide a stub kgdb_nmicallback() if !CONFIG_KGDB" new for v8
-> - "Fallback to a regular IPI if NMI isn't enabled" new for v8
->
-> Douglas Anderson (3):
->   arm64: idle: Tag the arm64 idle functions as __cpuidle
->   kgdb: Provide a stub kgdb_nmicallback() if !CONFIG_KGDB
->   arm64: ipi_nmi: Fallback to a regular IPI if NMI isn't enabled
->
-> Sumit Garg (7):
->   arm64: Add framework to turn IPI as NMI
->   irqchip/gic-v3: Enable support for SGIs to act as NMIs
->   arm64: smp: Assign and setup an IPI as NMI
->   nmi: backtrace: Allow runtime arch specific override
->   arm64: ipi_nmi: Add support for NMI backtrace
->   kgdb: Expose default CPUs roundup fallback mechanism
->   arm64: kgdb: Roundup cpus using IPI as NMI
->
->  arch/arm/include/asm/irq.h       |   2 +-
->  arch/arm/kernel/smp.c            |   3 +-
->  arch/arm64/include/asm/irq.h     |   4 ++
->  arch/arm64/include/asm/nmi.h     |  17 +++++
->  arch/arm64/kernel/Makefile       |   2 +-
->  arch/arm64/kernel/idle.c         |   4 +-
->  arch/arm64/kernel/ipi_nmi.c      | 103 +++++++++++++++++++++++++++++++
->  arch/arm64/kernel/kgdb.c         |  18 ++++++
->  arch/arm64/kernel/smp.c          |   8 +++
->  arch/loongarch/include/asm/irq.h |   2 +-
->  arch/loongarch/kernel/process.c  |   3 +-
->  arch/mips/include/asm/irq.h      |   2 +-
->  arch/mips/kernel/process.c       |   3 +-
->  arch/powerpc/include/asm/nmi.h   |   2 +-
->  arch/powerpc/kernel/stacktrace.c |   3 +-
->  arch/sparc/include/asm/irq_64.h  |   2 +-
->  arch/sparc/kernel/process_64.c   |   4 +-
->  arch/x86/include/asm/irq.h       |   2 +-
->  arch/x86/kernel/apic/hw_nmi.c    |   3 +-
->  drivers/irqchip/irq-gic-v3.c     |  29 ++++++---
->  include/linux/kgdb.h             |  13 ++++
->  include/linux/nmi.h              |  12 ++--
->  kernel/debug/debug_core.c        |   8 ++-
->  23 files changed, 217 insertions(+), 32 deletions(-)
+Sure, that would make it build again, but that still doesn't make the
+code correct, since it's completely unclear what base address the
+HD64461_IOBASE is relative to. The hp6xx platform code only passes it
+through inw()/outw(), which take an offset relative to sh_io_port_base,
+but that is not initialized on hp6xx. I tried to find in the history
+when it broke, apparently that was in 2007 commit 34a780a0afeb ("sh:
+hp6xx pata_platform support."), which removed the custom inw/outw
+implementations.
 
-It's been 3 weeks and I haven't heard a peep on this series. That
-means nobody has any objections and it's all good to land, right?
-Right? :-P
-
-Seriously, though, I really think we should figure out how to get this
-landed. There's obviously interest from several different parties and
-I'm chomping at the bit waiting to spin this series according to your
-wishes. I also don't think there's anything super scary/ugly here. IMO
-the ideal situation is that folks are OK with the idea presented in
-the last patch in the series ("arm64: ipi_nmi: Fallback to a regular
-IPI if NMI isn't enabled") and then I can re-spin this series to be
-_much_ simpler. That being said, I'm also OK with dropping that patch
-and starting the discussion for how to land the rest of the patches in
-the series.
-
-Please let me know!
-
--Doug
+      Arnd
