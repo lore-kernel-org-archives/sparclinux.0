@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0D8AC7EE26
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 04:49:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8E26C7EE24
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 04:51:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235593AbjEJEtv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 00:49:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47892 "EHLO
+        id S235645AbjEJEvZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 00:51:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235626AbjEJEta (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 00:49:30 -0400
-Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A86E549CD
-        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 21:49:27 -0700 (PDT)
-Received: by mail-yb1-xb2b.google.com with SMTP id 3f1490d57ef6-b9a6f17f2b6so34047372276.1
-        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 21:49:27 -0700 (PDT)
+        with ESMTP id S230023AbjEJEvY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 00:51:24 -0400
+Received: from mail-yw1-x1132.google.com (mail-yw1-x1132.google.com [IPv6:2607:f8b0:4864:20::1132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA1701BD1
+        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 21:51:21 -0700 (PDT)
+Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-55a5a830238so62393557b3.3
+        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 21:51:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1683694167; x=1686286167;
+        d=google.com; s=20221208; t=1683694281; x=1686286281;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=fUQgmWpeb8XZ+Q95Ceu0Qoh2H5+Z0fgN6mScmqt4vh8=;
-        b=UYgN7SHJ+Kw138ag8h0xP8PheSyb+TyI5VHSIDjj4n9RShp4GncXL3XJ5EHxhXiibK
-         bWM2WA341yCPavofD2L+dwTh/k8wbtnqGHGh+6b5/c/SY6HIHVlS/8x1ncbIt6FJFxer
-         ySWLGEH9EXtIKdzeP4dp9W7nQnr+88zaaLX+AbAlYcn/Ke5bUTdA+Amtpc+UhTK8ZOe6
-         nlHKHHzGDYa0yETI6dqk3ia7Fkbq7SWABYpcMHvXrsQB+4fKcTN3DFHn/90Y6UPXvP9F
-         JN8mOaRS8n0XqBndVMSP+yTIoj8bABXUPMMg0RRYx7fWa70GyDb3jL+GXnDzUgXw6flR
-         jauA==
+        bh=b7UlqbgxG6/xaVRAtCCqUssmJjUq670TXTguXR1OYLA=;
+        b=5cXf/P6BxU1x2jWAw1XE7lRFR5Hz1XREgrw/VEMhvVcJnXcjM36N/6ukWbrtQrBqKA
+         zSa2Sv7JIhhIHw0jqecJCQ0I3KFtNtFTtcWEm3Dd1ej1SIUJwcKbmfe+obSPbeDZo8gC
+         6xQBKG42nA4UxjHlH/bbWapoijTCEdQ0FWMFygpKibtGLht3vBtUJrxtZLXSikEjAohO
+         9Mt4H98I/XZmLwWtASWfmWRRB+ep6DPhrFoxb6sbiSMAPWqCSJ6PoFgtTXczonMbB8CK
+         fEydvLzJU1eBlheYQjHQZRb6dlhSRwpD8khHEgpaWJ2Nq+jcZ1v9u6pbHABwaFooYDMC
+         SQUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683694167; x=1686286167;
+        d=1e100.net; s=20221208; t=1683694281; x=1686286281;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=fUQgmWpeb8XZ+Q95Ceu0Qoh2H5+Z0fgN6mScmqt4vh8=;
-        b=dGE3PKooblTtY14QVUvgUmuwWCmtyKD5QUcZifT43KZ1CePbis/T6hIIOYCd5UbCdG
-         OeB9AQvb5/F+W50bAFXJ/+pV/a3dlZjz2ehnq7aooyHBTCL6NLkeArkmC4twcPx4LNK+
-         9P12jAuM6x1PbNJAaQ9RccINiwRbfuzylHLFIR1FqqZP/AZpQMUwL2kujMZjsDjri3eN
-         UFz3LRqcgcDFcbRkyjvHXM9ELhn55hW61zrKTFi30D3wzF0AfkMjr+Zmi1rdNlJIVXa6
-         io8RAuXll/oMtq3YTQu5PifWCmorbur/f8sItXICV7m9F5MbQNlWkkjsKyAn6U3ng6VU
-         CZqw==
-X-Gm-Message-State: AC+VfDzdeuvY84jqxCnAwtd7tWxmLrW6C1Jv48bTJGyqFOAOajdlQS4c
-        us/Q8CqxwZxSVXsUyKHA/R49ig==
-X-Google-Smtp-Source: ACHHUZ4tqpw6+aM6rxWFz6kp/xXo9T82LwXaR685ltqxNG0QuiQjYqghFAwvEDZVatjZsBeLNAG4xw==
-X-Received: by 2002:a0d:c604:0:b0:55a:3502:d2ca with SMTP id i4-20020a0dc604000000b0055a3502d2camr16180522ywd.13.1683694166794;
-        Tue, 09 May 2023 21:49:26 -0700 (PDT)
+        bh=b7UlqbgxG6/xaVRAtCCqUssmJjUq670TXTguXR1OYLA=;
+        b=ihVcUtdFm61eFfuHJJ4yF6RAvCFOePa8UdHQZScLGew80zPvJT+2bV34aVw4+BDZJC
+         a+qTha06zbdQcVaNV/+kdLie6NoGwYoiaqtVBBEEZZj9cRRRXvj8C4JbzqgLJ+bxZrXL
+         mLYoggE1044DaPtg5Fns5XopythVXJKal/lmHALuqG1qggz6OYXeV0v4NvI2ZjVzFNHr
+         buhBH3X14T0KyL31wvcO5Lo1tFkBLwosXzZdTHfyKMw899ZaQntxVPkIHfVat9Imliem
+         zB2daMmSXteIhMqlyoU5vcOxAwBsRTZCBy7LMuGiUvdLABvbiuM9UDtBCnQdmB7l2A6K
+         F9cA==
+X-Gm-Message-State: AC+VfDx8F5+SPZBrMGJMKs4PoTqwJr+IgwWgGn5R33TKo9tD8IHlJkun
+        PD2ALgFD7gEJhZ7OOi3uKGe1lg==
+X-Google-Smtp-Source: ACHHUZ4qY6ip5x2yFLoBtebXka29+LgP7DYegkav9AGhNOLhqnLW12B3RwfHAHhI/1xbUzIiGo2rmQ==
+X-Received: by 2002:a0d:f347:0:b0:556:1065:e6a8 with SMTP id c68-20020a0df347000000b005561065e6a8mr19687163ywf.2.1683694280881;
+        Tue, 09 May 2023 21:51:20 -0700 (PDT)
 Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id h67-20020a0df746000000b0054601a8399csm18738ywf.119.2023.05.09.21.49.23
+        by smtp.gmail.com with ESMTPSA id x186-20020a81a0c3000000b0054eff15530asm3831597ywg.90.2023.05.09.21.51.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 21:49:26 -0700 (PDT)
-Date:   Tue, 9 May 2023 21:49:22 -0700 (PDT)
+        Tue, 09 May 2023 21:51:20 -0700 (PDT)
+Date:   Tue, 9 May 2023 21:51:16 -0700 (PDT)
 From:   Hugh Dickins <hughd@google.com>
 X-X-Sender: hugh@ripple.attlocal.net
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -84,9 +84,9 @@ cc:     Mike Kravetz <mike.kravetz@oracle.com>,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH 06/23] microblaze: allow pte_offset_map() to fail
+Subject: [PATCH 07/23] mips: update_mmu_cache() can replace __update_tlb()
 In-Reply-To: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
-Message-ID: <12141321-df3-a8bf-18e-e27d13f24b74@google.com>
+Message-ID: <e7e6758b-d952-c96f-37b0-814cc3a22bc6@google.com>
 References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -94,37 +94,120 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offset_map_lock() may not find a page table: handle appropriately.
+Don't make update_mmu_cache() a wrapper around __update_tlb(): call it
+directly, and use the ptep (or pmdp) provided by the caller, instead of
+re-calling pte_offset_map() - which would raise a question of whether a
+pte_unmap() is needed to balance it.
+
+Check whether the "ptep" provided by the caller is actually the pmdp,
+instead of testing pmd_huge(): or test pmd_huge() too and warn if it
+disagrees?  This is "hazardous" territory: needs review and testing.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 ---
- arch/microblaze/kernel/signal.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/pgtable.h | 15 +++------------
+ arch/mips/mm/tlb-r3k.c          |  5 +++--
+ arch/mips/mm/tlb-r4k.c          |  9 +++------
+ 3 files changed, 9 insertions(+), 20 deletions(-)
 
-diff --git a/arch/microblaze/kernel/signal.c b/arch/microblaze/kernel/signal.c
-index c3aebec71c0c..c78a0ff48066 100644
---- a/arch/microblaze/kernel/signal.c
-+++ b/arch/microblaze/kernel/signal.c
-@@ -194,7 +194,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
+diff --git a/arch/mips/include/asm/pgtable.h b/arch/mips/include/asm/pgtable.h
+index 574fa14ac8b2..9175dfab08d5 100644
+--- a/arch/mips/include/asm/pgtable.h
++++ b/arch/mips/include/asm/pgtable.h
+@@ -565,15 +565,8 @@ static inline pte_t pte_swp_clear_exclusive(pte_t pte)
+ }
+ #endif
  
- 	preempt_disable();
- 	ptep = pte_offset_map(pmdp, address);
--	if (pte_present(*ptep)) {
-+	if (ptep && pte_present(*ptep)) {
- 		address = (unsigned long) page_address(pte_page(*ptep));
- 		/* MS: I need add offset in page */
- 		address += ((unsigned long)frame->tramp) & ~PAGE_MASK;
-@@ -203,7 +203,8 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
- 		invalidate_icache_range(address, address + 8);
- 		flush_dcache_range(address, address + 8);
+-extern void __update_tlb(struct vm_area_struct *vma, unsigned long address,
+-	pte_t pte);
+-
+-static inline void update_mmu_cache(struct vm_area_struct *vma,
+-	unsigned long address, pte_t *ptep)
+-{
+-	pte_t pte = *ptep;
+-	__update_tlb(vma, address, pte);
+-}
++extern void update_mmu_cache(struct vm_area_struct *vma,
++	unsigned long address, pte_t *ptep);
+ 
+ #define	__HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb	update_mmu_cache
+@@ -581,9 +574,7 @@ static inline void update_mmu_cache(struct vm_area_struct *vma,
+ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 	unsigned long address, pmd_t *pmdp)
+ {
+-	pte_t pte = *(pte_t *)pmdp;
+-
+-	__update_tlb(vma, address, pte);
++	update_mmu_cache(vma, address, (pte_t *)pmdp);
+ }
+ 
+ /*
+diff --git a/arch/mips/mm/tlb-r3k.c b/arch/mips/mm/tlb-r3k.c
+index 53dfa2b9316b..e5722cd8dd6d 100644
+--- a/arch/mips/mm/tlb-r3k.c
++++ b/arch/mips/mm/tlb-r3k.c
+@@ -176,7 +176,8 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
  	}
--	pte_unmap(ptep);
-+	if (ptep)
-+		pte_unmap(ptep);
- 	preempt_enable();
- 	if (err)
- 		return -EFAULT;
+ }
+ 
+-void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
++void update_mmu_cache(struct vm_area_struct *vma,
++		      unsigned long address, pte_t *ptep)
+ {
+ 	unsigned long asid_mask = cpu_asid_mask(&current_cpu_data);
+ 	unsigned long flags;
+@@ -203,7 +204,7 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
+ 	BARRIER;
+ 	tlb_probe();
+ 	idx = read_c0_index();
+-	write_c0_entrylo0(pte_val(pte));
++	write_c0_entrylo0(pte_val(*ptep));
+ 	write_c0_entryhi(address | pid);
+ 	if (idx < 0) {					/* BARRIER */
+ 		tlb_write_random();
+diff --git a/arch/mips/mm/tlb-r4k.c b/arch/mips/mm/tlb-r4k.c
+index 1b939abbe4ca..c96725d17cab 100644
+--- a/arch/mips/mm/tlb-r4k.c
++++ b/arch/mips/mm/tlb-r4k.c
+@@ -290,14 +290,14 @@ void local_flush_tlb_one(unsigned long page)
+  * updates the TLB with the new pte(s), and another which also checks
+  * for the R4k "end of page" hardware bug and does the needy.
+  */
+-void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
++void update_mmu_cache(struct vm_area_struct *vma,
++		      unsigned long address, pte_t *ptep)
+ {
+ 	unsigned long flags;
+ 	pgd_t *pgdp;
+ 	p4d_t *p4dp;
+ 	pud_t *pudp;
+ 	pmd_t *pmdp;
+-	pte_t *ptep;
+ 	int idx, pid;
+ 
+ 	/*
+@@ -326,10 +326,9 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
+ 	idx = read_c0_index();
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	/* this could be a huge page  */
+-	if (pmd_huge(*pmdp)) {
++	if (ptep == (pte_t *)pmdp) {
+ 		unsigned long lo;
+ 		write_c0_pagemask(PM_HUGE_MASK);
+-		ptep = (pte_t *)pmdp;
+ 		lo = pte_to_entrylo(pte_val(*ptep));
+ 		write_c0_entrylo0(lo);
+ 		write_c0_entrylo1(lo + (HPAGE_SIZE >> 7));
+@@ -344,8 +343,6 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
+ 	} else
+ #endif
+ 	{
+-		ptep = pte_offset_map(pmdp, address);
+-
+ #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
+ #ifdef CONFIG_XPA
+ 		write_c0_entrylo0(pte_to_entrylo(ptep->pte_high));
 -- 
 2.35.3
 
