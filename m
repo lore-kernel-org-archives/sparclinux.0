@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5880CC7EE2D
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 05:00:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 601C4C77B7C
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 05:01:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235795AbjEJFAG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 01:00:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54196 "EHLO
+        id S235788AbjEJFB0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 01:01:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235788AbjEJFAF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 01:00:05 -0400
-Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FEA2272B
-        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 22:00:03 -0700 (PDT)
-Received: by mail-yb1-xb33.google.com with SMTP id 3f1490d57ef6-b9e2b65d006so10158095276.3
-        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 22:00:03 -0700 (PDT)
+        with ESMTP id S235820AbjEJFBX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 01:01:23 -0400
+Received: from mail-yw1-x1132.google.com (mail-yw1-x1132.google.com [IPv6:2607:f8b0:4864:20::1132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B05B49D0
+        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 22:01:21 -0700 (PDT)
+Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-55a5a830238so62444547b3.3
+        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 22:01:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1683694802; x=1686286802;
+        d=google.com; s=20221208; t=1683694880; x=1686286880;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZMaWjOOzBzTq25y2V3ItGl/gYmS8RRtg1cvEbj+mQng=;
-        b=ZzRpNPCLPLWWy9l51Nih8NRcNS4RMfdgQJPdk9dvQR5ARMuCKQ3zdGhOCjSEHFMHe9
-         qp3QL38a7Rp+Nzyxhz4QYVLMzrb7X65oUfdLsTW77TzITid8hkMjba+W+JEapZ0fVJ8g
-         ix4S9WuwbK10+00+4Bgs98T8hhtmzf7gWW6vurv++UK1MFH3B8wMuQZfvLmv5SA9FZmA
-         9Y+W0it/mjfXX0LbepbHqOrIZm24+QhcfOOe+O5U8tGtvwMU0W3u3LwBC6jfkwoc+B8H
-         DvKiRnCiP4rwKnf6TUrlCNlVhR+sYHjoiapvClZaPgsrzNpVIGblcuHKM3aJRS/VSU+K
-         eHGg==
+        bh=WSGFooIbg1YnCT+usP0CPskjqWFniw8CJbMJmY8IIY4=;
+        b=vuo7rYDMzaDeDPZgzHMtVp+kDDpzRoF+cP2Qnr93hh+pF6J9q5tC6QhVWjQR/dpJZs
+         St4YSsmW5E0SKuQmRdibMqMztrKviA12bUxhXRBvVCQgZMikD8H0uj5+E9csqviYPTTF
+         W/MWYfjHA/1NssscvDoyXC6tVcA1ciumq+qFhN9YZhl/AUe/TYRGPOpbxUr3CzSoAwDs
+         9ZIJx+k2kcTyg+8Yd6pO3A43gfTS5JygrpCg5CjFhHivuRBYVd+ivlToDlbyQHOK26G6
+         DP8KUWo0VQTsOYmO3ProNs6agiD4J9mWFi/qWhwm90YAcZbtyMXr/cNFlm/A7CEZL/+P
+         HUIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683694802; x=1686286802;
+        d=1e100.net; s=20221208; t=1683694880; x=1686286880;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZMaWjOOzBzTq25y2V3ItGl/gYmS8RRtg1cvEbj+mQng=;
-        b=emeaPq5KI6ulF+9ojYy3YxnaEVL37m4RtQ6e9Dgo+gOl1QwBCVtWpllaBFyvmTmwZl
-         RSQ/1ZTKtFap9wQnaAUbLmQZ199EvTWq5rjKr5bnhY0pr8HUjQ1AFP2YVDzRSHVzkho7
-         NdUJ5M/I4OP83kPManieFDxmmGSEFhdHe8TJwgkQcHRB/F53iHptYKiRd+nVagmS2WMP
-         B2kd2epDeonq5tkmr7U77vzx7bKerbWf3ly+vXJ9o2rCMdT0XPlD22/KbAdrbRBILX1Z
-         LReFzGNjsV5OR/BuGISN9d8ATwObFfk+ehO65plRlCKrTvTI39z3x9HvDAvj9GrfeC5V
-         qDWg==
-X-Gm-Message-State: AC+VfDyUQ3Y5uxg2/XngJ2OiqiEhuGiEsFkcxG6CqkFgkzq5Ijdb60zM
-        47FJUkXCUJlm144H74scebJQjQ==
-X-Google-Smtp-Source: ACHHUZ52JqpHXNjwopV1qONCz4ZhxlIYDhhrgvgpvQjGO/cy7NhTIg/35E50jddhJVH/CVSemNKwJA==
-X-Received: by 2002:a25:a1c8:0:b0:b9d:9500:9d29 with SMTP id a66-20020a25a1c8000000b00b9d95009d29mr17308461ybi.45.1683694801383;
-        Tue, 09 May 2023 22:00:01 -0700 (PDT)
+        bh=WSGFooIbg1YnCT+usP0CPskjqWFniw8CJbMJmY8IIY4=;
+        b=YOSLt28Sc+5qqhlltx3AXz+66AVu39XK+087NnWWtgeGCdsarN2j5dsCGJu15IKKu1
+         xpIxX+cpIMjz9ahCIXUWxTmbLqlOAbz0xH82QiIWuhqb1aXkaGuvUt23JefDtJ8N2wJs
+         PglDKMBTETmlxWNLepCu1lFWhoE2vLy+8c/F2TzPxD1ynm2l6bgLm3KNmtMSshgg3tLC
+         w+drbZBrW9rMj5Df2cda7OIFTV9Ezmdxzrs/HuBYl5wpmWLRLX6vkfi5mj5dn94cGg3N
+         pd17D4tox2q8kgVJ8bygx/E3smF+TdzklQZVUpUuRtFbUGMl0cCn74wnvwf668B9ZJrC
+         eaoQ==
+X-Gm-Message-State: AC+VfDwOLPnqCmtPecfXCEkdAzoeCjm2JCuCiL0EWNDYxkLbFxU1CD8u
+        LivbpwOURb0Sz2p9bOzuej+bQw==
+X-Google-Smtp-Source: ACHHUZ5AoVobUeVID967V3Jmnothc2qu5Os8b3JQyJT6HUqgLFH4b1VRwh/1toL1vvMbGclLD2jjcg==
+X-Received: by 2002:a0d:d4c3:0:b0:55a:9d84:2e4e with SMTP id w186-20020a0dd4c3000000b0055a9d842e4emr17674451ywd.18.1683694880477;
+        Tue, 09 May 2023 22:01:20 -0700 (PDT)
 Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id b4-20020a256704000000b00ba2da98431fsm1603597ybc.56.2023.05.09.21.59.58
+        by smtp.gmail.com with ESMTPSA id e2-20020a81dd02000000b00559f9e9eabcsm3815388ywn.98.2023.05.09.22.01.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 22:00:01 -0700 (PDT)
-Date:   Tue, 9 May 2023 21:59:57 -0700 (PDT)
+        Tue, 09 May 2023 22:01:20 -0700 (PDT)
+Date:   Tue, 9 May 2023 22:01:16 -0700 (PDT)
 From:   Hugh Dickins <hughd@google.com>
 X-X-Sender: hugh@ripple.attlocal.net
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -84,9 +84,9 @@ cc:     Mike Kravetz <mike.kravetz@oracle.com>,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH 14/23] riscv/hugetlb: pte_alloc_huge() pte_offset_huge()
+Subject: [PATCH 15/23] s390: allow pte_offset_map_lock() to fail
 In-Reply-To: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
-Message-ID: <d1e54510-9ea2-edf-3851-fa7635ce1e5e@google.com>
+Message-ID: <94aec8fe-383f-892-dcbf-d4c14e460a7@google.com>
 References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -94,37 +94,100 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
-that: to keep balance in future, use the recently added pte_alloc_huge()
-instead; with pte_offset_huge() a better name for pte_offset_kernel().
+In rare transient cases, not yet made possible, pte_offset_map() and
+pte_offset_map_lock() may not find a page table: handle appropriately.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 ---
- arch/riscv/mm/hugetlbpage.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/kernel/uv.c  |  2 ++
+ arch/s390/mm/gmap.c    |  2 ++
+ arch/s390/mm/pgtable.c | 12 +++++++++---
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
-index a163a3e0f0d4..80926946759f 100644
---- a/arch/riscv/mm/hugetlbpage.c
-+++ b/arch/riscv/mm/hugetlbpage.c
-@@ -43,7 +43,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
+diff --git a/arch/s390/kernel/uv.c b/arch/s390/kernel/uv.c
+index cb2ee06df286..3c62d1b218b1 100644
+--- a/arch/s390/kernel/uv.c
++++ b/arch/s390/kernel/uv.c
+@@ -294,6 +294,8 @@ int gmap_make_secure(struct gmap *gmap, unsigned long gaddr, void *uvcb)
  
- 	for_each_napot_order(order) {
- 		if (napot_cont_size(order) == sz) {
--			pte = pte_alloc_map(mm, pmd, addr & napot_cont_mask(order));
-+			pte = pte_alloc_huge(mm, pmd, addr & napot_cont_mask(order));
- 			break;
- 		}
- 	}
-@@ -90,7 +90,7 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
+ 	rc = -ENXIO;
+ 	ptep = get_locked_pte(gmap->mm, uaddr, &ptelock);
++	if (!ptep)
++		goto out;
+ 	if (pte_present(*ptep) && !(pte_val(*ptep) & _PAGE_INVALID) && pte_write(*ptep)) {
+ 		page = pte_page(*ptep);
+ 		rc = -EAGAIN;
+diff --git a/arch/s390/mm/gmap.c b/arch/s390/mm/gmap.c
+index dc90d1eb0d55..d198fc9475a2 100644
+--- a/arch/s390/mm/gmap.c
++++ b/arch/s390/mm/gmap.c
+@@ -2549,6 +2549,8 @@ static int __zap_zero_pages(pmd_t *pmd, unsigned long start,
+ 		spinlock_t *ptl;
  
- 	for_each_napot_order(order) {
- 		if (napot_cont_size(order) == sz) {
--			pte = pte_offset_kernel(pmd, addr & napot_cont_mask(order));
-+			pte = pte_offset_huge(pmd, addr & napot_cont_mask(order));
- 			break;
- 		}
+ 		ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++		if (!ptep)
++			break;
+ 		if (is_zero_pfn(pte_pfn(*ptep)))
+ 			ptep_xchg_direct(walk->mm, addr, ptep, __pte(_PAGE_INVALID));
+ 		pte_unmap_unlock(ptep, ptl);
+diff --git a/arch/s390/mm/pgtable.c b/arch/s390/mm/pgtable.c
+index 6effb24de6d9..3bd2ab2a9a34 100644
+--- a/arch/s390/mm/pgtable.c
++++ b/arch/s390/mm/pgtable.c
+@@ -829,7 +829,7 @@ int set_guest_storage_key(struct mm_struct *mm, unsigned long addr,
+ 	default:
+ 		return -EFAULT;
  	}
+-
++again:
+ 	ptl = pmd_lock(mm, pmdp);
+ 	if (!pmd_present(*pmdp)) {
+ 		spin_unlock(ptl);
+@@ -850,6 +850,8 @@ int set_guest_storage_key(struct mm_struct *mm, unsigned long addr,
+ 	spin_unlock(ptl);
+ 
+ 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!ptep)
++		goto again;
+ 	new = old = pgste_get_lock(ptep);
+ 	pgste_val(new) &= ~(PGSTE_GR_BIT | PGSTE_GC_BIT |
+ 			    PGSTE_ACC_BITS | PGSTE_FP_BIT);
+@@ -938,7 +940,7 @@ int reset_guest_reference_bit(struct mm_struct *mm, unsigned long addr)
+ 	default:
+ 		return -EFAULT;
+ 	}
+-
++again:
+ 	ptl = pmd_lock(mm, pmdp);
+ 	if (!pmd_present(*pmdp)) {
+ 		spin_unlock(ptl);
+@@ -955,6 +957,8 @@ int reset_guest_reference_bit(struct mm_struct *mm, unsigned long addr)
+ 	spin_unlock(ptl);
+ 
+ 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!ptep)
++		goto again;
+ 	new = old = pgste_get_lock(ptep);
+ 	/* Reset guest reference bit only */
+ 	pgste_val(new) &= ~PGSTE_GR_BIT;
+@@ -1000,7 +1004,7 @@ int get_guest_storage_key(struct mm_struct *mm, unsigned long addr,
+ 	default:
+ 		return -EFAULT;
+ 	}
+-
++again:
+ 	ptl = pmd_lock(mm, pmdp);
+ 	if (!pmd_present(*pmdp)) {
+ 		spin_unlock(ptl);
+@@ -1017,6 +1021,8 @@ int get_guest_storage_key(struct mm_struct *mm, unsigned long addr,
+ 	spin_unlock(ptl);
+ 
+ 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!ptep)
++		goto again;
+ 	pgste = pgste_get_lock(ptep);
+ 	*key = (pgste_val(pgste) & (PGSTE_ACC_BITS | PGSTE_FP_BIT)) >> 56;
+ 	paddr = pte_val(*ptep) & PAGE_MASK;
 -- 
 2.35.3
 
