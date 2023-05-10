@@ -2,148 +2,116 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0150FC77B7C
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 12:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34601C7EE2E
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 14:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237085AbjEJMfH convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 08:35:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36884 "EHLO
+        id S237135AbjEJOCA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 10:02:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237044AbjEJMet (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 08:34:49 -0400
-Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com [209.85.128.169])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 333A47EE6;
-        Wed, 10 May 2023 05:34:48 -0700 (PDT)
-Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-559e2051d05so103544817b3.3;
-        Wed, 10 May 2023 05:34:48 -0700 (PDT)
+        with ESMTP id S236415AbjEJOB7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 10:01:59 -0400
+Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E58F435A6
+        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 07:01:55 -0700 (PDT)
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-64115e652eeso50447591b3a.0
+        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 07:01:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=dabbelt-com.20221208.gappssmtp.com; s=20221208; t=1683727315; x=1686319315;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=8O+Xva6SSKUOzu8cD6VykU+fN8y+E0NtB9pirvzzQ9U=;
+        b=xm7Lt7K+fM4a6fbPP7MIva3KYIsdEH2pn6NhTnqMZWDxfwMmfjfuC2iA7TIUgSp9X7
+         iapnslzabTi/3hpYysj/Y+Qpo/U+trS4YUbBrAymZCbRPQc2GdzYMvfSXRt75xnkQ7HH
+         9YmGcBzN1XGEnBnDnk4hqc6szvJ0vnbRYHR7DYbbDIfxitLJRxJHVDjlkZx/sb2Dalmd
+         NMN9fv1UEU3MEvWMv2OyK363gty+uPi7R5tqnoKyXja1AZDDzs7OuMx+xXPfQOPl3EBu
+         5ahAyXiN9ZWDD9X3LQrrN5sPj7Sd7WcMwJ/uvJSD2iG4PimTEA2R4mrq6SpEbr7//1lB
+         gm+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683722087; x=1686314087;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kGY/0htSfGIvsVgPn7bx+ykp3agguIOsAu0irnl44Xg=;
-        b=b3fqZuX/o+l+JPHZU/oNUSUIQokf+iQ2h3VQEGv3wrlo+2YoF6yE+8nEDaj7BWOhnd
-         cwTS69SgVDeoXoeZLP/jbDPVB+WNcBOU+WONdfvVcZXsyu12BwDxZwkGinMDzrYLzX4n
-         NxshY0P63163cpZuhl1EgjowDnHhEQHxbQzsuA5AJy/k9eClGFPpRn9BHMoqLvbD54IL
-         9nvcvALf4lKWFcLg5QExmogZZCDYmR+OWMJWLQr1NraLVdDS3suQGv4dlKqnVdGx5Ic2
-         qBHxGYEU0t6NHbpqnH08RrwyMYuQ9mYYX/HPaFgOFQWVwDT5gqNDZ/jLozQf0Cox+Ald
-         lTOA==
-X-Gm-Message-State: AC+VfDxNs7/QlEEhfPMQYEq6TlXAz88Pa31bBT0oi5sGf5iI+xpRMfvV
-        wvVZEsRqePzxl3RxtASaIrucPFmJoPnirA==
-X-Google-Smtp-Source: ACHHUZ4IgCsZzVyln8keZ1hl6teCvscT6HCafQroCO5qDcfhcANm4gjeIOVoxSMTBZodjSK9mGXFJw==
-X-Received: by 2002:a25:50c1:0:b0:ba1:b7e4:e0dd with SMTP id e184-20020a2550c1000000b00ba1b7e4e0ddmr18447949ybb.56.1683722087169;
-        Wed, 10 May 2023 05:34:47 -0700 (PDT)
-Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com. [209.85.128.175])
-        by smtp.gmail.com with ESMTPSA id b2-20020a251b02000000b00b7767ca7485sm3742166ybb.34.2023.05.10.05.34.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 10 May 2023 05:34:45 -0700 (PDT)
-Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-559de1d36a9so103567617b3.1;
-        Wed, 10 May 2023 05:34:45 -0700 (PDT)
-X-Received: by 2002:a0d:ead7:0:b0:55a:ae08:163f with SMTP id
- t206-20020a0dead7000000b0055aae08163fmr22367018ywe.32.1683722085095; Wed, 10
- May 2023 05:34:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230510110557.14343-1-tzimmermann@suse.de> <20230510110557.14343-6-tzimmermann@suse.de>
-In-Reply-To: <20230510110557.14343-6-tzimmermann@suse.de>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Wed, 10 May 2023 14:34:33 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
-Message-ID: <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
-Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-To:     Thomas Zimmermann <tzimmermann@suse.de>
-Cc:     deller@gmx.de, javierm@redhat.com, daniel@ffwll.ch,
-        vgupta@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
-        davem@davemloft.net, James.Bottomley@hansenpartnership.com,
-        arnd@arndb.de, sam@ravnborg.org, suijingfeng@loongson.cn,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        d=1e100.net; s=20221208; t=1683727315; x=1686319315;
+        h=content-transfer-encoding:mime-version:message-id:to:from:cc
+         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8O+Xva6SSKUOzu8cD6VykU+fN8y+E0NtB9pirvzzQ9U=;
+        b=hBrsgRXcOfYlyzH8TWYypUGRrZNNkMf9pAgnwF6YIdgSbU7//xvrwvKc39HLHDtu4R
+         bnFdQB2Mp6lgpbSP4fnjjtNl4G/1/QwFTV8Xx3BEXYo89IGD2+b/A+sYCVQJjeyVUdKp
+         Y7CibliPQt5gY3Ak6uYKGYYtTyZn1Ydz6nwz5IUkA+ti4aOwYLn/JBzLgehUXaBy+nBn
+         s25xUHoNMJOiP1GnZTHkbNmcuGe585wmPz8YRp9ccbWgYXP57UcPVQQgC0mwfp9rKRuo
+         +zOJZN+BQbOdlYvkAelYjRcOHJMvwcAmElfDMVC2IyFumGS8Ws8bShSu8CtE/+aSAwIb
+         c26Q==
+X-Gm-Message-State: AC+VfDySfvUKo9YalPkqCUz/LOebOM9BsISRzZ9p0k5NK8WJkocrNszI
+        No8R45Whq7Q7clEvpzwJE0ZSqA==
+X-Google-Smtp-Source: ACHHUZ5DO6A5G9Iwzn4Bquam+4PsWMq7WswXOCHPFyT+gtbX2VPfleyC7b8WGb0kQumaiIfRAr9lsw==
+X-Received: by 2002:a17:902:9a03:b0:1ad:1be7:2a76 with SMTP id v3-20020a1709029a0300b001ad1be72a76mr1572089plp.10.1683727315241;
+        Wed, 10 May 2023 07:01:55 -0700 (PDT)
+Received: from localhost ([135.180.227.0])
+        by smtp.gmail.com with ESMTPSA id q6-20020a170902dac600b001ac55a5e5eesm3819212plx.121.2023.05.10.07.01.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 May 2023 07:01:54 -0700 (PDT)
+Date:   Wed, 10 May 2023 07:01:54 -0700 (PDT)
+X-Google-Original-Date: Wed, 10 May 2023 07:01:48 PDT (-0700)
+Subject:     Re: [PATCH 14/23] riscv/hugetlb: pte_alloc_huge() pte_offset_huge()
+In-Reply-To: <d1e54510-9ea2-edf-3851-fa7635ce1e5e@google.com>
+CC:     akpm@linux-foundation.org, mike.kravetz@oracle.com,
+        rppt@kernel.org, kirill.shutemov@linux.intel.com,
+        willy@infradead.org, david@redhat.com, surenb@google.com,
+        zhengqi.arch@bytedance.com, linux@armlinux.org.uk,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, geert@linux-m68k.org,
+        gerg@linux-m68k.org, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        deller@gmx.de, dave.anglin@bell.net, aneesh.kumar@linux.ibm.com,
+        mpe@ellerman.id.au, alexghiti@rivosinc.com, hca@linux.ibm.com,
+        borntraeger@linux.ibm.com, imbrenda@linux.ibm.com,
+        glaubitz@physik.fu-berlin.de, davem@davemloft.net,
+        chris@zankel.net, jcmvbkbc@gmail.com, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+From:   Palmer Dabbelt <palmer@dabbelt.com>
+To:     hughd@google.com
+Message-ID: <mhng-fa58638c-1b42-4264-8bf1-55d4bc42a5e2@palmer-ri-x1c9>
+Mime-Version: 1.0 (MHng)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Thomas,
-
-On Wed, May 10, 2023 at 1:06 PM Thomas Zimmermann <tzimmermann@suse.de> wrote:
-> Implement framebuffer I/O helpers, such as fb_read*() and fb_write*(),
-> in the architecture's <asm/fb.h> header file or the generic one.
+On Tue, 09 May 2023 21:59:57 PDT (-0700), hughd@google.com wrote:
+> pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
+> that: to keep balance in future, use the recently added pte_alloc_huge()
+> instead; with pte_offset_huge() a better name for pte_offset_kernel().
 >
-> The common case has been the use of regular I/O functions, such as
-> __raw_readb() or memset_io(). A few architectures used plain system-
-> memory reads and writes. Sparc used helpers for its SBus.
+> Signed-off-by: Hugh Dickins <hughd@google.com>
+> ---
+>  arch/riscv/mm/hugetlbpage.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> The architectures that used special cases provide the same code in
-> their __raw_*() I/O helpers. So the patch replaces this code with the
-> __raw_*() functions and moves it to <asm-generic/fb.h> for all
-> architectures.
+> diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
+> index a163a3e0f0d4..80926946759f 100644
+> --- a/arch/riscv/mm/hugetlbpage.c
+> +++ b/arch/riscv/mm/hugetlbpage.c
+> @@ -43,7 +43,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
 >
-> v6:
->         * fix fb_readq()/fb_writeq() on 64-bit mips (kernel test robot)
-> v5:
->         * include <linux/io.h> in <asm-generic/fb>; fix s390 build
-> v4:
->         * ia64, loongarch, sparc64: add fb_mem*() to arch headers
->           to keep current semantics (Arnd)
-> v3:
->         * implement all architectures with generic helpers
->         * support reordering and native byte order (Geert, Arnd)
+>  	for_each_napot_order(order) {
+>  		if (napot_cont_size(order) == sz) {
+> -			pte = pte_alloc_map(mm, pmd, addr & napot_cont_mask(order));
+> +			pte = pte_alloc_huge(mm, pmd, addr & napot_cont_mask(order));
+>  			break;
+>  		}
+>  	}
+> @@ -90,7 +90,7 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
 >
-> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-> Tested-by: Sui Jingfeng <suijingfeng@loongson.cn>
-> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
->
-> add mips fb_q()
+>  	for_each_napot_order(order) {
+>  		if (napot_cont_size(order) == sz) {
+> -			pte = pte_offset_kernel(pmd, addr & napot_cont_mask(order));
+> +			pte = pte_offset_huge(pmd, addr & napot_cont_mask(order));
+>  			break;
+>  		}
+>  	}
 
-> --- a/arch/mips/include/asm/fb.h
-> +++ b/arch/mips/include/asm/fb.h
-> @@ -12,6 +12,28 @@ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
->  }
->  #define fb_pgprotect fb_pgprotect
->
-> +/*
-> + * MIPS doesn't define __raw_ I/O macros, so the helpers
-> + * in <asm-generic/fb.h> don't generate fb_readq() and
-> + * fb_write(). We have to provide them here.
-
-MIPS does not include <asm-generic/io.h>,  nor define its own
-__raw_readq() and __raw_writeq()...
-
-> + *
-> + * TODO: Convert MIPS to generic I/O. The helpers below can
-> + *       then be removed.
-> + */
-> +#ifdef CONFIG_64BIT
-> +static inline u64 fb_readq(const volatile void __iomem *addr)
-> +{
-> +       return __raw_readq(addr);
-
-... so how can this call work?
-
-> +}
-> +#define fb_readq fb_readq
-> +
-> +static inline void fb_writeq(u64 b, volatile void __iomem *addr)
-> +{
-> +       __raw_writeq(b, addr);
-> +}
-> +#define fb_writeq fb_writeq
-> +#endif
-> +
->  #include <asm-generic/fb.h>
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
