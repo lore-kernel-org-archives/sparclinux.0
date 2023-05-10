@@ -2,130 +2,144 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C064C7EE26
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 08:21:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1992C7EE2E
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 11:06:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236264AbjEJIV4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 04:21:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37348 "EHLO
+        id S236621AbjEJLGL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 07:06:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229893AbjEJIVz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 04:21:55 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B8DB171B;
-        Wed, 10 May 2023 01:21:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=1WZCLagr9yk4Cbp+6qSxxsSMmqvOctxqT3bVkNGFhnY=; b=CzmDvf3rqlZoWLTgd3FVOKNA13
-        am3KRsvw5dx0zZtORpSkeQixmHm2I0T/j68VXo57hz3B2sKfsZlkzT6mcIfsGM8QExy3tEBmFQg15
-        5knvERiYGPZKMBkmsOAK/iQ/5rtOFvAqMTYH7nFMXqdqWWfvmHjqNDYraw79BjtqAXxEKvC5IXPLi
-        v4WkUXSf6SdYO2DxNqGoNj/9jzwXI/RVqLwvIK8H89K9xhFYfEkKkPofOod7rLsPcDYQd4FB4I+bb
-        ncPfZdYjPCu8FZ1ut2ZqCkZjLMrUhqEHRkvEROX3xUgFItRMwb3mnY6amim7reKFoxZZ2cjlGh5hD
-        cm+pskqQ==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pwf2E-007PM8-2r;
-        Wed, 10 May 2023 08:20:55 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        with ESMTP id S230205AbjEJLGJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 07:06:09 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4880719B;
+        Wed, 10 May 2023 04:06:07 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 4DA20300338;
-        Wed, 10 May 2023 10:18:48 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 2369E20B04BA2; Wed, 10 May 2023 10:18:48 +0200 (CEST)
-Date:   Wed, 10 May 2023 10:18:48 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Helge Deller <deller@gmx.de>,
-        John David Anglin <dave.anglin@bell.net>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 21/23] x86: Allow get_locked_pte() to fail
-Message-ID: <20230510081848.GD83892@hirez.programming.kicks-ass.net>
-References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
- <eba2b72f-2180-498b-c8bd-ce8f717fc78a@google.com>
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id B2BA11F388;
+        Wed, 10 May 2023 11:06:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1683716765; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=8W+Q+r0g3mw6ipQ9VB8oBVPwJD25yg38F3zvEI0QrWI=;
+        b=xsqTAyRUUHiT1tcTopM9KBzj2+MMqQbkJhsuxa0/vyp3il1j+EufLJjTLSNhmwY736dymt
+        beipLzXFzi2x06B170786gLMc00/aufz0q+zQ9JJ2aR9U29J6fLzaZ3ENrPtnxG+X7OjKg
+        NqFl67xrzCTyQ/5vVpXGiOsoNWbZsL4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1683716765;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=8W+Q+r0g3mw6ipQ9VB8oBVPwJD25yg38F3zvEI0QrWI=;
+        b=S3VjVYLm7fDDz6TEUjM2HUYJgPdTN/ojk7o3k5n/zTMAV6d6H21pXszVtOT1O1zccafNDB
+        +4CWx0QCUD0RTCCQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 42DE713519;
+        Wed, 10 May 2023 11:06:05 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id bC02D516W2QfRAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 10 May 2023 11:06:05 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
+        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, davem@davemloft.net,
+        James.Bottomley@HansenPartnership.com, arnd@arndb.de,
+        sam@ravnborg.org, suijingfeng@loongson.cn
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-parisc@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v6 0/6] fbdev: Move framebuffer I/O helpers to <asm/fb.h>
+Date:   Wed, 10 May 2023 13:05:51 +0200
+Message-Id: <20230510110557.14343-1-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <eba2b72f-2180-498b-c8bd-ce8f717fc78a@google.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, May 09, 2023 at 10:08:37PM -0700, Hugh Dickins wrote:
-> In rare transient cases, not yet made possible, pte_offset_map() and
-> pte_offset_map_lock() may not find a page table: handle appropriately.
-> 
-> Signed-off-by: Hugh Dickins <hughd@google.com>
-> ---
->  arch/x86/kernel/ldt.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/ldt.c b/arch/x86/kernel/ldt.c
-> index 525876e7b9f4..eb844549cd83 100644
-> --- a/arch/x86/kernel/ldt.c
-> +++ b/arch/x86/kernel/ldt.c
-> @@ -367,8 +367,10 @@ static void unmap_ldt_struct(struct mm_struct *mm, struct ldt_struct *ldt)
->  
->  		va = (unsigned long)ldt_slot_va(ldt->slot) + offset;
->  		ptep = get_locked_pte(mm, va, &ptl);
-> -		pte_clear(mm, va, ptep);
-> -		pte_unmap_unlock(ptep, ptl);
-> +		if (ptep) {
-> +			pte_clear(mm, va, ptep);
-> +			pte_unmap_unlock(ptep, ptl);
-> +		}
->  	}
+Fbdev provides helpers for framebuffer I/O, such as fb_readl(),
+fb_writel() or fb_memcpy_to_fb(). The implementation of each helper
+depends on the architecture, but they are all equivalent to regular
+I/O functions of similar names. So use regular functions instead and
+move all helpers into <asm-generic/fb.h>
 
-Ow geez, now I have to go remember how the whole PTI/LDT crud worked :/
+The first patch a simple whitespace cleanup.
 
-At first glance this seems wrong; we can't just not unmap the LDT if we
-can't find it in a hurry. Also, IIRC this isn't in fact a regular user
-mapping, so it should not be subject to THP induced seizures.
+Until now, <linux/fb.h> contained an include of <asm/io.h>. As this
+will go away, patches 2 to 4 prepare include statements in the various
+drivers. Source files that use regular I/O helpers, such as readl(),
+now include <linux/io.h>. Source files that use framebuffer I/O
+helpers, such as fb_readl(), now include <linux/fb.h>.
 
-... memory bubbles back ... for PTI kernels we need to map this in the
-user and kernel page-tables because obviously userspace needs to be able
-to have access to the LDT. But it is not directly acessible by
-userspace. It lives in the cpu_entry_area as a virtual map of the real
-kernel allocation, and this virtual address is used for LLDT.
-Modification is done through sys_modify_ldt().
+Patch 5 replaces the architecture-based if-else branching in 
+<linux/fb.h> by helpers in <asm-generic/fb.h>. All helpers use Linux'
+existing I/O functions.
 
-I think I would feel much better if this were something like:
+Patch 6 harmonizes naming among fbdev and existing I/O functions.
 
-	if (!WARN_ON_ONCE(!ptep))
+The patchset has been built for a variety of platforms, such as x86-64,
+arm, aarch64, ppc64, parisc, m64k, mips and sparc.
 
-This really shouldn't fail and if it does, simply skipping it isn't the
-right thing either.
+v6:
+	* fix build on 64-bit mips (kernel test robot)
+	* update fb_io_fops.c
+v5:
+      	* fix build on s390
+v4:
+	* keep fb_mem*() as-is on ia64, loongarch, sparc64 (Arnd)
+	* don't include <asm/fb.h> (Sam)
+v3:
+	* add the new helpers in <asm-generic/fb.h>
+	* support reordering and native byte order (Geert, Arnd)
+v2:
+	* use Linux I/O helpers (Sam, Arnd)
+
+Thomas Zimmermann (6):
+  fbdev/matrox: Remove trailing whitespaces
+  ipu-v3: Include <linux/io.h>
+  fbdev: Include <linux/io.h> in various drivers
+  fbdev: Include <linux/fb.h> instead of <asm/fb.h>
+  fbdev: Move framebuffer I/O helpers into <asm/fb.h>
+  fbdev: Rename fb_mem*() helpers
+
+ arch/ia64/include/asm/fb.h                  |  20 ++++
+ arch/loongarch/include/asm/fb.h             |  21 ++++
+ arch/mips/include/asm/fb.h                  |  22 +++++
+ arch/parisc/video/fbdev.c                   |   3 +-
+ arch/sparc/include/asm/fb.h                 |  20 ++++
+ arch/sparc/video/fbdev.c                    |   1 -
+ arch/x86/video/fbdev.c                      |   2 -
+ drivers/gpu/ipu-v3/ipu-prv.h                |   1 +
+ drivers/staging/sm750fb/sm750.c             |   2 +-
+ drivers/video/fbdev/arcfb.c                 |   1 +
+ drivers/video/fbdev/aty/atyfb.h             |   2 +
+ drivers/video/fbdev/aty/mach64_cursor.c     |   2 +-
+ drivers/video/fbdev/chipsfb.c               |   2 +-
+ drivers/video/fbdev/core/fb_io_fops.c       |   4 +-
+ drivers/video/fbdev/core/fbcon.c            |   1 -
+ drivers/video/fbdev/core/fbmem.c            |   2 -
+ drivers/video/fbdev/kyro/fbdev.c            |   2 +-
+ drivers/video/fbdev/matrox/matroxfb_accel.c |   6 +-
+ drivers/video/fbdev/matrox/matroxfb_base.h  |   4 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/video/fbdev/sstfb.c                 |   2 +-
+ drivers/video/fbdev/stifb.c                 |   4 +-
+ drivers/video/fbdev/tdfxfb.c                |   2 +-
+ drivers/video/fbdev/wmt_ge_rops.c           |   2 +
+ include/asm-generic/fb.h                    | 102 ++++++++++++++++++++
+ include/linux/fb.h                          |  55 +----------
+ 26 files changed, 210 insertions(+), 77 deletions(-)
+
+-- 
+2.40.1
+
