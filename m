@@ -2,120 +2,215 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F627C7EE25
-	for <sparclinux@archiver.kernel.org>; Tue,  9 May 2023 18:21:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 572C9C7EE22
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 04:39:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234410AbjEISV3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 9 May 2023 14:21:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46564 "EHLO
+        id S230316AbjEJEjb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 00:39:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229543AbjEISV1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 9 May 2023 14:21:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 327EF4C2D;
-        Tue,  9 May 2023 11:21:25 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BB6FA6132C;
-        Tue,  9 May 2023 18:21:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE77FC433EF;
-        Tue,  9 May 2023 18:21:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683656484;
-        bh=wTrGWZ/prXac+ksuuHC0df7jUrXSG9zBg0tuZm4eZAk=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=eWEhqVADxc/GqJSwXnOQ3JLmV9EVm67GRKXU/8kCH+e7bYAn4tbjZ8OZRHVaX3ZcO
-         S0xv0AhCQd5NINM++YJU/lVWNxRqARJ2JdTZgkf8DKQ/aBVDAb43Y4DpvrsggmiDhc
-         VLuK4RypC1++gIMHtYJwDcVU3u+My56Q4IZYK0at1LgOku1qb8yZmqculMrILZXTXZ
-         neG8vnzAeERR8/VCvqWmCzd1JtSknWdohvz8yYije8I6fBKpAtZuUigoK/yqxiyRiQ
-         4E280Lp7b1rI5aQ6wbmUv7nAdHleWjJ8JY7/fVD00VEW304Ke/w4PCv+lqMsKKDnXi
-         XzOdVIUpJ2dRg==
-Date:   Tue, 9 May 2023 13:21:22 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
-        linux-pci@vger.kernel.org,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-mips@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
-        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        with ESMTP id S235006AbjEJEja (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 00:39:30 -0400
+Received: from mail-yw1-x1134.google.com (mail-yw1-x1134.google.com [IPv6:2607:f8b0:4864:20::1134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDEBD4229
+        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 21:39:26 -0700 (PDT)
+Received: by mail-yw1-x1134.google.com with SMTP id 00721157ae682-55d2e87048cso100411777b3.1
+        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 21:39:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1683693566; x=1686285566;
+        h=mime-version:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=pNtnMqwecxgAyJiNrU/av2u9SKsTTnkqGeLPsFfUGRY=;
+        b=cNF0lopRgs5z+paNDd47dgtG8TBjwZyJSBqFjK6ksHmrX2HqmLMYrrKsDdWDE4galp
+         I1RIa58CxJ4eWJPHfaXHtCDPLpNhfN/aCMBSDVyVUdoFoZEKW8H5uRAddSBQuOjqxl6G
+         cijgVp5qOvAn/BuT5Kj3i7X1ZHy6xq4kMM1JJiMLi60Voi2WzpeuiP4d77oQFZQJJTpA
+         DHkrQmjDtXwQxtNqUbLbFtn/koUU8sha9n5T/jPfXiKq7pKvhvnWuqWej7kSJ3OgTY5v
+         znwXH+YUrN8s6GiaQCUoDOK5c9Mq29M3c3H1/3qfehC4bHIrJ+vibMAeHVK8iG01ICVy
+         zeRA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683693566; x=1686285566;
+        h=mime-version:message-id:subject:cc:to:from:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=pNtnMqwecxgAyJiNrU/av2u9SKsTTnkqGeLPsFfUGRY=;
+        b=apOcoDpXyUPmOaGEMz0nM7WeBc5CFkKA3/xQGd804LKejGR2nEJU8nxJryH1I2A/y4
+         CYlmWHWxpg1x5+gSslMOAP/S8HnOpjdziH+8r9OXjpbP9+67BGeq3Vv0SgQg9UNjjIVX
+         0t3uO1TiwkrN/V56tyxznIIKZ57T4lu1hyQobHUViC/oCzX7wi4bWtBzB7eeBAGPjPSy
+         nI0TmD7tXFdvKMYOA2BWDYpfct6lLw92BQHOvBKRgXDbC8HabNXu4MqmryKu6Z5iNDS6
+         zrePlP1cGPr/+si43QaeRjNQLx1g0JHio4JSPcn11+ter4S84j2xYnVIdIPFv+tnC71l
+         4eUw==
+X-Gm-Message-State: AC+VfDx0BCJhzE9ZoLU7cVzLT/z6dmaPWYbdoSvWNW2ZwB1S0PXjTnk2
+        5xoGqarmM/niJHsdEYWA+BxKEQ==
+X-Google-Smtp-Source: ACHHUZ4tMEgG7AqlQIxMPNzAEIonGfK8+PPQUmJOyuPgdF6IMlPRJRM0QpGl7CYyO+0nNXPmO2L3jg==
+X-Received: by 2002:a0d:cc0b:0:b0:55a:9b56:acee with SMTP id o11-20020a0dcc0b000000b0055a9b56aceemr18605566ywd.38.1683693565918;
+        Tue, 09 May 2023 21:39:25 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id i185-20020a816dc2000000b0055d5c626be5sm3775822ywc.26.2023.05.09.21.39.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 09 May 2023 21:39:25 -0700 (PDT)
+Date:   Tue, 9 May 2023 21:39:13 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Andrew Morton <akpm@linux-foundation.org>
+cc:     Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
         Russell King <linux@armlinux.org.uk>,
-        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
-        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
-        Anatolij Gustschin <agust@denx.de>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Juergen Gross <jgross@suse.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        linux-kernel@vger.kernel.org,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        Helge Deller <deller@gmx.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
         "David S. Miller" <davem@davemloft.net>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>
-Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
- users
-Message-ID: <20230509182122.GA1259567@bhelgaas>
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH 00/23] arch: allow pte_offset_map[_lock]() to fail
+Message-ID: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230404161101.GA3554747@bhelgaas>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
-> On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
-> > Provide two new helper macros to iterate over PCI device resources and
-> > convert users.
+Here is a series of patches to various architectures, based on v6.4-rc1:
+preparing for changes expected to follow in mm, affecting pte_offset_map()
+and pte_offset_map_lock().
 
-> Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
+In a week or two, I intend to post a separate series, of equivalent
+preparations in mm.  These two series are "independent": neither depends
+for build or correctness on the other, and the arch patches can be merged
+separately via arch trees (stragglers picked up by akpm?); but both series
+have to be in before a third series is added to make the effective changes
+(and that will add a just a little more in powerpc, s390 and sparc).
 
-This is 09cc90063240 ("PCI: Introduce pci_dev_for_each_resource()")
-upstream now.
+What is it all about?  Some mmap_lock avoidance i.e. latency reduction.
+Initially just for the case of collapsing shmem or file pages to THPs;
+but likely to be relied upon later in other contexts e.g. freeing of
+empty page tables (but that's not work I'm doing).  mmap_write_lock
+avoidance when collapsing to anon THPs?  Perhaps, but again that's not
+work I've done: a quick and easy attempt looked like it was going to
+shift the load from mmap rwsem to pmd spinlock - not an improvement.
 
-Coverity complains about each use, sample below from
-drivers/pci/vgaarb.c.  I didn't investigate at all, so it might be a
-false positive; just FYI.
+I would much prefer not to have to make these small but wide-ranging
+changes for such a niche case; but failed to find another way, and
+have heard that shmem MADV_COLLAPSE's usefulness is being limited by
+that mmap_write_lock it currently requires.
 
-	  1. Condition screen_info.capabilities & (2U /* 1 << 1 */), taking true branch.
-  556        if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE)
-  557                base |= (u64)screen_info.ext_lfb_base << 32;
-  558
-  559        limit = base + size;
-  560
-  561        /* Does firmware framebuffer belong to us? */
-	  2. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-	  3. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
-	  6. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-	  7. cond_at_most: Checking __b < PCI_NUM_RESOURCES implies that __b may be up to 16 on the true branch.
-	  8. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
-	  11. incr: Incrementing __b. The value of __b may now be up to 17.
-	  12. alias: Assigning: r = &pdev->resource[__b]. r may now point to as high as element 17 of pdev->resource (which consists of 17 64-byte elements).
-	  13. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-	  14. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
-  562        pci_dev_for_each_resource(pdev, r) {
-	  4. Condition resource_type(r) != 512, taking true branch.
-	  9. Condition resource_type(r) != 512, taking true branch.
+These changes (though of course not these exact patches, and not all
+of these architectures!) have been in Google's data centre kernel for
+three years now: we do rely upon them.
 
-  CID 1529911 (#1 of 1): Out-of-bounds read (OVERRUN)
-  15. overrun-local: Overrunning array of 1088 bytes at byte offset 1088 by dereferencing pointer r. [show details]
-  563                if (resource_type(r) != IORESOURCE_MEM)
-	  5. Continuing loop.
-	  10. Continuing loop.
-  564                        continue;
+What are the per-arch changes about?  Generally, two things.
+
+One: the current mmap locking may not be enough to guard against that
+tricky transition between pmd entry pointing to page table, and empty
+pmd entry, and pmd entry pointing to huge page: pte_offset_map() will
+have to validate the pmd entry for itself, returning NULL if no page
+table is there.  What to do about that varies: often the nearby error
+handling indicates just to skip it; but in some cases a "goto again"
+looks appropriate (and if that risks an infinite loop, then there
+must have been an oops, or pfn 0 mistaken for page table, before).
+
+Deeper study of each site might show that 90% of them here in arch
+code could only fail if there's corruption e.g. a transition to THP
+would be surprising on an arch without HAVE_ARCH_TRANSPARENT_HUGEPAGE.
+But given the likely extension to freeing empty page tables, I have
+not limited this set of changes to THP; and it has been easier, and
+sets a better example, if each site is given appropriate handling.
+
+Two: pte_offset_map() will need to do an rcu_read_lock(), with the
+corresponding rcu_read_unlock() in pte_unmap().  But most architectures
+never supported CONFIG_HIGHPTE, so some don't always call pte_unmap()
+after pte_offset_map(), or have used userspace pte_offset_map() where
+pte_offset_kernel() is more correct.  No problem in the current tree,
+but a problem once an rcu_read_unlock() will be needed to keep balance.
+
+A common special case of that comes in arch/*/mm/hugetlbpage.c, if
+the architecture supports hugetlb pages down at the lowest PTE level.
+huge_pte_alloc() uses pte_alloc_map(), but generic hugetlb code does
+no corresponding pte_unmap(); similarly for huge_pte_offset().
+Thanks to Mike Kravetz and Andrew Morton, v6.4-rc1 already provides
+pte_alloc_huge() and pte_offset_huge() to help fix up those cases.
+
+01/23 arm: allow pte_offset_map[_lock]() to fail
+02/23 arm64: allow pte_offset_map() to fail
+03/23 arm64/hugetlb: pte_alloc_huge() pte_offset_huge()
+04/23 ia64/hugetlb: pte_alloc_huge() pte_offset_huge()
+05/23 m68k: allow pte_offset_map[_lock]() to fail
+06/23 microblaze: allow pte_offset_map() to fail
+07/23 mips: update_mmu_cache() can replace __update_tlb()
+08/23 parisc: add pte_unmap() to balance get_ptep()
+09/23 parisc: unmap_uncached_pte() use pte_offset_kernel()
+10/23 parisc/hugetlb: pte_alloc_huge() pte_offset_huge()
+11/23 powerpc: kvmppc_unmap_free_pmd() pte_offset_kernel()
+12/23 powerpc: allow pte_offset_map[_lock]() to fail
+13/23 powerpc/hugetlb: pte_alloc_huge()
+14/23 riscv/hugetlb: pte_alloc_huge() pte_offset_huge()
+15/23 s390: allow pte_offset_map_lock() to fail
+16/23 s390: gmap use pte_unmap_unlock() not spin_unlock()
+17/23 sh/hugetlb: pte_alloc_huge() pte_offset_huge()
+18/23 sparc/hugetlb: pte_alloc_huge() pte_offset_huge()
+19/23 sparc: allow pte_offset_map() to fail
+20/23 sparc: iounit and iommu use pte_offset_kernel()
+21/23 x86: Allow get_locked_pte() to fail
+22/23 x86: sme_populate_pgd() use pte_offset_kernel()
+23/23 xtensa: add pte_unmap() to balance pte_offset_map()
+
+ arch/arm/lib/uaccess_with_memcpy.c      |  3 ++
+ arch/arm/mm/fault-armv.c                |  5 ++-
+ arch/arm/mm/fault.c                     |  3 ++
+ arch/arm64/mm/fault.c                   |  3 ++
+ arch/arm64/mm/hugetlbpage.c             | 11 ++----
+ arch/ia64/mm/hugetlbpage.c              |  4 +--
+ arch/m68k/include/asm/mmu_context.h     |  6 ++--
+ arch/m68k/kernel/sys_m68k.c             |  2 ++
+ arch/m68k/mm/mcfmmu.c                   | 52 +++++++++++----------------
+ arch/microblaze/kernel/signal.c         |  5 +--
+ arch/mips/include/asm/pgtable.h         | 15 ++------
+ arch/mips/mm/tlb-r3k.c                  |  5 +--
+ arch/mips/mm/tlb-r4k.c                  |  9 ++---
+ arch/parisc/kernel/cache.c              | 26 +++++++++++---
+ arch/parisc/kernel/pci-dma.c            |  2 +-
+ arch/parisc/mm/hugetlbpage.c            |  4 +--
+ arch/powerpc/kvm/book3s_64_mmu_radix.c  |  2 +-
+ arch/powerpc/mm/book3s64/hash_tlb.c     |  4 +++
+ arch/powerpc/mm/book3s64/subpage_prot.c |  2 ++
+ arch/powerpc/mm/hugetlbpage.c           |  2 +-
+ arch/powerpc/xmon/xmon.c                |  5 ++-
+ arch/riscv/mm/hugetlbpage.c             |  4 +--
+ arch/s390/kernel/uv.c                   |  2 ++
+ arch/s390/mm/gmap.c                     | 24 +++++++------
+ arch/s390/mm/pgtable.c                  | 12 +++++--
+ arch/sh/mm/hugetlbpage.c                |  4 +--
+ arch/sparc/kernel/signal32.c            |  2 ++
+ arch/sparc/mm/fault_64.c                |  3 ++
+ arch/sparc/mm/hugetlbpage.c             |  4 +--
+ arch/sparc/mm/io-unit.c                 |  2 +-
+ arch/sparc/mm/iommu.c                   |  2 +-
+ arch/sparc/mm/tlb.c                     |  2 ++
+ arch/x86/kernel/ldt.c                   |  6 ++--
+ arch/x86/mm/mem_encrypt_identity.c      |  2 +-
+ arch/xtensa/mm/tlb.c                    |  5 ++-
+ 35 files changed, 140 insertions(+), 104 deletions(-)
+
+Hugh
