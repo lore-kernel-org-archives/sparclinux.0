@@ -2,206 +2,238 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44EBDC7EE26
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 15:11:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4202AC7EE22
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 15:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237651AbjEJPLc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 11:11:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40462 "EHLO
+        id S232714AbjEJP2z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 11:28:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237254AbjEJPLa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 11:11:30 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA3E51FC2;
-        Wed, 10 May 2023 08:11:29 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 510F0219B6;
-        Wed, 10 May 2023 15:11:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1683731488; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=7GsHyu8BvvIG88YAPiapZikCJddAHgbSm3iY5gZ+5dk=;
-        b=V8nPnqE0W5b4eUiWzQWhjNJ+C5HSzklnAHRgDHMEMT2D/nAtfFUt4PJtvGYHXoqJAhHmjS
-        f1Q/NSs731ZytgowSNTQojiyMv04CSHs5HN8CYKNKIDoE3H5mqDxaOk5gf0Cha/n23+cWg
-        645svPiTSTK5o8Bpf0PfPqg3IxhsMWs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1683731488;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=7GsHyu8BvvIG88YAPiapZikCJddAHgbSm3iY5gZ+5dk=;
-        b=ldSZ6sCgE7NATIvrxbps1bEgqObcnKzzD1pe2ZDCOsPoPZYQGRxO3Wg2orrUIG0RK882lm
-        TyzJ1u0RNETmF8CQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id D359213519;
-        Wed, 10 May 2023 15:11:27 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id FLw9Mh+0W2TxSAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 10 May 2023 15:11:27 +0000
-Message-ID: <238513df-4a39-75d4-9012-20d7d8526706@suse.de>
-Date:   Wed, 10 May 2023 17:11:27 +0200
+        with ESMTP id S231941AbjEJP2y (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 11:28:54 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D13B10D0
+        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:53 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id a640c23a62f3a-966287b0f72so892674766b.0
+        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1683732531; x=1686324531;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qzhn1S4hfKcOd1E/ek0bvXDc8iMvqfYzj4agdzIw7zg=;
+        b=YpJJUKAadz6Hcm6Dq8OD/Im8MgJw5o3BRbOfovL1jnQbRxavSXLWUrnZGdFzY4zgaC
+         yGnpqeJZ8a1Yx/CSigFxoN4hfXP9rxU8G7TMfurSP+9BjpyoeZZV43pHmraasbsfsFKO
+         8KfHG7PMSL95A020rQvcl9MGUAxOmbzqs+p3g=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683732531; x=1686324531;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qzhn1S4hfKcOd1E/ek0bvXDc8iMvqfYzj4agdzIw7zg=;
+        b=ffaUWhnIsFfSCph3cqAreUXlaUJ8pe0uOHcDhxCTKIlbLSXr0kCEX0VuuEmIK3xFWa
+         +E/I0LAAExEey3qWy3Erm8FJSyYMe5tVd9S1Mg0wJex2LDt4HTz/0xGf08DUF5yweWDJ
+         zF+nk7uGOJ61cX08DWFJ4oGlYfjm+E7unKoebG632RUiFdVtFBZ2A8n1CgDYQe806yLS
+         xu9SM2kUQ9xJYmWZcqwK3qosKO2vIidFkWfYy20wGv6mPY48jY7KOD6+OSOQLpmvMNhi
+         lUR0S3YvYRrTZzRtbL6cNW9U4v9V/OIEt9/SN1XWjZYqgd8LEm2DqQwpdi4+0i2s2fOj
+         4JYA==
+X-Gm-Message-State: AC+VfDxMr9vIRsXvZss6f1U++NBz0ObLfjHRDHJPwzINbjXVyGeEMdZq
+        e8AhwNjIyAM2dZOleqBr9WJ3ZcIKPvtmAjvKbQvvuDGp
+X-Google-Smtp-Source: ACHHUZ5rRjpBY5h7fDBQtvIo/zOUoTkH0wwoBYhSDQRGEZAq9cLb696tBtg4mVPmaU5QhnJbjD/o7Q==
+X-Received: by 2002:a17:907:846:b0:96a:3005:61b1 with SMTP id ww6-20020a170907084600b0096a300561b1mr1980266ejb.11.1683732531824;
+        Wed, 10 May 2023 08:28:51 -0700 (PDT)
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com. [209.85.128.47])
+        by smtp.gmail.com with ESMTPSA id gx1-20020a1709068a4100b00965a0f30fbfsm2790425ejc.186.2023.05.10.08.28.51
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 10 May 2023 08:28:51 -0700 (PDT)
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-3f423c17bafso127415e9.0
+        for <sparclinux@vger.kernel.org>; Wed, 10 May 2023 08:28:51 -0700 (PDT)
+X-Received: by 2002:a05:600c:600f:b0:3f1:6fe9:4a98 with SMTP id
+ az15-20020a05600c600f00b003f16fe94a98mr178073wmb.5.1683732511119; Wed, 10 May
+ 2023 08:28:31 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.1
-Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into
- <asm/fb.h>
-Content-Language: en-US
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     deller@gmx.de, javierm@redhat.com, daniel@ffwll.ch,
-        vgupta@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
-        davem@davemloft.net, James.Bottomley@hansenpartnership.com,
-        arnd@arndb.de, sam@ravnborg.org, suijingfeng@loongson.cn,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org
-References: <20230510110557.14343-1-tzimmermann@suse.de>
- <20230510110557.14343-6-tzimmermann@suse.de>
- <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
- <487ff03b-d753-972f-7a06-a1d5efda917d@suse.de>
- <CAMuHMdWQLF6QZi4j5Yg3oiy8dMbuApk+r=5c2tSLvYxvAaudMA@mail.gmail.com>
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-In-Reply-To: <CAMuHMdWQLF6QZi4j5Yg3oiy8dMbuApk+r=5c2tSLvYxvAaudMA@mail.gmail.com>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------bePUrlBG7J50eUzAHryxDe2t"
+References: <20230419225604.21204-1-dianders@chromium.org>
+In-Reply-To: <20230419225604.21204-1-dianders@chromium.org>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Wed, 10 May 2023 08:28:17 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
+Message-ID: <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
+Subject: Re: [PATCH v8 00/10] arm64: Add framework to turn an IPI as NMI
+To:     Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc:     ito-yuichi@fujitsu.com, kgdb-bugreport@lists.sourceforge.net,
+        Chen-Yu Tsai <wens@csie.org>,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Stephen Boyd <swboyd@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-perf-users@vger.kernel.org,
+        Alexandru Elisei <alexandru.elisei@arm.com>,
+        Andrey Konovalov <andreyknvl@gmail.com>,
+        Ben Dooks <ben-linux@fluff.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Gaosheng Cui <cuigaosheng1@huawei.com>,
+        "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Jason Wessel <jason.wessel@windriver.com>,
+        Jianmin Lv <lvjianmin@loongson.cn>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Jinyang He <hejinyang@loongson.cn>,
+        Joey Gouly <joey.gouly@arm.com>,
+        Kees Cook <keescook@chromium.org>,
+        Laurent Dufour <ldufour@linux.ibm.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        =?UTF-8?Q?Philippe_Mathieu=2DDaud=C3=A9?= <f4bug@amsat.org>,
+        Pierre Gondois <Pierre.Gondois@arm.com>,
+        Qing Zhang <zhangqing@loongson.cn>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        Russell King <linux@armlinux.org.uk>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        WANG Xuerui <kernel@xen0n.name>, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
+        x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------bePUrlBG7J50eUzAHryxDe2t
-Content-Type: multipart/mixed; boundary="------------nmuFXWNHp9OPw0gTQ9dL40wM";
- protected-headers="v1"
-From: Thomas Zimmermann <tzimmermann@suse.de>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: deller@gmx.de, javierm@redhat.com, daniel@ffwll.ch, vgupta@kernel.org,
- chenhuacai@kernel.org, kernel@xen0n.name, davem@davemloft.net,
- James.Bottomley@hansenpartnership.com, arnd@arndb.de, sam@ravnborg.org,
- suijingfeng@loongson.cn, linux-fbdev@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org
-Message-ID: <238513df-4a39-75d4-9012-20d7d8526706@suse.de>
-Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into
- <asm/fb.h>
-References: <20230510110557.14343-1-tzimmermann@suse.de>
- <20230510110557.14343-6-tzimmermann@suse.de>
- <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
- <487ff03b-d753-972f-7a06-a1d5efda917d@suse.de>
- <CAMuHMdWQLF6QZi4j5Yg3oiy8dMbuApk+r=5c2tSLvYxvAaudMA@mail.gmail.com>
-In-Reply-To: <CAMuHMdWQLF6QZi4j5Yg3oiy8dMbuApk+r=5c2tSLvYxvAaudMA@mail.gmail.com>
+Hi,
 
---------------nmuFXWNHp9OPw0gTQ9dL40wM
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+On Wed, Apr 19, 2023 at 3:57=E2=80=AFPM Douglas Anderson <dianders@chromium=
+.org> wrote:
+>
+> This is an attempt to resurrect Sumit's old patch series [1] that
+> allowed us to use the arm64 pseudo-NMI to get backtraces of CPUs and
+> also to round up CPUs in kdb/kgdb. The last post from Sumit that I
+> could find was v7, so I called this series v8. I haven't copied all of
+> his old changelongs here, but you can find them from the link.
+>
+> Since v7, I have:
+> * Addressed the small amount of feedback that was there for v7.
+> * Rebased.
+> * Added a new patch that prevents us from spamming the logs with idle
+>   tasks.
+> * Added an extra patch to gracefully fall back to regular IPIs if
+>   pseudo-NMIs aren't there.
+>
+> Since there appear to be a few different patches series related to
+> being able to use NMIs to get stack traces of crashed systems, let me
+> try to organize them to the best of my understanding:
+>
+> a) This series. On its own, a) will (among other things) enable stack
+>    traces of all running processes with the soft lockup detector if
+>    you've enabled the sysctl "kernel.softlockup_all_cpu_backtrace". On
+>    its own, a) doesn't give a hard lockup detector.
+>
+> b) A different recently-posted series [2] that adds a hard lockup
+>    detector based on perf. On its own, b) gives a stack crawl of the
+>    locked up CPU but no stack crawls of other CPUs (even if they're
+>    locked too). Together with a) + b) we get everything (full lockup
+>    detect, full ability to get stack crawls).
+>
+> c) The old Android "buddy" hard lockup detector [3] that I'm
+>    considering trying to upstream. If b) lands then I believe c) would
+>    be redundant (at least for arm64). c) on its own is really only
+>    useful on arm64 for platforms that can print CPU_DBGPCSR somehow
+>    (see [4]). a) + c) is roughly as good as a) + b).
+>
+> [1] https://lore.kernel.org/linux-arm-kernel/1604317487-14543-1-git-send-=
+email-sumit.garg@linaro.org/
+> [2] https://lore.kernel.org/linux-arm-kernel/20220903093415.15850-1-lecop=
+zer.chen@mediatek.com/
+> [3] https://issuetracker.google.com/172213097
+> [4] https://issuetracker.google.com/172213129
+>
+> Changes in v8:
+> - dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
+> - dynamic_ipi_setup() and dynamic_ipi_teardown() no longer take cpu param
+> - Add loongarch support, too
+> - Removed "#ifdef CONFIG_SMP" since arm64 is always SMP
+> - "Tag the arm64 idle functions as __cpuidle" new for v8
+> - "Provide a stub kgdb_nmicallback() if !CONFIG_KGDB" new for v8
+> - "Fallback to a regular IPI if NMI isn't enabled" new for v8
+>
+> Douglas Anderson (3):
+>   arm64: idle: Tag the arm64 idle functions as __cpuidle
+>   kgdb: Provide a stub kgdb_nmicallback() if !CONFIG_KGDB
+>   arm64: ipi_nmi: Fallback to a regular IPI if NMI isn't enabled
+>
+> Sumit Garg (7):
+>   arm64: Add framework to turn IPI as NMI
+>   irqchip/gic-v3: Enable support for SGIs to act as NMIs
+>   arm64: smp: Assign and setup an IPI as NMI
+>   nmi: backtrace: Allow runtime arch specific override
+>   arm64: ipi_nmi: Add support for NMI backtrace
+>   kgdb: Expose default CPUs roundup fallback mechanism
+>   arm64: kgdb: Roundup cpus using IPI as NMI
+>
+>  arch/arm/include/asm/irq.h       |   2 +-
+>  arch/arm/kernel/smp.c            |   3 +-
+>  arch/arm64/include/asm/irq.h     |   4 ++
+>  arch/arm64/include/asm/nmi.h     |  17 +++++
+>  arch/arm64/kernel/Makefile       |   2 +-
+>  arch/arm64/kernel/idle.c         |   4 +-
+>  arch/arm64/kernel/ipi_nmi.c      | 103 +++++++++++++++++++++++++++++++
+>  arch/arm64/kernel/kgdb.c         |  18 ++++++
+>  arch/arm64/kernel/smp.c          |   8 +++
+>  arch/loongarch/include/asm/irq.h |   2 +-
+>  arch/loongarch/kernel/process.c  |   3 +-
+>  arch/mips/include/asm/irq.h      |   2 +-
+>  arch/mips/kernel/process.c       |   3 +-
+>  arch/powerpc/include/asm/nmi.h   |   2 +-
+>  arch/powerpc/kernel/stacktrace.c |   3 +-
+>  arch/sparc/include/asm/irq_64.h  |   2 +-
+>  arch/sparc/kernel/process_64.c   |   4 +-
+>  arch/x86/include/asm/irq.h       |   2 +-
+>  arch/x86/kernel/apic/hw_nmi.c    |   3 +-
+>  drivers/irqchip/irq-gic-v3.c     |  29 ++++++---
+>  include/linux/kgdb.h             |  13 ++++
+>  include/linux/nmi.h              |  12 ++--
+>  kernel/debug/debug_core.c        |   8 ++-
+>  23 files changed, 217 insertions(+), 32 deletions(-)
 
-SGkgR2VlcnQNCg0KQW0gMTAuMDUuMjMgdW0gMTY6MzQgc2NocmllYiBHZWVydCBVeXR0ZXJo
-b2V2ZW46DQo+IEhpIFRob21hcywNCj4gDQo+IE9uIFdlZCwgTWF5IDEwLCAyMDIzIGF0IDQ6
-MjDigK9QTSBUaG9tYXMgWmltbWVybWFubiA8dHppbW1lcm1hbm5Ac3VzZS5kZT4gd3JvdGU6
-DQo+PiBBbSAxMC4wNS4yMyB1bSAxNDozNCBzY2hyaWViIEdlZXJ0IFV5dHRlcmhvZXZlbjoN
-Cj4+PiBPbiBXZWQsIE1heSAxMCwgMjAyMyBhdCAxOjA24oCvUE0gVGhvbWFzIFppbW1lcm1h
-bm4gPHR6aW1tZXJtYW5uQHN1c2UuZGU+IHdyb3RlOg0KPj4+PiBJbXBsZW1lbnQgZnJhbWVi
-dWZmZXIgSS9PIGhlbHBlcnMsIHN1Y2ggYXMgZmJfcmVhZCooKSBhbmQgZmJfd3JpdGUqKCks
-DQo+Pj4+IGluIHRoZSBhcmNoaXRlY3R1cmUncyA8YXNtL2ZiLmg+IGhlYWRlciBmaWxlIG9y
-IHRoZSBnZW5lcmljIG9uZS4NCj4+Pj4NCj4+Pj4gVGhlIGNvbW1vbiBjYXNlIGhhcyBiZWVu
-IHRoZSB1c2Ugb2YgcmVndWxhciBJL08gZnVuY3Rpb25zLCBzdWNoIGFzDQo+Pj4+IF9fcmF3
-X3JlYWRiKCkgb3IgbWVtc2V0X2lvKCkuIEEgZmV3IGFyY2hpdGVjdHVyZXMgdXNlZCBwbGFp
-biBzeXN0ZW0tDQo+Pj4+IG1lbW9yeSByZWFkcyBhbmQgd3JpdGVzLiBTcGFyYyB1c2VkIGhl
-bHBlcnMgZm9yIGl0cyBTQnVzLg0KPj4+Pg0KPj4+PiBUaGUgYXJjaGl0ZWN0dXJlcyB0aGF0
-IHVzZWQgc3BlY2lhbCBjYXNlcyBwcm92aWRlIHRoZSBzYW1lIGNvZGUgaW4NCj4+Pj4gdGhl
-aXIgX19yYXdfKigpIEkvTyBoZWxwZXJzLiBTbyB0aGUgcGF0Y2ggcmVwbGFjZXMgdGhpcyBj
-b2RlIHdpdGggdGhlDQo+Pj4+IF9fcmF3XyooKSBmdW5jdGlvbnMgYW5kIG1vdmVzIGl0IHRv
-IDxhc20tZ2VuZXJpYy9mYi5oPiBmb3IgYWxsDQo+Pj4+IGFyY2hpdGVjdHVyZXMuDQo+Pj4+
-DQo+Pj4+IHY2Og0KPj4+PiAgICAgICAgICAgKiBmaXggZmJfcmVhZHEoKS9mYl93cml0ZXEo
-KSBvbiA2NC1iaXQgbWlwcyAoa2VybmVsIHRlc3Qgcm9ib3QpDQo+Pj4+IHY1Og0KPj4+PiAg
-ICAgICAgICAgKiBpbmNsdWRlIDxsaW51eC9pby5oPiBpbiA8YXNtLWdlbmVyaWMvZmI+OyBm
-aXggczM5MCBidWlsZA0KPj4+PiB2NDoNCj4+Pj4gICAgICAgICAgICogaWE2NCwgbG9vbmdh
-cmNoLCBzcGFyYzY0OiBhZGQgZmJfbWVtKigpIHRvIGFyY2ggaGVhZGVycw0KPj4+PiAgICAg
-ICAgICAgICB0byBrZWVwIGN1cnJlbnQgc2VtYW50aWNzIChBcm5kKQ0KPj4+PiB2MzoNCj4+
-Pj4gICAgICAgICAgICogaW1wbGVtZW50IGFsbCBhcmNoaXRlY3R1cmVzIHdpdGggZ2VuZXJp
-YyBoZWxwZXJzDQo+Pj4+ICAgICAgICAgICAqIHN1cHBvcnQgcmVvcmRlcmluZyBhbmQgbmF0
-aXZlIGJ5dGUgb3JkZXIgKEdlZXJ0LCBBcm5kKQ0KPj4+Pg0KPj4+PiBTaWduZWQtb2ZmLWJ5
-OiBUaG9tYXMgWmltbWVybWFubiA8dHppbW1lcm1hbm5Ac3VzZS5kZT4NCj4+Pj4gVGVzdGVk
-LWJ5OiBTdWkgSmluZ2ZlbmcgPHN1aWppbmdmZW5nQGxvb25nc29uLmNuPg0KPj4+PiBSZXZp
-ZXdlZC1ieTogQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4NCj4gDQo+Pj4+IC0tLSBh
-L2FyY2gvbWlwcy9pbmNsdWRlL2FzbS9mYi5oDQo+Pj4+ICsrKyBiL2FyY2gvbWlwcy9pbmNs
-dWRlL2FzbS9mYi5oDQo+Pj4+IEBAIC0xMiw2ICsxMiwyOCBAQCBzdGF0aWMgaW5saW5lIHZv
-aWQgZmJfcGdwcm90ZWN0KHN0cnVjdCBmaWxlICpmaWxlLCBzdHJ1Y3Qgdm1fYXJlYV9zdHJ1
-Y3QgKnZtYSwNCj4+Pj4gICAgfQ0KPj4+PiAgICAjZGVmaW5lIGZiX3BncHJvdGVjdCBmYl9w
-Z3Byb3RlY3QNCj4+Pj4NCj4+Pj4gKy8qDQo+Pj4+ICsgKiBNSVBTIGRvZXNuJ3QgZGVmaW5l
-IF9fcmF3XyBJL08gbWFjcm9zLCBzbyB0aGUgaGVscGVycw0KPj4+PiArICogaW4gPGFzbS1n
-ZW5lcmljL2ZiLmg+IGRvbid0IGdlbmVyYXRlIGZiX3JlYWRxKCkgYW5kDQo+Pj4+ICsgKiBm
-Yl93cml0ZSgpLiBXZSBoYXZlIHRvIHByb3ZpZGUgdGhlbSBoZXJlLg0KPj4+DQo+Pj4gTUlQ
-UyBkb2VzIG5vdCBpbmNsdWRlIDxhc20tZ2VuZXJpYy9pby5oPiwgIG5vciBkZWZpbmUgaXRz
-IG93bg0KPj4NCj4+IEkga25vdywgdGhhdCdzIHdoeSB0aGUgVE9ETyBzYXlzIHRvIGNvbnZl
-cnQgaXQgdG8gZ2VuZXJpYyBJL08uDQo+Pg0KPj4+IF9fcmF3X3JlYWRxKCkgYW5kIF9fcmF3
-X3dyaXRlcSgpLi4uDQo+Pg0KPj4gSXQgZG9lc24ndCBkZWZpbmUgdGhvc2UgbWFjcm9zLCBi
-dXQgaXQgZ2VuZXJhdGVzIGZ1bmN0aW9uIGNhbGxzIG9mIHRoZQ0KPj4gc2FtZSBuYW1lcy4g
-Rm9sbG93IHRoZSBtYWNyb3MgYXQNCj4+DQo+Pg0KPj4gaHR0cHM6Ly9lbGl4aXIuYm9vdGxp
-bi5jb20vbGludXgvbGF0ZXN0L3NvdXJjZS9hcmNoL21pcHMvaW5jbHVkZS9hc20vaW8uaCNM
-MzU3DQo+Pg0KPj4gSXQgZXhwYW5kcyB0byBhIHZhcmlldHkgb2YgaGVscGVycywgaW5jbHVk
-aW5nIF9fcmF3XyooKS4NCj4gDQo+IFRoYW5rcywgSSBmb3Jnb3QgTUlQUyBpcyB1c2luZyB0
-aGVzZSBncmVwLXVuZnJpZW5kbHkgZmFjdG9yaWVzLi4uDQo+IA0KPj4+PiArICoNCj4+Pj4g
-KyAqIFRPRE86IENvbnZlcnQgTUlQUyB0byBnZW5lcmljIEkvTy4gVGhlIGhlbHBlcnMgYmVs
-b3cgY2FuDQo+Pj4+ICsgKiAgICAgICB0aGVuIGJlIHJlbW92ZWQuDQo+Pj4+ICsgKi8NCj4+
-Pj4gKyNpZmRlZiBDT05GSUdfNjRCSVQNCj4+Pj4gK3N0YXRpYyBpbmxpbmUgdTY0IGZiX3Jl
-YWRxKGNvbnN0IHZvbGF0aWxlIHZvaWQgX19pb21lbSAqYWRkcikNCj4+Pj4gK3sNCj4+Pj4g
-KyAgICAgICByZXR1cm4gX19yYXdfcmVhZHEoYWRkcik7DQo+Pj4NCj4+PiAuLi4gc28gaG93
-IGNhbiB0aGlzIGNhbGwgd29yaz8NCj4+DQo+PiBPbiA2NC1iaXQgYnVpbGRzLCB0aGVyZSdz
-IF9fcmF3X3JlYWRxKCkgYW5kIF9fcmF3X3dyaXRlcSgpLg0KPj4NCj4+IEF0IGZpcnN0LCBJ
-IHRyaWVkIHRvIGRvIHRoZSByaWdodCB0aGluZyBhbmQgY29udmVydCBNSVBTIHRvIHdvcmsg
-d2l0aA0KPj4gPGFzbS1nZW5lcmljL2lvLmg+LiBCdXQgdGhhdCBjcmVhdGVkIGEgdG9uIG9m
-IGZvbGxvdy11cCBlcnJvcnMgaW4gb3RoZXINCj4+IGhlYWRlcnMuIFNvIGZvciBub3csIGl0
-J3MgYmV0dGVyIHRvIGhhbmRsZSB0aGlzIHByb2JsZW0gaW4gYXNtL2ZiLmguDQo+IA0KPiBT
-byBpc24ndCBqdXN0IGFkZGluZw0KPiANCj4gICAgICAjZGVmaW5lIF9fcmF3X3JlYWRxIF9f
-cmF3X3JlYWRxDQo+ICAgICAgI2RlZmluZSBfX3Jhd193cml0ZXEgX19yYXdfd3JpdGVxDQo+
-IA0KPiB0byBhcmNoL21pcHMvaW5jbHVkZS9hc20vaW8uaCBzdWZmaWNpZW50IHRvIG1ha2Ug
-PGFzbS1nZW5lcmljL2ZiLmg+DQo+IGRvIHRoZSByaWdodCB0aGluZz8NCg0KVGhhdCB3b3Jr
-cy4gSSBoYWQgYSBwYXRjaCB0aGF0IGFkZHMgYWxsIG1pc3NpbmcgZGVmaW5lcyB0byBNSVBT
-JyBpby5oLiANClRoZW4gSSB3ZW50IHdpdGggdGhlIGN1cnJlbnQgZml4LCB3aGljaCBpcyBz
-ZWxmLWNvbnRhaW5lZCB3aXRoaW4gZmJkZXYuIA0KQnV0IEknZCBsZWF2ZSBpdCB0byBhcmNo
-IG1haW50YWluZXJzLg0KDQpCZXN0IHJlZ2FyZHMNClRob21hcw0KDQoNCj4gDQo+IEdye29l
-dGplLGVldGluZ31zLA0KPiANCj4gICAgICAgICAgICAgICAgICAgICAgICAgIEdlZXJ0DQo+
-IA0KDQotLSANClRob21hcyBaaW1tZXJtYW5uDQpHcmFwaGljcyBEcml2ZXIgRGV2ZWxvcGVy
-DQpTVVNFIFNvZnR3YXJlIFNvbHV0aW9ucyBHZXJtYW55IEdtYkgNCkZyYW5rZW5zdHJhc3Nl
-IDE0NiwgOTA0NjEgTnVlcm5iZXJnLCBHZXJtYW55DQpHRjogSXZvIFRvdGV2LCBBbmRyZXcg
-TXllcnMsIEFuZHJldyBNY0RvbmFsZCwgQm91ZGllbiBNb2VybWFuDQpIUkIgMzY4MDkgKEFH
-IE51ZXJuYmVyZykNCg==
+It's been 3 weeks and I haven't heard a peep on this series. That
+means nobody has any objections and it's all good to land, right?
+Right? :-P
 
---------------nmuFXWNHp9OPw0gTQ9dL40wM--
+Seriously, though, I really think we should figure out how to get this
+landed. There's obviously interest from several different parties and
+I'm chomping at the bit waiting to spin this series according to your
+wishes. I also don't think there's anything super scary/ugly here. IMO
+the ideal situation is that folks are OK with the idea presented in
+the last patch in the series ("arm64: ipi_nmi: Fallback to a regular
+IPI if NMI isn't enabled") and then I can re-spin this series to be
+_much_ simpler. That being said, I'm also OK with dropping that patch
+and starting the discussion for how to land the rest of the patches in
+the series.
 
---------------bePUrlBG7J50eUzAHryxDe2t
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
+Please let me know!
 
------BEGIN PGP SIGNATURE-----
-
-wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmRbtB8FAwAAAAAACgkQlh/E3EQov+DI
-OQ/7Bh2dGdIpUoZFmIzv8q/RW/ZRQu70vozaAGSwIj4W59gjrfbWhlRscy2ihp/+9MgdjDPByjMC
-huW3PLu6r/dG820Z19YD7yaqfiZiXykzvUGNKaJMwUvZnHSPR2EOW5guvhK+wQaSRnAiuGUUly8C
-Qc46ymt6o6SbZX4uFY9+ye3FY/ilEXY4ydngwypgcjsepbop9MVvMv1uyvn055gvbT37j2Cjwa2P
-qDSZbiZEmweX4/rtaF2bYOj64NfVIBAvi1I63kTYPuafn/0meleXyGC1iVjk3cYoDBG9gQ5TMJiV
-PUMNC20LIju+wZphH8Irh1yuqwsa797sIfiTz4cw0fXWzgEqvBTUC2reBS1aGEyj4sW2M+qyZGdG
-+efx+P1jAs2j/sm+3fvWXjIqZmxFXAPx3asI/zFJ5GUldFSTFVmcck/+sRN1MDTpOFWu3n3x0fw3
-SlIZP/R0mWQb5IRzn0eGeVs68mfhW2tb9IlRUmP1lZ97bn4faMPzGCHVsb3CLiURBjv9xU1khgtg
-MMlQS5yqmT+cM9Cf6frXdBMFTAmd5TyKiUaXdsz8yJAAj7Q0tdEu0gFubYY1CKRwtswzxjLJC66W
-cNc40si5mk77HnbK6MLfcTF/ZPG6EtbGNAZCODLobe3ivg+xFN3W+wKOxZwXM07dOkIus9vPbvx5
-LQQ=
-=sdVp
------END PGP SIGNATURE-----
-
---------------bePUrlBG7J50eUzAHryxDe2t--
+-Doug
