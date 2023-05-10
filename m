@@ -2,189 +2,148 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 044C1C7EE2A
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 11:06:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0150FC77B7C
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 12:35:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236872AbjEJLGm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 07:06:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34892 "EHLO
+        id S237085AbjEJMfH convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 08:35:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236617AbjEJLGL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 07:06:11 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0AB83A88;
-        Wed, 10 May 2023 04:06:08 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 658C321923;
-        Wed, 10 May 2023 11:06:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1683716767; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ysswJRH+ycp50fkMLEif6ClRKKPb7fDxKPwkFFsuYNs=;
-        b=yXwBBWLXt+rmUK8LbEDUUTMQXqS0pY8g1wtCe2XkmuHGDgvzHgk5gDAstozCwh0qnBg/TJ
-        iDDOJ0uZ/CWdJS9quG2foe3clCXc9E1FVgjNnSytAtn9fljvbXsHzotvA9FrBZQ7G1uTDh
-        eH5M9cT3RKHHIp92OKVxutnWTuLK3tw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1683716767;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ysswJRH+ycp50fkMLEif6ClRKKPb7fDxKPwkFFsuYNs=;
-        b=1lbhgwmeWrvTS6C8RCu73CHVTHeEEiiVrdOFjJMH9+6aAST/nim0lRRCpIfXGSlb0jvXA3
-        GqIKQoAhDoPy+wBQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 0695A13519;
-        Wed, 10 May 2023 11:06:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id UOWhAJ96W2QfRAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 10 May 2023 11:06:07 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, geert@linux-m68k.org, javierm@redhat.com,
-        daniel@ffwll.ch, vgupta@kernel.org, chenhuacai@kernel.org,
-        kernel@xen0n.name, davem@davemloft.net,
-        James.Bottomley@HansenPartnership.com, arnd@arndb.de,
-        sam@ravnborg.org, suijingfeng@loongson.cn
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        with ESMTP id S237044AbjEJMet (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 08:34:49 -0400
+Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com [209.85.128.169])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 333A47EE6;
+        Wed, 10 May 2023 05:34:48 -0700 (PDT)
+Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-559e2051d05so103544817b3.3;
+        Wed, 10 May 2023 05:34:48 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683722087; x=1686314087;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=kGY/0htSfGIvsVgPn7bx+ykp3agguIOsAu0irnl44Xg=;
+        b=b3fqZuX/o+l+JPHZU/oNUSUIQokf+iQ2h3VQEGv3wrlo+2YoF6yE+8nEDaj7BWOhnd
+         cwTS69SgVDeoXoeZLP/jbDPVB+WNcBOU+WONdfvVcZXsyu12BwDxZwkGinMDzrYLzX4n
+         NxshY0P63163cpZuhl1EgjowDnHhEQHxbQzsuA5AJy/k9eClGFPpRn9BHMoqLvbD54IL
+         9nvcvALf4lKWFcLg5QExmogZZCDYmR+OWMJWLQr1NraLVdDS3suQGv4dlKqnVdGx5Ic2
+         qBHxGYEU0t6NHbpqnH08RrwyMYuQ9mYYX/HPaFgOFQWVwDT5gqNDZ/jLozQf0Cox+Ald
+         lTOA==
+X-Gm-Message-State: AC+VfDxNs7/QlEEhfPMQYEq6TlXAz88Pa31bBT0oi5sGf5iI+xpRMfvV
+        wvVZEsRqePzxl3RxtASaIrucPFmJoPnirA==
+X-Google-Smtp-Source: ACHHUZ4IgCsZzVyln8keZ1hl6teCvscT6HCafQroCO5qDcfhcANm4gjeIOVoxSMTBZodjSK9mGXFJw==
+X-Received: by 2002:a25:50c1:0:b0:ba1:b7e4:e0dd with SMTP id e184-20020a2550c1000000b00ba1b7e4e0ddmr18447949ybb.56.1683722087169;
+        Wed, 10 May 2023 05:34:47 -0700 (PDT)
+Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com. [209.85.128.175])
+        by smtp.gmail.com with ESMTPSA id b2-20020a251b02000000b00b7767ca7485sm3742166ybb.34.2023.05.10.05.34.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 10 May 2023 05:34:45 -0700 (PDT)
+Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-559de1d36a9so103567617b3.1;
+        Wed, 10 May 2023 05:34:45 -0700 (PDT)
+X-Received: by 2002:a0d:ead7:0:b0:55a:ae08:163f with SMTP id
+ t206-20020a0dead7000000b0055aae08163fmr22367018ywe.32.1683722085095; Wed, 10
+ May 2023 05:34:45 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230510110557.14343-1-tzimmermann@suse.de> <20230510110557.14343-6-tzimmermann@suse.de>
+In-Reply-To: <20230510110557.14343-6-tzimmermann@suse.de>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Wed, 10 May 2023 14:34:33 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
+Message-ID: <CAMuHMdVV-MQV3C_o6JxPj23h3zo0kMmsn9ZEWJxsrzr6YpKmyg@mail.gmail.com>
+Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     deller@gmx.de, javierm@redhat.com, daniel@ffwll.ch,
+        vgupta@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
+        davem@davemloft.net, James.Bottomley@hansenpartnership.com,
+        arnd@arndb.de, sam@ravnborg.org, suijingfeng@loongson.cn,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
         linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
         loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
         sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v6 4/6] fbdev: Include <linux/fb.h> instead of <asm/fb.h>
-Date:   Wed, 10 May 2023 13:05:55 +0200
-Message-Id: <20230510110557.14343-5-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230510110557.14343-1-tzimmermann@suse.de>
-References: <20230510110557.14343-1-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        linux-parisc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Replace include statements for <asm/fb.h> with <linux/fb.h>. Fixes
-the coding style: if a header is available in asm/ and linux/, it
-is preferable to include the header from linux/. This only affects
-a few source files, most of which already include <linux/fb.h>.
+Hi Thomas,
 
-Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Sui Jingfeng <suijingfeng@loongson.cn>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
----
- arch/parisc/video/fbdev.c        | 3 +--
- arch/sparc/video/fbdev.c         | 1 -
- arch/x86/video/fbdev.c           | 2 --
- drivers/staging/sm750fb/sm750.c  | 2 +-
- drivers/video/fbdev/core/fbcon.c | 1 -
- drivers/video/fbdev/core/fbmem.c | 2 --
- include/linux/fb.h               | 2 ++
- 7 files changed, 4 insertions(+), 9 deletions(-)
+On Wed, May 10, 2023 at 1:06 PM Thomas Zimmermann <tzimmermann@suse.de> wrote:
+> Implement framebuffer I/O helpers, such as fb_read*() and fb_write*(),
+> in the architecture's <asm/fb.h> header file or the generic one.
+>
+> The common case has been the use of regular I/O functions, such as
+> __raw_readb() or memset_io(). A few architectures used plain system-
+> memory reads and writes. Sparc used helpers for its SBus.
+>
+> The architectures that used special cases provide the same code in
+> their __raw_*() I/O helpers. So the patch replaces this code with the
+> __raw_*() functions and moves it to <asm-generic/fb.h> for all
+> architectures.
+>
+> v6:
+>         * fix fb_readq()/fb_writeq() on 64-bit mips (kernel test robot)
+> v5:
+>         * include <linux/io.h> in <asm-generic/fb>; fix s390 build
+> v4:
+>         * ia64, loongarch, sparc64: add fb_mem*() to arch headers
+>           to keep current semantics (Arnd)
+> v3:
+>         * implement all architectures with generic helpers
+>         * support reordering and native byte order (Geert, Arnd)
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> Tested-by: Sui Jingfeng <suijingfeng@loongson.cn>
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+>
+> add mips fb_q()
 
-diff --git a/arch/parisc/video/fbdev.c b/arch/parisc/video/fbdev.c
-index 4a0ae08fc75b..137561d98246 100644
---- a/arch/parisc/video/fbdev.c
-+++ b/arch/parisc/video/fbdev.c
-@@ -5,10 +5,9 @@
-  * Copyright (C) 2001-2002 Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-  */
- 
-+#include <linux/fb.h>
- #include <linux/module.h>
- 
--#include <asm/fb.h>
--
- #include <video/sticore.h>
- 
- int fb_is_primary_device(struct fb_info *info)
-diff --git a/arch/sparc/video/fbdev.c b/arch/sparc/video/fbdev.c
-index dadd5799fbb3..25837f128132 100644
---- a/arch/sparc/video/fbdev.c
-+++ b/arch/sparc/video/fbdev.c
-@@ -4,7 +4,6 @@
- #include <linux/fb.h>
- #include <linux/module.h>
- 
--#include <asm/fb.h>
- #include <asm/prom.h>
- 
- int fb_is_primary_device(struct fb_info *info)
-diff --git a/arch/x86/video/fbdev.c b/arch/x86/video/fbdev.c
-index 57ee3c158f97..f41a17ebac48 100644
---- a/arch/x86/video/fbdev.c
-+++ b/arch/x86/video/fbdev.c
-@@ -7,8 +7,6 @@
-  *
-  */
- 
--#include <asm/fb.h>
--
- #include <linux/fb.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-diff --git a/drivers/staging/sm750fb/sm750.c b/drivers/staging/sm750fb/sm750.c
-index 22ace3168723..55e302a27847 100644
---- a/drivers/staging/sm750fb/sm750.c
-+++ b/drivers/staging/sm750fb/sm750.c
-@@ -16,7 +16,7 @@
- #include <linux/pagemap.h>
- #include <linux/screen_info.h>
- #include <linux/console.h>
--#include <asm/fb.h>
-+
- #include "sm750.h"
- #include "sm750_accel.h"
- #include "sm750_cursor.h"
-diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
-index eb565a10e5cd..c6c9d040bdec 100644
---- a/drivers/video/fbdev/core/fbcon.c
-+++ b/drivers/video/fbdev/core/fbcon.c
-@@ -75,7 +75,6 @@
- #include <linux/interrupt.h>
- #include <linux/crc32.h> /* For counting font checksums */
- #include <linux/uaccess.h>
--#include <asm/fb.h>
- #include <asm/irq.h>
- 
- #include "fbcon.h"
-diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index 4035a57df116..41b0706be635 100644
---- a/drivers/video/fbdev/core/fbmem.c
-+++ b/drivers/video/fbdev/core/fbmem.c
-@@ -37,8 +37,6 @@
- #include <linux/mem_encrypt.h>
- #include <linux/pci.h>
- 
--#include <asm/fb.h>
--
- #include <video/nomodeset.h>
- #include <video/vga.h>
- 
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index ec978a4969a9..4b4d9a5d200a 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -15,6 +15,8 @@
- #include <linux/list.h>
- #include <linux/backlight.h>
- #include <linux/slab.h>
-+
-+#include <asm/fb.h>
- #include <asm/io.h>
- 
- struct vm_area_struct;
+> --- a/arch/mips/include/asm/fb.h
+> +++ b/arch/mips/include/asm/fb.h
+> @@ -12,6 +12,28 @@ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
+>  }
+>  #define fb_pgprotect fb_pgprotect
+>
+> +/*
+> + * MIPS doesn't define __raw_ I/O macros, so the helpers
+> + * in <asm-generic/fb.h> don't generate fb_readq() and
+> + * fb_write(). We have to provide them here.
+
+MIPS does not include <asm-generic/io.h>,  nor define its own
+__raw_readq() and __raw_writeq()...
+
+> + *
+> + * TODO: Convert MIPS to generic I/O. The helpers below can
+> + *       then be removed.
+> + */
+> +#ifdef CONFIG_64BIT
+> +static inline u64 fb_readq(const volatile void __iomem *addr)
+> +{
+> +       return __raw_readq(addr);
+
+... so how can this call work?
+
+> +}
+> +#define fb_readq fb_readq
+> +
+> +static inline void fb_writeq(u64 b, volatile void __iomem *addr)
+> +{
+> +       __raw_writeq(b, addr);
+> +}
+> +#define fb_writeq fb_writeq
+> +#endif
+> +
+>  #include <asm-generic/fb.h>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 -- 
-2.40.1
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
