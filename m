@@ -2,131 +2,149 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 774A3C7EE2D
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 15:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16125C7EE22
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 16:30:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237436AbjEJPzK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 11:55:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35040 "EHLO
+        id S231175AbjEJQaq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 12:30:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237098AbjEJPzI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 11:55:08 -0400
-Received: from new3-smtp.messagingengine.com (new3-smtp.messagingengine.com [66.111.4.229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF40B6EA1;
-        Wed, 10 May 2023 08:55:06 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 7102A580906;
-        Wed, 10 May 2023 11:55:04 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Wed, 10 May 2023 11:55:04 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1683734104; x=1683741304; bh=SC
-        KFLRlOu8wMdidaM2MzVAEF3HdgavF0+zWaNr+e62A=; b=A2W0dNaRkjw2NxKUw2
-        y9/WuIWb6k0ZeUb1NuFzsS81Djn7IGJMUkuEFMR7fOflHeNjpOhtvktN1Odc5a0z
-        xPeBgoaCSeAf07UyKrt22YgIieCX3VuYjmzsZ7acBcr9Vhsn43rDMIHBy+tup+62
-        e+b15zL9TwSOE1pwhAWbOyPIs3zDrZiqpL0xF3vLdAvyOzLuSDBSNUGza0tnoSHo
-        GMsx9rsH+NakbnyqBJiDC4rcPPI7eVaCFnr8L802UJnuqWqjK25aunX4hbyjyfUK
-        TAeWqnelfG1gYDmfx0Kz6XhPuM40oPbxxV6++qmIkLZLhhFkjR/B8N0W7z0+yWPj
-        EhEw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1683734104; x=1683741304; bh=SCKFLRlOu8wMd
-        idaM2MzVAEF3HdgavF0+zWaNr+e62A=; b=eIQYFAE5hZb+cnbQVSJEeeGsDPFhq
-        wvSnouTayKkhqt7LWXqhWBFjSVYpoREhn3/6XGgVCsgiUb6sEjigqqvglXS25Pyy
-        X8KK1j6AiBuX7bJeATzfhXCIbvweqMnpWjMHFLv6ODWKcvH6eD1oaw/l5FQuDA8J
-        8ppL8Q4hETUca4ibTrpNmQ9U9eOdtgSe77XLucvhyxq+bxxWUs/X9wHs2KwYV+0J
-        Re8DQdzhPlu/QXxoS/a7Svwl9gcSfF2VIXS6JKfnP6DYDvNYmu863O/WiMzQxNHe
-        n/cwLQVAIPwbhFKgrPGUuqey6mWhQOSMQM9kPgIUqsT/4JmMnP/fmlp7Q==
-X-ME-Sender: <xms:V75bZI0QCyndvyxZhVbdVguFOeHQt11Pw2iNy0w2g7WiqadNq1Ytlw>
-    <xme:V75bZDHWhjp05aUzpFpWCQSYtdCrLKEGuxx9zSEVIglAQacPOJCHfurShIToWBue-
-    2trSsWy2DhMgrv4E4o>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeegiedgjedvucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepveevgeegffejueeiudehfefhhefgudejteejleeujeejffeuiedufeevfffh
-    hfffnecuffhomhgrihhnpegsohhothhlihhnrdgtohhmnecuvehluhhsthgvrhfuihiivg
-    eptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:V75bZA6RZfoG5BTYXRp8gTwgZ97mM-O_9pdcTzrGJBDim0LwUysyjQ>
-    <xmx:V75bZB3DXP8AYHeRD6YAVpZW_OGrMUKEYOBMBP0JZqlkMzywaXOVyA>
-    <xmx:V75bZLHlylKFiZVp5FEdY30IJbVOcNVUqvyVlYjqsg3FINwqU_kuyw>
-    <xmx:WL5bZE11XKy2XwogTzJ8hN3VFODqmdERBDmO_-kO_jNl7o2u12Ii7A>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 2BCEFB60086; Wed, 10 May 2023 11:55:03 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-415-gf2b17fe6c3-fm-20230503.001-gf2b17fe6
-Mime-Version: 1.0
-Message-Id: <743d2b1e-c843-4fb2-b252-0006be2e2bd8@app.fastmail.com>
-In-Reply-To: <49684d58-c19d-b147-5e9f-2ac526dd50f0@suse.de>
-References: <20230510110557.14343-6-tzimmermann@suse.de>
- <202305102136.eMjTSPwH-lkp@intel.com>
- <f6b2d541-d235-4e98-afcc-9137fb8afa35@app.fastmail.com>
- <49684d58-c19d-b147-5e9f-2ac526dd50f0@suse.de>
-Date:   Wed, 10 May 2023 17:54:18 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "kernel test robot" <lkp@intel.com>,
-        "Helge Deller" <deller@gmx.de>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Daniel Vetter" <daniel@ffwll.ch>,
-        "Vineet Gupta" <vgupta@kernel.org>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "WANG Xuerui" <kernel@xen0n.name>,
-        "David S . Miller" <davem@davemloft.net>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        "Sam Ravnborg" <sam@ravnborg.org>, suijingfeng@loongson.cn
-Cc:     oe-kbuild-all@lists.linux.dev,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-m68k@lists.linux-m68k.org,
+        with ESMTP id S229487AbjEJQao (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 12:30:44 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5BFF24207;
+        Wed, 10 May 2023 09:30:43 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9AA5212FC;
+        Wed, 10 May 2023 09:31:27 -0700 (PDT)
+Received: from FVFF77S0Q05N.cambridge.arm.com (FVFF77S0Q05N.cambridge.arm.com [10.1.32.173])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 700EB3F67D;
+        Wed, 10 May 2023 09:30:35 -0700 (PDT)
+Date:   Wed, 10 May 2023 17:30:32 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     Doug Anderson <dianders@chromium.org>
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Marc Zyngier <maz@kernel.org>, ito-yuichi@fujitsu.com,
+        kgdb-bugreport@lists.sourceforge.net, Chen-Yu Tsai <wens@csie.org>,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Stephen Boyd <swboyd@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-perf-users@vger.kernel.org,
+        Alexandru Elisei <alexandru.elisei@arm.com>,
+        Andrey Konovalov <andreyknvl@gmail.com>,
+        Ben Dooks <ben-linux@fluff.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Gaosheng Cui <cuigaosheng1@huawei.com>,
+        "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Jason Wessel <jason.wessel@windriver.com>,
+        Jianmin Lv <lvjianmin@loongson.cn>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Jinyang He <hejinyang@loongson.cn>,
+        Joey Gouly <joey.gouly@arm.com>,
+        Kees Cook <keescook@chromium.org>,
+        Laurent Dufour <ldufour@linux.ibm.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Philippe =?utf-8?Q?Mathieu-Daud=C3=A9?= <f4bug@amsat.org>,
+        Pierre Gondois <Pierre.Gondois@arm.com>,
+        Qing Zhang <zhangqing@loongson.cn>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        Russell King <linux@armlinux.org.uk>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        WANG Xuerui <kernel@xen0n.name>, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-Content-Type: text/plain
+        x86@kernel.org
+Subject: Re: [PATCH v8 00/10] arm64: Add framework to turn an IPI as NMI
+Message-ID: <ZFvGqD//pm/lZb+p@FVFF77S0Q05N.cambridge.arm.com>
+References: <20230419225604.21204-1-dianders@chromium.org>
+ <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAD=FV=Wny=iFQf2GGuC2qP9hy4FHzpiRpV=ZvxEW77DX02XGzQ@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 10, 2023, at 16:27, Thomas Zimmermann wrote:
-> Am 10.05.23 um 16:15 schrieb Arnd Bergmann:
->> On Wed, May 10, 2023, at 16:03, kernel test robot wrote:
- 
->> I think that's a preexisting bug and I have no idea what the
->> correct solution is. Looking for HD64461 shows it being used
->> both with inw/outw and readw/writew, so there is no way to have
->> the correct type. The sh __raw_readw() definition hides this bug,
->> but that is a problem with arch/sh and it probably hides others
->> as well.
->
-> The constant HD64461_IOBASE is defined as integer at
->
-> 
-> https://elixir.bootlin.com/linux/latest/source/arch/sh/include/asm/hd64461.h#L17
->
-> but fb_readw() expects a volatile-void pointer. I guess we could add a 
-> cast somewhere to silence the problem. In the current upstream code, 
-> that appears to be done by sh's __raw_readw() internally:
->
-> 
-> https://elixir.bootlin.com/linux/latest/source/arch/sh/include/asm/io.h#L35
+On Wed, May 10, 2023 at 08:28:17AM -0700, Doug Anderson wrote:
+> Hi,
 
-Sure, that would make it build again, but that still doesn't make the
-code correct, since it's completely unclear what base address the
-HD64461_IOBASE is relative to. The hp6xx platform code only passes it
-through inw()/outw(), which take an offset relative to sh_io_port_base,
-but that is not initialized on hp6xx. I tried to find in the history
-when it broke, apparently that was in 2007 commit 34a780a0afeb ("sh:
-hp6xx pata_platform support."), which removed the custom inw/outw
-implementations.
+Hi Doug,
 
-      Arnd
+> On Wed, Apr 19, 2023 at 3:57 PM Douglas Anderson <dianders@chromium.org> wrote:
+> > This is an attempt to resurrect Sumit's old patch series [1] that
+> > allowed us to use the arm64 pseudo-NMI to get backtraces of CPUs and
+> > also to round up CPUs in kdb/kgdb. The last post from Sumit that I
+> > could find was v7, so I called this series v8. I haven't copied all of
+> > his old changelongs here, but you can find them from the link.
+> >
+> > Since v7, I have:
+> > * Addressed the small amount of feedback that was there for v7.
+> > * Rebased.
+> > * Added a new patch that prevents us from spamming the logs with idle
+> >   tasks.
+> > * Added an extra patch to gracefully fall back to regular IPIs if
+> >   pseudo-NMIs aren't there.
+> >
+> > Since there appear to be a few different patches series related to
+> > being able to use NMIs to get stack traces of crashed systems, let me
+> > try to organize them to the best of my understanding:
+> >
+> > a) This series. On its own, a) will (among other things) enable stack
+> >    traces of all running processes with the soft lockup detector if
+> >    you've enabled the sysctl "kernel.softlockup_all_cpu_backtrace". On
+> >    its own, a) doesn't give a hard lockup detector.
+> >
+> > b) A different recently-posted series [2] that adds a hard lockup
+> >    detector based on perf. On its own, b) gives a stack crawl of the
+> >    locked up CPU but no stack crawls of other CPUs (even if they're
+> >    locked too). Together with a) + b) we get everything (full lockup
+> >    detect, full ability to get stack crawls).
+> >
+> > c) The old Android "buddy" hard lockup detector [3] that I'm
+> >    considering trying to upstream. If b) lands then I believe c) would
+> >    be redundant (at least for arm64). c) on its own is really only
+> >    useful on arm64 for platforms that can print CPU_DBGPCSR somehow
+> >    (see [4]). a) + c) is roughly as good as a) + b).
+
+> It's been 3 weeks and I haven't heard a peep on this series. That
+> means nobody has any objections and it's all good to land, right?
+> Right? :-P
+
+FWIW, there are still longstanding soundness issues in the arm64 pseudo-NMI
+support (and fixing that requires an overhaul of our DAIF / IRQ flag
+management, which I've been chipping away at for a number of releases), so I
+hadn't looked at this in detail yet because the foundations are still somewhat
+dodgy.
+
+I appreciate that this has been around for a while, and it's on my queue to
+look at.
+
+Thanks,
+Mark.
