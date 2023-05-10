@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3767DC7EE24
-	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 05:08:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6BA0C7EE26
+	for <sparclinux@archiver.kernel.org>; Wed, 10 May 2023 05:09:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235541AbjEJFIs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 10 May 2023 01:08:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59336 "EHLO
+        id S235942AbjEJFJ6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 10 May 2023 01:09:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235862AbjEJFIp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 01:08:45 -0400
-Received: from mail-yb1-xb34.google.com (mail-yb1-xb34.google.com [IPv6:2607:f8b0:4864:20::b34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B2A34EDD
-        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 22:08:42 -0700 (PDT)
-Received: by mail-yb1-xb34.google.com with SMTP id 3f1490d57ef6-b9a6869dd3cso8892080276.2
-        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 22:08:42 -0700 (PDT)
+        with ESMTP id S235985AbjEJFJ5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 10 May 2023 01:09:57 -0400
+Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85DE74EC0
+        for <sparclinux@vger.kernel.org>; Tue,  9 May 2023 22:09:55 -0700 (PDT)
+Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-55b7630a736so101895377b3.1
+        for <sparclinux@vger.kernel.org>; Tue, 09 May 2023 22:09:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1683695321; x=1686287321;
+        d=google.com; s=20221208; t=1683695395; x=1686287395;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=OTtpK1Un44XLqqGJYzxkLaX59Gadt3u8x45iMKydYoY=;
-        b=xhQbPYpkUzDX8XU9iKlY3Y4428jn5y6GTm9xV45/y6OmNC04/3wNqkNgSXK3AJIxCv
-         nf/3Kcyf7jXHraRNp8V/ThTGssm80Jrj1vFIVRl/eHnHIKGHX0llNwJFmswFPBKeszPS
-         4ERvsVZvFaG63Gj8ZvkLnyoFsbatfd0tOGpnHcmb7QKy8F/PI1niiK9/bIJQ3clEICAC
-         OKKiuKdx+Nga+KesCEIBcMETZuPReDAYyeYXYun87fEO018ylr/CbkSFeoHJtNA1RKEB
-         SehH79xiSdMYH54KoBHTNvBbumLZBWgNKrjc9IJ4jvy2Xlbglq/VfxJ2yKtHyPoLu9Db
-         naUg==
+        bh=UmemeLuI+WpEQXgz9TQT0mwehV8FTU9BDTa5EhoH+Rw=;
+        b=ceZayvLcQzK/jEmDGFktdiBeLmAfZAcJomtj6b8LZ7UVBhK1PGvRLGtv3raaIkoA69
+         8du4wIfy3LTg4noNW6T56a8rTdYN7Kpn5/bm4yjB4emMMTggN1PcgpP7ET0zc6Ogox7V
+         PacpXMb40YNuRMAqf3IboaGbQzDmk/4AhKXM1jLiRZe7o3tGAOJ6z3OSnXWDEM8MmOjy
+         leDcr9V/CMd1mPfM2iHPwMwcuDGyHWo5yaj5bkj6ZD28Zg+yk0+3HzvQJBuo9qxnWea2
+         qCcGWwBxF4a0/bB7X0FeLhxKH1U3vpEQVW9dVdnIidnAwcXxE3l++8L3bRK0NJ7IyPS8
+         JZIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683695321; x=1686287321;
+        d=1e100.net; s=20221208; t=1683695395; x=1686287395;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=OTtpK1Un44XLqqGJYzxkLaX59Gadt3u8x45iMKydYoY=;
-        b=D0d8MjMPgGmF+Hm3+U5pzFxcgOwuowsjiZzAvQ8gH6/advLeRuu7Xc6sXzcqCCKdZf
-         JJaw0DMKghmo+6/RAuzDqdCTpbZvz8rHzZMOa5Rt6UKLxXHfH06OQnOZaIqU+VGCiuO/
-         f9TgkXo1S3vgPFBjOeHJUptk+JtD9V+U06L9l4kSsjtQNJ31IKyveF4mVxtBSvLskuug
-         7nZ7ZMhBjiBfowlFyDgJMHgfjjlhgWjiXSzbe2nFZO8GgwHquK3E25fbBDazi6nemCwB
-         w4qQ6S8AbqxB1+/9aC1G3Zkf+0uKYYWqQm37nQAfz56zySh98numR7QEqbqEf0pUA76N
-         5WDQ==
-X-Gm-Message-State: AC+VfDz5zeRg+KTuXOc3nqrclDJf5GUi4fKN58HM6CMOc09uC4YtyMQa
-        v523KZQsYN9EHZ10TeeRfiStWw==
-X-Google-Smtp-Source: ACHHUZ4Nr7JCTjKD9JrQLs38TYvzUeemCSYHOU0HaXL9Z0TKs+cs2kkX5Dm1CGmBCetCdz6AhjKuwg==
-X-Received: by 2002:a25:b228:0:b0:b92:2e22:aba5 with SMTP id i40-20020a25b228000000b00b922e22aba5mr17628224ybj.11.1683695321141;
-        Tue, 09 May 2023 22:08:41 -0700 (PDT)
+        bh=UmemeLuI+WpEQXgz9TQT0mwehV8FTU9BDTa5EhoH+Rw=;
+        b=A+41D61yhRXsFageI+SPfOxeg1zO5EzvZAjLrqjUJFpvVK4v/IdHxYV/vkir4VdIRx
+         nWh8xmeEyqR3Qr4uIIoiVVgL5nY6Y/1F2yUeQzuEhPB7efGR84c1VzHGSYw75+u3HJAT
+         Tr0XZVtPxQs8JkeNatzwB2MvRqUmQUTlDQv4n0VFxswNQ78W6L6cZ3VwdAztVKfSf/Ya
+         3Rdvr6mreAnMeY/trCP2nyyDzR1hMOJZW193cSNOizNjkG8feuRI1gndETh0Ht+1lYoH
+         7A8roY61h0pl7exbo5cNGxMfx8TDzXJgK3PzRObbLoghRr0Ql6B8/5ydJKoQx9JzEOai
+         yjKg==
+X-Gm-Message-State: AC+VfDx57oATasroud+tXduzKp2X+OLbRl4iUbBbNDJvgrCi6PkfnD3Q
+        VUzrjTHztPS64JX0epKsj2XEkg==
+X-Google-Smtp-Source: ACHHUZ6AHFxady081B2wan1G2AdvRI+je11F7XC2fK+PaWqaZjZVH5+mul53az7NeaRbK79eLrDOFQ==
+X-Received: by 2002:a81:92d7:0:b0:55a:4828:182a with SMTP id j206-20020a8192d7000000b0055a4828182amr18309481ywg.36.1683695394676;
+        Tue, 09 May 2023 22:09:54 -0700 (PDT)
 Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id 7-20020a250a07000000b00b9dcd17cc2dsm3512897ybk.46.2023.05.09.22.08.37
+        by smtp.gmail.com with ESMTPSA id l64-20020a0dc943000000b0055aad7d3f34sm3766659ywd.142.2023.05.09.22.09.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 22:08:40 -0700 (PDT)
-Date:   Tue, 9 May 2023 22:08:37 -0700 (PDT)
+        Tue, 09 May 2023 22:09:54 -0700 (PDT)
+Date:   Tue, 9 May 2023 22:09:50 -0700 (PDT)
 From:   Hugh Dickins <hughd@google.com>
 X-X-Sender: hugh@ripple.attlocal.net
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -84,9 +84,9 @@ cc:     Mike Kravetz <mike.kravetz@oracle.com>,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH 21/23] x86: Allow get_locked_pte() to fail
+Subject: [PATCH 22/23] x86: sme_populate_pgd() use pte_offset_kernel()
 In-Reply-To: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
-Message-ID: <eba2b72f-2180-498b-c8bd-ce8f717fc78a@google.com>
+Message-ID: <6d75e7f-2266-1dda-8a70-c52c27f44da7@google.com>
 References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -94,31 +94,28 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offset_map_lock() may not find a page table: handle appropriately.
+sme_populate_pgd() is an __init function for sme_encrypt_kernel():
+it should use pte_offset_kernel() instead of pte_offset_map(), to avoid
+the question of whether a pte_unmap() will be needed to balance.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 ---
- arch/x86/kernel/ldt.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/mm/mem_encrypt_identity.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/kernel/ldt.c b/arch/x86/kernel/ldt.c
-index 525876e7b9f4..eb844549cd83 100644
---- a/arch/x86/kernel/ldt.c
-+++ b/arch/x86/kernel/ldt.c
-@@ -367,8 +367,10 @@ static void unmap_ldt_struct(struct mm_struct *mm, struct ldt_struct *ldt)
+diff --git a/arch/x86/mm/mem_encrypt_identity.c b/arch/x86/mm/mem_encrypt_identity.c
+index c6efcf559d88..a1ab542bdfd6 100644
+--- a/arch/x86/mm/mem_encrypt_identity.c
++++ b/arch/x86/mm/mem_encrypt_identity.c
+@@ -188,7 +188,7 @@ static void __init sme_populate_pgd(struct sme_populate_pgd_data *ppd)
+ 	if (pmd_large(*pmd))
+ 		return;
  
- 		va = (unsigned long)ldt_slot_va(ldt->slot) + offset;
- 		ptep = get_locked_pte(mm, va, &ptl);
--		pte_clear(mm, va, ptep);
--		pte_unmap_unlock(ptep, ptl);
-+		if (ptep) {
-+			pte_clear(mm, va, ptep);
-+			pte_unmap_unlock(ptep, ptl);
-+		}
- 	}
- 
- 	va = (unsigned long)ldt_slot_va(ldt->slot);
+-	pte = pte_offset_map(pmd, ppd->vaddr);
++	pte = pte_offset_kernel(pmd, ppd->vaddr);
+ 	if (pte_none(*pte))
+ 		set_pte(pte, __pte(ppd->paddr | ppd->pte_flags));
+ }
 -- 
 2.35.3
 
