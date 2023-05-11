@@ -2,150 +2,221 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F256BC7EE2A
-	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 14:04:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7601C7EE23
+	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 14:15:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238267AbjEKOEY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 11 May 2023 10:04:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51214 "EHLO
+        id S238149AbjEKOP5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 11 May 2023 10:15:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238236AbjEKOEW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 10:04:22 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A353F10FF;
-        Thu, 11 May 2023 07:04:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=agTIVDV40QlNuRDmtaMpYQzLmx8ylyt8K8o0YwfCE44=; b=lL2e25Q7Ym9Z2f1ilo2kWwHtLS
-        4LEtDqoDAi/1aC4kjoeLMlHtLt+a+FS4EW3ttxbaQDhTXZfyi02WOEzNc3/vCsr0owbyF5PEsIwHc
-        4EGA9zShanxJYpMWANvO4AfYvUXSJigLrvPdNGyjPeVrrNrqH+tCpFoKNI6P6bYEGIKsYYtBzAtzu
-        8Ajl8g5ng54yFG0pf0AiaE1GeB3gEJ+vkOMxu+NkdXV1EBgexS5qxecZBXe6DpvnyQd7D8QuN/WHz
-        qIZBX6djd2pg1T+ptsLEa/faZBnf92py7b8vnk1aHVuruD1rplz5XIZSxcsHdZBQZO/oPVfH/8958
-        /oI/ASsA==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1px6sh-00HGyK-LW; Thu, 11 May 2023 14:02:55 +0000
-Date:   Thu, 11 May 2023 15:02:55 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Hugh Dickins <hughd@google.com>
+        with ESMTP id S238455AbjEKOPu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 10:15:50 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94FE8D2D3;
+        Thu, 11 May 2023 07:15:24 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id 75A5A21D09;
+        Thu, 11 May 2023 14:14:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1683814480; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=RsbmH7Uqop/nnM3vjIRjHRqffBOelcetDOasqeW6Jho=;
+        b=pOJqJS5iXtgLyWgNrYikAH8lcP9VErhN6vam0bviIGKv5MIKfAJuXwdEnozUAl1mFiB4qM
+        Td/bamTw2bqEgQNfkm93ZRlv/TH+VmTSwCohSr4w9x5dduYiCKpI5GaFu6jyUYqF9cD6Qa
+        q9wqaGcZN1O3kEmspF38GXvD5Hh7KCE=
+Received: from suse.cz (unknown [10.100.201.202])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 5B4622C141;
+        Thu, 11 May 2023 14:14:37 +0000 (UTC)
+Date:   Thu, 11 May 2023 16:14:37 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Douglas Anderson <dianders@chromium.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Russell King <linux@armlinux.org.uk>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        Stephane Eranian <eranian@google.com>,
+        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Ian Rogers <irogers@google.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
+        davem@davemloft.net, sparclinux@vger.kernel.org,
+        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
+        ravi.v.shankar@intel.com, npiggin@gmail.com,
+        linuxppc-dev@lists.ozlabs.org, Marc Zyngier <maz@kernel.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Helge Deller <deller@gmx.de>,
-        John David Anglin <dave.anglin@bell.net>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Michel Lespinasse <michel@lespinasse.org>
-Subject: Re: [PATCH 00/23] arch: allow pte_offset_map[_lock]() to fail
-Message-ID: <ZFz1j1slZHCQmwMJ@casper.infradead.org>
-References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
- <ZFs0k2rrLPH9A/UU@casper.infradead.org>
- <d7f3c7b2-25b8-ef66-98a8-43d68f4499f@google.com>
+        Daniel Thompson <daniel.thompson@linaro.org>
+Subject: Re: [PATCH v4 09/17] watchdog/hardlockup: Add a "cpu" param to
+ watchdog_hardlockup_check()
+Message-ID: <ZFz4TVOyEU51b898@alley>
+References: <20230504221349.1535669-1-dianders@chromium.org>
+ <20230504151100.v4.9.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <d7f3c7b2-25b8-ef66-98a8-43d68f4499f@google.com>
+In-Reply-To: <20230504151100.v4.9.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 10, 2023 at 09:35:44PM -0700, Hugh Dickins wrote:
-> On Wed, 10 May 2023, Matthew Wilcox wrote:
-> > On Tue, May 09, 2023 at 09:39:13PM -0700, Hugh Dickins wrote:
-> > > Two: pte_offset_map() will need to do an rcu_read_lock(), with the
-> > > corresponding rcu_read_unlock() in pte_unmap().  But most architectures
-> > > never supported CONFIG_HIGHPTE, so some don't always call pte_unmap()
-> > > after pte_offset_map(), or have used userspace pte_offset_map() where
-> > > pte_offset_kernel() is more correct.  No problem in the current tree,
-> > > but a problem once an rcu_read_unlock() will be needed to keep balance.
-> > 
-> > Hi Hugh,
-> > 
-> > I shall have to spend some time looking at these patches, but at LSFMM
-> > just a few hours ago, I proposed and nobody objected to removing
-> > CONFIG_HIGHPTE.  I don't intend to take action on that consensus
-> > immediately, so I can certainly wait until your patches are applied, but
-> > if this information simplifies what you're doing, feel free to act on it.
+On Thu 2023-05-04 15:13:41, Douglas Anderson wrote:
+> In preparation for the buddy hardlockup detector where the CPU
+> checking for lockup might not be the currently running CPU, add a
+> "cpu" parameter to watchdog_hardlockup_check().
 > 
-> Thanks a lot, Matthew: very considerate, as usual.
-> 
-> Yes, I did see your "Whither Highmem?" (wither highmem!) proposal on the
+> --- a/kernel/watchdog.c
+> +++ b/kernel/watchdog.c
+> @@ -92,14 +92,14 @@ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
+>  static DEFINE_PER_CPU(bool, watchdog_hardlockup_processed);
+>  static unsigned long watchdog_hardlockup_dumped_stacks;
+>  
+> -static bool watchdog_hardlockup_is_lockedup(void)
+> +static bool watchdog_hardlockup_is_lockedup(unsigned int cpu)
+>  {
+> -	unsigned long hrint = __this_cpu_read(hrtimer_interrupts);
+> +	unsigned long hrint = per_cpu(hrtimer_interrupts, cpu);
 
-I'm glad somebody noticed the pun ;-)
+My radar tells me that this should be
+READ_ONCE(per_cpu(hrtimer_interrupts, cpu)) when the value might
+be modified on another CPU. Otherwise, the compiler is allowed
+to split the read into more instructions.
 
-> list, and it did make me think, better get these patches and preview out
-> soon, before you get to vanish pte_unmap() altogether.  HIGHMEM or not,
-> HIGHPTE or not, I think pte_offset_map() and pte_unmap() still have an
-> important role to play.
-> 
-> I don't really understand why you're going down a remove-CONFIG_HIGHPTE
-> route: I thought you were motivated by the awkardness of kmap on large
-> folios; but I don't see how removing HIGHPTE helps with that at all
-> (unless you have a "large page tables" effort in mind, but I doubt it).
+It will be needed for the buddy detector. And it will require
+also incrementing the value in watchdog_hardlockup_interrupt_count()
+an atomic way.
 
-Quite right, my primary concern is filesystem metadata; primarily
-directories as I don't think anybody has ever supported symlinks or
-superblocks larger than 4kB.
+Note that __this_cpu_inc_return() does not guarantee atomicity
+according to my understanding. In theory, the following should
+work because counter will never be incremented in parallel:
 
-I was thinking that removing CONFIG_HIGHPTE might simplify the page
-fault handling path a little, but now I've looked at it some more, and
-I'm not sure there's any simplification to be had.  It should probably
-use kmap_local instead of kmap_atomic(), though.
+static unsigned long watchdog_hardlockup_interrupt_count(void)
+{
+	unsigned long count;
 
-> But I've no investment in CONFIG_HIGHPTE if people think now is the
-> time to remove it: I disagree, but wouldn't miss it myself - so long
-> as you leave pte_offset_map() and pte_unmap() (under whatever names).
-> 
-> I don't think removing CONFIG_HIGHPTE will simplify what I'm doing.
-> For a moment it looked like it would: the PAE case is nasty (and our
-> data centres have not been on PAE for a long time, so it wasn't a
-> problem I had to face before); and knowing pmd_high must be 0 for a
-> page table looked like it would help, but now I'm not so sure of that
-> (hmm, I'm changing my mind again as I write).
-> 
-> Peter's pmdp_get_lockless() does rely for complete correctness on
-> interrupts being disabled, and I suspect that I may be forced in the
-> PAE case to do so briefly; but detest that notion.  For now I'm just
-> deferring it, hoping for a better idea before third series finalized.
-> 
-> I mention this (and Cc Peter) in passing: don't want this arch thread
-> to go down into that rabbit hole: we can start a fresh thread on it if
-> you wish, but right now my priority is commit messages for the second
-> series, rather than solving (or even detailing) the PAE problem.
+	count = __this_cpu_read(hrtimer_interrupts);
+	count++;
+	WRITE_ONCE(*raw_cpu_ptr(hrtimer_interrupts), count);
+}
 
-I infer that what you need is a pte_access_start() and a
-pte_access_end() which look like they can be plausibly rcu_read_lock()
-and rcu_read_unlock(), but might need to be local_irq_save() and
-local_irq_restore() in some configurations?
+but it is nasty. A more elegant solution might be using atomic_t
+for hrtimer_interrupts counter.
 
-We also talked about moving x86 to always RCU-free page tables in
-order to make accessing /proc/$pid/smaps lockless.  I believe Michel
-is going to take a swing at this project.
+> -	if (__this_cpu_read(hrtimer_interrupts_saved) == hrint)
+> +	if (per_cpu(hrtimer_interrupts_saved, cpu) == hrint)
+>  		return true;
+>  
+> -	__this_cpu_write(hrtimer_interrupts_saved, hrint);
+> +	per_cpu(hrtimer_interrupts_saved, cpu) = hrint;
+
+IMHO, hrtimer_interrupts_saved might be handled this way.
+The value is read/written only by this function.
+
+The buddy watchdog should see consistent values even when
+the buddy CPU goes offline. This check should never race
+because this CPU should get touched when another buddy
+gets assigned.
+
+Well, it would deserve a comment.
+
+>  
+>  	return false;
+>  }
+> @@ -117,35 +117,50 @@ void watchdog_hardlockup_check(struct pt_regs *regs)
+>  	 * fired multiple times before we overflow'd. If it hasn't
+>  	 * then this is a good indication the cpu is stuck
+>  	 */
+> -	if (watchdog_hardlockup_is_lockedup()) {
+> +	if (watchdog_hardlockup_is_lockedup(cpu)) {
+>  		unsigned int this_cpu = smp_processor_id();
+> +		struct cpumask backtrace_mask = *cpu_online_mask;
+>  
+>  		/* Only handle hardlockups once. */
+> -		if (__this_cpu_read(watchdog_hardlockup_processed))
+> +		if (per_cpu(watchdog_hardlockup_processed, cpu))
+
+This should not need READ_ONCE()/WRITE_ONCE() because it is just bool.
+Also it is read/modified only in this function on the same CPU.
+
+>  			return;
+>  
+> -		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", this_cpu);
+> +		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", cpu);
+>  		print_modules();
+>  		print_irqtrace_events(current);
+> -		if (regs)
+> +		if (regs) {
+>  			show_regs(regs);
+> -		else
+> -			dump_stack();
+> +			cpumask_clear_cpu(cpu, &backtrace_mask);
+> +		} else {
+> +			/*
+> +			 * If the locked up CPU is different than the CPU we're
+> +			 * running on then we'll try to backtrace the CPU that
+> +			 * locked up and then exclude it from later backtraces.
+> +			 * If that fails or if we're running on the locked up
+> +			 * CPU, just do a normal backtrace.
+> +			 */
+> +			if (cpu != this_cpu && trigger_single_cpu_backtrace(cpu)) {
+> +				cpumask_clear_cpu(cpu, &backtrace_mask);
+> +			} else {
+> +				dump_stack();
+> +				cpumask_clear_cpu(this_cpu, &backtrace_mask);
+
+This will dump the stack on the current CPU when
+trigger_single_cpu_backtrace(cpu) is not supported.
+It would be confusing because the buddy watchdog
+could be here only when this_cpu is not hardlocked.
+
+It should be:
+
+	if (cpu == this_cpu) {
+		if (regs)
+			show_regs(regs);
+		else
+			dump_stack();
+		cpumask_clear_cpu(cpu, &backtrace_mask);
+	} else {
+		if (trigger_single_cpu_backtrace(cpu)
+			cpumask_clear_cpu(cpu, &backtrace_mask);
+	}
+
+> +			}
+> +		}
+>  
+>  		/*
+> -		 * Perform all-CPU dump only once to avoid multiple hardlockups
+> -		 * generating interleaving traces
+> +		 * Perform multi-CPU dump only once to avoid multiple
+> +		 * hardlockups generating interleaving traces
+>  		 */
+>  		if (sysctl_hardlockup_all_cpu_backtrace &&
+>  		    !test_and_set_bit(0, &watchdog_hardlockup_dumped_stacks))
+> -			trigger_allbutself_cpu_backtrace();
+> +			trigger_cpumask_backtrace(&backtrace_mask);
+>  
+>  		if (hardlockup_panic)
+>  			nmi_panic(regs, "Hard LOCKUP");
+>  
+> -		__this_cpu_write(watchdog_hardlockup_processed, true);
+> +		per_cpu(watchdog_hardlockup_processed, cpu) = true;
+>  	} else {
+> -		__this_cpu_write(watchdog_hardlockup_processed, false);
+> +		per_cpu(watchdog_hardlockup_processed, cpu) = false;
+>  	}
+>  }
+>  
+
+Best Regards,
+Petr
