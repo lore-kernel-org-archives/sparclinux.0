@@ -2,146 +2,150 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04061C7EE26
-	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 13:42:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F256BC7EE2A
+	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 14:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237803AbjEKNmB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 11 May 2023 09:42:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35422 "EHLO
+        id S238267AbjEKOEY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 11 May 2023 10:04:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237983AbjEKNlx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 09:41:53 -0400
-Received: from wnew1-smtp.messagingengine.com (wnew1-smtp.messagingengine.com [64.147.123.26])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F0232700;
-        Thu, 11 May 2023 06:41:30 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id 06E522B05DDC;
-        Thu, 11 May 2023 09:41:02 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Thu, 11 May 2023 09:41:05 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1683812462; x=1683819662; bh=bN
-        MS+yJaTUyOEJLQDsSJtM7hMQk3rsz9Tjm7dcU5DZg=; b=pbfvNGcEhT5R087tiN
-        QnEE33cGWBvS5AiGVm1gu96LmUVgkxF03e4K96Ei9qPwA7fiKdXmlXU35YSty4lV
-        upc6nhsgrNKO1Zu5vJdZRzsTYt5+zUsNa1/G1LgbSdyvZAkWWcimIWPpFpGxaLK6
-        hH7/y6eKFwClAzo+2pbOB483InnbRNbufNRaxh3CrbmLD7GhYXkCtmotomtbcOHW
-        NAkD92i1A1Bqcysq66C1J4W0/8Ffr4tm/CjkCymgi72EioBx6dkJg+rOhYWSOSEQ
-        rfFDwhYNZARWUi2ZC5uIDwtU5o7jO6mXg31RmRIKFygPD4lgfPnMU2vHZpWLzWR9
-        tY6A==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1683812462; x=1683819662; bh=bNMS+yJaTUyOE
-        JLQDsSJtM7hMQk3rsz9Tjm7dcU5DZg=; b=NUVaoKGjAUB1IvBp3dt6JHnnJHLVm
-        5FazabUKUOC3zaEmLNyDQKpBgQBJXDhw6415JSYAsI7vcdS5XzphHJbcm+e1RYhU
-        llcs9weTW01qk5AxUBbjOtH2kzwx7xePfQXIMcfPmjZGOSYBauaruz9JqW/61W85
-        heX8lT7nka5DtfPGfdG7S5QpZIuNTpDxxrHbUPJHanrVYS+a2Xfw0XBnyLyCziCN
-        FQo1Pxm5MNwRhnbgYrHcF3+uL/xmCS5YxmDTGoWN77KSYtOLmS5dlADRru9/PWae
-        uUp8Kzt4lULTaZjWcoN7X0TwqmJ+FUlxtD2Zae1Lsi2pmq9JY+k/goTzg==
-X-ME-Sender: <xms:bfBcZMNSgCzv51ibNqiMadxkekdHAGVmhQZVB7Xg4Ch3ubv8oc_OqQ>
-    <xme:bfBcZC-LuOp4qL-OBOPp41xrwYUB7X6JxntaEUrPpvOl-0LjASR1mtr0iBts6oiZU
-    CITzOT_9aVK9gzgF74>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeegkedgieekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepvefhffeltdegheeffffhtdegvdehjedtgfekueevgfduffettedtkeekueef
-    hedunecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpe
-    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:bfBcZDTVU8Z1aHlCiwHMzI3BQFNOhMCOOgQIyHMelQO9w3lKyBypBg>
-    <xmx:bfBcZEvrEazOWER04N0wAeZIGr8U1lNFD45nasK99m4-LBGcCbMMFQ>
-    <xmx:bfBcZEdVboxFWTIW74hVqDVfva2XernqNuoZ92ynPmme6ph_Ri3bvw>
-    <xmx:bvBcZKe-JadH7ZmJYk5LO7CV-vuIG1KgQLl2SxyA8Qajy4KAMUmi0_Uv4kk>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 81468B60089; Thu, 11 May 2023 09:41:01 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-415-gf2b17fe6c3-fm-20230503.001-gf2b17fe6
-Mime-Version: 1.0
-Message-Id: <d27e359c-1ea3-4d08-b124-e794fd372b28@app.fastmail.com>
-In-Reply-To: <9c4be198444e9987c826c87b592e9dc6@artur-rojek.eu>
-References: <20230510110557.14343-6-tzimmermann@suse.de>
- <202305102136.eMjTSPwH-lkp@intel.com>
- <f6b2d541-d235-4e98-afcc-9137fb8afa35@app.fastmail.com>
- <49684d58-c19d-b147-5e9f-2ac526dd50f0@suse.de>
- <743d2b1e-c843-4fb2-b252-0006be2e2bd8@app.fastmail.com>
- <CAMuHMdVvR1jdbZS8KoMf4R3zhLRWKv9XbG61iBGOGGZPHB+taA@mail.gmail.com>
- <9c4be198444e9987c826c87b592e9dc6@artur-rojek.eu>
-Date:   Thu, 11 May 2023 15:40:28 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Artur Rojek" <contact@artur-rojek.eu>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>
-Cc:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "kernel test robot" <lkp@intel.com>,
-        "Helge Deller" <deller@gmx.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Daniel Vetter" <daniel@ffwll.ch>,
-        "Vineet Gupta" <vgupta@kernel.org>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "WANG Xuerui" <kernel@xen0n.name>,
-        "David S . Miller" <davem@davemloft.net>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        "Sam Ravnborg" <sam@ravnborg.org>, suijingfeng@loongson.cn,
-        oe-kbuild-all@lists.linux.dev,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-m68k@lists.linux-m68k.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 5/6] fbdev: Move framebuffer I/O helpers into <asm/fb.h>
-Content-Type: text/plain
+        with ESMTP id S238236AbjEKOEW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 10:04:22 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A353F10FF;
+        Thu, 11 May 2023 07:04:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=agTIVDV40QlNuRDmtaMpYQzLmx8ylyt8K8o0YwfCE44=; b=lL2e25Q7Ym9Z2f1ilo2kWwHtLS
+        4LEtDqoDAi/1aC4kjoeLMlHtLt+a+FS4EW3ttxbaQDhTXZfyi02WOEzNc3/vCsr0owbyF5PEsIwHc
+        4EGA9zShanxJYpMWANvO4AfYvUXSJigLrvPdNGyjPeVrrNrqH+tCpFoKNI6P6bYEGIKsYYtBzAtzu
+        8Ajl8g5ng54yFG0pf0AiaE1GeB3gEJ+vkOMxu+NkdXV1EBgexS5qxecZBXe6DpvnyQd7D8QuN/WHz
+        qIZBX6djd2pg1T+ptsLEa/faZBnf92py7b8vnk1aHVuruD1rplz5XIZSxcsHdZBQZO/oPVfH/8958
+        /oI/ASsA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1px6sh-00HGyK-LW; Thu, 11 May 2023 14:02:55 +0000
+Date:   Thu, 11 May 2023 15:02:55 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Helge Deller <deller@gmx.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Michel Lespinasse <michel@lespinasse.org>
+Subject: Re: [PATCH 00/23] arch: allow pte_offset_map[_lock]() to fail
+Message-ID: <ZFz1j1slZHCQmwMJ@casper.infradead.org>
+References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
+ <ZFs0k2rrLPH9A/UU@casper.infradead.org>
+ <d7f3c7b2-25b8-ef66-98a8-43d68f4499f@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d7f3c7b2-25b8-ef66-98a8-43d68f4499f@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, May 11, 2023, at 15:22, Artur Rojek wrote:
-> On 2023-05-11 14:35, Geert Uytterhoeven wrote:
->> 
->> CC Artur, who's working on HP Jornada 680.
-> Thanks for CC'ing me - I faced this exact issue while working on my
-> (still not upstreamed) hd6446x PCMCIA controller driver. The PCMCIA
-> subsystem uses `inb/outb`, which expect the `sh_io_port_base` to be set
-> to something else than the default `-1`. At first I tried to set it to
-> `0xa0000000`, so that all I/O goes through the fixed, non-cacheable P2
-> area. That however broke some other driver code (I had no time to debug
-> which one). Eventually I ended up taking a suggestion from a MIPS PCMCIA
-> driver [1] and simply substract the broken `sh_io_port_base` address
-> from `HD64461_IOBASE`, as the base for `socket.io_offset`. This way all
-> the PCMCIA `inb/outb` accesses are absolute, no matter what the
-> `sh_io_port_base` is set to. This of course is a very ugly solution and
-> we should instead fix the root cause of this mess. I will have a better
-> look at this patch set and the problem at hand at a later date.
->
-> Cheers,
-> Artur
->
-> [1] 
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/pcmcia/db1xxx_ss.c?h=v6.4-rc1#n527
+On Wed, May 10, 2023 at 09:35:44PM -0700, Hugh Dickins wrote:
+> On Wed, 10 May 2023, Matthew Wilcox wrote:
+> > On Tue, May 09, 2023 at 09:39:13PM -0700, Hugh Dickins wrote:
+> > > Two: pte_offset_map() will need to do an rcu_read_lock(), with the
+> > > corresponding rcu_read_unlock() in pte_unmap().  But most architectures
+> > > never supported CONFIG_HIGHPTE, so some don't always call pte_unmap()
+> > > after pte_offset_map(), or have used userspace pte_offset_map() where
+> > > pte_offset_kernel() is more correct.  No problem in the current tree,
+> > > but a problem once an rcu_read_unlock() will be needed to keep balance.
+> > 
+> > Hi Hugh,
+> > 
+> > I shall have to spend some time looking at these patches, but at LSFMM
+> > just a few hours ago, I proposed and nobody objected to removing
+> > CONFIG_HIGHPTE.  I don't intend to take action on that consensus
+> > immediately, so I can certainly wait until your patches are applied, but
+> > if this information simplifies what you're doing, feel free to act on it.
+> 
+> Thanks a lot, Matthew: very considerate, as usual.
+> 
+> Yes, I did see your "Whither Highmem?" (wither highmem!) proposal on the
 
-I think the best fix would be to change all those drivers away
-from using inb/outb to readb/writeb, except when they access the
-actual PCMCIA I/O space behind the bridge.
+I'm glad somebody noticed the pun ;-)
 
-On most of the modern architectures, inb(addr) now turns into
-approximately readb(PCI_IOBASE + addr), with a bit of extra
-logic to deal with endianess and barrier semantics.
+> list, and it did make me think, better get these patches and preview out
+> soon, before you get to vanish pte_unmap() altogether.  HIGHMEM or not,
+> HIGHPTE or not, I think pte_offset_map() and pte_unmap() still have an
+> important role to play.
+> 
+> I don't really understand why you're going down a remove-CONFIG_HIGHPTE
+> route: I thought you were motivated by the awkardness of kmap on large
+> folios; but I don't see how removing HIGHPTE helps with that at all
+> (unless you have a "large page tables" effort in mind, but I doubt it).
 
-PCI_IOBASE in turn tends to be a hardcoded virtual address
-to which the physical I/O space window gets mapped during
-early boot, though you can also #define it to sh_io_port_base
-if you want to allocate the virtual address dynamically and
-leave the existing logic unchanged.
+Quite right, my primary concern is filesystem metadata; primarily
+directories as I don't think anybody has ever supported symlinks or
+superblocks larger than 4kB.
 
-Setting sh_io_port_base to zero however is a problem for any
-driver that passes a small port number into it -- this then
-turns into a user space pointer dereference, which is trivially
-exploitable.
+I was thinking that removing CONFIG_HIGHPTE might simplify the page
+fault handling path a little, but now I've looked at it some more, and
+I'm not sure there's any simplification to be had.  It should probably
+use kmap_local instead of kmap_atomic(), though.
 
-     Arnd
+> But I've no investment in CONFIG_HIGHPTE if people think now is the
+> time to remove it: I disagree, but wouldn't miss it myself - so long
+> as you leave pte_offset_map() and pte_unmap() (under whatever names).
+> 
+> I don't think removing CONFIG_HIGHPTE will simplify what I'm doing.
+> For a moment it looked like it would: the PAE case is nasty (and our
+> data centres have not been on PAE for a long time, so it wasn't a
+> problem I had to face before); and knowing pmd_high must be 0 for a
+> page table looked like it would help, but now I'm not so sure of that
+> (hmm, I'm changing my mind again as I write).
+> 
+> Peter's pmdp_get_lockless() does rely for complete correctness on
+> interrupts being disabled, and I suspect that I may be forced in the
+> PAE case to do so briefly; but detest that notion.  For now I'm just
+> deferring it, hoping for a better idea before third series finalized.
+> 
+> I mention this (and Cc Peter) in passing: don't want this arch thread
+> to go down into that rabbit hole: we can start a fresh thread on it if
+> you wish, but right now my priority is commit messages for the second
+> series, rather than solving (or even detailing) the PAE problem.
+
+I infer that what you need is a pte_access_start() and a
+pte_access_end() which look like they can be plausibly rcu_read_lock()
+and rcu_read_unlock(), but might need to be local_irq_save() and
+local_irq_restore() in some configurations?
+
+We also talked about moving x86 to always RCU-free page tables in
+order to make accessing /proc/$pid/smaps lockless.  I believe Michel
+is going to take a swing at this project.
