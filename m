@@ -2,105 +2,141 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5E1CC7EE24
-	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 08:40:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A0F6C7EE24
+	for <sparclinux@archiver.kernel.org>; Thu, 11 May 2023 09:01:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233866AbjEKIkA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 11 May 2023 04:40:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49016 "EHLO
+        id S236837AbjEKJBx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 11 May 2023 05:01:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233552AbjEKIj7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 04:39:59 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96B5549D6;
-        Thu, 11 May 2023 01:39:58 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id 373C81F388;
-        Thu, 11 May 2023 08:39:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1683794397; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=NXRHuyXM8rpe4qUASDvyNmrhcGnhIuyAUOQ0j7TuG3M=;
-        b=KRxlm6KuhcYRuut5Ld+57zEuix1UM/lh3QaDTebljqkZebiCmbRUL2VE5j6KhI8NLtUF6g
-        uTz4Fqa7EcHubjpJkiY38RTszd30kTaJWb0AFgyM3QYWNyVx3UpSzltfsdsXOZYEOXEXvF
-        q3IjA46B7zTin0OxRhwRS2niCS9Bhi4=
-Received: from suse.cz (unknown [10.100.201.202])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id B50ED2C141;
-        Thu, 11 May 2023 08:39:54 +0000 (UTC)
-Date:   Thu, 11 May 2023 10:39:53 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Nicholas Piggin <npiggin@gmail.com>
-Cc:     Douglas Anderson <dianders@chromium.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Sumit Garg <sumit.garg@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        Stephane Eranian <eranian@google.com>,
-        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Ian Rogers <irogers@google.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
-        davem@davemloft.net, sparclinux@vger.kernel.org,
-        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
-        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
-        Marc Zyngier <maz@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>
-Subject: Re: [PATCH v4 01/17] watchdog/perf: Define dummy
- watchdog_update_hrtimer_threshold() on correct config
-Message-ID: <ZFyp2aCIf8W5w65v@alley>
-References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.1.I8cbb2f4fa740528fcfade4f5439b6cdcdd059251@changeid>
- <CSDZYTDN5EHC.1AOZO6QV1UGJR@wheely>
+        with ESMTP id S235696AbjEKJBv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 11 May 2023 05:01:51 -0400
+Received: from mail-qv1-xf2c.google.com (mail-qv1-xf2c.google.com [IPv6:2607:f8b0:4864:20::f2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFA6E270E;
+        Thu, 11 May 2023 02:01:49 -0700 (PDT)
+Received: by mail-qv1-xf2c.google.com with SMTP id 6a1803df08f44-61cd6191a62so37795906d6.3;
+        Thu, 11 May 2023 02:01:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1683795709; x=1686387709;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KATKL5c9hHw7borFknSpolyvbkYiWwqKIKb81BIcugs=;
+        b=LiA5aCThzGnNp7E+Ta+DAvVEwiclZpF791zLAUwx+Als8erWN8Yl7PpwtloKY7vfA7
+         +VTsnl2KSlBmbyAImxRU3lG+IUT2Wqb5hUFCcAsZyEs/D1k9iAGqD79kt7aecJ/Cxj9r
+         eR6nzEnIzjucsN/6A+1hNPz8FvRo+Kuj2ketbPBiwSj1JqzajAiKbzNVkW/c2RJBCR3k
+         MZC8rrsOEhbdZrX91ntkakGdeHJHeYwEVqGe6cUOqDaw42N8TysvScbiMKu+APTP9eCY
+         3fchxaSfDDqrX5GvKxMc/O6qbvizbF/orFqeAlT1EFH85PiOL82QGmIN8EQXMGf+kfzf
+         4sBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683795709; x=1686387709;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=KATKL5c9hHw7borFknSpolyvbkYiWwqKIKb81BIcugs=;
+        b=Jm/KMUODbh3xfPvkr3EYAuyjraxkpSRfZkRQWRGd5Ni7IbcADn0Gmc1VLLk98s3z9m
+         EJiGkpqjUQ0tC5HxHf5YZV60s6UtPPlkQVdvm1h5pJJfRPKiEimnTlRB++OjkWSIbF1u
+         Otn7mvfa886ruINYOtyRdbugYpAEWTVDfBlwLVsI/hr6ywsN1DPKMkLXjOMOAxk0bjQI
+         BReSDiab4UPJnzoyBDJF/InErcCr4JvBpVbZtqVsXUCilmTZdMG/tIE+WNT/sUn3melK
+         AwkghZc3Z2AqjhrL9anBDdH2kmoFl5puCzyT3onzJXq4BvaJliEsaRKyGpK3Vl9CYXB2
+         A1bg==
+X-Gm-Message-State: AC+VfDyzC7lf57fXKzBy/EGTdDQtdzE/qz8MHkRSvRizewlVNRHhKu+W
+        W+53RpRqW6fi3BHHecNDevm8P/xI+BC0LyHZF2Q=
+X-Google-Smtp-Source: ACHHUZ5zRYnTHqc+5jEp+WommdN4iUlzGKKD+R//mFSlux2Z635gESR+gw4QOQ+7Eia9GPcOqFZAyzIfjtGm1Vv4yks=
+X-Received: by 2002:a05:6214:4018:b0:5ef:3b9a:b01d with SMTP id
+ kd24-20020a056214401800b005ef3b9ab01dmr25843220qvb.1.1683795708608; Thu, 11
+ May 2023 02:01:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CSDZYTDN5EHC.1AOZO6QV1UGJR@wheely>
+References: <20230510195806.2902878-1-nphamcs@gmail.com> <CAMuHMdV=PNCb1VYfUkEb9rPwGVB=1tkwvm-XBqECyhHR4SNGKg@mail.gmail.com>
+In-Reply-To: <CAMuHMdV=PNCb1VYfUkEb9rPwGVB=1tkwvm-XBqECyhHR4SNGKg@mail.gmail.com>
+From:   Nhat Pham <nphamcs@gmail.com>
+Date:   Thu, 11 May 2023 02:01:37 -0700
+Message-ID: <CAKEwX=Pty0V0m+_00F1uWR1EXt8Gt35PYh-yUZEd-LQRSKgfGQ@mail.gmail.com>
+Subject: Re: [PATCH] cachestat: wire up cachestat for other architectures
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        linux-api@vger.kernel.org, kernel-team@meta.com,
+        linux-arch@vger.kernel.org, hannes@cmpxchg.org,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux@armlinux.org.uk, monstr@monstr.eu,
+        tsbogend@alpha.franken.de, James.Bottomley@hansenpartnership.com,
+        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        glaubitz@physik.fu-berlin.de, davem@davemloft.net,
+        chris@zankel.net, jcmvbkbc@gmail.com, linux-alpha@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri 2023-05-05 12:43:49, Nicholas Piggin wrote:
-> On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
-> > The real watchdog_update_hrtimer_threshold() is defined in
-> > watchdog_hardlockup_perf.c. That file is included if
-> 
-> In kernel/watchdog_hld.c.
-
-With this fixed path:
-
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-
-> > CONFIG_HARDLOCKUP_DETECTOR_PERF and the function is defined in that
-> > file if CONFIG_HARDLOCKUP_CHECK_TIMESTAMP.
+On Thu, May 11, 2023 at 12:01=E2=80=AFAM Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+>
+> Hi Nat,
+>
+> On Wed, May 10, 2023 at 9:58=E2=80=AFPM Nhat Pham <nphamcs@gmail.com> wro=
+te:
+> > cachestat is previously only wired in for x86 (and architectures using
+> > the generic unistd.h table):
 > >
-> > The dummy version of the function in "nmi.h" didn't get that quite
-> > right. While this doesn't appear to be a huge deal, it's nice to make
-> > it consistent.
-> 
-> It doesn't break builds because CHECK_TIMESTAMP is only defined by
-> x86 so others don't get a double definition, and x86 uses perf lockup
-> detector, so it gets the out of line version.
-> 
-> So has no functional change but should be fixed.
-> 
-> Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
-> 
+> > https://lore.kernel.org/lkml/20230503013608.2431726-1-nphamcs@gmail.com=
+/
 > >
-> > Fixes: 7edaeb6841df ("kernel/watchdog: Prevent false positives with turbo modes")
-> > Signed-off-by: Douglas Anderson <dianders@chromium.org>
+> > This patch wires cachestat in for all the other architectures.
+> >
+> > Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+> > ---
+> >  arch/alpha/kernel/syscalls/syscall.tbl      | 1 +
+> >  arch/arm/tools/syscall.tbl                  | 1 +
+>
+> Looking at the last addition of a syscall (commit 21b084fdf2a49ca1
+> ("mm/mempolicy: wire up syscall set_mempolicy_home_node"), it looks
+> like you forgot to update arm64 in compat mode? Or is that not needed?
 
-Best Regards,
-Petr
+It does look like I missed that! Thanks for the reminder. I'll send a fixle=
+t
+shortly...
+
+Best,
+Nhat
+
+>
+> >  arch/ia64/kernel/syscalls/syscall.tbl       | 1 +
+> >  arch/m68k/kernel/syscalls/syscall.tbl       | 1 +
+>
+> For m68k:
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>
+> >  arch/microblaze/kernel/syscalls/syscall.tbl | 1 +
+> >  arch/mips/kernel/syscalls/syscall_n32.tbl   | 1 +
+> >  arch/mips/kernel/syscalls/syscall_n64.tbl   | 1 +
+> >  arch/mips/kernel/syscalls/syscall_o32.tbl   | 1 +
+> >  arch/parisc/kernel/syscalls/syscall.tbl     | 1 +
+> >  arch/powerpc/kernel/syscalls/syscall.tbl    | 1 +
+> >  arch/s390/kernel/syscalls/syscall.tbl       | 1 +
+> >  arch/sh/kernel/syscalls/syscall.tbl         | 1 +
+> >  arch/sparc/kernel/syscalls/syscall.tbl      | 1 +
+> >  arch/xtensa/kernel/syscalls/syscall.tbl     | 1 +
+> >  14 files changed, 14 insertions(+)
+>
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m6=
+8k.org
+>
+> In personal conversations with technical people, I call myself a hacker. =
+But
+> when I'm talking to journalists I just say "programmer" or something like=
+ that.
+>                                 -- Linus Torvalds
