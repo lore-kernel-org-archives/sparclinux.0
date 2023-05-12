@@ -2,114 +2,143 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CF9C7EE24
-	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 11:16:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC72C77B7F
+	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 11:21:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241068AbjELLQl convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 12 May 2023 07:16:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41330 "EHLO
+        id S241067AbjELLVy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 12 May 2023 07:21:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241060AbjELLQi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 07:16:38 -0400
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60B2B4C1F
-        for <sparclinux@vger.kernel.org>; Fri, 12 May 2023 04:16:35 -0700 (PDT)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with both STARTTLS and AUTH (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-249-VSjj4jpZOom7AJRUgPGuWQ-1; Fri, 12 May 2023 12:16:32 +0100
-X-MC-Unique: VSjj4jpZOom7AJRUgPGuWQ-1
-Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
- (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.48; Fri, 12 May
- 2023 12:16:30 +0100
-Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
- id 15.00.1497.048; Fri, 12 May 2023 12:16:30 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Thomas Zimmermann' <tzimmermann@suse.de>,
-        "deller@gmx.de" <deller@gmx.de>,
-        "geert@linux-m68k.org" <geert@linux-m68k.org>,
-        "javierm@redhat.com" <javierm@redhat.com>,
-        "daniel@ffwll.ch" <daniel@ffwll.ch>,
-        "vgupta@kernel.org" <vgupta@kernel.org>,
-        "chenhuacai@kernel.org" <chenhuacai@kernel.org>,
-        "kernel@xen0n.name" <kernel@xen0n.name>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "James.Bottomley@HansenPartnership.com" 
-        <James.Bottomley@HansenPartnership.com>,
-        "arnd@arndb.de" <arnd@arndb.de>,
-        "sam@ravnborg.org" <sam@ravnborg.org>,
-        "suijingfeng@loongson.cn" <suijingfeng@loongson.cn>
-CC:     "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-snps-arc@lists.infradead.org" 
-        <linux-snps-arc@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
-        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        kernel test robot <lkp@intel.com>,
-        "Artur Rojek" <contact@artur-rojek.eu>
-Subject: RE: [PATCH v7 1/7] fbdev/hitfb: Cast I/O offset to address
-Thread-Topic: [PATCH v7 1/7] fbdev/hitfb: Cast I/O offset to address
-Thread-Index: AQHZhLwIoJOHAKlHvkaeoWR92INTOa9We4fw
-Date:   Fri, 12 May 2023 11:16:30 +0000
-Message-ID: <c25758dd7b4a4563b0d33c751da8cf6d@AcuMS.aculab.com>
-References: <20230512102444.5438-1-tzimmermann@suse.de>
- <20230512102444.5438-2-tzimmermann@suse.de>
-In-Reply-To: <20230512102444.5438-2-tzimmermann@suse.de>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        with ESMTP id S241112AbjELLVt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 07:21:49 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 295C53C03;
+        Fri, 12 May 2023 04:21:43 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id AA27E228E0;
+        Fri, 12 May 2023 11:21:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1683890501; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=8Mll1DAMbLGCFXSubtx4QEn03KKOCJspxVpDzXoQOQ4=;
+        b=KpIW+Hu8ySVymSB28TiB64CYpeKVwXlVWvacchzaLtI9q7FObkmBCPO2LZ7HOgvYh0awWb
+        Vu/XmXFI2k4C5E7HKbYqv+kv7F2CMc4cHuQv9iabvQkMtDDbD2aVX1La9fkct2gRNR0/Iu
+        dWM7bdtfBmqRCNU9EtJIGZIfqdvJIxc=
+Received: from suse.cz (pmladek.tcp.ovpn2.prg.suse.de [10.100.208.146])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id A80022C152;
+        Fri, 12 May 2023 11:21:37 +0000 (UTC)
+Date:   Fri, 12 May 2023 13:21:34 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Nicholas Piggin <npiggin@gmail.com>
+Cc:     Douglas Anderson <dianders@chromium.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Sumit Garg <sumit.garg@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        Stephane Eranian <eranian@google.com>,
+        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>,
+        Ian Rogers <irogers@google.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
+        davem@davemloft.net, sparclinux@vger.kernel.org,
+        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
+        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
+        Marc Zyngier <maz@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>
+Subject: Re: [PATCH v4 11/17] watchdog/hardlockup: Rename some "NMI watchdog"
+ constants/function
+Message-ID: <ZF4hPiEjvr4_ditV@alley>
+References: <20230504221349.1535669-1-dianders@chromium.org>
+ <20230504151100.v4.11.I91f7277bab4bf8c0cb238732ed92e7ce7bbd71a6@changeid>
+ <CSE0GBQQDUAY.1QAJIC3D3OBVU@wheely>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CSE0GBQQDUAY.1QAJIC3D3OBVU@wheely>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Thomas Zimmermann
-> Sent: 12 May 2023 11:25
+On Fri 2023-05-05 13:06:41, Nicholas Piggin wrote:
+> On Fri May 5, 2023 at 8:13 AM AEST, Douglas Anderson wrote:
+> > Do a search and replace of:
+> > - NMI_WATCHDOG_ENABLED => HARD_WATCHDOG_ENABLED
+> > - watchdog_nmi_ => watchdog_hardlockup_
 > 
-> Cast I/O offsets to pointers to use them with I/O functions. The I/O
-> functions expect pointers of type 'volatile void __iomem *', but the
-> offsets are plain integers. Build warnings are
-> 
->   ../drivers/video/fbdev/hitfb.c: In function 'hitfb_accel_wait':
->   ../arch/x86/include/asm/hd64461.h:18:33: warning: passing argument 1 of 'fb_readw' makes pointer
-> from integer without a cast [-Wint-conversion]
->    18 | #define HD64461_IO_OFFSET(x)    (HD64461_IOBASE + (x))
->       |                                 ^~~~~~~~~~~~~~~~~~~~~~
-...
->    52 | static inline u16 fb_readw(const volatile void __iomem *addr)
->       |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
-> 
-> This patch only fixes the build warnings. It's not clear if the I/O
-> offsets can legally be passed to the I/O helpers. It was apparently
-> broken in 2007 when custom inw()/outw() helpers got removed by
-> commit 34a780a0afeb ("sh: hp6xx pata_platform support."). Fixing the
-> driver would require setting the I/O base address.
+> These are just making prefixes inconsistent again.
 
-Did you try changing the definition of HD64461_IOBASE to include
-a (volatile void __iomem *) cast?
-A lot less churn...
+Yeah, HARD_WATCHDOG_ENABLED does not fit in. I would personally
+rename:
 
-I'm guessing that 'sh' deosn't have in/out instructions so this
-is something that is always mapped at a fixed kernel virtual address?
+  - NMI_WATCHDOG_ENABLED => WATCHDOG_HARDLOCKUP_ENABLED
+  - SOFT_WATCHDOG_ENABLED => WATCHDOG_SOFTOCKUP_ENABLED
 
-	David
+to follow the new name space.
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+> If you really want to do a prefix, I would call it hardlockup which
 
+I wish, we found a good short prefix. My problem with hardlockup_
+is that for example "hardlockup_enable() looks ugly.
+
+Also some stuff is common for both softlockup and hardlockup
+detectors. And some stuff will be common for both perf and
+buddy hardlockup detectors.
+
+Possible alternatives:
+
+   a) watchdog_, watchdog_sl_ and watchdog_hl_, watchdog_hl_buddy_
+   b) wd_, wd_hardlockup_, wd_softlockup_, wd_hardlockup_buddy_
+   c) wd_, wd_hl_, wd_sl_, wd_hl_buddy_
+   d_ wd_, wdhl_, wdsl_, wdhl_buddy_
+
+If you want something shorter then c) looks the best to me.
+
+The wd_ prefix seems to be already used in:
+
+   + arch/powerpc/kernel/watchdog.c
+   + kernel/time/clocksource.c
+
+, but it is not used in the core watchdog code at all so it
+would require renaming almost everything.
+
+
+> probably best matches existing code and sysctl / boot stuff, and
+> concentrate on non-static symbols.
+
+Yeah, we could hardly change the sysctl interface visible to
+userspace. But we could change at least the internal code.
+
+And if we are changing the API anyway because of the
+nmi/perf/buddy/hardlockup/hard mess then lets choose
+something that will help to distinguish the common watchdog
+vs. softlockup/hardlockup/buddy/perf-specific watchdog code.
+
+And I would change it to the watchdog_hardlockup_ as it is
+done in this patchset:
+
+   + the names were mostly long even before
+   + the code mostly stayed within the 80-chars per-line limit
+   + the patches are ready
+
+
+> No problem with minor things like this that touch arch/powerpc
+> going through Andrew's tree though. I'm sure sparc maintainers
+> wouldn't mind either.
+
+Good to know.
+
+Best Regards,
+Petr
