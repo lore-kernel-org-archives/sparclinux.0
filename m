@@ -2,139 +2,156 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17ABAC77B7F
-	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 11:55:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 098E4C7EE2A
+	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 19:48:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240512AbjELLza (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 12 May 2023 07:55:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39586 "EHLO
+        id S238926AbjELTsz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 12 May 2023 15:48:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232174AbjELLz3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 07:55:29 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B42D8A60;
-        Fri, 12 May 2023 04:55:28 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id D7F82221B0;
-        Fri, 12 May 2023 11:55:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1683892526; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=xyID2nrfRFvnCmCCEoDqrRJb/SLL4bOOzyPEcVWhIcg=;
-        b=lEQ0yjMIPHRMyl9VsYuE8tD7yo0iFTwLUXaORxnhA7t8728sX0q4aRdF3iN6dqy1aC3q8/
-        YPm1Tcs8DZ1wYKRHJ8/JPaw9/W3ekjR2+D3gmP9Tk3pQE/UABRQW6NVwrkr0j2R28omH/o
-        DCRZdesZpFrDMAZ/mT4KGYDe+egXfWo=
-Received: from suse.cz (unknown [10.100.208.146])
+        with ESMTP id S238608AbjELTsx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 15:48:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 572B27693;
+        Fri, 12 May 2023 12:48:52 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 6A61A2C152;
-        Fri, 12 May 2023 11:55:25 +0000 (UTC)
-Date:   Fri, 12 May 2023 13:55:24 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Douglas Anderson <dianders@chromium.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Sumit Garg <sumit.garg@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        Stephane Eranian <eranian@google.com>,
-        Stephen Boyd <swboyd@chromium.org>, ricardo.neri@intel.com,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>,
-        Ian Rogers <irogers@google.com>,
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E00DB6585A;
+        Fri, 12 May 2023 19:48:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04CD3C433D2;
+        Fri, 12 May 2023 19:48:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1683920931;
+        bh=UJAu/sEPUEjYwNghUWoNUhNjtFQtSfleebB2APfRPuI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=izATGEJPbIV3K4bCaiKo7Hs1883mTtDq56tAMqR9b8VXex2H1Ta5qXbJ34DUMlipI
+         hkP36Hf18gfQ/c5WhLTbqHxqmGDxT8c6GZsTNVnFEdOQaZaJ/oYwHmrit1EAw1x+1Y
+         2z22L2JvUWHTpA485tRqm3EMRgDgtReOCU64LBI1xffqjx2Y+7vetzAwosC65+lInq
+         x9YdWwtXI3O85iO05qxJMbcPnrLIE+gUjS7LacDVi8KOmMYZ7RSibPwc0Q194zjna+
+         tNHv7vuMAsogyAVpsXpRcwcmIepl/BM1Pky4mWnjJL9I8gbCdKyEWdBqbLqeB9zbcY
+         repkA1Uz/worA==
+Date:   Fri, 12 May 2023 14:48:49 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
+        linux-pci@vger.kernel.org,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        linux-kernel@vger.kernel.org,
+        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
+        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
+        Anatolij Gustschin <agust@denx.de>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
         linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, ito-yuichi@fujitsu.com,
+        Juergen Gross <jgross@suse.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+        linuxppc-dev@lists.ozlabs.org,
         Randy Dunlap <rdunlap@infradead.org>,
-        Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
-        davem@davemloft.net, sparclinux@vger.kernel.org,
-        mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
-        ravi.v.shankar@intel.com, npiggin@gmail.com,
-        linuxppc-dev@lists.ozlabs.org, Marc Zyngier <maz@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>
-Subject: Re: [PATCH v4 12/17] watchdog/hardlockup: Have the perf hardlockup
- use __weak functions more cleanly
-Message-ID: <ZF4pLJUpvec7vvXT@alley>
-References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.12.I847d9ec852449350997ba00401d2462a9cb4302b@changeid>
+        linux-mips@vger.kernel.org,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+        linux-alpha@vger.kernel.org,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
+ users
+Message-ID: <ZF6YIezraETr9iNM@bhelgaas>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230504151100.v4.12.I847d9ec852449350997ba00401d2462a9cb4302b@changeid>
+In-Reply-To: <ZF4bXaz2r75dlA5g@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu 2023-05-04 15:13:44, Douglas Anderson wrote:
-> The fact that there watchdog_hardlockup_enable(),
-> watchdog_hardlockup_disable(), and watchdog_hardlockup_probe() are
-> declared __weak means that the configured hardlockup detector can
-> define non-weak versions of those functions if it needs to. Instead of
-> doing this, the perf hardlockup detector hooked itself into the
-> default __weak implementation, which was a bit awkward. Clean this up.
+On Fri, May 12, 2023 at 01:56:29PM +0300, Andy Shevchenko wrote:
+> On Tue, May 09, 2023 at 01:21:22PM -0500, Bjorn Helgaas wrote:
+> > On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
+> > > On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
+> > > > Provide two new helper macros to iterate over PCI device resources and
+> > > > convert users.
+> > 
+> > > Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
+> > 
+> > This is 09cc90063240 ("PCI: Introduce pci_dev_for_each_resource()")
+> > upstream now.
+> > 
+> > Coverity complains about each use,
 > 
-> >From comments, it looks as if the original design was done because the
-> __weak function were expected to implemented by the architecture and
-> not by the configured hardlockup detector. This got awkward when we
-> tried to add the buddy lockup detector which was not arch-specific but
-> wanted to hook into those same functions.
+> It needs more clarification here. Use of reduced variant of the
+> macro or all of them? If the former one, then I can speculate that
+> Coverity (famous for false positives) simply doesn't understand `for
+> (type var; var ...)` code.
+
+True, Coverity finds false positives.  It flagged every use in
+drivers/pci and drivers/pnp.  It didn't mention the arch/alpha, arm,
+mips, powerpc, sh, or sparc uses, but I think it just didn't look at
+those.
+
+It flagged both:
+
+  pbus_size_io    pci_dev_for_each_resource(dev, r)
+  pbus_size_mem   pci_dev_for_each_resource(dev, r, i)
+
+Here's a spreadsheet with a few more details (unfortunately I don't
+know how to make it dump the actual line numbers or analysis like I
+pasted below, so "pci_dev_for_each_resource" doesn't appear).  These
+are mostly in the "Drivers-PCI" component.
+
+https://docs.google.com/spreadsheets/d/1ohOJwxqXXoDUA0gwopgk-z-6ArLvhN7AZn4mIlDkHhQ/edit?usp=sharing
+
+These particular reports are in the "High Impact Outstanding" tab.
+
+> >	sample below from
+> > drivers/pci/vgaarb.c.  I didn't investigate at all, so it might be a
+> > false positive; just FYI.
+> > 
+> > 	  1. Condition screen_info.capabilities & (2U /* 1 << 1 */), taking true branch.
+> >   556        if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE)
+> >   557                base |= (u64)screen_info.ext_lfb_base << 32;
+> >   558
+> >   559        limit = base + size;
+> >   560
+> >   561        /* Does firmware framebuffer belong to us? */
+> > 	  2. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> > 	  3. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+> > 	  6. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> > 	  7. cond_at_most: Checking __b < PCI_NUM_RESOURCES implies that __b may be up to 16 on the true branch.
+> > 	  8. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+> > 	  11. incr: Incrementing __b. The value of __b may now be up to 17.
+> > 	  12. alias: Assigning: r = &pdev->resource[__b]. r may now point to as high as element 17 of pdev->resource (which consists of 17 64-byte elements).
+> > 	  13. Condition __b < PCI_NUM_RESOURCES, taking true branch.
+> > 	  14. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
+> >   562        pci_dev_for_each_resource(pdev, r) {
+> > 	  4. Condition resource_type(r) != 512, taking true branch.
+> > 	  9. Condition resource_type(r) != 512, taking true branch.
+> > 
+> >   CID 1529911 (#1 of 1): Out-of-bounds read (OVERRUN)
+> >   15. overrun-local: Overrunning array of 1088 bytes at byte offset 1088 by dereferencing pointer r. [show details]
+> >   563                if (resource_type(r) != IORESOURCE_MEM)
+> > 	  5. Continuing loop.
+> > 	  10. Continuing loop.
+> >   564                        continue;
 > 
-> This is not expected to have any functional impact.
+> -- 
+> With Best Regards,
+> Andy Shevchenko
 > 
-> Signed-off-by: Douglas Anderson <dianders@chromium.org>
-
-I like this change:
-
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-
-See a comment below.
-
-> --- a/kernel/watchdog_perf.c
-> +++ b/kernel/watchdog_perf.c
-> @@ -147,12 +151,16 @@ void hardlockup_detector_perf_enable(void)
->  }
->  
->  /**
-> - * hardlockup_detector_perf_disable - Disable the local event
-> + * watchdog_hardlockup_disable - Disable the local event
-> + *
-> + * @cpu: The CPU to enable hard lockup on.
->   */
-> -void hardlockup_detector_perf_disable(void)
-> +void watchdog_hardlockup_disable(unsigned int cpu)
->  {
->  	struct perf_event *event = this_cpu_read(watchdog_ev);
->  
-> +	WARN_ON_ONCE(cpu != smp_processor_id());
-> +
-
-It makes sense. But it just shows how the code is weird.
-@cpu is passed as a parameter and the code expects that it is
-running on the given CPU.
-
-It seems that @cpu is passed as a parameter because this is
-called from:
-
-  + [CPUHP_AP_WATCHDOG_ONLINE].teardown.single()
-    + lockup_detector_offline_cpu()
-      + watchdog_disable()
-
-and the CPU hotplug API passes @cpu parameter.
-
-IMHO, the clean solution would be to use per_cpu*() instead
-of this_cpu*() API everywhere in this code path.
-
-But it is yet another cleanup. It seems to be out-of-scope of
-this patchset.
-
->  	if (event) {
->  		perf_event_disable(event);
->  		this_cpu_write(watchdog_ev, NULL);
-
-Best Regards,
-Petr
+> 
