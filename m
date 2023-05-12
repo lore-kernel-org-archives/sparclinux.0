@@ -2,147 +2,114 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B4CAC7EE25
-	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 10:56:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CF9C7EE24
+	for <sparclinux@archiver.kernel.org>; Fri, 12 May 2023 11:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240910AbjELK4u (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 12 May 2023 06:56:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54646 "EHLO
+        id S241068AbjELLQl convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 12 May 2023 07:16:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240880AbjELK4p (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 06:56:45 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAA1CFE;
-        Fri, 12 May 2023 03:56:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683889004; x=1715425004;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=aTme5qDkFV7Mcp0uaOboKBbeV5ze/dqrLO9cBA/tElE=;
-  b=RXB9WXpjC1DvMlJbCHHDAAU+YudODiVQi5nCUUCI8S6qBwG2alUG5t0G
-   FdgMNayGjwIxKv9jVzWaNRENfLBuDWbpR155MyDVLlNqhaae6Xvb9Zet2
-   ICNJZIQgOBm8M2kKwWMOtUkoxyr2TVlS/2f/HRsBgcjSCAuTYpYba913/
-   LayD8z/z5D1/vsIUbnTyeVGyaWtX6iIsWsMTtL8+DNppjRUtf64y3cGxj
-   3JWBvpumkJ25j99MM8FHwtsxdC/LpZQ8ElKNva092BJ5SVlJ4Fe2+bnpw
-   4HaILCrxhJT82KnW2H6sapvFdku/lJop06VVALUZWmbO+u0kgzTzEEPvi
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10707"; a="414132446"
-X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="414132446"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 03:56:43 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10707"; a="812041055"
-X-IronPort-AV: E=Sophos;i="5.99,269,1677571200"; 
-   d="scan'208";a="812041055"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP; 12 May 2023 03:56:34 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pxQRq-0004Zv-0i;
-        Fri, 12 May 2023 13:56:30 +0300
-Date:   Fri, 12 May 2023 13:56:29 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
-        linux-pci@vger.kernel.org,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-mips@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
-        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
-        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
-        Anatolij Gustschin <agust@denx.de>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Juergen Gross <jgross@suse.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        linux-kernel@vger.kernel.org,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        "David S. Miller" <davem@davemloft.net>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>
-Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
- users
-Message-ID: <ZF4bXaz2r75dlA5g@smile.fi.intel.com>
-References: <20230404161101.GA3554747@bhelgaas>
- <20230509182122.GA1259567@bhelgaas>
+        with ESMTP id S241060AbjELLQi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 12 May 2023 07:16:38 -0400
+Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60B2B4C1F
+        for <sparclinux@vger.kernel.org>; Fri, 12 May 2023 04:16:35 -0700 (PDT)
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
+ relay.mimecast.com with ESMTP with both STARTTLS and AUTH (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ uk-mta-249-VSjj4jpZOom7AJRUgPGuWQ-1; Fri, 12 May 2023 12:16:32 +0100
+X-MC-Unique: VSjj4jpZOom7AJRUgPGuWQ-1
+Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
+ (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.48; Fri, 12 May
+ 2023 12:16:30 +0100
+Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
+ id 15.00.1497.048; Fri, 12 May 2023 12:16:30 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Thomas Zimmermann' <tzimmermann@suse.de>,
+        "deller@gmx.de" <deller@gmx.de>,
+        "geert@linux-m68k.org" <geert@linux-m68k.org>,
+        "javierm@redhat.com" <javierm@redhat.com>,
+        "daniel@ffwll.ch" <daniel@ffwll.ch>,
+        "vgupta@kernel.org" <vgupta@kernel.org>,
+        "chenhuacai@kernel.org" <chenhuacai@kernel.org>,
+        "kernel@xen0n.name" <kernel@xen0n.name>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "James.Bottomley@HansenPartnership.com" 
+        <James.Bottomley@HansenPartnership.com>,
+        "arnd@arndb.de" <arnd@arndb.de>,
+        "sam@ravnborg.org" <sam@ravnborg.org>,
+        "suijingfeng@loongson.cn" <suijingfeng@loongson.cn>
+CC:     "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "linux-snps-arc@lists.infradead.org" 
+        <linux-snps-arc@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
+        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
+        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
+        kernel test robot <lkp@intel.com>,
+        "Artur Rojek" <contact@artur-rojek.eu>
+Subject: RE: [PATCH v7 1/7] fbdev/hitfb: Cast I/O offset to address
+Thread-Topic: [PATCH v7 1/7] fbdev/hitfb: Cast I/O offset to address
+Thread-Index: AQHZhLwIoJOHAKlHvkaeoWR92INTOa9We4fw
+Date:   Fri, 12 May 2023 11:16:30 +0000
+Message-ID: <c25758dd7b4a4563b0d33c751da8cf6d@AcuMS.aculab.com>
+References: <20230512102444.5438-1-tzimmermann@suse.de>
+ <20230512102444.5438-2-tzimmermann@suse.de>
+In-Reply-To: <20230512102444.5438-2-tzimmermann@suse.de>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230509182122.GA1259567@bhelgaas>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, May 09, 2023 at 01:21:22PM -0500, Bjorn Helgaas wrote:
-> On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
-> > On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
-> > > Provide two new helper macros to iterate over PCI device resources and
-> > > convert users.
+From: Thomas Zimmermann
+> Sent: 12 May 2023 11:25
 > 
-> > Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
+> Cast I/O offsets to pointers to use them with I/O functions. The I/O
+> functions expect pointers of type 'volatile void __iomem *', but the
+> offsets are plain integers. Build warnings are
 > 
-> This is 09cc90063240 ("PCI: Introduce pci_dev_for_each_resource()")
-> upstream now.
+>   ../drivers/video/fbdev/hitfb.c: In function 'hitfb_accel_wait':
+>   ../arch/x86/include/asm/hd64461.h:18:33: warning: passing argument 1 of 'fb_readw' makes pointer
+> from integer without a cast [-Wint-conversion]
+>    18 | #define HD64461_IO_OFFSET(x)    (HD64461_IOBASE + (x))
+>       |                                 ^~~~~~~~~~~~~~~~~~~~~~
+...
+>    52 | static inline u16 fb_readw(const volatile void __iomem *addr)
+>       |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
 > 
-> Coverity complains about each use,
+> This patch only fixes the build warnings. It's not clear if the I/O
+> offsets can legally be passed to the I/O helpers. It was apparently
+> broken in 2007 when custom inw()/outw() helpers got removed by
+> commit 34a780a0afeb ("sh: hp6xx pata_platform support."). Fixing the
+> driver would require setting the I/O base address.
 
-It needs more clarification here. Use of reduced variant of the macro or all of
-them? If the former one, then I can speculate that Coverity (famous for false
-positives) simply doesn't understand `for (type var; var ...)` code.
+Did you try changing the definition of HD64461_IOBASE to include
+a (volatile void __iomem *) cast?
+A lot less churn...
 
->	sample below from
-> drivers/pci/vgaarb.c.  I didn't investigate at all, so it might be a
-> false positive; just FYI.
-> 
-> 	  1. Condition screen_info.capabilities & (2U /* 1 << 1 */), taking true branch.
->   556        if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE)
->   557                base |= (u64)screen_info.ext_lfb_base << 32;
->   558
->   559        limit = base + size;
->   560
->   561        /* Does firmware framebuffer belong to us? */
-> 	  2. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-> 	  3. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
-> 	  6. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-> 	  7. cond_at_most: Checking __b < PCI_NUM_RESOURCES implies that __b may be up to 16 on the true branch.
-> 	  8. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
-> 	  11. incr: Incrementing __b. The value of __b may now be up to 17.
-> 	  12. alias: Assigning: r = &pdev->resource[__b]. r may now point to as high as element 17 of pdev->resource (which consists of 17 64-byte elements).
-> 	  13. Condition __b < PCI_NUM_RESOURCES, taking true branch.
-> 	  14. Condition (r = &pdev->resource[__b]) , (__b < PCI_NUM_RESOURCES), taking true branch.
->   562        pci_dev_for_each_resource(pdev, r) {
-> 	  4. Condition resource_type(r) != 512, taking true branch.
-> 	  9. Condition resource_type(r) != 512, taking true branch.
-> 
->   CID 1529911 (#1 of 1): Out-of-bounds read (OVERRUN)
->   15. overrun-local: Overrunning array of 1088 bytes at byte offset 1088 by dereferencing pointer r. [show details]
->   563                if (resource_type(r) != IORESOURCE_MEM)
-> 	  5. Continuing loop.
-> 	  10. Continuing loop.
->   564                        continue;
+I'm guessing that 'sh' deosn't have in/out instructions so this
+is something that is always mapped at a fixed kernel virtual address?
 
--- 
-With Best Regards,
-Andy Shevchenko
+	David
 
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+Registration No: 1397386 (Wales)
 
