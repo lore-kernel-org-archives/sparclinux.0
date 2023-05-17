@@ -2,398 +2,180 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F4EC7EE24
-	for <sparclinux@archiver.kernel.org>; Tue, 16 May 2023 17:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C060CC7EE23
+	for <sparclinux@archiver.kernel.org>; Wed, 17 May 2023 10:41:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230109AbjEPRpO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 16 May 2023 13:45:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34434 "EHLO
+        id S230204AbjEQKlM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 17 May 2023 06:41:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbjEPRpN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 16 May 2023 13:45:13 -0400
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9039FC;
-        Tue, 16 May 2023 10:45:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1684259054; i=deller@gmx.de;
-        bh=28Q2XTKI3jOrWHGJRY35mfdpvNOlP9oZTBSK7WL8Bjk=;
-        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
-        b=eXaGMvBKqACcsFqkTyYRfQM2481JQl71DzQiEIaVDzUVH1aDV1H4R33xqAwl3T9xg
-         WyGs2k/8xP0S2HR/CekXsMf6yLBmqry4QSYxr4BvpJva3Ks/s2ycdHnF+/EoAr+h6u
-         NIoYxuVUMWztf2AdYwAzRMjkS9hI8Pd8dMPpn7VuHOMlyOdCyXRmWCYoqqSUxHBvmw
-         evV8w3qjZaKNyexAvtHeNQIrjaAsxgulFEKp3nDKkDglGurFZX71jPAWLjfTwmgGYG
-         s4H5RwDK7jPGN43mnLsgqXe6Vt8DhM5WO+h9lRK2vxVHJEwQX4XP6bFslTwNi3OGd0
-         TeuNvCu0UJvAw==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.20.60] ([94.134.150.20]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1N5mKP-1qDPOg4AKR-017Dz0; Tue, 16
- May 2023 19:44:14 +0200
-Message-ID: <df527e53-3148-02f0-241b-fbc5e28b1618@gmx.de>
-Date:   Tue, 16 May 2023 19:44:09 +0200
+        with ESMTP id S229510AbjEQKlK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 17 May 2023 06:41:10 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A61BC46BC;
+        Wed, 17 May 2023 03:41:02 -0700 (PDT)
+Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34HAWh8p030125;
+        Wed, 17 May 2023 10:39:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=6o4UB5d8iRIZZq7T331T96/YmtIoyPZJVO895cK7BU4=;
+ b=Qlb1r1C79y4iKHdQAqanT8rbJmqF8hpDVpHADvfmHgcOzINGCqecTLs6lklqCmaeUKZi
+ LNo2SCVe642Qo5fhaxr/ou+1QQFdZf6fudSYdsYn1zj0/qda6lUKaL4wNzWc8ZwCpOGB
+ u1jr8Jeldv7dhRYFAZce4H8UEXUhr2sOKWsFIUzuyQCAdsrgpetZ/OvfYv7ko7U4WoTl
+ WIlXuWOUiMllj0buN4FxHg1xFrqq9szJZkHJpe+PgAPCqpQU+mAWYxRNQNulh9twB9sp
+ 7Sk1CAWsYA8brwf7ADoH4AMfmPk6bkEJB+etoy2gytNtvsvI4B1v7NCryfl9JlR+J5XJ Lg== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qmvpm9ncq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 May 2023 10:39:33 +0000
+Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34HAWq5Q030869;
+        Wed, 17 May 2023 10:37:18 GMT
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qmvpm9fk6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 May 2023 10:37:18 +0000
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+        by ppma06ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34H5hGdl019589;
+        Wed, 17 May 2023 10:35:52 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+        by ppma06ams.nl.ibm.com (PPS) with ESMTPS id 3qj1tdt3s3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 May 2023 10:35:52 +0000
+Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
+        by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34HAZmug51773938
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 17 May 2023 10:35:48 GMT
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B38752004B;
+        Wed, 17 May 2023 10:35:48 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id C636820043;
+        Wed, 17 May 2023 10:35:47 +0000 (GMT)
+Received: from p-imbrenda (unknown [9.152.224.66])
+        by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Wed, 17 May 2023 10:35:47 +0000 (GMT)
+Date:   Wed, 17 May 2023 12:35:46 +0200
+From:   Claudio Imbrenda <imbrenda@linux.ibm.com>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Helge Deller <deller@gmx.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH 15/23] s390: allow pte_offset_map_lock() to fail
+Message-ID: <20230517123546.672fb9b0@p-imbrenda>
+In-Reply-To: <94aec8fe-383f-892-dcbf-d4c14e460a7@google.com>
+References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
+        <94aec8fe-383f-892-dcbf-d4c14e460a7@google.com>
+Organization: IBM
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.37; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
-Subject: Re: [PATCH v7 1/7] fbdev/hitfb: Cast I/O offset to address
-Content-Language: en-US
-To:     Thomas Zimmermann <tzimmermann@suse.de>, geert@linux-m68k.org,
-        javierm@redhat.com, daniel@ffwll.ch, vgupta@kernel.org,
-        chenhuacai@kernel.org, kernel@xen0n.name, davem@davemloft.net,
-        James.Bottomley@HansenPartnership.com, arnd@arndb.de,
-        sam@ravnborg.org, suijingfeng@loongson.cn
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arch@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org, kernel test robot <lkp@intel.com>,
-        Artur Rojek <contact@artur-rojek.eu>
-References: <20230512102444.5438-1-tzimmermann@suse.de>
- <20230512102444.5438-2-tzimmermann@suse.de>
-From:   Helge Deller <deller@gmx.de>
-In-Reply-To: <20230512102444.5438-2-tzimmermann@suse.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:rSOrO+0jt4O4RzM9l14Bz6wfGEKXucA0j3Waundj3xcBKFDFc52
- MmW0hsb8NLlq0rH9mMz/XUMz+PTuDsa6n+7OMeP7elMOy6xV14Nc64lHY1vMLN09t7CrUAU
- aro3xE6YuZBtr5yHHhTsC4g3TbNooxbmvDC+2u1zgRm2sKkzCxIS3lxPvtY+OC7z04Uhti5
- 72FlfAhLCIiPZ2ZVXmmOQ==
-UI-OutboundReport: notjunk:1;M01:P0:ecBgGlwkX5Y=;oQwXswBOboXoEMT5pniOW9e5zDy
- TDc0juyT2oeDOAYSymZ4Yve6mAwtAQYgC4JulDpsWI54/lpT/3D7R4HTWQBItkMqSmELB7Tfh
- k/xHSW5SHoW+vvUk5sL4+IR5vxCspl8eKgpH3nyPYnge684GFJK7ApwoTiF0bEeuMEPeE0f98
- 5nKB5Ki2nXvssTP6YWZstlRi9vmm7UDfKmr6dJC7XQRSdL459sxpPqb6y5Py+VeOtrwRswQ9b
- mgX6Q416C2OMUv1g2qvDpI/CUwPMRZVR7PdDu0s1ziJFjAoZ4bpAU0a2Amuhqx8ipGBYPgxy9
- 8K9IWqbt6vD0urHXico4zJpR6rXjjdvRQeMftW7c4y+Mn7o+Gzt+zxbKNHywWhVRr/GF+ybXC
- yB72kKK2MPCb8Ol4bxPSD2qxRs+u6yR+B5tS0PfJiS96Acllk7UA/0W8kS5K14nUpMPF1nBjW
- SgGVsJmvnSiuIjlbaZLisaUJpWXTZIYL9DjVqv50wqiLFUrTuaMcFH8IXzLv29VjHSZNEOpBo
- DUYeBfYKUtlMQjLEL/KhlDZ//O00ulUgDkRDV3l+HMC3KDxM4w1qVuyk9g6rR1gHVFvtRMw4B
- pKUdaCegbB6YWC3baOTepNotkyxry/FsXyBxefzaocIcXxJipYn7OyR61jwcy7DFoul70oAn1
- 0a2ZvSp2XLUaT8vIUNhNrNECPa3NCDdrWfNByBWiFrW8o/WVtK5oM6zVT1IzOnAYuzrkDTjAD
- uoZnelK3f6VSOHLd7t16PWGRCXk7M6eV8Pew6pM1LwlLxJGYb0XchPIobzDo+3uuXqgw8k1x/
- qfxDOSuCv3W9gkj/I6aq7QqrnHkYz1J9yv4wny00fCDTmiez/GMrUxjchUPzeZj1hpyqCP4Kg
- AodCMcCoACTsxxNkm24VDBz4N08R7D9G25UWZxxPaXTBo0szFnbZxYJX0JCcEfySdyg7jco/x
- Rp2dTA==
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 8y_E68kURQ0ih8Y_-pXj5N6bPDOiuEZv
+X-Proofpoint-ORIG-GUID: ot2a0roI6HKgv_SkGdPLAhcx7gRQDDOX
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.170.22
+ definitions=2023-05-17_02,2023-05-16_01,2023-02-09_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 bulkscore=0
+ clxscore=1011 mlxscore=0 phishscore=0 spamscore=0 mlxlogscore=972
+ malwarescore=0 lowpriorityscore=0 impostorscore=0 priorityscore=1501
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2304280000 definitions=main-2305170081
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 5/12/23 12:24, Thomas Zimmermann wrote:
-> Cast I/O offsets to pointers to use them with I/O functions. The I/O
-> functions expect pointers of type 'volatile void __iomem *', but the
-> offsets are plain integers. Build warnings are
->
->    ../drivers/video/fbdev/hitfb.c: In function 'hitfb_accel_wait':
->    ../arch/x86/include/asm/hd64461.h:18:33: warning: passing argument 1 =
-of 'fb_readw' makes pointer from integer without a cast [-Wint-conversion]
->     18 | #define HD64461_IO_OFFSET(x)    (HD64461_IOBASE + (x))
->        |                                 ^~~~~~~~~~~~~~~~~~~~~~
->        |                                 |
->        |                                 unsigned int
->    ../arch/x86/include/asm/hd64461.h:93:33: note: in expansion of macro =
-'HD64461_IO_OFFSET'
->     93 | #define HD64461_GRCFGR          HD64461_IO_OFFSET(0x1044)      =
- /* Accelerator Configuration Register */
->        |                                 ^~~~~~~~~~~~~~~~~
->    ../drivers/video/fbdev/hitfb.c:47:25: note: in expansion of macro 'HD=
-64461_GRCFGR'
->     47 |         while (fb_readw(HD64461_GRCFGR) & HD64461_GRCFGR_ACCSTA=
-TUS) ;
->        |                         ^~~~~~~~~~~~~~
->    In file included from ../arch/x86/include/asm/fb.h:15,
->    from ../include/linux/fb.h:19,
->    from ../drivers/video/fbdev/hitfb.c:22:
->    ../include/asm-generic/fb.h:52:57: note: expected 'const volatile voi=
-d *' but argument is of type 'unsigned int'
->     52 | static inline u16 fb_readw(const volatile void __iomem *addr)
->        |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
->
-> This patch only fixes the build warnings. It's not clear if the I/O
-> offsets can legally be passed to the I/O helpers. It was apparently
-> broken in 2007 when custom inw()/outw() helpers got removed by
-> commit 34a780a0afeb ("sh: hp6xx pata_platform support."). Fixing the
-> driver would require setting the I/O base address.
+On Tue, 9 May 2023 22:01:16 -0700 (PDT)
+Hugh Dickins <hughd@google.com> wrote:
 
-I think your patch is the best you can do for now... So...
-
-Acked-by: Helge Deller <deller@gmx.de>
-
-Thanks!
-Helge
-
-
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/oe-kbuild-all/202305102136.eMjTSPwH-lkp@=
-intel.com/
-> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-> Cc: Artur Rojek <contact@artur-rojek.eu>
+> In rare transient cases, not yet made possible, pte_offset_map() and
+> pte_offset_map_lock() may not find a page table: handle appropriately.
+> 
+> Signed-off-by: Hugh Dickins <hughd@google.com>
 > ---
->   drivers/video/fbdev/hitfb.c | 122 ++++++++++++++++++++----------------
->   1 file changed, 69 insertions(+), 53 deletions(-)
->
-> diff --git a/drivers/video/fbdev/hitfb.c b/drivers/video/fbdev/hitfb.c
-> index 3033f5056976..7737923b7a0a 100644
-> --- a/drivers/video/fbdev/hitfb.c
-> +++ b/drivers/video/fbdev/hitfb.c
-> @@ -42,17 +42,33 @@ static struct fb_fix_screeninfo hitfb_fix =3D {
->   	.accel		=3D FB_ACCEL_NONE,
->   };
->
-> +static volatile void __iomem *hitfb_offset_to_addr(unsigned int offset)
-> +{
-> +	return (__force volatile void __iomem *)(uintptr_t)offset;
-> +}
-> +
-> +static u16 hitfb_readw(unsigned int offset)
-> +{
-> +	return fb_readw(hitfb_offset_to_addr(offset));
-> +}
-> +
-> +static void hitfb_writew(u16 value, unsigned int offset)
-> +{
-> +	fb_writew(value, hitfb_offset_to_addr(offset));
-> +}
-> +
->   static inline void hitfb_accel_wait(void)
->   {
-> -	while (fb_readw(HD64461_GRCFGR) & HD64461_GRCFGR_ACCSTATUS) ;
-> +	while (hitfb_readw(HD64461_GRCFGR) & HD64461_GRCFGR_ACCSTATUS)
-> +		;
->   }
->
->   static inline void hitfb_accel_start(int truecolor)
->   {
->   	if (truecolor) {
-> -		fb_writew(6, HD64461_GRCFGR);
-> +		hitfb_writew(6, HD64461_GRCFGR);
->   	} else {
-> -		fb_writew(7, HD64461_GRCFGR);
-> +		hitfb_writew(7, HD64461_GRCFGR);
->   	}
->   }
->
-> @@ -63,11 +79,11 @@ static inline void hitfb_accel_set_dest(int truecolo=
-r, u16 dx, u16 dy,
->   	if (truecolor)
->   		saddr <<=3D 1;
->
-> -	fb_writew(width-1, HD64461_BBTDWR);
-> -	fb_writew(height-1, HD64461_BBTDHR);
-> +	hitfb_writew(width-1, HD64461_BBTDWR);
-> +	hitfb_writew(height-1, HD64461_BBTDHR);
->
-> -	fb_writew(saddr & 0xffff, HD64461_BBTDSARL);
-> -	fb_writew(saddr >> 16, HD64461_BBTDSARH);
-> +	hitfb_writew(saddr & 0xffff, HD64461_BBTDSARL);
-> +	hitfb_writew(saddr >> 16, HD64461_BBTDSARH);
->
->   }
->
-> @@ -80,7 +96,7 @@ static inline void hitfb_accel_bitblt(int truecolor, u=
-16 sx, u16 sy, u16 dx,
->
->   	height--;
->   	width--;
-> -	fb_writew(rop, HD64461_BBTROPR);
-> +	hitfb_writew(rop, HD64461_BBTROPR);
->   	if ((sy < dy) || ((sy =3D=3D dy) && (sx <=3D dx))) {
->   		saddr =3D WIDTH * (sy + height) + sx + width;
->   		daddr =3D WIDTH * (dy + height) + dx + width;
-> @@ -91,32 +107,32 @@ static inline void hitfb_accel_bitblt(int truecolor=
-, u16 sx, u16 sy, u16 dx,
->   				maddr =3D
->   				    (((width >> 4) + 1) * (height + 1) - 1) * 2;
->
-> -			fb_writew((1 << 5) | 1, HD64461_BBTMDR);
-> +			hitfb_writew((1 << 5) | 1, HD64461_BBTMDR);
->   		} else
-> -			fb_writew(1, HD64461_BBTMDR);
-> +			hitfb_writew(1, HD64461_BBTMDR);
->   	} else {
->   		saddr =3D WIDTH * sy + sx;
->   		daddr =3D WIDTH * dy + dx;
->   		if (mask_addr) {
-> -			fb_writew((1 << 5), HD64461_BBTMDR);
-> +			hitfb_writew((1 << 5), HD64461_BBTMDR);
->   		} else {
-> -			fb_writew(0, HD64461_BBTMDR);
-> +			hitfb_writew(0, HD64461_BBTMDR);
->   		}
->   	}
->   	if (truecolor) {
->   		saddr <<=3D 1;
->   		daddr <<=3D 1;
->   	}
-> -	fb_writew(width, HD64461_BBTDWR);
-> -	fb_writew(height, HD64461_BBTDHR);
-> -	fb_writew(saddr & 0xffff, HD64461_BBTSSARL);
-> -	fb_writew(saddr >> 16, HD64461_BBTSSARH);
-> -	fb_writew(daddr & 0xffff, HD64461_BBTDSARL);
-> -	fb_writew(daddr >> 16, HD64461_BBTDSARH);
-> +	hitfb_writew(width, HD64461_BBTDWR);
-> +	hitfb_writew(height, HD64461_BBTDHR);
-> +	hitfb_writew(saddr & 0xffff, HD64461_BBTSSARL);
-> +	hitfb_writew(saddr >> 16, HD64461_BBTSSARH);
-> +	hitfb_writew(daddr & 0xffff, HD64461_BBTDSARL);
-> +	hitfb_writew(daddr >> 16, HD64461_BBTDSARH);
->   	if (mask_addr) {
->   		maddr +=3D mask_addr;
-> -		fb_writew(maddr & 0xffff, HD64461_BBTMARL);
-> -		fb_writew(maddr >> 16, HD64461_BBTMARH);
-> +		hitfb_writew(maddr & 0xffff, HD64461_BBTMARL);
-> +		hitfb_writew(maddr >> 16, HD64461_BBTMARH);
->   	}
->   	hitfb_accel_start(truecolor);
->   }
-> @@ -127,17 +143,17 @@ static void hitfb_fillrect(struct fb_info *p, cons=
-t struct fb_fillrect *rect)
->   		cfb_fillrect(p, rect);
->   	else {
->   		hitfb_accel_wait();
-> -		fb_writew(0x00f0, HD64461_BBTROPR);
-> -		fb_writew(16, HD64461_BBTMDR);
-> +		hitfb_writew(0x00f0, HD64461_BBTROPR);
-> +		hitfb_writew(16, HD64461_BBTMDR);
->
->   		if (p->var.bits_per_pixel =3D=3D 16) {
-> -			fb_writew(((u32 *) (p->pseudo_palette))[rect->color],
-> +			hitfb_writew(((u32 *) (p->pseudo_palette))[rect->color],
->   				  HD64461_GRSCR);
->   			hitfb_accel_set_dest(1, rect->dx, rect->dy, rect->width,
->   					     rect->height);
->   			hitfb_accel_start(1);
->   		} else {
-> -			fb_writew(rect->color, HD64461_GRSCR);
-> +			hitfb_writew(rect->color, HD64461_GRSCR);
->   			hitfb_accel_set_dest(0, rect->dx, rect->dy, rect->width,
->   					     rect->height);
->   			hitfb_accel_start(0);
-> @@ -162,7 +178,7 @@ static int hitfb_pan_display(struct fb_var_screeninf=
-o *var,
->   	if (xoffset !=3D 0)
->   		return -EINVAL;
->
-> -	fb_writew((yoffset*info->fix.line_length)>>10, HD64461_LCDCBAR);
-> +	hitfb_writew((yoffset*info->fix.line_length)>>10, HD64461_LCDCBAR);
->
->   	return 0;
->   }
-> @@ -172,33 +188,33 @@ int hitfb_blank(int blank_mode, struct fb_info *in=
-fo)
->   	unsigned short v;
->
->   	if (blank_mode) {
-> -		v =3D fb_readw(HD64461_LDR1);
-> +		v =3D hitfb_readw(HD64461_LDR1);
->   		v &=3D ~HD64461_LDR1_DON;
-> -		fb_writew(v, HD64461_LDR1);
-> +		hitfb_writew(v, HD64461_LDR1);
->
-> -		v =3D fb_readw(HD64461_LCDCCR);
-> +		v =3D hitfb_readw(HD64461_LCDCCR);
->   		v |=3D HD64461_LCDCCR_MOFF;
-> -		fb_writew(v, HD64461_LCDCCR);
-> +		hitfb_writew(v, HD64461_LCDCCR);
->
-> -		v =3D fb_readw(HD64461_STBCR);
-> +		v =3D hitfb_readw(HD64461_STBCR);
->   		v |=3D HD64461_STBCR_SLCDST;
-> -		fb_writew(v, HD64461_STBCR);
-> +		hitfb_writew(v, HD64461_STBCR);
->   	} else {
-> -		v =3D fb_readw(HD64461_STBCR);
-> +		v =3D hitfb_readw(HD64461_STBCR);
->   		v &=3D ~HD64461_STBCR_SLCDST;
-> -		fb_writew(v, HD64461_STBCR);
-> +		hitfb_writew(v, HD64461_STBCR);
->
-> -		v =3D fb_readw(HD64461_LCDCCR);
-> +		v =3D hitfb_readw(HD64461_LCDCCR);
->   		v &=3D ~(HD64461_LCDCCR_MOFF | HD64461_LCDCCR_STREQ);
-> -		fb_writew(v, HD64461_LCDCCR);
-> +		hitfb_writew(v, HD64461_LCDCCR);
->
->   		do {
-> -		    v =3D fb_readw(HD64461_LCDCCR);
-> +		    v =3D hitfb_readw(HD64461_LCDCCR);
->   		} while(v&HD64461_LCDCCR_STBACK);
->
-> -		v =3D fb_readw(HD64461_LDR1);
-> +		v =3D hitfb_readw(HD64461_LDR1);
->   		v |=3D HD64461_LDR1_DON;
-> -		fb_writew(v, HD64461_LDR1);
-> +		hitfb_writew(v, HD64461_LDR1);
->   	}
->   	return 0;
->   }
-> @@ -211,10 +227,10 @@ static int hitfb_setcolreg(unsigned regno, unsigne=
-d red, unsigned green,
->
->   	switch (info->var.bits_per_pixel) {
->   	case 8:
-> -		fb_writew(regno << 8, HD64461_CPTWAR);
-> -		fb_writew(red >> 10, HD64461_CPTWDR);
-> -		fb_writew(green >> 10, HD64461_CPTWDR);
-> -		fb_writew(blue >> 10, HD64461_CPTWDR);
-> +		hitfb_writew(regno << 8, HD64461_CPTWAR);
-> +		hitfb_writew(red >> 10, HD64461_CPTWDR);
-> +		hitfb_writew(green >> 10, HD64461_CPTWDR);
-> +		hitfb_writew(blue >> 10, HD64461_CPTWDR);
->   		break;
->   	case 16:
->   		if (regno >=3D 16)
-> @@ -302,11 +318,11 @@ static int hitfb_set_par(struct fb_info *info)
->   		break;
->   	}
->
-> -	fb_writew(info->fix.line_length, HD64461_LCDCLOR);
-> -	ldr3 =3D fb_readw(HD64461_LDR3);
-> +	hitfb_writew(info->fix.line_length, HD64461_LCDCLOR);
-> +	ldr3 =3D hitfb_readw(HD64461_LDR3);
->   	ldr3 &=3D ~15;
->   	ldr3 |=3D (info->var.bits_per_pixel =3D=3D 8) ? 4 : 8;
-> -	fb_writew(ldr3, HD64461_LDR3);
-> +	hitfb_writew(ldr3, HD64461_LDR3);
->   	return 0;
->   }
->
-> @@ -337,9 +353,9 @@ static int hitfb_probe(struct platform_device *dev)
->   	hitfb_fix.smem_start =3D HD64461_IO_OFFSET(0x02000000);
->   	hitfb_fix.smem_len =3D 512 * 1024;
->
-> -	lcdclor =3D fb_readw(HD64461_LCDCLOR);
-> -	ldvndr =3D fb_readw(HD64461_LDVNDR);
-> -	ldr3 =3D fb_readw(HD64461_LDR3);
-> +	lcdclor =3D hitfb_readw(HD64461_LCDCLOR);
-> +	ldvndr =3D hitfb_readw(HD64461_LDVNDR);
-> +	ldr3 =3D hitfb_readw(HD64461_LDR3);
->
->   	switch (ldr3 & 15) {
->   	default:
-> @@ -429,9 +445,9 @@ static int hitfb_suspend(struct device *dev)
->   	u16 v;
->
->   	hitfb_blank(1,0);
-> -	v =3D fb_readw(HD64461_STBCR);
-> +	v =3D hitfb_readw(HD64461_STBCR);
->   	v |=3D HD64461_STBCR_SLCKE_IST;
-> -	fb_writew(v, HD64461_STBCR);
-> +	hitfb_writew(v, HD64461_STBCR);
->
->   	return 0;
->   }
-> @@ -440,12 +456,12 @@ static int hitfb_resume(struct device *dev)
->   {
->   	u16 v;
->
-> -	v =3D fb_readw(HD64461_STBCR);
-> +	v =3D hitfb_readw(HD64461_STBCR);
->   	v &=3D ~HD64461_STBCR_SLCKE_OST;
->   	msleep(100);
-> -	v =3D fb_readw(HD64461_STBCR);
-> +	v =3D hitfb_readw(HD64461_STBCR);
->   	v &=3D ~HD64461_STBCR_SLCKE_IST;
-> -	fb_writew(v, HD64461_STBCR);
-> +	hitfb_writew(v, HD64461_STBCR);
->   	hitfb_blank(0,0);
->
->   	return 0;
+>  arch/s390/kernel/uv.c  |  2 ++
+>  arch/s390/mm/gmap.c    |  2 ++
+>  arch/s390/mm/pgtable.c | 12 +++++++++---
+>  3 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/s390/kernel/uv.c b/arch/s390/kernel/uv.c
+> index cb2ee06df286..3c62d1b218b1 100644
+> --- a/arch/s390/kernel/uv.c
+> +++ b/arch/s390/kernel/uv.c
+> @@ -294,6 +294,8 @@ int gmap_make_secure(struct gmap *gmap, unsigned long gaddr, void *uvcb)
+>  
+>  	rc = -ENXIO;
+>  	ptep = get_locked_pte(gmap->mm, uaddr, &ptelock);
+> +	if (!ptep)
+> +		goto out;
+>  	if (pte_present(*ptep) && !(pte_val(*ptep) & _PAGE_INVALID) && pte_write(*ptep)) {
+>  		page = pte_page(*ptep);
+>  		rc = -EAGAIN;
+> diff --git a/arch/s390/mm/gmap.c b/arch/s390/mm/gmap.c
+> index dc90d1eb0d55..d198fc9475a2 100644
+> --- a/arch/s390/mm/gmap.c
+> +++ b/arch/s390/mm/gmap.c
+> @@ -2549,6 +2549,8 @@ static int __zap_zero_pages(pmd_t *pmd, unsigned long start,
+>  		spinlock_t *ptl;
+>  
+>  		ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+> +		if (!ptep)
+> +			break;
 
+so if pte_offset_map_lock fails, we abort and skip both the failed
+entry and the rest of the entries?
+
+can pte_offset_map_lock be retried immediately if it fails? (consider
+that we currently don't allow THP with KVM guests)
+
+Would something like this:
+
+do {
+	ptep = pte_offset_map_lock(...);
+	mb();	/* maybe? */
+} while (!ptep);
+
+make sense?
+
+
+otherwise maybe it's better to return an error and retry the whole
+walk_page_range() in s390_enable_sie() ? it's a slow path anyway.
+
+>  		if (is_zero_pfn(pte_pfn(*ptep)))
+>  			ptep_xchg_direct(walk->mm, addr, ptep, __pte(_PAGE_INVALID));
+>  		pte_unmap_unlock(ptep, ptl);
+
+[...]
