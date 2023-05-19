@@ -2,68 +2,71 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 383E5C77B7A
-	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:25:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEDFEC7EE26
+	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229720AbjESRZA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 19 May 2023 13:25:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34622 "EHLO
+        id S229526AbjESRyR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 19 May 2023 13:54:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230486AbjESRYz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:24:55 -0400
-Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3D1910C0
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:24:24 -0700 (PDT)
-Received: by mail-io1-xd31.google.com with SMTP id ca18e2360f4ac-76f06c0f58cso93842039f.1
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:24:24 -0700 (PDT)
+        with ESMTP id S230351AbjESRyR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:54:17 -0400
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5111F9
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:54:15 -0700 (PDT)
+Received: by mail-vs1-xe33.google.com with SMTP id ada2fe7eead31-438a5069d58so306621137.0
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:54:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1684516976; x=1687108976;
+        d=chromium.org; s=google; t=1684518854; x=1687110854;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=GYXxQ1/HyN04Wnp4N53Q5scLF2D44b2WUzFjxPSR5OI=;
-        b=am1tWw6lHhzSwU2Wjsq9SmhSR4e01aWT3byfdJHlpVWpcDqBwcqDvMOHngPzLsOCUP
-         7xRBb5/JtdHNiLIJILFvvrDeua06rbUrohFG4ngsnIhHd9TfsK+goaae6uEOsybxfzDe
-         G1j4udLGUnfqHtpOtEyezfRO86f/ExIzvBs14=
+        bh=O7bXuAl2er6jMvvw+SQdriEgYnLYrf51RQ1JCNcE4RU=;
+        b=eAzm6iLaPZhCE36JZBKPfLAGyTaT6pfd7OsVmbd5TEzif1JMXASIWEkkcBRfvUHSoa
+         n5SF18OYXwFfKNrDCdo5sIdPAEkrkKL9ir/M+O8CaJor3hyydepYhdnsFqOt7lIbu/L1
+         RPrKfzdf7nZU5uJdZZE1tyMko/80Pk5vr4YtE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684516976; x=1687108976;
+        d=1e100.net; s=20221208; t=1684518854; x=1687110854;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=GYXxQ1/HyN04Wnp4N53Q5scLF2D44b2WUzFjxPSR5OI=;
-        b=gEH25+cACEkqybuUvzFcNwusdFjDj6FlMcdJ0iRMiuRkGvre3Yy7eAq+rkj7Iuu0p/
-         cMyndKunNJM0HZ0ucyDd/OYXxk+4EiuSZqcFCJOS7azm0BB14SF19Qamw4sTX+zPgQwg
-         VhsFJSZnX6Bg7q6IC4fqPOn1f1ug0ad8Vl02+0omX0VhlgNEX1vzNotQOBVofdnXVrGy
-         kuR4oF1PBzFi3zc2amAoe949zasi+Y22zHafsWQpFhwziof41ewkiVxNYCraItuHdinh
-         wfPoLUyx8j8tBvKXYBQ8JbU0VKy+msfuXgdUwkkFCD0qC3NMkj6YCOUyaLEXajnOWmb7
-         k8aA==
-X-Gm-Message-State: AC+VfDxInHxipwM9MCTjNjt3RRoE/SEl3TjL7I+WuobQPojNjakPgTjU
-        HMLE+4GfC9LFmfNUP9foTe6twMMhfi7e21nnf10=
-X-Google-Smtp-Source: ACHHUZ7hwwwHfOwuDa8EscrKJIcLhL3HOgPA4X8jLzatrCI8lwR+QZvfSw0pjbfzQ/JbVO6tCx/Vvg==
-X-Received: by 2002:a6b:5903:0:b0:758:917b:c313 with SMTP id n3-20020a6b5903000000b00758917bc313mr1607159iob.13.1684516976542;
-        Fri, 19 May 2023 10:22:56 -0700 (PDT)
-Received: from mail-il1-f173.google.com (mail-il1-f173.google.com. [209.85.166.173])
-        by smtp.gmail.com with ESMTPSA id i45-20020a023b6d000000b0040da7c39465sm1309065jaf.25.2023.05.19.10.22.54
+        bh=O7bXuAl2er6jMvvw+SQdriEgYnLYrf51RQ1JCNcE4RU=;
+        b=DL2wxs/6LcazFpfrJrjhlaLMK1rXdCYvtzb3wagyH9A1bp5GJg6OXxuhPtRTxkoCkn
+         hrcq1ScxfhBixeFharnMd1NbYRWD7SEhytV608ApWtKHBlTI5FL11d8bANsKQvlsE3eh
+         an9m6t/E/lxUlkKX0g/1k/Dj4WMKpOyTsev8V1MzEfyHZ1EwF38/ucHixYPat9rNUk8n
+         0Y5ymC3xBMrL6O5dUExbYgL8Uvbs2qEdObELh8xhlfN8r1WaOkiXWBU+2B7ahGsPP517
+         gYzVCN0ztJ+pT3/HLq5vXVoM6INEnK58AGin380WlbCg/2GgJXm0tmVvCAWIurZbbjmX
+         L0VA==
+X-Gm-Message-State: AC+VfDzA1LSgB+8iNH19X0CegaY5xOGa5Qy9AmWCQGA07tgcEWvVMgk6
+        7TLUA3JxlUOu1m+aNc/QiV8y8Pk2EIThXuqW0AE=
+X-Google-Smtp-Source: ACHHUZ5DiQs/b0qogqKG0Vsrh8W6mknGYmhTBU8RVvw2WcnHVo+0iM4YYX+LEtCjTYC1XE0ONA89ZQ==
+X-Received: by 2002:a67:f60f:0:b0:437:db92:2134 with SMTP id k15-20020a67f60f000000b00437db922134mr86672vso.8.1684518854183;
+        Fri, 19 May 2023 10:54:14 -0700 (PDT)
+Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com. [209.85.221.176])
+        by smtp.gmail.com with ESMTPSA id v15-20020a67c88f000000b0043490d9cb6asm804654vsk.2.2023.05.19.10.54.13
         for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 May 2023 10:22:56 -0700 (PDT)
-Received: by mail-il1-f173.google.com with SMTP id e9e14a558f8ab-33828a86ee2so8435ab.0
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:22:54 -0700 (PDT)
-X-Received: by 2002:a05:6e02:1c8c:b0:331:8db2:5d13 with SMTP id
- w12-20020a056e021c8c00b003318db25d13mr246620ill.8.1684516953136; Fri, 19 May
- 2023 10:22:33 -0700 (PDT)
+        Fri, 19 May 2023 10:54:13 -0700 (PDT)
+Received: by mail-vk1-f176.google.com with SMTP id 71dfb90a1353d-456d9652c24so785061e0c.1
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:54:13 -0700 (PDT)
+X-Received: by 2002:a05:6602:1548:b0:76c:e93a:e2a with SMTP id
+ h8-20020a056602154800b0076ce93a0e2amr7743221iow.8.1684516998834; Fri, 19 May
+ 2023 10:23:18 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230504221349.1535669-1-dianders@chromium.org>
- <20230504151100.v4.10.I00dfd6386ee00da25bf26d140559a41339b53e57@changeid> <ZF0NzSCRCapqDbC4@alley>
-In-Reply-To: <ZF0NzSCRCapqDbC4@alley>
+ <20230504151100.v4.13.I6bf789d21d0c3d75d382e7e51a804a7a51315f2c@changeid>
+ <CSDZSKA38AEF.FY7J3JXBJX4I@wheely> <CAD=FV=XDfbx3UaP7DV63tASE5Md7siS-EnORD_3T-4yYaEQ7ww@mail.gmail.com>
+ <CSGHQJAJHWVS.1UAJOF8P5UXSK@wheely> <CAD=FV=WEp23wDm2=cFO66uSjqw1UfYSczGSrQh32DGiqHnUDkg@mail.gmail.com>
+In-Reply-To: <CAD=FV=WEp23wDm2=cFO66uSjqw1UfYSczGSrQh32DGiqHnUDkg@mail.gmail.com>
 From:   Doug Anderson <dianders@chromium.org>
-Date:   Fri, 19 May 2023 10:22:21 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=VXn07rgC=OUtHAz5v5h2g2gcrLCc5BYr6LMWFkyNKASw@mail.gmail.com>
-Message-ID: <CAD=FV=VXn07rgC=OUtHAz5v5h2g2gcrLCc5BYr6LMWFkyNKASw@mail.gmail.com>
-Subject: Re: [PATCH v4 10/17] watchdog/hardlockup: Move perf hardlockup
- watchdog petting to watchdog.c
-To:     Petr Mladek <pmladek@suse.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+Date:   Fri, 19 May 2023 10:23:06 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=X53VnS37YXkGUT7W=1ekS1YgznCbOiBQBSHuZLqpHa_A@mail.gmail.com>
+Message-ID: <CAD=FV=X53VnS37YXkGUT7W=1ekS1YgznCbOiBQBSHuZLqpHa_A@mail.gmail.com>
+Subject: Re: [PATCH v4 13/17] watchdog/hardlockup: detect hard lockups using
+ secondary (buddy) CPUs
+To:     Nicholas Piggin <npiggin@gmail.com>
+Cc:     Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Sumit Garg <sumit.garg@linaro.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Matthias Kaehlcke <mka@chromium.org>,
@@ -83,10 +86,11 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Chen-Yu Tsai <wens@csie.org>, christophe.leroy@csgroup.eu,
         davem@davemloft.net, sparclinux@vger.kernel.org,
         mpe@ellerman.id.au, Will Deacon <will@kernel.org>,
-        ravi.v.shankar@intel.com, npiggin@gmail.com,
-        linuxppc-dev@lists.ozlabs.org, Marc Zyngier <maz@kernel.org>,
+        ravi.v.shankar@intel.com, linuxppc-dev@lists.ozlabs.org,
+        Marc Zyngier <maz@kernel.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Colin Cross <ccross@android.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -95,79 +99,48 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Hi,
 
-On Thu, May 11, 2023 at 8:46=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
-e:
+On Mon, May 8, 2023 at 8:52=E2=80=AFAM Doug Anderson <dianders@chromium.org=
+> wrote:
 >
-> > @@ -111,6 +125,11 @@ static void watchdog_hardlockup_interrupt_count(vo=
-id)
-> >
-> >  void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
-> >  {
-> > +     if (__this_cpu_read(watchdog_hardlockup_touch)) {
-> > +             __this_cpu_write(watchdog_hardlockup_touch, false);
-> > +             return;
-> > +     }
->
-> If we clear watchdog_hardlockup_touch() here then
-> watchdog_hardlockup_check() won't be called yet another
-> watchdog_hrtimer_sample_threshold perior.
->
-> It means that any touch will cause ignoring one full period.
-> The is_hardlockup() check will be done after full two periods.
->
-> It is not ideal, see below.
->
-> > +
-> >       /*
-> >        * Check for a hardlockup by making sure the CPU's timer
-> >        * interrupt is incrementing. The timer interrupt should have
-> > diff --git a/kernel/watchdog_perf.c b/kernel/watchdog_perf.c
-> > index 9be90b2a2ea7..547917ebd5d3 100644
-> > --- a/kernel/watchdog_perf.c
-> > +++ b/kernel/watchdog_perf.c
-> > @@ -112,11 +98,6 @@ static void watchdog_overflow_callback(struct perf_=
-event *event,
-> >       /* Ensure the watchdog never gets throttled */
-> >       event->hw.interrupts =3D 0;
-> >
-> > -     if (__this_cpu_read(watchdog_nmi_touch) =3D=3D true) {
-> > -             __this_cpu_write(watchdog_nmi_touch, false);
-> > -             return;
-> > -     }
->
-> The original code looks wrong. arch_touch_nmi_watchdog() caused
-> skipping only one period of the perf event.
->
-> I would expect that it caused restarting the period,
-> something like:
->
->         if (__this_cpu_read(watchdog_nmi_touch) =3D=3D true) {
->                 /*
->                  * Restart the period after which the interrupt
->                  * counter is checked.
->                  */
->                 __this_cpu_write(nmi_rearmed, 0);
->                 __this_cpu_write(last_timestamp, now);
->                 __this_cpu_write(watchdog_nmi_touch, false);
->                 return;
->         }
->
-> By other words, we should restart the period in the very next perf
-> event after the watchdog was touched.
->
-> That said, the new code looks better than the original.
-> IMHO, the original code was prone to false positives.
+> Hmmm, but I don't think you really need "all-to-all" checking to get
+> the stacktraces you want, do you? Each CPU can be "watching" exactly
+> one other CPU, but then when we actually lock up we could check all of
+> them and dump stacks on all the ones that are locked up. I think this
+> would be a fairly easy improvement for the buddy system. I'll leave it
+> out for now just to keep things simple for the initial landing, but it
+> wouldn't be hard to add. Then I think the two SMP systems  (buddy vs.
+> all-to-all) would be equivalent in terms of functionality?
 
-I had a little bit of a hard time following, but I _think_ the "tl;dr"
-of all the above is that my change is fine. If I misunderstood, please
-yell.
+FWIW, I take back my "this would be fairly easy" comment. :-P ...or,
+at least I'll acknowledge that the easy way has some tradeoffs. It
+wouldn't be trivially easy to just snoop on the data of the other
+buddies because the watching processors aren't necessarily
+synchronized with each other.
 
+That being said, if someone really wanted to report on other locked
+CPUs before doing a panic() and was willing to delay the panic, it
+probably wouldn't be too hard to put in a mode where the CPU that
+detects the first lockup could do some extra work to look for lockups.
+Maybe it could send a normal IPI to other CPUs and see if they respond
+or maybe it could take over monitoring all CPUs and wait one extra
+period.
 
-> Best Regards,
-> Petr
->
-> PS: It might be worth fixing this problem in a separate patch at the
->     beginning of this patchset. It might be a candidate for stable
->     backports.
+In any case, I'm not planning on implementing this now, but at least
+wanted to document thoughts. ;-)
 
-Done. It's now its own patch and early in the series.
+> With my simplistic solution
+> of just allowing the buddy detector to be enabled in parallel with a
+> perf-based detector then we wouldn't have this level of coordination,
+> but I'll assume that's OK for the initial landing.
+
+I dug into this more as well and I also wanted to note that, at least
+for now, I'm not going to include support to turn on both the buddy
+and perf lockup detectors in the common core. In order to do this and
+not have them stomp on each other then I think we need extra
+coordination or two copies of the interrupt count / saved interrupt
+count and, at least at this point in time, it doesn't seem worth it
+for a halfway solution. From everything I've heard there is a push on
+many x86 machines to get off the perf lockup detector anyway to free
+up the resources. Someone could look at adding this complexity later.
+
+-Doug
