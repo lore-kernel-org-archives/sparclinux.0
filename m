@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BE9DC77B75
-	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B74ACC77B75
+	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:22:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232012AbjESRWa (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 19 May 2023 13:22:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59368 "EHLO
+        id S231749AbjESRWk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 19 May 2023 13:22:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231966AbjESRVx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:21:53 -0400
-Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4D551B7
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:21:25 -0700 (PDT)
-Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-1ae54b623c2so31826235ad.3
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:21:25 -0700 (PDT)
+        with ESMTP id S231828AbjESRWB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:22:01 -0400
+Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06D391B4
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:21:30 -0700 (PDT)
+Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-1ae852a5330so5525275ad.3
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:21:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1684516884; x=1687108884;
+        d=chromium.org; s=google; t=1684516887; x=1687108887;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TL6x11AHUdbqwPOBex8MH92mOu6poqhjfJN8Bz63N4s=;
-        b=Pht+hrXlamhoKc3Sfk+JnwTbwmcG4p0AC6wXT9KK+YLT5G/A8PMg/Kgierf2mtzawr
-         ClBv70BUaPRNqYHKjGkk7QBTOalxnZ8r6RtmZDQddTP1/P2XptlY4Z2wVzZmyx2mgkUl
-         BcimCZ+ntm13VOGd+9TV47CPKcYCQWDP2CsA4=
+        bh=VJ8xaDz4TWJj5VUxOczM3/qedYb/4TuBRfOr+o2w8q8=;
+        b=PATq2+SZhC3nVJZLQNVYmgZXAZp0EGQ62U+p/BHRYOHS5+VE3ibJLQpQYlSVjOJXCO
+         wLqEn6wQAk/zqs4i4YOg0RrMuWnX6Zew4XdlM/vNbDqcZK1ppauCR6oqe4D0ha5zp+pu
+         QU3dBm300YtU/XNEnjJsWyLF4alt5Q2AfL4Es=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684516884; x=1687108884;
+        d=1e100.net; s=20221208; t=1684516887; x=1687108887;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=TL6x11AHUdbqwPOBex8MH92mOu6poqhjfJN8Bz63N4s=;
-        b=Ne44OSR+fOPndyI2nQU5Id8JqjLWgwy/1f48sc+UIj7s/YMRjS6hvJwBR4VpuV83Ii
-         kV+n6y7I61Mb7oIz1Sa5GsVwwL1Qs/a6KctxvYt//MJfZz+D4uxutJ9KLDL+nCdkxolD
-         k5iS3ce8FXEhjJKf2GRSAMFRyKQQzdPWT9ZBIERCWc93V36xvi5s18m0Ag2/+r/cJwdQ
-         IeYo3BBbWv/vi8Y7qcg1xFhA7D2biGEvEOAIFI3VoAy9cPVhmTlxmYQQty1+v0Ok+hwl
-         L0nrxUVCoOuhX37PDa2v3QvXYR7wMULOExGwOhXI6MascqzFtjvoCp8EFz1GJpiStlQW
-         kJwg==
-X-Gm-Message-State: AC+VfDwlDWhGxP83UWePoxz4eyboLf+nU2lVqAPeYb2kP/xwaC+sES1x
-        KLsczjmrrs/5WKSn9Th/gysPRw==
-X-Google-Smtp-Source: ACHHUZ42iEc62iH4hoBzId667tClAxoJ0OHdYYIBvBIVMKi1bhk7AD73MYNJ7aE36NwledCLjmXG2w==
-X-Received: by 2002:a17:902:e80b:b0:1a1:f5dd:2dce with SMTP id u11-20020a170902e80b00b001a1f5dd2dcemr3490112plg.6.1684516883784;
-        Fri, 19 May 2023 10:21:23 -0700 (PDT)
+        bh=VJ8xaDz4TWJj5VUxOczM3/qedYb/4TuBRfOr+o2w8q8=;
+        b=VrWey/cMP9lwCPYl7bmT+yEOd0LsEjk+Hb+ZkmdGLWboe5ROGV4F49B7NHsDH950kw
+         QBItkGbINj3KzCBi7M+wZ+AA7Fd0ozzrvqtx6cwzryDu8Re7vsjJ/bdyTvT1gevwMyRu
+         V5wdBfA5BsdDoUyfNFFFolm4w4OARaYHU03CQUb5O3bC2AkUt6UhCEeSjU21vFGyJOcw
+         4/c17E7vLHqqoqE2v0hg8vQi0ecHYdkvmJSnngUd+iqjmiVa5A/9ZcGJoj8JtgQDy9Gt
+         j7CBXzPRUGxmEDR0gX8OtRSdzdtGdlf5pGN8e4nGchA14CEG4Uh+gAXcGvCvj6lhBOSU
+         uJzQ==
+X-Gm-Message-State: AC+VfDya8ZPGOSwQeN/+Cudho3Gor6Tqu39U0IgERlCYS+hmeiJB1p/u
+        fdvCkocqFqRRBWcEeX/NJLUcoQ==
+X-Google-Smtp-Source: ACHHUZ6Gtx0YpqXCB5KZGOLGsarZgHxkvpPbd2TpiRXaYgv4/gEwDRKkPtcKXNwMfxLde3dNLwE7uw==
+X-Received: by 2002:a17:903:244a:b0:1ac:63b6:f1ca with SMTP id l10-20020a170903244a00b001ac63b6f1camr4941839pls.0.1684516887198;
+        Fri, 19 May 2023 10:21:27 -0700 (PDT)
 Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:9b89:2dd0:d160:429d])
-        by smtp.gmail.com with ESMTPSA id gj19-20020a17090b109300b0024e4f169931sm1763835pjb.2.2023.05.19.10.21.21
+        by smtp.gmail.com with ESMTPSA id gj19-20020a17090b109300b0024e4f169931sm1763835pjb.2.2023.05.19.10.21.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 May 2023 10:21:23 -0700 (PDT)
+        Fri, 19 May 2023 10:21:26 -0700 (PDT)
 From:   Douglas Anderson <dianders@chromium.org>
 To:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>
@@ -72,9 +72,9 @@ Cc:     Matthias Kaehlcke <mka@chromium.org>,
         Masayoshi Mizuma <msys.mizuma@gmail.com>,
         Andi Kleen <ak@linux.intel.com>,
         Douglas Anderson <dianders@chromium.org>
-Subject: [PATCH v5 15/18] watchdog/perf: Add a weak function for an arch to detect if perf can use NMIs
-Date:   Fri, 19 May 2023 10:18:39 -0700
-Message-ID: <20230519101840.v5.15.Ic55cb6f90ef5967d8aaa2b503a4e67c753f64d3a@changeid>
+Subject: [PATCH v5 16/18] watchdog/perf: Adapt the watchdog_perf interface for async model
+Date:   Fri, 19 May 2023 10:18:40 -0700
+Message-ID: <20230519101840.v5.16.If4ad5dd5d09fb1309cebf8bcead4b6a5a7758ca7@changeid>
 X-Mailer: git-send-email 2.40.1.698.g37aff9b760-goog
 In-Reply-To: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
 References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
@@ -84,71 +84,181 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On arm64, NMI support needs to be detected at runtime. Add a weak
-function to the perf hardlockup detector so that an architecture can
-implement it to detect whether NMIs are available.
+From: Lecopzer Chen <lecopzer.chen@mediatek.com>
 
+When lockup_detector_init()->watchdog_hardlockup_probe(), PMU may be
+not ready yet. E.g. on arm64, PMU is not ready until
+device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
+with the driver model and cpuhp. Hence it is hard to push this
+initialization before smp_init().
+
+But it is easy to take an opposite approach and try to initialize
+the watchdog once again later.
+The delayed probe is called using workqueues. It need to allocate
+memory and must be proceed in a normal context.
+The delayed probe is able to use if watchdog_hardlockup_probe() returns
+non-zero which means the return code returned when PMU is not ready yet.
+
+Provide an API - lockup_detector_retry_init() for anyone who needs
+to delayed init lockup detector if they had ever failed at
+lockup_detector_init().
+
+The original assumption is: nobody should use delayed probe after
+lockup_detector_check() which has __init attribute.
+That is, anyone uses this API must call between lockup_detector_init()
+and lockup_detector_check(), and the caller must have __init attribute
+
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 ---
-While I won't object to this patch landing, I consider it part of the
-arm64 perf hardlockup effort. I would be OK with the earlier patches
-in the series landing and then not landing ${SUBJECT} patch nor
-anything else later.
+I yanked this patch from the mailing lists [1] into my series just to
+make it easier to avoid conflicts between my series and the one adding
+the arm64 perf hardlockup detector, in case someone wanted to test
+them both together.
 
-I'll also note that, as an alternative to this, it would be nice if we
-could figure out how to make perf_event_create_kernel_counter() fail
-on arm64 if NMIs aren't available. Maybe we could add a "must_use_nmi"
-element to "struct perf_event_attr"?
+As part of making this match with my series, I resolved a few
+conflicts and did a few renames. I also fixed the kernel test robot
+yell [2] by providing a dummy implementation of the retry function if
+CONFIG_LOCKUP_DETECTOR wasn't defined. That led me to move the
+definition of the function and sanitize the name of the function to
+match others around it.
+
+This patch makes less sense without the patches to add support for the
+arm64 perf hardlockup detector. Thus, I've put it at the end of the
+series.
+
+I removed the "kernel test robot" tag since that didn't really make
+sense. Presumably the robot found a problem on a previous version of
+the patch, but that's not normally a reason to add the Reported-by.
+
+[1] https://lore.kernel.org/r/20220903093415.15850-5-lecopzer.chen@mediatek.com/
+[2] https://lore.kernel.org/r/202209050639.jDaWd49E-lkp@intel.com/
 
 (no changes since v4)
 
 Changes in v4:
-- ("Add a weak function for an arch to detect ...") new for v4.
+- Pulled ("Adapt the watchdog_hld interface ...") into my series for v4.
 
- include/linux/nmi.h    |  1 +
- kernel/watchdog_perf.c | 12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ include/linux/nmi.h |  2 ++
+ kernel/watchdog.c   | 67 ++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 68 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 47db14e7da52..eb616fc07c85 100644
+index eb616fc07c85..d23902a2fd49 100644
 --- a/include/linux/nmi.h
 +++ b/include/linux/nmi.h
-@@ -210,6 +210,7 @@ static inline bool trigger_single_cpu_backtrace(int cpu)
+@@ -13,6 +13,7 @@
  
- #ifdef CONFIG_HARDLOCKUP_DETECTOR_PERF
- u64 hw_nmi_get_sample_period(int watchdog_thresh);
-+bool arch_perf_nmi_is_available(void);
- #endif
+ #ifdef CONFIG_LOCKUP_DETECTOR
+ void lockup_detector_init(void);
++void lockup_detector_retry_init(void);
+ void lockup_detector_soft_poweroff(void);
+ void lockup_detector_cleanup(void);
  
- #if defined(CONFIG_HARDLOCKUP_CHECK_TIMESTAMP) && \
-diff --git a/kernel/watchdog_perf.c b/kernel/watchdog_perf.c
-index 349fcd4d2abc..8ea00c4a24b2 100644
---- a/kernel/watchdog_perf.c
-+++ b/kernel/watchdog_perf.c
-@@ -234,12 +234,22 @@ void __init hardlockup_detector_perf_restart(void)
- 	}
- }
+@@ -34,6 +35,7 @@ extern int sysctl_hardlockup_all_cpu_backtrace;
  
-+bool __weak __init arch_perf_nmi_is_available(void)
-+{
-+	return true;
-+}
-+
- /**
-  * watchdog_hardlockup_probe - Probe whether NMI event is available at all
-  */
- int __init watchdog_hardlockup_probe(void)
+ #else /* CONFIG_LOCKUP_DETECTOR */
+ static inline void lockup_detector_init(void) { }
++static inline void lockup_detector_retry_init(void) { }
+ static inline void lockup_detector_soft_poweroff(void) { }
+ static inline void lockup_detector_cleanup(void) { }
+ #endif /* !CONFIG_LOCKUP_DETECTOR */
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 4110f7ca23a5..877d8670f26e 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -208,7 +208,13 @@ void __weak watchdog_hardlockup_enable(unsigned int cpu) { }
+ 
+ void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
+ 
+-/* Return 0, if a hardlockup watchdog is available. Error code otherwise */
++/*
++ * Watchdog-detector specific API.
++ *
++ * Return 0 when hardlockup watchdog is available, negative value otherwise.
++ * Note that the negative value means that a delayed probe might
++ * succeed later.
++ */
+ int __weak __init watchdog_hardlockup_probe(void)
  {
--	int ret = hardlockup_detector_event_create();
+ 	/*
+@@ -954,6 +960,62 @@ static void __init watchdog_sysctl_init(void)
+ #define watchdog_sysctl_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
+ 
++static void __init lockup_detector_delay_init(struct work_struct *work);
++static bool allow_lockup_detector_init_retry __initdata;
++
++static struct work_struct detector_work __initdata =
++		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
++
++static void __init lockup_detector_delay_init(struct work_struct *work)
++{
 +	int ret;
 +
-+	if (!arch_perf_nmi_is_available())
-+		return -ENODEV;
++	ret = watchdog_hardlockup_probe();
++	if (ret) {
++		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
++		pr_info("Hard watchdog permanently disabled\n");
++		return;
++	}
 +
-+	ret = hardlockup_detector_event_create();
++	allow_lockup_detector_init_retry = false;
++
++	watchdog_hardlockup_available = true;
++	lockup_detector_setup();
++}
++
++/*
++ * lockup_detector_retry_init - retry init lockup detector if possible.
++ *
++ * Retry hardlockup detector init. It is useful when it requires some
++ * functionality that has to be initialized later on a particular
++ * platform.
++ */
++void __init lockup_detector_retry_init(void)
++{
++	/* Must be called before late init calls */
++	if (!allow_lockup_detector_init_retry)
++		return;
++
++	schedule_work(&detector_work);
++}
++
++/*
++ * Ensure that optional delayed hardlockup init is proceed before
++ * the init code and memory is freed.
++ */
++static int __init lockup_detector_check(void)
++{
++	/* Prevent any later retry. */
++	allow_lockup_detector_init_retry = false;
++
++	/* Make sure no work is pending. */
++	flush_work(&detector_work);
++
++	return 0;
++
++}
++late_initcall_sync(lockup_detector_check);
++
+ void __init lockup_detector_init(void)
+ {
+ 	if (tick_nohz_full_enabled())
+@@ -964,6 +1026,9 @@ void __init lockup_detector_init(void)
  
- 	if (ret) {
- 		pr_info("Perf NMI watchdog permanently disabled\n");
+ 	if (!watchdog_hardlockup_probe())
+ 		watchdog_hardlockup_available = true;
++	else
++		allow_lockup_detector_init_retry = true;
++
+ 	lockup_detector_setup();
+ 	watchdog_sysctl_init();
+ }
 -- 
 2.40.1.698.g37aff9b760-goog
 
