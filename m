@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED46DC77B75
-	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:21:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5358DC7EE29
+	for <sparclinux@archiver.kernel.org>; Fri, 19 May 2023 17:21:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231487AbjESRVZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 19 May 2023 13:21:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59362 "EHLO
+        id S231555AbjESRV1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 19 May 2023 13:21:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230470AbjESRVC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:21:02 -0400
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82342E42
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:20:55 -0700 (PDT)
-Received: by mail-pj1-x102a.google.com with SMTP id 98e67ed59e1d1-2533d3acd5fso3223958a91.2
-        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:20:55 -0700 (PDT)
+        with ESMTP id S230517AbjESRVE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 May 2023 13:21:04 -0400
+Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27B9018C
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:20:59 -0700 (PDT)
+Received: by mail-pj1-x102c.google.com with SMTP id 98e67ed59e1d1-25374c9be49so1402065a91.3
+        for <sparclinux@vger.kernel.org>; Fri, 19 May 2023 10:20:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1684516855; x=1687108855;
+        d=chromium.org; s=google; t=1684516858; x=1687108858;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=/7nsegKilU8iY/CeHEQ2XMVIjaNVdBVM5JDOxat9ACo=;
-        b=A4Ce0mbuBc+hTbiZP49wHojvRrnbiIA8FPLkaarvKJXT1bV5KlwOIUViar61CbX4qM
-         xnKJrMF/2lsNyHtA607IBj6w8gOrCueK1n3T28DggYwgn3WWzNlnj/yUC1gqbWjZ/eif
-         4QU9hrt72WwEMojhcB6YxiHPFG2/iARvBWVoA=
+        bh=UnFfGU/I4XqnD3vR2plxo+ON4CdNtjzdhInwWKp0AYA=;
+        b=lxH/4MUC2qjFAGmxlIf7xL66pYKuvfuFHFniVj+sFei0k520ZoJVIsJ2TuQTYRFKmU
+         Kv7RzI/+zr61ZR632FK90CsTulb8O6mzHcizjQlqqXpquiqqpjeZ06rYt7ixiRLOzaPI
+         g9JXyU6LG/ka08BvJnteCTM4hKwIRgOw+mRuc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684516855; x=1687108855;
+        d=1e100.net; s=20221208; t=1684516858; x=1687108858;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=/7nsegKilU8iY/CeHEQ2XMVIjaNVdBVM5JDOxat9ACo=;
-        b=GxWN7T42GQEyKCwkfruu4PROAQbaEA0GD5D9T48D9UZsN/p/penr5l+mSDpjEUTHqP
-         vvPnpsOLjUzC8ny8CHlrdCLfjki809PRb6POgiS3lm3vwEhPCPopWQ7Aula8wcd3RAlx
-         TUKKwDyapAZdFcA/G/FAdlN4HzN7d3gzpaUN6E9d+lP+fqjXDUcyWsKKGPDGCn2CMzFH
-         qsYxScR0rClEzpi939QM32fb6Yq3Vqqdn/MnTriqiycjrygD1+7YQS0DUJbpmhC78Nrz
-         ssTi6ZrIW5BSqpNTgL/ET7MYOZZ8TQt/cqHgoGpsOl+UexdIbSeHFsFVje+M4doJMSXM
-         cDWg==
-X-Gm-Message-State: AC+VfDwJXvD5Domm7fdJs0FsrYDOug2JbvdOXWZTTbfgNaRUEvqoueQv
-        xxLEhqp3aK9xPq2uouFJlwvvkQ==
-X-Google-Smtp-Source: ACHHUZ78KuQvgskyCDTAlOMExtVERg2yOkymJq8jyThLWiYxqXpls34rasoUDDbhLlKOIhF5z6rP+Q==
-X-Received: by 2002:a17:90a:8541:b0:250:d2d8:c179 with SMTP id a1-20020a17090a854100b00250d2d8c179mr2837454pjw.29.1684516854855;
-        Fri, 19 May 2023 10:20:54 -0700 (PDT)
+        bh=UnFfGU/I4XqnD3vR2plxo+ON4CdNtjzdhInwWKp0AYA=;
+        b=E/UpnvZSigwskOChMSQX0ahQA5lPT9yjb8n4Ece7yIMosL1GRVLiXO6XSIByiuef/6
+         /5vG1ppJBtRUfZT+e/kZ/kwH+2SMNrRN6QXEp3YcsmVoQAIsdCW/69+gLTCzBprTlvxo
+         5mHg6Ok90BWJGFnGDkKAWZr3GYZb1fySB94PzLjQUiAMFCOXdiKULW4vSSuOAfgnnBnM
+         tsyrVSeDi47KO/p4xW9tGK8MERmoSshh9x9Yz4IE+6mLzCkIivhM1rn3CiC6ZM+e3Pwm
+         OoWQEbwbSijvb1OYWX3rudAxgsVV79WofHhjWxti/3KjChyCgc2pFC54U2sURp9EwtKX
+         EtEQ==
+X-Gm-Message-State: AC+VfDyTllFhRvPXACbiboPHk36YQZg+ct9GLyy4o1GNxVLUEh3JNq+c
+        IVbimA/A3Y57S39BoV2vKwY+Wg==
+X-Google-Smtp-Source: ACHHUZ6fm8nmFPR/13lOFlRmyTFHqJAlM+nr9rZSbMpGPC09DnlecDv3KY2MaywK0HIZmVs5jnrdNw==
+X-Received: by 2002:a17:90a:2a42:b0:252:e7db:66df with SMTP id d2-20020a17090a2a4200b00252e7db66dfmr2384233pjg.49.1684516858651;
+        Fri, 19 May 2023 10:20:58 -0700 (PDT)
 Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:9b89:2dd0:d160:429d])
-        by smtp.gmail.com with ESMTPSA id gj19-20020a17090b109300b0024e4f169931sm1763835pjb.2.2023.05.19.10.20.52
+        by smtp.gmail.com with ESMTPSA id gj19-20020a17090b109300b0024e4f169931sm1763835pjb.2.2023.05.19.10.20.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 May 2023 10:20:54 -0700 (PDT)
+        Fri, 19 May 2023 10:20:57 -0700 (PDT)
 From:   Douglas Anderson <dianders@chromium.org>
 To:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>
@@ -72,9 +72,9 @@ Cc:     Matthias Kaehlcke <mka@chromium.org>,
         Masayoshi Mizuma <msys.mizuma@gmail.com>,
         Andi Kleen <ak@linux.intel.com>,
         Douglas Anderson <dianders@chromium.org>
-Subject: [PATCH v5 06/18] watchdog/hardlockup: Add comments to touch_nmi_watchdog()
-Date:   Fri, 19 May 2023 10:18:30 -0700
-Message-ID: <20230519101840.v5.6.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid>
+Subject: [PATCH v5 07/18] watchdog/perf: Rename watchdog_hld.c to watchdog_perf.c
+Date:   Fri, 19 May 2023 10:18:31 -0700
+Message-ID: <20230519101840.v5.7.Ice803cb078d0e15fb2cbf49132f096ee2bd4199d@changeid>
 X-Mailer: git-send-email 2.40.1.698.g37aff9b760-goog
 In-Reply-To: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
 References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
@@ -84,68 +84,60 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In preparation for the buddy hardlockup detector, add comments to
-touch_nmi_watchdog() to make it obvious that it touches the configured
-hardlockup detector regardless of whether it's backed by an NMI. Also
-note that arch_touch_nmi_watchdog() may not be architecture-specific.
+The code currently in "watchdog_hld.c" is for detecting hardlockups
+using perf, as evidenced by the line in the Makefile that only
+compiles this file if CONFIG_HARDLOCKUP_DETECTOR_PERF is
+defined. Rename the file to prepare for the buddy hardlockup detector,
+which doesn't use perf.
 
-Ideally, we'd like to rename these functions but that is a fairly
-disruptive change touching a lot of drivers. After discussion [1] the
-plan is to defer this until a good time.
+It could be argued that the new name makes it less obvious that this
+is a hardlockup detector. While true, it's not hard to remember that
+the "perf" detector is always a hardlockup detector and it's nice not
+to have names that are too convoluted.
 
-[1] https://lore.kernel.org/r/ZFy0TX1tfhlH8gxj@alley
-
+Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 ---
 
-Changes in v5:
-- No longer rename touch_nmi_watchdog(), just add comments.
+(no changes since v4)
 
 Changes in v4:
-- ("Rename touch_nmi_watchdog() to ...") new for v4.
+- ("Rename watchdog_hld.c to watchdog_perf.c") new for v4.
 
- include/linux/nmi.h | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ kernel/Makefile                            | 2 +-
+ kernel/{watchdog_hld.c => watchdog_perf.c} | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename kernel/{watchdog_hld.c => watchdog_perf.c} (99%)
 
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 454fe99c4874..fafab128f37e 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -125,15 +125,30 @@ void watchdog_nmi_disable(unsigned int cpu);
- void lockup_detector_reconfigure(void);
- 
- /**
-- * touch_nmi_watchdog - restart NMI watchdog timeout.
-+ * touch_nmi_watchdog - manually pet the hardlockup watchdog.
+diff --git a/kernel/Makefile b/kernel/Makefile
+index b69c95315480..7eb72033143c 100644
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -91,7 +91,7 @@ obj-$(CONFIG_FAIL_FUNCTION) += fail_function.o
+ obj-$(CONFIG_KGDB) += debug/
+ obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
+ obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
+-obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
++obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_perf.o
+ obj-$(CONFIG_SECCOMP) += seccomp.o
+ obj-$(CONFIG_RELAY) += relay.o
+ obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
+diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_perf.c
+similarity index 99%
+rename from kernel/watchdog_hld.c
+rename to kernel/watchdog_perf.c
+index 2125b09e09d7..8b8015758ea5 100644
+--- a/kernel/watchdog_hld.c
++++ b/kernel/watchdog_perf.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * Detect hard lockups on a system
++ * Detect hard lockups on a system using perf
   *
-- * If the architecture supports the NMI watchdog, touch_nmi_watchdog()
-- * may be used to reset the timeout - for code which intentionally
-- * disables interrupts for a long time. This call is stateless.
-+ * If we support detecting hardlockups, touch_nmi_watchdog() may be
-+ * used to pet the watchdog (reset the timeout) - for code which
-+ * intentionally disables interrupts for a long time. This call is stateless.
-+ *
-+ * Though this function has "nmi" in the name, the hardlockup watchdog might
-+ * not be backed by NMIs. This function will likely be renamed to
-+ * touch_hardlockup_watchdog() in the future.
-  */
- static inline void touch_nmi_watchdog(void)
- {
-+	/*
-+	 * Pass on to the hardlockup detector selected via CONFIG_. Note that
-+	 * the hardlockup detector may not be arch-specific nor using NMIs
-+	 * and the arch_touch_nmi_watchdog() function will likely be renamed
-+	 * in the future.
-+	 */
- 	arch_touch_nmi_watchdog();
-+
-+	/*
-+	 * Touching the hardlock detector implcitily pets the
-+	 * softlockup detector too
-+	 */
- 	touch_softlockup_watchdog();
- }
- 
+  * started by Don Zickus, Copyright (C) 2010 Red Hat, Inc.
+  *
 -- 
 2.40.1.698.g37aff9b760-goog
 
