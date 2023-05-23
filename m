@@ -2,155 +2,101 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 356F7C7EE32
-	for <sparclinux@archiver.kernel.org>; Tue, 23 May 2023 09:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A462C7EE23
+	for <sparclinux@archiver.kernel.org>; Tue, 23 May 2023 09:35:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236277AbjEWJ0s (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 23 May 2023 05:26:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49960 "EHLO
+        id S236323AbjEWJfX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 23 May 2023 05:35:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235945AbjEWJ0m (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 05:26:42 -0400
+        with ESMTP id S236326AbjEWJfS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 05:35:18 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 478AE118;
-        Tue, 23 May 2023 02:26:40 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id CB4FE2046A;
-        Tue, 23 May 2023 09:26:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1684833998; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2620E138;
+        Tue, 23 May 2023 02:35:14 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id B6BD41FF45;
+        Tue, 23 May 2023 09:35:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1684834512; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=VeeF7P+KGwlI3A5FT4CrZ0MRM4bqCgyOhKvZ384U0bw=;
-        b=fmBOz2XQkJ4XHhSdGh/HXGxJtyCnKClPp4X6MRT6VR5eXrTQZK9h5N6Toqfk+0GeD98iT3
-        ZDhHKznDkq0Y5mKvraQucwn+Wh9FeAeuFGHWgkercVl2rETq+mQKxe64zKr8IJWHxFZCKE
-        O8heNaNMsvS9Ka+Y0g3mOKcA0+3rNN0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1684833998;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=VeeF7P+KGwlI3A5FT4CrZ0MRM4bqCgyOhKvZ384U0bw=;
-        b=zajPamxtH/5SGH5Qq9H7t7b5zBY3QOo+hV3Vqv/J4endm7d1fvc5Ztsv4d+st0dbhUYOxx
-        LgejBO7uUF0wFbCQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        bh=IAYq7YJVS2Hlnl42uVu2goasTRVPRgZ4NqjKSyNxGrQ=;
+        b=KU08sltoiXCpoxueN/xTm1Dj8XgBHSTDWuL90uW147a2/O/Mr6ZoeLyNLFpVJWdIVW5kxX
+        qqA4ifcAtaWSIWN6bnayexKSUglQmxet+EFMnoKUKq4Izsg5nga9Xy+G/qI4h+1EzPAbdY
+        lsmjo1AyUZ4F7lDFhMIZqs6iohgJ0mY=
+Received: from suse.cz (unknown [10.100.201.202])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 4FA5A13588;
-        Tue, 23 May 2023 09:26:38 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id HfC5Es6GbGTEVAAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Tue, 23 May 2023 09:26:38 +0000
-Message-ID: <c63dc769-e020-5a82-335e-11c992543a3a@suse.cz>
-Date:   Tue, 23 May 2023 11:26:38 +0200
+        by relay2.suse.de (Postfix) with ESMTPS id 46EBC2C141;
+        Tue, 23 May 2023 09:35:07 +0000 (UTC)
+Date:   Tue, 23 May 2023 11:35:02 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Douglas Anderson <dianders@chromium.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
+        npiggin@gmail.com, davem@davemloft.net,
+        Marc Zyngier <maz@kernel.org>,
+        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
+        christophe.leroy@csgroup.eu,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
+        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH v5 02/18] watchdog/perf: More properly prevent false
+ positives with turbo modes
+Message-ID: <ZGyIxvKhVjr-L8-I@alley>
+References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
+ <20230519101840.v5.2.I843b0d1de3e096ba111a179f3adb16d576bef5c7@changeid>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH] mm/slab: rename CONFIG_SLAB to CONFIG_SLAB_DEPRECATED
-Content-Language: en-US
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Christoph Lameter <cl@linux.com>,
-        Pekka Enberg <penberg@kernel.org>,
-        David Rientjes <rientjes@google.com>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Roman Gushchin <roman.gushchin@linux.dev>,
-        Hyeonggon Yoo <42.hyeyoo@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Qin Jian <qinjian@cqplus1.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-mm@kvack.org
-References: <20230523091139.21449-1-vbabka@suse.cz>
- <CAMuHMdWRZmA1iEG2aXdKZ+wWgSTgg-P7KY7pTTJx9EmvuEa58A@mail.gmail.com>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <CAMuHMdWRZmA1iEG2aXdKZ+wWgSTgg-P7KY7pTTJx9EmvuEa58A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230519101840.v5.2.I843b0d1de3e096ba111a179f3adb16d576bef5c7@changeid>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 5/23/23 11:22, Geert Uytterhoeven wrote:
-> Hi Vlastimil,
+On Fri 2023-05-19 10:18:26, Douglas Anderson wrote:
+> Currently, in the watchdog_overflow_callback() we first check to see
+> if the watchdog had been touched and _then_ we handle the workaround
+> for turbo mode. This order should be reversed.
 > 
-> Thanks for your patch!
+> Specifically, "touching" the hardlockup detector's watchdog should
+> avoid lockups being detected for one period that should be roughly the
+> same regardless of whether we're running turbo or not. That means that
+> we should do the extra accounting for turbo _before_ we look at (and
+> clear) the global indicating that we've been touched.
+
+The ideal solution would be to reset the turbo-mode-related
+variables when the watchdog is touched. And keep checking
+watchdog_nmi_touch first.
+
+But this ordering change should be good enough. It causes that
+we always check watchdog_nmi_touch when the turbo-more-related
+variables are already reset.
+
+> NOTE: this fix is made based on code inspection. I am not aware of any
+> reports where the old code would have generated false positives. That
+> being said, this order seems more correct and also makes it easier
+> down the line to share code with the "buddy" hardlockup detector.
 > 
-> On Tue, May 23, 2023 at 11:12 AM Vlastimil Babka <vbabka@suse.cz> wrote:
->> As discussed at LSF/MM [1] [2] and with no objections raised there,
->> deprecate the SLAB allocator. Rename the user-visible option so that
->> users with CONFIG_SLAB=y get a new prompt with explanation during make
->> oldconfig, while make olddefconfig will just switch to SLUB.
->>
->> In all defconfigs with CONFIG_SLAB=y remove the line so those also
->> switch to SLUB. Regressions due to the switch should be reported to
->> linux-mm and slab maintainers.
-> 
-> Technically, removing these lines from the defconfig files does not
-> have any impact, right?
+> Fixes: 7edaeb6841df ("kernel/watchdog: Prevent false positives with turbo modes")
+> Signed-off-by: Douglas Anderson <dianders@chromium.org>
 
-Well, it doesn't, but I thought it's at least a useful heads-up for the
-maintainers in case some have specific reasons for keeping SLAB there.
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 
-> And it removes one more sync point indicating the last time some
-> defconfig files were (not) updated by their maintainers ;-)
-
-Sure, I can exclude yours (and anyone else who'd prefer that), the ack on
-the deprecation itself is sufficient.
-
->> [1] https://lore.kernel.org/all/4b9fc9c6-b48c-198f-5f80-811a44737e5f@suse.cz/
->> [2] https://lwn.net/Articles/932201/
->>
->> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-> 
->>  arch/m68k/configs/amiga_defconfig               |  1 -
->>  arch/m68k/configs/apollo_defconfig              |  1 -
->>  arch/m68k/configs/atari_defconfig               |  1 -
->>  arch/m68k/configs/bvme6000_defconfig            |  1 -
->>  arch/m68k/configs/hp300_defconfig               |  1 -
->>  arch/m68k/configs/mac_defconfig                 |  1 -
->>  arch/m68k/configs/multi_defconfig               |  1 -
->>  arch/m68k/configs/mvme147_defconfig             |  1 -
->>  arch/m68k/configs/mvme16x_defconfig             |  1 -
->>  arch/m68k/configs/q40_defconfig                 |  1 -
->>  arch/m68k/configs/sun3_defconfig                |  1 -
->>  arch/m68k/configs/sun3x_defconfig               |  1 -
-> 
-> Regardless,
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-
-Thanks!
-
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-
+Best Regards,
+Petr
