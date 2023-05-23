@@ -2,263 +2,194 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F7FC7EE2A
-	for <sparclinux@archiver.kernel.org>; Tue, 23 May 2023 12:08:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF60C7EE23
+	for <sparclinux@archiver.kernel.org>; Tue, 23 May 2023 16:02:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236713AbjEWMIp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 23 May 2023 08:08:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43134 "EHLO
+        id S236914AbjEWQCq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 23 May 2023 12:02:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230306AbjEWMIn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 08:08:43 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC513109;
-        Tue, 23 May 2023 05:08:41 -0700 (PDT)
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34NBvhWn005111;
-        Tue, 23 May 2023 12:01:09 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=hvBkau843ws4S1xlMiA8GiItRMnbuFuaqBLPZfwfBjM=;
- b=oXVaQauy/8g2xTnFTAcyRpsK6R0Z7PJKOkIjtetvDoFQ4C7Vaoz3bjS1jfMMcRnjGqV7
- TuXgAQJmG4wOpqKlAOC0mckK2z7bJPyGuNkmOInvXMBhkTAQCGGmYX8yjNUjUo/JotTY
- y88M7nr1R+3aKmsQxuw71PorXdAgogm3w8p+dxg1r3SXTNvYytY90PmqEKvkYUF0HdKS
- 8vBGN4743QXYxRUd+1shtMbCEiv/f4q8PkkDhpBaoNjpbEOxCyZ2A2qB7Jw6mjy8Gg/a
- 1VT3FbpG8YJZ455TWleqU6+xiSNDe9tLeM9AueFtcIQmIFB8f7TtJysKO1Yi+xa8PwRI Qw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qrw2n828u-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 12:01:08 +0000
-Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34NC09Ft011638;
-        Tue, 23 May 2023 12:01:07 GMT
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qrw2n826b-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 12:01:07 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-        by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34N3PmcR020391;
-        Tue, 23 May 2023 12:01:03 GMT
-Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
-        by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3qppcu9epm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 12:01:03 +0000
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-        by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34NC0x7s59572662
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 23 May 2023 12:00:59 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 148C520067;
-        Tue, 23 May 2023 12:00:59 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 5984120043;
-        Tue, 23 May 2023 12:00:58 +0000 (GMT)
-Received: from p-imbrenda (unknown [9.152.224.66])
-        by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-        Tue, 23 May 2023 12:00:58 +0000 (GMT)
-Date:   Tue, 23 May 2023 14:00:56 +0200
-From:   Claudio Imbrenda <imbrenda@linux.ibm.com>
-To:     Hugh Dickins <hughd@google.com>
+        with ESMTP id S237395AbjEWQCp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 12:02:45 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49AF0C5;
+        Tue, 23 May 2023 09:02:43 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id E976D1FDE4;
+        Tue, 23 May 2023 16:02:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1684857761; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=cqLxfbe6m1nrIclFjUzmkz44DpKUbRwlhs98Py3OTY8=;
+        b=CFqzXOj3bL7rPcBsBdnQq+i5O/CDOiB4nyZNA73SNAgWKZudQnAShHS3hyPjZMeVbo3Zg8
+        JKxZ6KhMqP5e4g1LT0ZE4QYnnNKcDTQP5B5H4Eu5ag6gT1SFuEVSJvWaaLv8xs0RsmZ5Yd
+        hNDc6rCkMBwtEvwv3PlapHOL2Tv73vk=
+Received: from suse.cz (pmladek.udp.ovpn2.prg.suse.de [10.100.201.202])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 921102C141;
+        Tue, 23 May 2023 16:02:38 +0000 (UTC)
+Date:   Tue, 23 May 2023 18:02:35 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Douglas Anderson <dianders@chromium.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Russell King <linux@armlinux.org.uk>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        kgdb-bugreport@lists.sourceforge.net,
+        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
+        Tzung-Bi Shih <tzungbi@chromium.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
+        npiggin@gmail.com, davem@davemloft.net,
+        Marc Zyngier <maz@kernel.org>,
+        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
+        christophe.leroy@csgroup.eu,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Helge Deller <deller@gmx.de>,
-        John David Anglin <dave.anglin@bell.net>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 15/23] s390: allow pte_offset_map_lock() to fail
-Message-ID: <20230523140056.55b664b1@p-imbrenda>
-In-Reply-To: <4a15dbaa-1614-ce-ce1f-f73959cef895@google.com>
-References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
-        <94aec8fe-383f-892-dcbf-d4c14e460a7@google.com>
-        <20230517123546.672fb9b0@p-imbrenda>
-        <4a15dbaa-1614-ce-ce1f-f73959cef895@google.com>
-Organization: IBM
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.37; x86_64-redhat-linux-gnu)
+        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Guenter Roeck <groeck@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
+        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        Masayoshi Mizuma <msys.mizuma@gmail.com>,
+        Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH v5 10/18] watchdog/hardlockup: Add a "cpu" param to
+ watchdog_hardlockup_check()
+Message-ID: <ZGzjm9h85fpYZJMc@alley>
+References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
+ <20230519101840.v5.10.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: KdATZGw-PFRBi7nGruRJQHyOg66o4rOG
-X-Proofpoint-ORIG-GUID: GKYQ85EtVUpqelakERxcPgEdd_8F7rRj
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
- definitions=2023-05-23_07,2023-05-23_02,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 suspectscore=0
- bulkscore=0 mlxscore=0 priorityscore=1501 adultscore=0 spamscore=0
- mlxlogscore=999 impostorscore=0 clxscore=1015 lowpriorityscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2304280000 definitions=main-2305230092
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230519101840.v5.10.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, 17 May 2023 14:50:28 -0700 (PDT)
-Hugh Dickins <hughd@google.com> wrote:
+On Fri 2023-05-19 10:18:34, Douglas Anderson wrote:
+> In preparation for the buddy hardlockup detector where the CPU
+> checking for lockup might not be the currently running CPU, add a
+> "cpu" parameter to watchdog_hardlockup_check().
+> 
+> As part of this change, make hrtimer_interrupts an atomic_t since now
+> the CPU incrementing the value and the CPU reading the value might be
+> different. Technially this could also be done with just READ_ONCE and
+> WRITE_ONCE, but atomic_t feels a little cleaner in this case.
+> 
+> While hrtimer_interrupts is made atomic_t, we change
+> hrtimer_interrupts_saved from "unsigned long" to "int". The "int" is
+> needed to match the data type backing atomic_t for hrtimer_interrupts.
+> Even if this changes us from 64-bits to 32-bits (which I don't think
+> is true for most compilers), it doesn't really matter. All we ever do
+> is increment it every few seconds and compare it to an old value so
+> 32-bits is fine (even 16-bits would be). The "signed" vs "unsigned"
+> also doesn't matter for simple equality comparisons.
+> 
+> hrtimer_interrupts_saved is _not_ switched to atomic_t nor even
+> accessed with READ_ONCE / WRITE_ONCE. The hrtimer_interrupts_saved is
+> always consistently accessed with the same CPU. NOTE: with the
+> upcoming "buddy" detector there is one special case. When a CPU goes
+> offline/online then we can change which CPU is the one to consistently
+> access a given instance of hrtimer_interrupts_saved. We still can't
+> end up with a partially updated hrtimer_interrupts_saved, however,
+> because we end up petting all affected CPUs to make sure the new and
+> old CPU can't end up somehow read/write hrtimer_interrupts_saved at
+> the same time.
+> 
+> --- a/kernel/watchdog.c
+> +++ b/kernel/watchdog.c
+> @@ -87,29 +87,34 @@ __setup("nmi_watchdog=", hardlockup_panic_setup);
+>  
+>  #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
+>  
+> -static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
+> -static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
+> +static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
+> +static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
+>  static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
+>  static unsigned long watchdog_hardlockup_all_cpu_dumped;
+>  
+> -static bool is_hardlockup(void)
+> +static bool is_hardlockup(unsigned int cpu)
+>  {
+> -	unsigned long hrint = __this_cpu_read(hrtimer_interrupts);
+> +	int hrint = atomic_read(&per_cpu(hrtimer_interrupts, cpu));
+>  
+> -	if (__this_cpu_read(hrtimer_interrupts_saved) == hrint)
+> +	if (per_cpu(hrtimer_interrupts_saved, cpu) == hrint)
+>  		return true;
+>  
+> -	__this_cpu_write(hrtimer_interrupts_saved, hrint);
+> +	/*
+> +	 * NOTE: we don't need any fancy atomic_t or READ_ONCE/WRITE_ONCE
+> +	 * for hrtimer_interrupts_saved. hrtimer_interrupts_saved is
+> +	 * written/read by a single CPU.
+> +	 */
+> +	per_cpu(hrtimer_interrupts_saved, cpu) = hrint;
+>  
+>  	return false;
+>  }
+>  
+>  static void watchdog_hardlockup_kick(void)
+>  {
+> -	__this_cpu_inc(hrtimer_interrupts);
+> +	atomic_inc(raw_cpu_ptr(&hrtimer_interrupts));
 
-> On Wed, 17 May 2023, Claudio Imbrenda wrote:
-> > On Tue, 9 May 2023 22:01:16 -0700 (PDT)
-> > Hugh Dickins <hughd@google.com> wrote:
-> >   
-> > > In rare transient cases, not yet made possible, pte_offset_map() and
-> > > pte_offset_map_lock() may not find a page table: handle appropriately.
-> > > 
-> > > Signed-off-by: Hugh Dickins <hughd@google.com>
-> > > ---
-> > >  arch/s390/kernel/uv.c  |  2 ++
-> > >  arch/s390/mm/gmap.c    |  2 ++
-> > >  arch/s390/mm/pgtable.c | 12 +++++++++---
-> > >  3 files changed, 13 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/arch/s390/kernel/uv.c b/arch/s390/kernel/uv.c
-> > > index cb2ee06df286..3c62d1b218b1 100644
-> > > --- a/arch/s390/kernel/uv.c
-> > > +++ b/arch/s390/kernel/uv.c
-> > > @@ -294,6 +294,8 @@ int gmap_make_secure(struct gmap *gmap, unsigned long gaddr, void *uvcb)
-> > >  
-> > >  	rc = -ENXIO;
-> > >  	ptep = get_locked_pte(gmap->mm, uaddr, &ptelock);
-> > > +	if (!ptep)
-> > > +		goto out;  
-> 
-> You may or may not be asking about this instance too.  When I looked at
+Is there any particular reason why raw_*() is needed, please?
 
-actually no, because of the reasons you give here :)
+My expectation is that the raw_ API should be used only when
+there is a good reason for it. Where a good reason might be
+when the checks might fail but the consistency is guaranteed
+another way.
 
-> how the code lower down handles -ENXIO (promoting it to -EFAULT if an
-> access fails, or to -EAGAIN to ask for a retry), this looked just right
-> (whereas using -EAGAIN here would be wrong: that expects a "page" which
-> has not been initialized at this point).
-> 
-> > >  	if (pte_present(*ptep) && !(pte_val(*ptep) & _PAGE_INVALID) && pte_write(*ptep)) {
-> > >  		page = pte_page(*ptep);
-> > >  		rc = -EAGAIN;
-> > > diff --git a/arch/s390/mm/gmap.c b/arch/s390/mm/gmap.c
-> > > index dc90d1eb0d55..d198fc9475a2 100644
-> > > --- a/arch/s390/mm/gmap.c
-> > > +++ b/arch/s390/mm/gmap.c
-> > > @@ -2549,6 +2549,8 @@ static int __zap_zero_pages(pmd_t *pmd, unsigned long start,
-> > >  		spinlock_t *ptl;
-> > >  
-> > >  		ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-> > > +		if (!ptep)
-> > > +			break;  
-> > 
-> > so if pte_offset_map_lock fails, we abort and skip both the failed
-> > entry and the rest of the entries?  
-> 
-> Yes.
-> 
-> > 
-> > can pte_offset_map_lock be retried immediately if it fails? (consider
-> > that we currently don't allow THP with KVM guests)
-> > 
-> > Would something like this:
-> > 
-> > do {
-> > 	ptep = pte_offset_map_lock(...);
-> > 	mb();	/* maybe? */
-> > } while (!ptep);
-> > 
-> > make sense?  
-> 
-> No.  But you're absolutely right to be asking: thank you for looking
-> into it so carefully - and I realize that it's hard at this stage to
-> judge what's appropriate, when I've not yet even posted the endpoint
-> of these changes, the patches which make it possible not to find a
-> page table here.  And I'm intentionally keeping that vague, because
-> although I shall only introduce a THP case, I do expect it to be built
-> upon later in reclaiming empty page tables: it would be nice not to
-> have to change the arch code again when extending further.
-> 
-> My "rare transient cases" phrase may be somewhat misleading: one thing
-> that's wrong with your tight pte_offset_map_lock() loop above is that
-> the pmd entry pointing to page table may have been suddenly replaced
-> by a pmd_none() entry; and there's nothing in your loop above to
-> break out if that is so.
-> 
-> But if a page table is suddenly removed, that would be because it was
-> either empty, or replaced by a THP entry, or easily reconstructable on
-> demand (by that, I probably mean it was only mapping shared file
-> pages, which can just be refaulted if needed again).
-> 
-> The case you're wary of, is if the page table were removed briefly,
-> then put back shortly after: and still contains zero pages further
-> down. That's not something mm does now, nor at the end of my several
-> series, nor that I imagine us wanting to do in future: but I am
-> struggling to find a killer argument to persuade you that it could
-> never be done - most pages in a page table do need rmap tracking,
-> which will BUG if it's broken, but that argument happens not to apply
-> to the zero page.
-> 
-> (Hmm, there could be somewhere, where we would find it convenient to
-> remove a page table with intent to do ...something, then validation
-> of that isolated page table fails, so we just put it back again.)
-> 
-> Is it good enough for me to promise you that we won't do that?
-> 
-> There are several ways in which we could change __zap_zero_pages(),
-> but I don't see them as actually dealing with the concern at hand.
-> 
-> One change, I've tended to make at the mm end but did not dare
-> to interfere here: it would seem more sensible to do a single
-> pte_offset_map_lock() outside the loop, return if that fails,
-> increment ptep inside the loop, pte_unmap_unlock() after the loop.
-> 
-> But perhaps you have preemption reasons for not wanting that; and
-> although it would eliminate the oddity of half-processing a page
-> table, it would not really resolve the problem at hand: because,
-> what if this page table got removed just before __zap_zero_pages()
-> tries to take the lock, then got put back just after?
-> 
-> Another change: I see __zap_zero_pages() is driven by
-> walk_page_range(), and over at the mm end I'm usually setting
-> walk->action to ACTION_AGAIN in these failure cases; but thought that
-> an unnecessary piece of magic here, and cannot see how it could
-> actually help.  Your "retry the whole walk_page_range()" suggestion
-> below would be a heavier equivalent of that: but neither way gives
-> confidence, if a page table could actually be removed then reinserted
-> without mmap_write_lock().
-> 
-> I think I want to keep this s390 __zap_zero_pages() issue in mind, it
-> is important and thank you for raising it; but don't see any change
-> to the patch as actually needed.
-> 
-> Hugh
+IMHO, we should use:
 
-so if I understand the above correctly, pte_offset_map_lock will only
-fail if the whole page table has disappeared, and in that case, it will
-never reappear with zero pages, therefore we can safely skip (in that
-case just break). if we were to do a continue instead of a break, we
-would most likely fail again anyway.
+	atomic_inc(this_cpu_ptr(&hrtimer_interrupts));
 
-in that case I would still like a small change in your patch: please
-write a short (2~3 lines max) comment about why it's ok to do things
-that way
+To be honest, I am a bit lost in the per_cpu API definitions.
+
+But this_cpu_ptr() seems to be implemented the same way as
+per_cpu_ptr() when CONFIG_DEBUG_PREEMPT is enabled.
+And we use per_cpu_ptr() in is_hardlockup().
+
+Also this_cpu_ptr() is used more commonly:
+
+$> git grep this_cpu_ptr | wc -l
+1385
+$> git grep raw_cpu_ptr | wc -l
+114
+
+>  }
+>  
+> -void watchdog_hardlockup_check(struct pt_regs *regs)
+> +void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
+>  {
+>  	/*
+>  	 * Check for a hardlockup by making sure the CPU's timer
+> @@ -117,35 +122,42 @@ void watchdog_hardlockup_check(struct pt_regs *regs)
+>  	 * fired multiple times before we overflow'd. If it hasn't
+>  	 * then this is a good indication the cpu is stuck
+>  	 */
+> -	if (is_hardlockup()) {
+> +	if (is_hardlockup(cpu)) {
+>  		unsigned int this_cpu = smp_processor_id();
+> +		struct cpumask backtrace_mask = *cpu_online_mask;
+
+Does this work, please?
+
+IMHO, we should use cpumask_copy().
+
+>  
+>  		/* Only print hardlockups once. */
+> -		if (__this_cpu_read(watchdog_hardlockup_warned))
+> +		if (per_cpu(watchdog_hardlockup_warned, cpu))
+>  			return;
+>  
+
+Otherwise, it looks good to me.
+
+Best Regards,
+Petr
