@@ -2,235 +2,118 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2D9C77B75
-	for <sparclinux@archiver.kernel.org>; Tue, 23 May 2023 16:35:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A3BC7EE2F
+	for <sparclinux@archiver.kernel.org>; Wed, 24 May 2023 00:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236334AbjEWQf0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 23 May 2023 12:35:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47798 "EHLO
+        id S238832AbjEXA3f (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 23 May 2023 20:29:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237211AbjEWQfY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 12:35:24 -0400
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE4BA1B5
-        for <sparclinux@vger.kernel.org>; Tue, 23 May 2023 09:34:54 -0700 (PDT)
-Received: by mail-io1-xd35.google.com with SMTP id ca18e2360f4ac-77487fc1f16so48461739f.0
-        for <sparclinux@vger.kernel.org>; Tue, 23 May 2023 09:34:54 -0700 (PDT)
+        with ESMTP id S238695AbjEXA3d (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 May 2023 20:29:33 -0400
+Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72C4C192
+        for <sparclinux@vger.kernel.org>; Tue, 23 May 2023 17:29:19 -0700 (PDT)
+Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-1a950b982d4so8465ad.0
+        for <sparclinux@vger.kernel.org>; Tue, 23 May 2023 17:29:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1684859692; x=1687451692;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7BQXLdFOI2CGu/rfEBqigmE78qgmnNYZiqsFoyv3xq0=;
-        b=XB0zNCRtPezuOYX4hgEYE/2eghE5ysDd5WO6Y+xxYIz9F0qrgrv7HO2axXs0ODW99B
-         b6TYTh+Sy7eK4og+7nbcG/hXH3GtBewy7/1LFJRLrrVs++kUb0dniiQ1hSvSQxMEVP2q
-         x7m3j2pE5usNnTTeogLIzlhXsrxmk+ICPJ4Pg=
+        d=google.com; s=20221208; t=1684888159; x=1687480159;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=p+iGDu91GXvHaUJ4/GkDIwXiVromlKTEDnrVX/jdHHE=;
+        b=oCPd/VMBzehzBIwxKD0CUQlcv9XnCqSIGnZFpfNhT9159UiXp4+4s0dt1T5T+r2N8u
+         ejdMVEW9GWrQK3u8D/R+OgCl4fi8an2VY0K+/eeCPWT2cGGSET/E3kHkr5iqimXeopNz
+         1LhLEfNIl9101bv8HdubYyq2hpbrF89XLwyNahFvZOtnckCP7CoEZsh2L+2+OK9q9Yjc
+         K9vC86dI9TWXu3/6r3ILFI/gvIY8hkiVXH1FcP052iNl13PiuUL4NAyi+n5JDzxUMMjc
+         YVmWP+V4GT0WZnv89R5QJMFswFGyufptXG7L83ZUIfYIL/yWyXKcEjeZvi21gEBg088G
+         o5Zg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684859692; x=1687451692;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=7BQXLdFOI2CGu/rfEBqigmE78qgmnNYZiqsFoyv3xq0=;
-        b=VmIFytDmpY9pD3qIZdKGF1vUaG+LR/3SQQNbLzmdsQccwW+eF6NhvpET7WBbVEYop5
-         3F1Cl3CtD99Q2vaD6vMlEzSRcnKc6naHOQ8wb7AT1XEunL+usfS/McGYAa50q8dVb77V
-         kXSyelYs+hhrdhguJjDT3MTreclhiaUQAN2tn5x7Ia6lNs0esuXQtTLPCXaO6MDWHhXO
-         BBV9plGl9uu26dpbHtcmbpnKRozPh7Tqxw1PmnDpnPHlcLyBz5TNtBP8RM+j3PTRF/O+
-         rpEHN9LXbLlRw80bZVsw/npjHkyI6xni/SiwiLpmgaaM7XYUJHTgHum6svxCXEg4mcOI
-         U4gg==
-X-Gm-Message-State: AC+VfDw+7giCttiVaht6WxQKIAHXI8H0wyhX2ySYCdd/sJCKFHOup9JF
-        koQBKzHO/GWEH7L2cLeNUeNkG/YAtAPO4GBrgNE=
-X-Google-Smtp-Source: ACHHUZ4JO9hOSi6nimF+b0Bm0YS8hNyvlCP5MbFt3y3MXsQNLL8DF6wp4WlOsufNaDUzjXQrs2eWmQ==
-X-Received: by 2002:a92:db47:0:b0:335:70ad:4695 with SMTP id w7-20020a92db47000000b0033570ad4695mr10794944ilq.18.1684859692170;
-        Tue, 23 May 2023 09:34:52 -0700 (PDT)
-Received: from mail-il1-f170.google.com (mail-il1-f170.google.com. [209.85.166.170])
-        by smtp.gmail.com with ESMTPSA id g191-20020a025bc8000000b0041ab097fad4sm2561636jab.169.2023.05.23.09.34.49
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 23 May 2023 09:34:50 -0700 (PDT)
-Received: by mail-il1-f170.google.com with SMTP id e9e14a558f8ab-33828a86ee2so202705ab.0
-        for <sparclinux@vger.kernel.org>; Tue, 23 May 2023 09:34:49 -0700 (PDT)
-X-Received: by 2002:a05:6e02:1a42:b0:32a:642d:2a13 with SMTP id
- u2-20020a056e021a4200b0032a642d2a13mr379303ilv.6.1684859689295; Tue, 23 May
- 2023 09:34:49 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1684888159; x=1687480159;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=p+iGDu91GXvHaUJ4/GkDIwXiVromlKTEDnrVX/jdHHE=;
+        b=Yo0ry1ENPcCUrchO3JLfl0pmyRUCunZJNTRwIvYGiB/3Lep9erb9z1HxPCc8KMBrYF
+         KcZg4k34miTmZGjtus6ibO69+Dq+w8OckRNdF4qMHNjhJ+qZcJR0+T7fsEX+YNlH5DpX
+         tqux/h/d3s4IBZlgNz+cRIaHQIqD14mdf3XwC7iGBQb0SLKOUOJiFF6AypqS11hFfNDE
+         gSNzunIQE81LVbtZJxqbiQrh+gPiMEocT12SPHoLh2JFgnzAwuPOJMo2jNcUoXnbWG6m
+         SFYzDbjepHImz66fGeoqFeeXCJiit1IMH33mInd5QcKDId2Gds0k0V05EFWstEBKRtJ/
+         Qorg==
+X-Gm-Message-State: AC+VfDwdYoM/KZSSAKi/FBWTRFEnayKgB3dtTjXrxWYrtcI7Yx53puLs
+        /ZX7jNEZzBP68PeGlSqZD/znhw==
+X-Google-Smtp-Source: ACHHUZ4WC86fv/HCojVq6Z7bo1LnEN2P8Qa/JJdhSbqAvm7x1JKXoIG4BePTyVsmdwlyiuzkRQj4Vw==
+X-Received: by 2002:a17:902:e847:b0:1af:90ce:5263 with SMTP id t7-20020a170902e84700b001af90ce5263mr107385plg.26.1684888158675;
+        Tue, 23 May 2023 17:29:18 -0700 (PDT)
+Received: from [2620:0:1008:11:c789:c1fb:6667:1766] ([2620:0:1008:11:c789:c1fb:6667:1766])
+        by smtp.gmail.com with ESMTPSA id n20-20020a17090a929400b0024de0de6ec8sm137193pjo.17.2023.05.23.17.29.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 May 2023 17:29:18 -0700 (PDT)
+Date:   Tue, 23 May 2023 17:29:17 -0700 (PDT)
+From:   David Rientjes <rientjes@google.com>
+To:     Vlastimil Babka <vbabka@suse.cz>
+cc:     Christoph Lameter <cl@linux.com>,
+        Pekka Enberg <penberg@kernel.org>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Roman Gushchin <roman.gushchin@linux.dev>,
+        Hyeonggon Yoo <42.hyeyoo@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Qin Jian <qinjian@cqplus1.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-mm@kvack.org
+Subject: Re: [PATCH] mm/slab: rename CONFIG_SLAB to CONFIG_SLAB_DEPRECATED
+In-Reply-To: <20230523091139.21449-1-vbabka@suse.cz>
+Message-ID: <be109b49-8510-5887-72ae-738db9945619@google.com>
+References: <20230523091139.21449-1-vbabka@suse.cz>
 MIME-Version: 1.0
-References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
- <20230519101840.v5.10.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid> <ZGzjm9h85fpYZJMc@alley>
-In-Reply-To: <ZGzjm9h85fpYZJMc@alley>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Tue, 23 May 2023 09:34:37 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=VeGKTvw2=qhSqkSEtYwVrXGLNzNbgBAwrmn2CWWfJckQ@mail.gmail.com>
-Message-ID: <CAD=FV=VeGKTvw2=qhSqkSEtYwVrXGLNzNbgBAwrmn2CWWfJckQ@mail.gmail.com>
-Subject: Re: [PATCH v5 10/18] watchdog/hardlockup: Add a "cpu" param to watchdog_hardlockup_check()
-To:     Petr Mladek <pmladek@suse.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
-        npiggin@gmail.com, davem@davemloft.net,
-        Marc Zyngier <maz@kernel.org>,
-        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
-        christophe.leroy@csgroup.eu,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
-        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Tue, 23 May 2023, Vlastimil Babka wrote:
 
-On Tue, May 23, 2023 at 9:02=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
-e:
->
-> On Fri 2023-05-19 10:18:34, Douglas Anderson wrote:
-> > In preparation for the buddy hardlockup detector where the CPU
-> > checking for lockup might not be the currently running CPU, add a
-> > "cpu" parameter to watchdog_hardlockup_check().
-> >
-> > As part of this change, make hrtimer_interrupts an atomic_t since now
-> > the CPU incrementing the value and the CPU reading the value might be
-> > different. Technially this could also be done with just READ_ONCE and
-> > WRITE_ONCE, but atomic_t feels a little cleaner in this case.
-> >
-> > While hrtimer_interrupts is made atomic_t, we change
-> > hrtimer_interrupts_saved from "unsigned long" to "int". The "int" is
-> > needed to match the data type backing atomic_t for hrtimer_interrupts.
-> > Even if this changes us from 64-bits to 32-bits (which I don't think
-> > is true for most compilers), it doesn't really matter. All we ever do
-> > is increment it every few seconds and compare it to an old value so
-> > 32-bits is fine (even 16-bits would be). The "signed" vs "unsigned"
-> > also doesn't matter for simple equality comparisons.
-> >
-> > hrtimer_interrupts_saved is _not_ switched to atomic_t nor even
-> > accessed with READ_ONCE / WRITE_ONCE. The hrtimer_interrupts_saved is
-> > always consistently accessed with the same CPU. NOTE: with the
-> > upcoming "buddy" detector there is one special case. When a CPU goes
-> > offline/online then we can change which CPU is the one to consistently
-> > access a given instance of hrtimer_interrupts_saved. We still can't
-> > end up with a partially updated hrtimer_interrupts_saved, however,
-> > because we end up petting all affected CPUs to make sure the new and
-> > old CPU can't end up somehow read/write hrtimer_interrupts_saved at
-> > the same time.
-> >
-> > --- a/kernel/watchdog.c
-> > +++ b/kernel/watchdog.c
-> > @@ -87,29 +87,34 @@ __setup("nmi_watchdog=3D", hardlockup_panic_setup);
-> >
-> >  #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
-> >
-> > -static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
-> > -static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
-> > +static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
-> > +static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
-> >  static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
-> >  static unsigned long watchdog_hardlockup_all_cpu_dumped;
-> >
-> > -static bool is_hardlockup(void)
-> > +static bool is_hardlockup(unsigned int cpu)
-> >  {
-> > -     unsigned long hrint =3D __this_cpu_read(hrtimer_interrupts);
-> > +     int hrint =3D atomic_read(&per_cpu(hrtimer_interrupts, cpu));
-> >
-> > -     if (__this_cpu_read(hrtimer_interrupts_saved) =3D=3D hrint)
-> > +     if (per_cpu(hrtimer_interrupts_saved, cpu) =3D=3D hrint)
-> >               return true;
-> >
-> > -     __this_cpu_write(hrtimer_interrupts_saved, hrint);
-> > +     /*
-> > +      * NOTE: we don't need any fancy atomic_t or READ_ONCE/WRITE_ONCE
-> > +      * for hrtimer_interrupts_saved. hrtimer_interrupts_saved is
-> > +      * written/read by a single CPU.
-> > +      */
-> > +     per_cpu(hrtimer_interrupts_saved, cpu) =3D hrint;
-> >
-> >       return false;
-> >  }
-> >
-> >  static void watchdog_hardlockup_kick(void)
-> >  {
-> > -     __this_cpu_inc(hrtimer_interrupts);
-> > +     atomic_inc(raw_cpu_ptr(&hrtimer_interrupts));
->
-> Is there any particular reason why raw_*() is needed, please?
->
-> My expectation is that the raw_ API should be used only when
-> there is a good reason for it. Where a good reason might be
-> when the checks might fail but the consistency is guaranteed
-> another way.
->
-> IMHO, we should use:
->
->         atomic_inc(this_cpu_ptr(&hrtimer_interrupts));
->
-> To be honest, I am a bit lost in the per_cpu API definitions.
->
-> But this_cpu_ptr() seems to be implemented the same way as
-> per_cpu_ptr() when CONFIG_DEBUG_PREEMPT is enabled.
-> And we use per_cpu_ptr() in is_hardlockup().
->
-> Also this_cpu_ptr() is used more commonly:
->
-> $> git grep this_cpu_ptr | wc -l
-> 1385
-> $> git grep raw_cpu_ptr | wc -l
-> 114
+> As discussed at LSF/MM [1] [2] and with no objections raised there,
+> deprecate the SLAB allocator. Rename the user-visible option so that
+> users with CONFIG_SLAB=y get a new prompt with explanation during make
+> oldconfig, while make olddefconfig will just switch to SLUB.
+> 
+> In all defconfigs with CONFIG_SLAB=y remove the line so those also
+> switch to SLUB. Regressions due to the switch should be reported to
+> linux-mm and slab maintainers.
+> 
+> [1] https://lore.kernel.org/all/4b9fc9c6-b48c-198f-5f80-811a44737e5f@suse.cz/
+> [2] https://lwn.net/Articles/932201/
+> 
+> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 
-Hmmm, I think maybe I confused myself. The old code purposely used the
-double-underscore prefixed version of this_cpu_inc(). I couldn't find
-a double-underscore version of this_cpu_ptr() and I somehow convinced
-myself that the raw() version was the right equivalent version.
+Acked-by: David Rientjes <rientjes@google.com>
 
-You're right that this_cpu_ptr() is a better choice here and I don't
-see any reason why we'd need the raw version.
-
-> >  }
-> >
-> > -void watchdog_hardlockup_check(struct pt_regs *regs)
-> > +void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
-> >  {
-> >       /*
-> >        * Check for a hardlockup by making sure the CPU's timer
-> > @@ -117,35 +122,42 @@ void watchdog_hardlockup_check(struct pt_regs *re=
-gs)
-> >        * fired multiple times before we overflow'd. If it hasn't
-> >        * then this is a good indication the cpu is stuck
-> >        */
-> > -     if (is_hardlockup()) {
-> > +     if (is_hardlockup(cpu)) {
-> >               unsigned int this_cpu =3D smp_processor_id();
-> > +             struct cpumask backtrace_mask =3D *cpu_online_mask;
->
-> Does this work, please?
->
-> IMHO, we should use cpumask_copy().
-
-Ah, good call, thanks!
-
-
-> >               /* Only print hardlockups once. */
-> > -             if (__this_cpu_read(watchdog_hardlockup_warned))
-> > +             if (per_cpu(watchdog_hardlockup_warned, cpu))
-> >                       return;
-> >
->
-> Otherwise, it looks good to me.
-
-Neither change seems urgent though both are important to fix, I'll
-wait a day or two to see if you have feedback on any of the other
-patches and I'll send a fixup series.
-
--Doug
+The Kconfig option says that SLAB will be removed in a few cycles.  I 
+think we should wait until at least the next LTS kernel is forked at the 
+end of the year so that users who upgrade to only the LTS releases can be 
+prompted for this change and surface any concerns.  Slab allocation is a 
+critical subsystem, so I presume this is the safest and most responsible 
+way to do the SLAB deprecation.  Hopefully that timeline works for 
+everybody.
