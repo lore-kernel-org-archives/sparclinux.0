@@ -2,143 +2,132 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B92C77B73
-	for <sparclinux@archiver.kernel.org>; Wed, 24 May 2023 13:59:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 197A5C7EE39
+	for <sparclinux@archiver.kernel.org>; Wed, 24 May 2023 14:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232474AbjEXN7U (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 May 2023 09:59:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44746 "EHLO
+        id S235913AbjEXO1J (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 24 May 2023 10:27:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234642AbjEXN7T (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 May 2023 09:59:19 -0400
+        with ESMTP id S229524AbjEXO1H (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 May 2023 10:27:07 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A14A9A9;
-        Wed, 24 May 2023 06:59:18 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id BDD9021D3D;
-        Wed, 24 May 2023 13:59:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1684936756; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=dBvtScxG64js1V2WtJGSat2wyTIF8r92U3UegFL2rYQ=;
-        b=RHX2g085w5u88X+4Z6mGRE58L0b4uuVjnoB5ile5yyEku/n0vK3Ga3gzxfL7+dqOWR8qzS
-        Enh+hAYTwRSzigqBWe8ELlR+JBHmK0H4bMUVMJEQc98zMr5VIBl3JapUXhy5gy6G8xv9gW
-        1Vyj+Mx19rJDf489l0WBgZnOiWR+PkQ=
-Received: from suse.cz (dhcp129.suse.cz [10.100.51.129])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70AA711D;
+        Wed, 24 May 2023 07:27:06 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 944262C141;
-        Wed, 24 May 2023 13:59:15 +0000 (UTC)
-Date:   Wed, 24 May 2023 15:59:15 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Douglas Anderson <dianders@chromium.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
-        npiggin@gmail.com, davem@davemloft.net,
-        Marc Zyngier <maz@kernel.org>,
-        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
-        christophe.leroy@csgroup.eu,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
-        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH v5 13/18] watchdog/hardlockup: Have the perf hardlockup
- use __weak functions more cleanly
-Message-ID: <ZG4YMyifGLOBJxLo@alley>
-References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
- <20230519101840.v5.13.I847d9ec852449350997ba00401d2462a9cb4302b@changeid>
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 91B9522041;
+        Wed, 24 May 2023 14:27:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1684938424; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=tXGazCQJhB+4Gbe14ojDjDepmPElagpzQVjU1cq9coM=;
+        b=CvxJjiwUfSN+kySKUn/EWA67pNGj3pzmDi1HbwCtE90AFBLWe7vv+d8M1Ij3FkSbIz4VTI
+        gWvmGqepcrFlLCBiRAAf+FLKtDv7IxP6DOFYzfABdT3HuVDKFvuPv4HouAx5CI/XFNBevQ
+        b0eo4MDqgOjEmRFkWmGBuHZT8lU/dcs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1684938424;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=tXGazCQJhB+4Gbe14ojDjDepmPElagpzQVjU1cq9coM=;
+        b=pq5m/8gWb5XY3U0bzLALdtiUNBu4jqNs3ujyoKqIbmne//9yJpXq+qLIx07FO9Z84ILL6b
+        c/7V1xSDO+g6aHAA==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1777E13425;
+        Wed, 24 May 2023 14:27:04 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id VWz9BLgebmSqKAAAMHmgww
+        (envelope-from <vbabka@suse.cz>); Wed, 24 May 2023 14:27:04 +0000
+Message-ID: <4f690e97-b26c-1705-51e7-0d7ebc77d819@suse.cz>
+Date:   Wed, 24 May 2023 16:27:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230519101840.v5.13.I847d9ec852449350997ba00401d2462a9cb4302b@changeid>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH] mm/slab: rename CONFIG_SLAB to CONFIG_SLAB_DEPRECATED
+Content-Language: en-US
+To:     David Rientjes <rientjes@google.com>
+Cc:     Christoph Lameter <cl@linux.com>,
+        Pekka Enberg <penberg@kernel.org>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Roman Gushchin <roman.gushchin@linux.dev>,
+        Hyeonggon Yoo <42.hyeyoo@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Qin Jian <qinjian@cqplus1.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-mm@kvack.org
+References: <20230523091139.21449-1-vbabka@suse.cz>
+ <be109b49-8510-5887-72ae-738db9945619@google.com>
+From:   Vlastimil Babka <vbabka@suse.cz>
+In-Reply-To: <be109b49-8510-5887-72ae-738db9945619@google.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri 2023-05-19 10:18:37, Douglas Anderson wrote:
-> The fact that there watchdog_hardlockup_enable(),
-> watchdog_hardlockup_disable(), and watchdog_hardlockup_probe() are
-> declared __weak means that the configured hardlockup detector can
-> define non-weak versions of those functions if it needs to. Instead of
-> doing this, the perf hardlockup detector hooked itself into the
-> default __weak implementation, which was a bit awkward. Clean this up.
+On 5/24/23 02:29, David Rientjes wrote:
+> On Tue, 23 May 2023, Vlastimil Babka wrote:
 > 
-> >From comments, it looks as if the original design was done because the
-> __weak function were expected to implemented by the architecture and
-> not by the configured hardlockup detector. This got awkward when we
-> tried to add the buddy lockup detector which was not arch-specific but
-> wanted to hook into those same functions.
+>> As discussed at LSF/MM [1] [2] and with no objections raised there,
+>> deprecate the SLAB allocator. Rename the user-visible option so that
+>> users with CONFIG_SLAB=y get a new prompt with explanation during make
+>> oldconfig, while make olddefconfig will just switch to SLUB.
+>> 
+>> In all defconfigs with CONFIG_SLAB=y remove the line so those also
+>> switch to SLUB. Regressions due to the switch should be reported to
+>> linux-mm and slab maintainers.
+>> 
+>> [1] https://lore.kernel.org/all/4b9fc9c6-b48c-198f-5f80-811a44737e5f@suse.cz/
+>> [2] https://lwn.net/Articles/932201/
+>> 
+>> Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 > 
-> This is not expected to have any functional impact.
->
-> @@ -187,27 +187,33 @@ static inline void watchdog_hardlockup_kick(void) { }
->  #endif /* !CONFIG_HARDLOCKUP_DETECTOR_PERF */
->  
->  /*
-> - * These functions can be overridden if an architecture implements its
-> - * own hardlockup detector.
-> + * These functions can be overridden based on the configured hardlockdup detector.
->   *
->   * watchdog_hardlockup_enable/disable can be implemented to start and stop when
-> - * softlockup watchdog start and stop. The arch must select the
-> + * softlockup watchdog start and stop. The detector must select the
->   * SOFTLOCKUP_DETECTOR Kconfig.
->   */
-> -void __weak watchdog_hardlockup_enable(unsigned int cpu)
-> -{
-> -	hardlockup_detector_perf_enable();
-> -}
-> +void __weak watchdog_hardlockup_enable(unsigned int cpu) { }
->  
-> -void __weak watchdog_hardlockup_disable(unsigned int cpu)
-> -{
-> -	hardlockup_detector_perf_disable();
-> -}
-> +void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
->  
->  /* Return 0, if a hardlockup watchdog is available. Error code otherwise */
->  int __weak __init watchdog_hardlockup_probe(void)
->  {
-> -	return hardlockup_detector_perf_init();
-> +	/*
-> +	 * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
-> +	 * is assumed to have the hard watchdog available and we return 0.
-> +	 */
-> +	if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
-> +		return 0;
-> +
-> +	/*
-> +	 * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WATCHDOG
-> +	 * are required to implement a non-weak version of this probe function
-> +	 * to tell whether they are available. If they don't override then
-> +	 * we'll return -ENODEV.
-> +	 */
-> +	return -ENODEV;
->  }
+> Acked-by: David Rientjes <rientjes@google.com>
 
-When thinking more about it. It is weird that we need to handle
-CONFIG_HAVE_NMI_WATCHDOG in this default week function.
+Thanks.
 
-It should be handled in watchdog_hardlockup_probe() implemented
-in kernel/watchdog_perf.c.
+> The Kconfig option says that SLAB will be removed in a few cycles.  I 
+> think we should wait until at least the next LTS kernel is forked at the 
+> end of the year so that users who upgrade to only the LTS releases can be 
+> prompted for this change and surface any concerns.  Slab allocation is a 
+> critical subsystem, so I presume this is the safest and most responsible 
+> way to do the SLAB deprecation.  Hopefully that timeline works for 
+> everybody.
 
-IMHO, the default __weak function could always return -ENODEV;
+Sure, and in fact looking at predicted release dates [1], if the deprecation
+goes into 6.5 then 6.7 ("few" == 2) is already end of January 2024, anyway.
 
-Would it make sense, please?
-
-Best Regards,
-Petr
+[1] https://hansen.beer/~dave/phb/
