@@ -2,242 +2,183 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E242C77B7C
-	for <sparclinux@archiver.kernel.org>; Wed, 24 May 2023 19:47:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFABC77B7A
+	for <sparclinux@archiver.kernel.org>; Thu, 25 May 2023 07:25:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229646AbjEXTrA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 May 2023 15:47:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53294 "EHLO
+        id S237059AbjEYHZe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 25 May 2023 03:25:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229551AbjEXTq7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 May 2023 15:46:59 -0400
-Received: from mail-qk1-x736.google.com (mail-qk1-x736.google.com [IPv6:2607:f8b0:4864:20::736])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65F2E132
-        for <sparclinux@vger.kernel.org>; Wed, 24 May 2023 12:46:58 -0700 (PDT)
-Received: by mail-qk1-x736.google.com with SMTP id af79cd13be357-75b04e897a5so16274085a.2
-        for <sparclinux@vger.kernel.org>; Wed, 24 May 2023 12:46:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1684957617; x=1687549617;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=XIB0HReKptcGBTosdBXg1PO+NrPRx+I4udNpoc6AMN0=;
-        b=HwMeYcrgygHdepBJJClCaKq/dvM0hdhDIHUPKe5aIIu45QNrnn/UPQd0s9QRfB1PGZ
-         kCHfeBtqiLd6OD+bDnIVs5Tk6lGMjqMGjtKAReuBKZTvgytXIpwVZbFN7Pv7yU/+2kfK
-         y0zIy9q8o9HR+6TR4zZgLWuO409kUbBzutD84=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684957617; x=1687549617;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=XIB0HReKptcGBTosdBXg1PO+NrPRx+I4udNpoc6AMN0=;
-        b=czPRrD2/cDvbTqmyVogoi17cbblH0EfPen1r/hLnXjMy3ulwDGBXQ4y7B6NDJpVXCH
-         6WBcD0Jf0B7QPrGBpdi4Pa31FoDpHLc57LbXo8ed4mXV3AhvNYZmVH2NSnMMDyzxIS35
-         tYKXMQozLjUH7icAfR7sBaAD0ntaZ3gm+tR5GY/CfGrqrqm285SubpQJdDb6/SQcZy73
-         wEkQV8j89HMPoZPrp1dbLOrpP0oJ/q88UWuRBplMhUqsTWU2pT8jTkioa6I2kva7Kqx5
-         8s+pj8eo8H3Wi+ecSfDR1A7F/IAYii3qq1657xb/cX5KWgAcBTKTb2QDW7fJpv7nKOTk
-         /s5Q==
-X-Gm-Message-State: AC+VfDzc7W8+4sAMEiXbWckOxdeekzcydWIJZ1fapWQG71SOmaa9DNZS
-        oMRLRFj38wohdX8OLkUcrMjXmagsApw3zPCZ7eQ=
-X-Google-Smtp-Source: ACHHUZ5HsbNqCnjolciSDADv6lDd2wGP2/9ZG8mw7ehq9Fgc8tj322HKjxuPHzD5LCmFhpM332X/AQ==
-X-Received: by 2002:a05:6214:20a5:b0:621:6bcb:e49 with SMTP id 5-20020a05621420a500b006216bcb0e49mr27308663qvd.0.1684957617075;
-        Wed, 24 May 2023 12:46:57 -0700 (PDT)
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com. [209.85.160.174])
-        by smtp.gmail.com with ESMTPSA id p7-20020a0cf687000000b006238cf6d2a8sm3833354qvn.2.2023.05.24.12.46.56
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 24 May 2023 12:46:56 -0700 (PDT)
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-3f38824a025so42331cf.0
-        for <sparclinux@vger.kernel.org>; Wed, 24 May 2023 12:46:56 -0700 (PDT)
-X-Received: by 2002:a05:6e02:194e:b0:331:d42:d06e with SMTP id
- x14-20020a056e02194e00b003310d42d06emr33974ilu.17.1684957143210; Wed, 24 May
- 2023 12:39:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
- <20230519101840.v5.13.I847d9ec852449350997ba00401d2462a9cb4302b@changeid> <ZG4YMyifGLOBJxLo@alley>
-In-Reply-To: <ZG4YMyifGLOBJxLo@alley>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Wed, 24 May 2023 12:38:49 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=X+LEcSrArV+w35MX4oP1sC9KoRM0puJLT1RFmyS84Hxw@mail.gmail.com>
-Message-ID: <CAD=FV=X+LEcSrArV+w35MX4oP1sC9KoRM0puJLT1RFmyS84Hxw@mail.gmail.com>
-Subject: Re: [PATCH v5 13/18] watchdog/hardlockup: Have the perf hardlockup
- use __weak functions more cleanly
-To:     Petr Mladek <pmladek@suse.com>
+        with ESMTP id S233805AbjEYHZ1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 25 May 2023 03:25:27 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A14841BD;
+        Thu, 25 May 2023 00:25:26 -0700 (PDT)
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34P7MZUR027615;
+        Thu, 25 May 2023 07:24:01 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=55klH+MHDRtIEEtWGbvAfPxNnN6EmMw4scwT5+fq3XI=;
+ b=RCtuVZMVyLY0xGNcOr1uNeKOK8ntfwHROTFHQ4+AHlf2PWmk9UMR5C1PwZzqTymLhX3F
+ YS8x9sdj4rnAtSDt7d3OIlvETB4UqOoJw503GtHvkqIIk34L6d4qe/5QAfXKoRiw8KQ3
+ q2vN+VSVcbXRkWC9E/KmFqhp4J9Uk1or/sNjytHkFA/FLMsoMkRIv3iKpmsDaSpOHta9
+ CUHKBISpNyljOYab0uO1Fpi++beo28ogb584RD8aDiv+J9GeRUJVo/dWdX2F0D18x38T
+ iFptJIA55GKyv/jWO+T8QXxUyFt7k1uiwhkDKMXzQji2/r8sTbD6T9TT2CpRLV4sxd42 RQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qt32yg93r-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 25 May 2023 07:24:01 +0000
+Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34P7CWdL024922;
+        Thu, 25 May 2023 07:24:00 GMT
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qt32yg92j-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 25 May 2023 07:24:00 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+        by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34P4rUxB029511;
+        Thu, 25 May 2023 07:23:57 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+        by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3qppcuaahq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 25 May 2023 07:23:57 +0000
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+        by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34P7NrqW22610506
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 25 May 2023 07:23:53 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B0BFA20043;
+        Thu, 25 May 2023 07:23:53 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 0955820040;
+        Thu, 25 May 2023 07:23:53 +0000 (GMT)
+Received: from p-imbrenda (unknown [9.152.224.66])
+        by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Thu, 25 May 2023 07:23:52 +0000 (GMT)
+Date:   Thu, 25 May 2023 09:23:51 +0200
+From:   Claudio Imbrenda <imbrenda@linux.ibm.com>
+To:     Hugh Dickins <hughd@google.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
-        npiggin@gmail.com, davem@davemloft.net,
-        Marc Zyngier <maz@kernel.org>,
-        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
-        christophe.leroy@csgroup.eu,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Russell King <linux@armlinux.org.uk>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
-        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Helge Deller <deller@gmx.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH 15/23] s390: allow pte_offset_map_lock() to fail
+Message-ID: <20230525092351.7671f2a4@p-imbrenda>
+In-Reply-To: <b64cd153-18e8-81a6-b852-c04d8b1381d@google.com>
+References: <77a5d8c-406b-7068-4f17-23b7ac53bc83@google.com>
+        <94aec8fe-383f-892-dcbf-d4c14e460a7@google.com>
+        <20230517123546.672fb9b0@p-imbrenda>
+        <4a15dbaa-1614-ce-ce1f-f73959cef895@google.com>
+        <20230523140056.55b664b1@p-imbrenda>
+        <b64cd153-18e8-81a6-b852-c04d8b1381d@google.com>
+Organization: IBM
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: qRLyp44GLiE9zXh3PageqjkrZmyh07xV
+X-Proofpoint-GUID: uXGxTdAMLt8o-nI3lVA1NmtMWFctokRx
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
+ definitions=2023-05-25_03,2023-05-24_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501 mlxscore=0
+ spamscore=0 clxscore=1015 lowpriorityscore=0 mlxlogscore=999
+ impostorscore=0 bulkscore=0 suspectscore=0 malwarescore=0 adultscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2304280000 definitions=main-2305250057
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Tue, 23 May 2023 18:49:14 -0700 (PDT)
+Hugh Dickins <hughd@google.com> wrote:
 
-On Wed, May 24, 2023 at 6:59=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
-e:
->
-> On Fri 2023-05-19 10:18:37, Douglas Anderson wrote:
-> > The fact that there watchdog_hardlockup_enable(),
-> > watchdog_hardlockup_disable(), and watchdog_hardlockup_probe() are
-> > declared __weak means that the configured hardlockup detector can
-> > define non-weak versions of those functions if it needs to. Instead of
-> > doing this, the perf hardlockup detector hooked itself into the
-> > default __weak implementation, which was a bit awkward. Clean this up.
-> >
-> > >From comments, it looks as if the original design was done because the
-> > __weak function were expected to implemented by the architecture and
-> > not by the configured hardlockup detector. This got awkward when we
-> > tried to add the buddy lockup detector which was not arch-specific but
-> > wanted to hook into those same functions.
-> >
-> > This is not expected to have any functional impact.
-> >
-> > @@ -187,27 +187,33 @@ static inline void watchdog_hardlockup_kick(void)=
- { }
-> >  #endif /* !CONFIG_HARDLOCKUP_DETECTOR_PERF */
-> >
-> >  /*
-> > - * These functions can be overridden if an architecture implements its
-> > - * own hardlockup detector.
-> > + * These functions can be overridden based on the configured hardlockd=
-up detector.
-> >   *
-> >   * watchdog_hardlockup_enable/disable can be implemented to start and =
-stop when
-> > - * softlockup watchdog start and stop. The arch must select the
-> > + * softlockup watchdog start and stop. The detector must select the
-> >   * SOFTLOCKUP_DETECTOR Kconfig.
-> >   */
-> > -void __weak watchdog_hardlockup_enable(unsigned int cpu)
-> > -{
-> > -     hardlockup_detector_perf_enable();
-> > -}
-> > +void __weak watchdog_hardlockup_enable(unsigned int cpu) { }
-> >
-> > -void __weak watchdog_hardlockup_disable(unsigned int cpu)
-> > -{
-> > -     hardlockup_detector_perf_disable();
-> > -}
-> > +void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
-> >
-> >  /* Return 0, if a hardlockup watchdog is available. Error code otherwi=
-se */
-> >  int __weak __init watchdog_hardlockup_probe(void)
-> >  {
-> > -     return hardlockup_detector_perf_init();
-> > +     /*
-> > +      * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
-> > +      * is assumed to have the hard watchdog available and we return 0=
-.
-> > +      */
-> > +     if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
-> > +             return 0;
-> > +
-> > +     /*
-> > +      * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WA=
-TCHDOG
-> > +      * are required to implement a non-weak version of this probe fun=
-ction
-> > +      * to tell whether they are available. If they don't override the=
-n
-> > +      * we'll return -ENODEV.
-> > +      */
-> > +     return -ENODEV;
-> >  }
->
-> When thinking more about it. It is weird that we need to handle
-> CONFIG_HAVE_NMI_WATCHDOG in this default week function.
->
-> It should be handled in watchdog_hardlockup_probe() implemented
-> in kernel/watchdog_perf.c.
->
-> IMHO, the default __weak function could always return -ENODEV;
->
-> Would it make sense, please?
+> On Tue, 23 May 2023, Claudio Imbrenda wrote:
+> > 
+> > so if I understand the above correctly, pte_offset_map_lock will only
+> > fail if the whole page table has disappeared, and in that case, it will
+> > never reappear with zero pages, therefore we can safely skip (in that
+> > case just break). if we were to do a continue instead of a break, we
+> > would most likely fail again anyway.  
+> 
+> Yes, that's the most likely; and you hold mmap_write_lock() there,
+> and VM_NOHUGEPAGE on all vmas, so I think it's the only foreseeable
+> possibility.
+> 
+> > 
+> > in that case I would still like a small change in your patch: please
+> > write a short (2~3 lines max) comment about why it's ok to do things
+> > that way  
+> 
+> Sure.
+> 
+> But I now see that I've disobeyed you, and gone to 4 lines (but in the
+> comment above the function, so as not to distract from the code itself):
+> is this good wording to you?  I needed to research how they were stopped
+> from coming in afterwards, so wanted to put something greppable in there.
+> 
+> And, unless I'm misunderstanding, that "after THP was enabled" was
+> always supposed to say "after THP was disabled" (because splitting a
+> huge zero page pmd inserts a a page table full of little zero ptes).
 
-I don't quite understand. I'd agree that the special case for
-CONFIG_HAVE_NMI_WATCHDOG is ugly, but it was also ugly before. IMO
-it's actually a little less ugly / easier to understand after my
-patch. ...but let me walk through how I think this special case works
-and maybe you can tell me where I'm confused.
+indeed, thanks for noticing and fixing it
 
-The first thing to understand is that CONFIG_HARDLOCKUP_DETECTOR_PERF
-and CONFIG_HAVE_NMI_WATCHDOG are mutually exclusive from each other.
-This was true before any of my patches and is still true after them.
-Specifically, if CONFIG_HAVE_NMI_WATCHDOG is defined then an
-architecture implements arch_touch_nmi_watchdog() (as documented in
-the Kconfig docs for HAVE_NMI_WATCHDOG). Looking at the tree before my
-series you can see that the perf hardlockup detector also implemented
-arch_touch_nmi_watchdog(). This would have caused a conflict. The
-mutual exclusion was presumably enforced by an architecture not
-defining both HAVE_NMI_WATCHDOG and HAVE_HARDLOCKUP_DETECTOR_PERF.
+> 
+> Or would you prefer the comment in the commit message instead,
+> or down just above the pte_offset_map_lock() line?
+> 
+> It would much better if I could find one place at the mm end, to
+> enforce its end of the contract; but cannot think how to do that.
+> 
+> Hugh
+> 
+> --- a/arch/s390/mm/gmap.c
+> +++ b/arch/s390/mm/gmap.c
+> @@ -2537,7 +2537,12 @@ static inline void thp_split_mm(struct mm_struct *mm)
+>   * Remove all empty zero pages from the mapping for lazy refaulting
+>   * - This must be called after mm->context.has_pgste is set, to avoid
+>   *   future creation of zero pages
+> - * - This must be called after THP was enabled
+> + * - This must be called after THP was disabled.
+> + *
+> + * mm contracts with s390, that even if mm were to remove a page table,
+> + * racing with the loop below and so causing pte_offset_map_lock() to fail,
+> + * it will never insert a page table containing empty zero pages once
+> + * mm_forbids_zeropage(mm) i.e. mm->context.has_pgste is set.
+>   */
+>  static int __zap_zero_pages(pmd_t *pmd, unsigned long start,
+>  			   unsigned long end, struct mm_walk *walk)
 
-The second thing to understand is that an architecture that defines
-CONFIG_HAVE_NMI_WATCHDOG is _not_ required to implement
-watchdog_hardlockup_probe() (used to be called watchdog_nmi_probe()).
-Maybe this should change, but at the very least it appears that
-SPARC64 defines HAVE_NMI_WATCHDOG but doesn't define
-watchdog_hardlockup_probe() AKA watchdog_nmi_probe(). Anyone who
-defines CONFIG_HAVE_NMI_WATCHDOG and doesn't implement
-watchdog_hardlockup_probe() is claiming that their watchdog needs no
-probing and is always available.
-
-So with that context:
-
-1. We can't handle any special cases for CONFIG_HAVE_NMI_WATCHDOG in
-"kernel/watchdog_perf.c". The special cases that we need to handle are
-all for the cases where CONFIG_HARDLOCKUP_DETECTOR_PERF isn't defined
-and that means "kernel/watchdog_perf.c" isn't included.
-
-2. We can't have the default __weak function return -ENODEV because
-CONFIG_HAVE_NMI_WATCHDOG doesn't require an arch to implement
-watchdog_hardlockup_probe(), but we want watchdog_hardlockup_probe()
-to return "no error" in that case so that
-"watchdog_hardlockup_available" gets set to true.
-
-Does that sound right?
-
-I'd agree that a future improvement saying that
-CONFIG_HAVE_NMI_WATCHDOG means you _must_ implement
-watchdog_hardlockup_probe() would make sense and that would allow us
-to get rid of the special case. IMO, though, that's a separate patch.
-I'd be happy to review that patch if you wanted to post it up. :-)
-
-If we want to add that requirement, I _think_ the only thing you'd
-need to do is to add watchdog_hardlockup_probe() to sparc64 and have
-it return 0 and put that definition in the same file containing
-arch_touch_nmi_watchdog(). powerpc also gets CONFIG_HAVE_NMI_WATCHDOG
-as a side effect of selecting CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH but
-it looks like they implement watchdog_hardlockup_probe() already. Oh,
-but maybe this will fix a preexisting (existed before my patches)
-minor bug... Unless I'm missing something (entirely possible!) on
-powerpc today I guess if you turn off CONFIG_PPC_WATCHDOG then
-CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH and CONFIG_HAVE_NMI_WATCHDOG
-would still be defined and we'd end up returning 0 (no error) from
-watchdog_hardlockup_probe(). That means that on powerpc today if you
-turn off CONFIG_PPC_WATCHDOG that '/proc/sys/kernel/nmi_watchdog' will
-still think the watchdog is enabled?
-
-
--Doug
+looks good, thanks
