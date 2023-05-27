@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 007FAC77B7A
-	for <sparclinux@archiver.kernel.org>; Sat, 27 May 2023 01:42:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD22C7EE2F
+	for <sparclinux@archiver.kernel.org>; Sat, 27 May 2023 01:42:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243723AbjE0Bmo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 May 2023 21:42:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35844 "EHLO
+        id S243481AbjE0Bmq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 May 2023 21:42:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242942AbjE0Bmg (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 May 2023 21:42:36 -0400
-Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5251FE61
-        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:20 -0700 (PDT)
-Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-64d2a87b9daso1195966b3a.0
-        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:20 -0700 (PDT)
+        with ESMTP id S243561AbjE0Bmn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 May 2023 21:42:43 -0400
+Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D6C9E6C
+        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:22 -0700 (PDT)
+Received: by mail-pf1-x42f.google.com with SMTP id d2e1a72fcca58-64d1a0d640cso1223281b3a.1
+        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1685151740; x=1687743740;
+        d=chromium.org; s=google; t=1685151741; x=1687743741;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KaDACvZxwdpKtf7kTBQLIF7ZNxT8GRJ6++BKiL/JB9M=;
-        b=jVuYAdq3YuUoT9q0ptR3Y7gogUCPfBKK+uzhCs3nYmVmC0ZcHgwMRd0F7jOf1hYEoN
-         iVHyunZrSLGRZ/SUtKN1NZqFCsyZzudfiz0JVDxVcWLyOc754sGNrSqCni0+0DMifrdR
-         CX1zK1B4IcAFWXPw6yd7iZFlWLLQa05o6HrVA=
+        bh=4pTZ8PdJlA6i+SWNusBTmTzOcCRT41PhrexiQIb/AKs=;
+        b=dGhxmHD/CSkrIECymGSZJgjulMjULoIls2yt2guqhtavg8UVpzegqrUgkex1Az5eH9
+         7o8tE1sfBCLwp5jGYATbBDjOwYfBLu2wLAWmL4Fu2votApVdW9ieYsPlWvXbTAoEZCRx
+         IE9pmuxtKBeT5vr2dhEgDDxn0u6fSztfVGgQg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685151740; x=1687743740;
+        d=1e100.net; s=20221208; t=1685151741; x=1687743741;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=KaDACvZxwdpKtf7kTBQLIF7ZNxT8GRJ6++BKiL/JB9M=;
-        b=Hb/SclE0eLxfGdUXUs74TVd9QeB4crGCxAksdIGyQiT3ErI3GqgmIBh5gIoUnSlJPJ
-         Jr6Sv/K5k80OWTUyCavE4azOTZk4ZbeRARyR0bUmVGjHvJCX7MX1FQFrvUiYrSSmZ9Qy
-         Ub+VDUnuVTugMxgRCCRdsXMTHjQ0lRCsGq7LdcyFiEnQ8J3DAl5wqK8Aox7OKJhn4ii5
-         RVmd6mrc5SV2FyMb6md8/izo7rGg8+LhyQJHX60P72PqAEf31TCUZ12aV7rY156+3dN4
-         UhK1GfeQyo6utyxY47oe3ggpSrlfp7PKX7J1gMMLapzpby9dKnnYpFW7pzZCCRVKOMAD
-         Bi8g==
-X-Gm-Message-State: AC+VfDwm+Ol3DW09LADX9gODIHUCzWFH/XjCuNEPl5p7ykpA53rJ/ZBc
-        yDp6skTrpiSjx8RBInhYS+NsFQ==
-X-Google-Smtp-Source: ACHHUZ7idAUslgayGvplEniRBtJYBCvMASeKUJDKY3K4A2M46AA1VPt7NOcvpx5WEYfIrIw0exEmRA==
-X-Received: by 2002:a05:6a00:2409:b0:63b:8778:99e4 with SMTP id z9-20020a056a00240900b0063b877899e4mr5910255pfh.2.1685151739708;
-        Fri, 26 May 2023 18:42:19 -0700 (PDT)
+        bh=4pTZ8PdJlA6i+SWNusBTmTzOcCRT41PhrexiQIb/AKs=;
+        b=jKECR61AM01j759cBGccoobiMjrYB/ZRnCGQCeLJvrpzFz4Iw/G4SspxA4YI/Ezc2z
+         5cKlL6sxxZSBy3b7tE19QZnSMnYbKnGv4MJAy4//ADovj7vnA5DHyJllnn7ZuTnN9lQN
+         KnY7kFU52a7Ffa51eBNWnJp+BSj9Qqb7/Xv+Ev7XhY+XoccKuBpHz4G5I2Bjt9Cz3aT0
+         GbPhV9NLOnbX4XGqY6qG61gM4w2VgsumkApxPjCfRsM9BEUPyt8Zg4jdafEeUzf0SSrH
+         vbxVyOFR1jYk6XgV33OvISs8ZbdLO0ktthgKYAZ7+43j58LO3ijQiZNem972OLPxaXdb
+         +l2Q==
+X-Gm-Message-State: AC+VfDw5JR6cd9/BuujFjRO5XIUxxiUEc5zFAq3xeOUfEaaujT3+9JoP
+        57C7BiiI+zF4g24iRNEF21GGWw==
+X-Google-Smtp-Source: ACHHUZ5UUsITWZmTwpdRkqyumpngtWqGIdFge6BCERd9qHLdsT3GhYY3Nylr4mH6Rilg/sSJVj2BfQ==
+X-Received: by 2002:a05:6a00:139c:b0:64c:ae1c:33ac with SMTP id t28-20020a056a00139c00b0064cae1c33acmr7231420pfg.25.1685151741546;
+        Fri, 26 May 2023 18:42:21 -0700 (PDT)
 Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:4015:7255:c79a:26d7])
-        by smtp.gmail.com with ESMTPSA id x25-20020aa79199000000b0063b8ddf77f7sm3202440pfa.211.2023.05.26.18.42.18
+        by smtp.gmail.com with ESMTPSA id x25-20020aa79199000000b0063b8ddf77f7sm3202440pfa.211.2023.05.26.18.42.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 May 2023 18:42:19 -0700 (PDT)
+        Fri, 26 May 2023 18:42:20 -0700 (PDT)
 From:   Douglas Anderson <dianders@chromium.org>
 To:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>
@@ -58,9 +58,9 @@ Cc:     kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
         "David S . Miller" <davem@davemloft.net>,
         linux-perf-users@vger.kernel.org,
         Douglas Anderson <dianders@chromium.org>
-Subject: [PATCH 02/10] watchdog/hardlockup: HAVE_NMI_WATCHDOG must implement watchdog_hardlockup_probe()
-Date:   Fri, 26 May 2023 18:41:32 -0700
-Message-ID: <20230526184139.2.Ic6ebbf307ca0efe91f08ce2c1eb4a037ba6b0700@changeid>
+Subject: [PATCH 03/10] watchdog/hardlockup: Don't use raw_cpu_ptr() in watchdog_hardlockup_kick()
+Date:   Fri, 26 May 2023 18:41:33 -0700
+Message-ID: <20230526184139.3.I660e103077dcc23bb29aaf2be09cb234e0495b2d@changeid>
 X-Mailer: git-send-email 2.41.0.rc0.172.g3f132b7071-goog
 In-Reply-To: <20230527014153.2793931-1-dianders@chromium.org>
 References: <20230527014153.2793931-1-dianders@chromium.org>
@@ -70,94 +70,30 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Right now there is one arch (sparc64) that selects HAVE_NMI_WATCHDOG
-without selecting HAVE_HARDLOCKUP_DETECTOR_ARCH. Because of that one
-architecture, we have some special case code in the watchdog core to
-handle the fact that watchdog_hardlockup_probe() isn't implemented.
-
-Let's implement watchdog_hardlockup_probe() for sparc64 and get rid of
-the special case.
-
-As a side effect of doing this, code inspection tells us that we could
-fix a minor bug where the system won't properly realize that NMI
-watchdogs are disabled. Specifically, on powerpc if
-CONFIG_PPC_WATCHDOG is turned off the arch might still select
-CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH which selects
-CONFIG_HAVE_NMI_WATCHDOG. Since CONFIG_PPC_WATCHDOG was off then
-nothing will override the "weak" watchdog_hardlockup_probe() and we'll
-fallback to looking at CONFIG_HAVE_NMI_WATCHDOG.
+In the patch ("watchdog/hardlockup: add a "cpu" param to
+watchdog_hardlockup_check()") there was no reason to use
+raw_cpu_ptr(). Using this_cpu_ptr() works fine.
 
 Suggested-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 ---
-Though this does fix a minor bug, I didn't mark this as "Fixes"
-because it's super minor. One could also argue that this wasn't a bug
-at all but simply was never an implemented feature. The code that
-added some amount of dynamicness here was commit a994a3147e4c
-("watchdog/hardlockup/perf: Implement init time detection of perf")
-which, as per the title, was only intending to make "perf"
-dynamic. The old NMI watchdog presumably has never been handled
-dynamically.
 
- arch/Kconfig            |  3 ++-
- arch/sparc/kernel/nmi.c |  5 +++++
- kernel/watchdog.c       | 13 -------------
- 3 files changed, 7 insertions(+), 14 deletions(-)
+ kernel/watchdog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 64d771855ecd..b4f6387b12fe 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -428,7 +428,8 @@ config HAVE_NMI_WATCHDOG
- 	bool
- 	help
- 	  The arch provides a low level NMI watchdog. It provides
--	  asm/nmi.h, and defines its own arch_touch_nmi_watchdog().
-+	  asm/nmi.h, and defines its own watchdog_hardlockup_probe() and
-+	  arch_touch_nmi_watchdog().
- 
- config HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	bool
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 9d9e29b75c43..17cdfdbf1f3b 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -65,6 +65,11 @@ void arch_touch_nmi_watchdog(void)
- }
- EXPORT_SYMBOL(arch_touch_nmi_watchdog);
- 
-+int __init watchdog_hardlockup_probe(void)
-+{
-+	return 0;
-+}
-+
- static void die_nmi(const char *str, struct pt_regs *regs, int do_panic)
- {
- 	int this_cpu = smp_processor_id();
 diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 4b9e31edb47f..62230f5b8878 100644
+index 62230f5b8878..32dac8028753 100644
 --- a/kernel/watchdog.c
 +++ b/kernel/watchdog.c
-@@ -217,19 +217,6 @@ void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
-  */
- int __weak __init watchdog_hardlockup_probe(void)
+@@ -133,7 +133,7 @@ static bool is_hardlockup(unsigned int cpu)
+ 
+ static unsigned long watchdog_hardlockup_kick(void)
  {
--	/*
--	 * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
--	 * is assumed to have the hard watchdog available and we return 0.
--	 */
--	if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
--		return 0;
--
--	/*
--	 * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WATCHDOG
--	 * are required to implement a non-weak version of this probe function
--	 * to tell whether they are available. If they don't override then
--	 * we'll return -ENODEV.
--	 */
- 	return -ENODEV;
+-	return atomic_inc_return(raw_cpu_ptr(&hrtimer_interrupts));
++	return atomic_inc_return(this_cpu_ptr(&hrtimer_interrupts));
  }
  
+ void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
 -- 
 2.41.0.rc0.172.g3f132b7071-goog
 
