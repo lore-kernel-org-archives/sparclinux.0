@@ -2,255 +2,112 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F309C7EE23
-	for <sparclinux@archiver.kernel.org>; Fri, 26 May 2023 14:45:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE20C77B73
+	for <sparclinux@archiver.kernel.org>; Sat, 27 May 2023 01:42:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244032AbjEZOon (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 May 2023 10:44:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38640 "EHLO
+        id S230179AbjE0Bm2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 May 2023 21:42:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244062AbjEZOoi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 May 2023 10:44:38 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 432EEE4F;
-        Fri, 26 May 2023 07:44:09 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id 1960C21AC4;
-        Fri, 26 May 2023 14:44:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1685112247; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=fcZ4ZRR0yos18sY7hIGTBFkGlmXiSRFOxBcjHXBe5hU=;
-        b=J4h09ub7B+8cW6XM+zzyKpToCRFhpDx/CNcNoZrZzAVQoYGEBCP2s6MJYbAJEkhjqQwr6+
-        Ii2jyonq6j1wgE1F5cWTup3ltYGq2aZa7w8gMRcHYrnG3oXEpMwdEygPcGHtjblnr0n9bd
-        xIplkFCoy2RpRD5gkrV4W7dOAktOra8=
-Received: from suse.cz (unknown [10.100.208.146])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 151282C141;
-        Fri, 26 May 2023 14:44:04 +0000 (UTC)
-Date:   Fri, 26 May 2023 16:44:03 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Doug Anderson <dianders@chromium.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthias Kaehlcke <mka@chromium.org>,
-        kgdb-bugreport@lists.sourceforge.net,
-        Stephane Eranian <eranian@google.com>, mpe@ellerman.id.au,
-        Tzung-Bi Shih <tzungbi@chromium.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linuxppc-dev@lists.ozlabs.org, Sumit Garg <sumit.garg@linaro.org>,
-        npiggin@gmail.com, davem@davemloft.net,
-        Marc Zyngier <maz@kernel.org>,
-        Stephen Boyd <swboyd@chromium.org>, sparclinux@vger.kernel.org,
-        christophe.leroy@csgroup.eu,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        ravi.v.shankar@intel.com, Randy Dunlap <rdunlap@infradead.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Guenter Roeck <groeck@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Ian Rogers <irogers@google.com>, ito-yuichi@fujitsu.com,
-        ricardo.neri@intel.com, linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, Will Deacon <will@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        Masayoshi Mizuma <msys.mizuma@gmail.com>,
-        Andi Kleen <ak@linux.intel.com>
-Subject: Re: [PATCH v5 13/18] watchdog/hardlockup: Have the perf hardlockup
- use __weak functions more cleanly
-Message-ID: <ZHDFs-7al6bbOi63@alley>
-References: <20230519101840.v5.18.Ia44852044cdcb074f387e80df6b45e892965d4a1@changeid>
- <20230519101840.v5.13.I847d9ec852449350997ba00401d2462a9cb4302b@changeid>
- <ZG4YMyifGLOBJxLo@alley>
- <CAD=FV=X+LEcSrArV+w35MX4oP1sC9KoRM0puJLT1RFmyS84Hxw@mail.gmail.com>
+        with ESMTP id S242713AbjE0Bm1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 May 2023 21:42:27 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10F8FE46
+        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:16 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-64d2f99c8c3so1221689b3a.0
+        for <sparclinux@vger.kernel.org>; Fri, 26 May 2023 18:42:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1685151736; x=1687743736;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=g8Wyvy6HPwlh6VYOHfNA0dxsOkmR5hf4tUOLdIYH19M=;
+        b=jVupxr9tkpNoY2DPpNO8ve9RV3dt+XdDWaO2WoRtWo7O726zDUiL2HAAxcH6LHl3N4
+         zg+XiJ3Z3hMClz9oQWCKKIy9P9nGkLhMbC/8iyvrxOUDtLp+WDuMwpTv3zKUdQXrfkDP
+         KJUkxWt47+5T+11hbTnQ8sD/sndKaFgdvy0fU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685151736; x=1687743736;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=g8Wyvy6HPwlh6VYOHfNA0dxsOkmR5hf4tUOLdIYH19M=;
+        b=I53oWJmeLT/NrJMyW6+QB4xuOn7kjB1SKfpm4yjBjyTm0K/4OLGOQRIut5oeqdzl1L
+         X00jNFS6fJRFaq/8JxSEr1DbPSErgCvh/IzGIQUZIpud+bdeF6xAuFkpcAArFM7o7jTm
+         CGvfPFXnLhLFizjAgwlHEVVx7JGMvhasX0V4GsoCrSxsIYSUHHM29mfVfoQDclxh02SL
+         QWvBdhbgQO81jgicrTBkpwhPV+vIfybJz2sAZWCWNx/0Dd/niKb5ZXT30AOeN9peUKp+
+         SRwo64z0PSuva9pGQTdEFkz+mDmWBEqfRbnBzupd5IjWvg3wFKILiM6PSLX9cG4htn5q
+         dQgA==
+X-Gm-Message-State: AC+VfDwbPwjfKZ8QVyJU6uim+WrxCgwTR5U2caRTDdf7w0r2ZUQsoFFr
+        sSGiqo7G+zSnunrMq81mj6QQvQ==
+X-Google-Smtp-Source: ACHHUZ4GAy/oEImCC0hpOXpTjNUo0Dhy+rQj32IqoVkt1EVytgp7ZHhTjG/XebwId5tT/CXJZBdMDQ==
+X-Received: by 2002:a05:6a00:190e:b0:63b:8afe:a4dc with SMTP id y14-20020a056a00190e00b0063b8afea4dcmr5524785pfi.30.1685151736256;
+        Fri, 26 May 2023 18:42:16 -0700 (PDT)
+Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:4015:7255:c79a:26d7])
+        by smtp.gmail.com with ESMTPSA id x25-20020aa79199000000b0063b8ddf77f7sm3202440pfa.211.2023.05.26.18.42.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 26 May 2023 18:42:15 -0700 (PDT)
+From:   Douglas Anderson <dianders@chromium.org>
+To:     Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org,
+        Douglas Anderson <dianders@chromium.org>
+Subject: [PATCH 00/10] watchdog: Cleanup / fixes after buddy series v5 reviews
+Date:   Fri, 26 May 2023 18:41:30 -0700
+Message-ID: <20230527014153.2793931-1-dianders@chromium.org>
+X-Mailer: git-send-email 2.41.0.rc0.172.g3f132b7071-goog
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAD=FV=X+LEcSrArV+w35MX4oP1sC9KoRM0puJLT1RFmyS84Hxw@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed 2023-05-24 12:38:49, Doug Anderson wrote:
-> Hi,
-> 
-> On Wed, May 24, 2023 at 6:59 AM Petr Mladek <pmladek@suse.com> wrote:
-> >
-> > On Fri 2023-05-19 10:18:37, Douglas Anderson wrote:
-> > > The fact that there watchdog_hardlockup_enable(),
-> > > watchdog_hardlockup_disable(), and watchdog_hardlockup_probe() are
-> > > declared __weak means that the configured hardlockup detector can
-> > > define non-weak versions of those functions if it needs to. Instead of
-> > > doing this, the perf hardlockup detector hooked itself into the
-> > > default __weak implementation, which was a bit awkward. Clean this up.
-> > >
-> > > >From comments, it looks as if the original design was done because the
-> > > __weak function were expected to implemented by the architecture and
-> > > not by the configured hardlockup detector. This got awkward when we
-> > > tried to add the buddy lockup detector which was not arch-specific but
-> > > wanted to hook into those same functions.
-> > >
-> > > This is not expected to have any functional impact.
-> > >
-> > > @@ -187,27 +187,33 @@ static inline void watchdog_hardlockup_kick(void) { }
-> > >  #endif /* !CONFIG_HARDLOCKUP_DETECTOR_PERF */
-> > >
-> > >  /*
-> > > - * These functions can be overridden if an architecture implements its
-> > > - * own hardlockup detector.
-> > > + * These functions can be overridden based on the configured hardlockdup detector.
-> > >   *
-> > >   * watchdog_hardlockup_enable/disable can be implemented to start and stop when
-> > > - * softlockup watchdog start and stop. The arch must select the
-> > > + * softlockup watchdog start and stop. The detector must select the
-> > >   * SOFTLOCKUP_DETECTOR Kconfig.
-> > >   */
-> > > -void __weak watchdog_hardlockup_enable(unsigned int cpu)
-> > > -{
-> > > -     hardlockup_detector_perf_enable();
-> > > -}
-> > > +void __weak watchdog_hardlockup_enable(unsigned int cpu) { }
-> > >
-> > > -void __weak watchdog_hardlockup_disable(unsigned int cpu)
-> > > -{
-> > > -     hardlockup_detector_perf_disable();
-> > > -}
-> > > +void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
-> > >
-> > >  /* Return 0, if a hardlockup watchdog is available. Error code otherwise */
-> > >  int __weak __init watchdog_hardlockup_probe(void)
-> > >  {
-> > > -     return hardlockup_detector_perf_init();
-> > > +     /*
-> > > +      * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
-> > > +      * is assumed to have the hard watchdog available and we return 0.
-> > > +      */
-> > > +     if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
-> > > +             return 0;
-> > > +
-> > > +     /*
-> > > +      * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WATCHDOG
-> > > +      * are required to implement a non-weak version of this probe function
-> > > +      * to tell whether they are available. If they don't override then
-> > > +      * we'll return -ENODEV.
-> > > +      */
-> > > +     return -ENODEV;
-> > >  }
-> >
-> > When thinking more about it. It is weird that we need to handle
-> > CONFIG_HAVE_NMI_WATCHDOG in this default week function.
-> >
-> > It should be handled in watchdog_hardlockup_probe() implemented
-> > in kernel/watchdog_perf.c.
-> >
-> > IMHO, the default __weak function could always return -ENODEV;
-> >
-> > Would it make sense, please?
-> 
-> I don't quite understand. I'd agree that the special case for
-> CONFIG_HAVE_NMI_WATCHDOG is ugly, but it was also ugly before. IMO
-> it's actually a little less ugly / easier to understand after my
-> patch. ...but let me walk through how I think this special case works
-> and maybe you can tell me where I'm confused.
-> 
-> The first thing to understand is that CONFIG_HARDLOCKUP_DETECTOR_PERF
-> and CONFIG_HAVE_NMI_WATCHDOG are mutually exclusive from each other.
-> This was true before any of my patches and is still true after them.
-> Specifically, if CONFIG_HAVE_NMI_WATCHDOG is defined then an
-> architecture implements arch_touch_nmi_watchdog() (as documented in
-> the Kconfig docs for HAVE_NMI_WATCHDOG). Looking at the tree before my
-> series you can see that the perf hardlockup detector also implemented
-> arch_touch_nmi_watchdog(). This would have caused a conflict. The
-> mutual exclusion was presumably enforced by an architecture not
-> defining both HAVE_NMI_WATCHDOG and HAVE_HARDLOCKUP_DETECTOR_PERF.
-> 
-> The second thing to understand is that an architecture that defines
-> CONFIG_HAVE_NMI_WATCHDOG is _not_ required to implement
-> watchdog_hardlockup_probe() (used to be called watchdog_nmi_probe()).
-> Maybe this should change, but at the very least it appears that
-> SPARC64 defines HAVE_NMI_WATCHDOG but doesn't define
-> watchdog_hardlockup_probe() AKA watchdog_nmi_probe(). Anyone who
-> defines CONFIG_HAVE_NMI_WATCHDOG and doesn't implement
-> watchdog_hardlockup_probe() is claiming that their watchdog needs no
-> probing and is always available.
-> 
-> So with that context:
-> 
-> 1. We can't handle any special cases for CONFIG_HAVE_NMI_WATCHDOG in
-> "kernel/watchdog_perf.c". The special cases that we need to handle are
-> all for the cases where CONFIG_HARDLOCKUP_DETECTOR_PERF isn't defined
-> and that means "kernel/watchdog_perf.c" isn't included.
-> 
-> 2. We can't have the default __weak function return -ENODEV because
-> CONFIG_HAVE_NMI_WATCHDOG doesn't require an arch to implement
-> watchdog_hardlockup_probe(), but we want watchdog_hardlockup_probe()
-> to return "no error" in that case so that
-> "watchdog_hardlockup_available" gets set to true.
-> 
-> Does that sound right?
-> 
-> I'd agree that a future improvement saying that
-> CONFIG_HAVE_NMI_WATCHDOG means you _must_ implement
-> watchdog_hardlockup_probe() would make sense and that would allow us
-> to get rid of the special case. IMO, though, that's a separate patch.
-> I'd be happy to review that patch if you wanted to post it up. :-)
-> 
-> If we want to add that requirement, I _think_ the only thing you'd
-> need to do is to add watchdog_hardlockup_probe() to sparc64 and have
-> it return 0 and put that definition in the same file containing
-> arch_touch_nmi_watchdog().
 
-This is my understanding. IMHO, if we define
-watchdog_hardlockup_probe() in /arch/sparc/kernel/nmi.c
-then we could remove the CONFIG_HAVE_NMI_WATCHDOG check from
-the default watchdog_hardlockup_probe().
+This patch series attempts to finish resolving the feedback received
+from Petr Mladek on the v5 series I posted. Andrew has already landed
+v5 so I'm posting this as additional patches.
 
-Honestly, I am afraid that nobody really thought about any rules.
-People were just adding their stuff any way that worked for them.
-And this is why we ended with this maze.
+Probably the only thing that wasn't fully as clean as Petr requested
+was the Kconfig stuff. I couldn't find a better way to express it
+without a more major overhaul. In the very least, I renamed "NON_ARCH"
+to "PERF_OR_BUDDY" in the hopes that will make it marginally better.
 
-It is not your fault. You just moved the ifdef from the header file
-into the function definition. But it showed very well how ugly it was.
-
-By ugly, I mean that powerpc, perf, and buddy hardlockup detectors
-make watchdog_hardlockup_probe() successful by implementing
-an alternative to the default weak implementation. Only, sparc64
-reports success via a crazy check in the default weak configuration.
-
-The check is crazy because it makes the decision based on
-CONFIG_HAVE_NMI_WATCHDOG. But the related code is in
-arch/sparc/kernel/nmi.c which is compiled when CONFIG_SPARC64
-is enabled.
-
-The connection between CONFIG_HAVE_NMI_WATCHDOG and
-CONFIG_SPARC64 is hidden in arch/sparc/Kconfig.
-
-It would be much more straightforward when the weak function
-is implemented in arch/sparc/kernel/nmi.c. It will be clear
-that probe() will succeed when the watchdog gets initialized.
+Nothing in this series is terribly critical and even the bugfixes are
+small. However, it does cleanup a few things that were pointed out in
+review.
 
 
-> powerpc also gets CONFIG_HAVE_NMI_WATCHDOG
-> as a side effect of selecting CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH but
-> it looks like they implement watchdog_hardlockup_probe() already. Oh,
-> but maybe this will fix a preexisting (existed before my patches)
-> minor bug... Unless I'm missing something (entirely possible!) on
-> powerpc today I guess if you turn off CONFIG_PPC_WATCHDOG then
-> CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH and CONFIG_HAVE_NMI_WATCHDOG
-> would still be defined and we'd end up returning 0 (no error) from
-> watchdog_hardlockup_probe(). That means that on powerpc today if you
-> turn off CONFIG_PPC_WATCHDOG that '/proc/sys/kernel/nmi_watchdog' will
-> still think the watchdog is enabled?
+Douglas Anderson (10):
+  watchdog/hardlockup: Keep kernel.nmi_watchdog sysctl as 0444 if probe
+    fails
+  watchdog/hardlockup: HAVE_NMI_WATCHDOG must implement
+    watchdog_hardlockup_probe()
+  watchdog/hardlockup: Don't use raw_cpu_ptr() in
+    watchdog_hardlockup_kick()
+  watchdog/hardlockup: In watchdog_hardlockup_check() use cpumask_copy()
+  watchdog/hardlockup: remove softlockup comment in touch_nmi_watchdog()
+  watchdog/buddy: Cleanup how watchdog_buddy_check_hardlockup() is
+    called
+  watchdog/buddy: Don't copy the cpumask in watchdog_next_cpu()
+  watchdog/buddy: Simplify the dependency for
+    HARDLOCKUP_DETECTOR_PREFER_BUDDY
+  watchdog/hardlockup: Move SMP barriers from common code to buddy code
+  watchdog/hardlockup: Rename HAVE_HARDLOCKUP_DETECTOR_NON_ARCH to
+    ..._PERF_OR_BUDDY
 
-Yeah, it seems that this bug was there. And it will get fixed when
-the default weak implementation of watchdog_hardlockup_probe()
-always returns false.
+ arch/Kconfig            |  3 +-
+ arch/sparc/kernel/nmi.c |  5 +++
+ include/linux/nmi.h     | 14 ++-------
+ kernel/watchdog.c       | 68 ++++++++++++++++++-----------------------
+ kernel/watchdog_buddy.c | 28 ++++++++++++++---
+ lib/Kconfig.debug       | 14 ++++-----
+ 6 files changed, 70 insertions(+), 62 deletions(-)
 
-Again, I'll let Andrew to decide whether this should get cleaned
-in this patchset or later. But it would be fine to fix this
-after we spent so much time understanding the mess.
+-- 
+2.41.0.rc0.172.g3f132b7071-goog
 
-Best Regards,
-Petr
