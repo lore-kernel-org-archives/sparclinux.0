@@ -2,62 +2,101 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 651B4C77B7E
-	for <sparclinux@archiver.kernel.org>; Mon, 29 May 2023 08:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFFA1C7EE2F
+	for <sparclinux@archiver.kernel.org>; Mon, 29 May 2023 13:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230390AbjE2IZI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 29 May 2023 04:25:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41650 "EHLO
+        id S229902AbjE2N7b (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 29 May 2023 09:59:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231486AbjE2IZG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 29 May 2023 04:25:06 -0400
-X-Greylist: delayed 527 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 29 May 2023 01:25:02 PDT
-Received: from mail.molafter.pl (mail.molafter.pl [94.177.238.22])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBC2AA8
-        for <sparclinux@vger.kernel.org>; Mon, 29 May 2023 01:25:02 -0700 (PDT)
-Received: by mail.molafter.pl (Postfix, from userid 1001)
-        id B78FA838B9; Mon, 29 May 2023 09:16:00 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=molafter.pl; s=mail;
-        t=1685348171; bh=CLdcfubIlvAbnsdwfDgJCOZT8Q5vE6h8usCV1QJebdo=;
-        h=Date:From:To:Subject:From;
-        b=gN7iBrrUu4A75eYRqe2e2rv+lt8lwNEV/4XMn2JBMaFA9hXoscMNiiF1+olKMygra
-         R+b6jAkjhyxSQebzv9jEje16YJtUNTc1+9UKsFcpGo1tRqbgz2+tLrnsoEDyO38ECh
-         /cmNT45JhlEPieyXu+1/hYDpiUPlgMJGkxYUzvvbPWASZr02Wkedz4x7RREQ+AEQav
-         TDrTBXUli6t2Rgm3XQ5mulE4S5PgUJKn0wKLEhH8FS1LofXq2O3ErPa1uro3+0bc2l
-         h7LUt1e6BRiP+NyMtiY28RrZO7JUpxc5sKygfFHsU4J/96Z/RPOLhrpfFyXuKjACjN
-         OyeW+wYTKr4AA==
-Received: by mail.molafter.pl for <sparclinux@vger.kernel.org>; Mon, 29 May 2023 08:15:25 GMT
-Message-ID: <20230529074503-0.1.3j.28p6.0.3rqnzfeqoa@molafter.pl>
-Date:   Mon, 29 May 2023 08:15:25 GMT
-From:   "Krzysztof Tomcza" <krzysztof.tomcza@molafter.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?M=C3=B3j_Pr=C4=85d_5.0_-_jaka_wysoko=C5=9B=C4=87_dofinansowania_do_pomp_ciep=C5=82a=3F?=
-X-Mailer: mail.molafter.pl
+        with ESMTP id S229981AbjE2N7R (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 29 May 2023 09:59:17 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DA3BEA;
+        Mon, 29 May 2023 06:58:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=daJr36z+xkb/H/fiOexwZNK30Bl/V66a5KNArnHZvM8=; b=fuY62XaNQ1pid4PNx3bW9OvYFH
+        W2MZp/QZXjFmThuV9a1DJcWOd+JYQNxPMJygXk9c0KUuaPqy0M9u/r+Vs27UTvHbWDtYVnA+RTTp6
+        jB78eAY5YpAKoIS/61GR1/oSnkSEWJbGBUTSyEmZ9+18f/mzDRAupMRvltvNWDYeS4BcrG9tm2BJf
+        9eiEdU9vtilsjcpBoR5QNebyugV+d/7DnGaOatu9kYBzf4L0AOTycICgaBuWc/MrIP0hG9cSOgII0
+        Ru6GHGxtFSG/YbqlMBCcSBH4IipXcVzJCce6Tp4PdiiqApnnSuEbaBiJJr4ds9zEpfuv9ZaAXKVgR
+        jTQB7oWw==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1q3dMZ-005SA0-VJ; Mon, 29 May 2023 13:56:44 +0000
+Date:   Mon, 29 May 2023 14:56:43 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH 02/12] mm/pgtable: add PAE safety to __pte_offset_map()
+Message-ID: <ZHSvG8UIaq14I/5p@casper.infradead.org>
+References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com>
+ <923480d5-35ab-7cac-79d0-343d16e29318@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <923480d5-35ab-7cac-79d0-343d16e29318@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry
+On Sun, May 28, 2023 at 11:16:16PM -0700, Hugh Dickins wrote:
+> +#if defined(CONFIG_GUP_GET_PXX_LOW_HIGH) && \
+> +	(defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RCU))
+> +/*
+> + * See the comment above ptep_get_lockless() in include/linux/pgtable.h:
+> + * the barriers in pmdp_get_lockless() cannot guarantee that the value in
+> + * pmd_high actually belongs with the value in pmd_low; but holding interrupts
+> + * off blocks the TLB flush between present updates, which guarantees that a
+> + * successful __pte_offset_map() points to a page from matched halves.
+> + */
+> +#define config_might_irq_save(flags)	local_irq_save(flags)
+> +#define config_might_irq_restore(flags)	local_irq_restore(flags)
+> +#else
+> +#define config_might_irq_save(flags)
+> +#define config_might_irq_restore(flags)
 
-chcia=C5=82bym poinformowa=C4=87 o mo=C5=BCliwo=C5=9Bci uzyskania przez P=
-a=C5=84stwa dofinansowania  do 28 tys., z=C5=82 na instalacj=C4=99 pompy =
-ciep=C5=82a.
+I don't like the name.  It should indicate that it's PMD-related, so
+pmd_read_start(flags) / pmd_read_end(flags)?
 
-Od teraz w ramach programu M=C3=B3j Pr=C4=85d 5.0 mo=C5=BCna pozyska=C4=87=
- =C5=9Brodki nie tylko na urz=C4=85dzenia s=C5=82u=C5=BC=C4=85ce do wytwa=
-rzania energii elektrycznej, ale tak=C5=BCe do ogrzewania, w tym pomp=C4=99=
- ciep=C5=82a.=20
-
-Wspieramy w ca=C5=82ym procesie wnioskowania o dofinansowanie, a tak=C5=BC=
-e w doborze i instalacji dopasowanej do potrzeb pompy ciep=C5=82a, jak i =
-p=C3=B3=C5=BAniejszym jej serwisie.
-
-Kiedy mogliby=C5=9Bmy z Pa=C5=84stwem um=C3=B3wi=C4=87 si=C4=99 na kr=C3=B3=
-tk=C4=85 rozmow=C4=99 w celu zbadania potrzeb?
-
-
-Pozdrawiam
-Krzysztof Tomcza
