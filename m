@@ -2,125 +2,81 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F17C7EE24
-	for <sparclinux@archiver.kernel.org>; Tue, 30 May 2023 21:24:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6DA0C77B73
+	for <sparclinux@archiver.kernel.org>; Tue, 30 May 2023 23:21:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233077AbjE3VYH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 May 2023 17:24:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48698 "EHLO
+        id S233862AbjE3XV1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 May 2023 19:21:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230193AbjE3VYG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 May 2023 17:24:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C77AD9;
-        Tue, 30 May 2023 14:24:05 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B5C1E6338E;
-        Tue, 30 May 2023 21:24:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB01EC4339B;
-        Tue, 30 May 2023 21:24:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1685481844;
-        bh=nSQjRvB5sqKGMsdtyBRHXZYqX4emyOnsRXhxnpxj5CY=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=TV1bjAHwa6NLdVZVD7DllGDZUObfyAObgZ8dpZarPA3MFb+4JwjHeGjrah/sKeuB6
-         Xq8Z6uhzHX0F3PKJSdkRh1pFxjO+XorK0VZvx6no556rDJNfISNz+wSJYYSdEmvn7Z
-         hUMZYEgCtddE7YUdKaua4hQLvfWtpf57g3PAd+6ZmWrfu2xY5A7mha+RytVeJ/84Sv
-         mxnDEJPKCDkp/bA6BADO+x5ZZtDdknfJeDc4bcwl2S3en2mWL+rmMtiDyQsmiX2t01
-         UKGSafGTnUjV0OrS31D6yutY2Y59cmVv6Xh9lXe15RO90svr9jvNnhSKkE8vII7TeO
-         VMw5j/h0xzgKQ==
-Date:   Tue, 30 May 2023 16:24:02 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
-        linux-pci@vger.kernel.org,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-kernel@vger.kernel.org,
-        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
-        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
-        Anatolij Gustschin <agust@denx.de>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Juergen Gross <jgross@suse.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-        linuxppc-dev@lists.ozlabs.org,
-        Randy Dunlap <rdunlap@infradead.org>,
-        linux-mips@vger.kernel.org,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-        linux-alpha@vger.kernel.org,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>
-Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
- users
-Message-ID: <ZHZpcli2UmdzHgme@bhelgaas>
+        with ESMTP id S233890AbjE3XVP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 May 2023 19:21:15 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1491618B
+        for <sparclinux@vger.kernel.org>; Tue, 30 May 2023 16:21:06 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-64d57cd373fso249134b3a.1
+        for <sparclinux@vger.kernel.org>; Tue, 30 May 2023 16:21:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1685488865; x=1688080865;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=ljljFYrI9j90T96SUu8HKEzV53F0QD906Y79Nui+Mxk=;
+        b=V6TNfBdP2n2BwA8y8Za2WqcyGJgtgxNpLpZmkOvvEuzyhLnuI3dAzTEPb3/YB/4FUo
+         N1trzFO72irFDZ9qOssEHn+eicEFQFPo9qtiIO/2LwmPwIScvQJiOWjfXX0wP81gUzMK
+         0iimHJac+WyZS3y8G6a1tuIwZfXNtVlBAZm+o=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685488865; x=1688080865;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ljljFYrI9j90T96SUu8HKEzV53F0QD906Y79Nui+Mxk=;
+        b=djYM6ToOkDZ/5wcmVuZzMI4n3VVxpi5e0IMgsKgwcSDAeVRnaW//Gad2WbvYPN63J1
+         D8l5S+fhnBaqusLwleQO3/Z42399KEyJremsMg23X0oEj2uM+S7Y0yD8E9d7D5QEbhfS
+         wOKw001Dt4ExOdAtsoxvo4BdqpTY89sT2NgsY+sQtTRz7O8asiqysWOI2UHQKL5R17BZ
+         k5H6hAPO8NxAgiG7Vc9p0cbKnOdSZYrhnH733LxmXfk4opQYV3JUdNeAKdmCU6zGEMxp
+         bnBn5D1toyFOtfHnZgxFqWI0cKfpMaM6h2ZZG/lkggmJ5Igt3ViIWlYwSjazM1DB1C0A
+         mTYw==
+X-Gm-Message-State: AC+VfDwAP9XAsQZ1VInYiG0FIXmhTrWDaZFOS0hncHuRuiSfR53WPuZT
+        AnDB5nOCm3ej9XhRtar/Uw1Mxw==
+X-Google-Smtp-Source: ACHHUZ6xiNFeo5o/L25vvvqopT3t7JyxdHwIM1PpkhrHKD9JuPWUxyfvbMrXvUn38HWPjPPXTxo+aQ==
+X-Received: by 2002:a05:6a20:3d84:b0:10d:515:ff2d with SMTP id s4-20020a056a203d8400b0010d0515ff2dmr13086359pzi.4.1685488865544;
+        Tue, 30 May 2023 16:21:05 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id s3-20020a63ff43000000b0053b92b26412sm9050237pgk.14.2023.05.30.16.21.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 May 2023 16:21:05 -0700 (PDT)
+Date:   Tue, 30 May 2023 16:21:04 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Azeem Shaikh <azeemshaikh38@gmail.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        linux-hardening@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] sparc64: Replace all non-returning strlcpy with strscpy
+Message-ID: <202305301621.87C228E@keescook>
+References: <20230530163001.985256-1-azeemshaikh38@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZF6YIezraETr9iNM@bhelgaas>
+In-Reply-To: <20230530163001.985256-1-azeemshaikh38@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, May 12, 2023 at 02:48:51PM -0500, Bjorn Helgaas wrote:
-> On Fri, May 12, 2023 at 01:56:29PM +0300, Andy Shevchenko wrote:
-> > On Tue, May 09, 2023 at 01:21:22PM -0500, Bjorn Helgaas wrote:
-> > > On Tue, Apr 04, 2023 at 11:11:01AM -0500, Bjorn Helgaas wrote:
-> > > > On Thu, Mar 30, 2023 at 07:24:27PM +0300, Andy Shevchenko wrote:
-> > > > > Provide two new helper macros to iterate over PCI device resources and
-> > > > > convert users.
-> > > 
-> > > > Applied 2-7 to pci/resource for v6.4, thanks, I really like this!
-> > > 
-> > > This is 09cc90063240 ("PCI: Introduce pci_dev_for_each_resource()")
-> > > upstream now.
-> > > 
-> > > Coverity complains about each use,
-> > 
-> > It needs more clarification here. Use of reduced variant of the
-> > macro or all of them? If the former one, then I can speculate that
-> > Coverity (famous for false positives) simply doesn't understand `for
-> > (type var; var ...)` code.
+On Tue, May 30, 2023 at 04:30:01PM +0000, Azeem Shaikh wrote:
+> strlcpy() reads the entire source buffer first.
+> This read may exceed the destination size limit.
+> This is both inefficient and can lead to linear read
+> overflows if a source string is not NUL-terminated [1].
+> In an effort to remove strlcpy() completely [2], replace
+> strlcpy() here with strscpy().
+> No return values were used, so direct replacement is safe.
 > 
-> True, Coverity finds false positives.  It flagged every use in
-> drivers/pci and drivers/pnp.  It didn't mention the arch/alpha, arm,
-> mips, powerpc, sh, or sparc uses, but I think it just didn't look at
-> those.
+> [1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
+> [2] https://github.com/KSPP/linux/issues/89
 > 
-> It flagged both:
-> 
->   pbus_size_io    pci_dev_for_each_resource(dev, r)
->   pbus_size_mem   pci_dev_for_each_resource(dev, r, i)
-> 
-> Here's a spreadsheet with a few more details (unfortunately I don't
-> know how to make it dump the actual line numbers or analysis like I
-> pasted below, so "pci_dev_for_each_resource" doesn't appear).  These
-> are mostly in the "Drivers-PCI" component.
-> 
-> https://docs.google.com/spreadsheets/d/1ohOJwxqXXoDUA0gwopgk-z-6ArLvhN7AZn4mIlDkHhQ/edit?usp=sharing
-> 
-> These particular reports are in the "High Impact Outstanding" tab.
+> Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
 
-Where are we at?  Are we going to ignore this because some Coverity
-reports are false positives?
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-Bjorn
+-- 
+Kees Cook
