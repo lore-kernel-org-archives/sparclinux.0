@@ -2,184 +2,111 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D987C7EE2E
-	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 17:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDC9C7EE2D
+	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 21:30:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230171AbjEaRZm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 31 May 2023 13:25:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
+        id S229715AbjEaVav (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 31 May 2023 17:30:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbjEaRZk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 May 2023 13:25:40 -0400
-Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C98DBE
-        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:25:38 -0700 (PDT)
-Received: by mail-il1-x12d.google.com with SMTP id e9e14a558f8ab-33b398f2ab8so10785ab.0
-        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:25:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1685553938; x=1688145938;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=f9rDw2v1LEmye3RLuD/RrrSGCh1UZ3V6JVzZJFvjbWQ=;
-        b=CM0AuU72AcPSh131wQ9crT8iFbojgiYaMR0ZSQFK8kjs45mw5usLlAIhaun5lyvIUt
-         wExvZsnF+Y/c9O0ViQtZ375xekAQOkC2l0fk18AOQisyVPMzkPiJ8zi/btsm+NPYxju7
-         MI1ropBml9khGIMtFqvQZ5ZFA3RSM2ZviNcgn5VbSlXa3ytpJTdH7HofVwJ9/2Qen4WS
-         051PVAgJXvJkegFFklqRVDPy83wUzSBjxxDFu56mRAEtSP4gKFxiSBA/OEyqTU1LUHUg
-         0l6Uv5BmErx3H0lthWvCFUBb1ELtXAQOYfj1Gs6CU2Pgsoh6ZNLfoKpQiBo5nt9UKPZF
-         HrHQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685553938; x=1688145938;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=f9rDw2v1LEmye3RLuD/RrrSGCh1UZ3V6JVzZJFvjbWQ=;
-        b=QyE8DE609hmETntWeAIui1mfL+/VEU1D5hYFoUwIJIlyn99IgZ0b8y5yYHKQSPOWNE
-         LontLRN15RBTgFmkwer0tiJCiyOxhRCAXqDSC2m/K3yIsA4JxErEa/TStbYLe/NMy+d8
-         w9VxpVvfYYwQjgl7+qDUk5Qh82W3ItreE75yRIjL1IklDjLfTfnSdg6hvvkTgepbSwul
-         njuFWjh5UtWJCqZk/VesOEg/7ogijhDylzaI2RwIp0SU51xYfoi8bbVY1y2r0Js0OAhL
-         WTbtK0L7jRuvjXDFm35mjUdrYGvnjSDvADRbTzojR8AGqMwvY8EJ8oPqNoAx0/hn/bVs
-         mOzw==
-X-Gm-Message-State: AC+VfDw9guDKHYq39hd/cUqsBogkrCqQxwbuoNjbzSjEVMzFPtDPmJir
-        kmTMtF1jVDOYVL49DLkCvV99tsaPXuw7KiKHLdoDJg==
-X-Google-Smtp-Source: ACHHUZ6Afl+xZKFHZomNksLJA//ac6T4P12fNCTRCN7NynywZdGagjN9pdDeftj4IADrAcP1/u34lNvJe8J80I1ISvg=
-X-Received: by 2002:a05:6e02:1a44:b0:33a:e716:a76e with SMTP id
- u4-20020a056e021a4400b0033ae716a76emr187444ilv.28.1685553937544; Wed, 31 May
- 2023 10:25:37 -0700 (PDT)
-MIME-Version: 1.0
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <563340a4-7ac9-7cc8-33d8-f7cc6ef19ea6@google.com>
-In-Reply-To: <563340a4-7ac9-7cc8-33d8-f7cc6ef19ea6@google.com>
-From:   Jann Horn <jannh@google.com>
-Date:   Wed, 31 May 2023 19:25:01 +0200
-Message-ID: <CAG48ez2X5oZyxaFniZ-HeGHDGjNuPBewGTjZLEHPWkBbBCaigg@mail.gmail.com>
-Subject: Re: [PATCH 10/12] mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        with ESMTP id S229484AbjEaVau (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 May 2023 17:30:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E1A01A2;
+        Wed, 31 May 2023 14:30:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5E2E63391;
+        Wed, 31 May 2023 21:30:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7E1C433D2;
+        Wed, 31 May 2023 21:30:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1685568630;
+        bh=gW9waI0b8IiYUwk0vfOCM7pXk2nDw1QSAznIy/h3ghs=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=KtBbCN/ixHzj8ZulEY/5zCSpe/VVKBpSZFDZuNCSDCoNNZ4IeoA+28lWLQWvSlii6
+         83BDJpZxFh6HJCKpfPSOLONuS2M6Vumh+ceOlzxWjyrmYHupNvr4DztdjDLJl3iqmN
+         E3araGx+1PyOqST2zluz35yOcgzUDjix8glDLTAN/wUxtojSsJeinZtS0BNCLJVOXb
+         hkXJLKswE11TqxiL8vaPqm931ggJJ71GILWlC61yGzVhgB56FeGO9+L1ZryEUY7qlP
+         EPZxdEvOEEyvpu7VdWJnY4Z4bFlhgqbJcQ6tWlmZqEjiu2TPM90LCU6E74dCFHn04m
+         J5aGwHVGTvHag==
+Date:   Wed, 31 May 2023 16:30:28 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Jonas Gorski <jonas.gorski@gmail.com>
+Cc:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Andrew Lunn <andrew@lunn.ch>, sparclinux@vger.kernel.org,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Russell King <linux@armlinux.org.uk>,
+        linux-acpi@vger.kernel.org, Miguel Ojeda <ojeda@kernel.org>,
+        xen-devel@lists.xenproject.org, Matt Turner <mattst88@gmail.com>,
+        Anatolij Gustschin <agust@denx.de>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Juergen Gross <jgross@suse.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-mips@vger.kernel.org,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+        linux-alpha@vger.kernel.org,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        "Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: Re: [PATCH v8 0/7] Add pci_dev_for_each_resource() helper and update
+ users
+Message-ID: <ZHe8dKb3f392MfBO@bhelgaas>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOiHx==5YWhDiZP2PyHZiJrmtqRzvqCqoSO59RwuYuR85BezBg@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, May 29, 2023 at 8:26=E2=80=AFAM Hugh Dickins <hughd@google.com> wro=
-te:
-> Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
-> It does need mmap_read_lock(), but it does not need mmap_write_lock(),
-> nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
-> paths are relying on pte_offset_map_lock() and pmd_lock(), so use those.
+On Wed, May 31, 2023 at 08:48:35PM +0200, Jonas Gorski wrote:
+> ...
 
-I think there's a weirdness in the existing code, and this change
-probably turns that into a UAF bug.
+> Looking at the code I understand where coverity is coming from:
+> 
+> #define __pci_dev_for_each_res0(dev, res, ...)                         \
+>        for (unsigned int __b = 0;                                      \
+>             res = pci_resource_n(dev, __b), __b < PCI_NUM_RESOURCES;   \
+>             __b++)
+> 
+>  res will be assigned before __b is checked for being less than
+> PCI_NUM_RESOURCES, making it point to behind the array at the end of
+> the last loop iteration.
+> 
+> Rewriting the test expression as
+> 
+> __b < PCI_NUM_RESOURCES && (res = pci_resource_n(dev, __b));
+> 
+> should avoid the (coverity) warning by making use of lazy evaluation.
+> 
+> It probably makes the code slightly less performant as res will now be
+> checked for being not NULL (which will always be true), but I doubt it
+> will be significant (or in any hot paths).
 
-collapse_pte_mapped_thp() can be called on an address that might not
-be associated with a VMA anymore, and after this change, the page
-tables for that address might be in the middle of page table teardown
-in munmap(), right? The existing mmap_write_lock() guards against
-concurrent munmap() (so in the old code we are guaranteed to either
-see a normal VMA or not see the page tables anymore), but
-mmap_read_lock() only guards against the part of munmap() up to the
-mmap_write_downgrade() in do_vmi_align_munmap(), and unmap_region()
-(including free_pgtables()) happens after that.
+Thanks a lot for looking into this!  I think you're right, and I think
+the rewritten expression is more logical as well.  Do you want to post
+a patch for it?
 
-So we can now enter collapse_pte_mapped_thp() and race with concurrent
-free_pgtables() such that a PUD disappears under us while we're
-walking it or something like that:
-
-
-int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
-          bool install_pmd)
-{
-  struct mmu_notifier_range range;
-  unsigned long haddr =3D addr & HPAGE_PMD_MASK;
-  struct vm_area_struct *vma =3D vma_lookup(mm, haddr); // <<< returns NULL
-  struct page *hpage;
-  pte_t *start_pte, *pte;
-  pmd_t *pmd, pgt_pmd;
-  spinlock_t *pml, *ptl;
-  int nr_ptes =3D 0, result =3D SCAN_FAIL;
-  int i;
-
-  mmap_assert_locked(mm);
-
-  /* Fast check before locking page if already PMD-mapped */
-  result =3D find_pmd_or_thp_or_none(mm, haddr, &pmd); // <<< PUD UAF in he=
-re
-  if (result =3D=3D SCAN_PMD_MAPPED)
-    return result;
-
-  if (!vma || !vma->vm_file || // <<< bailout happens too late
-      !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
-    return SCAN_VMA_CHECK;
-
-
-I guess the right fix here is to make sure that at least the basic VMA
-revalidation stuff (making sure there still is a VMA covering this
-range) happens before find_pmd_or_thp_or_none()? Like:
-
-
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index 301c0e54a2ef..5db365587556 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -1481,15 +1481,15 @@ int collapse_pte_mapped_thp(struct mm_struct
-*mm, unsigned long addr,
-
-         mmap_assert_locked(mm);
-
-+        if (!vma || !vma->vm_file ||
-+            !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
-+                return SCAN_VMA_CHECK;
-+
-         /* Fast check before locking page if already PMD-mapped */
-         result =3D find_pmd_or_thp_or_none(mm, haddr, &pmd);
-         if (result =3D=3D SCAN_PMD_MAPPED)
-                 return result;
-
--        if (!vma || !vma->vm_file ||
--            !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
--                return SCAN_VMA_CHECK;
--
-         /*
-          * If we are here, we've succeeded in replacing all the native pag=
-es
-          * in the page cache with a single hugepage. If a mm were to fault=
--in
+Bjorn
