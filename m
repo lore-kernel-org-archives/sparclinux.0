@@ -2,57 +2,60 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2C3C7EE2C
-	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 00:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC8EC7EE31
+	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 15:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233604AbjEaAkm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 May 2023 20:40:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55074 "EHLO
+        id S234760AbjEaPfm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 31 May 2023 11:35:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233471AbjEaAkk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 May 2023 20:40:40 -0400
-Received: from mail-yw1-x112f.google.com (mail-yw1-x112f.google.com [IPv6:2607:f8b0:4864:20::112f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAA1CE59
-        for <sparclinux@vger.kernel.org>; Tue, 30 May 2023 17:40:06 -0700 (PDT)
-Received: by mail-yw1-x112f.google.com with SMTP id 00721157ae682-568928af8f5so6188307b3.1
-        for <sparclinux@vger.kernel.org>; Tue, 30 May 2023 17:40:06 -0700 (PDT)
+        with ESMTP id S234349AbjEaPfl (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 May 2023 11:35:41 -0400
+Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE2A8132
+        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 08:35:35 -0700 (PDT)
+Received: by mail-il1-x133.google.com with SMTP id e9e14a558f8ab-33baee0235cso155275ab.1
+        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 08:35:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1685493519; x=1688085519;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ciIag9ppNam6Ikfax7r++Kew/N1dQoncU50To4G8bq4=;
-        b=s4psAFfQL/Xvpx6CG11TvqCPK3dBE+CtAbPvc1LP/Vp6cCIPwmqOUxi+gGLKdymwVr
-         KBXGfyRCyEb33I+9q2LBQlgDePc3a05l6O33H7YqyysB9hf1XyENU9qWBuoJKw9EUYlM
-         pEmFeg9cJw7sTQQkmXYP686QUBSsQmfaa7kHqU5iVgb8czbTZTSlhAs0FZ/Obh5PJtKM
-         KqgNPZ3zv/vf4lueLkpjpWZJ2r9PyPbJ09lE/jw8yqBmW8+Z8g93HIyjbo+Kh8JZVRr3
-         WEinxSHBsLsBK74sDXvaF9Wg6I0DN+6VHv7QBBKIYxpiJFFSywoCIJ9FPC0ocitPQl4O
-         hpNA==
+        d=google.com; s=20221208; t=1685547335; x=1688139335;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=dRRkvCZYbSlg4t8xNmIDDwHUKuhLfHD0cIrw3700dVo=;
+        b=F3utUZ5jdPTR1x7kwep/a3O/M1O2FfEohIVXcz/CBMY94I7ghYAdOfOwmEteY9N+pu
+         ArxO1ao1FFcwWZ2Ro9xw80509s0jHrC5OKiBRqA3UuPlOFCiAadD2rF+t7Izm6hDF3yJ
+         EPiTxETDha4DPtB9+aejroYDKEjiCItrVP55/xj7j8umM0YMbdCstRaCk5tY7JllwJ9X
+         P8r6ZqbUG90uBJZcbeKX9hyczmmujIw/7PhyCwbKan8AQ0AN6K8lxHE4PE178uEet/cV
+         XYvgARLy0SyrigU58Rs1QqIihvIgtm0J45cpH119527xv3T4RALnMC4bstaRMr/TCn5P
+         UInw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685493519; x=1688085519;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ciIag9ppNam6Ikfax7r++Kew/N1dQoncU50To4G8bq4=;
-        b=X3TV0BDKPPWdoqxJW3DvSOveNGVkY4Z5ncFxNW7CTWOKRLWi+Z7QS6Ktj9BOaexgeZ
-         ch+RBK7teXSHmmegIdyjiZx4ww3F6mSEJPiVb0QOJ3WYz4mVS8rPoDG2RpiYoCyEyd+K
-         XrfIO2OJJaBOWCeCxwo3yzezAVWJnINTaeuDjtSLDiE3BSrA2a8WOhZxM3jfH71qlP9Q
-         OVlhTNyqMRtQpukKkCUZxQ2uTHeQMg4/yW8iNz1GPiVH6HPoefSW7dJ2bAMLWl1E0Z03
-         4v8yHneToirm8QrKH8Iem4DQ6NfV/F9i5a/2nZ4Gc4bnNt1t9BkaM0YPKtokb1M6boCX
-         uctg==
-X-Gm-Message-State: AC+VfDzV6NobzEOPL/c9I0NDCf6l28oKEBe+SN8l18CoWiZ6ViEfJr93
-        eV0/hblAWNtTikHAtR3SLKJtZA==
-X-Google-Smtp-Source: ACHHUZ6oAzWH6paUG3LosxgrJ++supK0+JI2vStYiabgmf/uhHM/SefufdWqFEJ0cjjU81mHFbbIJA==
-X-Received: by 2002:a0d:f905:0:b0:568:e69a:1178 with SMTP id j5-20020a0df905000000b00568e69a1178mr1764241ywf.5.1685493519139;
-        Tue, 30 May 2023 17:38:39 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id a7-20020a818a07000000b00555c30ec361sm4859512ywg.143.2023.05.30.17.38.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 May 2023 17:38:35 -0700 (PDT)
-Date:   Tue, 30 May 2023 17:38:25 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Peter Xu <peterx@redhat.com>
-cc:     Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
+        d=1e100.net; s=20221208; t=1685547335; x=1688139335;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=dRRkvCZYbSlg4t8xNmIDDwHUKuhLfHD0cIrw3700dVo=;
+        b=G1tBir+YMgEGSBReMEm+aG98Lx2IZ4fjLAH5l9AphiLcsmn1pBsHr9+s7puBdO/pWs
+         XxEd+ibRyclhRXisM3ICVlH5pqQAU3SgUYuGSeCyh12rx5ixxuL5F6oxflhh0RNNEaWI
+         Ox4iDkcft+y+G6qKXcJIqA2g2Po8wZ7L8AxhBnRFEeN/ehRJDAKSkHORZBcjNn/AFauW
+         HfSidJwJ53+lAXGy5uHrkP5rXKYPy4aJLWJ3SFUoUMLeSEqEzdysM0dNtiFfwgzGAt/M
+         Ebb4EF8X3VuzQS+4/gmIvf2PKIsJ0eT1shrjiDfHAwnW3uGIbj2ruGm6p3CHUeRFPOED
+         hyBQ==
+X-Gm-Message-State: AC+VfDyWr8LmG1aFlAlltbts3krzQy8dQnnHzAMebLHIVdwrHuncfSFs
+        5/5I/29jgIdKDuHkbVbjZKttIFlYK8TmnxKVNFZ2aw==
+X-Google-Smtp-Source: ACHHUZ4mNqVesHou0LfeMRx7lS528vvvhkrqWTEzo+XSDqTFvF5QDhctZ96+3EobWyEv8r+F1qci8LfCFS6OSAYqXto=
+X-Received: by 2002:a05:6e02:1a26:b0:33b:3bf4:9f42 with SMTP id
+ g6-20020a056e021a2600b0033b3bf49f42mr126993ile.19.1685547334866; Wed, 31 May
+ 2023 08:35:34 -0700 (PDT)
+MIME-Version: 1.0
+References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <2e9996fa-d238-e7c-1194-834a2bd1f60@google.com>
+In-Reply-To: <2e9996fa-d238-e7c-1194-834a2bd1f60@google.com>
+From:   Jann Horn <jannh@google.com>
+Date:   Wed, 31 May 2023 17:34:58 +0200
+Message-ID: <CAG48ez0aF1Rf1apSjn9YcnfyFQ4YqSd4GqB6f2wfhF7jMdi5Hg@mail.gmail.com>
+Subject: Re: [PATCH 09/12] mm/khugepaged: retract_page_tables() without mmap
+ or vma lock
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
@@ -62,6 +65,7 @@ cc:     Hugh Dickins <hughd@google.com>,
         Qi Zheng <zhengqi.arch@bytedance.com>,
         Yang Shi <shy828301@gmail.com>,
         Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
         Alistair Popple <apopple@nvidia.com>,
@@ -88,177 +92,281 @@ cc:     Hugh Dickins <hughd@google.com>,
         Christian Borntraeger <borntraeger@linux.ibm.com>,
         Claudio Imbrenda <imbrenda@linux.ibm.com>,
         Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 09/12] mm/khugepaged: retract_page_tables() without mmap
- or vma lock
-In-Reply-To: <ZHU0m+QIChZNdOdg@x1n>
-Message-ID: <48c679e9-8eed-568a-1de1-c57e315c693c@google.com>
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <2e9996fa-d238-e7c-1194-834a2bd1f60@google.com> <ZHU0m+QIChZNdOdg@x1n>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Thanks for looking, Peter: I was well aware of you dropping several hints
-that you wanted to see what's intended before passing judgment on earlier
-series, and I preferred to get on with showing this series, than go into
-detail in responses to you there - thanks for your patience :)
+On Mon, May 29, 2023 at 8:25=E2=80=AFAM Hugh Dickins <hughd@google.com> wro=
+te:
+> -static int retract_page_tables(struct address_space *mapping, pgoff_t pg=
+off,
+> -                              struct mm_struct *target_mm,
+> -                              unsigned long target_addr, struct page *hp=
+age,
+> -                              struct collapse_control *cc)
+> +static void retract_page_tables(struct address_space *mapping, pgoff_t p=
+goff)
+>  {
+>         struct vm_area_struct *vma;
+> -       int target_result =3D SCAN_FAIL;
+>
+> -       i_mmap_lock_write(mapping);
+> +       i_mmap_lock_read(mapping);
+>         vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+> -               int result =3D SCAN_FAIL;
+> -               struct mm_struct *mm =3D NULL;
+> -               unsigned long addr =3D 0;
+> -               pmd_t *pmd;
+> -               bool is_target =3D false;
+> +               struct mm_struct *mm;
+> +               unsigned long addr;
+> +               pmd_t *pmd, pgt_pmd;
+> +               spinlock_t *pml;
+> +               spinlock_t *ptl;
+>
+>                 /*
+>                  * Check vma->anon_vma to exclude MAP_PRIVATE mappings th=
+at
+> -                * got written to. These VMAs are likely not worth invest=
+ing
+> -                * mmap_write_lock(mm) as PMD-mapping is likely to be spl=
+it
+> -                * later.
+> +                * got written to. These VMAs are likely not worth removi=
+ng
+> +                * page tables from, as PMD-mapping is likely to be split=
+ later.
+>                  *
+> -                * Note that vma->anon_vma check is racy: it can be set u=
+p after
+> -                * the check but before we took mmap_lock by the fault pa=
+th.
+> -                * But page lock would prevent establishing any new ptes =
+of the
+> -                * page, so we are safe.
+> -                *
+> -                * An alternative would be drop the check, but check that=
+ page
+> -                * table is clear before calling pmdp_collapse_flush() un=
+der
+> -                * ptl. It has higher chance to recover THP for the VMA, =
+but
+> -                * has higher cost too. It would also probably require lo=
+cking
+> -                * the anon_vma.
+> +                * Note that vma->anon_vma check is racy: it can be set a=
+fter
+> +                * the check, but page locks (with XA_RETRY_ENTRYs in hol=
+es)
+> +                * prevented establishing new ptes of the page. So we are=
+ safe
+> +                * to remove page table below, without even checking it's=
+ empty.
 
-On Mon, 29 May 2023, Peter Xu wrote:
-> On Sun, May 28, 2023 at 11:25:15PM -0700, Hugh Dickins wrote:
-...
-> > @@ -1748,123 +1747,73 @@ static void khugepaged_collapse_pte_mapped_thps(struct khugepaged_mm_slot *mm_sl
-> >  	mmap_write_unlock(mm);
-> >  }
-> >  
-> > -static int retract_page_tables(struct address_space *mapping, pgoff_t pgoff,
-> > -			       struct mm_struct *target_mm,
-> > -			       unsigned long target_addr, struct page *hpage,
-> > -			       struct collapse_control *cc)
-> > +static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
-> >  {
-> >  	struct vm_area_struct *vma;
-> > -	int target_result = SCAN_FAIL;
-> >  
-> > -	i_mmap_lock_write(mapping);
-> > +	i_mmap_lock_read(mapping);
-> >  	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-> > -		int result = SCAN_FAIL;
-> > -		struct mm_struct *mm = NULL;
-> > -		unsigned long addr = 0;
-> > -		pmd_t *pmd;
-> > -		bool is_target = false;
-> > +		struct mm_struct *mm;
-> > +		unsigned long addr;
-> > +		pmd_t *pmd, pgt_pmd;
-> > +		spinlock_t *pml;
-> > +		spinlock_t *ptl;
-> >  
-> >  		/*
-> >  		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
-> > -		 * got written to. These VMAs are likely not worth investing
-> > -		 * mmap_write_lock(mm) as PMD-mapping is likely to be split
-> > -		 * later.
-> > +		 * got written to. These VMAs are likely not worth removing
-> > +		 * page tables from, as PMD-mapping is likely to be split later.
-> >  		 *
-> > -		 * Note that vma->anon_vma check is racy: it can be set up after
-> > -		 * the check but before we took mmap_lock by the fault path.
-> > -		 * But page lock would prevent establishing any new ptes of the
-> > -		 * page, so we are safe.
-> > -		 *
-> > -		 * An alternative would be drop the check, but check that page
-> > -		 * table is clear before calling pmdp_collapse_flush() under
-> > -		 * ptl. It has higher chance to recover THP for the VMA, but
-> > -		 * has higher cost too. It would also probably require locking
-> > -		 * the anon_vma.
-> > +		 * Note that vma->anon_vma check is racy: it can be set after
-> > +		 * the check, but page locks (with XA_RETRY_ENTRYs in holes)
-> > +		 * prevented establishing new ptes of the page. So we are safe
-> > +		 * to remove page table below, without even checking it's empty.
-> >  		 */
-> > -		if (READ_ONCE(vma->anon_vma)) {
-> > -			result = SCAN_PAGE_ANON;
-> > -			goto next;
-> > -		}
-> > +		if (READ_ONCE(vma->anon_vma))
-> > +			continue;
-> 
-> Not directly related to current patch, but I just realized there seems to
-> have similar issue as what ab0c3f1251b4 wanted to fix.
-> 
-> IIUC any shmem vma that used to have uprobe/bp installed will have anon_vma
-> set here, then does it mean that any vma used to get debugged will never be
-> able to merge into a thp (with either madvise or khugepaged)?
-> 
-> I think it'll only make a difference when the page cache is not huge yet
-> when bp was uninstalled, but then it becomes a thp candidate somehow.  Even
-> if so, I think the anon_vma should still be there.
-> 
-> Did I miss something, or maybe that's not even a problem?
+This "we are safe to remove page table below, without even checking
+it's empty" assumes that the only way to create new anonymous PTEs is
+to use existing file PTEs, right? What about private shmem VMAs that
+are registered with userfaultfd as VM_UFFD_MISSING? I think for those,
+the UFFDIO_COPY ioctl lets you directly insert anonymous PTEs without
+looking at the mapping and its pages (except for checking that the
+insertion point is before end-of-file), protected only by mmap_lock
+(shared) and pte_offset_map_lock().
 
-Finding vma->anon_vma set would discourage retract_page_tables() from
-doing its business with that previously uprobed area; but it does not stop
-collapse_pte_mapped_thp() (which uprobes unregister calls directly) from
-dealing with it, and MADV_COLLAPSE works on anon_vma'ed areas too.  It's
-just a heuristic in retract_page_tables(), when it chooses to skip the
-anon_vma'ed areas as often not worth bothering with.
 
-As to vma merges: I haven't actually checked since the maple tree and other
-rewrites of vma merging, but previously one vma with anon_vma set could be
-merged with adjacent vma before or after without anon_vma set - the
-anon_vma comparison is not just equality of anon_vma, but allows NULL too -
-so the anon_vma will still be there, but extends to cover the wider extent.
-Right, I find is_mergeable_anon_vma() still following that rule.
+>                  */
+> -               if (READ_ONCE(vma->anon_vma)) {
+> -                       result =3D SCAN_PAGE_ANON;
+> -                       goto next;
+> -               }
+> +               if (READ_ONCE(vma->anon_vma))
+> +                       continue;
+> +
+>                 addr =3D vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE=
+_SHIFT);
+>                 if (addr & ~HPAGE_PMD_MASK ||
+> -                   vma->vm_end < addr + HPAGE_PMD_SIZE) {
+> -                       result =3D SCAN_VMA_CHECK;
+> -                       goto next;
+> -               }
+> -               mm =3D vma->vm_mm;
+> -               is_target =3D mm =3D=3D target_mm && addr =3D=3D target_a=
+ddr;
+> -               result =3D find_pmd_or_thp_or_none(mm, addr, &pmd);
+> -               if (result !=3D SCAN_SUCCEED)
+> -                       goto next;
+> -               /*
+> -                * We need exclusive mmap_lock to retract page table.
+> -                *
+> -                * We use trylock due to lock inversion: we need to acqui=
+re
+> -                * mmap_lock while holding page lock. Fault path does it =
+in
+> -                * reverse order. Trylock is a way to avoid deadlock.
+> -                *
+> -                * Also, it's not MADV_COLLAPSE's job to collapse other
+> -                * mappings - let khugepaged take care of them later.
+> -                */
+> -               result =3D SCAN_PTE_MAPPED_HUGEPAGE;
+> -               if ((cc->is_khugepaged || is_target) &&
+> -                   mmap_write_trylock(mm)) {
+> -                       /* trylock for the same lock inversion as above *=
+/
+> -                       if (!vma_try_start_write(vma))
+> -                               goto unlock_next;
+> -
+> -                       /*
+> -                        * Re-check whether we have an ->anon_vma, becaus=
+e
+> -                        * collapse_and_free_pmd() requires that either n=
+o
+> -                        * ->anon_vma exists or the anon_vma is locked.
+> -                        * We already checked ->anon_vma above, but that =
+check
+> -                        * is racy because ->anon_vma can be populated un=
+der the
+> -                        * mmap lock in read mode.
+> -                        */
+> -                       if (vma->anon_vma) {
+> -                               result =3D SCAN_PAGE_ANON;
+> -                               goto unlock_next;
+> -                       }
+> -                       /*
+> -                        * When a vma is registered with uffd-wp, we can'=
+t
+> -                        * recycle the pmd pgtable because there can be p=
+te
+> -                        * markers installed.  Skip it only, so the rest =
+mm/vma
+> -                        * can still have the same file mapped hugely, ho=
+wever
+> -                        * it'll always mapped in small page size for uff=
+d-wp
+> -                        * registered ranges.
+> -                        */
+> -                       if (hpage_collapse_test_exit(mm)) {
+> -                               result =3D SCAN_ANY_PROCESS;
+> -                               goto unlock_next;
+> -                       }
+> -                       if (userfaultfd_wp(vma)) {
+> -                               result =3D SCAN_PTE_UFFD_WP;
+> -                               goto unlock_next;
+> -                       }
+> -                       collapse_and_free_pmd(mm, vma, addr, pmd);
 
-(And once vmas are merged, so that the whole of the huge page falls within
-a single vma, khugepaged can consider it, and do collapse_pte_mapped_thp()
-on it - before or after 11/12 I think.)
+The old code called collapse_and_free_pmd(), which involves MMU
+notifier invocation...
 
-As to whether it would even be a problem: generally no, the vma is supposed
-just to be an internal representation, and so long as the code resists
-proliferating them unnecessarily, occasional failures to merge should not
-matter.  The one place that forever sticks in my mind as mattering (perhaps
-there are others I'm unaware of, but I'd call them bugs) is mremap(): which
-is sufficiently awkward and bug-prone already, that nobody ever had the
-courage to make it independent of vma boundaries; but ideally, it's
-mremap() that we should fix.
+> -                       if (!cc->is_khugepaged && is_target)
+> -                               result =3D set_huge_pmd(vma, addr, pmd, h=
+page);
+> -                       else
+> -                               result =3D SCAN_SUCCEED;
+> -
+> -unlock_next:
+> -                       mmap_write_unlock(mm);
+> -                       goto next;
+> -               }
+> -               /*
+> -                * Calling context will handle target mm/addr. Otherwise,=
+ let
+> -                * khugepaged try again later.
+> -                */
+> -               if (!is_target) {
+> -                       khugepaged_add_pte_mapped_thp(mm, addr);
+> +                   vma->vm_end < addr + HPAGE_PMD_SIZE)
+>                         continue;
+> -               }
+> -next:
+> -               if (is_target)
+> -                       target_result =3D result;
+> +
+> +               mm =3D vma->vm_mm;
+> +               if (find_pmd_or_thp_or_none(mm, addr, &pmd) !=3D SCAN_SUC=
+CEED)
+> +                       continue;
+> +
+> +               if (hpage_collapse_test_exit(mm))
+> +                       continue;
+> +               /*
+> +                * When a vma is registered with uffd-wp, we cannot recyc=
+le
+> +                * the page table because there may be pte markers instal=
+led.
+> +                * Other vmas can still have the same file mapped hugely,=
+ but
+> +                * skip this one: it will always be mapped in small page =
+size
+> +                * for uffd-wp registered ranges.
+> +                *
+> +                * What if VM_UFFD_WP is set a moment after this check?  =
+No
+> +                * problem, huge page lock is still held, stopping new ma=
+ppings
+> +                * of page which might then get replaced by pte markers: =
+only
+> +                * existing markers need to be protected here.  (We could=
+ check
+> +                * after getting ptl below, but this comment distracting =
+there!)
+> +                */
+> +               if (userfaultfd_wp(vma))
+> +                       continue;
+> +
+> +               /* Huge page lock is still held, so page table must be em=
+pty */
+> +               pml =3D pmd_lock(mm, pmd);
+> +               ptl =3D pte_lockptr(mm, pmd);
+> +               if (ptl !=3D pml)
+> +                       spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+> +               pgt_pmd =3D pmdp_collapse_flush(vma, addr, pmd);
 
-But I may have written three answers, yet still missed your point.
+... while the new code only does pmdp_collapse_flush(), which clears
+the pmd entry and does a TLB flush, but AFAICS doesn't use MMU
+notifiers. My understanding is that that's problematic - maybe (?) it
+is sort of okay with regards to classic MMU notifier users like KVM,
+but it's probably wrong for IOMMUv2 users, where an IOMMU directly
+consumes the normal page tables?
 
-...
-> > +
-> > +		mm = vma->vm_mm;
-> > +		if (find_pmd_or_thp_or_none(mm, addr, &pmd) != SCAN_SUCCEED)
-> > +			continue;
-> > +
-> > +		if (hpage_collapse_test_exit(mm))
-> > +			continue;
-> > +		/*
-> > +		 * When a vma is registered with uffd-wp, we cannot recycle
-> > +		 * the page table because there may be pte markers installed.
-> > +		 * Other vmas can still have the same file mapped hugely, but
-> > +		 * skip this one: it will always be mapped in small page size
-> > +		 * for uffd-wp registered ranges.
-> > +		 *
-> > +		 * What if VM_UFFD_WP is set a moment after this check?  No
-> > +		 * problem, huge page lock is still held, stopping new mappings
-> > +		 * of page which might then get replaced by pte markers: only
-> > +		 * existing markers need to be protected here.  (We could check
-> > +		 * after getting ptl below, but this comment distracting there!)
-> > +		 */
-> > +		if (userfaultfd_wp(vma))
-> > +			continue;
-> 
-> IIUC here with the new code we only hold (1) hpage lock, and (2)
-> i_mmap_lock read.  Then could it possible that right after checking this
-> and found !UFFD_WP, but then someone quickly (1) register uffd-wp on this
-> vma, then UFFDIO_WRITEPROTECT to install some pte markers, before below
-> pgtable locks taken?
-> 
-> The thing is installation of pte markers may not need either of the locks
-> iiuc..
-> 
-> Would taking mmap read lock help in this case?
+(FWIW, last I looked, there also seemed to be some other issues with
+MMU notifier usage wrt IOMMUv2, see the thread
+<https://lore.kernel.org/linux-mm/Yzbaf9HW1%2FreKqR8@nvidia.com/>.)
 
-Isn't my comment above it a good enough answer?  If I misunderstand the
-uffd-wp pte marker ("If"? certainly I don't understand it well enough,
-but I may or may not be too wrong about it here), and actually it can
-spring up in places where the page has not even been mapped yet, then
-I'd *much* rather just move that check down into the pte_locked area,
-than involve mmap read lock (which, though easier to acquire than its
-write lock, would I think take us back to square 1 in terms of needing
-trylock); but I did prefer not to have a big uffd-wp comment distracting
-from the code flow there.
 
-I expect now, that if I follow up UFFDIO_WRITEPROTECT, I shall indeed
-find it inserting pte markers where the page has not even been mapped
-yet.  A "Yes" from you will save me looking, but probably I shall have
-to move that check down (oh well, the comment will be smaller there).
-
-Thanks,
-Hugh
+> +               if (ptl !=3D pml)
+> +                       spin_unlock(ptl);
+> +               spin_unlock(pml);
+> +
+> +               mm_dec_nr_ptes(mm);
+> +               page_table_check_pte_clear_range(mm, addr, pgt_pmd);
+> +               pte_free_defer(mm, pmd_pgtable(pgt_pmd));
+>         }
+> -       i_mmap_unlock_write(mapping);
+> -       return target_result;
+> +       i_mmap_unlock_read(mapping);
+>  }
+>
+>  /**
+> @@ -2261,9 +2210,11 @@ static int collapse_file(struct mm_struct *mm, uns=
+igned long addr,
+>
+>         /*
+>          * Remove pte page tables, so we can re-fault the page as huge.
+> +        * If MADV_COLLAPSE, adjust result to call collapse_pte_mapped_th=
+p().
+>          */
+> -       result =3D retract_page_tables(mapping, start, mm, addr, hpage,
+> -                                    cc);
+> +       retract_page_tables(mapping, start);
+> +       if (cc && !cc->is_khugepaged)
+> +               result =3D SCAN_PTE_MAPPED_HUGEPAGE;
+>         unlock_page(hpage);
+>
+>         /*
+> --
+> 2.35.3
+>
