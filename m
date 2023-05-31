@@ -2,57 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B15E8C77B73
-	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 17:07:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D987C7EE2E
+	for <sparclinux@archiver.kernel.org>; Wed, 31 May 2023 17:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230124AbjEaRHg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 31 May 2023 13:07:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45630 "EHLO
+        id S230171AbjEaRZm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 31 May 2023 13:25:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230093AbjEaRHb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 May 2023 13:07:31 -0400
-Received: from mail-il1-x132.google.com (mail-il1-x132.google.com [IPv6:2607:f8b0:4864:20::132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54E2D18B
-        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:07:03 -0700 (PDT)
-Received: by mail-il1-x132.google.com with SMTP id e9e14a558f8ab-33bf12b5fb5so4355ab.1
-        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:07:03 -0700 (PDT)
+        with ESMTP id S229887AbjEaRZk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 May 2023 13:25:40 -0400
+Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C98DBE
+        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:25:38 -0700 (PDT)
+Received: by mail-il1-x12d.google.com with SMTP id e9e14a558f8ab-33b398f2ab8so10785ab.0
+        for <sparclinux@vger.kernel.org>; Wed, 31 May 2023 10:25:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1685552819; x=1688144819;
+        d=google.com; s=20221208; t=1685553938; x=1688145938;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Bgji1uyhymXXLfgjn7ITXdRgSIEcIf2KB/asRIvGKOw=;
-        b=ODuuigJHK5p3BMHUC1m9S8L86uxhrUd+EUWNMkyrJEBnUXHeQxiEVNfM6SO3YkVpaf
-         ndXjbLCLqzJ7g3A6CBeKBOBIpKZJ8oKUs6e64JWOnao6pAIZuWY6pLI1Gk5cMkVe11ku
-         3ioQGLObRRUlNXy2iKn7acx9C/gUEtuQG0pvI7TP/qZYbfE5k5T+ypUHcu3dTEyZLweh
-         I1YZ4kQxS8hABPCEpBrqjjPqZMycm3vlbOcgjELpkpea4zxlaNVxdzEU8yX/l9mowUQ9
-         tAa7I6e+H6SKOo7nsmvpAUoYeKR3LIqzvhKRAkQH/JXauQIRQwr5rXbFuZVqunOH331S
-         5Qvg==
+        bh=f9rDw2v1LEmye3RLuD/RrrSGCh1UZ3V6JVzZJFvjbWQ=;
+        b=CM0AuU72AcPSh131wQ9crT8iFbojgiYaMR0ZSQFK8kjs45mw5usLlAIhaun5lyvIUt
+         wExvZsnF+Y/c9O0ViQtZ375xekAQOkC2l0fk18AOQisyVPMzkPiJ8zi/btsm+NPYxju7
+         MI1ropBml9khGIMtFqvQZ5ZFA3RSM2ZviNcgn5VbSlXa3ytpJTdH7HofVwJ9/2Qen4WS
+         051PVAgJXvJkegFFklqRVDPy83wUzSBjxxDFu56mRAEtSP4gKFxiSBA/OEyqTU1LUHUg
+         0l6Uv5BmErx3H0lthWvCFUBb1ELtXAQOYfj1Gs6CU2Pgsoh6ZNLfoKpQiBo5nt9UKPZF
+         HrHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685552819; x=1688144819;
+        d=1e100.net; s=20221208; t=1685553938; x=1688145938;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Bgji1uyhymXXLfgjn7ITXdRgSIEcIf2KB/asRIvGKOw=;
-        b=bUAb7so1K2PPH1EZZUnVEsG+uPOUMO4M8ud1ubkFHwQih88SJwFhvCRQiMIK65kvwQ
-         yGJHp4uMaieSUXAjDVrR51auufCaTZqpsppuS9J5PcxHr4GEZOFGxc6H8PSLLpJKt7Pb
-         vN8Jj/48Kw5I3KGYjeu8NFN+O4sZFstm2W0XhD8zXJtjiiYwudG4NB5g1D5xYt97rXip
-         BxRSDngscoU9k13Juh4URXQthY2WckIsPIdRA2R+UUNgzCmhDtewjd/r/fZ+neLMOwrH
-         9wZ3QnkQT3SzORl7aT3ORHq3PunWOWQCif1cLXJCaKL4m+qJubtILm0F8GvDzu6PIy4P
-         KgGQ==
-X-Gm-Message-State: AC+VfDwcr19G39xvEoPB4MVTMgpZQkI2Y7Kg2YhhFm3R+Zfj0k+RsWJJ
-        T8Xk7/6gmQoMZNrO1fW7jk9pyOnoh7/ru6k9x1QrzQ==
-X-Google-Smtp-Source: ACHHUZ4lBY+ZnFXYMuCa1tPn8bTKD9ClBQYGyuHfrtLAgOzl/Bx5jTe0zz5tpOLgvVRCnZM9JEXo01XssNv7NEWMOtQ=
-X-Received: by 2002:a05:6e02:b2e:b0:32f:7715:4482 with SMTP id
- e14-20020a056e020b2e00b0032f77154482mr212194ilu.4.1685552819433; Wed, 31 May
- 2023 10:06:59 -0700 (PDT)
+        bh=f9rDw2v1LEmye3RLuD/RrrSGCh1UZ3V6JVzZJFvjbWQ=;
+        b=QyE8DE609hmETntWeAIui1mfL+/VEU1D5hYFoUwIJIlyn99IgZ0b8y5yYHKQSPOWNE
+         LontLRN15RBTgFmkwer0tiJCiyOxhRCAXqDSC2m/K3yIsA4JxErEa/TStbYLe/NMy+d8
+         w9VxpVvfYYwQjgl7+qDUk5Qh82W3ItreE75yRIjL1IklDjLfTfnSdg6hvvkTgepbSwul
+         njuFWjh5UtWJCqZk/VesOEg/7ogijhDylzaI2RwIp0SU51xYfoi8bbVY1y2r0Js0OAhL
+         WTbtK0L7jRuvjXDFm35mjUdrYGvnjSDvADRbTzojR8AGqMwvY8EJ8oPqNoAx0/hn/bVs
+         mOzw==
+X-Gm-Message-State: AC+VfDw9guDKHYq39hd/cUqsBogkrCqQxwbuoNjbzSjEVMzFPtDPmJir
+        kmTMtF1jVDOYVL49DLkCvV99tsaPXuw7KiKHLdoDJg==
+X-Google-Smtp-Source: ACHHUZ6Afl+xZKFHZomNksLJA//ac6T4P12fNCTRCN7NynywZdGagjN9pdDeftj4IADrAcP1/u34lNvJe8J80I1ISvg=
+X-Received: by 2002:a05:6e02:1a44:b0:33a:e716:a76e with SMTP id
+ u4-20020a056e021a4400b0033ae716a76emr187444ilv.28.1685553937544; Wed, 31 May
+ 2023 10:25:37 -0700 (PDT)
 MIME-Version: 1.0
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <88c445ae-552-5243-31a4-2674bac62d4d@google.com>
-In-Reply-To: <88c445ae-552-5243-31a4-2674bac62d4d@google.com>
+References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <563340a4-7ac9-7cc8-33d8-f7cc6ef19ea6@google.com>
+In-Reply-To: <563340a4-7ac9-7cc8-33d8-f7cc6ef19ea6@google.com>
 From:   Jann Horn <jannh@google.com>
-Date:   Wed, 31 May 2023 19:06:23 +0200
-Message-ID: <CAG48ez0tnYTVjr7zw3Vp4GTcQ=960EodatjqE5bM9a3EVYM16Q@mail.gmail.com>
-Subject: Re: [PATCH 01/12] mm/pgtable: add rcu_read_lock() and rcu_read_unlock()s
+Date:   Wed, 31 May 2023 19:25:01 +0200
+Message-ID: <CAG48ez2X5oZyxaFniZ-HeGHDGjNuPBewGTjZLEHPWkBbBCaigg@mail.gmail.com>
+Subject: Re: [PATCH 10/12] mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()
 To:     Hugh Dickins <hughd@google.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
@@ -100,44 +100,86 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, May 29, 2023 at 8:15=E2=80=AFAM Hugh Dickins <hughd@google.com> wro=
+On Mon, May 29, 2023 at 8:26=E2=80=AFAM Hugh Dickins <hughd@google.com> wro=
 te:
-> Before putting them to use (several commits later), add rcu_read_lock()
-> to pte_offset_map(), and rcu_read_unlock() to pte_unmap().  Make this a
-> separate commit, since it risks exposing imbalances: prior commits have
-> fixed all the known imbalances, but we may find some have been missed.
-[...]
-> diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
-> index c7ab18a5fb77..674671835631 100644
-> --- a/mm/pgtable-generic.c
-> +++ b/mm/pgtable-generic.c
-> @@ -236,7 +236,7 @@ pte_t *__pte_offset_map(pmd_t *pmd, unsigned long add=
-r, pmd_t *pmdvalp)
->  {
->         pmd_t pmdval;
->
-> -       /* rcu_read_lock() to be added later */
-> +       rcu_read_lock();
->         pmdval =3D pmdp_get_lockless(pmd);
->         if (pmdvalp)
->                 *pmdvalp =3D pmdval;
+> Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
+> It does need mmap_read_lock(), but it does not need mmap_write_lock(),
+> nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
+> paths are relying on pte_offset_map_lock() and pmd_lock(), so use those.
 
-It might be a good idea to document that this series assumes that the
-first argument to __pte_offset_map() is a pointer into a second-level
-page table (and not a local copy of the entry) unless the containing
-VMA is known to not be THP-eligible or the page table is detached from
-the page table hierarchy or something like that. Currently a bunch of
-places pass references to local copies of the entry, and while I think
-all of these are fine, it would probably be good to at least document
-why these are allowed to do it while other places aren't.
+I think there's a weirdness in the existing code, and this change
+probably turns that into a UAF bug.
 
-$ vgrep 'pte_offset_map(&'
-Index File                  Line Content
-    0 arch/sparc/mm/tlb.c    151 pte =3D pte_offset_map(&pmd, vaddr);
-    1 kernel/events/core.c  7501 ptep =3D pte_offset_map(&pmd, addr);
-    2 mm/gup.c              2460 ptem =3D ptep =3D pte_offset_map(&pmd, add=
-r);
-    3 mm/huge_memory.c      2057 pte =3D pte_offset_map(&_pmd, haddr);
-    4 mm/huge_memory.c      2214 pte =3D pte_offset_map(&_pmd, haddr);
-    5 mm/page_table_check.c  240 pte_t *ptep =3D pte_offset_map(&pmd, addr)=
-;
+collapse_pte_mapped_thp() can be called on an address that might not
+be associated with a VMA anymore, and after this change, the page
+tables for that address might be in the middle of page table teardown
+in munmap(), right? The existing mmap_write_lock() guards against
+concurrent munmap() (so in the old code we are guaranteed to either
+see a normal VMA or not see the page tables anymore), but
+mmap_read_lock() only guards against the part of munmap() up to the
+mmap_write_downgrade() in do_vmi_align_munmap(), and unmap_region()
+(including free_pgtables()) happens after that.
+
+So we can now enter collapse_pte_mapped_thp() and race with concurrent
+free_pgtables() such that a PUD disappears under us while we're
+walking it or something like that:
+
+
+int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+          bool install_pmd)
+{
+  struct mmu_notifier_range range;
+  unsigned long haddr =3D addr & HPAGE_PMD_MASK;
+  struct vm_area_struct *vma =3D vma_lookup(mm, haddr); // <<< returns NULL
+  struct page *hpage;
+  pte_t *start_pte, *pte;
+  pmd_t *pmd, pgt_pmd;
+  spinlock_t *pml, *ptl;
+  int nr_ptes =3D 0, result =3D SCAN_FAIL;
+  int i;
+
+  mmap_assert_locked(mm);
+
+  /* Fast check before locking page if already PMD-mapped */
+  result =3D find_pmd_or_thp_or_none(mm, haddr, &pmd); // <<< PUD UAF in he=
+re
+  if (result =3D=3D SCAN_PMD_MAPPED)
+    return result;
+
+  if (!vma || !vma->vm_file || // <<< bailout happens too late
+      !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
+    return SCAN_VMA_CHECK;
+
+
+I guess the right fix here is to make sure that at least the basic VMA
+revalidation stuff (making sure there still is a VMA covering this
+range) happens before find_pmd_or_thp_or_none()? Like:
+
+
+diff --git a/mm/khugepaged.c b/mm/khugepaged.c
+index 301c0e54a2ef..5db365587556 100644
+--- a/mm/khugepaged.c
++++ b/mm/khugepaged.c
+@@ -1481,15 +1481,15 @@ int collapse_pte_mapped_thp(struct mm_struct
+*mm, unsigned long addr,
+
+         mmap_assert_locked(mm);
+
++        if (!vma || !vma->vm_file ||
++            !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
++                return SCAN_VMA_CHECK;
++
+         /* Fast check before locking page if already PMD-mapped */
+         result =3D find_pmd_or_thp_or_none(mm, haddr, &pmd);
+         if (result =3D=3D SCAN_PMD_MAPPED)
+                 return result;
+
+-        if (!vma || !vma->vm_file ||
+-            !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
+-                return SCAN_VMA_CHECK;
+-
+         /*
+          * If we are here, we've succeeded in replacing all the native pag=
+es
+          * in the page cache with a single hugepage. If a mm were to fault=
+-in
