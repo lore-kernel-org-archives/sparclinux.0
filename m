@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 915B8C7EE2A
-	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 10:19:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76B22C77B7A
+	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 10:20:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233601AbjFAKS7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 1 Jun 2023 06:18:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55640 "EHLO
+        id S233521AbjFAKTs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 1 Jun 2023 06:19:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233501AbjFAKSK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 06:18:10 -0400
+        with ESMTP id S233454AbjFAKTK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 06:19:10 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15100E6B;
-        Thu,  1 Jun 2023 03:15:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F78B171E;
+        Thu,  1 Jun 2023 03:16:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A08FC6431E;
-        Thu,  1 Jun 2023 10:14:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E2E8C433A0;
-        Thu,  1 Jun 2023 10:14:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2BC76432D;
+        Thu,  1 Jun 2023 10:15:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 881EDC433A8;
+        Thu,  1 Jun 2023 10:15:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1685614487;
-        bh=Hrx9VtVZyq4uWMBfRCekQXUO/IA4A1XOafQormtZTuY=;
+        s=k20201202; t=1685614514;
+        bh=KP9HX6DBOdeXbh1b+aKLs5zgkX2POLO57m2Kdhv+uBE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gpP21c/RwAJYJm+U25a1tWi/38F4mEWtcst293zmlG6D0PKkBX6d3h9ATwIa7uumf
-         xA2hJJdQXNiMtmOQ7k+n+4Eh/tb5q0l+ZhSYKzMYnVQJJBECXK0Boas7FeJCclB+qU
-         YcYICH1vai6DP7rq0TDqg3DTbnaTA2lnglkoOvwlhDm1fQ7nyhjt7rdP88kQv/EuQI
-         aAPjl78FETn69M4Prx6Edwv1H7cz2NpKwM5xe4vWf7aC2SYCcxtbSZA9vK0QR4+ALQ
-         VYyMUVtF0JdrmF3hiV5k4Z6ygm8TjniyOkfbF+4LCBKjd7eHTl1itn2XLvK6KpbTcp
-         yOKt8OfWFYJOQ==
+        b=PpK9bveSqvpewvjbyZorKqSi3Q/F2n/LjJbM2xuj27cyV2j16y21onV4vnPjeZgTl
+         zE9e28Ev7BFmducrk1/4dDKq3oOIJdBaX0QRyCLXbMWkq7hyE5K3/dP7zLmKJI/u+J
+         lhU+vPxA/p2Jf8kS/aFYDSo6FeVktlpcm+nCEuVDQIry8EXyK9YUnYblgPqXCgLqeR
+         2j1GLCveGyj3OVEyE2BDq2GHbbfSv+yRuLfu/Nry87svP0BgLxAfXOGT4DOJSO+sz1
+         hW3iK555Pl8OaMr8Z+t77LXxqmLIyxUXr+Y3h+YIQv8TpNf780OllbwDGe20NNxSf6
+         l3zqIrjNIFEhQ==
 From:   Mike Rapoport <rppt@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -59,9 +59,9 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
         netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: [PATCH 10/13] modules, jitalloc: prepare to allocate executable memory as ROX
-Date:   Thu,  1 Jun 2023 13:12:54 +0300
-Message-Id: <20230601101257.530867-11-rppt@kernel.org>
+Subject: [PATCH 13/13] x86/jitalloc: make memory allocated for code ROX
+Date:   Thu,  1 Jun 2023 13:12:57 +0300
+Message-Id: <20230601101257.530867-14-rppt@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20230601101257.530867-1-rppt@kernel.org>
 References: <20230601101257.530867-1-rppt@kernel.org>
@@ -73,114 +73,145 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 
-When executable memory will be allocated as ROX it won't be possible to
-update it using memset() and memcpy().
-
-Introduce jit_update_copy() and jit_update_set() APIs and use them in
-modules loading code instead of memcpy() and memset().
+When STRICT_KERNEL_RWX or STRICT_MODULE_RWX is enabled, force text
+allocations to use KERNEL_PAGE_ROX.
 
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 ---
+ arch/Kconfig             |  3 +++
+ arch/x86/Kconfig         |  1 +
+ arch/x86/kernel/ftrace.c |  3 ---
+ arch/x86/mm/init.c       |  6 ++++++
  include/linux/jitalloc.h |  2 ++
- kernel/module/main.c     | 19 ++++++++++++++-----
- mm/jitalloc.c            | 20 ++++++++++++++++++++
- 3 files changed, 36 insertions(+), 5 deletions(-)
+ mm/jitalloc.c            | 21 +++++++++++++++++++++
+ 6 files changed, 33 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/jitalloc.h b/include/linux/jitalloc.h
-index 7f8cafb3cfe9..0ba5ef785a85 100644
---- a/include/linux/jitalloc.h
-+++ b/include/linux/jitalloc.h
-@@ -55,6 +55,8 @@ struct jit_alloc_params *jit_alloc_arch_params(void);
- void jit_free(void *buf);
- void *jit_text_alloc(size_t len);
- void *jit_data_alloc(size_t len);
-+void jit_update_copy(void *buf, void *new_buf, size_t len);
-+void jit_update_set(void *buf, int c, size_t len);
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 479a7b8be191..e7c4b01307d7 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -1307,6 +1307,9 @@ config STRICT_MODULE_RWX
+ 	  and non-text memory will be made non-executable. This provides
+ 	  protection against certain security exploits (e.g. writing to text)
  
- #ifdef CONFIG_JIT_ALLOC
- void jit_alloc_init(void);
-diff --git a/kernel/module/main.c b/kernel/module/main.c
-index 91477aa5f671..9f0711c42aa2 100644
---- a/kernel/module/main.c
-+++ b/kernel/module/main.c
-@@ -1197,9 +1197,19 @@ void __weak module_arch_freeing_init(struct module *mod)
- 
- static void *module_memory_alloc(unsigned int size, enum mod_mem_type type)
- {
--	if (mod_mem_type_is_data(type))
--		return jit_data_alloc(size);
--	return jit_text_alloc(size);
-+	void *p;
++config ARCH_HAS_TEXT_POKE
++	def_bool n
 +
-+	if (mod_mem_type_is_data(type)) {
-+		p = jit_data_alloc(size);
-+		if (p)
-+			memset(p, 0, size);
-+	} else {
-+		p = jit_text_alloc(size);
-+		if (p)
-+			jit_update_set(p, 0, size);
+ # select if the architecture provides an asm/dma-direct.h header
+ config ARCH_HAS_PHYS_TO_DMA
+ 	bool
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index fac4add6ce16..e1a512f557de 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -96,6 +96,7 @@ config X86
+ 	select ARCH_HAS_SET_DIRECT_MAP
+ 	select ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_HAS_STRICT_MODULE_RWX
++	select ARCH_HAS_TEXT_POKE
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index d50595f2c1a6..bd4dd8974ee6 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -313,7 +313,6 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
+ 	unsigned long call_offset;
+ 	unsigned long jmp_offset;
+ 	unsigned long offset;
+-	unsigned long npages;
+ 	unsigned long size;
+ 	unsigned long *ptr;
+ 	void *trampoline;
+@@ -350,7 +349,6 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
+ 		return 0;
+ 
+ 	*tramp_size = size + RET_SIZE + sizeof(void *);
+-	npages = DIV_ROUND_UP(*tramp_size, PAGE_SIZE);
+ 
+ 	/* Copy ftrace_caller onto the trampoline memory */
+ 	ret = text_poke_copy(trampoline, (void *)start_offset, size);
+@@ -416,7 +414,6 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
+ 	/* ALLOC_TRAMP flags lets us know we created it */
+ 	ops->flags |= FTRACE_OPS_FL_ALLOC_TRAMP;
+ 
+-	set_memory_rox((unsigned long)trampoline, npages);
+ 	return (unsigned long)trampoline;
+ fail:
+ 	tramp_free(trampoline);
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index ffaf9a3840ce..c314738991fa 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -1127,6 +1127,12 @@ struct jit_alloc_params *jit_alloc_arch_params(void)
+ 	jit_alloc_params.text.start = MODULES_VADDR + get_jit_load_offset();
+ 	jit_alloc_params.text.end = MODULES_END;
+ 
++	if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX) ||
++	    IS_ENABLED(CONFIG_STRICT_MODULE_RWX)) {
++		jit_alloc_params.text.pgprot = PAGE_KERNEL_ROX;
++		jit_alloc_params.flags |= JIT_ALLOC_USE_TEXT_POKE;
 +	}
 +
-+	return p;
+ 	return &jit_alloc_params;
  }
+ #endif /* CONFIG_JIT_ALLOC */
+diff --git a/include/linux/jitalloc.h b/include/linux/jitalloc.h
+index 0ba5ef785a85..0e29e87acefe 100644
+--- a/include/linux/jitalloc.h
++++ b/include/linux/jitalloc.h
+@@ -15,9 +15,11 @@
+ /**
+  * enum jit_alloc_flags - options for executable memory allocations
+  * @JIT_ALLOC_KASAN_SHADOW:	allocate kasan shadow
++ * @JIT_ALLOC_USE_TEXT_POKE:	use text poking APIs to update memory
+  */
+ enum jit_alloc_flags {
+ 	JIT_ALLOC_KASAN_SHADOW	= (1 << 0),
++	JIT_ALLOC_USE_TEXT_POKE	= (1 << 1),
+ };
  
- static void module_memory_free(void *ptr, enum mod_mem_type type)
-@@ -2223,7 +2233,6 @@ static int move_module(struct module *mod, struct load_info *info)
- 			t = type;
- 			goto out_enomem;
- 		}
--		memset(ptr, 0, mod->mem[type].size);
- 		mod->mem[type].base = ptr;
- 	}
- 
-@@ -2251,7 +2260,7 @@ static int move_module(struct module *mod, struct load_info *info)
- 				ret = -ENOEXEC;
- 				goto out_enomem;
- 			}
--			memcpy(dest, (void *)shdr->sh_addr, shdr->sh_size);
-+			jit_update_copy(dest, (void *)shdr->sh_addr, shdr->sh_size);
- 		}
- 		/*
- 		 * Update the userspace copy's ELF section address to point to
+ /**
 diff --git a/mm/jitalloc.c b/mm/jitalloc.c
-index 16fd715d501a..a8ae64364d56 100644
+index a8ae64364d56..15d1067faf3f 100644
 --- a/mm/jitalloc.c
 +++ b/mm/jitalloc.c
-@@ -7,6 +7,16 @@
+@@ -7,6 +7,26 @@
  
  static struct jit_alloc_params jit_alloc_params;
  
++#ifdef CONFIG_ARCH_HAS_TEXT_POKE
++#include <asm/text-patching.h>
++
 +static inline void jit_text_poke_copy(void *dst, const void *src, size_t len)
 +{
-+	memcpy(dst, src, len);
++	if (jit_alloc_params.flags & JIT_ALLOC_USE_TEXT_POKE)
++		text_poke_copy(dst, src, len);
++	else
++		memcpy(dst, src, len);
 +}
 +
 +static inline void jit_text_poke_set(void *addr, int c, size_t len)
 +{
-+	memset(addr, c, len);
++	if (jit_alloc_params.flags & JIT_ALLOC_USE_TEXT_POKE)
++		text_poke_set(addr, c, len);
++	else
++		memset(addr, c, len);
 +}
 +
++#else
+ static inline void jit_text_poke_copy(void *dst, const void *src, size_t len)
+ {
+ 	memcpy(dst, src, len);
+@@ -16,6 +36,7 @@ static inline void jit_text_poke_set(void *addr, int c, size_t len)
+ {
+ 	memset(addr, c, len);
+ }
++#endif
+ 
  static void *jit_alloc(size_t len, unsigned int alignment, pgprot_t pgprot,
  		       unsigned long start, unsigned long end,
- 		       unsigned long fallback_start, unsigned long fallback_end,
-@@ -86,6 +96,16 @@ void *jit_data_alloc(size_t len)
- 			 fallback_start, fallback_end, kasan);
- }
- 
-+void jit_update_copy(void *buf, void *new_buf, size_t len)
-+{
-+	jit_text_poke_copy(buf, new_buf, len);
-+}
-+
-+void jit_update_set(void *addr, int c, size_t len)
-+{
-+	jit_text_poke_set(addr, c, len);
-+}
-+
- struct jit_alloc_params * __weak jit_alloc_arch_params(void)
- {
- 	return NULL;
 -- 
 2.35.1
 
