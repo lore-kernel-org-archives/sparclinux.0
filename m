@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FCD4C7EE45
-	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 10:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCFFEC7EE33
+	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 10:17:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233410AbjFAKRR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 1 Jun 2023 06:17:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51270 "EHLO
+        id S233490AbjFAKR1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 1 Jun 2023 06:17:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232052AbjFAKQt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 06:16:49 -0400
+        with ESMTP id S232183AbjFAKQz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 06:16:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A04AB10CF;
-        Thu,  1 Jun 2023 03:14:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 590691AB;
+        Thu,  1 Jun 2023 03:14:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7312864318;
-        Thu,  1 Jun 2023 10:14:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E135C433D2;
-        Thu,  1 Jun 2023 10:13:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D47964314;
+        Thu,  1 Jun 2023 10:14:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71499C4339B;
+        Thu,  1 Jun 2023 10:14:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1685614441;
-        bh=Nnp2tKeQsy9S1Buuet1AHc7f4tHZFZxjf1wLfSYTAOc=;
+        s=k20201202; t=1685614459;
+        bh=pTt6oea7dl0OK8cq7WwHFZhtWWFAemGTmvVp6aKQFQs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MF5vLNhZLpSbVwcgCvq0oXRt929gpOhkr853XkKz69bg/ldd3tNXof5hsUBl0SCFP
-         zQZ15mT4d2ziMwvK3J8yM4HwL0HKNyCnKRsKvOqUGhynhIPIkiR0lcHqBpmr4JtDoY
-         c0p7+vyhNYXA7v2TlP4RC4JswkNElYkeEJLKFMa229yS/bUNH9LL8jgny7wXnZth8H
-         29CMTiAaeXP3OXygN5uAJ6WVb2EiM8nNfRFOymcc11hQEW05TvfK45mLkpdN2kJ1Pg
-         7p/23b1uSKjn8QRr7wdRVggNxp5f42/QF0VED+n4usyq7QAat/XaMSGR3H3OzbLL6t
-         qJvDLt1CyQM2A==
+        b=uD6/N81ikOPiRJAEV5qGhLjfWCawk0yMnp6Xt8fYx/PrTJkuDN66o3QZ5/QyahqEi
+         eEz3p9HhuIbubjxt94fZnmeMfIMlPtSuJAOfKCpVVmKDOUgkw+ZxlAzPGWu9ElDJox
+         8//FTUGz/X60PWEvHsAHESQPPehoEt7bviFexeZ2+2LRDfSYeGeeu1DFsnURPYhCb8
+         VA1UxImPpBwTmBGD+s3/pviyix4aZfXJhpSs4E0hU7dMP1uoMuAjAMHYvMlR6NxLUs
+         Woe4ghZDems2+gtF6bA6JpPo4jOZtr6deA+75+7bfQpGOZ/ORmQU/6FoNPAMN6dlf9
+         dqaesbQEJi8Eg==
 From:   Mike Rapoport <rppt@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -59,9 +59,9 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
         netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: [PATCH 05/13] module, jitalloc: drop module_alloc
-Date:   Thu,  1 Jun 2023 13:12:49 +0300
-Message-Id: <20230601101257.530867-6-rppt@kernel.org>
+Subject: [PATCH 07/13] x86/ftrace: enable dynamic ftrace without CONFIG_MODULES
+Date:   Thu,  1 Jun 2023 13:12:51 +0300
+Message-Id: <20230601101257.530867-8-rppt@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20230601101257.530867-1-rppt@kernel.org>
 References: <20230601101257.530867-1-rppt@kernel.org>
@@ -73,178 +73,186 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 
-Define default parameters for address range for code allocations
-using the current values in module_alloc() and make jit_text_alloc() use
-these defaults when an architecure does not supply its specific
-parameters.
+Dynamic ftrace must allocate memory for code and this was impossible
+without CONFIG_MODULES.
 
-With this, jit_text_alloc() implements memory allocation in a way
-compatible with module_alloc() and can be used as a replacement for
-module_alloc().
+With jitalloc separated from the modules code, the jit_text_alloc() is
+available regardless of CONFIG_MODULE.
+
+Move jitalloc initialization to x86/mm/init.c so that it won't get
+compiled away when CONFIG_MODULE=n and enable dynamic ftrace
+unconditionally.
 
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 ---
- arch/arm64/kernel/module.c   |  2 +-
- arch/s390/kernel/module.c    |  2 +-
- arch/x86/kernel/module.c     |  2 +-
- include/linux/jitalloc.h     |  8 ++++++++
- include/linux/moduleloader.h | 12 ------------
- kernel/module/main.c         |  7 -------
- mm/jitalloc.c                | 31 +++++++++++++++++--------------
- 7 files changed, 28 insertions(+), 36 deletions(-)
+ arch/x86/Kconfig         |  1 +
+ arch/x86/kernel/ftrace.c |  9 --------
+ arch/x86/kernel/module.c | 44 --------------------------------------
+ arch/x86/mm/init.c       | 46 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 47 insertions(+), 53 deletions(-)
 
-diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
-index ecf1f4030317..91ffcff5a44c 100644
---- a/arch/arm64/kernel/module.c
-+++ b/arch/arm64/kernel/module.c
-@@ -24,7 +24,7 @@
- #include <asm/sections.h>
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 53bab123a8ee..fac4add6ce16 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -35,6 +35,7 @@ config X86_64
+ 	select SWIOTLB
+ 	select ARCH_HAS_ELFCORE_COMPAT
+ 	select ZONE_DMA32
++	select JIT_ALLOC if DYNAMIC_FTRACE
  
- static struct jit_alloc_params jit_alloc_params = {
--	.alignment	= MODULE_ALIGN,
-+	.alignment	= JIT_ALLOC_ALIGN,
- 	.flags		= JIT_ALLOC_KASAN_SHADOW,
- };
+ config FORCE_DYNAMIC_FTRACE
+ 	def_bool y
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index 157c8a799704..aa99536b824c 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -261,7 +261,6 @@ void arch_ftrace_update_code(int command)
+ /* Currently only x86_64 supports dynamic trampolines */
+ #ifdef CONFIG_X86_64
  
-diff --git a/arch/s390/kernel/module.c b/arch/s390/kernel/module.c
-index 0986a1a1b261..3f85cf1e7c4e 100644
---- a/arch/s390/kernel/module.c
-+++ b/arch/s390/kernel/module.c
-@@ -56,7 +56,7 @@ static unsigned long get_module_load_offset(void)
+-#ifdef CONFIG_MODULES
+ /* Module allocation simplifies allocating memory for code */
+ static inline void *alloc_tramp(unsigned long size)
+ {
+@@ -271,14 +270,6 @@ static inline void tramp_free(void *tramp)
+ {
+ 	jit_free(tramp);
  }
+-#else
+-/* Trampolines can only be created if modules are supported */
+-static inline void *alloc_tramp(unsigned long size)
+-{
+-	return NULL;
+-}
+-static inline void tramp_free(void *tramp) { }
+-#endif
  
- static struct jit_alloc_params jit_alloc_params = {
--	.alignment	= MODULE_ALIGN,
-+	.alignment	= JIT_ALLOC_ALIGN,
- 	.flags		= JIT_ALLOC_KASAN_SHADOW,
- 	.text.pgprot	= PAGE_KERNEL,
- };
+ /* Defined as markers to the end of the ftrace default trampolines */
+ extern void ftrace_regs_caller_end(void);
 diff --git a/arch/x86/kernel/module.c b/arch/x86/kernel/module.c
-index cce84b61a036..cacca613b8bd 100644
+index cacca613b8bd..94a00dc103cd 100644
 --- a/arch/x86/kernel/module.c
 +++ b/arch/x86/kernel/module.c
-@@ -67,7 +67,7 @@ static unsigned long int get_module_load_offset(void)
+@@ -19,7 +19,6 @@
+ #include <linux/jump_label.h>
+ #include <linux/random.h>
+ #include <linux/memory.h>
+-#include <linux/jitalloc.h>
+ 
+ #include <asm/text-patching.h>
+ #include <asm/page.h>
+@@ -37,49 +36,6 @@ do {							\
+ } while (0)
  #endif
  
- static struct jit_alloc_params jit_alloc_params = {
--	.alignment	= MODULE_ALIGN,
-+	.alignment	= JIT_ALLOC_ALIGN,
- 	.flags		= JIT_ALLOC_KASAN_SHADOW,
- };
- 
-diff --git a/include/linux/jitalloc.h b/include/linux/jitalloc.h
-index 34ee57795a18..823b13706a90 100644
---- a/include/linux/jitalloc.h
-+++ b/include/linux/jitalloc.h
-@@ -4,6 +4,14 @@
- 
- #include <linux/types.h>
- 
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+		!defined(CONFIG_KASAN_VMALLOC)
-+#include <linux/kasan.h>
-+#define JIT_ALLOC_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
-+#else
-+#define JIT_ALLOC_ALIGN PAGE_SIZE
-+#endif
-+
- /**
-  * enum jit_alloc_flags - options for executable memory allocations
-  * @JIT_ALLOC_KASAN_SHADOW:	allocate kasan shadow
-diff --git a/include/linux/moduleloader.h b/include/linux/moduleloader.h
-index b3374342f7af..4321682fe849 100644
---- a/include/linux/moduleloader.h
-+++ b/include/linux/moduleloader.h
-@@ -25,10 +25,6 @@ int module_frob_arch_sections(Elf_Ehdr *hdr,
- /* Additional bytes needed by arch in front of individual sections */
- unsigned int arch_mod_section_prepend(struct module *mod, unsigned int section);
- 
--/* Allocator used for allocating struct module, core sections and init
--   sections.  Returns NULL on failure. */
--void *module_alloc(unsigned long size);
+-#ifdef CONFIG_RANDOMIZE_BASE
+-static unsigned long module_load_offset;
 -
- /* Determines if the section name is an init section (that is only used during
-  * module loading).
-  */
-@@ -113,12 +109,4 @@ void module_arch_cleanup(struct module *mod);
- /* Any cleanup before freeing mod->module_init */
- void module_arch_freeing_init(struct module *mod);
- 
--#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
--		!defined(CONFIG_KASAN_VMALLOC)
--#include <linux/kasan.h>
--#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
+-/* Mutex protects the module_load_offset. */
+-static DEFINE_MUTEX(module_kaslr_mutex);
+-
+-static unsigned long int get_module_load_offset(void)
+-{
+-	if (kaslr_enabled()) {
+-		mutex_lock(&module_kaslr_mutex);
+-		/*
+-		 * Calculate the module_load_offset the first time this
+-		 * code is called. Once calculated it stays the same until
+-		 * reboot.
+-		 */
+-		if (module_load_offset == 0)
+-			module_load_offset =
+-				get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+-		mutex_unlock(&module_kaslr_mutex);
+-	}
+-	return module_load_offset;
+-}
 -#else
--#define MODULE_ALIGN PAGE_SIZE
+-static unsigned long int get_module_load_offset(void)
+-{
+-	return 0;
+-}
 -#endif
 -
- #endif
-diff --git a/kernel/module/main.c b/kernel/module/main.c
-index 51278c571bcb..dfb7fa109f1a 100644
---- a/kernel/module/main.c
-+++ b/kernel/module/main.c
-@@ -1600,13 +1600,6 @@ static void free_modinfo(struct module *mod)
- 	}
- }
- 
--void * __weak module_alloc(unsigned long size)
+-static struct jit_alloc_params jit_alloc_params = {
+-	.alignment	= JIT_ALLOC_ALIGN,
+-	.flags		= JIT_ALLOC_KASAN_SHADOW,
+-};
+-
+-struct jit_alloc_params *jit_alloc_arch_params(void)
 -{
--	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
--			GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERMS,
--			NUMA_NO_NODE, __builtin_return_address(0));
+-	jit_alloc_params.text.pgprot = PAGE_KERNEL;
+-	jit_alloc_params.text.start = MODULES_VADDR + get_module_load_offset();
+-	jit_alloc_params.text.end = MODULES_END;
+-
+-	return &jit_alloc_params;
 -}
 -
- bool __weak module_init_section(const char *name)
- {
- 	return strstarts(name, ".init");
-diff --git a/mm/jitalloc.c b/mm/jitalloc.c
-index 4e10af7803f7..221940e36b46 100644
---- a/mm/jitalloc.c
-+++ b/mm/jitalloc.c
-@@ -60,20 +60,16 @@ void jit_free(void *buf)
+ #ifdef CONFIG_X86_32
+ int apply_relocate(Elf32_Shdr *sechdrs,
+ 		   const char *strtab,
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index 3cdac0f0055d..ffaf9a3840ce 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -7,6 +7,7 @@
+ #include <linux/swapops.h>
+ #include <linux/kmemleak.h>
+ #include <linux/sched/task.h>
++#include <linux/jitalloc.h>
  
- void *jit_text_alloc(size_t len)
- {
--	if (jit_alloc_params.text.start) {
--		unsigned int align = jit_alloc_params.alignment;
--		pgprot_t pgprot = jit_alloc_params.text.pgprot;
--		unsigned long start = jit_alloc_params.text.start;
--		unsigned long end = jit_alloc_params.text.end;
--		unsigned long fallback_start = jit_alloc_params.text.fallback_start;
--		unsigned long fallback_end = jit_alloc_params.text.fallback_end;
--		bool kasan = jit_alloc_params.flags & JIT_ALLOC_KASAN_SHADOW;
--
--		return jit_alloc(len, align, pgprot, start, end,
--				 fallback_start, fallback_end, kasan);
--	}
--
--	return module_alloc(len);
-+	unsigned int align = jit_alloc_params.alignment;
-+	pgprot_t pgprot = jit_alloc_params.text.pgprot;
-+	unsigned long start = jit_alloc_params.text.start;
-+	unsigned long end = jit_alloc_params.text.end;
-+	unsigned long fallback_start = jit_alloc_params.text.fallback_start;
-+	unsigned long fallback_end = jit_alloc_params.text.fallback_end;
-+	bool kasan = jit_alloc_params.flags & JIT_ALLOC_KASAN_SHADOW;
-+
-+	return jit_alloc(len, align, pgprot, start, end,
-+			 fallback_start, fallback_end, kasan);
+ #include <asm/set_memory.h>
+ #include <asm/e820/api.h>
+@@ -1084,3 +1085,48 @@ unsigned long arch_max_swapfile_size(void)
+ 	return pages;
  }
- 
- struct jit_alloc_params * __weak jit_alloc_arch_params(void)
-@@ -101,5 +97,12 @@ void jit_alloc_init(void)
- 			return;
- 
- 		jit_alloc_params = *p;
-+		return;
- 	}
+ #endif
 +
-+	/* defaults for architecures that don't need special handling */
-+	jit_alloc_params.alignment	= 1;
-+	jit_alloc_params.text.pgprot	= PAGE_KERNEL_EXEC;
-+	jit_alloc_params.text.start	= VMALLOC_START;
-+	jit_alloc_params.text.end	= VMALLOC_END;
- }
++#ifdef CONFIG_JIT_ALLOC
++#ifdef CONFIG_RANDOMIZE_BASE
++static unsigned long jit_load_offset;
++
++/* Mutex protects the jit_load_offset. */
++static DEFINE_MUTEX(jit_kaslr_mutex);
++
++static unsigned long int get_jit_load_offset(void)
++{
++	if (kaslr_enabled()) {
++		mutex_lock(&jit_kaslr_mutex);
++		/*
++		 * Calculate the jit_load_offset the first time this
++		 * code is called. Once calculated it stays the same until
++		 * reboot.
++		 */
++		if (jit_load_offset == 0)
++			jit_load_offset =
++				get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
++		mutex_unlock(&jit_kaslr_mutex);
++	}
++	return jit_load_offset;
++}
++#else
++static unsigned long int get_jit_load_offset(void)
++{
++	return 0;
++}
++#endif
++
++static struct jit_alloc_params jit_alloc_params = {
++	.alignment	= JIT_ALLOC_ALIGN,
++	.flags		= JIT_ALLOC_KASAN_SHADOW,
++};
++
++struct jit_alloc_params *jit_alloc_arch_params(void)
++{
++	jit_alloc_params.text.pgprot = PAGE_KERNEL;
++	jit_alloc_params.text.start = MODULES_VADDR + get_jit_load_offset();
++	jit_alloc_params.text.end = MODULES_END;
++
++	return &jit_alloc_params;
++}
++#endif /* CONFIG_JIT_ALLOC */
 -- 
 2.35.1
 
