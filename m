@@ -2,251 +2,211 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B318C7EE2E
-	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 14:24:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A4DC7EE32
+	for <sparclinux@archiver.kernel.org>; Thu,  1 Jun 2023 16:12:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234153AbjFAOYn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 1 Jun 2023 10:24:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44452 "EHLO
+        id S230046AbjFAQMS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 1 Jun 2023 12:12:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233865AbjFAOYj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 10:24:39 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6161FC;
-        Thu,  1 Jun 2023 07:24:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1685629478; x=1717165478;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=BaD1zw6V2jf+wne8NUiF1WEc49QRybnZ2yKptn30Dmk=;
-  b=g1aybGChwSwwHLtrLrIonUYSm1lYhIMMZTtMV4TPym8PLnzuLenQ5iHe
-   nNMYHLT0quEiRdF1lKyNG/Aeql87GJVSx6MCsQcp0n7kBbC7emNU5gC4J
-   +VSQmF/A3I+2fbt8d9bSDTMPO8zDM25CUSFd1adPzKJc2iMVzwDoZXYns
-   N7siqRkUQVx0wb9SPPGZ1wZ8TdC3t8ywtN+XkPPVaxBJeT91jaoq0bLGr
-   T5G898YHxNqpz4HZIHhYF3CPl02VXWoIgOlTrxXPvL+2Qng0uJUX+3DT8
-   uc/qTX0VgID7snj30MS2pH9rK0Wk3HlIrJU6zPsXfkCvl6ou3yXMFpqtt
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="419088767"
-X-IronPort-AV: E=Sophos;i="6.00,210,1681196400"; 
-   d="scan'208";a="419088767"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2023 07:19:22 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="657813870"
-X-IronPort-AV: E=Sophos;i="6.00,210,1681196400"; 
-   d="scan'208";a="657813870"
-Received: from lkp-server01.sh.intel.com (HELO fb1ced2c09fb) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 01 Jun 2023 07:19:17 -0700
-Received: from kbuild by fb1ced2c09fb with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1q4j92-0002Lp-1h;
-        Thu, 01 Jun 2023 14:19:16 +0000
-Date:   Thu, 1 Jun 2023 22:18:18 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        with ESMTP id S229603AbjFAQMQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 1 Jun 2023 12:12:16 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 50B4C18F;
+        Thu,  1 Jun 2023 09:12:13 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 525171063;
+        Thu,  1 Jun 2023 09:12:58 -0700 (PDT)
+Received: from FVFF77S0Q05N.cambridge.arm.com (FVFF77S0Q05N.cambridge.arm.com [10.1.36.140])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C47623F663;
+        Thu,  1 Jun 2023 09:12:06 -0700 (PDT)
+Date:   Thu, 1 Jun 2023 17:12:03 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     linux-kernel@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     oe-kbuild-all@lists.linux.dev,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v3 25/34] m68k: Convert various functions to use ptdescs
-Message-ID: <202306011704.i8xMWKPl-lkp@intel.com>
-References: <20230531213032.25338-26-vishal.moola@gmail.com>
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Song Liu <song@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 00/13] mm: jit/text allocator
+Message-ID: <ZHjDU/mxE+cugpLj@FVFF77S0Q05N.cambridge.arm.com>
+References: <20230601101257.530867-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230531213032.25338-26-vishal.moola@gmail.com>
+In-Reply-To: <20230601101257.530867-1-rppt@kernel.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Vishal,
+Hi Mike,
 
-kernel test robot noticed the following build errors:
+On Thu, Jun 01, 2023 at 01:12:44PM +0300, Mike Rapoport wrote:
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> 
+> Hi,
+> 
+> module_alloc() is used everywhere as a mean to allocate memory for code.
+> 
+> Beside being semantically wrong, this unnecessarily ties all subsystmes
+> that need to allocate code, such as ftrace, kprobes and BPF to modules
+> and puts the burden of code allocation to the modules code.
 
-[auto build test ERROR on next-20230531]
-[cannot apply to akpm-mm/mm-everything s390/features powerpc/next powerpc/fixes geert-m68k/for-next geert-m68k/for-linus linus/master v6.4-rc4 v6.4-rc3 v6.4-rc2 v6.4-rc4]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+I agree this is a problem, and one key issue here is that these can have
+different requirements. For example, on arm64 we need modules to be placed
+within a 128M or 2G window containing the kernel, whereas it would be safe for
+the kprobes XOL area to be placed arbitrarily far from the kernel image (since
+we don't allow PC-relative insns to be stepped out-of-line). Likewise arm64
+doesn't have ftrace trampolines, and DIRECT_CALL trampolines can safely be
+placed arbitarily far from the kernel image.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230601-053454
-base:   next-20230531
-patch link:    https://lore.kernel.org/r/20230531213032.25338-26-vishal.moola%40gmail.com
-patch subject: [PATCH v3 25/34] m68k: Convert various functions to use ptdescs
-config: m68k-randconfig-r002-20230531 (https://download.01.org/0day-ci/archive/20230601/202306011704.i8xMWKPl-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 12.3.0
-reproduce (this is a W=1 build):
-        mkdir -p ~/bin
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/915ab62dc3315fe0a0544fccb4ee5f3ee32694b5
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230601-053454
-        git checkout 915ab62dc3315fe0a0544fccb4ee5f3ee32694b5
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.3.0 ~/bin/make.cross W=1 O=build_dir ARCH=m68k olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.3.0 ~/bin/make.cross W=1 O=build_dir ARCH=m68k SHELL=/bin/bash arch/m68k/mm/
+For a while I have wanted to give kprobes its own allocator so that it can work
+even with CONFIG_MODULES=n, and so that it doesn't have to waste VA space in
+the modules area.
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202306011704.i8xMWKPl-lkp@intel.com/
+Given that, I think these should have their own allocator functions that can be
+provided independently, even if those happen to use common infrastructure.
 
-All error/warnings (new ones prefixed by >>):
+> Several architectures override module_alloc() because of various
+> constraints where the executable memory can be located and this causes
+> additional obstacles for improvements of code allocation.
+> 
+> This set splits code allocation from modules by introducing
+> jit_text_alloc(), jit_data_alloc() and jit_free() APIs, replaces call
+> sites of module_alloc() and module_memfree() with the new APIs and
+> implements core text and related allocation in a central place.
+> 
+> Instead of architecture specific overrides for module_alloc(), the
+> architectures that require non-default behaviour for text allocation must
+> fill jit_alloc_params structure and implement jit_alloc_arch_params() that
+> returns a pointer to that structure. If an architecture does not implement
+> jit_alloc_arch_params(), the defaults compatible with the current
+> modules::module_alloc() are used.
 
-   In file included from arch/m68k/include/asm/pgalloc.h:12,
-                    from arch/m68k/mm/init.c:26:
-   arch/m68k/include/asm/mcf_pgalloc.h: In function 'pgd_alloc':
->> arch/m68k/include/asm/mcf_pgalloc.h:83:59: error: 'GFP_NOWARN' undeclared (first use in this function); did you mean 'GFP_NOWAIT'?
-      83 |         struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | GFP_NOWARN, 0);
-         |                                                           ^~~~~~~~~~
-         |                                                           GFP_NOWAIT
-   arch/m68k/include/asm/mcf_pgalloc.h:83:59: note: each undeclared identifier is reported only once for each function it appears in
-   arch/m68k/include/asm/mcf_pgalloc.h: At top level:
->> arch/m68k/include/asm/mcf_pgalloc.h:22:27: warning: 'ptdesc_address' is static but used in inline function 'pte_alloc_one_kernel' which is not static
-      22 |         return (pte_t *) (ptdesc_address(ptdesc));
-         |                           ^~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:17:33: warning: 'pagetable_alloc' is static but used in inline function 'pte_alloc_one_kernel' which is not static
-      17 |         struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | __GFP_ZERO, 0);
-         |                                 ^~~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:10:24: warning: 'virt_to_ptdesc' is static but used in inline function 'pte_free_kernel' which is not static
-      10 |         pagetable_free(virt_to_ptdesc(pte));
-         |                        ^~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:10:9: warning: 'pagetable_free' is static but used in inline function 'pte_free_kernel' which is not static
-      10 |         pagetable_free(virt_to_ptdesc(pte));
-         |         ^~~~~~~~~~~~~~
---
-   In file included from arch/m68k/mm/mcfmmu.c:21:
-   arch/m68k/include/asm/mcf_pgalloc.h: In function 'pgd_alloc':
->> arch/m68k/include/asm/mcf_pgalloc.h:83:59: error: 'GFP_NOWARN' undeclared (first use in this function); did you mean 'GFP_NOWAIT'?
-      83 |         struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | GFP_NOWARN, 0);
-         |                                                           ^~~~~~~~~~
-         |                                                           GFP_NOWAIT
-   arch/m68k/include/asm/mcf_pgalloc.h:83:59: note: each undeclared identifier is reported only once for each function it appears in
-   arch/m68k/mm/mcfmmu.c: At top level:
-   arch/m68k/mm/mcfmmu.c:36:13: warning: no previous prototype for 'paging_init' [-Wmissing-prototypes]
-      36 | void __init paging_init(void)
-         |             ^~~~~~~~~~~
-   arch/m68k/mm/mcfmmu.c: In function 'paging_init':
-   arch/m68k/mm/mcfmmu.c:41:37: warning: variable 'bootmem_end' set but not used [-Wunused-but-set-variable]
-      41 |         unsigned long next_pgtable, bootmem_end;
-         |                                     ^~~~~~~~~~~
-   arch/m68k/include/asm/mcf_pgalloc.h: At top level:
->> arch/m68k/include/asm/mcf_pgalloc.h:22:27: warning: 'ptdesc_address' is static but used in inline function 'pte_alloc_one_kernel' which is not static
-      22 |         return (pte_t *) (ptdesc_address(ptdesc));
-         |                           ^~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:17:33: warning: 'pagetable_alloc' is static but used in inline function 'pte_alloc_one_kernel' which is not static
-      17 |         struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | __GFP_ZERO, 0);
-         |                                 ^~~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:10:24: warning: 'virt_to_ptdesc' is static but used in inline function 'pte_free_kernel' which is not static
-      10 |         pagetable_free(virt_to_ptdesc(pte));
-         |                        ^~~~~~~~~~~~~~
->> arch/m68k/include/asm/mcf_pgalloc.h:10:9: warning: 'pagetable_free' is static but used in inline function 'pte_free_kernel' which is not static
-      10 |         pagetable_free(virt_to_ptdesc(pte));
-         |         ^~~~~~~~~~~~~~
+As above, I suspect that each of the callsites should probably be using common
+infrastructure, but I don't think that a single jit_alloc_arch_params() makes
+sense, since the parameters for each case may need to be distinct.
 
+> The new jitalloc infrastructure allows decoupling of kprobes and ftrace
+> from modules, and most importantly it enables ROX allocations for
+> executable memory.
+> 
+> A centralized infrastructure for code allocation allows future
+> optimizations for allocations of executable memory, caching large pages for
+> better iTLB performance and providing sub-page allocations for users that
+> only need small jit code snippets.
 
-vim +83 arch/m68k/include/asm/mcf_pgalloc.h
+This sounds interesting, but I think this can be achieved without requiring a
+single jit_alloc_arch_params() shared by all users?
 
-     7	
-     8	extern inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-     9	{
-  > 10		pagetable_free(virt_to_ptdesc(pte));
-    11	}
-    12	
-    13	extern const char bad_pmd_string[];
-    14	
-    15	extern inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
-    16	{
-  > 17		struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | __GFP_ZERO, 0);
-    18	
-    19		if (!ptdesc)
-    20			return NULL;
-    21	
-  > 22		return (pte_t *) (ptdesc_address(ptdesc));
-    23	}
-    24	
-    25	extern inline pmd_t *pmd_alloc_kernel(pgd_t *pgd, unsigned long address)
-    26	{
-    27		return (pmd_t *) pgd;
-    28	}
-    29	
-    30	#define pmd_populate(mm, pmd, pte) (pmd_val(*pmd) = (unsigned long)(pte))
-    31	
-    32	#define pmd_populate_kernel pmd_populate
-    33	
-    34	static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
-    35					  unsigned long address)
-    36	{
-    37		struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
-    38	
-    39		pagetable_pte_dtor(ptdesc);
-    40		pagetable_free(ptdesc);
-    41	}
-    42	
-    43	static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
-    44	{
-    45		struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA, 0);
-    46		pte_t *pte;
-    47	
-    48		if (!ptdesc)
-    49			return NULL;
-    50		if (!pagetable_pte_ctor(ptdesc)) {
-    51			pagetable_free(ptdesc);
-    52			return NULL;
-    53		}
-    54	
-    55		pte = ptdesc_address(ptdesc);
-    56		pagetable_clear(pte);
-    57	
-    58		return pte;
-    59	}
-    60	
-    61	static inline void pte_free(struct mm_struct *mm, pgtable_t pgtable)
-    62	{
-    63		struct ptdesc *ptdesc = virt_to_ptdesc(ptdesc);
-    64	
-    65		pagetable_pte_dtor(ptdesc);
-    66		pagetable_free(ptdesc);
-    67	}
-    68	
-    69	/*
-    70	 * In our implementation, each pgd entry contains 1 pmd that is never allocated
-    71	 * or freed.  pgd_present is always 1, so this should never be called. -NL
-    72	 */
-    73	#define pmd_free(mm, pmd) BUG()
-    74	
-    75	static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
-    76	{
-    77		pagetable_free(virt_to_ptdesc(pgd));
-    78	}
-    79	
-    80	static inline pgd_t *pgd_alloc(struct mm_struct *mm)
-    81	{
-    82		pgd_t *new_pgd;
-  > 83		struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | GFP_NOWARN, 0);
-    84	
-    85		if (!ptdesc)
-    86			return NULL;
-    87		new_pgd = (pgd_t *) ptdesc_address(ptdesc);
-    88	
-    89		memcpy(new_pgd, swapper_pg_dir, PTRS_PER_PGD * sizeof(pgd_t));
-    90		memset(new_pgd, 0, PAGE_OFFSET >> PGDIR_SHIFT);
-    91		return new_pgd;
-    92	}
-    93	
+Thanks,
+Mark.
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> 
+> patches 1-5: split out the code allocation from modules and arch
+> patch 6: add dedicated API for data allocations with constraints similar to
+> code allocations
+> patches 7-9: decouple dynamic ftrace and kprobes form CONFIG_MODULES
+> patches 10-13: enable ROX allocations for executable memory on x86
+> 
+> Mike Rapoport (IBM) (11):
+>   nios2: define virtual address space for modules
+>   mm: introduce jit_text_alloc() and use it instead of module_alloc()
+>   mm/jitalloc, arch: convert simple overrides of module_alloc to jitalloc
+>   mm/jitalloc, arch: convert remaining overrides of module_alloc to jitalloc
+>   module, jitalloc: drop module_alloc
+>   mm/jitalloc: introduce jit_data_alloc()
+>   x86/ftrace: enable dynamic ftrace without CONFIG_MODULES
+>   arch: make jitalloc setup available regardless of CONFIG_MODULES
+>   kprobes: remove dependcy on CONFIG_MODULES
+>   modules, jitalloc: prepare to allocate executable memory as ROX
+>   x86/jitalloc: make memory allocated for code ROX
+> 
+> Song Liu (2):
+>   ftrace: Add swap_func to ftrace_process_locs()
+>   x86/jitalloc: prepare to allocate exectuatble memory as ROX
+> 
+>  arch/Kconfig                     |   5 +-
+>  arch/arm/kernel/module.c         |  32 ------
+>  arch/arm/mm/init.c               |  35 ++++++
+>  arch/arm64/kernel/module.c       |  47 --------
+>  arch/arm64/mm/init.c             |  42 +++++++
+>  arch/loongarch/kernel/module.c   |   6 -
+>  arch/loongarch/mm/init.c         |  16 +++
+>  arch/mips/kernel/module.c        |   9 --
+>  arch/mips/mm/init.c              |  19 ++++
+>  arch/nios2/include/asm/pgtable.h |   5 +-
+>  arch/nios2/kernel/module.c       |  24 ++--
+>  arch/parisc/kernel/module.c      |  11 --
+>  arch/parisc/mm/init.c            |  21 +++-
+>  arch/powerpc/kernel/kprobes.c    |   4 +-
+>  arch/powerpc/kernel/module.c     |  37 -------
+>  arch/powerpc/mm/mem.c            |  41 +++++++
+>  arch/riscv/kernel/module.c       |  10 --
+>  arch/riscv/mm/init.c             |  18 +++
+>  arch/s390/kernel/ftrace.c        |   4 +-
+>  arch/s390/kernel/kprobes.c       |   4 +-
+>  arch/s390/kernel/module.c        |  46 +-------
+>  arch/s390/mm/init.c              |  35 ++++++
+>  arch/sparc/kernel/module.c       |  34 +-----
+>  arch/sparc/mm/Makefile           |   2 +
+>  arch/sparc/mm/jitalloc.c         |  21 ++++
+>  arch/sparc/net/bpf_jit_comp_32.c |   8 +-
+>  arch/x86/Kconfig                 |   2 +
+>  arch/x86/kernel/alternative.c    |  43 ++++---
+>  arch/x86/kernel/ftrace.c         |  59 +++++-----
+>  arch/x86/kernel/kprobes/core.c   |   4 +-
+>  arch/x86/kernel/module.c         |  75 +------------
+>  arch/x86/kernel/static_call.c    |  10 +-
+>  arch/x86/kernel/unwind_orc.c     |  13 ++-
+>  arch/x86/mm/init.c               |  52 +++++++++
+>  arch/x86/net/bpf_jit_comp.c      |  22 +++-
+>  include/linux/ftrace.h           |   2 +
+>  include/linux/jitalloc.h         |  69 ++++++++++++
+>  include/linux/moduleloader.h     |  15 ---
+>  kernel/bpf/core.c                |  14 +--
+>  kernel/kprobes.c                 |  51 +++++----
+>  kernel/module/Kconfig            |   1 +
+>  kernel/module/main.c             |  56 ++++------
+>  kernel/trace/ftrace.c            |  13 ++-
+>  kernel/trace/trace_kprobe.c      |  11 ++
+>  mm/Kconfig                       |   3 +
+>  mm/Makefile                      |   1 +
+>  mm/jitalloc.c                    | 185 +++++++++++++++++++++++++++++++
+>  mm/mm_init.c                     |   2 +
+>  48 files changed, 777 insertions(+), 462 deletions(-)
+>  create mode 100644 arch/sparc/mm/jitalloc.c
+>  create mode 100644 include/linux/jitalloc.h
+>  create mode 100644 mm/jitalloc.c
+> 
+> 
+> base-commit: 44c026a73be8038f03dbdeef028b642880cf1511
+> -- 
+> 2.35.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
