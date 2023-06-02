@@ -2,327 +2,166 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA92EC7EE2A
-	for <sparclinux@archiver.kernel.org>; Fri,  2 Jun 2023 15:28:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98290C7EE32
+	for <sparclinux@archiver.kernel.org>; Fri,  2 Jun 2023 18:21:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236648AbjFBP2N (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 2 Jun 2023 11:28:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41944 "EHLO
+        id S236208AbjFBSVS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 2 Jun 2023 14:21:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235672AbjFBP2C (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 2 Jun 2023 11:28:02 -0400
-Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D77E01998
-        for <sparclinux@vger.kernel.org>; Fri,  2 Jun 2023 08:27:34 -0700 (PDT)
-Received: by mail-il1-x133.google.com with SMTP id e9e14a558f8ab-33b7f217dd0so133115ab.0
-        for <sparclinux@vger.kernel.org>; Fri, 02 Jun 2023 08:27:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1685719644; x=1688311644;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VGpvRAYJcTbdsEDxK6Clk8jD+jwMUaRTiJd7OGuc/es=;
-        b=dOBUs4e+KgoAyiadv1JJ/f9tRqSN5ukcthj4VsU0D4Qes6hv2PsZpLdOPmqCt2ZbfT
-         CXdj5C1FgEWgPvMeHAQtRU71Y8a9/s5zW+2gD6fL9oiWaz1NTfBA889r+/CeuBNedToQ
-         y9FEwwG2vRh596WD/dNjkYUeIBDO2KkO6LlIO3v8MbmdrEpXss7rB+3TBNMIDEvWgJDY
-         9ImYQMoTxddcF5lsSEnQ/wUTIlB70U4obnNud4RtfmLF6/iSzfNonP9zKKd4j9ClkMH5
-         2I3BQ8ccjCWIk+EQTYses/gpOeyU9yAW+KUgfVQCLR3fRbgLO8XIkze0Iis1VMMNRgL5
-         dd5A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685719644; x=1688311644;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=VGpvRAYJcTbdsEDxK6Clk8jD+jwMUaRTiJd7OGuc/es=;
-        b=ZQPVUvmUm+8L1nUNNYOYQqmxYalMYxEiWkuxYkXnUrKly2PEWW1t0e6WYbFWTECKun
-         nH7/M1qK1mLAXh3D4Miha1w9IHeMgcfKopVfDFnBCNMykX3qXXwF+ICmxXsThHNTzhEi
-         4O7LlQs+yqCkehtFE1FBgm3syAFxD3PYv0SVOuIqEmo2h4JRR6MkLp4IgGafk7WFkGVV
-         CW98pfDIjariuedpCgfNk+adNbj877g0apm+hmROqTH6ongn7JqY5EWBp9qekMFoQv8u
-         83i9l2o5F9Lvuh9IICY6KBcQuPIeknRYtxJ641f3illyAIj2MKHNLmJcMrPSKwXYMenR
-         EHcw==
-X-Gm-Message-State: AC+VfDwBR00wf1LOzzrzD+XlJLABbMWl04W81bcdSGIitSoBtNq0JJty
-        frvC9VXHwshefIKCm4xk+1BYinLXypcSMhwXM1zQGA==
-X-Google-Smtp-Source: ACHHUZ6wYA9MFcxbCRs4DlQGPF6tbNz6AN15jZgbaKRQbuP7sxKmkHSJQSJyONgVy18SRiB84LFHkHiwlvKWwKGXIik=
-X-Received: by 2002:a05:6e02:164a:b0:33c:c3ed:889c with SMTP id
- v10-20020a056e02164a00b0033cc3ed889cmr239170ilu.12.1685719644120; Fri, 02 Jun
- 2023 08:27:24 -0700 (PDT)
+        with ESMTP id S235519AbjFBSVQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 2 Jun 2023 14:21:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 253991A1;
+        Fri,  2 Jun 2023 11:21:15 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B4DF36523F;
+        Fri,  2 Jun 2023 18:21:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C87DC433AA;
+        Fri,  2 Jun 2023 18:21:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1685730074;
+        bh=X+6D25ac/ynfkYhL6CVIatM+QSgTz3ZdfLV95/xOw/s=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=m8QqKBlwUZ1OdVsi3iL4i/wpx/dFY6BbtHjhKMAoPALO9d9S1Of5z7SZF4QL6sTbP
+         1AkumCJkUSaKm4k7dCVk+lOGEFZdfq22cqjqj27S/pPlmB3p+6xXv2CNvliSMKoASM
+         /hdXoCMRwv6EJy8J6GYtUkCvLB9u0rcyusLTXlpDOf8Lr4f24TWYjjjFg1gay1e8Ak
+         p/JJ9xBOtMt5dIZYwKQ9oFJD8MWj9f1lt6ZhCj0XTqBGpkRKgNx/tS3niGcx/Matut
+         0hwyzJfj74d+iBjmUiHb0LPXzSLbkWfgBPmkBtc2NCOoUpEnhn1N5112VQidBofQtB
+         l46PC2/nl/Dww==
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-2af189d323fso46352391fa.1;
+        Fri, 02 Jun 2023 11:21:14 -0700 (PDT)
+X-Gm-Message-State: AC+VfDy6tUtSTkY4WimD0ve8ZiSIIh10ZMJfMY+q87EfuCPbr3gZqly6
+        Qk5lO3wACNYGAPPmYAAU39rdvk/Wpx+a3HieDNM=
+X-Google-Smtp-Source: ACHHUZ7u+3QRkPB700ZRWSkZS34WuzRLSBXiPs+mDMX8Rtj0TALCowhBg47HVf6nzRS8a/FS2UP95/Ck0Au4nvQTBcE=
+X-Received: by 2002:a2e:b55a:0:b0:2b0:59c3:29c9 with SMTP id
+ a26-20020a2eb55a000000b002b059c329c9mr217540ljn.6.1685730071990; Fri, 02 Jun
+ 2023 11:21:11 -0700 (PDT)
 MIME-Version: 1.0
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com>
- <CAG48ez0pCqfRdVSnJz7EKtNvMR65=zJgVB-72nTdrNuhtJNX2Q@mail.gmail.com> <3a33b59f-47c1-9dea-209a-9f77eec3cb1@google.com>
-In-Reply-To: <3a33b59f-47c1-9dea-209a-9f77eec3cb1@google.com>
-From:   Jann Horn <jannh@google.com>
-Date:   Fri, 2 Jun 2023 17:26:47 +0200
-Message-ID: <CAG48ez1Yua=6ztK6Urc-BZj9ku14MWbOKP8iBUK6_F5VzRXP-A@mail.gmail.com>
-Subject: Re: [PATCH 00/12] mm: free retracted page table by RCU
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+References: <20230601101257.530867-1-rppt@kernel.org> <ZHjDU/mxE+cugpLj@FVFF77S0Q05N.cambridge.arm.com>
+ <ZHjgIH3aX9dCvVZc@moria.home.lan> <ZHm3zUUbwqlsZBBF@FVFF77S0Q05N>
+In-Reply-To: <ZHm3zUUbwqlsZBBF@FVFF77S0Q05N>
+From:   Song Liu <song@kernel.org>
+Date:   Fri, 2 Jun 2023 11:20:58 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW7Euczff_KB70nuH=Hhf2EYHAf=xiQR7mFqVfByhD34XA@mail.gmail.com>
+Message-ID: <CAPhsuW7Euczff_KB70nuH=Hhf2EYHAf=xiQR7mFqVfByhD34XA@mail.gmail.com>
+Subject: Re: [PATCH 00/13] mm: jit/text allocator
+To:     Mark Rutland <mark.rutland@arm.com>
+Cc:     Kent Overstreet <kent.overstreet@linux.dev>,
+        Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
         Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org,
+        Puranjay Mohan <puranjay12@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jun 2, 2023 at 6:37=E2=80=AFAM Hugh Dickins <hughd@google.com> wrot=
-e:
-> On Wed, 31 May 2023, Jann Horn wrote:
-> > On Mon, May 29, 2023 at 8:11=E2=80=AFAM Hugh Dickins <hughd@google.com>=
- wrote:
-> > > Here is the third series of patches to mm (and a few architectures), =
-based
-> > > on v6.4-rc3 with the preceding two series applied: in which khugepage=
-d
-> > > takes advantage of pte_offset_map[_lock]() allowing for pmd transitio=
-ns.
+On Fri, Jun 2, 2023 at 2:35=E2=80=AFAM Mark Rutland <mark.rutland@arm.com> =
+wrote:
+>
+> On Thu, Jun 01, 2023 at 02:14:56PM -0400, Kent Overstreet wrote:
+> > On Thu, Jun 01, 2023 at 05:12:03PM +0100, Mark Rutland wrote:
+> > > For a while I have wanted to give kprobes its own allocator so that i=
+t can work
+> > > even with CONFIG_MODULES=3Dn, and so that it doesn't have to waste VA=
+ space in
+> > > the modules area.
+> > >
+> > > Given that, I think these should have their own allocator functions t=
+hat can be
+> > > provided independently, even if those happen to use common infrastruc=
+ture.
 > >
-> > To clarify: Part of the design here is that when you look up a user
-> > page table with pte_offset_map_nolock() or pte_offset_map() without
-> > holding mmap_lock in write mode, and you later lock the page table
-> > yourself, you don't know whether you actually have the real page table
-> > or a detached table that is currently in its RCU grace period, right?
+> > How much memory can kprobes conceivably use? I think we also want to tr=
+y
+> > to push back on combinatorial new allocators, if we can.
 >
-> Right.  (And I'd rather not assume anything of mmap_lock, but there are
-> one or two or three places that may still do so.)
+> That depends on who's using it, and how (e.g. via BPF).
 >
-> > And detached tables are supposed to consist of only zeroed entries,
-> > and we assume that no relevant codepath will do anything bad if one of
-> > these functions spuriously returns a pointer to a page table full of
-> > zeroed entries?
+> To be clear, I'm not necessarily asking for entirely different allocators=
+, but
+> I do thinkg that we want wrappers that can at least pass distinct start+e=
+nd
+> parameters to a common allocator, and for arm64's modules code I'd expect=
+ that
+> we'd keep the range falblack logic out of the common allcoator, and just =
+call
+> it twice.
 >
-> (Nit that I expect you're well aware of: IIRC "zeroed" isn't 0 on s390.)
-
-I was not aware, thanks. I only knew that on Intel's Knights Landing
-CPUs, the A/D bits are ignored by pte_none() due to some erratum.
-
-> If someone is using pte_offset_map() without lock, they must be prepared
-> to accept page-table-like changes.  The limits of pte_offset_map_nolock()
-> with later spin_lock(ptl): I'm still exploring: there's certainly an
-> argument that one ought to do a pmd_same() check before proceeding,
-> but I don't think anywhere needs that at present.
->
-> Whether the page table has to be full of zeroed entries when detached:
-> I believe it is always like that at present (by the end of the series,
-> when the collapse_pte_offset_map() oddity is fixed), but whether it needs
-> to be so I'm not sure.  Quite likely it will need to be; but I'm open to
-> the possibility that all it needs is to be still a page table, with
-> perhaps new entries from a new usage in it.
-
-My understanding is that at least handle_pte_fault(), the way it is
-currently written, would do bad things in that case:
-
-// assume we enter with mmap_lock in read mode,
-// for a write fault on a shared writable VMA without a page_mkwrite handle=
-r
-static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
-{
-  pte_t entry;
-
-  if (unlikely(pmd_none(*vmf->pmd))) {
-    [ not executed ]
-  } else {
-    /*
-     * A regular pmd is established and it can't morph into a huge
-     * pmd by anon khugepaged, since that takes mmap_lock in write
-     * mode; but shmem or file collapse to THP could still morph
-     * it into a huge pmd: just retry later if so.
-     */
-    vmf->pte =3D pte_offset_map_nolock(vmf->vma->vm_mm, vmf->pmd,
-             vmf->address, &vmf->ptl);
-    if (unlikely(!vmf->pte))
-      [not executed]
-    [assume that at this point, a concurrent THP collapse operation
-     removes the page table, and the page table has now been reused
-     and contains a read-only PTE]
-    // this reads page table contents protected solely by RCU
-    vmf->orig_pte =3D ptep_get_lockless(vmf->pte);
-    vmf->flags |=3D FAULT_FLAG_ORIG_PTE_VALID;
-
-    if (pte_none(vmf->orig_pte)) {
-      pte_unmap(vmf->pte);
-      vmf->pte =3D NULL;
-    }
-  }
-
-  if (!vmf->pte)
-    [not executed]
-
-  if (!pte_present(vmf->orig_pte))
-    [not executed]
-
-  if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
-    [not executed]
-
-  spin_lock(vmf->ptl);
-  entry =3D vmf->orig_pte;
-  if (unlikely(!pte_same(*vmf->pte, entry))) {
-    [not executed]
-  }
-  if (vmf->flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) {
-    if (!pte_write(entry))
-      // This will go into wp_page_shared(),
-      // which will call wp_page_reuse(),
-      // which will upgrade the page to writable
-      return do_wp_page(vmf);
-    [ not executed ]
-  }
-  [ not executed ]
-}
-
-That looks like we could end up racing such that a read-only PTE in
-the reused page table gets upgraded to writable, which would probably
-be a security bug.
-
-But I guess if you added bailout checks to every page table lock
-operation, it'd be a different story, maybe?
-
-> The most obvious vital thing (in the split ptlock case) is that it
-> remains a struct page with a usable ptl spinlock embedded in it.
->
-> The question becomes more urgent when/if extending to replacing the
-> pagetable pmd by huge pmd in one go, without any mmap_lock: powerpc
-> wants to deposit the page table for later use even in the shmem/file
-> case (and all arches in the anon case): I did work out the details once
-> before, but I'm not sure whether I would still agree with myself; and was
-> glad to leave replacement out of this series, to revisit some time later.
->
+> > > > Several architectures override module_alloc() because of various
+> > > > constraints where the executable memory can be located and this cau=
+ses
+> > > > additional obstacles for improvements of code allocation.
+> > > >
+> > > > This set splits code allocation from modules by introducing
+> > > > jit_text_alloc(), jit_data_alloc() and jit_free() APIs, replaces ca=
+ll
+> > > > sites of module_alloc() and module_memfree() with the new APIs and
+> > > > implements core text and related allocation in a central place.
+> > > >
+> > > > Instead of architecture specific overrides for module_alloc(), the
+> > > > architectures that require non-default behaviour for text allocatio=
+n must
+> > > > fill jit_alloc_params structure and implement jit_alloc_arch_params=
+() that
+> > > > returns a pointer to that structure. If an architecture does not im=
+plement
+> > > > jit_alloc_arch_params(), the defaults compatible with the current
+> > > > modules::module_alloc() are used.
+> > >
+> > > As above, I suspect that each of the callsites should probably be usi=
+ng common
+> > > infrastructure, but I don't think that a single jit_alloc_arch_params=
+() makes
+> > > sense, since the parameters for each case may need to be distinct.
 > >
-> > So in particular, in handle_pte_fault() we can reach the "if
-> > (unlikely(!pte_same(*vmf->pte, entry)))" with vmf->pte pointing to a
-> > detached zeroed page table, but we're okay with that because in that
-> > case we know that !pte_none(vmf->orig_pte)&&pte_none(*vmf->pte) ,
-> > which implies !pte_same(*vmf->pte, entry) , which means we'll bail
-> > out?
+> > I don't see how that follows. The whole point of function parameters is
+> > that they may be different :)
 >
-> There is no current (even at end of series) circumstance in which we
-> could be pointing to a detached page table there; but yes, I want to
-> allow for that, and yes I agree with your analysis.
-
-Hmm, what am I missing here?
-
-static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
-{
-  pte_t entry;
-
-  if (unlikely(pmd_none(*vmf->pmd))) {
-    [not executed]
-  } else {
-    /*
-     * A regular pmd is established and it can't morph into a huge
-     * pmd by anon khugepaged, since that takes mmap_lock in write
-     * mode; but shmem or file collapse to THP could still morph
-     * it into a huge pmd: just retry later if so.
-     */
-    vmf->pte =3D pte_offset_map_nolock(vmf->vma->vm_mm, vmf->pmd,
-             vmf->address, &vmf->ptl);
-    if (unlikely(!vmf->pte))
-      [not executed]
-    // this reads a present readonly PTE
-    vmf->orig_pte =3D ptep_get_lockless(vmf->pte);
-    vmf->flags |=3D FAULT_FLAG_ORIG_PTE_VALID;
-
-    if (pte_none(vmf->orig_pte)) {
-      [not executed]
-    }
-  }
-
-  [at this point, a concurrent THP collapse operation detaches the page tab=
-le]
-  // vmf->pte now points into a detached page table
-
-  if (!vmf->pte)
-    [not executed]
-
-  if (!pte_present(vmf->orig_pte))
-    [not executed]
-
-  if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
-    [not executed]
-
-  spin_lock(vmf->ptl);
-  entry =3D vmf->orig_pte;
-  // vmf->pte still points into a detached page table
-  if (unlikely(!pte_same(*vmf->pte, entry))) {
-    update_mmu_tlb(vmf->vma, vmf->address, vmf->pte);
-    goto unlock;
-  }
-  [...]
-}
-
-> But with the
-> interesting unanswered question for the future, of what if the same
-> value could be found there: would that imply it's safe to proceed,
-> or would some further prevention be needed?
-
-That would then hand the pointer to the detached page table to
-functions like do_wp_page(), which I think will do bad things (see
-above) if they are called on either a page table that has been reused
-in a different VMA with different protection flags (which could, for
-example, lead to pages becoming writable that should not be writable
-or such things) or on a page table that is no longer in use (because
-it would assume that PTEs referencing pages are refcounted when they
-actually aren't).
-
-> > If that's the intent, it might be good to add some comments, because
-> > at least to me that's not very obvious.
+> What I mean is that jit_alloc_arch_params() tries to aggregate common
+> parameters, but they aren't actually common (e.g. the actual start+end ra=
+nge
+> for allocation).
 >
-> That's a very fair request; but I shall have difficulty deciding where
-> to place such comments.  I shall have to try, then you redirect me.
+> > Can you give more detail on what parameters you need? If the only extra
+> > parameter is just "does this allocation need to live close to kernel
+> > text", that's not that big of a deal.
 >
-> And I think we approach this in opposite ways: my nature is to put some
-> infrastructure in place, and then look at it to see what we can get away
-> with; whereas your nature is to define upfront what the possibilities are=
-.
-> We can expect some tussles!
+> My thinking was that we at least need the start + end for each caller. Th=
+at
+> might be it, tbh.
 
-Yeah. :P
-One of my strongly-held beliefs is that it's important when making
-changes to code to continuously ask oneself "If I had to explain the
-rules by which this code operates - who has to take which locks, who
-holds references to what and so on -, how complicated would those
-rules be?", and if that turns into a series of exception cases, that
-probably means there will be bugs, because someone will probably lose
-track of one of those exceptions. So I would prefer it if we could
-have some rule like "whenever you lock an L1 page table, you must
-immediately recheck whether the page table is still referenced by the
-L2 page table, unless you know that you have a stable page reference
-for whatever reason", and then any code that operates on a locked page
-table doesn't have to worry about whether the page table might be
-detached.
+IIUC, arm64 uses VMALLOC address space for BPF programs. The reason
+is each BPF program uses at least 64kB (one page) out of the 128MB
+address space. Puranjay Mohan (CC'ed) is working on enabling
+bpf_prog_pack for arm64. Once this work is done, multiple BPF programs
+will be able to share a page. Will this improvement remove the need to
+specify a different address range for BPF programs?
+
+Thanks,
+Song
