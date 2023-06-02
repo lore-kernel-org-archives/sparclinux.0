@@ -2,64 +2,64 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E8AC7EE2E
-	for <sparclinux@archiver.kernel.org>; Fri,  2 Jun 2023 12:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CC6CC7EE24
+	for <sparclinux@archiver.kernel.org>; Fri,  2 Jun 2023 14:20:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235019AbjFBMPI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 2 Jun 2023 08:15:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55352 "EHLO
+        id S235461AbjFBOUV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 2 Jun 2023 10:20:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235140AbjFBMPH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 2 Jun 2023 08:15:07 -0400
-Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A67411A8
-        for <sparclinux@vger.kernel.org>; Fri,  2 Jun 2023 05:15:05 -0700 (PDT)
-Received: by mail-qk1-x72c.google.com with SMTP id af79cd13be357-75b1975ea18so192319985a.3
-        for <sparclinux@vger.kernel.org>; Fri, 02 Jun 2023 05:15:05 -0700 (PDT)
+        with ESMTP id S235311AbjFBOUT (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 2 Jun 2023 10:20:19 -0400
+Received: from mail-oi1-x229.google.com (mail-oi1-x229.google.com [IPv6:2607:f8b0:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C219419B
+        for <sparclinux@vger.kernel.org>; Fri,  2 Jun 2023 07:20:17 -0700 (PDT)
+Received: by mail-oi1-x229.google.com with SMTP id 5614622812f47-3980c92d8d6so1826128b6e.0
+        for <sparclinux@vger.kernel.org>; Fri, 02 Jun 2023 07:20:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1685708105; x=1688300105;
+        d=ziepe.ca; s=google; t=1685715617; x=1688307617;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=E6fUqXWlJ7lOi6jGaXDr+3k1lI6v7YmcWJa5TzCsAfQ=;
-        b=djzFovwDfDw/YWbNLlEkijaHy+/emg+qoFOhQt066k8y7eW0hTlMePfrnYmuQ/TT6l
-         d70TUlIzOVtlyaZIA/kRvBZRW52TVi/fieL9Uv4tiaV3F1pWuXYr7FBQh9RfbRxnphIn
-         nIOOpE05COs4CBgwbOrTscQAp+nS6Tk8Iv2UDHWeAHyeCW+fEyc3ctU7cgeLL3sBwLok
-         ifN7Ap+HhdKODLWUosw9jkC+w1v/s/a6CGlG9Me6OF17ZaxzMYB4I1oIF5wWR3fHyTGr
-         08q6Rpe08Gpj6mZ/RNU2DbMTQT+rS4iJPNpmpLyZGzEJB5e0jQtm57AIXlZP3QoFdL6G
-         nNRg==
+        bh=FqaYMxWoeNH3a7vv1yp0mvQMbR3V3EytnPDXxbqJ8VE=;
+        b=YplxNmFBW9ljUSBNluudr9Q6wJ87klI3TZokg2k+vwOdVg3A1AJX0pByRXwDqo5MwQ
+         alW49lR9XyUQRlk8vt7/xFfIsTB0flktCR+vD1xy2IwNrEoErUzHEn55bDAo5dNnYjOO
+         hlmGmFRf+2Fm0iceBj47fAw1vRm2jD5BSmGtugnmJtfDezNH4aKScnhjDxWGb5LL7ypz
+         fJzuxhuft9F1/d0AJw9yoXkpAePkuiZjqAB4ZmRDCE8ZLU0IAXmgmRwVUGE2hoENWDmB
+         8POcecwSo0I1O94ydcJI8eaZYk6Zm4Sxyg2IRRnMyhcC0eiAebPLKM5kmkf/d3iZsQ9c
+         DCqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685708105; x=1688300105;
+        d=1e100.net; s=20221208; t=1685715617; x=1688307617;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=E6fUqXWlJ7lOi6jGaXDr+3k1lI6v7YmcWJa5TzCsAfQ=;
-        b=Ufcw62Gk99LTCJ35SOMeyJEwhSxu+bUaDS4C//1L/u4a/O2HtwqCtsK9dKh3jK5p4p
-         4g6TPTBzQzuqAzI14SzdWBReKhcPn8xw0MEkrcFEqyFddT0p/0oAWHqWbjDMafo2mKM5
-         elH0FddPtn1wZ+8gtOo8rfmiKslZHYkycV7KhjwIZUGmyAqre9K8bWmAatqd2q0zgkZt
-         c/VKlqbw2YzmC5xbmam5Cks3NCpEjloHRNmq3pruqaQkf8ZxsF9zor0R3Z413zZYJdHv
-         o1FJVW1XzC8cmQjOEqveUilFgGp7HLWr2vJeajjOAg6C0lT0SJ/OF615UjKpZAdOno3m
-         p8/w==
-X-Gm-Message-State: AC+VfDxG2/hhVD1GgfY/3xKUeQYqFxApyyaGjFenRY+Qrw2+VEhdDHlM
-        VaqeIUtEvmA0BpCfcZ6QsQNB9A==
-X-Google-Smtp-Source: ACHHUZ6mKX5TGzVXplRRXyH/OZZR/wmHkSAtgpVVJf05zVAhB435FtzWVMzs8VPH+7iFQ08B9IrtzA==
-X-Received: by 2002:a05:620a:4481:b0:75b:23a0:e7cc with SMTP id x1-20020a05620a448100b0075b23a0e7ccmr17244216qkp.45.1685708104769;
-        Fri, 02 Jun 2023 05:15:04 -0700 (PDT)
-Received: from ziepe.ca ([206.223.160.26])
-        by smtp.gmail.com with ESMTPSA id p18-20020ae9f312000000b0075cad1e5907sm581918qkg.7.2023.06.02.05.15.03
+        bh=FqaYMxWoeNH3a7vv1yp0mvQMbR3V3EytnPDXxbqJ8VE=;
+        b=OnvqjM+BnaKCvUVvBoSt7yApbgxUoVfXpMnheA/KchAmKHd6/HjSfp0mOzNCf69W2O
+         5UqWH1ddXk3MrADXJxa72nzQhUZ9wXBgD4vod0xGoJEihrmlrt4QfjVKl5lpl5HQhcYa
+         yv9IEDbcyhxR3TbRww0sN0kM6MNhoTkdU7t5JrUra50RdIA8QhLt11WMjQraQ38c10eG
+         golHgzvPTI/lBWmTV2IQ/J9f2xNv0h1hYmrCG/UuyzdpbHom2yaRAQ1S8YcW365SBJ5a
+         /fnoyVuPcJXyVUlfBY0Ty8CT8EnW92fQ0tfJSsxGl8MMYbis0+mj3rhp+Dh4ThcEBJ7t
+         gX+Q==
+X-Gm-Message-State: AC+VfDyCJSXNLra1Fr+R8zJbc3utrz7k8pJPN3ybuRhAAiK2evZoRk7X
+        Dhh/SW09yxBx2Pj1L+wdV5b7gQ==
+X-Google-Smtp-Source: ACHHUZ6vbHMkZi+Yoc+B1yGbLmCswR8p6D4EKcqpOa7k2x/EYO9kFPQlCeZsh27NoZY4RaKVPkuoOA==
+X-Received: by 2002:aca:1817:0:b0:398:282e:4c81 with SMTP id h23-20020aca1817000000b00398282e4c81mr140727oih.19.1685715617084;
+        Fri, 02 Jun 2023 07:20:17 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id pz26-20020ad4551a000000b006263735a9adsm847340qvb.112.2023.06.02.07.20.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Jun 2023 05:15:04 -0700 (PDT)
+        Fri, 02 Jun 2023 07:20:16 -0700 (PDT)
 Received: from jgg by wakko with local (Exim 4.95)
         (envelope-from <jgg@ziepe.ca>)
-        id 1q53gM-001uE9-W9;
-        Fri, 02 Jun 2023 09:15:03 -0300
-Date:   Fri, 2 Jun 2023 09:15:02 -0300
+        id 1q55dX-001vaI-OV;
+        Fri, 02 Jun 2023 11:20:15 -0300
+Date:   Fri, 2 Jun 2023 11:20:15 -0300
 From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
         David Hildenbrand <david@redhat.com>,
         Suren Baghdasaryan <surenb@google.com>,
         Qi Zheng <zhengqi.arch@bytedance.com>,
@@ -96,33 +96,57 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 08/12] mm/pgtable: add pte_free_defer() for pgtable as
+Subject: Re: [PATCH 05/12] powerpc: add pte_free_defer() for pgtables sharing
  page
-Message-ID: <ZHndRujtRhT6bhBs@ziepe.ca>
+Message-ID: <ZHn6n5eVTsr4Wl8x@ziepe.ca>
 References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com>
- <739964d-c535-4db4-90ec-2166285b4d47@google.com>
- <ZHekpAKJ05cr/GLl@ziepe.ca>
- <a7f4722-8af2-f7be-eada-ff1e6e918da1@google.com>
+ <28eb289f-ea2c-8eb9-63bb-9f7d7b9ccc11@google.com>
+ <ZHSwWgLWaEd+zi/g@casper.infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a7f4722-8af2-f7be-eada-ff1e6e918da1@google.com>
+In-Reply-To: <ZHSwWgLWaEd+zi/g@casper.infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jun 01, 2023 at 11:03:11PM -0700, Hugh Dickins wrote:
-> > I was hoping Mathew's folio conversion would help clarify this..
+On Mon, May 29, 2023 at 03:02:02PM +0100, Matthew Wilcox wrote:
+> On Sun, May 28, 2023 at 11:20:21PM -0700, Hugh Dickins wrote:
+> > +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
+> > +{
+> > +	struct page *page;
+> > +
+> > +	page = virt_to_page(pgtable);
+> > +	call_rcu(&page->rcu_head, pte_free_now);
+> > +}
 > 
-> I doubt that: what we have for use today is pages, however they are
-> dressed up.
+> This can't be safe (on ppc).  IIRC you might have up to 16x4k page
+> tables sharing one 64kB page.  So if you have two page tables from the
+> same page being defer-freed simultaneously, you'll reuse the rcu_head
+> and I cannot imagine things go well from that point.
+> 
+> I have no idea how to solve this problem.
 
-I mean the part where Matthew is going and splitting the types and
-making it much clearer and type safe how the memory is layed out. eg
-no more guessing if the arch code is overlaying something else onto
-the rcu_head.
+Maybe power and s390 should allocate a side structure, sort of a
+pre-memdesc thing to store enough extra data?
 
-Then the hope against hope is that after doing all this we can find
-enough space for everything including the rcu heads..
+If we can get enough bytes then something like this would let a single
+rcu head be shared to manage the free bits.
+
+struct 64k_page {
+    u8 free_pages;
+    u8 pending_rcu_free_pages;
+    struct rcu_head head;
+}
+
+free_sub_page(sub_id)
+    if (atomic_fetch_or(1 << sub_id, &64k_page->pending_rcu_free_pages))
+         call_rcu(&64k_page->head)
+
+rcu_func()
+   64k_page->free_pages |= atomic_xchg(0, &64k_page->pending_rcu_free_pages)
+
+   if (64k_pages->free_pages == all_ones)
+      free_pgea(64k_page);
 
 Jason
