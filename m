@@ -2,39 +2,56 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16697C7EE33
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 10:16:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86770C7EE33
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 18:22:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234717AbjFFKQp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jun 2023 06:16:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43176 "EHLO
+        id S238358AbjFFSWU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jun 2023 14:22:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232817AbjFFKQl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 06:16:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A440E47;
-        Tue,  6 Jun 2023 03:16:40 -0700 (PDT)
+        with ESMTP id S238431AbjFFSWQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 14:22:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA00F170A;
+        Tue,  6 Jun 2023 11:22:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 986FB6305D;
-        Tue,  6 Jun 2023 10:16:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16CCDC433EF;
-        Tue,  6 Jun 2023 10:16:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4586963696;
+        Tue,  6 Jun 2023 18:22:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A236EC433A8;
+        Tue,  6 Jun 2023 18:22:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686046599;
-        bh=K3mQNwoT9j+uKtNH0+N5SGAruipqVMe0nyrOVYu8zmA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Ex2boOSbFX9F8vILoj2ER6OMGqZieI/qXxa+Cl88F6P5WueebucHT8gXYMljU/UwF
-         W4Vwtw16CB66Ckf8CUcEwiMgsp0Rl7Zp+sWmc7WhCTWF54CsHU5is7Yegd2qZ+FcpB
-         7HYr90xDXGc4Q+jlXpM3iwKf1+z1TAE79jym8dBpk7/sIwryEOoaJwZE+mZ+/dgO9Q
-         jbUZZ/yVspF9cToZ4ExktC3lUSHmqXSahqJcQT5b1PfE/IsSC9GrwIVg8JzQsfRBlA
-         +FWytBECVY5td4H8LIUSl6ZWwnci/X0OdWg6sGet7yNw0Tt3OFZ9/6khP83arPzxeP
-         mpCOpEPlPas8A==
-Date:   Tue, 6 Jun 2023 13:16:08 +0300
-From:   Mike Rapoport <rppt@kernel.org>
+        s=k20201202; t=1686075733;
+        bh=08bgDTu6K2r14VqmkEIMfCPJQ/ZZrnAx7Zh60inB9tQ=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=PvVbLJcYr9sEPc4KvXnz7da5hnzjz64447Y1vyViBiCb+fl59qj0pvbLDlkg7Wuob
+         rzrnBjSOFtiQecuq+LZ/SRRxmzgXLdbIbqyyYrcYGhY29RsiV56QlreCUSnVm+stVt
+         UoVEGKhBSdT54YRh1gXdKSmvd62cZB1711kSzDIW8D76YUK3gBLlfz43UtqujOAa4M
+         WNIOBkfcw2WKv0IUzEzdSsuoiqNT0iAk+aytnzF0p5Ex5Qs+2o2gd4vHHiQKTwquZM
+         rFReB/rrpz7owlp/MdxR2Mp3uAIDm8MwdFNdtC8Gq4wlspi7VJYfgsGIf9GhxSZs3/
+         0v9cbIwE3cmiA==
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-2b1a4250b07so75710911fa.3;
+        Tue, 06 Jun 2023 11:22:13 -0700 (PDT)
+X-Gm-Message-State: AC+VfDzCXm5+70Ovpz7W746cGaUigh8vo5Bs482Vva0c0k6BOaC8cWYw
+        xXE/STitpg+B5AXPalqdCtTYAhMWQ+XDi+gPtfw=
+X-Google-Smtp-Source: ACHHUZ5bLSr3tA3IB8xCjeC0rEYdnEDeq7vmc1y/QuS5oHjyhnnuqZDpSw2PwmODz4CMTnRxT8zG59Qp1zLSa+hdG70=
+X-Received: by 2002:a2e:82d0:0:b0:2b0:297c:cbdf with SMTP id
+ n16-20020a2e82d0000000b002b0297ccbdfmr1546782ljh.1.1686075731505; Tue, 06 Jun
+ 2023 11:22:11 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230601101257.530867-1-rppt@kernel.org> <ZHjDU/mxE+cugpLj@FVFF77S0Q05N.cambridge.arm.com>
+ <ZHjgIH3aX9dCvVZc@moria.home.lan> <ZHm3zUUbwqlsZBBF@FVFF77S0Q05N>
+ <20230605092040.GB3460@kernel.org> <ZH20XkD74prrdN4u@FVFF77S0Q05N>
+In-Reply-To: <ZH20XkD74prrdN4u@FVFF77S0Q05N>
+From:   Song Liu <song@kernel.org>
+Date:   Tue, 6 Jun 2023 11:21:59 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW7ntn_HpVWdGK_hYVd3zsPEFToBNfmtt0m6K8SwfxJ66Q@mail.gmail.com>
+Message-ID: <CAPhsuW7ntn_HpVWdGK_hYVd3zsPEFToBNfmtt0m6K8SwfxJ66Q@mail.gmail.com>
+Subject: Re: [PATCH 00/13] mm: jit/text allocator
 To:     Mark Rutland <mark.rutland@arm.com>
-Cc:     Kent Overstreet <kent.overstreet@linux.dev>,
+Cc:     Mike Rapoport <rppt@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
         linux-kernel@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
@@ -49,7 +66,6 @@ Cc:     Kent Overstreet <kent.overstreet@linux.dev>,
         "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Russell King <linux@armlinux.org.uk>,
-        Song Liu <song@kernel.org>,
         Steven Rostedt <rostedt@goodmis.org>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -60,71 +76,93 @@ Cc:     Kent Overstreet <kent.overstreet@linux.dev>,
         linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
         netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH 00/13] mm: jit/text allocator
-Message-ID: <20230606101608.GC52412@kernel.org>
-References: <20230601101257.530867-1-rppt@kernel.org>
- <ZHjDU/mxE+cugpLj@FVFF77S0Q05N.cambridge.arm.com>
- <ZHjgIH3aX9dCvVZc@moria.home.lan>
- <ZHm3zUUbwqlsZBBF@FVFF77S0Q05N>
- <20230605092040.GB3460@kernel.org>
- <ZH20XkD74prrdN4u@FVFF77S0Q05N>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZH20XkD74prrdN4u@FVFF77S0Q05N>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jun 05, 2023 at 11:09:34AM +0100, Mark Rutland wrote:
-> On Mon, Jun 05, 2023 at 12:20:40PM +0300, Mike Rapoport wrote:
-> > On Fri, Jun 02, 2023 at 10:35:09AM +0100, Mark Rutland wrote:
+On Mon, Jun 5, 2023 at 3:09=E2=80=AFAM Mark Rutland <mark.rutland@arm.com> =
+wrote:
+
+[...]
+
+> > > > Can you give more detail on what parameters you need? If the only e=
+xtra
+> > > > parameter is just "does this allocation need to live close to kerne=
+l
+> > > > text", that's not that big of a deal.
+> > >
+> > > My thinking was that we at least need the start + end for each caller=
+. That
+> > > might be it, tbh.
 > >
+> > Do you mean that modules will have something like
+> >
+> >       jit_text_alloc(size, MODULES_START, MODULES_END);
+> >
+> > and kprobes will have
+> >
+> >       jit_text_alloc(size, KPROBES_START, KPROBES_END);
+> > ?
+>
+> Yes.
+
+How about we start with two APIs:
+     jit_text_alloc(size);
+     jit_text_alloc_range(size, start, end);
+
+AFAICT, arm64 is the only arch that requires the latter API. And TBH, I am
+not quite convinced it is needed.
+
+>
 > > It sill can be achieved with a single jit_alloc_arch_params(), just by
 > > adding enum jit_type parameter to jit_text_alloc().
-> 
+>
 > That feels backwards to me; it centralizes a bunch of information about
-> distinct users to be able to shove that into a static array, when the callsites
-> can pass that information. 
+> distinct users to be able to shove that into a static array, when the cal=
+lsites
+> can pass that information.
 
-The goal was not to shove everything into an array, but centralize
-architecture requirements for code allocations. The callsites don't have
-that information per se, they get it from the arch code, so having this
-information in a single place per arch is better than spreading
-MODULE_START, KPROBES_START etc all over.
+I think we only two type of users: module and everything else (ftrace, kpro=
+be,
+bpf stuff). The key differences are:
 
-I'd agree though that having types for jit_text_alloc is ugly and this
-should be handled differently.
- 
+  1. module uses text and data; while everything else only uses text.
+  2. module code is generated by the compiler, and thus has stronger
+  requirements in address ranges; everything else are generated via some
+  JIT or manual written assembly, so they are more flexible with address
+  ranges (in JIT, we can avoid using instructions that requires a specific
+  address range).
+
+The next question is, can we have the two types of users share the same
+address ranges? If not, we can reserve the preferred range for modules,
+and let everything else use the other range. I don't see reasons to further
+separate users in the "everything else" group.
+
+>
 > What's *actually* common after separating out the ranges? Is it just the
 > permissions?
 
-On x86 everything, on arm64 apparently just the permissions.
+I believe permission is the key, as we need the hardware to enforce
+permission.
 
-I've started to summarize what are the restrictions for code placement for
-modules, kprobes and bpf on different architectures, that's roughly what
-I've got so far:
-
-* x86 and s390 need everything within modules address space because of
-PC-relative
-* arm, arm64, loongarch, sparc64, riscv64, some of mips and
-powerpc32 configurations require a dedicated modules address space; the
-rest just use vmalloc address space
-* all architectures that support kprobes except x86 and s390 don't use
-relative jumps, so they don't care where kprobes insn_page will live
-* not sure yet about BPF. Looks like on arm and arm64 it does not use
-relative jumps, so it can be anywhere, didn't dig enough about the others.
-
-> If we want this to be able to share allocations and so on, why can't we do this
-> like a kmem_cache, and have the callsite pass a pointer to the allocator data?
-> That would make it easy for callsites to share an allocator or use a distinct
+>
+> If we want this to be able to share allocations and so on, why can't we d=
+o this
+> like a kmem_cache, and have the callsite pass a pointer to the allocator =
+data?
+> That would make it easy for callsites to share an allocator or use a dist=
+inct
 > one.
 
-This maybe something worth exploring.
- 
-> Thanks,
-> Mark.
+Sharing among different call sites will give us more benefit (in TLB
+misses rate,
+etc.). For example, a 2MB page may host text of two kernel modules, 4 kprob=
+es,
+6 ftrace trampolines, and 10 BPF programs. All of these only require one en=
+try
+in the iTLB.
 
--- 
-Sincerely yours,
-Mike.
+Thanks,
+Song
