@@ -2,61 +2,59 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8B70C7EE31
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 19:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27654C77B73
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 19:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239297AbjFFTEd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jun 2023 15:04:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38528 "EHLO
+        id S238682AbjFFTLG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jun 2023 15:11:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239225AbjFFTEX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 15:04:23 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8131CE6C
-        for <sparclinux@vger.kernel.org>; Tue,  6 Jun 2023 12:03:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686078218;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bmPwhcLQLS6QAOJhnaZRrlptzdg2mUtfNMjjPY6LfS8=;
-        b=AFuQrzjWZt9DInEY1lFNe2Dkl2jWUeOnZvEx5qHaeGepugKSmH3uiA6RXeZM6tL2ddVh48
-        DmlcdnHCQCHqUaJaJTJi4xa7fyWwzBuf0roPU+B8OJVu5y5PjQqcZGmW0Z02eAWTJ5Qn2d
-        evCVBAC6WjTzbhU7/EYtMPaLsJ+bbMg=
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
- [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-112-jiST67OZOMOKzKv6TZEYRg-1; Tue, 06 Jun 2023 15:03:37 -0400
-X-MC-Unique: jiST67OZOMOKzKv6TZEYRg-1
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-75b147a2548so130958585a.1
-        for <sparclinux@vger.kernel.org>; Tue, 06 Jun 2023 12:03:37 -0700 (PDT)
+        with ESMTP id S239960AbjFFTKu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 15:10:50 -0400
+Received: from mail-ot1-x331.google.com (mail-ot1-x331.google.com [IPv6:2607:f8b0:4864:20::331])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6059C213A
+        for <sparclinux@vger.kernel.org>; Tue,  6 Jun 2023 12:08:42 -0700 (PDT)
+Received: by mail-ot1-x331.google.com with SMTP id 46e09a7af769-6b280319df5so1761031a34.3
+        for <sparclinux@vger.kernel.org>; Tue, 06 Jun 2023 12:08:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1686078518; x=1688670518;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=IBKThEgW3NTUkiZRvoX00WYF0JkCsCOEnA4ezJ54Iw0=;
+        b=FJFr/wVIfPdoTjvHgpxP3od5kCmSMH1Z0JrOBWgah9N0Buw0Lqq2GUP2GVXw6WOiRh
+         c++a4+grcHjQUmrxZiqzadYduVRf1CjUAli+D+QVPy9jcNL51cCAxEPrkdxnOFwEvhnb
+         yJu3DX76dubw3UjpXKmY8bLxybb3MkH1N7SDa2D3lfFWRbwwkD/iwvDq5Rbs4pKZHixV
+         RtekPOxZJPk6BJtOGDh+2UFQd8Mq/YXw/gd5ayUOvGPplgDFeju7Fn5HsUTFW/r4mQOQ
+         KmK3lw44ULOSI0p8hKsZ+RHFSRdJo1L5kdi+DoAT49/RG5m4rt+DVmg8pGjnsJ3eO7lg
+         Wt/w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686078216; x=1688670216;
+        d=1e100.net; s=20221208; t=1686078518; x=1688670518;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bmPwhcLQLS6QAOJhnaZRrlptzdg2mUtfNMjjPY6LfS8=;
-        b=OZW3NsfScABd+l1KyPoCsvK4c7+teKVMpjU0JS7lRphXWRsPdvXQ/5m4GEoxp8CGoE
-         e1sMUqmsGuh+Ukd1SYHNzZcnnKATtUpKOuTvKE45EzX9VoogZvdt/j3ua9xQ3zTQyA8q
-         fiImyiwPNpp+isyTMXdFb9Ow3ysgA/E2LgZFhxL+LdvMWG7FtdhgzosA40YwqCfP/VnI
-         5uerjcXg4ALNajsk6lXt2AVnOumz8Dibd3qm5TrBUjvA4ZQUigwk/KzXV7y9pAflvYDW
-         qUS7ur+xn3neBY4gpyvZeQDis8OPRBNp3MbMX7eYs6Zug+QK30QfnB476zpiXpptoLky
-         YI2g==
-X-Gm-Message-State: AC+VfDybGqZyG80VLkPuwPfyLduZQ8KaQlhckiuh1OayznKBYvyOl2hj
-        sP/HVLrUk4GcIH8deQNxfUfzbm7vFVtgvUDWem1SWEBi2x/UBsL6mx/MGt+oM9oO3auIjWpzyoC
-        0bL/ylQ4bSunrY4JcosZS2Q==
-X-Received: by 2002:a05:620a:2b92:b0:75b:23a1:69f0 with SMTP id dz18-20020a05620a2b9200b0075b23a169f0mr3107613qkb.7.1686078216681;
-        Tue, 06 Jun 2023 12:03:36 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5C5YMccZA+iUS9RAssWOgobvDgS7+Te3WrU+7dZkM3FviCtXVqQlWbzikNWhoOiLhOPK8t2g==
-X-Received: by 2002:a05:620a:2b92:b0:75b:23a1:69f0 with SMTP id dz18-20020a05620a2b9200b0075b23a169f0mr3107557qkb.7.1686078216403;
-        Tue, 06 Jun 2023 12:03:36 -0700 (PDT)
-Received: from x1n (cpe5c7695f3aee0-cm5c7695f3aede.cpe.net.cable.rogers.com. [99.254.144.39])
-        by smtp.gmail.com with ESMTPSA id d14-20020a05620a166e00b0074636e35405sm5100311qko.65.2023.06.06.12.03.32
+        bh=IBKThEgW3NTUkiZRvoX00WYF0JkCsCOEnA4ezJ54Iw0=;
+        b=RpkDBC97ivtJVKdHd1wCZ5+i0D000RDZT4cDSgBIN+7vv8hEg56PfqsBaMAiYL6acF
+         3gF8oL4DDuoup4QpYQDyR7lzvVu9U36qOV8+1QDxrDelue8O/X9xcz/djSiCJmWIJiUq
+         dkv9ByhsClgEmks8vM8srakrfzq1kQHiElRnceKWvSgaxhTjbzkdOl801kPfTScv+Bmx
+         RI70Waass4szkQpsonkIYVzfzi5ofRu5RYPH0dXq2CtkwslBmhSvdANNmYOyTGiNCbcS
+         tjPeY3hsNEDz4v2nEbVLX6OIAHJesedJjRQ5X9BbbyqZUl9rIVNfsNfPP62G5iJo3gav
+         G7lw==
+X-Gm-Message-State: AC+VfDyDNajx5hQzJ0vjJOS/QHMh+3HQ7EvtMslumjOcoP+l+CXIcD0d
+        ktJf84unShDkrDThetzyms9ntg==
+X-Google-Smtp-Source: ACHHUZ48+nKNEQNTWy8wtaVIu/9suMpGBPu4hlCMZiSBnV9dLjpuiCkwZXnEA6HwkSqHl0CVdHIYlw==
+X-Received: by 2002:a05:6358:c407:b0:11b:3e4d:a203 with SMTP id ff7-20020a056358c40700b0011b3e4da203mr614356rwb.23.1686078517796;
+        Tue, 06 Jun 2023 12:08:37 -0700 (PDT)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id f36-20020a631f24000000b0051f14839bf3sm7777289pgf.34.2023.06.06.12.08.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Jun 2023 12:03:35 -0700 (PDT)
-Date:   Tue, 6 Jun 2023 15:03:31 -0400
-From:   Peter Xu <peterx@redhat.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
+        Tue, 06 Jun 2023 12:08:37 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1q6c2k-0030xL-9k;
+        Tue, 06 Jun 2023 16:08:34 -0300
+Date:   Tue, 6 Jun 2023 16:08:34 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Peter Xu <peterx@redhat.com>
 Cc:     Hugh Dickins <hughd@google.com>,
         Matthew Wilcox <willy@infradead.org>,
         Andrew Morton <akpm@linux-foundation.org>,
@@ -100,66 +98,69 @@ Cc:     Hugh Dickins <hughd@google.com>,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
 Subject: Re: [PATCH 05/12] powerpc: add pte_free_defer() for pgtables sharing
  page
-Message-ID: <ZH+DAxLhIYpTlIFc@x1n>
+Message-ID: <ZH+EMp9RuEVOjVNb@ziepe.ca>
 References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com>
  <28eb289f-ea2c-8eb9-63bb-9f7d7b9ccc11@google.com>
  <ZHSwWgLWaEd+zi/g@casper.infradead.org>
  <ZHn6n5eVTsr4Wl8x@ziepe.ca>
  <4df4909f-f5dd-6f94-9792-8f2949f542b3@google.com>
  <ZH95oobIqN0WO5MK@ziepe.ca>
+ <ZH+DAxLhIYpTlIFc@x1n>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZH95oobIqN0WO5MK@ziepe.ca>
+In-Reply-To: <ZH+DAxLhIYpTlIFc@x1n>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jun 06, 2023 at 03:23:30PM -0300, Jason Gunthorpe wrote:
-> On Mon, Jun 05, 2023 at 08:40:01PM -0700, Hugh Dickins wrote:
+On Tue, Jun 06, 2023 at 03:03:31PM -0400, Peter Xu wrote:
+> On Tue, Jun 06, 2023 at 03:23:30PM -0300, Jason Gunthorpe wrote:
+> > On Mon, Jun 05, 2023 at 08:40:01PM -0700, Hugh Dickins wrote:
+> > 
+> > > diff --git a/arch/powerpc/mm/pgtable-frag.c b/arch/powerpc/mm/pgtable-frag.c
+> > > index 20652daa1d7e..e4f58c5fc2ac 100644
+> > > --- a/arch/powerpc/mm/pgtable-frag.c
+> > > +++ b/arch/powerpc/mm/pgtable-frag.c
+> > > @@ -120,3 +120,54 @@ void pte_fragment_free(unsigned long *table, int kernel)
+> > >  		__free_page(page);
+> > >  	}
+> > >  }
+> > > +
+> > > +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+> > > +#define PTE_FREE_DEFERRED 0x10000 /* beyond any PTE_FRAG_NR */
+> > > +
+> > > +static void pte_free_now(struct rcu_head *head)
+> > > +{
+> > > +	struct page *page;
+> > > +	int refcount;
+> > > +
+> > > +	page = container_of(head, struct page, rcu_head);
+> > > +	refcount = atomic_sub_return(PTE_FREE_DEFERRED - 1,
+> > > +				     &page->pt_frag_refcount);
+> > > +	if (refcount < PTE_FREE_DEFERRED) {
+> > > +		pte_fragment_free((unsigned long *)page_address(page), 0);
+> > > +		return;
+> > > +	}
+> > 
+> > From what I can tell power doesn't recycle the sub fragment into any
+> > kind of free list. It just waits for the last fragment to be unused
+> > and then frees the whole page.
+> > 
+> > So why not simply go into pte_fragment_free() and do the call_rcu directly:
+> > 
+> > 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+> > 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
+> > 		if (!kernel)
+> > 			pgtable_pte_page_dtor(page);
+> > 		call_rcu(&page->rcu_head, free_page_rcu)
 > 
-> > diff --git a/arch/powerpc/mm/pgtable-frag.c b/arch/powerpc/mm/pgtable-frag.c
-> > index 20652daa1d7e..e4f58c5fc2ac 100644
-> > --- a/arch/powerpc/mm/pgtable-frag.c
-> > +++ b/arch/powerpc/mm/pgtable-frag.c
-> > @@ -120,3 +120,54 @@ void pte_fragment_free(unsigned long *table, int kernel)
-> >  		__free_page(page);
-> >  	}
-> >  }
-> > +
-> > +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-> > +#define PTE_FREE_DEFERRED 0x10000 /* beyond any PTE_FRAG_NR */
-> > +
-> > +static void pte_free_now(struct rcu_head *head)
-> > +{
-> > +	struct page *page;
-> > +	int refcount;
-> > +
-> > +	page = container_of(head, struct page, rcu_head);
-> > +	refcount = atomic_sub_return(PTE_FREE_DEFERRED - 1,
-> > +				     &page->pt_frag_refcount);
-> > +	if (refcount < PTE_FREE_DEFERRED) {
-> > +		pte_fragment_free((unsigned long *)page_address(page), 0);
-> > +		return;
-> > +	}
-> 
-> From what I can tell power doesn't recycle the sub fragment into any
-> kind of free list. It just waits for the last fragment to be unused
-> and then frees the whole page.
-> 
-> So why not simply go into pte_fragment_free() and do the call_rcu directly:
-> 
-> 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
-> 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
-> 		if (!kernel)
-> 			pgtable_pte_page_dtor(page);
-> 		call_rcu(&page->rcu_head, free_page_rcu)
+> We need to be careful on the lock being freed in pgtable_pte_page_dtor(),
+> in Hugh's series IIUC we need the spinlock being there for the rcu section
+> alongside the page itself.  So even if to do so we'll need to also rcu call 
+> pgtable_pte_page_dtor() when needed.
 
-We need to be careful on the lock being freed in pgtable_pte_page_dtor(),
-in Hugh's series IIUC we need the spinlock being there for the rcu section
-alongside the page itself.  So even if to do so we'll need to also rcu call 
-pgtable_pte_page_dtor() when needed.
+Er yes, I botched that, the dtor and the free_page should be in a the
+rcu callback function
 
--- 
-Peter Xu
-
+Jason
