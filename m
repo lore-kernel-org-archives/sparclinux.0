@@ -2,200 +2,59 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CAA5C7EE24
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 06:29:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 948F2C77B73
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jun 2023 10:10:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234651AbjFFG3P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jun 2023 02:29:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39446 "EHLO
+        id S233398AbjFFKKK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jun 2023 06:10:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235103AbjFFG2l (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 02:28:41 -0400
-Received: from mail-yw1-x1129.google.com (mail-yw1-x1129.google.com [IPv6:2607:f8b0:4864:20::1129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED2DEE79
-        for <sparclinux@vger.kernel.org>; Mon,  5 Jun 2023 23:28:33 -0700 (PDT)
-Received: by mail-yw1-x1129.google.com with SMTP id 00721157ae682-568ba7abc11so72124647b3.3
-        for <sparclinux@vger.kernel.org>; Mon, 05 Jun 2023 23:28:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1686032913; x=1688624913;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=lh4nTYVvP2xhbTqzCFThdJwLmWrtDo6cCYu0K1MEaUc=;
-        b=ULW8wPRikckM9LELAx9UpWle2Lb4WwZxPIXEDt1lR9wQIO5cxXakH/8jTLMBuZw8wx
-         Uh47SeunW4Tp+pyb/wTLCC6nZMEC4nTofGf4XUgb3BlgvfEFnDLECsk+JtbDPIEYi26x
-         9vZZ874SZy4X8WigJ/C8mjXXdDbReJrV0R4WIGr0mh0A5ZnrYuJU6h/Cw9u/zsQYaDk7
-         mLxWS2XDJjEOTgncPyb98NRz5neLtObTpcxFngkG2w0fp+AzoZOrYLnFHTWNsS7we8ze
-         5+dQOLu1Iwg73UmL89hyYzq5nExeBAcTkTsnwBDNieMk9P3B3h923KXyo65p9UTdz89t
-         Xo3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686032913; x=1688624913;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=lh4nTYVvP2xhbTqzCFThdJwLmWrtDo6cCYu0K1MEaUc=;
-        b=bvTYp23jTnwwH8M3N5xaEz/yu2MZr2Eg5TfTcBC6h614fzikGZyoQfAbSHuDXfKs46
-         nztsxC95yBNkFeVJHNWizIOwhFvtWh6OwI7qaWnr7YtUY24lfW7xKyNyGnVj7iTM2eMP
-         mEJuRP49CPTFviQY6LlNmFocvUfV92vRwGXcteYRdPBJd+l4+lMxPXUvBSwvDmm9CQzn
-         86mJqTnXUQZ00yv/pNECi2OtrsYXjY3G0FodcraweEIsH6U2oeVDDJMiGEnPjUOBGEbL
-         2OGKthbVgbuHSxB2U/D0pqonVD+GIkD7t11Ke7EIfBnkJoRh6yosEKo/IJiH8MKjLdx0
-         TGSg==
-X-Gm-Message-State: AC+VfDzsB8SYpPIeW1Ry4R6LSk6ZK8wK6UzhleGtVT6ouctULsJOQ+0y
-        WfV4HfojSoZTpoWgLWauPrWU6A==
-X-Google-Smtp-Source: ACHHUZ7idIXR3XCuKUN9DZBZ124U2LyUkc47jWZoQiMKnSHKdPcQWeTsiAJumin9N7U+fFXlqtOy5g==
-X-Received: by 2002:a0d:dd0f:0:b0:565:a3e6:1b7b with SMTP id g15-20020a0ddd0f000000b00565a3e61b7bmr1184720ywe.18.1686032912712;
-        Mon, 05 Jun 2023 23:28:32 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id u127-20020a818485000000b00569e0490babsm626769ywf.16.2023.06.05.23.28.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 Jun 2023 23:28:32 -0700 (PDT)
-Date:   Mon, 5 Jun 2023 23:28:27 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Jann Horn <jannh@google.com>
-cc:     Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 00/12] mm: free retracted page table by RCU
-In-Reply-To: <CAG48ez1Yua=6ztK6Urc-BZj9ku14MWbOKP8iBUK6_F5VzRXP-A@mail.gmail.com>
-Message-ID: <99fadcf-3979-a493-2664-291c5fbce19e@google.com>
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <CAG48ez0pCqfRdVSnJz7EKtNvMR65=zJgVB-72nTdrNuhtJNX2Q@mail.gmail.com> <3a33b59f-47c1-9dea-209a-9f77eec3cb1@google.com> <CAG48ez1Yua=6ztK6Urc-BZj9ku14MWbOKP8iBUK6_F5VzRXP-A@mail.gmail.com>
+        with ESMTP id S236452AbjFFKJz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 06:09:55 -0400
+X-Greylist: delayed 495 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 06 Jun 2023 03:09:53 PDT
+Received: from mail.tummelspey.pl (mail.tummelspey.pl [195.231.83.87])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 620941B8
+        for <sparclinux@vger.kernel.org>; Tue,  6 Jun 2023 03:09:53 -0700 (PDT)
+Received: by mail.tummelspey.pl (Postfix, from userid 1002)
+        id 083A382ED0; Tue,  6 Jun 2023 12:00:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tummelspey.pl;
+        s=mail; t=1686045695;
+        bh=OJs3leM9fdfMkxPirBSuuU/UTIEL4q9FUCZWMj2U0kA=;
+        h=Date:From:To:Subject:From;
+        b=nqZV4VF54FJp0GP8tjumeL0R0TzLObW7G11OYaXH09mwMS3RSZOLoM0UDAEcN3Oxm
+         ddwb0QA2xaLYNs84K6VXXx6KEkGBf8XVmNtAZltUuB98TYdSeT9pVh1M+uTGkk3k4w
+         5ChS+hKPZHFQNViC47AfW3x+vEuqFL3+HgnzEQhh3XItAoKlWhsDLlO/I7ltY41IMy
+         0PdJXzbM2Gj6nT/CWNfD8mv+ZJxEQN074Delwt+Z9IbG4U+X6ZV89UFIG5K2sMlUsx
+         P4/Pl6ubvXdLt1riF3OIMGNkXfmy30qV7VcjeKXPquK4FE/2Fv/oFm6OvstHEwmoSw
+         TAaRRwvDJPeAg==
+Received: by mail.tummelspey.pl for <sparclinux@vger.kernel.org>; Tue,  6 Jun 2023 10:00:36 GMT
+Message-ID: <20230606110830-0.1.1s.icob.0.onnf1bbubr@tummelspey.pl>
+Date:   Tue,  6 Jun 2023 10:00:36 GMT
+From:   "Bartosz Holender" <bartosz.holender@tummelspey.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
+X-Mailer: mail.tummelspey.pl
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463760895-360064877-1686032912=:3708"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Szanowni Pa=C5=84stwo,
 
----1463760895-360064877-1686032912=:3708
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
+czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
+=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
+py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
+energii elektrycznej.
 
-On Fri, 2 Jun 2023, Jann Horn wrote:
-> On Fri, Jun 2, 2023 at 6:37=E2=80=AFAM Hugh Dickins <hughd@google.com> wr=
-ote:
->=20
-> > The most obvious vital thing (in the split ptlock case) is that it
-> > remains a struct page with a usable ptl spinlock embedded in it.
-> >
-> > The question becomes more urgent when/if extending to replacing the
-> > pagetable pmd by huge pmd in one go, without any mmap_lock: powerpc
-> > wants to deposit the page table for later use even in the shmem/file
-> > case (and all arches in the anon case): I did work out the details once
-> > before, but I'm not sure whether I would still agree with myself; and w=
-as
-> > glad to leave replacement out of this series, to revisit some time late=
-r.
-> >
-> > >
-> > > So in particular, in handle_pte_fault() we can reach the "if
-> > > (unlikely(!pte_same(*vmf->pte, entry)))" with vmf->pte pointing to a
-> > > detached zeroed page table, but we're okay with that because in that
-> > > case we know that !pte_none(vmf->orig_pte)&&pte_none(*vmf->pte) ,
-> > > which implies !pte_same(*vmf->pte, entry) , which means we'll bail
-> > > out?
-> >
-> > There is no current (even at end of series) circumstance in which we
-> > could be pointing to a detached page table there; but yes, I want to
-> > allow for that, and yes I agree with your analysis.
->=20
-> Hmm, what am I missing here?
+Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
+pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
+ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
 
-I spent quite a while trying to reconstruct what I had been thinking,
-what meaning of "detached" or "there" I had in mind when I asserted so
-confidently "There is no current (even at end of series) circumstance
-in which we could be pointing to a detached page table there".
+Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
+=BCliwo=C5=9Bciach?
 
-But had to give up and get on with more useful work.
-Of course you are right, and that is what this series is about.
-
-Hugh
-
->=20
-> static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
-> {
->   pte_t entry;
->=20
->   if (unlikely(pmd_none(*vmf->pmd))) {
->     [not executed]
->   } else {
->     /*
->      * A regular pmd is established and it can't morph into a huge
->      * pmd by anon khugepaged, since that takes mmap_lock in write
->      * mode; but shmem or file collapse to THP could still morph
->      * it into a huge pmd: just retry later if so.
->      */
->     vmf->pte =3D pte_offset_map_nolock(vmf->vma->vm_mm, vmf->pmd,
->              vmf->address, &vmf->ptl);
->     if (unlikely(!vmf->pte))
->       [not executed]
->     // this reads a present readonly PTE
->     vmf->orig_pte =3D ptep_get_lockless(vmf->pte);
->     vmf->flags |=3D FAULT_FLAG_ORIG_PTE_VALID;
->=20
->     if (pte_none(vmf->orig_pte)) {
->       [not executed]
->     }
->   }
->=20
->   [at this point, a concurrent THP collapse operation detaches the page t=
-able]
->   // vmf->pte now points into a detached page table
->=20
->   if (!vmf->pte)
->     [not executed]
->=20
->   if (!pte_present(vmf->orig_pte))
->     [not executed]
->=20
->   if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
->     [not executed]
->=20
->   spin_lock(vmf->ptl);
->   entry =3D vmf->orig_pte;
->   // vmf->pte still points into a detached page table
->   if (unlikely(!pte_same(*vmf->pte, entry))) {
->     update_mmu_tlb(vmf->vma, vmf->address, vmf->pte);
->     goto unlock;
->   }
->   [...]
-> }
----1463760895-360064877-1686032912=:3708--
+Pozdrawiam
+Bartosz Holender
