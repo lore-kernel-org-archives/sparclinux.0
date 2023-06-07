@@ -2,204 +2,230 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84FCDC7EE29
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Jun 2023 03:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EF8C7EE23
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Jun 2023 15:26:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240850AbjFGDtV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jun 2023 23:49:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33762 "EHLO
+        id S241442AbjFGP0H (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 7 Jun 2023 11:26:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240840AbjFGDtT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Jun 2023 23:49:19 -0400
-Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C00519B9
-        for <sparclinux@vger.kernel.org>; Tue,  6 Jun 2023 20:49:17 -0700 (PDT)
-Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-565e8d575cbso64310287b3.3
-        for <sparclinux@vger.kernel.org>; Tue, 06 Jun 2023 20:49:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1686109756; x=1688701756;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=z7egDDp6MmQZCbbodxJ12b9UShhbnTUq6PVtm9aM+04=;
-        b=Pqkuvwjf09O59UPXdhhO7tjU33/VqFu4i39Q1X5ngvz5wkjB5jztMKPW4Oy+gYaN7f
-         ryMo/pvFu2ihp6hoUNLGrxxJwEg8cYMz5y/fZ40STo2ayOGik+sBKWhCpCfn0AUciN7G
-         u/GoJh9IbWauEReNRcuISo1bdmXC0fxzeRJsQoJjK/V1wht50c5ITiIrEruEX8FLCjD2
-         dukvUd3PuNbqeJ+lutclQGH56tlKSgwPULdPaCAne7DDEI6NLUhCoAXG+BWCQuQ+cPUd
-         LuL0hGsrAkgsHjfC8Mobph1RQY6cg81EchUXYFPmRFE9lQLqL6vwX8Y9XC9AJeP/FN6P
-         1U9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686109756; x=1688701756;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=z7egDDp6MmQZCbbodxJ12b9UShhbnTUq6PVtm9aM+04=;
-        b=Je7qE+FPI0uBfCsGz+bmQ7AYbyPrvAkyzqtoWZWuw06CRWQJvPvnqDit9eX5DlUDA6
-         hfHg1kzvWtzfRTAFsjvNBsW4cr0Fpn6SIKMwdb8b7vjaT3D8yY+3s1hX0MSaXoDesFlc
-         34I0OJyxVgirw10akpkOiBnQHSPs7qBzjzKOH8ePTAj5IiXduOtsxkRVhV7DCbZSjkAN
-         Wwv/B8zIGgwR7tqg7Y8Mk11CyCLxOWuWZgEGaVPIBwvnNp8Txnna+NJ4tee876jLhMHt
-         bTdikOI2nnfUlDnWWjVBElYCfx7C8XXZMVZ9ti54GK9B04VjA+phzyHoJzgGQeye+3jR
-         PUwg==
-X-Gm-Message-State: AC+VfDy2rxmutFO7dvmfhHxAWTZlWIQXp3m8L7hxMqB3mIoaoUEnG0dc
-        bpR/vms70QkBgjjWI9CGIJIuuA==
-X-Google-Smtp-Source: ACHHUZ6FeY70tXV92DFudQ4t5nR7rwwIAGb4bJwe8V5V4ANCDpC/kaCGZoHb9LVSkohk9DbNmeTmEg==
-X-Received: by 2002:a0d:cb47:0:b0:565:c96b:f526 with SMTP id n68-20020a0dcb47000000b00565c96bf526mr4712606ywd.19.1686109756614;
-        Tue, 06 Jun 2023 20:49:16 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id s11-20020a81bf4b000000b00555df877a4csm4446640ywk.102.2023.06.06.20.49.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Jun 2023 20:49:15 -0700 (PDT)
-Date:   Tue, 6 Jun 2023 20:49:04 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-cc:     Peter Xu <peterx@redhat.com>, Hugh Dickins <hughd@google.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
+        with ESMTP id S241338AbjFGPZo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Jun 2023 11:25:44 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5E4F1FE2;
+        Wed,  7 Jun 2023 08:25:16 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id 1272D21A14;
+        Wed,  7 Jun 2023 15:25:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1686151512; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Z73Hgt9VQI6/zRBZSc9gAAdc0TQ1/JxriitS4YskKt4=;
+        b=WvUnL4M2ZajH9kIJjqnSxPG4Jw6lPlouZDretV2OfImMo7vuS+U/fZxB2dAEYvMPeTGFAo
+        Hu1l9MdEam4iY7zNNegb38tLQ/tRx7Wknuzn3k6fBasUvDQkxgIzTGYe/YpW5KKokFnTM1
+        9pgt9zHd0hkQqrHWUzdcHKSW6KI2g0w=
+Received: from alley.suse.cz (unknown [10.100.201.202])
+        by relay2.suse.de (Postfix) with ESMTP id 8E3402C141;
+        Wed,  7 Jun 2023 15:25:11 +0000 (UTC)
+From:   Petr Mladek <pmladek@suse.com>
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Douglas Anderson <dianders@chromium.org>
+Cc:     kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 05/12] powerpc: add pte_free_defer() for pgtables sharing
- page
-In-Reply-To: <ZH+EMp9RuEVOjVNb@ziepe.ca>
-Message-ID: <9130acb-193-6fdd-f8df-75766e663978@google.com>
-References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <28eb289f-ea2c-8eb9-63bb-9f7d7b9ccc11@google.com> <ZHSwWgLWaEd+zi/g@casper.infradead.org> <ZHn6n5eVTsr4Wl8x@ziepe.ca> <4df4909f-f5dd-6f94-9792-8f2949f542b3@google.com> <ZH95oobIqN0WO5MK@ziepe.ca>
- <ZH+DAxLhIYpTlIFc@x1n> <ZH+EMp9RuEVOjVNb@ziepe.ca>
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org, Petr Mladek <pmladek@suse.com>
+Subject: [PATCH 1/7] watchdog/hardlockup: Sort hardlockup detector related config values a logical way
+Date:   Wed,  7 Jun 2023 17:24:26 +0200
+Message-Id: <20230607152432.5435-2-pmladek@suse.com>
+X-Mailer: git-send-email 2.35.3
+In-Reply-To: <20230607152432.5435-1-pmladek@suse.com>
+References: <20230607152432.5435-1-pmladek@suse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 6 Jun 2023, Jason Gunthorpe wrote:
-> On Tue, Jun 06, 2023 at 03:03:31PM -0400, Peter Xu wrote:
-> > On Tue, Jun 06, 2023 at 03:23:30PM -0300, Jason Gunthorpe wrote:
-> > > On Mon, Jun 05, 2023 at 08:40:01PM -0700, Hugh Dickins wrote:
-> > > 
-> > > > diff --git a/arch/powerpc/mm/pgtable-frag.c b/arch/powerpc/mm/pgtable-frag.c
-> > > > index 20652daa1d7e..e4f58c5fc2ac 100644
-> > > > --- a/arch/powerpc/mm/pgtable-frag.c
-> > > > +++ b/arch/powerpc/mm/pgtable-frag.c
-> > > > @@ -120,3 +120,54 @@ void pte_fragment_free(unsigned long *table, int kernel)
-> > > >  		__free_page(page);
-> > > >  	}
-> > > >  }
-> > > > +
-> > > > +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-> > > > +#define PTE_FREE_DEFERRED 0x10000 /* beyond any PTE_FRAG_NR */
-> > > > +
-> > > > +static void pte_free_now(struct rcu_head *head)
-> > > > +{
-> > > > +	struct page *page;
-> > > > +	int refcount;
-> > > > +
-> > > > +	page = container_of(head, struct page, rcu_head);
-> > > > +	refcount = atomic_sub_return(PTE_FREE_DEFERRED - 1,
-> > > > +				     &page->pt_frag_refcount);
-> > > > +	if (refcount < PTE_FREE_DEFERRED) {
-> > > > +		pte_fragment_free((unsigned long *)page_address(page), 0);
-> > > > +		return;
-> > > > +	}
-> > > 
-> > > From what I can tell power doesn't recycle the sub fragment into any
-> > > kind of free list. It just waits for the last fragment to be unused
-> > > and then frees the whole page.
+There are four possible variants of hardlockup detectors:
 
-Yes, it's relatively simple in that way: not as sophisticated as s390.
+  + buddy: available when SMP is set.
 
-> > > 
-> > > So why not simply go into pte_fragment_free() and do the call_rcu directly:
-> > > 
-> > > 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
-> > > 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
-> > > 		if (!kernel)
-> > > 			pgtable_pte_page_dtor(page);
-> > > 		call_rcu(&page->rcu_head, free_page_rcu)
-> > 
-> > We need to be careful on the lock being freed in pgtable_pte_page_dtor(),
-> > in Hugh's series IIUC we need the spinlock being there for the rcu section
-> > alongside the page itself.  So even if to do so we'll need to also rcu call 
-> > pgtable_pte_page_dtor() when needed.
+  + perf: available when HAVE_HARDLOCKUP_DETECTOR_PERF is set.
 
-Thanks, Peter, yes that's right.
+  + arch-specific: available when HAVE_HARDLOCKUP_DETECTOR_ARCH is set.
 
-> 
-> Er yes, I botched that, the dtor and the free_page should be in a the
-> rcu callback function
+  + sparc64 special variant: available when HAVE_NMI_WATCHDOG is set
+	and HAVE_HARDLOCKUP_DETECTOR_ARCH is not set.
 
-But it was just a botched detail, and won't have answered Jason's doubt.
+Only one hardlockup detector can be compiled in. The selection is done
+using quite complex dependencies between several CONFIG variables.
+The following patches will try to make it more straightforward.
 
-I had three (or perhaps it amounts to two) reasons for doing it this way:
-none of which may seem good enough reasons to you.  Certainly I'd agree
-that the way it's done seems... arcane.
+As a first step, reorder the definitions of the various CONFIG variables.
+The logical order is:
 
-One, as I've indicated before, I don't actually dare to go all
-the way into RCU freeing of all page tables for powerpc (or any other):
-I should think it's a good idea that everyone wants in the end, but I'm
-limited by my time and competence - and dread of losing my way in the
-mmu_gather TLB #ifdef maze.  It's work for someone else not me.
+   1. HAVE_* variables define available variants. They are typically
+      defined in the arch/ config files.
 
-(pte_free_defer() do as you suggest, without changing pte_fragment_free()
-itself?  No, that doesn't work out when defer does, say, the decrement of
-pt_frag_refcount from 2 to 1, then pte_fragment_free() does the decrement
-from 1 to 0: page freed without deferral.)
+   2. HARDLOCKUP_DETECTOR y/n variable defines whether the hardlockup
+      detector is enabled at all.
 
-Two, this was the code I'd worked out before, and was used in production,
-so I had confidence in it - it was just my mistake that I'd forgotten the
-single rcu_head issue, and thought I could avoid it in the initial posting.
-powerpc has changed around since then, but apparently not in any way that
-affects this.  And it's too easy to agree in review that something can be
-simpler, without bringing back to mind why the complications are there.
+   3. HARDLOCKUP_DETECTOR_PREFER_BUDDY y/n variable defines whether
+      the buddy detector should be preferred over the perf one.
+      Note that the arch specific variants are always preferred when
+      available.
 
-Three (just an explanation of why the old code was like this), powerpc
-relies on THP's page table deposit+withdraw protocol, even for shmem/
-file THPs.  I've skirted that issue in this series, by sticking with
-retract_page_tables(), not attempting to insert huge pmd immediately.
-But if huge pmd is inserted to replace ptetable pmd, then ptetable must
-be deposited: pte_free_defer() as written protects the deposited ptetable
-from then being freed without deferral (rather like in the example above).
+   4. HARDLOCKUP_DETECTOR_PERF/BUDDY variables define whether the given
+      detector is enabled in the end.
 
-But does not protect it from being withdrawn and reused within that
-grace period.  Jann has grave doubts whether that can ever be allowed
-(or perhaps I should grant him certainty, and examples that it cannot).
-I did convince myself, back in the day, that it was safe here: but I'll
-have to put in a lot more thought to re-justify it now, and on the way
-may instead be completely persuaded by Jann.
+   5. HAVE_HARDLOCKUP_DETECTOR_NON_ARCH and HARDLOCKUP_DETECTOR_NON_ARCH
+      are temporary variables that are going to be removed in
+      a followup patch.
 
-Not very good reasons: good enough, or can you supply a better patch?
+The patch just shuffles the definitions. It should not change the existing
+behavior.
 
-Thanks,
-Hugh
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+---
+ lib/Kconfig.debug | 112 +++++++++++++++++++++++-----------------------
+ 1 file changed, 56 insertions(+), 56 deletions(-)
+
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index ed7b01c4bd41..3e91fa33c7a0 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1035,62 +1035,6 @@ config BOOTPARAM_SOFTLOCKUP_PANIC
+ 
+ 	  Say N if unsure.
+ 
+-# Both the "perf" and "buddy" hardlockup detectors count hrtimer
+-# interrupts. This config enables functions managing this common code.
+-config HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
+-	bool
+-	select SOFTLOCKUP_DETECTOR
+-
+-config HARDLOCKUP_DETECTOR_PERF
+-	bool
+-	depends on HAVE_HARDLOCKUP_DETECTOR_PERF
+-	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
+-
+-config HARDLOCKUP_DETECTOR_BUDDY
+-	bool
+-	depends on SMP
+-	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
+-
+-# For hardlockup detectors you can have one directly provided by the arch
+-# or use a "non-arch" one. If you're using a "non-arch" one that is
+-# further divided the perf hardlockup detector (which, confusingly, needs
+-# arch-provided perf support) and the buddy hardlockup detector (which just
+-# needs SMP). In either case, using the "non-arch" code conflicts with
+-# the NMI watchdog code (which is sometimes used directly and sometimes used
+-# by the arch-provided hardlockup detector).
+-config HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
+-	bool
+-	depends on (HAVE_HARDLOCKUP_DETECTOR_PERF || SMP) && !HAVE_NMI_WATCHDOG
+-	default y
+-
+-config HARDLOCKUP_DETECTOR_PREFER_BUDDY
+-	bool "Prefer the buddy CPU hardlockup detector"
+-	depends on HAVE_HARDLOCKUP_DETECTOR_PERF && SMP
+-	help
+-	  Say Y here to prefer the buddy hardlockup detector over the perf one.
+-
+-	  With the buddy detector, each CPU uses its softlockup hrtimer
+-	  to check that the next CPU is processing hrtimer interrupts by
+-	  verifying that a counter is increasing.
+-
+-	  This hardlockup detector is useful on systems that don't have
+-	  an arch-specific hardlockup detector or if resources needed
+-	  for the hardlockup detector are better used for other things.
+-
+-# This will select the appropriate non-arch hardlockdup detector
+-config HARDLOCKUP_DETECTOR_NON_ARCH
+-	bool
+-	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
+-	select HARDLOCKUP_DETECTOR_BUDDY if !HAVE_HARDLOCKUP_DETECTOR_PERF || HARDLOCKUP_DETECTOR_PREFER_BUDDY
+-	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF && !HARDLOCKUP_DETECTOR_PREFER_BUDDY
+-
+-#
+-# Enables a timestamp based low pass filter to compensate for perf based
+-# hard lockup detection which runs too fast due to turbo modes.
+-#
+-config HARDLOCKUP_CHECK_TIMESTAMP
+-	bool
+-
+ #
+ # arch/ can define HAVE_HARDLOCKUP_DETECTOR_ARCH to provide their own hard
+ # lockup detector rather than the perf based detector.
+@@ -1111,6 +1055,62 @@ config HARDLOCKUP_DETECTOR
+ 	  chance to run.  The current stack trace is displayed upon detection
+ 	  and the system will stay locked up.
+ 
++config HARDLOCKUP_DETECTOR_PREFER_BUDDY
++	bool "Prefer the buddy CPU hardlockup detector"
++	depends on HAVE_HARDLOCKUP_DETECTOR_PERF && SMP
++	help
++	  Say Y here to prefer the buddy hardlockup detector over the perf one.
++
++	  With the buddy detector, each CPU uses its softlockup hrtimer
++	  to check that the next CPU is processing hrtimer interrupts by
++	  verifying that a counter is increasing.
++
++	  This hardlockup detector is useful on systems that don't have
++	  an arch-specific hardlockup detector or if resources needed
++	  for the hardlockup detector are better used for other things.
++
++config HARDLOCKUP_DETECTOR_PERF
++	bool
++	depends on HAVE_HARDLOCKUP_DETECTOR_PERF
++	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
++
++config HARDLOCKUP_DETECTOR_BUDDY
++	bool
++	depends on SMP
++	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
++
++# Both the "perf" and "buddy" hardlockup detectors count hrtimer
++# interrupts. This config enables functions managing this common code.
++config HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
++	bool
++	select SOFTLOCKUP_DETECTOR
++
++# For hardlockup detectors you can have one directly provided by the arch
++# or use a "non-arch" one. If you're using a "non-arch" one that is
++# further divided the perf hardlockup detector (which, confusingly, needs
++# arch-provided perf support) and the buddy hardlockup detector (which just
++# needs SMP). In either case, using the "non-arch" code conflicts with
++# the NMI watchdog code (which is sometimes used directly and sometimes used
++# by the arch-provided hardlockup detector).
++config HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
++	bool
++	depends on (HAVE_HARDLOCKUP_DETECTOR_PERF || SMP) && !HAVE_NMI_WATCHDOG
++	default y
++
++# This will select the appropriate non-arch hardlockdup detector
++config HARDLOCKUP_DETECTOR_NON_ARCH
++	bool
++	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
++	select HARDLOCKUP_DETECTOR_BUDDY if !HAVE_HARDLOCKUP_DETECTOR_PERF || HARDLOCKUP_DETECTOR_PREFER_BUDDY
++	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF && !HARDLOCKUP_DETECTOR_PREFER_BUDDY
++
++#
++# Enables a timestamp based low pass filter to compensate for perf based
++# hard lockup detection which runs too fast due to turbo modes.
++#
++config HARDLOCKUP_CHECK_TIMESTAMP
++	bool
++
+ config BOOTPARAM_HARDLOCKUP_PANIC
+ 	bool "Panic (Reboot) On Hard Lockups"
+ 	depends on HARDLOCKUP_DETECTOR
+-- 
+2.35.3
+
