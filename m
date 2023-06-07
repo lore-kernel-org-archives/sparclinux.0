@@ -2,137 +2,150 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EF42C7EE2F
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Jun 2023 15:28:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5A0C7EE25
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Jun 2023 23:34:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240847AbjFGP2B (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 7 Jun 2023 11:28:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37640 "EHLO
+        id S229614AbjFGXej (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 7 Jun 2023 19:34:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240785AbjFGP1l (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Jun 2023 11:27:41 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 081322116;
-        Wed,  7 Jun 2023 08:27:09 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id 02A9B21A11;
-        Wed,  7 Jun 2023 15:26:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1686151576; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=UpwWRWvSJqy3T03ZY2JlbzZD9kWCp/NCykWW9d7sd1g=;
-        b=ror0Tusl1A4DBNmBYTkOot8hbHrSVjNcZ9FY2pwERAt1+clj7LJkXRHFWMQ/23qz+0TP6T
-        L0Y2STOeyZIftm9lb1yBJvu8qGmXXlOBCaK3kgHnHLaI2SmmyG+svuxj+aX4dSbodUZupp
-        j9a3mj67Hm7ygPMkrSlCW5O0X/eWAyU=
-Received: from alley.suse.cz (unknown [10.100.201.202])
-        by relay2.suse.de (Postfix) with ESMTP id 823902C141;
-        Wed,  7 Jun 2023 15:26:15 +0000 (UTC)
-From:   Petr Mladek <pmladek@suse.com>
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Douglas Anderson <dianders@chromium.org>
-Cc:     kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        with ESMTP id S229822AbjFGXeh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Jun 2023 19:34:37 -0400
+Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B15902689
+        for <sparclinux@vger.kernel.org>; Wed,  7 Jun 2023 16:34:36 -0700 (PDT)
+Received: by mail-io1-xd2d.google.com with SMTP id ca18e2360f4ac-775ebe161c5so359484939f.1
+        for <sparclinux@vger.kernel.org>; Wed, 07 Jun 2023 16:34:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1686180874; x=1688772874;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oKEziAGkCW2jO8QMx9VTvzfLmO/bLdAIdfdMBgrtF0Q=;
+        b=F6wdPzX5FUDEq0AnubAA0X0oRetMIiPWDnCmAd7XJ7qbkBXIQqOUAfDYB/XoT80xhV
+         3geAQrbCc6Er52EjNMUsfbQc3ILUnH0//avnz8c5O+0MdNWqhWcsMkG8UX69MmVNxvFJ
+         vkkbkVW1pnxPONFY6dZLVQpGAhXMjj2z4mswI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686180874; x=1688772874;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=oKEziAGkCW2jO8QMx9VTvzfLmO/bLdAIdfdMBgrtF0Q=;
+        b=knIr5Z4+eX4CzyC+yf7baLwHbF2LFC4UDvk2keiAY7Tb9ld7VnJNPfLuzn6c9bokUF
+         VtdzzDrxeJhqGKE2ow80amrC1TTVAdfLAqJHNNi49yLFgJnq80JyplA3BUjwVugKY2cX
+         D7EZ2zwWEilVvAtBNf/eAHPO/lIUux0nTe9SZTADnKwMJZ+nmfTHsx58Qp4ZL+ry9F2t
+         28R6bJ0MeXhqQM8eWlvDB59RZHtEKAgP237Qq7lYFSEQH0vZm7E0dLdio1b4yqeUKIcp
+         Rz8giwWRAY0bPRWgwzY4dPovBg70jbF2W3LvuuygzBQPB60C/4J/W6YlEsjN7FmnFomQ
+         HGew==
+X-Gm-Message-State: AC+VfDynU7+j8aoocnGCVle2tcQnWEbeoszOlz2nMZzksEM7p5PLMeMB
+        PP1znJXMan+JV2fPyAR7M3yBdMt9KvxykEnF/00=
+X-Google-Smtp-Source: ACHHUZ54nwRPFs1xhPCSYTnMEUHPug8HW9248TnGdxKsxeCcjAN1uGPteR1VHt7hm75SqZZDXJqd7w==
+X-Received: by 2002:a5d:8611:0:b0:77a:c494:b4be with SMTP id f17-20020a5d8611000000b0077ac494b4bemr3202731iol.19.1686180874163;
+        Wed, 07 Jun 2023 16:34:34 -0700 (PDT)
+Received: from mail-il1-f182.google.com (mail-il1-f182.google.com. [209.85.166.182])
+        by smtp.gmail.com with ESMTPSA id q8-20020a0566380ec800b0041f4c9f2064sm2849660jas.178.2023.06.07.16.34.33
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 07 Jun 2023 16:34:33 -0700 (PDT)
+Received: by mail-il1-f182.google.com with SMTP id e9e14a558f8ab-33dea7d5424so25985ab.1
+        for <sparclinux@vger.kernel.org>; Wed, 07 Jun 2023 16:34:33 -0700 (PDT)
+X-Received: by 2002:a92:c26d:0:b0:338:9f6a:d54a with SMTP id
+ h13-20020a92c26d000000b003389f6ad54amr93121ild.24.1686180872621; Wed, 07 Jun
+ 2023 16:34:32 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230607152432.5435-1-pmladek@suse.com> <20230607152432.5435-2-pmladek@suse.com>
+In-Reply-To: <20230607152432.5435-2-pmladek@suse.com>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Wed, 7 Jun 2023 16:34:20 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=X4Sp=ZE4DWob-W0NzRm00K7wOWxyyCCaHUHNPPinsjhg@mail.gmail.com>
+Message-ID: <CAD=FV=X4Sp=ZE4DWob-W0NzRm00K7wOWxyyCCaHUHNPPinsjhg@mail.gmail.com>
+Subject: Re: [PATCH 1/7] watchdog/hardlockup: Sort hardlockup detector related
+ config values a logical way
+To:     Petr Mladek <pmladek@suse.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
         Nicholas Piggin <npiggin@gmail.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
         linuxppc-dev@lists.ozlabs.org,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
         sparclinux@vger.kernel.org,
         "David S . Miller" <davem@davemloft.net>,
-        linux-perf-users@vger.kernel.org, Petr Mladek <pmladek@suse.com>
-Subject: [PATCH 7/7] watchdog/hardlockup: Define HARDLOCKUP_DETECTOR_ARCH
-Date:   Wed,  7 Jun 2023 17:24:32 +0200
-Message-Id: <20230607152432.5435-8-pmladek@suse.com>
-X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20230607152432.5435-1-pmladek@suse.com>
-References: <20230607152432.5435-1-pmladek@suse.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        linux-perf-users@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The HAVE_ prefix means that the code could be enabled. Add another
-variable for HAVE_HARDLOCKUP_DETECTOR_ARCH without this prefix.
-It will be set when it should be built. It will make it compatible
-with the other hardlockup detectors.
+Hi,
 
-The change allows to clean up dependencies of PPC_WATCHDOG
-and HAVE_HARDLOCKUP_DETECTOR_PERF definitions for powerpc.
+On Wed, Jun 7, 2023 at 8:25=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrote=
+:
+>
+> There are four possible variants of hardlockup detectors:
+>
+>   + buddy: available when SMP is set.
+>
+>   + perf: available when HAVE_HARDLOCKUP_DETECTOR_PERF is set.
+>
+>   + arch-specific: available when HAVE_HARDLOCKUP_DETECTOR_ARCH is set.
+>
+>   + sparc64 special variant: available when HAVE_NMI_WATCHDOG is set
+>         and HAVE_HARDLOCKUP_DETECTOR_ARCH is not set.
+>
+> Only one hardlockup detector can be compiled in. The selection is done
+> using quite complex dependencies between several CONFIG variables.
+> The following patches will try to make it more straightforward.
+>
+> As a first step, reorder the definitions of the various CONFIG variables.
+> The logical order is:
+>
+>    1. HAVE_* variables define available variants. They are typically
+>       defined in the arch/ config files.
+>
+>    2. HARDLOCKUP_DETECTOR y/n variable defines whether the hardlockup
+>       detector is enabled at all.
+>
+>    3. HARDLOCKUP_DETECTOR_PREFER_BUDDY y/n variable defines whether
+>       the buddy detector should be preferred over the perf one.
+>       Note that the arch specific variants are always preferred when
+>       available.
+>
+>    4. HARDLOCKUP_DETECTOR_PERF/BUDDY variables define whether the given
+>       detector is enabled in the end.
+>
+>    5. HAVE_HARDLOCKUP_DETECTOR_NON_ARCH and HARDLOCKUP_DETECTOR_NON_ARCH
+>       are temporary variables that are going to be removed in
+>       a followup patch.
+>
+> The patch just shuffles the definitions. It should not change the existin=
+g
+> behavior.
+>
+> Signed-off-by: Petr Mladek <pmladek@suse.com>
+> ---
+>  lib/Kconfig.debug | 112 +++++++++++++++++++++++-----------------------
+>  1 file changed, 56 insertions(+), 56 deletions(-)
 
-As a result HAVE_HARDLOCKUP_DETECTOR_PERF has the same dependencies
-on arm, x86, powerpc architectures.
+I don't really have any strong opinions, so I'm fine with this. In
+general I think the ordering I picked tried to match the existing
+"style" which generally tried to list configs and then select them
+below. To me the existing style makes more sense when thinking about
+writing C code without having to put a pile of prototypes at the top
+of your file: you define things higher in the file and reference them
+below. For instance, the old style (before any of my patches) had:
 
-Signed-off-by: Petr Mladek <pmladek@suse.com>
----
- arch/powerpc/Kconfig | 5 ++---
- include/linux/nmi.h  | 2 +-
- lib/Kconfig.debug    | 9 +++++++++
- 3 files changed, 12 insertions(+), 4 deletions(-)
+config SOFTLOCKUP_DETECTOR:
+  ... blah blah blah ...
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 539d1f03ff42..987e730740d7 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -90,8 +90,7 @@ config NMI_IPI
- 
- config PPC_WATCHDOG
- 	bool
--	depends on HARDLOCKUP_DETECTOR
--	depends on HAVE_HARDLOCKUP_DETECTOR_ARCH
-+	depends on HARDLOCKUP_DETECTOR_ARCH
- 	default y
- 	help
- 	  This is a placeholder when the powerpc hardlockup detector
-@@ -240,7 +239,7 @@ config PPC
- 	select HAVE_GCC_PLUGINS			if GCC_VERSION >= 50200   # plugin support on gcc <= 5.1 is buggy on PPC
- 	select HAVE_GENERIC_VDSO
- 	select HAVE_HARDLOCKUP_DETECTOR_ARCH	if PPC_BOOK3S_64 && SMP
--	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
-+	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
- 	select HAVE_HW_BREAKPOINT		if PERF_EVENTS && (PPC_BOOK3S || PPC_8xx)
- 	select HAVE_IOREMAP_PROT
- 	select HAVE_IRQ_TIME_ACCOUNTING
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 515d6724f469..ec808ebd36ba 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -9,7 +9,7 @@
- #include <asm/irq.h>
- 
- /* Arch specific watchdogs might need to share extra watchdog-related APIs. */
--#if defined(CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH) || defined(CONFIG_HARDLOCKUP_DETECTOR_SPARC64)
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR_ARCH) || defined(CONFIG_HARDLOCKUP_DETECTOR_SPARC64)
- #include <asm/nmi.h>
- #endif
- 
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 116904e65d9f..97853ca54dc7 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1056,6 +1056,7 @@ config HARDLOCKUP_DETECTOR
- 	depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETECTOR_BUDDY || HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	imply HARDLOCKUP_DETECTOR_PERF
- 	imply HARDLOCKUP_DETECTOR_BUDDY
-+	imply HARDLOCKUP_DETECTOR_ARCH
- 	select LOCKUP_DETECTOR
- 
- 	help
-@@ -1102,6 +1103,14 @@ config HARDLOCKUP_DETECTOR_BUDDY
- 	depends on !HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
- 
-+config HARDLOCKUP_DETECTOR_ARCH
-+	bool
-+	depends on HARDLOCKUP_DETECTOR
-+	depends on HAVE_HARDLOCKUP_DETECTOR_ARCH
-+	help
-+	  The arch-specific implementation of the hardlockup detector is
-+	  available.
-+
- #
- # Both the "perf" and "buddy" hardlockup detectors count hrtimer
- # interrupts. This config enables functions managing this common code.
--- 
-2.35.3
+config HARDLOCKUP_DETECTOR_PERF:
+  select SOFTLOCKUP_DETECTOR
 
+config HARDLOCKUP_DETECTOR:
+  ... blah blah blah ...
+  select LOCKUP_DETECTOR
+  select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF
+
+Your new style seems to be the opposite of that.
+
+-Doug
