@@ -2,185 +2,127 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BCFCC77B7A
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 00:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A2EBC77B7A
+	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 02:47:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbjFHAUl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 7 Jun 2023 20:20:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58820 "EHLO
+        id S233680AbjFHCrI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 7 Jun 2023 22:47:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbjFHAUk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Jun 2023 20:20:40 -0400
-Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F7512128
-        for <sparclinux@vger.kernel.org>; Wed,  7 Jun 2023 17:20:39 -0700 (PDT)
-Received: by mail-oi1-x232.google.com with SMTP id 5614622812f47-394c7ba4cb5so42193b6e.1
-        for <sparclinux@vger.kernel.org>; Wed, 07 Jun 2023 17:20:39 -0700 (PDT)
+        with ESMTP id S229727AbjFHCrG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Jun 2023 22:47:06 -0400
+Received: from mail-yw1-x112f.google.com (mail-yw1-x112f.google.com [IPv6:2607:f8b0:4864:20::112f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 867092713
+        for <sparclinux@vger.kernel.org>; Wed,  7 Jun 2023 19:46:40 -0700 (PDT)
+Received: by mail-yw1-x112f.google.com with SMTP id 00721157ae682-568928af8f5so2663087b3.1
+        for <sparclinux@vger.kernel.org>; Wed, 07 Jun 2023 19:46:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686183638; x=1688775638;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nhl3RV14fXn8RdG370rcvuPNBbtc0Bpx0+NmOZMVtZc=;
-        b=niKHunaDhmE6o1Kpv24Wf396NkfydHRVRnYV/oNYBZQ97fYq3ibIDu1lPynyhJ1iez
-         vFuCzuQI5D5P6wJDCcXqP/yqXwD0Z3Z399futDFXrDsJ+8Nf2TicGCzvURZOdVLvTpdp
-         MXSQ4JW1mbliN71ljCBR/h8Nn0LYny/5L2ptg=
+        d=google.com; s=20221208; t=1686192397; x=1688784397;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=3ASVf02IlD8C2FBeHhgGmTxXuzubkx9rvqSR5YGjpQE=;
+        b=da3ktJDtrHlXFJY7fBZV9rF65uZZhghhOV9dnWa/Fsa39j+kMpSSL6DALstHpQz61g
+         K4YVYJos6+GGP6Xf9ot3Uk/1ZbuoyK1eEfBQh/bTNe/mDYJxX8S+fb9se2eckLKEuTOP
+         UD7/4cfGR2T85Ke8Bc4ObLfx9a9FXmomkcXEFQInN+aLXpDDyqofJ4uF60Ko9gzt3x2L
+         MGX9ZxFfnKfNnjs1tFSzEKj5NE78sfc+UDhIQev+RhydadRJR8BTDVk3Lch9IO5KK2Az
+         N/YtKtrcGMeEnF2xteGjLRnISuA5d7eV63yxWyEhWp6zKk6kXjpoiTGJgfB7a9sG5sLf
+         6M9g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686183638; x=1688775638;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nhl3RV14fXn8RdG370rcvuPNBbtc0Bpx0+NmOZMVtZc=;
-        b=E53oAlqRi+FM2/BsdXXMuBarBNSVBoU1PS1uOneDpZEZozmJkuf6ff30OPtdXnUb7z
-         Nq04IEPW2EHODPkSuVUAAgRxdJ0x0/PFr7pDZ6AFnPcobl3+Q7RJE4IkC+mjuxBtssKv
-         hzuYDFaSLEuPlpGDjUJyFiNvvPJnmMJJtxOYZcVeMXYE6EZJyfQwnSJAH0vx1yA7ECw+
-         V92KQI6XCc8pFgdlV9HJ5qf3aeZI5QestfAFtlWlT1VyaQB5O1EZ7EXs9IL5f4BG5b68
-         V8cMt4TDk2Zqd6gH12wOb2tIC+H7Qp+vekyzpeA4z66fqlNFjmS1m2F1vGYNp54LuyGB
-         nn1Q==
-X-Gm-Message-State: AC+VfDz2KNv2mCcVWRIUuH7xdfpWNLsUDP3sDfiZvoJxQSvKCnTsQRem
-        AtZR+DEly3cLft61KcG46YEAjiOltedFm1KlMc0=
-X-Google-Smtp-Source: ACHHUZ4UCybmlozmtJLRrJ5BtGap7MV/l8BORo9ZGHvoZqGzgwozAois9WJIHsI5mxhNFnHJ+CqClQ==
-X-Received: by 2002:aca:230c:0:b0:39a:a847:f08d with SMTP id e12-20020aca230c000000b0039aa847f08dmr6505443oie.39.1686183638331;
-        Wed, 07 Jun 2023 17:20:38 -0700 (PDT)
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com. [209.85.214.174])
-        by smtp.gmail.com with ESMTPSA id l13-20020a654c4d000000b005307501cfe4sm30396pgr.44.2023.06.07.17.20.37
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Jun 2023 17:20:38 -0700 (PDT)
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-1b1b51ec3e9so74535ad.0
-        for <sparclinux@vger.kernel.org>; Wed, 07 Jun 2023 17:20:37 -0700 (PDT)
-X-Received: by 2002:a92:c54d:0:b0:33e:6b65:6f78 with SMTP id
- a13-20020a92c54d000000b0033e6b656f78mr16489ilj.27.1686181007418; Wed, 07 Jun
- 2023 16:36:47 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230607152432.5435-1-pmladek@suse.com> <20230607152432.5435-5-pmladek@suse.com>
-In-Reply-To: <20230607152432.5435-5-pmladek@suse.com>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Wed, 7 Jun 2023 16:36:35 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=VV3Y7KoZWPtZfmfRsUCftAgo_CLRDazrYSgbR2XJKf=g@mail.gmail.com>
-Message-ID: <CAD=FV=VV3Y7KoZWPtZfmfRsUCftAgo_CLRDazrYSgbR2XJKf=g@mail.gmail.com>
-Subject: Re: [PATCH 4/7] watchdog/hardlockup: Enable HAVE_NMI_WATCHDOG only on sparc64
-To:     Petr Mladek <pmladek@suse.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        linuxppc-dev@lists.ozlabs.org,
+        d=1e100.net; s=20221208; t=1686192397; x=1688784397;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=3ASVf02IlD8C2FBeHhgGmTxXuzubkx9rvqSR5YGjpQE=;
+        b=GSO7HEuJu+l6h1BT2+HV6oe8fuCDjmV9mcDwrb1hyQ/Y6YuFxEtNsJumOCV5Qrk+eE
+         jLi8qotyQ90rq4W/dW/6lgcxgVdOTvNjVgzEGSV/MXFZ9XxOJ1kaSuzBWMlSZ/sMl/U/
+         GR+21cf72/YKA9hxfCpEFpXQiHPomh1WNmHtzwgFFMfA0KI8Pbdrc+OezeBpRF//+d1j
+         jw+d/LsSZcOCD4VEwsD2+BE0mC+ik62T2OY5vpbFJr2Z4Pq6kSaX+A17qUDY1BJrRb50
+         7baGPK+ao1n5sJwT0dUgK8J6cEKHHyzj1HginvobaYWXwaH4xzdJ9l/MAoa9Iz0+bamx
+         XTuQ==
+X-Gm-Message-State: AC+VfDybetXz47kH8rmzNwqdY4XCVLP/QNBS0SwvXABEV+PGPD8HTZWD
+        cxZLB7UmIxeZtbFHsIisZ8jvOQ==
+X-Google-Smtp-Source: ACHHUZ4dFnfQCU4EFBdNXwNcj7Ir8z8QRqL+UH/A47UqaCSLxCcPaFmZ7Dypt65uEduAukIhZYJfeQ==
+X-Received: by 2002:a81:5f06:0:b0:561:bbb8:2dc3 with SMTP id t6-20020a815f06000000b00561bbb82dc3mr981921ywb.21.1686192396777;
+        Wed, 07 Jun 2023 19:46:36 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id j7-20020a816e07000000b00568e7e21db7sm103768ywc.96.2023.06.07.19.46.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Jun 2023 19:46:36 -0700 (PDT)
+Date:   Wed, 7 Jun 2023 19:46:26 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+cc:     Hugh Dickins <hughd@google.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        sparclinux@vger.kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-perf-users@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Zack Rusin <zackr@vmware.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH 07/12] s390: add pte_free_defer(), with use of
+ mmdrop_async()
+In-Reply-To: <ZH99cLKeALvUCIH8@ziepe.ca>
+Message-ID: <ed24b58f-ef9f-2427-7372-5c77378c5b40@google.com>
+References: <35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com> <6dd63b39-e71f-2e8b-7e0-83e02f3bcb39@google.com> <175ebec8-761-c3f-2d98-6c3bd87161c8@google.com> <ZH99cLKeALvUCIH8@ziepe.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Tue, 6 Jun 2023, Jason Gunthorpe wrote:
+> On Mon, Jun 05, 2023 at 10:11:52PM -0700, Hugh Dickins wrote:
+> 
+> > "deposited" pagetable fragments, over in arch/s390/mm/pgtable.c: use
+> > the first two longs of the page table itself for threading the list.
+> 
+> It is not RCU anymore if it writes to the page table itself before the
+> grace period, so this change seems to break the RCU behavior of
+> page_table_free_rcu().. The rcu sync is inside tlb_remove_table()
+> called after the stores.
 
-On Wed, Jun 7, 2023 at 8:25=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrote=
-:
->
-> diff --git a/arch/Kconfig b/arch/Kconfig
-> index 13c6e596cf9e..57f15babe188 100644
-> --- a/arch/Kconfig
-> +++ b/arch/Kconfig
-> @@ -404,10 +404,9 @@ config HAVE_NMI_WATCHDOG
->         depends on HAVE_NMI
->         bool
->         help
-> -         The arch provides its own hardlockup detector implementation in=
-stead
-> +         Sparc64 provides its own hardlockup detector implementation ins=
-tead
->           of the generic perf one.
+Yes indeed, thanks for pointing that out.
 
-It's a little weird to document generic things with the specifics of
-the user. The exception, IMO, is when something is deprecated.
-Personally, it would sound less weird to me to say something like:
+> 
+> Maybe something like an xarray on the mm to hold the frags?
 
-The arch provides its own hardlockup detector implementation instead
-of the generic perf one. This is a deprecated thing to do and kept
-around until sparc64 provides a full hardlockup implementation or
-moves to generic code.
+I think we can manage without that:
+I'll say slightly more in reply to Gerald.
 
-
-> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-> index d201f5d3876b..4b4aa0f941f9 100644
-> --- a/lib/Kconfig.debug
-> +++ b/lib/Kconfig.debug
-> @@ -1050,15 +1050,13 @@ config HAVE_HARDLOCKUP_DETECTOR_BUDDY
->  #      sparc64: has a custom implementation which is not using the commo=
-n
->  #              hardlockup command line options and sysctl interface.
->  #
-> -# Note that HAVE_NMI_WATCHDOG is used to distinguish the sparc64 specifi=
-c
-> -# implementaion. It is automatically enabled also for other arch-specifi=
-c
-> -# variants which set HAVE_HARDLOCKUP_DETECTOR_ARCH. It makes the check
-> -# of avaialable and supported variants quite tricky.
-> +# Note that HAVE_NMI_WATCHDOG is set when the sparc64 specific implement=
-ation
-> +# is used.
->  #
->  config HARDLOCKUP_DETECTOR
->         bool "Detect Hard Lockups"
-> -       depends on DEBUG_KERNEL && !S390
-> -       depends on ((HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DET=
-ECTOR_BUDDY) && !HAVE_NMI_WATCHDOG) || HAVE_HARDLOCKUP_DETECTOR_ARCH
-> +       depends on DEBUG_KERNEL && !S390 && !HAVE_NMI_WATCHDOG
-> +       depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETEC=
-TOR_BUDDY || HAVE_HARDLOCKUP_DETECTOR_ARCH
-
-If you add the "!HAVE_NMI_WATCHDOG" as a dependency to
-HAVE_HARDLOCKUP_DETECTOR_BUDDY, as discussed in a previous patch, you
-can skip adding it here.
-
-
->         imply HARDLOCKUP_DETECTOR_PERF
->         imply HARDLOCKUP_DETECTOR_BUDDY
->         select LOCKUP_DETECTOR
-> @@ -1079,7 +1077,7 @@ config HARDLOCKUP_DETECTOR_PREFER_BUDDY
->         bool "Prefer the buddy CPU hardlockup detector"
->         depends on HARDLOCKUP_DETECTOR
->         depends on HAVE_HARDLOCKUP_DETECTOR_PERF && HAVE_HARDLOCKUP_DETEC=
-TOR_BUDDY
-> -       depends on !HAVE_NMI_WATCHDOG
-> +       depends on !HAVE_HARLOCKUP_DETECTOR_ARCH
-
-Don't need this. Architectures never are allowed to define
-HAVE_HARDLOCKUP_DETECTOR_PERF and HAVE_HARLOCKUP_DETECTOR_ARCH
-
-
->         default n
->         help
->           Say Y here to prefer the buddy hardlockup detector over the per=
-f one.
-> @@ -1096,7 +1094,7 @@ config HARDLOCKUP_DETECTOR_PERF
->         bool
->         depends on HARDLOCKUP_DETECTOR
->         depends on HAVE_HARDLOCKUP_DETECTOR_PERF && !HARDLOCKUP_DETECTOR_=
-PREFER_BUDDY
-> -       depends on !HAVE_NMI_WATCHDOG
-> +       depends on !HAVE_HARDLOCKUP_DETECTOR_ARCH
-
-Similarly, don't need this.
-
-
->         select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
->
->  config HARDLOCKUP_DETECTOR_BUDDY
-> @@ -1104,7 +1102,7 @@ config HARDLOCKUP_DETECTOR_BUDDY
->         depends on HARDLOCKUP_DETECTOR
->         depends on HAVE_HARDLOCKUP_DETECTOR_BUDDY
->         depends on !HAVE_HARDLOCKUP_DETECTOR_PERF || HARDLOCKUP_DETECTOR_=
-PREFER_BUDDY
-> -       depends on !HAVE_NMI_WATCHDOG
-> +       depends on !HAVE_HARDLOCKUP_DETECTOR_ARCH
-
-Similarly, don't need this.
-
-
-In general I don't object to splitting out HAVE_NMI_WATCHDOG from
-HAVE_HARDLOCKUP_DETECTOR_ARCH.
+Hugh
