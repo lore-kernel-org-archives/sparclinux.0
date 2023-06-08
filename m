@@ -2,81 +2,137 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BF5C83003
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 11:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B7CC7EE43
+	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 12:57:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235979AbjFHLDh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 8 Jun 2023 07:03:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35478 "EHLO
+        id S234306AbjFHM5H (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 8 Jun 2023 08:57:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235725AbjFHLD3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Jun 2023 07:03:29 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0B0311A;
-        Thu,  8 Jun 2023 04:03:28 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id 73AB81FDCB;
-        Thu,  8 Jun 2023 11:03:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1686222207; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OmGpYQHxrkRWd3zHWeEZ/+FUz6+Ti2y9azLyKi/9VXc=;
-        b=c8tiLtHYMhWgJjrI950UtHFjJJ3An1MKHJgcx/Znq//lHtsgq5ldmCgdtfNVK7TuGeiKDE
-        ZPtlKVMYawfGmguYaePV/4HFgd8zPjzk8L2wLXnrA3+eBLevEgpqSJuDEj8icgI59yO1GW
-        rBoEh9e3GyFy8YgCMK3YOO9SBOeyoAE=
-Received: from suse.cz (unknown [10.100.208.146])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 38B7D2C141;
-        Thu,  8 Jun 2023 11:03:27 +0000 (UTC)
-Date:   Thu, 8 Jun 2023 13:03:26 +0200
-From:   Petr Mladek <pmladek@suse.com>
-To:     Doug Anderson <dianders@chromium.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        linuxppc-dev@lists.ozlabs.org,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        sparclinux@vger.kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH 3/7] watchdog/hardlockup: Declare
- arch_touch_nmi_watchdog() only in linux/nmi.h
-Message-ID: <ZIG1fpHf5ULK0zqU@alley>
-References: <20230607152432.5435-1-pmladek@suse.com>
- <20230607152432.5435-4-pmladek@suse.com>
- <CAD=FV=XvUAeKFAcOD_xaT2to45=CCiKJMRbi-uxgrZ4mWN7hZg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAD=FV=XvUAeKFAcOD_xaT2to45=CCiKJMRbi-uxgrZ4mWN7hZg@mail.gmail.com>
+        with ESMTP id S233162AbjFHM5E (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Jun 2023 08:57:04 -0400
+Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DDC52727;
+        Thu,  8 Jun 2023 05:56:54 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailout.west.internal (Postfix) with ESMTP id 54C02320090B;
+        Thu,  8 Jun 2023 08:56:52 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Thu, 08 Jun 2023 08:56:53 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm1; t=1686229011; x=1686315411; bh=87
+        pYxZKtAnGH9oKy6pFHT1xHGz/WCvjygA8bIAeiKlA=; b=ZeX8L7pUZ5UIpOMY9M
+        9g1j8HgG7+kWRpcbfg5uyET+fH7MKKs1mmJd5GiTBtyG3e4Kb2S8oySTp2FMKVD5
+        6cPeO3EdjyqNf0z8ONTk7Y4xvff+IrOd/IEXcnucUJGHtunt79pl/8nMv5FddrAG
+        uQycTyVPowhwXFFmqqICRAUW8Rc8su6sZcA/n9xK4gkWZLq4FLGKG2+b/ofZFCuf
+        AMrvTTYFhxmA+huvu4Cjp75ap2Sf7MJK9JQ3pOVGdml0Q2jBbC5ggWY9QzN5MNkV
+        6Cu7hWpbrBfBHGI32iWeZ+txnWuzY/rdQ0nguYoFIEmTdH+KuW0pvhtt0TNXW/yQ
+        JP2A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm1; t=1686229011; x=1686315411; bh=87pYxZKtAnGH9
+        oKy6pFHT1xHGz/WCvjygA8bIAeiKlA=; b=U6XRVjfP+EHUDQvBv8cPL9pD/KGwo
+        iw0KnKWmDepSUXHsue7XYEEv3jSKmc5VneLRFAnbB7bjvWnjZAFimwr1xI3aZ2r2
+        RdXIfnuvROK2EFMWjCfwC3PBH93ikfGkGtdqsK5mas70L80DoSDFO8TKCaTh4eHz
+        K+ZspG/2pADrn/0PYTVFOIEgwbfucSZzMW91caxx97W+pzHbK9rkgf+0+vkf4oDD
+        jH5hLErq64lWlh17sXL7u3Td79LGnkb4UvXKtQw37hle5MqhD6Sfrp8G6cLyNfqi
+        QTut/2emZSYLnRuBAzk7rDPI0a305yR06UG65WJAnPVfPk2TBPYkBuvMA==
+X-ME-Sender: <xms:EtCBZE-D_kjWYp3ANnherykbAzIjPaixWoyhxXwJLmuQI-kmX5DxFw>
+    <xme:EtCBZMv-IJXp1mQnNzIiUM2AEt48SGWGnXLai4h_XUzypiLIXrG4wXRCGc1U27CR_
+    sWJ2VBCAcRl0hKP7ME>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrgedtiedgheekucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepkeehtefguddvleejvdeileeifffhueevgedvheeiudfhueevgfehkeeitedu
+    keeknecuffhomhgrihhnpehsohhurhgtvgifrghrvgdrohhrghenucevlhhushhtvghruf
+    hiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:EtCBZKA2ewgTjhAvvYw7qmycGR9cVe-qDicg_oFDY4J69jtsZIvlug>
+    <xmx:EtCBZEdu7a-GJfOfcHAOiHAuoCAzbOXNlKWUPk55Fe3Mbg8D-CEnpQ>
+    <xmx:EtCBZJOC47AwohdFIRwPvxQhiJzPrz-2u8vWBLIbN9yK_NXQPYV6NQ>
+    <xmx:E9CBZGcuZlRzBuBBOm-YYYm5GycL4W2eCqAow4fI1BtYmFRYOd5HOA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 9B111B60086; Thu,  8 Jun 2023 08:56:50 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-447-ge2460e13b3-fm-20230525.001-ge2460e13
+Mime-Version: 1.0
+Message-Id: <a3a4f48a-07d4-4ed9-bc53-5d383428bdd2@app.fastmail.com>
+In-Reply-To: <76d3be65-91df-7969-5303-38231a7df926@loongson.cn>
+References: <1683615903-10862-1-git-send-email-yangtiezhu@loongson.cn>
+ <b9624545-2c80-49a1-ac3c-39264a591f7b@app.fastmail.com>
+ <76d3be65-91df-7969-5303-38231a7df926@loongson.cn>
+Date:   Thu, 08 Jun 2023 14:56:30 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Tiezhu Yang" <yangtiezhu@loongson.cn>
+Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-s390@vger.kernel.org, llvm@lists.linux.dev,
+        linux-ia64@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-parisc@vger.kernel.org, x86@kernel.org,
+        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        bpf@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        loongson-kernel@lists.loongnix.cn
+Subject: Re: [RFC PATCH] asm-generic: Unify uapi bitsperlong.h
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed 2023-06-07 16:35:19, Doug Anderson wrote:
-> Hi,
-> 
-> On Wed, Jun 7, 2023 at 8:25 AM Petr Mladek <pmladek@suse.com> wrote:
-> >
-> > arch_touch_nmi_watchdog() needs a different implementation for various
-> > hardlockup detector implementations. And it does nothing when
-> > any hardlockup detector is not build at all.
-> 
-> s/build/built/
+On Thu, Jun 8, 2023, at 09:04, Tiezhu Yang wrote:
+> On 05/09/2023 05:37 PM, Arnd Bergmann wrote:
+>> On Tue, May 9, 2023, at 09:05, Tiezhu Yang wrote:
+>>
+>> I think we are completely safe on the architectures that were
+>> added since the linux-3.x days (arm64, riscv, csky, openrisc,
+>> loongarch, nios2, and hexagon), but for the older ones there
+>> is a regression risk. Especially on targets that are not that
+>> actively maintained (sparc, alpha, ia64, sh, ...) there is
+>> a good chance that users are stuck on ancient toolchains.
+>> It's probably also a safe assumption that anyone with an older
+>> libc version won't be using the latest kernel headers, so
+>> I think we can still do this across architectures if both
+>> glibc and musl already require a compiler that is new enough,
+>> or alternatively if we know that the kernel headers require
+>> a new compiler for other reasons and nobody has complained.
+>>
+>> For glibc, it looks the minimum compiler version was raised
+>> from gcc-5 to gcc-8 four years ago, so we should be fine.
+>>
+>> In musl, the documentation states that at least gcc-3.4 or
+>> clang-3.2 are required, which probably predate the
+>> __SIZEOF_LONG__ macro. On the other hand, musl was only
+>> released in 2011, and building musl itself explicitly
+>> does not require kernel uapi headers, so this may not
+>> be too critical.
+>>
+>> There is also uClibc, but I could not find any minimum
+>> supported compiler version for that. Most commonly, this
+>> one is used for cross-build environments, so it's also
+>> less likely to have libc/gcc/headers being wildly out of
+>> sync. Not sure.
+>>
+>>       Arnd
+>>
+>> [1] https://sourceware.org/pipermail/libc-alpha/2019-January/101010.html
+>>
+>
+> Thanks Arnd for the detailed reply.
+> Any more comments? What should I do in the next step?
 
-Will fix in v2.
+I think the summary is "it's probably fine", but I don't know
+for sure, and it may not be worth the benefit.
 
-> 
-> This looks right and is a nice cleanup.
-> 
-> Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Maybe you can prepare a v2 that only does this for the newer
+architectures I mentioned above, with and an explanation and
+link to my above reply in the file comments?
 
-Thanks a lot.
-
-Best Regards,
-Petr
+      Arnd
