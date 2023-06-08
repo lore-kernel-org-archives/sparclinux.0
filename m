@@ -2,102 +2,140 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6ACBC87FE2
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 10:12:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC80DC7EE23
+	for <sparclinux@archiver.kernel.org>; Thu,  8 Jun 2023 10:19:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236004AbjFHKMc convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 8 Jun 2023 06:12:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35862 "EHLO
+        id S236008AbjFHKTZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 8 Jun 2023 06:19:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235782AbjFHKMW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Jun 2023 06:12:22 -0400
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B05A01FE9;
-        Thu,  8 Jun 2023 03:12:19 -0700 (PDT)
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.95)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1q7Cck-000hkd-IA; Thu, 08 Jun 2023 12:12:10 +0200
-Received: from p57bd96d9.dip0.t-ipconnect.de ([87.189.150.217] helo=[192.168.178.81])
-          by inpost2.zedat.fu-berlin.de (Exim 4.95)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1q7Cck-0049Nn-9l; Thu, 08 Jun 2023 12:12:10 +0200
-Message-ID: <0e74974450a15870f13ff36ab5dd60924368c0d9.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v3 30/34] sh: Convert pte_free_tlb() to use ptdescs
-From:   John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
-        kvm@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>
-Date:   Thu, 08 Jun 2023 12:12:09 +0200
-In-Reply-To: <20230531213032.25338-31-vishal.moola@gmail.com>
-References: <20230531213032.25338-1-vishal.moola@gmail.com>
-         <20230531213032.25338-31-vishal.moola@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-User-Agent: Evolution 3.48.2 
+        with ESMTP id S236096AbjFHKTU (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Jun 2023 06:19:20 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C19F2D61;
+        Thu,  8 Jun 2023 03:19:09 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id B432321A43;
+        Thu,  8 Jun 2023 10:19:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1686219547; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=qH7hbjRKkb1LYOldC3fpKEsvGCEPNOpUQ3QVueg8k94=;
+        b=ubBBzAI5Jfq44AopMPQk7sptKMpk3Olqv9uhKFbg+3Qb27Tdk/x97Pdyyc+g9TQwuCFTsM
+        sxXE4W276BgmPZExKbxUU8w/ic4r8NBjuASLGMi/hqOy977FBzx5XUeDmft7/KnI19WFQl
+        f0SCXK/ToeHSmXXB1qhFGEf3wPR4kmA=
+Received: from suse.cz (pmladek.tcp.ovpn2.prg.suse.de [10.100.208.146])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 8228C2C141;
+        Thu,  8 Jun 2023 10:19:06 +0000 (UTC)
+Date:   Thu, 8 Jun 2023 12:19:02 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Doug Anderson <dianders@chromium.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH 1/7] watchdog/hardlockup: Sort hardlockup detector
+ related config values a logical way
+Message-ID: <ZIGrFiGhUiO6OOsa@alley>
+References: <20230607152432.5435-1-pmladek@suse.com>
+ <20230607152432.5435-2-pmladek@suse.com>
+ <CAD=FV=X4Sp=ZE4DWob-W0NzRm00K7wOWxyyCCaHUHNPPinsjhg@mail.gmail.com>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-Originating-IP: 87.189.150.217
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAD=FV=X4Sp=ZE4DWob-W0NzRm00K7wOWxyyCCaHUHNPPinsjhg@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, 2023-05-31 at 14:30 -0700, Vishal Moola (Oracle) wrote:
-> Part of the conversions to replace pgtable constructor/destructors with
-> ptdesc equivalents. Also cleans up some spacing issues.
+On Wed 2023-06-07 16:34:20, Doug Anderson wrote:
+> Hi,
 > 
-> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-> ---
->  arch/sh/include/asm/pgalloc.h | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
+> On Wed, Jun 7, 2023 at 8:25 AM Petr Mladek <pmladek@suse.com> wrote:
+> > Only one hardlockup detector can be compiled in. The selection is done
+> > using quite complex dependencies between several CONFIG variables.
+> > The following patches will try to make it more straightforward.
+> >
+> > As a first step, reorder the definitions of the various CONFIG variables.
+> > The logical order is:
+> >
+> >    1. HAVE_* variables define available variants. They are typically
+> >       defined in the arch/ config files.
+> >
+> >    2. HARDLOCKUP_DETECTOR y/n variable defines whether the hardlockup
+> >       detector is enabled at all.
+> >
+> >    3. HARDLOCKUP_DETECTOR_PREFER_BUDDY y/n variable defines whether
+> >       the buddy detector should be preferred over the perf one.
+> >       Note that the arch specific variants are always preferred when
+> >       available.
+> >
+> >    4. HARDLOCKUP_DETECTOR_PERF/BUDDY variables define whether the given
+> >       detector is enabled in the end.
+> >
+> >    5. HAVE_HARDLOCKUP_DETECTOR_NON_ARCH and HARDLOCKUP_DETECTOR_NON_ARCH
+> >       are temporary variables that are going to be removed in
+> >       a followup patch.
+> >
 > 
-> diff --git a/arch/sh/include/asm/pgalloc.h b/arch/sh/include/asm/pgalloc.h
-> index a9e98233c4d4..5d8577ab1591 100644
-> --- a/arch/sh/include/asm/pgalloc.h
-> +++ b/arch/sh/include/asm/pgalloc.h
-> @@ -2,6 +2,7 @@
->  #ifndef __ASM_SH_PGALLOC_H
->  #define __ASM_SH_PGALLOC_H
->  
-> +#include <linux/mm.h>
->  #include <asm/page.h>
->  
->  #define __HAVE_ARCH_PMD_ALLOC_ONE
-> @@ -31,10 +32,10 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
->  	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
->  }
->  
-> -#define __pte_free_tlb(tlb,pte,addr)			\
-> -do {							\
-> -	pgtable_pte_page_dtor(pte);			\
-> -	tlb_remove_page((tlb), (pte));			\
-> +#define __pte_free_tlb(tlb, pte, addr)				\
-> +do {								\
-> +	pagetable_pte_dtor(page_ptdesc(pte));			\
-> +	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
->  } while (0)
->  
->  #endif /* __ASM_SH_PGALLOC_H */
+> I don't really have any strong opinions, so I'm fine with this. In
+> general I think the ordering I picked tried to match the existing
+> "style" which generally tried to list configs and then select them
+> below. To me the existing style makes more sense when thinking about
+> writing C code
 
-Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+I know. My motivation was the following:
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+1. Kconfig is not C. My view is that it is more like a menu. There is a
+   top level item. If the top level is enabled then there is a submenu
+   with a more detailed selection of various variants and options.
+
+2. The current logic is quite complicated from my POV. And it was
+   even before your patchset. For example,
+   HAVE_HARDLOCKUP_DETECTOR_BUDDY is defined as:
+
+	config HAVE_HARDLOCKUP_DETECTOR_BUDDY
+		bool
+		depends on SMP
+		default y
+
+   One would expect that it would be enabled on SMP system.
+   But the final value depends on many other variables
+   which are defined using relatively complex conditions,
+   especially HARDLOCKUP_DETECTOR, HAVE_HARDLOCKUP_DETECTOR_NON_ARCH,
+   and HARDLOCKUP_DETECTOR_NON_ARCH.
+
+   Understanding the logic is even more complicated because Kconfig is
+   not indexed by cscope.
+
+Important: The logic used at the end of the patchset actually
+   follows the C style. It defines how the various variables
+   depend on each other from top to bottom.
+
+> 
+> config SOFTLOCKUP_DETECTOR:
+>   ... blah blah blah ...
+
+This one is actually defined in the menu-like order:
+
+	config SOFTLOCKUP_DETECTOR
+
+	config BOOTPARAM_SOFTLOCKUP_PANIC
+		depends on SOFTLOCKUP_DETECTOR
+
+It is because the custom option depends on the top level one.
+This is exactly what I would like to achieve with HARDLOCKUP
+variables in this patchset.
+
+Best Regards,
+Petr
