@@ -2,133 +2,152 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5306C7EE25
-	for <sparclinux@archiver.kernel.org>; Fri,  9 Jun 2023 06:51:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0561C7EE2E
+	for <sparclinux@archiver.kernel.org>; Fri,  9 Jun 2023 08:10:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbjFIGvQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 9 Jun 2023 02:51:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55600 "EHLO
+        id S236440AbjFIIKV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 9 Jun 2023 04:10:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjFIGvK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Jun 2023 02:51:10 -0400
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E0DA81BEB;
-        Thu,  8 Jun 2023 23:51:02 -0700 (PDT)
-Received: from loongson.cn (unknown [113.200.148.30])
-        by gateway (Coremail) with SMTP id _____8BxrOrVy4JkcfAAAA--.2919S3;
-        Fri, 09 Jun 2023 14:51:01 +0800 (CST)
-Received: from [10.130.0.149] (unknown [113.200.148.30])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8AxZuTSy4Jk8QsKAA--.30794S3;
-        Fri, 09 Jun 2023 14:51:00 +0800 (CST)
-Subject: Re: [RFC PATCH] asm-generic: Unify uapi bitsperlong.h
-To:     Arnd Bergmann <arnd@arndb.de>
-References: <1683615903-10862-1-git-send-email-yangtiezhu@loongson.cn>
- <b9624545-2c80-49a1-ac3c-39264a591f7b@app.fastmail.com>
- <76d3be65-91df-7969-5303-38231a7df926@loongson.cn>
- <a3a4f48a-07d4-4ed9-bc53-5d383428bdd2@app.fastmail.com>
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-s390@vger.kernel.org, llvm@lists.linux.dev,
-        linux-ia64@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-parisc@vger.kernel.org, x86@kernel.org,
-        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-perf-users@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        bpf@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        loongson-kernel@lists.loongnix.cn
-From:   Tiezhu Yang <yangtiezhu@loongson.cn>
-Message-ID: <ca4c4968-411d-4e2c-543e-ffb62413ddef@loongson.cn>
-Date:   Fri, 9 Jun 2023 14:50:58 +0800
-User-Agent: Mozilla/5.0 (X11; Linux mips64; rv:45.0) Gecko/20100101
- Thunderbird/45.4.0
+        with ESMTP id S240164AbjFIIJ2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Jun 2023 04:09:28 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F27443A81
+        for <sparclinux@vger.kernel.org>; Fri,  9 Jun 2023 01:09:07 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-565eb83efe4so13743647b3.0
+        for <sparclinux@vger.kernel.org>; Fri, 09 Jun 2023 01:09:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1686298146; x=1688890146;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=D+JG9ScbeIgWCoIoD1lrBSynxF7pZ7ZmtCOtSuAlDGQ=;
+        b=RfeoHUBLwqk9vTTBDLCpOuzNXpllWDEkPYc6yjXtxGCPNmX/rvie991AU10lJs4XbF
+         9RzbOtcSEpi5Rh8KstlxITQN3Ffo4ROyfYENBHFqs9HkcG3CFgO7j5lBQrxeeGMGBjp2
+         NZdxOQon49qNf9HZ1Qgrz3xC18+gnVg36Hvk5SsHYUm7h4j5tszvUdFL2KV4ehwHCBOk
+         gyj3AdqSIMMtQdGmRCxc7HYtfEU+n7ezPeWYkyEIY3KjdS94V8qvWswp+jF2hFiGMFim
+         NoPZGExtzKBOx7SOm5zC/zUvIhzRSqstVSVI3uYZkXeW9ex9SLXGk6aLeA5PY5ojGjGB
+         epOQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686298146; x=1688890146;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=D+JG9ScbeIgWCoIoD1lrBSynxF7pZ7ZmtCOtSuAlDGQ=;
+        b=PZvdC34KQ3H3jWOsdw/Bo0fRFKz1pQrN0w86mxPJfF6UDHmV/mZkOn87/TLx/5nRU3
+         9NJZuukP+1f1/gwx+UbdoceB9CSiuyC799wrZMn0G+M6n9KbbKXBq9ZMtpCChv6yfmMC
+         rjDTc7kCCfj1xP6qfcFFjIZ1J9K1rG2XKiri+dvvaTS1bMoO9+Ol6xJ01Rcoo+BQN+2x
+         32OBMT6HLLlI8ytsTloOg/OIeqPNdBqxqyV84HcdZcY6MB16xoRBc3qCdt6pdyyScZrh
+         3ENO8ZYNPWfHUxhIx3NILhO/lctlL+3iJZUFdfv2Cuel00ythw1y/eZTnB6gcoIXjvph
+         23uA==
+X-Gm-Message-State: AC+VfDyqVRwSecMpOTnEzRjLsEcRn9aye8EBx5dUm1Cjv6QiM7q3vkFY
+        6cZDNEOJBHsKc8M69VlwzODN4Q==
+X-Google-Smtp-Source: ACHHUZ5DQYcZ9JTl8EUp4l7QLImYygbjncdx8ql55YYe3IsFqc7F1XNEab87Po2zAxMo3TGE3P0BfA==
+X-Received: by 2002:a0d:e684:0:b0:565:e87f:a78f with SMTP id p126-20020a0de684000000b00565e87fa78fmr500342ywe.25.1686298145738;
+        Fri, 09 Jun 2023 01:09:05 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id n19-20020a819c53000000b005688f7596ccsm453200ywa.78.2023.06.09.01.09.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Jun 2023 01:09:04 -0700 (PDT)
+Date:   Fri, 9 Jun 2023 01:08:52 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Andrew Morton <akpm@linux-foundation.org>
+cc:     Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Helge Deller <deller@gmx.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH v2 07/23 fix] mips: update_mmu_cache() can replace __update_tlb():
+ fix
+In-Reply-To: <178970b0-1539-8aac-76fd-972c6c46ec17@google.com>
+Message-ID: <6852be98-64e6-6092-d1c-13124b97bc75@google.com>
+References: <a4963be9-7aa6-350-66d0-2ba843e1af44@google.com> <178970b0-1539-8aac-76fd-972c6c46ec17@google.com>
 MIME-Version: 1.0
-In-Reply-To: <a3a4f48a-07d4-4ed9-bc53-5d383428bdd2@app.fastmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-X-CM-TRANSID: AQAAf8AxZuTSy4Jk8QsKAA--.30794S3
-X-CM-SenderInfo: p1dqw3xlh2x3gn0dqz5rrqw2lrqou0/
-X-Coremail-Antispam: 1Uk129KBj93XoW7Cr1UWFy8Kr1kJFy7Kr47KFX_yoW5JFyrpF
-        4UGF1j9r4kAr1fAFn2yw4jqa4Fyws7KF1aq3s0gryxJFs0gFyrtry29w4agFWqvr18Jr4j
-        93yUXFy5uay0yFXCm3ZEXasCq-sJn29KB7ZKAUJUUUUx529EdanIXcx71UUUUU7KY7ZEXa
-        sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-        0xBIdaVrnRJUUUmlb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2
-        IYs7xG6rWj6s0DM7CIcVAFz4kK6r1Y6r17M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-        e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_JFI_Gr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-        0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AK
-        xVW8Jr0_Cr1UM2kKe7AKxVWUAVWUtwAS0I0E0xvYzxvE52x082IY62kv0487Mc804VCY07
-        AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWU
-        AVWUtwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcVAKI4
-        8JM4IIrI8v6xkF7I0E8cxan2IY04v7Mxk0xIA0c2IEe2xFo4CEbIxvr21lc7CjxVAaw2AF
-        wI0_JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1l4IxYO2xFxV
-        AFwI0_JF0_Jw1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2
-        zVAF1VAY17CE14v26r4a6rW5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr
-        1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWU
-        CwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCT
-        nIWIevJa73UjIFyTuYvjxU7uc_DUUUU
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+I expect this to fix the
+arch/mips/mm/tlb-r4k.c:300:16: warning: variable 'pmdp' set but not used
+reported by the kernel test robot; but I am uncomfortable rearranging
+lines in this tlb_probe_hazard() area, and would be glad for review and
+testing by someone familiar with mips - thanks in advance!
 
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202306091304.cNVIspK0-lkp@intel.com/
+Signed-off-by: Hugh Dickins <hughd@google.com>
+---
+ arch/mips/mm/tlb-r4k.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-On 06/08/2023 08:56 PM, Arnd Bergmann wrote:
-> On Thu, Jun 8, 2023, at 09:04, Tiezhu Yang wrote:
->> On 05/09/2023 05:37 PM, Arnd Bergmann wrote:
->>> On Tue, May 9, 2023, at 09:05, Tiezhu Yang wrote:
->>>
->>> I think we are completely safe on the architectures that were
->>> added since the linux-3.x days (arm64, riscv, csky, openrisc,
->>> loongarch, nios2, and hexagon), but for the older ones there
->>> is a regression risk. Especially on targets that are not that
->>> actively maintained (sparc, alpha, ia64, sh, ...) there is
->>> a good chance that users are stuck on ancient toolchains.
->>> It's probably also a safe assumption that anyone with an older
->>> libc version won't be using the latest kernel headers, so
->>> I think we can still do this across architectures if both
->>> glibc and musl already require a compiler that is new enough,
->>> or alternatively if we know that the kernel headers require
->>> a new compiler for other reasons and nobody has complained.
->>>
->>> For glibc, it looks the minimum compiler version was raised
->>> from gcc-5 to gcc-8 four years ago, so we should be fine.
->>>
->>> In musl, the documentation states that at least gcc-3.4 or
->>> clang-3.2 are required, which probably predate the
->>> __SIZEOF_LONG__ macro. On the other hand, musl was only
->>> released in 2011, and building musl itself explicitly
->>> does not require kernel uapi headers, so this may not
->>> be too critical.
->>>
->>> There is also uClibc, but I could not find any minimum
->>> supported compiler version for that. Most commonly, this
->>> one is used for cross-build environments, so it's also
->>> less likely to have libc/gcc/headers being wildly out of
->>> sync. Not sure.
->>>
->>>       Arnd
->>>
->>> [1] https://sourceware.org/pipermail/libc-alpha/2019-January/101010.html
->>>
->>
->> Thanks Arnd for the detailed reply.
->> Any more comments? What should I do in the next step?
->
-> I think the summary is "it's probably fine", but I don't know
-> for sure, and it may not be worth the benefit.
-
-Thank you, it is very clear now.
-
-> Maybe you can prepare a v2 that only does this for the newer
-> architectures I mentioned above, with and an explanation and
-> link to my above reply in the file comments?
-
-Only arm64, riscv and loongarch belong to the newer architectures
-which are related with this change, I am not sure it is necessary
-to "unify" uapi bitsperlong.h for them.
-
-Anyway, let me try, I will send a new version, maybe this is going
-to progress in the right direction.
-
-Thanks,
-Tiezhu
+diff --git a/arch/mips/mm/tlb-r4k.c b/arch/mips/mm/tlb-r4k.c
+index c96725d17cab..80fc90d8d2f1 100644
+--- a/arch/mips/mm/tlb-r4k.c
++++ b/arch/mips/mm/tlb-r4k.c
+@@ -293,11 +293,13 @@ void local_flush_tlb_one(unsigned long page)
+ void update_mmu_cache(struct vm_area_struct *vma,
+ 		      unsigned long address, pte_t *ptep)
+ {
+-	unsigned long flags;
++#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	pgd_t *pgdp;
+ 	p4d_t *p4dp;
+ 	pud_t *pudp;
+ 	pmd_t *pmdp;
++#endif
++	unsigned long flags;
+ 	int idx, pid;
+ 
+ 	/*
+@@ -316,15 +318,15 @@ void update_mmu_cache(struct vm_area_struct *vma,
+ 		pid = read_c0_entryhi() & cpu_asid_mask(&current_cpu_data);
+ 		write_c0_entryhi(address | pid);
+ 	}
+-	pgdp = pgd_offset(vma->vm_mm, address);
+ 	mtc0_tlbw_hazard();
+ 	tlb_probe();
+ 	tlb_probe_hazard();
++	idx = read_c0_index();
++#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
++	pgdp = pgd_offset(vma->vm_mm, address);
+ 	p4dp = p4d_offset(pgdp, address);
+ 	pudp = pud_offset(p4dp, address);
+ 	pmdp = pmd_offset(pudp, address);
+-	idx = read_c0_index();
+-#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	/* this could be a huge page  */
+ 	if (ptep == (pte_t *)pmdp) {
+ 		unsigned long lo;
+-- 
+2.35.3
 
