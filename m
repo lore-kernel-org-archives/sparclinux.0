@@ -2,152 +2,86 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0561C7EE2E
-	for <sparclinux@archiver.kernel.org>; Fri,  9 Jun 2023 08:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6A31C87FDD
+	for <sparclinux@archiver.kernel.org>; Fri,  9 Jun 2023 13:05:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236440AbjFIIKV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 9 Jun 2023 04:10:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43644 "EHLO
+        id S240669AbjFINFT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 9 Jun 2023 09:05:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240164AbjFIIJ2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Jun 2023 04:09:28 -0400
-Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F27443A81
-        for <sparclinux@vger.kernel.org>; Fri,  9 Jun 2023 01:09:07 -0700 (PDT)
-Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-565eb83efe4so13743647b3.0
-        for <sparclinux@vger.kernel.org>; Fri, 09 Jun 2023 01:09:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1686298146; x=1688890146;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=D+JG9ScbeIgWCoIoD1lrBSynxF7pZ7ZmtCOtSuAlDGQ=;
-        b=RfeoHUBLwqk9vTTBDLCpOuzNXpllWDEkPYc6yjXtxGCPNmX/rvie991AU10lJs4XbF
-         9RzbOtcSEpi5Rh8KstlxITQN3Ffo4ROyfYENBHFqs9HkcG3CFgO7j5lBQrxeeGMGBjp2
-         NZdxOQon49qNf9HZ1Qgrz3xC18+gnVg36Hvk5SsHYUm7h4j5tszvUdFL2KV4ehwHCBOk
-         gyj3AdqSIMMtQdGmRCxc7HYtfEU+n7ezPeWYkyEIY3KjdS94V8qvWswp+jF2hFiGMFim
-         NoPZGExtzKBOx7SOm5zC/zUvIhzRSqstVSVI3uYZkXeW9ex9SLXGk6aLeA5PY5ojGjGB
-         epOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686298146; x=1688890146;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=D+JG9ScbeIgWCoIoD1lrBSynxF7pZ7ZmtCOtSuAlDGQ=;
-        b=PZvdC34KQ3H3jWOsdw/Bo0fRFKz1pQrN0w86mxPJfF6UDHmV/mZkOn87/TLx/5nRU3
-         9NJZuukP+1f1/gwx+UbdoceB9CSiuyC799wrZMn0G+M6n9KbbKXBq9ZMtpCChv6yfmMC
-         rjDTc7kCCfj1xP6qfcFFjIZ1J9K1rG2XKiri+dvvaTS1bMoO9+Ol6xJ01Rcoo+BQN+2x
-         32OBMT6HLLlI8ytsTloOg/OIeqPNdBqxqyV84HcdZcY6MB16xoRBc3qCdt6pdyyScZrh
-         3ENO8ZYNPWfHUxhIx3NILhO/lctlL+3iJZUFdfv2Cuel00ythw1y/eZTnB6gcoIXjvph
-         23uA==
-X-Gm-Message-State: AC+VfDyqVRwSecMpOTnEzRjLsEcRn9aye8EBx5dUm1Cjv6QiM7q3vkFY
-        6cZDNEOJBHsKc8M69VlwzODN4Q==
-X-Google-Smtp-Source: ACHHUZ5DQYcZ9JTl8EUp4l7QLImYygbjncdx8ql55YYe3IsFqc7F1XNEab87Po2zAxMo3TGE3P0BfA==
-X-Received: by 2002:a0d:e684:0:b0:565:e87f:a78f with SMTP id p126-20020a0de684000000b00565e87fa78fmr500342ywe.25.1686298145738;
-        Fri, 09 Jun 2023 01:09:05 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id n19-20020a819c53000000b005688f7596ccsm453200ywa.78.2023.06.09.01.09.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Jun 2023 01:09:04 -0700 (PDT)
-Date:   Fri, 9 Jun 2023 01:08:52 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Andrew Morton <akpm@linux-foundation.org>
-cc:     Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Helge Deller <deller@gmx.de>,
-        John David Anglin <dave.anglin@bell.net>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH v2 07/23 fix] mips: update_mmu_cache() can replace __update_tlb():
- fix
-In-Reply-To: <178970b0-1539-8aac-76fd-972c6c46ec17@google.com>
-Message-ID: <6852be98-64e6-6092-d1c-13124b97bc75@google.com>
-References: <a4963be9-7aa6-350-66d0-2ba843e1af44@google.com> <178970b0-1539-8aac-76fd-972c6c46ec17@google.com>
+        with ESMTP id S232498AbjFINFR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Jun 2023 09:05:17 -0400
+Received: from xry111.site (xry111.site [89.208.246.23])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC9EF2D70;
+        Fri,  9 Jun 2023 06:05:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=xry111.site;
+        s=default; t=1686315913;
+        bh=hT63nSeqfXe+w/wcTH/EVqDDlEdDBDYjRZhYbxbpM9E=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=npo+qrCHsIrTavth6RFp9whOgzBlVXmzRzYXUH+dxBlx16fsDq62B5M0BsrtN4VtJ
+         1fdfpCWNVPfQBRPxlsk/T5jnywsDDxzlQF9T3tubgjW3v4DrYce6kTsX/rRJiWMx5i
+         hBEItCRBrPuBf/r8DMY+d6WFyBryIiRnxabHdAlU=
+Received: from [192.168.124.11] (unknown [113.140.11.3])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature ECDSA (P-384) server-digest SHA384)
+        (Client did not present a certificate)
+        (Authenticated sender: xry111@xry111.site)
+        by xry111.site (Postfix) with ESMTPSA id 48AE16638D;
+        Fri,  9 Jun 2023 09:05:09 -0400 (EDT)
+Message-ID: <5de9d69817138f2ccae0867b5ccb602dcfa007a3.camel@xry111.site>
+Subject: Re: [RFC PATCH] asm-generic: Unify uapi bitsperlong.h
+From:   Xi Ruoyao <xry111@xry111.site>
+To:     Tiezhu Yang <yangtiezhu@loongson.cn>, Arnd Bergmann <arnd@arndb.de>
+Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-s390@vger.kernel.org, llvm@lists.linux.dev,
+        linux-ia64@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-parisc@vger.kernel.org, x86@kernel.org,
+        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        bpf@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        loongson-kernel@lists.loongnix.cn
+Date:   Fri, 09 Jun 2023 21:05:07 +0800
+In-Reply-To: <ca4c4968-411d-4e2c-543e-ffb62413ddef@loongson.cn>
+References: <1683615903-10862-1-git-send-email-yangtiezhu@loongson.cn>
+         <b9624545-2c80-49a1-ac3c-39264a591f7b@app.fastmail.com>
+         <76d3be65-91df-7969-5303-38231a7df926@loongson.cn>
+         <a3a4f48a-07d4-4ed9-bc53-5d383428bdd2@app.fastmail.com>
+         <ca4c4968-411d-4e2c-543e-ffb62413ddef@loongson.cn>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.2 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-I expect this to fix the
-arch/mips/mm/tlb-r4k.c:300:16: warning: variable 'pmdp' set but not used
-reported by the kernel test robot; but I am uncomfortable rearranging
-lines in this tlb_probe_hazard() area, and would be glad for review and
-testing by someone familiar with mips - thanks in advance!
+On Fri, 2023-06-09 at 14:50 +0800, Tiezhu Yang wrote:
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202306091304.cNVIspK0-lkp@intel.com/
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
- arch/mips/mm/tlb-r4k.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+/* snip */
 
-diff --git a/arch/mips/mm/tlb-r4k.c b/arch/mips/mm/tlb-r4k.c
-index c96725d17cab..80fc90d8d2f1 100644
---- a/arch/mips/mm/tlb-r4k.c
-+++ b/arch/mips/mm/tlb-r4k.c
-@@ -293,11 +293,13 @@ void local_flush_tlb_one(unsigned long page)
- void update_mmu_cache(struct vm_area_struct *vma,
- 		      unsigned long address, pte_t *ptep)
- {
--	unsigned long flags;
-+#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- 	pgd_t *pgdp;
- 	p4d_t *p4dp;
- 	pud_t *pudp;
- 	pmd_t *pmdp;
-+#endif
-+	unsigned long flags;
- 	int idx, pid;
- 
- 	/*
-@@ -316,15 +318,15 @@ void update_mmu_cache(struct vm_area_struct *vma,
- 		pid = read_c0_entryhi() & cpu_asid_mask(&current_cpu_data);
- 		write_c0_entryhi(address | pid);
- 	}
--	pgdp = pgd_offset(vma->vm_mm, address);
- 	mtc0_tlbw_hazard();
- 	tlb_probe();
- 	tlb_probe_hazard();
-+	idx = read_c0_index();
-+#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
-+	pgdp = pgd_offset(vma->vm_mm, address);
- 	p4dp = p4d_offset(pgdp, address);
- 	pudp = pud_offset(p4dp, address);
- 	pmdp = pmd_offset(pudp, address);
--	idx = read_c0_index();
--#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- 	/* this could be a huge page  */
- 	if (ptep == (pte_t *)pmdp) {
- 		unsigned long lo;
--- 
-2.35.3
+> > > > In musl, the documentation states that at least gcc-3.4 or
+> > > > clang-3.2 are required, which probably predate the
+> > > > __SIZEOF_LONG__ macro.
 
+Indeed, I've digged some history and __SIZEOF_LONG__ was added into GCC-
+4.3 (in 2008).  And I didn't realize the bitsperlong.h in tools
+directory is a copy from uapi.
+
+> > > > On the other hand, musl was only
+> > > > released in 2011, and building musl itself explicitly
+> > > > does not require kernel uapi headers, so this may not
+> > > > be too critical.
+
+> Only arm64, riscv and loongarch belong to the newer architectures
+> which are related with this change, I am not sure it is necessary
+> to "unify" uapi bitsperlong.h for them.
+
+At least it will stop the engineers working on "the next architecture"
+from adding an unneeded bitsperlong.h :).
+
+
+--=20
+Xi Ruoyao <xry111@xry111.site>
+School of Aerospace Science and Technology, Xidian University
