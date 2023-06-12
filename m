@@ -2,120 +2,235 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A47B6CA9EBF
-	for <sparclinux@archiver.kernel.org>; Mon, 12 Jun 2023 21:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72FD9C88CB5
+	for <sparclinux@archiver.kernel.org>; Mon, 12 Jun 2023 21:35:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239249AbjFLVLF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 12 Jun 2023 17:11:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57230 "EHLO
+        id S236259AbjFLVfB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 12 Jun 2023 17:35:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239550AbjFLVI2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Jun 2023 17:08:28 -0400
-Received: from mail-oa1-x35.google.com (mail-oa1-x35.google.com [IPv6:2001:4860:4864:20::35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9060A4EE8;
-        Mon, 12 Jun 2023 14:05:55 -0700 (PDT)
-Received: by mail-oa1-x35.google.com with SMTP id 586e51a60fabf-19f45faedfbso3268544fac.0;
-        Mon, 12 Jun 2023 14:05:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686603953; x=1689195953;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cQ/uV998f7GBK3U8fEwXlOSI96PW+5wzkUNMHiphdSU=;
-        b=Tn4mHghr2z50QboRcFFwBXnQDC7dmOVTmd7q6odwa9ofCDQNfilhaBNviFDHX8SrYA
-         fagx19tWV5xnG2unDu30AzBD8hFIWArocnuzCUa1K7AMS5VYUgKKhDVTLptGD0WPUw8/
-         ZX9JliY6gx8+hXM3OztwRe71m1A+kx2eLC7qxtJVOpdoP5HVloTMtr0/abQT4yyYQOzs
-         IVhZgoGgAdf28rfS5OorktySibfeqB5FLW0b+HoIsUsy+Q3Hv3TNg2zjbv2EGrbvSAhn
-         +UJqDlCblQUHBUCUqLriRDZ3qurN8WXPOHGnwhy4vkGIt3E2YX1KhqR56pPwBtbb673W
-         dPyQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686603953; x=1689195953;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=cQ/uV998f7GBK3U8fEwXlOSI96PW+5wzkUNMHiphdSU=;
-        b=UbbEMBxwDpTz9Gu/s29/6zp064qrdciv9WkRYuOE90hnVWV27RLyXyA1E1WEbWA6nv
-         QQiq9wSugDGlu0fb6RINnFqi64x47NMsFN35bAeuPVtGoWbuLKpp2lvFeZ1skXE1Zqd+
-         /IMkGiNACp6tp/Hy19KxMXx5BgkX+V+Cpd6LQkn4R23/OU3Q8rR62JBNJToMdJ8mD0Ql
-         4mvmIjotZ+BmYrBw1z+RCxAvxgYojiRyOwprRac08CLc4AihQ101C+cHwtj4DS+l/DGM
-         9ug14AQrCcjraDwllbdWMouTnqaOFCiyZkMIFsG9gj0IvCJvU5nYR+0Wgd0X3zAKD2lf
-         6Zdg==
-X-Gm-Message-State: AC+VfDxmYnb72xZc6a6YfHQXU/tUbm0sKv5bK3e9rkjCjyQ7at4ORtL3
-        RgTNwhGHhLTFiz1ef1FW9RoWDXJvPsBQPA==
-X-Google-Smtp-Source: ACHHUZ4ThTH5LM1afe2PTTFtQ0ZfGkzFFO1FbLLwGaoZUh9UZKP9YYPXqsENj3drsF2z7+M8WUTgQg==
-X-Received: by 2002:a05:6870:2207:b0:19f:5701:8c47 with SMTP id i7-20020a056870220700b0019f57018c47mr6429537oaf.9.1686603953383;
-        Mon, 12 Jun 2023 14:05:53 -0700 (PDT)
-Received: from unknowna0e70b2ca394.attlocal.net ([2600:1700:2f7d:1800::16])
-        by smtp.googlemail.com with ESMTPSA id s125-20020a817783000000b00569eb609458sm2757115ywc.81.2023.06.12.14.05.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Jun 2023 14:05:53 -0700 (PDT)
-From:   "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
-        kvm@vger.kernel.org, Hugh Dickins <hughd@google.com>,
-        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Richard Weinberger <richard@nod.at>
-Subject: [PATCH v4 33/34] um: Convert {pmd, pte}_free_tlb() to use ptdescs
-Date:   Mon, 12 Jun 2023 14:04:22 -0700
-Message-Id: <20230612210423.18611-34-vishal.moola@gmail.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230612210423.18611-1-vishal.moola@gmail.com>
-References: <20230612210423.18611-1-vishal.moola@gmail.com>
+        with ESMTP id S237084AbjFLVex (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Jun 2023 17:34:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFC46B3;
+        Mon, 12 Jun 2023 14:34:51 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 54D2362BBD;
+        Mon, 12 Jun 2023 21:34:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D36BC433EF;
+        Mon, 12 Jun 2023 21:34:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686605690;
+        bh=h0CRiC60VVAZqmO+EH1iTk5RAONQQFwe4r5bnxWeBYM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=WWGX6EsmQ2I3j/HZk09nSijqLsLqKh2zR9pZKyLx/B0jIXGPm7WOm6aHPsipPOPiY
+         jbuqr2L5NdxGQ25vQ0efNR0RvVTA/m99hLadgsoxeMr2Yr4F8lHDdx8RspQzi7W43/
+         mLC5DXypQ1i3u7doi7r5ZuwkTyjLzEfegN8R501cyMOXLvlLRW9VI2Ncve7nqZpdCc
+         NEaiFAjaKVxiKSOlPYg1cGzREgYQilsaa62hJ0h6RiWVYxtKmWXyFXZ0lBGx5e1JWW
+         26oQT3m1G5nZ691Qq/SnJu3UQtk8Wk6rKOBVtLl9V+SVu1rHNR6YSCJNrSY+wvrhZ3
+         1QMTS9aeu3yow==
+Date:   Tue, 13 Jun 2023 00:34:11 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Song Liu <song@kernel.org>
+Cc:     Mark Rutland <mark.rutland@arm.com>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 00/13] mm: jit/text allocator
+Message-ID: <20230612213411.GP52412@kernel.org>
+References: <20230601101257.530867-1-rppt@kernel.org>
+ <ZHjDU/mxE+cugpLj@FVFF77S0Q05N.cambridge.arm.com>
+ <ZHjgIH3aX9dCvVZc@moria.home.lan>
+ <ZHm3zUUbwqlsZBBF@FVFF77S0Q05N>
+ <20230605092040.GB3460@kernel.org>
+ <ZH20XkD74prrdN4u@FVFF77S0Q05N>
+ <CAPhsuW7ntn_HpVWdGK_hYVd3zsPEFToBNfmtt0m6K8SwfxJ66Q@mail.gmail.com>
+ <20230608184116.GJ52412@kernel.org>
+ <CAPhsuW5YYa6nQhO2=zor75XkdKpFysZD42DgDRkKZvQT6aMqcA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPhsuW5YYa6nQhO2=zor75XkdKpFysZD42DgDRkKZvQT6aMqcA@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Part of the conversions to replace pgtable constructor/destructors with
-ptdesc equivalents. Also cleans up some spacing issues.
+On Fri, Jun 09, 2023 at 10:02:16AM -0700, Song Liu wrote:
+> On Thu, Jun 8, 2023 at 11:41 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > On Tue, Jun 06, 2023 at 11:21:59AM -0700, Song Liu wrote:
+> > > On Mon, Jun 5, 2023 at 3:09 AM Mark Rutland <mark.rutland@arm.com> wrote:
+> > >
+> > > [...]
+> > >
+> > > > > > > Can you give more detail on what parameters you need? If the only extra
+> > > > > > > parameter is just "does this allocation need to live close to kernel
+> > > > > > > text", that's not that big of a deal.
+> > > > > >
+> > > > > > My thinking was that we at least need the start + end for each caller. That
+> > > > > > might be it, tbh.
+> > > > >
+> > > > > Do you mean that modules will have something like
+> > > > >
+> > > > >       jit_text_alloc(size, MODULES_START, MODULES_END);
+> > > > >
+> > > > > and kprobes will have
+> > > > >
+> > > > >       jit_text_alloc(size, KPROBES_START, KPROBES_END);
+> > > > > ?
+> > > >
+> > > > Yes.
+> > >
+> > > How about we start with two APIs:
+> > >      jit_text_alloc(size);
+> > >      jit_text_alloc_range(size, start, end);
+> > >
+> > > AFAICT, arm64 is the only arch that requires the latter API. And TBH, I am
+> > > not quite convinced it is needed.
+> >
+> > Right now arm64 and riscv override bpf and kprobes allocations to use the
+> > entire vmalloc address space, but having the ability to allocate generated
+> > code outside of modules area may be useful for other architectures.
+> >
+> > Still the start + end for the callers feels backwards to me because the
+> > callers do not define the ranges, but rather the architectures, so we still
+> > need a way for architectures to define how they want allocate memory for
+> > the generated code.
+> 
+> Yeah, this makes sense.
+> 
+> >
+> > > > > It sill can be achieved with a single jit_alloc_arch_params(), just by
+> > > > > adding enum jit_type parameter to jit_text_alloc().
+> > > >
+> > > > That feels backwards to me; it centralizes a bunch of information about
+> > > > distinct users to be able to shove that into a static array, when the callsites
+> > > > can pass that information.
+> > >
+> > > I think we only two type of users: module and everything else (ftrace, kprobe,
+> > > bpf stuff). The key differences are:
+> > >
+> > >   1. module uses text and data; while everything else only uses text.
+> > >   2. module code is generated by the compiler, and thus has stronger
+> > >   requirements in address ranges; everything else are generated via some
+> > >   JIT or manual written assembly, so they are more flexible with address
+> > >   ranges (in JIT, we can avoid using instructions that requires a specific
+> > >   address range).
+> > >
+> > > The next question is, can we have the two types of users share the same
+> > > address ranges? If not, we can reserve the preferred range for modules,
+> > > and let everything else use the other range. I don't see reasons to further
+> > > separate users in the "everything else" group.
+> >
+> > I agree that we can define only two types: modules and everything else and
+> > let the architectures define if they need different ranges for these two
+> > types, or want the same range for everything.
+> >
+> > With only two types we can have two API calls for alloc, and a single
+> > structure that defines the ranges etc from the architecture side rather
+> > than spread all over.
+> >
+> > Like something along these lines:
+> >
+> >         struct execmem_range {
+> >                 unsigned long   start;
+> >                 unsigned long   end;
+> >                 unsigned long   fallback_start;
+> >                 unsigned long   fallback_end;
+> >                 pgprot_t        pgprot;
+> >                 unsigned int    alignment;
+> >         };
+> >
+> >         struct execmem_modules_range {
+> >                 enum execmem_module_flags flags;
+> >                 struct execmem_range text;
+> >                 struct execmem_range data;
+> >         };
+> >
+> >         struct execmem_jit_range {
+> >                 struct execmem_range text;
+> >         };
+> >
+> >         struct execmem_params {
+> >                 struct execmem_modules_range    modules;
+> >                 struct execmem_jit_range        jit;
+> >         };
+> >
+> >         struct execmem_params *execmem_arch_params(void);
+> >
+> >         void *execmem_text_alloc(size_t size);
+> >         void *execmem_data_alloc(size_t size);
+> >         void execmem_free(void *ptr);
+> 
+> With the jit variation, maybe we can just call these
+> module_[text|data]_alloc()?
 
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
----
- arch/um/include/asm/pgalloc.h | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+I was thinking about "execmem_*_alloc()" for allocations that must be close to kernel
+image, like modules, ftrace on x86 and s390 and maybe something else in the
+future.
 
-diff --git a/arch/um/include/asm/pgalloc.h b/arch/um/include/asm/pgalloc.h
-index 8ec7cd46dd96..de5e31c64793 100644
---- a/arch/um/include/asm/pgalloc.h
-+++ b/arch/um/include/asm/pgalloc.h
-@@ -25,19 +25,19 @@
-  */
- extern pgd_t *pgd_alloc(struct mm_struct *);
+And jit_text_alloc() for allocations that can reside anywhere.
+
+I tried to find a different name for 'struct execmem_modules_range' but
+couldn't think of anything better than 'struct execmem_close_to_kernel', so
+I've left modules in the name.
  
--#define __pte_free_tlb(tlb,pte, address)		\
--do {							\
--	pgtable_pte_page_dtor(pte);			\
--	tlb_remove_page((tlb),(pte));			\
-+#define __pte_free_tlb(tlb, pte, address)			\
-+do {								\
-+	pagetable_pte_dtor(page_ptdesc(pte));			\
-+	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
- } while (0)
+> btw: Depending on the implementation of the allocator, we may also
+> need separate free()s for text and data.
+> 
+> >
+> >         void *jit_text_alloc(size_t size);
+> >         void jit_free(void *ptr);
+> >
+
+Let's just add jit_free() for completeness even if it will be the same as
+execmem_free() for now.
  
- #ifdef CONFIG_3_LEVEL_PGTABLES
+> [...]
+> 
+> How should we move ahead from here?
+> 
+> AFAICT, all these changes can be easily extended and refactored
+> in the future, so we don't have to make it perfect the first time.
+> OTOH, having the interface committed (either this set or my
+> module_alloc_type version) can unblock works in the binpack
+> allocator and the users side. Therefore, I think we can move
+> relatively fast here?
+
+Once the interface and architecture abstraction is ready we can work on the
+allocator and the users. We also need to update text_poking/alternatives on
+architectures that would allocate executable memory as ROX. I did some
+quick tests and with these patches 'modprobe xfs' takes tens time more than
+before.
  
--#define __pmd_free_tlb(tlb, pmd, address)		\
--do {							\
--	pgtable_pmd_page_dtor(virt_to_page(pmd));	\
--	tlb_remove_page((tlb),virt_to_page(pmd));	\
--} while (0)						\
-+#define __pmd_free_tlb(tlb, pmd, address)			\
-+do {								\
-+	pagetable_pmd_dtor(virt_to_ptdesc(pmd));			\
-+	tlb_remove_page_ptdesc((tlb), virt_to_ptdesc(pmd));	\
-+} while (0)
- 
- #endif
- 
+> Thanks,
+> Song
+
 -- 
-2.40.1
-
+Sincerely yours,
+Mike.
