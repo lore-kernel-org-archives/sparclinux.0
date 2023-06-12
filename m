@@ -2,53 +2,53 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AD90CA9ED8
-	for <sparclinux@archiver.kernel.org>; Mon, 12 Jun 2023 21:08:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F21BCA9EDD
+	for <sparclinux@archiver.kernel.org>; Mon, 12 Jun 2023 21:08:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238883AbjFLVIY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 12 Jun 2023 17:08:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57192 "EHLO
+        id S238311AbjFLVIZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 12 Jun 2023 17:08:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238311AbjFLVH4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Jun 2023 17:07:56 -0400
-Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 381DD269A;
-        Mon, 12 Jun 2023 14:05:05 -0700 (PDT)
-Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-56ce53c0040so30129677b3.2;
-        Mon, 12 Jun 2023 14:05:05 -0700 (PDT)
+        with ESMTP id S238712AbjFLVHv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Jun 2023 17:07:51 -0400
+Received: from mail-yw1-x1130.google.com (mail-yw1-x1130.google.com [IPv6:2607:f8b0:4864:20::1130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03A53171D;
+        Mon, 12 Jun 2023 14:04:49 -0700 (PDT)
+Received: by mail-yw1-x1130.google.com with SMTP id 00721157ae682-56d17a5d786so19484627b3.1;
+        Mon, 12 Jun 2023 14:04:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686603904; x=1689195904;
+        d=gmail.com; s=20221208; t=1686603888; x=1689195888;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=CVa9cggtOHSUJO/ogR1wMW2sjtZWNjmDdrC369SVqz0=;
-        b=LGp0peHnuaxYbTi1TrslUjQMitjh+h/buXXjte+rmzMq8EerSk6fzj/9MIVxfmxSpM
-         Omqu6nYebae8kl4QHV1G7ATHJ83nT9wNtbqIHtA4KnlPAvi/4+5X0WEOsthQhJoYwmhG
-         x7qZZcT6GxEhvCZo0gV9yDh1XejrVy2crvGhXSgjUWCF1D9y073Dss7gKb2gKwKJeIqg
-         gITOZuL6QQ3v0Ru0LyolXLQ7MXgbRP8zVbSmn+AuXiGssqL0cYBREi8V1ugxeRNuLvvw
-         6oKvVZRZlVRzitWHyvf0O6G2XA5TATPVxsClJqIqIlKCoZg9JlGxlBuUR1XF5sExgOF1
-         +mLA==
+        bh=bX969DJmm0QSNKJIBN0sjsA5M6jg25Ht5D0PDUGbnFg=;
+        b=DHb+SR7KsGRi1DGfvFeb/cxlVpv7zXU0kX0me32XsqA75bRQ7Qg4ZCnHwXeAm+exma
+         RyCRKTUKX0JKCLOqpLW0CXYvPaKDD9+dZndIAXIpXSKQZglxAQokLHyvAtkIDeRJVqHB
+         93y59nGI8Llned7VxveKPhJ65jNvn/1ZERJFDahHCyrGnH91U4DjxWNrantb6oBNpN6U
+         mc695USGNTsgQHXOo9YrYcYMEcbqRFQyfPiEiGMLPB7dp4D7SFOp0ccqCy0RMalipiJb
+         VM0Bf5j8094tpGlxI2i0lahWPWShioW25k+D4Vvon+EHV5/1d2e6qLRJOoGvyJt4DN4r
+         Rfxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686603904; x=1689195904;
+        d=1e100.net; s=20221208; t=1686603888; x=1689195888;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=CVa9cggtOHSUJO/ogR1wMW2sjtZWNjmDdrC369SVqz0=;
-        b=BXFUltoppuS1OPcv7EBkyxn6E5X3R5kncGQLM95G/5W1YQwjgmthk03mbWZHDA1m/Z
-         FUWiZvM6elQF7QQIBOn9aJ8iqCS8p+FcJdsyHw9Rh7/OnJYcS8J79OxOyTF4+c5mVlls
-         uVi9Hp+rVuMRM25ZRuibbS6fcmV1qQvJyXxVl/aCcTkcv4k4cKLfHyfeEK3DgMXv5piw
-         h2agv9fof5yqdZRBKXYDViimxyTfPwKcGpimN8DyxtGoep0hdFfY8SfxzwuK1s39s3z5
-         NfJ4B1otGIT3Dvk4w0Z/KOn+dsh607V86ilvvhFMJ0iu9A53CPPZzkpmTbe+KgwJez71
-         WhgA==
-X-Gm-Message-State: AC+VfDxVnjZYKLdngVgyI4j6ch6jSEy9n7XAwKgD6DEBQiWWLH3mOoza
-        a7Y8F/cMffDT8BNjGxPCXFo=
-X-Google-Smtp-Source: ACHHUZ4LesFNmga2zNafYd025bzkWSSIKRSwmwCXoFtNtSsfVvER7X6NaAl79hSVn0sQ3cUacFJw5w==
-X-Received: by 2002:a0d:eb83:0:b0:56d:7c4:8be8 with SMTP id u125-20020a0deb83000000b0056d07c48be8mr6827241ywe.16.1686603904409;
-        Mon, 12 Jun 2023 14:05:04 -0700 (PDT)
+        bh=bX969DJmm0QSNKJIBN0sjsA5M6jg25Ht5D0PDUGbnFg=;
+        b=FFmwkTFwa0A391NSYdQ5yq/7UC9RFw50WYuU04pax2NMuDcMHijatj+GyWVrmLKDng
+         gPZyXoO/AGxo/lT+CqgcP+pjBUKYxFTVUm7nm96Ban9b70b24zMQovRlCNJngU5HcgLm
+         Yy1Ged1Wzd1B3yQ6UqgLPd9ZL2EDtrkGefTuGaMKnO6lplNA5DXbJ6uaxpUbSBbplkJM
+         XUrW2Ad4Cf1knD4wmqDHTbSxNCBdqEibrD57wR/7KIUImFoVOYkPdwkZtOcKYlpyPeFA
+         pj9/hWjkjEDcKO8SxGRT6gqDdkzBgiFIkp5WbH9mLPn86Gx37dEm3H9PrJ9KTEI/uDVl
+         K8sg==
+X-Gm-Message-State: AC+VfDyKBFef6CT7uz2fbmSEP0qkB6E7nuOxM4hH4TUG3XgufsOwKl4T
+        JgrggQK9qnfjqDzijqbFCys=
+X-Google-Smtp-Source: ACHHUZ5kzgqtkXUhDflMob/cxrmRbtpI6j8wouGy2iBpxpeE5xKDHT022OIAglde1HGCV3lUDObTDw==
+X-Received: by 2002:a81:8406:0:b0:56d:858:7d04 with SMTP id u6-20020a818406000000b0056d08587d04mr5203603ywf.51.1686603888124;
+        Mon, 12 Jun 2023 14:04:48 -0700 (PDT)
 Received: from unknowna0e70b2ca394.attlocal.net ([2600:1700:2f7d:1800::16])
-        by smtp.googlemail.com with ESMTPSA id s125-20020a817783000000b00569eb609458sm2757115ywc.81.2023.06.12.14.05.02
+        by smtp.googlemail.com with ESMTPSA id s125-20020a817783000000b00569eb609458sm2757115ywc.81.2023.06.12.14.04.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Jun 2023 14:05:04 -0700 (PDT)
+        Mon, 12 Jun 2023 14:04:47 -0700 (PDT)
 From:   "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Matthew Wilcox <willy@infradead.org>
@@ -62,9 +62,9 @@ Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
         linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
         kvm@vger.kernel.org, Hugh Dickins <hughd@google.com>,
         "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: [PATCH v4 09/34] mm: Convert pmd_ptlock_init() to use ptdescs
-Date:   Mon, 12 Jun 2023 14:03:58 -0700
-Message-Id: <20230612210423.18611-10-vishal.moola@gmail.com>
+Subject: [PATCH v4 01/34] mm: Add PAGE_TYPE_OP folio functions
+Date:   Mon, 12 Jun 2023 14:03:50 -0700
+Message-Id: <20230612210423.18611-2-vishal.moola@gmail.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230612210423.18611-1-vishal.moola@gmail.com>
 References: <20230612210423.18611-1-vishal.moola@gmail.com>
@@ -74,52 +74,67 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This removes some direct accesses to struct page, working towards
-splitting out struct ptdesc from struct page.
+No folio equivalents for page type operations have been defined, so
+define them for later folio conversions.
+
+Also changes the Page##uname macros to take in const struct page* since
+we only read the memory here.
 
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 ---
- include/linux/mm.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index bb934d51390f..daecf1db6cf1 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2942,12 +2942,12 @@ static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
- 	return ptlock_ptr(pmd_ptdesc(pmd));
- }
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index 92a2063a0a23..e99a616b9bcd 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -908,6 +908,8 @@ static inline bool is_page_hwpoison(struct page *page)
  
--static inline bool pmd_ptlock_init(struct page *page)
-+static inline bool pmd_ptlock_init(struct ptdesc *ptdesc)
+ #define PageType(page, flag)						\
+ 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
++#define folio_test_type(folio, flag)					\
++	((folio->page.page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+ 
+ static inline int page_type_has_type(unsigned int page_type)
  {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	page->pmd_huge_pte = NULL;
-+	ptdesc->pmd_huge_pte = NULL;
- #endif
--	return ptlock_init(page);
-+	return ptlock_init(ptdesc_page(ptdesc));
+@@ -920,20 +922,34 @@ static inline int page_has_type(struct page *page)
  }
  
- static inline void pmd_ptlock_free(struct page *page)
-@@ -2967,7 +2967,7 @@ static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
- 	return &mm->page_table_lock;
- }
+ #define PAGE_TYPE_OPS(uname, lname)					\
+-static __always_inline int Page##uname(struct page *page)		\
++static __always_inline int Page##uname(const struct page *page)		\
+ {									\
+ 	return PageType(page, PG_##lname);				\
+ }									\
++static __always_inline int folio_test_##lname(const struct folio *folio)\
++{									\
++	return folio_test_type(folio, PG_##lname);			\
++}									\
+ static __always_inline void __SetPage##uname(struct page *page)		\
+ {									\
+ 	VM_BUG_ON_PAGE(!PageType(page, 0), page);			\
+ 	page->page_type &= ~PG_##lname;					\
+ }									\
++static __always_inline void __folio_set_##lname(struct folio *folio)	\
++{									\
++	VM_BUG_ON_FOLIO(!folio_test_type(folio, 0), folio);		\
++	folio->page.page_type &= ~PG_##lname;				\
++}									\
+ static __always_inline void __ClearPage##uname(struct page *page)	\
+ {									\
+ 	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
+ 	page->page_type |= PG_##lname;					\
+-}
++}									\
++static __always_inline void __folio_clear_##lname(struct folio *folio)	\
++{									\
++	VM_BUG_ON_FOLIO(!folio_test_##lname(folio), folio);		\
++	folio->page.page_type |= PG_##lname;				\
++}									\
  
--static inline bool pmd_ptlock_init(struct page *page) { return true; }
-+static inline bool pmd_ptlock_init(struct ptdesc *ptdesc) { return true; }
- static inline void pmd_ptlock_free(struct page *page) {}
- 
- #define pmd_huge_pte(mm, pmd) ((mm)->pmd_huge_pte)
-@@ -2983,7 +2983,7 @@ static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
- 
- static inline bool pgtable_pmd_page_ctor(struct page *page)
- {
--	if (!pmd_ptlock_init(page))
-+	if (!pmd_ptlock_init(page_ptdesc(page)))
- 		return false;
- 	__SetPageTable(page);
- 	inc_lruvec_page_state(page, NR_PAGETABLE);
+ /*
+  * PageBuddy() indicates that the page is free and in the buddy system
 -- 
 2.40.1
 
