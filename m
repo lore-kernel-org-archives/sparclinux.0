@@ -2,44 +2,43 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B834EC001B0
-	for <sparclinux@archiver.kernel.org>; Tue, 13 Jun 2023 23:40:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FBDC001DD
+	for <sparclinux@archiver.kernel.org>; Tue, 13 Jun 2023 23:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241048AbjFMXkL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 13 Jun 2023 19:40:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34164 "EHLO
+        id S241632AbjFMXkI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 13 Jun 2023 19:40:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241185AbjFMXju (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 13 Jun 2023 19:39:50 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322AA1FC1;
-        Tue, 13 Jun 2023 16:39:37 -0700 (PDT)
-Message-ID: <20230613224545.431995857@linutronix.de>
+        with ESMTP id S240329AbjFMXj3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 13 Jun 2023 19:39:29 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0544D1985;
+        Tue, 13 Jun 2023 16:39:28 -0700 (PDT)
+Message-ID: <20230613224545.078124882@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1686699575;
+        s=2020; t=1686699566;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=KovQmxHAduP9K1IJzcjAHDrTAJrP6R2ub7olKG/Nt4k=;
-        b=S5XqhegzNMmoBMubC4ItUZLALBFvIxHYIXbLb+wSq8U5/4sbsbEarf8iLB9msAP1qQNBa5
-        ZXBbLCCAhFFxXFpXnvc5g+UBRdkoIZHSkhNrY+/PNW92EAMhwurbX0Gee2JfqjfU4sji6t
-        D1OcGpBTohbu+DkApu+YTPfgQS91Pv32pRG8Njvuh+uLhDEJFXjgsl23TIcupRDWmSLFni
-        e0y2HTb5eKVlWzQoAFH3KSXswlde2jmlldgRU2AUJVOrMezYS5iSjwjvDKQYQjWpgCvkwZ
-        4f+lkwOAUOkFk53rNJm4+VzWNVNItfmaysNTyqYgbMAYKZHQMR1/rGaEnXozYw==
+         references:references; bh=dVFthLCRReoMWN5sC8FHYm0TEZ3L3fBC7evr6n0+Mk4=;
+        b=TpU4F3Cm21DA+wjsqv0/P+lCFo9Kph9tSJszuyDewJQpAkHNucWI6VQGH2ovheCCeLSwPM
+        8L0zJwOQu4OwERTYKoBKWk8lYaWsIeNJKgE/BZ+3odqC4pib9gmV3UiyFV64EYaagE2pPe
+        Exd1bgLoh+RHn42egy6GkWFY/dWoZ6kiRe8LYhwBFTmq/5hx2Xeu6+ayFJlro4BKpaVqTF
+        hoqWbHNhlfn0CKlpuwRtoRE/a9lZ6ft1xMPStZm61XNHf4WWtkCgcdqEVZdekO3JFHK0bm
+        4FNS7A0stNubNTTdH46Z7QDtve7F2+5WqKGyGo7lcEMug4LbJl6Tow46fGqshQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1686699575;
+        s=2020e; t=1686699566;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=KovQmxHAduP9K1IJzcjAHDrTAJrP6R2ub7olKG/Nt4k=;
-        b=wguOJEto0a1kHNhs4bWY/QmwskE6nEyjtUyErmp0bbC7yJSrOpxmaDsWhVNxsSRcUqJ7BC
-        1B2kAuQsawIOpDDw==
+         references:references; bh=dVFthLCRReoMWN5sC8FHYm0TEZ3L3fBC7evr6n0+Mk4=;
+        b=n9/kemZ7bnQmtNpLkJz9kR9cP/+4kE35m9KdxwLlgsl/n5lmdDRb0Z74LTL1qsMW2Ghy/D
+        ZsktOSy4OXsR84Bg==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
         Nikolay Borisov <nik.borisov@suse.com>,
         "Ahmed S. Darwish" <darwi@linutronix.de>,
         Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        Russell King <linux@armlinux.org.uk>,
         linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
         Huacai Chen <chenhuacai@kernel.org>,
         WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev,
@@ -50,7 +49,8 @@ Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>,
+        linux-sh@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Richard Weinberger <richard@nod.at>,
         Anton Ivanov <anton.ivanov@cambridgegreys.com>,
         Johannes Berg <johannes@sipsolutions.net>,
         linux-um@lists.infradead.org,
@@ -59,11 +59,11 @@ Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Chris Zankel <chris@zankel.net>,
         Tom Lendacky <thomas.lendacky@amd.com>
-Subject: [patch 09/17] sparc/cpu: Switch to arch_cpu_finalize_init()
+Subject: [patch 03/17] ARM: cpu: Switch to arch_cpu_finalize_init()
 References: <20230613223827.532680283@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Wed, 14 Jun 2023 01:39:35 +0200 (CEST)
+Date:   Wed, 14 Jun 2023 01:39:25 +0200 (CEST)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -74,56 +74,62 @@ arch_cpu_finalize_init() implementation.
 No functional change.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org
 ---
- arch/sparc/Kconfig            |    1 +
- arch/sparc/include/asm/bugs.h |   18 ------------------
- arch/sparc/kernel/setup_32.c  |    7 +++++++
- 3 files changed, 8 insertions(+), 18 deletions(-)
+ arch/arm/Kconfig            |    1 +
+ arch/arm/include/asm/bugs.h |    4 ----
+ arch/arm/kernel/bugs.c      |    3 ++-
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -52,6 +52,7 @@ config SPARC
- config SPARC32
- 	def_bool !64BIT
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -5,6 +5,7 @@ config ARM
  	select ARCH_32BIT_OFF_T
-+	select ARCH_HAS_CPU_FINALIZE_INIT if !SMP
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select CLZ_TAB
- 	select DMA_DIRECT_REMAP
---- a/arch/sparc/include/asm/bugs.h
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* include/asm/bugs.h:  Sparc probes for various bugs.
+ 	select ARCH_CORRECT_STACKTRACE_ON_KRETPROBE if HAVE_KRETPROBES && FRAME_POINTER && !ARM_UNWIND
+ 	select ARCH_HAS_BINFMT_FLAT
++	select ARCH_HAS_CPU_FINALIZE_INIT if MMU
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
+ 	select ARCH_HAS_DMA_WRITE_COMBINE if !ARM_DMA_MEM_BUFFERABLE
+--- a/arch/arm/include/asm/bugs.h
++++ b/arch/arm/include/asm/bugs.h
+@@ -1,7 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /*
+- *  arch/arm/include/asm/bugs.h
 - *
-- * Copyright (C) 1996, 2007 David S. Miller (davem@davemloft.net)
-- */
--
--#ifdef CONFIG_SPARC32
--#include <asm/cpudata.h>
--#endif
--
--extern unsigned long loops_per_jiffy;
--
--static void __init check_bugs(void)
--{
--#if defined(CONFIG_SPARC32) && !defined(CONFIG_SMP)
--	cpu_data(0).udelay_val = loops_per_jiffy;
--#endif
--}
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -412,3 +412,10 @@ static int __init topology_init(void)
+  *  Copyright (C) 1995-2003 Russell King
+  */
+ #ifndef __ASM_BUGS_H
+@@ -10,10 +8,8 @@
+ extern void check_writebuffer_bugs(void);
+ 
+ #ifdef CONFIG_MMU
+-extern void check_bugs(void);
+ extern void check_other_bugs(void);
+ #else
+-#define check_bugs() do { } while (0)
+ #define check_other_bugs() do { } while (0)
+ #endif
+ 
+--- a/arch/arm/kernel/bugs.c
++++ b/arch/arm/kernel/bugs.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/init.h>
++#include <linux/cpu.h>
+ #include <asm/bugs.h>
+ #include <asm/proc-fns.h>
+ 
+@@ -11,7 +12,7 @@ void check_other_bugs(void)
+ #endif
  }
  
- subsys_initcall(topology_init);
-+
-+#if defined(CONFIG_SPARC32) && !defined(CONFIG_SMP)
+-void __init check_bugs(void)
 +void __init arch_cpu_finalize_init(void)
-+{
-+	cpu_data(0).udelay_val = loops_per_jiffy;
-+}
-+#endif
+ {
+ 	check_writebuffer_bugs();
+ 	check_other_bugs();
 
