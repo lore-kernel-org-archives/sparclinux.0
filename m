@@ -2,85 +2,89 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F89EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 18:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1189DEB64D8
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 20:42:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229703AbjFNS0g (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 14:26:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52840 "EHLO
+        id S235687AbjFNUmn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 16:42:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234864AbjFNS0f (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 14:26:35 -0400
-Received: from mail-pl1-x629.google.com (mail-pl1-x629.google.com [IPv6:2607:f8b0:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 724F6DF
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 11:26:33 -0700 (PDT)
-Received: by mail-pl1-x629.google.com with SMTP id d9443c01a7336-1b3c578c602so27307985ad.2
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 11:26:33 -0700 (PDT)
+        with ESMTP id S230017AbjFNUmm (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 16:42:42 -0400
+Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:402::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8696C2944
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 13:42:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686767193; x=1689359193;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8qYnv+m/ICTRu2LbpcoNjP2kgdHd9b8SbAiUmYNlsVk=;
-        b=bIT1zmjdB4Vp5Np/y1tDGfQHd7EG+EwoSeSFUubX6UvfPXXZ9UYSb3HmWwPY7EW4XW
-         hBFMSmioyx9Qasx1vkTkT1KNsXvcOXF/ccAq4p1uvRr2k1CDY2pEPkkIRHfNVQmmeLID
-         pqrsnw1fDvZ0Qk7l4ZkM7JzuR+dY8r3Rx+GWI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686767193; x=1689359193;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=8qYnv+m/ICTRu2LbpcoNjP2kgdHd9b8SbAiUmYNlsVk=;
-        b=U5YcSzat2/xSpHpc5FAIZIefE9OqStRqL/DrEVZNAo2jDUVqHHZzYLMrhvxmqVVuxr
-         CCbWWgxIJQsiT8PpCzRubYz5CFh2/0VuE0yvxmVpMZuK0gquxAqOmQUNVW0xEC3tloN4
-         SsuOr56/Onqq/bFeWf87Zc1Q/7GXNlgsAIeRd9q1snh7PDo37YmWBZGh4g8OmljbulCd
-         qFBKs95MzXE4ckT/R/gJs0HnHcl9WUtOjrmHl89tVpVh/YV3ZAzLy2gRvoUS7KDCSut8
-         essQxUHEjcixEEem+a/UkGADUr9jiVojgmAdV9ZXAevm2s3U6t1euWk8UJS2RyANJzRS
-         GLVw==
-X-Gm-Message-State: AC+VfDzUOv3hkwqQHkWUhBz/Rrs9ouXS5KZXvkimugRkSppiADdG1Wla
-        J2j6uasrflvzszTVYsxqL/UFrg==
-X-Google-Smtp-Source: ACHHUZ5KGGDal2761z+iPC80n/f5vNYcYplyOjHdl2Dan2lKNUQuHS1DMW+ICrcGAXFEMS6sqAUtQA==
-X-Received: by 2002:a17:903:41ce:b0:1ac:8837:df8 with SMTP id u14-20020a17090341ce00b001ac88370df8mr15021519ple.6.1686767192871;
-        Wed, 14 Jun 2023 11:26:32 -0700 (PDT)
-Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id jh19-20020a170903329300b001b3f9a6e3b9sm2560092plb.31.2023.06.14.11.26.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jun 2023 11:26:32 -0700 (PDT)
-From:   Kees Cook <keescook@chromium.org>
-To:     davem@davemloft.net, azeemshaikh38@gmail.com
-Cc:     Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] sparc64: Replace all non-returning strlcpy with strscpy
-Date:   Wed, 14 Jun 2023 11:26:06 -0700
-Message-Id: <168676716423.1877080.11129946294131048538.b4-ty@chromium.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230530163001.985256-1-azeemshaikh38@gmail.com>
-References: <20230530163001.985256-1-azeemshaikh38@gmail.com>
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=cW4dy2To7/M902URPa1VAjOZaTBlNB+GfxWd9TtkCSE=;
+        b=E+yvNIrkyeT6IEUt9sQXovg5SM1XJyIh1I4psC5M3E0rZecTNFqf6dUoJZIzciYDZF0wHtv1CkbtY
+         Ug1uzl6V27VzH/JmBV94T1MdtTmgFg2jzeFq6Mfho6iJGF+23+QBKJ0QDxcICllSjMb+Kt1MW6XBKv
+         PQsAOS9u08oxojjceExcrYB6dEKtgWFOX2UcAeoJzROmdLfweXYrEpnTYdlO2gOY+dDHjQtqVpfKXH
+         yhxY21X3GJ1ZCEp4H8EZ6mPYVhtwndrZHgoJss5Wr0lAHHK6G4CZP3yqRUlLm7GYcjj9weu2d/kNrz
+         fKoNo+NR6+5qOQMLwzz0o0xdvg/UVSg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=cW4dy2To7/M902URPa1VAjOZaTBlNB+GfxWd9TtkCSE=;
+        b=VXu9k3ldXcowqgW30zeYdluY94r2cP2Z6PZzlWmByvpKOXcQRh1vwTttSWKSGKkWXSw4a8h/rZkbB
+         U3M0jZMAA==
+X-HalOne-ID: e3e45d00-0af3-11ee-bc48-b90637070a9d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay3 (Halon) with ESMTPSA
+        id e3e45d00-0af3-11ee-bc48-b90637070a9d;
+        Wed, 14 Jun 2023 20:41:52 +0000 (UTC)
+Date:   Wed, 14 Jun 2023 22:41:51 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     LKML <linux-kernel@vger.kernel.org>, x86@kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Nikolay Borisov <nik.borisov@suse.com>,
+        "Ahmed S. Darwish" <darwi@linutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-m68k@lists.linux-m68k.org,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        linux-um@lists.infradead.org,
+        Richard Henderson <richard.henderson@linaro.org>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Chris Zankel <chris@zankel.net>,
+        Tom Lendacky <thomas.lendacky@amd.com>
+Subject: Re: [patch 09/17] sparc/cpu: Switch to arch_cpu_finalize_init()
+Message-ID: <20230614204151.GA1492503@ravnborg.org>
+References: <20230613223827.532680283@linutronix.de>
+ <20230613224545.431995857@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230613224545.431995857@linutronix.de>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 30 May 2023 16:30:01 +0000, Azeem Shaikh wrote:
-> strlcpy() reads the entire source buffer first.
-> This read may exceed the destination size limit.
-> This is both inefficient and can lead to linear read
-> overflows if a source string is not NUL-terminated [1].
-> In an effort to remove strlcpy() completely [2], replace
-> strlcpy() here with strscpy().
-> No return values were used, so direct replacement is safe.
+On Wed, Jun 14, 2023 at 01:39:35AM +0200, Thomas Gleixner wrote:
+> check_bugs() is about to be phased out. Switch over to the new
+> arch_cpu_finalize_init() implementation.
 > 
-> [...]
-
-Build tested with GCC 12 with 32-bit and 64-bit defconfigs.
-
-Applied to for-next/hardening, thanks!
-
-[1/1] sparc64: Replace all non-returning strlcpy with strscpy
-      https://git.kernel.org/kees/c/7136be35e71c
-
--- 
-Kees Cook
+> No functional change.
+> 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
