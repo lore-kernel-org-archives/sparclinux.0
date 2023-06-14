@@ -2,116 +2,142 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEF1EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 06:14:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6000EB64D8
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 06:16:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243061AbjFNGOQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 02:14:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35794 "EHLO
+        id S232453AbjFNGQr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 02:16:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241661AbjFNGOO (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 02:14:14 -0400
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC3A21BCA
-        for <sparclinux@vger.kernel.org>; Tue, 13 Jun 2023 23:14:12 -0700 (PDT)
-Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-3f8d65ecdbbso1642395e9.0
-        for <sparclinux@vger.kernel.org>; Tue, 13 Jun 2023 23:14:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1686723251; x=1689315251;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=xrMiA/tC+fxE5mDARnTcw4ms3upNNvUiArk5dZHjQRk=;
-        b=UEu47kI5BYKterLbgXk6yn5h3lFN3p948gwTWT/PhIRzwv83SpBb49D/jS0ykSITA7
-         1h/631nx8uRXLal8IBavUCSx3KzLlv3fbEDijTmoNqLy61OosXICTPXimuEd+wbjtY5V
-         yW/RHp9NmwTRTmhkbU/n+i8HSxp3bJGw+ljf/jQ9fePGt0N2Rxhesq/6Z2VMlxurZlgE
-         q54hLVpA6pRzjY3vS/UFv3aPA5C+k2j5ugmq3VTR0a6O3LTlkLat8K7sK7GNDwe/o/7L
-         XaTQ5BVagcyQTZz7dfT5PzAa8HIWGBx6KqHhEp27PijMbE9LIT7CUsDeGV/RKXs/+hzL
-         obKA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686723251; x=1689315251;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=xrMiA/tC+fxE5mDARnTcw4ms3upNNvUiArk5dZHjQRk=;
-        b=GKzsxnr8bpWLAfXNrpPfy+1SuMf0gv7yQt83/Tokcp5NeTDVE7pvP5QVlA8X8TzRtH
-         60TqVL15/KV3NNbPyWf6/IrXgsdXwo/8aR8jtCvKHQfs87WGaVTGgRK5BFqLPLHMFb9z
-         S3V9FDtlUhAWetAWsbLmjyr2kOrOUzrdLgXKq0takczBZ9hlJzSSaBVBax65CDpwlYN9
-         Nrcs1mu4Maqd4A/APBTnt5f9cIbh3lzwY1Gb8p4PITszgPj+ClperjXSUXFV/sjG6ILN
-         /x8mlkG7fGLHoUrpi7WqDQ0t3Ir/4HYQ9bqu8rcKOqQFIqYJuzgjThDaIGToIodV2F+t
-         SBLw==
-X-Gm-Message-State: AC+VfDyTYttxIway0KsUAyRmKCYztiVlKCWam9d1edQeL4IH9FhlimWO
-        R0Vhjl7M79nSh6bghpXVyQUlyg==
-X-Google-Smtp-Source: ACHHUZ5sRS5Fyz/k0P/IDiQ9BD0qSNJ2ZIH5A2yLae6xAaPbBztuD6ZaTrtzPOYbyGo7mO5pBjnUww==
-X-Received: by 2002:a05:600c:2059:b0:3f6:2ce:caa8 with SMTP id p25-20020a05600c205900b003f602cecaa8mr8959147wmg.29.1686723251172;
-        Tue, 13 Jun 2023 23:14:11 -0700 (PDT)
-Received: from [192.168.4.112] (90-182-62-66.rcp.o2.cz. [90.182.62.66])
-        by smtp.gmail.com with ESMTPSA id l7-20020a7bc347000000b003f4248dcfcbsm16551765wmj.30.2023.06.13.23.14.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 13 Jun 2023 23:14:10 -0700 (PDT)
-Message-ID: <75d63a28-bb33-ffd0-a0e5-282ec7c3dbed@linaro.org>
-Date:   Wed, 14 Jun 2023 08:14:08 +0200
+        with ESMTP id S243090AbjFNGQk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 02:16:40 -0400
+Received: from mail.208.org (unknown [183.242.55.162])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1377F1FC8
+        for <sparclinux@vger.kernel.org>; Tue, 13 Jun 2023 23:16:39 -0700 (PDT)
+Received: from mail.208.org (email.208.org [127.0.0.1])
+        by mail.208.org (Postfix) with ESMTP id 4QgwDM0k4BzBQJYh
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 14:16:35 +0800 (CST)
+Authentication-Results: mail.208.org (amavisd-new); dkim=pass
+        reason="pass (just generated, assumed good)" header.d=208.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=208.org; h=
+        content-transfer-encoding:content-type:message-id:user-agent
+        :references:in-reply-to:subject:to:from:date:mime-version; s=
+        dkim; t=1686723394; x=1689315395; bh=Er6hCPVj/kJ5dTSSrl1ZSw5zMT9
+        ED6VCwDqxHlR2LbI=; b=bz6H1TvZ3SzQwWGK0HkNDqTFke8qqtvNSkaiTE1I3Ep
+        BKOdVW2GSQ/L1nxThReizc/QWnbMSUTMB6dsx88YmSWcDtxcRPbsFFTJ4Rgb42+y
+        ollCRyHQRGeRJWjwubxCCxpC1u2AGIqad1HTip6m5huF7QJHIOFQjZYnONkZJC5P
+        LKbxdk0v1PRyy3bUUjYBDIqJcn4dPfhFIPpW7N7LK8l9R9MbSXn9wQF4FZ0tBaj3
+        jr4dvQhip2dV6Suad/rHte2ElMJ1GtmQyPSLazH5v85y83IjOKuwEZGNGd53gYn+
+        rNtkNaJw5kL+VNUeVIHjlH4nMx26u75Sm5eZpvmA+yg==
+X-Virus-Scanned: amavisd-new at mail.208.org
+Received: from mail.208.org ([127.0.0.1])
+        by mail.208.org (mail.208.org [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id 2EbKL6BzOJ9u for <sparclinux@vger.kernel.org>;
+        Wed, 14 Jun 2023 14:16:34 +0800 (CST)
+Received: from localhost (email.208.org [127.0.0.1])
+        by mail.208.org (Postfix) with ESMTPSA id 4QgwDL5P80zBJLB3;
+        Wed, 14 Jun 2023 14:16:34 +0800 (CST)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [patch 11/17] init: Remove check_bugs() leftovers
-Content-Language: en-US
-To:     Thomas Gleixner <tglx@linutronix.de>,
-        LKML <linux-kernel@vger.kernel.org>
-Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
-        Nikolay Borisov <nik.borisov@suse.com>,
-        "Ahmed S. Darwish" <darwi@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Chris Zankel <chris@zankel.net>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        Huacai Chen <chenhuacai@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-m68k@lists.linux-m68k.org,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        linux-sh@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        linux-um@lists.infradead.org,
-        Tom Lendacky <thomas.lendacky@amd.com>
-References: <20230613223827.532680283@linutronix.de>
- <20230613224545.553215951@linutronix.de>
-From:   Richard Henderson <richard.henderson@linaro.org>
-In-Reply-To: <20230613224545.553215951@linutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Date:   Wed, 14 Jun 2023 14:16:34 +0800
+From:   wuyonggang001@208suo.com
+To:     davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc/kernel: Fix syntax error
+In-Reply-To: <20230614061130.64214-1-zhanglibing@cdjrlc.com>
+References: <20230614061130.64214-1-zhanglibing@cdjrlc.com>
+User-Agent: Roundcube Webmail
+Message-ID: <5cc396aff142acbc4ba4b2541a5e4d71@208suo.com>
+X-Sender: wuyonggang001@208suo.com
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 6/14/23 01:39, Thomas Gleixner wrote:
-> Everything is converted over to arch_cpu_finalize_init(). Remove the
-> check_bugs() leftovers including the empty stubs in asm-generic, alpha,
-> parisc, powerpc and xtensa.
-> 
-> Signed-off-by: Thomas Gleixner<tglx@linutronix.de>
-> Cc: Richard Henderson<richard.henderson@linaro.org>
-> Cc: "James E.J. Bottomley"<James.Bottomley@HansenPartnership.com>
-> Cc: Michael Ellerman<mpe@ellerman.id.au>
-> Cc: Chris Zankel<chris@zankel.net>
-> ---
->   arch/alpha/include/asm/bugs.h   |   20 --------------------
->   arch/parisc/include/asm/bugs.h  |   20 --------------------
->   arch/powerpc/include/asm/bugs.h |   15 ---------------
->   arch/xtensa/include/asm/bugs.h  |   18 ------------------
->   include/asm-generic/bugs.h      |   11 -----------
->   init/main.c                     |    5 -----
->   6 files changed, 89 deletions(-)
+Fix the following checkpatch error:
 
-Reviewed-by: Richard Henderson <richard.henderson@linaro.org>
+ERROR: space required before the open parenthesis '('
+ERROR: do not initialise statics to 0
+ERROR: trailing whitespace
 
+Signed-off-by: Yonggang Wu <wuyonggang001@208suo.com>
+---
+  arch/sparc/kernel/apc.c | 22 +++++++++++-----------
+  1 file changed, 11 insertions(+), 11 deletions(-)
 
-r~
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index ecd05bc0a104..40b9c72ad4d9 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -24,7 +24,7 @@
+  #include <asm/processor.h>
+
+  /* Debugging
+- *
++ *
+   * #define APC_DEBUG_LED
+   */
+
+@@ -33,20 +33,20 @@
+  #define APC_DEVNAME "apc"
+
+  static u8 __iomem *regs;
+-static int apc_no_idle = 0;
++static int apc_no_idle;
+
+  #define apc_readb(offs)        (sbus_readb(regs+offs))
+  #define apc_writeb(val, offs)     (sbus_writeb(val, regs+offs))
+
+-/* Specify "apc=noidle" on the kernel command line to
++/* Specify "apc=noidle" on the kernel command line to
+   * disable APC CPU standby support.  Certain prototype
+   * systems (SPARCstation-Fox) do not play well with APC
+- * CPU idle, so disable this if your system has APC and
++ * CPU idle, so disable this if your system has APC and
+   * crashes randomly.
+   */
+-static int __init apc_setup(char *str)
++static int __init apc_setup(char *str)
+  {
+-    if(!strncmp(str, "noidle", strlen("noidle"))) {
++    if (!strncmp(str, "noidle", strlen("noidle"))) {
+          apc_no_idle = 1;
+          return 1;
+      }
+@@ -54,22 +54,22 @@ static int __init apc_setup(char *str)
+  }
+  __setup("apc=", apc_setup);
+
+-/*
++/*
+   * CPU idle callback function
+   * See .../arch/sparc/kernel/process.c
+   */
+  static void apc_swift_idle(void)
+  {
+  #ifdef APC_DEBUG_LED
+-    set_auxio(0x00, AUXIO_LED);
++    set_auxio(0x00, AUXIO_LED);
+  #endif
+
+      apc_writeb(apc_readb(APC_IDLE_REG) | APC_IDLE_ON, APC_IDLE_REG);
+
+  #ifdef APC_DEBUG_LED
+-    set_auxio(AUXIO_LED, 0x00);
++    set_auxio(AUXIO_LED, 0x00);
+  #endif
+-}
++}
+
+  static inline void apc_free(struct platform_device *op)
+  {
+@@ -162,7 +162,7 @@ static int apc_probe(struct platform_device *op)
+      if (!apc_no_idle)
+          sparc_idle = apc_swift_idle;
+
+-    printk(KERN_INFO "%s: power management initialized%s\n",
++    pr_info("%s: power management initialized%s\n",
+             APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
+
+      return 0;
