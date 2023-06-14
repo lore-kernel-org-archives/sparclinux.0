@@ -2,142 +2,94 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6000EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 06:16:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4ECEB64DD
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 06:51:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232453AbjFNGQr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 02:16:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37058 "EHLO
+        id S243033AbjFNGv6 convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 02:51:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243090AbjFNGQk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 02:16:40 -0400
-Received: from mail.208.org (unknown [183.242.55.162])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1377F1FC8
-        for <sparclinux@vger.kernel.org>; Tue, 13 Jun 2023 23:16:39 -0700 (PDT)
-Received: from mail.208.org (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTP id 4QgwDM0k4BzBQJYh
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 14:16:35 +0800 (CST)
-Authentication-Results: mail.208.org (amavisd-new); dkim=pass
-        reason="pass (just generated, assumed good)" header.d=208.org
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=208.org; h=
-        content-transfer-encoding:content-type:message-id:user-agent
-        :references:in-reply-to:subject:to:from:date:mime-version; s=
-        dkim; t=1686723394; x=1689315395; bh=Er6hCPVj/kJ5dTSSrl1ZSw5zMT9
-        ED6VCwDqxHlR2LbI=; b=bz6H1TvZ3SzQwWGK0HkNDqTFke8qqtvNSkaiTE1I3Ep
-        BKOdVW2GSQ/L1nxThReizc/QWnbMSUTMB6dsx88YmSWcDtxcRPbsFFTJ4Rgb42+y
-        ollCRyHQRGeRJWjwubxCCxpC1u2AGIqad1HTip6m5huF7QJHIOFQjZYnONkZJC5P
-        LKbxdk0v1PRyy3bUUjYBDIqJcn4dPfhFIPpW7N7LK8l9R9MbSXn9wQF4FZ0tBaj3
-        jr4dvQhip2dV6Suad/rHte2ElMJ1GtmQyPSLazH5v85y83IjOKuwEZGNGd53gYn+
-        rNtkNaJw5kL+VNUeVIHjlH4nMx26u75Sm5eZpvmA+yg==
-X-Virus-Scanned: amavisd-new at mail.208.org
-Received: from mail.208.org ([127.0.0.1])
-        by mail.208.org (mail.208.org [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id 2EbKL6BzOJ9u for <sparclinux@vger.kernel.org>;
-        Wed, 14 Jun 2023 14:16:34 +0800 (CST)
-Received: from localhost (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTPSA id 4QgwDL5P80zBJLB3;
-        Wed, 14 Jun 2023 14:16:34 +0800 (CST)
+        with ESMTP id S234554AbjFNGv4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 02:51:56 -0400
+Received: from lithops.sigma-star.at (lithops.sigma-star.at [195.201.40.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B59D10FE;
+        Tue, 13 Jun 2023 23:51:53 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by lithops.sigma-star.at (Postfix) with ESMTP id F1F3E63CC111;
+        Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+Received: from lithops.sigma-star.at ([127.0.0.1])
+        by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id NhsAn0pqGJjc; Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by lithops.sigma-star.at (Postfix) with ESMTP id 756B4608F44F;
+        Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+Received: from lithops.sigma-star.at ([127.0.0.1])
+        by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id tYnTmxn9hAwM; Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+Received: from lithops.sigma-star.at (lithops.sigma-star.at [195.201.40.130])
+        by lithops.sigma-star.at (Postfix) with ESMTP id 3D44C63CC111;
+        Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+Date:   Wed, 14 Jun 2023 08:51:50 +0200 (CEST)
+From:   Richard Weinberger <richard@nod.at>
+To:     tglx <tglx@linutronix.de>
+Cc:     linux-kernel <linux-kernel@vger.kernel.org>, x86 <x86@kernel.org>,
+        torvalds <torvalds@linux-foundation.org>,
+        Nikolay Borisov <nik.borisov@suse.com>,
+        "Ahmed S. Darwish" <darwi@linutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        anton ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        linux-um <linux-um@lists.infradead.org>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-ia64@vger.kernel.org, Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-m68k <linux-m68k@lists.linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips <linux-mips@vger.kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        linux-sh@vger.kernel.org, davem <davem@davemloft.net>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Chris Zankel <chris@zankel.net>,
+        Tom Lendacky <thomas.lendacky@amd.com>
+Message-ID: <308775127.5298661.1686725510008.JavaMail.zimbra@nod.at>
+In-Reply-To: <20230613224545.493148694@linutronix.de>
+References: <20230613223827.532680283@linutronix.de> <20230613224545.493148694@linutronix.de>
+Subject: Re: [patch 10/17] um/cpu: Switch to arch_cpu_finalize_init()
 MIME-Version: 1.0
-Date:   Wed, 14 Jun 2023 14:16:34 +0800
-From:   wuyonggang001@208suo.com
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc/kernel: Fix syntax error
-In-Reply-To: <20230614061130.64214-1-zhanglibing@cdjrlc.com>
-References: <20230614061130.64214-1-zhanglibing@cdjrlc.com>
-User-Agent: Roundcube Webmail
-Message-ID: <5cc396aff142acbc4ba4b2541a5e4d71@208suo.com>
-X-Sender: wuyonggang001@208suo.com
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+X-Originating-IP: [195.201.40.130]
+X-Mailer: Zimbra 8.8.12_GA_3807 (ZimbraWebClient - FF97 (Linux)/8.8.12_GA_3809)
+Thread-Topic: um/cpu: Switch to arch_cpu_finalize_init()
+Thread-Index: iSTlBjUa5Wmo5DQJGeG0TUMeIHydTg==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Fix the following checkpatch error:
+----- Ursprüngliche Mail -----
+> Von: "tglx" <tglx@linutronix.de>
+> check_bugs() is about to be phased out. Switch over to the new
+> arch_cpu_finalize_init() implementation.
+> 
+> No functional change.
 
-ERROR: space required before the open parenthesis '('
-ERROR: do not initialise statics to 0
-ERROR: trailing whitespace
+Confirmed. :-)
+ 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Richard Weinberger <richard@nod.at>
+> Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+> Cc: Johannes Berg <johannes@sipsolutions.net>
+> Cc: linux-um@lists.infradead.org
 
-Signed-off-by: Yonggang Wu <wuyonggang001@208suo.com>
----
-  arch/sparc/kernel/apc.c | 22 +++++++++++-----------
-  1 file changed, 11 insertions(+), 11 deletions(-)
+Acked-by: Richard Weinberger <richard@nod.at>
 
-diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
-index ecd05bc0a104..40b9c72ad4d9 100644
---- a/arch/sparc/kernel/apc.c
-+++ b/arch/sparc/kernel/apc.c
-@@ -24,7 +24,7 @@
-  #include <asm/processor.h>
-
-  /* Debugging
-- *
-+ *
-   * #define APC_DEBUG_LED
-   */
-
-@@ -33,20 +33,20 @@
-  #define APC_DEVNAME "apc"
-
-  static u8 __iomem *regs;
--static int apc_no_idle = 0;
-+static int apc_no_idle;
-
-  #define apc_readb(offs)        (sbus_readb(regs+offs))
-  #define apc_writeb(val, offs)     (sbus_writeb(val, regs+offs))
-
--/* Specify "apc=noidle" on the kernel command line to
-+/* Specify "apc=noidle" on the kernel command line to
-   * disable APC CPU standby support.  Certain prototype
-   * systems (SPARCstation-Fox) do not play well with APC
-- * CPU idle, so disable this if your system has APC and
-+ * CPU idle, so disable this if your system has APC and
-   * crashes randomly.
-   */
--static int __init apc_setup(char *str)
-+static int __init apc_setup(char *str)
-  {
--    if(!strncmp(str, "noidle", strlen("noidle"))) {
-+    if (!strncmp(str, "noidle", strlen("noidle"))) {
-          apc_no_idle = 1;
-          return 1;
-      }
-@@ -54,22 +54,22 @@ static int __init apc_setup(char *str)
-  }
-  __setup("apc=", apc_setup);
-
--/*
-+/*
-   * CPU idle callback function
-   * See .../arch/sparc/kernel/process.c
-   */
-  static void apc_swift_idle(void)
-  {
-  #ifdef APC_DEBUG_LED
--    set_auxio(0x00, AUXIO_LED);
-+    set_auxio(0x00, AUXIO_LED);
-  #endif
-
-      apc_writeb(apc_readb(APC_IDLE_REG) | APC_IDLE_ON, APC_IDLE_REG);
-
-  #ifdef APC_DEBUG_LED
--    set_auxio(AUXIO_LED, 0x00);
-+    set_auxio(AUXIO_LED, 0x00);
-  #endif
--}
-+}
-
-  static inline void apc_free(struct platform_device *op)
-  {
-@@ -162,7 +162,7 @@ static int apc_probe(struct platform_device *op)
-      if (!apc_no_idle)
-          sparc_idle = apc_swift_idle;
-
--    printk(KERN_INFO "%s: power management initialized%s\n",
-+    pr_info("%s: power management initialized%s\n",
-             APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
-
-      return 0;
+Thanks,
+//richard
