@@ -2,107 +2,132 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41011EB64D9
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 12:12:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D817CEB64DD
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 13:02:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244480AbjFNML6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 08:11:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47536 "EHLO
+        id S244805AbjFNNCr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 09:02:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244467AbjFNMLs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 08:11:48 -0400
-Received: from mail-qv1-xf30.google.com (mail-qv1-xf30.google.com [IPv6:2607:f8b0:4864:20::f30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA00F1BC5;
-        Wed, 14 Jun 2023 05:11:42 -0700 (PDT)
-Received: by mail-qv1-xf30.google.com with SMTP id 6a1803df08f44-62884fa0e53so17994406d6.0;
-        Wed, 14 Jun 2023 05:11:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686744702; x=1689336702;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jfeQaw+ScJyf8YtahpLruw3sSgKj9ssLSfyFkigJ6Tc=;
-        b=kkmMLHeIjxJq6WCELQ4uRlrhY0T0CqJeEg84WDKeORRX8QZg7TQxmtC2H3J1mzevUB
-         rPZnF1iZapA34xXSlA3122Wzg1nEAJ7jNXJfkV1p+11m/VNs54S4jQeUNUgO9sDDQUNF
-         E6Kf3GIXmvKqhVVhY4tu06tjGE2ylIAZjXieiUIJn105s5opLs4YpsB52GzehCcydysH
-         JGtlcn4FBB6dsF26jZFfn6ePH8pioOJg4VLlZMDDnjqAjTiAbAEyLkb2NAe/b04PtsRc
-         KMN9LdCVAAIUl/mS7ABA90MkDt2tNBt/CFzNz1KFOWR1xNwMXadXkdAYcwxF5u93/7qC
-         o2tA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686744702; x=1689336702;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=jfeQaw+ScJyf8YtahpLruw3sSgKj9ssLSfyFkigJ6Tc=;
-        b=f8e8Ob6VO6mTuY+4wydJFUrC/kpU6OwvSwx+mg9SGoy04Zo8AN+ktxm2Rf16L6Gku0
-         Ax59taJ9+V+cbe6iYudoVEQzQujqyJY+0122pHTMCFKh2o3Q6aTL6ONc4tvYLiQsGexP
-         Vm/Z4RzrhQoo/1/NRXc/HNwVFQc2E9i5toTDjBSglknP+19sLiH0BxavIK9utW27aNI0
-         zGGd9Oc+JVbb3Jr2d+bShhXg+TAlYTpMKwoBHSTNRMvm8R1mqy/8B+eLkHy2uGToMpgP
-         DQTXBpzw8Gjy6i9MscTU/cqY+j8rhxQEShu5WvCY+A/brSBbtT5etzly/Lz+NLOt/irq
-         nHvQ==
-X-Gm-Message-State: AC+VfDy6nluGr/IMAqx/PJkhduCWi3pFcpnUx67SJDVEXuAR6JbvELX+
-        C4E+yv1oTY8tTprw4WOIgTh2dk1m3wnPzLUkt0/Dv6wA
-X-Google-Smtp-Source: ACHHUZ6q/B/k5sEOClpChlEtYK3pBtd9BcQBmAx71AC7KmstsV008dZMmCn/9srFUsKZ+ikPUFcZUWtwrLHILLfKi+0=
-X-Received: by 2002:a05:6214:501a:b0:62d:e672:2fd7 with SMTP id
- jo26-20020a056214501a00b0062de6722fd7mr13484199qvb.61.1686744702034; Wed, 14
- Jun 2023 05:11:42 -0700 (PDT)
+        with ESMTP id S244078AbjFNNCq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 09:02:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C21F0199C;
+        Wed, 14 Jun 2023 06:02:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5675564215;
+        Wed, 14 Jun 2023 13:02:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8321C433CB;
+        Wed, 14 Jun 2023 13:02:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686747764;
+        bh=Z0S2d/Eru6a8jIIub+wJj2QGnnAEIe7xODp5r4XEjY4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Ij1kaX2f2DmI7HK85FkEb/euMvHbhk1Yl6Bfkym5Y/V3n55SCcwdtHPiMl/Uaznfq
+         /JPBcReV4N5cCfLGrjl0lmP3t1/xIRQ0sNu8SuNRKfJvFTG3ehEI7XrnyZzzj/mq5Z
+         LIzsfSZJkFEA+VFk5od8SUJmz7a2MZahKi7y83tUViVFyHKqtoU7QmKJKuQUMruG+3
+         ZBcXEtH/BdXI8p8nle54zxP2rJXEAQvrH6UElVJeso6ar3qrgbKRU7tK7ulw5ExB7M
+         3MJes9iMWx7TD3tX2qF3/3jOSJV75iRXzB8fjYUsip9RPr0GERlktBmW7yBKguUpKQ
+         +EDy1u2Ox8vrA==
+Date:   Wed, 14 Jun 2023 16:02:07 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCH v4 01/34] mm: Add PAGE_TYPE_OP folio functions
+Message-ID: <20230614130207.GZ52412@kernel.org>
+References: <20230612210423.18611-1-vishal.moola@gmail.com>
+ <20230612210423.18611-2-vishal.moola@gmail.com>
 MIME-Version: 1.0
-References: <20230614061130.64214-1-zhanglibing@cdjrlc.com> <5cc396aff142acbc4ba4b2541a5e4d71@208suo.com>
-In-Reply-To: <5cc396aff142acbc4ba4b2541a5e4d71@208suo.com>
-From:   Julian Calaby <julian.calaby@gmail.com>
-Date:   Wed, 14 Jun 2023 22:11:30 +1000
-Message-ID: <CAGRGNgUW30BYGyPOwwV-zteO7O4gjVgZ4NsoP-xLhuG994bL7A@mail.gmail.com>
-Subject: Re: [PATCH] sparc/kernel: Fix syntax error
-To:     wuyonggang001@208suo.com
-Cc:     davem@davemloft.net, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230612210423.18611-2-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Yonggang,
+On Mon, Jun 12, 2023 at 02:03:50PM -0700, Vishal Moola (Oracle) wrote:
+> No folio equivalents for page type operations have been defined, so
+> define them for later folio conversions.
+> 
+> Also changes the Page##uname macros to take in const struct page* since
+> we only read the memory here.
+> 
+> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 
-On Wed, Jun 14, 2023 at 4:19=E2=80=AFPM <wuyonggang001@208suo.com> wrote:
->
-> Fix the following checkpatch error:
->
-> ERROR: space required before the open parenthesis '('
-> ERROR: do not initialise statics to 0
-> ERROR: trailing whitespace
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 
-While this patch is mostly correct and is fixing real issues with this
-code, it is very old code in a very old part of the kernel and the
-maintainers are unlikely to apply it as they'd prefer to leave it
-as-is and not introduce any potential for regressions.
-
->
-> Signed-off-by: Yonggang Wu <wuyonggang001@208suo.com>
 > ---
->   arch/sparc/kernel/apc.c | 22 +++++++++++-----------
->   1 file changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
-> index ecd05bc0a104..40b9c72ad4d9 100644
-> --- a/arch/sparc/kernel/apc.c
-> +++ b/arch/sparc/kernel/apc.c
-> @@ -162,7 +162,7 @@ static int apc_probe(struct platform_device *op)
->       if (!apc_no_idle)
->           sparc_idle =3D apc_swift_idle;
->
-> -    printk(KERN_INFO "%s: power management initialized%s\n",
-> +    pr_info("%s: power management initialized%s\n",
+>  include/linux/page-flags.h | 20 ++++++++++++++++++--
+>  1 file changed, 18 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+> index 92a2063a0a23..e99a616b9bcd 100644
+> --- a/include/linux/page-flags.h
+> +++ b/include/linux/page-flags.h
+> @@ -908,6 +908,8 @@ static inline bool is_page_hwpoison(struct page *page)
+>  
+>  #define PageType(page, flag)						\
+>  	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+> +#define folio_test_type(folio, flag)					\
+> +	((folio->page.page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
+>  
+>  static inline int page_type_has_type(unsigned int page_type)
+>  {
+> @@ -920,20 +922,34 @@ static inline int page_has_type(struct page *page)
+>  }
+>  
+>  #define PAGE_TYPE_OPS(uname, lname)					\
+> -static __always_inline int Page##uname(struct page *page)		\
+> +static __always_inline int Page##uname(const struct page *page)		\
+>  {									\
+>  	return PageType(page, PG_##lname);				\
+>  }									\
+> +static __always_inline int folio_test_##lname(const struct folio *folio)\
+> +{									\
+> +	return folio_test_type(folio, PG_##lname);			\
+> +}									\
+>  static __always_inline void __SetPage##uname(struct page *page)		\
+>  {									\
+>  	VM_BUG_ON_PAGE(!PageType(page, 0), page);			\
+>  	page->page_type &= ~PG_##lname;					\
+>  }									\
+> +static __always_inline void __folio_set_##lname(struct folio *folio)	\
+> +{									\
+> +	VM_BUG_ON_FOLIO(!folio_test_type(folio, 0), folio);		\
+> +	folio->page.page_type &= ~PG_##lname;				\
+> +}									\
+>  static __always_inline void __ClearPage##uname(struct page *page)	\
+>  {									\
+>  	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
+>  	page->page_type |= PG_##lname;					\
+> -}
+> +}									\
+> +static __always_inline void __folio_clear_##lname(struct folio *folio)	\
+> +{									\
+> +	VM_BUG_ON_FOLIO(!folio_test_##lname(folio), folio);		\
+> +	folio->page.page_type |= PG_##lname;				\
+> +}									\
+>  
+>  /*
+>   * PageBuddy() indicates that the page is free and in the buddy system
+> -- 
+> 2.40.1
+> 
+> 
 
-While this is most likely harmless, this is technically a change in
-behaviour and should have been noted in the commit message. Also, as
-this is technically a change in behaviour, it will make it even less
-likely that this will be applied.
-
-Thanks,
-
---=20
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
+-- 
+Sincerely yours,
+Mike.
