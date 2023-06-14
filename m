@@ -2,146 +2,120 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB4FC001DE
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 13:35:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C94E1EB64D8
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 13:47:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245023AbjFNNfd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 09:35:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46126 "EHLO
+        id S245105AbjFNNri (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 09:47:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245012AbjFNNfb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 09:35:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8718C1FE8;
-        Wed, 14 Jun 2023 06:35:30 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 19A9C61386;
-        Wed, 14 Jun 2023 13:35:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0713C433CA;
-        Wed, 14 Jun 2023 13:35:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686749729;
-        bh=81ZlQN2KCaIJsbaaGHZ2hKMohISmlbSD+ssqzisoAQE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=peVIK5PcFaRM99or9IKjg5Wk1GpROr9ctyT8BIC08WEGhT/YvEFdtyhqzVHUa/AJj
-         e0i1V5xO3S+nkbZMN2Z1j+Bn1zFA3bcGptvRkcKcxOtQ1DiUiH/SRvFWkjYuPvNtOb
-         /7PZZr5SP19VfVlFD96OM/KULQ1zOIX2Xbubj4bVzLGTDR+801nenrylY8DxDwa57O
-         6Uw9KCAyHqA9nB1qo3GINyvqzZNtOwnsJDGtTX7sr0o8aiGfHvWm3PF1wyD410WZI6
-         eWxsBLAJy2LJHLpDUj97I0afV+G5xEfwOHfY+jLMTVk+L4qUJ/WcbncB5RrE8B814w
-         cPPJ2HH5q8yYA==
-Date:   Wed, 14 Jun 2023 16:34:51 +0300
-From:   Mike Rapoport <rppt@kernel.org>
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        Hugh Dickins <hughd@google.com>
-Subject: Re: [PATCH v4 04/34] pgtable: Create struct ptdesc
-Message-ID: <20230614133451.GC52412@kernel.org>
-References: <20230612210423.18611-1-vishal.moola@gmail.com>
- <20230612210423.18611-5-vishal.moola@gmail.com>
+        with ESMTP id S245098AbjFNNrh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 09:47:37 -0400
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 114439C
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:36 -0700 (PDT)
+Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-977cc662f62so100206966b.3
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1686750453; x=1689342453;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=76di/i2mInmVCxeVKqtSRBrcXSBLthtuA5QqmKpv0gg=;
+        b=jlp8OxtI66wmx6ofvYbecBCQapH2lREmqablzfBh+9OExysu5k9h76l1tCeV8/J90c
+         4Z1ZouQnIxyCpFC63R+Y2e/3+b2Jxk5JrOBGOCsPtQ8f8vMjLIC0eQU8nmbwpRYwQPz+
+         zcnti9QTI56yIvgkrHHGpaaUQcJKbnO76la6Y=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686750453; x=1689342453;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=76di/i2mInmVCxeVKqtSRBrcXSBLthtuA5QqmKpv0gg=;
+        b=W3luzqw75VPUMhURcJsZcjqLjZtUXEWzZHouzR5z53azjUOFswjWZ3uQELYmM4MAcd
+         T09wJBmm7WB28fT4E1RwtahaeoTWJT3gSvodXZsVcyw7O6dbHL+ijINBcZoShUM6CGc/
+         ltWYniMKnyF4fZbZ23bU09fL+DjrxhQ53WbzfZu/hREC1e57thZDw547PU5njFgd52jm
+         UAU/OrlZM/e3Zh8JMBxLcFH77Y+siUb/97NEd3g6mHqTqCj8Tfxbi0VWqXtegDIqI+U0
+         q30xISotWiq3efV3qxO4PsIO5YolXkBY5D9c/ZdwZ7kDr0x2hASaa5fjgZTlhqWO2+Mp
+         3wFQ==
+X-Gm-Message-State: AC+VfDyD+JZWC7UeJHDAFbIp+VwXY6NkMcZzzoRp1TazfBawuda6T960
+        gH4TGUa+0nCCPpz2qhRXX2gsnBFikjT3M+ozeO0hnjcK
+X-Google-Smtp-Source: ACHHUZ4PqzLQtEz5XmoJlTgC6AEMD4An3nZgJiz4OjM6k+bPAQ9xHCLm9n4WMSfVcPYFZkg3OSLJQg==
+X-Received: by 2002:a17:907:31c6:b0:974:62d1:e942 with SMTP id xf6-20020a17090731c600b0097462d1e942mr15401149ejb.21.1686750452882;
+        Wed, 14 Jun 2023 06:47:32 -0700 (PDT)
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com. [209.85.208.51])
+        by smtp.gmail.com with ESMTPSA id p10-20020a17090635ca00b00961277a426dsm7985451ejb.205.2023.06.14.06.47.31
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Jun 2023 06:47:32 -0700 (PDT)
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-516500163b2so8282a12.1
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:31 -0700 (PDT)
+X-Received: by 2002:a50:9f82:0:b0:50b:c48c:8a25 with SMTP id
+ c2-20020a509f82000000b0050bc48c8a25mr104476edf.6.1686750451172; Wed, 14 Jun
+ 2023 06:47:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230612210423.18611-5-vishal.moola@gmail.com>
+References: <20230607152432.5435-1-pmladek@suse.com> <20230607152432.5435-3-pmladek@suse.com>
+ <CAD=FV=WRzaLbLQ65usGeFq3ya=DV8cYyHQina_721EFoSTdBGA@mail.gmail.com>
+ <ZIG1Qi0iUjTKICQM@alley> <CAD=FV=XzueJia--Zv4cAofzk7yocmP-7K8wa4doAN8pzED_hZA@mail.gmail.com>
+ <ZImWd62fXjsZildv@alley>
+In-Reply-To: <ZImWd62fXjsZildv@alley>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Wed, 14 Jun 2023 06:47:19 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=WP39nUmdeNjjTGx-XWhS4AgG5haHCfYjFUCEKckYVZDA@mail.gmail.com>
+Message-ID: <CAD=FV=WP39nUmdeNjjTGx-XWhS4AgG5haHCfYjFUCEKckYVZDA@mail.gmail.com>
+Subject: Re: [PATCH 2/7] watchdog/hardlockup: Make the config checks more straightforward
+To:     Petr Mladek <pmladek@suse.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jun 12, 2023 at 02:03:53PM -0700, Vishal Moola (Oracle) wrote:
-> Currently, page table information is stored within struct page. As part
-> of simplifying struct page, create struct ptdesc for page table
-> information.
-> 
-> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Hi,
 
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+On Wed, Jun 14, 2023 at 3:29=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
+e:
+>
+> It seems that we have entered into a bike shedding mode.
+> The following questions come to my mind:
+>
+>    1. Does this patchset improve the current state?
+>
+>    2. Maybe, it is not black&white. Is it possible to summarize
+>       what exactly got better and what got worse?
+>
+> Maybe, there is no need to do bike-shedding about every step
+> if the final result is reasonable and the steps are not
+> completely wrong.
+>
+> I just followed my intuition and tried to do some changes step
+> by step. I got lost many times so maybe the steps are not
+> ideal. Anyway, the steps helped me to understand the logic
+> and stay reasonably confident that they did not change
+> the behavior.
+>
+> I could rework the patchset. But I first need to know what
+> exactly is bad in the result. And eventually if there is more
+> logical way how to end there.
 
-> ---
->  include/linux/pgtable.h | 51 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
-> 
-> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-> index c5a51481bbb9..330de96ebfd6 100644
-> --- a/include/linux/pgtable.h
-> +++ b/include/linux/pgtable.h
-> @@ -975,6 +975,57 @@ static inline void ptep_modify_prot_commit(struct vm_area_struct *vma,
->  #endif /* __HAVE_ARCH_PTEP_MODIFY_PROT_TRANSACTION */
->  #endif /* CONFIG_MMU */
->  
-> +
-> +/**
-> + * struct ptdesc - Memory descriptor for page tables.
-> + * @__page_flags: Same as page flags. Unused for page tables.
-> + * @pt_list: List of used page tables. Used for s390 and x86.
-> + * @_pt_pad_1: Padding that aliases with page's compound head.
-> + * @pmd_huge_pte: Protected by ptdesc->ptl, used for THPs.
-> + * @_pt_s390_gaddr: Aliases with page's mapping. Used for s390 gmap only.
-> + * @pt_mm: Used for x86 pgds.
-> + * @pt_frag_refcount: For fragmented page table tracking. Powerpc and s390 only.
-> + * @ptl: Lock for the page table.
+Sure. I still feel like the end result of the CONFIG options after
+your whole patchset is easier to understand / cleaner by adjusting the
+dependencies as I have suggested. That being said, I agree that it is
+the type of thing that can be more a matter of personal preference. I
+do agree that, even if you don't take my suggestion of adjusting the
+dependencies, the end result of your patchset still makes things
+better than they were.
 
-Do you mind aligning the descriptions by @pt_frag_refcount? I think it'll
-be more readable.
+...so if you really feel strongly that things are more understandable
+with the dependencies specified as you have, I won't stand in the way.
+I still think you need a v2, though, just to address other nits.
 
-> + *
-> + * This struct overlays struct page for now. Do not modify without a good
-> + * understanding of the issues.
-> + */
-> +struct ptdesc {
-> +	unsigned long __page_flags;
-> +
-> +	union {
-> +		struct list_head pt_list;
-> +		struct {
-> +			unsigned long _pt_pad_1;
-> +			pgtable_t pmd_huge_pte;
-> +		};
-> +	};
-> +	unsigned long _pt_s390_gaddr;
-> +
-> +	union {
-> +		struct mm_struct *pt_mm;
-> +		atomic_t pt_frag_refcount;
-> +	};
-> +
-> +#if ALLOC_SPLIT_PTLOCKS
-> +	spinlock_t *ptl;
-> +#else
-> +	spinlock_t ptl;
-> +#endif
-> +};
-> +
-> +#define TABLE_MATCH(pg, pt)						\
-> +	static_assert(offsetof(struct page, pg) == offsetof(struct ptdesc, pt))
-> +TABLE_MATCH(flags, __page_flags);
-> +TABLE_MATCH(compound_head, pt_list);
-> +TABLE_MATCH(compound_head, _pt_pad_1);
-> +TABLE_MATCH(pmd_huge_pte, pmd_huge_pte);
-> +TABLE_MATCH(mapping, _pt_s390_gaddr);
-> +TABLE_MATCH(pt_mm, pt_mm);
-> +TABLE_MATCH(ptl, ptl);
-> +#undef TABLE_MATCH
-> +static_assert(sizeof(struct ptdesc) <= sizeof(struct page));
-> +
->  /*
->   * No-op macros that just return the current protection value. Defined here
->   * because these macros can be used even if CONFIG_MMU is not defined.
-> -- 
-> 2.40.1
-> 
-> 
-
--- 
-Sincerely yours,
-Mike.
+-Doug
