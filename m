@@ -2,120 +2,219 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C94E1EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 13:47:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3744C001B0
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Jun 2023 13:49:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245105AbjFNNri (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Jun 2023 09:47:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52084 "EHLO
+        id S245137AbjFNNtK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Jun 2023 09:49:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245098AbjFNNrh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 09:47:37 -0400
-Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 114439C
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:36 -0700 (PDT)
-Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-977cc662f62so100206966b.3
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686750453; x=1689342453;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=76di/i2mInmVCxeVKqtSRBrcXSBLthtuA5QqmKpv0gg=;
-        b=jlp8OxtI66wmx6ofvYbecBCQapH2lREmqablzfBh+9OExysu5k9h76l1tCeV8/J90c
-         4Z1ZouQnIxyCpFC63R+Y2e/3+b2Jxk5JrOBGOCsPtQ8f8vMjLIC0eQU8nmbwpRYwQPz+
-         zcnti9QTI56yIvgkrHHGpaaUQcJKbnO76la6Y=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686750453; x=1689342453;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=76di/i2mInmVCxeVKqtSRBrcXSBLthtuA5QqmKpv0gg=;
-        b=W3luzqw75VPUMhURcJsZcjqLjZtUXEWzZHouzR5z53azjUOFswjWZ3uQELYmM4MAcd
-         T09wJBmm7WB28fT4E1RwtahaeoTWJT3gSvodXZsVcyw7O6dbHL+ijINBcZoShUM6CGc/
-         ltWYniMKnyF4fZbZ23bU09fL+DjrxhQ53WbzfZu/hREC1e57thZDw547PU5njFgd52jm
-         UAU/OrlZM/e3Zh8JMBxLcFH77Y+siUb/97NEd3g6mHqTqCj8Tfxbi0VWqXtegDIqI+U0
-         q30xISotWiq3efV3qxO4PsIO5YolXkBY5D9c/ZdwZ7kDr0x2hASaa5fjgZTlhqWO2+Mp
-         3wFQ==
-X-Gm-Message-State: AC+VfDyD+JZWC7UeJHDAFbIp+VwXY6NkMcZzzoRp1TazfBawuda6T960
-        gH4TGUa+0nCCPpz2qhRXX2gsnBFikjT3M+ozeO0hnjcK
-X-Google-Smtp-Source: ACHHUZ4PqzLQtEz5XmoJlTgC6AEMD4An3nZgJiz4OjM6k+bPAQ9xHCLm9n4WMSfVcPYFZkg3OSLJQg==
-X-Received: by 2002:a17:907:31c6:b0:974:62d1:e942 with SMTP id xf6-20020a17090731c600b0097462d1e942mr15401149ejb.21.1686750452882;
-        Wed, 14 Jun 2023 06:47:32 -0700 (PDT)
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com. [209.85.208.51])
-        by smtp.gmail.com with ESMTPSA id p10-20020a17090635ca00b00961277a426dsm7985451ejb.205.2023.06.14.06.47.31
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 14 Jun 2023 06:47:32 -0700 (PDT)
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-516500163b2so8282a12.1
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jun 2023 06:47:31 -0700 (PDT)
-X-Received: by 2002:a50:9f82:0:b0:50b:c48c:8a25 with SMTP id
- c2-20020a509f82000000b0050bc48c8a25mr104476edf.6.1686750451172; Wed, 14 Jun
- 2023 06:47:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230607152432.5435-1-pmladek@suse.com> <20230607152432.5435-3-pmladek@suse.com>
- <CAD=FV=WRzaLbLQ65usGeFq3ya=DV8cYyHQina_721EFoSTdBGA@mail.gmail.com>
- <ZIG1Qi0iUjTKICQM@alley> <CAD=FV=XzueJia--Zv4cAofzk7yocmP-7K8wa4doAN8pzED_hZA@mail.gmail.com>
- <ZImWd62fXjsZildv@alley>
-In-Reply-To: <ZImWd62fXjsZildv@alley>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Wed, 14 Jun 2023 06:47:19 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=WP39nUmdeNjjTGx-XWhS4AgG5haHCfYjFUCEKckYVZDA@mail.gmail.com>
-Message-ID: <CAD=FV=WP39nUmdeNjjTGx-XWhS4AgG5haHCfYjFUCEKckYVZDA@mail.gmail.com>
-Subject: Re: [PATCH 2/7] watchdog/hardlockup: Make the config checks more straightforward
-To:     Petr Mladek <pmladek@suse.com>
+        with ESMTP id S245181AbjFNNs7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Jun 2023 09:48:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FE6B2701;
+        Wed, 14 Jun 2023 06:48:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14EF663F20;
+        Wed, 14 Jun 2023 13:48:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B707C433C0;
+        Wed, 14 Jun 2023 13:48:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686750524;
+        bh=gxU3ouGWBBmqmAiLv/xnL0DeuSWekXdjsP3njBIM/3U=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=V0QZDgjJL3QgE9x8JUspdTbfMfs3pMGIVLLZECZJRsEFY8NLOU3FHa9eCro1DbTQG
+         /FeNyJHOZk4eWdOp9Qm7YkJcLLJo0ck5GXNz5h3cPjiltj6wJSpNYi/mUUybLAseJG
+         L8jXEpIhrSeK1arYk58jkb8ZY9oXqo8PxB0L2CeXKQzmY6lKQeLK4aPo3LbQYz+RlD
+         4VPsZDkobDvZkcDjfmrkEBjkp93jW2mXHfVUlKBD7ewu+WoTI6jTDRezExZmibSP75
+         rhMOAusVyZKPnHJ6/AZh/X/iBtHCxp2v/1z1wxzagOqeVMLIVnG7qjazCHaREz+Nj1
+         kDrhr4zp2JnYA==
+Date:   Wed, 14 Jun 2023 16:48:08 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        linuxppc-dev@lists.ozlabs.org,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        sparclinux@vger.kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-perf-users@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCH v4 05/34] mm: add utility functions for ptdesc
+Message-ID: <20230614134808.GD52412@kernel.org>
+References: <20230612210423.18611-1-vishal.moola@gmail.com>
+ <20230612210423.18611-6-vishal.moola@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230612210423.18611-6-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Mon, Jun 12, 2023 at 02:03:54PM -0700, Vishal Moola (Oracle) wrote:
+> Introduce utility functions setting the foundation for ptdescs. These
+> will also assist in the splitting out of ptdesc from struct page.
+> 
+> Functions that focus on the descriptor are prefixed with ptdesc_* while
+> functions that focus on the pagetable are prefixed with pagetable_*.
+> 
+> pagetable_alloc() is defined to allocate new ptdesc pages as compound
+> pages. This is to standardize ptdescs by allowing for one allocation
+> and one free function, in contrast to 2 allocation and 2 free functions.
+> 
+> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+> ---
+>  include/asm-generic/tlb.h | 11 +++++++
+>  include/linux/mm.h        | 61 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/pgtable.h   | 12 ++++++++
+>  3 files changed, 84 insertions(+)
+> 
+> diff --git a/include/asm-generic/tlb.h b/include/asm-generic/tlb.h
+> index b46617207c93..6bade9e0e799 100644
+> --- a/include/asm-generic/tlb.h
+> +++ b/include/asm-generic/tlb.h
+> @@ -481,6 +481,17 @@ static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
+>  	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
+>  }
+>  
+> +static inline void tlb_remove_ptdesc(struct mmu_gather *tlb, void *pt)
+> +{
+> +	tlb_remove_table(tlb, pt);
+> +}
+> +
+> +/* Like tlb_remove_ptdesc, but for page-like page directories. */
+> +static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
+> +{
+> +	tlb_remove_page(tlb, ptdesc_page(pt));
+> +}
+> +
+>  static inline void tlb_change_page_size(struct mmu_gather *tlb,
+>  						     unsigned int page_size)
+>  {
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 0db09639dd2d..f184f1eba85d 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2766,6 +2766,62 @@ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long a
+>  }
+>  #endif /* CONFIG_MMU */
+>  
+> +static inline struct ptdesc *virt_to_ptdesc(const void *x)
+> +{
+> +	return page_ptdesc(virt_to_page(x));
+> +}
+> +
+> +static inline void *ptdesc_to_virt(const struct ptdesc *pt)
+> +{
+> +	return page_to_virt(ptdesc_page(pt));
+> +}
+> +
+> +static inline void *ptdesc_address(const struct ptdesc *pt)
+> +{
+> +	return folio_address(ptdesc_folio(pt));
+> +}
+> +
+> +static inline bool pagetable_is_reserved(struct ptdesc *pt)
+> +{
+> +	return folio_test_reserved(ptdesc_folio(pt));
+> +}
+> +
+> +/**
+> + * pagetable_alloc - Allocate pagetables
+> + * @gfp:    GFP flags
+> + * @order:  desired pagetable order
+> + *
+> + * pagetable_alloc allocates a page table descriptor as well as all pages
+> + * described by it.
 
-On Wed, Jun 14, 2023 at 3:29=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
-e:
->
-> It seems that we have entered into a bike shedding mode.
-> The following questions come to my mind:
->
->    1. Does this patchset improve the current state?
->
->    2. Maybe, it is not black&white. Is it possible to summarize
->       what exactly got better and what got worse?
->
-> Maybe, there is no need to do bike-shedding about every step
-> if the final result is reasonable and the steps are not
-> completely wrong.
->
-> I just followed my intuition and tried to do some changes step
-> by step. I got lost many times so maybe the steps are not
-> ideal. Anyway, the steps helped me to understand the logic
-> and stay reasonably confident that they did not change
-> the behavior.
->
-> I could rework the patchset. But I first need to know what
-> exactly is bad in the result. And eventually if there is more
-> logical way how to end there.
+I think the order should be switched here to emphasize that primarily this
+method allocates memory for page tables. How about
 
-Sure. I still feel like the end result of the CONFIG options after
-your whole patchset is easier to understand / cleaner by adjusting the
-dependencies as I have suggested. That being said, I agree that it is
-the type of thing that can be more a matter of personal preference. I
-do agree that, even if you don't take my suggestion of adjusting the
-dependencies, the end result of your patchset still makes things
-better than they were.
+ pagetable_alloc allocates memory for the page tables as well as a page
+ table descriptor that describes the allocated memory
 
-...so if you really feel strongly that things are more understandable
-with the dependencies specified as you have, I won't stand in the way.
-I still think you need a v2, though, just to address other nits.
+> + *
+> + * Return: The ptdesc describing the allocated page tables.
+> + */
+> +static inline struct ptdesc *pagetable_alloc(gfp_t gfp, unsigned int order)
+> +{
+> +	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
+> +
+> +	return page_ptdesc(page);
+> +}
+> +
+> +/**
+> + * pagetable_free - Free pagetables
+> + * @pt:	The page table descriptor
+> + *
+> + * pagetable_free frees a page table descriptor as well as all page
+> + * tables described by said ptdesc.
 
--Doug
+Similarly here.
+
+> + */
+> +static inline void pagetable_free(struct ptdesc *pt)
+> +{
+> +	struct page *page = ptdesc_page(pt);
+> +
+> +	__free_pages(page, compound_order(page));
+> +}
+> +
+> +static inline void pagetable_clear(void *x)
+> +{
+> +	clear_page(x);
+> +}
+> +
+>  #if USE_SPLIT_PTE_PTLOCKS
+>  #if ALLOC_SPLIT_PTLOCKS
+>  void __init ptlock_cache_init(void);
+> @@ -2992,6 +3048,11 @@ static inline void mark_page_reserved(struct page *page)
+>  	adjust_managed_page_count(page, -1);
+>  }
+>  
+> +static inline void free_reserved_ptdesc(struct ptdesc *pt)
+> +{
+> +	free_reserved_page(ptdesc_page(pt));
+> +}
+> +
+>  /*
+>   * Default method to free all the __init memory into the buddy system.
+>   * The freed pages will be poisoned with pattern "poison" if it's within
+> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+> index 330de96ebfd6..c405f74d3875 100644
+> --- a/include/linux/pgtable.h
+> +++ b/include/linux/pgtable.h
+> @@ -1026,6 +1026,18 @@ TABLE_MATCH(ptl, ptl);
+>  #undef TABLE_MATCH
+>  static_assert(sizeof(struct ptdesc) <= sizeof(struct page));
+>  
+> +#define ptdesc_page(pt)			(_Generic((pt),			\
+> +	const struct ptdesc *:		(const struct page *)(pt),	\
+> +	struct ptdesc *:		(struct page *)(pt)))
+> +
+> +#define ptdesc_folio(pt)		(_Generic((pt),			\
+> +	const struct ptdesc *:		(const struct folio *)(pt),	\
+> +	struct ptdesc *:		(struct folio *)(pt)))
+> +
+> +#define page_ptdesc(p)			(_Generic((p),			\
+> +	const struct page *:		(const struct ptdesc *)(p),	\
+> +	struct page *:			(struct ptdesc *)(p)))
+> +
+>  /*
+>   * No-op macros that just return the current protection value. Defined here
+>   * because these macros can be used even if CONFIG_MMU is not defined.
+> -- 
+> 2.40.1
+> 
+> 
+
+-- 
+Sincerely yours,
+Mike.
