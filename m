@@ -2,40 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF9EC001B1
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Jun 2023 15:52:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68BB6C001DC
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Jun 2023 21:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241244AbjFOPwJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 15 Jun 2023 11:52:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44128 "EHLO
+        id S235592AbjFOVWY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 15 Jun 2023 17:22:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345021AbjFOPvr (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Jun 2023 11:51:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C02BE30EF;
-        Thu, 15 Jun 2023 08:51:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 393AE615D9;
-        Thu, 15 Jun 2023 15:51:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A065C433C0;
-        Thu, 15 Jun 2023 15:51:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686844263;
-        bh=4vpbcLIWH8N9kUhfy14gCg44JnNZ7tmcDbTQofjr2PY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=HtfzZGG4h7OB0EE/lQpmPVeug5hEItWTKVdQh4sHq5pkRyi+IBc4bQYhPGfLUyXAE
-         O6q85QbbLOckkkq+ZDCntMP7kzjRH0BvUgQTZTsRtxOQVhMz+kPywYdC329KKPHRCd
-         EzHAMzGxIY08qUxBzBs5hhcSI+TdpRxjxhxRYluzPI7qsWgQhBwbTOga8HmP1oqokR
-         Nfn1KKfQ7SfISyWUrNFe+l7vvHqttosQ0oHQWcCUmbPCzjqzV6ZQmJ6Lgxc8I7me24
-         3i0BNy8Yi/K34Ad5bteBhAQILk/jkgdXefVdp3M52mTzK8Ji4AXkYMW3KmuCjB1GQn
-         39zP25YPwdB6Q==
-Date:   Thu, 15 Jun 2023 08:50:59 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        with ESMTP id S229649AbjFOVWX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Jun 2023 17:22:23 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E54C296C
+        for <sparclinux@vger.kernel.org>; Thu, 15 Jun 2023 14:22:20 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-5700b37da3fso1300777b3.1
+        for <sparclinux@vger.kernel.org>; Thu, 15 Jun 2023 14:22:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1686864139; x=1689456139;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=S2y2ag2VSA5iJWjnLMJgW21sD26IXOkwRb84bIEjNFc=;
+        b=xQ0UEfbeHsvyF9P9GSzV8sPaDnCduWem82QRocOPVTimyNaz+TtzXunPSdeRzXvvAi
+         vai/I3V4xnGwkuPBK2C8BxgXmG/grI3PNJPpvIXErHwA9uzmeBRdld+oVJisQfogsxl0
+         vGLKSwM0YFacwx/AmX5Id6XW9gRfBLJoOHHDKed5GhoMi63Kk25c1kBjAvC4IVlUHe3e
+         oelGGGI8RCOSrTPLR5K32xFZslyRFLZPbM5b3aFNmrO++aNzcuug8bpdMx1IF1HOO2ol
+         NHDhCqI2eK44IOXmk4glSuyplwnvkIK/n7XkQCIImv5fgRh6qF4f64HAb8zfCbRE0z7D
+         2CQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686864139; x=1689456139;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=S2y2ag2VSA5iJWjnLMJgW21sD26IXOkwRb84bIEjNFc=;
+        b=WAnabIt8ilNI7BlAhwAlARElIUO29vrFtaNYQldS8qpbrDZ08a8N614B7rZJ608DcP
+         4Wqd6oX7t3gvBVT7Ze7lqGsFCTuj7PBSkK3Ds2qlWyVMUKUTW0bllpd6c3XaCmZIP5P5
+         4JUil1KdVRG49tIoPbN5NP49fJy3HR+c54MjBM/TDMZOv5SGVMFoqG1NcimOPWClmvaV
+         GupaRKIKX17DRoEFjRJwI7aB2EXPregKsh8rn/PM4q/jFqnn1ESWtslmOlZ7OzfSqi3K
+         4l0l7uGc5uMzvb2O+oHRQc39VUaEUa7GhMViYL084uGrnSzW7r22q4b6/eupaq+psqvt
+         VfNQ==
+X-Gm-Message-State: AC+VfDwujkm+0H4ewJVmM8RKE78eHCl7ke0u9VyExZ7A/d9xu/Jn3vOG
+        JyvUye0bQ/hJ3q0nxZ5o085K5A==
+X-Google-Smtp-Source: ACHHUZ7Wn443nNp7TXnOUS1g0CwvPfeS1ec2zVwJBnOAceqd4kD8IQUnTLQfS40NfWgzNKeH64ll/A==
+X-Received: by 2002:a81:83d3:0:b0:56c:ea2c:5cb2 with SMTP id t202-20020a8183d3000000b0056cea2c5cb2mr5787878ywf.49.1686864139515;
+        Thu, 15 Jun 2023 14:22:19 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id s189-20020a0de9c6000000b0054f80928ea4sm4626438ywe.140.2023.06.15.14.22.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Jun 2023 14:22:19 -0700 (PDT)
+Date:   Thu, 15 Jun 2023 14:22:15 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Nathan Chancellor <nathan@kernel.org>
+cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
@@ -73,103 +90,48 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
 Subject: Re: [PATCH v2 07/23] mips: update_mmu_cache() can replace
  __update_tlb()
-Message-ID: <20230615155059.GB3665766@dev-arch.thelio-3990X>
-References: <a4963be9-7aa6-350-66d0-2ba843e1af44@google.com>
- <178970b0-1539-8aac-76fd-972c6c46ec17@google.com>
- <20230614231758.GA1503611@dev-arch.thelio-3990X>
- <f5526f17-9d78-f7ea-427a-7e76bfeb6b8@google.com>
- <344a4da-3890-45fd-607e-b5f85ca6ad48@google.com>
+In-Reply-To: <20230615155059.GB3665766@dev-arch.thelio-3990X>
+Message-ID: <76b41825-30fa-b9e8-d043-2affcba24317@google.com>
+References: <a4963be9-7aa6-350-66d0-2ba843e1af44@google.com> <178970b0-1539-8aac-76fd-972c6c46ec17@google.com> <20230614231758.GA1503611@dev-arch.thelio-3990X> <f5526f17-9d78-f7ea-427a-7e76bfeb6b8@google.com> <344a4da-3890-45fd-607e-b5f85ca6ad48@google.com>
+ <20230615155059.GB3665766@dev-arch.thelio-3990X>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <344a4da-3890-45fd-607e-b5f85ca6ad48@google.com>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Jun 14, 2023 at 10:43:30PM -0700, Hugh Dickins wrote:
-> On Wed, 14 Jun 2023, Hugh Dickins wrote:
-> > On Wed, 14 Jun 2023, Nathan Chancellor wrote:
-> > > 
-> > > I just bisected a crash while powering down a MIPS machine in QEMU to
-> > > this change as commit 8044511d3893 ("mips: update_mmu_cache() can
-> > > replace __update_tlb()") in linux-next.
+On Thu, 15 Jun 2023, Nathan Chancellor wrote:
+> On Wed, Jun 14, 2023 at 10:43:30PM -0700, Hugh Dickins wrote:
 > > 
-> > Thank you, Nathan, that's very helpful indeed.  This patch certainly knew
-> > that it wanted testing, and I'm glad to hear that it is now seeing some.
-> > 
-> > While powering down?  The messages below look like it was just coming up,
-> > but no doubt that's because you were bisecting (or because I'm unfamiliar
-> > with what messages to expect there).  It's probably irrelevant information,
-> > but I wonder whether the (V)machine worked well enough for a while before
-> > you first powered down and spotted the problem, or whether it's never got
-> > much further than trying to run init (busybox)?  I'm trying to get a feel
-> > for whether the problem occurs under common or uncommon conditions.
-
-Ugh sorry, I have been looking into too many bugs lately and got my
-wires crossed :) this is indeed a problem when running init (which is
-busybox, this is a simple Buildroot file system).
-
-> > > Unfortunately, I can still
-> > > reproduce it with the existing fix you have for this change on the
-> > > mailing list, which is present in next-20230614.
-> > 
-> > Right, that later fix was only for a build warning, nothing functional
-> > (or at least I hoped that it wasn't making any functional difference).
-> > 
-> > Thanks a lot for the detailed instructions below: unfortunately, those
-> > would draw me into a realm of testing I've never needed to enter before,
-> > so a lot of time spent on setup and learning.  Usually, I just stare at
-> > the source.
-> > 
-> > What this probably says is that I should revert most my cleanup there,
-> > and keep as close to the existing code as possible.  But some change is
-> > needed, and I may need to understand (or have a good guess at) what was
-> > going wrong, to decide what kind of retreat will be successful.
-> > 
-> > Back to the source for a while: I hope I'll find examples in nearby MIPS
-> > kernel source (and git history), which will hint at the right way forward.
-> > Then send you a patch against next-20230614 to try, when I'm reasonably
-> > confident that it's enough to satisfy my purpose, but likely not to waste
-> > your time.
+> > I do hope that you find the first fixes the breakage; but if not, then
 > 
-> I'm going to take advantage of your good nature by attaching
-> two alternative patches, either to go on top of next-20230614.
-> 
-> mips1.patch,
->  arch/mips/mm/tlb-r4k.c |   12 +-----------
->  1 file changed, 1 insertion(+), 11 deletions(-)
-> 
-> is by far my favourite.  I couldn't see anything wrong with what's
-> already there for mips, but it seems possible that (though I didn't
-> find it) somewhere calls update_mmu_cache_pmd() on a page table.  So
-> mips1.patch restores the pmd_huge() check, and cleans up further by
-> removing the silly pgdp, p4dp, pudp, pmdp stuff: the pointer has now
-> been passed in by the caller, why walk the tree again?  I should have
-> done it this way before.
-> 
-> But if that doesn't work, then I'm afraid it will have to be
-> mips2.patch,
->  arch/mips/include/asm/pgtable.h |   15 ++++++++++++---
->  arch/mips/mm/tlb-r3k.c          |    5 ++---
->  arch/mips/mm/tlb-r4k.c          |   27 ++++++++++++++++++---------
->  3 files changed, 32 insertions(+), 15 deletions(-)
-> 
-> which reverts all of the original patch and its build warning fix,
-> and does a pte_unmap() to balance the silly pte_offset_map() there;
-> with an apologetic comment for this being about the only place in
-> the tree where I have no idea what to do if ptep were NULL.
-> 
-> I do hope that you find the first fixes the breakage; but if not, then
+> I hate to be the bearer of bad news but the first patch did not fix the
+> breakage, I see the same issue.
 
-I hate to be the bearer of bad news but the first patch did not fix the
-breakage, I see the same issue.
+Boo!
 
-> I even more fervently hope that the second will, despite my hating it.
-> Touch wood for the first, fingers crossed for the second, thanks,
+> 
+> > I even more fervently hope that the second will, despite my hating it.
+> > Touch wood for the first, fingers crossed for the second, thanks,
+> 
+> Thankfully, the second one does. Thanks for the quick and thoughtful
+> responses!
 
-Thankfully, the second one does. Thanks for the quick and thoughtful
-responses!
+Hurrah!
 
-Cheers,
-Nathan
+Thanks a lot, Nathan.  I'll set aside my disappointment and curiosity,
+clearly I'm not going to have much of a future as a MIPS programmer.
+
+I must take a break, then rush Andrew the second patch, well, not
+exactly that second patch, since most of that is revert: I'll just
+send the few lines of replacement patch (with a new Subject line, as
+update_mmu_cache() goes back to being separate from __update_tlb()).
+
+Unless you object, I'll include a Tested-by: you.  I realize that
+your testing is limited to seeing it running; but that's true of
+most of the testing at this stage - it gets to be more interesting
+when the patch that adds the rcu_read_lock() and rcu_read_unlock()
+is added on top later.
+
+Thanks again,
+Hugh
