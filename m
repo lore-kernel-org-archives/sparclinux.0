@@ -2,90 +2,164 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27587EB64D7
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 17:13:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC51EB64DC
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 18:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346009AbjFPRNG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jun 2023 13:13:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53140 "EHLO
+        id S1344112AbjFPSOz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Jun 2023 14:14:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346035AbjFPRM4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 13:12:56 -0400
-X-Greylist: delayed 963 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 16 Jun 2023 10:12:49 PDT
-Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:404::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14E262101
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 10:12:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=JRm5O171hLwJHO6q62bbB0qic6uO26bMaqkYvzkG0Lc=;
-        b=k3SzAQoZr2DWkrjtdjn0CN+zfTGAUOpUcN0qLBf2qlmwIYlt8jActbEF+HXei14T29sW6/pwB9ZKu
-         RmCf/mNJZe6vbPmYiIqzOvsrKdhSk0rmd44SfbKdK59N16HL4/YXGoVSyhK2yQ1sykXrvNAYTrsHjG
-         kXqJAkyitSfTJ3w3tMH7mVoqbKRKuZcfcR4ve4HGttPMiLfMqfmxmV8ooo3WWLMDtkIfTKQ1h6bd2X
-         KFPymf2G2fuzsAbUCRUKKc1EzWxe7xXu/TFH4xrnffTtE3/xxEK+CatMRtyIhNpoju9ZmfESGjU4ky
-         aa97ypoZx0hlY7GKgHiHNycWxJATdAg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=JRm5O171hLwJHO6q62bbB0qic6uO26bMaqkYvzkG0Lc=;
-        b=CYtfgZjEyyWxf/Tanh/i/yhmljUFwTS1wia9aDB9yl8Tf0IMyZmCd1u/3+rp/LQFB3QKmz8x34xrW
-         RYgCLK1Cg==
-X-HalOne-ID: c41ad6c4-0c66-11ee-a64a-55333ba73462
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay5 (Halon) with ESMTPSA
-        id c41ad6c4-0c66-11ee-a64a-55333ba73462;
-        Fri, 16 Jun 2023 16:56:43 +0000 (UTC)
-Date:   Fri, 16 Jun 2023 18:56:42 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Ben Hutchings <ben@decadent.org.uk>
-Cc:     sparclinux@vger.kernel.org
-Subject: Re: [PATCH] sparc: Fix invalid .section syntax
-Message-ID: <20230616165642.GD1697490@ravnborg.org>
-References: <ZIyBGdriWti6AsvH@decadent.org.uk>
+        with ESMTP id S1344018AbjFPSOs (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 14:14:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76B4435AC;
+        Fri, 16 Jun 2023 11:14:46 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E8F9A60EFA;
+        Fri, 16 Jun 2023 18:14:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DE44C43391;
+        Fri, 16 Jun 2023 18:14:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686939285;
+        bh=BGYZV1Km+8ZgDrE9neT/E0fU3u3ixvSh8AYCC3TbmE4=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=MRdJy0RgrSJF59KF/EC7N3hN4NM7JkZeq3KagnV0DWy1PIpTqhhanwN+rGe8zgC2V
+         MRnDgp8J0NexGL29v4Mucemw/3yZahpXPMUqiEhZDo6PLZ3uYpYsxd3ZL1fbGvwWwe
+         p/R8vyd2pT+khqUskQVZmRQf+jE0REJ8n2qSSkUm6kasMtDdPJCEzuxpbIe8qI0/Ui
+         gBxANtpHkUielBt2ehqqh3PqnGUAKKbbWba+orljx4X0xezuIPakLsTrSk3Gr6J6ZG
+         8yTxdvadfsX9qXvWVMaa8ZKkExpaD1sIFaCwY2WSngDPZW1skSPKVqWoP3yaiF1YJ9
+         Nln3oL3E93qMg==
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-4f62b512fe2so1433702e87.1;
+        Fri, 16 Jun 2023 11:14:45 -0700 (PDT)
+X-Gm-Message-State: AC+VfDxwQUWCu6tmRoI+BsvqbJNP5p7Fj2QoKu4gc46NnqER1XFteijC
+        BIY2SecOEQhYFc9tPP49acRIW8YocA8eJ488Vkw=
+X-Google-Smtp-Source: ACHHUZ76yiO622Uh9+9rKEsm8ImEC4jXzUaBUsNUHgrPnEQ5V1l0GL/PgIuvK/efbFnHaYtpj3eltn1zagg/5cT90Eo=
+X-Received: by 2002:a19:ab11:0:b0:4f3:bbfe:db4e with SMTP id
+ u17-20020a19ab11000000b004f3bbfedb4emr1747329lfe.56.1686939283176; Fri, 16
+ Jun 2023 11:14:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZIyBGdriWti6AsvH@decadent.org.uk>
+References: <20230616085038.4121892-1-rppt@kernel.org> <20230616085038.4121892-2-rppt@kernel.org>
+In-Reply-To: <20230616085038.4121892-2-rppt@kernel.org>
+From:   Song Liu <song@kernel.org>
+Date:   Fri, 16 Jun 2023 11:14:31 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW4nDne7L=Qh142w+dMX2pqM_4k+SZSB=QBJ8ruG_j8dug@mail.gmail.com>
+Message-ID: <CAPhsuW4nDne7L=Qh142w+dMX2pqM_4k+SZSB=QBJ8ruG_j8dug@mail.gmail.com>
+Subject: Re: [PATCH v2 01/12] nios2: define virtual address space for modules
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Puranjay Mohan <puranjay12@gmail.com>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Ben,
+On Fri, Jun 16, 2023 at 1:51=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wro=
+te:
+>
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+>
+> nios2 uses kmalloc() to implement module_alloc() because CALL26/PCREL26
+> cannot reach all of vmalloc address space.
+>
+> Define module space as 32MiB below the kernel base and switch nios2 to
+> use vmalloc for module allocations.
+>
+> Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> Acked-by: Dinh Nguyen <dinguyen@kernel.org>
 
-On Fri, Jun 16, 2023 at 05:34:49PM +0200, Ben Hutchings wrote:
-> From: Ben Hutchings <benh@debian.org>
-> 
-> gas supports several different forms for .section for ELF targets,
-> including:
->     .section NAME [, "FLAGS"[, @TYPE[,FLAG_SPECIFIC_ARGUMENTS]]]
-> and:
->     .section "NAME"[, #FLAGS...]
-> 
-> In several places we use a mix of these two forms:
->     .section NAME, #FLAGS...
-> 
-> A current development snapshot of binutils (2.40.50.20230611) treats
-> this mixed syntax as an error.
-> 
-> Change to consistently use:
->     .section NAME, "FLAGS"
-> as is used elsewhere in the kernel.
-> 
-> Also change the one correct use of:
->     .section "NAME", #FLAGS
-> to be consistent with the rest of the kernel.
+Acked-by: Song Liu <song@kernel.org>
 
-The commit also changes from the solaris compatibility names to the
-standard gas names.
-The change surprised me while reading the patch, and I was not happy
-until I found out that the current flags are compatibility names.
-So please add this info to the changelog.
 
-With that fixed:
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-
-I expect someone else to pick it up.
-
-	Sam
+> ---
+>  arch/nios2/include/asm/pgtable.h |  5 ++++-
+>  arch/nios2/kernel/module.c       | 19 ++++---------------
+>  2 files changed, 8 insertions(+), 16 deletions(-)
+>
+> diff --git a/arch/nios2/include/asm/pgtable.h b/arch/nios2/include/asm/pg=
+table.h
+> index 0f5c2564e9f5..0073b289c6a4 100644
+> --- a/arch/nios2/include/asm/pgtable.h
+> +++ b/arch/nios2/include/asm/pgtable.h
+> @@ -25,7 +25,10 @@
+>  #include <asm-generic/pgtable-nopmd.h>
+>
+>  #define VMALLOC_START          CONFIG_NIOS2_KERNEL_MMU_REGION_BASE
+> -#define VMALLOC_END            (CONFIG_NIOS2_KERNEL_REGION_BASE - 1)
+> +#define VMALLOC_END            (CONFIG_NIOS2_KERNEL_REGION_BASE - SZ_32M=
+ - 1)
+> +
+> +#define MODULES_VADDR          (CONFIG_NIOS2_KERNEL_REGION_BASE - SZ_32M=
+)
+> +#define MODULES_END            (CONFIG_NIOS2_KERNEL_REGION_BASE - 1)
+>
+>  struct mm_struct;
+>
+> diff --git a/arch/nios2/kernel/module.c b/arch/nios2/kernel/module.c
+> index 76e0a42d6e36..9c97b7513853 100644
+> --- a/arch/nios2/kernel/module.c
+> +++ b/arch/nios2/kernel/module.c
+> @@ -21,23 +21,12 @@
+>
+>  #include <asm/cacheflush.h>
+>
+> -/*
+> - * Modules should NOT be allocated with kmalloc for (obvious) reasons.
+> - * But we do it for now to avoid relocation issues. CALL26/PCREL26 canno=
+t reach
+> - * from 0x80000000 (vmalloc area) to 0xc00000000 (kernel) (kmalloc retur=
+ns
+> - * addresses in 0xc0000000)
+> - */
+>  void *module_alloc(unsigned long size)
+>  {
+> -       if (size =3D=3D 0)
+> -               return NULL;
+> -       return kmalloc(size, GFP_KERNEL);
+> -}
+> -
+> -/* Free memory returned from module_alloc */
+> -void module_memfree(void *module_region)
+> -{
+> -       kfree(module_region);
+> +       return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+> +                                   GFP_KERNEL, PAGE_KERNEL_EXEC,
+> +                                   VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
+> +                                   __builtin_return_address(0));
+>  }
+>
+>  int apply_relocate_add(Elf32_Shdr *sechdrs, const char *strtab,
+> --
+> 2.35.1
+>
