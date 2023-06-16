@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81FEBC001B1
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 18:56:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D59CDC0015E
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 20:01:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231752AbjFPS43 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jun 2023 14:56:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36550 "EHLO
+        id S232106AbjFPUBq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Jun 2023 16:01:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229939AbjFPS41 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 14:56:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0D332962;
-        Fri, 16 Jun 2023 11:56:25 -0700 (PDT)
+        with ESMTP id S230420AbjFPUBZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 16:01:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1221735A3;
+        Fri, 16 Jun 2023 13:01:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A1B79629D4;
-        Fri, 16 Jun 2023 18:56:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0600CC433CA;
-        Fri, 16 Jun 2023 18:56:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B4F962E05;
+        Fri, 16 Jun 2023 20:01:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E208FC433C0;
+        Fri, 16 Jun 2023 20:01:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686941784;
-        bh=TiK/t/XTSx2fh8UkKw1baZqCETUm1DZqQZdzQBTpc/g=;
+        s=k20201202; t=1686945682;
+        bh=NNR06pawYLcrluh/DT0ZjxTIOvEpuKGIsr6P52TLsXk=;
         h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=DR8ZwzCHVtydoaaxjVYJNAWu/EazGdygIZ9Srkd4r4zGNu0UV5wrYj4MX5arzEodp
-         UNvhvBrh5U4xGmDl5sewm5lcUokl1lD7VTeAPUPHyzYKCOX5F7Je9AJgJ0HqJqpHT2
-         dLMHymuA0MzirGgPHvlvL6U36HV4H2mHBFM4sA3+uLQ6uro16QwzRETHZvWuu01q0L
-         oEQm2Ghzu8fuJWG7gSLOHi6X72YNM+NGXR0jzbSIhti31b9mqhQFKwVaQG4h1o8jl3
-         sPN9LHTye4cTeZayTOrwNQq2w+QcnqfrU6lZ/h2mtxqSWd8YF98VAdngnnwpTSEIq6
-         2Cv/9seiufkYQ==
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-2b34ac4b6e8so14417851fa.3;
-        Fri, 16 Jun 2023 11:56:23 -0700 (PDT)
-X-Gm-Message-State: AC+VfDzYuAZcLOCMG9gxJLJk5d7+npTPr693R2ZIBJxFSaFSsBVz1CnI
-        48m7nnhCmgGxGu0KlGNg75W592/tozMEEC1sXZc=
-X-Google-Smtp-Source: ACHHUZ5T8e7wpuuhOjnmCbHsB2+OgDZlJJ7sUOEWS0dN9xCa2iZ6+8btSZBMXNDx9vhO1lFKVvsg0dPvz5VmaKvg8Zw=
-X-Received: by 2002:a2e:80c2:0:b0:2b2:f9c8:6ad1 with SMTP id
- r2-20020a2e80c2000000b002b2f9c86ad1mr2553844ljg.42.1686941782011; Fri, 16 Jun
- 2023 11:56:22 -0700 (PDT)
+        b=B2x9p0bw9e1c5FEiElfS0dqOB9kBN1XvLc3rdRIjWsCJR6DEA+8/fPzx0tD0XRds9
+         xnUob2gqF2SwBz+B8m0N3hPtdbY9Zjp4OWtxr5mJ453zMkqDfQfhs3Bk0NKVLLnJ8T
+         YRFinBI4ZyqxgEMzd4FvqZ96m1iAvyUW5PzZ9IkU7jzJf2O+Uh3mAZnkJkvCh4Irzi
+         y8m2OdBztq5JFis9yBA+hEUTNF3tMD5RAOz5rdpO89Y54dunPa4NAr9k6faBzowxQk
+         AVRlbo+pV0l2tH94RtPSD4Alk/lhusm0f9qKVWPhAsHRvmHc3DaWJj06DslGvi6t1A
+         z4M//Xaki6glw==
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-4f766777605so1569607e87.1;
+        Fri, 16 Jun 2023 13:01:22 -0700 (PDT)
+X-Gm-Message-State: AC+VfDyVb1J0jxb7ByxdQPFCoN6rG5PynZqV/6xLihGaBnsDfgruhCon
+        IUH8GAu3x/TSlzsgzzJMcx1NcvAGKA32lec/Nr8=
+X-Google-Smtp-Source: ACHHUZ5JqRMNnpRMFCyZiMjc+UWPs6A2cx1mTw/2r3SQw3woyTfRJjaUEkhnoXK7xbHKeHI/ilSSCGbka/vlr73Fo7g=
+X-Received: by 2002:a05:6512:60a:b0:4f8:5635:2ccf with SMTP id
+ b10-20020a056512060a00b004f856352ccfmr2048673lfe.8.1686945680955; Fri, 16 Jun
+ 2023 13:01:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230616085038.4121892-1-rppt@kernel.org> <20230616085038.4121892-6-rppt@kernel.org>
-In-Reply-To: <20230616085038.4121892-6-rppt@kernel.org>
+References: <20230616085038.4121892-1-rppt@kernel.org> <20230616085038.4121892-7-rppt@kernel.org>
+In-Reply-To: <20230616085038.4121892-7-rppt@kernel.org>
 From:   Song Liu <song@kernel.org>
-Date:   Fri, 16 Jun 2023 11:56:09 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW7qEEbyEBUPETHxMj+Kusow5zTk3Q4cRNo0qV+quUsZNA@mail.gmail.com>
-Message-ID: <CAPhsuW7qEEbyEBUPETHxMj+Kusow5zTk3Q4cRNo0qV+quUsZNA@mail.gmail.com>
-Subject: Re: [PATCH v2 05/12] modules, execmem: drop module_alloc
+Date:   Fri, 16 Jun 2023 13:01:08 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW4J+rFvh9WJVWLZxFHtcYxahYk=NoKYdU9FMibZU8986w@mail.gmail.com>
+Message-ID: <CAPhsuW4J+rFvh9WJVWLZxFHtcYxahYk=NoKYdU9FMibZU8986w@mail.gmail.com>
+Subject: Re: [PATCH v2 06/12] mm/execmem: introduce execmem_data_alloc()
 To:     Mike Rapoport <rppt@kernel.org>
 Cc:     linux-kernel@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>,
@@ -89,130 +89,81 @@ te:
 >
 > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 >
-> Define default parameters for address range for code allocations using
-> the current values in module_alloc() and make execmem_text_alloc() use
-> these defaults when an architecure does not supply its specific
-> parameters.
+> Data related to code allocations, such as module data section, need to
+> comply with architecture constraints for its placement and its
+> allocation right now was done using execmem_text_alloc().
 >
-> With this, execmem_text_alloc() implements memory allocation in a way
-> compatible with module_alloc() and can be used as a replacement for
-> module_alloc().
+> Create a dedicated API for allocating data related to code allocations
+> and allow architectures to define address ranges for data allocations.
+>
+> Since currently this is only relevant for powerpc variants that use the
+> VMALLOC address space for module data allocations, automatically reuse
+> address ranges defined for text unless address range for data is
+> explicitly defined by an architecture.
+>
+> With separation of code and data allocations, data sections of the
+> modules are now mapped as PAGE_KERNEL rather than PAGE_KERNEL_EXEC which
+> was a default on many architectures.
 >
 > Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-
-Acked-by: Song Liu <song@kernel.org>
-
-> ---
->  include/linux/execmem.h      |  8 ++++++++
->  include/linux/moduleloader.h | 12 ------------
->  kernel/module/main.c         |  7 -------
->  mm/execmem.c                 | 12 ++++++++----
->  4 files changed, 16 insertions(+), 23 deletions(-)
->
-> diff --git a/include/linux/execmem.h b/include/linux/execmem.h
-> index 68b2bfc79993..b9a97fcdf3c5 100644
-> --- a/include/linux/execmem.h
-> +++ b/include/linux/execmem.h
-> @@ -4,6 +4,14 @@
->
->  #include <linux/types.h>
->
-> +#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && =
-\
-> +               !defined(CONFIG_KASAN_VMALLOC)
-> +#include <linux/kasan.h>
-> +#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
-> +#else
-> +#define MODULE_ALIGN PAGE_SIZE
-> +#endif
-> +
->  /**
->   * struct execmem_range - definition of a memory range suitable for code=
- and
->   *                       related data allocations
-> diff --git a/include/linux/moduleloader.h b/include/linux/moduleloader.h
-> index b3374342f7af..4321682fe849 100644
-> --- a/include/linux/moduleloader.h
-> +++ b/include/linux/moduleloader.h
-> @@ -25,10 +25,6 @@ int module_frob_arch_sections(Elf_Ehdr *hdr,
->  /* Additional bytes needed by arch in front of individual sections */
->  unsigned int arch_mod_section_prepend(struct module *mod, unsigned int s=
-ection);
->
-> -/* Allocator used for allocating struct module, core sections and init
-> -   sections.  Returns NULL on failure. */
-> -void *module_alloc(unsigned long size);
-> -
->  /* Determines if the section name is an init section (that is only used =
-during
->   * module loading).
->   */
-> @@ -113,12 +109,4 @@ void module_arch_cleanup(struct module *mod);
->  /* Any cleanup before freeing mod->module_init */
->  void module_arch_freeing_init(struct module *mod);
->
-> -#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && =
-\
-> -               !defined(CONFIG_KASAN_VMALLOC)
-> -#include <linux/kasan.h>
-> -#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
-> -#else
-> -#define MODULE_ALIGN PAGE_SIZE
-> -#endif
-> -
->  #endif
-> diff --git a/kernel/module/main.c b/kernel/module/main.c
-> index 43810a3bdb81..b445c5ad863a 100644
-> --- a/kernel/module/main.c
-> +++ b/kernel/module/main.c
-> @@ -1600,13 +1600,6 @@ static void free_modinfo(struct module *mod)
->         }
->  }
->
-> -void * __weak module_alloc(unsigned long size)
-> -{
-> -       return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
-> -                       GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERM=
-S,
-> -                       NUMA_NO_NODE, __builtin_return_address(0));
-> -}
-> -
->  bool __weak module_init_section(const char *name)
->  {
->         return strstarts(name, ".init");
+[...]
+>  static void free_mod_mem(struct module *mod)
 > diff --git a/mm/execmem.c b/mm/execmem.c
-> index 2fe36dcc7bdf..a67acd75ffef 100644
+> index a67acd75ffef..f7bf496ad4c3 100644
 > --- a/mm/execmem.c
 > +++ b/mm/execmem.c
-> @@ -59,9 +59,6 @@ void *execmem_text_alloc(size_t size)
->         unsigned long fallback_end =3D execmem_params.modules.text.fallba=
-ck_end;
->         bool kasan =3D execmem_params.modules.flags & EXECMEM_KASAN_SHADO=
-W;
->
-> -       if (!execmem_params.modules.text.start)
-> -               return module_alloc(size);
-> -
->         return execmem_alloc(size, start, end, align, pgprot,
+> @@ -63,6 +63,20 @@ void *execmem_text_alloc(size_t size)
 >                              fallback_start, fallback_end, kasan);
 >  }
-> @@ -108,8 +105,15 @@ void __init execmem_init(void)
->  {
->         struct execmem_params *p =3D execmem_arch_params();
 >
-> -       if (!p)
-> +       if (!p) {
-> +               p =3D &execmem_params;
-> +               p->modules.text.start =3D VMALLOC_START;
-> +               p->modules.text.end =3D VMALLOC_END;
-> +               p->modules.text.pgprot =3D PAGE_KERNEL_EXEC;
-> +               p->modules.text.alignment =3D 1;
+> +void *execmem_data_alloc(size_t size)
+> +{
+> +       unsigned long start =3D execmem_params.modules.data.start;
+> +       unsigned long end =3D execmem_params.modules.data.end;
+> +       pgprot_t pgprot =3D execmem_params.modules.data.pgprot;
+> +       unsigned int align =3D execmem_params.modules.data.alignment;
+> +       unsigned long fallback_start =3D execmem_params.modules.data.fall=
+back_start;
+> +       unsigned long fallback_end =3D execmem_params.modules.data.fallba=
+ck_end;
+> +       bool kasan =3D execmem_params.modules.flags & EXECMEM_KASAN_SHADO=
+W;
 > +
->                 return;
-> +       }
+> +       return execmem_alloc(size, start, end, align, pgprot,
+> +                            fallback_start, fallback_end, kasan);
+> +}
+> +
+>  void execmem_free(void *ptr)
+>  {
+>         /*
+> @@ -101,6 +115,28 @@ static bool execmem_validate_params(struct execmem_p=
+arams *p)
+>         return true;
+>  }
 >
->         if (!execmem_validate_params(p))
->                 return;
-> --
-> 2.35.1
->
+> +static void execmem_init_missing(struct execmem_params *p)
+
+Shall we call this execmem_default_init_data?
+
+> +{
+> +       struct execmem_modules_range *m =3D &p->modules;
+> +
+> +       if (!pgprot_val(execmem_params.modules.data.pgprot))
+> +               execmem_params.modules.data.pgprot =3D PAGE_KERNEL;
+
+Do we really need to check each of these? IOW, can we do:
+
+if (!pgprot_val(execmem_params.modules.data.pgprot)) {
+       execmem_params.modules.data.pgprot =3D PAGE_KERNEL;
+       execmem_params.modules.data.alignment =3D m->text.alignment;
+       execmem_params.modules.data.start =3D m->text.start;
+       execmem_params.modules.data.end =3D m->text.end;
+       execmem_params.modules.data.fallback_start =3D m->text.fallback_star=
+t;
+      execmem_params.modules.data.fallback_end =3D m->text.fallback_end;
+}
+
+Thanks,
+Song
+
+[...]
