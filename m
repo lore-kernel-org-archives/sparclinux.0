@@ -2,65 +2,64 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4848EB64D7
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 16:44:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B92EB64D8
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jun 2023 16:48:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbjFPQoW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jun 2023 12:44:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60658 "EHLO
+        id S1345621AbjFPQsN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Jun 2023 12:48:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230098AbjFPQoT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 12:44:19 -0400
-Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7BBB2D4E
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:44:17 -0700 (PDT)
-Received: by mail-ej1-x630.google.com with SMTP id a640c23a62f3a-982af24987fso141493966b.0
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:44:17 -0700 (PDT)
+        with ESMTP id S1345612AbjFPQsI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jun 2023 12:48:08 -0400
+Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 181FA3A87
+        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:48:05 -0700 (PDT)
+Received: by mail-lf1-x129.google.com with SMTP id 2adb3069b0e04-4f841b7a697so1272087e87.3
+        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:48:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686933856; x=1689525856;
+        d=chromium.org; s=google; t=1686934082; x=1689526082;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RlH6N4BeYWriIEzthku3f2s3TDY9tC006RTYxc81VbY=;
-        b=fa3BWs6hKNUceKlPZqUdlR7I0P8QqsjOK+i/OFiac3mNZt2dxOUZOlmKSlTu5aYQsu
-         EzcPzwmjqRXYlldsO6MYgpShNO/BNpVmFtcDWgrx+222WJXuhfVdfY01vmnfurSTrF84
-         aFBqgk9j26KobSdQc17w8JcODnqZlcPFSePtc=
+        bh=e16upKjJABhKcoxJWL82G3CWyoX8UGnrl2PWs2fRuIo=;
+        b=jjBZg1+GpudykS92bk6Szs5QJqH18eEIibrB/9Wq+dOJV7tgt2Vg1ZrOjG3F7c43cv
+         LS33cL3d3C77HCi0sgafJtcc4kL5o1rEbuw7e5zCxWBU6D+sp5SKySc3b/AikCSQNjE5
+         YbjdkF0BIAFm9Zy0FozQ8eC0Zpc66KUlx7IW8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686933856; x=1689525856;
+        d=1e100.net; s=20221208; t=1686934082; x=1689526082;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=RlH6N4BeYWriIEzthku3f2s3TDY9tC006RTYxc81VbY=;
-        b=KYIZnByi3cvx1Gm734/5URhW7IyZEYLSvfOdu7rrP33ouQfJAr1g4wIB7aW4Bel/2L
-         5114bYKhVoDdHnU7J5mLd6hMMqxMl0GlRI1w8UG4wiN/6t1DESU59Z4YNFWmaKBmHRkZ
-         n7IUfQM0uDmtexUtdFBUP7c3bkRNQP6JAb3pbxj/cLTrtjIstEOZoPqjqtlrEW58bx25
-         qoLz8+OSo5WB+CtGJpzFZng7zo1vLQxe3I+/vvFSCk991FYrRKagAovxGq9QcAP/WDQg
-         fZEsFiO57GhHEhiAyuuN7aM++44XL1wY8zFr5N8Nrr1ovrLJRIgZ8Kq598ukAdlKuDHE
-         Fuxg==
-X-Gm-Message-State: AC+VfDxmonoLDxlK1dh4/QGpdgtWQU0nfbdigK43U+wyR+jKWxV7QNID
-        dY0UdJmGrX6kjsebsCssGEcaKMHNhIxYoybtHK6sTI5B
-X-Google-Smtp-Source: ACHHUZ5Q4xALbX6at/P86hBCYLV588tj1gC7drqI5kXoXj7C9FAutKP7ua5yf74MAJMDNsA0kcqfUg==
-X-Received: by 2002:a17:907:7204:b0:94f:5847:8ac with SMTP id dr4-20020a170907720400b0094f584708acmr2748979ejc.51.1686933855686;
-        Fri, 16 Jun 2023 09:44:15 -0700 (PDT)
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com. [209.85.208.46])
-        by smtp.gmail.com with ESMTPSA id zo18-20020a170906ff5200b0096ae4451c65sm11031264ejb.157.2023.06.16.09.44.15
+        bh=e16upKjJABhKcoxJWL82G3CWyoX8UGnrl2PWs2fRuIo=;
+        b=LYEXj1csB66fNT/RsH4404mNtyabLBi+Lxs5sn3s/01OzIx+X3a8vBC05KYzIl0TsM
+         RkD5h74KvyvMMDm8tAco5A4jU21atkzywzyCVM8xqEBRHzkj8myZ3xdGhJxhlU2xdTfo
+         wOrFs9SFXTtO599ubJGb9yynAJnusx5GO2b7zqRPOBllvcYuXw3A12AM5EWbNVGsDmeI
+         uByqsmoavqLjmb7U3ikmkLTVhUepfSS2+xzIviH4Gt+o1EZgJB9bKp4fIuQMk6akxuzT
+         Okec/6/ttO7+LXBrgB8pfSYyL7IkrDKMAoHWAJmJJ9BOOPQQEkaBwXW7GFS7L3nDL6ov
+         dkmg==
+X-Gm-Message-State: AC+VfDxy5pYSyA45rpqmq94LVKk/xBnY6hhQw+WM0zW7e5KWBY79T6X5
+        SxFzr0MMeMpXil6fXokqHOlXACsZ/idoExkKLyyCoHZy
+X-Google-Smtp-Source: ACHHUZ4fPwmdkpdF6qAnVbK5tVkmLNh6r0Www4swHLA2Z5QOaoBylisZ8hSePnmAK78XI6Lg3HOpug==
+X-Received: by 2002:a2e:9bc4:0:b0:2b3:4386:604d with SMTP id w4-20020a2e9bc4000000b002b34386604dmr2234310ljj.17.1686934082194;
+        Fri, 16 Jun 2023 09:48:02 -0700 (PDT)
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com. [209.85.128.54])
+        by smtp.gmail.com with ESMTPSA id n25-20020a170906379900b00977cc473b41sm11144966ejc.142.2023.06.16.09.47.59
         for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 16 Jun 2023 09:44:15 -0700 (PDT)
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-51400fa347dso117a12.0
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:44:15 -0700 (PDT)
-X-Received: by 2002:a50:bac3:0:b0:506:b280:4993 with SMTP id
- x61-20020a50bac3000000b00506b2804993mr233742ede.2.1686933854748; Fri, 16 Jun
- 2023 09:44:14 -0700 (PDT)
+        Fri, 16 Jun 2023 09:48:00 -0700 (PDT)
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-3f81b83b8d5so915e9.1
+        for <sparclinux@vger.kernel.org>; Fri, 16 Jun 2023 09:47:59 -0700 (PDT)
+X-Received: by 2002:a05:600c:444e:b0:3f4:2736:b5eb with SMTP id
+ v14-20020a05600c444e00b003f42736b5ebmr415495wmn.1.1686934079227; Fri, 16 Jun
+ 2023 09:47:59 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230616150618.6073-1-pmladek@suse.com> <20230616150618.6073-2-pmladek@suse.com>
-In-Reply-To: <20230616150618.6073-2-pmladek@suse.com>
+References: <20230616150618.6073-1-pmladek@suse.com> <20230616150618.6073-3-pmladek@suse.com>
+In-Reply-To: <20230616150618.6073-3-pmladek@suse.com>
 From:   Doug Anderson <dianders@chromium.org>
-Date:   Fri, 16 Jun 2023 09:44:01 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=XUWnjCAjZKb5wYcGhC=T8+hoUr+1junoH5ognge1aZHg@mail.gmail.com>
-Message-ID: <CAD=FV=XUWnjCAjZKb5wYcGhC=T8+hoUr+1junoH5ognge1aZHg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/6] watchdog/hardlockup: Sort hardlockup detector
- related config values a logical way
+Date:   Fri, 16 Jun 2023 09:47:47 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=VPhpZyJO=U3NGy1RZbmAQS_xEoDs-K2HawJYb=UHaUww@mail.gmail.com>
+Message-ID: <CAD=FV=VPhpZyJO=U3NGy1RZbmAQS_xEoDs-K2HawJYb=UHaUww@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] watchdog/hardlockup: Make the config checks more straightforward
 To:     Petr Mladek <pmladek@suse.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
@@ -79,7 +78,7 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Hi,
 
-On Fri, Jun 16, 2023 at 8:06=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
+On Fri, Jun 16, 2023 at 8:07=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrot=
 e:
 >
 > There are four possible variants of hardlockup detectors:
@@ -93,46 +92,57 @@ e:
 >   + sparc64 special variant: available when HAVE_NMI_WATCHDOG is set
 >         and HAVE_HARDLOCKUP_DETECTOR_ARCH is not set.
 >
-> Only one hardlockup detector can be compiled in. The selection is done
-> using quite complex dependencies between several CONFIG variables.
-> The following patches will try to make it more straightforward.
+> The check for the sparc64 variant is more complicated because
+> HAVE_NMI_WATCHDOG is used to #ifdef code used by both arch-specific
+> and sparc64 specific variant. Therefore it is automatically
+> selected with HAVE_HARDLOCKUP_DETECTOR_ARCH.
 >
-> As a first step, reorder the definitions of the various CONFIG variables.
-> The logical order is:
+> This complexity is partly hidden in HAVE_HARDLOCKUP_DETECTOR_NON_ARCH.
+> It reduces the size of some checks but it makes them harder to follow.
 >
->    1. HAVE_* variables define available variants. They are typically
->       defined in the arch/ config files.
+> Finally, the other temporary variable HARDLOCKUP_DETECTOR_NON_ARCH
+> is used to re-compute HARDLOCKUP_DETECTOR_PERF/BUDDY when the global
+> HARDLOCKUP_DETECTOR switch is enabled/disabled.
 >
->    2. HARDLOCKUP_DETECTOR y/n variable defines whether the hardlockup
->       detector is enabled at all.
+> Make the logic more straightforward by the following changes:
 >
->    3. HARDLOCKUP_DETECTOR_PREFER_BUDDY y/n variable defines whether
->       the buddy detector should be preferred over the perf one.
->       Note that the arch specific variants are always preferred when
->       available.
+>   + Better explain the role of HAVE_HARDLOCKUP_DETECTOR_ARCH and
+>     HAVE_NMI_WATCHDOG in comments.
 >
->    4. HARDLOCKUP_DETECTOR_PERF/BUDDY variables define whether the given
->       detector is enabled in the end.
+>   + Add HAVE_HARDLOCKUP_DETECTOR_BUDDY so that there is separate
+>     HAVE_* for all four hardlockup detector variants.
 >
->    5. HAVE_HARDLOCKUP_DETECTOR_NON_ARCH and HARDLOCKUP_DETECTOR_NON_ARCH
->       are temporary variables that are going to be removed in
->       a followup patch.
+>     Use it in the other conditions instead of SMP. It makes it
+>     clear that it is about the buddy detector.
 >
-> This is a preparation step for further cleanup. It will change the logic
-> without shuffling the definitions.
+>   + Open code HAVE_HARDLOCKUP_DETECTOR_NON_ARCH in HARDLOCKUP_DETECTOR
+>     and HARDLOCKUP_DETECTOR_PREFER_BUDDY. It helps to understand
+>     the conditions between the four hardlockup detector variants.
 >
-> This change temporary breaks the C-like ordering where the variables are
-> declared or defined before they are used. It is not really needed for
-> Kconfig. Also the following patches will rework the logic so that
-> the ordering will be C-like in the end.
+>   + Define the exact conditions when HARDLOCKUP_DETECTOR_PERF/BUDDY
+>     can be enabled. It explains the dependency on the other
+>     hardlockup detector variants.
 >
-> The patch just shuffles the definitions. It should not change the existin=
-g
-> behavior.
+>     Also it allows to remove HARDLOCKUP_DETECTOR_NON_ARCH by using "imply=
+".
+>     It triggers re-evaluating HARDLOCKUP_DETECTOR_PERF/BUDDY when
+>     the global HARDLOCKUP_DETECTOR switch is changed.
+>
+>   + Add dependency on HARDLOCKUP_DETECTOR so that the affected variables
+>     disappear when the hardlockup detectors are disabled.
+>
+>     Another nice side effect is that HARDLOCKUP_DETECTOR_PREFER_BUDDY
+>     value is not preserved when the global switch is disabled.
+>     The user has to make the decision again when it gets re-enabled.
 >
 > Signed-off-by: Petr Mladek <pmladek@suse.com>
 > ---
->  lib/Kconfig.debug | 112 +++++++++++++++++++++++-----------------------
->  1 file changed, 56 insertions(+), 56 deletions(-)
+>  arch/Kconfig      | 23 +++++++++++++-----
+>  lib/Kconfig.debug | 62 +++++++++++++++++++++++++++--------------------
+>  2 files changed, 53 insertions(+), 32 deletions(-)
+
+While I'd still paint the bikeshed a different color and organize the
+dependencies a little differently, as discussed in your v1 post, this
+is still OK w/ me.
 
 Reviewed-by: Douglas Anderson <dianders@chromium.org>
