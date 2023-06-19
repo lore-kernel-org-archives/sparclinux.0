@@ -2,199 +2,396 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1947C001B3
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 17:09:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F08EB64DA
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 19:42:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231314AbjFSRJc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 19 Jun 2023 13:09:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56504 "EHLO
+        id S231245AbjFSTmU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 19 Jun 2023 15:42:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231351AbjFSRJa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Jun 2023 13:09:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74487130;
-        Mon, 19 Jun 2023 10:09:28 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D8EBF60E84;
-        Mon, 19 Jun 2023 17:09:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2BBEC433C0;
-        Mon, 19 Jun 2023 17:09:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687194567;
-        bh=JAKwTrp1uinVAtoLWlXEGNS+fEBZEu6il2wWrUqzEzo=;
-        h=In-Reply-To:References:Date:From:To:Cc:Subject:From;
-        b=YEOROC7YGunxOkL9NsbJwROPW3V877k09rIaiwwEQBd6bVLJWdMjusQxoVnbsuD5D
-         SKibXVd7FHc2nMr1tudbdYIZvJGYXAOuK4akurudUoPTNxoZjnK21I5AdFijJrVbol
-         wMmYZdLv8Hw2umDYdeUGRbNj+IGHaRZ0DomN5ubTCsJ6NBLT+yY4qE1y7ajOHRP1RW
-         KGFKHX9UnHaE0jcV0Lk398WnGNpxO+L8j061yUD+7F16bO6b13PKK3oASVquk5plTv
-         fi30eJK4gcno8KPn/VoCZ0cPaw9JHH45FBctirdWyvzfVojpY1MuX3tVhu6B84K6vz
-         1DQlrW9fvYTQw==
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailauth.nyi.internal (Postfix) with ESMTP id BDC6027C0054;
-        Mon, 19 Jun 2023 13:09:24 -0400 (EDT)
-Received: from imap48 ([10.202.2.98])
-  by compute3.internal (MEProxy); Mon, 19 Jun 2023 13:09:24 -0400
-X-ME-Sender: <xms:wouQZL1KKgLu09W-gITBMTpyAXyCop721KHeRNSzShP91di0wPWHmw>
-    <xme:wouQZKG8Wf_3R-mPlBMuIdAgUtqSh1IoF1oSxFnk9i4TgZk6ENhss3V_yoaRPv-RL
-    TAuvGDsGQbdSiWuWsY>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrgeefvddguddtjecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
-    nhguhicunfhuthhomhhirhhskhhifdcuoehluhhtoheskhgvrhhnvghlrdhorhhgqeenuc
-    ggtffrrghtthgvrhhnpedvhfeuvddthfdufffhkeekffetgffhledtleegffetheeugeej
-    ffduhefgteeihfenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfh
-    hrohhmpegrnhguhidomhgvshhmthhprghuthhhphgvrhhsohhnrghlihhthidqudduiedu
-    keehieefvddqvdeifeduieeitdekqdhluhhtoheppehkvghrnhgvlhdrohhrgheslhhinh
-    hugidrlhhuthhordhush
-X-ME-Proxy: <xmx:wouQZL5OetLa4Clx3-k8PoL2vfJibp2bgnqmJ2SvMc_usNTskAjOCQ>
-    <xmx:wouQZA2n3SB0X1LUMOotkjWhlqzrq7LHl-_hgrAS7-wGIbb0zOE8Fw>
-    <xmx:wouQZOGStaRHYVBRbGjqqlxYN_stg3xW85Vh8QJme5E9zOhMY7GQOQ>
-    <xmx:xIuQZOK5iPdRAlFtT5-Mu5Cjdtszefp8KfJWF6OppfL2ayIjz9WFYA>
-Feedback-ID: ieff94742:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 5BFB531A0063; Mon, 19 Jun 2023 13:09:22 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-496-g8c46984af0-fm-20230615.001-g8c46984a
-Mime-Version: 1.0
-Message-Id: <a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com>
-In-Reply-To: <20230618080027.GA52412@kernel.org>
-References: <20230616085038.4121892-1-rppt@kernel.org>
- <20230616085038.4121892-3-rppt@kernel.org>
- <f9a7eebe-d36e-4587-b99d-35d4edefdd14@app.fastmail.com>
- <20230618080027.GA52412@kernel.org>
-Date:   Mon, 19 Jun 2023 10:09:02 -0700
-From:   "Andy Lutomirski" <luto@kernel.org>
-To:     "Mike Rapoport" <rppt@kernel.org>,
-        "Mark Rutland" <mark.rutland@arm.com>,
-        "Kees Cook" <keescook@chromium.org>
-Cc:     "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        "Catalin Marinas" <catalin.marinas@arm.com>,
-        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Dinh Nguyen" <dinguyen@kernel.org>,
-        "Heiko Carstens" <hca@linux.ibm.com>,
-        "Helge Deller" <deller@gmx.de>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "Kent Overstreet" <kent.overstreet@linux.dev>,
-        "Luis Chamberlain" <mcgrof@kernel.org>,
-        "Mark Rutland" <mark.rutland@arm.com>,
-        "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Nadav Amit" <nadav.amit@gmail.com>,
-        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-        "Palmer Dabbelt" <palmer@dabbelt.com>,
-        "Puranjay Mohan" <puranjay12@gmail.com>,
-        "Rick P Edgecombe" <rick.p.edgecombe@intel.com>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        "Song Liu" <song@kernel.org>,
-        "Steven Rostedt" <rostedt@goodmis.org>,
-        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
-        "Thomas Gleixner" <tglx@linutronix.de>,
-        "Will Deacon" <will@kernel.org>, bpf@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-mm@kvack.org, linux-modules@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org,
-        "the arch/x86 maintainers" <x86@kernel.org>
-Subject: Re: [PATCH v2 02/12] mm: introduce execmem_text_alloc() and jit_text_alloc()
-Content-Type: text/plain
+        with ESMTP id S230491AbjFSTmT (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Jun 2023 15:42:19 -0400
+Received: from maynard.decadent.org.uk (maynard.decadent.org.uk [95.217.213.242])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5E33119
+        for <sparclinux@vger.kernel.org>; Mon, 19 Jun 2023 12:42:17 -0700 (PDT)
+Received: from [213.219.167.32] (helo=deadeye)
+        by maynard with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ben@decadent.org.uk>)
+        id 1qBKlT-00031N-Dv; Mon, 19 Jun 2023 21:42:15 +0200
+Received: from ben by deadeye with local (Exim 4.96)
+        (envelope-from <ben@decadent.org.uk>)
+        id 1qBKlS-007cLG-2y;
+        Mon, 19 Jun 2023 21:42:14 +0200
+Date:   Mon, 19 Jun 2023 21:42:14 +0200
+From:   Ben Hutchings <ben@decadent.org.uk>
+To:     sparclinux@vger.kernel.org
+Cc:     Sam Ravnborg <sam@ravnborg.org>
+Subject: [PATCH v2] sparc: Convert Solaris .section syntax
+Message-ID: <ZJCvliZGvsiJxi7h@decadent.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="YVQktDQKkG/fPWWl"
+Content-Disposition: inline
+X-SA-Exim-Connect-IP: 213.219.167.32
+X-SA-Exim-Mail-From: ben@decadent.org.uk
+X-SA-Exim-Scanned: No (on maynard); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 
+--YVQktDQKkG/fPWWl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jun 18, 2023, at 1:00 AM, Mike Rapoport wrote:
-> On Sat, Jun 17, 2023 at 01:38:29PM -0700, Andy Lutomirski wrote:
->> On Fri, Jun 16, 2023, at 1:50 AM, Mike Rapoport wrote:
->> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
->> >
->> > module_alloc() is used everywhere as a mean to allocate memory for code.
->> >
->> > Beside being semantically wrong, this unnecessarily ties all subsystems
->> > that need to allocate code, such as ftrace, kprobes and BPF to modules
->> > and puts the burden of code allocation to the modules code.
->> >
->> > Several architectures override module_alloc() because of various
->> > constraints where the executable memory can be located and this causes
->> > additional obstacles for improvements of code allocation.
->> >
->> > Start splitting code allocation from modules by introducing
->> > execmem_text_alloc(), execmem_free(), jit_text_alloc(), jit_free() APIs.
->> >
->> > Initially, execmem_text_alloc() and jit_text_alloc() are wrappers for
->> > module_alloc() and execmem_free() and jit_free() are replacements of
->> > module_memfree() to allow updating all call sites to use the new APIs.
->> >
->> > The intention semantics for new allocation APIs:
->> >
->> > * execmem_text_alloc() should be used to allocate memory that must reside
->> >   close to the kernel image, like loadable kernel modules and generated
->> >   code that is restricted by relative addressing.
->> >
->> > * jit_text_alloc() should be used to allocate memory for generated code
->> >   when there are no restrictions for the code placement. For
->> >   architectures that require that any code is within certain distance
->> >   from the kernel image, jit_text_alloc() will be essentially aliased to
->> >   execmem_text_alloc().
->> >
->> 
->> Is there anything in this series to help users do the appropriate
->> synchronization when the actually populate the allocated memory with
->> code?  See here, for example:
->
-> This series only factors out the executable allocations from modules and
-> puts them in a central place.
-> Anything else would go on top after this lands.
+=46rom: Ben Hutchings <benh@debian.org>
 
-Hmm.
+gas supports several different forms for .section for ELF targets,
+including:
+    .section NAME [, "FLAGS"[, @TYPE[,FLAG_SPECIFIC_ARGUMENTS]]]
+with single-letter flags, and:
+    .section "NAME"[, #FLAGS...]
+with whole-word flags.
 
-On the one hand, there's nothing wrong with factoring out common code. On the other hand, this is probably the right time to at least start thinking about synchronization, at least to the extent that it might make us want to change this API.  (I'm not at all saying that this series should require changes -- I'm just saying that this is a good time to think about how this should work.)
+In the kernel we generally use the first form.
 
-The current APIs, *and* the proposed jit_text_alloc() API, don't actually look like the one think in the Linux ecosystem that actually intelligently and efficiently maps new text into an address space: mmap().
+The second form is implemented for Solaris compatibility, and a
+recent change to binutils limited its support to SPARC targets:
+    https://sourceware.org/git/?p=3Dbinutils-gdb.git;a=3Dcommitdiff;h=3D4cb=
+88cfae84363cef6ed59d9d458a20ff2e1e893
+Possibly it will be removed entirely at a later date.
 
-On x86, you can mmap() an existing file full of executable code PROT_EXEC and jump to it with minimal synchronization (just the standard implicit ordering in the kernel that populates the pages before setting up the PTEs and whatever user synchronization is needed to avoid jumping into the mapping before mmap() finishes).  It works across CPUs, and the only possible way userspace can screw it up (for a read-only mapping of read-only text, anyway) is to jump to the mapping too early, in which case userspace gets a page fault.  Incoherence is impossible, and no one needs to "serialize" (in the SDM sense).
+To be future-proof and consistent with the rest of the kernel, convert
+all instances of the second form.
 
-I think the same sequence (from userspace's perspective) works on other architectures, too, although I think more cache management is needed on the kernel's end.  As far as I know, no Linux SMP architecture needs an IPI to map executable text into usermode, but I could easily be wrong.  (IIRC RISC-V has very developer-unfriendly icache management, but I don't remember the details.)
+Signed-off-by: Ben Hutchings <benh@debian.org>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+---
+v2: Corrected the commit message to say:
+- The Solaris syntax is still supported on SPARC
+- The flag names also differ
+- Linked to the gas change
 
-Of course, using ptrace or any other FOLL_FORCE to modify text on x86 is rather fraught, and I bet many things do it wrong when userspace is multithreaded.  But not in production because it's mostly not used in production.)
+These changes are compile-tested only.
 
-But jit_text_alloc() can't do this, because the order of operations doesn't match.  With jit_text_alloc(), the executable mapping shows up before the text is populated, so there is no atomic change from not-there to populated-and-executable.  Which means that there is an opportunity for CPUs, speculatively or otherwise, to start filling various caches with intermediate states of the text, which means that various architectures (even x86!) may need serialization.
+Ben.
 
-For eBPF- and module- like use cases, where JITting/code gen is quite coarse-grained, perhaps something vaguely like:
+ arch/sparc/include/asm/futex_64.h   |  4 ++--
+ arch/sparc/include/asm/uaccess_32.h |  8 ++++----
+ arch/sparc/include/asm/uaccess_64.h |  8 ++++----
+ arch/sparc/kernel/ftrace.c          |  2 +-
+ arch/sparc/kernel/head_64.S         |  2 +-
+ arch/sparc/kernel/una_asm_32.S      |  4 ++--
+ arch/sparc/lib/copy_user.S          | 24 ++++++++++--------------
+ arch/sparc/lib/memset.S             |  2 +-
+ drivers/char/adi.c                  |  4 ++--
+ 9 files changed, 27 insertions(+), 31 deletions(-)
 
-jit_text_alloc() -> returns a handle and an executable virtual address, but does *not* map it there
-jit_text_write() -> write to that handle
-jit_text_map() -> map it and synchronize if needed (no sync needed on x86, I think)
+diff --git a/arch/sparc/include/asm/futex_64.h b/arch/sparc/include/asm/fut=
+ex_64.h
+index 72de967318d7..2fbbb8ae8076 100644
+--- a/arch/sparc/include/asm/futex_64.h
++++ b/arch/sparc/include/asm/futex_64.h
+@@ -15,7 +15,7 @@
+ 	"	bne,pn	%%icc, 1b\n"			\
+ 	"	 mov	0, %0\n"			\
+ 	"3:\n"						\
+-	"	.section .fixup,#alloc,#execinstr\n"	\
++	"	.section .fixup,\"ax\"\n"		\
+ 	"	.align	4\n"				\
+ 	"4:	sethi	%%hi(3b), %0\n"			\
+ 	"	jmpl	%0 + %%lo(3b), %%g0\n"		\
+@@ -73,7 +73,7 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uadd=
+r,
+ 	__asm__ __volatile__(
+ 	"\n1:	casa	[%4] %%asi, %3, %1\n"
+ 	"2:\n"
+-	"	.section .fixup,#alloc,#execinstr\n"
++	"	.section .fixup,\"ax\"\n"
+ 	"	.align	4\n"
+ 	"3:	sethi	%%hi(2b), %0\n"
+ 	"	jmpl	%0 + %%lo(2b), %%g0\n"
+diff --git a/arch/sparc/include/asm/uaccess_32.h b/arch/sparc/include/asm/u=
+access_32.h
+index 9fd6c53644b6..641d04000b99 100644
+--- a/arch/sparc/include/asm/uaccess_32.h
++++ b/arch/sparc/include/asm/uaccess_32.h
+@@ -92,13 +92,13 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"st"#size " %1, %2\n\t"					\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"b	2b\n\t"						\
+ 		" mov	%3, %0\n\t"					\
+ 		".previous\n\n\t"					\
+-		".section __ex_table,#alloc\n\t"			\
++		".section __ex_table,\"a\"\n\t"				\
+ 		".align	4\n\t"						\
+ 		".word	1b, 3b\n\t"					\
+ 		".previous\n\n\t"					\
+@@ -160,14 +160,14 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"ld"#size " %2, %1\n\t"					\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"clr	%1\n\t"						\
+ 		"b	2b\n\t"						\
+ 		" mov	%3, %0\n\n\t"					\
+ 		".previous\n\t"						\
+-		".section __ex_table,#alloc\n\t"			\
++		".section __ex_table,\"a\"\n\t"				\
+ 		".align	4\n\t"						\
+ 		".word	1b, 3b\n\n\t"					\
+ 		".previous\n\t"						\
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/u=
+access_64.h
+index b825a5dd0210..cb1a9dae6304 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -96,7 +96,7 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"st"#size " %1, [%2]\n\t"				\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"sethi	%%hi(2b), %0\n\t"				\
+@@ -128,7 +128,7 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"st"#size "a %1, [%2] %%asi\n\t"			\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"sethi	%%hi(2b), %0\n\t"				\
+@@ -169,7 +169,7 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"ld"#size " [%2], %1\n\t"				\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"sethi	%%hi(2b), %0\n\t"				\
+@@ -207,7 +207,7 @@ __asm__ __volatile__(							\
+ 	"1:\t"	"ld"#size "a [%2] %%asi, %1\n\t"			\
+ 		"clr	%0\n"						\
+ 	"2:\n\n\t"							\
+-		".section .fixup,#alloc,#execinstr\n\t"			\
++		".section .fixup,\"ax\"\n\t"				\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+ 		"sethi	%%hi(2b), %0\n\t"				\
+diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
+index eaead3da8e03..f25b13513dc0 100644
+--- a/arch/sparc/kernel/ftrace.c
++++ b/arch/sparc/kernel/ftrace.c
+@@ -33,7 +33,7 @@ static int ftrace_modify_code(unsigned long ip, u32 old, =
+u32 new)
+ 	"	flush	%[ip]\n"
+ 	"	mov	0, %[faulted]\n"
+ 	"2:\n"
+-	"	.section .fixup,#alloc,#execinstr\n"
++	"	.section .fixup,\"ax\"\n"
+ 	"	.align	4\n"
+ 	"3:	sethi	%%hi(2b), %[faulted]\n"
+ 	"	jmpl	%[faulted] + %%lo(2b), %%g0\n"
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 72a5bdc833ea..a15834ca2198 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -950,7 +950,7 @@ EXPORT_SYMBOL(sun4v_chip_type)
+ prom_tba:	.xword	0
+ tlb_type:	.word	0	/* Must NOT end up in BSS */
+ EXPORT_SYMBOL(tlb_type)
+-	.section	".fixup",#alloc,#execinstr
++	.section	.fixup,"ax"
+=20
+ ENTRY(__retl_efault)
+ 	retl
+diff --git a/arch/sparc/kernel/una_asm_32.S b/arch/sparc/kernel/una_asm_32.S
+index f8bf839289fb..030b6f2c3da9 100644
+--- a/arch/sparc/kernel/una_asm_32.S
++++ b/arch/sparc/kernel/una_asm_32.S
+@@ -58,7 +58,7 @@
+ 0:	retl
+ 	 mov	0, %o0
+=20
+-	.section __ex_table,#alloc
++	.section __ex_table,"a"
+ 	.word	4b, retl_efault
+ 	.word	5b, retl_efault
+ 	.word	6b, retl_efault
+@@ -137,7 +137,7 @@
+ 0:	retl
+ 	 mov	0, %o0
+=20
+-	.section __ex_table,#alloc
++	.section __ex_table,"a"
+ 	.word	4b, retl_efault
+ 	.word	5b, retl_efault
+ 	.word	6b, retl_efault
+diff --git a/arch/sparc/lib/copy_user.S b/arch/sparc/lib/copy_user.S
+index 954572c78539..54160b10ab31 100644
+--- a/arch/sparc/lib/copy_user.S
++++ b/arch/sparc/lib/copy_user.S
+@@ -18,19 +18,15 @@
+ #include <asm/thread_info.h>
+ #include <asm/export.h>
+=20
+-/* Work around cpp -rob */
+-#define ALLOC #alloc
+-#define EXECINSTR #execinstr
+-
+ #define EX_ENTRY(l1, l2)			\
+-	.section __ex_table,ALLOC;		\
++	.section __ex_table,"a";		\
+ 	.align	4;				\
+ 	.word	l1, l2;				\
+ 	.text;
+=20
+ #define EX(x,y,a,b) 				\
+ 98: 	x,y;					\
+-	.section .fixup,ALLOC,EXECINSTR;	\
++	.section .fixup,"ax";			\
+ 	.align	4;				\
+ 99:	retl;					\
+ 	 a, b, %o0;				\
+@@ -38,7 +34,7 @@
+=20
+ #define EX2(x,y,c,d,e,a,b) 			\
+ 98: 	x,y;					\
+-	.section .fixup,ALLOC,EXECINSTR;	\
++	.section .fixup,"ax";			\
+ 	.align	4;				\
+ 99:	c, d, e;				\
+ 	retl;					\
+@@ -51,14 +47,14 @@
+=20
+ #define LD(insn, src, offset, reg, label)	\
+ 98:	insn [%src + (offset)], %reg;		\
+-	.section .fixup,ALLOC,EXECINSTR;	\
++	.section .fixup,"ax";			\
+ 99:	ba	label;				\
+ 	 mov	offset, %g5;			\
+ 	EX_ENTRY(98b, 99b)
+=20
+ #define ST(insn, dst, offset, reg, label)	\
+ 98:	insn %reg, [%dst + (offset)];		\
+-	.section .fixup,ALLOC,EXECINSTR;	\
++	.section .fixup,"ax";			\
+ 99:	ba	label;				\
+ 	 mov	offset, %g5;			\
+ 	EX_ENTRY(98b, 99b)
+@@ -90,7 +86,7 @@
+ 	ST(std, dst, offset + 0x10, t4, bigchunk_fault)	\
+ 	ST(std, dst, offset + 0x18, t6, bigchunk_fault)
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ bigchunk_fault:
+ 	sub	%g7, %g5, %o0
+ 	and	%g1, 127, %g1
+@@ -106,7 +102,7 @@
+ 	ST(st, dst, -(offset + 0x08), t2, lastchunk_fault)	\
+ 	ST(st, dst, -(offset + 0x04), t3, lastchunk_fault)
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ lastchunk_fault:
+ 	and	%g1, 15, %g1
+ 	retl
+@@ -130,7 +126,7 @@
+ 	ST(stb, dst, -(offset + 0x02), t0, halfchunk_fault)	\
+ 	ST(stb, dst, -(offset + 0x01), t1, halfchunk_fault)
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ halfchunk_fault:
+ 	and	%o2, 15, %o2
+ 	sub	%o3, %g5, %o3
+@@ -144,7 +140,7 @@
+ 	ST(stb, dst, -(offset + 0x02), t0, last_shortchunk_fault)	\
+ 	ST(stb, dst, -(offset + 0x01), t1, last_shortchunk_fault)
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ last_shortchunk_fault:
+ 	and	%o2, 1, %o2
+ 	retl
+@@ -384,7 +380,7 @@ __copy_user:	/* %o0=3Ddst %o1=3Dsrc %o2=3Dlen */
+ 	b	copy_user_last7
+ 	 mov	%o2, %g1
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ 	.align	4
+ 97:
+ 	retl
+diff --git a/arch/sparc/lib/memset.S b/arch/sparc/lib/memset.S
+index eaff68213fdf..caca7c068ca7 100644
+--- a/arch/sparc/lib/memset.S
++++ b/arch/sparc/lib/memset.S
+@@ -186,7 +186,7 @@
+ 	retl
+ 	 clr	%o0
+=20
+-	.section .fixup,#alloc,#execinstr
++	.section .fixup,"ax"
+ 	.align	4
+ 30:
+ 	and	%o1, 0x7f, %o1
+diff --git a/drivers/char/adi.c b/drivers/char/adi.c
+index 751d7cc0da1b..7508df9f299c 100644
+--- a/drivers/char/adi.c
++++ b/drivers/char/adi.c
+@@ -29,7 +29,7 @@ static int read_mcd_tag(unsigned long addr)
+ 		"1:	ldxa [%[addr]] %[asi], %[ver]\n"
+ 		"	mov 0, %[err]\n"
+ 		"2:\n"
+-		"	.section .fixup,#alloc,#execinstr\n"
++		"	.section .fixup,\"ax\"\n"
+ 		"	.align 4\n"
+ 		"3:	sethi %%hi(2b), %%g1\n"
+ 		"	jmpl  %%g1 + %%lo(2b), %%g0\n"
+@@ -106,7 +106,7 @@ static int set_mcd_tag(unsigned long addr, u8 ver)
+ 		"1:	stxa %[ver], [%[addr]] %[asi]\n"
+ 		"	mov 0, %[err]\n"
+ 		"2:\n"
+-		"	.section .fixup,#alloc,#execinstr\n"
++		"	.section .fixup,\"ax\"\n"
+ 		"	.align 4\n"
+ 		"3:	sethi %%hi(2b), %%g1\n"
+ 		"	jmpl %%g1 + %%lo(2b), %%g0\n"
 
-could be more efficient and/or safer.
+--YVQktDQKkG/fPWWl
+Content-Type: application/pgp-signature; name="signature.asc"
 
-(Modules could use this too.  Getting alternatives right might take some fiddling, because off the top of my head, this doesn't match how it works now.)
+-----BEGIN PGP SIGNATURE-----
 
-To make alternatives easier, this could work, maybe (haven't fully thought it through):
+iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAmSQr5IACgkQ57/I7JWG
+EQmxxhAAq93NR58024kzaBncO0QmrzQXTPz1UyOhhizujQWhgcwIm9aH0fzurO/R
+7fgmqwFPvAuQKJC5JJx2xr0SpMhOYiXnKTS/dClKgqMCmA+TFZz+eegYmJeOVcE+
+2QYyJ0LrnT60JsOHjSuOoifkoJxotBAhk1a1UsSZcbYVfoiQ14uDxpXGzmiBo4tK
+B2B5vIoGJHyU/A01QKKHcsPF1kexROVKx3zT+oCsoYE9lJrv5p8qnwVE09GGghwv
+43f4CEZzRk9NthnCZNibDrc/bIHFBYqrHH6DMQg4+HLDpQzg+8gn9OvzLlTepmBc
+UIvv4RQE1viCyRDtBXFHyGUP6salt3umvOgRfdVMlYx8p37614suOCpX/qjbhATs
+QOJM3GPGfUCPk3NvouJTZTO6R2zYpQTvJavNpChU5r4fJY0rFXkg/s15L0dIE791
+/BQGpWnUjjq+lNsLEPpxUhqYIPOUu1y5SxjO+NghxD8LT8prwIm206EeUTwWTldC
+Q/ETLoIXVhrxaapiavh7vLUzG69zFbaqASKI1dZe4DcYrG3EKRGPT0MqIrMF4tS/
+27i70XSBLNBRrYE7g96tMv0YrT9lsTrFyp+z6OitYMbzpfZfAJfOumalx+halgds
+1En9qUpbjPmNMVxB+v7uTvFli06gGujFnOeJVTLCbyzkeCRwq4Y=
+=TmG9
+-----END PGP SIGNATURE-----
 
-jit_text_alloc()
-jit_text_map_rw_inplace() -> map at the target address, but RW, !X
-
-write the text and apply alternatives
-
-jit_text_finalize() -> change from RW to RX *and synchronize*
-
-jit_text_finalize() would either need to wait for RCU (possibly extra heavy weight RCU to get "serialization") or send an IPI.
-
-This is slower than the alloc, write, map solution, but allows alternatives to be applied at the final address.
-
-
-Even fancier variants where the writing is some using something like use_temporary_mm() might even make sense.
-
-
-To what extent does performance matter for the various users?  module loading is slow, and I don't think we care that much.  eBPF loaded is not super fast, and we care to a limited extent.  I *think* the bcachefs use case needs to be very fast, but I'm not sure it can be fast and supportable.
-
-Anyway, food for thought.
-
+--YVQktDQKkG/fPWWl--
