@@ -2,63 +2,101 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 809B2EB64D7
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 01:30:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F647EB64DC
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 02:12:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229615AbjFSBaA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 18 Jun 2023 21:30:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36684 "EHLO
+        id S229737AbjFSCMT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 18 Jun 2023 22:12:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbjFSB37 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 21:29:59 -0400
-X-Greylist: delayed 6276 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 18 Jun 2023 18:29:58 PDT
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3DB2CD1;
-        Sun, 18 Jun 2023 18:29:58 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 5DA7392009C; Mon, 19 Jun 2023 03:29:57 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 523E792009B;
-        Mon, 19 Jun 2023 02:29:57 +0100 (BST)
-Date:   Mon, 19 Jun 2023 02:29:57 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     Randy Dunlap <rdunlap@infradead.org>
-cc:     Sam Ravnborg <sam@ravnborg.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        linux-kernel@vger.kernel.org,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        with ESMTP id S229743AbjFSCMS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 22:12:18 -0400
+Received: from out-14.mta1.migadu.com (out-14.mta1.migadu.com [IPv6:2001:41d0:203:375::e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F5CEE4F
+        for <sparclinux@vger.kernel.org>; Sun, 18 Jun 2023 19:12:16 -0700 (PDT)
+Date:   Sun, 18 Jun 2023 22:12:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1687140734;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=r76UCXNSYK7hKAPox1fty7/njlbL/lomotiDbXrHJ0c=;
+        b=TBWCnt8zcFJ5nKRG4NITLMc0ih7Ljc1nAilqoS2S6VpJEHCfC/iKrXm4DqvCBteAIE0x7N
+        KKt8TEEvrj/SIu68Wj5oBDWU01USU5SRaXmsywsmSDitWFep2jlqsfvvNpzkBQyjcAlBQy
+        vbP17KRUSXvKHyjAh6Si2ussqbVjvZw=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Kent Overstreet <kent.overstreet@linux.dev>
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
         "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
-Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
-In-Reply-To: <ea8b0e25-fd2e-4fe1-3157-7556e29eee87@infradead.org>
-Message-ID: <alpine.DEB.2.21.2306190202050.14084@angie.orcam.me.uk>
-References: <20230406160548.25721-1-rdunlap@infradead.org> <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk> <20230406203207.GA1534216@ravnborg.org> <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk> <20230407200313.GA1655046@ravnborg.org>
- <alpine.DEB.2.21.2304072142290.62619@angie.orcam.me.uk> <a05558c3-8d5c-c389-ba4c-be134c75ac1c@infradead.org> <alpine.DEB.2.21.2306190000530.14084@angie.orcam.me.uk> <ea8b0e25-fd2e-4fe1-3157-7556e29eee87@infradead.org>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Puranjay Mohan <puranjay12@gmail.com>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Song Liu <song@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v2 06/12] mm/execmem: introduce execmem_data_alloc()
+Message-ID: <20230619021205.vfbolcklckdpbm4k@moria.home.lan>
+References: <20230616085038.4121892-1-rppt@kernel.org>
+ <20230616085038.4121892-7-rppt@kernel.org>
+ <87jzw0qu3s.ffs@tglx>
+ <20230618231431.4aj3k5ujye22sqai@moria.home.lan>
+ <87h6r4qo1d.ffs@tglx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87h6r4qo1d.ffs@tglx>
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Randy,
+On Mon, Jun 19, 2023 at 02:43:58AM +0200, Thomas Gleixner wrote:
+> Kent!
 
-> >  What happened to DaveM?
+Hi Thomas :)
+
+> No. I am not.
+
+Ok.
+
+> Whether that's an internal function or not does not make any difference
+> at all.
+
+Well, at the risk of this discussion going completely off the rails, I
+have to disagree with you there. External interfaces and high level
+semantics are more important to get right from the outset, internal
+implementation details can be cleaned up later, within reason.
+
+And the discussion on this patchset has been more focused on those
+external interfaces, which seems like the right approach to me.
+
+> > ... I made the same mistake reviewing Song's patchset...
 > 
-> I haven't seen him merge any arch/sparc/ patches lately.
-> I have a couple that are still pending.
+> Songs series had rough edges, but was way more data structure driven
+> and palatable than this hackery.
 
- Oh, I hope he's been doing good then, and it's just a change of life 
-priorities or suchlike.  Patch reviews can take a lot of mental effort, 
-and I can't claim I've been as effective as I wished to with stuff that 
-lands on my plate either.
-
-> >  In any case after a couple of iterations I have made a succesful build of 
-> > a 32-bit SPARC toolchain now, which I was able to verify a fix with I have 
-> 
-> Is your newly built toolchain for riscv hosting?
-
- Are you asking whether the SPARC toolchain has been built/installed on a 
-RISC-V system?  If so, then no, it hasn't.  It runs on POWER9.
-
-  Maciej
+I liked that aspect of Song's patchset too, and I'm actually inclined to
+agree with you that this patchset might get a bit cleaner with more of
+that, but really, this semes like just quibbling over calling convention
+for an internal helper function.
