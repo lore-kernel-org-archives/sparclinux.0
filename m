@@ -2,82 +2,219 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50019EB64D7
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 00:23:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C7D7EB64DB
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 00:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229472AbjFSAXb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 18 Jun 2023 20:23:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56906 "EHLO
+        id S229544AbjFSAoE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 18 Jun 2023 20:44:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229456AbjFSAXa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 20:23:30 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67210E49;
-        Sun, 18 Jun 2023 17:23:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=b7gyHO24N3WZ07GlteZpo9/cfkkPPqpQCtFlsB7cZQM=; b=eq/tnx9Ym8abDv2aEKGZPhZOKF
-        whuurQnVCi0VBp1b6k1Ci3RmRlO58LTo0Ws3e9wa2yzRy5gmV4ZJarfaUTvWOhQ8m5p3PclW/+pMY
-        LfoOEvBVlRyH/xKt8eMaoxD9ThuAXufIHyTJIU/7XudU/B4YqKK5QjwAz8QS27mYn5GVvD7vxvMWn
-        Q42KbCRPvpYiqDHFzxh91YMIDTGhrJpK7jnV/CFfMJjW30h99Lp1sPrt9rEfVkL7KcYhL1gvdMpwj
-        7qMvFUhBmhjp0UYuWOPBo0oIeaG1UvzCm5MYBatt1IzggL6k2Kg0aJVUM8yoEaHy7O26tpUR8GNGB
-        kMj7h2hA==;
-Received: from [2601:1c2:980:9ec0::2764]
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qB2fy-0071Pa-13;
-        Mon, 19 Jun 2023 00:23:22 +0000
-Message-ID: <ea8b0e25-fd2e-4fe1-3157-7556e29eee87@infradead.org>
-Date:   Sun, 18 Jun 2023 17:23:21 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.2
-Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
-Content-Language: en-US
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     Sam Ravnborg <sam@ravnborg.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        linux-kernel@vger.kernel.org,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        with ESMTP id S229472AbjFSAoD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 20:44:03 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A3AD188;
+        Sun, 18 Jun 2023 17:44:01 -0700 (PDT)
+From:   Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1687135439;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=vsMXbrKh0JGoYY4QV9GoJzzJG7ynUwMTeuBBW75Cixw=;
+        b=rUN14PJnvCNMHwi3GTEOlfidoeu9X715ZKU0SYtls/E3LdchOubCrv6G6mpg1kS5Tfe1/9
+        s4JZa7jZI7/5XwWNgt1s7Bm2c/bSSDDBur1GSNft3GZ9udoq7EXJISSUO38jFXsNGvEbM0
+        tkM74ZwC4qjXGWb7oec1XP9g1Yz2kDYVXq2zWp3OYogUAp3NdYJ+EU/2VWfMYxaoBPM/f0
+        h8mrju1Sc9ps1cTeu3nCYiDGzqD/IRl0erFde+EUGB5wGGP14zw+GKvCyObIUHvlYiaxv4
+        ceZRK3Uxj0lWHTCBTGtW1lP8JYu8YM/FvQhC52QcdmikiK6sh8q/uSftK+9f4w==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1687135439;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=vsMXbrKh0JGoYY4QV9GoJzzJG7ynUwMTeuBBW75Cixw=;
+        b=lLIbNU3pTbmQ6EcHS74pAHUeumYKJH5D0qb0hsj7fDkEeEfUM8kX51p2S8npikVP/atNyj
+        ZNKqUDCt/8atTiDw==
+To:     Kent Overstreet <kent.overstreet@linux.dev>
+Cc:     Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
         "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
-References: <20230406160548.25721-1-rdunlap@infradead.org>
- <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
- <20230406203207.GA1534216@ravnborg.org>
- <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk>
- <20230407200313.GA1655046@ravnborg.org>
- <alpine.DEB.2.21.2304072142290.62619@angie.orcam.me.uk>
- <a05558c3-8d5c-c389-ba4c-be134c75ac1c@infradead.org>
- <alpine.DEB.2.21.2306190000530.14084@angie.orcam.me.uk>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <alpine.DEB.2.21.2306190000530.14084@angie.orcam.me.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Puranjay Mohan <puranjay12@gmail.com>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Song Liu <song@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v2 06/12] mm/execmem: introduce execmem_data_alloc()
+In-Reply-To: <20230618231431.4aj3k5ujye22sqai@moria.home.lan>
+References: <20230616085038.4121892-1-rppt@kernel.org>
+ <20230616085038.4121892-7-rppt@kernel.org> <87jzw0qu3s.ffs@tglx>
+ <20230618231431.4aj3k5ujye22sqai@moria.home.lan>
+Date:   Mon, 19 Jun 2023 02:43:58 +0200
+Message-ID: <87h6r4qo1d.ffs@tglx>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+Kent!
 
-On 6/18/23 16:42, Maciej W. Rozycki wrote:
-> On Fri, 7 Apr 2023, Randy Dunlap wrote:
-> 
->> /me wishes that we had a Sparc maintainer.
-> 
->  What happened to DaveM?
+On Sun, Jun 18 2023 at 19:14, Kent Overstreet wrote:
+> On Mon, Jun 19, 2023 at 12:32:55AM +0200, Thomas Gleixner wrote:
+>
+> Thomas, you're confusing an internal interface with external
 
-I haven't seen him merge any arch/sparc/ patches lately.
-I have a couple that are still pending.
+No. I am not.
 
->  In any case after a couple of iterations I have made a succesful build of 
-> a 32-bit SPARC toolchain now, which I was able to verify a fix with I have 
+Whether that's an internal function or not does not make any difference
+at all.
 
-Is your newly built toolchain for riscv hosting?
+Having a function growing _eight_ parameters where _six_ of them are
+derived from a well defined data structure is a clear sign of design
+fail.
 
-> outlined earlier in this thread.  Posted as archived at: 
-> <https://lore.kernel.org/r/alpine.DEB.2.21.2306182347101.14084@angie.orcam.me.uk/>.
+It's not rocket science to do:
 
-thanks.
--- 
-~Randy
+struct generic_allocation_info {
+       ....
+};
+
+struct execmem_info {
+       ....
+       struct generic_allocation_info alloc_info;
+;
+
+struct execmem_param {
+       ...
+       struct execmem_info[NTYPES];
+};
+
+and having a function which can either operate on execmem_param and type
+or on generic_allocation_info itself. It does not matter as long as the
+data structure which is handed into this internal function is
+describing it completely or needs a supplementary argument, i.e. flags.
+
+Having tons of wrappers which do:
+
+       a = generic_info.a;
+       b = generic_info.b;
+       ....
+       n = generic_info.n;
+
+       internal_func(a, b, ....,, n);
+
+is just hillarious and to repeat myself tasteless and therefore
+disgusting.
+
+That's CS course first semester hackery, but TBH, I can only tell from
+imagination because I did not take CS courses - maybe that's the
+problem...
+
+Data structure driven design works not from the usage site down to the
+internals. It's the other way round:
+
+  1) Define a data structure which describes what the internal function
+     needs to know
+
+  2) Implement use case specific variants which describe that
+
+  3) Hand the use case specific variant to the internal function
+     eventually with some minimal supplementary information.
+
+Object oriented basics, right?
+
+There is absolutely nothing wrong with having
+
+      internal_func(generic_info *, modifier);
+
+but having
+
+      internal_func(a, b, ... n)
+
+is fundamentally wrong in the context of an extensible and future proof
+internal function.
+
+Guess what. Today it's sufficient to have _eight_ arguments and we are
+happy to have 10 nonsensical wrappers around this internal
+function. Tomorrow there happens to be a use case which needs another
+argument so you end up:
+
+  Changing 10 wrappers plus the function declaration and definition in
+  one go
+
+instead of adding
+
+  One new naturally 0 initialized member to generic_info and be done
+  with it.
+
+Look at the evolution of execmem_alloc() in this very pathset which I
+pointed out. That very patchset covers _two_ of at least _six_ cases
+Song and myself identified. It already had _three_ steps of evolution
+from _one_ to _five_ to _eight_ parameters.
+
+C is not like e.g. python where you can "solve" that problem by simply
+doing:
+
+- internal_func(a, b, c):
++ internal_func(a, b, c, d=None, ..., n=None):
+
+But that's not a solution either. That's a horrible workaround even in
+python once your parameter space gets sufficiently large. The way out in
+python is to have **kwargs. But that's not an option in C, and not
+necessarily the best option for python either.
+
+Even in python or any other object oriented language you get to the
+point where you have to rethink your approach, go back to the drawing
+board and think about data representation.
+
+But creating a new interface based on "let's see what we need over
+time and add parameters as we see fit" is simply wrong to begin with
+independent of the programming language.
+
+Even if the _eight_ parameters are the end of the range, then they are
+beyond justifyable because that's way beyond the natural register
+argument space of any architecture and you are offloading your lazyness
+to wrappers and the compiler to emit pointlessly horrible code.
+
+There is a reason why new syscalls which need more than a few parameters
+are based on 'struct DATA_WHICH_I_NEED_TO_KNOW' and 'flags'.
+
+We've got burned on the non-extensibilty often enough. Why would a new
+internal function have any different requirements especially as it is
+neither implemented to the full extent nor a hotpath function?
+
+Now you might argue that it _is_ a "hotpath" due to the BPF usage, but
+then even more so as any intermediate wrapper which converts from one
+data representation to another data representation is not going to
+increase performance, right?
+
+> ... I made the same mistake reviewing Song's patchset...
+
+Songs series had rough edges, but was way more data structure driven
+and palatable than this hackery.
+
+The fact that you made a mistake while reviewing Songs series has
+absolutely nothing to do with the above or my previous reply to Mike.
+
+Thanks,
+
+        tglx
