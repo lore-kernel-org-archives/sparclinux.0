@@ -2,91 +2,190 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B348EB64D7
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 02:35:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B54DEB64DD
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 03:57:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbjFSCf1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 18 Jun 2023 22:35:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52966 "EHLO
+        id S229640AbjFSD5T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 18 Jun 2023 23:57:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229565AbjFSCf0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 22:35:26 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F461B4;
-        Sun, 18 Jun 2023 19:35:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=LuA83bs6x4tpHCVAyfI7mXZwUb3oCY1lGprHb4B/e34=; b=ka5d9uLiuhXq2cEXhVkMmGgZ/B
-        kEM+pkOYmxydGZogM41oeQ2yWUkYaxuaDlbft4M7+rZBWWxfqNU4s+6K/BprJGqRSVwNKcHplvTBI
-        K9428z+k1Omi+v4Gwzn9tPqNQEDiSv+5QaB6vBEbUEkSnGEHJxTl7SfYhT6ecRv+cgwTw7gSldKRw
-        VhEJzu2wMOKuU/gYZz3qGRgabQCpdYDGjdiAnidVlvxM/mgPkq5NIfEav0tVW3dNMwyhK6oljbjkZ
-        Irq6puVhoMnBs4ITR56jX5EH+dEJChxOruq5TMpn+GsKC9wclkD0hKElH887lGXKPPqNrr23xqlu+
-        orzxufHw==;
-Received: from [2601:1c2:980:9ec0::2764]
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qB4je-007DcK-1r;
-        Mon, 19 Jun 2023 02:35:18 +0000
-Message-ID: <0b59e7f8-542a-dc2d-08bd-8b42e03e32aa@infradead.org>
-Date:   Sun, 18 Jun 2023 19:35:17 -0700
+        with ESMTP id S229481AbjFSD5R (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Jun 2023 23:57:17 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF4F5C5;
+        Sun, 18 Jun 2023 20:57:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de;
+ s=s31663417; t=1687146949; x=1687751749; i=deller@gmx.de;
+ bh=2fndrLIH+tdYpXaN3a+B2+gpkPc6UJVTkZbYPRfVVB8=;
+ h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+ b=tHEzjmtG0VENHAd2DsNX0VdgvhB3svy7eaGOu9NFOvFGhn1vMbEvw1DJ+6Ro8SfR+zYO8Jk
+ oQyuTgSliiEbg8vZLpHgVzlyXTGg39KCzCetFU2QY1sIGcgFZePrwHb9ybGVXL+myxIM7zyFW
+ vutzWxYp5k3P7CbcRS0bdRBQ3OV2xelDwHz+H2/Evbu2z8c/2sLPc4ox6wVqaIps6PKmnyug3
+ Uh162w8Lsy86g+eUKl1+1tWZwxCjWi6j5hYhUWVVAHRKRfHvDjtn4aElpEf0t4RvU0/z6Fz8/
+ PwGLztv0XjhmK7HYbqINh4rNCYiEBBtnOqKRgIMD0/NnASTKw8BA==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [192.168.20.60] ([94.134.148.114]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1My36N-1ptYsd3hol-00zXMS; Mon, 19
+ Jun 2023 05:55:49 +0200
+Message-ID: <2f5a3805-b7a5-1c45-e5a4-e273ea289ba6@gmx.de>
+Date:   Mon, 19 Jun 2023 05:55:42 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.2
-Subject: Re: [PATCH] parport_pc: don't allow driver for SPARC32
+ Thunderbird/102.10.0
+Subject: Re: [PATCH v2 08/23] parisc: add pte_unmap() to balance get_ptep()
 Content-Language: en-US
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     Sam Ravnborg <sam@ravnborg.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        linux-kernel@vger.kernel.org,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+To:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        John David Anglin <dave.anglin@bell.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
         "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-parport@lists.infradead.org
-References: <20230406160548.25721-1-rdunlap@infradead.org>
- <alpine.DEB.2.21.2304062039260.44308@angie.orcam.me.uk>
- <20230406203207.GA1534216@ravnborg.org>
- <alpine.DEB.2.21.2304062144520.44308@angie.orcam.me.uk>
- <20230407200313.GA1655046@ravnborg.org>
- <alpine.DEB.2.21.2304072142290.62619@angie.orcam.me.uk>
- <a05558c3-8d5c-c389-ba4c-be134c75ac1c@infradead.org>
- <alpine.DEB.2.21.2306190000530.14084@angie.orcam.me.uk>
- <ea8b0e25-fd2e-4fe1-3157-7556e29eee87@infradead.org>
- <alpine.DEB.2.21.2306190202050.14084@angie.orcam.me.uk>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <alpine.DEB.2.21.2306190202050.14084@angie.orcam.me.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+References: <a4963be9-7aa6-350-66d0-2ba843e1af44@google.com>
+ <653369-95ef-acd2-d6ea-e95f5a997493@google.com>
+From:   Helge Deller <deller@gmx.de>
+In-Reply-To: <653369-95ef-acd2-d6ea-e95f5a997493@google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:E3xdg5CpQcjOoKW8Y56OwqWPK69wZz6OC3pXUq5sC4koD4vx6TE
+ 8yx7mlAVEcBGQCbXtdVKp5UUdnr/61/KwgdLsdsCeafoXWrwMUBr6cWiQIGAUgINT3sBkXj
+ YUQ+i02IXhG0ZBE1C7Dv9zl3aVQVXzwfFiVekkVC97MGOBsK+OwPv4gKZzvDYcrI9sx6vlb
+ RKMhNKB17Raa0wGb+9IJg==
+UI-OutboundReport: notjunk:1;M01:P0:f2v0q5B++HE=;Da2Hd/q80C0hblRDasa115R7ipH
+ ITP+kxg7e8qZRipjLb6CGqyHPdG/Zhb8pEJIpXAWFU3ar1yt+BeqPp25z1tD2fgQoomDBafSI
+ T2JI0cHyhX9oBPPhCH37HzO5OqjXai1apVVEetq9P184N6g33p3cSDDZYP4I6GoLDN9DvQEFu
+ QGd3zrkWkqEmZ6Vad/7T9wzoz6Iy73Cj+YnQUayxP/WmDRLwi5RNxp1O83PFQIH+w3CKE1EWO
+ 23kOMxcrgAD7YqjQU4alZc4K1Phuaj4FBExhBg+66ocbKtD9nfb6PZRuchNLX/Q5VmxOlBfea
+ +unhX9xz0F4yej82C9a9Ahzf2WFmqaqduJ4GfxBBVMpA2OodPCXovgqDmB1veKiq8vZA6X5yk
+ wU+Jcnh+QmfWXd/xL82C8EjAYdwJcDg+eEk6he/T2BpLkdrJqvUsbwmL1s6vm3h2xfZdv9HjP
+ HDqKexAwIHyONgbwbztyEJNTMjILHQtvalYaPHd4cLJWdj/f+xdGeWpPd11qIZv0pNRC6RmzG
+ BMRyfjmCQkvWDZio/DHwSQ9i0PRIQ+8+VjmSj1b6Y6CsaT5/J9RXXe4kiJxSG4snZdzRGYY2O
+ 4McI1b8tXhq5e63I/ekb0ajHKJ5Bor2QBVqDM68FKmYbJv/bR6oV8WIMMsLewJ2LUtXAfXAbu
+ x/EEjEq7JGtus66za+aX5Yazu6PYy0EIzEn+QO1Pnloxqaq1TITSpEEXtzuFrLPYbW8qHKqNl
+ aMzyEK7bpqATAUqTeGQYGs5kvHwxHgsW47YV5D9G3+QzisWw4SSUG2zUA0IqSI6i/fK/bZUUg
+ 9s7lXJW9HE6ObKs8Fk2cZGz0H9VAEPLoLgBcumMBsPE0yNFDqFiHwKmbJ24rQM7wtujiIH8eg
+ Du+92nPxZgAKb8/YuRr6Rozc58x213b7vXjIz4uu3TcvqL6TMGK4B5hLfnDu5CfN3qfqxkdKR
+ hKk8rTZjPetTc5al7ev4qbwvKGA=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On 6/8/23 21:18, Hugh Dickins wrote:
+> To keep balance in future, remember to pte_unmap() after a successful
+> get_ptep().  And act as if flush_cache_pages() really needs a map there,
+> to read the pfn before "unmapping", to be sure page table is not removed=
+.
+>
+> Signed-off-by: Hugh Dickins <hughd@google.com>
+
+For the parisc parts:
+
+Acked-by: Helge Deller <deller@gmx.de> # parisc
+
+Helge
 
 
-On 6/18/23 18:29, Maciej W. Rozycki wrote:
-> Hi Randy,
-> 
->>>  What happened to DaveM?
->>
->> I haven't seen him merge any arch/sparc/ patches lately.
->> I have a couple that are still pending.
-> 
->  Oh, I hope he's been doing good then, and it's just a change of life 
-> priorities or suchlike.  Patch reviews can take a lot of mental effort, 
-> and I can't claim I've been as effective as I wished to with stuff that 
-> lands on my plate either.
-> 
->>>  In any case after a couple of iterations I have made a succesful build of 
->>> a 32-bit SPARC toolchain now, which I was able to verify a fix with I have 
->>
->> Is your newly built toolchain for riscv hosting?
-> 
->  Are you asking whether the SPARC toolchain has been built/installed on a 
-> RISC-V system?  If so, then no, it hasn't.  It runs on POWER9.
+> ---
+>   arch/parisc/kernel/cache.c | 26 +++++++++++++++++++++-----
+>   1 file changed, 21 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/parisc/kernel/cache.c b/arch/parisc/kernel/cache.c
+> index ca4a302d4365..501160250bb7 100644
+> --- a/arch/parisc/kernel/cache.c
+> +++ b/arch/parisc/kernel/cache.c
+> @@ -426,10 +426,15 @@ void flush_dcache_page(struct page *page)
+>   		offset =3D (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
+>   		addr =3D mpnt->vm_start + offset;
+>   		if (parisc_requires_coherency()) {
+> +			bool needs_flush =3D false;
+>   			pte_t *ptep;
+>
+>   			ptep =3D get_ptep(mpnt->vm_mm, addr);
+> -			if (ptep && pte_needs_flush(*ptep))
+> +			if (ptep) {
+> +				needs_flush =3D pte_needs_flush(*ptep);
+> +				pte_unmap(ptep);
+> +			}
+> +			if (needs_flush)
+>   				flush_user_cache_page(mpnt, addr);
+>   		} else {
+>   			/*
+> @@ -561,14 +566,20 @@ EXPORT_SYMBOL(flush_kernel_dcache_page_addr);
+>   static void flush_cache_page_if_present(struct vm_area_struct *vma,
+>   	unsigned long vmaddr, unsigned long pfn)
+>   {
+> -	pte_t *ptep =3D get_ptep(vma->vm_mm, vmaddr);
+> +	bool needs_flush =3D false;
+> +	pte_t *ptep;
+>
+>   	/*
+>   	 * The pte check is racy and sometimes the flush will trigger
+>   	 * a non-access TLB miss. Hopefully, the page has already been
+>   	 * flushed.
+>   	 */
+> -	if (ptep && pte_needs_flush(*ptep))
+> +	ptep =3D get_ptep(vma->vm_mm, vmaddr);
+> +	if (ptep) {
+> +		needs_flush =3D pte_needs_flush(*ptep);
+> +		pte_unmap(ptep);
+> +	}
+> +	if (needs_flush)
+>   		flush_cache_page(vma, vmaddr, pfn);
+>   }
+>
+> @@ -635,17 +646,22 @@ static void flush_cache_pages(struct vm_area_struc=
+t *vma, unsigned long start, u
+>   	pte_t *ptep;
+>
+>   	for (addr =3D start; addr < end; addr +=3D PAGE_SIZE) {
+> +		bool needs_flush =3D false;
+>   		/*
+>   		 * The vma can contain pages that aren't present. Although
+>   		 * the pte search is expensive, we need the pte to find the
+>   		 * page pfn and to check whether the page should be flushed.
+>   		 */
+>   		ptep =3D get_ptep(vma->vm_mm, addr);
+> -		if (ptep && pte_needs_flush(*ptep)) {
+> +		if (ptep) {
+> +			needs_flush =3D pte_needs_flush(*ptep);
+> +			pfn =3D pte_pfn(*ptep);
+> +			pte_unmap(ptep);
+> +		}
+> +		if (needs_flush) {
+>   			if (parisc_requires_coherency()) {
+>   				flush_user_cache_page(vma, addr);
+>   			} else {
+> -				pfn =3D pte_pfn(*ptep);
+>   				if (WARN_ON(!pfn_valid(pfn)))
+>   					return;
+>   				__flush_cache_page(vma, addr, PFN_PHYS(pfn));
 
-Yes, that's what I was asking.
-So you could have used the compilers that Arnd builds:
-  https://mirrors.edge.kernel.org/pub/tools/crosstool/
-
-Thanks.
--- 
-~Randy
