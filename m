@@ -2,79 +2,142 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2D2EB64D7
-	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 19:00:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12C01EB64DB
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 19:54:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229899AbjFTTAE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 20 Jun 2023 15:00:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47744 "EHLO
+        id S229872AbjFTTy4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 20 Jun 2023 15:54:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230268AbjFTS7v (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 14:59:51 -0400
-Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:402::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67BD510DA
-        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 11:59:48 -0700 (PDT)
+        with ESMTP id S229798AbjFTTyw (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 15:54:52 -0400
+Received: from mail-yw1-x112a.google.com (mail-yw1-x112a.google.com [IPv6:2607:f8b0:4864:20::112a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D03DD1727
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 12:54:47 -0700 (PDT)
+Received: by mail-yw1-x112a.google.com with SMTP id 00721157ae682-5700b15c12fso55432037b3.1
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 12:54:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=0ST5VG4BIdQiX6233KO3FjWHkUQ73kaQaZzR2i8Y6sI=;
-        b=m6qRYyHA5niL4yMsF2Asz8e/06380DiQa/ER43LTkJdlH2FjfUHsF89ZPiT+qLn3mSWGrK7i69mHi
-         0Q7qnRii9A2nQPxXULsaHgyW/ooXSuhbiaL9RQQWqcYMco3xOCDXa0XlMczVZQOnGL1ch8uUNnvlDn
-         dlw7w3suKfB/oyai6aSg8UdroqwCIfi/OecTF44KzcceY7K4y4G3afFuKYKcxgyslA4DOHnvAKaq+j
-         UIhiTeGDdXnbR0l17vaMU2vPfsXHEq9ScU22RCr43P0ctTuIhrWvJ5OY6W2n+7ikgMvdi+tPdzGBGJ
-         Xn2cW3evSqw3Wl5ZZ1qgSLuIhw5FJgA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=0ST5VG4BIdQiX6233KO3FjWHkUQ73kaQaZzR2i8Y6sI=;
-        b=VdQBxQIO1EeIUYFmhdJdNRQjn26Dazp/FK5E6d3ZM+2XTdCWh/6drmhHIQE1fx3tC+L2tF8UEeKlK
-         gsL6+JSAg==
-X-HalOne-ID: 9e591c9f-0f9c-11ee-a09a-b90637070a9d
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay3 (Halon) with ESMTPSA
-        id 9e591c9f-0f9c-11ee-a09a-b90637070a9d;
-        Tue, 20 Jun 2023 18:59:46 +0000 (UTC)
-Date:   Tue, 20 Jun 2023 20:59:44 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ivan Orlov <ivan.orlov0322@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
+        d=google.com; s=20221208; t=1687290887; x=1689882887;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=IiBraH1gFEtLq0Kn5mTuDR7eletLpb8dAh5y2pzul9A=;
+        b=GnK6zVktB4fTweKikYzUukoKZGCmVusKP/x6uUrsa1IZh7Lcf11VRj9767YwL28zyx
+         J4JKcGvTfTr/LvFgYj5pm1tfEFEJ8PKkMTUvowkeEnkdtgmC9135h58fxQzErHTduUCX
+         +m+UG/mn18iCUxOKOQQ3TboQqPdTC4trrhg3CdFjun1ZClZ8tNP63vy0pMK4T8o5rwHN
+         Ev/CkGwjSSWdgG/b37eVTxoy7CA9K7VH5ECYT9iqlmvWSv+gngjFQijyE1bOMwoZXb/s
+         MCqGmsFWL/xCVoRj8nY9T1uCu7dqqcS1sL95WKPUvtYF9Sc63RHc6WC/aK2yPQNdgDcy
+         QIWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687290887; x=1689882887;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=IiBraH1gFEtLq0Kn5mTuDR7eletLpb8dAh5y2pzul9A=;
+        b=YVxU/lr0dBZYjdYboPPAvmJkTmkpMgMHWpPT+78zaGcthapgrP+j+cUhX5AzhXye/w
+         bjxJ1vsYSWvj9n7xLwIS1TTAOsx6twPmW89BrZhuirvyaq/apLUhwmS6CM8mr7zeX3ef
+         w61OLthJxYyO3yrD5u/CWj6wG+P0hp+i6k5RB3QXbyHdncujc04bC2ZV4391x7xSuG54
+         oS4YDu/DNVrJTi1tlITbMJq836lIuVvI8tUT9PlaMF2KrBkL+V5VyFjs4Q/zaf++rMJ0
+         8FPMjQMdxyE4OTFp97qkALb3+//BYzuzKpCUg2jHLAKMNAs/7TiD/SYsiihwjPB/Cx16
+         gcAQ==
+X-Gm-Message-State: AC+VfDyIlwugvh5ArSfyTeMgYoN/umjqVB6QCUcXvqeVsbJzT+UAxUT/
+        qtgcf60zXE7NdPvOduG+61NorQ==
+X-Google-Smtp-Source: ACHHUZ5CjW+DD7ghkPvVJFGUBN1BQG+qQA/ISq9t6lWLEboPHQzho8N1caYYSPmYBruWUqH6Cq9/Mw==
+X-Received: by 2002:a0d:d106:0:b0:56d:45ec:2e64 with SMTP id t6-20020a0dd106000000b0056d45ec2e64mr14660924ywd.43.1687290886830;
+        Tue, 20 Jun 2023 12:54:46 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id n20-20020a819e54000000b005705cbba0bcsm649525ywj.98.2023.06.20.12.54.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Jun 2023 12:54:45 -0700 (PDT)
+Date:   Tue, 20 Jun 2023 12:54:25 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+cc:     Hugh Dickins <hughd@google.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        "Mike Rapoport (IBM)" <rppt@kernel.org>,
-        Suren Baghdasaryan <surenb@google.com>
-Subject: Re: [PATCH] oradax: make 'cl' a static const structure
-Message-ID: <20230620185944.GB2192874@ravnborg.org>
-References: <20230620183446.684061-2-gregkh@linuxfoundation.org>
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David Sc. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 05/12] powerpc: add pte_free_defer() for pgtables
+ sharing page
+In-Reply-To: <ZJGRa4zvsXfc43vB@ziepe.ca>
+Message-ID: <2ad8b6cf-692a-ff89-ecc-586c20c5e07f@google.com>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <5cd9f442-61da-4c3d-eca-b7f44d22aa5f@google.com> <ZJGRa4zvsXfc43vB@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230620183446.684061-2-gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jun 20, 2023 at 08:34:47PM +0200, Greg Kroah-Hartman wrote:
-> From: Ivan Orlov <ivan.orlov0322@gmail.com>
+On Tue, 20 Jun 2023, Jason Gunthorpe wrote:
+> On Tue, Jun 20, 2023 at 12:47:54AM -0700, Hugh Dickins wrote:
+> > Add powerpc-specific pte_free_defer(), to call pte_free() via call_rcu().
+> > pte_free_defer() will be called inside khugepaged's retract_page_tables()
+> > loop, where allocating extra memory cannot be relied upon.  This precedes
+> > the generic version to avoid build breakage from incompatible pgtable_t.
+> > 
+> > This is awkward because the struct page contains only one rcu_head, but
+> > that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+> > use the rcu_head at the same time: account concurrent deferrals with a
+> > heightened refcount, only the first making use of the rcu_head, but
+> > re-deferring if more deferrals arrived during its grace period.
 > 
-> Now that the driver core allows for struct class to be in read-only
-> memory, move the 'cl' structure to be declared at build time
-> placing it into read-only memory, instead of having to be dynamically
-> allocated at load time.
+> You didn't answer my question why we can't just move the rcu to the
+> actual free page?
+
+I thought that I had answered it, perhaps not to your satisfaction:
+
+https://lore.kernel.org/linux-mm/9130acb-193-6fdd-f8df-75766e663978@google.com/
+
+My conclusion then was:
+Not very good reasons: good enough, or can you supply a better patch?
+
+Hugh
+
 > 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
-> Cc: sparclinux@vger.kernel.org
-> Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> Since PPC doesn't recycle the frags, we don't need to carefully RCU
+> free each frag, we just need to RCU free the entire page when it
+> becomes eventually free?
+> 
+> Jason
