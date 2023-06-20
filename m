@@ -2,134 +2,198 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8DE8C001DE
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Jun 2023 20:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16845EB64D7
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 07:38:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230152AbjFSUSf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 19 Jun 2023 16:18:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60690 "EHLO
+        id S231449AbjFTHiP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 20 Jun 2023 03:38:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230187AbjFSUSc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Jun 2023 16:18:32 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45A8FD3;
-        Mon, 19 Jun 2023 13:18:30 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-53fbf2c42bfso3185177a12.3;
-        Mon, 19 Jun 2023 13:18:30 -0700 (PDT)
+        with ESMTP id S231346AbjFTHhv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 03:37:51 -0400
+Received: from mail-yb1-xb34.google.com (mail-yb1-xb34.google.com [IPv6:2607:f8b0:4864:20::b34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9ADB91BFC
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:36:50 -0700 (PDT)
+Received: by mail-yb1-xb34.google.com with SMTP id 3f1490d57ef6-bc492cb6475so3395284276.2
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:36:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687205909; x=1689797909;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UmEEut0OCJI0jheFei8v4KFIgPFEx+9Zr0oYZPTVJvw=;
-        b=ML1POuSF5TNYpNiqkU7Wmm/FZLBDFoP32DY+WPylpmv43DoaA/AoXnTGG2wwzhld3j
-         kjkKToRZCKl1S0ycKV+IUNrHAQ8Dvck3h+D7ZuCxy/PFvkOP44vPViwvWsYYl0BBuNgy
-         b/5HPeUCxmK/jPGro6a0V6gtwlQJxSWG+MjbaRDV7mR48t508gCxLWi7cw8WSlTAdLEO
-         3p+win9LgLE5lOsK+rw7eJ7na0iRAHUh7i2pWPNrn0k/YllS2kfgOgB31VmT4hCseChr
-         k2Wm+WLNvD9nhPcsjkRc0OVcXyGOSUiyWGCOpqitL1ReK2kli6NusXAAxFAtCrHDui7k
-         NzgA==
+        d=google.com; s=20221208; t=1687246562; x=1689838562;
+        h=mime-version:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=FpzqtsmXqE0VXfZTMUeJ78FSNoWcFIczYc6Ond/JfIk=;
+        b=frIiNGSckxr3Ip2k31541GefYKavTMPsaGf7AN2ZQ/qeqt+B/jHeTqmNeuJin3omia
+         nAE3yn/kfNy+6HOeAKgwKpHwASyLd9XuAgSOH7v9/C3CHYEt5CaPSEM+VVdRLz3Arj1O
+         1MV9V/LQChOpWEI9pP0J0cw6jVVJL6Iu1QXbQ5ZfWl+32nsry7xWO3ybjTOFio3TkuYH
+         GzINNRBUDJLfUTRZRl3zjXzV0fSEkZPaRdSVf9qkTwvAjySvDqnkKL/sr4BzQbYzqPUQ
+         CyxCsy3C6a1tT4ChuzzxCy2ROctpNA35uBsJQXn7V0x/w2T1aFcY8JBVo5TvOp5j6A8C
+         /jCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687205909; x=1689797909;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=UmEEut0OCJI0jheFei8v4KFIgPFEx+9Zr0oYZPTVJvw=;
-        b=It+aTU9JCM2y7jL4p7lJlCjfG6o20JcbSLehxu66Jm7q+BrmhwyasusDO7rtoEYi0K
-         NQC42j8tDLAiznlhd9DM+8ji0LNBcwmYv4s6Wd5EYYYOgs2BLMp/9JZJf2MEorJpzz15
-         qYBYq6EcyQwBh68GSgejoX8hbxuwkwUmA5iFIiIo+L9ktPqpHDfCefrQVFH4t5HymodN
-         VMMjSjzQrvwLpQnZk3AFvwIDid3Ym95fETh/4F/BAzBwmlRgfZ+IRx6cYR0NX/uJMgC3
-         VRJi8WxiHl5cSH+u4ZFuCqDwUL4XbrpqAshCkqXHXDL3mBanL547g8fkomBST3m8drWn
-         PKRw==
-X-Gm-Message-State: AC+VfDxw8bplcNLipbtq/ZaFPEuPUKARHC4Hn+6fqHRohKEldkAiOKiB
-        LaBTrPeAOLr9MLpyTpcTXXM=
-X-Google-Smtp-Source: ACHHUZ4MAGz/Bbdlo+4DcmVI4O990mBmojRaVLNYuDWhcs7i7MC/1uf1G62Dkn3iaVvHJNN3c8J+8g==
-X-Received: by 2002:a05:6a21:78a9:b0:10a:cb95:5aa3 with SMTP id bf41-20020a056a2178a900b0010acb955aa3mr14231287pzc.7.1687205909086;
-        Mon, 19 Jun 2023 13:18:29 -0700 (PDT)
-Received: from smtpclient.apple ([66.170.99.1])
-        by smtp.gmail.com with ESMTPSA id k18-20020a637b52000000b005538bf7e3d6sm87568pgn.88.2023.06.19.13.18.26
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 19 Jun 2023 13:18:28 -0700 (PDT)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3731.600.7\))
-Subject: Re: [PATCH v2 02/12] mm: introduce execmem_text_alloc() and
- jit_text_alloc()
-From:   Nadav Amit <nadav.amit@gmail.com>
-In-Reply-To: <a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com>
-Date:   Mon, 19 Jun 2023 13:18:15 -0700
-Cc:     Mike Rapoport <rppt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Kees Cook <keescook@chromium.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
+        d=1e100.net; s=20221208; t=1687246562; x=1689838562;
+        h=mime-version:message-id:subject:cc:to:from:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=FpzqtsmXqE0VXfZTMUeJ78FSNoWcFIczYc6Ond/JfIk=;
+        b=fJBJRmaNjZGwiJk38nJMwx8l7sd+NIHwAgMRlW6yhNF+jqle4fF7GbF39CuqJ2MdoP
+         kGPShgLUQPfSCdg5U1FgxgaAJw001nsJnR7VXot9ElhQCMQ9v6rlKb3qP+H0Su5xJ0PB
+         5RwcCb0hfvkR4R1UML+HXnvfEbApaEz5cZYRwRBnP0WKcSwC4DVBGvVEYmSLySWMOjMm
+         Tly2rIs42E+6AjZCae7xvCAW6Qf80K5T5iFJreyS9s/nqFtvP7tC1dtINsCl6rgzeuMc
+         sQh3oViRFzz+gk/H8ku1n/2STpOR260PDyCzlTefYmgyY6ttsAd1LUlClYxiTq462uBl
+         pl8A==
+X-Gm-Message-State: AC+VfDwYdm4rLaYueX51F0wU8LjOLLYzC29ADOvMKLg+MtNvQ1TZArgp
+        qnaKY5fKY4GxHfMXFAbPc4YgHw==
+X-Google-Smtp-Source: ACHHUZ7bq5s3dhMW3ZH11OR6RQmE3NYzsjKhQytjIcSskZHm6yt+ISQcBlLo4KPgUjAhZKGeadJUsA==
+X-Received: by 2002:a5b:c4a:0:b0:bcb:65d1:a01 with SMTP id d10-20020a5b0c4a000000b00bcb65d10a01mr6119105ybr.12.1687246561605;
+        Tue, 20 Jun 2023 00:36:01 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id f124-20020a255182000000b00b9dfcc7a1fasm258265ybb.7.2023.06.20.00.35.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Jun 2023 00:36:01 -0700 (PDT)
+Date:   Tue, 20 Jun 2023 00:35:49 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Andrew Morton <akpm@linux-foundation.org>
+cc:     Gerald Shaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Kent Overstreet <kent.overstreet@linux.dev>,
-        Luis Chamberlain <mcgrof@kernel.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Puranjay Mohan <puranjay12@gmail.com>,
-        Rick P Edgecombe <rick.p.edgecombe@intel.com>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Will Deacon <will@kernel.org>, bpf <bpf@vger.kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-mm <linux-mm@kvack.org>, linux-modules@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        linux-trace-kernel@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        loongarch@lists.linux.dev, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org,
-        the arch/x86 maintainers <x86@kernel.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <7F566E60-C371-449B-992B-0C435AD6016B@gmail.com>
-References: <20230616085038.4121892-1-rppt@kernel.org>
- <20230616085038.4121892-3-rppt@kernel.org>
- <f9a7eebe-d36e-4587-b99d-35d4edefdd14@app.fastmail.com>
- <20230618080027.GA52412@kernel.org>
- <a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com>
-To:     Andy Lutomirski <luto@kernel.org>, Song Liu <song@kernel.org>
-X-Mailer: Apple Mail (2.3731.600.7)
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH v2 00/12] mm: free retracted page table by RCU
+Message-ID: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Here is v2 third series of patches to mm (and a few architectures), based
+on v6.4-rc5 with the preceding two series applied: in which khugepaged
+takes advantage of pte_offset_map[_lock]() allowing for pmd transitions.
+Differences from v1 are noted patch by patch below
 
+This follows on from the v2 "arch: allow pte_offset_map[_lock]() to fail"
+https://lore.kernel.org/linux-mm/a4963be9-7aa6-350-66d0-2ba843e1af44@google.com/
+series of 23 posted on 2023-06-08 (and now in mm-stable - thank you),
+and the v2 "mm: allow pte_offset_map[_lock]() to fail"
+https://lore.kernel.org/linux-mm/c1c9a74a-bc5b-15ea-e5d2-8ec34bc921d@google.com/
+series of 32 posted on 2023-06-08 (and now in mm-stable - thank you),
+and replaces the v1 "mm: free retracted page table by RCU"
+https://lore.kernel.org/linux-mm/35e983f5-7ed3-b310-d949-9ae8b130cdab@google.com/
+series of 12 posted on 2023-05-28 (which was bad on powerpc and s390).
 
-> On Jun 19, 2023, at 10:09 AM, Andy Lutomirski <luto@kernel.org> wrote:
->=20
-> But jit_text_alloc() can't do this, because the order of operations =
-doesn't match.  With jit_text_alloc(), the executable mapping shows up =
-before the text is populated, so there is no atomic change from =
-not-there to populated-and-executable.  Which means that there is an =
-opportunity for CPUs, speculatively or otherwise, to start filling =
-various caches with intermediate states of the text, which means that =
-various architectures (even x86!) may need serialization.
->=20
-> For eBPF- and module- like use cases, where JITting/code gen is quite =
-coarse-grained, perhaps something vaguely like:
->=20
-> jit_text_alloc() -> returns a handle and an executable virtual =
-address, but does *not* map it there
-> jit_text_write() -> write to that handle
-> jit_text_map() -> map it and synchronize if needed (no sync needed on =
-x86, I think)
+The first two series were "independent": neither depending for build or
+correctness on the other, but both series had to be in before this third
+series is added to make the effective changes; and it would probably be
+best to hold this series back until the following release, since it might
+now reveal missed imbalances which the first series hoped to fix.
 
-Andy, would you mind explaining why you think a sync is not needed? I =
-mean I have a =E2=80=9Cfeeling=E2=80=9D that perhaps TSO can guarantee =
-something based on the order of write and page-table update. Is that the =
-argument?
+What is it all about?  Some mmap_lock avoidance i.e. latency reduction.
+Initially just for the case of collapsing shmem or file pages to THPs:
+the usefulness of MADV_COLLAPSE on shmem is being limited by that
+mmap_write_lock it currently requires.
 
-On this regard, one thing that I clearly do not understand is why =
-*today* it is ok for users of bpf_arch_text_copy() not to call =
-text_poke_sync(). Am I missing something?
+Likely to be relied upon later in other contexts e.g. freeing of
+empty page tables (but that's not work I'm doing).  mmap_write_lock
+avoidance when collapsing to anon THPs?  Perhaps, but again that's not
+work I've done: a quick attempt was not as easy as the shmem/file case.
 
+These changes (though of course not these exact patches) have been in
+Google's data centre kernel for three years now: we do rely upon them.
+
+Based on the preceding two series over v6.4-rc5, or any v6.4-rc; and
+almost good on current mm-everything or current linux-next - just one
+patch conflicts, the 10/12: I'll reply to that one with its
+mm-everything or linux-next equivalent (ptent replacing *pte).
+
+01/12 mm/pgtable: add rcu_read_lock() and rcu_read_unlock()s
+      v2: same as v1
+02/12 mm/pgtable: add PAE safety to __pte_offset_map()
+      v2: rename to pmdp_get_lockless_start/end() per Matthew;
+          so use inlines without _irq_save(flags) macro oddity;
+          add pmdp_get_lockless_sync() for use later in 09/12.
+03/12 arm: adjust_pte() use pte_offset_map_nolock()
+      v2: same as v1
+04/12 powerpc: assert_pte_locked() use pte_offset_map_nolock()
+      v2: same as v1
+05/12 powerpc: add pte_free_defer() for pgtables sharing page
+      v2: fix rcu_head usage to cope with concurrent deferrals;
+          add para to commit message explaining rcu_head issue.
+06/12 sparc: add pte_free_defer() for pte_t *pgtable_t
+      v2: use page_address() instead of less common page_to_virt();
+          add para to commit message explaining simple conversion;
+          changed title since sparc64 pgtables do not share page.
+07/12 s390: add pte_free_defer() for pgtables sharing page
+      v2: complete rewrite, integrated with s390's existing pgtable
+          management; temporarily using a global mm_pgtable_list_lock,
+          to be restored to per-mm spinlock in a later followup patch.
+08/12 mm/pgtable: add pte_free_defer() for pgtable as page
+      v2: add comment on rcu_head to "Page table pages", per JannH
+09/12 mm/khugepaged: retract_page_tables() without mmap or vma lock
+      v2: repeat checks under ptl because UFFD, per PeterX and JannH;
+          bring back mmu_notifier calls for PMD, per JannH and Jason;
+          pmdp_get_lockless_sync() to issue missing interrupt if PAE.
+10/12 mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()
+      v2: first check VMA, in case page tables torn down, per JannH;
+          pmdp_get_lockless_sync() to issue missing interrupt if PAE;
+          moved mmu_notifier after step 1, reworked final goto labels.
+11/12 mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps()
+      v2: same as v1
+12/12 mm: delete mmap_write_trylock() and vma_try_start_write()
+      v2: same as v1
+
+ arch/arm/mm/fault-armv.c            |   3 +-
+ arch/powerpc/include/asm/pgalloc.h  |   4 +
+ arch/powerpc/mm/pgtable-frag.c      |  51 ++++
+ arch/powerpc/mm/pgtable.c           |  16 +-
+ arch/s390/include/asm/pgalloc.h     |   4 +
+ arch/s390/mm/pgalloc.c              | 205 +++++++++----
+ arch/sparc/include/asm/pgalloc_64.h |   4 +
+ arch/sparc/mm/init_64.c             |  16 +
+ include/linux/mm.h                  |  17 --
+ include/linux/mm_types.h            |   6 +-
+ include/linux/mmap_lock.h           |  10 -
+ include/linux/pgtable.h             |  10 +-
+ mm/khugepaged.c                     | 481 +++++++++++-------------------
+ mm/pgtable-generic.c                |  53 +++-
+ 14 files changed, 467 insertions(+), 413 deletions(-)
+
+Hugh
