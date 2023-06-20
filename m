@@ -2,56 +2,61 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FBDFEB64D8
-	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 08:04:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5791CEB64D7
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 11:46:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231418AbjFTIE5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 20 Jun 2023 04:04:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58892 "EHLO
+        id S232792AbjFTLqR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 20 Jun 2023 07:46:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230422AbjFTIEm (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 04:04:42 -0400
-Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34C1EEE
-        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 01:04:41 -0700 (PDT)
-Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-573491c4deeso20685907b3.0
-        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 01:04:41 -0700 (PDT)
+        with ESMTP id S232798AbjFTLqF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 07:46:05 -0400
+Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 026491BDD
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 04:45:50 -0700 (PDT)
+Received: by mail-pf1-x429.google.com with SMTP id d2e1a72fcca58-666edfc50deso2251700b3a.0
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 04:45:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1687248280; x=1689840280;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=dtDxY0gaJF8nLu8I+MlE5+MND4cbnHQ8Xpg0M/JIOAw=;
-        b=gPvWiKx/DFf5jWRkcN8nDyw2YpIeE+r8iurO72jEciR1+JDv7/7D8LotNXH5BjzGnO
-         T9jJb2vEMdJhEt2AGR8z+zHOn8Qe+wf+OMT24MBldpqUQl344vx1LR9n+b5O9FqCdfYp
-         3z8XV/XSBS8gVXhubIiqZzFPhvYTS8xwLlDc7y9qd8IIOfBSLX5XWEitQF0NblxG8Lvz
-         I7lIhyL0ScSJfMDJFdRNEBFH4FcEJr/mrMFtyJDBW7uG/RJmuIaxfz0Wgg9aLByzTnDf
-         PorEHKM4R/KtSI9dgTiFBP4RUytSL+vEIRWloMSJws2fFfEej/gfAs4o9zhsnuikMb2n
-         b8Fw==
+        d=ziepe.ca; s=google; t=1687261549; x=1689853549;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=eWdugmL7jiCCazRwRTiCxhXSGGIdZDMM/iY0UbvTdUM=;
+        b=cnn8IRs9UEV2IyxM2/dyNE8Ybbqmsnj6tLoR8M1bmXQAVunFEwC20TKu6DUOVKG4AB
+         L2Yp6/XPUf6F5Xy+nc7uJZfoC02InmQWSMblYoG/4uAdrA9GIFvL7kwUb/yEeNhYFGr1
+         bkwG9DCJKJm7UPMDVOHOR7oHEfHhzz1mYZlMGy4Z2i7tBudfceWk0OsWq4cf8C2qfKpV
+         w9kz4Q6fy8cbK1P9tLY7jnan9hyd8ZaBomTDWQJ4IaOPbEXOkOCCXRQOiThAn1UjmjTv
+         PMpNa0lpCABevs0dIyQN5iH+zWSS9D1PjlkqlJwomy4rRdkHiQnPe7pPZunP1WQZBtR3
+         zPdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687248280; x=1689840280;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dtDxY0gaJF8nLu8I+MlE5+MND4cbnHQ8Xpg0M/JIOAw=;
-        b=AuS3F6ShrnQTXgolwfEEJXe3iP5I3LmLK3r0+nNYiiVHrx4AhCISMTM12/LK8QKeqz
-         kUsuuHibPa5+b/6mH7/LfB2CUvQDNsQr0zJs/Al25TpybUb5pkYHAVmzt20nV9NZD5UH
-         0m0HcUU8jpUskSlQTKKVLUfn6bZpm4h9bufij90FvC+pgCugiDH77Uly3ZK/KsDQFbTB
-         +bwIlXi5xVGF7qIdWG8dw5M+yLsktlKQ0zyvy2RpCVG6nrJrSJvdZiDz4HvqnG0rcaKu
-         Yq6MjaKG5rfwgI1IdCpXgd1wPieCCKFLr9dkp8S48qjDyF2Aw7FbXXQrQ3S1jtaC6Xr/
-         +o0w==
-X-Gm-Message-State: AC+VfDyk965C047xevqhuy2vKo9te0W+137R26+4sp6b6DZIT2v9MhxK
-        3bJYM4eNBTCrbJ01HXe2CApDsQ==
-X-Google-Smtp-Source: ACHHUZ4lnR7dBBqMpdD6wja0MurlRaIB+27/PbAgi8qpKXS48k5ssxoKCeY4zA4H61CT4o+EBvmVjw==
-X-Received: by 2002:a25:2c7:0:b0:bca:8827:6a3 with SMTP id 190-20020a2502c7000000b00bca882706a3mr7612408ybc.42.1687248280161;
-        Tue, 20 Jun 2023 01:04:40 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id g30-20020a25b11e000000b00be5af499cfcsm252823ybj.61.2023.06.20.01.04.36
+        d=1e100.net; s=20221208; t=1687261549; x=1689853549;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=eWdugmL7jiCCazRwRTiCxhXSGGIdZDMM/iY0UbvTdUM=;
+        b=ey6XKFq0v4ydWJ4k5OmTwtmVtKupTrl+injkPZBJmlzPvv41aR4AWm5JUf0yXWDxdW
+         xYwkSk1/NsEEOFuCmBkyTBCpOOxWri2Joga/rFxRFHKeE7YUOQuRSi/IoguPu6dja07E
+         sjI/ILyDTECRbDfi+bw3SGqE8HjXLol+AspL55A3IbpjeYrVe2ZlHosT7N502riqlRRe
+         NNycXa4Fplcdd31SaHToekbiJSAY04Tlb6UQkcG1Rc3jlorGykreLA9VGcr96siw11Gz
+         7AXZY5lGJVXg4o7cxim/ESU7UrFQB5bQtX5yjNi7xjZC/Ap1jo1TjJQH1l8h4ChV/vhX
+         VMXA==
+X-Gm-Message-State: AC+VfDzKtESQPOpBXJmaGtE9vJgoFbPToi2wiG1Fvy7Nf5syHtZX2cfa
+        DjzETXdxCrRxmCIVneKtG13Yow==
+X-Google-Smtp-Source: ACHHUZ4X6nDwRKfeDuMyEgMyTrD6VgfsYjM5cSKUHYx3cAu4vDqqHRc1ln2Pqg94YC+C6bvDGfs7/g==
+X-Received: by 2002:a05:6a00:1820:b0:668:732d:7d9f with SMTP id y32-20020a056a00182000b00668732d7d9fmr10033336pfa.2.1687261549460;
+        Tue, 20 Jun 2023 04:45:49 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id d17-20020aa78e51000000b0062d859a33d1sm1207199pfr.84.2023.06.20.04.45.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Jun 2023 01:04:39 -0700 (PDT)
-Date:   Tue, 20 Jun 2023 01:04:35 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Andrew Morton <akpm@linux-foundation.org>
-cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Tue, 20 Jun 2023 04:45:48 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1qBZnv-007KSY-BA;
+        Tue, 20 Jun 2023 08:45:47 -0300
+Date:   Tue, 20 Jun 2023 08:45:47 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         Vasily Gorbik <gor@linux.ibm.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
@@ -74,7 +79,7 @@ cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         Huang Ying <ying.huang@intel.com>,
         Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Zack Rusin <zackr@vmware.com>,
         Axel Rasmussen <axelrasmussen@google.com>,
         Anshuman Khandual <anshuman.khandual@arm.com>,
         Pasha Tatashin <pasha.tatashin@soleen.com>,
@@ -84,7 +89,7 @@ cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         Song Liu <song@kernel.org>,
         Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
         Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
+        "David Sc. Miller" <davem@davemloft.net>,
         Michael Ellerman <mpe@ellerman.id.au>,
         "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>,
@@ -97,325 +102,36 @@ cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH mm 10/12] mm/khugepaged: collapse_pte_mapped_thp() with
- mmap_read_lock()
-In-Reply-To: <f99eb35-635c-8447-8a27-378d11d1e097@google.com>
-Message-ID: <1bf7bd26-7d6-77a1-150-c9665ad14d71@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <f99eb35-635c-8447-8a27-378d11d1e097@google.com>
+Subject: Re: [PATCH v2 05/12] powerpc: add pte_free_defer() for pgtables
+ sharing page
+Message-ID: <ZJGRa4zvsXfc43vB@ziepe.ca>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
+ <5cd9f442-61da-4c3d-eca-b7f44d22aa5f@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5cd9f442-61da-4c3d-eca-b7f44d22aa5f@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
-It does need mmap_read_lock(), but it does not need mmap_write_lock(),
-nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
-paths are relying on pte_offset_map_lock() and pmd_lock(), so use those.
+On Tue, Jun 20, 2023 at 12:47:54AM -0700, Hugh Dickins wrote:
+> Add powerpc-specific pte_free_defer(), to call pte_free() via call_rcu().
+> pte_free_defer() will be called inside khugepaged's retract_page_tables()
+> loop, where allocating extra memory cannot be relied upon.  This precedes
+> the generic version to avoid build breakage from incompatible pgtable_t.
+> 
+> This is awkward because the struct page contains only one rcu_head, but
+> that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+> use the rcu_head at the same time: account concurrent deferrals with a
+> heightened refcount, only the first making use of the rcu_head, but
+> re-deferring if more deferrals arrived during its grace period.
 
-Follow the pattern in retract_page_tables(); and using pte_free_defer()
-removes most of the need for tlb_remove_table_sync_one() here; but call
-pmdp_get_lockless_sync() to use it in the PAE case.
+You didn't answer my question why we can't just move the rcu to the
+actual free page?
 
-First check the VMA, in case page tables are being torn down: from JannH.
-Confirm the preliminary find_pmd_or_thp_or_none() once page lock has been
-acquired and the page looks suitable: from then on its state is stable.
+Since PPC doesn't recycle the frags, we don't need to carefully RCU
+free each frag, we just need to RCU free the entire page when it
+becomes eventually free?
 
-However, collapse_pte_mapped_thp() was doing something others don't:
-freeing a page table still containing "valid" entries.  i_mmap lock did
-stop a racing truncate from double-freeing those pages, but we prefer
-collapse_pte_mapped_thp() to clear the entries as usual.  Their TLB
-flush can wait until the pmdp_collapse_flush() which follows, but the
-mmu_notifier_invalidate_range_start() has to be done earlier.
-
-Do the "step 1" checking loop without mmu_notifier: it wouldn't be good
-for khugepaged to keep on repeatedly invalidating a range which is then
-found unsuitable e.g. contains COWs.  "step 2", which does the clearing,
-must then be more careful (after dropping ptl to do mmu_notifier), with
-abort prepared to correct the accounting like "step 3".  But with those
-entries now cleared, "step 4" (after dropping ptl to do pmd_lock) is kept
-safe by the huge page lock, which stops new PTEs from being faulted in.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
-This is the version which applies to mm-everything or linux-next.
-
- mm/khugepaged.c | 174 ++++++++++++++++++++++--------------------------
- 1 file changed, 78 insertions(+), 96 deletions(-)
-
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -1483,7 +1483,7 @@ static bool khugepaged_add_pte_mapped_th
- 	return ret;
- }
- 
--/* hpage must be locked, and mmap_lock must be held in write */
-+/* hpage must be locked, and mmap_lock must be held */
- static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
- 			pmd_t *pmdp, struct page *hpage)
- {
-@@ -1495,7 +1495,7 @@ static int set_huge_pmd(struct vm_area_s
- 	};
- 
- 	VM_BUG_ON(!PageTransHuge(hpage));
--	mmap_assert_write_locked(vma->vm_mm);
-+	mmap_assert_locked(vma->vm_mm);
- 
- 	if (do_set_pmd(&vmf, hpage))
- 		return SCAN_FAIL;
-@@ -1504,48 +1504,6 @@ static int set_huge_pmd(struct vm_area_s
- 	return SCAN_SUCCEED;
- }
- 
--/*
-- * A note about locking:
-- * Trying to take the page table spinlocks would be useless here because those
-- * are only used to synchronize:
-- *
-- *  - modifying terminal entries (ones that point to a data page, not to another
-- *    page table)
-- *  - installing *new* non-terminal entries
-- *
-- * Instead, we need roughly the same kind of protection as free_pgtables() or
-- * mm_take_all_locks() (but only for a single VMA):
-- * The mmap lock together with this VMA's rmap locks covers all paths towards
-- * the page table entries we're messing with here, except for hardware page
-- * table walks and lockless_pages_from_mm().
-- */
--static void collapse_and_free_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
--				  unsigned long addr, pmd_t *pmdp)
--{
--	pmd_t pmd;
--	struct mmu_notifier_range range;
--
--	mmap_assert_write_locked(mm);
--	if (vma->vm_file)
--		lockdep_assert_held_write(&vma->vm_file->f_mapping->i_mmap_rwsem);
--	/*
--	 * All anon_vmas attached to the VMA have the same root and are
--	 * therefore locked by the same lock.
--	 */
--	if (vma->anon_vma)
--		lockdep_assert_held_write(&vma->anon_vma->root->rwsem);
--
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, addr,
--				addr + HPAGE_PMD_SIZE);
--	mmu_notifier_invalidate_range_start(&range);
--	pmd = pmdp_collapse_flush(vma, addr, pmdp);
--	tlb_remove_table_sync_one();
--	mmu_notifier_invalidate_range_end(&range);
--	mm_dec_nr_ptes(mm);
--	page_table_check_pte_clear_range(mm, addr, pmd);
--	pte_free(mm, pmd_pgtable(pmd));
--}
--
- /**
-  * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
-  * address haddr.
-@@ -1561,26 +1519,29 @@ static void collapse_and_free_pmd(struct
- int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 			    bool install_pmd)
- {
-+	struct mmu_notifier_range range;
-+	bool notified = false;
- 	unsigned long haddr = addr & HPAGE_PMD_MASK;
- 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
- 	struct page *hpage;
- 	pte_t *start_pte, *pte;
--	pmd_t *pmd;
--	spinlock_t *ptl;
--	int count = 0, result = SCAN_FAIL;
-+	pmd_t *pmd, pgt_pmd;
-+	spinlock_t *pml, *ptl;
-+	int nr_ptes = 0, result = SCAN_FAIL;
- 	int i;
- 
--	mmap_assert_write_locked(mm);
-+	mmap_assert_locked(mm);
-+
-+	/* First check VMA found, in case page tables are being torn down */
-+	if (!vma || !vma->vm_file ||
-+	    !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
-+		return SCAN_VMA_CHECK;
- 
- 	/* Fast check before locking page if already PMD-mapped */
- 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
- 	if (result == SCAN_PMD_MAPPED)
- 		return result;
- 
--	if (!vma || !vma->vm_file ||
--	    !range_in_vma(vma, haddr, haddr + HPAGE_PMD_SIZE))
--		return SCAN_VMA_CHECK;
--
- 	/*
- 	 * If we are here, we've succeeded in replacing all the native pages
- 	 * in the page cache with a single hugepage. If a mm were to fault-in
-@@ -1610,6 +1571,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 		goto drop_hpage;
- 	}
- 
-+	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
- 	switch (result) {
- 	case SCAN_SUCCEED:
- 		break;
-@@ -1623,27 +1585,10 @@ int collapse_pte_mapped_thp(struct mm_st
- 		goto drop_hpage;
- 	}
- 
--	/* Lock the vma before taking i_mmap and page table locks */
--	vma_start_write(vma);
--
--	/*
--	 * We need to lock the mapping so that from here on, only GUP-fast and
--	 * hardware page walks can access the parts of the page tables that
--	 * we're operating on.
--	 * See collapse_and_free_pmd().
--	 */
--	i_mmap_lock_write(vma->vm_file->f_mapping);
--
--	/*
--	 * This spinlock should be unnecessary: Nobody else should be accessing
--	 * the page tables under spinlock protection here, only
--	 * lockless_pages_from_mm() and the hardware page walker can access page
--	 * tables while all the high-level locks are held in write mode.
--	 */
- 	result = SCAN_FAIL;
- 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
--	if (!start_pte)
--		goto drop_immap;
-+	if (!start_pte)		/* mmap_lock + page lock should prevent this */
-+		goto drop_hpage;
- 
- 	/* step 1: check all mapped PTEs are to the right huge page */
- 	for (i = 0, addr = haddr, pte = start_pte;
-@@ -1670,10 +1615,18 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 */
- 		if (hpage + i != page)
- 			goto abort;
--		count++;
- 	}
- 
--	/* step 2: adjust rmap */
-+	pte_unmap_unlock(start_pte, ptl);
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
-+				haddr, haddr + HPAGE_PMD_SIZE);
-+	mmu_notifier_invalidate_range_start(&range);
-+	notified = true;
-+	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
-+	if (!start_pte)		/* mmap_lock + page lock should prevent this */
-+		goto abort;
-+
-+	/* step 2: clear page table and adjust rmap */
- 	for (i = 0, addr = haddr, pte = start_pte;
- 	     i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE, pte++) {
- 		struct page *page;
-@@ -1681,47 +1634,76 @@ int collapse_pte_mapped_thp(struct mm_st
- 
- 		if (pte_none(ptent))
- 			continue;
-+		/*
-+		 * We dropped ptl after the first scan, to do the mmu_notifier:
-+		 * page lock stops more PTEs of the hpage being faulted in, but
-+		 * does not stop write faults COWing anon copies from existing
-+		 * PTEs; and does not stop those being swapped out or migrated.
-+		 */
-+		if (!pte_present(ptent)) {
-+			result = SCAN_PTE_NON_PRESENT;
-+			goto abort;
-+		}
- 		page = vm_normal_page(vma, addr, ptent);
--		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
-+		if (hpage + i != page)
- 			goto abort;
-+
-+		/*
-+		 * Must clear entry, or a racing truncate may re-remove it.
-+		 * TLB flush can be left until pmdp_collapse_flush() does it.
-+		 * PTE dirty? Shmem page is already dirty; file is read-only.
-+		 */
-+		pte_clear(mm, addr, pte);
- 		page_remove_rmap(page, vma, false);
-+		nr_ptes++;
- 	}
- 
- 	pte_unmap_unlock(start_pte, ptl);
- 
- 	/* step 3: set proper refcount and mm_counters. */
--	if (count) {
--		page_ref_sub(hpage, count);
--		add_mm_counter(vma->vm_mm, mm_counter_file(hpage), -count);
--	}
-+	if (nr_ptes) {
-+		page_ref_sub(hpage, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+	}
-+
-+	/* step 4: remove page table */
-+
-+	/* Huge page lock is still held, so page table must remain empty */
-+	pml = pmd_lock(mm, pmd);
-+	if (ptl != pml)
-+		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+	pgt_pmd = pmdp_collapse_flush(vma, haddr, pmd);
-+	pmdp_get_lockless_sync();
-+	if (ptl != pml)
-+		spin_unlock(ptl);
-+	spin_unlock(pml);
- 
--	/* step 4: remove pte entries */
--	/* we make no change to anon, but protect concurrent anon page lookup */
--	if (vma->anon_vma)
--		anon_vma_lock_write(vma->anon_vma);
--
--	collapse_and_free_pmd(mm, vma, haddr, pmd);
-+	mmu_notifier_invalidate_range_end(&range);
- 
--	if (vma->anon_vma)
--		anon_vma_unlock_write(vma->anon_vma);
--	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	mm_dec_nr_ptes(mm);
-+	page_table_check_pte_clear_range(mm, haddr, pgt_pmd);
-+	pte_free_defer(mm, pmd_pgtable(pgt_pmd));
- 
- maybe_install_pmd:
- 	/* step 5: install pmd entry */
- 	result = install_pmd
- 			? set_huge_pmd(vma, haddr, pmd, hpage)
- 			: SCAN_SUCCEED;
--
-+	goto drop_hpage;
-+abort:
-+	if (nr_ptes) {
-+		flush_tlb_mm(mm);
-+		page_ref_sub(hpage, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+	}
-+	if (start_pte)
-+		pte_unmap_unlock(start_pte, ptl);
-+	if (notified)
-+		mmu_notifier_invalidate_range_end(&range);
- drop_hpage:
- 	unlock_page(hpage);
- 	put_page(hpage);
- 	return result;
--
--abort:
--	pte_unmap_unlock(start_pte, ptl);
--drop_immap:
--	i_mmap_unlock_write(vma->vm_file->f_mapping);
--	goto drop_hpage;
- }
- 
- static void khugepaged_collapse_pte_mapped_thps(struct khugepaged_mm_slot *mm_slot)
-@@ -2856,9 +2838,9 @@ handle_result:
- 		case SCAN_PTE_MAPPED_HUGEPAGE:
- 			BUG_ON(mmap_locked);
- 			BUG_ON(*prev);
--			mmap_write_lock(mm);
-+			mmap_read_lock(mm);
- 			result = collapse_pte_mapped_thp(mm, addr, true);
--			mmap_write_unlock(mm);
-+			mmap_locked = true;
- 			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
- 		case SCAN_PMD_NULL:
+Jason
