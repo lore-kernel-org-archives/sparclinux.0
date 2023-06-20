@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B163EB64D8
-	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 07:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BC1EB64DB
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Jun 2023 07:56:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231642AbjFTHxp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 20 Jun 2023 03:53:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52076 "EHLO
+        id S231736AbjFTH4p (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 20 Jun 2023 03:56:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231260AbjFTHx3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 03:53:29 -0400
-Received: from mail-yw1-x1131.google.com (mail-yw1-x1131.google.com [IPv6:2607:f8b0:4864:20::1131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A26B210D4
-        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:53:11 -0700 (PDT)
-Received: by mail-yw1-x1131.google.com with SMTP id 00721157ae682-561b7729a12so80167167b3.1
-        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:53:11 -0700 (PDT)
+        with ESMTP id S231232AbjFTH4X (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 20 Jun 2023 03:56:23 -0400
+Received: from mail-qk1-x72e.google.com (mail-qk1-x72e.google.com [IPv6:2607:f8b0:4864:20::72e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D9EB1BCE
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:55:05 -0700 (PDT)
+Received: by mail-qk1-x72e.google.com with SMTP id af79cd13be357-76242a24e3aso254347785a.1
+        for <sparclinux@vger.kernel.org>; Tue, 20 Jun 2023 00:55:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1687247588; x=1689839588;
+        d=google.com; s=20221208; t=1687247701; x=1689839701;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q5R0zcB6mybnkU9NBbTtghvpq67JAa0crCVDjZ9SpHk=;
-        b=2GY6tb59UZYGOHu8Jpard49Ijl8S41fZ8HDgfi6a4gvFJ5750jQeYrmu9nVrvi1jW2
-         tp8ypG/banZ4ws6Js9iQQN9cGknEmtht9BWd32J2yMcrVqteXUvW9YR9uMMhKiTOhwCj
-         DlNulmZyq+f8KzKXIgNcUSNUMmKGW1CGHEEgbEp/J7IxewrE//XtQewkerpcgsbwL40t
-         WfRaz/SdO8RzSMtTrw2rYV18y0/dvvOSll1UA2/d8Zuh32W7Pnj2B4fhDdSSvEN+0aoF
-         9f1IZjfj8naj8IynmrWiGUnfEPBGZdaKRscDXhw1Sy1gWU3iNWnHKGQGUPwpRy5JQoX9
-         lMYQ==
+        bh=EoggPrivOwaF6YYpZ0mcfv9qnK5xaGr29ovQpplAZx8=;
+        b=J8nzRWA0uvpss9wXeQOicc8Ot9y4/UFuc6plZhigByzD/E6z56SmcPuzuWHVg6RLIr
+         zeSwVuKlgmRjiVprT2c29o+LY/xl0mKSG7EI+HK+ZmF9VRuRMDrYHfurcBSQUvbGMDJM
+         BrTznrXs5U8ERPP2CrQPh2E6mB/xxogY+UVNmpVE8mP4PFPg1/HAfaCo5DqPYBJr1jNU
+         jJBNI0/yqplj0fpPoW7vqJFOdNB1zyVXocOEAXeD5BoEwwZ8uu8OHUDQYXH1raSp0ip4
+         Z7eB2HLsP8hFBVrCu74QJhwf7v/CbG+Ae1Bf3UqUxfhWUQfg52/Gluq44YXQQXKCwSWh
+         Wn8g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687247588; x=1689839588;
+        d=1e100.net; s=20221208; t=1687247701; x=1689839701;
         h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q5R0zcB6mybnkU9NBbTtghvpq67JAa0crCVDjZ9SpHk=;
-        b=BUChC++FI36rOEABEvnj3Z+LndzDYzxfJq3qk4+EYrYR+MpLzGs/LPAuJjX/hRwnxL
-         6DsFoGss+E88od5qnNerORUuvAz85pJrva+qb6jJjm+9kwXYVnpIFrsxuCKO8No8yGo4
-         PwfYdUU7g8fuXpoUkMrH0QO79yAkoSlYYxPq/4AMLZOGyXkLd4V9Okr9o6doe++5xF9A
-         2qxRFe5jp3hT2Yny/nCprZUeFrdjm69bYJWMXg4cLsG4+0JWEZy+p5+OmSvzTjNTkF//
-         u5Y22xuQbr6khMffpEUbPNVH43+/HJoxvzqRpsBE0oS4sn11ediNaDLxr9mrJha7xXPE
-         bwvw==
-X-Gm-Message-State: AC+VfDxZJ0tHoTGGPgO23E4lG76bUBfMITJ1Kjxi0rHYdC6XVESGmo/4
-        mTU/n0nO5WCfnY3HgzZNAunTOg==
-X-Google-Smtp-Source: ACHHUZ5uDhFE53584OsFJztx7V9NmKNE+1aQZMwUHlsEN2oJtZCLrBIKo4HQBYW6kI7RzecFkIc3yA==
-X-Received: by 2002:a81:6c11:0:b0:56f:f83f:618 with SMTP id h17-20020a816c11000000b0056ff83f0618mr10840742ywc.19.1687247587950;
-        Tue, 20 Jun 2023 00:53:07 -0700 (PDT)
+        bh=EoggPrivOwaF6YYpZ0mcfv9qnK5xaGr29ovQpplAZx8=;
+        b=VdeSC5vAt8fzR/65KqGqFG/TX4qFmzdM8S6TetzTSc2KcHYiDrFSvU5w062c/Xeuu1
+         qv2VKiNnBpCXh++dEaRMfGIzHqHNT/zBuNbcL5YIazB9x/AsjargtdARp2pUR2AirHeC
+         HkU8YnoyzZ+pVtHRJWO6NUHLiygI0Bdl5l9AV08ZPLtL14xSrKj2sjN2gDbThzFTkWPi
+         FS1YHuDwL/ziKrw6AvOwYd6C4zUuAE1cxtTe3f2/MTPA5lJqZSmt8THvJaad4mBfZbWy
+         VDrIkz5LKdAZr1ewwIDX+7JskOC0bTofQVsnW53esQTGeuHbOZFemwzkt99psv/Himqj
+         v8rQ==
+X-Gm-Message-State: AC+VfDxPSHDd6iBHkEF7KYL9RXRV4kOxptXYHhDsVrzFx0NRsTvCBZsF
+        W72Pbd4cN7Gjx9443ME2OoCayw==
+X-Google-Smtp-Source: ACHHUZ4DJO4EDwJbG0wgrFZYngaLjP4vE5bfDEN/dCam98OaAjzy+Vc4NRjPKMFiq2LjNC4HChBWFA==
+X-Received: by 2002:a05:620a:2890:b0:75d:4145:154e with SMTP id j16-20020a05620a289000b0075d4145154emr12424317qkp.65.1687247701263;
+        Tue, 20 Jun 2023 00:55:01 -0700 (PDT)
 Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id x11-20020a81630b000000b0056ffca5fb01sm370775ywb.117.2023.06.20.00.53.04
+        by smtp.gmail.com with ESMTPSA id j1-20020a0df901000000b0054f50f71834sm368662ywf.124.2023.06.20.00.54.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Jun 2023 00:53:07 -0700 (PDT)
-Date:   Tue, 20 Jun 2023 00:53:03 -0700 (PDT)
+        Tue, 20 Jun 2023 00:55:00 -0700 (PDT)
+Date:   Tue, 20 Jun 2023 00:54:56 -0700 (PDT)
 From:   Hugh Dickins <hughd@google.com>
 X-X-Sender: hugh@ripple.attlocal.net
 To:     Andrew Morton <akpm@linux-foundation.org>
@@ -97,10 +97,10 @@ cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH v2 08/12] mm/pgtable: add pte_free_defer() for pgtable as
- page
+Subject: [PATCH v2 09/12] mm/khugepaged: retract_page_tables() without mmap
+ or vma lock
 In-Reply-To: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
-Message-ID: <3e5961a2-26e5-d1ab-5c4c-527e273e3cc5@google.com>
+Message-ID: <f03ea9a-5386-eb78-50d7-b6a93959d01e@google.com>
 References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -108,85 +108,270 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Add the generic pte_free_defer(), to call pte_free() via call_rcu().
-pte_free_defer() will be called inside khugepaged's retract_page_tables()
-loop, where allocating extra memory cannot be relied upon.  This version
-suits all those architectures which use an unfragmented page for one page
-table (none of whose pte_free()s use the mm arg which was passed to it).
+Simplify shmem and file THP collapse's retract_page_tables(), and relax
+its locking: to improve its success rate and to lessen impact on others.
+
+Instead of its MADV_COLLAPSE case doing set_huge_pmd() at target_addr of
+target_mm, leave that part of the work to madvise_collapse() calling
+collapse_pte_mapped_thp() afterwards: just adjust collapse_file()'s
+result code to arrange for that.  That spares retract_page_tables() four
+arguments; and since it will be successful in retracting all of the page
+tables expected of it, no need to track and return a result code itself.
+
+It needs i_mmap_lock_read(mapping) for traversing the vma interval tree,
+but it does not need i_mmap_lock_write() for that: page_vma_mapped_walk()
+allows for pte_offset_map_lock() etc to fail, and uses pmd_lock() for
+THPs.  retract_page_tables() just needs to use those same spinlocks to
+exclude it briefly, while transitioning pmd from page table to none: so
+restore its use of pmd_lock() inside of which pte lock is nested.
+
+Users of pte_offset_map_lock() etc all now allow for them to fail:
+so retract_page_tables() now has no use for mmap_write_trylock() or
+vma_try_start_write().  In common with rmap and page_vma_mapped_walk(),
+it does not even need the mmap_read_lock().
+
+But those users do expect the page table to remain a good page table,
+until they unlock and rcu_read_unlock(): so the page table cannot be
+freed immediately, but rather by the recently added pte_free_defer().
+
+Use the (usually a no-op) pmdp_get_lockless_sync() to send an interrupt
+when PAE, and pmdp_collapse_flush() did not already do so: to make sure
+that the start,pmdp_get_lockless(),end sequence in __pte_offset_map()
+cannot pick up a pmd entry with mismatched pmd_low and pmd_high.
+
+retract_page_tables() can be enhanced to replace_page_tables(), which
+inserts the final huge pmd without mmap lock: going through an invalid
+state instead of pmd_none() followed by fault.  But that enhancement
+does raise some more questions: leave it until a later release.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 ---
- include/linux/mm_types.h |  4 ++++
- include/linux/pgtable.h  |  2 ++
- mm/pgtable-generic.c     | 20 ++++++++++++++++++++
- 3 files changed, 26 insertions(+)
+ mm/khugepaged.c | 184 ++++++++++++++++++++----------------------------
+ 1 file changed, 75 insertions(+), 109 deletions(-)
 
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 1667a1bdb8a8..09335fa28c41 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -144,6 +144,10 @@ struct page {
- 		struct {	/* Page table pages */
- 			unsigned long _pt_pad_1;	/* compound_head */
- 			pgtable_t pmd_huge_pte; /* protected by page->ptl */
-+			/*
-+			 * A PTE page table page might be freed by use of
-+			 * rcu_head: which overlays those two fields above.
-+			 */
- 			unsigned long _pt_pad_2;	/* mapping */
- 			union {
- 				struct mm_struct *pt_mm; /* x86 pgd, s390 */
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 525f1782b466..d18d3e963967 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -112,6 +112,8 @@ static inline void pte_unmap(pte_t *pte)
+diff --git a/mm/khugepaged.c b/mm/khugepaged.c
+index 1083f0e38a07..f7a0f7673127 100644
+--- a/mm/khugepaged.c
++++ b/mm/khugepaged.c
+@@ -1617,9 +1617,8 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+ 		break;
+ 	case SCAN_PMD_NONE:
+ 		/*
+-		 * In MADV_COLLAPSE path, possible race with khugepaged where
+-		 * all pte entries have been removed and pmd cleared.  If so,
+-		 * skip all the pte checks and just update the pmd mapping.
++		 * All pte entries have been removed and pmd cleared.
++		 * Skip all the pte checks and just update the pmd mapping.
+ 		 */
+ 		goto maybe_install_pmd;
+ 	default:
+@@ -1748,123 +1747,88 @@ static void khugepaged_collapse_pte_mapped_thps(struct khugepaged_mm_slot *mm_sl
+ 	mmap_write_unlock(mm);
  }
- #endif
  
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
+-static int retract_page_tables(struct address_space *mapping, pgoff_t pgoff,
+-			       struct mm_struct *target_mm,
+-			       unsigned long target_addr, struct page *hpage,
+-			       struct collapse_control *cc)
++static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
+ {
+ 	struct vm_area_struct *vma;
+-	int target_result = SCAN_FAIL;
+ 
+-	i_mmap_lock_write(mapping);
++	i_mmap_lock_read(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+-		int result = SCAN_FAIL;
+-		struct mm_struct *mm = NULL;
+-		unsigned long addr = 0;
+-		pmd_t *pmd;
+-		bool is_target = false;
++		struct mmu_notifier_range range;
++		struct mm_struct *mm;
++		unsigned long addr;
++		pmd_t *pmd, pgt_pmd;
++		spinlock_t *pml;
++		spinlock_t *ptl;
++		bool skipped_uffd = false;
+ 
+ 		/*
+ 		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
+-		 * got written to. These VMAs are likely not worth investing
+-		 * mmap_write_lock(mm) as PMD-mapping is likely to be split
+-		 * later.
+-		 *
+-		 * Note that vma->anon_vma check is racy: it can be set up after
+-		 * the check but before we took mmap_lock by the fault path.
+-		 * But page lock would prevent establishing any new ptes of the
+-		 * page, so we are safe.
+-		 *
+-		 * An alternative would be drop the check, but check that page
+-		 * table is clear before calling pmdp_collapse_flush() under
+-		 * ptl. It has higher chance to recover THP for the VMA, but
+-		 * has higher cost too. It would also probably require locking
+-		 * the anon_vma.
++		 * got written to. These VMAs are likely not worth removing
++		 * page tables from, as PMD-mapping is likely to be split later.
+ 		 */
+-		if (READ_ONCE(vma->anon_vma)) {
+-			result = SCAN_PAGE_ANON;
+-			goto next;
+-		}
++		if (READ_ONCE(vma->anon_vma))
++			continue;
 +
- /* Find an entry in the second-level page table.. */
- #ifndef pmd_offset
- static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
-diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
-index 5e85a625ab30..ab3741064bb8 100644
---- a/mm/pgtable-generic.c
-+++ b/mm/pgtable-generic.c
-@@ -13,6 +13,7 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/mm_inline.h>
-+#include <asm/pgalloc.h>
- #include <asm/tlb.h>
- 
- /*
-@@ -230,6 +231,25 @@ pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
- 	return pmd;
+ 		addr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		if (addr & ~HPAGE_PMD_MASK ||
+-		    vma->vm_end < addr + HPAGE_PMD_SIZE) {
+-			result = SCAN_VMA_CHECK;
+-			goto next;
+-		}
+-		mm = vma->vm_mm;
+-		is_target = mm == target_mm && addr == target_addr;
+-		result = find_pmd_or_thp_or_none(mm, addr, &pmd);
+-		if (result != SCAN_SUCCEED)
+-			goto next;
+-		/*
+-		 * We need exclusive mmap_lock to retract page table.
+-		 *
+-		 * We use trylock due to lock inversion: we need to acquire
+-		 * mmap_lock while holding page lock. Fault path does it in
+-		 * reverse order. Trylock is a way to avoid deadlock.
+-		 *
+-		 * Also, it's not MADV_COLLAPSE's job to collapse other
+-		 * mappings - let khugepaged take care of them later.
+-		 */
+-		result = SCAN_PTE_MAPPED_HUGEPAGE;
+-		if ((cc->is_khugepaged || is_target) &&
+-		    mmap_write_trylock(mm)) {
+-			/* trylock for the same lock inversion as above */
+-			if (!vma_try_start_write(vma))
+-				goto unlock_next;
+-
+-			/*
+-			 * Re-check whether we have an ->anon_vma, because
+-			 * collapse_and_free_pmd() requires that either no
+-			 * ->anon_vma exists or the anon_vma is locked.
+-			 * We already checked ->anon_vma above, but that check
+-			 * is racy because ->anon_vma can be populated under the
+-			 * mmap lock in read mode.
+-			 */
+-			if (vma->anon_vma) {
+-				result = SCAN_PAGE_ANON;
+-				goto unlock_next;
+-			}
+-			/*
+-			 * When a vma is registered with uffd-wp, we can't
+-			 * recycle the pmd pgtable because there can be pte
+-			 * markers installed.  Skip it only, so the rest mm/vma
+-			 * can still have the same file mapped hugely, however
+-			 * it'll always mapped in small page size for uffd-wp
+-			 * registered ranges.
+-			 */
+-			if (hpage_collapse_test_exit(mm)) {
+-				result = SCAN_ANY_PROCESS;
+-				goto unlock_next;
+-			}
+-			if (userfaultfd_wp(vma)) {
+-				result = SCAN_PTE_UFFD_WP;
+-				goto unlock_next;
+-			}
+-			collapse_and_free_pmd(mm, vma, addr, pmd);
+-			if (!cc->is_khugepaged && is_target)
+-				result = set_huge_pmd(vma, addr, pmd, hpage);
+-			else
+-				result = SCAN_SUCCEED;
+-
+-unlock_next:
+-			mmap_write_unlock(mm);
+-			goto next;
+-		}
+-		/*
+-		 * Calling context will handle target mm/addr. Otherwise, let
+-		 * khugepaged try again later.
+-		 */
+-		if (!is_target) {
+-			khugepaged_add_pte_mapped_thp(mm, addr);
++		    vma->vm_end < addr + HPAGE_PMD_SIZE)
+ 			continue;
++
++		mm = vma->vm_mm;
++		if (find_pmd_or_thp_or_none(mm, addr, &pmd) != SCAN_SUCCEED)
++			continue;
++
++		if (hpage_collapse_test_exit(mm))
++			continue;
++		/*
++		 * When a vma is registered with uffd-wp, we cannot recycle
++		 * the page table because there may be pte markers installed.
++		 * Other vmas can still have the same file mapped hugely, but
++		 * skip this one: it will always be mapped in small page size
++		 * for uffd-wp registered ranges.
++		 */
++		if (userfaultfd_wp(vma))
++			continue;
++
++		/* PTEs were notified when unmapped; but now for the PMD? */
++		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
++					addr, addr + HPAGE_PMD_SIZE);
++		mmu_notifier_invalidate_range_start(&range);
++
++		pml = pmd_lock(mm, pmd);
++		ptl = pte_lockptr(mm, pmd);
++		if (ptl != pml)
++			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++
++		/*
++		 * Huge page lock is still held, so normally the page table
++		 * must remain empty; and we have already skipped anon_vma
++		 * and userfaultfd_wp() vmas.  But since the mmap_lock is not
++		 * held, it is still possible for a racing userfaultfd_ioctl()
++		 * to have inserted ptes or markers.  Now that we hold ptlock,
++		 * repeating the anon_vma check protects from one category,
++		 * and repeating the userfaultfd_wp() check from another.
++		 */
++		if (unlikely(vma->anon_vma || userfaultfd_wp(vma))) {
++			skipped_uffd = true;
++		} else {
++			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
++			pmdp_get_lockless_sync();
++		}
++
++		if (ptl != pml)
++			spin_unlock(ptl);
++		spin_unlock(pml);
++
++		mmu_notifier_invalidate_range_end(&range);
++
++		if (!skipped_uffd) {
++			mm_dec_nr_ptes(mm);
++			page_table_check_pte_clear_range(mm, addr, pgt_pmd);
++			pte_free_defer(mm, pmd_pgtable(pgt_pmd));
+ 		}
+-next:
+-		if (is_target)
+-			target_result = result;
+ 	}
+-	i_mmap_unlock_write(mapping);
+-	return target_result;
++	i_mmap_unlock_read(mapping);
  }
- #endif
-+
-+/* arch define pte_free_defer in asm/pgalloc.h for its own implementation */
-+#ifndef pte_free_defer
-+static void pte_free_now(struct rcu_head *head)
-+{
-+	struct page *page;
-+
-+	page = container_of(head, struct page, rcu_head);
-+	pte_free(NULL /* mm not passed and not used */, (pgtable_t)page);
-+}
-+
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
-+{
-+	struct page *page;
-+
-+	page = pgtable;
-+	call_rcu(&page->rcu_head, pte_free_now);
-+}
-+#endif /* pte_free_defer */
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- #if defined(CONFIG_GUP_GET_PXX_LOW_HIGH) && \
+ /**
+@@ -2261,9 +2225,11 @@ static int collapse_file(struct mm_struct *mm, unsigned long addr,
+ 
+ 	/*
+ 	 * Remove pte page tables, so we can re-fault the page as huge.
++	 * If MADV_COLLAPSE, adjust result to call collapse_pte_mapped_thp().
+ 	 */
+-	result = retract_page_tables(mapping, start, mm, addr, hpage,
+-				     cc);
++	retract_page_tables(mapping, start);
++	if (cc && !cc->is_khugepaged)
++		result = SCAN_PTE_MAPPED_HUGEPAGE;
+ 	unlock_page(hpage);
+ 
+ 	/*
 -- 
 2.35.3
 
