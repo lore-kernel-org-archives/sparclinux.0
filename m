@@ -2,88 +2,100 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5B71EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 07:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C78BBEB64D7
+	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 13:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231464AbjFUHoe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 21 Jun 2023 03:44:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37936 "EHLO
+        id S232270AbjFUNIj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 21 Jun 2023 09:08:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230199AbjFUHod (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 03:44:33 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 971A610D;
-        Wed, 21 Jun 2023 00:44:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=XIUg3gDajjXx1L9B+6vEGFUgDSherxnnB+qfdlVJNWU=; b=P4wD/i70lrhaTSBrIAiJA1ZJw4
-        Q6Q6jj7EaLa5t9YFa47VdKWDJfVTyYN3lQ0GXxuvHgEUZP0PWzJVNfKdnaFahJYDMSXhG8X2Odb47
-        IEYEKArt2e4aY7U7kesU85LQpAKjdy484CGV92R8iAsWzNcL/oGQy8MmRoyYQi4EMKxH6VExImUAr
-        T42Z/1JwMe5xnRb7wjg65ARU47dJMomPDfxxJrkdtta/lmPJ/5iyuHMpCWw5k4JG2izlKzW9XejsZ
-        L3g4lEcetUs1uGuta7zyI3tfPv1wTYXeeTxVWCCKUBfUHRh69yyy9eghCAPLDPBq5pU8JRIYnmsUx
-        P4K8pevA==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qBsVC-00HIVK-1L;
-        Wed, 21 Jun 2023 07:43:43 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        with ESMTP id S232269AbjFUNIi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 09:08:38 -0400
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36D951739;
+        Wed, 21 Jun 2023 06:08:37 -0700 (PDT)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 0B475300222;
-        Wed, 21 Jun 2023 09:43:38 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id E49482BD11718; Wed, 21 Jun 2023 09:43:37 +0200 (CEST)
-Date:   Wed, 21 Jun 2023 09:43:37 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Yair Podemsky <ypodemsk@redhat.com>
-Cc:     mtosatti@redhat.com, ppandit@redhat.com, david@redhat.com,
-        linux@armlinux.org.uk, mpe@ellerman.id.au, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu, hca@linux.ibm.com, gor@linux.ibm.com,
-        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
-        svens@linux.ibm.com, davem@davemloft.net, tglx@linutronix.de,
-        mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
-        hpa@zytor.com, keescook@chromium.org, paulmck@kernel.org,
-        frederic@kernel.org, will@kernel.org, ardb@kernel.org,
-        samitolvanen@google.com, juerg.haefliger@canonical.com,
-        arnd@arndb.de, rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
-        linus.walleij@linaro.org, akpm@linux-foundation.org,
-        sebastian.reichel@collabora.com, rppt@kernel.org,
-        aneesh.kumar@linux.ibm.com, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] send tlb_remove_table_smp_sync IPI only to
- necessary CPUs
-Message-ID: <20230621074337.GF2046280@hirez.programming.kicks-ass.net>
-References: <20230620144618.125703-1-ypodemsk@redhat.com>
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4QmP2R0Rwzz4wj7;
+        Wed, 21 Jun 2023 23:08:31 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1687352912;
+        bh=zMmz8eNhn1LuA/bMCpwWPyDta4A4p5omDG9jWVnrIhA=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=IELwl0a2CcWKtHQYpyrr7sFEKemIZwDa+P3WaQzNRjWOBtKHns7YRnhc4zJ61CtTe
+         VtiNmWT/MSjxIcsMk0GFLElYIRQShuSOZETFrGgT4P/ghqCTLzPcLsUEq+LB9bTV+G
+         ezXrX5eHiHuzHhgKJjcPGV4IhZoXJpyYiZGALWIB3CtTTFesoWwLyio6BWgifN4m/A
+         Hc70Kn6muoGgmoZg4dh2jIQMqgSmiTjtGgniOT6wnQEbMbSiAeTGQxJDLRveCIyS/p
+         RshmiYJ+tckcsHareuzZsBA7Thn4UtJZrdFKcOpxw0gcOY9CUtwyNJDvio492P5yOT
+         3xClQ4DFwCJvg==
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Douglas Anderson <dianders@chromium.org>
+Cc:     kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org, Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH v2 6/6] watchdog/hardlockup: Define
+ HARDLOCKUP_DETECTOR_ARCH
+In-Reply-To: <20230616150618.6073-7-pmladek@suse.com>
+References: <20230616150618.6073-1-pmladek@suse.com>
+ <20230616150618.6073-7-pmladek@suse.com>
+Date:   Wed, 21 Jun 2023 23:08:26 +1000
+Message-ID: <871qi5otdh.fsf@mail.lhotse>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230620144618.125703-1-ypodemsk@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jun 20, 2023 at 05:46:16PM +0300, Yair Podemsky wrote:
-> Currently the tlb_remove_table_smp_sync IPI is sent to all CPUs
-> indiscriminately, this causes unnecessary work and delays notable in
-> real-time use-cases and isolated cpus.
-> By limiting the IPI to only be sent to cpus referencing the effected
-> mm.
-> a config to differentiate architectures that support mm_cpumask from
-> those that don't will allow safe usage of this feature.
-> 
-> changes from -v1:
-> - Previous version included a patch to only send the IPI to CPU's with
-> context_tracking in the kernel space, this was removed due to race 
-> condition concerns.
-> - for archs that do not maintain mm_cpumask the mask used should be
->  cpu_online_mask (Peter Zijlstra).
->  
+Petr Mladek <pmladek@suse.com> writes:
+> The HAVE_ prefix means that the code could be enabled. Add another
+> variable for HAVE_HARDLOCKUP_DETECTOR_ARCH without this prefix.
+> It will be set when it should be built. It will make it compatible
+> with the other hardlockup detectors.
+>
+> The change allows to clean up dependencies of PPC_WATCHDOG
+> and HAVE_HARDLOCKUP_DETECTOR_PERF definitions for powerpc.
+>
+> As a result HAVE_HARDLOCKUP_DETECTOR_PERF has the same dependencies
+> on arm, x86, powerpc architectures.
+>
+> Signed-off-by: Petr Mladek <pmladek@suse.com>
+> Reviewed-by: Douglas Anderson <dianders@chromium.org>
+> ---
+>  arch/powerpc/Kconfig | 5 ++---
+>  include/linux/nmi.h  | 2 +-
+>  lib/Kconfig.debug    | 9 +++++++++
+>  3 files changed, 12 insertions(+), 4 deletions(-)
 
-Would it not be much better to fix the root cause? As per the last time,
-there's patches that cure the thp abuse of this.
+Something in this patch is breaking the powerpc g5_defconfig, I don't
+immediately see what though.
+
+../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98handle_backtrace_=
+ipi=E2=80=99:
+../arch/powerpc/kernel/stacktrace.c:171:9: error: implicit declaration of f=
+unction =E2=80=98nmi_cpu_backtrace=E2=80=99 [-Werror=3Dimplicit-function-de=
+claration]
+  171 |         nmi_cpu_backtrace(regs);
+      |         ^~~~~~~~~~~~~~~~~
+../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98arch_trigger_cpum=
+ask_backtrace=E2=80=99:
+../arch/powerpc/kernel/stacktrace.c:226:9: error: implicit declaration of f=
+unction =E2=80=98nmi_trigger_cpumask_backtrace=E2=80=99; did you mean =E2=
+=80=98arch_trigger_cpumask_backtrace=E2=80=99? [-Werror=3Dimplicit-function=
+-declaration]
+  226 |         nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_bac=
+ktrace_ipi);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |         arch_trigger_cpumask_backtrace
+cc1: all warnings being treated as errors
+
+
+cheers
