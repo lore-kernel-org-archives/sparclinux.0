@@ -2,58 +2,88 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FC8AEB64D7
-	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 07:36:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5B71EB64D8
+	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 07:44:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229527AbjFUHgK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 21 Jun 2023 03:36:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33502 "EHLO
+        id S231464AbjFUHoe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 21 Jun 2023 03:44:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229702AbjFUHgJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 03:36:09 -0400
-Received: from mail.tummelspey.pl (mail.tummelspey.pl [195.231.83.87])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4FFEE65
-        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 00:36:03 -0700 (PDT)
-Received: by mail.tummelspey.pl (Postfix, from userid 1002)
-        id C64D0839BC; Wed, 21 Jun 2023 09:35:45 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tummelspey.pl;
-        s=mail; t=1687332960;
-        bh=OJs3leM9fdfMkxPirBSuuU/UTIEL4q9FUCZWMj2U0kA=;
-        h=Date:From:To:Subject:From;
-        b=lu3ijxzJeynxvIfokiDFwUXf6y+t9P7MTxlt4QC9tF/amvA+PkJPi15G0vBOIhEIR
-         aVJ+m7JV1nfjzd6GLixU0P/e7a2eQ2ehp+DAnFqZbcAeHCXTzvIsgPrWmSbDI7Xhzc
-         dSVNAQLw60Naa22891QAzIAicPZu+y20vZvDpTiFL29wQaj3Ubh31X9hSQPcLsviXH
-         WmJ3h2mBL5U9jhSG2drOQv9+X7/7MVYuQ/qJpcQeH7d275J6QLco8CFsgUhFai8D8X
-         kpfLgPc76PVewN5jX8mdENQ095YEX0ve88qE441P09KVL/ZmwLd8VodVY6YuM3mprm
-         xRrgI4kXv+tFw==
-Received: by mail.tummelspey.pl for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 07:35:34 GMT
-Message-ID: <20230621084500-0.1.22.icob.0.w11ikdd5qr@tummelspey.pl>
-Date:   Wed, 21 Jun 2023 07:35:34 GMT
-From:   "Bartosz Holender" <bartosz.holender@tummelspey.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
-X-Mailer: mail.tummelspey.pl
+        with ESMTP id S230199AbjFUHod (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 03:44:33 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 971A610D;
+        Wed, 21 Jun 2023 00:44:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=XIUg3gDajjXx1L9B+6vEGFUgDSherxnnB+qfdlVJNWU=; b=P4wD/i70lrhaTSBrIAiJA1ZJw4
+        Q6Q6jj7EaLa5t9YFa47VdKWDJfVTyYN3lQ0GXxuvHgEUZP0PWzJVNfKdnaFahJYDMSXhG8X2Odb47
+        IEYEKArt2e4aY7U7kesU85LQpAKjdy484CGV92R8iAsWzNcL/oGQy8MmRoyYQi4EMKxH6VExImUAr
+        T42Z/1JwMe5xnRb7wjg65ARU47dJMomPDfxxJrkdtta/lmPJ/5iyuHMpCWw5k4JG2izlKzW9XejsZ
+        L3g4lEcetUs1uGuta7zyI3tfPv1wTYXeeTxVWCCKUBfUHRh69yyy9eghCAPLDPBq5pU8JRIYnmsUx
+        P4K8pevA==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+        id 1qBsVC-00HIVK-1L;
+        Wed, 21 Jun 2023 07:43:43 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 0B475300222;
+        Wed, 21 Jun 2023 09:43:38 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id E49482BD11718; Wed, 21 Jun 2023 09:43:37 +0200 (CEST)
+Date:   Wed, 21 Jun 2023 09:43:37 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Yair Podemsky <ypodemsk@redhat.com>
+Cc:     mtosatti@redhat.com, ppandit@redhat.com, david@redhat.com,
+        linux@armlinux.org.uk, mpe@ellerman.id.au, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, davem@davemloft.net, tglx@linutronix.de,
+        mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
+        hpa@zytor.com, keescook@chromium.org, paulmck@kernel.org,
+        frederic@kernel.org, will@kernel.org, ardb@kernel.org,
+        samitolvanen@google.com, juerg.haefliger@canonical.com,
+        arnd@arndb.de, rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        linus.walleij@linaro.org, akpm@linux-foundation.org,
+        sebastian.reichel@collabora.com, rppt@kernel.org,
+        aneesh.kumar@linux.ibm.com, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] send tlb_remove_table_smp_sync IPI only to
+ necessary CPUs
+Message-ID: <20230621074337.GF2046280@hirez.programming.kicks-ass.net>
+References: <20230620144618.125703-1-ypodemsk@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230620144618.125703-1-ypodemsk@redhat.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
+On Tue, Jun 20, 2023 at 05:46:16PM +0300, Yair Podemsky wrote:
+> Currently the tlb_remove_table_smp_sync IPI is sent to all CPUs
+> indiscriminately, this causes unnecessary work and delays notable in
+> real-time use-cases and isolated cpus.
+> By limiting the IPI to only be sent to cpus referencing the effected
+> mm.
+> a config to differentiate architectures that support mm_cpumask from
+> those that don't will allow safe usage of this feature.
+> 
+> changes from -v1:
+> - Previous version included a patch to only send the IPI to CPU's with
+> context_tracking in the kernel space, this was removed due to race 
+> condition concerns.
+> - for archs that do not maintain mm_cpumask the mask used should be
+>  cpu_online_mask (Peter Zijlstra).
+>  
 
-niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
-czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
-=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
-py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
-energii elektrycznej.
-
-Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
-pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
-ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
-
-Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
-=BCliwo=C5=9Bciach?
-
-Pozdrawiam
-Bartosz Holender
+Would it not be much better to fix the root cause? As per the last time,
+there's patches that cure the thp abuse of this.
