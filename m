@@ -2,120 +2,138 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF25EB64D8
-	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 18:02:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBA49EB64DC
+	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 23:50:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229755AbjFUSCW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 21 Jun 2023 14:02:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34828 "EHLO
+        id S229705AbjFUXub (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 21 Jun 2023 19:50:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229530AbjFUSCU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 14:02:20 -0400
-Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35A129D;
-        Wed, 21 Jun 2023 11:02:20 -0700 (PDT)
-Received: by mail-pj1-x1036.google.com with SMTP id 98e67ed59e1d1-25e7fe2fbc9so3037079a91.2;
-        Wed, 21 Jun 2023 11:02:20 -0700 (PDT)
+        with ESMTP id S229504AbjFUXua (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 19:50:30 -0400
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A647D171C
+        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:29 -0700 (PDT)
+Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-988e6fc41ccso428562266b.3
+        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687370539; x=1689962539;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
+        d=chromium.org; s=google; t=1687391427; x=1689983427;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ghR3ONQ0xCWF/XsVVqlYhvKkezqnfnGRVsn4IWmNqPA=;
-        b=WlDhY0OAVtt9U/sOOElyyyzC8WQUo6poFN2oaUUbgXb/+d/IcLxLnp/l+UzGUwpnTP
-         qNVRgaSawr/Lks/MVqkXW3vhZ6kxmceUTjHXM6jlyF1GptNr1dqW3DS3mHch/GovOfRj
-         eeIG+2GeD7qLThk604Ls1Dm6ulCuVqsz3HJeNzmw20ui3f1km/wN1Lsn8new91sCB9f4
-         Y/9gdFH2EtmVLBvhgPnz+wuC+/IaW12lqMa1hMv5oCDcKrdyydt7o/GSHiNNyTmCgyjE
-         n6f4GEOsh48n3nZWOX6uYilALlQZViylNfVYvHM7mBlUYr3PiCQJ7ZWpUMc3s5dLxZUE
-         OjEA==
+        bh=NhYNZ0vxtpjuX5s0wcMa09N91qzj3byTq4ke4NqIBlc=;
+        b=JcGUN7qBgO45ROZWwfF4YxtinCtw4P0shhwl5xpUyD4q/a3pzcpR5Tn++eUoPr0uJU
+         S/AnCod7ToEwVr1HvCjEjTC8CKcSZhADFbFRnTRE3w15YorxPqnewtleda6x8XMAndFQ
+         Bio0kCmfDu+0CMbYBmbKbtPJrbnx5JBI5AbVA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687370539; x=1689962539;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20221208; t=1687391427; x=1689983427;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ghR3ONQ0xCWF/XsVVqlYhvKkezqnfnGRVsn4IWmNqPA=;
-        b=kSlWNIkwNJ5KFt1U5a7Vv6vUphbCVfgkll3XXjmbASforS54EYcu2dO+RtQD1MTAbz
-         IV9JlQoZWOeDPKpCqJ/ssggXgUNpjufXJ1lOx+wQure1Z/qRh4VTncNmqElz0ok6fCyu
-         puI49LTDbVEKaw+uXmC6jIanMi9bV0hKg2znzPSTSssWg1lfdi8lb37TanBkSvCLU5HL
-         hzM2/b/wxN36/GFRiW0gkdq+v/B8meRIv692is0FpZArKWjTWEOWRGsx9u72EEcfSRjy
-         0l/ypA8RfSDQPeN/XD9EVzIoBv0k4fMOSeCi8ryiwl7x+oWVn4KrTKA4ifKV9iT1toZC
-         SpUg==
-X-Gm-Message-State: AC+VfDyJlWGbFxmDiTOlxGEzHOOb4gABL74oNTD39MgKuS/5WNAKdm9Y
-        5ZLphXyB6Nn21HG0dGxn6VI=
-X-Google-Smtp-Source: ACHHUZ6mRoAo2s2oCkgP3Wp2nUTJXsXUGVHNcWUvqJUw9GFNXu1TCgqL3BU4dWywAqRpkfH2O6TdSg==
-X-Received: by 2002:a17:90b:4c8d:b0:25e:a5b2:8463 with SMTP id my13-20020a17090b4c8d00b0025ea5b28463mr11111864pjb.8.1687370539354;
-        Wed, 21 Jun 2023 11:02:19 -0700 (PDT)
-Received: from smtpclient.apple ([66.170.99.1])
-        by smtp.gmail.com with ESMTPSA id r10-20020a638f4a000000b005439aaf0301sm3329045pgn.64.2023.06.21.11.02.16
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 21 Jun 2023 11:02:18 -0700 (PDT)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3731.600.7\))
-Subject: Re: [PATCH v2 2/2] mm/mmu_gather: send tlb_remove_table_smp_sync IPI
- only to MM CPUs
-From:   Nadav Amit <nadav.amit@gmail.com>
-In-Reply-To: <20230620144618.125703-3-ypodemsk@redhat.com>
-Date:   Wed, 21 Jun 2023 11:02:05 -0700
-Cc:     mtosatti@redhat.com, ppandit@redhat.com,
-        David Hildenbrand <david@redhat.com>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>, gor@linux.ibm.com,
-        agordeev@linux.ibm.com,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        svens@linux.ibm.com, "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kees Cook <keescook@chromium.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>, frederic@kernel.org,
-        Will Deacon <will@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>, ardb@kernel.org,
-        samitolvanen@google.com, juerg.haefliger@canonical.com,
-        Arnd Bergmann <arnd@arndb.de>, rmk+kernel@armlinux.org.uk,
-        geert+renesas@glider.be, linus.walleij@linaro.org,
+        bh=NhYNZ0vxtpjuX5s0wcMa09N91qzj3byTq4ke4NqIBlc=;
+        b=kDneFOPHbxAyZ9svFTnOTIOG1oXCPFZBUDvfXsDkw23jcnoeHJD40DdshmWgQ1xMBa
+         UPICyXRdQoLmLbbjj+vjpFcNAdnss0xtJpc9e7cHdNLsYfzbpeZmdUIVvnwnJ6TGy4Ba
+         PilzO5P8a3eDDQElWSuatwyCFF0im4w30IS3vgnVw8z7x7Do4BdjI0WPt38lxdGYT2Dg
+         PwAAERXfToXbF06SK46h6hwz0Z/iAE7iAXfGQuF5VoDVKTU/uLImvf8Vt7psu53dgkhz
+         TEJOJ9CspTV71i909ZDpZ38Pp4QsMfbAFHoYyv/+y7mUnUcY5uSpdHXHf5pJ53jLlDtg
+         7Flg==
+X-Gm-Message-State: AC+VfDw0A5YE1FlDQW7FZeYrq6lppUPSR7sVcHXorjt1v82XQQV9NJB2
+        2FulcZ6ieiFYdt7q34cKKvCmWwgTMMnDc4pX45YutLjr
+X-Google-Smtp-Source: ACHHUZ4edaQO2BEiczcZnse+0u6I5ZzwrX8MrrHgCqh49UYdgoYQE6fP4H1R9s23f6LH6y6B7tVOJQ==
+X-Received: by 2002:a17:906:58c5:b0:988:817c:ed59 with SMTP id e5-20020a17090658c500b00988817ced59mr8358485ejs.32.1687391426789;
+        Wed, 21 Jun 2023 16:50:26 -0700 (PDT)
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com. [209.85.208.44])
+        by smtp.gmail.com with ESMTPSA id s6-20020a170906a18600b009875a6d28b0sm3818921ejy.51.2023.06.21.16.50.24
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 21 Jun 2023 16:50:25 -0700 (PDT)
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-51bcf75c4acso3051a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:24 -0700 (PDT)
+X-Received: by 2002:a50:c35e:0:b0:519:7d2:e256 with SMTP id
+ q30-20020a50c35e000000b0051907d2e256mr4978edb.0.1687391424164; Wed, 21 Jun
+ 2023 16:50:24 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230616150618.6073-1-pmladek@suse.com> <20230616150618.6073-7-pmladek@suse.com>
+ <871qi5otdh.fsf@mail.lhotse>
+In-Reply-To: <871qi5otdh.fsf@mail.lhotse>
+From:   Doug Anderson <dianders@chromium.org>
+Date:   Wed, 21 Jun 2023 16:50:12 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=XgC0JkjMZjx0z-gt0iXp-UJr87nutB9xWKhB6qMzWWNg@mail.gmail.com>
+Message-ID: <CAD=FV=XgC0JkjMZjx0z-gt0iXp-UJr87nutB9xWKhB6qMzWWNg@mail.gmail.com>
+Subject: Re: [PATCH v2 6/6] watchdog/hardlockup: Define HARDLOCKUP_DETECTOR_ARCH
+To:     Michael Ellerman <mpe@ellerman.id.au>
+Cc:     Petr Mladek <pmladek@suse.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        sebastian.reichel@collabora.com, Mike Rapoport <rppt@kernel.org>,
-        aneesh.kumar@linux.ibm.com,
-        the arch/x86 maintainers <x86@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm <linux-mm@kvack.org>, linux-kernel@vger.kernel.org
+        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
+        Nicholas Piggin <npiggin@gmail.com>,
+        linuxppc-dev@lists.ozlabs.org,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        sparclinux@vger.kernel.org,
+        "David S . Miller" <davem@davemloft.net>,
+        linux-perf-users@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <10050BB1-15A4-4E84-B900-B21500B2079B@gmail.com>
-References: <20230620144618.125703-1-ypodemsk@redhat.com>
- <20230620144618.125703-3-ypodemsk@redhat.com>
-To:     Yair Podemsky <ypodemsk@redhat.com>
-X-Mailer: Apple Mail (2.3731.600.7)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
->=20
-> On Jun 20, 2023, at 7:46 AM, Yair Podemsky <ypodemsk@redhat.com> =
-wrote:
->=20
-> @@ -1525,7 +1525,7 @@ static void collapse_and_free_pmd(struct =
-mm_struct *mm, struct vm_area_struct *v
-> 				addr + HPAGE_PMD_SIZE);
-> 	mmu_notifier_invalidate_range_start(&range);
-> 	pmd =3D pmdp_collapse_flush(vma, addr, pmdp);
-> -	tlb_remove_table_sync_one();
-> +	tlb_remove_table_sync_one(mm);
+Hi,
 
-Can=E2=80=99t pmdp_collapse_flush() have one additional argument =
-=E2=80=9Cfreed_tables=E2=80=9D
-that it would propagate, for instance on x86 to flush_tlb_mm_range() ?
-Then you would not need tlb_remove_table_sync_one() to issue an =
-additional
-IPI, no?
+On Wed, Jun 21, 2023 at 6:08=E2=80=AFAM Michael Ellerman <mpe@ellerman.id.a=
+u> wrote:
+>
+> Petr Mladek <pmladek@suse.com> writes:
+> > The HAVE_ prefix means that the code could be enabled. Add another
+> > variable for HAVE_HARDLOCKUP_DETECTOR_ARCH without this prefix.
+> > It will be set when it should be built. It will make it compatible
+> > with the other hardlockup detectors.
+> >
+> > The change allows to clean up dependencies of PPC_WATCHDOG
+> > and HAVE_HARDLOCKUP_DETECTOR_PERF definitions for powerpc.
+> >
+> > As a result HAVE_HARDLOCKUP_DETECTOR_PERF has the same dependencies
+> > on arm, x86, powerpc architectures.
+> >
+> > Signed-off-by: Petr Mladek <pmladek@suse.com>
+> > Reviewed-by: Douglas Anderson <dianders@chromium.org>
+> > ---
+> >  arch/powerpc/Kconfig | 5 ++---
+> >  include/linux/nmi.h  | 2 +-
+> >  lib/Kconfig.debug    | 9 +++++++++
+> >  3 files changed, 12 insertions(+), 4 deletions(-)
+>
+> Something in this patch is breaking the powerpc g5_defconfig, I don't
+> immediately see what though.
+>
+> ../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98handle_backtrac=
+e_ipi=E2=80=99:
+> ../arch/powerpc/kernel/stacktrace.c:171:9: error: implicit declaration of=
+ function =E2=80=98nmi_cpu_backtrace=E2=80=99 [-Werror=3Dimplicit-function-=
+declaration]
+>   171 |         nmi_cpu_backtrace(regs);
+>       |         ^~~~~~~~~~~~~~~~~
+> ../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98arch_trigger_cp=
+umask_backtrace=E2=80=99:
+> ../arch/powerpc/kernel/stacktrace.c:226:9: error: implicit declaration of=
+ function =E2=80=98nmi_trigger_cpumask_backtrace=E2=80=99; did you mean =E2=
+=80=98arch_trigger_cpumask_backtrace=E2=80=99? [-Werror=3Dimplicit-function=
+-declaration]
+>   226 |         nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_b=
+acktrace_ipi);
+>       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>       |         arch_trigger_cpumask_backtrace
+> cc1: all warnings being treated as errors
 
-It just seems that you might still have 2 IPIs in many cases instead of
-one, and unless I am missing something, I don=E2=80=99t see why.
+Yeah, I can reproduce that.
 
+The problem is that before ${SUBJECT} patch "include/linux/nmi.h"
+would include <asm/nmi.h>. Now it won't.
+
+There are a ton of different ways to fix this, but I think the one
+that makes sense is to be consistent with other architectures and move
+the "arch_trigger_cpumask_backtrace" definitions to asm/irq.h.
+
+https://lore.kernel.org/r/20230621164809.1.Ice67126857506712559078e7de26d32=
+d26e64631@changeid
+
+-Doug
