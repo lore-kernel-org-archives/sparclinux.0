@@ -2,96 +2,98 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52F4CC001DD
-	for <sparclinux@archiver.kernel.org>; Thu, 22 Jun 2023 22:05:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C182FEB64DA
+	for <sparclinux@archiver.kernel.org>; Thu, 22 Jun 2023 23:14:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230498AbjFVWFZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 22 Jun 2023 18:05:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46540 "EHLO
+        id S230135AbjFVXO0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 22 Jun 2023 19:14:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230502AbjFVWFT (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Jun 2023 18:05:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0220E1FCE;
-        Thu, 22 Jun 2023 15:05:18 -0700 (PDT)
+        with ESMTP id S231486AbjFVXO0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Jun 2023 19:14:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59BFA2955;
+        Thu, 22 Jun 2023 16:13:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88D476191D;
-        Thu, 22 Jun 2023 22:05:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB652C433C8;
-        Thu, 22 Jun 2023 22:05:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E69E6192D;
+        Thu, 22 Jun 2023 23:13:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A0E3C433C0;
+        Thu, 22 Jun 2023 23:13:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687471516;
-        bh=dnifwmEwN5EPVqltpiQCF3MdFT37QyzPJA5VU9yHeeQ=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=RzL6J1fXaBDz0XMnNSx8x8mXcyvopQkvOXbep39IPzJX6IZTiyxdwE2nHfhbPls3L
-         N+mS72rPbV5Hplxc5fgNpJiDPbV/HNUcjlNM0k72bojGJ4KjFY1InlFqwVw3x6nnQC
-         91+lFDGDXPX57EeoiKgvynYAipkz9J96TnpYMaik9KnCYZuHYn0BitFhgrP4G1fgbY
-         6R4Jpwcj42qDrlJ2D+uH33pP6SPXmc0IbmA4+yG9XAiy7RYgb0iOqdFeCCR7TQblLZ
-         fmEHl1XvZkPJVwZHZ1ypNXpY1N8YMHO70VuR9LvpNAy1Wj1k/paRgs0NZSlBf4+f5g
-         0uQe2Ka6aNE0g==
-Message-ID: <bf396b3f-a3f3-817e-8241-222591f88c97@kernel.org>
-Date:   Thu, 22 Jun 2023 17:05:13 -0500
+        s=k20201202; t=1687475636;
+        bh=F5fKLwWsn2Ex3oJMKpK31v1vclgJv3wOl/KwcKpYG/M=;
+        h=Date:From:To:Cc:Subject:From;
+        b=ucx7W2ABWTBywvvU1AWEZ1mSnVbGErmem/s7WNHKglONcK+802866X9mZvB40h7+i
+         CDuqaE6crrY8gdVxhdEthcYq2ZhQVG1CTqnzdjCcneLKgFVWVgQzTWYWF2j6REESPf
+         Le0YlrKLx8VkZRn7H3KESPzkw+J1vSy1gv1dsW5Djdqiz8YMclYV5Lkeueem1TVhyA
+         d/xYBfmgGsMVY8GxkjBmQGknX5CBNxu36mZDVghqhn0wY4SibTunxnV7/P00huAPxz
+         Q1vFpaBHEI0EAYOoqC2/n90I6RedksmmZm8e+/P5am8elM7U0nBL2HSsXV7fQwgalK
+         dIh56o1a/KMZg==
+Date:   Thu, 22 Jun 2023 17:14:51 -0600
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-hardening@vger.kernel.org
+Subject: [PATCH][next] sparc: openpromio: Address -Warray-bounds warning
+Message-ID: <ZJTV61z4+lsKlzQG@work>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH v5 26/33] nios2: Convert __pte_free_tlb() to use ptdescs
-Content-Language: en-US
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
-        kvm@vger.kernel.org, Hugh Dickins <hughd@google.com>,
-        Mike Rapoport <rppt@kernel.org>
-References: <20230622205745.79707-1-vishal.moola@gmail.com>
- <20230622205745.79707-27-vishal.moola@gmail.com>
-From:   Dinh Nguyen <dinguyen@kernel.org>
-In-Reply-To: <20230622205745.79707-27-vishal.moola@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+One-element arrays are deprecated, and we are replacing them with flexible
+array members instead. So, replace one-element array with flexible-array
+member in struct openpromio.
 
+Address the following warning found after building (with GCC-13) sparc
+with sparc64_defconfig:
+In function 'opromgetprop',
+    inlined from 'openprom_sunos_ioctl.isra' at drivers/sbus/char/openprom.c:312:11:
+drivers/sbus/char/openprom.c:141:24: warning: array subscript 1 is above array bounds of 'char[1]' [-Warray-bounds=]
+  141 |         op->oprom_array[len] = '\0';
+      |         ~~~~~~~~~~~~~~~^~~~~
+In file included from drivers/sbus/char/openprom.c:31:
+arch/sparc/include/uapi/asm/openpromio.h: In function 'openprom_sunos_ioctl.isra':
+arch/sparc/include/uapi/asm/openpromio.h:16:17: note: while referencing 'oprom_array'
+   16 |         char    oprom_array[1];         /* Holds property names and values. */
+      |                 ^~~~~~~~~~~
 
-On 6/22/23 15:57, Vishal Moola (Oracle) wrote:
-> Part of the conversions to replace pgtable constructor/destructors with
-> ptdesc equivalents.
-> 
-> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-> Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> ---
->   arch/nios2/include/asm/pgalloc.h | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/nios2/include/asm/pgalloc.h b/arch/nios2/include/asm/pgalloc.h
-> index ecd1657bb2ce..ce6bb8e74271 100644
-> --- a/arch/nios2/include/asm/pgalloc.h
-> +++ b/arch/nios2/include/asm/pgalloc.h
-> @@ -28,10 +28,10 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
->   
->   extern pgd_t *pgd_alloc(struct mm_struct *mm);
->   
-> -#define __pte_free_tlb(tlb, pte, addr)				\
-> -	do {							\
-> -		pgtable_pte_page_dtor(pte);			\
-> -		tlb_remove_page((tlb), (pte));			\
-> +#define __pte_free_tlb(tlb, pte, addr)					\
-> +	do {								\
-> +		pagetable_pte_dtor(page_ptdesc(pte));			\
-> +		tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
->   	} while (0)
->   
->   #endif /* _ASM_NIOS2_PGALLOC_H */
+This helps with the ongoing efforts to tighten the FORTIFY_SOURCE
+routines on memcpy() and help us make progress towards globally
+enabling -Warray-bounds.
 
-Acked-by: Dinh Nguyen <dinguyen@kernel.org>
+This results in no differences in binary output.
+
+Link: https://github.com/KSPP/linux/issues/79
+Link: https://github.com/KSPP/linux/issues/322
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+ arch/sparc/include/uapi/asm/openpromio.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/include/uapi/asm/openpromio.h b/arch/sparc/include/uapi/asm/openpromio.h
+index d4494b679e99..2a73ec77aba6 100644
+--- a/arch/sparc/include/uapi/asm/openpromio.h
++++ b/arch/sparc/include/uapi/asm/openpromio.h
+@@ -10,10 +10,9 @@
+  * were chosen to be exactly equal to the SunOS equivalents.
+  */
+ 
+-struct openpromio
+-{
++struct openpromio {
+ 	unsigned int oprom_size;	/* Actual size of the oprom_array. */
+-	char	oprom_array[1];		/* Holds property names and values. */
++	char	oprom_array[];		/* Holds property names and values. */
+ };
+ 
+ #define	OPROMMAXPARAM	4096		/* Maximum size of oprom_array. */
+-- 
+2.34.1
+
