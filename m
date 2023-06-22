@@ -2,137 +2,196 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FADCEB64DB
-	for <sparclinux@archiver.kernel.org>; Thu, 22 Jun 2023 13:58:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE50C001DD
+	for <sparclinux@archiver.kernel.org>; Thu, 22 Jun 2023 20:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229955AbjFVN6d (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 22 Jun 2023 09:58:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51500 "EHLO
+        id S231361AbjFVU6o (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 22 Jun 2023 16:58:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230098AbjFVN6b (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Jun 2023 09:58:31 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E49FA1AC
-        for <sparclinux@vger.kernel.org>; Thu, 22 Jun 2023 06:57:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1687442266;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=9GM+KaVBTG0d2ZoawOpQPP3iTozMv6kRahCWZiyW/ao=;
-        b=dE63dA3mj9ln5+tXWsIQXmlaizNsyy0fLjor2NKmEQWZSNTzQP/DpTfWoWKzXEbX3znGt0
-        0iFpj78wJtWj1N/KcuDNjdv2UBTRdbt2UcPte3uvGfsIjxDBFxh3muvqvqPgM4WITdDv52
-        BzJwOiQDPWHS2reYwxJDI9Ti9DAcujQ=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-558--2aCcMz1OTGoXmjNM25wtg-1; Thu, 22 Jun 2023 09:57:44 -0400
-X-MC-Unique: -2aCcMz1OTGoXmjNM25wtg-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-3f42bcef2acso29875515e9.2
-        for <sparclinux@vger.kernel.org>; Thu, 22 Jun 2023 06:57:44 -0700 (PDT)
+        with ESMTP id S229832AbjFVU6k (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Jun 2023 16:58:40 -0400
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D93D52685;
+        Thu, 22 Jun 2023 13:58:01 -0700 (PDT)
+Received: by mail-yb1-xb2a.google.com with SMTP id 3f1490d57ef6-bff0beb2d82so2082570276.2;
+        Thu, 22 Jun 2023 13:58:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687467476; x=1690059476;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Q4Ig2n4cGI8BP25CqcNRq43JhOmkIIdJVFlb5elIpOA=;
+        b=mqvv9g7FTX6YZrTAez67m8G0SADgQWX+ct2Q2ktq+TbKMG/cOnFNL1HUEejNSN9nds
+         9vEK9L2HpCPHz3mnLHm7QE7bazoap9KPjRBuUT4kw6MBU7tHylSDou09veevPp+Qm5tI
+         J6+0hmA98DudaYxzAoNczqxDp5g6z2tqapGcR3NSEAPAgqMiM1eNh+iIzBq7ayejKjj9
+         5MP9SwhVaQTCo1G312fdQXe7vTjboPcFBobNzdFt65RtUbRTWvFRUfh7ZZb+Tak5rboQ
+         uGsNAcBwqdQTtsTo7UoikA/hvdu33PxWnma34tmu5wLmqc0vL2bNnLhMWuiaLjOulKtx
+         4JUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687442263; x=1690034263;
-        h=content-transfer-encoding:mime-version:references:in-reply-to:date
-         :cc:to:from:subject:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=9GM+KaVBTG0d2ZoawOpQPP3iTozMv6kRahCWZiyW/ao=;
-        b=cq6WdGVOSA7geUx8eRjbufee/I9pN4+Yi/YEADNaoMCPnbrzURJycgXmY9GFaX0Dsp
-         2jFlRHbNV7adjwqWKz1pS9SLKESO1f3he/SJEnjKH1d/alqBmiJfBx4eDyb7/L5gR/EO
-         zRMQZWdKyZ6OJ9RhlJxiq2FYCZN6t3TR3bkVjAQo9WgYgMDpOYGYrRw+0OCUXh7oxY8h
-         ixhE8ZGrz0f6We6IC/BQzohmekK5L2fw3aC33Hd44BwL8DFlXZzFJK7uNJOC+QYIt66p
-         x4cdLsHat85KOXWvYalk3bYzeYtWk4jvUWxC2CIaYD1eajMAxMqoaUPUDen8tMT6YJUy
-         gnvw==
-X-Gm-Message-State: AC+VfDxZEBo7FS4OdFF3/uTr59AIOjvUiVMW207rPlcere26yPX0/XTH
-        fqO5H8gBhuBc0YhzK2VzvzQSfFnD0MwotTmt5QjqTgy3xwe3sbxnECrg9wFS6TozFBChuOyVsDg
-        To7Efj9uDz9lVzpkWt1poww==
-X-Received: by 2002:a05:600c:2942:b0:3f7:5d:4a06 with SMTP id n2-20020a05600c294200b003f7005d4a06mr1531940wmd.1.1687442263393;
-        Thu, 22 Jun 2023 06:57:43 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5p9/Up90QSZ1DAdrQMEuugJHQR/5D9norGZu6r3B4czFVgo4n6RIoxrIJViM7m10t9Bv6d/Q==
-X-Received: by 2002:a05:600c:2942:b0:3f7:5d:4a06 with SMTP id n2-20020a05600c294200b003f7005d4a06mr1531890wmd.1.1687442263118;
-        Thu, 22 Jun 2023 06:57:43 -0700 (PDT)
-Received: from ypodemsk.tlv.csb (IGLD-84-229-250-192.inter.net.il. [84.229.250.192])
-        by smtp.gmail.com with ESMTPSA id n6-20020a7bcbc6000000b003f7e4d143cfsm7832711wmi.15.2023.06.22.06.57.40
+        d=1e100.net; s=20221208; t=1687467476; x=1690059476;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Q4Ig2n4cGI8BP25CqcNRq43JhOmkIIdJVFlb5elIpOA=;
+        b=T8nREzyu0AIfFz+bk+HY0hPF5qMPGhi9FDohPgTWUfDGef1LEKtVyqXgZZPWTjno/S
+         pS/jUOva9BpdIJnYSrniU5E0wWJK+t3tsNS/qJWTHPprMxLmV0nGLLX95DhINFln19GP
+         gBjDSr5vF5YEuq4pAebIZoudxZepfqB59eb+08+S8ykjdvHIMuNuc2PcJ46tqPIWUir0
+         qf/5/qmTrPvc8ssR8O9x2U25h9sFm5Oxbjo0SrV+Mqis16Iccct90PoG8U00n1uLKsvP
+         dTnFnVKfGV5lpcoNKcQa/s2GSEZRZKkYydbRlfTxAiPrA1pFw2m240TDKGrByWIkBLDR
+         DkCg==
+X-Gm-Message-State: AC+VfDyxX+BxUqykjOGGFvggnQsQ3N6NrZUQvVMBv+6hqRqS9iE6gDnR
+        UcQ/Cc05ZRrrowQD/L/hTfk=
+X-Google-Smtp-Source: ACHHUZ5QdSwF+iokSIDxxYwBaWLG1oGIRpritBhsZ3H79UKVTTkrzsNTtfFGV/ude8v+TVUUcB2uCQ==
+X-Received: by 2002:a05:6902:92:b0:bba:558e:df05 with SMTP id h18-20020a056902009200b00bba558edf05mr14486764ybs.10.1687467476004;
+        Thu, 22 Jun 2023 13:57:56 -0700 (PDT)
+Received: from unknowna0e70b2ca394.attlocal.net ([2600:1700:2f7d:1800::36])
+        by smtp.googlemail.com with ESMTPSA id d18-20020a5b0c52000000b00bc501a1b062sm1684937ybr.42.2023.06.22.13.57.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Jun 2023 06:57:42 -0700 (PDT)
-Message-ID: <c08d81286b9986c086e9b68e3440f9bf99086d70.camel@redhat.com>
-Subject: Re: [PATCH v2 2/2] mm/mmu_gather: send tlb_remove_table_smp_sync
- IPI only to MM CPUs
-From:   ypodemsk@redhat.com
-To:     Nadav Amit <nadav.amit@gmail.com>
-Cc:     mtosatti@redhat.com, ppandit@redhat.com,
+        Thu, 22 Jun 2023 13:57:55 -0700 (PDT)
+From:   "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>
+Cc:     linux-mm@kvack.org, linux-arch@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-openrisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, xen-devel@lists.xenproject.org,
+        kvm@vger.kernel.org, Hugh Dickins <hughd@google.com>,
+        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
         David Hildenbrand <david@redhat.com>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>, gor@linux.ibm.com,
-        agordeev@linux.ibm.com,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        svens@linux.ibm.com, "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
         Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Kees Cook <keescook@chromium.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>, frederic@kernel.org,
-        Will Deacon <will@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>, ardb@kernel.org,
-        samitolvanen@google.com, juerg.haefliger@canonical.com,
-        Arnd Bergmann <arnd@arndb.de>, rmk+kernel@armlinux.org.uk,
-        geert+renesas@glider.be, linus.walleij@linaro.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        sebastian.reichel@collabora.com, Mike Rapoport <rppt@kernel.org>,
-        aneesh.kumar@linux.ibm.com,
-        the arch/x86 maintainers <x86@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm <linux-mm@kvack.org>, linux-kernel@vger.kernel.org
-Date:   Thu, 22 Jun 2023 16:57:39 +0300
-In-Reply-To: <10050BB1-15A4-4E84-B900-B21500B2079B@gmail.com>
-References: <20230620144618.125703-1-ypodemsk@redhat.com>
-         <20230620144618.125703-3-ypodemsk@redhat.com>
-         <10050BB1-15A4-4E84-B900-B21500B2079B@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
-Mime-Version: 1.0
+        Arnd Bergmann <arnd@arndb.de>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: [PATCH v5 00/33] Split ptdesc from struct page
+Date:   Thu, 22 Jun 2023 13:57:12 -0700
+Message-Id: <20230622205745.79707-1-vishal.moola@gmail.com>
+X-Mailer: git-send-email 2.40.1
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, 2023-06-21 at 11:02 -0700, Nadav Amit wrote:
-> > On Jun 20, 2023, at 7:46 AM, Yair Podemsky <ypodemsk@redhat.com>
-> > wrote:
-> > 
-> > @@ -1525,7 +1525,7 @@ static void collapse_and_free_pmd(struct
-> > mm_struct *mm, struct vm_area_struct *v
-> > 				addr + HPAGE_PMD_SIZE);
-> > 	mmu_notifier_invalidate_range_start(&range);
-> > 	pmd = pmdp_collapse_flush(vma, addr, pmdp);
-> > -	tlb_remove_table_sync_one();
-> > +	tlb_remove_table_sync_one(mm);
-> 
-> Can’t pmdp_collapse_flush() have one additional argument
-> “freed_tables”
-> that it would propagate, for instance on x86 to flush_tlb_mm_range()
-> ?
-> Then you would not need tlb_remove_table_sync_one() to issue an
-> additional
-> IPI, no?
-> 
-> It just seems that you might still have 2 IPIs in many cases instead
-> of
-> one, and unless I am missing something, I don’t see why.
-> 
-Hi Nadav,
-Thanks for your comment.
-I think you are right and in some configurations 2 IPIs might occur.
-However I a am not really dealing with the thp code at the moment,
-This patch is about the mmu_gatherer and mostly dealing with IPIs sent
-via the other code path.
-Thanks,
-Yair
+The MM subsystem is trying to shrink struct page. This patchset
+introduces a memory descriptor for page table tracking - struct ptdesc.
+
+This patchset introduces ptdesc, splits ptdesc from struct page, and
+converts many callers of page table constructor/destructors to use ptdescs.
+
+Ptdesc is a foundation to further standardize page tables, and eventually
+allow for dynamic allocation of page tables independent of struct page.
+However, the use of pages for page table tracking is quite deeply
+ingrained and varied across archictectures, so there is still a lot of
+work to be done before that can happen.
+
+This is rebased on next-20230621.
+
+There is a minor conflict with patch 24 and the mm-unstable tree in
+arch/m68k/mm/motorola.c - The end result of applying the patch should
+be the same.
+
+
+v5:
+  More Acked-bys :)
+  Cleanup some documentation wording and formatting
+  Add pt_rcu_head to ptdesc
+  Add memcg to ptdesc (and align it with struct page)
+  Ensure all get_free_page() callers prohibit HIGHMEM for 32 bit support.
+  Renamed folio_{set, clear}_table() to folio_{set, clear}_pgtable()
+  Removed pagetable_clear() as it is not necessary right now
+  pagetable_free() now sets page->mapping = NULL
+  Dropped s390 _refcount to _pt_frag_refcount conversion patch
+
+Vishal Moola (Oracle) (33):
+  mm: Add PAGE_TYPE_OP folio functions
+  s390: Use _pt_s390_gaddr for gmap address tracking
+  pgtable: Create struct ptdesc
+  mm: add utility functions for ptdesc
+  mm: Convert pmd_pgtable_page() to pmd_ptdesc()
+  mm: Convert ptlock_alloc() to use ptdescs
+  mm: Convert ptlock_ptr() to use ptdescs
+  mm: Convert pmd_ptlock_init() to use ptdescs
+  mm: Convert ptlock_init() to use ptdescs
+  mm: Convert pmd_ptlock_free() to use ptdescs
+  mm: Convert ptlock_free() to use ptdescs
+  mm: Create ptdesc equivalents for pgtable_{pte,pmd}_page_{ctor,dtor}
+  powerpc: Convert various functions to use ptdescs
+  x86: Convert various functions to use ptdescs
+  s390: Convert various gmap functions to use ptdescs
+  s390: Convert various pgalloc functions to use ptdescs
+  mm: Remove page table members from struct page
+  pgalloc: Convert various functions to use ptdescs
+  arm: Convert various functions to use ptdescs
+  arm64: Convert various functions to use ptdescs
+  csky: Convert __pte_free_tlb() to use ptdescs
+  hexagon: Convert __pte_free_tlb() to use ptdescs
+  loongarch: Convert various functions to use ptdescs
+  m68k: Convert various functions to use ptdescs
+  mips: Convert various functions to use ptdescs
+  nios2: Convert __pte_free_tlb() to use ptdescs
+  openrisc: Convert __pte_free_tlb() to use ptdescs
+  riscv: Convert alloc_{pmd, pte}_late() to use ptdescs
+  sh: Convert pte_free_tlb() to use ptdescs
+  sparc64: Convert various functions to use ptdescs
+  sparc: Convert pgtable_pte_page_{ctor, dtor}() to ptdesc equivalents
+  um: Convert {pmd, pte}_free_tlb() to use ptdescs
+  mm: Remove pgtable_{pmd, pte}_page_{ctor, dtor}() wrappers
+
+ Documentation/mm/split_page_table_lock.rst    |  12 +-
+ .../zh_CN/mm/split_page_table_lock.rst        |  14 +-
+ arch/arm/include/asm/tlb.h                    |  12 +-
+ arch/arm/mm/mmu.c                             |   7 +-
+ arch/arm64/include/asm/tlb.h                  |  14 +-
+ arch/arm64/mm/mmu.c                           |   7 +-
+ arch/csky/include/asm/pgalloc.h               |   4 +-
+ arch/hexagon/include/asm/pgalloc.h            |   8 +-
+ arch/loongarch/include/asm/pgalloc.h          |  27 ++-
+ arch/loongarch/mm/pgtable.c                   |   7 +-
+ arch/m68k/include/asm/mcf_pgalloc.h           |  43 ++--
+ arch/m68k/include/asm/sun3_pgalloc.h          |   8 +-
+ arch/m68k/mm/motorola.c                       |   4 +-
+ arch/mips/include/asm/pgalloc.h               |  32 +--
+ arch/mips/mm/pgtable.c                        |   8 +-
+ arch/nios2/include/asm/pgalloc.h              |   8 +-
+ arch/openrisc/include/asm/pgalloc.h           |   8 +-
+ arch/powerpc/mm/book3s64/mmu_context.c        |  10 +-
+ arch/powerpc/mm/book3s64/pgtable.c            |  32 +--
+ arch/powerpc/mm/pgtable-frag.c                |  46 ++--
+ arch/riscv/include/asm/pgalloc.h              |   8 +-
+ arch/riscv/mm/init.c                          |  16 +-
+ arch/s390/include/asm/pgalloc.h               |   4 +-
+ arch/s390/include/asm/tlb.h                   |   4 +-
+ arch/s390/mm/gmap.c                           | 207 ++++++++++--------
+ arch/s390/mm/pgalloc.c                        | 108 ++++-----
+ arch/sh/include/asm/pgalloc.h                 |   9 +-
+ arch/sparc/mm/init_64.c                       |  17 +-
+ arch/sparc/mm/srmmu.c                         |   5 +-
+ arch/um/include/asm/pgalloc.h                 |  18 +-
+ arch/x86/mm/pgtable.c                         |  47 ++--
+ arch/x86/xen/mmu_pv.c                         |   2 +-
+ include/asm-generic/pgalloc.h                 |  88 +++++---
+ include/asm-generic/tlb.h                     |  11 +
+ include/linux/mm.h                            | 153 +++++++++----
+ include/linux/mm_types.h                      |  14 --
+ include/linux/page-flags.h                    |  30 ++-
+ include/linux/pgtable.h                       |  77 +++++++
+ mm/memory.c                                   |   8 +-
+ 39 files changed, 684 insertions(+), 453 deletions(-)
+
+-- 
+2.40.1
 
