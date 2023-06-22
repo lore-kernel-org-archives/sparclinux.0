@@ -2,138 +2,250 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBA49EB64DC
-	for <sparclinux@archiver.kernel.org>; Wed, 21 Jun 2023 23:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 554DDEB64D7
+	for <sparclinux@archiver.kernel.org>; Thu, 22 Jun 2023 02:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229705AbjFUXub (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 21 Jun 2023 19:50:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36520 "EHLO
+        id S230125AbjFVCgd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 21 Jun 2023 22:36:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbjFUXua (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 19:50:30 -0400
-Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A647D171C
-        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:29 -0700 (PDT)
-Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-988e6fc41ccso428562266b.3
-        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:29 -0700 (PDT)
+        with ESMTP id S229717AbjFVCgc (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Jun 2023 22:36:32 -0400
+Received: from mail-yb1-xb2d.google.com (mail-yb1-xb2d.google.com [IPv6:2607:f8b0:4864:20::b2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2287619BE
+        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 19:36:30 -0700 (PDT)
+Received: by mail-yb1-xb2d.google.com with SMTP id 3f1490d57ef6-bc40d4145feso6278726276.1
+        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 19:36:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1687391427; x=1689983427;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NhYNZ0vxtpjuX5s0wcMa09N91qzj3byTq4ke4NqIBlc=;
-        b=JcGUN7qBgO45ROZWwfF4YxtinCtw4P0shhwl5xpUyD4q/a3pzcpR5Tn++eUoPr0uJU
-         S/AnCod7ToEwVr1HvCjEjTC8CKcSZhADFbFRnTRE3w15YorxPqnewtleda6x8XMAndFQ
-         Bio0kCmfDu+0CMbYBmbKbtPJrbnx5JBI5AbVA=
+        d=google.com; s=20221208; t=1687401389; x=1689993389;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=v95kJuIKZOvwX2VyzbcG9p4WcOSZqpPbckNEDTbMqbw=;
+        b=O3tP+byBHyqrVuzTTEu8WRLDc/8A9uAf+TdWk4s+4iRKfQ5KOSa7bvLkBzTYKr0W8M
+         j3sRCXur+WjZ9BeHD+FncbDp1prKZ/qXqo9vRO5qA8AQSnrPS9w22qXk+xnyoij9+QY4
+         Acm9ERBt0JMUlTv5p8Jp0yNYMVl5d341AvRtjPFDRxez8WAwHgXzS6SBOEkhSkDpkgzA
+         FicxTEqozjAq1pC+B+ZdlXfR0aFh6Inz+lQvgqOR+F9yGjspH8iPGFbJTwEd3pnnSvO5
+         lsJm1UV477OB7Dih1OhkfIqmAM0XwW9HFmiv+LGL2kzkOO0DnreoAdIjNdFX9CO4XaoS
+         SsqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687391427; x=1689983427;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NhYNZ0vxtpjuX5s0wcMa09N91qzj3byTq4ke4NqIBlc=;
-        b=kDneFOPHbxAyZ9svFTnOTIOG1oXCPFZBUDvfXsDkw23jcnoeHJD40DdshmWgQ1xMBa
-         UPICyXRdQoLmLbbjj+vjpFcNAdnss0xtJpc9e7cHdNLsYfzbpeZmdUIVvnwnJ6TGy4Ba
-         PilzO5P8a3eDDQElWSuatwyCFF0im4w30IS3vgnVw8z7x7Do4BdjI0WPt38lxdGYT2Dg
-         PwAAERXfToXbF06SK46h6hwz0Z/iAE7iAXfGQuF5VoDVKTU/uLImvf8Vt7psu53dgkhz
-         TEJOJ9CspTV71i909ZDpZ38Pp4QsMfbAFHoYyv/+y7mUnUcY5uSpdHXHf5pJ53jLlDtg
-         7Flg==
-X-Gm-Message-State: AC+VfDw0A5YE1FlDQW7FZeYrq6lppUPSR7sVcHXorjt1v82XQQV9NJB2
-        2FulcZ6ieiFYdt7q34cKKvCmWwgTMMnDc4pX45YutLjr
-X-Google-Smtp-Source: ACHHUZ4edaQO2BEiczcZnse+0u6I5ZzwrX8MrrHgCqh49UYdgoYQE6fP4H1R9s23f6LH6y6B7tVOJQ==
-X-Received: by 2002:a17:906:58c5:b0:988:817c:ed59 with SMTP id e5-20020a17090658c500b00988817ced59mr8358485ejs.32.1687391426789;
-        Wed, 21 Jun 2023 16:50:26 -0700 (PDT)
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com. [209.85.208.44])
-        by smtp.gmail.com with ESMTPSA id s6-20020a170906a18600b009875a6d28b0sm3818921ejy.51.2023.06.21.16.50.24
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 21 Jun 2023 16:50:25 -0700 (PDT)
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-51bcf75c4acso3051a12.0
-        for <sparclinux@vger.kernel.org>; Wed, 21 Jun 2023 16:50:24 -0700 (PDT)
-X-Received: by 2002:a50:c35e:0:b0:519:7d2:e256 with SMTP id
- q30-20020a50c35e000000b0051907d2e256mr4978edb.0.1687391424164; Wed, 21 Jun
- 2023 16:50:24 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230616150618.6073-1-pmladek@suse.com> <20230616150618.6073-7-pmladek@suse.com>
- <871qi5otdh.fsf@mail.lhotse>
-In-Reply-To: <871qi5otdh.fsf@mail.lhotse>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Wed, 21 Jun 2023 16:50:12 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=XgC0JkjMZjx0z-gt0iXp-UJr87nutB9xWKhB6qMzWWNg@mail.gmail.com>
-Message-ID: <CAD=FV=XgC0JkjMZjx0z-gt0iXp-UJr87nutB9xWKhB6qMzWWNg@mail.gmail.com>
-Subject: Re: [PATCH v2 6/6] watchdog/hardlockup: Define HARDLOCKUP_DETECTOR_ARCH
-To:     Michael Ellerman <mpe@ellerman.id.au>
-Cc:     Petr Mladek <pmladek@suse.com>,
+        d=1e100.net; s=20221208; t=1687401389; x=1689993389;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=v95kJuIKZOvwX2VyzbcG9p4WcOSZqpPbckNEDTbMqbw=;
+        b=f/3ECFgBsryj3EkuIiB1REBB9sQgu49mQnQMy82ofil3PAtSTqqeAQvt6yYOnTuRe9
+         O4b1Ll8F0dPti6xfb/5EnJMaerP4uT0JhhLTtxWhNg8XJrq7N0xly4S7dqnqU8kzUP3b
+         84YYgMt199F/GgcnuMrBaAaHVw+6FIvTgVvTFnnCRYqQ/guLb01Z9dvjQC4+FSsn6DXa
+         mwTGvLmF8cDbiFgrzcB1X97NxqldMW+LhQYugo9ZytjhL0GkelPH0F3RhKORu65kvy+N
+         bGmCY87BF9k0LVVS5Hvea1R2XZSXKwYLP5LofkSTWJmjx1lTXGtdNQBfmzFxkzOdJEAw
+         08jQ==
+X-Gm-Message-State: AC+VfDyGdgVmHjbsjKgWmK65CLj15IBMSQ3gV79gVQc1ou4x6Do8eDCT
+        c2wjR8Tl900q8cHHo+8oFX6Ykw==
+X-Google-Smtp-Source: ACHHUZ7nNc0KOSzPxWDeH97+s3XtTQiSXAf5QSy+8GGNP+KxVnc2GWHN4WSyWChzR7EoY+E3ZvtVZQ==
+X-Received: by 2002:a0d:e6d3:0:b0:56d:ffa:f3b0 with SMTP id p202-20020a0de6d3000000b0056d0ffaf3b0mr14905560ywe.52.1687401389086;
+        Wed, 21 Jun 2023 19:36:29 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id e65-20020a0dc244000000b0056cffe97a11sm1564690ywd.13.2023.06.21.19.36.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 21 Jun 2023 19:36:27 -0700 (PDT)
+Date:   Wed, 21 Jun 2023 19:36:11 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+cc:     Hugh Dickins <hughd@google.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org,
-        Nicholas Piggin <npiggin@gmail.com>,
-        linuxppc-dev@lists.ozlabs.org,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        sparclinux@vger.kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-perf-users@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Zack Rusin <zackr@vmware.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David Sc. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 05/12] powerpc: add pte_free_defer() for pgtables
+ sharing page
+In-Reply-To: <ZJI7xkXWmjrE1yY3@ziepe.ca>
+Message-ID: <c8284d0-91cb-b65e-4c95-bfeb627234f@google.com>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <5cd9f442-61da-4c3d-eca-b7f44d22aa5f@google.com> <ZJGRa4zvsXfc43vB@ziepe.ca> <2ad8b6cf-692a-ff89-ecc-586c20c5e07f@google.com> <ZJI7xkXWmjrE1yY3@ziepe.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Tue, 20 Jun 2023, Jason Gunthorpe wrote:
+> On Tue, Jun 20, 2023 at 12:54:25PM -0700, Hugh Dickins wrote:
+> > On Tue, 20 Jun 2023, Jason Gunthorpe wrote:
+> > > On Tue, Jun 20, 2023 at 12:47:54AM -0700, Hugh Dickins wrote:
+> > > > Add powerpc-specific pte_free_defer(), to call pte_free() via call_rcu().
+> > > > pte_free_defer() will be called inside khugepaged's retract_page_tables()
+> > > > loop, where allocating extra memory cannot be relied upon.  This precedes
+> > > > the generic version to avoid build breakage from incompatible pgtable_t.
+> > > > 
+> > > > This is awkward because the struct page contains only one rcu_head, but
+> > > > that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+> > > > use the rcu_head at the same time: account concurrent deferrals with a
+> > > > heightened refcount, only the first making use of the rcu_head, but
+> > > > re-deferring if more deferrals arrived during its grace period.
+> > > 
+> > > You didn't answer my question why we can't just move the rcu to the
+> > > actual free page?
+> > 
+> > I thought that I had answered it, perhaps not to your satisfaction:
+> > 
+> > https://lore.kernel.org/linux-mm/9130acb-193-6fdd-f8df-75766e663978@google.com/
+> > 
+> > My conclusion then was:
+> > Not very good reasons: good enough, or can you supply a better patch?
+> 
+> Oh, I guess I didn't read that email as answering the question..
+> 
+> I was saying to make pte_fragment_free() unconditionally do the
+> RCU. It is the only thing that uses the page->rcu_head, and it means
+> PPC would double RCU the final free on the TLB path, but that is
+> probably OK for now. This means pte_free_defer() won't do anything
+> special on PPC as PPC will always RCU free these things, this address
+> the defer concern too, I think. Overall it is easier to reason about.
+> 
+> I looked at fixing the TLB stuff to avoid the double rcu but quickly
+> got scared that ppc was using a kmem_cache to allocate other page
+> table sizes so there is not a reliable struct page to get a rcu_head
+> from. This looks like the main challenge for ppc... We'd have to teach
+> the tlb code to not do its own RCU stuff for table levels that the
+> arch is already RCU freeing - and that won't get us to full RCU
+> freeing on PPC.
 
-On Wed, Jun 21, 2023 at 6:08=E2=80=AFAM Michael Ellerman <mpe@ellerman.id.a=
-u> wrote:
->
-> Petr Mladek <pmladek@suse.com> writes:
-> > The HAVE_ prefix means that the code could be enabled. Add another
-> > variable for HAVE_HARDLOCKUP_DETECTOR_ARCH without this prefix.
-> > It will be set when it should be built. It will make it compatible
-> > with the other hardlockup detectors.
-> >
-> > The change allows to clean up dependencies of PPC_WATCHDOG
-> > and HAVE_HARDLOCKUP_DETECTOR_PERF definitions for powerpc.
-> >
-> > As a result HAVE_HARDLOCKUP_DETECTOR_PERF has the same dependencies
-> > on arm, x86, powerpc architectures.
-> >
-> > Signed-off-by: Petr Mladek <pmladek@suse.com>
-> > Reviewed-by: Douglas Anderson <dianders@chromium.org>
-> > ---
-> >  arch/powerpc/Kconfig | 5 ++---
-> >  include/linux/nmi.h  | 2 +-
-> >  lib/Kconfig.debug    | 9 +++++++++
-> >  3 files changed, 12 insertions(+), 4 deletions(-)
->
-> Something in this patch is breaking the powerpc g5_defconfig, I don't
-> immediately see what though.
->
-> ../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98handle_backtrac=
-e_ipi=E2=80=99:
-> ../arch/powerpc/kernel/stacktrace.c:171:9: error: implicit declaration of=
- function =E2=80=98nmi_cpu_backtrace=E2=80=99 [-Werror=3Dimplicit-function-=
-declaration]
->   171 |         nmi_cpu_backtrace(regs);
->       |         ^~~~~~~~~~~~~~~~~
-> ../arch/powerpc/kernel/stacktrace.c: In function =E2=80=98arch_trigger_cp=
-umask_backtrace=E2=80=99:
-> ../arch/powerpc/kernel/stacktrace.c:226:9: error: implicit declaration of=
- function =E2=80=98nmi_trigger_cpumask_backtrace=E2=80=99; did you mean =E2=
-=80=98arch_trigger_cpumask_backtrace=E2=80=99? [-Werror=3Dimplicit-function=
--declaration]
->   226 |         nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_b=
-acktrace_ipi);
->       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->       |         arch_trigger_cpumask_backtrace
-> cc1: all warnings being treated as errors
+Sorry for being so dense all along: yes, your way is unquestionably
+much better than mine.  I guess I must have been obsessive about
+keeping pte_free_defer()+pte_free_now() "on the outside", as they
+were on x86, and never perceived how much easier it is with a small
+tweak inside pte_fragment_free(); and never reconsidered it since.
 
-Yeah, I can reproduce that.
+But I'm not so keen on the double-RCU, extending this call_rcu() to
+all the normal cases, while still leaving the TLB batching in place:
+here is the replacement patch I'd prefer us to go forward with now.
 
-The problem is that before ${SUBJECT} patch "include/linux/nmi.h"
-would include <asm/nmi.h>. Now it won't.
+Many thanks!
 
-There are a ton of different ways to fix this, but I think the one
-that makes sense is to be consistent with other architectures and move
-the "arch_trigger_cpumask_backtrace" definitions to asm/irq.h.
+[PATCH v3 05/12] powerpc: add pte_free_defer() for pgtables sharing page
 
-https://lore.kernel.org/r/20230621164809.1.Ice67126857506712559078e7de26d32=
-d26e64631@changeid
+Add powerpc-specific pte_free_defer(), to free table page via call_rcu().
+pte_free_defer() will be called inside khugepaged's retract_page_tables()
+loop, where allocating extra memory cannot be relied upon.  This precedes
+the generic version to avoid build breakage from incompatible pgtable_t.
 
--Doug
+This is awkward because the struct page contains only one rcu_head, but
+that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+use the rcu_head at the same time.  But powerpc never reuses a fragment
+once it has been freed: so mark the page Active in pte_free_defer(),
+before calling pte_fragment_free() directly; and there call_rcu() to
+pte_free_now() when last fragment is freed and the page is PageActive.
+
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+---
+ arch/powerpc/include/asm/pgalloc.h |  4 ++++
+ arch/powerpc/mm/pgtable-frag.c     | 29 ++++++++++++++++++++++++++---
+ 2 files changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/pgalloc.h b/arch/powerpc/include/asm/pgalloc.h
+index 3360cad78ace..3a971e2a8c73 100644
+--- a/arch/powerpc/include/asm/pgalloc.h
++++ b/arch/powerpc/include/asm/pgalloc.h
+@@ -45,6 +45,10 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
+ 	pte_fragment_free((unsigned long *)ptepage, 0);
+ }
+ 
++/* arch use pte_free_defer() implementation in arch/powerpc/mm/pgtable-frag.c */
++#define pte_free_defer pte_free_defer
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
++
+ /*
+  * Functions that deal with pagetables that could be at any level of
+  * the table need to be passed an "index_size" so they know how to
+diff --git a/arch/powerpc/mm/pgtable-frag.c b/arch/powerpc/mm/pgtable-frag.c
+index 20652daa1d7e..0c6b68130025 100644
+--- a/arch/powerpc/mm/pgtable-frag.c
++++ b/arch/powerpc/mm/pgtable-frag.c
+@@ -106,6 +106,15 @@ pte_t *pte_fragment_alloc(struct mm_struct *mm, int kernel)
+ 	return __alloc_for_ptecache(mm, kernel);
+ }
+ 
++static void pte_free_now(struct rcu_head *head)
++{
++	struct page *page;
++
++	page = container_of(head, struct page, rcu_head);
++	pgtable_pte_page_dtor(page);
++	__free_page(page);
++}
++
+ void pte_fragment_free(unsigned long *table, int kernel)
+ {
+ 	struct page *page = virt_to_page(table);
+@@ -115,8 +124,22 @@ void pte_fragment_free(unsigned long *table, int kernel)
+ 
+ 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+ 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
+-		if (!kernel)
+-			pgtable_pte_page_dtor(page);
+-		__free_page(page);
++		if (kernel)
++			__free_page(page);
++		else if (TestClearPageActive(page))
++			call_rcu(&page->rcu_head, pte_free_now);
++		else
++			pte_free_now(&page->rcu_head);
+ 	}
+ }
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
++{
++	struct page *page;
++
++	page = virt_to_page(pgtable);
++	SetPageActive(page);
++	pte_fragment_free((unsigned long *)pgtable, 0);
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-- 
+2.35.3
+
