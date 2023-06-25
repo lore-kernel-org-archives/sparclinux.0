@@ -2,149 +2,243 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2A54C001B3
-	for <sparclinux@archiver.kernel.org>; Sat, 24 Jun 2023 14:22:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8745AC001DE
+	for <sparclinux@archiver.kernel.org>; Sun, 25 Jun 2023 07:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232999AbjFXOWV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 24 Jun 2023 10:22:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38508 "EHLO
+        id S231817AbjFYH6p (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 25 Jun 2023 03:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbjFXOWU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 24 Jun 2023 10:22:20 -0400
-Received: from new4-smtp.messagingengine.com (new4-smtp.messagingengine.com [66.111.4.230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 979561BDB;
-        Sat, 24 Jun 2023 07:22:18 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 9D1445801DE;
-        Sat, 24 Jun 2023 10:22:17 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Sat, 24 Jun 2023 10:22:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1687616537; x=1687623737; bh=Ih
-        z6/bi511oP4d526TPPtM1blBZt4arV1NypQDvLup8=; b=Owr1gNHl98uY/LqghJ
-        ew6TAsiUgTWjuGMsxDEW7dPPnLV3e7dQ48EjTdP5xHC8mtn8gOYupnCSHk4hfivP
-        2548A0+ELQQlya9a+Jj0JkYOlxNPXvbMtrvZE4ZYuMEg0oeEVRQxH3fZk7dq7fcR
-        K2FnnRvxLC2ctHogIIPsu5AzKYi/b1l8LHXlg+nhxQKDQbQ2GgNgOE7o0SLx/lJl
-        ZJl/F2RHs+ZN1HfuzBUUYja0J54XdNJ5XYphhB2SZMV3SOmTcHA6JZT0U9/SAmVC
-        9c8VJBDM16nnBrphov+n9ifuK0VIrDEcUy1gZSuUHvkasNoYZlMz0wEqqeUYovQg
-        985w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1687616537; x=1687623737; bh=Ihz6/bi511oP4
-        d526TPPtM1blBZt4arV1NypQDvLup8=; b=VK5TgDjVEpiEaunZZwRRAQPsTnjFp
-        zkoDEEdhdFioqudleRGZjNuek0JsRnk3YrU4OgaJsTS63QgF8QOtf7vg2z1azqmX
-        zbJgS5KJT8RVEJGWIcWXoccJV7DsEUPIM7fQrw314Non4B0AcKCTS2tiu4ftIj8G
-        sBy+JyOj8lBXvLnjyDAYLzzz21cS9Rw6GZ1k8qjXXnVcAj+7YV4car/+OJ2Hz1Vy
-        XzKWDBO3QquHdDPcc9ZnIK0trCu+0GLImpYfYIOCCwLguVtAkJf4TryNcTfPhMob
-        qjIlOfgux2mxV3SnTy++07Z7K6tSNSgFgk6q7BXZ1w+17nZskwCf6fCwA==
-X-ME-Sender: <xms:GPyWZCp4xCyzgIT7Kv57_S9Fj_YrOyXXtQi7KxbKTITt5sPxujuEgA>
-    <xme:GPyWZAoCSw5-QOKYgYL1kqq0dPmclQVYtInH9cHAwaW4i2eRqwCURn45oRtWD_RQc
-    xQUs-Q4Qr9LCBw-SYo>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrgeegjedgjeehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:GPyWZHMyXf5Kvsllp2a13R-ZdsUa5Eyn9zm8e_TevTvdOPqjcW5nlQ>
-    <xmx:GPyWZB456YmIlexKtameEvfzxT6jb_S5LP8U4ZZ8x8ftCJgDf8Imbw>
-    <xmx:GPyWZB4KiilRGFPdEeCPRk6Xvib-UQo3Rc6SHJIcWlgnWs25oEFPvQ>
-    <xmx:GfyWZDvcJNvUjndis2HwHYCG9wl31VYvNLjRzs3Fi5XOZJ7a0ROd8w>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id B8029B60086; Sat, 24 Jun 2023 10:22:16 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-499-gf27bbf33e2-fm-20230619.001-gf27bbf33
-Mime-Version: 1.0
-Message-Id: <d9ffc44c-c4ae-4f01-bc0b-ee5359a24a0a@app.fastmail.com>
-In-Reply-To: <d4156e51-102f-36b4-e42c-938268b4b608@roeck-us.net>
-References: <20230417125651.25126-18-tzimmermann@suse.de>
- <c525adc9-6623-4660-8718-e0c9311563b8@roeck-us.net>
- <55130a50-d129-4336-99ce-3be4229b1c7d@app.fastmail.com>
- <d4156e51-102f-36b4-e42c-938268b4b608@roeck-us.net>
-Date:   Sat, 24 Jun 2023 16:21:47 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Guenter Roeck" <linux@roeck-us.net>,
-        "Thomas Zimmermann" <tzimmermann@suse.de>
-Cc:     "Daniel Vetter" <daniel.vetter@ffwll.ch>,
-        "Helge Deller" <deller@gmx.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org,
-        x86@kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, loongarch@lists.linux.dev,
-        sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org,
-        "David S . Miller" <davem@davemloft.net>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [v3,17/19] arch/sparc: Implement fb_is_primary_device() in source file
-Content-Type: text/plain
+        with ESMTP id S230154AbjFYH6o (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 25 Jun 2023 03:58:44 -0400
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99D8DF;
+        Sun, 25 Jun 2023 00:58:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687679922; x=1719215922;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=eTIwvrfKylgiLU30c+QKGL2VdYd5OeJbT6ROhsR0yJI=;
+  b=RLJOYEPHBNSGXq/vuLXtIXn+f3uXPPJyF+6LxlauyJTb8Yia8322ZfpE
+   tYhAkiXNdS+2b3HxB7pRJhVwZ2K7BCa8veecAiqXzxE70ysmN9JiA6w1z
+   LJg7EENodukZ+1Bys0OrYl7VTSFFjZlx/RpyqA+1tB+MwzJBjBa1KOCEh
+   fElGG0lGLlcBdGDjacTyhC2z0oHCQkOgliOqsD/tBEEXxWeCX788aFFrY
+   iJRXcBc19x3iwlVHNFPsjlHe66YGHPpnyAMpk6R+uY/L32+Ff/zJ0Ay8H
+   rXX8LKgY6RDIWYwPD37TN+KOJ/XQnA4K1W9soTBiD919YR4gMl+RDUTqh
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10751"; a="447419942"
+X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
+   d="scan'208";a="447419942"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2023 00:58:41 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10751"; a="693123135"
+X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
+   d="scan'208";a="693123135"
+Received: from lkp-server01.sh.intel.com (HELO 783282924a45) ([10.239.97.150])
+  by orsmga006.jf.intel.com with ESMTP; 25 Jun 2023 00:58:34 -0700
+Received: from kbuild by 783282924a45 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qDKdm-0009sJ-0Z;
+        Sun, 25 Jun 2023 07:58:34 +0000
+Date:   Sun, 25 Jun 2023 15:57:56 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>
+Cc:     oe-kbuild-all@lists.linux.dev,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>,
+        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Mike Rapoport <rppt@kernel.org>
+Subject: Re: [PATCH v5 24/33] m68k: Convert various functions to use ptdescs
+Message-ID: <202306251513.WVzxgGxu-lkp@intel.com>
+References: <20230622205745.79707-25-vishal.moola@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230622205745.79707-25-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Jun 24, 2023, at 15:26, Guenter Roeck wrote:
-> On 6/24/23 02:27, Arnd Bergmann wrote:
->> On Sat, Jun 24, 2023, at 03:55, Guenter Roeck wrote:
->>>
->>> On Mon, Apr 17, 2023 at 02:56:49PM +0200, Thomas Zimmermann wrote:
->>>> Other architectures implment fb_is_primary_device() in a source
->>>> file. Do the same on sparc. No functional changes, but allows to
->>>> remove several include statement from <asm/fb.h>.
->>>>
->>>> v2:
->>>> 	* don't include <asm/prom.h> in header file
->>>>
->>>> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
->>>> Cc: "David S. Miller" <davem@davemloft.net>
->>>
->>> This patch results (or appears to result) in the following build error
->>> when trying to build sparc64:allmodconfig.
->>>
->>> Error log:
->>> <stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
->>> WARNING: modpost: drivers/cpufreq/sparc-us2e-cpufreq: section mismatch
->>> in reference: cpufreq_us2e_driver+0x20 (section: .data) ->
->>> us2e_freq_cpu_init (section: .init.text)
->>> WARNING: modpost: drivers/cpufreq/sparc-us3-cpufreq: section mismatch
->>> in reference: cpufreq_us3_driver+0x20 (section: .data) ->
->>> us3_freq_cpu_init (section: .init.text)
->>> ERROR: modpost: "__xchg_called_with_bad_pointer" [lib/atomic64_test.ko]
->>> undefined!
->> 
->> These all look like old bugs that would be trivially fixed if
->> anyone cared about sparc.
->> 
->
-> Odd argument, given that this _is_ a sparc patch. Those may be old
-> bugs, but at least in 6.4-rc7 sparc64:allmodconfig does at least compile.
+Hi Vishal,
 
-The first three are non-fatal warnings even with CONFIG_WERROR=y, I'm
-sure they have been there for years. I don't immediately see what
-caused the __xchg_called_with_bad_pointer error, but it does not
-look related to the fbdev patch. I would guess that this is a second
-regression that happened to come in at the same time.
+kernel test robot noticed the following build errors:
 
-> Sure, I can stop build testing it if that is where things are going.
+[auto build test ERROR on next-20230622]
+[cannot apply to akpm-mm/mm-everything powerpc/next powerpc/fixes s390/features geert-m68k/for-next geert-m68k/for-linus linus/master v6.4-rc7 v6.4-rc6 v6.4-rc5 v6.4-rc7]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-I think we clearly want to fix the fbdev regression you found, and
-maybe bisect the atomic64_test as well to see if that was caused by
-a recent patch to get it into a working state again.
+url:    https://github.com/intel-lab-lkp/linux/commits/Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230623-050011
+base:   next-20230622
+patch link:    https://lore.kernel.org/r/20230622205745.79707-25-vishal.moola%40gmail.com
+patch subject: [PATCH v5 24/33] m68k: Convert various functions to use ptdescs
+config: m68k-randconfig-s051-20230625 (https://download.01.org/0day-ci/archive/20230625/202306251513.WVzxgGxu-lkp@intel.com/config)
+compiler: m68k-linux-gcc (GCC) 12.3.0
+reproduce: (https://download.01.org/0day-ci/archive/20230625/202306251513.WVzxgGxu-lkp@intel.com/reproduce)
 
-Regarding whether to continue build testing: if every kernel build
-warns about a missing syscall for almost four years (clone3 was
-added in 5.3 and requires a minimal review to hook it up to asm
-code), it shows that the architecture is seriously neglected
-already.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202306251513.WVzxgGxu-lkp@intel.com/
 
-     Arnd
+All error/warnings (new ones prefixed by >>):
+
+   In file included from arch/m68k/include/asm/pgalloc.h:12,
+                    from kernel/fork.c:103:
+   arch/m68k/include/asm/mcf_pgalloc.h: In function 'pgd_alloc':
+>> arch/m68k/include/asm/mcf_pgalloc.h:82:60: error: 'GFP_NOWARN' undeclared (first use in this function); did you mean 'GFP_NOWAIT'?
+      82 |         struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | GFP_NOWARN) &
+         |                                                            ^~~~~~~~~~
+         |                                                            GFP_NOWAIT
+   arch/m68k/include/asm/mcf_pgalloc.h:82:60: note: each undeclared identifier is reported only once for each function it appears in
+   arch/m68k/include/asm/mcf_pgalloc.h: At top level:
+>> arch/m68k/include/asm/mcf_pgalloc.h:23:16: warning: 'ptdesc_address' is static but used in inline function 'pte_alloc_one_kernel' which is not static
+      23 |         return ptdesc_address(ptdesc);
+         |                ^~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:17:33: warning: 'pagetable_alloc' is static but used in inline function 'pte_alloc_one_kernel' which is not static
+      17 |         struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | __GFP_ZERO) &
+         |                                 ^~~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:10:24: warning: 'virt_to_ptdesc' is static but used in inline function 'pte_free_kernel' which is not static
+      10 |         pagetable_free(virt_to_ptdesc(pte));
+         |                        ^~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:10:9: warning: 'pagetable_free' is static but used in inline function 'pte_free_kernel' which is not static
+      10 |         pagetable_free(virt_to_ptdesc(pte));
+         |         ^~~~~~~~~~~~~~
+--
+   In file included from arch/m68k/mm/mcfmmu.c:21:
+   arch/m68k/include/asm/mcf_pgalloc.h: In function 'pgd_alloc':
+>> arch/m68k/include/asm/mcf_pgalloc.h:82:60: error: 'GFP_NOWARN' undeclared (first use in this function); did you mean 'GFP_NOWAIT'?
+      82 |         struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | GFP_NOWARN) &
+         |                                                            ^~~~~~~~~~
+         |                                                            GFP_NOWAIT
+   arch/m68k/include/asm/mcf_pgalloc.h:82:60: note: each undeclared identifier is reported only once for each function it appears in
+   arch/m68k/mm/mcfmmu.c: At top level:
+   arch/m68k/mm/mcfmmu.c:36:13: warning: no previous prototype for 'paging_init' [-Wmissing-prototypes]
+      36 | void __init paging_init(void)
+         |             ^~~~~~~~~~~
+   arch/m68k/mm/mcfmmu.c: In function 'paging_init':
+   arch/m68k/mm/mcfmmu.c:41:37: warning: variable 'bootmem_end' set but not used [-Wunused-but-set-variable]
+      41 |         unsigned long next_pgtable, bootmem_end;
+         |                                     ^~~~~~~~~~~
+   arch/m68k/include/asm/mcf_pgalloc.h: At top level:
+>> arch/m68k/include/asm/mcf_pgalloc.h:23:16: warning: 'ptdesc_address' is static but used in inline function 'pte_alloc_one_kernel' which is not static
+      23 |         return ptdesc_address(ptdesc);
+         |                ^~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:17:33: warning: 'pagetable_alloc' is static but used in inline function 'pte_alloc_one_kernel' which is not static
+      17 |         struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | __GFP_ZERO) &
+         |                                 ^~~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:10:24: warning: 'virt_to_ptdesc' is static but used in inline function 'pte_free_kernel' which is not static
+      10 |         pagetable_free(virt_to_ptdesc(pte));
+         |                        ^~~~~~~~~~~~~~
+>> arch/m68k/include/asm/mcf_pgalloc.h:10:9: warning: 'pagetable_free' is static but used in inline function 'pte_free_kernel' which is not static
+      10 |         pagetable_free(virt_to_ptdesc(pte));
+         |         ^~~~~~~~~~~~~~
+
+
+vim +82 arch/m68k/include/asm/mcf_pgalloc.h
+
+     7	
+     8	extern inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+     9	{
+  > 10		pagetable_free(virt_to_ptdesc(pte));
+    11	}
+    12	
+    13	extern const char bad_pmd_string[];
+    14	
+    15	extern inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+    16	{
+  > 17		struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | __GFP_ZERO) &
+    18				~__GFP_HIGHMEM, 0);
+    19	
+    20		if (!ptdesc)
+    21			return NULL;
+    22	
+  > 23		return ptdesc_address(ptdesc);
+    24	}
+    25	
+    26	extern inline pmd_t *pmd_alloc_kernel(pgd_t *pgd, unsigned long address)
+    27	{
+    28		return (pmd_t *) pgd;
+    29	}
+    30	
+    31	#define pmd_populate(mm, pmd, pte) (pmd_val(*pmd) = (unsigned long)(pte))
+    32	
+    33	#define pmd_populate_kernel pmd_populate
+    34	
+    35	static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
+    36					  unsigned long address)
+    37	{
+    38		struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
+    39	
+    40		pagetable_pte_dtor(ptdesc);
+    41		pagetable_free(ptdesc);
+    42	}
+    43	
+    44	static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
+    45	{
+    46		struct ptdesc *ptdesc = pagetable_alloc(GFP_DMA | __GFP_ZERO, 0);
+    47		pte_t *pte;
+    48	
+    49		if (!ptdesc)
+    50			return NULL;
+    51		if (!pagetable_pte_ctor(ptdesc)) {
+    52			pagetable_free(ptdesc);
+    53			return NULL;
+    54		}
+    55	
+    56		pte = ptdesc_address(ptdesc);
+    57		return pte;
+    58	}
+    59	
+    60	static inline void pte_free(struct mm_struct *mm, pgtable_t pgtable)
+    61	{
+    62		struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
+    63	
+    64		pagetable_pte_dtor(ptdesc);
+    65		pagetable_free(ptdesc);
+    66	}
+    67	
+    68	/*
+    69	 * In our implementation, each pgd entry contains 1 pmd that is never allocated
+    70	 * or freed.  pgd_present is always 1, so this should never be called. -NL
+    71	 */
+    72	#define pmd_free(mm, pmd) BUG()
+    73	
+    74	static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+    75	{
+    76		pagetable_free(virt_to_ptdesc(pgd));
+    77	}
+    78	
+    79	static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+    80	{
+    81		pgd_t *new_pgd;
+  > 82		struct ptdesc *ptdesc = pagetable_alloc((GFP_DMA | GFP_NOWARN) &
+    83				~__GFP_HIGHMEM, 0);
+    84	
+    85		if (!ptdesc)
+    86			return NULL;
+    87		new_pgd = ptdesc_address(ptdesc);
+    88	
+    89		memcpy(new_pgd, swapper_pg_dir, PTRS_PER_PGD * sizeof(pgd_t));
+    90		memset(new_pgd, 0, PAGE_OFFSET >> PGDIR_SHIFT);
+    91		return new_pgd;
+    92	}
+    93	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
