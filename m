@@ -2,59 +2,59 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25907C001DD
-	for <sparclinux@archiver.kernel.org>; Sun, 25 Jun 2023 21:25:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D69EC001DC
+	for <sparclinux@archiver.kernel.org>; Sun, 25 Jun 2023 21:27:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230043AbjFYVZx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 25 Jun 2023 17:25:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46452 "EHLO
+        id S229767AbjFYV1v (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 25 Jun 2023 17:27:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbjFYVZw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 25 Jun 2023 17:25:52 -0400
-Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 962EFB8
-        for <sparclinux@vger.kernel.org>; Sun, 25 Jun 2023 14:25:50 -0700 (PDT)
-Received: by mail-wm1-x32f.google.com with SMTP id 5b1f17b1804b1-3fa7512e599so33755555e9.2
-        for <sparclinux@vger.kernel.org>; Sun, 25 Jun 2023 14:25:50 -0700 (PDT)
+        with ESMTP id S229698AbjFYV1u (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 25 Jun 2023 17:27:50 -0400
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA8B7184
+        for <sparclinux@vger.kernel.org>; Sun, 25 Jun 2023 14:27:47 -0700 (PDT)
+Received: by mail-wr1-x436.google.com with SMTP id ffacd0b85a97d-3110ab7110aso3189221f8f.3
+        for <sparclinux@vger.kernel.org>; Sun, 25 Jun 2023 14:27:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1687728349; x=1690320349;
+        d=linaro.org; s=google; t=1687728466; x=1690320466;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=UdnZaaLPu+ki2Fnpi7gIMqnleR/1nTSrgsUBiU7raqs=;
-        b=AuZzlwnDYmnmOftfy2wrafOBFbb56vCejuD34y8KcPpleFcFuezxpyFWOSjhuZxkPS
-         zeSfG2w0XrIPV1KdHWQokPQ1jXghjl2vrhRRAbTkOmBPev2Y+nWRI/biFzHZ3hCMQ7tM
-         p/FzxBnXFDBpB8MHCj2WU/UolKd4/Vvmjvp6o4dVorfVmDfRaxfNR+qA9bNx0Pj9YdH1
-         aTtZEM3RJSnIyZi4R338cGts/EylYRAl+/bJngdYtZ+oY5xIw7Y0hDIrOVdqWfMpTeqN
-         /SK8Y+WrVYilXjqF3JrwO8FslIckA2qun1P1rq5RIx075Bn9K14LU4ka2oAd4GBp7mSP
-         lYow==
+        bh=75eDqtaV4HxjbOY0L3WJNiE0VV9dzyg9cgqtVXJznBY=;
+        b=P4OMFY0E+kb5eR0W9Y6kEgLPJuc6u7faK0X1O+XQGbwqlajdF/jfFWAcx8BRjDqGzO
+         mh6gHGoaEUDX+sh3nKQRSDJ7HA0jh2sHDYtRXrtRDSCN3zTIndInhtFLLYMRLTUVyOKS
+         YpCq/XTlPUo+K6NWRXFBXfXuAiMnnc5n0pIhRCxDVLvmATOI8nFzSZ2lOhnffLdUEmwd
+         VeArt9sQbwQphWxkK4kf1essGtLoTUS/ckhnahsuy5pt7r3o+oJjlr5xYi1q+x0YAcvy
+         jUeA3jWRJo1IshymxkGUWJrB/2Mitej5Iu/x3GJN9KZtlWpfpaIlbv4Lf+DJiRh45Kkw
+         WFWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687728349; x=1690320349;
+        d=1e100.net; s=20221208; t=1687728466; x=1690320466;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=UdnZaaLPu+ki2Fnpi7gIMqnleR/1nTSrgsUBiU7raqs=;
-        b=gizOOzRVgEdWuIWaLK1bQWVrbJSThj4+/kJFqjqYghnUpamvJ/GcP/7f3Hl5HYgP+U
-         Afjoi9YzMC0PDpFhkNpqAHKiXZ0LsmHBe7V1dDmI2/Eyx2LqoIvs231LG8bl+KIvpuOX
-         03OitnBst1P83s+oT98mZsS1oiJsuDiaQ/F3ek4Ty0zt9JHgn2LsgpsD1KS00HQhkZOZ
-         0MZpA8PHcGy0133Z7JG0tgXIEzX9UMftiPR4BTOfwYNjFt3cRM/FwMOYTsKn2q1VkH4U
-         BHVFaAKvzPKUGebG+PRl6leAB1WhQYz7P25PvhYvUxSBGsafNehHymkRUuPErYrP96W/
-         +wBw==
-X-Gm-Message-State: AC+VfDyaUiKRoMXfNF3Z8q+QZvmEgxwhFgNiGE9TiEUojOkGe3uhstwK
-        DHqYbpaXYDFO8jOdkIYtNSXQOA==
-X-Google-Smtp-Source: ACHHUZ55uWsoV2hbUGeBFvfsxWLvpqQwxIsiqcLZylUM/E4cjFWcT0Stb/ufsPS5kTWtMBzw9AQ43Q==
-X-Received: by 2002:a1c:4b16:0:b0:3fa:8475:bce1 with SMTP id y22-20020a1c4b16000000b003fa8475bce1mr3968019wma.4.1687728349062;
-        Sun, 25 Jun 2023 14:25:49 -0700 (PDT)
+        bh=75eDqtaV4HxjbOY0L3WJNiE0VV9dzyg9cgqtVXJznBY=;
+        b=WUwctaI+qCQpOFrsnirJu6XrhyCciZP9XsKBIoma7yc5MYMT6BPAgr/VUgQOa7V2gQ
+         aJQRANQJkeVK7Z3hvPNJYIvJgT+d4N3iPDLhi5RV3wkRLEYbS4x1SteHafRWCRfx87Lh
+         fnWAU/LRSHbArilPfvQfryTeh2t9Qes/lsFHtose1iO0o0+38+RuCfZM2EvOT7eP/Jjt
+         phO7qdT6HU7FUpnDZQ3XSfBqBkQ3H9xWPqE6qY91R+8u+XWTsVmKMOgpbGZmGwzTc11Y
+         q7YhkVtayoVobfkL6iliBJ5bCgV3o2jOkMqnvcfgPUsQjSmJisDANh/MGSGmrlMP2IzD
+         0veQ==
+X-Gm-Message-State: AC+VfDwLK1rfDrJcwo/gpJWmt3yPGniIUJTGubN9c/HvAga41AQ76Der
+        /pfTJfotBxGRxNIkPA/JWogr7w==
+X-Google-Smtp-Source: ACHHUZ6Hjasu9Lrk/CatQAEzcCmcG0JhA1BO0YkpChmI4xEA5JcA/nNpFTMJqb3YFVfr7dLSsRzufQ==
+X-Received: by 2002:a5d:474f:0:b0:313:f07b:8027 with SMTP id o15-20020a5d474f000000b00313f07b8027mr1072096wrs.36.1687728466257;
+        Sun, 25 Jun 2023 14:27:46 -0700 (PDT)
 Received: from [192.168.69.115] ([176.187.212.184])
-        by smtp.gmail.com with ESMTPSA id c13-20020a7bc00d000000b003f735ba7736sm5718246wmb.46.2023.06.25.14.25.44
+        by smtp.gmail.com with ESMTPSA id r13-20020adfe68d000000b0030fb4b55c13sm5420254wrm.96.2023.06.25.14.27.41
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 25 Jun 2023 14:25:48 -0700 (PDT)
-Message-ID: <db27d890-9c2c-8ec8-0d88-62b9172893ae@linaro.org>
-Date:   Sun, 25 Jun 2023 23:25:44 +0200
+        Sun, 25 Jun 2023 14:27:45 -0700 (PDT)
+Message-ID: <9c362e4f-ba40-02a6-fb22-aed6598ec536@linaro.org>
+Date:   Sun, 25 Jun 2023 23:27:40 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
  Gecko/20100101 Thunderbird/102.12.0
-Subject: Re: [patch 07/17] mips/cpu: Switch to arch_cpu_finalize_init()
+Subject: Re: [patch 03/17] ARM: cpu: Switch to arch_cpu_finalize_init()
 Content-Language: en-US
 To:     Thomas Gleixner <tglx@linutronix.de>,
         LKML <linux-kernel@vger.kernel.org>
@@ -62,13 +62,14 @@ Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
         Nikolay Borisov <nik.borisov@suse.com>,
         "Ahmed S. Darwish" <darwi@linutronix.de>,
         Arnd Bergmann <arnd@arndb.de>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        Russell King <linux@armlinux.org.uk>,
         linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
         Huacai Chen <chenhuacai@kernel.org>,
         WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         linux-m68k@lists.linux-m68k.org,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
@@ -83,9 +84,9 @@ Cc:     x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>,
         Chris Zankel <chris@zankel.net>,
         Tom Lendacky <thomas.lendacky@amd.com>
 References: <20230613223827.532680283@linutronix.de>
- <20230613224545.312438573@linutronix.de>
+ <20230613224545.078124882@linutronix.de>
 From:   =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <philmd@linaro.org>
-In-Reply-To: <20230613224545.312438573@linutronix.de>
+In-Reply-To: <20230613224545.078124882@linutronix.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -99,13 +100,14 @@ On 14/6/23 01:39, Thomas Gleixner wrote:
 > No functional change.
 > 
 > Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: linux-mips@vger.kernel.org
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: linux-arm-kernel@lists.infradead.org
 > ---
->   arch/mips/Kconfig            |    1 +
->   arch/mips/include/asm/bugs.h |   17 -----------------
->   arch/mips/kernel/setup.c     |   13 +++++++++++++
->   3 files changed, 14 insertions(+), 17 deletions(-)
+>   arch/arm/Kconfig            |    1 +
+>   arch/arm/include/asm/bugs.h |    4 ----
+>   arch/arm/kernel/bugs.c      |    3 ++-
+>   3 files changed, 3 insertions(+), 5 deletions(-)
 
 Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
 
