@@ -2,231 +2,124 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 986E7C001DC
-	for <sparclinux@archiver.kernel.org>; Mon, 26 Jun 2023 13:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 375CAEB64DA
+	for <sparclinux@archiver.kernel.org>; Mon, 26 Jun 2023 14:37:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229657AbjFZNCP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 26 Jun 2023 09:02:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52304 "EHLO
+        id S229811AbjFZOh3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 26 Jun 2023 10:37:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231263AbjFZNCJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Jun 2023 09:02:09 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 482ECD2;
-        Mon, 26 Jun 2023 06:02:04 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CF2D62F4;
-        Mon, 26 Jun 2023 06:02:47 -0700 (PDT)
-Received: from FVFF77S0Q05N (unknown [10.57.23.38])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 14E543F64C;
-        Mon, 26 Jun 2023 06:01:57 -0700 (PDT)
-Date:   Mon, 26 Jun 2023 14:01:55 +0100
-From:   Mark Rutland <mark.rutland@arm.com>
-To:     Andy Lutomirski <luto@kernel.org>
-Cc:     Mike Rapoport <rppt@kernel.org>, Kees Cook <keescook@chromium.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Kent Overstreet <kent.overstreet@linux.dev>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nadav Amit <nadav.amit@gmail.com>,
-        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Puranjay Mohan <puranjay12@gmail.com>,
-        Rick P Edgecombe <rick.p.edgecombe@intel.com>,
-        "Russell King (Oracle)" <linux@armlinux.org.uk>,
-        Song Liu <song@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Will Deacon <will@kernel.org>, bpf@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-mm@kvack.org, linux-modules@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org,
-        the arch/x86 maintainers <x86@kernel.org>
-Subject: Re: [PATCH v2 02/12] mm: introduce execmem_text_alloc() and
- jit_text_alloc()
-Message-ID: <ZJmMQ62fW7RO5W2O@FVFF77S0Q05N>
-References: <20230616085038.4121892-1-rppt@kernel.org>
- <20230616085038.4121892-3-rppt@kernel.org>
- <f9a7eebe-d36e-4587-b99d-35d4edefdd14@app.fastmail.com>
- <20230618080027.GA52412@kernel.org>
- <a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a17c65c6-863f-4026-9c6f-a04b659e9ab4@app.fastmail.com>
+        with ESMTP id S229743AbjFZOh1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Jun 2023 10:37:27 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED20010C2
+        for <sparclinux@vger.kernel.org>; Mon, 26 Jun 2023 07:36:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1687790201;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=tvcSqXCnz9zVXylEiOugaJe8PBAXaMauU+4YTqF2Kks=;
+        b=ct4PatFkbBsjEKIKtSqgEa9zU+ug52tY/jG4bGhtKsOanMOmu9Nk3IjzAlzIg2e3A7CBPx
+        iDLc441UQQT624q3xAc1FcIUXHcIlHV/L1QFcG7kfxAmZg3cjhho8rMEEJ7idFpuZj0+W2
+        /CNjcxVwhoKClPa0SM2qf8gxj3syXy4=
+Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
+ [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-384-tHw4a6asNsqBbKrwdeP2yQ-1; Mon, 26 Jun 2023 10:36:38 -0400
+X-MC-Unique: tHw4a6asNsqBbKrwdeP2yQ-1
+Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-763a397a3ceso385383785a.1
+        for <sparclinux@vger.kernel.org>; Mon, 26 Jun 2023 07:36:38 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687790197; x=1690382197;
+        h=content-transfer-encoding:mime-version:references:in-reply-to:date
+         :to:from:subject:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=tvcSqXCnz9zVXylEiOugaJe8PBAXaMauU+4YTqF2Kks=;
+        b=POxZ6NsfkSkxcRRy+fdHNGHcixnfaVVUqLNFdT/Jh9XgtdfM9P9Cf65yPmKpfLBK+a
+         2fHLQSNm/OPY35nCHuCtpxIvmbhwTNGw5McCcvzTSUriPng4MkrRnZrjspW8O9zVcbVL
+         Dusvn88GbSlfJ9L3znuQi+YfIMNH5Ob7rg6rpeGvYGemc78ZJ5wBGc1z4rf9iEgJ2HD4
+         5PmU0NIshwX+xCXJHkRBDEe7LJVmTSDwE8tfk6Sli/Lz+ZVwfvNHqp7kuZsHTqmrj6aK
+         0RIGJwMc4AZJbBlKotDqYzpHa1WefKLV+IG6Mf4unMnq3pM28rB5zmx5qZBsQfnM42bu
+         vqGg==
+X-Gm-Message-State: AC+VfDwrGVPiwPut846ON4N1ZULVyqNdKzvkKX+eWxngrMqmdlNw3heG
+        v3H1zhwT2UbFjcUMvH1zGjgsejwwdANsiE1HX6RloKSofrLv/P9tViZMZh9vPvcNaUD0AnlxEGZ
+        bDw/Ika0LqcHjzIn+RtoKnw==
+X-Received: by 2002:a05:620a:2b88:b0:762:5179:5d97 with SMTP id dz8-20020a05620a2b8800b0076251795d97mr26896692qkb.12.1687790197708;
+        Mon, 26 Jun 2023 07:36:37 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ79/JfP3Hny6V9tnqkHShvsxIy9E8rAkOfBtz9lcAvMdQVNdzhuBr1C3eS+Bxuk3VP5Pg8PBg==
+X-Received: by 2002:a05:620a:2b88:b0:762:5179:5d97 with SMTP id dz8-20020a05620a2b8800b0076251795d97mr26896682qkb.12.1687790197466;
+        Mon, 26 Jun 2023 07:36:37 -0700 (PDT)
+Received: from ypodemsk.tlv.csb (IGLD-84-229-250-192.inter.net.il. [84.229.250.192])
+        by smtp.gmail.com with ESMTPSA id pe34-20020a05620a852200b00765a71e399bsm1204141qkn.55.2023.06.26.07.36.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Jun 2023 07:36:37 -0700 (PDT)
+Message-ID: <cccb5351e48b11e6c657bcfa28632f49cb9cc800.camel@redhat.com>
+Subject: Re: [PATCH v2 2/2] mm/mmu_gather: send tlb_remove_table_smp_sync
+ IPI only to MM CPUs
+From:   ypodemsk@redhat.com
+To:     Dave Hansen <dave.hansen@intel.com>, mtosatti@redhat.com,
+        ppandit@redhat.com, david@redhat.com, linux@armlinux.org.uk,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
+        keescook@chromium.org, paulmck@kernel.org, frederic@kernel.org,
+        will@kernel.org, peterz@infradead.org, ardb@kernel.org,
+        samitolvanen@google.com, juerg.haefliger@canonical.com,
+        arnd@arndb.de, rmk+kernel@armlinux.org.uk, geert+renesas@glider.be,
+        linus.walleij@linaro.org, akpm@linux-foundation.org,
+        sebastian.reichel@collabora.com, rppt@kernel.org,
+        aneesh.kumar@linux.ibm.com, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Date:   Mon, 26 Jun 2023 17:36:28 +0300
+In-Reply-To: <d0ef9148-3c95-87bb-26f9-ea0920a4faa4@intel.com>
+References: <20230620144618.125703-1-ypodemsk@redhat.com>
+         <20230620144618.125703-3-ypodemsk@redhat.com>
+         <680fadba-9104-3914-5175-e207fd3d9246@intel.com>
+         <79f29f99fa07c46dbaee7b802cdd7b477b2d8dd1.camel@redhat.com>
+         <d0ef9148-3c95-87bb-26f9-ea0920a4faa4@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jun 19, 2023 at 10:09:02AM -0700, Andy Lutomirski wrote:
-> On Sun, Jun 18, 2023, at 1:00 AM, Mike Rapoport wrote:
-> > On Sat, Jun 17, 2023 at 01:38:29PM -0700, Andy Lutomirski wrote:
-> >> On Fri, Jun 16, 2023, at 1:50 AM, Mike Rapoport wrote:
-> >> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> >> >
-> >> > module_alloc() is used everywhere as a mean to allocate memory for code.
-> >> >
-> >> > Beside being semantically wrong, this unnecessarily ties all subsystems
-> >> > that need to allocate code, such as ftrace, kprobes and BPF to modules
-> >> > and puts the burden of code allocation to the modules code.
-> >> >
-> >> > Several architectures override module_alloc() because of various
-> >> > constraints where the executable memory can be located and this causes
-> >> > additional obstacles for improvements of code allocation.
-> >> >
-> >> > Start splitting code allocation from modules by introducing
-> >> > execmem_text_alloc(), execmem_free(), jit_text_alloc(), jit_free() APIs.
-> >> >
-> >> > Initially, execmem_text_alloc() and jit_text_alloc() are wrappers for
-> >> > module_alloc() and execmem_free() and jit_free() are replacements of
-> >> > module_memfree() to allow updating all call sites to use the new APIs.
-> >> >
-> >> > The intention semantics for new allocation APIs:
-> >> >
-> >> > * execmem_text_alloc() should be used to allocate memory that must reside
-> >> >   close to the kernel image, like loadable kernel modules and generated
-> >> >   code that is restricted by relative addressing.
-> >> >
-> >> > * jit_text_alloc() should be used to allocate memory for generated code
-> >> >   when there are no restrictions for the code placement. For
-> >> >   architectures that require that any code is within certain distance
-> >> >   from the kernel image, jit_text_alloc() will be essentially aliased to
-> >> >   execmem_text_alloc().
-> >> >
-> >> 
-> >> Is there anything in this series to help users do the appropriate
-> >> synchronization when the actually populate the allocated memory with
-> >> code?  See here, for example:
-> >
-> > This series only factors out the executable allocations from modules and
-> > puts them in a central place.
-> > Anything else would go on top after this lands.
+On Thu, 2023-06-22 at 06:37 -0700, Dave Hansen wrote:
+> On 6/22/23 06:14, ypodemsk@redhat.com wrote:
+> > I will send a new version with the local variable as you suggested
+> > soon.
+> > As for the config name, what about CONFIG_ARCH_HAS_MM_CPUMASK?
 > 
-> Hmm.
+> The confusing part about that name is that mm_cpumask() and
+> mm->cpu_bitmap[] are defined unconditionally.  So, they're *around*
+> unconditionally but just aren't updated.
 > 
-> On the one hand, there's nothing wrong with factoring out common code. On the
-> other hand, this is probably the right time to at least start thinking about
-> synchronization, at least to the extent that it might make us want to change
-> this API.  (I'm not at all saying that this series should require changes --
-> I'm just saying that this is a good time to think about how this should
-> work.)
-> 
-> The current APIs, *and* the proposed jit_text_alloc() API, don't actually
-> look like the one think in the Linux ecosystem that actually intelligently
-> and efficiently maps new text into an address space: mmap().
-> 
-> On x86, you can mmap() an existing file full of executable code PROT_EXEC and
-> jump to it with minimal synchronization (just the standard implicit ordering
-> in the kernel that populates the pages before setting up the PTEs and
-> whatever user synchronization is needed to avoid jumping into the mapping
-> before mmap() finishes).  It works across CPUs, and the only possible way
-> userspace can screw it up (for a read-only mapping of read-only text, anyway)
-> is to jump to the mapping too early, in which case userspace gets a page
-> fault.  Incoherence is impossible, and no one needs to "serialize" (in the
-> SDM sense).
-> 
-> I think the same sequence (from userspace's perspective) works on other
-> architectures, too, although I think more cache management is needed on the
-> kernel's end.  As far as I know, no Linux SMP architecture needs an IPI to
-> map executable text into usermode, but I could easily be wrong.  (IIRC RISC-V
-> has very developer-unfriendly icache management, but I don't remember the
-> details.)
+I think your right about the config name,
+How about the
+CONFIG_ARCH_USE_MM_CPUMASK?
+This has the right semantic as these archs use the cpumask field of the
+mm struct.
 
-That's my understanding too, with a couple of details:
+> BTW, it would also be nice to have _some_ kind of data behind this
+> patch.
+> 
+> Fewer IPIs are better I guess, but it would still be nice if you
+> could say:
+> 
+> 	Before this patch, /proc/interrupts showed 123 IPIs/hour for an
+> 	isolated CPU.  After the approach here, it was 0.
+> 
+> ... or something.
 
-1) After the copy we perform and complete all the data + instruction cache
-   maintenance *before* marking the mapping as executable.
+This is part of an ongoing effort to remove IPIs and this one was found
+via code inspection.
 
-2) Even *after* the mapping is marked executable, a thread could take a
-   spurious fault on an instruction fetch for the new instructions. One way to
-   think about this is that the CPU attempted to speculate the instructions
-   earlier, saw that the mapping was faulting, and placed a "generate a fault
-   here" operation into its pipeline to generate that later.
 
-   The CPU pipeline/OoO-engine/whatever is effectively a transient cache for
-   operations in-flight which is only ever "invalidated" by a
-   context-synchronization-event (akin to an x86 serializing effect).
-
-   We're only guarnateed to have a new instruction fetch (from the I-cache into
-   the CPU pipeline) after the next context synchronization event (akin to an x86
-   serializing effect), and luckily out exception entry/exit is architecturally
-   guarnateed to provide that (unless we explicitly opt out via a control bit).
-
-I know we're a bit lax with that today: I think we omit the
-context-synchronization-event when enabling ftrace callsites, and worse, for
-static keys. Those are both on my TODO list of nasty problems that require
-careful auditing...
-
-> Of course, using ptrace or any other FOLL_FORCE to modify text on x86 is
-> rather fraught, and I bet many things do it wrong when userspace is
-> multithreaded.  But not in production because it's mostly not used in
-> production.)
-
-I suspect uprobes needs a look too...
-
-I'll need to go dig into all that a bit before I have more of an opinion on the
-shape of the API.
-
-Thanks,
-Mark.
-
-> But jit_text_alloc() can't do this, because the order of operations doesn't
-> match.  With jit_text_alloc(), the executable mapping shows up before the
-> text is populated, so there is no atomic change from not-there to
-> populated-and-executable.  Which means that there is an opportunity for CPUs,
-> speculatively or otherwise, to start filling various caches with intermediate
-> states of the text, which means that various architectures (even x86!) may
-> need serialization.
-> 
-> For eBPF- and module- like use cases, where JITting/code gen is quite
-> coarse-grained, perhaps something vaguely like:
-> 
-> jit_text_alloc() -> returns a handle and an executable virtual address, but does *not* map it there
-> jit_text_write() -> write to that handle
-> jit_text_map() -> map it and synchronize if needed (no sync needed on x86, I think)
-> 
-> could be more efficient and/or safer.
-> 
-> (Modules could use this too.  Getting alternatives right might take some
-> fiddling, because off the top of my head, this doesn't match how it works
-> now.)
-> 
-> To make alternatives easier, this could work, maybe (haven't fully thought it through):
-> 
-> jit_text_alloc()
-> jit_text_map_rw_inplace() -> map at the target address, but RW, !X
-> 
-> write the text and apply alternatives
-> 
-> jit_text_finalize() -> change from RW to RX *and synchronize*
-> 
-> jit_text_finalize() would either need to wait for RCU (possibly extra heavy
-> weight RCU to get "serialization") or send an IPI.
-> 
-> This is slower than the alloc, write, map solution, but allows alternatives
-> to be applied at the final address.
-> 
-> 
-> Even fancier variants where the writing is some using something like
-> use_temporary_mm() might even make sense.
-> 
-> 
-> To what extent does performance matter for the various users?  module loading
-> is slow, and I don't think we care that much.  eBPF loaded is not super fast,
-> and we care to a limited extent.  I *think* the bcachefs use case needs to be
-> very fast, but I'm not sure it can be fast and supportable.
-> 
-> Anyway, food for thought.
-> 
