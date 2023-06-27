@@ -2,74 +2,108 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15ECAEB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 18:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D32C00528
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 19:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230029AbjF0SVE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Jun 2023 14:21:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50894 "EHLO
+        id S229727AbjF0TK2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Jun 2023 15:10:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230273AbjF0SVD (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 14:21:03 -0400
-Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:402::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B0D110F5
-        for <sparclinux@vger.kernel.org>; Tue, 27 Jun 2023 11:21:00 -0700 (PDT)
+        with ESMTP id S230445AbjF0TKZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 15:10:25 -0400
+Received: from mail-pg1-x52b.google.com (mail-pg1-x52b.google.com [IPv6:2607:f8b0:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F334E19B5;
+        Tue, 27 Jun 2023 12:10:24 -0700 (PDT)
+Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-55b1238a024so497032a12.0;
+        Tue, 27 Jun 2023 12:10:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=kcOM4/Wbu+ytgUTsuXGCBTLUq9C4K7TLK3Sk/wcjAaA=;
-        b=q/BW6qwUmG/DBoBAJH9ZLHEWeOHY+VrN7laFR4Vrd9HPwW1zykNYORqnfyd44r3Q+ncDrbE7icGEI
-         d1uWAUaw7t6bisk8FY8eLYbrWOHCMGZwOeSwvsMt+djmSeKXHRNJ+N46bzWTix0KUsHg2prPs0HmqZ
-         2d7Dj6pxKVAY3fMXvUqVGL22pGb5Kbr1ZLrqvamwyHnAxA0wXid3D/i8RtUUsAHwwT96+30anx4a8a
-         jz6hnQe04klv35aU215cRM5Xq7WhjUuNzBbK/QKJ6AIpQ1OVvrQgU/PnB7zHPFflHRzG3JLRPHcCRu
-         osRLDwr8BOrwNIOW/DMk5G4dnIXn4pQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=kcOM4/Wbu+ytgUTsuXGCBTLUq9C4K7TLK3Sk/wcjAaA=;
-        b=70X7t5hJxYRaTpiZRm6uZhYE0omt4ewkVRUZ+hLcIxuNWRDPj+glykMqi6lkFgWD/z+G5DAF5UTAV
-         jNAWiGiDg==
-X-HalOne-ID: 5babceb7-1517-11ee-92ec-b90637070a9d
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay3 (Halon) with ESMTPSA
-        id 5babceb7-1517-11ee-92ec-b90637070a9d;
-        Tue, 27 Jun 2023 18:20:57 +0000 (UTC)
-Date:   Tue, 27 Jun 2023 20:20:56 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Thomas Zimmermann <tzimmermann@suse.de>
-Cc:     davem@davemloft.net, arnd@arndb.de, linux@roeck-us.net,
-        deller@gmx.de, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH] arch/sparc: Add module license and description for fbdev
- helpers
-Message-ID: <20230627182056.GA110138@ravnborg.org>
-References: <20230627145843.31794-1-tzimmermann@suse.de>
+        d=gmail.com; s=20221208; t=1687893024; x=1690485024;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=yS/xmFpqe6+k8T+yWQv7frf8UxF7B6Cm+1CNfhqUPlA=;
+        b=BMqSkVfZP75OxNlOqvaghKGJv9m0y4sm8KFw5SHceiXFQz/e0SiiKJT9I5B52iAH17
+         cMt4KC2GjU9iq0SnaoF95JUsMa0mk+JEcq2FkRIOzoow88IvYkDfH7aBL3K5PbCOKOue
+         txhLzT7BLkzfYn4DxxqSwsZ2KmDA6ILNOIWpC3UOJTW+EHWbeQQdlcmGoaBUyJofM5AY
+         lnVmBNLdubBt20V6jFfi37xAvQhhTT8MryCyACblmLywm5IjXVYJCWSIUi3pbGc+j98S
+         r4FtzORgbma5+HwlZ2RT9hRW9y3a8jxCdKlGNGBWvRri5+DzenA7COAJXTL5/EtGEK0g
+         cong==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687893024; x=1690485024;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :sender:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yS/xmFpqe6+k8T+yWQv7frf8UxF7B6Cm+1CNfhqUPlA=;
+        b=ekHKvHyG1UHd+o7TN7z1Melo4zGQL9XBmCjUdo0Xbe80H3zrHJpF4fc6gRCcs6TLSc
+         9bUJJccpfTo0DyszmvLySNR7UBB66Yk8Odmjxl9mH9XE6Q4iHzndGCFEHLC9FooxDzMg
+         Jp9OInHERAEeN4f/0cDke9ZU7ZJzA5UHzCvDKW60gIvgyCDOcPshQEiRLpxq01S229ym
+         5Khb17h0H+OAokPCsSFud11ZDO84WvfzRC4qy9DqFYCu5TqHDpSxWDPLLNvSyT/lWE6A
+         2aeTUZ5mBR36rhCpMnMreBZmFKmTcArvgVEOsFO5rmnXMrnu0VFwyCm14IQx187HU9uu
+         N9oQ==
+X-Gm-Message-State: AC+VfDwcn7DYKFo2oGwFiIQxjecW84OHG27nxgpS2wxVqEnGS4byRorD
+        gkMMVfFubigQqu7xM5cB4+w=
+X-Google-Smtp-Source: ACHHUZ4TyTsIrCRAZ6UdXT5Omt1I9QGIq3lGO+AmEbof8hKm4unG6pcuoo4CdZZ1APibznjic8nqlQ==
+X-Received: by 2002:a17:90a:3cc6:b0:262:df8e:fcb6 with SMTP id k6-20020a17090a3cc600b00262df8efcb6mr9240150pjd.43.1687893024298;
+        Tue, 27 Jun 2023 12:10:24 -0700 (PDT)
+Received: from ?IPV6:2600:1700:e321:62f0:329c:23ff:fee3:9d7c? ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id n91-20020a17090a5ae400b002471deb13fcsm6684270pji.6.2023.06.27.12.10.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 27 Jun 2023 12:10:23 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Message-ID: <cc954b15-63ab-9d9f-2d37-1aea78b7f65f@roeck-us.net>
+Date:   Tue, 27 Jun 2023 12:10:20 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230627145843.31794-1-tzimmermann@suse.de>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH v5 26/33] nios2: Convert __pte_free_tlb() to use ptdescs
+Content-Language: en-US
+To:     Vishal Moola <vishal.moola@gmail.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Mike Rapoport <rppt@kernel.org>
+References: <20230622205745.79707-1-vishal.moola@gmail.com>
+ <20230622205745.79707-27-vishal.moola@gmail.com>
+ <13bab37c-0f0a-431a-8b67-4379bf4dc541@roeck-us.net>
+ <CAOzc2px6VutRkMUTn+M5LFLf1YbRVZFgJ=q7StaApwYRxUWqQA@mail.gmail.com>
+From:   Guenter Roeck <linux@roeck-us.net>
+In-Reply-To: <CAOzc2px6VutRkMUTn+M5LFLf1YbRVZFgJ=q7StaApwYRxUWqQA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jun 27, 2023 at 04:58:20PM +0200, Thomas Zimmermann wrote:
-> Add MODULE_LICENSE() and MODULE_DESCRIPTION() for fbdev helpers
-> on sparc. Fixes the following error:
+On 6/27/23 10:42, Vishal Moola wrote:
+> On Mon, Jun 26, 2023 at 10:47 PM Guenter Roeck <linux@roeck-us.net> wrote:
+>>
+>> On Thu, Jun 22, 2023 at 01:57:38PM -0700, Vishal Moola (Oracle) wrote:
+>>> Part of the conversions to replace pgtable constructor/destructors with
+>>> ptdesc equivalents.
+>>>
+>>> Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+>>> Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+>>
+>> This patch causes all nios2 builds to fail.
 > 
-> ERROR: modpost: missing MODULE_LICENSE() in arch/sparc/video/fbdev.o
-> 
-> Reported-by: Guenter Roeck <linux@roeck-us.net>
-> Closes: https://lore.kernel.org/dri-devel/c525adc9-6623-4660-8718-e0c9311563b8@roeck-us.net/
-> Suggested-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 4eec0b3048fc ("arch/sparc: Implement fb_is_primary_device() in source file")
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> It looks like you tried to apply this patch on its own. This patch depends
+> on patches 01-12 of this patchset to compile properly. I've cross-compiled
+> this architecture and it worked, but let me know if something fails
+> when its applied on top of those patches (or the rest of the patchset).
 
-	Sam
+
+No, I did not try to apply this patch on its own. I tried to build yesterday's
+pending-fixes branch of linux-next.
+
+Guenter
+
