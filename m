@@ -2,167 +2,212 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC08C001DB
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 16:52:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9942EEB64DC
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 17:01:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232083AbjF0Qwl convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Jun 2023 12:52:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36148 "EHLO
+        id S230280AbjF0RBR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Jun 2023 13:01:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231345AbjF0Qwj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 12:52:39 -0400
-Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com [209.85.167.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 094AF10F;
-        Tue, 27 Jun 2023 09:52:36 -0700 (PDT)
-Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-3a04cb10465so3423329b6e.3;
-        Tue, 27 Jun 2023 09:52:36 -0700 (PDT)
+        with ESMTP id S229487AbjF0RBQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 13:01:16 -0400
+Received: from mail-qk1-x72e.google.com (mail-qk1-x72e.google.com [IPv6:2607:f8b0:4864:20::72e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC7EE10E7
+        for <sparclinux@vger.kernel.org>; Tue, 27 Jun 2023 10:01:13 -0700 (PDT)
+Received: by mail-qk1-x72e.google.com with SMTP id af79cd13be357-765579770f3so3998185a.0
+        for <sparclinux@vger.kernel.org>; Tue, 27 Jun 2023 10:01:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1687885273; x=1690477273;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=pGj4zIY05LUVw6x8uPMdw5L+2KzhNBDHJ+ePBOrWYt0=;
+        b=fv4aOli3RZQEuSykjh0KPJosM74wknroYSqHFVHSdVChqt5dE0DVgXlrRYmt1CvOnY
+         r9QI0fTgfFUWgqXHSsZNrLc1f1ayXFTJny6re162pz73LDYLIDX6x6Nul8W8uuDPtVWR
+         xoZkJB0tiNVJUTKpK+B42I9Ds4Qf24HB1E8PYwh06kJrMPtStHsczNkteBBirKb849fq
+         SKJQDQJ4TcsB3DjhjpUqZxyJnRgGPJeMW2bpLrpcW54Dv8Mu2lATNH6KyyDAxb5Vfuu4
+         oITAc+4BgUG5kzFG16sOvZjbagDHdS79UTpKP1GYZUDMG7cnLhcr7J+U+MeYG16MZmqp
+         f/Iw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687884755; x=1690476755;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3lIZI96K9vdLoSwUwpQZZH+ZWrx3VsFWqYpi3+69yqU=;
-        b=j8UVkCGUTQm4cypu9sZY06fFuoeRVjQB3Tcp1KkWVs8FGlEHu5iHdNIL4L9wAZSM3g
-         o4IxO8Yjz1rxMpjtE0FC2o+TnQVwgEALAAeErTkDjqwi9Txf4BFzLkDPhmxurP8dOGvv
-         6sBmGi48HC+3bWDJAN9+L8+tOUyW0OQshYw3hG3ayOYi9hCVkkay00SSMPSnOOeg/8oT
-         /RfaJjmecA8jEludnHWb5IJaeqiO3yIiPyuqsHeZWrUYYc0lBFfJEZfvTj+MKg8fqRs5
-         buW6R+8RofQtFLa49bmBVE2sw9UTywsX2woGDUBwI0GcPVUY2mavaXttbB14mwpFnMXH
-         MYsw==
-X-Gm-Message-State: AC+VfDyA0/0QXiyqbweQsnfFKdaey+PECZBQGXRxM4Hd3MUGu+nNAybG
-        uJRNp8H4MIRqzCRL9XaME3Ew094+gDnpUecO
-X-Google-Smtp-Source: ACHHUZ7sEtTDbMtXMYZM4wQdcH42Gj87XiCWCRSbYSHNx3mT9t9vREEcit/ZxlmEgYFy4cLekney/A==
-X-Received: by 2002:a05:6808:3098:b0:3a3:3a0b:aab8 with SMTP id bl24-20020a056808309800b003a33a0baab8mr1642135oib.48.1687884755254;
-        Tue, 27 Jun 2023 09:52:35 -0700 (PDT)
-Received: from mail-ot1-f47.google.com (mail-ot1-f47.google.com. [209.85.210.47])
-        by smtp.gmail.com with ESMTPSA id l1-20020a544501000000b003a3600182f8sm337192oil.57.2023.06.27.09.52.34
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 27 Jun 2023 09:52:34 -0700 (PDT)
-Received: by mail-ot1-f47.google.com with SMTP id 46e09a7af769-6b44b5adfd3so3927087a34.3;
-        Tue, 27 Jun 2023 09:52:34 -0700 (PDT)
-X-Received: by 2002:a05:6358:f55:b0:132:d3b1:c34a with SMTP id
- c21-20020a0563580f5500b00132d3b1c34amr12105551rwj.7.1687884753801; Tue, 27
- Jun 2023 09:52:33 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-22-arnd@kernel.org>
- <OS0PR01MB5922EDAFCD6DA0313DB99C5E86989@OS0PR01MB5922.jpnprd01.prod.outlook.com>
- <66899d69-1339-4a61-8612-6f8e452b0b26@app.fastmail.com>
-In-Reply-To: <66899d69-1339-4a61-8612-6f8e452b0b26@app.fastmail.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 27 Jun 2023 18:52:22 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdV5gT1GDLODsUe0XibPRsRHazF4K-UhxTOQCjtC9Ba4mQ@mail.gmail.com>
-Message-ID: <CAMuHMdV5gT1GDLODsUe0XibPRsRHazF4K-UhxTOQCjtC9Ba4mQ@mail.gmail.com>
-Subject: Re: [PATCH 21/21] dma-mapping: replace custom code with generic implementation
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Biju Das <biju.das.jz@bp.renesas.com>,
-        Arnd Bergmann <arnd@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Neil Armstrong <neil.armstrong@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, guoren <guoren@kernel.org>,
-        Brian Cain <bcain@quicinc.com>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Stafford Horne <shorne@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
+        d=1e100.net; s=20221208; t=1687885273; x=1690477273;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=pGj4zIY05LUVw6x8uPMdw5L+2KzhNBDHJ+ePBOrWYt0=;
+        b=LcU9j5RssFP526R6NHzVyUHJzO7xSal5BVSy7PJcnSwmQ4GMuQOMbpJL0Fvjp5hRTl
+         klF9ae70xKBpBQXrjKxrgxCAG3OYBeqKEd+7zcgCXejVuKBTralzs6nT1+LeHiQucOAz
+         bgghTKMDkFJmZmn9c6U7qPUfjE6Rs7RIMRPveIcBGDGg5wvwmwm9T+B7vkZ8PKj3giDD
+         VuJ4EnBCVwXgfVrOiLu6/65s/SyFeWsIXQkqqvJnOoXv05XqEmz3cuIEiz+egQGvBAuQ
+         5uzmEoHTbCDzYQQJs16keW9Lgpm9qfmimURDAfH9a+mGuJkNyqckfsY4t4TW+slj+5Hr
+         eAGw==
+X-Gm-Message-State: AC+VfDyRIPPFXH34m3V90SqlDkC7cwaxtbdtDPnWWe57uwzAGXumB5QJ
+        eoVbpZay2ecoYu2BadSWkJy8xA==
+X-Google-Smtp-Source: ACHHUZ6oaDuFjtrZalcD7+2mNq8I8fqsW/Qlz3+39Q2yb+iaemspbajCtES18RCk5gRY5Hel+BhpGw==
+X-Received: by 2002:ad4:5b81:0:b0:616:5755:ca5d with SMTP id 1-20020ad45b81000000b006165755ca5dmr37937429qvp.4.1687885272640;
+        Tue, 27 Jun 2023 10:01:12 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id w14-20020a0cef8e000000b0062df95d7ef6sm3777254qvr.115.2023.06.27.10.01.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Jun 2023 10:01:12 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1qEC3z-008yOA-DP;
+        Tue, 27 Jun 2023 14:01:11 -0300
+Date:   Tue, 27 Jun 2023 14:01:11 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        "Conor.Dooley" <conor.dooley@microchip.com>,
-        "linux-snps-arc@lists.infradead.org" 
-        <linux-snps-arc@lists.infradead.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-oxnas@groups.io" <linux-oxnas@groups.io>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
-        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linux-openrisc@vger.kernel.org" <linux-openrisc@vger.kernel.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>,
-        Emil Renner Berthing <emil.renner.berthing@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        Zack Rusin <zackr@vmware.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David Sc. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 05/12] powerpc: add pte_free_defer() for pgtables
+ sharing page
+Message-ID: <ZJsV19f41CrfkFYa@ziepe.ca>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
+ <5cd9f442-61da-4c3d-eca-b7f44d22aa5f@google.com>
+ <ZJGRa4zvsXfc43vB@ziepe.ca>
+ <2ad8b6cf-692a-ff89-ecc-586c20c5e07f@google.com>
+ <ZJI7xkXWmjrE1yY3@ziepe.ca>
+ <c8284d0-91cb-b65e-4c95-bfeb627234f@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c8284d0-91cb-b65e-4c95-bfeb627234f@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Apr 13, 2023 at 2:52 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thu, Apr 13, 2023, at 14:13, Biju Das wrote:
-> > FYI, this patch breaks on RZ/G2L SMARC EVK board and Arnd will send V2
-> > for fixing this issue.
-> >
-> > [10:53] <biju> [    3.384408] Unable to handle kernel paging request at
-> > virtual address 000000004afb0080
->
-> Right, sorry about this, I accidentally removed the 'phys_to_virt()'
-> conversion on arm64.
+On Wed, Jun 21, 2023 at 07:36:11PM -0700, Hugh Dickins wrote:
+> [PATCH v3 05/12] powerpc: add pte_free_defer() for pgtables sharing page
+> 
+> Add powerpc-specific pte_free_defer(), to free table page via call_rcu().
+> pte_free_defer() will be called inside khugepaged's retract_page_tables()
+> loop, where allocating extra memory cannot be relied upon.  This precedes
+> the generic version to avoid build breakage from incompatible pgtable_t.
+> 
+> This is awkward because the struct page contains only one rcu_head, but
+> that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+> use the rcu_head at the same time.  But powerpc never reuses a fragment
+> once it has been freed: so mark the page Active in pte_free_defer(),
+> before calling pte_fragment_free() directly; and there call_rcu() to
+> pte_free_now() when last fragment is freed and the page is PageActive.
+> 
+> Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+> Signed-off-by: Hugh Dickins <hughd@google.com>
+> ---
+>  arch/powerpc/include/asm/pgalloc.h |  4 ++++
+>  arch/powerpc/mm/pgtable-frag.c     | 29 ++++++++++++++++++++++++++---
+>  2 files changed, 30 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/powerpc/include/asm/pgalloc.h b/arch/powerpc/include/asm/pgalloc.h
+> index 3360cad78ace..3a971e2a8c73 100644
+> --- a/arch/powerpc/include/asm/pgalloc.h
+> +++ b/arch/powerpc/include/asm/pgalloc.h
+> @@ -45,6 +45,10 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
+>  	pte_fragment_free((unsigned long *)ptepage, 0);
+>  }
+>  
+> +/* arch use pte_free_defer() implementation in arch/powerpc/mm/pgtable-frag.c */
+> +#define pte_free_defer pte_free_defer
+> +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
+> +
+>  /*
+>   * Functions that deal with pagetables that could be at any level of
+>   * the table need to be passed an "index_size" so they know how to
+> diff --git a/arch/powerpc/mm/pgtable-frag.c b/arch/powerpc/mm/pgtable-frag.c
+> index 20652daa1d7e..0c6b68130025 100644
+> --- a/arch/powerpc/mm/pgtable-frag.c
+> +++ b/arch/powerpc/mm/pgtable-frag.c
+> @@ -106,6 +106,15 @@ pte_t *pte_fragment_alloc(struct mm_struct *mm, int kernel)
+>  	return __alloc_for_ptecache(mm, kernel);
+>  }
+>  
+> +static void pte_free_now(struct rcu_head *head)
+> +{
+> +	struct page *page;
+> +
+> +	page = container_of(head, struct page, rcu_head);
+> +	pgtable_pte_page_dtor(page);
+> +	__free_page(page);
+> +}
+> +
+>  void pte_fragment_free(unsigned long *table, int kernel)
+>  {
+>  	struct page *page = virt_to_page(table);
+> @@ -115,8 +124,22 @@ void pte_fragment_free(unsigned long *table, int kernel)
+>  
+>  	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+>  	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
+> -		if (!kernel)
+> -			pgtable_pte_page_dtor(page);
+> -		__free_page(page);
+> +		if (kernel)
+> +			__free_page(page);
+> +		else if (TestClearPageActive(page))
+> +			call_rcu(&page->rcu_head, pte_free_now);
+> +		else
+> +			pte_free_now(&page->rcu_head);
+>  	}
+>  }
+> +
+> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+> +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
+> +{
+> +	struct page *page;
+> +
+> +	page = virt_to_page(pgtable);
+> +	SetPageActive(page);
+> +	pte_fragment_free((unsigned long *)pgtable, 0);
+> +}
+> +#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
-Meh, I missed that, so I ended up bisecting this same failure...
+Yes, this makes sense to me, very simple..
 
-This patch is now commit 801f1883c4bb70cc ("dma-mapping: replace
-custom code with generic implementation") in esmil/jh7100-dmapool,
-and broke booting on R-Car Gen3.
+I always for get these details but atomic_dec_and_test() is a release?
+So the SetPageActive is guarenteed to be visible in another thread
+that reaches 0?
 
-The following gmail-whitespace-damaged patch fixes that:
-
-diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-index 97b7cea5eb23aedd..77e0b68b43e5849a 100644
---- a/arch/arm64/mm/dma-mapping.c
-+++ b/arch/arm64/mm/dma-mapping.c
-@@ -15,17 +15,23 @@
-
- static inline void arch_dma_cache_wback(phys_addr_t paddr, size_t size)
- {
--       dcache_clean_poc(paddr, paddr + size);
-+       unsigned long start = (unsigned long)phys_to_virt(paddr);
-+
-+       dcache_clean_poc(start, start + size);
- }
-
- static inline void arch_dma_cache_inv(phys_addr_t paddr, size_t size)
- {
--       dcache_inval_poc(paddr, paddr + size);
-+       unsigned long start = (unsigned long)phys_to_virt(paddr);
-+
-+       dcache_inval_poc(start, start + size);
- }
-
- static inline void arch_dma_cache_wback_inv(phys_addr_t paddr, size_t size)
- {
--       dcache_clean_inval_poc(paddr, paddr + size);
-+       unsigned long start = (unsigned long)phys_to_virt(paddr);
-+
-+       dcache_clean_inval_poc(start, start + size);
- }
-
- static inline bool arch_sync_dma_clean_before_fromdevice(void)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks,
+Jason
