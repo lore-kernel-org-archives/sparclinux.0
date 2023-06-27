@@ -2,56 +2,93 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57D35EB64D9
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 08:15:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE042EB64D9
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Jun 2023 14:58:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230054AbjF0IPx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Jun 2023 04:15:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55002 "EHLO
+        id S231202AbjF0O6v (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Jun 2023 10:58:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229823AbjF0IPw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 04:15:52 -0400
-X-Greylist: delayed 534 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 27 Jun 2023 01:15:43 PDT
-Received: from mail.slitrig.pl (mail.slitrig.pl [51.38.127.96])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DEB51FDE
-        for <sparclinux@vger.kernel.org>; Tue, 27 Jun 2023 01:15:43 -0700 (PDT)
-Received: by mail.slitrig.pl (Postfix, from userid 1002)
-        id AFED8A4C9F; Tue, 27 Jun 2023 08:06:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=slitrig.pl; s=mail;
-        t=1687853175; bh=q6g+ObtCV61LlnEBi7yLnSiOU+IF64224rZgvBJLEss=;
-        h=Date:From:To:Subject:From;
-        b=sKAi2CZaySHNtBGWDd5bO3oUMcP8oXhVX3m2P4fLYxXyL3dFCLCoRgQncToEXt6Dw
-         H6wQ/DKh/qFxgGr0hDClGJwINFRQjZOeTNZcIhY7dG451iJdTM3Ve4BVEK3ZsGiA2T
-         X36TY50RLgty/k/dY+7Qn6T5sDPR8LcBbGs+R7umXf2EymJ1r9MojR8oT0g5dm1cm/
-         iUq4HgMbrTgV3KXmSb6uH36zYGw51cjtCe1AObaRGvPMIC8xOEF7h9W+9enulepSWb
-         sLeb5krqCHoc/w9BR0Jct0n1cc7jibpc1w3EYcvtPd5t8DoGT8afCEHmzTINNKzN5E
-         s5PA8dRrJxffg==
-Received: by slitrig.pl for <sparclinux@vger.kernel.org>; Tue, 27 Jun 2023 08:06:04 GMT
-Message-ID: <20230627064520-0.1.ah.s67j.0.b5dnl1r0dr@slitrig.pl>
-Date:   Tue, 27 Jun 2023 08:06:04 GMT
-From:   "Wiktor Nurek" <wiktor.nurek@slitrig.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
-X-Mailer: mail.slitrig.pl
+        with ESMTP id S229931AbjF0O6s (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jun 2023 10:58:48 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B85DD12C;
+        Tue, 27 Jun 2023 07:58:47 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 6A0AF21898;
+        Tue, 27 Jun 2023 14:58:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1687877926; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=+AnPE2EhFo6W/qqAMZnuyc6esjF58TEFFbkBy5JTrLI=;
+        b=BzUWwPXwULcHgEZ+gHsTCHFLYHNf3+mXVoMyX0NuLNzWZn6bKnS76Pp1qTrkf1az89ePRg
+        f84PJp7Y0ybiW4owISoJPWOQHzJF2aYRmUPpmTgkohzPhhcu+inzbG00DXzicnoBkp3Dv+
+        aM6q/C3moA86ooNRJqQl8iUcIxvAoWU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1687877926;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=+AnPE2EhFo6W/qqAMZnuyc6esjF58TEFFbkBy5JTrLI=;
+        b=6/gSwSlHsFleByQJBJh3RWHq1sI6orcekPPoVaQ5fTB9iuWJzxyCbcgQZNqYv6Du7y/vME
+        5TWLfSlbDV9wYZCQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 3AC0813462;
+        Tue, 27 Jun 2023 14:58:46 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id 8AeNDSb5mmQxHQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 27 Jun 2023 14:58:46 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     davem@davemloft.net, arnd@arndb.de, linux@roeck-us.net,
+        sam@ravnborg.org, deller@gmx.de
+Cc:     sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH] arch/sparc: Add module license and description for fbdev helpers
+Date:   Tue, 27 Jun 2023 16:58:20 +0200
+Message-ID: <20230627145843.31794-1-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+Add MODULE_LICENSE() and MODULE_DESCRIPTION() for fbdev helpers
+on sparc. Fixes the following error:
 
-chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
-skania nowych zlece=C5=84 ze strony www.
+ERROR: modpost: missing MODULE_LICENSE() in arch/sparc/video/fbdev.o
 
-Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
-, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
-=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
-jonowania strony w Google.
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Closes: https://lore.kernel.org/dri-devel/c525adc9-6623-4660-8718-e0c9311563b8@roeck-us.net/
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 4eec0b3048fc ("arch/sparc: Implement fb_is_primary_device() in source file")
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+---
+ arch/sparc/video/fbdev.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
+diff --git a/arch/sparc/video/fbdev.c b/arch/sparc/video/fbdev.c
+index 25837f128132d..bff66dd1909a4 100644
+--- a/arch/sparc/video/fbdev.c
++++ b/arch/sparc/video/fbdev.c
+@@ -21,3 +21,6 @@ int fb_is_primary_device(struct fb_info *info)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(fb_is_primary_device);
++
++MODULE_DESCRIPTION("Sparc fbdev helpers");
++MODULE_LICENSE("GPL");
+-- 
+2.41.0
 
-
-Pozdrawiam serdecznie
-Wiktor Nurek
