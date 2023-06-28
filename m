@@ -2,437 +2,484 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCD0EB64DC
-	for <sparclinux@archiver.kernel.org>; Wed, 28 Jun 2023 19:18:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACD67C00528
+	for <sparclinux@archiver.kernel.org>; Wed, 28 Jun 2023 23:10:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231182AbjF1TSI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 28 Jun 2023 15:18:08 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:9490 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229622AbjF1TSH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 28 Jun 2023 15:18:07 -0400
-Received: from pps.filterd (m0353728.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35SJC11t030309;
-        Wed, 28 Jun 2023 19:16:37 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=+6AeCSUCUv+yG1gm0hgV/y90gX2HiRtJaO0/FqDrUic=;
- b=TuqE7X4K77xnwskOiMiVGE4LsXPkbSP5o0DX84P52/OMQgjLQ9m820ng9X5Cg1zV+900
- mjyEEnpjw3eHhMokrc6Y1/D55aM+uHd0JPzuVxeP77f8afIQ7IcXrsHZbvtdFrXQLjOx
- Ard0Alfu0hOZZTMydza0TcsVkgMIYS1yQAThxOWOpljScb64GJPSgPBmOtBjAbTiTnvF
- PNr/15qR4eSQ5+2rcrkVLy8+9Dh9UMFK+OICfhI16VMQA3zoOyC5/bavagbxR/JbOUDk
- XzIyvoWPXvYzzOFacWuY4Wt72ashvH3w78xIGbCOIfW1EjResi+teHvBO9vyd9T5QGaY zQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rgttc83hh-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 28 Jun 2023 19:16:36 +0000
-Received: from m0353728.ppops.net (m0353728.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 35SJEJIM005126;
-        Wed, 28 Jun 2023 19:16:35 GMT
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rgttc83gd-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 28 Jun 2023 19:16:35 +0000
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-        by ppma01fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35SFxV5e001753;
-        Wed, 28 Jun 2023 19:16:32 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-        by ppma01fra.de.ibm.com (PPS) with ESMTPS id 3rdr4525bm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 28 Jun 2023 19:16:32 +0000
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-        by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35SJGT6a16515806
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 28 Jun 2023 19:16:29 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 215B520040;
-        Wed, 28 Jun 2023 19:16:29 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B5F5F20043;
-        Wed, 28 Jun 2023 19:16:26 +0000 (GMT)
-Received: from thinkpad-T15 (unknown [9.179.23.181])
-        by smtpav04.fra02v.mail.ibm.com (Postfix) with SMTP;
-        Wed, 28 Jun 2023 19:16:26 +0000 (GMT)
-Date:   Wed, 28 Jun 2023 21:16:24 +0200
-From:   Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        id S231689AbjF1XKy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 28 Jun 2023 19:10:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58594 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230173AbjF1XKv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Jun 2023 19:10:51 -0400
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 859C310FE;
+        Wed, 28 Jun 2023 16:10:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687993849; x=1719529849;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=lLpKBmAZR/lK6S9SB5nAtp44osjKMlgKn80ydUPtNxs=;
+  b=J0+nCdufyG4i9hfUotQbtrJzy7nEE6BfCsdYZuoHexk2Tz/3945UJtTY
+   4r0Xc4Lw1ILOyN/DB3pRHbLnJ0r3KaDutU7eQU8bQ1xBN0uSxpPXkdlk0
+   +ka5GCiwyNwrrd8KP3lNNv9h1Vj17ZdvViaFQ04vBlqr6lqm6mvQ08iVP
+   lIO2Q9bqNzH1qmKqqlQcBq8+gpcAWgmoit7mi/MMG4Y8Lb/V4wx/ImKGd
+   HsI9WXdGxHXAZhuGp4gs8p70ZXia0qOpbD/coIjtalImEH1IUzFWFgIpy
+   CbIdmRWFQXkrO0ux1ifaB5kv3pOolfVfieIX9K45wzAZON0lBGblAKKwX
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10755"; a="341564370"
+X-IronPort-AV: E=Sophos;i="6.01,166,1684825200"; 
+   d="scan'208";a="341564370"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jun 2023 16:10:48 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10755"; a="841256845"
+X-IronPort-AV: E=Sophos;i="6.01,166,1684825200"; 
+   d="scan'208";a="841256845"
+Received: from sohilmeh.sc.intel.com ([172.25.103.65])
+  by orsmga004.jf.intel.com with ESMTP; 28 Jun 2023 16:10:45 -0700
+From:   Sohil Mehta <sohil.mehta@intel.com>
+To:     Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org,
+        linux-arch@vger.kernel.org
+Cc:     Sohil Mehta <sohil.mehta@intel.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
         Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
         Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables
- sharing page
-Message-ID: <20230628211624.531cdc58@thinkpad-T15>
-In-Reply-To: <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
-        <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-redhat-linux-gnu)
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andy Lutomirski <luto@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@kernel.org>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Ian Rogers <irogers@google.com>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
+        Sergei Trofimovich <slyich@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Rohan McLure <rmclure@linux.ibm.com>,
+        Andreas Schwab <schwab@linux-m68k.org>,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Brian Gerst <brgerst@gmail.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-perf-users@vger.kernel.org
+Subject: [PATCH] syscalls: Cleanup references to sys_lookup_dcookie()
+Date:   Wed, 28 Jun 2023 23:09:35 +0000
+Message-Id: <20230628230935.1196180-1-sohil.mehta@intel.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: 86OsqEDFvZG1BCDwjde60XEA7qLVwybC
-X-Proofpoint-GUID: TBMvN-e7yOp90bNZ7UtNMOMiVqg5gMzT
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-06-28_14,2023-06-27_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 impostorscore=0
- malwarescore=0 bulkscore=0 clxscore=1011 mlxscore=0 priorityscore=1501
- phishscore=0 adultscore=0 mlxlogscore=999 lowpriorityscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2305260000 definitions=main-2306280169
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 20 Jun 2023 00:51:19 -0700 (PDT)
-Hugh Dickins <hughd@google.com> wrote:
+commit 'be65de6b03aa ("fs: Remove dcookies support")' removed the
+syscall definition for lookup_dcookie.  However, syscall tables still
+point to the old sys_lookup_dcookie() definition. Update syscall tables
+of all architectures to directly point to sys_ni_syscall() instead.
 
-> Add s390-specific pte_free_defer(), to call pte_free() via call_rcu().
-> pte_free_defer() will be called inside khugepaged's retract_page_tables()
-> loop, where allocating extra memory cannot be relied upon.  This precedes
-> the generic version to avoid build breakage from incompatible pgtable_t.
-> 
-> This version is more complicated than others: because s390 fits two 2K
-> page tables into one 4K page (so page->rcu_head must be shared between
-> both halves), and already uses page->lru (which page->rcu_head overlays)
-> to list any free halves; with clever management by page->_refcount bits.
-> 
-> Build upon the existing management, adjusted to follow a new rule: that
-> a page is not linked to mm_context_t::pgtable_list while either half is
-> pending free, by either tlb_remove_table() or pte_free_defer(); but is
-> afterwards either relinked to the list (if other half is allocated), or
-> freed (if other half is free): by __tlb_remove_table() in both cases.
-> 
-> This rule ensures that page->lru is no longer in use while page->rcu_head
-> may be needed for use by pte_free_defer().  And a fortuitous byproduct of
-> following this rule is that page_table_free() no longer needs its curious
-> two-step manipulation of _refcount - read commit c2c224932fd0 ("s390/mm:
-> fix 2KB pgtable release race") for what to think of there.  But it does
-> not solve the problem that two halves may need rcu_head at the same time.
-> 
-> For that, add HHead bits between s390's AAllocated and PPending bits in
-> the upper byte of page->_refcount: then the second pte_free_defer() can
-> see that rcu_head is already in use, and the RCU callee pte_free_half()
-> can see that it needs to make a further call_rcu() for that other half.
-> 
-> page_table_alloc() set the page->pt_mm field, so __tlb_remove_table()
-> knows where to link the freed half while its other half is allocated.
-> But linking to the list needs mm->context.lock: and although AA bit set
-> guarantees that pt_mm must still be valid, it does not guarantee that mm
-> is still valid an instant later: so acquiring mm->context.lock would not
-> be safe.  For now, use a static global mm_pgtable_list_lock instead:
-> then a soon-to-follow commit will split it per-mm as before (probably by
-> using a SLAB_TYPESAFE_BY_RCU structure for the list head and its lock);
-> and update the commentary on the pgtable_list.
-> 
-> Signed-off-by: Hugh Dickins <hughd@google.com>
-> ---
->  arch/s390/include/asm/pgalloc.h |   4 +
->  arch/s390/mm/pgalloc.c          | 205 +++++++++++++++++++++++---------
->  include/linux/mm_types.h        |   2 +-
->  3 files changed, 154 insertions(+), 57 deletions(-)
-
-As discussed in the other thread, we would rather go with less complexity,
-possibly switching to an approach w/o the list and fragment re-use in the
-future. For now, as a first step in that direction, we can try with not
-adding fragments back only for pte_free_defer(). Here is an adjusted
-version of your patch, copying most of your pte_free_defer() logic and
-also description, tested with LTP and all three of your patch series applied:
-
-Add s390-specific pte_free_defer(), to call pte_free() via call_rcu().
-pte_free_defer() will be called inside khugepaged's retract_page_tables()
-loop, where allocating extra memory cannot be relied upon.  This precedes
-the generic version to avoid build breakage from incompatible pgtable_t.
-
-This version is more complicated than others: because s390 fits two 2K
-page tables into one 4K page (so page->rcu_head must be shared between
-both halves), and already uses page->lru (which page->rcu_head overlays)
-to list any free halves; with clever management by page->_refcount bits.
-
-Build upon the existing management, adjusted to follow a new rule: that
-a page is never added back to the list in pte_free_defer(). It is only
-removed from the list, when currently listed because the other fragment
-is not allocated. This introduces some asymmetry compared to the other
-page table freeing paths, and in particular a list_del() for such pages
-must be avoided there. Use page->pt_frag_refcount to keep track of the
-list status, and check that before doing list_del() in any freeing path.
-
-Other paths would also not add back such pages to the list, if the other
-fragment happens to be freed in such a path at the same time, because
-they would observe cleared AA bits.
-
-This rule ensures that page->lru is no longer in use while page->rcu_head
-may be needed for use by pte_free_defer(). But it does not solve the problem
-that two halves may need rcu_head at the same time.
-
-For that, add HHead bits between s390's AAllocated and PPending bits in
-the upper byte of page->_refcount: then the second pte_free_defer() can
-see that rcu_head is already in use, and the RCU callee pte_free_half()
-can see that it needs to make a further call_rcu() for that other half.
-
-Not adding back unallocated fragments to the list in pte_free_defer()
-can result in wasting some amount of memory for pagetables, depending
-on how long the allocated fragment will stay in use. In practice, this
-effect is expected to be insignificant, and not justify a far more
-complex approach, which might allow to add the fragments back later
-in __tlb_remove_table(), where we might not have a stable mm any more.
-
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
 ---
- arch/s390/include/asm/pgalloc.h |    4 +
- arch/s390/mm/pgalloc.c          |  136 +++++++++++++++++++++++++++++++++++++---
- 2 files changed, 132 insertions(+), 8 deletions(-)
+This patch has a dependency on another patch that has been applied to the
+asm-generic tree:
+https://lore.kernel.org/lkml/20230621223600.1348693-1-sohil.mehta@intel.com/
+---
+ arch/alpha/kernel/syscalls/syscall.tbl              | 2 +-
+ arch/arm/tools/syscall.tbl                          | 2 +-
+ arch/arm64/include/asm/unistd32.h                   | 4 ++--
+ arch/ia64/kernel/syscalls/syscall.tbl               | 2 +-
+ arch/m68k/kernel/syscalls/syscall.tbl               | 2 +-
+ arch/microblaze/kernel/syscalls/syscall.tbl         | 2 +-
+ arch/mips/kernel/syscalls/syscall_n32.tbl           | 2 +-
+ arch/mips/kernel/syscalls/syscall_n64.tbl           | 2 +-
+ arch/mips/kernel/syscalls/syscall_o32.tbl           | 2 +-
+ arch/parisc/kernel/syscalls/syscall.tbl             | 2 +-
+ arch/powerpc/kernel/syscalls/syscall.tbl            | 2 +-
+ arch/s390/kernel/syscalls/syscall.tbl               | 2 +-
+ arch/sh/kernel/syscalls/syscall.tbl                 | 2 +-
+ arch/sparc/kernel/syscalls/syscall.tbl              | 2 +-
+ arch/x86/entry/syscalls/syscall_32.tbl              | 2 +-
+ arch/x86/entry/syscalls/syscall_64.tbl              | 2 +-
+ arch/xtensa/kernel/syscalls/syscall.tbl             | 2 +-
+ include/linux/compat.h                              | 1 -
+ include/linux/syscalls.h                            | 1 -
+ include/uapi/asm-generic/unistd.h                   | 2 +-
+ kernel/sys_ni.c                                     | 2 --
+ tools/include/uapi/asm-generic/unistd.h             | 2 +-
+ tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl | 2 +-
+ tools/perf/arch/powerpc/entry/syscalls/syscall.tbl  | 2 +-
+ tools/perf/arch/s390/entry/syscalls/syscall.tbl     | 2 +-
+ tools/perf/arch/x86/entry/syscalls/syscall_64.tbl   | 2 +-
+ 26 files changed, 24 insertions(+), 28 deletions(-)
 
---- a/arch/s390/include/asm/pgalloc.h
-+++ b/arch/s390/include/asm/pgalloc.h
-@@ -143,6 +143,10 @@ static inline void pmd_populate(struct m
- #define pte_free_kernel(mm, pte) page_table_free(mm, (unsigned long *) pte)
- #define pte_free(mm, pte) page_table_free(mm, (unsigned long *) pte)
- 
-+/* arch use pte_free_defer() implementation in arch/s390/mm/pgalloc.c */
-+#define pte_free_defer pte_free_defer
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
-+
- void vmem_map_init(void);
- void *vmem_crst_alloc(unsigned long val);
- pte_t *vmem_pte_alloc(void);
---- a/arch/s390/mm/pgalloc.c
-+++ b/arch/s390/mm/pgalloc.c
-@@ -185,11 +185,13 @@ void page_table_free_pgste(struct page *
-  * The upper byte (bits 24-31) of the parent page _refcount is used
-  * for tracking contained 2KB-pgtables and has the following format:
-  *
-- *   PP  AA
-+ *   PPHHAA
-  * 01234567    upper byte (bits 24-31) of struct page::_refcount
-- *   ||  ||
-- *   ||  |+--- upper 2KB-pgtable is allocated
-- *   ||  +---- lower 2KB-pgtable is allocated
-+ *   ||||||
-+ *   |||||+--- upper 2KB-pgtable is allocated
-+ *   ||||+---- lower 2KB-pgtable is allocated
-+ *   |||+----- upper 2KB-pgtable is pending free by page->rcu_head
-+ *   ||+------ lower 2KB-pgtable is pending free by page->rcu_head
-  *   |+------- upper 2KB-pgtable is pending for removal
-  *   +-------- lower 2KB-pgtable is pending for removal
-  *
-@@ -229,6 +231,17 @@ void page_table_free_pgste(struct page *
-  * logic described above. Both AA bits are set to 1 to denote a 4KB-pgtable
-  * while the PP bits are never used, nor such a page is added to or removed
-  * from mm_context_t::pgtable_list.
-+ *
-+ * The HH bits are used to prevent double use of page->rcu_head in
-+ * pte_free_defer(), when both 2K pagetables inside a page happen to get
-+ * freed by that path at the same time.
-+ *
-+ * pte_free_defer() also cannot add 2K fragments back to the list, because
-+ * page->rcu_head overlays with page->lru. This introduces some asymmetry
-+ * compared to the other pagetable freeing paths, and the missing list_add()
-+ * in pte_free_defer() could result in incorrect list_del(). Therefore, track
-+ * the the list status of a page with page->pt_frag_refcount, and check that
-+ * before doing list_del() in any freeing path.
-  */
- unsigned long *page_table_alloc(struct mm_struct *mm)
- {
-@@ -262,6 +275,7 @@ unsigned long *page_table_alloc(struct m
- 				atomic_xor_bits(&page->_refcount,
- 							0x01U << (bit + 24));
- 				list_del(&page->lru);
-+				atomic_set(&page->pt_frag_refcount, 0);
- 			}
- 		}
- 		spin_unlock_bh(&mm->context.lock);
-@@ -290,6 +304,7 @@ unsigned long *page_table_alloc(struct m
- 		memset64((u64 *)table, _PAGE_INVALID, 2 * PTRS_PER_PTE);
- 		spin_lock_bh(&mm->context.lock);
- 		list_add(&page->lru, &mm->context.pgtable_list);
-+		atomic_set(&page->pt_frag_refcount, 1);
- 		spin_unlock_bh(&mm->context.lock);
- 	}
- 	return table;
-@@ -325,13 +340,24 @@ void page_table_free(struct mm_struct *m
- 		 */
- 		mask = atomic_xor_bits(&page->_refcount, 0x11U << (bit + 24));
- 		mask >>= 24;
--		if (mask & 0x03U)
-+		if (mask & 0x03U) {
-+			/*
-+			 * Other half is allocated, add to list
-+			 */
- 			list_add(&page->lru, &mm->context.pgtable_list);
--		else
-+			atomic_set(&page->pt_frag_refcount, 1);
-+		} else if (atomic_read(&page->pt_frag_refcount)) {
-+			/*
-+			 * Other half is not allocated, and page is on the list,
-+			 * remove from list
-+			 */
- 			list_del(&page->lru);
-+			atomic_set(&page->pt_frag_refcount, 0);
-+		}
- 		spin_unlock_bh(&mm->context.lock);
- 		mask = atomic_xor_bits(&page->_refcount, 0x10U << (bit + 24));
- 		mask >>= 24;
-+		/* Return if other half is allocated, or delayed release pending */
- 		if (mask != 0x00U)
- 			return;
- 		half = 0x01U << bit;
-@@ -370,10 +396,22 @@ void page_table_free_rcu(struct mmu_gath
- 	 */
- 	mask = atomic_xor_bits(&page->_refcount, 0x11U << (bit + 24));
- 	mask >>= 24;
--	if (mask & 0x03U)
-+	if (mask & 0x03U) {
-+		/*
-+		 * Other half is allocated, add to end of list, as this
-+		 * will not immediately be re-usable because it is marked
-+		 * for delayed release
-+		 */
- 		list_add_tail(&page->lru, &mm->context.pgtable_list);
--	else
-+		atomic_set(&page->pt_frag_refcount, 1);
-+	} else if (atomic_read(&page->pt_frag_refcount)) {
-+		/*
-+		 * Other half is not allocated, and page is on the list,
-+		 * remove from list
-+		 */
- 		list_del(&page->lru);
-+		atomic_set(&page->pt_frag_refcount, 0);
-+	}
- 	spin_unlock_bh(&mm->context.lock);
- 	table = (unsigned long *) ((unsigned long) table | (0x01U << bit));
- 	tlb_remove_table(tlb, table);
-@@ -407,6 +445,88 @@ void __tlb_remove_table(void *_table)
- 	__free_page(page);
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static void pte_free_now0(struct rcu_head *head);
-+static void pte_free_now1(struct rcu_head *head);
-+
-+static void pte_free_pgste(struct rcu_head *head)
-+{
-+	unsigned long *table;
-+	struct page *page;
-+
-+	page = container_of(head, struct page, rcu_head);
-+	table = (unsigned long *)page_to_virt(page);
-+	table = (unsigned long *)((unsigned long)table | 0x03U);
-+	__tlb_remove_table(table);
-+}
-+
-+static void pte_free_half(struct rcu_head *head, unsigned int bit)
-+{
-+	unsigned long *table;
-+	struct page *page;
-+	unsigned int mask;
-+
-+	page = container_of(head, struct page, rcu_head);
-+	mask = atomic_xor_bits(&page->_refcount, 0x04U << (bit + 24));
-+
-+	table = (unsigned long *)page_to_virt(page);
-+	table += bit * PTRS_PER_PTE;
-+	table = (unsigned long *)((unsigned long)table | (0x01U << bit));
-+	__tlb_remove_table(table);
-+
-+	/* If pte_free_defer() of the other half came in, queue it now */
-+	if (mask & 0x0CU)
-+		call_rcu(&page->rcu_head, bit ? pte_free_now0 : pte_free_now1);
-+}
-+
-+static void pte_free_now0(struct rcu_head *head)
-+{
-+	pte_free_half(head, 0);
-+}
-+
-+static void pte_free_now1(struct rcu_head *head)
-+{
-+	pte_free_half(head, 1);
-+}
-+
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
-+{
-+	unsigned int bit, mask;
-+	struct page *page;
-+
-+	page = virt_to_page(pgtable);
-+	if (mm_alloc_pgste(mm)) {
-+		/*
-+		 * TODO: Do we need gmap_unlink(mm, pgtable, addr), like in
-+		 * page_table_free_rcu()?
-+		 * If yes -> need addr parameter here, like in pte_free_tlb().
-+		 */
-+		call_rcu(&page->rcu_head, pte_free_pgste);
-+		return;
-+}
-+	bit = ((unsigned long)pgtable & ~PAGE_MASK) / (PTRS_PER_PTE * sizeof(pte_t));
-+
-+	spin_lock_bh(&mm->context.lock);
-+	mask = atomic_xor_bits(&page->_refcount, 0x15U << (bit + 24));
-+	mask >>= 24;
-+	if ((mask & 0x03U) == 0x00U && atomic_read(&page->pt_frag_refcount)) {
-+		/*
-+		 * Other half is not allocated, page is on the list,
-+		 * remove from list
-+		 */
-+		list_del(&page->lru);
-+		atomic_set(&page->pt_frag_refcount, 0);
-+	}
-+	/* Page must not be on the list, so rcu_head can be used */
-+	BUG_ON(atomic_read(&page->pt_frag_refcount));
-+	spin_unlock_bh(&mm->context.lock);
-+
-+	/* Do not relink on rcu_head if other half already linked on rcu_head */
-+	if ((mask & 0x0CU) != 0x0CU)
-+		call_rcu(&page->rcu_head, bit ? pte_free_now1 : pte_free_now0);
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
- /*
-  * Base infrastructure required to generate basic asces, region, segment,
-  * and page tables that do not make use of enhanced features like EDAT1.
+diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
+index 8ebacf37a8cf..b299f877034e 100644
+--- a/arch/alpha/kernel/syscalls/syscall.tbl
++++ b/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -334,7 +334,7 @@
+ 401	common	io_submit			sys_io_submit
+ 402	common	io_cancel			sys_io_cancel
+ 405	common	exit_group			sys_exit_group
+-406	common	lookup_dcookie			sys_lookup_dcookie
++406	common	lookup_dcookie			sys_ni_syscall
+ 407	common	epoll_create			sys_epoll_create
+ 408	common	epoll_ctl			sys_epoll_ctl
+ 409	common	epoll_wait			sys_epoll_wait
+diff --git a/arch/arm/tools/syscall.tbl b/arch/arm/tools/syscall.tbl
+index ac964612d8b0..ef9424cebe79 100644
+--- a/arch/arm/tools/syscall.tbl
++++ b/arch/arm/tools/syscall.tbl
+@@ -263,7 +263,7 @@
+ 246	common	io_submit		sys_io_submit
+ 247	common	io_cancel		sys_io_cancel
+ 248	common	exit_group		sys_exit_group
+-249	common	lookup_dcookie		sys_lookup_dcookie
++249	common	lookup_dcookie		sys_ni_syscall
+ 250	common	epoll_create		sys_epoll_create
+ 251	common	epoll_ctl		sys_epoll_ctl		sys_oabi_epoll_ctl
+ 252	common	epoll_wait		sys_epoll_wait
+diff --git a/arch/arm64/include/asm/unistd32.h b/arch/arm64/include/asm/unistd32.h
+index 604a2053d006..c2e37f6b7d86 100644
+--- a/arch/arm64/include/asm/unistd32.h
++++ b/arch/arm64/include/asm/unistd32.h
+@@ -508,8 +508,8 @@ __SYSCALL(__NR_io_submit, compat_sys_io_submit)
+ __SYSCALL(__NR_io_cancel, sys_io_cancel)
+ #define __NR_exit_group 248
+ __SYSCALL(__NR_exit_group, sys_exit_group)
+-#define __NR_lookup_dcookie 249
+-__SYSCALL(__NR_lookup_dcookie, compat_sys_lookup_dcookie)
++			/* 249 was lookup_dcookie */
++__SYSCALL(249, sys_ni_syscall)
+ #define __NR_epoll_create 250
+ __SYSCALL(__NR_epoll_create, sys_epoll_create)
+ #define __NR_epoll_ctl 251
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index 72c929d9902b..e76e2dcd2f5a 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -222,7 +222,7 @@
+ 210	common	fadvise64			sys_fadvise64_64
+ 211	common	tgkill				sys_tgkill
+ 212	common	exit_group			sys_exit_group
+-213	common	lookup_dcookie			sys_lookup_dcookie
++213	common	lookup_dcookie			sys_ni_syscall
+ 214	common	io_setup			sys_io_setup
+ 215	common	io_destroy			sys_io_destroy
+ 216	common	io_getevents			sys_io_getevents
+diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
+index b1f3940bc298..3b6070b664ea 100644
+--- a/arch/m68k/kernel/syscalls/syscall.tbl
++++ b/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -255,7 +255,7 @@
+ 245	common	io_cancel			sys_io_cancel
+ 246	common	fadvise64			sys_fadvise64
+ 247	common	exit_group			sys_exit_group
+-248	common	lookup_dcookie			sys_lookup_dcookie
++248	common	lookup_dcookie			sys_ni_syscall
+ 249	common	epoll_create			sys_epoll_create
+ 250	common	epoll_ctl			sys_epoll_ctl
+ 251	common	epoll_wait			sys_epoll_wait
+diff --git a/arch/microblaze/kernel/syscalls/syscall.tbl b/arch/microblaze/kernel/syscalls/syscall.tbl
+index 820145e47350..935f71c56f2f 100644
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl
++++ b/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -260,7 +260,7 @@
+ 250	common	fadvise64			sys_fadvise64
+ # 251 is available for reuse (was briefly sys_set_zone_reclaim)
+ 252	common	exit_group			sys_exit_group
+-253	common	lookup_dcookie			sys_lookup_dcookie
++253	common	lookup_dcookie			sys_ni_syscall
+ 254	common	epoll_create			sys_epoll_create
+ 255	common	epoll_ctl			sys_epoll_ctl
+ 256	common	epoll_wait			sys_epoll_wait
+diff --git a/arch/mips/kernel/syscalls/syscall_n32.tbl b/arch/mips/kernel/syscalls/syscall_n32.tbl
+index 253ff994ed2e..02d71b4726fe 100644
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -214,7 +214,7 @@
+ 203	n32	io_submit			compat_sys_io_submit
+ 204	n32	io_cancel			sys_io_cancel
+ 205	n32	exit_group			sys_exit_group
+-206	n32	lookup_dcookie			sys_lookup_dcookie
++206	n32	lookup_dcookie			sys_ni_syscall
+ 207	n32	epoll_create			sys_epoll_create
+ 208	n32	epoll_ctl			sys_epoll_ctl
+ 209	n32	epoll_wait			sys_epoll_wait
+diff --git a/arch/mips/kernel/syscalls/syscall_n64.tbl b/arch/mips/kernel/syscalls/syscall_n64.tbl
+index 3f1886ad9d80..23a72075987d 100644
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -214,7 +214,7 @@
+ 203	n64	io_submit			sys_io_submit
+ 204	n64	io_cancel			sys_io_cancel
+ 205	n64	exit_group			sys_exit_group
+-206	n64	lookup_dcookie			sys_lookup_dcookie
++206	n64	lookup_dcookie			sys_ni_syscall
+ 207	n64	epoll_create			sys_epoll_create
+ 208	n64	epoll_ctl			sys_epoll_ctl
+ 209	n64	epoll_wait			sys_epoll_wait
+diff --git a/arch/mips/kernel/syscalls/syscall_o32.tbl b/arch/mips/kernel/syscalls/syscall_o32.tbl
+index 8f243e35a7b2..588ccfcfa1ea 100644
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -258,7 +258,7 @@
+ 244	o32	io_submit			sys_io_submit			compat_sys_io_submit
+ 245	o32	io_cancel			sys_io_cancel
+ 246	o32	exit_group			sys_exit_group
+-247	o32	lookup_dcookie			sys_lookup_dcookie		compat_sys_lookup_dcookie
++247	o32	lookup_dcookie			sys_ni_syscall
+ 248	o32	epoll_create			sys_epoll_create
+ 249	o32	epoll_ctl			sys_epoll_ctl
+ 250	o32	epoll_wait			sys_epoll_wait
+diff --git a/arch/parisc/kernel/syscalls/syscall.tbl b/arch/parisc/kernel/syscalls/syscall.tbl
+index 0e42fceb2d5e..444328e937e7 100644
+--- a/arch/parisc/kernel/syscalls/syscall.tbl
++++ b/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -245,7 +245,7 @@
+ # 220 was alloc_hugepages
+ # 221 was free_hugepages
+ 222	common	exit_group		sys_exit_group
+-223	common	lookup_dcookie		sys_lookup_dcookie		compat_sys_lookup_dcookie
++223	common	lookup_dcookie		sys_ni_syscall
+ 224	common	epoll_create		sys_epoll_create
+ 225	common	epoll_ctl		sys_epoll_ctl
+ 226	common	epoll_wait		sys_epoll_wait
+diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
+index a0be127475b1..2c8db9708ec8 100644
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl
++++ b/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -294,7 +294,7 @@
+ 233	32	fadvise64			sys_ppc32_fadvise64		compat_sys_ppc32_fadvise64
+ 233	64	fadvise64			sys_fadvise64
+ 234	nospu	exit_group			sys_exit_group
+-235	nospu	lookup_dcookie			sys_lookup_dcookie		compat_sys_lookup_dcookie
++235	nospu	lookup_dcookie			sys_ni_syscall
+ 236	common	epoll_create			sys_epoll_create
+ 237	common	epoll_ctl			sys_epoll_ctl
+ 238	common	epoll_wait			sys_epoll_wait
+diff --git a/arch/s390/kernel/syscalls/syscall.tbl b/arch/s390/kernel/syscalls/syscall.tbl
+index b68f47541169..85b45b49756e 100644
+--- a/arch/s390/kernel/syscalls/syscall.tbl
++++ b/arch/s390/kernel/syscalls/syscall.tbl
+@@ -100,7 +100,7 @@
+ 106  common	stat			sys_newstat			compat_sys_newstat
+ 107  common	lstat			sys_newlstat			compat_sys_newlstat
+ 108  common	fstat			sys_newfstat			compat_sys_newfstat
+-110  common	lookup_dcookie		sys_lookup_dcookie		compat_sys_lookup_dcookie
++110  common	lookup_dcookie		-				-
+ 111  common	vhangup			sys_vhangup			sys_vhangup
+ 112  common	idle			-				-
+ 114  common	wait4			sys_wait4			compat_sys_wait4
+diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
+index 2de85c977f54..7e284e718325 100644
+--- a/arch/sh/kernel/syscalls/syscall.tbl
++++ b/arch/sh/kernel/syscalls/syscall.tbl
+@@ -260,7 +260,7 @@
+ 250	common	fadvise64			sys_fadvise64
+ # 251 is unused
+ 252	common	exit_group			sys_exit_group
+-253	common	lookup_dcookie			sys_lookup_dcookie
++253	common	lookup_dcookie			sys_ni_syscall
+ 254	common	epoll_create			sys_epoll_create
+ 255	common	epoll_ctl			sys_epoll_ctl
+ 256	common	epoll_wait			sys_epoll_wait
+diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
+index 4398cc6fb68d..0b8dd4728f82 100644
+--- a/arch/sparc/kernel/syscalls/syscall.tbl
++++ b/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -249,7 +249,7 @@
+ 205	common	readahead		sys_readahead			compat_sys_readahead
+ 206	common	socketcall		sys_socketcall			sys32_socketcall
+ 207	common	syslog			sys_syslog
+-208	common	lookup_dcookie		sys_lookup_dcookie		compat_sys_lookup_dcookie
++208	common	lookup_dcookie		sys_ni_syscall
+ 209	common	fadvise64		sys_fadvise64			compat_sys_fadvise64
+ 210	common	fadvise64_64		sys_fadvise64_64		compat_sys_fadvise64_64
+ 211	common	tgkill			sys_tgkill
+diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
+index 320480a8db4f..2b9c86445c57 100644
+--- a/arch/x86/entry/syscalls/syscall_32.tbl
++++ b/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -264,7 +264,7 @@
+ 250	i386	fadvise64		sys_ia32_fadvise64
+ # 251 is available for reuse (was briefly sys_set_zone_reclaim)
+ 252	i386	exit_group		sys_exit_group
+-253	i386	lookup_dcookie		sys_lookup_dcookie		compat_sys_lookup_dcookie
++253	i386	lookup_dcookie
+ 254	i386	epoll_create		sys_epoll_create
+ 255	i386	epoll_ctl		sys_epoll_ctl
+ 256	i386	epoll_wait		sys_epoll_wait
+diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
+index c84d12608cd2..da2643738262 100644
+--- a/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -220,7 +220,7 @@
+ 209	64	io_submit		sys_io_submit
+ 210	common	io_cancel		sys_io_cancel
+ 211	64	get_thread_area
+-212	common	lookup_dcookie		sys_lookup_dcookie
++212	common	lookup_dcookie
+ 213	common	epoll_create		sys_epoll_create
+ 214	64	epoll_ctl_old
+ 215	64	epoll_wait_old
+diff --git a/arch/xtensa/kernel/syscalls/syscall.tbl b/arch/xtensa/kernel/syscalls/syscall.tbl
+index 52c94ab5c205..c969734e9b53 100644
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl
++++ b/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -273,7 +273,7 @@
+ 252	common	timer_getoverrun		sys_timer_getoverrun
+ # System
+ 253	common	reserved253			sys_ni_syscall
+-254	common	lookup_dcookie			sys_lookup_dcookie
++254	common	lookup_dcookie			sys_ni_syscall
+ 255	common	available255			sys_ni_syscall
+ 256	common	add_key				sys_add_key
+ 257	common	request_key			sys_request_key
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index 1cfa4f0f490a..233f61ec8afc 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -581,7 +581,6 @@ asmlinkage long compat_sys_io_pgetevents_time64(compat_aio_context_t ctx_id,
+ 					struct io_event __user *events,
+ 					struct __kernel_timespec __user *timeout,
+ 					const struct __compat_aio_sigset __user *usig);
+-asmlinkage long compat_sys_lookup_dcookie(u32, u32, char __user *, compat_size_t);
+ asmlinkage long compat_sys_epoll_pwait(int epfd,
+ 			struct epoll_event __user *events,
+ 			int maxevents, int timeout,
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 8c37cf91c12d..f5ca303c9f53 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -369,7 +369,6 @@ asmlinkage long sys_lremovexattr(const char __user *path,
+ 				 const char __user *name);
+ asmlinkage long sys_fremovexattr(int fd, const char __user *name);
+ asmlinkage long sys_getcwd(char __user *buf, unsigned long size);
+-asmlinkage long sys_lookup_dcookie(u64 cookie64, char __user *buf, size_t len);
+ asmlinkage long sys_eventfd2(unsigned int count, int flags);
+ asmlinkage long sys_epoll_create1(int flags);
+ asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
+diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
+index dd7d8e10f16d..652537342a47 100644
+--- a/include/uapi/asm-generic/unistd.h
++++ b/include/uapi/asm-generic/unistd.h
+@@ -71,7 +71,7 @@ __SYSCALL(__NR_fremovexattr, sys_fremovexattr)
+ #define __NR_getcwd 17
+ __SYSCALL(__NR_getcwd, sys_getcwd)
+ #define __NR_lookup_dcookie 18
+-__SC_COMP(__NR_lookup_dcookie, sys_lookup_dcookie, compat_sys_lookup_dcookie)
++__SYSCALL(__NR_lookup_dcookie, sys_ni_syscall)
+ #define __NR_eventfd2 19
+ __SYSCALL(__NR_eventfd2, sys_eventfd2)
+ #define __NR_epoll_create1 20
+diff --git a/kernel/sys_ni.c b/kernel/sys_ni.c
+index f207236002e9..31431f139208 100644
+--- a/kernel/sys_ni.c
++++ b/kernel/sys_ni.c
+@@ -51,8 +51,6 @@ COND_SYSCALL_COMPAT(io_pgetevents);
+ COND_SYSCALL(io_uring_setup);
+ COND_SYSCALL(io_uring_enter);
+ COND_SYSCALL(io_uring_register);
+-COND_SYSCALL(lookup_dcookie);
+-COND_SYSCALL_COMPAT(lookup_dcookie);
+ COND_SYSCALL(eventfd2);
+ COND_SYSCALL(epoll_create1);
+ COND_SYSCALL(epoll_ctl);
+diff --git a/tools/include/uapi/asm-generic/unistd.h b/tools/include/uapi/asm-generic/unistd.h
+index dd7d8e10f16d..652537342a47 100644
+--- a/tools/include/uapi/asm-generic/unistd.h
++++ b/tools/include/uapi/asm-generic/unistd.h
+@@ -71,7 +71,7 @@ __SYSCALL(__NR_fremovexattr, sys_fremovexattr)
+ #define __NR_getcwd 17
+ __SYSCALL(__NR_getcwd, sys_getcwd)
+ #define __NR_lookup_dcookie 18
+-__SC_COMP(__NR_lookup_dcookie, sys_lookup_dcookie, compat_sys_lookup_dcookie)
++__SYSCALL(__NR_lookup_dcookie, sys_ni_syscall)
+ #define __NR_eventfd2 19
+ __SYSCALL(__NR_eventfd2, sys_eventfd2)
+ #define __NR_epoll_create1 20
+diff --git a/tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl b/tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl
+index 3f1886ad9d80..23a72075987d 100644
+--- a/tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl
++++ b/tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl
+@@ -214,7 +214,7 @@
+ 203	n64	io_submit			sys_io_submit
+ 204	n64	io_cancel			sys_io_cancel
+ 205	n64	exit_group			sys_exit_group
+-206	n64	lookup_dcookie			sys_lookup_dcookie
++206	n64	lookup_dcookie			sys_ni_syscall
+ 207	n64	epoll_create			sys_epoll_create
+ 208	n64	epoll_ctl			sys_epoll_ctl
+ 209	n64	epoll_wait			sys_epoll_wait
+diff --git a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl b/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl
+index a0be127475b1..2c8db9708ec8 100644
+--- a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl
++++ b/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl
+@@ -294,7 +294,7 @@
+ 233	32	fadvise64			sys_ppc32_fadvise64		compat_sys_ppc32_fadvise64
+ 233	64	fadvise64			sys_fadvise64
+ 234	nospu	exit_group			sys_exit_group
+-235	nospu	lookup_dcookie			sys_lookup_dcookie		compat_sys_lookup_dcookie
++235	nospu	lookup_dcookie			sys_ni_syscall
+ 236	common	epoll_create			sys_epoll_create
+ 237	common	epoll_ctl			sys_epoll_ctl
+ 238	common	epoll_wait			sys_epoll_wait
+diff --git a/tools/perf/arch/s390/entry/syscalls/syscall.tbl b/tools/perf/arch/s390/entry/syscalls/syscall.tbl
+index b68f47541169..85b45b49756e 100644
+--- a/tools/perf/arch/s390/entry/syscalls/syscall.tbl
++++ b/tools/perf/arch/s390/entry/syscalls/syscall.tbl
+@@ -100,7 +100,7 @@
+ 106  common	stat			sys_newstat			compat_sys_newstat
+ 107  common	lstat			sys_newlstat			compat_sys_newlstat
+ 108  common	fstat			sys_newfstat			compat_sys_newfstat
+-110  common	lookup_dcookie		sys_lookup_dcookie		compat_sys_lookup_dcookie
++110  common	lookup_dcookie		-				-
+ 111  common	vhangup			sys_vhangup			sys_vhangup
+ 112  common	idle			-				-
+ 114  common	wait4			sys_wait4			compat_sys_wait4
+diff --git a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl b/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
+index c84d12608cd2..da2643738262 100644
+--- a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -220,7 +220,7 @@
+ 209	64	io_submit		sys_io_submit
+ 210	common	io_cancel		sys_io_cancel
+ 211	64	get_thread_area
+-212	common	lookup_dcookie		sys_lookup_dcookie
++212	common	lookup_dcookie
+ 213	common	epoll_create		sys_epoll_create
+ 214	64	epoll_ctl_old
+ 215	64	epoll_wait_old
+-- 
+2.34.1
+
