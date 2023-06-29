@@ -2,132 +2,146 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16030C001DF
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 14:43:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFA0BEB64DC
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 15:22:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232144AbjF2OnU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jun 2023 10:43:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38994 "EHLO
+        id S232576AbjF2PW3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jun 2023 11:22:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232132AbjF2OnH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 10:43:07 -0400
-Received: from wnew4-smtp.messagingengine.com (wnew4-smtp.messagingengine.com [64.147.123.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 293EA2D4A;
-        Thu, 29 Jun 2023 07:43:06 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id 2C0362B000BB;
-        Thu, 29 Jun 2023 10:43:04 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Thu, 29 Jun 2023 10:43:05 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1688049783; x=1688056983; bh=tH
-        SCuJbmuJlT+unyX4wdwm35F06LE8SCy+Og6X/m9DI=; b=FV9nO/j/Xdm5cnG6UB
-        sO9u8qjWkG4zOqKUhXnhJ2RYfN1MZ3Kurqn85lEsJl7vkP5a/wdBWaFdfq4uSulg
-        eD/TXf6t4GqPVAoNus5HnjtbA1vX8VrBrjgri2vE0OiP2BSb5Sz/Pa2C0OcILLNa
-        uvFS7KDmA3Z+PSTaIcpOvOnZyAi2yVT1FzCqp7iRvA0LJt1+wRraHFLOR3jih5Cs
-        jATcgblkM7OGPteVBvXmW3paY0tjSC/B5Xw7fxmwX1f73RjswI9pT+zjkQRu+TqM
-        Zsrmd0IqOKzH2xm5FLjlXxLg/SYtjqX8WBuItuEotXdBlqMlSIKnBw9uSc0kSFc4
-        WB+Q==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1688049783; x=1688056983; bh=tHSCuJbmuJlT+
-        unyX4wdwm35F06LE8SCy+Og6X/m9DI=; b=IEg6bOdqZ2fgoUmwXVc8pb/uyJ2CC
-        MOuLn/CZcijB/QkegFpO4zpbp2YYMXm7i7Fu54Datj1E0vkDR3DKgAUxo6z+GWk3
-        vXwluBuok2nikCjYscmpRjVF9aIs6Z3Xj7fdUsirXf+m9AdUwVoMNKOO0MYZ2R8w
-        hgGHbzL0Ar9zadbigZQorDDjOWkOiah/gEi8RJBLof77Nwpm9iJ+r3Tp7gQ7XU3u
-        cozoUBEjOyE8ENgbEKdyPutCHcAWlVtfgQdZBYVqqbmbh2K14vwZE6PMJ4Kx6p2+
-        /+OkyxEaQgOqymqPNrwdxRUuj9S7LqeMaozoifwtEIa8O5rZRMCvumLJw==
-X-ME-Sender: <xms:d5idZJS-d-u9H6tAL4MVNUn3dLrNSbL4IruMnHIE3CpKi0-H693WSQ>
-    <xme:d5idZCw5mye3ObeRK8d2o0AvifT1I5cjzGyLezIYCpTQRj35g9ypte7NqWzs7GoN6
-    8Sm_DjOg0zV1YdZSVw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrtdeggdektdcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
-    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
-    gvrhhnpeevveeggeffjeeuieduheefhfehgfdujeetjeelueejjeffueeiudefveffhffh
-    ffenucffohhmrghinhepsghoohhtlhhinhdrtghomhenucevlhhushhtvghrufhiiigvpe
-    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:d5idZO03ZSZrR92W5cJwJ7vDJs6WpKIlFRy9Xhuyzbi0CT-ygNCtuw>
-    <xmx:d5idZBAqt6Jponm39fmOqP5dZQFGbDIwwMJa-8NcLHlCdZdcXxv0nw>
-    <xmx:d5idZCgNy7rtA7-MCt1uXVV-VTEogehRKv7jDtzZjAfQWu979t5spw>
-    <xmx:d5idZD1uiRApbuVHCCuiXmm0gt_m0UjKra-phrbnLG5pdPkdVgK1VG-MnKk>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 44DBDB60086; Thu, 29 Jun 2023 10:43:03 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-499-gf27bbf33e2-fm-20230619.001-gf27bbf33
-Mime-Version: 1.0
-Message-Id: <ce4ddce0-ceea-426c-b348-d22468d7c402@app.fastmail.com>
-In-Reply-To: <f9185435-74bb-a325-8fe6-3beb51a66e0a@suse.de>
-References: <20230629121952.10559-1-tzimmermann@suse.de>
- <4d711508-c299-49f2-8691-e75d68f2485e@app.fastmail.com>
- <f9185435-74bb-a325-8fe6-3beb51a66e0a@suse.de>
-Date:   Thu, 29 Jun 2023 16:42:42 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Helge Deller" <deller@gmx.de>, "Daniel Vetter" <daniel@ffwll.ch>,
-        "Dave Airlie" <airlied@gmail.com>
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-hyperv@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-staging@lists.linux.dev,
-        linux-kernel@vger.kernel.org,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        linux-mips@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, loongarch@lists.linux.dev,
-        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 00/12] arch,fbdev: Move screen_info into arch/
-Content-Type: text/plain
+        with ESMTP id S232183AbjF2PW2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 11:22:28 -0400
+Received: from mail-qk1-x72a.google.com (mail-qk1-x72a.google.com [IPv6:2607:f8b0:4864:20::72a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C89926B6
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 08:22:26 -0700 (PDT)
+Received: by mail-qk1-x72a.google.com with SMTP id af79cd13be357-76571dae5feso74789985a.1
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 08:22:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1688052145; x=1690644145;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=52QGPi56OcZzeoQSr1+Puoh9x/N7TMLxPpl1Fa9yAkI=;
+        b=bQ+QaBv9kQgn0a/ZUWEzUp17QKK8mKbvu7OHRhiOucSgX3eSl924Wd32DWKpaETuWG
+         AJZQFb8MZEkw10neO7Emyiwf0zs4rexcslIhj26xYbfhNY61Fs/S3zXUfnMd8nKlLHbq
+         CU/gaxpgXz0Fcq+WROZl7v82TmZhyriMp8ghnPjAipqNQvOQZDcDHIDAAILg7qaaRj4g
+         cROZVqbL1LvLpBfUtSNqoHdAU+QoeC+43TKUBXk9yEuGi9WwmY8edNie6xIXgtH/0lEz
+         iYMbIENsQdCcb6GkheV3Ph/F1WPNpdDYyBYfX2SSNtzeR7J1HM4TRkmoUI53LbULfuQV
+         wSDA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688052145; x=1690644145;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=52QGPi56OcZzeoQSr1+Puoh9x/N7TMLxPpl1Fa9yAkI=;
+        b=LL+HMjbwrAV5Jj+IbrfCPa8Wf0fKqqypuEH/2nIvCEQjJdd5RCQvdLCvxg5xfnnJ+F
+         tZkAr8rgdZLGvND0IS9eTY+Txa0c76jTRqA/ceBOeGMq1vtqj6x05A1eoZ3IvkmCRWh5
+         vdfK6kj9A8Lozv8i1snspcnBNui6WsGcTtQNbxEqrx90menZphZ/K3p5JT+zRaTqeKMk
+         gghW9Q+L8jLYho19Jce+CP6veT22r3nedwMIAAkwkwR6QQ1IN04WTatHEAtjBVGlGhLP
+         4x4GK04a7AfZIb4o5+u1LcSMPIbU9BfY+dUDUD1t2PyO3DazlzuG8M8OqJR/NUP4/TEe
+         QuVw==
+X-Gm-Message-State: AC+VfDzpSRJVeClDIZIGxKGLRI/tIZikLL+y7NSWrknYmdeE0in0WqVA
+        D7IalPKdJMd1f81M4eVPCtJYFw==
+X-Google-Smtp-Source: ACHHUZ49j4zxCkMnm+oSSx+2qlaiByXDG1BTDACn1CIjXnwSTZE7XCbDUFEFLrSlPKTofnqYvOeuSg==
+X-Received: by 2002:a05:620a:e92:b0:767:90a:ae9e with SMTP id w18-20020a05620a0e9200b00767090aae9emr8621873qkm.65.1688052145311;
+        Thu, 29 Jun 2023 08:22:25 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id r15-20020a05620a03cf00b0074e0951c7e7sm6340805qkm.28.2023.06.29.08.22.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Jun 2023 08:22:24 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1qEtTU-009snj-1H;
+        Thu, 29 Jun 2023 12:22:24 -0300
+Date:   Thu, 29 Jun 2023 12:22:24 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
+ page
+Message-ID: <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
+ <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
+ <20230628211624.531cdc58@thinkpad-T15>
+ <cd7c2851-1440-7220-6c53-16b343b1474@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cd7c2851-1440-7220-6c53-16b343b1474@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jun 29, 2023, at 16:15, Thomas Zimmermann wrote:
-> Am 29.06.23 um 15:31 schrieb Arnd Bergmann:
->> On Thu, Jun 29, 2023, at 13:45, Thomas Zimmermann wrote:
->>> Future directions: with the patchset in place, it will become possible
->>> to provide screen_info and edid_info only if there are users. Some
->>> architectures do this by testing for CONFIG_VT, CONFIG_DUMMY_CONSOLE,
->>> etc. A more uniform approach would be nice. We should also attempt
->>> to minimize access to the global screen_info as much as possible. To
->>> do so, some drivers, such as efifb and vesafb, would require an update.
->>> The firmware's EDID data could possibly made available outside of fbdev.
->>> For example, the simpledrm and ofdrm drivers could provide such data
->>> to userspace compositors.
->> 
->> I suspect that most architectures that provide a screen_info only
->> have this in order to compile the framebuffer drivers, and provide
->> hardcoded data that does not even reflect any real hardware.
->
-> That's quite possible. Only x86's bootparam and EFI code sets 
-> screen_info from external data. The rest is hardcoded. A number of 
-> architectures protect screen_info with CONFIG_VT, CONFIG_DUMMY_CONSOLE, 
-> etc. In a later patchset, I wanted to change this such that these users 
-> of screen_info would enable the feature via select in their Kconfig.
->
-> Do you know the reason for this branch in dummycon:
->
-> https://elixir.bootlin.com/linux/v6.4/source/drivers/video/console/dummycon.c#L21
->
-> What is special about arm that dummycon uses the screeninfo?
+On Wed, Jun 28, 2023 at 10:08:08PM -0700, Hugh Dickins wrote:
+> On Wed, 28 Jun 2023, Gerald Schaefer wrote:
+> > 
+> > As discussed in the other thread, we would rather go with less complexity,
+> > possibly switching to an approach w/o the list and fragment re-use in the
+> > future. For now, as a first step in that direction, we can try with not
+> > adding fragments back only for pte_free_defer(). Here is an adjusted
+> > version of your patch, copying most of your pte_free_defer() logic and
+> > also description, tested with LTP and all three of your patch series applied:
+> 
+> Thanks, Gerald: I don't mind abandoning my 13/12 SLAB_TYPESAFE_BY_RCU
+> patch (posted with fewer Cc's to the s390 list last week), and switching
+> to your simpler who-cares-if-we-sometimes-don't-make-maximal-use-of-page
+> patch.
+> 
+> But I didn't get deep enough into it today to confirm it - and disappointed
+> that you've found it necessary to play with pt_frag_refcount in addition to
+> _refcount and HH bits.  No real problem with that, but my instinct says it
+> should be simpler.
 
-I can only guess myself, but I see that the values are only ever
-set from the old ATAGS data, and not from DT on any of the
-modern ones, and my interpretation is that this is meant to
-match whatever the vga console was set to on the three
-platforms that support vgacon.
- 
-I see this was added in linux-2.1.111, just before the
-corresponding sparc specific hack was removed, but I don't have
-patch descriptions from that era. Russell might remember, or know
-if that is actually still needed.
+Is there any reason it should be any different at all from what PPC is
+doing?
 
-   Arnd
+I still think the right thing to do here is make the PPC code common
+(with Hugh's proposed RCU modification) and just use it in both
+arches....
+
+Jason
