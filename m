@@ -2,93 +2,115 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F21FEB64DD
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 19:58:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC216C001B0
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 20:04:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231946AbjF2T6N (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jun 2023 15:58:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60438 "EHLO
+        id S232511AbjF2UEF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jun 2023 16:04:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232406AbjF2T6G (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 15:58:06 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6592B30F6
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 12:57:56 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id 5614622812f47-3942c6584f0so755750b6e.3
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 12:57:56 -0700 (PDT)
+        with ESMTP id S232526AbjF2UDh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 16:03:37 -0400
+Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A3D735B8
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 13:02:44 -0700 (PDT)
+Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-6686ef86110so714575b3a.2
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 13:02:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1688068675; x=1690660675;
+        d=chromium.org; s=google; t=1688068964; x=1690660964;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=RJ/xKxE/4SOUFhnWdePYMrjihUjgQXmu4T3rrVCYJnk=;
-        b=O7agXgqg/5EnBzgOf/hyEa3CfJrv+rnuzddn3TNmncxMzxlgkxVF400ns0ScHq8nwO
-         miBMky1Ts8sK6piTFjjx4u/zdn8kQOa7aAhFug4K34bwaFXNYZcv7WQ8qnHUTGujQV8e
-         hSPUrKYsB1Y3BCOweX0S5GaJzo71OMSbL4EF4=
+        bh=OUs7U0BtKPJKG1fzCWygEf2HA0xht76oAjLsL2vUhyc=;
+        b=Twu/FkGZNZQcuDHDwKEwB2wyE3v1LbCDu0eqxi7o+F27rEm7sqDp80j39YE6UCfvl4
+         2rIhpm93D6ABz6M5sH7Md4uHRs/x09fOmcjvBWU2B8XV/lFuQKbjCTsr/PE9Iic01fqu
+         XPdl1KDY1NNtAmWmfm7AiO7oGkDHBajxuQFGc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688068675; x=1690660675;
+        d=1e100.net; s=20221208; t=1688068964; x=1690660964;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RJ/xKxE/4SOUFhnWdePYMrjihUjgQXmu4T3rrVCYJnk=;
-        b=Zum2ISXDZMoNLUwN3JyxN7fU4v8UGzal1RnSwVkLEnHeBfEuIP9nx8oF9uatnM4eha
-         8ERomSvOQ+79vvhO+9oe2U6LIMTgldB3atVBQcRQ+jBC/dyUEh/7pEsBGpWXJ4PGeeBg
-         nTaATYKjauVkkriC+jWmmAYWt8mCte6tImZDD9pqc8sgeNcqmuIgW9pDENndPE753U1Q
-         BHsVScJoPZDhzgAjqJLdkUbgCx2uA+lj861Byh2ZR02cmrefoF5nKiBOFYu/JvF8IMuv
-         LdUI2k4p2z0sjhQgoCX9P4O71TeLjVMI0meBckjqLqGiwDpCb5uTnCtT0aSeJGGY4pjr
-         pMGQ==
-X-Gm-Message-State: AC+VfDxefPVEpnqa6ksx1dBZ6DpWXHf3t8ak7DgQht7GmzxH9+C8h7t1
-        uoK3oM01opZzfghgzZUrS/Xx2w==
-X-Google-Smtp-Source: ACHHUZ5VfHaZQ1vgYvKEfwSq3bkC/Mv2QGtvfel8EjnRJ3kX52MGrTqrYD9m0XcISsUNgQjjJRV6uQ==
-X-Received: by 2002:aca:6707:0:b0:3a3:7eab:28a7 with SMTP id z7-20020aca6707000000b003a37eab28a7mr384557oix.30.1688068675495;
-        Thu, 29 Jun 2023 12:57:55 -0700 (PDT)
+        bh=OUs7U0BtKPJKG1fzCWygEf2HA0xht76oAjLsL2vUhyc=;
+        b=k7SbcswpXWx1v89jHA77ouPwnwCKpv5oqkZ0v8wAXXdPY7s74pdzF7CGuHMw25m5hx
+         aVdbTTpu3fihzbEBHSFp+kYYTU5sHM9cn+3BDWZz6rFjtzKdnRBzoqak4SDVB6fo+nXB
+         yMa2Y/rSxQfw5Jb4Qk6+h3X+8KaVin38rX6B31ExO8FsHC6Jwq9kLdAoF2gXianwl4TL
+         /3eaFSWI5QqawhLs/fw3d3Kq05PMnydpxoNBtC9FTrHlCZJNBqIgMnwhO5x4R5Ve/nQ8
+         4+UZzwTptWC3x+mNjyjl4ZxWW3wl1GF4nmbs3QeMcCAykxpQ2LHxfPPJDvCjnolCMWET
+         RHWQ==
+X-Gm-Message-State: ABy/qLZDXBcn2n2ioghJdbk8+9aDlkhdeX6zc2pBYFqt3SmgCuS1SXog
+        zfRohA2RzSyJzYdtGWcrGfN0zQ==
+X-Google-Smtp-Source: APBJJlG5QTXFLOoEdTJA9LqV+/oEh+5BpFurv2cnrHa3QVzL6i65AYGPHUPw04F0k7YjzN3v6dquOg==
+X-Received: by 2002:a05:6a00:2d1a:b0:643:aa8d:8cd7 with SMTP id fa26-20020a056a002d1a00b00643aa8d8cd7mr968304pfb.32.1688068963869;
+        Thu, 29 Jun 2023 13:02:43 -0700 (PDT)
 Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id 199-20020a6301d0000000b005533a901a5dsm9132408pgb.19.2023.06.29.12.57.54
+        by smtp.gmail.com with ESMTPSA id q136-20020a632a8e000000b0055b0c330b30sm4599477pgq.84.2023.06.29.13.02.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jun 2023 12:57:55 -0700 (PDT)
-Date:   Thu, 29 Jun 2023 12:57:54 -0700
+        Thu, 29 Jun 2023 13:02:43 -0700 (PDT)
+Date:   Thu, 29 Jun 2023 13:02:42 -0700
 From:   Kees Cook <keescook@chromium.org>
 To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
         sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-hardening@vger.kernel.org
-Subject: Re: [PATCH][next] sparc: openpromio: Address -Warray-bounds warning
-Message-ID: <202306291257.FF5C86E@keescook>
-References: <ZJTV61z4+lsKlzQG@work>
+Subject: Re: [PATCH][next] openprom: Use struct_size() helper
+Message-ID: <202306291300.7DBE393BC@keescook>
+References: <ZJTYWQ5NA726baWK@work>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZJTV61z4+lsKlzQG@work>
+In-Reply-To: <ZJTYWQ5NA726baWK@work>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jun 22, 2023 at 05:14:51PM -0600, Gustavo A. R. Silva wrote:
-> One-element arrays are deprecated, and we are replacing them with flexible
-> array members instead. So, replace one-element array with flexible-array
-> member in struct openpromio.
+On Thu, Jun 22, 2023 at 05:25:13PM -0600, Gustavo A. R. Silva wrote:
+> Prefer struct_size() over open-coded versions.
+
+This commit log could be more descriptive since the replacement below
+isn't in the standard "sizeof(struct) + sizeof(element) * count" format.
+:) It took me a moment to figure out what was going on:
+
+struct openpromio
+{
+        unsigned int oprom_size;        /* Actual size of the oprom_array. */
+        char    oprom_array[];          /* Holds property names and values. */
+};
+
+sizeof(struct openpromio) == sizeof(int)   :P
+
+
 > 
-> Address the following warning found after building (with GCC-13) sparc
-> with sparc64_defconfig:
-> In function 'opromgetprop',
->     inlined from 'openprom_sunos_ioctl.isra' at drivers/sbus/char/openprom.c:312:11:
-> drivers/sbus/char/openprom.c:141:24: warning: array subscript 1 is above array bounds of 'char[1]' [-Warray-bounds=]
->   141 |         op->oprom_array[len] = '\0';
->       |         ~~~~~~~~~~~~~~~^~~~~
-> In file included from drivers/sbus/char/openprom.c:31:
-> arch/sparc/include/uapi/asm/openpromio.h: In function 'openprom_sunos_ioctl.isra':
-> arch/sparc/include/uapi/asm/openpromio.h:16:17: note: while referencing 'oprom_array'
->    16 |         char    oprom_array[1];         /* Holds property names and values. */
->       |                 ^~~~~~~~~~~
-> 
-> This helps with the ongoing efforts to tighten the FORTIFY_SOURCE
-> routines on memcpy() and help us make progress towards globally
-> enabling -Warray-bounds.
-> 
-> This results in no differences in binary output.
-> 
-> Link: https://github.com/KSPP/linux/issues/79
-> Link: https://github.com/KSPP/linux/issues/322
+> Link: https://github.com/KSPP/linux/issues/160
 > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> ---
+>  drivers/sbus/char/openprom.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
+> index 30b9751aad30..de56c8fec373 100644
+> --- a/drivers/sbus/char/openprom.c
+> +++ b/drivers/sbus/char/openprom.c
+> @@ -76,7 +76,9 @@ static int copyin(struct openpromio __user *info, struct openpromio **opp_p)
+>  	if (bufsize > OPROMMAXPARAM)
+>  		bufsize = OPROMMAXPARAM;
+>  
+> -	if (!(*opp_p = kzalloc(sizeof(int) + bufsize + 1, GFP_KERNEL)))
+> +	*opp_p = kzalloc(struct_size(*opp_p, oprom_array, bufsize + 1),
+> +			 GFP_KERNEL);
+> +	if (!*opp_p)
+>  		return -ENOMEM;
+>  
+>  	if (copy_from_user(&(*opp_p)->oprom_array,
+> @@ -95,7 +97,9 @@ static int getstrings(struct openpromio __user *info, struct openpromio **opp_p)
+>  	if (!info || !opp_p)
+>  		return -EFAULT;
+>  
+> -	if (!(*opp_p = kzalloc(sizeof(int) + OPROMMAXPARAM + 1, GFP_KERNEL)))
+> +	*opp_p = kzalloc(struct_size(*opp_p, oprom_array, OPROMMAXPARAM + 1),
+> +			 GFP_KERNEL);
+> +	if (!*opp_p)
+>  		return -ENOMEM;
+
+With that understood, yeah, these look good to me. :)
 
 Reviewed-by: Kees Cook <keescook@chromium.org>
 
