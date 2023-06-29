@@ -2,148 +2,131 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A564CC001E0
-	for <sparclinux@archiver.kernel.org>; Wed, 28 Jun 2023 23:43:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8792C001DB
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 05:08:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231631AbjF1Xnz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 28 Jun 2023 19:43:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39270 "EHLO
+        id S231447AbjF2FIX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jun 2023 01:08:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229501AbjF1Xnt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Jun 2023 19:43:49 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7577610EC;
-        Wed, 28 Jun 2023 16:43:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=mkpKticynoUGDZ1Tdpq3P9FZu5kxXQf0JefJvMLgJuA=; b=eVGM60hxW/1oCROBhJRKbbF9pd
-        /WHGc+o+pb+fkeVze6GKs3Hcu2mjtmWM/4oUGYCU0t+UbFMtrvvcjHSl/cglLWbeBdgmG30OqcMNt
-        S2Pr1+dHNTd4T3qFeiVwQeps/R+LjlmcLTRsuZ8NdhZsmraeYrB2Kel7p0VxJ6+7q7EgMQ6Wx6ank
-        P+yHcdGkzLdLPcfc5husZ1HslNubmokchQy4wGscGAVnBMae971Q/C5VLDp5JrfEWC1X5YToHzDHK
-        +ikxlG8dV0EOrjRrjMKr08rEq8iFClaMjdpXxuLncvJrq9YBnHim1BxRohfVxP5cT8JFsbmDDx9YM
-        9l9IY3yQ==;
-Received: from [2601:1c2:980:9ec0::2764]
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qEeow-00H298-0w;
-        Wed, 28 Jun 2023 23:43:34 +0000
-Message-ID: <08e273fc-49c5-dd09-1c9e-d85a080767f9@infradead.org>
-Date:   Wed, 28 Jun 2023 16:43:27 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.2
-Subject: Re: [PATCH] syscalls: Cleanup references to sys_lookup_dcookie()
-Content-Language: en-US
-To:     Sohil Mehta <sohil.mehta@intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        linux-api@vger.kernel.org, linux-arch@vger.kernel.org
-Cc:     Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andy Lutomirski <luto@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@kernel.org>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Ian Rogers <irogers@google.com>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
-        Sergei Trofimovich <slyich@gmail.com>,
+        with ESMTP id S231286AbjF2FIW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 01:08:22 -0400
+Received: from mail-yb1-xb34.google.com (mail-yb1-xb34.google.com [IPv6:2607:f8b0:4864:20::b34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1FB92705
+        for <sparclinux@vger.kernel.org>; Wed, 28 Jun 2023 22:08:20 -0700 (PDT)
+Received: by mail-yb1-xb34.google.com with SMTP id 3f1490d57ef6-c2cf29195f8so273166276.1
+        for <sparclinux@vger.kernel.org>; Wed, 28 Jun 2023 22:08:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1688015300; x=1690607300;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=zFm7aP76Kl3qxn7n2tNVkuwpkcso4qVmefkLtKFqRbs=;
+        b=SH61IoWshgo0/pKjl3ljDej2EI0+DSaPIoPH0EnGJIbXtfIIjKOXzIBV7zaurn/u2O
+         NzEik2ic/sSNSVVbeZ/UgymQtK7K6oY5QRG/wzVH8poLJ32013nMh89etey0qcHiO54m
+         9VJ8ecSgnyFVz892TYk34hIsLIVdE3C863sWe4PpKLL17z0rdk//QH8zHLezplf5zecn
+         CMt8pQ6lO/N91/4KfIatcw4X88/dCSpVTpYW/IpvL+vwGOTzzDciFmwrt9muCsAvhi7d
+         WOqlfS0Kym0VC+rHJLQVRUIX2a29Zo7bJvGsOEaU1uowBUKaMzsYZ9yHhLs0KJAe7PQ3
+         Eu7w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688015300; x=1690607300;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=zFm7aP76Kl3qxn7n2tNVkuwpkcso4qVmefkLtKFqRbs=;
+        b=dYm3cRmIcjUZjmEDQzA951iQ+I6plSOyIM9GNY0tgzD/bIUmTzrbuXVIihyfujjAXG
+         fM4phc6ys7o/ZqgrPxfGTkARjBWnMT4lcVtFrhbt7+acDRWcPQI6Ta3pNtus1OcA3J2j
+         GJVufTb8kUfqYWCcu2wyl5gaHGJz5I5yL+t2lyPQhQ78546YBpgDEvhc6G24YkeOOpSB
+         ts5j7LEbwopjHpgR3OkU+cKXJ/cjzqSejMRaYAkwrsuceAmt+grIqmW0FYYFZQ72+HW3
+         QK2hgX6MDBjJODdLtbvQn90Rq1/pOhK+rN1e2mxIPdaIvvr1cCCZfqJLexAqxnOn15+Z
+         nbMA==
+X-Gm-Message-State: AC+VfDxpGUQAFd9csQwgVImIN6Wit6qmHMBRWvaPMDkTKgafqQb74dc2
+        WhzD+Mw4hL2ffVPHazq8dSebxQ==
+X-Google-Smtp-Source: ACHHUZ7dmal1wUP2kBcbn8Y+5hPCsOTidCkpFmDgLcwfB+9Ewvv4+lKBVPvM/Ea71yfLSwxu543Ddg==
+X-Received: by 2002:a25:bc86:0:b0:c25:3076:ffdc with SMTP id e6-20020a25bc86000000b00c253076ffdcmr9008572ybk.1.1688015299744;
+        Wed, 28 Jun 2023 22:08:19 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id 66-20020a251545000000b00bcc0f2e4f05sm2365847ybv.59.2023.06.28.22.08.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 28 Jun 2023 22:08:19 -0700 (PDT)
+Date:   Wed, 28 Jun 2023 22:08:08 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+cc:     Hugh Dickins <hughd@google.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Rohan McLure <rmclure@linux.ibm.com>,
-        Andreas Schwab <schwab@linux-m68k.org>,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Brian Gerst <brgerst@gmail.com>, linux-alpha@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-perf-users@vger.kernel.org
-References: <20230628230935.1196180-1-sohil.mehta@intel.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20230628230935.1196180-1-sohil.mehta@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
+ page
+In-Reply-To: <20230628211624.531cdc58@thinkpad-T15>
+Message-ID: <cd7c2851-1440-7220-6c53-16b343b1474@google.com>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230628211624.531cdc58@thinkpad-T15>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
-
-On 6/28/23 16:09, Sohil Mehta wrote:
-> commit 'be65de6b03aa ("fs: Remove dcookies support")' removed the
-> syscall definition for lookup_dcookie.  However, syscall tables still
-> point to the old sys_lookup_dcookie() definition. Update syscall tables
-> of all architectures to directly point to sys_ni_syscall() instead.
+On Wed, 28 Jun 2023, Gerald Schaefer wrote:
 > 
-> Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
+> As discussed in the other thread, we would rather go with less complexity,
+> possibly switching to an approach w/o the list and fragment re-use in the
+> future. For now, as a first step in that direction, we can try with not
+> adding fragments back only for pte_free_defer(). Here is an adjusted
+> version of your patch, copying most of your pte_free_defer() logic and
+> also description, tested with LTP and all three of your patch series applied:
 
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Thanks, Gerald: I don't mind abandoning my 13/12 SLAB_TYPESAFE_BY_RCU
+patch (posted with fewer Cc's to the s390 list last week), and switching
+to your simpler who-cares-if-we-sometimes-don't-make-maximal-use-of-page
+patch.
 
-Thanks.
+But I didn't get deep enough into it today to confirm it - and disappointed
+that you've found it necessary to play with pt_frag_refcount in addition to
+_refcount and HH bits.  No real problem with that, but my instinct says it
+should be simpler.
 
-> ---
-> This patch has a dependency on another patch that has been applied to the
-> asm-generic tree:
-> https://lore.kernel.org/lkml/20230621223600.1348693-1-sohil.mehta@intel.com/
-> ---
->  arch/alpha/kernel/syscalls/syscall.tbl              | 2 +-
->  arch/arm/tools/syscall.tbl                          | 2 +-
->  arch/arm64/include/asm/unistd32.h                   | 4 ++--
->  arch/ia64/kernel/syscalls/syscall.tbl               | 2 +-
->  arch/m68k/kernel/syscalls/syscall.tbl               | 2 +-
->  arch/microblaze/kernel/syscalls/syscall.tbl         | 2 +-
->  arch/mips/kernel/syscalls/syscall_n32.tbl           | 2 +-
->  arch/mips/kernel/syscalls/syscall_n64.tbl           | 2 +-
->  arch/mips/kernel/syscalls/syscall_o32.tbl           | 2 +-
->  arch/parisc/kernel/syscalls/syscall.tbl             | 2 +-
->  arch/powerpc/kernel/syscalls/syscall.tbl            | 2 +-
->  arch/s390/kernel/syscalls/syscall.tbl               | 2 +-
->  arch/sh/kernel/syscalls/syscall.tbl                 | 2 +-
->  arch/sparc/kernel/syscalls/syscall.tbl              | 2 +-
->  arch/x86/entry/syscalls/syscall_32.tbl              | 2 +-
->  arch/x86/entry/syscalls/syscall_64.tbl              | 2 +-
->  arch/xtensa/kernel/syscalls/syscall.tbl             | 2 +-
->  include/linux/compat.h                              | 1 -
->  include/linux/syscalls.h                            | 1 -
->  include/uapi/asm-generic/unistd.h                   | 2 +-
->  kernel/sys_ni.c                                     | 2 --
->  tools/include/uapi/asm-generic/unistd.h             | 2 +-
->  tools/perf/arch/mips/entry/syscalls/syscall_n64.tbl | 2 +-
->  tools/perf/arch/powerpc/entry/syscalls/syscall.tbl  | 2 +-
->  tools/perf/arch/s390/entry/syscalls/syscall.tbl     | 2 +-
->  tools/perf/arch/x86/entry/syscalls/syscall_64.tbl   | 2 +-
->  26 files changed, 24 insertions(+), 28 deletions(-)
-> 
-
-
--- 
-~Randy
+Tomorrow...
+Hugh
