@@ -2,52 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D0FFC001B1
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 12:20:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 755B2C001DE
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 12:20:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232375AbjF2MUJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jun 2023 08:20:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52230 "EHLO
+        id S232406AbjF2MUL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jun 2023 08:20:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232091AbjF2MT6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 08:19:58 -0400
+        with ESMTP id S232113AbjF2MT7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 08:19:59 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B052693;
-        Thu, 29 Jun 2023 05:19:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 607CA1FD8;
+        Thu, 29 Jun 2023 05:19:58 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id D30A41FD64;
-        Thu, 29 Jun 2023 12:19:55 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id CBF141FD66;
+        Thu, 29 Jun 2023 12:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1688041195; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1688041196; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=x4OXpvb/zG5KxleDjQO59blDnCWqFfIAhLgAtrL7NVY=;
-        b=i9tojsqES2QC/qquHYUduiHTvKM/o2z/RvVrScPmnss/Wdpfc1J8AgYAxsShSe/L6fYT9Y
-        7FKNYHoHceSj+8mLJIQHIb+BY/XjPBkp5yhtd0KOIYPXpIqSZ6hSLBi6xqY1JazJYIi+Eb
-        gaKXUb1B5TosrsgCJYwvoV7PpYW+BMc=
+        bh=dI1kzUuKD59kYjvBY6wFpwuLP1T5iqiK0PZL3S9tS+4=;
+        b=iOn4KP8zx9qPUKtbQYB/3UuemmzcIp1jKec6IhGp4JnfO4Zc3Qon64c22j4rYtRaUYgve5
+        sr75PQ8iy2XZULzepyxG8DgzelksuLJRjEhAS/DO7S2Ysp725W5TaLjeeV8vgf+fFhfKEZ
+        7AYRAgxOMdWjSM+8Ou37M9XmyDJGHm0=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1688041195;
+        s=susede2_ed25519; t=1688041196;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=x4OXpvb/zG5KxleDjQO59blDnCWqFfIAhLgAtrL7NVY=;
-        b=I9+YCVJOZ9ZGuHYgzDJK7LoqYWQPRbVAa5291fSN3Cmi2kbDsJnhF71kCDmXLS5Vh94PSm
-        QiCAtZG1UTuNHQDw==
+        bh=dI1kzUuKD59kYjvBY6wFpwuLP1T5iqiK0PZL3S9tS+4=;
+        b=BL/25Txh4w4sSCwBtjxZWN/dcdEjEYYqC2SO2/bckqsruuNu5moVIyXmc/8QJu230txCAq
+        mYmRl8mkEdvMruCA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 4D5F813A43;
-        Thu, 29 Jun 2023 12:19:55 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 535A113A43;
+        Thu, 29 Jun 2023 12:19:56 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id CJvwEet2nWRlVAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 29 Jun 2023 12:19:55 +0000
+        id gDVLE+x2nWRlVAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Thu, 29 Jun 2023 12:19:56 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     arnd@arndb.de, deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
 Cc:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
@@ -61,12 +61,11 @@ Cc:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-arch@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
         Ard Biesheuvel <ardb@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>
-Subject: [PATCH 01/12] efi: Do not include <linux/screen_info.h> from EFI header
-Date:   Thu, 29 Jun 2023 13:45:40 +0200
-Message-ID: <20230629121952.10559-2-tzimmermann@suse.de>
+        Hans de Goede <hdegoede@redhat.com>,
+        Javier Martinez Canillas <javierm@redhat.com>
+Subject: [PATCH 03/12] sysfb: Do not include <linux/screen_info.h> from sysfb header
+Date:   Thu, 29 Jun 2023 13:45:42 +0200
+Message-ID: <20230629121952.10559-4-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230629121952.10559-1-tzimmermann@suse.de>
 References: <20230629121952.10559-1-tzimmermann@suse.de>
@@ -76,92 +75,32 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The header file <linux/efi.h> does not need anything from
+The header file <linux/sysfb.h> does not need anything from
 <linux/screen_info.h>. Declare struct screen_info and remove
-the include statements. Update a number of source files that
-require struct screen_info's definition.
+the include statements.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Javier Martinez Canillas <javierm@redhat.com>
 ---
- arch/arm/kernel/efi.c                         | 2 ++
- arch/arm64/kernel/efi.c                       | 1 +
- drivers/firmware/efi/libstub/efi-stub-entry.c | 2 ++
- drivers/firmware/efi/libstub/screen_info.c    | 2 ++
- include/linux/efi.h                           | 3 ++-
- 5 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/sysfb.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/kernel/efi.c b/arch/arm/kernel/efi.c
-index e2b9d2618c672..e94655ef16bb3 100644
---- a/arch/arm/kernel/efi.c
-+++ b/arch/arm/kernel/efi.c
-@@ -5,6 +5,8 @@
+diff --git a/include/linux/sysfb.h b/include/linux/sysfb.h
+index c1ef5fc60a3cb..19cb803dd5ecd 100644
+--- a/include/linux/sysfb.h
++++ b/include/linux/sysfb.h
+@@ -9,7 +9,8 @@
  
- #include <linux/efi.h>
- #include <linux/memblock.h>
-+#include <linux/screen_info.h>
-+
- #include <asm/efi.h>
- #include <asm/mach/map.h>
- #include <asm/mmu_context.h>
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index baab8dd3ead3c..3afbe503b066f 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/efi.h>
- #include <linux/init.h>
-+#include <linux/screen_info.h>
- 
- #include <asm/efi.h>
- #include <asm/stacktrace.h>
-diff --git a/drivers/firmware/efi/libstub/efi-stub-entry.c b/drivers/firmware/efi/libstub/efi-stub-entry.c
-index cc4dcaea67fa6..2f1902e5d4075 100644
---- a/drivers/firmware/efi/libstub/efi-stub-entry.c
-+++ b/drivers/firmware/efi/libstub/efi-stub-entry.c
-@@ -1,6 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0-only
- 
- #include <linux/efi.h>
-+#include <linux/screen_info.h>
-+
- #include <asm/efi.h>
- 
- #include "efistub.h"
-diff --git a/drivers/firmware/efi/libstub/screen_info.c b/drivers/firmware/efi/libstub/screen_info.c
-index 4be1c4d1f922b..a51ec201ca3cb 100644
---- a/drivers/firmware/efi/libstub/screen_info.c
-+++ b/drivers/firmware/efi/libstub/screen_info.c
-@@ -1,6 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #include <linux/efi.h>
-+#include <linux/screen_info.h>
-+
- #include <asm/efi.h>
- 
- #include "efistub.h"
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 571d1a6e1b744..360895a5572c0 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -24,10 +24,11 @@
- #include <linux/range.h>
- #include <linux/reboot.h>
- #include <linux/uuid.h>
+ #include <linux/kernel.h>
+ #include <linux/platform_data/simplefb.h>
 -#include <linux/screen_info.h>
- 
- #include <asm/page.h>
- 
-+struct screen_info;
 +
- #define EFI_SUCCESS		0
- #define EFI_LOAD_ERROR		( 1 | (1UL << (BITS_PER_LONG-1)))
- #define EFI_INVALID_PARAMETER	( 2 | (1UL << (BITS_PER_LONG-1)))
++struct screen_info;
+ 
+ enum {
+ 	M_I17,		/* 17-Inch iMac */
 -- 
 2.41.0
 
