@@ -2,117 +2,176 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC216C001B0
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jun 2023 20:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE527EB64DA
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 05:31:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232511AbjF2UEF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jun 2023 16:04:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33434 "EHLO
+        id S229455AbjF3FbG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 01:31:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232526AbjF2UDh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jun 2023 16:03:37 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A3D735B8
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 13:02:44 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-6686ef86110so714575b3a.2
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 13:02:44 -0700 (PDT)
+        with ESMTP id S232036AbjF3FbF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 01:31:05 -0400
+Received: from mail-ua1-x935.google.com (mail-ua1-x935.google.com [IPv6:2607:f8b0:4864:20::935])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BE412D70
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 22:31:04 -0700 (PDT)
+Received: by mail-ua1-x935.google.com with SMTP id a1e0cc1a2514c-7943be26e84so531533241.2
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 22:31:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1688068964; x=1690660964;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=OUs7U0BtKPJKG1fzCWygEf2HA0xht76oAjLsL2vUhyc=;
-        b=Twu/FkGZNZQcuDHDwKEwB2wyE3v1LbCDu0eqxi7o+F27rEm7sqDp80j39YE6UCfvl4
-         2rIhpm93D6ABz6M5sH7Md4uHRs/x09fOmcjvBWU2B8XV/lFuQKbjCTsr/PE9Iic01fqu
-         XPdl1KDY1NNtAmWmfm7AiO7oGkDHBajxuQFGc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688068964; x=1690660964;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=linaro.org; s=google; t=1688103063; x=1690695063;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OUs7U0BtKPJKG1fzCWygEf2HA0xht76oAjLsL2vUhyc=;
-        b=k7SbcswpXWx1v89jHA77ouPwnwCKpv5oqkZ0v8wAXXdPY7s74pdzF7CGuHMw25m5hx
-         aVdbTTpu3fihzbEBHSFp+kYYTU5sHM9cn+3BDWZz6rFjtzKdnRBzoqak4SDVB6fo+nXB
-         yMa2Y/rSxQfw5Jb4Qk6+h3X+8KaVin38rX6B31ExO8FsHC6Jwq9kLdAoF2gXianwl4TL
-         /3eaFSWI5QqawhLs/fw3d3Kq05PMnydpxoNBtC9FTrHlCZJNBqIgMnwhO5x4R5Ve/nQ8
-         4+UZzwTptWC3x+mNjyjl4ZxWW3wl1GF4nmbs3QeMcCAykxpQ2LHxfPPJDvCjnolCMWET
-         RHWQ==
-X-Gm-Message-State: ABy/qLZDXBcn2n2ioghJdbk8+9aDlkhdeX6zc2pBYFqt3SmgCuS1SXog
-        zfRohA2RzSyJzYdtGWcrGfN0zQ==
-X-Google-Smtp-Source: APBJJlG5QTXFLOoEdTJA9LqV+/oEh+5BpFurv2cnrHa3QVzL6i65AYGPHUPw04F0k7YjzN3v6dquOg==
-X-Received: by 2002:a05:6a00:2d1a:b0:643:aa8d:8cd7 with SMTP id fa26-20020a056a002d1a00b00643aa8d8cd7mr968304pfb.32.1688068963869;
-        Thu, 29 Jun 2023 13:02:43 -0700 (PDT)
-Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id q136-20020a632a8e000000b0055b0c330b30sm4599477pgq.84.2023.06.29.13.02.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jun 2023 13:02:43 -0700 (PDT)
-Date:   Thu, 29 Jun 2023 13:02:42 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-hardening@vger.kernel.org
-Subject: Re: [PATCH][next] openprom: Use struct_size() helper
-Message-ID: <202306291300.7DBE393BC@keescook>
-References: <ZJTYWQ5NA726baWK@work>
+        bh=RpifBzIiPQ544NbGz1gUfjlce5GYM88cZVM7W94e/z8=;
+        b=hyBvN72rknPc+l9wuFKRChEoRQvzihluKLc0rqj9jWn7jSXfbXqGs7PqOzz71UrJul
+         2I5MP1vzV9P1QOwU2ftEh7xmAeNNyxKrIwL7eUmU1Eh1qcaJwSBd30N4Z8nsbg4sgWxX
+         Ay5C+cHWHTZ2TNrYni09u7fkSlpC9Iwh7Zl35POz0a/UJCxwT6LXxnEc8biHSmsYKS5r
+         BYUhBRLNpeYM1auRS4Sha5oeLvNIRxtyTOPCWoDQd9U5zcNuyob93zvVMPtPIqlWvmXT
+         C5EvzicXDCTWRQ6Ohnx4sKq+xGIbDbgrt9P9WGlsl4MBaXVlGgM+/5zrSfTYyUq6vZM1
+         42Eg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688103063; x=1690695063;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=RpifBzIiPQ544NbGz1gUfjlce5GYM88cZVM7W94e/z8=;
+        b=MxreNu6tJg1RVjkH5cLpmFZU1+3bCa4echCwNQzIYAwGin2+czBygJNbgY/bTUYkfO
+         sssyVbWblb00J25dd4IKnZ+sneofoIz6a2jXClKqdSdPBeVDH0ef0G8og3t22BPL0Dd8
+         tSSxGGUrzm/lNEZDAWBkZT/xsaxMLEuaiF+JZwg5vFS2udWOsHTzWf5OJr7ucNw4Qreq
+         ytwRUppP3MQyn1hSb8pDEfoG5BOIM7aB2QMSopx5NpOD75rxVOhvchBE5qaCAfLunEWI
+         UKJVBb8GYhrjscKC+lZFyzzKi/O4EuvDzwgsuWrvEs9Nd5kldFsu5rOJk9iXBHDpbdQA
+         nAgg==
+X-Gm-Message-State: ABy/qLbgkLIcIfeoeL6nLRJRGd54gJDq+rcuHak2oRwLaPwqcFnpIX2k
+        qpUILk8l17oT3GND7muNLkhqGZj5yGvv4f3/2b0G+A==
+X-Google-Smtp-Source: APBJJlHzXNWEksubwbMG0b87MFUYjvu+33oPvUefO/Epc8vNSR/lvoS7c0KVgVmuLELsuNvgkFBPvRDY6U2aHzPB9S0=
+X-Received: by 2002:a67:ec10:0:b0:443:86be:f326 with SMTP id
+ d16-20020a67ec10000000b0044386bef326mr1173207vso.18.1688103063100; Thu, 29
+ Jun 2023 22:31:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZJTYWQ5NA726baWK@work>
+References: <20230629184151.888604958@linuxfoundation.org>
+In-Reply-To: <20230629184151.888604958@linuxfoundation.org>
+From:   Naresh Kamboju <naresh.kamboju@linaro.org>
+Date:   Fri, 30 Jun 2023 11:00:51 +0530
+Message-ID: <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
+Subject: Re: [PATCH 6.4 00/28] 6.4.1-rc1 review
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     stable@vger.kernel.org, patches@lists.linux.dev,
+        linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org, linux@roeck-us.net, shuah@kernel.org,
+        patches@kernelci.org, lkft-triage@lists.linaro.org, pavel@denx.de,
+        jonathanh@nvidia.com, f.fainelli@gmail.com,
+        sudipm.mukherjee@gmail.com, srw@sladewatkins.net, rwarsow@gmx.de,
+        conor@kernel.org, linux-parisc <linux-parisc@vger.kernel.org>,
+        sparclinux@vger.kernel.org,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Helge Deller <deller@gmx.de>,
+        Jason Wang <wangborong@cdjrlc.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jun 22, 2023 at 05:25:13PM -0600, Gustavo A. R. Silva wrote:
-> Prefer struct_size() over open-coded versions.
+On Fri, 30 Jun 2023 at 00:18, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> This is the start of the stable review cycle for the 6.4.1 release.
+> There are 28 patches in this series, all will be posted as a response
+> to this one.  If anyone has any issues with these being applied, please
+> let me know.
+>
+> Responses should be made by Sat, 01 Jul 2023 18:41:39 +0000.
+> Anything received after that time might be too late.
+>
+> The whole patch series can be found in one patch at:
+>         https://www.kernel.org/pub/linux/kernel/v6.x/stable-review/patch-=
+6.4.1-rc1.gz
+> or in the git tree and branch at:
+>         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
+-rc.git linux-6.4.y
+> and the diffstat can be found below.
+>
+> thanks,
+>
+> greg k-h
 
-This commit log could be more descriptive since the replacement below
-isn't in the standard "sizeof(struct) + sizeof(element) * count" format.
-:) It took me a moment to figure out what was going on:
+Results from Linaro=E2=80=99s test farm.
 
-struct openpromio
-{
-        unsigned int oprom_size;        /* Actual size of the oprom_array. */
-        char    oprom_array[];          /* Holds property names and values. */
-};
+Following build regression noticed on Linux stable-rc 6.4 and also noticed =
+on
+Linux mainline master.
 
-sizeof(struct openpromio) == sizeof(int)   :P
+Regressions found on Parisc and Sparc build failed:
+ - build/gcc-11-defconfig
+
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+
+Parisc Build log:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+arch/parisc/mm/fault.c: In function 'do_page_fault':
+arch/parisc/mm/fault.c:292:22: error: 'prev' undeclared (first use in
+this function)
+  292 |                 if (!prev || !(prev->vm_flags & VM_GROWSUP))
+      |                      ^~~~
+arch/parisc/mm/fault.c:292:22: note: each undeclared identifier is
+reported only once for each function it appears in
 
 
-> 
-> Link: https://github.com/KSPP/linux/issues/160
-> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-> ---
->  drivers/sbus/char/openprom.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
-> index 30b9751aad30..de56c8fec373 100644
-> --- a/drivers/sbus/char/openprom.c
-> +++ b/drivers/sbus/char/openprom.c
-> @@ -76,7 +76,9 @@ static int copyin(struct openpromio __user *info, struct openpromio **opp_p)
->  	if (bufsize > OPROMMAXPARAM)
->  		bufsize = OPROMMAXPARAM;
->  
-> -	if (!(*opp_p = kzalloc(sizeof(int) + bufsize + 1, GFP_KERNEL)))
-> +	*opp_p = kzalloc(struct_size(*opp_p, oprom_array, bufsize + 1),
-> +			 GFP_KERNEL);
-> +	if (!*opp_p)
->  		return -ENOMEM;
->  
->  	if (copy_from_user(&(*opp_p)->oprom_array,
-> @@ -95,7 +97,9 @@ static int getstrings(struct openpromio __user *info, struct openpromio **opp_p)
->  	if (!info || !opp_p)
->  		return -EFAULT;
->  
-> -	if (!(*opp_p = kzalloc(sizeof(int) + OPROMMAXPARAM + 1, GFP_KERNEL)))
-> +	*opp_p = kzalloc(struct_size(*opp_p, oprom_array, OPROMMAXPARAM + 1),
-> +			 GFP_KERNEL);
-> +	if (!*opp_p)
->  		return -ENOMEM;
+sparc Build log:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+<stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
+arch/sparc/mm/fault_32.c: In function 'force_user_fault':
+arch/sparc/mm/fault_32.c:315:49: error: 'regs' undeclared (first use
+in this function)
+  315 |         vma =3D lock_mm_and_find_vma(mm, address, regs);
+      |                                                 ^~~~
+arch/sparc/mm/fault_32.c:315:49: note: each undeclared identifier is
+reported only once for each function it appears in
 
-With that understood, yeah, these look good to me. :)
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Links:
+ - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
+4-29-g8e5ddb853f08/testrun/17959811/suite/build/test/gcc-11-defconfig/detai=
+ls/
+ - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
+4-29-g8e5ddb853f08/testrun/17959811/suite/build/test/gcc-11-defconfig/log
 
--- 
-Kees Cook
+ - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
+4-29-g8e5ddb853f08/testrun/17959890/suite/build/test/gcc-11-defconfig/detai=
+ls/
+ - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
+4-29-g8e5ddb853f08/testrun/17959890/suite/build/test/gcc-11-defconfig/log
+
+
+Both build failures noticed on mainline and sparc build have been
+fixed yesterday.
+ - https://qa-reports.linaro.org/lkft/linux-mainline-master/build/v6.4-8542=
+-g82a2a5105589/testrun/17963192/suite/build/test/gcc-11-defconfig/history/
+
+
+Following patch that got fixed
+---
+From 0b26eadbf200abf6c97c6d870286c73219cdac65 Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 29 Jun 2023 20:41:24 -0700
+Subject: sparc32: fix lock_mm_and_find_vma() conversion
+
+The sparc32 conversion to lock_mm_and_find_vma() in commit a050ba1e7422
+("mm/fault: convert remaining simple cases to lock_mm_and_find_vma()")
+missed the fact that we didn't actually have a 'regs' pointer available
+in the 'force_user_fault()' case.
+
+It's there in the regular page fault path ("do_sparc_fault()"), but not
+the window underflow/overflow paths.
+
+Which is all fine - we can just pass in a NULL pointer.  The register
+state is only used to avoid deadlock with kernel faults, which is not
+the case for any of these register window faults.
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Fixes: a050ba1e7422 ("mm/fault: convert remaining simple cases to
+lock_mm_and_find_vma()")
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+
+--
+Linaro LKFT
+https://lkft.linaro.org
