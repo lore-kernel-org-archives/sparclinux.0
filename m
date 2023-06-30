@@ -2,65 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 382B4EB64DC
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 13:40:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4ADEEB64D7
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 15:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232552AbjF3NkJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Jun 2023 09:40:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54680 "EHLO
+        id S232971AbjF3PbK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 11:31:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232338AbjF3NkI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 09:40:08 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9EEC1FE8;
-        Fri, 30 Jun 2023 06:40:05 -0700 (PDT)
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35UDXtkF024475;
-        Fri, 30 Jun 2023 13:39:03 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=MILFYyEh0bzy33IA0yZToAfVYRzb2Mhl3gp0isRO4pM=;
- b=WWpOuUBll0GcMgF6UkEAPv1U/0AELyMv08YfNFH5QWoGlgD30nDBbxmr3vbfSbir1zDF
- v1n3VFiHTI2iKdl0ajnyVN8bMun8YmP3twJ0zeA20CJqamSbFHDi0WTEGFk62XbzPkt+
- 3sQv6xziupU8flvhfEio8DJeUkwPyzL/3LA2kAIq72vI2CbDVcUIXbqzP5IohDPsH4/K
- nxBzmnoEp2WjhyoNKxCZ0dgzhxUGvSu0SNRrFBSAmnnreNuicuHYPiLqqUjRWB61jY4q
- YJ78SFBrwbAkYFxbT96VF4dSAcOaIN/gb7fOJsJGxvv6qHAnXFv+w90Oi5zo4zs12bA4 wA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rj01vr5v8-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 30 Jun 2023 13:39:02 +0000
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 35UDXvp4024557;
-        Fri, 30 Jun 2023 13:39:01 GMT
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rj01vr5rt-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 30 Jun 2023 13:39:01 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-        by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35U4eiGQ004048;
-        Fri, 30 Jun 2023 13:38:59 GMT
-Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
-        by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3rdr45463d-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 30 Jun 2023 13:38:59 +0000
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-        by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35UDctix16253646
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 30 Jun 2023 13:38:55 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 6250B2004F;
-        Fri, 30 Jun 2023 13:38:55 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id C36332004E;
-        Fri, 30 Jun 2023 13:38:53 +0000 (GMT)
-Received: from p-imbrenda (unknown [9.152.224.66])
-        by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
-        Fri, 30 Jun 2023 13:38:53 +0000 (GMT)
-Date:   Fri, 30 Jun 2023 15:38:52 +0200
-From:   Claudio Imbrenda <imbrenda@linux.ibm.com>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        with ESMTP id S233001AbjF3Paz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 11:30:55 -0400
+Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8E4D49C7
+        for <sparclinux@vger.kernel.org>; Fri, 30 Jun 2023 08:29:09 -0700 (PDT)
+Received: by mail-yb1-xb2c.google.com with SMTP id 3f1490d57ef6-bfee679b7efso1935919276.0
+        for <sparclinux@vger.kernel.org>; Fri, 30 Jun 2023 08:29:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1688138947; x=1690730947;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=AjAYnVeboGLbIm0tKT9e16Vsq7Oo9WWm/R7Yf2CYkqU=;
+        b=OrFdTzSQQkVcKVrUqqdFxWYPfui4NZ+US05WE6v2rnqFm6OACvYRXXvuvVVn9/WgtH
+         IO25JQBx/7LBuF94N8uGWuA7lOqK/g2aZp1o+jdYwvLq2sHeGN6e7HBrH9hoQ4jtcPqs
+         90eQkQW0JM+WPNUbFUyKu7cCa3Sn5U5Jf2hFgFgK4apj0UpwkpB4OeYiFgRXknc7EB6e
+         QGvEjMl6zgdHa4GtApbCh6wEU0EpLaffyB3TGQ3swbjHsGW/3I5351vpgsD4dqv93K97
+         b7yuMuqA/UWI4+PDCNp0ztgzGA9UcYiCsSREvoSv8SCHEvA6U71YyFDKLcORLE5cGOxV
+         8bcQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688138947; x=1690730947;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=AjAYnVeboGLbIm0tKT9e16Vsq7Oo9WWm/R7Yf2CYkqU=;
+        b=iiSMsAKbmUhvUf4zw+dUsCW0F6S7W9TjaiEFPwFiuEATuiijiZzCC4bo6dp0sn2Po1
+         BDMldD0llH5e9Nre/TqgzCgr7BZhT3zMzFzrvdo+MdJY9jd3bxZb+Moc/pwhw4WzbI1/
+         uhAWeINx1dgCmiR6Nl9nY6OnUc+QEmqDYSUMQPYhebaxEt1gBkMAZTgK8XlI4HhyDh4l
+         ca9hSQthcTUKvYDVkWE0Xt5a38FQq45id0YXZ2coYUHRwXp5mUoHRPSNQ7bR26Jzurxz
+         1psLAmUB2MzTtKkAWt1jL1jJcKycF/VVK6dRF9ZED+5eqHwRb8+z155X+FtI5g0M2wSg
+         6rnQ==
+X-Gm-Message-State: ABy/qLYGI3bp4kGhMPZSUJBTl7u1pQV3je7hc5X5504pr3N3r1fXMviH
+        kH3naq/OzzqpCTGww1tMh+s9zg==
+X-Google-Smtp-Source: APBJJlF5EFV8fGkahr4C63tlYCJc9C/Ov9as/Fr8WIXMxA7p0Zq+iobFwmSBQKWq4vNdROS9uHFFYw==
+X-Received: by 2002:a25:d303:0:b0:ba8:9512:fbc9 with SMTP id e3-20020a25d303000000b00ba89512fbc9mr2919284ybf.11.1688138946703;
+        Fri, 30 Jun 2023 08:29:06 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id 144-20020a250496000000b00c3da591adbcsm635911ybe.31.2023.06.30.08.29.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Jun 2023 08:29:06 -0700 (PDT)
+Date:   Fri, 30 Jun 2023 08:28:54 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Claudio Imbrenda <imbrenda@linux.ibm.com>
+cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
         Vasily Gorbik <gor@linux.ibm.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
@@ -106,134 +98,71 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables
- sharing page
-Message-ID: <20230630153852.31163592@p-imbrenda>
-In-Reply-To: <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
-        <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
-Organization: IBM
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-redhat-linux-gnu)
+Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
+ page
+In-Reply-To: <20230630153852.31163592@p-imbrenda>
+Message-ID: <062b19-4cf1-261-a9bf-9cefd32382fc@google.com>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230630153852.31163592@p-imbrenda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: EBLZMsFsdvv19REZEqy1DFVn4Lc2XsWt
-X-Proofpoint-GUID: t0PdQmyDLcbJVGOB3mJ29fow46RM-DV8
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-06-30_05,2023-06-30_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 clxscore=1011
- phishscore=0 lowpriorityscore=0 malwarescore=0 impostorscore=0 spamscore=0
- mlxscore=0 adultscore=0 mlxlogscore=999 suspectscore=0 priorityscore=1501
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2305260000
- definitions=main-2306300116
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 20 Jun 2023 00:51:19 -0700 (PDT)
-Hugh Dickins <hughd@google.com> wrote:
+On Fri, 30 Jun 2023, Claudio Imbrenda wrote:
+> On Tue, 20 Jun 2023 00:51:19 -0700 (PDT)
+> Hugh Dickins <hughd@google.com> wrote:
+> 
+> [...]
+> 
+> > +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
+> > +{
+> > +	unsigned int bit, mask;
+> > +	struct page *page;
+> > +
+> > +	page = virt_to_page(pgtable);
+> > +	if (mm_alloc_pgste(mm)) {
+> > +		call_rcu(&page->rcu_head, pte_free_pgste);
+> 
+> so is this now going to be used to free page tables
+> instead of page_table_free_rcu?
 
-[...]
+No.
 
-> @@ -407,6 +429,77 @@ void __tlb_remove_table(void *_table)
->  	__free_page(page);
->  }
->  
-> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-> +static void pte_free_now0(struct rcu_head *head);
-> +static void pte_free_now1(struct rcu_head *head);
-> +
-> +static void pte_free_pgste(struct rcu_head *head)
-> +{
-> +	unsigned long *table;
-> +	struct page *page;
-> +
-> +	page = container_of(head, struct page, rcu_head);
-> +	table = (unsigned long *)page_to_virt(page);
-> +	table = (unsigned long *)((unsigned long)table | 0x03U);
-> +	__tlb_remove_table(table);
-> +}
-> +
-> +static void pte_free_half(struct rcu_head *head, unsigned int bit)
-> +{
-> +	unsigned long *table;
-> +	struct page *page;
-> +	unsigned int mask;
-> +
-> +	page = container_of(head, struct page, rcu_head);
-> +	mask = atomic_xor_bits(&page->_refcount, 0x04U << (bit + 24));
-> +
-> +	table = (unsigned long *)page_to_virt(page);
-> +	table += bit * PTRS_PER_PTE;
-> +	table = (unsigned long *)((unsigned long)table | (0x01U << bit));
-> +	__tlb_remove_table(table);
-> +
-> +	/* If pte_free_defer() of the other half came in, queue it now */
-> +	if (mask & 0x0CU)
-> +		call_rcu(&page->rcu_head, bit ? pte_free_now0 : pte_free_now1);
-> +}
-> +
-> +static void pte_free_now0(struct rcu_head *head)
-> +{
-> +	pte_free_half(head, 0);
-> +}
-> +
-> +static void pte_free_now1(struct rcu_head *head)
-> +{
-> +	pte_free_half(head, 1);
-> +}
-> +
-> +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
-> +{
-> +	unsigned int bit, mask;
-> +	struct page *page;
-> +
-> +	page = virt_to_page(pgtable);
-> +	if (mm_alloc_pgste(mm)) {
-> +		call_rcu(&page->rcu_head, pte_free_pgste);
+All pte_free_defer() is being used for (in this series; and any future
+use beyond this series will have to undertake its own evaluations) is
+for the case of removing an empty page table, which used to map a group
+of PTE mappings of a file, in order to make way for one PMD mapping of
+the huge page which those scattered pages have now been gathered into.
 
-so is this now going to be used to free page tables
-instead of page_table_free_rcu?
+You're worried by that mm_alloc_pgste() block: it's something I didn't
+have at all in my first draft, then I thought that perhaps the pgste
+case might be able to come this way, so it seemed stupid to leave out
+the handling for it.
 
-or will it be used instead of page_table_free?
+I hope that you're implying that should be dead code here?  Perhaps,
+that the pgste case corresponds to the case in s390 where THPs are
+absolutely forbidden?  That would be good news for us.
 
-this is actually quite important for KVM on s390
+Gerald, in his version of this block, added a comment asking:
+	/*
+	 * TODO: Do we need gmap_unlink(mm, pgtable, addr), like in
+	 * page_table_free_rcu()?
+	 * If yes -> need addr parameter here, like in pte_free_tlb().
+	 */
+Do you have the answer to that?  Neither of us could work it out.
 
-> +		return;
-> +	}
-> +	bit = ((unsigned long)pgtable & ~PAGE_MASK) /
-> +			(PTRS_PER_PTE * sizeof(pte_t));
-> +
-> +	spin_lock_bh(&mm_pgtable_list_lock);
-> +	mask = atomic_xor_bits(&page->_refcount, 0x15U << (bit + 24));
-> +	mask >>= 24;
-> +	/* Other half not allocated? Other half not already pending free? */
-> +	if ((mask & 0x03U) == 0x00U && (mask & 0x30U) != 0x30U)
-> +		list_del(&page->lru);
-> +	spin_unlock_bh(&mm_pgtable_list_lock);
-> +
-> +	/* Do not relink on rcu_head if other half already linked on rcu_head */
-> +	if ((mask & 0x0CU) != 0x0CU)
-> +		call_rcu(&page->rcu_head, bit ? pte_free_now1 : pte_free_now0);
-> +}
-> +#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-> +
->  /*
->   * Base infrastructure required to generate basic asces, region, segment,
->   * and page tables that do not make use of enhanced features like EDAT1.
-> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> index 306a3d1a0fa6..1667a1bdb8a8 100644
-> --- a/include/linux/mm_types.h
-> +++ b/include/linux/mm_types.h
-> @@ -146,7 +146,7 @@ struct page {
->  			pgtable_t pmd_huge_pte; /* protected by page->ptl */
->  			unsigned long _pt_pad_2;	/* mapping */
->  			union {
-> -				struct mm_struct *pt_mm; /* x86 pgds only */
-> +				struct mm_struct *pt_mm; /* x86 pgd, s390 */
->  				atomic_t pt_frag_refcount; /* powerpc */
->  			};
->  #if ALLOC_SPLIT_PTLOCKS
+> 
+> or will it be used instead of page_table_free?
 
+Not always; but yes, this case of removing a page table used
+page_table_free() before; but now, with the lighter locking, needs
+to keep the page table valid until the RCU grace period expires.
+
+> 
+> this is actually quite important for KVM on s390
+
+None of us are wanting to break KVM on s390: your guidance appreciated!
+
+Thanks,
+Hugh
