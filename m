@@ -2,176 +2,125 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE527EB64DA
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 05:31:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32621C001E0
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 05:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229455AbjF3FbG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Jun 2023 01:31:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41380 "EHLO
+        id S231784AbjF3FeJ convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 01:34:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232036AbjF3FbF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 01:31:05 -0400
-Received: from mail-ua1-x935.google.com (mail-ua1-x935.google.com [IPv6:2607:f8b0:4864:20::935])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BE412D70
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 22:31:04 -0700 (PDT)
-Received: by mail-ua1-x935.google.com with SMTP id a1e0cc1a2514c-7943be26e84so531533241.2
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 22:31:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1688103063; x=1690695063;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RpifBzIiPQ544NbGz1gUfjlce5GYM88cZVM7W94e/z8=;
-        b=hyBvN72rknPc+l9wuFKRChEoRQvzihluKLc0rqj9jWn7jSXfbXqGs7PqOzz71UrJul
-         2I5MP1vzV9P1QOwU2ftEh7xmAeNNyxKrIwL7eUmU1Eh1qcaJwSBd30N4Z8nsbg4sgWxX
-         Ay5C+cHWHTZ2TNrYni09u7fkSlpC9Iwh7Zl35POz0a/UJCxwT6LXxnEc8biHSmsYKS5r
-         BYUhBRLNpeYM1auRS4Sha5oeLvNIRxtyTOPCWoDQd9U5zcNuyob93zvVMPtPIqlWvmXT
-         C5EvzicXDCTWRQ6Ohnx4sKq+xGIbDbgrt9P9WGlsl4MBaXVlGgM+/5zrSfTYyUq6vZM1
-         42Eg==
+        with ESMTP id S231235AbjF3FeF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 01:34:05 -0400
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com [209.85.219.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AE8010F8;
+        Thu, 29 Jun 2023 22:34:04 -0700 (PDT)
+Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-bfe6ea01ff5so1371845276.3;
+        Thu, 29 Jun 2023 22:34:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688103063; x=1690695063;
+        d=1e100.net; s=20221208; t=1688103243; x=1690695243;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=RpifBzIiPQ544NbGz1gUfjlce5GYM88cZVM7W94e/z8=;
-        b=MxreNu6tJg1RVjkH5cLpmFZU1+3bCa4echCwNQzIYAwGin2+czBygJNbgY/bTUYkfO
-         sssyVbWblb00J25dd4IKnZ+sneofoIz6a2jXClKqdSdPBeVDH0ef0G8og3t22BPL0Dd8
-         tSSxGGUrzm/lNEZDAWBkZT/xsaxMLEuaiF+JZwg5vFS2udWOsHTzWf5OJr7ucNw4Qreq
-         ytwRUppP3MQyn1hSb8pDEfoG5BOIM7aB2QMSopx5NpOD75rxVOhvchBE5qaCAfLunEWI
-         UKJVBb8GYhrjscKC+lZFyzzKi/O4EuvDzwgsuWrvEs9Nd5kldFsu5rOJk9iXBHDpbdQA
-         nAgg==
-X-Gm-Message-State: ABy/qLbgkLIcIfeoeL6nLRJRGd54gJDq+rcuHak2oRwLaPwqcFnpIX2k
-        qpUILk8l17oT3GND7muNLkhqGZj5yGvv4f3/2b0G+A==
-X-Google-Smtp-Source: APBJJlHzXNWEksubwbMG0b87MFUYjvu+33oPvUefO/Epc8vNSR/lvoS7c0KVgVmuLELsuNvgkFBPvRDY6U2aHzPB9S0=
-X-Received: by 2002:a67:ec10:0:b0:443:86be:f326 with SMTP id
- d16-20020a67ec10000000b0044386bef326mr1173207vso.18.1688103063100; Thu, 29
- Jun 2023 22:31:03 -0700 (PDT)
+        bh=rqe4oW6egP6ZYOUhmx0yHzT4spsp8DeajtOy9Dxl0N0=;
+        b=LIl0qLBMoW2LcJe2pPURQ0ju/TOcC/ZDWK6A3oVTnmFWJS7gYfIC1bIOf1gArGxrxM
+         I1boPzYZz19N5jurvtUEsZMRl9AlekP1u5fqDuB95nUo4uhTt3NgshUtNu3KfRvwzo5k
+         rCkn2GPz/k93Of9GfOClAJMS3N5vv2B6eqJ0c3fYbGN42PK38YFAkqAJP8/kkthAga+s
+         U1s3ENOmaKhtVza2UVdZzhHmtC883/wN8Z3t4TZ6kPVzGDnduFiMHU/jII8VFmZ8ixFn
+         P8WkVY85ZdA7eJb99tEhNAjPervEYs0QXGjiLfb3/OEV3+Dv5RZYEzR4W/h2Ythp+374
+         LUTg==
+X-Gm-Message-State: ABy/qLZ+1tELI0GRK3KtASWIqhDTVq1zv15xBVimE0wYU6IodiN/UVGf
+        XMpKUz2j7WLP6GjxWts5bkvmrtp3Sh5+2+FN1ApXPUOEo1c=
+X-Google-Smtp-Source: APBJJlGsOWkMaxD3Bj5EXOi0ZRM8KsFOEr8Lg1uNKczc+6HZPSKDsYy2QxFxSi6Et+JGvnEpCG0zVQlZ9J+DNPB54vc=
+X-Received: by 2002:a25:3107:0:b0:c12:29ac:1d36 with SMTP id
+ x7-20020a253107000000b00c1229ac1d36mr1697430ybx.7.1688103242894; Thu, 29 Jun
+ 2023 22:34:02 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230629184151.888604958@linuxfoundation.org>
-In-Reply-To: <20230629184151.888604958@linuxfoundation.org>
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Fri, 30 Jun 2023 11:00:51 +0530
-Message-ID: <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
-Subject: Re: [PATCH 6.4 00/28] 6.4.1-rc1 review
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     stable@vger.kernel.org, patches@lists.linux.dev,
-        linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org, linux@roeck-us.net, shuah@kernel.org,
-        patches@kernelci.org, lkft-triage@lists.linaro.org, pavel@denx.de,
-        jonathanh@nvidia.com, f.fainelli@gmail.com,
-        sudipm.mukherjee@gmail.com, srw@sladewatkins.net, rwarsow@gmx.de,
-        conor@kernel.org, linux-parisc <linux-parisc@vger.kernel.org>,
-        sparclinux@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
+References: <20230628230935.1196180-1-sohil.mehta@intel.com> <08e273fc-49c5-dd09-1c9e-d85a080767f9@infradead.org>
+In-Reply-To: <08e273fc-49c5-dd09-1c9e-d85a080767f9@infradead.org>
+From:   Namhyung Kim <namhyung@kernel.org>
+Date:   Thu, 29 Jun 2023 22:33:51 -0700
+Message-ID: <CAM9d7ch0GtTUjhtbph5rmCDvRBAKjLCN+25mukn_QPv4bDsjGQ@mail.gmail.com>
+Subject: Re: [PATCH] syscalls: Cleanup references to sys_lookup_dcookie()
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     Sohil Mehta <sohil.mehta@intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        linux-api@vger.kernel.org, linux-arch@vger.kernel.org,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
         Helge Deller <deller@gmx.de>,
-        Jason Wang <wangborong@cdjrlc.com>
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andy Lutomirski <luto@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
+        Sergei Trofimovich <slyich@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Rohan McLure <rmclure@linux.ibm.com>,
+        Andreas Schwab <schwab@linux-m68k.org>,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Brian Gerst <brgerst@gmail.com>, linux-alpha@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-perf-users@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 30 Jun 2023 at 00:18, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
+Hello,
+
+On Wed, Jun 28, 2023 at 4:44 PM Randy Dunlap <rdunlap@infradead.org> wrote:
 >
-> This is the start of the stable review cycle for the 6.4.1 release.
-> There are 28 patches in this series, all will be posted as a response
-> to this one.  If anyone has any issues with these being applied, please
-> let me know.
 >
-> Responses should be made by Sat, 01 Jul 2023 18:41:39 +0000.
-> Anything received after that time might be too late.
 >
-> The whole patch series can be found in one patch at:
->         https://www.kernel.org/pub/linux/kernel/v6.x/stable-review/patch-=
-6.4.1-rc1.gz
-> or in the git tree and branch at:
->         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
--rc.git linux-6.4.y
-> and the diffstat can be found below.
+> On 6/28/23 16:09, Sohil Mehta wrote:
+> > commit 'be65de6b03aa ("fs: Remove dcookies support")' removed the
+> > syscall definition for lookup_dcookie.  However, syscall tables still
+> > point to the old sys_lookup_dcookie() definition. Update syscall tables
+> > of all architectures to directly point to sys_ni_syscall() instead.
+> >
+> > Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
 >
-> thanks,
->
-> greg k-h
+> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
 
-Results from Linaro=E2=80=99s test farm.
+I was about to say that it'd be nice if you split the tools/perf part
+since it can support old kernels.  But if the syscall is only used for
+oprofile then probably perf doesn't need to care about it. :)
 
-Following build regression noticed on Linux stable-rc 6.4 and also noticed =
-on
-Linux mainline master.
+For the perf part,
+Acked-by: Namhyung Kim <namhyung@kernel.org>
 
-Regressions found on Parisc and Sparc build failed:
- - build/gcc-11-defconfig
-
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-
-Parisc Build log:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-arch/parisc/mm/fault.c: In function 'do_page_fault':
-arch/parisc/mm/fault.c:292:22: error: 'prev' undeclared (first use in
-this function)
-  292 |                 if (!prev || !(prev->vm_flags & VM_GROWSUP))
-      |                      ^~~~
-arch/parisc/mm/fault.c:292:22: note: each undeclared identifier is
-reported only once for each function it appears in
-
-
-sparc Build log:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-<stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
-arch/sparc/mm/fault_32.c: In function 'force_user_fault':
-arch/sparc/mm/fault_32.c:315:49: error: 'regs' undeclared (first use
-in this function)
-  315 |         vma =3D lock_mm_and_find_vma(mm, address, regs);
-      |                                                 ^~~~
-arch/sparc/mm/fault_32.c:315:49: note: each undeclared identifier is
-reported only once for each function it appears in
-
-
-Links:
- - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
-4-29-g8e5ddb853f08/testrun/17959811/suite/build/test/gcc-11-defconfig/detai=
-ls/
- - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
-4-29-g8e5ddb853f08/testrun/17959811/suite/build/test/gcc-11-defconfig/log
-
- - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
-4-29-g8e5ddb853f08/testrun/17959890/suite/build/test/gcc-11-defconfig/detai=
-ls/
- - https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-6.4.y/build/v6.=
-4-29-g8e5ddb853f08/testrun/17959890/suite/build/test/gcc-11-defconfig/log
-
-
-Both build failures noticed on mainline and sparc build have been
-fixed yesterday.
- - https://qa-reports.linaro.org/lkft/linux-mainline-master/build/v6.4-8542=
--g82a2a5105589/testrun/17963192/suite/build/test/gcc-11-defconfig/history/
-
-
-Following patch that got fixed
----
-From 0b26eadbf200abf6c97c6d870286c73219cdac65 Mon Sep 17 00:00:00 2001
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 29 Jun 2023 20:41:24 -0700
-Subject: sparc32: fix lock_mm_and_find_vma() conversion
-
-The sparc32 conversion to lock_mm_and_find_vma() in commit a050ba1e7422
-("mm/fault: convert remaining simple cases to lock_mm_and_find_vma()")
-missed the fact that we didn't actually have a 'regs' pointer available
-in the 'force_user_fault()' case.
-
-It's there in the regular page fault path ("do_sparc_fault()"), but not
-the window underflow/overflow paths.
-
-Which is all fine - we can just pass in a NULL pointer.  The register
-state is only used to avoid deadlock with kernel faults, which is not
-the case for any of these register window faults.
-
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Fixes: a050ba1e7422 ("mm/fault: convert remaining simple cases to
-lock_mm_and_find_vma()")
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
---
-Linaro LKFT
-https://lkft.linaro.org
+Thanks,
+Namhyung
