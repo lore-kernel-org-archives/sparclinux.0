@@ -2,62 +2,63 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DF57EB64DA
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:29:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAA68EB64DC
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:33:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232176AbjF3G3l (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Jun 2023 02:29:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60492 "EHLO
+        id S232006AbjF3Gdu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 02:33:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231294AbjF3G3c (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:29:32 -0400
-Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 279793582;
-        Thu, 29 Jun 2023 23:29:31 -0700 (PDT)
-Received: by mail-pg1-x534.google.com with SMTP id 41be03b00d2f7-53fa455cd94so841907a12.2;
-        Thu, 29 Jun 2023 23:29:31 -0700 (PDT)
+        with ESMTP id S231743AbjF3Gdr (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:33:47 -0400
+Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5ACA199E;
+        Thu, 29 Jun 2023 23:33:46 -0700 (PDT)
+Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-668709767b1so1017264b3a.2;
+        Thu, 29 Jun 2023 23:33:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688106570; x=1690698570;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+        d=gmail.com; s=20221208; t=1688106826; x=1690698826;
+        h=content-transfer-encoding:in-reply-to:references:cc:to:from
          :content-language:subject:user-agent:mime-version:date:message-id
          :sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=PAq7BJ48mpqsi8BZO+XAPQUWw6V+9NeCDL8VutkDMfM=;
-        b=EA03BEcOuim1I5UzVjtwh4so5IQAPLEiKsFRdfBecOreCy+Gne7HPLZKDWDvONddta
-         OSw3PUdOUjYYLjf5a3KaNsd12gC/w5zkL8/P4Vk5K4zNAbn7B4+Q+2UTQQbF7rdkol7s
-         gODtN3ocNS+VsACkAV1GZ7c2z32UzPFTbvGa4FEsofAG/xJrGsGIFmX7+DtUsbbvaiUu
-         ZDD2uq9xHqR9YkVV5AtrTMseReovfEzZKriOIkLx504O+tz2vbdzbpo9HRgNA6rKypah
-         O1C6NN19SLejda/Smeh4bdTeCHcgq7xEJLSwkjhUtRn/+t+a7Uv9QzG9n9aEzXHsUALA
-         5DZw==
+        bh=Op+LKHdU8y6N81Sx3p49AtLoiunnk8w8S7c7wKh9jA8=;
+        b=Fud52Gyt0Pw0U36m4wnLQikKHxgKZ5lKjwasT55fGnEfOZsygxtTYqMwQW8Maa/i+R
+         vFg1fiSg083NfMFlJZ3l7LOZ5CTLNL+9Z9TH/uAhW3EJxeGzNO4+Q0OjuMWJ3N1Dzpc9
+         YKHEMCHg4pQE68Ygj4Ef4q7+EtETmZkJHLRRnRLl8XS6k1O6mGI4xoURAXFCtIG3GQYs
+         kcBtPVNWLkeZ9Az7TMWaJnnlM5HNJzXHbJuBiEFOXZK4qnmSa1xkAtDTRuFIjmUbXNd+
+         JYGB++MOGMk64r/K0iy/EoO/NCJ5EML4S5tCBRpyfsUGP921cuDTASzmTmo8bX250oc/
+         xyPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688106570; x=1690698570;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+        d=1e100.net; s=20221208; t=1688106826; x=1690698826;
+        h=content-transfer-encoding:in-reply-to:references:cc:to:from
          :content-language:subject:user-agent:mime-version:date:message-id
          :sender:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=PAq7BJ48mpqsi8BZO+XAPQUWw6V+9NeCDL8VutkDMfM=;
-        b=PU0xtICUm2QNzAPF3TDd92VO2KWfDhXyXYuV09ttsGWYdwwKFkjjLqypFv/2MpQ9aY
-         P4wAomgg2gtaZmvrVNQnj++HIfcy25gBcZOWGF/ZbwdNgryFdgOuxsFgfETBm6m2Ee6X
-         krOqaZ80OMWRB3eauirRlNAKb795GVf57VPCYIGAvEYKcNdUH0IoIv9mNnARfOLrfWiD
-         rb5DBL1RCMLIxLQXUVS7zzRhH9BOGgusyvuntDVxxxXfYu7n/oE6EgqMphT6ZYawhnQd
-         IXnD/qng850fgkGjrGlMf12L0nG6Q921g578Am+Z0twGgpgflLGz+mTEMMYGGBVtuQTG
-         vNOQ==
-X-Gm-Message-State: ABy/qLbJKtpodZXsbCsoFSUPJJraQtlewASdjO88oo9qQ9ghpl2zs/n4
-        BHKZKzlnRhUFom2Is7fczb4=
-X-Google-Smtp-Source: APBJJlFlRG2eTs1rMzH7koWOJWvQ8XKpyOFRhiRbwYW1+lILqmZnrVd4LwIt4xEiaBBuhilPmzfAyA==
-X-Received: by 2002:a17:903:1205:b0:1b3:b998:8007 with SMTP id l5-20020a170903120500b001b3b9988007mr1220475plh.55.1688106570509;
-        Thu, 29 Jun 2023 23:29:30 -0700 (PDT)
+        bh=Op+LKHdU8y6N81Sx3p49AtLoiunnk8w8S7c7wKh9jA8=;
+        b=OhzqoDoR6422Ew4uGhR0qRDHpKE8KuJwtBOX42rxe1C6DNlZ+w2TPq6PoWlvdEb5uS
+         8BpXcGfxEsY7kYzYzl7vF6aNmA+0XmT9ziTSx0cRtEJp4YshDjeaECM6piBegFPZz74w
+         nsM1V2GESB5xA6Uv6z4m9YEHQaOagPpOU7a3XeNlnBYqM8Y7MUfwYc0EnUHHF6bZzsHi
+         qw4ZVGU10n6ETuwbiILiQ16FpXCNON9wF6Ukpn33kNPKfoSqT+fXClCX++9ZZamSlHto
+         5sC7KrYdWselwtQl0ks121x+AGM8kpN/qEXg1rmZIBHbk52sVHliTCO6AvtBwZ9oBw4B
+         +M+g==
+X-Gm-Message-State: AC+VfDxDJjMP3uPpdxBRHF096WFj20KSpNEHdQKLnoDg3GyyBlkzDodY
+        CzsGlYc4dRQa/eMtJ6ff0r4=
+X-Google-Smtp-Source: ACHHUZ6Q7+FNMCvbGV1gPuYq4+R0G2xSzIlfo9GmRlY8BZ3lGwlU/9BxAGLWn8DYRWsnySts1anV2A==
+X-Received: by 2002:a05:6a20:1b2a:b0:122:cb38:637a with SMTP id ch42-20020a056a201b2a00b00122cb38637amr1496991pzb.29.1688106825942;
+        Thu, 29 Jun 2023 23:33:45 -0700 (PDT)
 Received: from ?IPV6:2600:1700:e321:62f0:329c:23ff:fee3:9d7c? ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
-        by smtp.gmail.com with ESMTPSA id p11-20020a1709026b8b00b001b82862d3besm4823934plk.127.2023.06.29.23.29.28
+        by smtp.gmail.com with ESMTPSA id iw13-20020a170903044d00b001b801044466sm7929015plb.114.2023.06.29.23.33.43
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 29 Jun 2023 23:29:29 -0700 (PDT)
+        Thu, 29 Jun 2023 23:33:45 -0700 (PDT)
 Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
-Date:   Thu, 29 Jun 2023 23:29:27 -0700
+Message-ID: <958b921a-41ff-ffb1-2716-d354dd9c4d7c@roeck-us.net>
+Date:   Thu, 29 Jun 2023 23:33:42 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.11.0
 Subject: Re: [PATCH 6.4 00/28] 6.4.1-rc1 review
 Content-Language: en-US
+From:   Guenter Roeck <linux@roeck-us.net>
 To:     Linus Torvalds <torvalds@linux-foundation.org>,
         Naresh Kamboju <naresh.kamboju@linaro.org>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -75,39 +76,43 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 References: <20230629184151.888604958@linuxfoundation.org>
  <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
  <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com>
-From:   Guenter Roeck <linux@roeck-us.net>
-In-Reply-To: <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com>
+ <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
+In-Reply-To: <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 6/29/23 23:16, Linus Torvalds wrote:
-> On Thu, 29 Jun 2023 at 22:31, Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
+On 6/29/23 23:29, Guenter Roeck wrote:
+> On 6/29/23 23:16, Linus Torvalds wrote:
+>> On Thu, 29 Jun 2023 at 22:31, Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
+>>>
+>>> arch/parisc/mm/fault.c: In function 'do_page_fault':
+>>> arch/parisc/mm/fault.c:292:22: error: 'prev' undeclared (first use in this function)
+>>>    292 |                 if (!prev || !(prev->vm_flags & VM_GROWSUP))
 >>
->> arch/parisc/mm/fault.c: In function 'do_page_fault':
->> arch/parisc/mm/fault.c:292:22: error: 'prev' undeclared (first use in this function)
->>    292 |                 if (!prev || !(prev->vm_flags & VM_GROWSUP))
+>> Bah. "prev" should be "prev_vma" here.
+>>
+>> I've pushed out the fix. Greg, apologies. It's
+>>
+>>     ea3f8272876f parisc: fix expand_stack() conversion
+>>
+>> and Naresh already pointed to the similarly silly sparc32 fix.
+>>
+>>               Linus
 > 
-> Bah. "prev" should be "prev_vma" here.
+> Did you see that one (in mainline) ?
 > 
-> I've pushed out the fix. Greg, apologies. It's
+> Building csky:defconfig ... failed
+> --------------
+> Error log:
+> arch/csky/mm/fault.c: In function 'do_page_fault':
+> arch/csky/mm/fault.c:240:40: error: 'address' undeclared (first use in this function); did you mean 'addr'?
+>    240 |         vma = lock_mm_and_find_vma(mm, address, regs);
 > 
->     ea3f8272876f parisc: fix expand_stack() conversion
-> 
-> and Naresh already pointed to the similarly silly sparc32 fix.
-> 
->               Linus
 
-Did you see that one (in mainline) ?
-
-Building csky:defconfig ... failed
---------------
-Error log:
-arch/csky/mm/fault.c: In function 'do_page_fault':
-arch/csky/mm/fault.c:240:40: error: 'address' undeclared (first use in this function); did you mean 'addr'?
-   240 |         vma = lock_mm_and_find_vma(mm, address, regs);
+This is also in {6.1,6.3,6.4}-rc unless I am missing something.
 
 Guenter
 
