@@ -2,66 +2,67 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAA68EB64DC
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:33:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D28BFEB64DA
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:34:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232006AbjF3Gdu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Jun 2023 02:33:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33456 "EHLO
+        id S232432AbjF3GeG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 02:34:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231743AbjF3Gdr (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:33:47 -0400
-Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5ACA199E;
-        Thu, 29 Jun 2023 23:33:46 -0700 (PDT)
-Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-668709767b1so1017264b3a.2;
-        Thu, 29 Jun 2023 23:33:46 -0700 (PDT)
+        with ESMTP id S231743AbjF3GeF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:34:05 -0400
+Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6BC530C4
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:04 -0700 (PDT)
+Received: by mail-ed1-x52d.google.com with SMTP id 4fb4d7f45d1cf-51dec0b6fecso676643a12.1
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688106826; x=1690698826;
-        h=content-transfer-encoding:in-reply-to:references:cc:to:from
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=Op+LKHdU8y6N81Sx3p49AtLoiunnk8w8S7c7wKh9jA8=;
-        b=Fud52Gyt0Pw0U36m4wnLQikKHxgKZ5lKjwasT55fGnEfOZsygxtTYqMwQW8Maa/i+R
-         vFg1fiSg083NfMFlJZ3l7LOZ5CTLNL+9Z9TH/uAhW3EJxeGzNO4+Q0OjuMWJ3N1Dzpc9
-         YKHEMCHg4pQE68Ygj4Ef4q7+EtETmZkJHLRRnRLl8XS6k1O6mGI4xoURAXFCtIG3GQYs
-         kcBtPVNWLkeZ9Az7TMWaJnnlM5HNJzXHbJuBiEFOXZK4qnmSa1xkAtDTRuFIjmUbXNd+
-         JYGB++MOGMk64r/K0iy/EoO/NCJ5EML4S5tCBRpyfsUGP921cuDTASzmTmo8bX250oc/
-         xyPQ==
+        d=linux-foundation.org; s=google; t=1688106843; x=1690698843;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=TpIIQ08qfNEuob2XBLG/PQlcqkOfTkfohi2v2vX8ccE=;
+        b=M2TBpBxIoHxKCHngKt32vUluBC4EJdqoYOVETJ7o+8oH09CY6BShREL8qj56C6356X
+         5q3XGeGw9IJacNLJzP0IKB2VtPNs0Bg8sJThD1TefnyJEjI0iWLHlryGHkNUmFHM1S+w
+         BtATWIITfAqQhH/6AQDQTS9JcuwoFVpAEkFnk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688106826; x=1690698826;
-        h=content-transfer-encoding:in-reply-to:references:cc:to:from
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :sender:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20221208; t=1688106843; x=1690698843;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Op+LKHdU8y6N81Sx3p49AtLoiunnk8w8S7c7wKh9jA8=;
-        b=OhzqoDoR6422Ew4uGhR0qRDHpKE8KuJwtBOX42rxe1C6DNlZ+w2TPq6PoWlvdEb5uS
-         8BpXcGfxEsY7kYzYzl7vF6aNmA+0XmT9ziTSx0cRtEJp4YshDjeaECM6piBegFPZz74w
-         nsM1V2GESB5xA6Uv6z4m9YEHQaOagPpOU7a3XeNlnBYqM8Y7MUfwYc0EnUHHF6bZzsHi
-         qw4ZVGU10n6ETuwbiILiQ16FpXCNON9wF6Ukpn33kNPKfoSqT+fXClCX++9ZZamSlHto
-         5sC7KrYdWselwtQl0ks121x+AGM8kpN/qEXg1rmZIBHbk52sVHliTCO6AvtBwZ9oBw4B
-         +M+g==
-X-Gm-Message-State: AC+VfDxDJjMP3uPpdxBRHF096WFj20KSpNEHdQKLnoDg3GyyBlkzDodY
-        CzsGlYc4dRQa/eMtJ6ff0r4=
-X-Google-Smtp-Source: ACHHUZ6Q7+FNMCvbGV1gPuYq4+R0G2xSzIlfo9GmRlY8BZ3lGwlU/9BxAGLWn8DYRWsnySts1anV2A==
-X-Received: by 2002:a05:6a20:1b2a:b0:122:cb38:637a with SMTP id ch42-20020a056a201b2a00b00122cb38637amr1496991pzb.29.1688106825942;
-        Thu, 29 Jun 2023 23:33:45 -0700 (PDT)
-Received: from ?IPV6:2600:1700:e321:62f0:329c:23ff:fee3:9d7c? ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
-        by smtp.gmail.com with ESMTPSA id iw13-20020a170903044d00b001b801044466sm7929015plb.114.2023.06.29.23.33.43
+        bh=TpIIQ08qfNEuob2XBLG/PQlcqkOfTkfohi2v2vX8ccE=;
+        b=F6A+8LYUcz+p0M1oVzjPKvqiZscfXzOFy6lrBxb/42Wxnc6hO+lc3DwI5RgNO+uGrZ
+         ngJNO7pjrue+wCPK5GvVP34+gjRq4lWFDGuz5wwwqfr7BQNKXsUUnxp78n/r9zKE2G5V
+         yfD9hq/TbNQz3FGGmgXT2pFICp+aK9B3Stiwmefg1ddiiUgIoa1WcDR3IfbqQmDAy0qB
+         FBMwARmhk11gX/hagBTwiWaZ3ZmCG1MbAHt1KBzKNnEgGsMciBrU2/CoYzSpPS3NT4lc
+         A+Sj8l4wFqRAeWH/tqJiLlPaBsvH0ROZo6ihxm+qJKWy8jeDiVnXXQ7769wnDXCfUeKV
+         5bMQ==
+X-Gm-Message-State: ABy/qLbBMq0I41wmUEnnOwsOhd7awEhMot3cK9FNTEpg/CfPn6n8Rzdh
+        DpGrgAzaLP1xAH4cxhDyQcftZdEmTUoCL/KtCHlSe9LF
+X-Google-Smtp-Source: APBJJlGR37IiJKVVFEhPd972TxxPTBXwg+rC1SIy4jRYY1Zp5DauxtgxAbtUbhvhx1hTlu+pEzLPzg==
+X-Received: by 2002:a50:ec8e:0:b0:51d:ad30:5ed7 with SMTP id e14-20020a50ec8e000000b0051dad305ed7mr884786edr.35.1688106843150;
+        Thu, 29 Jun 2023 23:34:03 -0700 (PDT)
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com. [209.85.208.45])
+        by smtp.gmail.com with ESMTPSA id p18-20020aa7d312000000b0051a2d2f82fdsm6586393edq.6.2023.06.29.23.34.02
+        for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 29 Jun 2023 23:33:45 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <958b921a-41ff-ffb1-2716-d354dd9c4d7c@roeck-us.net>
-Date:   Thu, 29 Jun 2023 23:33:42 -0700
+        Thu, 29 Jun 2023 23:34:03 -0700 (PDT)
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-51d91e9b533so1611116a12.3
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:02 -0700 (PDT)
+X-Received: by 2002:aa7:d551:0:b0:51d:af77:d201 with SMTP id
+ u17-20020aa7d551000000b0051daf77d201mr909491edr.18.1688106842535; Thu, 29 Jun
+ 2023 23:34:02 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
+References: <20230629184151.888604958@linuxfoundation.org> <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
+ <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com> <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
+In-Reply-To: <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 29 Jun 2023 23:33:45 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
+Message-ID: <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
 Subject: Re: [PATCH 6.4 00/28] 6.4.1-rc1 review
-Content-Language: en-US
-From:   Guenter Roeck <linux@roeck-us.net>
-To:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+To:     Guenter Roeck <linux@roeck-us.net>
+Cc:     Naresh Kamboju <naresh.kamboju@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         stable@vger.kernel.org, patches@lists.linux.dev,
         linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
         shuah@kernel.org, patches@kernelci.org,
@@ -73,46 +74,27 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Stephen Rothwell <sfr@canb.auug.org.au>,
         Helge Deller <deller@gmx.de>,
         Jason Wang <wangborong@cdjrlc.com>
-References: <20230629184151.888604958@linuxfoundation.org>
- <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
- <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com>
- <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
-In-Reply-To: <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 6/29/23 23:29, Guenter Roeck wrote:
-> On 6/29/23 23:16, Linus Torvalds wrote:
->> On Thu, 29 Jun 2023 at 22:31, Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
->>>
->>> arch/parisc/mm/fault.c: In function 'do_page_fault':
->>> arch/parisc/mm/fault.c:292:22: error: 'prev' undeclared (first use in this function)
->>>    292 |                 if (!prev || !(prev->vm_flags & VM_GROWSUP))
->>
->> Bah. "prev" should be "prev_vma" here.
->>
->> I've pushed out the fix. Greg, apologies. It's
->>
->>     ea3f8272876f parisc: fix expand_stack() conversion
->>
->> and Naresh already pointed to the similarly silly sparc32 fix.
->>
->>               Linus
-> 
+On Thu, 29 Jun 2023 at 23:29, Guenter Roeck <linux@roeck-us.net> wrote:
+>
 > Did you see that one (in mainline) ?
-> 
+>
 > Building csky:defconfig ... failed
-> --------------
-> Error log:
-> arch/csky/mm/fault.c: In function 'do_page_fault':
-> arch/csky/mm/fault.c:240:40: error: 'address' undeclared (first use in this function); did you mean 'addr'?
->    240 |         vma = lock_mm_and_find_vma(mm, address, regs);
-> 
 
-This is also in {6.1,6.3,6.4}-rc unless I am missing something.
+Nope. Thanks. Obvious fix: 'address' is called 'addr' here.
 
-Guenter
+I knew we had all these tiny little mazes that looked the same but
+were just _subtly_ different, but I still ended up doing too much
+cut-and-paste.
 
+And I only ended up cross-compiling the fairly small set that I had
+existing cross-build environments for. Which was less than half our
+~24 different architectures.
+
+Oh well.  We'll get them all. Eventually. Let me go fix up that csky case.
+
+              Linus
