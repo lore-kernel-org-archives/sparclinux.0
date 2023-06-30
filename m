@@ -2,63 +2,64 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D28BFEB64DA
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D69EB64DA
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Jun 2023 06:47:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232432AbjF3GeG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Jun 2023 02:34:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33526 "EHLO
+        id S231831AbjF3Gr2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Jun 2023 02:47:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231743AbjF3GeF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:34:05 -0400
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6BC530C4
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:04 -0700 (PDT)
-Received: by mail-ed1-x52d.google.com with SMTP id 4fb4d7f45d1cf-51dec0b6fecso676643a12.1
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:04 -0700 (PDT)
+        with ESMTP id S229578AbjF3Gr1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Jun 2023 02:47:27 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B72635A0
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:47:24 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id 4fb4d7f45d1cf-51d946d2634so1633915a12.3
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:47:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1688106843; x=1690698843;
+        d=linux-foundation.org; s=google; t=1688107643; x=1690699643;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=TpIIQ08qfNEuob2XBLG/PQlcqkOfTkfohi2v2vX8ccE=;
-        b=M2TBpBxIoHxKCHngKt32vUluBC4EJdqoYOVETJ7o+8oH09CY6BShREL8qj56C6356X
-         5q3XGeGw9IJacNLJzP0IKB2VtPNs0Bg8sJThD1TefnyJEjI0iWLHlryGHkNUmFHM1S+w
-         BtATWIITfAqQhH/6AQDQTS9JcuwoFVpAEkFnk=
+        bh=zlchbRYXZ2GmgikakdfRkYq9RUe43aExK7E5sqwL0Bw=;
+        b=OVM0ZV3RlyGGrzqXh/mYvoDZ5ojO6xDLhkM+h9nlpBjAJdWSXNvxPWWSHpG4c/kb4x
+         Lm1vrIizQ0GK71+cqFpC4vDwoa0Q/Nbv1tAv2wZzBwsBzkljWsffXJsWoNmrQLselfDp
+         jGVWIsBfkJ7mQKMorzGKto7GvzyKZlgUROgrA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688106843; x=1690698843;
+        d=1e100.net; s=20221208; t=1688107643; x=1690699643;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=TpIIQ08qfNEuob2XBLG/PQlcqkOfTkfohi2v2vX8ccE=;
-        b=F6A+8LYUcz+p0M1oVzjPKvqiZscfXzOFy6lrBxb/42Wxnc6hO+lc3DwI5RgNO+uGrZ
-         ngJNO7pjrue+wCPK5GvVP34+gjRq4lWFDGuz5wwwqfr7BQNKXsUUnxp78n/r9zKE2G5V
-         yfD9hq/TbNQz3FGGmgXT2pFICp+aK9B3Stiwmefg1ddiiUgIoa1WcDR3IfbqQmDAy0qB
-         FBMwARmhk11gX/hagBTwiWaZ3ZmCG1MbAHt1KBzKNnEgGsMciBrU2/CoYzSpPS3NT4lc
-         A+Sj8l4wFqRAeWH/tqJiLlPaBsvH0ROZo6ihxm+qJKWy8jeDiVnXXQ7769wnDXCfUeKV
-         5bMQ==
-X-Gm-Message-State: ABy/qLbBMq0I41wmUEnnOwsOhd7awEhMot3cK9FNTEpg/CfPn6n8Rzdh
-        DpGrgAzaLP1xAH4cxhDyQcftZdEmTUoCL/KtCHlSe9LF
-X-Google-Smtp-Source: APBJJlGR37IiJKVVFEhPd972TxxPTBXwg+rC1SIy4jRYY1Zp5DauxtgxAbtUbhvhx1hTlu+pEzLPzg==
-X-Received: by 2002:a50:ec8e:0:b0:51d:ad30:5ed7 with SMTP id e14-20020a50ec8e000000b0051dad305ed7mr884786edr.35.1688106843150;
-        Thu, 29 Jun 2023 23:34:03 -0700 (PDT)
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com. [209.85.208.45])
-        by smtp.gmail.com with ESMTPSA id p18-20020aa7d312000000b0051a2d2f82fdsm6586393edq.6.2023.06.29.23.34.02
+        bh=zlchbRYXZ2GmgikakdfRkYq9RUe43aExK7E5sqwL0Bw=;
+        b=daonVIH5EGQTTa31HMkAe9J0UGygnky/IeU7BiwPy1VOgdDNADBjZic40vXHu2EhUQ
+         Q2v31lKrtWjbsBBaItAD89BHqlcRJfUgbG1Mkrg8i/98qKhayz2MqlV7Rtn9al4lSnZQ
+         5UouZp4pP8amobTq/djdcaUH4U0TNiuorSHFC2muZ5/XIUlI95C3xu8foPUUntzSJ1h8
+         Z6MebV8bjiMMp7j+PeNgSPhzcc967m+RlqU7LYzeb7Ee/8R18M5tatCRU3tPrjzPRVsG
+         PXdeUSTQ73QriUuEF9Ma1mhP11ENE4mJuWZbdbZrKH85BpWU3oGrN6LUWs/wmDvMJoh0
+         er4w==
+X-Gm-Message-State: ABy/qLZCn+jYE87vPYWuSFSqrbj74mVoOUpEYOVsYj//gOzPBUMBJAOb
+        K71UYQWix7DttBRXKzRRP32c8shmZkAjLBZubBvml53Z
+X-Google-Smtp-Source: APBJJlFntxsv2b6nNqSfR9GfjST18FWgR+8336UAPxue5BmZsz2RcRSINLyLJX74NP8orOoIvgeoEg==
+X-Received: by 2002:aa7:da0d:0:b0:514:a110:6bed with SMTP id r13-20020aa7da0d000000b00514a1106bedmr973128eds.27.1688107642936;
+        Thu, 29 Jun 2023 23:47:22 -0700 (PDT)
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com. [209.85.208.48])
+        by smtp.gmail.com with ESMTPSA id d17-20020aa7ce11000000b0051a409e752asm6412019edv.17.2023.06.29.23.47.21
         for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 29 Jun 2023 23:34:03 -0700 (PDT)
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-51d91e9b533so1611116a12.3
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:34:02 -0700 (PDT)
-X-Received: by 2002:aa7:d551:0:b0:51d:af77:d201 with SMTP id
- u17-20020aa7d551000000b0051daf77d201mr909491edr.18.1688106842535; Thu, 29 Jun
- 2023 23:34:02 -0700 (PDT)
+        Thu, 29 Jun 2023 23:47:22 -0700 (PDT)
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-51d80d81d6eso1637063a12.1
+        for <sparclinux@vger.kernel.org>; Thu, 29 Jun 2023 23:47:21 -0700 (PDT)
+X-Received: by 2002:a05:6402:217:b0:51d:7ed9:c65 with SMTP id
+ t23-20020a056402021700b0051d7ed90c65mr915784edv.21.1688107641560; Thu, 29 Jun
+ 2023 23:47:21 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230629184151.888604958@linuxfoundation.org> <CA+G9fYsM2s3q1k=+wHszvNbkKbHGe1pskkffWvaGXjYrp6qR=g@mail.gmail.com>
- <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com> <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
-In-Reply-To: <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net>
+ <CAHk-=whaO3RZmKj8NDjs4f6JEwuwQWWesOfFu-URzOqTkyPoxw@mail.gmail.com>
+ <fbe57907-b03f-ac8c-f3f4-4d6959bbc59c@roeck-us.net> <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
+In-Reply-To: <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu, 29 Jun 2023 23:33:45 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
-Message-ID: <CAHk-=wgE9iTd_g20RU+FYa0NPhGSdiUDPW+moEqdHR4du1jmVA@mail.gmail.com>
+Date:   Thu, 29 Jun 2023 23:47:04 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiN5H-2dh2zCo_jXE7_ekrxSHvQcMw4xfUKjuQs2=BN4w@mail.gmail.com>
+Message-ID: <CAHk-=wiN5H-2dh2zCo_jXE7_ekrxSHvQcMw4xfUKjuQs2=BN4w@mail.gmail.com>
 Subject: Re: [PATCH 6.4 00/28] 6.4.1-rc1 review
 To:     Guenter Roeck <linux@roeck-us.net>
 Cc:     Naresh Kamboju <naresh.kamboju@linaro.org>,
@@ -79,22 +80,20 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, 29 Jun 2023 at 23:29, Guenter Roeck <linux@roeck-us.net> wrote:
+On Thu, 29 Jun 2023 at 23:33, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Did you see that one (in mainline) ?
->
-> Building csky:defconfig ... failed
+> Oh well.  We'll get them all. Eventually. Let me go fix up that csky case.
 
-Nope. Thanks. Obvious fix: 'address' is called 'addr' here.
+It's commit e55e5df193d2 ("csky: fix up lock_mm_and_find_vma() conversion").
 
-I knew we had all these tiny little mazes that looked the same but
-were just _subtly_ different, but I still ended up doing too much
-cut-and-paste.
+Let's hope all the problems are these kinds of silly - but obvious -
+naming differences between different architectures.
 
-And I only ended up cross-compiling the fairly small set that I had
-existing cross-build environments for. Which was less than half our
-~24 different architectures.
+Because as long as they cause build errors, they may be embarrassing,
+but easy to find and notice.
 
-Oh well.  We'll get them all. Eventually. Let me go fix up that csky case.
+I may not have cared enough about some of these architectures, and it
+shows. sparc32. parisc. csky...
 
-              Linus
+             Linus
