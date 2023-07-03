@@ -2,188 +2,261 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47912C001B3
-	for <sparclinux@archiver.kernel.org>; Mon,  3 Jul 2023 07:55:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AD43EB64DD
+	for <sparclinux@archiver.kernel.org>; Mon,  3 Jul 2023 11:01:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230237AbjGCHzE convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 3 Jul 2023 03:55:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43980 "EHLO
+        id S229656AbjGCLBm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 Jul 2023 07:01:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230205AbjGCHzB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Jul 2023 03:55:01 -0400
-Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5269BA;
-        Mon,  3 Jul 2023 00:54:59 -0700 (PDT)
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-579dfae6855so22582167b3.1;
-        Mon, 03 Jul 2023 00:54:59 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688370899; x=1690962899;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ap+98X7lUU4Mb/R2w4KrLGdPkASGfI2gOWe+xareG/w=;
-        b=gV20QlEGzskXm07NAqjW665ZOYqxSGlkKqWzqoJMbhnIEuBkLxl4oSnIw+4dMp/6Qu
-         rTBskUaVp+NpWb1A2bQDMcw75It6Eze/JvCCstzZHZja06hmfb50w1hES/NOjA7v7dan
-         j7Duf2YvIsW6Pk8YvaKXdM2KKPxORSPfJuOEeQOagyL0bAenCS2mejFCokjJP/pzSc7c
-         Zq+1+yvVojwqbfa83kSVQXXZDAQpRnjQivEcltHnSlHuuWE/kWFqTdswimQT//evGouf
-         OvnNrUQYo//zINW7PYrkA1/fRkmHGfnYqN6PqtMmTIRP0DHWMxMC6lcI9iM1F5rOVIo8
-         yGZw==
-X-Gm-Message-State: ABy/qLZ8JxjsjLPy8UYTLdPS/PjqNX0RSExMIU5yyOlrz4WgP70p8TFd
-        LM2iWpojrFiGfOw7jAWMPsQ8GBURmdfLDg==
-X-Google-Smtp-Source: APBJJlHb87eLaE470shsNSC1acSVhnfK0tWhT1v3ISD1tEI3oo1td+vo0uIBY60+HpW5q2cS4a+/aQ==
-X-Received: by 2002:a0d:f005:0:b0:573:4d8b:471f with SMTP id z5-20020a0df005000000b005734d8b471fmr8421371ywe.26.1688370898728;
-        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
-Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com. [209.85.219.177])
-        by smtp.gmail.com with ESMTPSA id l189-20020a0dfbc6000000b0055a931afe48sm4942907ywf.8.2023.07.03.00.54.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
-Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-c4d1b491095so1850181276.0;
-        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
-X-Received: by 2002:a25:a287:0:b0:c1a:2928:74ab with SMTP id
- c7-20020a25a287000000b00c1a292874abmr8554017ybi.31.1688370898299; Mon, 03 Jul
- 2023 00:54:58 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-21-arnd@kernel.org>
-In-Reply-To: <20230327121317.4081816-21-arnd@kernel.org>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 3 Jul 2023 09:54:46 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdW5bXeE=nr7+hHxL+xhm2q05udkJpMBM-BG7g9S7Nt7Zg@mail.gmail.com>
-Message-ID: <CAMuHMdW5bXeE=nr7+hHxL+xhm2q05udkJpMBM-BG7g9S7Nt7Zg@mail.gmail.com>
-Subject: Re: [PATCH 20/21] ARM: dma-mapping: split out arch_dma_mark_clean() helper
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Neil Armstrong <neil.armstrong@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Brian Cain <bcain@quicinc.com>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Stafford Horne <shorne@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
+        with ESMTP id S229484AbjGCLBk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Jul 2023 07:01:40 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97244C4;
+        Mon,  3 Jul 2023 04:01:39 -0700 (PDT)
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 363AkoTC001299;
+        Mon, 3 Jul 2023 11:00:25 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=ac8Q9yiUAFBzu8NvY5GoR+9T11nvifaSHGih/5vR0aU=;
+ b=dtEoFKKJC4XIzvEIbBsFYcuLdbjB8uHqQnycboN1SAcnyWW6+BLaNRG+XZ2F7Dqtb4Ac
+ T7m02H29BKN4vTOTeyTwrWgdveVKjR4kP/N+mkwZpRAks9yAHSymv9MBs6UA+bEdPh5f
+ zv/V1kGivMJRJYQ5n36Wdd1cMMS8vVJYi75vawOGwsoZkRiDhIUZ8BHPx03NU0rGxBNL
+ KVCjXaBGLH9M9qKCACNNiC6P69uC1QwEF+b3KHTIcAkkzmLUKiAcDcArwqardTigLDHO
+ xzXgSoD5c12NqiBSxYT6D+WRilWroGHWw7gxEj905B295D6z0+ONnkR/MzUkS+AOkxXm Jw== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rkvvnr9f3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 03 Jul 2023 11:00:25 +0000
+Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 363AwdEr005999;
+        Mon, 3 Jul 2023 11:00:24 GMT
+Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rkvvnr9cy-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 03 Jul 2023 11:00:24 +0000
+Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
+        by ppma01fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3634QOuq000970;
+        Mon, 3 Jul 2023 11:00:21 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+        by ppma01fra.de.ibm.com (PPS) with ESMTPS id 3rjbs4rxgd-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 03 Jul 2023 11:00:20 +0000
+Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
+        by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 363B0Gal10945172
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 3 Jul 2023 11:00:16 GMT
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B185720043;
+        Mon,  3 Jul 2023 11:00:16 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 90E3520040;
+        Mon,  3 Jul 2023 11:00:15 +0000 (GMT)
+Received: from p-imbrenda (unknown [9.152.224.66])
+        by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Mon,  3 Jul 2023 11:00:15 +0000 (GMT)
+Date:   Mon, 3 Jul 2023 13:00:13 +0200
+From:   Claudio Imbrenda <imbrenda@linux.ibm.com>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-oxnas@groups.io,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org,
-        Emil Renner Berthing <emil.renner.berthing@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables
+ sharing page
+Message-ID: <20230703130013.559217c9@p-imbrenda>
+In-Reply-To: <7f6d399b-c47-1faa-f7f6-9932b9811f8c@google.com>
+References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
+        <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
+        <20230630153852.31163592@p-imbrenda>
+        <062b19-4cf1-261-a9bf-9cefd32382fc@google.com>
+        <20230630182556.7727ef50@p-imbrenda>
+        <7f6d399b-c47-1faa-f7f6-9932b9811f8c@google.com>
+Organization: IBM
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: FBp9P7VH_rxoCQb-Z7tiY-Zije8r63Zy
+X-Proofpoint-ORIG-GUID: nbVmQd8tIibtO-0ycn7DYgNX7-R6BFd8
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-07-03_08,2023-06-30_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 malwarescore=0
+ bulkscore=0 phishscore=0 spamscore=0 mlxscore=0 suspectscore=0
+ impostorscore=0 priorityscore=1501 lowpriorityscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2305260000 definitions=main-2307030097
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Arnd,
+On Fri, 30 Jun 2023 12:22:43 -0700 (PDT)
+Hugh Dickins <hughd@google.com> wrote:
 
-On Mon, Mar 27, 2023 at 2:16 PM Arnd Bergmann <arnd@kernel.org> wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> The arm version of the arch_sync_dma_for_cpu() function annotates pages as
-> PG_dcache_clean after a DMA, but no other architecture does this here. On
-> ia64, the same thing is done in arch_sync_dma_for_cpu(), so it makes sense
-> to use the same hook in order to have identical arch_sync_dma_for_cpu()
-> semantics as all other architectures.
->
-> Splitting this out has multiple effects:
->
->  - for dma-direct, this now gets called after arch_sync_dma_for_cpu()
->    for DMA_FROM_DEVICE mappings, but not for DMA_BIDIRECTIONAL. While
->    it would not be harmful to keep doing it for bidirectional mappings,
->    those are apparently not used in any callers that care about the flag.
->
->  - Since arm has its own dma-iommu abstraction, this now also needs to
->    call the same function, so the calls are added there to mirror the
->    dma-direct version.
->
->  - Like dma-direct, the dma-iommu version now marks the dcache clean
->    for both coherent and noncoherent devices after a DMA, but it only
->    does this for DMA_FROM_DEVICE, not DMA_BIDIRECTIONAL.
->
-> [ HELP NEEDED: can anyone confirm that it is a correct assumption
->   on arm that a cache-coherent device writing to a page always results
->   in it being in a PG_dcache_clean state like on ia64, or can a device
->   write directly into the dcache?]
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+[...]
 
-Thanks for your patch, which is now commit 322dbe898f82fd8a
-("ARM: dma-mapping: split out arch_dma_mark_clean() helper") in
-esmil/jh7100-dmapool.
+> That's something I would have expected to be handled already via
+> mmu_notifiers, rather than buried inside the page table freeing.
+> 
+> If s390 is the only architecture to go that way, and could instead do
+> it via mmu_notifiers, then I think that will be more easily supported
+> in the long term.
 
-If CONFIG_ARM_DMA_USE_IOMMU=y, the build fails.
+I am very well aware of that, and in fact I've been working on
+exactly that for some time already. But it's a very complex minefield
+and therefore I'm proceeding *very* carefully. It will take quite some
+time before anything comes out.
 
-> --- a/arch/arm/mm/dma-mapping.c
-> +++ b/arch/arm/mm/dma-mapping.c
+> 
+> But I'm writing from a position of very great ignorance: advising
+> KVM on s390 is many dimensions away from what I'm capable of.
 
-> @@ -1294,6 +1298,17 @@ static int arm_iommu_map_sg(struct device *dev, struct scatterlist *sg,
->         return -EINVAL;
->  }
->
-> +static void arm_iommu_sync_dma_for_cpu(phys_addr_t phys, size_t len,
-> +                                      enum dma_data_direction dir,
-> +                                      bool dma_coherent)
-> +{
-> +       if (!dma_coherent)
-> +               arch_sync_dma_for_cpu(phys, s->length, dir);
+fair enough, but in this case it doesn't mean that you are not right :)
 
-s/s->length/len/
+> 
+> > 
+> > the point here is: we need that only for page_table_free_rcu(); all
+> > other users of page_table_free() cannot act on guest page tables  
+> 
+> I might be wrong, but I think that most users of page_table_free()
+> are merely freeing a page table which had to be allocated up front,
+> but was then found unnecessary (maybe a racing task already inserted
+> one): page tables which were never exposed to actual use.
 
-> +
-> +       if (dir == DMA_FROM_DEVICE)
-> +               arch_dma_mark_clean(phys, s->length);
+that was my impression as well
 
-Likewise.
+> > (because we don't allow THP for KVM guests). and that is why
+> > page_table_free() does not do gmap_unlink() currently.  
+> 
+> But THP collapse does (or did before this series) use it to free a
+> page table which had been exposed to use.  The fact that s390 does
 
-> +}
-> +
->  /**
->   * arm_iommu_unmap_sg - unmap a set of SG buffers mapped by dma_map_sg
->   * @dev: valid struct device pointer
+that is also my understanding
 
-> @@ -1425,9 +1438,9 @@ static void arm_iommu_unmap_page(struct device *dev, dma_addr_t handle,
->         if (!iova)
->                 return;
->
-> -       if (!dev->dma_coherent && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
-> +       if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+> not allow THP for KVM guests makes page_table_free(), and this new
+> pte_free_defer(), safe for that; but it feels dangerously coincidental.
 
-Missing opening curly brace.
+not really; my guess is that we _intentionally_ did not do anything
+there, because we knew we did not need it, knowing well that
+we would need it once we would want to support THP for guests.
+so not a coincidence, but a conscious decision based, I guess, on
+touching as little code as needed.
 
->                 phys = iommu_iova_to_phys(mapping->domain, handle);
-> -               arch_sync_dma_for_cpu(phys, size, dir);
-> +               arm_iommu_sync_dma_for_cpu(phys, size, dir, dev->dma_coherent);
->         }
->
->         iommu_unmap(mapping->domain, iova, len);
+> 
+> It's easy to imagine a future change being made, which would stumble
+> over this issue.  I have imagined that pte_free_defer() will be useful
+> in future, in the freeing of empty page tables: but s390 may pose a
+> problem there - though perhaps no more of a problem than additionally
+> needing to pass a virtual address down the stack.
 
-With the above fixed, it builds and boots fine (on R-Car M2-W).
+yeah it can always be fixed later if we need to
 
-Gr{oetje,eeting}s,
+> 
+> >   
+> > >   
+> > > > 
+> > > > or will it be used instead of page_table_free?    
+> > > 
+> > > Not always; but yes, this case of removing a page table used
+> > > page_table_free() before; but now, with the lighter locking, needs
+> > > to keep the page table valid until the RCU grace period expires.  
+> > 
+> > so if I understand correctly your code will, sometimes, under some
+> > circumstances, replace what page_table_free() does, but it will never
+> > replace page_table_free_rcu()?
+> > 
+> > because in that case there would be no issues   
+> 
+> Yes, thanks for confirming: we have no issue here at present, but may
+> do if use of pte_free_defer() is extended to other contexts in future.
+> 
+> Would it be appropriate to add a WARN_ON_ONCE around that
+> > > > > +	if (mm_alloc_pgste(mm)) {  
+> in pte_free_defer()?
 
-                        Geert
+that's actually not a bad idea. should never happen, but... that's the
+whole point of a WARN_ON after all
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> I ask that somewhat rhetorically: that block disappears in the later
+> version I was working on last night (and will return to shortly), in
+> which pte_free_defer() just sets a bit and calls page_table_free().
+> 
+> But I'd like to understand the possibilities better: does mm_alloc_pgste()
+> correspond 1:1 to KVM guest on s390, or does it cover several different
+> possibilities of which KVM guest is one, or am I just confused to be
+> thinking there's any relationship?
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+this is... historically complicated (because of course it is)
+
+in theory any process can allocate PGSTEs by having the right bits in
+the ELF header (that's how QEMU does it currently). And QEMU will have
+PGSTEs allocated even if it does not actually start any guests.
+
+Then we have the vm.allocate_pgste sysctl knob; once enabled, it will
+cause all processes to have PGSTEs allocated. This is how we handled
+PGSTEs before we switched to ELF header bits.
+
+So in summary: in __practice__ yes, only QEMU will have PGSTEs. But in
+theory anything is possible and allowed.
+
+> 
+> Thanks,
+> Hugh
+> 
+> >   
+> > >   
+> > > > 
+> > > > this is actually quite important for KVM on s390    
+> > > 
+> > > None of us are wanting to break KVM on s390: your guidance appreciated!
+> > > 
+> > > Thanks,
+> > > Hugh  
+
