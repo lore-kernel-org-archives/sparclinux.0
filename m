@@ -2,326 +2,188 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3339CEB64DA
-	for <sparclinux@archiver.kernel.org>; Sun,  2 Jul 2023 04:32:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47912C001B3
+	for <sparclinux@archiver.kernel.org>; Mon,  3 Jul 2023 07:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbjGBEc5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 2 Jul 2023 00:32:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53964 "EHLO
+        id S230237AbjGCHzE convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 Jul 2023 03:55:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbjGBEc4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 2 Jul 2023 00:32:56 -0400
-Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com [IPv6:2607:f8b0:4864:20::b31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EED710C1
-        for <sparclinux@vger.kernel.org>; Sat,  1 Jul 2023 21:32:53 -0700 (PDT)
-Received: by mail-yb1-xb31.google.com with SMTP id 3f1490d57ef6-c4dd86f5d78so722282276.0
-        for <sparclinux@vger.kernel.org>; Sat, 01 Jul 2023 21:32:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1688272372; x=1690864372;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=2Xe3TLuq66vmKQRW9SGz/9upotsvCI1LmaDBtWx+p5E=;
-        b=GpDC38QTgtqfZzzYwnrcJmcSIvgJdk1ZwaEv8ci0n7S2I5a30ukFYJ1DS3mr5g8XTd
-         tH1u77DcjxTGOEHjCPqsotBXC+52xqSZqGWweLtM7/QldOcKnmK5CVuXHTQDfBIno2jq
-         HEZ80ORpLd/MB/9Bqp0atjFwKSrAuhghI1ntAPjccvWLUe7LaebWw3qprpYJa1bIFqcG
-         rzWJmXe1vItvGwo7KP3dNgVp4TRsCzrBz1I45xSfI7WW87iMYzFcTzKZHzn2dX0d4+D8
-         I6ohe5c0VClf82eiVCoxsyfjyWaHBhEIe0afAlr8re4wd/cO8zQDn13fzQ07Mpr0QyA/
-         0Ucw==
+        with ESMTP id S230205AbjGCHzB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Jul 2023 03:55:01 -0400
+Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5269BA;
+        Mon,  3 Jul 2023 00:54:59 -0700 (PDT)
+Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-579dfae6855so22582167b3.1;
+        Mon, 03 Jul 2023 00:54:59 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688272372; x=1690864372;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=2Xe3TLuq66vmKQRW9SGz/9upotsvCI1LmaDBtWx+p5E=;
-        b=OCGYf0hslC10w034y37fX8kcZFOAmM/IV94yKUU7fwSF+KtGKgA+qcP+n96FXYvWIO
-         eeh1thVdkHUkjK+1wyBWvLKUfv9NielJV3SQrTLy5+cWPZFTcZCAsZImADSGPAaiW2+K
-         hfI1KRBsbNAgqoX02Hdp2QvXs/UQO646yYKkfDUq8B8WZU24ygTAt5gmyo5fbEWxg8HC
-         MnWGJMDyHWVX3HmvFTy2GkeAmMrt7e4m6eAK9n2JJQpea/iUXtI8slFVCRzdGD/3fWXh
-         t6bgQxygq+PgXjzj49PoSrVnAZ8INiKV70BxwrjdRF1pQicoU6uPUZN1uRAE1C0EVOeY
-         7xhA==
-X-Gm-Message-State: ABy/qLYVYI7jQpjKwGq9r6zSnkAatFBfvt8ZnmiGRS5sulRFRDqxt6W1
-        e4TdTmv6VCeq1pqd9VkdVQ0rSA==
-X-Google-Smtp-Source: APBJJlGl8n+Vflh4Nic7lcmL47faSllrN8Rxws0soLuAss+tixz88El1gH4Rh9D/YEn41GP92GfeYA==
-X-Received: by 2002:a25:3d5:0:b0:bc7:7fe4:afbc with SMTP id 204-20020a2503d5000000b00bc77fe4afbcmr12032215ybd.20.1688272372370;
-        Sat, 01 Jul 2023 21:32:52 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id p134-20020a25748c000000b00c4dba44c1fasm337790ybc.23.2023.07.01.21.32.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 01 Jul 2023 21:32:51 -0700 (PDT)
-Date:   Sat, 1 Jul 2023 21:32:38 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.anvils
-To:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-cc:     Hugh Dickins <hughd@google.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
- page
-In-Reply-To: <edaa96f-80c1-1252-acbb-71c4f045b035@google.com>
-Message-ID: <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230628211624.531cdc58@thinkpad-T15> <cd7c2851-1440-7220-6c53-16b343b1474@google.com> <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca> <20230629175645.7654d0a8@thinkpad-T15>
- <edaa96f-80c1-1252-acbb-71c4f045b035@google.com>
+        d=1e100.net; s=20221208; t=1688370899; x=1690962899;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ap+98X7lUU4Mb/R2w4KrLGdPkASGfI2gOWe+xareG/w=;
+        b=gV20QlEGzskXm07NAqjW665ZOYqxSGlkKqWzqoJMbhnIEuBkLxl4oSnIw+4dMp/6Qu
+         rTBskUaVp+NpWb1A2bQDMcw75It6Eze/JvCCstzZHZja06hmfb50w1hES/NOjA7v7dan
+         j7Duf2YvIsW6Pk8YvaKXdM2KKPxORSPfJuOEeQOagyL0bAenCS2mejFCokjJP/pzSc7c
+         Zq+1+yvVojwqbfa83kSVQXXZDAQpRnjQivEcltHnSlHuuWE/kWFqTdswimQT//evGouf
+         OvnNrUQYo//zINW7PYrkA1/fRkmHGfnYqN6PqtMmTIRP0DHWMxMC6lcI9iM1F5rOVIo8
+         yGZw==
+X-Gm-Message-State: ABy/qLZ8JxjsjLPy8UYTLdPS/PjqNX0RSExMIU5yyOlrz4WgP70p8TFd
+        LM2iWpojrFiGfOw7jAWMPsQ8GBURmdfLDg==
+X-Google-Smtp-Source: APBJJlHb87eLaE470shsNSC1acSVhnfK0tWhT1v3ISD1tEI3oo1td+vo0uIBY60+HpW5q2cS4a+/aQ==
+X-Received: by 2002:a0d:f005:0:b0:573:4d8b:471f with SMTP id z5-20020a0df005000000b005734d8b471fmr8421371ywe.26.1688370898728;
+        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com. [209.85.219.177])
+        by smtp.gmail.com with ESMTPSA id l189-20020a0dfbc6000000b0055a931afe48sm4942907ywf.8.2023.07.03.00.54.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
+Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-c4d1b491095so1850181276.0;
+        Mon, 03 Jul 2023 00:54:58 -0700 (PDT)
+X-Received: by 2002:a25:a287:0:b0:c1a:2928:74ab with SMTP id
+ c7-20020a25a287000000b00c1a292874abmr8554017ybi.31.1688370898299; Mon, 03 Jul
+ 2023 00:54:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-21-arnd@kernel.org>
+In-Reply-To: <20230327121317.4081816-21-arnd@kernel.org>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 3 Jul 2023 09:54:46 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdW5bXeE=nr7+hHxL+xhm2q05udkJpMBM-BG7g9S7Nt7Zg@mail.gmail.com>
+Message-ID: <CAMuHMdW5bXeE=nr7+hHxL+xhm2q05udkJpMBM-BG7g9S7Nt7Zg@mail.gmail.com>
+Subject: Re: [PATCH 20/21] ARM: dma-mapping: split out arch_dma_mark_clean() helper
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Neil Armstrong <neil.armstrong@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Brian Cain <bcain@quicinc.com>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Stafford Horne <shorne@gmail.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-oxnas@groups.io,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org,
+        Emil Renner Berthing <emil.renner.berthing@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, 29 Jun 2023, Hugh Dickins wrote:
-> 
-> I've grown to dislike the (ab)use of pt_frag_refcount even more, to the
-> extent that I've not even tried to verify it; but I think I do get the
-> point now, that we need further info than just PPHHAA to know whether
-> the page is on the list or not.  But I think that if we move where the
-> call_rcu() is done, then the page can stay on or off the list by same
-> rules as before (but need to check HH bits along with PP when deciding
-> whether to allocate, and whether to list_add_tail() when freeing).
+Hi Arnd,
 
-No, not quite the same rules as before: I came to realize that using
-list_add_tail() for the HH pages would be liable to put a page on the
-list which forever blocked reuse of PP list_add_tail() pages after it
-(could be solved by a list_move() somewhere, but we have agreed to
-prefer simplicity).
+On Mon, Mar 27, 2023 at 2:16 PM Arnd Bergmann <arnd@kernel.org> wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> The arm version of the arch_sync_dma_for_cpu() function annotates pages as
+> PG_dcache_clean after a DMA, but no other architecture does this here. On
+> ia64, the same thing is done in arch_sync_dma_for_cpu(), so it makes sense
+> to use the same hook in order to have identical arch_sync_dma_for_cpu()
+> semantics as all other architectures.
+>
+> Splitting this out has multiple effects:
+>
+>  - for dma-direct, this now gets called after arch_sync_dma_for_cpu()
+>    for DMA_FROM_DEVICE mappings, but not for DMA_BIDIRECTIONAL. While
+>    it would not be harmful to keep doing it for bidirectional mappings,
+>    those are apparently not used in any callers that care about the flag.
+>
+>  - Since arm has its own dma-iommu abstraction, this now also needs to
+>    call the same function, so the calls are added there to mirror the
+>    dma-direct version.
+>
+>  - Like dma-direct, the dma-iommu version now marks the dcache clean
+>    for both coherent and noncoherent devices after a DMA, but it only
+>    does this for DMA_FROM_DEVICE, not DMA_BIDIRECTIONAL.
+>
+> [ HELP NEEDED: can anyone confirm that it is a correct assumption
+>   on arm that a cache-coherent device writing to a page always results
+>   in it being in a PG_dcache_clean state like on ia64, or can a device
+>   write directly into the dcache?]
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-I've dropped the HH bits, I'm using PageActive like we did on powerpc,
-I've dropped most of the pte_free_*() helpers, and list_del_init() is
-an easier way of dealing with those "is it on the list" questions.
-I expect that we shall be close to reaching agreement on...
+Thanks for your patch, which is now commit 322dbe898f82fd8a
+("ARM: dma-mapping: split out arch_dma_mark_clean() helper") in
+esmil/jh7100-dmapool.
 
-[PATCH v? 07/12] s390: add pte_free_defer() for pgtables sharing page
+If CONFIG_ARM_DMA_USE_IOMMU=y, the build fails.
 
-Add s390-specific pte_free_defer(), to free table page via call_rcu().
-pte_free_defer() will be called inside khugepaged's retract_page_tables()
-loop, where allocating extra memory cannot be relied upon.  This precedes
-the generic version to avoid build breakage from incompatible pgtable_t.
+> --- a/arch/arm/mm/dma-mapping.c
+> +++ b/arch/arm/mm/dma-mapping.c
 
-This version is more complicated than others: because s390 fits two 2K
-page tables into one 4K page (so page->rcu_head must be shared between
-both halves), and already uses page->lru (which page->rcu_head overlays)
-to list any free halves; with clever management by page->_refcount bits.
+> @@ -1294,6 +1298,17 @@ static int arm_iommu_map_sg(struct device *dev, struct scatterlist *sg,
+>         return -EINVAL;
+>  }
+>
+> +static void arm_iommu_sync_dma_for_cpu(phys_addr_t phys, size_t len,
+> +                                      enum dma_data_direction dir,
+> +                                      bool dma_coherent)
+> +{
+> +       if (!dma_coherent)
+> +               arch_sync_dma_for_cpu(phys, s->length, dir);
 
-Build upon the existing management, adjusted to follow a new rule: that
-a page is never on the free list if pte_free_defer() was used on either
-half (marked by PageActive).  And for simplicity, delay calling RCU until
-both halves are freed.
+s/s->length/len/
 
-Not adding back unallocated fragments to the list in pte_free_defer()
-can result in wasting some amount of memory for pagetables, depending
-on how long the allocated fragment will stay in use. In practice, this
-effect is expected to be insignificant, and not justify a far more
-complex approach, which might allow to add the fragments back later
-in __tlb_remove_table(), where we might not have a stable mm any more.
+> +
+> +       if (dir == DMA_FROM_DEVICE)
+> +               arch_dma_mark_clean(phys, s->length);
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
- arch/s390/include/asm/pgalloc.h |  4 ++
- arch/s390/mm/pgalloc.c          | 75 +++++++++++++++++++++++++++------
- 2 files changed, 67 insertions(+), 12 deletions(-)
+Likewise.
 
-diff --git a/arch/s390/include/asm/pgalloc.h b/arch/s390/include/asm/pgalloc.h
-index 17eb618f1348..89a9d5ef94f8 100644
---- a/arch/s390/include/asm/pgalloc.h
-+++ b/arch/s390/include/asm/pgalloc.h
-@@ -143,6 +143,10 @@ static inline void pmd_populate(struct mm_struct *mm,
- #define pte_free_kernel(mm, pte) page_table_free(mm, (unsigned long *) pte)
- #define pte_free(mm, pte) page_table_free(mm, (unsigned long *) pte)
- 
-+/* arch use pte_free_defer() implementation in arch/s390/mm/pgalloc.c */
-+#define pte_free_defer pte_free_defer
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
-+
- void vmem_map_init(void);
- void *vmem_crst_alloc(unsigned long val);
- pte_t *vmem_pte_alloc(void);
-diff --git a/arch/s390/mm/pgalloc.c b/arch/s390/mm/pgalloc.c
-index 66ab68db9842..fd0c4312da16 100644
---- a/arch/s390/mm/pgalloc.c
-+++ b/arch/s390/mm/pgalloc.c
-@@ -229,6 +229,15 @@ void page_table_free_pgste(struct page *page)
-  * logic described above. Both AA bits are set to 1 to denote a 4KB-pgtable
-  * while the PP bits are never used, nor such a page is added to or removed
-  * from mm_context_t::pgtable_list.
-+ *
-+ * pte_free_defer() overrides those rules: it takes the page off pgtable_list,
-+ * and prevents both 2K fragments from being reused. pte_free_defer() has to
-+ * guarantee that its pgtable cannot be reused before the RCU grace period
-+ * has elapsed (which page_table_free_rcu() does not actually guarantee).
-+ * But for simplicity, because page->rcu_head overlays page->lru, and because
-+ * the RCU callback might not be called before the mm_context_t has been freed,
-+ * pte_free_defer() in this implementation prevents both fragments from being
-+ * reused, and delays making the call to RCU until both fragments are freed.
-  */
- unsigned long *page_table_alloc(struct mm_struct *mm)
- {
-@@ -261,7 +270,7 @@ unsigned long *page_table_alloc(struct mm_struct *mm)
- 					table += PTRS_PER_PTE;
- 				atomic_xor_bits(&page->_refcount,
- 							0x01U << (bit + 24));
--				list_del(&page->lru);
-+				list_del_init(&page->lru);
- 			}
- 		}
- 		spin_unlock_bh(&mm->context.lock);
-@@ -281,6 +290,7 @@ unsigned long *page_table_alloc(struct mm_struct *mm)
- 	table = (unsigned long *) page_to_virt(page);
- 	if (mm_alloc_pgste(mm)) {
- 		/* Return 4K page table with PGSTEs */
-+		INIT_LIST_HEAD(&page->lru);
- 		atomic_xor_bits(&page->_refcount, 0x03U << 24);
- 		memset64((u64 *)table, _PAGE_INVALID, PTRS_PER_PTE);
- 		memset64((u64 *)table + PTRS_PER_PTE, 0, PTRS_PER_PTE);
-@@ -300,7 +310,9 @@ static void page_table_release_check(struct page *page, void *table,
- {
- 	char msg[128];
- 
--	if (!IS_ENABLED(CONFIG_DEBUG_VM) || !mask)
-+	if (!IS_ENABLED(CONFIG_DEBUG_VM))
-+		return;
-+	if (!mask && list_empty(&page->lru))
- 		return;
- 	snprintf(msg, sizeof(msg),
- 		 "Invalid pgtable %p release half 0x%02x mask 0x%02x",
-@@ -308,6 +320,15 @@ static void page_table_release_check(struct page *page, void *table,
- 	dump_page(page, msg);
- }
- 
-+static void pte_free_now(struct rcu_head *head)
-+{
-+	struct page *page;
-+
-+	page = container_of(head, struct page, rcu_head);
-+	pgtable_pte_page_dtor(page);
-+	__free_page(page);
-+}
-+
- void page_table_free(struct mm_struct *mm, unsigned long *table)
- {
- 	unsigned int mask, bit, half;
-@@ -325,10 +346,17 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
- 		 */
- 		mask = atomic_xor_bits(&page->_refcount, 0x11U << (bit + 24));
- 		mask >>= 24;
--		if (mask & 0x03U)
-+		if ((mask & 0x03U) && !PageActive(page)) {
-+			/*
-+			 * Other half is allocated, and neither half has had
-+			 * its free deferred: add page to head of list, to make
-+			 * this freed half available for immediate reuse.
-+			 */
- 			list_add(&page->lru, &mm->context.pgtable_list);
--		else
--			list_del(&page->lru);
-+		} else {
-+			/* If page is on list, now remove it. */
-+			list_del_init(&page->lru);
-+		}
- 		spin_unlock_bh(&mm->context.lock);
- 		mask = atomic_xor_bits(&page->_refcount, 0x10U << (bit + 24));
- 		mask >>= 24;
-@@ -342,8 +370,10 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
- 	}
- 
- 	page_table_release_check(page, table, half, mask);
--	pgtable_pte_page_dtor(page);
--	__free_page(page);
-+	if (TestClearPageActive(page))
-+		call_rcu(&page->rcu_head, pte_free_now);
-+	else
-+		pte_free_now(&page->rcu_head);
- }
- 
- void page_table_free_rcu(struct mmu_gather *tlb, unsigned long *table,
-@@ -370,10 +400,18 @@ void page_table_free_rcu(struct mmu_gather *tlb, unsigned long *table,
- 	 */
- 	mask = atomic_xor_bits(&page->_refcount, 0x11U << (bit + 24));
- 	mask >>= 24;
--	if (mask & 0x03U)
-+	if ((mask & 0x03U) && !PageActive(page)) {
-+		/*
-+		 * Other half is allocated, and neither half has had
-+		 * its free deferred: add page to end of list, to make
-+		 * this freed half available for reuse once its pending
-+		 * bit has been cleared by __tlb_remove_table().
-+		 */
- 		list_add_tail(&page->lru, &mm->context.pgtable_list);
--	else
--		list_del(&page->lru);
-+	} else {
-+		/* If page is on list, now remove it. */
-+		list_del_init(&page->lru);
-+	}
- 	spin_unlock_bh(&mm->context.lock);
- 	table = (unsigned long *) ((unsigned long) table | (0x01U << bit));
- 	tlb_remove_table(tlb, table);
-@@ -403,10 +441,23 @@ void __tlb_remove_table(void *_table)
- 	}
- 
- 	page_table_release_check(page, table, half, mask);
--	pgtable_pte_page_dtor(page);
--	__free_page(page);
-+	if (TestClearPageActive(page))
-+		call_rcu(&page->rcu_head, pte_free_now);
-+	else
-+		pte_free_now(&page->rcu_head);
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
-+{
-+	struct page *page;
-+
-+	page = virt_to_page(pgtable);
-+	SetPageActive(page);
-+	page_table_free(mm, (unsigned long *)pgtable);
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
- /*
-  * Base infrastructure required to generate basic asces, region, segment,
-  * and page tables that do not make use of enhanced features like EDAT1.
+> +}
+> +
+>  /**
+>   * arm_iommu_unmap_sg - unmap a set of SG buffers mapped by dma_map_sg
+>   * @dev: valid struct device pointer
+
+> @@ -1425,9 +1438,9 @@ static void arm_iommu_unmap_page(struct device *dev, dma_addr_t handle,
+>         if (!iova)
+>                 return;
+>
+> -       if (!dev->dma_coherent && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+> +       if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+
+Missing opening curly brace.
+
+>                 phys = iommu_iova_to_phys(mapping->domain, handle);
+> -               arch_sync_dma_for_cpu(phys, size, dir);
+> +               arm_iommu_sync_dma_for_cpu(phys, size, dir, dev->dma_coherent);
+>         }
+>
+>         iommu_unmap(mapping->domain, iova, len);
+
+With the above fixed, it builds and boots fine (on R-Car M2-W).
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 -- 
-2.35.3
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
