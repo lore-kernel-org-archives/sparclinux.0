@@ -2,46 +2,43 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B85EB64DD
-	for <sparclinux@archiver.kernel.org>; Mon,  3 Jul 2023 23:01:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE8BFEB64DC
+	for <sparclinux@archiver.kernel.org>; Mon,  3 Jul 2023 23:02:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230206AbjGCXB5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 3 Jul 2023 19:01:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43834 "EHLO
+        id S230360AbjGCXCH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 Jul 2023 19:02:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229793AbjGCXB4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Jul 2023 19:01:56 -0400
+        with ESMTP id S230384AbjGCXCE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Jul 2023 19:02:04 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 293E3E59;
-        Mon,  3 Jul 2023 16:01:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0166CE6D;
+        Mon,  3 Jul 2023 16:02:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
         MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
         Content-ID:Content-Description:In-Reply-To:References;
-        bh=rz8+A1sENDx30nELD7mDPWbKVEEZHfOcR63DH9BqkMY=; b=yw0ML96BdG7xwSathwbm+wS47t
-        p4DwtsqssQSGNfaGUdPlAHM7Q6OZ3VsABmoxYxGXw9oI04FpNeVGr1QZVJQkJb6b1WZshhoyMm4NZ
-        sXZ9nZkgYMZA3CFyFleLmkQih8cZsoBRmJ1TjlvMcz5ZEMiWlWkiNS4pYTYJJnRukVJuQo43KacZY
-        zCtV9hHDL3UYNRaxuKQBI8xQezY8pixr+XotPddXjvf5f0pZehMyySOVToscjAPviwHOv+fF3QNpw
-        EcNmjpJuMBUfo3cKtcW3PcnqOYjJldDmuX06IQUvCeX3+Uw7ADXvCIFR3quaJVQrpNzFnHJbOW9SZ
-        eHDQNmLQ==;
+        bh=1rtcPybyM5MqfBvMrkvocPzhfGVv/+DMp2tXnRIeTf4=; b=PXfaaU+BYNjGFWCf5aiibLVahl
+        cFEfwzIQHmgIKhrvoGbTVY9biuglzEl8sLI3BpJoxV23m6YtVh0qFWQSTxie/NydYgiwmlg/+yfLp
+        ns1ghEntAfD9STYmkivXNJsTRKtTyl7YzyDwvavQGhcxNZZwIOln1Nt4HY3Yu+dIaeUp3uIcc2bsR
+        VqDqs735F4L2BuZacw+rQIvJZl5Q8qBOxytmImIU0jj3Uowh6J9JEP76yDEJpXHlr8rYU0FojiQp+
+        oxDDuaTLeW6fvqc7Z0ZzHSpGdni2wrUG9MSSyP0H0ZkBsyOKMre8n/E5pdbMJzVD9cK0EInjIEdKt
+        HQebaVBg==;
 Received: from [2601:1c2:980:9ec0::2764] (helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qGSYM-00Bbaq-1h;
-        Mon, 03 Jul 2023 23:01:54 +0000
+        id 1qGSYV-00Bbd5-2b;
+        Mon, 03 Jul 2023 23:02:03 +0000
 From:   Randy Dunlap <rdunlap@infradead.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Igor Zhbanov <izh1979@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Nick Alcock <nick.alcock@oracle.com>,
-        Sam Ravnborg <sam@ravnborg.org>,
+        sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         stable@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v4 RESEND] sparc: vDSO: fix return value of __setup handler
-Date:   Mon,  3 Jul 2023 16:01:53 -0700
-Message-ID: <20230703230153.19421-1-rdunlap@infradead.org>
+Subject: [PATCH v4 RESEND] sparc64: NMI watchdog: fix return value of __setup handler
+Date:   Mon,  3 Jul 2023 16:02:02 -0700
+Message-ID: <20230703230202.19844-1-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -55,43 +52,36 @@ A return of 0 causes the boot option/value to be listed as an Unknown
 kernel parameter and added to init's (limited) argument or environment
 strings. Also, error return codes don't mean anything to
 obsolete_checksetup() -- only non-zero (usually 1) or zero.
-So return 1 from vdso_setup().
+So return 1 from setup_nmi_watchdog().
 
-Fixes: 9a08862a5d2e ("vDSO for sparc")
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reported-by: Igor Zhbanov <izh1979@gmail.com>
 Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Nick Alcock <nick.alcock@oracle.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: stable@vger.kernel.org
 Cc: Arnd Bergmann <arnd@arndb.de>
 ---
-v2: correct the Fixes: tag (Dan Carpenter)
-v3: add more Cc's;
-    correct Igor's email address;
-    change From: Igor to Reported-by: Igor;
+v2: change From: Igor to Reported-by:
+    add more Cc's
+v3: use Igor's current email address
 v4: add Arnd to Cc: list
 
- arch/sparc/vdso/vma.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/nmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -- a/arch/sparc/vdso/vma.c b/arch/sparc/vdso/vma.c
---- a/arch/sparc/vdso/vma.c
-+++ b/arch/sparc/vdso/vma.c
-@@ -449,9 +449,8 @@ static __init int vdso_setup(char *s)
- 	unsigned long val;
+diff -- a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -279,7 +279,7 @@ static int __init setup_nmi_watchdog(cha
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
  
- 	err = kstrtoul(s, 10, &val);
--	if (err)
--		return err;
--	vdso_enabled = val;
 -	return 0;
-+	if (!err)
-+		vdso_enabled = val;
 +	return 1;
  }
- __setup("vdso=", vdso_setup);
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
