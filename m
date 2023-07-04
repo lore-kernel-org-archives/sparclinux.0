@@ -2,79 +2,79 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D2A3EB64DD
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Jul 2023 16:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB89DEB64DD
+	for <sparclinux@archiver.kernel.org>; Tue,  4 Jul 2023 16:27:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230377AbjGDQ01 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Jul 2023 12:26:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37554 "EHLO
+        id S231649AbjGDQ12 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 Jul 2023 12:27:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230335AbjGDQ00 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 12:26:26 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58356EE
-        for <sparclinux@vger.kernel.org>; Tue,  4 Jul 2023 09:25:43 -0700 (PDT)
+        with ESMTP id S231664AbjGDQ1W (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 12:27:22 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1605410FB
+        for <sparclinux@vger.kernel.org>; Tue,  4 Jul 2023 09:26:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688487942;
+        s=mimecast20190719; t=1688487993;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=M8/mkORscNjCU/dvtXt+o+8I4w7Qa8785g4rCe6dq88=;
-        b=dtjWkysOlHq5uaRMSRftHkei1a1ILK6vtvXDwGWxj6H9UtNGfSZziG3QQXv3Pw/9mYaOT5
-        BFgwdS2tZNoR+A98bGas5LWcWuye1DM2KCxquN9mBMZb8/j6FpFxHM5nnSCZGzzPFrdDPs
-        9kEqHhmCTaHdL/oBciG6FhPCYaKlV+I=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=3N/Gyf3beclIUSfPsZhAnE2wLloPptbf+HqX/lLqDWc=;
+        b=fHw9FiyufPGlzK4AIgS0dgZSj76QR2FVKZvFvIluVIyEuP6f3F2l9lrIR/e7xDHUCo0DWG
+        LtDrB9sZuGTrAaR8aaSfQoiN+gnQoz1dcDo/jLka8JWUNjX/woiMKkO0AMpZE+9Vz1vK2O
+        XMYn5sTagth877zSew8hlnGG90Q13y8=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-628-BT7yEWyBOsm1A5Qz46vvSw-1; Tue, 04 Jul 2023 12:25:41 -0400
-X-MC-Unique: BT7yEWyBOsm1A5Qz46vvSw-1
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-3fbaade0c71so36405025e9.2
-        for <sparclinux@vger.kernel.org>; Tue, 04 Jul 2023 09:25:41 -0700 (PDT)
+ us-mta-511-pMr-nKKgNc2dcpBZa1v9qg-1; Tue, 04 Jul 2023 12:26:32 -0400
+X-MC-Unique: pMr-nKKgNc2dcpBZa1v9qg-1
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-313e6020882so2403367f8f.1
+        for <sparclinux@vger.kernel.org>; Tue, 04 Jul 2023 09:26:31 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688487940; x=1691079940;
+        d=1e100.net; s=20221208; t=1688487991; x=1691079991;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=M8/mkORscNjCU/dvtXt+o+8I4w7Qa8785g4rCe6dq88=;
-        b=b1/QSBl/OwXdJDsh8jrKK0xG5yysi1i9fJn0rv/jqz5u52DLF5k+mI+H4vztbRtrxH
-         wb1gO1klBtVOtM8H2JB+DcPzMEBOAUzEvJt6hcNEk5F9AYFlu5zIgjlUdnDQkfW8uAdN
-         xK8G2/yqNN6P5+bez0GFsJp5EKglLTTPy0BfUz5pbnbLaH2ZmQHfgaYMSyX3VMgTCh8s
-         KWSmPWmbVYvzZM5hInGS48IfE8XI8VPqKPi/lXeknmYo4jm0WRvrIo55GgRn4DE8k4K3
-         27NfK3GIfKigZosIwu8/9+8XkP7nZt0+iTScfAZFXz7KLmKK5pfmGIZyO70Ae+Zq4lKY
-         3kAQ==
-X-Gm-Message-State: AC+VfDx1dTg7tVqEbdgz3bz5UplvNIK9wD87tFWyL6uubwyTX73NxdII
-        GFhb1FXELJ5Ql62JEvVXS6BysH+olcvV+63/HuppOFJ5a30FOzaHlBRQ9YX19RF9Q9US169KJYg
-        WzRGvbZqMI/URCxXMfShEzw==
-X-Received: by 2002:a05:600c:c1:b0:3fa:8cd8:9743 with SMTP id u1-20020a05600c00c100b003fa8cd89743mr12082785wmm.19.1688487940449;
-        Tue, 04 Jul 2023 09:25:40 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5IB6++c8U11SK9oMV+tMdqHs9QUr8ub/i7nSM7HKLee5NlCRabAo+D01Z67Wv3BYjVWg90GQ==
-X-Received: by 2002:a05:600c:c1:b0:3fa:8cd8:9743 with SMTP id u1-20020a05600c00c100b003fa8cd89743mr12082767wmm.19.1688487940180;
-        Tue, 04 Jul 2023 09:25:40 -0700 (PDT)
+        bh=3N/Gyf3beclIUSfPsZhAnE2wLloPptbf+HqX/lLqDWc=;
+        b=kQkUwtTvAK/vySJtsPN7sFxucfU0C7JYPK0ZemJgQ20TDm6W6Yx6aOqxPFWvyM+Ux8
+         ll2+Umd9MuTm1PQ7q69fUo1qUXOi0GVhZYrMLyPJuFrK9qTMv0AqWDeo/OSBmtfCvBFh
+         k0w3qh+Nxoma1NrI2mF+ZJJjC36OceAgh5GGHlKp8Lpo+9uAtzow17zUjGsutcpJVJDw
+         nUW+S+mnifVTHv78dybyF07XgBLhwsbHGEQhOITBi4UpodPVkCjCCUUOhRhOJIBnQJma
+         7jrtgb8zDvSxKYjvNNNmogwVuPfOCFqIxfUyuY+zaJlh70VF+SjhYRibxSlE/6MYhQSJ
+         l34g==
+X-Gm-Message-State: AC+VfDw2DkB4c0ziLrSWvOMSFfUoTSzmrjZ5oIROyRkAlLIHrBZeAjTr
+        pSyDjN3RiINCwfSTQBT8QfdQGrcUtU+iljFVVD8rNqVYBdIP/9Vr4VJ+c35j5pFBaBY8JGqPMRz
+        dhFDFJ4iAu5/odzJe9S8JuA==
+X-Received: by 2002:a7b:ca57:0:b0:3fb:af9a:bf30 with SMTP id m23-20020a7bca57000000b003fbaf9abf30mr12688292wml.2.1688487991085;
+        Tue, 04 Jul 2023 09:26:31 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ71ufTEe/wWv7h1ExOsJanD4siZOoua0ql6zTBm+MH4Z3jUb1+lMMqlPgaWI376xU4gg3rSqQ==
+X-Received: by 2002:a7b:ca57:0:b0:3fb:af9a:bf30 with SMTP id m23-20020a7bca57000000b003fbaf9abf30mr12688259wml.2.1688487990852;
+        Tue, 04 Jul 2023 09:26:30 -0700 (PDT)
 Received: from localhost (205.pool92-176-231.dynamic.orange.es. [92.176.231.205])
-        by smtp.gmail.com with ESMTPSA id r8-20020a056000014800b003143b032b7asm4333122wrx.116.2023.07.04.09.25.39
+        by smtp.gmail.com with ESMTPSA id s25-20020a7bc399000000b003fa96fe2bebsm25398819wmj.41.2023.07.04.09.26.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Jul 2023 09:25:39 -0700 (PDT)
+        Tue, 04 Jul 2023 09:26:30 -0700 (PDT)
 From:   Javier Martinez Canillas <javierm@redhat.com>
 To:     Thomas Zimmermann <tzimmermann@suse.de>, arnd@arndb.de,
         deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
-Cc:     linux-arch@vger.kernel.org, linux-hyperv@vger.kernel.org,
-        linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org,
+Cc:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-efi@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-hyperv@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-staging@lists.linux.dev, linux-arch@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
-        linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        loongarch@lists.linux.dev, linux-alpha@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Teddy Wang <teddy.wang@siliconmotion.com>
-Subject: Re: [PATCH 02/12] fbdev/sm712fb: Do not include <linux/screen_info.h>
-In-Reply-To: <20230629121952.10559-3-tzimmermann@suse.de>
+        Ard Biesheuvel <ardb@kernel.org>,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 03/12] sysfb: Do not include <linux/screen_info.h> from
+ sysfb header
+In-Reply-To: <20230629121952.10559-4-tzimmermann@suse.de>
 References: <20230629121952.10559-1-tzimmermann@suse.de>
- <20230629121952.10559-3-tzimmermann@suse.de>
-Date:   Tue, 04 Jul 2023 18:25:39 +0200
-Message-ID: <87fs63lk3g.fsf@minerva.mail-host-address-is-not-set>
+ <20230629121952.10559-4-tzimmermann@suse.de>
+Date:   Tue, 04 Jul 2023 18:26:29 +0200
+Message-ID: <87cz17lk22.fsf@minerva.mail-host-address-is-not-set>
 MIME-Version: 1.0
 Content-Type: text/plain
 Precedence: bulk
@@ -83,15 +83,14 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Thomas Zimmermann <tzimmermann@suse.de> writes:
 
-> Sm712fb's dependency on <linux/screen_info.h> is artificial in that
-> it only uses struct screen_info for its internals. Replace the use of
-> struct screen_info with a custom data structure and remove the include
-> of <linux/screen_info.h>.
+> The header file <linux/sysfb.h> does not need anything from
+> <linux/screen_info.h>. Declare struct screen_info and remove
+> the include statements.
 >
 > Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-> Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-> Cc: Teddy Wang <teddy.wang@siliconmotion.com>
-> Cc: Helge Deller <deller@gmx.de>
+> Cc: Ard Biesheuvel <ardb@kernel.org>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Javier Martinez Canillas <javierm@redhat.com>
 > ---
 
 Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
