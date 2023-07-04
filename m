@@ -2,141 +2,106 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 536F3EB64DA
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Jul 2023 16:03:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E896CEB64DD
+	for <sparclinux@archiver.kernel.org>; Tue,  4 Jul 2023 16:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231403AbjGDQDp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Jul 2023 12:03:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57236 "EHLO
+        id S230052AbjGDQYn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 Jul 2023 12:24:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229469AbjGDQDo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 12:03:44 -0400
-Received: from mail-yw1-x1131.google.com (mail-yw1-x1131.google.com [IPv6:2607:f8b0:4864:20::1131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54FC3E7A
-        for <sparclinux@vger.kernel.org>; Tue,  4 Jul 2023 09:03:43 -0700 (PDT)
-Received: by mail-yw1-x1131.google.com with SMTP id 00721157ae682-579ef51428eso38889637b3.2
-        for <sparclinux@vger.kernel.org>; Tue, 04 Jul 2023 09:03:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1688486622; x=1691078622;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ThWaRfiQI9Y2zPB0jOGll+3lvvzwKEYuVB5/fEadW24=;
-        b=1G5ZKRpQvMi6W+jmE8ub5dJeJlxbYBL30Dld2sGE0jGIh4pBJkparpgbY6X3koq/jZ
-         9g+w0TuaYGHZl27XCXZmG+7CPzvq555V/M1u4Q1o6K8x8Ny1PLqYZEoRKCUHyb+Y70dI
-         uBRHmI/rt4y3gkCQlfmPG1mrv6Vp0NRaNPnW3xuq6LBs3vpTAK9mFbzVtQjSJdhDF3gn
-         OJOlc2lgtywf5qtUGf5eClnJ/DlUSgDiVgxe4+xMH66lLR9gKhagSbS7FM4N2TW1Ak9a
-         q7fzTwEYYTKo4YcVc/r5tuNaJO9KBQwhVG9584Mvf2RQ2kUyvk+4ApeeGd9aS7kq6QuH
-         tlGw==
+        with ESMTP id S231583AbjGDQYj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 12:24:39 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C11010F2
+        for <sparclinux@vger.kernel.org>; Tue,  4 Jul 2023 09:23:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1688487824;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2FITFWtbRXE3gky2EO4aMziTa3J/r1+wMO4yc2vs7Pc=;
+        b=Yaj0XoGTnPY3jldtaJrBd3h0EFLc5QY5r2f1GcQiDU5Bwt+QkhnRA5Y3ClkBsx59aWT2Mc
+        O1BXRKMpVO9+Wb82xQFvJuf17h84NyATS9f4N1wgCJHvmtmtX5bmQkya0n1s8pMiouL+Iu
+        fyHZ1/QKZQcqnRr3IdPIPspTAWH3/GI=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-252-C0NqQy08P3-eN35gShAi3A-1; Tue, 04 Jul 2023 12:23:43 -0400
+X-MC-Unique: C0NqQy08P3-eN35gShAi3A-1
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-3fbdf341934so8962885e9.3
+        for <sparclinux@vger.kernel.org>; Tue, 04 Jul 2023 09:23:43 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688486622; x=1691078622;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ThWaRfiQI9Y2zPB0jOGll+3lvvzwKEYuVB5/fEadW24=;
-        b=jG8b9s1xXfSfjbUarirtwHzVeTTxey4sMsI+723hCZ1sYx5Ad+m8aOsBeZUPwb/bkO
-         j8M3Gilut0s5TMLKytCemZ6BLnsXPMoWnRo6w6SHjj6a7hQcajhBgvh++Dh7BQOqUCSC
-         6TFVoTT63nQgInRpIjhsJNgW9OX8+J/8neh60ry+fHOWVIEPXtgoXBg7bL3UzK67VFbW
-         x9CrVVLk6i5moLsSvbMlJDxb3yshQXY1Ju/lAIPYaSTbFWIC5/qqrcHMSHhv5mJRIZ7n
-         +A4CVm/aMUO4rU1+JecCl91foccb6KX8cJJRk6Qz7z00d7crY9uTBgf9vwJJaHrpvG8o
-         XZhw==
-X-Gm-Message-State: ABy/qLZC0yGp/AgdTojLn7x71QuCKdpgpxSurmVtdR4fEtbN5JghUcov
-        VPnurq1lozEL/5aSHwheBEhCKw==
-X-Google-Smtp-Source: APBJJlFQKEt+GJy0q7ZaawYolC37LR4/HdrndIBCrzGqd8RmTfZQfh9o4zEhy6GGc4uBo5NvU6StNw==
-X-Received: by 2002:a25:2307:0:b0:c16:8d80:227d with SMTP id j7-20020a252307000000b00c168d80227dmr13176783ybj.65.1688486622226;
-        Tue, 04 Jul 2023 09:03:42 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id v11-20020a25848b000000b00bf3438d6301sm4519026ybk.0.2023.07.04.09.03.38
+        d=1e100.net; s=20221208; t=1688487822; x=1691079822;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=2FITFWtbRXE3gky2EO4aMziTa3J/r1+wMO4yc2vs7Pc=;
+        b=UviI9OLqMterKPsw07YT1NkuaBBCV+Ttnm1XwShtchAwsSSIzfQqnnsRhYFEXCgpWC
+         pjXzTZBXW9osm5oWZrMTo+6wqQneaxsikpLkurkYgKkuTUwJbiukByXvdPij8mrTlMgC
+         cFmci20oqU5hkSGXAYi348OqihfN6NYWeKMhFya5UO31u4CcAN8ZwLuvsYA50fQhD3p5
+         P2wqIVUuUjqD+l6XoTfkpdXHm4xQED7cio4AyAADho17bnmG4ZOu+/X7WY3Ty3teZKLd
+         nzhNR5qW7gQWK5YPbllP5yxeLWWbXHht94lhoJVx3lQEwLbnzUdFJhFRWkXgZxrx2AZg
+         9vPA==
+X-Gm-Message-State: AC+VfDx6K1XcMjt6b9ZdYKPnETW+BDPtwU1uKa9oLoBihEiT2tp5yB40
+        PdhzvPufhX7OmYO68hpLIO0SwYDLjRsub5JPvw6f9mTVMVfNh0ZcqGPNs0C0lNj0OkkhT/moWzR
+        S2X+xV5HgaZQkRAJEcimhcQ==
+X-Received: by 2002:a05:600c:2145:b0:3fb:415f:a85b with SMTP id v5-20020a05600c214500b003fb415fa85bmr18158810wml.3.1688487822321;
+        Tue, 04 Jul 2023 09:23:42 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ7T04nL74CM9kmUBFWNxbGLn7ruUc6nb3zVFQfaw7cBAYtqvH64gACvFSpImO/HrduwXThnBg==
+X-Received: by 2002:a05:600c:2145:b0:3fb:415f:a85b with SMTP id v5-20020a05600c214500b003fb415fa85bmr18158793wml.3.1688487821958;
+        Tue, 04 Jul 2023 09:23:41 -0700 (PDT)
+Received: from localhost (205.pool92-176-231.dynamic.orange.es. [92.176.231.205])
+        by smtp.gmail.com with ESMTPSA id m21-20020a7bcb95000000b003faabd8fcb8sm24447459wmi.46.2023.07.04.09.23.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Jul 2023 09:03:41 -0700 (PDT)
-Date:   Tue, 4 Jul 2023 09:03:29 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Alexander Gordeev <agordeev@linux.ibm.com>
-cc:     Hugh Dickins <hughd@google.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Tue, 04 Jul 2023 09:23:41 -0700 (PDT)
+From:   Javier Martinez Canillas <javierm@redhat.com>
+To:     Thomas Zimmermann <tzimmermann@suse.de>, arnd@arndb.de,
+        deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
+Cc:     linux-hyperv@vger.kernel.org, linux-efi@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>, linux-arch@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-staging@lists.linux.dev,
         Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
- page
-In-Reply-To: <ZKQhW2aHJHsnkJhv@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
-Message-ID: <c8aeb847-3d91-b5e5-48d1-20d411b58574@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230628211624.531cdc58@thinkpad-T15> <cd7c2851-1440-7220-6c53-16b343b1474@google.com> <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca> <20230629175645.7654d0a8@thinkpad-T15>
- <edaa96f-80c1-1252-acbb-71c4f045b035@google.com> <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com> <ZKQhW2aHJHsnkJhv@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+        linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 01/12] efi: Do not include <linux/screen_info.h> from
+ EFI header
+In-Reply-To: <20230629121952.10559-2-tzimmermann@suse.de>
+References: <20230629121952.10559-1-tzimmermann@suse.de>
+ <20230629121952.10559-2-tzimmermann@suse.de>
+Date:   Tue, 04 Jul 2023 18:23:40 +0200
+Message-ID: <87ilazlk6r.fsf@minerva.mail-host-address-is-not-set>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 4 Jul 2023, Alexander Gordeev wrote:
-> On Sat, Jul 01, 2023 at 09:32:38PM -0700, Hugh Dickins wrote:
-> > On Thu, 29 Jun 2023, Hugh Dickins wrote:
-> 
-> Hi Hugh,
-> 
-> ...
-> > No, not quite the same rules as before: I came to realize that using
-> > list_add_tail() for the HH pages would be liable to put a page on the
-> > list which forever blocked reuse of PP list_add_tail() pages after it
-> > (could be solved by a list_move() somewhere, but we have agreed to
-> > prefer simplicity).
-> 
-> Just to make things more clear for me: do I understand correctly that this
-> was an attempt to add HH fragments to pgtable_list from pte_free_defer()?
+Thomas Zimmermann <tzimmermann@suse.de> writes:
 
-Yes, from page_table_free() called from pte_free_defer(): I had claimed
-they could be put on the list (or not) without needing to consider their
-HH-ness, apart from wanting to list_add_tail() rather than list_add() them.
+> The header file <linux/efi.h> does not need anything from
+> <linux/screen_info.h>. Declare struct screen_info and remove
+> the include statements. Update a number of source files that
+> require struct screen_info's definition.
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> Cc: Ard Biesheuvel <ardb@kernel.org>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will@kernel.org>
+> ---
 
-But then realized that this category of list_add_tail() pages would block
-access to the others.
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 
-But I think I was mistaken then to say "could be solved by a list_move()
-somewhere"; because "somewhere" would have had to be __tlb_remove_table()
-when it removes PP-bits, which would bring us back to the issues of
-getting a spinlock from an mm which might already be freed.
+-- 
+Best regards,
 
-Hugh
+Javier Martinez Canillas
+Core Platforms
+Red Hat
+
