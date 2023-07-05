@@ -2,163 +2,96 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01EA6C001E0
-	for <sparclinux@archiver.kernel.org>; Wed,  5 Jul 2023 06:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09F48EB64DA
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Jul 2023 07:48:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231910AbjGEGuP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 Jul 2023 02:50:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50500 "EHLO
+        id S232381AbjGEHsP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Jul 2023 03:48:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231821AbjGEGtp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Jul 2023 02:49:45 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 281E51BDF;
-        Tue,  4 Jul 2023 23:49:14 -0700 (PDT)
-Received: from pps.filterd (m0353724.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3656f1xm028694;
-        Wed, 5 Jul 2023 06:47:02 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : references : mime-version : content-type :
- in-reply-to; s=pp1; bh=yv/FrLpT08L3Apc6b/gXrDeCk9yGnPzfjdRohkIs4Xg=;
- b=aRu+YCjguXlaQs3KW57NglPu5FkypAP2AchYFw5pBdBy9y7U8L1iFj9tqPw43Wp9KWUM
- h1uJfl0AS3xvPJmY5nt2yNJf2XbEWf4a6URxjTtmnCbK+1a7lkOxV3KwP6MYk9+LfPHM
- dEvE0YrFYGaoWymxsQikjBSOSnCwMulfTGGJ6VoZuzrRVHvvDlj443Pi86yjGsxVawpf
- JZFRMi3/b+p+TPgOyIXphdvtaT1LwTCNDRyg593RYD/6iVgKmhyBW4Vw7nKLNpy5uiE+
- AkC7aaoVdUP10eZw3L8f2jMd3L+W/0xKo/3SiiYgaAVYB7OfQuvx8Cqe+BKGj0K+T7k5 6w== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rn34arebt-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Jul 2023 06:47:02 +0000
-Received: from m0353724.ppops.net (m0353724.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3656gT3K032743;
-        Wed, 5 Jul 2023 06:46:56 GMT
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rn34are2f-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Jul 2023 06:46:56 +0000
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-        by ppma04ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3652HG3Z002094;
-        Wed, 5 Jul 2023 06:46:48 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-        by ppma04ams.nl.ibm.com (PPS) with ESMTPS id 3rjbs4tef2-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Jul 2023 06:46:48 +0000
-Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-        by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3656kiFM38142352
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 5 Jul 2023 06:46:44 GMT
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B4E8E20040;
-        Wed,  5 Jul 2023 06:46:44 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id DA85B20043;
-        Wed,  5 Jul 2023 06:46:41 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.171.53.49])
-        by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-        Wed,  5 Jul 2023 06:46:41 +0000 (GMT)
-Date:   Wed, 5 Jul 2023 08:46:40 +0200
-From:   Alexander Gordeev <agordeev@linux.ibm.com>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
- page
-Message-ID: <ZKUR0HItN2Va8J1D@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com>
- <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com>
- <20230628211624.531cdc58@thinkpad-T15>
- <cd7c2851-1440-7220-6c53-16b343b1474@google.com>
- <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca>
- <20230629175645.7654d0a8@thinkpad-T15>
- <edaa96f-80c1-1252-acbb-71c4f045b035@google.com>
- <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com>
+        with ESMTP id S231482AbjGEHsE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Jul 2023 03:48:04 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 905CC170E
+        for <sparclinux@vger.kernel.org>; Wed,  5 Jul 2023 00:46:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1688543196;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ErZ583UAFFXXktAwUkPKfSDXi8WyYfGqw8H1xV5E3EY=;
+        b=bvtdsMB3TTi+6muykpHIIQ0A3AvT01aPDochyxGzhVwN5XImzQvuvqiWgY30SlBNp9xbR7
+        X+KIFZJfCG/FupP191BtP1KMoFSrsQZI0zvvJZuCwEve2VWRivHkRa3WedCjk6SJq62EmR
+        BsMIezWaYYDX4m2P3zvIoWpVQSUA3SU=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-470-1gsHjRvFNrameFcijIP01A-1; Wed, 05 Jul 2023 03:46:35 -0400
+X-MC-Unique: 1gsHjRvFNrameFcijIP01A-1
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-31437f02985so1847429f8f.0
+        for <sparclinux@vger.kernel.org>; Wed, 05 Jul 2023 00:46:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688543194; x=1691135194;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ErZ583UAFFXXktAwUkPKfSDXi8WyYfGqw8H1xV5E3EY=;
+        b=CWXs4obZnO3fPtXhtuQkTkm0tyXWI01vjqXr2oJiZ3nZ+e+Ik4XKCbNnyGv6DSHixx
+         5PYzqyQ6o1bfzn7yjgggCesmIhW1LjViEMiuyU0FypiMpCX3Kc16BexUm0xiS1MKxn9y
+         2AWclfP79OvTnM0Di2nHAePpK6L2zo3Qy1jFXnJMkL+9Q1MXZ5uwY5nE4nPxoQhfh9ac
+         rQWWTaDENDutfqUxUu66Cvqtrm0OsGrU63Rg0JGDd42ag/baPI5K3g4HXb658zG2q+tQ
+         KsFkQWQzgVWX7zRV6AHJhCaLXKCzlkv/fsueTgqHTSXjmJno6Uzdp+cDzwRHRK7AtiaG
+         huVw==
+X-Gm-Message-State: ABy/qLbY3eLGQJ7MwGySlIELwE44tIHySkTF5hNCLSdQ4n+zK7vzm4Hm
+        egFxecYGQY6XuXZsJA91hrHpypt/2qWd10V59vD4tccaIRnUY80mlXwcxcRMQ8AXfhVWab0t4R+
+        iOoLl2Uwsvpt+zabPtQrJ5g==
+X-Received: by 2002:adf:e44d:0:b0:314:2732:e81e with SMTP id t13-20020adfe44d000000b003142732e81emr13085721wrm.8.1688543194261;
+        Wed, 05 Jul 2023 00:46:34 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlFsu0NXA2DcqaEBs6I3Rg+ekfJ+Y9cFLpHbU/8XeUuuyRyAepiisRLN9BUbx4g3BoqHacYmEg==
+X-Received: by 2002:adf:e44d:0:b0:314:2732:e81e with SMTP id t13-20020adfe44d000000b003142732e81emr13085694wrm.8.1688543193994;
+        Wed, 05 Jul 2023 00:46:33 -0700 (PDT)
+Received: from localhost (205.pool92-176-231.dynamic.orange.es. [92.176.231.205])
+        by smtp.gmail.com with ESMTPSA id k5-20020a5d6e85000000b003063a92bbf5sm30496891wrz.70.2023.07.05.00.46.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Jul 2023 00:46:33 -0700 (PDT)
+From:   Javier Martinez Canillas <javierm@redhat.com>
+To:     Thomas Zimmermann <tzimmermann@suse.de>, arnd@arndb.de,
+        deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
+Cc:     linux-arch@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        loongarch@lists.linux.dev, linux-alpha@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 08/12] drivers/firmware: Remove trailing whitespaces
+In-Reply-To: <20230629121952.10559-9-tzimmermann@suse.de>
+References: <20230629121952.10559-1-tzimmermann@suse.de>
+ <20230629121952.10559-9-tzimmermann@suse.de>
+Date:   Wed, 05 Jul 2023 09:46:32 +0200
+Message-ID: <87bkgqssvb.fsf@minerva.mail-host-address-is-not-set>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: hruV8AkSHZl3ANlxXk4XPZerf2HqhW4w
-X-Proofpoint-GUID: qjKoYY9T1h-a6Vm3seAHuVTkQEuDrdL1
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-07-04_16,2023-07-04_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
- suspectscore=0 adultscore=0 impostorscore=0 priorityscore=1501 bulkscore=0
- malwarescore=0 clxscore=1015 lowpriorityscore=0 mlxscore=0 spamscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2305260000 definitions=main-2307050058
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Jul 01, 2023 at 09:32:38PM -0700, Hugh Dickins wrote:
-> On Thu, 29 Jun 2023, Hugh Dickins wrote:
+Thomas Zimmermann <tzimmermann@suse.de> writes:
 
-Hi Hugh,
+> Fix coding style. No functional changes.
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> ---
 
-...
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 
-> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-> +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
-> +{
-> +	struct page *page;
 
-If I got your and Claudio conversation right, you were going to add
-here WARN_ON_ONCE() in case of mm_alloc_pgste(mm)?
+-- 
+Best regards,
 
-> +	page = virt_to_page(pgtable);
-> +	SetPageActive(page);
-> +	page_table_free(mm, (unsigned long *)pgtable);
-> +}
-> +#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-> +
->  /*
->   * Base infrastructure required to generate basic asces, region, segment,
->   * and page tables that do not make use of enhanced features like EDAT1.
+Javier Martinez Canillas
+Core Platforms
+Red Hat
 
-Thanks!
