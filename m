@@ -2,268 +2,489 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F042EB64DD
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Jul 2023 17:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52948C001E0
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Jul 2023 01:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231704AbjGDREG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Jul 2023 13:04:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58014 "EHLO
+        id S231341AbjGEBW3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 Jul 2023 21:22:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229647AbjGDREF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 13:04:05 -0400
-Received: from mail-yw1-x1136.google.com (mail-yw1-x1136.google.com [IPv6:2607:f8b0:4864:20::1136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41F32E75
-        for <sparclinux@vger.kernel.org>; Tue,  4 Jul 2023 10:04:03 -0700 (PDT)
-Received: by mail-yw1-x1136.google.com with SMTP id 00721157ae682-5774098f16eso59437867b3.0
-        for <sparclinux@vger.kernel.org>; Tue, 04 Jul 2023 10:04:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1688490242; x=1691082242;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=o5CkhYNN16WNUQJu71BeSwdzRNxPgL/gs2UX0urk5eQ=;
-        b=In/HPs//bUn+2tgW3AmtAl5dxW/ADGV2YA56prULm3E/vdfno08a8tljcsPueGrFwv
-         jqarDMxpAnYo9aMI5Mb54mMD0rJ8CZohyLEima6tkL05J+cSnzXMAc1rCu3B7NnhNLQl
-         ZvVWe49F0YiOX95QlRJtsrnvcRJ4qDr/z3uf8RXLQDyMLLM3K+NeYbv+E3W8yR9z4V2c
-         WTkreLz7srWoSO6EVx02fhhtx9sRWBvRmIBi/UDAvsanUA+rvGltjBmFivqq6iRGLfxg
-         0Is7JP64PK57hxtBi5rB3DxXAUc/nlIHjgsphR/2KftHY0traJeP5nIjkP89b4sp+32J
-         RUxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688490242; x=1691082242;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=o5CkhYNN16WNUQJu71BeSwdzRNxPgL/gs2UX0urk5eQ=;
-        b=F+Cog2zy9OjXMsbozE2MbU00D8jx2k5y+24IpJiHvq8oTj0TOyAVkZtQM870gv7kPU
-         1xRqG99xmsDx+bUV7EEjtZuUf+P1+K1SLbM89F8CS6hcTGubpNiNKcbZSxtrGRaCpqTb
-         oCQebZkio3vOimLhHcDPYDn79uUY9udYBDBLo+g1qrijplkN50KiV4ZyWpwbAe8Z0THp
-         NAV4+mBDlJFkDS/YYLokv7KXuNy4cSTC62UhHhpaXQRm1mEDLdvNkgdl/G4md+MgwVrK
-         bIG7gxBJDRcs7/QoUv0rBRLqbPu3UmZPRAgrXD18O1Z99y3NaVJUQBT1PeAkhtAtDk9z
-         3VPA==
-X-Gm-Message-State: ABy/qLYAz/TAk+Bc+TuyYHhCyA9LpfDyCV0/81BLZ6/FhU1OQyr45cLT
-        lYPDA1ZUApKyBCW1aNh4qDqszQ==
-X-Google-Smtp-Source: APBJJlEujSIy21mB6q57p7XiiokfNCFL+rCQls/CklTtga65bPCnY5wMW8YqJmU/LAIKTHdSHjCBvg==
-X-Received: by 2002:a0d:dd02:0:b0:55a:3ce9:dc3d with SMTP id g2-20020a0ddd02000000b0055a3ce9dc3dmr13990263ywe.13.1688490242129;
-        Tue, 04 Jul 2023 10:04:02 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id n20-20020a819c54000000b00577632aa85esm2323151ywa.3.2023.07.04.10.03.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Jul 2023 10:04:01 -0700 (PDT)
-Date:   Tue, 4 Jul 2023 10:03:57 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-cc:     Hugh Dickins <hughd@google.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
- page
-In-Reply-To: <20230704171905.1263478f@thinkpad-T15>
-Message-ID: <e678affb-5eee-a055-7af1-1d29a965663b@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230628211624.531cdc58@thinkpad-T15> <cd7c2851-1440-7220-6c53-16b343b1474@google.com> <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca> <20230629175645.7654d0a8@thinkpad-T15>
- <edaa96f-80c1-1252-acbb-71c4f045b035@google.com> <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com> <20230704171905.1263478f@thinkpad-T15>
+        with ESMTP id S229645AbjGEBW1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jul 2023 21:22:27 -0400
+Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCC3410CF;
+        Tue,  4 Jul 2023 18:22:21 -0700 (PDT)
+Received: from loongson.cn (unknown [10.20.42.43])
+        by gateway (Coremail) with SMTP id _____8CxNvHMxaRkUy0AAA--.1021S3;
+        Wed, 05 Jul 2023 09:22:20 +0800 (CST)
+Received: from [10.20.42.43] (unknown [10.20.42.43])
+        by localhost.localdomain (Coremail) with SMTP id AQAAf8BxniO1xaRktcgbAA--.44376S3;
+        Wed, 05 Jul 2023 09:21:58 +0800 (CST)
+Message-ID: <02a6f36c-521f-4ff0-a0bf-1f8781c853e3@loongson.cn>
+Date:   Wed, 5 Jul 2023 09:21:07 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [06/12] arch: Declare screen_info in <asm/screen_info.h>
+Content-Language: en-US
+To:     Thomas Zimmermann <tzimmermann@suse.de>, arnd@arndb.de,
+        deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
+Cc:     linux-hyperv@vger.kernel.org, linux-efi@vger.kernel.org,
+        linux-ia64@vger.kernel.org,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>,
+        Rich Felker <dalias@libc.org>, Guo Ren <guoren@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
+        linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>, linux-arch@vger.kernel.org,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        linux-hexagon@vger.kernel.org, linux-staging@lists.linux.dev,
+        Russell King <linux@armlinux.org.uk>,
+        linux-csky@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        Juerg Haefliger <juerg.haefliger@canonical.com>,
+        Matt Turner <mattst88@gmail.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Kees Cook <keescook@chromium.org>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Chris Zankel <chris@zankel.net>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        loongarch@lists.linux.dev,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Thomas Gleixner <tglx@linutronix.de>, Zi Yan <ziy@nvidia.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Brian Cain <bcain@quicinc.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Sebastian Reichel <sebastian.reichel@collabora.com>,
+        linux-kernel@vger.kernel.org, Dinh Nguyen <dinguyen@kernel.org>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        "Mike Rapoport (IBM)" <rppt@kernel.org>,
+        linux-alpha@vger.kernel.org, Borislav Petkov <bp@alien8.de>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        linuxppc-dev@lists.ozlabs.org,
+        "David S. Miller" <davem@davemloft.net>, x86@kernel.org
+References: <20230629121952.10559-7-tzimmermann@suse.de>
+From:   Sui Jingfeng <suijingfeng@loongson.cn>
+In-Reply-To: <20230629121952.10559-7-tzimmermann@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: AQAAf8BxniO1xaRktcgbAA--.44376S3
+X-CM-SenderInfo: xvxlyxpqjiv03j6o00pqjv00gofq/
+X-Coremail-Antispam: 1Uk129KBj9fXoWfGFWfXw4kAw4UGw48Xw4fJFc_yoW8XF1rJo
+        WUK3Wjvr4rArW0gr4fGrn5GFW5Jryjkrs5ZFWIgwnrXF1ayF45tay5Ka4jy3y3try8Krn8
+        GFWa9FZxJay8Grn5l-sFpf9Il3svdjkaLaAFLSUrUUUUvb8apTn2vfkv8UJUUUU8wcxFpf
+        9Il3svdxBIdaVrn0xqx4xG64xvF2IEw4CE5I8CrVC2j2Jv73VFW2AGmfu7bjvjm3AaLaJ3
+        UjIYCTnIWjp_UUUOf7kC6x804xWl14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI
+        8IcIk0rVWrJVCq3wAFIxvE14AKwVWUXVWUAwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xG
+        Y2AK021l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14
+        v26F4j6r4UJwA2z4x0Y4vEx4A2jsIE14v26F4j6r4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAF
+        wI0_Gr0_Gr1UM2kKe7AKxVWrXVW3AwAS0I0E0xvYzxvE52x082IY62kv0487Mc804VCY07
+        AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWr
+        XVW3AwAv7VC2z280aVAFwI0_Cr0_Gr1UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwI
+        xGrwACI402YVCY1x026xAvFcxGjxylc7I2V7IY0VAS07AlzVAYIcxG8wCY1x0262kKe7AK
+        xVWrXVW3AwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwCFI7km07C267
+        AKxVWrXVW3AwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E
+        67AF67kF1VAFwI0_Wrv_Gr1UMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Xr0_Ar
+        1lIxAIcVC0I7IYx2IY6xkF7I0E14v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_
+        JF4lIxAIcVC2z280aVAFwI0_Cr0_Gr1UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYx
+        BIdaVFxhVjvjDU0xZFpf9x07bU73kUUUUU=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 4 Jul 2023, Gerald Schaefer wrote:
-> On Sat, 1 Jul 2023 21:32:38 -0700 (PDT)
-> Hugh Dickins <hughd@google.com> wrote:
-> > On Thu, 29 Jun 2023, Hugh Dickins wrote:
-> > > 
-> > > I've grown to dislike the (ab)use of pt_frag_refcount even more, to the
-> > > extent that I've not even tried to verify it; but I think I do get the
-> > > point now, that we need further info than just PPHHAA to know whether
-> > > the page is on the list or not.  But I think that if we move where the
-> > > call_rcu() is done, then the page can stay on or off the list by same
-> > > rules as before (but need to check HH bits along with PP when deciding
-> > > whether to allocate, and whether to list_add_tail() when freeing).  
-> > 
-> > No, not quite the same rules as before: I came to realize that using
-> > list_add_tail() for the HH pages would be liable to put a page on the
-> > list which forever blocked reuse of PP list_add_tail() pages after it
-> > (could be solved by a list_move() somewhere, but we have agreed to
-> > prefer simplicity).
-> > 
-> > I've dropped the HH bits, I'm using PageActive like we did on powerpc,
-> > I've dropped most of the pte_free_*() helpers, and list_del_init() is
-> > an easier way of dealing with those "is it on the list" questions.
-> > I expect that we shall be close to reaching agreement on...
-> 
-> This looks really nice, almost too good and easy to be true. I did not
-> find any obvious flaw, just some comments below. It also survived LTP
-> without any visible havoc, so I guess this approach is the best so far.
+Hi, Thomas
 
-Phew! I'm of course glad to hear this: thanks for your efforts on it.
 
-...
-> > --- a/arch/s390/mm/pgalloc.c
-> > +++ b/arch/s390/mm/pgalloc.c
-> > @@ -229,6 +229,15 @@ void page_table_free_pgste(struct page *page)
-> >   * logic described above. Both AA bits are set to 1 to denote a 4KB-pgtable
-> >   * while the PP bits are never used, nor such a page is added to or removed
-> >   * from mm_context_t::pgtable_list.
-> > + *
-> > + * pte_free_defer() overrides those rules: it takes the page off pgtable_list,
-> > + * and prevents both 2K fragments from being reused. pte_free_defer() has to
-> > + * guarantee that its pgtable cannot be reused before the RCU grace period
-> > + * has elapsed (which page_table_free_rcu() does not actually guarantee).
-> 
-> Hmm, I think page_table_free_rcu() has to guarantee the same, i.e. not
-> allow reuse before grace period elapsed. And I hope that it does so, by
-> setting the PP bits, which would be noticed in page_table_alloc(), in
-> case the page would be seen there.
-> 
-> Unlike pte_free_defer(), page_table_free_rcu() would add pages back to the
-> end of the list, and so they could be seen in page_table_alloc(), but they
-> should not be reused before grace period elapsed and __tlb_remove_table()
-> cleared the PP bits, as far as I understand.
-> 
-> So what exactly do you mean with "which page_table_free_rcu() does not actually
-> guarantee"?
+I love your patch, yet after applied your patch, the linux kernel fail 
+to compile on my LoongArch machine.
 
-I'll answer without locating and re-reading what Jason explained earlier,
-perhaps in a separate thread, about pseudo-RCU-ness in tlb_remove_table():
-he may have explained it better.  And without working out again all the
-MMU_GATHER #defines, and which of them do and do not apply to s390 here.
 
-The detail that sticks in my mind is the fallback in tlb_remove_table()
-in mm/mmu_gather.c: if its __get_free_page(GFP_NOWAIT) fails, it cannot
-batch the tables for freeing by RCU, and resorts instead to an immediate 
-TLB flush (I think: that again involves chasing definitions) followed by
-tlb_remove_table_sync_one() - which just delivers an interrupt to each CPU,
-and is commented: 
-/*
- * This isn't an RCU grace period and hence the page-tables cannot be
- * assumed to be actually RCU-freed.
- *
- * It is however sufficient for software page-table walkers that rely on
- * IRQ disabling.
- */
+```
 
-Whether that's good for your PP pages or not, I've given no thought:
-I've just taken it on trust that what s390 has working today is good.
+   CC      arch/loongarch/kernel/efi.o
+arch/loongarch/kernel/efi.c: In function ‘init_screen_info’:
+arch/loongarch/kernel/efi.c:77:54: error: invalid application of 
+‘sizeof’ to incomplete type ‘struct screen_info’
+    77 |         si = early_memremap(screen_info_table, sizeof(*si));
+       |                                                      ^
+arch/loongarch/kernel/efi.c:82:9: error: ‘screen_info’ undeclared (first 
+use in this function)
+    82 |         screen_info = *si;
+       |         ^~~~~~~~~~~
+arch/loongarch/kernel/efi.c:82:9: note: each undeclared identifier is 
+reported only once for each function it appears in
+arch/loongarch/kernel/efi.c:82:23: error: invalid use of undefined type 
+‘struct screen_info’
+    82 |         screen_info = *si;
+       |                       ^
+arch/loongarch/kernel/efi.c:83:29: error: invalid application of 
+‘sizeof’ to incomplete type ‘struct screen_info’
+    83 |         memset(si, 0, sizeof(*si));
+       |                             ^
+arch/loongarch/kernel/efi.c:84:34: error: invalid application of 
+‘sizeof’ to incomplete type ‘struct screen_info’
+    84 |         early_memunmap(si, sizeof(*si));
+       |                                  ^
+make[3]: *** [scripts/Makefile.build:252: arch/loongarch/kernel/efi.o] 
+Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [scripts/Makefile.build:494: arch/loongarch/kernel] Error 2
+make[1]: *** [scripts/Makefile.build:494: arch/loongarch] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [Makefile:2026: .] Error 2
 
-If that __get_free_page(GFP_NOWAIT) fallback instead used call_rcu(),
-then I would not have written "(which page_table_free_rcu() does not
-actually guarantee)".  But it cannot use call_rcu() because it does
-not have an rcu_head to work with - it's in some generic code, and
-there is no MMU_GATHER_CAN_USE_PAGE_RCU_HEAD for architectures to set.
+```
 
-And Jason would have much preferred us to address the issue from that
-angle; but not only would doing so destroy my sanity, I'd also destroy
-20 architectures TLB-flushing, unbuilt and untested, in the attempt.
+On 2023/6/29 19:45, Thomas Zimmermann wrote:
+> The variable screen_info does not exist on all architectures. Declare
+> it in <asm-generic/screen_info.h>. All architectures that do declare it
+> will provide it via <asm/screen_info.h>.
+>
+> Add the Kconfig token ARCH_HAS_SCREEN_INFO to guard against access on
+> architectures that don't provide screen_info.
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> Cc: Richard Henderson <richard.henderson@linaro.org>
+> Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+> Cc: Matt Turner <mattst88@gmail.com>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will@kernel.org>
+> Cc: Guo Ren <guoren@kernel.org>
+> Cc: Brian Cain <bcain@quicinc.com>
+> Cc: Huacai Chen <chenhuacai@kernel.org>
+> Cc: WANG Xuerui <kernel@xen0n.name>
+> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+> Cc: Dinh Nguyen <dinguyen@kernel.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+> Cc: Paul Walmsley <paul.walmsley@sifive.com>
+> Cc: Palmer Dabbelt <palmer@dabbelt.com>
+> Cc: Albert Ou <aou@eecs.berkeley.edu>
+> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+> Cc: Rich Felker <dalias@libc.org>
+> Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: x86@kernel.org
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Chris Zankel <chris@zankel.net>
+> Cc: Max Filippov <jcmvbkbc@gmail.com>
+> Cc: Helge Deller <deller@gmx.de>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: "Paul E. McKenney" <paulmck@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Frederic Weisbecker <frederic@kernel.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Ard Biesheuvel <ardb@kernel.org>
+> Cc: Sami Tolvanen <samitolvanen@google.com>
+> Cc: Juerg Haefliger <juerg.haefliger@canonical.com>
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+> Cc: "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Sebastian Reichel <sebastian.reichel@collabora.com>
+> Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+> Cc: Zi Yan <ziy@nvidia.com>
+> Acked-by: WANG Xuerui <git@xen0n.name> # loongarch
+> ---
+>   arch/Kconfig                      |  6 ++++++
+>   arch/alpha/Kconfig                |  1 +
+>   arch/arm/Kconfig                  |  1 +
+>   arch/arm64/Kconfig                |  1 +
+>   arch/csky/Kconfig                 |  1 +
+>   arch/hexagon/Kconfig              |  1 +
+>   arch/ia64/Kconfig                 |  1 +
+>   arch/loongarch/Kconfig            |  1 +
+>   arch/mips/Kconfig                 |  1 +
+>   arch/nios2/Kconfig                |  1 +
+>   arch/powerpc/Kconfig              |  1 +
+>   arch/riscv/Kconfig                |  1 +
+>   arch/sh/Kconfig                   |  1 +
+>   arch/sparc/Kconfig                |  1 +
+>   arch/x86/Kconfig                  |  1 +
+>   arch/xtensa/Kconfig               |  1 +
+>   drivers/video/Kconfig             |  3 +++
+>   include/asm-generic/Kbuild        |  1 +
+>   include/asm-generic/screen_info.h | 12 ++++++++++++
+>   include/linux/screen_info.h       |  2 +-
+>   20 files changed, 38 insertions(+), 1 deletion(-)
+>   create mode 100644 include/asm-generic/screen_info.h
+>
+> diff --git a/arch/Kconfig b/arch/Kconfig
+> index 205fd23e0cada..2f58293fd7bcb 100644
+> --- a/arch/Kconfig
+> +++ b/arch/Kconfig
+> @@ -1466,6 +1466,12 @@ config ARCH_HAS_NONLEAF_PMD_YOUNG
+>   	  address translations. Page table walkers that clear the accessed bit
+>   	  may use this capability to reduce their search space.
+>   
+> +config ARCH_HAS_SCREEN_INFO
+> +	bool
+> +	help
+> +	  Selected by architectures that provide a global instance of
+> +	  screen_info.
+> +
+>   source "kernel/gcov/Kconfig"
+>   
+>   source "scripts/gcc-plugins/Kconfig"
+> diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
+> index a5c2b1aa46b02..d749011d88b14 100644
+> --- a/arch/alpha/Kconfig
+> +++ b/arch/alpha/Kconfig
+> @@ -4,6 +4,7 @@ config ALPHA
+>   	default y
+>   	select ARCH_32BIT_USTAT_F_TINODE
+>   	select ARCH_HAS_CURRENT_STACK_POINTER
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_MIGHT_HAVE_PC_PARPORT
+>   	select ARCH_MIGHT_HAVE_PC_SERIO
+>   	select ARCH_NO_PREEMPT
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index 0fb4b218f6658..a9d01ee67a90e 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -15,6 +15,7 @@ config ARM
+>   	select ARCH_HAS_MEMBARRIER_SYNC_CORE
+>   	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+>   	select ARCH_HAS_PTE_SPECIAL if ARM_LPAE
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SETUP_DMA_OPS
+>   	select ARCH_HAS_SET_MEMORY
+>   	select ARCH_STACKWALK
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 343e1e1cae10a..21addc4715bb3 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -36,6 +36,7 @@ config ARM64
+>   	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+>   	select ARCH_HAS_PTE_DEVMAP
+>   	select ARCH_HAS_PTE_SPECIAL
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SETUP_DMA_OPS
+>   	select ARCH_HAS_SET_DIRECT_MAP
+>   	select ARCH_HAS_SET_MEMORY
+> diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
+> index 4df1f8c9d170b..28444e581fc1f 100644
+> --- a/arch/csky/Kconfig
+> +++ b/arch/csky/Kconfig
+> @@ -10,6 +10,7 @@ config CSKY
+>   	select ARCH_USE_QUEUED_RWLOCKS
+>   	select ARCH_USE_QUEUED_SPINLOCKS
+>   	select ARCH_HAS_CURRENT_STACK_POINTER
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_INLINE_READ_LOCK if !PREEMPTION
+>   	select ARCH_INLINE_READ_LOCK_BH if !PREEMPTION
+>   	select ARCH_INLINE_READ_LOCK_IRQ if !PREEMPTION
+> diff --git a/arch/hexagon/Kconfig b/arch/hexagon/Kconfig
+> index 54eadf2651786..cc683c0a43d34 100644
+> --- a/arch/hexagon/Kconfig
+> +++ b/arch/hexagon/Kconfig
+> @@ -5,6 +5,7 @@ comment "Linux Kernel Configuration for Hexagon"
+>   config HEXAGON
+>   	def_bool y
+>   	select ARCH_32BIT_OFF_T
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+>   	select ARCH_NO_PREEMPT
+>   	select DMA_GLOBAL_POOL
+> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+> index e79f15e32a451..8b1e785e6d53d 100644
+> --- a/arch/ia64/Kconfig
+> +++ b/arch/ia64/Kconfig
+> @@ -10,6 +10,7 @@ config IA64
+>   	bool
+>   	select ARCH_BINFMT_ELF_EXTRA_PHDRS
+>   	select ARCH_HAS_DMA_MARK_CLEAN
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_STRNCPY_FROM_USER
+>   	select ARCH_HAS_STRNLEN_USER
+>   	select ARCH_MIGHT_HAVE_PC_PARPORT
+> diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
+> index d38b066fc931b..6aab2fb7753da 100644
+> --- a/arch/loongarch/Kconfig
+> +++ b/arch/loongarch/Kconfig
+> @@ -13,6 +13,7 @@ config LOONGARCH
+>   	select ARCH_HAS_FORTIFY_SOURCE
+>   	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
+>   	select ARCH_HAS_PTE_SPECIAL
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+>   	select ARCH_INLINE_READ_LOCK if !PREEMPTION
+>   	select ARCH_INLINE_READ_LOCK_BH if !PREEMPTION
+> diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+> index 675a8660cb85a..c0ae09789cb6d 100644
+> --- a/arch/mips/Kconfig
+> +++ b/arch/mips/Kconfig
+> @@ -10,6 +10,7 @@ config MIPS
+>   	select ARCH_HAS_KCOV
+>   	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE if !EVA
+>   	select ARCH_HAS_PTE_SPECIAL if !(32BIT && CPU_HAS_RIXI)
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_STRNCPY_FROM_USER
+>   	select ARCH_HAS_STRNLEN_USER
+>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+> diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
+> index e5936417d3cd3..7183eea282212 100644
+> --- a/arch/nios2/Kconfig
+> +++ b/arch/nios2/Kconfig
+> @@ -3,6 +3,7 @@ config NIOS2
+>   	def_bool y
+>   	select ARCH_32BIT_OFF_T
+>   	select ARCH_HAS_DMA_PREP_COHERENT
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SYNC_DMA_FOR_CPU
+>   	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+>   	select ARCH_HAS_DMA_SET_UNCACHED
+> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+> index bff5820b7cda1..b1acad3076180 100644
+> --- a/arch/powerpc/Kconfig
+> +++ b/arch/powerpc/Kconfig
+> @@ -148,6 +148,7 @@ config PPC
+>   	select ARCH_HAS_PTE_DEVMAP		if PPC_BOOK3S_64
+>   	select ARCH_HAS_PTE_SPECIAL
+>   	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SET_MEMORY
+>   	select ARCH_HAS_STRICT_KERNEL_RWX	if (PPC_BOOK3S || PPC_8xx || 40x) && !HIBERNATION
+>   	select ARCH_HAS_STRICT_KERNEL_RWX	if PPC_85xx && !HIBERNATION && !RANDOMIZE_BASE
+> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+> index 5966ad97c30c3..b5a48f8424af9 100644
+> --- a/arch/riscv/Kconfig
+> +++ b/arch/riscv/Kconfig
+> @@ -29,6 +29,7 @@ config RISCV
+>   	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+>   	select ARCH_HAS_PMEM_API
+>   	select ARCH_HAS_PTE_SPECIAL
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SET_DIRECT_MAP if MMU
+>   	select ARCH_HAS_SET_MEMORY if MMU
+>   	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
+> diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+> index 04b9550cf0070..001f5149952b4 100644
+> --- a/arch/sh/Kconfig
+> +++ b/arch/sh/Kconfig
+> @@ -10,6 +10,7 @@ config SUPERH
+>   	select ARCH_HAS_GIGANTIC_PAGE
+>   	select ARCH_HAS_GCOV_PROFILE_ALL
+>   	select ARCH_HAS_PTE_SPECIAL
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+>   	select ARCH_HIBERNATION_POSSIBLE if MMU
+>   	select ARCH_MIGHT_HAVE_PC_PARPORT
+> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+> index 8535e19062f65..e4bfb80b48cfe 100644
+> --- a/arch/sparc/Kconfig
+> +++ b/arch/sparc/Kconfig
+> @@ -13,6 +13,7 @@ config 64BIT
+>   config SPARC
+>   	bool
+>   	default y
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_MIGHT_HAVE_PC_PARPORT if SPARC64 && PCI
+>   	select ARCH_MIGHT_HAVE_PC_SERIO
+>   	select DMA_OPS
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 53bab123a8ee4..d7c2bf4ee403d 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -91,6 +91,7 @@ config X86
+>   	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
+>   	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
+>   	select ARCH_HAS_COPY_MC			if X86_64
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SET_MEMORY
+>   	select ARCH_HAS_SET_DIRECT_MAP
+>   	select ARCH_HAS_STRICT_KERNEL_RWX
+> diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
+> index 3c6e5471f025b..c6cbd7459939c 100644
+> --- a/arch/xtensa/Kconfig
+> +++ b/arch/xtensa/Kconfig
+> @@ -8,6 +8,7 @@ config XTENSA
+>   	select ARCH_HAS_DMA_PREP_COHERENT if MMU
+>   	select ARCH_HAS_GCOV_PROFILE_ALL
+>   	select ARCH_HAS_KCOV
+> +	select ARCH_HAS_SCREEN_INFO
+>   	select ARCH_HAS_SYNC_DMA_FOR_CPU if MMU
+>   	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if MMU
+>   	select ARCH_HAS_DMA_SET_UNCACHED if MMU
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index 8b2b9ac37c3df..d4a72bea56be0 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -21,6 +21,9 @@ config STI_CORE
+>   config VIDEO_CMDLINE
+>   	bool
+>   
+> +config ARCH_HAS_SCREEN_INFO
+> +	bool
+> +
+>   config VIDEO_NOMODESET
+>   	bool
+>   	default n
+> diff --git a/include/asm-generic/Kbuild b/include/asm-generic/Kbuild
+> index 941be574bbe00..5e5d4158a4b4b 100644
+> --- a/include/asm-generic/Kbuild
+> +++ b/include/asm-generic/Kbuild
+> @@ -47,6 +47,7 @@ mandatory-y += percpu.h
+>   mandatory-y += pgalloc.h
+>   mandatory-y += preempt.h
+>   mandatory-y += rwonce.h
+> +mandatory-y += screen_info.h
+>   mandatory-y += sections.h
+>   mandatory-y += serial.h
+>   mandatory-y += shmparam.h
+> diff --git a/include/asm-generic/screen_info.h b/include/asm-generic/screen_info.h
+> new file mode 100644
+> index 0000000000000..6fd0e50fabfcd
+> --- /dev/null
+> +++ b/include/asm-generic/screen_info.h
+> @@ -0,0 +1,12 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +#ifndef _ASM_GENERIC_SCREEN_INFO_H
+> +#define _ASM_GENERIC_SCREEN_INFO_H
+> +
+> +#include <uapi/linux/screen_info.h>
+> +
+> +#if defined(CONFIG_ARCH_HAS_SCREEN_INFO)
+> +extern struct screen_info screen_info;
+> +#endif
+> +
+> +#endif /* _ASM_GENERIC_SCREEN_INFO_H */
+> diff --git a/include/linux/screen_info.h b/include/linux/screen_info.h
+> index eab7081392d50..c764b9a51c24b 100644
+> --- a/include/linux/screen_info.h
+> +++ b/include/linux/screen_info.h
+> @@ -4,6 +4,6 @@
+>   
+>   #include <uapi/linux/screen_info.h>
+>   
+> -extern struct screen_info screen_info;
+> +#include <asm/screen_info.h>
+>   
+>   #endif /* _SCREEN_INFO_H */
 
-...
-> > @@ -325,10 +346,17 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
-> >  		 */
-> >  		mask = atomic_xor_bits(&page->_refcount, 0x11U << (bit + 24));
-> >  		mask >>= 24;
-> > -		if (mask & 0x03U)
-> > +		if ((mask & 0x03U) && !PageActive(page)) {
-> > +			/*
-> > +			 * Other half is allocated, and neither half has had
-> > +			 * its free deferred: add page to head of list, to make
-> > +			 * this freed half available for immediate reuse.
-> > +			 */
-> >  			list_add(&page->lru, &mm->context.pgtable_list);
-> > -		else
-> > -			list_del(&page->lru);
-> > +		} else {
-> > +			/* If page is on list, now remove it. */
-> > +			list_del_init(&page->lru);
-> > +		}
-> 
-> Ok, we might end up with some unnecessary list_del_init() here, e.g. if
-> other half is still allocated, when called from pte_free_defer() on a
-> fully allocated page, which was not on the list (and with PageActive, and
-> (mask & 0x03U) true).
-> Not sure if adding an additional mask check to the else path would be
-> needed, but it seems that list_del_init() should also be able to handle
-> this.
-
-list_del_init() is very cheap in the unnecessary case: the cachelines
-required are already there.  You don't want a flag to say whether to
-call it or not, it is already the efficient approach.
-
-(But you were right not to use it in your pt_frag_refcount version,
-because there we were still trying to do the call_rcu() per fragment
-rather than per page, so page->lru could have been on the RCU queue.)
-
-> 
-> Same thought applies to the similar logic in page_table_free_rcu()
-> below.
-> 
-> >  		spin_unlock_bh(&mm->context.lock);
-> >  		mask = atomic_xor_bits(&page->_refcount, 0x10U << (bit + 24));
-> >  		mask >>= 24;
-> > @@ -342,8 +370,10 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
-> >  	}
-> >  
-> >  	page_table_release_check(page, table, half, mask);
-> > -	pgtable_pte_page_dtor(page);
-> > -	__free_page(page);
-> > +	if (TestClearPageActive(page))
-> > +		call_rcu(&page->rcu_head, pte_free_now);
-> > +	else
-> > +		pte_free_now(&page->rcu_head);
-> 
-> This ClearPageActive, and the similar thing in __tlb_remove_table() below,
-> worries me a bit, because it is done outside the spin_lock. It "feels" like
-> there could be some race with the PageActive checks inside the spin_lock,
-> but when drawing some pictures, I could not find any such scenario yet.
-> Also, our existing spin_lock is probably not supposed to protect against
-> PageActive changes anyway, right?
-
-Here (and similarly in __tlb_remove_table()) is where we are about to free
-the page table page: both of the fragments have already been released,
-there is nobody left who could be racing against us to set PageActive.
-
-I chose PageActive for its name, not for any special behaviour of that
-flag: nothing else could be setting or clearing it while we own the page.
-
-Hugh
