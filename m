@@ -2,137 +2,58 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06801EB64DD
-	for <sparclinux@archiver.kernel.org>; Thu,  6 Jul 2023 19:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A59FDEB64D9
+	for <sparclinux@archiver.kernel.org>; Fri,  7 Jul 2023 07:46:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232571AbjGFTpb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 Jul 2023 15:45:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50976 "EHLO
+        id S232508AbjGGHqo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Jul 2023 03:46:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229891AbjGFTpa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Jul 2023 15:45:30 -0400
-Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C07061FC3
-        for <sparclinux@vger.kernel.org>; Thu,  6 Jul 2023 12:45:27 -0700 (PDT)
-Received: by mail-yb1-xb29.google.com with SMTP id 3f1490d57ef6-bacf685150cso1195426276.3
-        for <sparclinux@vger.kernel.org>; Thu, 06 Jul 2023 12:45:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1688672727; x=1691264727;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=jn2A84TyxlB9E6QwhZ/S3+QyShJtUiEedaODmn36QLU=;
-        b=lNzL+MZHVE5Tf5jrUoH6qartx9zzmTGqRlIdWHCjVAbfYsp6CttNZlOBa0hRzJvZTL
-         SocW3GJytbAfu6mxKOaeSgPA2iF9rnWdCYXvkrsIK9bHpmO7W6jRojvsd0W+wS+1M4ey
-         Cy0yHMaRcD9qOOww9osMC+/qv3AnBllJOa6CwnAgkMCGCbzwsgDwWZB/A/DaH1aXsVkX
-         GCRoPuBLf5rOxEvwKQVFZvVP2+nwXsMRUU4gYs9i3BpzNT/+y660I6oddp/GqxuJdZ4c
-         ZEiHuDoHp93DRZmouI1YYfnuJreSUTCXVkXN8Tu0HBsepWhWGMKQWmvcj8W8/LXjSWTi
-         jHsw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688672727; x=1691264727;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=jn2A84TyxlB9E6QwhZ/S3+QyShJtUiEedaODmn36QLU=;
-        b=fVX6H/pgcQoaDB8rfiqhyjJ+ylyWoh0RQIec1swGy7xhG1Yhf2+QDqRt+6T8scRufa
-         QP6Db+GO5nl6zy9Ndd5knoN7+r9ODviKlu139HmElNxH02Qtc69sdQRZMt1XVpZb3DIB
-         gVTHyX3XnDhpjOF9E+s8XSrHb/EbPK9n/9Yl+K5wtYKsJLdVD6JUX0DvAdYJlFF1oHI8
-         3po7BNdU9icMmAJSpsLdeq5LvYj4XVUnYZJfebj5ikx5oKUFE9uB5x+fN41ZmjLR1Pz+
-         9NihjM8ngljYdnnrKIRWkaLg6CGG5uV1DD1ono9AKOv39UczUtxavAmXb3sQQeYI+qZ+
-         LrIw==
-X-Gm-Message-State: ABy/qLbarSX579yX8UXTNaAg1T3Zi+Iw71B0y0yp+SLH64cyAo8+LOU/
-        nkIjCFNdRIoHzzSxqOdnt7MfOw==
-X-Google-Smtp-Source: APBJJlHqKtby+pVoLzti7droMN1zKJuKs2lBA2W3Af+OZJMud2WnSKOd+NI5VCViV+RTettlilf/TQ==
-X-Received: by 2002:a81:5f09:0:b0:570:6667:1cfa with SMTP id t9-20020a815f09000000b0057066671cfamr3295624ywb.47.1688672726798;
-        Thu, 06 Jul 2023 12:45:26 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id z7-20020a81c207000000b005703cfc23c1sm539958ywc.104.2023.07.06.12.45.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Jul 2023 12:45:26 -0700 (PDT)
-Date:   Thu, 6 Jul 2023 12:45:14 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-cc:     Hugh Dickins <hughd@google.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 07/12] s390: add pte_free_defer() for pgtables sharing
- page
-In-Reply-To: <20230706170213.2ea63606@thinkpad-T15>
-Message-ID: <b454cfb1-85dc-743f-8f0-30d7e3d4376@google.com>
-References: <54cb04f-3762-987f-8294-91dafd8ebfb0@google.com> <a722dbec-bd9e-1213-1edd-53cd547aa4f@google.com> <20230628211624.531cdc58@thinkpad-T15> <cd7c2851-1440-7220-6c53-16b343b1474@google.com> <ZJ2hsM5Tn+yUZ5ZV@ziepe.ca> <20230629175645.7654d0a8@thinkpad-T15>
- <edaa96f-80c1-1252-acbb-71c4f045b035@google.com> <7bef5695-fa4a-7215-7e9d-d4a83161c7ab@google.com> <20230704171905.1263478f@thinkpad-T15> <e678affb-5eee-a055-7af1-1d29a965663b@google.com> <20230705145516.7d9d554d@thinkpad-T15> <1014735-ecc4-b4bc-3ae7-48a4328ed149@google.com>
- <20230706170213.2ea63606@thinkpad-T15>
+        with ESMTP id S232684AbjGGHq3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Jul 2023 03:46:29 -0400
+Received: from mail.tummelspey.pl (mail.tummelspey.pl [195.231.83.87])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8894A26B6
+        for <sparclinux@vger.kernel.org>; Fri,  7 Jul 2023 00:46:03 -0700 (PDT)
+Received: by mail.tummelspey.pl (Postfix, from userid 1002)
+        id 989D2842AB; Fri,  7 Jul 2023 09:45:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tummelspey.pl;
+        s=mail; t=1688715960;
+        bh=OJs3leM9fdfMkxPirBSuuU/UTIEL4q9FUCZWMj2U0kA=;
+        h=Date:From:To:Subject:From;
+        b=unWb1Bj29SVDxLJ2JOFjQXtWPNKN6bb+VPXOGoARVCHmaNqdts50Qz2Inw71sKNn1
+         0QD84YJ753XPpQNPJ2PIb+JJYSyj5q9VRG+UFBkaKBcoyEdsVrSQ99j6S8A7jfXJjK
+         RdBqcPt+r/zSrX6jWyU2yTUHtl1fLS7p0/JBGV9WNJKVe1GjTXv+WHrv/0+SopVCjI
+         tFsviGpaE34Q0wo/88b1nCsMiUYr+l/mIva+556DiotAaMFVh2/P1VGJQSeM/s/ZcQ
+         XgAgMNj+Uj8YjpphsV7OfR8UlxsjDfBM1cLB/hj/fD71a/Oc1GuTReyRu8kOwZ8vCC
+         Mw/ZsPEIMqr1A==
+Received: by mail.tummelspey.pl for <sparclinux@vger.kernel.org>; Fri,  7 Jul 2023 07:45:47 GMT
+Message-ID: <20230707084500-0.1.2d.icob.0.o0ofdgm41q@tummelspey.pl>
+Date:   Fri,  7 Jul 2023 07:45:47 GMT
+From:   "Bartosz Holender" <bartosz.holender@tummelspey.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
+X-Mailer: mail.tummelspey.pl
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, 6 Jul 2023, Gerald Schaefer wrote:
-> 
-> Since none of my remarks on the comments seem valid or strictly necessary
-> any more, and I also could not find functional issues, I think you can add
-> this patch as new version for 07/12. And I can now give you this:
-> 
-> Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Szanowni Pa=C5=84stwo,
 
-Great, thanks a lot Gerald.
-The one change I'm making to it is then this merged in:
+niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
+czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
+=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
+py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
+energii elektrycznej.
 
---- a/arch/s390/mm/pgalloc.c
-+++ b/arch/s390/mm/pgalloc.c
-@@ -455,6 +455,11 @@ void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
- 	page = virt_to_page(pgtable);
- 	SetPageActive(page);
- 	page_table_free(mm, (unsigned long *)pgtable);
-+	/*
-+	 * page_table_free() does not do the pgste gmap_unlink() which
-+	 * page_table_free_rcu() does: warn us if pgste ever reaches here.
-+	 */
-+	WARN_ON_ONCE(mm_alloc_pgste(mm));
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
+Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
+pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
+ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
+
+Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
+=BCliwo=C5=9Bciach?
+
+Pozdrawiam
+Bartosz Holender
