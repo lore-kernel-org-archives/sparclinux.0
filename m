@@ -2,61 +2,273 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99FB1EB64D9
-	for <sparclinux@archiver.kernel.org>; Fri,  7 Jul 2023 08:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C33BC001B0
+	for <sparclinux@archiver.kernel.org>; Fri,  7 Jul 2023 09:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232412AbjGGIPI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 Jul 2023 04:15:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50788 "EHLO
+        id S232997AbjGGJ66 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Jul 2023 05:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbjGGIPH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Jul 2023 04:15:07 -0400
-X-Greylist: delayed 539 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 07 Jul 2023 01:15:03 PDT
-Received: from mail.aledcefni.pl (mail.aledcefni.pl [94.177.238.232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 702FEBA
-        for <sparclinux@vger.kernel.org>; Fri,  7 Jul 2023 01:15:03 -0700 (PDT)
-Received: by mail.aledcefni.pl (Postfix, from userid 1001)
-        id A153282F5C; Fri,  7 Jul 2023 09:06:00 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aledcefni.pl; s=mail;
-        t=1688717160; bh=fSSLkulcflMDzP/A7iqUX+An+9X4luwq8hK7ZmQNSUA=;
-        h=Date:From:To:Subject:From;
-        b=E/Eumv8o8/Z0+ZSwExTGSXu36xpl/UgqCZY/CbttqlyqU3ml/Np5ESseTuiINyqOx
-         YUM28ZPIH8m0rdcUk7NQ/dFEfpYVkbk6lBdRHOwFCZLy936Vse+p6xcYZnBdg6J6Gd
-         tILUGNwgRB8dK6UChTNCjQUe+0VM2ldhdtZKpsime34yiuDSKb6w4CH0do0S+x7Ptt
-         83bmo8v+8JsWhagQzhthhARcKiu6f9F5NQuQAo7xe8b47w8ZFPp9a4Aq8U5ZMX6yhr
-         j/bfoXO/nXHDpsgkF69bbskFWXllokuyMsXFKX2o9lgBI6S6mMdHeomAum61ob5gcG
-         N67+/z+ZQuP6w==
-Received: by mail.aledcefni.pl for <sparclinux@vger.kernel.org>; Fri,  7 Jul 2023 08:05:44 GMT
-Message-ID: <20230707074500-0.1.63.d82e.0.oatjnb61dl@aledcefni.pl>
-Date:   Fri,  7 Jul 2023 08:05:44 GMT
-From:   "Grzegorz Gawryl" <grzegorz.gawryl@aledcefni.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Finansowanie_dla_u=C5=BCytkownik=C3=B3w_terminali_p=C5=82atniczych?=
-X-Mailer: mail.aledcefni.pl
+        with ESMTP id S232991AbjGGJ6Z (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Jul 2023 05:58:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3908730F4;
+        Fri,  7 Jul 2023 02:56:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 538DA618E8;
+        Fri,  7 Jul 2023 09:56:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FE7EC433C8;
+        Fri,  7 Jul 2023 09:56:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1688723800;
+        bh=ty2xk1caePgk351i1PlLcBtJnYI+nZOrooSEIVR42cM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=sXUcxJoU9v7wbKk1WFUkHjCOtcDqVJah45HZ1R2N0qI2QoOYSuh76lxNgey1tt7fS
+         GTMcUJDrTLZtSg/JCK6LZvXBI36q6F5TJ1l1kjOcry+LAcPI2CQdKpMCyfKc1MN743
+         X1HcoJ8OeCiZNrK+y/V4TUTmthbvNYzPNYJx5wihInzyVO4bfubyg3H6SAoenAvVyE
+         Q7hOpElCC1E5UY+RxL2s8d5vHvMkpeuRZPuQi6aO3DXwZKlYgVsWTZvcAr/U25fFlF
+         GDYyubh/Z6n7/OMf2yB8VDXroJlyEKt3gNqrPHapQAZVsQykO2MaOYmLVmY8qV8Goz
+         VgZYg7kZS7t8w==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     javierm@redhat.com, linux-fbdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, Ard Biesheuvel <ardb@kernel.org>,
+        Helge Deller <deller@gmx.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>,
+        Brian Cain <bcain@quicinc.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: [PATCH 4/4] vgacon, arch/*: remove unused screen_info definitions
+Date:   Fri,  7 Jul 2023 11:52:26 +0200
+Message-Id: <20230707095415.1449376-4-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230707095415.1449376-1-arnd@kernel.org>
+References: <20230707095415.1449376-1-arnd@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
+From: Arnd Bergmann <arnd@arndb.de>
 
-zwracam si=C4=99 do Pa=C5=84stwa w zwi=C4=85zku z wprowadzeniem nowego sp=
-osobu finansowania pod obr=C3=B3t na terminalu p=C5=82atniczym - bez zb=C4=
-=99dnych formalno=C5=9Bci i bez odsetek.
+A number of architectures either kept the screen_info definition for
+historical purposes as it used to be required by the generic VT code, or
+they copied it from another architecture in order to build the VGA
+console driver in an allmodconfig build.
 
-Nasze wsparcie kierujemy do przedsi=C4=99biorc=C3=B3w, kt=C3=B3rzy dzia=C5=
-=82aj=C4=85 na rynku przez co najmniej rok, korzystaj=C4=85 z terminala p=
-=C5=82atniczego od min. 6 miesi=C4=99cy i generuj=C4=85 nie mniej ni=C5=BC=
- 7500 z=C5=82 miesi=C4=99cznego obrotu na terminalu p=C5=82atniczym.
+Now that vgacon no longer builds on these architectures, remove the
+stale definitions.
 
-Je=C5=BCeli spe=C5=82niaj=C4=85 Pa=C5=84stwo te kryteria i interesuje Pa=C5=
-=84stwa szybkie pozyskanie dodatkowych =C5=9Brodk=C3=B3w z automatyczn=C4=
-=85 sp=C5=82at=C4=85 elastycznych rat dostosowanych do dziennych obrot=C3=
-=B3w - prosz=C4=99 o wiadomo=C5=9B=C4=87. Ch=C4=99tnie przedstawi=C4=99 s=
-zczeg=C3=B3=C5=82y.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/csky/kernel/setup.c          | 12 ------------
+ arch/hexagon/kernel/Makefile      |  2 --
+ arch/hexagon/kernel/screen_info.c |  3 ---
+ arch/nios2/kernel/setup.c         |  5 -----
+ arch/sh/kernel/setup.c            |  5 -----
+ arch/sparc/kernel/setup_32.c      | 13 -------------
+ arch/sparc/kernel/setup_64.c      | 13 -------------
+ arch/xtensa/kernel/setup.c        | 12 ------------
+ 8 files changed, 65 deletions(-)
+ delete mode 100644 arch/hexagon/kernel/screen_info.c
 
+diff --git a/arch/csky/kernel/setup.c b/arch/csky/kernel/setup.c
+index 106fbf0b6f3b4..51012e90780d6 100644
+--- a/arch/csky/kernel/setup.c
++++ b/arch/csky/kernel/setup.c
+@@ -8,22 +8,10 @@
+ #include <linux/of_fdt.h>
+ #include <linux/start_kernel.h>
+ #include <linux/dma-map-ops.h>
+-#include <linux/screen_info.h>
+ #include <asm/sections.h>
+ #include <asm/mmu_context.h>
+ #include <asm/pgalloc.h>
+ 
+-#ifdef CONFIG_DUMMY_CONSOLE
+-struct screen_info screen_info = {
+-	.orig_video_lines	= 30,
+-	.orig_video_cols	= 80,
+-	.orig_video_mode	= 0,
+-	.orig_video_ega_bx	= 0,
+-	.orig_video_isVGA	= 1,
+-	.orig_video_points	= 8
+-};
+-#endif
+-
+ static void __init csky_memblock_init(void)
+ {
+ 	unsigned long lowmem_size = PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
+diff --git a/arch/hexagon/kernel/Makefile b/arch/hexagon/kernel/Makefile
+index e73cb321630ec..3fdf937eb572e 100644
+--- a/arch/hexagon/kernel/Makefile
++++ b/arch/hexagon/kernel/Makefile
+@@ -17,5 +17,3 @@ obj-y += vm_vectors.o
+ obj-$(CONFIG_HAS_DMA) += dma.o
+ 
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+-
+-obj-$(CONFIG_VGA_CONSOLE) += screen_info.o
+diff --git a/arch/hexagon/kernel/screen_info.c b/arch/hexagon/kernel/screen_info.c
+deleted file mode 100644
+index 1e1ceb18bafe7..0000000000000
+--- a/arch/hexagon/kernel/screen_info.c
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#include <linux/screen_info.h>
+-
+-struct screen_info screen_info;
+diff --git a/arch/nios2/kernel/setup.c b/arch/nios2/kernel/setup.c
+index 8582ed9658447..da122a5fa43b2 100644
+--- a/arch/nios2/kernel/setup.c
++++ b/arch/nios2/kernel/setup.c
+@@ -19,7 +19,6 @@
+ #include <linux/memblock.h>
+ #include <linux/initrd.h>
+ #include <linux/of_fdt.h>
+-#include <linux/screen_info.h>
+ 
+ #include <asm/mmu_context.h>
+ #include <asm/sections.h>
+@@ -36,10 +35,6 @@ static struct pt_regs fake_regs = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 					0, 0, 0, 0, 0, 0,
+ 					0};
+ 
+-#ifdef CONFIG_VT
+-struct screen_info screen_info;
+-#endif
+-
+ /* Copy a short hook instruction sequence to the exception address */
+ static inline void copy_exception_handler(unsigned int addr)
+ {
+diff --git a/arch/sh/kernel/setup.c b/arch/sh/kernel/setup.c
+index b3da2757faaf3..3d80515298d26 100644
+--- a/arch/sh/kernel/setup.c
++++ b/arch/sh/kernel/setup.c
+@@ -7,7 +7,6 @@
+  *  Copyright (C) 1999  Niibe Yutaka
+  *  Copyright (C) 2002 - 2010 Paul Mundt
+  */
+-#include <linux/screen_info.h>
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/initrd.h>
+@@ -69,10 +68,6 @@ EXPORT_SYMBOL(cpu_data);
+ struct sh_machine_vector sh_mv = { .mv_name = "generic", };
+ EXPORT_SYMBOL(sh_mv);
+ 
+-#ifdef CONFIG_VT
+-struct screen_info screen_info;
+-#endif
+-
+ extern int root_mountflags;
+ 
+ #define RAMDISK_IMAGE_START_MASK	0x07FF
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 34ef7febf0d56..e3b72a7b46d37 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -17,7 +17,6 @@
+ #include <linux/initrd.h>
+ #include <asm/smp.h>
+ #include <linux/user.h>
+-#include <linux/screen_info.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
+@@ -51,18 +50,6 @@
+ 
+ #include "kernel.h"
+ 
+-struct screen_info screen_info = {
+-	0, 0,			/* orig-x, orig-y */
+-	0,			/* unused */
+-	0,			/* orig-video-page */
+-	0,			/* orig-video-mode */
+-	128,			/* orig-video-cols */
+-	0,0,0,			/* ega_ax, ega_bx, ega_cx */
+-	54,			/* orig-video-lines */
+-	0,                      /* orig-video-isVGA */
+-	16                      /* orig-video-points */
+-};
+-
+ /* Typing sync at the prom prompt calls the function pointed to by
+  * romvec->pv_synchook which I set to the following function.
+  * This should sync all filesystems and return, for now it just
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 6546ca9d4d3f1..6a4797dec34b4 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -15,7 +15,6 @@
+ #include <linux/ptrace.h>
+ #include <asm/smp.h>
+ #include <linux/user.h>
+-#include <linux/screen_info.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
+@@ -68,18 +67,6 @@
+ DEFINE_SPINLOCK(ns87303_lock);
+ EXPORT_SYMBOL(ns87303_lock);
+ 
+-struct screen_info screen_info = {
+-	0, 0,			/* orig-x, orig-y */
+-	0,			/* unused */
+-	0,			/* orig-video-page */
+-	0,			/* orig-video-mode */
+-	128,			/* orig-video-cols */
+-	0, 0, 0,		/* unused, ega_bx, unused */
+-	54,			/* orig-video-lines */
+-	0,                      /* orig-video-isVGA */
+-	16                      /* orig-video-points */
+-};
+-
+ static void
+ prom_console_write(struct console *con, const char *s, unsigned int n)
+ {
+diff --git a/arch/xtensa/kernel/setup.c b/arch/xtensa/kernel/setup.c
+index aba3ff4e60d85..3f22d0537818d 100644
+--- a/arch/xtensa/kernel/setup.c
++++ b/arch/xtensa/kernel/setup.c
+@@ -19,7 +19,6 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/proc_fs.h>
+-#include <linux/screen_info.h>
+ #include <linux/kernel.h>
+ #include <linux/percpu.h>
+ #include <linux/reboot.h>
+@@ -49,17 +48,6 @@
+ #include <asm/timex.h>
+ #include <asm/traps.h>
+ 
+-#if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
+-struct screen_info screen_info = {
+-	.orig_x = 0,
+-	.orig_y = 24,
+-	.orig_video_cols = 80,
+-	.orig_video_lines = 24,
+-	.orig_video_isVGA = 1,
+-	.orig_video_points = 16,
+-};
+-#endif
+-
+ #ifdef CONFIG_BLK_DEV_INITRD
+ extern unsigned long initrd_start;
+ extern unsigned long initrd_end;
+-- 
+2.39.2
 
-Pozdrawiam
-Grzegorz Gawryl
