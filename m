@@ -2,88 +2,107 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1D0FC001DF
-	for <sparclinux@archiver.kernel.org>; Mon, 10 Jul 2023 03:38:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 853B0EB64DC
+	for <sparclinux@archiver.kernel.org>; Mon, 10 Jul 2023 04:08:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230045AbjGJDiM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 9 Jul 2023 23:38:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35574 "EHLO
+        id S230206AbjGJEIS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 Jul 2023 00:08:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229554AbjGJDiJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 9 Jul 2023 23:38:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACF32AF;
-        Sun,  9 Jul 2023 20:38:08 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3BA3E60DC5;
-        Mon, 10 Jul 2023 03:38:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122C6C433C7;
-        Mon, 10 Jul 2023 03:38:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688960287;
-        bh=v0OsTtvNKU6Dld3+w3JG1lJowk+7fQMnwswrEl/ZXho=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=I3vszjayKwTZgx7pu48sWg1k5KBKxkXctrW6bu353IwqtA9FDkUA7UB58Thl0EhHA
-         B70Ik7KJ+gLjEd/EJMekP58Fj22ciYqtrwFfDgaE8piXiARykGJpw4fmJMr0abMiYv
-         kznZLRTeIpAciA+le/inMAv0/2rIwFn7wPgoi0g6V+OEpDki3zv82reX0K4OX0Vk6U
-         Pk3PpnvQIPIwP0lZqaH5XhB2u9jeRgPYAmJw6E9/kj6Hic8bm2+vgsnEqqkEqgA9Ri
-         Z5P+PafgNNhL27TXboyzGxGeY4OuUhIK5umaEMLtbzeoYff/FKxbLMUD0g8AMLhDai
-         VEhKaDKNhWjAg==
-Message-ID: <fd95e3cb-d7b7-ec8b-c48b-d86634f07dfd@kernel.org>
-Date:   Sun, 9 Jul 2023 22:38:03 -0500
+        with ESMTP id S229462AbjGJEIQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Jul 2023 00:08:16 -0400
+Received: from mail-oa1-x2d.google.com (mail-oa1-x2d.google.com [IPv6:2001:4860:4864:20::2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6A64E6;
+        Sun,  9 Jul 2023 21:08:15 -0700 (PDT)
+Received: by mail-oa1-x2d.google.com with SMTP id 586e51a60fabf-1b055511b85so3069201fac.2;
+        Sun, 09 Jul 2023 21:08:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1688962094; x=1691554094;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=SI9RNcelEJRqjgZ3cj4A/MldUxL+d7rqihkZbBH1AFY=;
+        b=iVKpTnqvNrUhmIj8Pead4qxzUx+5FEqEj2o2LZQPy/bO+4COQLAPUA2tYXOc/R2BgT
+         WXXxngVaWFUrztbY3CREIS4d8vXvIbEUHInTqWO8/fcCVi/k61dqCs9L57T6/hQPeoTL
+         djqWGsASDlN37qpDOunajF78cc7Miv4m5fR9daAJazyNoH/Jv0IoP4QuI8R0xXektt0Z
+         BzUZmv9QLZnpwucS2nyyz/xwdmr7pR9/9w8M76YZcl6WiWHbfX6msKl+3Dl0nSAnHW2A
+         n70RJ3CEVgoCVyWZRzjwy1vt9eb2l4ZKA4WC/qtPMPfB6EBkvQiU2qne580vUi/Mhbov
+         qXsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688962094; x=1691554094;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=SI9RNcelEJRqjgZ3cj4A/MldUxL+d7rqihkZbBH1AFY=;
+        b=Q+6EfR1EDMLqnHzGYGsPkafP0E0jQu7zzhMUYm3JldflAl4oVD28Gcf339ZSmUKRLr
+         smf87vNhaJV+oofS0ivFwj6W9U+fDOtMhIn+OM3TK/LXEMOzjVf/AmzTZBN1HgnicZft
+         S/Obo74NidK1npRdVG+4KR5979ZVBj5v72rGZNQf1OasFS/P9hZGGvZDqfb6onFhRY23
+         jQlxtjH8CKPrlY68nYfsQ78hBmlA4AJ10UuLvVXHMg6eO57sFrOBpP8N+QQFR5YQ19Hi
+         f62c+EGoyOhhRdgpEQM9aV1DZNu1n84sKTOW0xB0EDDwxqrqxtwelTChHp15+AvShg2c
+         vB8A==
+X-Gm-Message-State: ABy/qLbFyEQeRZl+AwMSrPQt35A0E7SMGvET5Ja4VLnK/Q6yzxg4J/xp
+        S500PhueBJXt6tAB4iPZb+rjfXbYkETShM3BPfg=
+X-Google-Smtp-Source: APBJJlGmSNmHOoafZjLJZz8/wV792WRpiff+2GDpJxWf6XS+WYjRR+08RhvbYCi14YACNX/qF8Zpr859L/3Uxipik8M=
+X-Received: by 2002:a05:6870:438f:b0:1b0:25b4:4b77 with SMTP id
+ r15-20020a056870438f00b001b025b44b77mr12556779oah.14.1688962094392; Sun, 09
+ Jul 2023 21:08:14 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
+References: <20230707095415.1449376-1-arnd@kernel.org> <20230707095415.1449376-4-arnd@kernel.org>
+In-Reply-To: <20230707095415.1449376-4-arnd@kernel.org>
+From:   Max Filippov <jcmvbkbc@gmail.com>
+Date:   Sun, 9 Jul 2023 21:08:03 -0700
+Message-ID: <CAMo8BfLOYkdxF4x=E2L4OYavw+GDtO0ftdAxCaVuFwGr=RUCyw@mail.gmail.com>
 Subject: Re: [PATCH 4/4] vgacon, arch/*: remove unused screen_info definitions
-Content-Language: en-US
-To:     Arnd Bergmann <arnd@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Cc:     javierm@redhat.com, linux-fbdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Thomas Zimmermann <tzimmermann@suse.de>, javierm@redhat.com,
+        linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
         dri-devel@lists.freedesktop.org, Ard Biesheuvel <ardb@kernel.org>,
         Helge Deller <deller@gmx.de>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>,
-        Brian Cain <bcain@quicinc.com>, Rich Felker <dalias@libc.org>,
+        Brian Cain <bcain@quicinc.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Rich Felker <dalias@libc.org>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
         "David S. Miller" <davem@davemloft.net>,
         Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
         Masahiro Yamada <masahiroy@kernel.org>,
         linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-References: <20230707095415.1449376-1-arnd@kernel.org>
- <20230707095415.1449376-4-arnd@kernel.org>
-From:   Dinh Nguyen <dinguyen@kernel.org>
-In-Reply-To: <20230707095415.1449376-4-arnd@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
-
-On 7/7/23 04:52, Arnd Bergmann wrote:
+On Fri, Jul 7, 2023 at 2:56=E2=80=AFAM Arnd Bergmann <arnd@kernel.org> wrot=
+e:
+>
 > From: Arnd Bergmann <arnd@arndb.de>
-> 
+>
 > A number of architectures either kept the screen_info definition for
 > historical purposes as it used to be required by the generic VT code, or
 > they copied it from another architecture in order to build the VGA
 > console driver in an allmodconfig build.
-> 
+>
 > Now that vgacon no longer builds on these architectures, remove the
 > stale definitions.
-> 
+>
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->   arch/csky/kernel/setup.c          | 12 ------------
->   arch/hexagon/kernel/Makefile      |  2 --
->   arch/hexagon/kernel/screen_info.c |  3 ---
->   arch/nios2/kernel/setup.c         |  5 -----
+>  arch/csky/kernel/setup.c          | 12 ------------
+>  arch/hexagon/kernel/Makefile      |  2 --
+>  arch/hexagon/kernel/screen_info.c |  3 ---
+>  arch/nios2/kernel/setup.c         |  5 -----
+>  arch/sh/kernel/setup.c            |  5 -----
+>  arch/sparc/kernel/setup_32.c      | 13 -------------
+>  arch/sparc/kernel/setup_64.c      | 13 -------------
+>  arch/xtensa/kernel/setup.c        | 12 ------------
 
-Acked-by: Dinh Nguyen <dinguyen@kernel.org>
+For xtensa:
+Acked-by: Max Filippov <jcmvbkbc@gmail.com>
 
+--=20
+Thanks.
+-- Max
