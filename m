@@ -2,33 +2,39 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1633EB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 12:30:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B376C04FDF
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 12:50:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231357AbjGKMaD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Jul 2023 08:30:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33634 "EHLO
+        id S232111AbjGKMuN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Jul 2023 08:50:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232338AbjGKM3y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 08:29:54 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6471919A8;
-        Tue, 11 Jul 2023 05:29:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=Hu/F5cIunoMaT6a9kqfbZcMI7NNurFOLxchc3V/T840=; b=Gyep6a1gLgAdGC/Vi+oGeCj6t2
-        IKyL5/1RD8Tt4FNIzAW4j/atfGUaAPjhcTyA3GXH97IiwjxIU7Y/8B0fe9w8Muqivjaw/yL4bo5D4
-        5ZB6Z3jktax9ZhaYYlnpZ/6Oq2ASsc4zeolrABZ2MM6Kdwl61InYH3P9Iq/clR9bEshpkcTPgt83a
-        HcgfknEVHsZHsbDQUQVwhK7+voDCXknT2H10c2k4CU3PIKN/myEz2CoJrRiGA1cFSqntUv8vLlRLZ
-        MsgcNgtIOxR6kAkYIn3W2vzZiImwsqNNg3I5cIwMsUw6LmokGgjjMBQXCL8w1O5cla/0aNYRbdjkx
-        RH8+Ud9g==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qJCTM-00FiF8-9q; Tue, 11 Jul 2023 12:28:04 +0000
-Date:   Tue, 11 Jul 2023 13:28:04 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Alexey Gladkov <legion@kernel.org>
+        with ESMTP id S229637AbjGKMuL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 08:50:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6AE098;
+        Tue, 11 Jul 2023 05:50:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A8FC614C8;
+        Tue, 11 Jul 2023 12:50:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E36E0C433C8;
+        Tue, 11 Jul 2023 12:49:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689079809;
+        bh=dNf0h22e3NNw5WnIyQMA79RXwcCjXd4yUaNvlYSmEks=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=cNjPPHJCjkBuTo31uxO23EaD7iBmnxEZwpJnZPbX4Xt0szcj8ZgyO+hFXrziDLnmJ
+         WJfKsnZYW2NOQL3/ej8bLyiHu3o1cYgHqGtMbPw/xU5DUyrh9wH/uRCTzT6nteqM17
+         ih0fj7MI3xs3DsWKDpGWHK/svwtx6ndwsmveTHwe5/53fRS3olzp6tBliGqf9sdGX9
+         kN9/UPhMXhRiCAx1fAJd0t7sk9E2Jrj7YEssyG4k1JXRDx+YpYchn3i5vwcM7u3hPP
+         uyPhDJtpjTnpxvOXge4E7SaouWn3esU19tKAKmZoLjNyYWqbKP+E5Cdjp80IatCv7m
+         LrjabKUWygppA==
+Date:   Tue, 11 Jul 2023 14:49:50 +0200
+From:   Alexey Gladkov <legion@kernel.org>
+To:     Matthew Wilcox <willy@infradead.org>
 Cc:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
         linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         viro@zeniv.linux.org.uk, Palmer Dabbelt <palmer@sifive.com>,
@@ -56,22 +62,30 @@ Cc:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
         tycho@tycho.ws, will@kernel.org, x86@kernel.org,
         ysato@users.sourceforge.jp
 Subject: Re: [PATCH v3 2/5] fs: Add fchmodat4()
-Message-ID: <ZK1K1BOf43JOJWMx@casper.infradead.org>
+Message-ID: <ZK1P7kkjTvSU8M++@example.org>
 References: <87o8pscpny.fsf@oldenburg2.str.redhat.com>
  <cover.1689074739.git.legion@kernel.org>
  <d11b93ad8e3b669afaff942e25c3fca65c6a983c.1689074739.git.legion@kernel.org>
+ <ZK1K1BOf43JOJWMx@casper.infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <d11b93ad8e3b669afaff942e25c3fca65c6a983c.1689074739.git.legion@kernel.org>
+In-Reply-To: <ZK1K1BOf43JOJWMx@casper.infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jul 11, 2023 at 01:25:43PM +0200, Alexey Gladkov wrote:
-> -static int do_fchmodat(int dfd, const char __user *filename, umode_t mode)
-> +static int do_fchmodat4(int dfd, const char __user *filename, umode_t mode, int lookup_flags)
+On Tue, Jul 11, 2023 at 01:28:04PM +0100, Matthew Wilcox wrote:
+> On Tue, Jul 11, 2023 at 01:25:43PM +0200, Alexey Gladkov wrote:
+> > -static int do_fchmodat(int dfd, const char __user *filename, umode_t mode)
+> > +static int do_fchmodat4(int dfd, const char __user *filename, umode_t mode, int lookup_flags)
+> 
+> This function can still be called do_fchmodat(); we don't need to
+> version internal functions.
 
-This function can still be called do_fchmodat(); we don't need to
-version internal functions.
+Yes. I tried not to change too much when adopting a patch. In the new
+version, I will return the old name. Thanks.
+
+-- 
+Rgrds, legion
 
