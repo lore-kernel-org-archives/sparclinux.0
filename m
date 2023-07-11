@@ -2,149 +2,97 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 673FCC001DC
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 15:24:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46F9BC00528
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 16:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231980AbjGKPYR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Jul 2023 11:24:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41162 "EHLO
+        id S231834AbjGKQRf convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Jul 2023 12:17:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231846AbjGKPYO (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 11:24:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FA5B10D4;
-        Tue, 11 Jul 2023 08:24:13 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        with ESMTP id S232260AbjGKQRZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 12:17:25 -0400
+Received: from us-smtp-delivery-44.mimecast.com (unknown [207.211.30.44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E521170A
+        for <sparclinux@vger.kernel.org>; Tue, 11 Jul 2023 09:17:20 -0700 (PDT)
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-659-NqkFlsWuPvmclIFZepFgFQ-1; Tue, 11 Jul 2023 12:17:01 -0400
+X-MC-Unique: NqkFlsWuPvmclIFZepFgFQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0D3C96155C;
-        Tue, 11 Jul 2023 15:24:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E26C433C8;
-        Tue, 11 Jul 2023 15:23:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689089052;
-        bh=nyE4suotIowU8lKnKt+Umw+WI2Pk9iMcLZepBf+apY8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=oEo8yqXLBQcJ016nZmVI6o/nx3t9By5un0RV4fbIKnHDk0VPSpp+yaNMirBtqzWpT
-         bol75aJRCGOWCT+N9yMrkrQVwEwDB8XWpgODtk3yI+ILPLq5smsYwABPzHWMi/M7KG
-         kUQJPylWrx/7Ql611uTnEHF8Ca7MkikIUy5rcrlWGkGARPI3nHILM6AFuZYEin+imM
-         n1HaEaVU7q0NQmuz7v6I6ZbkSVwp4NjRBykveJpCllqGcxPS/L657fKrCDqE1FNaLz
-         6d5tD55ouC0ebYXHDNhkXWIbv52u/QY77xgQ0vpiUD4ePJr/j3HQZKSAuDU9No0IwC
-         1j5Imns1pImTQ==
-Date:   Tue, 11 Jul 2023 17:23:50 +0200
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 442453C0C494;
+        Tue, 11 Jul 2023 16:17:00 +0000 (UTC)
+Received: from localhost.localdomain.com (unknown [10.45.225.44])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 7A905200BA8B;
+        Tue, 11 Jul 2023 16:16:49 +0000 (UTC)
 From:   Alexey Gladkov <legion@kernel.org>
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, LKML <linux-kernel@vger.kernel.org>,
+To:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
         linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Palmer Dabbelt <palmer@sifive.com>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        christian@brauner.io, Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Deepa Dinamani <deepa.kernel@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        David Howells <dhowells@redhat.com>, fenghua.yu@intel.com,
-        firoz.khan@linaro.org, Florian Weimer <fweimer@redhat.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>, glebfm@altlinux.org,
-        gor@linux.ibm.com, hare@suse.com, heiko.carstens@de.ibm.com,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>, jhogan@kernel.org,
-        Kim Phillips <kim.phillips@arm.com>, ldv@altlinux.org,
-        linux-alpha@vger.kernel.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linuxppc-dev@lists.ozlabs.org, Andy Lutomirski <luto@kernel.org>,
-        Matt Turner <mattst88@gmail.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        Michal Simek <monstr@monstr.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Namhyung Kim <namhyung@kernel.org>, paul.burton@mips.com,
-        Paul Mackerras <paulus@samba.org>,
-        Peter Zijlstra <peterz@infradead.org>, ralf@linux-mips.org,
-        rth@twiddle.net, schwidefsky@de.ibm.com,
-        sparclinux@vger.kernel.org, stefan@agner.ch,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tony Luck <tony.luck@intel.com>, tycho@tycho.ws,
-        Will Deacon <will@kernel.org>, x86@kernel.org,
-        Yoshinori Sato <ysato@users.sourceforge.jp>
-Subject: Re: [PATCH v3 2/5] fs: Add fchmodat4()
-Message-ID: <ZK10BmqxjL/Njbmj@example.org>
-References: <87o8pscpny.fsf@oldenburg2.str.redhat.com>
- <cover.1689074739.git.legion@kernel.org>
- <d11b93ad8e3b669afaff942e25c3fca65c6a983c.1689074739.git.legion@kernel.org>
- <83363cbb-2431-4520-81a9-0d71f420cb36@app.fastmail.com>
- <20230711-demolieren-nilpferd-80ffe47563ad@brauner>
- <ZK1QNRidZuGcfOSd@example.org>
- <20230711-verpennen-turnier-717bb9682e19@brauner>
+        viro@zeniv.linux.org.uk
+Cc:     Palmer Dabbelt <palmer@sifive.com>,
+        James.Bottomley@HansenPartnership.com, acme@kernel.org,
+        alexander.shishkin@linux.intel.com, axboe@kernel.dk,
+        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
+        catalin.marinas@arm.com, christian@brauner.io, dalias@libc.org,
+        davem@davemloft.net, deepa.kernel@gmail.com, deller@gmx.de,
+        dhowells@redhat.com, fenghua.yu@intel.com, fweimer@redhat.com,
+        geert@linux-m68k.org, glebfm@altlinux.org, gor@linux.ibm.com,
+        hare@suse.com, hpa@zytor.com, ink@jurassic.park.msu.ru,
+        jhogan@kernel.org, kim.phillips@arm.com, ldv@altlinux.org,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux@armlinux.org.uk, linuxppc-dev@lists.ozlabs.org,
+        luto@kernel.org, mattst88@gmail.com, mingo@redhat.com,
+        monstr@monstr.eu, mpe@ellerman.id.au, namhyung@kernel.org,
+        paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org,
+        sparclinux@vger.kernel.org, stefan@agner.ch, tglx@linutronix.de,
+        tony.luck@intel.com, tycho@tycho.ws, will@kernel.org,
+        x86@kernel.org, ysato@users.sourceforge.jp
+Subject: [PATCH v4 1/5] Non-functional cleanup of a "__user * filename"
+Date:   Tue, 11 Jul 2023 18:16:03 +0200
+Message-Id: <ef644540cfd8717f30bcc5e4c32f06c80b6c156e.1689092120.git.legion@kernel.org>
+In-Reply-To: <cover.1689092120.git.legion@kernel.org>
+References: <cover.1689074739.git.legion@kernel.org> <cover.1689092120.git.legion@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230711-verpennen-turnier-717bb9682e19@brauner>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: kernel.org
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=WINDOWS-1252; x-default=true
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jul 11, 2023 at 04:01:03PM +0200, Christian Brauner wrote:
-> On Tue, Jul 11, 2023 at 02:51:01PM +0200, Alexey Gladkov wrote:
-> > On Tue, Jul 11, 2023 at 01:52:01PM +0200, Christian Brauner wrote:
-> > > On Tue, Jul 11, 2023 at 01:42:19PM +0200, Arnd Bergmann wrote:
-> > > > On Tue, Jul 11, 2023, at 13:25, Alexey Gladkov wrote:
-> > > > > From: Palmer Dabbelt <palmer@sifive.com>
-> > > > >
-> > > > > On the userspace side fchmodat(3) is implemented as a wrapper
-> > > > > function which implements the POSIX-specified interface. This
-> > > > > interface differs from the underlying kernel system call, which does not
-> > > > > have a flags argument. Most implementations require procfs [1][2].
-> > > > >
-> > > > > There doesn't appear to be a good userspace workaround for this issue
-> > > > > but the implementation in the kernel is pretty straight-forward.
-> > > > >
-> > > > > The new fchmodat4() syscall allows to pass the AT_SYMLINK_NOFOLLOW flag,
-> > > > > unlike existing fchmodat.
-> > > > >
-> > > > > [1] 
-> > > > > https://sourceware.org/git/?p=glibc.git;a=blob;f=sysdeps/unix/sysv/linux/fchmodat.c;h=17eca54051ee28ba1ec3f9aed170a62630959143;hb=a492b1e5ef7ab50c6fdd4e4e9879ea5569ab0a6c#l35
-> > > > > [2] 
-> > > > > https://git.musl-libc.org/cgit/musl/tree/src/stat/fchmodat.c?id=718f363bc2067b6487900eddc9180c84e7739f80#n28
-> > > > >
-> > > > > Signed-off-by: Palmer Dabbelt <palmer@sifive.com>
-> > > > > Signed-off-by: Alexey Gladkov <legion@kernel.org>
-> > > > 
-> > > > I don't know the history of why we ended up with the different
-> > > > interface, or whether this was done intentionally in the kernel
-> > > > or if we want this syscall.
-> > > > 
-> > > > Assuming this is in fact needed, I double-checked that the
-> > > > implementation looks correct to me and is portable to all the
-> > > > architectures, without the need for a compat wrapper.
-> > > > 
-> > > > Acked-by: Arnd Bergmann <arnd@arndb.de>
-> > > 
-> > > The system call itself is useful afaict. But please,
-> > > 
-> > > s/fchmodat4/fchmodat2/
-> > 
-> > Sure. I will.
-> 
-> Thanks. Can you also wire this up for every architecture, please?
-> I don't see that this has been done in this series.
+From: Palmer Dabbelt <palmer@sifive.com>
 
-Sure. I have already added in all architectures as far as I can tell:
+The next patch defines a very similar interface, which I copied from
+this definition.  Since I'm touching it anyway I don't see any reason
+not to just go fix this one up.
 
-$ diff -s <(find arch/ -name '*.tbl' |sort -u) <(git grep -lw fchmodat2 arch/ |sort -u)
-Files /dev/fd/63 and /dev/fd/62 are identical
+Signed-off-by: Palmer Dabbelt <palmer@sifive.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/syscalls.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 03e3d0121d5e..584f404bf868 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -438,7 +438,7 @@ asmlinkage long sys_chdir(const char __user *filename);
+ asmlinkage long sys_fchdir(unsigned int fd);
+ asmlinkage long sys_chroot(const char __user *filename);
+ asmlinkage long sys_fchmod(unsigned int fd, umode_t mode);
+-asmlinkage long sys_fchmodat(int dfd, const char __user * filename,
++asmlinkage long sys_fchmodat(int dfd, const char __user *filename,
+ 			     umode_t mode);
+ asmlinkage long sys_fchownat(int dfd, const char __user *filename, uid_t user,
+ 			     gid_t group, int flag);
 -- 
-Rgrds, legion
+2.33.8
 
