@@ -2,152 +2,277 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B961EB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 06:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C54EDC001B0
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 11:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229608AbjGKGBO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Jul 2023 02:01:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40950 "EHLO
+        id S231817AbjGKL1K (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Jul 2023 07:27:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230215AbjGKGBM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 02:01:12 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AC7BE49
-        for <sparclinux@vger.kernel.org>; Mon, 10 Jul 2023 23:01:08 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id 46e09a7af769-6b8a6ca994eso4688378a34.1
-        for <sparclinux@vger.kernel.org>; Mon, 10 Jul 2023 23:01:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1689055268; x=1691647268;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=kP2Qn64jJ8vkju5gUnFLPppk/VOAK+fecMr3ry9BHWE=;
-        b=jFqQrHVm4ADc4ms2fN447ZE1LEYqCrYggX8571mB2EXc0a9usoDIXpGo6hDohKMgyF
-         YMOeKoKd+rsGjUq3ji8SQFVEhXJxi4MeaoH+nAKAfizkFLfxTXIAX+xrek/oZ0LWWWfR
-         B2cGKDbrAcK34mvMGHsdg73km/566rbPSSQFTjhdUish+SwJ4zVH/xQQIumfjg+NsGrX
-         zurYXwT4eKVOpKgTIECucu3wwcqE9ZBNMWG67Ooo6B2vWc6Z8z4Rp41z0cyaOSzqL3ne
-         HxIOcv/26QTSgv0Ljte0nTI/gIKcNUKYZe1xLYtTSfoSZIENh3FiSf3M4jh0WTpFhZWr
-         eLTA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689055268; x=1691647268;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kP2Qn64jJ8vkju5gUnFLPppk/VOAK+fecMr3ry9BHWE=;
-        b=D1dZQKdMWLvWSrBmq2FZA4rQc46Ymr/FZBYuXLHEwGt80XnLgFOhxx0kVI3b5UnXAe
-         6PYnSWuWqnjURkuctq0qUKPb1i3LPMDMydoSGVem3DAOB46Wz+2cOkEWG41CxTifzQLc
-         kg6MK9rQc4Y5cKPa7+DdmtsIxsUoKc/alc7ntgf4xpmxc5NfF+xJOBgvqe/y+HsA+MZz
-         2vzuH8WMG7jZhJfsDYdou6Zgp3F9wgFsXmiGwPfAdV4bqB3bP4uvWgnQa2mmT4uFdxjz
-         JHJQXxpvTGOD+ku87ikvVqAOYi28VW4x8V0hfhVB9Uat3pFnqCyoiSUHs1fTb7M1QwvT
-         wrjg==
-X-Gm-Message-State: ABy/qLYCAiHmEW0cuGunVPCWMNaiwBCA+NBP2KtecpCdDWBu75uaD0sV
-        0P0zqzkRpVewezW+uyEcPOL/hA==
-X-Google-Smtp-Source: APBJJlHRSt1CS4ZNrXn86/Rkb0QRE4QmBMGeSdPZEPvWtIoRG0nciNIsyAS3LkcL1bMDsvA4h3Ijag==
-X-Received: by 2002:a9d:744b:0:b0:6b8:8269:aa3e with SMTP id p11-20020a9d744b000000b006b88269aa3emr14739905otk.14.1689055267769;
-        Mon, 10 Jul 2023 23:01:07 -0700 (PDT)
-Received: from localhost ([122.172.87.195])
-        by smtp.gmail.com with ESMTPSA id x13-20020a17090aa38d00b00263d7c5323dsm885421pjp.49.2023.07.10.23.01.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Jul 2023 23:01:07 -0700 (PDT)
-Date:   Tue, 11 Jul 2023 11:31:03 +0530
-From:   Viresh Kumar <viresh.kumar@linaro.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-kernel@vger.kernel.org,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: Build regressions/improvements in v6.5-rc1 (cpufreq/sparc*)
-Message-ID: <20230711060103.al3qpticc53qy4mp@vireshk-i7>
-References: <CAHk-=wj8sPDVoWgaceAs1AiwZrHV8mtC3vQNGbeV6-RypJi6aw@mail.gmail.com>
- <20230710100012.2625532-1-geert@linux-m68k.org>
- <b464f2b4-d2bc-11e0-bb2e-45ff43934bf6@infradead.org>
+        with ESMTP id S231298AbjGKL07 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 07:26:59 -0400
+Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [205.139.111.44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEA1111D
+        for <sparclinux@vger.kernel.org>; Tue, 11 Jul 2023 04:26:57 -0700 (PDT)
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-316-mrM3ULHUPVeLna_rRXTMqA-1; Tue, 11 Jul 2023 07:26:51 -0400
+X-MC-Unique: mrM3ULHUPVeLna_rRXTMqA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6408A88D1B7;
+        Tue, 11 Jul 2023 11:26:50 +0000 (UTC)
+Received: from localhost.localdomain.com (unknown [10.45.225.44])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id AEB8CF66B9;
+        Tue, 11 Jul 2023 11:26:38 +0000 (UTC)
+From:   Alexey Gladkov <legion@kernel.org>
+To:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        viro@zeniv.linux.org.uk
+Cc:     Palmer Dabbelt <palmer@sifive.com>,
+        James.Bottomley@HansenPartnership.com, acme@kernel.org,
+        alexander.shishkin@linux.intel.com, axboe@kernel.dk,
+        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
+        catalin.marinas@arm.com, christian@brauner.io, dalias@libc.org,
+        davem@davemloft.net, deepa.kernel@gmail.com, deller@gmx.de,
+        dhowells@redhat.com, fenghua.yu@intel.com, firoz.khan@linaro.org,
+        fweimer@redhat.com, geert@linux-m68k.org, glebfm@altlinux.org,
+        gor@linux.ibm.com, hare@suse.com, heiko.carstens@de.ibm.com,
+        hpa@zytor.com, ink@jurassic.park.msu.ru, jhogan@kernel.org,
+        kim.phillips@arm.com, ldv@altlinux.org,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux@armlinux.org.uk,
+        linuxppc-dev@lists.ozlabs.org, luto@kernel.org, mattst88@gmail.com,
+        mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au,
+        namhyung@kernel.org, paul.burton@mips.com, paulus@samba.org,
+        peterz@infradead.org, ralf@linux-mips.org, rth@twiddle.net,
+        schwidefsky@de.ibm.com, sparclinux@vger.kernel.org,
+        stefan@agner.ch, tglx@linutronix.de, tony.luck@intel.com,
+        tycho@tycho.ws, will@kernel.org, x86@kernel.org,
+        ysato@users.sourceforge.jp
+Subject: [PATCH v3 3/5] arch: Register fchmodat4, usually as syscall 451
+Date:   Tue, 11 Jul 2023 13:25:44 +0200
+Message-Id: <e48c4d4046de97205fd52a73f77e9b203c3b871e.1689074739.git.legion@kernel.org>
+In-Reply-To: <cover.1689074739.git.legion@kernel.org>
+References: <87o8pscpny.fsf@oldenburg2.str.redhat.com> <cover.1689074739.git.legion@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b464f2b4-d2bc-11e0-bb2e-45ff43934bf6@infradead.org>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 10-07-23, 22:33, Randy Dunlap wrote:
-> Hi--
-> 
-> On 7/10/23 03:00, Geert Uytterhoeven wrote:
-> > Below is the list of build error/warning regressions/improvements in
-> > v6.5-rc1[1] compared to v6.4[2].
-> > 
-> > Summarized:
-> >   - build errors: +3/-4
-> >   - build warnings: +36/-18
-> > 
-> > Note that there may be false regressions, as some logs are incomplete.
-> > Still, they're build errors/warnings.
-> > 
-> > Happy fixing! ;-)
-> > 
-> > Thanks to the linux-next team for providing the build service.
-> > 
-> > [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/06c2afb862f9da8dc5efa4b6076a0e48c3fbaaa5/ (all 162 configs)
-> > [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/6995e2de6891c724bfeb2db33d7b87775f913ad1/ (160 out of 162 configs)
-> > 
-> > 
-> > *** WARNINGS ***
-> > 
-> > 36 warning regressions:
-> 
-> >   + modpost: WARNING: modpost: drivers/cpufreq/sparc-us2e-cpufreq: section mismatch in reference: cpufreq_us2e_driver+0x20 (section: .data) -> us2e_freq_cpu_init (section: .init.text):  => N/A
-> >   + modpost: WARNING: modpost: drivers/cpufreq/sparc-us3-cpufreq: section mismatch in reference: cpufreq_us3_driver+0x20 (section: .data) -> us3_freq_cpu_init (section: .init.text):  => N/A
-> 
-> The way that I read this is that these __init functions (us2e_freq_cpu_init and us3_freq_cpu_init)
-> should not be marked as __init since they can be called at any time by exercising the CPU hotplug
-> code path.
+From: Palmer Dabbelt <palmer@sifive.com>
 
-I have prepared a patch for this, waiting for some builds to finish
-before sending it.
+This registers the new fchmodat4 syscall in most places as nuber 451,
+with alpha being the exception where it's 561.  I found all these sites
+by grepping for fspick, which I assume has found me everything.
 
--- 
-viresh
-
-Subject: [PATCH] cpufreq: sparc: Don't mark cpufreq callbacks with __init
-
-These callbacks can be called again by the cpufreq core after the driver
-is initialized and must be kept around. We currently get section
-mismatch build warnings.
-
-Don't mark them with __init.
-
-Fixes: dcfce7c2cee4 ("cpufreq: sparc: Don't allocate cpufreq_driver dynamically")
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Palmer Dabbelt <palmer@sifive.com>
+Signed-off-by: Alexey Gladkov <legion@kernel.org>
 ---
+ arch/alpha/kernel/syscalls/syscall.tbl      | 1 +
+ arch/arm/tools/syscall.tbl                  | 1 +
+ arch/arm64/include/asm/unistd32.h           | 2 ++
+ arch/ia64/kernel/syscalls/syscall.tbl       | 1 +
+ arch/m68k/kernel/syscalls/syscall.tbl       | 1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl | 1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   | 1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   | 1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   | 1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     | 1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    | 1 +
+ arch/s390/kernel/syscalls/syscall.tbl       | 1 +
+ arch/sh/kernel/syscalls/syscall.tbl         | 1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      | 1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      | 1 +
+ arch/x86/entry/syscalls/syscall_64.tbl      | 1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     | 1 +
+ include/uapi/asm-generic/unistd.h           | 5 ++++-
+ 18 files changed, 22 insertions(+), 1 deletion(-)
 
- drivers/cpufreq/sparc-us2e-cpufreq.c | 2 +-
- drivers/cpufreq/sparc-us3-cpufreq.c  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
+index 8ebacf37a8cf..00ceeffec7ff 100644
+--- a/arch/alpha/kernel/syscalls/syscall.tbl
++++ b/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -490,3 +490,4 @@
+ 558	common	process_mrelease		sys_process_mrelease
+ 559	common  futex_waitv                     sys_futex_waitv
+ 560	common	set_mempolicy_home_node		sys_ni_syscall
++561	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/arm/tools/syscall.tbl b/arch/arm/tools/syscall.tbl
+index ac964612d8b0..0b9702d5c425 100644
+--- a/arch/arm/tools/syscall.tbl
++++ b/arch/arm/tools/syscall.tbl
+@@ -464,3 +464,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common	futex_waitv			sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/arm64/include/asm/unistd32.h b/arch/arm64/include/asm/unistd32.h
+index 604a2053d006..49c65d935049 100644
+--- a/arch/arm64/include/asm/unistd32.h
++++ b/arch/arm64/include/asm/unistd32.h
+@@ -907,6 +907,8 @@ __SYSCALL(__NR_process_mrelease, sys_process_mrelease)
+ __SYSCALL(__NR_futex_waitv, sys_futex_waitv)
+ #define __NR_set_mempolicy_home_node 450
+ __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
++#define __NR_fchmodat4 451
++__SYSCALL(__NR_fchmodat4, sys_fchmodat4)
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index 72c929d9902b..b35225c64781 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -371,3 +371,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
+index b1f3940bc298..4d80cd87e089 100644
+--- a/arch/m68k/kernel/syscalls/syscall.tbl
++++ b/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -450,3 +450,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/microblaze/kernel/syscalls/syscall.tbl b/arch/microblaze/kernel/syscalls/syscall.tbl
+index 820145e47350..306bd18e5b52 100644
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl
++++ b/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -456,3 +456,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/mips/kernel/syscalls/syscall_n32.tbl b/arch/mips/kernel/syscalls/syscall_n32.tbl
+index 253ff994ed2e..2ef47a546fd3 100644
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -389,3 +389,4 @@
+ 448	n32	process_mrelease		sys_process_mrelease
+ 449	n32	futex_waitv			sys_futex_waitv
+ 450	n32	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	n32	fchmodat4			sys_fchmodat4
+diff --git a/arch/mips/kernel/syscalls/syscall_n64.tbl b/arch/mips/kernel/syscalls/syscall_n64.tbl
+index 3f1886ad9d80..6356c0a6cda0 100644
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -365,3 +365,4 @@
+ 448	n64	process_mrelease		sys_process_mrelease
+ 449	n64	futex_waitv			sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	n64	fchmodat4			sys_fchmodat4
+diff --git a/arch/mips/kernel/syscalls/syscall_o32.tbl b/arch/mips/kernel/syscalls/syscall_o32.tbl
+index 8f243e35a7b2..d1111edba47e 100644
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -438,3 +438,4 @@
+ 448	o32	process_mrelease		sys_process_mrelease
+ 449	o32	futex_waitv			sys_futex_waitv
+ 450	o32	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	o32	fchmodat4			sys_fchmodat4
+diff --git a/arch/parisc/kernel/syscalls/syscall.tbl b/arch/parisc/kernel/syscalls/syscall.tbl
+index 0e42fceb2d5e..0a1c13744c32 100644
+--- a/arch/parisc/kernel/syscalls/syscall.tbl
++++ b/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -448,3 +448,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common	futex_waitv			sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
+index a0be127475b1..ee23866fa1c8 100644
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl
++++ b/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -537,3 +537,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450 	nospu	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/s390/kernel/syscalls/syscall.tbl b/arch/s390/kernel/syscalls/syscall.tbl
+index b68f47541169..d5ce80065ece 100644
+--- a/arch/s390/kernel/syscalls/syscall.tbl
++++ b/arch/s390/kernel/syscalls/syscall.tbl
+@@ -453,3 +453,4 @@
+ 448  common	process_mrelease	sys_process_mrelease		sys_process_mrelease
+ 449  common	futex_waitv		sys_futex_waitv			sys_futex_waitv
+ 450  common	set_mempolicy_home_node	sys_set_mempolicy_home_node	sys_set_mempolicy_home_node
++451  common	fchmodat4		sys_fchmodat4			sys_fchmodat4
+diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
+index 2de85c977f54..697b914f5c33 100644
+--- a/arch/sh/kernel/syscalls/syscall.tbl
++++ b/arch/sh/kernel/syscalls/syscall.tbl
+@@ -453,3 +453,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
+index 4398cc6fb68d..79be56831f39 100644
+--- a/arch/sparc/kernel/syscalls/syscall.tbl
++++ b/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -496,3 +496,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
+index 320480a8db4f..3ab07bd87ea9 100644
+--- a/arch/x86/entry/syscalls/syscall_32.tbl
++++ b/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -455,3 +455,4 @@
+ 448	i386	process_mrelease	sys_process_mrelease
+ 449	i386	futex_waitv		sys_futex_waitv
+ 450	i386	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	i386	fchmodat4		sys_fchmodat4
+diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
+index c84d12608cd2..17047878293c 100644
+--- a/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -372,6 +372,7 @@
+ 448	common	process_mrelease	sys_process_mrelease
+ 449	common	futex_waitv		sys_futex_waitv
+ 450	common	set_mempolicy_home_node	sys_set_mempolicy_home_node
++451	common	fchmodat4		sys_fchmodat4
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+diff --git a/arch/xtensa/kernel/syscalls/syscall.tbl b/arch/xtensa/kernel/syscalls/syscall.tbl
+index 52c94ab5c205..ed47fd3b2293 100644
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl
++++ b/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -421,3 +421,4 @@
+ 448	common	process_mrelease		sys_process_mrelease
+ 449	common  futex_waitv                     sys_futex_waitv
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	common	fchmodat4			sys_fchmodat4
+diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
+index 45fa180cc56a..b7978b3ce3f1 100644
+--- a/include/uapi/asm-generic/unistd.h
++++ b/include/uapi/asm-generic/unistd.h
+@@ -886,8 +886,11 @@ __SYSCALL(__NR_futex_waitv, sys_futex_waitv)
+ #define __NR_set_mempolicy_home_node 450
+ __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
+ 
++#define __NR_fchmodat4 451
++__SYSCALL(__NR_fchmodat4, sys_fchmodat4)
++
+ #undef __NR_syscalls
+-#define __NR_syscalls 451
++#define __NR_syscalls 452
+ 
+ /*
+  * 32 bit systems traditionally used different
+-- 
+2.33.8
 
-diff --git a/drivers/cpufreq/sparc-us2e-cpufreq.c b/drivers/cpufreq/sparc-us2e-cpufreq.c
-index d3510cfdb3eb..2783d3d55fce 100644
---- a/drivers/cpufreq/sparc-us2e-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us2e-cpufreq.c
-@@ -269,7 +269,7 @@ static int us2e_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	return smp_call_function_single(cpu, __us2e_freq_target, &index, 1);
- }
- 
--static int __init us2e_freq_cpu_init(struct cpufreq_policy *policy)
-+static int us2e_freq_cpu_init(struct cpufreq_policy *policy)
- {
- 	unsigned int cpu = policy->cpu;
- 	unsigned long clock_tick = sparc64_get_clock_tick(cpu) / 1000;
-diff --git a/drivers/cpufreq/sparc-us3-cpufreq.c b/drivers/cpufreq/sparc-us3-cpufreq.c
-index 91d1ed558136..6c3657679a88 100644
---- a/drivers/cpufreq/sparc-us3-cpufreq.c
-+++ b/drivers/cpufreq/sparc-us3-cpufreq.c
-@@ -117,7 +117,7 @@ static int us3_freq_target(struct cpufreq_policy *policy, unsigned int index)
- 	return smp_call_function_single(cpu, update_safari_cfg, &new_bits, 1);
- }
- 
--static int __init us3_freq_cpu_init(struct cpufreq_policy *policy)
-+static int us3_freq_cpu_init(struct cpufreq_policy *policy)
- {
- 	unsigned int cpu = policy->cpu;
- 	unsigned long clock_tick = sparc64_get_clock_tick(cpu) / 1000;
