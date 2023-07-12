@@ -2,116 +2,198 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4268CEB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Jul 2023 17:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C31D2EB64DA
+	for <sparclinux@archiver.kernel.org>; Wed, 12 Jul 2023 04:27:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231878AbjGKRhR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Jul 2023 13:37:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43618 "EHLO
+        id S230213AbjGLE10 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 Jul 2023 00:27:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229491AbjGKRhP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jul 2023 13:37:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7F62E4F;
-        Tue, 11 Jul 2023 10:37:13 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3CE7861579;
-        Tue, 11 Jul 2023 17:37:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E41BC433C8;
-        Tue, 11 Jul 2023 17:37:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689097032;
-        bh=g+dg42YNtsQJhOjtGMIfYdxeMk+Q5chUUpj1UHPyuI0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OU0fx9r/gW1jdTCG/iJZoodUiAYpTTMgryh+eUwK0SvFFeCzBDxABJWQ/HAhpM8ye
-         yBnM//6OA543xk4QBgEbWFDkvCh7ONFKnet6T2nY6GiJNGe++LpNHsBO53yIxRC1dw
-         CLUi1qmmodaux6upnMNyF/KqqubSxVHA67DwxYH/aO5VwDsXvdD1T4BZZhZWFZrom9
-         +nthUGNjjcFzaX2bY1z9qhdSCg7rB6hz0xgLF1oCv+tCDu8UN7UNhRG5OCUuJUdOw+
-         UBXBTnHv6L2WRueaCic7RFYV1/lmEsdEsvaplXp/1qHno7ehBsSMmEORgYmfsLOmFl
-         vPA4Eb9AXLl0w==
-From:   Christian Brauner <brauner@kernel.org>
-To:     Alexey Gladkov <legion@kernel.org>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        James.Bottomley@HansenPartnership.com, acme@kernel.org,
-        alexander.shishkin@linux.intel.com, axboe@kernel.dk,
-        benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com,
-        dalias@libc.org, davem@davemloft.net, deepa.kernel@gmail.com,
-        deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com,
-        fweimer@redhat.com, geert@linux-m68k.org, glebfm@altlinux.org,
-        gor@linux.ibm.com, hare@suse.com, hpa@zytor.com,
-        ink@jurassic.park.msu.ru, jhogan@kernel.org, kim.phillips@arm.com,
-        ldv@altlinux.org, linux-alpha@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux@armlinux.org.uk,
-        linuxppc-dev@lists.ozlabs.org, luto@kernel.org, mattst88@gmail.com,
-        mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au,
-        namhyung@kernel.org, peterz@infradead.org, ralf@linux-mips.org,
-        sparclinux@vger.kernel.org, stefan@agner.ch, tglx@linutronix.de,
-        tony.luck@intel.com, will@kernel.org, x86@kernel.org,
-        ysato@users.sourceforge.jp,
+        with ESMTP id S230035AbjGLE1Z (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Jul 2023 00:27:25 -0400
+Received: from mail-yw1-x1130.google.com (mail-yw1-x1130.google.com [IPv6:2607:f8b0:4864:20::1130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D41721726
+        for <sparclinux@vger.kernel.org>; Tue, 11 Jul 2023 21:27:23 -0700 (PDT)
+Received: by mail-yw1-x1130.google.com with SMTP id 00721157ae682-579dd20b1c8so72836327b3.1
+        for <sparclinux@vger.kernel.org>; Tue, 11 Jul 2023 21:27:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1689136043; x=1691728043;
+        h=mime-version:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=wiHFwa+qInqC9Ufc7qLGqz2T4+XJI6K3K6pkdSvL2BE=;
+        b=YjT2iggkRTiXtZMR1jMLANF/DCx6aBNBHMVDVVl8Gr0GinPbSloyq6adfQMkbwXuDy
+         4LOhxp9lsDQkNYPLAl5k89Ck7UzmU2gS51lf58HBHMNkZxeBrwzXKOfpjPMpHU7Xhn8z
+         K9b44iVOIzPUbQ6ymuTwqdYb3uxH5ZNNlppLByjfI27io4ZaUeNDCqifG61+Enltfq1W
+         Q4VeG3xJt0Bk+AP9vkRr0OjwSSW1svxOnjAGiUGPKap1kin/J6ow8NcPSugD6S/XzNDL
+         Pw7KzGLDDMHF/NqW9CZBI1VUfB0aeFWeRbgCBvTEtczkxjQmMIk8cik2x0kBWOU3eCTM
+         DkUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689136043; x=1691728043;
+        h=mime-version:message-id:subject:cc:to:from:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=wiHFwa+qInqC9Ufc7qLGqz2T4+XJI6K3K6pkdSvL2BE=;
+        b=EFMI3R3hrlQ1thqBETPulCm7ST3m0k3Mvr6JOH5CEbZDrxR/PP48W7Jkh3oaQLAZDH
+         ZqBhw3GhBRSY7JLFJIaCz3FTJYpjnJCTCv6xWXcbI5pNvs/3YKFtnJrmhlg70pLLugUZ
+         r7e9p/USQCPbkn4bGlSHC8IpbuOjpgoQWw+FkfnNF4pZLvaD3OrgQTzEmirT3nXgoMtD
+         lFKIaB2aPJITiQ5e4Swo2h3GCUD4tslbym1iEw4/t4kFTLGkRiIARU21K34RalvyMDJr
+         531bKvyeRESEoAJzKAuY2UE8J4AeMAsrgsnd1YD4DZiuYhH4UHfQj1aT10Bqt/deKRzx
+         4RvA==
+X-Gm-Message-State: ABy/qLYh5jUSopctSvjsCcBA0MKonP0FZ+mQ4QdsHVjyN47b/0JAddZX
+        VcM/X0fXhwxSuSs3UUiGJKhuYw==
+X-Google-Smtp-Source: APBJJlF5lEOtFts7UwfGvvEUizjbQpUSNw8Id5rb3Vpn8mt/ge/Q6rrPqXyVhuX/GSF3C2Mj1ANz1w==
+X-Received: by 2002:a81:91d2:0:b0:559:deed:f363 with SMTP id i201-20020a8191d2000000b00559deedf363mr16696703ywg.2.1689136042885;
+        Tue, 11 Jul 2023 21:27:22 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id i67-20020a0df846000000b005772f3fc0acsm972965ywf.44.2023.07.11.21.27.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 Jul 2023 21:27:22 -0700 (PDT)
+Date:   Tue, 11 Jul 2023 21:27:09 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Andrew Morton <akpm@linux-foundation.org>
+cc:     Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
         Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Paul Mackerras <paulus@ozlabs.org>,
-        Tycho Andersen <tycho@tycho.pizza>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
-Subject: Re: (subset) [PATCH v4 0/5] Add a new fchmodat2() syscall
-Date:   Tue, 11 Jul 2023 19:36:45 +0200
-Message-Id: <20230711-befreien-unwiderruflich-c2265c61e514@brauner>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <cover.1689092120.git.legion@kernel.org>
-References: <cover.1689074739.git.legion@kernel.org> <cover.1689092120.git.legion@kernel.org>
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: [PATCH v3 00/13] mm: free retracted page table by RCU
+Message-ID: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1700; i=brauner@kernel.org; h=from:subject:message-id; bh=g+dg42YNtsQJhOjtGMIfYdxeMk+Q5chUUpj1UHPyuI0=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSsnSxT9aGqYFXo8u/Pv0u8/8n7p3Ja0Z4JQu5vS1/e2JvM Xda7tKOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiwv8ZGa5HavbtmudR8P/916OJ0j 91rvW3zk3vj11VUnvmNlvDpK2MDJ8umZ/uZt1qWrp9+6sJ/1y98jZJfQleeOMaf2RRS0fvbmYA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 11 Jul 2023 18:16:02 +0200, Alexey Gladkov wrote:
-> In glibc, the fchmodat(3) function has a flags argument according to the
-> POSIX specification [1], but kernel syscalls has no such argument.
-> Therefore, libc implementations do workarounds using /proc. However,
-> this requires procfs to be mounted and accessible.
-> 
-> This patch set adds fchmodat2(), a new syscall. The syscall allows to
-> pass the AT_SYMLINK_NOFOLLOW flag to disable LOOKUP_FOLLOW. In all other
-> respects, this syscall is no different from fchmodat().
-> 
-> [...]
+Here is v3 of the series of patches to mm (and a few architectures), based
+on v6.5-rc1 which includes the preceding two series (thank you!): in which
+khugepaged takes advantage of pte_offset_map[_lock]() allowing for pmd
+transitions.  Differences from v1 and v2 are noted patch by patch below.
 
-Tools updates usually go separately.
-Flags argument ported to unsigned int; otherwise unchanged.
+This replaces the v2 "mm: free retracted page table by RCU"
+https://lore.kernel.org/linux-mm/54cb04f-3762-987f-8294-91dafd8ebfb0@google.com/
+series of 12 posted on 2023-06-20.
 
----
+What is it all about?  Some mmap_lock avoidance i.e. latency reduction.
+Initially just for the case of collapsing shmem or file pages to THPs:
+the usefulness of MADV_COLLAPSE on shmem is being limited by that
+mmap_write_lock it currently requires.
 
-Applied to the master branch of the vfs/vfs.git tree.
-Patches in the master branch should appear in linux-next soon.
+Likely to be relied upon later in other contexts e.g. freeing of
+empty page tables (but that's not work I'm doing).  mmap_write_lock
+avoidance when collapsing to anon THPs?  Perhaps, but again that's not
+work I've done: a quick attempt was not as easy as the shmem/file case.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+These changes (though of course not these exact patches) have been in
+Google's data centre kernel for three years now: we do rely upon them.
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+Based on v6.5-rc1; and almost good on current mm-unstable or current
+linux-next - just one patch conflicts, the 12/13: I'll reply to that
+one with its mm-unstable or linux-next equivalent (vma_assert_locked()
+has been added next to where vma_try_start_write() is being removed).
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
+01/13 mm/pgtable: add rcu_read_lock() and rcu_read_unlock()s
+      v3: same as v1
+02/13 mm/pgtable: add PAE safety to __pte_offset_map()
+      v3: same as v2
+      v2: rename to pmdp_get_lockless_start/end() per Matthew;
+          so use inlines without _irq_save(flags) macro oddity;
+          add pmdp_get_lockless_sync() for use later in 09/13.
+03/13 arm: adjust_pte() use pte_offset_map_nolock()
+      v3: same as v1
+04/13 powerpc: assert_pte_locked() use pte_offset_map_nolock()
+      v3: same as v1
+05/13 powerpc: add pte_free_defer() for pgtables sharing page
+      v3: much simpler version, following suggestion by Jason
+      v2: fix rcu_head usage to cope with concurrent deferrals;
+          add para to commit message explaining rcu_head issue.
+06/13 sparc: add pte_free_defer() for pte_t *pgtable_t
+      v3: same as v2
+      v2: use page_address() instead of less common page_to_virt();
+          add para to commit message explaining simple conversion;
+          changed title since sparc64 pgtables do not share page.
+07/13 s390: add pte_free_defer() for pgtables sharing page
+      v3: much simpler version, following suggestion by Gerald
+      v2: complete rewrite, integrated with s390's existing pgtable
+          management; temporarily using a global mm_pgtable_list_lock,
+          to be restored to per-mm spinlock in a later followup patch.
+08/13 mm/pgtable: add pte_free_defer() for pgtable as page
+      v3: same as v2
+      v2: add comment on rcu_head to "Page table pages", per JannH
+09/13 mm/khugepaged: retract_page_tables() without mmap or vma lock
+      v3: same as v2
+      v2: repeat checks under ptl because UFFD, per PeterX and JannH;
+          bring back mmu_notifier calls for PMD, per JannH and Jason;
+          pmdp_get_lockless_sync() to issue missing interrupt if PAE.
+10/13 mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()
+      v3: updated to using ptent instead of *pte
+      v2: first check VMA, in case page tables torn down, per JannH;
+          pmdp_get_lockless_sync() to issue missing interrupt if PAE;
+          moved mmu_notifier after step 1, reworked final goto labels.
+11/13 mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps()
+      v3: rediffed
+      v2: same as v1
+12/13 mm: delete mmap_write_trylock() and vma_try_start_write()
+      v3: rediffed (different diff needed for mm-unstable or linux-next)
+      v2: same as v1
+13/13 mm/pgtable: notes on pte_offset_map[_lock]()
+      v3: new: JannH asked for more helpful comment, this is my attempt;
+          could be moved to be the first in the series.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: master
+ arch/arm/mm/fault-armv.c            |   3 +-
+ arch/powerpc/include/asm/pgalloc.h  |   4 +
+ arch/powerpc/mm/pgtable-frag.c      |  29 +-
+ arch/powerpc/mm/pgtable.c           |  16 +-
+ arch/s390/include/asm/pgalloc.h     |   4 +
+ arch/s390/mm/pgalloc.c              |  80 ++++-
+ arch/sparc/include/asm/pgalloc_64.h |   4 +
+ arch/sparc/mm/init_64.c             |  16 +
+ include/linux/mm.h                  |  17 --
+ include/linux/mm_types.h            |   4 +
+ include/linux/mmap_lock.h           |  10 -
+ include/linux/pgtable.h             |  10 +-
+ mm/khugepaged.c                     | 481 +++++++++++-------------------
+ mm/pgtable-generic.c                |  97 +++++-
+ 14 files changed, 404 insertions(+), 371 deletions(-)
 
-[1/5] Non-functional cleanup of a "__user * filename"
-      https://git.kernel.org/vfs/vfs/c/0f05a6af6b7e
-[2/5] fs: Add fchmodat2()
-      https://git.kernel.org/vfs/vfs/c/8d593559ec09
-[3/5] arch: Register fchmodat2, usually as syscall 452
-      https://git.kernel.org/vfs/vfs/c/2ee63b04f206
-[5/5] selftests: Add fchmodat2 selftest
-      https://git.kernel.org/vfs/vfs/c/f175b92081ec
+Hugh
