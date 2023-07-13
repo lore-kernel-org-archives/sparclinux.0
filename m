@@ -2,77 +2,104 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4C33C0015E
-	for <sparclinux@archiver.kernel.org>; Thu, 13 Jul 2023 14:55:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C86C0015E
+	for <sparclinux@archiver.kernel.org>; Thu, 13 Jul 2023 16:55:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232134AbjGMOzv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 13 Jul 2023 10:55:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60410 "EHLO
+        id S231783AbjGMQzc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 13 Jul 2023 12:55:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232089AbjGMOzq (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 Jul 2023 10:55:46 -0400
-Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:400::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED1AC2D57
-        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 07:55:39 -0700 (PDT)
+        with ESMTP id S230267AbjGMQzb (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 Jul 2023 12:55:31 -0400
+Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D218026BB
+        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 09:55:30 -0700 (PDT)
+Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-1b8baa836a5so7421815ad.1
+        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 09:55:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
-         message-id:subject:cc:to:from:date:from;
-        bh=jad+tXIpl6N85zTK0BSX3q69+1wDiPSRaHeN/P0YlBA=;
-        b=bf/KI0K+9G6+rZHTqn8JdavswtZdYn1IVhxQexoZmQistU2RPJqsmWgsKhcFxJprq+CSNF+ASKwzL
-         a5RPbe8/wy/lRoYiSTgR5WKnkugRM6bgq3pmr0UUvU1YUIP0dmzNvINxuXC4r+F8KHZREK3UKd30Kr
-         Cz4wCrn9t3rRyrYuzNgM79YDZRulfhAYe6tQN0vSxd2TU5VC7ci1H+peKUNQO1mgMklAUAdhSG7jRT
-         ggMGm36Vqho107TpvIriPjvy/sYEe6dq9ZbZua8JNPEQY5eKyXb6LVrjtOkXpawjpjzbMwgFFqI3fL
-         /Jb4LIkhz95zzFIEYuGTS3PhaOnWs7w==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
-         message-id:subject:cc:to:from:date:from;
-        bh=jad+tXIpl6N85zTK0BSX3q69+1wDiPSRaHeN/P0YlBA=;
-        b=xPz0tSOlKXa0Aoup20n+LKmo7Ta+a07sayuvreb2RVr5QZvv83I5UZx4cik6quk5qo61m4FlrxdpY
-         wP6PmLsAQ==
-X-HalOne-ID: 52e9fef0-218d-11ee-923c-99461c6a3fe8
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay1 (Halon) with ESMTPSA
-        id 52e9fef0-218d-11ee-923c-99461c6a3fe8;
-        Thu, 13 Jul 2023 14:55:37 +0000 (UTC)
-Date:   Thu, 13 Jul 2023 16:55:36 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
-        <u.kleine-koenig@pengutronix.de>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        sparclinux@vger.kernel.org, kernel@pengutronix.de,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] sparc: Use $(kecho) to announce kernel images being ready
-Message-ID: <20230713145536.GA5300@ravnborg.org>
-References: <20230713075235.2164609-1-u.kleine-koenig@pengutronix.de>
+        d=chromium.org; s=google; t=1689267330; x=1691859330;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=mkaGpz0HgmAYOX7U+wy0aaz4NPPSIRJNciFQzG/7LfI=;
+        b=TZwe67oMehoOCnv+us7BR5JF/AE7LNBrg3r4pPZC7R7ZDhK9jO8UgFk1hggi+qRHiC
+         ULJ1W2JSep57OckV9Rxdvk+fD9ZkqtvOm4L9za8ck5FAxDtBDN25sMyCM7JfUKCKKd6+
+         6xNlHm6nOqyTfi2kF55UuYLEAUfJ+gleTI7oI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689267330; x=1691859330;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=mkaGpz0HgmAYOX7U+wy0aaz4NPPSIRJNciFQzG/7LfI=;
+        b=JnSN+hQRyDNf2RtnxjLKGvRL8xOM/wmfO9B846BXFnUC4Q1qZmFmCI7AlTaQQVvQl3
+         iBXfXqIdASZV4EH3DUI5oMgDFA6JSt38FQyPDPVQ2g8PSzDweslR8d9PDxMPLXgMp1vc
+         fCkqIAmROEZEJ0k1oLyIDcNbLFN7z4m//3fekoCGojt/xIGJ3VwqzQDXs1KL6O/c6JRL
+         ABuGZxAX9NIz6u2AHdktWmn2/uP2CjnTNWn1PHaiqvqPa3kTyxcJszQ9g6AFoi/cKWil
+         2Wbp6CAfH5cox1UZNcMwxRoJnFtRMrPQU2BuQXU+8hPxGQdIv/RN0NrkNJwzEEvRz8FS
+         vjKg==
+X-Gm-Message-State: ABy/qLaF+Yy4owgEmvvSI13FKJTvQ/TPFfe4kTe+aSjH4uSOexN1YFvp
+        nFG/ZKfVbdYlpFB39D4Sc3trtA==
+X-Google-Smtp-Source: APBJJlGUMvPiyI11Rk2nFE7Fa7XTV582GqL0E8iCmkPFcMQEFTVDRfoAVDOCrL2Q+fvQpoEFCrkVwA==
+X-Received: by 2002:a17:902:dad2:b0:1b8:b3f7:4872 with SMTP id q18-20020a170902dad200b001b8b3f74872mr2684402plx.28.1689267330307;
+        Thu, 13 Jul 2023 09:55:30 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id jh6-20020a170903328600b001b8b26fa6a9sm6211880plb.19.2023.07.13.09.55.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Jul 2023 09:55:29 -0700 (PDT)
+Date:   Thu, 13 Jul 2023 09:55:29 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Palmer Dabbelt <palmer@rivosinc.com>
+Cc:     Mark Rutland <mark.rutland@arm.com>, arnd@kernel.org,
+        davem@davemloft.net, peterz@infradead.org,
+        Arnd Bergmann <arnd@arndb.de>, linux@roeck-us.net,
+        geert@linux-m68k.org, mingo@kernel.org, andi.shyti@linux.intel.com,
+        andrzej.hajda@intel.com, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] sparc: mark __arch_xchg() as __always_inline
+Message-ID: <202307130954.562F14E@keescook>
+References: <ZJwdZ_cStUp0cXyS@FVFF77S0Q05N>
+ <mhng-0bca249b-95f1-4e3f-b241-f37835e1c623@palmer-ri-x1c9a>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230713075235.2164609-1-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <mhng-0bca249b-95f1-4e3f-b241-f37835e1c623@palmer-ri-x1c9a>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jul 13, 2023 at 09:52:35AM +0200, Uwe Kleine-König wrote:
-> My build test setup compiles allmodconfig all various architectures
-> (arm64 m68k powerpc riscv s390 sparc64 x86_64) using make -s. If there
-> is no warning, the only output is
+On Thu, Jul 13, 2023 at 07:00:37AM -0700, Palmer Dabbelt wrote:
+> On Wed, 28 Jun 2023 04:45:43 PDT (-0700), Mark Rutland wrote:
+> > On Wed, Jun 28, 2023 at 11:49:18AM +0200, Arnd Bergmann wrote:
+> > > From: Arnd Bergmann <arnd@arndb.de>
+> > > 
+> > > An otherwise correct change to the atomic operations uncovered an
+> > > existing bug in the sparc __arch_xchg() function, which is calls
+> > > __xchg_called_with_bad_pointer() when its arguments are unknown at
+> > > compile time:
+> > > 
+> > > ERROR: modpost: "__xchg_called_with_bad_pointer" [lib/atomic64_test.ko] undefined!
+> > > 
+> > > This now happens because gcc determines that it's better to not inline the
+> > > function. Avoid this by just marking the function as __always_inline
+> > > to force the compiler to do the right thing here.
+> > > 
+> > > Reported-by: Guenter Roeck <linux@roeck-us.net>
+> > > Link: https://lore.kernel.org/all/c525adc9-6623-4660-8718-e0c9311563b8@roeck-us.net/
+> > > Fixes: d12157efc8e08 ("locking/atomic: make atomic*_{cmp,}xchg optional")
+> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > 
+> > Aha; you saved me writing a patch! :)
+> > 
+> > We should probably do likewise for all the other bits like __cmpxchg(), but
+> > either way:
+> > 
+> > Acked-by: Mark Rutland <mark.rutland@arm.com>
 > 
->           kernel: arch/sparc/boot/image is ready
->           kernel: arch/sparc/boot/zImage is ready
+> Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
 > 
-> from the sparc64 build. Copy the incantation from x86 which is silent
-> when building with make -s and also mentions a version indication.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> Though I'm not sure that means a whole lot over here ;)
 
-I hope Arnd or someone else can pick it up as davem is not active on
-sparc for the time being.
+I've carried some other sparc stuff before. I can send this to Linus
+with other fixes.
 
-	Sam
+-- 
+Kees Cook
