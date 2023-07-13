@@ -2,61 +2,87 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BAE8EB64DD
-	for <sparclinux@archiver.kernel.org>; Thu, 13 Jul 2023 08:34:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D26CC0015E
+	for <sparclinux@archiver.kernel.org>; Thu, 13 Jul 2023 13:48:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234636AbjGMIev (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 13 Jul 2023 04:34:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39206 "EHLO
+        id S229446AbjGMNsO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 13 Jul 2023 09:48:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234468AbjGMIeU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 Jul 2023 04:34:20 -0400
-X-Greylist: delayed 1064 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 13 Jul 2023 01:25:30 PDT
-Received: from mail.romvinc.pl (mail.romvinc.pl [51.254.119.53])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1436D72BE
-        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 01:25:29 -0700 (PDT)
-Received: by mail.romvinc.pl (Postfix, from userid 1002)
-        id 658C225295; Thu, 13 Jul 2023 08:06:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=romvinc.pl; s=mail;
-        t=1689235617; bh=bDX0Agd4PxP1G12JMZUJBnoORj59lnRJWZKQhow1LS4=;
-        h=Date:From:To:Subject:From;
-        b=pCHq2WwUEMz7fLxM02XShkZdYoxMcJHshHaVkQWNIbgkA8qKfzxggjgQJHvmEdCRM
-         /9OOJtXw6TiNFqOAE/qxfEslWV3d4TJbUPLMZRfAXnn4FL2TYdTbwqliDC27C6eLRz
-         0rbr1UHvIvZ37otzhWo/nN823PibWs25ITS9oCQxLSvLfgdpb+On8++Mss6RkTDecm
-         kTlz1B/SDGmVzuXtbLGeD3tPWrALQHOnrGQMSv8NNR+UTo48LuA5Sj+EBdGZ7xQlpZ
-         Uu5hPH0X1SJL5PNaf6naxRLM0HWphnlBSoQ06ZcV8gVyH/PH8UUlGlWSkn1MO7Ersl
-         n/9+8h8mud7vg==
-Received: by mail.romvinc.pl for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 08:05:44 GMT
-Message-ID: <20230713064500-0.1.77.pyxa.0.eo8qwgg7bc@romvinc.pl>
-Date:   Thu, 13 Jul 2023 08:05:44 GMT
-From:   =?UTF-8?Q? "Przemys=C5=82aw_Polak" ?= 
-        <przemyslaw.polak@romvinc.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Pozycjonowanie- informacja
-X-Mailer: mail.romvinc.pl
+        with ESMTP id S229436AbjGMNsM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 Jul 2023 09:48:12 -0400
+Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6640719B4;
+        Thu, 13 Jul 2023 06:48:10 -0700 (PDT)
+Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
+        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        id 1qJwfi-0003Ca-Qb; Thu, 13 Jul 2023 15:47:54 +0200
+Message-ID: <573023b6-4320-2c8d-b1ec-75d542590db0@leemhuis.info>
+Date:   Thu, 13 Jul 2023 15:47:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
+Subject: Re: [PATCH] sparc: mark __arch_xchg() as __always_inline
+Content-Language: en-US, de-DE
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Kees Cook <keescook@chromium.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Andi Shyti <andi.shyti@linux.intel.com>,
+        Andrzej Hajda <andrzej.hajda@intel.com>,
+        Palmer Dabbelt <palmer@rivosinc.com>,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Sam Ravnborg <sam@ravnborg.org>
+References: <20230628094938.2318171-1-arnd@kernel.org>
+ <20230628155103.GA214400@ravnborg.org>
+From:   "Linux regression tracking (Thorsten Leemhuis)" 
+        <regressions@leemhuis.info>
+In-Reply-To: <20230628155103.GA214400@ravnborg.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1689256090;9d0540f3;
+X-HE-SMSGID: 1qJwfi-0003Ca-Qb
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
+On 28.06.23 17:51, Sam Ravnborg wrote:
+> On Wed, Jun 28, 2023 at 11:49:18AM +0200, Arnd Bergmann wrote:
+>> From: Arnd Bergmann <arnd@arndb.de>
+>>
+>> An otherwise correct change to the atomic operations uncovered an
+>> existing bug in the sparc __arch_xchg() function, which is calls
+>> __xchg_called_with_bad_pointer() when its arguments are unknown at
+>> compile time:
+>>
+>> ERROR: modpost: "__xchg_called_with_bad_pointer" [lib/atomic64_test.ko] undefined!
+>>
+>> This now happens because gcc determines that it's better to not inline the
+>> function. Avoid this by just marking the function as __always_inline
+>> to force the compiler to do the right thing here.
+>>
+>> Reported-by: Guenter Roeck <linux@roeck-us.net>
+>> Link: https://lore.kernel.org/all/c525adc9-6623-4660-8718-e0c9311563b8@roeck-us.net/
+>> Fixes: d12157efc8e08 ("locking/atomic: make atomic*_{cmp,}xchg optional")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> 
+> I assume you will find a way to apply the patch.
 
-jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
-j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
-e Google.=20
+Hmmm, looks to me like this patch is sitting here for two weeks now
+without having made any progress. From a quick search on lore it also
+looks like Dave is not very active currently. Hence:
 
-Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
-=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
-w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
-owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
-dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
+Arnd, is that maybe something that is worth sending straight to Linus?
 
-Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
-edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
-edstawi=C4=87 ofert=C4=99?
-
-
-Pozdrawiam serdecznie
-Przemys=C5=82aw Polak
+Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
+--
+Everything you wanna know about Linux kernel regression tracking:
+https://linux-regtracking.leemhuis.info/about/#tldr
+If I did something stupid, please tell me, as explained on that page.
