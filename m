@@ -2,79 +2,81 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D624EEB64DA
-	for <sparclinux@archiver.kernel.org>; Wed, 12 Jul 2023 14:46:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11EDFC001DF
+	for <sparclinux@archiver.kernel.org>; Thu, 13 Jul 2023 00:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230035AbjGLOqd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 Jul 2023 10:46:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43360 "EHLO
+        id S233186AbjGMAeO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 Jul 2023 20:34:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbjGLOqc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Jul 2023 10:46:32 -0400
-Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DA77BB
-        for <sparclinux@vger.kernel.org>; Wed, 12 Jul 2023 07:46:31 -0700 (PDT)
-Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-666e6541c98so6407193b3a.2
-        for <sparclinux@vger.kernel.org>; Wed, 12 Jul 2023 07:46:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20221208.gappssmtp.com; s=20221208; t=1689173190; x=1691765190;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=3RJlGEMkrK0JJ4Kxd7hYeKyRhV465TrolA6xg6qfxJ8=;
-        b=rkydKRIpQBAKPCJ/OjBL6hiE17WoRL68apriz9iDe8EWclBfKbIdoJm4e9Eq2EPQi0
-         ifoCBc/mQNoqKpsVSFjAvU1zwmLLbcz9gOwTfHqUO7t77dBsUyymCe5IRz40Fg6SDToR
-         Oc6ao8Q3d3m8mD29bYwG3wr4aNSAhk4NRV8IxVo4QDWs5rInTu/wOy/c/e3gbxq1ux8y
-         U2BvPk7NxgGPhtSCzjNCOr4B+wGukwQDT0GS1npIvr9Dq9pIRajUzWQ26doL3oleIJbu
-         48U7KoFPYtHT9bJygROE78+SiMVX5rgurr4XvDfj0iyB6n4M4XuWhzc3I/VD3kVmqxoT
-         6gag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689173190; x=1691765190;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3RJlGEMkrK0JJ4Kxd7hYeKyRhV465TrolA6xg6qfxJ8=;
-        b=g3jLrbiwFRb4k0hIGh3sp++5Eyp26056qKXbw0Jc6xoK7DXryyNnafL1qLegHISaEr
-         nIQcJ6jJuMwjZDJgtASEQdaf3pUPVqAm7AZBdruUeEI9AVcF6+BWtQINGE0iqxlMV0qS
-         rZE7WQWWX5OTzpzYf/Cc7snGFB9NErZ9p2hSQjwHgQyStUIUhs8OYHCg41er7ZukMrD2
-         hMcGoejCFYU+uBPI4/4zSkNQRvcZSJyVDtjBCslicPxCYV4HFo8mnbDLKdJB6fmK7wG1
-         KID4VW3cXVHm6Of/GCXgXE+OSmWGyxtsaZr4EZKS14JZYjhcXA4AbifHnri3UNUoE4ha
-         VZkw==
-X-Gm-Message-State: ABy/qLas5ekSr+kJWNRr9Gtd6tTtbE+ylvuU+WpsqrppOIXCoZNeNxI+
-        QZ+Tj4pXZ3JaHGznGmooTUlwUw==
-X-Google-Smtp-Source: APBJJlHxSmG9jFkJQFDwDAILENgpdtukWjxbKoYhVkmclBMHHMEXiP6I525g1aGIuImZ/nj7vZ2fug==
-X-Received: by 2002:a17:902:ecce:b0:1b9:ebe9:5f01 with SMTP id a14-20020a170902ecce00b001b9ebe95f01mr7747418plh.19.1689173190386;
-        Wed, 12 Jul 2023 07:46:30 -0700 (PDT)
-Received: from localhost ([50.38.6.230])
-        by smtp.gmail.com with ESMTPSA id s13-20020a170902988d00b001b9e9765d8fsm4027382plp.261.2023.07.12.07.46.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Jul 2023 07:46:30 -0700 (PDT)
-Date:   Wed, 12 Jul 2023 07:46:30 -0700 (PDT)
-X-Google-Original-Date: Wed, 12 Jul 2023 07:45:43 PDT (-0700)
-Subject:     Re: [PATCH 4/4] vgacon, arch/*: remove unused screen_info definitions
+        with ESMTP id S229808AbjGMAeM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 Jul 2023 20:34:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B30918E;
+        Wed, 12 Jul 2023 17:34:11 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CAA67619E3;
+        Thu, 13 Jul 2023 00:34:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32C4EC433CD;
+        Thu, 13 Jul 2023 00:34:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689208450;
+        bh=h0GsuVfwe0mSJLf0CUYKSs4tBJsF9ZFlVOYHCDQ2FTM=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=GahPxDoylll4i3tp/d3OvcPh8d1ShV9I+8WcM7ZT2D2sLN6p2rKK/m09g2zRz4qcy
+         F2rySwRVdeC9m/VNG8y7Auf5xjQ8GGv7sxGAjv2QnHfsO5P2qPwfEVHDHz4upR1Stb
+         0svGsYKHnp2OnB4tcPiWlEDxQzWwM037lnQ5L+3SmZzdANAN1VFD3JCu1h0EOXahy2
+         jebbI+IQsmVRtyUUQ3Fkwsj2y53ZoC9wenHyp41klp+7y3eG/WWnkmRP3fLSUhA9Gk
+         m47jp8V7hlVaFKOXnHMbs0HZL2xB8/Oj1RPqDKYfLvCFdmDCBJtnDQ5ekkthJ0BbY4
+         WtUWhH+ZPTeKw==
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-51e344efd75so219121a12.1;
+        Wed, 12 Jul 2023 17:34:10 -0700 (PDT)
+X-Gm-Message-State: ABy/qLYKsp7176Jaq1X0/6t09aUmTF5uuvryeSofiQXslGbkBDo2Kq/p
+        r5xqAsLJQ/5Ij5DkFqZpzGOv7MwGAcOgLAekxNU=
+X-Google-Smtp-Source: APBJJlEQ6/L9+3l57KhL+DrBeyOgp7Hj5REivD3lG0Hw7HlvPx05nt5j8UOGP7wiPPCSny/+2qvXQ5HhjYPk4/43tWc=
+X-Received: by 2002:aa7:de0d:0:b0:51e:1c5c:b97f with SMTP id
+ h13-20020aa7de0d000000b0051e1c5cb97fmr669974edv.2.1689208448407; Wed, 12 Jul
+ 2023 17:34:08 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230707095415.1449376-1-arnd@kernel.org> <20230707095415.1449376-4-arnd@kernel.org>
 In-Reply-To: <20230707095415.1449376-4-arnd@kernel.org>
-CC:     tzimmermann@suse.de, javierm@redhat.com,
+From:   Guo Ren <guoren@kernel.org>
+Date:   Wed, 12 Jul 2023 20:33:57 -0400
+X-Gmail-Original-Message-ID: <CAJF2gTQGCmfMH2S4hns76ttqM8K-4dO-rhkE6vL+w9akajpwvw@mail.gmail.com>
+Message-ID: <CAJF2gTQGCmfMH2S4hns76ttqM8K-4dO-rhkE6vL+w9akajpwvw@mail.gmail.com>
+Subject: Re: [PATCH 4/4] vgacon, arch/*: remove unused screen_info definitions
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Thomas Zimmermann <tzimmermann@suse.de>, javierm@redhat.com,
         linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux@armlinux.org.uk, dri-devel@lists.freedesktop.org,
-        Ard Biesheuvel <ardb@kernel.org>, deller@gmx.de,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, guoren@kernel.org,
-        bcain@quicinc.com, dinguyen@kernel.org, dalias@libc.org,
-        glaubitz@physik.fu-berlin.de, davem@davemloft.net,
-        chris@zankel.net, jcmvbkbc@gmail.com, masahiroy@kernel.org,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, Ard Biesheuvel <ardb@kernel.org>,
+        Helge Deller <deller@gmx.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
         linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-From:   Palmer Dabbelt <palmer@rivosinc.com>
-To:     arnd@kernel.org
-Message-ID: <mhng-099c5770-3367-48d7-a068-25762b837196@palmer-ri-x1c9a>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
+csky:
+Acked-by: Guo Ren <guoren@kernel.org>
+
+On Fri, Jul 7, 2023 at 5:56=E2=80=AFAM Arnd Bergmann <arnd@kernel.org> wrot=
+e:
+>
 > From: Arnd Bergmann <arnd@arndb.de>
 >
 > A number of architectures either kept the screen_info definition for
@@ -112,30 +114,32 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >  #include <asm/pgalloc.h>
 >
 > -#ifdef CONFIG_DUMMY_CONSOLE
-> -struct screen_info screen_info = {
-> -	.orig_video_lines	= 30,
-> -	.orig_video_cols	= 80,
-> -	.orig_video_mode	= 0,
-> -	.orig_video_ega_bx	= 0,
-> -	.orig_video_isVGA	= 1,
-> -	.orig_video_points	= 8
+> -struct screen_info screen_info =3D {
+> -       .orig_video_lines       =3D 30,
+> -       .orig_video_cols        =3D 80,
+> -       .orig_video_mode        =3D 0,
+> -       .orig_video_ega_bx      =3D 0,
+> -       .orig_video_isVGA       =3D 1,
+> -       .orig_video_points      =3D 8
 > -};
 > -#endif
 > -
 >  static void __init csky_memblock_init(void)
 >  {
->  	unsigned long lowmem_size = PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
+>         unsigned long lowmem_size =3D PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET=
+_OFFSET);
 > diff --git a/arch/hexagon/kernel/Makefile b/arch/hexagon/kernel/Makefile
 > index e73cb321630ec..3fdf937eb572e 100644
 > --- a/arch/hexagon/kernel/Makefile
 > +++ b/arch/hexagon/kernel/Makefile
-> @@ -17,5 +17,3 @@ obj-y += vm_vectors.o
->  obj-$(CONFIG_HAS_DMA) += dma.o
+> @@ -17,5 +17,3 @@ obj-y +=3D vm_vectors.o
+>  obj-$(CONFIG_HAS_DMA) +=3D dma.o
 >
->  obj-$(CONFIG_STACKTRACE) += stacktrace.o
+>  obj-$(CONFIG_STACKTRACE) +=3D stacktrace.o
 > -
-> -obj-$(CONFIG_VGA_CONSOLE) += screen_info.o
-> diff --git a/arch/hexagon/kernel/screen_info.c b/arch/hexagon/kernel/screen_info.c
+> -obj-$(CONFIG_VGA_CONSOLE) +=3D screen_info.o
+> diff --git a/arch/hexagon/kernel/screen_info.c b/arch/hexagon/kernel/scre=
+en_info.c
 > deleted file mode 100644
 > index 1e1ceb18bafe7..0000000000000
 > --- a/arch/hexagon/kernel/screen_info.c
@@ -156,9 +160,10 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >
 >  #include <asm/mmu_context.h>
 >  #include <asm/sections.h>
-> @@ -36,10 +35,6 @@ static struct pt_regs fake_regs = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
->  					0, 0, 0, 0, 0, 0,
->  					0};
+> @@ -36,10 +35,6 @@ static struct pt_regs fake_regs =3D { 0, 0, 0, 0, 0, 0=
+, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+>                                         0, 0, 0, 0, 0, 0,
+>                                         0};
 >
 > -#ifdef CONFIG_VT
 > -struct screen_info screen_info;
@@ -180,7 +185,7 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >  #include <linux/init.h>
 >  #include <linux/initrd.h>
 > @@ -69,10 +68,6 @@ EXPORT_SYMBOL(cpu_data);
->  struct sh_machine_vector sh_mv = { .mv_name = "generic", };
+>  struct sh_machine_vector sh_mv =3D { .mv_name =3D "generic", };
 >  EXPORT_SYMBOL(sh_mv);
 >
 > -#ifdef CONFIG_VT
@@ -189,7 +194,7 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 > -
 >  extern int root_mountflags;
 >
->  #define RAMDISK_IMAGE_START_MASK	0x07FF
+>  #define RAMDISK_IMAGE_START_MASK       0x07FF
 > diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
 > index 34ef7febf0d56..e3b72a7b46d37 100644
 > --- a/arch/sparc/kernel/setup_32.c
@@ -206,16 +211,16 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >
 >  #include "kernel.h"
 >
-> -struct screen_info screen_info = {
-> -	0, 0,			/* orig-x, orig-y */
-> -	0,			/* unused */
-> -	0,			/* orig-video-page */
-> -	0,			/* orig-video-mode */
-> -	128,			/* orig-video-cols */
-> -	0,0,0,			/* ega_ax, ega_bx, ega_cx */
-> -	54,			/* orig-video-lines */
-> -	0,                      /* orig-video-isVGA */
-> -	16                      /* orig-video-points */
+> -struct screen_info screen_info =3D {
+> -       0, 0,                   /* orig-x, orig-y */
+> -       0,                      /* unused */
+> -       0,                      /* orig-video-page */
+> -       0,                      /* orig-video-mode */
+> -       128,                    /* orig-video-cols */
+> -       0,0,0,                  /* ega_ax, ega_bx, ega_cx */
+> -       54,                     /* orig-video-lines */
+> -       0,                      /* orig-video-isVGA */
+> -       16                      /* orig-video-points */
 > -};
 > -
 >  /* Typing sync at the prom prompt calls the function pointed to by
@@ -237,16 +242,16 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >  DEFINE_SPINLOCK(ns87303_lock);
 >  EXPORT_SYMBOL(ns87303_lock);
 >
-> -struct screen_info screen_info = {
-> -	0, 0,			/* orig-x, orig-y */
-> -	0,			/* unused */
-> -	0,			/* orig-video-page */
-> -	0,			/* orig-video-mode */
-> -	128,			/* orig-video-cols */
-> -	0, 0, 0,		/* unused, ega_bx, unused */
-> -	54,			/* orig-video-lines */
-> -	0,                      /* orig-video-isVGA */
-> -	16                      /* orig-video-points */
+> -struct screen_info screen_info =3D {
+> -       0, 0,                   /* orig-x, orig-y */
+> -       0,                      /* unused */
+> -       0,                      /* orig-video-page */
+> -       0,                      /* orig-video-mode */
+> -       128,                    /* orig-video-cols */
+> -       0, 0, 0,                /* unused, ega_bx, unused */
+> -       54,                     /* orig-video-lines */
+> -       0,                      /* orig-video-isVGA */
+> -       16                      /* orig-video-points */
 > -};
 > -
 >  static void
@@ -269,18 +274,24 @@ On Fri, 07 Jul 2023 02:52:26 PDT (-0700), arnd@kernel.org wrote:
 >  #include <asm/traps.h>
 >
 > -#if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
-> -struct screen_info screen_info = {
-> -	.orig_x = 0,
-> -	.orig_y = 24,
-> -	.orig_video_cols = 80,
-> -	.orig_video_lines = 24,
-> -	.orig_video_isVGA = 1,
-> -	.orig_video_points = 16,
+> -struct screen_info screen_info =3D {
+> -       .orig_x =3D 0,
+> -       .orig_y =3D 24,
+> -       .orig_video_cols =3D 80,
+> -       .orig_video_lines =3D 24,
+> -       .orig_video_isVGA =3D 1,
+> -       .orig_video_points =3D 16,
 > -};
 > -#endif
 > -
 >  #ifdef CONFIG_BLK_DEV_INITRD
 >  extern unsigned long initrd_start;
 >  extern unsigned long initrd_end;
+> --
+> 2.39.2
+>
 
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+
+--=20
+Best Regards
+ Guo Ren
