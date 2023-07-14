@@ -2,76 +2,84 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7135EB64DC
-	for <sparclinux@archiver.kernel.org>; Fri, 14 Jul 2023 04:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1555DEB64DA
+	for <sparclinux@archiver.kernel.org>; Fri, 14 Jul 2023 06:07:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234101AbjGNE4g (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 14 Jul 2023 00:56:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43984 "EHLO
+        id S235006AbjGNGHQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 14 Jul 2023 02:07:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232770AbjGNE4f (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 14 Jul 2023 00:56:35 -0400
-Received: from mail.208.org (unknown [183.242.55.162])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B148D2D61
-        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 21:56:33 -0700 (PDT)
-Received: from mail.208.org (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTP id 4R2K255zNvzBR7b2
-        for <sparclinux@vger.kernel.org>; Fri, 14 Jul 2023 12:56:29 +0800 (CST)
-Authentication-Results: mail.208.org (amavisd-new); dkim=pass
-        reason="pass (just generated, assumed good)" header.d=208.org
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=208.org; h=
-        content-transfer-encoding:content-type:message-id:user-agent
-        :references:in-reply-to:subject:to:from:date:mime-version; s=
-        dkim; t=1689310589; x=1691902590; bh=kH8GnE+sm/V63Y/8cHTnasFldhq
-        gzlUbCDGfR2vkAeM=; b=ZeEWpyRWgvhCJoyEQGJITA3WVMyvKmE64MnvzWjMhDZ
-        2h4d7zuK2vcpNN5Q08sqsg+suzY9YCIWPSonDwZDjYrCDC5ZOWuaae6DAOfjP0aj
-        A22E2WJ59bAQXrYwdrFyucO5E83OEfdkwd2a4YKCWnnKUi3xAtl+S9GG1kqxWt5n
-        Yygc137bnX9GyQgEM05T8KqPSB2PGDS1rE3BM84hXoCL+7TqehzSAyjEz/aoYruZ
-        vq2UQ2Wa+HzvosRDO24ey+Z6IJFrzP4zGqwZVvfauhVj0BiwHueGcyu6HzM94QF5
-        XrdFm8WN2S9rcamYEQt739Okb4VOeZRbeXY3zRxD+nA==
-X-Virus-Scanned: amavisd-new at mail.208.org
-Received: from mail.208.org ([127.0.0.1])
-        by mail.208.org (mail.208.org [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id B2BVFz7QhiEq for <sparclinux@vger.kernel.org>;
-        Fri, 14 Jul 2023 12:56:29 +0800 (CST)
-Received: from localhost (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTPSA id 4R2K253rp3zBHXhN;
-        Fri, 14 Jul 2023 12:56:29 +0800 (CST)
-MIME-Version: 1.0
-Date:   Fri, 14 Jul 2023 12:56:29 +0800
-From:   liubin001@208suo.com
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] floppy:ERROR: missing put_device; call of_find_device_by_node
- on line 589, but without a corresponding object release within this function.
- Add the put_device function before return to release memory
-In-Reply-To: <tencent_0C9506095848D9427102ED415071D0F3420A@qq.com>
+        with ESMTP id S235081AbjGNGHO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 14 Jul 2023 02:07:14 -0400
+Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:402::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 164802D48
+        for <sparclinux@vger.kernel.org>; Thu, 13 Jul 2023 23:06:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=9BNhLabwdAiJ2voXZND9Ot8F6P98Zou8nlUh3VEOLss=;
+        b=QJDeNA+cKXc1jcUiTb4/MnC4WvT3IyKVpf1aFlSE1FYrZy6sGblDu/yvCZY7YbeFS6SR9PGe7g2sr
+         bce6TekbTverVIEqIA9MtqELPgpIqj2gYydDsRY3VvRY4Q/geBF5GnZ480/bQW4s9E4vax+n9+Oy5u
+         EqPzdX874opkA2lzdDeRfyZcqwgStI2ZaHUDX086pplyabKYnS1F4XUQEV3g1vjS6N6KkdNJE8yfXf
+         x8kjP+z17kZ439D3blAFhjcfoVFvWMCIqoBZT4GWvWwwbZPO47Futg6Cyf2hT+FYP2EUQuC0BTmcIW
+         Yssa2v/sEC5GOiVL3WS1XryylccHNqw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=9BNhLabwdAiJ2voXZND9Ot8F6P98Zou8nlUh3VEOLss=;
+        b=J1JhG5hCP7f9455vM3SCN+NdM6tlr9oW5YE7dl+VEXM/oeDKonA54F22t3XbBc5cwyWQh3Wd66Tzo
+         ERtBQkXBQ==
+X-HalOne-ID: a18a2382-220c-11ee-9f80-b90637070a9d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay3 (Halon) with ESMTPSA
+        id a18a2382-220c-11ee-9f80-b90637070a9d;
+        Fri, 14 Jul 2023 06:06:56 +0000 (UTC)
+Date:   Fri, 14 Jul 2023 08:06:55 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     liubin001@208suo.com
+Cc:     davem@davemloft.net, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] floppy:ERROR: missing put_device; call
+ of_find_device_by_node on line 589, but without a corresponding object
+ release within this function. Add the put_device function before return to
+ release memory
+Message-ID: <20230714060655.GA50441@ravnborg.org>
 References: <tencent_0C9506095848D9427102ED415071D0F3420A@qq.com>
-User-Agent: Roundcube Webmail
-Message-ID: <0f4dc280605c4700556d88d6f59cd1c4@208suo.com>
-X-Sender: liubin001@208suo.com
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+ <0f4dc280605c4700556d88d6f59cd1c4@208suo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0f4dc280605c4700556d88d6f59cd1c4@208suo.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Signed-off-by: LiuBin <liubin001@208suo.com>
----
-  arch/sparc/include/asm/floppy_64.h | 1 +
-  1 file changed, 1 insertion(+)
+Hi LiuBin
 
-diff --git a/arch/sparc/include/asm/floppy_64.h 
-b/arch/sparc/include/asm/floppy_64.h
-index 070c8c1f5c8f..c4c51f494f25 100644
---- a/arch/sparc/include/asm/floppy_64.h
-+++ b/arch/sparc/include/asm/floppy_64.h
-@@ -588,6 +588,7 @@ static unsigned long __init sun_floppy_init(void)
+On Fri, Jul 14, 2023 at 12:56:29PM +0800, liubin001@208suo.com wrote:
+> Signed-off-by: LiuBin <liubin001@208suo.com>
+> ---
+>  arch/sparc/include/asm/floppy_64.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/sparc/include/asm/floppy_64.h
+> b/arch/sparc/include/asm/floppy_64.h
+> index 070c8c1f5c8f..c4c51f494f25 100644
+> --- a/arch/sparc/include/asm/floppy_64.h
+> +++ b/arch/sparc/include/asm/floppy_64.h
+> @@ -588,6 +588,7 @@ static unsigned long __init sun_floppy_init(void)
+> 
+>          op = of_find_device_by_node(dp);
+>          if (!op)
+> +            put_device(op);
+>              return 0;
 
-          op = of_find_device_by_node(dp);
-          if (!op)
-+            put_device(op);
-              return 0;
+This does not look right as the code will always return 0 now,
+independent on the if test. You missed a set of curly braces.
 
-          state_prop = of_get_property(op->dev.of_node, "status", NULL);
+	Sam
+
+> 
+>          state_prop = of_get_property(op->dev.of_node, "status", NULL);
