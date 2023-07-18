@@ -2,565 +2,205 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6645EB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 14:33:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9179C04FE0
+	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 14:48:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233286AbjGROdR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Jul 2023 10:33:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52374 "EHLO
+        id S229446AbjGROsV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 18 Jul 2023 10:48:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233343AbjGROc4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 10:32:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ACE61FED;
-        Tue, 18 Jul 2023 07:32:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 831DC615FD;
-        Tue, 18 Jul 2023 14:32:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66DBBC433C7;
-        Tue, 18 Jul 2023 14:32:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689690736;
-        bh=CvXNh/V0SLE1LcnbZrcODS7C8vIG914MVnRAYa+fhbA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=KJkN9kUC3OUuf2US9ZpB+uKJtFSYZ69Pk1Us/bpaP5enqoSe/pTOTHBbbg3Y34A/b
-         oa8fFhSXONO+2nDRLX+2UtccmAsMcUuYnF+t84U6SdfRJjjrq+/lbfavJVgYtabQyQ
-         TTbQQiJuIuhTNv1doSXLVR9iPq2urJlDK4Dje/ssd5uSZwOU55ps9rSQgFfCwIYPL3
-         snsM+Ge6q847oNM0qsKoZjV7WqCMng6tHozKkf81Ru8Fi8BVvmuPck/c6Bbm92NbRs
-         HSVwfl7IMxye4VxWQuUQvSMEIEwuRUyoLNhXu8d2jotzigKmYUEHt8zQNhh7OnlESo
-         lN+NOtU3GjODw==
-Received: (nullmailer pid 1066942 invoked by uid 1000);
-        Tue, 18 Jul 2023 14:32:14 -0000
-From:   Rob Herring <robh@kernel.org>
-To:     Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     devicetree@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
-        linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] sparc: Explicitly include correct DT includes
-Date:   Tue, 18 Jul 2023 08:32:08 -0600
-Message-Id: <20230718143211.1066810-1-robh@kernel.org>
-X-Mailer: git-send-email 2.40.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S231461AbjGROsS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 10:48:18 -0400
+Received: from new1-smtp.messagingengine.com (new1-smtp.messagingengine.com [66.111.4.221])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5049EE;
+        Tue, 18 Jul 2023 07:48:16 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 783FD5801B9;
+        Tue, 18 Jul 2023 10:48:13 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Tue, 18 Jul 2023 10:48:13 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1689691693; x=1689698893; bh=4E
+        XBgwGIlgKcIRz7fYYqQngyR1yPZq+r239tLLqrHVk=; b=U+PxApC1c0376TqZuP
+        isAD22T8M4zJIjSrvXmVpbp6KhpIotLqk2flmz7s+T06sAtwetZtqAN35oBQM18V
+        E9Vd5EknfrCd55/sR9Rg3J+FxpX5GsKEjtQU9AFnUtjkxe7oqBoVQzTNoDP5u5X5
+        rSry6e0s/Ht0NKUlu8EZd+aki7CeM1QL9lQ7BuAYb8NIf+q6wneEjcqyAdNAOSKe
+        3Q3/Rw4DAondMIM4X45wkoQvE0WYFJubJX2ViPetJGUOtAKwJQY/rNiVnrqi130S
+        /Ys2lD9M1NM+lK1VylAriUlkcLzpU6TE/xpWVIXsuJ6Oq43IcCjQXdSEh9Y0zSSg
+        cz2A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1689691693; x=1689698893; bh=4EXBgwGIlgKcI
+        Rz7fYYqQngyR1yPZq+r239tLLqrHVk=; b=vt/n/+reICKpoGKCCTL+PKs8fBesX
+        bRB0MIXNSbw788baiVok0Iks/FSNTx3qLITMrTkCAbIvshkyyo9MJWsyNbKKs3Uy
+        qud4qHjnngBLw0+PwQ07Re6o3QKgK/+v3dwIvNqhul//0hUKKRr6nGmkpdaLExui
+        66AQ4sIEYM6WU7ha+ddVGz5eyqyj5wcVeESPo62AwB8GCUXJgKYBPh4Ltx3Lxhzq
+        EWTdVTjHxSm6vhtcdlSDxi5e9dMQ0fVJoXkaYJu6CJwtLBsbItpUb+zW9oKkFbMO
+        wy0AtBUz7Iqop6y2Wl8lzx4kAiNFUPuXWdo9jc9jUT8tXU0cWmw6lNQQw==
+X-ME-Sender: <xms:LKa2ZL9VJEOBxw8oEliC4PNJ4jT_CVSWCm_f5JE7K0Tw5PBqWCeIWw>
+    <xme:LKa2ZHs4jDEworQ0UeTqj33pEpAv3TWtuinGhkkOiumIW6T5P6F5-QDM6L3vP0zGS
+    TuGhzKBjkxCybTvb-8>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrgeeggdejjecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
+    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
+    gvrhhnpeevhfffledtgeehfeffhfdtgedvheejtdfgkeeuvefgudffteettdekkeeufeeh
+    udenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptd
+    enucfrrghrrghmpehmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:LKa2ZJDmNsYvmYWf3JnzcWBbZoO5jKTiyTtqE4alr31NKvJCBTj5aw>
+    <xmx:LKa2ZHf3KGqesnyHhNEumxnmoezUKbmQR2ScJuBN6eMpWSftCWddxg>
+    <xmx:LKa2ZAMMvpHsg5Hc9S56BEMspz1ujpTc1dNFZ8wWYcJ3ItQpHjWkmw>
+    <xmx:Laa2ZGuPGNZd1VeqvnHuAjKMw2FYyCL90xx6fqP8Sbak_y136dhR7Q>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 4A372B60086; Tue, 18 Jul 2023 10:48:12 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-531-gfdfa13a06d-fm-20230703.001-gfdfa13a0
+Mime-Version: 1.0
+Message-Id: <0beb03f8-ba55-439f-8aa5-6da0e85c11d9@app.fastmail.com>
+In-Reply-To: <150c0fa2-bff2-0644-d6e5-c4dab7f79048@suse.de>
+References: <20230629121952.10559-1-tzimmermann@suse.de>
+ <20230629121952.10559-8-tzimmermann@suse.de>
+ <80e3a583-805e-4e8f-a67b-ebe2e4b9a7e5@app.fastmail.com>
+ <d3de124c-6aa8-e930-e238-7bd6dd7929a6@suse.de>
+ <0dbbdfc4-0e91-4be4-9ca0-d8ba6f18453d@app.fastmail.com>
+ <ef7b3899-7d18-8018-47fa-aac0efaa61f4@suse.de>
+ <dd5aa01e-afad-48d2-bf4c-4a58b74f1644@app.fastmail.com>
+ <150c0fa2-bff2-0644-d6e5-c4dab7f79048@suse.de>
+Date:   Tue, 18 Jul 2023 16:47:41 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
+        "Helge Deller" <deller@gmx.de>, "Daniel Vetter" <daniel@ffwll.ch>,
+        "Dave Airlie" <airlied@gmail.com>
+Cc:     linux-hyperv@vger.kernel.org, linux-efi@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org,
+        "Peter Zijlstra" <peterz@infradead.org>,
+        "Dave Hansen" <dave.hansen@linux.intel.com>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-mips@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
+        "Ard Biesheuvel" <ardb@kernel.org>,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-hexagon@vger.kernel.org, linux-staging@lists.linux.dev,
+        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+        "Ingo Molnar" <mingo@redhat.com>,
+        "Sami Tolvanen" <samitolvanen@google.com>,
+        "Kees Cook" <keescook@chromium.org>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        "Frederic Weisbecker" <frederic@kernel.org>,
+        "Nicholas Piggin" <npiggin@gmail.com>,
+        "Borislav Petkov" <bp@alien8.de>, loongarch@lists.linux.dev,
+        "Thomas Gleixner" <tglx@linutronix.de>,
+        linux-arm-kernel@lists.infradead.org, x86@kernel.org,
+        linux-kernel@vger.kernel.org,
+        "Juerg Haefliger" <juerg.haefliger@canonical.com>,
+        linux-alpha@vger.kernel.org,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 07/12] arch/x86: Declare edid_info in <asm/screen_info.h>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The DT of_device.h and of_platform.h date back to the separate
-of_platform_bus_type before it as merged into the regular platform bus.
-As part of that merge prepping Arm DT support 13 years ago, they
-"temporarily" include each other. They also include platform_device.h
-and of.h. As a result, there's a pretty much random mix of those include
-files used throughout the tree. In order to detangle these headers and
-replace the implicit includes with struct declarations, users need to
-explicitly include the correct includes.
+On Wed, Jul 5, 2023, at 10:18, Thomas Zimmermann wrote:
+> Am 30.06.23 um 13:53 schrieb Arnd Bergmann:
+>> On Fri, Jun 30, 2023, at 09:46, Thomas Zimmermann wrote:
+>>> Am 29.06.23 um 15:21 schrieb Arnd Bergmann:
+>> 
+>> I definitely get it for the screen_info, which needs the complexity.
+>> For ARCHARCH_HAS_EDID_INFO I would hope that it's never selected by
+>> anything other than x86, so I would still go with just a dependency
+>> on x86 for simplicity, but I don't mind having the extra symbol if that
+>> keeps it more consistent with how the screen_info is handled.
+>
+> Well, I'd like to add edid_info to platforms with EFI. What would be 
+> arm/arm64 and loongarch, I guess. See below for the future plans.
 
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Rob Herring <robh@kernel.org>
----
-v2:
-- Fix double include of of.h
----
- arch/sparc/crypto/crop_devid.c       | 2 +-
- arch/sparc/include/asm/floppy_32.h   | 2 +-
- arch/sparc/include/asm/floppy_64.h   | 2 +-
- arch/sparc/include/asm/parport.h     | 3 ++-
- arch/sparc/kernel/apc.c              | 2 +-
- arch/sparc/kernel/auxio_32.c         | 1 -
- arch/sparc/kernel/auxio_64.c         | 3 ++-
- arch/sparc/kernel/central.c          | 2 +-
- arch/sparc/kernel/chmc.c             | 3 ++-
- arch/sparc/kernel/ioport.c           | 2 +-
- arch/sparc/kernel/leon_kernel.c      | 2 --
- arch/sparc/kernel/leon_pci.c         | 3 ++-
- arch/sparc/kernel/leon_pci_grpci1.c  | 3 ++-
- arch/sparc/kernel/leon_pci_grpci2.c  | 4 +++-
- arch/sparc/kernel/of_device_32.c     | 1 +
- arch/sparc/kernel/of_device_64.c     | 3 ++-
- arch/sparc/kernel/of_device_common.c | 4 ++--
- arch/sparc/kernel/pci.c              | 3 ++-
- arch/sparc/kernel/pci_common.c       | 3 ++-
- arch/sparc/kernel/pci_fire.c         | 3 ++-
- arch/sparc/kernel/pci_impl.h         | 1 -
- arch/sparc/kernel/pci_msi.c          | 2 ++
- arch/sparc/kernel/pci_psycho.c       | 4 +++-
- arch/sparc/kernel/pci_sun4v.c        | 3 ++-
- arch/sparc/kernel/pmc.c              | 2 +-
- arch/sparc/kernel/power.c            | 3 ++-
- arch/sparc/kernel/prom_irqtrans.c    | 1 +
- arch/sparc/kernel/psycho_common.c    | 1 +
- arch/sparc/kernel/sbus.c             | 3 ++-
- arch/sparc/kernel/time_32.c          | 1 -
- arch/sparc/mm/io-unit.c              | 3 ++-
- arch/sparc/mm/iommu.c                | 5 +++--
- 32 files changed, 49 insertions(+), 31 deletions(-)
+To be clear: I don't mind using a 'struct edid_info' being passed
+around between subsystems, that is clearly an improvement over
+'struct screen_info'. It's the global variable that seems like
+an artifact of linux-2.4 days, and I think we can do better than that.
 
-diff --git a/arch/sparc/crypto/crop_devid.c b/arch/sparc/crypto/crop_devid.c
-index 83fc4536dcd5..93f4e0fdd38c 100644
---- a/arch/sparc/crypto/crop_devid.c
-+++ b/arch/sparc/crypto/crop_devid.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
-+#include <linux/mod_devicetable.h>
- #include <linux/module.h>
--#include <linux/of_device.h>
- 
- /* This is a dummy device table linked into all of the crypto
-  * opcode drivers.  It serves to trigger the module autoloading
-diff --git a/arch/sparc/include/asm/floppy_32.h b/arch/sparc/include/asm/floppy_32.h
-index e10ab9ad3097..836f6575aa1d 100644
---- a/arch/sparc/include/asm/floppy_32.h
-+++ b/arch/sparc/include/asm/floppy_32.h
-@@ -8,7 +8,7 @@
- #define __ASM_SPARC_FLOPPY_H
- 
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
- #include <linux/pgtable.h>
- 
- #include <asm/idprom.h>
-diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
-index 070c8c1f5c8f..6efeb24b0a92 100644
---- a/arch/sparc/include/asm/floppy_64.h
-+++ b/arch/sparc/include/asm/floppy_64.h
-@@ -11,7 +11,7 @@
- #define __ASM_SPARC64_FLOPPY_H
- 
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
- #include <linux/dma-mapping.h>
- 
- #include <asm/auxio.h>
-diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
-index 03b27090c0c8..0a7ffcfd59cd 100644
---- a/arch/sparc/include/asm/parport.h
-+++ b/arch/sparc/include/asm/parport.h
-@@ -7,7 +7,8 @@
- #ifndef _ASM_SPARC64_PARPORT_H
- #define _ASM_SPARC64_PARPORT_H 1
- 
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/ebus_dma.h>
- #include <asm/ns87303.h>
-diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
-index ecd05bc0a104..d44725d37e30 100644
---- a/arch/sparc/kernel/apc.c
-+++ b/arch/sparc/kernel/apc.c
-@@ -13,7 +13,7 @@
- #include <linux/miscdevice.h>
- #include <linux/pm.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/platform_device.h>
- #include <linux/module.h>
- 
- #include <asm/io.h>
-diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
-index a32d588174f2..989860e890c4 100644
---- a/arch/sparc/kernel/auxio_32.c
-+++ b/arch/sparc/kernel/auxio_32.c
-@@ -8,7 +8,6 @@
- #include <linux/init.h>
- #include <linux/spinlock.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
- #include <linux/export.h>
- 
- #include <asm/oplib.h>
-diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
-index 774a82b0c649..2a2800d21325 100644
---- a/arch/sparc/kernel/auxio_64.c
-+++ b/arch/sparc/kernel/auxio_64.c
-@@ -10,7 +10,8 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/prom.h>
- #include <asm/io.h>
-diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
-index 23f8838dd96e..a1a6485c9183 100644
---- a/arch/sparc/kernel/central.c
-+++ b/arch/sparc/kernel/central.c
-@@ -10,7 +10,7 @@
- #include <linux/export.h>
- #include <linux/string.h>
- #include <linux/init.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- 
- #include <asm/fhc.h>
-diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
-index 6ff43df740e0..d5fad5fb04c1 100644
---- a/arch/sparc/kernel/chmc.c
-+++ b/arch/sparc/kernel/chmc.c
-@@ -15,7 +15,8 @@
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- #include <asm/spitfire.h>
- #include <asm/chmctrl.h>
- #include <asm/cpudata.h>
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index a8cbe403301f..5ebca5c7af1e 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -39,7 +39,7 @@
- #include <linux/seq_file.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-map-ops.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- 
- #include <asm/io.h>
- #include <asm/vaddrs.h>
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 39229940d725..4c61da491fee 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -8,9 +8,7 @@
- #include <linux/errno.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
--#include <linux/of_platform.h>
- #include <linux/interrupt.h>
--#include <linux/of_device.h>
- #include <linux/clocksource.h>
- #include <linux/clockchips.h>
- 
-diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
-index b6663a3fbae9..8de6646e9ce8 100644
---- a/arch/sparc/kernel/leon_pci.c
-+++ b/arch/sparc/kernel/leon_pci.c
-@@ -7,7 +7,8 @@
-  * Code is partially derived from pcic.c
-  */
- 
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/export.h>
-diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
-index e6935d0ac1ec..8700a0e3b0df 100644
---- a/arch/sparc/kernel/leon_pci_grpci1.c
-+++ b/arch/sparc/kernel/leon_pci_grpci1.c
-@@ -13,10 +13,11 @@
-  * Contributors: Daniel Hellstrom <daniel@gaisler.com>
-  */
- 
--#include <linux/of_device.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
-+#include <linux/of.h>
- #include <linux/of_irq.h>
-+#include <linux/platform_device.h>
- #include <linux/delay.h>
- #include <linux/pci.h>
- 
-diff --git a/arch/sparc/kernel/leon_pci_grpci2.c b/arch/sparc/kernel/leon_pci_grpci2.c
-index ca22f93d9045..60b6bdf7761f 100644
---- a/arch/sparc/kernel/leon_pci_grpci2.c
-+++ b/arch/sparc/kernel/leon_pci_grpci2.c
-@@ -6,12 +6,14 @@
-  *
-  */
- 
--#include <linux/of_device.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/export.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+
- #include <asm/io.h>
- #include <asm/leon.h>
- #include <asm/vaddrs.h>
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index fa05b29fa051..06012e68bdca 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -8,6 +8,7 @@
- #include <linux/errno.h>
- #include <linux/irq.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <asm/leon.h>
- #include <asm/leon_amba.h>
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index c41aa82a9af3..d3842821a5a0 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -1,7 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/string.h>
- #include <linux/kernel.h>
--#include <linux/of.h>
- #include <linux/dma-mapping.h>
- #include <linux/init.h>
- #include <linux/export.h>
-@@ -9,7 +8,9 @@
- #include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/irq.h>
-+#include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- #include <asm/spitfire.h>
- 
- #include "of_device_common.h"
-diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
-index 60f86b837658..ba2a6ae23508 100644
---- a/arch/sparc/kernel/of_device_common.c
-+++ b/arch/sparc/kernel/of_device_common.c
-@@ -1,15 +1,15 @@
- // SPDX-License-Identifier: GPL-2.0-only
- #include <linux/string.h>
- #include <linux/kernel.h>
--#include <linux/of.h>
- #include <linux/export.h>
- #include <linux/mod_devicetable.h>
- #include <linux/errno.h>
- #include <linux/irq.h>
-+#include <linux/of.h>
- #include <linux/of_platform.h>
- #include <linux/of_address.h>
--#include <linux/of_device.h>
- #include <linux/of_irq.h>
-+#include <linux/platform_device.h>
- 
- #include "of_device_common.h"
- 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index a948a49817c7..f66005ce4cb5 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -20,8 +20,9 @@
- #include <linux/irq.h>
- #include <linux/init.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
- #include <linux/pgtable.h>
-+#include <linux/platform_device.h>
- 
- #include <linux/uaccess.h>
- #include <asm/irq.h>
-diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
-index 4759ccd542fe..5eeec9ad6845 100644
---- a/arch/sparc/kernel/pci_common.c
-+++ b/arch/sparc/kernel/pci_common.c
-@@ -8,7 +8,8 @@
- #include <linux/slab.h>
- #include <linux/pci.h>
- #include <linux/device.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/prom.h>
- #include <asm/oplib.h>
-diff --git a/arch/sparc/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
-index 0ca08d455e80..0b91bde80fdc 100644
---- a/arch/sparc/kernel/pci_fire.c
-+++ b/arch/sparc/kernel/pci_fire.c
-@@ -10,7 +10,8 @@
- #include <linux/msi.h>
- #include <linux/export.h>
- #include <linux/irq.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- #include <linux/numa.h>
- 
- #include <asm/prom.h>
-diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
-index 4e3d15189fa9..f31761f51757 100644
---- a/arch/sparc/kernel/pci_impl.h
-+++ b/arch/sparc/kernel/pci_impl.h
-@@ -11,7 +11,6 @@
- #include <linux/spinlock.h>
- #include <linux/pci.h>
- #include <linux/msi.h>
--#include <linux/of_device.h>
- #include <asm/io.h>
- #include <asm/prom.h>
- #include <asm/iommu.h>
-diff --git a/arch/sparc/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
-index 9ed11985768e..fc7402948b7b 100644
---- a/arch/sparc/kernel/pci_msi.c
-+++ b/arch/sparc/kernel/pci_msi.c
-@@ -5,6 +5,8 @@
-  */
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/irq.h>
- 
-diff --git a/arch/sparc/kernel/pci_psycho.c b/arch/sparc/kernel/pci_psycho.c
-index f413371da387..1efc98305ec7 100644
---- a/arch/sparc/kernel/pci_psycho.c
-+++ b/arch/sparc/kernel/pci_psycho.c
-@@ -13,7 +13,9 @@
- #include <linux/export.h>
- #include <linux/slab.h>
- #include <linux/interrupt.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/iommu.h>
- #include <asm/irq.h>
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 7d91ca6aa675..c80b0a21d709 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -15,7 +15,8 @@
- #include <linux/msi.h>
- #include <linux/export.h>
- #include <linux/log2.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- #include <linux/dma-map-ops.h>
- #include <asm/iommu-common.h>
- 
-diff --git a/arch/sparc/kernel/pmc.c b/arch/sparc/kernel/pmc.c
-index b5c1eb33b951..69a0206e56f0 100644
---- a/arch/sparc/kernel/pmc.c
-+++ b/arch/sparc/kernel/pmc.c
-@@ -11,7 +11,7 @@
- #include <linux/init.h>
- #include <linux/pm.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/platform_device.h>
- #include <linux/module.h>
- 
- #include <asm/io.h>
-diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
-index 8147985a1dc4..db8a3f9e3d40 100644
---- a/arch/sparc/kernel/power.c
-+++ b/arch/sparc/kernel/power.c
-@@ -9,7 +9,8 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/reboot.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/prom.h>
- #include <asm/io.h>
-diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
-index 28aff1c524b5..426bd08cb2ab 100644
---- a/arch/sparc/kernel/prom_irqtrans.c
-+++ b/arch/sparc/kernel/prom_irqtrans.c
-@@ -4,6 +4,7 @@
- #include <linux/init.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/oplib.h>
- #include <asm/prom.h>
-diff --git a/arch/sparc/kernel/psycho_common.c b/arch/sparc/kernel/psycho_common.c
-index e90bcb6bad7f..5ee74b4c0cf4 100644
---- a/arch/sparc/kernel/psycho_common.c
-+++ b/arch/sparc/kernel/psycho_common.c
-@@ -6,6 +6,7 @@
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
- #include <linux/numa.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/upa.h>
- 
-diff --git a/arch/sparc/kernel/sbus.c b/arch/sparc/kernel/sbus.c
-index 32141e1006c4..0bababf6f2bc 100644
---- a/arch/sparc/kernel/sbus.c
-+++ b/arch/sparc/kernel/sbus.c
-@@ -14,7 +14,8 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- #include <linux/numa.h>
- 
- #include <asm/page.h>
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 958c2cf4479b..08bbdc458596 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -33,7 +33,6 @@
- #include <linux/ioport.h>
- #include <linux/profile.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
- #include <linux/platform_device.h>
- 
- #include <asm/mc146818rtc.h>
-diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
-index 133dd42570d6..d8376f61b4d0 100644
---- a/arch/sparc/mm/io-unit.c
-+++ b/arch/sparc/mm/io-unit.c
-@@ -13,7 +13,8 @@
- #include <linux/bitops.h>
- #include <linux/dma-map-ops.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/io.h>
- #include <asm/io-unit.h>
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 3a6caef68348..5a5080db800f 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -7,14 +7,15 @@
-  * Copyright (C) 1996 Eddie C. Dost    (ecd@skynet.be)
-  * Copyright (C) 1997,1998 Jakub Jelinek    (jj@sunsite.mff.cuni.cz)
-  */
-- 
-+
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/dma-map-ops.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/io.h>
- #include <asm/mxcc.h>
--- 
-2.40.1
+>>>> I suppose you could use FIRMWARE_EDID on EFI or OF systems without
+>>>> the need for a global edid_info structure, but that would not
+>>>> share any code with the current fb_firmware_edid() function.
+>>>
+>>> The current code is build on top of screen_info and edid_info. I'd
+>>> preferably not replace that, if possible.
+>> 
+>> One way I could imagine this looking in the end would be
+>> something like
+>> 
+>> struct screen_info *fb_screen_info(struct device *dev)
+>> {
+>>        struct screen_info *si = NULL;
+>> 
+>>        if (IS_ENABLED(CONFIG_EFI))
+>>              si = efi_get_screen_info(dev);
+>> 
+>>        if (IS_ENABLED(CONFIG_ARCH_HAS_SCREEN_INFO) && !si)
+>>              si = screen_info;
+>> 
+>>        return si;
+>> }
+>> 
+>> corresponding to fb_firmware_edid(). With this, any driver
+>> that wants to access screen_info would call this function
+>> instead of using the global pointer, plus either NULL pointer
+>> check or a CONFIG_ARCH_HAS_SCREEN_INFO dependency.
+>> 
+>> This way we could completely eliminate the global screen_info
+>> on arm64, riscv, and loongarch but still use the efi and
+>> hyperv framebuffer/drm drivers.
+>
+> If possible, I'd like to remove global screen_info and edid_info 
+> entirely from fbdev and the various consoles.
 
+ok
+
+> We currently use screen_info to set up the generic framebuffer device in 
+> drivers/firmware/sysfb.c. I'd like to use edid_info here as well, so 
+> that the generic graphics drivers can get EDID information.
+>
+> For the few fbdev drivers and consoles that require the global 
+> screen_info/edid_info, I'd rather provide lookup functions in sysfb 
+> (e.g., sysfb_get_screen_info(), sysfb_get_edid_info()). The global 
+> screen_info/edid_info state would then become an internal artifact of 
+> the sysfb code.
+>
+> Hopefully that explains some of the decisions made in this patchset.
+
+I spent some more time looking at the screen_info side, after my
+first set of patches to refine the #ifdefs, and I think we don't
+even need to make screen_info available to non-x86 drivers at all:
+
+- All the vgacon users except for x86 can just register a static
+  screen_info (or simplified into a simpler structure) with the
+  driver itself. This even includes ia64, which does not support
+  EFI framebuffers.
+
+- The VESA, vga16, SIS, Intel and HyperV framebuffer drivers only
+  need access to screen_info on x86. HyperV is the only driver that
+  can currently access the data from EFI firmware on arm64, but
+  that is only used for 'gen 1' guests, which I'm pretty sure
+  only exist on x86.
+
+- All the other references to screen_info are specific to EFI
+  firmware, so we can move the global definition from arm,
+  arm64, loongarch, riscv and ia64 into the EFI firmware
+  code itself. It is still accessed by efifb and efi-earlycon
+  at this point.
+
+I have uploaded version 2 of my series to
+https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=screen-info-v2
+and will send it out after I get the green light from build
+bots. 
+
+       Arnd
