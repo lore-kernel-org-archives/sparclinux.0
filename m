@@ -2,199 +2,565 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55575EB64DA
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 10:43:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6645EB64DC
+	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 14:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230092AbjGRKnj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Jul 2023 06:43:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46058 "EHLO
+        id S233286AbjGROdR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 18 Jul 2023 10:33:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229774AbjGRKni (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 06:43:38 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69CD019A;
-        Tue, 18 Jul 2023 03:43:37 -0700 (PDT)
-Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 36IAVD5g015975;
-        Tue, 18 Jul 2023 10:41:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=5pqryEuXi7w3clM0cicqo05Ow93ZiUNgOjfFt59QOcA=;
- b=MLZgMgaFynVGFhEZgy+HljSo8qlwdpEYmMyfEK4MDgMn+6vT/mCrDKND2C/bQBJYID+A
- IElpGNDZjJGZoeUao5GfVP8UFDh35vY8TnFF0xXVCxeXHYROhkY/sA7QgjGJvOb3SDF7
- YuvURhU5e/sD363f3LLHzLWmLZ/Q0HElF4zfBkeKSFKsnXOrMtpQvyAmyoupuCJMbcQu
- XaQZsZccdGAV5EXj3AFPpgsGWkWw32WYxVnMc4xqPiwnGnQ74uCUBafblBoWQpDl1n9f
- 1oK7yLn/wZcT4B9USMqGYxi+gw/WbHD2PafF0ZKW/Aqi025Lix+1BhTHxniLNce/KY2i XA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rws2breec-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 18 Jul 2023 10:41:43 +0000
-Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 36IAVmXg019296;
-        Tue, 18 Jul 2023 10:41:42 GMT
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rws2bred1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 18 Jul 2023 10:41:42 +0000
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-        by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 36I6lTQw016870;
-        Tue, 18 Jul 2023 10:41:40 GMT
-Received: from smtprelay07.dal12v.mail.ibm.com ([172.16.1.9])
-        by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3rv5srnpnf-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 18 Jul 2023 10:41:40 +0000
-Received: from smtpav02.dal12v.mail.ibm.com (smtpav02.dal12v.mail.ibm.com [10.241.53.101])
-        by smtprelay07.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 36IAfeE920972012
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 18 Jul 2023 10:41:40 GMT
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id DAFEF5805E;
-        Tue, 18 Jul 2023 10:41:39 +0000 (GMT)
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 2C6C65805F;
-        Tue, 18 Jul 2023 10:41:22 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.109.212.144])
-        by smtpav02.dal12v.mail.ibm.com (Postfix) with ESMTP;
-        Tue, 18 Jul 2023 10:41:21 +0000 (GMT)
-X-Mailer: emacs 29.0.91 (via feedmail 11-beta-1 I)
-From:   "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To:     Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Jann Horn <jannh@google.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v3 04/13] powerpc: assert_pte_locked() use
- pte_offset_map_nolock()
-In-Reply-To: <e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com>
-References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com>
- <e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com>
-Date:   Tue, 18 Jul 2023 16:11:19 +0530
-Message-ID: <87msztbiy8.fsf@linux.ibm.com>
+        with ESMTP id S233343AbjGROc4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 10:32:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ACE61FED;
+        Tue, 18 Jul 2023 07:32:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 831DC615FD;
+        Tue, 18 Jul 2023 14:32:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66DBBC433C7;
+        Tue, 18 Jul 2023 14:32:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689690736;
+        bh=CvXNh/V0SLE1LcnbZrcODS7C8vIG914MVnRAYa+fhbA=;
+        h=From:To:Cc:Subject:Date:From;
+        b=KJkN9kUC3OUuf2US9ZpB+uKJtFSYZ69Pk1Us/bpaP5enqoSe/pTOTHBbbg3Y34A/b
+         oa8fFhSXONO+2nDRLX+2UtccmAsMcUuYnF+t84U6SdfRJjjrq+/lbfavJVgYtabQyQ
+         TTbQQiJuIuhTNv1doSXLVR9iPq2urJlDK4Dje/ssd5uSZwOU55ps9rSQgFfCwIYPL3
+         snsM+Ge6q847oNM0qsKoZjV7WqCMng6tHozKkf81Ru8Fi8BVvmuPck/c6Bbm92NbRs
+         HSVwfl7IMxye4VxWQuUQvSMEIEwuRUyoLNhXu8d2jotzigKmYUEHt8zQNhh7OnlESo
+         lN+NOtU3GjODw==
+Received: (nullmailer pid 1066942 invoked by uid 1000);
+        Tue, 18 Jul 2023 14:32:14 -0000
+From:   Rob Herring <robh@kernel.org>
+To:     Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     devicetree@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
+        linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] sparc: Explicitly include correct DT includes
+Date:   Tue, 18 Jul 2023 08:32:08 -0600
+Message-Id: <20230718143211.1066810-1-robh@kernel.org>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: zKZQJ9IasJwI7nGrSugta0t-NqCMHUUs
-X-Proofpoint-ORIG-GUID: ASlLD63EgmlMnfoUOkFOiogpO5Mj_Hpm
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-07-17_15,2023-07-13_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
- impostorscore=0 mlxscore=0 lowpriorityscore=0 phishscore=0 bulkscore=0
- malwarescore=0 clxscore=1011 spamscore=0 suspectscore=0 priorityscore=1501
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2306200000 definitions=main-2307180096
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hugh Dickins <hughd@google.com> writes:
+The DT of_device.h and of_platform.h date back to the separate
+of_platform_bus_type before it as merged into the regular platform bus.
+As part of that merge prepping Arm DT support 13 years ago, they
+"temporarily" include each other. They also include platform_device.h
+and of.h. As a result, there's a pretty much random mix of those include
+files used throughout the tree. In order to detangle these headers and
+replace the implicit includes with struct declarations, users need to
+explicitly include the correct includes.
 
-> Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
-> in assert_pte_locked().  BUG if pte_offset_map_nolock() fails: this is
-> stricter than the previous implementation, which skipped when pmd_none()
-> (with a comment on khugepaged collapse transitions): but wouldn't we want
-> to know, if an assert_pte_locked() caller can be racing such transitions?
->
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+v2:
+- Fix double include of of.h
+---
+ arch/sparc/crypto/crop_devid.c       | 2 +-
+ arch/sparc/include/asm/floppy_32.h   | 2 +-
+ arch/sparc/include/asm/floppy_64.h   | 2 +-
+ arch/sparc/include/asm/parport.h     | 3 ++-
+ arch/sparc/kernel/apc.c              | 2 +-
+ arch/sparc/kernel/auxio_32.c         | 1 -
+ arch/sparc/kernel/auxio_64.c         | 3 ++-
+ arch/sparc/kernel/central.c          | 2 +-
+ arch/sparc/kernel/chmc.c             | 3 ++-
+ arch/sparc/kernel/ioport.c           | 2 +-
+ arch/sparc/kernel/leon_kernel.c      | 2 --
+ arch/sparc/kernel/leon_pci.c         | 3 ++-
+ arch/sparc/kernel/leon_pci_grpci1.c  | 3 ++-
+ arch/sparc/kernel/leon_pci_grpci2.c  | 4 +++-
+ arch/sparc/kernel/of_device_32.c     | 1 +
+ arch/sparc/kernel/of_device_64.c     | 3 ++-
+ arch/sparc/kernel/of_device_common.c | 4 ++--
+ arch/sparc/kernel/pci.c              | 3 ++-
+ arch/sparc/kernel/pci_common.c       | 3 ++-
+ arch/sparc/kernel/pci_fire.c         | 3 ++-
+ arch/sparc/kernel/pci_impl.h         | 1 -
+ arch/sparc/kernel/pci_msi.c          | 2 ++
+ arch/sparc/kernel/pci_psycho.c       | 4 +++-
+ arch/sparc/kernel/pci_sun4v.c        | 3 ++-
+ arch/sparc/kernel/pmc.c              | 2 +-
+ arch/sparc/kernel/power.c            | 3 ++-
+ arch/sparc/kernel/prom_irqtrans.c    | 1 +
+ arch/sparc/kernel/psycho_common.c    | 1 +
+ arch/sparc/kernel/sbus.c             | 3 ++-
+ arch/sparc/kernel/time_32.c          | 1 -
+ arch/sparc/mm/io-unit.c              | 3 ++-
+ arch/sparc/mm/iommu.c                | 5 +++--
+ 32 files changed, 49 insertions(+), 31 deletions(-)
 
-The reason we had that pmd_none check there was to handle khugpaged. In
-case of khugepaged we do pmdp_collapse_flush and then do a ptep_clear.
-ppc64 had the assert_pte_locked check inside that ptep_clear.
+diff --git a/arch/sparc/crypto/crop_devid.c b/arch/sparc/crypto/crop_devid.c
+index 83fc4536dcd5..93f4e0fdd38c 100644
+--- a/arch/sparc/crypto/crop_devid.c
++++ b/arch/sparc/crypto/crop_devid.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
++#include <linux/mod_devicetable.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
+ 
+ /* This is a dummy device table linked into all of the crypto
+  * opcode drivers.  It serves to trigger the module autoloading
+diff --git a/arch/sparc/include/asm/floppy_32.h b/arch/sparc/include/asm/floppy_32.h
+index e10ab9ad3097..836f6575aa1d 100644
+--- a/arch/sparc/include/asm/floppy_32.h
++++ b/arch/sparc/include/asm/floppy_32.h
+@@ -8,7 +8,7 @@
+ #define __ASM_SPARC_FLOPPY_H
+ 
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
+ #include <linux/pgtable.h>
+ 
+ #include <asm/idprom.h>
+diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
+index 070c8c1f5c8f..6efeb24b0a92 100644
+--- a/arch/sparc/include/asm/floppy_64.h
++++ b/arch/sparc/include/asm/floppy_64.h
+@@ -11,7 +11,7 @@
+ #define __ASM_SPARC64_FLOPPY_H
+ 
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include <asm/auxio.h>
+diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
+index 03b27090c0c8..0a7ffcfd59cd 100644
+--- a/arch/sparc/include/asm/parport.h
++++ b/arch/sparc/include/asm/parport.h
+@@ -7,7 +7,8 @@
+ #ifndef _ASM_SPARC64_PARPORT_H
+ #define _ASM_SPARC64_PARPORT_H 1
+ 
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/ebus_dma.h>
+ #include <asm/ns87303.h>
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index ecd05bc0a104..d44725d37e30 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -13,7 +13,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/pm.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/platform_device.h>
+ #include <linux/module.h>
+ 
+ #include <asm/io.h>
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index a32d588174f2..989860e890c4 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -8,7 +8,6 @@
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/export.h>
+ 
+ #include <asm/oplib.h>
+diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
+index 774a82b0c649..2a2800d21325 100644
+--- a/arch/sparc/kernel/auxio_64.c
++++ b/arch/sparc/kernel/auxio_64.c
+@@ -10,7 +10,8 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/prom.h>
+ #include <asm/io.h>
+diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
+index 23f8838dd96e..a1a6485c9183 100644
+--- a/arch/sparc/kernel/central.c
++++ b/arch/sparc/kernel/central.c
+@@ -10,7 +10,7 @@
+ #include <linux/export.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/fhc.h>
+diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
+index 6ff43df740e0..d5fad5fb04c1 100644
+--- a/arch/sparc/kernel/chmc.c
++++ b/arch/sparc/kernel/chmc.c
+@@ -15,7 +15,8 @@
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ #include <asm/spitfire.h>
+ #include <asm/chmctrl.h>
+ #include <asm/cpudata.h>
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index a8cbe403301f..5ebca5c7af1e 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -39,7 +39,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-map-ops.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ 
+ #include <asm/io.h>
+ #include <asm/vaddrs.h>
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 39229940d725..4c61da491fee 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -8,9 +8,7 @@
+ #include <linux/errno.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+-#include <linux/of_platform.h>
+ #include <linux/interrupt.h>
+-#include <linux/of_device.h>
+ #include <linux/clocksource.h>
+ #include <linux/clockchips.h>
+ 
+diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
+index b6663a3fbae9..8de6646e9ce8 100644
+--- a/arch/sparc/kernel/leon_pci.c
++++ b/arch/sparc/kernel/leon_pci.c
+@@ -7,7 +7,8 @@
+  * Code is partially derived from pcic.c
+  */
+ 
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
+ #include <linux/export.h>
+diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
+index e6935d0ac1ec..8700a0e3b0df 100644
+--- a/arch/sparc/kernel/leon_pci_grpci1.c
++++ b/arch/sparc/kernel/leon_pci_grpci1.c
+@@ -13,10 +13,11 @@
+  * Contributors: Daniel Hellstrom <daniel@gaisler.com>
+  */
+ 
+-#include <linux/of_device.h>
+ #include <linux/export.h>
+ #include <linux/kernel.h>
++#include <linux/of.h>
+ #include <linux/of_irq.h>
++#include <linux/platform_device.h>
+ #include <linux/delay.h>
+ #include <linux/pci.h>
+ 
+diff --git a/arch/sparc/kernel/leon_pci_grpci2.c b/arch/sparc/kernel/leon_pci_grpci2.c
+index ca22f93d9045..60b6bdf7761f 100644
+--- a/arch/sparc/kernel/leon_pci_grpci2.c
++++ b/arch/sparc/kernel/leon_pci_grpci2.c
+@@ -6,12 +6,14 @@
+  *
+  */
+ 
+-#include <linux/of_device.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/export.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++
+ #include <asm/io.h>
+ #include <asm/leon.h>
+ #include <asm/vaddrs.h>
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index fa05b29fa051..06012e68bdca 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -8,6 +8,7 @@
+ #include <linux/errno.h>
+ #include <linux/irq.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <asm/leon.h>
+ #include <asm/leon_amba.h>
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index c41aa82a9af3..d3842821a5a0 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -1,7 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+-#include <linux/of.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/init.h>
+ #include <linux/export.h>
+@@ -9,7 +8,9 @@
+ #include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/irq.h>
++#include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ #include <asm/spitfire.h>
+ 
+ #include "of_device_common.h"
+diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
+index 60f86b837658..ba2a6ae23508 100644
+--- a/arch/sparc/kernel/of_device_common.c
++++ b/arch/sparc/kernel/of_device_common.c
+@@ -1,15 +1,15 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+-#include <linux/of.h>
+ #include <linux/export.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/errno.h>
+ #include <linux/irq.h>
++#include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_address.h>
+-#include <linux/of_device.h>
+ #include <linux/of_irq.h>
++#include <linux/platform_device.h>
+ 
+ #include "of_device_common.h"
+ 
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index a948a49817c7..f66005ce4cb5 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -20,8 +20,9 @@
+ #include <linux/irq.h>
+ #include <linux/init.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
+ #include <linux/pgtable.h>
++#include <linux/platform_device.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/irq.h>
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index 4759ccd542fe..5eeec9ad6845 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -8,7 +8,8 @@
+ #include <linux/slab.h>
+ #include <linux/pci.h>
+ #include <linux/device.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/prom.h>
+ #include <asm/oplib.h>
+diff --git a/arch/sparc/kernel/pci_fire.c b/arch/sparc/kernel/pci_fire.c
+index 0ca08d455e80..0b91bde80fdc 100644
+--- a/arch/sparc/kernel/pci_fire.c
++++ b/arch/sparc/kernel/pci_fire.c
+@@ -10,7 +10,8 @@
+ #include <linux/msi.h>
+ #include <linux/export.h>
+ #include <linux/irq.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ #include <linux/numa.h>
+ 
+ #include <asm/prom.h>
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index 4e3d15189fa9..f31761f51757 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -11,7 +11,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/pci.h>
+ #include <linux/msi.h>
+-#include <linux/of_device.h>
+ #include <asm/io.h>
+ #include <asm/prom.h>
+ #include <asm/iommu.h>
+diff --git a/arch/sparc/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
+index 9ed11985768e..fc7402948b7b 100644
+--- a/arch/sparc/kernel/pci_msi.c
++++ b/arch/sparc/kernel/pci_msi.c
+@@ -5,6 +5,8 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/interrupt.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/irq.h>
+ 
+diff --git a/arch/sparc/kernel/pci_psycho.c b/arch/sparc/kernel/pci_psycho.c
+index f413371da387..1efc98305ec7 100644
+--- a/arch/sparc/kernel/pci_psycho.c
++++ b/arch/sparc/kernel/pci_psycho.c
+@@ -13,7 +13,9 @@
+ #include <linux/export.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/iommu.h>
+ #include <asm/irq.h>
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 7d91ca6aa675..c80b0a21d709 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -15,7 +15,8 @@
+ #include <linux/msi.h>
+ #include <linux/export.h>
+ #include <linux/log2.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ #include <linux/dma-map-ops.h>
+ #include <asm/iommu-common.h>
+ 
+diff --git a/arch/sparc/kernel/pmc.c b/arch/sparc/kernel/pmc.c
+index b5c1eb33b951..69a0206e56f0 100644
+--- a/arch/sparc/kernel/pmc.c
++++ b/arch/sparc/kernel/pmc.c
+@@ -11,7 +11,7 @@
+ #include <linux/init.h>
+ #include <linux/pm.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/platform_device.h>
+ #include <linux/module.h>
+ 
+ #include <asm/io.h>
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index 8147985a1dc4..db8a3f9e3d40 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -9,7 +9,8 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/reboot.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/prom.h>
+ #include <asm/io.h>
+diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
+index 28aff1c524b5..426bd08cb2ab 100644
+--- a/arch/sparc/kernel/prom_irqtrans.c
++++ b/arch/sparc/kernel/prom_irqtrans.c
+@@ -4,6 +4,7 @@
+ #include <linux/init.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+diff --git a/arch/sparc/kernel/psycho_common.c b/arch/sparc/kernel/psycho_common.c
+index e90bcb6bad7f..5ee74b4c0cf4 100644
+--- a/arch/sparc/kernel/psycho_common.c
++++ b/arch/sparc/kernel/psycho_common.c
+@@ -6,6 +6,7 @@
+ #include <linux/kernel.h>
+ #include <linux/interrupt.h>
+ #include <linux/numa.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/upa.h>
+ 
+diff --git a/arch/sparc/kernel/sbus.c b/arch/sparc/kernel/sbus.c
+index 32141e1006c4..0bababf6f2bc 100644
+--- a/arch/sparc/kernel/sbus.c
++++ b/arch/sparc/kernel/sbus.c
+@@ -14,7 +14,8 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ #include <linux/numa.h>
+ 
+ #include <asm/page.h>
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 958c2cf4479b..08bbdc458596 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -33,7 +33,6 @@
+ #include <linux/ioport.h>
+ #include <linux/profile.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/mc146818rtc.h>
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index 133dd42570d6..d8376f61b4d0 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -13,7 +13,8 @@
+ #include <linux/bitops.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+ #include <asm/io-unit.h>
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 3a6caef68348..5a5080db800f 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -7,14 +7,15 @@
+  * Copyright (C) 1996 Eddie C. Dost    (ecd@skynet.be)
+  * Copyright (C) 1997,1998 Jakub Jelinek    (jj@sunsite.mff.cuni.cz)
+  */
+- 
++
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+ #include <asm/mxcc.h>
+-- 
+2.40.1
 
-_pmd = pmdp_collapse_flush(vma, address, pmd);
-..
-ptep_clear()
--> asset_ptep_locked()
----> pmd_none
------> BUG
-
-
-The problem is how assert_pte_locked() verify whether we are holding
-ptl. It does that by walking the page table again and in this specific
-case by the time we call the function we already had cleared pmd .
->
-> This mod might cause new crashes: which either expose my ignorance, or
-> indicate issues to be fixed, or limit the usage of assert_pte_locked().
->
-> Signed-off-by: Hugh Dickins <hughd@google.com>
-> ---
->  arch/powerpc/mm/pgtable.c | 16 ++++++----------
->  1 file changed, 6 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/powerpc/mm/pgtable.c b/arch/powerpc/mm/pgtable.c
-> index cb2dcdb18f8e..16b061af86d7 100644
-> --- a/arch/powerpc/mm/pgtable.c
-> +++ b/arch/powerpc/mm/pgtable.c
-> @@ -311,6 +311,8 @@ void assert_pte_locked(struct mm_struct *mm, unsigned long addr)
->  	p4d_t *p4d;
->  	pud_t *pud;
->  	pmd_t *pmd;
-> +	pte_t *pte;
-> +	spinlock_t *ptl;
->  
->  	if (mm == &init_mm)
->  		return;
-> @@ -321,16 +323,10 @@ void assert_pte_locked(struct mm_struct *mm, unsigned long addr)
->  	pud = pud_offset(p4d, addr);
->  	BUG_ON(pud_none(*pud));
->  	pmd = pmd_offset(pud, addr);
-> -	/*
-> -	 * khugepaged to collapse normal pages to hugepage, first set
-> -	 * pmd to none to force page fault/gup to take mmap_lock. After
-> -	 * pmd is set to none, we do a pte_clear which does this assertion
-> -	 * so if we find pmd none, return.
-> -	 */
-> -	if (pmd_none(*pmd))
-> -		return;
-> -	BUG_ON(!pmd_present(*pmd));
-> -	assert_spin_locked(pte_lockptr(mm, pmd));
-> +	pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
-> +	BUG_ON(!pte);
-> +	assert_spin_locked(ptl);
-> +	pte_unmap(pte);
->  }
->  #endif /* CONFIG_DEBUG_VM */
->  
-> -- 
-> 2.35.3
