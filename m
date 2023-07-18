@@ -2,78 +2,87 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FEB0EB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 16:32:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDD4EB64DC
+	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 19:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232936AbjGRQcr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Jul 2023 12:32:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45606 "EHLO
+        id S229499AbjGRTGl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 18 Jul 2023 15:06:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232932AbjGRQcp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 12:32:45 -0400
-Received: from mail.208.org (unknown [183.242.55.162])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB7F310E5
-        for <sparclinux@vger.kernel.org>; Tue, 18 Jul 2023 09:32:41 -0700 (PDT)
-Received: from mail.208.org (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTP id 4R54HT2hWJzBR9ss
-        for <sparclinux@vger.kernel.org>; Wed, 19 Jul 2023 00:32:37 +0800 (CST)
-Authentication-Results: mail.208.org (amavisd-new); dkim=pass
-        reason="pass (just generated, assumed good)" header.d=208.org
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=208.org; h=
-        content-transfer-encoding:content-type:message-id:user-agent
-        :references:in-reply-to:subject:to:from:date:mime-version; s=
-        dkim; t=1689697957; x=1692289958; bh=ytYLT++mGja82GJdf7wPpzcdDAh
-        6O7ZkLiAb4ChQPFA=; b=pw2dTxW2GuXcCYX41B24eViPM+Eg5xVV0Ll0JuHXG76
-        wv8ADa5Wgx2wv7iA5HW9Zadjb4XZmkgCQ9B2yJlL3g7OjAnKkje5Ardj70oHSfR6
-        V5iZROlrf4WTXjghQHrGH/AwEB4vVASiMJY0Ks+sWzeRkYDBCZd5n5hnapY75ae1
-        TxXcuFrMgTg/tpTXwa6RsGdpYMXfPJiqrdmHWPuVWilQg3ZlRdNo83Ujs53clmEF
-        CrMogqs9LWVExN+VugfQ83KFJ76QScJ2auGK/eAZ2m4Snyw/8TxzoRJsjk3MRcoY
-        QLX6Ite+4Zb7/50tvYQxDQNchs7IqJd7CilJ1LcydDA==
-X-Virus-Scanned: amavisd-new at mail.208.org
-Received: from mail.208.org ([127.0.0.1])
-        by mail.208.org (mail.208.org [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id fPN85ygj-hU9 for <sparclinux@vger.kernel.org>;
-        Wed, 19 Jul 2023 00:32:37 +0800 (CST)
-Received: from localhost (email.208.org [127.0.0.1])
-        by mail.208.org (Postfix) with ESMTPSA id 4R54HT0B01zBR1PQ;
-        Wed, 19 Jul 2023 00:32:36 +0800 (CST)
+        with ESMTP id S229504AbjGRTGl (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 15:06:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C1B8F4;
+        Tue, 18 Jul 2023 12:06:40 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DDD00616C7;
+        Tue, 18 Jul 2023 19:06:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4576AC433C8;
+        Tue, 18 Jul 2023 19:06:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689707199;
+        bh=6AXogDUObuussgbwgLBOjpBMuZcG50s+2gM5QKLJIqg=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=iaLVsbZAR/GfygYGkBHWzIMBF7N1x8Nr8LGivpj1n+JZWnZ+nGsTPk67WqJIjihQK
+         OE7DGc6RD80/KIKre86+t4lqPxliDquvH/5QHfClJ9ab0c7O8U8PgGMMhsjA0jhwsm
+         K0mF1ux8h13VYVw4LcCGKKi1psKXfCwFmIzReE1e0EydCrdroXovIV4kkPYSmWvQiF
+         LIGp2ScDbmqglOoT5ao83vh0Q17Ln7oAEyUP9/QT+pNN09ieItiumdSqwoYlji8nrb
+         P3PDgeAwFLJ20zbG5JyE8wIV38OS9aWwMq+XQwTEHbhb+Dg0HvK0nZs5iABOiH6K9X
+         qHML4IOBzvnyg==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-4fb5bcb9a28so9752400e87.3;
+        Tue, 18 Jul 2023 12:06:39 -0700 (PDT)
+X-Gm-Message-State: ABy/qLZv+TSeF5nE28BlnfiWwmNQ4FE8Rubkp62f8uNNxTV/PPSa+93e
+        0E/f/KA55CROql7TfoXM1fQGNKzAZHuwr6UDOA==
+X-Google-Smtp-Source: APBJJlGB0bgDqyP6XJYTdEPy8Mz0doXTrM6SRrUuM5btq//xema+oxLHuID3ymZr1d5lAuSQSbfnZ8Wrr107kQc+0p8=
+X-Received: by 2002:ac2:4c2c:0:b0:4f8:71cc:2b6e with SMTP id
+ u12-20020ac24c2c000000b004f871cc2b6emr10819539lfq.33.1689707197305; Tue, 18
+ Jul 2023 12:06:37 -0700 (PDT)
 MIME-Version: 1.0
-Date:   Wed, 19 Jul 2023 00:32:36 +0800
-From:   pangzizhen001@208suo.com
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc/kernel: Fix comment typo
-In-Reply-To: <e0a298222f3e1c880c3dfa957c487cfd@208suo.com>
-References: <20230712083035.47189-1-wangjianli@cdjrlc.com>
- <e0a298222f3e1c880c3dfa957c487cfd@208suo.com>
-User-Agent: Roundcube Webmail
-Message-ID: <f259c5935d8601e64bc8f680281e9e0e@208suo.com>
-X-Sender: pangzizhen001@208suo.com
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20230718143211.1066810-1-robh@kernel.org> <6e037c2051816deaa0e4361c4fb517ba7d33dc0b.camel@physik.fu-berlin.de>
+In-Reply-To: <6e037c2051816deaa0e4361c4fb517ba7d33dc0b.camel@physik.fu-berlin.de>
+From:   Rob Herring <robh@kernel.org>
+Date:   Tue, 18 Jul 2023 13:06:25 -0600
+X-Gmail-Original-Message-ID: <CAL_Jsq+vrAhG0FqqH-_rBtL2nEbJ+v=c3QfmjzOC=1A+Qi3KdQ@mail.gmail.com>
+Message-ID: <CAL_Jsq+vrAhG0FqqH-_rBtL2nEbJ+v=c3QfmjzOC=1A+Qi3KdQ@mail.gmail.com>
+Subject: Re: [PATCH v2] sparc: Explicitly include correct DT includes
+To:     John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc:     Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S. Miller" <davem@davemloft.net>,
+        devicetree@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
+        linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Delete duplicate word "the"
+On Tue, Jul 18, 2023 at 8:56=E2=80=AFAM John Paul Adrian Glaubitz
+<glaubitz@physik.fu-berlin.de> wrote:
+>
+> Hi Rob!
+>
+> On Tue, 2023-07-18 at 08:32 -0600, Rob Herring wrote:
+> > The DT of_device.h and of_platform.h date back to the separate
+> > of_platform_bus_type before it as merged into the regular platform bus.
+> > As part of that merge prepping Arm DT support 13 years ago, they
+> > "temporarily" include each other. They also include platform_device.h
+> > and of.h. As a result, there's a pretty much random mix of those includ=
+e
+> > files used throughout the tree. In order to detangle these headers and
+> > replace the implicit includes with struct declarations, users need to
+> > explicitly include the correct includes.
+>
+> I would suggest rephrasing the subject to
+>
+>         sparc: Explicitly include correct DT headers
+>
+> as " ... include ... includes" sounds a bit awkward ;-).
 
-Signed-off-by: Zizhen Pang <pangzizhen001@208suo.com>
----
-  arch/sparc/kernel/pci.c | 2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
+Probably would have been better, but there's ~100 other patches with
+the same subject. Some of those have been applied already.
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index a948a49817c7..c759bfcaf387 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -310,7 +310,7 @@ static struct pci_dev *of_create_pci_dev(struct 
-pci_pbm_info *pbm,
-      /* We can't actually use the firmware value, we have
-       * to read what is in the register right now.  One
-       * reason is that in the case of IDE interfaces the
--     * firmware can sample the value before the the IDE
-+     * firmware can sample the value before the IDE
-       * interface is programmed into native mode.
-       */
-      pci_read_config_dword(dev, PCI_CLASS_REVISION, &class);
+Rob
