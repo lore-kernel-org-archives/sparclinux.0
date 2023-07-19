@@ -2,87 +2,199 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDD4EB64DC
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Jul 2023 19:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5464CC001DC
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Jul 2023 05:04:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbjGRTGl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Jul 2023 15:06:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48132 "EHLO
+        id S229538AbjGSFE0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Jul 2023 01:04:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbjGRTGl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jul 2023 15:06:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C1B8F4;
-        Tue, 18 Jul 2023 12:06:40 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DDD00616C7;
-        Tue, 18 Jul 2023 19:06:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4576AC433C8;
-        Tue, 18 Jul 2023 19:06:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689707199;
-        bh=6AXogDUObuussgbwgLBOjpBMuZcG50s+2gM5QKLJIqg=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=iaLVsbZAR/GfygYGkBHWzIMBF7N1x8Nr8LGivpj1n+JZWnZ+nGsTPk67WqJIjihQK
-         OE7DGc6RD80/KIKre86+t4lqPxliDquvH/5QHfClJ9ab0c7O8U8PgGMMhsjA0jhwsm
-         K0mF1ux8h13VYVw4LcCGKKi1psKXfCwFmIzReE1e0EydCrdroXovIV4kkPYSmWvQiF
-         LIGp2ScDbmqglOoT5ao83vh0Q17Ln7oAEyUP9/QT+pNN09ieItiumdSqwoYlji8nrb
-         P3PDgeAwFLJ20zbG5JyE8wIV38OS9aWwMq+XQwTEHbhb+Dg0HvK0nZs5iABOiH6K9X
-         qHML4IOBzvnyg==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-4fb5bcb9a28so9752400e87.3;
-        Tue, 18 Jul 2023 12:06:39 -0700 (PDT)
-X-Gm-Message-State: ABy/qLZv+TSeF5nE28BlnfiWwmNQ4FE8Rubkp62f8uNNxTV/PPSa+93e
-        0E/f/KA55CROql7TfoXM1fQGNKzAZHuwr6UDOA==
-X-Google-Smtp-Source: APBJJlGB0bgDqyP6XJYTdEPy8Mz0doXTrM6SRrUuM5btq//xema+oxLHuID3ymZr1d5lAuSQSbfnZ8Wrr107kQc+0p8=
-X-Received: by 2002:ac2:4c2c:0:b0:4f8:71cc:2b6e with SMTP id
- u12-20020ac24c2c000000b004f871cc2b6emr10819539lfq.33.1689707197305; Tue, 18
- Jul 2023 12:06:37 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230718143211.1066810-1-robh@kernel.org> <6e037c2051816deaa0e4361c4fb517ba7d33dc0b.camel@physik.fu-berlin.de>
-In-Reply-To: <6e037c2051816deaa0e4361c4fb517ba7d33dc0b.camel@physik.fu-berlin.de>
-From:   Rob Herring <robh@kernel.org>
-Date:   Tue, 18 Jul 2023 13:06:25 -0600
-X-Gmail-Original-Message-ID: <CAL_Jsq+vrAhG0FqqH-_rBtL2nEbJ+v=c3QfmjzOC=1A+Qi3KdQ@mail.gmail.com>
-Message-ID: <CAL_Jsq+vrAhG0FqqH-_rBtL2nEbJ+v=c3QfmjzOC=1A+Qi3KdQ@mail.gmail.com>
-Subject: Re: [PATCH v2] sparc: Explicitly include correct DT includes
-To:     John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc:     Herbert Xu <herbert@gondor.apana.org.au>,
+        with ESMTP id S229740AbjGSFEY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Jul 2023 01:04:24 -0400
+Received: from mail-yw1-x112c.google.com (mail-yw1-x112c.google.com [IPv6:2607:f8b0:4864:20::112c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84FE71BF5
+        for <sparclinux@vger.kernel.org>; Tue, 18 Jul 2023 22:04:21 -0700 (PDT)
+Received: by mail-yw1-x112c.google.com with SMTP id 00721157ae682-579e5d54e68so70656337b3.1
+        for <sparclinux@vger.kernel.org>; Tue, 18 Jul 2023 22:04:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1689743060; x=1692335060;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=f4gbnMS0W6E9Awn5g41KlL6GZi3HN5/R/yFQL1nQXJg=;
+        b=bsfPCapysjnAZODvh7VQx88fm7IvMM72XC0oEOupCXke50rzUpxBzJjYQpi6er51fb
+         D4bBL8Bh1D+h6gJQCrL3ilyuQNC5vtgJJbqXXVdUX3wGIHEmUxC4mo1pR0Z+lwJSnYwK
+         meVLK3418dgqsYosj9vCSuNEJNkdRzYHJy0dpVlfsGSOV8HIHO4e1UNyCrc3kkrhsuYl
+         F7Nsl4WNKMNEHKdGgWak0LJ4fwxrpogQk/dx/JNial3Rw8ApbYcti+VqcZ3cqR3TmrjR
+         HLyZAxKWibz4mBf1B911Dg5ToxkxCT+TuKgSTuRLqJQNqiyCWpJGUeH03fYVv65KsNEv
+         GKdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689743060; x=1692335060;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=f4gbnMS0W6E9Awn5g41KlL6GZi3HN5/R/yFQL1nQXJg=;
+        b=L8FrKm5V9iFtOc8Cn/lmm1lFknBr1VXAqGtPeqox1gLcwSyt52VHjpGv/foRTl66q4
+         XHkD414HhHqqwxeQDPxY0YFY1IHPfI6/HfQTXu+OTdzuX4xNU2ntWkGXKFHDZoxldRm/
+         MwFsR1OeOdsaX9dFzOC9hwWwKTXlVIhYUi+ixJjvRxeGLHEcewPZ0qrjW8qWIsfOqIKt
+         DCn5dD2pbKFNVPx75/lgnikBL/2G+9gE2MPiTm/s39KE9BWXgjBji/SrfbLKWhfTLfn6
+         itaKlz0o17HJJsAXXuSgptdVVnyTt8x4sHHD5se56N6I4RZ9BhC4Wuj2R5q+xbOZjGQP
+         xBag==
+X-Gm-Message-State: ABy/qLbRo7o/Fr9MuqpxXsWL2BzyiGce/jEVcV1tKsgZOWC3VtygGCmC
+        P36ShyxgfNOJZmnzO5te/+Rp/g==
+X-Google-Smtp-Source: APBJJlFfOyYeGiVCuczZwoUNyN9JCPq13oUH5g6h02u0hokVq61z1GN7QWMboOKVDLBaFX+57WnbTA==
+X-Received: by 2002:a81:a00d:0:b0:573:d3cd:3d2a with SMTP id x13-20020a81a00d000000b00573d3cd3d2amr19838242ywg.28.1689743060542;
+        Tue, 18 Jul 2023 22:04:20 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id b125-20020a0df283000000b0056d304e224dsm847329ywf.90.2023.07.18.22.04.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 18 Jul 2023 22:04:19 -0700 (PDT)
+Date:   Tue, 18 Jul 2023 22:04:08 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
-        devicetree@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
-        linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v3 04/13] powerpc: assert_pte_locked() use
+ pte_offset_map_nolock()
+In-Reply-To: <87msztbiy8.fsf@linux.ibm.com>
+Message-ID: <392f311f-83ac-a5a2-d16e-2c7736d1b577@google.com>
+References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com> <e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com> <87msztbiy8.fsf@linux.ibm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jul 18, 2023 at 8:56=E2=80=AFAM John Paul Adrian Glaubitz
-<glaubitz@physik.fu-berlin.de> wrote:
->
-> Hi Rob!
->
-> On Tue, 2023-07-18 at 08:32 -0600, Rob Herring wrote:
-> > The DT of_device.h and of_platform.h date back to the separate
-> > of_platform_bus_type before it as merged into the regular platform bus.
-> > As part of that merge prepping Arm DT support 13 years ago, they
-> > "temporarily" include each other. They also include platform_device.h
-> > and of.h. As a result, there's a pretty much random mix of those includ=
-e
-> > files used throughout the tree. In order to detangle these headers and
-> > replace the implicit includes with struct declarations, users need to
-> > explicitly include the correct includes.
->
-> I would suggest rephrasing the subject to
->
->         sparc: Explicitly include correct DT headers
->
-> as " ... include ... includes" sounds a bit awkward ;-).
+On Tue, 18 Jul 2023, Aneesh Kumar K.V wrote:
+> Hugh Dickins <hughd@google.com> writes:
+> 
+> > Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
+> > in assert_pte_locked().  BUG if pte_offset_map_nolock() fails: this is
+> > stricter than the previous implementation, which skipped when pmd_none()
+> > (with a comment on khugepaged collapse transitions): but wouldn't we want
+> > to know, if an assert_pte_locked() caller can be racing such transitions?
+> >
+> 
+> The reason we had that pmd_none check there was to handle khugpaged. In
+> case of khugepaged we do pmdp_collapse_flush and then do a ptep_clear.
+> ppc64 had the assert_pte_locked check inside that ptep_clear.
+> 
+> _pmd = pmdp_collapse_flush(vma, address, pmd);
+> ..
+> ptep_clear()
+> -> asset_ptep_locked()
+> ---> pmd_none
+> -----> BUG
+> 
+> 
+> The problem is how assert_pte_locked() verify whether we are holding
+> ptl. It does that by walking the page table again and in this specific
+> case by the time we call the function we already had cleared pmd .
 
-Probably would have been better, but there's ~100 other patches with
-the same subject. Some of those have been applied already.
+Aneesh, please clarify, I've spent hours on this.
 
-Rob
+From all your use of past tense ("had"), I thought you were Acking my
+patch; but now, after looking again at v3.11 source and today's,
+I think you are NAKing my patch in its present form.
+
+You are pointing out that anon THP's __collapse_huge_page_copy_succeeded()
+uses ptep_clear() at a point after pmdp_collapse_flush() already cleared
+*pmd, so my patch now leads that one use of assert_pte_locked() to BUG.
+Is that your point?
+
+I can easily restore that khugepaged comment (which had appeared to me
+out of date at the time, but now looks still relevant) and pmd_none(*pmd)
+check: but please clarify.
+
+Thanks,
+Hugh
+
+> >
+> > This mod might cause new crashes: which either expose my ignorance, or
+> > indicate issues to be fixed, or limit the usage of assert_pte_locked().
+> >
+> > Signed-off-by: Hugh Dickins <hughd@google.com>
+> > ---
+> >  arch/powerpc/mm/pgtable.c | 16 ++++++----------
+> >  1 file changed, 6 insertions(+), 10 deletions(-)
+> >
+> > diff --git a/arch/powerpc/mm/pgtable.c b/arch/powerpc/mm/pgtable.c
+> > index cb2dcdb18f8e..16b061af86d7 100644
+> > --- a/arch/powerpc/mm/pgtable.c
+> > +++ b/arch/powerpc/mm/pgtable.c
+> > @@ -311,6 +311,8 @@ void assert_pte_locked(struct mm_struct *mm, unsigned long addr)
+> >  	p4d_t *p4d;
+> >  	pud_t *pud;
+> >  	pmd_t *pmd;
+> > +	pte_t *pte;
+> > +	spinlock_t *ptl;
+> >  
+> >  	if (mm == &init_mm)
+> >  		return;
+> > @@ -321,16 +323,10 @@ void assert_pte_locked(struct mm_struct *mm, unsigned long addr)
+> >  	pud = pud_offset(p4d, addr);
+> >  	BUG_ON(pud_none(*pud));
+> >  	pmd = pmd_offset(pud, addr);
+> > -	/*
+> > -	 * khugepaged to collapse normal pages to hugepage, first set
+> > -	 * pmd to none to force page fault/gup to take mmap_lock. After
+> > -	 * pmd is set to none, we do a pte_clear which does this assertion
+> > -	 * so if we find pmd none, return.
+> > -	 */
+> > -	if (pmd_none(*pmd))
+> > -		return;
+> > -	BUG_ON(!pmd_present(*pmd));
+> > -	assert_spin_locked(pte_lockptr(mm, pmd));
+> > +	pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
+> > +	BUG_ON(!pte);
+> > +	assert_spin_locked(ptl);
+> > +	pte_unmap(pte);
+> >  }
+> >  #endif /* CONFIG_DEBUG_VM */
+> >  
+> > -- 
+> > 2.35.3
