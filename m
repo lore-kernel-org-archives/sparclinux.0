@@ -2,58 +2,116 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEF1C04A94
-	for <sparclinux@archiver.kernel.org>; Wed, 19 Jul 2023 07:36:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EEECEB64DA
+	for <sparclinux@archiver.kernel.org>; Wed, 19 Jul 2023 08:12:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230126AbjGSHgc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 19 Jul 2023 03:36:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34262 "EHLO
+        id S229496AbjGSIMj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 Jul 2023 04:12:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229622AbjGSHg2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Jul 2023 03:36:28 -0400
-Received: from mail.tummelspey.pl (mail.tummelspey.pl [195.231.83.87])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A77071BE4
-        for <sparclinux@vger.kernel.org>; Wed, 19 Jul 2023 00:36:25 -0700 (PDT)
-Received: by mail.tummelspey.pl (Postfix, from userid 1002)
-        id B9C2882979; Wed, 19 Jul 2023 09:36:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tummelspey.pl;
-        s=mail; t=1689752182;
-        bh=OJs3leM9fdfMkxPirBSuuU/UTIEL4q9FUCZWMj2U0kA=;
-        h=Date:From:To:Subject:From;
-        b=R+GUBtwuyNHCzyCoyif9UVVx2PmyuBs4eOwp3/pVI/In5v23h8LkNF78UGQQpYPdf
-         ghKcQiKPavbSxfKLNgo0j10VOtBvALnhzMRZc3CKvg1Y6nlWyC062nlcKkB3Lpm4Uf
-         xIbUeCY/muQq7ElKq/3KieacBrBaiVGhVIpT28hXThd36vBeO+EEIrNDgYd+HwlWbd
-         48V0tDlTDfirZKf5QjUg9TyTh2Qk3INs27uofuSdw50SJMJ8O2PdA/Z9gnLMwb9D6r
-         kGKmUDVSgFXaPr0CGIOzYQAZ7vW+suoBUT/10JOI6SXX3muEmDFhinp6KK1T1CGQZt
-         dbW1EJW4LMPmg==
-Received: by mail.tummelspey.pl for <sparclinux@vger.kernel.org>; Wed, 19 Jul 2023 07:36:15 GMT
-Message-ID: <20230719084500-0.1.2k.icob.0.474w1t2ljr@tummelspey.pl>
-Date:   Wed, 19 Jul 2023 07:36:15 GMT
-From:   "Bartosz Holender" <bartosz.holender@tummelspey.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
-X-Mailer: mail.tummelspey.pl
+        with ESMTP id S229513AbjGSIMj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 19 Jul 2023 04:12:39 -0400
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49DF91B6
+        for <sparclinux@vger.kernel.org>; Wed, 19 Jul 2023 01:12:38 -0700 (PDT)
+Received: by mail-yb1-xb2a.google.com with SMTP id 3f1490d57ef6-c5ffb6cda23so6588045276.0
+        for <sparclinux@vger.kernel.org>; Wed, 19 Jul 2023 01:12:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1689754357; x=1690359157;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=H0U6Ou3M4UAvInWN+ZE6t/YPUoa+2emaVfRoP2o2T/0=;
+        b=jbEBYFLlHvPiDR4nmf/tquae2y7UQ/uLAHNr3DF9BwkAr9QMM8miJLv2R/aazzFTAW
+         KaXOCmOjd4uFQxnyFPR8EWcktqKfr/txA1KMAvHgzo18n6jfHnBXFhQFKe4Q9ts4a0qw
+         MkfwCi+UbXGOLJZIZ0xUn+y0KdaEKdIfYY/y21YW9Ftu3q/WzvTjEEEcoioFtdsuJBYe
+         Ri7TJJ5ip/Fonf6uUwlOs1Wfkk6E3XKzWQKN0q6x3nthpO3FQzZtnoz6qJ2RmznjVhJG
+         FYYghstJsItzB5WScBju+pcrx3UsAkRlnPZNmlWQLRH/lAU5UGA0BggnokZG/PrKD7MI
+         LzfQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689754357; x=1690359157;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=H0U6Ou3M4UAvInWN+ZE6t/YPUoa+2emaVfRoP2o2T/0=;
+        b=W4LEEplzUx3b3KM6xuclqKQoju8k3GXeJ/wpZCGCpVf9jpj46RqglZ0ePytcRVxTzh
+         d8pRN+zeg8m7zwBgcITyXtJHJNkL2+MCduz8olNrGOXObQ9ksQKcwD5iYFaaZ5pOahpA
+         s3lbeV58RGthuPgd//Ihvf61EapxyxAwr8zbqekWCG55EQuyV1jgtE+Aen+C55dNButf
+         OPNQAO8QjMC+D4wOlLDdziFG1k6GL4NcsaYzWSb+Fs0HC9ojSpkwpYUd9P24mQ8Thnb2
+         LcYX2nyhFUfrSBt8gUxVavadKj0mPO1Qkb+d4RSnf1HBVtHKKVvKHTidhtQk0XkbjInX
+         BBIA==
+X-Gm-Message-State: ABy/qLYQShyqIooFUwHShUnrXAmRfWJ9FLkrIkwg+e+EQuz30Xr8QsNt
+        +hF4Qb/5t3twqx+Tpq2F8RJbiC8vH0NTyb1qQ6k=
+X-Google-Smtp-Source: APBJJlHeKJSZsF9NU8YP1IU04a7hifxc4dYmkgCrow6mcYTlVysL6G+aC1sI1JitOYNpKPNyAeqIGG45eykAgFQd1UM=
+X-Received: by 2002:a25:6850:0:b0:bd7:545e:ab41 with SMTP id
+ d77-20020a256850000000b00bd7545eab41mr2063292ybc.27.1689754357440; Wed, 19
+ Jul 2023 01:12:37 -0700 (PDT)
 MIME-Version: 1.0
+References: <20230718085619.17403-1-xujianghui@cdjrlc.com> <19b84a97cb5487c22fcd3cc232abe860@208suo.com>
+In-Reply-To: <19b84a97cb5487c22fcd3cc232abe860@208suo.com>
+From:   Kjetil Oftedal <oftedal@gmail.com>
+Date:   Wed, 19 Jul 2023 10:12:24 +0200
+Message-ID: <CALMQjD9M9tZiBmo69pLvC5QVLxgRfo_2R=X2x3sAfU5ts-zBFw@mail.gmail.com>
+Subject: Re: [PATCH] sparc: add missing put_device()
+To:     sunran001@208suo.com
+Cc:     davem@davemloft.net, sparclinux@vger.kernel.org,
+        dmitry.baryshkov@linaro.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
+On Tue, 18 Jul 2023 at 11:10, <sunran001@208suo.com> wrote:
+>
+> The of_find_device_by_node() takes a reference to the underlying device
+> structure, we should release that reference.
+>
+> ./arch/sparc/kernel/of_device_common.c:36:1-7: ERROR: missing
+> put_device; call of_find_device_by_node on line 30, but without a
+> corresponding object release within this function.
+> ./arch/sparc/kernel/of_device_common.c:50:1-7: ERROR: missing
+> put_device; call of_find_device_by_node on line 42, but without a
+> corresponding object release within this function.
+>
+> Signed-off-by: Ran Sun <sunran001@208suo.com>
+> ---
+>   arch/sparc/kernel/of_device_common.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/sparc/kernel/of_device_common.c
+> b/arch/sparc/kernel/of_device_common.c
+> index 7851307de6d0..5e9847d0fbed 100644
+> --- a/arch/sparc/kernel/of_device_common.c
+> +++ b/arch/sparc/kernel/of_device_common.c
+> @@ -33,8 +33,8 @@ int of_address_to_resource(struct device_node *node,
+> int index,
+>       if (!op || index >= op->num_resources)
+>           return -EINVAL;
+>
+> -    put_device(op->dev);
+>       memcpy(r, &op->archdata.resource[index], sizeof(*r));
+> +    put_device(op->dev);
+>       return 0;
+>   }
+>   EXPORT_SYMBOL_GPL(of_address_to_resource);
+> @@ -47,8 +47,8 @@ void __iomem *of_iomap(struct device_node *node, int
+> index)
+>       if (!op || index >= op->num_resources)
+>           return NULL;
+>
+> -    put_device(op->dev);
+>       r = &op->archdata.resource[index];
+> +    put_device(op->dev);
+>
+>       return of_ioremap(r, 0, resource_size(r), (char *) r->name);
+>   }
 
-niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
-czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
-=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
-py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
-energii elektrycznej.
 
-Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
-pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
-ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
+Based on Dmitry Baryshkov earlier comment I am not sure if this is a safe fix.
+(And I am not fully knowledgable about the memory lifecycle here)
 
-Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
-=BCliwo=C5=9Bciach?
+If it is so that the device can disappear after put_device, is it then
+safe to access a
+pointer to that devices resource information when calling of_ioremap() ?
 
-Pozdrawiam
-Bartosz Holender
+-
+Kjetil Oftedal
