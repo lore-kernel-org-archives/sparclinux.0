@@ -2,174 +2,243 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0DF6C0015E
-	for <sparclinux@archiver.kernel.org>; Fri, 21 Jul 2023 08:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 254FCEB64DC
+	for <sparclinux@archiver.kernel.org>; Fri, 21 Jul 2023 13:15:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbjGUI1X (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 21 Jul 2023 04:27:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38658 "EHLO
+        id S229605AbjGUNPv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 21 Jul 2023 09:15:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbjGUI1W (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 21 Jul 2023 04:27:22 -0400
-Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADE4326A0;
-        Fri, 21 Jul 2023 01:27:20 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.nyi.internal (Postfix) with ESMTP id 0BF2B5C0130;
-        Fri, 21 Jul 2023 04:27:20 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Fri, 21 Jul 2023 04:27:20 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm2; t=1689928040; x=1690014440; bh=V8
-        kkxioRFPjR/pcGqI7bYcicee1af9QaKC3pDwPABSg=; b=cSu25aofj3k78Gwvjn
-        AeApNXcPQ4m0EkJR+F/FR6X0iWUO4WSNdIIXBNu9IuKLJRziOlSFRwDBU8XHxTAZ
-        qFvfpzf6Fqcsui64BX/auOaUT8DpTf55Um6d6mIrhtX90E7pAWUkD4FxYpYGJo3R
-        cJ23vzSYXksDNzV5a5SVkd3auBPf4sTFsIbC5WfiZtnbkhUaTGjWxwHEZjc5dj4Z
-        ExxSxCQnOdr8Nh2a8NO8ayVRWbjLPzFLtRExpI2Wkb9vg6QauJCHb4+5i+FSpnXM
-        r/zD/innoFirhLlgq9POHdmFW+DsxQzLUq4o9sf1LEqMG3qLnDEwxNS26mrQY/3k
-        za2w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1689928040; x=1690014440; bh=V8kkxioRFPjR/
-        pcGqI7bYcicee1af9QaKC3pDwPABSg=; b=JLTw/YwFC4sBp4eez9+aKjZwfdUxH
-        oR/mZBQ+L1gJ4Cpfz1EgHzlgGEdvDo1MQAN2+5JUTAP9maAMGaPzy4rh/1QP/gr2
-        i3AVkB7R92HU90NWLS3VB4VHT3pu4ItP6yrpMz949odIs4AiptZGzzPE5Jyf/oUP
-        8RHnAj5WamxgQToMEXU+DdHI2Wgd+dn4kyMrYsuhj6H/9TK7zBBNpZ5l67fbVHG8
-        chitq7Y51/9QRvvtx52pkfeh9rKiXrGsRxKVZ0iUK3MGBTXtds+sd+526B6ccQvb
-        E5dGv4p2vxusjFWvSyTWybP4Ci3VfrkuumVEROmmRFBnEf3CI0ZkrLLag==
-X-ME-Sender: <xms:Z0G6ZJXnlljlCdvQyrlzSlkcbJGlHfZ1XC5HY8aiTrM9lTCSABMoCw>
-    <xme:Z0G6ZJmUokdpWTTu8RdRdZ9-4dj7tq7_nB6JrNL-L9VUKWOU6B3J_Jv8pgyD4CqlV
-    bpFF5sF2JYqVQYCGBU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrhedvgddtudcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
-    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
-    gvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedtkeet
-    ffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrh
-    hnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:Z0G6ZFYTJzRi5xEMDMI8VzVLO6Lw3v8rmTarA8rR9QLsQc5o4NTxug>
-    <xmx:Z0G6ZMXrLfywv2a4UnvudMRaE2P2kIIZQTmOu6fIVc2lHLAlUQD3Pw>
-    <xmx:Z0G6ZDklQA0fY_F1_E6g98n9tP1zEe6H-RuAwlLkfa7RmqjjgxB6qg>
-    <xmx:aEG6ZCsFx1tDsYnEuHcf_9M22ABk0bLv5nIYRFSPz8WBV5b_Fe8EYQ>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id AB365B60089; Fri, 21 Jul 2023 04:27:19 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-531-gfdfa13a06d-fm-20230703.001-gfdfa13a0
-Mime-Version: 1.0
-Message-Id: <19631e74-415e-4dcb-b79d-33dcf03d2dfc@app.fastmail.com>
-In-Reply-To: <87pm4lj1w3.fsf@mail.lhotse>
-References: <20230719123944.3438363-1-arnd@kernel.org>
- <20230719123944.3438363-2-arnd@kernel.org> <87pm4lj1w3.fsf@mail.lhotse>
-Date:   Fri, 21 Jul 2023 10:26:30 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Arnd Bergmann" <arnd@kernel.org>, linux-fbdev@vger.kernel.org,
-        "Thomas Zimmermann" <tzimmermann@suse.de>,
-        "Helge Deller" <deller@gmx.de>,
-        "Javier Martinez Canillas" <javierm@redhat.com>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        "Ard Biesheuvel" <ardb@kernel.org>,
-        "Borislav Petkov" <bp@alien8.de>, "Brian Cain" <bcain@quicinc.com>,
-        "Catalin Marinas" <catalin.marinas@arm.com>,
-        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
-        "Daniel Vetter" <daniel@ffwll.ch>,
-        "Dave Hansen" <dave.hansen@linux.intel.com>,
-        "Dave Airlie" <airlied@gmail.com>,
-        "Deepak Rawat" <drawat.floss@gmail.com>,
-        "Dexuan Cui" <decui@microsoft.com>,
-        "Dinh Nguyen" <dinguyen@kernel.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        guoren <guoren@kernel.org>,
-        "Haiyang Zhang" <haiyangz@microsoft.com>,
-        "Huacai Chen" <chenhuacai@kernel.org>,
-        "Ingo Molnar" <mingo@redhat.com>,
-        "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
-        "Khalid Aziz" <khalid@gonehiking.org>,
-        "Linus Walleij" <linus.walleij@linaro.org>,
-        "Matt Turner" <mattst88@gmail.com>,
-        "Max Filippov" <jcmvbkbc@gmail.com>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
-        "Palmer Dabbelt" <palmer@dabbelt.com>,
-        "Russell King" <linux@armlinux.org.uk>,
-        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
-        "Thomas Gleixner" <tglx@linutronix.de>,
-        "WANG Xuerui" <kernel@xen0n.name>, "Wei Liu" <wei.liu@kernel.org>,
-        "Will Deacon" <will@kernel.org>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-efi@vger.kernel.org,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-hyperv@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v2 1/9] vgacon: rework Kconfig dependencies
-Content-Type: text/plain
+        with ESMTP id S229493AbjGUNPu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 21 Jul 2023 09:15:50 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8A2610CB;
+        Fri, 21 Jul 2023 06:15:48 -0700 (PDT)
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 36LC5LTp023077;
+        Fri, 21 Jul 2023 13:14:21 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=pp1; bh=GMxUpVXcvnoLLXnu9uLOggDBYWetPJ2Owc61ZxWdi/0=;
+ b=l4HAAHYfAN6KBD3cNXhvpRKUvzJ/ZLlmd9eatnMe2L+hv+K3i1JRg/1TKVowa0MT0BQY
+ 7o8ZcqHTGprj2ctwLNccYfCkuqk/IC4sRNSQDbvFgH0u6fmvyxCS0R9wQSAkb3RPNFAd
+ A7U/5su42EO4w8Qw/yyi9/NBhq3tcAtI7nAoX4T3JTLRKFr22ReGddZWQqXB7lueeFnI
+ RgZvR3igweMoS+wqPflmBs6R81Ja2TJO+R9MMeRb12IZDtRZd6owlPDxu/STXuJPR8bH
+ uB6CdVTaJhe07UlsjV8vCjzUQB4QHR/4evhMjcRYIE4NRBwC+DNqJj7naVQItFx4PYXs Uw== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rye3fs3vw-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 21 Jul 2023 13:14:20 +0000
+Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 36LCa2ho007793;
+        Fri, 21 Jul 2023 13:14:19 GMT
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rye3fs3v5-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 21 Jul 2023 13:14:19 +0000
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+        by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 36LAiIhP016886;
+        Fri, 21 Jul 2023 13:14:18 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+        by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3rv5ss7mvj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 21 Jul 2023 13:14:17 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+        by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 36LDEFwI63439216
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 21 Jul 2023 13:14:15 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id EA95B2004B;
+        Fri, 21 Jul 2023 13:14:14 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 5CBCB20040;
+        Fri, 21 Jul 2023 13:13:50 +0000 (GMT)
+Received: from patel (unknown [9.61.93.148])
+        by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+        Fri, 21 Jul 2023 13:13:49 +0000 (GMT)
+Date:   Fri, 21 Jul 2023 18:43:41 +0530
+From:   Jay Patel <jaypatel@linux.ibm.com>
+To:     Aneesh Kumar K V <aneesh.kumar@linux.ibm.com>
+Cc:     Hugh Dickins <hughd@google.com>, Miaohe Lin <linmiaohe@huawei.com>,
+        David Hildenbrand <david@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Yang Shi <shy828301@gmail.com>, Peter Xu <peterx@redhat.com>,
+        linux-kernel@vger.kernel.org, Song Liu <song@kernel.org>,
+        sparclinux@vger.kernel.org,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Will Deacon <will@kernel.org>, linux-s390@vger.kernel.org,
+        Yu Zhao <yuzhao@google.com>, Ira Weiny <ira.weiny@intel.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Matthew Wilcox <willy@infradead.org>,
+        Steven Price <steven.price@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        linux-arm-kernel@lists.infradead.org, Zi Yan <ziy@nvidia.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Ralph Camp bell <rcampbell@nvidia.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Jann Horn <jannh@google.com>, linux-mm@kvack.org,
+        linuxppc-dev@lists.ozlabs.org,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Zack Rusin <zackr@vmware.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Minchan Kim <minchan@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Mike Rapoport <rppt@kernel.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Re: [PATCH v3 04/13] powerpc: assert_pte_locked() use
+ pte_offset_map_nolock()
+Message-ID: <20230721131341.w5abuxcbohofpzwa@patel>
+References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com>
+ <e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com>
+ <87msztbiy8.fsf@linux.ibm.com>
+ <392f311f-83ac-a5a2-d16e-2c7736d1b577@google.com>
+ <6762c880-6d2b-233f-6786-7ad5b0472dc7@linux.ibm.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="l3k53vcfqq6gdq3m"
+Content-Disposition: inline
+In-Reply-To: <6762c880-6d2b-233f-6786-7ad5b0472dc7@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 2ecNA7NkEkMAHoLPyYtcVNUPMq4cUpvr
+X-Proofpoint-ORIG-GUID: UIxitr1ia8Es_QGazuOlejno-STdYv4d
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-07-21_08,2023-07-20_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 spamscore=0
+ mlxscore=0 priorityscore=1501 adultscore=0 suspectscore=0 phishscore=0
+ mlxlogscore=999 malwarescore=0 impostorscore=0 bulkscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2306200000 definitions=main-2307210118
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jul 21, 2023, at 06:59, Michael Ellerman wrote:
-> Arnd Bergmann <arnd@kernel.org> writes:
->> From: Arnd Bergmann <arnd@arndb.de>
->>
->> The list of dependencies here is phrased as an opt-out, but this is missing
->> a lot of architectures that don't actually support VGA consoles, and some
->> of the entries are stale:
->>
->>  - powerpc used to support VGA consoles in the old arch/ppc codebase, but
->>    the merged arch/powerpc never did
+
+--l3k53vcfqq6gdq3m
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Jul 19 2023, Aneesh Kumar K V wrote:
+> On 7/19/23 10:34 AM, Hugh Dickins wrote:
+> > On Tue, 18 Jul 2023, Aneesh Kumar K.V wrote:
+> >> Hugh Dickins <hughd@google.com> writes:
+> >>
+> >>> Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
+> >>> in assert_pte_locked().  BUG if pte_offset_map_nolock() fails: this is
+> >>> stricter than the previous implementation, which skipped when pmd_none()
+> >>> (with a comment on khugepaged collapse transitions): but wouldn't we want
+> >>> to know, if an assert_pte_locked() caller can be racing such transitions?
+> >>>
+> >>
+> >> The reason we had that pmd_none check there was to handle khugpaged. In
+> >> case of khugepaged we do pmdp_collapse_flush and then do a ptep_clear.
+> >> ppc64 had the assert_pte_locked check inside that ptep_clear.
+> >>
+> >> _pmd = pmdp_collapse_flush(vma, address, pmd);
+> >> ..
+> >> ptep_clear()
+> >> -> asset_ptep_locked()
+> >> ---> pmd_none
+> >> -----> BUG
+> >>
+> >>
+> >> The problem is how assert_pte_locked() verify whether we are holding
+> >> ptl. It does that by walking the page table again and in this specific
+> >> case by the time we call the function we already had cleared pmd .
+> > 
+> > Aneesh, please clarify, I've spent hours on this.
+> > 
+> > From all your use of past tense ("had"), I thought you were Acking my
+> > patch; but now, after looking again at v3.11 source and today's,
+> > I think you are NAKing my patch in its present form.
+> > 
+> 
+> Sorry for the confusion my reply created. 
+> 
+> > You are pointing out that anon THP's __collapse_huge_page_copy_succeeded()
+> > uses ptep_clear() at a point after pmdp_collapse_flush() already cleared
+> > *pmd, so my patch now leads that one use of assert_pte_locked() to BUG.
+> > Is that your point?
+> > 
+> 
+> Yes. I haven't tested this yet to verify that it is indeed hitting that BUG.
+> But a code inspection tells me we will hit that BUG on powerpc because of
+> the above details.
 >
-> Not disputing this, but how did you come to that conclusion? I grepped
-> around and couldn't convince myself whether it can work on powerpc or
-> not. ie. currently it's possible to enable CONFIG_VGA_CONSOLE and
-> powerpc does have a struct screen_info defined which seems like it would
-> allow vgacon_startup() to complete.
+Hi Aneesh,
 
-The VGA console needs both screen_info and vga_con to work. In arch/ppc
-we had both, but in arch/powerpc we only retained the screen_info:
+After testing it, I can confirm that it encountered a BUG on powerpc.
+Log report as attached
 
-$ git grep vga_con v2.6.26 -- arch/ppc arch/ppc64 arch/powerpc
-v2.6.26:arch/ppc/platforms/pplus.c:     conswitchp = &vga_con;
-v2.6.26:arch/ppc/platforms/prep_setup.c:        conswitchp = &vga_con;
+Thanks,
+Jay Patel 
+> > I can easily restore that khugepaged comment (which had appeared to me
+> > out of date at the time, but now looks still relevant) and pmd_none(*pmd)
+> > check: but please clarify.
+> > 
+> 
+> That is correct. if we add that pmd_none check back we should be good here.
+> 
+> 
+> -aneesh
 
-so after arch/ppc was removed, this became impossible to use on both
-pplus and prep. These two platforms were also (as far as I can tell)
-the only ones to support vga16fb as an alternative to vgacon, but
-both platforms were removed later on.
+--l3k53vcfqq6gdq3m
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="report.txt"
 
-> My only concern is that someone could be using it with Qemu?
+[   53.513058][  T105] ------------[ cut here ]------------
+[   53.513080][  T105] kernel BUG at arch/powerpc/mm/pgtable.c:327!
+[   53.513090][  T105] Oops: Exception in kernel mode, sig: 5 [#1]
+[   53.513099][  T105] LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+[   53.513109][  T105] Modules linked in: bonding pseries_rng rng_core vmx_crypto gf128mul ibmveth crc32c_vpmsum fuse autofs4                                                                              
+[   53.513135][  T105] CPU: 3 PID: 105 Comm: khugepaged Not tainted 6.5.0-rc1-gebfaf626e99f-dirty #1
+[   53.513146][  T105] Hardware name: IBM,9009-42G POWER9 (raw) 0x4e0202 0xf000005 of:IBM,FW950.80 (VL950_131) hv:phyp pSeries                                                                             
+[   53.513156][  T105] NIP:  c000000000079478 LR: c00000000007946c CTR: 0000000000000000
+[   53.513165][  T105] REGS: c000000008e9b930 TRAP: 0700   Not tainted  (6.5.0-rc1-gebfaf626e99f-dirty)                                                                                                    
+[   53.513175][  T105] MSR:  800000000282b033 <SF,VEC,VSX,EE,FP,ME,IR,DR,RI,LE>  CR: 24002882  XER: 20040000                                                                                               
+[   53.513202][  T105] CFAR: c000000000412a30 IRQMASK: 0
+[   53.513202][  T105] GPR00: c00000000007946c c000000008e9bbd0 c0000000012d3500 0000000000000001
+[   53.513202][  T105] GPR04: 0000000011000000 c000000008e9bbb0 c000000008e9bbf0 ffffffffffffffff
+[   53.513202][  T105] GPR08: 00000000000003ff 0000000000000000 0000000000000000 000000000000000a
+[   53.513202][  T105] GPR12: 00000000497b0000 c00000001ec9d480 c00c00000016fe00 c000000051455000
+[   53.513202][  T105] GPR16: 0000000000000000 ffffffffffffffff 0000000000000001 0000000000000001
+[   53.513202][  T105] GPR20: c000000002912430 c000000051455000 0000000000000000 c00000000946e650
+[   53.513202][  T105] GPR24: c0000000029800e8 0000000011000000 c00c000000145168 c000000002980180
+[   53.513202][  T105] GPR28: 0000000011000000 8603f85b000080c0 c000000008e9bc70 c00000001bd0d680
+[   53.513304][  T105] NIP [c000000000079478] assert_pte_locked.part.18+0x168/0x1b0
+[   53.513318][  T105] LR [c00000000007946c] assert_pte_locked.part.18+0x15c/0x1b0
+[   53.513329][  T105] Call Trace:
+[   53.513335][  T105] [c000000008e9bbd0] [c00000000007946c] assert_pte_locked.part.18+0x15c/0x1b0 (unreliable)                                                                                            
+[   53.513350][  T105] [c000000008e9bc00] [c00000000048e10c] collapse_huge_page+0x11dc/0x1700
+[   53.513362][  T105] [c000000008e9bd40] [c00000000048ed18] hpage_collapse_scan_pmd+0x6e8/0x850
+[   53.513374][  T105] [c000000008e9be30] [c000000000492544] khugepaged+0x7e4/0xb70
+[   53.513386][  T105] [c000000008e9bf90] [c00000000015f038] kthread+0x138/0x140
+[   53.513399][  T105] [c000000008e9bfe0] [c00000000000dd58] start_kernel_thread+0x14/0x18
+[   53.513411][  T105] Code: 7c852378 7c844c36 794a1564 7c894038 794af082 79241f24 78eaf00e 7c8a2214 48399541 60000000 7c630074 7863d182 <0b030000> e9210020 81290000 7d290074                             
+[   53.513448][  T105] ---[ end trace 0000000000000000 ]---
+[   53.516544][  T105]
+[   53.516551][  T105] note: khugepaged[105] exited with irqs disabled
+[  182.648447][ T1952] mconf[1952]: segfault (11) at 110efa38 nip 1001e97c lr 1001e8a8 code 1
+[  182.648482][ T1952] mconf[1952]: code: 60420000 4bfffd59 4bffffd0 60000000 60420000 e93f0070 2fa90000 409e0014
+[  182.648494][ T1952] mconf[1952]: code: 480000cc e9290000 2fa90000 419e00c0 <81490008> 2f8a0005 409effec e9490028
+[  962.694079][T39811] sda2: Can't mount, would change RO state
 
-I have not yet ruled out anyone using vga16fb on qemu before
-commit 0db5b61e0dc07 ("fbdev/vga16fb: Create EGA/VGA devices
-in sysfb code"), but I can see that this has been broken for
-12 months without anyone complaining about it, since vga16fb
-no longer works with the "orig_video_isVGA == 1" setting
-in arch/powerpc (the device is not created).
+--l3k53vcfqq6gdq3m--
 
-In the qemu sources, I see five powerpc machines that intialize
-VGA support: mac_newworld, mac_oldworld, pegasos2, prep, and spapr.
-I think we can exclude prep (which was removed from the kernel)
-and spapr (64-bit VGA_MAP_MEM() looks broken). I think the
-macs always come up in graphical mode and only use
-offb/atifb/rivafb/matroxfb but not vga16fb that would require
-running the x86 VGA BIOS initialization.
-
-I suppose it's possible to use vga16fb (not vgacon) with
-"qemu-system-ppc -M pegasos2 -vga std" if that still boots
-at all. Support for pegasos2 hardware appears to have been
-removed with commit 04debf21fa174 ("powerpc: Remove core
-support for Marvell mv64x60 hostbridges"), but it's possible
-that this did not break qemu support if that only uses
-devices under arch/powerpc/platforms/chrp/pci.c. I could
-not get it to boot, but did not try very hard.
-
-      Arnd
