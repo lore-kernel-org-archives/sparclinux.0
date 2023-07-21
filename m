@@ -2,39 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22963EB64DD
-	for <sparclinux@archiver.kernel.org>; Thu, 20 Jul 2023 19:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC785C04FDF
+	for <sparclinux@archiver.kernel.org>; Fri, 21 Jul 2023 04:59:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbjGTTOM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 20 Jul 2023 15:14:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59158 "EHLO
+        id S229619AbjGUE7r (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 21 Jul 2023 00:59:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229684AbjGTTOL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 20 Jul 2023 15:14:11 -0400
-Received: from mailout.easymail.ca (mailout.easymail.ca [64.68.200.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EE991731;
-        Thu, 20 Jul 2023 12:14:09 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by mailout.easymail.ca (Postfix) with ESMTP id 8D9A4623D6;
-        Thu, 20 Jul 2023 18:49:44 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at emo07-pco.easydns.vpn
-Received: from mailout.easymail.ca ([127.0.0.1])
-        by localhost (emo07-pco.easydns.vpn [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id ak-ynw72yPGw; Thu, 20 Jul 2023 18:49:44 +0000 (UTC)
-Received: from mail.gonehiking.org (unknown [38.15.45.1])
-        by mailout.easymail.ca (Postfix) with ESMTPA id 1856D623A8;
-        Thu, 20 Jul 2023 18:49:44 +0000 (UTC)
-Received: from [192.168.1.4] (internal [192.168.1.4])
-        by mail.gonehiking.org (Postfix) with ESMTP id 960493EED6;
-        Thu, 20 Jul 2023 12:49:43 -0600 (MDT)
-Message-ID: <392b33e3-18b2-73b6-f804-7a7ec1de0b99@gonehiking.org>
-Date:   Thu, 20 Jul 2023 12:49:43 -0600
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Reply-To: khalid@gonehiking.org
-Subject: Re: [PATCH v2 2/9] vgacon: rework screen_info #ifdef checks
-Content-Language: en-US
+        with ESMTP id S229457AbjGUE7o (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 21 Jul 2023 00:59:44 -0400
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19870B3;
+        Thu, 20 Jul 2023 21:59:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1689915579;
+        bh=E8y/g9Khd0fFkgBzOo2hgfNC9FxKvpUwWSNkgdFASms=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=Vz9fUc/RXTu27vyeQvrCGoaE8JdmFqjso1U7IKft3F4+AMIPMbJxbd6+vpUogCok2
+         jjqvREfJvYqz3QSGYRTfM9NbVcZw6ETTGk+G5ORy8Ef27KmVipGpAru/++iMcP0ZIY
+         irL63A70ZpZtpSAA842FIXFsBi3K9pkiGHMiMA9uGES1k6AQTlIav7DvOXvaXW5lr1
+         +C0AtN1LzNzfZWs6cqLKzQSLR9CakXGeTo5RmwHO24fURCoJ28UFMNlTF5RfwYFygo
+         JIBkIXyWk0zwzOR6aKsdnuJSg4XvmCPd8c6HNDSu/dKGG51lsM7dl8r9XMYvtkwX6A
+         gBrLXrGghZj8Q==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4R6cmH4jNJz4wqW;
+        Fri, 21 Jul 2023 14:59:27 +1000 (AEST)
+From:   Michael Ellerman <mpe@ellerman.id.au>
 To:     Arnd Bergmann <arnd@kernel.org>, linux-fbdev@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
         Helge Deller <deller@gmx.de>,
@@ -58,10 +54,10 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         Huacai Chen <chenhuacai@kernel.org>,
         Ingo Molnar <mingo@redhat.com>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Khalid Aziz <khalid@gonehiking.org>,
         Linus Walleij <linus.walleij@linaro.org>,
         Matt Turner <mattst88@gmail.com>,
         Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Russell King <linux@armlinux.org.uk>,
@@ -77,200 +73,34 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-hyperv@vger.kernel.org,
         dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v2 1/9] vgacon: rework Kconfig dependencies
+In-Reply-To: <20230719123944.3438363-2-arnd@kernel.org>
 References: <20230719123944.3438363-1-arnd@kernel.org>
- <20230719123944.3438363-3-arnd@kernel.org>
-From:   Khalid Aziz <khalid@gonehiking.org>
-In-Reply-To: <20230719123944.3438363-3-arnd@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+ <20230719123944.3438363-2-arnd@kernel.org>
+Date:   Fri, 21 Jul 2023 14:59:24 +1000
+Message-ID: <87pm4lj1w3.fsf@mail.lhotse>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 7/19/23 6:39 AM, Arnd Bergmann wrote:
+Arnd Bergmann <arnd@kernel.org> writes:
 > From: Arnd Bergmann <arnd@arndb.de>
-> 
-> On non-x86 architectures, the screen_info variable is generally only
-> used for the VGA console where supported, and in some cases the EFI
-> framebuffer or vga16fb.
-> 
-> Now that we have a definite list of which architectures actually use it
-> for what, use consistent #ifdef checks so the global variable is only
-> defined when it is actually used on those architectures.
-> 
-> Loongarch and riscv have no support for vgacon or vga16fb, but
-> they support EFI firmware, so only that needs to be checked, and the
-> initialization can be removed because that is handled by EFI.
-> IA64 has both vgacon and EFI, though EFI apparently never uses
-> a framebuffer here.
-> 
-> Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-> Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+> The list of dependencies here is phrased as an opt-out, but this is missing
+> a lot of architectures that don't actually support VGA consoles, and some
+> of the entries are stale:
+>
+>  - powerpc used to support VGA consoles in the old arch/ppc codebase, but
+>    the merged arch/powerpc never did
 
+Not disputing this, but how did you come to that conclusion? I grepped
+around and couldn't convince myself whether it can work on powerpc or
+not. ie. currently it's possible to enable CONFIG_VGA_CONSOLE and
+powerpc does have a struct screen_info defined which seems like it would
+allow vgacon_startup() to complete.
 
-Reviewed-by: Khalid Aziz <khalid@gonehiking.org>
+My only concern is that someone could be using it with Qemu?
 
-> ---
-> v2 changes:
->   - split out mips/jazz change
->   - improve ia64 #ifdef changes
-> ---
->   arch/alpha/kernel/setup.c      |  2 ++
->   arch/alpha/kernel/sys_sio.c    |  2 ++
->   arch/ia64/kernel/setup.c       |  6 ++++++
->   arch/loongarch/kernel/setup.c  |  2 ++
->   arch/mips/kernel/setup.c       |  2 +-
->   arch/mips/sibyte/swarm/setup.c |  2 +-
->   arch/mips/sni/setup.c          |  2 +-
->   arch/riscv/kernel/setup.c      | 11 ++---------
->   8 files changed, 17 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/alpha/kernel/setup.c b/arch/alpha/kernel/setup.c
-> index b650ff1cb022e..b4d2297765c02 100644
-> --- a/arch/alpha/kernel/setup.c
-> +++ b/arch/alpha/kernel/setup.c
-> @@ -131,6 +131,7 @@ static void determine_cpu_caches (unsigned int);
->   
->   static char __initdata command_line[COMMAND_LINE_SIZE];
->   
-> +#ifdef CONFIG_VGA_CONSOLE
->   /*
->    * The format of "screen_info" is strange, and due to early
->    * i386-setup code. This is just enough to make the console
-> @@ -147,6 +148,7 @@ struct screen_info screen_info = {
->   };
->   
->   EXPORT_SYMBOL(screen_info);
-> +#endif
->   
->   /*
->    * The direct map I/O window, if any.  This should be the same
-> diff --git a/arch/alpha/kernel/sys_sio.c b/arch/alpha/kernel/sys_sio.c
-> index 7c420d8dac53d..7de8a5d2d2066 100644
-> --- a/arch/alpha/kernel/sys_sio.c
-> +++ b/arch/alpha/kernel/sys_sio.c
-> @@ -57,11 +57,13 @@ sio_init_irq(void)
->   static inline void __init
->   alphabook1_init_arch(void)
->   {
-> +#ifdef CONFIG_VGA_CONSOLE
->   	/* The AlphaBook1 has LCD video fixed at 800x600,
->   	   37 rows and 100 cols. */
->   	screen_info.orig_y = 37;
->   	screen_info.orig_video_cols = 100;
->   	screen_info.orig_video_lines = 37;
-> +#endif
->   
->   	lca_init_arch();
->   }
-> diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
-> index 5a55ac82c13a4..d2c66efdde560 100644
-> --- a/arch/ia64/kernel/setup.c
-> +++ b/arch/ia64/kernel/setup.c
-> @@ -86,9 +86,13 @@ EXPORT_SYMBOL(local_per_cpu_offset);
->   #endif
->   unsigned long ia64_cycles_per_usec;
->   struct ia64_boot_param *ia64_boot_param;
-> +#if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_EFI)
->   struct screen_info screen_info;
-> +#endif
-> +#ifdef CONFIG_VGA_CONSOLE
->   unsigned long vga_console_iobase;
->   unsigned long vga_console_membase;
-> +#endif
->   
->   static struct resource data_resource = {
->   	.name	= "Kernel data",
-> @@ -497,6 +501,7 @@ early_console_setup (char *cmdline)
->   static void __init
->   screen_info_setup(void)
->   {
-> +#ifdef CONFIG_VGA_CONSOLE
->   	unsigned int orig_x, orig_y, num_cols, num_rows, font_height;
->   
->   	memset(&screen_info, 0, sizeof(screen_info));
-> @@ -525,6 +530,7 @@ screen_info_setup(void)
->   	screen_info.orig_video_mode = 3;	/* XXX fake */
->   	screen_info.orig_video_isVGA = 1;	/* XXX fake */
->   	screen_info.orig_video_ega_bx = 3;	/* XXX fake */
-> +#endif
->   }
->   
->   static inline void
-> diff --git a/arch/loongarch/kernel/setup.c b/arch/loongarch/kernel/setup.c
-> index 95e6b579dfdd1..77e7a3722caa6 100644
-> --- a/arch/loongarch/kernel/setup.c
-> +++ b/arch/loongarch/kernel/setup.c
-> @@ -57,7 +57,9 @@
->   #define SMBIOS_CORE_PACKAGE_OFFSET	0x23
->   #define LOONGSON_EFI_ENABLE		(1 << 3)
->   
-> +#ifdef CONFIG_EFI
->   struct screen_info screen_info __section(".data");
-> +#endif
->   
->   unsigned long fw_arg0, fw_arg1, fw_arg2;
->   DEFINE_PER_CPU(unsigned long, kernelsp);
-> diff --git a/arch/mips/kernel/setup.c b/arch/mips/kernel/setup.c
-> index cb871eb784a7c..1aba7dc95132c 100644
-> --- a/arch/mips/kernel/setup.c
-> +++ b/arch/mips/kernel/setup.c
-> @@ -54,7 +54,7 @@ struct cpuinfo_mips cpu_data[NR_CPUS] __read_mostly;
->   
->   EXPORT_SYMBOL(cpu_data);
->   
-> -#ifdef CONFIG_VT
-> +#ifdef CONFIG_VGA_CONSOLE
->   struct screen_info screen_info;
->   #endif
->   
-> diff --git a/arch/mips/sibyte/swarm/setup.c b/arch/mips/sibyte/swarm/setup.c
-> index 76683993cdd3a..37df504d3ecbb 100644
-> --- a/arch/mips/sibyte/swarm/setup.c
-> +++ b/arch/mips/sibyte/swarm/setup.c
-> @@ -129,7 +129,7 @@ void __init plat_mem_setup(void)
->   	if (m41t81_probe())
->   		swarm_rtc_type = RTC_M41T81;
->   
-> -#ifdef CONFIG_VT
-> +#ifdef CONFIG_VGA_CONSOLE
->   	screen_info = (struct screen_info) {
->   		.orig_video_page	= 52,
->   		.orig_video_mode	= 3,
-> diff --git a/arch/mips/sni/setup.c b/arch/mips/sni/setup.c
-> index efad85c8c823b..9984cf91be7d0 100644
-> --- a/arch/mips/sni/setup.c
-> +++ b/arch/mips/sni/setup.c
-> @@ -38,7 +38,7 @@ extern void sni_machine_power_off(void);
->   
->   static void __init sni_display_setup(void)
->   {
-> -#if defined(CONFIG_VT) && defined(CONFIG_VGA_CONSOLE) && defined(CONFIG_FW_ARC)
-> +#if defined(CONFIG_VGA_CONSOLE) && defined(CONFIG_FW_ARC)
->   	struct screen_info *si = &screen_info;
->   	DISPLAY_STATUS *di;
->   
-> diff --git a/arch/riscv/kernel/setup.c b/arch/riscv/kernel/setup.c
-> index 971fe776e2f8b..a3dbe13f45fb3 100644
-> --- a/arch/riscv/kernel/setup.c
-> +++ b/arch/riscv/kernel/setup.c
-> @@ -39,15 +39,8 @@
->   
->   #include "head.h"
->   
-> -#if defined(CONFIG_DUMMY_CONSOLE) || defined(CONFIG_EFI)
-> -struct screen_info screen_info __section(".data") = {
-> -	.orig_video_lines	= 30,
-> -	.orig_video_cols	= 80,
-> -	.orig_video_mode	= 0,
-> -	.orig_video_ega_bx	= 0,
-> -	.orig_video_isVGA	= 1,
-> -	.orig_video_points	= 8
-> -};
-> +#if defined(CONFIG_EFI)
-> +struct screen_info screen_info __section(".data");
->   #endif
->   
->   /*
-
+cheers
