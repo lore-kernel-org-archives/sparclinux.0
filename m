@@ -2,58 +2,148 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E037C0015E
-	for <sparclinux@archiver.kernel.org>; Mon, 24 Jul 2023 07:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8863C05051
+	for <sparclinux@archiver.kernel.org>; Mon, 24 Jul 2023 12:16:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231301AbjGXHrE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 24 Jul 2023 03:47:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36316 "EHLO
+        id S229699AbjGXMQC convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 24 Jul 2023 08:16:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231269AbjGXHqy (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 Jul 2023 03:46:54 -0400
-Received: from mail.tummelspey.pl (mail.tummelspey.pl [195.231.83.87])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98D5EE67
-        for <sparclinux@vger.kernel.org>; Mon, 24 Jul 2023 00:46:42 -0700 (PDT)
-Received: by mail.tummelspey.pl (Postfix, from userid 1002)
-        id 1B8F2829FB; Mon, 24 Jul 2023 09:46:14 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tummelspey.pl;
-        s=mail; t=1690184798;
-        bh=OJs3leM9fdfMkxPirBSuuU/UTIEL4q9FUCZWMj2U0kA=;
-        h=Date:From:To:Subject:From;
-        b=tehuGwyOwuaGJh/wUEzAfpHb+3683B1c3uXtJRkQr708y/3QXm6JnX4Jy8wzWH/5a
-         K5Pqe0oMcfjmjq4pyXdmnyTepCc5S00tdTGscSwea36VGxl1dPvTUzU55IdY8XTj5k
-         KKD0VyYuHPxQOSexXdl0FbICIgpvquZmEk55JAsm19oWdiOS0hgSMuWlmG8qT9EpTg
-         u/HNyGToWlTbnsGkfCVcJlLQ4Mz1qKOP8RmVMaCCK5RkFAVJcs9JZeIMAuChEEyPxb
-         XuoJKv0xfw7mACFRw1/8cjEU/B3BJj7XWvl9zhtAwVkoQL7Zg7Gq0e12Qz2qAyT7q1
-         CA9qOdk/e/w7Q==
-Received: by mail.tummelspey.pl for <sparclinux@vger.kernel.org>; Mon, 24 Jul 2023 07:46:11 GMT
-Message-ID: <20230724084500-0.1.2m.icob.0.7br6x4ccw5@tummelspey.pl>
-Date:   Mon, 24 Jul 2023 07:46:11 GMT
-From:   "Bartosz Holender" <bartosz.holender@tummelspey.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
-X-Mailer: mail.tummelspey.pl
+        with ESMTP id S230317AbjGXMQA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 Jul 2023 08:16:00 -0400
+Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B63110E4;
+        Mon, 24 Jul 2023 05:15:34 -0700 (PDT)
+Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-6bb140cd5a5so2034274a34.3;
+        Mon, 24 Jul 2023 05:15:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690200925; x=1690805725;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9nNGOJzgymf6gQYpdxd2UIkw90HSJ+oAIVzOwuAShWk=;
+        b=Uy62wyMg9w8t+mqXu0QFMNYQLHegY1Q65joGU4ncPvQPGwYptIiN2f6DmsYUouk6+7
+         JtAWmLG197KYoHDOmAfg3ZxOMrjHz4xE3hYyT76AcEWP1/NbfEO6q8JRB5nr/BxAzOyg
+         a7+QOuyPI2rhvw7/jP5F4BBg9IY8T8XHLcAMM5ohppGtr7R86x2IuaPjPO9X/nWI0OoX
+         EtvgGcsk0r/ueEy3TzgJuT1uDqG0x03uxNtyt02jDdb+T8/6bg+fyCYc4tnNsnN92/Ld
+         LEs75sY2hdIgCGspHVn8/auJuTwf5Te67YoZrN0CdTPjjYJTQVBra4cPZU4AkhkcKXZg
+         UqmA==
+X-Gm-Message-State: ABy/qLbLYusZCq828Ib/fOAikT1ZT1JurJbDna2ZiunMDfG28vkcu73f
+        FuQTMKLHFf9zJHCLdakK0mBA/eVijJEt8w==
+X-Google-Smtp-Source: APBJJlGibdh4VyCHZRuKbHeK83kZpT8FPuPgZrxRhKw6BlST+Wy1ddPXguufHTrmJ8wIiimetINKUg==
+X-Received: by 2002:a05:6830:188:b0:6b9:91da:484f with SMTP id q8-20020a056830018800b006b991da484fmr8804468ota.27.1690200924916;
+        Mon, 24 Jul 2023 05:15:24 -0700 (PDT)
+Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com. [209.85.161.50])
+        by smtp.gmail.com with ESMTPSA id d9-20020a056830004900b006b8c6eb962esm3835164otp.52.2023.07.24.05.15.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 24 Jul 2023 05:15:24 -0700 (PDT)
+Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-56368c40e8eso2620523eaf.0;
+        Mon, 24 Jul 2023 05:15:24 -0700 (PDT)
+X-Received: by 2002:a25:238e:0:b0:d05:abaf:9933 with SMTP id
+ j136-20020a25238e000000b00d05abaf9933mr7019302ybj.36.1690200457350; Mon, 24
+ Jul 2023 05:07:37 -0700 (PDT)
 MIME-Version: 1.0
+References: <20230719123944.3438363-1-arnd@kernel.org> <20230719123944.3438363-2-arnd@kernel.org>
+ <87pm4lj1w3.fsf@mail.lhotse> <19631e74-415e-4dcb-b79d-33dcf03d2dfc@app.fastmail.com>
+In-Reply-To: <19631e74-415e-4dcb-b79d-33dcf03d2dfc@app.fastmail.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 24 Jul 2023 14:07:25 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdVszR+oZi8x8L0iXx=ydTiaNUZxToBSdf=2ZH5t85+D_Q@mail.gmail.com>
+Message-ID: <CAMuHMdVszR+oZi8x8L0iXx=ydTiaNUZxToBSdf=2ZH5t85+D_Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/9] vgacon: rework Kconfig dependencies
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Michael Ellerman <mpe@ellerman.id.au>,
+        Arnd Bergmann <arnd@kernel.org>, linux-fbdev@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Helge Deller <deller@gmx.de>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Dave Airlie <airlied@gmail.com>,
+        Deepak Rawat <drawat.floss@gmail.com>,
+        Dexuan Cui <decui@microsoft.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        guoren <guoren@kernel.org>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Khalid Aziz <khalid@gonehiking.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        WANG Xuerui <kernel@xen0n.name>, Wei Liu <wei.liu@kernel.org>,
+        Will Deacon <will@kernel.org>, x86@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-efi@vger.kernel.org,
+        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-hyperv@vger.kernel.org, dri-devel@lists.freedesktop.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
+Hi Arnd,
 
-niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
-czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
-=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
-py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
-energii elektrycznej.
+On Fri, Jul 21, 2023 at 10:29 AM Arnd Bergmann <arnd@arndb.de> wrote:
+> On Fri, Jul 21, 2023, at 06:59, Michael Ellerman wrote:
+> > Arnd Bergmann <arnd@kernel.org> writes:
+> >> From: Arnd Bergmann <arnd@arndb.de>
+> >>
+> >> The list of dependencies here is phrased as an opt-out, but this is missing
+> >> a lot of architectures that don't actually support VGA consoles, and some
+> >> of the entries are stale:
+> >>
+> >>  - powerpc used to support VGA consoles in the old arch/ppc codebase, but
+> >>    the merged arch/powerpc never did
+> >
+> > Not disputing this, but how did you come to that conclusion? I grepped
+> > around and couldn't convince myself whether it can work on powerpc or
+> > not. ie. currently it's possible to enable CONFIG_VGA_CONSOLE and
+> > powerpc does have a struct screen_info defined which seems like it would
+> > allow vgacon_startup() to complete.
+>
+> The VGA console needs both screen_info and vga_con to work. In arch/ppc
+> we had both, but in arch/powerpc we only retained the screen_info:
+>
+> $ git grep vga_con v2.6.26 -- arch/ppc arch/ppc64 arch/powerpc
+> v2.6.26:arch/ppc/platforms/pplus.c:     conswitchp = &vga_con;
+> v2.6.26:arch/ppc/platforms/prep_setup.c:        conswitchp = &vga_con;
+>
+> so after arch/ppc was removed, this became impossible to use on both
+> pplus and prep. These two platforms were also (as far as I can tell)
+> the only ones to support vga16fb as an alternative to vgacon, but
+> both platforms were removed later on.
 
-Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
-pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
-ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
+I did use vgacon and vga16fb on CHRP on a second video card
+(initialized using Gabriel Paubert's x86 BIOS emulator), but that was
+definitely before the advent of arch/powerpc/.
 
-Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
-=BCliwo=C5=9Bciach?
+Gr{oetje,eeting}s,
 
-Pozdrawiam
-Bartosz Holender
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
