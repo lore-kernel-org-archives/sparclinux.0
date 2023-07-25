@@ -2,115 +2,94 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6969C001DE
-	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 16:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 987ACC001DF
+	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 16:54:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232408AbjGYQwH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 Jul 2023 12:52:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45532 "EHLO
+        id S231928AbjGYQyC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 Jul 2023 12:54:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232187AbjGYQwF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 12:52:05 -0400
-Received: from mout-p-101.mailbox.org (mout-p-101.mailbox.org [IPv6:2001:67c:2050:0:465::101])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DDC92683;
-        Tue, 25 Jul 2023 09:51:37 -0700 (PDT)
-Received: from smtp2.mailbox.org (smtp2.mailbox.org [10.196.197.2])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-384) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mout-p-101.mailbox.org (Postfix) with ESMTPS id 4R9NMl0q8pz9sw0;
-        Tue, 25 Jul 2023 18:51:15 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cyphar.com; s=MBO0001;
-        t=1690303875;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=oXu7I2w2GulAbsjkAbhBaZ0d5Ez9Ymu2aocx4QCikLk=;
-        b=kSmWzfYu0h5RiTQdQhuOq6it0MoOiZSf3kDgxT/+cq1LY2gaqgps8UYFoHqeIEJZu3gl3Y
-        6NfO6pwEzKCD/FvCRHx/mqdIegvQ/xl7XBtbCWyNeZKkLoJYNVo2fbFaa337PF09aPHP6s
-        Pl0K38zR38aZQ86S1uv2GiAEqLJIYLuc9RjcsgJwCXiQ911NIuvw8DS1OGefalEOwy3G4n
-        KQ6maBX4klVBvsIqPSP4EVbp/eKJmPJVCbjW7W/CHYeRncxiKGHJavwOxVN7JsO5FrBQZc
-        nb3oLM1e0fdNJTRxem86wTiDhq20paUp4CP7Y3BaHa+ddyDai81fX7CP4bOPqg==
-Date:   Wed, 26 Jul 2023 02:50:50 +1000
-From:   Aleksa Sarai <cyphar@cyphar.com>
-To:     David Howells <dhowells@redhat.com>
-Cc:     Alexey Gladkov <legion@kernel.org>,
-        James.Bottomley@hansenpartnership.com, acme@kernel.org,
-        alexander.shishkin@linux.intel.com, axboe@kernel.dk,
-        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
-        catalin.marinas@arm.com, christian@brauner.io, dalias@libc.org,
-        davem@davemloft.net, deepa.kernel@gmail.com, deller@gmx.de,
-        fenghua.yu@intel.com, fweimer@redhat.com, geert@linux-m68k.org,
-        glebfm@altlinux.org, gor@linux.ibm.com, hare@suse.com,
-        hpa@zytor.com, ink@jurassic.park.msu.ru, jhogan@kernel.org,
-        kim.phillips@arm.com, ldv@altlinux.org,
-        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux@armlinux.org.uk, linuxppc-dev@lists.ozlabs.org,
-        luto@kernel.org, mattst88@gmail.com, mingo@redhat.com,
-        monstr@monstr.eu, mpe@ellerman.id.au, namhyung@kernel.org,
-        paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org,
-        sparclinux@vger.kernel.org, stefan@agner.ch, tglx@linutronix.de,
-        tony.luck@intel.com, tycho@tycho.ws, will@kernel.org,
-        x86@kernel.org, ysato@users.sourceforge.jp,
-        LKML <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
-Subject: Re: Add fchmodat2() - or add a more general syscall?
-Message-ID: <u7lakye7ikvyu6g2ktxbzixt5hnvqtzt5s4g72j74tgg4bwlpu@7pcqd4ah5tah>
-References: <cover.1689092120.git.legion@kernel.org>
- <cover.1689074739.git.legion@kernel.org>
- <104971.1690300714@warthog.procyon.org.uk>
+        with ESMTP id S232470AbjGYQyC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 12:54:02 -0400
+Received: from mx.treblig.org (unknown [IPv6:2a00:1098:5b::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF056270E;
+        Tue, 25 Jul 2023 09:53:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=treblig.org
+        ; s=bytemarkmx; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID
+        :Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID
+        :Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:
+        Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe
+        :List-Post:List-Owner:List-Archive;
+        bh=m7fAhDuATOTXbBw+03CG8AVOeMC/rQ7dwdJI39b0ePg=; b=iaoymfNpP7Rxl+UOcYficA+N+s
+        l76BWfP+K8D3cEK0NFqByra2UfIii9iAU9yi3DGpbWt/GbeQmPBJmxzdHEyqX9FCRzAjCVP35nrlE
+        9V2dk3mhEr99hLFMuufsq+v8jNeeZhgpPBMgPcSewFpvMrieO6tCdEPV0yiszELJRZTH86jEWJYSY
+        Y8KM344otcBhjcMqabyWxdLInoIyoiaYVf82/kmGEi1cGt1r3BEqZWi+hmR3/DRBjAs8xvJJzAeTQ
+        mnhTz29x7G6U1tN9Ngal6GfWLFrIT2dZDRWnpawLTM4ZUTYoRXJnsyyXpWErzGE/e8fPQhEdTcd51
+        5uFuAOMg==;
+Received: from dg by mx.treblig.org with local (Exim 4.94.2)
+        (envelope-from <dg@treblig.org>)
+        id 1qOLHr-003GkY-DG; Tue, 25 Jul 2023 16:53:27 +0000
+Date:   Tue, 25 Jul 2023 16:53:27 +0000
+From:   "Dr. David Alan Gilbert" <linux@treblig.org>
+To:     Sam Ravnborg <sam@ravnborg.org>
+Cc:     davem@davemloft.net, benh@kernel.crashing.org,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] sparc: Use shared font data
+Message-ID: <ZL/+Bz5C2Mxx0Msw@gallifrey>
+References: <20230724235851.165871-1-linux@treblig.org>
+ <20230725161040.GA832394@ravnborg.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="sqz3gv5iaglclup7"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <104971.1690300714@warthog.procyon.org.uk>
+In-Reply-To: <20230725161040.GA832394@ravnborg.org>
+X-Chocolate: 70 percent or better cocoa solids preferably
+X-Operating-System: Linux/5.10.0-23-amd64 (x86_64)
+X-Uptime: 16:51:09 up 19 days,  2:22,  1 user,  load average: 0.04, 0.03, 0.00
+User-Agent: Mutt/2.0.5 (2021-01-21)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+* Sam Ravnborg (sam@ravnborg.org) wrote:
+> On Tue, Jul 25, 2023 at 12:58:51AM +0100, linux@treblig.org wrote:
+> > From: "Dr. David Alan Gilbert" <linux@treblig.org>
+> > 
+> > sparc has a 'btext' font used for the console which is almost identical
+> > to the shared font_sun8x16, so use it rather than duplicating the data.
+> > 
+> > They were actually identical until about a decade ago when
+> >    commit bcfbeecea11c ("drivers: console: font_: Change a glyph from
+> >                         "broken bar" to "vertical line"")
+> > 
+> > which changed the | in the shared font to be a solid
+> > bar rather than a broken bar.  That's the only difference.
+> > 
+> > This was originally spotted by PMD which noticed that PPC does
+> > the same thing with the same data, and they also share a bunch
+> > of functions to manipulate the data.  The PPC code and the functions
+> > I'll look at another time if this patch is OK.
+> > 
+> > Tested very lightly with a boot without FS in qemu.
+> > 
+> > Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+> 
+> Looks good, thanks for the fixes.
+> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
---sqz3gv5iaglclup7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks
 
-On 2023-07-25, David Howells <dhowells@redhat.com> wrote:
-> Rather than adding a fchmodat2() syscall, should we add a "set_file_attrs=
-()"
-> syscall that takes a mask and allows you to set a bunch of stuff all in o=
-ne
-> go?  Basically, an interface to notify_change() in the kernel that would =
-allow
-> several stats to be set atomically.  This might be of particular interest=
- to
-> network filesystems.
+> Let's hope someone picks it up...
 
-Presumably looking something like statx(2) (except hopefully with
-extensible structs this time :P)? I think that could also be useful, but
-given this is a fairly straight-forward syscall addition (and it also
-would resolve the AT_EMPTY_PATH issue for chmod as well as simplify the
-glibc wrapper), I think it makes sense to take this and we can do
-set_statx(2) separately?
+I was hoping Dave would, but I realise Sparc doesn't get much
+these days.
+Of course if anyone feels guilty about their own patches adding code
+they can take this patch to make ~340 lines of penance.
 
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
+Dave
 
---sqz3gv5iaglclup7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQS2TklVsp+j1GPyqQYol/rSt+lEbwUCZL/9agAKCRAol/rSt+lE
-b9muAP9aP2TUmAAHS6rOFH9Gf6v2e1/S/NcOkGphCidcAt2ZiwEAzjtee/kbCs2+
-akroOcjwVI11LFf34VRyguX0zOzOWQ4=
-=pGFN
------END PGP SIGNATURE-----
-
---sqz3gv5iaglclup7--
+> 	Sam
+-- 
+ -----Open up your eyes, open up your mind, open up your code -------   
+/ Dr. David Alan Gilbert    |       Running GNU/Linux       | Happy  \ 
+\        dave @ treblig.org |                               | In Hex /
+ \ _________________________|_____ http://www.treblig.org   |_______/
