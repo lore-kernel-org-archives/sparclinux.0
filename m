@@ -2,116 +2,237 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57832EB64DD
-	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 23:09:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8812FC04A6A
+	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 23:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbjGYXJx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 Jul 2023 19:09:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60354 "EHLO
+        id S232164AbjGYXev (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 Jul 2023 19:34:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229740AbjGYXJw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 19:09:52 -0400
-Received: from mx.treblig.org (unknown [IPv6:2a00:1098:5b::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35961E0;
-        Tue, 25 Jul 2023 16:09:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=treblig.org
-        ; s=bytemarkmx; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID
-        :Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID
-        :Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:
-        Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe
-        :List-Post:List-Owner:List-Archive;
-        bh=tpcY/KRZk5hiP87JmAb/M+fcCqvEACvi7wT7XhSE4Vg=; b=c0MMfSLPkjphEMgyJhSFY51/jz
-        FMArs3JcyyCm6OJNQZzNH0BOKVo+3b1Z+7Dl3fYzAtQNRXH1o1f9YAmVGRkC9WX3uzjbIhkvUAZ0Q
-        aAeNt1dpyNqz4JxmzhoG1Js+6P4jpighifXpfIOUhKYs0TduKPwStyljD3pD6FGLxQ+zZXOR3n+TX
-        xbxtFeyFMj+L1Nd1OoZBntBWnYF5tG268ztEw1UYIxwRB+dPI/NHXr3ngmyA748pm88U5dBo7cett
-        d6MJad9KvaIzQvgxq3GwxCOmtTAnGZCE/sblpRjrjjlLFLHU20mQ0XWIWbZS+nI47ZHDld36FV/8r
-        oDMhcdtg==;
-Received: from dg by mx.treblig.org with local (Exim 4.94.2)
-        (envelope-from <dg@treblig.org>)
-        id 1qOR9x-003Kui-43; Tue, 25 Jul 2023 23:09:41 +0000
-Date:   Tue, 25 Jul 2023 23:09:41 +0000
-From:   "Dr. David Alan Gilbert" <linux@treblig.org>
-To:     John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        akpm@linux-foundation.org
-Cc:     Sam Ravnborg <sam@ravnborg.org>, davem@davemloft.net,
-        benh@kernel.crashing.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] sparc: Use shared font data
-Message-ID: <ZMBWNZ9KI0Xs6w1A@gallifrey>
-References: <20230724235851.165871-1-linux@treblig.org>
- <20230725161040.GA832394@ravnborg.org>
- <ZL/+Bz5C2Mxx0Msw@gallifrey>
- <605d12e8a4fdcb238efc9b18fbd2637474de0049.camel@physik.fu-berlin.de>
+        with ESMTP id S230343AbjGYXes (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 19:34:48 -0400
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D29E120;
+        Tue, 25 Jul 2023 16:34:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1690328087; x=1721864087;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=C5xyKe5/WjYZUNBE8/1FHjpgxl/fMdUuo5xkgVP7J8Y=;
+  b=UPQXMs0USTB8L2B/Amv3cA2QoExmySwNxseJ0NQaFbzackDHLyQs7dxs
+   bgEJqJrbcGwKYjyLeZrk3UomupTcZ8uggHZk42McBht/srznDV9354r7o
+   SoUkO/4Pf/rvLu9Al4+5pSdv3mhKYt1aqwje0W38XWIl1Q81GIhNaLtwq
+   WN47IZW6thQxhXwcBkqomNwNKjMX0S6LY5YVU506EU9ioJjUxdvqEedR0
+   I5I+8tGor0wuSQmBRKwnwK5xatq7uXSz/LoEwRsDMiCPEzkg4mclWV4Nt
+   JEUkPOi9zePhlsgjZ8R+BAvmxWR2XaDjavhcczC63NzcoPGlij87HCj0w
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="366747671"
+X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
+   d="scan'208";a="366747671"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 16:34:46 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="755945611"
+X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
+   d="scan'208";a="755945611"
+Received: from lkp-server02.sh.intel.com (HELO 953e8cd98f7d) ([10.239.97.151])
+  by orsmga008.jf.intel.com with ESMTP; 25 Jul 2023 16:34:40 -0700
+Received: from kbuild by 953e8cd98f7d with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qORY7-0000Qn-2W;
+        Tue, 25 Jul 2023 23:34:39 +0000
+Date:   Wed, 26 Jul 2023 07:33:59 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>
+Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>,
+        "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Mike Rapoport <rppt@kernel.org>
+Subject: Re: [PATCH mm-unstable v7 12/31] powerpc: Convert various functions
+ to use ptdescs
+Message-ID: <202307260706.qNPJSnjR-lkp@intel.com>
+References: <20230725042051.36691-13-vishal.moola@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <605d12e8a4fdcb238efc9b18fbd2637474de0049.camel@physik.fu-berlin.de>
-X-Chocolate: 70 percent or better cocoa solids preferably
-X-Operating-System: Linux/5.10.0-23-amd64 (x86_64)
-X-Uptime: 23:08:03 up 19 days,  8:39,  1 user,  load average: 0.00, 0.01, 0.00
-User-Agent: Mutt/2.0.5 (2021-01-21)
+In-Reply-To: <20230725042051.36691-13-vishal.moola@gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-* John Paul Adrian Glaubitz (glaubitz@physik.fu-berlin.de) wrote:
-> Hi Dave!
+Hi Vishal,
 
-Hi Adrian,
+kernel test robot noticed the following build errors:
 
-> On Tue, 2023-07-25 at 16:53 +0000, Dr. David Alan Gilbert wrote:
-> > * Sam Ravnborg (sam@ravnborg.org) wrote:
-> > > On Tue, Jul 25, 2023 at 12:58:51AM +0100, linux@treblig.org wrote:
-> > > > From: "Dr. David Alan Gilbert" <linux@treblig.org>
-> > > > 
-> > > > sparc has a 'btext' font used for the console which is almost identical
-> > > > to the shared font_sun8x16, so use it rather than duplicating the data.
-> > > > 
-> > > > They were actually identical until about a decade ago when
-> > > >    commit bcfbeecea11c ("drivers: console: font_: Change a glyph from
-> > > >                         "broken bar" to "vertical line"")
-> > > > 
-> > > > which changed the | in the shared font to be a solid
-> > > > bar rather than a broken bar.  That's the only difference.
-> > > > 
-> > > > This was originally spotted by PMD which noticed that PPC does
-> > > > the same thing with the same data, and they also share a bunch
-> > > > of functions to manipulate the data.  The PPC code and the functions
-> > > > I'll look at another time if this patch is OK.
-> > > > 
-> > > > Tested very lightly with a boot without FS in qemu.
-> > > > 
-> > > > Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-> > > 
-> > > Looks good, thanks for the fixes.
-> > > Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-> > 
-> > Thanks
-> > 
-> > > Let's hope someone picks it up...
-> > 
-> > I was hoping Dave would, but I realise Sparc doesn't get much
-> > these days.
-> > Of course if anyone feels guilty about their own patches adding code
-> > they can take this patch to make ~340 lines of penance.
-> 
-> You can ask Andrew Morton to pick it up through his tree. He usually does
-> that when no one else is willing to pick a patch up.
+[auto build test ERROR on akpm-mm/mm-everything]
+[also build test ERROR on next-20230725]
+[cannot apply to powerpc/next powerpc/fixes s390/features geert-m68k/for-next geert-m68k/for-linus linus/master v6.5-rc3]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-  Thanks for the suggestion, I've copied Andrew in, although
-there's obviously no rush since it's just a dedupe.
+url:    https://github.com/intel-lab-lkp/linux/commits/Vishal-Moola-Oracle/mm-Add-PAGE_TYPE_OP-folio-functions/20230725-122458
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-everything
+patch link:    https://lore.kernel.org/r/20230725042051.36691-13-vishal.moola%40gmail.com
+patch subject: [PATCH mm-unstable v7 12/31] powerpc: Convert various functions to use ptdescs
+config: powerpc-randconfig-r034-20230725 (https://download.01.org/0day-ci/archive/20230726/202307260706.qNPJSnjR-lkp@intel.com/config)
+compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
+reproduce: (https://download.01.org/0day-ci/archive/20230726/202307260706.qNPJSnjR-lkp@intel.com/reproduce)
 
-Dave
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202307260706.qNPJSnjR-lkp@intel.com/
 
-> Adrian
-> 
-> -- 
->  .''`.  John Paul Adrian Glaubitz
-> : :' :  Debian Developer
-> `. `'   Physicist
->   `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+All errors (new ones prefixed by >>):
+
+   In file included from arch/powerpc/mm/pgtable-frag.c:12:
+   In file included from include/linux/hardirq.h:11:
+   In file included from arch/powerpc/include/asm/hardirq.h:6:
+   In file included from include/linux/irq.h:20:
+   In file included from include/linux/io.h:13:
+   In file included from arch/powerpc/include/asm/io.h:672:
+   arch/powerpc/include/asm/io-defs.h:45:1: error: performing pointer arithmetic on a null pointer has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+      45 | DEF_PCI_AC_NORET(insw, (unsigned long p, void *b, unsigned long c),
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      46 |                  (p, b, c), pio, p)
+         |                  ~~~~~~~~~~~~~~~~~~
+   arch/powerpc/include/asm/io.h:669:3: note: expanded from macro 'DEF_PCI_AC_NORET'
+     669 |                 __do_##name al;                                 \
+         |                 ^~~~~~~~~~~~~~
+   <scratch space>:40:1: note: expanded from here
+      40 | __do_insw
+         | ^
+   arch/powerpc/include/asm/io.h:610:56: note: expanded from macro '__do_insw'
+     610 | #define __do_insw(p, b, n)      readsw((PCI_IO_ADDR)_IO_BASE+(p), (b), (n))
+         |                                        ~~~~~~~~~~~~~~~~~~~~~^
+   In file included from arch/powerpc/mm/pgtable-frag.c:12:
+   In file included from include/linux/hardirq.h:11:
+   In file included from arch/powerpc/include/asm/hardirq.h:6:
+   In file included from include/linux/irq.h:20:
+   In file included from include/linux/io.h:13:
+   In file included from arch/powerpc/include/asm/io.h:672:
+   arch/powerpc/include/asm/io-defs.h:47:1: error: performing pointer arithmetic on a null pointer has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+      47 | DEF_PCI_AC_NORET(insl, (unsigned long p, void *b, unsigned long c),
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      48 |                  (p, b, c), pio, p)
+         |                  ~~~~~~~~~~~~~~~~~~
+   arch/powerpc/include/asm/io.h:669:3: note: expanded from macro 'DEF_PCI_AC_NORET'
+     669 |                 __do_##name al;                                 \
+         |                 ^~~~~~~~~~~~~~
+   <scratch space>:42:1: note: expanded from here
+      42 | __do_insl
+         | ^
+   arch/powerpc/include/asm/io.h:611:56: note: expanded from macro '__do_insl'
+     611 | #define __do_insl(p, b, n)      readsl((PCI_IO_ADDR)_IO_BASE+(p), (b), (n))
+         |                                        ~~~~~~~~~~~~~~~~~~~~~^
+   In file included from arch/powerpc/mm/pgtable-frag.c:12:
+   In file included from include/linux/hardirq.h:11:
+   In file included from arch/powerpc/include/asm/hardirq.h:6:
+   In file included from include/linux/irq.h:20:
+   In file included from include/linux/io.h:13:
+   In file included from arch/powerpc/include/asm/io.h:672:
+   arch/powerpc/include/asm/io-defs.h:49:1: error: performing pointer arithmetic on a null pointer has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+      49 | DEF_PCI_AC_NORET(outsb, (unsigned long p, const void *b, unsigned long c),
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      50 |                  (p, b, c), pio, p)
+         |                  ~~~~~~~~~~~~~~~~~~
+   arch/powerpc/include/asm/io.h:669:3: note: expanded from macro 'DEF_PCI_AC_NORET'
+     669 |                 __do_##name al;                                 \
+         |                 ^~~~~~~~~~~~~~
+   <scratch space>:44:1: note: expanded from here
+      44 | __do_outsb
+         | ^
+   arch/powerpc/include/asm/io.h:612:58: note: expanded from macro '__do_outsb'
+     612 | #define __do_outsb(p, b, n)     writesb((PCI_IO_ADDR)_IO_BASE+(p),(b),(n))
+         |                                         ~~~~~~~~~~~~~~~~~~~~~^
+   In file included from arch/powerpc/mm/pgtable-frag.c:12:
+   In file included from include/linux/hardirq.h:11:
+   In file included from arch/powerpc/include/asm/hardirq.h:6:
+   In file included from include/linux/irq.h:20:
+   In file included from include/linux/io.h:13:
+   In file included from arch/powerpc/include/asm/io.h:672:
+   arch/powerpc/include/asm/io-defs.h:51:1: error: performing pointer arithmetic on a null pointer has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+      51 | DEF_PCI_AC_NORET(outsw, (unsigned long p, const void *b, unsigned long c),
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      52 |                  (p, b, c), pio, p)
+         |                  ~~~~~~~~~~~~~~~~~~
+   arch/powerpc/include/asm/io.h:669:3: note: expanded from macro 'DEF_PCI_AC_NORET'
+     669 |                 __do_##name al;                                 \
+         |                 ^~~~~~~~~~~~~~
+   <scratch space>:46:1: note: expanded from here
+      46 | __do_outsw
+         | ^
+   arch/powerpc/include/asm/io.h:613:58: note: expanded from macro '__do_outsw'
+     613 | #define __do_outsw(p, b, n)     writesw((PCI_IO_ADDR)_IO_BASE+(p),(b),(n))
+         |                                         ~~~~~~~~~~~~~~~~~~~~~^
+   In file included from arch/powerpc/mm/pgtable-frag.c:12:
+   In file included from include/linux/hardirq.h:11:
+   In file included from arch/powerpc/include/asm/hardirq.h:6:
+   In file included from include/linux/irq.h:20:
+   In file included from include/linux/io.h:13:
+   In file included from arch/powerpc/include/asm/io.h:672:
+   arch/powerpc/include/asm/io-defs.h:53:1: error: performing pointer arithmetic on a null pointer has undefined behavior [-Werror,-Wnull-pointer-arithmetic]
+      53 | DEF_PCI_AC_NORET(outsl, (unsigned long p, const void *b, unsigned long c),
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      54 |                  (p, b, c), pio, p)
+         |                  ~~~~~~~~~~~~~~~~~~
+   arch/powerpc/include/asm/io.h:669:3: note: expanded from macro 'DEF_PCI_AC_NORET'
+     669 |                 __do_##name al;                                 \
+         |                 ^~~~~~~~~~~~~~
+   <scratch space>:48:1: note: expanded from here
+      48 | __do_outsl
+         | ^
+   arch/powerpc/include/asm/io.h:614:58: note: expanded from macro '__do_outsl'
+     614 | #define __do_outsl(p, b, n)     writesl((PCI_IO_ADDR)_IO_BASE+(p),(b),(n))
+         |                                         ~~~~~~~~~~~~~~~~~~~~~^
+>> arch/powerpc/mm/pgtable-frag.c:125:22: error: use of undeclared identifier 'page'
+     125 |         BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+         |                             ^
+   7 errors generated.
+
+Kconfig warnings: (for reference only)
+   WARNING: unmet direct dependencies detected for HOTPLUG_CPU
+   Depends on [n]: SMP [=y] && (PPC_PSERIES [=n] || PPC_PMAC [=n] || PPC_POWERNV [=n] || FSL_SOC_BOOKE [=n])
+   Selected by [y]:
+   - PM_SLEEP_SMP [=y] && SMP [=y] && (ARCH_SUSPEND_POSSIBLE [=y] || ARCH_HIBERNATION_POSSIBLE [=y]) && PM_SLEEP [=y]
+
+
+vim +/page +125 arch/powerpc/mm/pgtable-frag.c
+
+0203dd58d897cbd Hugh Dickins          2023-07-11  117  
+a95d133c8643cae Christophe Leroy      2018-11-29  118  void pte_fragment_free(unsigned long *table, int kernel)
+a95d133c8643cae Christophe Leroy      2018-11-29  119  {
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  120) 	struct ptdesc *ptdesc = virt_to_ptdesc(table);
+a95d133c8643cae Christophe Leroy      2018-11-29  121  
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  122) 	if (pagetable_is_reserved(ptdesc))
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  123) 		return free_reserved_ptdesc(ptdesc);
+645d5ce2f7d6cb4 Aneesh Kumar K.V      2020-07-09  124  
+a95d133c8643cae Christophe Leroy      2018-11-29 @125  	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  126) 	if (atomic_dec_and_test(&ptdesc->pt_frag_refcount)) {
+0203dd58d897cbd Hugh Dickins          2023-07-11  127  		if (kernel)
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  128) 			pagetable_free(ptdesc);
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  129) 		else if (folio_test_clear_active(ptdesc_folio(ptdesc)))
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  130) 			call_rcu(&ptdesc->pt_rcu_head, pte_free_now);
+0203dd58d897cbd Hugh Dickins          2023-07-11  131  		else
+e18a6b21f4c0c0c Vishal Moola (Oracle  2023-07-24  132) 			pte_free_now(&ptdesc->pt_rcu_head);
+0203dd58d897cbd Hugh Dickins          2023-07-11  133  	}
+a95d133c8643cae Christophe Leroy      2018-11-29  134  }
+0203dd58d897cbd Hugh Dickins          2023-07-11  135  
+
 -- 
- -----Open up your eyes, open up your mind, open up your code -------   
-/ Dr. David Alan Gilbert    |       Running GNU/Linux       | Happy  \ 
-\        dave @ treblig.org |                               | In Hex /
- \ _________________________|_____ http://www.treblig.org   |_______/
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
