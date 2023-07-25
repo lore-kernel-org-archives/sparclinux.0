@@ -2,193 +2,131 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF47FC04FDF
-	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 04:41:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FD9EC41513
+	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 06:51:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231683AbjGYEly (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 Jul 2023 00:41:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33122 "EHLO
+        id S232048AbjGYGv1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 Jul 2023 02:51:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231713AbjGYElv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 00:41:51 -0400
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD7C51BC5
-        for <sparclinux@vger.kernel.org>; Mon, 24 Jul 2023 21:41:46 -0700 (PDT)
-Received: by mail-yb1-xb2c.google.com with SMTP id 3f1490d57ef6-d08658c7713so3165642276.3
-        for <sparclinux@vger.kernel.org>; Mon, 24 Jul 2023 21:41:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1690260106; x=1690864906;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=4tFc7lI8l/TAp6N4SH/RnjHMrhDjcjpOS0NvhRjK3tI=;
-        b=syg9IyMH/gqJY1k4LT3S6JMx0fSLcgE37Cs+8KWCUO35fKCYg0MuLIIi0nsu37jtyV
-         JWnNbNndjflxoqEknhV3drMoPO1rLP5Mf2NwuEGG3uNqc6WCc3lC70F16ZnEeLC+MDXA
-         tlBtkvCExRePxNsWSrYSlIqtWo9fJaFXM7OzUrScUdzQ6XIpjZwJMknKg/XaSKKfA+Pp
-         NHjPm93xL9xpQDR+q+3gjlysNDu5FD2n2xMli6SN590GUy6WkS3ghg4fMC/PcVORHv0z
-         7pZwaHoSCWcs0DC0U/7aDMkjw3lDyZjRkGaSMnnCoKZ6Eh2nJ1AJW7AcIEll2MImoPAy
-         2Dhg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690260106; x=1690864906;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=4tFc7lI8l/TAp6N4SH/RnjHMrhDjcjpOS0NvhRjK3tI=;
-        b=QLraCVMDxlytgApKbnpsyngbPJv2RHkUOf/cdZH6w2K1OjBhUh4YZnCXZyi9YS5oO0
-         OtRVGpus6dtVrDro/2j9faMlKBGDfRkSoDWXi9WADsXeGpMJVQLFVL0EOtT1VnPIFVoM
-         YxvKPfY4g4ufMnHhBX/9dwR1qP8Blp8QMfS5DFPsHwQ2AybS8ZCPv8FKKI7XYbZX9eu5
-         qC7olLmgVw7W8tJnc9K4HGFOohcYHjMTSCZ2VqNQiZuhKE5vqsBpoTyEQX9HbDOwIWNE
-         PqKsAM87+xtqb/K2gFSKoc6h3q3gO0F2bmVVryAbBkhSOWhyjRV4n/efkWG16j8E2KJu
-         DJDA==
-X-Gm-Message-State: ABy/qLYUKa3v61jCG+UY/8pbkkKMV7d9AJLAFSnxxpJn6okuGzThUc8J
-        L6al1Z1S3FS0q1639V/dyC5UdA==
-X-Google-Smtp-Source: APBJJlHQLTh3cgEYO+DVAD/fw8XSxxaq77z0mK7JibK/JjnN3wjA/kyDdlXYpJW7FLCpf9E01rW5SQ==
-X-Received: by 2002:a25:2342:0:b0:d0d:2d17:3f11 with SMTP id j63-20020a252342000000b00d0d2d173f11mr5304231ybj.17.1690260106082;
-        Mon, 24 Jul 2023 21:41:46 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id z16-20020a25e310000000b00c71e4833957sm2656725ybd.63.2023.07.24.21.41.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Jul 2023 21:41:45 -0700 (PDT)
-Date:   Mon, 24 Jul 2023 21:41:36 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        Hugh Dickins <hughd@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Jonas Bonn <jonas@southpole.se>,
-        David Hildenbrand <david@redhat.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
+        with ESMTP id S232035AbjGYGvY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 02:51:24 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5C09116
+        for <sparclinux@vger.kernel.org>; Mon, 24 Jul 2023 23:51:23 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qOBsF-0008CR-QE; Tue, 25 Jul 2023 08:50:23 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qOBs7-001wAn-Vc; Tue, 25 Jul 2023 08:50:15 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qOBs7-007bOg-45; Tue, 25 Jul 2023 08:50:15 +0200
+Date:   Tue, 25 Jul 2023 08:50:14 +0200
+From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Richard Genoud <richard.genoud@gmail.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Karol Gugala <kgugala@antmicro.com>,
+        Mateusz Holenko <mholenko@antmicro.com>,
+        Gabriel Somlo <gsomlo@gmail.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Jacky Huang <ychuang3@nuvoton.com>,
+        Shan-Chun Hung <schung@nuvoton.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: Re: [PATCH mm-unstable v7 00/31] Split ptdesc from struct page
-In-Reply-To: <20230725042051.36691-1-vishal.moola@gmail.com>
-Message-ID: <5296514f-cdd1-9526-2e83-a21e76e86e5@google.com>
-References: <20230725042051.36691-1-vishal.moola@gmail.com>
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Timur Tabi <timur@kernel.org>, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] tty: Explicitly include correct DT includes
+Message-ID: <20230725065014.kjdcos77kzepprvw@pengutronix.de>
+References: <20230724205440.767071-1-robh@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="egg3m5pjvujeb37y"
+Content-Disposition: inline
+In-Reply-To: <20230724205440.767071-1-robh@kernel.org>
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: sparclinux@vger.kernel.org
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 24 Jul 2023, Vishal Moola (Oracle) wrote:
 
-> The MM subsystem is trying to shrink struct page. This patchset
-> introduces a memory descriptor for page table tracking - struct ptdesc.
-> 
-> This patchset introduces ptdesc, splits ptdesc from struct page, and
-> converts many callers of page table constructor/destructors to use ptdescs.
-> 
-> Ptdesc is a foundation to further standardize page tables, and eventually
-> allow for dynamic allocation of page tables independent of struct page.
-> However, the use of pages for page table tracking is quite deeply
-> ingrained and varied across archictectures, so there is still a lot of
-> work to be done before that can happen.
+--egg3m5pjvujeb37y
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Others may differ, but it remains the case that I see no point to this
-patchset, until the minimal descriptor that replaces struct page is
-working, and struct page then becomes just overhead.  Until that time,
-let architectures continue to use struct page as they do - whyever not?
+Hello Rob,
 
-Hugh
+On Mon, Jul 24, 2023 at 02:54:38PM -0600, Rob Herring wrote:
+> The DT of_device.h and of_platform.h date back to the separate
+> of_platform_bus_type before it as merged into the regular platform bus.
+> As part of that merge prepping Arm DT support 13 years ago, they
+> "temporarily" include each other. They also include platform_device.h
+> and of.h. As a result, there's a pretty much random mix of those include
+> files used throughout the tree. In order to detangle these headers and
+> replace the implicit includes with struct declarations, users need to
+> explicitly include the correct includes.
+>=20
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
-> 
-> This is rebased on mm-unstable.
-> 
-> v7:
->   Drop s390 gmap ptdesc conversions - gmap is unecessary complication
->     that can be dealt with later
->   Be more thorough with ptdesc struct sanity checks and comments
->   Rebase onto mm-unstable
-> 
-> Vishal Moola (Oracle) (31):
->   mm: Add PAGE_TYPE_OP folio functions
->   pgtable: Create struct ptdesc
->   mm: add utility functions for ptdesc
->   mm: Convert pmd_pgtable_page() callers to use pmd_ptdesc()
->   mm: Convert ptlock_alloc() to use ptdescs
->   mm: Convert ptlock_ptr() to use ptdescs
->   mm: Convert pmd_ptlock_init() to use ptdescs
->   mm: Convert ptlock_init() to use ptdescs
->   mm: Convert pmd_ptlock_free() to use ptdescs
->   mm: Convert ptlock_free() to use ptdescs
->   mm: Create ptdesc equivalents for pgtable_{pte,pmd}_page_{ctor,dtor}
->   powerpc: Convert various functions to use ptdescs
->   x86: Convert various functions to use ptdescs
->   s390: Convert various pgalloc functions to use ptdescs
->   mm: Remove page table members from struct page
->   pgalloc: Convert various functions to use ptdescs
->   arm: Convert various functions to use ptdescs
->   arm64: Convert various functions to use ptdescs
->   csky: Convert __pte_free_tlb() to use ptdescs
->   hexagon: Convert __pte_free_tlb() to use ptdescs
->   loongarch: Convert various functions to use ptdescs
->   m68k: Convert various functions to use ptdescs
->   mips: Convert various functions to use ptdescs
->   nios2: Convert __pte_free_tlb() to use ptdescs
->   openrisc: Convert __pte_free_tlb() to use ptdescs
->   riscv: Convert alloc_{pmd, pte}_late() to use ptdescs
->   sh: Convert pte_free_tlb() to use ptdescs
->   sparc64: Convert various functions to use ptdescs
->   sparc: Convert pgtable_pte_page_{ctor, dtor}() to ptdesc equivalents
->   um: Convert {pmd, pte}_free_tlb() to use ptdescs
->   mm: Remove pgtable_{pmd, pte}_page_{ctor, dtor}() wrappers
-> 
->  Documentation/mm/split_page_table_lock.rst    |  12 +-
->  .../zh_CN/mm/split_page_table_lock.rst        |  14 +-
->  arch/arm/include/asm/tlb.h                    |  12 +-
->  arch/arm/mm/mmu.c                             |   7 +-
->  arch/arm64/include/asm/tlb.h                  |  14 +-
->  arch/arm64/mm/mmu.c                           |   7 +-
->  arch/csky/include/asm/pgalloc.h               |   4 +-
->  arch/hexagon/include/asm/pgalloc.h            |   8 +-
->  arch/loongarch/include/asm/pgalloc.h          |  27 ++--
->  arch/loongarch/mm/pgtable.c                   |   7 +-
->  arch/m68k/include/asm/mcf_pgalloc.h           |  47 +++---
->  arch/m68k/include/asm/sun3_pgalloc.h          |   8 +-
->  arch/m68k/mm/motorola.c                       |   4 +-
->  arch/mips/include/asm/pgalloc.h               |  32 ++--
->  arch/mips/mm/pgtable.c                        |   8 +-
->  arch/nios2/include/asm/pgalloc.h              |   8 +-
->  arch/openrisc/include/asm/pgalloc.h           |   8 +-
->  arch/powerpc/mm/book3s64/mmu_context.c        |  10 +-
->  arch/powerpc/mm/book3s64/pgtable.c            |  32 ++--
->  arch/powerpc/mm/pgtable-frag.c                |  56 +++----
->  arch/riscv/include/asm/pgalloc.h              |   8 +-
->  arch/riscv/mm/init.c                          |  16 +-
->  arch/s390/include/asm/pgalloc.h               |   4 +-
->  arch/s390/include/asm/tlb.h                   |   4 +-
->  arch/s390/mm/pgalloc.c                        | 128 +++++++--------
->  arch/sh/include/asm/pgalloc.h                 |   9 +-
->  arch/sparc/mm/init_64.c                       |  17 +-
->  arch/sparc/mm/srmmu.c                         |   5 +-
->  arch/um/include/asm/pgalloc.h                 |  18 +--
->  arch/x86/mm/pgtable.c                         |  47 +++---
->  arch/x86/xen/mmu_pv.c                         |   2 +-
->  include/asm-generic/pgalloc.h                 |  88 +++++-----
->  include/asm-generic/tlb.h                     |  11 ++
->  include/linux/mm.h                            | 151 +++++++++++++-----
->  include/linux/mm_types.h                      |  18 ---
->  include/linux/page-flags.h                    |  30 +++-
->  include/linux/pgtable.h                       |  80 ++++++++++
->  mm/memory.c                                   |   8 +-
->  38 files changed, 585 insertions(+), 384 deletions(-)
-> 
-> -- 
-> 2.40.1
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de> # for imx
+
+Thanks for your efforts!
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | https://www.pengutronix.de/ |
+
+--egg3m5pjvujeb37y
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmS/cKYACgkQj4D7WH0S
+/k5DeQf/XZ9i2MKupQ474foZd/xSXDoeGP/mzcur4EO3Bu06s1VDyknWODS3IU5p
+VGN/GNMpV8QCC4UBbhddhyqP60D9vYNBqbyw6ZsVZTH5+9Ld4Dmfi8jTYeTNiYYc
++EmM4HrAdY1GVXkdkip00c1GWdcPsHQA6JgSwV1z2cjiJU/7AeRdF6FTB7LPtxCO
+lHZ+at0pra4cRma7o2dZyjIZCa3M05OFqBIX5FAbCCptQsRYlnfTJbOuA2Fr3aTq
+mn7uHJbHPuX+r4PnWXzeq/IC4eEynkYfcINsTmQtG2H2ecI+GvJGttDpTrZstKr7
+ThQy424A1jo0R00lnwmfFmOG/Q7gKQ==
+=p7gV
+-----END PGP SIGNATURE-----
+
+--egg3m5pjvujeb37y--
