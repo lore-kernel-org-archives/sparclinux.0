@@ -2,98 +2,100 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9891C0015E
-	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 17:15:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E7F6EB64DD
+	for <sparclinux@archiver.kernel.org>; Tue, 25 Jul 2023 18:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbjGYRPa convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 Jul 2023 13:15:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57616 "EHLO
+        id S232110AbjGYSk5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 Jul 2023 14:40:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229689AbjGYRP3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 13:15:29 -0400
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07B9611F;
-        Tue, 25 Jul 2023 10:15:19 -0700 (PDT)
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.95)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1qOLcw-001mdv-ED; Tue, 25 Jul 2023 19:15:14 +0200
-Received: from p5086d382.dip0.t-ipconnect.de ([80.134.211.130] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.95)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1qOLcw-001NaV-6S; Tue, 25 Jul 2023 19:15:14 +0200
-Message-ID: <605d12e8a4fdcb238efc9b18fbd2637474de0049.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v2] sparc: Use shared font data
-From:   John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To:     "Dr. David Alan Gilbert" <linux@treblig.org>,
-        Sam Ravnborg <sam@ravnborg.org>
-Cc:     davem@davemloft.net, benh@kernel.crashing.org,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Tue, 25 Jul 2023 19:15:08 +0200
-In-Reply-To: <ZL/+Bz5C2Mxx0Msw@gallifrey>
-References: <20230724235851.165871-1-linux@treblig.org>
-         <20230725161040.GA832394@ravnborg.org> <ZL/+Bz5C2Mxx0Msw@gallifrey>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-User-Agent: Evolution 3.48.4 
+        with ESMTP id S232081AbjGYSk4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 Jul 2023 14:40:56 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB622126
+        for <sparclinux@vger.kernel.org>; Tue, 25 Jul 2023 11:40:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1690310404;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=7ss2tzNf07FPnrLqdDtf+Er94L4qFrw/j0drlGJAUJI=;
+        b=dBCZpDTEmLRRvDFXssKHvjR5jXrXQ70Bat3cenfnEZLShC9ned2ilcH5ysb9vnLUiD3t4i
+        qVV7Hwh1IAG4+7hr/eDDTcGNrAlh3qRNwBnCSqMJC15T47vUTzt0taway3SYUeGDYcLxYH
+        VoqY0vOfCXMynX5XLd7iMLvejk/J2F0=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-558-TTo7YJ3sMSC9I9cq1kPf9g-1; Tue, 25 Jul 2023 14:40:01 -0400
+X-MC-Unique: TTo7YJ3sMSC9I9cq1kPf9g-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 84A518564EF;
+        Tue, 25 Jul 2023 18:40:00 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.42.28.242])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5BBCD4094DC1;
+        Tue, 25 Jul 2023 18:39:52 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <87fs5c3rbl.fsf@oldenburg3.str.redhat.com>
+References: <87fs5c3rbl.fsf@oldenburg3.str.redhat.com> <cover.1689092120.git.legion@kernel.org> <cover.1689074739.git.legion@kernel.org> <104971.1690300714@warthog.procyon.org.uk>
+To:     Florian Weimer <fweimer@redhat.com>
+Cc:     dhowells@redhat.com, Alexey Gladkov <legion@kernel.org>,
+        James.Bottomley@HansenPartnership.com, acme@kernel.org,
+        alexander.shishkin@linux.intel.com, axboe@kernel.dk,
+        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
+        catalin.marinas@arm.com, christian@brauner.io, dalias@libc.org,
+        davem@davemloft.net, deepa.kernel@gmail.com, deller@gmx.de,
+        fenghua.yu@intel.com, geert@linux-m68k.org, glebfm@altlinux.org,
+        gor@linux.ibm.com, hare@suse.com, hpa@zytor.com,
+        ink@jurassic.park.msu.ru, jhogan@kernel.org, kim.phillips@arm.com,
+        ldv@altlinux.org, linux-alpha@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux@armlinux.org.uk,
+        linuxppc-dev@lists.ozlabs.org, luto@kernel.org, mattst88@gmail.com,
+        mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au,
+        namhyung@kernel.org, paulus@samba.org, peterz@infradead.org,
+        ralf@linux-mips.org, sparclinux@vger.kernel.org, stefan@agner.ch,
+        tglx@linutronix.de, tony.luck@intel.com, tycho@tycho.ws,
+        will@kernel.org, x86@kernel.org, ysato@users.sourceforge.jp,
+        LKML <linux-kernel@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
+Subject: Re: Add fchmodat2() - or add a more general syscall?
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-Originating-IP: 80.134.211.130
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <107289.1690310391.1@warthog.procyon.org.uk>
+Date:   Tue, 25 Jul 2023 19:39:51 +0100
+Message-ID: <107290.1690310391@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Dave!
+Florian Weimer <fweimer@redhat.com> wrote:
 
-On Tue, 2023-07-25 at 16:53 +0000, Dr. David Alan Gilbert wrote:
-> * Sam Ravnborg (sam@ravnborg.org) wrote:
-> > On Tue, Jul 25, 2023 at 12:58:51AM +0100, linux@treblig.org wrote:
-> > > From: "Dr. David Alan Gilbert" <linux@treblig.org>
-> > > 
-> > > sparc has a 'btext' font used for the console which is almost identical
-> > > to the shared font_sun8x16, so use it rather than duplicating the data.
-> > > 
-> > > They were actually identical until about a decade ago when
-> > >    commit bcfbeecea11c ("drivers: console: font_: Change a glyph from
-> > >                         "broken bar" to "vertical line"")
-> > > 
-> > > which changed the | in the shared font to be a solid
-> > > bar rather than a broken bar.  That's the only difference.
-> > > 
-> > > This was originally spotted by PMD which noticed that PPC does
-> > > the same thing with the same data, and they also share a bunch
-> > > of functions to manipulate the data.  The PPC code and the functions
-> > > I'll look at another time if this patch is OK.
-> > > 
-> > > Tested very lightly with a boot without FS in qemu.
-> > > 
-> > > Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-> > 
-> > Looks good, thanks for the fixes.
-> > Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> > Rather than adding a fchmodat2() syscall, should we add a
+> > "set_file_attrs()" syscall that takes a mask and allows you to set a bunch
+> > of stuff all in one go?  Basically, an interface to notify_change() in the
+> > kernel that would allow several stats to be set atomically.  This might be
+> > of particular interest to network filesystems.
 > 
-> Thanks
-> 
-> > Let's hope someone picks it up...
-> 
-> I was hoping Dave would, but I realise Sparc doesn't get much
-> these days.
-> Of course if anyone feels guilty about their own patches adding code
-> they can take this patch to make ~340 lines of penance.
+> Do you mean atomically as in compare-and-swap (update only if old values
+> match), or just a way to update multiple file attributes with a single
+> system call?
 
-You can ask Andrew Morton to pick it up through his tree. He usually does
-that when no one else is willing to pick a patch up.
+I was thinking more in terms of the latter.  AFAIK, there aren't any network
+filesystems support a CAS interface on file attributes like that.  To be able
+to do a CAS operation, we'd need to pass in the old values as well as the new.
 
-Adrian
+Another thing we could look at is doing "create_and_set_attrs()", possibly
+allowing it to take a list of xattrs also.
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+David
+
