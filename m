@@ -2,144 +2,133 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F344C04E69
-	for <sparclinux@archiver.kernel.org>; Wed, 26 Jul 2023 13:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E257C04FE1
+	for <sparclinux@archiver.kernel.org>; Wed, 26 Jul 2023 14:34:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233685AbjGZNqP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 26 Jul 2023 09:46:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52982 "EHLO
+        id S234173AbjGZOeh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 26 Jul 2023 10:34:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232971AbjGZNqN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 26 Jul 2023 09:46:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A72712C;
-        Wed, 26 Jul 2023 06:46:12 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECB1D61A4F;
-        Wed, 26 Jul 2023 13:46:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31A6EC433C7;
-        Wed, 26 Jul 2023 13:46:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690379171;
-        bh=YMmxomfMr9G4i/xBDFo8a+tJ6BzX3X5lQtLwpyL37dM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=iLrm54/OyVAkeX7XRTdQI6vJKk7fvA9E8WFuxeM1GUgON2oCeY1wjM8yTYrtIi4IQ
-         Oo3FMgcMnRzknsY84kWAeTJ0inxm7fg97Q/tOUTzG6ZMmI5ATwnzUC945HbXcM2RRW
-         HKanW7qmiSF3lCZhc3wQfBbpJJOtev2Fm0SsXZJptqvFFvEwrKyC1aKGldedLK/9Vz
-         62DImdurXvwbmhgOteOs/aXLApFhcpwiLDIG+sQUeQFLsagl1k2OVSVn88v78BFAcl
-         Vj6NEoPbw1eyE9ZIq7xYhoiahGzuo+q0Lii/UprIQXPLwFPgjeIIKj3g1kimIqX0ng
-         b/060n7yg03AQ==
-Date:   Wed, 26 Jul 2023 15:45:56 +0200
-From:   Alexey Gladkov <legion@kernel.org>
-To:     Aleksa Sarai <cyphar@cyphar.com>
-Cc:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        viro@zeniv.linux.org.uk, James.Bottomley@hansenpartnership.com,
-        acme@kernel.org, alexander.shishkin@linux.intel.com,
-        axboe@kernel.dk, benh@kernel.crashing.org, borntraeger@de.ibm.com,
-        bp@alien8.de, catalin.marinas@arm.com, christian@brauner.io,
-        dalias@libc.org, davem@davemloft.net, deepa.kernel@gmail.com,
-        deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com,
-        fweimer@redhat.com, geert@linux-m68k.org, glebfm@altlinux.org,
-        gor@linux.ibm.com, hare@suse.com, hpa@zytor.com,
-        ink@jurassic.park.msu.ru, jhogan@kernel.org, kim.phillips@arm.com,
-        ldv@altlinux.org, linux-alpha@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux@armlinux.org.uk,
-        linuxppc-dev@lists.ozlabs.org, luto@kernel.org, mattst88@gmail.com,
-        mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au,
-        namhyung@kernel.org, paulus@samba.org, peterz@infradead.org,
-        ralf@linux-mips.org, sparclinux@vger.kernel.org, stefan@agner.ch,
-        tglx@linutronix.de, tony.luck@intel.com, tycho@tycho.ws,
-        will@kernel.org, x86@kernel.org, ysato@users.sourceforge.jp,
-        Palmer Dabbelt <palmer@sifive.com>
-Subject: Re: [PATCH v4 2/5] fs: Add fchmodat2()
-Message-ID: <ZMEjlDNJkFpYERr1@example.org>
-References: <cover.1689074739.git.legion@kernel.org>
- <cover.1689092120.git.legion@kernel.org>
- <f2a846ef495943c5d101011eebcf01179d0c7b61.1689092120.git.legion@kernel.org>
- <njnhwhgmsk64e6vf3ur7fifmxlipmzez3r5g7ejozsrkbwvq7w@tu7w3ieystcq>
+        with ESMTP id S233925AbjGZOef (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 26 Jul 2023 10:34:35 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB9819A1;
+        Wed, 26 Jul 2023 07:34:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=LsxQl+7lQmIvtLS3uUz+2Tc5wtoeEEVBoFirY9Yb6fg=; b=NgbwQpzKHdyAWsUCxnsImKimDt
+        jHF2WmVqPjDVwWh4+qnqFx9EB6EzhJPFMjClBGjD6Hvhy3cDKu8QpNdQ/vu4YdRehqVe79OoriWgn
+        rYVzFWxwc/SS+7+suUkf1PvWW2cp4TLFdh0VHNZVCP6elPEQsoL4zq+DlNr+Vsyy6zVTCVD4+BPLu
+        7MT7tbbN4QAXyKU4tauvNJ5ES+/Xow+YcL4kRLee8APN/cRVWSBVwKBSDtrmdoa20ei7j/6b/nKQ6
+        9EjL4wZbYuEHOXjGbdk1LQrEamw4aC90nEjbS99sxd1PPE9PWCMbzElXWmFd7Um+DcVnLHPQet+QT
+        TJw896fg==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1qOfaj-006ZNN-Ab; Wed, 26 Jul 2023 14:34:17 +0000
+Date:   Wed, 26 Jul 2023 15:34:17 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     "Vishal Moola (Oracle)" <vishal.moola@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        David Hildenbrand <david@redhat.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: Re: [PATCH mm-unstable v7 00/31] Split ptdesc from struct page
+Message-ID: <ZMEu6VcTqPj69bQ7@casper.infradead.org>
+References: <20230725042051.36691-1-vishal.moola@gmail.com>
+ <5296514f-cdd1-9526-2e83-a21e76e86e5@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <njnhwhgmsk64e6vf3ur7fifmxlipmzez3r5g7ejozsrkbwvq7w@tu7w3ieystcq>
+In-Reply-To: <5296514f-cdd1-9526-2e83-a21e76e86e5@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Jul 26, 2023 at 02:36:25AM +1000, Aleksa Sarai wrote:
-> On 2023-07-11, Alexey Gladkov <legion@kernel.org> wrote:
-> > On the userspace side fchmodat(3) is implemented as a wrapper
-> > function which implements the POSIX-specified interface. This
-> > interface differs from the underlying kernel system call, which does not
-> > have a flags argument. Most implementations require procfs [1][2].
-> > 
-> > There doesn't appear to be a good userspace workaround for this issue
-> > but the implementation in the kernel is pretty straight-forward.
-> > 
-> > The new fchmodat2() syscall allows to pass the AT_SYMLINK_NOFOLLOW flag,
-> > unlike existing fchmodat.
-> > 
-> > [1] https://sourceware.org/git/?p=glibc.git;a=blob;f=sysdeps/unix/sysv/linux/fchmodat.c;h=17eca54051ee28ba1ec3f9aed170a62630959143;hb=a492b1e5ef7ab50c6fdd4e4e9879ea5569ab0a6c#l35
-> > [2] https://git.musl-libc.org/cgit/musl/tree/src/stat/fchmodat.c?id=718f363bc2067b6487900eddc9180c84e7739f80#n28
-> > 
-> > Co-developed-by: Palmer Dabbelt <palmer@sifive.com>
-> > Signed-off-by: Palmer Dabbelt <palmer@sifive.com>
-> > Signed-off-by: Alexey Gladkov <legion@kernel.org>
-> > Acked-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> >  fs/open.c                | 18 ++++++++++++++----
-> >  include/linux/syscalls.h |  2 ++
-> >  2 files changed, 16 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/fs/open.c b/fs/open.c
-> > index 0c55c8e7f837..39a7939f0d00 100644
-> > --- a/fs/open.c
-> > +++ b/fs/open.c
-> > @@ -671,11 +671,11 @@ SYSCALL_DEFINE2(fchmod, unsigned int, fd, umode_t, mode)
-> >  	return err;
-> >  }
-> >  
-> > -static int do_fchmodat(int dfd, const char __user *filename, umode_t mode)
-> > +static int do_fchmodat(int dfd, const char __user *filename, umode_t mode, int lookup_flags)
+On Mon, Jul 24, 2023 at 09:41:36PM -0700, Hugh Dickins wrote:
+> On Mon, 24 Jul 2023, Vishal Moola (Oracle) wrote:
 > 
-> I think it'd be much neater to do the conversion of AT_ flags here and
-> pass 0 as a flags argument for all of the wrappers (this is how most of
-> the other xyz(), fxyz(), fxyzat() syscall wrappers are done IIRC).
-
-I just addressed the Al Viro's suggestion.
-
-https://lore.kernel.org/lkml/20190717014802.GS17978@ZenIV.linux.org.uk/
-
-> >  {
-> >  	struct path path;
-> >  	int error;
-> > -	unsigned int lookup_flags = LOOKUP_FOLLOW;
-> > +
-> >  retry:
-> >  	error = user_path_at(dfd, filename, lookup_flags, &path);
-> >  	if (!error) {
-> > @@ -689,15 +689,25 @@ static int do_fchmodat(int dfd, const char __user *filename, umode_t mode)
-> >  	return error;
-> >  }
-> >  
-> > +SYSCALL_DEFINE4(fchmodat2, int, dfd, const char __user *, filename,
-> > +		umode_t, mode, int, flags)
-> > +{
-> > +	if (unlikely(flags & ~AT_SYMLINK_NOFOLLOW))
-> > +		return -EINVAL;
+> > The MM subsystem is trying to shrink struct page. This patchset
+> > introduces a memory descriptor for page table tracking - struct ptdesc.
+> > 
+> > This patchset introduces ptdesc, splits ptdesc from struct page, and
+> > converts many callers of page table constructor/destructors to use ptdescs.
+> > 
+> > Ptdesc is a foundation to further standardize page tables, and eventually
+> > allow for dynamic allocation of page tables independent of struct page.
+> > However, the use of pages for page table tracking is quite deeply
+> > ingrained and varied across archictectures, so there is still a lot of
+> > work to be done before that can happen.
 > 
-> We almost certainly want to support AT_EMPTY_PATH at the same time.
-> Otherwise userspace will still need to go through /proc when trying to
-> chmod a file handle they have.
+> Others may differ, but it remains the case that I see no point to this
+> patchset, until the minimal descriptor that replaces struct page is
+> working, and struct page then becomes just overhead.  Until that time,
+> let architectures continue to use struct page as they do - whyever not?
 
-I'm not sure I understand. Can you explain what you mean?
+Because it's easier for architecture maintainers to understand what they
+should and shouldn't be using.  Look at the definition:
 
--- 
-Rgrds, legion
++struct ptdesc {
++	unsigned long __page_flags;
++
++	union {
++		struct rcu_head pt_rcu_head;
++		struct list_head pt_list;
++		struct {
++			unsigned long _pt_pad_1;
++			pgtable_t pmd_huge_pte;
++		};
++	};
++	unsigned long __page_mapping;
++
++	union {
++		struct mm_struct *pt_mm;
++		atomic_t pt_frag_refcount;
++	};
++
++	union {
++		unsigned long _pt_pad_2;
++#if ALLOC_SPLIT_PTLOCKS
++		spinlock_t *ptl;
++#else
++		spinlock_t ptl;
++#endif
++	};
++	unsigned int __page_type;
++	atomic_t _refcount;
++#ifdef CONFIG_MEMCG
++	unsigned long pt_memcg_data;
++#endif
++};
 
+It's still a 31-line struct definition, I'll grant you.  But it's far
+easier to comprehend than the definition of struct page (~140 lines).
+An architecture maintainer can look at it and see what might be available,
+and what is already used.  And hopefully we'll have less "Oh, I'll just
+use page->private".  It's really not fair to expect arch maintainers to
+learn so much about the mm.
+
+It's still messier than I would like, but I don't think we can do better
+for now.  I don't understand why you're so interested in delaying doing
+this work.
