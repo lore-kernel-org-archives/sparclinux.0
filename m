@@ -2,221 +2,428 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD64C04FE0
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Aug 2023 21:45:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C58E9C001DB
+	for <sparclinux@archiver.kernel.org>; Thu,  3 Aug 2023 23:09:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232476AbjHCVpl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Aug 2023 17:45:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46044 "EHLO
+        id S230252AbjHCXJB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 3 Aug 2023 19:09:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232067AbjHCVph (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Aug 2023 17:45:37 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DA5F35B5;
-        Thu,  3 Aug 2023 14:45:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1691099135; x=1722635135;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=uL9O1FlrKasecN28UXFt0/H/JGqCfORMXhJ6xFBglwY=;
-  b=CEgJ+dYaKbjNn/u8ksBgJtPYKmibBUbIMhRy0ZULURz1svW8W7WnagP2
-   xWQWvNJGT5McvFEdcDiIV1nElICHs2w3SyTkoIbfPWzVpTX/9brpt3q5S
-   5XoEIUzJtmc3hfZ25MZgoonRus3Dx3YrVRPnCI1t/I1rHx6pzoGgHmI8s
-   cpY0GEKdoGEyfBck108aALBMpNOw5YDgusUMHPf/TKmkqrznULpbuIt4P
-   nIYu64VMDlp9cpE8kASWPzD1+HUDc4LTnfKJT8IIWhYmvBLb7fmvqN1Mt
-   MUBIjyHMYFoQnpbQGHf/tBOrvIHyO1wnwjA//lqoOrTupNdgxD6PSvaYu
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10791"; a="367468406"
-X-IronPort-AV: E=Sophos;i="6.01,253,1684825200"; 
-   d="scan'208";a="367468406"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2023 14:45:30 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10791"; a="976281407"
-X-IronPort-AV: E=Sophos;i="6.01,253,1684825200"; 
-   d="scan'208";a="976281407"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga006.fm.intel.com with ESMTP; 03 Aug 2023 14:45:20 -0700
-Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 3 Aug 2023 14:45:19 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27 via Frontend Transport; Thu, 3 Aug 2023 14:45:19 -0700
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.47) by
- edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.27; Thu, 3 Aug 2023 14:45:19 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XCMzXuyPRfaW4diUmCpWkNzBy7dQTyPpyNsIexxWiE2WOlGldEc1dM5DM82gejsTv8AwmAw7+JCpTESD8hADL314maiJlnmb4amcGaGPHypuYCPSrB1A004qhOTP66HVuFRWyWemn63Ut26GUPeeTZ0ag0ZN8yhNY0G/ARqqukMFO7dE1YkmGkE5n1S1Fndgm3iLcNuP69Pn8P296KbiFVtDFTPmQKWsDHATxJW9sVJSbUkS55peCiEKnpJ5QhR3Xfv+50+4LMdkQDku2yYCblNBTg7NNT6aY/sZJdE2hx93+axQCE19PrxzHBDrCzpaOD35SOTQvQkfxF2xhasbIQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=VWD0cSyZdRPmwAIcwUOG5k4OwVJKZRBv7kuC3Pttilw=;
- b=BOAEpEjIVqmesiCiEeaYs0SWDhqRxvbYNGPjb34kAzAZ6diNvM4hvvmIE+Zvf3aH0V6+bwNiyBz50XAlr39VIIhnU3ymNLE38G3mqJUE3x8oagJISObUhjvP/44+aiAwA6/XTFZ4+UvIolCJk8SplePKINNeYWqVbqubxcjzMkASSbYi46rmncthlK+EA0KS5WLQB9r0tLZz5rAOhC8GA0QUAdzzFgyT/8BAW7orGn2EAkHPu/G2IgxXT38cNrAtxMYa4bIihnaOgGdmsR8O02Gmb12IxCTTDiZ28++BW+BZxIxSB6p0cjel0PIJqtqfJEhh+PD0dPUg8JtHqgPo+g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from BYAPR11MB3320.namprd11.prod.outlook.com (2603:10b6:a03:18::25)
- by SA0PR11MB4525.namprd11.prod.outlook.com (2603:10b6:806:9d::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.20; Thu, 3 Aug
- 2023 21:45:12 +0000
-Received: from BYAPR11MB3320.namprd11.prod.outlook.com
- ([fe80::e96e:8ce2:abd9:c61c]) by BYAPR11MB3320.namprd11.prod.outlook.com
- ([fe80::e96e:8ce2:abd9:c61c%4]) with mapi id 15.20.6652.019; Thu, 3 Aug 2023
- 21:45:12 +0000
-Message-ID: <5748f659-4063-0e18-c5d4-941a863d0d93@intel.com>
-Date:   Thu, 3 Aug 2023 14:44:57 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH v2] syscalls: Cleanup references to sys_lookup_dcookie()
-Content-Language: en-US
-To:     Arnd Bergmann <arnd@arndb.de>, <linux-api@vger.kernel.org>,
-        <linux-arch@vger.kernel.org>
-CC:     Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Will Deacon" <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        "Michal Simek" <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
-        "Helge Deller" <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
+        with ESMTP id S229712AbjHCXJA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Aug 2023 19:09:00 -0400
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BB7419B0
+        for <sparclinux@vger.kernel.org>; Thu,  3 Aug 2023 16:08:58 -0700 (PDT)
+Received: by mail-pl1-x636.google.com with SMTP id d9443c01a7336-1b8b2886364so10795485ad.0
+        for <sparclinux@vger.kernel.org>; Thu, 03 Aug 2023 16:08:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1691104138; x=1691708938;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jZFR6hR4MgixZPi5Vx/h6mh3aFizC5jpLVjbFDuTXzk=;
+        b=Yrtl0fTOBqR41ImU0+amCbPztuZDGzUVxCdl3x0hw6hwOIv/8k3m9WQO/mttMu369L
+         zZlwEoO4tNu+89BRw7b4JSzisHqdfF51BYFauemtPvhBnCBJ3j9RdTR0bcfq39FJx3ux
+         vQ0ingPHXd5bSZBRYqP4s4/XhMbsdipJBQ+m0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691104138; x=1691708938;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jZFR6hR4MgixZPi5Vx/h6mh3aFizC5jpLVjbFDuTXzk=;
+        b=eu9fcvEcOlNOMYgPMt4g0/S1n8tAOF1ALfG04cWXNYJPQSveT3me1qvky9K4s3EJ0C
+         sqe5N+r/N+oza/68S/o1CpD3tfhFYUgOJ6aWNNZr7dDEKM5Iv4T8PNgMUTi12oP5370U
+         hCNmRw4OgEUIks0RSTeQpqqBxSXOdscj2rwSp3k/E15pmhLZfcbPxTF/GoE658viLpLs
+         nqlVwApakD21KrcsdyeyJRD4sDbGfhkQXPDBFD5CcynrGblwDhbX5yKDbbSKvcQd7WrG
+         AkNure/zWz5rsvp+CsQcsxygm6RyOn5sau9KDjW9pLbfaWX4K3/KVkwoDDwAxE8abI4b
+         eWIw==
+X-Gm-Message-State: AOJu0Yxr5Joycsn/vXnV9NiRzCa4R9VmUcAJMiOBgO6CCqyLG5fl8dCh
+        0UbQiWcSjoMAf0/2Ve9JaLep0w==
+X-Google-Smtp-Source: AGHT+IHpt3GmqxmUYWeyDxrjsC/U+hfzZspynC8VLCIFtP8cNsZp90XHIeRqwjI5dpuN/mozNLSnNg==
+X-Received: by 2002:a17:902:6909:b0:1b8:9002:c9ee with SMTP id j9-20020a170902690900b001b89002c9eemr114243plk.1.1691104137546;
+        Thu, 03 Aug 2023 16:08:57 -0700 (PDT)
+Received: from tictac2.mtv.corp.google.com ([2620:15c:9d:2:7e35:e6d0:7bbf:64])
+        by smtp.gmail.com with ESMTPSA id q16-20020a170902dad000b001adf6b21c77sm369405plx.107.2023.08.03.16.08.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 03 Aug 2023 16:08:57 -0700 (PDT)
+From:   Douglas Anderson <dianders@chromium.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Petr Mladek <pmladek@suse.com>, Michal Hocko <mhocko@suse.com>,
+        Douglas Anderson <dianders@chromium.org>,
+        Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        "Yoshinori Sato" <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andy Lutomirski <luto@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, <x86@kernel.org>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        "Max Filippov" <jcmvbkbc@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        "Arnaldo Carvalho de Melo" <acme@kernel.org>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Gaosheng Cui <cuigaosheng1@huawei.com>,
+        "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Jianmin Lv <lvjianmin@loongson.cn>,
+        Jinyang He <hejinyang@loongson.cn>,
+        Josh Poimboeuf <jpoimboe@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        Marc Zyngier <maz@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@kernel.org>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Ian Rogers <irogers@google.com>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
-        Sergei Trofimovich <slyich@gmail.com>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        Rohan McLure <rmclure@linux.ibm.com>,
-        Andreas Schwab <schwab@linux-m68k.org>,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Brian Gerst <brgerst@gmail.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        <linux-alpha@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-ia64@vger.kernel.org>, <linux-m68k@lists.linux-m68k.org>,
-        <linux-mips@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <linux-s390@vger.kernel.org>,
-        <linux-sh@vger.kernel.org>, <sparclinux@vger.kernel.org>,
-        <linux-perf-users@vger.kernel.org>
-References: <20230628230935.1196180-1-sohil.mehta@intel.com>
- <20230710185124.3848462-1-sohil.mehta@intel.com>
-From:   Sohil Mehta <sohil.mehta@intel.com>
-In-Reply-To: <20230710185124.3848462-1-sohil.mehta@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: YQBPR0101CA0184.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:c01:f::27) To BYAPR11MB3320.namprd11.prod.outlook.com
- (2603:10b6:a03:18::25)
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Qing Zhang <zhangqing@loongson.cn>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Tom Rix <trix@redhat.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Valentin Schneider <vschneid@redhat.com>,
+        WANG Xuerui <kernel@xen0n.name>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
+        x86@kernel.org
+Subject: [PATCH v3 1/2] nmi_backtrace: Allow excluding an arbitrary CPU
+Date:   Thu,  3 Aug 2023 16:07:57 -0700
+Message-ID: <20230803160649.v3.1.Ia35521b91fc781368945161d7b28538f9996c182@changeid>
+X-Mailer: git-send-email 2.41.0.585.gd2178a4bd4-goog
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BYAPR11MB3320:EE_|SA0PR11MB4525:EE_
-X-MS-Office365-Filtering-Correlation-Id: c7efc474-48d5-4247-6087-08db946aea3d
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: UVrTGacRs8YyvKou6lD2dmAhHLyZG41onkNpnNR6QqQTyHvOIGhlWSNTx34maOEc+v6dysJFYDqin8Wtmr7YUYWIk3CqQMpfa68snFQbRPR8hv4MV3HGLNFJ2Hj+OzQqElT/ADxLmZCzs+0eRVuWLlMKL2kODPI2mrYVpqF92/eBf/etz+ijgh7TAFOJBdOXPvSS7f31S+9H9Xs7FouCcgmvT6t+PxPO1MznmX/f1RcHHrVItnJuOJKqy0LWJ74Nr/1XygLg8t3n30hNhT/TeV9wBX9pjRfJaBUvcBSOOHfOz4huGaFH0fy9CZFSt9s2RDhRLCDBKr9wuJD5LMbcfjsNRou78UOAWbIgf2CjHJazFu3aXgc9LdGxdWVFGkenCoBuTigcGRDzhAv2SLSDMdEBYu4mKITZI+fRawhkDeJCpYou1Ahm1GY3JogkQMP3Kgasq9573yeDPfgDgtoxdaWrqOTG4kSrouWVZzp7EvV371YBYFsJ4Q4SqYcbTOZDV7qpJ9RfjY9t6ytLP7zKSzTNOlhYsylJdU3sPcZ7xkg0JUcEm0AvarS3gLHdPgeEcUx0UuHZAg6gbzBwrQ+gGa/k+2hrqqXXXuZkWj53zL6Yf+tC9tflTyTzn6wEdukrkqUfKpriovnj6wp72JKYsA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR11MB3320.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(346002)(376002)(366004)(396003)(39860400002)(136003)(451199021)(186006)(41300700001)(6486002)(82960400001)(6666004)(478600001)(38100700002)(2616005)(26005)(83380400001)(53546011)(6512007)(6506007)(4744005)(316002)(2906002)(54906003)(86362001)(31696002)(36756003)(66476007)(66556008)(4326008)(66946007)(31686004)(8676002)(8936002)(5660300002)(44832011)(7406005)(7366002)(7416002)(43740500002)(45980500001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?NmRKRXBJb2Q3d3NjcUt2TDZNN3R0c25rQzVya2VOZjFBYnRKYTFKNXRISG5s?=
- =?utf-8?B?SW5lQjZsMlR0d0N2elIxM0VXY0VxMjd2clRtZlI0aFRieVhJNEt3bXlTd3p3?=
- =?utf-8?B?Zy9SVXozM21URUsvNmVXaXdPYlFmbE9jcUdXS3VHTjBiTkp4YzlUU3BuNHFs?=
- =?utf-8?B?dzlFVkoxbmRkaUs0d0E4MVZMREcrMDdFWjM5RWlFSXlNTWMvNUQ0dXNCS3hl?=
- =?utf-8?B?dmo4WDlCOU1FZERCeEhqVllTYnMza3N2YXZRc0VSRjdjQXNtZ1pLa01zdFU3?=
- =?utf-8?B?bDhmeitsbDMxNUQ0MU40VjYxUEh6dVJ4ZENPRStTaGgreGtmMEpFUkxLclRM?=
- =?utf-8?B?YjlyWmNxMXl0SitYTGdpdkViNDhQQ3Urb1FTby9wVTI3QStUNllDaHhWTUl6?=
- =?utf-8?B?cEhya24zbWM1M0tlRUR0cDI2NkNjeFd4WE00dWNWdWJnYWRDOXBWOFdGcUFo?=
- =?utf-8?B?RVhjRVlBWk5JOGpuWEx5NzI5eDlJb3Bra3ZBM1JxcjNDbVVXc0l0VEVadmQ5?=
- =?utf-8?B?dnRhWDM4b3dXUFFkcjd2aHpZMTNhNVVLY3J0NXBPNmFyeXRDSC96clY4RXRz?=
- =?utf-8?B?WDd6dEF4ZU15NFQ5Ym53RzNUMkphUWhQdHBMaElCVXhUR05GN1lmRWg5aGth?=
- =?utf-8?B?anhkVThNQmxPQzg0U1pucTVaWk9GVEtoa1oweXRYYVEyY1N6MFJ3aFhFRXor?=
- =?utf-8?B?VDdCeGdRUXZTTGs3TmJxN0pZQ2dNOFpaNCtGUHFlVjhoTyt3YTYyLzNOeUFl?=
- =?utf-8?B?cHBDYmxCMjdDYnVmbGJkbG82SzJHWEEzQUZCUWUwMDVvYlZBbVpDVDBmRTZM?=
- =?utf-8?B?Z0MxOFdZZlBYOTZLQ3ZjcXorQ3FxYXVKN2xoUURONGpIRlZpK2gyMmJSd2xm?=
- =?utf-8?B?dHc2T1lvWW5FMlZ3dFdSRVRBN3h2bVVGSkkyTDBUdGVZRVBwY1AxcU54c3kz?=
- =?utf-8?B?cFhJTTJWRDlHZFBBN0tvcUxPeFhDdVlFK2ZwZmdvRlJzU2FpNXIzSmlpcGVP?=
- =?utf-8?B?MDArL0Z1SGhmSHBEaDNyM25KeEswWjM3Wkx5K0xSM3U1RUswbWY5citDRm0v?=
- =?utf-8?B?YW5ZQ0ZqY2VtV0RyS3dxbXVkTDYzY0xza2dENkw0cDhFNldNMmFEaE8rQTZS?=
- =?utf-8?B?SncwYlhxZmJ1Zk9Ocng4UDJJMTJxQU5FbGhlT3VOYjNaQ3dNdlNsS0wzYmtL?=
- =?utf-8?B?OVdXRE5TalEzZktSMGZmdVpWV0hKb0pXWXQ0Z3Y4RzI3bkZqN0tRcTc0c0xz?=
- =?utf-8?B?SDhDWmNUMXlTaTBmTnVMYlBSck0yQzNaYk5LSE5jdmdCdnl1WWlGNFpVRVEv?=
- =?utf-8?B?QU1UVU0rSXVMYUpnb1FNMjgwY21WYXg2dG5KWWlCNkxIM0hiVWNYaW9UUFRH?=
- =?utf-8?B?Sk44ejJNSzNtVGpnTkRYcDY1cVJCMXFiOU9UNmswUXhpODFKME96YUloNXJu?=
- =?utf-8?B?ODh2R3lueTdqZzRnYkhzNmR5akNjSzA3Y3JWS21jTTFIN3V3QlA0VnV0Z1Fu?=
- =?utf-8?B?V0xNdWs4MmRTV2R3NHhSSWxvQUE0RXZIR3hNS2c1OWtzOXdkeGpoa2lmcUg0?=
- =?utf-8?B?WGZBaTJySEgxajBDQTNFRllJV3VxcjlsYzZEaXNrUE1CY2sxQ29sYXFnd0FT?=
- =?utf-8?B?eHd6dWxXVmNkU2l6cWlISzJSbld4bTlMeWNVQXBMaVpZYzdhZmxuMVNOMU02?=
- =?utf-8?B?UHlrNEg0TkFtaURCeDE3ZWtEYk8yeDMwWHBpNTFJMkpnbGtZY0tmSzFHVzNu?=
- =?utf-8?B?dy9tK1krYlJ0TnM4N3R1Wk9iRGpMWHc4YTB6ZmNoVzIzWHhGYXFUcFgvcy9z?=
- =?utf-8?B?ZStmR0w0OU16R3B5c1Btc3drc1JYYzlnMXQyZFJ1QVh3cTRCRkVqZEFLWEZL?=
- =?utf-8?B?ZlNTeUk5bnhWR1I4SWcrOVovb3NRRGF3aE9USTArck9jeTN4b1RaellnV1dw?=
- =?utf-8?B?eFZyNkpZQlNsWkNFZUhrbVZYU0xaRjdFMmNOWjN2L1B2SjZRdHhtZ0NvS2Fq?=
- =?utf-8?B?ZFh5U2hCc0FCcHRwelhkRjJzU1BLSXZPcXY1azUzZW45MERkUzJobTRHcFJu?=
- =?utf-8?B?K0NLOGRVTUxGS3FmS2EzTHllRVE1WTNyVFliS0cySnFieTk3N2VEL3p6L05I?=
- =?utf-8?Q?TTk9ZlLYMBL+dE5LRZvdmLAqV?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: c7efc474-48d5-4247-6087-08db946aea3d
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR11MB3320.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2023 21:45:12.2569
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: D8U377FaK/XnfXT9SSRaRvSyUZK3wdDiJCJW5sIIW8EG87Pp94noQYk9j6gTJZ/EtVddH0iPsAs44hofO5lD0A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR11MB4525
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Arnd,
+The APIs that allow backtracing across CPUs have always had a way to
+exclude the current CPU. This convenience means callers didn't need to
+find a place to allocate a CPU mask just to handle the common case.
 
-On 7/10/2023 11:51 AM, Sohil Mehta wrote:
-> commit 'be65de6b03aa ("fs: Remove dcookies support")' removed the
-> syscall definition for lookup_dcookie.  However, syscall tables still
-> point to the old sys_lookup_dcookie() definition. Update syscall tables
-> of all architectures to directly point to sys_ni_syscall() instead.
-> 
-> Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
-> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-> Acked-by: Namhyung Kim <namhyung@kernel.org> # for perf
+Let's extend the API to take a CPU ID to exclude instead of just a
+boolean. This isn't any more complex for the API to handle and allows
+the hardlockup detector to exclude a different CPU (the one it already
+did a trace for) without needing to find space for a CPU mask.
 
-The patch has received a couple of additional Acks.
+Arguably, this new API also encourages safer behavior. Specifically if
+the caller wants to avoid tracing the current CPU (maybe because they
+already traced the current CPU) this makes it more obvious to the
+caller that they need to make sure that the current CPU ID can't
+change.
 
-Does this seem like a valuable cleanup? If so, should it go through the
-asm-generic tree?
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+---
 
-Sohil
+Changes in v3:
+- ("nmi_backtrace: Allow excluding an arbitrary CPU") new for v3.
+
+ arch/arm/include/asm/irq.h       |  2 +-
+ arch/arm/kernel/smp.c            |  4 ++--
+ arch/loongarch/include/asm/irq.h |  2 +-
+ arch/loongarch/kernel/process.c  |  4 ++--
+ arch/mips/include/asm/irq.h      |  2 +-
+ arch/mips/kernel/process.c       |  4 ++--
+ arch/powerpc/include/asm/irq.h   |  2 +-
+ arch/powerpc/kernel/stacktrace.c |  4 ++--
+ arch/powerpc/kernel/watchdog.c   |  4 ++--
+ arch/sparc/include/asm/irq_64.h  |  2 +-
+ arch/sparc/kernel/process_64.c   |  6 +++---
+ arch/x86/include/asm/irq.h       |  2 +-
+ arch/x86/kernel/apic/hw_nmi.c    |  4 ++--
+ include/linux/nmi.h              | 12 ++++++------
+ kernel/watchdog.c                |  2 +-
+ lib/nmi_backtrace.c              |  6 +++---
+ 16 files changed, 31 insertions(+), 31 deletions(-)
+
+diff --git a/arch/arm/include/asm/irq.h b/arch/arm/include/asm/irq.h
+index 18605f1b3580..26c1d2ced4ce 100644
+--- a/arch/arm/include/asm/irq.h
++++ b/arch/arm/include/asm/irq.h
+@@ -32,7 +32,7 @@ void handle_IRQ(unsigned int, struct pt_regs *);
+ #include <linux/cpumask.h>
+ 
+ extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+-					   bool exclude_self);
++					   int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+ 
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 6756203e45f3..3431c0553f45 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -846,7 +846,7 @@ static void raise_nmi(cpumask_t *mask)
+ 	__ipi_send_mask(ipi_desc[IPI_CPU_BACKTRACE], mask);
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_nmi);
+ }
+diff --git a/arch/loongarch/include/asm/irq.h b/arch/loongarch/include/asm/irq.h
+index a115e8999c69..218b4da0ea90 100644
+--- a/arch/loongarch/include/asm/irq.h
++++ b/arch/loongarch/include/asm/irq.h
+@@ -40,7 +40,7 @@ void spurious_interrupt(void);
+ #define NR_IRQS_LEGACY 16
+ 
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask, bool exclude_self);
++void arch_trigger_cpumask_backtrace(const struct cpumask *mask, int exclude_cpu);
+ 
+ #define MAX_IO_PICS 2
+ #define NR_IRQS	(64 + (256 * MAX_IO_PICS))
+diff --git a/arch/loongarch/kernel/process.c b/arch/loongarch/kernel/process.c
+index 2e04eb07abb6..778e8d09953e 100644
+--- a/arch/loongarch/kernel/process.c
++++ b/arch/loongarch/kernel/process.c
+@@ -345,9 +345,9 @@ static void raise_backtrace(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace);
+ }
+ 
+ #ifdef CONFIG_64BIT
+diff --git a/arch/mips/include/asm/irq.h b/arch/mips/include/asm/irq.h
+index 75abfa834ab7..3a848e7e69f7 100644
+--- a/arch/mips/include/asm/irq.h
++++ b/arch/mips/include/asm/irq.h
+@@ -77,7 +77,7 @@ extern int cp0_fdc_irq;
+ extern int get_c0_fdc_int(void);
+ 
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ #endif /* _ASM_IRQ_H */
+diff --git a/arch/mips/kernel/process.c b/arch/mips/kernel/process.c
+index a3225912c862..5387ed0a5186 100644
+--- a/arch/mips/kernel/process.c
++++ b/arch/mips/kernel/process.c
+@@ -750,9 +750,9 @@ static void raise_backtrace(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace);
+ }
+ 
+ int mips_get_process_fp_mode(struct task_struct *task)
+diff --git a/arch/powerpc/include/asm/irq.h b/arch/powerpc/include/asm/irq.h
+index f257cacb49a9..ba1a5974e714 100644
+--- a/arch/powerpc/include/asm/irq.h
++++ b/arch/powerpc/include/asm/irq.h
+@@ -55,7 +55,7 @@ int irq_choose_cpu(const struct cpumask *mask);
+ 
+ #if defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI)
+ extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+-					   bool exclude_self);
++					   int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+ 
+diff --git a/arch/powerpc/kernel/stacktrace.c b/arch/powerpc/kernel/stacktrace.c
+index 5de8597eaab8..b15f15dcacb5 100644
+--- a/arch/powerpc/kernel/stacktrace.c
++++ b/arch/powerpc/kernel/stacktrace.c
+@@ -221,8 +221,8 @@ static void raise_backtrace_ipi(cpumask_t *mask)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace_ipi);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace_ipi);
+ }
+ #endif /* defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI) */
+diff --git a/arch/powerpc/kernel/watchdog.c b/arch/powerpc/kernel/watchdog.c
+index edb2dd1f53eb..8c464a5d8246 100644
+--- a/arch/powerpc/kernel/watchdog.c
++++ b/arch/powerpc/kernel/watchdog.c
+@@ -245,7 +245,7 @@ static void watchdog_smp_panic(int cpu)
+ 			__cpumask_clear_cpu(c, &wd_smp_cpus_ipi);
+ 		}
+ 	} else {
+-		trigger_allbutself_cpu_backtrace();
++		trigger_allbutcpu_cpu_backtrace(cpu);
+ 		cpumask_clear(&wd_smp_cpus_ipi);
+ 	}
+ 
+@@ -416,7 +416,7 @@ DEFINE_INTERRUPT_HANDLER_NMI(soft_nmi_interrupt)
+ 		xchg(&__wd_nmi_output, 1); // see wd_lockup_ipi
+ 
+ 		if (sysctl_hardlockup_all_cpu_backtrace)
+-			trigger_allbutself_cpu_backtrace();
++			trigger_allbutcpu_cpu_backtrace(cpu);
+ 
+ 		if (hardlockup_panic)
+ 			nmi_panic(regs, "Hard LOCKUP");
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index b436029f1ced..8c4c0c87f998 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -87,7 +87,7 @@ static inline unsigned long get_softint(void)
+ }
+ 
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ extern void *hardirq_stack[NR_CPUS];
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index b51d8fb0ecdc..1ea3f37fa985 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -236,7 +236,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -252,7 +252,7 @@ void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ 
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+ 
+-	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
++	if (cpumask_test_cpu(this_cpu, mask) && this_cpu != exclude_cpu)
+ 		__global_reg_self(tp, regs, this_cpu);
+ 
+ 	smp_fetch_global_regs();
+@@ -260,7 +260,7 @@ void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ 	for_each_cpu(cpu, mask) {
+ 		struct global_reg_snapshot *gp;
+ 
+-		if (exclude_self && cpu == this_cpu)
++		if (cpu == exclude_cpu)
+ 			continue;
+ 
+ 		gp = &global_cpu_snapshot[cpu].reg;
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index 29e083b92813..836c170d3087 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -42,7 +42,7 @@ extern void init_ISA_irqs(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ 
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
+index 34a992e275ef..d6e01f924299 100644
+--- a/arch/x86/kernel/apic/hw_nmi.c
++++ b/arch/x86/kernel/apic/hw_nmi.c
+@@ -34,9 +34,9 @@ static void nmi_raise_cpu_backtrace(cpumask_t *mask)
+ 	apic->send_IPI_mask(mask, NMI_VECTOR);
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self,
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu,
+ 				      nmi_raise_cpu_backtrace);
+ }
+ 
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index e3e6a64b98e0..00982b133dc1 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -157,31 +157,31 @@ static inline void touch_nmi_watchdog(void)
+ #ifdef arch_trigger_cpumask_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
++	arch_trigger_cpumask_backtrace(cpu_online_mask, -1);
+ 	return true;
+ }
+ 
+-static inline bool trigger_allbutself_cpu_backtrace(void)
++static inline bool trigger_allbutcpu_cpu_backtrace(int exclude_cpu)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
++	arch_trigger_cpumask_backtrace(cpu_online_mask, exclude_cpu);
+ 	return true;
+ }
+ 
+ static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
+ {
+-	arch_trigger_cpumask_backtrace(mask, false);
++	arch_trigger_cpumask_backtrace(mask, -1);
+ 	return true;
+ }
+ 
+ static inline bool trigger_single_cpu_backtrace(int cpu)
+ {
+-	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
++	arch_trigger_cpumask_backtrace(cpumask_of(cpu), -1);
+ 	return true;
+ }
+ 
+ /* generic implementation */
+ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+-				   bool exclude_self,
++				   int exclude_cpu,
+ 				   void (*raise)(cpumask_t *mask));
+ bool nmi_cpu_backtrace(struct pt_regs *regs);
+ 
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index be38276a365f..085d7a78f62f 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -523,7 +523,7 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 			dump_stack();
+ 
+ 		if (softlockup_all_cpu_backtrace) {
+-			trigger_allbutself_cpu_backtrace();
++			trigger_allbutcpu_cpu_backtrace(smp_processor_id());
+ 			clear_bit_unlock(0, &soft_lockup_nmi_warn);
+ 		}
+ 
+diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
+index 5274bbb026d7..33c154264bfe 100644
+--- a/lib/nmi_backtrace.c
++++ b/lib/nmi_backtrace.c
+@@ -34,7 +34,7 @@ static unsigned long backtrace_flag;
+  * they are passed being updated as a side effect of this call.
+  */
+ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+-				   bool exclude_self,
++				   int exclude_cpu,
+ 				   void (*raise)(cpumask_t *mask))
+ {
+ 	int i, this_cpu = get_cpu();
+@@ -49,8 +49,8 @@ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+ 	}
+ 
+ 	cpumask_copy(to_cpumask(backtrace_mask), mask);
+-	if (exclude_self)
+-		cpumask_clear_cpu(this_cpu, to_cpumask(backtrace_mask));
++	if (exclude_cpu != -1)
++		cpumask_clear_cpu(exclude_cpu, to_cpumask(backtrace_mask));
+ 
+ 	/*
+ 	 * Don't try to send an NMI to this cpu; it may work on some
+-- 
+2.41.0.585.gd2178a4bd4-goog
+
