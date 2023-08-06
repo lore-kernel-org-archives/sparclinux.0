@@ -2,148 +2,155 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C201C001DF
-	for <sparclinux@archiver.kernel.org>; Fri,  4 Aug 2023 16:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75FB0C41513
+	for <sparclinux@archiver.kernel.org>; Sun,  6 Aug 2023 03:55:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229788AbjHDQGz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 4 Aug 2023 12:06:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58656 "EHLO
+        id S229577AbjHFDzl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 5 Aug 2023 23:55:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232187AbjHDQGs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 4 Aug 2023 12:06:48 -0400
-Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0A4B2
-        for <sparclinux@vger.kernel.org>; Fri,  4 Aug 2023 09:06:46 -0700 (PDT)
-Received: by mail-ej1-x62f.google.com with SMTP id a640c23a62f3a-99c10ba30afso722834566b.1
-        for <sparclinux@vger.kernel.org>; Fri, 04 Aug 2023 09:06:46 -0700 (PDT)
+        with ESMTP id S229468AbjHFDzk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 5 Aug 2023 23:55:40 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6441E1BEC
+        for <sparclinux@vger.kernel.org>; Sat,  5 Aug 2023 20:55:39 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-58451ecf223so37443377b3.1
+        for <sparclinux@vger.kernel.org>; Sat, 05 Aug 2023 20:55:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1691165201; x=1691770001;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=iO5rwUzHdvsTta4AYoM7PZm/e8fMyDOqZiTH6w2WucI=;
-        b=AMUKG0O3ZHryKLr0tnTo/WTbH6EIhzWu2/l3KbipyDRSvc4gTMborJHpukGwA9PrV/
-         2vL1fAteIN2zhSb8OrF3fDoffz9wHnACihFdMSwHU+PJLv1tWJqlym5Yikhypq+ZjtH5
-         XvAFdLNHmEGqT0fEZ+4UyKWvd0dD4G7ZOzrc4=
+        d=google.com; s=20221208; t=1691294138; x=1691898938;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=m2K+k0UoOXs6D5uLva9XkEFbd09ZRm9Z7/lr2pw8hZw=;
+        b=nHQK9bAViVteBZuYzu1hSOzZou4B7CZHQRLaLY6OQhD1zUjj/ni/sFz980Hez3g6xP
+         +XJdU9vnCkIdIo4sxbPl3r3sYiHSM+SwI9Q4fpiZIBM4Eof2E8FuwdvUmKXrdVFtQlcx
+         ww+ZM5dOPHj7CUMoYM0F9VEscwNfVfykgHQSeFqLDRH8X8nndU7fw98QPxNlNPhr9jfi
+         w3PvJYAodiPLKRnlfP8VbYcBqtQImekRiz1F15mmV39CZybLJVmANRH5/iuTvgm0WOhL
+         SpUQkdBJ71frR6f2MxShl/q+q+TV2Ok4ynKVWq7SSJQkDn4kFZWzeTN8D/KeteoSw1o9
+         EKLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691165201; x=1691770001;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=iO5rwUzHdvsTta4AYoM7PZm/e8fMyDOqZiTH6w2WucI=;
-        b=HCRKrxLlOtIV9/8N6/dP43s2rpnP3M8oOLfHGzbKoP3zYS6T72snp4XtgEU5vfQ+9V
-         6gRm2qd4Tdbbkaq9ImISFxjXv9KTEaQayYj75qRb/jFyFm+rryrJW6mOFBVC6B2//DtF
-         y5nmMAncYmxkIhm/TJgBdqpdXvQVWRtRGNc1Ae3nYZX0vLi3v5A2o2k0tJYo1Ft/pcl8
-         SL8/Hh7lBu8XnIwVPFlCMqZ/GTdNIFm4JVAlecONTZTrqbaI0P7rOdKe23OJR7VvGgWm
-         KjVsCLRSFTIOQNN12zipVhVwxOyA0vAWblqUc/hTrKINRJTuYtBKCjwMbyM8RWCJczwy
-         f/tg==
-X-Gm-Message-State: AOJu0YwlKD6YGqRwelHAxUQk+j0IFYVVbC4YSBbjChhrOV+4klT/S/v2
-        JQ9CwUOEEsJH+LVX6KkXE6x0P3AYbI6RVUY3aC6GBhk/
-X-Google-Smtp-Source: AGHT+IE7QvA8YI5lpLefIXOme+40G6HQlEpEd6YjcBcuhdXScgkDV0ZGDVdxl3LtSh+pWsQ6/HR9tg==
-X-Received: by 2002:a17:906:d54a:b0:978:8979:c66c with SMTP id cr10-20020a170906d54a00b009788979c66cmr136688ejc.18.1691165201712;
-        Fri, 04 Aug 2023 09:06:41 -0700 (PDT)
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com. [209.85.128.54])
-        by smtp.gmail.com with ESMTPSA id k18-20020a17090666d200b00992f2befcbcsm1487946ejp.180.2023.08.04.09.06.41
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 04 Aug 2023 09:06:41 -0700 (PDT)
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-3fe2a116565so87935e9.1
-        for <sparclinux@vger.kernel.org>; Fri, 04 Aug 2023 09:06:41 -0700 (PDT)
-X-Received: by 2002:a50:d0dd:0:b0:522:2dd2:afa5 with SMTP id
- g29-20020a50d0dd000000b005222dd2afa5mr73563edf.7.1691165180310; Fri, 04 Aug
- 2023 09:06:20 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230803160649.v3.1.Ia35521b91fc781368945161d7b28538f9996c182@changeid>
- <ZMytyEoCARgP9VR8@dhcp22.suse.cz> <CAD=FV=UQ18JG-sMBJHrhXByCWYSgOpCq8tL=3R8pT8CnFEa=pA@mail.gmail.com>
- <ZM0S9gKBBiu83kFq@dhcp22.suse.cz>
-In-Reply-To: <ZM0S9gKBBiu83kFq@dhcp22.suse.cz>
-From:   Doug Anderson <dianders@chromium.org>
-Date:   Fri, 4 Aug 2023 09:06:07 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=XhksUsBKjkD08YxdmxvvbgoZH-va7WnPptkYA6EOpPsg@mail.gmail.com>
-Message-ID: <CAD=FV=XhksUsBKjkD08YxdmxvvbgoZH-va7WnPptkYA6EOpPsg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] nmi_backtrace: Allow excluding an arbitrary CPU
-To:     Michal Hocko <mhocko@suse.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Petr Mladek <pmladek@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Borislav Petkov <bp@alien8.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Gaosheng Cui <cuigaosheng1@huawei.com>,
-        "Gautham R. Shenoy" <gautham.shenoy@amd.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        Jianmin Lv <lvjianmin@loongson.cn>,
-        Jinyang He <hejinyang@loongson.cn>,
-        Josh Poimboeuf <jpoimboe@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
+        d=1e100.net; s=20221208; t=1691294138; x=1691898938;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=m2K+k0UoOXs6D5uLva9XkEFbd09ZRm9Z7/lr2pw8hZw=;
+        b=b/DlN7sN6EyQD8LKd1P9VckvDO3o1Bh9RhSyUYsdyAPyyj4AS8mm70aOezASiO9Caw
+         4ATjhGqMcpnC8chLA1PSfhceTX8A9yCCZnfX0kGTJlxGqRJYdQoTvrGFbVz45zN4MZzl
+         ygwfNzlloKkYm3PbHk/4Z07umDrm1fVQQ9u88kxRcCNK1ZAK046Fxc9cq0hk3pI73BL1
+         ICJkLGeCQ3bMB8QMBKNE3h81OdRHwbEq7hkQFtA1rh52e7R9hQTci7XDO5CmaUGITam2
+         Xvh/VsV+TdTKst+VasOyFH2qXx/F8gyEg2X1ctXNv8bOBrIqj035bXosBfXDxuZ/MFWJ
+         6dcA==
+X-Gm-Message-State: AOJu0YwzcEF4ptaHVjMqNnT3MjEDQbw3I+p8FyoXMEYQMlIctUaVgRPk
+        Ar3upxxusE1sSf8C5HyfTnppUA==
+X-Google-Smtp-Source: AGHT+IFiva5XFrTVBq0jEtYJXpVvro3rzuVZhewsSXihKRs8BSeQq4Tb3piHb2uK39Vd3DI+t0W0ew==
+X-Received: by 2002:a0d:d488:0:b0:56d:5272:d540 with SMTP id w130-20020a0dd488000000b0056d5272d540mr6237470ywd.46.1691294138477;
+        Sat, 05 Aug 2023 20:55:38 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id a64-20020a0df143000000b00576e67820f3sm1861323ywf.66.2023.08.05.20.55.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 05 Aug 2023 20:55:37 -0700 (PDT)
+Date:   Sat, 5 Aug 2023 20:55:25 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Qi Zheng <zhengqi.arch@bytedance.com>
+cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Qing Zhang <zhangqing@loongson.cn>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
         Russell King <linux@armlinux.org.uk>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tom Rix <trix@redhat.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Valentin Schneider <vschneid@redhat.com>,
-        WANG Xuerui <kernel@xen0n.name>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        "David S. Miller" <davem@davemloft.net>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Jann Horn <jannh@google.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v3 10/13] mm/khugepaged: collapse_pte_mapped_thp() with
+ mmap_read_lock()
+In-Reply-To: <0df84f9f-e9b0-80b1-4c9e-95abc1a73a96@bytedance.com>
+Message-ID: <884f20fe-d642-3a5f-522a-d756c3443bb4@google.com>
+References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com> <b53be6a4-7715-51f9-aad-f1347dcb7c4@google.com> <0df84f9f-e9b0-80b1-4c9e-95abc1a73a96@bytedance.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+On Thu, 3 Aug 2023, Qi Zheng wrote:
+> On 2023/7/12 12:42, Hugh Dickins wrote:
+> > Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
+> > It does need mmap_read_lock(), but it does not need mmap_write_lock(),
+> > nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
+> > paths are relying on pte_offset_map_lock() and pmd_lock(), so use those.
+...
+> > @@ -1681,47 +1634,76 @@ int collapse_pte_mapped_thp(struct mm_struct *mm,
+> > unsigned long addr,
+> >   
+> >     if (pte_none(ptent))
+> >   			continue;
+> > -		page = vm_normal_page(vma, addr, ptent);
+> > -		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
+> > +		/*
+> > +		 * We dropped ptl after the first scan, to do the
+> > mmu_notifier:
+> > +		 * page lock stops more PTEs of the hpage being faulted in,
+> > but
+> > +		 * does not stop write faults COWing anon copies from existing
+> > +		 * PTEs; and does not stop those being swapped out or
+> > migrated.
+> > +		 */
+> > +		if (!pte_present(ptent)) {
+> > +			result = SCAN_PTE_NON_PRESENT;
+> >   			goto abort;
+> > +		}
+> > +		page = vm_normal_page(vma, addr, ptent);
+> > +		if (hpage + i != page)
+> > +			goto abort;
+> > +
+> > +		/*
+> > +		 * Must clear entry, or a racing truncate may re-remove it.
+> > +		 * TLB flush can be left until pmdp_collapse_flush() does it.
+> > +		 * PTE dirty? Shmem page is already dirty; file is read-only.
+> > +		 */
+> > +		pte_clear(mm, addr, pte);
+> 
+> This is not non-present PTE entry, so we should call ptep_clear() to let
+> page_table_check track the PTE clearing operation, right? Otherwise it
+> may lead to false positives?
 
-On Fri, Aug 4, 2023 at 8:02=E2=80=AFAM Michal Hocko <mhocko@suse.com> wrote=
-:
->
-> > > It would have been slightly safer to modify arch_trigger_cpumask_back=
-trace
-> > > by switching arguments so that some leftovers are captured easier.
-> >
-> > I'm not sure I understand. Oh, you're saying make the prototype of
-> > arch_trigger_cpumask_backtrace() incompatible so that if someone is
-> > directly calling it then it'll be a compile-time error?
->
-> exactly. bool to int promotion would be too easy to miss while the
-> pointer to int would complain loudly.
->
-> > I guess the
-> > hope is that nobody is calling that directly and they're calling
-> > through the trigger_...() functions.
->
-> Hope is one thing, being preventive another.
->
-> > For now I'm going to leave this alone.
->
-> If you are going to send another version then please consider this. Not
-> a hard requirement but better.
+You are right: thanks a lot for catching that: fix patch follows.
 
-If I do send another version, do you have any suggestions for how to
-change this to make it incompatible? I guess swapping the order of the
-parameters would be best? I considered doing that for v4 but I felt
-like long term the current order of the parameters was better. I also
-considered a rename, but that different problems. ;-) If I rename both
-the #define and the function then if someone has an out-of-tree patch
-adding arch_trigger_cpumask_backtrace() for another architecture, like
-say arm64, then there would be no compile-time failure indicating that
-the out-of-tree patch needs updating. I could rename the functions but
-_not_ the #define, I guess?
+Hugh
