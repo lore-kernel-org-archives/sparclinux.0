@@ -2,60 +2,85 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4288DC001DE
-	for <sparclinux@archiver.kernel.org>; Tue,  8 Aug 2023 16:34:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2106FC04FE1
+	for <sparclinux@archiver.kernel.org>; Tue,  8 Aug 2023 19:14:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233042AbjHHQeA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:34:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58100 "EHLO
+        id S232870AbjHHTOQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:14:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229875AbjHHQc5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 8 Aug 2023 12:32:57 -0400
-Received: from mail.socialglobal.pl (mail.socialglobal.pl [51.195.90.253])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8153373C8
-        for <sparclinux@vger.kernel.org>; Tue,  8 Aug 2023 08:52:06 -0700 (PDT)
-Received: by mail.socialglobal.pl (Postfix, from userid 1002)
-        id CD2702599F; Tue,  8 Aug 2023 08:11:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=socialglobal.pl;
-        s=mail; t=1691482338;
-        bh=XwhyqI/moZPDJ7KCfcA6Gip8fA7ZKcg5SWsKuF/26zk=;
-        h=Date:From:To:Subject:From;
-        b=Eo/EemqK+VZEQekxiY2AiuQpE4SZr854tJSzoaCflKD8asou6b/tlKypCRVgRfrqf
-         UroP4UfvGeEPCj1bKka/jcKDZp2hkQskemEet64s5FUEPw2b5gZV9eB9C7Mfk0QC7q
-         3owynfk2+NOpFKcWy47U0a4s+laUGL3QLfLcuN9ZDUh44QZV6ULGdnqB7sI1gfQBva
-         BKcThf+Epo5cSMwU/+ojKsmbCHGcxpUDa/pDXqEzrgVSgtqE6Xwimwo9r/zinZcYcd
-         b8ffE2/2JQxbVXNZsYwhF9bJhAidpf1S0+tp+LwPAhs8AOwaYkrqPzIiSNPRkH2qY8
-         pZ84W4qog4fpA==
-Received: by mail.socialglobal.pl for <sparclinux@vger.kernel.org>; Tue,  8 Aug 2023 08:10:29 GMT
-Message-ID: <20230808064500-0.1.7n.2in7g.0.3khhfbbv29@socialglobal.pl>
-Date:   Tue,  8 Aug 2023 08:10:29 GMT
-From:   "Dominik Perkowski" <dominik.perkowski@socialglobal.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Pozycjonowanie- informacja
-X-Mailer: mail.socialglobal.pl
+        with ESMTP id S232855AbjHHTNz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 8 Aug 2023 15:13:55 -0400
+Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:402::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6973BF1DAD
+        for <sparclinux@vger.kernel.org>; Tue,  8 Aug 2023 09:36:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=c9z8RVjZ7lQ880LjvAt57vVXjzE5csvAjG7iIrLBhZ4=;
+        b=mwSPOhNmuWDV/o20X/nws6qqJggdK6I/mZBnYqc93rfSuOpXOE6pKaWOHC4fp5HyaBINvIDsXuCCi
+         psPUVwtH43Wia3/RFJIZfU3hzu/wwRCC29io1O7uxdFKespkpGVJFHiltrFZF6vLYlzohwNwKnEMwY
+         A8XChEKbG6xk0M0Z5bdO/1Ij8Mb40yBjTZyD5V27na4qrSm3/mh/3ibHmPBl1RfjMdipJxxKDUIUh1
+         rOWqX6acRneRwJBUGK1JXpYTWlI1KgcfeZidO+jy0xPz82hgfiIPvsNttfFqlnwkng3oOByq20BoEv
+         4KoME0tIFmr/iT5qtyXBBYrKZeSwQZQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=c9z8RVjZ7lQ880LjvAt57vVXjzE5csvAjG7iIrLBhZ4=;
+        b=C3RqrrJ60S86qYxEDTh8ynvQ2MOmTnI/Li/vLN8AKM9P8jBFRwRT/uGcCqxE500sQfvoIXOWfl2fv
+         rg7chk5CQ==
+X-HalOne-ID: acc3d1c5-3609-11ee-84ae-b90637070a9d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay3 (Halon) with ESMTPSA
+        id acc3d1c5-3609-11ee-84ae-b90637070a9d;
+        Tue, 08 Aug 2023 16:36:10 +0000 (UTC)
+Date:   Tue, 8 Aug 2023 18:36:08 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     linux@treblig.org, davem@davemloft.net, benh@kernel.crashing.org,
+        akpm@linux-foundation.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, mpe@ellerman.id.au,
+        glaubitz@physik.fu-berlin.de
+Subject: Re: [PATCH v3] sparc: Use shared font data
+Message-ID: <20230808163608.GA358064@ravnborg.org>
+References: <20230807010914.799713-1-linux@treblig.org>
+ <90be12db-6aa5-cb8d-df98-fca3c994e4e8@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <90be12db-6aa5-cb8d-df98-fca3c994e4e8@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
-
-jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
-j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
-e Google.=20
-
-Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
-=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
-w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
-owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
-dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
-
-Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
-edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
-edstawi=C4=87 ofert=C4=99?=20
-
-
-Pozdrawiam serdecznie,
-Dominik Perkowski
+On Tue, Aug 08, 2023 at 08:51:16AM -0700, Randy Dunlap wrote:
+> 
+> 
+> On 8/6/23 18:09, linux@treblig.org wrote:
+> > From: "Dr. David Alan Gilbert" <linux@treblig.org>
+> > 
+> > sparc has a 'btext' font used for the console which is almost identical
+> > to the shared font_sun8x16, so use it rather than duplicating the data.
+> > 
+> > They were actually identical until about a decade ago when
+> >    commit bcfbeecea11c ("drivers: console: font_: Change a glyph from
+> >                         "broken bar" to "vertical line"")
+> > 
+> > which changed the | in the shared font to be a solid
+> > bar rather than a broken bar.  That's the only difference.
+> > 
+> > This was originally spotted by PMD which noticed that PPC does
+> > the same thing with the same data, and they also share a bunch
+> > of functions to manipulate the data.
+> > 
+> > Tested very lightly with a boot without FS in qemu.
+> > 
+> > Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+> 
+> This survives lots of build testing with no problems, so
+> 
+> Acked-by: Randy Dunlap <rdunlap@infradead.org>
+In that case:
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
