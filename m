@@ -2,90 +2,142 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21D31C001B0
-	for <sparclinux@archiver.kernel.org>; Tue,  8 Aug 2023 19:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67078C04A6A
+	for <sparclinux@archiver.kernel.org>; Tue,  8 Aug 2023 19:57:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231260AbjHHT4U (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:56:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45486 "EHLO
+        id S230400AbjHHT5p (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:57:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233803AbjHHT4D (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 8 Aug 2023 15:56:03 -0400
+        with ESMTP id S234643AbjHHT5D (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 8 Aug 2023 15:57:03 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 782BD6BD06;
-        Tue,  8 Aug 2023 11:11:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F8E7E71;
+        Tue,  8 Aug 2023 11:11:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+        Content-Type:In-Reply-To:References:Cc:To:From:Subject:MIME-Version:Date:
         Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=SAlx/kIleh+28h3Essv318fiwR/vLM7vg9luSDD7/ek=; b=EszhTjzFjJGc2q3cfCIBNY0J5B
-        s3f49m/TmRhmp8c5Kt8TXvdNjc0eyRj15pq0L3DtxBTcd6/HDfwlMw0LIN4R7SLuRAX8gxeMhV+Fn
-        WB+o1GdfZsexzT3IpW+znIAFMGkKHYY17burpvqPBHOm4opGZLLxMQiH577FNqXl/Olxwp/8AQxPF
-        MV0XWm8/lCsjZFcqVsgABCNgX4oLi2s40y+aA7CcE3osa5JTQtx5Y3wGbw4BBg0DheFvs/QPLlMup
-        0tGG5ahyg0VrWdAHD4cn6Ybkzznd+EAJyn1nI0NiDCUVDTnEW+92xqzn3dgh/oTj/zZJkcCVPSRXl
-        qD94ixmg==;
+        bh=IoPG8dlq66hTDTyIAklTpnQJayP5s9nIcHgBjUiFzms=; b=PK3ngQv9XY2IpbxEjhZYvjXt+O
+        J7dw0mhRVV5RJAv+RHwrmcOaei/zzeQWajwiRw+yrKX7QOW1JFFztjBim5wrzs5J+aeWqyR5qCN5c
+        FmMvMB7tsPZXmwPBNcMeaZU9ny/HYhsTjlyUWQjXPJaOxZEFQEf/EdOV66r8r+ujroiYcBEE0SnCd
+        aZgpj7HvvH9CC48v0wDJlYZT78ciEkg6e1mxBpIYcKJUote/5b5d40Ikdlbx3ujA8Dqmrc+nPoTe/
+        mIgzsLJrGa6Ryz0iQIsUgWnbMhPTAlp3KzdT35PRli7KzQBZBqhPxxTLJdYI3MZt9bTVQLfaliNV6
+        4oshYdaA==;
 Received: from [2601:1c2:980:9ec0::2764]
         by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qTOzO-002qfQ-0e;
-        Tue, 08 Aug 2023 15:51:18 +0000
-Message-ID: <90be12db-6aa5-cb8d-df98-fca3c994e4e8@infradead.org>
-Date:   Tue, 8 Aug 2023 08:51:16 -0700
+        id 1qTFDZ-001l3h-0Z;
+        Tue, 08 Aug 2023 05:25:17 +0000
+Message-ID: <124ef4a7-cc9a-e12c-7903-3ffefc374c65@infradead.org>
+Date:   Mon, 7 Aug 2023 22:25:16 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.14.0
-Subject: Re: [PATCH v3] sparc: Use shared font data
+Subject: Re: [PATCH v2] SPARC: Fix parport_pc support for 32-bit platforms
 Content-Language: en-US
-To:     linux@treblig.org, davem@davemloft.net, sam@ravnborg.org,
-        benh@kernel.crashing.org, akpm@linux-foundation.org
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mpe@ellerman.id.au, glaubitz@physik.fu-berlin.de
-References: <20230807010914.799713-1-linux@treblig.org>
 From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20230807010914.799713-1-linux@treblig.org>
+To:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org,
+        linux-parport@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <alpine.DEB.2.21.2306190121540.14084@angie.orcam.me.uk>
+ <aa528a08-c099-6a7d-32e9-7072ce91bff3@infradead.org>
+In-Reply-To: <aa528a08-c099-6a7d-32e9-7072ce91bff3@infradead.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Hi,
 
-
-On 8/6/23 18:09, linux@treblig.org wrote:
-> From: "Dr. David Alan Gilbert" <linux@treblig.org>
-> 
-> sparc has a 'btext' font used for the console which is almost identical
-> to the shared font_sun8x16, so use it rather than duplicating the data.
-> 
-> They were actually identical until about a decade ago when
->    commit bcfbeecea11c ("drivers: console: font_: Change a glyph from
->                         "broken bar" to "vertical line"")
-> 
-> which changed the | in the shared font to be a solid
-> bar rather than a broken bar.  That's the only difference.
-> 
-> This was originally spotted by PMD which noticed that PPC does
-> the same thing with the same data, and they also share a bunch
-> of functions to manipulate the data.
-> 
-> Tested very lightly with a boot without FS in qemu.
-> 
-> Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-
-This survives lots of build testing with no problems, so
-
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-
+Is there some way to have this build fix merged?
 Thanks.
 
+
+On 6/18/23 18:08, Randy Dunlap wrote:
 > 
-> v3
->   Added 'select FONT_SUPPORT' (to stop modconfig causing the font to be
->    linked into a module rather than the main kernel)
 > 
-> ---
->  arch/sparc/Kconfig        |   2 +
->  arch/sparc/kernel/btext.c | 365 +-------------------------------------
->  2 files changed, 11 insertions(+), 356 deletions(-)
+> On 6/18/23 18:01, Maciej W. Rozycki wrote:
+>> For 32-bit SPARC platforms PC-style parallel ports are only available as 
+>> PCI options.  Adjust <asm/parport.h> accordingly, fixing build errors:
+>>
+>> sparc-linux-gnu-ld: drivers/parport/parport_pc.o: in function `ecpp_remove':
+>> parport_pc.c:(.text+0x8f0): undefined reference to `ebus_dma_irq_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x8f8): undefined reference to `ebus_dma_unregister'
+>> sparc-linux-gnu-ld: drivers/parport/parport_pc.o: in function `parport_pc_fifo_write_block_dma':
+>> parport_pc.c:(.text+0x1430): undefined reference to `ebus_dma_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x1444): undefined reference to `ebus_dma_prepare'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x14e4): undefined reference to `ebus_dma_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x14f4): undefined reference to `ebus_dma_request'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x1584): undefined reference to `ebus_dma_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x1594): undefined reference to `ebus_dma_residue'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x1608): undefined reference to `ebus_dma_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x1618): undefined reference to `ebus_dma_residue'
+>> sparc-linux-gnu-ld: drivers/parport/parport_pc.o: in function `ecpp_probe':
+>> parport_pc.c:(.text+0x33a0): undefined reference to `ebus_dma_register'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x33b8): undefined reference to `ebus_dma_irq_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x34b0): undefined reference to `ebus_dma_irq_enable'
+>> sparc-linux-gnu-ld: parport_pc.c:(.text+0x34bc): undefined reference to `ebus_dma_unregister'
+>>
+>> Reported-by: Randy Dunlap <rdunlap@infradead.org> 
+>> Closes: https://lore.kernel.org/r/20230406160548.25721-1-rdunlap@infradead.org/
+>> Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
+>> Fixes: 66bcd06099bb ("parport_pc: Also enable driver for PCI systems")
+>> Cc: stable@vger.kernel.org # v5.18+
+> 
+> Acked-by: Randy Dunlap <rdunlap@infradead.org>
+> Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+> 
+> Thanks for fixing this.
+> 
+>> ---
+> 
+>> Changes from v1:
+>>
+>> - Wrap `dma_spin_lock' into HAS_DMA to fix a "'dma_spin_lock' defined but 
+>>   not used" warning.  I think it's slightly cleaner this way compared to 
+>>   wrapping the whole part into CONFIG_SPARC64, as this better reflects the 
+>>   structure of the dependencies here.  It also follows the structure of 
+>>   parport_pc.c, which likewise has `parport_pc_fifo_write_block_dma' put 
+>>   into CONFIG_PARPORT_PC_FIFO and then HAS_DMA conditionals.
+>>
+>> - Add Reported-by tag.
+>> ---
+>>  arch/sparc/include/asm/parport.h |    7 +++++--
+>>  1 file changed, 5 insertions(+), 2 deletions(-)
+>>
+>> linux-sparc32-parport-pc.diff
+>> Index: linux-macro/arch/sparc/include/asm/parport.h
+>> ===================================================================
+>> --- linux-macro.orig/arch/sparc/include/asm/parport.h
+>> +++ linux-macro/arch/sparc/include/asm/parport.h
+>> @@ -19,9 +19,11 @@
+>>   * While sparc64 doesn't have an ISA DMA API, we provide something that looks
+>>   * close enough to make parport_pc happy
+>>   */
+>> +#ifdef CONFIG_SPARC64
+>>  #define HAS_DMA
+>> +#endif
+>>  
+>> -#ifdef CONFIG_PARPORT_PC_FIFO
+>> +#if defined(CONFIG_PARPORT_PC_FIFO) && defined(HAS_DMA)
+>>  static DEFINE_SPINLOCK(dma_spin_lock);
+>>  
+>>  #define claim_dma_lock() \
+>> @@ -249,7 +251,8 @@ static struct platform_driver ecpp_drive
+>>  
+>>  static int parport_pc_find_nonpci_ports(int autoirq, int autodma)
+>>  {
+>> -	return platform_driver_register(&ecpp_driver);
+>> +	return (IS_ENABLED(CONFIG_SPARC64) &&
+>> +		platform_driver_register(&ecpp_driver));
+>>  }
+>>  
+>>  #endif /* !(_ASM_SPARC64_PARPORT_H */
+> 
 
 -- 
 ~Randy
