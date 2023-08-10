@@ -2,58 +2,124 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60697C0015E
-	for <sparclinux@archiver.kernel.org>; Wed,  9 Aug 2023 07:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99114C04A94
+	for <sparclinux@archiver.kernel.org>; Thu, 10 Aug 2023 13:13:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbjHIHlC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 9 Aug 2023 03:41:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59494 "EHLO
+        id S234434AbjHJNNj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 10 Aug 2023 09:13:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjHIHlB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 9 Aug 2023 03:41:01 -0400
-Received: from mail.corrib.pl (mail.corrib.pl [94.177.230.215])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B436D173A
-        for <sparclinux@vger.kernel.org>; Wed,  9 Aug 2023 00:40:58 -0700 (PDT)
-Received: by mail.corrib.pl (Postfix, from userid 1001)
-        id 759258659C; Wed,  9 Aug 2023 08:40:34 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corrib.pl; s=mail;
-        t=1691566855; bh=TZXVo85LWr2tcuVl565D1u9FicJkciGzz+5Dp18CTZE=;
-        h=Date:From:To:Subject:From;
-        b=iwmVZhXyKkF9fPBP377QhDJE04251HjReWyRJCxgz4bZuX2v7cPGTDgIyvsHrJ6xI
-         +38GPZHxXOOx+6naELsp2+5SiCnppBrzCEgWWnSamwEVM3NmuARJmlrO7DcPxEejdN
-         Mi+NkmqelLhLVb1ynJlEA0hPxrJ32x/yY84/TjMQaRbqaYFk/NgbudmVjVDVh4JEJJ
-         GvzIHQISd7jqoEH0uyvzMz9woMawI79LC4dkhf9s8A1O58/ailT/VBhyhe66qWi3iB
-         C8VZbbeQxPfIifSjwrJdES08QuHT4CnNPtNuexmgmNsjQh7ksEW/o5fQhTUxnJJJ23
-         yuzioneYeLb3A==
-Received: by mail.corrib.pl for <sparclinux@vger.kernel.org>; Wed,  9 Aug 2023 07:40:21 GMT
-Message-ID: <20230809074501-0.1.b1.mf8q.0.m99zd4fhkm@corrib.pl>
-Date:   Wed,  9 Aug 2023 07:40:21 GMT
-From:   "Bartosz Holender" <bartosz.holender@corrib.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Dop=C5=82ata_do_instalacji_pomp_ciep=C5=82a?=
-X-Mailer: mail.corrib.pl
+        with ESMTP id S230391AbjHJNNi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 10 Aug 2023 09:13:38 -0400
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E610826AC;
+        Thu, 10 Aug 2023 06:13:37 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-3fe167d4a18so8287295e9.0;
+        Thu, 10 Aug 2023 06:13:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1691673216; x=1692278016;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=mBhUjYJB57IDpg//HzidEUQPRD9Ij3Hoz+KbD9Efgcg=;
+        b=TcFfpXwkBBPAq0NBcNrHsW1c4sUY58+9ahJLEhkfjGTFzc/3cK5PhxciefozZVoGCN
+         8na+Im8VyJNUDuFMuhvWkb2uI8sPstepuuYnTAMbH5JdvIQKKL/2xppZY/r9weya0Vru
+         ckycSiYtcy7a6oGn8DNutV7PZNLnXAHSvKPR2qiLBu/L51/NZPvDo/tcjWzKQf1wILYS
+         AHs226d6QpPHbJm+qK8m+gYOOdLJ1mhizwn3rROyUf/ip73pNS+eZMciSBSXeJfe7oZV
+         82fAIxmzjYyqg0mN6d2ZQ87sorCGJ6q9NBuMDfwDioBu6EYolGINwVmGit2p0hhGl6qr
+         a6ag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691673216; x=1692278016;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=mBhUjYJB57IDpg//HzidEUQPRD9Ij3Hoz+KbD9Efgcg=;
+        b=ckCjWTj3+H/FC/bzlKobsHCLjGQXhOPgBjxZJRyRX7+eQpgP/AUQ/dXdl2k5W3u0Mi
+         QXsNKvN2Lxy130X4i/XK+8hpSl7NgFBUEcDG495tnUssk3G/r5sbQsAK8z/vEXFx1a0d
+         GydZcWLT2pz1owUGCR/t0yG5/0GjI1bCMnjKDgBIUZLSzzXsehI3yV5htQ2p4St+CzFE
+         Q6FEZJDKQ+fiEDbC+p0H+MLNg9xjIbnvBEUb92w5wEH4sTxO+qFjEdTpfmTJ1InK3b69
+         K3STvDGFe+sfOpbiTAZdKkir4whpMnb8J2qpuxfk2bQPSRkhTMz9tvmPDpo4jDMyb6lc
+         Z+sw==
+X-Gm-Message-State: AOJu0YwYnnW25eGFNlTjlfGzs3rUnNB0Q5BhAPs+umtxsd5Vp7CteiV4
+        0KCq5ZUB7UIss1oqEOM9B+Y=
+X-Google-Smtp-Source: AGHT+IHklVUeXSY1U4xhUe1yFTSP/55+Ie6PL6bdURE+H3ONkkC3Ip3iEN3BpJCHe2n8zJjS/PMpHw==
+X-Received: by 2002:a5d:5489:0:b0:317:5d1c:9719 with SMTP id h9-20020a5d5489000000b003175d1c9719mr2064130wrv.9.1691673216090;
+        Thu, 10 Aug 2023 06:13:36 -0700 (PDT)
+Received: from [192.168.2.41] ([46.227.18.67])
+        by smtp.gmail.com with ESMTPSA id y14-20020adff6ce000000b00317e9f8f194sm2167545wrp.34.2023.08.10.06.13.34
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 10 Aug 2023 06:13:35 -0700 (PDT)
+Message-ID: <23d8d0c1-1a67-b641-f09d-f17f9678081e@gmail.com>
+Date:   Thu, 10 Aug 2023 15:13:33 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.14.0
+Subject: Re: [PATCH v2] tty: Explicitly include correct DT includes
+Content-Language: fr
+To:     Rob Herring <robh@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Karol Gugala <kgugala@antmicro.com>,
+        Mateusz Holenko <mholenko@antmicro.com>,
+        Gabriel Somlo <gsomlo@gmail.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Jacky Huang <ychuang3@nuvoton.com>,
+        Shan-Chun Hung <schung@nuvoton.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Timur Tabi <timur@kernel.org>
+Cc:     linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
+        sparclinux@vger.kernel.org
+References: <20230724205440.767071-1-robh@kernel.org>
+From:   Richard Genoud <richard.genoud@gmail.com>
+In-Reply-To: <20230724205440.767071-1-robh@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
-
-niezale=C5=BCnie od tego czy dom ogrzewacie Pa=C5=84stwo gazem, pelletem =
-czy ciep=C5=82em systemowym - w ramach programu M=C3=B3j Pr=C4=85d mog=C4=
-=85 otrzyma=C4=87 Pa=C5=84stwo 28 tys. z=C5=82 na zakup i monta=C5=BC pom=
-py ciep=C5=82a, kt=C3=B3ra pozwala obni=C5=BCy=C4=87 koszty ogrzewania i =
-energii elektrycznej.
-
-Jako firma specjalizuj=C4=85ca si=C4=99 w doborze, instalacji i serwisie =
-pomp ciep=C5=82a zajmujemy si=C4=99 tak=C5=BCe wszelkimi formalno=C5=9Bci=
-ami zwi=C4=85zanymi z ubieganiem si=C4=99 o =C5=9Brodki.
-
-Chcieliby Pa=C5=84stwo niezobowi=C4=85zuj=C4=85co porozmawia=C4=87 o mo=C5=
-=BCliwo=C5=9Bciach?
+Le 24/07/2023 à 22:54, Rob Herring a écrit :
+> The DT of_device.h and of_platform.h date back to the separate
+> of_platform_bus_type before it as merged into the regular platform bus.
+> As part of that merge prepping Arm DT support 13 years ago, they
+> "temporarily" include each other. They also include platform_device.h
+> and of.h. As a result, there's a pretty much random mix of those include
+> files used throughout the tree. In order to detangle these headers and
+> replace the implicit includes with struct declarations, users need to
+> explicitly include the correct includes.
+> 
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
 
-Pozdrawiam
-Bartosz Holender
+Acked-by: Richard GENOUD <richard.genoud@gmail.com> # for atmel_serial
+
+Thanks !
+
+Regards,
+Richard
