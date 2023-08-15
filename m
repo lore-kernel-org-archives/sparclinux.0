@@ -2,192 +2,107 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9705FC001DE
-	for <sparclinux@archiver.kernel.org>; Tue, 15 Aug 2023 07:13:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 925C8C001DE
+	for <sparclinux@archiver.kernel.org>; Tue, 15 Aug 2023 07:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235382AbjHOHMl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 15 Aug 2023 03:12:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40908 "EHLO
+        id S235005AbjHOHeT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 15 Aug 2023 03:34:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235373AbjHOHML (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 15 Aug 2023 03:12:11 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84203198B
-        for <sparclinux@vger.kernel.org>; Tue, 15 Aug 2023 00:11:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692083481;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=CUx5LEJZOPKDsMypuqMlxZ2NyXniu36dIsENemGDz2U=;
-        b=KUY83w3GGF5VIXo0q6oJrjBfhfoLpmP9OKILtHR7DI6mlxF+bBQvu4iROtMZOYODmoG7FB
-        vpeLGgzI4szYKuZLJOnixh1sTjgyHov5APqW5ADAvqbic/V9QwGVUzu7TmX6jXsPPBcbkY
-        V2MQoBRDfnyH9wmMxpEYXYfGacaGo5I=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-572-5WmKxfEiOZOUfQkQyil15g-1; Tue, 15 Aug 2023 03:11:20 -0400
-X-MC-Unique: 5WmKxfEiOZOUfQkQyil15g-1
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-3fe4cca36b7so34131635e9.3
-        for <sparclinux@vger.kernel.org>; Tue, 15 Aug 2023 00:11:19 -0700 (PDT)
+        with ESMTP id S235232AbjHOHd7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 15 Aug 2023 03:33:59 -0400
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 593E9107
+        for <sparclinux@vger.kernel.org>; Tue, 15 Aug 2023 00:33:58 -0700 (PDT)
+Received: by mail-ej1-x635.google.com with SMTP id a640c23a62f3a-986d8332f50so692421166b.0
+        for <sparclinux@vger.kernel.org>; Tue, 15 Aug 2023 00:33:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1692084836; x=1692689636;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=ptPuBEpK+bTuLrHXWomcWZqL5q0T5IOC69Hvw3A95bI=;
+        b=KFI+UK7Ev9NoB+QrDddZx9LmrmscknI+E/D4xZ0r2SJDn+V/VJeg6WzDm8K+PE5VNN
+         M2LvF3rGyjKn17nbxKUmHNYzOzfjr95LpdXsPqRBGgf2GbmDPiXhPfd8YTIEkrriESHf
+         nVwDddGFJiJnMuNDWe+lbiX5vs9w9SOivomOQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692083479; x=1692688279;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20221208; t=1692084836; x=1692689636;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=CUx5LEJZOPKDsMypuqMlxZ2NyXniu36dIsENemGDz2U=;
-        b=ORwe/1BNZGctvwYPJXnGoGcQH6+q329DrIRvmp9X/TVN5MuLuXxacKkzdAcb5f3tp6
-         snARLEcB5kbIxfhwzx6OZ9wtubQPO2xLIiRziiNlMM62C8aF053EyAzqFjlP9KzSMkZU
-         FSKXyRlbNkdAxYEtxwP+QislfPAGgHZN/ZmoJUH4YOCSND1e15cXgbnVLOY/YMrB1kAH
-         0Cn34PlNlfN0kbLUXd+dWeaSi269CpRTFJo4ym9tTiEEwXdHfAi5Q9OxWAsOBbCawsp3
-         OmuLZLVzLTa/sHRHFQcmvLSoQuNqtJJuvhGVYA5BG7LLyLxInO8+acHea4uIbeQdJQGb
-         rpBw==
-X-Gm-Message-State: AOJu0YwTm4DA6c8S4lZBmEO7vTgaizkjeXqFZ+ds0zstG8AP6qlui+mf
-        VahMBek1HAhR8x2pT9NMsbNZDUengvMReK3I5896T2kouCY2zCBtMxqu6DEN4/HnvzNMfwSIWuD
-        O7kqgnOlC64qICKmjzvL2Lg==
-X-Received: by 2002:a05:600c:2990:b0:3fe:485f:ed13 with SMTP id r16-20020a05600c299000b003fe485fed13mr9404404wmd.29.1692083478919;
-        Tue, 15 Aug 2023 00:11:18 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEiQ+EYuKIjtdDIXSbwm8P8GjevS6zUtMu7iUNLTT7TYUjZWJk7Cfz7u1UU0MPiq0T6R+AMng==
-X-Received: by 2002:a05:600c:2990:b0:3fe:485f:ed13 with SMTP id r16-20020a05600c299000b003fe485fed13mr9404349wmd.29.1692083478509;
-        Tue, 15 Aug 2023 00:11:18 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c701:3100:c642:ba83:8c37:b0e? (p200300cbc7013100c642ba838c370b0e.dip0.t-ipconnect.de. [2003:cb:c701:3100:c642:ba83:8c37:b0e])
-        by smtp.gmail.com with ESMTPSA id m8-20020a7bca48000000b003fa96fe2bd9sm19977946wml.22.2023.08.15.00.11.16
+        bh=ptPuBEpK+bTuLrHXWomcWZqL5q0T5IOC69Hvw3A95bI=;
+        b=H66F/6t6lShuDc02KUGvSwLLzcoxtJMvJfi3/XBveuRKlARIZWRSrWdqehMMJTCBIm
+         GzODrb7iDZgvu8UIYO7DouLYvMmgINftClGO9XkSWVrFfOM+UYlmqjWh5F8TsnWI6Ybc
+         Bc4qAhy47JiICoegZszWaDUaZaBgiTWM0qBF6p9H/IzphebcqOyV+gYiPKGTctq+ueGL
+         MNQnRW5BLkjhkUUP7uRUdpf8PgyEpvAMqEwaFQxRWlY8T5SXWrBmcP0wYF86iAlBPUmu
+         vEVd07JmHrAijyDvB26Uq2tc9CL5eO7RXkwZTONDSIAShLrzdFGxJqWca9hFZkLXbRJK
+         4fBw==
+X-Gm-Message-State: AOJu0Ywi2h706NeovL0AZh/BL0F6bzeGuJtYrmUaUofyukEklnB6Hly/
+        w3RR21uR0b9a1HvpT3lowxP+zT5yANn+dYg4YWYjtd2h
+X-Google-Smtp-Source: AGHT+IFmNvjl1uQyi8MnRJ9Sx9uOp8XQqnxiNCxCHCLWQHZDjm9/81hdBPj4LuFqHi+C7+48yh9M5w==
+X-Received: by 2002:a17:906:3d21:b0:99b:c952:309a with SMTP id l1-20020a1709063d2100b0099bc952309amr8948913ejf.39.1692084836735;
+        Tue, 15 Aug 2023 00:33:56 -0700 (PDT)
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com. [209.85.208.48])
+        by smtp.gmail.com with ESMTPSA id b15-20020a170906490f00b0099c971ba285sm6622988ejq.5.2023.08.15.00.33.53
+        for <sparclinux@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 15 Aug 2023 00:11:17 -0700 (PDT)
-Message-ID: <76e6b2ad-4e1e-2ad3-95df-00b4d33ec9d2@redhat.com>
-Date:   Tue, 15 Aug 2023 09:11:15 +0200
+        Tue, 15 Aug 2023 00:33:54 -0700 (PDT)
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-522dd6b6438so6396712a12.0
+        for <sparclinux@vger.kernel.org>; Tue, 15 Aug 2023 00:33:53 -0700 (PDT)
+X-Received: by 2002:a05:6402:290:b0:523:1004:1c9a with SMTP id
+ l16-20020a056402029000b0052310041c9amr8202386edv.35.1692084833506; Tue, 15
+ Aug 2023 00:33:53 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [BUG] Re: [PATCH v3 10/13] mm/khugepaged:
- collapse_pte_mapped_thp() with mmap_read_lock()
-Content-Language: en-US
-To:     Hugh Dickins <hughd@google.com>, Jann Horn <jannh@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        sparclinux@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        kernel list <linux-kernel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>
-References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com>
- <b53be6a4-7715-51f9-aad-f1347dcb7c4@google.com>
- <CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com>
- <cacd4a19-386d-8bea-400-e99778dbc3b@google.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <cacd4a19-386d-8bea-400-e99778dbc3b@google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <202308151426.97be5bd8-oliver.sang@intel.com>
+In-Reply-To: <202308151426.97be5bd8-oliver.sang@intel.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 15 Aug 2023 07:33:36 +0000
+X-Gmail-Original-Message-ID: <CAHk-=whbOEhPUL1m8Ua-+-E7kJXED4xa+duzRF-wJKR84NAPWg@mail.gmail.com>
+Message-ID: <CAHk-=whbOEhPUL1m8Ua-+-E7kJXED4xa+duzRF-wJKR84NAPWg@mail.gmail.com>
+Subject: Re: [linus:master] [locking] c8afaa1b0f: stress-ng.zero.ops_per_sec
+ 6.3% improvement
+To:     kernel test robot <oliver.sang@intel.com>
+Cc:     Mateusz Guzik <mjguzik@gmail.com>, oe-lkp@lists.linux.dev,
+        lkp@intel.com, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, ying.huang@intel.com,
+        feng.tang@intel.com, fengwei.yin@intel.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 15.08.23 08:34, Hugh Dickins wrote:
-> On Mon, 14 Aug 2023, Jann Horn wrote:
->> On Wed, Jul 12, 2023 at 6:42 AM Hugh Dickins <hughd@google.com> wrote:
->>> Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
->>> It does need mmap_read_lock(), but it does not need mmap_write_lock(),
->>> nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
->>> paths are relying on pte_offset_map_lock() and pmd_lock(), so use those.
->>
->> We can still have a racing userfaultfd operation at the "/* step 4:
->> remove page table */" point that installs a new PTE before the page
->> table is removed.
->>
->> To reproduce, patch a delay into the kernel like this:
->>
->>
->> diff --git a/mm/khugepaged.c b/mm/khugepaged.c
->> index 9a6e0d507759..27cc8dfbf3a7 100644
->> --- a/mm/khugepaged.c
->> +++ b/mm/khugepaged.c
->> @@ -20,6 +20,7 @@
->>   #include <linux/swapops.h>
->>   #include <linux/shmem_fs.h>
->>   #include <linux/ksm.h>
->> +#include <linux/delay.h>
->>
->>   #include <asm/tlb.h>
->>   #include <asm/pgalloc.h>
->> @@ -1617,6 +1618,11 @@ int collapse_pte_mapped_thp(struct mm_struct
->> *mm, unsigned long addr,
->>          }
->>
->>          /* step 4: remove page table */
->> +       if (strcmp(current->comm, "DELAYME") == 0) {
->> +               pr_warn("%s: BEGIN DELAY INJECTION\n", __func__);
->> +               mdelay(5000);
->> +               pr_warn("%s: END DELAY INJECTION\n", __func__);
->> +       }
->>
->>          /* Huge page lock is still held, so page table must remain empty */
->>          pml = pmd_lock(mm, pmd);
->>
->>
->> And then run the attached reproducer against mm/mm-everything. You
->> should get this in dmesg:
->>
->> [  206.578096] BUG: Bad rss-counter state mm:000000000942ebea
->> type:MM_ANONPAGES val:1
-> 
-> Thanks a lot, Jann. I haven't thought about it at all yet; and just
-> tried to reproduce, but haven't yet got the "BUG: Bad rss-counter":
-> just see "Invalid argument" on the UFFDIO_COPY ioctl.
-> Will investigate tomorrow.
+On Tue, 15 Aug 2023 at 07:12, kernel test robot <oliver.sang@intel.com> wrote:
+>
+> kernel test robot noticed a 6.3% improvement of stress-ng.zero.ops_per_sec on:
 
-Maybe you're missing a fixup:
+WTF? That's ridiculous. Why would that even test new_inode() at all?
+And why would it make any difference anyway to prefetch a new inode?
+The 'zero' test claims to just read /dev/zero in a loop...
 
-https://lkml.kernel.org/r/20230810192128.1855570-1-axelrasmussen@google.com
+[ Goes looking ]
 
-When the src address is not page aligned, UFFDIO_COPY in mm-unstable 
-would erroneously fail.
+>      39.35            -0.3       39.09        perf-profile.calltrace.cycles-pp.inode_sb_list_add.new_inode.shmem_get_inode.__shmem_file_setup.shmem_zero_setup
 
--- 
-Cheers,
+Ahh. It also does the mmap side, and the shared case ends up always
+creating a new inode.
 
-David / dhildenb
+And while the test only tests *reading* and the mmap is read-only, the
+/dev/zero file descriptor was opened for writing too, for a different
+part of a test.
 
+So even though the mapping is never written to, MAYWRITE is set, and
+so the /dev/zero mapping is done as a shared memory mapping and we
+can't do it as just a private one.
+
+That's kind of stupid and looks unintentional, but whatever.
+
+End result: that benchmark ends up being at least partly (and a fairly
+noticeable part) a shmem setup benchmark, for no actual good reason.
+
+Oh well. I certainly don't mind the removal apparently then also
+helping some odd benchmark case, but I don't think this translates to
+anything real. Very random.
+
+                    Linus
