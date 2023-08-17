@@ -2,30 +2,34 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6D23C64EBC
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:09:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15FF3C3DA4D
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:14:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353494AbjHQQI2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:08:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59848 "EHLO
+        id S238396AbjHQQNq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 12:13:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353518AbjHQQIF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:05 -0400
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 918DA3580
-        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:08:02 -0700 (PDT)
+        with ESMTP id S1353254AbjHQQNf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:13:35 -0400
+X-Greylist: delayed 337 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 17 Aug 2023 09:13:34 PDT
+Received: from cantor.telenet-ops.be (cantor.telenet-ops.be [195.130.132.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5ECC173F
+        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:13:34 -0700 (PDT)
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by cantor.telenet-ops.be (Postfix) with ESMTPS id 4RRVK734nPz4x3WY
+        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 18:07:55 +0200 (CEST)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:d85a:258d:2c59:b44])
-        by albert.telenet-ops.be with bizsmtp
-        id ag7i2A0024QHFyo06g7iZt; Thu, 17 Aug 2023 18:07:54 +0200
+        by baptiste.telenet-ops.be with bizsmtp
+        id ag7i2A00B4QHFyo01g7ivk; Thu, 17 Aug 2023 18:07:55 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtp (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfX4-000uIi-Bd;
-        Thu, 17 Aug 2023 18:07:41 +0200
+        id 1qWfX4-000uJD-JE;
+        Thu, 17 Aug 2023 18:07:42 +0200
 Received: from geert by rox.of.borg with local (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfXB-007YEh-Qn;
-        Thu, 17 Aug 2023 18:07:41 +0200
+        id 1qWfXC-007YFD-16;
+        Thu, 17 Aug 2023 18:07:42 +0200
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
 To:     Russell King <linux@armlinux.org.uk>,
         "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
@@ -43,9 +47,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 2/9] parisc: Remove <asm/ide.h>
-Date:   Thu, 17 Aug 2023 18:07:33 +0200
-Message-Id: <5ea78d9c54cf94c6074fde6f277bb7a08bfe8d08.1692288018.git.geert@linux-m68k.org>
+Subject: [PATCH 9/9] m68k: Remove <asm/ide.h>
+Date:   Thu, 17 Aug 2023 18:07:40 +0200
+Message-Id: <3e84d9f8bf0aefcbc06a73bb9f0b98dedab0271f.1692288018.git.geert@linux-m68k.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1692288018.git.geert@linux-m68k.org>
 References: <cover.1692288018.git.geert@linux-m68k.org>
@@ -55,75 +59,87 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
-v5.14, there are no more generic users of <asm/ide.h>.
+There are no more users of <asm/ide.h>.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- arch/parisc/include/asm/ide.h | 54 -----------------------------------
- 1 file changed, 54 deletions(-)
- delete mode 100644 arch/parisc/include/asm/ide.h
+ arch/m68k/include/asm/ide.h | 67 -------------------------------------
+ 1 file changed, 67 deletions(-)
+ delete mode 100644 arch/m68k/include/asm/ide.h
 
-diff --git a/arch/parisc/include/asm/ide.h b/arch/parisc/include/asm/ide.h
+diff --git a/arch/m68k/include/asm/ide.h b/arch/m68k/include/asm/ide.h
 deleted file mode 100644
-index 7aa75b93a1b6c76d..0000000000000000
---- a/arch/parisc/include/asm/ide.h
+index 05cc7dc00e0c1437..0000000000000000
+--- a/arch/m68k/include/asm/ide.h
 +++ /dev/null
-@@ -1,54 +0,0 @@
+@@ -1,67 +0,0 @@
 -/* SPDX-License-Identifier: GPL-2.0 */
 -/*
-- *  linux/include/asm-parisc/ide.h
-- *
 - *  Copyright (C) 1994-1996  Linus Torvalds & authors
 - */
 -
+-/* Copyright(c) 1996 Kars de Jong */
+-/* Based on the ide driver from 1.2.13pl8 */
+-
 -/*
-- *  This file contains the PARISC architecture specific IDE code.
+- * Credits (alphabetical):
+- *
+- *  - Bjoern Brauel
+- *  - Kars de Jong
+- *  - Torsten Ebeling
+- *  - Dwight Engen
+- *  - Thorsten Floeck
+- *  - Roman Hodek
+- *  - Guenther Kelleter
+- *  - Chris Lawrence
+- *  - Michael Rausch
+- *  - Christian Sauer
+- *  - Michael Schmitz
+- *  - Jes Soerensen
+- *  - Michael Thurm
+- *  - Geert Uytterhoeven
 - */
 -
--#ifndef __ASM_PARISC_IDE_H
--#define __ASM_PARISC_IDE_H
+-#ifndef _M68K_IDE_H
+-#define _M68K_IDE_H
 -
--/* Generic I/O and MEMIO string operations.  */
+-#ifdef __KERNEL__
+-#include <asm/setup.h>
+-#include <asm/io.h>
+-#include <asm/irq.h>
 -
--#define __ide_insw	insw
--#define __ide_insl	insl
--#define __ide_outsw	outsw
--#define __ide_outsl	outsl
+-#ifdef CONFIG_MMU
 -
--static __inline__ void __ide_mm_insw(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		*(u16 *)addr = __raw_readw(port);
--		addr += 2;
--	}
--}
+-/*
+- * Get rid of defs from io.h - ide has its private and conflicting versions
+- * Since so far no single m68k platform uses ISA/PCI I/O space for IDE, we
+- * always use the `raw' MMIO versions
+- */
+-#undef readb
+-#undef readw
+-#undef writeb
+-#undef writew
 -
--static __inline__ void __ide_mm_insl(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		*(u32 *)addr = __raw_readl(port);
--		addr += 4;
--	}
--}
+-#define readb				in_8
+-#define readw				in_be16
+-#define __ide_mm_insw(port, addr, n)	raw_insw((u16 *)port, addr, n)
+-#define __ide_mm_insl(port, addr, n)	raw_insl((u32 *)port, addr, n)
+-#define writeb(val, port)		out_8(port, val)
+-#define writew(val, port)		out_be16(port, val)
+-#define __ide_mm_outsw(port, addr, n)	raw_outsw((u16 *)port, addr, n)
+-#define __ide_mm_outsl(port, addr, n)	raw_outsl((u32 *)port, addr, n)
 -
--static __inline__ void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		__raw_writew(*(u16 *)addr, port);
--		addr += 2;
--	}
--}
+-#else
 -
--static __inline__ void __ide_mm_outsl(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		__raw_writel(*(u32 *)addr, port);
--		addr += 4;
--	}
--}
+-#define __ide_mm_insw(port, addr, n)	io_insw((unsigned int)port, addr, n)
+-#define __ide_mm_insl(port, addr, n)	io_insl((unsigned int)port, addr, n)
+-#define __ide_mm_outsw(port, addr, n)	io_outsw((unsigned int)port, addr, n)
+-#define __ide_mm_outsl(port, addr, n)	io_outsl((unsigned int)port, addr, n)
 -
--#endif /* __ASM_PARISC_IDE_H */
+-#endif /* CONFIG_MMU */
+-
+-#endif /* __KERNEL__ */
+-#endif /* _M68K_IDE_H */
 -- 
 2.34.1
 
