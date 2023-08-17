@@ -2,30 +2,30 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08D0EC3DA50
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3661CC3DA54
 	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353509AbjHQQIZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:08:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46714 "EHLO
+        id S1353460AbjHQQI0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 12:08:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353400AbjHQQH6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:07:58 -0400
-Received: from michel.telenet-ops.be (michel.telenet-ops.be [IPv6:2a02:1800:110:4::f00:18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13130358B
+        with ESMTP id S1353464AbjHQQH7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:07:59 -0400
+Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12FA6358A
         for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:07:55 -0700 (PDT)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:d85a:258d:2c59:b44])
-        by michel.telenet-ops.be with bizsmtp
-        id ag7i2A0034QHFyo06g7i5M; Thu, 17 Aug 2023 18:07:54 +0200
+        by albert.telenet-ops.be with bizsmtp
+        id ag7i2A0054QHFyo06g7iZw; Thu, 17 Aug 2023 18:07:54 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtp (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfX4-000uIj-CR;
-        Thu, 17 Aug 2023 18:07:41 +0200
+        id 1qWfX4-000uJ9-HE;
+        Thu, 17 Aug 2023 18:07:42 +0200
 Received: from geert by rox.of.borg with local (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfXB-007YEk-Re;
-        Thu, 17 Aug 2023 18:07:41 +0200
+        id 1qWfXC-007YF9-0C;
+        Thu, 17 Aug 2023 18:07:42 +0200
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
 To:     Russell King <linux@armlinux.org.uk>,
         "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
@@ -43,9 +43,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 3/9] powerpc: Remove <asm/ide.h>
-Date:   Thu, 17 Aug 2023 18:07:34 +0200
-Message-Id: <eb79960c5f9f72013b3b2f6d19461e5d8134fcc2.1692288018.git.geert@linux-m68k.org>
+Subject: [PATCH 8/9] ata: pata_gayle: Remove #include <asm/ide.h>
+Date:   Thu, 17 Aug 2023 18:07:39 +0200
+Message-Id: <8a6ff4d7caad33dcb6b32ab49329b7bc4ec0c29b.1692288018.git.geert@linux-m68k.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1692288018.git.geert@linux-m68k.org>
 References: <cover.1692288018.git.geert@linux-m68k.org>
@@ -55,39 +55,25 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
-v5.14, there are no more generic users of <asm/ide.h>.
+The Amiga Gayle PATA driver does not need anything from <asm/ide.h>.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- arch/powerpc/include/asm/ide.h | 18 ------------------
- 1 file changed, 18 deletions(-)
- delete mode 100644 arch/powerpc/include/asm/ide.h
+ drivers/ata/pata_gayle.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/powerpc/include/asm/ide.h b/arch/powerpc/include/asm/ide.h
-deleted file mode 100644
-index ce87a4441ca34887..0000000000000000
---- a/arch/powerpc/include/asm/ide.h
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- *  Copyright (C) 1994-1996 Linus Torvalds & authors
-- *
-- *  This file contains the powerpc architecture specific IDE code.
-- */
--#ifndef _ASM_POWERPC_IDE_H
--#define _ASM_POWERPC_IDE_H
--
--#include <linux/compiler.h>
--#include <asm/io.h>
--
--#define __ide_mm_insw(p, a, c)	readsw((void __iomem *)(p), (a), (c))
--#define __ide_mm_insl(p, a, c)	readsl((void __iomem *)(p), (a), (c))
--#define __ide_mm_outsw(p, a, c)	writesw((void __iomem *)(p), (a), (c))
--#define __ide_mm_outsl(p, a, c)	writesl((void __iomem *)(p), (a), (c))
--
--#endif /* _ASM_POWERPC_IDE_H */
+diff --git a/drivers/ata/pata_gayle.c b/drivers/ata/pata_gayle.c
+index e5aa07f92106547e..3bdbe2b65a2b49f1 100644
+--- a/drivers/ata/pata_gayle.c
++++ b/drivers/ata/pata_gayle.c
+@@ -27,7 +27,6 @@
+ #include <asm/amigahw.h>
+ #include <asm/amigaints.h>
+ #include <asm/amigayle.h>
+-#include <asm/ide.h>
+ #include <asm/setup.h>
+ 
+ #define DRV_NAME "pata_gayle"
 -- 
 2.34.1
 
