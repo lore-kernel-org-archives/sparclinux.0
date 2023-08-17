@@ -2,29 +2,29 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E3BC531DA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A35C5320E
 	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:09:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353474AbjHQQI0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:08:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46812 "EHLO
+        id S1353514AbjHQQI2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 12:08:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353477AbjHQQIA (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:00 -0400
-Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EA8635A5
-        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:07:56 -0700 (PDT)
+        with ESMTP id S1353503AbjHQQID (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:03 -0400
+Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0921A35BE
+        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:07:57 -0700 (PDT)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:d85a:258d:2c59:b44])
-        by baptiste.telenet-ops.be with bizsmtp
-        id ag7i2A0074QHFyo01g7ivj; Thu, 17 Aug 2023 18:07:55 +0200
+        by laurent.telenet-ops.be with bizsmtp
+        id ag7i2A0054QHFyo01g7i1F; Thu, 17 Aug 2023 18:07:55 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtp (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfX4-000uJ4-GF;
+        id 1qWfX4-000uIv-EU;
         Thu, 17 Aug 2023 18:07:42 +0200
 Received: from geert by rox.of.borg with local (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfXB-007YF1-VZ;
+        id 1qWfXB-007YEt-Th;
         Thu, 17 Aug 2023 18:07:41 +0200
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
 To:     Russell King <linux@armlinux.org.uk>,
@@ -43,9 +43,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 7/9] ata: pata_falcon: Remove #include <asm/ide.h>
-Date:   Thu, 17 Aug 2023 18:07:38 +0200
-Message-Id: <1147903ba2f9c5e5e840d8b3c2d05b6eafc78340.1692288018.git.geert@linux-m68k.org>
+Subject: [PATCH 5/9] asm-generic: Remove ide_iops.h
+Date:   Thu, 17 Aug 2023 18:07:36 +0200
+Message-Id: <54ed1ce4b29346803bd732aac560a74896d1ecfe.1692288018.git.geert@linux-m68k.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1692288018.git.geert@linux-m68k.org>
 References: <cover.1692288018.git.geert@linux-m68k.org>
@@ -55,25 +55,60 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The Atari Falcon PATA driver does not need anything from <asm/ide.h>.
+The last user of ide_iops.h was removed in commit b7fb14d3ac63117e
+("ide: remove the legacy ide driver") in v5.14.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- drivers/ata/pata_falcon.c | 1 -
- 1 file changed, 1 deletion(-)
+ include/asm-generic/ide_iops.h | 39 ----------------------------------
+ 1 file changed, 39 deletions(-)
+ delete mode 100644 include/asm-generic/ide_iops.h
 
-diff --git a/drivers/ata/pata_falcon.c b/drivers/ata/pata_falcon.c
-index 996516e64f13504e..0904232e5e0c4c8c 100644
---- a/drivers/ata/pata_falcon.c
-+++ b/drivers/ata/pata_falcon.c
-@@ -28,7 +28,6 @@
- #include <asm/atarihw.h>
- #include <asm/atariints.h>
- #include <asm/atari_stdma.h>
--#include <asm/ide.h>
- 
- #define DRV_NAME "pata_falcon"
- #define DRV_VERSION "0.1.0"
+diff --git a/include/asm-generic/ide_iops.h b/include/asm-generic/ide_iops.h
+deleted file mode 100644
+index 81dfa3ee5e0697b7..0000000000000000
+--- a/include/asm-generic/ide_iops.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/* Generic I/O and MEMIO string operations.  */
+-
+-#define __ide_insw	insw
+-#define __ide_insl	insl
+-#define __ide_outsw	outsw
+-#define __ide_outsl	outsl
+-
+-static __inline__ void __ide_mm_insw(void __iomem *port, void *addr, u32 count)
+-{
+-	while (count--) {
+-		*(u16 *)addr = readw(port);
+-		addr += 2;
+-	}
+-}
+-
+-static __inline__ void __ide_mm_insl(void __iomem *port, void *addr, u32 count)
+-{
+-	while (count--) {
+-		*(u32 *)addr = readl(port);
+-		addr += 4;
+-	}
+-}
+-
+-static __inline__ void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
+-{
+-	while (count--) {
+-		writew(*(u16 *)addr, port);
+-		addr += 2;
+-	}
+-}
+-
+-static __inline__ void __ide_mm_outsl(void __iomem * port, void *addr, u32 count)
+-{
+-	while (count--) {
+-		writel(*(u32 *)addr, port);
+-		addr += 4;
+-	}
+-}
 -- 
 2.34.1
 
