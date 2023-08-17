@@ -2,46 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C87B3C41513
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3CC6C54799
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 19:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353678AbjHQQjk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53254 "EHLO
+        id S1354649AbjHQTFJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 15:05:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353721AbjHQQjh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:39:37 -0400
-Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:400::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1B13E2
-        for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:39:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=vIZEApjN48v7cjxMWecDniUYGxJ1pBYdlqtVcwGIpD4=;
-        b=afbiIZBkDs4heKfhbghMmeD4NDauTO4zHYXx7GwvDSoUudh5dRzdfzzzZ9TKJYNq5o2Zg9gPPzx/2
-         pO1mBnTUHH68D10xoCEu/g/ELHOKcwA42C5FOdHCySvCwKAHDebv8MqGiWexGlAcBu57+ejcULfnjt
-         psejozQNn0kflhd4mUCCOVy1UGLKwe1oK9Eq6FxqQFHjpAZAQqFgXDq4NcLE5HBd7opM9kFrnU6/sG
-         FDik21/qNeoWx9b651AEYuM9i2W6oZB/9CoSVodFUEQBfZkonFXsRbw1NcNqUqLFVrJfu1KiTvWU5U
-         jU48fKXHb2ME7TvDFkcX0nn6TsxXioQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=vIZEApjN48v7cjxMWecDniUYGxJ1pBYdlqtVcwGIpD4=;
-        b=aU7GlH1EhJat8ieYjr1tdfY1IaPGhPENN3XtgpOGEdP2VKMUUpnLUAsd17kC/5B3icem4A1j4Pt4I
-         BGw03biAg==
-X-HalOne-ID: a3bc9125-3d1c-11ee-8c77-c5367ef0e45e
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay1 (Halon) with ESMTPSA
-        id a3bc9125-3d1c-11ee-8c77-c5367ef0e45e;
-        Thu, 17 Aug 2023 16:39:33 +0000 (UTC)
-Date:   Thu, 17 Aug 2023 18:39:31 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
+        with ESMTP id S1354644AbjHQTFC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 15:05:02 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EBE230D6;
+        Thu, 17 Aug 2023 12:05:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de;
+ s=s31663417; t=1692299070; x=1692903870; i=deller@gmx.de;
+ bh=R6FahYjMjq3IcNebCctTGPYLvIg8dED0+aUfIoATJT8=;
+ h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+ b=V/nPTGXx4qnZHiHLKJxJ+6MDcixcr6nO88bdvihvvSn61dUJlJrTgmmJG1VUBNu7qXdA2F4
+ ocyNUy0Ote/HT7BKAQYx3yhn1zuTDr+03SgnqeHcZZvoJiospwqYiHNUu1+uOd3lwmE2FyG/1
+ JdBiKqC5OP6CkazPdGAbr0qLXKpfnJW4oN10A0+bePVhRm7HQdHg6x4lm5jCCkBa6d1/YElU9
+ K68porNruNJfBJajKRNnHz+HZgX370VbaDuzUhojW6X/E1eE4BfMQ2l1qsA+7R40ojg4R0HeR
+ fvymJiAf85odG8TNMCMcGOvFAkvYYA4YXbXqZAl2uLotUp0kLxfg==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [192.168.20.60] ([94.134.151.122]) by mail.gmx.net (mrgmx004
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1MxUs7-1pZfYF1qTB-00xqnP; Thu, 17
+ Aug 2023 21:04:30 +0200
+Message-ID: <133d22a6-5fd2-49a0-50f4-7018397bdcef@gmx.de>
+Date:   Thu, 17 Aug 2023 21:04:25 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH 2/9] parisc: Remove <asm/ide.h>
+Content-Language: en-US
+To:     Geert Uytterhoeven <geert@linux-m68k.org>,
+        Russell King <linux@armlinux.org.uk>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
@@ -49,26 +44,54 @@ Cc:     Russell King <linux@armlinux.org.uk>,
         Arnd Bergmann <arnd@arndb.de>,
         Sergey Shtylyov <s.shtylyov@omp.ru>,
         Damien Le Moal <dlemoal@kernel.org>,
-        Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
-        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+        Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/9] sparc: Remove <asm/ide.h>
-Message-ID: <20230817163931.GA93297@ravnborg.org>
 References: <cover.1692288018.git.geert@linux-m68k.org>
- <d26247f29e65b017c06e993f8aedece13a100369.1692288018.git.geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d26247f29e65b017c06e993f8aedece13a100369.1692288018.git.geert@linux-m68k.org>
+ <5ea78d9c54cf94c6074fde6f277bb7a08bfe8d08.1692288018.git.geert@linux-m68k.org>
+From:   Helge Deller <deller@gmx.de>
+In-Reply-To: <5ea78d9c54cf94c6074fde6f277bb7a08bfe8d08.1692288018.git.geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:4pBi3eR0csmxEpYzr6TBmDopGdzbTBAizNpH1Rem4KR3poYpXQI
+ 0bdxkebh5IacK/CSmBcrqu4JrCZwQxeaz2/xVLtVO1CNMkstItNM1OsvbKu8n5HO0aU9KdV
+ ITzVZMGJOyd8Yn9W2TS+gsJWBkvNbMPQNCpb4JRz39clTnhcHp/Vzt2cToyxJwHnh+OjSkA
+ luurJWY1Iwl8wsV+jfp6w==
+UI-OutboundReport: notjunk:1;M01:P0:H8A+9oAUqKU=;PMueJpoedjum8wcq5H4m9VrHYDl
+ UJH7dvM78TjuIQ0xddxpyrzHvGuUe8Svfmu9hW9LQiBBNDyRctpJvn9jIgaoAcEmCeq1pKdB/
+ mjnXH4RAagHgr5Zm1Ti2zoHJy0pe1bcJ/WsfOsjwNTIr7cUnvLCFF4hPdyL0TYOcHlmXnEn19
+ isgLeFVo6O1B1MoCivuSY3bKCjnnKH5N+fKOqrQtNxopnptx2gSBBqrPGOS6zMKHizoXDiWj7
+ lCqiPNLaJudv09rTK1vaFvtUqhm0GSvU8FV+S53b2LVTv3T6ab/GFjW4PTR0k4vFBlrCFUrfI
+ 9D0VNcdljK1iN7yw8cqCxYX0p6KJ7FQKeQC4sXT79+NxFhUV17sZ6zCMBgsni0HklD8Wwpg0S
+ 8qwpJkoovAcmdYPaPtRlRkqVJ3Mn8N6oXjLdAUktx7tsh5sDY9mkOTaeaHH5aGFRtBlNsXXd+
+ BxBEPPvLbYlRSJI9JcrN46U2NzdBVM0LTOPvJ7UGMaE/ksWWkSBUEP8Xlvjfj036aWfCeZm7c
+ GgH+gwuYyV4cNVhyCjs7b2Hu0PPRjnK9EM91zTAWop5zIbCBf31RpVHc4AAHOpWGN1a6o0VKR
+ cdCDHt451NC8sArgYu/rRMdPforNd0eKR91ZR5TbKIYdrmxdZ0lCW5+fVSvRbQJfSzY4E44fD
+ hRaX+CsTbuUGgdYkhjOWF/RqFpfQnbcFEEy+Hzs9+cm+2Z/IMzooL3IxTsynZNS8fnQF0bPL3
+ BtUjCSxaNvarpYnZmaJdGiFHq8E07rdx/GtKz4mTDJxI0JDHO9znm1Mpgf9TziyrxTQECP3aC
+ K/Gm84l8dT25UjjwRgK8hSXDAewvI+QVwktwgPJ/Q/Qk4+o4gSkqAlDp0ctojvIIkv8QZHmRH
+ wLOejEMElPdexgLDQPXTpJPh5VdnJ64eICFUjGKXeu1paR2DB7crFIRymHip2kq6tKWHQxZBZ
+ sZtImOr5UBCG1Tlwbysh7f93k3k=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Aug 17, 2023 at 06:07:35PM +0200, Geert Uytterhoeven wrote:
+On 8/17/23 18:07, Geert Uytterhoeven wrote:
 > As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
 > v5.14, there are no more generic users of <asm/ide.h>.
-> 
+>
 > Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+
+Acked-by: Helge Deller <deller@gmx.de>
+
+Thanks!
+Helge
+
+> ---
+>   arch/parisc/include/asm/ide.h | 54 -----------------------------------
+>   1 file changed, 54 deletions(-)
+>   delete mode 100644 arch/parisc/include/asm/ide.h
+>
+
