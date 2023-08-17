@@ -2,29 +2,29 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6888EC52D6F
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E3BC531DA
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:09:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353470AbjHQQI1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:08:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59672 "EHLO
+        id S1353474AbjHQQI0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 12:08:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353418AbjHQQIC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:02 -0400
-Received: from andre.telenet-ops.be (andre.telenet-ops.be [IPv6:2a02:1800:120:4::f00:15])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CC90359B
+        with ESMTP id S1353477AbjHQQIA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:00 -0400
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EA8635A5
         for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:07:56 -0700 (PDT)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:d85a:258d:2c59:b44])
-        by andre.telenet-ops.be with bizsmtp
-        id ag7i2A0054QHFyo01g7iFH; Thu, 17 Aug 2023 18:07:54 +0200
+        by baptiste.telenet-ops.be with bizsmtp
+        id ag7i2A0074QHFyo01g7ivj; Thu, 17 Aug 2023 18:07:55 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtp (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfX4-000uIp-DZ;
+        id 1qWfX4-000uJ4-GF;
         Thu, 17 Aug 2023 18:07:42 +0200
 Received: from geert by rox.of.borg with local (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfXB-007YEp-Se;
+        id 1qWfXB-007YF1-VZ;
         Thu, 17 Aug 2023 18:07:41 +0200
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
 To:     Russell King <linux@armlinux.org.uk>,
@@ -43,9 +43,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 4/9] sparc: Remove <asm/ide.h>
-Date:   Thu, 17 Aug 2023 18:07:35 +0200
-Message-Id: <d26247f29e65b017c06e993f8aedece13a100369.1692288018.git.geert@linux-m68k.org>
+Subject: [PATCH 7/9] ata: pata_falcon: Remove #include <asm/ide.h>
+Date:   Thu, 17 Aug 2023 18:07:38 +0200
+Message-Id: <1147903ba2f9c5e5e840d8b3c2d05b6eafc78340.1692288018.git.geert@linux-m68k.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1692288018.git.geert@linux-m68k.org>
 References: <cover.1692288018.git.geert@linux-m68k.org>
@@ -55,118 +55,25 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
-v5.14, there are no more generic users of <asm/ide.h>.
+The Atari Falcon PATA driver does not need anything from <asm/ide.h>.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- arch/sparc/include/asm/ide.h | 97 ------------------------------------
- 1 file changed, 97 deletions(-)
- delete mode 100644 arch/sparc/include/asm/ide.h
+ drivers/ata/pata_falcon.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/ide.h b/arch/sparc/include/asm/ide.h
-deleted file mode 100644
-index 904cc6cbc1550cd8..0000000000000000
---- a/arch/sparc/include/asm/ide.h
-+++ /dev/null
-@@ -1,97 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* ide.h: SPARC PCI specific IDE glue.
-- *
-- * Copyright (C) 1997  David S. Miller (davem@davemloft.net)
-- * Copyright (C) 1998  Eddie C. Dost   (ecd@skynet.be)
-- * Adaptation from sparc64 version to sparc by Pete Zaitcev.
-- */
--
--#ifndef _SPARC_IDE_H
--#define _SPARC_IDE_H
--
--#ifdef __KERNEL__
--
--#include <asm/io.h>
--#ifdef CONFIG_SPARC64
--#include <asm/spitfire.h>
--#include <asm/cacheflush.h>
--#include <asm/page.h>
--#else
--#include <linux/pgtable.h>
--#include <asm/psr.h>
--#endif
--
--#define __ide_insl(data_reg, buffer, wcount) \
--	__ide_insw(data_reg, buffer, (wcount)<<1)
--#define __ide_outsl(data_reg, buffer, wcount) \
--	__ide_outsw(data_reg, buffer, (wcount)<<1)
--
--/* On sparc, I/O ports and MMIO registers are accessed identically.  */
--#define __ide_mm_insw	__ide_insw
--#define __ide_mm_insl	__ide_insl
--#define __ide_mm_outsw	__ide_outsw
--#define __ide_mm_outsl	__ide_outsl
--
--static inline void __ide_insw(void __iomem *port, void *dst, u32 count)
--{
--#if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
--	unsigned long end = (unsigned long)dst + (count << 1);
--#endif
--	u16 *ps = dst;
--	u32 *pi;
--
--	if(((unsigned long)ps) & 0x2) {
--		*ps++ = __raw_readw(port);
--		count--;
--	}
--	pi = (u32 *)ps;
--	while(count >= 2) {
--		u32 w;
--
--		w  = __raw_readw(port) << 16;
--		w |= __raw_readw(port);
--		*pi++ = w;
--		count -= 2;
--	}
--	ps = (u16 *)pi;
--	if(count)
--		*ps++ = __raw_readw(port);
--
--#if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
--	__flush_dcache_range((unsigned long)dst, end);
--#endif
--}
--
--static inline void __ide_outsw(void __iomem *port, const void *src, u32 count)
--{
--#if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
--	unsigned long end = (unsigned long)src + (count << 1);
--#endif
--	const u16 *ps = src;
--	const u32 *pi;
--
--	if(((unsigned long)src) & 0x2) {
--		__raw_writew(*ps++, port);
--		count--;
--	}
--	pi = (const u32 *)ps;
--	while(count >= 2) {
--		u32 w;
--
--		w = *pi++;
--		__raw_writew((w >> 16), port);
--		__raw_writew(w, port);
--		count -= 2;
--	}
--	ps = (const u16 *)pi;
--	if(count)
--		__raw_writew(*ps, port);
--
--#if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
--	__flush_dcache_range((unsigned long)src, end);
--#endif
--}
--
--#endif /* __KERNEL__ */
--
--#endif /* _SPARC_IDE_H */
+diff --git a/drivers/ata/pata_falcon.c b/drivers/ata/pata_falcon.c
+index 996516e64f13504e..0904232e5e0c4c8c 100644
+--- a/drivers/ata/pata_falcon.c
++++ b/drivers/ata/pata_falcon.c
+@@ -28,7 +28,6 @@
+ #include <asm/atarihw.h>
+ #include <asm/atariints.h>
+ #include <asm/atari_stdma.h>
+-#include <asm/ide.h>
+ 
+ #define DRV_NAME "pata_falcon"
+ #define DRV_VERSION "0.1.0"
 -- 
 2.34.1
 
