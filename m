@@ -2,29 +2,29 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A35C5320E
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:09:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3409DC61CE5
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Aug 2023 16:09:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353514AbjHQQI2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Aug 2023 12:08:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59816 "EHLO
+        id S1353511AbjHQQI1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Aug 2023 12:08:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353503AbjHQQID (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:03 -0400
+        with ESMTP id S1353512AbjHQQIE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Aug 2023 12:08:04 -0400
 Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0921A35BE
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 428973A86
         for <sparclinux@vger.kernel.org>; Thu, 17 Aug 2023 09:07:57 -0700 (PDT)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:d85a:258d:2c59:b44])
         by laurent.telenet-ops.be with bizsmtp
-        id ag7i2A0054QHFyo01g7i1F; Thu, 17 Aug 2023 18:07:55 +0200
+        id ag7i2A0034QHFyo01g7i1C; Thu, 17 Aug 2023 18:07:55 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtp (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfX4-000uIv-EU;
-        Thu, 17 Aug 2023 18:07:42 +0200
+        id 1qWfX4-000uIf-BZ;
+        Thu, 17 Aug 2023 18:07:41 +0200
 Received: from geert by rox.of.borg with local (Exim 4.95)
         (envelope-from <geert@linux-m68k.org>)
-        id 1qWfXB-007YEt-Th;
+        id 1qWfXB-007YEb-P7;
         Thu, 17 Aug 2023 18:07:41 +0200
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
 To:     Russell King <linux@armlinux.org.uk>,
@@ -43,72 +43,65 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 5/9] asm-generic: Remove ide_iops.h
-Date:   Thu, 17 Aug 2023 18:07:36 +0200
-Message-Id: <54ed1ce4b29346803bd732aac560a74896d1ecfe.1692288018.git.geert@linux-m68k.org>
+Subject: [PATCH treewide 0/9] Remove obsolete IDE headers
+Date:   Thu, 17 Aug 2023 18:07:31 +0200
+Message-Id: <cover.1692288018.git.geert@linux-m68k.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <cover.1692288018.git.geert@linux-m68k.org>
-References: <cover.1692288018.git.geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The last user of ide_iops.h was removed in commit b7fb14d3ac63117e
-("ide: remove the legacy ide driver") in v5.14.
+	Hi all,
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- include/asm-generic/ide_iops.h | 39 ----------------------------------
- 1 file changed, 39 deletions(-)
+This patch series removes all unused <asm/ide.h> headers and
+<asm-generic/ide_iops.h>.  <asm/ide.h> was still included by 3 PATA
+drivers for m68k platforms, but without any real need.
+
+The first 5 patches have no dependencies.
+The last patch depends on the 3 pata patches.
+
+Thanks for your comments!
+
+Geert Uytterhoeven (9):
+  ARM: Remove <asm/ide.h>
+  parisc: Remove <asm/ide.h>
+  powerpc: Remove <asm/ide.h>
+  sparc: Remove <asm/ide.h>
+  asm-generic: Remove ide_iops.h
+  ata: pata_buddha: Remove #include <asm/ide.h>
+  ata: pata_falcon: Remove #include <asm/ide.h>
+  ata: pata_gayle: Remove #include <asm/ide.h>
+  m68k: Remove <asm/ide.h>
+
+ arch/arm/include/asm/ide.h     | 24 ---------
+ arch/m68k/include/asm/ide.h    | 67 -----------------------
+ arch/parisc/include/asm/ide.h  | 54 -------------------
+ arch/powerpc/include/asm/ide.h | 18 -------
+ arch/sparc/include/asm/ide.h   | 97 ----------------------------------
+ drivers/ata/pata_buddha.c      |  1 -
+ drivers/ata/pata_falcon.c      |  1 -
+ drivers/ata/pata_gayle.c       |  1 -
+ include/asm-generic/ide_iops.h | 39 --------------
+ 9 files changed, 302 deletions(-)
+ delete mode 100644 arch/arm/include/asm/ide.h
+ delete mode 100644 arch/m68k/include/asm/ide.h
+ delete mode 100644 arch/parisc/include/asm/ide.h
+ delete mode 100644 arch/powerpc/include/asm/ide.h
+ delete mode 100644 arch/sparc/include/asm/ide.h
  delete mode 100644 include/asm-generic/ide_iops.h
 
-diff --git a/include/asm-generic/ide_iops.h b/include/asm-generic/ide_iops.h
-deleted file mode 100644
-index 81dfa3ee5e0697b7..0000000000000000
---- a/include/asm-generic/ide_iops.h
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* Generic I/O and MEMIO string operations.  */
--
--#define __ide_insw	insw
--#define __ide_insl	insl
--#define __ide_outsw	outsw
--#define __ide_outsl	outsl
--
--static __inline__ void __ide_mm_insw(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		*(u16 *)addr = readw(port);
--		addr += 2;
--	}
--}
--
--static __inline__ void __ide_mm_insl(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		*(u32 *)addr = readl(port);
--		addr += 4;
--	}
--}
--
--static __inline__ void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
--{
--	while (count--) {
--		writew(*(u16 *)addr, port);
--		addr += 2;
--	}
--}
--
--static __inline__ void __ide_mm_outsl(void __iomem * port, void *addr, u32 count)
--{
--	while (count--) {
--		writel(*(u32 *)addr, port);
--		addr += 4;
--	}
--}
 -- 
 2.34.1
 
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
