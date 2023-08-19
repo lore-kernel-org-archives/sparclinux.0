@@ -2,481 +2,688 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 730A8C7115A
-	for <sparclinux@archiver.kernel.org>; Fri, 18 Aug 2023 14:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F0AEEE49A6
+	for <sparclinux@archiver.kernel.org>; Sun, 20 Aug 2023 00:34:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377749AbjHROUf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 18 Aug 2023 10:20:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48926 "EHLO
+        id S229671AbjHTAd3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 19 Aug 2023 20:33:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377715AbjHROUO (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 18 Aug 2023 10:20:14 -0400
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D35093AA4;
-        Fri, 18 Aug 2023 07:20:07 -0700 (PDT)
-Received: from loongson.cn (unknown [10.20.42.43])
-        by gateway (Coremail) with SMTP id _____8Dx_+sPft9kSOQZAA--.52188S3;
-        Fri, 18 Aug 2023 22:19:59 +0800 (CST)
-Received: from [10.20.42.43] (unknown [10.20.42.43])
-        by localhost.localdomain (Coremail) with SMTP id AQAAf8DxfSPPfd9k0KpdAA--.50667S3;
-        Fri, 18 Aug 2023 22:18:56 +0800 (CST)
-Message-ID: <1af49baf-05e8-8cc8-c5b7-766db5a4acad@loongson.cn>
-Date:   Fri, 18 Aug 2023 22:18:55 +0800
+        with ESMTP id S229737AbjHTAdD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 19 Aug 2023 20:33:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA21488CDC;
+        Sat, 19 Aug 2023 16:33:58 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A1B060B55;
+        Sat, 19 Aug 2023 23:33:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EAB1C433C7;
+        Sat, 19 Aug 2023 23:33:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1692488037;
+        bh=6UEK89bt2PFewknJ9lYROsEb+cpA3UQvuifqeSZY2fY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=SKWTfiUhTky20tOqgoLoCtRTwhje2c8FDvSmmRDLHMmCcuaUprbq65nE2h6zs7nWG
+         cyROFkHr20F/x8uD6f2CYoVHudT2sGuWv/xi+PjRVplKRW301Jm1MBzHKJiU1hIhSG
+         OMYSvxTuJX1miSqWxybYrz0xd9Ui7lYP3oaiXRTL+gejNpDgiDVqFw5O274eEe7ARY
+         ojYMaj9HhqR9fEOcxMpoS6zs/EPfjhZsiUxc5by7/HOBrusyreU7OznJ/+nuys2zq6
+         4kb5+KWo/eouaGfWMbczHZTdKkdW6cKOsVRwe1+QBmg6BxkOfcW7pXISIg+RV4LtsG
+         Ugf1z+S7IXaQg==
+From:   Masahiro Yamada <masahiroy@kernel.org>
+To:     linux-kbuild@vger.kernel.org
+Cc:     linux-arch@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: [PATCH 1/6] sparc: replace #include <asm/export.h> with #include <linux/export.h>
+Date:   Sun, 20 Aug 2023 08:33:48 +0900
+Message-Id: <20230819233353.3683813-1-masahiroy@kernel.org>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [06/12] arch: Declare screen_info in <asm/screen_info.h>
-Content-Language: en-US
-From:   suijingfeng <suijingfeng@loongson.cn>
-To:     Thomas Zimmermann <tzimmermann@suse.de>, arnd@arndb.de,
-        deller@gmx.de, daniel@ffwll.ch, airlied@gmail.com
-Cc:     linux-hyperv@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-ia64@vger.kernel.org,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>,
-        Rich Felker <dalias@libc.org>, Guo Ren <guoren@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
-        linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>, linux-arch@vger.kernel.org,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-hexagon@vger.kernel.org, linux-staging@lists.linux.dev,
-        Russell King <linux@armlinux.org.uk>,
-        linux-csky@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Juerg Haefliger <juerg.haefliger@canonical.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Kees Cook <keescook@chromium.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Chris Zankel <chris@zankel.net>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        loongarch@lists.linux.dev,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Thomas Gleixner <tglx@linutronix.de>, Zi Yan <ziy@nvidia.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Brian Cain <bcain@quicinc.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Sebastian Reichel <sebastian.reichel@collabora.com>,
-        linux-kernel@vger.kernel.org, Dinh Nguyen <dinguyen@kernel.org>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        "Mike Rapoport (IBM)" <rppt@kernel.org>,
-        linux-alpha@vger.kernel.org, Borislav Petkov <bp@alien8.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        linuxppc-dev@lists.ozlabs.org,
-        "David S. Miller" <davem@davemloft.net>, x86@kernel.org
-References: <20230629121952.10559-7-tzimmermann@suse.de>
- <924934b8-d2ca-c1ea-b357-202c2f995adc@loongson.cn>
-In-Reply-To: <924934b8-d2ca-c1ea-b357-202c2f995adc@loongson.cn>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: AQAAf8DxfSPPfd9k0KpdAA--.50667S3
-X-CM-SenderInfo: xvxlyxpqjiv03j6o00pqjv00gofq/
-X-Coremail-Antispam: 1Uk129KBj9fXoWfJr4Uur48Ar1kZr4DZF4xuFX_yoW8WFyfAo
-        W7K3WUZF45Xr42gr4xGwn8GFZxJr1Ykrs3JrW8GrnxJF15tF45J348tryjyay5Jry8Kr1U
-        Gr45WrZxAa4UAr1rl-sFpf9Il3svdjkaLaAFLSUrUUUUvb8apTn2vfkv8UJUUUU8wcxFpf
-        9Il3svdxBIdaVrn0xqx4xG64xvF2IEw4CE5I8CrVC2j2Jv73VFW2AGmfu7bjvjm3AaLaJ3
-        UjIYCTnIWjp_UUUOv7kC6x804xWl14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI
-        8IcIk0rVWrJVCq3wAFIxvE14AKwVWUXVWUAwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xG
-        Y2AK021l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14
-        v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x02
-        67AKxVW8Jr0_Cr1UM2kKe7AKxVWrXVW3AwAS0I0E0xvYzxvE52x082IY62kv0487Mc804V
-        CY07AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AK
-        xVW3AVW8Xw1lYx0Ex4A2jsIE14v26r4UJVWxJr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y4
-        8IcVAKI48JM4IIrI8v6xkF7I0E4cxCY480cwCYjI0SjxkI62AI1cAE67vIY487MxkF7I0E
-        n4kS14v26rWY6Fy7MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMxCIbc
-        kI1I0E14v26Fy26r43JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r10
-        6r1rMI8E67AF67kF1VAFwI0_Wrv_Gr1UMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI
-        0_Ar0_tr1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IY
-        s7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r4UJVWxJr1lIxAIcVC2z280aVCY1x0267AKxV
-        W8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x07bjZ2-UUUUU=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Commit ddb5cdbafaaa ("kbuild: generate KSYMTAB entries by modpost")
+deprecated <asm/export.h>, which is now a wrapper of <linux/export.h>.
 
-On 2023/8/18 22:04, suijingfeng wrote:
-> Hi,
->
->
-> Why this patch get dropped in the end?
->
-> Since the global screen_info is an arch-specific thing,
-> Whenever an arch-neutral module or subsystem references the global 
-> screen_info,
-> There are some complaints from either compile testing robot.
+Replace #include <asm/export.h> with #include <linux/export.h>.
 
+After all the <asm/export.h> lines are converted, <asm/export.h> and
+<asm-generic/export.h> will be removed.
 
-There are some complaints from either compile testing robot or domain 
-specific reviewers who doubt why you select the CONFIG_SYSFB not 
-CONFIG_VT or CONFIG_EFI.
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
 
+ arch/sparc/kernel/entry.S     | 2 +-
+ arch/sparc/kernel/head_32.S   | 2 +-
+ arch/sparc/kernel/head_64.S   | 2 +-
+ arch/sparc/lib/U1memcpy.S     | 2 +-
+ arch/sparc/lib/VISsave.S      | 2 +-
+ arch/sparc/lib/ashldi3.S      | 2 +-
+ arch/sparc/lib/ashrdi3.S      | 2 +-
+ arch/sparc/lib/atomic_64.S    | 2 +-
+ arch/sparc/lib/bitops.S       | 2 +-
+ arch/sparc/lib/blockops.S     | 2 +-
+ arch/sparc/lib/bzero.S        | 2 +-
+ arch/sparc/lib/checksum_32.S  | 2 +-
+ arch/sparc/lib/checksum_64.S  | 2 +-
+ arch/sparc/lib/clear_page.S   | 2 +-
+ arch/sparc/lib/copy_in_user.S | 2 +-
+ arch/sparc/lib/copy_page.S    | 2 +-
+ arch/sparc/lib/copy_user.S    | 2 +-
+ arch/sparc/lib/csum_copy.S    | 2 +-
+ arch/sparc/lib/divdi3.S       | 2 +-
+ arch/sparc/lib/ffs.S          | 2 +-
+ arch/sparc/lib/fls.S          | 2 +-
+ arch/sparc/lib/fls64.S        | 2 +-
+ arch/sparc/lib/hweight.S      | 2 +-
+ arch/sparc/lib/ipcsum.S       | 2 +-
+ arch/sparc/lib/locks.S        | 2 +-
+ arch/sparc/lib/lshrdi3.S      | 2 +-
+ arch/sparc/lib/mcount.S       | 2 +-
+ arch/sparc/lib/memcmp.S       | 2 +-
+ arch/sparc/lib/memcpy.S       | 3 ++-
+ arch/sparc/lib/memmove.S      | 2 +-
+ arch/sparc/lib/memscan_32.S   | 2 +-
+ arch/sparc/lib/memscan_64.S   | 2 +-
+ arch/sparc/lib/memset.S       | 2 +-
+ arch/sparc/lib/muldi3.S       | 2 +-
+ arch/sparc/lib/multi3.S       | 2 +-
+ arch/sparc/lib/strlen.S       | 2 +-
+ arch/sparc/lib/strncmp_32.S   | 2 +-
+ arch/sparc/lib/strncmp_64.S   | 2 +-
+ arch/sparc/lib/xor.S          | 2 +-
+ 39 files changed, 40 insertions(+), 39 deletions(-)
 
-> Well, a programmer may handle it by using the CONFIG_SYSFB guard,
-> but it is not as precise as what this patch provided.
->
-> Personally, I think this patch is still valuable.
-> I suggest either forcing all other architectures to export screen_info,
-> like the X86 and IA64 arch does, after all the screen_info is a good 
-> thing.
-> or provide the fine-control version like this patch does.
->
-
-Because all of the three tokens(CONFIG_SYSFB not CONFIG_VT or CONFIG_EFI.)
-
-have no direct relationship with the global screen_info if an arch is 
-not mentioned first.
-
-
-
-> On 2023/6/29 19:45, Thomas Zimmermann wrote:
->> The variable screen_info does not exist on all architectures. Declare
->> it in <asm-generic/screen_info.h>. All architectures that do declare it
->> will provide it via <asm/screen_info.h>.
->>
->> Add the Kconfig token ARCH_HAS_SCREEN_INFO to guard against access on
->> architectures that don't provide screen_info.
->>
->> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
->> Cc: Richard Henderson <richard.henderson@linaro.org>
->> Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
->> Cc: Matt Turner <mattst88@gmail.com>
->> Cc: Russell King <linux@armlinux.org.uk>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Will Deacon <will@kernel.org>
->> Cc: Guo Ren <guoren@kernel.org>
->> Cc: Brian Cain <bcain@quicinc.com>
->> Cc: Huacai Chen <chenhuacai@kernel.org>
->> Cc: WANG Xuerui <kernel@xen0n.name>
->> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
->> Cc: Dinh Nguyen <dinguyen@kernel.org>
->> Cc: Michael Ellerman <mpe@ellerman.id.au>
->> Cc: Nicholas Piggin <npiggin@gmail.com>
->> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
->> Cc: Paul Walmsley <paul.walmsley@sifive.com>
->> Cc: Palmer Dabbelt <palmer@dabbelt.com>
->> Cc: Albert Ou <aou@eecs.berkeley.edu>
->> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
->> Cc: Rich Felker <dalias@libc.org>
->> Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Ingo Molnar <mingo@redhat.com>
->> Cc: Borislav Petkov <bp@alien8.de>
->> Cc: Dave Hansen <dave.hansen@linux.intel.com>
->> Cc: x86@kernel.org
->> Cc: "H. Peter Anvin" <hpa@zytor.com>
->> Cc: Chris Zankel <chris@zankel.net>
->> Cc: Max Filippov <jcmvbkbc@gmail.com>
->> Cc: Helge Deller <deller@gmx.de>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> Cc: Kees Cook <keescook@chromium.org>
->> Cc: "Paul E. McKenney" <paulmck@kernel.org>
->> Cc: Peter Zijlstra <peterz@infradead.org>
->> Cc: Frederic Weisbecker <frederic@kernel.org>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Ard Biesheuvel <ardb@kernel.org>
->> Cc: Sami Tolvanen <samitolvanen@google.com>
->> Cc: Juerg Haefliger <juerg.haefliger@canonical.com>
->> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
->> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
->> Cc: Niklas Schnelle <schnelle@linux.ibm.com>
->> Cc: "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>
->> Cc: Linus Walleij <linus.walleij@linaro.org>
->> Cc: Sebastian Reichel <sebastian.reichel@collabora.com>
->> Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
->> Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
->> Cc: Zi Yan <ziy@nvidia.com>
->> Acked-by: WANG Xuerui <git@xen0n.name> # loongarch
->> ---
->>   arch/Kconfig                      |  6 ++++++
->>   arch/alpha/Kconfig                |  1 +
->>   arch/arm/Kconfig                  |  1 +
->>   arch/arm64/Kconfig                |  1 +
->>   arch/csky/Kconfig                 |  1 +
->>   arch/hexagon/Kconfig              |  1 +
->>   arch/ia64/Kconfig                 |  1 +
->>   arch/loongarch/Kconfig            |  1 +
->>   arch/mips/Kconfig                 |  1 +
->>   arch/nios2/Kconfig                |  1 +
->>   arch/powerpc/Kconfig              |  1 +
->>   arch/riscv/Kconfig                |  1 +
->>   arch/sh/Kconfig                   |  1 +
->>   arch/sparc/Kconfig                |  1 +
->>   arch/x86/Kconfig                  |  1 +
->>   arch/xtensa/Kconfig               |  1 +
->>   drivers/video/Kconfig             |  3 +++
->>   include/asm-generic/Kbuild        |  1 +
->>   include/asm-generic/screen_info.h | 12 ++++++++++++
->>   include/linux/screen_info.h       |  2 +-
->>   20 files changed, 38 insertions(+), 1 deletion(-)
->>   create mode 100644 include/asm-generic/screen_info.h
->>
->> diff --git a/arch/Kconfig b/arch/Kconfig
->> index 205fd23e0cada..2f58293fd7bcb 100644
->> --- a/arch/Kconfig
->> +++ b/arch/Kconfig
->> @@ -1466,6 +1466,12 @@ config ARCH_HAS_NONLEAF_PMD_YOUNG
->>         address translations. Page table walkers that clear the 
->> accessed bit
->>         may use this capability to reduce their search space.
->>   +config ARCH_HAS_SCREEN_INFO
->> +    bool
->> +    help
->> +      Selected by architectures that provide a global instance of
->> +      screen_info.
->> +
->>   source "kernel/gcov/Kconfig"
->>     source "scripts/gcc-plugins/Kconfig"
->> diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
->> index a5c2b1aa46b02..d749011d88b14 100644
->> --- a/arch/alpha/Kconfig
->> +++ b/arch/alpha/Kconfig
->> @@ -4,6 +4,7 @@ config ALPHA
->>       default y
->>       select ARCH_32BIT_USTAT_F_TINODE
->>       select ARCH_HAS_CURRENT_STACK_POINTER
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_MIGHT_HAVE_PC_PARPORT
->>       select ARCH_MIGHT_HAVE_PC_SERIO
->>       select ARCH_NO_PREEMPT
->> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> index 0fb4b218f6658..a9d01ee67a90e 100644
->> --- a/arch/arm/Kconfig
->> +++ b/arch/arm/Kconfig
->> @@ -15,6 +15,7 @@ config ARM
->>       select ARCH_HAS_MEMBARRIER_SYNC_CORE
->>       select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
->>       select ARCH_HAS_PTE_SPECIAL if ARM_LPAE
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SETUP_DMA_OPS
->>       select ARCH_HAS_SET_MEMORY
->>       select ARCH_STACKWALK
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 343e1e1cae10a..21addc4715bb3 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -36,6 +36,7 @@ config ARM64
->>       select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
->>       select ARCH_HAS_PTE_DEVMAP
->>       select ARCH_HAS_PTE_SPECIAL
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SETUP_DMA_OPS
->>       select ARCH_HAS_SET_DIRECT_MAP
->>       select ARCH_HAS_SET_MEMORY
->> diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
->> index 4df1f8c9d170b..28444e581fc1f 100644
->> --- a/arch/csky/Kconfig
->> +++ b/arch/csky/Kconfig
->> @@ -10,6 +10,7 @@ config CSKY
->>       select ARCH_USE_QUEUED_RWLOCKS
->>       select ARCH_USE_QUEUED_SPINLOCKS
->>       select ARCH_HAS_CURRENT_STACK_POINTER
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_INLINE_READ_LOCK if !PREEMPTION
->>       select ARCH_INLINE_READ_LOCK_BH if !PREEMPTION
->>       select ARCH_INLINE_READ_LOCK_IRQ if !PREEMPTION
->> diff --git a/arch/hexagon/Kconfig b/arch/hexagon/Kconfig
->> index 54eadf2651786..cc683c0a43d34 100644
->> --- a/arch/hexagon/Kconfig
->> +++ b/arch/hexagon/Kconfig
->> @@ -5,6 +5,7 @@ comment "Linux Kernel Configuration for Hexagon"
->>   config HEXAGON
->>       def_bool y
->>       select ARCH_32BIT_OFF_T
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SYNC_DMA_FOR_DEVICE
->>       select ARCH_NO_PREEMPT
->>       select DMA_GLOBAL_POOL
->> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
->> index e79f15e32a451..8b1e785e6d53d 100644
->> --- a/arch/ia64/Kconfig
->> +++ b/arch/ia64/Kconfig
->> @@ -10,6 +10,7 @@ config IA64
->>       bool
->>       select ARCH_BINFMT_ELF_EXTRA_PHDRS
->>       select ARCH_HAS_DMA_MARK_CLEAN
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_STRNCPY_FROM_USER
->>       select ARCH_HAS_STRNLEN_USER
->>       select ARCH_MIGHT_HAVE_PC_PARPORT
->> diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
->> index d38b066fc931b..6aab2fb7753da 100644
->> --- a/arch/loongarch/Kconfig
->> +++ b/arch/loongarch/Kconfig
->> @@ -13,6 +13,7 @@ config LOONGARCH
->>       select ARCH_HAS_FORTIFY_SOURCE
->>       select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
->>       select ARCH_HAS_PTE_SPECIAL
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
->>       select ARCH_INLINE_READ_LOCK if !PREEMPTION
->>       select ARCH_INLINE_READ_LOCK_BH if !PREEMPTION
->> diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
->> index 675a8660cb85a..c0ae09789cb6d 100644
->> --- a/arch/mips/Kconfig
->> +++ b/arch/mips/Kconfig
->> @@ -10,6 +10,7 @@ config MIPS
->>       select ARCH_HAS_KCOV
->>       select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE if !EVA
->>       select ARCH_HAS_PTE_SPECIAL if !(32BIT && CPU_HAS_RIXI)
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_STRNCPY_FROM_USER
->>       select ARCH_HAS_STRNLEN_USER
->>       select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
->> diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
->> index e5936417d3cd3..7183eea282212 100644
->> --- a/arch/nios2/Kconfig
->> +++ b/arch/nios2/Kconfig
->> @@ -3,6 +3,7 @@ config NIOS2
->>       def_bool y
->>       select ARCH_32BIT_OFF_T
->>       select ARCH_HAS_DMA_PREP_COHERENT
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SYNC_DMA_FOR_CPU
->>       select ARCH_HAS_SYNC_DMA_FOR_DEVICE
->>       select ARCH_HAS_DMA_SET_UNCACHED
->> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
->> index bff5820b7cda1..b1acad3076180 100644
->> --- a/arch/powerpc/Kconfig
->> +++ b/arch/powerpc/Kconfig
->> @@ -148,6 +148,7 @@ config PPC
->>       select ARCH_HAS_PTE_DEVMAP        if PPC_BOOK3S_64
->>       select ARCH_HAS_PTE_SPECIAL
->>       select ARCH_HAS_SCALED_CPUTIME        if 
->> VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SET_MEMORY
->>       select ARCH_HAS_STRICT_KERNEL_RWX    if (PPC_BOOK3S || PPC_8xx 
->> || 40x) && !HIBERNATION
->>       select ARCH_HAS_STRICT_KERNEL_RWX    if PPC_85xx && 
->> !HIBERNATION && !RANDOMIZE_BASE
->> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
->> index 5966ad97c30c3..b5a48f8424af9 100644
->> --- a/arch/riscv/Kconfig
->> +++ b/arch/riscv/Kconfig
->> @@ -29,6 +29,7 @@ config RISCV
->>       select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
->>       select ARCH_HAS_PMEM_API
->>       select ARCH_HAS_PTE_SPECIAL
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SET_DIRECT_MAP if MMU
->>       select ARCH_HAS_SET_MEMORY if MMU
->>       select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
->> diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
->> index 04b9550cf0070..001f5149952b4 100644
->> --- a/arch/sh/Kconfig
->> +++ b/arch/sh/Kconfig
->> @@ -10,6 +10,7 @@ config SUPERH
->>       select ARCH_HAS_GIGANTIC_PAGE
->>       select ARCH_HAS_GCOV_PROFILE_ALL
->>       select ARCH_HAS_PTE_SPECIAL
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
->>       select ARCH_HIBERNATION_POSSIBLE if MMU
->>       select ARCH_MIGHT_HAVE_PC_PARPORT
->> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
->> index 8535e19062f65..e4bfb80b48cfe 100644
->> --- a/arch/sparc/Kconfig
->> +++ b/arch/sparc/Kconfig
->> @@ -13,6 +13,7 @@ config 64BIT
->>   config SPARC
->>       bool
->>       default y
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_MIGHT_HAVE_PC_PARPORT if SPARC64 && PCI
->>       select ARCH_MIGHT_HAVE_PC_SERIO
->>       select DMA_OPS
->> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
->> index 53bab123a8ee4..d7c2bf4ee403d 100644
->> --- a/arch/x86/Kconfig
->> +++ b/arch/x86/Kconfig
->> @@ -91,6 +91,7 @@ config X86
->>       select ARCH_HAS_NONLEAF_PMD_YOUNG    if PGTABLE_LEVELS > 2
->>       select ARCH_HAS_UACCESS_FLUSHCACHE    if X86_64
->>       select ARCH_HAS_COPY_MC            if X86_64
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SET_MEMORY
->>       select ARCH_HAS_SET_DIRECT_MAP
->>       select ARCH_HAS_STRICT_KERNEL_RWX
->> diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
->> index 3c6e5471f025b..c6cbd7459939c 100644
->> --- a/arch/xtensa/Kconfig
->> +++ b/arch/xtensa/Kconfig
->> @@ -8,6 +8,7 @@ config XTENSA
->>       select ARCH_HAS_DMA_PREP_COHERENT if MMU
->>       select ARCH_HAS_GCOV_PROFILE_ALL
->>       select ARCH_HAS_KCOV
->> +    select ARCH_HAS_SCREEN_INFO
->>       select ARCH_HAS_SYNC_DMA_FOR_CPU if MMU
->>       select ARCH_HAS_SYNC_DMA_FOR_DEVICE if MMU
->>       select ARCH_HAS_DMA_SET_UNCACHED if MMU
->> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
->> index 8b2b9ac37c3df..d4a72bea56be0 100644
->> --- a/drivers/video/Kconfig
->> +++ b/drivers/video/Kconfig
->> @@ -21,6 +21,9 @@ config STI_CORE
->>   config VIDEO_CMDLINE
->>       bool
->>   +config ARCH_HAS_SCREEN_INFO
->> +    bool
->> +
->>   config VIDEO_NOMODESET
->>       bool
->>       default n
->> diff --git a/include/asm-generic/Kbuild b/include/asm-generic/Kbuild
->> index 941be574bbe00..5e5d4158a4b4b 100644
->> --- a/include/asm-generic/Kbuild
->> +++ b/include/asm-generic/Kbuild
->> @@ -47,6 +47,7 @@ mandatory-y += percpu.h
->>   mandatory-y += pgalloc.h
->>   mandatory-y += preempt.h
->>   mandatory-y += rwonce.h
->> +mandatory-y += screen_info.h
->>   mandatory-y += sections.h
->>   mandatory-y += serial.h
->>   mandatory-y += shmparam.h
->> diff --git a/include/asm-generic/screen_info.h 
->> b/include/asm-generic/screen_info.h
->> new file mode 100644
->> index 0000000000000..6fd0e50fabfcd
->> --- /dev/null
->> +++ b/include/asm-generic/screen_info.h
->> @@ -0,0 +1,12 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
->> +
->> +#ifndef _ASM_GENERIC_SCREEN_INFO_H
->> +#define _ASM_GENERIC_SCREEN_INFO_H
->> +
->> +#include <uapi/linux/screen_info.h>
->> +
->> +#if defined(CONFIG_ARCH_HAS_SCREEN_INFO)
->> +extern struct screen_info screen_info;
->> +#endif
->> +
->> +#endif /* _ASM_GENERIC_SCREEN_INFO_H */
->> diff --git a/include/linux/screen_info.h b/include/linux/screen_info.h
->> index eab7081392d50..c764b9a51c24b 100644
->> --- a/include/linux/screen_info.h
->> +++ b/include/linux/screen_info.h
->> @@ -4,6 +4,6 @@
->>     #include <uapi/linux/screen_info.h>
->>   -extern struct screen_info screen_info;
->> +#include <asm/screen_info.h>
->>     #endif /* _SCREEN_INFO_H */
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index a269ad2fe6df..a3fdee4cd6fa 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -8,6 +8,7 @@
+  * Copyright (C) 1997 Anton Blanchard (anton@progsoc.uts.edu.au)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <linux/errno.h>
+ #include <linux/pgtable.h>
+@@ -30,7 +31,6 @@
+ #include <asm/unistd.h>
+ 
+ #include <asm/asmmacro.h>
+-#include <asm/export.h>
+ 
+ #define curptr      g6
+ 
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index 6044b82b9767..964c61b5cd03 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -11,6 +11,7 @@
+  * CompactPCI platform by Eric Brower, 1999.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/version.h>
+ #include <linux/init.h>
+ 
+@@ -25,7 +26,6 @@
+ #include <asm/thread_info.h>	/* TI_UWINMASK */
+ #include <asm/errno.h>
+ #include <asm/pgtable.h>	/* PGDIR_SHIFT */
+-#include <asm/export.h>
+ 
+ 	.data
+ /* The following are used with the prom_vector node-ops to figure out
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 72a5bdc833ea..cf0549134234 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/version.h>
+ #include <linux/errno.h>
++#include <linux/export.h>
+ #include <linux/threads.h>
+ #include <linux/init.h>
+ #include <linux/linkage.h>
+@@ -33,7 +34,6 @@
+ #include <asm/estate.h>
+ #include <asm/sfafsr.h>
+ #include <asm/unistd.h>
+-#include <asm/export.h>
+ 
+ /* This section from from _start to sparc64_boot_end should fit into
+  * 0x0000000000404000 to 0x0000000000408000.
+diff --git a/arch/sparc/lib/U1memcpy.S b/arch/sparc/lib/U1memcpy.S
+index a6f4ee391897..635398ec7540 100644
+--- a/arch/sparc/lib/U1memcpy.S
++++ b/arch/sparc/lib/U1memcpy.S
+@@ -6,10 +6,10 @@
+  */
+ 
+ #ifdef __KERNEL__
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+ #include <asm/asi.h>
+-#include <asm/export.h>
+ #define GLOBAL_SPARE	g7
+ #else
+ #define GLOBAL_SPARE	g5
+diff --git a/arch/sparc/lib/VISsave.S b/arch/sparc/lib/VISsave.S
+index 9c8eb2017d5b..31a0c336c185 100644
+--- a/arch/sparc/lib/VISsave.S
++++ b/arch/sparc/lib/VISsave.S
+@@ -7,6 +7,7 @@
+  * Copyright (C) 1998 Jakub Jelinek (jj@ultra.linux.cz)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ 
+ #include <asm/asi.h>
+@@ -14,7 +15,6 @@
+ #include <asm/ptrace.h>
+ #include <asm/visasm.h>
+ #include <asm/thread_info.h>
+-#include <asm/export.h>
+ 
+ 	/* On entry: %o5=current FPRS value, %g7 is callers address */
+ 	/* May clobber %o5, %g1, %g2, %g3, %g7, %icc, %xcc */
+diff --git a/arch/sparc/lib/ashldi3.S b/arch/sparc/lib/ashldi3.S
+index 2d72de88af90..2a9e7c4fb260 100644
+--- a/arch/sparc/lib/ashldi3.S
++++ b/arch/sparc/lib/ashldi3.S
+@@ -6,8 +6,8 @@
+  * Copyright (C) 1999 David S. Miller (davem@redhat.com)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(__ashldi3)
+diff --git a/arch/sparc/lib/ashrdi3.S b/arch/sparc/lib/ashrdi3.S
+index 05dfda9f5005..8fd0b311722f 100644
+--- a/arch/sparc/lib/ashrdi3.S
++++ b/arch/sparc/lib/ashrdi3.S
+@@ -6,8 +6,8 @@
+  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(__ashrdi3)
+diff --git a/arch/sparc/lib/atomic_64.S b/arch/sparc/lib/atomic_64.S
+index 8245d4a97301..4f8cab2fb9cd 100644
+--- a/arch/sparc/lib/atomic_64.S
++++ b/arch/sparc/lib/atomic_64.S
+@@ -4,10 +4,10 @@
+  * Copyright (C) 1999, 2007 2012 David S. Miller (davem@davemloft.net)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asi.h>
+ #include <asm/backoff.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 
+diff --git a/arch/sparc/lib/bitops.S b/arch/sparc/lib/bitops.S
+index 9d647f977618..9c91cbb310e7 100644
+--- a/arch/sparc/lib/bitops.S
++++ b/arch/sparc/lib/bitops.S
+@@ -4,10 +4,10 @@
+  * Copyright (C) 2000, 2007 David S. Miller (davem@davemloft.net)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asi.h>
+ #include <asm/backoff.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 
+diff --git a/arch/sparc/lib/blockops.S b/arch/sparc/lib/blockops.S
+index 76ddd1ff6833..5b92959a4d48 100644
+--- a/arch/sparc/lib/blockops.S
++++ b/arch/sparc/lib/blockops.S
+@@ -5,9 +5,9 @@
+  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/page.h>
+-#include <asm/export.h>
+ 
+ 	/* Zero out 64 bytes of memory at (buf + offset).
+ 	 * Assumes %g1 contains zero.
+diff --git a/arch/sparc/lib/bzero.S b/arch/sparc/lib/bzero.S
+index 87fec4cbe10c..2bfa44a6b25e 100644
+--- a/arch/sparc/lib/bzero.S
++++ b/arch/sparc/lib/bzero.S
+@@ -5,8 +5,8 @@
+  * Copyright (C) 2005 David S. Miller <davem@davemloft.net>
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 
+diff --git a/arch/sparc/lib/checksum_32.S b/arch/sparc/lib/checksum_32.S
+index 781e39b3c009..84ad709cbecb 100644
+--- a/arch/sparc/lib/checksum_32.S
++++ b/arch/sparc/lib/checksum_32.S
+@@ -14,8 +14,8 @@
+  *	BSD4.4 portable checksum routine
+  */
+ 
++#include <linux/export.h>
+ #include <asm/errno.h>
+-#include <asm/export.h>
+ 
+ #define CSUM_BIGCHUNK(buf, offset, sum, t0, t1, t2, t3, t4, t5)	\
+ 	ldd	[buf + offset + 0x00], t0;			\
+diff --git a/arch/sparc/lib/checksum_64.S b/arch/sparc/lib/checksum_64.S
+index 9700ef1730df..32b626f3fe4d 100644
+--- a/arch/sparc/lib/checksum_64.S
++++ b/arch/sparc/lib/checksum_64.S
+@@ -14,7 +14,7 @@
+  *	BSD4.4 portable checksum routine
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
+ 	.text
+ 
+ csum_partial_fix_alignment:
+diff --git a/arch/sparc/lib/clear_page.S b/arch/sparc/lib/clear_page.S
+index 302d3454a994..e63458194f5a 100644
+--- a/arch/sparc/lib/clear_page.S
++++ b/arch/sparc/lib/clear_page.S
+@@ -5,13 +5,13 @@
+  * Copyright (C) 1997 Jakub Jelinek (jakub@redhat.com)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/pgtable.h>
+ #include <asm/visasm.h>
+ #include <asm/thread_info.h>
+ #include <asm/page.h>
+ #include <asm/spitfire.h>
+ #include <asm/head.h>
+-#include <asm/export.h>
+ 
+ 	/* What we used to do was lock a TLB entry into a specific
+ 	 * TLB slot, clear the page with interrupts disabled, then
+diff --git a/arch/sparc/lib/copy_in_user.S b/arch/sparc/lib/copy_in_user.S
+index 66e90bf528e2..e23e6a69ff92 100644
+--- a/arch/sparc/lib/copy_in_user.S
++++ b/arch/sparc/lib/copy_in_user.S
+@@ -4,9 +4,9 @@
+  * Copyright (C) 1999, 2000, 2004 David S. Miller (davem@redhat.com)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asi.h>
+-#include <asm/export.h>
+ 
+ #define XCC xcc
+ 
+diff --git a/arch/sparc/lib/copy_page.S b/arch/sparc/lib/copy_page.S
+index 5ebcfd479f4f..7a041f3ebc58 100644
+--- a/arch/sparc/lib/copy_page.S
++++ b/arch/sparc/lib/copy_page.S
+@@ -5,13 +5,13 @@
+  * Copyright (C) 1997 Jakub Jelinek (jakub@redhat.com)
+  */
+ 
++#include <linux/export.h>
+ #include <asm/visasm.h>
+ #include <asm/thread_info.h>
+ #include <asm/page.h>
+ #include <linux/pgtable.h>
+ #include <asm/spitfire.h>
+ #include <asm/head.h>
+-#include <asm/export.h>
+ 
+ 	/* What we used to do was lock a TLB entry into a specific
+ 	 * TLB slot, clear the page with interrupts disabled, then
+diff --git a/arch/sparc/lib/copy_user.S b/arch/sparc/lib/copy_user.S
+index 954572c78539..7bb2ef68881d 100644
+--- a/arch/sparc/lib/copy_user.S
++++ b/arch/sparc/lib/copy_user.S
+@@ -12,11 +12,11 @@
+  * Returns 0 if successful, otherwise count of bytes not copied yet
+  */
+ 
++#include <linux/export.h>
+ #include <asm/ptrace.h>
+ #include <asm/asmmacro.h>
+ #include <asm/page.h>
+ #include <asm/thread_info.h>
+-#include <asm/export.h>
+ 
+ /* Work around cpp -rob */
+ #define ALLOC #alloc
+diff --git a/arch/sparc/lib/csum_copy.S b/arch/sparc/lib/csum_copy.S
+index d839956407a7..f968e83bc93b 100644
+--- a/arch/sparc/lib/csum_copy.S
++++ b/arch/sparc/lib/csum_copy.S
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2005 David S. Miller <davem@davemloft.net>
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
+ 
+ #ifdef __KERNEL__
+ #define GLOBAL_SPARE	%g7
+diff --git a/arch/sparc/lib/divdi3.S b/arch/sparc/lib/divdi3.S
+index a7389409d9fa..4ba901acd572 100644
+--- a/arch/sparc/lib/divdi3.S
++++ b/arch/sparc/lib/divdi3.S
+@@ -5,7 +5,7 @@ This file is part of GNU CC.
+ 
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
+ 	.text
+ 	.align 4
+ 	.globl __divdi3
+diff --git a/arch/sparc/lib/ffs.S b/arch/sparc/lib/ffs.S
+index 5a11d864fa05..3a9ad8ffdfe8 100644
+--- a/arch/sparc/lib/ffs.S
++++ b/arch/sparc/lib/ffs.S
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.register	%g2,#scratch
+ 
+diff --git a/arch/sparc/lib/fls.S b/arch/sparc/lib/fls.S
+index 06b8d300bcae..ccf97fb7d8cd 100644
+--- a/arch/sparc/lib/fls.S
++++ b/arch/sparc/lib/fls.S
+@@ -5,8 +5,8 @@
+  * and onward.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 	.register	%g2, #scratch
+diff --git a/arch/sparc/lib/fls64.S b/arch/sparc/lib/fls64.S
+index c83e22ae9586..87005b67d378 100644
+--- a/arch/sparc/lib/fls64.S
++++ b/arch/sparc/lib/fls64.S
+@@ -5,8 +5,8 @@
+  * and onward.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 	.register	%g2, #scratch
+diff --git a/arch/sparc/lib/hweight.S b/arch/sparc/lib/hweight.S
+index 0ddbbb031822..eebee59b0655 100644
+--- a/arch/sparc/lib/hweight.S
++++ b/arch/sparc/lib/hweight.S
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 	.align	32
+diff --git a/arch/sparc/lib/ipcsum.S b/arch/sparc/lib/ipcsum.S
+index 531d89c9d5d9..7fa8fd4b795a 100644
+--- a/arch/sparc/lib/ipcsum.S
++++ b/arch/sparc/lib/ipcsum.S
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(ip_fast_csum) /* %o0 = iph, %o1 = ihl */
+diff --git a/arch/sparc/lib/locks.S b/arch/sparc/lib/locks.S
+index 9a1289a3fb28..47a39f4384a2 100644
+--- a/arch/sparc/lib/locks.S
++++ b/arch/sparc/lib/locks.S
+@@ -7,11 +7,11 @@
+  * Copyright (C) 1998 Jakub Jelinek   (jj@ultra.linux.cz)
+  */
+ 
++#include <linux/export.h>
+ #include <asm/ptrace.h>
+ #include <asm/psr.h>
+ #include <asm/smp.h>
+ #include <asm/spinlock.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 	.align	4
+diff --git a/arch/sparc/lib/lshrdi3.S b/arch/sparc/lib/lshrdi3.S
+index 509ca6682da8..09bf581a0ba5 100644
+--- a/arch/sparc/lib/lshrdi3.S
++++ b/arch/sparc/lib/lshrdi3.S
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ ENTRY(__lshrdi3)
+ 	cmp	%o2, 0
+diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
+index deba6fa0bc78..f7f7910eb41e 100644
+--- a/arch/sparc/lib/mcount.S
++++ b/arch/sparc/lib/mcount.S
+@@ -6,8 +6,8 @@
+  * This can also be tweaked for kernel stack overflow detection.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ /*
+  * This is the main variant and is called by C code.  GCC's -pg option
+diff --git a/arch/sparc/lib/memcmp.S b/arch/sparc/lib/memcmp.S
+index a18076ef5af1..c87e8000feba 100644
+--- a/arch/sparc/lib/memcmp.S
++++ b/arch/sparc/lib/memcmp.S
+@@ -5,9 +5,9 @@
+  * Copyright (C) 2000, 2008 David S. Miller (davem@davemloft.net)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asm.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(memcmp)
+diff --git a/arch/sparc/lib/memcpy.S b/arch/sparc/lib/memcpy.S
+index ee823d8c9215..57b1ae0f5924 100644
+--- a/arch/sparc/lib/memcpy.S
++++ b/arch/sparc/lib/memcpy.S
+@@ -8,7 +8,8 @@
+  * Copyright (C) 1996 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
++
+ #define FUNC(x) 		\
+ 	.globl	x;		\
+ 	.type	x,@function;	\
+diff --git a/arch/sparc/lib/memmove.S b/arch/sparc/lib/memmove.S
+index 3132b6316144..543dda7b9dac 100644
+--- a/arch/sparc/lib/memmove.S
++++ b/arch/sparc/lib/memmove.S
+@@ -5,8 +5,8 @@
+  * Copyright (C) 1996, 1997, 1998, 1999 Jakub Jelinek (jj@ultra.linux.cz)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(memmove) /* o0=dst o1=src o2=len */
+diff --git a/arch/sparc/lib/memscan_32.S b/arch/sparc/lib/memscan_32.S
+index c4c2d5b3a2e9..5386a3a20019 100644
+--- a/arch/sparc/lib/memscan_32.S
++++ b/arch/sparc/lib/memscan_32.S
+@@ -5,7 +5,7 @@
+  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
+ 
+ /* In essence, this is just a fancy strlen. */
+ 
+diff --git a/arch/sparc/lib/memscan_64.S b/arch/sparc/lib/memscan_64.S
+index 36dd638905c3..70a4f21057f2 100644
+--- a/arch/sparc/lib/memscan_64.S
++++ b/arch/sparc/lib/memscan_64.S
+@@ -6,7 +6,7 @@
+  * Copyright (C) 1998 David S. Miller (davem@redhat.com)
+  */
+ 
+-	#include <asm/export.h>
++#include <linux/export.h>
+ 
+ #define HI_MAGIC	0x8080808080808080
+ #define LO_MAGIC	0x0101010101010101
+diff --git a/arch/sparc/lib/memset.S b/arch/sparc/lib/memset.S
+index eaff68213fdf..a33419dbb464 100644
+--- a/arch/sparc/lib/memset.S
++++ b/arch/sparc/lib/memset.S
+@@ -9,8 +9,8 @@
+  * clear_user.
+  */
+ 
++#include <linux/export.h>
+ #include <asm/ptrace.h>
+-#include <asm/export.h>
+ 
+ /* Work around cpp -rob */
+ #define ALLOC #alloc
+diff --git a/arch/sparc/lib/muldi3.S b/arch/sparc/lib/muldi3.S
+index 53054dee66d6..7e1e8cd30a22 100644
+--- a/arch/sparc/lib/muldi3.S
++++ b/arch/sparc/lib/muldi3.S
+@@ -5,7 +5,7 @@ This file is part of GNU CC.
+ 
+  */
+ 
+-#include <asm/export.h>
++#include <linux/export.h>
+ 	.text
+ 	.align 4
+ 	.globl __muldi3
+diff --git a/arch/sparc/lib/multi3.S b/arch/sparc/lib/multi3.S
+index 2f187b299345..5bb4c122a2cf 100644
+--- a/arch/sparc/lib/multi3.S
++++ b/arch/sparc/lib/multi3.S
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ 	.align	4
+diff --git a/arch/sparc/lib/strlen.S b/arch/sparc/lib/strlen.S
+index dd111bbad5df..27478b3f1647 100644
+--- a/arch/sparc/lib/strlen.S
++++ b/arch/sparc/lib/strlen.S
+@@ -6,9 +6,9 @@
+  * Copyright (C) 1996, 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asm.h>
+-#include <asm/export.h>
+ 
+ #define LO_MAGIC 0x01010101
+ #define HI_MAGIC 0x80808080
+diff --git a/arch/sparc/lib/strncmp_32.S b/arch/sparc/lib/strncmp_32.S
+index 794733f036b6..387bbf621548 100644
+--- a/arch/sparc/lib/strncmp_32.S
++++ b/arch/sparc/lib/strncmp_32.S
+@@ -4,8 +4,8 @@
+  *            generic strncmp routine.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(strncmp)
+diff --git a/arch/sparc/lib/strncmp_64.S b/arch/sparc/lib/strncmp_64.S
+index 3d37d65f674c..76c1207ecf5a 100644
+--- a/arch/sparc/lib/strncmp_64.S
++++ b/arch/sparc/lib/strncmp_64.S
+@@ -5,9 +5,9 @@
+  * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/asi.h>
+-#include <asm/export.h>
+ 
+ 	.text
+ ENTRY(strncmp)
+diff --git a/arch/sparc/lib/xor.S b/arch/sparc/lib/xor.S
+index f6af7c7ee6fc..35461e3b2a9b 100644
+--- a/arch/sparc/lib/xor.S
++++ b/arch/sparc/lib/xor.S
+@@ -9,12 +9,12 @@
+  * Copyright (C) 2006 David S. Miller <davem@davemloft.net>
+  */
+ 
++#include <linux/export.h>
+ #include <linux/linkage.h>
+ #include <asm/visasm.h>
+ #include <asm/asi.h>
+ #include <asm/dcu.h>
+ #include <asm/spitfire.h>
+-#include <asm/export.h>
+ 
+ /*
+  *	Requirements:
+-- 
+2.39.2
 
