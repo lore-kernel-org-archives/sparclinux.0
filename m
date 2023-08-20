@@ -2,75 +2,68 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DA5CEE49AF
-	for <sparclinux@archiver.kernel.org>; Sun, 20 Aug 2023 00:34:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0605CEE49A5
+	for <sparclinux@archiver.kernel.org>; Sun, 20 Aug 2023 08:11:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229761AbjHTAd3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 19 Aug 2023 20:33:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34508 "EHLO
+        id S230135AbjHTILE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 20 Aug 2023 04:11:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229739AbjHTAdE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 19 Aug 2023 20:33:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A3F588CE3;
-        Sat, 19 Aug 2023 16:34:00 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 20EFC61A5C;
-        Sat, 19 Aug 2023 23:34:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F61C433C8;
-        Sat, 19 Aug 2023 23:33:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1692488039;
-        bh=4VzbJWu0rbStCIefyliBH7r4pYxLYwp8vFj3ogFCqcA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KoJAUpaFKjfbZ6eNv6DQ0iZJIAn6zSR6nTmV3EFVcSvnG4u/dzDrcD0G8Y1nlqY8U
-         aqAfxOwkm4hTJLasNPlEB6Cr/Gz23fxUSbmNvaRyYruedN9obQ1opM3AZe3JAnF7Af
-         PfNfDdixHTO0ID0wR7UTFOzjousXzkSLNITMZ3Pw97QDpoem3PdB2B7STm39Ewz/Mx
-         6B1jL0ADsgJppaIRhQO/24TkRDvK2lhhK6IWtNbjv69LwImZvjrhvxGFUHLYsiHhaq
-         pZfngiVWeTa5Uh02dG6QnUTJF5S7UWGy5tHdPZAWaFnms1s2Y7QzvBdzDAoU0zkqu2
-         ULn7K5wJ0f9Xw==
-From:   Masahiro Yamada <masahiroy@kernel.org>
-To:     linux-kbuild@vger.kernel.org
-Cc:     linux-arch@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>,
+        with ESMTP id S229668AbjHTILA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 20 Aug 2023 04:11:00 -0400
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:401::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F06344211
+        for <sparclinux@vger.kernel.org>; Sun, 20 Aug 2023 01:08:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=oodxccrBzg4XqtTHjS1zOVx29jRaoidsP8nWpOw14RY=;
+        b=YChe1TstpygT2d7vJcZ5IwdPR+kSaf21KzzXmQll++iu7yuzYcAnzHlTN6halrPeLc2KVXvX6tznV
+         9yMrOYTU66je84cTH5GleM4MWZJkrRxVeYFB9AZUIcJvla3IacQPJSAOSYgf0XA2xm/vRlk3vDJuL/
+         zBevqngA/0bSOlZV3aN0mkAnhM4KJYimHkGBNmXiQXCEoE3T9DRJm04LxsQHu7DRskkO4qVkgNjObq
+         LPGmRnlPKq4zjd2avylsV/VvoJDsf2rb5yA3+D+CIh34R5KzkPTmgEwju3hmDi2sDwRPX3kuZrdVJF
+         9LZ0Q4/SRqH9S7kFMFt/rBTDsr+m3Qw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=oodxccrBzg4XqtTHjS1zOVx29jRaoidsP8nWpOw14RY=;
+        b=wWxdp0MRt9zae2m3fbs1Gl8bOxxUf916XR8GRqaHv44hyFrRPq/ekzhjeTEv9KUyS9VIQvnY4QYyp
+         ttAUTiGCw==
+X-HalOne-ID: c02c422d-3f30-11ee-9303-13db1c4e5356
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay2 (Halon) with ESMTPSA
+        id c02c422d-3f30-11ee-9303-13db1c4e5356;
+        Sun, 20 Aug 2023 08:08:33 +0000 (UTC)
+Date:   Sun, 20 Aug 2023 10:08:31 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Masahiro Yamada <masahiroy@kernel.org>
+Cc:     linux-kbuild@vger.kernel.org, linux-arch@vger.kernel.org,
         "David S. Miller" <davem@davemloft.net>,
         linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: [PATCH 2/6] sparc: remove <asm/export.h>
-Date:   Sun, 20 Aug 2023 08:33:49 +0900
-Message-Id: <20230819233353.3683813-2-masahiroy@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230819233353.3683813-1-masahiroy@kernel.org>
+Subject: Re: [PATCH 1/6] sparc: replace #include <asm/export.h> with #include
+ <linux/export.h>
+Message-ID: <20230820080831.GA206827@ravnborg.org>
 References: <20230819233353.3683813-1-masahiroy@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230819233353.3683813-1-masahiroy@kernel.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-All *.S files under arch/sparc/ have been converted to include
-<linux/export.h> instead of <asm/export.h>.
+On Sun, Aug 20, 2023 at 08:33:48AM +0900, Masahiro Yamada wrote:
+> Commit ddb5cdbafaaa ("kbuild: generate KSYMTAB entries by modpost")
+> deprecated <asm/export.h>, which is now a wrapper of <linux/export.h>.
+> 
+> Replace #include <asm/export.h> with #include <linux/export.h>.
+> 
+> After all the <asm/export.h> lines are converted, <asm/export.h> and
+> <asm-generic/export.h> will be removed.
+> 
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 
-Remove <asm/export.h>.
-
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
----
-
- arch/sparc/include/asm/Kbuild | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 595ca0be286b..43b0ae4c2c21 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -2,6 +2,5 @@
- generated-y += syscall_table_32.h
- generated-y += syscall_table_64.h
- generic-y += agp.h
--generic-y += export.h
- generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
--- 
-2.39.2
-
+Thanks,
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
