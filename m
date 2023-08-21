@@ -2,63 +2,201 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C57DEE49A4
-	for <sparclinux@archiver.kernel.org>; Sun, 20 Aug 2023 08:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 714CFEE49A6
+	for <sparclinux@archiver.kernel.org>; Mon, 21 Aug 2023 19:48:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230099AbjHTILH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 20 Aug 2023 04:11:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58074 "EHLO
+        id S229613AbjHUTsq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Aug 2023 15:48:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230027AbjHTILC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 20 Aug 2023 04:11:02 -0400
-Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:404::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CFAC423F
-        for <sparclinux@vger.kernel.org>; Sun, 20 Aug 2023 01:08:48 -0700 (PDT)
+        with ESMTP id S229604AbjHUTsp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Aug 2023 15:48:45 -0400
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2881C10B
+        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 12:48:42 -0700 (PDT)
+Received: by mail-yb1-xb2a.google.com with SMTP id 3f1490d57ef6-d7485d37283so2128595276.1
+        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 12:48:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=mo2YDv+ovlF2nVfFfdhR2ZsisZkCOXFJRfLQgf7gU70=;
-        b=oPDj7eeTLZNat7oFWPgKtTlMaBtxAnihJfGaFqy8/7POyvhIIpuxiuPK9LRia9YhnMGfQRR+JENET
-         QE0UwABhiJjGbdtwzNx/UqJVVTkU3BrWmyZueq03p37h12EswRO1gUiu4g0znhUgKpZFF/6qf0ESpQ
-         21Uyg3TZzOx+5I0gYoYPwmUCtEfJJ8gjeawklXY/rlmL1JddnLpyP7Aaye8J7ahomMjorUlpg+E+zN
-         1r2nLBin26IeqO0KG/R+JIrE04L4RD0mw/yWGhsnd62br+Frl9XRLg00NDSMUfNKmUsJTuyPGGrEBU
-         5d2C0EwF0N6ZRQMd6/k6X9Ukqgbjs/A==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=mo2YDv+ovlF2nVfFfdhR2ZsisZkCOXFJRfLQgf7gU70=;
-        b=/P6fOU74/HqLKgyCkv/nwwB3RvY4shUENoqwAlAiMzHMus3tPNyeNgFlaJLVWKlSr2juyBb2l7Z8t
-         ZOAek51Dw==
-X-HalOne-ID: c8a2bf8f-3f30-11ee-9473-55333ba73462
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay5 (Halon) with ESMTPSA
-        id c8a2bf8f-3f30-11ee-9473-55333ba73462;
-        Sun, 20 Aug 2023 08:08:46 +0000 (UTC)
-Date:   Sun, 20 Aug 2023 10:08:45 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     linux-kbuild@vger.kernel.org, linux-arch@vger.kernel.org,
+        d=google.com; s=20221208; t=1692647321; x=1693252121;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=TJzCfpxhVh8Bz41vGC0rk+kXrKf+GdQm6b6DEBJLp4Y=;
+        b=O+l83h2LbZSW4NI8EbJgXLVItI++RMuU2J1wzOBcgSbKmzQuEPI9eXLtSoWmn6sq+J
+         am9dOa1SFWGD7j5vN6h935pR1gM8rVAxXJEVaSWFJUrDFCRm4UId8TzMlS8g+nEJHA0L
+         HVmidw/jdT5JEjucAIAVHt18vnuAYYelLXsgg/3kJuYSEB8p5NXviLWxA6djEjfHQuvd
+         Tut8+np5BGIFwbD617Gj+qlh50yuNuK3sAB8TJC0oDpzrOvNE36+gxIvWggycyL1tEG0
+         x92tpf/QJeruWhF9JQ1/ULRqj6tCPttInh9D1ON2tnwj/rA0zB3U4trgXTgmjiozXI6e
+         zKYA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692647321; x=1693252121;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=TJzCfpxhVh8Bz41vGC0rk+kXrKf+GdQm6b6DEBJLp4Y=;
+        b=HtIB9PDWOkxtnqZ4fH9Vf7FV1ZUU5uhVIi3pM8YBK4ag/9IkQn3fwI+S5gKtVVV2v6
+         t5yPHbp0HwlHDbcrt8pjw9pRcbCR6Q4g3XIfzIgeHE54g0OjrhYRUjbUzt7Zd+/xAz2i
+         WVFLNekJ7PR19eFGY32yIuFPFcnDWsFKDjQixVYq+8Lr5ZmVcSJxZt3ZXTm+qHg4r5RA
+         Ie0TC0HalW2C2J5pvxOXRb50UDrHOwCsCux4VYtQ8NII5FqBTz/yWawJuai++sS4+cuh
+         mg6zXcpC/fdc8rn2iaWOXhB/xzeHZ7j4K4OmIzX4g5MMzyxxOtbd0brFc7aVXADqHdAs
+         di9g==
+X-Gm-Message-State: AOJu0Yy7/h2gepFPiJflv/DJdk3yYlDXWwCcjvLowSwbintxFwcOZUKH
+        o088w9O/a7TE87wZ5BnRSXSN1w==
+X-Google-Smtp-Source: AGHT+IGa6N7zVO856T4SuLkkv15XMUTmB6PRYCGx3mJYt/D6fAu3o2zmClsjUxquvXD3gtA1EwMqjA==
+X-Received: by 2002:a25:157:0:b0:ced:974a:1aae with SMTP id 84-20020a250157000000b00ced974a1aaemr7593100ybb.58.1692647321154;
+        Mon, 21 Aug 2023 12:48:41 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id z4-20020a259cc4000000b00d5c4c949349sm1335996ybo.13.2023.08.21.12.48.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Aug 2023 12:48:40 -0700 (PDT)
+Date:   Mon, 21 Aug 2023 12:48:29 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Jann Horn <jannh@google.com>
+cc:     Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Peter Xu <peterx@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
+        Alistair Popple <apopple@nvidia.com>,
+        Ralph Campbell <rcampbell@nvidia.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Steven Price <steven.price@arm.com>,
+        SeongJae Park <sj@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Pasha Tatashin <pasha.tatashin@soleen.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Song Liu <song@kernel.org>,
+        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
+        Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH 2/6] sparc: remove <asm/export.h>
-Message-ID: <20230820080845.GB206827@ravnborg.org>
-References: <20230819233353.3683813-1-masahiroy@kernel.org>
- <20230819233353.3683813-2-masahiroy@kernel.org>
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Claudio Imbrenda <imbrenda@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
+        Zach O'Keefe <zokeefe@google.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        sparclinux@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        kernel list <linux-kernel@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>
+Subject: Re: [BUG] Re: [PATCH v3 10/13] mm/khugepaged: collapse_pte_mapped_thp()
+ with mmap_read_lock()
+In-Reply-To: <CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com>
+Message-ID: <e71190cf-c1e7-87d3-7a61-b4753c3932ed@google.com>
+References: <7cd843a9-aa80-14f-5eb2-33427363c20@google.com> <b53be6a4-7715-51f9-aad-f1347dcb7c4@google.com> <CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230819233353.3683813-2-masahiroy@kernel.org>
+Content-Type: multipart/mixed; boundary="-1463760895-1083013748-1692647320=:5414"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Aug 20, 2023 at 08:33:49AM +0900, Masahiro Yamada wrote:
-> All *.S files under arch/sparc/ have been converted to include
-> <linux/export.h> instead of <asm/export.h>.
-> 
-> Remove <asm/export.h>.
-> 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463760895-1083013748-1692647320=:5414
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Mon, 14 Aug 2023, Jann Horn wrote:
+> On Wed, Jul 12, 2023 at 6:42=E2=80=AFAM Hugh Dickins <hughd@google.com> w=
+rote:
+> > Bring collapse_and_free_pmd() back into collapse_pte_mapped_thp().
+> > It does need mmap_read_lock(), but it does not need mmap_write_lock(),
+> > nor vma_start_write() nor i_mmap lock nor anon_vma lock.  All racing
+> > paths are relying on pte_offset_map_lock() and pmd_lock(), so use those=
+=2E
+>=20
+> We can still have a racing userfaultfd operation at the "/* step 4:
+> remove page table */" point that installs a new PTE before the page
+> table is removed.
+
+And you've been very polite not to remind me that this is exactly
+what you warned me about, in connection with retract_page_tables(),
+nearly three months ago:
+
+https://lore.kernel.org/linux-mm/CAG48ez0aF1Rf1apSjn9YcnfyFQ4YqSd4GqB6f2wfh=
+F7jMdi5Hg@mail.gmail.com/
+
+>=20
+> To reproduce, patch a delay into the kernel like this:
+>=20
+>=20
+> diff --git a/mm/khugepaged.c b/mm/khugepaged.c
+> index 9a6e0d507759..27cc8dfbf3a7 100644
+> --- a/mm/khugepaged.c
+> +++ b/mm/khugepaged.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/swapops.h>
+>  #include <linux/shmem_fs.h>
+>  #include <linux/ksm.h>
+> +#include <linux/delay.h>
+>=20
+>  #include <asm/tlb.h>
+>  #include <asm/pgalloc.h>
+> @@ -1617,6 +1618,11 @@ int collapse_pte_mapped_thp(struct mm_struct
+> *mm, unsigned long addr,
+>         }
+>=20
+>         /* step 4: remove page table */
+> +       if (strcmp(current->comm, "DELAYME") =3D=3D 0) {
+> +               pr_warn("%s: BEGIN DELAY INJECTION\n", __func__);
+> +               mdelay(5000);
+> +               pr_warn("%s: END DELAY INJECTION\n", __func__);
+> +       }
+>=20
+>         /* Huge page lock is still held, so page table must remain empty =
+*/
+>         pml =3D pmd_lock(mm, pmd);
+>=20
+>=20
+> And then run the attached reproducer against mm/mm-everything. You
+> should get this in dmesg:
+>=20
+> [  206.578096] BUG: Bad rss-counter state mm:000000000942ebea
+> type:MM_ANONPAGES val:1
+
+Very helpful, thank you Jann.
+
+I got a bit distracted when I then found mm's recent addition of
+UFFDIO_POISON: thought I needed to change both collapse_pte_mapped_thp()
+and retract_page_tables() now to cope with mfill_atomic_pte_poison()
+inserting into even a userfaultfd_armed shared VMA.
+
+But eventually, on second thoughts, realized that's only inserting a pte
+marker, invalid, so won't cause any actual trouble.  A little untidy,
+to leave that behind in a supposedly empty page table about to be freed,
+but not worth refactoring these functions to avoid a non-bug.
+
+And though syzbot and JH may find some fun with it, I don't think any
+real application would be insertng a PTE_MARKER_POISONED where a huge
+page collapse is almost complete.
+
+So I scaled back to a more proportionate fix, following.  Sorry, I've
+slightly messed up applying the "DELAY INJECTION" patch above: not
+intentional, honest!  (mdelay while holding the locks is still good.)
+
+Hugh
+---1463760895-1083013748-1692647320=:5414--
