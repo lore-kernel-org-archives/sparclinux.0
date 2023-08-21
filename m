@@ -2,56 +2,63 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E26EE49A8
-	for <sparclinux@archiver.kernel.org>; Mon, 21 Aug 2023 19:51:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BAF7EE49A6
+	for <sparclinux@archiver.kernel.org>; Mon, 21 Aug 2023 21:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbjHUTv3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 21 Aug 2023 15:51:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45746 "EHLO
+        id S229578AbjHUV1j (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Aug 2023 17:27:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229590AbjHUTv2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Aug 2023 15:51:28 -0400
-Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DBE6FD
-        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 12:51:26 -0700 (PDT)
-Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-591ba8bd094so21523227b3.3
-        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 12:51:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1692647486; x=1693252286;
-        h=mime-version:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=K/XGDkPeLVVPvfADvrmUj6hQsONcx7CAy/VBzqur6kA=;
-        b=NndR0ksIoZBQcWmrMd/NDLEjSSelCSPs4qSBgLV5/C51jeq2YQI/BO5s8EuPCsYHjs
-         4mhgu+/VYY1ieT3LJ0uTF/r6mi2mMgzwPQnofwMFXd6+du7XYuTrt3C2BYB+UE+W0jMt
-         LfrgtW+JUtLFySySFAz+YqlRvr8/f/9GBp2imfas7GgMalU7cxn/4kyBOQp+mzr+dF9G
-         xOG2JDQDTu8p0jj5hmk4xhjc0te0MfHUfNbwBf3dOWE1AZGzkH1lK7uKp3ZJA3J7W+fQ
-         FAE2q4E77CqUNRImAVXU6LnPqDtsvyddu2WPFAC564jeeoZhspAiYe8QVcp5mjTUFaoF
-         80bg==
+        with ESMTP id S230386AbjHUV1g (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Aug 2023 17:27:36 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47739128
+        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 14:26:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1692653207;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Kc1lL9HfVMeZHEEA4arnyJkoU4jVLawdPSW/zCLOVpk=;
+        b=g8PHI/G77N+BcCEErppR0F+43FEgw2yB/aqG5rL19NqVnRHgASwynobCReel63jdV6Z6/q
+        Y2WOaf4AWRVTMTeLQpbaPp8yvTx2vIBoqGxw5yV/yBuULHYNnaqo21Cs0O6AcZOy+PWFsY
+        JrpH31xky5AqOtcU6HRYU5HEP0gKcVU=
+Received: from mail-qv1-f69.google.com (mail-qv1-f69.google.com
+ [209.85.219.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-319-lvnswwQJM967FthKZo-yBQ-1; Mon, 21 Aug 2023 17:26:45 -0400
+X-MC-Unique: lvnswwQJM967FthKZo-yBQ-1
+Received: by mail-qv1-f69.google.com with SMTP id 6a1803df08f44-63d2b88325bso10466666d6.1
+        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 14:26:45 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692647486; x=1693252286;
-        h=mime-version:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=K/XGDkPeLVVPvfADvrmUj6hQsONcx7CAy/VBzqur6kA=;
-        b=QoOUvTDxcj54kAUPjKYlOHxJCfXtyZaQf1dIleQkAmE1+yraiNyZ7LIHQ55FamxHsT
-         CbD+HMDpcvc+MUXNYmjvqFHtAomKARRpGyBGcuw21gPv7ndloW284ek7uIeWTI/OKiQQ
-         4k1YZWX/cqnZGKOxkHQFrR1SKKXkOP4qTNSZwkv+jcJs54hJ869RPeCNoiedfQbTD0wB
-         zMc3EnkfuDX37g8wqDwmp6B/pkwW8NfURDNBlRBXEtuOVZ0QO8HZuCdLVLKDXSVRUPCh
-         ZYf8xdm8VABdt8uAwQm2BWhtPnWPAMNv0Eyezs+AtxQsC2WrvsYKd4BF+vh06xBKe00g
-         rpbA==
-X-Gm-Message-State: AOJu0YwFJ54xJESoe7uuW7JM7Ml0pry1+yMasE8quUXliwR99YmK0kuD
-        O/lZ6aiK/nrjAY/smO38RNUuIg==
-X-Google-Smtp-Source: AGHT+IHkJ6q4xN1gFoj/dTBPdmg8L1RSRYwXvYCwJUuzq7cZqNfZCZl8UnATk59vGQ4CcJPeIgwl5A==
-X-Received: by 2002:a0d:d145:0:b0:581:5cb9:6c2b with SMTP id t66-20020a0dd145000000b005815cb96c2bmr7782127ywd.45.1692647485613;
-        Mon, 21 Aug 2023 12:51:25 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id o63-20020a817342000000b0058fc7604f45sm1401786ywc.130.2023.08.21.12.51.21
+        d=1e100.net; s=20221208; t=1692653205; x=1693258005;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Kc1lL9HfVMeZHEEA4arnyJkoU4jVLawdPSW/zCLOVpk=;
+        b=NXqe2gb5SBrZUzk0/6Q5kRJM/TX+2Zbtiv00wB0NayARS9cXPUYYHREDkrNfF10AV7
+         EkCLgUw507TXt1uK2bSGqECEQwpmBrH9ZFhDtCSWrGfPWWmZv6lhimEXnetZav+d7196
+         QzEPd82AytK3NXhX8TiwaSrclsFf0fiYMTjCbAcmfWnuqUO6eyQwrji8kLcvgd3uTVlw
+         z/dWct1px3HFPaqvwgnOXtBJT0zCOv8THJhoZ1W8zfYGkmJ6LUjKk83w+e2EPrwUjXpY
+         HTcoi8SEJS3qg8wKKHZ8Y3yTp/9bD3/WEYSRTdHPpdp6URnEy2ps/BkjIqBrZadvEOt/
+         FtDQ==
+X-Gm-Message-State: AOJu0YwtKimkTogJFKvxZ8Hid0HQgebIlvj+G+t0SdXs8ggIt7xos2JW
+        MrLqsdqBwIs4exITF93tu+cKjXRZmZ0Hrl4yRN+GTMk4/QHeazAKjAUjQUqOSqIxuW8re5t6lL3
+        UwzjU8qF7W7d7Jat00YZrIA==
+X-Received: by 2002:ad4:5c63:0:b0:645:3c6:56ab with SMTP id i3-20020ad45c63000000b0064503c656abmr9748531qvh.1.1692653205287;
+        Mon, 21 Aug 2023 14:26:45 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEgtWCOPeUpEzGq/iv0oKzAPjh78y7co8OVUrk5dfltW9vOj/sBZqVpomm+P1HZkyDqvpN/4A==
+X-Received: by 2002:ad4:5c63:0:b0:645:3c6:56ab with SMTP id i3-20020ad45c63000000b0064503c656abmr9748513qvh.1.1692653205030;
+        Mon, 21 Aug 2023 14:26:45 -0700 (PDT)
+Received: from x1n (cpe5c7695f3aee0-cm5c7695f3aede.cpe.net.cable.rogers.com. [99.254.144.39])
+        by smtp.gmail.com with ESMTPSA id d28-20020a0cb2dc000000b0063d0b792469sm3261672qvf.136.2023.08.21.14.26.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Aug 2023 12:51:25 -0700 (PDT)
-Date:   Mon, 21 Aug 2023 12:51:20 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Andrew Morton <akpm@linux-foundation.org>
-cc:     Jann Horn <jannh@google.com>,
+        Mon, 21 Aug 2023 14:26:44 -0700 (PDT)
+Date:   Mon, 21 Aug 2023 17:26:41 -0400
+From:   Peter Xu <peterx@redhat.com>
+To:     Hugh Dickins <hughd@google.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Jann Horn <jannh@google.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
@@ -61,7 +68,6 @@ cc:     Jann Horn <jannh@google.com>,
         Qi Zheng <zhengqi.arch@bytedance.com>,
         Yang Shi <shy828301@gmail.com>,
         Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
         Alistair Popple <apopple@nvidia.com>,
@@ -101,121 +107,50 @@ cc:     Jann Horn <jannh@google.com>,
         linux-s390 <linux-s390@vger.kernel.org>,
         kernel list <linux-kernel@vger.kernel.org>,
         Linux-MM <linux-mm@kvack.org>
-Subject: [PATCH mm-unstable] mm/khugepaged: fix collapse_pte_mapped_thp()
+Subject: Re: [PATCH mm-unstable] mm/khugepaged: fix collapse_pte_mapped_thp()
  versus uffd
-Message-ID: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com>
+Message-ID: <ZOPWkS7joexET6q8@x1n>
+References: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
-shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp()
-thought it had emptied: page lock on the huge page is enough to protect
-against WP faults (which find the PTE has been cleared), but not enough
-to protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
+On Mon, Aug 21, 2023 at 12:51:20PM -0700, Hugh Dickins wrote:
+> Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
+> shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp()
+> thought it had emptied: page lock on the huge page is enough to protect
+> against WP faults (which find the PTE has been cleared), but not enough
+> to protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
+> 
+> retract_page_tables() protects against this by checking !vma->anon_vma;
+> but we know that MADV_COLLAPSE needs to be able to work on private shmem
+> mappings, even those with an anon_vma prepared for another part of the
+> mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
+> mappings which are userfaultfd_armed().  Whether it needs to work on
+> private shmem mappings which are userfaultfd_armed(), I'm not so sure:
+> but assume that it does.
+> 
+> Just for this case, take the pmd_lock() two steps earlier: not because
+> it gives any protection against this case itself, but because ptlock
+> nests inside it, and it's the dropping of ptlock which let the bug in.
+> In other cases, continue to minimize the pmd_lock() hold time.
+> 
+> Reported-by: Jann Horn <jannh@google.com>
+> Closes: https://lore.kernel.org/linux-mm/CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com/
+> Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
+> Signed-off-by: Hugh Dickins <hughd@google.com>
 
-retract_page_tables() protects against this by checking !vma->anon_vma;
-but we know that MADV_COLLAPSE needs to be able to work on private shmem
-mappings, even those with an anon_vma prepared for another part of the
-mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
-mappings which are userfaultfd_armed().  Whether it needs to work on
-private shmem mappings which are userfaultfd_armed(), I'm not so sure:
-but assume that it does.
+The locking is indeed slightly complicated.. but I didn't spot anything
+wrong.
 
-Just for this case, take the pmd_lock() two steps earlier: not because
-it gives any protection against this case itself, but because ptlock
-nests inside it, and it's the dropping of ptlock which let the bug in.
-In other cases, continue to minimize the pmd_lock() hold time.
+Acked-by: Peter Xu <peterx@redhat.com>
 
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/linux-mm/CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com/
-Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
- mm/khugepaged.c | 38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+Thanks,
 
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index 40d43eccdee8..d5650541083a 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -1476,7 +1476,7 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 	struct page *hpage;
- 	pte_t *start_pte, *pte;
- 	pmd_t *pmd, pgt_pmd;
--	spinlock_t *pml, *ptl;
-+	spinlock_t *pml = NULL, *ptl;
- 	int nr_ptes = 0, result = SCAN_FAIL;
- 	int i;
- 
-@@ -1572,9 +1572,25 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 				haddr, haddr + HPAGE_PMD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 	notified = true;
--	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
-+
-+	/*
-+	 * pmd_lock covers a wider range than ptl, and (if split from mm's
-+	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
-+	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
-+	 * inserts a valid as-if-COWed PTE without even looking up page cache.
-+	 * So page lock of hpage does not protect from it, so we must not drop
-+	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
-+	 */
-+	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
-+		pml = pmd_lock(mm, pmd);
-+
-+	start_pte = pte_offset_map_nolock(mm, pmd, haddr, &ptl);
- 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
- 		goto abort;
-+	if (!pml)
-+		spin_lock(ptl);
-+	else if (ptl != pml)
-+		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
- 
- 	/* step 2: clear page table and adjust rmap */
- 	for (i = 0, addr = haddr, pte = start_pte;
-@@ -1608,7 +1624,9 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 		nr_ptes++;
- 	}
- 
--	pte_unmap_unlock(start_pte, ptl);
-+	pte_unmap(start_pte);
-+	if (!pml)
-+		spin_unlock(ptl);
- 
- 	/* step 3: set proper refcount and mm_counters. */
- 	if (nr_ptes) {
-@@ -1616,12 +1634,12 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
- 	}
- 
--	/* step 4: remove page table */
--
--	/* Huge page lock is still held, so page table must remain empty */
--	pml = pmd_lock(mm, pmd);
--	if (ptl != pml)
--		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+	/* step 4: remove empty page table */
-+	if (!pml) {
-+		pml = pmd_lock(mm, pmd);
-+		if (ptl != pml)
-+			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+	}
- 	pgt_pmd = pmdp_collapse_flush(vma, haddr, pmd);
- 	pmdp_get_lockless_sync();
- 	if (ptl != pml)
-@@ -1648,6 +1666,8 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
- 	}
- 	if (start_pte)
- 		pte_unmap_unlock(start_pte, ptl);
-+	if (pml && pml != ptl)
-+		spin_unlock(pml);
- 	if (notified)
- 		mmu_notifier_invalidate_range_end(&range);
- drop_hpage:
 -- 
-2.35.3
+Peter Xu
 
