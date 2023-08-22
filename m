@@ -2,79 +2,66 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74ED4EE49A3
-	for <sparclinux@archiver.kernel.org>; Tue, 22 Aug 2023 15:34:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62178EE49AE
+	for <sparclinux@archiver.kernel.org>; Tue, 22 Aug 2023 18:34:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237168AbjHVPej (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 22 Aug 2023 11:34:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43110 "EHLO
+        id S229850AbjHVSee (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 22 Aug 2023 14:34:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237164AbjHVPei (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 22 Aug 2023 11:34:38 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F8CF1B2
-        for <sparclinux@vger.kernel.org>; Tue, 22 Aug 2023 08:33:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692718438;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=gfDVn6rZaVtHsRanik8WVSt7RnpiFjyAz4ecoDpN/hY=;
-        b=YTJoWRsrLWhhm+QydrbaNM1b4slmyvtQMut8mbhOJiyiE4w7YZKH9qlpPxSrULXM0WdcTW
-        2MshFfKXhmZBeyPE1QRepYb9VL09ES6Hj52n/PUn9wSmNBK1uPCObQwmPUpH5geynhkYOX
-        fR8w9MTfdH1aI+Z36ndQE34S0IQ9hho=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-41-7tVbB3xdMvOyn1I-yeKzaA-1; Tue, 22 Aug 2023 11:33:57 -0400
-X-MC-Unique: 7tVbB3xdMvOyn1I-yeKzaA-1
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-3fef5403093so7838165e9.0
-        for <sparclinux@vger.kernel.org>; Tue, 22 Aug 2023 08:33:56 -0700 (PDT)
+        with ESMTP id S229592AbjHVSee (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 22 Aug 2023 14:34:34 -0400
+Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8931CCDF
+        for <sparclinux@vger.kernel.org>; Tue, 22 Aug 2023 11:34:31 -0700 (PDT)
+Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-58fc4eaa04fso35792587b3.0
+        for <sparclinux@vger.kernel.org>; Tue, 22 Aug 2023 11:34:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1692729270; x=1693334070;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=1WMcORuWW+xF6gY7IBQ8Ihi596ledfzVY2HvWzF69bs=;
+        b=bVTuVrcGgDo+SJA4P/hqb5H6xSd8MjD7Ssb+fMuazzFA3RYDdO+Fd9IJECACVc1jxX
+         McaUm35ext3KtxZ81I4e0oJUZiIMsJMFUj/dISIy8Z74mU6Fv2f80D9ACZ/qgstEp8C3
+         dz/3aairaENuzDbobljPrqtuBskwI56lb5nqo3i2CLhXIBQlC0YZY23Jv356UjgetMia
+         NHGQqBKQ20oaS2gVAT2pZYOwN8E7FExt8MbK/p05hoSd1swhCWvI5WPhdTLMWUQY4Nk5
+         ZcyYBss0xQeF26Dv7c2xX0FJXsI2PMUhWahmGyRBaLEDB8wNdKrE3OKxjNgMxLnHwhf1
+         7PUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692718436; x=1693323236;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=gfDVn6rZaVtHsRanik8WVSt7RnpiFjyAz4ecoDpN/hY=;
-        b=UV9RvSfsCmNi4WTw19Aka9JBx6s4nFzgaeWUDwyFvrQtbH5zqV0TlJZmoNiQ7nBG56
-         ejLWGBeO3X5APS8F0asV8IQw5+3zY1LvqmWiIPCYj8hx2ANj3tEmNucMnIPCggHfmbcq
-         2XQmPyoaKa+oxeIaSmmdc4X263kp4GfRuIoumL0vmS98d2vVsFLiwRoyDHzZUFAkNEXB
-         GFytZtOX31Q2XKq3q6RrTGbHeO8p7JYcHRcXwXgY5jgPMmCpPxFojxXSoizT6uL9I8WX
-         bjHvxDNoKkINHIMXPkP2PS1bSf5ElagMOsjqQ8mCyAoKGVeOw3G34KKSsohBDbxT+XRc
-         Jn8A==
-X-Gm-Message-State: AOJu0YwY8SlO9Glmyqn/IgX1tEPwnGY6UvX97QzjCGlRXJL2UAaCrRGK
-        P3q8fAVAdbOq+wiGjiXclw4GzLLq8MKPcppY7jE0+kUMQARHP00A8XHLHgAwaOFuIeNGsWCubUv
-        luCTBCXmdnFDT90hzq/jqdg==
-X-Received: by 2002:a05:600c:5122:b0:3fe:fbba:afa2 with SMTP id o34-20020a05600c512200b003fefbbaafa2mr1535335wms.6.1692718435885;
-        Tue, 22 Aug 2023 08:33:55 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEEzgSt6c0d06CTldkinI+npTxalTCO8OFb2Fse9kAQ1VCoxoVKY5diKxmxkF7aMIBFdM0KIA==
-X-Received: by 2002:a05:600c:5122:b0:3fe:fbba:afa2 with SMTP id o34-20020a05600c512200b003fefbbaafa2mr1535303wms.6.1692718435498;
-        Tue, 22 Aug 2023 08:33:55 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c706:7400:83da:ebad:ba7f:c97c? (p200300cbc706740083daebadba7fc97c.dip0.t-ipconnect.de. [2003:cb:c706:7400:83da:ebad:ba7f:c97c])
-        by smtp.gmail.com with ESMTPSA id s14-20020a05600c044e00b003fa96fe2bd9sm19752310wmb.22.2023.08.22.08.33.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 22 Aug 2023 08:33:54 -0700 (PDT)
-Message-ID: <d05a6922-8dbc-e6fb-f2c5-48f331652f20@redhat.com>
-Date:   Tue, 22 Aug 2023 17:33:52 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH mm-unstable] mm/khugepaged: fix collapse_pte_mapped_thp()
- versus uffd
-Content-Language: en-US
-To:     Jann Horn <jannh@google.com>, Matthew Wilcox <willy@infradead.org>
-Cc:     Hugh Dickins <hughd@google.com>,
+        d=1e100.net; s=20221208; t=1692729270; x=1693334070;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=1WMcORuWW+xF6gY7IBQ8Ihi596ledfzVY2HvWzF69bs=;
+        b=JdpEUysj+SNLJhFv9EG45OCrCLmJHTFCuJ+19xXTgVlYOu2IHV3LfCklK7/hFOLbiQ
+         U8lToqkGXjQETCoYJpKvP7T+bCfN3YpO/f+PXEBXIAOfNFS0qm9Qw9B8boRsl4hqecVh
+         LjOzsC1DGp5pqiSw1YW0Bp5b4/7Dx3RDI3dpkvPNgsxgnnYlCBV1EEzNeq15j/awMKzI
+         Qk9kCZrsNqN9z1OVn3ukh1iQPXQzpS9RlH3xOQSESc4OB4YY1B6bS8OOrXUCCwYhzh0p
+         0qiYeopBqIY/Kl+rbXRrwFG8bucjNZwWjmkuHyLHwjqvoWFzKv1XIKUsYXNMw4EUvyOi
+         3Xpg==
+X-Gm-Message-State: AOJu0Yy3y5tWtiRgLOzTzEQSnw65FUPw+eKbD9h3VcUMJ1sEgp501lNs
+        YLgXOCrH4IGPyyeEHQ0ZskJCQA==
+X-Google-Smtp-Source: AGHT+IHKsobp5e7zqoup7VzvHJTcsGRbS8zrGrBX3SoF5xm7qcy+ngOpN9zqdPkzqj75WfGQt5eHpQ==
+X-Received: by 2002:a81:6009:0:b0:582:5527:ddc with SMTP id u9-20020a816009000000b0058255270ddcmr10163921ywb.34.1692729270534;
+        Tue, 22 Aug 2023 11:34:30 -0700 (PDT)
+Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id j1-20020a0dc701000000b0058ddb62f99bsm2956436ywd.38.2023.08.22.11.34.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 22 Aug 2023 11:34:29 -0700 (PDT)
+Date:   Tue, 22 Aug 2023 11:34:19 -0700 (PDT)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@ripple.attlocal.net
+To:     Peter Xu <peterx@redhat.com>
+cc:     Hugh Dickins <hughd@google.com>, Jann Horn <jannh@google.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Hildenbrand <david@redhat.com>,
         Suren Baghdasaryan <surenb@google.com>,
         Qi Zheng <zhengqi.arch@bytedance.com>,
         Yang Shi <shy828301@gmail.com>,
         Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
         Alistair Popple <apopple@nvidia.com>,
@@ -114,99 +101,101 @@ Cc:     Hugh Dickins <hughd@google.com>,
         linux-s390 <linux-s390@vger.kernel.org>,
         kernel list <linux-kernel@vger.kernel.org>,
         Linux-MM <linux-mm@kvack.org>
-References: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com>
- <CAG48ez1XAePj5MUG8AUmnTjRLcxKre-NGYV82kB68-X8Rh6fxA@mail.gmail.com>
- <f2dc6d6b-c516-932-1598-a58e2afffe9a@google.com>
- <CAG48ez0S-RjAapaDiJ+oZXpn1vs9niWx54iqzusUScS-BYu0hw@mail.gmail.com>
- <ZOTSyv6fuC1pkt76@casper.infradead.org>
- <CAG48ez2NrQjB5T5++uJSZ8-id5-H2mbSRX8c36gAJ5p_BMHOFw@mail.gmail.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <CAG48ez2NrQjB5T5++uJSZ8-id5-H2mbSRX8c36gAJ5p_BMHOFw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH mm-unstable] mm/khugepaged: fix collapse_pte_mapped_thp()
+ versus uffd
+In-Reply-To: <ZOTGvfO31pleXrPF@x1n>
+Message-ID: <1b7c7056-d742-86bf-fec-fdb024b2381@google.com>
+References: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com> <CAG48ez1XAePj5MUG8AUmnTjRLcxKre-NGYV82kB68-X8Rh6fxA@mail.gmail.com> <f2dc6d6b-c516-932-1598-a58e2afffe9a@google.com> <ZOTGvfO31pleXrPF@x1n>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 22.08.23 17:30, Jann Horn wrote:
-> On Tue, Aug 22, 2023 at 5:23 PM Matthew Wilcox <willy@infradead.org> wrote:
->> On Tue, Aug 22, 2023 at 04:39:43PM +0200, Jann Horn wrote:
->>>> Perhaps something else will want that same behaviour in future (it's
->>>> tempting, but difficult to guarantee correctness); for now, it is just
->>>> userfaultfd (but by saying "_armed" rather than "_missing", I'm half-
->>>> expecting uffd to add more such exceptional modes in future).
->>>
->>> Hm, yeah, sounds okay. (I guess we'd also run into this if we ever
->>> wanted to make it possible to reliably install PTE markers with
->>> madvise() or something like that, which might be nice for allowing
->>> userspace to create guard pages without unnecessary extra VMAs...)
->>
->> I don't know what a userspace API for this would look like, but I have
->> a dream of creating guard VMAs which only live in the maple tree and
->> don't require the allocation of a struct VMA.  Use some magic reserved
->> pointer value like XA_ZERO_ENTRY to represent them ... seems more
->> robust than putting a PTE marker in the page tables?
+On Tue, 22 Aug 2023, Peter Xu wrote:
+> On Mon, Aug 21, 2023 at 07:51:38PM -0700, Hugh Dickins wrote:
+> > On Mon, 21 Aug 2023, Jann Horn wrote:
+...
+> > > 
+> > > I guess an alternative would be to use a spin_trylock() instead of the
+> > > current pmd_lock(), and if that fails, temporarily drop the page table
+> > > lock and then restart from step 2 with both locks held - and at that
+> > > point the page table scan should be fast since we expect it to usually
+> > > be empty.
+> > 
+> > That's certainly a good idea, if collapse on userfaultfd_armed private
+> > is anything of a common case (I doubt, but I don't know).  It may be a
+> > better idea anyway (saving a drop and retake of ptlock).
+> > 
+> > I gave it a try, expecting to end up with something that would lead
+> > me to say "I tried it, but it didn't work out well"; but actually it
+> > looks okay to me.  I wouldn't say I prefer it, but it seems reasonable,
+> > and no more complicated (as Peter rightly observes) than the original.
+> > 
+> > It's up to you and Peter, and whoever has strong feelings about it,
+> > to choose between them: I don't mind (but I shall be sad if someone
+> > demands that I indent that comment deeper - I'm not a fan of long
+> > multi-line comments near column 80).
 > 
-> Chrome currently uses a lot of VMAs for its heap, which I think are
-> basically alternating PROT_NONE and PROT_READ|PROT_WRITE anonymous
-> VMAs. Like this:
+> No strong opinion here, either.  Just one trivial comment/question below on
+> the new patch (if that will be preferred)..
+
+I'm going to settle for the original v1 for now (I'll explain why in reply
+to Jann next) - which already has the blessing of your Acked-by, thanks.
+
+(Yes, the locking is a bit confusing: but mainly for the unrelated reason,
+that with the split locking configs, we never quite know whether this lock
+is the same as that lock or not, and so have to be rather careful.)
+
+> > [PATCH mm-unstable v2] mm/khugepaged: fix collapse_pte_mapped_thp() versus uffd
+...
+> > @@ -1572,9 +1572,10 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+> >  				haddr, haddr + HPAGE_PMD_SIZE);
+> >  	mmu_notifier_invalidate_range_start(&range);
+> >  	notified = true;
+> > -	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
+> > -	if (!start_pte)		/* mmap_lock + page lock should prevent this */
+> > -		goto abort;
+> > +	spin_lock(ptl);
 > 
-> [...]
-> 3a10002cf000-3a10002d0000 ---p 00000000 00:00 0
-> 3a10002d0000-3a10002e6000 rw-p 00000000 00:00 0
-> 3a10002e6000-3a10002e8000 ---p 00000000 00:00 0
-> 3a10002e8000-3a10002f2000 rw-p 00000000 00:00 0
-> 3a10002f2000-3a10002f4000 ---p 00000000 00:00 0
-> 3a10002f4000-3a10002fb000 rw-p 00000000 00:00 0
-> 3a10002fb000-3a10002fc000 ---p 00000000 00:00 0
-> 3a10002fc000-3a1000303000 rw-p 00000000 00:00 0
-> 3a1000303000-3a1000304000 ---p 00000000 00:00 0
-> 3a1000304000-3a100031b000 rw-p 00000000 00:00 0
-> 3a100031b000-3a100031c000 ---p 00000000 00:00 0
-> 3a100031c000-3a1000326000 rw-p 00000000 00:00 0
-> 3a1000326000-3a1000328000 ---p 00000000 00:00 0
-> 3a1000328000-3a100033a000 rw-p 00000000 00:00 0
-> 3a100033a000-3a100033c000 ---p 00000000 00:00 0
-> 3a100033c000-3a100038b000 rw-p 00000000 00:00 0
-> 3a100038b000-3a100038c000 ---p 00000000 00:00 0
-> 3a100038c000-3a100039b000 rw-p 00000000 00:00 0
-> 3a100039b000-3a100039c000 ---p 00000000 00:00 0
-> 3a100039c000-3a10003af000 rw-p 00000000 00:00 0
-> 3a10003af000-3a10003b0000 ---p 00000000 00:00 0
-> 3a10003b0000-3a10003e8000 rw-p 00000000 00:00 0
-> 3a10003e8000-3a1000401000 ---p 00000000 00:00 0
-> 3a1000401000-3a1000402000 rw-p 00000000 00:00 0
-> 3a1000402000-3a100040c000 ---p 00000000 00:00 0
-> 3a100040c000-3a100046f000 rw-p 00000000 00:00 0
-> 3a100046f000-3a1000470000 ---p 00000000 00:00 0
-> 3a1000470000-3a100047a000 rw-p 00000000 00:00 0
-> 3a100047a000-3a100047c000 ---p 00000000 00:00 0
-> 3a100047c000-3a1000492000 rw-p 00000000 00:00 0
-> 3a1000492000-3a1000494000 ---p 00000000 00:00 0
-> 3a1000494000-3a10004a2000 rw-p 00000000 00:00 0
-> 3a10004a2000-3a10004a4000 ---p 00000000 00:00 0
-> 3a10004a4000-3a10004b6000 rw-p 00000000 00:00 0
-> 3a10004b6000-3a10004b8000 ---p 00000000 00:00 0
-> 3a10004b8000-3a10004ea000 rw-p 00000000 00:00 0
-> 3a10004ea000-3a10004ec000 ---p 00000000 00:00 0
-> 3a10004ec000-3a10005f4000 rw-p 00000000 00:00 0
-> 3a10005f4000-3a1000601000 ---p 00000000 00:00 0
-> 3a1000601000-3a1000602000 rw-p 00000000 00:00 0
-> 3a1000602000-3a1000604000 ---p 00000000 00:00 0
-> 3a1000604000-3a100062b000 rw-p 00000000 00:00 0
-> 3a100062b000-3a1000801000 ---p 00000000 00:00 0
-> [...]
+> .. here will the ptl always be valid?
 > 
-> I was thinking if you used PTE markers as guards, you could maybe turn
-> all that into more or less a single VMA?
+> That comes from the previous round of pte_offset_map_lock(), and I assume
+> after this whole "thp collapse without write lock" work landed, it has the
+> same lifecycle with the *pte pointer, so can be invalid right after the rcu
+> read lock released; mmap read lock isn't strong enough to protect the ptl,
+> not anymore.
+> 
+> Maybe it's all fine because the thp collapse path is the solo path(s) that
+> will release the pte pgtable page without write mmap lock (so as to release
+> the ptl too when doing so), and we at least still hold the page lock, so
+> the worst case is the other concurrent "thp collapse" will still serialize
+> with this one on the huge page lock. But that doesn't look as solid as
+> fetching again the ptl from another pte_offset_map_nolock().  So still just
+> raise this question up.  It's possible I just missed something.
 
-I proposed the topic "A proper API for sparse memory mappings" for the 
-bi-weekly MM meeting on September 20, that would also cover exactly that 
-use case. :)
+It is safe, as you say because of us holding the hpage lock, which stops
+any racing callers of collapse_pte_mapped_thp() or retract_page_tables():
+and these are the functions which (currently) make the *pmd transition
+which pte_offset_map_lock() etc. are being careful to guard against.
 
--- 
-Cheers,
+[In future we can imagine empty page table removal making that transition
+too: and that wouldn't even have any hpage to lock.  Will it rely on
+mmap_lock for write? or pmd_lock? probably both, but no need to design
+for it now.]
 
-David / dhildenb
+But I agree that it does *look* more questionable in this patch: there was
+a reassuring pte_offset_map_lock() there before, and now I rely more on
+the assumptions and just use the "previous" ptl (and that's why I chose
+to make the !start_pte case a VM_BUG_ON a few lines later).
 
+I expect, with more time spent, I could cast it back into more reassuring
+form: but it's all a bit of a con trick - if you look further down (even
+before v2 or v1 fixes) to "step 4", there we have "if (ptl != pml)" which
+is also relying on the fact that ptl cannot have changed.  And no doubt
+that too could be recast into more reassuring-looking form, but it
+wouldn't actually be worthwhile.
+
+Thanks for considering these, Peter: I'll recommend v1 to Andrew.
+
+Hugh
