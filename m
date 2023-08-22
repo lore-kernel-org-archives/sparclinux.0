@@ -2,309 +2,115 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41456EE4996
-	for <sparclinux@archiver.kernel.org>; Tue, 22 Aug 2023 02:51:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6284FEE49AB
+	for <sparclinux@archiver.kernel.org>; Tue, 22 Aug 2023 05:56:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232339AbjHVCv5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 21 Aug 2023 22:51:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34082 "EHLO
+        id S232921AbjHVF4L (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 22 Aug 2023 01:56:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232362AbjHVCv4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Aug 2023 22:51:56 -0400
-Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B375719B
-        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 19:51:51 -0700 (PDT)
-Received: by mail-yb1-xb2a.google.com with SMTP id 3f1490d57ef6-d7766072ba4so1357411276.1
-        for <sparclinux@vger.kernel.org>; Mon, 21 Aug 2023 19:51:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1692672710; x=1693277510;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=BD58/XthciO0sTCaxjR+dsg5ZYNZ/J3nmIWihGISY24=;
-        b=Q0qcwIyCJhThDsq21LrOEUM4nzcH1AytzGvc8q68ncl1mJ+TCbnsbsnqgXNKXHlnfV
-         DW1P2aIRbJwxPz4W/lCAKObkYGQ21iOYfNp3rzyR5qwadhIk7ILSWaIULUS2h8WGw6a9
-         rlXKAzIVrjqasXr8byUeVrdd0PyWBbTaDz736M7iFsTTtsTwOgxmkEgo8Y8npLfzZ6le
-         vZjEl3gNCkWohBuLVPgBLHLBjkVeDc1/PGmPEP/IZ9tWMePJ1s8nI8wLexg9la++INv1
-         iFWlafywvOUU+emzq1kdkkES4j9YqSSYxNCUuV1wQo77eM3kjveaJMseJ2onnShSco3s
-         XhRw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692672710; x=1693277510;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BD58/XthciO0sTCaxjR+dsg5ZYNZ/J3nmIWihGISY24=;
-        b=UJJKKxr8yT3hG2qRGiMzmz01uLAxxH085QT1gI/WY1Z6Z5W025UG83KOohAq7qGD/R
-         XdtSmteZT2d1Rhv1+O3baB0WBW4cAj+QOpPc4bWb5ga4QCIecPeSb7P+i5SRqMoQxbXi
-         3aDsNgbtnR6gKVhZc3R/ehfExJoufDuxT2WfoiPRfJaJDZr2YzEb5prDydA1TyVg9FC2
-         fmA65B9Wk15o/4KcfjR7cB3ZJQ/TArgw/r2LC8EWc6MLxlUg6qLwnNDEtFcimWJiMI2Q
-         oDjoi86Z20nB5i4yqWCefGrgiZDKTLefkj/kRiZy+day4ghorn/14ViYhGgcQLafo8jQ
-         q5qg==
-X-Gm-Message-State: AOJu0YySiq3kEylmCi3w/9ALQytKxxFvihSwfZESKV5QbLmbwePvBicU
-        bp8UWzj97B4RnZCiiTcxAEW86g==
-X-Google-Smtp-Source: AGHT+IEEalFENjTwS6ybo+mX3CovLc5hqPqdTe+cS18Ojl4MmAmt12MBrpQ2mhlWRcpCfqQmCFJDnQ==
-X-Received: by 2002:a05:6902:566:b0:d0f:dc7d:ff19 with SMTP id a6-20020a056902056600b00d0fdc7dff19mr6752743ybt.9.1692672710361;
-        Mon, 21 Aug 2023 19:51:50 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id n82-20020a25da55000000b00d5d4bae6fdfsm2146761ybf.30.2023.08.21.19.51.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Aug 2023 19:51:49 -0700 (PDT)
-Date:   Mon, 21 Aug 2023 19:51:38 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Jann Horn <jannh@google.com>
-cc:     Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        David Hildenbrand <david@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Peter Xu <peterx@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Yu Zhao <yuzhao@google.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Ralph Campbell <rcampbell@nvidia.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Steven Price <steven.price@arm.com>,
-        SeongJae Park <sj@kernel.org>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Zack Rusin <zackr@vmware.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Axel Rasmussen <axelrasmussen@google.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Pasha Tatashin <pasha.tatashin@soleen.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Song Liu <song@kernel.org>,
-        Thomas Hellstrom <thomas.hellstrom@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>, Zi Yan <ziy@nvidia.com>,
-        Zach O'Keefe <zokeefe@google.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        sparclinux@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        kernel list <linux-kernel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>
-Subject: Re: [PATCH mm-unstable] mm/khugepaged: fix collapse_pte_mapped_thp()
- versus uffd
-In-Reply-To: <CAG48ez1XAePj5MUG8AUmnTjRLcxKre-NGYV82kB68-X8Rh6fxA@mail.gmail.com>
-Message-ID: <f2dc6d6b-c516-932-1598-a58e2afffe9a@google.com>
-References: <4d31abf5-56c0-9f3d-d12f-c9317936691@google.com> <CAG48ez1XAePj5MUG8AUmnTjRLcxKre-NGYV82kB68-X8Rh6fxA@mail.gmail.com>
+        with ESMTP id S231316AbjHVF4K (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 22 Aug 2023 01:56:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3D52D7;
+        Mon, 21 Aug 2023 22:56:08 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E8A360C6B;
+        Tue, 22 Aug 2023 05:56:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AF0BC433C8;
+        Tue, 22 Aug 2023 05:56:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1692683767;
+        bh=9um55Zj5RL+HKm7sDYvky+ZFM9uVlT2G4kmh91T3oQk=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=i4U9wZJzMB/JAaVGMUuwP8/xefH2Qsh14Xu32Xc/qVZSzGa4W6W3VIIOD6/v7Xh9Q
+         k18VkvEHim3SO3tNgXRvBblBzeHsL87eELXVl0EFzY0tsPjs811q9rfXFnsj0lLTQF
+         EpSoXGxzXLDJWts1fI4IRWcROzjHP5G0AT0qxuEpgYP+SXJ2yRth8TU23/w9KY3J6f
+         EluPrQ6jZirhSO+0JgVTf6rSYqMW+FR+pbNaNhMUovRm87mowMfEhVJUUff6ttYjdN
+         DWsbeQYoA+y9d0IeLN7eLGKZEWZbHrOHUi96dM2CviwCqt7RLb3FLDwwTsj9BwMrPz
+         Cnb9nNjBOJIVA==
+Message-ID: <ae07d064-85ea-3074-0a32-867e5bbf6e7a@kernel.org>
+Date:   Tue, 22 Aug 2023 14:56:04 +0900
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463760895-2088143463-1692672709=:1872"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH 1/9] ARM: Remove <asm/ide.h>
+Content-Language: en-US
+To:     Geert Uytterhoeven <geert@linux-m68k.org>,
+        Russell King <linux@armlinux.org.uk>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sergey Shtylyov <s.shtylyov@omp.ru>,
+        Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1692288018.git.geert@linux-m68k.org>
+ <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
+From:   Damien Le Moal <dlemoal@kernel.org>
+Organization: Western Digital Research
+In-Reply-To: <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 8/18/23 01:07, Geert Uytterhoeven wrote:
+> As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
+> v5.14, there are no more generic users of <asm/ide.h>.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
----1463760895-2088143463-1692672709=:1872
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Looks good to me. All patches are reviewed or acked, except this one.
+Can I get an ack from arm folks ?
 
-On Mon, 21 Aug 2023, Jann Horn wrote:
-> On Mon, Aug 21, 2023 at 9:51=E2=80=AFPM Hugh Dickins <hughd@google.com> w=
-rote:
-> > Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
-> > shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp(=
-)
-> > thought it had emptied: page lock on the huge page is enough to protect
-> > against WP faults (which find the PTE has been cleared), but not enough
-> > to protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
-> >
-> > retract_page_tables() protects against this by checking !vma->anon_vma;
-> > but we know that MADV_COLLAPSE needs to be able to work on private shme=
-m
-> > mappings, even those with an anon_vma prepared for another part of the
-> > mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
-> > mappings which are userfaultfd_armed().  Whether it needs to work on
-> > private shmem mappings which are userfaultfd_armed(), I'm not so sure:
-> > but assume that it does.
->=20
-> I think we couldn't rely on anon_vma here anyway, since holding the
-> mmap_lock in read mode doesn't prevent concurrent creation of an
-> anon_vma?
+> ---
+>  arch/arm/include/asm/ide.h | 24 ------------------------
+>  1 file changed, 24 deletions(-)
+>  delete mode 100644 arch/arm/include/asm/ide.h
+> 
+> diff --git a/arch/arm/include/asm/ide.h b/arch/arm/include/asm/ide.h
+> deleted file mode 100644
+> index a81e0b0d6747aa2f..0000000000000000
+> --- a/arch/arm/include/asm/ide.h
+> +++ /dev/null
+> @@ -1,24 +0,0 @@
+> -/* SPDX-License-Identifier: GPL-2.0 */
+> -/*
+> - *  arch/arm/include/asm/ide.h
+> - *
+> - *  Copyright (C) 1994-1996  Linus Torvalds & authors
+> - */
+> -
+> -/*
+> - *  This file contains the ARM architecture specific IDE code.
+> - */
+> -
+> -#ifndef __ASMARM_IDE_H
+> -#define __ASMARM_IDE_H
+> -
+> -#ifdef __KERNEL__
+> -
+> -#define __ide_mm_insw(port,addr,len)	readsw(port,addr,len)
+> -#define __ide_mm_insl(port,addr,len)	readsl(port,addr,len)
+> -#define __ide_mm_outsw(port,addr,len)	writesw(port,addr,len)
+> -#define __ide_mm_outsl(port,addr,len)	writesl(port,addr,len)
+> -
+> -#endif /* __KERNEL__ */
+> -
+> -#endif /* __ASMARM_IDE_H */
 
-We would have had to do the same as in retract_page_tables() (which
-doesn't even have mmap_lock for read): recheck !vma->anon_vma after
-finally acquiring ptlock.  But the !anon_vma limitation is certainly
-not acceptable here anyway.
+-- 
+Damien Le Moal
+Western Digital Research
 
->=20
-> > Just for this case, take the pmd_lock() two steps earlier: not because
-> > it gives any protection against this case itself, but because ptlock
-> > nests inside it, and it's the dropping of ptlock which let the bug in.
-> > In other cases, continue to minimize the pmd_lock() hold time.
->=20
-> Special-casing userfaultfd like this makes me a bit uncomfortable; but
-> I also can't find anything other than userfaultfd that would insert
-> pages into regions that are khugepaged-compatible, so I guess this
-> works?
-
-I'm as sure as I can be that it's solely because userfaultfd breaks
-the usual rules here (and in fairness, IIRC Andrea did ask my permission
-before making it behave that way on shmem, COWing without a source page).
-
-Perhaps something else will want that same behaviour in future (it's
-tempting, but difficult to guarantee correctness); for now, it is just
-userfaultfd (but by saying "_armed" rather than "_missing", I'm half-
-expecting uffd to add more such exceptional modes in future).
-
->=20
-> I guess an alternative would be to use a spin_trylock() instead of the
-> current pmd_lock(), and if that fails, temporarily drop the page table
-> lock and then restart from step 2 with both locks held - and at that
-> point the page table scan should be fast since we expect it to usually
-> be empty.
-
-That's certainly a good idea, if collapse on userfaultfd_armed private
-is anything of a common case (I doubt, but I don't know).  It may be a
-better idea anyway (saving a drop and retake of ptlock).
-
-I gave it a try, expecting to end up with something that would lead
-me to say "I tried it, but it didn't work out well"; but actually it
-looks okay to me.  I wouldn't say I prefer it, but it seems reasonable,
-and no more complicated (as Peter rightly observes) than the original.
-
-It's up to you and Peter, and whoever has strong feelings about it,
-to choose between them: I don't mind (but I shall be sad if someone
-demands that I indent that comment deeper - I'm not a fan of long
-multi-line comments near column 80).
-
-
-[PATCH mm-unstable v2] mm/khugepaged: fix collapse_pte_mapped_thp() versus =
-uffd
-
-Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
-shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp()
-thought it had emptied: page lock on the huge page is enough to protect
-against WP faults (which find the PTE has been cleared), but not enough
-to protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
-
-retract_page_tables() protects against this by checking !vma->anon_vma;
-but we know that MADV_COLLAPSE needs to be able to work on private shmem
-mappings, even those with an anon_vma prepared for another part of the
-mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
-mappings which are userfaultfd_armed().  Whether it needs to work on
-private shmem mappings which are userfaultfd_armed(), I'm not so sure:
-but assume that it does.
-
-Now trylock pmd lock without dropping ptlock (suggested by jannh): if
-that fails, drop and retake ptlock around taking pmd lock, and just in
-the uffd private case, go back to recheck and empty the page table.
-
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/linux-mm/CAG48ez0FxiRC4d3VTu_a9h=3Drg5FW-kY=
-D5Rg5xo_RDBM0LTTqZQ@mail.gmail.com/
-Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_re=
-ad_lock()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
- mm/khugepaged.c | 39 +++++++++++++++++++++++++++++----------
- 1 file changed, 29 insertions(+), 10 deletions(-)
-
-diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-index 40d43eccdee8..ad1c571772fe 100644
---- a/mm/khugepaged.c
-+++ b/mm/khugepaged.c
-@@ -1476,7 +1476,7 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, uns=
-igned long addr,
- =09struct page *hpage;
- =09pte_t *start_pte, *pte;
- =09pmd_t *pmd, pgt_pmd;
--=09spinlock_t *pml, *ptl;
-+=09spinlock_t *pml =3D NULL, *ptl;
- =09int nr_ptes =3D 0, result =3D SCAN_FAIL;
- =09int i;
-=20
-@@ -1572,9 +1572,10 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, un=
-signed long addr,
- =09=09=09=09haddr, haddr + HPAGE_PMD_SIZE);
- =09mmu_notifier_invalidate_range_start(&range);
- =09notified =3D true;
--=09start_pte =3D pte_offset_map_lock(mm, pmd, haddr, &ptl);
--=09if (!start_pte)=09=09/* mmap_lock + page lock should prevent this */
--=09=09goto abort;
-+=09spin_lock(ptl);
-+recheck:
-+=09start_pte =3D pte_offset_map(pmd, haddr);
-+=09VM_BUG_ON(!start_pte);=09/* mmap_lock + page lock should prevent this *=
-/
-=20
- =09/* step 2: clear page table and adjust rmap */
- =09for (i =3D 0, addr =3D haddr, pte =3D start_pte;
-@@ -1608,20 +1609,36 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, u=
-nsigned long addr,
- =09=09nr_ptes++;
- =09}
-=20
--=09pte_unmap_unlock(start_pte, ptl);
-+=09pte_unmap(start_pte);
-=20
- =09/* step 3: set proper refcount and mm_counters. */
- =09if (nr_ptes) {
- =09=09page_ref_sub(hpage, nr_ptes);
- =09=09add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+=09=09nr_ptes =3D 0;
- =09}
-=20
--=09/* step 4: remove page table */
-+=09/* step 4: remove empty page table */
-+=09if (!pml) {
-+=09=09pml =3D pmd_lockptr(mm, pmd);
-+=09=09if (pml !=3D ptl && !spin_trylock(pml)) {
-+=09=09=09spin_unlock(ptl);
-+=09=09=09spin_lock(pml);
-+=09=09=09spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+=09/*
-+=09 * pmd_lock covers a wider range than ptl, and (if split from mm's
-+=09 * page_table_lock) ptl nests inside pml. The less time we hold pml,
-+=09 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
-+=09 * inserts a valid as-if-COWed PTE without even looking up page cache.
-+=09 * So page lock of hpage does not protect from it, so we must not drop
-+=09 * ptl before pgt_pmd is removed, so uffd private needs rechecking.
-+=09 */
-+=09=09=09if (userfaultfd_armed(vma) &&
-+=09=09=09    !(vma->vm_flags & VM_SHARED))
-+=09=09=09=09goto recheck;
-+=09=09}
-+=09}
-=20
--=09/* Huge page lock is still held, so page table must remain empty */
--=09pml =3D pmd_lock(mm, pmd);
--=09if (ptl !=3D pml)
--=09=09spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
- =09pgt_pmd =3D pmdp_collapse_flush(vma, haddr, pmd);
- =09pmdp_get_lockless_sync();
- =09if (ptl !=3D pml)
-@@ -1648,6 +1665,8 @@ int collapse_pte_mapped_thp(struct mm_struct *mm, uns=
-igned long addr,
- =09}
- =09if (start_pte)
- =09=09pte_unmap_unlock(start_pte, ptl);
-+=09if (pml && pml !=3D ptl)
-+=09=09spin_unlock(pml);
- =09if (notified)
- =09=09mmu_notifier_invalidate_range_end(&range);
- drop_hpage:
---=20
-2.35.3
----1463760895-2088143463-1692672709=:1872--
