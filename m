@@ -2,61 +2,243 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD1ECEE49AE
-	for <sparclinux@archiver.kernel.org>; Wed, 23 Aug 2023 08:45:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0964DEE49A3
+	for <sparclinux@archiver.kernel.org>; Wed, 23 Aug 2023 16:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234024AbjHWIpi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 23 Aug 2023 04:45:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36668 "EHLO
+        id S237491AbjHWQO5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 23 Aug 2023 12:14:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234057AbjHWIaI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Aug 2023 04:30:08 -0400
-X-Greylist: delayed 512 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 23 Aug 2023 01:27:14 PDT
-Received: from mail.projectinc.pl (mail.projectinc.pl [151.236.21.30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B807D1739
-        for <sparclinux@vger.kernel.org>; Wed, 23 Aug 2023 01:26:56 -0700 (PDT)
-Received: by mail.projectinc.pl (Postfix, from userid 1001)
-        id B154E3FE7B; Wed, 23 Aug 2023 10:15:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=projectinc.pl;
-        s=mail; t=1692778612;
-        bh=lIHTK8URpqixZz6NHWxMXvKMyyZ1ujcgjAp/F0bQcns=;
-        h=Date:From:To:Subject:From;
-        b=H3yqIXW7nrOQwim+dpOVqE8Ra7lJsELGjtsB+oqg/bY6TUFlAVlTJEASM04RVQa4j
-         utUW1hhqCg9CaD03V4mD0vYuRzVrrLVNuokz1cDjbLDZu7OJQrOw5NPmXxrn3ahfPN
-         j18M0pWA7x48/VZexrCfGPMlibyvSYKF4M89MfxpV2lVzS31YBw2W998aN2vDlGWIX
-         mtbR97WA69RXzgjoZlWmZUVN7FydIdfdSoVNnzP3Clh8p5TGORBjsdkqBZfKSye6AY
-         EQUZ0H0bcrhHutvmJ3hwmXIxP2vyI4gmUwGnAsM/uEhQbapVcXKDb4sxhY8n9GJtlr
-         DSc/2LqF8PJWw==
-Received: by mail.projectinc.pl for <sparclinux@vger.kernel.org>; Wed, 23 Aug 2023 08:15:30 GMT
-Message-ID: <20230823084500-0.1.ai.2uo2s.0.ka9e5660ia@projectinc.pl>
-Date:   Wed, 23 Aug 2023 08:15:30 GMT
-From:   =?UTF-8?Q? "Jakub_Wr=C3=B3bel" ?= <jakub.wrobel@projectinc.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Pozycjonowanie- informacja
-X-Mailer: mail.projectinc.pl
+        with ESMTP id S237482AbjHWQO4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Aug 2023 12:14:56 -0400
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 93017E7E;
+        Wed, 23 Aug 2023 09:14:49 -0700 (PDT)
+Received: from pwmachine.numericable.fr (85-170-34-233.rev.numericable.fr [85.170.34.233])
+        by linux.microsoft.com (Postfix) with ESMTPSA id B645E2126CC6;
+        Wed, 23 Aug 2023 09:14:45 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B645E2126CC6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1692807289;
+        bh=lt0BWoCzKU9aBI9VmoKWYDdOwLmOs+rGiamRpCppdZY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ryDQ3sg5K+4/KzXzDFfl6WO5jLgxConn53svwJRwhCmCIy1U97+2rfnKtiLqSzC7/
+         Wy7VcR/j0ODnGkadQBvdgDc3ZSLaH7iWYF/5FFDCwaomlxYfAmMRsAOb07Kuq8Hop/
+         K9zQ+WI3VTnDXTorW1jr08P24+y+Q8IEsQQ8jGpQ=
+From:   Francis Laniel <flaniel@linux.microsoft.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Masami Hiramatsu <mhiramat@kernel.org>,
+        linux-trace-kernel@vger.kernel.org,
+        Francis Laniel <flaniel@linux.microsoft.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org
+Subject: [RFC PATCH v1 1/1] tracing/kprobes: Return ENAMESVRLSYMS when func matches several symbols
+Date:   Wed, 23 Aug 2023 18:14:10 +0200
+Message-Id: <20230823161410.103489-2-flaniel@linux.microsoft.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230823161410.103489-1-flaniel@linux.microsoft.com>
+References: <20230823161410.103489-1-flaniel@linux.microsoft.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
+Previously to this commit, if func matches several symbols, a PMU kprobe would
+be installed for the first matching address.
+This could lead to some misunderstanding when some BPF code was never called
+because it was attached to a function which was indeed not call, because the
+effectively called one has no kprobes.
 
-jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
-j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
-e Google.=20
+So, this commit introduces ENAMESVRLSYMS which is returned when func matches
+several symbols.
+This way, user needs to use addr to remove the ambiguity.
 
-Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
-=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
-w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
-owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
-dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
+Suggested-by: Masami Hiramatsu <mhiramat@kernel.org>
+Signed-off-by: Francis Laniel <flaniel@linux.microsoft.com>
+Link: https://lore.kernel.org/lkml/20230819101105.b0c104ae4494a7d1f2eea742@kernel.org/
+---
+ arch/alpha/include/uapi/asm/errno.h        |  2 ++
+ arch/mips/include/uapi/asm/errno.h         |  2 ++
+ arch/parisc/include/uapi/asm/errno.h       |  2 ++
+ arch/sparc/include/uapi/asm/errno.h        |  2 ++
+ include/uapi/asm-generic/errno.h           |  2 ++
+ kernel/trace/trace_kprobe.c                | 26 ++++++++++++++++++++++
+ tools/arch/alpha/include/uapi/asm/errno.h  |  2 ++
+ tools/arch/mips/include/uapi/asm/errno.h   |  2 ++
+ tools/arch/parisc/include/uapi/asm/errno.h |  2 ++
+ tools/arch/sparc/include/uapi/asm/errno.h  |  2 ++
+ tools/include/uapi/asm-generic/errno.h     |  2 ++
+ 11 files changed, 46 insertions(+)
 
-Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
-edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
-edstawi=C4=87 ofert=C4=99?
+diff --git a/arch/alpha/include/uapi/asm/errno.h b/arch/alpha/include/uapi/asm/errno.h
+index 3d265f6babaf..3d9686d915f9 100644
+--- a/arch/alpha/include/uapi/asm/errno.h
++++ b/arch/alpha/include/uapi/asm/errno.h
+@@ -125,4 +125,6 @@
+
+ #define EHWPOISON	139	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	140	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/arch/mips/include/uapi/asm/errno.h b/arch/mips/include/uapi/asm/errno.h
+index 2fb714e2d6d8..1fd64ee7b629 100644
+--- a/arch/mips/include/uapi/asm/errno.h
++++ b/arch/mips/include/uapi/asm/errno.h
+@@ -124,6 +124,8 @@
+
+ #define EHWPOISON	168	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	169	/* Name correspond to several symbols */
++
+ #define EDQUOT		1133	/* Quota exceeded */
 
 
-Pozdrawiam serdecznie,
-Jakub Wr=C3=B3bel
+diff --git a/arch/parisc/include/uapi/asm/errno.h b/arch/parisc/include/uapi/asm/errno.h
+index 87245c584784..c7845ceece26 100644
+--- a/arch/parisc/include/uapi/asm/errno.h
++++ b/arch/parisc/include/uapi/asm/errno.h
+@@ -124,4 +124,6 @@
+
+ #define EHWPOISON	257	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	258	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/arch/sparc/include/uapi/asm/errno.h b/arch/sparc/include/uapi/asm/errno.h
+index 81a732b902ee..1ed065943bab 100644
+--- a/arch/sparc/include/uapi/asm/errno.h
++++ b/arch/sparc/include/uapi/asm/errno.h
+@@ -115,4 +115,6 @@
+
+ #define EHWPOISON	135	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	136	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/include/uapi/asm-generic/errno.h b/include/uapi/asm-generic/errno.h
+index cf9c51ac49f9..3d5d5740c8da 100644
+--- a/include/uapi/asm-generic/errno.h
++++ b/include/uapi/asm-generic/errno.h
+@@ -120,4 +120,6 @@
+
+ #define EHWPOISON	133	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	134	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/kernel/trace/trace_kprobe.c b/kernel/trace/trace_kprobe.c
+index 23dba01831f7..53b66db1ff53 100644
+--- a/kernel/trace/trace_kprobe.c
++++ b/kernel/trace/trace_kprobe.c
+@@ -1699,6 +1699,16 @@ static int unregister_kprobe_event(struct trace_kprobe *tk)
+ }
+
+ #ifdef CONFIG_PERF_EVENTS
++
++static int count_symbols(void *data, unsigned long unused)
++{
++	unsigned int *count = data;
++
++	(*count)++;
++
++	return 0;
++}
++
+ /* create a trace_kprobe, but don't add it to global lists */
+ struct trace_event_call *
+ create_local_trace_kprobe(char *func, void *addr, unsigned long offs,
+@@ -1709,6 +1719,22 @@ create_local_trace_kprobe(char *func, void *addr, unsigned long offs,
+ 	int ret;
+ 	char *event;
+
++	/*
++	 * If user specifies func, we check that the function name does not
++	 * correspond to several symbols.
++	 * If this is the case, we return with error code ENAMESVRLSYMS to
++	 * indicate the user he/she should use addr and offs rather than func to
++	 * remove the ambiguity.
++	 */
++	if (func) {
++		unsigned int count;
++
++		count = 0;
++		kallsyms_on_each_match_symbol(count_symbols, func, &count);
++		if (count > 1)
++			return ERR_PTR(-ENAMESVRLSYMS);
++	}
++
+ 	/*
+ 	 * local trace_kprobes are not added to dyn_event, so they are never
+ 	 * searched in find_trace_kprobe(). Therefore, there is no concern of
+diff --git a/tools/arch/alpha/include/uapi/asm/errno.h b/tools/arch/alpha/include/uapi/asm/errno.h
+index 3d265f6babaf..3d9686d915f9 100644
+--- a/tools/arch/alpha/include/uapi/asm/errno.h
++++ b/tools/arch/alpha/include/uapi/asm/errno.h
+@@ -125,4 +125,6 @@
+
+ #define EHWPOISON	139	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	140	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/tools/arch/mips/include/uapi/asm/errno.h b/tools/arch/mips/include/uapi/asm/errno.h
+index 2fb714e2d6d8..1fd64ee7b629 100644
+--- a/tools/arch/mips/include/uapi/asm/errno.h
++++ b/tools/arch/mips/include/uapi/asm/errno.h
+@@ -124,6 +124,8 @@
+
+ #define EHWPOISON	168	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	169	/* Name correspond to several symbols */
++
+ #define EDQUOT		1133	/* Quota exceeded */
+
+
+diff --git a/tools/arch/parisc/include/uapi/asm/errno.h b/tools/arch/parisc/include/uapi/asm/errno.h
+index 87245c584784..c7845ceece26 100644
+--- a/tools/arch/parisc/include/uapi/asm/errno.h
++++ b/tools/arch/parisc/include/uapi/asm/errno.h
+@@ -124,4 +124,6 @@
+
+ #define EHWPOISON	257	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	258	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/tools/arch/sparc/include/uapi/asm/errno.h b/tools/arch/sparc/include/uapi/asm/errno.h
+index 81a732b902ee..1ed065943bab 100644
+--- a/tools/arch/sparc/include/uapi/asm/errno.h
++++ b/tools/arch/sparc/include/uapi/asm/errno.h
+@@ -115,4 +115,6 @@
+
+ #define EHWPOISON	135	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	136	/* Name correspond to several symbols */
++
+ #endif
+diff --git a/tools/include/uapi/asm-generic/errno.h b/tools/include/uapi/asm-generic/errno.h
+index cf9c51ac49f9..3d5d5740c8da 100644
+--- a/tools/include/uapi/asm-generic/errno.h
++++ b/tools/include/uapi/asm-generic/errno.h
+@@ -120,4 +120,6 @@
+
+ #define EHWPOISON	133	/* Memory page has hardware error */
+
++#define ENAMESVRLSYMS	134	/* Name correspond to several symbols */
++
+ #endif
+--
+2.34.1
+
