@@ -2,140 +2,60 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4761EE49BE
-	for <sparclinux@archiver.kernel.org>; Fri, 25 Aug 2023 07:40:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE12C3DA66
+	for <sparclinux@archiver.kernel.org>; Fri, 25 Aug 2023 08:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243213AbjHYHju convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 25 Aug 2023 03:39:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37840 "EHLO
+        id S236114AbjHYIK4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 25 Aug 2023 04:10:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243279AbjHYHjo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 25 Aug 2023 03:39:44 -0400
-Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com [209.85.128.170])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA19D1FCA;
-        Fri, 25 Aug 2023 00:39:42 -0700 (PDT)
-Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-5921a962adfso7750207b3.1;
-        Fri, 25 Aug 2023 00:39:42 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692949182; x=1693553982;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=E5r8bhhlGnXrx708tsGw6Ag8gm7AVkEO6BeDk4HD7tk=;
-        b=WLwKyxXquJm5Xn2E5suH9Ccdce9jLlK+GauaIf0md59SIWvBfCcZk4dC06SZ0nwQ5K
-         o8mlkO6FrAPPZ3xikK2nHElJNrNcLfVrv2YPtiaWl+//7MkAIb0Vy9SjeVnmpHyCYH4W
-         I5mObQzFhw+m1eUuyVIrzuU9uKe9VfJqoq2WCZPHWNbvYfU/7BBGvgSdw3Aj94FOHzun
-         daBwzKmfiYOEG8N743Xq7gSnARMMxTcLLRtVzpgdK587Rrb1jXfjpcGRqZ29++t0F+TH
-         kPYRW1w9pwZo8+0r6gIkcz/69x/2ENZa+/qIVHSblZZT+i08RU5Os3RvT9tGC4TBTm90
-         tNnA==
-X-Gm-Message-State: AOJu0YzJmfhWcq6vO1UlWpwHrSuIxQLbZeRqaa3IxlV4wtuvVLN03mWl
-        TT2srflCsiYRdKyAssRS2LZd8SWeNqosAGzC
-X-Google-Smtp-Source: AGHT+IG5X+1N+9gN7m2P63rFzRbifScZ6dVPHHJG1DUCTreGK5Pu6Rcf3MDfyMu9eFYv5GgCMrEEDw==
-X-Received: by 2002:a0d:cd45:0:b0:561:206a:ee52 with SMTP id p66-20020a0dcd45000000b00561206aee52mr20431530ywd.24.1692949181853;
-        Fri, 25 Aug 2023 00:39:41 -0700 (PDT)
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com. [209.85.128.172])
-        by smtp.gmail.com with ESMTPSA id l132-20020a0de28a000000b0058e430889d5sm379613ywe.10.2023.08.25.00.39.40
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 25 Aug 2023 00:39:40 -0700 (PDT)
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-5924093a9b2so7680237b3.2;
-        Fri, 25 Aug 2023 00:39:40 -0700 (PDT)
-X-Received: by 2002:a25:34cd:0:b0:d0b:5b6:4629 with SMTP id
- b196-20020a2534cd000000b00d0b05b64629mr19382891yba.46.1692949180028; Fri, 25
- Aug 2023 00:39:40 -0700 (PDT)
+        with ESMTP id S243487AbjHYIKi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 25 Aug 2023 04:10:38 -0400
+Received: from mail.socialglobal.pl (mail.socialglobal.pl [51.195.90.253])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B18981FF6
+        for <sparclinux@vger.kernel.org>; Fri, 25 Aug 2023 01:10:36 -0700 (PDT)
+Received: by mail.socialglobal.pl (Postfix, from userid 1002)
+        id 541C52626B; Fri, 25 Aug 2023 08:10:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=socialglobal.pl;
+        s=mail; t=1692951034;
+        bh=XwhyqI/moZPDJ7KCfcA6Gip8fA7ZKcg5SWsKuF/26zk=;
+        h=Date:From:To:Subject:From;
+        b=Bx7f6fCUUsTTd9A+ogMIVFtr5swfiWaX3VDYc4vbL2OFFoHB4e55fxx+Uk0hRfj7L
+         00CA8zeul3X75yRCvnMsVFbwtVD35fW9rjKi5eb+bM4j1SV98QMKOJ1EBlBGSfgzmj
+         MWfgk1NOGazZlidc9jHoIXmSx98SWHp/YwQTcOfKk6fJXp+wk6wGgi1uQVNtiQ5vxo
+         GfKbHNp+tofSNXj54Ze8Obib42sSCt2udfaPmomvIC9nqWbNF6h0fTufaAgPTIvy9k
+         VYAC/5rpRKsRReslYdZ5J6WQ+6KOYST1M8Bqu++Nka34GsUunP37Q+PFruH35Qu1xF
+         DnlEYmK+/c3SA==
+Received: by mail.socialglobal.pl for <sparclinux@vger.kernel.org>; Fri, 25 Aug 2023 08:10:31 GMT
+Message-ID: <20230825064500-0.1.7z.2oeua.0.474ccud632@socialglobal.pl>
+Date:   Fri, 25 Aug 2023 08:10:31 GMT
+From:   "Dominik Perkowski" <dominik.perkowski@socialglobal.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Pozycjonowanie- informacja
+X-Mailer: mail.socialglobal.pl
 MIME-Version: 1.0
-References: <20230810141947.1236730-1-arnd@kernel.org> <169292577153.789945.11297239773543112051.b4-ty@oracle.com>
- <3956e2a4-c545-1212-e95f-3cf61a60d6a4@gmail.com>
-In-Reply-To: <3956e2a4-c545-1212-e95f-3cf61a60d6a4@gmail.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Fri, 25 Aug 2023 09:39:28 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdWC2S330_Vb_NTHTDC=BakBsw4ouP-eFJv0erV1-jmvTQ@mail.gmail.com>
-Message-ID: <CAMuHMdWC2S330_Vb_NTHTDC=BakBsw4ouP-eFJv0erV1-jmvTQ@mail.gmail.com>
-Subject: Re: (subset) [PATCH 00/17] -Wmissing-prototype warning fixes
-To:     Michael Schmitz <schmitzmic@gmail.com>
-Cc:     "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Matt Turner <mattst88@gmail.com>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Brian Cain <bcain@quicinc.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Jonas Bonn <jonas@southpole.se>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        Stafford Horne <shorne@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        x86@kernel.org, Borislav Petkov <bp@alien8.de>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        linux-next@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-trace-kernel@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kbuild@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Michael,
+Dzie=C5=84 dobry,=20
 
-On Fri, Aug 25, 2023 at 3:31 AM Michael Schmitz <schmitzmic@gmail.com> wrote:
-> On 25/08/23 13:12, Martin K. Petersen wrote:
-> > [11/17] scsi: gvp11: remove unused gvp11_setup() function
-> >          https://git.kernel.org/mkp/scsi/c/bfaa4a0ce1bb
->
-> I somehow missed that one ...
->
-> The gvp11_setup() function was probably a relic from the times before
-> module parameters.
->
-> Since gvp11_xfer_mask appears to be required for some Amiga systems to
-> set the DMA mask, I'd best send a patch to add such a module parameter ...
->
-> Do you know any details around the use of DMA masks for Amiga WD33C93
-> drivers, Geert?
+jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
+j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
+e Google.=20
 
-Doh, it's been a while, and I never had an affected system.
-Probably it's needed on A2000 with an accelerator card and GVP II SCSI,
-to prevent DMA to RAM banks that do not support fast DMA cycles.
+Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
+=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
+w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
+owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
+dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
 
-Gr{oetje,eeting}s,
+Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
+edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
+edstawi=C4=87 ofert=C4=99?=20
 
-                        Geert
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Pozdrawiam serdecznie,
+Dominik Perkowski
