@@ -2,64 +2,122 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 346A5C83F11
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Aug 2023 08:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A7FC71153
+	for <sparclinux@archiver.kernel.org>; Mon, 28 Aug 2023 08:52:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229493AbjH1IQK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Aug 2023 04:16:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36278 "EHLO
+        id S229513AbjH1Ivt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 28 Aug 2023 04:51:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229572AbjH1IPl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Aug 2023 04:15:41 -0400
-Received: from mail.aledcefni.pl (mail.aledcefni.pl [94.177.238.232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38F7BA2
-        for <sparclinux@vger.kernel.org>; Mon, 28 Aug 2023 01:15:35 -0700 (PDT)
-Received: by mail.aledcefni.pl (Postfix, from userid 1001)
-        id 27B3782A36; Mon, 28 Aug 2023 09:15:31 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aledcefni.pl; s=mail;
-        t=1693210532; bh=eR6zhsbyHkeoQGslPWzjpgiTGJ+nS7Xgnr5x+FKJrXo=;
-        h=Date:From:To:Subject:From;
-        b=mqs65xpQTvRp5WmGNgA+IaGoiqJYhzWRkLEYXSyN7kVi650UhIUup50Y9tOFczuuL
-         iNpFJYLghVbMIAIVS/Use+FuwwVaC9w9i5HFT/SOQ9GPHAu8I5Ed8NJHalLUwf+eTj
-         PeamyZRJQS7mndEp9JZ/fZEn6NI62fSGzA7V3stKC4UQVPn3nrVo9jWIweXm8LI0x6
-         EcwSHdoxrQpMBzN0FPi/kRk2NUU4xGlEHDSVod0zPePTyKarHbXWyULCzmyh1M2Eo1
-         ZydqS9r8kWrkTBuH+o3rbDgW420n0FKjLLjoCatGBWY3IZPM4rYu6SKcqDc+Z0ayiK
-         hW8F6X+JcQnEw==
-Received: by mail.aledcefni.pl for <sparclinux@vger.kernel.org>; Mon, 28 Aug 2023 08:15:17 GMT
-Message-ID: <20230828074501-0.1.72.d82e.0.toachqlwrs@aledcefni.pl>
-Date:   Mon, 28 Aug 2023 08:15:17 GMT
-From:   "Grzegorz Gawryl" <grzegorz.gawryl@aledcefni.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?=C5=9Arodki_dla_firm_pod_saldo_z_terminala?=
-X-Mailer: mail.aledcefni.pl
+        with ESMTP id S229656AbjH1IvZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Aug 2023 04:51:25 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62802BF;
+        Mon, 28 Aug 2023 01:51:22 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 1AD3821B1B;
+        Mon, 28 Aug 2023 08:51:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1693212680; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=YS8e1L8fy8R+sqnpecFZuJkMlDaGs4krtp7hLbupfhU=;
+        b=NGdBZbIVbLoDS1hdYNZ4txHl5sQMhDEj/CIY7pV9LRNv6BJTAER97LTge1U7QpkmXtRq4V
+        UsOvu/ZLoAXfLmFiXREoy5pdZlyzQlccCQcDwurzUPp/z1+4Oubxd/CeWbgxyEfdLuRMee
+        80JpQbRYFuRhpw1ZtuUnGtHeq0cfoFE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1693212680;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=YS8e1L8fy8R+sqnpecFZuJkMlDaGs4krtp7hLbupfhU=;
+        b=yCmaCWLpzpXD1boOA3nxaat3edYySBThLzegU2aJgd5ZcPzQ5lU1+mnAwM+yk18J+Nhj9A
+        xQ2GRIyoC2DphqCw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E855F13A11;
+        Mon, 28 Aug 2023 08:51:19 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id no2tNwdg7GT7fAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 28 Aug 2023 08:51:19 +0000
+Message-ID: <b439219a-037a-5641-de9d-adf5eca363ff@suse.de>
+Date:   Mon, 28 Aug 2023 10:51:19 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.14.0
+Subject: Re: [PATCH 00/11] fbdev/sbus: Initializers for struct fb_ops
+To:     Sam Ravnborg <sam@ravnborg.org>
+Cc:     linux-fbdev@vger.kernel.org, deller@gmx.de, javierm@redhat.com,
+        dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
+        davem@davemloft.net
+References: <20230806120926.5368-1-tzimmermann@suse.de>
+ <20230807171101.GB281773@ravnborg.org>
+Content-Language: en-US
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+In-Reply-To: <20230807171101.GB281773@ravnborg.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------0NZ0NHtVPQWE2ThqtYmgtPGF"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------0NZ0NHtVPQWE2ThqtYmgtPGF
+Content-Type: multipart/mixed; boundary="------------UIgAg7MKP0T1ayQXZWd9iPlo";
+ protected-headers="v1"
+From: Thomas Zimmermann <tzimmermann@suse.de>
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: linux-fbdev@vger.kernel.org, deller@gmx.de, javierm@redhat.com,
+ dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
+ davem@davemloft.net
+Message-ID: <b439219a-037a-5641-de9d-adf5eca363ff@suse.de>
+Subject: Re: [PATCH 00/11] fbdev/sbus: Initializers for struct fb_ops
+References: <20230806120926.5368-1-tzimmermann@suse.de>
+ <20230807171101.GB281773@ravnborg.org>
+In-Reply-To: <20230807171101.GB281773@ravnborg.org>
 
-czy s=C5=82yszeli ju=C5=BC Pa=C5=84stwo o nowym sposobie pozyskania =C5=9B=
-rodk=C3=B3w na dzia=C5=82alno=C5=9B=C4=87?
+--------------UIgAg7MKP0T1ayQXZWd9iPlo
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-Finansowanie pod obr=C3=B3t z terminala to pierwsze takie rozwi=C4=85zani=
-e w Polsce, kt=C3=B3re jest najlepszym wsparciem w niepewnych czasach, st=
-oj=C4=85cych pod znakiem inflacji i rosn=C4=85cych koszt=C3=B3w biznesu.
+SGkgU2FtDQoNCkFtIDA3LjA4LjIzIHVtIDE5OjExIHNjaHJpZWIgU2FtIFJhdm5ib3JnOg0K
+Li4uDQo+IFJldmlld2VkLWJ5OiBTYW0gUmF2bmJvcmcgPHNhbUByYXZuYm9yZy5vcmc+DQoN
+CkkgY29tcGxldGVseSBtaXNzZWQgeW91ciByZXZpZXcuIFRoYW5rcyBhIGxvdC4gSSd2ZSBu
+b3cgcHVzaGVkIHRoZSANCnBhdGNoZXMgdG8gZHJtLW1pc2MtbmV4dC4NCg0KQmVzdCByZWdh
+cmRzDQpUaG9tYXMNCg0KPiANCj4gCVNhbQ0KDQotLSANClRob21hcyBaaW1tZXJtYW5uDQpH
+cmFwaGljcyBEcml2ZXIgRGV2ZWxvcGVyDQpTVVNFIFNvZnR3YXJlIFNvbHV0aW9ucyBHZXJt
+YW55IEdtYkgNCkZyYW5rZW5zdHJhc3NlIDE0NiwgOTA0NjEgTnVlcm5iZXJnLCBHZXJtYW55
+DQpHRjogSXZvIFRvdGV2LCBBbmRyZXcgTXllcnMsIEFuZHJldyBNY0RvbmFsZCwgQm91ZGll
+biBNb2VybWFuDQpIUkIgMzY4MDkgKEFHIE51ZXJuYmVyZykNCg==
 
-Najwi=C4=99ksze korzy=C5=9Bci:
+--------------UIgAg7MKP0T1ayQXZWd9iPlo--
 
- - zdolno=C5=9B=C4=87 kredytowa na podstawie dziennych obrot=C3=B3w na te=
-rminalu,=20
- - bez st=C3=B3p procentowych i odsetek
- - =C5=82atwe wnioskowanie online, decyzja jeszcze tego samego dnia,
- - proces bez papierologii i za=C5=9Bwiadcze=C5=84, PIT i KPiR=20
- - bezobs=C5=82ugowa sp=C5=82ata dostosowana do mo=C5=BCliwo=C5=9Bci, kt=C3=
-=B3ra nie obci=C4=85=C5=BCa bud=C5=BCetu nawet przy mniejszych obrotach.
+--------------0NZ0NHtVPQWE2ThqtYmgtPGF
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
 
-Chcieliby Pa=C5=84stwo sprawdzi=C4=87, jak to wygl=C4=85da w praktyce?
+-----BEGIN PGP SIGNATURE-----
 
+wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmTsYAcFAwAAAAAACgkQlh/E3EQov+Bu
+Ig//Y4T+G5nfOjVSa9mGMYv222Anwt0XOZxngCo/HW9T9OdO0Xua/RfzsoTK8zmKaSaCDMPfEeGy
+IhGA+FZ0SOZ00JQkWRpWFRiwDVKeAGERwEx5fedthnkk7xG81eGiAzupVumZTjA/s6CAmnZ4yrzJ
++8muTcRM4c/BsxhCqz+/+NzYP5BcGEL9Pv9N+UvipP1V9MSKO75qSTCbR22wA3dT2N1c65mkT86w
+tkJDtKl/MErB8d3iqTQnoP+xH9yBM/zvFNWtoDBYflyjiekZt6qiFuTb4Mw0/OdxcxMrZpsKGSkV
+DOJn+NjbgEGDCn9dRPiigU6ZMWyV9j2qMz2wSoN4jG3EWw2i/kCN8s1xQLeDYJR8u89o4ms8Si2p
+GO/mLERAF5eqiEk+ixVHjANbDdw+063iaHRO2Lh3DUL1AUx59F6oi08FNXxoo6VnVRBNXEpEKydU
+75+Qvwad4RaJn27Cwl+UHY06bBiTDPYZJCfGsQkI4BWUhXNM7kt7+le9F519pJPdpot9hEPAUVfh
+pv73GUupfgKU03PRUXmtDnuHHLgoMtd6xI8t4ML3Q/fEt5cp9ENLhEfOq7sqsByxo7lNokeREfCC
+6pDYWqXlSzVbl0mTTb95BsOGz6AV1oDz85mUE6UBn7M21xFtS4D+uu98nfYfbtJvvNZBlqbDZ6a8
+Qgs=
+=xy4u
+-----END PGP SIGNATURE-----
 
-Pozdrawiam
-Grzegorz Gawryl
+--------------0NZ0NHtVPQWE2ThqtYmgtPGF--
