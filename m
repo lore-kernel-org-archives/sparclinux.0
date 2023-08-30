@@ -2,122 +2,100 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A7FC71153
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Aug 2023 08:52:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC9CC6FA8F
+	for <sparclinux@archiver.kernel.org>; Wed, 30 Aug 2023 21:52:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbjH1Ivt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Aug 2023 04:51:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54796 "EHLO
+        id S242843AbjH3Vwt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 30 Aug 2023 17:52:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229656AbjH1IvZ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Aug 2023 04:51:25 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62802BF;
-        Mon, 28 Aug 2023 01:51:22 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 1AD3821B1B;
-        Mon, 28 Aug 2023 08:51:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1693212680; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=YS8e1L8fy8R+sqnpecFZuJkMlDaGs4krtp7hLbupfhU=;
-        b=NGdBZbIVbLoDS1hdYNZ4txHl5sQMhDEj/CIY7pV9LRNv6BJTAER97LTge1U7QpkmXtRq4V
-        UsOvu/ZLoAXfLmFiXREoy5pdZlyzQlccCQcDwurzUPp/z1+4Oubxd/CeWbgxyEfdLuRMee
-        80JpQbRYFuRhpw1ZtuUnGtHeq0cfoFE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1693212680;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=YS8e1L8fy8R+sqnpecFZuJkMlDaGs4krtp7hLbupfhU=;
-        b=yCmaCWLpzpXD1boOA3nxaat3edYySBThLzegU2aJgd5ZcPzQ5lU1+mnAwM+yk18J+Nhj9A
-        xQ2GRIyoC2DphqCw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E855F13A11;
-        Mon, 28 Aug 2023 08:51:19 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id no2tNwdg7GT7fAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 28 Aug 2023 08:51:19 +0000
-Message-ID: <b439219a-037a-5641-de9d-adf5eca363ff@suse.de>
-Date:   Mon, 28 Aug 2023 10:51:19 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH 00/11] fbdev/sbus: Initializers for struct fb_ops
-To:     Sam Ravnborg <sam@ravnborg.org>
-Cc:     linux-fbdev@vger.kernel.org, deller@gmx.de, javierm@redhat.com,
-        dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
-        davem@davemloft.net
-References: <20230806120926.5368-1-tzimmermann@suse.de>
- <20230807171101.GB281773@ravnborg.org>
-Content-Language: en-US
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-In-Reply-To: <20230807171101.GB281773@ravnborg.org>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------0NZ0NHtVPQWE2ThqtYmgtPGF"
+        with ESMTP id S242844AbjH3Vws (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Aug 2023 17:52:48 -0400
+Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFAFACF9;
+        Wed, 30 Aug 2023 14:52:16 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailout.west.internal (Postfix) with ESMTP id 473173200681;
+        Wed, 30 Aug 2023 15:51:26 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Wed, 30 Aug 2023 15:51:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm3; t=1693425085; x=1693511485; bh=EA
+        AokXkBZ1oabmHLEd4xI3A+ZO14oLciXrp5+OaR49E=; b=DoI3vSr5VzKvXd7sPf
+        vRiV8hH4rK6fXmpdJRGIVz1xGTgPKfqxxjxs24kmW6FihHX3N0yEKJ8qik6UEGYb
+        95CHQ6ljd4jxgRKFewqaAnNDL0JPJm3B5SGXKL9Evt0PvSK8XunFWlPJ7q8dC1pX
+        f+XJHFZYW51CKc9uWzF73aumHv/iTm1jzTDMeosWM5Q17KXBxjKMqIqnv1n+wSUH
+        eyTyuY85ZMSBpy5vJvMmZECuzaz9Ma/NHSiqsHNdwnq0d1aZBNpnNOI9utHoOU9J
+        gwqUgdnaYkRQK5DO47QZ7WJrVANHCPMtolWnf/7GcrtDYnTcSw9i+Q6PzcM7p+NS
+        0Qlw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm1; t=1693425085; x=1693511485; bh=EAAokXkBZ1oab
+        mHLEd4xI3A+ZO14oLciXrp5+OaR49E=; b=L/Jph3j1eWucO0jOVPQwlTO5pQs0i
+        Oa6lNnCSl1I4DN3KB5hNWbqv8JQBp2j7r9d8DsVoc/W3GZj0ZvbfWcpXxFkOJT0/
+        xrftvIs7dkBf5CCzG8MHY3sdizv0DjtM4PnyiPV/GX1JFSlltO6gZZ35IBDQAp+e
+        g6tgTurFihzq0RQPk09i9wb7+nTsfRAslfqOG14Kj4TblbyOQ81FSpT0g/KDW7tJ
+        Narg1/ORjjTOz/4gd+j1jRc6EtJ6Tv94/lXXzWqMz0ik2H8ND5yfHmEW8AgglMJ9
+        /2sbZLr8idRZcbpl98+PxcUqsvtEh7084D3d1gVXzLD02/wRY1Eg8lLqg==
+X-ME-Sender: <xms:vJ3vZMv0SI2oeOcUO_qrvCHdVfncwt-xTicrG-Hh0D-D8L8vWYXFPA>
+    <xme:vJ3vZJe4GLF3uWbGnIuBaz6fW_SjcddvKynT3EAfcKAOQVIbpsyE8vKuXKuoVIqwR
+    OvBpwAEHswci-5M468>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudefkedgudeggecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
+    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
+    htthgvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedt
+    keetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    grrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:vJ3vZHya8rFzM3ZWaUkc_0L78fMJGWsuFavX5429EJzhI_YZIzrgCA>
+    <xmx:vJ3vZPOaSvJN-gwiqYhVSY4bWeTHvX9b7yuvVLoQPViDqBFSvqktDg>
+    <xmx:vJ3vZM8PQv_XjkHXjy4_uFZIB8s_CT2nvs7nPBEhf097Lr6-wNjw_g>
+    <xmx:vZ3vZNjSLyi2FUZobnkLrgMlbC0JTdK73QaaP7HMVy6rBf63jdmuEg>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 3B057B6008D; Wed, 30 Aug 2023 15:51:24 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-701-g9b2f44d3ee-fm-20230823.001-g9b2f44d3
+Mime-Version: 1.0
+Message-Id: <0036d0ee-4329-4fd8-9317-95818f576e98@app.fastmail.com>
+In-Reply-To: <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
+References: <cover.1692288018.git.geert@linux-m68k.org>
+ <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
+Date:   Wed, 30 Aug 2023 15:51:03 -0400
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Russell King" <linux@armlinux.org.uk>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        "Helge Deller" <deller@gmx.de>,
+        "Michael Ellerman" <mpe@ellerman.id.au>,
+        "Nicholas Piggin" <npiggin@gmail.com>,
+        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+        "David S . Miller" <davem@davemloft.net>,
+        "Sergey Shtylyov" <s.shtylyov@omp.ru>,
+        "Damien Le Moal" <dlemoal@kernel.org>,
+        "Christoph Hellwig" <hch@lst.de>, "Jens Axboe" <axboe@kernel.dk>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/9] ARM: Remove <asm/ide.h>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------0NZ0NHtVPQWE2ThqtYmgtPGF
-Content-Type: multipart/mixed; boundary="------------UIgAg7MKP0T1ayQXZWd9iPlo";
- protected-headers="v1"
-From: Thomas Zimmermann <tzimmermann@suse.de>
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: linux-fbdev@vger.kernel.org, deller@gmx.de, javierm@redhat.com,
- dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
- davem@davemloft.net
-Message-ID: <b439219a-037a-5641-de9d-adf5eca363ff@suse.de>
-Subject: Re: [PATCH 00/11] fbdev/sbus: Initializers for struct fb_ops
-References: <20230806120926.5368-1-tzimmermann@suse.de>
- <20230807171101.GB281773@ravnborg.org>
-In-Reply-To: <20230807171101.GB281773@ravnborg.org>
+On Thu, Aug 17, 2023, at 12:07, Geert Uytterhoeven wrote:
+> As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
+> v5.14, there are no more generic users of <asm/ide.h>.
+>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> ---
 
---------------UIgAg7MKP0T1ayQXZWd9iPlo
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
-
-SGkgU2FtDQoNCkFtIDA3LjA4LjIzIHVtIDE5OjExIHNjaHJpZWIgU2FtIFJhdm5ib3JnOg0K
-Li4uDQo+IFJldmlld2VkLWJ5OiBTYW0gUmF2bmJvcmcgPHNhbUByYXZuYm9yZy5vcmc+DQoN
-CkkgY29tcGxldGVseSBtaXNzZWQgeW91ciByZXZpZXcuIFRoYW5rcyBhIGxvdC4gSSd2ZSBu
-b3cgcHVzaGVkIHRoZSANCnBhdGNoZXMgdG8gZHJtLW1pc2MtbmV4dC4NCg0KQmVzdCByZWdh
-cmRzDQpUaG9tYXMNCg0KPiANCj4gCVNhbQ0KDQotLSANClRob21hcyBaaW1tZXJtYW5uDQpH
-cmFwaGljcyBEcml2ZXIgRGV2ZWxvcGVyDQpTVVNFIFNvZnR3YXJlIFNvbHV0aW9ucyBHZXJt
-YW55IEdtYkgNCkZyYW5rZW5zdHJhc3NlIDE0NiwgOTA0NjEgTnVlcm5iZXJnLCBHZXJtYW55
-DQpHRjogSXZvIFRvdGV2LCBBbmRyZXcgTXllcnMsIEFuZHJldyBNY0RvbmFsZCwgQm91ZGll
-biBNb2VybWFuDQpIUkIgMzY4MDkgKEFHIE51ZXJuYmVyZykNCg==
-
---------------UIgAg7MKP0T1ayQXZWd9iPlo--
-
---------------0NZ0NHtVPQWE2ThqtYmgtPGF
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
-
------BEGIN PGP SIGNATURE-----
-
-wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmTsYAcFAwAAAAAACgkQlh/E3EQov+Bu
-Ig//Y4T+G5nfOjVSa9mGMYv222Anwt0XOZxngCo/HW9T9OdO0Xua/RfzsoTK8zmKaSaCDMPfEeGy
-IhGA+FZ0SOZ00JQkWRpWFRiwDVKeAGERwEx5fedthnkk7xG81eGiAzupVumZTjA/s6CAmnZ4yrzJ
-+8muTcRM4c/BsxhCqz+/+NzYP5BcGEL9Pv9N+UvipP1V9MSKO75qSTCbR22wA3dT2N1c65mkT86w
-tkJDtKl/MErB8d3iqTQnoP+xH9yBM/zvFNWtoDBYflyjiekZt6qiFuTb4Mw0/OdxcxMrZpsKGSkV
-DOJn+NjbgEGDCn9dRPiigU6ZMWyV9j2qMz2wSoN4jG3EWw2i/kCN8s1xQLeDYJR8u89o4ms8Si2p
-GO/mLERAF5eqiEk+ixVHjANbDdw+063iaHRO2Lh3DUL1AUx59F6oi08FNXxoo6VnVRBNXEpEKydU
-75+Qvwad4RaJn27Cwl+UHY06bBiTDPYZJCfGsQkI4BWUhXNM7kt7+le9F519pJPdpot9hEPAUVfh
-pv73GUupfgKU03PRUXmtDnuHHLgoMtd6xI8t4ML3Q/fEt5cp9ENLhEfOq7sqsByxo7lNokeREfCC
-6pDYWqXlSzVbl0mTTb95BsOGz6AV1oDz85mUE6UBn7M21xFtS4D+uu98nfYfbtJvvNZBlqbDZ6a8
-Qgs=
-=xy4u
------END PGP SIGNATURE-----
-
---------------0NZ0NHtVPQWE2ThqtYmgtPGF--
+Acked-by: Arnd Bergmann <arnd@arndb.de>
