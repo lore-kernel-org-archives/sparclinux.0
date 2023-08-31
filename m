@@ -2,100 +2,56 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC9CC6FA8F
-	for <sparclinux@archiver.kernel.org>; Wed, 30 Aug 2023 21:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3698EC83F29
+	for <sparclinux@archiver.kernel.org>; Thu, 31 Aug 2023 07:51:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242843AbjH3Vwt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 30 Aug 2023 17:52:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55882 "EHLO
+        id S235152AbjHaHvj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 31 Aug 2023 03:51:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242844AbjH3Vws (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Aug 2023 17:52:48 -0400
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFAFACF9;
-        Wed, 30 Aug 2023 14:52:16 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.west.internal (Postfix) with ESMTP id 473173200681;
-        Wed, 30 Aug 2023 15:51:26 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Wed, 30 Aug 2023 15:51:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1693425085; x=1693511485; bh=EA
-        AokXkBZ1oabmHLEd4xI3A+ZO14oLciXrp5+OaR49E=; b=DoI3vSr5VzKvXd7sPf
-        vRiV8hH4rK6fXmpdJRGIVz1xGTgPKfqxxjxs24kmW6FihHX3N0yEKJ8qik6UEGYb
-        95CHQ6ljd4jxgRKFewqaAnNDL0JPJm3B5SGXKL9Evt0PvSK8XunFWlPJ7q8dC1pX
-        f+XJHFZYW51CKc9uWzF73aumHv/iTm1jzTDMeosWM5Q17KXBxjKMqIqnv1n+wSUH
-        eyTyuY85ZMSBpy5vJvMmZECuzaz9Ma/NHSiqsHNdwnq0d1aZBNpnNOI9utHoOU9J
-        gwqUgdnaYkRQK5DO47QZ7WJrVANHCPMtolWnf/7GcrtDYnTcSw9i+Q6PzcM7p+NS
-        0Qlw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1693425085; x=1693511485; bh=EAAokXkBZ1oab
-        mHLEd4xI3A+ZO14oLciXrp5+OaR49E=; b=L/Jph3j1eWucO0jOVPQwlTO5pQs0i
-        Oa6lNnCSl1I4DN3KB5hNWbqv8JQBp2j7r9d8DsVoc/W3GZj0ZvbfWcpXxFkOJT0/
-        xrftvIs7dkBf5CCzG8MHY3sdizv0DjtM4PnyiPV/GX1JFSlltO6gZZ35IBDQAp+e
-        g6tgTurFihzq0RQPk09i9wb7+nTsfRAslfqOG14Kj4TblbyOQ81FSpT0g/KDW7tJ
-        Narg1/ORjjTOz/4gd+j1jRc6EtJ6Tv94/lXXzWqMz0ik2H8ND5yfHmEW8AgglMJ9
-        /2sbZLr8idRZcbpl98+PxcUqsvtEh7084D3d1gVXzLD02/wRY1Eg8lLqg==
-X-ME-Sender: <xms:vJ3vZMv0SI2oeOcUO_qrvCHdVfncwt-xTicrG-Hh0D-D8L8vWYXFPA>
-    <xme:vJ3vZJe4GLF3uWbGnIuBaz6fW_SjcddvKynT3EAfcKAOQVIbpsyE8vKuXKuoVIqwR
-    OvBpwAEHswci-5M468>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudefkedgudeggecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
-    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
-    htthgvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedt
-    keetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    grrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:vJ3vZHya8rFzM3ZWaUkc_0L78fMJGWsuFavX5429EJzhI_YZIzrgCA>
-    <xmx:vJ3vZPOaSvJN-gwiqYhVSY4bWeTHvX9b7yuvVLoQPViDqBFSvqktDg>
-    <xmx:vJ3vZM8PQv_XjkHXjy4_uFZIB8s_CT2nvs7nPBEhf097Lr6-wNjw_g>
-    <xmx:vZ3vZNjSLyi2FUZobnkLrgMlbC0JTdK73QaaP7HMVy6rBf63jdmuEg>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 3B057B6008D; Wed, 30 Aug 2023 15:51:24 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-701-g9b2f44d3ee-fm-20230823.001-g9b2f44d3
-Mime-Version: 1.0
-Message-Id: <0036d0ee-4329-4fd8-9317-95818f576e98@app.fastmail.com>
-In-Reply-To: <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
-References: <cover.1692288018.git.geert@linux-m68k.org>
- <e53f0f8da1607856028d941e7ac8646aa2abc555.1692288018.git.geert@linux-m68k.org>
-Date:   Wed, 30 Aug 2023 15:51:03 -0400
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Russell King" <linux@armlinux.org.uk>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
-        "Helge Deller" <deller@gmx.de>,
-        "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
-        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
-        "David S . Miller" <davem@davemloft.net>,
-        "Sergey Shtylyov" <s.shtylyov@omp.ru>,
-        "Damien Le Moal" <dlemoal@kernel.org>,
-        "Christoph Hellwig" <hch@lst.de>, "Jens Axboe" <axboe@kernel.dk>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/9] ARM: Remove <asm/ide.h>
-Content-Type: text/plain
+        with ESMTP id S243860AbjHaHvi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 31 Aug 2023 03:51:38 -0400
+Received: from mail.modernconcept.pl (mail.modernconcept.pl [217.61.97.58])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 639851A4
+        for <sparclinux@vger.kernel.org>; Thu, 31 Aug 2023 00:51:33 -0700 (PDT)
+Received: by mail.modernconcept.pl (Postfix, from userid 1001)
+        id ECC2D85834; Thu, 31 Aug 2023 08:51:29 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=modernconcept.pl;
+        s=mail; t=1693468289;
+        bh=Q5fV1w6NnWl58WkRdDH2DK4/1rRr2T27V2HfYy4X7Do=;
+        h=Date:From:To:Subject:From;
+        b=hBuSR9VCeEO5FD6X9Um1GHW4Q/UrgQ5UBHVF+Keu7adStj+nreg1z0vOaa+v7/BBn
+         XiBMnvJ1sMROVc1pmGPbupeHHgeI30yyc7yU5HqVqIsYbo+Vz/Z1g7Qa11tR+aKtPU
+         93WewdHgZsxP7yz5vLpuN3oCCZK4sh4FzVHz9nHsAd9wjlhR8U21/sLkfkJZ+sIY+0
+         509PWSTAz296PfUsyOmrs6DIi9bjMQ6/+sSHcYSBg7XYgFq3QywJWGUSRnMeOoodLK
+         lykH5NDDDczPJCOncC45IByWWvWMHPjxNsWGgRv9JGSkNZFWNhc1iy9m0pVALle5GE
+         S9B57I3f5Fmcg==
+Received: by mail.modernconcept.pl for <sparclinux@vger.kernel.org>; Thu, 31 Aug 2023 07:51:05 GMT
+Message-ID: <20230831074503-0.1.7r.yeyb.0.57hdxcjcii@modernconcept.pl>
+Date:   Thu, 31 Aug 2023 07:51:05 GMT
+From:   "Tomasz Chmiel" <tomasz.chmiel@modernconcept.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
+X-Mailer: mail.modernconcept.pl
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Aug 17, 2023, at 12:07, Geert Uytterhoeven wrote:
-> As of commit b7fb14d3ac63117e ("ide: remove the legacy ide driver") in
-> v5.14, there are no more generic users of <asm/ide.h>.
->
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
+Dzie=C5=84 dobry,
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
+skania nowych zlece=C5=84 ze strony www.
+
+Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
+, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
+=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
+jonowania strony w Google.
+
+Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
+
+
+Pozdrawiam serdecznie,
+Tomasz Chmiel
