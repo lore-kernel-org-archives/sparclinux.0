@@ -2,133 +2,76 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F47CCA0FE2
-	for <sparclinux@archiver.kernel.org>; Tue,  5 Sep 2023 16:22:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E1ECA0FFA
+	for <sparclinux@archiver.kernel.org>; Tue,  5 Sep 2023 16:22:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232010AbjIEQVq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:21:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47254 "EHLO
+        id S237832AbjIEQVw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354781AbjIEOUB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Sep 2023 10:20:01 -0400
-Received: from mail.hugovil.com (mail.hugovil.com [162.243.120.170])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C468197;
-        Tue,  5 Sep 2023 07:19:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hugovil.com
-        ; s=x; h=Subject:Content-Transfer-Encoding:Mime-Version:Message-Id:Cc:To:From
-        :Date:subject:date:message-id:reply-to;
-        bh=tXlyPfpn4kN+DQURxdfJQDcnAt2vpqV+AwaY6wnwJEA=; b=Ug9IKVCSbpqEU2aPbdoNFLVXZ+
-        4o/kN99/Msj21mLQlGdi2Fl+C3jSpNYiqu54FcADH9Vw+lCaIpHBXrF7De8jIKWy3LVteBjNeW3qF
-        ONgU0j5zAYd0AxDSdhcDkAwxaikMbBbXsMZiGS3JhImZOxo9+xdcQ1X1p1EpVERdHuk4=;
-Received: from modemcable061.19-161-184.mc.videotron.ca ([184.161.19.61]:43660 helo=pettiford)
-        by mail.hugovil.com with esmtpa (Exim 4.92)
-        (envelope-from <hugo@hugovil.com>)
-        id 1qdWu3-0000tG-91; Tue, 05 Sep 2023 10:19:39 -0400
-Date:   Tue, 5 Sep 2023 10:19:38 -0400
-From:   Hugo Villeneuve <hugo@hugovil.com>
-To:     Yi Yang <yiyang13@huawei.com>
-Cc:     <davem@davemloft.net>, <gregkh@linuxfoundation.org>,
-        <jirislaby@kernel.org>, <jag.raman@oracle.com>,
-        <sparclinux@vger.kernel.org>, <linux-serial@vger.kernel.org>
-Message-Id: <20230905101938.7cf68e477b946e1a066de17f@hugovil.com>
-In-Reply-To: <20230904035220.48164-1-yiyang13@huawei.com>
-References: <20230904035220.48164-1-yiyang13@huawei.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 184.161.19.61
-X-SA-Exim-Mail-From: hugo@hugovil.com
-Subject: Re: [PATCH V2] tty: vcc: Add check for kstrdup() in vcc_probe()
-X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
-X-SA-Exim-Scanned: Yes (on mail.hugovil.com)
+        with ESMTP id S1343717AbjIECrP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 4 Sep 2023 22:47:15 -0400
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C871CC7;
+        Mon,  4 Sep 2023 19:47:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1693882031;
+        bh=u10/VToy+E/OPi9XjZP4n2I6K6AMC3YNx3lXqqyKrWA=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=J0UyS+WIgQoJYbA9dbawO9edyrVtzWysZpXCEe9VqoDfs69TC9XyVtpilDMb0DEdo
+         axw/o1IALllIcMtWiaXWPx2zGTpR7663jgxJF0b2wkAXldKnXW3f7Cit6zC8eQlq5W
+         zxrCjsTS3nw4p4rSekMEqCCJ3X2Es8bFh+9hvA9nIvYbKQSVD3PA5ruIot2oAAap5E
+         HvFJj7T0be9dQ0NvrLr0/NzJmayyh2b5KWasZixoItg0Ptm1DeHlC7hhO2b213URb3
+         gAfV86Nq7wJZpMhKiDyKmU5ssXQRSkyv/QhuKEp9AjNySr/h2XsGejVTsQZaXbEGJT
+         AbXUqd44M/lMw==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4RfqfP1SNYz4wZn;
+        Tue,  5 Sep 2023 12:47:09 +1000 (AEST)
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Thomas Zimmermann <tzimmermann@suse.de>, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, arnd@arndb.de, deller@gmx.de
+Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: Re: [PATCH 0/4] ppc, fbdev: Clean up fbdev mmap helper
+In-Reply-To: <20230901142659.31787-1-tzimmermann@suse.de>
+References: <20230901142659.31787-1-tzimmermann@suse.de>
+Date:   Tue, 05 Sep 2023 12:47:08 +1000
+Message-ID: <874jk9ibf7.fsf@mail.lhotse>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 4 Sep 2023 11:52:20 +0800
-Yi Yang <yiyang13@huawei.com> wrote:
+Thomas Zimmermann <tzimmermann@suse.de> writes:
+> Refactor fb_pgprotect() in PowerPC to work without struct file. Then
+> clean up and rename fb_pgprotect(). This change has been discussed at
+> [1] in the context of refactoring fbdev's mmap code.
+>
+> The first three patches adapt PowerPC's internal interfaces to
+> provide a phys_mem_access_prot() that works without struct file. Neither
+> the architecture code or fbdev helpers need the parameter.
+>
+> Patch 4 replaces fbdev's fb_pgprotect() with fb_pgprot_device() on
+> all architectures. The new helper with its stream-lined interface
+> enables more refactoring within fbdev's mmap implementation.
 
-> Add check for the return value of kstrdup() and return the error, if it
-> fails in order to avoid NULL pointer dereference.
-> 
-> Fixes: 5d171050e28f ("sparc64: vcc: Enable VCC port probe and removal")
-> Signed-off-by: Yi Yang <yiyang13@huawei.com>
-> ---
-> V2: Add goto target for error paths.
-> ---
->  drivers/tty/vcc.c | 16 +++++++++++++---
->  1 file changed, 13 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-> index a39ed981bfd3..5b625f20233b 100644
-> --- a/drivers/tty/vcc.c
-> +++ b/drivers/tty/vcc.c
-> @@ -579,18 +579,22 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
->  		return -ENOMEM;
->  
->  	name = kstrdup(dev_name(&vdev->dev), GFP_KERNEL);
-> +	if (!name) {
-> +		rv = -ENOMEM;
-> +		goto free_port;
+The content of this series is OK, but the way it's structured makes it a
+real headache to merge, because it's mostly powerpc changes and then a
+dependant cross architecture patch at the end.
 
-Hi,
-at this point, the port is not yet allocated, so you should not jump to
-free_port. You should simply return with -ENOMEM.
+It would be simpler if patch 4 was first and just passed file=NULL to
+the powerpc helper, with an explanation that it's unused and will be
+dropped in a future cleanup.
 
+We could then put the first patch (previously patch 4) in a topic branch
+that is shared between the powerpc tree and the fbdev tree, and then the
+powerpc changes could be staged on top of that through the powerpc tree.
 
-> +	}
->  
->  	rv = vio_driver_init(&port->vio, vdev, VDEV_CONSOLE_CON, vcc_versions,
->  			     ARRAY_SIZE(vcc_versions), NULL, name);
->  	if (rv)
-> -		goto free_port;
-> +		goto free_name;
->  
->  	port->vio.debug = vcc_dbg_vio;
->  	vcc_ldc_cfg.debug = vcc_dbg_ldc;
->  
->  	rv = vio_ldc_alloc(&port->vio, &vcc_ldc_cfg, port);
->  	if (rv)
-> -		goto free_port;
-> +		goto free_name;
-
-You should still jump to free_port, not free_name, after seeing my
-comments below
-
-
->  
->  	spin_lock_init(&port->lock);
->  
-> @@ -624,6 +628,11 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
->  		goto unreg_tty;
->  	}
->  	port->domain = kstrdup(domain, GFP_KERNEL);
-> +	if (!port->domain) {
-> +		rv = -ENOMEM;
-> +		goto unreg_tty;
-> +	}
-> +
->  
->  	mdesc_release(hp);
->  
-> @@ -653,8 +662,9 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
->  	vcc_table_remove(port->index);
->  free_ldc:
->  	vio_ldc_free(&port->vio);
-> -free_port:
-> +free_name:
->  	kfree(name);
-> +free_port:
->  	kfree(port);
-
-free_name should come after free_port...
-
-Hugo.
-
-
->  
->  	return rv;
-> -- 
-> 2.17.1
-> 
+cheers
