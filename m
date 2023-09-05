@@ -2,76 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E1ECA0FFA
-	for <sparclinux@archiver.kernel.org>; Tue,  5 Sep 2023 16:22:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 797E5CA0FFC
+	for <sparclinux@archiver.kernel.org>; Tue,  5 Sep 2023 16:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237832AbjIEQVw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:21:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40368 "EHLO
+        id S1349362AbjIEQVs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:21:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343717AbjIECrP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 4 Sep 2023 22:47:15 -0400
-Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C871CC7;
-        Mon,  4 Sep 2023 19:47:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-        s=201909; t=1693882031;
-        bh=u10/VToy+E/OPi9XjZP4n2I6K6AMC3YNx3lXqqyKrWA=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=J0UyS+WIgQoJYbA9dbawO9edyrVtzWysZpXCEe9VqoDfs69TC9XyVtpilDMb0DEdo
-         axw/o1IALllIcMtWiaXWPx2zGTpR7663jgxJF0b2wkAXldKnXW3f7Cit6zC8eQlq5W
-         zxrCjsTS3nw4p4rSekMEqCCJ3X2Es8bFh+9hvA9nIvYbKQSVD3PA5ruIot2oAAap5E
-         HvFJj7T0be9dQ0NvrLr0/NzJmayyh2b5KWasZixoItg0Ptm1DeHlC7hhO2b213URb3
-         gAfV86Nq7wJZpMhKiDyKmU5ssXQRSkyv/QhuKEp9AjNySr/h2XsGejVTsQZaXbEGJT
-         AbXUqd44M/lMw==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4RfqfP1SNYz4wZn;
-        Tue,  5 Sep 2023 12:47:09 +1000 (AEST)
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     Thomas Zimmermann <tzimmermann@suse.de>, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu, arnd@arndb.de, deller@gmx.de
-Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: Re: [PATCH 0/4] ppc, fbdev: Clean up fbdev mmap helper
-In-Reply-To: <20230901142659.31787-1-tzimmermann@suse.de>
-References: <20230901142659.31787-1-tzimmermann@suse.de>
-Date:   Tue, 05 Sep 2023 12:47:08 +1000
-Message-ID: <874jk9ibf7.fsf@mail.lhotse>
+        with ESMTP id S1353727AbjIEHii (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Sep 2023 03:38:38 -0400
+X-Greylist: delayed 360 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 00:38:30 PDT
+Received: from mail.tradeharbor.pl (mail.tradeharbor.pl [217.61.97.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 418EC191
+        for <sparclinux@vger.kernel.org>; Tue,  5 Sep 2023 00:38:30 -0700 (PDT)
+Received: by mail.tradeharbor.pl (Postfix, from userid 1002)
+        id 7174184599; Tue,  5 Sep 2023 09:32:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tradeharbor.pl;
+        s=mail; t=1693899147;
+        bh=+8JR9pbZKhAL6uRH+3YthTnulvnmSqiK0eDpljLgYE8=;
+        h=Date:From:To:Subject:From;
+        b=S2PL+u7QKEpBGcWiSInSUqyOCuOH2/Gb6c/yj+P8wZm3sUuzJjMG4UgIs+t+YP7JO
+         ecfQTi6lDNOU7MRvZ7VZ5aRAx29Ngz777GB1T3g2r+6uBjVikKyh8h2HQgskz/CU0W
+         nMDLzcf8STc7spSb/PGg07ABeFP6yxNsSnKd/Ad+fpv8lGR+gmeRHh6yJj/b8pDzWB
+         iMUIrXEPGq4I5ukK5CHn9k/ljyf73z+kKg4lJeI9HEsLSj0BFJyPKHIo8issASmWtz
+         Xozgtj+CUW52LvyVfZ8EM40SJtKM13LWfIjSZOp0mfX+blVz8R1SD52yNpxLcbJVoe
+         kqJYS54kCrCuw==
+Received: by mail.tradeharbor.pl for <sparclinux@vger.kernel.org>; Tue,  5 Sep 2023 07:30:52 GMT
+Message-ID: <20230905084501-0.1.1h.4psb.0.rd5p68n1jb@tradeharbor.pl>
+Date:   Tue,  5 Sep 2023 07:30:52 GMT
+From:   "Piotr Firek" <piotr.firek@tradeharbor.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Prosz=C4=99_o_kontakt?=
+X-Mailer: mail.tradeharbor.pl
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Thomas Zimmermann <tzimmermann@suse.de> writes:
-> Refactor fb_pgprotect() in PowerPC to work without struct file. Then
-> clean up and rename fb_pgprotect(). This change has been discussed at
-> [1] in the context of refactoring fbdev's mmap code.
->
-> The first three patches adapt PowerPC's internal interfaces to
-> provide a phys_mem_access_prot() that works without struct file. Neither
-> the architecture code or fbdev helpers need the parameter.
->
-> Patch 4 replaces fbdev's fb_pgprotect() with fb_pgprot_device() on
-> all architectures. The new helper with its stream-lined interface
-> enables more refactoring within fbdev's mmap implementation.
+Dzie=C5=84 dobry,
 
-The content of this series is OK, but the way it's structured makes it a
-real headache to merge, because it's mostly powerpc changes and then a
-dependant cross architecture patch at the end.
+Czy jest mo=C5=BCliwo=C5=9B=C4=87 nawi=C4=85zania wsp=C3=B3=C5=82pracy z =
+Pa=C5=84stwem?
 
-It would be simpler if patch 4 was first and just passed file=NULL to
-the powerpc helper, with an explanation that it's unused and will be
-dropped in a future cleanup.
+Z ch=C4=99ci=C4=85 porozmawiam z osob=C4=85 zajmuj=C4=85c=C4=85 si=C4=99 =
+dzia=C5=82aniami zwi=C4=85zanymi ze sprzeda=C5=BC=C4=85.
 
-We could then put the first patch (previously patch 4) in a topic branch
-that is shared between the powerpc tree and the fbdev tree, and then the
-powerpc changes could be staged on top of that through the powerpc tree.
+Pomagamy skutecznie pozyskiwa=C4=87 nowych klient=C3=B3w.
 
-cheers
+Zapraszam do kontaktu.
+
+
+Pozdrawiam
+Piotr Firek
