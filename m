@@ -2,150 +2,150 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B3ABC83F33
-	for <sparclinux@archiver.kernel.org>; Mon,  4 Sep 2023 19:38:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47AC4CA0FF8
+	for <sparclinux@archiver.kernel.org>; Tue,  5 Sep 2023 16:22:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232992AbjIDTht (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 4 Sep 2023 15:37:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44688 "EHLO
+        id S1349346AbjIEQVo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:21:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233645AbjIDThi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 4 Sep 2023 15:37:38 -0400
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 800701A7;
-        Mon,  4 Sep 2023 12:37:35 -0700 (PDT)
-Received: by mail-io1-xd33.google.com with SMTP id ca18e2360f4ac-792623074edso52369139f.1;
-        Mon, 04 Sep 2023 12:37:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693856255; x=1694461055; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q7crZJwRytTyyIdDEoCObBVMoTgADDmg//xC0edSFAc=;
-        b=DP3qzS0uU5murYOGJ06S73WezdI3YkqOavc5wSfAfZzPE3HKpX126k9YpPU+eEz68X
-         Eqkake3Joz/TTjdhlnlW5a6U6nUcfJgaHk9gSi/1UqzHQeJRu2DhVWciJkfFh4hTBb6Q
-         QihWPVdkNHmGHCrV0TQsavXzG1d5l9biS1t8OKWd24mALK8crbYj3cUdU0vbOYBiFSA4
-         WTl7HlOTgJM9WgaQ+1x0NCqLfgTGSieSqQVkxj9YFVl/r/6cWIDf6IPiosQewC98bUOV
-         SF1sEuL2biPJl3nprHI22cWic/l/sZN/z0smxkLTB59yMmqCYM9xdx7bKeShdKjzlGk2
-         HdKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693856255; x=1694461055;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :sender:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Q7crZJwRytTyyIdDEoCObBVMoTgADDmg//xC0edSFAc=;
-        b=KbgBwZDg78xmo3zOOV6OJkipMjmUnh8JbIXle6fsNiohaoApVjN35PTss8cvC8sLT9
-         rN9F19pHNvXZGmDi18a7UkRvEO/EDc/P1wLTG72u8NIL6GBgVXxwO0a9/adCZ3Qd00G5
-         3aTxPRqm5tEZWcXYv+lJ664C6gCkPozwUZIBxShO0JuGNLGkOv+hsGGeEfDqqqY/EJlm
-         ByGErmhq/ToLR5sKcbkkN+Jy87rcjTUin9QfNrAB4k0WVtJq22UHSzglpt4DaxiPUV9W
-         iKTuA3p8qzZYDRr8UdyGdeNZsLPPbQm4cXUuiXdX8o1EDc126CYYPF+QRKkwdPmg1NCa
-         iYtA==
-X-Gm-Message-State: AOJu0YyiaUcxAiwrSj6rFAcgs0IMyjADvgFOgb35uPoE6cD+g6Y4h873
-        X+gJBAZ+8OStuaBwdgNWPaw=
-X-Google-Smtp-Source: AGHT+IFDurXHV+YzkGcDx9hZwXp6jjNXSTz4+sen5na4mkdEAIh/GoEp5EEWbtX+xgRfL4fx0ca7MA==
-X-Received: by 2002:a05:6e02:1568:b0:346:15f5:2667 with SMTP id k8-20020a056e02156800b0034615f52667mr13409607ilu.4.1693856254831;
-        Mon, 04 Sep 2023 12:37:34 -0700 (PDT)
-Received: from ?IPV6:2600:1700:e321:62f0:329c:23ff:fee3:9d7c? ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
-        by smtp.gmail.com with ESMTPSA id gg18-20020a056638691200b0042b57bbbaf2sm3604214jab.26.2023.09.04.12.37.32
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 04 Sep 2023 12:37:34 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <5a85bd1e-18b1-080f-922c-b14372093035@roeck-us.net>
-Date:   Mon, 4 Sep 2023 12:37:31 -0700
+        with ESMTP id S1354574AbjIEMoO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Sep 2023 08:44:14 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23FE01AD;
+        Tue,  5 Sep 2023 05:44:11 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id D1BC51FDB0;
+        Tue,  5 Sep 2023 12:44:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1693917849; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=FkN9fHLyAfRcHsilGUbRusJjN/has0O6CzUMKzXJasI=;
+        b=keVYfmc48mpS4Nt09vnh12VZJSCRjao6bLq8+mD13pxU9x71zSHfdmFp8Kfx0sIOXsaSP1
+        QLaKzvB23hHyKAMtuhTve0e7QYNrA8bdsPZW4JDoFRxpWeBAZBhQKf86/lYvhAs1FAC7Sa
+        J4Fk+xaeTOI5b+kunmcl9yd9y6d2wU4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1693917849;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=FkN9fHLyAfRcHsilGUbRusJjN/has0O6CzUMKzXJasI=;
+        b=vIhIJzxZZmb5DcNB3OjOlwl7lrOhkEIHzE4KHaujlzT60ABsQijnddOVu6k4DIbcF4Ojdb
+        PcktSvBRfw9cC5Aw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7C3ED13911;
+        Tue,  5 Sep 2023 12:44:09 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id 9K0AHZki92SuHQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 05 Sep 2023 12:44:09 +0000
+Message-ID: <5265f1eb-e1a6-c91e-9bc2-75089d594a0e@suse.de>
+Date:   Tue, 5 Sep 2023 14:44:08 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH v6 26/38] sparc64: Implement the new page table range API
+ Thunderbird/102.14.0
+Subject: Re: [PATCH 0/4] ppc, fbdev: Clean up fbdev mmap helper
 Content-Language: en-US
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-References: <20230802151406.3735276-1-willy@infradead.org>
- <20230802151406.3735276-27-willy@infradead.org>
- <2513a500-920d-4e32-8231-f428175c7182@roeck-us.net>
- <20230904174350.GF3223@kernel.org>
-From:   Guenter Roeck <linux@roeck-us.net>
-In-Reply-To: <20230904174350.GF3223@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To:     Michael Ellerman <mpe@ellerman.id.au>, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, arnd@arndb.de, deller@gmx.de
+Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org
+References: <20230901142659.31787-1-tzimmermann@suse.de>
+ <874jk9ibf7.fsf@mail.lhotse>
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+In-Reply-To: <874jk9ibf7.fsf@mail.lhotse>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------8cnkOZ3clMojcrflCUVqPiyi"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 9/4/23 10:43, Mike Rapoport wrote:
-> On Mon, Sep 04, 2023 at 08:36:44AM -0700, Guenter Roeck wrote:
->> Hi,
->>
->> On Wed, Aug 02, 2023 at 04:13:54PM +0100, Matthew Wilcox (Oracle) wrote:
->>> Add set_ptes(), update_mmu_cache_range(), flush_dcache_folio() and
->>> flush_icache_pages().  Convert the PG_dcache_dirty flag from being
->>> per-page to per-folio.
->>>
->>> Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
->>> Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
->>> Cc: "David S. Miller" <davem@davemloft.net>
->>> Cc: sparclinux@vger.kernel.org
->>
->> This patch causes all my sparc64 qemu boot tests to crash.
->>
->> [    4.890744] Unable to handle kernel NULL pointer dereference
->> [    4.891273] tsk->{mm,active_mm}->context = 0000000000000001
->> [    4.891475] tsk->{mm,active_mm}->pgd = fffff80005452000
->> [    4.891660]               \|/ ____ \|/
->> [    4.891660]               "@'/ .. \`@"
->> [    4.891660]               /_| \__/ |_\
->> [    4.891660]                  \__U_/
->> [    4.892116] modprobe(45): Oops [#1]
->> [    4.892555] CPU: 0 PID: 45 Comm: modprobe Tainted: G                 N 6.5.0+ #1
->> [    4.892949] TSTATE: 0000004411001601 TPC: 00000000004565d8 TNPC: 00000000004565dc Y: 00000008    Tainted: G                 N
-> 
-> ...
-> 
->> [    4.901535] note: modprobe[45] exited with preempt_count 2
-> 
-> This should fix it:
-> 
->>From 8181d1f582a309b51fe4cb02a783628257b91c86 Mon Sep 17 00:00:00 2001
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> Date: Mon, 4 Sep 2023 20:37:59 +0300
-> Subject: [PATCH] sparc64: add missing initialization of folio in
->   tlb_batch_add()
-> 
-> Commit 1a10a44dfc1d ("sparc64: implement the new page table range API")
-> missed initialization of folio variable in tlb_batch_add() which causes
-> boot tests to crash.
-> 
-> Add missing initialization.
-> 
-> Reported-by: Guenter Roeck <linux@roeck-us.net>
-> Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------8cnkOZ3clMojcrflCUVqPiyi
+Content-Type: multipart/mixed; boundary="------------vggYL9Fu9Mr0081TqvPYGkw1";
+ protected-headers="v1"
+From: Thomas Zimmermann <tzimmermann@suse.de>
+To: Michael Ellerman <mpe@ellerman.id.au>, npiggin@gmail.com,
+ christophe.leroy@csgroup.eu, arnd@arndb.de, deller@gmx.de
+Cc: linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+ linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org
+Message-ID: <5265f1eb-e1a6-c91e-9bc2-75089d594a0e@suse.de>
+Subject: Re: [PATCH 0/4] ppc, fbdev: Clean up fbdev mmap helper
+References: <20230901142659.31787-1-tzimmermann@suse.de>
+ <874jk9ibf7.fsf@mail.lhotse>
+In-Reply-To: <874jk9ibf7.fsf@mail.lhotse>
 
-Yes, it does.
+--------------vggYL9Fu9Mr0081TqvPYGkw1
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+SGkNCg0KQW0gMDUuMDkuMjMgdW0gMDQ6NDcgc2NocmllYiBNaWNoYWVsIEVsbGVybWFuOg0K
+PiBUaG9tYXMgWmltbWVybWFubiA8dHppbW1lcm1hbm5Ac3VzZS5kZT4gd3JpdGVzOg0KPj4g
+UmVmYWN0b3IgZmJfcGdwcm90ZWN0KCkgaW4gUG93ZXJQQyB0byB3b3JrIHdpdGhvdXQgc3Ry
+dWN0IGZpbGUuIFRoZW4NCj4+IGNsZWFuIHVwIGFuZCByZW5hbWUgZmJfcGdwcm90ZWN0KCku
+IFRoaXMgY2hhbmdlIGhhcyBiZWVuIGRpc2N1c3NlZCBhdA0KPj4gWzFdIGluIHRoZSBjb250
+ZXh0IG9mIHJlZmFjdG9yaW5nIGZiZGV2J3MgbW1hcCBjb2RlLg0KPj4NCj4+IFRoZSBmaXJz
+dCB0aHJlZSBwYXRjaGVzIGFkYXB0IFBvd2VyUEMncyBpbnRlcm5hbCBpbnRlcmZhY2VzIHRv
+DQo+PiBwcm92aWRlIGEgcGh5c19tZW1fYWNjZXNzX3Byb3QoKSB0aGF0IHdvcmtzIHdpdGhv
+dXQgc3RydWN0IGZpbGUuIE5laXRoZXINCj4+IHRoZSBhcmNoaXRlY3R1cmUgY29kZSBvciBm
+YmRldiBoZWxwZXJzIG5lZWQgdGhlIHBhcmFtZXRlci4NCj4+DQo+PiBQYXRjaCA0IHJlcGxh
+Y2VzIGZiZGV2J3MgZmJfcGdwcm90ZWN0KCkgd2l0aCBmYl9wZ3Byb3RfZGV2aWNlKCkgb24N
+Cj4+IGFsbCBhcmNoaXRlY3R1cmVzLiBUaGUgbmV3IGhlbHBlciB3aXRoIGl0cyBzdHJlYW0t
+bGluZWQgaW50ZXJmYWNlDQo+PiBlbmFibGVzIG1vcmUgcmVmYWN0b3Jpbmcgd2l0aGluIGZi
+ZGV2J3MgbW1hcCBpbXBsZW1lbnRhdGlvbi4NCj4gDQo+IFRoZSBjb250ZW50IG9mIHRoaXMg
+c2VyaWVzIGlzIE9LLCBidXQgdGhlIHdheSBpdCdzIHN0cnVjdHVyZWQgbWFrZXMgaXQgYQ0K
+PiByZWFsIGhlYWRhY2hlIHRvIG1lcmdlLCBiZWNhdXNlIGl0J3MgbW9zdGx5IHBvd2VycGMg
+Y2hhbmdlcyBhbmQgdGhlbiBhDQo+IGRlcGVuZGFudCBjcm9zcyBhcmNoaXRlY3R1cmUgcGF0
+Y2ggYXQgdGhlIGVuZC4NCj4gDQo+IEl0IHdvdWxkIGJlIHNpbXBsZXIgaWYgcGF0Y2ggNCB3
+YXMgZmlyc3QgYW5kIGp1c3QgcGFzc2VkIGZpbGU9TlVMTCB0bw0KPiB0aGUgcG93ZXJwYyBo
+ZWxwZXIsIHdpdGggYW4gZXhwbGFuYXRpb24gdGhhdCBpdCdzIHVudXNlZCBhbmQgd2lsbCBi
+ZQ0KPiBkcm9wcGVkIGluIGEgZnV0dXJlIGNsZWFudXAuDQo+IA0KPiBXZSBjb3VsZCB0aGVu
+IHB1dCB0aGUgZmlyc3QgcGF0Y2ggKHByZXZpb3VzbHkgcGF0Y2ggNCkgaW4gYSB0b3BpYyBi
+cmFuY2gNCj4gdGhhdCBpcyBzaGFyZWQgYmV0d2VlbiB0aGUgcG93ZXJwYyB0cmVlIGFuZCB0
+aGUgZmJkZXYgdHJlZSwgYW5kIHRoZW4gdGhlDQo+IHBvd2VycGMgY2hhbmdlcyBjb3VsZCBi
+ZSBzdGFnZWQgb24gdG9wIG9mIHRoYXQgdGhyb3VnaCB0aGUgcG93ZXJwYyB0cmVlLg0KDQpP
+aywgdGhhbmtzIGZvciByZXZpZXdpbmcuIFRoZSBmYmRldiBwYXRjaCB3b3VsZCBnbyB0aHJv
+dWdoIHRoZSBkcm0tbWlzYyANCnRyZWUgYXMgYmFzZSBmb3IgZnVydGhlciByZWZhY3Rvcmlu
+Zy4NCg0KSSdsbCB1cGRhdGUgdGhlIHBhdGNoc2V0IGFjY29yZGluZ2x5Lg0KDQpCZXN0IHJl
+Z2FyZHMNClRob21hcw0KDQo+IA0KPiBjaGVlcnMNCg0KLS0gDQpUaG9tYXMgWmltbWVybWFu
+bg0KR3JhcGhpY3MgRHJpdmVyIERldmVsb3Blcg0KU1VTRSBTb2Z0d2FyZSBTb2x1dGlvbnMg
+R2VybWFueSBHbWJIDQpGcmFua2Vuc3RyYXNzZSAxNDYsIDkwNDYxIE51ZXJuYmVyZywgR2Vy
+bWFueQ0KR0Y6IEl2byBUb3RldiwgQW5kcmV3IE15ZXJzLCBBbmRyZXcgTWNEb25hbGQsIEJv
+dWRpZW4gTW9lcm1hbg0KSFJCIDM2ODA5IChBRyBOdWVybmJlcmcpDQo=
 
-Thanks,
-Guenter
+--------------vggYL9Fu9Mr0081TqvPYGkw1--
 
-> ---
->   arch/sparc/mm/tlb.c | 1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-> index 0d41c94ec3ac..b44d79d778c7 100644
-> --- a/arch/sparc/mm/tlb.c
-> +++ b/arch/sparc/mm/tlb.c
-> @@ -128,6 +128,7 @@ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
->   			goto no_cache_flush;
->   
->   		/* A real file page? */
-> +		folio = page_folio(page);
->   		mapping = folio_flush_mapping(folio);
->   		if (!mapping)
->   			goto no_cache_flush;
+--------------8cnkOZ3clMojcrflCUVqPiyi
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
 
+-----BEGIN PGP SIGNATURE-----
+
+wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmT3IpgFAwAAAAAACgkQlh/E3EQov+Ar
+2BAAx4GyhqkGBaJfv3puNbbvuB7PEZosJZ/vqe3G59Ue+8wRBHUTSKhDolnDRYRTbKQgZ1SQOrZG
+s6+W76rPXD1Ut4CVvr8k7nTHykj6zZleDub7NrWbfct6eQCj162khf2dJa4gR75GQ2xD+SDj3i4W
+1LGY55I1ufx+7SulJur+5EUbmRBHxru6iU5MYxADPt5aUUbwMNWCr6sobziieqr0IP/20SfispBk
+dUdtMdCkU3Lw2ZK2n9UVUVxmO7XSgRU2UFJEGr3/0BIMhnHMuxkiXPYn/JJlddIgbC24PsKp/gAW
+mcWBqdQnCLya6eb0TYII9VyeJGHISNWx01SprtAnuvp7yuKOwizJEVWC6XclHcSA89RgaRCm0Yx5
++WPhWrlzgI1Bw9ZwpEP/xRtDXUTFRYBipih65g7Aijb3FiSg3kNTAbE6A4m5agaj28L1ctOaUpz4
+ntRjkcG3o7CyqSKp6sZh6+pvzf7HR1sdFiQuDgG8ySlNND/EJVdu4QS/17JYC0Eo8rdtduUTDhqv
+13/YT17csTxF5EGvFMKS+FXFDansioQxoUsA+Dr+nhakhID6DXmmICnbQSa2f+/4rG1MKN2qxzKe
+3dNq15p4ARLrfNQ6GJsXLOTw+OtJHK4TPzPcP3NaK9UK+HQC3YGExb3Fge10A1SQK1ZJAwfpWaae
+D/g=
+=iHVQ
+-----END PGP SIGNATURE-----
+
+--------------8cnkOZ3clMojcrflCUVqPiyi--
