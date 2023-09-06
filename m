@@ -2,201 +2,111 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E04BEE147F
-	for <sparclinux@archiver.kernel.org>; Wed,  6 Sep 2023 14:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C54EE14DB
+	for <sparclinux@archiver.kernel.org>; Wed,  6 Sep 2023 20:01:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234843AbjIFOsT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 6 Sep 2023 10:48:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41994 "EHLO
+        id S235285AbjIFUBb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 6 Sep 2023 16:01:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241916AbjIFOsK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Sep 2023 10:48:10 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D90541989;
-        Wed,  6 Sep 2023 07:48:05 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 8DC601F74C;
-        Wed,  6 Sep 2023 14:48:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1694011684; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=8aaAz+vsYOeQGMWGQXGbY9byeUAKGEp9znJt6iNq3jk=;
-        b=g54dXVU8m1XrISNH1YiTnCuCt0Q4neVzNm45tvEY+WEzvLbBKcPGTs5+fwnu2nLcHxoOkG
-        1cBT/zBu6VmJAtLGOcw606wawDgYGxzk1yxnG2y2YGF/QA493rBG+k7RR2tpyk3jDYGUEv
-        AR7gyg51RPGj05qJp6WaeFG50JFy2mg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1694011684;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=8aaAz+vsYOeQGMWGQXGbY9byeUAKGEp9znJt6iNq3jk=;
-        b=olI2MpDR5RuTmdxDI7fbtJOfMUEuQ6K1m/LI4CG+tbfVD0OoDiT/CWlGrHIdOysFq2tUQJ
-        fbFCcX5ltaf2MVBA==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 4D22B1346C;
-        Wed,  6 Sep 2023 14:48:04 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 0HrpESSR+GSNSgAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 06 Sep 2023 14:48:04 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        arnd@arndb.de, deller@gmx.de
+        with ESMTP id S243867AbjIFUA7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Sep 2023 16:00:59 -0400
+X-Greylist: delayed 447 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 06 Sep 2023 13:00:53 PDT
+Received: from new4-smtp.messagingengine.com (new4-smtp.messagingengine.com [66.111.4.230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D12A719A2;
+        Wed,  6 Sep 2023 13:00:53 -0700 (PDT)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailnew.nyi.internal (Postfix) with ESMTP id A7AB858128A;
+        Wed,  6 Sep 2023 15:53:23 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Wed, 06 Sep 2023 15:53:23 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm1; t=1694030003; x=1694037203; bh=VH
+        oiOAVzKFrc1qoVv7v9Mr1BrXqTyFKUxLZW2/6sh7A=; b=B9YGq+m+TaGkZYwKEv
+        mwtpybd3N+c0fMrFAnCMSThlV38UxHGUZar4YL61wnZ8hebh7VNwhdEot1JcM314
+        t90DsstQsCqV320qKAeQxaOy7tIjIN6MM/i7+eNgzBWjvsQZqPhhSdxBflKsD8i4
+        ZRmBezwM15eJWbtMRS/w4aPfiuZYSuhzLqNmuw0oqg7NEL0rlnGLcZEyGKEzrxEN
+        G08pXwkhHEmxCZCmVwpMqwrwJ4jOuXUkafTKfsioh4wptnHthM/+o0QpCzaVlAt5
+        p2HsVsrVY9rdSP1XPW2+akPPpXdZ+NhnO5DN6OVHV68jOgT0d4LVctgdofyw14lg
+        P1wQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm1; t=1694030003; x=1694037203; bh=VHoiOAVzKFrc1
+        qoVv7v9Mr1BrXqTyFKUxLZW2/6sh7A=; b=0eyhXlcs6SwaXsTsohvaVHSDkEW5t
+        pf9IsSwsFxNCmJrnjsC1r2Ar4uKNxAccIwEZcHP0Glfwt7Pk+h/JnKu5+mRrT8Kq
+        IhOhf9SukEJcq9eb/lSO1m3E0oyB542WZP6lVYMF9zXLOsG7pFDQA7FcQlbIGsWO
+        v/7uE15f2PEQTL46VW9VAMeDZf2i5MRnBuAxMk289lztpWbEepsINFs8crl/i4pi
+        cZ6D7fyA0rWRODs/fQ5p4A4vUmfV2n21gu6zI9vyGqm0BY+5Rsgd482HgncvaExW
+        Sz8l5d7mijRz1HFOBAzL8e10OB5UlqpB6CLhAj7KXk+bFmgGbRpuCuFfg==
+X-ME-Sender: <xms:stj4ZMFT5bUXIujyx8rG3XMkkz8xGkw5hclkerDPojseR-OAKoh2EQ>
+    <xme:stj4ZFUrxldM_py_4Cti_MuQgJweGk5z0Yka0QIrf8JQxP8NlU6tdbgihMPfx7dbz
+    agIOq8G_U8LGbygxoU>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudehfedgudegudcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
+    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
+    htthgvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedt
+    keetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    grrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:stj4ZGIpCwrWbQMuQnRKui1vq0jlD_Hw-xaxveFWC1c7nV6BvZOFpg>
+    <xmx:stj4ZOEWKrXyPg7eu5ukVGzSe0cetY7fwF7mwZBQdjSY6eR8XT8jvQ>
+    <xmx:stj4ZCWoKWWomrXTKgZTmEmwM7RaOCq6OifEZR2NKWwutIUZbzo0SQ>
+    <xmx:s9j4ZLONDqSf7o5Z4aSE1onERACQAtFksbMuJmduHrqscQGtXIS0jA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id AE25DB60089; Wed,  6 Sep 2023 15:53:22 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-711-g440737448e-fm-20230828.001-g44073744
+Mime-Version: 1.0
+Message-Id: <8865aa0a-ec40-41ca-a77e-9172cec49f07@app.fastmail.com>
+In-Reply-To: <20230906144801.25297-3-tzimmermann@suse.de>
+References: <20230906144801.25297-1-tzimmermann@suse.de>
+ <20230906144801.25297-3-tzimmermann@suse.de>
+Date:   Wed, 06 Sep 2023 15:53:02 -0400
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Thomas Zimmermann" <tzimmermann@suse.de>,
+        "Michael Ellerman" <mpe@ellerman.id.au>,
+        "Nicholas Piggin" <npiggin@gmail.com>,
+        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+        "Helge Deller" <deller@gmx.de>
 Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
         linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 4/5] arch/powerpc: Remove file parameter from phys_mem_access_prot code
-Date:   Wed,  6 Sep 2023 16:35:05 +0200
-Message-ID: <20230906144801.25297-5-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20230906144801.25297-1-tzimmermann@suse.de>
-References: <20230906144801.25297-1-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        dri-devel@lists.freedesktop.org,
+        Linux-Arch <linux-arch@vger.kernel.org>
+Subject: Re: [PATCH v2 2/5] fbdev: Replace fb_pgprotect() with fb_pgprot_device()
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Remove 'file' parameter from struct machdep_calls.phys_mem_access_prot
-and its implementation in pci_phys_mem_access_prot(). The file is not
-used on PowerPC. By removing it, a later patch can simplify fbdev's
-mmap code, which uses phys_mem_access_prot() on PowerPC.
+On Wed, Sep 6, 2023, at 10:35, Thomas Zimmermann wrote:
+> Rename the fbdev mmap helper fb_pgprotect() to fb_pgprot_device().
+> The helper sets VMA page-access flags for framebuffers in device I/O
+> memory. The new name follows pgprot_device(), which does the same for
+> arbitrary devices.
+>
+> Also clean up the helper's parameters and return value. Instead of
+> the VMA instance, pass the individial parameters separately: existing
+> page-access flags, the VMAs start and end addresses and the offset
+> in the underlying device memory rsp file. Return the new page-access
+> flags. These changes align fb_pgprot_device() closer with pgprot_device.
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
----
- arch/powerpc/include/asm/book3s/pgtable.h | 10 ++++++++--
- arch/powerpc/include/asm/machdep.h        |  3 +--
- arch/powerpc/include/asm/nohash/pgtable.h | 10 ++++++++--
- arch/powerpc/include/asm/pci.h            |  4 +---
- arch/powerpc/kernel/pci-common.c          |  3 +--
- arch/powerpc/mm/mem.c                     |  8 ++++----
- 6 files changed, 23 insertions(+), 15 deletions(-)
+This makes sense as a cleanup, but I'm not sure the new naming is helpful.
 
-diff --git a/arch/powerpc/include/asm/book3s/pgtable.h b/arch/powerpc/include/asm/book3s/pgtable.h
-index d18b748ea3ae..84e36a572641 100644
---- a/arch/powerpc/include/asm/book3s/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/pgtable.h
-@@ -20,9 +20,15 @@ extern void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
- extern int ptep_set_access_flags(struct vm_area_struct *vma, unsigned long address,
- 				 pte_t *ptep, pte_t entry, int dirty);
- 
-+extern pgprot_t __phys_mem_access_prot(unsigned long pfn, unsigned long size,
-+				       pgprot_t vma_prot);
-+
- struct file;
--extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
--				     unsigned long size, pgprot_t vma_prot);
-+static inline pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-+					    unsigned long size, pgprot_t vma_prot)
-+{
-+	return __phys_mem_access_prot(pfn, size, vma_prot);
-+}
- #define __HAVE_PHYS_MEM_ACCESS_PROT
- 
- void __update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep);
-diff --git a/arch/powerpc/include/asm/machdep.h b/arch/powerpc/include/asm/machdep.h
-index 933465ed4c43..d31a5ec1550d 100644
---- a/arch/powerpc/include/asm/machdep.h
-+++ b/arch/powerpc/include/asm/machdep.h
-@@ -106,8 +106,7 @@ struct machdep_calls {
- 	int		(*pci_get_legacy_ide_irq)(struct pci_dev *dev, int channel);
- 
- 	/* Get access protection for /dev/mem */
--	pgprot_t	(*phys_mem_access_prot)(struct file *file,
--						unsigned long pfn,
-+	pgprot_t	(*phys_mem_access_prot)(unsigned long pfn,
- 						unsigned long size,
- 						pgprot_t vma_prot);
- 
-diff --git a/arch/powerpc/include/asm/nohash/pgtable.h b/arch/powerpc/include/asm/nohash/pgtable.h
-index a6caaaab6f92..90366b0b3ad9 100644
---- a/arch/powerpc/include/asm/nohash/pgtable.h
-+++ b/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -246,9 +246,15 @@ extern int ptep_set_access_flags(struct vm_area_struct *vma, unsigned long addre
- 
- #define pgprot_writecombine pgprot_noncached_wc
- 
-+extern pgprot_t __phys_mem_access_prot(unsigned long pfn, unsigned long size,
-+				       pgprot_t vma_prot);
-+
- struct file;
--extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
--				     unsigned long size, pgprot_t vma_prot);
-+static inline pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-+					    unsigned long size, pgprot_t vma_prot)
-+{
-+	return __phys_mem_access_prot(pfn, size, vma_prot);
-+}
- #define __HAVE_PHYS_MEM_ACCESS_PROT
- 
- #ifdef CONFIG_HUGETLB_PAGE
-diff --git a/arch/powerpc/include/asm/pci.h b/arch/powerpc/include/asm/pci.h
-index 289f1ec85bc5..34ed4d51c546 100644
---- a/arch/powerpc/include/asm/pci.h
-+++ b/arch/powerpc/include/asm/pci.h
-@@ -104,9 +104,7 @@ extern void of_scan_pci_bridge(struct pci_dev *dev);
- extern void of_scan_bus(struct device_node *node, struct pci_bus *bus);
- extern void of_rescan_bus(struct device_node *node, struct pci_bus *bus);
- 
--struct file;
--extern pgprot_t	pci_phys_mem_access_prot(struct file *file,
--					 unsigned long pfn,
-+extern pgprot_t	pci_phys_mem_access_prot(unsigned long pfn,
- 					 unsigned long size,
- 					 pgprot_t prot);
- 
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index e88d7c9feeec..73f12a17e572 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -521,8 +521,7 @@ int pci_iobar_pfn(struct pci_dev *pdev, int bar, struct vm_area_struct *vma)
-  * PCI device, it tries to find the PCI device first and calls the
-  * above routine
-  */
--pgprot_t pci_phys_mem_access_prot(struct file *file,
--				  unsigned long pfn,
-+pgprot_t pci_phys_mem_access_prot(unsigned long pfn,
- 				  unsigned long size,
- 				  pgprot_t prot)
- {
-diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
-index 8b121df7b08f..03aadf657d15 100644
---- a/arch/powerpc/mm/mem.c
-+++ b/arch/powerpc/mm/mem.c
-@@ -34,18 +34,18 @@ unsigned long long memory_limit;
- unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)] __page_aligned_bss;
- EXPORT_SYMBOL(empty_zero_page);
- 
--pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
--			      unsigned long size, pgprot_t vma_prot)
-+pgprot_t __phys_mem_access_prot(unsigned long pfn, unsigned long size,
-+				pgprot_t vma_prot)
- {
- 	if (ppc_md.phys_mem_access_prot)
--		return ppc_md.phys_mem_access_prot(file, pfn, size, vma_prot);
-+		return ppc_md.phys_mem_access_prot(pfn, size, vma_prot);
- 
- 	if (!page_is_ram(pfn))
- 		vma_prot = pgprot_noncached(vma_prot);
- 
- 	return vma_prot;
- }
--EXPORT_SYMBOL(phys_mem_access_prot);
-+EXPORT_SYMBOL(__phys_mem_access_prot);
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- static DEFINE_MUTEX(linear_mapping_mutex);
--- 
-2.42.0
+The 'pgprot_device' permissions are based on Arm's memory attributes,
+which have slightly different behavior for "device", "uncached" and
+"writecombine" mappings. I think simply calling this one pgprot_fb()
+or fb_pgprot() would be less confusing, since depending on the architecture
+it appears to give either uncached or writecombine mappings but not
+"device" on the architectures where this is different.
 
+      Arnd
