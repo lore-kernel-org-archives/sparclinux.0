@@ -2,51 +2,51 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C21EE147B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF8CEEE147D
 	for <sparclinux@archiver.kernel.org>; Wed,  6 Sep 2023 14:48:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235046AbjIFOsQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 6 Sep 2023 10:48:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42038 "EHLO
+        id S231397AbjIFOsR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 6 Sep 2023 10:48:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231397AbjIFOsK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Sep 2023 10:48:10 -0400
+        with ESMTP id S234843AbjIFOsJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Sep 2023 10:48:09 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD3171982;
-        Wed,  6 Sep 2023 07:48:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8A1B172C;
+        Wed,  6 Sep 2023 07:48:04 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 4727E22420;
-        Wed,  6 Sep 2023 14:48:04 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id A75D122432;
+        Wed,  6 Sep 2023 14:48:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1694011684; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1694011683; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=5UVkRdq9Ompt6vAechv5zSGI5KhBgHDmQREq52DnWS4=;
-        b=eeFCWJFO/IVTLar/ssmCWklutIypE+0TT87tF31kanhAfw1WMIYLub9UYgRhN2RF9EUnnq
-        7IZpu7Vhp1T4FLmmbV77Et7RgJ84G3VtBx7sc0zmqnhQpdCsOIyYZXAEf94EDR+bAtBzJg
-        pxwPnQVxytS6fv1cNMYLiIwVR9WSd0s=
+        bh=1WzZFokcrlW6NGGGLWd4i7Dg6KUabGpzZ6FiqlxPoi4=;
+        b=TwC2rHXizbdCLcuc98kBNbY1jPzrJH8MUQ4VjQ26oB+ROml5otTq2AfT5GtpArLlOwGnht
+        IQy9B+Jfxu2tfWgd4Lw2ZQTYf1zPfGZ597QOFz6AKfgrenZZMsGUIPSHjF0iIRJfqnvV4J
+        xMZb5M9XnRlBS4pzz82B3DJdxuiPAlQ=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1694011684;
+        s=susede2_ed25519; t=1694011683;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=5UVkRdq9Ompt6vAechv5zSGI5KhBgHDmQREq52DnWS4=;
-        b=cjxqWv6UuRP8md3NnE7nW5BfAGJUfaRK22+x7EuIOkhhNIL2ZP1W1E3yzTd4YYqyFbxHFh
-        hudh2fzTwEcuHbDQ==
+        bh=1WzZFokcrlW6NGGGLWd4i7Dg6KUabGpzZ6FiqlxPoi4=;
+        b=Mc2/HGFn9HSuEP4H4Q5LcaFNnrKaCB1DbKsiLnnyglv9zCM0QPDt/cUM+rpbZCweIcrHIS
+        PQ8ERS9CmBjknJBA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 0166713921;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 6269613921;
         Wed,  6 Sep 2023 14:48:03 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id KHLzOiOR+GSNSgAAMHmgww
+        id WBgyFyOR+GSNSgAAMHmgww
         (envelope-from <tzimmermann@suse.de>); Wed, 06 Sep 2023 14:48:03 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
@@ -56,9 +56,9 @@ Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
         linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 3/5] arch/powerpc: Remove trailing whitespaces
-Date:   Wed,  6 Sep 2023 16:35:04 +0200
-Message-ID: <20230906144801.25297-4-tzimmermann@suse.de>
+Subject: [PATCH v2 1/5] fbdev: Avoid file argument in fb_pgprotect()
+Date:   Wed,  6 Sep 2023 16:35:02 +0200
+Message-ID: <20230906144801.25297-2-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230906144801.25297-1-tzimmermann@suse.de>
 References: <20230906144801.25297-1-tzimmermann@suse.de>
@@ -68,49 +68,37 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Fix coding style. No functional changes.
+Only PowerPC's fb_pgprotect() needs the file argument, although
+the implementation does not use it. Pass NULL to the internal
+helper in preparation of further updates. A later patch will remove
+the file parameter from fb_pgprotect().
 
+While at it, replace the shift operation with PHYS_PFN().
+
+Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- arch/powerpc/include/asm/machdep.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/include/asm/fb.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/powerpc/include/asm/machdep.h b/arch/powerpc/include/asm/machdep.h
-index 4f6e7d7ee388..933465ed4c43 100644
---- a/arch/powerpc/include/asm/machdep.h
-+++ b/arch/powerpc/include/asm/machdep.h
-@@ -10,7 +10,7 @@
- #include <linux/export.h>
- 
- struct pt_regs;
--struct pci_bus;	
-+struct pci_bus;
- struct device_node;
- struct iommu_table;
- struct rtc_time;
-@@ -78,8 +78,8 @@ struct machdep_calls {
- 	unsigned char 	(*nvram_read_val)(int addr);
- 	void		(*nvram_write_val)(int addr, unsigned char val);
- 	ssize_t		(*nvram_write)(char *buf, size_t count, loff_t *index);
--	ssize_t		(*nvram_read)(char *buf, size_t count, loff_t *index);	
--	ssize_t		(*nvram_size)(void);		
-+	ssize_t		(*nvram_read)(char *buf, size_t count, loff_t *index);
-+	ssize_t		(*nvram_size)(void);
- 	void		(*nvram_sync)(void);
- 
- 	/* Exception handlers */
-@@ -102,9 +102,9 @@ struct machdep_calls {
- 	 */
- 	long	 	(*feature_call)(unsigned int feature, ...);
- 
--	/* Get legacy PCI/IDE interrupt mapping */ 
-+	/* Get legacy PCI/IDE interrupt mapping */
- 	int		(*pci_get_legacy_ide_irq)(struct pci_dev *dev, int channel);
--	
-+
- 	/* Get access protection for /dev/mem */
- 	pgprot_t	(*phys_mem_access_prot)(struct file *file,
- 						unsigned long pfn,
+diff --git a/arch/powerpc/include/asm/fb.h b/arch/powerpc/include/asm/fb.h
+index 5f1a2e5f7654..61e3b8806db6 100644
+--- a/arch/powerpc/include/asm/fb.h
++++ b/arch/powerpc/include/asm/fb.h
+@@ -9,7 +9,12 @@
+ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
+ 				unsigned long off)
+ {
+-	vma->vm_page_prot = phys_mem_access_prot(file, off >> PAGE_SHIFT,
++	/*
++	 * PowerPC's implementation of phys_mem_access_prot() does
++	 * not use the file argument. Set it to NULL in preparation
++	 * of later updates to the interface.
++	 */
++	vma->vm_page_prot = phys_mem_access_prot(NULL, PHYS_PFN(off),
+ 						 vma->vm_end - vma->vm_start,
+ 						 vma->vm_page_prot);
+ }
 -- 
 2.42.0
 
