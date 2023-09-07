@@ -2,164 +2,159 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1254EC874D
-	for <sparclinux@archiver.kernel.org>; Thu,  7 Sep 2023 17:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E37EC8743
+	for <sparclinux@archiver.kernel.org>; Thu,  7 Sep 2023 17:20:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239672AbjIGRBN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 7 Sep 2023 13:01:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38146 "EHLO
+        id S242935AbjIGRUv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:20:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241011AbjIGRAz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 7 Sep 2023 13:00:55 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3B1B1FD4;
-        Thu,  7 Sep 2023 10:00:29 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 718DC1F894;
-        Thu,  7 Sep 2023 06:49:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1694069356; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Tmj3YHu3EiPuUc2HxOOZqAmbdUq5Gwk17anV60bvF+8=;
-        b=yU5vier603aXq694itOfrhcjO0QSHPRLF/lueeHBJRSFUC3ta/5WKm18iCH7aRInx50Y+P
-        dlMhxITKyHPvX7XYfZO1ZbjPB2vCg0rpYfZ3c3LfWzbuYpPHxgIL6/rmdCV96ZMwIYptlc
-        2oKsah8Sk+Q1z216oGZcPV1/w+fHjzI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1694069356;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Tmj3YHu3EiPuUc2HxOOZqAmbdUq5Gwk17anV60bvF+8=;
-        b=iW1d0smaEK2EyWUqniHZl4q0Puf5OimB6EzUPBXkH3k0urRlYwtK2wxMIBgTEFdPvs65/2
-        9I7N9s+LaZpvbcCQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2DBCA1358B;
-        Thu,  7 Sep 2023 06:49:16 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id DNAbCmxy+WTFegAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 07 Sep 2023 06:49:16 +0000
-Message-ID: <fc126f04-64f1-3403-2e12-54c723c68855@suse.de>
-Date:   Thu, 7 Sep 2023 08:49:15 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH v2 2/5] fbdev: Replace fb_pgprotect() with
- fb_pgprot_device()
-Content-Language: en-US
-To:     Arnd Bergmann <arnd@arndb.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Helge Deller <deller@gmx.de>
-Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Linux-Arch <linux-arch@vger.kernel.org>
-References: <20230906144801.25297-1-tzimmermann@suse.de>
- <20230906144801.25297-3-tzimmermann@suse.de>
- <8865aa0a-ec40-41ca-a77e-9172cec49f07@app.fastmail.com>
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-In-Reply-To: <8865aa0a-ec40-41ca-a77e-9172cec49f07@app.fastmail.com>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------TEh4cvhQbs1k527ukntUhmr1"
+        with ESMTP id S232619AbjIGRUo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 7 Sep 2023 13:20:44 -0400
+Received: from mail.hugovil.com (mail.hugovil.com [162.243.120.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7AD3B2;
+        Thu,  7 Sep 2023 10:20:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hugovil.com
+        ; s=x; h=Subject:Content-Transfer-Encoding:Mime-Version:Message-Id:Cc:To:From
+        :Date:subject:date:message-id:reply-to;
+        bh=tCMvBL3/HLEl/hDYIS/50Mz/xVJ11wiyoDOxpmEOOTE=; b=MHOsHcq7iCZBeagaOt/9p6KbOa
+        YKkA2BhrzTW+y4ej51qW/gq5s6MlIb/FlZ+kKseG7M64ezsmXG07vO2+wn5ClfMeBo+ABYa/ErcfG
+        L/SaJG2Bl+iD754JDs2ADc2YHDzpa/VX9XbQa6mKXT8j62o+NmP/kJ8OCoWf4fCI/FsM=;
+Received: from modemcable168.174-80-70.mc.videotron.ca ([70.80.174.168]:51382 helo=asus64.hugovil.com)
+        by mail.hugovil.com with esmtpa (Exim 4.92)
+        (envelope-from <hugo@hugovil.com>)
+        id 1qeF6i-0004I6-Nr; Thu, 07 Sep 2023 09:31:42 -0400
+Date:   Thu, 7 Sep 2023 09:31:40 -0400
+From:   Hugo Villeneuve <hugo@hugovil.com>
+To:     "yiyang (D)" <yiyang13@huawei.com>
+Cc:     <davem@davemloft.net>, <gregkh@linuxfoundation.org>,
+        <jirislaby@kernel.org>, <jag.raman@oracle.com>,
+        <sparclinux@vger.kernel.org>, <linux-serial@vger.kernel.org>
+Message-Id: <20230907093140.99e03b927705dabe6def7e00@hugovil.com>
+In-Reply-To: <03cb09e9-5435-b464-b067-cf2c3f97660c@huawei.com>
+References: <20230904035220.48164-1-yiyang13@huawei.com>
+        <20230905101938.7cf68e477b946e1a066de17f@hugovil.com>
+        <03cb09e9-5435-b464-b067-cf2c3f97660c@huawei.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 70.80.174.168
+X-SA-Exim-Mail-From: hugo@hugovil.com
+Subject: Re: [PATCH V2] tty: vcc: Add check for kstrdup() in vcc_probe()
+X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
+X-SA-Exim-Scanned: Yes (on mail.hugovil.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------TEh4cvhQbs1k527ukntUhmr1
-Content-Type: multipart/mixed; boundary="------------LMUVyb40kina8IJoOFeFeOP2";
- protected-headers="v1"
-From: Thomas Zimmermann <tzimmermann@suse.de>
-To: Arnd Bergmann <arnd@arndb.de>, Michael Ellerman <mpe@ellerman.id.au>,
- Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>, Helge Deller <deller@gmx.de>
-Cc: linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
- linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
- linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
- dri-devel@lists.freedesktop.org, Linux-Arch <linux-arch@vger.kernel.org>
-Message-ID: <fc126f04-64f1-3403-2e12-54c723c68855@suse.de>
-Subject: Re: [PATCH v2 2/5] fbdev: Replace fb_pgprotect() with
- fb_pgprot_device()
-References: <20230906144801.25297-1-tzimmermann@suse.de>
- <20230906144801.25297-3-tzimmermann@suse.de>
- <8865aa0a-ec40-41ca-a77e-9172cec49f07@app.fastmail.com>
-In-Reply-To: <8865aa0a-ec40-41ca-a77e-9172cec49f07@app.fastmail.com>
+On Thu, 7 Sep 2023 09:25:12 +0800
+"yiyang (D)" <yiyang13@huawei.com> wrote:
 
---------------LMUVyb40kina8IJoOFeFeOP2
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+> On 2023/9/5 22:19, Hugo Villeneuve wrote:
+> > On Mon, 4 Sep 2023 11:52:20 +0800
+> > Yi Yang <yiyang13@huawei.com> wrote:
+> > 
+> >> Add check for the return value of kstrdup() and return the error, if it
+> >> fails in order to avoid NULL pointer dereference.
+> >>
+> >> Fixes: 5d171050e28f ("sparc64: vcc: Enable VCC port probe and removal")
+> >> Signed-off-by: Yi Yang <yiyang13@huawei.com>
+> >> ---
+> >> V2: Add goto target for error paths.
+> >> ---
+> >>   drivers/tty/vcc.c | 16 +++++++++++++---
+> >>   1 file changed, 13 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+> >> index a39ed981bfd3..5b625f20233b 100644
+> >> --- a/drivers/tty/vcc.c
+> >> +++ b/drivers/tty/vcc.c
+> >> @@ -579,18 +579,22 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+> >>   		return -ENOMEM;
+> >>   
+> >>   	name = kstrdup(dev_name(&vdev->dev), GFP_KERNEL);
+> >> +	if (!name) {
+> >> +		rv = -ENOMEM;
+> >> +		goto free_port;
+> > 
+> > Hi,
+> > at this point, the port is not yet allocated, so you should not jump to
+> > free_port. You should simply return with -ENOMEM.
+> > 
+> The port was already allocated by kzalloc(), and should be free before 
+> return -ENOMEM.
 
-SGkgQXJuZA0KDQpBbSAwNi4wOS4yMyB1bSAyMTo1MyBzY2hyaWViIEFybmQgQmVyZ21hbm46
-DQo+IE9uIFdlZCwgU2VwIDYsIDIwMjMsIGF0IDEwOjM1LCBUaG9tYXMgWmltbWVybWFubiB3
-cm90ZToNCj4+IFJlbmFtZSB0aGUgZmJkZXYgbW1hcCBoZWxwZXIgZmJfcGdwcm90ZWN0KCkg
-dG8gZmJfcGdwcm90X2RldmljZSgpLg0KPj4gVGhlIGhlbHBlciBzZXRzIFZNQSBwYWdlLWFj
-Y2VzcyBmbGFncyBmb3IgZnJhbWVidWZmZXJzIGluIGRldmljZSBJL08NCj4+IG1lbW9yeS4g
-VGhlIG5ldyBuYW1lIGZvbGxvd3MgcGdwcm90X2RldmljZSgpLCB3aGljaCBkb2VzIHRoZSBz
-YW1lIGZvcg0KPj4gYXJiaXRyYXJ5IGRldmljZXMuDQo+Pg0KPj4gQWxzbyBjbGVhbiB1cCB0
-aGUgaGVscGVyJ3MgcGFyYW1ldGVycyBhbmQgcmV0dXJuIHZhbHVlLiBJbnN0ZWFkIG9mDQo+
-PiB0aGUgVk1BIGluc3RhbmNlLCBwYXNzIHRoZSBpbmRpdmlkaWFsIHBhcmFtZXRlcnMgc2Vw
-YXJhdGVseTogZXhpc3RpbmcNCj4+IHBhZ2UtYWNjZXNzIGZsYWdzLCB0aGUgVk1BcyBzdGFy
-dCBhbmQgZW5kIGFkZHJlc3NlcyBhbmQgdGhlIG9mZnNldA0KPj4gaW4gdGhlIHVuZGVybHlp
-bmcgZGV2aWNlIG1lbW9yeSByc3AgZmlsZS4gUmV0dXJuIHRoZSBuZXcgcGFnZS1hY2Nlc3MN
-Cj4+IGZsYWdzLiBUaGVzZSBjaGFuZ2VzIGFsaWduIGZiX3BncHJvdF9kZXZpY2UoKSBjbG9z
-ZXIgd2l0aCBwZ3Byb3RfZGV2aWNlLg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IFRob21hcyBa
-aW1tZXJtYW5uIDx0emltbWVybWFubkBzdXNlLmRlPg0KPiANCj4gVGhpcyBtYWtlcyBzZW5z
-ZSBhcyBhIGNsZWFudXAsIGJ1dCBJJ20gbm90IHN1cmUgdGhlIG5ldyBuYW1pbmcgaXMgaGVs
-cGZ1bC4NCj4gDQo+IFRoZSAncGdwcm90X2RldmljZScgcGVybWlzc2lvbnMgYXJlIGJhc2Vk
-IG9uIEFybSdzIG1lbW9yeSBhdHRyaWJ1dGVzLA0KPiB3aGljaCBoYXZlIHNsaWdodGx5IGRp
-ZmZlcmVudCBiZWhhdmlvciBmb3IgImRldmljZSIsICJ1bmNhY2hlZCIgYW5kDQo+ICJ3cml0
-ZWNvbWJpbmUiIG1hcHBpbmdzLiBJIHRoaW5rIHNpbXBseSBjYWxsaW5nIHRoaXMgb25lIHBn
-cHJvdF9mYigpDQo+IG9yIGZiX3BncHJvdCgpIHdvdWxkIGJlIGxlc3MgY29uZnVzaW5nLCBz
-aW5jZSBkZXBlbmRpbmcgb24gdGhlIGFyY2hpdGVjdHVyZQ0KPiBpdCBhcHBlYXJzIHRvIGdp
-dmUgZWl0aGVyIHVuY2FjaGVkIG9yIHdyaXRlY29tYmluZSBtYXBwaW5ncyBidXQgbm90DQo+
-ICJkZXZpY2UiIG9uIHRoZSBhcmNoaXRlY3R1cmVzIHdoZXJlIHRoaXMgaXMgZGlmZmVyZW50
-Lg0KDQpJIHNlZS4gVGhhbmtzIGZvciB0aGUgaW5mby4gSSBsaWtlIHBncHJvdF9mYigpIG1h
-eWJlIA0KcGdwcm90X2ZyYW1lYnVmZmVyKCkuIEknbGwgdXBkYXRlIHRoZSBwYXRjaHNldC4N
-Cg0KT25lIHRoaW5nIEkndmUgYmVlbiB3b25kZXJpbmcgaXMgd2hldGhlciBJIHNob3VsZCBh
-dHRlbXB0IHRvIGludGVncmF0ZSANCnRoZSBoZWxwZXJzIGluIDxhc20vZmIuaD4gaW4gdGhl
-IHJlZ3VsYXIgYXNtIGhlYWRlcnMuIFNvIHRoZSBwZ3Byb3QgY29kZSANCndvdWxkIGdvIGlu
-dG8gcGd0YWJsZS5oLCB0aGUgSS9PIGZ1bmN0aW9ucyB3b3VsZCBnbyBpbnRvIGlvLmguIFRo
-ZSBJL08gDQpmdW5jdGlvbnMgY291bGQgdGhlbiBiZSBjYWxsZWQgcmVhZGJfZmIoKSwgd3Jp
-dGVsX2ZiKCksIG1lbWNweV90b2ZiKCkgDQphbmQgc28gb24uIFdvdWxkIHlvdSBwcmVmZXIg
-dGhhdCBvciByYXRoZXIgbm90Pw0KDQpCZXN0IHJlZ2FyZHMNClRob21hcw0KDQo+IA0KPiAg
-ICAgICAgQXJuZA0KDQotLSANClRob21hcyBaaW1tZXJtYW5uDQpHcmFwaGljcyBEcml2ZXIg
-RGV2ZWxvcGVyDQpTVVNFIFNvZnR3YXJlIFNvbHV0aW9ucyBHZXJtYW55IEdtYkgNCkZyYW5r
-ZW5zdHJhc3NlIDE0NiwgOTA0NjEgTnVlcm5iZXJnLCBHZXJtYW55DQpHRjogSXZvIFRvdGV2
-LCBBbmRyZXcgTXllcnMsIEFuZHJldyBNY0RvbmFsZCwgQm91ZGllbiBNb2VybWFuDQpIUkIg
-MzY4MDkgKEFHIE51ZXJuYmVyZykNCg==
+You are right, dismiss all my comments.
 
---------------LMUVyb40kina8IJoOFeFeOP2--
+Hugo.
 
---------------TEh4cvhQbs1k527ukntUhmr1
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
 
------BEGIN PGP SIGNATURE-----
+> > 
+> >> +	}
+> >>   
+> >>   	rv = vio_driver_init(&port->vio, vdev, VDEV_CONSOLE_CON, vcc_versions,
+> >>   			     ARRAY_SIZE(vcc_versions), NULL, name);
+> >>   	if (rv)
+> >> -		goto free_port;
+> >> +		goto free_name;
+> >>   
+> >>   	port->vio.debug = vcc_dbg_vio;
+> >>   	vcc_ldc_cfg.debug = vcc_dbg_ldc;
+> >>   
+> >>   	rv = vio_ldc_alloc(&port->vio, &vcc_ldc_cfg, port);
+> >>   	if (rv)
+> >> -		goto free_port;
+> >> +		goto free_name;
+> > 
+> > You should still jump to free_port, not free_name, after seeing my
+> > comments below
+> > 
+> > 
+> >>   
+> >>   	spin_lock_init(&port->lock);
+> >>   
+> >> @@ -624,6 +628,11 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+> >>   		goto unreg_tty;
+> >>   	}
+> >>   	port->domain = kstrdup(domain, GFP_KERNEL);
+> >> +	if (!port->domain) {
+> >> +		rv = -ENOMEM;
+> >> +		goto unreg_tty;
+> >> +	}
+> >> +
+> >>   and should be free before return -ENOMEM.
+> >>   	mdesc_release(hp);
+> >>   
+> >> @@ -653,8 +662,9 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+> >>   	vcc_table_remove(port->index);
+> >>   free_ldc:
+> >>   	vio_ldc_free(&port->vio);
+> >> -free_port:
+> >> +free_name:
+> >>   	kfree(name);
+> >> +free_port:
+> >>   	kfree(port);
+> > 
+> > free_name should come after free_port...
+> > 
+> > Hugo.
+> The release process should be in reverse order.
+> 
+> --
+> Yi Yang
+> > 
+> > 
+> >>   
+> >>   	return rv;
+> >> -- 
+> >> 2.17.1
+> >>
+> > 
+> > .
+> > 
+> 
 
-wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmT5cmsFAwAAAAAACgkQlh/E3EQov+AQ
-9hAAnu8YqJbF8kuGEVKqu7BhEZrJ9Yg8lVBP8+c6r7PW6z5NYHSXwtGmySIopyd4c4C6RiUDOq0f
-gI96wa8Ze85a2vVyPMg0vAJxt94DgCURK37L+tMo/jgRP5uTUuRNwSEYURjpsMT4Zbjc1jNgz5b4
-CP7SZuXBRIj8JAP/SPbpHoo+j8m3PNLcpEZjlk+H81zy7s4kLFftw3bBaB6Lu8TBfYCFKIwuGmjJ
-p55XdNWIbj8q8S6Hhh5DN2lFf6qz7p1DRysLVL8q0dtoyXifftoxU8C7baO0/IM2do6tbNucY+9U
-WJRa+UkMasd314eJ4H+F9oSbKG2hrRJAv98eg1Wbf/+VRylJCYa5HsdHHWCGAoBtxUuK1HqarqvF
-Rrqw/Zt1qsEKHNzlzzq9Qlm15+9n5z6FnbXJgUzkApr20orOHu2DLf9FkUNGDOmykOQfNfWC+I0k
-x5dEx6KxgKUhekd4Q8kiaT/EeqMOV+F31TvezVRo9VuM9uRH2WqtH3LS+9T+NzNQx/+aG9WdrcVM
-cWPvt+RifTXdXPhpZA6pKAOe049mKxkdC6iQp0A9L1YB4QP6iNYgR7wqVvQunMCfoQPJcIo9n4aL
-MmcPjtLmozw7BV3fBCeMuWrk41msZ7qbrAyvOrDuMjQtnYMp6cEeLZOcUHk96uZze9DH8vxZat0Q
-FY4=
-=9dZp
------END PGP SIGNATURE-----
 
---------------TEh4cvhQbs1k527ukntUhmr1--
+-- 
+Hugo Villeneuve <hugo@hugovil.com>
