@@ -2,38 +2,37 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF110EC8758
-	for <sparclinux@archiver.kernel.org>; Thu,  7 Sep 2023 19:44:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF6AAEE57CA
+	for <sparclinux@archiver.kernel.org>; Fri,  8 Sep 2023 07:31:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232173AbjIGToK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 7 Sep 2023 15:44:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
+        id S233874AbjIHHbw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 8 Sep 2023 03:31:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231136AbjIGToJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 7 Sep 2023 15:44:09 -0400
-X-Greylist: delayed 4199 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 07 Sep 2023 12:44:02 PDT
-Received: from mail.consultprobiz.pl (unknown [80.211.106.90])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8434CE9
-        for <sparclinux@vger.kernel.org>; Thu,  7 Sep 2023 12:44:02 -0700 (PDT)
-Received: by mail.consultprobiz.pl (Postfix, from userid 1001)
-        id 6755A837C8; Thu,  7 Sep 2023 10:06:01 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=consultprobiz.pl;
-        s=mail; t=1694077566;
-        bh=zBoOfqhCAgcpLPnH0o228T4Qs1py66KFAY2sRusySsk=;
+        with ESMTP id S230300AbjIHHbw (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 8 Sep 2023 03:31:52 -0400
+Received: from mail.tradeharbor.pl (mail.tradeharbor.pl [217.61.97.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B5D41990
+        for <sparclinux@vger.kernel.org>; Fri,  8 Sep 2023 00:31:46 -0700 (PDT)
+Received: by mail.tradeharbor.pl (Postfix, from userid 1002)
+        id 735A3895E1; Fri,  8 Sep 2023 09:31:39 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tradeharbor.pl;
+        s=mail; t=1694158302;
+        bh=+8JR9pbZKhAL6uRH+3YthTnulvnmSqiK0eDpljLgYE8=;
         h=Date:From:To:Subject:From;
-        b=KBT+bN9Bje7qDGZWXbbVsDzNQ5fTAtp1gmBETzh4HusWmosROjX6FlE5pzpwipRnz
-         q8wm8Xzg8AYRAeAUFsF3SXcWiqDkmkyA0U1asrwR6h/QsJv8CwQeDcg31VuLhxnSAw
-         3wyVMI2PKAu+EEC/IWTns5sWXHY1d9EvWoRB76vKYNm0Bb9x3kPt0rksLFdnigS0Gn
-         217qJDuj6OXLII9zQ941WyUeUPuJTuZkrvITA7sH3Pg5a4uSO4imVF2iTkYqzu5tbB
-         O6piEAkrLwSppcYTEN0rWlpko3F3QNkc8rqNbMkFjoapfXG35B+hHiq/KRz1yPrn1j
-         Sg+9NZZbu9HRg==
-Received: by mail.consultprobiz.pl for <sparclinux@vger.kernel.org>; Thu,  7 Sep 2023 09:05:56 GMT
-Message-ID: <20230907091349-0.1.8a.o69m.0.lloctcb49o@consultprobiz.pl>
-Date:   Thu,  7 Sep 2023 09:05:56 GMT
-From:   "Kamil Durjasz" <kamil.durjasz@consultprobiz.pl>
+        b=W5LQTJSIYR3HkYE8qQjBegFZKQiH2tzW/CVwYjBF5CINpwU2lNEemhtrfsXeLpru7
+         WhOl+DjVRqzoRpPqAxvpQ8De2DM9KLYUQwqLl5w9t9omD5WzBGenmRs68l5Ex9b0yC
+         c44yvjOC+JJgXFRvmAwv56u0k71WbtY3Ly0wXHmPqUgDkjPkG2iAEdUVdLf1WOOyiJ
+         3DhWndiyr09MJJhh4l1MBlaWiLfwSg/MIYcK4uLuVZGon4363QIameXPwtCZ/UQK2y
+         hYDJt0btSjSrH0+aTJK95swgl3eO3iOWrb5s1+k4Zc2o2NU2QHC8fORwXLoo6CVT71
+         SqFWf3q2en6qQ==
+Received: by mail.tradeharbor.pl for <sparclinux@vger.kernel.org>; Fri,  8 Sep 2023 07:31:11 GMT
+Message-ID: <20230908084501-0.1.1k.4psb.0.jq43vm6dp9@tradeharbor.pl>
+Date:   Fri,  8 Sep 2023 07:31:11 GMT
+From:   "Piotr Firek" <piotr.firek@tradeharbor.pl>
 To:     <sparclinux@vger.kernel.org>
-Subject: Kontakt w sprawie sklepu 
-X-Mailer: mail.consultprobiz.pl
+Subject: =?UTF-8?Q?Prosz=C4=99_o_kontakt?=
+X-Mailer: mail.tradeharbor.pl
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -41,19 +40,18 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Szanowni Pa=C5=84stwo,
+Dzie=C5=84 dobry,
 
-czy wiedz=C4=85 Pa=C5=84stwo, =C5=BCe potencjalni Klienci Waszej firmy s=C4=
-=85 bardziej aktywni na wyszukiwanie w sieci produkt=C3=B3w z zakresu Pa=C5=
-=84stwa oferty?
+Czy jest mo=C5=BCliwo=C5=9B=C4=87 nawi=C4=85zania wsp=C3=B3=C5=82pracy z =
+Pa=C5=84stwem?
 
-Budujemy nowoczesne, odpowiadaj=C4=85ce preferencjom u=C5=BCytkownik=C3=B3=
-w sklepy internetowe, dzi=C4=99ki kt=C3=B3rym do naszych Partner=C3=B3w z=
-g=C5=82asza si=C4=99 ostatnio znacznie wi=C4=99cej Klient=C3=B3w z zapyta=
-niami ofertowymi.
+Z ch=C4=99ci=C4=85 porozmawiam z osob=C4=85 zajmuj=C4=85c=C4=85 si=C4=99 =
+dzia=C5=82aniami zwi=C4=85zanymi ze sprzeda=C5=BC=C4=85.
 
-Interesuje Pa=C5=84stwa tego typu projekt?
+Pomagamy skutecznie pozyskiwa=C4=87 nowych klient=C3=B3w.
+
+Zapraszam do kontaktu.
 
 
-Z pozdrowieniami
-Kamil Durjasz
+Pozdrawiam
+Piotr Firek
