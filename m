@@ -2,71 +2,68 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ECEFEE57DF
-	for <sparclinux@archiver.kernel.org>; Mon, 11 Sep 2023 07:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA83EE57DF
+	for <sparclinux@archiver.kernel.org>; Mon, 11 Sep 2023 07:40:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233494AbjIKHTp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 11 Sep 2023 03:19:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53994 "EHLO
+        id S231354AbjIKHkq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 11 Sep 2023 03:40:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230187AbjIKHTo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Sep 2023 03:19:44 -0400
-Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47EC1CCD;
-        Mon, 11 Sep 2023 00:19:40 -0700 (PDT)
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-2bd0bc8b429so70713981fa.2;
-        Mon, 11 Sep 2023 00:19:40 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694416778; x=1695021578;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=1w0gJ8VucCHkHZWoua7Qc/5PiCQ3+s3Mo+G7A+1yBko=;
-        b=XqaMtMxFfpP77efcgIONMekJdeBTx30O7YbJCVf2+o1B9Ebyjj0FxGGlHifuBwdxsf
-         5ddYtxB/0nKkBnu6VL923Q21T4DdcQlJWfjRzo30sSHGk2f6/0IE+O6GhZFyb/PkpOMy
-         yNAQtqt0mgyu+jMPM+PcU/w3LKKzcbk6URmK+Ax92UdHNtM0uvKj617GdlHEnJIiIxey
-         aTEDB1GNT8hYTvuO4B8PxeWMRAwV9U088y2Hj2HznpYDuoxCCZtStnmQ/Tcfn7YGx5HT
-         PzYSMe9kksw3Tszez8rIizP/WHjnBYz9xtz0K4cmR9vwrwKKeOCdslp+/Gujit2AgJ9w
-         eiIQ==
-X-Gm-Message-State: AOJu0Yx4kkrWIBnusxmtKVwyla74C/oRSk1MyXK8yvK3udFBC8bgLjLx
-        iM7jlc6GG+lShOVt52jW0CA=
-X-Google-Smtp-Source: AGHT+IG9P0MTaC4ckPPaRL6/2+85VnbCZDw/Zz3yf1mUw+I6J+WVFbgybwigAXq6J3GZM1U9eX1xSg==
-X-Received: by 2002:a2e:8510:0:b0:2b6:da1e:d063 with SMTP id j16-20020a2e8510000000b002b6da1ed063mr6928027lji.45.1694416778392;
-        Mon, 11 Sep 2023 00:19:38 -0700 (PDT)
-Received: from [192.168.1.58] (185-219-167-24-static.vivo.cz. [185.219.167.24])
-        by smtp.gmail.com with ESMTPSA id r20-20020a170906c29400b0099d798a6bb5sm4833970ejz.67.2023.09.11.00.19.37
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 11 Sep 2023 00:19:37 -0700 (PDT)
-Message-ID: <e7730b24-a38b-22ff-12cb-6d08fdb07955@kernel.org>
-Date:   Mon, 11 Sep 2023 09:19:37 +0200
+        with ESMTP id S229678AbjIKHkq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Sep 2023 03:40:46 -0400
+X-Greylist: delayed 501 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 11 Sep 2023 00:40:39 PDT
+Received: from mail.businessavenue.pl (mail.businessavenue.pl [51.254.119.49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55338118
+        for <sparclinux@vger.kernel.org>; Mon, 11 Sep 2023 00:40:39 -0700 (PDT)
+Received: by mail.businessavenue.pl (Postfix, from userid 1002)
+        id 5D51022858; Mon, 11 Sep 2023 07:30:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=businessavenue.pl;
+        s=mail; t=1694417499;
+        bh=0DnDcjJl846YrSvLcp0W7cMkWp4Lfhp/OZAq4oBoaY8=;
+        h=Date:From:To:Subject:From;
+        b=cQjA1/36dwX5JRnwWsrrS2G8HXwmXKLZ7dA/7uSKS9+TMS8dsgQOAcB1rSrOG/zlj
+         Yn7hf0jpfUVu04xjDabGKCl1gxVOMTrdpE/cFuQXechjCEZJzevwINbstnDmyErBKg
+         N9c6uk7lRHh5tU+5tw/Tz/3eLoxCtrZ8fPILNobXk0ZJBxfAGCwpcVw6KdAHbOghdN
+         fijH3QW5RpP6zik5g5+A/3bZ6qulsaajoSz/X6zCJakWb4xeqHZeGPjqORu/lOuhpV
+         DlvCjKp8VN0uwZrrnBkHC9KzcrHFq16m528DhKFWcLXnyVFggh0tOeq2uf38BKwtFT
+         ycyZHWYbzSC2g==
+Received: by mail.businessavenue.pl for <sparclinux@vger.kernel.org>; Mon, 11 Sep 2023 07:30:36 GMT
+Message-ID: <20230911064500-0.1.8f.lkdv.0.ak5uu18349@businessavenue.pl>
+Date:   Mon, 11 Sep 2023 07:30:36 GMT
+From:   "Krzysztof Maj" <krzysztof.maj@businessavenue.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: biznesowy angielski
+X-Mailer: mail.businessavenue.pl
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH V2] tty: vcc: Add check for kstrdup() in vcc_probe()
-Content-Language: en-US
-To:     Yi Yang <yiyang13@huawei.com>, davem@davemloft.net,
-        gregkh@linuxfoundation.org, jag.raman@oracle.com
-Cc:     sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
-References: <20230904035220.48164-1-yiyang13@huawei.com>
-From:   Jiri Slaby <jirislaby@kernel.org>
-In-Reply-To: <20230904035220.48164-1-yiyang13@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 04. 09. 23, 5:52, Yi Yang wrote:
-> Add check for the return value of kstrdup() and return the error, if it
-> fails in order to avoid NULL pointer dereference.
-> 
-> Fixes: 5d171050e28f ("sparc64: vcc: Enable VCC port probe and removal")
-> Signed-off-by: Yi Yang <yiyang13@huawei.com>
+Dzie=C5=84 dobry,=20
 
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
+czy rozwa=C5=BCali Pa=C5=84stwo rozw=C3=B3j kwalifikacji j=C4=99zykowych =
+swoich pracownik=C3=B3w?
+
+Opracowali=C5=9Bmy kursy j=C4=99zykowe dla r=C3=B3=C5=BCnych bran=C5=BC, =
+w kt=C3=B3rych koncentrujemy si=C4=99 na podniesieniu poziomu s=C5=82owni=
+ctwa i jako=C5=9Bci komunikacji wykorzystuj=C4=85c autorsk=C4=85 metod=C4=
+=99, stworzon=C4=85 specjalnie dla wymagaj=C4=85cego biznesu.=20
+
+Niestandardowy kurs on-line, dopasowany do profilu firmy i obszar=C3=B3w =
+=C5=9Bwiadczonych us=C5=82ug, w szybkim czasie przyniesie efekty, kt=C3=B3=
+re zwi=C4=99ksz=C4=85 komfort i jako=C5=9B=C4=87 pracy, rozwijaj=C4=85c m=
+o=C5=BCliwo=C5=9Bci biznesowe.=20
+
+Zdalne szkolenie j=C4=99zykowe to m.in. zaj=C4=99cia z native speakerami,=
+ kt=C3=B3re w szybkim czasie naucz=C4=85 pracownik=C3=B3w rozmawia=C4=87 =
+za pomoc=C4=85 jasnego i zwi=C4=99z=C5=82ego j=C4=99zyka Business English=
+=2E
+
+Czy m=C3=B3g=C5=82bym przedstawi=C4=87 wi=C4=99cej szczeg=C3=B3=C5=82=C3=B3=
+w i opowiedzie=C4=87 jak dzia=C5=82amy?
 
 
--- 
-js
-suse labs
-
+Pozdrawiam
+Krzysztof Maj
