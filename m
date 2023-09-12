@@ -2,48 +2,52 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20D1CCA0EC3
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Sep 2023 13:50:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC1F8CA0ED3
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Sep 2023 13:51:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235014AbjILNu5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Sep 2023 09:50:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43626 "EHLO
+        id S234910AbjILNvE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Sep 2023 09:51:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234910AbjILNu5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Sep 2023 09:50:57 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 188D510D0;
-        Tue, 12 Sep 2023 06:50:53 -0700 (PDT)
+        with ESMTP id S235069AbjILNu6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Sep 2023 09:50:58 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E2C310D7;
+        Tue, 12 Sep 2023 06:50:54 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id D06A8215E6;
-        Tue, 12 Sep 2023 13:50:51 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 2C8EF1F85D;
+        Tue, 12 Sep 2023 13:50:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1694526651; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=jfsfCbmV4CKGMsiOpxVuXT74O5izS3toa2d723Akmmw=;
-        b=m64W3uS2e57d3w4nffiJw2Fh7RVuCjr7bt3J7GNJYSsYTztKgQqHhgk+45ttX69+ok4VVh
-        yw99bbZNMAnHVuSsmonUkgR2O2L9e14Mofs81IpcD5l45rxYbx5zcOxWmbHcFcOYwP/nct
-        o5C2uHBJHXRzpiqUOohiTj85xw8bFlI=
+        t=1694526653; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=jV/rHFCKWKhe5o/Dlji+h0tSxNvEv9pGQp8HF0qfFsw=;
+        b=Ew6/ShMt2eLj+cJ80uJN98SHanYPOov+NxTUOhOU2guO/sjidGDeaB2opl7TgIjsFoZos8
+        iOlarOI9lXf4fNYAryBRhul5DvdlSagyy+aXg3gIylx9rejm+0l1lebNZd9nDylzoTpDG0
+        KnwoLVFIiyCSTzh2hKHA6n2k7Nv7/qg=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1694526651;
+        s=susede2_ed25519; t=1694526653;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=jfsfCbmV4CKGMsiOpxVuXT74O5izS3toa2d723Akmmw=;
-        b=IeqafxgshLUoUAVGjmtdVjMjQk111anVIYX6bOmlE+8+ZaBBtGpsXakjueIXBxBxqhg67j
-        VlS2K9Xq+v6m1vDA==
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=jV/rHFCKWKhe5o/Dlji+h0tSxNvEv9pGQp8HF0qfFsw=;
+        b=mCQGGEEqAUZk6FbEVgwGjMaR7bNzYn80/YZJFR4O0MHHOph1X0dtseZydWjo0aeJynBB8b
+        GZfd9/6d+QYFB4Dw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 934DD139DB;
-        Tue, 12 Sep 2023 13:50:51 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DF0E913A3B;
+        Tue, 12 Sep 2023 13:50:52 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id 55MhI7tsAGVKQwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 12 Sep 2023 13:50:51 +0000
+        id OMKiNbxsAGVKQwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 12 Sep 2023 13:50:52 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
         arnd@arndb.de, deller@gmx.de
@@ -52,62 +56,44 @@ Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
         linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
         dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v4 0/5] ppc, fbdev: Clean up fbdev mmap helper
-Date:   Tue, 12 Sep 2023 15:48:58 +0200
-Message-ID: <20230912135050.17155-1-tzimmermann@suse.de>
+Subject: [PATCH v4 5/5] arch/powerpc: Call internal __phys_mem_access_prot() in fbdev code
+Date:   Tue, 12 Sep 2023 15:49:03 +0200
+Message-ID: <20230912135050.17155-6-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20230912135050.17155-1-tzimmermann@suse.de>
+References: <20230912135050.17155-1-tzimmermann@suse.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Clean up and rename fb_pgprotect() to work without struct file. Then
-refactor the implementation for PowerPC. This change has been discussed
-at [1] in the context of refactoring fbdev's mmap code.
+Call __phys_mem_access_prot() from the fbdev mmap helper
+pgprot_framebuffer(). Allows to avoid the file argument of NULL.
 
-The first two patches update fbdev and replace fbdev's fb_pgprotect()
-with pgprot_framebuffer() on all architectures. The new helper's stream-
-lined interface enables more refactoring within fbdev's mmap
-implementation.
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+---
+ arch/powerpc/include/asm/fb.h | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-Patches 3 to 5 adapt PowerPC's internal interfaces to provide
-phys_mem_access_prot() that works without struct file. Neither the
-architecture code or fbdev helpers need the parameter.
-
-v4:
-	* fix commit message (Christophe)
-v3:
-	* rename fb_pgrotect() to pgprot_framebuffer() (Arnd)
-v2:
-	* reorder patches to simplify merging (Michael)
-
-[1] https://lore.kernel.org/linuxppc-dev/5501ba80-bdb0-6344-16b0-0466a950f82c@suse.com/
-
-Thomas Zimmermann (5):
-  fbdev: Avoid file argument in fb_pgprotect()
-  fbdev: Replace fb_pgprotect() with pgprot_framebuffer()
-  arch/powerpc: Remove trailing whitespaces
-  arch/powerpc: Remove file parameter from phys_mem_access_prot code
-  arch/powerpc: Call internal __phys_mem_access_prot() in fbdev code
-
- arch/ia64/include/asm/fb.h                | 15 +++++++--------
- arch/m68k/include/asm/fb.h                | 19 ++++++++++---------
- arch/mips/include/asm/fb.h                | 11 +++++------
- arch/powerpc/include/asm/book3s/pgtable.h | 10 ++++++++--
- arch/powerpc/include/asm/fb.h             | 13 +++++--------
- arch/powerpc/include/asm/machdep.h        | 13 ++++++-------
- arch/powerpc/include/asm/nohash/pgtable.h | 10 ++++++++--
- arch/powerpc/include/asm/pci.h            |  4 +---
- arch/powerpc/kernel/pci-common.c          |  3 +--
- arch/powerpc/mm/mem.c                     |  8 ++++----
- arch/sparc/include/asm/fb.h               | 15 +++++++++------
- arch/x86/include/asm/fb.h                 | 10 ++++++----
- arch/x86/video/fbdev.c                    | 15 ++++++++-------
- drivers/video/fbdev/core/fb_chrdev.c      |  3 ++-
- include/asm-generic/fb.h                  | 12 ++++++------
- 15 files changed, 86 insertions(+), 75 deletions(-)
-
+diff --git a/arch/powerpc/include/asm/fb.h b/arch/powerpc/include/asm/fb.h
+index 3cecf14d51de8..c0c5d1df7ad1e 100644
+--- a/arch/powerpc/include/asm/fb.h
++++ b/arch/powerpc/include/asm/fb.h
+@@ -8,12 +8,7 @@ static inline pgprot_t pgprot_framebuffer(pgprot_t prot,
+ 					  unsigned long vm_start, unsigned long vm_end,
+ 					  unsigned long offset)
+ {
+-	/*
+-	 * PowerPC's implementation of phys_mem_access_prot() does
+-	 * not use the file argument. Set it to NULL in preparation
+-	 * of later updates to the interface.
+-	 */
+-	return phys_mem_access_prot(NULL, PHYS_PFN(offset), vm_end - vm_start, prot);
++	return __phys_mem_access_prot(PHYS_PFN(offset), vm_end - vm_start, prot);
+ }
+ #define pgprot_framebuffer pgprot_framebuffer
+ 
 -- 
 2.42.0
 
