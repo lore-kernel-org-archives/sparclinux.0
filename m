@@ -2,263 +2,339 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C2B9EEAA63
-	for <sparclinux@archiver.kernel.org>; Thu, 14 Sep 2023 18:43:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEB52EEAA6B
+	for <sparclinux@archiver.kernel.org>; Thu, 14 Sep 2023 18:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241918AbjINSn6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 14 Sep 2023 14:43:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37778 "EHLO
+        id S240748AbjINS7Z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 14 Sep 2023 14:59:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241107AbjINSl6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Sep 2023 14:41:58 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F12C30CF;
-        Thu, 14 Sep 2023 11:39:10 -0700 (PDT)
-From:   John Ogness <john.ogness@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1694716748;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZfmijAtC3g1oYJPusPmN4eARviwbFrdwcagGmP/zuzk=;
-        b=R2v6uaMQ7CS6ZYHIZPSM59WMeA2cANUhi9CnTM0Q+Duf7YKQNnN2wOKSAsfEbnMWavbWDP
-        Jb/eDeirjaQ1SF+YR+/rwnARnLUtPdjYWm0WQ3Z9y8oGIidSsdYMJQ1jL5Bzkc9+c9PrhJ
-        Uec7tsI8SR8BZsy6G6Ntr48hN4RwmS5nRSZQMmcBKXUsEEBR1kABDz/PNircItNuiFC9Qw
-        M+2Fz5V0TZYL5dV7wEdsX9ZAQwnYC5Yu87oebcBbKUZBJdG4kibVw51vb6T8Ze13MzAX7M
-        RuK4JzT9fQ9xOR9hXdeFwQqP2NFtFJ5Z9HckO+QC+G0xaRLlWuu7LkgDQMc4hg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1694716748;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZfmijAtC3g1oYJPusPmN4eARviwbFrdwcagGmP/zuzk=;
-        b=Pm8yyxP5/5v8PDUy4f7SgJldp6MTI6kgWYYQfNDw+CSvuHHQOu92wjI/bymXTaAvCPlf9d
-        1EX+IZ/ElO3HZ3BA==
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Jiri Slaby <jirislaby@kernel.org>, linux-serial@vger.kernel.org,
-        Petr Mladek <pmladek@suse.com>,
+        with ESMTP id S231586AbjINS7W (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Sep 2023 14:59:22 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72DF59B;
+        Thu, 14 Sep 2023 11:59:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1694717957; x=1726253957;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=pceMbNIsdo4RORvgoEGhTgk0j8EFv/tAosFUlFWx7lE=;
+  b=KRZa64vNGU7GPrZL5eEtSty7dzkADcHBrq+ota6glnTMIZKlpR/ckCeh
+   oPq5cxmzlayPzd8rMvegfHD7nodniD/gY25EXt8KIqNkRGNVUGGmYDoHJ
+   mkwLD7mR01FoqLAazzfk75+srs4sVye4zyrLy3VULmiITrMRGCdbQUWsl
+   FrJPWApgqeRse+miUTKvziWyuUlJa8GHbcVLy7D/8jMAHOFS18SE9oNAd
+   TTg+FiWaVfJ5DTX5LgrOQt0k1oBY6RS9gp50+lsUe9i0r8ahcDxPGvOkZ
+   xEpJz5wdDTmLKRAvwgndzTP0fs4Jj+zUvTZSFYND58eP9Fw9MPMcu7aYF
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10833"; a="369344794"
+X-IronPort-AV: E=Sophos;i="6.02,146,1688454000"; 
+   d="scan'208";a="369344794"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2023 11:59:15 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10833"; a="991489713"
+X-IronPort-AV: E=Sophos;i="6.02,146,1688454000"; 
+   d="scan'208";a="991489713"
+Received: from sohilmeh.sc.intel.com ([172.25.103.65])
+  by fmsmga006.fm.intel.com with ESMTP; 14 Sep 2023 11:59:14 -0700
+From:   Sohil Mehta <sohil.mehta@intel.com>
+To:     linux-api@vger.kernel.org, linux-arch@vger.kernel.org
+Cc:     Sohil Mehta <sohil.mehta@intel.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andy Lutomirski <luto@kernel.org>,
         Thomas Gleixner <tglx@linutronix.de>,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: [PATCH tty v1 69/74] serial: sunzilog: Use port lock wrappers
-Date:   Thu, 14 Sep 2023 20:44:26 +0206
-Message-Id: <20230914183831.587273-70-john.ogness@linutronix.de>
-In-Reply-To: <20230914183831.587273-1-john.ogness@linutronix.de>
-References: <20230914183831.587273-1-john.ogness@linutronix.de>
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@kernel.org>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Ian Rogers <irogers@google.com>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
+        Sergei Trofimovich <slyich@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Rohan McLure <rmclure@linux.ibm.com>,
+        Andreas Schwab <schwab@linux-m68k.org>,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Brian Gerst <brgerst@gmail.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Deepak Gupta <debug@rivosinc.com>, linux-alpha@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-perf-users@vger.kernel.org
+Subject: [PATCH v2] arch: Reserve map_shadow_stack() syscall number for all architectures
+Date:   Thu, 14 Sep 2023 18:58:03 +0000
+Message-Id: <20230914185804.2000497-1-sohil.mehta@intel.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+commit c35559f94ebc ("x86/shstk: Introduce map_shadow_stack syscall")
+recently added support for map_shadow_stack() but it is limited to x86
+only for now. There is a possibility that other architectures (namely,
+arm64 and RISC-V), that are implementing equivalent support for shadow
+stacks, might need to add support for it.
 
-When a serial port is used for kernel console output, then all
-modifications to the UART registers which are done from other contexts,
-e.g. getty, termios, are interference points for the kernel console.
+Independent of that, reserving arch-specific syscall numbers in the
+syscall tables of all architectures is good practice and would help
+avoid future conflicts. map_shadow_stack() is marked as a conditional
+syscall in sys_ni.c. Adding it to the syscall tables of other
+architectures is harmless and would return ENOSYS when exercised.
 
-So far this has been ignored and the printk output is based on the
-principle of hope. The rework of the console infrastructure which aims to
-support threaded and atomic consoles, requires to mark sections which
-modify the UART registers as unsafe. This allows the atomic write function
-to make informed decisions and eventually to restore operational state. It
-also allows to prevent the regular UART code from modifying UART registers
-while printk output is in progress.
+Note, map_shadow_stack() was assigned #453 during the merge process
+since #452 was taken by fchmodat2().
 
-All modifications of UART registers are guarded by the UART port lock,
-which provides an obvious synchronization point with the console
-infrastructure.
+For Powerpc, map it to sys_ni_syscall() as is the norm for Powerpc
+syscall tables.
 
-To avoid adding this functionality to all UART drivers, wrap the
-spin_[un]lock*() invocations for uart_port::lock into helper functions
-which just contain the spin_[un]lock*() invocations for now. In a
-subsequent step these helpers will gain the console synchronization
-mechanisms.
+For Alpha, map_shadow_stack() takes up #563 as Alpha still diverges from
+the common syscall numbering system in the other architectures.
 
-Converted with coccinelle. No functional change.
+Link: https://lore.kernel.org/lkml/20230515212255.GA562920@debug.ba.rivosinc.com/
+Link: https://lore.kernel.org/lkml/b402b80b-a7c6-4ef0-b977-c0f5f582b78a@sirena.org.uk/
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
 ---
- drivers/tty/serial/sunzilog.c | 42 +++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+v2:
+- Skip syscall table changes to tools/. They will be handled separetely by the
+  perf folks.
+- Map Powerpc to sys_ni_syscall (Rick Edgecombe)
+---
+ arch/alpha/kernel/syscalls/syscall.tbl      | 1 +
+ arch/arm/tools/syscall.tbl                  | 1 +
+ arch/arm64/include/asm/unistd.h             | 2 +-
+ arch/arm64/include/asm/unistd32.h           | 2 ++
+ arch/ia64/kernel/syscalls/syscall.tbl       | 1 +
+ arch/m68k/kernel/syscalls/syscall.tbl       | 1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl | 1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   | 1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   | 1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   | 1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     | 1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    | 1 +
+ arch/s390/kernel/syscalls/syscall.tbl       | 1 +
+ arch/sh/kernel/syscalls/syscall.tbl         | 1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      | 1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      | 1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     | 1 +
+ include/uapi/asm-generic/unistd.h           | 5 ++++-
+ 18 files changed, 22 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
-index c8c71c56264c..d3b5e864b727 100644
---- a/drivers/tty/serial/sunzilog.c
-+++ b/drivers/tty/serial/sunzilog.c
-@@ -531,7 +531,7 @@ static irqreturn_t sunzilog_interrupt(int irq, void *dev_id)
- 		struct tty_port *port;
- 		unsigned char r3;
+diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
+index ad37569d0507..6e8479c96e65 100644
+--- a/arch/alpha/kernel/syscalls/syscall.tbl
++++ b/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -492,3 +492,4 @@
+ 560	common	set_mempolicy_home_node		sys_ni_syscall
+ 561	common	cachestat			sys_cachestat
+ 562	common	fchmodat2			sys_fchmodat2
++563	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/arm/tools/syscall.tbl b/arch/arm/tools/syscall.tbl
+index c572d6c3dee0..6d494dfbf5e4 100644
+--- a/arch/arm/tools/syscall.tbl
++++ b/arch/arm/tools/syscall.tbl
+@@ -466,3 +466,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/arm64/include/asm/unistd.h b/arch/arm64/include/asm/unistd.h
+index bd77253b62e0..6a28fb91b85d 100644
+--- a/arch/arm64/include/asm/unistd.h
++++ b/arch/arm64/include/asm/unistd.h
+@@ -39,7 +39,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
  
--		spin_lock(&up->port.lock);
-+		uart_port_lock(&up->port);
- 		r3 = read_zsreg(channel, R3);
+-#define __NR_compat_syscalls		453
++#define __NR_compat_syscalls		454
+ #endif
  
- 		/* Channel A */
-@@ -548,7 +548,7 @@ static irqreturn_t sunzilog_interrupt(int irq, void *dev_id)
- 			if (r3 & CHATxIP)
- 				sunzilog_transmit_chars(up, channel);
- 		}
--		spin_unlock(&up->port.lock);
-+		uart_port_unlock(&up->port);
+ #define __ARCH_WANT_SYS_CLONE
+diff --git a/arch/arm64/include/asm/unistd32.h b/arch/arm64/include/asm/unistd32.h
+index 78b68311ec81..a201d842ec82 100644
+--- a/arch/arm64/include/asm/unistd32.h
++++ b/arch/arm64/include/asm/unistd32.h
+@@ -911,6 +911,8 @@ __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
+ __SYSCALL(__NR_cachestat, sys_cachestat)
+ #define __NR_fchmodat2 452
+ __SYSCALL(__NR_fchmodat2, sys_fchmodat2)
++#define __NR_map_shadow_stack 453
++__SYSCALL(__NR_map_shadow_stack, sys_map_shadow_stack)
  
- 		if (port)
- 			tty_flip_buffer_push(port);
-@@ -557,7 +557,7 @@ static irqreturn_t sunzilog_interrupt(int irq, void *dev_id)
- 		up = up->next;
- 		channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
+ /*
+  * Please add new compat syscalls above this comment and update
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index 83d8609aec03..be02ce9d376f 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -373,3 +373,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
+index 259ceb125367..bee2d2f7f82c 100644
+--- a/arch/m68k/kernel/syscalls/syscall.tbl
++++ b/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -452,3 +452,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/microblaze/kernel/syscalls/syscall.tbl b/arch/microblaze/kernel/syscalls/syscall.tbl
+index a3798c2637fd..09eda7ed91b0 100644
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl
++++ b/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -458,3 +458,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/mips/kernel/syscalls/syscall_n32.tbl b/arch/mips/kernel/syscalls/syscall_n32.tbl
+index 152034b8e0a0..3c02cc3886ca 100644
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -391,3 +391,4 @@
+ 450	n32	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	n32	cachestat			sys_cachestat
+ 452	n32	fchmodat2			sys_fchmodat2
++453	n32	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/mips/kernel/syscalls/syscall_n64.tbl b/arch/mips/kernel/syscalls/syscall_n64.tbl
+index cb5e757f6621..aa9ed6a7cb48 100644
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -367,3 +367,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	n64	cachestat			sys_cachestat
+ 452	n64	fchmodat2			sys_fchmodat2
++453	n64	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/mips/kernel/syscalls/syscall_o32.tbl b/arch/mips/kernel/syscalls/syscall_o32.tbl
+index 1a646813afdc..756f6feb21c2 100644
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -440,3 +440,4 @@
+ 450	o32	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	o32	cachestat			sys_cachestat
+ 452	o32	fchmodat2			sys_fchmodat2
++453	o32	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/parisc/kernel/syscalls/syscall.tbl b/arch/parisc/kernel/syscalls/syscall.tbl
+index e97c175b56f9..c80eedbe0170 100644
+--- a/arch/parisc/kernel/syscalls/syscall.tbl
++++ b/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -451,3 +451,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
+index 20e50586e8a2..87a54acf8346 100644
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl
++++ b/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -539,3 +539,4 @@
+ 450 	nospu	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_ni_syscall
+diff --git a/arch/s390/kernel/syscalls/syscall.tbl b/arch/s390/kernel/syscalls/syscall.tbl
+index 0122cc156952..22249c07e556 100644
+--- a/arch/s390/kernel/syscalls/syscall.tbl
++++ b/arch/s390/kernel/syscalls/syscall.tbl
+@@ -455,3 +455,4 @@
+ 450  common	set_mempolicy_home_node	sys_set_mempolicy_home_node	sys_set_mempolicy_home_node
+ 451  common	cachestat		sys_cachestat			sys_cachestat
+ 452  common	fchmodat2		sys_fchmodat2			sys_fchmodat2
++453  common	map_shadow_stack	sys_map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
+index e90d585c4d3e..5ccfe6fbb6b1 100644
+--- a/arch/sh/kernel/syscalls/syscall.tbl
++++ b/arch/sh/kernel/syscalls/syscall.tbl
+@@ -455,3 +455,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
+index 4ed06c71c43f..b2d664edebdd 100644
+--- a/arch/sparc/kernel/syscalls/syscall.tbl
++++ b/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -498,3 +498,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
+index 2d0b1bd866ea..743a7ef5a4b9 100644
+--- a/arch/x86/entry/syscalls/syscall_32.tbl
++++ b/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -457,3 +457,4 @@
+ 450	i386	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	i386	cachestat		sys_cachestat
+ 452	i386	fchmodat2		sys_fchmodat2
++453	i386	map_shadow_stack	sys_map_shadow_stack
+diff --git a/arch/xtensa/kernel/syscalls/syscall.tbl b/arch/xtensa/kernel/syscalls/syscall.tbl
+index fc1a4f3c81d9..94e6bcc2bec7 100644
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl
++++ b/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -423,3 +423,4 @@
+ 450	common	set_mempolicy_home_node		sys_set_mempolicy_home_node
+ 451	common	cachestat			sys_cachestat
+ 452	common	fchmodat2			sys_fchmodat2
++453	common	map_shadow_stack		sys_map_shadow_stack
+diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
+index abe087c53b4b..203ae30d7761 100644
+--- a/include/uapi/asm-generic/unistd.h
++++ b/include/uapi/asm-generic/unistd.h
+@@ -823,8 +823,11 @@ __SYSCALL(__NR_cachestat, sys_cachestat)
+ #define __NR_fchmodat2 452
+ __SYSCALL(__NR_fchmodat2, sys_fchmodat2)
  
--		spin_lock(&up->port.lock);
-+		uart_port_lock(&up->port);
- 		port = NULL;
- 		if (r3 & (CHBEXT | CHBTxIP | CHBRxIP)) {
- 			writeb(RES_H_IUS, &channel->control);
-@@ -571,7 +571,7 @@ static irqreturn_t sunzilog_interrupt(int irq, void *dev_id)
- 			if (r3 & CHBTxIP)
- 				sunzilog_transmit_chars(up, channel);
- 		}
--		spin_unlock(&up->port.lock);
-+		uart_port_unlock(&up->port);
++#define __NR_map_shadow_stack 453
++__SYSCALL(__NR_map_shadow_stack, sys_map_shadow_stack)
++
+ #undef __NR_syscalls
+-#define __NR_syscalls 453
++#define __NR_syscalls 454
  
- 		if (port)
- 			tty_flip_buffer_push(port);
-@@ -604,11 +604,11 @@ static unsigned int sunzilog_tx_empty(struct uart_port *port)
- 	unsigned char status;
- 	unsigned int ret;
- 
--	spin_lock_irqsave(&port->lock, flags);
-+	uart_port_lock_irqsave(port, &flags);
- 
- 	status = sunzilog_read_channel_status(port);
- 
--	spin_unlock_irqrestore(&port->lock, flags);
-+	uart_port_unlock_irqrestore(port, flags);
- 
- 	if (status & Tx_BUF_EMP)
- 		ret = TIOCSER_TEMT;
-@@ -764,7 +764,7 @@ static void sunzilog_break_ctl(struct uart_port *port, int break_state)
- 	else
- 		clear_bits |= SND_BRK;
- 
--	spin_lock_irqsave(&port->lock, flags);
-+	uart_port_lock_irqsave(port, &flags);
- 
- 	new_reg = (up->curregs[R5] | set_bits) & ~clear_bits;
- 	if (new_reg != up->curregs[R5]) {
-@@ -774,7 +774,7 @@ static void sunzilog_break_ctl(struct uart_port *port, int break_state)
- 		write_zsreg(channel, R5, up->curregs[R5]);
- 	}
- 
--	spin_unlock_irqrestore(&port->lock, flags);
-+	uart_port_unlock_irqrestore(port, flags);
- }
- 
- static void __sunzilog_startup(struct uart_sunzilog_port *up)
-@@ -800,9 +800,9 @@ static int sunzilog_startup(struct uart_port *port)
- 	if (ZS_IS_CONS(up))
- 		return 0;
- 
--	spin_lock_irqsave(&port->lock, flags);
-+	uart_port_lock_irqsave(port, &flags);
- 	__sunzilog_startup(up);
--	spin_unlock_irqrestore(&port->lock, flags);
-+	uart_port_unlock_irqrestore(port, flags);
- 	return 0;
- }
- 
-@@ -840,7 +840,7 @@ static void sunzilog_shutdown(struct uart_port *port)
- 	if (ZS_IS_CONS(up))
- 		return;
- 
--	spin_lock_irqsave(&port->lock, flags);
-+	uart_port_lock_irqsave(port, &flags);
- 
- 	channel = ZILOG_CHANNEL_FROM_PORT(port);
- 
-@@ -853,7 +853,7 @@ static void sunzilog_shutdown(struct uart_port *port)
- 	up->curregs[R5] &= ~SND_BRK;
- 	sunzilog_maybe_update_regs(up, channel);
- 
--	spin_unlock_irqrestore(&port->lock, flags);
-+	uart_port_unlock_irqrestore(port, flags);
- }
- 
- /* Shared by TTY driver and serial console setup.  The port lock is held
-@@ -945,7 +945,7 @@ sunzilog_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	baud = uart_get_baud_rate(port, termios, old, 1200, 76800);
- 
--	spin_lock_irqsave(&up->port.lock, flags);
-+	uart_port_lock_irqsave(&up->port, &flags);
- 
- 	brg = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
- 
-@@ -962,7 +962,7 @@ sunzilog_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	uart_update_timeout(port, termios->c_cflag, baud);
- 
--	spin_unlock_irqrestore(&up->port.lock, flags);
-+	uart_port_unlock_irqrestore(&up->port, flags);
- }
- 
- static const char *sunzilog_type(struct uart_port *port)
-@@ -1201,15 +1201,15 @@ sunzilog_console_write(struct console *con, const char *s, unsigned int count)
- 	int locked = 1;
- 
- 	if (up->port.sysrq || oops_in_progress)
--		locked = spin_trylock_irqsave(&up->port.lock, flags);
-+		locked = uart_port_trylock_irqsave(&up->port, &flags);
- 	else
--		spin_lock_irqsave(&up->port.lock, flags);
-+		uart_port_lock_irqsave(&up->port, &flags);
- 
- 	uart_console_write(&up->port, s, count, sunzilog_putchar);
- 	udelay(2);
- 
- 	if (locked)
--		spin_unlock_irqrestore(&up->port.lock, flags);
-+		uart_port_unlock_irqrestore(&up->port, flags);
- }
- 
- static int __init sunzilog_console_setup(struct console *con, char *options)
-@@ -1244,7 +1244,7 @@ static int __init sunzilog_console_setup(struct console *con, char *options)
- 
- 	brg = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
- 
--	spin_lock_irqsave(&up->port.lock, flags);
-+	uart_port_lock_irqsave(&up->port, &flags);
- 
- 	up->curregs[R15] |= BRKIE;
- 	sunzilog_convert_to_zs(up, con->cflag, 0, brg);
-@@ -1252,7 +1252,7 @@ static int __init sunzilog_console_setup(struct console *con, char *options)
- 	sunzilog_set_mctrl(&up->port, TIOCM_DTR | TIOCM_RTS);
- 	__sunzilog_startup(up);
- 
--	spin_unlock_irqrestore(&up->port.lock, flags);
-+	uart_port_unlock_irqrestore(&up->port, flags);
- 
- 	return 0;
- }
-@@ -1333,7 +1333,7 @@ static void sunzilog_init_hw(struct uart_sunzilog_port *up)
- 
- 	channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
- 
--	spin_lock_irqsave(&up->port.lock, flags);
-+	uart_port_lock_irqsave(&up->port, &flags);
- 	if (ZS_IS_CHANNEL_A(up)) {
- 		write_zsreg(channel, R9, FHWRES);
- 		ZSDELAY_LONG();
-@@ -1383,7 +1383,7 @@ static void sunzilog_init_hw(struct uart_sunzilog_port *up)
- 		write_zsreg(channel, R9, up->curregs[R9]);
- 	}
- 
--	spin_unlock_irqrestore(&up->port.lock, flags);
-+	uart_port_unlock_irqrestore(&up->port, flags);
- 
- #ifdef CONFIG_SERIO
- 	if (up->flags & (SUNZILOG_FLAG_CONS_KEYB |
+ /*
+  * 32 bit systems traditionally used different
 -- 
-2.39.2
+2.34.1
 
