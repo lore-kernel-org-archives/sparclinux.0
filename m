@@ -2,28 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD3DBEED61C
-	for <sparclinux@archiver.kernel.org>; Fri, 15 Sep 2023 17:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B081DC2BA1B
+	for <sparclinux@archiver.kernel.org>; Sat, 16 Sep 2023 19:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235714AbjIORYV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 15 Sep 2023 13:24:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48600 "EHLO
+        id S236512AbjIPTZh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 16 Sep 2023 15:25:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235765AbjIORXz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 15 Sep 2023 13:23:55 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E7C7AC1;
-        Fri, 15 Sep 2023 10:23:49 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 09EFA92009D; Fri, 15 Sep 2023 19:23:45 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 03E9292009C;
-        Fri, 15 Sep 2023 18:23:44 +0100 (BST)
-Date:   Fri, 15 Sep 2023 18:23:44 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     Thomas Gleixner <tglx@linutronix.de>
-cc:     John Ogness <john.ogness@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        with ESMTP id S236096AbjIPTZM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 16 Sep 2023 15:25:12 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1337139;
+        Sat, 16 Sep 2023 12:25:05 -0700 (PDT)
+From:   John Ogness <john.ogness@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1694892303;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=a8n0XjUZ6thKLzBg4zGbfNoI7edHQdzShat04z4KQ9g=;
+        b=1595OreDibrVkdt7HvKfIXGBRdDhpkYF4va8Y5P7THyGu6IKEtBOpeRp+5ix70xySRzy43
+        asMvQZecCOmGMWRYcu080G+L9CWyUXq6Ici0UHMCmWNOFiA6J0kEtVZfLTLrvZ/B2J0Oc+
+        wDGYuaobj/tfH9xqGfogbuUFtjeQGmKtjsJ1qU43qxM7Pjppc2jZQ32ZjMFlthF2SQaBJj
+        O2JwVy7ARL8HzUSjoago9x/w5z5h6ZhUSr40SKlB14BW6OAMzGEzY18YoDWTdX6sLf2nUI
+        TP8oLq2rZdl72SNz3pZDP6UC9LErJsogIkFN6HkmJFqBPd5i6OONJrz7mxpLzw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1694892303;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=a8n0XjUZ6thKLzBg4zGbfNoI7edHQdzShat04z4KQ9g=;
+        b=UAIBu/8YLJZNb8MQTJRU7mPKHsPbGztf8IDiPVKNv8oW2oQvlyr/pxxvzQH6JIayVVmAHv
+        JW7Glm3VPddLt6AA==
+To:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jiri Slaby <jirislaby@kernel.org>,
         linux-serial@vger.kernel.org, Petr Mladek <pmladek@suse.com>,
         linux-kernel@vger.kernel.org, Tobias Klauser <tklauser@distanz.ch>,
@@ -36,12 +49,13 @@ cc:     John Ogness <john.ogness@linutronix.de>,
         <bcm-kernel-feedback-list@broadcom.com>,
         Tony Lindgren <tony@atomide.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Ilpo =?utf-8?Q?J?= =?utf-8?Q?=C3=A4rvinen?= 
+        <ilpo.jarvinen@linux.intel.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Andrew Davis <afd@ti.com>,
         Matthew Howell <matthew.howell@sealevel.com>,
-        =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
-        Johan Hovold <johan@kernel.org>,
+        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>, Johan Hovold <johan@kernel.org>,
         Matthias Brugger <matthias.bgg@gmail.com>,
         AngeloGioacchino Del Regno 
         <angelogioacchino.delregno@collabora.com>,
@@ -97,9 +111,9 @@ cc:     John Ogness <john.ogness@linutronix.de>,
         Bjorn Andersson <andersson@kernel.org>,
         Konrad Dybcio <konrad.dybcio@linaro.org>,
         linux-arm-msm@vger.kernel.org,
-        =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>,
+        Pali =?utf-8?Q?Roh=C3=A1r?= <pali@kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        =?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>,
+        Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>,
         Manivannan Sadhasivam <mani@kernel.org>,
         linux-actions@lists.infradead.org,
         Xiongfeng Wang <wangxiongfeng2@huawei.com>,
@@ -139,54 +153,33 @@ cc:     John Ogness <john.ogness@linutronix.de>,
         sparclinux@vger.kernel.org, Hammer Hsieh <hammerh0314@gmail.com>,
         Timur Tabi <timur@kernel.org>,
         Mukesh Ojha <quic_mojha@quicinc.com>,
-        =?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
+        Jonathan =?utf-8?Q?Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
         Michal Simek <michal.simek@amd.com>
 Subject: Re: [PATCH tty v1 00/74] serial: wrappers for uart port lock
-In-Reply-To: <87il8b1w3l.ffs@tglx>
-Message-ID: <alpine.DEB.2.21.2309151739290.57368@angie.orcam.me.uk>
-References: <20230914183831.587273-1-john.ogness@linutronix.de> <alpine.DEB.2.21.2309141959100.57368@angie.orcam.me.uk> <87il8b1w3l.ffs@tglx>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+In-Reply-To: <alpine.DEB.2.21.2309151739290.57368@angie.orcam.me.uk>
+References: <20230914183831.587273-1-john.ogness@linutronix.de>
+ <alpine.DEB.2.21.2309141959100.57368@angie.orcam.me.uk>
+ <87il8b1w3l.ffs@tglx>
+ <alpine.DEB.2.21.2309151739290.57368@angie.orcam.me.uk>
+Date:   Sat, 16 Sep 2023 21:30:54 +0206
+Message-ID: <87edixncop.fsf@jogness.linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 15 Sep 2023, Thomas Gleixner wrote:
+On 2023-09-15, "Maciej W. Rozycki" <macro@orcam.me.uk> wrote:
+> Maybe dz.c shouldn't be touched by this series then?
 
-> >> Patches 2-74 switch all uart port locking call sites to use the new
-> >> wrappers. These patches were automatically generated using coccinelle.
-> >
-> >  Hmm, no need to do this for drivers/tty/serial/zs.c?
-> 
-> zs.c does not use port lock at all. It has like a couple of other
-> drivers a local homebrewn spinlock.
+Correct. This series is only wrapping the uart port lock, which dz.c is
+not using.
 
- Ah, right, that's because there are registers shared between two ports 
-within one SCC, so the spinlock has to be shared as well.
+> Though obviously both drivers will have to be eventually adapted for
+> the ultimate console rework.
 
- This also indicates that dz.c is wrong and shouldn't be using a per-port 
-spinlock as the DZ has a shared register set between all the four ports 
-(it's a serial line multiplexer rather than a set discrete ports; up to 8 
-lines are architecturally supported, though we don't have support in Linux 
-for systems having those), e.g. there's only one 16-bit receiver buffer 
-register for all the four ports, supplying the 8-bit character received 
-along with the receive status and the number of the line this data arrived 
-on, and similarly there's only one transmit data register, which supplies 
-data to the next enabled line whose transmit buffer needs servicing, and 
-the chip routes the data itself.  Therefore the driver ought to use a 
-shared spinlock too.
+Correct.
 
- I guess it wasn't noticed so far because DZ devices aren't that common 
-(and my usual test machine is currently broken too, pending an SRAM chip 
-replacement, hopefully in the next few weeks) and then hardly ever more 
-than one serial line has been used at a time with these devices.  It looks 
-like the first issue for me to look into once the machine has been fixed.
+Thanks for clarifying how the hardware works.
 
- Maybe dz.c shouldn't be touched by this series then?  (Though obviously 
-both drivers will have to be eventually adapted for the ultimate console 
-rework.)
-
- Thanks for your input, as it turns out it has had an unexpected outcome.
-
-  Maciej
+John
