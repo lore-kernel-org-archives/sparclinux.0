@@ -2,44 +2,48 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B081DC2BA1B
-	for <sparclinux@archiver.kernel.org>; Sat, 16 Sep 2023 19:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FD84C2BA1B
+	for <sparclinux@archiver.kernel.org>; Sat, 16 Sep 2023 19:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236512AbjIPTZh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 16 Sep 2023 15:25:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36626 "EHLO
+        id S232933AbjIPTmp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 16 Sep 2023 15:42:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236096AbjIPTZM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 16 Sep 2023 15:25:12 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1337139;
-        Sat, 16 Sep 2023 12:25:05 -0700 (PDT)
+        with ESMTP id S232530AbjIPTma (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 16 Sep 2023 15:42:30 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD929CDE;
+        Sat, 16 Sep 2023 12:42:25 -0700 (PDT)
 From:   John Ogness <john.ogness@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1694892303;
+        s=2020; t=1694893343;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=a8n0XjUZ6thKLzBg4zGbfNoI7edHQdzShat04z4KQ9g=;
-        b=1595OreDibrVkdt7HvKfIXGBRdDhpkYF4va8Y5P7THyGu6IKEtBOpeRp+5ix70xySRzy43
-        asMvQZecCOmGMWRYcu080G+L9CWyUXq6Ici0UHMCmWNOFiA6J0kEtVZfLTLrvZ/B2J0Oc+
-        wDGYuaobj/tfH9xqGfogbuUFtjeQGmKtjsJ1qU43qxM7Pjppc2jZQ32ZjMFlthF2SQaBJj
-        O2JwVy7ARL8HzUSjoago9x/w5z5h6ZhUSr40SKlB14BW6OAMzGEzY18YoDWTdX6sLf2nUI
-        TP8oLq2rZdl72SNz3pZDP6UC9LErJsogIkFN6HkmJFqBPd5i6OONJrz7mxpLzw==
+        bh=/zPwTVnbIqykq0xrJwLN9r6avPOKHnWBnlaBD7Ntd/o=;
+        b=CUQAEeiOCW0UB0mZHKKbATmxrT7v104AXTk8BgIS3LnhJdkwcK31VIKNUWTyr5NJ5FDSAZ
+        1rUmkomzu0i8ra8Pr7MuVj6uXx2bx2AvsuHAsgoTtNXk1SlphGsF2Tko1c6bGtCosz+5D3
+        3LvB5+XWrTyiZslCvN25C026vuzPMwe37ifQkKb5hvuaQ1IXWgjVHVi1QG1ERhp6yVLoCG
+        KEjXv3lRy4sKTNf9zIytvVhfEZiamkJbj8QmGaOgd3j5PMU/plPNL9TqQlN3PM7t/8qtdr
+        r8HTYvNQEPG5ZOF1NNpsGWfBpFE4WC9xOJQFYPlGWWvKaI1nzHahesMl0GR2sw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1694892303;
+        s=2020e; t=1694893343;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=a8n0XjUZ6thKLzBg4zGbfNoI7edHQdzShat04z4KQ9g=;
-        b=UAIBu/8YLJZNb8MQTJRU7mPKHsPbGztf8IDiPVKNv8oW2oQvlyr/pxxvzQH6JIayVVmAHv
-        JW7Glm3VPddLt6AA==
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Thomas Gleixner <tglx@linutronix.de>
+        bh=/zPwTVnbIqykq0xrJwLN9r6avPOKHnWBnlaBD7Ntd/o=;
+        b=/s+j74ZDjoLeO5pQcnU/VyXRmqc0m+3/h/bRCXztbsATbbfdFH/5imwYhMMMSk+geHP+hf
+        BWo+CyCuYQ4k1qBQ==
+To:     Ilpo =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jiri Slaby <jirislaby@kernel.org>,
-        linux-serial@vger.kernel.org, Petr Mladek <pmladek@suse.com>,
-        linux-kernel@vger.kernel.org, Tobias Klauser <tklauser@distanz.ch>,
+        linux-serial <linux-serial@vger.kernel.org>,
+        Petr Mladek <pmladek@suse.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
         Thierry Reding <treding@nvidia.com>,
         Joel Stanley <joel@jms.id.au>,
         Andrew Jeffery <andrew@aj.id.au>,
@@ -49,8 +53,7 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         <bcm-kernel-feedback-list@broadcom.com>,
         Tony Lindgren <tony@atomide.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Ilpo =?utf-8?Q?J?= =?utf-8?Q?=C3=A4rvinen?= 
-        <ilpo.jarvinen@linux.intel.com>,
+        Ilpo =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Andrew Davis <afd@ti.com>,
         Matthew Howell <matthew.howell@sealevel.com>,
@@ -66,6 +69,7 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Kumaravel Thiagarajan <kumaravel.thiagarajan@microchip.com>,
         Tharun Kumar P <tharunkumar.pasumarthi@microchip.com>,
         Russell King <linux@armlinux.org.uk>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>,
         Hongyu Xie <xiehongyu1@kylinos.cn>,
         Jiamei Xie <jiamei.xie@arm.com>, Rob Herring <robh@kernel.org>,
         delisun <delisun@pateo.com.cn>,
@@ -151,35 +155,41 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-stm32@st-md-mailman.stormreply.com,
         "David S. Miller" <davem@davemloft.net>,
         sparclinux@vger.kernel.org, Hammer Hsieh <hammerh0314@gmail.com>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
         Timur Tabi <timur@kernel.org>,
         Mukesh Ojha <quic_mojha@quicinc.com>,
         Jonathan =?utf-8?Q?Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
         Michal Simek <michal.simek@amd.com>
 Subject: Re: [PATCH tty v1 00/74] serial: wrappers for uart port lock
-In-Reply-To: <alpine.DEB.2.21.2309151739290.57368@angie.orcam.me.uk>
+In-Reply-To: <1446dc6-5ab0-629-45c8-3b7d8c76367d@linux.intel.com>
 References: <20230914183831.587273-1-john.ogness@linutronix.de>
- <alpine.DEB.2.21.2309141959100.57368@angie.orcam.me.uk>
- <87il8b1w3l.ffs@tglx>
- <alpine.DEB.2.21.2309151739290.57368@angie.orcam.me.uk>
-Date:   Sat, 16 Sep 2023 21:30:54 +0206
-Message-ID: <87edixncop.fsf@jogness.linutronix.de>
+ <1446dc6-5ab0-629-45c8-3b7d8c76367d@linux.intel.com>
+Date:   Sat, 16 Sep 2023 21:48:14 +0206
+Message-ID: <878r95nbvt.fsf@jogness.linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2023-09-15, "Maciej W. Rozycki" <macro@orcam.me.uk> wrote:
-> Maybe dz.c shouldn't be touched by this series then?
+On 2023-09-15, Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com> wrote:
+> Would this also be useful to enable printing to console while under
+> port's lock (by postponing the output until the lock is released)?
+>
+> E.g., 8250_dw.c has had this commented out since the dawn on time:
+>         /*
+>          * FIXME: this deadlocks if port->lock is already held
+>          * dev_err(p->dev, "Couldn't set LCR to %d\n", value);
+>          */
 
-Correct. This series is only wrapping the uart port lock, which dz.c is
-not using.
+Yes, this will fix such issues. However, only for consoles that are
+converted to the new NBCON console type.
 
-> Though obviously both drivers will have to be eventually adapted for
-> the ultimate console rework.
+Good news, the 8250 driver will be the flagship driver that is converted
+as part of the rework. So this particular issue will be solved then. I
+will try to remember this so that I can remove the FIXME in the series.
 
-Correct.
-
-Thanks for clarifying how the hardware works.
+Thanks for mentioning it.
 
 John
