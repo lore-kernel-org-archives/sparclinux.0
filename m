@@ -2,30 +2,30 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3734BCD342F
-	for <sparclinux@archiver.kernel.org>; Mon, 18 Sep 2023 07:32:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E36ACD3420
+	for <sparclinux@archiver.kernel.org>; Mon, 18 Sep 2023 07:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239941AbjIRHcI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 18 Sep 2023 03:32:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49490 "EHLO
+        id S240034AbjIRHcb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 18 Sep 2023 03:32:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240336AbjIRHbp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 18 Sep 2023 03:31:45 -0400
+        with ESMTP id S240456AbjIRHc0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 18 Sep 2023 03:32:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41F92122;
-        Mon, 18 Sep 2023 00:31:33 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90D66C4160E;
-        Mon, 18 Sep 2023 07:31:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D3421B9;
+        Mon, 18 Sep 2023 00:32:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE792C433BC;
+        Mon, 18 Sep 2023 07:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695022292;
-        bh=Bxy7NNRI6l4akC8Uk0JGSyZsyMn1J934EmvkFA96qyo=;
+        s=k20201202; t=1695022322;
+        bh=1UL8tl9eANdNOFG3ZTSYgBTww7VCSn8pNWCEuJfnTK4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sUl4tcVd+CE1RIfDd+iHzBuo/TtqH+sjUX4AKoidjsBhiPE9N8u5sBFCrh0U2OnnW
-         02VNXIu/PasFZvJmqp4LQS/fRSyOWf9W0w4R1mThqbVlQHxfh9deE8Gen6PrybSKrA
-         HQTfOkMmKWxzdY89y0l1tlT8/WpmYk4oOHqiKiyXMFacErx4oC2oV4nkojcJ6bpZun
-         9S9TLaBh1Kth+hdxlxcmXjxDVU8y/jq3PgPfSmOZxNeFoZYJdyBqlLfSCGOoTzYYQr
-         s02+6pJi35T4N9EWcJQvWIbsw2teHNSr/sLV1vIIuBQWC8WuxxKTSKFPi24i20hJWy
-         PMgDbwaP/8Fzw==
+        b=jOnWnURBWcrt92iQ1E5Vr3mXWyQ6RAJ4i9B8tsY7FXOUVwWaNtFLbRVsEzVfJ0Nfg
+         zcF2T76bilI3SPkaUjpMzEfs1sQN/JzTRMR83DnXh+Ov+MJ2AuKwZwF8Fnu/AObC0k
+         QAdcrio7/1JZevOAFEj9aMF9cUGQUD6UCX9K1G2jVF2I2HWuIYbnj0wy/Rm4EXVNom
+         HeAH3TaXGuMZDe4Y3BnUwv/DnuIZbNW8G+v45crhACvScxYPJb49nAjf6MNnqIIZFe
+         chFFMgGweSzKG7hh/3g3keI9zbSw1HmwgbPcUexA3rwgKV2tInhKeo5IsMuopaavQ2
+         VqOvvHTW8VtZw==
 From:   Mike Rapoport <rppt@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -59,9 +59,9 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
         netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: [PATCH v3 08/13] riscv: extend execmem_params for generated code allocations
-Date:   Mon, 18 Sep 2023 10:29:50 +0300
-Message-Id: <20230918072955.2507221-9-rppt@kernel.org>
+Subject: [PATCH v3 11/13] x86/ftrace: enable dynamic ftrace without CONFIG_MODULES
+Date:   Mon, 18 Sep 2023 10:29:53 +0300
+Message-Id: <20230918072955.2507221-12-rppt@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230918072955.2507221-1-rppt@kernel.org>
 References: <20230918072955.2507221-1-rppt@kernel.org>
@@ -73,112 +73,61 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 
-The memory allocations for kprobes and BPF on RISC-V are not placed in
-the modules area and these custom allocations are implemented with
-overrides of alloc_insn_page() and  bpf_jit_alloc_exec().
+Dynamic ftrace must allocate memory for code and this was impossible
+without CONFIG_MODULES.
 
-Slightly reorder execmem_params initialization to support both 32 and 64
-bit variants, define EXECMEM_KPROBES and EXECMEM_BPF ranges in
-riscv::execmem_params and drop overrides of alloc_insn_page() and
-bpf_jit_alloc_exec().
+With execmem separated from the modules code, execmem_text_alloc() is
+available regardless of CONFIG_MODULES.
+
+Remove dependency of dynamic ftrace on CONFIG_MODULES and make
+CONFIG_DYNAMIC_FTRACE select CONFIG_EXECMEM in Kconfig.
 
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 ---
- arch/riscv/kernel/module.c         | 21 ++++++++++++++++++++-
- arch/riscv/kernel/probes/kprobes.c | 10 ----------
- arch/riscv/net/bpf_jit_core.c      | 13 -------------
- 3 files changed, 20 insertions(+), 24 deletions(-)
+ arch/x86/Kconfig         |  1 +
+ arch/x86/kernel/ftrace.c | 10 ----------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/arch/riscv/kernel/module.c b/arch/riscv/kernel/module.c
-index 343a0edfb6dd..31505ecb5c72 100644
---- a/arch/riscv/kernel/module.c
-+++ b/arch/riscv/kernel/module.c
-@@ -436,20 +436,39 @@ int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
- 	return 0;
- }
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 982b777eadc7..cc7c4a0a8c16 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -35,6 +35,7 @@ config X86_64
+ 	select SWIOTLB
+ 	select ARCH_HAS_ELFCORE_COMPAT
+ 	select ZONE_DMA32
++	select EXECMEM if DYNAMIC_FTRACE
  
--#if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
-+#ifdef CONFIG_MMU
- static struct execmem_params execmem_params __ro_after_init = {
- 	.ranges = {
- 		[EXECMEM_DEFAULT] = {
- 			.pgprot = PAGE_KERNEL,
- 			.alignment = 1,
- 		},
-+		[EXECMEM_KPROBES] = {
-+			.pgprot = PAGE_KERNEL_READ_EXEC,
-+			.alignment = 1,
-+		},
-+		[EXECMEM_BPF] = {
-+			.pgprot = PAGE_KERNEL,
-+			.alignment = 1,
-+		},
- 	},
- };
+ config FORCE_DYNAMIC_FTRACE
+ 	def_bool y
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index ae56d79a6a74..7ed7e8297ba3 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -261,8 +261,6 @@ void arch_ftrace_update_code(int command)
+ /* Currently only x86_64 supports dynamic trampolines */
+ #ifdef CONFIG_X86_64
  
- struct execmem_params __init *execmem_arch_params(void)
+-#ifdef CONFIG_MODULES
+-/* Module allocation simplifies allocating memory for code */
+ static inline void *alloc_tramp(unsigned long size)
  {
-+#ifdef CONFIG_64BIT
- 	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
- 	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
-+#else
-+	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
-+	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
-+#endif
-+
-+	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
-+	execmem_params.ranges[EXECMEM_KPROBES].end = VMALLOC_END;
-+
-+	execmem_params.ranges[EXECMEM_BPF].start = BPF_JIT_REGION_START;
-+	execmem_params.ranges[EXECMEM_BPF].end = BPF_JIT_REGION_END;
- 
- 	return &execmem_params;
+ 	return execmem_text_alloc(EXECMEM_FTRACE, size);
+@@ -271,14 +269,6 @@ static inline void tramp_free(void *tramp)
+ {
+ 	execmem_free(tramp);
  }
-diff --git a/arch/riscv/kernel/probes/kprobes.c b/arch/riscv/kernel/probes/kprobes.c
-index 2f08c14a933d..e64f2f3064eb 100644
---- a/arch/riscv/kernel/probes/kprobes.c
-+++ b/arch/riscv/kernel/probes/kprobes.c
-@@ -104,16 +104,6 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
- 	return 0;
- }
- 
--#ifdef CONFIG_MMU
--void *alloc_insn_page(void)
+-#else
+-/* Trampolines can only be created if modules are supported */
+-static inline void *alloc_tramp(unsigned long size)
 -{
--	return  __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
--				     GFP_KERNEL, PAGE_KERNEL_READ_EXEC,
--				     VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
--				     __builtin_return_address(0));
+-	return NULL;
 -}
+-static inline void tramp_free(void *tramp) { }
 -#endif
--
- /* install breakpoint in text */
- void __kprobes arch_arm_kprobe(struct kprobe *p)
- {
-diff --git a/arch/riscv/net/bpf_jit_core.c b/arch/riscv/net/bpf_jit_core.c
-index 7b70ccb7fec3..c8a758f0882b 100644
---- a/arch/riscv/net/bpf_jit_core.c
-+++ b/arch/riscv/net/bpf_jit_core.c
-@@ -218,19 +218,6 @@ u64 bpf_jit_alloc_exec_limit(void)
- 	return BPF_JIT_REGION_SIZE;
- }
  
--void *bpf_jit_alloc_exec(unsigned long size)
--{
--	return __vmalloc_node_range(size, PAGE_SIZE, BPF_JIT_REGION_START,
--				    BPF_JIT_REGION_END, GFP_KERNEL,
--				    PAGE_KERNEL, 0, NUMA_NO_NODE,
--				    __builtin_return_address(0));
--}
--
--void bpf_jit_free_exec(void *addr)
--{
--	return vfree(addr);
--}
--
- void *bpf_arch_text_copy(void *dst, void *src, size_t len)
- {
- 	int ret;
+ /* Defined as markers to the end of the ftrace default trampolines */
+ extern void ftrace_regs_caller_end(void);
 -- 
 2.39.2
 
