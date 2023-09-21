@@ -2,121 +2,365 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDFDE7D0AD
-	for <sparclinux@archiver.kernel.org>; Thu, 21 Sep 2023 21:20:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76B50E7D0B0
+	for <sparclinux@archiver.kernel.org>; Thu, 21 Sep 2023 21:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232739AbjIUVUz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 21 Sep 2023 17:20:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46084 "EHLO
+        id S232865AbjIUVud (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 21 Sep 2023 17:50:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232801AbjIUVOw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Sep 2023 17:14:52 -0400
-Received: from wnew1-smtp.messagingengine.com (wnew1-smtp.messagingengine.com [64.147.123.26])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4FEA7EF5;
-        Thu, 21 Sep 2023 10:10:52 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id 0FCFB2B00167;
-        Thu, 21 Sep 2023 08:27:35 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Thu, 21 Sep 2023 08:27:37 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1695299255; x=1695306455; bh=Xq
-        U4+PADbmN/YvqQXLrRCGcZ07y18plfxqgBBJgIpjw=; b=Xdx4hQsTzl4c24llIz
-        192HiWdE2r0Z17h7hha/5B+uybwHOw+lHySp5dgSFIyremltJv6BupWCCE7vqAtS
-        DUduuni5p7SDjaoxP7Y0c3dI1L3DDC96hM3q6xwLck95D6CeqCmsxrkKZ6Zgv2mQ
-        ih8pZz4GlPyAEKT2EByi/sbL53k7F9MpaztW3ubpkI67GluVKqoEgJAoZkJac6xf
-        L40yx+zPXQSonM/qQqXr+/44QEGY/LW3tmoWxfCIXGmvbDY8YlzEj56Y1t4Q3Ooi
-        aLhMW+mRkUenODaIJ7pTKXCN8HhFkJ2SLPpatk0e1cLMSpNqYk1QxmquZjzyFqfT
-        dFiw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1695299255; x=1695306455; bh=XqU4+PADbmN/Y
-        vqQXLrRCGcZ07y18plfxqgBBJgIpjw=; b=AsHXnvbTE0NoKn8UR1wNiZEQ0Izgl
-        oJ1le/svDXQKmB5iunzfl757K0xMqaKgwpjVCaw2UuP2Vt2mi2RMkN55AQsiD+0o
-        /NGYpK0Q1N3N8f+y8hlvcaJaEnVYzzUXulTecLj6OPE2kfCABIE81WZlt/TQWRym
-        a3YS2kb9o3UDiIqmT6Muw7WaDcpWDjOLS4FEg9ERk6Zsv5Hp/uVcGqvfRusPbRxs
-        /TkNZpWQa1QyBFLzjTES+Opz/HvajxF5Bnwti4DvpslyUHWi81WsLXmneMghKGmm
-        5uLl0cSZ1BQNDmkjOK4WmcBmk5Rvp6jy4BVNblrnY0nqT6NYPATO7irCQ==
-X-ME-Sender: <xms:tzYMZUXcSuZhEjYsCWLs0tRkqLt6ojmPoMPl4a4ip4r-sgw8vTC6og>
-    <xme:tzYMZYnjV322WYYdSTMoXm4rPGFrj126uFz03pQ5jZLRtclncn1Vn2e5IKuSknQur
-    nwLBT-aUOiRNbskyLQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudekiedgheduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:tzYMZYZPhdycibP7W_ddmUBtLn0YGUONRmMTwUtOUl4FxP4TbdnjHQ>
-    <xmx:tzYMZTWsoHJEmyjcJspV67bM8725seq0dG7wF9ka6iwdPlA97rgN6Q>
-    <xmx:tzYMZem0QBzUTaJpXkKhVHcTIdTE5qwySok6bADpAf29P4FWOrLpBA>
-    <xmx:tzYMZdec6437asUuro7oN_lGHpAgzzqxstK0csnQRsD1an1TXXRMnjq-9-g>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 0F24AB60089; Thu, 21 Sep 2023 08:27:34 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-761-gece9e40c48-fm-20230913.001-gece9e40c
+        with ESMTP id S232389AbjIUVuV (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Sep 2023 17:50:21 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2739A7EA30;
+        Thu, 21 Sep 2023 10:37:38 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 914391762;
+        Thu, 21 Sep 2023 09:21:28 -0700 (PDT)
+Received: from e125769.cambridge.arm.com (e125769.cambridge.arm.com [10.1.196.26])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0C22D3F59C;
+        Thu, 21 Sep 2023 09:20:46 -0700 (PDT)
+From:   Ryan Roberts <ryan.roberts@arm.com>
+To:     Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>,
+        SeongJae Park <sj@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Uladzislau Rezki <urezki@gmail.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Peter Xu <peterx@redhat.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>
+Cc:     Ryan Roberts <ryan.roberts@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org,
+        stable@vger.kernel.org
+Subject: [PATCH v1 6/8] mm: hugetlb: Convert set_huge_pte_at() to take vma
+Date:   Thu, 21 Sep 2023 17:20:05 +0100
+Message-Id: <20230921162007.1630149-7-ryan.roberts@arm.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230921162007.1630149-1-ryan.roberts@arm.com>
+References: <20230921162007.1630149-1-ryan.roberts@arm.com>
 MIME-Version: 1.0
-Message-Id: <c4a96578-b27c-44fa-82ef-1c5bf43b972a@app.fastmail.com>
-In-Reply-To: <20230921110424.215592-4-bhe@redhat.com>
-References: <20230921110424.215592-1-bhe@redhat.com>
- <20230921110424.215592-4-bhe@redhat.com>
-Date:   Thu, 21 Sep 2023 08:27:14 -0400
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Baoquan He" <bhe@redhat.com>, linux-kernel@vger.kernel.org
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>, linux-mm@kvack.org,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        "Jiaxun Yang" <jiaxun.yang@flygoat.com>,
-        "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Luis Chamberlain" <mcgrof@kernel.org>,
-        "Christoph Hellwig" <hch@infradead.org>,
-        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
-        "Florian Fainelli" <f.fainelli@gmail.com>,
-        "Helge Deller" <deller@gmx.de>, linux-alpha@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v5 3/4] arch/*/io.h: remove ioremap_uc in some architectures
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Sep 21, 2023, at 07:04, Baoquan He wrote:
-> ioremap_uc() is only meaningful on old x86-32 systems with the PAT
-> extension, and on ia64 with its slightly unconventional ioremap()
-> behavior. So remove the ioremap_uc() definition in architecutures
-> other than x86 and ia64. These architectures all have asm-generic/io.h
-> included and will have the default ioremap_uc() definition which
-> returns NULL.
->
-> This changes the existing behaviour, while no need to worry about
-> any breakage because in the only callsite of ioremap_uc(), code
-> has been adjusted to eliminate the impact. Please see
-> atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
->
-> If any new invocation of ioremap_uc() need be added, please consider
-> using ioremap() intead or adding a ARCH specific version if necessary.
->
-> Signed-off-by: Baoquan He <bhe@redhat.com>
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-> Acked-by: Helge Deller <deller@gmx.de>  # parisc
-> Cc: linux-alpha@vger.kernel.org
-> Cc: linux-hexagon@vger.kernel.org
-> Cc: linux-m68k@lists.linux-m68k.org
-> Cc: linux-mips@vger.kernel.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-sh@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
+In order to fix a bug, arm64 needs access to the vma inside it's
+implementation of set_huge_pte_at(). Provide for this by converting the
+mm parameter to be a vma. Any implementations that require the mm can
+access it via vma->vm_mm.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+This commit makes the required modifications to the core mm. Separate
+commits update the arches, before the actual bug is fixed in arm64.
+
+No behavioral changes intended.
+
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+---
+ include/asm-generic/hugetlb.h |  6 +++---
+ include/linux/hugetlb.h       |  6 +++---
+ mm/damon/vaddr.c              |  2 +-
+ mm/hugetlb.c                  | 30 +++++++++++++++---------------
+ mm/migrate.c                  |  2 +-
+ mm/rmap.c                     | 10 +++++-----
+ mm/vmalloc.c                  |  5 ++++-
+ 7 files changed, 32 insertions(+), 29 deletions(-)
+
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index 4da02798a00b..515e4777fb65 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -75,10 +75,10 @@ static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ #endif
+ 
+ #ifndef __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-		pte_t *ptep, pte_t pte)
++static inline void set_huge_pte_at(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, pte_t pte)
+ {
+-	set_pte_at(mm, addr, ptep, pte);
++	set_pte_at(vma->vm_mm, addr, ptep, pte);
+ }
+ #endif
+ 
+diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+index 5b2626063f4f..08184f32430c 100644
+--- a/include/linux/hugetlb.h
++++ b/include/linux/hugetlb.h
+@@ -984,7 +984,7 @@ static inline void huge_ptep_modify_prot_commit(struct vm_area_struct *vma,
+ 						unsigned long addr, pte_t *ptep,
+ 						pte_t old_pte, pte_t pte)
+ {
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++	set_huge_pte_at(vma, addr, ptep, pte);
+ }
+ #endif
+ 
+@@ -1172,8 +1172,8 @@ static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
+ #endif
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
++static inline void set_huge_pte_at(struct vm_area_struct *vma,
++				   unsigned long addr, pte_t *ptep, pte_t pte)
+ {
+ }
+ 
+diff --git a/mm/damon/vaddr.c b/mm/damon/vaddr.c
+index 4c81a9dbd044..55da8cee8fbc 100644
+--- a/mm/damon/vaddr.c
++++ b/mm/damon/vaddr.c
+@@ -347,7 +347,7 @@ static void damon_hugetlb_mkold(pte_t *pte, struct mm_struct *mm,
+ 	if (pte_young(entry)) {
+ 		referenced = true;
+ 		entry = pte_mkold(entry);
+-		set_huge_pte_at(mm, addr, pte, entry);
++		set_huge_pte_at(vma, addr, pte, entry);
+ 	}
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index ba6d39b71cb1..bcc30cd62586 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -4988,7 +4988,7 @@ hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long add
+ 	hugepage_add_new_anon_rmap(new_folio, vma, addr);
+ 	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(old))
+ 		newpte = huge_pte_mkuffd_wp(newpte);
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, newpte);
++	set_huge_pte_at(vma, addr, ptep, newpte);
+ 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
+ 	folio_set_hugetlb_migratable(new_folio);
+ }
+@@ -5065,7 +5065,7 @@ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry))) {
+ 			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+-			set_huge_pte_at(dst, addr, dst_pte, entry);
++			set_huge_pte_at(dst_vma, addr, dst_pte, entry);
+ 		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
+ 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+ 			bool uffd_wp = pte_swp_uffd_wp(entry);
+@@ -5080,17 +5080,17 @@ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 				entry = swp_entry_to_pte(swp_entry);
+ 				if (userfaultfd_wp(src_vma) && uffd_wp)
+ 					entry = pte_swp_mkuffd_wp(entry);
+-				set_huge_pte_at(src, addr, src_pte, entry);
++				set_huge_pte_at(src_vma, addr, src_pte, entry);
+ 			}
+ 			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+-			set_huge_pte_at(dst, addr, dst_pte, entry);
++			set_huge_pte_at(dst_vma, addr, dst_pte, entry);
+ 		} else if (unlikely(is_pte_marker(entry))) {
+ 			pte_marker marker = copy_pte_marker(
+ 				pte_to_swp_entry(entry), dst_vma);
+ 
+ 			if (marker)
+-				set_huge_pte_at(dst, addr, dst_pte,
++				set_huge_pte_at(dst_vma, addr, dst_pte,
+ 						make_pte_marker(marker));
+ 		} else {
+ 			entry = huge_ptep_get(src_pte);
+@@ -5166,7 +5166,7 @@ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 
+-			set_huge_pte_at(dst, addr, dst_pte, entry);
++			set_huge_pte_at(dst_vma, addr, dst_pte, entry);
+ 			hugetlb_count_add(npages, dst);
+ 		}
+ 		spin_unlock(src_ptl);
+@@ -5202,7 +5202,7 @@ static void move_huge_pte(struct vm_area_struct *vma, unsigned long old_addr,
+ 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+ 
+ 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte);
+-	set_huge_pte_at(mm, new_addr, dst_pte, pte);
++	set_huge_pte_at(vma, new_addr, dst_pte, pte);
+ 
+ 	if (src_ptl != dst_ptl)
+ 		spin_unlock(src_ptl);
+@@ -5336,7 +5336,7 @@ static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct
+ 			 */
+ 			if (pte_swp_uffd_wp_any(pte) &&
+ 			    !(zap_flags & ZAP_FLAG_DROP_MARKER))
+-				set_huge_pte_at(mm, address, ptep,
++				set_huge_pte_at(vma, address, ptep,
+ 						make_pte_marker(PTE_MARKER_UFFD_WP));
+ 			else
+ 				huge_pte_clear(mm, address, ptep, sz);
+@@ -5370,7 +5370,7 @@ static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct
+ 		/* Leave a uffd-wp pte marker if needed */
+ 		if (huge_pte_uffd_wp(pte) &&
+ 		    !(zap_flags & ZAP_FLAG_DROP_MARKER))
+-			set_huge_pte_at(mm, address, ptep,
++			set_huge_pte_at(vma, address, ptep,
+ 					make_pte_marker(PTE_MARKER_UFFD_WP));
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		page_remove_rmap(page, vma, true);
+@@ -5676,7 +5676,7 @@ static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		hugepage_add_new_anon_rmap(new_folio, vma, haddr);
+ 		if (huge_pte_uffd_wp(pte))
+ 			newpte = huge_pte_mkuffd_wp(newpte);
+-		set_huge_pte_at(mm, haddr, ptep, newpte);
++		set_huge_pte_at(vma, haddr, ptep, newpte);
+ 		folio_set_hugetlb_migratable(new_folio);
+ 		/* Make the old page be freed below */
+ 		new_folio = old_folio;
+@@ -5972,7 +5972,7 @@ static vm_fault_t hugetlb_no_page(struct mm_struct *mm,
+ 	 */
+ 	if (unlikely(pte_marker_uffd_wp(old_pte)))
+ 		new_pte = huge_pte_mkuffd_wp(new_pte);
+-	set_huge_pte_at(mm, haddr, ptep, new_pte);
++	set_huge_pte_at(vma, haddr, ptep, new_pte);
+ 
+ 	hugetlb_count_add(pages_per_huge_page(h), mm);
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+@@ -6261,7 +6261,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+ 		}
+ 
+ 		_dst_pte = make_pte_marker(PTE_MARKER_POISONED);
+-		set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++		set_huge_pte_at(dst_vma, dst_addr, dst_pte, _dst_pte);
+ 
+ 		/* No need to invalidate - it was non-present before */
+ 		update_mmu_cache(dst_vma, dst_addr, dst_pte);
+@@ -6412,7 +6412,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+ 	if (wp_enabled)
+ 		_dst_pte = huge_pte_mkuffd_wp(_dst_pte);
+ 
+-	set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++	set_huge_pte_at(dst_vma, dst_addr, dst_pte, _dst_pte);
+ 
+ 	hugetlb_count_add(pages_per_huge_page(h), dst_mm);
+ 
+@@ -6598,7 +6598,7 @@ long hugetlb_change_protection(struct vm_area_struct *vma,
+ 			else if (uffd_wp_resolve)
+ 				newpte = pte_swp_clear_uffd_wp(newpte);
+ 			if (!pte_same(pte, newpte))
+-				set_huge_pte_at(mm, address, ptep, newpte);
++				set_huge_pte_at(vma, address, ptep, newpte);
+ 		} else if (unlikely(is_pte_marker(pte))) {
+ 			/* No other markers apply for now. */
+ 			WARN_ON_ONCE(!pte_marker_uffd_wp(pte));
+@@ -6622,7 +6622,7 @@ long hugetlb_change_protection(struct vm_area_struct *vma,
+ 			/* None pte */
+ 			if (unlikely(uffd_wp))
+ 				/* Safe to modify directly (none->non-present). */
+-				set_huge_pte_at(mm, address, ptep,
++				set_huge_pte_at(vma, address, ptep,
+ 						make_pte_marker(PTE_MARKER_UFFD_WP));
+ 		}
+ 		spin_unlock(ptl);
+diff --git a/mm/migrate.c b/mm/migrate.c
+index b7fa020003f3..6aa752984f32 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -251,7 +251,7 @@ static bool remove_migration_pte(struct folio *folio,
+ 						       rmap_flags);
+ 			else
+ 				page_dup_file_rmap(new, true);
+-			set_huge_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
++			set_huge_pte_at(vma, pvmw.address, pvmw.pte, pte);
+ 		} else
+ #endif
+ 		{
+diff --git a/mm/rmap.c b/mm/rmap.c
+index ec7f8e6c9e48..a6353a0c67e8 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -1628,7 +1628,7 @@ static bool try_to_unmap_one(struct folio *folio, struct vm_area_struct *vma,
+ 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
+ 			if (folio_test_hugetlb(folio)) {
+ 				hugetlb_count_sub(folio_nr_pages(folio), mm);
+-				set_huge_pte_at(mm, address, pvmw.pte, pteval);
++				set_huge_pte_at(vma, address, pvmw.pte, pteval);
+ 			} else {
+ 				dec_mm_counter(mm, mm_counter(&folio->page));
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+@@ -2020,7 +2020,7 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
+ 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
+ 			if (folio_test_hugetlb(folio)) {
+ 				hugetlb_count_sub(folio_nr_pages(folio), mm);
+-				set_huge_pte_at(mm, address, pvmw.pte, pteval);
++				set_huge_pte_at(vma, address, pvmw.pte, pteval);
+ 			} else {
+ 				dec_mm_counter(mm, mm_counter(&folio->page));
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+@@ -2044,7 +2044,7 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
+ 
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
+ 				if (folio_test_hugetlb(folio))
+-					set_huge_pte_at(mm, address, pvmw.pte, pteval);
++					set_huge_pte_at(vma, address, pvmw.pte, pteval);
+ 				else
+ 					set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+@@ -2058,7 +2058,7 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
+ 			if (anon_exclusive &&
+ 			    page_try_share_anon_rmap(subpage)) {
+ 				if (folio_test_hugetlb(folio))
+-					set_huge_pte_at(mm, address, pvmw.pte, pteval);
++					set_huge_pte_at(vma, address, pvmw.pte, pteval);
+ 				else
+ 					set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+@@ -2090,7 +2090,7 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
+ 			if (pte_uffd_wp(pteval))
+ 				swp_pte = pte_swp_mkuffd_wp(swp_pte);
+ 			if (folio_test_hugetlb(folio))
+-				set_huge_pte_at(mm, address, pvmw.pte, swp_pte);
++				set_huge_pte_at(vma, address, pvmw.pte, swp_pte);
+ 			else
+ 				set_pte_at(mm, address, pvmw.pte, swp_pte);
+ 			trace_set_migration_pte(address, pte_val(swp_pte),
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index ef8599d394fd..10fa40222f30 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -94,6 +94,9 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			phys_addr_t phys_addr, pgprot_t prot,
+ 			unsigned int max_page_shift, pgtbl_mod_mask *mask)
+ {
++#ifdef CONFIG_HUGETLB_PAGE
++	struct vm_area_struct vma = TLB_FLUSH_VMA(&init_mm, 0);
++#endif
+ 	pte_t *pte;
+ 	u64 pfn;
+ 	unsigned long size = PAGE_SIZE;
+@@ -111,7 +114,7 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			pte_t entry = pfn_pte(pfn, prot);
+ 
+ 			entry = arch_make_huge_pte(entry, ilog2(size), 0);
+-			set_huge_pte_at(&init_mm, addr, pte, entry);
++			set_huge_pte_at(&vma, addr, pte, entry);
+ 			pfn += PFN_DOWN(size);
+ 			continue;
+ 		}
+-- 
+2.25.1
+
