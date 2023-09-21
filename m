@@ -2,225 +2,163 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC6E5E7D0A3
-	for <sparclinux@archiver.kernel.org>; Thu, 21 Sep 2023 17:51:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE2CEE7D0A4
+	for <sparclinux@archiver.kernel.org>; Thu, 21 Sep 2023 18:16:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229505AbjIURvH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:51:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38070 "EHLO
+        id S230298AbjIUSQ1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 21 Sep 2023 14:16:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229821AbjIURuk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Sep 2023 13:50:40 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B0491FDC
-        for <sparclinux@vger.kernel.org>; Thu, 21 Sep 2023 10:27:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695317214;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=tn5ZDFUI6iPOIWmja0Ms5+F66UgwvJBJvQvpQLjnla0=;
-        b=c5zbx6JlMnpQIVFjw3Aqc7K1cYyI7ULJf2/iHeZEHCwrHmIgIbnBHFpXPJw2aq1H9wXI2S
-        bFX6kJk0AKfNJW2opGepsiuYSgji3NDJCe6Nlv/RYdTHJaKGveMPYs6uyTmcbLAssyBIpJ
-        Dia2PLXsWcjFeoa8jRxD4EmmpmElQIw=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-212-HzV00hqNNTmcFQhVDqz-Nw-1; Thu, 21 Sep 2023 07:04:57 -0400
-X-MC-Unique: HzV00hqNNTmcFQhVDqz-Nw-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 848AF8039CB;
-        Thu, 21 Sep 2023 11:04:56 +0000 (UTC)
-Received: from MiWiFi-R3L-srv.redhat.com (unknown [10.72.112.40])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9BA682156701;
-        Thu, 21 Sep 2023 11:04:48 +0000 (UTC)
-From:   Baoquan He <bhe@redhat.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        akpm@linux-foundation.org, arnd@arndb.de, jiaxun.yang@flygoat.com,
-        mpe@ellerman.id.au, geert@linux-m68k.org, mcgrof@kernel.org,
-        hch@infradead.org, tsbogend@alpha.franken.de, f.fainelli@gmail.com,
-        deller@gmx.de, Baoquan He <bhe@redhat.com>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        with ESMTP id S230254AbjIUSQP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Sep 2023 14:16:15 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2D5BB7EA33;
+        Thu, 21 Sep 2023 10:37:38 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 911D21764;
+        Thu, 21 Sep 2023 09:21:37 -0700 (PDT)
+Received: from e125769.cambridge.arm.com (e125769.cambridge.arm.com [10.1.196.26])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 26AFE3F59C;
+        Thu, 21 Sep 2023 09:20:56 -0700 (PDT)
+From:   Ryan Roberts <ryan.roberts@arm.com>
+To:     Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>,
+        SeongJae Park <sj@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Uladzislau Rezki <urezki@gmail.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Peter Xu <peterx@redhat.com>,
+        Axel Rasmussen <axelrasmussen@google.com>,
+        Qi Zheng <zhengqi.arch@bytedance.com>
+Cc:     Ryan Roberts <ryan.roberts@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: [PATCH v5 3/4] arch/*/io.h: remove ioremap_uc in some architectures
-Date:   Thu, 21 Sep 2023 19:04:23 +0800
-Message-ID: <20230921110424.215592-4-bhe@redhat.com>
-In-Reply-To: <20230921110424.215592-1-bhe@redhat.com>
-References: <20230921110424.215592-1-bhe@redhat.com>
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org,
+        stable@vger.kernel.org
+Subject: [PATCH v1 8/8] arm64: hugetlb: Fix set_huge_pte_at() to work with all swap entries
+Date:   Thu, 21 Sep 2023 17:20:07 +0100
+Message-Id: <20230921162007.1630149-9-ryan.roberts@arm.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230921162007.1630149-1-ryan.roberts@arm.com>
+References: <20230921162007.1630149-1-ryan.roberts@arm.com>
 MIME-Version: 1.0
-Content-type: text/plain
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-ioremap_uc() is only meaningful on old x86-32 systems with the PAT
-extension, and on ia64 with its slightly unconventional ioremap()
-behavior. So remove the ioremap_uc() definition in architecutures
-other than x86 and ia64. These architectures all have asm-generic/io.h
-included and will have the default ioremap_uc() definition which
-returns NULL.
+When called with a swap entry that does not embed a PFN (e.g.
+PTE_MARKER_POISONED or PTE_MARKER_UFFD_WP), the previous implementation
+of set_huge_pte_at() would either cause a BUG() to fire (if
+CONFIG_DEBUG_VM is enabled) or cause a dereference of an invalid address
+and subsequent panic.
 
-This changes the existing behaviour, while no need to worry about
-any breakage because in the only callsite of ioremap_uc(), code
-has been adjusted to eliminate the impact. Please see
-atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
+arm64's huge pte implementation supports multiple huge page sizes, some
+of which are implemented in the page table with contiguous mappings. So
+set_huge_pte_at() needs to work out how big the logical pte is, so that
+it can also work out how many physical ptes (or pmds) need to be
+written. It does this by grabbing the folio out of the pte and querying
+its size.
 
-If any new invocation of ioremap_uc() need be added, please consider
-using ioremap() intead or adding a ARCH specific version if necessary.
+However, there are cases when the pte being set is actually a swap
+entry. But this also used to work fine, because for huge ptes, we only
+ever saw migration entries and hwpoison entries. And both of these types
+of swap entries have a PFN embedded, so the code would grab that and
+everything still worked out.
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Acked-by: Helge Deller <deller@gmx.de>  # parisc
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+But over time, more calls to set_huge_pte_at() have been added that set
+swap entry types that do not embed a PFN. And this causes the code to go
+bang. The triggering case is for the uffd poison test, commit
+99aa77215ad0 ("selftests/mm: add uffd unit test for UFFDIO_POISON"),
+which sets a PTE_MARKER_POISONED swap entry. But review shows there are
+other places too (PTE_MARKER_UFFD_WP).
+
+So the root cause is due to commit 18f3962953e4 ("mm: hugetlb: kill
+set_huge_swap_pte_at()"), which aimed to simplify the interface to the
+core code by removing set_huge_swap_pte_at() (which took a page size
+parameter) and replacing it with calls to set_huge_swap_pte_at() where
+the size was inferred from the folio, as descibed above. While that
+commit didn't break anything at the time, it did break the interface
+because it couldn't handle swap entries without PFNs. And since then new
+callers have come along which rely on this working.
+
+Now that we have modified the set_huge_pte_at() interface to pass the
+vma, we can extract the huge page size from it and fix this issue.
+
+I'm tagging the commit that added the uffd poison feature, since that is
+what exposed the problem, as well as the original change that broke the
+interface. Hopefully this is valuable for people doing bisect.
+
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Fixes: 18f3962953e4 ("mm: hugetlb: kill set_huge_swap_pte_at()")
+Fixes: 8a13897fb0da ("mm: userfaultfd: support UFFDIO_POISON for hugetlbfs")
 ---
- Documentation/driver-api/device-io.rst | 9 +++++----
- arch/alpha/include/asm/io.h            | 1 -
- arch/hexagon/include/asm/io.h          | 3 ---
- arch/m68k/include/asm/kmap.h           | 1 -
- arch/mips/include/asm/io.h             | 1 -
- arch/parisc/include/asm/io.h           | 2 --
- arch/powerpc/include/asm/io.h          | 1 -
- arch/sh/include/asm/io.h               | 2 --
- arch/sparc/include/asm/io_64.h         | 1 -
- 9 files changed, 5 insertions(+), 16 deletions(-)
+ arch/arm64/mm/hugetlbpage.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/driver-api/device-io.rst b/Documentation/driver-api/device-io.rst
-index 2c7abd234f4e..d55384b106bd 100644
---- a/Documentation/driver-api/device-io.rst
-+++ b/Documentation/driver-api/device-io.rst
-@@ -408,11 +408,12 @@ functions for details on the CPU side of things.
- ioremap_uc()
- ------------
- 
--ioremap_uc() behaves like ioremap() except that on the x86 architecture without
--'PAT' mode, it marks memory as uncached even when the MTRR has designated
--it as cacheable, see Documentation/arch/x86/pat.rst.
-+ioremap_uc() is only meaningful on old x86-32 systems with the PAT extension,
-+and on ia64 with its slightly unconventional ioremap() behavior, everywhere
-+elss ioremap_uc() defaults to return NULL.
- 
--Portable drivers should avoid the use of ioremap_uc().
-+
-+Portable drivers should avoid the use of ioremap_uc(), use ioremap() instead.
- 
- ioremap_cache()
- ---------------
-diff --git a/arch/alpha/include/asm/io.h b/arch/alpha/include/asm/io.h
-index 7aeaf7c30a6f..076f0e4e7f1e 100644
---- a/arch/alpha/include/asm/io.h
-+++ b/arch/alpha/include/asm/io.h
-@@ -308,7 +308,6 @@ static inline void __iomem *ioremap(unsigned long port, unsigned long size)
+diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+index 844832511c1e..a08601a14689 100644
+--- a/arch/arm64/mm/hugetlbpage.c
++++ b/arch/arm64/mm/hugetlbpage.c
+@@ -241,13 +241,6 @@ static void clear_flush(struct mm_struct *mm,
+ 	flush_tlb_range(&vma, saddr, addr);
  }
  
- #define ioremap_wc ioremap
--#define ioremap_uc ioremap
- 
- static inline void iounmap(volatile void __iomem *addr)
+-static inline struct folio *hugetlb_swap_entry_to_folio(swp_entry_t entry)
+-{
+-	VM_BUG_ON(!is_migration_entry(entry) && !is_hwpoison_entry(entry));
+-
+-	return page_folio(pfn_to_page(swp_offset_pfn(entry)));
+-}
+-
+ void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
+ 			    pte_t *ptep, pte_t pte)
  {
-diff --git a/arch/hexagon/include/asm/io.h b/arch/hexagon/include/asm/io.h
-index e2b308e32a37..b7bc246dbcb1 100644
---- a/arch/hexagon/include/asm/io.h
-+++ b/arch/hexagon/include/asm/io.h
-@@ -174,9 +174,6 @@ static inline void writel(u32 data, volatile void __iomem *addr)
- #define _PAGE_IOREMAP (_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
- 		       (__HEXAGON_C_DEV << 6))
+@@ -258,13 +251,10 @@ void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
+ 	unsigned long pfn, dpfn;
+ 	pgprot_t hugeprot;
  
--#define ioremap_uc(addr, size) ioremap((addr), (size))
+-	if (!pte_present(pte)) {
+-		struct folio *folio;
 -
--
- #define __raw_writel writel
+-		folio = hugetlb_swap_entry_to_folio(pte_to_swp_entry(pte));
+-		ncontig = num_contig_ptes(folio_size(folio), &pgsize);
++	ncontig = num_contig_ptes(huge_page_size(hstate_vma(vma)), &pgsize);
  
- static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
-diff --git a/arch/m68k/include/asm/kmap.h b/arch/m68k/include/asm/kmap.h
-index 4efb3efa593a..b778f015c917 100644
---- a/arch/m68k/include/asm/kmap.h
-+++ b/arch/m68k/include/asm/kmap.h
-@@ -25,7 +25,6 @@ static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
- 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
- }
+-		for (i = 0; i < ncontig; i++, ptep++)
++	if (!pte_present(pte)) {
++		for (i = 0; i < ncontig; i++, ptep++, addr += pgsize)
+ 			set_pte_at(mm, addr, ptep, pte);
+ 		return;
+ 	}
+@@ -274,7 +264,6 @@ void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
+ 		return;
+ 	}
  
--#define ioremap_uc ioremap
- #define ioremap_wt ioremap_wt
- static inline void __iomem *ioremap_wt(unsigned long physaddr,
- 				       unsigned long size)
-diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
-index 41d8bd5adef8..1ecf255efb40 100644
---- a/arch/mips/include/asm/io.h
-+++ b/arch/mips/include/asm/io.h
-@@ -170,7 +170,6 @@ void iounmap(const volatile void __iomem *addr);
-  */
- #define ioremap(offset, size)						\
- 	ioremap_prot((offset), (size), _CACHE_UNCACHED)
--#define ioremap_uc		ioremap
- 
- /*
-  * ioremap_cache -	map bus memory into CPU space
-diff --git a/arch/parisc/include/asm/io.h b/arch/parisc/include/asm/io.h
-index 366537042465..48630c78714a 100644
---- a/arch/parisc/include/asm/io.h
-+++ b/arch/parisc/include/asm/io.h
-@@ -132,8 +132,6 @@ static inline void gsc_writeq(unsigned long long val, unsigned long addr)
- 
- #define ioremap_wc(addr, size)  \
- 	ioremap_prot((addr), (size), _PAGE_IOREMAP)
--#define ioremap_uc(addr, size)  \
--	ioremap_prot((addr), (size), _PAGE_IOREMAP)
- 
- #define pci_iounmap			pci_iounmap
- 
-diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
-index 0732b743e099..21bd3e8bffce 100644
---- a/arch/powerpc/include/asm/io.h
-+++ b/arch/powerpc/include/asm/io.h
-@@ -900,7 +900,6 @@ void __iomem *ioremap_wt(phys_addr_t address, unsigned long size);
- #endif
- 
- void __iomem *ioremap_coherent(phys_addr_t address, unsigned long size);
--#define ioremap_uc(addr, size)		ioremap((addr), (size))
- #define ioremap_cache(addr, size) \
- 	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
- 
-diff --git a/arch/sh/include/asm/io.h b/arch/sh/include/asm/io.h
-index f2f38e9d489a..790bea22c9b5 100644
---- a/arch/sh/include/asm/io.h
-+++ b/arch/sh/include/asm/io.h
-@@ -302,8 +302,6 @@ unsigned long long poke_real_address_q(unsigned long long addr,
- 	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
- #endif /* CONFIG_MMU */
- 
--#define ioremap_uc	ioremap
--
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 9303270b22f3..d8ee1442f303 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -423,7 +423,6 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- 	return (void __iomem *)offset;
- }
- 
--#define ioremap_uc(X,Y)			ioremap((X),(Y))
- #define ioremap_wc(X,Y)			ioremap((X),(Y))
- #define ioremap_wt(X,Y)			ioremap((X),(Y))
- static inline void __iomem *ioremap_np(unsigned long offset, unsigned long size)
+-	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
+ 	pfn = pte_pfn(pte);
+ 	dpfn = pgsize >> PAGE_SHIFT;
+ 	hugeprot = pte_pgprot(pte);
 -- 
-2.41.0
+2.25.1
 
