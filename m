@@ -2,34 +2,32 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59713CD4F33
-	for <sparclinux@archiver.kernel.org>; Fri, 22 Sep 2023 07:42:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 509E3CD4F2E
+	for <sparclinux@archiver.kernel.org>; Fri, 22 Sep 2023 07:54:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231987AbjIVHms (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 22 Sep 2023 03:42:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39936 "EHLO
+        id S231877AbjIVHyq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 22 Sep 2023 03:54:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231725AbjIVHmN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 22 Sep 2023 03:42:13 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E905B1A2;
-        Fri, 22 Sep 2023 00:42:06 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1CC2DDA7;
-        Fri, 22 Sep 2023 00:42:43 -0700 (PDT)
-Received: from [10.57.65.11] (unknown [10.57.65.11])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F3AA23F5A1;
-        Fri, 22 Sep 2023 00:41:54 -0700 (PDT)
-Message-ID: <af6a0bb0-4645-4667-aa0e-e78fac3aad28@arm.com>
-Date:   Fri, 22 Sep 2023 08:41:54 +0100
+        with ESMTP id S231567AbjIVHym (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 22 Sep 2023 03:54:42 -0400
+Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [217.70.183.199])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4561CA;
+        Fri, 22 Sep 2023 00:54:35 -0700 (PDT)
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 51B81FF809;
+        Fri, 22 Sep 2023 07:54:21 +0000 (UTC)
+Message-ID: <7bbceed4-c5f6-42d4-5d94-060032b73385@ghiti.fr>
+Date:   Fri, 22 Sep 2023 09:54:21 +0200
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 0/8] Fix set_huge_pte_at() panic on arm64
-Content-Language: en-GB
-To:     Catalin Marinas <catalin.marinas@arm.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.1
+Subject: Re: [PATCH v1 3/8] riscv: hugetlb: Convert set_huge_pte_at() to take
+ vma
+Content-Language: en-US
+To:     Ryan Roberts <ryan.roberts@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         Nicholas Piggin <npiggin@gmail.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
@@ -47,80 +45,95 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Muchun Song <muchun.song@linux.dev>,
         SeongJae Park <sj@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Uladzislau Rezki <urezki@gmail.com>,
         Christoph Hellwig <hch@infradead.org>,
         Lorenzo Stoakes <lstoakes@gmail.com>,
         Anshuman Khandual <anshuman.khandual@arm.com>,
         Peter Xu <peterx@redhat.com>,
         Axel Rasmussen <axelrasmussen@google.com>,
-        Qi Zheng <zhengqi.arch@bytedance.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Qi Zheng <zhengqi.arch@bytedance.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-mm@kvack.org,
-        stable@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+        stable@vger.kernel.org
 References: <20230921162007.1630149-1-ryan.roberts@arm.com>
- <20230921093026.230b2991be551093e397f462@linux-foundation.org>
- <7c5c2c00-d657-44fd-b478-743b43c57e8a@arm.com> <ZQx/f35o0zT2lug4@arm.com>
-From:   Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <ZQx/f35o0zT2lug4@arm.com>
-Content-Type: text/plain; charset=UTF-8
+ <20230921162007.1630149-4-ryan.roberts@arm.com>
+From:   Alexandre Ghiti <alex@ghiti.fr>
+In-Reply-To: <20230921162007.1630149-4-ryan.roberts@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-GND-Sasl: alex@ghiti.fr
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 21/09/2023 18:38, Catalin Marinas wrote:
-> On Thu, Sep 21, 2023 at 05:35:54PM +0100, Ryan Roberts wrote:
->> On 21/09/2023 17:30, Andrew Morton wrote:
->>> On Thu, 21 Sep 2023 17:19:59 +0100 Ryan Roberts <ryan.roberts@arm.com> wrote:
->>>> Ryan Roberts (8):
->>>>   parisc: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   powerpc: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   riscv: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   s390: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   sparc: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   mm: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   arm64: hugetlb: Convert set_huge_pte_at() to take vma
->>>>   arm64: hugetlb: Fix set_huge_pte_at() to work with all swap entries
->>>>
->>>>  arch/arm64/include/asm/hugetlb.h              |  2 +-
->>>>  arch/arm64/mm/hugetlbpage.c                   | 22 ++++----------
->>>>  arch/parisc/include/asm/hugetlb.h             |  2 +-
->>>>  arch/parisc/mm/hugetlbpage.c                  |  4 +--
->>>>  .../include/asm/nohash/32/hugetlb-8xx.h       |  3 +-
->>>>  arch/powerpc/mm/book3s64/hugetlbpage.c        |  2 +-
->>>>  arch/powerpc/mm/book3s64/radix_hugetlbpage.c  |  2 +-
->>>>  arch/powerpc/mm/nohash/8xx.c                  |  2 +-
->>>>  arch/powerpc/mm/pgtable.c                     |  7 ++++-
->>>>  arch/riscv/include/asm/hugetlb.h              |  2 +-
->>>>  arch/riscv/mm/hugetlbpage.c                   |  3 +-
->>>>  arch/s390/include/asm/hugetlb.h               |  8 +++--
->>>>  arch/s390/mm/hugetlbpage.c                    |  8 ++++-
->>>>  arch/sparc/include/asm/hugetlb.h              |  8 +++--
->>>>  arch/sparc/mm/hugetlbpage.c                   |  8 ++++-
->>>>  include/asm-generic/hugetlb.h                 |  6 ++--
->>>>  include/linux/hugetlb.h                       |  6 ++--
->>>>  mm/damon/vaddr.c                              |  2 +-
->>>>  mm/hugetlb.c                                  | 30 +++++++++----------
->>>>  mm/migrate.c                                  |  2 +-
->>>>  mm/rmap.c                                     | 10 +++----
->>>>  mm/vmalloc.c                                  |  5 +++-
->>>>  22 files changed, 80 insertions(+), 64 deletions(-)
->>>
->>> Looks scary but it's actually a fairly modest patchset.  It could
->>> easily be all rolled into a single patch for ease of backporting. 
->>> Maybe Greg has an opinion?
->>
->> Yes, I thought about doing that; or perhaps 2 patches - one for the interface
->> change across all arches and core code, and one for the actual bug fix?
-> 
-> I think this would make more sense, especially if we want to backport
-> it. The first patch would have no functional change, only an interface
-> change, followed by the arm64 fix.
+Hi Ryan,
 
-OK I'll do it like this for v2.
+On 21/09/2023 18:20, Ryan Roberts wrote:
+> In order to fix a bug, arm64 needs access to the vma inside it's
+> implementation of set_huge_pte_at(). Provide for this by converting the
+> mm parameter to be a vma. Any implementations that require the mm can
+> access it via vma->vm_mm.
+>
+> This commit makes the required riscv modifications. Separate commits
+> update the other arches and core code, before the actual bug is fixed in
+> arm64.
+>
+> No behavioral changes intended.
+>
+> Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+> ---
+>   arch/riscv/include/asm/hugetlb.h | 2 +-
+>   arch/riscv/mm/hugetlbpage.c      | 3 ++-
+>   2 files changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/riscv/include/asm/hugetlb.h b/arch/riscv/include/asm/hugetlb.h
+> index 34e24f078cc1..be1ac8582bc2 100644
+> --- a/arch/riscv/include/asm/hugetlb.h
+> +++ b/arch/riscv/include/asm/hugetlb.h
+> @@ -17,7 +17,7 @@ void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+>   		    pte_t *ptep, unsigned long sz);
+>   
+>   #define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+> -void set_huge_pte_at(struct mm_struct *mm,
+> +void set_huge_pte_at(struct vm_area_struct *vma,
+>   		     unsigned long addr, pte_t *ptep, pte_t pte);
+>   
+>   #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
+> diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
+> index 96225a8533ad..7cdbf0960772 100644
+> --- a/arch/riscv/mm/hugetlbpage.c
+> +++ b/arch/riscv/mm/hugetlbpage.c
+> @@ -177,11 +177,12 @@ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags)
+>   	return entry;
+>   }
+>   
+> -void set_huge_pte_at(struct mm_struct *mm,
+> +void set_huge_pte_at(struct vm_area_struct *vma,
+>   		     unsigned long addr,
+>   		     pte_t *ptep,
+>   		     pte_t pte)
+>   {
+> +	struct mm_struct *mm = vma->vm_mm;
+>   	int i, pte_num;
+>   
+>   	if (!pte_napot(pte)) {
 
-> 
+
+You can add:
+
+Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+
+I realize that we may have the same issue with our contig pte 
+implementation (called napot in riscv) as we don't handle swap/migration 
+entries at all. So I guess we need something similar, and I'll implement 
+it (unless you want to do it of course, but I guess it's easier for me 
+to test). One (maybe stupid) question though: wouldn't it be possible to 
+extract the contig pte size from the value of ptep instead of using a vma?
+
+Thanks,
+
+Alex
 
