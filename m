@@ -2,37 +2,37 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE9EE810A3
-	for <sparclinux@archiver.kernel.org>; Wed, 27 Sep 2023 08:18:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2639FCE7B09
+	for <sparclinux@archiver.kernel.org>; Thu, 28 Sep 2023 07:41:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229981AbjI0ISX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 27 Sep 2023 04:18:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37934 "EHLO
+        id S230394AbjI1Hl6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 28 Sep 2023 03:41:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229910AbjI0ISW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 27 Sep 2023 04:18:22 -0400
-Received: from mail.marketnova.pl (mail.marketnova.pl [51.38.127.96])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A87E95
-        for <sparclinux@vger.kernel.org>; Wed, 27 Sep 2023 01:18:19 -0700 (PDT)
-Received: by mail.marketnova.pl (Postfix, from userid 1002)
-        id 32E1EA66FD; Wed, 27 Sep 2023 08:16:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=marketnova.pl;
-        s=mail; t=1695802606;
-        bh=q6g+ObtCV61LlnEBi7yLnSiOU+IF64224rZgvBJLEss=;
+        with ESMTP id S230501AbjI1Hl5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 28 Sep 2023 03:41:57 -0400
+Received: from mail.modernconcept.pl (mail.modernconcept.pl [217.61.97.58])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 944C4F5
+        for <sparclinux@vger.kernel.org>; Thu, 28 Sep 2023 00:41:54 -0700 (PDT)
+Received: by mail.modernconcept.pl (Postfix, from userid 1001)
+        id 0708284218; Thu, 28 Sep 2023 08:41:51 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=modernconcept.pl;
+        s=mail; t=1695886911;
+        bh=Q5fV1w6NnWl58WkRdDH2DK4/1rRr2T27V2HfYy4X7Do=;
         h=Date:From:To:Subject:From;
-        b=OUCaLNGeDkb2oXz1sNVXkVhdSmcEF/lgTEU1K4EFEapN8dBhrmPYt9jlbX3OuNaA4
-         OmwAr8iapXcpQABRU92Mj6seL7zYLVVzTz/7Q65IN1wqpXr9NcPCYhNSaaMayOIkIL
-         /mKaXIhd1zvuLU9lHihA4l6CFSUjoL3fwa5tp02VFgs7ZUmJKA0GUXRNxrNBsy3hYz
-         eqscj7ueoCjfr29ilFrqDngC9DMoBdKDWqo/rmWqzWxG3FMNil0P9Qe3HNF/mWfP3y
-         yvMhGc3DTGnDEdkv2+02TPl6BmWl/whyNTy25SGmCav+P5iB5hucGO794SoDTZdKSE
-         /irOcad2CMg8w==
-Received: by mail.marketnova.pl for <sparclinux@vger.kernel.org>; Wed, 27 Sep 2023 08:16:27 GMT
-Message-ID: <20230927064500-0.1.cb.1agy7.0.cmihwenblv@marketnova.pl>
-Date:   Wed, 27 Sep 2023 08:16:27 GMT
-From:   "Wiktor Nurek" <wiktor.nurek@marketnova.pl>
+        b=COP/Rm+XtXElTwCP+czNxCCXlXosrQFWgOH1S2J+kjrkwu2c+7S/TbW06wXB3HAqC
+         Q+VKbZ4ryPhA9oLTu3wdI+t31ihrMWiyD2002FLdDyozSyeLKg4l9JJwEvYSE8VGvc
+         WwI5fzjR/URc2I8pKh7VR9ALViUoOj9BuM9X6Ac8QXJRwMoN2bnexUZwREehuP9G5y
+         wyOAXSARRZJlgyp0ehE5RlQ6E1rnM0MwKpqYnrHwFv8GSnxVED5vUN3GAriTqyRN6R
+         2ng87+JfasTn4A/W1v8MCQJoFXLYaT8MPDoFXm0/6evw+FaOMt0jZ+F6U3z05x90cw
+         yj5UOoooPbRtA==
+Received: by mail.modernconcept.pl for <sparclinux@vger.kernel.org>; Thu, 28 Sep 2023 07:41:00 GMT
+Message-ID: <20230928074503-0.1.8b.yeyb.0.1strq15az3@modernconcept.pl>
+Date:   Thu, 28 Sep 2023 07:41:00 GMT
+From:   "Tomasz Chmiel" <tomasz.chmiel@modernconcept.pl>
 To:     <sparclinux@vger.kernel.org>
 Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
-X-Mailer: mail.marketnova.pl
+X-Mailer: mail.modernconcept.pl
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -53,5 +53,5 @@ jonowania strony w Google.
 Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
 
 
-Pozdrawiam serdecznie
-Wiktor Nurek
+Pozdrawiam serdecznie,
+Tomasz Chmiel
