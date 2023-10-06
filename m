@@ -2,91 +2,175 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DD8E94115
-	for <sparclinux@archiver.kernel.org>; Fri,  6 Oct 2023 20:27:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2543CE9411C
+	for <sparclinux@archiver.kernel.org>; Fri,  6 Oct 2023 20:30:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233427AbjJFU07 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 6 Oct 2023 16:26:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44986 "EHLO
+        id S233508AbjJFUaD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 6 Oct 2023 16:30:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231912AbjJFU07 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 6 Oct 2023 16:26:59 -0400
-Received: from mail-pg1-x531.google.com (mail-pg1-x531.google.com [IPv6:2607:f8b0:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5021EBF
-        for <sparclinux@vger.kernel.org>; Fri,  6 Oct 2023 13:26:57 -0700 (PDT)
-Received: by mail-pg1-x531.google.com with SMTP id 41be03b00d2f7-53fa455cd94so1829098a12.2
-        for <sparclinux@vger.kernel.org>; Fri, 06 Oct 2023 13:26:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1696624017; x=1697228817; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5ik+8xyOrxrDENzMU2+XdXOoH+BEnHgLDW/RYA7oHq4=;
-        b=gD3kK/oSz9HpK1bX6ilsgqMakimaq8cgsY52n1LikFP8Titet9S97kTAwIIa6d7y4F
-         1RJWF9rdgeOWQCoB/ft170/3JQTKpCxY8FKvdmNzTXAbASZPDsG2tjd7EtEk2XqpVNZH
-         Wix9Eo44RUWCVF5p0lzNn79tIabC7ZQGPe5uU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696624017; x=1697228817;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5ik+8xyOrxrDENzMU2+XdXOoH+BEnHgLDW/RYA7oHq4=;
-        b=sWJZ9U3WKBUvD5oFnaNchO+RluiMbG8/3oDxfteYtXv+yelXWkADEyTwJKMoZjgJbw
-         XH21F41vVDTCFZsVzCNqmh9qGhU1PMMgSQLgLy+4zIfaYM2PIY6VvoLV4lPLMBZSYYTm
-         1VBaVE0AqnRzT7A2EpRNkAr12m6dLYr3ZBcrG+S4hhxxYhipvny7UmHHypyjWLiaK9xd
-         o4YAwsZdVWo+Avf00YlLsTChapjCEW5JedKxj/gYzuasC28rycCcdKQMBbd3wraqMazU
-         nuVAsen1I861fDQbQLSb0zvnm2oHqkxyNnfBAeCPix0UGGoxsrdOSkwGqP0ghraKA96j
-         B3bw==
-X-Gm-Message-State: AOJu0Yw6n89MZe8X3D2Gn7Jr4//EU28PAv9afWIvb1lBoRF61W3DXrmf
-        ltnVso8TKZ18/VeaLaGIk07wOA==
-X-Google-Smtp-Source: AGHT+IG2uZ4oQ6pqs/gPUxE9hmNLIVY3TcFTdzCBj+5FryP0YVUJaPRylWXG7huLOl6hdWH/tBpVog==
-X-Received: by 2002:a05:6a20:3942:b0:14b:8023:33c8 with SMTP id r2-20020a056a20394200b0014b802333c8mr10453505pzg.2.1696624016776;
-        Fri, 06 Oct 2023 13:26:56 -0700 (PDT)
-Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id c8-20020aa78c08000000b0069102ae6d93sm1952733pfd.14.2023.10.06.13.26.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Oct 2023 13:26:56 -0700 (PDT)
-From:   Kees Cook <keescook@chromium.org>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>
-Cc:     sparclinux@vger.kernel.org, Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>, linux-kernel@vger.kernel.org,
-        llvm@lists.linux.dev, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] sparc: Annotate struct cpuinfo_tree with __counted_by
-Date:   Fri,  6 Oct 2023 13:25:46 -0700
-Message-Id: <169662394357.2154428.12028362294967452741.b4-ty@chromium.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230922175159.work.357-kees@kernel.org>
-References: <20230922175159.work.357-kees@kernel.org>
+        with ESMTP id S233368AbjJFUaA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 6 Oct 2023 16:30:00 -0400
+Received: from out2-smtp.messagingengine.com (out2-smtp.messagingengine.com [66.111.4.26])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD522CA;
+        Fri,  6 Oct 2023 13:29:57 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id B27D15C029C;
+        Fri,  6 Oct 2023 16:29:54 -0400 (EDT)
+Received: from imap50 ([10.202.2.100])
+  by compute5.internal (MEProxy); Fri, 06 Oct 2023 16:29:54 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1696624194; x=1696710594; bh=BV
+        WEu9N65Klz9zi6Gx/GBcHI5219Lk7Ewdrm46HwRAI=; b=Cyjh3oDLSHJpzcsNZa
+        w75pa0iUt10lzC04EpCQYcdZEjDTnv/tPDFYHO+2fdWjufExyQR6btU1KNdjdIyP
+        SZOQzv8J9dOK3OIcKArRAxm4cr22YbYAI6PpobZfe6DKDJHidhvxhKw31lXPgre5
+        2w/Ay/HyZqHcAMogC+zXGkQD1Q2ek6BpgdsnrsMvaW/YH+Gm4PihiZRIpEQE07Ow
+        KXJ0/Ks8ncy6CMAgrl/ZcIccgBSYgDM5Kl/brIcRykKmzRBSl1+MPrF1KsMGdRzu
+        WW6W1ggC6xMdgAuB+uyo1ze1+kgXHThZOI3/2QuzGcyWJBuZOYhKu57nMVYtouAx
+        7y6Q==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; t=1696624194; x=1696710594; bh=BVWEu9N65Klz9
+        zi6Gx/GBcHI5219Lk7Ewdrm46HwRAI=; b=HPwTuAjkvSv0oKNRi/WQVcscNMLeP
+        tfQA9zkSLtQAlfBS1aujUOGhDYP3TP6ugdbtr22XMmcf/CYhscnB7YyFlwIRxx/a
+        2ecRJ4bc+I4ov40vlT++R2VkoEToklnNbpUVheENxuRw6mkcx1J0ioF5tvTvEDAi
+        ScEnJU1Y3seSVJfddHBJEWqzpk2O9iE5+SX93so813eLS8BX72WpfNvL1gjQlJJG
+        tMLpAZsTUjBnBuk1KhMPLdxeb57Lp20NFwMyFRwKy+66HxMj8nEKiJl65EByrcxX
+        d5jA6elzp9qGf5oJK9Zbcj5bryYYpMwAcAs26mmudNY1rjcNM/pyuQ9sQ==
+X-ME-Sender: <xms:QW4gZdiKlFx0M8VYmRzxPVSOi4E_vtuXyLnUfu7iI4TyE7Ix6wJ1EA>
+    <xme:QW4gZSBKE3eiobViU-VJHw16Gxv6ZbVBMG87qFQ4_38-gyrhG2syjAChOcrfP7cwH
+    SDV2tm6qFzVceYeVm0>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrgeeigddugeejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:Qm4gZdGnrxQFe-c1alLBk2ykbYi6R6QcbmbhVk7uz8lT4cEchOoOMw>
+    <xmx:Qm4gZSSmH9dQMj3IN1Up9MiMc_CntIGYL724GpVCyrhVhwc1in5u0Q>
+    <xmx:Qm4gZazZMaWRqKo4cumVQhxw0gD1gWHvlautufcP-zY-Wrh5OxD7aQ>
+    <xmx:Qm4gZeiETJkGDxBhgpqxzfwzpuTTSFImD35CpoKc7CZOPI3V05YJEA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id A7E4B1700093; Fri,  6 Oct 2023 16:29:53 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-958-g1b1b911df8-fm-20230927.002-g1b1b911d
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Message-Id: <5d397fe4-a520-4336-b966-29bc5b798236@app.fastmail.com>
+In-Reply-To: <3bd9a85c6f10279af6372cf17064978ad38c18b3.camel@intel.com>
+References: <20230914185804.2000497-1-sohil.mehta@intel.com>
+ <487836fc-7c9f-2662-66a4-fa5e3829cf6b@intel.com>
+ <231994b0-ca11-4347-8d93-ce66fdbe3d25@app.fastmail.com>
+ <622b95d8-f8ad-5bd4-0145-d6aed2e3c07d@intel.com>
+ <3bd9a85c6f10279af6372cf17064978ad38c18b3.camel@intel.com>
+Date:   Fri, 06 Oct 2023 22:29:32 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Rick Edgecombe" <rick.p.edgecombe@intel.com>,
+        "Sohil Mehta" <sohil.mehta@intel.com>,
+        "Dave Hansen" <dave.hansen@linux.intel.com>,
+        "Ingo Molnar" <mingo@redhat.com>,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>
+Cc:     "Christian Borntraeger" <borntraeger@linux.ibm.com>,
+        "Thomas Gleixner" <tglx@linutronix.de>,
+        "Helge Deller" <deller@gmx.de>,
+        "Lukas Bulwahn" <lukas.bulwahn@gmail.com>,
+        "Ian Rogers" <irogers@google.com>,
+        "Alexander Gordeev" <agordeev@linux.ibm.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        "Andy Lutomirski" <luto@kernel.org>,
+        "Max Filippov" <jcmvbkbc@gmail.com>,
+        "Russell King" <linux@armlinux.org.uk>,
+        "Yoshinori Sato" <ysato@users.sourceforge.jp>,
+        "Adrian Hunter" <adrian.hunter@intel.com>,
+        "chris@zankel.net" <chris@zankel.net>,
+        "Heiko Carstens" <hca@linux.ibm.com>,
+        "Catalin Marinas" <catalin.marinas@arm.com>,
+        "Peter Zijlstra" <peterz@infradead.org>,
+        "Brian Gerst" <brgerst@gmail.com>,
+        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+        "Mark Brown" <broonie@kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+        "x86@kernel.org" <x86@kernel.org>,
+        "Michael Ellerman" <mpe@ellerman.id.au>,
+        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
+        "Ivan Kokshaysky" <ink@jurassic.park.msu.ru>,
+        "Borislav Petkov" <bp@alien8.de>,
+        "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Randy Dunlap" <rdunlap@infradead.org>,
+        "Mark Rutland" <mark.rutland@arm.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
+        "Namhyung Kim" <namhyung@kernel.org>,
+        "Jiri Olsa" <jolsa@kernel.org>,
+        "Nicholas Piggin" <npiggin@gmail.com>,
+        "Michal Simek" <monstr@monstr.eu>,
+        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
+        "Deepak Gupta" <debug@rivosinc.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        "Richard Henderson" <richard.henderson@linaro.org>,
+        "Will Deacon" <will@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        "gor@linux.ibm.com" <gor@linux.ibm.com>,
+        "Alexander Shishkin" <alexander.shishkin@linux.intel.com>,
+        "Matt Turner" <mattst88@gmail.com>,
+        "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
+        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
+        "Arnaldo Carvalho de Melo" <acme@kernel.org>,
+        "Sergei Trofimovich" <slyich@gmail.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
+        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        "Rohan McLure" <rmclure@linux.ibm.com>,
+        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+        "Sven Schnelle" <svens@linux.ibm.com>,
+        "Rich Felker" <dalias@libc.org>,
+        "Andreas Schwab" <schwab@linux-m68k.org>,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        "linux-perf-users@vger.kernel.org" <linux-perf-users@vger.kernel.org>
+Subject: Re: [PATCH v2] arch: Reserve map_shadow_stack() syscall number for all
+ architectures
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 22 Sep 2023 10:52:00 -0700, Kees Cook wrote:
-> Prepare for the coming implementation by GCC and Clang of the __counted_by
-> attribute. Flexible array members annotated with __counted_by can have
-> their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
-> (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
-> functions).
-> 
-> As found with Coccinelle[1], add __counted_by for struct cpuinfo_tree.
-> 
-> [...]
+On Fri, Oct 6, 2023, at 22:01, Edgecombe, Rick P wrote:
+> On Tue, 2023-10-03 at 10:18 -0700, Sohil Mehta wrote:
+>> > If you like, I can pick this up for 6.7 through the asm-generic
+>> > tree. If you think this should be part of 6.6, I would suggest
+>> > to merge it through the tree that originally contained the
+>> > syscall code.
+>> > 
+>> 
+>> Dave, Ingo, would you prefer to take this patch through 6.6 or defer
+>> it
+>> until 6.7?
+>> 
+>> It's not necessarily a fix but it does help finish up the shstk
+>> syscall
+>> added with 6.6. Also, it might help reduce some merge conflicts later
+>> if
+>> newer syscalls are being added during the 6.7 window.
+>
+> Hi Arnd,
+>
+> It doesn't look like anyone is pouncing on the syscall number in linux-
+> next currently. It might be nice to have this patch go through linux-
+> next since it touches so many architectures. And it sounds like x86
+> folk are ok with this, so if you could pick it up for 6.7 that would be
+> great. Thanks!
 
-Since this is a trivial change and it's been 2 week without further
-discussion, I'll snag this patch.
+Ok, I picked it up now, should be in linux-next starting next week.
 
-Applied to for-next/hardening, thanks!
-
-[1/1] sparc: Annotate struct cpuinfo_tree with __counted_by
-      https://git.kernel.org/kees/c/cfa36f889f23
-
-Take care,
-
--- 
-Kees Cook
-
+     Arnd
