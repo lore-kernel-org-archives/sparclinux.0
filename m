@@ -2,115 +2,226 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96E48CD610E
-	for <sparclinux@archiver.kernel.org>; Mon,  9 Oct 2023 16:44:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF0BFCD613D
+	for <sparclinux@archiver.kernel.org>; Mon,  9 Oct 2023 21:19:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377346AbjJIQo3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 9 Oct 2023 12:44:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51078 "EHLO
+        id S1378292AbjJIVTR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 9 Oct 2023 17:19:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377138AbjJIQo2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 Oct 2023 12:44:28 -0400
+        with ESMTP id S1378236AbjJIVTQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 Oct 2023 17:19:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 219D49C;
-        Mon,  9 Oct 2023 09:44:27 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F078CC433C9;
-        Mon,  9 Oct 2023 16:44:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3A78B6;
+        Mon,  9 Oct 2023 14:19:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D85C433C8;
+        Mon,  9 Oct 2023 21:18:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696869866;
-        bh=hih2ojuht8Q/T9suSdsZNAYc2MUvDRpGqPW8913YgAY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Fv81rrzfBlhmCSyzSbFm4f8JmVVlagKhI0OSyXRpR9/9h6b+FdXcgjHwMZf+cp2su
-         mbqmY3gelrBeruWabdjhdJ7id0I+kYb4WQts1gPqLjS+3CJCbaChYfdPpuALshd0S2
-         D0ujnmXLy7Y+ZKbyA/zoyhV0p0PlZ4oe0eSIh2/bG/xa0s8wb7AWDZcGyWM51/JUlA
-         zGbn0/kqtcasGNaUv9ytjnTsHF9fztBTPtXE3lvmuDEhMnXarop6rBifKltQEQZBbh
-         6dACfPxTF0tS/Qi+1I18u2riwu+RYVcpIqDkoZorHn1XiP07DP4IBEhM9xHDO58CAb
-         sMMh+aXVY62tA==
-Date:   Mon, 9 Oct 2023 09:44:24 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        x86@kernel.org, Nick Desaulniers <ndesaulniers@google.com>,
-        Nicolas Schier <nicolas@fjasle.eu>
-Subject: Re: [PATCH 5/5] kbuild: unify no-compiler-targets and
- no-sync-config-targets
-Message-ID: <20231009164424.GB1153868@dev-arch.thelio-3990X>
-References: <20231009124210.1064021-1-masahiroy@kernel.org>
- <20231009124210.1064021-5-masahiroy@kernel.org>
+        s=k20201202; t=1696886348;
+        bh=TSGItzmReuXxWm++8av4ew2EUzZA35IjrSGdiAa7ie8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=AR02btZ4mgp9dab3ACYI6igrBGiVFEQdmNWNcxHdD8UJq1EhYHaLIGjb3Cwv4s+g+
+         mmathlc5Veu0bcn46YVnxKQY9ABGfLimELcNw0klUlNtKHXpOmX5SgqRxTUCkLFS3o
+         ZS0Ueu7JemOZJOGzANL0FRGqVPg0BpVr9dfyhsQ5nDwbUv63LLomoFEIvX/7i3O4Bj
+         U55wVSdhQ8c2iMBNqigs0yUvbVUtg7hwnPp/Vnt3CUqJhGNKIVOsAVmLVPmdhMkwyJ
+         uLzJxnSI5zcAdgJpatcdE4e1r1jp90wyIblBOJG7uZmhXO5MwaO5T8h/WirbhImG9y
+         IaGxkq1DM1dMw==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        David Airlie <airlied@gmail.com>,
+        Deepak Rawat <drawat.floss@gmail.com>,
+        Dexuan Cui <decui@microsoft.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guo Ren <guoren@kernel.org>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Khalid Aziz <khalid@gonehiking.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        WANG Xuerui <kernel@xen0n.name>, Wei Liu <wei.liu@kernel.org>,
+        Will Deacon <will@kernel.org>, x86@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-efi@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-hyperv@vger.kernel.org
+Subject: [PATCH v3 0/9] video: screen_info cleanups
+Date:   Mon,  9 Oct 2023 23:18:36 +0200
+Message-Id: <20231009211845.3136536-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231009124210.1064021-5-masahiroy@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Oct 09, 2023 at 09:42:10PM +0900, Masahiro Yamada wrote:
-> Now that vdso_install does not depend on any in-tree build artifact,
-> it no longer invokes a compiler, making no-compiler-targets the same
-> as no-sync-config-targets.
-> 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-> ---
-> 
->  Makefile | 13 +------------
->  1 file changed, 1 insertion(+), 12 deletions(-)
-> 
-> diff --git a/Makefile b/Makefile
-> index 2170d56630e8..982b1ad33287 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -277,10 +277,6 @@ no-dot-config-targets := $(clean-targets) \
->  			 $(version_h) headers headers_% archheaders archscripts \
->  			 %asm-generic kernelversion %src-pkg dt_binding_check \
->  			 outputmakefile rustavailable rustfmt rustfmtcheck
-> -# Installation targets should not require compiler. Unfortunately, vdso_install
-> -# is an exception where build artifacts may be updated. This must be fixed.
-> -no-compiler-targets := $(no-dot-config-targets) install dtbs_install \
-> -			headers_install modules_install modules_sign kernelrelease image_name
->  no-sync-config-targets := $(no-dot-config-targets) %install modules_sign kernelrelease \
->  			  image_name
->  single-targets := %.a %.i %.ko %.lds %.ll %.lst %.mod %.o %.rsi %.s %.symtypes %/
-> @@ -288,7 +284,6 @@ single-targets := %.a %.i %.ko %.lds %.ll %.lst %.mod %.o %.rsi %.s %.symtypes %
->  config-build	:=
->  mixed-build	:=
->  need-config	:= 1
-> -need-compiler	:= 1
->  may-sync-config	:= 1
->  single-build	:=
->  
-> @@ -298,12 +293,6 @@ ifneq ($(filter $(no-dot-config-targets), $(MAKECMDGOALS)),)
->  	endif
->  endif
->  
-> -ifneq ($(filter $(no-compiler-targets), $(MAKECMDGOALS)),)
-> -	ifeq ($(filter-out $(no-compiler-targets), $(MAKECMDGOALS)),)
-> -		need-compiler :=
-> -	endif
-> -endif
-> -
+From: Arnd Bergmann <arnd@arndb.de>
 
-MIPS and LoongArch seem to have grown a usage of need-compiler in
-4fe4a6374c4d ("MIPS: Only fiddle with CHECKFLAGS if `need-compiler'")
-and 54c2c9df083f ("LoongArch: Only fiddle with CHECKFLAGS if
-`need-compiler'"). With this removal, should those be updated as well?
+v3 changelog
 
->  ifneq ($(filter $(no-sync-config-targets), $(MAKECMDGOALS)),)
->  	ifeq ($(filter-out $(no-sync-config-targets), $(MAKECMDGOALS)),)
->  		may-sync-config :=
-> @@ -675,7 +664,7 @@ endif
->  
->  # Include this also for config targets because some architectures need
->  # cc-cross-prefix to determine CROSS_COMPILE.
-> -ifdef need-compiler
-> +ifdef may-sync-config
->  include $(srctree)/scripts/Makefile.compiler
->  endif
->  
-> -- 
-> 2.39.2
-> 
+No real changes, just rebased for context changes, and picked up the Acks.
+
+This now conflicts with the ia64 removal and introduces one new dependency
+on IA64, but that is harmless and trivial to deal with later.
+
+Link: https://lore.kernel.org/lkml/20230719123944.3438363-1-arnd@kernel.org/
+---
+v2 changelog
+
+I refreshed the first four patches that I sent before with very minor
+updates, and then added some more to further disaggregate the use
+of screen_info:
+
+ - I found that powerpc wasn't using vga16fb any more
+
+ - vgacon can be almost entirely separated from the global
+   screen_info, except on x86
+
+ - similarly, the EFI framebuffer initialization can be
+   kept separate, except on x86.
+
+I did extensive build testing on arm/arm64/x86 and the normal built bot
+testing for the other architectures.
+
+Which tree should this get merged through?
+
+Link: https://lore.kernel.org/lkml/20230707095415.1449376-1-arnd@kernel.org/
+
+
+Arnd Bergmann (9):
+  vgacon: rework Kconfig dependencies
+  vgacon: rework screen_info #ifdef checks
+  dummycon: limit Arm console size hack to footbridge
+  vgacon, arch/*: remove unused screen_info definitions
+  vgacon: remove screen_info dependency
+  vgacon: clean up global screen_info instances
+  vga16fb: drop powerpc support
+  hyperv: avoid dependency on screen_info
+  efi: move screen_info into efi init code
+
+ arch/alpha/kernel/proto.h                     |  2 +
+ arch/alpha/kernel/setup.c                     |  8 +--
+ arch/alpha/kernel/sys_sio.c                   |  8 ++-
+ arch/arm/include/asm/setup.h                  |  5 ++
+ arch/arm/kernel/atags_parse.c                 | 20 +++---
+ arch/arm/kernel/efi.c                         |  6 --
+ arch/arm/kernel/setup.c                       | 11 +--
+ arch/arm64/kernel/efi.c                       |  4 --
+ arch/arm64/kernel/image-vars.h                |  2 +
+ arch/csky/kernel/setup.c                      | 12 ----
+ arch/hexagon/kernel/Makefile                  |  2 -
+ arch/hexagon/kernel/screen_info.c             |  3 -
+ arch/ia64/kernel/setup.c                      | 53 ++++++++-------
+ arch/loongarch/kernel/efi.c                   |  3 +-
+ arch/loongarch/kernel/image-vars.h            |  2 +
+ arch/loongarch/kernel/setup.c                 |  3 -
+ arch/mips/jazz/setup.c                        |  9 ---
+ arch/mips/kernel/setup.c                      | 11 ---
+ arch/mips/mti-malta/malta-setup.c             |  4 +-
+ arch/mips/sibyte/swarm/setup.c                | 26 ++++---
+ arch/mips/sni/setup.c                         | 18 ++---
+ arch/nios2/kernel/setup.c                     |  5 --
+ arch/powerpc/kernel/setup-common.c            | 16 -----
+ arch/riscv/kernel/image-vars.h                |  2 +
+ arch/riscv/kernel/setup.c                     | 12 ----
+ arch/sh/kernel/setup.c                        |  5 --
+ arch/sparc/kernel/setup_32.c                  | 13 ----
+ arch/sparc/kernel/setup_64.c                  | 13 ----
+ arch/x86/kernel/setup.c                       |  2 +-
+ arch/xtensa/kernel/setup.c                    | 12 ----
+ drivers/firmware/efi/efi-init.c               | 14 +++-
+ drivers/firmware/efi/libstub/efi-stub-entry.c |  8 ++-
+ drivers/firmware/pcdp.c                       |  1 -
+ drivers/gpu/drm/hyperv/hyperv_drm_drv.c       |  7 +-
+ drivers/hv/vmbus_drv.c                        |  6 +-
+ drivers/video/console/Kconfig                 | 11 +--
+ drivers/video/console/dummycon.c              |  2 +-
+ drivers/video/console/vgacon.c                | 68 +++++++++++--------
+ drivers/video/fbdev/Kconfig                   |  2 +-
+ drivers/video/fbdev/hyperv_fb.c               |  8 +--
+ drivers/video/fbdev/vga16fb.c                 |  9 +--
+ include/linux/console.h                       |  7 ++
+ 42 files changed, 183 insertions(+), 252 deletions(-)
+ delete mode 100644 arch/hexagon/kernel/screen_info.c
+
+-- 
+2.39.2
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Deepak Rawat <drawat.floss@gmail.com>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Javier Martinez Canillas <javierm@redhat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: x86@kernel.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-efi@vger.kernel.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: loongarch@lists.linux.dev
+Cc: linux-mips@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-hyperv@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org
+
