@@ -2,303 +2,172 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A534FCD613D
-	for <sparclinux@archiver.kernel.org>; Mon,  9 Oct 2023 21:22:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 119ABCD68FA
+	for <sparclinux@archiver.kernel.org>; Tue, 10 Oct 2023 07:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378877AbjJIVWI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 9 Oct 2023 17:22:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33966 "EHLO
+        id S1442486AbjJJHiB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 10 Oct 2023 03:38:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234644AbjJIVVX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 Oct 2023 17:21:23 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2A5110E5;
-        Mon,  9 Oct 2023 14:20:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E5E9C433C8;
-        Mon,  9 Oct 2023 21:20:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696886445;
-        bh=Izus3StnMYpbpfGzcH3rYhOA83ytnmOL3p/SwGQe1R4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fUNZTck4iaJOeM8Je3T8WvINpFaFE1urkvmBB0giTm0St8bMQ0quQi+ggYYVRP50h
-         MahNO4+KavBiymB0NVI9XueRQWswedp5X3ZXh0GX0NqHzy+STs6J+OjLX6tyCJnsAh
-         I9eaIX1k9ArCepOmU9Puaps1+rQZghRG8u5NrYungLv8mpdOzHVfoogxkQM4Tab66C
-         7ObaYxQtU3/hMaWj5eWKTqZe/UYdyPous2VOaV+30c+HISS0AwVZDrJLVUNT9q//rP
-         DH2uu6ixRAvD7KQBwB+gyUasD8wt2LwYUN0ZsF4E+z52yoV+zJ7NHxDD1ThrW8D3OU
-         PjqwmudJAgOlA==
-From:   Arnd Bergmann <arnd@kernel.org>
-To:     Thomas Zimmermann <tzimmermann@suse.de>,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+        with ESMTP id S1442324AbjJJHh7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 10 Oct 2023 03:37:59 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DBA39E;
+        Tue, 10 Oct 2023 00:37:57 -0700 (PDT)
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 39A79XvC020878;
+        Tue, 10 Oct 2023 07:37:04 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : references : date : in-reply-to : message-id : mime-version :
+ content-type; s=pp1; bh=5aaW2dPRZNtep/xpizNo1N37xs+hP26eCD8NQHP4dYg=;
+ b=fVtGrVHngctrT1pbGLa4kXC6Fe5YJewBoz+fvd2PlEeRlwxFa8Mz8htlgo7LyeE5ZKxo
+ c38UNaXtlvi9WBRAV/TfG4SKfPb4XcA+Hbld4wCXOaoJTNV2SbPzFI5HGTPFPnrhOkuz
+ i+YzokrsJB6sw/l2hFqMyvVR7xdXygmj1olabaYPAf+NZfRUu6ndv/LPY5Er8eJImBtA
+ U9r8/auWcw6/6ciwOREGLWgjdv+uTA6uft3ai5yHqErbT2l3rHRRts1J7YocsGqZqScZ
+ OCiu5nb92oYYMMDAZNTDF5zdFqt9utJzeOSvHKZyurFYuaX/3geRwZTDR8N1jW9Y/2nh KQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3tn1yq1513-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 10 Oct 2023 07:37:04 +0000
+Received: from m0353725.ppops.net (m0353725.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 39A79caK021024;
+        Tue, 10 Oct 2023 07:37:03 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3tn1yq150m-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 10 Oct 2023 07:37:03 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+        by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 39A4lurn028185;
+        Tue, 10 Oct 2023 07:37:02 GMT
+Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
+        by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3tkj1xy0hm-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 10 Oct 2023 07:37:02 +0000
+Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
+        by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 39A7ax5Y22086166
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 10 Oct 2023 07:36:59 GMT
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 0F70A20040;
+        Tue, 10 Oct 2023 07:36:59 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 4797420043;
+        Tue, 10 Oct 2023 07:36:58 +0000 (GMT)
+Received: from tuxmaker.linux.ibm.com (unknown [9.152.85.9])
+        by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+        Tue, 10 Oct 2023 07:36:58 +0000 (GMT)
+From:   Sven Schnelle <svens@linux.ibm.com>
+To:     Masahiro Yamada <masahiroy@kernel.org>
+Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
+        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
+        x86@kernel.org, Albert Ou <aou@eecs.berkeley.edu>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Borislav Petkov <bp@alien8.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Daniel Vetter <daniel@ffwll.ch>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
         Dave Hansen <dave.hansen@linux.intel.com>,
-        David Airlie <airlied@gmail.com>,
-        Deepak Rawat <drawat.floss@gmail.com>,
-        Dexuan Cui <decui@microsoft.com>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guo Ren <guoren@kernel.org>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Helge Deller <deller@gmx.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
         Huacai Chen <chenhuacai@kernel.org>,
         Ingo Molnar <mingo@redhat.com>,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        Khalid Aziz <khalid@gonehiking.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Matt Turner <mattst88@gmail.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nicolas Schier <nicolas@fjasle.eu>,
         Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
         Russell King <linux@armlinux.org.uk>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Thomas Gleixner <tglx@linutronix.de>,
-        WANG Xuerui <kernel@xen0n.name>, Wei Liu <wei.liu@kernel.org>,
-        Will Deacon <will@kernel.org>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-efi@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-hyperv@vger.kernel.org
-Subject: [PATCH v3 9/9] efi: move screen_info into efi init code
-Date:   Mon,  9 Oct 2023 23:18:45 +0200
-Message-Id: <20231009211845.3136536-10-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231009211845.3136536-1-arnd@kernel.org>
-References: <20231009211845.3136536-1-arnd@kernel.org>
+        Vasily Gorbik <gor@linux.ibm.com>,
+        WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>
+Subject: Re: [PATCH 4/5] kbuild: unify vdso_install rules
+References: <20231009124210.1064021-1-masahiroy@kernel.org>
+        <20231009124210.1064021-4-masahiroy@kernel.org>
+Date:   Tue, 10 Oct 2023 09:36:57 +0200
+In-Reply-To: <20231009124210.1064021-4-masahiroy@kernel.org> (Masahiro
+        Yamada's message of "Mon, 9 Oct 2023 21:42:09 +0900")
+Message-ID: <yt9dfs2judwm.fsf@linux.ibm.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.0.50 (gnu/linux)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: _CGlDQcO5kaF2u-illDRNoa12BhAMAB3
+X-Proofpoint-GUID: 5Ae0OhPocEUKJk2CSLcSZHHAMy_Wm0U-
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.980,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2023-10-10_04,2023-10-09_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 mlxlogscore=931
+ bulkscore=0 clxscore=1011 suspectscore=0 adultscore=0 priorityscore=1501
+ malwarescore=0 lowpriorityscore=0 impostorscore=0 phishscore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2309180000
+ definitions=main-2310100056
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+Masahiro Yamada <masahiroy@kernel.org> writes:
 
-After the vga console no longer relies on global screen_info, there are
-only two remaining use cases:
+> Currently, there is no standard implementation for vdso_install,
+> leading to various issues:
+>
+>  1. Code duplication
+>
+>     Many architectures duplicate similar code just for copying files
+>     to the install destination.
+>
+>     Some architectures (arm, sparc, x86) create build-id symlinks,
+>     introducing more code duplication.
+>
+>  2. Accidental updates of in-tree build artifacts
+>
+>     The vdso_install rule depends on the vdso files to install.
+>     It may update in-tree build artifacts. This can be problematic,
+>     as explained in commit 19514fc665ff ("arm, kbuild: make
+>     "make install" not depend on vmlinux").
+>
+>  3. Broken code in some architectures
+>
+>     Makefile code is often copied from one architecture to another
+>     without proper adaptation or testing.
+>
+>     The previous commits removed broken code from csky, UML, and parisc.
+>
+>     Another issue is that 'make vdso_install' for ARCH=s390 installs
+>     vdso64, but not vdso32.
+>
+> To address these problems, this commit introduces the generic vdso_install.
+>
+> Architectures that support vdso_install need to define vdso-install-y
+> in arch/*/Makefile.
+>
+> vdso-install-y lists the files to install. For example, arch/x86/Makefile
+> looks like this:
+>
+>   vdso-install-$(CONFIG_X86_64)           += arch/x86/entry/vdso/vdso64.so.dbg
+>   vdso-install-$(CONFIG_X86_X32_ABI)      += arch/x86/entry/vdso/vdsox32.so.dbg
+>   vdso-install-$(CONFIG_X86_32)           += arch/x86/entry/vdso/vdso32.so.dbg
+>   vdso-install-$(CONFIG_IA32_EMULATION)   += arch/x86/entry/vdso/vdso32.so.dbg
+>
+> These files will be installed to $(MODLIB)/vdso/ with the .dbg suffix,
+> if exists, stripped away.
+>
+> vdso-install-y can optionally take the second field after the colon
+> separator. This is needed because some architectures install vdso
+> files as a different base name.
+>
+> The following is a snippet from arch/arm64/Makefile.
+>
+>   vdso-install-$(CONFIG_COMPAT_VDSO)      += arch/arm64/kernel/vdso32/vdso.so.dbg:vdso32.so
+>
+> This will rename vdso.so.dbg to vdso32.so during installation. If such
+> architectures change their implementation so that the file names match,
+> this workaround will go away.
+>
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+> ---
 
- - on the x86 architecture, it is used for multiple boot methods
-   (bzImage, EFI, Xen, kexec) to commucate the initial VGA or framebuffer
-   settings to a number of device drivers.
-
- - on other architectures, it is only used as part of the EFI stub,
-   and only for the three sysfb framebuffers (simpledrm, simplefb, efifb).
-
-Remove the duplicate data structure definitions by moving it into the
-efi-init.c file that sets it up initially for the EFI case, leaving x86
-as an exception that retains its own definition for non-EFI boots.
-
-The added #ifdefs here are optional, I added them to further limit the
-reach of screen_info to configurations that have at least one of the
-users enabled.
-
-Reviewed-by: Ard Biesheuvel <ardb@kernel.org>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-Acked-by: Helge Deller <deller@gmx.de>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/kernel/setup.c                       |  4 ----
- arch/arm64/kernel/efi.c                       |  4 ----
- arch/arm64/kernel/image-vars.h                |  2 ++
- arch/loongarch/kernel/efi.c                   |  3 ++-
- arch/loongarch/kernel/image-vars.h            |  2 ++
- arch/loongarch/kernel/setup.c                 |  5 -----
- arch/riscv/kernel/image-vars.h                |  2 ++
- arch/riscv/kernel/setup.c                     |  5 -----
- drivers/firmware/efi/efi-init.c               | 14 +++++++++++++-
- drivers/firmware/efi/libstub/efi-stub-entry.c |  8 +++++++-
- 10 files changed, 28 insertions(+), 21 deletions(-)
-
-diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index c15dfdbe3d5ae..b808712e85981 100644
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -939,10 +939,6 @@ static struct screen_info vgacon_screen_info = {
- };
- #endif
- 
--#if defined(CONFIG_EFI)
--struct screen_info screen_info;
--#endif
--
- static int __init customize_machine(void)
- {
- 	/*
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index 2b478ca356b00..52089f111c8db 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -71,10 +71,6 @@ static __init pteval_t create_mapping_protection(efi_memory_desc_t *md)
- 	return pgprot_val(PAGE_KERNEL_EXEC);
- }
- 
--/* we will fill this structure from the stub, so don't put it in .bss */
--struct screen_info screen_info __section(".data");
--EXPORT_SYMBOL(screen_info);
--
- int __init efi_create_mapping(struct mm_struct *mm, efi_memory_desc_t *md)
- {
- 	pteval_t prot_val = create_mapping_protection(md);
-diff --git a/arch/arm64/kernel/image-vars.h b/arch/arm64/kernel/image-vars.h
-index 35f3c79595137..5e4dc72ab1bda 100644
---- a/arch/arm64/kernel/image-vars.h
-+++ b/arch/arm64/kernel/image-vars.h
-@@ -27,7 +27,9 @@ PROVIDE(__efistub__text			= _text);
- PROVIDE(__efistub__end			= _end);
- PROVIDE(__efistub___inittext_end       	= __inittext_end);
- PROVIDE(__efistub__edata		= _edata);
-+#if defined(CONFIG_EFI_EARLYCON) || defined(CONFIG_SYSFB)
- PROVIDE(__efistub_screen_info		= screen_info);
-+#endif
- PROVIDE(__efistub__ctype		= _ctype);
- 
- PROVIDE(__pi___memcpy			= __pi_memcpy);
-diff --git a/arch/loongarch/kernel/efi.c b/arch/loongarch/kernel/efi.c
-index 9fc10cea21e10..df7db34024e61 100644
---- a/arch/loongarch/kernel/efi.c
-+++ b/arch/loongarch/kernel/efi.c
-@@ -115,7 +115,8 @@ void __init efi_init(void)
- 
- 	set_bit(EFI_CONFIG_TABLES, &efi.flags);
- 
--	init_screen_info();
-+	if (IS_ENABLED(CONFIG_EFI_EARLYCON) || IS_ENABLED(CONFIG_SYSFB))
-+		init_screen_info();
- 
- 	if (boot_memmap == EFI_INVALID_TABLE_ADDR)
- 		return;
-diff --git a/arch/loongarch/kernel/image-vars.h b/arch/loongarch/kernel/image-vars.h
-index e561989d02de9..5087416b9678d 100644
---- a/arch/loongarch/kernel/image-vars.h
-+++ b/arch/loongarch/kernel/image-vars.h
-@@ -12,7 +12,9 @@ __efistub_kernel_entry		= kernel_entry;
- __efistub_kernel_asize		= kernel_asize;
- __efistub_kernel_fsize		= kernel_fsize;
- __efistub_kernel_offset		= kernel_offset;
-+#if defined(CONFIG_EFI_EARLYCON) || defined(CONFIG_SYSFB)
- __efistub_screen_info		= screen_info;
-+#endif
- 
- #endif
- 
-diff --git a/arch/loongarch/kernel/setup.c b/arch/loongarch/kernel/setup.c
-index 0d5edf1f7e4a1..407cd6b49bef6 100644
---- a/arch/loongarch/kernel/setup.c
-+++ b/arch/loongarch/kernel/setup.c
-@@ -16,7 +16,6 @@
- #include <linux/dmi.h>
- #include <linux/efi.h>
- #include <linux/export.h>
--#include <linux/screen_info.h>
- #include <linux/memblock.h>
- #include <linux/initrd.h>
- #include <linux/ioport.h>
-@@ -57,10 +56,6 @@
- #define SMBIOS_CORE_PACKAGE_OFFSET	0x23
- #define LOONGSON_EFI_ENABLE		(1 << 3)
- 
--#ifdef CONFIG_EFI
--struct screen_info screen_info __section(".data");
--#endif
--
- unsigned long fw_arg0, fw_arg1, fw_arg2;
- DEFINE_PER_CPU(unsigned long, kernelsp);
- struct cpuinfo_loongarch cpu_data[NR_CPUS] __read_mostly;
-diff --git a/arch/riscv/kernel/image-vars.h b/arch/riscv/kernel/image-vars.h
-index ea1a10355ce90..3df30dd1c458b 100644
---- a/arch/riscv/kernel/image-vars.h
-+++ b/arch/riscv/kernel/image-vars.h
-@@ -28,7 +28,9 @@ __efistub__start_kernel		= _start_kernel;
- __efistub__end			= _end;
- __efistub__edata		= _edata;
- __efistub___init_text_end	= __init_text_end;
-+#if defined(CONFIG_EFI_EARLYCON) || defined(CONFIG_SYSFB)
- __efistub_screen_info		= screen_info;
-+#endif
- 
- #endif
- 
-diff --git a/arch/riscv/kernel/setup.c b/arch/riscv/kernel/setup.c
-index 0c466a50f1744..0624f44d43eca 100644
---- a/arch/riscv/kernel/setup.c
-+++ b/arch/riscv/kernel/setup.c
-@@ -15,7 +15,6 @@
- #include <linux/memblock.h>
- #include <linux/sched.h>
- #include <linux/console.h>
--#include <linux/screen_info.h>
- #include <linux/of_fdt.h>
- #include <linux/sched/task.h>
- #include <linux/smp.h>
-@@ -40,10 +39,6 @@
- 
- #include "head.h"
- 
--#if defined(CONFIG_EFI)
--struct screen_info screen_info __section(".data");
--#endif
--
- /*
-  * The lucky hart to first increment this variable will boot the other cores.
-  * This is used before the kernel initializes the BSS so it can't be in the
-diff --git a/drivers/firmware/efi/efi-init.c b/drivers/firmware/efi/efi-init.c
-index ef0820f1a9246..d4987d0130801 100644
---- a/drivers/firmware/efi/efi-init.c
-+++ b/drivers/firmware/efi/efi-init.c
-@@ -55,6 +55,15 @@ static phys_addr_t __init efi_to_phys(unsigned long addr)
- 
- extern __weak const efi_config_table_type_t efi_arch_tables[];
- 
-+/*
-+ * x86 defines its own screen_info and uses it even without EFI,
-+ * everything else can get it from here.
-+ */
-+#if !defined(CONFIG_X86) && (defined(CONFIG_SYSFB) || defined(CONFIG_EFI_EARLYCON))
-+struct screen_info screen_info __section(".data");
-+EXPORT_SYMBOL_GPL(screen_info);
-+#endif
-+
- static void __init init_screen_info(void)
- {
- 	struct screen_info *si;
-@@ -240,5 +249,8 @@ void __init efi_init(void)
- 	memblock_reserve(data.phys_map & PAGE_MASK,
- 			 PAGE_ALIGN(data.size + (data.phys_map & ~PAGE_MASK)));
- 
--	init_screen_info();
-+	if (IS_ENABLED(CONFIG_X86) ||
-+	    IS_ENABLED(CONFIG_SYSFB) ||
-+	    IS_ENABLED(CONFIG_EFI_EARLYCON))
-+		init_screen_info();
- }
-diff --git a/drivers/firmware/efi/libstub/efi-stub-entry.c b/drivers/firmware/efi/libstub/efi-stub-entry.c
-index 2f1902e5d4075..a6c0498351905 100644
---- a/drivers/firmware/efi/libstub/efi-stub-entry.c
-+++ b/drivers/firmware/efi/libstub/efi-stub-entry.c
-@@ -13,7 +13,13 @@ struct screen_info *alloc_screen_info(void)
- {
- 	if (IS_ENABLED(CONFIG_ARM))
- 		return __alloc_screen_info();
--	return (void *)&screen_info + screen_info_offset;
-+
-+	if (IS_ENABLED(CONFIG_X86) ||
-+	    IS_ENABLED(CONFIG_EFI_EARLYCON) ||
-+	    IS_ENABLED(CONFIG_SYSFB))
-+		return (void *)&screen_info + screen_info_offset;
-+
-+	return NULL;
- }
- 
- /*
--- 
-2.39.2
-
+Acked-by: Sven Schnelle <svens@linux.ibm.com> # s390
