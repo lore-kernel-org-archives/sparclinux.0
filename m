@@ -2,48 +2,39 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F531CD6E69
-	for <sparclinux@archiver.kernel.org>; Wed, 11 Oct 2023 12:53:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6356C46CA1
+	for <sparclinux@archiver.kernel.org>; Wed, 11 Oct 2023 20:19:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346206AbjJKMx0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 11 Oct 2023 08:53:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47178 "EHLO
+        id S233329AbjJKUTp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 11 Oct 2023 16:19:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232124AbjJKMxY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 11 Oct 2023 08:53:24 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22A1D9D;
-        Wed, 11 Oct 2023 05:53:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F85C433CC;
-        Wed, 11 Oct 2023 12:53:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1697028802;
-        bh=BAn9cTmPCgYcwvId5a7izdOqRdwYY/SugU+kfhYDqmU=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Ckftw/lZlJbPMA/dzRJmM/VrLm2xFZ2zbn7DGTxWiomWSOVP6zZhFIJ2BNZzOzfmi
-         WNdYzaNnpb0li5MHShlQK3oR77qATwhquIfYtbS2qcxouWrx/tYNXq544lAjKFQDpA
-         Vz9LMECi3pswPXznVM4zmgrfwP36gbWZmEY2zgeCDANjr1COzuPDnQPEfA7i1xQ8p8
-         bSEXGRHusQV4L7Fpb8YmVEuiGDQpTc2IAutv3bYkXEraZvYfx3GpqleFpTlduIcfsH
-         rSwOf/YNc5EZyzIbjBjWlirtlOXEah9MWUIUlTA8o9qnOzmXTT7DWL5nce0eSzTi43
-         DQnyck+GuK7pA==
-Received: by mail-oa1-f48.google.com with SMTP id 586e51a60fabf-1e9872c88aaso587888fac.1;
-        Wed, 11 Oct 2023 05:53:22 -0700 (PDT)
-X-Gm-Message-State: AOJu0YyHOHJUfFReogwm/1+towp+E2ZY+EngBesVYO8udKmEpgd7SVBF
-        9AvlR7IXBlVApKiAYmvNE3FwDb1vuk/XJEI8g18=
-X-Google-Smtp-Source: AGHT+IHunqCCf3/TPbLbNP9iC+WACbBVYbi8Ckvhhj1/4uAEKkWSBuHMfzGgLhnmZ11rboJKnGC/Z4MWi+rIZcz3AOo=
-X-Received: by 2002:a05:6870:5611:b0:1d1:3a58:14a5 with SMTP id
- m17-20020a056870561100b001d13a5814a5mr26035580oao.25.1697028802212; Wed, 11
- Oct 2023 05:53:22 -0700 (PDT)
-MIME-Version: 1.0
-References: <20231009124210.1064021-1-masahiroy@kernel.org>
- <20231009124210.1064021-4-masahiroy@kernel.org> <CAJF2gTTDpGgzsiRk=q6FCdX_g5maY-sT9h0jiW=p6HLziq97yA@mail.gmail.com>
-In-Reply-To: <CAJF2gTTDpGgzsiRk=q6FCdX_g5maY-sT9h0jiW=p6HLziq97yA@mail.gmail.com>
-From:   Masahiro Yamada <masahiroy@kernel.org>
-Date:   Wed, 11 Oct 2023 21:52:45 +0900
-X-Gmail-Original-Message-ID: <CAK7LNATmaSXQYFMZEw2vpn6td10+huck-vy-Rbo5Brys+j_Stg@mail.gmail.com>
-Message-ID: <CAK7LNATmaSXQYFMZEw2vpn6td10+huck-vy-Rbo5Brys+j_Stg@mail.gmail.com>
-Subject: Re: [PATCH 4/5] kbuild: unify vdso_install rules
-To:     Guo Ren <guoren@kernel.org>
+        with ESMTP id S231226AbjJKUTo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 11 Oct 2023 16:19:44 -0400
+X-Greylist: delayed 406 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 11 Oct 2023 13:19:39 PDT
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AED2990;
+        Wed, 11 Oct 2023 13:19:39 -0700 (PDT)
+Received: from leknes.fjasle.eu ([46.142.98.201]) by mrelayeu.kundenserver.de
+ (mreue010 [212.227.15.167]) with ESMTPSA (Nemesis) id
+ 1N8XkP-1rd3321Guf-014Paf; Wed, 11 Oct 2023 22:10:25 +0200
+Received: from localhost.fjasle.eu (kirkenes.fjasle.eu [10.10.0.5])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (Client did not present a certificate)
+        by leknes.fjasle.eu (Postfix) with ESMTPS id 9DCA03F840;
+        Wed, 11 Oct 2023 22:10:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fjasle.eu; s=mail;
+        t=1697055016; bh=5Fr/47OcVCuPllaYQgCL+zdi7dPjAjL3MNWZhdULIc8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=5WImRH0w1AH69SJDHrWAjBqhWAtqvRtsHukVpQNPqSKcrMzjMa8QWAh7Sy2kg/Nii
+         cNKr21hCCqvUTUPfee6kxSqzD2EW093Yu8e5H/j30R+OnBFpAlQ1Wl4y/NvNCujB6z
+         7ZYgYAxnN9X+ortJfAYnkbWwxYwRsiCYWqBUTebE=
+Received: by localhost.fjasle.eu (Postfix, from userid 1000)
+        id ABC4A251E; Wed, 11 Oct 2023 22:10:14 +0200 (CEST)
+Date:   Wed, 11 Oct 2023 22:10:14 +0200
+From:   Nicolas Schier <nicolas@fjasle.eu>
+To:     Masahiro Yamada <masahiroy@kernel.org>
 Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
         linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
@@ -57,13 +48,12 @@ Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
         Christian Borntraeger <borntraeger@linux.ibm.com>,
         Dave Hansen <dave.hansen@linux.intel.com>,
         "David S. Miller" <davem@davemloft.net>,
-        "H. Peter Anvin" <hpa@zytor.com>,
+        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
         Heiko Carstens <hca@linux.ibm.com>,
         Huacai Chen <chenhuacai@kernel.org>,
         Ingo Molnar <mingo@redhat.com>,
         Nathan Chancellor <nathan@kernel.org>,
         Nick Desaulniers <ndesaulniers@google.com>,
-        Nicolas Schier <nicolas@fjasle.eu>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Paul Walmsley <paul.walmsley@sifive.com>,
         Russell King <linux@armlinux.org.uk>,
@@ -71,72 +61,98 @@ Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
         Thomas Gleixner <tglx@linutronix.de>,
         Vasily Gorbik <gor@linux.ibm.com>,
         WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH 4/5] kbuild: unify vdso_install rules
+Message-ID: <ZScBJp-nen5wDRkT@bergen.fjasle.eu>
+References: <20231009124210.1064021-1-masahiroy@kernel.org>
+ <20231009124210.1064021-4-masahiroy@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <20231009124210.1064021-4-masahiroy@kernel.org>
+X-Operating-System: Debian GNU/Linux trixie/sid
+Jabber-ID: nicolas@jabber.no
+X-Provags-ID: V03:K1:GUfrfLlCUzJuMEjs4zRXdY1OuzE+qTNGx7LxKM1S1e9ReRxprWw
+ QTcaTBx+t0EkTRqYWkYL67T9+ycHGZaqicx6qJ56Gqgjv4SNCVgkolt4r+0ZEgWqOlo+M4w
+ O8j6dJv9DPnZVx+Re6NhFwDsF9/Jz5Qda20FlFD/v/59oC+e5T2V9+yc9jzxg8tnQCrfW6W
+ OrXnxMb3y1nL8PBSSLcbA==
+UI-OutboundReport: notjunk:1;M01:P0:nh2StqpSjAc=;pNUkTpIHYhCCE7CUQUZ/AYgiXOx
+ vofRovAKGVbBxjKviHdHoaGxLrVNj3yW7x7Pt3f2heaTRrDQV8ir/anc38K99HoBICqk/ZbUO
+ OPkthadGR31TRd9SAchUp1NMCorZfflFflYzqBBtseJoIab4yzkGmFQ1WjD9Y1zhYSNaj549U
+ Jx0iVDm9QftBr/A6Q/KnhOsGlGlH8HNqkFLCjKW7JQ58eVRxkRwRfZbRn3X3pD7cu3sNJVHqS
+ BG+NkUgqX/RqJrLc9QXP1+pekba1gFCfDFQh7qClYVKgRiG/w0T5JmqfCIztjY7DdvHA85GIV
+ rzYOA/a4xCQx445Cf//MLnNnFU6v7ZJZV1PasAIUux4oRoF/AFODSzGtegJZf/CkRk3b9jjXI
+ UnmoDuK3pW+Va277I7Gt1oEB6m571GKCdWhFT22YQO4G4eBU1ofBGcuVD+kpzHxZ/UW1PTPb+
+ l8xAnJ0vaeIbUHf9fD3e+5/mrcJVz523UQVvxaoLVgsM40nZuQOGtu/gJRig+86cxXeNCb8fY
+ kbDIMAYxbTz2kBaXHn9ID/r0YrrkF+0gcnKzwuh36FtIc1BDWYEkoR+d9CoUowxNX8DaWxVyI
+ ryBcb/Wky2eEdGYhxt77djdpO9Gsz2wpbSiGoJIyEFCgvFBt3bhHBsplnqZ1vHhL1/tMJLSk2
+ H1CGRu/j7BFJt2du1RBXxe787BZkslDW7pqfq+MGc0HuKc1bWJOBs0gAegOek4Ts+3zW60M6U
+ TwJEizx9yNUs5Etau4/+QmroLvG6DMlZBlwzJXmdtFptrd+CiUqJaIRNcOQTi1pQ2Ykmz0kMs
+ yLojx/7MQP3uvdWwHvUmXpqi6vE5e9IYuy1FEb8XV2Lq7/xkRV8yJNika5QDoJkMZcX+5Nmjx
+ EJvAPGMFAWGRF9A==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Oct 11, 2023 at 11:24=E2=80=AFAM Guo Ren <guoren@kernel.org> wrote:
->
-> On Mon, Oct 9, 2023 at 8:42=E2=80=AFPM Masahiro Yamada <masahiroy@kernel.=
-org> wrote:
+On Mon 09 Oct 2023 21:42:09 GMT, Masahiro Yamada wrote:
+> Currently, there is no standard implementation for vdso_install,
+> leading to various issues:
+> 
+>  1. Code duplication
+> 
+>     Many architectures duplicate similar code just for copying files
+>     to the install destination.
+> 
+>     Some architectures (arm, sparc, x86) create build-id symlinks,
+>     introducing more code duplication.
+> 
+>  2. Accidental updates of in-tree build artifacts
+> 
+>     The vdso_install rule depends on the vdso files to install.
+>     It may update in-tree build artifacts. This can be problematic,
+>     as explained in commit 19514fc665ff ("arm, kbuild: make
+>     "make install" not depend on vmlinux").
+> 
+>  3. Broken code in some architectures
+> 
+>     Makefile code is often copied from one architecture to another
+>     without proper adaptation or testing.
+> 
+>     The previous commits removed broken code from csky, UML, and parisc.
+> 
+>     Another issue is that 'make vdso_install' for ARCH=s390 installs
+>     vdso64, but not vdso32.
+> 
+> To address these problems, this commit introduces the generic vdso_install.
+> 
+> Architectures that support vdso_install need to define vdso-install-y
+> in arch/*/Makefile.
+> 
+> vdso-install-y lists the files to install. For example, arch/x86/Makefile
+> looks like this:
+> 
+>   vdso-install-$(CONFIG_X86_64)           += arch/x86/entry/vdso/vdso64.so.dbg
+>   vdso-install-$(CONFIG_X86_X32_ABI)      += arch/x86/entry/vdso/vdsox32.so.dbg
+>   vdso-install-$(CONFIG_X86_32)           += arch/x86/entry/vdso/vdso32.so.dbg
+>   vdso-install-$(CONFIG_IA32_EMULATION)   += arch/x86/entry/vdso/vdso32.so.dbg
+> 
+> These files will be installed to $(MODLIB)/vdso/ with the .dbg suffix,
+> if exists, stripped away.
+> 
+> vdso-install-y can optionally take the second field after the colon
+> separator. This is needed because some architectures install vdso
+> files as a different base name.
+> 
+> The following is a snippet from arch/arm64/Makefile.
+> 
+>   vdso-install-$(CONFIG_COMPAT_VDSO)      += arch/arm64/kernel/vdso32/vdso.so.dbg:vdso32.so
+> 
+> This will rename vdso.so.dbg to vdso32.so during installation. If such
+> architectures change their implementation so that the file names match,
+> this workaround will go away.
+> 
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+> ---
 
-> > --- a/arch/riscv/Makefile
-> > +++ b/arch/riscv/Makefile
-> > @@ -131,12 +131,6 @@ endif
-> >  libs-y +=3D arch/riscv/lib/
-> >  libs-$(CONFIG_EFI_STUB) +=3D $(objtree)/drivers/firmware/efi/libstub/l=
-ib.a
-> >
-> > -PHONY +=3D vdso_install
-> > -vdso_install:
-> > -       $(Q)$(MAKE) $(build)=3Darch/riscv/kernel/vdso $@
-> > -       $(if $(CONFIG_COMPAT),$(Q)$(MAKE) \
-> > -               $(build)=3Darch/riscv/kernel/compat_vdso compat_$@)
-> > -
-> >  ifeq ($(KBUILD_EXTMOD),)
-> >  ifeq ($(CONFIG_MMU),y)
-> >  prepare: vdso_prepare
-> > @@ -148,6 +142,9 @@ vdso_prepare: prepare0
-> >  endif
-> >  endif
-> >
-> > +vdso-install-y                 +=3D arch/riscv/kernel/vdso/vdso.so.dbg
-> > +vdso-install-$(CONFIG_COMPAT)  +=3D arch/riscv/kernel/compat_vdso/comp=
-at_vdso.so.dbg:../compat_vdso/compat_vdso.so
-> Why do we need ":../compat_vdso/compat_vdso.so" here?
+Thanks for cleaning this up!
 
-
-
-
-All architectures except riscv install vdso files
-to /lib/modules/$(uname -r)/vdso/.
-
-
-
-See the following code in arch/riscv/kernel/compat_vdso/Makefile:
-
-
-quiet_cmd_compat_vdso_install =3D INSTALL $@
-      cmd_compat_vdso_install =3D cp $(obj)/$@.dbg $(MODLIB)/compat_vdso/$@
-
-
-
-
-Riscv copies the compat vdso to
-/lib/modules/$(uname -r)/compat_vdso/.
-
-
-
-This commit preserves the current installation path as-is.
-
-If the riscv maintainers agree, we can change the
-installation destination to /lib/modules/$(uname -r)/vdso/
-for consistency.
-
-
-
---=20
-Best Regards
-Masahiro Yamada
+Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
