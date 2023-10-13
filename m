@@ -2,94 +2,86 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36025CDB46E
-	for <sparclinux@archiver.kernel.org>; Thu, 12 Oct 2023 19:55:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E4E7CDB47E
+	for <sparclinux@archiver.kernel.org>; Fri, 13 Oct 2023 05:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442527AbjJLTzZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 12 Oct 2023 15:55:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36680 "EHLO
+        id S229532AbjJMFja (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 13 Oct 2023 01:39:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442316AbjJLTzY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Oct 2023 15:55:24 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 633D5B7
-        for <sparclinux@vger.kernel.org>; Thu, 12 Oct 2023 12:55:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:Message-ID:
-        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-        Content-Description:In-Reply-To:References;
-        bh=RiC4LbDPsvm1R/hBxKAIvjDYl7LcGAsJmWP/V7VNH+o=; b=jIePl0DkLsVwMFydPLTuL2K4Kx
-        wFd5BIbew8STEqAyXac6ItdamjwFZtQMzYE5fCMa4KeyrxGdQ0rre1qELgcyrPPY2r8ScIUVjfadi
-        EORyS2LricGRBMF7HrpH00P94zh3FPFP5N9nmeoltMVdiiljA7wJOjduaZKgEYfKmpHuLGgVi2zws
-        MmcCbTiXxmLdRqD4ihmgaJorGVC4cUNzZjbXKdx2qbKwtieFdtTW6hOyZUhZhs1gLU4LeHUKZkyEe
-        G6Ssbjxq7Knh4O0qJKVEsUizq0jg968qX8mmLA4Iz90GtJ9TtTV5BqRMl7SL9at1f+iwNWpaXlsix
-        CevzuGJw==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qr1mD-001Bif-Qo
-        for sparclinux@vger.kernel.org; Thu, 12 Oct 2023 19:55:21 +0000
-Date:   Thu, 12 Oct 2023 20:55:21 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     sparclinux@vger.kernel.org
-Subject: [willy@infradead.org: [PATCH 2/2] sparc: Allow nesting of lazy MMU
- mode]
-Message-ID: <ZShPKbi30H3yYd31@casper.infradead.org>
+        with ESMTP id S229437AbjJMFja (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 13 Oct 2023 01:39:30 -0400
+Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D8B6B7;
+        Thu, 12 Oct 2023 22:39:27 -0700 (PDT)
+Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-4064876e8b8so20061675e9.0;
+        Thu, 12 Oct 2023 22:39:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1697175566; x=1697780366; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=rhiR8ucYsoNpcwMY4pa9jdkIqcioe4I+QXtN4eqyp3A=;
+        b=FQCA/PcQ2GyIi9yR6s7DCOcU91BFSHmXoRVnTtGZrsCydq9Af9BR1nK9jMqRgttll1
+         OW1jKuipxF8RZCk5dra14/gsvq3DSN8lGmEiUTbCNPhBHo6J7Vn+6jbR4IvgsvElFJj1
+         /C4fjEGCCUVJafOUweRDo2J7n6HRv5zZMYdRJb8twVfMCqcpiemreVTklPLW9nmixriH
+         aphSEYKNX/i/YR979Pavx+UQPOtRT6exe5coOI1Zn/mZoBiTPHlCZmotC8LAQjAqinrx
+         bpJDQVhb132SR0Yr+0o6vluCmvTs6Aywk3+rD1pWIJU9d9u1WjDEkr59mxxWZYpPBKVQ
+         IPFA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697175566; x=1697780366;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=rhiR8ucYsoNpcwMY4pa9jdkIqcioe4I+QXtN4eqyp3A=;
+        b=vwr8FULl24Xkn8Y6C55BMAAz/CMEKw+mMsPvSoG13vV/rxLJozXpDnsiFWpXyZ0KP4
+         iZCOcj3lwFPVeuHPetD0Mcl01Kq3iX8z/ZgzIbgXKOyytfZfSrdjoJz0mmiNoTirH+re
+         /2xHjFJYJJPa/LpvaPSfLeDwK+2yjGQDmwiiXvTKai2hYhE4mag83cBP3+A3f4/SzHRK
+         p2qbBWXH/9MdJuxkelwTm0wsdGOgBRvXgcaaFQGgdOzXFdejYtCEINzt8xGFsYL5zQLD
+         5tBpfagQcOF3Vw90PerNccFp+5Hbz52DZ0TjAcw4RKQwPGEESOck3NZt8AfE0YhSix4P
+         DZYQ==
+X-Gm-Message-State: AOJu0YxPW4q2LvG9ovKoGfGOufZ0cptKc4frnEJKn4Zfy9c/wSqhgJ1E
+        PuD8LWyKQaDEt3N9QoEGOrA=
+X-Google-Smtp-Source: AGHT+IGDAmYHJOkaLyRGFo/Kg7znzL6lE/DOYjgFNI3em9D51zNaiFaLRegV51zNgbIqptwTmLvq+w==
+X-Received: by 2002:a05:600c:259:b0:403:b64:ad0a with SMTP id 25-20020a05600c025900b004030b64ad0amr21411651wmj.26.1697175565528;
+        Thu, 12 Oct 2023 22:39:25 -0700 (PDT)
+Received: from dreambig.dreambig.corp ([58.27.187.115])
+        by smtp.gmail.com with ESMTPSA id r3-20020a05600c298300b0040641ce36a8sm258650wmd.1.2023.10.12.22.39.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Oct 2023 22:39:25 -0700 (PDT)
+From:   Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+To:     davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+Subject: [PATCH] arch: sparc: vdso: vdso2c.c: Fixed 'instead' typo
+Date:   Fri, 13 Oct 2023 10:39:20 +0500
+Message-Id: <20231013053920.11606-1-m.muzzammilashraf@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Oops, wrong email address.
+Fixed 'instead' typo
 
------ Forwarded message from "Matthew Wilcox (Oracle)" <willy@infradead.org> -----
-
-Date: Thu, 12 Oct 2023 20:54:15 +0100
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-To: linux-kernel@vger.kernel.org
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	linux-sparc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Michael
-	Ellerman <mpe@ellerman.id.au>, Erhard Furtner <erhard_f@mailbox.org>,
-	David Woodhouse <dwmw2@infradead.org>, Juergen Gross <jgross@suse.com>
-Subject: [PATCH 2/2] sparc: Allow nesting of lazy MMU mode
-X-Mailer: git-send-email 2.37.1
-
-As noted in commit 49147beb0ccb ("x86/xen: allow nesting of same lazy
-mode"), we can now nest calls to arch_enter_lazy_mmu_mode().  Use ->active
-as a counter instead of a flag and only drain the batch when the counter
-hits 0.
-
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Fixes: bcc6cc832573 ("mm: add default definition of set_ptes()")
+Signed-off-by: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
 ---
- arch/sparc/mm/tlb.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/sparc/vdso/vdso2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index b44d79d778c7..a82c7c32e47d 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -54,16 +54,15 @@ void arch_enter_lazy_mmu_mode(void)
- {
- 	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
+diff --git a/arch/sparc/vdso/vdso2c.c b/arch/sparc/vdso/vdso2c.c
+index dc81240aab6f..1ae1e5e0e206 100644
+--- a/arch/sparc/vdso/vdso2c.c
++++ b/arch/sparc/vdso/vdso2c.c
+@@ -192,7 +192,7 @@ int main(int argc, char **argv)
  
--	tb->active = 1;
-+	tb->active++;
- }
- 
- void arch_leave_lazy_mmu_mode(void)
- {
- 	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
- 
--	if (tb->tlb_nr)
-+	if ((--tb->active == 0) && tb->tlb_nr)
- 		flush_tlb_pending();
--	tb->active = 0;
- }
- 
- static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ 	/*
+ 	 * Figure out the struct name.  If we're writing to a .so file,
+-	 * generate raw output insted.
++	 * generate raw output instead.
+ 	 */
+ 	name = strdup(argv[3]);
+ 	namelen = strlen(name);
 -- 
-2.40.1
+2.27.0
 
-
------ End forwarded message -----
