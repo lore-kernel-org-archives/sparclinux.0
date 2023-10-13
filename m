@@ -2,86 +2,67 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E4E7CDB47E
-	for <sparclinux@archiver.kernel.org>; Fri, 13 Oct 2023 05:39:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C117CDB47E
+	for <sparclinux@archiver.kernel.org>; Fri, 13 Oct 2023 07:35:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229532AbjJMFja (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 13 Oct 2023 01:39:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40258 "EHLO
+        id S229734AbjJMHfd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 13 Oct 2023 03:35:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbjJMFja (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 13 Oct 2023 01:39:30 -0400
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D8B6B7;
-        Thu, 12 Oct 2023 22:39:27 -0700 (PDT)
-Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-4064876e8b8so20061675e9.0;
-        Thu, 12 Oct 2023 22:39:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697175566; x=1697780366; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=rhiR8ucYsoNpcwMY4pa9jdkIqcioe4I+QXtN4eqyp3A=;
-        b=FQCA/PcQ2GyIi9yR6s7DCOcU91BFSHmXoRVnTtGZrsCydq9Af9BR1nK9jMqRgttll1
-         OW1jKuipxF8RZCk5dra14/gsvq3DSN8lGmEiUTbCNPhBHo6J7Vn+6jbR4IvgsvElFJj1
-         /C4fjEGCCUVJafOUweRDo2J7n6HRv5zZMYdRJb8twVfMCqcpiemreVTklPLW9nmixriH
-         aphSEYKNX/i/YR979Pavx+UQPOtRT6exe5coOI1Zn/mZoBiTPHlCZmotC8LAQjAqinrx
-         bpJDQVhb132SR0Yr+0o6vluCmvTs6Aywk3+rD1pWIJU9d9u1WjDEkr59mxxWZYpPBKVQ
-         IPFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697175566; x=1697780366;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=rhiR8ucYsoNpcwMY4pa9jdkIqcioe4I+QXtN4eqyp3A=;
-        b=vwr8FULl24Xkn8Y6C55BMAAz/CMEKw+mMsPvSoG13vV/rxLJozXpDnsiFWpXyZ0KP4
-         iZCOcj3lwFPVeuHPetD0Mcl01Kq3iX8z/ZgzIbgXKOyytfZfSrdjoJz0mmiNoTirH+re
-         /2xHjFJYJJPa/LpvaPSfLeDwK+2yjGQDmwiiXvTKai2hYhE4mag83cBP3+A3f4/SzHRK
-         p2qbBWXH/9MdJuxkelwTm0wsdGOgBRvXgcaaFQGgdOzXFdejYtCEINzt8xGFsYL5zQLD
-         5tBpfagQcOF3Vw90PerNccFp+5Hbz52DZ0TjAcw4RKQwPGEESOck3NZt8AfE0YhSix4P
-         DZYQ==
-X-Gm-Message-State: AOJu0YxPW4q2LvG9ovKoGfGOufZ0cptKc4frnEJKn4Zfy9c/wSqhgJ1E
-        PuD8LWyKQaDEt3N9QoEGOrA=
-X-Google-Smtp-Source: AGHT+IGDAmYHJOkaLyRGFo/Kg7znzL6lE/DOYjgFNI3em9D51zNaiFaLRegV51zNgbIqptwTmLvq+w==
-X-Received: by 2002:a05:600c:259:b0:403:b64:ad0a with SMTP id 25-20020a05600c025900b004030b64ad0amr21411651wmj.26.1697175565528;
-        Thu, 12 Oct 2023 22:39:25 -0700 (PDT)
-Received: from dreambig.dreambig.corp ([58.27.187.115])
-        by smtp.gmail.com with ESMTPSA id r3-20020a05600c298300b0040641ce36a8sm258650wmd.1.2023.10.12.22.39.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Oct 2023 22:39:25 -0700 (PDT)
-From:   Muhammad Muzammil <m.muzzammilashraf@gmail.com>
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Muhammad Muzammil <m.muzzammilashraf@gmail.com>
-Subject: [PATCH] arch: sparc: vdso: vdso2c.c: Fixed 'instead' typo
-Date:   Fri, 13 Oct 2023 10:39:20 +0500
-Message-Id: <20231013053920.11606-1-m.muzzammilashraf@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229441AbjJMHfc (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 13 Oct 2023 03:35:32 -0400
+Received: from mail.venturelinkbiz.com (mail.venturelinkbiz.com [51.195.119.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76A85B8
+        for <sparclinux@vger.kernel.org>; Fri, 13 Oct 2023 00:35:29 -0700 (PDT)
+Received: by mail.venturelinkbiz.com (Postfix, from userid 1002)
+        id 3B14346FE7; Fri, 13 Oct 2023 07:35:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=venturelinkbiz.com;
+        s=mail; t=1697182526;
+        bh=JBV4b8UUo1MSngn/QBoedt1Dv52bT8rWeq4R22MtJMs=;
+        h=Date:From:To:Subject:From;
+        b=dUfqp+iiI3dO9JUc+gvRRld40N1sO3s8FAJoSIFby4qevhrtrUANedLBOeIdQif+f
+         pqXjE3eK1Mi6jI24WgFiHYf6bNQEbm8uXCDjEG+n9YxaZHjFtz2i/6RBZKJ2x7SgPE
+         pcSOZgfbgo1XNdLfvufbIk5Ekhl/7mt+nmkJP2MbjLO/DF8PeQIlGsConcy+1KKTjS
+         y3xbTEuLJzbymoRCyVp2t0nF7PnX4eA5Emf7Gf2Zs4jZPd0oOjLUnfE7N8tCmnSHxK
+         jylBzKhGhckv2vGJk2pbnJu/YJfkb28cB3WPrLVW6v8XAN8B8r9L2EzBe5t2rYUeAO
+         iVmELgeK/KssQ==
+Received: by mail.venturelinkbiz.com for <sparclinux@vger.kernel.org>; Fri, 13 Oct 2023 07:35:23 GMT
+Message-ID: <20231013064500-0.1.2z.8ap4.0.9h6mnif5nc@venturelinkbiz.com>
+Date:   Fri, 13 Oct 2023 07:35:23 GMT
+From:   "Michal Rmoutil" <michal.rmoutil@venturelinkbiz.com>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Efektivn=C3=AD_sledov=C3=A1n=C3=AD_a_optimalizace_v=C3=BDroby_pro_va=C5=A1i_spole=C4=8Dnost?=
+X-Mailer: mail.venturelinkbiz.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Fixed 'instead' typo
+Dobr=C3=A9 r=C3=A1no,
 
-Signed-off-by: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
----
- arch/sparc/vdso/vdso2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+m=C3=A1te mo=C5=BEnost sledovat stav ka=C5=BEd=C3=A9ho stroje a v=C3=BDro=
+bn=C3=ADho procesu z kancel=C3=A1=C5=99e, konferen=C4=8Dn=C3=AD m=C3=ADst=
+nosti nebo dokonce z domova =C4=8Di na cest=C3=A1ch =E2=80=93 na va=C5=A1=
+em telefonu?
 
-diff --git a/arch/sparc/vdso/vdso2c.c b/arch/sparc/vdso/vdso2c.c
-index dc81240aab6f..1ae1e5e0e206 100644
---- a/arch/sparc/vdso/vdso2c.c
-+++ b/arch/sparc/vdso/vdso2c.c
-@@ -192,7 +192,7 @@ int main(int argc, char **argv)
- 
- 	/*
- 	 * Figure out the struct name.  If we're writing to a .so file,
--	 * generate raw output insted.
-+	 * generate raw output instead.
- 	 */
- 	name = strdup(argv[3]);
- 	namelen = strlen(name);
--- 
-2.27.0
+Poskytujeme rychle implementovateln=C3=BD a snadno pou=C5=BEiteln=C3=BD n=
+=C3=A1stroj, kter=C3=BD zachyt=C3=AD i n=C4=9Bkolikasekundov=C3=BD mikrop=
+rostoj a okam=C5=BEit=C4=9B p=C5=99epo=C4=8D=C3=ADt=C3=A1 vyu=C5=BEit=C3=AD=
+ stroje v kontextu dan=C3=A9 v=C3=BDrobn=C3=AD zak=C3=A1zky.
 
+Kdykoli vid=C3=ADte stav objedn=C3=A1vky a jste informov=C3=A1ni o p=C5=99=
+=C3=ADpadn=C3=A9m sn=C3=AD=C5=BEen=C3=AD efektivity. Syst=C3=A9m s=C3=A1m=
+ analyzuje data a p=C5=99ipravuje cenn=C3=A9 reporty, co=C5=BE oper=C3=A1=
+tor=C5=AFm umo=C5=BE=C5=88uje soust=C5=99edit se na v=C3=BDrobn=C3=AD c=C3=
+=ADl.
+
+C=C3=ADl je jednoduch=C3=BD: jeden pohled =E2=80=93 cel=C3=A1 tov=C3=A1rn=
+a. =C4=8Cek=C3=A1m na odpov=C4=9B=C4=8F, jestli vid=C3=ADte mo=C5=BEnost =
+vyu=C5=BEit=C3=AD takov=C3=A9ho n=C3=A1stroje ve va=C5=A1=C3=AD firm=C4=9B=
+=2E
+
+
+Pozdravy
+Michal Rmoutil
