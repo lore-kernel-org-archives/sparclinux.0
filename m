@@ -2,128 +2,137 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4C60CDB485
-	for <sparclinux@archiver.kernel.org>; Fri, 13 Oct 2023 21:03:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59232C46CA1
+	for <sparclinux@archiver.kernel.org>; Sat, 14 Oct 2023 08:42:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232130AbjJMVD2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 13 Oct 2023 17:03:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54378 "EHLO
+        id S232859AbjJNImF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 14 Oct 2023 04:42:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229679AbjJMVDZ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 13 Oct 2023 17:03:25 -0400
-Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com [IPv6:2607:f8b0:4864:20::b31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15B3AB7;
-        Fri, 13 Oct 2023 14:03:21 -0700 (PDT)
-Received: by mail-yb1-xb31.google.com with SMTP id 3f1490d57ef6-d9ac43d3b71so2385538276.0;
-        Fri, 13 Oct 2023 14:03:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697231000; x=1697835800; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JtiOVCn2uSsz0FoSYRDQt6Ad/oEEDkzUyvmWznVzlSA=;
-        b=azcdS5mk3fTak+nb/eug5AYpCwxC5kpdPWDxsTbKwRaTZsnLV+Lx6RGqcJnIyUdE7E
-         i8mcurTG2K1UAzdKUEP1S6mdqR+ibq2oLmQ3X9nYbM0kG2dZD3+5jy7tWcqTlQuPlXEn
-         YxekVNV3znDqK079lRSP9QXygD9u0NmyD1tg7EsKIgxZZ9rwNdXqbYT+ovXnVO/ci831
-         mgB/pG84f12ARASoT4IyPoOJNm6RHJASuCu6rXvY9sR+TJqwnt77yCRbkYhGzdUBrhXd
-         8X5ZM+bDS4cgt/tdAP3JdjHz4hcbnQ2wJko+oS911py/MlPJdtAAXbYPgvNL5+6cI/+s
-         ivbA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697231000; x=1697835800;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=JtiOVCn2uSsz0FoSYRDQt6Ad/oEEDkzUyvmWznVzlSA=;
-        b=EoOdS6t9q5onboOSajiihDPwrOvD9jjmmZ0TIdOI+n9UUe11Qay6YbTt3flkCOKUJQ
-         ARCPDnwSv6Bs3VDI5IxdZzbQJCIQeqxrf3xuzq1iuv5bwBBeLK+nEebUyPBjCUySqrIR
-         0J68695SPTegha0BBJICgKu6KzXmAdwngFFH/rOG0W2o+RGqynfvOSZaggW1LjGxFCjS
-         3yslMQT6PQGUZSF7jsbLXGalqj48rkF+6H8UV7eBkF7tvXblE7/vRwBvtycqMznRcLJh
-         3l7WnU9pim0Tk9jgbHQv0qJQYzmiG5GIStf3RfL1H0Tt/MyisN30fssYiGCIRgg/Takh
-         049g==
-X-Gm-Message-State: AOJu0YwuMAUa/Yms10yiEquu3Ujskw3v3j1JidWpHUt+4pt3l+aT8B3W
-        QwBTXNyvRLeShvHZLvHa5uEIsTYwQeSGzw8QLec=
-X-Google-Smtp-Source: AGHT+IHWHj9ILTPWExZ8ekeA0/ryyRW0ZV6k5VhEVnOo+k5EpZsvEbKt/nom23K7vTTS2zHZvjjk2tEmm58T8MLLm1U=
-X-Received: by 2002:a5b:64d:0:b0:d9b:3b3e:5a07 with SMTP id
- o13-20020a5b064d000000b00d9b3b3e5a07mr2004058ybq.5.1697230999223; Fri, 13 Oct
- 2023 14:03:19 -0700 (PDT)
+        with ESMTP id S232981AbjJNImE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 14 Oct 2023 04:42:04 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26EF8CF;
+        Sat, 14 Oct 2023 01:42:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4D53C433CC;
+        Sat, 14 Oct 2023 08:42:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1697272921;
+        bh=G4Swg/OELkKA5zlwNUrWJdm9EBLT0JpHuSiYFDVKAVw=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=K+yp/KOZHEM3arVfGghtli0iELZWZqeBdZQjVLVWAUiNiyjaLooZNU+qmDCQBd7ul
+         wJaBzeZOVlPFEUG5h5tlObcnYkX0avwfR0zxFXrVQEiQDnBc/Lml9dt/p9dThylmIB
+         6dy7VAWjVXsKM31JLEaZWzS991xED7EXyxYEqup8PHhHUWT6i4XXZP3blNDWD9gE4P
+         HBZnzVjpf+964c0m1gsJz512u75AQxj5sGo0kVtbsfwjz6xNJ/scm1p3BONbVF4ExA
+         K1tnbxCnRJlB0L9unW/GUHbyPmh79PM5kqNhJnIfBbfDsshHj4MN11rBcR3rT09vWo
+         iM+Y47HqeqnfA==
+Received: by mail-oa1-f54.google.com with SMTP id 586e51a60fabf-1e12f41e496so1689244fac.3;
+        Sat, 14 Oct 2023 01:42:01 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yz4FCxjo8rnzI9SUZWLZiNWUksnpsU8wpWJrHegCFqAKgy8qbpN
+        b6VpC3Sujat6zTsBAlc5WTJ1PeSa0Fe2M75/tcU=
+X-Google-Smtp-Source: AGHT+IEDHn8hDctpEgrOdAxDg4ZGS+fyZbcsCWC8+bRNQUrpKMWoTdaHrZNdtFPEOiGiKHQudHJYv6z04ih1iicSLkY=
+X-Received: by 2002:a05:6870:7687:b0:1e9:d6c8:d031 with SMTP id
+ dx7-20020a056870768700b001e9d6c8d031mr4746345oab.26.1697272921007; Sat, 14
+ Oct 2023 01:42:01 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230807230513.102486-1-vishal.moola@gmail.com>
- <20230807230513.102486-15-vishal.moola@gmail.com> <20231012072505.6160-A-hca@linux.ibm.com>
-In-Reply-To: <20231012072505.6160-A-hca@linux.ibm.com>
-From:   Vishal Moola <vishal.moola@gmail.com>
-Date:   Fri, 13 Oct 2023 14:03:08 -0700
-Message-ID: <CAOzc2px-SFSnmjcPriiB3cm1fNj3+YC8S0VSp4t1QvDR0f4E2A@mail.gmail.com>
-Subject: Re: [PATCH mm-unstable v9 14/31] s390: Convert various pgalloc
- functions to use ptdescs
-To:     Heiko Carstens <hca@linux.ibm.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org, kvm@vger.kernel.org,
-        Hugh Dickins <hughd@google.com>,
-        David Hildenbrand <david@redhat.com>,
-        Claudio Imbrenda <imbrenda@linux.ibm.com>,
-        Mike Rapoport <rppt@kernel.org>
+References: <20231009124210.1064021-1-masahiroy@kernel.org>
+ <20231009124210.1064021-5-masahiroy@kernel.org> <20231009164424.GB1153868@dev-arch.thelio-3990X>
+In-Reply-To: <20231009164424.GB1153868@dev-arch.thelio-3990X>
+From:   Masahiro Yamada <masahiroy@kernel.org>
+Date:   Sat, 14 Oct 2023 17:41:25 +0900
+X-Gmail-Original-Message-ID: <CAK7LNASZ78NX13cfGiCeXGxB7A_2CasuAgNv-XzyWM79PD2NwA@mail.gmail.com>
+Message-ID: <CAK7LNASZ78NX13cfGiCeXGxB7A_2CasuAgNv-XzyWM79PD2NwA@mail.gmail.com>
+Subject: Re: [PATCH 5/5] kbuild: unify no-compiler-targets and no-sync-config-targets
+To:     Nathan Chancellor <nathan@kernel.org>
+Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
+        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
+        x86@kernel.org, Nick Desaulniers <ndesaulniers@google.com>,
+        Nicolas Schier <nicolas@fjasle.eu>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Oct 12, 2023 at 12:25=E2=80=AFAM Heiko Carstens <hca@linux.ibm.com>=
- wrote:
+On Tue, Oct 10, 2023 at 1:44=E2=80=AFAM Nathan Chancellor <nathan@kernel.or=
+g> wrote:
 >
-> On Mon, Aug 07, 2023 at 04:04:56PM -0700, Vishal Moola (Oracle) wrote:
-> > As part of the conversions to replace pgtable constructor/destructors w=
-ith
-> > ptdesc equivalents, convert various page table functions to use ptdescs=
-.
+> On Mon, Oct 09, 2023 at 09:42:10PM +0900, Masahiro Yamada wrote:
+> > Now that vdso_install does not depend on any in-tree build artifact,
+> > it no longer invokes a compiler, making no-compiler-targets the same
+> > as no-sync-config-targets.
 > >
-> > Some of the functions use the *get*page*() helper functions. Convert
-> > these to use pagetable_alloc() and ptdesc_address() instead to help
-> > standardize page tables further.
-> >
-> > Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> > Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 > > ---
-> >  arch/s390/include/asm/pgalloc.h |   4 +-
-> >  arch/s390/include/asm/tlb.h     |   4 +-
-> >  arch/s390/mm/pgalloc.c          | 128 ++++++++++++++++----------------
-> >  3 files changed, 69 insertions(+), 67 deletions(-)
-> ...
-> > diff --git a/arch/s390/mm/pgalloc.c b/arch/s390/mm/pgalloc.c
-> > index d7374add7820..07fc660a24aa 100644
-> > --- a/arch/s390/mm/pgalloc.c
-> > +++ b/arch/s390/mm/pgalloc.c
-> ...
-> > @@ -488,16 +486,20 @@ static void base_pgt_free(unsigned long *table)
-> >  static unsigned long *base_crst_alloc(unsigned long val)
-> >  {
-> >       unsigned long *table;
-> > +     struct ptdesc *ptdesc;
 > >
-> > -     table =3D (unsigned long *)__get_free_pages(GFP_KERNEL, CRST_ALLO=
-C_ORDER);
-> > -     if (table)
-> > -             crst_table_init(table, val);
-> > +     ptdesc =3D pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, CRST_ALLO=
-C_ORDER);
+> >  Makefile | 13 +------------
+> >  1 file changed, 1 insertion(+), 12 deletions(-)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index 2170d56630e8..982b1ad33287 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -277,10 +277,6 @@ no-dot-config-targets :=3D $(clean-targets) \
+> >                        $(version_h) headers headers_% archheaders archs=
+cripts \
+> >                        %asm-generic kernelversion %src-pkg dt_binding_c=
+heck \
+> >                        outputmakefile rustavailable rustfmt rustfmtchec=
+k
+> > -# Installation targets should not require compiler. Unfortunately, vds=
+o_install
+> > -# is an exception where build artifacts may be updated. This must be f=
+ixed.
+> > -no-compiler-targets :=3D $(no-dot-config-targets) install dtbs_install=
+ \
+> > -                     headers_install modules_install modules_sign kern=
+elrelease image_name
+> >  no-sync-config-targets :=3D $(no-dot-config-targets) %install modules_=
+sign kernelrelease \
+> >                         image_name
+> >  single-targets :=3D %.a %.i %.ko %.lds %.ll %.lst %.mod %.o %.rsi %.s =
+%.symtypes %/
+> > @@ -288,7 +284,6 @@ single-targets :=3D %.a %.i %.ko %.lds %.ll %.lst %=
+.mod %.o %.rsi %.s %.symtypes %
+> >  config-build :=3D
+> >  mixed-build  :=3D
+> >  need-config  :=3D 1
+> > -need-compiler        :=3D 1
+> >  may-sync-config      :=3D 1
+> >  single-build :=3D
+> >
+> > @@ -298,12 +293,6 @@ ifneq ($(filter $(no-dot-config-targets), $(MAKECM=
+DGOALS)),)
+> >       endif
+> >  endif
+> >
+> > -ifneq ($(filter $(no-compiler-targets), $(MAKECMDGOALS)),)
+> > -     ifeq ($(filter-out $(no-compiler-targets), $(MAKECMDGOALS)),)
+> > -             need-compiler :=3D
+> > -     endif
+> > -endif
+> > -
 >
-> I guess I must miss something, but what is the reason to mask out
-> __GFP_HIGHMEM here? It is not part of GFP_KERNEL, nor does s390 support
-> HIGHMEM.
+> MIPS and LoongArch seem to have grown a usage of need-compiler in
+> 4fe4a6374c4d ("MIPS: Only fiddle with CHECKFLAGS if `need-compiler'")
+> and 54c2c9df083f ("LoongArch: Only fiddle with CHECKFLAGS if
+> `need-compiler'"). With this removal, should those be updated as well?
 
-You're not missing anything.
 
-This was replacing __get_free_pages() which also doesn't support HIGHMEM,
-so I had that in to ensure a non-HIGHMEM allocation in case a
-passed-in gfp_flags
-had it set. In hindsight since we're just passing in the GFP flags
-directly here, we don't
-actually need to mask out GFP_HIGHMEM.
+Right, but may-sync-config and need-compiler are not
+interchangeable due to the following code.
+
+ifneq ($(KBUILD_EXTMOD),)
+        may-sync-config :=3D
+endif
+
+
+I will keep both.
+
+
+--=20
+Best Regards
+Masahiro Yamada
