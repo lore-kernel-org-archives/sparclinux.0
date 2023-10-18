@@ -2,78 +2,124 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0837DCDB482
-	for <sparclinux@archiver.kernel.org>; Tue, 17 Oct 2023 12:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA89ACDB482
+	for <sparclinux@archiver.kernel.org>; Wed, 18 Oct 2023 10:49:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343545AbjJQMGB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 17 Oct 2023 08:06:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43370 "EHLO
+        id S230363AbjJRKtF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 18 Oct 2023 06:49:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235001AbjJQMFc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 17 Oct 2023 08:05:32 -0400
-X-Greylist: delayed 426 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 17 Oct 2023 05:05:05 PDT
-Received: from mail.avm.de (mail.avm.de [IPv6:2001:bf0:244:244::120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2993E134;
-        Tue, 17 Oct 2023 05:05:04 -0700 (PDT)
-Received: from mail-auth.avm.de (dovecot-mx-01.avm.de [212.42.244.71])
-        by mail.avm.de (Postfix) with ESMTPS;
-        Tue, 17 Oct 2023 13:57:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=avm.de; s=mail;
-        t=1697543873; bh=osOPrqiiKOprJxC70XFTAVq992xL7ZaM2aZVaEQG2Qc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=LnJgpiNWAMGVc0xEWtD9K4S88LSSPMbgijDz2pOHmBktW2Orxe1PlrhnLTDsBrgGX
-         tfFz/35yEpjsd2lWXJB3L8dxOM1f2ywcRKM8oZxaKD9ofLnmAeJI+8zMVH6ERwT4HW
-         LewlwUwa8Y743N4nthnjDBYgG1826/sWxFei++6o=
-Received: from buildd.core.avm.de (buildd-sv-01.avm.de [172.16.0.225])
-        by mail-auth.avm.de (Postfix) with ESMTPA id 1002280683;
-        Tue, 17 Oct 2023 13:57:54 +0200 (CEST)
-Received: by buildd.core.avm.de (Postfix, from userid 1000)
-        id 0841B1819FD; Tue, 17 Oct 2023 13:57:54 +0200 (CEST)
-Date:   Tue, 17 Oct 2023 13:57:54 +0200
-From:   Nicolas Schier <n.schier@avm.de>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        x86@kernel.org, Nicolas Schier <nicolas@fjasle.eu>
-Subject: Re: [PATCH v2 2/2] kbuild: unify no-compiler-targets and
- no-sync-config-targets
-Message-ID: <ZS52wrL9meW8iehZ@buildd.core.avm.de>
-Mail-Followup-To: Masahiro Yamada <masahiroy@kernel.org>,
-        linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-um@lists.infradead.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
-        x86@kernel.org
-References: <20231014105436.2119702-1-masahiroy@kernel.org>
- <20231014105436.2119702-2-masahiroy@kernel.org>
+        with ESMTP id S230057AbjJRKtE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 18 Oct 2023 06:49:04 -0400
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6092FF;
+        Wed, 18 Oct 2023 03:49:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1697626140;
+        bh=3xWcji3oXjlN4cFukeLMtXQkcjmbOBmNuowH8WPgpqg=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=dSMsP/ETZci4Y90jENdqAUbUV4tg7l7t750Pe69hZMYUPqmlGGYZkb6yRIl8yDLFf
+         /omnvBNpejjy8tnAf/mOpBbMrR0m2tpZeWAfIeIIRQdypgILcreVGx4IvLCdwQvtHi
+         ZLDfUBUHEZFWV0Sla+UsS3dgFaDp0Zi9UHQoIcVWG8W1mpO4ksfZXApbK6uUIpJJCt
+         ji5wtK6EjMbdd8GGudB8lG6dgOxPSl5YTC/nwHljwzatAAGxmIg931O54qvU7biaSQ
+         2NZO2VolvUQmPCrtOlhRbYg15rfUsekBU39vQAMSXRUJLifgfmaFy0H70KXYAwXBsZ
+         EZVZNNGZ9KphA==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4S9SJT6JZtz4xPX;
+        Wed, 18 Oct 2023 21:48:57 +1100 (AEDT)
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Thomas Zimmermann <tzimmermann@suse.de>, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, arnd@arndb.de, deller@gmx.de,
+        javierm@redhat.com
+Cc:     linuxppc-dev@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-arch@vger.kernel.org
+Subject: Re: [PATCH v5 0/5] ppc, fbdev: Clean up fbdev mmap helper
+In-Reply-To: <de09143e-ab7f-4ccc-8a5a-50e0f48c1b40@suse.de>
+References: <20230922080636.26762-1-tzimmermann@suse.de>
+ <de09143e-ab7f-4ccc-8a5a-50e0f48c1b40@suse.de>
+Date:   Wed, 18 Oct 2023 21:48:54 +1100
+Message-ID: <87a5sg6wa1.fsf@mail.lhotse>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20231014105436.2119702-2-masahiroy@kernel.org>
-X-purgate-ID: 149429::1697543872-187BED95-BE924DB1/0/0
-X-purgate-type: clean
-X-purgate-size: 416
-X-purgate-Ad: Categorized by eleven eXpurgate (R) http://www.eleven.de
-X-purgate: This mail is considered clean (visit http://www.eleven.de for further information)
-X-purgate: clean
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Oct 14, 2023 at 07:54:36PM +0900, Masahiro Yamada wrote:
-> Now that vdso_install does not depend on any in-tree build artifact,
-> it no longer needs a compiler, making no-compiler-targets the same
-> as no-sync-config-targets.
-> 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-> ---
-> 
-> Changes in v2:
->   - Revive need-compiler flag
-> 
+Thomas Zimmermann <tzimmermann@suse.de> writes:
+> FYI, I intent to merge patches 1 and 2 of this patchset into 
+> drm-misc-next. The updates for PowerPC can be merged through PPC trees 
+> later. Let me know if this does not work for you.
 
-Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
+Hi Thomas,
+
+Sorry for the late reply, I was on leave.
+
+Yeah that's fine.
+
+cheers
+
+> Am 22.09.23 um 10:04 schrieb Thomas Zimmermann:
+>> Clean up and rename fb_pgprotect() to work without struct file. Then
+>> refactor the implementation for PowerPC. This change has been discussed
+>> at [1] in the context of refactoring fbdev's mmap code.
+>> 
+>> The first two patches update fbdev and replace fbdev's fb_pgprotect()
+>> with pgprot_framebuffer() on all architectures. The new helper's stream-
+>> lined interface enables more refactoring within fbdev's mmap
+>> implementation.
+>> 
+>> Patches 3 to 5 adapt PowerPC's internal interfaces to provide
+>> phys_mem_access_prot() that works without struct file. Neither the
+>> architecture code or fbdev helpers need the parameter.
+>> 
+>> v5:
+>> 	* improve commit descriptions (Javier)
+>> 	* add missing tags (Geert)
+>> v4:
+>> 	* fix commit message (Christophe)
+>> v3:
+>> 	* rename fb_pgrotect() to pgprot_framebuffer() (Arnd)
+>> v2:
+>> 	* reorder patches to simplify merging (Michael)
+>> 
+>> [1] https://lore.kernel.org/linuxppc-dev/5501ba80-bdb0-6344-16b0-0466a950f82c@suse.com/
+>> 
+>> Thomas Zimmermann (5):
+>>    fbdev: Avoid file argument in fb_pgprotect()
+>>    fbdev: Replace fb_pgprotect() with pgprot_framebuffer()
+>>    arch/powerpc: Remove trailing whitespaces
+>>    arch/powerpc: Remove file parameter from phys_mem_access_prot code
+>>    arch/powerpc: Call internal __phys_mem_access_prot() in fbdev code
+>> 
+>>   arch/ia64/include/asm/fb.h                | 15 +++++++--------
+>>   arch/m68k/include/asm/fb.h                | 19 ++++++++++---------
+>>   arch/mips/include/asm/fb.h                | 11 +++++------
+>>   arch/powerpc/include/asm/book3s/pgtable.h | 10 ++++++++--
+>>   arch/powerpc/include/asm/fb.h             | 13 +++++--------
+>>   arch/powerpc/include/asm/machdep.h        | 13 ++++++-------
+>>   arch/powerpc/include/asm/nohash/pgtable.h | 10 ++++++++--
+>>   arch/powerpc/include/asm/pci.h            |  4 +---
+>>   arch/powerpc/kernel/pci-common.c          |  3 +--
+>>   arch/powerpc/mm/mem.c                     |  8 ++++----
+>>   arch/sparc/include/asm/fb.h               | 15 +++++++++------
+>>   arch/x86/include/asm/fb.h                 | 10 ++++++----
+>>   arch/x86/video/fbdev.c                    | 15 ++++++++-------
+>>   drivers/video/fbdev/core/fb_chrdev.c      |  3 ++-
+>>   include/asm-generic/fb.h                  | 12 ++++++------
+>>   15 files changed, 86 insertions(+), 75 deletions(-)
+>> 
+>> 
+>> base-commit: f8d21cb17a99b75862196036bb4bb93ee9637b74
+>
+> -- 
+> Thomas Zimmermann
+> Graphics Driver Developer
+> SUSE Software Solutions Germany GmbH
+> Frankenstrasse 146, 90461 Nuernberg, Germany
+> GF: Ivo Totev, Andrew Myers, Andrew McDonald, Boudien Moerman
+> HRB 36809 (AG Nuernberg)
