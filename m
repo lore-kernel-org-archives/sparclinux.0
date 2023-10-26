@@ -2,143 +2,82 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F29DCC25B49
-	for <sparclinux@archiver.kernel.org>; Mon, 23 Oct 2023 17:21:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49F80C0032E
+	for <sparclinux@archiver.kernel.org>; Thu, 26 Oct 2023 02:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229615AbjJWRVN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 23 Oct 2023 13:21:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44556 "EHLO
+        id S230409AbjJZCQS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 25 Oct 2023 22:16:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbjJWRVM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 23 Oct 2023 13:21:12 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EE3794;
-        Mon, 23 Oct 2023 10:21:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 977DEC433C7;
-        Mon, 23 Oct 2023 17:21:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1698081670;
-        bh=WQYEKm0Mc7inaH0wFnxcEUmfAmPR1JoMV7fRygVNKQQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ZOVDksWfw+hV9R+Z5ZexM6NcY3xDNdzdq9AsRt4vO9wMdxWhqWWcxLwP+eW4A962q
-         Qk6ekhq2Ipm65VVsfFxXGy8qQeQOWzCvDqLJfEU8nWaZHFbI6flnaXvlVH0CRDWH+w
-         hIMRahts5mdD+tpF+6eXFcpVMEl1Ep7tHL5W7fbVdPmlfZ6yQugf14RafBolwJcEMn
-         21vyDdZz0h9WC0+Q/QJBX2oIB6fGQ1kXhcFuxCsKB2tbLoPEgU/BSdSOixB9qw31iO
-         OgDPN8A4Uqs6uFqTMJcPk6zjMZ/offJmG+hcHSxPefHsLKYd1oYsfoKs6fvoRIkbKX
-         wMvEth+vb/+ag==
-Date:   Mon, 23 Oct 2023 18:21:00 +0100
-From:   Will Deacon <will@kernel.org>
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     linux-kernel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Kent Overstreet <kent.overstreet@linux.dev>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nadav Amit <nadav.amit@gmail.com>,
-        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Puranjay Mohan <puranjay12@gmail.com>,
-        Rick Edgecombe <rick.p.edgecombe@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Song Liu <song@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>, bpf@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-mm@kvack.org, linux-modules@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v3 07/13] arm64, execmem: extend execmem_params for
- generated code allocations
-Message-ID: <20231023172059.GB4041@willie-the-truck>
-References: <20230918072955.2507221-1-rppt@kernel.org>
- <20230918072955.2507221-8-rppt@kernel.org>
+        with ESMTP id S229518AbjJZCQS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 25 Oct 2023 22:16:18 -0400
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191AD93
+        for <sparclinux@vger.kernel.org>; Wed, 25 Oct 2023 19:16:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
+        Message-ID:Subject:To:From:Date:Reply-To:Cc:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=Wzg8L27iK/4jwoWeUpFwrV/R1lAKP0Rc4AC4lxf/kpc=; b=FnnQWYwg0hqm/vxCvpzQSXCleA
+        TPUtsFP4taz+lVzkf4Ig5/s6l9zYY2Wl9I4dsMb2lB+ZkHHKynpn3rbaNh1NV7ZptkgdQW/914bL3
+        INOBWokxMbS4UaP+xhrb9JMMTGlmaX2DPtW2xyRTDaSTYhpqF3SCquoCXtMLdRqHHwdqI7m2ALbRC
+        fzk/nuftmVvMUi/WIr6UoVQIJ/v1Rywq+noI0mhZ/5NNN3RiLK72xU+fnT/bXNlIOGUCvvAqEfZSG
+        X/C8l6X9oePBUTTk8P6mWaynFunJz/HPeswpLXO7pE3q0PrFpR1/JXV0JzPaGRzPbMWMMuKTnL1Xm
+        225/zJDQ==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1qvpuv-005mfx-1V
+        for sparclinux@vger.kernel.org;
+        Thu, 26 Oct 2023 02:16:13 +0000
+Date:   Thu, 26 Oct 2023 03:16:13 +0100
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     sparclinux@vger.kernel.org
+Subject: [PATCH] sparc32: fix a braino in fault handling in
+ csum_and_copy_..._user()
+Message-ID: <20231026021613.GI800259@ZenIV>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230918072955.2507221-8-rppt@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Sep 18, 2023 at 10:29:49AM +0300, Mike Rapoport wrote:
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> 
-> The memory allocations for kprobes and BPF on arm64 can be placed
-> anywhere in vmalloc address space and currently this is implemented with
-> overrides of alloc_insn_page() and bpf_jit_alloc_exec() in arm64.
-> 
-> Define EXECMEM_KPROBES and EXECMEM_BPF ranges in arm64::execmem_params and
-> drop overrides of alloc_insn_page() and bpf_jit_alloc_exec().
-> 
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> ---
->  arch/arm64/kernel/module.c         | 13 +++++++++++++
->  arch/arm64/kernel/probes/kprobes.c |  7 -------
->  arch/arm64/net/bpf_jit_comp.c      | 11 -----------
->  3 files changed, 13 insertions(+), 18 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
-> index cd6320de1c54..d27db168d2a2 100644
-> --- a/arch/arm64/kernel/module.c
-> +++ b/arch/arm64/kernel/module.c
-> @@ -116,6 +116,16 @@ static struct execmem_params execmem_params __ro_after_init = {
->  			.flags = EXECMEM_KASAN_SHADOW,
->  			.alignment = MODULE_ALIGN,
->  		},
-> +		[EXECMEM_KPROBES] = {
-> +			.start = VMALLOC_START,
-> +			.end = VMALLOC_END,
-> +			.alignment = 1,
-> +		},
-> +		[EXECMEM_BPF] = {
-> +			.start = VMALLOC_START,
-> +			.end = VMALLOC_END,
-> +			.alignment = 1,
-> +		},
->  	},
->  };
->  
-> @@ -140,6 +150,9 @@ struct execmem_params __init *execmem_arch_params(void)
->  		r->end = module_plt_base + SZ_2G;
->  	}
->  
-> +	execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
-> +	execmem_params.ranges[EXECMEM_BPF].pgprot = PAGE_KERNEL;
-> +
->  	return &execmem_params;
->  }
->  
-> diff --git a/arch/arm64/kernel/probes/kprobes.c b/arch/arm64/kernel/probes/kprobes.c
-> index 70b91a8c6bb3..6fccedd02b2a 100644
-> --- a/arch/arm64/kernel/probes/kprobes.c
-> +++ b/arch/arm64/kernel/probes/kprobes.c
-> @@ -129,13 +129,6 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
->  	return 0;
->  }
->  
-> -void *alloc_insn_page(void)
-> -{
-> -	return __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
-> -			GFP_KERNEL, PAGE_KERNEL_ROX, VM_FLUSH_RESET_PERMS,
-> -			NUMA_NO_NODE, __builtin_return_address(0));
-> -}
+Fault handler used to make non-trivial calls, so it needed
+to set a stack frame up.  Used to be
+	save ... - grab a stack frame, old %o... become %i...
+	....
+	ret	- go back to address originally in %o7, currently %i7
+	 restore - switch to previous stack frame, in delay slot
+Non-trivial calls had been gone since ab5e8b331244 and that code should
+have become
+	retl	- go back to address in %o7
+	 clr %o0 - have return value set to 0
+What it had become instead was
+	ret	- go back to address in %i7 - return address of *caller*
+	 clr %o0 - have return value set to 0
+which is not good, to put it mildly - we forcibly return 0 from
+csum_and_copy_{from,to}_iter() (which is what the call of that
+thing had been inlined into) and do that without dropping the
+stack frame of said csum_and_copy_..._iter().  Confuses the
+hell out of the caller of csum_and_copy_..._iter(), obviously...
 
-It's slightly curious that we didn't clear the tag here, so it's nice that
-it all happens magically with your series:
+Fixes: ab5e8b331244 "sparc32: propagate the calling conventions change down to __csum_partial_copy_sparc_generic()"
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/sparc/lib/checksum_32.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Will Deacon <will@kernel.org>
+diff --git a/arch/sparc/lib/checksum_32.S b/arch/sparc/lib/checksum_32.S
+index 84ad709cbecb..66eda40fce36 100644
+--- a/arch/sparc/lib/checksum_32.S
++++ b/arch/sparc/lib/checksum_32.S
+@@ -453,5 +453,5 @@ ccslow:	cmp	%g1, 0
+  * we only bother with faults on loads... */
+ 
+ cc_fault:
+-	ret
++	retl
+ 	 clr	%o0
+-- 
+2.39.2
 
-Will
