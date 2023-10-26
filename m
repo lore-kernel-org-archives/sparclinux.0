@@ -2,82 +2,154 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49F80C0032E
-	for <sparclinux@archiver.kernel.org>; Thu, 26 Oct 2023 02:16:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 342CEC25B70
+	for <sparclinux@archiver.kernel.org>; Thu, 26 Oct 2023 08:41:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230409AbjJZCQS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 25 Oct 2023 22:16:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33590 "EHLO
+        id S229888AbjJZIlM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 26 Oct 2023 04:41:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbjJZCQS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 25 Oct 2023 22:16:18 -0400
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191AD93
-        for <sparclinux@vger.kernel.org>; Wed, 25 Oct 2023 19:16:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
-        Message-ID:Subject:To:From:Date:Reply-To:Cc:Content-Transfer-Encoding:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=Wzg8L27iK/4jwoWeUpFwrV/R1lAKP0Rc4AC4lxf/kpc=; b=FnnQWYwg0hqm/vxCvpzQSXCleA
-        TPUtsFP4taz+lVzkf4Ig5/s6l9zYY2Wl9I4dsMb2lB+ZkHHKynpn3rbaNh1NV7ZptkgdQW/914bL3
-        INOBWokxMbS4UaP+xhrb9JMMTGlmaX2DPtW2xyRTDaSTYhpqF3SCquoCXtMLdRqHHwdqI7m2ALbRC
-        fzk/nuftmVvMUi/WIr6UoVQIJ/v1Rywq+noI0mhZ/5NNN3RiLK72xU+fnT/bXNlIOGUCvvAqEfZSG
-        X/C8l6X9oePBUTTk8P6mWaynFunJz/HPeswpLXO7pE3q0PrFpR1/JXV0JzPaGRzPbMWMMuKTnL1Xm
-        225/zJDQ==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
-        id 1qvpuv-005mfx-1V
-        for sparclinux@vger.kernel.org;
-        Thu, 26 Oct 2023 02:16:13 +0000
-Date:   Thu, 26 Oct 2023 03:16:13 +0100
-From:   Al Viro <viro@zeniv.linux.org.uk>
-To:     sparclinux@vger.kernel.org
-Subject: [PATCH] sparc32: fix a braino in fault handling in
- csum_and_copy_..._user()
-Message-ID: <20231026021613.GI800259@ZenIV>
+        with ESMTP id S234854AbjJZIlE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 26 Oct 2023 04:41:04 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A868C10E;
+        Thu, 26 Oct 2023 01:41:01 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F6AFC433C8;
+        Thu, 26 Oct 2023 08:40:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1698309661;
+        bh=CKweGyf2oPo/e/UZLG1WYH3zEQnVvPRR68BdbBl/TGo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=oRC27PQC2plQ2QFtxeYNcapuTdKaVmbmEUR0m69y9zSqXieqEvU2U8HaibfItzWZF
+         yERD96v5VwCZUJZD6El6ZorfVxYGGBw2vENxYrzOh3JNxfzIcWV8Hyo/98RmvjYp1O
+         Ink1QwB6gOI9hZMPLodFMqMmfk4UUgDFD2PT2vR0MIfYSLtLLeyvF4ch6/DBDJ+K3Z
+         0bfW6e3KP7yJWPzCmJpvtwgF2RV+VsKMprb/vimV6IovW84by85aPvP9y1WYUJyow3
+         BUjvGbMWEhiJ9hRAr+vd5AhVyyu5+qGt0miVwVbaUWHgtUSofxp310DRt0OzuziAvf
+         CCAilLzZ675cA==
+Date:   Thu, 26 Oct 2023 11:40:39 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc:     "tglx@linutronix.de" <tglx@linutronix.de>,
+        "mcgrof@kernel.org" <mcgrof@kernel.org>,
+        "deller@gmx.de" <deller@gmx.de>,
+        "bjorn@kernel.org" <bjorn@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "nadav.amit@gmail.com" <nadav.amit@gmail.com>,
+        "linux@armlinux.org.uk" <linux@armlinux.org.uk>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+        "hca@linux.ibm.com" <hca@linux.ibm.com>,
+        "catalin.marinas@arm.com" <catalin.marinas@arm.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "kent.overstreet@linux.dev" <kent.overstreet@linux.dev>,
+        "puranjay12@gmail.com" <puranjay12@gmail.com>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "palmer@dabbelt.com" <palmer@dabbelt.com>,
+        "chenhuacai@kernel.org" <chenhuacai@kernel.org>,
+        "tsbogend@alpha.franken.de" <tsbogend@alpha.franken.de>,
+        "x86@kernel.org" <x86@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
+        "linux-trace-kernel@vger.kernel.org" 
+        <linux-trace-kernel@vger.kernel.org>,
+        "mpe@ellerman.id.au" <mpe@ellerman.id.au>,
+        "christophe.leroy@csgroup.eu" <christophe.leroy@csgroup.eu>,
+        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
+        "rostedt@goodmis.org" <rostedt@goodmis.org>,
+        "will@kernel.org" <will@kernel.org>,
+        "dinguyen@kernel.org" <dinguyen@kernel.org>,
+        "naveen.n.rao@linux.ibm.com" <naveen.n.rao@linux.ibm.com>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        "linux-modules@vger.kernel.org" <linux-modules@vger.kernel.org>,
+        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "song@kernel.org" <song@kernel.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>,
+        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Subject: Re: [PATCH v3 03/13] mm/execmem, arch: convert simple overrides of
+ module_alloc to execmem
+Message-ID: <20231026084039.GJ2824@kernel.org>
+References: <20230918072955.2507221-1-rppt@kernel.org>
+ <20230918072955.2507221-4-rppt@kernel.org>
+ <607927885bb8ca12d4cd5787f01207c256cc8798.camel@intel.com>
+ <00277a3acb36d2309156264c7e8484071bc91614.camel@intel.com>
+ <20231005052622.GD3303@kernel.org>
+ <b26d0a201bf631831a956450ebbccc3c16521133.camel@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Sender: Al Viro <viro@ftp.linux.org.uk>
+In-Reply-To: <b26d0a201bf631831a956450ebbccc3c16521133.camel@intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Fault handler used to make non-trivial calls, so it needed
-to set a stack frame up.  Used to be
-	save ... - grab a stack frame, old %o... become %i...
-	....
-	ret	- go back to address originally in %o7, currently %i7
-	 restore - switch to previous stack frame, in delay slot
-Non-trivial calls had been gone since ab5e8b331244 and that code should
-have become
-	retl	- go back to address in %o7
-	 clr %o0 - have return value set to 0
-What it had become instead was
-	ret	- go back to address in %i7 - return address of *caller*
-	 clr %o0 - have return value set to 0
-which is not good, to put it mildly - we forcibly return 0 from
-csum_and_copy_{from,to}_iter() (which is what the call of that
-thing had been inlined into) and do that without dropping the
-stack frame of said csum_and_copy_..._iter().  Confuses the
-hell out of the caller of csum_and_copy_..._iter(), obviously...
+Hi Rick,
 
-Fixes: ab5e8b331244 "sparc32: propagate the calling conventions change down to __csum_partial_copy_sparc_generic()"
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
----
- arch/sparc/lib/checksum_32.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sorry for the delay, I was a bit preoccupied with $stuff.
 
-diff --git a/arch/sparc/lib/checksum_32.S b/arch/sparc/lib/checksum_32.S
-index 84ad709cbecb..66eda40fce36 100644
---- a/arch/sparc/lib/checksum_32.S
-+++ b/arch/sparc/lib/checksum_32.S
-@@ -453,5 +453,5 @@ ccslow:	cmp	%g1, 0
-  * we only bother with faults on loads... */
+On Thu, Oct 05, 2023 at 06:09:07PM +0000, Edgecombe, Rick P wrote:
+> On Thu, 2023-10-05 at 08:26 +0300, Mike Rapoport wrote:
+> > On Wed, Oct 04, 2023 at 03:39:26PM +0000, Edgecombe, Rick P wrote:
+> > > On Tue, 2023-10-03 at 17:29 -0700, Rick Edgecombe wrote:
+> > > > It seems a bit weird to copy all of this. Is it trying to be
+> > > > faster
+> > > > or
+> > > > something?
+> > > > 
+> > > > Couldn't it just check r->start in execmem_text/data_alloc() path
+> > > > and
+> > > > switch to EXECMEM_DEFAULT if needed then? The
+> > > > execmem_range_is_data()
+> > > > part that comes later could be added to the logic there too. So
+> > > > this
+> > > > seems like unnecessary complexity to me or I don't see the
+> > > > reason.
+> > > 
+> > > I guess this is a bad idea because if you have the full size array
+> > > sitting around anyway you might as well use it and reduce the
+> > > exec_mem_alloc() logic.
+> > 
+> > That's was the idea, indeed. :)
+> > 
+> > > Just looking at it from the x86 side (and
+> > > similar) though, where there is actually only one execmem_range and
+> > > it
+> > > building this whole array with identical data and it seems weird.
+> > 
+> > Right, most architectures have only one range, but to support all
+> > variants
+> > that we have, execmem has to maintain the whole array.
+> 
+> What about just having an index into a smaller set of ranges. The
+> module area and the extra JIT area. So ->ranges can be size 3
+> (statically allocated in the arch code) for three areas and then the
+> index array can be size EXECMEM_TYPE_MAX. The default 0 value of the
+> indexing array will point to the default area and any special areas can
+> be set in the index point to the desired range.
+> 
+> Looking at how it would do for x86 and arm64, it looks maybe a bit
+> better to me. A little bit less code and memory usage, and a bit easier
+> to trace the configuration through to the final state (IMO). What do
+> you think? Very rough, on top of this series, below.
+
+I like your suggestion to only have definitions of actual ranges in arch
+code and index array to redirect allocation requests to the right range.
+I'll make the next version along the lines of your patch.
+
+> As I was playing around with this, I was also wondering why it needs
+> two copies of struct execmem_params: one returned from the arch code
+> and one in exec mem. 
+
+No actual reason, one copy is enough, thanks for catching this.
+
+> And why the temporary arch copy is ro_after_init,
+> but the final execmem.c copy is not ro_after_init?
+
+I just missed it, thanks for pointing out.
  
- cc_fault:
--	ret
-+	retl
- 	 clr	%o0
 -- 
-2.39.2
-
+Sincerely yours,
+Mike.
