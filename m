@@ -2,104 +2,119 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A85D0C25B48
-	for <sparclinux@archiver.kernel.org>; Fri, 27 Oct 2023 20:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BE2C4167B
+	for <sparclinux@archiver.kernel.org>; Mon, 30 Oct 2023 07:01:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232578AbjJ0UP6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 27 Oct 2023 16:15:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44502 "EHLO
+        id S231458AbjJ3HBR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 30 Oct 2023 03:01:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230451AbjJ0UP5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 27 Oct 2023 16:15:57 -0400
-X-Greylist: delayed 5214 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 27 Oct 2023 13:15:53 PDT
-Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 946941AA
-        for <sparclinux@vger.kernel.org>; Fri, 27 Oct 2023 13:15:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=5vY2ZoDSecfIR7/H+Diw/8PUAC75Hdwev/yWO6chghw=;
-        b=SnHeV070deH7zZUa1RQClOZGjaunUP4qNOF8KC5AsiVdndhJ7iw4vC4vg49wSy0OcJuOmZhYK8cAZ
-         RYdaEy25bH5vsl/1F80OZOzU1cK6zm4i9esS8JyKD69pNhMuchyBr1rzkV/ItCdrTsB+iM0wknemPS
-         kTJ6SkTrTsB506nx+/8GCsZ0mSFIvrEgEfN5jtdXRbmo2d3YgwXIw0TT8AO07D7Zedjtt4qL7SnBya
-         Nb4YTM6sO8WUKuuTO2bgzjtDX9lcrPsgccW0BuVvDnlQYh9M4fMcKC5pQYN53o0xRoSfjueVOqshB0
-         +3EOVk/qRScJROec1WZqRedqV1LPnsQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=5vY2ZoDSecfIR7/H+Diw/8PUAC75Hdwev/yWO6chghw=;
-        b=svofhtiZdyW7IpvIK3EB5r0LeMdG+rT3eF6SZVyGZpSJy9o4xx2XOsPe2LMAoyNZwWxiCxDQ6e9aZ
-         lx3XYIhBg==
-X-HalOne-ID: 799dfa96-7505-11ee-a9d8-d73d96f03fed
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay4 (Halon) with ESMTPSA
-        id 799dfa96-7505-11ee-a9d8-d73d96f03fed;
-        Fri, 27 Oct 2023 20:14:48 +0000 (UTC)
-Date:   Fri, 27 Oct 2023 22:14:47 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     sparclinux@vger.kernel.org
-Subject: Re: [PATCH] sparc32: fix a braino in fault handling in
- csum_and_copy_..._user()
-Message-ID: <20231027201447.GA5545@ravnborg.org>
-References: <20231026021613.GI800259@ZenIV>
- <20231027184753.GA1048069@ravnborg.org>
- <20231027190220.GL800259@ZenIV>
+        with ESMTP id S229517AbjJ3HBQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 Oct 2023 03:01:16 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B19191;
+        Mon, 30 Oct 2023 00:01:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30B1CC433C7;
+        Mon, 30 Oct 2023 07:01:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1698649274;
+        bh=EmJn7V2xcCxlebppxaDAhU12OFutDZWRBy0vMaSrWuA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fyer+0uyv1jhu2jxdwK+n1O2/sIgGI7ezOwxQC871hHJ3Cd/JKl9lBlO3pXltUpO2
+         tybWUbFkw8nG3yYnKj5NWsk/KsMeh5cYt2Zf06cFoE4cK0SwwSOQ0meQsCZJmwrLES
+         ZjfIwnoeXu/25/54cCJrG0ThSOL/VsSYVOr1W/9QTaMgDvrgblTvcHPZrDSbxEy8fw
+         AT95UrDI+b348FRlIe6JpCkizTZtGaE3kNe+nAOZWv5ZyGWJevSARlVxf0OsNjI/Uk
+         BM7kNTKVl9T3dS3d/hE9ctd5XEbBUeRh4TuIA6DuyqF/4ni+SgBncpCAAQy/vXTAcB
+         87xr+yc2RIXWg==
+Date:   Mon, 30 Oct 2023 09:00:53 +0200
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Will Deacon <will@kernel.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Puranjay Mohan <puranjay12@gmail.com>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Song Liu <song@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v3 04/13] mm/execmem, arch: convert remaining overrides
+ of module_alloc to execmem
+Message-ID: <20231030070053.GL2824@kernel.org>
+References: <20230918072955.2507221-1-rppt@kernel.org>
+ <20230918072955.2507221-5-rppt@kernel.org>
+ <20231023171420.GA4041@willie-the-truck>
+ <20231026085800.GK2824@kernel.org>
+ <20231026102438.GA6924@willie-the-truck>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231027190220.GL800259@ZenIV>
+In-Reply-To: <20231026102438.GA6924@willie-the-truck>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Al,
+On Thu, Oct 26, 2023 at 11:24:39AM +0100, Will Deacon wrote:
+> On Thu, Oct 26, 2023 at 11:58:00AM +0300, Mike Rapoport wrote:
+> > On Mon, Oct 23, 2023 at 06:14:20PM +0100, Will Deacon wrote:
+> > > On Mon, Sep 18, 2023 at 10:29:46AM +0300, Mike Rapoport wrote:
+> > > > diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
+> > > > index dd851297596e..cd6320de1c54 100644
+> > > > --- a/arch/arm64/kernel/module.c
+> > > > +++ b/arch/arm64/kernel/module.c
 
+...
+
+> > > > -	if (module_direct_base) {
+> > > > -		p = __vmalloc_node_range(size, MODULE_ALIGN,
+> > > > -					 module_direct_base,
+> > > > -					 module_direct_base + SZ_128M,
+> > > > -					 GFP_KERNEL | __GFP_NOWARN,
+> > > > -					 PAGE_KERNEL, 0, NUMA_NO_NODE,
+> > > > -					 __builtin_return_address(0));
+> > > > -	}
+> > > > +	module_init_limits();
+> > > 
+> > > Hmm, this used to be run from subsys_initcall(), but now you're running
+> > > it _really_ early, before random_init(), so randomization of the module
+> > > space is no longer going to be very random if we don't have early entropy
+> > > from the firmware or the CPU, which is likely to be the case on most SoCs.
+> > 
+> > Well, it will be as random as KASLR. Won't that be enough?
 > 
-> Looking at the csum_and_copy_... instances on various architectures,
-> noticing that and going "how the fuck could it possibly work and
-> what moron had broken it?  Oh, lovely - it couldn't, it doesn't
-> and that moron had been myself ;-/"
+> I don't think that's true -- we have the 'kaslr-seed' property for KASLR,
+> but I'm not seeing anything like that for the module randomisation and I
+> also don't see why we need to set these limits so early.
 
-:-)
+x86 needs execmem initialized before ftrace_init() so I thought it would be
+best to setup execmem along with most of MM in mm_core_init().
 
-> 
-> > Do you actually use sparc32 these
-> > days?
-> 
-> qemu image only, TBH - I have an SS20 box, but it hadn't booted for
-> about 10 years...
+I'll move execmem initialization for !x86 to a later point, say
+core_initcall.
+ 
+> Will
 
-Looked at my "museum". At least 5 pcs of sparc32 boxes but I guess
-the NVRAM needs repair on all of them.
-
-I have a LEON4 board somewhere on the shelf too.
-None of this powered up for years either - but I cannot make myself
-getting rid of it. Because maybe one day I find time...
-
-All that said - I have also once suggested to drop sun4m support,
-keeping only the LEON parts. Back then there was some resistance,
-but all for sentimental reasons and I can relate to that, since
-I kept the sparc32 boxes around.
-
-> > You could also kill the EX2 define while touchign the file,
-> > it is no longer used after ab5e8b331244.
-> 
-> Er?  No EX2 in checksum_32.S...  There is one in copy_user.S,
-> but that one _is_ used -
-> 
-> copy_user_table_end:
->         be      copy_user_last7
->          andcc  %g1, 4, %g0
-> 
->         EX(ldd  [%o1], %g2, and %g1, 0xf)
->         add     %o0, 8, %o0
->         add     %o1, 8, %o1
->         EX(st   %g2, [%o0 - 0x08], and %g1, 0xf)
->         EX2(st  %g3, [%o0 - 0x04], and %g1, 0xf, %g1, sub %g1, 4)
-
-Yeah, I'm blind. Somehow the grep output tricked me.
-
-	Sam
+-- 
+Sincerely yours,
+Mike.
