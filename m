@@ -2,136 +2,60 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A55AC4332F
-	for <sparclinux@archiver.kernel.org>; Mon, 30 Oct 2023 21:22:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D98DC4332F
+	for <sparclinux@archiver.kernel.org>; Tue, 31 Oct 2023 08:41:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231812AbjJ3VW6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 30 Oct 2023 17:22:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40594 "EHLO
+        id S233306AbjJaIlp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 31 Oct 2023 04:41:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231951AbjJ3VW5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 Oct 2023 17:22:57 -0400
-Received: from mail.hugovil.com (mail.hugovil.com [162.243.120.170])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 992D511B;
-        Mon, 30 Oct 2023 14:22:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hugovil.com
-        ; s=x; h=Subject:Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Cc:To
-        :From:subject:date:message-id:reply-to;
-        bh=OZB13UmFkPitLseb0iuRjPOZ75p/5s1IyVR8C319A1g=; b=jaXEIT90jztxDfvjed9tBlay0d
-        9b2c7qp9BihSRd5X/6+CnGnPEr/O8BQJnn+JsOqo0zBX1/Oll76bvPih2lYi3EuiNNTwplwFlIAJj
-        xfYls16fXv/oaEqe4RB+a63okFNYp+VlmhfEWjjhmAYcgiwOJAp3RGynbMWOJfgkZHhk=;
-Received: from modemcable168.174-80-70.mc.videotron.ca ([70.80.174.168]:51974 helo=pettiford.lan)
-        by mail.hugovil.com with esmtpa (Exim 4.92)
-        (envelope-from <hugo@hugovil.com>)
-        id 1qxZib-0005os-Uc; Mon, 30 Oct 2023 17:22:42 -0400
-From:   Hugo Villeneuve <hugo@hugovil.com>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>
-Cc:     hugo@hugovil.com, Hugo Villeneuve <hvilleneuve@dimonoff.com>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-serial@vger.kernel.org
-Date:   Mon, 30 Oct 2023 17:22:40 -0400
-Message-Id: <20231030212240.975885-1-hugo@hugovil.com>
-X-Mailer: git-send-email 2.39.2
+        with ESMTP id S233257AbjJaIlo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 31 Oct 2023 04:41:44 -0400
+Received: from mail.romvinc.pl (mail.romvinc.pl [51.254.119.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54FF1DA
+        for <sparclinux@vger.kernel.org>; Tue, 31 Oct 2023 01:41:36 -0700 (PDT)
+Received: by mail.romvinc.pl (Postfix, from userid 1002)
+        id BC66D224EB; Tue, 31 Oct 2023 08:41:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=romvinc.pl; s=mail;
+        t=1698741685; bh=bDX0Agd4PxP1G12JMZUJBnoORj59lnRJWZKQhow1LS4=;
+        h=Date:From:To:Subject:From;
+        b=cuUTlWWlmPs/S6jyWW8O3nE+rQoa3AsTEaOvpHC2aYZ1N39RMHA2hKqT61DJxHT4N
+         fwwcZloOpxeqYx5yxhh+gmyE1OLRkJdpC7kEr6X9jlLbZyDoDZrMQI3dudor/myzz6
+         4upKk8tcUK9cDi2v+n34X+atObS6IC3pH9gBXpozJ24p9a7h6TfjMKuWgdoq1gUNfw
+         ElZa7mfZ7ivI57/eWZ/RsNZ9Yosrm9cSh4/4HoJLB9Xc7SpyDcCSX5FgeHNKr7z5IA
+         fFBhM3IrXXDTSp7gRYeLSVWSAgBLFd6ajb2oEu7Z/NtKZ2eubRWjGZgRNKPvmvlfCb
+         TIWsy8bEo1iZQ==
+Received: by mail.romvinc.pl for <sparclinux@vger.kernel.org>; Tue, 31 Oct 2023 08:40:58 GMT
+Message-ID: <20231031074500-0.1.9c.ycct.0.b7awb17doo@romvinc.pl>
+Date:   Tue, 31 Oct 2023 08:40:58 GMT
+From:   =?UTF-8?Q? "Przemys=C5=82aw_Polak" ?= 
+        <przemyslaw.polak@romvinc.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Pozycjonowanie- informacja
+X-Mailer: mail.romvinc.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 70.80.174.168
-X-SA-Exim-Mail-From: hugo@hugovil.com
-Subject: [PATCH] serial: sunsab: remove trailing whitespaces
-X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
-X-SA-Exim-Scanned: Yes (on mail.hugovil.com)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Hugo Villeneuve <hvilleneuve@dimonoff.com>
+Dzie=C5=84 dobry,=20
 
-Fix coding style. No functional changes.
+jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
+j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
+e Google.=20
 
-Signed-off-by: Hugo Villeneuve <hvilleneuve@dimonoff.com>
----
- drivers/tty/serial/sunsab.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
+=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
+w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
+owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
+dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
 
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index 6aa51a6f8063..1ef2057a7366 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -443,7 +443,7 @@ static void sunsab_start_tx(struct uart_port *port)
- 
- 	up->interrupt_mask1 &= ~(SAB82532_IMR1_ALLS|SAB82532_IMR1_XPR);
- 	writeb(up->interrupt_mask1, &up->regs->w.imr1);
--	
-+
- 	if (!test_bit(SAB82532_XPR, &up->irqflags))
- 		return;
- 
-@@ -549,7 +549,7 @@ static int sunsab_startup(struct uart_port *port)
- 	(void) readb(&up->regs->r.isr1);
- 
- 	/*
--	 * Now, initialize the UART 
-+	 * Now, initialize the UART
- 	 */
- 	writeb(0, &up->regs->w.ccr0);				/* power-down */
- 	writeb(SAB82532_CCR0_MCE | SAB82532_CCR0_SC_NRZ |
-@@ -563,7 +563,7 @@ static int sunsab_startup(struct uart_port *port)
- 			   SAB82532_MODE_RAC);
- 	writeb(up->cached_mode, &up->regs->w.mode);
- 	writeb(SAB82532_RFC_DPS|SAB82532_RFC_RFTH_32, &up->regs->w.rfc);
--	
-+
- 	tmp = readb(&up->regs->rw.ccr0);
- 	tmp |= SAB82532_CCR0_PU;	/* power-up */
- 	writeb(tmp, &up->regs->rw.ccr0);
-@@ -607,7 +607,7 @@ static void sunsab_shutdown(struct uart_port *port)
- 	up->cached_dafo &= ~SAB82532_DAFO_XBRK;
- 	writeb(up->cached_dafo, &up->regs->rw.dafo);
- 
--	/* Disable Receiver */	
-+	/* Disable Receiver */
- 	up->cached_mode &= ~SAB82532_MODE_RAC;
- 	writeb(up->cached_mode, &up->regs->rw.mode);
- 
-@@ -622,7 +622,7 @@ static void sunsab_shutdown(struct uart_port *port)
- 	 * speed the chip was configured for when the port was open).
- 	 */
- #if 0
--	/* Power Down */	
-+	/* Power Down */
- 	tmp = readb(&up->regs->rw.ccr0);
- 	tmp &= ~SAB82532_CCR0_PU;
- 	writeb(tmp, &up->regs->rw.ccr0);
-@@ -649,7 +649,7 @@ static void calc_ebrg(int baud, int *n_ret, int *m_ret)
- 		*m_ret = 0;
- 		return;
- 	}
--     
-+
- 	/*
- 	 * We scale numbers by 10 so that we get better accuracy
- 	 * without having to use floating point.  Here we increment m
-@@ -788,7 +788,7 @@ static const char *sunsab_type(struct uart_port *port)
- {
- 	struct uart_sunsab_port *up = (void *)port;
- 	static char buf[36];
--	
-+
- 	sprintf(buf, "SAB82532 %s", sab82532_version[up->type]);
- 	return buf;
- }
-@@ -933,7 +933,7 @@ static int sunsab_console_setup(struct console *con, char *options)
- 	sunsab_set_mctrl(&up->port, TIOCM_DTR | TIOCM_RTS);
- 
- 	uart_port_unlock_irqrestore(&up->port, flags);
--	
-+
- 	return 0;
- }
- 
+Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
+edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
+edstawi=C4=87 ofert=C4=99?
 
-base-commit: 64ebf8797249e792af2143eb9e4bd404d10a022e
--- 
-2.39.2
 
+Pozdrawiam serdecznie
+Przemys=C5=82aw Polak
