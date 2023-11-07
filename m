@@ -2,82 +2,120 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44060C4332F
-	for <sparclinux@archiver.kernel.org>; Sat,  4 Nov 2023 16:16:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75FB3C4167B
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Nov 2023 10:44:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229491AbjKDQQ6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 4 Nov 2023 12:16:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45412 "EHLO
+        id S233994AbjKGKpA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Nov 2023 05:45:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbjKDQQ5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 4 Nov 2023 12:16:57 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AB2AFB;
-        Sat,  4 Nov 2023 09:16:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-        bh=RT5Ut20jrhX/hrW/CDlt1qCBPlWYiI4JJZPBleWMyLY=; b=nyMtB7I00lmrkt77VjXaHJZ62O
-        guNRsSIyM2Myefi3Fxh8DhOUT1p6ByZfVmonAqzsxXUngTXeHV9BN3rs3ep7+31lVOFk9e+Mmqwy0
-        gYlc2k1PvqyQJfXTVLTdyg47U+xWBCWOfNcjNkXirRT9Fcd8qeWL0R+HC61Nfu430CdqN2WU++eA2
-        hiWC4ooOjbjytW7rihZ7ZJJ28dSL5ZCo77R280zL4l5bna/jeS5SMqu8OlalQDCfg0MZlErnqlSp1
-        dJYpedaM9QLcJ3i/1bs0/8wHgWvBEg10SrYXyCyosDXrKb8tSq7eYK0JeOY5086dkiPISdt5tEV0c
-        83EuIEFQ==;
-Received: from [50.53.46.231] (helo=[192.168.254.15])
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qzJK9-00DaSg-0e;
-        Sat, 04 Nov 2023 16:16:37 +0000
-Message-ID: <439e83e3-cf56-4437-ba20-1fcf90ce8089@infradead.org>
-Date:   Sat, 4 Nov 2023 09:16:34 -0700
+        with ESMTP id S233938AbjKGKpA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Nov 2023 05:45:00 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E45EA3;
+        Tue,  7 Nov 2023 02:44:57 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AF0EC433C7;
+        Tue,  7 Nov 2023 10:44:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1699353896;
+        bh=6KvSSAyHzV1t/xzun1oJg0AqCmYPNZNoG1yjrk+2N5g=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=EfHMKmIUi7LClGqSTR82uTGSALdsGhooGkAQNBOKzdAx9XrKCS32CwP6rRNlINeJp
+         fTBcOh2CbrNgz5T9wN8X4IfDIz30xCLXq2htrhQAdC3JQhS9flLyk/+pf5MtKIc1uc
+         JGySGdYEdfIvLpVTQJXhgpJr9YrJTitMM+csMdn+xILBQI2oGOVjB/sYO87FSSlzde
+         FSNahA1CtFFCQyIxON1Z1I4OewRIeg1rULpA/yqisw7axPef9I0RY6dTvW/rbObEf0
+         ODLYbBKyXYy654yF6yL9+/nSFia7MKf5WBhUfT/JXvT2gH/1if2QXy5oq+hmLNVTje
+         IOMZOtUYIwdeQ==
+Date:   Tue, 7 Nov 2023 10:44:47 +0000
+From:   Will Deacon <will@kernel.org>
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Puranjay Mohan <puranjay12@gmail.com>,
+        Rick Edgecombe <rick.p.edgecombe@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Song Liu <song@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mm@kvack.org, linux-modules@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v3 04/13] mm/execmem, arch: convert remaining overrides
+ of module_alloc to execmem
+Message-ID: <20231107104446.GA19133@willie-the-truck>
+References: <20230918072955.2507221-1-rppt@kernel.org>
+ <20230918072955.2507221-5-rppt@kernel.org>
+ <20231023171420.GA4041@willie-the-truck>
+ <20231026085800.GK2824@kernel.org>
+ <20231026102438.GA6924@willie-the-truck>
+ <20231030070053.GL2824@kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] sparc: Use shared font data
-To:     John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Dr. David Alan Gilbert" <linux@treblig.org>, davem@davemloft.net,
-        sam@ravnborg.org, benh@kernel.crashing.org,
-        akpm@linux-foundation.org
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mpe@ellerman.id.au
-References: <20230807010914.799713-1-linux@treblig.org>
- <ZUWch6-cSpcafPsF@gallifrey>
- <b09106ada4774c7860afc85a28cc564d220cdc7f.camel@physik.fu-berlin.de>
-Content-Language: en-US
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <b09106ada4774c7860afc85a28cc564d220cdc7f.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231030070053.GL2824@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
-
-On 11/4/23 01:53, John Paul Adrian Glaubitz wrote:
-> Hi Dave,
+On Mon, Oct 30, 2023 at 09:00:53AM +0200, Mike Rapoport wrote:
+> On Thu, Oct 26, 2023 at 11:24:39AM +0100, Will Deacon wrote:
+> > On Thu, Oct 26, 2023 at 11:58:00AM +0300, Mike Rapoport wrote:
+> > > On Mon, Oct 23, 2023 at 06:14:20PM +0100, Will Deacon wrote:
+> > > > On Mon, Sep 18, 2023 at 10:29:46AM +0300, Mike Rapoport wrote:
+> > > > > diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
+> > > > > index dd851297596e..cd6320de1c54 100644
+> > > > > --- a/arch/arm64/kernel/module.c
+> > > > > +++ b/arch/arm64/kernel/module.c
 > 
-> On Sat, 2023-11-04 at 01:21 +0000, Dr. David Alan Gilbert wrote:
->> The PowerPC version of this just got merged (0ebc7feae79ac, thanks
->> Michael!), but I've not had any interest from anyone to merge
->> this SPARC version; I'd be happy to rebase and text on current
->> head if someone has an idea how to get it merged.
+> ...
 > 
-> Since both Debian and Gentoo are still maintaining their SPARC ports, we're
-> naturally interested in getting such improvements merged. However, the SPARC
-> maintainer, David Miller, has been inactive for some time and I currently don't
-> know what the state of his role as the maintainer is.
+> > > > > -	if (module_direct_base) {
+> > > > > -		p = __vmalloc_node_range(size, MODULE_ALIGN,
+> > > > > -					 module_direct_base,
+> > > > > -					 module_direct_base + SZ_128M,
+> > > > > -					 GFP_KERNEL | __GFP_NOWARN,
+> > > > > -					 PAGE_KERNEL, 0, NUMA_NO_NODE,
+> > > > > -					 __builtin_return_address(0));
+> > > > > -	}
+> > > > > +	module_init_limits();
+> > > > 
+> > > > Hmm, this used to be run from subsys_initcall(), but now you're running
+> > > > it _really_ early, before random_init(), so randomization of the module
+> > > > space is no longer going to be very random if we don't have early entropy
+> > > > from the firmware or the CPU, which is likely to be the case on most SoCs.
+> > > 
+> > > Well, it will be as random as KASLR. Won't that be enough?
+> > 
+> > I don't think that's true -- we have the 'kaslr-seed' property for KASLR,
+> > but I'm not seeing anything like that for the module randomisation and I
+> > also don't see why we need to set these limits so early.
 > 
-> I will try to reach out to him to find out what the state of things is.
+> x86 needs execmem initialized before ftrace_init() so I thought it would be
+> best to setup execmem along with most of MM in mm_core_init().
 > 
-> Thanks for your continued interest in getting this improvement in.
+> I'll move execmem initialization for !x86 to a later point, say
+> core_initcall.
 
-Hi,
-I have a couple of SPARC patches that I would like to see merged also,
-if you have any success:
+Thanks, Mike.
 
-https://lore.kernel.org/lkml/20230703230153.19421-1-rdunlap@infradead.org/
-https://lore.kernel.org/lkml/20230703230202.19844-1-rdunlap@infradead.org/
-
-thanks.
--- 
-~Randy
+Will
