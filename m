@@ -2,46 +2,46 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6763FC04A92
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Nov 2023 23:22:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C527C04E83
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Nov 2023 23:24:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343881AbjKGXWl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Nov 2023 18:22:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45594 "EHLO
+        id S1344309AbjKGXYg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Nov 2023 18:24:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235249AbjKGXWk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Nov 2023 18:22:40 -0500
+        with ESMTP id S1344485AbjKGXYX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Nov 2023 18:24:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D66FAD79;
-        Tue,  7 Nov 2023 15:22:38 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97962C433C7;
-        Tue,  7 Nov 2023 23:22:37 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EAF41BCB;
+        Tue,  7 Nov 2023 15:23:37 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9CA2C433C9;
+        Tue,  7 Nov 2023 23:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1699399358;
-        bh=5aSZH5wA6ryFjcHVYhyKB+UrEDRCSQpwhWEc+VLnw3E=;
+        s=k20201202; t=1699399416;
+        bh=cBMEzm+BNyVJfpDMzEbm3zZpZXgxa4o8L43ZidS4czI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=k653T4fGNRynBicjyfYrUeOpXHpsnRzIgavbo0w3+38r4oAVzVXBAgmMSMM6q+fx7
-         +o8ooOkbivz1N+96hU1yHFHEKkQ2An+AvbKVuTvWcf5jjjnKhDMrETsn3rEEhVO/Pm
-         z2R7DvYxkT95R5fcar2un5btWuOlbe5zjS39B8LX9gF9f8pK2fnLAKMzKZuLIf2WTT
-         u56tY3eCJaPgYsXk/3a3Jm/PtT7wYEchxnoo7JEErWgqFnDTpz9NW8cO/+Ipkx+8tf
-         EmNn1UMgK8zc2ZMrqvXWqNPpiSbRJtjG70vd3mYTAXHT+rdgbWSg/qOMG9g6G1rwcj
-         eBhIhg0hn404w==
+        b=EwvhYqW5clS7YGtRytae7sEzs44cnmCgfvhJmo/uYbrrBfCPUsPXxqUcX370L+Dok
+         8v1q6TwyGAlygr97Qju9S6I1Gc31DXGKGw8+jpP+wnvc0/JVuQKLnECi8Y+x3MZhwk
+         BF+eoFIZ5EYIY7Sq+hmHEANaP/e9wrBYDEpV9cohDdDR809Xp7SsShbOBt4ZSZZ/Ev
+         MtHjYgx98bjWMavtC83rcueJU6SEFlZ2D3XpCo67EkouvPuiDgpPqprqrwewnQMyh8
+         QvZaG2kiE5ebLNkqPMWo7E+Jta2ml/0vWFyrLcVYfb8+L8kIn35n/+8pM32aH1zQJA
+         0pAfinBjYoB1Q==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Yi Yang <yiyang13@huawei.com>, Jiri Slaby <jirislaby@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
         sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 03/18] tty: vcc: Add check for kstrdup() in vcc_probe()
-Date:   Tue,  7 Nov 2023 18:21:57 -0500
-Message-ID: <20231107232231.3775605-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.5 03/18] tty: vcc: Add check for kstrdup() in vcc_probe()
+Date:   Tue,  7 Nov 2023 18:22:58 -0500
+Message-ID: <20231107232330.3776001-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20231107232231.3775605-1-sashal@kernel.org>
-References: <20231107232231.3775605-1-sashal@kernel.org>
+In-Reply-To: <20231107232330.3776001-1-sashal@kernel.org>
+References: <20231107232330.3776001-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.6
+X-stable-base: Linux 6.5.10
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
@@ -64,7 +64,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index a39ed981bfd3e..5b625f20233b4 100644
+index 34ba6e54789a7..b8b832c75b856 100644
 --- a/drivers/tty/vcc.c
 +++ b/drivers/tty/vcc.c
 @@ -579,18 +579,22 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
