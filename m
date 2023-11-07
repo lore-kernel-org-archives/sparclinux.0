@@ -2,46 +2,44 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA73C4167D
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Nov 2023 23:26:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32B1CC4167D
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Nov 2023 23:27:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235607AbjKGX0f (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Nov 2023 18:26:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47214 "EHLO
+        id S235690AbjKGX1o (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Nov 2023 18:27:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235634AbjKGX0I (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Nov 2023 18:26:08 -0500
+        with ESMTP id S1344516AbjKGX1J (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Nov 2023 18:27:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A0D626B5;
-        Tue,  7 Nov 2023 15:24:27 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC62AC433C8;
-        Tue,  7 Nov 2023 23:24:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E94F30CF;
+        Tue,  7 Nov 2023 15:24:49 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10998C433C9;
+        Tue,  7 Nov 2023 23:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1699399466;
-        bh=cBMEzm+BNyVJfpDMzEbm3zZpZXgxa4o8L43ZidS4czI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GPx443BGBTN045lkfV4B/JNmTO8Fpz9UVrsPw33V0qDHTj1jkdHC4znNxwLnT2eh9
-         LubipvCwVb88YO61eheiHd4iDLuPelVb+IRYabt3Xv+FecyDGQcBR1tnDP4iaw8Le4
-         75VS2kBJX+cCErYR2tOGCYD/xZB/AAdOxsWh6ox6a/DM2gH5J9zmVLaHF9ka0hNmor
-         9wCa13HtgUpeB/w0HbPja8Y/CjxsfB9PfNU6DlcmM4EyaUiclC5gzrLLySvTQrg/sN
-         JmCUqAXJ2SrUbSqacwg1BTcB+zcPT+qT7mhSgruADseDnQ0STdZF1H5NJtvfH0ymVK
-         lrs6CvL6xJH+g==
+        s=k20201202; t=1699399489;
+        bh=qeUmJb38F8VSget3hlVLVnA1e/X50cj7G6L5KJmkZEU=;
+        h=From:To:Cc:Subject:Date:From;
+        b=eZzDmNnHI0kMWcNpw8ig/y2NLhy/fktKBt6Xr5LKOo1D/0IxWfPDFgvSRcl2WqIWV
+         RFSrJLYrR85z9QrzUBQ83+GrQpDMBaNSVKZ9D4VyHmFu3H4fRWQExiP3CHW1iUlXLr
+         g+R+/SzwY/FE22OEq1JdOUAjFyL07yzVXcoWImrjO01fZkGnp1TTiXry++nvNu980k
+         35/vdHfDRTHWFAWIvhPEK3mbbkYtBZfvv+ipCdd5hF3PNuaoXDV3e/NYBbqi8CDrPl
+         wfEFibUh/TfBfXBiC0Xu7ko2ue2nuPxClCP8OYoZDcwt8fGuz46ALu6Ul2edv0SQ9f
+         A0w2e6Ohzajzw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Yi Yang <yiyang13@huawei.com>, Jiri Slaby <jirislaby@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
         sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 03/11] tty: vcc: Add check for kstrdup() in vcc_probe()
-Date:   Tue,  7 Nov 2023 18:24:04 -0500
-Message-ID: <20231107232420.3776419-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 1/6] tty: vcc: Add check for kstrdup() in vcc_probe()
+Date:   Tue,  7 Nov 2023 18:24:37 -0500
+Message-ID: <20231107232446.3776662-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20231107232420.3776419-1-sashal@kernel.org>
-References: <20231107232420.3776419-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.61
+X-stable-base: Linux 5.15.137
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
@@ -64,10 +62,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 34ba6e54789a7..b8b832c75b856 100644
+index e11383ae1e7e3..71356d9684bac 100644
 --- a/drivers/tty/vcc.c
 +++ b/drivers/tty/vcc.c
-@@ -579,18 +579,22 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+@@ -578,18 +578,22 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
  		return -ENOMEM;
  
  	name = kstrdup(dev_name(&vdev->dev), GFP_KERNEL);
@@ -92,7 +90,7 @@ index 34ba6e54789a7..b8b832c75b856 100644
  
  	spin_lock_init(&port->lock);
  
-@@ -624,6 +628,11 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+@@ -623,6 +627,11 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
  		goto unreg_tty;
  	}
  	port->domain = kstrdup(domain, GFP_KERNEL);
@@ -104,7 +102,7 @@ index 34ba6e54789a7..b8b832c75b856 100644
  
  	mdesc_release(hp);
  
-@@ -653,8 +662,9 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+@@ -652,8 +661,9 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
  	vcc_table_remove(port->index);
  free_ldc:
  	vio_ldc_free(&port->vio);
