@@ -2,37 +2,38 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C8C6C072A2
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Nov 2023 09:01:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1913CC2BB3F
+	for <sparclinux@archiver.kernel.org>; Sat, 18 Nov 2023 04:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229599AbjKQJBN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Nov 2023 04:01:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49794 "EHLO
+        id S229994AbjKREoz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Nov 2023 23:44:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjKQJBM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Nov 2023 04:01:12 -0500
-Received: from mail.corporatenexus.pl (mail.corporatenexus.pl [135.125.237.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1B701A5
-        for <sparclinux@vger.kernel.org>; Fri, 17 Nov 2023 01:01:01 -0800 (PST)
-Received: by mail.corporatenexus.pl (Postfix, from userid 1002)
-        id 65325468FB; Fri, 17 Nov 2023 09:00:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corporatenexus.pl;
-        s=mail; t=1700211659;
-        bh=wI8ebJnK0/U/nEQoUHOR0TLZjvqZwfsl1rzI+iT7ku0=;
+        with ESMTP id S229737AbjKREoy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Nov 2023 23:44:54 -0500
+X-Greylist: delayed 4256 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 17 Nov 2023 20:44:49 PST
+Received: from mail.wealthify.pl (mail.wealthify.pl [51.254.119.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB8E0D7E
+        for <sparclinux@vger.kernel.org>; Fri, 17 Nov 2023 20:44:49 -0800 (PST)
+Received: by mail.wealthify.pl (Postfix, from userid 1002)
+        id 5DDEB25FA0; Tue, 14 Nov 2023 08:36:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=wealthify.pl; s=mail;
+        t=1699951515; bh=bDX0Agd4PxP1G12JMZUJBnoORj59lnRJWZKQhow1LS4=;
         h=Date:From:To:Subject:From;
-        b=HhOslrQju8KDVc2mMPMnaJEC7VBgjdoASp8nKZ4sxAlM9o8//qo3sZy+aUFgWvjlj
-         a2JNFy4KGzWWDGT217b+gKhOwBeayoYG7ppive1wlYkVnP16F4wU3sYwBGDfVHG18I
-         bmFt0Is19Ht2pnNqUbcyPt5PMSY4yj2DTJlTMuHBOg1q3slzsJuM0qUY6YyA9oo43B
-         1PLXZPYj3pS0qmzkr5T6BZYWEIQuIjj75UGygk8BUsXfELZDPbt3rjfPRyN9YaqBrC
-         ZxyhZE6zeHRw8Tx3n44ptoz9QSMEJ6scQDDv3606mlAlzrQ2soebWQDYw91aXNr9TM
-         rbq/GXbalnjiw==
-Received: by mail.corporatenexus.pl for <sparclinux@vger.kernel.org>; Fri, 17 Nov 2023 09:00:47 GMT
-Message-ID: <20231117074500-0.1.3p.7evq.0.2q69n3mg9s@corporatenexus.pl>
-Date:   Fri, 17 Nov 2023 09:00:47 GMT
-From:   "Maciej Brylski" <maciej.brylski@corporatenexus.pl>
+        b=b4+9qVOuKO1hl65gDsPWO5CmXvWQN+q0rkO1wr9Z5R/K6ocS3AgZMFNsP7AWu5Ebu
+         bjBMvjCgfokfR3z1TpFpDgqs1owM+Oqz18n8071ZEIjw4tGY/C98Arob8lntP4gqjX
+         ApcEB7HKQ9GaoU0Ui4Q0dR3smkL4/sIo749wdfvOLpeBe0s9mRDKqGwJZ3ABE4RDI6
+         A/X539ftwrQ0LTNDQd4uMaReum6OB4OF0keTQQEtG1k2nt3G8oJlhHvD5QY839Gzux
+         wn4W8FTfX7wBVvIqurB4u9mFgKxzSVVferODtoHmCQs+f8i7tMoPmNsTSnk6AqmCWB
+         B806clG91w3HQ==
+Received: by mail.wealthify.pl for <sparclinux@vger.kernel.org>; Tue, 14 Nov 2023 08:35:53 GMT
+Message-ID: <20231114074500-0.1.9k.ycct.0.4nwfh9ln4v@wealthify.pl>
+Date:   Tue, 14 Nov 2023 08:35:53 GMT
+From:   =?UTF-8?Q? "Przemys=C5=82aw_Polak" ?= 
+        <przemyslaw.polak@wealthify.pl>
 To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?=C5=9Arodki_dla_firm_pod_saldo_z_terminala?=
-X-Mailer: mail.corporatenexus.pl
+Subject: Pozycjonowanie- informacja
+X-Mailer: mail.wealthify.pl
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -40,24 +41,22 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+Dzie=C5=84 dobry,=20
 
-czy interesuj=C4=85 Pa=C5=84stwa dodatkowe =C5=9Brodki na zakup towaru, n=
-owych urz=C4=85dze=C5=84 lub na bie=C5=BC=C4=85c=C4=85 dzia=C5=82alno=C5=9B=
-=C4=87?
+jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
+j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
+e Google.=20
 
-Prowadz=C4=85c firm=C4=99 od m.in. roku i generuj=C4=85c obroty na termin=
-alu p=C5=82atniczym od 6 miesi=C4=99cy (co najmniej 7500 z=C5=82), mog=C4=
-=85 Pa=C5=84stwo uzyska=C4=87 nawet 500 000 z=C5=82 na dowolny cel.
+Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
+=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
+w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
+owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
+dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
 
-Gwarantujemy minimum formalno=C5=9Bci, nie wymagamy za=C5=9Bwiadcze=C5=84=
-, PIT i KPiR. Ca=C5=82y proces odbywa si=C4=99 online, a sp=C5=82ata jest=
- automatyczna.
-
-Je=C5=9Bli chc=C4=85 Pa=C5=84stwo pozna=C4=87 indywidualn=C4=85 ofert=C4=99=
- z propozycj=C4=85 kwoty i sp=C5=82aty, prosz=C4=99 o wiadomo=C5=9B=C4=87=
-=2E
+Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
+edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
+edstawi=C4=87 ofert=C4=99?
 
 
-Pozdrawiam
-Maciej Brylski
+Pozdrawiam serdecznie
+Przemys=C5=82aw Polak
