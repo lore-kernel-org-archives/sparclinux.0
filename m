@@ -2,242 +2,356 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A66C2BB3F
-	for <sparclinux@archiver.kernel.org>; Sat, 18 Nov 2023 10:09:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD9EC5ACB3
+	for <sparclinux@archiver.kernel.org>; Sat, 18 Nov 2023 15:51:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229844AbjKRKJC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 18 Nov 2023 05:09:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46772 "EHLO
+        id S230117AbjKRPvU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 18 Nov 2023 10:51:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229449AbjKRKJB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 18 Nov 2023 05:09:01 -0500
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B597D5B;
-        Sat, 18 Nov 2023 02:08:56 -0800 (PST)
-Received: from dggpemm100001.china.huawei.com (unknown [172.30.72.55])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4SXTrY6JprzMmjJ;
-        Sat, 18 Nov 2023 18:04:13 +0800 (CST)
-Received: from localhost.localdomain (10.175.112.125) by
- dggpemm100001.china.huawei.com (7.185.36.93) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Sat, 18 Nov 2023 18:08:52 +0800
-From:   Kefeng Wang <wangkefeng.wang@huawei.com>
-To:     Arnd Bergmann <arnd@arndb.de>
-CC:     <linux-arch@vger.kernel.org>, <linux-alpha@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-hexagon@vger.kernel.org>, <linux-m68k@lists.linux-m68k.org>,
-        <linux-mips@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <linux-sh@vger.kernel.org>,
-        <sparclinux@vger.kernel.org>,
-        Kefeng Wang <wangkefeng.wang@huawei.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Russell King <linux@armlinux.org.uk>,
-        Brian Cain <bcain@quicinc.com>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
+        with ESMTP id S229892AbjKRPvO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 18 Nov 2023 10:51:14 -0500
+Received: from mail-yb1-xb36.google.com (mail-yb1-xb36.google.com [IPv6:2607:f8b0:4864:20::b36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9CCCD57;
+        Sat, 18 Nov 2023 07:51:09 -0800 (PST)
+Received: by mail-yb1-xb36.google.com with SMTP id 3f1490d57ef6-daec4e4c5eeso2803482276.1;
+        Sat, 18 Nov 2023 07:51:09 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1700322668; x=1700927468; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=T8JQkwQPDN0/NjJdMvrO5YDf2Mt9RQuRmPZfqlcyPOc=;
+        b=GYSJGYNBF2n5sW5UXqCkkhcF3eAK216KQH4YTBhWSPOZ93FAZaF+G0jrldUj74Poj/
+         m8SWsPWSeK7V5vkY/5KsVt1gGmuMsFGhtqsn7RYa7tg/vQ8uU/+1/I5qP9WOld5QnP4Z
+         sWqT2OTR2KlFcBoDQ1N2Bv2sWfvEeBEef+CJhZS0nhOswUQvck9ZhRz/GM5i/A1AD1o3
+         0ny+/PSnoY8i+tvXzpqriUJg10hrCyZWPX3fMmcK0IVIYM5/o5ISoCJWfw3kuueja0Za
+         HFezDhgGMyN+Rq72e86ybWeQbVRtoT6oyiPgJUlNcCYVnx4YEZzqYq9HO9s9YE85H57l
+         tXjQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700322668; x=1700927468;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=T8JQkwQPDN0/NjJdMvrO5YDf2Mt9RQuRmPZfqlcyPOc=;
+        b=RIC+48dT86rDKj/uBU3beXkCrFN+qo7wiuVQH+Yd190dIeNhJfPwD2eN9K1ROV4/mo
+         WFLjLLfbm34Kn5RgrpUZfdNeQYLhQF7gtrRBH18rOByZhDd3o/y51k7J1Su7/43PwBor
+         ZMfWkJAlnAWVhM3vUNFgC/0Ty2hMidEyx23d5uHgKDTknPPZWfZNGsdZmoVS969bmy7r
+         Qd2AJNrcJ2KSzvcxSwhITLBK/bTEif8DhIUZh1RsmISFKIJyuHnfxh9FHI2Flh0NfcQd
+         5zXIA5SLf7opnEshNmrCaxNiYjBdRdTIV22aJOoYelw9EqUVfk9iaR+ihnznRpDi8Ab9
+         3jKg==
+X-Gm-Message-State: AOJu0YxTAIFecY4pQYWOxJYGsl3VBUzhv/7CSCLwwuUbbXgSaNfRUKGn
+        CKvsfXktUDtqxoCIzoHablVa58Ym9PXcAjAC
+X-Google-Smtp-Source: AGHT+IFJx/lrMq78Aql9lHzoh+xOXvS0ldCsOe1bBN/nC+9100pFEpSDPw9twx0lzyc1pTk6s9pz2Q==
+X-Received: by 2002:a25:5883:0:b0:da3:ab41:31f3 with SMTP id m125-20020a255883000000b00da3ab4131f3mr2199131ybb.8.1700322667764;
+        Sat, 18 Nov 2023 07:51:07 -0800 (PST)
+Received: from localhost ([2601:344:8301:57f0:48a9:bd4c:868d:dc97])
+        by smtp.gmail.com with ESMTPSA id 195-20020a2502cc000000b00d7497467d36sm1001026ybc.45.2023.11.18.07.51.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 18 Nov 2023 07:51:07 -0800 (PST)
+From:   Yury Norov <yury.norov@gmail.com>
+To:     linux-kernel@vger.kernel.org,
         "David S. Miller" <davem@davemloft.net>,
-        Stanislav Kinsburskii <stanislav.kinsburskii@gmail.com>
-Subject: [PATCH] asm/io: remove unnecessary xlate_dev_mem_ptr() and unxlate_dev_mem_ptr()
-Date:   Sat, 18 Nov 2023 18:08:27 +0800
-Message-ID: <20231118100827.1599422-1-wangkefeng.wang@huawei.com>
-X-Mailer: git-send-email 2.27.0
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Chaitanya Kulkarni <kch@nvidia.com>,
+        Christian Brauner <brauner@kernel.org>,
+        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        David Disseldorp <ddiss@suse.de>,
+        Edward Cree <ecree.xilinx@gmail.com>,
+        Eric Dumazet <edumazet@google.com>,
+        Fenghua Yu <fenghua.yu@intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Gregory Greenman <gregory.greenman@intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hugh Dickins <hughd@google.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Kalle Valo <kvalo@kernel.org>,
+        Karsten Graul <kgraul@linux.ibm.com>,
+        Karsten Keil <isdn@linux-pingi.de>,
+        Kees Cook <keescook@chromium.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Martin Habets <habetsm.xilinx@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Simek <monstr@monstr.eu>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Oliver Neukum <oneukum@suse.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ping-Ke Shih <pkshih@realtek.com>,
+        Rich Felker <dalias@libc.org>, Rob Herring <robh@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Sathya Prakash Veerichetty <sathya.prakash@broadcom.com>,
+        Sean Christopherson <seanjc@google.com>,
+        Shuai Xue <xueshuai@linux.alibaba.com>,
+        Stanislaw Gruszka <stf_xl@wp.pl>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Valentin Schneider <vschneid@redhat.com>,
+        Vitaly Kuznetsov <vkuznets@redhat.com>,
+        Wenjia Zhang <wenjia@linux.ibm.com>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        GR-QLogic-Storage-Upstream@marvell.com,
+        alsa-devel@alsa-project.org, ath10k@lists.infradead.org,
+        dmaengine@vger.kernel.org, iommu@lists.linux.dev,
+        kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-media@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-net-drivers@amd.com,
+        linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-sound@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        mpi3mr-linuxdrv.pdl@broadcom.com, netdev@vger.kernel.org,
+        sparclinux@vger.kernel.org, x86@kernel.org
+Cc:     Yury Norov <yury.norov@gmail.com>, Jan Kara <jack@suse.cz>,
+        Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>,
+        Matthew Wilcox <willy@infradead.org>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Maxim Kuvyrkov <maxim.kuvyrkov@linaro.org>,
+        Alexey Klimov <klimov.linux@gmail.com>
+Subject: [PATCH 00/34] biops: add atomig find_bit() operations
+Date:   Sat, 18 Nov 2023 07:50:31 -0800
+Message-Id: <20231118155105.25678-1-yury.norov@gmail.com>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.112.125]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpemm100001.china.huawei.com (7.185.36.93)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The asm-generic/io.h already has default definition, remove unnecessary
-arch's defination.
+Add helpers around test_and_{set,clear}_bit() that allow to search for
+clear or set bits and flip them atomically.
 
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stanislav Kinsburskii <stanislav.kinsburskii@gmail.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
----
- arch/alpha/include/asm/io.h    | 6 ------
- arch/arm/include/asm/io.h      | 6 ------
- arch/hexagon/include/asm/io.h  | 6 ------
- arch/m68k/include/asm/io_mm.h  | 6 ------
- arch/mips/include/asm/io.h     | 7 -------
- arch/parisc/include/asm/io.h   | 6 ------
- arch/powerpc/include/asm/io.h  | 6 ------
- arch/sh/include/asm/io.h       | 7 -------
- arch/sparc/include/asm/io_64.h | 6 ------
- 9 files changed, 56 deletions(-)
+The target patterns may look like this:
 
-diff --git a/arch/alpha/include/asm/io.h b/arch/alpha/include/asm/io.h
-index 7aeaf7c30a6f..5e5d21ebc584 100644
---- a/arch/alpha/include/asm/io.h
-+++ b/arch/alpha/include/asm/io.h
-@@ -651,12 +651,6 @@ extern void outsl (unsigned long port, const void *src, unsigned long count);
- #endif
- #define RTC_ALWAYS_BCD	0
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- /*
-  * These get provided from <asm-generic/iomap.h> since alpha does not
-  * select GENERIC_IOMAP.
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 56b08ed6cc3b..1815748f5d2a 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -407,12 +407,6 @@ struct pci_dev;
- #define pci_iounmap pci_iounmap
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *addr);
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- #include <asm-generic/io.h>
- 
- #ifdef CONFIG_MMU
-diff --git a/arch/hexagon/include/asm/io.h b/arch/hexagon/include/asm/io.h
-index e2b308e32a37..97d57751ce3b 100644
---- a/arch/hexagon/include/asm/io.h
-+++ b/arch/hexagon/include/asm/io.h
-@@ -58,12 +58,6 @@ static inline void *phys_to_virt(unsigned long address)
- 	return __va(address);
- }
- 
--/*
-- * convert a physical pointer to a virtual kernel pointer for
-- * /dev/mem access.
-- */
--#define xlate_dev_mem_ptr(p)    __va(p)
--
- /*
-  * IO port access primitives.  Hexagon doesn't have special IO access
-  * instructions; all I/O is memory mapped.
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index 47525f2a57e1..090aec54b8fa 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -389,12 +389,6 @@ static inline void isa_delay(void)
- 
- #define __ARCH_HAS_NO_PAGE_ZERO_MAPPED		1
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- #define readb_relaxed(addr)	readb(addr)
- #define readw_relaxed(addr)	readw(addr)
- #define readl_relaxed(addr)	readl(addr)
-diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
-index 062dd4e6b954..2158ff302430 100644
---- a/arch/mips/include/asm/io.h
-+++ b/arch/mips/include/asm/io.h
-@@ -548,13 +548,6 @@ extern void (*_dma_cache_inv)(unsigned long start, unsigned long size);
- #define csr_out32(v, a) (*(volatile u32 *)((unsigned long)(a) + __CSR_32_ADJUST) = (v))
- #define csr_in32(a)    (*(volatile u32 *)((unsigned long)(a) + __CSR_32_ADJUST))
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--#define unxlate_dev_mem_ptr(p, v) do { } while (0)
--
- void __ioread64_copy(void *to, const void __iomem *from, size_t count);
- 
- #endif /* _ASM_IO_H */
-diff --git a/arch/parisc/include/asm/io.h b/arch/parisc/include/asm/io.h
-index 366537042465..9c06cafb0e70 100644
---- a/arch/parisc/include/asm/io.h
-+++ b/arch/parisc/include/asm/io.h
-@@ -267,12 +267,6 @@ extern void iowrite64be(u64 val, void __iomem *addr);
- #define iowrite16_rep iowrite16_rep
- #define iowrite32_rep iowrite32_rep
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- extern int devmem_is_allowed(unsigned long pfn);
- 
- #include <asm-generic/io.h>
-diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
-index 5220274a6277..79421c285066 100644
---- a/arch/powerpc/include/asm/io.h
-+++ b/arch/powerpc/include/asm/io.h
-@@ -709,12 +709,6 @@ static inline void name at					\
- #define memcpy_fromio memcpy_fromio
- #define memcpy_toio memcpy_toio
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- /*
-  * We don't do relaxed operations yet, at least not with this semantic
-  */
-diff --git a/arch/sh/include/asm/io.h b/arch/sh/include/asm/io.h
-index ac521f287fa5..be7ac06423a9 100644
---- a/arch/sh/include/asm/io.h
-+++ b/arch/sh/include/asm/io.h
-@@ -304,13 +304,6 @@ unsigned long long poke_real_address_q(unsigned long long addr,
- 
- #define ioremap_uc	ioremap
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--#define unxlate_dev_mem_ptr(p, v) do { } while (0)
--
- #include <asm-generic/io.h>
- 
- #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 9303270b22f3..75ae9bf3bb7b 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -470,12 +470,6 @@ static inline int sbus_can_burst64(void)
- struct device;
- void sbus_set_sbus64(struct device *, int);
- 
--/*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
- #endif
- 
- #endif /* !(__SPARC64_IO_H) */
+	for (idx = 0; idx < nbits; idx++)
+		if (test_and_clear_bit(idx, bitmap))
+			do_something(idx);
+
+Or like this:
+
+	do {
+		bit = find_first_bit(bitmap, nbits);
+		if (bit >= nbits)
+			return nbits;
+	} while (!test_and_clear_bit(bit, bitmap));
+	return bit;
+
+In both cases, the opencoded loop may be converted to a single function
+or iterator call. Correspondingly:
+
+	for_each_test_and_clear_bit(idx, bitmap, nbits)
+		do_something(idx);
+
+Or:
+	return find_and_clear_bit(bitmap, nbits);
+
+Obviously, the less routine code people have write themself, the less
+probability to make a mistake. Patch #31 of this series fixes one such
+error in perf/m1 codebase.
+
+Those are not only handy helpers but also resolve a non-trivial
+issue of using non-atomic find_bit() together with atomic
+test_and_{set,clear)_bit().
+
+The trick is that find_bit() implies that the bitmap is a regular
+non-volatile piece of memory, and compiler is allowed to use such
+optimization techniques like re-fetching memory instead of caching it.
+
+For example, find_first_bit() is implemented like this:
+
+      for (idx = 0; idx * BITS_PER_LONG < sz; idx++) {
+              val = addr[idx];
+              if (val) {
+                      sz = min(idx * BITS_PER_LONG + __ffs(val), sz);
+                      break;
+              }
+      }
+
+On register-memory architectures, like x86, compiler may decide to
+access memory twice - first time to compare against 0, and second time
+to fetch its value to pass it to __ffs().
+
+When running find_first_bit() on volatile memory, the memory may get
+changed in-between, and for instance, it may lead to passing 0 to
+__ffs(), which is undefined. This is a potentially dangerous call.
+
+find_and_clear_bit() as a wrapper around test_and_clear_bit()
+naturally treats underlying bitmap as a volatile memory and prevents
+compiler from such optimizations.
+
+Now that KCSAN is catching exactly this type of situations and warns on
+undercover memory modifications. We can use it to reveal improper usage
+of find_bit(), and convert it to atomic find_and_*_bit() as appropriate.
+
+The 1st patch of the series adds the following atomic primitives:
+
+	find_and_set_bit(addr, nbits);
+	find_and_set_next_bit(addr, nbits, start);
+	...
+
+Here find_and_{set,clear} part refers to the corresponding
+test_and_{set,clear}_bit function, and suffixes like _wrap or _lock
+derive semantics from corresponding find() or test() functions.
+
+For brevity, the naming omits the fact that we search for zero bit in
+find_and_set, and correspondingly, search for set bit in find_and_clear
+functions.
+
+The patch also adds iterators with atomic semantics, like
+for_each_test_and_set_bit(). Here, the naming rule is to simply prefix
+corresponding atomic operation with 'for_each'.
+
+This series is a result of discussion [1]. All find_bit() functions imply
+exclusive access to the bitmaps. However, KCSAN reports quite a number
+of warnings related to find_bit() API. Some of them are not pointing
+to real bugs because in many situations people intentionally allow
+concurrent bitmap operations.
+
+If so, find_bit() can be annotated such that KCSAN will ignore it:
+
+	bit = data_race(find_first_bit(bitmap, nbits));
+
+This series addresses the other important case where people really need
+atomic find ops. As the following patches show, the resulting code
+looks safer and more verbose comparing to opencoded loops followed by
+atomic bit flips.
+
+In [1] Mirsad reported 2% slowdown in a single-thread search test when
+switching find_bit() function to treat bitmaps as volatile arrays. On
+the other hand, kernel robot in the same thread reported +3.7% to the
+performance of will-it-scale.per_thread_ops test.
+
+Assuming that our compilers are sane and generate better code against
+properly annotated data, the above discrepancy doesn't look weird. When
+running on non-volatile bitmaps, plain find_bit() outperforms atomic
+find_and_bit(), and vice-versa.
+
+So, all users of find_bit() API, where heavy concurrency is expected,
+are encouraged to switch to atomic find_and_bit() as appropriate.
+
+1st patch of this series adds atomic find_and_bit() API, and all the
+following patches spread it over the kernel. They can be applied
+separately from each other on per-subsystems basis, or I can pull them
+in bitmap tree, as appropriate.
+
+[1] https://lore.kernel.org/lkml/634f5fdf-e236-42cf-be8d-48a581c21660@alu.unizg.hr/T/#m3e7341eb3571753f3acf8fe166f3fb5b2c12e615 
+
+Yury Norov (34):
+  lib/find: add atomic find_bit() primitives
+  lib/sbitmap; make __sbitmap_get_word() using find_and_set_bit()
+  watch_queue: use atomic find_bit() in post_one_notification()
+  sched: add cpumask_find_and_set() and use it in __mm_cid_get()
+  mips: sgi-ip30: rework heart_alloc_int()
+  sparc: fix opencoded find_and_set_bit() in alloc_msi()
+  perf/arm: optimize opencoded atomic find_bit() API
+  drivers/perf: optimize ali_drw_get_counter_idx() by using find_bit()
+  dmaengine: idxd: optimize perfmon_assign_event()
+  ath10k: optimize ath10k_snoc_napi_poll() by using find_bit()
+  wifi: rtw88: optimize rtw_pci_tx_kick_off() by using find_bit()
+  wifi: intel: use atomic find_bit() API where appropriate
+  KVM: x86: hyper-v: optimize and cleanup kvm_hv_process_stimers()
+  PCI: hv: switch hv_get_dom_num() to use atomic find_bit()
+  scsi: use atomic find_bit() API where appropriate
+  powerpc: use atomic find_bit() API where appropriate
+  iommu: use atomic find_bit() API where appropriate
+  media: radio-shark: use atomic find_bit() API where appropriate
+  sfc: switch to using atomic find_bit() API where appropriate
+  tty: nozomi: optimize interrupt_handler()
+  usb: cdc-acm: optimize acm_softint()
+  block: null_blk: fix opencoded find_and_set_bit() in get_tag()
+  RDMA/rtrs: fix opencoded find_and_set_bit_lock() in
+    __rtrs_get_permit()
+  mISDN: optimize get_free_devid()
+  media: em28xx: cx231xx: fix opencoded find_and_set_bit()
+  ethernet: rocker: optimize ofdpa_port_internal_vlan_id_get()
+  serial: sc12is7xx: optimize sc16is7xx_alloc_line()
+  bluetooth: optimize cmtp_alloc_block_id()
+  net: smc: fix opencoded find_and_set_bit() in
+    smc_wr_tx_get_free_slot_index()
+  ALSA: use atomic find_bit() functions where applicable
+  drivers/perf: optimize m1_pmu_get_event_idx() by using find_bit() API
+  m68k: rework get_mmu_context()
+  microblaze: rework get_mmu_context()
+  sh: rework ilsel_enable()
+
+ arch/m68k/include/asm/mmu_context.h           |  11 +-
+ arch/microblaze/include/asm/mmu_context_mm.h  |  11 +-
+ arch/mips/sgi-ip30/ip30-irq.c                 |  12 +-
+ arch/powerpc/mm/book3s32/mmu_context.c        |  10 +-
+ arch/powerpc/platforms/pasemi/dma_lib.c       |  45 +--
+ arch/powerpc/platforms/powernv/pci-sriov.c    |  12 +-
+ arch/sh/boards/mach-x3proto/ilsel.c           |   4 +-
+ arch/sparc/kernel/pci_msi.c                   |   9 +-
+ arch/x86/kvm/hyperv.c                         |  39 ++-
+ drivers/block/null_blk/main.c                 |  41 +--
+ drivers/dma/idxd/perfmon.c                    |   8 +-
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c        |  15 +-
+ drivers/iommu/arm/arm-smmu/arm-smmu.h         |  10 +-
+ drivers/iommu/msm_iommu.c                     |  18 +-
+ drivers/isdn/mISDN/core.c                     |   9 +-
+ drivers/media/radio/radio-shark.c             |   5 +-
+ drivers/media/radio/radio-shark2.c            |   5 +-
+ drivers/media/usb/cx231xx/cx231xx-cards.c     |  16 +-
+ drivers/media/usb/em28xx/em28xx-cards.c       |  37 +--
+ drivers/net/ethernet/rocker/rocker_ofdpa.c    |  11 +-
+ drivers/net/ethernet/sfc/rx_common.c          |   4 +-
+ drivers/net/ethernet/sfc/siena/rx_common.c    |   4 +-
+ drivers/net/ethernet/sfc/siena/siena_sriov.c  |  14 +-
+ drivers/net/wireless/ath/ath10k/snoc.c        |   9 +-
+ .../net/wireless/intel/iwlegacy/4965-mac.c    |   7 +-
+ drivers/net/wireless/intel/iwlegacy/common.c  |   8 +-
+ drivers/net/wireless/intel/iwlwifi/dvm/sta.c  |   8 +-
+ drivers/net/wireless/intel/iwlwifi/dvm/tx.c   |  19 +-
+ drivers/net/wireless/realtek/rtw88/pci.c      |   5 +-
+ drivers/net/wireless/realtek/rtw89/pci.c      |   5 +-
+ drivers/pci/controller/pci-hyperv.c           |   7 +-
+ drivers/perf/alibaba_uncore_drw_pmu.c         |  10 +-
+ drivers/perf/apple_m1_cpu_pmu.c               |   8 +-
+ drivers/perf/arm-cci.c                        |  23 +-
+ drivers/perf/arm-ccn.c                        |  10 +-
+ drivers/perf/arm_dmc620_pmu.c                 |   9 +-
+ drivers/perf/arm_pmuv3.c                      |   8 +-
+ drivers/scsi/mpi3mr/mpi3mr_os.c               |  21 +-
+ drivers/scsi/qedi/qedi_main.c                 |   9 +-
+ drivers/scsi/scsi_lib.c                       |   5 +-
+ drivers/tty/nozomi.c                          |   5 +-
+ drivers/tty/serial/sc16is7xx.c                |   8 +-
+ drivers/usb/class/cdc-acm.c                   |   5 +-
+ include/linux/cpumask.h                       |  12 +
+ include/linux/find.h                          | 289 ++++++++++++++++++
+ kernel/sched/sched.h                          |  52 +---
+ kernel/watch_queue.c                          |   6 +-
+ lib/find_bit.c                                |  85 ++++++
+ lib/sbitmap.c                                 |  46 +--
+ net/bluetooth/cmtp/core.c                     |  10 +-
+ net/smc/smc_wr.c                              |  10 +-
+ sound/pci/hda/hda_codec.c                     |   7 +-
+ sound/usb/caiaq/audio.c                       |  13 +-
+ 53 files changed, 588 insertions(+), 481 deletions(-)
+
 -- 
-2.27.0
+2.39.2
 
