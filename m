@@ -2,99 +2,110 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC7FAC5AD4C
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Nov 2023 07:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCA3C61D85
+	for <sparclinux@archiver.kernel.org>; Tue, 21 Nov 2023 14:52:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232023AbjKTHF0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 20 Nov 2023 02:05:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34802 "EHLO
+        id S229489AbjKUOwp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 21 Nov 2023 09:52:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232013AbjKTHF0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Nov 2023 02:05:26 -0500
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D89DB3;
-        Sun, 19 Nov 2023 23:05:21 -0800 (PST)
-Received: from dggpemm100001.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4SYdhg3CDpzsRJy;
-        Mon, 20 Nov 2023 15:01:23 +0800 (CST)
-Received: from [10.174.177.243] (10.174.177.243) by
- dggpemm100001.china.huawei.com (7.185.36.93) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Mon, 20 Nov 2023 15:04:49 +0800
-Message-ID: <1f013eda-b82f-4ae0-99ad-0eec70d45146@huawei.com>
-Date:   Mon, 20 Nov 2023 15:04:48 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] asm/io: remove unnecessary xlate_dev_mem_ptr() and
- unxlate_dev_mem_ptr()
-Content-Language: en-US
-To:     Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-CC:     Linux-Arch <linux-arch@vger.kernel.org>,
-        <linux-alpha@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-hexagon@vger.kernel.org>, <linux-m68k@lists.linux-m68k.org>,
-        <linux-mips@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <linux-sh@vger.kernel.org>,
-        <sparclinux@vger.kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        with ESMTP id S229436AbjKUOwo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Nov 2023 09:52:44 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B3A98;
+        Tue, 21 Nov 2023 06:52:40 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 580D7C433C7;
+        Tue, 21 Nov 2023 14:52:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1700578360;
+        bh=dGYz6IxNOUY4NpvhlMLeIB3Xxc/hARJYIHJyki7wDHE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=poue5VPWyYd+HrTAPC2kL1JwV02FvsHlUJ1z3W9FXk/U2czUqklkcawHdmmtSEsoY
+         IlPddu/gpJsZ1UpOPQIgrM7BkkvyXf2F3hIfHrb2U18/fsMMvTR4wCzYJDyNBuBtzP
+         SpQfWPT1cgV1qEShQyzt0KdJxLEsOUDx610rqzSQ=
+Date:   Tue, 21 Nov 2023 15:12:23 +0100
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        linux-kernel@vger.kernel.org,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        linux-kbuild@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Matt Turner <mattst88@gmail.com>,
+        Vineet Gupta <vgupta@kernel.org>,
         Russell King <linux@armlinux.org.uk>,
-        Brian Cain <bcain@quicinc.com>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Guo Ren <guoren@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Stanislav Kinsburskii <stanislav.kinsburskii@gmail.com>
-References: <20231118100827.1599422-1-wangkefeng.wang@huawei.com>
- <CAMuHMdU+MMiogx6TcBwxFL7AODZYhiAZpVHiafEBfnRsDaXTog@mail.gmail.com>
- <c441db4c-1851-4b09-a344-377a1684e9b5@huawei.com>
- <2a7bff92-8e25-4cf7-acf1-8ed054691fd8@app.fastmail.com>
-From:   Kefeng Wang <wangkefeng.wang@huawei.com>
-In-Reply-To: <2a7bff92-8e25-4cf7-acf1-8ed054691fd8@app.fastmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.177.243]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpemm100001.china.huawei.com (7.185.36.93)
-X-CFilter-Loop: Reflected
+        Geoff Levand <geoff@infradead.org>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andy Lutomirski <luto@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
+        Helge Deller <deller@gmx.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Timur Tabi <timur@kernel.org>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        David Woodhouse <dwmw2@infradead.org>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>,
+        Kees Cook <keescook@chromium.org>,
+        Vincenzo Frascino <vincenzo.frascino@arm.com>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nicolas Schier <nicolas@fjasle.eu>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>, linux-alpha@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-trace-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        netdev@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-bcachefs@vger.kernel.org,
+        linux-mtd@lists.infradead.org
+Subject: Re: [PATCH 20/22] usb: fsl-mph-dr-of: mark fsl_usb2_mpc5121_init()
+ static
+Message-ID: <2023112114-cried-ramble-b3f9@gregkh>
+References: <20231108125843.3806765-1-arnd@kernel.org>
+ <20231108125843.3806765-21-arnd@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231108125843.3806765-21-arnd@kernel.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
-
-On 2023/11/20 14:40, Arnd Bergmann wrote:
-> On Mon, Nov 20, 2023, at 01:39, Kefeng Wang wrote:
->> On 2023/11/20 3:34, Geert Uytterhoeven wrote:
->>> On Sat, Nov 18, 2023 at 11:09 AM Kefeng Wang <wangkefeng.wang@huawei.com> wrote:
->>>>
->>>> -/*
->>>> - * Convert a physical pointer to a virtual kernel pointer for /dev/mem
->>>> - * access
->>>> - */
->>>> -#define xlate_dev_mem_ptr(p)   __va(p)
->>>> -#define unxlate_dev_mem_ptr(p, v) do { } while (0)
->>>> -
->>>>    void __ioread64_copy(void *to, const void __iomem *from, size_t count);
->>>
->>> Missing #include <asm-generic/io.h>, according to the build bot report.
->>
->> Will check the bot report.
+On Wed, Nov 08, 2023 at 01:58:41PM +0100, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
 > 
-> I had planned to pick up the series from
+> This function is only called locally and should always have been static:
 > 
-> https://lore.kernel.org/lkml/20230921110424.215592-3-bhe@redhat.com/
-
-Good to see it.
-
+> drivers/usb/host/fsl-mph-dr-of.c:291:5: error: no previous prototype for 'fsl_usb2_mpc5121_init' [-Werror=missing-prototypes]
 > 
-> for v6.7 but didn't make it in the end. I'll try to do it now
-> for v6.8 and apply your v1 patch with the Acks on top.
+> Fixes: 230f7ede6c2f ("USB: add USB EHCI support for MPC5121 SoC")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Thanks.
-
-> 
->      Arnd
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
