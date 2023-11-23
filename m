@@ -1,137 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 834E122EE7;
-	Thu, 23 Nov 2023 11:06:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e0VyQ7PV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43DDC43395;
-	Thu, 23 Nov 2023 11:05:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1700737561;
-	bh=9L6ia8ZbTYYVbHNB3z9LNyIFtb/pxWEiG5AGGJleqic=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=e0VyQ7PVXrgpHxXuRmTV8Wg6u7K/HjAAIEfu11YSMUUXsJVeV978M2gskJD8Avjb9
-	 ZB5kV6SE67ZAx7fc43cvAKQQcnfZ1BWg4eFGZWUJqIa5on//kgER/9tce+AIoFXgWk
-	 zowoZ5/rblNmUh7+n5DSkzof8B68ftWfi/4Bm3uFFM0OiYY9QfU9s/13gVPYGrLWfP
-	 dYIN19g0XPcGf5Nmb7Sg/RV1aH2dS4Rz+E9fs2rc8A8QVIcjSUPFmn5jrJzTXH3nKB
-	 fJcaV7yYwcK455NpW2ijR7YUCQVt+9Wq2658RaYTVnp6PTXXmkAhjphLHV/fQylLef
-	 elAqGL5fRFABA==
-From: Arnd Bergmann <arnd@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nicolas Schier <nicolas@fjasle.eu>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Rich Felker <dalias@libc.org>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Richard Weinberger <richard@nod.at>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Tudor Ambarus <tudor.ambarus@linaro.org>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	linux-arch@vger.kernel.org,
-	linux-alpha@vger.kernel.org,
-	linux-kbuild@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dlnqU4Ip"
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2AE498;
+	Thu, 23 Nov 2023 03:48:20 -0800 (PST)
+Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-548ce28fd23so1059813a12.3;
+        Thu, 23 Nov 2023 03:48:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1700740099; x=1701344899; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
+        b=dlnqU4IpSvNUob3equ3CpY631Ljrg1tYvtolF//pMDerL2mOgfcuJaqfcUoZ8w6YYJ
+         xU0ANitdpt+SsuHnBXlPj2G1Wob+U8e3gcBdkamn4wDrzG7cdvyWpKouDYqQrBSsy9MK
+         VCnfgOz1EonSKAFrbK4GlxGjp0MAe37HzDr/qCrRF71pxCLk8a45PWC8dApEztxVtdqv
+         9RljQGXOs4UKVt8StrFvjJShlbduW1rZp1fbmWdE+dkPolpmWHllfIgiQs3zEroS5QAp
+         m0hMtHF0PpmjcumrYvwWeK54CpyvU4kSLU7ypyXWhiuMx90XQ53lD3YBxfi4HFSFJ1Nw
+         tGLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700740099; x=1701344899;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
+        b=Jj6lWue7d4iwFm71MtMezGIquaZ5whtuc43SY6PEaLo2NueQ9CL39LU7kB6voI84Iz
+         0CRWLA8ifPwwX40GfhO/WgIxKPawkeOwf94P6fsifk9m49PWn2Ypu7mRjCdVX+Gr1tC+
+         fd/UsJITJWJKgNd21lCX/I+ItjbkARXZ+ALfI7pEBZpy5ES/LloIZtaPPRjEgnFN1MtK
+         11tDojMSTNtlPZ6pFr/iN+65VkwP6pJFw3x9pxf3Jvkff6gDCLClXUoPJ3Xi2Ix8Er7z
+         psEH//22OLgNwkwiHvjDbE1C0ByrvSuelW/RL58mbAGeIKmzyIpQ8khJuUrfKr5xkvlu
+         mMXw==
+X-Gm-Message-State: AOJu0Yx2wymRg+ulhnnpiHSmisKRAm8uZrO6AI/i2ZcjOGXehdX/WPUJ
+	ZF9oBrch+yqHMhFFGHtEmZ/ulEqEv2/gyA==
+X-Google-Smtp-Source: AGHT+IEbYAuGtC0y0bBEXSgDdMN9HKIUv8FGPxeyOmqBlLAHorj8Ux7M+9oPlUH3ZjoMcro6j2/wHw==
+X-Received: by 2002:a50:aadc:0:b0:540:77f8:240 with SMTP id r28-20020a50aadc000000b0054077f80240mr3939890edc.14.1700740099123;
+        Thu, 23 Nov 2023 03:48:19 -0800 (PST)
+Received: from felia.fritz.box ([2a02:810d:7e40:14b0:d183:a5d9:39a9:cd13])
+        by smtp.gmail.com with ESMTPSA id c3-20020a056402120300b00530bc7cf377sm563779edw.12.2023.11.23.03.48.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Nov 2023 03:48:18 -0800 (PST)
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To: Christoph Hellwig <hch@lst.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	linux-mips@vger.kernel.org,
-	linux-mtd@lists.infradead.org,
-	linux-sh@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org,
-	Kees Cook <keescook@chromium.org>,
-	Palmer Dabbelt <palmer@rivosinc.com>
-Subject: [PATCH v3 6/6] Makefile.extrawarn: turn on missing-prototypes globally
-Date: Thu, 23 Nov 2023 12:05:06 +0100
-Message-Id: <20231123110506.707903-7-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231123110506.707903-1-arnd@kernel.org>
-References: <20231123110506.707903-1-arnd@kernel.org>
+	Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: [PATCH RESEND] sparc: remove obsolete config ARCH_ATU
+Date: Thu, 23 Nov 2023 12:48:15 +0100
+Message-Id: <20231123114815.819-1-lukas.bulwahn@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Arnd Bergmann <arnd@arndb.de>
+Before consolidation of commit 4965a68780c5 ("arch: define the
+ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig"), the config ARCH_ATU
+was used to control the state of the config ARCH_DMA_ADDR_T_64BIT. After
+this consolidation, the config ARCH_ATU has been without use and effect.
 
-Over the years we went from > 1000 of warnings to under 100 earlier
-this year, and I sent patches to address all the ones that I saw with
-compile testing randcom configs on arm64, arm and x86 kernels. This is a
-really useful warning, as it catches real bugs when there are mismatched
-prototypes. In particular with kernel control flow integrity enabled,
-those are no longer allowed.
+Remove this obsolete config.
 
-I have done extensive testing to ensure that there are no new build
-errors or warnings on any configuration of x86, arm and arm64 builds.
-I also made sure that at least the both the normal defconfig and an
-allmodconfig build is clean for arc, csky, loongarch, m68k, microblaze,
-openrisc, parisc, powerpc, riscv, s390, and xtensa, with the respective
-maintainers doing most of the patches.
-
-At this point, there are five architectures with a number of known
-regressions: alpha, nios2, mips, sh and sparc. In the previous version
-of this patch, I had turned off the missing prototype warnings for the 15
-architectures that still had issues, but since there are only five left,
-I think we can leave the rest to the maintainers (Cc'd here) as well.
-
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Link: https://lore.kernel.org/lkml/20230810141947.1236730-1-arnd@kernel.org/
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com> # RISC-V
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- scripts/Makefile.extrawarn | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
-index 1527199161d7..8e9170f932ea 100644
---- a/scripts/Makefile.extrawarn
-+++ b/scripts/Makefile.extrawarn
-@@ -17,6 +17,8 @@ KBUILD_CFLAGS += -Wno-format-security
- KBUILD_CFLAGS += -Wno-trigraphs
- KBUILD_CFLAGS += $(call cc-disable-warning,frame-address,)
- KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
-+KBUILD_CFLAGS += -Wmissing-declarations
-+KBUILD_CFLAGS += -Wmissing-prototypes
+ arch/sparc/Kconfig | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 49849790e66d..6b4d3182baae 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -112,10 +112,6 @@ config ARCH_PROC_KCORE_TEXT
+ config CPU_BIG_ENDIAN
+ 	def_bool y
  
- ifneq ($(CONFIG_FRAME_WARN),0)
- KBUILD_CFLAGS += -Wframe-larger-than=$(CONFIG_FRAME_WARN)
-@@ -95,10 +97,8 @@ export KBUILD_EXTRA_WARN
- ifneq ($(findstring 1, $(KBUILD_EXTRA_WARN)),)
- 
- KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
--KBUILD_CFLAGS += -Wmissing-declarations
- KBUILD_CFLAGS += $(call cc-option, -Wrestrict)
- KBUILD_CFLAGS += -Wmissing-format-attribute
--KBUILD_CFLAGS += -Wmissing-prototypes
- KBUILD_CFLAGS += -Wold-style-definition
- KBUILD_CFLAGS += -Wmissing-include-dirs
- KBUILD_CFLAGS += $(call cc-option, -Wunused-but-set-variable)
+-config ARCH_ATU
+-	bool
+-	default y if SPARC64
+-
+ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y if SPARC64
 -- 
-2.39.2
+2.17.1
 
