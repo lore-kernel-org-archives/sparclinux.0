@@ -1,87 +1,158 @@
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C7B1EB42;
+	Fri, 24 Nov 2023 12:04:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dlnqU4Ip"
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2AE498;
-	Thu, 23 Nov 2023 03:48:20 -0800 (PST)
-Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-548ce28fd23so1059813a12.3;
-        Thu, 23 Nov 2023 03:48:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700740099; x=1701344899; darn=vger.kernel.org;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
-        b=dlnqU4IpSvNUob3equ3CpY631Ljrg1tYvtolF//pMDerL2mOgfcuJaqfcUoZ8w6YYJ
-         xU0ANitdpt+SsuHnBXlPj2G1Wob+U8e3gcBdkamn4wDrzG7cdvyWpKouDYqQrBSsy9MK
-         VCnfgOz1EonSKAFrbK4GlxGjp0MAe37HzDr/qCrRF71pxCLk8a45PWC8dApEztxVtdqv
-         9RljQGXOs4UKVt8StrFvjJShlbduW1rZp1fbmWdE+dkPolpmWHllfIgiQs3zEroS5QAp
-         m0hMtHF0PpmjcumrYvwWeK54CpyvU4kSLU7ypyXWhiuMx90XQ53lD3YBxfi4HFSFJ1Nw
-         tGLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700740099; x=1701344899;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
-        b=Jj6lWue7d4iwFm71MtMezGIquaZ5whtuc43SY6PEaLo2NueQ9CL39LU7kB6voI84Iz
-         0CRWLA8ifPwwX40GfhO/WgIxKPawkeOwf94P6fsifk9m49PWn2Ypu7mRjCdVX+Gr1tC+
-         fd/UsJITJWJKgNd21lCX/I+ItjbkARXZ+ALfI7pEBZpy5ES/LloIZtaPPRjEgnFN1MtK
-         11tDojMSTNtlPZ6pFr/iN+65VkwP6pJFw3x9pxf3Jvkff6gDCLClXUoPJ3Xi2Ix8Er7z
-         psEH//22OLgNwkwiHvjDbE1C0ByrvSuelW/RL58mbAGeIKmzyIpQ8khJuUrfKr5xkvlu
-         mMXw==
-X-Gm-Message-State: AOJu0Yx2wymRg+ulhnnpiHSmisKRAm8uZrO6AI/i2ZcjOGXehdX/WPUJ
-	ZF9oBrch+yqHMhFFGHtEmZ/ulEqEv2/gyA==
-X-Google-Smtp-Source: AGHT+IEbYAuGtC0y0bBEXSgDdMN9HKIUv8FGPxeyOmqBlLAHorj8Ux7M+9oPlUH3ZjoMcro6j2/wHw==
-X-Received: by 2002:a50:aadc:0:b0:540:77f8:240 with SMTP id r28-20020a50aadc000000b0054077f80240mr3939890edc.14.1700740099123;
-        Thu, 23 Nov 2023 03:48:19 -0800 (PST)
-Received: from felia.fritz.box ([2a02:810d:7e40:14b0:d183:a5d9:39a9:cd13])
-        by smtp.gmail.com with ESMTPSA id c3-20020a056402120300b00530bc7cf377sm563779edw.12.2023.11.23.03.48.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Nov 2023 03:48:18 -0800 (PST)
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-To: Christoph Hellwig <hch@lst.de>,
-	"David S . Miller" <davem@davemloft.net>,
-	sparclinux@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: [PATCH RESEND] sparc: remove obsolete config ARCH_ATU
-Date: Thu, 23 Nov 2023 12:48:15 +0100
-Message-Id: <20231123114815.819-1-lukas.bulwahn@gmail.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ASSOqFUT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12FAC433C7;
+	Fri, 24 Nov 2023 12:04:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1700827484;
+	bh=iYS7ANsuZ6vwOLgQk5XN795HJ5oXfHcHZNUjCJ6SXCw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ASSOqFUTTJHCjKWaYnDmAWOsdJx6xpTr/qPcu1HB+Fm5a/QclWrV0vncK2Q3Q7xX2
+	 aCCX9KBbw2Az9X58fZvG86NOH/nrOeX7BVzsNXr5gajrQU9ziayJ62atPHT8DwDcCc
+	 ahgZtb/ixwvuzDrehPu48aUVx6G2ccUCRb+KcZHUWGGyWnosZcOgffotJMEG6Q3zmg
+	 BKh8HHr1sjhFvHUZ1Iby4sERa66rD1silvF54u1GkmzyyDomzoGyssBaqUowuIrSEm
+	 G36HFkUDw4hjv0/b3iAj4rjrfH4/y0Ks3nDD/1Xr+xB/Qamv83b+9r9W6Jyz43KFdu
+	 6MPuY/CW+rmPA==
+Date: Fri, 24 Nov 2023 12:04:40 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	linux-kbuild@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>, Guo Ren <guoren@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Greg Ungerer <gerg@linux-m68k.org>, Michal Simek <monstr@monstr.eu>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Geoff Levand <geoff@infradead.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andy Lutomirski <luto@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
+	Helge Deller <deller@gmx.de>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Timur Tabi <timur@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	David Woodhouse <dwmw2@infradead.org>,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>,
+	Kees Cook <keescook@chromium.org>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Nicolas Schier <nicolas@fjasle.eu>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>,
+	linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-trace-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
+	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+	netdev@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-bcachefs@vger.kernel.org,
+	linux-mtd@lists.infradead.org,
+	Aishwarya TCV <aishwarya.tcv@arm.com>
+Subject: Re: [PATCH 15/22] arch: vdso: consolidate gettime prototypes
+Message-ID: <ZWCRWArzbTYUjvon@finisterre.sirena.org.uk>
+References: <20231108125843.3806765-1-arnd@kernel.org>
+ <20231108125843.3806765-16-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="woSdJmrFfLwaS8m2"
+Content-Disposition: inline
+In-Reply-To: <20231108125843.3806765-16-arnd@kernel.org>
+X-Cookie: Am I in GRADUATE SCHOOL yet?
 
-Before consolidation of commit 4965a68780c5 ("arch: define the
-ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig"), the config ARCH_ATU
-was used to control the state of the config ARCH_DMA_ADDR_T_64BIT. After
-this consolidation, the config ARCH_ATU has been without use and effect.
 
-Remove this obsolete config.
+--woSdJmrFfLwaS8m2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
+On Wed, Nov 08, 2023 at 01:58:36PM +0100, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+>=20
+> The VDSO functions are defined as globals in the kernel sources but inten=
+ded
+> to be called from userspace, so there is no need to declare them in a ker=
+nel
+> side header.
 
- arch/sparc/Kconfig | 4 ----
- 1 file changed, 4 deletions(-)
+This is in -next as commit 42874e4eb35bdfc54f8514685e50434098ba4f6c and
+breaks an arm64 defconfig build, the 32 bit vDSO build is broken:
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 49849790e66d..6b4d3182baae 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -112,10 +112,6 @@ config ARCH_PROC_KCORE_TEXT
- config CPU_BIG_ENDIAN
- 	def_bool y
- 
--config ARCH_ATU
--	bool
--	default y if SPARC64
--
- config STACKTRACE_SUPPORT
- 	bool
- 	default y if SPARC64
--- 
-2.17.1
+/build/stage/linux/arch/arm64/kernel/vdso32/vgettimeofday.c:10:5: error: co=
+nflic
+ting types for =E2=80=98__vdso_clock_gettime=E2=80=99; have =E2=80=98int(cl=
+ockid_t,  struct old_timespec
+32 *)=E2=80=99 {aka =E2=80=98int(int,  struct old_timespec32 *)=E2=80=99}
+   10 | int __vdso_clock_gettime(clockid_t clock,
+      |     ^~~~~~~~~~~~~~~~~~~~
+In file included from /build/stage/linux/arch/arm64/kernel/vdso32/vgettimeo=
+fday.
+c:8:
+/build/stage/linux/include/vdso/gettime.h:16:5: note: previous declaration =
+of =E2=80=98__vdso_clock_gettime=E2=80=99 with type =E2=80=98int(clockid_t,=
+  struct __kernel_timespec *)=E2=80=99 {aka =E2=80=98int(int,  struct __ker=
+nel_timespec *)=E2=80=99}
+   16 | int __vdso_clock_gettime(clockid_t clock, struct __kernel_timespec =
+*ts);
+      |     ^~~~~~~~~~~~~~~~~~~~
+/build/stage/linux/arch/arm64/kernel/vdso32/vgettimeofday.c:28:5: error: co=
+nflicting types for =E2=80=98__vdso_clock_getres=E2=80=99; have =E2=80=98in=
+t(clockid_t,  struct old_timespec32 *)=E2=80=99 {aka =E2=80=98int(int,  str=
+uct old_timespec32 *)=E2=80=99}
+   28 | int __vdso_clock_getres(clockid_t clock_id,
+      |     ^~~~~~~~~~~~~~~~~~~
+/build/stage/linux/include/vdso/gettime.h:15:5: note: previous declaration =
+of =E2=80=98__vdso_clock_getres=E2=80=99 with type =E2=80=98int(clockid_t, =
+ struct __kernel_timespec *)=E2=80=99 {aka =E2=80=98int(int,  struct __kern=
+el_timespec *)=E2=80=99}
+   15 | int __vdso_clock_getres(clockid_t clock, struct __kernel_timespec *=
+res);
+      |     ^~~~~~~~~~~~~~~~~~~
 
+--woSdJmrFfLwaS8m2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmVgkVgACgkQJNaLcl1U
+h9Dz9gf/VMa1PvhU/bO1IxdTJVCJWAk44qPipqzqyUg2pLaBosU5v8Dx8eAPyIg0
+DgxKA9Cycd3l3JSSqWIwJ1xEztqi2CvdmV5Ljrml8UqOvqHNPtg16JgCCOZ+Ssww
+82B8fl93C3CmUtTLFx3u3lZRKd7FjyeOiiemekfHvdbZSOn+K6Dk9zvPAE63gI0I
+5m6xp+q1eJ7Uyq7o4kCOnJOo/y9eDGX3lGqOsVQ7bnQAH6Id5y32aplMkStvzLKI
+TrSlxBsnU/wry1msxEbcgmhN2YebA1wWGNC0j6fT4xg0MzuHevZwPTSm/2sK5Exc
+fOQ/QL09MCXtNwNJ3QpItc8VaAFrVQ==
+=sHT7
+-----END PGP SIGNATURE-----
+
+--woSdJmrFfLwaS8m2--
