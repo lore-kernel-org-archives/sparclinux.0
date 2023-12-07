@@ -1,401 +1,206 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Pb71r+Cr"
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEBA7DE;
-	Wed,  6 Dec 2023 21:42:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1701927723; x=1733463723;
-  h=date:from:to:cc:subject:message-id;
-  bh=uKfMX7B7AelUiYi9YjjS3dGRw+Gxe2MWxWgi3QPMihQ=;
-  b=Pb71r+CrdpfpvxZjW9u8ukpVYnr5+XIeNSv5dWTMwJqFIhu6uCFu5cJW
-   P4jndM7P1am0u+74iLJRa82WJq3lK636W1WWcBSfAn3LMZgecxYG9SHSw
-   3TLDT8H49AMN71PKrwcFJI9oi+9HoKJ+RaPdnEBrJytm4HvCWz3O1BxuQ
-   ZrsGXaDrp56xOAHyz8R/rRwYabi3Ui2bg/G5YdcSERr3SASzRG1V5NbU4
-   V/yDFHzEc2CYtSsCuiH6ARvTAf0vciufBAPazlM4d+S59uvDRAJRSyyC8
-   taG2mpBEHXV7FOvydjCfrOiFzfIPt9Y3xTSu324y9+KonwWHrizqXMG7J
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10916"; a="7537557"
-X-IronPort-AV: E=Sophos;i="6.04,256,1695711600"; 
-   d="scan'208";a="7537557"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2023 21:42:02 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10916"; a="895013884"
-X-IronPort-AV: E=Sophos;i="6.04,256,1695711600"; 
-   d="scan'208";a="895013884"
-Received: from lkp-server02.sh.intel.com (HELO b07ab15da5fe) ([10.239.97.151])
-  by orsmga004.jf.intel.com with ESMTP; 06 Dec 2023 21:41:56 -0800
-Received: from kbuild by b07ab15da5fe with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1rB78z-000Btc-2F;
-	Thu, 07 Dec 2023 05:41:53 +0000
-Date: Thu, 07 Dec 2023 13:41:02 +0800
-From: kernel test robot <lkp@intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Memory Management List <linux-mm@kvack.org>,
- amd-gfx@lists.freedesktop.org, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
- linux-atm-general@lists.sourceforge.net, linux-block@vger.kernel.org,
- linux-csky@vger.kernel.org, linux-iio@vger.kernel.org,
- linux-leds@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
- linux-stm32@st-md-mailman.stormreply.com, linux-sunxi@lists.linux.dev,
- netdev@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: [linux-next:master] BUILD REGRESSION
- 577a4ee0b96fb043c9cf4a533c550ff587e526cf
-Message-ID: <202312071357.ypE0yrPf-lkp@intel.com>
-User-Agent: s-nail v14.9.24
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="tg8NdadU";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="eNkRt1wW"
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EC901987;
+	Thu,  7 Dec 2023 01:10:26 -0800 (PST)
+Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [10.150.64.98])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 5B8831F897;
+	Thu,  7 Dec 2023 09:10:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1701940224; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=jXiKfid97FD5zi8RqmP75wazePMuM2Vj4JZ4H26JF/w=;
+	b=tg8NdadUlk4VfBBiX/KnTc8KWn4/+I2eqU3OCsMmSGO5fGxGo+xFF7FC1+cL85+pnkxgh6
+	+2Q+t+yvWpRrlmhVvY0iaqUjhOk6aDapKv8aWDgxXaeYBRQUq2bq9mHOv8yIv2mkt3uJBW
+	DjcnaOKBqBG38BR6qn1JnsOv3SGRVLU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1701940224;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=jXiKfid97FD5zi8RqmP75wazePMuM2Vj4JZ4H26JF/w=;
+	b=eNkRt1wWHc2B/3UiJ7gBmgVmSJJtzZTtEviOYNX31SorNi0ot/Q0TzM7nhemVkTB8kzvHE
+	aOrpBsXvOqOVy6BQ==
+Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id 34B3813907;
+	Thu,  7 Dec 2023 09:10:24 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([10.150.64.162])
+	by imap2.dmz-prg2.suse.org with ESMTPSA
+	id w3HWDACMcWWqPwAAn2gu4w
+	(envelope-from <jack@suse.cz>); Thu, 07 Dec 2023 09:10:24 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 7AF80A07C7; Thu,  7 Dec 2023 10:10:23 +0100 (CET)
+Date: Thu, 7 Dec 2023 10:10:23 +0100
+From: Jan Kara <jack@suse.cz>
+To: Yury Norov <yury.norov@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	"James E.J. Bottomley" <jejb@linux.ibm.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	"Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+	Akinobu Mita <akinobu.mita@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bjorn Andersson <andersson@kernel.org>,
+	Borislav Petkov <bp@alien8.de>, Chaitanya Kulkarni <kch@nvidia.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Disseldorp <ddiss@suse.de>,
+	Edward Cree <ecree.xilinx@gmail.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Fenghua Yu <fenghua.yu@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Gregory Greenman <gregory.greenman@intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>,
+	Jakub Kicinski <kuba@kernel.org>, Jaroslav Kysela <perex@perex.cz>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
+	Jiri Pirko <jiri@resnulli.us>, Jiri Slaby <jirislaby@kernel.org>,
+	Kalle Valo <kvalo@kernel.org>, Karsten Graul <kgraul@linux.ibm.com>,
+	Karsten Keil <isdn@linux-pingi.de>,
+	Kees Cook <keescook@chromium.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Martin Habets <habetsm.xilinx@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Simek <monstr@monstr.eu>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Oliver Neukum <oneukum@suse.com>, Paolo Abeni <pabeni@redhat.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ping-Ke Shih <pkshih@realtek.com>, Rich Felker <dalias@libc.org>,
+	Rob Herring <robh@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Stanislaw Gruszka <stf_xl@wp.pl>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Valentin Schneider <vschneid@redhat.com>,
+	Vitaly Kuznetsov <vkuznets@redhat.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>, Will Deacon <will@kernel.org>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	GR-QLogic-Storage-Upstream@marvell.com, alsa-devel@alsa-project.org,
+	ath10k@lists.infradead.org, dmaengine@vger.kernel.org,
+	iommu@lists.linux.dev, kvm@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+	linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	linux-hyperv@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	linux-media@vger.kernel.org, linux-mips@vger.kernel.org,
+	linux-net-drivers@amd.com, linux-pci@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-sh@vger.kernel.org, linux-sound@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, mpi3mr-linuxdrv.pdl@broadcom.com,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org,
+	Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>,
+	Matthew Wilcox <willy@infradead.org>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Maxim Kuvyrkov <maxim.kuvyrkov@linaro.org>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Sergey Shtylyov <s.shtylyov@omp.ru>
+Subject: Re: [PATCH v2 00/35] bitops: add atomic find_bit() operations
+Message-ID: <20231207091023.kioii5mgmnphrvl4@quack3>
+References: <20231203192422.539300-1-yury.norov@gmail.com>
+ <20231204185101.ddmkvsr2xxsmoh2u@quack3>
+ <ZXAFM2VZugdhM3oE@yury-ThinkPad>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZXAFM2VZugdhM3oE@yury-ThinkPad>
+Authentication-Results: smtp-out2.suse.de;
+	none
+X-Spam-Score: 2.70
+X-Spamd-Result: default: False [2.70 / 50.00];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 RCVD_COUNT_THREE(0.00)[3];
+	 NEURAL_HAM_SHORT(-0.20)[-1.000];
+	 RCPT_COUNT_GT_50(0.00)[100];
+	 FREEMAIL_TO(0.00)[gmail.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 FORGED_RECIPIENTS(2.00)[m:yury.norov@gmail.com,m:davem@davemloft.net,m:jejb@linux.ibm.com,m:haris.iqbal@ionos.com,m:akinobu.mita@gmail.com,m:akpm@linux-foundation.org,m:andersson@kernel.org,m:bp@alien8.de,m:brauner@kernel.org,m:dave.hansen@linux.intel.com,m:ecree.xilinx@gmail.com,m:edumazet@google.com,m:fenghua.yu@intel.com,m:geert@linux-m68k.org,m:gregory.greenman@intel.com,m:hughd@google.com,m:kuba@kernel.org,m:axboe@kernel.dk,m:jirislaby@kernel.org,m:kvalo@kernel.org,m:kgraul@linux.ibm.com,m:isdn@linux-pingi.de,m:keescook@chromium.org,m:leon@kernel.org,m:mark.rutland@arm.com,m:habetsm.xilinx@gmail.com,m:mchehab@kernel.org,m:mpe@ellerman.id.au,m:npiggin@gmail.com,m:peterz@infradead.org,m:dalias@libc.org,m:robh@kernel.org,m:robin.murphy@arm.com,m:seanjc@google.com,m:xueshuai@linux.alibaba.com,m:rostedt@goodmis.org,m:tsbogend@alpha.franken.de,m:tglx@linutronix.de,m:wenjia@linux.ibm.com,m:will@kernel.org,m:alsa-devel@alsa-project.org,m:linux-net-drivers@amd.com,m:mpi3mr-linuxdrv.pdl
+ @broadcom.com,m:x86@kernel.org,m:mirsad.todorovac@alu.unizg.hr,m:willy@infradead.org,m:andriy.shevchenko@linux.intel.com,m:maxim.kuvyrkov@linaro.org,m:klimov.linux@gmail.com,m:bvanassche@acm.org,s:s.shtylyov@omp.ru];
+	 BAYES_HAM(-0.00)[40.06%];
+	 ARC_NA(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 FREEMAIL_ENVRCPT(0.00)[wp.pl,xs4all.nl];
+	 NEURAL_HAM_LONG(-1.00)[-1.000];
+	 TAGGED_RCPT(0.00)[];
+	 MIME_GOOD(-0.10)[text/plain];
+	 TO_MATCH_ENVRCPT_SOME(0.00)[];
+	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 MID_RHS_NOT_FQDN(0.50)[];
+	 FREEMAIL_CC(0.00)[suse.cz,vger.kernel.org,davemloft.net,zytor.com,linux.ibm.com,microsoft.com,ionos.com,gmail.com,linux-foundation.org,kernel.org,alien8.de,nvidia.com,opensource.wdc.com,linux.intel.com,suse.de,google.com,intel.com,linux-m68k.org,linuxfoundation.org,xs4all.nl,redhat.com,perex.cz,ziepe.ca,kernel.dk,resnulli.us,linux-pingi.de,chromium.org,arm.com,ellerman.id.au,monstr.eu,suse.com,infradead.org,realtek.com,libc.org,linux.alibaba.com,wp.pl,goodmis.org,alpha.franken.de,linutronix.de,users.sourceforge.jp,marvell.com,alsa-project.org,lists.infradead.org,lists.linux.dev,lists.linux-m68k.org,amd.com,lists.ozlabs.org,broadcom.com,alu.unizg.hr,rasmusvillemoes.dk,linaro.org,acm.org,omp.ru];
+	 RCVD_TLS_ALL(0.00)[];
+	 SUSPICIOUS_RECIPS(1.50)[]
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
-branch HEAD: 577a4ee0b96fb043c9cf4a533c550ff587e526cf  Add linux-next specific files for 20231206
+On Tue 05-12-23 21:22:59, Yury Norov wrote:
+> On Mon, Dec 04, 2023 at 07:51:01PM +0100, Jan Kara wrote:
+> > > This series is a result of discussion [1]. All find_bit() functions imply
+> > > exclusive access to the bitmaps. However, KCSAN reports quite a number
+> > > of warnings related to find_bit() API. Some of them are not pointing
+> > > to real bugs because in many situations people intentionally allow
+> > > concurrent bitmap operations.
+> > > 
+> > > If so, find_bit() can be annotated such that KCSAN will ignore it:
+> > > 
+> > >         bit = data_race(find_first_bit(bitmap, nbits));
+> > 
+> > No, this is not a correct thing to do. If concurrent bitmap changes can
+> > happen, find_first_bit() as it is currently implemented isn't ever a safe
+> > choice because it can call __ffs(0) which is dangerous as you properly note
+> > above. I proposed adding READ_ONCE() into find_first_bit() / find_next_bit()
+> > implementation to fix this issue but you disliked that. So other option we
+> > have is adding find_first_bit() and find_next_bit() variants that take
+> > volatile 'addr' and we have to use these in code like xas_find_chunk()
+> > which cannot be converted to your new helpers.
+> 
+> Here is some examples when concurrent operations with plain find_bit()
+> are acceptable:
+> 
+>  - two threads running find_*_bit(): safe wrt ffs(0) and returns correct
+>    value, because underlying bitmap is unchanged;
+>  - find_next_bit() in parallel with set or clear_bit(), when modifying
+>    a bit prior to the start bit to search: safe and correct;
+>  - find_first_bit() in parallel with set_bit(): safe, but may return wrong
+>    bit number;
+>  - find_first_zero_bit() in parallel with clear_bit(): same as above.
+> 
+> In last 2 cases find_bit() may not return a correct bit number, but
+> it may be OK if caller requires any (not exactly first) set or clear
+> bit, correspondingly.
+> 
+> In such cases, KCSAN may be safely silenced.
 
-Error/Warning reports:
+True - but these are special cases. In particular the case in xas_find_chunk()
+is not any of these special cases. It is using find_next_bit() which is can
+be racing with clear_bit(). So what are your plans for such usecase?
 
-https://lore.kernel.org/oe-kbuild-all/202312061337.WNVSk0AL-lkp@intel.com
-https://lore.kernel.org/oe-kbuild-all/202312061837.tbKWaozM-lkp@intel.com
-https://lore.kernel.org/oe-kbuild-all/202312062242.RFPPozG9-lkp@intel.com
-
-Error/Warning: (recently discovered and may have been fixed)
-
-/tmp/cco4BMDv.s:387: Error: selected processor does not support requested special purpose register -- `mrs r1,cpsr'
-drivers/perf/riscv_pmu_sbi.c:1008:19: error: incompatible function pointer types initializing 'proc_handler *' (aka 'int (*)(const struct ctl_table *, int, void *, unsigned long *, long long *)') with an expression of type 'int (struct ctl_table *, int, void *, size_t *, loff_t *)' (aka 'int (struct ctl_table *, int, void *, unsigned long *, long long *)') [-Wincompatible-function-pointer-types]
-
-Error/Warning ids grouped by kconfigs:
-
-gcc_recent_errors
-|-- alpha-randconfig-r132-20231206
-|   |-- arch-alpha-mm-fault.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|   |-- drivers-atm-fore200e.c:sparse:sparse:incorrect-type-in-argument-(different-base-types)-expected-unsigned-int-usertype-b-got-restricted-__le32-usertype
-|   |-- drivers-iio-imu-bmi323-bmi323_i2c.c:sparse:sparse:symbol-bmi323_i2c_regmap_config-was-not-declared.-Should-it-be-static
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- arm-allyesconfig
-|   `-- qcom_stats.c:(.text):undefined-reference-to-__aeabi_uldivmod
-|-- arm-randconfig-r016-20220626
-|   `-- :Error:selected-processor-does-not-support-requested-special-purpose-register-mrs-r1-cpsr
-|-- csky-randconfig-r122-20231206
-|   |-- arch-csky-kernel-vdso-vgettimeofday.c:sparse:sparse:function-__vdso_clock_gettime-with-external-linkage-has-definition
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- microblaze-randconfig-r121-20231206
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- mips-allyesconfig
-|   `-- qcom_stats.c:(.text.qcom_ddr_stats_show):undefined-reference-to-__udivdi3
-|-- mips-randconfig-r123-20231206
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- parisc-randconfig-r113-20231206
-|   |-- drivers-iio-imu-bmi323-bmi323_i2c.c:sparse:sparse:symbol-bmi323_i2c_regmap_config-was-not-declared.-Should-it-be-static
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-opcode-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-owner-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-type-got-int
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- sh-randconfig-m031-20230727
-|   `-- standard-input:Error:unknown-pseudo-op:cfi_def_cfa_regist
-|-- sh-randconfig-r112-20231206
-|   |-- arch-sh-kernel-crash_dump.c:sparse:sparse:incorrect-type-in-argument-(different-address-spaces)-expected-void-const-addr-got-void-noderef-__iomem
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-opcode-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-owner-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-type-got-int
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- sparc-allmodconfig
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc-allnoconfig
-|   |-- arch-sparc-mm-leon_mm.c:warning:variable-paddrbase-set-but-not-used
-|   `-- arch-sparc-mm-srmmu.c:warning:variable-clear-set-but-not-used
-|-- sparc-defconfig
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   |-- arch-sparc-mm-leon_mm.c:warning:variable-paddrbase-set-but-not-used
-|   `-- arch-sparc-mm-srmmu.c:warning:variable-clear-set-but-not-used
-|-- sparc-randconfig-001-20231206
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   |-- arch-sparc-mm-leon_mm.c:warning:variable-paddrbase-set-but-not-used
-|   `-- arch-sparc-mm-srmmu.c:warning:variable-clear-set-but-not-used
-|-- sparc-randconfig-002-20231206
-|   |-- arch-sparc-mm-leon_mm.c:warning:variable-paddrbase-set-but-not-used
-|   `-- arch-sparc-mm-srmmu.c:warning:variable-clear-set-but-not-used
-|-- sparc-randconfig-r061-20231206
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-allmodconfig
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-allyesconfig
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-defconfig
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-randconfig-001-20231206
-|   |-- arch-sparc-kernel-module.c:warning:variable-strtab-set-but-not-used
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-randconfig-002-20231206
-|   `-- arch-sparc-mm-init_64.c:warning:variable-hv_pgsz_idx-set-but-not-used
-|-- sparc64-randconfig-r133-20231206
-|   |-- drivers-infiniband-hw-vmw_pvrdma-pvrdma.h:sparse:sparse:incorrect-type-in-argument-(different-base-types)-expected-unsigned-int-usertype-l-got-restricted-__le32-usertype
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- x86_64-randconfig-121-20231206
-|   |-- drivers-gpu-drm-amd-amdgpu-..-amdkfd-kfd_process.c:sparse:sparse:incompatible-types-in-comparison-expression-(different-address-spaces):
-|   |-- drivers-gpu-drm-amd-amdgpu-..-amdkfd-kfd_process.c:sparse:struct-dma_fence
-|   |-- drivers-gpu-drm-amd-amdgpu-..-amdkfd-kfd_process.c:sparse:struct-dma_fence-noderef-__rcu
-|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_amdkfd_gpuvm.c:sparse:sparse:incompatible-types-in-comparison-expression-(different-address-spaces):
-|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_amdkfd_gpuvm.c:sparse:struct-dma_fence
-|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_amdkfd_gpuvm.c:sparse:struct-dma_fence-noderef-__rcu
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-opcode-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-owner-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-type-got-int
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-`-- x86_64-randconfig-122-20231206
-    `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-clang_recent_errors
-|-- arm64-allmodconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- arm64-allyesconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- arm64-randconfig-003-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- arm64-randconfig-004-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- hexagon-allmodconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- hexagon-allyesconfig
-|   |-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|   |-- ld.lld:error:vmlinux.a(arch-hexagon-kernel-head.o):(.init.text):relocation-R_HEX_B22_PCREL-out-of-range:is-not-in-references-__vmnewmap
-|   |-- ld.lld:error:vmlinux.a(arch-hexagon-kernel-head.o):(.init.text):relocation-R_HEX_B22_PCREL-out-of-range:is-not-in-references-__vmsetvec
-|   `-- ld.lld:error:vmlinux.a(arch-hexagon-kernel-head.o):(.init.text):relocation-R_HEX_B22_PCREL-out-of-range:is-not-in-references-memset
-|-- hexagon-randconfig-002-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- i386-allmodconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- i386-allyesconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- i386-randconfig-061-20231206
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-opcode-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-owner-got-int
-|   |-- drivers-soc-qcom-pmic_pdcharger_ulog.c:sparse:sparse:incorrect-type-in-initializer-(different-base-types)-expected-restricted-__le32-usertype-type-got-int
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- i386-randconfig-141-20231206
-|   |-- block-bdev.c-bdev_open_by_dev()-warn:possible-memory-leak-of-handle
-|   |-- drivers-hwtracing-stm-core.c-stm_register_device()-error:double-free-of-stm
-|   |-- lib-zstd-common-bits.h-ZSTD_countLeadingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-common-bits.h-ZSTD_countTrailingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-compress-..-common-bits.h-ZSTD_countLeadingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-compress-..-common-bits.h-ZSTD_countLeadingZeros64()-warn:inconsistent-indenting
-|   |-- lib-zstd-compress-..-common-bits.h-ZSTD_countTrailingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-compress-..-common-bits.h-ZSTD_countTrailingZeros64()-warn:inconsistent-indenting
-|   |-- lib-zstd-decompress-..-common-bits.h-ZSTD_countLeadingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-decompress-..-common-bits.h-ZSTD_countTrailingZeros32()-warn:inconsistent-indenting
-|   |-- lib-zstd-decompress-..-common-bits.h-ZSTD_countTrailingZeros64()-warn:inconsistent-indenting
-|   `-- mm-slub.c-__put_partials()-error:calling-spin_unlock_irqrestore()-with-bogus-flags
-|-- powerpc-allmodconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- powerpc-allyesconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- powerpc-randconfig-r064-20231206
-|   `-- drivers-leds-leds-sun50i-a100.c:error:call-to-__compiletime_assert_NNN-declared-with-error-attribute:FIELD_PREP:value-too-large-for-the-field
-|-- powerpc64-randconfig-002-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- powerpc64-randconfig-003-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- riscv-randconfig-001-20231206
-|   `-- drivers-perf-riscv_pmu_sbi.c:error:incompatible-function-pointer-types-initializing-proc_handler-(aka-int-(-)(const-struct-ctl_table-int-void-unsigned-long-long-long-)-)-with-an-expression-of-type-int
-|-- riscv-randconfig-002-20231206
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|-- s390-randconfig-r111-20231206
-|   |-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-|   `-- lib-zstd-compress-zstd_fast.c:sparse:sparse:Using-plain-integer-as-NULL-pointer
-|-- x86_64-allmodconfig
-|   `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-`-- x86_64-allyesconfig
-    `-- drivers-leds-leds-max5970.c:warning:variable-num_leds-set-but-not-used
-
-elapsed time: 1467m
-
-configs tested: 176
-configs skipped: 3
-
-tested configs:
-alpha                             allnoconfig   gcc  
-alpha                            allyesconfig   gcc  
-alpha                               defconfig   gcc  
-arc                              allmodconfig   gcc  
-arc                               allnoconfig   gcc  
-arc                              allyesconfig   gcc  
-arc                                 defconfig   gcc  
-arc                         haps_hs_defconfig   gcc  
-arc                   randconfig-001-20231206   gcc  
-arc                   randconfig-002-20231206   gcc  
-arm                              allmodconfig   gcc  
-arm                               allnoconfig   gcc  
-arm                              allyesconfig   gcc  
-arm                                 defconfig   clang
-arm                          pxa910_defconfig   gcc  
-arm                   randconfig-001-20231206   clang
-arm                   randconfig-002-20231206   clang
-arm                   randconfig-003-20231206   clang
-arm                   randconfig-004-20231206   clang
-arm                           spitz_defconfig   clang
-arm64                            allmodconfig   clang
-arm64                             allnoconfig   gcc  
-arm64                               defconfig   gcc  
-arm64                 randconfig-001-20231206   clang
-arm64                 randconfig-002-20231206   clang
-arm64                 randconfig-003-20231206   clang
-arm64                 randconfig-004-20231206   clang
-csky                             allmodconfig   gcc  
-csky                              allnoconfig   gcc  
-csky                             allyesconfig   gcc  
-csky                                defconfig   gcc  
-csky                  randconfig-001-20231206   gcc  
-csky                  randconfig-002-20231206   gcc  
-hexagon                          allmodconfig   clang
-hexagon                           allnoconfig   clang
-hexagon                          allyesconfig   clang
-hexagon                             defconfig   clang
-hexagon               randconfig-001-20231206   clang
-hexagon               randconfig-002-20231206   clang
-i386                             allmodconfig   clang
-i386                              allnoconfig   clang
-i386                             allyesconfig   clang
-i386         buildonly-randconfig-001-20231206   clang
-i386         buildonly-randconfig-002-20231206   clang
-i386         buildonly-randconfig-003-20231206   clang
-i386         buildonly-randconfig-004-20231206   clang
-i386         buildonly-randconfig-005-20231206   clang
-i386         buildonly-randconfig-006-20231206   clang
-i386                                defconfig   gcc  
-i386                  randconfig-001-20231206   clang
-i386                  randconfig-002-20231206   clang
-i386                  randconfig-003-20231206   clang
-i386                  randconfig-004-20231206   clang
-i386                  randconfig-005-20231206   clang
-i386                  randconfig-006-20231206   clang
-i386                  randconfig-011-20231206   gcc  
-i386                  randconfig-012-20231206   gcc  
-i386                  randconfig-013-20231206   gcc  
-i386                  randconfig-014-20231206   gcc  
-i386                  randconfig-015-20231206   gcc  
-i386                  randconfig-016-20231206   gcc  
-loongarch                        allmodconfig   gcc  
-loongarch                         allnoconfig   gcc  
-loongarch                           defconfig   gcc  
-loongarch             randconfig-001-20231206   gcc  
-loongarch             randconfig-002-20231206   gcc  
-m68k                             allmodconfig   gcc  
-m68k                              allnoconfig   gcc  
-m68k                             allyesconfig   gcc  
-m68k                                defconfig   gcc  
-m68k                          hp300_defconfig   gcc  
-microblaze                       allmodconfig   gcc  
-microblaze                        allnoconfig   gcc  
-microblaze                       allyesconfig   gcc  
-microblaze                          defconfig   gcc  
-mips                              allnoconfig   clang
-mips                             allyesconfig   gcc  
-mips                           mtx1_defconfig   clang
-nios2                            allmodconfig   gcc  
-nios2                             allnoconfig   gcc  
-nios2                            allyesconfig   gcc  
-nios2                               defconfig   gcc  
-nios2                 randconfig-001-20231206   gcc  
-nios2                 randconfig-002-20231206   gcc  
-openrisc                          allnoconfig   gcc  
-openrisc                         allyesconfig   gcc  
-openrisc                            defconfig   gcc  
-parisc                           allmodconfig   gcc  
-parisc                            allnoconfig   gcc  
-parisc                           allyesconfig   gcc  
-parisc                              defconfig   gcc  
-parisc                randconfig-001-20231206   gcc  
-parisc                randconfig-002-20231206   gcc  
-parisc64                            defconfig   gcc  
-powerpc                     akebono_defconfig   clang
-powerpc                          allmodconfig   clang
-powerpc                           allnoconfig   gcc  
-powerpc                          allyesconfig   clang
-powerpc                 canyonlands_defconfig   gcc  
-powerpc               randconfig-001-20231206   clang
-powerpc               randconfig-003-20231206   clang
-powerpc                     tqm5200_defconfig   clang
-powerpc                     tqm8548_defconfig   gcc  
-powerpc64             randconfig-001-20231206   clang
-powerpc64             randconfig-002-20231206   clang
-powerpc64             randconfig-003-20231206   clang
-riscv                            allmodconfig   gcc  
-riscv                             allnoconfig   clang
-riscv                            allyesconfig   gcc  
-riscv                               defconfig   gcc  
-riscv                 randconfig-001-20231206   clang
-riscv                 randconfig-002-20231206   clang
-riscv                          rv32_defconfig   clang
-s390                             allmodconfig   gcc  
-s390                              allnoconfig   gcc  
-s390                             allyesconfig   gcc  
-s390                                defconfig   gcc  
-s390                  randconfig-001-20231206   gcc  
-s390                  randconfig-002-20231206   gcc  
-sh                               allmodconfig   gcc  
-sh                                allnoconfig   gcc  
-sh                               allyesconfig   gcc  
-sh                                  defconfig   gcc  
-sh                        edosk7705_defconfig   gcc  
-sh                        edosk7760_defconfig   gcc  
-sh                          lboxre2_defconfig   gcc  
-sh                    randconfig-001-20231206   gcc  
-sh                    randconfig-002-20231206   gcc  
-sh                          rsk7269_defconfig   gcc  
-sh                            shmin_defconfig   gcc  
-sparc                            allmodconfig   gcc  
-sparc64                          allmodconfig   gcc  
-sparc64                          allyesconfig   gcc  
-sparc64                             defconfig   gcc  
-sparc64               randconfig-001-20231206   gcc  
-sparc64               randconfig-002-20231206   gcc  
-um                               allmodconfig   clang
-um                                allnoconfig   clang
-um                               allyesconfig   clang
-um                                  defconfig   gcc  
-um                             i386_defconfig   gcc  
-um                    randconfig-001-20231206   clang
-um                    randconfig-002-20231206   clang
-um                           x86_64_defconfig   gcc  
-x86_64                           alldefconfig   gcc  
-x86_64                            allnoconfig   gcc  
-x86_64                           allyesconfig   clang
-x86_64       buildonly-randconfig-001-20231206   clang
-x86_64       buildonly-randconfig-002-20231206   clang
-x86_64       buildonly-randconfig-003-20231206   clang
-x86_64       buildonly-randconfig-004-20231206   clang
-x86_64       buildonly-randconfig-005-20231206   clang
-x86_64       buildonly-randconfig-006-20231206   clang
-x86_64                              defconfig   gcc  
-x86_64                randconfig-001-20231206   gcc  
-x86_64                randconfig-002-20231206   gcc  
-x86_64                randconfig-003-20231206   gcc  
-x86_64                randconfig-004-20231206   gcc  
-x86_64                randconfig-005-20231206   gcc  
-x86_64                randconfig-006-20231206   gcc  
-x86_64                randconfig-011-20231206   clang
-x86_64                randconfig-012-20231206   clang
-x86_64                randconfig-013-20231206   clang
-x86_64                randconfig-014-20231206   clang
-x86_64                randconfig-015-20231206   clang
-x86_64                randconfig-016-20231206   clang
-x86_64                randconfig-071-20231206   clang
-x86_64                randconfig-072-20231206   clang
-x86_64                randconfig-073-20231206   clang
-x86_64                randconfig-074-20231206   clang
-x86_64                randconfig-075-20231206   clang
-x86_64                randconfig-076-20231206   clang
-x86_64                          rhel-8.3-rust   clang
-xtensa                            allnoconfig   gcc  
-xtensa                randconfig-001-20231206   gcc  
-xtensa                randconfig-002-20231206   gcc  
-
+								Honza
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
