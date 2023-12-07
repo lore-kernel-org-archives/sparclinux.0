@@ -1,51 +1,93 @@
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7B91122;
-	Thu,  7 Dec 2023 04:44:29 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4SmDVL0kpKz4xGR;
-	Thu,  7 Dec 2023 23:44:10 +1100 (AEDT)
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>, linux-kbuild@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Guo Ren <guoren@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ard Biesheuvel <ardb@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, Greg Ungerer <gerg@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Dinh Nguyen <dinguyen@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, Geoff Levand <geoff@infradead.org>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <hca@linux.ibm.com>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S. Miller" <davem@davemloft.net>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molna
- r <mingo@redhat.com>, x86@kernel.org, Helge Deller <deller@gmx.de>, Sudip Mukherjee <sudipm.mukherjee@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Timur Tabi <timur@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, David Woodhouse <dwmw2@infradead.org>, "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Kees Cook <keescook@chromium.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Nicolas Schier <nicolas@fjasle.eu>, Al Viro <viro@zeniv.linux.org.uk>, Uwe Kleine-König <u.kleine-koenig@pengutronix.de>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-trace-kernel@vger.kernel.org, linux-csky@vger.kernel.org, loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kerne
- l.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-parisc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-bcachefs@vger.kernel.org, linux-mtd@lists.infradead.org
-In-Reply-To: <20231108125843.3806765-1-arnd@kernel.org>
-References: <20231108125843.3806765-1-arnd@kernel.org>
-Subject: Re: (subset) [PATCH 00/22] -Wmissing-prototype warning fixes
-Message-Id: <170195271155.2310221.7822619081586355844.b4-ty@ellerman.id.au>
-Date: Thu, 07 Dec 2023 23:38:31 +1100
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="MUCKjKmS"
+X-Greylist: delayed 481 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 07 Dec 2023 08:57:45 PST
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33A89170E
+	for <sparclinux@vger.kernel.org>; Thu,  7 Dec 2023 08:57:45 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4SmKxg1qzNz6866;
+	Thu,  7 Dec 2023 17:49:43 +0100 (CET)
+Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4SmKxf0YJ2z681W;
+	Thu,  7 Dec 2023 17:49:42 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1701967783;
+	bh=s/G502eP+Cz2m/ZK1OaaSSp3o7NLys4j+0lG8KQXq4M=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=MUCKjKmSABArRO38H6OQjCTq6BWId1ZumE+Sn8+qXf8mer+5CrsaVwH4zelm1BEm6
+	 l34fljhYPpTf8l15472iqYulgsZttNurBTZODBiP3Sm+KsehXedoq2H4S9VXHdgTTH
+	 OfM1TKxKmAvkadqIZJSLpDk03dY4WEdXQy/sUYEc=
+Message-ID: <030e57e1-13a0-4c62-8302-2b0008c6e92e@gaisler.com>
+Date: Thu, 7 Dec 2023 17:49:40 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc: Use $(kecho) to announce kernel images being ready
+Content-Language: en-US
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Sam Ravnborg <sam@ravnborg.org>, Arnd Bergmann <arnd@arndb.de>,
+ "David S. Miller" <davem@davemloft.net>
+Cc: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
+ Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley
+ <paul.walmsley@sifive.com>, sparclinux@vger.kernel.org,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Andrew Morton <akpm@linux-foundation.org>
+References: <20230713075235.2164609-1-u.kleine-koenig@pengutronix.de>
+ <20230713145536.GA5300@ravnborg.org>
+ <20231204110512.wz6qfsah632bcuh5@pengutronix.de>
+ <add3c37a-08ef-41e1-b717-091d9bffd66a@app.fastmail.com>
+ <20231205180506.GA242352@ravnborg.org> <20231205202630.GA290248@ravnborg.org>
+ <93c22029b8523c5380f126995481002246eabfa7.camel@physik.fu-berlin.de>
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <93c22029b8523c5380f126995481002246eabfa7.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On Wed, 08 Nov 2023 13:58:21 +0100, Arnd Bergmann wrote:
-> I slightly dropped the ball on this since last sending the series in
-> August, but a number of warning fixes have made it into the kernel in
-> the meantime, both from my earlier submission and from architecture
-> maintainers.
+On 2023-12-06 10:31, John Paul Adrian Glaubitz wrote:
+> Hi Sam!
 > 
-> I have none patches that remain from the previous submission, with
-> two of them reworked according to comments. The additional patches
-> are from more testing across architectures and configurations that
-> I had previously missed.
+> On Tue, 2023-12-05 at 21:26 +0100, Sam Ravnborg wrote:
+>>> Agreed, it is long time since I got any indications that people
+>>> actually use these old machines.
+>>> The sparc32 machines I have, have not been powered up for several years
+>>> now, and they were only used to test new kernels on anyway.
+>>>
+>>> I sent out a small patch series to do more or less what you suggested
+>>> maybe one year ago. Back then the resistance was only from nostalgic
+>>> people (like myself) and no real users.
+>>>
+>>> If you or anyone moves forward removing the non-leon sparc32 support
+>>> then starting new would be the best approach, I do not think it makes
+>>> sense to dig up my old patch set.
+>>
+>> Never mind, I digged up the old patchset and will try to prepare
+>> something. Then we will see what reception the patch set receives this
+>> time.
 > 
-> [...]
+> No objection this time. But maybe we could sort out the maintainer question
+> first, then start with new patches.
+> 
+> I like Arnd's suggestion that Andreas Larsson takes up (co-)maintainership.
+> 
+> Can someone reach out to him?
 
-Applied to powerpc/next.
+Hi,
+I feel honored to be suggested for such a responsibility. I could in the
+long term be available for a role as some kind of SPARC (co-)maintainer,
+with backing from my organization. My SPARC experience is mainly with
+SPARC32 rather than SPARC64, so discussing a co-maintainership with a
+SPARC32 focus would feel natural as a start. I do not have much in terms
+of SPARC64 or non-LEON SPARC32 hardware available for testing.
 
-[17/22] powerpc: ps3: move udbg_shutdown_ps3gelic prototype
-        https://git.kernel.org/powerpc/c/04c40eed3f7ac48ddaf20104489510e743a53c47
-[18/22] powerpc: pasemi: mark pas_shutdown() static
-        https://git.kernel.org/powerpc/c/0c9a768de64d24e38e27652b8c273725ccc31916
-[19/22] powerpc: powermac: mark smp_psurge_{give,take}_timebase static
-        https://git.kernel.org/powerpc/c/afb36ac386783d2ef2ed839293c03fd06f470be0
+Has someone reached out to Dave? I think discussions like these might
+be better served in a thread of its own.
 
-cheers
+Cheers,
+Andreas Larsson
+
