@@ -1,87 +1,75 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9A7110D8
-	for <sparclinux@vger.kernel.org>; Sat,  9 Dec 2023 03:17:08 -0800 (PST)
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.95)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1rBvKO-0047YD-8e; Sat, 09 Dec 2023 12:17:00 +0100
-Received: from dynamic-077-011-146-185.77.11.pool.telefonica.de ([77.11.146.185] helo=[192.168.1.11])
-          by inpost2.zedat.fu-berlin.de (Exim 4.95)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1rBvKO-0028S1-1O; Sat, 09 Dec 2023 12:17:00 +0100
-Message-ID: <7bc0854ceb5c55b6044eee7f18d3eb672329aeea.camel@physik.fu-berlin.de>
-Subject: Re: sparc maintainer future
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller"
- <davem@davemloft.net>,  Andreas Larsson <andreas@gaisler.com>
-Cc: Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, 
- Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley
- <paul.walmsley@sifive.com>, sparclinux@vger.kernel.org,  Pengutronix Kernel
- Team <kernel@pengutronix.de>, Andrew Morton <akpm@linux-foundation.org>
-Date: Sat, 09 Dec 2023 12:16:59 +0100
-In-Reply-To: <20231209105816.GA1085691@ravnborg.org>
-References: <20231209105816.GA1085691@ravnborg.org>
-Autocrypt: addr=glaubitz@physik.fu-berlin.de; prefer-encrypt=mutual;
- keydata=mQINBE3JE9wBEADMrYGNfz3oz6XLw9XcWvuIxIlPWoTyw9BxTicfGAv0d87wngs9U+d52t/REggPePf34gb7/k8FBY1IgyxnZEB5NxUb1WtW0M3GUxpPx6gBZqOm7SK1ZW3oSORw+T7Aezl3Zq4Nr4Nptqx7fnLpXfRDs5iYO/GX8WuL8fkGS/gIXtxKewd0LkTlb6jq9KKq8qn8/BN5YEKqJlM7jsENyA5PIe2npN3MjEg6p+qFrmrzJRuFjjdf5vvGfzskrXCAKGlNjMMA4TgZvugOFmBI/iSyV0IOaj0uKhes0ZNX+lQFrOB4j6I5fTBy7L/T3W/pCWo3wVkknNYa8TDYT73oIZ7Aimv+k7OzRfnxsSOAZT8Re1Yt8mvzr6FHVFjr/VdyTtO5JgQZ6LEmvo4Ro+2ByBmCHORCQ0NJhD1U3avjGfvfslG999W0WEZLTeaGkBAN1yG/1bgGAytQQkD9NsVXqBy7S3LVv9bB844ysW5Aj1nvtgIz14E2WL8rbpfjJMXi7B5ha6Lxf3rFOgxpr6ZoEn+bGG4hmrO+/ReA4SerfMqwSTnjZsZvxMJsx2B9c8DaZE8GsA4I6lsihbJmXhw8i7Cta8Dx418wtEbXhL6m/UEk60O7QD1VBgGqDMnJDFSlvKa9D+tZde/kHSNmQmLLzxtDbNgBgmR0jUlmxirijnm8bwARAQABtEBKb2huIFBhdWwgQWRyaWFuIEdsYXViaXR6IChEZWJpYW4gUHJvamVjdCkgPGdsYXViaXR6QGRlYmlhbi5vcmc+iQI3BBMBCAAhBQJRnmPwAhsDBQsJCAcDBRUKCQgLBRYCAwEAAh4BAheAAAoJEHQmOzf1tfkTF0gQAJgvGiKf5YW6+Qyss1qGwf+KHXb/6gIThY6GpSIro9vL/UxaakRCOloaXXAs3KpgBULOO8+prqU8GIqcd8tE3YvQFvvO3rN+8bhOiiD0lFmQSEHcpCW5ZRpdh
-	J5wy1t9Ddb1K/7XGzen3Uzx9bjKgDyikM3js1VtJHaFr8FGt5gtZIBDgp8QM9IRCv/32mPQxqmsaTczEzSNxTBM6Tc2NwNLus3Yh5OnFdxk1jzk+Ajpnqd/E/M7/CU5QznDgIJyopcMtOArv9Er+xe3gAXHkFvnPqcP+9UpzHB5N0HPYn4k4hsOTiJ41FHUapq8d1AuzrWyqzF9aMUi2kbHJdUmt9V39BbJIgjCysZPyGtFhR42fXHDnPARjxtRRPesEhjOeHei9ioAsZfT6bX+l6kSf/9gaxEKQe3UCXd3wbw68sXcvhzBVBxhXM91+Y7deHhNihMtqPyEmSyGXTHOMODysRU453E+XXTr2HkZPx4NV1dA8Vlid2NcMQ0iItD+85xeVznc8xquY/c1vPBeqneBWaE530Eo5e3YA7OGrxHwHbet3E210ng+xU8zUjQrFXMJm3xNpOe45RwmhCAt5z1gDTk5qNgjNgnU3mDp9DX6IffS3g2UJ02JeTrBY4hMpdVlmGCVOm9xipcPHreVGEBbM4eQnYnwbaqjVBBvy2DyfyN/tFRKb2huIFBhdWwgQWRyaWFuIEdsYXViaXR6IChGcmVpZSBVbml2ZXJzaXRhZXQgQmVybGluKSA8Z2xhdWJpdHpAcGh5c2lrLmZ1LWJlcmxpbi5kZT6JAlEEEwEIADsCGwMFCwkIBwMFFQoJCAsFFgIDAQACHgECF4AWIQRi/4p1hOApVpVGAAZ0Jjs39bX5EwUCWhQoUgIZAQAKCRB0Jjs39bX5Ez/ID/98r9c4WUSgOHVPSMVcOVziMOi+zPWfF1OhOXW+atpTM4LSSp66196xOlDFHOdNNmO6kxckXAX9ptvpBc0mRxa7OrC168fKzqR7P75eTsJnVaOu+uI/vvgsbUIosYdkkekCxDAbYCUwmzNotIspnFbxiSPMNrpw7Ud/yQkS9TDYeXnrZDhBp7p5+naWCD/yMvh7yVCA4Ea8+xDVoX
-	+kjv6EHJrwVupOpMa39cGs2rKYZbWTazcflKH+bXG3FHBrwh9XRjA6A1CTeC/zTVNgGF6wvw/qT2x9tS7WeeZ1jvBCJub2cb07qIfuvxXiGcYGr+W4z9GuLCiWsMmoff/Gmo1aeMZDRYKLAZLGlEr6zkYh1Abtiz0YLqIYVbZAnf8dCjmYhuwPq77IeqSjqUqI2Cb0oOOlwRKVWDlqAeo0Bh8DrvZvBAojJf4HnQZ/pSz0yaRed/0FAmkVfV+1yR6BtRXhkRF6NCmguSITC96IzE26C6n5DBb43MR7Ga/mof4MUufnKADNG4qz57CBwENHyx6ftWJeWZNdRZq10o0NXuCJZf/iulHCWS/hFOM5ygfONq1Vsj2ZDSWvVpSLj+Ufd2QnmsnrCr1ZGcl72OC24AmqFWJY+IyReHWpuABEVZVeVDQooJ0K4yqucmrFR7HyH7oZGgR0CgYHCI+9yhrXHrQpyLQ/Sm9obiBQYXVsIEFkcmlhbiBHbGF1Yml0eiAoU1VTRSBMSU5VWCBHbWJIKSA8Z2xhdWJpdHpAc3VzZS5jb20+iQJOBBMBCAA4FiEEYv+KdYTgKVaVRgAGdCY7N/W1+RMFAloSyhICGwMFCwkIBwMFFQoJCAsFFgIDAQACHgECF4AACgkQdCY7N/W1+ROnkQ//X6LVYXPi1D8/XFsoi0HDCvZhbWSzcGw6MQZKmTk42mNFKm/OrYBJ9d1St4Q3nRwH/ELzGb8liA02d4Ul+DV1Sv3P540LzZ4mmCi9wV+4Ohn6cXfaJNaTmHy1dFvg1NrVjMqGAFZkhTXRAvjRIQItyRvL//gKaciyKB/T0C3CIzbuTLBqtZMIIuP5nIgkwBvdw6H7EQ7kqOAO85S4FDSum/cLwLzdKygyvmPNOOtxvxa9QIryLf6h7HfWg68DvGDqIV9ZBoi8JjYZrZzaBmlPV8Iwm52uYnzsKM/LoyZ0G4v2u/WEtQEl7deLJjKby3kKmZGh9hQ
-	YImvOkrd9z8LQSvu0e8Qm8+JbRCCqUGkAPrRDFIzH8nFCFGCU/V+4LT2j68KMbApLkDQAFEDBcQVJYGnOZf7eU/EtYQIqVmGEjdOP7Qf/yMFzhc9GBXeE5mbe0LwA5LOO74FDH5qjwB5KI6VkTWPoXJoZA5waVC2sUSYOnmwFINkCLyyDoWaL9ubSbU9KTouuNm4F6XIssMHuX4OIKA7b2Kn5qfUFbd0ls8d5mY2gKcXBfEY+eKkhmuwZhd/7kP10awC3DF3QGhgqpaS100JW8z78el7moijZONwqXCS3epUol6q1pJ+zcapcFzO3KqcHTdVOKh6CXQci3Yv5NXuWDs/l2dMH4t2NvZC5Ag0ETckULgEQAKwmloVWzF8PYh5jB9ATf07kpnirVYf/kDk+QuVMPlydwPjh6/awfkqZ3SRHAyIb+9IC66RLpaF4WSPVWGs307+pa5AmTm16vzYA0DJ7vvRPxPzxPYq6p2WTjFqbq0EYeNTIm0YotIkq/gB9iIUS+gjdnoGSA+n/dwnbu1Eud2aiMW16ILqhgdgitdeW3J7LMDFvWIlXoBQOSfXQDLAiPf+jPJYvgkmCAovYKtC3aTg3bFX2sZqOPsWBXV6Azd92/GMs4W4fyOYLVSEaXy/mI35PMQLH8+/MM4n0g3JEgdzRjwF77Oh8SnOdG73/j+rdrS6Zgfyq6aM5WWs6teopLWPe0LpchGPSVgohIA7OhCm+ME8fpVHuMkvXqPeXAVfmJS/gV5CUgDMsYEjst+QXgWnlEiK2Knx6WzZ+v54ncA4YP58cibPJj5Qbx4gi8KLY3tgIbWJ3QxIRkChLRGjEBIQ4vTLAhh3vtNEHoAr9xUb3h8MxqYWNWJUSLS4xeE3Bc9UrB599Hu7i0w3v6VDGVCndcVO91lq9DZVhtYOPSE8mgacHb/3LP0UOZWmGHor52oPNU3Dwg205u814sKOd2i0DmY+Lt4EkLwFIYGE0FLLTHZDjDp9D
-	0iKclQKt86xBRGH+2zUk3HRq4MArggXuA4CN1buCzqAHiONvLdnY9StRABEBAAGJAh8EGAEIAAkFAk3JFC4CGwwACgkQdCY7N/W1+ROvNxAAtYbssC+AZcU4+xU5uxYinefyhB+f6GsS0Ddupp/MkZD/y98cIql8XXdIZ6z8lHvJlDq0oOyizLpfqUkcT4GhwMbdSNYUGd9HCdY/0pAyFdiJkn++WM8+b+9nz4mC6vfh96imcK4KH/cjP7NG37El/xlshWrb6CqKPk4KxNK5rUMPNr7+/3GwwGHHkJtW0QfDa/GoD8hl2HI6IQI+zSXK2uIZ7tcFMN8g9OafwUZ7b+zbz1ldzqOwygliEuEaRHeiOhPrTdxgnj6kTnitZw7/hSVi5Mr8C4oHzWgi66Ov9vdmClTHQSEjWDeLOiBj61xhr6A8KPUVaOpAYZWBH4OvtnmjwsKuNCFXym2DcCywdjEdrLC+Ms5g6Dkd60BQz4/kHA7x+P9IAkPqkaWAEyHoEvM1OcUPJzy/JW2vWDXo2jjM8PEQfNIPtqDzid1s8aDLJsPLWlJnfUyMP2ydlTtR54oiVBlFwqqHoPIaJrwTkND5lgFiMIwup3+giLiDOBILtiOSpYxBfSJkz3GGacOb4Xcj8AXV1tpUo1dxAKpJ1ro0YHLJvOJ8nLiZyJsCabUePNRFprbh+srI+WIUVRm0D33bI1VEH2XUXZBL+AmfdKXbHAYtZ0anKgDbcwvlkBcHpA85NpRqjUQ4OerPqtCrWLHDpEwGUBlaQ//AGix+L9c=
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.2 
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B477EC;
+	Sun, 10 Dec 2023 06:36:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GKiYYxXr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D70C433CA;
+	Sun, 10 Dec 2023 06:36:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1702190178;
+	bh=M/6wLn8z1v9OB3jE3O+3Xw9Y4HHJzGOqFn+iYKs91HA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=GKiYYxXrm6vPl1EQLzPrXmKc0/zgzkZ+G3tf+mhbB4QXRQ5nxcdh8dGyjs8Gave0C
+	 F13e1vLXumCfh6WVCNCVX2TpJK3i+2ZqpC1ozk0xlYR89vsUvjyKHJ9udBvYbeBUfS
+	 2UDmDmjT/bGGjk2B953DCqdZtmZ+fmV00fNYwKFrTuwfwpAxN8NK7flqJw+iFyZDNO
+	 SLMesqIOb1r5r8zOdvt9x8iUNi+vv/zj8YBg18Gh5sZgqM2ETuik89c1msNCQK3iSg
+	 xHmRk4HVnadQDIE8xn9oR0gS+C3ycGB5+A8XvPgMh/B+YFAwPSskTjXdpJatuDbbCB
+	 O94jXj8BwLJkQ==
+Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-1f5bd86ceb3so2419516fac.2;
+        Sat, 09 Dec 2023 22:36:18 -0800 (PST)
+X-Gm-Message-State: AOJu0YxMz3B7XPLIzZBWl4b1XmCECutrCAQfVGDR7TnGERpUMOLpOakt
+	ZFYDX2BCGNWBgf2j+/6d86xLpZju4+MPk70PK4A=
+X-Google-Smtp-Source: AGHT+IFQVJUQFeEFHsTwAZp7ZhGHssvbi/i98rUeBk2zW/8DwIEsjKJtvHV8cUWi9hmXG7QpO369Mg+JsytoM+93b/0=
+X-Received: by 2002:a05:6870:4201:b0:1fb:20ca:95df with SMTP id
+ u1-20020a056870420100b001fb20ca95dfmr3248841oac.39.1702190178238; Sat, 09 Dec
+ 2023 22:36:18 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+References: <20231203101418.1910661-1-masahiroy@kernel.org> <20231203191947.GA147536@ravnborg.org>
+In-Reply-To: <20231203191947.GA147536@ravnborg.org>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Sun, 10 Dec 2023 15:35:41 +0900
+X-Gmail-Original-Message-ID: <CAK7LNAQ5E2T0oitxniLhCAjf4e7QRPfyVpV8SU5P60_j1oF=uA@mail.gmail.com>
+Message-ID: <CAK7LNAQ5E2T0oitxniLhCAjf4e7QRPfyVpV8SU5P60_j1oF=uA@mail.gmail.com>
+Subject: Re: [PATCH 1/3] sparc: vdso: clean up build artifacts in arch/sparc/vdso/
+To: sparclinux@vger.kernel.org, linux-kbuild@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org, 
+	Sam Ravnborg <sam@ravnborg.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Sam et al!
+On Mon, Dec 4, 2023 at 4:21=E2=80=AFAM Sam Ravnborg <sam@ravnborg.org> wrot=
+e:
+>
+> Hi Masahiro.
+>
+> On Sun, Dec 03, 2023 at 07:14:16PM +0900, Masahiro Yamada wrote:
+> > Currently, vdso-image-*.c, vdso*.so, vdso*.so.dbg are not cleaned
+> > because 'make clean' does not include include/config/auto.conf,
+> > resulting in $(vdso_img-y) being empty.
+> >
+> > Add the build artifacts to 'targets' unconditionally.
+> >
+> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+>
+> Nice small fix/clean-ups.
+>
+> This and the following two patches are:
+> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+>
+> > ---
+> >
 
-On Sat, 2023-12-09 at 11:58 +0100, Sam Ravnborg wrote:
-> Andreas wrote:
-> > Hi,
-> > I feel honored to be suggested for such a responsibility. I could in th=
-e
-> > long term be available for a role as some kind of SPARC (co-)maintainer=
-,
-> > with backing from my organization. My SPARC experience is mainly with
-> > SPARC32 rather than SPARC64, so discussing a co-maintainership with a
-> > SPARC32 focus would feel natural as a start. I do not have much in term=
-s
-> > of SPARC64 or non-LEON SPARC32 hardware available for testing.
 
-I would be willing to help Andreas obtain access to SPARC64 hardware, be it
-with the donation of a SPARC T4 server which we can ship to Andreas or acce=
-ss
-to a SPARC T4 server running Solaris with the possibility to start Linux VM=
-s
-inside a SPARC LDOM on top of Solaris.
+Series, applied to linux-kbuild.
 
-Either way, the lack of access to SPARC64 should be our least concern, we w=
-ill
-definitely be able to sort something out and I assume that the Gentoo peopl=
-e
-would certainly be willing to help with that effort.
-
-As for testing and reviewing patches, both Debian and Gentoo people working
-on the SPARC ports would be available for that.
-
-I would be very happy to see Andreas take up (co-)maintainership of the SPA=
-RC
-Linux port.
-
-Adrian
 
 --=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Best Regards
+Masahiro Yamada
