@@ -1,75 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B477EC;
-	Sun, 10 Dec 2023 06:36:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GKiYYxXr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D70C433CA;
-	Sun, 10 Dec 2023 06:36:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1702190178;
-	bh=M/6wLn8z1v9OB3jE3O+3Xw9Y4HHJzGOqFn+iYKs91HA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=GKiYYxXrm6vPl1EQLzPrXmKc0/zgzkZ+G3tf+mhbB4QXRQ5nxcdh8dGyjs8Gave0C
-	 F13e1vLXumCfh6WVCNCVX2TpJK3i+2ZqpC1ozk0xlYR89vsUvjyKHJ9udBvYbeBUfS
-	 2UDmDmjT/bGGjk2B953DCqdZtmZ+fmV00fNYwKFrTuwfwpAxN8NK7flqJw+iFyZDNO
-	 SLMesqIOb1r5r8zOdvt9x8iUNi+vv/zj8YBg18Gh5sZgqM2ETuik89c1msNCQK3iSg
-	 xHmRk4HVnadQDIE8xn9oR0gS+C3ycGB5+A8XvPgMh/B+YFAwPSskTjXdpJatuDbbCB
-	 O94jXj8BwLJkQ==
-Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-1f5bd86ceb3so2419516fac.2;
-        Sat, 09 Dec 2023 22:36:18 -0800 (PST)
-X-Gm-Message-State: AOJu0YxMz3B7XPLIzZBWl4b1XmCECutrCAQfVGDR7TnGERpUMOLpOakt
-	ZFYDX2BCGNWBgf2j+/6d86xLpZju4+MPk70PK4A=
-X-Google-Smtp-Source: AGHT+IFQVJUQFeEFHsTwAZp7ZhGHssvbi/i98rUeBk2zW/8DwIEsjKJtvHV8cUWi9hmXG7QpO369Mg+JsytoM+93b/0=
-X-Received: by 2002:a05:6870:4201:b0:1fb:20ca:95df with SMTP id
- u1-20020a056870420100b001fb20ca95dfmr3248841oac.39.1702190178238; Sat, 09 Dec
- 2023 22:36:18 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P1Zzc6+i"
+Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EEADEA;
+	Mon, 11 Dec 2023 00:30:35 -0800 (PST)
+Received: by mail-ed1-x536.google.com with SMTP id 4fb4d7f45d1cf-54c9116d05fso5835759a12.3;
+        Mon, 11 Dec 2023 00:30:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1702283433; x=1702888233; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
+        b=P1Zzc6+iFlFAKhDjRlzqpNeEN+vcdQpuMyih03w5wPLWFJ36iIrFb24Eg0vv+HdBk8
+         o5VfwLeP2ibW8Cx/5DWeWlgMfIyRjKOMTjdlJo3iztqxEC0qRq7tI6dr2JFWitznFHqa
+         8JYvC/UWzj7MsdQqcJ3opByp/AZ7ppYHcIVvquTBTyqVbyba102tBY+KNYXFH2PRZF+l
+         sQ+E8oY1gPH3tOBHmGgr0bwYZnoJkgGqJwv8fr5L5vIIjFNEaji8hYqH299DUiXyS5l1
+         6fWmvNChqw5IqNl1/aSNmvXQd6CYuK2RBEp+plNOrcTyBeWX5FVSFoMMQwGQ6yeMIFKY
+         ygNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1702283433; x=1702888233;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=18T4h+PgamAj+KI6bp/QSD69CdQrdRYfbgvXoI1RLic=;
+        b=s3efvkK6XYnx4oTz/9d9scCmOMkQaKh+ok+/Y2IbKIoRrXjHem4gc3d2GsLnwyVc6C
+         y5Eh0aBqHwLiOAeBufjCG+HCJOjDfWDrPlBJK8t51JgJ9yuNe9iwMwsXHlxwHFKbjaHR
+         dpoIOpmNlMB6NihPe8knrOxXJZk9oNnm41L3zuiFmWiwoXbj4nx0X0AERlW9JF5CGZyJ
+         EvB++uy4t1Wkx8Qt0uHm5ToOuDMJRkN+Zvp7KaKbpB3d/mZJxl2TFdqQJzn5bklLerDM
+         Jy0J745/sBpVLRiGt3Rzihb9cAg0awXnhCYCk6woQN9T5ZkE/nH7V8zO7Kew5LlTtaUy
+         FlrA==
+X-Gm-Message-State: AOJu0YxI1Sydgsi9g1qr8TzZMQtreztj3UKZvdFslWYJMS7AofCxQKow
+	20g4XAZHU/l0Nw2oGxP/st4=
+X-Google-Smtp-Source: AGHT+IHwo3tENLZikbGvr+646iwwTYiz4cdrWDuYWM/443fGx/HRWeThopo660yjJ+w35HHx4n/g6A==
+X-Received: by 2002:a50:9f84:0:b0:550:e9b8:50a6 with SMTP id c4-20020a509f84000000b00550e9b850a6mr1078124edf.63.1702283432887;
+        Mon, 11 Dec 2023 00:30:32 -0800 (PST)
+Received: from felia.fritz.box ([2a02:810d:7e40:14b0:187:91eb:e4d:dd96])
+        by smtp.gmail.com with ESMTPSA id c28-20020a50f61c000000b0054c5d3486e9sm3564242edn.76.2023.12.11.00.30.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 Dec 2023 00:30:32 -0800 (PST)
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To: Christoph Hellwig <hch@lst.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: [PATCH RESEND] sparc: remove obsolete config ARCH_ATU
+Date: Mon, 11 Dec 2023 09:30:29 +0100
+Message-Id: <20231211083029.22078-1-lukas.bulwahn@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20231203101418.1910661-1-masahiroy@kernel.org> <20231203191947.GA147536@ravnborg.org>
-In-Reply-To: <20231203191947.GA147536@ravnborg.org>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sun, 10 Dec 2023 15:35:41 +0900
-X-Gmail-Original-Message-ID: <CAK7LNAQ5E2T0oitxniLhCAjf4e7QRPfyVpV8SU5P60_j1oF=uA@mail.gmail.com>
-Message-ID: <CAK7LNAQ5E2T0oitxniLhCAjf4e7QRPfyVpV8SU5P60_j1oF=uA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] sparc: vdso: clean up build artifacts in arch/sparc/vdso/
-To: sparclinux@vger.kernel.org, linux-kbuild@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org, 
-	Sam Ravnborg <sam@ravnborg.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 4, 2023 at 4:21=E2=80=AFAM Sam Ravnborg <sam@ravnborg.org> wrot=
-e:
->
-> Hi Masahiro.
->
-> On Sun, Dec 03, 2023 at 07:14:16PM +0900, Masahiro Yamada wrote:
-> > Currently, vdso-image-*.c, vdso*.so, vdso*.so.dbg are not cleaned
-> > because 'make clean' does not include include/config/auto.conf,
-> > resulting in $(vdso_img-y) being empty.
-> >
-> > Add the build artifacts to 'targets' unconditionally.
-> >
-> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
->
-> Nice small fix/clean-ups.
->
-> This and the following two patches are:
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
->
-> > ---
-> >
+Before consolidation of commit 4965a68780c5 ("arch: define the
+ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig"), the config ARCH_ATU
+was used to control the state of the config ARCH_DMA_ADDR_T_64BIT. After
+this consolidation, the config ARCH_ATU has been without use and effect.
 
+Remove this obsolete config.
 
-Series, applied to linux-kbuild.
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
 
+ arch/sparc/Kconfig | 4 ----
+ 1 file changed, 4 deletions(-)
 
---=20
-Best Regards
-Masahiro Yamada
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 49849790e66d..6b4d3182baae 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -112,10 +112,6 @@ config ARCH_PROC_KCORE_TEXT
+ config CPU_BIG_ENDIAN
+ 	def_bool y
+ 
+-config ARCH_ATU
+-	bool
+-	default y if SPARC64
+-
+ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y if SPARC64
+-- 
+2.17.1
+
