@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 719A33FB03;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92508405D6;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UXuy/jSM"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 36FE9C43140;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hiFZYARL"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 74334C116B3;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1703023396;
-	bh=nyYkYuiVqyCR04RXBg22IyXtbGaFXThr3PFMPOtukLY=;
+	bh=bLoZlXD+uyujBiI2QIHjJyBWQ7WHglpOzYi0YEMALhI=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=UXuy/jSMfjZCEjI1VdiOpjbZNymmaGaZhoOoagGsQ+pQP8OJ3fP0KAdX8ghCvrgyd
-	 Uj7a9TILRU24l6U+RHL/ccTCXFXIvNRXuuh79zfg6itRoE0IqJC+UNJ5XZPb9ms8Ls
-	 jx60yVpc8iMbmxG9mKZxsF4mRICoLSMMnoKTJtEZcVeQUlpOIEanoAIZ3SrbDxW/gg
-	 J3vBaou45/oc5LOIgrbjKyn1kV0oK48e3NawBkC4fK3xx47Pdu1L3837WqFUDw1MLc
-	 JPKENcH9MEVeNWxHjC0FdOUjYoOod4Amx5GoFmlTEwKlrVlZr7g5ptURvmLSnHWnYn
-	 s8v4UvThze6wQ==
+	b=hiFZYARLvw+cpesK+MbG5CFYiNTMuLIBzfQOKzXeuvXzZzQM1qg6OMJD5YXWDasX5
+	 zJdVqmsufRiCvLG67nWP0AxNoWTK+GDBOHgkKDH9k12Oxi2O9haAV8gW8NX9kdY4nH
+	 3ngMfjm56Ltl/gXRG67TIvkk8TPfvJTxF/h7ykgrpDbsSZYVxah5vlmrMHYGopjYlv
+	 72sYg21txveDBj2hC0Up40rped7bdo69Q2p3inl4mVPmNvz7p9Qb+8VTCBBhjN2+SF
+	 VZdAopWgK4gxmjG3GVWyer30Fy5r9oNx7WRSRfdUKeohDqGv7btdHOUP3jf4mb92lT
+	 7rygtWgpV4l7w==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E3FC46CD8;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA0CC41535;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Tue, 19 Dec 2023 23:03:20 +0100
-Subject: [PATCH 15/27] sparc32: Drop check for sparc_model
+Date: Tue, 19 Dec 2023 23:03:25 +0100
+Subject: [PATCH 20/27] sparc32: Drop unused prom ranges support
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -31,7 +31,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231219-sam-sparc32-sunset-v3-v1-15-64bb44b598c5@ravnborg.org>
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-20-64bb44b598c5@ravnborg.org>
 References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -44,11 +44,11 @@ Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=7589;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=6494;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=Ug/1kUk7xzX48rBhZcKGw3mgqlUZBCpZ4RMKG+8KP+I=; =?utf-8?q?b=3DbXvVFC5D/ZOI?=
- =?utf-8?q?dS61qfHNUW1erQ8hUNKMVTRiVKdXtTQ08Rg2XH2GNL3zQHM+NUQrelsZTxUS4hc3?=
- I2b/ASr1AO20iUlMauOuxsmyi1k/Ey2dEm/cRlWtL7nX9bePme1x
+ bh=JWUMPYjeM7nZeaLhzjjM6ATuORPYfX7XPb+WWflq45I=; =?utf-8?q?b=3DpeEDLnJfNsDv?=
+ =?utf-8?q?bMEUyLIfk5KCN4dAImCHU1GZ0JD0n/cOF0IpbTfq7Erj+RhLDOeOO0ivzmtmiCOY?=
+ w+qPEBwLCvTPNLWgyuz3ImztuQA+VjR0A01A3WxdeMxU5GIypt81
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -57,278 +57,186 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-sparc32 is always LEON, so no need to check for the model.
+Drop support for prom ranges - not used anymore.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/cpu_type.h | 18 ---------
- arch/sparc/include/asm/io_32.h    |  4 +-
- arch/sparc/include/asm/pgtsrmmu.h |  1 -
- arch/sparc/kernel/devices.c       |  7 +---
- arch/sparc/kernel/ioport.c        |  4 +-
- arch/sparc/kernel/leon_pmc.c      | 16 ++++----
- arch/sparc/kernel/setup_32.c      | 79 +--------------------------------------
- 7 files changed, 12 insertions(+), 117 deletions(-)
+ arch/sparc/include/asm/oplib_32.h |  11 ----
+ arch/sparc/prom/Makefile          |   1 -
+ arch/sparc/prom/init_32.c         |   2 -
+ arch/sparc/prom/ranges.c          | 114 --------------------------------------
+ 4 files changed, 128 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cpu_type.h b/arch/sparc/include/asm/cpu_type.h
-index 2b59799859d1..3e0154c3f41d 100644
---- a/arch/sparc/include/asm/cpu_type.h
-+++ b/arch/sparc/include/asm/cpu_type.h
-@@ -2,28 +2,10 @@
- #ifndef __ASM_CPU_TYPE_H
- #define __ASM_CPU_TYPE_H
+diff --git a/arch/sparc/include/asm/oplib_32.h b/arch/sparc/include/asm/oplib_32.h
+index d1cf3a27a40d..4ef7f05978d3 100644
+--- a/arch/sparc/include/asm/oplib_32.h
++++ b/arch/sparc/include/asm/oplib_32.h
+@@ -163,17 +163,6 @@ int prom_setprop(phandle node, const char *prop_name, char *prop_value,
  
+ phandle prom_inst2pkg(int);
+ 
+-/* Dorking with Bus ranges... */
+-
+-/* Apply promlib probes OBIO ranges to registers. */
+-void prom_apply_obio_ranges(struct linux_prom_registers *obioregs, int nregs);
+-
+-/* Apply ranges of any prom node (and optionally parent node as well) to registers. */
+-void prom_apply_generic_ranges(phandle node, phandle parent,
+-			       struct linux_prom_registers *sbusregs, int nregs);
+-
+-void prom_ranges_init(void);
+-
+ /* CPU probing helpers.  */
+ int cpu_find_by_instance(int instance, phandle *prom_node, int *mid);
+ int cpu_find_by_mid(int mid, phandle *prom_node);
+diff --git a/arch/sparc/prom/Makefile b/arch/sparc/prom/Makefile
+index 397b79af77f7..6d94d8b28bcf 100644
+--- a/arch/sparc/prom/Makefile
++++ b/arch/sparc/prom/Makefile
+@@ -10,7 +10,6 @@ lib-y                 += init_$(BITS).o
+ lib-$(CONFIG_SPARC32) += memory.o
+ lib-y                 += misc_$(BITS).o
+ lib-$(CONFIG_SPARC32) += mp.o
+-lib-$(CONFIG_SPARC32) += ranges.o
+ lib-y                 += console_$(BITS).o
+ lib-y                 += printf.o
+ lib-y                 += tree_$(BITS).o
+diff --git a/arch/sparc/prom/init_32.c b/arch/sparc/prom/init_32.c
+index d20470166cb1..1681f1f980d4 100644
+--- a/arch/sparc/prom/init_32.c
++++ b/arch/sparc/prom/init_32.c
+@@ -67,8 +67,6 @@ void __init prom_init(struct linux_romvec *rp)
+ 
+ 	prom_meminit();
+ 
+-	prom_ranges_init();
+-
+ 	printk("PROMLIB: Sun Boot Prom Version %d Revision %d\n",
+ 	       romvec->pv_romvers, prom_rev);
+ 
+diff --git a/arch/sparc/prom/ranges.c b/arch/sparc/prom/ranges.c
+deleted file mode 100644
+index 20cb828bc5f4..000000000000
+--- a/arch/sparc/prom/ranges.c
++++ /dev/null
+@@ -1,114 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
 -/*
-- * Sparc (general) CPU types
+- * ranges.c: Handle ranges in newer proms for obio/sbus.
+- *
+- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+- * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
 - */
--enum sparc_cpu {
--  sun4m       = 0x00,
--  sun4d       = 0x01,
--  sun4e       = 0x02,
--  sun4u       = 0x03, /* V8 ploos ploos */
--  sun_unknown = 0x04,
--  ap1000      = 0x05, /* almost a sun4m */
--  sparc_leon  = 0x06, /* Leon SoC */
--};
 -
- #ifdef CONFIG_SPARC32
--extern enum sparc_cpu sparc_cpu_model;
- 
- #define SUN4M_NCPUS            4              /* Architectural limit of sun4m. */
- 
--#else
+-#include <linux/init.h>
+-#include <linux/module.h>
 -
--#define sparc_cpu_model sun4u
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+-#include <asm/types.h>
 -
- #endif
- 
- #endif /* __ASM_CPU_TYPE_H */
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 549f0a72280d..83abe709d120 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -138,11 +138,11 @@ void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- static inline int sbus_can_dma_64bit(void)
- {
--	return 0; /* actually, sparc_cpu_model==sun4d */
-+	return 0;
- }
- static inline int sbus_can_burst64(void)
- {
--	return 0; /* actually, sparc_cpu_model==sun4d */
-+	return 0;
- }
- struct device;
- void sbus_set_sbus64(struct device *, int);
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 7cb5cbc83211..664d4bba1bcb 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -124,7 +124,6 @@ static inline void srmmu_flush_whole_tlb(void)
- 			     "i" (ASI_M_FLUSH_PROBE) : "memory");
- 
- }
+-static struct linux_prom_ranges promlib_obio_ranges[PROMREG_MAX];
+-static int num_obio_ranges;
 -
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(_SPARC_PGTSRMMU_H) */
-diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
-index b3c2d51b22c4..2963e89611a3 100644
---- a/arch/sparc/kernel/devices.c
-+++ b/arch/sparc/kernel/devices.c
-@@ -26,8 +26,6 @@
- 
- static char *cpu_mid_prop(void)
- {
--	if (sparc_cpu_model == sun4d)
--		return "cpu-id";
- 	return "mid";
- }
- 
-@@ -40,8 +38,6 @@ static int check_cpu_node(phandle nd, int *cur_inst,
- 			*prom_node = nd;
- 		if (mid) {
- 			*mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
--			if (sparc_cpu_model == sun4m)
--				*mid &= 3;
- 		}
- 		return 0;
- 	}
-@@ -92,8 +88,7 @@ static int cpu_mid_compare(phandle nd, int instance, void *_arg)
- 	int this_mid;
- 
- 	this_mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
--	if (this_mid == desired_mid
--	    || (sparc_cpu_model == sun4m && (this_mid & 3) == desired_mid))
-+	if (this_mid == desired_mid)
- 		return 0;
- 	return -ENODEV;
- }
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 5ebca5c7af1e..cf0ace29704a 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -309,9 +309,7 @@ arch_initcall(sparc_register_ioport);
- void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t size,
- 		enum dma_data_direction dir)
- {
--	if (dir != DMA_TO_DEVICE &&
--	    sparc_cpu_model == sparc_leon &&
--	    !sparc_leon3_snooping_enabled())
-+	if (dir != DMA_TO_DEVICE && !sparc_leon3_snooping_enabled())
- 		leon_flush_dcache_all();
- }
- 
-diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
-index 6c00cbad7fb5..d4a2d49f941c 100644
---- a/arch/sparc/kernel/leon_pmc.c
-+++ b/arch/sparc/kernel/leon_pmc.c
-@@ -79,15 +79,13 @@ static void pmc_leon_idle(void)
- /* Install LEON Power Down function */
- static int __init leon_pmc_install(void)
- {
--	if (sparc_cpu_model == sparc_leon) {
--		/* Assign power management IDLE handler */
--		if (pmc_leon_need_fixup())
--			sparc_idle = pmc_leon_idle_fixup;
--		else
--			sparc_idle = pmc_leon_idle;
+-/* Adjust register values based upon the ranges parameters. */
+-static void prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
+-			     struct linux_prom_ranges *rangep, int nranges)
+-{
+-	int regc, rngc;
 -
--		printk(KERN_INFO "leon: power management initialized\n");
+-	for (regc = 0; regc < nregs; regc++) {
+-		for (rngc = 0; rngc < nranges; rngc++)
+-			if (regp[regc].which_io == rangep[rngc].ot_child_space)
+-				break; /* Fount it */
+-		if (rngc == nranges) /* oops */
+-			prom_printf("adjust_regs: Could not find range with matching bus type...\n");
+-		regp[regc].which_io = rangep[rngc].ot_parent_space;
+-		regp[regc].phys_addr -= rangep[rngc].ot_child_base;
+-		regp[regc].phys_addr += rangep[rngc].ot_parent_base;
 -	}
-+	/* Assign power management IDLE handler */
-+	if (pmc_leon_need_fixup())
-+		sparc_idle = pmc_leon_idle_fixup;
-+	else
-+		sparc_idle = pmc_leon_idle;
-+
-+	printk(KERN_INFO "leon: power management initialized\n");
- 
- 	return 0;
- }
-diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-index 5a497140c52a..cb981f2794b3 100644
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -189,30 +189,12 @@ static void __init per_cpu_patch(void)
- {
- 	struct cpuid_patch_entry *p;
- 
--	if (sparc_cpu_model == sun4m) {
--		/* Nothing to do, this is what the unpatched code
--		 * targets.
--		 */
--		return;
+-}
+-
+-static void prom_adjust_ranges(struct linux_prom_ranges *ranges1, int nranges1,
+-			       struct linux_prom_ranges *ranges2, int nranges2)
+-{
+-	int rng1c, rng2c;
+-
+-	for (rng1c = 0; rng1c < nranges1; rng1c++) {
+-		for (rng2c = 0; rng2c < nranges2; rng2c++)
+-			if (ranges1[rng1c].ot_parent_space == ranges2[rng2c].ot_child_space &&
+-			   ranges1[rng1c].ot_parent_base >= ranges2[rng2c].ot_child_base &&
+-			   ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size - ranges1[rng1c].ot_parent_base > 0U)
+-			break;
+-		if (rng2c == nranges2) /* oops */
+-			prom_printf("adjust_ranges: Could not find matching bus type...\n");
+-		else if (ranges1[rng1c].ot_parent_base + ranges1[rng1c].or_size > ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size)
+-			ranges1[rng1c].or_size = ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size - ranges1[rng1c].ot_parent_base;
+-		ranges1[rng1c].ot_parent_space = ranges2[rng2c].ot_parent_space;
+-		ranges1[rng1c].ot_parent_base += ranges2[rng2c].ot_parent_base;
+-	}
+-}
+-
+-/* Apply probed obio ranges to registers passed, if no ranges return. */
+-void prom_apply_obio_ranges(struct linux_prom_registers *regs, int nregs)
+-{
+-	if (num_obio_ranges)
+-		prom_adjust_regs(regs, nregs, promlib_obio_ranges, num_obio_ranges);
+-}
+-EXPORT_SYMBOL(prom_apply_obio_ranges);
+-
+-void __init prom_ranges_init(void)
+-{
+-	phandle node, obio_node;
+-	int success;
+-
+-	num_obio_ranges = 0;
+-
+-	/* Check for obio and sbus ranges. */
+-	node = prom_getchild(prom_root_node);
+-	obio_node = prom_searchsiblings(node, "obio");
+-
+-	if (obio_node) {
+-		success = prom_getproperty(obio_node, "ranges",
+-					   (char *) promlib_obio_ranges,
+-					   sizeof(promlib_obio_ranges));
+-		if (success != -1)
+-			num_obio_ranges = (success / sizeof(struct linux_prom_ranges));
 -	}
 -
- 	p = &__cpuid_patch;
- 	while (p < &__cpuid_patch_end) {
- 		unsigned long addr = p->addr;
- 		unsigned int *insns;
- 
--		switch (sparc_cpu_model) {
--		case sun4d:
--			insns = &p->sun4d[0];
--			break;
+-	if (num_obio_ranges)
+-		prom_printf("PROMLIB: obio_ranges %d\n", num_obio_ranges);
+-}
 -
--		case sparc_leon:
--			insns = &p->leon[0];
--			break;
--		default:
--			prom_printf("Unknown cpu type, halting.\n");
--			prom_halt();
+-void prom_apply_generic_ranges(phandle node, phandle parent,
+-			       struct linux_prom_registers *regs, int nregs)
+-{
+-	int success;
+-	int num_ranges;
+-	struct linux_prom_ranges ranges[PROMREG_MAX];
+-
+-	success = prom_getproperty(node, "ranges",
+-				   (char *) ranges,
+-				   sizeof(ranges));
+-	if (success != -1) {
+-		num_ranges = (success / sizeof(struct linux_prom_ranges));
+-		if (parent) {
+-			struct linux_prom_ranges parent_ranges[PROMREG_MAX];
+-			int num_parent_ranges;
+-
+-			success = prom_getproperty(parent, "ranges",
+-						   (char *) parent_ranges,
+-						   sizeof(parent_ranges));
+-			if (success != -1) {
+-				num_parent_ranges = (success / sizeof(struct linux_prom_ranges));
+-				prom_adjust_ranges(ranges, num_ranges, parent_ranges, num_parent_ranges);
+-			}
 -		}
-+		insns = &p->leon[0];
- 		*(unsigned int *) (addr + 0) = insns[0];
- 		flushi(addr + 0);
- 		*(unsigned int *) (addr + 4) = insns[1];
-@@ -224,31 +206,9 @@ static void __init per_cpu_patch(void)
- 	}
- }
- 
--struct leon_1insn_patch_entry {
--	unsigned int addr;
--	unsigned int insn;
--};
--
--enum sparc_cpu sparc_cpu_model;
--EXPORT_SYMBOL(sparc_cpu_model);
--
- static __init void leon_patch(void)
- {
--	struct leon_1insn_patch_entry *start = (void *)__leon_1insn_patch;
--	struct leon_1insn_patch_entry *end = (void *)__leon_1insn_patch_end;
--
- 	/* Default instruction is leon - no patching */
--	if (sparc_cpu_model == sparc_leon)
--		return;
--
--	while (start < end) {
--		unsigned long addr = start->addr;
--
--		*(unsigned int *)(addr) = start->insn;
--		flushi(addr);
--
--		start++;
+-		prom_adjust_regs(regs, nregs, ranges, num_ranges);
 -	}
- }
- 
- struct tt_entry *sparc_ttable;
-@@ -259,22 +219,6 @@ struct tt_entry *sparc_ttable;
- void __init sparc32_start_kernel(struct linux_romvec *rp)
- {
- 	prom_init(rp);
--
--	/* Set sparc_cpu_model */
--	sparc_cpu_model = sun_unknown;
--	if (!strcmp(&cputypval[0], "sun4m"))
--		sparc_cpu_model = sun4m;
--	if (!strcmp(&cputypval[0], "sun4s"))
--		sparc_cpu_model = sun4m; /* CP-1200 with PROM 2.30 -E */
--	if (!strcmp(&cputypval[0], "sun4d"))
--		sparc_cpu_model = sun4d;
--	if (!strcmp(&cputypval[0], "sun4e"))
--		sparc_cpu_model = sun4e;
--	if (!strcmp(&cputypval[0], "sun4u"))
--		sparc_cpu_model = sun4u;
--	if (!strncmp(&cputypval[0], "leon" , 4))
--		sparc_cpu_model = sparc_leon;
--
- 	leon_patch();
- 	start_kernel();
- }
-@@ -295,27 +239,6 @@ void __init setup_arch(char **cmdline_p)
- 
- 	register_console(&prom_early_console);
- 
--	switch(sparc_cpu_model) {
--	case sun4m:
--		pr_info("ARCH: SUN4M\n");
--		break;
--	case sun4d:
--		pr_info("ARCH: SUN4D\n");
--		break;
--	case sun4e:
--		pr_info("ARCH: SUN4E\n");
--		break;
--	case sun4u:
--		pr_info("ARCH: SUN4U\n");
--		break;
--	case sparc_leon:
--		pr_info("ARCH: LEON\n");
--		break;
--	default:
--		pr_info("ARCH: UNKNOWN!\n");
--		break;
--	}
--
- 	idprom_init();
- 	load_mmu();
- 
+-}
 
 -- 
 2.34.1
