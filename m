@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 510C83D557;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A4A3FB04;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hmamGPqs"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 06B89C433CC;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RqHa9edS"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 56423C4163C;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1703023396;
-	bh=PlMXyekQOmZ+JWokrR3lquvstGM0aEn4kdi/CNEbsdg=;
+	bh=hUeer878kHfZToHNcJoRPcV1xECdXnEhs/Nyvz2zVvc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=hmamGPqs81Q9mCCMl6Ed/6/4NJbWuIKitycq8R0fGjPcLfCMaf3m/m1TDe1qbD2GZ
-	 BwAaps2RwNV47iEK3dbtgnCVyEoagRdR5cdqi3Zyeu+WVdJ5BZz4vcLtIP3zB/jGuQ
-	 x8eg1v3kiLhePpyRki9dSWp+vAaErnY/a+R3ycuHmJN4HeYf/d1R+eQbFEFVzTceEj
-	 qcuyft5g1tgkpfJotM/YgmPkon+1IwhYD11es0EGAc0imHgyuE1OooYei8Vbl/D9ck
-	 OIlODjGWIsqK2KYpAx8eqGcVawC6jvZR6LT8h1pKA1pmZ9WhaYhbiEhenqO1w+M/bG
-	 DdL1RVx1VMVzg==
+	b=RqHa9edS2lcZtGxaOHUorag9ZUWw2PIcweiVofAtU8YbY/pchL+SZ/W+rYqqrFjnF
+	 pRgQeVUTBRCT8Adp2alKxKZ4q2Sp9F1R8FJFTm4i02eeCQYRV7mkKPPrbPLYhAt4kf
+	 d0nAbVNmBHunwFW1rUgTRCqmPYemUEgeJ1GVtfKciQZ11lsHh7H1EKJyLhEqcIImU2
+	 /5/ysjo3gcHNxGbHjWSs+MWhdQT7p+vYfM7kkLjWi7Tssbb+ICBrnE+Oq+QY5DDCcX
+	 5Wqwc9Q3RCIAprb0ATOImyHP2LfzLUG/cJln+p3thVI8IxXq7hj8Mq2q/SKf7dD1V8
+	 uQSijh84etlKA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9E0DC46CCD;
-	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47AEEC4706E;
+	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Tue, 19 Dec 2023 23:03:16 +0100
-Subject: [PATCH 11/27] sparc32: Drop pcic support
+Date: Tue, 19 Dec 2023 23:03:23 +0100
+Subject: [PATCH 18/27] sparc32: Drop support for 7 register windows
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -31,7 +31,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231219-sam-sparc32-sunset-v3-v1-11-64bb44b598c5@ravnborg.org>
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-18-64bb44b598c5@ravnborg.org>
 References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -44,11 +44,11 @@ Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=34263;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=15090;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=uRX8vRHYaM+ohYq8gHGopGdLsV8EDe1irKhP8hCVhgk=; =?utf-8?q?b=3DKZIbJxvNeWaW?=
- =?utf-8?q?ZOsWyvhNqH7ARx3ExGODwAg0wAqxsPvD5XtuPRBaoOpMXoU7npLceLwKH/gFoZ+q?=
- lXj0lWAJB7KraiIf7vC8DsLYTTkbwdwTxpsUQKbZ7NSXmPdRdHqS
+ bh=ihMG1Y5AtoVjy/gldPt3VrNpQv5kvVGjd8vY2r8DSK8=; =?utf-8?q?b=3DtitO9Jm1CDCe?=
+ =?utf-8?q?qX4B3E34NGwQ5uja4Jo/TcmtNONt1AhdQWk3eRRbOAgRwXBHfA/BxOvXa7PR5r93?=
+ GziGgtPkCqF1zmfel+mEKYviAW1/tiKSdY2RHp574D9dVDMaCNzu
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -57,1130 +57,472 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-pcic is only used by MicroSPARC-IIep and not relevant for LEON.
+Some older SPARC CPUs had support for only 7 register windows.
+To support this run-time patching was used.
+
+LEON demand 8 register windows for use with Linux so
+there is no need to support the 7 window configuration.
+
+The complexity of the assembler code is reduced
+when dropping the run-time patching, thus increasing
+the maintainability.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/Kconfig            |   5 -
- arch/sparc/include/asm/pcic.h | 130 -------
- arch/sparc/kernel/Makefile    |   1 -
- arch/sparc/kernel/entry.S     |  48 ---
- arch/sparc/kernel/irq_32.c    |   1 -
- arch/sparc/kernel/kernel.h    |   4 -
- arch/sparc/kernel/pcic.c      | 829 ------------------------------------------
- arch/sparc/kernel/time_32.c   |   6 +-
- 8 files changed, 1 insertion(+), 1023 deletions(-)
+ arch/sparc/include/asm/switch_to_32.h |  1 -
+ arch/sparc/kernel/entry.S             | 28 ++++-----------
+ arch/sparc/kernel/etrap_32.S          | 35 +++++--------------
+ arch/sparc/kernel/head_32.S           | 65 -----------------------------------
+ arch/sparc/kernel/rtrap_32.S          | 55 +++++++++++++----------------
+ arch/sparc/kernel/wof.S               | 43 ++++++++---------------
+ arch/sparc/kernel/wuf.S               | 20 +++--------
+ 7 files changed, 57 insertions(+), 190 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 55a9e67c482e..7ae304bab2d8 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -414,11 +414,6 @@ config SUN_LDOMS
- 	  Say Y here is you want to support virtual devices via
- 	  Logical Domains.
+diff --git a/arch/sparc/include/asm/switch_to_32.h b/arch/sparc/include/asm/switch_to_32.h
+index 42eeafcb8a41..7aaaf31c09b4 100644
+--- a/arch/sparc/include/asm/switch_to_32.h
++++ b/arch/sparc/include/asm/switch_to_32.h
+@@ -37,7 +37,6 @@ extern struct thread_info *current_set[NR_CPUS];
  
--config PCIC_PCI
--	bool
--	depends on PCI && SPARC32 && !SPARC_LEON
--	default y
--
- config LEON_PCI
- 	bool
- 	depends on PCI && SPARC_LEON
-diff --git a/arch/sparc/include/asm/pcic.h b/arch/sparc/include/asm/pcic.h
-deleted file mode 100644
-index 238376b1ffcc..000000000000
---- a/arch/sparc/include/asm/pcic.h
-+++ /dev/null
-@@ -1,130 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * pcic.h: JavaEngine 1 specific PCI definitions.
-- *
-- * Copyright (C) 1998 V. Roganov and G. Raiko
-- */
--
--#ifndef __SPARC_PCIC_H
--#define __SPARC_PCIC_H
--
--#ifndef __ASSEMBLY__
--
--#include <linux/types.h>
--#include <linux/smp.h>
--#include <linux/pci.h>
--#include <linux/ioport.h>
--#include <asm/pbm.h>
--
--struct linux_pcic {
--        void __iomem            *pcic_regs;
--        unsigned long           pcic_io;
--        void __iomem            *pcic_config_space_addr;
--        void __iomem            *pcic_config_space_data;
--	struct resource		pcic_res_regs;
--	struct resource		pcic_res_io;
--	struct resource		pcic_res_cfg_addr;
--	struct resource		pcic_res_cfg_data;
--        struct linux_pbm_info   pbm;
--	struct pcic_ca2irq	*pcic_imap;
--	int			pcic_imdim;
--};
--
--#ifdef CONFIG_PCIC_PCI
--int pcic_present(void);
--int pcic_probe(void);
--void pci_time_init(void);
--void sun4m_pci_init_IRQ(void);
--#else
--static inline int pcic_present(void) { return 0; }
--static inline int pcic_probe(void) { return 0; }
--static inline void pci_time_init(void) {}
--static inline void sun4m_pci_init_IRQ(void) {}
--#endif
--#endif
--
--/* Size of PCI I/O space which we relocate. */
--#define PCI_SPACE_SIZE                  0x1000000       /* 16 MB */
--
--/* PCIC Register Set. */
--#define PCI_DIAGNOSTIC_0                0x40    /* 32 bits */
--#define PCI_SIZE_0                      0x44    /* 32 bits */
--#define PCI_SIZE_1                      0x48    /* 32 bits */
--#define PCI_SIZE_2                      0x4c    /* 32 bits */
--#define PCI_SIZE_3                      0x50    /* 32 bits */
--#define PCI_SIZE_4                      0x54    /* 32 bits */
--#define PCI_SIZE_5                      0x58    /* 32 bits */
--#define PCI_PIO_CONTROL                 0x60    /* 8  bits */
--#define PCI_DVMA_CONTROL                0x62    /* 8  bits */
--#define  PCI_DVMA_CONTROL_INACTIVITY_REQ        (1<<0)
--#define  PCI_DVMA_CONTROL_IOTLB_ENABLE          (1<<0)
--#define  PCI_DVMA_CONTROL_IOTLB_DISABLE         0
--#define  PCI_DVMA_CONTROL_INACTIVITY_ACK        (1<<4)
--#define PCI_INTERRUPT_CONTROL           0x63    /* 8  bits */
--#define PCI_CPU_INTERRUPT_PENDING       0x64    /* 32 bits */
--#define PCI_DIAGNOSTIC_1                0x68    /* 16 bits */
--#define PCI_SOFTWARE_INT_CLEAR          0x6a    /* 16 bits */
--#define PCI_SOFTWARE_INT_SET            0x6e    /* 16 bits */
--#define PCI_SYS_INT_PENDING             0x70    /* 32 bits */
--#define  PCI_SYS_INT_PENDING_PIO		0x40000000
--#define  PCI_SYS_INT_PENDING_DMA		0x20000000
--#define  PCI_SYS_INT_PENDING_PCI		0x10000000
--#define  PCI_SYS_INT_PENDING_APSR		0x08000000
--#define PCI_SYS_INT_TARGET_MASK         0x74    /* 32 bits */
--#define PCI_SYS_INT_TARGET_MASK_CLEAR   0x78    /* 32 bits */
--#define PCI_SYS_INT_TARGET_MASK_SET     0x7c    /* 32 bits */
--#define PCI_SYS_INT_PENDING_CLEAR       0x83    /* 8  bits */
--#define  PCI_SYS_INT_PENDING_CLEAR_ALL		0x80
--#define  PCI_SYS_INT_PENDING_CLEAR_PIO		0x40
--#define  PCI_SYS_INT_PENDING_CLEAR_DMA		0x20
--#define  PCI_SYS_INT_PENDING_CLEAR_PCI		0x10
--#define PCI_IOTLB_CONTROL               0x84    /* 8  bits */
--#define PCI_INT_SELECT_LO               0x88    /* 16 bits */
--#define PCI_ARBITRATION_SELECT          0x8a    /* 16 bits */
--#define PCI_INT_SELECT_HI               0x8c    /* 16 bits */
--#define PCI_HW_INT_OUTPUT               0x8e    /* 16 bits */
--#define PCI_IOTLB_RAM_INPUT             0x90    /* 32 bits */
--#define PCI_IOTLB_CAM_INPUT             0x94    /* 32 bits */
--#define PCI_IOTLB_RAM_OUTPUT            0x98    /* 32 bits */
--#define PCI_IOTLB_CAM_OUTPUT            0x9c    /* 32 bits */
--#define PCI_SMBAR0                      0xa0    /* 8  bits */
--#define PCI_MSIZE0                      0xa1    /* 8  bits */
--#define PCI_PMBAR0                      0xa2    /* 8  bits */
--#define PCI_SMBAR1                      0xa4    /* 8  bits */
--#define PCI_MSIZE1                      0xa5    /* 8  bits */
--#define PCI_PMBAR1                      0xa6    /* 8  bits */
--#define PCI_SIBAR                       0xa8    /* 8  bits */
--#define   PCI_SIBAR_ADDRESS_MASK        0xf
--#define PCI_ISIZE                       0xa9    /* 8  bits */
--#define   PCI_ISIZE_16M                 0xf
--#define   PCI_ISIZE_32M                 0xe
--#define   PCI_ISIZE_64M                 0xc
--#define   PCI_ISIZE_128M                0x8
--#define   PCI_ISIZE_256M                0x0
--#define PCI_PIBAR                       0xaa    /* 8  bits */
--#define PCI_CPU_COUNTER_LIMIT_HI        0xac    /* 32 bits */
--#define PCI_CPU_COUNTER_LIMIT_LO        0xb0    /* 32 bits */
--#define PCI_CPU_COUNTER_LIMIT           0xb4    /* 32 bits */
--#define PCI_SYS_LIMIT                   0xb8    /* 32 bits */
--#define PCI_SYS_COUNTER                 0xbc    /* 32 bits */
--#define   PCI_SYS_COUNTER_OVERFLOW      (1<<31) /* Limit reached */
--#define PCI_SYS_LIMIT_PSEUDO            0xc0    /* 32 bits */
--#define PCI_USER_TIMER_CONTROL          0xc4    /* 8  bits */
--#define PCI_USER_TIMER_CONFIG           0xc5    /* 8  bits */
--#define PCI_COUNTER_IRQ                 0xc6    /* 8  bits */
--#define  PCI_COUNTER_IRQ_SET(sys_irq, cpu_irq)  ((((sys_irq) & 0xf) << 4) | \
--                                                  ((cpu_irq) & 0xf))
--#define  PCI_COUNTER_IRQ_SYS(v)                 (((v) >> 4) & 0xf)
--#define  PCI_COUNTER_IRQ_CPU(v)                 ((v) & 0xf)
--#define PCI_PIO_ERROR_COMMAND           0xc7    /* 8  bits */
--#define PCI_PIO_ERROR_ADDRESS           0xc8    /* 32 bits */
--#define PCI_IOTLB_ERROR_ADDRESS         0xcc    /* 32 bits */
--#define PCI_SYS_STATUS                  0xd0    /* 8  bits */
--#define   PCI_SYS_STATUS_RESET_ENABLE           (1<<0)
--#define   PCI_SYS_STATUS_RESET                  (1<<1)
--#define   PCI_SYS_STATUS_WATCHDOG_RESET         (1<<4)
--#define   PCI_SYS_STATUS_PCI_RESET              (1<<5)
--#define   PCI_SYS_STATUS_PCI_RESET_ENABLE       (1<<6)
--#define   PCI_SYS_STATUS_PCI_SATTELITE_MODE     (1<<7)
--
--#endif /* !(__SPARC_PCIC_H) */
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 386bbb30fff2..09577e39037c 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -74,7 +74,6 @@ obj-$(CONFIG_SPARC64)	+= pcr.o
- obj-$(CONFIG_SPARC64)	+= nmi.o
- obj-$(CONFIG_SPARC64_SMP) += cpumap.o
- 
--obj-$(CONFIG_PCIC_PCI)    += pcic.o
- obj-$(CONFIG_LEON_PCI)    += leon_pci.o
- obj-$(CONFIG_SPARC_GRPCI2)+= leon_pci_grpci2.o
- obj-$(CONFIG_SPARC_GRPCI1)+= leon_pci_grpci1.o
+ #define prepare_arch_switch(next) do { \
+ 	__asm__ __volatile__( \
+-	".globl\tflush_patch_switch\nflush_patch_switch:\n\t" \
+ 	"save %sp, -0x40, %sp; save %sp, -0x40, %sp; save %sp, -0x40, %sp\n\t" \
+ 	"save %sp, -0x40, %sp; save %sp, -0x40, %sp; save %sp, -0x40, %sp\n\t" \
+ 	"save %sp, -0x40, %sp\n\t" \
 diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 9bd3813b872d..13011969e7eb 100644
+index 9cf8f87e8c42..078a8f7f8383 100644
 --- a/arch/sparc/kernel/entry.S
 +++ b/arch/sparc/kernel/entry.S
-@@ -965,54 +965,6 @@ restore_current:
- 	retl
- 	 nop
+@@ -384,11 +384,8 @@ do_flush_windows:
  
--#ifdef CONFIG_PCIC_PCI
--#include <asm/pcic.h>
+ 	RESTORE_ALL
+ 
+-	.globl	flush_patch_one
+-
+ 	/* We get these for debugging routines using __builtin_return_address() */
+ dfw_kernel:
+-flush_patch_one:
+ 	FLUSH_ALL_KERNEL_WINDOWS
+ 
+ 	/* Advance over the trap instruction. */
+@@ -558,10 +555,9 @@ sys_rt_sigreturn:
+ 	 * XXX code just like on sparc64... -DaveM
+ 	 */
+ 	.align	4
+-	.globl	sys_fork, flush_patch_two
++	.globl	sys_fork
+ sys_fork:
+ 	mov	%o7, %l5
+-flush_patch_two:
+ 	FLUSH_ALL_KERNEL_WINDOWS;
+ 	ld	[%curptr + TI_TASK], %o4
+ 	rd	%psr, %g4
+@@ -574,10 +570,9 @@ flush_patch_two:
+ 	 mov	%l5, %o7
+ 
+ 	/* Whee, kernel threads! */
+-	.globl	sys_clone, flush_patch_three
++	.globl	sys_clone
+ sys_clone:
+ 	mov	%o7, %l5
+-flush_patch_three:
+ 	FLUSH_ALL_KERNEL_WINDOWS;
+ 	ld	[%curptr + TI_TASK], %o4
+ 	rd	%psr, %g4
+@@ -590,9 +585,8 @@ flush_patch_three:
+ 	 mov	%l5, %o7
+ 
+ 	/* Whee, real vfork! */
+-	.globl	sys_vfork, flush_patch_four
++	.globl	sys_vfork
+ sys_vfork:
+-flush_patch_four:
+ 	FLUSH_ALL_KERNEL_WINDOWS;
+ 	ld	[%curptr + TI_TASK], %o4
+ 	rd	%psr, %g4
+@@ -909,17 +903,7 @@ breakpoint_trap:
+ #endif
+ 
+ 	.align	4
+-	.globl	flush_patch_exception
+-flush_patch_exception:
+-	FLUSH_ALL_KERNEL_WINDOWS;
+-	ldd	[%o0], %o6
+-	jmpl	%o7 + 0xc, %g0			! see asm-sparc/processor.h
+-	 mov	1, %g1				! signal EFAULT condition
 -
 -	.align	4
--	.globl	linux_trap_ipi15_pcic
--linux_trap_ipi15_pcic:
--	rd	%wim, %l3
--	SAVE_ALL
--
--	/*
--	 * First deactivate NMI
--	 * or we cannot drop ET, cannot get window spill traps.
--	 * The busy loop is necessary because the PIO error
--	 * sometimes does not go away quickly and we trap again.
--	 */
--	sethi	%hi(pcic_regs), %o1
--	ld	[%o1 + %lo(pcic_regs)], %o2
--
--	! Get pending status for printouts later.
--	ld	[%o2 + PCI_SYS_INT_PENDING], %o0
--
--	mov	PCI_SYS_INT_PENDING_CLEAR_ALL, %o1
--	stb	%o1, [%o2 + PCI_SYS_INT_PENDING_CLEAR]
--1:
--	ld	[%o2 + PCI_SYS_INT_PENDING], %o1
--	andcc	%o1, ((PCI_SYS_INT_PENDING_PIO|PCI_SYS_INT_PENDING_PCI)>>24), %g0
--	bne	1b
--	 nop
--
--	or	%l0, PSR_PIL, %l4
--	wr	%l4, 0x0, %psr
--	WRITE_PAUSE
--	wr	%l4, PSR_ET, %psr
--	WRITE_PAUSE
--
--	call	pcic_nmi
--	 add	%sp, STACKFRAME_SZ, %o1	! struct pt_regs *regs
--	RESTORE_ALL
--
--	.globl	pcic_nmi_trap_patch
--pcic_nmi_trap_patch:
--	sethi	%hi(linux_trap_ipi15_pcic), %l3
--	jmpl	%l3 + %lo(linux_trap_ipi15_pcic), %g0
--	 rd	%psr, %l0
--	.word	0
--
--#endif /* CONFIG_PCIC_PCI */
--
- 	.globl	flushw_all
- flushw_all:
- 	save	%sp, -0x40, %sp
-diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
-index 135170f362c1..a6af08fce796 100644
---- a/arch/sparc/kernel/irq_32.c
-+++ b/arch/sparc/kernel/irq_32.c
-@@ -19,7 +19,6 @@
- #include <asm/cacheflush.h>
- #include <asm/cpudata.h>
- #include <asm/setup.h>
--#include <asm/pcic.h>
- #include <asm/leon.h>
+-	.globl	kill_user_windows, kuw_patch1_7win
+-	.globl	kuw_patch1
+-kuw_patch1_7win:	sll	%o3, 6, %o3
++	.globl	kill_user_windows
  
- #include "kernel.h"
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index ff8f412e3153..a14812903629 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -138,10 +138,6 @@ asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn);
- /* windows.c */
- void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ 	/* No matter how much overhead this routine has in the worst
+ 	 * case scenario, it is several times better than taking the
+@@ -939,11 +923,11 @@ kill_user_windows:
+ 	be	4f				! yep, we are done
+ 	 rd	%wim, %o3			! get current wim
+ 	srl	%o3, 1, %o4			! simulate a save
+-kuw_patch1:
++kuw_next:
+ 	sll	%o3, 7, %o3			! compute next wim
+ 	or	%o4, %o3, %o3			! result
+ 	andncc	%o0, %o3, %o0			! clean this bit in umask
+-	bne	kuw_patch1			! not done yet
++	bne	kuw_next			! not done yet
+ 	 srl	%o3, 1, %o4			! begin another save simulation
+ 	wr	%o3, 0x0, %wim			! set the new wim
+ 	st	%g0, [%g6 + TI_UWINMASK]	! clear uwinmask
+diff --git a/arch/sparc/kernel/etrap_32.S b/arch/sparc/kernel/etrap_32.S
+index bb222459f097..95dfdea1f36c 100644
+--- a/arch/sparc/kernel/etrap_32.S
++++ b/arch/sparc/kernel/etrap_32.S
+@@ -30,18 +30,6 @@
+ 	.text
+ 	.align 4
  
--/* pcic.c */
--extern void __iomem *pcic_regs;
--void pcic_nmi(unsigned int pend, struct pt_regs *regs);
+-	/* SEVEN WINDOW PATCH INSTRUCTIONS */
+-	.globl	tsetup_7win_patch1, tsetup_7win_patch2
+-	.globl	tsetup_7win_patch3, tsetup_7win_patch4
+-	.globl	tsetup_7win_patch5, tsetup_7win_patch6
+-tsetup_7win_patch1:	sll	%t_wim, 0x6, %t_wim
+-tsetup_7win_patch2:	and	%g2, 0x7f, %g2
+-tsetup_7win_patch3:	and	%g2, 0x7f, %g2
+-tsetup_7win_patch4:	and	%g1, 0x7f, %g1
+-tsetup_7win_patch5:	sll	%t_wim, 0x6, %t_wim
+-tsetup_7win_patch6:	and	%g2, 0x7f, %g2
+-	/* END OF PATCH INSTRUCTIONS */
 -
- /* time_32.c */
- void __init time_init(void);
+ 	/* At trap time, interrupts and all generic traps do the
+ 	 * following:
+ 	 *
+@@ -72,9 +60,7 @@ tsetup_7win_patch6:	and	%g2, 0x7f, %g2
+ 	 * trap pc and npc, and %l3 contains the trap time %wim.
+ 	 */
  
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-deleted file mode 100644
-index d952bcbbc395..000000000000
---- a/arch/sparc/kernel/pcic.c
-+++ /dev/null
-@@ -1,829 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * pcic.c: MicroSPARC-IIep PCI controller support
-- *
-- * Copyright (C) 1998 V. Roganov and G. Raiko
-- *
-- * Code is derived from Ultra/PCI PSYCHO controller support, see that
-- * for author info.
-- *
-- * Support for diverse IIep based platforms by Pete Zaitcev.
-- * CP-1200 by Eric Brower.
-- */
+-	.globl	trap_setup, tsetup_patch1, tsetup_patch2
+-	.globl	tsetup_patch3, tsetup_patch4
+-	.globl	tsetup_patch5, tsetup_patch6
++	.globl	trap_setup
+ trap_setup:
+ 	/* Calculate mask of trap window.  See if from user
+ 	 * or kernel and branch conditionally.
+@@ -109,11 +95,10 @@ trap_setup_kernel_spill:
+ 	 * %wim and go.
+ 	 */
+ 	 srl	%t_wim, 0x1, %g2	! begin computation of new %wim
+-tsetup_patch1:
+-	sll	%t_wim, 0x7, %t_wim	! patched on 7 window Sparcs
++
++	sll	%t_wim, 0x7, %t_wim
+ 	or	%t_wim, %g2, %g2
+-tsetup_patch2:
+-	and	%g2, 0xff, %g2		! patched on 7 window Sparcs
++	and	%g2, 0xff, %g2
+ 
+ 	save	%g0, %g0, %g0
+ 
+@@ -185,8 +170,7 @@ trap_setup_from_user:
+ 	 sub	%g2, 0x1, %g2
+ 1:
+ 	andn	%g2, %t_twinmask, %g2
+-tsetup_patch3:
+-	and	%g2, 0xff, %g2			! patched on 7win Sparcs
++	and	%g2, 0xff, %g2
+ 	st	%g2, [%curptr + TI_UWINMASK]	! store new umask
+ 
+ 	jmpl	%t_retpc + 0x8, %g0		! return to caller
+@@ -199,14 +183,11 @@ trap_setup_user_spill:
+ 	 * is in %g1 upon entry to here.
+ 	 */
+ 
+-tsetup_patch4:
+-	and	%g1, 0xff, %g1		! patched on 7win Sparcs, mask
++	and	%g1, 0xff, %g1
+ 	srl	%t_wim, 0x1, %g2	! compute new %wim
+-tsetup_patch5:
+-	sll	%t_wim, 0x7, %t_wim	! patched on 7win Sparcs
++	sll	%t_wim, 0x7, %t_wim
+ 	or	%t_wim, %g2, %g2	! %g2 is new %wim
+-tsetup_patch6:
+-	and	%g2, 0xff, %g2		! patched on 7win Sparcs
++	and	%g2, 0xff, %g2
+ 	andn	%g1, %g2, %g1		! clear this bit in %g1
+ 	st	%g1, [%curptr + TI_UWINMASK]
+ 
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index 03dc232dd235..908c77cb456e 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -404,71 +404,6 @@ leon_init:
+ 		wr	%g1, 0x0, %wim			! make window 1 invalid
+ 		WRITE_PAUSE
+ 
+-		cmp	%g3, 0x7
+-		bne	2f
+-		 nop
 -
--#include <linux/kernel.h>
--#include <linux/types.h>
--#include <linux/init.h>
--#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/jiffies.h>
--
--#include <asm/swift.h> /* for cache flushing. */
--#include <asm/io.h>
--
--#include <linux/ctype.h>
--#include <linux/pci.h>
--#include <linux/time.h>
--#include <linux/timex.h>
--#include <linux/interrupt.h>
--#include <linux/export.h>
--
--#include <asm/irq.h>
--#include <asm/oplib.h>
--#include <asm/prom.h>
--#include <asm/pcic.h>
--#include <asm/timex.h>
--#include <asm/timer.h>
--#include <linux/uaccess.h>
--#include <asm/irq_regs.h>
--
--#include "kernel.h"
--#include "irq.h"
--
--/*
-- * I studied different documents and many live PROMs both from 2.30
-- * family and 3.xx versions. I came to the amazing conclusion: there is
-- * absolutely no way to route interrupts in IIep systems relying on
-- * information which PROM presents. We must hardcode interrupt routing
-- * schematics. And this actually sucks.   -- zaitcev 1999/05/12
-- *
-- * To find irq for a device we determine which routing map
-- * is in effect or, in other words, on which machine we are running.
-- * We use PROM name for this although other techniques may be used
-- * in special cases (Gleb reports a PROMless IIep based system).
-- * Once we know the map we take device configuration address and
-- * find PCIC pin number where INT line goes. Then we may either program
-- * preferred irq into the PCIC or supply the preexisting irq to the device.
-- */
--struct pcic_ca2irq {
--	unsigned char busno;		/* PCI bus number */
--	unsigned char devfn;		/* Configuration address */
--	unsigned char pin;		/* PCIC external interrupt pin */
--	unsigned char irq;		/* Preferred IRQ (mappable in PCIC) */
--	unsigned int force;		/* Enforce preferred IRQ */
--};
--
--struct pcic_sn2list {
--	char *sysname;
--	struct pcic_ca2irq *intmap;
--	int mapdim;
--};
--
--/*
-- * JavaEngine-1 apparently has different versions.
-- *
-- * According to communications with Sun folks, for P2 build 501-4628-03:
-- * pin 0 - parallel, audio;
-- * pin 1 - Ethernet;
-- * pin 2 - su;
-- * pin 3 - PS/2 kbd and mouse.
-- *
-- * OEM manual (805-1486):
-- * pin 0: Ethernet
-- * pin 1: All EBus
-- * pin 2: IGA (unused)
-- * pin 3: Not connected
-- * OEM manual says that 501-4628 & 501-4811 are the same thing,
-- * only the latter has NAND flash in place.
-- *
-- * So far unofficial Sun wins over the OEM manual. Poor OEMs...
-- */
--static struct pcic_ca2irq pcic_i_je1a[] = {	/* 501-4811-03 */
--	{ 0, 0x00, 2, 12, 0 },		/* EBus: hogs all */
--	{ 0, 0x01, 1,  6, 1 },		/* Happy Meal */
--	{ 0, 0x80, 0,  7, 0 },		/* IGA (unused) */
--};
--
--/* XXX JS-E entry is incomplete - PCI Slot 2 address (pin 7)? */
--static struct pcic_ca2irq pcic_i_jse[] = {
--	{ 0, 0x00, 0, 13, 0 },		/* Ebus - serial and keyboard */
--	{ 0, 0x01, 1,  6, 0 },		/* hme */
--	{ 0, 0x08, 2,  9, 0 },		/* VGA - we hope not used :) */
--	{ 0, 0x10, 6,  8, 0 },		/* PCI INTA# in Slot 1 */
--	{ 0, 0x18, 7, 12, 0 },		/* PCI INTA# in Slot 2, shared w. RTC */
--	{ 0, 0x38, 4,  9, 0 },		/* All ISA devices. Read 8259. */
--	{ 0, 0x80, 5, 11, 0 },		/* EIDE */
--	/* {0,0x88, 0,0,0} - unknown device... PMU? Probably no interrupt. */
--	{ 0, 0xA0, 4,  9, 0 },		/* USB */
--	/*
--	 * Some pins belong to non-PCI devices, we hardcode them in drivers.
--	 * sun4m timers - irq 10, 14
--	 * PC style RTC - pin 7, irq 4 ?
--	 * Smart card, Parallel - pin 4 shared with USB, ISA
--	 * audio - pin 3, irq 5 ?
--	 */
--};
--
--/* SPARCengine-6 was the original release name of CP1200.
-- * The documentation differs between the two versions
-- */
--static struct pcic_ca2irq pcic_i_se6[] = {
--	{ 0, 0x08, 0,  2, 0 },		/* SCSI	*/
--	{ 0, 0x01, 1,  6, 0 },		/* HME	*/
--	{ 0, 0x00, 3, 13, 0 },		/* EBus	*/
--};
--
--/*
-- * Krups (courtesy of Varol Kaptan)
-- * No documentation available, but it was easy to guess
-- * because it was very similar to Espresso.
-- *  
-- * pin 0 - kbd, mouse, serial;
-- * pin 1 - Ethernet;
-- * pin 2 - igs (we do not use it);
-- * pin 3 - audio;
-- * pin 4,5,6 - unused;
-- * pin 7 - RTC (from P2 onwards as David B. says).
-- */
--static struct pcic_ca2irq pcic_i_jk[] = {
--	{ 0, 0x00, 0, 13, 0 },		/* Ebus - serial and keyboard */
--	{ 0, 0x01, 1,  6, 0 },		/* hme */
--};
--
--/*
-- * Several entries in this list may point to the same routing map
-- * as several PROMs may be installed on the same physical board.
-- */
--#define SN2L_INIT(name, map)	\
--  { name, map, ARRAY_SIZE(map) }
--
--static struct pcic_sn2list pcic_known_sysnames[] = {
--	SN2L_INIT("SUNW,JavaEngine1", pcic_i_je1a),	/* JE1, PROM 2.32 */
--	SN2L_INIT("SUNW,JS-E", pcic_i_jse),	/* PROLL JavaStation-E */
--	SN2L_INIT("SUNW,SPARCengine-6", pcic_i_se6), /* SPARCengine-6/CP-1200 */
--	SN2L_INIT("SUNW,JS-NC", pcic_i_jk),	/* PROLL JavaStation-NC */
--	SN2L_INIT("SUNW,JSIIep", pcic_i_jk),	/* OBP JavaStation-NC */
--	{ NULL, NULL, 0 }
--};
--
--/*
-- * Only one PCIC per IIep,
-- * and since we have no SMP IIep, only one per system.
-- */
--static int pcic0_up;
--static struct linux_pcic pcic0;
--
--void __iomem *pcic_regs;
--static volatile int pcic_speculative;
--static volatile int pcic_trapped;
--
--/* forward */
--unsigned int pcic_build_device_irq(struct platform_device *op,
--                                   unsigned int real_irq);
--
--#define CONFIG_CMD(bus, device_fn, where) (0x80000000 | (((unsigned int)bus) << 16) | (((unsigned int)device_fn) << 8) | (where & ~3))
--
--static int pcic_read_config_dword(unsigned int busno, unsigned int devfn,
--    int where, u32 *value)
--{
--	struct linux_pcic *pcic;
--	unsigned long flags;
--
--	pcic = &pcic0;
--
--	local_irq_save(flags);
--#if 0 /* does not fail here */
--	pcic_speculative = 1;
--	pcic_trapped = 0;
--#endif
--	writel(CONFIG_CMD(busno, devfn, where), pcic->pcic_config_space_addr);
--#if 0 /* does not fail here */
--	nop();
--	if (pcic_trapped) {
--		local_irq_restore(flags);
--		*value = ~0;
--		return 0;
--	}
--#endif
--	pcic_speculative = 2;
--	pcic_trapped = 0;
--	*value = readl(pcic->pcic_config_space_data + (where&4));
--	nop();
--	if (pcic_trapped) {
--		pcic_speculative = 0;
--		local_irq_restore(flags);
--		*value = ~0;
--		return 0;
--	}
--	pcic_speculative = 0;
--	local_irq_restore(flags);
--	return 0;
--}
--
--static int pcic_read_config(struct pci_bus *bus, unsigned int devfn,
--   int where, int size, u32 *val)
--{
--	unsigned int v;
--
--	if (bus->number != 0) return -EINVAL;
--	switch (size) {
--	case 1:
--		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
--		*val = 0xff & (v >> (8*(where & 3)));
--		return 0;
--	case 2:
--		if (where&1) return -EINVAL;
--		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
--		*val = 0xffff & (v >> (8*(where & 3)));
--		return 0;
--	case 4:
--		if (where&3) return -EINVAL;
--		pcic_read_config_dword(bus->number, devfn, where&~3, val);
--		return 0;
--	}
--	return -EINVAL;
--}
--
--static int pcic_write_config_dword(unsigned int busno, unsigned int devfn,
--    int where, u32 value)
--{
--	struct linux_pcic *pcic;
--	unsigned long flags;
--
--	pcic = &pcic0;
--
--	local_irq_save(flags);
--	writel(CONFIG_CMD(busno, devfn, where), pcic->pcic_config_space_addr);
--	writel(value, pcic->pcic_config_space_data + (where&4));
--	local_irq_restore(flags);
--	return 0;
--}
--
--static int pcic_write_config(struct pci_bus *bus, unsigned int devfn,
--   int where, int size, u32 val)
--{
--	unsigned int v;
--
--	if (bus->number != 0) return -EINVAL;
--	switch (size) {
--	case 1:
--		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
--		v = (v & ~(0xff << (8*(where&3)))) |
--		    ((0xff&val) << (8*(where&3)));
--		return pcic_write_config_dword(bus->number, devfn, where&~3, v);
--	case 2:
--		if (where&1) return -EINVAL;
--		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
--		v = (v & ~(0xffff << (8*(where&3)))) |
--		    ((0xffff&val) << (8*(where&3)));
--		return pcic_write_config_dword(bus->number, devfn, where&~3, v);
--	case 4:
--		if (where&3) return -EINVAL;
--		return pcic_write_config_dword(bus->number, devfn, where, val);
--	}
--	return -EINVAL;
--}
--
--static struct pci_ops pcic_ops = {
--	.read =		pcic_read_config,
--	.write =	pcic_write_config,
--};
--
--/*
-- * On sparc64 pcibios_init() calls pci_controller_probe().
-- * We want PCIC probed little ahead so that interrupt controller
-- * would be operational.
-- */
--int __init pcic_probe(void)
--{
--	struct linux_pcic *pcic;
--	struct linux_prom_registers regs[PROMREG_MAX];
--	struct linux_pbm_info* pbm;
--	char namebuf[64];
--	phandle node;
--	int err;
--
--	if (pcic0_up) {
--		prom_printf("PCIC: called twice!\n");
--		prom_halt();
--	}
--	pcic = &pcic0;
--
--	node = prom_getchild (prom_root_node);
--	node = prom_searchsiblings (node, "pci");
--	if (node == 0)
--		return -ENODEV;
--	/*
--	 * Map in PCIC register set, config space, and IO base
--	 */
--	err = prom_getproperty(node, "reg", (char*)regs, sizeof(regs));
--	if (err == 0 || err == -1) {
--		prom_printf("PCIC: Error, cannot get PCIC registers "
--			    "from PROM.\n");
--		prom_halt();
--	}
--
--	pcic0_up = 1;
--
--	pcic->pcic_res_regs.name = "pcic_registers";
--	pcic->pcic_regs = ioremap(regs[0].phys_addr, regs[0].reg_size);
--	if (!pcic->pcic_regs) {
--		prom_printf("PCIC: Error, cannot map PCIC registers.\n");
--		prom_halt();
--	}
--
--	pcic->pcic_res_io.name = "pcic_io";
--	if ((pcic->pcic_io = (unsigned long)
--	    ioremap(regs[1].phys_addr, 0x10000)) == 0) {
--		prom_printf("PCIC: Error, cannot map PCIC IO Base.\n");
--		prom_halt();
--	}
--
--	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
--	if ((pcic->pcic_config_space_addr =
--	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) == NULL) {
--		prom_printf("PCIC: Error, cannot map "
--			    "PCI Configuration Space Address.\n");
--		prom_halt();
--	}
--
--	/*
--	 * Docs say three least significant bits in address and data
--	 * must be the same. Thus, we need adjust size of data.
--	 */
--	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
--	if ((pcic->pcic_config_space_data =
--	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) == NULL) {
--		prom_printf("PCIC: Error, cannot map "
--			    "PCI Configuration Space Data.\n");
--		prom_halt();
--	}
--
--	pbm = &pcic->pbm;
--	pbm->prom_node = node;
--	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
--	strcpy(pbm->prom_name, namebuf);
--
--	prom_getstring(prom_root_node, "name", namebuf, 63);  namebuf[63] = 0;
--	{
--		struct pcic_sn2list *p;
--
--		for (p = pcic_known_sysnames; p->sysname != NULL; p++) {
--			if (strcmp(namebuf, p->sysname) == 0)
--				break;
--		}
--		pcic->pcic_imap = p->intmap;
--		pcic->pcic_imdim = p->mapdim;
--	}
--	if (pcic->pcic_imap == NULL) {
--		/*
--		 * We do not panic here for the sake of embedded systems.
+-		/* Adjust our window handling routines to
+-		 * do things correctly on 7 window Sparcs.
 -		 */
--		printk("PCIC: System %s is unknown, cannot route interrupts\n",
--		    namebuf);
--	}
 -
--	return 0;
--}
+-#define		PATCH_INSN(src, dest) \
+-		set	src, %g5; \
+-		set	dest, %g2; \
+-		ld	[%g5], %g4; \
+-		st	%g4, [%g2];
 -
--static void __init pcic_pbm_scan_bus(struct linux_pcic *pcic)
--{
--	struct linux_pbm_info *pbm = &pcic->pbm;
+-		/* Patch for window spills... */
+-		PATCH_INSN(spnwin_patch1_7win, spnwin_patch1)
+-		PATCH_INSN(spnwin_patch2_7win, spnwin_patch2)
+-		PATCH_INSN(spnwin_patch3_7win, spnwin_patch3)
 -
--	pbm->pci_bus = pci_scan_bus(pbm->pci_first_busno, &pcic_ops, pbm);
--	if (!pbm->pci_bus)
--		return;
+-		/* Patch for window fills... */
+-		PATCH_INSN(fnwin_patch1_7win, fnwin_patch1)
+-		PATCH_INSN(fnwin_patch2_7win, fnwin_patch2)
 -
--#if 0 /* deadwood transplanted from sparc64 */
--	pci_fill_in_pbm_cookies(pbm->pci_bus, pbm, pbm->prom_node);
--	pci_record_assignments(pbm, pbm->pci_bus);
--	pci_assign_unassigned(pbm, pbm->pci_bus);
--	pci_fixup_irq(pbm, pbm->pci_bus);
--#endif
--	pci_bus_add_devices(pbm->pci_bus);
--}
+-		/* Patch for trap entry setup... */
+-		PATCH_INSN(tsetup_7win_patch1, tsetup_patch1)
+-		PATCH_INSN(tsetup_7win_patch2, tsetup_patch2)
+-		PATCH_INSN(tsetup_7win_patch3, tsetup_patch3)
+-		PATCH_INSN(tsetup_7win_patch4, tsetup_patch4)
+-		PATCH_INSN(tsetup_7win_patch5, tsetup_patch5)
+-		PATCH_INSN(tsetup_7win_patch6, tsetup_patch6)
 -
--/*
-- * Main entry point from the PCI subsystem.
-- */
--static int __init pcic_init(void)
--{
--	struct linux_pcic *pcic;
+-		/* Patch for returning from traps... */
+-		PATCH_INSN(rtrap_7win_patch1, rtrap_patch1)
+-		PATCH_INSN(rtrap_7win_patch2, rtrap_patch2)
+-		PATCH_INSN(rtrap_7win_patch3, rtrap_patch3)
+-		PATCH_INSN(rtrap_7win_patch4, rtrap_patch4)
+-		PATCH_INSN(rtrap_7win_patch5, rtrap_patch5)
 -
--	/*
--	 * PCIC should be initialized at start of the timer.
--	 * So, here we report the presence of PCIC and do some magic passes.
--	 */
--	if(!pcic0_up)
--		return 0;
--	pcic = &pcic0;
+-		/* Patch for killing user windows from the register file. */
+-		PATCH_INSN(kuw_patch1_7win, kuw_patch1)
 -
--	/*
--	 *      Switch off IOTLB translation.
--	 */
--	writeb(PCI_DVMA_CONTROL_IOTLB_DISABLE, 
--	       pcic->pcic_regs+PCI_DVMA_CONTROL);
--
--	/*
--	 *      Increase mapped size for PCI memory space (DMA access).
--	 *      Should be done in that order (size first, address second).
--	 *      Why we couldn't set up 4GB and forget about it? XXX
--	 */
--	writel(0xF0000000UL, pcic->pcic_regs+PCI_SIZE_0);
--	writel(0+PCI_BASE_ADDRESS_SPACE_MEMORY, 
--	       pcic->pcic_regs+PCI_BASE_ADDRESS_0);
--
--	pcic_pbm_scan_bus(pcic);
--
--	return 0;
--}
--
--int pcic_present(void)
--{
--	return pcic0_up;
--}
--
--static int pdev_to_pnode(struct linux_pbm_info *pbm, struct pci_dev *pdev)
--{
--	struct linux_prom_pci_registers regs[PROMREG_MAX];
--	int err;
--	phandle node = prom_getchild(pbm->prom_node);
--
--	while(node) {
--		err = prom_getproperty(node, "reg", 
--				       (char *)&regs[0], sizeof(regs));
--		if(err != 0 && err != -1) {
--			unsigned long devfn = (regs[0].which_io >> 8) & 0xff;
--			if(devfn == pdev->devfn)
--				return node;
--		}
--		node = prom_getsibling(node);
--	}
--	return 0;
--}
--
--static inline struct pcidev_cookie *pci_devcookie_alloc(void)
--{
--	return kmalloc(sizeof(struct pcidev_cookie), GFP_ATOMIC);
--}
--
--static void pcic_map_pci_device(struct linux_pcic *pcic,
--    struct pci_dev *dev, int node)
--{
--	char namebuf[64];
--	unsigned long address;
--	unsigned long flags;
--	int j;
--
--	if (node == 0 || node == -1) {
--		strcpy(namebuf, "???");
--	} else {
--		prom_getstring(node, "name", namebuf, 63); namebuf[63] = 0;
--	}
--
--	for (j = 0; j < 6; j++) {
--		address = dev->resource[j].start;
--		if (address == 0) break;	/* are sequential */
--		flags = dev->resource[j].flags;
--		if ((flags & IORESOURCE_IO) != 0) {
--			if (address < 0x10000) {
--				/*
--				 * A device responds to I/O cycles on PCI.
--				 * We generate these cycles with memory
--				 * access into the fixed map (phys 0x30000000).
--				 *
--				 * Since a device driver does not want to
--				 * do ioremap() before accessing PC-style I/O,
--				 * we supply virtual, ready to access address.
--				 *
--				 * Note that request_region()
--				 * works for these devices.
--				 *
--				 * XXX Neat trick, but it's a *bad* idea
--				 * to shit into regions like that.
--				 * What if we want to allocate one more
--				 * PCI base address...
--				 */
--				dev->resource[j].start =
--				    pcic->pcic_io + address;
--				dev->resource[j].end = 1;  /* XXX */
--				dev->resource[j].flags =
--				    (flags & ~IORESOURCE_IO) | IORESOURCE_MEM;
--			} else {
--				/*
--				 * OOPS... PCI Spec allows this. Sun does
--				 * not have any devices getting above 64K
--				 * so it must be user with a weird I/O
--				 * board in a PCI slot. We must remap it
--				 * under 64K but it is not done yet. XXX
--				 */
--				pci_info(dev, "PCIC: Skipping I/O space at "
--					 "0x%lx, this will Oops if a driver "
--					 "attaches device '%s'\n", address,
--					 namebuf);
--			}
--		}
--	}
--}
--
--static void
--pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
--{
--	struct pcic_ca2irq *p;
--	unsigned int real_irq;
--	int i, ivec;
--	char namebuf[64];
--
--	if (node == 0 || node == -1) {
--		strcpy(namebuf, "???");
--	} else {
--		prom_getstring(node, "name", namebuf, sizeof(namebuf));
--	}
--
--	if ((p = pcic->pcic_imap) == NULL) {
--		dev->irq = 0;
--		return;
--	}
--	for (i = 0; i < pcic->pcic_imdim; i++) {
--		if (p->busno == dev->bus->number && p->devfn == dev->devfn)
--			break;
--		p++;
--	}
--	if (i >= pcic->pcic_imdim) {
--		pci_info(dev, "PCIC: device %s not found in %d\n", namebuf,
--			 pcic->pcic_imdim);
--		dev->irq = 0;
--		return;
--	}
--
--	i = p->pin;
--	if (i >= 0 && i < 4) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
--		real_irq = ivec >> (i << 2) & 0xF;
--	} else if (i >= 4 && i < 8) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
--		real_irq = ivec >> ((i-4) << 2) & 0xF;
--	} else {					/* Corrupted map */
--		pci_info(dev, "PCIC: BAD PIN %d\n", i); for (;;) {}
--	}
--/* P3 */ /* printk("PCIC: device %s pin %d ivec 0x%x irq %x\n", namebuf, i, ivec, dev->irq); */
--
--	/* real_irq means PROM did not bother to program the upper
--	 * half of PCIC. This happens on JS-E with PROM 3.11, for instance.
--	 */
--	if (real_irq == 0 || p->force) {
--		if (p->irq == 0 || p->irq >= 15) {	/* Corrupted map */
--			pci_info(dev, "PCIC: BAD IRQ %d\n", p->irq); for (;;) {}
--		}
--		pci_info(dev, "PCIC: setting irq %d at pin %d\n", p->irq,
--			 p->pin);
--		real_irq = p->irq;
--
--		i = p->pin;
--		if (i >= 4) {
--			ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
--			ivec &= ~(0xF << ((i - 4) << 2));
--			ivec |= p->irq << ((i - 4) << 2);
--			writew(ivec, pcic->pcic_regs+PCI_INT_SELECT_HI);
--		} else {
--			ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
--			ivec &= ~(0xF << (i << 2));
--			ivec |= p->irq << (i << 2);
--			writew(ivec, pcic->pcic_regs+PCI_INT_SELECT_LO);
--		}
--	}
--	dev->irq = pcic_build_device_irq(NULL, real_irq);
--}
--
--/*
-- * Normally called from {do_}pci_scan_bus...
-- */
--void pcibios_fixup_bus(struct pci_bus *bus)
--{
--	struct pci_dev *dev;
--	struct linux_pcic *pcic;
--	/* struct linux_pbm_info* pbm = &pcic->pbm; */
--	int node;
--	struct pcidev_cookie *pcp;
--
--	if (!pcic0_up) {
--		pci_info(bus, "pcibios_fixup_bus: no PCIC\n");
--		return;
--	}
--	pcic = &pcic0;
--
--	/*
--	 * Next crud is an equivalent of pbm = pcic_bus_to_pbm(bus);
--	 */
--	if (bus->number != 0) {
--		pci_info(bus, "pcibios_fixup_bus: nonzero bus 0x%x\n",
--			 bus->number);
--		return;
--	}
--
--	list_for_each_entry(dev, &bus->devices, bus_list) {
--		node = pdev_to_pnode(&pcic->pbm, dev);
--		if(node == 0)
--			node = -1;
--
--		/* cookies */
--		pcp = pci_devcookie_alloc();
--		pcp->pbm = &pcic->pbm;
--		pcp->prom_node = of_find_node_by_phandle(node);
--		dev->sysdata = pcp;
--
--		/* fixing I/O to look like memory */
--		if ((dev->class>>16) != PCI_BASE_CLASS_BRIDGE)
--			pcic_map_pci_device(pcic, dev, node);
--
--		pcic_fill_irq(pcic, dev, node);
--	}
--}
--
--int pcibios_enable_device(struct pci_dev *dev, int mask)
--{
--	struct resource *res;
--	u16 cmd, oldcmd;
--	int i;
--
--	pci_read_config_word(dev, PCI_COMMAND, &cmd);
--	oldcmd = cmd;
--
--	pci_dev_for_each_resource(dev, res, i) {
--		/* Only set up the requested stuff */
--		if (!(mask & (1<<i)))
--			continue;
--
--		if (res->flags & IORESOURCE_IO)
--			cmd |= PCI_COMMAND_IO;
--		if (res->flags & IORESOURCE_MEM)
--			cmd |= PCI_COMMAND_MEMORY;
--	}
--
--	if (cmd != oldcmd) {
--		pci_info(dev, "enabling device (%04x -> %04x)\n", oldcmd, cmd);
--		pci_write_config_word(dev, PCI_COMMAND, cmd);
--	}
--	return 0;
--}
--
--/* Makes compiler happy */
--static volatile int pcic_timer_dummy;
--
--static void pcic_clear_clock_irq(void)
--{
--	pcic_timer_dummy = readl(pcic0.pcic_regs+PCI_SYS_LIMIT);
--}
--
--/* CPU frequency is 100 MHz, timer increments every 4 CPU clocks */
--#define USECS_PER_JIFFY  (1000000 / HZ)
--#define TICK_TIMER_LIMIT ((100 * 1000000 / 4) / HZ)
--
--static unsigned int pcic_cycles_offset(void)
--{
--	u32 value, count;
--
--	value = readl(pcic0.pcic_regs + PCI_SYS_COUNTER);
--	count = value & ~PCI_SYS_COUNTER_OVERFLOW;
--
--	if (value & PCI_SYS_COUNTER_OVERFLOW)
--		count += TICK_TIMER_LIMIT;
--	/*
--	 * We divide all by HZ
--	 * to have microsecond resolution and to avoid overflow
--	 */
--	count = ((count / HZ) * USECS_PER_JIFFY) / (TICK_TIMER_LIMIT / HZ);
--
--	/* Coordinate with the sparc_config.clock_rate setting */
--	return count * 2;
--}
--
--void __init pci_time_init(void)
--{
--	struct linux_pcic *pcic = &pcic0;
--	unsigned long v;
--	int timer_irq, irq;
--	int err;
--
--#ifndef CONFIG_SMP
--	/*
--	 * The clock_rate is in SBUS dimension.
--	 * We take into account this in pcic_cycles_offset()
--	 */
--	sparc_config.clock_rate = SBUS_CLOCK_RATE / HZ;
--	sparc_config.features |= FEAT_L10_CLOCKEVENT;
--#endif
--	sparc_config.features |= FEAT_L10_CLOCKSOURCE;
--	sparc_config.get_cycles_offset = pcic_cycles_offset;
--
--	writel (TICK_TIMER_LIMIT, pcic->pcic_regs+PCI_SYS_LIMIT);
--	/* PROM should set appropriate irq */
--	v = readb(pcic->pcic_regs+PCI_COUNTER_IRQ);
--	timer_irq = PCI_COUNTER_IRQ_SYS(v);
--	writel (PCI_COUNTER_IRQ_SET(timer_irq, 0),
--		pcic->pcic_regs+PCI_COUNTER_IRQ);
--	irq = pcic_build_device_irq(NULL, timer_irq);
--	err = request_irq(irq, timer_interrupt,
--			  IRQF_TIMER, "timer", NULL);
--	if (err) {
--		prom_printf("time_init: unable to attach IRQ%d\n", timer_irq);
--		prom_halt();
--	}
--	local_irq_enable();
--}
--
--
--#if 0
--static void watchdog_reset() {
--	writeb(0, pcic->pcic_regs+PCI_SYS_STATUS);
--}
--#endif
--
--/*
-- * NMI
-- */
--void pcic_nmi(unsigned int pend, struct pt_regs *regs)
--{
--	pend = swab32(pend);
--
--	if (!pcic_speculative || (pend & PCI_SYS_INT_PENDING_PIO) == 0) {
--		/*
--		 * XXX On CP-1200 PCI #SERR may happen, we do not know
--		 * what to do about it yet.
+-		/* Now patch the kernel window flush sequences.
+-		 * This saves 2 traps on every switch and fork.
 -		 */
--		printk("Aiee, NMI pend 0x%x pc 0x%x spec %d, hanging\n",
--		    pend, (int)regs->pc, pcic_speculative);
--		for (;;) { }
--	}
--	pcic_speculative = 0;
--	pcic_trapped = 1;
--	regs->pc = regs->npc;
--	regs->npc += 4;
--}
+-		set	0x01000000, %g4
+-		set	flush_patch_one, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
+-		set	flush_patch_two, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
+-		set	flush_patch_three, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
+-		set	flush_patch_four, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
+-		set	flush_patch_exception, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
+-		set	flush_patch_switch, %g5
+-		st	%g4, [%g5 + 0x18]
+-		st	%g4, [%g5 + 0x1c]
 -
--static inline unsigned long get_irqmask(int irq_nr)
--{
--	return 1 << irq_nr;
--}
--
--static void pcic_mask_irq(struct irq_data *data)
--{
--	unsigned long mask, flags;
--
--	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
--	writel(mask, pcic0.pcic_regs+PCI_SYS_INT_TARGET_MASK_SET);
--	local_irq_restore(flags);
--}
--
--static void pcic_unmask_irq(struct irq_data *data)
--{
--	unsigned long mask, flags;
--
--	mask = (unsigned long)data->chip_data;
--	local_irq_save(flags);
--	writel(mask, pcic0.pcic_regs+PCI_SYS_INT_TARGET_MASK_CLEAR);
--	local_irq_restore(flags);
--}
--
--static unsigned int pcic_startup_irq(struct irq_data *data)
--{
--	irq_link(data->irq);
--	pcic_unmask_irq(data);
--	return 0;
--}
--
--static struct irq_chip pcic_irq = {
--	.name		= "pcic",
--	.irq_startup	= pcic_startup_irq,
--	.irq_mask	= pcic_mask_irq,
--	.irq_unmask	= pcic_unmask_irq,
--};
--
--unsigned int pcic_build_device_irq(struct platform_device *op,
--                                   unsigned int real_irq)
--{
--	unsigned int irq;
--	unsigned long mask;
--
--	irq = 0;
--	mask = get_irqmask(real_irq);
--	if (mask == 0)
--		goto out;
--
--	irq = irq_alloc(real_irq, real_irq);
--	if (irq == 0)
--		goto out;
--
--	irq_set_chip_and_handler_name(irq, &pcic_irq,
--	                              handle_level_irq, "PCIC");
--	irq_set_chip_data(irq, (void *)mask);
--
--out:
--	return irq;
--}
--
--
--static void pcic_load_profile_irq(int cpu, unsigned int limit)
--{
--	printk("PCIC: unimplemented code: FILE=%s LINE=%d", __FILE__, __LINE__);
--}
--
--void __init sun4m_pci_init_IRQ(void)
--{
--	sparc_config.build_device_irq = pcic_build_device_irq;
--	sparc_config.clear_clock_irq  = pcic_clear_clock_irq;
--	sparc_config.load_profile_irq = pcic_load_profile_irq;
--}
--
--subsys_initcall(pcic_init);
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 08bbdc458596..848404610b86 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -43,7 +43,6 @@
- #include <asm/io.h>
- #include <asm/idprom.h>
- #include <asm/page.h>
--#include <asm/pcic.h>
- #include <asm/irq_regs.h>
- #include <asm/setup.h>
+-2:
+ 		sethi	%hi(nwindows), %g4
+ 		st	%g3, [%g4 + %lo(nwindows)]	! store final value
+ 		sub	%g3, 0x1, %g3
+diff --git a/arch/sparc/kernel/rtrap_32.S b/arch/sparc/kernel/rtrap_32.S
+index a232b367c219..8383048c3b5e 100644
+--- a/arch/sparc/kernel/rtrap_32.S
++++ b/arch/sparc/kernel/rtrap_32.S
+@@ -23,15 +23,6 @@
+ #define glob_tmp  g4
+ #define curptr    g6
  
-@@ -347,9 +346,6 @@ void __init time_init(void)
- 	sparc_config.features = 0;
- 	late_time_init = sparc32_late_time_init;
+-	/* 7 WINDOW SPARC PATCH INSTRUCTIONS */
+-	.globl	rtrap_7win_patch1, rtrap_7win_patch2, rtrap_7win_patch3
+-	.globl	rtrap_7win_patch4, rtrap_7win_patch5
+-rtrap_7win_patch1:	srl	%t_wim, 0x6, %glob_tmp
+-rtrap_7win_patch2:	and	%glob_tmp, 0x7f, %glob_tmp
+-rtrap_7win_patch3:	srl	%g1, 7, %g2
+-rtrap_7win_patch4:	srl	%g2, 6, %g2
+-rtrap_7win_patch5:	and	%g1, 0x7f, %g1
+-	/* END OF PATCH INSTRUCTIONS */
  
--	if (pcic_present())
--		pci_time_init();
--	else
--		sbus_time_init();
-+	sbus_time_init();
- }
+ 	/* We need to check for a few things which are:
+ 	 * 1) The need to call schedule() because this
+@@ -117,17 +108,17 @@ ret_trap_nobufwins:
+ 	bne	ret_trap_userwins_ok
+ 	 nop
+ 
+-		/* Calculate new %wim, we have to pull a register
+-		 * window from the users stack.
+-		 */
++	/* Calculate new %wim, we have to pull a register
++	 * window from the users stack.
++	 */
+ ret_trap_pull_one_window:
+-		rd	%wim, %t_wim
+-		sll	%t_wim, 0x1, %twin_tmp1
+-rtrap_patch1:	srl	%t_wim, 0x7, %glob_tmp
+-		or	%glob_tmp, %twin_tmp1, %glob_tmp
+-rtrap_patch2:	and	%glob_tmp, 0xff, %glob_tmp
++	rd	%wim, %t_wim
++	sll	%t_wim, 0x1, %twin_tmp1
++	srl	%t_wim, 0x7, %glob_tmp
++	or	%glob_tmp, %twin_tmp1, %glob_tmp
++	and	%glob_tmp, 0xff, %glob_tmp
+ 
+-		wr	%glob_tmp, 0x0, %wim
++	wr	%glob_tmp, 0x0, %wim
+ 
+ 	/* Here comes the architecture specific
+ 	 * branch to the user stack checking routine
+@@ -174,20 +165,20 @@ ret_trap_unaligned_pc:
+ 	 ld	[%curptr + TI_FLAGS], %g2
+ 
+ ret_trap_kernel:
+-		/* Will the rett land us in the invalid window? */
+-		mov	2, %g1
+-		sll	%g1, %t_psr, %g1
+-rtrap_patch3:	srl	%g1, 8, %g2
+-		or	%g1, %g2, %g1
+-		rd	%wim, %g2
+-		andcc	%g2, %g1, %g0
+-		be	1f		! Nope, just return from the trap
+-		 sll	%g2, 0x1, %g1
+-
+-		/* We have to grab a window before returning. */
+-rtrap_patch4:	srl	%g2, 7,  %g2
+-		or	%g1, %g2, %g1
+-rtrap_patch5:	and	%g1, 0xff, %g1
++	/* Will the rett land us in the invalid window? */
++	mov	2, %g1
++	sll	%g1, %t_psr, %g1
++	srl	%g1, 8, %g2
++	or	%g1, %g2, %g1
++	rd	%wim, %g2
++	andcc	%g2, %g1, %g0
++	be	1f		! Nope, just return from the trap
++	 sll	%g2, 0x1, %g1
++
++	/* We have to grab a window before returning. */
++	srl	%g2, 7,  %g2
++	or	%g1, %g2, %g1
++	and	%g1, 0xff, %g1
+ 
+ 	wr	%g1, 0x0, %wim
+ 
+diff --git a/arch/sparc/kernel/wof.S b/arch/sparc/kernel/wof.S
+index fe4cfd4abcd2..30c5ebdd035c 100644
+--- a/arch/sparc/kernel/wof.S
++++ b/arch/sparc/kernel/wof.S
+@@ -43,18 +43,6 @@
+ #define twin_tmp    l4 /* Temp reg, only usable in trap window  T */
+ #define glob_tmp    g5 /* Global temporary reg, usable anywhere G */
+ 
+-	.text
+-	.align	4
+-	/* BEGINNING OF PATCH INSTRUCTIONS */
+-	/* On a 7-window Sparc the boot code patches spnwin_*
+-	 * instructions with the following ones.
+-	 */
+-	.globl	spnwin_patch1_7win, spnwin_patch2_7win, spnwin_patch3_7win
+-spnwin_patch1_7win:	sll	%t_wim, 6, %glob_tmp
+-spnwin_patch2_7win:	and	%glob_tmp, 0x7f, %glob_tmp
+-spnwin_patch3_7win:	and	%twin_tmp, 0x7f, %twin_tmp
+-	/* END OF PATCH INSTRUCTIONS */
+-
+ 	/* The trap entry point has done the following:
+ 	 *
+ 	 * rd    %psr, %l0
+@@ -69,7 +57,6 @@ spnwin_patch3_7win:	and	%twin_tmp, 0x7f, %twin_tmp
+ 	 * will be all zeroes.
+ 	 */
+ 	.globl	spill_window_entry 
+-	.globl	spnwin_patch1, spnwin_patch2, spnwin_patch3
+ spill_window_entry:
+ 	/* LOCATION: Trap Window */
+ 
+@@ -81,10 +68,10 @@ spill_window_entry:
+ 	 *
+ 	 * newwim = ((%wim>>1) | (%wim<<(nwindows - 1)));
+ 	 */
+-		srl	%t_wim, 0x1, %twin_tmp
+-spnwin_patch1:	sll	%t_wim, 7, %glob_tmp
+-		or	%glob_tmp, %twin_tmp, %glob_tmp
+-spnwin_patch2:	and	%glob_tmp, 0xff, %glob_tmp
++	srl	%t_wim, 0x1, %twin_tmp
++	sll	%t_wim, 7, %glob_tmp
++	or	%glob_tmp, %twin_tmp, %glob_tmp
++	and	%glob_tmp, 0xff, %glob_tmp
+ 
+ 	/* The trap entry point has set the condition codes
+ 	 * up for us to see if this is from user or kernel.
+@@ -222,17 +209,17 @@ spwin_user_stack_is_bolixed:
+ 	mov	1, %twin_tmp
+ 	st	%twin_tmp, [%curptr + TI_W_SAVED]
+ 
+-		/* Compute new user window mask.  What we are basically
+-		 * doing is taking two windows, the invalid one at trap
+-		 * time and the one we attempted to throw onto the users
+-		 * stack, and saying that everything else is an ok user
+-		 * window.  umask = ((~(%t_wim | %wim)) & valid_wim_bits)
+-		 */
+-		rd	%wim, %twin_tmp
+-		or	%twin_tmp, %t_wim, %twin_tmp
+-		not	%twin_tmp
+-spnwin_patch3:	and	%twin_tmp, 0xff, %twin_tmp	! patched on 7win Sparcs
+-		st	%twin_tmp, [%curptr + TI_UWINMASK]
++	/* Compute new user window mask.  What we are basically
++	 * doing is taking two windows, the invalid one at trap
++	 * time and the one we attempted to throw onto the users
++	 * stack, and saying that everything else is an ok user
++	 * window.  umask = ((~(%t_wim | %wim)) & valid_wim_bits)
++	 */
++	rd	%wim, %twin_tmp
++	or	%twin_tmp, %t_wim, %twin_tmp
++	not	%twin_tmp
++	and	%twin_tmp, 0xff, %twin_tmp
++	st	%twin_tmp, [%curptr + TI_UWINMASK]
+ 
+ #define STACK_OFFSET (THREAD_SIZE - TRACEREG_SZ - STACKFRAME_SZ)
+ 
+diff --git a/arch/sparc/kernel/wuf.S b/arch/sparc/kernel/wuf.S
+index 4c52b69d4b7a..dd2a539f92ff 100644
+--- a/arch/sparc/kernel/wuf.S
++++ b/arch/sparc/kernel/wuf.S
+@@ -68,27 +68,17 @@
+ 	 *           are done and return from trap if successful
+ 	 */
+ 
+-	/* BEGINNING OF PATCH INSTRUCTIONS */
+-
+-	/* On 7-window Sparc the boot code patches fnwin_patch1
+-	 * with the following instruction.
+-	 */
+-	.globl	fnwin_patch1_7win, fnwin_patch2_7win
+-fnwin_patch1_7win:	srl	%t_wim, 6, %twin_tmp2
+-fnwin_patch2_7win:	and	%twin_tmp1, 0x7f, %twin_tmp1
+-	/* END OF PATCH INSTRUCTIONS */
+-
+-	.globl	fill_window_entry, fnwin_patch1, fnwin_patch2
++	.globl	fill_window_entry
+ fill_window_entry:
+ 	/* LOCATION: Window 'T' */
+ 
+ 	/* Compute what the new %wim is going to be if we retrieve
+ 	 * the proper window off of the stack.
+ 	 */
+-		sll	%t_wim, 1, %twin_tmp1
+-fnwin_patch1:	srl	%t_wim, 7, %twin_tmp2
+-		or	%twin_tmp1, %twin_tmp2, %twin_tmp1
+-fnwin_patch2:	and	%twin_tmp1, 0xff, %twin_tmp1
++	sll	%t_wim, 1, %twin_tmp1
++	srl	%t_wim, 7, %twin_tmp2
++	or	%twin_tmp1, %twin_tmp2, %twin_tmp1
++	and	%twin_tmp1, 0xff, %twin_tmp1
+ 
+ 	wr	%twin_tmp1, 0x0, %wim	/* Make window 'I' invalid */
  
 
 -- 
