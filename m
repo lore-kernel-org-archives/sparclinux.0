@@ -1,113 +1,317 @@
-Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E33F714A92
-	for <sparclinux@vger.kernel.org>; Tue, 19 Dec 2023 10:32:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E56CD3D0A2;
+	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="W+bEvU29";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="na20DaJR"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailout.nyi.internal (Postfix) with ESMTP id DD9F45C00FE;
-	Tue, 19 Dec 2023 05:32:34 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Tue, 19 Dec 2023 05:32:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1702981954; x=1703068354; bh=xGPEMbNwX3
-	NO97+44DWiOlOIjEKvTF1NPgBBzLvFWrY=; b=W+bEvU29JO1jDJvxS6XM2JQas4
-	xDghvwbeu2fWI+NdGe0UY8vAYd1JJvijfYBE+TEjGyQ9GzVz5e57Sf9wDHxJTxy2
-	PV+trN2UXdQNhtvn8HaR7IhoDbp1lhH8IdMBk+eRtIyjDPJjjIjH6XgNsbnZJmsV
-	Lxgh7xKbmYJdWLJxeDokCaShATecKFJpPlg9m5LAbMWw5goyCydU7nNUg+fk8Ltg
-	8L8UIfz87nTatc22WqZdXVUskCo+gUEgPNMSTe4HaNpRfpa7+aBs1Fj9NFeukg4Y
-	lNto6ZYS00OAo3B8zcdRB+aUe2dKSahGoxNYrRWXCu9wrbWZjRXIaab7iryg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm2; t=1702981954; x=1703068354; bh=xGPEMbNwX3NO97+44DWiOlOIjEKv
-	TF1NPgBBzLvFWrY=; b=na20DaJRzu4K4fIANeMjwhyJ/HE38T4i3TI8+aeB80ji
-	PiCuIZpyucWkm1VcHKkP5KM9WX0gO6Yy6mSkAkNkK2S1iHGGs+fY4ZWwtgBS6ghk
-	t7yDAPiH9GANqO2UpiIltewta2FxyrhKXD99B9S0E0eMAHLzDxlY05O+gH99KTod
-	uLdtp8bU6wm1Mvv4G3+WYbyq3xNG9kJhcuuwWKc1ACL6tu3b0fA/x5kAR7O0pjnF
-	+OCF9XOjKigW7pYBVkRy9wqxumfV49W19evutQW08+5jWJJBhyw3h5Br1TOus8pg
-	OlOWAJMR43RPVsmGPcCstf4lPYGByx2kxuaNxhPhLQ==
-X-ME-Sender: <xms:QnGBZbo7spTAsvQgmZmSjkmA_cqvYGrNw-CPuw5hNxg1cVSqEOdzrw>
-    <xme:QnGBZVqm-hSXnuncnBOiUDaMRI8jFC0_i_ng59LT6z9jiGnjqh69tqpM9o5t_LKWo
-    -BvpIzUSrvppB4rfFk>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrvddutddgudejucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepjedvvddvudeludehjeeitdehheeivdejgfelleffiefgvefhhfeuudfhgeef
-    feehnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucevlhhushhtvghrufhiiigvpe
-    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:QnGBZYMIhn7YKYXN4_5T_zxNKv-qbQd6YvkRa-Wzb_Vq8ohLtVBDjg>
-    <xmx:QnGBZe69XgKvlUhmtGyKy6d4EPUtLiDWB7O2nJ8-3mG3i-HRiz0O_A>
-    <xmx:QnGBZa52ptgjkjvg0N9e7QxQTZt8xQzNYWT6WphfYQkkgLILfZAI3A>
-    <xmx:QnGBZRZ7IlxMGWCMWsbKYw3cGRa99Xuw3giAyDBefE52LCFI-tUndg>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id E88AAB6008D; Tue, 19 Dec 2023 05:32:33 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-1350-g1d0a93a8fb-fm-20231218.001-g1d0a93a8
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bsS3EAtY"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8D939C433C9;
+	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1703023395;
+	bh=psyCk22duUzejSuxF1TPk2sjNUuqcZ3MiQrJ6SWEwzo=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=bsS3EAtYpQUMnskqZpm4J3KJB+bEEzfKIG0rcM850es8822sKmWpirk/DPHMkHJuc
+	 UvN+0DIOVXOBvAMF2fmJxsn9nBMkkJtk7B5+YR1LqNt0eHqf/PH2Q5BFjAYU5fbpDQ
+	 M2LSut243lWfuyF0q3fuOGV4fAPGrR/SHIaPIwhzFNetpWLgbEstEzsGv14aBUC6vW
+	 l4HTjhIDSuQChNeOomPXGckwacwuTLvNICtxCtpjbR5dXSyuK1P1OPh5JmTp5/TBxC
+	 /zQ10n+z7Qlb3+rq+7ITijhA2gmgIaSbv+r2ynlJZilnezFu5VK3UzEMTriLjhLglE
+	 ozQHD/UD8L4Qw==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 733ACC41535;
+	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
+From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
+Date: Tue, 19 Dec 2023 23:03:07 +0100
+Subject: [PATCH 02/27] sparc32: Drop sun4m/sun4d support from head_32.S
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <4e6d829f-e0d8-4e4b-839d-3ec1cfd8983b@app.fastmail.com>
-In-Reply-To: 
- <68e7ccc8e9e2e90765b94fcc3999d99a4e98fc8e.camel@physik.fu-berlin.de>
-References: <20230713075235.2164609-1-u.kleine-koenig@pengutronix.de>
- <20230713145536.GA5300@ravnborg.org>
- <20231204110512.wz6qfsah632bcuh5@pengutronix.de>
- <add3c37a-08ef-41e1-b717-091d9bffd66a@app.fastmail.com>
- <20231205180506.GA242352@ravnborg.org> <20231205202630.GA290248@ravnborg.org>
- <93c22029b8523c5380f126995481002246eabfa7.camel@physik.fu-berlin.de>
- <030e57e1-13a0-4c62-8302-2b0008c6e92e@gaisler.com>
- <11427751-b6d8-44a9-af12-70adc10d8edb@app.fastmail.com>
- <68e7ccc8e9e2e90765b94fcc3999d99a4e98fc8e.camel@physik.fu-berlin.de>
-Date: Tue, 19 Dec 2023 10:32:16 +0000
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "Andreas Larsson" <andreas@gaisler.com>, "Sam Ravnborg" <sam@ravnborg.org>,
- "David S . Miller" <davem@davemloft.net>
-Cc: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
- "Palmer Dabbelt" <palmer@dabbelt.com>,
- "Paul Walmsley" <paul.walmsley@sifive.com>, sparclinux@vger.kernel.org,
- "Pengutronix Kernel Team" <kernel@pengutronix.de>,
- "Andrew Morton" <akpm@linux-foundation.org>
-Subject: Re: [PATCH] sparc: Use $(kecho) to announce kernel images being ready
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-2-64bb44b598c5@ravnborg.org>
+References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
+In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Arnd Bergmann <arnd@kernel.org>, Andreas Larsson <andreas@gaisler.com>
+Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Alan Stern <stern@rowland.harvard.edu>, Jaroslav Kysela <perex@perex.cz>, 
+ Takashi Iwai <tiwai@suse.com>, sparclinux@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, 
+ linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
+X-Mailer: b4 0.12.4
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=7424;
+ i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
+ bh=zGUMWu9MQ9KHsVNvKkdc58EXjHHT/TR1xXu3Hy+1rPk=; =?utf-8?q?b=3DaCRrE/LENgA1?=
+ =?utf-8?q?7AXMbL3TH4Y5r4h7A/M7zknBKhnwBcLg2utmf7eKBaWWxz4qf9awup61DHk1lLDN?=
+ bcCspi7IDeFeKCgDzJgsZtZMdkGBoWMIIUowSqcJrdRTmVHRFDeY
+X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
+ pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
+X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
+X-Original-From: Sam Ravnborg <sam@ravnborg.org>
+Reply-To: <sam@ravnborg.org>
 
-On Mon, Dec 18, 2023, at 21:02, John Paul Adrian Glaubitz wrote:
-> On Mon, 2023-12-18 at 20:52 +0000, Arnd Bergmann wrote:
->
->> The most important bit here would be someone with the authority
->> or Ack or Nak a patch going into another git tree. Even if you
->> are sometimes wrong, that is still much better than no reply.
->
-> Yep. And there are actually a number of very nice improvements from
-> Oracle engineers for sparc64 that got never upstreamed. These include
-> kexec support as well as support for hypervisor control from Linux.
->
-> They can all be found in Oracle's Unbreakable Kernel Tree:
->
->> https://github.com/oracle/linux-uek/tree/uek4/qu7
->
-> I have already reached out to one of the Oracle engineers and they would
-> be happy to help us getting some of the patches merged upstream.
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Ah, I didn't know there were so many patches that never made it in.
-It does look like they were only in UEK4 (linux-4.1) but not ported
-to the later kernels, so it's going to be more challenging to port
-these to mainline than the set of leon3 patches that are already on
-a recent baseline.
+Remove the most obvious parts of sun4* support from head_32.S.
+Use a single print if a sun4* machine is detected thus restricting
+boots to LEON machines.
 
-     Arnd
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+---
+ arch/sparc/kernel/head_32.S | 190 +++-----------------------------------------
+ 1 file changed, 9 insertions(+), 181 deletions(-)
+
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index 964c61b5cd03..03dc232dd235 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -45,11 +45,7 @@ cputypvar:
+ 	.align 4
+ 
+ notsup:
+-	.asciz	"Sparc-Linux sun4/sun4c or MMU-less not supported\n\n"
+-	.align 4
+-
+-sun4e_notsup:
+-        .asciz  "Sparc-Linux sun4e support does not exist\n\n"
++	.asciz	"This kernel only supports LEON SPARC V8\n\n"
+ 	.align 4
+ 
+ /* The trap-table - located in the __HEAD section */
+@@ -215,114 +211,10 @@ not_a_sun4:
+ 		be	leon_remap		/* It is a LEON - jump */
+ 		 nop
+ 
+-		/* Sanity-check, is MMU enabled */
+-		lda	[%g0] ASI_M_MMUREGS, %g1
+-		andcc	%g1, 1, %g0
+-		be	halt_notsup
+-		 nop
+-
+-		/* Check for a viking (TI) module. */
+-		cmp	%g3, PSR_IMPL_TI
+-		bne	srmmu_not_viking
+-		 nop
+-
+-		/* Figure out what kind of viking we are on.
+-		 * We need to know if we have to play with the
+-		 * AC bit and disable traps or not.
+-		 */
+-
+-		/* I've only seen MicroSparc's on SparcClassics with this
+-		 * bit set.
+-		 */
+-		set	0x800, %g2
+-		lda	[%g0] ASI_M_MMUREGS, %g3	! peek in the control reg
+-		and	%g2, %g3, %g3
+-		subcc	%g3, 0x0, %g0
+-		bnz	srmmu_not_viking			! is in mbus mode
+-		 nop
+-
+-		rd	%psr, %g3			! DO NOT TOUCH %g3
+-		andn	%g3, PSR_ET, %g2
+-		wr	%g2, 0x0, %psr
+-		WRITE_PAUSE
+-
+-		/* Get context table pointer, then convert to
+-		 * a physical address, which is 36 bits.
+-		 */
+-		set	AC_M_CTPR, %g4
+-		lda	[%g4] ASI_M_MMUREGS, %g4
+-		sll	%g4, 0x4, %g4			! We use this below
+-							! DO NOT TOUCH %g4
+-
+-		/* Set the AC bit in the Viking's MMU control reg. */
+-		lda	[%g0] ASI_M_MMUREGS, %g5	! DO NOT TOUCH %g5
+-		set	0x8000, %g6			! AC bit mask
+-		or	%g5, %g6, %g6			! Or it in...
+-		sta	%g6, [%g0] ASI_M_MMUREGS	! Close your eyes...
+-
+-		/* Grrr, why does it seem like every other load/store
+-		 * on the sun4m is in some ASI space...
+-		 * Fine with me, let's get the pointer to the level 1
+-		 * page table directory and fetch its entry.
+-		 */
+-		lda	[%g4] ASI_M_BYPASS, %o1		! This is a level 1 ptr
+-		srl	%o1, 0x4, %o1			! Clear low 4 bits
+-		sll	%o1, 0x8, %o1			! Make physical
+-
+-		/* Ok, pull in the PTD. */
+-		lda	[%o1] ASI_M_BYPASS, %o2		! This is the 0x0 16MB pgd
+-
+-		/* Calculate to KERNBASE entry. */
+-		add	%o1, KERNBASE >> (PGDIR_SHIFT - 2), %o3
+-
+-		/* Poke the entry into the calculated address. */
+-		sta	%o2, [%o3] ASI_M_BYPASS
+-
+-		/* I don't get it Sun, if you engineered all these
+-		 * boot loaders and the PROM (thank you for the debugging
+-		 * features btw) why did you not have them load kernel
+-		 * images up in high address space, since this is necessary
+-		 * for ABI compliance anyways?  Does this low-mapping provide
+-		 * enhanced interoperability?
+-		 *
+-		 * "The PROM is the computer."
+-		 */
+-
+-		/* Ok, restore the MMU control register we saved in %g5 */
+-		sta	%g5, [%g0] ASI_M_MMUREGS	! POW... ouch
+-
+-		/* Turn traps back on.  We saved it in %g3 earlier. */
+-		wr	%g3, 0x0, %psr			! tick tock, tick tock
+-
+-		/* Now we burn precious CPU cycles due to bad engineering. */
+-		WRITE_PAUSE
+-
+-		/* Wow, all that just to move a 32-bit value from one
+-		 * place to another...  Jump to high memory.
+-		 */
+-		b	go_to_highmem
++		/* Not LEON - halt */
++		ba	halt_notsup
+ 		 nop
+ 
+-srmmu_not_viking:
+-		/* This works on viking's in Mbus mode and all
+-		 * other MBUS modules.  It is virtually the same as
+-		 * the above madness sans turning traps off and flipping
+-		 * the AC bit.
+-		 */
+-		set	AC_M_CTPR, %g1
+-		lda	[%g1] ASI_M_MMUREGS, %g1	! get ctx table ptr
+-		sll	%g1, 0x4, %g1			! make physical addr
+-		lda	[%g1] ASI_M_BYPASS, %g1		! ptr to level 1 pg_table
+-		srl	%g1, 0x4, %g1
+-		sll	%g1, 0x8, %g1			! make phys addr for l1 tbl
+-
+-		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
+-		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
+-		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
+-		b	go_to_highmem
+-		 nop					! wheee....
+-
+-
+ leon_remap:
+ 		/* Sanity-check, is MMU enabled */
+ 		lda	[%g0] ASI_LEON_MMUREGS, %g1
+@@ -343,8 +235,6 @@ leon_remap:
+ 		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
+ 		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
+ 		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
+-		b	go_to_highmem
+-		 nop					! wheee....
+ 
+ /* Now do a non-relative jump so that PC is in high-memory */
+ go_to_highmem:
+@@ -413,13 +303,13 @@ execute_in_high_mem:
+ 		ldub	[%o2 + 0x4], %l1
+ 
+ 		cmp	%l1, 'm'
+-		be	sun4m_init
++		be	no_sun4_here		! sun4m
+ 		 cmp	%l1, 's'
+-		be	sun4m_init
++		be	no_sun4_here		! sun4m
+ 		 cmp	%l1, 'd'
+-		be	sun4d_init
++		be	no_sun4_here		! sun4d
+ 		 cmp	%l1, 'e'
+-		be	no_sun4e_here		! Could be a sun4e.
++		be	no_sun4_here		! Could be a sun4e.
+ 		 nop
+ 		b	no_sun4u_here		! AIEEE, a V9 sun4u... Get our BIG BROTHER kernel :))
+ 		 nop
+@@ -441,68 +331,6 @@ leon_init:
+ 		/* Update boot_cpu_id only on boot cpu */
+ 		stub	%g1, [%g2 + %lo(boot_cpu_id)]
+ 
+-		ba continue_boot
+-		 nop
+-
+-/* CPUID in bootbus can be found at PA 0xff0140000 */
+-#define SUN4D_BOOTBUS_CPUID     0xf0140000
+-
+-sun4d_init:
+-	/* Need to patch call to handler_irq */
+-	set	patch_handler_irq, %g4
+-	set	sun4d_handler_irq, %g5
+-	sethi	%hi(0x40000000), %g3		! call
+-	sub	%g5, %g4, %g5
+-	srl	%g5, 2, %g5
+-	or	%g5, %g3, %g5
+-	st	%g5, [%g4]
+-
+-#ifdef CONFIG_SMP
+-	/* Get our CPU id out of bootbus */
+-	set     SUN4D_BOOTBUS_CPUID, %g3
+-	lduba   [%g3] ASI_M_CTL, %g3
+-	and     %g3, 0xf8, %g3
+-	srl     %g3, 3, %g4
+-	sta     %g4, [%g0] ASI_M_VIKING_TMP1
+-	sethi	%hi(boot_cpu_id), %g5
+-	stb	%g4, [%g5 + %lo(boot_cpu_id)]
+-#endif
+-
+-	/* Fall through to sun4m_init */
+-
+-sun4m_init:
+-/* Ok, the PROM could have done funny things and apple cider could still
+- * be sitting in the fault status/address registers.  Read them all to
+- * clear them so we don't get magic faults later on.
+- */
+-/* This sucks, apparently this makes Vikings call prom panic, will fix later */
+-2:
+-		rd	%psr, %o1
+-		srl	%o1, PSR_IMPL_SHIFT, %o1	! Get a type of the CPU
+-
+-		subcc	%o1, PSR_IMPL_TI, %g0		! TI: Viking or MicroSPARC
+-		be	continue_boot
+-		 nop
+-
+-		set	AC_M_SFSR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		set	AC_M_SFAR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-
+-		/* Fujitsu MicroSPARC-II has no asynchronous flavors of FARs */
+-		subcc	%o1, 0, %g0
+-		be	continue_boot
+-		 nop
+-
+-		set	AC_M_AFSR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		set	AC_M_AFAR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		 nop
+-
+-
+-continue_boot:
+-
+ /* Aieee, now set PC and nPC, enable traps, give ourselves a stack and it's
+  * show-time!
+  */
+@@ -670,9 +498,9 @@ continue_boot:
+ 		call	halt_me
+ 		 nop
+ 
+-no_sun4e_here:
++no_sun4_here:
+ 		ld	[%g7 + 0x68], %o1
+-		set	sun4e_notsup, %o0
++		set	notsup, %o0
+ 		call	%o1
+ 		 nop
+ 		b	halt_me
+
+-- 
+2.34.1
+
