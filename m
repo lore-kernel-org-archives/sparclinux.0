@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B856040C08;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E2E41234;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VKJVj4Iz"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 9B0C4C116B9;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IbLmhewL"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id B2DB6C116D3;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1703023396;
-	bh=ZxiWPYjJNlwW0ZoUuTe7kh12NGJyutpG6BCChPYhLqM=;
+	bh=QnND/gGVLF0OcIynd0NzBifJ9tXmmVVguZf1/YrvZlE=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=VKJVj4Izenm3fSSO97yRxDQOQN0qwh7a4oiChirWK9a9NR1DOIYLaCNiaCBS55NuD
-	 rgJFBnkYqeph05C5GVKLVwYYRSh8sA4kSuuAbB9UTpzZO/5+xUxo4y3oDC7anUo7op
-	 HWUPRmVUdA1ETWGPkRz0+fhHMAvSfziCDWbk5K8jYfiVdbgputLzhd1ztkiBRseyzX
-	 07AOVYP0cyRP3GX6v5Zlvf/NidVOBMAHCCxS4r4hkqYUYvovjmaX4YsO3AehXJzsMX
-	 Jz7Xl1L/486uV3XwlEmYQvd+QqHk8z/AF0gxPgDBylHdTaVhnTLApqyqKBKferscEC
-	 i5U0sPpIN3dOw==
+	b=IbLmhewLtb9NgYTBXxk9+pJ6F6O7GDiEkdRt39Jr3Df9jR9SdrXxyQiv/YFppNq+/
+	 qwFsyX/0MfmyGAgH36Wy2pPGzJmTw+teedQBNRERXZ4W2rWDObtonhM+AMv2Yao+d1
+	 yR82N7tifL04Y9kaq3FOQgGk85CTuE1Z1MXlZDn0aBstvd+3uHDrAbCpG8CeC5uGOE
+	 PAlpjf/C6trNHTxOyV1Y48Wd8Yk19tXOEaVEH1YdO4PBYyLoGbpmDu8MET/fIalXty
+	 Ag+55/7cM5j2c8RgEJjXtkktAop2o3eIT/v1eDJRAtW9rUJCRPm+rWMqIvGk3aOUaK
+	 ixrWwmUQ4z4XQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A002C46CCD;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1F18C46CD8;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Tue, 19 Dec 2023 23:03:29 +0100
-Subject: [PATCH 24/27] sparc32: Drop config SPARC_LEON
+Date: Tue, 19 Dec 2023 23:03:31 +0100
+Subject: [PATCH 26/27] sbus: char: Drop now unused uctrl driver
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -31,7 +31,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231219-sam-sparc32-sunset-v3-v1-24-64bb44b598c5@ravnborg.org>
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-26-64bb44b598c5@ravnborg.org>
 References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -44,11 +44,11 @@ Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=4414;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=13722;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=yguXtsAztu+g6VS1K/Ca2l8EKOhlR4mQ7eIgq+RPLKI=; =?utf-8?q?b=3DFP777UvBaxp1?=
- =?utf-8?q?SiwfpSSLW9EamkRu8kUaC20yflmyMorWFySES8L/kN5EdEsA08eskSUyRrG/P6uB?=
- OnxjkQroDmvjESJ2jBLsRzy++IbHaFfo7eXfbWhpMLGU7cRhkzYF
+ bh=21mOYM4NXXv1JubhTtkzgWKnjnePccKISVDYYRtLAHM=; =?utf-8?q?b=3Da8Qe94bhAct6?=
+ =?utf-8?q?6WlqV9dEh8/bwMD/3XMBirbscfDOp5PFd9jkoKkZv6zyzdaM5huRLWpwci0D96L4?=
+ 2XW50tqDACwSfIRbQKO9Ax+KTn2XDF1zi8+EFnR2k6wbfPMiJ3/j
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -57,147 +57,490 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-The only support sparc32 CPU is LEON, so there is no need for a
-config option to select it.
+The uctrl driver is only relevant for the Sparcbook 3 machine,
+and with sun4m support removed this driver is no logner relevant.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/Kconfig                   | 27 +++++++++------------------
- arch/sparc/configs/sparc32_defconfig |  1 -
- drivers/usb/host/Kconfig             |  2 +-
- drivers/usb/host/ehci-hcd.c          |  4 ++--
- drivers/usb/host/uhci-hcd.c          |  2 +-
- 5 files changed, 13 insertions(+), 23 deletions(-)
+ drivers/sbus/char/Kconfig  |   8 -
+ drivers/sbus/char/Makefile |   1 -
+ drivers/sbus/char/uctrl.c  | 435 ---------------------------------------------
+ 3 files changed, 444 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 7ae304bab2d8..0fc52c3c7487 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -9,6 +9,10 @@ config 64BIT
+diff --git a/drivers/sbus/char/Kconfig b/drivers/sbus/char/Kconfig
+index 7c0a308e4959..8b80abc554ed 100644
+--- a/drivers/sbus/char/Kconfig
++++ b/drivers/sbus/char/Kconfig
+@@ -21,14 +21,6 @@ config OBP_FLASH
+ 	  The OpenBoot PROM on Ultra systems is flashable. If you want to be
+ 	  able to upgrade the OBP firmware, say Y here.
  
- 	  Say yes to build a 64-bit kernel - formerly known as sparc64
- 	  Say no to build a 32-bit kernel - formerly known as sparc
-+	  The 32-bit kernel target the synthesizable LEON SPARC processor.
-+	  LEON is a part of the GRLIB collection of IP cores that are
-+	  distributed under GPL. GRLIB can be downloaded from www.gaisler.com.
-+	  You can download a sparc-linux cross-compilation toolchain at www.gaisler.com.
- 
- config SPARC
- 	bool
-@@ -60,6 +64,10 @@ config SPARC32
- 	select HAVE_UID16
- 	select LOCK_MM_AND_FIND_VMA
- 	select OLD_SIGACTION
-+	select USB_EHCI_BIG_ENDIAN_MMIO
-+	select USB_EHCI_BIG_ENDIAN_DESC
-+	select USB_UHCI_BIG_ENDIAN_MMIO
-+	select USB_UHCI_BIG_ENDIAN_DESC
- 	select ZONE_DMA
- 
- config SPARC64
-@@ -348,22 +356,6 @@ config SERIAL_CONSOLE
- 
- 	  If unsure, say N.
- 
--config SPARC_LEON
--	bool "Sparc Leon processor family"
--	depends on SPARC32
--	select USB_EHCI_BIG_ENDIAN_MMIO
--	select USB_EHCI_BIG_ENDIAN_DESC
--	select USB_UHCI_BIG_ENDIAN_MMIO
--	select USB_UHCI_BIG_ENDIAN_DESC
+-config TADPOLE_TS102_UCTRL
+-	tristate "Tadpole TS102 Microcontroller support"
 -	help
--	  If you say Y here if you are running on a SPARC-LEON processor.
--	  The LEON processor is a synthesizable VHDL model of the
--	  SPARC-v8 standard. LEON is  part of the GRLIB collection of
--	  IP cores that are distributed under GPL. GRLIB can be downloaded
--	  from www.gaisler.com. You can download a sparc-linux cross-compilation
--	  toolchain at www.gaisler.com.
+-	  Say Y here to directly support the TS102 Microcontroller interface
+-	  on the Tadpole Sparcbook 3.  This device handles power-management
+-	  events, and can also notice the attachment/detachment of external
+-	  monitors and mice.
 -
--if SPARC_LEON
- menu "U-Boot options"
- 
- config UBOOT_LOAD_ADDR
-@@ -394,7 +386,6 @@ config UBOOT_ENTRY_ADDR
- 	 Kernel.
- 
- endmenu
--endif
- 
- endmenu
- 
-@@ -416,7 +407,7 @@ config SUN_LDOMS
- 
- config LEON_PCI
- 	bool
--	depends on PCI && SPARC_LEON
-+	depends on PCI && SPARC32
- 	default y
- 
- config SPARC_GRPCI1
-diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/sparc32_defconfig
-index 71273fc578bf..dfd326f20876 100644
---- a/arch/sparc/configs/sparc32_defconfig
-+++ b/arch/sparc/configs/sparc32_defconfig
-@@ -10,7 +10,6 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_ZSTD is not set
- CONFIG_SMP=y
- CONFIG_HZ_100=y
--CONFIG_SPARC_LEON=y
- CONFIG_SUN_OPENPROMFS=y
- CONFIG_SUN_OPENPROMIO=y
- # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index 4448d0ab06f0..c5f94c70482f 100644
---- a/drivers/usb/host/Kconfig
-+++ b/drivers/usb/host/Kconfig
-@@ -595,7 +595,7 @@ config USB_UHCI_HCD
- 
- config USB_UHCI_SUPPORT_NON_PCI_HC
- 	bool
--	default y if (SPARC_LEON || USB_UHCI_PLATFORM)
-+	default y if (SPARC32 || USB_UHCI_PLATFORM)
- 
- config USB_UHCI_PLATFORM
- 	bool
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index 802bfafb1012..5011bc8348bb 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -1329,7 +1329,7 @@ MODULE_LICENSE ("GPL");
- #include "ehci-xilinx-of.c"
- #endif
- 
--#ifdef CONFIG_SPARC_LEON
-+#ifdef CONFIG_SPARC32
- #include "ehci-grlib.c"
- #endif
- 
-@@ -1343,7 +1343,7 @@ static struct platform_driver * const platform_drivers[] = {
- #ifdef CONFIG_XPS_USB_HCD_XILINX
- 	&ehci_hcd_xilinx_of_driver,
- #endif
--#ifdef CONFIG_SPARC_LEON
-+#ifdef CONFIG_SPARC32
- 	&ehci_grlib_driver,
- #endif
- };
-diff --git a/drivers/usb/host/uhci-hcd.c b/drivers/usb/host/uhci-hcd.c
-index fd2408b553cf..7cb820963988 100644
---- a/drivers/usb/host/uhci-hcd.c
-+++ b/drivers/usb/host/uhci-hcd.c
-@@ -846,7 +846,7 @@ static const char hcd_name[] = "uhci_hcd";
- #define	PCI_DRIVER		uhci_pci_driver
- #endif
- 
--#ifdef CONFIG_SPARC_LEON
-+#ifdef CONFIG_SPARC32
- #include "uhci-grlib.c"
- #define PLATFORM_DRIVER		uhci_grlib_driver
- #endif
+ config BBC_I2C
+ 	tristate "UltraSPARC-III bootbus i2c controller driver"
+ 	depends on PCI && SPARC64
+diff --git a/drivers/sbus/char/Makefile b/drivers/sbus/char/Makefile
+index 44347c918f6b..9db2faabfae8 100644
+--- a/drivers/sbus/char/Makefile
++++ b/drivers/sbus/char/Makefile
+@@ -14,6 +14,5 @@ obj-$(CONFIG_ENVCTRL)			+= envctrl.o
+ obj-$(CONFIG_DISPLAY7SEG)		+= display7seg.o
+ obj-$(CONFIG_OBP_FLASH)			+= flash.o
+ obj-$(CONFIG_SUN_OPENPROMIO)		+= openprom.o
+-obj-$(CONFIG_TADPOLE_TS102_UCTRL)	+= uctrl.o
+ obj-$(CONFIG_BBC_I2C)			+= bbc.o
+ obj-$(CONFIG_ORACLE_DAX) 		+= oradax.o
+diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
+deleted file mode 100644
+index 0660425e3a5a..000000000000
+--- a/drivers/sbus/char/uctrl.c
++++ /dev/null
+@@ -1,435 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/* uctrl.c: TS102 Microcontroller interface on Tadpole Sparcbook 3
+- *
+- * Copyright 1999 Derrick J Brashear (shadow@dementia.org)
+- * Copyright 2008 David S. Miller (davem@davemloft.net)
+- */
+-
+-#include <linux/module.h>
+-#include <linux/errno.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+-#include <linux/slab.h>
+-#include <linux/mutex.h>
+-#include <linux/ioport.h>
+-#include <linux/miscdevice.h>
+-#include <linux/mm.h>
+-#include <linux/of.h>
+-#include <linux/platform_device.h>
+-
+-#include <asm/openprom.h>
+-#include <asm/oplib.h>
+-#include <asm/irq.h>
+-#include <asm/io.h>
+-
+-#define DEBUG 1
+-#ifdef DEBUG
+-#define dprintk(x) printk x
+-#else
+-#define dprintk(x)
+-#endif
+-
+-struct uctrl_regs {
+-	u32 uctrl_intr;
+-	u32 uctrl_data;
+-	u32 uctrl_stat;
+-	u32 uctrl_xxx[5];
+-};
+-
+-struct ts102_regs {
+-	u32 card_a_intr;
+-	u32 card_a_stat;
+-	u32 card_a_ctrl;
+-	u32 card_a_xxx;
+-	u32 card_b_intr;
+-	u32 card_b_stat;
+-	u32 card_b_ctrl;
+-	u32 card_b_xxx;
+-	u32 uctrl_intr;
+-	u32 uctrl_data;
+-	u32 uctrl_stat;
+-	u32 uctrl_xxx;
+-	u32 ts102_xxx[4];
+-};
+-
+-/* Bits for uctrl_intr register */
+-#define UCTRL_INTR_TXE_REQ         0x01    /* transmit FIFO empty int req */
+-#define UCTRL_INTR_TXNF_REQ        0x02    /* transmit FIFO not full int req */
+-#define UCTRL_INTR_RXNE_REQ        0x04    /* receive FIFO not empty int req */
+-#define UCTRL_INTR_RXO_REQ         0x08    /* receive FIFO overflow int req */
+-#define UCTRL_INTR_TXE_MSK         0x10    /* transmit FIFO empty mask */
+-#define UCTRL_INTR_TXNF_MSK        0x20    /* transmit FIFO not full mask */
+-#define UCTRL_INTR_RXNE_MSK        0x40    /* receive FIFO not empty mask */
+-#define UCTRL_INTR_RXO_MSK         0x80    /* receive FIFO overflow mask */
+-
+-/* Bits for uctrl_stat register */
+-#define UCTRL_STAT_TXE_STA         0x01    /* transmit FIFO empty status */
+-#define UCTRL_STAT_TXNF_STA        0x02    /* transmit FIFO not full status */
+-#define UCTRL_STAT_RXNE_STA        0x04    /* receive FIFO not empty status */
+-#define UCTRL_STAT_RXO_STA         0x08    /* receive FIFO overflow status */
+-
+-static DEFINE_MUTEX(uctrl_mutex);
+-static const char *uctrl_extstatus[16] = {
+-        "main power available",
+-        "internal battery attached",
+-        "external battery attached",
+-        "external VGA attached",
+-        "external keyboard attached",
+-        "external mouse attached",
+-        "lid down",
+-        "internal battery currently charging",
+-        "external battery currently charging",
+-        "internal battery currently discharging",
+-        "external battery currently discharging",
+-};
+-
+-/* Everything required for one transaction with the uctrl */
+-struct uctrl_txn {
+-	u8 opcode;
+-	u8 inbits;
+-	u8 outbits;
+-	u8 *inbuf;
+-	u8 *outbuf;
+-};
+-
+-struct uctrl_status {
+-	u8 current_temp; /* 0x07 */
+-	u8 reset_status; /* 0x0b */
+-	u16 event_status; /* 0x0c */
+-	u16 error_status; /* 0x10 */
+-	u16 external_status; /* 0x11, 0x1b */
+-	u8 internal_charge; /* 0x18 */
+-	u8 external_charge; /* 0x19 */
+-	u16 control_lcd; /* 0x20 */
+-	u8 control_bitport; /* 0x21 */
+-	u8 speaker_volume; /* 0x23 */
+-	u8 control_tft_brightness; /* 0x24 */
+-	u8 control_kbd_repeat_delay; /* 0x28 */
+-	u8 control_kbd_repeat_period; /* 0x29 */
+-	u8 control_screen_contrast; /* 0x2F */
+-};
+-
+-enum uctrl_opcode {
+-  READ_SERIAL_NUMBER=0x1,
+-  READ_ETHERNET_ADDRESS=0x2,
+-  READ_HARDWARE_VERSION=0x3,
+-  READ_MICROCONTROLLER_VERSION=0x4,
+-  READ_MAX_TEMPERATURE=0x5,
+-  READ_MIN_TEMPERATURE=0x6,
+-  READ_CURRENT_TEMPERATURE=0x7,
+-  READ_SYSTEM_VARIANT=0x8,
+-  READ_POWERON_CYCLES=0x9,
+-  READ_POWERON_SECONDS=0xA,
+-  READ_RESET_STATUS=0xB,
+-  READ_EVENT_STATUS=0xC,
+-  READ_REAL_TIME_CLOCK=0xD,
+-  READ_EXTERNAL_VGA_PORT=0xE,
+-  READ_MICROCONTROLLER_ROM_CHECKSUM=0xF,
+-  READ_ERROR_STATUS=0x10,
+-  READ_EXTERNAL_STATUS=0x11,
+-  READ_USER_CONFIGURATION_AREA=0x12,
+-  READ_MICROCONTROLLER_VOLTAGE=0x13,
+-  READ_INTERNAL_BATTERY_VOLTAGE=0x14,
+-  READ_DCIN_VOLTAGE=0x15,
+-  READ_HORIZONTAL_POINTER_VOLTAGE=0x16,
+-  READ_VERTICAL_POINTER_VOLTAGE=0x17,
+-  READ_INTERNAL_BATTERY_CHARGE_LEVEL=0x18,
+-  READ_EXTERNAL_BATTERY_CHARGE_LEVEL=0x19,
+-  READ_REAL_TIME_CLOCK_ALARM=0x1A,
+-  READ_EVENT_STATUS_NO_RESET=0x1B,
+-  READ_INTERNAL_KEYBOARD_LAYOUT=0x1C,
+-  READ_EXTERNAL_KEYBOARD_LAYOUT=0x1D,
+-  READ_EEPROM_STATUS=0x1E,
+-  CONTROL_LCD=0x20,
+-  CONTROL_BITPORT=0x21,
+-  SPEAKER_VOLUME=0x23,
+-  CONTROL_TFT_BRIGHTNESS=0x24,
+-  CONTROL_WATCHDOG=0x25,
+-  CONTROL_FACTORY_EEPROM_AREA=0x26,
+-  CONTROL_KBD_TIME_UNTIL_REPEAT=0x28,
+-  CONTROL_KBD_TIME_BETWEEN_REPEATS=0x29,
+-  CONTROL_TIMEZONE=0x2A,
+-  CONTROL_MARK_SPACE_RATIO=0x2B,
+-  CONTROL_DIAGNOSTIC_MODE=0x2E,
+-  CONTROL_SCREEN_CONTRAST=0x2F,
+-  RING_BELL=0x30,
+-  SET_DIAGNOSTIC_STATUS=0x32,
+-  CLEAR_KEY_COMBINATION_TABLE=0x33,
+-  PERFORM_SOFTWARE_RESET=0x34,
+-  SET_REAL_TIME_CLOCK=0x35,
+-  RECALIBRATE_POINTING_STICK=0x36,
+-  SET_BELL_FREQUENCY=0x37,
+-  SET_INTERNAL_BATTERY_CHARGE_RATE=0x39,
+-  SET_EXTERNAL_BATTERY_CHARGE_RATE=0x3A,
+-  SET_REAL_TIME_CLOCK_ALARM=0x3B,
+-  READ_EEPROM=0x40,
+-  WRITE_EEPROM=0x41,
+-  WRITE_TO_STATUS_DISPLAY=0x42,
+-  DEFINE_SPECIAL_CHARACTER=0x43,
+-  DEFINE_KEY_COMBINATION_ENTRY=0x50,
+-  DEFINE_STRING_TABLE_ENTRY=0x51,
+-  DEFINE_STATUS_SCREEN_DISPLAY=0x52,
+-  PERFORM_EMU_COMMANDS=0x64,
+-  READ_EMU_REGISTER=0x65,
+-  WRITE_EMU_REGISTER=0x66,
+-  READ_EMU_RAM=0x67,
+-  WRITE_EMU_RAM=0x68,
+-  READ_BQ_REGISTER=0x69,
+-  WRITE_BQ_REGISTER=0x6A,
+-  SET_USER_PASSWORD=0x70,
+-  VERIFY_USER_PASSWORD=0x71,
+-  GET_SYSTEM_PASSWORD_KEY=0x72,
+-  VERIFY_SYSTEM_PASSWORD=0x73,
+-  POWER_OFF=0x82,
+-  POWER_RESTART=0x83,
+-};
+-
+-static struct uctrl_driver {
+-	struct uctrl_regs __iomem *regs;
+-	int irq;
+-	int pending;
+-	struct uctrl_status status;
+-} *global_driver;
+-
+-static void uctrl_get_event_status(struct uctrl_driver *);
+-static void uctrl_get_external_status(struct uctrl_driver *);
+-
+-static long
+-uctrl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	switch (cmd) {
+-		default:
+-			return -EINVAL;
+-	}
+-	return 0;
+-}
+-
+-static int
+-uctrl_open(struct inode *inode, struct file *file)
+-{
+-	mutex_lock(&uctrl_mutex);
+-	uctrl_get_event_status(global_driver);
+-	uctrl_get_external_status(global_driver);
+-	mutex_unlock(&uctrl_mutex);
+-	return 0;
+-}
+-
+-static irqreturn_t uctrl_interrupt(int irq, void *dev_id)
+-{
+-	return IRQ_HANDLED;
+-}
+-
+-static const struct file_operations uctrl_fops = {
+-	.owner =	THIS_MODULE,
+-	.llseek =	no_llseek,
+-	.unlocked_ioctl =	uctrl_ioctl,
+-	.open =		uctrl_open,
+-};
+-
+-static struct miscdevice uctrl_dev = {
+-	UCTRL_MINOR,
+-	"uctrl",
+-	&uctrl_fops
+-};
+-
+-/* Wait for space to write, then write to it */
+-#define WRITEUCTLDATA(value) \
+-{ \
+-  unsigned int i; \
+-  for (i = 0; i < 10000; i++) { \
+-      if (UCTRL_STAT_TXNF_STA & sbus_readl(&driver->regs->uctrl_stat)) \
+-      break; \
+-  } \
+-  dprintk(("write data 0x%02x\n", value)); \
+-  sbus_writel(value, &driver->regs->uctrl_data); \
+-}
+-
+-/* Wait for something to read, read it, then clear the bit */
+-#define READUCTLDATA(value) \
+-{ \
+-  unsigned int i; \
+-  value = 0; \
+-  for (i = 0; i < 10000; i++) { \
+-      if ((UCTRL_STAT_RXNE_STA & sbus_readl(&driver->regs->uctrl_stat)) == 0) \
+-      break; \
+-    udelay(1); \
+-  } \
+-  value = sbus_readl(&driver->regs->uctrl_data); \
+-  dprintk(("read data 0x%02x\n", value)); \
+-  sbus_writel(UCTRL_STAT_RXNE_STA, &driver->regs->uctrl_stat); \
+-}
+-
+-static void uctrl_do_txn(struct uctrl_driver *driver, struct uctrl_txn *txn)
+-{
+-	int stat, incnt, outcnt, bytecnt, intr;
+-	u32 byte;
+-
+-	stat = sbus_readl(&driver->regs->uctrl_stat);
+-	intr = sbus_readl(&driver->regs->uctrl_intr);
+-	sbus_writel(stat, &driver->regs->uctrl_stat);
+-
+-	dprintk(("interrupt stat 0x%x int 0x%x\n", stat, intr));
+-
+-	incnt = txn->inbits;
+-	outcnt = txn->outbits;
+-	byte = (txn->opcode << 8);
+-	WRITEUCTLDATA(byte);
+-
+-	bytecnt = 0;
+-	while (incnt > 0) {
+-		byte = (txn->inbuf[bytecnt] << 8);
+-		WRITEUCTLDATA(byte);
+-		incnt--;
+-		bytecnt++;
+-	}
+-
+-	/* Get the ack */
+-	READUCTLDATA(byte);
+-	dprintk(("ack was %x\n", (byte >> 8)));
+-
+-	bytecnt = 0;
+-	while (outcnt > 0) {
+-		READUCTLDATA(byte);
+-		txn->outbuf[bytecnt] = (byte >> 8);
+-		dprintk(("set byte to %02x\n", byte));
+-		outcnt--;
+-		bytecnt++;
+-	}
+-}
+-
+-static void uctrl_get_event_status(struct uctrl_driver *driver)
+-{
+-	struct uctrl_txn txn;
+-	u8 outbits[2];
+-
+-	txn.opcode = READ_EVENT_STATUS;
+-	txn.inbits = 0;
+-	txn.outbits = 2;
+-	txn.inbuf = NULL;
+-	txn.outbuf = outbits;
+-
+-	uctrl_do_txn(driver, &txn);
+-
+-	dprintk(("bytes %x %x\n", (outbits[0] & 0xff), (outbits[1] & 0xff)));
+-	driver->status.event_status = 
+-		((outbits[0] & 0xff) << 8) | (outbits[1] & 0xff);
+-	dprintk(("ev is %x\n", driver->status.event_status));
+-}
+-
+-static void uctrl_get_external_status(struct uctrl_driver *driver)
+-{
+-	struct uctrl_txn txn;
+-	u8 outbits[2];
+-	int i, v;
+-
+-	txn.opcode = READ_EXTERNAL_STATUS;
+-	txn.inbits = 0;
+-	txn.outbits = 2;
+-	txn.inbuf = NULL;
+-	txn.outbuf = outbits;
+-
+-	uctrl_do_txn(driver, &txn);
+-
+-	dprintk(("bytes %x %x\n", (outbits[0] & 0xff), (outbits[1] & 0xff)));
+-	driver->status.external_status = 
+-		((outbits[0] * 256) + (outbits[1]));
+-	dprintk(("ex is %x\n", driver->status.external_status));
+-	v = driver->status.external_status;
+-	for (i = 0; v != 0; i++, v >>= 1) {
+-		if (v & 1) {
+-			dprintk(("%s%s", " ", uctrl_extstatus[i]));
+-		}
+-	}
+-	dprintk(("\n"));
+-	
+-}
+-
+-static int uctrl_probe(struct platform_device *op)
+-{
+-	struct uctrl_driver *p;
+-	int err = -ENOMEM;
+-
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p) {
+-		printk(KERN_ERR "uctrl: Unable to allocate device struct.\n");
+-		goto out;
+-	}
+-
+-	p->regs = of_ioremap(&op->resource[0], 0,
+-			     resource_size(&op->resource[0]),
+-			     "uctrl");
+-	if (!p->regs) {
+-		printk(KERN_ERR "uctrl: Unable to map registers.\n");
+-		goto out_free;
+-	}
+-
+-	p->irq = op->archdata.irqs[0];
+-	err = request_irq(p->irq, uctrl_interrupt, 0, "uctrl", p);
+-	if (err) {
+-		printk(KERN_ERR "uctrl: Unable to register irq.\n");
+-		goto out_iounmap;
+-	}
+-
+-	err = misc_register(&uctrl_dev);
+-	if (err) {
+-		printk(KERN_ERR "uctrl: Unable to register misc device.\n");
+-		goto out_free_irq;
+-	}
+-
+-	sbus_writel(UCTRL_INTR_RXNE_REQ|UCTRL_INTR_RXNE_MSK, &p->regs->uctrl_intr);
+-	printk(KERN_INFO "%pOF: uctrl regs[0x%p] (irq %d)\n",
+-	       op->dev.of_node, p->regs, p->irq);
+-	uctrl_get_event_status(p);
+-	uctrl_get_external_status(p);
+-
+-	dev_set_drvdata(&op->dev, p);
+-	global_driver = p;
+-
+-out:
+-	return err;
+-
+-out_free_irq:
+-	free_irq(p->irq, p);
+-
+-out_iounmap:
+-	of_iounmap(&op->resource[0], p->regs, resource_size(&op->resource[0]));
+-
+-out_free:
+-	kfree(p);
+-	goto out;
+-}
+-
+-static int uctrl_remove(struct platform_device *op)
+-{
+-	struct uctrl_driver *p = dev_get_drvdata(&op->dev);
+-
+-	if (p) {
+-		misc_deregister(&uctrl_dev);
+-		free_irq(p->irq, p);
+-		of_iounmap(&op->resource[0], p->regs, resource_size(&op->resource[0]));
+-		kfree(p);
+-	}
+-	return 0;
+-}
+-
+-static const struct of_device_id uctrl_match[] = {
+-	{
+-		.name = "uctrl",
+-	},
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, uctrl_match);
+-
+-static struct platform_driver uctrl_driver = {
+-	.driver = {
+-		.name = "uctrl",
+-		.of_match_table = uctrl_match,
+-	},
+-	.probe		= uctrl_probe,
+-	.remove		= uctrl_remove,
+-};
+-
+-
+-module_platform_driver(uctrl_driver);
+-
+-MODULE_LICENSE("GPL");
 
 -- 
 2.34.1
