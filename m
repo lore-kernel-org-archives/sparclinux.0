@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E57653D0A4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030953D0A7;
 	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mlI+2wMh"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 80296C433C7;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tk3vhMhv"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A0E10C433CD;
 	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1703023395;
-	bh=YFya8cjl2YMIZ2BGNXSyO7VFh6vdNDD29XFJtjD3Qgs=;
+	bh=PvOL9owNF2Ng6LxW7GH7pqhSC0pz/LAIOTcjgaK0OH4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=mlI+2wMhej0GqAm3pIx6nJwRQaXL0Ljc6Qqy33Dv1a79jja2BJkbLICVksM4Midah
-	 xIVIhjMCLKUooQl+tQiQ65fWInRLOoKwD44xHxCncGB3GXOYmGRxZg+S1IdcovXgpa
-	 VE718Flncfbv5UEU6gTAHzFXzoLAaVUV8t+ZyufhtIvvoE1FpE3/py5rm1aVeWuewu
-	 ONpAPgh2vB9kuoIRRsYcaYxxQPD2JgUYW1CLIf24dgSgxDHA3OAvFbkH8Ds9LEQSxe
-	 CdDqismitNHTrzCR+td52u6XdFtkpGkdBku+pEEJGG9uV5v5O4hEa03fo69Y+X8vUz
-	 TqzbTuBx1aZqg==
+	b=tk3vhMhvqHmOnXWItGr8nAQvwmYbUhB3feES7BPxAn8Hcie4cRM1hYReHXfQjXaKT
+	 tEOhRGzwg8CS8+PTABIuRcFS1AxYb2J0YA0frp/bH1Fi7VK/LnTSX/VgDTErEkgy0h
+	 uIc8Usem7yKoHIMfSdZYIh4JdGhT06fj3wEpJffC2zPN/F5kAieNgB/qaYeJANEfwH
+	 JuV3tTk1XWyf1vlVbpqsPBrDsDWuNJMGpEB93ZxdgbrHgJLaVM56thLRNBFFHzTcZY
+	 8dMzLa9dhpKpYgvqLNDmRUO0dajPof1OmPIUbKVRGM4Hr5lM+IoAZQ4g65ZaiUf45n
+	 tjeX79QI4MuoQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68938C46CD2;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A399C46CD7;
 	Tue, 19 Dec 2023 22:03:15 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Tue, 19 Dec 2023 23:03:06 +0100
-Subject: [PATCH 01/27] sparc32: Update defconfig to LEON SMP
+Date: Tue, 19 Dec 2023 23:03:09 +0100
+Subject: [PATCH 04/27] sparc32: Drop sun4m specific led driver
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -31,7 +31,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231219-sam-sparc32-sunset-v3-v1-1-64bb44b598c5@ravnborg.org>
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-4-64bb44b598c5@ravnborg.org>
 References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -44,11 +44,11 @@ Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=5892;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=5266;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=4xRMgdzxVUR69RuJPbYdmx8fpxa4KGV3jSh8dHTx33M=; =?utf-8?q?b=3DUt+SgWiuqIJ1?=
- =?utf-8?q?fcBO5uM2ZyyLaIVPVtNKbLLeU5qWiEXJIGyUHCGi//nT7YLbhGwE+4rIVG8RJW8P?=
- QuDhe6DTDywG73/E+3rudhmc4LolHLjrJFMs9Uc7BHNCRelDBQ1J
+ bh=w/RBrmmZ8Yg5ZhjQjAlbJAmo7mwa0rCWWJGIHV2crps=; =?utf-8?q?b=3DTeV6xXOFygK5?=
+ =?utf-8?q?5e17IwhpcZDv8UodKRmHjUsOo5OdOB31c5kiG9eX2d59myzar3EODv/zPQnrG0Nr?=
+ easM3BasDDyIMfs3BRDC5uRzyD9VOZoN+HRnA+lB7XfHNrrOW/MI
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -57,210 +57,202 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-This is a copy of the leon_smp defconfig found in
-gaisler-buildroot-2023.02-1.0.
+The led driver is only relevant for the sun4m machines.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/configs/sparc32_defconfig | 171 +++++++++++++++++++----------------
- 1 file changed, 91 insertions(+), 80 deletions(-)
+ arch/sparc/Kconfig         |   9 ---
+ arch/sparc/kernel/Makefile |   1 -
+ arch/sparc/kernel/led.c    | 146 ---------------------------------------------
+ 3 files changed, 156 deletions(-)
 
-diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/sparc32_defconfig
-index 5010164de3e4..71273fc578bf 100644
---- a/arch/sparc/configs/sparc32_defconfig
-+++ b/arch/sparc/configs/sparc32_defconfig
-@@ -1,97 +1,108 @@
-+CONFIG_DEFAULT_HOSTNAME="leon"
- CONFIG_SYSVIPC=y
--CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_MODULES=y
--CONFIG_MODULE_UNLOAD=y
--# CONFIG_BLK_DEV_BSG is not set
--CONFIG_PCI=y
--CONFIG_SUN_OPENPROMFS=m
--CONFIG_BINFMT_MISC=m
-+# CONFIG_RD_BZIP2 is not set
-+# CONFIG_RD_LZMA is not set
-+# CONFIG_RD_XZ is not set
-+# CONFIG_RD_LZO is not set
-+# CONFIG_RD_LZ4 is not set
-+# CONFIG_RD_ZSTD is not set
-+CONFIG_SMP=y
-+CONFIG_HZ_100=y
-+CONFIG_SPARC_LEON=y
-+CONFIG_SUN_OPENPROMFS=y
-+CONFIG_SUN_OPENPROMIO=y
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+CONFIG_BINFMT_MISC=y
-+# CONFIG_COMPACTION is not set
- CONFIG_NET=y
- CONFIG_PACKET=y
- CONFIG_UNIX=y
--CONFIG_XFRM_USER=m
--CONFIG_NET_KEY=m
- CONFIG_INET=y
- CONFIG_IP_PNP=y
--CONFIG_IP_PNP_DHCP=y
--CONFIG_INET_AH=y
--CONFIG_INET_ESP=y
--CONFIG_INET_IPCOMP=y
--CONFIG_INET6_AH=m
--CONFIG_INET6_ESP=m
--CONFIG_INET6_IPCOMP=m
--CONFIG_IPV6_TUNNEL=m
--CONFIG_NET_PKTGEN=m
--CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_CRYPTOLOOP=m
--CONFIG_BLK_DEV_RAM=y
--CONFIG_SCSI=y
--CONFIG_BLK_DEV_SD=y
--CONFIG_BLK_DEV_SR=m
--CONFIG_CHR_DEV_SG=m
--CONFIG_SCSI_QLOGICPTI=m
--CONFIG_SCSI_SUNESP=y
-+# CONFIG_WIRELESS is not set
-+CONFIG_UEVENT_HELPER=y
-+CONFIG_DEVTMPFS=y
-+CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_NETDEVICES=y
--CONFIG_DUMMY=m
--CONFIG_NET_ETHERNET=y
--CONFIG_MII=m
--CONFIG_SUNLANCE=y
--CONFIG_HAPPYMEAL=m
--CONFIG_SUNBMAC=m
--CONFIG_SUNQE=m
-+CONFIG_GRETH=y
-+# CONFIG_NET_VENDOR_ALACRITECH is not set
-+# CONFIG_NET_VENDOR_AMAZON is not set
-+# CONFIG_NET_VENDOR_AMD is not set
-+# CONFIG_NET_VENDOR_AQUANTIA is not set
-+# CONFIG_NET_VENDOR_ARC is not set
-+# CONFIG_NET_VENDOR_BROADCOM is not set
-+# CONFIG_NET_VENDOR_CADENCE is not set
-+# CONFIG_NET_VENDOR_CAVIUM is not set
-+# CONFIG_NET_VENDOR_CORTINA is not set
-+# CONFIG_NET_VENDOR_EZCHIP is not set
-+# CONFIG_NET_VENDOR_GOOGLE is not set
-+# CONFIG_NET_VENDOR_HUAWEI is not set
-+# CONFIG_NET_VENDOR_INTEL is not set
-+# CONFIG_NET_VENDOR_MARVELL is not set
-+# CONFIG_NET_VENDOR_MICREL is not set
-+# CONFIG_NET_VENDOR_MICROCHIP is not set
-+# CONFIG_NET_VENDOR_MICROSEMI is not set
-+# CONFIG_NET_VENDOR_NI is not set
-+# CONFIG_NET_VENDOR_NATSEMI is not set
-+# CONFIG_NET_VENDOR_NETRONOME is not set
-+# CONFIG_NET_VENDOR_PENSANDO is not set
-+# CONFIG_NET_VENDOR_QUALCOMM is not set
-+# CONFIG_NET_VENDOR_RENESAS is not set
-+# CONFIG_NET_VENDOR_ROCKER is not set
-+# CONFIG_NET_VENDOR_SAMSUNG is not set
-+# CONFIG_NET_VENDOR_SEEQ is not set
-+# CONFIG_NET_VENDOR_SOLARFLARE is not set
-+# CONFIG_NET_VENDOR_SOCIONEXT is not set
-+# CONFIG_NET_VENDOR_STMICRO is not set
-+# CONFIG_NET_VENDOR_SUN is not set
-+# CONFIG_NET_VENDOR_SYNOPSYS is not set
-+# CONFIG_NET_VENDOR_VIA is not set
-+# CONFIG_NET_VENDOR_WIZNET is not set
-+# CONFIG_NET_VENDOR_XILINX is not set
-+CONFIG_BROADCOM_PHY=y
-+CONFIG_CICADA_PHY=y
-+CONFIG_DAVICOM_PHY=y
-+CONFIG_ICPLUS_PHY=y
-+CONFIG_LXT_PHY=y
-+CONFIG_LSI_ET1011C_PHY=y
-+CONFIG_MARVELL_PHY=y
-+CONFIG_MICREL_PHY=y
-+CONFIG_NATIONAL_PHY=y
-+CONFIG_QSEMI_PHY=y
-+CONFIG_REALTEK_PHY=y
-+CONFIG_SMSC_PHY=y
-+CONFIG_STE10XP=y
-+CONFIG_VITESSE_PHY=y
- # CONFIG_WLAN is not set
--CONFIG_INPUT_JOYDEV=m
--CONFIG_INPUT_EVDEV=m
--CONFIG_INPUT_EVBUG=m
--CONFIG_KEYBOARD_ATKBD=m
--CONFIG_KEYBOARD_SUNKBD=m
--CONFIG_MOUSE_PS2=m
--CONFIG_MOUSE_SERIAL=m
--CONFIG_SERIO=m
-+# CONFIG_INPUT_KEYBOARD is not set
-+# CONFIG_INPUT_MOUSE is not set
- # CONFIG_SERIO_I8042 is not set
- CONFIG_SERIAL_SUNZILOG=y
- CONFIG_SERIAL_SUNZILOG_CONSOLE=y
--CONFIG_SERIAL_SUNSU=y
--CONFIG_SERIAL_SUNSU_CONSOLE=y
--CONFIG_SPI=y
--CONFIG_SPI_XILINX=m
--CONFIG_SPI_XILINX_PLTFM=m
--CONFIG_SUN_OPENPROMIO=m
--CONFIG_EXT2_FS=y
--CONFIG_EXT2_FS_XATTR=y
--CONFIG_EXT2_FS_POSIX_ACL=y
--CONFIG_EXT2_FS_SECURITY=y
--CONFIG_AUTOFS_FS=m
--CONFIG_ISO9660_FS=m
-+CONFIG_SERIAL_GRLIB_GAISLER_APBUART=y
-+CONFIG_SERIAL_GRLIB_GAISLER_APBUART_CONSOLE=y
-+# CONFIG_HW_RANDOM is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_HID_GENERIC is not set
-+# CONFIG_USB_SUPPORT is not set
-+# CONFIG_RTC_HCTOSYS is not set
-+# CONFIG_RTC_INTF_SYSFS is not set
-+# CONFIG_RTC_INTF_PROC is not set
-+# CONFIG_RTC_INTF_DEV is not set
-+# CONFIG_VIRTIO_MENU is not set
-+# CONFIG_VHOST_MENU is not set
-+# CONFIG_IOMMU_SUPPORT is not set
-+CONFIG_FSCACHE=y
- CONFIG_PROC_KCORE=y
--CONFIG_ROMFS_FS=m
-+CONFIG_TMPFS=y
-+# CONFIG_MISC_FILESYSTEMS is not set
- CONFIG_NFS_FS=y
-+CONFIG_NFS_V4=y
- CONFIG_ROOT_NFS=y
--CONFIG_RPCSEC_GSS_KRB5=m
-+CONFIG_NFS_FSCACHE=y
- CONFIG_NLS=y
--CONFIG_DEBUG_KERNEL=y
--CONFIG_DETECT_HUNG_TASK=y
--# CONFIG_SCHED_DEBUG is not set
--CONFIG_KGDB=y
--CONFIG_KGDB_TESTS=y
--CONFIG_CRYPTO_NULL=m
--CONFIG_CRYPTO_ECB=m
--CONFIG_CRYPTO_PCBC=m
--CONFIG_CRYPTO_MD4=y
--CONFIG_CRYPTO_MICHAEL_MIC=m
--CONFIG_CRYPTO_SHA256=m
--CONFIG_CRYPTO_SHA512=m
--CONFIG_CRYPTO_AES=m
--CONFIG_CRYPTO_ARC4=m
--CONFIG_CRYPTO_BLOWFISH=m
--CONFIG_CRYPTO_CAST5=m
--CONFIG_CRYPTO_CAST6=m
--CONFIG_CRYPTO_SERPENT=m
--CONFIG_CRYPTO_TWOFISH=m
--# CONFIG_CRYPTO_ANSI_CPRNG is not set
--# CONFIG_CRYPTO_HW is not set
--CONFIG_LIBCRC32C=m
-+CONFIG_MAGIC_SYSRQ=y
-+CONFIG_DEBUG_FS=y
-+# CONFIG_RUNTIME_TESTING_MENU is not set
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 54c91431724b..1520f68e944a 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -331,15 +331,6 @@ config SUN_PM
+ 	  Enable power management and CPU standby features on supported
+ 	  SPARC platforms.
+ 
+-config SPARC_LED
+-	tristate "Sun4m LED driver"
+-	depends on SPARC32
+-	help
+-	  This driver toggles the front-panel LED on sun4m systems
+-	  in a user-specifiable manner.  Its state can be probed
+-	  by reading /proc/led and its blinking mode can be changed
+-	  via writes to /proc/led
+-
+ config SERIAL_CONSOLE
+ 	bool
+ 	depends on SPARC32
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index 0984bb6f0f17..95687af45d20 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -90,7 +90,6 @@ obj-y                     += termios.o
+ 
+ obj-$(CONFIG_MODULES)     += module.o
+ obj-$(CONFIG_MODULES)     += sparc_ksyms.o
+-obj-$(CONFIG_SPARC_LED)   += led.o
+ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
+ 
+ obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+deleted file mode 100644
+index ab657b359789..000000000000
+--- a/arch/sparc/kernel/led.c
++++ /dev/null
+@@ -1,146 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/slab.h>
+-#include <linux/string.h>
+-#include <linux/jiffies.h>
+-#include <linux/timer.h>
+-#include <linux/uaccess.h>
+-#include <linux/sched/loadavg.h>
+-
+-#include <asm/auxio.h>
+-
+-#define LED_MAX_LENGTH 8 /* maximum chars written to proc file */
+-
+-static inline void led_toggle(void)
+-{
+-	unsigned char val = get_auxio();
+-	unsigned char on, off;
+-
+-	if (val & AUXIO_LED) {
+-		on = 0;
+-		off = AUXIO_LED;
+-	} else {
+-		on = AUXIO_LED;
+-		off = 0;
+-	}
+-
+-	set_auxio(on, off);
+-}
+-
+-static struct timer_list led_blink_timer;
+-static unsigned long led_blink_timer_timeout;
+-
+-static void led_blink(struct timer_list *unused)
+-{
+-	unsigned long timeout = led_blink_timer_timeout;
+-
+-	led_toggle();
+-
+-	/* reschedule */
+-	if (!timeout) { /* blink according to load */
+-		led_blink_timer.expires = jiffies +
+-			((1 + (avenrun[0] >> FSHIFT)) * HZ);
+-	} else { /* blink at user specified interval */
+-		led_blink_timer.expires = jiffies + (timeout * HZ);
+-	}
+-	add_timer(&led_blink_timer);
+-}
+-
+-#ifdef CONFIG_PROC_FS
+-static int led_proc_show(struct seq_file *m, void *v)
+-{
+-	if (get_auxio() & AUXIO_LED)
+-		seq_puts(m, "on\n");
+-	else
+-		seq_puts(m, "off\n");
+-	return 0;
+-}
+-
+-static int led_proc_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, led_proc_show, NULL);
+-}
+-
+-static ssize_t led_proc_write(struct file *file, const char __user *buffer,
+-			      size_t count, loff_t *ppos)
+-{
+-	char *buf = NULL;
+-
+-	if (count > LED_MAX_LENGTH)
+-		count = LED_MAX_LENGTH;
+-
+-	buf = memdup_user_nul(buffer, count);
+-	if (IS_ERR(buf))
+-		return PTR_ERR(buf);
+-
+-	/* work around \n when echo'ing into proc */
+-	if (buf[count - 1] == '\n')
+-		buf[count - 1] = '\0';
+-
+-	/* before we change anything we want to stop any running timers,
+-	 * otherwise calls such as on will have no persistent effect
+-	 */
+-	del_timer_sync(&led_blink_timer);
+-
+-	if (!strcmp(buf, "on")) {
+-		auxio_set_led(AUXIO_LED_ON);
+-	} else if (!strcmp(buf, "toggle")) {
+-		led_toggle();
+-	} else if ((*buf > '0') && (*buf <= '9')) {
+-		led_blink_timer_timeout = simple_strtoul(buf, NULL, 10);
+-		led_blink(&led_blink_timer);
+-	} else if (!strcmp(buf, "load")) {
+-		led_blink_timer_timeout = 0;
+-		led_blink(&led_blink_timer);
+-	} else {
+-		auxio_set_led(AUXIO_LED_OFF);
+-	}
+-
+-	kfree(buf);
+-
+-	return count;
+-}
+-
+-static const struct proc_ops led_proc_ops = {
+-	.proc_open	= led_proc_open,
+-	.proc_read	= seq_read,
+-	.proc_lseek	= seq_lseek,
+-	.proc_release	= single_release,
+-	.proc_write	= led_proc_write,
+-};
+-#endif
+-
+-#define LED_VERSION	"0.1"
+-
+-static int __init led_init(void)
+-{
+-	timer_setup(&led_blink_timer, led_blink, 0);
+-
+-#ifdef CONFIG_PROC_FS
+-	if (!proc_create("led", 0, NULL, &led_proc_ops))
+-		return -ENOMEM;
+-#endif
+-	printk(KERN_INFO
+-	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
+-	       LED_VERSION);
+-
+-	return 0;
+-}
+-
+-static void __exit led_exit(void)
+-{
+-	remove_proc_entry("led", NULL);
+-	del_timer_sync(&led_blink_timer);
+-}
+-
+-module_init(led_init);
+-module_exit(led_exit);
+-
+-MODULE_AUTHOR("Lars Kotthoff <metalhead@metalhead.ws>");
+-MODULE_DESCRIPTION("Provides control of the front LED on SPARC systems.");
+-MODULE_LICENSE("GPL");
+-MODULE_VERSION(LED_VERSION);
 
 -- 
 2.34.1
