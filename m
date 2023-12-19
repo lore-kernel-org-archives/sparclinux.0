@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E83340BE2;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF6E41753;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="brfgQFpt"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 79DABC116B2;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LXY5nwUu"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id BA8DAC433A9;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1703023396;
-	bh=UB1EWouMkPvbJXRw7Maaf3UmeM7vwSYlSrzpC90jDq8=;
+	bh=0D+ON4oeNZOeVZXfD0xqsLjuyAIQe7lSx7T2s4D02kg=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=brfgQFpt+jxnTxK6GQpbXKutNle131V8tJZzA7e3bjKM8mjnD9YIVHewSdo2PHl0I
-	 ZjPJgn2ELJJ+b2gKhR2rxujXCB2YCvroPGL5A8LSxivVh2/++3qw+UbKPvC2W9PKTY
-	 4tIG6dNDmxbtjkH+q9QneFTm6/I0WtY+LDtb23Sl/d8kyrOl+1cLsUw2/BNE4C1GaY
-	 mxvkoinx6EP4ZgdmkIIDFPDrhNWtRH66f1mU08n3O86fw4l3RSvcXb8j/xRX1ix7FE
-	 w0WWQlDEziRNbYLq5KBj/95mEzzPZfgj0HXqInISdjMiJ5dliZ253mNok38CyK7TW4
-	 mKviq5RLHmPog==
+	b=LXY5nwUuWkFXcqJ0M4HhBKX8XcUbGbQqNdy/i6rWxP/2H9mffS6iZZdkz5ul6EAKM
+	 xUyTEfSMdKhMAWecD7Saffl1l7efnxUbjZW/CvH6+HogO1GFua6d5/Dhxav5u89V/s
+	 azI/YnZRzJaXn4H8iTni+QBIWOo6iieFo6ZeNaasGYVOP0rS8AoWC3bb73f0sGg2vA
+	 u8o62fZ92Xaj7mQiPs2Y71v2t+eMQFsrXyCOsWwqR0MOJj4qjm0rYu/kGsVJgxHDi2
+	 v+krUBNwLjSt28vkT1dmQ9OaSU5vipcOt02eFXkUkHvF976bqTgIvxhb8PsDVMU+dU
+	 tYejJJPqrURmA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A71FC46CD8;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC88EC46CD2;
 	Tue, 19 Dec 2023 22:03:16 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Tue, 19 Dec 2023 23:03:26 +0100
-Subject: [PATCH 21/27] sparc32: Drop unused iommu support
+Date: Tue, 19 Dec 2023 23:03:32 +0100
+Subject: [PATCH 27/27] fbdev/p9100: Drop now unused driver p9100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -31,7 +31,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231219-sam-sparc32-sunset-v3-v1-21-64bb44b598c5@ravnborg.org>
+Message-Id: <20231219-sam-sparc32-sunset-v3-v1-27-64bb44b598c5@ravnborg.org>
 References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -44,11 +44,11 @@ Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=21784;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1703023392; l=11715;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=PD7kaCb8qP6VRW5/Lnvuu2MI0m+xNGJym35Bpgc5CXI=; =?utf-8?q?b=3DO+TG5SrRJTL1?=
- =?utf-8?q?qnYo4kokm2BxcVRJvjN/NxIEx96zcmeX8Q+YiSV3tM1t5knEwxA9CeWREscMdZqn?=
- 0tQ+gt2rB+n4k3fmP+9nmowGi6GYZkULiZ87wmX5ajzBSGJFgGtc
+ bh=iA8JbwHY6fG7LBqaMIwOpi+rv8FIlfD/a+18lk+a/yg=; =?utf-8?q?b=3DxLx8QJT1DeN/?=
+ =?utf-8?q?31Tp0n1Pwf61zbQdWjbuL9/LAngB/OMqRezOKwU12aE8l2/DawT+XUglCsLZwYk5?=
+ uBsoLHkbA8MMLhEwcKYYskx/v8q/PkFcAgt9QkgeNdcf0z4sU+Va
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -57,639 +57,429 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-LEON do not have any iommu support - drop it.
+The p9100 driver is only relevant for the Sparcbook 3 machine,
+and with sun4m support removed this driver is no longer relevant.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Helge Deller <deller@gmx.de>
 ---
- arch/sparc/include/asm/iommu.h    |   2 -
- arch/sparc/include/asm/iommu_32.h | 122 -----------
- arch/sparc/kernel/ioport.c        |   1 -
- arch/sparc/mm/Makefile            |   2 +-
- arch/sparc/mm/iommu.c             | 420 --------------------------------------
- arch/sparc/mm/mm_32.h             |   3 -
- arch/sparc/mm/srmmu.c             |   3 -
- 7 files changed, 1 insertion(+), 552 deletions(-)
+ drivers/video/fbdev/Kconfig  |   8 -
+ drivers/video/fbdev/Makefile |   1 -
+ drivers/video/fbdev/p9100.c  | 372 -------------------------------------------
+ 3 files changed, 381 deletions(-)
 
-diff --git a/arch/sparc/include/asm/iommu.h b/arch/sparc/include/asm/iommu.h
-index 37935cb34865..ea07526ff476 100644
---- a/arch/sparc/include/asm/iommu.h
-+++ b/arch/sparc/include/asm/iommu.h
-@@ -3,7 +3,5 @@
- #define ___ASM_SPARC_IOMMU_H
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/iommu_64.h>
--#else
--#include <asm/iommu_32.h>
- #endif
- #endif
-diff --git a/arch/sparc/include/asm/iommu_32.h b/arch/sparc/include/asm/iommu_32.h
-deleted file mode 100644
-index af51cd5ea3c1..000000000000
---- a/arch/sparc/include/asm/iommu_32.h
-+++ /dev/null
-@@ -1,122 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* iommu.h: Definitions for the sun4m IOMMU.
-- *
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-- */
--#ifndef _SPARC_IOMMU_H
--#define _SPARC_IOMMU_H
--
--#include <asm/page.h>
--#include <asm/bitext.h>
--
--/* The iommu handles all virtual to physical address translations
-- * that occur between the SBUS and physical memory.  Access by
-- * the cpu to IO registers and similar go over the mbus so are
-- * translated by the on chip SRMMU.  The iommu and the srmmu do
-- * not need to have the same translations at all, in fact most
-- * of the time the translations they handle are a disjunct set.
-- * Basically the iommu handles all dvma sbus activity.
-- */
--
--/* The IOMMU registers occupy three pages in IO space. */
--struct iommu_regs {
--	/* First page */
--	volatile unsigned long control;    /* IOMMU control */
--	volatile unsigned long base;       /* Physical base of iopte page table */
--	volatile unsigned long _unused1[3];
--	volatile unsigned long tlbflush;   /* write only */
--	volatile unsigned long pageflush;  /* write only */
--	volatile unsigned long _unused2[1017];
--	/* Second page */
--	volatile unsigned long afsr;       /* Async-fault status register */
--	volatile unsigned long afar;       /* Async-fault physical address */
--	volatile unsigned long _unused3[2];
--	volatile unsigned long sbuscfg0;   /* SBUS configuration registers, per-slot */
--	volatile unsigned long sbuscfg1;
--	volatile unsigned long sbuscfg2;
--	volatile unsigned long sbuscfg3;
--	volatile unsigned long mfsr;       /* Memory-fault status register */
--	volatile unsigned long mfar;       /* Memory-fault physical address */
--	volatile unsigned long _unused4[1014];
--	/* Third page */
--	volatile unsigned long mid;        /* IOMMU module-id */
--};
--
--#define IOMMU_CTRL_IMPL     0xf0000000 /* Implementation */
--#define IOMMU_CTRL_VERS     0x0f000000 /* Version */
--#define IOMMU_CTRL_RNGE     0x0000001c /* Mapping RANGE */
--#define IOMMU_RNGE_16MB     0x00000000 /* 0xff000000 -> 0xffffffff */
--#define IOMMU_RNGE_32MB     0x00000004 /* 0xfe000000 -> 0xffffffff */
--#define IOMMU_RNGE_64MB     0x00000008 /* 0xfc000000 -> 0xffffffff */
--#define IOMMU_RNGE_128MB    0x0000000c /* 0xf8000000 -> 0xffffffff */
--#define IOMMU_RNGE_256MB    0x00000010 /* 0xf0000000 -> 0xffffffff */
--#define IOMMU_RNGE_512MB    0x00000014 /* 0xe0000000 -> 0xffffffff */
--#define IOMMU_RNGE_1GB      0x00000018 /* 0xc0000000 -> 0xffffffff */
--#define IOMMU_RNGE_2GB      0x0000001c /* 0x80000000 -> 0xffffffff */
--#define IOMMU_CTRL_ENAB     0x00000001 /* IOMMU Enable */
--
--#define IOMMU_AFSR_ERR      0x80000000 /* LE, TO, or BE asserted */
--#define IOMMU_AFSR_LE       0x40000000 /* SBUS reports error after transaction */
--#define IOMMU_AFSR_TO       0x20000000 /* Write access took more than 12.8 us. */
--#define IOMMU_AFSR_BE       0x10000000 /* Write access received error acknowledge */
--#define IOMMU_AFSR_SIZE     0x0e000000 /* Size of transaction causing error */
--#define IOMMU_AFSR_S        0x01000000 /* Sparc was in supervisor mode */
--#define IOMMU_AFSR_RESV     0x00f00000 /* Reserver, forced to 0x8 by hardware */
--#define IOMMU_AFSR_ME       0x00080000 /* Multiple errors occurred */
--#define IOMMU_AFSR_RD       0x00040000 /* A read operation was in progress */
--#define IOMMU_AFSR_FAV      0x00020000 /* IOMMU afar has valid contents */
--
--#define IOMMU_SBCFG_SAB30   0x00010000 /* Phys-address bit 30 when bypass enabled */
--#define IOMMU_SBCFG_BA16    0x00000004 /* Slave supports 16 byte bursts */
--#define IOMMU_SBCFG_BA8     0x00000002 /* Slave supports 8 byte bursts */
--#define IOMMU_SBCFG_BYPASS  0x00000001 /* Bypass IOMMU, treat all addresses
--					  produced by this device as pure
--					  physical. */
--
--#define IOMMU_MFSR_ERR      0x80000000 /* One or more of PERR1 or PERR0 */
--#define IOMMU_MFSR_S        0x01000000 /* Sparc was in supervisor mode */
--#define IOMMU_MFSR_CPU      0x00800000 /* CPU transaction caused parity error */
--#define IOMMU_MFSR_ME       0x00080000 /* Multiple parity errors occurred */
--#define IOMMU_MFSR_PERR     0x00006000 /* high bit indicates parity error occurred
--					  on the even word of the access, low bit
--					  indicated odd word caused the parity error */
--#define IOMMU_MFSR_BM       0x00001000 /* Error occurred while in boot mode */
--#define IOMMU_MFSR_C        0x00000800 /* Address causing error was marked cacheable */
--#define IOMMU_MFSR_RTYP     0x000000f0 /* Memory request transaction type */
--
--#define IOMMU_MID_SBAE      0x001f0000 /* SBus arbitration enable */
--#define IOMMU_MID_SE        0x00100000 /* Enables SCSI/ETHERNET arbitration */
--#define IOMMU_MID_SB3       0x00080000 /* Enable SBUS device 3 arbitration */
--#define IOMMU_MID_SB2       0x00040000 /* Enable SBUS device 2 arbitration */
--#define IOMMU_MID_SB1       0x00020000 /* Enable SBUS device 1 arbitration */
--#define IOMMU_MID_SB0       0x00010000 /* Enable SBUS device 0 arbitration */
--#define IOMMU_MID_MID       0x0000000f /* Module-id, hardcoded to 0x8 */
--
--/* The format of an iopte in the page tables */
--#define IOPTE_PAGE          0x07ffff00 /* Physical page number (PA[30:12]) */
--#define IOPTE_CACHE         0x00000080 /* Cached (in vme IOCACHE or Viking/MXCC) */
--#define IOPTE_WRITE         0x00000004 /* Writeable */
--#define IOPTE_VALID         0x00000002 /* IOPTE is valid */
--#define IOPTE_WAZ           0x00000001 /* Write as zeros */
--
--struct iommu_struct {
--	struct iommu_regs __iomem *regs;
--	iopte_t *page_table;
--	/* For convenience */
--	unsigned long start; /* First managed virtual address */
--	unsigned long end;   /* Last managed virtual address */
--
--	struct bit_map usemap;
--};
--
--static inline void iommu_invalidate(struct iommu_regs __iomem *regs)
--{
--	sbus_writel(0, &regs->tlbflush);
--}
--
--static inline void iommu_invalidate_page(struct iommu_regs __iomem *regs, unsigned long ba)
--{
--	sbus_writel(ba & PAGE_MASK, &regs->pageflush);
--}
--
--#endif /* !(_SPARC_IOMMU_H) */
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 745579a40785..9c4c72775274 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -48,7 +48,6 @@
- #include <asm/page.h>
- #include <asm/pgalloc.h>
- #include <asm/dma.h>
--#include <asm/iommu.h>
- #include <asm/leon.h>
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 94f6dca5856f..ebcc3815c7a5 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -576,14 +576,6 @@ config FB_CG14
+ 	  This is the frame buffer device driver for the CGfourteen frame
+ 	  buffer on Desktop SPARCsystems with the SX graphics option.
  
- static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);
-diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
-index ee33053b170a..b6252a3947c5 100644
---- a/arch/sparc/mm/Makefile
-+++ b/arch/sparc/mm/Makefile
-@@ -8,7 +8,7 @@ ccflags-y := -Werror
- obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o
- obj-y                   += fault_$(BITS).o
- obj-y                   += init_$(BITS).o
--obj-$(CONFIG_SPARC32)   += srmmu.o iommu.o
-+obj-$(CONFIG_SPARC32)   += srmmu.o
- obj-$(CONFIG_SPARC32)   += leon_mm.o
- 
- # Only used by sparc64
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+-config FB_P9100
+-	bool "P9100 (Sparcbook 3 only) support"
+-	depends on FB_SBUS
+-	select FB_SBUS_HELPERS
+-	help
+-	  This is the frame buffer device driver for the P9100 card
+-	  supported on Sparcbook 3 machines.
+-
+ config FB_LEO
+ 	bool "Leo (ZX) support"
+ 	depends on FB_SBUS
+diff --git a/drivers/video/fbdev/Makefile b/drivers/video/fbdev/Makefile
+index 8e15220152bd..bc9b24648347 100644
+--- a/drivers/video/fbdev/Makefile
++++ b/drivers/video/fbdev/Makefile
+@@ -51,7 +51,6 @@ obj-$(CONFIG_FB_CG6)              += cg6.o
+ obj-$(CONFIG_FB_CG3)              += cg3.o
+ obj-$(CONFIG_FB_BW2)              += bw2.o
+ obj-$(CONFIG_FB_CG14)             += cg14.o
+-obj-$(CONFIG_FB_P9100)            += p9100.o
+ obj-$(CONFIG_FB_TCX)              += tcx.o
+ obj-$(CONFIG_FB_LEO)              += leo.o
+ obj-$(CONFIG_FB_ACORN)            += acornfb.o
+diff --git a/drivers/video/fbdev/p9100.c b/drivers/video/fbdev/p9100.c
 deleted file mode 100644
-index 482e08df7bad..000000000000
---- a/arch/sparc/mm/iommu.c
+index e1356f8a866e..000000000000
+--- a/drivers/video/fbdev/p9100.c
 +++ /dev/null
-@@ -1,420 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * iommu.c:  IOMMU specific routines for memory management.
+@@ -1,372 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/* p9100.c: P9100 frame buffer driver
 - *
-- * Copyright (C) 1995 David S. Miller  (davem@caip.rutgers.edu)
-- * Copyright (C) 1995,2002 Pete Zaitcev     (zaitcev@yahoo.com)
-- * Copyright (C) 1996 Eddie C. Dost    (ecd@skynet.be)
-- * Copyright (C) 1997,1998 Jakub Jelinek    (jj@sunsite.mff.cuni.cz)
+- * Copyright (C) 2003, 2006 David S. Miller (davem@davemloft.net)
+- * Copyright 1999 Derrick J Brashear (shadow@dementia.org)
+- *
+- * Driver layout based loosely on tgafb.c, see that file for credits.
 - */
 -
+-#include <linux/module.h>
 -#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/delay.h>
 -#include <linux/init.h>
+-#include <linux/fb.h>
 -#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/dma-map-ops.h>
 -#include <linux/of.h>
--#include <linux/of_platform.h>
 -#include <linux/platform_device.h>
 -
 -#include <asm/io.h>
--#include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
--#include <asm/bitext.h>
--#include <asm/iommu.h>
--#include <asm/dma.h>
+-#include <asm/fbio.h>
 -
--#include "mm_32.h"
+-#include "sbuslib.h"
 -
 -/*
-- * This can be sized dynamically, but we will do this
-- * only when we have a guidance about actual I/O pressures.
+- * Local functions.
 - */
--#define IOMMU_RNGE	IOMMU_RNGE_256MB
--#define IOMMU_START	0xF0000000
--#define IOMMU_WINSIZE	(256*1024*1024U)
--#define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
--#define IOMMU_ORDER	6				/* 4096 * (1<<6) */
+-
+-static int p9100_setcolreg(unsigned, unsigned, unsigned, unsigned,
+-			   unsigned, struct fb_info *);
+-static int p9100_blank(int, struct fb_info *);
+-
+-static int p9100_sbusfb_mmap(struct fb_info *info, struct vm_area_struct *vma);
+-static int p9100_sbusfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg);
 -
 -/*
-- * Values precomputed according to CPU type.
+- *  Frame buffer operations
 - */
--static unsigned int ioperm_noc;		/* Consistent mapping iopte flags */
--static pgprot_t dvma_prot;		/* Consistent mapping pte flags */
 -
--#define IOPERM        (IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID)
--#define MKIOPTE(pfn, perm) (((((pfn)<<8) & IOPTE_PAGE) | (perm)) & ~IOPTE_WAZ)
+-static const struct fb_ops p9100_ops = {
+-	.owner			= THIS_MODULE,
+-	FB_DEFAULT_SBUS_OPS(p9100),
+-	.fb_setcolreg		= p9100_setcolreg,
+-	.fb_blank		= p9100_blank,
+-};
 -
--static const struct dma_map_ops sbus_iommu_dma_gflush_ops;
--static const struct dma_map_ops sbus_iommu_dma_pflush_ops;
+-/* P9100 control registers */
+-#define P9100_SYSCTL_OFF	0x0UL
+-#define P9100_VIDEOCTL_OFF	0x100UL
+-#define P9100_VRAMCTL_OFF 	0x180UL
+-#define P9100_RAMDAC_OFF 	0x200UL
+-#define P9100_VIDEOCOPROC_OFF 	0x400UL
 -
--static void __init sbus_iommu_init(struct platform_device *op)
+-/* P9100 command registers */
+-#define P9100_CMD_OFF 0x0UL
+-
+-/* P9100 framebuffer memory */
+-#define P9100_FB_OFF 0x0UL
+-
+-/* 3 bits: 2=8bpp 3=16bpp 5=32bpp 7=24bpp */
+-#define SYS_CONFIG_PIXELSIZE_SHIFT 26
+-
+-#define SCREENPAINT_TIMECTL1_ENABLE_VIDEO 0x20 /* 0 = off, 1 = on */
+-
+-struct p9100_regs {
+-	/* Registers for the system control */
+-	u32 sys_base;
+-	u32 sys_config;
+-	u32 sys_intr;
+-	u32 sys_int_ena;
+-	u32 sys_alt_rd;
+-	u32 sys_alt_wr;
+-	u32 sys_xxx[58];
+-
+-	/* Registers for the video control */
+-	u32 vid_base;
+-	u32 vid_hcnt;
+-	u32 vid_htotal;
+-	u32 vid_hsync_rise;
+-	u32 vid_hblank_rise;
+-	u32 vid_hblank_fall;
+-	u32 vid_hcnt_preload;
+-	u32 vid_vcnt;
+-	u32 vid_vlen;
+-	u32 vid_vsync_rise;
+-	u32 vid_vblank_rise;
+-	u32 vid_vblank_fall;
+-	u32 vid_vcnt_preload;
+-	u32 vid_screenpaint_addr;
+-	u32 vid_screenpaint_timectl1;
+-	u32 vid_screenpaint_qsfcnt;
+-	u32 vid_screenpaint_timectl2;
+-	u32 vid_xxx[15];
+-
+-	/* Registers for the video control */
+-	u32 vram_base;
+-	u32 vram_memcfg;
+-	u32 vram_refresh_pd;
+-	u32 vram_refresh_cnt;
+-	u32 vram_raslo_max;
+-	u32 vram_raslo_cur;
+-	u32 pwrup_cfg;
+-	u32 vram_xxx[25];
+-
+-	/* Registers for IBM RGB528 Palette */
+-	u32 ramdac_cmap_wridx;
+-	u32 ramdac_palette_data;
+-	u32 ramdac_pixel_mask;
+-	u32 ramdac_palette_rdaddr;
+-	u32 ramdac_idx_lo;
+-	u32 ramdac_idx_hi;
+-	u32 ramdac_idx_data;
+-	u32 ramdac_idx_ctl;
+-	u32 ramdac_xxx[1784];
+-};
+-
+-struct p9100_cmd_parameng {
+-	u32 parameng_status;
+-	u32 parameng_bltcmd;
+-	u32 parameng_quadcmd;
+-};
+-
+-struct p9100_par {
+-	spinlock_t		lock;
+-	struct p9100_regs	__iomem *regs;
+-
+-	u32			flags;
+-#define P9100_FLAG_BLANKED	0x00000001
+-
+-	unsigned long		which_io;
+-};
+-
+-/**
+- *      p9100_setcolreg - Optional function. Sets a color register.
+- *      @regno: boolean, 0 copy local, 1 get_user() function
+- *      @red: frame buffer colormap structure
+- *      @green: The green value which can be up to 16 bits wide
+- *      @blue:  The blue value which can be up to 16 bits wide.
+- *      @transp: If supported the alpha value which can be up to 16 bits wide.
+- *      @info: frame buffer info structure
+- */
+-static int p9100_setcolreg(unsigned regno,
+-			   unsigned red, unsigned green, unsigned blue,
+-			   unsigned transp, struct fb_info *info)
 -{
--	struct iommu_struct *iommu;
--	unsigned int impl, vers;
--	unsigned long *bitmap;
--	unsigned long control;
--	unsigned long base;
--	unsigned long tmp;
+-	struct p9100_par *par = (struct p9100_par *) info->par;
+-	struct p9100_regs __iomem *regs = par->regs;
+-	unsigned long flags;
 -
--	iommu = kmalloc(sizeof(struct iommu_struct), GFP_KERNEL);
--	if (!iommu) {
--		prom_printf("Unable to allocate iommu structure\n");
--		prom_halt();
--	}
+-	if (regno >= 256)
+-		return 1;
 -
--	iommu->regs = of_ioremap(&op->resource[0], 0, PAGE_SIZE * 3,
--				 "iommu_regs");
--	if (!iommu->regs) {
--		prom_printf("Cannot map IOMMU registers\n");
--		prom_halt();
--	}
+-	red >>= 8;
+-	green >>= 8;
+-	blue >>= 8;
 -
--	control = sbus_readl(&iommu->regs->control);
--	impl = (control & IOMMU_CTRL_IMPL) >> 28;
--	vers = (control & IOMMU_CTRL_VERS) >> 24;
--	control &= ~(IOMMU_CTRL_RNGE);
--	control |= (IOMMU_RNGE_256MB | IOMMU_CTRL_ENAB);
--	sbus_writel(control, &iommu->regs->control);
+-	spin_lock_irqsave(&par->lock, flags);
 -
--	iommu_invalidate(iommu->regs);
--	iommu->start = IOMMU_START;
--	iommu->end = 0xffffffff;
+-	sbus_writel((regno << 16), &regs->ramdac_cmap_wridx);
+-	sbus_writel((red << 16), &regs->ramdac_palette_data);
+-	sbus_writel((green << 16), &regs->ramdac_palette_data);
+-	sbus_writel((blue << 16), &regs->ramdac_palette_data);
 -
--	/* Allocate IOMMU page table */
--	/* Stupid alignment constraints give me a headache. 
--	   We need 256K or 512K or 1M or 2M area aligned to
--           its size and current gfp will fortunately give
--           it to us. */
--        tmp = __get_free_pages(GFP_KERNEL, IOMMU_ORDER);
--	if (!tmp) {
--		prom_printf("Unable to allocate iommu table [0x%lx]\n",
--			    IOMMU_NPTES * sizeof(iopte_t));
--		prom_halt();
--	}
--	iommu->page_table = (iopte_t *)tmp;
--
--	/* Initialize new table. */
--	memset(iommu->page_table, 0, IOMMU_NPTES*sizeof(iopte_t));
--	flush_cache_all();
--	flush_tlb_all();
--
--	base = __pa((unsigned long)iommu->page_table) >> 4;
--	sbus_writel(base, &iommu->regs->base);
--	iommu_invalidate(iommu->regs);
--
--	bitmap = kmalloc(IOMMU_NPTES>>3, GFP_KERNEL);
--	if (!bitmap) {
--		prom_printf("Unable to allocate iommu bitmap [%d]\n",
--			    (int)(IOMMU_NPTES>>3));
--		prom_halt();
--	}
--	bit_map_init(&iommu->usemap, bitmap, IOMMU_NPTES);
--	iommu->usemap.num_colors = 1;
--
--	printk(KERN_INFO "IOMMU: impl %d vers %d table 0x%p[%d B] map [%d b]\n",
--	       impl, vers, iommu->page_table,
--	       (int)(IOMMU_NPTES*sizeof(iopte_t)), (int)IOMMU_NPTES);
--
--	op->dev.archdata.iommu = iommu;
--
--	if (flush_page_for_dma_global)
--		op->dev.dma_ops = &sbus_iommu_dma_gflush_ops;
--	 else
--		op->dev.dma_ops = &sbus_iommu_dma_pflush_ops;
--}
--
--static int __init iommu_init(void)
--{
--	struct device_node *dp;
--
--	for_each_node_by_name(dp, "iommu") {
--		struct platform_device *op = of_find_device_by_node(dp);
--
--		sbus_iommu_init(op);
--		of_propagate_archdata(op);
--	}
+-	spin_unlock_irqrestore(&par->lock, flags);
 -
 -	return 0;
 -}
 -
--subsys_initcall(iommu_init);
--
--/* Flush the iotlb entries to ram. */
--/* This could be better if we didn't have to flush whole pages. */
--static void iommu_flush_iotlb(iopte_t *iopte, unsigned int niopte)
+-/**
+- *      p9100_blank - Optional function.  Blanks the display.
+- *      @blank: the blank mode we want.
+- *      @info: frame buffer structure that represents a single frame buffer
+- */
+-static int
+-p9100_blank(int blank, struct fb_info *info)
 -{
--	unsigned long start;
--	unsigned long end;
+-	struct p9100_par *par = (struct p9100_par *) info->par;
+-	struct p9100_regs __iomem *regs = par->regs;
+-	unsigned long flags;
+-	u32 val;
 -
--	start = (unsigned long)iopte;
--	end = PAGE_ALIGN(start + niopte*sizeof(iopte_t));
--	start &= PAGE_MASK;
--	while(start < end) {
--		__flush_page_to_ram(start);
--		start += PAGE_SIZE;
--	}
--}
+-	spin_lock_irqsave(&par->lock, flags);
 -
--static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
--		unsigned long offset, size_t len, bool per_page_flush)
--{
--	struct iommu_struct *iommu = dev->archdata.iommu;
--	phys_addr_t paddr = page_to_phys(page) + offset;
--	unsigned long off = paddr & ~PAGE_MASK;
--	unsigned long npages = (off + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	unsigned long pfn = __phys_to_pfn(paddr);
--	unsigned int busa, busa0;
--	iopte_t *iopte, *iopte0;
--	int ioptex, i;
+-	switch (blank) {
+-	case FB_BLANK_UNBLANK: /* Unblanking */
+-		val = sbus_readl(&regs->vid_screenpaint_timectl1);
+-		val |= SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
+-		sbus_writel(val, &regs->vid_screenpaint_timectl1);
+-		par->flags &= ~P9100_FLAG_BLANKED;
+-		break;
 -
--	/* XXX So what is maxphys for us and how do drivers know it? */
--	if (!len || len > 256 * 1024)
--		return DMA_MAPPING_ERROR;
--
--	/*
--	 * We expect unmapped highmem pages to be not in the cache.
--	 * XXX Is this a good assumption?
--	 * XXX What if someone else unmaps it here and races us?
--	 */
--	if (per_page_flush && !PageHighMem(page)) {
--		unsigned long vaddr, p;
--
--		vaddr = (unsigned long)page_address(page) + offset;
--		for (p = vaddr & PAGE_MASK; p < vaddr + len; p += PAGE_SIZE)
--			flush_page_for_dma(p);
+-	case FB_BLANK_NORMAL: /* Normal blanking */
+-	case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
+-	case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
+-	case FB_BLANK_POWERDOWN: /* Poweroff */
+-		val = sbus_readl(&regs->vid_screenpaint_timectl1);
+-		val &= ~SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
+-		sbus_writel(val, &regs->vid_screenpaint_timectl1);
+-		par->flags |= P9100_FLAG_BLANKED;
+-		break;
 -	}
 -
--	/* page color = pfn of page */
--	ioptex = bit_map_string_get(&iommu->usemap, npages, pfn);
--	if (ioptex < 0)
--		panic("iommu out");
--	busa0 = iommu->start + (ioptex << PAGE_SHIFT);
--	iopte0 = &iommu->page_table[ioptex];
+-	spin_unlock_irqrestore(&par->lock, flags);
 -
--	busa = busa0;
--	iopte = iopte0;
--	for (i = 0; i < npages; i++) {
--		iopte_val(*iopte) = MKIOPTE(pfn, IOPERM);
--		iommu_invalidate_page(iommu->regs, busa);
--		busa += PAGE_SIZE;
--		iopte++;
--		pfn++;
--	}
--
--	iommu_flush_iotlb(iopte0, npages);
--	return busa0 + off;
+-	return 0;
 -}
 -
--static dma_addr_t sbus_iommu_map_page_gflush(struct device *dev,
--		struct page *page, unsigned long offset, size_t len,
--		enum dma_data_direction dir, unsigned long attrs)
--{
--	flush_page_for_dma(0);
--	return __sbus_iommu_map_page(dev, page, offset, len, false);
--}
--
--static dma_addr_t sbus_iommu_map_page_pflush(struct device *dev,
--		struct page *page, unsigned long offset, size_t len,
--		enum dma_data_direction dir, unsigned long attrs)
--{
--	return __sbus_iommu_map_page(dev, page, offset, len, true);
--}
--
--static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs,
--		bool per_page_flush)
--{
--	struct scatterlist *sg;
--	int j;
--
--	for_each_sg(sgl, sg, nents, j) {
--		sg->dma_address =__sbus_iommu_map_page(dev, sg_page(sg),
--				sg->offset, sg->length, per_page_flush);
--		if (sg->dma_address == DMA_MAPPING_ERROR)
--			return -EIO;
--		sg->dma_length = sg->length;
--	}
--
--	return nents;
--}
--
--static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	flush_page_for_dma(0);
--	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, false);
--}
--
--static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, true);
--}
--
--static void sbus_iommu_unmap_page(struct device *dev, dma_addr_t dma_addr,
--		size_t len, enum dma_data_direction dir, unsigned long attrs)
--{
--	struct iommu_struct *iommu = dev->archdata.iommu;
--	unsigned int busa = dma_addr & PAGE_MASK;
--	unsigned long off = dma_addr & ~PAGE_MASK;
--	unsigned int npages = (off + len + PAGE_SIZE-1) >> PAGE_SHIFT;
--	unsigned int ioptex = (busa - iommu->start) >> PAGE_SHIFT;
--	unsigned int i;
--
--	BUG_ON(busa < iommu->start);
--	for (i = 0; i < npages; i++) {
--		iopte_val(iommu->page_table[ioptex + i]) = 0;
--		iommu_invalidate_page(iommu->regs, busa);
--		busa += PAGE_SIZE;
--	}
--	bit_map_clear(&iommu->usemap, ioptex, npages);
--}
--
--static void sbus_iommu_unmap_sg(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	struct scatterlist *sg;
--	int i;
--
--	for_each_sg(sgl, sg, nents, i) {
--		sbus_iommu_unmap_page(dev, sg->dma_address, sg->length, dir,
--				attrs);
--		sg->dma_address = 0x21212121;
--	}
--}
--
--#ifdef CONFIG_SBUS
--static void *sbus_iommu_alloc(struct device *dev, size_t len,
--		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
--{
--	struct iommu_struct *iommu = dev->archdata.iommu;
--	unsigned long va, addr, page, end, ret;
--	iopte_t *iopte = iommu->page_table;
--	iopte_t *first;
--	int ioptex;
--
--	/* XXX So what is maxphys for us and how do drivers know it? */
--	if (!len || len > 256 * 1024)
--		return NULL;
--
--	len = PAGE_ALIGN(len);
--	va = __get_free_pages(gfp | __GFP_ZERO, get_order(len));
--	if (va == 0)
--		return NULL;
--
--	addr = ret = sparc_dma_alloc_resource(dev, len);
--	if (!addr)
--		goto out_free_pages;
--
--	BUG_ON((va & ~PAGE_MASK) != 0);
--	BUG_ON((addr & ~PAGE_MASK) != 0);
--	BUG_ON((len & ~PAGE_MASK) != 0);
--
--	/* page color = physical address */
--	ioptex = bit_map_string_get(&iommu->usemap, len >> PAGE_SHIFT,
--		addr >> PAGE_SHIFT);
--	if (ioptex < 0)
--		panic("iommu out");
--
--	iopte += ioptex;
--	first = iopte;
--	end = addr + len;
--	while(addr < end) {
--		page = va;
--		{
--			pmd_t *pmdp;
--			pte_t *ptep;
--
--			__flush_page_to_ram(page);
--
--			pmdp = pmd_off_k(addr);
--			ptep = pte_offset_kernel(pmdp, addr);
--
--			set_pte(ptep, mk_pte(virt_to_page(page), dvma_prot));
--		}
--		iopte_val(*iopte++) =
--		    MKIOPTE(page_to_pfn(virt_to_page(page)), ioperm_noc);
--		addr += PAGE_SIZE;
--		va += PAGE_SIZE;
--	}
--	/* P3: why do we need this?
--	 *
--	 * DAVEM: Because there are several aspects, none of which
--	 *        are handled by a single interface.  Some cpus are
--	 *        completely not I/O DMA coherent, and some have
--	 *        virtually indexed caches.  The driver DMA flushing
--	 *        methods handle the former case, but here during
--	 *        IOMMU page table modifications, and usage of non-cacheable
--	 *        cpu mappings of pages potentially in the cpu caches, we have
--	 *        to handle the latter case as well.
--	 */
--	flush_cache_all();
--	iommu_flush_iotlb(first, len >> PAGE_SHIFT);
--	flush_tlb_all();
--	iommu_invalidate(iommu->regs);
--
--	*dma_handle = iommu->start + (ioptex << PAGE_SHIFT);
--	return (void *)ret;
--
--out_free_pages:
--	free_pages(va, get_order(len));
--	return NULL;
--}
--
--static void sbus_iommu_free(struct device *dev, size_t len, void *cpu_addr,
--			       dma_addr_t busa, unsigned long attrs)
--{
--	struct iommu_struct *iommu = dev->archdata.iommu;
--	iopte_t *iopte = iommu->page_table;
--	struct page *page = virt_to_page(cpu_addr);
--	int ioptex = (busa - iommu->start) >> PAGE_SHIFT;
--	unsigned long end;
--
--	if (!sparc_dma_free_resource(cpu_addr, len))
--		return;
--
--	BUG_ON((busa & ~PAGE_MASK) != 0);
--	BUG_ON((len & ~PAGE_MASK) != 0);
--
--	iopte += ioptex;
--	end = busa + len;
--	while (busa < end) {
--		iopte_val(*iopte++) = 0;
--		busa += PAGE_SIZE;
--	}
--	flush_tlb_all();
--	iommu_invalidate(iommu->regs);
--	bit_map_clear(&iommu->usemap, ioptex, len >> PAGE_SHIFT);
--
--	__free_pages(page, get_order(len));
--}
--#endif
--
--static const struct dma_map_ops sbus_iommu_dma_gflush_ops = {
--#ifdef CONFIG_SBUS
--	.alloc			= sbus_iommu_alloc,
--	.free			= sbus_iommu_free,
--#endif
--	.map_page		= sbus_iommu_map_page_gflush,
--	.unmap_page		= sbus_iommu_unmap_page,
--	.map_sg			= sbus_iommu_map_sg_gflush,
--	.unmap_sg		= sbus_iommu_unmap_sg,
+-static struct sbus_mmap_map p9100_mmap_map[] = {
+-	{ CG3_MMAP_OFFSET,	0,		SBUS_MMAP_FBSIZE(1) },
+-	{ 0,			0,		0		    }
 -};
 -
--static const struct dma_map_ops sbus_iommu_dma_pflush_ops = {
--#ifdef CONFIG_SBUS
--	.alloc			= sbus_iommu_alloc,
--	.free			= sbus_iommu_free,
--#endif
--	.map_page		= sbus_iommu_map_page_pflush,
--	.unmap_page		= sbus_iommu_unmap_page,
--	.map_sg			= sbus_iommu_map_sg_pflush,
--	.unmap_sg		= sbus_iommu_unmap_sg,
+-static int p9100_sbusfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+-{
+-	struct p9100_par *par = (struct p9100_par *)info->par;
+-
+-	return sbusfb_mmap_helper(p9100_mmap_map,
+-				  info->fix.smem_start, info->fix.smem_len,
+-				  par->which_io, vma);
+-}
+-
+-static int p9100_sbusfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+-{
+-	/* Make it look like a cg3. */
+-	return sbusfb_ioctl_helper(cmd, arg, info,
+-				   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
+-}
+-
+-/*
+- *  Initialisation
+- */
+-
+-static void p9100_init_fix(struct fb_info *info, int linebytes, struct device_node *dp)
+-{
+-	snprintf(info->fix.id, sizeof(info->fix.id), "%pOFn", dp);
+-
+-	info->fix.type = FB_TYPE_PACKED_PIXELS;
+-	info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+-
+-	info->fix.line_length = linebytes;
+-
+-	info->fix.accel = FB_ACCEL_SUN_CGTHREE;
+-}
+-
+-static int p9100_probe(struct platform_device *op)
+-{
+-	struct device_node *dp = op->dev.of_node;
+-	struct fb_info *info;
+-	struct p9100_par *par;
+-	int linebytes, err;
+-
+-	info = framebuffer_alloc(sizeof(struct p9100_par), &op->dev);
+-
+-	err = -ENOMEM;
+-	if (!info)
+-		goto out_err;
+-	par = info->par;
+-
+-	spin_lock_init(&par->lock);
+-
+-	/* This is the framebuffer and the only resource apps can mmap.  */
+-	info->fix.smem_start = op->resource[2].start;
+-	par->which_io = op->resource[2].flags & IORESOURCE_BITS;
+-
+-	sbusfb_fill_var(&info->var, dp, 8);
+-	info->var.red.length = 8;
+-	info->var.green.length = 8;
+-	info->var.blue.length = 8;
+-
+-	linebytes = of_getintprop_default(dp, "linebytes", info->var.xres);
+-	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
+-
+-	par->regs = of_ioremap(&op->resource[0], 0,
+-			       sizeof(struct p9100_regs), "p9100 regs");
+-	if (!par->regs)
+-		goto out_release_fb;
+-
+-	info->fbops = &p9100_ops;
+-	info->screen_base = of_ioremap(&op->resource[2], 0,
+-				       info->fix.smem_len, "p9100 ram");
+-	if (!info->screen_base)
+-		goto out_unmap_regs;
+-
+-	p9100_blank(FB_BLANK_UNBLANK, info);
+-
+-	if (fb_alloc_cmap(&info->cmap, 256, 0))
+-		goto out_unmap_screen;
+-
+-	p9100_init_fix(info, linebytes, dp);
+-
+-	err = register_framebuffer(info);
+-	if (err < 0)
+-		goto out_dealloc_cmap;
+-
+-	fb_set_cmap(&info->cmap, info);
+-
+-	dev_set_drvdata(&op->dev, info);
+-
+-	printk(KERN_INFO "%pOF: p9100 at %lx:%lx\n",
+-	       dp,
+-	       par->which_io, info->fix.smem_start);
+-
+-	return 0;
+-
+-out_dealloc_cmap:
+-	fb_dealloc_cmap(&info->cmap);
+-
+-out_unmap_screen:
+-	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
+-
+-out_unmap_regs:
+-	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
+-
+-out_release_fb:
+-	framebuffer_release(info);
+-
+-out_err:
+-	return err;
+-}
+-
+-static void p9100_remove(struct platform_device *op)
+-{
+-	struct fb_info *info = dev_get_drvdata(&op->dev);
+-	struct p9100_par *par = info->par;
+-
+-	unregister_framebuffer(info);
+-	fb_dealloc_cmap(&info->cmap);
+-
+-	of_iounmap(&op->resource[0], par->regs, sizeof(struct p9100_regs));
+-	of_iounmap(&op->resource[2], info->screen_base, info->fix.smem_len);
+-
+-	framebuffer_release(info);
+-}
+-
+-static const struct of_device_id p9100_match[] = {
+-	{
+-		.name = "p9100",
+-	},
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, p9100_match);
+-
+-static struct platform_driver p9100_driver = {
+-	.driver = {
+-		.name = "p9100",
+-		.of_match_table = p9100_match,
+-	},
+-	.probe		= p9100_probe,
+-	.remove_new	= p9100_remove,
 -};
 -
--void __init ld_mmu_iommu(void)
+-static int __init p9100_init(void)
 -{
--	dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
--	ioperm_noc = IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID;
--}
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index 2c83b8ce742d..102e6a5162b0 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -14,6 +14,3 @@ extern int flush_page_for_dma_global;
- extern void (*poke_srmmu)(void);
- 
- void __init srmmu_paging_init(void);
+-	if (fb_get_options("p9100fb", NULL))
+-		return -ENODEV;
 -
--/* iommu.c */
--void ld_mmu_iommu(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 949247a6896b..dab71cd3fdb2 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -1023,10 +1023,7 @@ void __init load_mmu(void)
- 	/* It really is const after this point. */
- 	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
- 		&smp_cachetlb_ops;
--#endif
- 
--	ld_mmu_iommu();
--#ifdef CONFIG_SMP
- 	leon_init_smp();
- #endif
- }
+-	return platform_driver_register(&p9100_driver);
+-}
+-
+-static void __exit p9100_exit(void)
+-{
+-	platform_driver_unregister(&p9100_driver);
+-}
+-
+-module_init(p9100_init);
+-module_exit(p9100_exit);
+-
+-MODULE_DESCRIPTION("framebuffer driver for P9100 chipsets");
+-MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
+-MODULE_VERSION("2.0");
+-MODULE_LICENSE("GPL");
 
 -- 
 2.34.1
