@@ -1,106 +1,100 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072C62374E;
-	Fri, 22 Dec 2023 15:33:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3764E603
+	for <sparclinux@vger.kernel.org>; Tue, 26 Dec 2023 12:16:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="p2o87jp7"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4SxWPh4Sz5z6831;
-	Fri, 22 Dec 2023 16:27:20 +0100 (CET)
-Received: from [10.10.15.23] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4SxWPh0TQLz681j;
-	Fri, 22 Dec 2023 16:27:20 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1703258840;
-	bh=m7I+N7YglnnDAb5DtR+LUfwkg0HkRzNLUluJIF+uoPM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=p2o87jp784kPbSta4a1986Wv2iStA5gze7ttrCbLhC6KgxlYUjGY/PIwPQbTB9ZNQ
-	 ngb13eNePXnFDkTX+E3eWmvLmTtffjg6qL12LR+Tw8vTHoaoELXiz+DYsKTMjm0GaZ
-	 ef2LvbQI6FRWQtn12eZpRwvwz2kHJ3puvEPVLwdM=
-Message-ID: <22f2a3af-0f61-4938-8546-d0308853b467@gaisler.com>
-Date: Fri, 22 Dec 2023 16:27:19 +0100
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="zFMpPmf/";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="I4yeLQQ5"
+X-HalOne-ID: 8d306bbe-a3e8-11ee-bca2-2dc64a403fa2
+Received: from mailrelay3.pub.mailoutpod3-cph3.one.com (unknown [104.37.34.40])
+	by mailrelay4 (Halon) with ESMTPS
+	id 8d306bbe-a3e8-11ee-bca2-2dc64a403fa2;
+	Tue, 26 Dec 2023 12:16:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa2;
+	h=content-type:mime-version:message-id:subject:cc:to:from:date:from;
+	bh=MbQcNc9JvXsQ+yjx2TrqKUQ/vQcx03BWjjGJcW0+TPo=;
+	b=zFMpPmf/xLsNHMc4hKa88/rR0scLpkJiWt/MHdnLfsGJ7jdZvASjYs4KXMpHlfRuHy+FL0IGTHhiF
+	 MV3Q0DPMQgEhTGkFmu6Wubs4GtPZCKlKtb5JfOzbtIKhYmaazM192jUtkpuz8oJRa/cKS/rNEUdCam
+	 QW1onMwCH7/hLYH9stQgQDmkJgrGXLbrfARYmBe0eC4aKmxXFwPRoifpyAo9lKyzkTBxS+l7O4J3Ly
+	 Gw8sH+kvY8hWPbSfNRYTh5BxeNTwV8s/6gOpzfCuky6viFzP4s6VkRsVkbMb/Cr+ed6K/ZlA1XbOyG
+	 I4JzNmPXDBNP8aYYfv434VFXFMgabng==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed2;
+	h=content-type:mime-version:message-id:subject:cc:to:from:date:from;
+	bh=MbQcNc9JvXsQ+yjx2TrqKUQ/vQcx03BWjjGJcW0+TPo=;
+	b=I4yeLQQ5znSs5S/RPuVmE2hxPDEE0D2nviuFY/Sk+c+Fq3syKu0WMkuaUar7UKlF9i6oF5OeKzS4V
+	 VP2J9ByBw==
+X-HalOne-ID: 8b56b3d1-a3e8-11ee-8834-85e425223685
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay3 (Halon) with ESMTPSA
+	id 8b56b3d1-a3e8-11ee-8834-85e425223685;
+	Tue, 26 Dec 2023 12:16:08 +0000 (UTC)
+Date: Tue, 26 Dec 2023 13:16:07 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Andreas Larsson <andreas@gaisler.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>
+Cc: linux-serial@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: [PATCH] serial: apbuart: fix console prompt on qemu
+Message-ID: <20231226121607.GA2622970@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/27] sparc32: sunset sun4m and sun4d
-Content-Language: en-US
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Sam Ravnborg <sam@ravnborg.org>,
- Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Cc: Arnd Bergmann <arnd@kernel.org>, "David S . Miller"
- <davem@davemloft.net>, Helge Deller <deller@gmx.de>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Alan Stern <stern@rowland.harvard.edu>, Jaroslav Kysela <perex@perex.cz>,
- Takashi Iwai <tiwai@suse.com>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
- linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-sound@vger.kernel.org
-References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
- <01ea8c41-88cd-4123-95c7-391640845fc3@app.fastmail.com>
- <e897e6d5a88ec2f9024c62f7bee5c13bfb2cab55.camel@physik.fu-berlin.de>
- <dbb60b13-565f-43b8-8cb8-6f8cd98b06df@app.fastmail.com>
- <3d733b57-884a-4755-a32a-74061b48e182@ilande.co.uk>
- <20231220152224.GA867968@ravnborg.org>
- <566d7867c746ac2a85f0fc42dd8e28eaffd45ed4.camel@physik.fu-berlin.de>
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <566d7867c746ac2a85f0fc42dd8e28eaffd45ed4.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+When using a leon kernel with qemu there where no console prompt.
+The root cause is the handling of the fifo size in the tx part of the
+apbuart driver.
 
-On 2023-12-20 18:25, John Paul Adrian Glaubitz wrote:
-> Hi Sam,
-> 
-> On Wed, 2023-12-20 at 16:22 +0100, Sam Ravnborg wrote:
->>> The leon3_generic machine is maintained by different people so I'd suggest
->>> contacting them: see [1] for their contact details. I see there is an
->>> avocado boot test for the leon3_generic machine included within the QEMU
->>> source tree, but it uses a downloadable image of HelenOS rather than Linux.
->>
->> Thanks for the pointer, I will try to reach out to them when I have
->> something a bit more solid than "it does not work".
->>
->> I tried to hack around a little in qemu and I have an idea where things
->> goes wrong. The leon_generic assumes another address layout than what is
->> used by the kernel, so the very first jump to a kernel address fails.
+The qemu uart driver only have a very rudimentary status handling and do
+not report the number of chars queued in the tx fifo in the status register.
+So the driver ends up with a fifo size of 1.
 
-The MKLINUXIMG second stage bootloader sets up MMU tables and the SPARC
-OPENPROM interface for LEON systems, so you need to run the vmlinux
-image through that. You can find it (and our other Linux related
-releases) via https://gaisler.com/index.php/downloads/linux. The manual
-is at https://www.gaisler.com/doc/mklinuximg.pdf and the latest release at
-https://gaisler.com/anonftp/linux/linux-2.6/kernel/mklinuximg-2.0.15.tar.bz2
+In the tx path the fifo size is divided by 2 - resulting in a fifo
+size of zero.
 
-With a sparc-linux-gcc in the PATH (or using CROSS_COMPILE to point out
-a toolchain stem) you can do:
+The original implementation would always try to send one char, but
+after the introduction of uart_port_tx_limited() the fifo size is
+respected even for the first char.
 
-mklinuximg vmlinux image.ram
+There seems to be no good reason to divide the fifo size with two - so
+remove this. It looks like something copied from the original amba driver.
 
-and then run the resulting image.ram in e.g. QEMU 8.2.0 with
+With qemu we now have a minimum fifo size of one char, so we show
+the prompt.
 
-qemu-system-sparc -nographic -M leon3_generic -m 256 -kernel image.ram
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Fixes: d11cc8c3c4b6 ("tty: serial: use uart_port_tx_limited()")
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: linux-serial@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+---
+ drivers/tty/serial/apbuart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This at least boots the kernel and let me log in when quickly testing a
-few images with root filesystems in initramfs, admittedly with our
-kernel patches in place.
-
-
-> I would argue that before we start introducing larger changes to arch/sparc,
-> we should settle the maintainership question first. Once we have an active
-> maintainer again, we can have a more extended discussion about what to keep
-> and how to name things.
-I agree.
-
-Cheers,
-Andreas
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 716cb014c028..364599f256db 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -122,7 +122,7 @@ static void apbuart_tx_chars(struct uart_port *port)
+ {
+ 	u8 ch;
+ 
+-	uart_port_tx_limited(port, ch, port->fifosize >> 1,
++	uart_port_tx_limited(port, ch, port->fifosize,
+ 		true,
+ 		UART_PUT_CHAR(port, ch),
+ 		({}));
+-- 
+2.34.1
 
