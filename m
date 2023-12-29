@@ -1,46 +1,41 @@
-Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [46.30.211.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3764E603
-	for <sparclinux@vger.kernel.org>; Tue, 26 Dec 2023 12:16:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBEBB13FE1
+	for <sparclinux@vger.kernel.org>; Fri, 29 Dec 2023 20:07:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="zFMpPmf/";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="I4yeLQQ5"
-X-HalOne-ID: 8d306bbe-a3e8-11ee-bca2-2dc64a403fa2
-Received: from mailrelay3.pub.mailoutpod3-cph3.one.com (unknown [104.37.34.40])
-	by mailrelay4 (Halon) with ESMTPS
-	id 8d306bbe-a3e8-11ee-bca2-2dc64a403fa2;
-	Tue, 26 Dec 2023 12:16:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="DkuEGVps";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="3NYGE2Qr"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=ravnborg.org; s=rsa2;
 	h=content-type:mime-version:message-id:subject:cc:to:from:date:from;
-	bh=MbQcNc9JvXsQ+yjx2TrqKUQ/vQcx03BWjjGJcW0+TPo=;
-	b=zFMpPmf/xLsNHMc4hKa88/rR0scLpkJiWt/MHdnLfsGJ7jdZvASjYs4KXMpHlfRuHy+FL0IGTHhiF
-	 MV3Q0DPMQgEhTGkFmu6Wubs4GtPZCKlKtb5JfOzbtIKhYmaazM192jUtkpuz8oJRa/cKS/rNEUdCam
-	 QW1onMwCH7/hLYH9stQgQDmkJgrGXLbrfARYmBe0eC4aKmxXFwPRoifpyAo9lKyzkTBxS+l7O4J3Ly
-	 Gw8sH+kvY8hWPbSfNRYTh5BxeNTwV8s/6gOpzfCuky6viFzP4s6VkRsVkbMb/Cr+ed6K/ZlA1XbOyG
-	 I4JzNmPXDBNP8aYYfv434VFXFMgabng==
+	bh=pkcfHoIvOVMjb6wC0QUurbUExgvIMqM69mplL5NKdgY=;
+	b=DkuEGVpsJ0PA0maJ7z/JNX+UwlQKxJT8JuYyFUJOlK79HQi2yQBmDkROFKaEx3eT9efRwWhkgTqvI
+	 ZPHdse0DS2Ko/mc93xWY4NztroPEoVgL1x7H+u+T7RZWg2LxKXW+anoZtMvXuGYFKUXHansoanhl7d
+	 i9eQ8b37OMo0IUUN/9MrzZcp2osHEbrqiIRsNvVcejnktviOZChWh99wm7Qfkmu+H5wPhFSoMfeTNC
+	 bGdWiu2IquCha58M64jhvhVpvP7OLZAMIVg9aRXYkVMRfFh/KJaEobEjBkt6ZGpmIHy82KFmC7+0LN
+	 zefJGTU/jLyEKIOFG6sD+Opzn9bJaiw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
 	d=ravnborg.org; s=ed2;
 	h=content-type:mime-version:message-id:subject:cc:to:from:date:from;
-	bh=MbQcNc9JvXsQ+yjx2TrqKUQ/vQcx03BWjjGJcW0+TPo=;
-	b=I4yeLQQ5znSs5S/RPuVmE2hxPDEE0D2nviuFY/Sk+c+Fq3syKu0WMkuaUar7UKlF9i6oF5OeKzS4V
-	 VP2J9ByBw==
-X-HalOne-ID: 8b56b3d1-a3e8-11ee-8834-85e425223685
+	bh=pkcfHoIvOVMjb6wC0QUurbUExgvIMqM69mplL5NKdgY=;
+	b=3NYGE2Qr+dkkLFxqzamsXtDCLIQV/6BPpRc210Gno3ufKgW7nwwH4WDbPA+8kfaF+d+u/mpW3o1ix
+	 MPjdbboAw==
+X-HalOne-ID: b1e19022-a685-11ee-8a6e-a34c9b1f9040
 Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay3 (Halon) with ESMTPSA
-	id 8b56b3d1-a3e8-11ee-8834-85e425223685;
-	Tue, 26 Dec 2023 12:16:08 +0000 (UTC)
-Date: Tue, 26 Dec 2023 13:16:07 +0100
+	by mailrelay2 (Halon) with ESMTPSA
+	id b1e19022-a685-11ee-8a6e-a34c9b1f9040;
+	Fri, 29 Dec 2023 20:06:05 +0000 (UTC)
+Date: Fri, 29 Dec 2023 21:06:04 +0100
 From: Sam Ravnborg <sam@ravnborg.org>
-To: Andreas Larsson <andreas@gaisler.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>
-Cc: linux-serial@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: [PATCH] serial: apbuart: fix console prompt on qemu
-Message-ID: <20231226121607.GA2622970@ravnborg.org>
+To: "David S. Miller" <davem@davemloft.net>,
+	Arnd Bergmann <arnd@kernel.org>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Subject: [PATCH 0/4] sparc32: Use CAS for atomic support
+Message-ID: <20231229200604.GA4033529@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -50,51 +45,51 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-When using a leon kernel with qemu there where no console prompt.
-The root cause is the handling of the fifo size in the tx part of the
-apbuart driver.
+With sparc limited to leon3 the next step was to address the atomic
+support which this patch set does.
 
-The qemu uart driver only have a very rudimentary status handling and do
-not report the number of chars queued in the tx fifo in the status register.
-So the driver ends up with a fifo size of 1.
+Gaisler already had an implementation in their kernel patch stack, that
+co-existed with sparc v8 without CAS support.
 
-In the tx path the fifo size is divided by 2 - resulting in a fifo
-size of zero.
+As the sparc v8 without CAS is no longer supported this patch set takes
+a different approach. Using the current best practices the atomic support
+is implemented in three steps.
 
-The original implementation would always try to send one char, but
-after the introduction of uart_port_tx_limited() the fifo size is
-respected even for the first char.
+The cmpxchg is updated to use casa/swap.
+The atomic bitops are implemented in their own file and uses a minimal of
+inline assembly.
+The atomic operations are implemented based on the template found in
+asm-generic.
 
-There seems to be no good reason to divide the fifo size with two - so
-remove this. It looks like something copied from the original amba driver.
+Some notes:
+- The code uses __always_inlin almost everywhere, where inline could be
+  enough. Not sure what is best here.
+- The new (and replaced) files uses the SPDX tag: GPL-2.0
+  No sure if this is best practice today, I am happy to change the
+  license.
+- Build tested and booted using qemu.
 
-With qemu we now have a minimum fifo size of one char, so we show
-the prompt.
+The patches are on top of the sun4m and sun4d sunset patches.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Fixes: d11cc8c3c4b6 ("tty: serial: use uart_port_tx_limited()")
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: linux-serial@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+Review feedback appreciated!
+
+	Sam
+
 ---
- drivers/tty/serial/apbuart.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
-index 716cb014c028..364599f256db 100644
---- a/drivers/tty/serial/apbuart.c
-+++ b/drivers/tty/serial/apbuart.c
-@@ -122,7 +122,7 @@ static void apbuart_tx_chars(struct uart_port *port)
- {
- 	u8 ch;
+Sam Ravnborg (4):
+      sparc32: Add support for specifying -mcpu
+      sparc32: Add cmpxchg support using CAS
+      sparc32: Add atomic bitops support using CAS
+      sparc32: Add atomic support using CAS
  
--	uart_port_tx_limited(port, ch, port->fifosize >> 1,
-+	uart_port_tx_limited(port, ch, port->fifosize,
- 		true,
- 		UART_PUT_CHAR(port, ch),
- 		({}));
--- 
-2.34.1
+ arch/sparc/Kconfig                        |  24 +++++++++++
+ arch/sparc/Makefile                       |  13 +++---
+ arch/sparc/include/asm/atomic_32.h        | 151 ++++++++++++++++++++++++++++++++++++++++++++-----------------------
+ arch/sparc/include/asm/bitops/atomic_32.h | 124 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/include/asm/bitops_32.h        |  71 +-------------------------------
+ arch/sparc/include/asm/cmpxchg_32.h       |  72 ++++++++++++++++++--------------
+ arch/sparc/lib/Makefile                   |   2 +-
+ arch/sparc/lib/atomic32.c                 | 202 ------------------------------------------------------------------------------------------
+ 8 files changed, 296 insertions(+), 363 deletions(-)
+
 
