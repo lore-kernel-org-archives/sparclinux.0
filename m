@@ -1,85 +1,104 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B049A2A;
-	Thu,  4 Jan 2024 00:41:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAEE249E8;
+	Thu,  4 Jan 2024 15:23:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="2yfrW4Vb"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=TiAiB9M8YbD3b3cX1GLPOOGA6GWJVMdF5A+A3H+oiXA=; b=2yfrW4VbADGreKNe//5WhmlTBz
-	5i2DJJTzLwfl3AB+YT21IS4lFtcdUbab6CUXwB3VDec3N5dwTkhqUZiXjR0P8Bk9XWsHvJ2sbQQLG
-	DDfgjSEaEC23drpk7mta+gNr9Te527r6nsmVFOyp4pkqb15/GL3kjNw1LiNtoHe5SGp2JKnplwy1/
-	hbjbo6poeDfONG0sv4zqdX930WpLWva1O9EeCF+fWVc1ph+1tCBqW7cNw8jY1ZaggCbsySeKGniIg
-	Hyxdmjzy8P4Q7RgiuTjytFgSf0VlkTCFJeuGem18ntT+eiBzUM4nf27wTNDxMz4J99f6eCV8haRbd
-	bF2tMiWQ==;
-Received: from [50.53.46.231] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-	id 1rLBny-00CVgF-2l;
-	Thu, 04 Jan 2024 00:41:50 +0000
-Message-ID: <7ed59e89-8222-42b8-a6ce-c104d06b7f32@infradead.org>
-Date: Wed, 3 Jan 2024 16:41:49 -0800
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="oNblqvl2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC8CC433C8;
+	Thu,  4 Jan 2024 15:23:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1704381836;
+	bh=ntsB/zO+V8LcScJNpkXqCsZ4Rc4wuSVE8XfPym0CPPg=;
+	h=Subject:To:From:Date:From;
+	b=oNblqvl2jVDn0iX9Y0/qYKriZRbdIBYdUTa+B4MyT/sv1BxAw+a8k0eR7GOg5VVgz
+	 eSPdWs+rw4fnbiVSyGlLQD5Y+iNf/bS90oGyMkQaZJmqotsLOlCGEm4/uM7f5pQjyI
+	 TuLa+X+41pZKVCpmzS1PcClDBYu5QLI+e5w5cNEk=
+Subject: patch "serial: apbuart: fix console prompt on qemu" added to tty-testing
+To: sam@ravnborg.org,andreas@gaisler.com,gregkh@linuxfoundation.org,jirislaby@kernel.org,linux-serial@vger.kernel.org,sparclinux@vger.kernel.org
+From: <gregkh@linuxfoundation.org>
+Date: Thu, 04 Jan 2024 16:23:39 +0100
+Message-ID: <2024010439-elaborate-upstream-dd50@gregkh>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 8/8] sparc: Fix typos
-Content-Language: en-US
-To: Bjorn Helgaas <helgaas@kernel.org>, "David S . Miller"
- <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
- sparclinux@vger.kernel.org
-References: <20240103231605.1801364-1-helgaas@kernel.org>
- <20240103231605.1801364-9-helgaas@kernel.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20240103231605.1801364-9-helgaas@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 
 
+This is a note to let you know that I've just added the patch titled
 
-On 1/3/24 15:16, Bjorn Helgaas wrote:
-> From: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> Fix typos, most reported by "codespell arch/sparc".  Only touches
-> comments, no code changes.
-> 
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: sparclinux@vger.kernel.org
-> ---
->  arch/sparc/include/asm/hypervisor.h     | 6 +++---
->  arch/sparc/include/asm/ldc.h            | 2 +-
->  arch/sparc/include/asm/mmu_context_64.h | 4 ++--
->  arch/sparc/include/asm/switch_to_64.h   | 2 +-
->  arch/sparc/kernel/irq_64.c              | 2 +-
->  arch/sparc/kernel/kprobes.c             | 2 +-
->  arch/sparc/kernel/ldc.c                 | 2 +-
->  arch/sparc/kernel/leon_pci_grpci2.c     | 2 +-
->  arch/sparc/kernel/of_device_64.c        | 2 +-
->  arch/sparc/kernel/pci.c                 | 2 +-
->  arch/sparc/kernel/pci_impl.h            | 4 ++--
->  arch/sparc/kernel/pci_schizo.c          | 4 ++--
->  arch/sparc/kernel/perf_event.c          | 2 +-
->  arch/sparc/kernel/prom_irqtrans.c       | 2 +-
->  arch/sparc/kernel/psycho_common.c       | 2 +-
->  arch/sparc/kernel/signal_32.c           | 2 +-
->  arch/sparc/kernel/signal_64.c           | 2 +-
->  arch/sparc/mm/srmmu.c                   | 2 +-
->  arch/sparc/mm/tsb.c                     | 2 +-
->  arch/sparc/net/bpf_jit_comp_32.c        | 6 +++---
->  20 files changed, 27 insertions(+), 27 deletions(-)
-> 
+    serial: apbuart: fix console prompt on qemu
 
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+to my tty git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
+in the tty-testing branch.
 
-Thanks.
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
 
+The patch will be merged to the tty-next branch sometime soon,
+after it passes testing, and the merge window is open.
+
+If you have any questions about this process, please let me know.
+
+
+From c6dcd8050fb7c2efec6946ae9c49bc186b0a7475 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Tue, 26 Dec 2023 13:16:07 +0100
+Subject: serial: apbuart: fix console prompt on qemu
+
+When using a leon kernel with qemu there where no console prompt.
+The root cause is the handling of the fifo size in the tx part of the
+apbuart driver.
+
+The qemu uart driver only have a very rudimentary status handling and do
+not report the number of chars queued in the tx fifo in the status register.
+So the driver ends up with a fifo size of 1.
+
+In the tx path the fifo size is divided by 2 - resulting in a fifo
+size of zero.
+
+The original implementation would always try to send one char, but
+after the introduction of uart_port_tx_limited() the fifo size is
+respected even for the first char.
+
+There seems to be no good reason to divide the fifo size with two - so
+remove this. It looks like something copied from the original amba driver.
+
+With qemu we now have a minimum fifo size of one char, so we show
+the prompt.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Fixes: d11cc8c3c4b6 ("tty: serial: use uart_port_tx_limited()")
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc:  <linux-serial@vger.kernel.org>
+Cc:  <sparclinux@vger.kernel.org>
+Link: https://lore.kernel.org/r/20231226121607.GA2622970@ravnborg.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/tty/serial/apbuart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index 716cb014c028..364599f256db 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -122,7 +122,7 @@ static void apbuart_tx_chars(struct uart_port *port)
+ {
+ 	u8 ch;
+ 
+-	uart_port_tx_limited(port, ch, port->fifosize >> 1,
++	uart_port_tx_limited(port, ch, port->fifosize,
+ 		true,
+ 		UART_PUT_CHAR(port, ch),
+ 		({}));
 -- 
-#Randy
+2.43.0
+
+
