@@ -1,113 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E30A7C0BE;
-	Tue, 23 Jan 2024 02:08:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E3015A11D;
+	Tue, 23 Jan 2024 10:34:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705975728; cv=none; b=PVU+xYuaWUSr3VcE2nt3dgyKl4kPZrlvUDID6rarXcO6Tw/dDOR/HeD7aT7ZZ2Q9HCZ28YAJAfEsBYtGFW4UTZdk37uIQy5RlSotF6fQEx7YvLAgJ6EXW/Qf/18dzUrLloUEeaZ3HWvj6ruaxLfLeTalyOzxr4zV8lJpJS5XDDg=
+	t=1706006071; cv=none; b=PfK1s9K+bGYdTZSllOi8keQAbrLZ27YZ7URUM4q0fHPwsCVYhgoPZ6VMqY3MxmyC5xq6kBEC3CoLOg+sL8i8SWAcICZdRkRjc4BL5uQy4RYqeD6LYboNimesZZOtw/KGtGy6AN09mg9afMSXrthxOTSFMdgAytJbBAfNM1Ak5D0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705975728; c=relaxed/simple;
-	bh=tp+zRZEkzvXxaTtmCpwCkNL2dDXaH90UCnFNprzlDXE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=e2V4BNHCCiq9HzTnw3+2tPrPdfekxvrOsXUPJBWtg7LyuSi0DPqRRJoC1l6wlsFVLxVX24yVzv/46t6NgdHoyN++0IkrAzaDylujyPcdnSBxCBitxv/yKw9mvWN3SNR0G1usMbyafujbodymhKivqzVQVCATNUGRrhWBa97dMCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=jrg64FuO; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="jrg64FuO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F65EC433F1;
-	Tue, 23 Jan 2024 02:08:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1705975728;
-	bh=tp+zRZEkzvXxaTtmCpwCkNL2dDXaH90UCnFNprzlDXE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jrg64FuORMFfCBm4v77eKP3qOmOJFPULMWV57DIRuXVu6npbgmgRByRMAmOVDgabp
-	 fEMNewxFUrE2qGsRzoU15DTiOHaP9JdzkB+fWbmFrDa3hH1sEyX7ju3gVAedNf4R/t
-	 9qieBH9ZuqorutJWLXS+ROtQyoF3hjVAPnKPsF3g=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Sam Ravnborg <sam@ravnborg.org>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	linux-serial@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.6 512/583] serial: apbuart: fix console prompt on qemu
-Date: Mon, 22 Jan 2024 15:59:23 -0800
-Message-ID: <20240122235827.739885822@linuxfoundation.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240122235812.238724226@linuxfoundation.org>
-References: <20240122235812.238724226@linuxfoundation.org>
-User-Agent: quilt/0.67
-X-stable: review
-X-Patchwork-Hint: ignore
+	s=arc-20240116; t=1706006071; c=relaxed/simple;
+	bh=FJvfs7CYHa4toEiqJIlYVBNv0As+dQRUyxWh8ToUlaw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=tWWzrrF1dQuUbzcP/Vubl7Wx+ZkmYRsulWN57D8epQco8QJYI0xyzk1q4wq6mus53gQNkyCN+NcjkZy2D7YS1T5XdBN0+HHF3Y4eShoKYaWFWLqo5iHCQgHRVQ7crbH1eyhALbHdlc7keLoNC2CwyXwiXJulmqPMdKX2PfKtWBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 43C5E1FB;
+	Tue, 23 Jan 2024 02:35:14 -0800 (PST)
+Received: from [10.57.77.165] (unknown [10.57.77.165])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BD0EF3F5A1;
+	Tue, 23 Jan 2024 02:34:23 -0800 (PST)
+Message-ID: <fdaeb9a5-d890-499a-92c8-d171df43ad01@arm.com>
+Date: Tue, 23 Jan 2024 10:34:21 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1 01/11] arm/pgtable: define PFN_PTE_SHIFT on arm and
+ arm64
+Content-Language: en-GB
+To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
+ Matthew Wilcox <willy@infradead.org>, Russell King <linux@armlinux.org.uk>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Dinh Nguyen <dinguyen@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+ Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt
+ <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S. Miller"
+ <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20240122194200.381241-1-david@redhat.com>
+ <20240122194200.381241-2-david@redhat.com>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <20240122194200.381241-2-david@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-6.6-stable review patch.  If anyone has any objections, please let me know.
+On 22/01/2024 19:41, David Hildenbrand wrote:
+> We want to make use of pte_next_pfn() outside of set_ptes(). Let's
+> simpliy define PFN_PTE_SHIFT, required by pte_next_pfn().
+> 
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>  arch/arm/include/asm/pgtable.h   | 2 ++
+>  arch/arm64/include/asm/pgtable.h | 2 ++
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pgtable.h
+> index d657b84b6bf70..be91e376df79e 100644
+> --- a/arch/arm/include/asm/pgtable.h
+> +++ b/arch/arm/include/asm/pgtable.h
+> @@ -209,6 +209,8 @@ static inline void __sync_icache_dcache(pte_t pteval)
+>  extern void __sync_icache_dcache(pte_t pteval);
+>  #endif
+>  
+> +#define PFN_PTE_SHIFT		PAGE_SHIFT
+> +
+>  void set_ptes(struct mm_struct *mm, unsigned long addr,
+>  		      pte_t *ptep, pte_t pteval, unsigned int nr);
+>  #define set_ptes set_ptes
+> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+> index 79ce70fbb751c..d4b3bd96e3304 100644
+> --- a/arch/arm64/include/asm/pgtable.h
+> +++ b/arch/arm64/include/asm/pgtable.h
+> @@ -341,6 +341,8 @@ static inline void __sync_cache_and_tags(pte_t pte, unsigned int nr_pages)
+>  		mte_sync_tags(pte, nr_pages);
+>  }
+>  
+> +#define PFN_PTE_SHIFT		PAGE_SHIFT
 
-------------------
+I think this is buggy. And so is the arm64 implementation of set_ptes(). It
+works fine for 48-bit output address, but for 52-bit OAs, the high bits are not
+kept contigously, so if you happen to be setting a mapping for which the
+physical memory block straddles bit 48, this won't work.
 
-From: Sam Ravnborg <sam@ravnborg.org>
+Today, only the 64K base page config can support 52 bits, and for this,
+OA[51:48] are stored in PTE[15:12]. But 52 bits for 4K and 16K base pages is
+coming (hopefully v6.9) and in this case OA[51:50] are stored in PTE[9:8].
+Fortunately we already have helpers in arm64 to abstract this.
 
-[ Upstream commit c6dcd8050fb7c2efec6946ae9c49bc186b0a7475 ]
+So I think arm64 will want to define its own pte_next_pfn():
 
-When using a leon kernel with qemu there where no console prompt.
-The root cause is the handling of the fifo size in the tx part of the
-apbuart driver.
+#define pte_next_pfn pte_next_pfn
+static inline pte_t pte_next_pfn(pte_t pte)
+{
+	return pfn_pte(pte_pfn(pte) + 1, pte_pgprot(pte));
+}
 
-The qemu uart driver only have a very rudimentary status handling and do
-not report the number of chars queued in the tx fifo in the status register.
-So the driver ends up with a fifo size of 1.
+I'll do a separate patch to fix the already broken arm64 set_ptes() implementation.
 
-In the tx path the fifo size is divided by 2 - resulting in a fifo
-size of zero.
-
-The original implementation would always try to send one char, but
-after the introduction of uart_port_tx_limited() the fifo size is
-respected even for the first char.
-
-There seems to be no good reason to divide the fifo size with two - so
-remove this. It looks like something copied from the original amba driver.
-
-With qemu we now have a minimum fifo size of one char, so we show
-the prompt.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Fixes: d11cc8c3c4b6 ("tty: serial: use uart_port_tx_limited()")
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc:  <linux-serial@vger.kernel.org>
-Cc:  <sparclinux@vger.kernel.org>
-Link: https://lore.kernel.org/r/20231226121607.GA2622970@ravnborg.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/tty/serial/apbuart.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
-index d7658f380838..d3cb341f2c55 100644
---- a/drivers/tty/serial/apbuart.c
-+++ b/drivers/tty/serial/apbuart.c
-@@ -122,7 +122,7 @@ static void apbuart_tx_chars(struct uart_port *port)
- {
- 	u8 ch;
- 
--	uart_port_tx_limited(port, ch, port->fifosize >> 1,
-+	uart_port_tx_limited(port, ch, port->fifosize,
- 		true,
- 		UART_PUT_CHAR(port, ch),
- 		({}));
--- 
-2.43.0
+I'm not sure if this type of problem might also apply to other arches?
 
 
+> +
+>  static inline void set_ptes(struct mm_struct *mm,
+>  			    unsigned long __always_unused addr,
+>  			    pte_t *ptep, pte_t pte, unsigned int nr)
 
