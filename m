@@ -1,188 +1,142 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f180.google.com (mail-pg1-f180.google.com [209.85.215.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 143CC651B4
-	for <sparclinux@vger.kernel.org>; Mon, 29 Jan 2024 12:48:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9CB6153BDA;
+	Mon, 29 Jan 2024 14:58:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706532511; cv=none; b=pon2YKYrrvAS+q48AtbTU6rLJpQ2OX7xiXt4QnQCXelisPVoOxUEJON3dV3W5vZG67tlFFY7IXLzX2JMV6xGW2b1DOoy5rhNZD9OeYnebGEeaJhRznsuTck8fAdNdEaCltEJs1dZub36t6TDaXSnUjhLBWROB/D2JETL0rnpmyk=
+	t=1706540334; cv=none; b=M9BI0naEJiEnHDI/XL0aveHmwlDy70Ul6dNGgrdIn+l5GWBnNwoQe4ifG3f8yQqAkQptdDJx/ape5m7qAAiupNWRuS93Jp3wbpS9tv+qVB0ypptxx+7ddNimpmKs/3DQ8AStx7594KYgU0YFq5eMx2iDx4AOFeFC/zMhFsKNQAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706532511; c=relaxed/simple;
-	bh=WijXHNN6cEbo4+hvn2lkZ0k2/r3mW8vSMOQ+qEBDy2U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=d/xdsWiW0PaTvNu1307uMJ2zLF1FyZZrG36g/+azOMRGCyNADrGm2fa1V7M9CJfaj2IXsCud222/u/zWWz3VTwHkwmUcOsYOQK7yRiHAb9MC32fg+9KiT2K18euBYPn0OH6YlHyem5EtGqq7DmA5UKzV1wLmPTxo59+9ansOzv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Py/5mOn6; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1706540334; c=relaxed/simple;
+	bh=F2XvVF79CIk/fFDgfUblrZ0PFGbRunpoAHtSE3FY8uQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ZvkPSCfA2VOhOZbxnn4lCk18nw9sNg/CP8fRI+AKyq1jHFHRWHMrD2pTKuGz6PnW//1dsePEtntOoUvP2dw4hM41GTacJhfKA5/JntNN2wqyNtupjAyergrdpz1McD+OL20TT/4znaXaB+0tLUNPAjFqzeVJjUMmQpTsFUZcIt4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IQ5xOWn2; arc=none smtp.client-ip=209.85.215.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Py/5mOn6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1706532509;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kPofd6LlL0FntZsVxpMLUzci6vAQKc1aG/cPn5S11O0=;
-	b=Py/5mOn6CqLPZzDd986sLZJNMTxa4gOV1o6XPJxqPdETgRq6BUVCFgo9K+K1QKZDjXB/RR
-	z+YnbWm/uG6AikPZzdI5DmLzAi2AklHOaWH7qWKz+fNd4fTnOf5BgYp9jEz5+bkzuMbnes
-	FkcEfcenchM3TQoNq/vdD7J9Jux74Mk=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-413-PehoyRVrMfeAXOFdLIlxVA-1; Mon, 29 Jan 2024 07:48:26 -0500
-X-MC-Unique: PehoyRVrMfeAXOFdLIlxVA-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 898A186F129;
-	Mon, 29 Jan 2024 12:48:25 +0000 (UTC)
-Received: from t14s.fritz.box (unknown [10.39.194.46])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 4CC6D8B;
-	Mon, 29 Jan 2024 12:48:20 +0000 (UTC)
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org,
-	David Hildenbrand <david@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Matthew Wilcox <willy@infradead.org>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-	Paul Walmsley <paul.walmsley@sifive.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: [PATCH v3 15/15] mm/memory: ignore writable bit in folio_pte_batch()
-Date: Mon, 29 Jan 2024 13:46:49 +0100
-Message-ID: <20240129124649.189745-16-david@redhat.com>
-In-Reply-To: <20240129124649.189745-1-david@redhat.com>
-References: <20240129124649.189745-1-david@redhat.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IQ5xOWn2"
+Received: by mail-pg1-f180.google.com with SMTP id 41be03b00d2f7-5d3912c9a83so1226885a12.3;
+        Mon, 29 Jan 2024 06:58:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1706540332; x=1707145132; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
+         :to:content-language:subject:user-agent:mime-version:date:message-id
+         :sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=Y0hRRwRFhXV6/VNPZAde2iU0U1V9zjF583dIfMFDSvw=;
+        b=IQ5xOWn2InHpy8Spqx8AH9hRO4zhfTzH+c13lWqHpFgW2hiaZ2XaXNvVxeGIpKPJO1
+         UHb7DlfvhdIqgY5shuETPNWWdF+r1NLzPxj8b/texLtYzHJQCGyG2Qo1fR9cQPryEUJT
+         okKVCQeGypRI/40g/+TqBdAkgiBQH1d5FvrZf/owXFFBFxYdDAzfyAP0jxsRlvrHZ31U
+         RC1MXrYPAZKoNeGDIIyaS2+yQCo3SLE2mNM3AEjVt4qKbh8UBfz0StllMH4kC6irE8jN
+         yGG29sjCSx4+tYJyoXUDHrlH/1VgVZKW8b4N7Af9Md115e28SAL4l1M/faUhefTZ+h1V
+         bLlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706540332; x=1707145132;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
+         :to:content-language:subject:user-agent:mime-version:date:message-id
+         :sender:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Y0hRRwRFhXV6/VNPZAde2iU0U1V9zjF583dIfMFDSvw=;
+        b=Xs77d9PfcHnfvaIUiC7UAznbxcdAtr3RHAIvOjc3GI+lb6R5SqF2hSN9kt9igtc7wQ
+         WIef7SH/BqUjFtFNSZThQoFD/+4XI00/O1vlHBkW3rbqtsiH0gSXf/51vgQ+vIDZ48D/
+         NLXyLJ3EBQy6XAsNBGX70RTlIh7yP5M4OUZpNhC/IXqF4+jzf1+KJpV8oJCStAVJ4rFJ
+         wNjyZmVVITKufS8LLyYYFPBiDU5upw7AAG81BmkILV2VXT7TQANInDOpEf0QQYmI59Bg
+         qMN9+DaMnJsaikuM6IsS3MDKmXwde4oNz6HpvglX3FyClIk8IngLW+yYhUcC5VSPzNUi
+         n99g==
+X-Gm-Message-State: AOJu0YxWrbbjVlHHYP307c12+0+PaHeos3vNtf7lmjLD+KZR38p+s3k9
+	RHYM4ouxM4uaJJwia3fIztVOOrRUG5WgacQcxJhQEjrML+AlbIxUSw2grySz
+X-Google-Smtp-Source: AGHT+IGWTBTOBZpp3W8KM2O3fsluhdahaENHmGqHcHIJbQPi7fW49a+nVBXNJltbYmygXoooNmvLuA==
+X-Received: by 2002:a05:6a20:8b9c:b0:19c:a2bc:d1d9 with SMTP id m28-20020a056a208b9c00b0019ca2bcd1d9mr1506784pzh.55.1706540332115;
+        Mon, 29 Jan 2024 06:58:52 -0800 (PST)
+Received: from ?IPV6:2600:1700:e321:62f0:329c:23ff:fee3:9d7c? ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id h4-20020a170902f54400b001d8fb137a57sm447760plf.12.2024.01.29.06.58.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 29 Jan 2024 06:58:51 -0800 (PST)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Message-ID: <56b9c222-4e97-4eda-89af-3e0d0c39acb2@roeck-us.net>
+Date: Mon, 29 Jan 2024 06:58:49 -0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: Build regressions/improvements in v6.8-rc2
+Content-Language: en-US
+To: Geert Uytterhoeven <geert@linux-m68k.org>, linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linux-hwmon@vger.kernel.org, intel-xe@lists.freedesktop.org
+References: <CAHk-=wgxzm+Oc1ywuNGxb1R1=ZEC85LJi776R2QEpk6=_2Qfdw@mail.gmail.com>
+ <20240129104954.1778339-1-geert@linux-m68k.org>
+ <8ea40b3-adde-acb5-5e46-fe1fd395daf@linux-m68k.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Autocrypt: addr=linux@roeck-us.net; keydata=
+ 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
+ mDW4+i+XlNFUPUYMrIKi9joBhu18ssf5i5Q=
+In-Reply-To: <8ea40b3-adde-acb5-5e46-fe1fd395daf@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.5
 
-... and conditionally return to the caller if any PTE except the first one
-is writable. fork() has to make sure to properly write-protect in case any
-PTE is writable. Other users (e.g., page unmaping) are expected to not
-care.
+On 1/29/24 03:06, Geert Uytterhoeven wrote:
+[ ... ]
+> parisc-gcc1[23]/parisc-{allmod,def}config
+> 
+>    + /kisskb/src/drivers/hwmon/pc87360.c: error: writing 1 byte into a region of size 0 [-Werror=stringop-overflow=]:  => 383:51
+> 
 
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- mm/memory.c | 30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+The "fix" for this problem would be similar to commit 4265eb062a73 ("hwmon: (pc87360)
+Bounds check data->innr usage"). The change would be something like
 
-diff --git a/mm/memory.c b/mm/memory.c
-index b2ec2b6b54c7..b05fd28dbce1 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -968,7 +968,7 @@ static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
- 		pte = pte_mkclean(pte);
- 	if (likely(flags & FPB_IGNORE_SOFT_DIRTY))
- 		pte = pte_clear_soft_dirty(pte);
--	return pte_mkold(pte);
-+	return pte_wrprotect(pte_mkold(pte));
- }
- 
- /*
-@@ -976,21 +976,32 @@ static inline pte_t __pte_batch_clear_ignored(pte_t pte, fpb_t flags)
-  * pages of the same folio.
-  *
-  * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN,
-- * the accessed bit, dirty bit (with FPB_IGNORE_DIRTY) and soft-dirty bit
-- * (with FPB_IGNORE_SOFT_DIRTY).
-+ * the accessed bit, writable bit, dirty bit (with FPB_IGNORE_DIRTY) and
-+ * soft-dirty bit (with FPB_IGNORE_SOFT_DIRTY).
-+ *
-+ * If "any_writable" is set, it will indicate if any other PTE besides the
-+ * first (given) PTE is writable.
-  */
- static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
--		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags)
-+		pte_t *start_ptep, pte_t pte, int max_nr, fpb_t flags,
-+		bool *any_writable)
- {
- 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
- 	const pte_t *end_ptep = start_ptep + max_nr;
- 	pte_t expected_pte = __pte_batch_clear_ignored(pte_next_pfn(pte), flags);
- 	pte_t *ptep = start_ptep + 1;
-+	bool writable;
-+
-+	if (any_writable)
-+		*any_writable = false;
- 
- 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
- 
- 	while (ptep != end_ptep) {
--		pte = __pte_batch_clear_ignored(ptep_get(ptep), flags);
-+		pte = ptep_get(ptep);
-+		if (any_writable)
-+			writable = !!pte_write(pte);
-+		pte = __pte_batch_clear_ignored(pte, flags);
- 
- 		if (!pte_same(pte, expected_pte))
- 			break;
-@@ -1003,6 +1014,9 @@ static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
- 		if (pte_pfn(pte) == folio_end_pfn)
- 			break;
- 
-+		if (any_writable)
-+			*any_writable |= writable;
-+
- 		expected_pte = pte_next_pfn(expected_pte);
- 		ptep++;
- 	}
-@@ -1024,6 +1038,7 @@ copy_present_ptes(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma
- {
- 	struct page *page;
- 	struct folio *folio;
-+	bool any_writable;
- 	fpb_t flags = 0;
- 	int err, nr;
- 
-@@ -1044,7 +1059,8 @@ copy_present_ptes(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma
- 		if (!vma_soft_dirty_enabled(src_vma))
- 			flags |= FPB_IGNORE_SOFT_DIRTY;
- 
--		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags);
-+		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr, flags,
-+				     &any_writable);
- 		folio_ref_add(folio, nr);
- 		if (folio_test_anon(folio)) {
- 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
-@@ -1058,6 +1074,8 @@ copy_present_ptes(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma
- 			folio_dup_file_rmap_ptes(folio, page, nr);
- 			rss[mm_counter_file(folio)] += nr;
- 		}
-+		if (any_writable)
-+			pte = pte_mkwrite(pte, src_vma);
- 		__copy_present_ptes(dst_vma, src_vma, dst_pte, src_pte, pte,
- 				    addr, nr);
- 		return nr;
--- 
-2.43.0
+-               for (i = 0; i < data->tempnr; i++) {
++               for (i = 0; i < min(data->tempnr, ARRAY_SIZE(data->temp_max)); i++) {
+
+but that would be purely random because the loop accesses several arrays
+indexed with i, and tempnr is never >= ARRAY_SIZE(data->temp_max).
+I kind of resist making such changes to the code just because the compiler
+is clueless.
+
+Are we sprinkling the kernel code with code like this to make the compiler happy ?
+
+Guenter
 
