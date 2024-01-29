@@ -1,111 +1,240 @@
-Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [195.130.137.89])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB9C35B5D2
-	for <sparclinux@vger.kernel.org>; Mon, 29 Jan 2024 11:06:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.137.89
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EBC9629F5
+	for <sparclinux@vger.kernel.org>; Mon, 29 Jan 2024 12:47:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706526401; cv=none; b=ILkHfneUoAqw6rSoNItDLsBHwl8qaTMFaVAi6V7J4uLR5TwbMbbVbZjDdRlNu+7TNjKgafzWfdeWU0S9aBp0wXPDe83TMJUOeMikVhY8UMBFxKV9qL5dOtcrN3d61S7Bcyxepzujy81UsOerAyBkSPOy9H91BO5dJ8EJpGZoOSs=
+	t=1706532424; cv=none; b=KeIfJbhv5klcVfDTxVB0XDTHZteyLVFODQeHNLoRj84h/t8stGqO7zD0wUDyME7dugBbdbyDqzKpkzsB/0KGM0KSgu4wgmsdLGyQsr1kFZ+5lO4V2R6pUDPgbiBOY9YRnJ/dwNhG/1kVxfJbuNREtYYrcBSBSe0T+IbC9AA5+u4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706526401; c=relaxed/simple;
-	bh=bN8edVEibQUi4cNIoeXwKAWhUhuvpW1rx432LV6Rp34=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=TidUNRCYrll1QfEGHtW3QJg9PUlh4qrcfFYUAVlGiu0PFwbKy5mapQIF1sg7qiJE7k+WjbQJxYfrLJxn2YID7PSwVZC5RKjd+pL3BOIi83AGs/mQ3t+z34EyiZY5kOS1Teqez1IM4KQzpp8l3qtYHQvWPVD0CalrjKDsaWjFpAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.137.89
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:3b5f:c6ad:b5fc:a0f3])
-	by laurent.telenet-ops.be with bizsmtp
-	id gb6X2B0022ZPkuY01b6XDK; Mon, 29 Jan 2024 12:06:31 +0100
-Received: from geert (helo=localhost)
-	by ramsan.of.borg with local-esmtp (Exim 4.95)
-	(envelope-from <geert@linux-m68k.org>)
-	id 1rUPTC-00GgzQ-W5;
-	Mon, 29 Jan 2024 12:06:31 +0100
-Date: Mon, 29 Jan 2024 12:06:30 +0100 (CET)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+	s=arc-20240116; t=1706532424; c=relaxed/simple;
+	bh=dSZhJnkm+lk1rkMsXbN5KoduCyNmkc5UTp7HhAyhlDE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=c4iTdCC5kHhAgVcfOrSiK3PiR+ZB8S4RbP+jFx9xR7R0FgCCbqX/hlPgS2rrYYl1nCEUGY7ei8sLdJ5DUv3RbT3VwRjEGSuXw1Uk3OTyMoM3F4rsZL0xRGlQ1oIX1Ep3XwhVF4iNjfOddxJkS0zGRTbjq3J+rjssDIRSXfa2b6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YfaWmx2n; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YfaWmx2n"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1706532420;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=KvkAH0bQzCOTptNfhBBhiuyqh5M2/G8GqLgKULFKaNQ=;
+	b=YfaWmx2nBejTq5HMH1lesyq31vqoeAI0m71bVkpBELOzisHNYTWH2ZNWKgsbC57xS8hNJ/
+	qTFYk/t6derFCllTKjseRRGFKrBNgo3as4Fwtq1F9qpTYrNp1hvN8AEjCbXQBRAP+dMMtw
+	I0JbSNNiDtT333Hff3XJrbOxftsRJYE=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-369-GprgdTNKNKqdu1U7aI74eA-1; Mon,
+ 29 Jan 2024 07:46:58 -0500
+X-MC-Unique: GprgdTNKNKqdu1U7aI74eA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B4DE129AC02A;
+	Mon, 29 Jan 2024 12:46:56 +0000 (UTC)
+Received: from t14s.fritz.box (unknown [10.39.194.46])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 4C575107BD;
+	Mon, 29 Jan 2024 12:46:50 +0000 (UTC)
+From: David Hildenbrand <david@redhat.com>
 To: linux-kernel@vger.kernel.org
-cc: sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, 
-    linux-hwmon@vger.kernel.org, intel-xe@lists.freedesktop.org
-Subject: Re: Build regressions/improvements in v6.8-rc2
-In-Reply-To: <20240129104954.1778339-1-geert@linux-m68k.org>
-Message-ID: <8ea40b3-adde-acb5-5e46-fe1fd395daf@linux-m68k.org>
-References: <CAHk-=wgxzm+Oc1ywuNGxb1R1=ZEC85LJi776R2QEpk6=_2Qfdw@mail.gmail.com> <20240129104954.1778339-1-geert@linux-m68k.org>
+Cc: linux-mm@kvack.org,
+	David Hildenbrand <david@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: [PATCH v3 00/15] mm/memory: optimize fork() with PTE-mapped THP
+Date: Mon, 29 Jan 2024 13:46:34 +0100
+Message-ID: <20240129124649.189745-1-david@redhat.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.5
 
-On Mon, 29 Jan 2024, Geert Uytterhoeven wrote:
-> JFYI, when comparing v6.8-rc2[1] to v6.8-rc1[3], the summaries are:
->  - build errors: +26/-14
+Now that the rmap overhaul[1] is upstream that provides a clean interface
+for rmap batching, let's implement PTE batching during fork when processing
+PTE-mapped THPs.
+
+This series is partially based on Ryan's previous work[2] to implement
+cont-pte support on arm64, but its a complete rewrite based on [1] to
+optimize all architectures independent of any such PTE bits, and to
+use the new rmap batching functions that simplify the code and prepare
+for further rmap accounting changes.
+
+We collect consecutive PTEs that map consecutive pages of the same large
+folio, making sure that the other PTE bits are compatible, and (a) adjust
+the refcount only once per batch, (b) call rmap handling functions only
+once per batch and (c) perform batch PTE setting/updates.
+
+While this series should be beneficial for adding cont-pte support on
+ARM64[2], it's one of the requirements for maintaining a total mapcount[3]
+for large folios with minimal added overhead and further changes[4] that
+build up on top of the total mapcount.
+
+Independent of all that, this series results in a speedup during fork with
+PTE-mapped THP, which is the default with THPs that are smaller than a PMD
+(for example, 16KiB to 1024KiB mTHPs for anonymous memory[5]).
+
+On an Intel Xeon Silver 4210R CPU, fork'ing with 1GiB of PTE-mapped folios
+of the same size (stddev < 1%) results in the following runtimes
+for fork() (shorter is better):
+
+Folio Size | v6.8-rc1 |      New | Change
+------------------------------------------
+      4KiB | 0.014328 | 0.014035 |   - 2%
+     16KiB | 0.014263 | 0.01196  |   -16%
+     32KiB | 0.014334 | 0.01094  |   -24%
+     64KiB | 0.014046 | 0.010444 |   -26%
+    128KiB | 0.014011 | 0.010063 |   -28%
+    256KiB | 0.013993 | 0.009938 |   -29%
+    512KiB | 0.013983 | 0.00985  |   -30%
+   1024KiB | 0.013986 | 0.00982  |   -30%
+   2048KiB | 0.014305 | 0.010076 |   -30%
+
+Note that these numbers are even better than the ones from v1 (verified
+over multiple reboots), even though there were only minimal code changes.
+Well, I removed a pte_mkclean() call for anon folios, maybe that also
+plays a role.
+
+But my experience is that fork() is extremely sensitive to code size,
+inlining, ... so I suspect we'll see on other architectures rather a change
+of -20% instead of -30%, and it will be easy to "lose" some of that speedup
+in the future by subtle code changes.
+
+Next up is PTE batching when unmapping. Only tested on x86-64.
+Compile-tested on most other architectures.
+
+v2 -> v3:
+ * Rebased on mm-unstable
+ * Picked up RB's
+ * Updated documentation of wrprotect_ptes().
+
+v1 -> v2:
+ * "arm64/mm: Make set_ptes() robust when OAs cross 48-bit boundary"
+  -> Added patch from Ryan
+ * "arm/pgtable: define PFN_PTE_SHIFT"
+  -> Removed the arm64 bits
+ * "mm/pgtable: make pte_next_pfn() independent of set_ptes()"
+ * "arm/mm: use pte_next_pfn() in set_ptes()"
+ * "powerpc/mm: use pte_next_pfn() in set_ptes()"
+  -> Added to use pte_next_pfn() in some arch set_ptes() implementations
+     I tried to make use of pte_next_pfn() also in the others, but it's
+     not trivial because the other archs implement set_ptes() in their
+     asm/pgtable.h. Future work.
+ * "mm/memory: factor out copying the actual PTE in copy_present_pte()"
+  -> Move common folio_get() out of if/else
+ * "mm/memory: optimize fork() with PTE-mapped THP"
+  -> Add doc for wrprotect_ptes
+  -> Extend description to mention handling of pinned folios
+  -> Move common folio_ref_add() out of if/else
+ * "mm/memory: ignore dirty/accessed/soft-dirty bits in folio_pte_batch()"
+  -> Be more conservative with dirt/soft-dirty, let the caller specify
+     using flags
+
+[1] https://lkml.kernel.org/r/20231220224504.646757-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20231218105100.172635-1-ryan.roberts@arm.com
+[3] https://lkml.kernel.org/r/20230809083256.699513-1-david@redhat.com
+[4] https://lkml.kernel.org/r/20231124132626.235350-1-david@redhat.com
+[5] https://lkml.kernel.org/r/20231207161211.2374093-1-ryan.roberts@arm.com
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+
+---
+
+Andrew asked for a resend based on latest mm-unstable. I am sending this
+out earlier than I would usually have sent out the next version, so we can
+pull it into mm-unstable again now that v1 was dropped.
+
+David Hildenbrand (14):
+  arm/pgtable: define PFN_PTE_SHIFT
+  nios2/pgtable: define PFN_PTE_SHIFT
+  powerpc/pgtable: define PFN_PTE_SHIFT
+  riscv/pgtable: define PFN_PTE_SHIFT
+  s390/pgtable: define PFN_PTE_SHIFT
+  sparc/pgtable: define PFN_PTE_SHIFT
+  mm/pgtable: make pte_next_pfn() independent of set_ptes()
+  arm/mm: use pte_next_pfn() in set_ptes()
+  powerpc/mm: use pte_next_pfn() in set_ptes()
+  mm/memory: factor out copying the actual PTE in copy_present_pte()
+  mm/memory: pass PTE to copy_present_pte()
+  mm/memory: optimize fork() with PTE-mapped THP
+  mm/memory: ignore dirty/accessed/soft-dirty bits in folio_pte_batch()
+  mm/memory: ignore writable bit in folio_pte_batch()
+
+Ryan Roberts (1):
+  arm64/mm: Make set_ptes() robust when OAs cross 48-bit boundary
+
+ arch/arm/include/asm/pgtable.h      |   2 +
+ arch/arm/mm/mmu.c                   |   2 +-
+ arch/arm64/include/asm/pgtable.h    |  28 ++--
+ arch/nios2/include/asm/pgtable.h    |   2 +
+ arch/powerpc/include/asm/pgtable.h  |   2 +
+ arch/powerpc/mm/pgtable.c           |   5 +-
+ arch/riscv/include/asm/pgtable.h    |   2 +
+ arch/s390/include/asm/pgtable.h     |   2 +
+ arch/sparc/include/asm/pgtable_64.h |   2 +
+ include/linux/pgtable.h             |  33 ++++-
+ mm/memory.c                         | 212 ++++++++++++++++++++++------
+ 11 files changed, 229 insertions(+), 63 deletions(-)
 
 
-   + /kisskb/src/arch/sparc/kernel/setup_64.c: error: no previous prototype for 'alloc_irqstack_bootmem' [-Werror=missing-prototypes]:  => 602:13
+base-commit: d162e170f1181b4305494843e1976584ddf2b72e
+-- 
+2.43.0
 
-sparc64-gcc{5,1[123]}/sparc64-{allno,def}config
-
-   + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: error: 'memcpy' specified bound between 4294967240 and 4294967263 exceeds maximum object size 2147483647 [-Werror=stringop-overflow=]:  => 298:17
-   + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: error: 'memcpy' specified bound between 4294967264 and 4294967287 exceeds maximum object size 2147483647 [-Werror=stringop-overflow=]:  => 161:9
-
-parisc-gcc1[23]/generic-32bit_defconfig
-parisc-gcc1[23]/parisc-{allmod,def}config
-
-   + /kisskb/src/drivers/hwmon/pc87360.c: error: writing 1 byte into a region of size 0 [-Werror=stringop-overflow=]:  => 383:51
-
-arm64-gcc12/arm64-allmodconfig
-parisc-gcc12/parisc-allmodconfig
-
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1045' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1065' declared with attribute error: FIELD_PREP: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1084' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1095' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1137' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1139' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1148' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_1150' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_924' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_935' declared with attribute error: FIELD_GET: mask is not constant:  => 435:38
-
-in drivers/gpu/drm/xe/xe_guc_ct.c:526
-arm64-gcc5/arm64-allmodconfig
-powerpc-gcc5/powerpc-all{mod,yes}config
-powerpc-gcc5/ppc{32,64le,64_book3e}_allmodconfig
-(seen before in v6.8-rc1, with different assertion numbers)
-
-   + /kisskb/src/include/linux/fortify-string.h: error: writing 16 bytes into a region of size 0 [-Werror=stringop-overflow=]:  => 57:33
-
-in drivers/gpu/drm/xe/xe_gt_pagefault.c:340
-arm64-gcc13/arm64-allmodconfig
-s390x-gcc13/s390-all{mod,yes}config
-
-   + {standard input}: Error: displacement to undefined symbol .L101 overflows 8-bit field :  => 593
-   + {standard input}: Error: displacement to undefined symbol .L104 overflows 8-bit field :  => 588
-   + {standard input}: Error: displacement to undefined symbol .L139 overflows 8-bit field :  => 606
-   + {standard input}: Error: displacement to undefined symbol .L73 overflows 12-bit field:  => 594
-   + {standard input}: Error: displacement to undefined symbol .L74 overflows 8-bit field :  => 585
-   + {standard input}: Error: displacement to undefined symbol .L75 overflows 12-bit field: 606, 586 => 589, 606, 586
-   + {standard input}: Error: displacement to undefined symbol .L76 overflows 8-bit field : 577 => 580, 577
-   + {standard input}: Error: displacement to undefined symbol .L80 overflows 8-bit field : 601 => 601, 607
-   + {standard input}: Error: displacement to undefined symbol .L81 overflows 8-bit field : 606, 604 => 604, 610, 606
-   + {standard input}: Error: displacement to undefined symbol .L96 overflows 12-bit field:  => 602
-   + {standard input}: Error: displacement to undefined symbol .L99 overflows 12-bit field:  => 607
-
-The usual SH ICE crickets.
-
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/41bccc98fb7931d63d03f326a746ac4d429c1dd3/ (all 239 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/6613476e225e090cc9aad49be7fa504e290dd33d/ (all 239 configs)
-
-Gr{oetje,eeting}s,
-
- 						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
