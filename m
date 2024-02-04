@@ -1,53 +1,59 @@
-Received: from mailrelay6-1.pub.mailoutpod2-cph3.one.com (mailrelay6-1.pub.mailoutpod2-cph3.one.com [46.30.211.181])
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [46.30.211.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31D9D250F1
-	for <sparclinux@vger.kernel.org>; Sun,  4 Feb 2024 19:12:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E4B250F1
+	for <sparclinux@vger.kernel.org>; Sun,  4 Feb 2024 19:22:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707073934; cv=none; b=JNAdoEIgnUyujALjegmKlKcSP7s5WnA8nQmegB4I8bl+3Q0cFVHAZq08x1UunX2B+wAXtNnBg9NyfcVHfiR0P6wcr0/7UJ/vFJplAdqCp64eAZHH6gTTO8x1xbbm6DDueDqY/rn3QyW3M+6JITnCumfminvqkkERfdAnFpiLqPs=
+	t=1707074567; cv=none; b=MsuIqXzNQBghkSHHBU8iDbFf1/wbfC5LfU/CR6Dp/ngmWwhZANJpG3bPMqZ0UZjWzo7TmEhRTlcy7+lZ30rVFA20zWpGST4d19koiNhU5hJt6RWuM6QzCKSqzv2Ifp2am3qrPJKg9gjg/v5PRar+sxxvZLhSCSmQHWf8WqFFMbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707073934; c=relaxed/simple;
-	bh=EAtoAQ3+u49g8oG47jFKJk9i8V8wtqouRudycbUsgm8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j3GWpbTPN4xspxuhbRGUjWrRduWRlWS7wHrG6kwIGjPcWWzY+0+1STJYRfMMf6xQ+jrHRMtr5W8S7qcVdeQrnZhzNng667FFZ430dKe1HOMLRUBlLKB9qG1xYokzt2iJmlybxbHe6+u5/je4cWoDDz6uKlVDdNXcS7I2egsQLxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=MsyROH5e; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=BAmgq8bv; arc=none smtp.client-ip=46.30.211.181
+	s=arc-20240116; t=1707074567; c=relaxed/simple;
+	bh=BhS7llerz0XxSfqMKsPaxpwBnH6uQCzYexdrBKauA7c=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Lv4vd2sgTWK4cZWyfbBkbUrS91a/oziIObDthUXKxEj+OOzzjOW/xGdApH7IljR3EMKrj5CzUKK5crn4tl2lT2g+G0pYLJfQBvWDm34ozq4vvKpcz6Ci5RztpJghOfwrQkAjdtGSmvhLu4Cc3ZTXveOa+7KYX1ZhyUaCjHEwF3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=H64FwgkV; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=80V/cH2H; arc=none smtp.client-ip=46.30.211.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="MsyROH5e";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="BAmgq8bv"
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="H64FwgkV";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="80V/cH2H"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=ravnborg.org; s=rsa2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=5U9Gn9tK/aP/N7YmuXyVhqmYDMBaUO/VArhiN55jyt4=;
-	b=MsyROH5eAE/5FKulTyMOo0n/tFzoqCqrXHMy0SZv5yF9zzgSCmmybzMh/ap6fCTHQUxC1xJopDxNV
-	 8KvdoFwtpVDmxRYI1SBsivExanNI/Qj/wYfzjkvd10C96qGIkxZaOS33gB2wMCoYQY+nsIHJvOtBa3
-	 g1mzKQoC5YwCpUAWskYt6M6XMsC2njUn+CqLBcPOvo5OIu9vvd27bN4zUSjQExqthIa0i47igK0252
-	 vyWrIDmFTslGyc5wtVxTo/lahYcR3xLVWQX4n1X6zpMeSlDMMeZRdCNGnBIcgO0MfTdIcUiQs1DZEN
-	 Kf8O5AJMUnnfJAK7BTewFytz10uBaxQ==
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:to:from:
+	 date:from;
+	bh=fpJe+ZWxuYGRqiTWDJhGrptuD0C5OKl3hDjFax0lIjw=;
+	b=H64FwgkV5WZ4jw3sVS4I3jHDmdQheACk3uS6z+GzDDnTxABipZMyPZqiiDkP95NduZDXM5Yv/53Yo
+	 1I1QRB/kF8RIohD6zt2MgYsB0H0mT5fu37fHJfGFZejhH8Kc6EYpqtD+9jD1J8ZBYKC0wkUjPB3kZz
+	 eyJpZHIOUTb1s9oYe+tOYOWjgSCkx7KSe8ox3F3ct2CYEiMlwE1uJq+doULNvx43AllqL+GeKqUnLT
+	 2b6l0cXMDNCN024IsspAijbf/ZEfs6nXpAQPFFkosmOGKsyMTQKp1WI5m1mqnNTHNiRdTEtc+u6xXN
+	 Arn8bHYgBZopHj8qCQZxPbRBFUs5EHQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
 	d=ravnborg.org; s=ed2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=5U9Gn9tK/aP/N7YmuXyVhqmYDMBaUO/VArhiN55jyt4=;
-	b=BAmgq8bvF8S938DBAk8hWdYpOkJug9UxKC28dT9ight4DlgS9se1rZGGkSy3s/ZCJ87VQDe4heFAA
-	 pmEjcB9Dw==
-X-HalOne-ID: 202361de-c391-11ee-86d6-dfbeffc51846
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:to:from:
+	 date:from;
+	bh=fpJe+ZWxuYGRqiTWDJhGrptuD0C5OKl3hDjFax0lIjw=;
+	b=80V/cH2HNCxHVLy7b/Oi7n46poVf24quLfcg0PY17uNn3UYE7AtbM/m5JYa7O28gsIXzj9K8gf0D4
+	 IuBv35bAg==
+X-HalOne-ID: 9c002278-c392-11ee-980a-b520e3c7e1da
 Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay6.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 202361de-c391-11ee-86d6-dfbeffc51846;
-	Sun, 04 Feb 2024 19:10:58 +0000 (UTC)
-Date: Sun, 4 Feb 2024 20:10:57 +0100
+	by mailrelay2.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 9c002278-c392-11ee-980a-b520e3c7e1da;
+	Sun, 04 Feb 2024 19:21:35 +0000 (UTC)
+Date: Sun, 4 Feb 2024 20:21:34 +0100
 From: Sam Ravnborg <sam@ravnborg.org>
-To: "Ricardo B. Marliere" <ricardo@marliere.net>
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] sparc: vio: make vio_bus_type const
-Message-ID: <20240204191057.GA896678@ravnborg.org>
-References: <20240204-bus_cleanup-sparc-v1-1-4ca7fe8de5f7@marliere.net>
+To: "David S. Miller" <davem@davemloft.net>,
+	Arnd Bergmann <arnd@kernel.org>,
+	Andreas Larsson <andreas@gaisler.com>, Helge Deller <deller@gmx.de>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-sound@vger.kernel.org
+Subject: Re: [PATCH 00/27] sparc32: sunset sun4m and sun4d
+Message-ID: <20240204192134.GB896678@ravnborg.org>
+References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -56,14 +62,30 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240204-bus_cleanup-sparc-v1-1-4ca7fe8de5f7@marliere.net>
+In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
 
-On Sun, Feb 04, 2024 at 12:19:50PM -0300, Ricardo B. Marliere wrote:
-> Now that the driver core can properly handle constant struct bus_type,
-> move the vio_bus_type variable to be a constant structure as well,
-> placing it into read-only memory which can not be modified at runtime.
-> 
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Hi Andreas.
+
+Congratulation being the new sparc co-maintainer!
+
+On Tue, Dec 19, 2023 at 11:03:05PM +0100, Sam Ravnborg via B4 Relay wrote:
+> This is the second attempt to sunset sun4m and sun4d.
+> See [1] for the inital attempt.
+
+I have now verified that the kernel can boot with qemu.
+There was a bug in the uart driver that is fixed and upstream, and then
+using the instructions you provided I could use buildroot with an
+external kernel tree to get a booting kernel.
+
+Assuming you agree with the patchset how do you want me to move forward?
+I can rebase on top of the latest -rc and collect acks if that helps.
+
+Arnd promised to pick up the patches until you got a git tree up,
+but I do not expect Arnd to pick up anything unless you have acked or
+reviewed said patch(es).
+
+If I rebase the patch-set I will likely include a few bug-fix patches that
+was prepared in the meantime.
+I can also send them as a separate series, no worries.
+
+	Sam
