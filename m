@@ -1,133 +1,165 @@
-Received: from mout.web.de (mout.web.de [212.227.15.3])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82011132C1B;
-	Tue,  6 Feb 2024 15:40:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 305C867C72;
+	Thu,  8 Feb 2024 06:11:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707234054; cv=none; b=OgXF71P9YXdLfg6bDJIrZA9J40i/hNw6OzJpE9NsljBYl9vjKQ7tJfmRNgVC/CGYEqyw7TNNukwiW2neBcBtED23KUV3YuKGmKyrZujWmCISNRecmbJaasHsmzcVdt8Er9ZK/Z/0h4pSsUt+OsCjxDcLr2AjPe51LG6vbcEdaxk=
+	t=1707372685; cv=none; b=iheXGJ64L/iVsoY4EaADTpM4lcsoS7AgNyXSBFrj4yP8dfccLAlRd7yW3BGF71umjbWFL4b/Y7eLeOyuTE2VXb/Jy/foAkvOIB4DkuGtL4G7lmrYSWlhHK2MDhJq/0NgLBgW1JmXmA4kGMz1Ob0MfJLNP953cyKlU1zd9jVkEzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707234054; c=relaxed/simple;
-	bh=7eaZzjz+wMCUEjnyDUB3tK901K9kXxGQ/BL0sTc923A=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=rKYrivgI24lk0nav2VKfUEnnlBHM9dogJKEiwVV9B76MNQ7Pl8vj+/9qahipx5njmBYs1uXqqmfJ8wD7VI5Yet6/waYX/0bLKaSSUbg1zLb9PoEzXHDJoVK3N5Cy+Zm13e580zIBGLQAwWB5t6qfo45hxc1fWZeEkgdgFc+CtBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=cOQ0SDQJ; arc=none smtp.client-ip=212.227.15.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1707372685; c=relaxed/simple;
+	bh=P03Ra6tKJeIfMl5vzZANDer57SEANPUYFQQ4fYeImD4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YlGEShY2FkDan++b5GXFcG9/18W1DXg6I0pSTh3+ADrp83/ykO/arVSERawKNKk1cBgEB3F2AVyecpowPjYAtzs7NzI32vMVJnGQLuHQHAzkpQkWhDQmfxjfwblZwLf2PrBf9ffIUbS2K2PcYDgQVLtSZcmC8wg3muPaTcj+XwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HFaz8r46; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="cOQ0SDQJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de; s=s29768273;
-	t=1707234025; x=1707838825; i=markus.elfring@web.de;
-	bh=7eaZzjz+wMCUEjnyDUB3tK901K9kXxGQ/BL0sTc923A=;
-	h=X-UI-Sender-Class:Date:Subject:From:To:Cc:References:
-	 In-Reply-To;
-	b=cOQ0SDQJMGw6cB+eoiYjY1HUTQgSn/XZm/c0ffcAKYO5cFpdpIRopiIc8CLezkIW
-	 7jnl73aWjDtJ/Up4KHDhjdUTlel1Dl85PpeYWTqIyLnrUs8pvGaG8R3gmGneBuiHZ
-	 5ZaWUr0xVRIePqmvbWd3JQCPaUoQ7DIWlnp+dBie9NuNjUyXXz5phD46iixCzn8gm
-	 jPO0wKzm2Ar7JEMx+Xs3KEDn9AHCkd19keNOzsfPyoceOz5803tj3dk5cV1quUmgc
-	 WQ+ZWgC+KRcC0+ATkdH4sVI57ZZLXjqWVFscTA4jddnVM3Ch9PJtDMJYHFr/qspjM
-	 SUZ8WLRLuFqCUek6uA==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.21] ([94.31.85.95]) by smtp.web.de (mrweb005
- [213.165.67.108]) with ESMTPSA (Nemesis) id 1MkElZ-1r9dVw33mL-00kNmR; Tue, 06
- Feb 2024 16:40:25 +0100
-Message-ID: <e4585b03-3629-4bd7-a349-f5471ebd8685@web.de>
-Date: Tue, 6 Feb 2024 16:40:24 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HFaz8r46"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2565C43390;
+	Thu,  8 Feb 2024 06:11:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1707372684;
+	bh=P03Ra6tKJeIfMl5vzZANDer57SEANPUYFQQ4fYeImD4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=HFaz8r46F2yMGhc4eChQ1bdDMIG2SJbZeO1JsISVjZZY5/QxNPEU574sO9dknngXq
+	 YVgyAOL6RSp2qvuoFw3QAZnOLGr4cDN/wpbTmNQ58lmjGGeuChQIAye3TRo4TxFy79
+	 V7xNv4sfFz+z0Vk0ON1uEn4vvWgR1e3+QhjIlA+1LT/Ifdm5+CkutQDtm79R+RIM1n
+	 4OE0Gfs2UAKksR/gYZdixvQn5xW9+A4inVRJwU+VYyn9RWTX93+YzHhWEvbOkcDwIJ
+	 h9Gt9Ms2CBz13jyRvnX4bzQn20gjiMAXZmHcQEZQTyBICBjNVu3/zFAWUGyA2x/MG4
+	 oI4EjuUTX0bdA==
+Date: Thu, 8 Feb 2024 08:10:59 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: David Hildenbrand <david@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 01/15] arm64/mm: Make set_ptes() robust when OAs cross
+ 48-bit boundary
+Message-ID: <ZcRwc2mEDHIXxgGa@kernel.org>
+References: <20240129124649.189745-1-david@redhat.com>
+ <20240129124649.189745-2-david@redhat.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: [PATCH v2] sparc: leon: grpci1: Use devm_platform_ioremap_resource()
- in grpci1_of_probe()
-Content-Language: en-GB
-From: Markus Elfring <Markus.Elfring@web.de>
-To: sparclinux@vger.kernel.org, kernel-janitors@vger.kernel.org,
- Andreas Larsson <andreas@gaisler.com>, "David S. Miller"
- <davem@davemloft.net>, Rob Herring <robh@kernel.org>,
- Sam Ravnborg <sam@ravnborg.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
-References: <4fc017e4-c695-40d3-aed4-cbf34d44e6fa@web.de>
-In-Reply-To: <4fc017e4-c695-40d3-aed4-cbf34d44e6fa@web.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:delG0OP3p85cu5vnIQwdHsvL/LKQZkLgZh9jHMmoyj2Z2ieh6lG
- 8/dT9mLr/M+pNYBTkNChAYflEc1ItFeq/D/kvRuf2/e7N2j4GeZPqwlb1hQwHbq4FwMjBxe
- Zv94gYPqjexmo5puO4ySl7u3KZJt71vLMpUNFMN8eptVvmi4NbWiYtCO+yqTcQ4HqVftt2A
- UIoUZ1FDZ8dWPhidHpnZA==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:cWb4CakeEFE=;GWpIyvQCZXa8OBC1L6tHGGyQvDw
- fDypwyDhiClo+6+q47h+fOgversLTaVVeehc+0ELLDL9++VJIyKswhBM1mUGSEpWrJUubT6o/
- WTzi+bUpwz1zEA75WEeay9M05+d4Cz8sUVVYKF3aZLhL+9CiCyw4dMD0L763LvwEc8h74efm9
- PcjzOGDqAeqK7H8LZ3KrFOLcK45/sG+lCGaCNord8Lb7zOAGbRpqyTd+q6yte8ylOUInuuuiq
- Se/IlSLj9GP12mbQcF3NfeBk2Z68s57jCDwGelr8JoU0X2VPa84ZZjKuJjUOulzsVm2O/IK0p
- oBUbjHSsXYqjuV6T4qcLpLxs+XND/XSPSGuCHVLwx42z4F/8tnoMCz2DQ6QGJN8XVdXrQk6A/
- Ex4FcP7g39r/EC+Xc92BZIm6D9kRt3cHecBVzFEmonkyu2ocTv21K9JfZgvnGASoEBm2MLR+8
- Vgv3+iLSlrkym48EJAksrk3FCI6u/gj+rUv/RtXZZTsVaD+QONe2LRhzDcAn5SdIdenvGho1I
- dYlp61T1r+qRLqBXXlnN7HRS3eK1bX6R9U9CAWOq3nC3ByakMQRIqh9EZgWhiDT2vhfsdNbGc
- V4HrY0QTVd3PXO1nSlPh7biirEpMUF18thxjPLkYh5PQh0EgKEOscb14VkxYPFn6N+/D1ZOzq
- Jg69j7PAgVvmciKwmSzUczSChUUimbmurLoqRNNa1oWlNjLPhuqUlN9AUG+kuNkJAOd5I7qsm
- sOxlRJulUAcMShIg3BKw0nbkDJBADdYqmnZFW7V6zAW61nBcimWPiZqjH9HCZ1nPIB5ZY1Xvi
- ecnrJtTgzansC4SlW3h/KqBRlN+l/scmcwp2JVDFUIIyo=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240129124649.189745-2-david@redhat.com>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Feb 2024 16:30:15 +0100
+On Mon, Jan 29, 2024 at 01:46:35PM +0100, David Hildenbrand wrote:
+> From: Ryan Roberts <ryan.roberts@arm.com>
+> 
+> Since the high bits [51:48] of an OA are not stored contiguously in the
+> PTE, there is a theoretical bug in set_ptes(), which just adds PAGE_SIZE
+> to the pte to get the pte with the next pfn. This works until the pfn
+> crosses the 48-bit boundary, at which point we overflow into the upper
+> attributes.
+> 
+> Of course one could argue (and Matthew Wilcox has :) that we will never
+> see a folio cross this boundary because we only allow naturally aligned
+> power-of-2 allocation, so this would require a half-petabyte folio. So
+> its only a theoretical bug. But its better that the code is robust
+> regardless.
+> 
+> I've implemented pte_next_pfn() as part of the fix, which is an opt-in
+> core-mm interface. So that is now available to the core-mm, which will
+> be needed shortly to support forthcoming fork()-batching optimizations.
+> 
+> Link: https://lkml.kernel.org/r/20240125173534.1659317-1-ryan.roberts@arm.com
+> Fixes: 4a169d61c2ed ("arm64: implement the new page table range API")
+> Closes: https://lore.kernel.org/linux-mm/fdaeb9a5-d890-499a-92c8-d171df43ad01@arm.com/
+> Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+> Reviewed-by: David Hildenbrand <david@redhat.com>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-A wrapper function is available since the commit 7945f929f1a77a1c8887a97ca=
-07f87626858ff42
-("drivers: provide devm_platform_ioremap_resource()").
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 
-* Thus reuse existing functionality instead of keeping duplicate source co=
-de.
+> ---
+>  arch/arm64/include/asm/pgtable.h | 28 +++++++++++++++++-----------
+>  1 file changed, 17 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+> index b50270107e2f..9428801c1040 100644
+> --- a/arch/arm64/include/asm/pgtable.h
+> +++ b/arch/arm64/include/asm/pgtable.h
+> @@ -341,6 +341,22 @@ static inline void __sync_cache_and_tags(pte_t pte, unsigned int nr_pages)
+>  		mte_sync_tags(pte, nr_pages);
+>  }
+>  
+> +/*
+> + * Select all bits except the pfn
+> + */
+> +static inline pgprot_t pte_pgprot(pte_t pte)
+> +{
+> +	unsigned long pfn = pte_pfn(pte);
+> +
+> +	return __pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^ pte_val(pte));
+> +}
+> +
+> +#define pte_next_pfn pte_next_pfn
+> +static inline pte_t pte_next_pfn(pte_t pte)
+> +{
+> +	return pfn_pte(pte_pfn(pte) + 1, pte_pgprot(pte));
+> +}
+> +
+>  static inline void set_ptes(struct mm_struct *mm,
+>  			    unsigned long __always_unused addr,
+>  			    pte_t *ptep, pte_t pte, unsigned int nr)
+> @@ -354,7 +370,7 @@ static inline void set_ptes(struct mm_struct *mm,
+>  		if (--nr == 0)
+>  			break;
+>  		ptep++;
+> -		pte_val(pte) += PAGE_SIZE;
+> +		pte = pte_next_pfn(pte);
+>  	}
+>  }
+>  #define set_ptes set_ptes
+> @@ -433,16 +449,6 @@ static inline pte_t pte_swp_clear_exclusive(pte_t pte)
+>  	return clear_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
+>  }
+>  
+> -/*
+> - * Select all bits except the pfn
+> - */
+> -static inline pgprot_t pte_pgprot(pte_t pte)
+> -{
+> -	unsigned long pfn = pte_pfn(pte);
+> -
+> -	return __pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^ pte_val(pte));
+> -}
+> -
+>  #ifdef CONFIG_NUMA_BALANCING
+>  /*
+>   * See the comment in include/linux/pgtable.h
+> -- 
+> 2.43.0
+> 
+> 
 
-* Delete a local variable which became unnecessary with this refactoring.
-
-
-This issue was transformed by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-=2D--
-
-v2:
-The transformation pattern was adjusted based on advices by known contribu=
-tors.
-
-Examples:
-* Doug Anderson
-* Geert Uytterhoeven
-* Robin Murphy
-
-
- arch/sparc/kernel/leon_pci_grpci1.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_=
-pci_grpci1.c
-index 8700a0e3b0df..a01ecee18e1e 100644
-=2D-- a/arch/sparc/kernel/leon_pci_grpci1.c
-+++ b/arch/sparc/kernel/leon_pci_grpci1.c
-@@ -516,7 +516,6 @@ static int grpci1_of_probe(struct platform_device *ofd=
-ev)
- 	int err, len;
- 	const int *tmp;
- 	u32 cfg, size, err_mask;
--	struct resource *res;
-
- 	if (grpci1priv) {
- 		dev_err(&ofdev->dev, "only one GRPCI1 supported\n");
-@@ -537,8 +536,7 @@ static int grpci1_of_probe(struct platform_device *ofd=
-ev)
- 	priv->dev =3D &ofdev->dev;
-
- 	/* find device register base address */
--	res =3D platform_get_resource(ofdev, IORESOURCE_MEM, 0);
--	regs =3D devm_ioremap_resource(&ofdev->dev, res);
-+	regs =3D devm_platform_ioremap_resource(ofdev, 0);
- 	if (IS_ERR(regs))
- 		return PTR_ERR(regs);
-
-=2D-
-2.43.0
-
+-- 
+Sincerely yours,
+Mike.
