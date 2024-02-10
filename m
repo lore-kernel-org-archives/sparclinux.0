@@ -1,63 +1,64 @@
 Received: from e2i605.smtp2go.com (e2i605.smtp2go.com [103.2.142.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98AE55FBB8
-	for <sparclinux@vger.kernel.org>; Sat, 10 Feb 2024 21:23:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6641D6125
+	for <sparclinux@vger.kernel.org>; Sat, 10 Feb 2024 21:29:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.2.142.93
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707600221; cv=none; b=SZ/H95HDID5xU4WAAPCtem72wEH5N4LFTW4TTN9ZlTr804J7Hn1K6q8baQiv++4xGKCG3mByJjfkaobtRbnpYbsyYzALxvI25RW1OOxej108iVoGHtwdib1hEkdNc0pwh0eC3lY+SbeCyaq6VixqLTZskSa3EDDNaUlWYl0Ctho=
+	t=1707600580; cv=none; b=WRWVfxFjFeCejTaSSLzceM6y3Ruc443rJh8jlBcLiWyGI6p+R4DJB+0AMdJgV8cQ1R9qrUCyjPDbgzH+FySWoxtc+euvlkUW5HEFQ0epAzIdjZzKctwr37raZTV9QAC1qY5hD39PyDXNOgDFP+9yigXhsMMNFZYOpxMzGbp1Qh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707600221; c=relaxed/simple;
-	bh=I1g56Qbu1U7xe3c1QV1JroAnkemuPw2aHxort9pD/Wc=;
+	s=arc-20240116; t=1707600580; c=relaxed/simple;
+	bh=2Du69mSeHaxU4Lx7+MOepHIT2fMVUkQRRtGqtvh8tn0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aGTI4bKTEHTpZiPpS9zZVbGvoPVMrwynvvPZxBK9A17F/tZwn5UVdWS7xXpLd+GEFX9Pd9QvPUneNI2IlvlHpRh8Z8aIyIqltD4QmKFgXnd5KuylYiNRCixxrGbzypbe2XkeCT8oBbQDU129ImvrhC+jUlVfJQ5L+H5RNyYuVk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fjasle.eu; spf=pass smtp.mailfrom=em1174286.fjasle.eu; dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b=z7vUO0Vx; dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=k+5fw+5/; dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=JbkbT0pd; arc=none smtp.client-ip=103.2.142.93
+	 Content-Type:Content-Disposition:In-Reply-To; b=IZgkV4VDgqTz3AbbO25y/rNfDcjeyIuSKVuukTK5YBQEhoVLm+IxNzYg1VxafKaGkx5JX1sMGmOsIQNGtku/o+5LT1kW50jJSHfRSOMsliqJwhvLgdVm6hRClTvVkKIKrfARVJozIyWd3SY/kxF7B5Ka7XjPatromR170nqPalA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fjasle.eu; spf=pass smtp.mailfrom=em1174286.fjasle.eu; dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b=bkVIqjTU; dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=ak20/TKq; dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=NY+lAiZu; arc=none smtp.client-ip=103.2.142.93
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fjasle.eu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=em1174286.fjasle.eu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b="z7vUO0Vx";
-	dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="k+5fw+5/";
-	dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="JbkbT0pd"
+	dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b="bkVIqjTU";
+	dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="ak20/TKq";
+	dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="NY+lAiZu"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=smtpservice.net; s=mp6320.a1-4.dyn; x=1707601111; h=Feedback-ID:
+	d=smtpservice.net; s=mp6320.a1-4.dyn; x=1707601471; h=Feedback-ID:
 	X-Smtpcorp-Track:Message-ID:Subject:To:From:Date:Reply-To:Sender:
-	List-Unsubscribe; bh=2Fq96AF5MB0+kJ+KJdOs/5ZldIf6fpvtRLYffLd24+I=; b=z7vUO0Vx
-	wWqiVAH9vwhObjc6ApCIZimFNCDV6C7KQMzFM4xS7bbwjRVJvattqZBwRzyqtUJIxj74shFHFKRxr
-	lRRXuLDXpQ99ZIegnZsfXGhxqKomsDbAjDzhWAdWmVXDRfvH6TC2agZVt/+ckkQYC+xswYr9fH2Oi
-	jIGm7ANX6+ViGWPyU0Xp+0AkUyRY1dzysisWFKa3QiYizc9RVQEVhDpWTcgiq0PjkZCrh9oUca8e7
-	zztM2r9vwTOgGLI8r2je4BEqtFX1kueyAYqHKwDHaDdQXag/FEV+ey81iGnCBHMzJx9pLY7qM16K7
-	NXN3VBsA4HUEbo8qKod+gRFYcA==;
+	List-Unsubscribe; bh=/a1NKqeWXcomDM15U7re5KNGNhB+KStNX+Jjw32PO8k=; b=bkVIqjTU
+	Cg6jcC2boT1yFUKhUt4So+4GJAWdLqAzvM/HZyk5Uejt2hWKDnRb2cplzFbPhU+5IXT+ZfVEbmik0
+	Cdpr9g91Q5Vgh5oxPyCuB+TZA3R9wA/tWFiDgrn0MP1/1+XnM6a1YwJM0ylEcmz7QlFdylnVdDj6t
+	aIlSAvrduLe/aEm0wVkhMvhxzEatzSMNx8F6mq7ojb3Ak3EDGlWz3FZQoxmZ8BCBWTpb+LU5WREqu
+	hmzms3g+xAEieM1UaAbJjJyyO3+KepiYQIBljnpqRi2xgkrGsrN/m98ouhXXip76vWM0iKHaUc+A6
+	D6UpoHhkS6cH5ZAGoPFaZvVsCQ==;
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fjasle.eu;
- i=@fjasle.eu; q=dns/txt; s=s1174286; t=1707600211; h=from : subject :
+ i=@fjasle.eu; q=dns/txt; s=s1174286; t=1707600571; h=from : subject :
  to : message-id : date;
- bh=2Fq96AF5MB0+kJ+KJdOs/5ZldIf6fpvtRLYffLd24+I=;
- b=k+5fw+5/Zn6C04BIbFbovuodWFzjik0GUL3rHuESwzriaQ1Gxi+oRIDgWolWkFsdscPuJ
- 46hcov10/eO5I11QdtRHlMqAGietRJx7nkT9/R3+AnjnmMGKrzwCL+4SP3lylEiyrRd5nH5
- RXFR69dfLTzXe2E6r9/JIaEX8AHl5C7t5i9AQLLHCZHw0Nj3q+4etuJkFnGslupzUXE9diz
- Hb8f90f2JtgBskeuaeko04P9MywYhWKUCKyQxBEH67mLAO76ibSHDKMeuD0bT8O7A6uxWn9
- z2kQhCzlvlN5wEIsO6MVv8vFxvbJ8isVeGmVZgHGKMmR6X2aG7GNR+PEtLHA==
-Received: from [10.139.162.187] (helo=SmtpCorp) by smtpcorp.com with esmtpsa
+ bh=/a1NKqeWXcomDM15U7re5KNGNhB+KStNX+Jjw32PO8k=;
+ b=ak20/TKqvKhuArh7F2StTeXxQjhpWn8IWNGHdFiQ4IJc9n/G1xXShR8kEJoASYY8WPdzh
+ h9nnC4gAszb9nF2jbToC8IhU2Nxk+yGsuoXwfYR/jKnDAra7SEH5NT7UlfoPeZrabPW9afl
+ PghYExQFJ8mKdt9TZU/Oypc2MiEJmBkihGKKFUqbOBizNwY85fxUf/MpeTaclhZWL+udp6h
+ l28ev/QR5P4S0Zo1SEfoYRrsWETmWgRAo98+XoZ6xUHDPs8B9XU5J/UcTRoDyiYSeAeri6F
+ iJQa5OrheZd6VtuZsg35xdScwKyuils1b2L6C3cD+yz6TRJ34bgmc2TWCSWQ==
+Received: from [10.176.58.103] (helo=SmtpCorp) by smtpcorp.com with esmtpsa
  (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
  (Exim 4.94.2-S2G) (envelope-from <nicolas@fjasle.eu>)
- id 1rYulD-qt4Fr1-Lp; Sat, 10 Feb 2024 21:19:46 +0000
+ id 1rYurb-qt4BXu-QO; Sat, 10 Feb 2024 21:26:21 +0000
 Received: from [10.85.249.164] (helo=leknes.fjasle.eu)
  by smtpcorp.com with esmtpsa
  (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
  (Exim 4.96.1-S2G) (envelope-from <nicolas@fjasle.eu>)
- id 1rYulD-4XnyKn-0Z; Sat, 10 Feb 2024 21:19:43 +0000
+ id 1rYurb-9EMoK9-0P; Sat, 10 Feb 2024 21:26:19 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fjasle.eu; s=mail;
- t=1707599972; bh=I1g56Qbu1U7xe3c1QV1JroAnkemuPw2aHxort9pD/Wc=;
+ t=1707600370; bh=2Du69mSeHaxU4Lx7+MOepHIT2fMVUkQRRtGqtvh8tn0=;
  h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
- b=JbkbT0pdaP8BnvXh9tpxj+YS6okGmBmnNGsrfdhfV9EoSpDF5F4uOHaMJ+xMqzgij
- GHorn8ZRP9m/80ivs1VHZsgnANVVzW1lsFOxlplnJSNro9J6nuH834VWmTQkPGt9Is
- yHwwg6G/9TmIg3PL7q7Lo4tsSP4IC66lViSJVPGw=
+ b=NY+lAiZuOqkS5pMrJUpcG65n5ETEJV2Y+6gc5E/FA4KrEooCHnXiFhSd0KsKLU3N/
+ 3V9msP+z+BGKPowTYSTTNEmBr+1NIrpx57jUGQwQqM9RCQXeavAWqRwKTkQ9w8VmVT
+ HYORQqzNDMTLtRrB3rbNgRNY2yBj7YRn9ojD9DtY=
 Received: by leknes.fjasle.eu (Postfix, from userid 1000)
- id 9DE743E9DC; Sat, 10 Feb 2024 22:19:32 +0100 (CET)
-Date: Sat, 10 Feb 2024 22:19:32 +0100
+ id 07A053E9DC; Sat, 10 Feb 2024 22:26:09 +0100 (CET)
+Date: Sat, 10 Feb 2024 22:26:09 +0100
 From: Nicolas Schier <nicolas@fjasle.eu>
-To: "Russell King (Oracle)" <linux@armlinux.org.uk>
-Cc: Zhang Bingwu <xtex@envs.net>, Catalin Marinas <catalin.marinas@arm.com>,
- Will Deacon <will@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>,
+To: Zhang Bingwu <xtex@envs.net>
+Cc: Russell King <linux@armlinux.org.uk>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
  Dinh Nguyen <dinguyen@kernel.org>,
  "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
  Helge Deller <deller@gmx.de>, Paul Walmsley <paul.walmsley@sifive.com>,
@@ -78,11 +79,11 @@ Cc: Zhang Bingwu <xtex@envs.net>, Catalin Marinas <catalin.marinas@arm.com>,
  linux-m68k@lists.linux-m68k.org, linux-parisc@vger.kernel.org,
  linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
  sparclinux@vger.kernel.org
-Subject: Re: [PATCH 1/2] kbuild: Abort make on install failures
-Message-ID: <ZcfoZKJHkdEh5JmV@fjasle.eu>
+Subject: Re: [PATCH 2/2] kbuild: Create INSTALL_PATH directory if it does not
+ exist
+Message-ID: <Zcfp8fn7o74K08g0@fjasle.eu>
 References: <20240210074601.5363-1-xtex@envs.net>
- <20240210074601.5363-2-xtex@envs.net>
- <ZcdP7CC+OMbp5ZMi@shell.armlinux.org.uk>
+ <20240210074601.5363-3-xtex@envs.net>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -90,79 +91,72 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature"; boundary="enK6rDCtE6qVMuuk"
+ protocol="application/pgp-signature"; boundary="W0xuwF1M0d/5Cjtp"
 Content-Disposition: inline
-In-Reply-To: <ZcdP7CC+OMbp5ZMi@shell.armlinux.org.uk>
-X-Smtpcorp-Track: 1rYI_D4bnyKn0Z.xzhO1gNhEum7g
-Feedback-ID: 1174286m:1174286a9YXZ7r:1174286sd7ZiAHDp8
+In-Reply-To: <20240210074601.5363-3-xtex@envs.net>
+X-Smtpcorp-Track: 1rYIrP9EuoK90e.xzna1gL1vZmcR
+Feedback-ID: 1174286m:1174286a9YXZ7r:1174286sDwEn1GXPS
 X-Report-Abuse: Please forward a copy of this message, including all headers,
  to <abuse-report@smtp2go.com>
 
 
---enK6rDCtE6qVMuuk
+--W0xuwF1M0d/5Cjtp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Feb 10, 2024 at 10:29:00AM +0000 Russell King (Oracle) wrote:
-> On Sat, Feb 10, 2024 at 03:46:00PM +0800, Zhang Bingwu wrote:
-> > From: Zhang Bingwu <xtexchooser@duck.com>
-> >=20
-> > Setting '-e' flag tells shells to exit with error exit code immediately
-> > after any of commands fails, and causes make(1) to regard recipes as
-> > failed.
-> >=20
-> > Before this, make will still continue to succeed even after the
-> > installation failed, for example, for insufficient permission or
-> > directory does not exist.
-> >
-> > Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
-> > ---
-
-Thanks for fixing!
-
-[...]
-> > diff --git a/arch/arm/boot/install.sh b/arch/arm/boot/install.sh
-> > index 9ec11fac7d8d..34e2c6e31fd1 100755
-> > --- a/arch/arm/boot/install.sh
-> > +++ b/arch/arm/boot/install.sh
-> > @@ -17,6 +17,8 @@
-> >  #   $3 - kernel map file
-> >  #   $4 - default install path (blank if root directory)
-> > =20
-> > +set -e
-> > +
+On Sat, Feb 10, 2024 at 03:46:01PM +0800 Zhang Bingwu wrote:
+> From: Zhang Bingwu <xtexchooser@duck.com>
 >=20
-> What about #!/bin/sh -e on the first line, which is the more normal way
-> to do this for an entire script?
+> If INSTALL_PATH is not a valid directory, create it, like what
+> modules_install and dtbs_install will do in the same situation.
+>=20
+> Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
+> ---
+>  scripts/install.sh | 4 ++++
+>  1 file changed, 4 insertions(+)
+>=20
+> diff --git a/scripts/install.sh b/scripts/install.sh
+> index 9bb0fb44f04a..02b845e7ab33 100755
+> --- a/scripts/install.sh
+> +++ b/scripts/install.sh
+> @@ -20,6 +20,10 @@ do
+>  	fi
+>  done
+> =20
+> +if [ "${INSTALL_PATH}" !=3D "" ] && ! [ -e "${INSTALL_PATH}" ]; then
+> +	mkdir -p "${INSTALL_PATH}"
+> +fi
+> +
+>  # User/arch may have a custom install script
+>  for file in "${HOME}/bin/${INSTALLKERNEL}"		\
+>  	    "/sbin/${INSTALLKERNEL}"			\
+> --=20
+> 2.43.0
+>=20
 
-are you sure?  I can find many more occurrences of 'set -e' than the
-shebang version in the Linux tree, especially in the kbuild scripts, thus
-it's bike-shedding, isn't it?
+Thanks.
 
-Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
+Reviewed-by: Nicolas Schier <nicolas@jasle.eu>
 
-Kind regards,
-Nicolas
-
---enK6rDCtE6qVMuuk
+--W0xuwF1M0d/5Cjtp
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEh0E3p4c3JKeBvsLGB1IKcBYmEmkFAmXH6FkACgkQB1IKcBYm
-Emmflg//QV42IFPNYuHOXGOMGBjwhOcPS5a63Ery8+rM164QOh4y8GFFm70Ti5Wd
-s5wSWvSTxw+riHznvjEkrzi/KrHEMIWsy6HRRBdrzwpiytGb7QCnUT1LtSteBeNe
-JPtcZ5MGz0W4HIUA4cj46FxFGpR+DjnrGk2FoXd/BSwhYq0asA1muUHQ0YwN3ksS
-b86PM8Y/JgAbCGeA9qF+uZGaSFjU9cl4LQj14E7IPYrp9ZeDgYY3eC6vNPJ+64zD
-Jipvq0pg5G9MrN92hNXw/VVn4pGrquNcIqFQwGypcZIb2YrKOLEtPBctEqZkYNfd
-TGngv5bUFvUwllm9o/VpflR1XOx1auN2AJQux6l1ca41dhH/tKkFCrDU7V5Xxc6J
-3VBC9QeZuVuh5AETrC9whYVFSIvoQvH5NHRV6ffqA6AGjXQJNsNNsUuwVnhliaDh
-vqNO7OJm2ZoZmlBjNCGI1LsjNateOOY7mzk1Fsz9pl0OyhkDjjDoT56rTcC+Ykz9
-HSceveMepuVG/vTNMEwXIGAaG3p+7+/mj4QrwE9TAWCRs/ASCnaMYJUkPmJLfuXD
-tOP59blzBvkY5HAmDHMdl4AIFtM9rjm/JQORwYT2tB+MfdyZxCWWJPz7mjs6ykAy
-JF9090FJh3puL9bw721bvpb75ptKyBxpuvQsas2SspCCtT1DidQ=
-=NJcH
+iQIzBAABCAAdFiEEh0E3p4c3JKeBvsLGB1IKcBYmEmkFAmXH6fEACgkQB1IKcBYm
+EmkWwhAApeau8lv5luMtDVI0MRTjPUBISiudGax4Vj5+2kq+lpcurNBfDgb8g6vz
+d9eKFrAY4RpiyQA/tfByDJMkOdxjeozILABmF9E/mHAU1ddjG0tdN7dCcoiadZ1C
+nRQsrQ0hMPgl/ohv5Gq6uSBNs9iJ76I8VPAUSGVhSEUXPIlZoPMYgvaKWDrUEKoA
+6T6PTWoCQZ9rTRIRDzuiiXDVnEtF7Yc8qcdU/GhJTaxXuvO0NAZ2we1D7evgQriK
+pvlgl/Z3UEJuoqa7gLW0tP66I1aIoBW89cAmxOMPEbx7ILj2uz94ZmL6qxCh6Ift
+JIjvMM6y/6q6XnQf5a9amudS45/dT8F6+2wuPsWB5mUyUu4Jtj+nP6HgLTQsw3MO
+TblqqeWBw+OZFmoU/F6R2RLTkoS00OxKrNcVSQ4ztsHmbYJZC4uqx3qTdq296LDt
+gfm7Me4IHyqXCpR2TkCNL2L+Y4iABSspsgayVoJMMRdGphz55Aa7tRfpu+M3Su7P
+x21blad5Owsw9AgQwY3Eh7SUmh0ooNgFtC2w3hpwj41Whe1IcAQx8iyAaO5UG802
+fweAOlp41rdel9LwyfuPqG0nFwTf3+pYdqOCTOF68S3EFav85/UDo6Mg9Zgk11Je
+X9KRaCfNIMNh4RXVh5toNthTBAISAYeD8tHQypeyU4J9PunrzFc=
+=PO1M
 -----END PGP SIGNATURE-----
 
---enK6rDCtE6qVMuuk--
+--W0xuwF1M0d/5Cjtp--
