@@ -1,140 +1,168 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from e2i605.smtp2go.com (e2i605.smtp2go.com [103.2.142.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D760364BA
-	for <sparclinux@vger.kernel.org>; Sat, 10 Feb 2024 19:56:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98AE55FBB8
+	for <sparclinux@vger.kernel.org>; Sat, 10 Feb 2024 21:23:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.2.142.93
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707595000; cv=none; b=XvppV/gY8TYOqJsBbL8yZ6IxXwosDs91rWaJ0UDK9u1RDNnrgRemYFaELhsAr9a5Oli9ErbQXZJC4xjTebKNOschef/kVuV58tqMXyKaWfDVvH+pXEejtwyzFkMiU6qMyt0UJW1TS9gXmIDcLv0y0enxcR0Kn+Rdj3K1/NIV0rk=
+	t=1707600221; cv=none; b=SZ/H95HDID5xU4WAAPCtem72wEH5N4LFTW4TTN9ZlTr804J7Hn1K6q8baQiv++4xGKCG3mByJjfkaobtRbnpYbsyYzALxvI25RW1OOxej108iVoGHtwdib1hEkdNc0pwh0eC3lY+SbeCyaq6VixqLTZskSa3EDDNaUlWYl0Ctho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707595000; c=relaxed/simple;
-	bh=dFVzg9ssNDhGRIKi+18ADbVxlvwgvFDe934WXO22+ok=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=rKApwn+mHON1NuyzTElSwBw1i4xxnqSiLXcGChdQz8C422+N0smC5c0TMX/+uhfOEpHvvg2CpiP2rP7ikp1C0IspkFmTxaFbdbIBWhMx4N3VTiohLAhYuG096GV6o3j2WStnAevZHxg9quVeUcDemqRObdhqy058+jEfT1dMgUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.97)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1rYtSd-00000001dnw-1Faf; Sat, 10 Feb 2024 20:56:27 +0100
-Received: from dynamic-089-014-076-031.89.14.pool.telefonica.de ([89.14.76.31] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.97)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1rYtSd-00000003DPL-0Ga2; Sat, 10 Feb 2024 20:56:27 +0100
-Message-ID: <fe5cc47167430007560501aabb28ba154985b661.camel@physik.fu-berlin.de>
-Subject: Reproducer for the posix_spawn() bug on sparc64
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: sparclinux <sparclinux@vger.kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, Geert Uytterhoeven
-	 <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Sam James
-	 <sam@gentoo.org>, Adhemerval Zanella Netto <zatrazz@gmail.com>, jrtc27
-	 <jrtc27@debian.org>, Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-Date: Sat, 10 Feb 2024 20:56:26 +0100
-Autocrypt: addr=glaubitz@physik.fu-berlin.de; prefer-encrypt=mutual;
- keydata=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
-Content-Type: multipart/mixed; boundary="=-yv9Jiuz19uUbEMtZ6IDP"
-User-Agent: Evolution 3.50.3 
+	s=arc-20240116; t=1707600221; c=relaxed/simple;
+	bh=I1g56Qbu1U7xe3c1QV1JroAnkemuPw2aHxort9pD/Wc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=aGTI4bKTEHTpZiPpS9zZVbGvoPVMrwynvvPZxBK9A17F/tZwn5UVdWS7xXpLd+GEFX9Pd9QvPUneNI2IlvlHpRh8Z8aIyIqltD4QmKFgXnd5KuylYiNRCixxrGbzypbe2XkeCT8oBbQDU129ImvrhC+jUlVfJQ5L+H5RNyYuVk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fjasle.eu; spf=pass smtp.mailfrom=em1174286.fjasle.eu; dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b=z7vUO0Vx; dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=k+5fw+5/; dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b=JbkbT0pd; arc=none smtp.client-ip=103.2.142.93
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fjasle.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=em1174286.fjasle.eu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=smtpservice.net header.i=@smtpservice.net header.b="z7vUO0Vx";
+	dkim=pass (2048-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="k+5fw+5/";
+	dkim=pass (1024-bit key) header.d=fjasle.eu header.i=@fjasle.eu header.b="JbkbT0pd"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=smtpservice.net; s=mp6320.a1-4.dyn; x=1707601111; h=Feedback-ID:
+	X-Smtpcorp-Track:Message-ID:Subject:To:From:Date:Reply-To:Sender:
+	List-Unsubscribe; bh=2Fq96AF5MB0+kJ+KJdOs/5ZldIf6fpvtRLYffLd24+I=; b=z7vUO0Vx
+	wWqiVAH9vwhObjc6ApCIZimFNCDV6C7KQMzFM4xS7bbwjRVJvattqZBwRzyqtUJIxj74shFHFKRxr
+	lRRXuLDXpQ99ZIegnZsfXGhxqKomsDbAjDzhWAdWmVXDRfvH6TC2agZVt/+ckkQYC+xswYr9fH2Oi
+	jIGm7ANX6+ViGWPyU0Xp+0AkUyRY1dzysisWFKa3QiYizc9RVQEVhDpWTcgiq0PjkZCrh9oUca8e7
+	zztM2r9vwTOgGLI8r2je4BEqtFX1kueyAYqHKwDHaDdQXag/FEV+ey81iGnCBHMzJx9pLY7qM16K7
+	NXN3VBsA4HUEbo8qKod+gRFYcA==;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fjasle.eu;
+ i=@fjasle.eu; q=dns/txt; s=s1174286; t=1707600211; h=from : subject :
+ to : message-id : date;
+ bh=2Fq96AF5MB0+kJ+KJdOs/5ZldIf6fpvtRLYffLd24+I=;
+ b=k+5fw+5/Zn6C04BIbFbovuodWFzjik0GUL3rHuESwzriaQ1Gxi+oRIDgWolWkFsdscPuJ
+ 46hcov10/eO5I11QdtRHlMqAGietRJx7nkT9/R3+AnjnmMGKrzwCL+4SP3lylEiyrRd5nH5
+ RXFR69dfLTzXe2E6r9/JIaEX8AHl5C7t5i9AQLLHCZHw0Nj3q+4etuJkFnGslupzUXE9diz
+ Hb8f90f2JtgBskeuaeko04P9MywYhWKUCKyQxBEH67mLAO76ibSHDKMeuD0bT8O7A6uxWn9
+ z2kQhCzlvlN5wEIsO6MVv8vFxvbJ8isVeGmVZgHGKMmR6X2aG7GNR+PEtLHA==
+Received: from [10.139.162.187] (helo=SmtpCorp) by smtpcorp.com with esmtpsa
+ (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+ (Exim 4.94.2-S2G) (envelope-from <nicolas@fjasle.eu>)
+ id 1rYulD-qt4Fr1-Lp; Sat, 10 Feb 2024 21:19:46 +0000
+Received: from [10.85.249.164] (helo=leknes.fjasle.eu)
+ by smtpcorp.com with esmtpsa
+ (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+ (Exim 4.96.1-S2G) (envelope-from <nicolas@fjasle.eu>)
+ id 1rYulD-4XnyKn-0Z; Sat, 10 Feb 2024 21:19:43 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fjasle.eu; s=mail;
+ t=1707599972; bh=I1g56Qbu1U7xe3c1QV1JroAnkemuPw2aHxort9pD/Wc=;
+ h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+ b=JbkbT0pdaP8BnvXh9tpxj+YS6okGmBmnNGsrfdhfV9EoSpDF5F4uOHaMJ+xMqzgij
+ GHorn8ZRP9m/80ivs1VHZsgnANVVzW1lsFOxlplnJSNro9J6nuH834VWmTQkPGt9Is
+ yHwwg6G/9TmIg3PL7q7Lo4tsSP4IC66lViSJVPGw=
+Received: by leknes.fjasle.eu (Postfix, from userid 1000)
+ id 9DE743E9DC; Sat, 10 Feb 2024 22:19:32 +0100 (CET)
+Date: Sat, 10 Feb 2024 22:19:32 +0100
+From: Nicolas Schier <nicolas@fjasle.eu>
+To: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Zhang Bingwu <xtex@envs.net>, Catalin Marinas <catalin.marinas@arm.com>,
+ Will Deacon <will@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>,
+ Dinh Nguyen <dinguyen@kernel.org>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, Paul Walmsley <paul.walmsley@sifive.com>,
+ Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Thomas Gleixner <tglx@linutronix.de>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "H. Peter Anvin" <hpa@zytor.com>, Zhang Bingwu <xtexchooser@duck.com>,
+ Masahiro Yamada <masahiroy@kernel.org>,
+ Nathan Chancellor <nathan@kernel.org>, x86@kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-parisc@vger.kernel.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ sparclinux@vger.kernel.org
+Subject: Re: [PATCH 1/2] kbuild: Abort make on install failures
+Message-ID: <ZcfoZKJHkdEh5JmV@fjasle.eu>
+References: <20240210074601.5363-1-xtex@envs.net>
+ <20240210074601.5363-2-xtex@envs.net>
+ <ZcdP7CC+OMbp5ZMi@shell.armlinux.org.uk>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PAO
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature"; boundary="enK6rDCtE6qVMuuk"
+Content-Disposition: inline
+In-Reply-To: <ZcdP7CC+OMbp5ZMi@shell.armlinux.org.uk>
+X-Smtpcorp-Track: 1rYI_D4bnyKn0Z.xzhO1gNhEum7g
+Feedback-ID: 1174286m:1174286a9YXZ7r:1174286sd7ZiAHDp8
+X-Report-Abuse: Please forward a copy of this message, including all headers,
+ to <abuse-report@smtp2go.com>
 
---=-yv9Jiuz19uUbEMtZ6IDP
-Content-Type: text/plain; charset="UTF-8"
+
+--enK6rDCtE6qVMuuk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Sat, Feb 10, 2024 at 10:29:00AM +0000 Russell King (Oracle) wrote:
+> On Sat, Feb 10, 2024 at 03:46:00PM +0800, Zhang Bingwu wrote:
+> > From: Zhang Bingwu <xtexchooser@duck.com>
+> >=20
+> > Setting '-e' flag tells shells to exit with error exit code immediately
+> > after any of commands fails, and causes make(1) to regard recipes as
+> > failed.
+> >=20
+> > Before this, make will still continue to succeed even after the
+> > installation failed, for example, for insufficient permission or
+> > directory does not exist.
+> >
+> > Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
+> > ---
 
-due to a recent change in libiberty which enabled the use of posix_spawn() =
-[1],
-we've seen gcc build failures on sparc64 due to a potential bug in kernel s=
-uch
-as [2].
+Thanks for fixing!
 
-After a lot of debugging, Michael Karcher (CC'ed) has managed to write a re=
-producer
-which I am attaching to this mail. The reproducer contains a top comment wh=
-ich explains
-the bug and which should hopefully help kernel developers to fix the proble=
-m.
+[...]
+> > diff --git a/arch/arm/boot/install.sh b/arch/arm/boot/install.sh
+> > index 9ec11fac7d8d..34e2c6e31fd1 100755
+> > --- a/arch/arm/boot/install.sh
+> > +++ b/arch/arm/boot/install.sh
+> > @@ -17,6 +17,8 @@
+> >  #   $3 - kernel map file
+> >  #   $4 - default install path (blank if root directory)
+> > =20
+> > +set -e
+> > +
+>=20
+> What about #!/bin/sh -e on the first line, which is the more normal way
+> to do this for an entire script?
 
-Thanks,
-Adrian
+are you sure?  I can find many more occurrences of 'set -e' than the
+shebang version in the Linux tree, especially in the kbuild scripts, thus
+it's bike-shedding, isn't it?
 
-> [1] https://gcc.gnu.org/git/?p=3Dgcc.git;a=3Dcommit;h=3D879cf9ff45d94065d=
-89e24b71c6b27c7076ac518
-> [2] https://builder.sourceware.org/buildbot/#/builders/238/builds/1161
+Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Kind regards,
+Nicolas
 
---=-yv9Jiuz19uUbEMtZ6IDP
-Content-Disposition: attachment; filename="attack_on_the_clone.c"
-Content-Type: text/x-csrc; name="attack_on_the_clone.c"; charset="UTF-8"
-Content-Transfer-Encoding: base64
+--enK6rDCtE6qVMuuk
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Ly8gU1BBUkM2NCBjbG9uZSBwcm9ibGVtIGRlbW9uc3RyYXRpb24KLy8KLy8gdGhlIHNwYXJjNjQg
-TGludXgga2VybmVsIGZhaWxzIHRvIGV4ZWN1dGUgY2xvbmUgaWYgJXNwIHBvaW50cyBpbnRvIHVu
-Y29tbWl0dGVkIG1lbW9yeSAoZS5nLiBkdWUgdG8gbGF6eQovLyBzdGFjayBjb21taXR0aW5nKS4g
-VGhpcyBwcm9ncmFtIHVzZXMgYSB2YXJpYWJsZSBsZW5ndGggYXJyYXkgb24gdGhlIHN0YWNrIHRv
-IHBvc2l0aW9uIHRoZSBzdGFjayBwb2ludGVyIHdoZW4KLy8gaW52b2tpbmcgdGhlIGxpYnJhcnkg
-ZnVuY3Rpb24gY2xvbmUganVzdCBhdCBhIHBhZ2UgYm91bmRhcnkuIFRoZSBsaWJyYXJ5IGZ1bmN0
-aW9uIGNsb25lIGFsbG9jYXRlcyBhIHN0YWNrIGZyYW1lCi8vIHRoYXQgaXMgY29tcGxldGVseSBp
-biB1bmNvbW1pdHRlZCBtZW1vcnkgYmVmb3JlIGVudGVyaW5nIHRoZSBrZXJuZWwgY2FsbCBjbG9u
-ZS4KCi8vIHRvIHByb2JlIGZvciB0aGUgY29ycmVjdCBzaXplIG9mIHRoZSBWTEEsIGEgdGVzdCBm
-dW5jdGlvbiBpcyBjYWxsZWQgZmlyc3QuIFRoaXMgZnVuY3Rpb24gcmVjb3JkcyB0aGUgJWZwIHZh
-bHVlIGl0Ci8vIHJlY2VpdmVzICh3aGljaCB3aWxsIGJlIHRoZSAlZnAgdmFsdWUgaW4gdGhlIGxp
-YnJhcnkgZnVuY3Rpb24gY2xvbmUsIHRvbywgaWYgdGhlIFZMQSBzaXplIGlzIGVxdWFsKQoKLy8g
-KGMpIE1pY2hhZWwgS2FyY2hlciAoa2VybmVsQG1rYXJjaGVyLmRpYWx1cC5mdS1iZXJsaW4uZGUp
-ICwgMjAyNCwgR1BMdjIgb3IgbGF0ZXIKCiNkZWZpbmUgX0dOVV9TT1VSQ0UKCiNpbmNsdWRlIDxz
-eXMvbW1hbi5oPgojaW5jbHVkZSA8c3lzL3dhaXQuaD4KI2luY2x1ZGUgPHNjaGVkLmg+CiNpbmNs
-dWRlIDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDxzdGRpbnQuaD4KCiNk
-ZWZpbmUgU1BBUkM2NF9TVEFDS19CSUFTIDB4N0ZGCgp0eXBlZGVmIGludCBmbl90KHZvaWQqKTsK
-dHlwZWRlZiBwaWRfdCBjbG9uZV90KGZuX3QqIGVudHJ5LCB2b2lkKiBzdGFjaywgaW50IGZsYWdz
-LCB2b2lkKiBhcmcsIC4uLik7CgoKLy8gdmVyeSBzaW1wbGUgZnVuY3Rpb24gaW52b2tlZCB1c2lu
-ZyBjbG9uZQppbnQgbm9wKHZvaWQqKQp7CglyZXR1cm4gMDsKfQoKCi8vIGNsb25lIHN1YnN0aXR1
-dGUgdGhhdCByZWNvcmRzICVmcAp1aW50NjRfdCBjYWxsX2Nsb25lX3NwOwoKcGlkX3QgZHVtbXlf
-Y2xvbmUoZm5fdCogZW50cnksIHZvaWQqIHN0YWNrLCBpbnQgZmxhZ3MsIHZvaWQqIGFyZywgLi4u
-KQp7CglyZWdpc3RlciB1aW50NjRfdCBmcmFtZXB0ciBhc20oImZwIik7CgljYWxsX2Nsb25lX3Nw
-ID0gZnJhbWVwdHIgKyBTUEFSQzY0X1NUQUNLX0JJQVM7ICAvLyBzcCBpbiBjYWxsX2Nsb25lIGlz
-IGZwIGluIGR1bW15X2Nsb25lIC8gY2xvbmUKCXJldHVybiAtMTsKfQoKCi8vIGZ1bmN0aW9uIHRv
-IGludm9rZSBjbG9uZSB3aXRoIChpbSlwcm9wZXJseSBhbGlnbmVkIHN0YWNrCnZvaWQqIGNoaWxk
-X3N0YWNrOwoKaW50IGNhbGxfY2xvbmUoaW50IHdhc3RlX3F3b3JkcywgY2xvbmVfdCogY2xvbmVm
-bikKewoJdm9pZCogdm9sYXRpbGUgd2FzdGVbd2FzdGVfcXdvcmRzKzJdOyAgLy8gdm9sYXRpbGUg
-dG8gbm90IG9wdGltaXplIHRoZSBhcnJheSBhd2F5Cgl3YXN0ZVt3YXN0ZV9xd29yZHMrMV0gPSBO
-VUxMOwoKCXBpZF90IGNoaWxkX3BpZCA9IGNsb25lZm4obm9wLAoJCSAgICAgICBjaGlsZF9zdGFj
-aywKCQkgICAgICAgQ0xPTkVfVk0gfCBTSUdDSExELAoJCSAgICAgICAwKTsKCWlmIChjaGlsZF9w
-aWQgPiAwKQoJewoJCXBpZF90IHdhaXRyZXN1bHQgPSB3YWl0cGlkKGNoaWxkX3BpZCwgTlVMTCwg
-MCk7CgkJLy8gYmVmb3JlIGZvcmstYm9tYmluZyBhbnl0aGluZyBpZiB0aGlzIGRvZXNuJ3QgZ28g
-dG8gcGxhbiwgZXhpdAoJCWlmICh3YWl0cmVzdWx0ICE9IGNoaWxkX3BpZCkgYWJvcnQoKTsKCQly
-ZXR1cm4gMDsKCX0KCWVsc2UKCXsKCQlyZXR1cm4gLTE7Cgl9Cn0KCmludCBtYWluKHZvaWQpCnsK
-CWludCB3YXN0ZWFtb3VudDsKCWNoaWxkX3N0YWNrID0gbW1hcChOVUxMLCAxNjM4NCwgUFJPVF9S
-RUFEIHwgUFJPVF9XUklURSwgTUFQX0FOT04gfCBNQVBfUFJJVkFURSwgLTEsIDApOwoJY2FsbF9j
-bG9uZSgwLCBkdW1teV9jbG9uZSk7CglwcmludGYoImVmZmVjdGl2ZSBGUCBpbiBjbG9uZSgpIHdp
-dGggd2FzdGUgMCA9ICVsbHhcbiIsIGNhbGxfY2xvbmVfc3ApOwoJd2FzdGVhbW91bnQgPSAxMDI0
-ICsgKGNhbGxfY2xvbmVfc3AgJiAweEZGRikgLyA4OwoJcHJpbnRmKCJ0aGlzIGlzICVkIDY0LWJp
-dCB3b3JkcyBhYm92ZSB0aGUgcGFnZSBib3VuZGFyeSBhdCBsZWFzdCA4SyBhd2F5XG4iLCB3YXN0
-ZWFtb3VudCk7CgljaGlsZF9zdGFjayA9ICh2b2lkKikoKGNoYXIqKWNoaWxkX3N0YWNrICsgMTYw
-MDApOwoJY2xvbmUoTlVMTCwgTlVMTCwgMCwgMCk7IC8vIGZhaWxzLCBidXQgcmVzb2x2ZXMgImNs
-b25lIgoJLy8gZmFpbGVzIGZvciB3YXN0ZWFtb3VudC0yMiB0byB3YXN0ZWFtb3VudCsyMiAob25s
-eSBldmVuIHZhbHVlcyB0ZXN0ZWQpCglpZiAoY2FsbF9jbG9uZSh3YXN0ZWFtb3VudCwgY2xvbmUp
-IDwgMCkKCXsKCQlwZXJyb3IoImNsb25lIik7Cgl9CgllbHNlCgl7CgkJcHV0cygiQ29uZ3JhdHVs
-YXRpb25zLCBjbG9uZSBzdWNjZWVkZWRcbiIpOwoJfQp9Cgo=
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCAAdFiEEh0E3p4c3JKeBvsLGB1IKcBYmEmkFAmXH6FkACgkQB1IKcBYm
+Emmflg//QV42IFPNYuHOXGOMGBjwhOcPS5a63Ery8+rM164QOh4y8GFFm70Ti5Wd
+s5wSWvSTxw+riHznvjEkrzi/KrHEMIWsy6HRRBdrzwpiytGb7QCnUT1LtSteBeNe
+JPtcZ5MGz0W4HIUA4cj46FxFGpR+DjnrGk2FoXd/BSwhYq0asA1muUHQ0YwN3ksS
+b86PM8Y/JgAbCGeA9qF+uZGaSFjU9cl4LQj14E7IPYrp9ZeDgYY3eC6vNPJ+64zD
+Jipvq0pg5G9MrN92hNXw/VVn4pGrquNcIqFQwGypcZIb2YrKOLEtPBctEqZkYNfd
+TGngv5bUFvUwllm9o/VpflR1XOx1auN2AJQux6l1ca41dhH/tKkFCrDU7V5Xxc6J
+3VBC9QeZuVuh5AETrC9whYVFSIvoQvH5NHRV6ffqA6AGjXQJNsNNsUuwVnhliaDh
+vqNO7OJm2ZoZmlBjNCGI1LsjNateOOY7mzk1Fsz9pl0OyhkDjjDoT56rTcC+Ykz9
+HSceveMepuVG/vTNMEwXIGAaG3p+7+/mj4QrwE9TAWCRs/ASCnaMYJUkPmJLfuXD
+tOP59blzBvkY5HAmDHMdl4AIFtM9rjm/JQORwYT2tB+MfdyZxCWWJPz7mjs6ykAy
+JF9090FJh3puL9bw721bvpb75ptKyBxpuvQsas2SspCCtT1DidQ=
+=NJcH
+-----END PGP SIGNATURE-----
 
---=-yv9Jiuz19uUbEMtZ6IDP--
+--enK6rDCtE6qVMuuk--
