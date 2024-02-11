@@ -1,161 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E0E81E4B0;
-	Sat, 10 Feb 2024 23:36:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C126D179;
+	Sun, 11 Feb 2024 05:28:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707608194; cv=none; b=ii8CuukkAOm7uIoRIYa44h8bCtl95KT4Nzc2LCWrtND/nyt8HD9Z1SX7QdMSaPBV4YyDOykjM8yrEBomVHD4pysGBxe1tlr9xcIDREfhY9O8MdiY7qk64yHEZOLHD2Pl10OiFE4dzKdtXvtr+hxkc75wM0babVTApmCcnme7UpU=
+	t=1707629289; cv=none; b=VsVCr4mZzS5gY6YdYE1ncVJ1j/1yfArd+04mpVzw+O7AhFQoy8pO8+FzUDDoozqhL60/DH35wZKT+d8K/KjrROIbjBMQPtJmj3GdB1C/SAgg636YresZPMNwBSGEl0r95NUPT+V8JAtUd475ZkVeIzqq31omkgN7a+ZPPyShiqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707608194; c=relaxed/simple;
-	bh=8C4oWiGJS6yH0qp9Eaxr3aYeI/i7oae3HE05t0tAldw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PrS7sNumZTiMamOe3hoKKU8j6RJceHEutJxChSBMf6OXoVyhROkS696M0mNj9kDiFZzbDE1eQ7G/4cr1AcV6VQoFcrF0au7xvGksu6GbcllHhyG8S+o3JACo2+csnb2yimhZ5RJ6wV4EaNxPQa4hEiqkzcfvdVW8skm+W6ulz0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=r6t6/Ssa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707629289; c=relaxed/simple;
+	bh=i0Nhzbsc3qnry4feuPLAhZuqnBIdJRfPzmCcqKOp+K8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UcoqFovlEYY6SRx2FZNDiNZfYs96xXgXDN7XryExEoMSiD7hODOq5o433ERroy2z1jddej9dnvRXQmv+NvxWcWrpuCBbmJzhAMpW7iQtAI3z3T39RhkFXybd1jKg26ZHl2wrC8/qu88nXtFha4RCU7WaKyhKxWSjCkhb6OafeO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=bT35LFlh; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="r6t6/Ssa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E07CBC433C7;
-	Sat, 10 Feb 2024 23:36:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1707608193;
-	bh=8C4oWiGJS6yH0qp9Eaxr3aYeI/i7oae3HE05t0tAldw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=r6t6/SsaqOeeKJNUPVfZVjJbcNK3RRFmjuHojyVxfSItVDZ2TZuyB0EoFbkGs6cmN
-	 fGZld4TdjiPZzaIrvGq0du2QE1WrRIwg1uaqftL/+TqHZD3PNrucg9KdOFYRvRjKht
-	 Kk1w763J7dFF4u8iFKmo/Al3fa5jdjRgBZmxwu3QQfGQKxR2EAZ/epiWFzxP2MBMLL
-	 6EpLosITDbsxVYxLRJlLLsek+7D2LtphnIXyz/MDB66zxzPmJbFpf348/1QD6IEBDf
-	 JkxUs5J1dYgy0PVeh32WpGx+62i+nsng5YkqPRc8G/xgNnSiNVpMiC7yg4l3Cyh7DN
-	 UQ+VQmrfIJsvQ==
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-3392b045e0aso1322796f8f.2;
-        Sat, 10 Feb 2024 15:36:33 -0800 (PST)
-X-Gm-Message-State: AOJu0YwPRaM8OrHd0NFs5WFUmhUwxfpT54x2p083qacR14RdRT+IcXyv
-	RJY1ai0UTrSXPvp7tclfdPUcsPVxovXwDih/8Q9FhFH0IZ/TcBNXFcUEQ7xwlE9gysDiVdZDcu1
-	tqdR5z5I9YxXGPBaS57FpaJY5y3g=
-X-Google-Smtp-Source: AGHT+IHoPMgBc81DnEPnPXoeHzmCqVcP4g7071LwOfBl3+AxfjKX8A2egkFqcIRNQszoXkfIPToNa/RR1WwBksr57rI=
-X-Received: by 2002:a19:e048:0:b0:511:68d4:1e39 with SMTP id
- g8-20020a19e048000000b0051168d41e39mr2050802lfj.0.1707608171430; Sat, 10 Feb
- 2024 15:36:11 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="bT35LFlh"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=P+G/gr3dpwkYnrJHOwZ1xhtBo+38a0UA9vbSN3e/DkQ=; b=bT35LFlhKw4oOkmhZqKE1Yyaz3
+	rk4C7RY2dPjW6o0LN3MjTGVcreO3WHsGhmQ1mLuFiNCogrOUW6EzKWaSLH+QJbnf4DNpa3XTGpGVf
+	GkKfIL1XQgvPAolcfInud0leHUedJLVp6ukAxHbMnsDLJwmLLztfcxMqrQchBOhM0aGDf7zzOTWNL
+	3/ol72nJnoyDJL/CPyTRDfdW267zi7BT+iX4zqhy98zE+AXVpsOSx7q+tO8uyQaMfx7H7FaDDRdi1
+	IA7z8QFA+b4hbNSj50R/DhNwJ0cnXVj3/cJxCo2gKKxlDBtkQ4ngSBeMcKFTBTVCpljTJFn9J4RCD
+	cpopOUog==;
+Received: from [50.53.50.0] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rZ2Nn-00000002Mxq-2f5q;
+	Sun, 11 Feb 2024 05:28:04 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Igor Zhbanov <izh1979@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	stable@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Andreas Larsson <andreas@gaisler.com>
+Subject: [PATCH v5] sparc64: NMI watchdog: fix return value of __setup handler
+Date: Sat, 10 Feb 2024 21:28:02 -0800
+Message-ID: <20240211052802.22612-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240210074601.5363-1-xtex@envs.net> <20240210074601.5363-2-xtex@envs.net>
- <ZcdP7CC+OMbp5ZMi@shell.armlinux.org.uk> <ZcfoZKJHkdEh5JmV@fjasle.eu>
-In-Reply-To: <ZcfoZKJHkdEh5JmV@fjasle.eu>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sun, 11 Feb 2024 08:35:35 +0900
-X-Gmail-Original-Message-ID: <CAK7LNAQPm7PXoKM+id25wX9AtVmmXvE7i8GrGB9etU__EMUwdg@mail.gmail.com>
-Message-ID: <CAK7LNAQPm7PXoKM+id25wX9AtVmmXvE7i8GrGB9etU__EMUwdg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] kbuild: Abort make on install failures
-To: Nicolas Schier <nicolas@fjasle.eu>
-Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>, Zhang Bingwu <xtex@envs.net>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Dinh Nguyen <dinguyen@kernel.org>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, 
-	Albert Ou <aou@eecs.berkeley.edu>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Zhang Bingwu <xtexchooser@duck.com>, Nathan Chancellor <nathan@kernel.org>, x86@kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-parisc@vger.kernel.org, 
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sun, Feb 11, 2024 at 6:21=E2=80=AFAM Nicolas Schier <nicolas@fjasle.eu> =
-wrote:
->
-> On Sat, Feb 10, 2024 at 10:29:00AM +0000 Russell King (Oracle) wrote:
-> > On Sat, Feb 10, 2024 at 03:46:00PM +0800, Zhang Bingwu wrote:
-> > > From: Zhang Bingwu <xtexchooser@duck.com>
-> > >
-> > > Setting '-e' flag tells shells to exit with error exit code immediate=
-ly
-> > > after any of commands fails, and causes make(1) to regard recipes as
-> > > failed.
-> > >
-> > > Before this, make will still continue to succeed even after the
-> > > installation failed, for example, for insufficient permission or
-> > > directory does not exist.
-> > >
-> > > Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
-> > > ---
->
-> Thanks for fixing!
->
-> [...]
-> > > diff --git a/arch/arm/boot/install.sh b/arch/arm/boot/install.sh
-> > > index 9ec11fac7d8d..34e2c6e31fd1 100755
-> > > --- a/arch/arm/boot/install.sh
-> > > +++ b/arch/arm/boot/install.sh
-> > > @@ -17,6 +17,8 @@
-> > >  #   $3 - kernel map file
-> > >  #   $4 - default install path (blank if root directory)
-> > >
-> > > +set -e
-> > > +
-> >
-> > What about #!/bin/sh -e on the first line, which is the more normal way
-> > to do this for an entire script?
->
-> are you sure?  I can find many more occurrences of 'set -e' than the
-> shebang version in the Linux tree, especially in the kbuild scripts, thus
-> it's bike-shedding, isn't it?
->
-> Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
->
-> Kind regards,
-> Nicolas
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
 
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <izh1979@gmail.com>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+---
+v2: change From: Igor to Reported-by:
+    add more Cc's
+v3: use Igor's current email address
+v4: add Arnd to Cc: list
+v5: add Andreas to Cc: list
 
+ arch/sparc/kernel/nmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-
-
-When you put -e on the shebang line, like
-
-    #!/bin/sh -e
-
-the option -e is set when you do:
-
-    $ arch/arm/boot/install.sh
-
-
-But, -e is not set when you do:
-
-    $ sh arch/arm/boot/install.sh
-
-
-
-The reason is obvious because the latter case
-does not use the shebang line.
-
-
-
-
-In Kbuild, some places run the script directly like the former case,
-and others use CONFIG_SHELL like
-
-   $(CONFIG_SHELL) arch/arm/boot/install.sh
-
-
-The inconsistency is not nice, but that is a different issue.
-
-
-The separate 'set -e' statement works for both cases,
-so I think this is safer, though it is kind of bike-shedding.
-
-
-
-
-
---=20
-Best Regards
-Masahiro Yamada
+diff -- a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -279,7 +279,7 @@ static int __init setup_nmi_watchdog(cha
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
+ 
+-	return 0;
++	return 1;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
