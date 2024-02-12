@@ -1,60 +1,33 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 050263C6A6
-	for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 18:08:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82E23FB1C
+	for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 18:14:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707761287; cv=none; b=fBk3U9kKJbxxObbuasqau0yuiIw+VwvjXeh5RkdCHIozpA46Z5NRoQWnH6YL8L3oTi7FtiQorF00ZTGuynio5IukDBfKG7+ZSvFIW38TIKKF+gtD5H/VM5KGdL7eoUFw8PJbGdqqMbV8q2F0cuRIHT6kz5vuRT8vEOP6E3gDD1E=
+	t=1707761695; cv=none; b=HarBexRk0xvoSrku2VDXG24Y2lOY0ytL14QsJ5X7sv8GM5ym/17oW2xh7bYKRCQ1/nSF3R5WaL/VCVpTT3tr0PERJLqSkaPr9oxhn+dAcPPmlQekqTNhc2Ysi1/4+uu4h+IMxcFthRJCG5Qvf0Ciy22p8CT/tyy8T8pnrNsnag8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707761287; c=relaxed/simple;
-	bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
+	s=arc-20240116; t=1707761695; c=relaxed/simple;
+	bh=hMlSs7/STAUc3R4i7h2Skp03HeKEinchAJV4rZebeXA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mAkEkH5N823gGMHrtXt5LY8SGxvLeyjwWTPCIuyuFU9papNxsnE6OBhy+UsuwDP+KdA5/8pBck3RMPCzCWDcuHZntjH8fphfTrkfCdYbRAVwaeKAMUHzBjq7eQV+OgLXWFzjRnH2sJ/JtJ+vnwSThXcVmuQvxggXkJceQMPY4pw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nOyZwigh; arc=none smtp.client-ip=209.85.210.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nOyZwigh"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-6e09a890341so1369551b3a.3
-        for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 10:08:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1707761285; x=1708366085; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
-         :to:content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
-        b=nOyZwighO8rKKyaan3YnOUkDTdpzzsVi9fLx25zI4dkH4HISMVGcnJ8/0nIErnjMLx
-         PiytAT5OxESZTmaG4m2vN6hlQ76Z8wa5laCrb4k4B+Ds3KGeukZI5Lv89TakxBNFCSja
-         k0/Bgc9Za8oOFLO6mqqunQbj5yrZqvl+YwSvtWlOMYA7zMFMJ7+rKB2Pn0rQGkDUTmrk
-         xpF76xjOdjwViOvhnogi3mMTfVr/HYMIxttHaNUokP8aX7VxlyeArLoDdsnVgzI//wS4
-         t1W9mupbSPg5gXC+Ioa8nBONXTScvVRhs17FRwEJMTy8T/0TPbmAAT35SX4P926NDQ35
-         aLHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707761285; x=1708366085;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
-         :to:content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
-        b=a1ISIm0rMC9HjUaWPTJ4ahVkSidMXXW36sUoONftXCHErbeFC3tz0jRrl2pcMpDVAe
-         tYWAufQfHjuKJRLqgsPOW+RhH3b1GEs7R3k4Ij5Xsk2dA10q5a5FXvbWr5SO/6M9Eb9F
-         T3mrB5T69kCXTV77RNecQItUoP3ZciyIzj57+MCzi2M6Ej9bQOaavMBcuKq/HB7huN9a
-         uMSWi+aXQ1hkwccb/3TODuS7aDkvMVdF8sfN0Jga7Aaf8305Ogh+8CAqBEp1MPfmzf/X
-         p46LI9/2f+uDDaLowzLL/qjUTos9ckpI2ws+o7GA8jiiGbTTJzDmDKyH6LDIhWED/NDs
-         DrPQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXjiponRouxUallQc+TCrV2ZgBqR4nhKl5/veHZoAqr+nbzYQYfPJlyzTvtmd2v35JELclfYd/Mo+WNpI92JD3ICmilx20PcbziuQ==
-X-Gm-Message-State: AOJu0YwCOJJ7KHXhB7mo/4J5we/1w3BVU0Hx/N0t+eQxDSaKZ89agWzE
-	viO9gfk5hA8V+NzHQ/hIWEP/7QH5y22m6bHPKKDmmL/zKjJPNpYQ
-X-Google-Smtp-Source: AGHT+IEqFAbfB3hEVYf0Gp8WVJUMi/fz9P12KmIA6dvmWFYq0VBn5/+e0RbDPtnlltsjcO9p1KKOug==
-X-Received: by 2002:a05:6a20:4e18:b0:19e:c777:5c61 with SMTP id gk24-20020a056a204e1800b0019ec7775c61mr3439905pzb.22.1707761285112;
-        Mon, 12 Feb 2024 10:08:05 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVe5oL083w14ydRO2zIR2DSe3A8bUNYD4VOA2vmHDqKeOnwjJzpvnZ/4jBhtRE6fOgGVuzxCUgmHC3ijQ4IlYzX2SKwxSRWqUilbtffAMhGWef7DbxONwdRFQOjsPvAYHqZP6s9G5lXvv3whxGL12S/1d69tjXa+YFipwDZE88IANbVZnjHDzUyzulCtPwajdBqL11jRMVNfuhmMe5WeTuKtrWVXB7ZaEu3jRkc/ekh6W7DYlMC1twP12FJmq8=
-Received: from ?IPV6:2804:1b3:a7c0:378:a95e:7d43:370e:1d4c? ([2804:1b3:a7c0:378:a95e:7d43:370e:1d4c])
-        by smtp.gmail.com with ESMTPSA id f5-20020aa79d85000000b006e0cfe94fc5sm3398980pfq.107.2024.02.12.10.08.02
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 12 Feb 2024 10:08:04 -0800 (PST)
-Message-ID: <2c586b93-0dbf-46c1-8d93-2db99b9757bb@gmail.com>
-Date: Mon, 12 Feb 2024 15:08:01 -0300
+	 In-Reply-To:Content-Type; b=Y4IkiEMyer4JJ4J5JhmhaKyILvbV/7H2g/cxM3U5IHmZliU8fuXhvKP2EuXlvXhTTK8EJsg2b++SjcfDqHrwVR/ASaIoGPG787YKNH5knxm8GyWINYeGifGOVD1g1AYF7HSlvWL0f5omHQvbm1DCjy5FeJ1X4KbcHiGAcu4winA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.97)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <mkarcher@zedat.fu-berlin.de>)
+          id 1rZapL-000000035ct-4Aa4; Mon, 12 Feb 2024 19:14:48 +0100
+Received: from pd9f63554.dip0.t-ipconnect.de ([217.246.53.84] helo=[192.168.144.87])
+          by inpost2.zedat.fu-berlin.de (Exim 4.97)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_128_GCM_SHA256
+          (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
+          id 1rZapL-00000000tTQ-3Ewb; Mon, 12 Feb 2024 19:14:47 +0100
+Message-ID: <62f9be9d-a086-4134-9a9f-5df8822708af@mkarcher.dialup.fu-berlin.de>
+Date: Mon, 12 Feb 2024 19:14:46 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -63,9 +36,8 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: Reproducer for the posix_spawn() bug on sparc64
-Content-Language: en-US
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>,
+To: Adhemerval Zanella Netto <zatrazz@gmail.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
  sparclinux <sparclinux@vger.kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>,
  Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -77,96 +49,91 @@ References: <fe5cc47167430007560501aabb28ba154985b661.camel@physik.fu-berlin.de>
  <e44d6030-b7dd-4caa-99b6-87409988a76a@gmail.com>
  <48af8a12516ff0db379addb07daea58722c8ea1a.camel@physik.fu-berlin.de>
  <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
- <060d813c250d45e7c9cfa3acbb39de95ea031661.camel@physik.fu-berlin.de>
-From: Adhemerval Zanella Netto <zatrazz@gmail.com>
-Autocrypt: addr=zatrazz@gmail.com; keydata=
- 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
- C+trQg==
-In-Reply-To: <060d813c250d45e7c9cfa3acbb39de95ea031661.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+In-Reply-To: <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-
-On 12/02/24 14:40, John Paul Adrian Glaubitz wrote:
-> On Mon, 2024-02-12 at 14:31 -0300, Adhemerval Zanella Netto wrote:
->> It really make me to believe it is something related to kernel because running the regression
->> program under strace I could not trigger the issue; nor by trying adding a printf just before
->> clone call.
-> If I understood the problem correctly, according to Michael the issue related to the stack allocation
-> which means that running "strace -f" will let posix_spawn() work properly in this case.
+Am 12.02.2024 um 18:31 schrieb Adhemerval Zanella Netto:
+> On 12/02/24 13:32, John Paul Adrian Glaubitz wrote:
+>> Hi Adhemerval,
+>>
+>> On Mon, 2024-02-12 at 11:01 -0300, Adhemerval Zanella Netto wrote:
+>>> It fails on the two different sparc64 machines I usually use for glibc testing as well:
+>>>
+>>> azanella@catbus ~ $ /lib64/libc.so.6 | head -n 1
+>>> GNU C Library (Gentoo 2.38-r9 (patchset 9)) stable release version 2.38.
+>>> azanella@catbus ~ $ uname -a
+>>> Linux catbus.sparc.dev.gentoo.org 6.1.72 #1 SMP Fri Jan 12 15:00:51 PST 2024 sparc64 sun4v UltraSparc T5 (Niagara5) GNU/Linux
+>>> azanella@catbus ~ $ ./more_clone_attack
+>>> effective FP in clone() with waste 0 = 7feffee09f0
+>>> this is 318 64-bit words above the next page boundary
+>>> clone: Bad address
+>>> Problem detected at 1 pages distance
+>>>
+>>>
+>>> azanella@ravirin:~$ /lib/sparc64-linux-gnu/libc.so.6 | head -n 1
+>>> GNU C Library (Debian GLIBC 2.37-15) stable release version 2.37.
+>>> azanella@ravirin:~$ uname -a
+>>> Linux ravirin 4.19.0-5-sparc64 #1 Debian 4.19.37-6 (2019-07-18) sparc64 GNU/Linux
+>>> azanella@ravirin:~$ ./more_clone_attack
+>>> effective FP in clone() with waste 0 = 7feffa3ae50
+>>> this is 458 64-bit words above the next page boundary
+>>> clone: Bad address
+>>> Problem detected at 1 pages distance
+>>>
+>>>
+>>> And I see similar failures on qemu as well.
+>> Thanks for the confirmation. I was also able to reproduce it even on Debian Wheezy
+>> with kernel 3.2.0 and glibc 2.13, so it seems the bug is very old.
+>>
+>> Do you think it's a kernel or glibc bug?
+>>
+>> Adrian
+>>
+> I am not sure, I was leaning to some clone change in recent changes; but since you did
+> see on version as old as 2.13 I don't think it is related to glibc clone implementation.
 >
-> Adrian
->
-But what I am not fully sure is what ptrace/strace makes the testcase works as
+> It really make me to believe it is something related to kernel because running the regression
+> program under strace I could not trigger the issue; nor by trying adding a printf just before
+> clone call.
 
-expected, since the only think glibc clone implementation does it to allocate a
+I did some root cause analysis. I *know* that the issue happens when %sp points into
+uncommitted memory on the stack when the system call is invoked. If you add a printf
+after the variable-length array has been reserved on the stack, you cause the target
+stack page to be faulted in, so %sp is no longer hovering over uncommitted memory.
+That's what the +/-22 comes from: I target to get %sp in call_clone (that is %fp in
+clone) aligned to a page boundary. clone then reserves 24 64-bit-words on the stack
+(without touching them). If the page boundary that %fp hovers over is
+the lowest-address committed stack page, %sp will get into (yet) uncommitted memory.
+wasting 24 words less make %sp get to the bottom of the last committed page, so the
+issue does not appear. wasting at least 24 extra words cause the 7th argument to
+clone to appear on the yet uncommitted page, and generates a page fault that commits
+this page before clone is invoked.
 
-stack frame on the passed stack argument and issuing the syscall. Afaik, the value
+Now that's the point where the guesswork starts: the kernel entry for clone, vfork and
+fork issues "flushw" to flush the register windows to the stack. In the problematic
+situation, this will hit address space without a committed page behind it. If I understand
+the save trap handler in the kernel correctly, it detects that it is called from
+kernel-space, and that the saving happens to user-space memory. In that case, the kernel
+*disables* MMU fault traps, tries the saving, and the checks whether some writes got
+dropped due to a fault by checking a MMU status flag. In that case, the kernels saves
+the register into some backup location, because the kernel requires that saving the
+user-space register to stack works, even if the user-mode stack is "bolixed".
 
-passed on kernel, in either case (default, strace) would be essentially the same:
+Now, clone clones (pun intended) the frame of the caller into the stack of the new
+"thread" (let's not argue whether the thing clone creates is a "lightweight procss",
+a "thread", an "execution flow of some indetermined kind" or whatever), which is the
+area between %sp of the caller frame and %fp of the caller frame. I guess the call
+goes haywire at the point when %sp points to the backup location, but %fp points to
+the user-mode stack (or possibly some different backup location), and "the area
+between %sp and %fp" is no longer a well-defined memory range.
 
+Let me know if you want file names / line numbers into the kernel source to back up
+the facts and guesswork I wrote.
 
-$ setarch -R strace -o log ./more_clone_attack
-effective FP in clone() with waste 0 = 7feffffe590
-this is 178 64-bit words above the next page boundary
-[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
-[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
-[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
-[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
-
-[...]
-
-No problems found
-
- $ ./more_clone_attack
-effective FP in clone() with waste 0 = 7feff81a590
-this is 178 64-bit words above the next page boundary
-[main] clone(0x100000009e0, 0xfff800010002be80, ...)
-[main] clone(0x100000009e0, 0xfff800010002be80, ...)
-clone: Bad address
-
-Problem detected at 1 pages distance
-
-
-So from userland point of view, which is the requirement regarding stack argument?
+Kind regards,
+   Michael Karcher
 
