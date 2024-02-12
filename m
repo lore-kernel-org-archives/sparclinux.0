@@ -1,83 +1,172 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66B3F3EA93
-	for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 17:40:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 050263C6A6
+	for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 18:08:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707759633; cv=none; b=JwMysWjX4h91qr6hEMWsjWEZiSjxX27ral0XaKoKbeatrcI+2CsvEsI/gL+PoFJq9ok2ukEEraV8VX0vtRWvj9JrvEpfJ6AQ3js1JgAgnCff1hXLwr51x8qllaj+naswnu/xyHBppFnfVBTUwHJVo3CBB7XqDc3ibhrjVCWpRf4=
+	t=1707761287; cv=none; b=fBk3U9kKJbxxObbuasqau0yuiIw+VwvjXeh5RkdCHIozpA46Z5NRoQWnH6YL8L3oTi7FtiQorF00ZTGuynio5IukDBfKG7+ZSvFIW38TIKKF+gtD5H/VM5KGdL7eoUFw8PJbGdqqMbV8q2F0cuRIHT6kz5vuRT8vEOP6E3gDD1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707759633; c=relaxed/simple;
-	bh=KsE555f+KfNyKb0ZeKLJwsAuROdbHnzbNX0OjoBE/l0=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=qtzSaVA+Fiu5RgQzdYXrueAtg76JoFyn97aecPJsbIHdcCb9/+yt6STGDfQ2N3pmcPyknbHUSSTRGEnwExdwLB49BmqbDi2NkswmAlsI+LctICVr5Ib+jgrjBGHcdy7g29roNQRZt/FNPO3ypg6gl2k23SKhLxkXbKt0JVrcEi0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.97)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1rZaI7-00000002uEs-0UMm; Mon, 12 Feb 2024 18:40:27 +0100
-Received: from dynamic-077-011-112-245.77.11.pool.telefonica.de ([77.11.112.245] helo=[192.168.178.20])
-          by inpost2.zedat.fu-berlin.de (Exim 4.97)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1rZaI6-00000000nG3-3jZz; Mon, 12 Feb 2024 18:40:27 +0100
-Message-ID: <060d813c250d45e7c9cfa3acbb39de95ea031661.camel@physik.fu-berlin.de>
-Subject: Re: Reproducer for the posix_spawn() bug on sparc64
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Adhemerval Zanella Netto <zatrazz@gmail.com>, Michael Karcher
- <kernel@mkarcher.dialup.fu-berlin.de>, sparclinux
- <sparclinux@vger.kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, Geert Uytterhoeven
-	 <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Sam James
-	 <sam@gentoo.org>, jrtc27 <jrtc27@debian.org>
-Date: Mon, 12 Feb 2024 18:40:26 +0100
-In-Reply-To: <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
-References: 
-	<fe5cc47167430007560501aabb28ba154985b661.camel@physik.fu-berlin.de>
-	 <3ae4130c-c5aa-428e-b819-44cf2daf2af1@mkarcher.dialup.fu-berlin.de>
-	 <ec6254ce82d8ea5d9d3e73680c98b42f06d0930a.camel@physik.fu-berlin.de>
-	 <e44d6030-b7dd-4caa-99b6-87409988a76a@gmail.com>
-	 <48af8a12516ff0db379addb07daea58722c8ea1a.camel@physik.fu-berlin.de>
-	 <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
-Autocrypt: addr=glaubitz@physik.fu-berlin.de; prefer-encrypt=mutual;
- keydata=mQINBE3JE9wBEADMrYGNfz3oz6XLw9XcWvuIxIlPWoTyw9BxTicfGAv0d87wngs9U+d52t/REggPePf34gb7/k8FBY1IgyxnZEB5NxUb1WtW0M3GUxpPx6gBZqOm7SK1ZW3oSORw+T7Aezl3Zq4Nr4Nptqx7fnLpXfRDs5iYO/GX8WuL8fkGS/gIXtxKewd0LkTlb6jq9KKq8qn8/BN5YEKqJlM7jsENyA5PIe2npN3MjEg6p+qFrmrzJRuFjjdf5vvGfzskrXCAKGlNjMMA4TgZvugOFmBI/iSyV0IOaj0uKhes0ZNX+lQFrOB4j6I5fTBy7L/T3W/pCWo3wVkknNYa8TDYT73oIZ7Aimv+k7OzRfnxsSOAZT8Re1Yt8mvzr6FHVFjr/VdyTtO5JgQZ6LEmvo4Ro+2ByBmCHORCQ0NJhD1U3avjGfvfslG999W0WEZLTeaGkBAN1yG/1bgGAytQQkD9NsVXqBy7S3LVv9bB844ysW5Aj1nvtgIz14E2WL8rbpfjJMXi7B5ha6Lxf3rFOgxpr6ZoEn+bGG4hmrO+/ReA4SerfMqwSTnjZsZvxMJsx2B9c8DaZE8GsA4I6lsihbJmXhw8i7Cta8Dx418wtEbXhL6m/UEk60O7QD1VBgGqDMnJDFSlvKa9D+tZde/kHSNmQmLLzxtDbNgBgmR0jUlmxirijnm8bwARAQABtEBKb2huIFBhdWwgQWRyaWFuIEdsYXViaXR6IChEZWJpYW4gUHJvamVjdCkgPGdsYXViaXR6QGRlYmlhbi5vcmc+iQI3BBMBCAAhBQJRnmPwAhsDBQsJCAcDBRUKCQgLBRYCAwEAAh4BAheAAAoJEHQmOzf1tfkTF0gQAJgvGiKf5YW6+Qyss1qGwf+KHXb/6gIThY6GpSIro9vL/UxaakRCOloaXXAs3KpgBULOO8+prqU8GIqcd8tE3YvQFvvO3rN+8bhOiiD0lFmQSEHcpCW5ZRpdh
-	J5wy1t9Ddb1K/7XGzen3Uzx9bjKgDyikM3js1VtJHaFr8FGt5gtZIBDgp8QM9IRCv/32mPQxqmsaTczEzSNxTBM6Tc2NwNLus3Yh5OnFdxk1jzk+Ajpnqd/E/M7/CU5QznDgIJyopcMtOArv9Er+xe3gAXHkFvnPqcP+9UpzHB5N0HPYn4k4hsOTiJ41FHUapq8d1AuzrWyqzF9aMUi2kbHJdUmt9V39BbJIgjCysZPyGtFhR42fXHDnPARjxtRRPesEhjOeHei9ioAsZfT6bX+l6kSf/9gaxEKQe3UCXd3wbw68sXcvhzBVBxhXM91+Y7deHhNihMtqPyEmSyGXTHOMODysRU453E+XXTr2HkZPx4NV1dA8Vlid2NcMQ0iItD+85xeVznc8xquY/c1vPBeqneBWaE530Eo5e3YA7OGrxHwHbet3E210ng+xU8zUjQrFXMJm3xNpOe45RwmhCAt5z1gDTk5qNgjNgnU3mDp9DX6IffS3g2UJ02JeTrBY4hMpdVlmGCVOm9xipcPHreVGEBbM4eQnYnwbaqjVBBvy2DyfyN/tFRKb2huIFBhdWwgQWRyaWFuIEdsYXViaXR6IChGcmVpZSBVbml2ZXJzaXRhZXQgQmVybGluKSA8Z2xhdWJpdHpAcGh5c2lrLmZ1LWJlcmxpbi5kZT6JAlEEEwEIADsCGwMFCwkIBwMFFQoJCAsFFgIDAQACHgECF4AWIQRi/4p1hOApVpVGAAZ0Jjs39bX5EwUCWhQoUgIZAQAKCRB0Jjs39bX5Ez/ID/98r9c4WUSgOHVPSMVcOVziMOi+zPWfF1OhOXW+atpTM4LSSp66196xOlDFHOdNNmO6kxckXAX9ptvpBc0mRxa7OrC168fKzqR7P75eTsJnVaOu+uI/vvgsbUIosYdkkekCxDAbYCUwmzNotIspnFbxiSPMNrpw7Ud/yQkS9TDYeXnrZDhBp7p5+naWCD/yMvh7yVCA4Ea8+xDVoX
-	+kjv6EHJrwVupOpMa39cGs2rKYZbWTazcflKH+bXG3FHBrwh9XRjA6A1CTeC/zTVNgGF6wvw/qT2x9tS7WeeZ1jvBCJub2cb07qIfuvxXiGcYGr+W4z9GuLCiWsMmoff/Gmo1aeMZDRYKLAZLGlEr6zkYh1Abtiz0YLqIYVbZAnf8dCjmYhuwPq77IeqSjqUqI2Cb0oOOlwRKVWDlqAeo0Bh8DrvZvBAojJf4HnQZ/pSz0yaRed/0FAmkVfV+1yR6BtRXhkRF6NCmguSITC96IzE26C6n5DBb43MR7Ga/mof4MUufnKADNG4qz57CBwENHyx6ftWJeWZNdRZq10o0NXuCJZf/iulHCWS/hFOM5ygfONq1Vsj2ZDSWvVpSLj+Ufd2QnmsnrCr1ZGcl72OC24AmqFWJY+IyReHWpuABEVZVeVDQooJ0K4yqucmrFR7HyH7oZGgR0CgYHCI+9yhrXHrQpyLQ/Sm9obiBQYXVsIEFkcmlhbiBHbGF1Yml0eiAoU1VTRSBMSU5VWCBHbWJIKSA8Z2xhdWJpdHpAc3VzZS5jb20+iQJOBBMBCAA4FiEEYv+KdYTgKVaVRgAGdCY7N/W1+RMFAloSyhICGwMFCwkIBwMFFQoJCAsFFgIDAQACHgECF4AACgkQdCY7N/W1+ROnkQ//X6LVYXPi1D8/XFsoi0HDCvZhbWSzcGw6MQZKmTk42mNFKm/OrYBJ9d1St4Q3nRwH/ELzGb8liA02d4Ul+DV1Sv3P540LzZ4mmCi9wV+4Ohn6cXfaJNaTmHy1dFvg1NrVjMqGAFZkhTXRAvjRIQItyRvL//gKaciyKB/T0C3CIzbuTLBqtZMIIuP5nIgkwBvdw6H7EQ7kqOAO85S4FDSum/cLwLzdKygyvmPNOOtxvxa9QIryLf6h7HfWg68DvGDqIV9ZBoi8JjYZrZzaBmlPV8Iwm52uYnzsKM/LoyZ0G4v2u/WEtQEl7deLJjKby3kKmZGh9hQ
-	YImvOkrd9z8LQSvu0e8Qm8+JbRCCqUGkAPrRDFIzH8nFCFGCU/V+4LT2j68KMbApLkDQAFEDBcQVJYGnOZf7eU/EtYQIqVmGEjdOP7Qf/yMFzhc9GBXeE5mbe0LwA5LOO74FDH5qjwB5KI6VkTWPoXJoZA5waVC2sUSYOnmwFINkCLyyDoWaL9ubSbU9KTouuNm4F6XIssMHuX4OIKA7b2Kn5qfUFbd0ls8d5mY2gKcXBfEY+eKkhmuwZhd/7kP10awC3DF3QGhgqpaS100JW8z78el7moijZONwqXCS3epUol6q1pJ+zcapcFzO3KqcHTdVOKh6CXQci3Yv5NXuWDs/l2dMH4t2NvZC5Ag0ETckULgEQAKwmloVWzF8PYh5jB9ATf07kpnirVYf/kDk+QuVMPlydwPjh6/awfkqZ3SRHAyIb+9IC66RLpaF4WSPVWGs307+pa5AmTm16vzYA0DJ7vvRPxPzxPYq6p2WTjFqbq0EYeNTIm0YotIkq/gB9iIUS+gjdnoGSA+n/dwnbu1Eud2aiMW16ILqhgdgitdeW3J7LMDFvWIlXoBQOSfXQDLAiPf+jPJYvgkmCAovYKtC3aTg3bFX2sZqOPsWBXV6Azd92/GMs4W4fyOYLVSEaXy/mI35PMQLH8+/MM4n0g3JEgdzRjwF77Oh8SnOdG73/j+rdrS6Zgfyq6aM5WWs6teopLWPe0LpchGPSVgohIA7OhCm+ME8fpVHuMkvXqPeXAVfmJS/gV5CUgDMsYEjst+QXgWnlEiK2Knx6WzZ+v54ncA4YP58cibPJj5Qbx4gi8KLY3tgIbWJ3QxIRkChLRGjEBIQ4vTLAhh3vtNEHoAr9xUb3h8MxqYWNWJUSLS4xeE3Bc9UrB599Hu7i0w3v6VDGVCndcVO91lq9DZVhtYOPSE8mgacHb/3LP0UOZWmGHor52oPNU3Dwg205u814sKOd2i0DmY+Lt4EkLwFIYGE0FLLTHZDjDp9D
-	0iKclQKt86xBRGH+2zUk3HRq4MArggXuA4CN1buCzqAHiONvLdnY9StRABEBAAGJAh8EGAEIAAkFAk3JFC4CGwwACgkQdCY7N/W1+ROvNxAAtYbssC+AZcU4+xU5uxYinefyhB+f6GsS0Ddupp/MkZD/y98cIql8XXdIZ6z8lHvJlDq0oOyizLpfqUkcT4GhwMbdSNYUGd9HCdY/0pAyFdiJkn++WM8+b+9nz4mC6vfh96imcK4KH/cjP7NG37El/xlshWrb6CqKPk4KxNK5rUMPNr7+/3GwwGHHkJtW0QfDa/GoD8hl2HI6IQI+zSXK2uIZ7tcFMN8g9OafwUZ7b+zbz1ldzqOwygliEuEaRHeiOhPrTdxgnj6kTnitZw7/hSVi5Mr8C4oHzWgi66Ov9vdmClTHQSEjWDeLOiBj61xhr6A8KPUVaOpAYZWBH4OvtnmjwsKuNCFXym2DcCywdjEdrLC+Ms5g6Dkd60BQz4/kHA7x+P9IAkPqkaWAEyHoEvM1OcUPJzy/JW2vWDXo2jjM8PEQfNIPtqDzid1s8aDLJsPLWlJnfUyMP2ydlTtR54oiVBlFwqqHoPIaJrwTkND5lgFiMIwup3+giLiDOBILtiOSpYxBfSJkz3GGacOb4Xcj8AXV1tpUo1dxAKpJ1ro0YHLJvOJ8nLiZyJsCabUePNRFprbh+srI+WIUVRm0D33bI1VEH2XUXZBL+AmfdKXbHAYtZ0anKgDbcwvlkBcHpA85NpRqjUQ4OerPqtCrWLHDpEwGUBlaQ//AGix+L9c=
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.3 
+	s=arc-20240116; t=1707761287; c=relaxed/simple;
+	bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mAkEkH5N823gGMHrtXt5LY8SGxvLeyjwWTPCIuyuFU9papNxsnE6OBhy+UsuwDP+KdA5/8pBck3RMPCzCWDcuHZntjH8fphfTrkfCdYbRAVwaeKAMUHzBjq7eQV+OgLXWFzjRnH2sJ/JtJ+vnwSThXcVmuQvxggXkJceQMPY4pw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nOyZwigh; arc=none smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nOyZwigh"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-6e09a890341so1369551b3a.3
+        for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 10:08:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1707761285; x=1708366085; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
+         :to:content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
+        b=nOyZwighO8rKKyaan3YnOUkDTdpzzsVi9fLx25zI4dkH4HISMVGcnJ8/0nIErnjMLx
+         PiytAT5OxESZTmaG4m2vN6hlQ76Z8wa5laCrb4k4B+Ds3KGeukZI5Lv89TakxBNFCSja
+         k0/Bgc9Za8oOFLO6mqqunQbj5yrZqvl+YwSvtWlOMYA7zMFMJ7+rKB2Pn0rQGkDUTmrk
+         xpF76xjOdjwViOvhnogi3mMTfVr/HYMIxttHaNUokP8aX7VxlyeArLoDdsnVgzI//wS4
+         t1W9mupbSPg5gXC+Ioa8nBONXTScvVRhs17FRwEJMTy8T/0TPbmAAT35SX4P926NDQ35
+         aLHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707761285; x=1708366085;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:cc
+         :to:content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=yS6+a2LOUZr/wQ5O9TGiaRoyv1KW9p7x/LFJAReUFUc=;
+        b=a1ISIm0rMC9HjUaWPTJ4ahVkSidMXXW36sUoONftXCHErbeFC3tz0jRrl2pcMpDVAe
+         tYWAufQfHjuKJRLqgsPOW+RhH3b1GEs7R3k4Ij5Xsk2dA10q5a5FXvbWr5SO/6M9Eb9F
+         T3mrB5T69kCXTV77RNecQItUoP3ZciyIzj57+MCzi2M6Ej9bQOaavMBcuKq/HB7huN9a
+         uMSWi+aXQ1hkwccb/3TODuS7aDkvMVdF8sfN0Jga7Aaf8305Ogh+8CAqBEp1MPfmzf/X
+         p46LI9/2f+uDDaLowzLL/qjUTos9ckpI2ws+o7GA8jiiGbTTJzDmDKyH6LDIhWED/NDs
+         DrPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXjiponRouxUallQc+TCrV2ZgBqR4nhKl5/veHZoAqr+nbzYQYfPJlyzTvtmd2v35JELclfYd/Mo+WNpI92JD3ICmilx20PcbziuQ==
+X-Gm-Message-State: AOJu0YwCOJJ7KHXhB7mo/4J5we/1w3BVU0Hx/N0t+eQxDSaKZ89agWzE
+	viO9gfk5hA8V+NzHQ/hIWEP/7QH5y22m6bHPKKDmmL/zKjJPNpYQ
+X-Google-Smtp-Source: AGHT+IEqFAbfB3hEVYf0Gp8WVJUMi/fz9P12KmIA6dvmWFYq0VBn5/+e0RbDPtnlltsjcO9p1KKOug==
+X-Received: by 2002:a05:6a20:4e18:b0:19e:c777:5c61 with SMTP id gk24-20020a056a204e1800b0019ec7775c61mr3439905pzb.22.1707761285112;
+        Mon, 12 Feb 2024 10:08:05 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVe5oL083w14ydRO2zIR2DSe3A8bUNYD4VOA2vmHDqKeOnwjJzpvnZ/4jBhtRE6fOgGVuzxCUgmHC3ijQ4IlYzX2SKwxSRWqUilbtffAMhGWef7DbxONwdRFQOjsPvAYHqZP6s9G5lXvv3whxGL12S/1d69tjXa+YFipwDZE88IANbVZnjHDzUyzulCtPwajdBqL11jRMVNfuhmMe5WeTuKtrWVXB7ZaEu3jRkc/ekh6W7DYlMC1twP12FJmq8=
+Received: from ?IPV6:2804:1b3:a7c0:378:a95e:7d43:370e:1d4c? ([2804:1b3:a7c0:378:a95e:7d43:370e:1d4c])
+        by smtp.gmail.com with ESMTPSA id f5-20020aa79d85000000b006e0cfe94fc5sm3398980pfq.107.2024.02.12.10.08.02
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 12 Feb 2024 10:08:04 -0800 (PST)
+Message-ID: <2c586b93-0dbf-46c1-8d93-2db99b9757bb@gmail.com>
+Date: Mon, 12 Feb 2024 15:08:01 -0300
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+User-Agent: Mozilla Thunderbird
+Subject: Re: Reproducer for the posix_spawn() bug on sparc64
+Content-Language: en-US
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>,
+ sparclinux <sparclinux@vger.kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
+ "David S. Miller" <davem@davemloft.net>, Sam James <sam@gentoo.org>,
+ jrtc27 <jrtc27@debian.org>
+References: <fe5cc47167430007560501aabb28ba154985b661.camel@physik.fu-berlin.de>
+ <3ae4130c-c5aa-428e-b819-44cf2daf2af1@mkarcher.dialup.fu-berlin.de>
+ <ec6254ce82d8ea5d9d3e73680c98b42f06d0930a.camel@physik.fu-berlin.de>
+ <e44d6030-b7dd-4caa-99b6-87409988a76a@gmail.com>
+ <48af8a12516ff0db379addb07daea58722c8ea1a.camel@physik.fu-berlin.de>
+ <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
+ <060d813c250d45e7c9cfa3acbb39de95ea031661.camel@physik.fu-berlin.de>
+From: Adhemerval Zanella Netto <zatrazz@gmail.com>
+Autocrypt: addr=zatrazz@gmail.com; keydata=
+ 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
+ C+trQg==
+In-Reply-To: <060d813c250d45e7c9cfa3acbb39de95ea031661.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, 2024-02-12 at 14:31 -0300, Adhemerval Zanella Netto wrote:
-> It really make me to believe it is something related to kernel because ru=
-nning the regression
-> program under strace I could not trigger the issue; nor by trying adding =
-a printf just before
-> clone call.
 
-If I understood the problem correctly, according to Michael the issue relat=
-ed to the stack allocation
-which means that running "strace -f" will let posix_spawn() work properly i=
-n this case.
+On 12/02/24 14:40, John Paul Adrian Glaubitz wrote:
+> On Mon, 2024-02-12 at 14:31 -0300, Adhemerval Zanella Netto wrote:
+>> It really make me to believe it is something related to kernel because running the regression
+>> program under strace I could not trigger the issue; nor by trying adding a printf just before
+>> clone call.
+> If I understood the problem correctly, according to Michael the issue related to the stack allocation
+> which means that running "strace -f" will let posix_spawn() work properly in this case.
+>
+> Adrian
+>
+But what I am not fully sure is what ptrace/strace makes the testcase works as
 
-Adrian
+expected, since the only think glibc clone implementation does it to allocate a
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+stack frame on the passed stack argument and issuing the syscall. Afaik, the value
+
+passed on kernel, in either case (default, strace) would be essentially the same:
+
+
+$ setarch -R strace -o log ./more_clone_attack
+effective FP in clone() with waste 0 = 7feffffe590
+this is 178 64-bit words above the next page boundary
+[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
+[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
+[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
+[main] clone(0x100000009e0, 0xfff800010002fe80, ...)
+
+[...]
+
+No problems found
+
+ $ ./more_clone_attack
+effective FP in clone() with waste 0 = 7feff81a590
+this is 178 64-bit words above the next page boundary
+[main] clone(0x100000009e0, 0xfff800010002be80, ...)
+[main] clone(0x100000009e0, 0xfff800010002be80, ...)
+clone: Bad address
+
+Problem detected at 1 pages distance
+
+
+So from userland point of view, which is the requirement regarding stack argument?
+
