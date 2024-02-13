@@ -1,33 +1,61 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82E23FB1C
-	for <sparclinux@vger.kernel.org>; Mon, 12 Feb 2024 18:14:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A3F55C1A;
+	Tue, 13 Feb 2024 13:24:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707761695; cv=none; b=HarBexRk0xvoSrku2VDXG24Y2lOY0ytL14QsJ5X7sv8GM5ym/17oW2xh7bYKRCQ1/nSF3R5WaL/VCVpTT3tr0PERJLqSkaPr9oxhn+dAcPPmlQekqTNhc2Ysi1/4+uu4h+IMxcFthRJCG5Qvf0Ciy22p8CT/tyy8T8pnrNsnag8=
+	t=1707830695; cv=none; b=YXUZY+haRnHMJ+QmeCo/zgTNsZztVvMUkuMCdINaMeWHGSXmxx4q4Dhu3DRK9Cjqo4z/ATfrLQTftXoZgZNqkVwYaKYP58ad/eFytvyrSf2w1/1eQilfclfqHcIBQFjTr6KmrrFD/F/2CmBxbHmGmMnHtK+Ki1l8A/+wgf3zLdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707761695; c=relaxed/simple;
-	bh=hMlSs7/STAUc3R4i7h2Skp03HeKEinchAJV4rZebeXA=;
+	s=arc-20240116; t=1707830695; c=relaxed/simple;
+	bh=59TqRRl9p0ZETIIG/FXzqG6eofAWlEzd0c94odzx7/0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Y4IkiEMyer4JJ4J5JhmhaKyILvbV/7H2g/cxM3U5IHmZliU8fuXhvKP2EuXlvXhTTK8EJsg2b++SjcfDqHrwVR/ASaIoGPG787YKNH5knxm8GyWINYeGifGOVD1g1AYF7HSlvWL0f5omHQvbm1DCjy5FeJ1X4KbcHiGAcu4winA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.97)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1rZapL-000000035ct-4Aa4; Mon, 12 Feb 2024 19:14:48 +0100
-Received: from pd9f63554.dip0.t-ipconnect.de ([217.246.53.84] helo=[192.168.144.87])
-          by inpost2.zedat.fu-berlin.de (Exim 4.97)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_128_GCM_SHA256
-          (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1rZapL-00000000tTQ-3Ewb; Mon, 12 Feb 2024 19:14:47 +0100
-Message-ID: <62f9be9d-a086-4134-9a9f-5df8822708af@mkarcher.dialup.fu-berlin.de>
-Date: Mon, 12 Feb 2024 19:14:46 +0100
+	 In-Reply-To:Content-Type; b=UT0oyYDEGglUQ9TkWCsAZBc/bJwfjL5Y60rsLtGFRNPDIz1DBxf5Kjg1cjGDS21ZgoQ/L+SjBL0CZeb+PW6AYNNpq8CtFRG+sCVm6CWnF32FOa+7Wi9pRY9hgstJMt7qwzEJS6vuikbGER3K0Op2TVjrBdhW/0Alfmk+5Dy2HG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=btMYa1Ey; arc=none smtp.client-ip=209.85.208.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="btMYa1Ey"
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-55f0b2c79cdso6020915a12.3;
+        Tue, 13 Feb 2024 05:24:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1707830692; x=1708435492; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0QyYjoH+AqqQf6ghl+XM6LALnTPi51ZlBkMJjWYJ7D0=;
+        b=btMYa1EyA4h8C8/eefQ7OTU5j8j9e3xUFMnq8DTLC6gOcE4FDjjf6fbOIj805oHxVT
+         AC3XcU4JhfD+k6qt78JwMvuO2QgW7i9II5nVNau2UUdK0iNqi/a7rTS5KzI9RJJeLkqI
+         BUSJPxCVzB1MlxH2bfDku6nbEdZY5HoUZyqlY/JWQIPFBtFiS/1GIzYKfH8QxW/4iorw
+         oDntrnRQSSu6SK/OBtabnvnuIi0xJ7N9/rpPa+UJzwBkOyK5LpmP6+6kcyCHYExZVrKH
+         xOoDZ3sZzFzL+oX/1Dw2dVGVF6JiH6mSr9qm6CaVUC6nmoIOuHmE5go6wfhzneQ5jFjZ
+         CoIA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707830692; x=1708435492;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=0QyYjoH+AqqQf6ghl+XM6LALnTPi51ZlBkMJjWYJ7D0=;
+        b=ug33i/csHo71ELSF2ut+fvS7ZIrrTnDF9Oar2FxC4A6h5YdgI8V+AJajGoxS4B28+3
+         vNGLYDNyMLD1yZyQixvBYKqtHbrWLoriPVwNiVeRg7G8YUYaj1ogNRA/NGABFsJNItaC
+         96qo5voPPkGCzhDR5aGQbQxRSW0Qi05a3IhjaDkwgE+Q1LnydGnx+GpeZoAYliszMw1q
+         KCzpU9F5HHaDrHy6lnA9SDGv3THOcYNV9zFOZPY0RA7a5n+tFBOu4LDviOza2DECl334
+         hhmsjSw3qmlH98+VkLUAuZe5jF3fEReg1Y15FTCmMqIx3HMYyHL0rSckJGHcJhBCiBZ1
+         ky9A==
+X-Forwarded-Encrypted: i=1; AJvYcCXcTHz3WqjquAloNpq27L1ro4BJc9TMrLlmA29DP0pwY7Xc/87lPeG2QRAN0nL72X90iIFeehuWAfRBDtv7fB3wDA/QDqG6Iiv1JQUNCkxj8w5H42atbcZLLxN/ip3OUUfB2ibr7MDvBnJJemp2Qcv2X7NZfucdiTud234BdQWtzgagIHZUSOvUFBQyKf6Fbu7CHcmqbcvWD1ZLzYxXkJ1LyJ0vF3NW/z12hKoOzekxbsoiMHKRjzc1qvbZbt+iry0n8k7QENTYRkTdLzrz1EgBDbc+6cSHOvjc+3XCAEaCd/JRUx/5AQ5GqgUlhD/Zaf/Hd1UddFodNbuAF+bHZER1Xfmew/vUHhHhQjVkE3Vs8yi+gdAtQsOFFOpxMngMvii9IHiBxgkjMtVdr/rUH/VfRA5o6oa6m3IFsO3IHImYG6hLGMeLrRUKZwgwjSnhyPzFx51AJGqLsy8A4SaAKc3xyKj3l2/tiso2RoBEH6fBQ4MhvPsILN1lgRY+q48BsDu9lTyfaQ==
+X-Gm-Message-State: AOJu0YyVIYs0xNrGamwG1iuQbyvTf6ChFKspADKrSw1XkyPIVcaerkDl
+	8v6dY1akdnIGC9YmTOn5Lno6n8ff+yjikQhjCZSn7p7IeG9DD0ar
+X-Google-Smtp-Source: AGHT+IEvOYZMro6HR8cOXNPUYT9ZgCc4vRcUyvz622HX4ZCDWHklO0ODmEGlx46UXe5UhrZ820A4mQ==
+X-Received: by 2002:a05:6402:3596:b0:55f:95ac:d698 with SMTP id y22-20020a056402359600b0055f95acd698mr7503927edc.32.1707830691640;
+        Tue, 13 Feb 2024 05:24:51 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVMeArKJi3EifAmOpZcv2Grgg9QOavC+wNyABJk3QLZgkNc7dOXBIDhbgy8vyOBMzsIrAMg6FrTdfqq7fwyR5rS+2iJZSxB/qmQAEIC1C1pB7TfSTnxP+fx13ldXqknLXUyTvQm3D6HdvE0YKiG62Us26JWt3npm8XPaqI9wVM7uGfq0QbE96JFT+LYhAB+W+FwwSi7bTZ4TRkyuc/9DU0cv2LVCr+rvOuhmUBAT4otlLbZm9JYT7Gb/SCjZ5OV5+ll1i1snATirzjnVrJzfPtE0/hYuUaVgoyNXCWtTnLPowekY81P9qkSPcVtd84PjsqjdGrsL2fNGFZEnbHcSvh5CYGQf2B2uGf2BofpqJJhDKcOT01XGpkxqj9v70H0Un4YGKaLxCfh1+5250VMj+waUOL6WvWcMrzfyseTPpoDkRBp4L8ZHuLLQyTJt4FrAuXja+bLhKwDQFwev99ad42GfufGTCKtRi+m6V9Ux+jhKo86FnyUr5R7cBp+NYO0fxy3F6DEGrQc8SH0ZYmIPlXq6OZwQfyJTz9KnKqFdKANS9Uq4VYesafVkDuF5CapSqUVXFTg+p/Pa13rAzk2q/FgOO5yacnYiIWg5S4Eaa4K1Ti+SgzjfQRV622HGf3+lNlZV+7iV3+J/sE+ft6cr/BtFGDVxlmic3zBJmpdlHqRckBqxyWOopqShkKQLpFgAEU5o38mRv70DSn/RNbvUKGe1mElMc/LkPbbHMDk+kjGEn7/Yq5UE7FDt6Zh5dz2rSrl+sKaHFhYVznDZR7n14ZcEylWSFsoa+g43I156d2UhVaNF8wOKD2fu7qIr3PHiNJfehYyF7Wmr84+QGesFaDSpvqEzEt2IIlKOd/KuWr45ctoOeN3EibzRaSdG4gXEubW5gJ0OEIifsXLv/HCy8Bxf0o/J5de6QM3zr4FijUzwJemHVQ/co7tmATUVldvLIICXf
+ CIP5qDmyEYTAWaO4M1rQ11q8jNdj7sP3/cdMu8dYlTxUfELhGwSQX7KdjeI1WJpQg9IC5oR+NcK3wbN5vegyuTGdzm7+auiSLWF8HnWsFY68PsWpIWtV/dd2ZclddAz8PGWZsCPlS/zjrJ0Ymurg5TU6+Er2DLD36rt+PwoT3ggtvpTxvStbhZ9qXxFRBlHJmeAWqFbYhvIsniswygmR+AN4MRbypKK/gViMQ6AnHEKWhunUMirCeA+XPlvApszlNpZj2b49UlEA/Fv2gSkf6qmnXSW4D30DtfHIBs8HNpgsABcttGxCFCxZTWjB5QMwq/atg923vuboIb3o4uMzyYRsNviYeiS2DqNkQTWanwr0qsbgu9C20qbo3/ehtFpDSHBPyen61sVJDmtcPjquAi7dLUy9cxtDcKyPLSvQZ4aNLL2wEe2nGMq5kSJDZtqOs7OOqDIgkH0Yd9NTB2oGen6uU/efOYA7h5WwZElwofslyM9YrCfiZcPkjEf6vtrIQOtlGoWwIJRgbpDkdG7opM4YrEmT8U8nBM9A1aEA12kcIyzQLW94+2lb7MJYHOg+PrKRZXZCFbEOD+lgbfQki9jGXan3k2jGZuppHdRIIf9y+suKZH2riCtWMNkvHFbKX+1v7X0xnJcapXJw7qEtF+5Dk67dDlKhHCOjdPG6YGEoRr/1jmt1J11viRTPtzb0mmjgRyRlnOPJchCv2Ysw/TI0r1H8a0ryGeSOkGhgtamEBDuUs86JnW4sT9WCzH4nO9TOErXZo7rBDnpYdVt0pganVoza54ZkelCxQUtzuQmd+hBPHU
+Received: from ?IPV6:2620:10d:c096:310::23d8? ([2620:10d:c092:600::1:a107])
+        by smtp.gmail.com with ESMTPSA id b6-20020aa7c906000000b00560ba66587csm3657441edt.13.2024.02.13.05.24.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 13 Feb 2024 05:24:51 -0800 (PST)
+Message-ID: <94ff0733-5987-4bf5-a53c-011e03aa6323@gmail.com>
+Date: Tue, 13 Feb 2024 13:15:08 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,105 +63,118 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: Reproducer for the posix_spawn() bug on sparc64
-To: Adhemerval Zanella Netto <zatrazz@gmail.com>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- sparclinux <sparclinux@vger.kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>,
- Geert Uytterhoeven <geert@linux-m68k.org>,
- "David S. Miller" <davem@davemloft.net>, Sam James <sam@gentoo.org>,
- jrtc27 <jrtc27@debian.org>
-References: <fe5cc47167430007560501aabb28ba154985b661.camel@physik.fu-berlin.de>
- <3ae4130c-c5aa-428e-b819-44cf2daf2af1@mkarcher.dialup.fu-berlin.de>
- <ec6254ce82d8ea5d9d3e73680c98b42f06d0930a.camel@physik.fu-berlin.de>
- <e44d6030-b7dd-4caa-99b6-87409988a76a@gmail.com>
- <48af8a12516ff0db379addb07daea58722c8ea1a.camel@physik.fu-berlin.de>
- <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
-From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-In-Reply-To: <9d466551-dc73-47ae-a73a-d2bd4a5f19af@gmail.com>
+Subject: Re: [RFC PATCH net-next v5 05/14] netdev: netdevice devmem allocator
+Content-Language: en-US
+To: Mina Almasry <almasrymina@google.com>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Martin KaFai Lau <martin.lau@linux.dev>, Song Liu <song@kernel.org>,
+ Yonghong Song <yonghong.song@linux.dev>,
+ John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
+ Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
+ Jiri Olsa <jolsa@kernel.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+ bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Jesper Dangaard Brouer <hawk@kernel.org>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+ Andrii Nakryiko <andrii@kernel.org>, David Ahern <dsahern@kernel.org>,
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+ Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
+ Harshitha Ramamurthy <hramamurthy@google.com>,
+ Shakeel Butt <shakeelb@google.com>, Jeroen de Borst <jeroendb@google.com>,
+ Praveen Kaligineedi <pkaligineedi@google.com>,
+ Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
+References: <20231218024024.3516870-1-almasrymina@google.com>
+ <20231218024024.3516870-6-almasrymina@google.com>
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <20231218024024.3516870-6-almasrymina@google.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
-X-ZEDAT-Hint: PO
 
-Am 12.02.2024 um 18:31 schrieb Adhemerval Zanella Netto:
-> On 12/02/24 13:32, John Paul Adrian Glaubitz wrote:
->> Hi Adhemerval,
->>
->> On Mon, 2024-02-12 at 11:01 -0300, Adhemerval Zanella Netto wrote:
->>> It fails on the two different sparc64 machines I usually use for glibc testing as well:
->>>
->>> azanella@catbus ~ $ /lib64/libc.so.6 | head -n 1
->>> GNU C Library (Gentoo 2.38-r9 (patchset 9)) stable release version 2.38.
->>> azanella@catbus ~ $ uname -a
->>> Linux catbus.sparc.dev.gentoo.org 6.1.72 #1 SMP Fri Jan 12 15:00:51 PST 2024 sparc64 sun4v UltraSparc T5 (Niagara5) GNU/Linux
->>> azanella@catbus ~ $ ./more_clone_attack
->>> effective FP in clone() with waste 0 = 7feffee09f0
->>> this is 318 64-bit words above the next page boundary
->>> clone: Bad address
->>> Problem detected at 1 pages distance
->>>
->>>
->>> azanella@ravirin:~$ /lib/sparc64-linux-gnu/libc.so.6 | head -n 1
->>> GNU C Library (Debian GLIBC 2.37-15) stable release version 2.37.
->>> azanella@ravirin:~$ uname -a
->>> Linux ravirin 4.19.0-5-sparc64 #1 Debian 4.19.37-6 (2019-07-18) sparc64 GNU/Linux
->>> azanella@ravirin:~$ ./more_clone_attack
->>> effective FP in clone() with waste 0 = 7feffa3ae50
->>> this is 458 64-bit words above the next page boundary
->>> clone: Bad address
->>> Problem detected at 1 pages distance
->>>
->>>
->>> And I see similar failures on qemu as well.
->> Thanks for the confirmation. I was also able to reproduce it even on Debian Wheezy
->> with kernel 3.2.0 and glibc 2.13, so it seems the bug is very old.
->>
->> Do you think it's a kernel or glibc bug?
->>
->> Adrian
->>
-> I am not sure, I was leaning to some clone change in recent changes; but since you did
-> see on version as old as 2.13 I don't think it is related to glibc clone implementation.
->
-> It really make me to believe it is something related to kernel because running the regression
-> program under strace I could not trigger the issue; nor by trying adding a printf just before
-> clone call.
+On 12/18/23 02:40, Mina Almasry wrote:
+> Implement netdev devmem allocator. The allocator takes a given struct
+> netdev_dmabuf_binding as input and allocates net_iov from that
+> binding.
+> 
+> The allocation simply delegates to the binding's genpool for the
+> allocation logic and wraps the returned memory region in a net_iov
+> struct.
+> 
+> Signed-off-by: Willem de Bruijn <willemb@google.com>
+> Signed-off-by: Kaiyuan Zhang <kaiyuanz@google.com>
+> Signed-off-by: Mina Almasry <almasrymina@google.com>
+> 
+> ---
+> 
+> v1:
+> - Rename devmem -> dmabuf (David).
+> 
+> ---
+>   include/net/devmem.h | 12 ++++++++++++
+>   include/net/netmem.h | 26 ++++++++++++++++++++++++++
+>   net/core/dev.c       | 38 ++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 76 insertions(+)
+> 
+...
+> diff --git a/include/net/netmem.h b/include/net/netmem.h
+> index 45eb42d9990b..7fce2efc8707 100644
+> --- a/include/net/netmem.h
+> +++ b/include/net/netmem.h
+> @@ -14,8 +14,34 @@
+>   
+>   struct net_iov {
+>   	struct dmabuf_genpool_chunk_owner *owner;
+> +	unsigned long dma_addr;
+>   };
+>   
+> +static inline struct dmabuf_genpool_chunk_owner *
+> +net_iov_owner(const struct net_iov *niov)
+> +{
+> +	return niov->owner;
+> +}
+> +
+> +static inline unsigned int net_iov_idx(const struct net_iov *niov)
+> +{
+> +	return niov - net_iov_owner(niov)->niovs;
+> +}
+> +
+> +static inline dma_addr_t net_iov_dma_addr(const struct net_iov *niov)
+> +{
+> +	struct dmabuf_genpool_chunk_owner *owner = net_iov_owner(niov);
+> +
+> +	return owner->base_dma_addr +
+> +	       ((dma_addr_t)net_iov_idx(niov) << PAGE_SHIFT);
 
-I did some root cause analysis. I *know* that the issue happens when %sp points into
-uncommitted memory on the stack when the system call is invoked. If you add a printf
-after the variable-length array has been reserved on the stack, you cause the target
-stack page to be faulted in, so %sp is no longer hovering over uncommitted memory.
-That's what the +/-22 comes from: I target to get %sp in call_clone (that is %fp in
-clone) aligned to a page boundary. clone then reserves 24 64-bit-words on the stack
-(without touching them). If the page boundary that %fp hovers over is
-the lowest-address committed stack page, %sp will get into (yet) uncommitted memory.
-wasting 24 words less make %sp get to the bottom of the last committed page, so the
-issue does not appear. wasting at least 24 extra words cause the 7th argument to
-clone to appear on the yet uncommitted page, and generates a page fault that commits
-this page before clone is invoked.
+Looks like it should have been niov->dma_addr
 
-Now that's the point where the guesswork starts: the kernel entry for clone, vfork and
-fork issues "flushw" to flush the register windows to the stack. In the problematic
-situation, this will hit address space without a committed page behind it. If I understand
-the save trap handler in the kernel correctly, it detects that it is called from
-kernel-space, and that the saving happens to user-space memory. In that case, the kernel
-*disables* MMU fault traps, tries the saving, and the checks whether some writes got
-dropped due to a fault by checking a MMU status flag. In that case, the kernels saves
-the register into some backup location, because the kernel requires that saving the
-user-space register to stack works, even if the user-mode stack is "bolixed".
+> +}
+> +
+> +static inline struct netdev_dmabuf_binding *
+> +net_iov_binding(const struct net_iov *niov)
+> +{
+> +	return net_iov_owner(niov)->binding;
+> +}
+> +
+>   /* netmem */
+>   
+>   struct netmem {
+...
 
-Now, clone clones (pun intended) the frame of the caller into the stack of the new
-"thread" (let's not argue whether the thing clone creates is a "lightweight procss",
-a "thread", an "execution flow of some indetermined kind" or whatever), which is the
-area between %sp of the caller frame and %fp of the caller frame. I guess the call
-goes haywire at the point when %sp points to the backup location, but %fp points to
-the user-mode stack (or possibly some different backup location), and "the area
-between %sp and %fp" is no longer a well-defined memory range.
-
-Let me know if you want file names / line numbers into the kernel source to back up
-the facts and guesswork I wrote.
-
-Kind regards,
-   Michael Karcher
-
+-- 
+Pavel Begunkov
