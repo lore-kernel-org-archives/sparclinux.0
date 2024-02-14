@@ -1,61 +1,66 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3FD15D757;
-	Wed, 14 Feb 2024 15:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05D6B182DF
+	for <sparclinux@vger.kernel.org>; Wed, 14 Feb 2024 22:40:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707924713; cv=none; b=J/8FoUxHp7sFV3sCppRGrANXBafQr45+pIhPLsLzpJZejhKzBmbPQuKSSicgVVWbe3hN8AjE9uvov5ls7Mb1ZG/cRVrJDaNJ0Nn78cvEf6Y2a46Kxw9STotg5qO9Ud0PzB/h7sQRHG9sNHBXzoVJiXeqKt8ufnoBG09KcFj1Y7c=
+	t=1707950430; cv=none; b=dKN+7DgAkhQP0UFgpcNS0yiyOZ2DWwc9cbIemFn+3FL59UUtykPNY5DlbshTP99dHSD00rQoznX4eD4cifC3rVG2rAaipzaWwoq2b2+1mMRcNmvKNGcZmkU+ztrOJlA8Kr0tebT7sCbiJVo1boEYKDZe02jG3HfUE4VrW6uGLIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707924713; c=relaxed/simple;
-	bh=L1paFLsmS7WUNRU/qVQfEO1XBs8PZDgIRaP0CUaswrk=;
+	s=arc-20240116; t=1707950430; c=relaxed/simple;
+	bh=upA9tJ3GC7rj0FK1TdY7IG6EAXSdXrj4LknP25+XJeo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oIMKDXgvk1XcrK+IlfYhwDtiAvomgvRB5FANnm3aBN6iuKpeJSc+JdTkfIKSVJ0gcQAkBYbqzNibgxivUhm5DHqu2NtcPVm07rlI7X1HFE+/zyYIBKeb+8k+rB0PAmR0Bm0RdWKj9iWoRDoP3h3N17j5a/Iah/WJ89JZ5nxizv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Rdd+gZm8; arc=none smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 In-Reply-To:Content-Type; b=LK2vHuObWDBQGlOeIaVYFpR5MtAfOm8dGKcjgKpg43/t8GF8QXjS/YKWpRMUT5Rp4X5Q82sWAklnuF1x7Zcy3RwMsY483npyNs+8BCCsIHGkSVUB/rEeuv0QDSfeTEf1LtdWdDh4lfkoLmenwR/8cBo51gy2/QJ0CtA6sRZeLCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=a/kGo7mB; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Rdd+gZm8"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5639b00a25cso62513a12.0;
-        Wed, 14 Feb 2024 07:31:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1707924710; x=1708529510; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=vE8/xX9uxStoXuIsHuY6FjGx2HBrbtcyHjIC0Q0+HAE=;
-        b=Rdd+gZm8hPbnQn2r99IHDGjBaUgjMjmLE9rzjbXb3hzFy6mlwvTH/iFqen/TkFx5v7
-         Epkrd5s5r2NroHPYZ1B9k0nm7P3zSbUlqhiHoasPVr9DhSk+rZ41OZ+yqC9U/cpotaEv
-         YK2ON5r0Z6tvkENvEl2+br+nV+DSZy9iE5tNjD5K757N4BwImcqvCM7jdYhPIFlR22xV
-         KZQYbK8NM7yqZupwQpvcC6SP/y5b2Go5VrsKKPgGmwitpTfIa7BRily8mZ8/53rV18j7
-         EyA1QG5eWahX3B4JC2xdUs2TAbg8WP8Xo9PFY/DRSGS5u11Bb4lF++zPjtNAKoUFq4yl
-         gfzA==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="a/kGo7mB"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1707950427;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=WN/1wnCbyZpZRJItW2gMIOPbx328LkZgbs4KqytUNcM=;
+	b=a/kGo7mBpHn2FS0aTMzD6AHQ7J3JS781U5iixLDExmR1VCDQ8/w2fL521TeiCeLqXtwoof
+	1oRZK4XHa4a6zBDpZ5TN+k07rY6wA/cJOyaBLTzzg0o1p9tnluR7P7rC4H6pro7Oc9mgJi
+	Pfui9BlUkTtLmcYpyLy4M6J4e5vWzpo=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-587-2Admr-gsPne6Wkfwcg2g5A-1; Wed, 14 Feb 2024 17:40:25 -0500
+X-MC-Unique: 2Admr-gsPne6Wkfwcg2g5A-1
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-411db41915bso1146805e9.0
+        for <sparclinux@vger.kernel.org>; Wed, 14 Feb 2024 14:40:25 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707924710; x=1708529510;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=vE8/xX9uxStoXuIsHuY6FjGx2HBrbtcyHjIC0Q0+HAE=;
-        b=PqfYxKxyz8xInCSGBDb4VP963m+nmHw2Rx0eSJbCPyCJ1z7HTEYg1Q1Y0aQcyyhrMK
-         44mhVj5W3sa6s2f2oaAQZmeEUq/CS6Nvy/mWs5+73Jm3lcqNZ/5BXGxpsAdPlECCN18V
-         TKugOUBwRF3bKNODdIsZ7pADDGU0gyyv5CMtvhoJfiJ0ULnB2daY5sEbh1it5bdWSuZS
-         nc3sOlSgpxab9OTlN6lFYp0glyMa1svRF2Sug7o5il9oDp6t5hRJ1c92+qeOCdwZeNN/
-         67AUf+bkoWseMkac2+5IRzWVN4L36gBNBVLcT9aUug7dL942tuAGl3wLRjZ5E+3FN0a8
-         V99A==
-X-Forwarded-Encrypted: i=1; AJvYcCUfgDzfagAW+PmMyiN6rIZnCvSkL+Sm4VhLQJCHEm0oM4p5C9gmLEkhlrXhq9Kdxh083DjHUZalFo+d/IYGkb7g3pDGgjcZD61YgIJx/xPJ35fcQlhlxpZ0xuxkeoruda630RwSt6p4K+Za6W5LAh2BaTZmQiEPG+/n7E0Swcxf9VLQFsTROjsbVy1E2+hVvcJpZXWwbe9XzFCzjY1njyY21g2uELnGbk9dvTQtYi3yxKcVmFqkjQPgFCWRIOz+GiYfYRmyPP1J04K0hscnsuSz7aE6aWs8uG0Sal046N1fiOOgIQ3aldv9snrWw7g8dTuuwXlm3R6iTqMhT2HTxnZ0dlnSdYGHU0KKTwfwB2Oc8xd8cDH5lDIJPXMAxd7EpUY8qiwj2gaDM2yMPZUA6qAYSr8QFwWOhBJETDvq33r7vSdAnbOBWjjkSg8KTDCjXbqNV3794BDuzb1tJxolgHpMgV0ED4pN5V2Z3nBBKyG+KwQ7FbO0G5EDEt9HB9iiCJrN9vItFA==
-X-Gm-Message-State: AOJu0Yw+8u/sRlru+9nGWNsXE3UJE4Mz8pkd6IZ1VyS/YXt50ktXNXhX
-	FpzAdlHp963s5X5d3MvVqwUJo0Ekj0lpyPVZkYfXCtl45miXWXoE
-X-Google-Smtp-Source: AGHT+IFJjeHJkhu4E/5PQL7Dr2d77iKz2i3apIzpMMgqPcQHi77X+UE8B2mD6qzLMtE6+dUYVhK/OA==
-X-Received: by 2002:a17:906:4091:b0:a3d:1458:3db9 with SMTP id u17-20020a170906409100b00a3d14583db9mr2033804ejj.18.1707924709571;
-        Wed, 14 Feb 2024 07:31:49 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWIAccAWgK4lRqfWAiTFf2zOmFvQ0cjuzenXB/9W2eZuobq9WyoNFiLAq2+XZEu2KOwhDhUl08prR0TdsNqdt/p3fpS9OUX1dkDg7gMrca8l0pMYcjca3KdKCHAbXzom2/SHjYBQRvzRQOm0yWyInuamEGg2Pd+Tbd0vhH0EK/PYfsXk/0D7tnStMVzl8NvP4nE6Bm9xf0XXnPDt+BWsU+fVlOW0fRFcRJt68nbjiuUymX8Ihykx4Bi5UI7l8MmYHivujIr3jrYd5OmNiULju6LqVQ03h9J2mVBr6Y4kzJq7y0O7Y+ruaIY8dfB3gAotuMx8fmGXmej+7OAM+CcDmS8GZusMWnjhcYnmSN9iEw2XGLFRDv/zEzfWiCb7k33Gf9N+dpzm+tkstNr2Gv3qd/4aII5CgI+apL16oBzPzLR4RdWuDLHRKBFMmbiG2GUg5AnYJrWI/4HkU0G59qJGf1LzoIKp7SoSz2PUuCtBd514aE91bAYOarQ980ubpMjW2voJ2og6U0AJ8p6S/p9Utx56Iv7xID1qdz9xFxK79njnb00TS9bn6KS3ONPx/m481JXuEoeIU8pUzwiaJy1g/stIFY6RBxPgYLb8VfuaxiMjn4lPPr1ide8Wejcsvmcp9yU6ddXzx9BOYhdv+iwf/4gSyB25dMQtXKhMRZFA1hdzaJaynUszbGA5ez1fsjJmuIdeHIos+gF/xdADWxZU8R1eTCy1Vr60X1ySsGcZTeUp/1brqlaxAOH0K5vdvoYlIaU/pfEfOpj9RIc+ecCLcimJczreESQYF2PsecL7g2H5UJ0QiS89kiIaBbSPuyWtmWyWnQxyHtQG+QRb4cc0uiguUzZ/X96gxQWoGE2ogXIEoZ40Q4TB5oqV+RZbOR+phuAGVeDNVyT1JeYVeXZnPaBL+zoE4cNc9MPgLb+7hp5KWodx26/txiDdRRn81u7Y8uOET
- Rnm5a54n8LY+pNVqm5CnENC/aQlazL9whyTZqQDlzTgJJG6l/C7EYlZEweZxiHjDpP/74qNMrYpjA99qdtlWh/2b/hzjZeOXV0OOOU+rocIfsYQxVz8kw91HRewTVN1gKiLDHy/niFZoMQgdxB3ZUmOOvlZljJ4yvu19cGehAMo0FAjoXIzIRqGdjKPnJfcbxadZKphWyKeUSGU9KQueszPKDRdfZDLMzBRofZNCIjKv/CR1jIrVveae6Pd+K86hHHAfU3kEuXlu15R9X+G37gMcknMRcdazHnScHuIkr/IHyyHAvazM8sgkmfz73WoxATV7VXEw5EXn2NrWHl+BIDhc1ZktbbLtUQFQ+M9OA+N8LHBQqZeoUvfGps63MAly944RryRFGlG+qOZsmvZqccm3MissuaLU8rlcmFDT2T80P7vGr2SbUcFMzRDkAKRoQiNLLJkLXXCurYv6LyrF8CuLq3v7mzm2QysNKEfPzeM2agEDFVxXyiKqJOVWP7HnzPQI89geXQUy5CNF1Gte1i7RLyTqi/oV7FtdsN1PxVMr0sZd3ffQmAbB7fRu42ueEjbAcz4ZxfUr1wnFzznCSy/ffFm7dJs9Iu+1t4PzbZwkd8U4TmvDxqWyAyUKavcPnbSX0y7o+iJorMgo79HW+r5LSzwjoroqXVA8lAg7Mt1smJJye8qFRlnTWpKKoiU2zQ8IFaWIC5Ih5sr/Tmaie9syohfdfLfuaeMQrQepLF1JE=
-Received: from ?IPV6:2620:10d:c096:310::23d8? ([2620:10d:c092:600::1:1e51])
-        by smtp.gmail.com with ESMTPSA id o14-20020a1709061d4e00b00a3d5efc65e8sm403200ejh.221.2024.02.14.07.31.48
+        d=1e100.net; s=20230601; t=1707950424; x=1708555224;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
+         :references:cc:to:content-language:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WN/1wnCbyZpZRJItW2gMIOPbx328LkZgbs4KqytUNcM=;
+        b=kTX4CHZh0jbUb344r8l+qYLTjjx1XQdJwMYBFM07V8ICAXCkpUVelzctA0OHm5cd9m
+         HUNjpjuK4Nc9fKOZScfY5lwX3D5bmIMi+92Fwlm5zdS5EO4Y66lS1DvUu1jC269A5fVd
+         UVRD2QxaKFjgf0MoB52QoNr5NnFd8fK+xb0zEj3EQ+NoZ+qvA95bh1Gcfq2627DYioCY
+         XzGMoLH9alRiK1K3IAGDkdPl3aL7WdXD5QceHbAFDmAYpODz3lBtidmgv9OMa0safq0I
+         Y6hiunnHthxxzR4K5heatdbSccIB+6x4PfTrBIic8+FEzSw7wwYBpc3sU4svWsD7Gmv5
+         pFEw==
+X-Forwarded-Encrypted: i=1; AJvYcCWF7ZT7ldlBZq2eIY3HLbn38OBXoEopkonU3xhUTr6lLIeDb11A2Vk+ZcmT6jx4GTaNm3aTEmA4e801d0lGfzZeJpzstTv388306Q==
+X-Gm-Message-State: AOJu0YzemIDggJuu17scrc6WmXNYnx5JYGkW5WwXFAdnZGwYGNtYNQek
+	x2Dyd7BXt9Iqm3OHhpClXKBB/PHO+z7JafoneOLjpP8nnEu5ntu0vONjBs50GE3KXJzapJV9XkX
+	eohetMdAsY2E58NEeRjm0M9cXqHCg9A8p7yRVQlO4lxvmjkMyDU7eGOZE550=
+X-Received: by 2002:a05:600c:2805:b0:411:a5f9:26f5 with SMTP id m5-20020a05600c280500b00411a5f926f5mr10962wmb.38.1707950424300;
+        Wed, 14 Feb 2024 14:40:24 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFJPxLWaIZx311unv4D5LeFL6QRVjrs/qethDlI9UQEHWlU/k8z7sxXPYEJCZWf9jK5YYpPQQ==
+X-Received: by 2002:a05:600c:2805:b0:411:a5f9:26f5 with SMTP id m5-20020a05600c280500b00411a5f926f5mr10943wmb.38.1707950423914;
+        Wed, 14 Feb 2024 14:40:23 -0800 (PST)
+Received: from ?IPV6:2003:d8:2f3c:3f00:7177:eb0c:d3d2:4b0e? (p200300d82f3c3f007177eb0cd3d24b0e.dip0.t-ipconnect.de. [2003:d8:2f3c:3f00:7177:eb0c:d3d2:4b0e])
+        by smtp.gmail.com with ESMTPSA id w12-20020a05600c474c00b00410232ffb2csm43012wmo.25.2024.02.14.14.40.22
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 14 Feb 2024 07:31:49 -0800 (PST)
-Message-ID: <c28e1f66-84c8-40f7-b200-f18bee06cb33@gmail.com>
-Date: Wed, 14 Feb 2024 15:30:25 +0000
+        Wed, 14 Feb 2024 14:40:23 -0800 (PST)
+Message-ID: <13f296b8-e882-47fd-b939-c2141dc28717@redhat.com>
+Date: Wed, 14 Feb 2024 23:40:22 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -63,141 +68,165 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH net-next v5 07/14] page_pool: devmem support
+Subject: Re: [PATCH v3 12/15] mm/memory: pass PTE to copy_present_pte()
 Content-Language: en-US
-To: Mina Almasry <almasrymina@google.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Martin KaFai Lau <martin.lau@linux.dev>, Song Liu <song@kernel.org>,
- Yonghong Song <yonghong.song@linux.dev>,
- John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
- Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
- Jiri Olsa <jolsa@kernel.org>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
- bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Jonathan Corbet <corbet@lwn.net>,
- Richard Henderson <richard.henderson@linaro.org>,
- Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
- <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
- Helge Deller <deller@gmx.de>, Jesper Dangaard Brouer <hawk@kernel.org>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
- <mhiramat@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
- Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
- Andrii Nakryiko <andrii@kernel.org>, David Ahern <dsahern@kernel.org>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
- Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>,
- Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
- Harshitha Ramamurthy <hramamurthy@google.com>,
- Shakeel Butt <shakeelb@google.com>, Jeroen de Borst <jeroendb@google.com>,
- Praveen Kaligineedi <pkaligineedi@google.com>
-References: <20231218024024.3516870-1-almasrymina@google.com>
- <20231218024024.3516870-8-almasrymina@google.com>
- <3374356e-5f4b-4a6f-bb19-8cb7c56103bc@gmail.com>
- <CAHS8izO2zARuMovrYU3kdwSXsQAM6+SajQjDT3ckSvVOfHwaCQ@mail.gmail.com>
-From: Pavel Begunkov <asml.silence@gmail.com>
-In-Reply-To: <CAHS8izO2zARuMovrYU3kdwSXsQAM6+SajQjDT3ckSvVOfHwaCQ@mail.gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
+ Matthew Wilcox <willy@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Russell King <linux@armlinux.org.uk>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Dinh Nguyen <dinguyen@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+ Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt
+ <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S. Miller"
+ <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20240129124649.189745-1-david@redhat.com>
+ <20240129124649.189745-13-david@redhat.com>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <20240129124649.189745-13-david@redhat.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-On 2/13/24 21:11, Mina Almasry wrote:
-> On Tue, Feb 13, 2024 at 5:28 AM Pavel Begunkov <asml.silence@gmail.com> wrote:
->>
-...
->>
->> A bit of a churn with the padding and nesting net_iov but looks
->> sturdier. No duplication, and you can just check positions of the
->> structure instead of per-field NET_IOV_ASSERT_OFFSET, which you
->> have to not forget to update e.g. when adding a new field. Also,
+On 29.01.24 13:46, David Hildenbrand wrote:
+> We already read it, let's just forward it.
 > 
-> Yes, this is nicer. If possible I'll punt it to a minor cleanup as a
-> follow up change. Logistically I think if this series need-not touch
-> code outside of net/, that's better.
-
-Outside of net it should only be a small change in struct page
-layout, but otherwise with struct_group_tagged things like
-page->pp_magic would still work. Anyway, I'm not insisting.
-
-
->> with the change __netmem_clear_lsb can return a pointer to that
->> structure, casting struct net_iov when it's a page is a bit iffy.
->>
->> And the next question would be whether it'd be a good idea to encode
->> iov vs page not by setting a bit but via one of the fields in the
->> structure, maybe pp_magic.
->>
+> This patch is based on work by Ryan Roberts.
 > 
-> I will push back against this, for 2 reasons:
+> Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>   mm/memory.c | 7 +++----
+>   1 file changed, 3 insertions(+), 4 deletions(-)
 > 
-> 1. I think pp_magic's first 2 bits (and maybe more) are used by mm
-> code and thus I think extending usage of pp_magic in this series is a
-> bit iffy and I would like to avoid it. I just don't want to touch the
-> semantics of struct page if I don't have to.
-> 2. I think this will be a measurable perf regression. Currently we can
-> tell if a pointer is a page or net_iov without dereferencing the
-> pointer and dirtying the cache-line. This will cause us to possibly
-> dereference the pointer in areas where we don't need to. I think I had
-> an earlier version of this code that required a dereference to tell if
-> a page was devmem and Eric pointed to me it was a perf regression.
+> diff --git a/mm/memory.c b/mm/memory.c
+> index a3bdb25f4c8d..41b24da5be38 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -959,10 +959,9 @@ static inline void __copy_present_pte(struct vm_area_struct *dst_vma,
+>    */
+>   static inline int
+>   copy_present_pte(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
+> -		 pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
+> -		 struct folio **prealloc)
+> +		 pte_t *dst_pte, pte_t *src_pte, pte_t pte, unsigned long addr,
+> +		 int *rss, struct folio **prealloc)
+>   {
+> -	pte_t pte = ptep_get(src_pte);
+>   	struct page *page;
+>   	struct folio *folio;
+>   
+> @@ -1103,7 +1102,7 @@ copy_pte_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
+>   		}
+>   		/* copy_present_pte() will clear `*prealloc' if consumed */
+>   		ret = copy_present_pte(dst_vma, src_vma, dst_pte, src_pte,
+> -				       addr, rss, &prealloc);
+> +				       ptent, addr, rss, &prealloc);
+>   		/*
+>   		 * If we need a pre-allocated page for this pte, drop the
+>   		 * locks, allocate, and try again.
 
-fair enough
+The following fixup for that device-exclusive thingy on top (fixing a hmm
+selftest I just discovered to be broken).
 
-> I also don't see any upside of using pp_magic, other than making the
-> code slightly more readable, maybe.
-> 
->> With that said I'm a bit concerned about the net_iov size. If each
->> represents 4096 bytes and you're registering 10MB, then you need
->> 30 pages worth of memory just for the iov array. Makes kvmalloc
->> a must even for relatively small sizes.
->>
-> 
-> This I think is an age-old challenge with pages. 1.6% of the machine's
-> memory is 'wasted' on every machine because a struct page needs to be
-> allocated for each PAGE_SIZE region. We're running into the same issue
-> here where if we want to refer to PAGE_SIZE regions of memory we need
-> to allocate some reference to it. Note that net_iov can be relatively
-> easily extended to support N order pages. Also note that in the devmem
-> TCP use case it's not really an issue; the minor increase in mem
-> utilization is more than offset by the saving in memory bw as compared
-> to using host memory as a bounce buffer.
 
-It's not about memory consumption per se but rather the need
-to vmalloc everything because of size.
+ From 8f9e44f25087dc71890b8d9bd680375691232e85 Mon Sep 17 00:00:00 2001
+From: David Hildenbrand <david@redhat.com>
+Date: Wed, 14 Feb 2024 23:09:29 +0100
+Subject: [PATCH] fixup: mm/memory: pass PTE to copy_present_pte()
 
-> All in all I vote this is
-> something that can be tuned or improved in the future if someone finds
-> the extra memory usage a hurdle to using devmem TCP or this net_iov
-> infra.
+For device-exclusive nonswp entries (is_device_exclusive_entry()),
+copy_nonpresent_pte() can turn the PTEs into actual present PTEs while
+holding the page table lock.
 
-That's exactly what I was saying about overlaying it with
-struct page, where the increase in size came from, but I agree
-it's not critical
+We hae to re-read the PTE after that operation, such that we won't be
+working on the stale non-present PTE, assuming it would be present.
 
->> And the final bit, I don't believe the overlay is necessary in
->> this series. Optimisations are great, but this one is a bit more on
->> the controversial side. Unless I missed something and it does make
->> things easier, it might make sense to do it separately later.
->>
-> 
-> I completely agree, the overlay is not necessary. I implemented the
-> overlay in response to Yunsheng's  strong requests for more 'unified'
-> processing between page and devmem. This is the most unification I can
-> do IMO without violating the requirements from Jason. I'm prepared to
-> remove the overlay if it turns out controversial, but so far I haven't
-> seen any complaints. Jason, please do take a look if you have not
-> already.
+This fixes the hmm "exclusive_cow" selftest.
 
-Just to be clear, I have no objections to the change but noting
-that IMHO it can be removed for now if it'd be dragging down
-the set.
+  ./run_vmtests.sh -t hmm
+  # #  RUN           hmm.hmm_device_private.exclusive_cow ...
+  # #            OK  hmm.hmm_device_private.exclusive_cow
+  # ok 23 hmm.hmm_device_private.exclusive_cow
+
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+  mm/memory.c | 2 ++
+  1 file changed, 2 insertions(+)
+
+diff --git a/mm/memory.c b/mm/memory.c
+index 3b8e56eb08a3..29a75f38df7c 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1208,6 +1208,8 @@ copy_pte_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
+  				progress += 8;
+  				continue;
+  			}
++			ptent = ptep_get(src_pte);
++			VM_WARN_ON_ONCE(!pte_present(ptent));
+  
+  			/*
+  			 * Device exclusive entry restored, continue by copying
+-- 
+2.43.0
+
 
 -- 
-Pavel Begunkov
+Cheers,
+
+David / dhildenb
+
