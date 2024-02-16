@@ -1,38 +1,38 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3249312F5B4;
-	Fri, 16 Feb 2024 16:24:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C57043687;
+	Fri, 16 Feb 2024 16:45:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708100701; cv=none; b=aZLN6yasy4Q1+ODrezI5S7BUfwT7Nu6fzjtKTzZHWwS1tGPXHjXmUp2nlIuOM/cm+5i9ypeUJts20q55woaShEuyH1icRqEdjnousInaT1kZuiWgLFlVB0GDp1w8UUiV06kJ7yJPDgfrvtL3Qwb0WzDLyxf7ePTf3ZEDudQ0fzQ=
+	t=1708101934; cv=none; b=OLsnIP/gnfq2Fo+zMHznEXMMGBGo9EYhNXWVqOESMq5fjyaPqhyp/2kknRJYASRAhsGIvdNAV6T3/bTk0iutyfiSnkUp/3A/OTvzR2bLmBOYz3NZWB4sREBW1ue/dE1GEBV3YRGnBI4Xit25eKTrDTJ+aX6B4kL4CN7eEAKNSsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708100701; c=relaxed/simple;
-	bh=IiwebuLg1zAARr3zoXcuN6fqMxygnCfTRjlPE3fRF14=;
+	s=arc-20240116; t=1708101934; c=relaxed/simple;
+	bh=CsOn+DhgFeqCNSRreHl5oS9hryCOkL21maWnWfjiYWo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kpIxiEoLnCKqUMZOqq1kNdYRSHqNvvto58ui5r0Fl292PZ3kRAmiRSyG9q37vM3fs5AyMUjfyboGmnbpli+B4md66DFufEJWqbQGsl21ZWSzkcDo9wWcvY8XwKywdeYaBywtEQbCYVijaaFJ/4ezy2xHu05ClMbdvwOwU8V7cmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=LPjR3/f8; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=GA+Ic6gtaXvjkYgJVkTqxQMskUK40kGobERSkwbdLHyceb1CyWnZJp0dGBRnHB6I+/LU7SA7cZLtleIMQvPLkxmesRZgtCqiIX4jEi6aCGH7P3o+uTrwywQzzzp11g6R5m7PlpX2q3Wkaj+mairfuU6zHuWTcka0tTzy5hUVo58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=V7TXH/54; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="LPjR3/f8"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="V7TXH/54"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Tby2K45qDz67wf;
-	Fri, 16 Feb 2024 17:24:57 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4TbyV15ms2z681Y;
+	Fri, 16 Feb 2024 17:45:29 +0100 (CET)
 Received: from [10.10.15.23] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Tby2D5ngbz681Z;
-	Fri, 16 Feb 2024 17:24:51 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4TbyTv1h07z67p1;
+	Fri, 16 Feb 2024 17:45:21 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1708100697;
-	bh=ADpbRI1kQeqTzulD7Oa4Zg31R5ifUeD8WHrikku+Xt0=;
+	s=unoeuro; t=1708101929;
+	bh=Z0ojgdZAly+cJwqhDwzJMVcnx8Yr0Z18PaNMP45RmHE=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=LPjR3/f88cY9uta25ku9CYOv6/y5QHmajJ7iLE74yMRPOH6vukHDaBZB1rj6kxy3I
-	 5zwcsqYXoZQ2LSb+vZCn0n7A/CWHibS28xdTHDQIUZEUL9UBBuLZ6vS78IuuI2VhOl
-	 7X23KHrEE4CzrTIrPmDrrC2wr02O5K3l4vWdOTjA=
-Message-ID: <35253cde-17d0-4089-bd51-fdcdcc5549a4@gaisler.com>
-Date: Fri, 16 Feb 2024 17:24:51 +0100
+	b=V7TXH/54ebxbS7izH3f/05iFUczZ7LrR4qYpAWGVhAnMGh1Amjz/ACzNf1j51kncU
+	 qlMR1pUNoT67s3JVOHL6GAfNYA5Koz+IKQA+3lPHcsyZlaigz2IjIUpKUnLnwW8HvF
+	 ZSOEKpQPJq9s9NJK5732Zs3gVNb+qVHqGesklTK8=
+Message-ID: <bbab8a40-ba76-42f5-8f8f-2259ce70e14e@gaisler.com>
+Date: Fri, 16 Feb 2024 17:45:21 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,27 +40,44 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc: select FRAME_POINTER instead of redefining it
+Subject: Re: [PATCH v2] sparc: leon: grpci1: Use
+ devm_platform_ioremap_resource() in grpci1_of_probe()
 Content-Language: en-US
-To: Masahiro Yamada <masahiroy@kernel.org>, linux-kbuild@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org,
- sparclinux@vger.kernel.org
-References: <20240215135749.1909812-1-masahiroy@kernel.org>
+To: Markus Elfring <Markus.Elfring@web.de>, sparclinux@vger.kernel.org,
+ kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+ Rob Herring <robh@kernel.org>, Sam Ravnborg <sam@ravnborg.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
+References: <4fc017e4-c695-40d3-aed4-cbf34d44e6fa@web.de>
+ <e4585b03-3629-4bd7-a349-f5471ebd8685@web.de>
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240215135749.1909812-1-masahiroy@kernel.org>
+In-Reply-To: <e4585b03-3629-4bd7-a349-f5471ebd8685@web.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-02-15 14:57, Masahiro Yamada wrote:
-> Because FRAME_POINTER is defined in lib/Kconfig.debug, the arch Kconfig
-> should select it.
+On 2024-02-06 16:40, Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 6 Feb 2024 16:30:15 +0100
 > 
-> Add 'select FRAME_POINTER' to MCOUNT. ARCH_WANT_FRAME_POINTERS must
-> also be selected to avoid the unmet dependency warning.
-> 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+> A wrapper function is available since the commit 7945f929f1a77a1c8887a97ca07f87626858ff42
 
-Applied to my for-next branch.
+This line is needlessly long. Could you wrap it or shorten the SHA-1 ID?
+You don't need more than the first 12 characters of the SHA-1 ID.
+
+> ("drivers: provide devm_platform_ioremap_resource()").
+> 
+> * Thus reuse existing functionality instead of keeping duplicate source code.
+
+The same goes for this one. Please keep the width of the commit
+description within 75 characters.
+ 
+> * Delete a local variable which became unnecessary with this refactoring.
+> 
+> 
+> This issue was transformed by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+
+Apart from that the patch looks good.
 
 Thanks,
 Andreas
