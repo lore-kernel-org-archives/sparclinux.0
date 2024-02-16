@@ -1,37 +1,38 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE45912FB27;
-	Thu, 15 Feb 2024 16:47:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35C0C12C809;
+	Fri, 16 Feb 2024 16:11:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708015678; cv=none; b=sNEsa1U/nUOCmHCa3HfyQ6Q3b1l8XbSkRdeTLoTSdeqXJLLrH0XX4r0SNBUbDhX7Nac82OVCA3tlMBWBaSjZvvvwJXYEpYWLvkTuoJM8iH6GGNMcVuiQRGUEa0wCeBJuZ/BeLDowf6jeJ8r++ojV9PjOmx9PZm0i8sQSv38O9bg=
+	t=1708099881; cv=none; b=tmGLpyHxiC3vccB/Qifo6Lrgyj/HmVeh0V2fwTunNb7yyEf0e2GhsBWaCzjNvArHtt4KJYMV7tFVJcZHStRJMbNsuMIYqgjhEVI38bbnZYPbvcoftYujmgG9wmGtHyFd5l1tuc9iHv3KPfRdHZ/V5nd2Pu2Z/SZEwZifBXAfZdQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708015678; c=relaxed/simple;
-	bh=2MDqDK5KJeAWqgFYkfq2/cDfJ1KxqdbOo+HOTsTs77o=;
+	s=arc-20240116; t=1708099881; c=relaxed/simple;
+	bh=LfFXnYQiTBQreCbCIUgw5DkCddIa8FMvbEkDGAEoilQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gXEwqVk52aApkH6s7j1A8slWNWZm1pu0g2+YyrW9L3QmhM8PAYj1oklCZ0Y8RMC9PP1MhS3f1Q1Ul0qqbmdw2AJXBUc94bBI/2+Fc72XQZYchygXtc/lXLqEb72K0VLIL55y0jMBBBChzYjNEb3R8oJJBscOzOmQSOFzPHZYE0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=3cJHhxVO; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	 In-Reply-To:Content-Type; b=qmSZCrX7uYwvatHX8xVkhhC4buID4Ok0nLD5zQq1NaOq4TccUtF8VyZ/Px6vskiPxVT1+5LciTsj9Wh0j58l37gjfSULbsSBiWYJCBS4IGuKJmxJHz6jEngSl/0DeeR9DU08n3sB9vLkSA6jZ+QcCF2m29h8rQtUo3Et5YpE9dM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=mMqOpFPP; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="3cJHhxVO"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=OX+OpjYxr2oxFNk00FGu48FNpIfxVze5LlItzG4BCoU=; b=3cJHhxVOA7HyXI5qSs+tiq/vJD
-	M/66r8QVshCxd+vOByXWCfOsdO0ny19+lsbsdxRD0LU3mdqwX4mK3wL/FG1XB11fYkIqg5gnREp+W
-	i3pWn8I1gESui/NtopJMJiVBurWusUYfUWS7VbmXOef2yteZD50Ld/jC0h+Fnaf+c+j4dN1M8Dw1h
-	UhHfQw53irjwv0T0c9DfZOAPswlQ7TPsckgebt6xfTAi2JCxWlDhoO0mxy0tsNbXv1kFDhdrDYX62
-	BgMKJmw6L+5P21qDw9l+wFPmR7QwKDdV6URmovxpvjAsMqJTMkPKZ9RVGcKStafgAB2A/WPcOrFn/
-	gJp0dNIw==;
-Received: from [50.53.50.0] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1raetv-0000000H2QW-0pd1;
-	Thu, 15 Feb 2024 16:47:55 +0000
-Message-ID: <737d2870-7a01-4f3f-9825-6583804607bb@infradead.org>
-Date: Thu, 15 Feb 2024 08:47:54 -0800
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="mMqOpFPP"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4TbxkL6XtHz67xs;
+	Fri, 16 Feb 2024 17:11:06 +0100 (CET)
+Received: from [10.10.15.23] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4TbxkF18p1z67tH;
+	Fri, 16 Feb 2024 17:11:00 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1708099866;
+	bh=iq3rmFuuuB7xfOB9MLC9H3wTH6FDafTnULPqIUiclBU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=mMqOpFPPzvHKU+0qKjlWlkP9FbzfmsEjTHyy+/n6utaukdD0LUi4eDr2UJv8QYKMp
+	 FeiZWMuReqd0XTzFqfSEX4IyCP+t5jNzVk0vCiKByM82ru54jb9ZYMl0c0/Ef1G0N0
+	 rVDjXJBV9q36if8PmUK72lEHfNeefjnVyoOzrjJ0=
+Message-ID: <60ce7f04-ef19-41e5-a9ce-002ae5921541@gaisler.com>
+Date: Fri, 16 Feb 2024 17:10:59 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -39,56 +40,29 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc: select FRAME_POINTER instead of redefining it
+Subject: Re: [PATCH RESEND] sparc: remove obsolete config ARCH_ATU
 Content-Language: en-US
-To: Masahiro Yamada <masahiroy@kernel.org>, linux-kbuild@vger.kernel.org
-Cc: Andreas Larsson <andreas@gaisler.com>,
- "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org,
- sparclinux@vger.kernel.org
-References: <20240215135749.1909812-1-masahiroy@kernel.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20240215135749.1909812-1-masahiroy@kernel.org>
+To: Lukas Bulwahn <lukas.bulwahn@gmail.com>, Christoph Hellwig <hch@lst.de>,
+ "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20231211083029.22078-1-lukas.bulwahn@gmail.com>
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20231211083029.22078-1-lukas.bulwahn@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-
-
-On 2/15/24 05:57, Masahiro Yamada wrote:
-> Because FRAME_POINTER is defined in lib/Kconfig.debug, the arch Kconfig
-> should select it.
+On 2023-12-11 09:30, Lukas Bulwahn wrote:
+> Before consolidation of commit 4965a68780c5 ("arch: define the
+> ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig"), the config ARCH_ATU
+> was used to control the state of the config ARCH_DMA_ADDR_T_64BIT. After
+> this consolidation, the config ARCH_ATU has been without use and effect.
 > 
-> Add 'select FRAME_POINTER' to MCOUNT. ARCH_WANT_FRAME_POINTERS must
-> also be selected to avoid the unmet dependency warning.
+> Remove this obsolete config.
 > 
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+> Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
 
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Applied to my for-next branch.
 
-Thanks.
-
-> ---
-> 
->  arch/sparc/Kconfig.debug | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/sparc/Kconfig.debug b/arch/sparc/Kconfig.debug
-> index 37e003665de6..d475a056a2e0 100644
-> --- a/arch/sparc/Kconfig.debug
-> +++ b/arch/sparc/Kconfig.debug
-> @@ -8,11 +8,8 @@ config MCOUNT
->  	bool
->  	depends on SPARC64
->  	depends on FUNCTION_TRACER
-> -	default y
-> -
-> -config FRAME_POINTER
-> -	bool
-> -	depends on MCOUNT
-> +	select ARCH_WANT_FRAME_POINTERS
-> +	select FRAME_POINTER
->  	default y
->  
->  config HAVE_HARDLOCKUP_DETECTOR_SPARC64
-
--- 
-#Randy
+Thanks,
+Andreas
