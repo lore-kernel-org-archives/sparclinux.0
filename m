@@ -1,38 +1,38 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0925B12CDA0;
-	Fri, 16 Feb 2024 16:24:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3249312F5B4;
+	Fri, 16 Feb 2024 16:24:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708100644; cv=none; b=Miz36FgzUXwkC469tz5nNN2vpTx57XGL9vt2XbaxOKf/Zr08mLVtO2t4aFC4GLNFfNWdcEP6/327iyxetmwbIBwa+DZIyjlr/TLd74CUoNzKz5Ev+a9U6hulKZCbMTtTy4razYyYlf3iGxtj37UcXTiEFhbvMWjgTl15wuFC6b0=
+	t=1708100701; cv=none; b=aZLN6yasy4Q1+ODrezI5S7BUfwT7Nu6fzjtKTzZHWwS1tGPXHjXmUp2nlIuOM/cm+5i9ypeUJts20q55woaShEuyH1icRqEdjnousInaT1kZuiWgLFlVB0GDp1w8UUiV06kJ7yJPDgfrvtL3Qwb0WzDLyxf7ePTf3ZEDudQ0fzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708100644; c=relaxed/simple;
-	bh=Rfy5t+Ke97W7RYMJt/erJUa1+/Vwj2VdUC6H8BztsRc=;
+	s=arc-20240116; t=1708100701; c=relaxed/simple;
+	bh=IiwebuLg1zAARr3zoXcuN6fqMxygnCfTRjlPE3fRF14=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=P1UJpQhZBR4Y3L8/HpsdQBHQcIpiGGYWtOVok69M2dGjj+8ni2NWTuZKXBkK5PJq4g5hWzCK1Vu/Mh6prdyvvNVGDJ1VE/ug4fOuWZjb/99rktRr4Y3zUDKMfjynut+ovwGexdBuURvH+KC2CCoDU0MYAp20+wgg5MtgEjndwB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=TuGPUb0P; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=kpIxiEoLnCKqUMZOqq1kNdYRSHqNvvto58ui5r0Fl292PZ3kRAmiRSyG9q37vM3fs5AyMUjfyboGmnbpli+B4md66DFufEJWqbQGsl21ZWSzkcDo9wWcvY8XwKywdeYaBywtEQbCYVijaaFJ/4ezy2xHu05ClMbdvwOwU8V7cmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=LPjR3/f8; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="TuGPUb0P"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="LPjR3/f8"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Tby1D3DQ6z681W;
-	Fri, 16 Feb 2024 17:24:00 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4Tby2K45qDz67wf;
+	Fri, 16 Feb 2024 17:24:57 +0100 (CET)
 Received: from [10.10.15.23] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Tby1110Yhz681q;
-	Fri, 16 Feb 2024 17:23:48 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4Tby2D5ngbz681Z;
+	Fri, 16 Feb 2024 17:24:51 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1708100640;
-	bh=Cni14qWVF5Qo6yP1IoU8PFubchx+rq7qZRzJfHnvpQM=;
+	s=unoeuro; t=1708100697;
+	bh=ADpbRI1kQeqTzulD7Oa4Zg31R5ifUeD8WHrikku+Xt0=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=TuGPUb0P7sFMjY7wydvc6Z9EnfErmRkHqJTvj6wzzPD2AMRdoPwYnmpphOaMjXf8F
-	 5CJJShVpg8H/BKZjnw6uZnO5OSNsqeWQ2TtJsMUJvo9so4j9MFJlQ+NFCOXgShy2Te
-	 J46TtXVqS8Frkam9F35ZRgRTDx8RBjp8gPWxNx08=
-Message-ID: <cf77fdf5-3121-4910-96da-9392ba7e53d3@gaisler.com>
-Date: Fri, 16 Feb 2024 17:23:48 +0100
+	b=LPjR3/f88cY9uta25ku9CYOv6/y5QHmajJ7iLE74yMRPOH6vukHDaBZB1rj6kxy3I
+	 5zwcsqYXoZQ2LSb+vZCn0n7A/CWHibS28xdTHDQIUZEUL9UBBuLZ6vS78IuuI2VhOl
+	 7X23KHrEE4CzrTIrPmDrrC2wr02O5K3l4vWdOTjA=
+Message-ID: <35253cde-17d0-4089-bd51-fdcdcc5549a4@gaisler.com>
+Date: Fri, 16 Feb 2024 17:24:51 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,43 +40,25 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5] sparc: vDSO: fix return value of __setup handler
+Subject: Re: [PATCH] sparc: select FRAME_POINTER instead of redefining it
 Content-Language: en-US
-To: Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
-Cc: Igor Zhbanov <izh1979@gmail.com>, "David S. Miller"
- <davem@davemloft.net>, sparclinux@vger.kernel.org,
- Dan Carpenter <dan.carpenter@oracle.com>,
- Nick Alcock <nick.alcock@oracle.com>, Sam Ravnborg <sam@ravnborg.org>,
- Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org,
- Arnd Bergmann <arnd@arndb.de>
-References: <20240211052808.22635-1-rdunlap@infradead.org>
+To: Masahiro Yamada <masahiroy@kernel.org>, linux-kbuild@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org,
+ sparclinux@vger.kernel.org
+References: <20240215135749.1909812-1-masahiroy@kernel.org>
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240211052808.22635-1-rdunlap@infradead.org>
+In-Reply-To: <20240215135749.1909812-1-masahiroy@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-02-11 06:28, Randy Dunlap wrote:
-> __setup() handlers should return 1 to obsolete_checksetup() in
-> init/main.c to indicate that the boot option has been handled.
-> A return of 0 causes the boot option/value to be listed as an Unknown
-> kernel parameter and added to init's (limited) argument or environment
-> strings. Also, error return codes don't mean anything to
-> obsolete_checksetup() -- only non-zero (usually 1) or zero.
-> So return 1 from vdso_setup().
+On 2024-02-15 14:57, Masahiro Yamada wrote:
+> Because FRAME_POINTER is defined in lib/Kconfig.debug, the arch Kconfig
+> should select it.
 > 
-> Fixes: 9a08862a5d2e ("vDSO for sparc")
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Reported-by: Igor Zhbanov <izh1979@gmail.com>
-> Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: Dan Carpenter <dan.carpenter@oracle.com>
-> Cc: Nick Alcock <nick.alcock@oracle.com>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: stable@vger.kernel.org
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Andreas Larsson <andreas@gaisler.com>
+> Add 'select FRAME_POINTER' to MCOUNT. ARCH_WANT_FRAME_POINTERS must
+> also be selected to avoid the unmet dependency warning.
+> 
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 
 Applied to my for-next branch.
 
