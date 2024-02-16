@@ -1,38 +1,38 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C57043687;
-	Fri, 16 Feb 2024 16:45:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 083B9130E34;
+	Fri, 16 Feb 2024 17:12:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708101934; cv=none; b=OLsnIP/gnfq2Fo+zMHznEXMMGBGo9EYhNXWVqOESMq5fjyaPqhyp/2kknRJYASRAhsGIvdNAV6T3/bTk0iutyfiSnkUp/3A/OTvzR2bLmBOYz3NZWB4sREBW1ue/dE1GEBV3YRGnBI4Xit25eKTrDTJ+aX6B4kL4CN7eEAKNSsA=
+	t=1708103553; cv=none; b=Hy1qt8Bj7w2BWRquCDOlC6JcKGz6e/QuZs7lOfbXobgU4N7lqCmZ9uR/fcWIvr0hIipkWkqnBOLDYe1mEj6q4KZRnurJS9ia+qr/8gtSPGbs/8cp6vevkK11jhajv/Ikfq0c3fNwoHdDOZJ+WsSBOTXgofi5rgZi6+E2XtYd1sM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708101934; c=relaxed/simple;
-	bh=CsOn+DhgFeqCNSRreHl5oS9hryCOkL21maWnWfjiYWo=;
+	s=arc-20240116; t=1708103553; c=relaxed/simple;
+	bh=oDdva2PT7Y0RL4gg8yCp3llIbKMFmAymSKDhJUcZrGg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GA+Ic6gtaXvjkYgJVkTqxQMskUK40kGobERSkwbdLHyceb1CyWnZJp0dGBRnHB6I+/LU7SA7cZLtleIMQvPLkxmesRZgtCqiIX4jEi6aCGH7P3o+uTrwywQzzzp11g6R5m7PlpX2q3Wkaj+mairfuU6zHuWTcka0tTzy5hUVo58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=V7TXH/54; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=edgIMhWvJaTEhsTqv8nUUuQ0AU4DU1ycw1wPGEKoYu8yY5e4DEKlR6xjz6VcZfCtIms15nigsfoOguV0pGHj6CU0719/NpYEDqF0IG+zbtqV+tIcTQ3Q0wa8zIfs2pRk5ffNLsmVLCmES9wk96ly/f5JNxaPq02xIp2nOcdujjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=LvF0Ltoo; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="V7TXH/54"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="LvF0Ltoo"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4TbyV15ms2z681Y;
-	Fri, 16 Feb 2024 17:45:29 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4Tbz561RHNz681Q;
+	Fri, 16 Feb 2024 18:12:26 +0100 (CET)
 Received: from [10.10.15.23] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4TbyTv1h07z67p1;
-	Fri, 16 Feb 2024 17:45:21 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4Tbz4p2Grxz6809;
+	Fri, 16 Feb 2024 18:12:09 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1708101929;
-	bh=Z0ojgdZAly+cJwqhDwzJMVcnx8Yr0Z18PaNMP45RmHE=;
+	s=unoeuro; t=1708103546;
+	bh=u+7m0ysgFtgrkmEJrdGpb8Y0tCuVXhfQeXNdhjpOpRg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=V7TXH/54ebxbS7izH3f/05iFUczZ7LrR4qYpAWGVhAnMGh1Amjz/ACzNf1j51kncU
-	 qlMR1pUNoT67s3JVOHL6GAfNYA5Koz+IKQA+3lPHcsyZlaigz2IjIUpKUnLnwW8HvF
-	 ZSOEKpQPJq9s9NJK5732Zs3gVNb+qVHqGesklTK8=
-Message-ID: <bbab8a40-ba76-42f5-8f8f-2259ce70e14e@gaisler.com>
-Date: Fri, 16 Feb 2024 17:45:21 +0100
+	b=LvF0LtooPcEev2leFNAATsWRlCRiYxAr394TZe6xxrQk5VXnG8GBTyznzXodihQYD
+	 Re3Zm+zbYB5EoQJb/luHksSy6mmQhREXwvAwGPaK8l8eOib+DoTGuyeR2OYIeehkhy
+	 WUiK38+WhtZe9JyMy01b9fRPn2umDHWqIdScoqyw=
+Message-ID: <d1a616f1-0fd2-4af0-8b89-e0d0a8842a6d@gaisler.com>
+Date: Fri, 16 Feb 2024 18:12:08 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,44 +40,87 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] sparc: leon: grpci1: Use
- devm_platform_ioremap_resource() in grpci1_of_probe()
+Subject: Re: [PATCH 17/27] sparc32: Drop run-time patching of ASI instructions
 Content-Language: en-US
-To: Markus Elfring <Markus.Elfring@web.de>, sparclinux@vger.kernel.org,
- kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- Rob Herring <robh@kernel.org>, Sam Ravnborg <sam@ravnborg.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
-References: <4fc017e4-c695-40d3-aed4-cbf34d44e6fa@web.de>
- <e4585b03-3629-4bd7-a349-f5471ebd8685@web.de>
+To: sam@ravnborg.org, "David S. Miller" <davem@davemloft.net>,
+ Arnd Bergmann <arnd@kernel.org>
+Cc: Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Alan Stern <stern@rowland.harvard.edu>, Jaroslav Kysela <perex@perex.cz>,
+ Takashi Iwai <tiwai@suse.com>, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-sound@vger.kernel.org
+References: <20231219-sam-sparc32-sunset-v3-v1-0-64bb44b598c5@ravnborg.org>
+ <20231219-sam-sparc32-sunset-v3-v1-17-64bb44b598c5@ravnborg.org>
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <e4585b03-3629-4bd7-a349-f5471ebd8685@web.de>
+In-Reply-To: <20231219-sam-sparc32-sunset-v3-v1-17-64bb44b598c5@ravnborg.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-02-06 16:40, Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Tue, 6 Feb 2024 16:30:15 +0100
+On 2023-12-19 23:03, Sam Ravnborg via B4 Relay wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
 > 
-> A wrapper function is available since the commit 7945f929f1a77a1c8887a97ca07f87626858ff42
+> With only LEON supported there is no need to run-time patch
+> the instructions to match ASI.
+> 
+> Move a few functions back to C with inline asm, now that
+> run-time patching is not needed.
+> 
+> Deleted a few functions that turns out not to be used rather
+> than re-implement them in C.
+...
+> diff --git a/arch/sparc/include/asm/sections.h b/arch/sparc/include/asm/sections.h
+> index 08f833453ab3..e9d28148850b 100644
+> --- a/arch/sparc/include/asm/sections.h
+> +++ b/arch/sparc/include/asm/sections.h
+> @@ -8,7 +8,4 @@
+>  /* sparc entry point */
+>  extern char _start[];
+>  
+> -extern char __leon_1insn_patch[];
+> -extern char __leon_1insn_patch_end[];
+> -
+>  #endif
+> diff --git a/arch/sparc/include/asm/winmacro.h b/arch/sparc/include/asm/winmacro.h
+> index b6e911f5d93c..c496b04cdfaf 100644
+> --- a/arch/sparc/include/asm/winmacro.h
+> +++ b/arch/sparc/include/asm/winmacro.h
+> @@ -108,18 +108,11 @@
+>  661:	rd	%tbr, %idreg;				\
+>  	srl	%idreg, 10, %idreg;			\
+>  	and	%idreg, 0xc, %idreg;			\
 
-This line is needlessly long. Could you wrap it or shorten the SHA-1 ID?
-You don't need more than the first 12 characters of the SHA-1 ID.
+These three lines, including the label, should also be removed as they
+are not for LEON. Additionally, I think it would be best to split out
+removing the cpuid instruction fixups to one patch and the MMU ASI
+instruction fixups to another patch.
 
-> ("drivers: provide devm_platform_ioremap_resource()").
-> 
-> * Thus reuse existing functionality instead of keeping duplicate source code.
+> -	.section	.cpuid_patch, "ax";		\
+> -	/* Instruction location. */			\
+> -	.word		661b;				\
+> -	/* SUN4D implementation. */			\
+> -	lda	 [%g0] ASI_M_VIKING_TMP1, %idreg;	\
+> -	sll	 %idreg, 2, %idreg;			\
+> -	nop;						\
+> -	/* LEON implementation. */			\
+> +							\
+>  	rd 	%asr17, %idreg;				\
+>  	srl	%idreg, 0x1c, %idreg;			\
+>  	sll	%idreg, 0x02, %idreg;			\
+> -	.previous;					\
+> +							\
+>  	sethi    %hi(current_set), %dest_reg; 		\
+>  	or       %dest_reg, %lo(current_set), %dest_reg;\
+>  	ld       [%idreg + %dest_reg], %dest_reg;
+> diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+> index 0f2417ee3f95..9cf8f87e8c42 100644
+> --- a/arch/sparc/kernel/entry.S
+> +++ b/arch/sparc/kernel/entry.S
 
-The same goes for this one. Please keep the width of the commit
-description within 75 characters.
- 
-> * Delete a local variable which became unnecessary with this refactoring.
-> 
-> 
-> This issue was transformed by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-
-Apart from that the patch looks good.
+The hard_smp_processor_id function also needs to be reduced to just the
+LEON code. With the patching removed, SMP otherwise breaks with CPUs
+other than CPU 0 getting stuck.
 
 Thanks,
 Andreas
