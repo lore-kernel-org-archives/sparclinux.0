@@ -1,78 +1,69 @@
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2080.outbound.protection.outlook.com [40.107.223.80])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21C3476C83;
-	Tue, 20 Feb 2024 17:20:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.80
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708449608; cv=fail; b=qI5L4Zm/XRbG04+5SoWalezugvmhbDMykLOAIe6MFPP6138O/Sz093M5n90ozgLAjHgXh8Ayxk8qWD9iot1kWkKy7Kg1ghc4zwyQxM1NlUtbrUm0ffWIPUvFcdRn/7rpFtFA41ztipX/7sNPsJtEhGKPj/51J7DckpT4+Nh+/ok=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708449608; c=relaxed/simple;
-	bh=etRlzNr3y/VBDzVXVzZrB/dKFh6yiHeIx/jxF5/1jKE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XKrFK+B17tF+/WhRENjLzW/A9O/RPXTj1VvLfPgDvB85eBrjAknVt+tMneMTgyr/TrQk8eMy4CMsIy3G5GYmmfJYA/cogQGDwePWMcyTIyONZWJ6in9npH/uQEguLauuEzm9ePDiVzEBLggHZKaQJhrEjb2b0o+kJhVRwvHmcRg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ynRcDNtd; arc=fail smtp.client-ip=40.107.223.80
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ynRcDNtd"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=kiLYKS/TH37gcORaWQmHoc6sQ0qfU4vu23+7G+71R7DmWJpUDoark/cvzyjtlvvMxvhtSjxZZ5qQRxBeZCawWtTTBf0r1lSkb+SxUn+pW7W3cFyOeOxrk7WNvAcKXnaPbZD080sODpRM7TZFeSJOrfq+TLfGbsLBk21WI8Mmr7Tw+gakmiYYtrtWU4dgAc11wTtuX8JOvrynnB4fzdSvGCjyld652IvRhpBCQgMDKSWaPGLR6jfQYACDwuNgvTSyix7a0dzKYP7DjP94oTLLasrkQEemwoVaT42Gu44vV+ztvpkD+LqxuK+3M9jwY+YNfwwWzyySwsO85latq/tqHw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=FBxGvGTPWFTY0JyzVEvPo7GMumkNd2FmOKD5X/ik2Rs=;
- b=lcuBb/oOqoYC/VyrH8Pj/dl1BU+fvQpKx8oUCc3KWh/o1jygNaYh4p8wzRGh5WopOIu2zuocx16VN7Rzle7bOInxQjknEWSyszvDnIN5WF1re4IzMO+ZdlP3GWQ1J/NBBJ9gSCkfOv4+FaG4FQ4rVDG+/FlXDB228a1vg85HBNgwO5VMXjIH2uCWz7jmj3CbUpEaC/ohB24HYxMSjvpdtstLaFL/F5jLi5KHAkKerqOBOQUt7Z4mF59sDAKfDZ4omn4Kjyl3ty3N8+uaBPZx/f45wqbVZCbiQWPhZ9i9htRokrBjBZ4evJAEF3C4mazpc508mpkzJh6xncqfHV1iPw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=FBxGvGTPWFTY0JyzVEvPo7GMumkNd2FmOKD5X/ik2Rs=;
- b=ynRcDNtdcK/shaV4JxT/up6pnsXuvt3KUmc2+WFLKUo3Gg0upQuNta5UnRDQWvS6Xmj8BH6uXCv+VWsGZJUnSW6X26EPRdmjRpKdN8DWjZJvwc5BeXqRxOWrKd9fEkupQtGcP4EVOG1A3zuJ051TLn411FiHSN6xoP+7QsE6WmE=
-Received: from PH8PR02CA0027.namprd02.prod.outlook.com (2603:10b6:510:2da::18)
- by CY8PR12MB7193.namprd12.prod.outlook.com (2603:10b6:930:5b::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7316.20; Tue, 20 Feb
- 2024 17:20:03 +0000
-Received: from SA2PEPF000015C8.namprd03.prod.outlook.com
- (2603:10b6:510:2da:cafe::ab) by PH8PR02CA0027.outlook.office365.com
- (2603:10b6:510:2da::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7292.40 via Frontend
- Transport; Tue, 20 Feb 2024 17:20:03 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- SA2PEPF000015C8.mail.protection.outlook.com (10.167.241.198) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.7292.25 via Frontend Transport; Tue, 20 Feb 2024 17:20:03 +0000
-Received: from BLR5CG134614W.amd.com (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Tue, 20 Feb
- 2024 11:19:57 -0600
-From: K Prateek Nayak <kprateek.nayak@amd.com>
-To: <linux-kernel@vger.kernel.org>
-CC: "Gautham R. Shenoy" <gautham.shenoy@amd.com>, K Prateek Nayak
-	<kprateek.nayak@amd.com>, "David S. Miller" <davem@davemloft.net>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, "Juri
- Lelli" <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>,
-	Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt
-	<rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman
-	<mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, "Valentin
- Schneider" <vschneid@redhat.com>, <sparclinux@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>
-Subject: [RFC PATCH 10/14] sparc/thread_info: Introduce TIF_NOTIFY_IPI flag
-Date: Tue, 20 Feb 2024 22:44:53 +0530
-Message-ID: <20240220171457.703-11-kprateek.nayak@amd.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20240220171457.703-1-kprateek.nayak@amd.com>
-References: <20240220171457.703-1-kprateek.nayak@amd.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4738C8121A;
+	Wed, 21 Feb 2024 16:14:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1708532078; cv=none; b=dLp3+HOI9zTHoScSJ3TKblFyT+lVhQDu9nPXJ3HZtYCltc/bDYVF879kBUw0vg/A9zIaacxoN0Ya8mMqdWNfiw4o85wMB1IxLNoH5PqRkvewAbYmkqe4eg3ZTjFx1t9zBH1KAk1BTl9saQSN5ippo9ZNbYQVrBJH9PaAOJihdoc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1708532078; c=relaxed/simple;
+	bh=2iWCWyWeXir+yENq3pCgwfuM/1uLLEcUhOADN7bYtWI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ZsjYn5UeBOm0fVIQveJUzmWLghxWqBIZ/6WmKc/biMeuhB0SUE4HjRQB9gD8HqSTSjqy6Vgxs0nisZC2YW2uq3YWPNihq8ur2hIWTNVm3lL+fsv9E6bE0Y4lqDxmmMSIRiWPFD7YfWeBzNct1WPnQQKgWPxLangzqt2adWgemAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:98])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id A53D42222F;
+	Wed, 21 Feb 2024 16:14:34 +0000 (UTC)
+Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id 0385813A42;
+	Wed, 21 Feb 2024 16:14:33 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([10.150.64.162])
+	by imap2.dmz-prg2.suse.org with ESMTPSA
+	id KMI5O2kh1mVrYwAAn2gu4w
+	(envelope-from <tzimmermann@suse.de>); Wed, 21 Feb 2024 16:14:33 +0000
+From: Thomas Zimmermann <tzimmermann@suse.de>
+To: arnd@arndb.de,
+	javierm@redhat.com,
+	deller@gmx.de,
+	suijingfeng@loongson.cn
+Cc: linux-arch@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-fbdev@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-parisc@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	loongarch@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: [PATCH 1/3] arch: Select fbdev helpers with CONFIG_VIDEO
+Date: Wed, 21 Feb 2024 17:05:24 +0100
+Message-ID: <20240221161431.8245-2-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240221161431.8245-1-tzimmermann@suse.de>
+References: <20240221161431.8245-1-tzimmermann@suse.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -80,102 +71,103 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF000015C8:EE_|CY8PR12MB7193:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1013d6c4-91f1-46ff-0e25-08dc32382d0b
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	edrQ45KLWJSQjoTOzabJ9s90qSXo4D6x8zeM/xL3SN7fi2+aAfXpSiFKIqWF3QzFcpEe6mr3gYC1GQUW34NrCuVAmgwCfdWRFAEZR30UYTbGSHgTRQU6z3nCPP9STA6jDDMUyOnF3I2WHHcOhZd1fNnRY1aAkfb+d8zb1Rd6MKw8IZXwMJ3xb/MkmlJfKygSNyiSm+zWltwbSLIXnVmEAZ0yLsEmGvidJULJPUzh1NtvWZMJMgUWFxu2U4kyLScuY3j94H98qB9BeWVXkbhNCS8v4t2sBcRbnx+4mNnPqRibwsqwTi33dZwOOZPQpe7u9quVsdNt7smP2mALN5DjGkpiApAKZ/3fk/wfBFn3CamBAy5mHAY91f0G004Wf6gnueTK0r3njcxOZ4vxwl7kkob3aHc8lg/r5JRHnAM2S81aH0/JpTrIppSdWb0xi4KyKfLqi4uEDX8KzPCl6j6QtArQmY4vL+h1INBrDNYpxcTHVKQb5ayGJtJoaxS2lDocBVbkYPsv8NmzjTafwAxvgaeU85kuw3CsAzpx/rQbvPQFACfT/0hFmJkd1Pi+YhHSVWA9pjg/R06uvrRPcxWQDyygNt9g8ub2jYTxN63bYmV+7kdeib5QH+XSMkSsiJjDduXkZFxBhLATYIYz1wul01W4dMNmo4Q0d1d6i2QXgjE=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230031)(36860700004)(46966006)(40470700004);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Feb 2024 17:20:03.4399
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1013d6c4-91f1-46ff-0e25-08dc32382d0b
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF000015C8.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7193
+X-Spam-Level: 
+Authentication-Results: smtp-out1.suse.de;
+	none
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	 REPLY(-4.00)[]
+X-Spam-Score: -4.00
+X-Rspamd-Queue-Id: A53D42222F
+X-Spam-Flag: NO
 
-Add support for TIF_NOTIFY_IPI on SPARC. With TIF_NOTIFY_IPI, a sender
-sending an IPI to an idle CPU in TIF_POLLING mode will set the
-TIF_NOTIFY_IPI flag in the target's idle tasks's thread_info to pull the
-CPU out of idle, as opposed to setting TIF_NEED_RESCHED previously. This
-avoids spurious calls to schedule_idle() in cases where an IPI does not
-necessarily wake up a task on the idle CPU.
+Various Kconfig options selected the per-architecture helpers for
+fbdev. But none of the contained code depends on fbdev. Standardize
+on CONFIG_VIDEO, which will allow to add more general helpers for
+video functionality.
 
+CONFIG_VIDEO protects each architecture's video/ directory. This
+allows for the use of more fine-grained control for each directory's
+files, such as the use of CONFIG_STI_CORE on parisc.
+
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: K Prateek Nayak <kprateek.nayak@amd.com>
-Cc: sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-pm@vger.kernel.org
-Signed-off-by: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: x86@kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 ---
- arch/sparc/include/asm/thread_info_32.h | 2 ++
- arch/sparc/include/asm/thread_info_64.h | 2 ++
- 2 files changed, 4 insertions(+)
+ arch/parisc/Makefile      | 2 +-
+ arch/sparc/Makefile       | 4 ++--
+ arch/sparc/video/Makefile | 2 +-
+ arch/x86/Makefile         | 2 +-
+ arch/x86/video/Makefile   | 3 ++-
+ 5 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
-index 45b4955b253f..f538ede526d1 100644
---- a/arch/sparc/include/asm/thread_info_32.h
-+++ b/arch/sparc/include/asm/thread_info_32.h
-@@ -105,6 +105,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
- #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
- #define TIF_RESTORE_SIGMASK	4	/* restore signal mask in do_signal() */
- #define TIF_NOTIFY_SIGNAL	5	/* signal notifications exist */
-+#define TIF_NOTIFY_IPI		6	/* Pending IPI on TIF_POLLLING idle CPU */
- #define TIF_USEDFPU		8	/* FPU was used by this task
- 					 * this quantum (SMP) */
- #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
-@@ -117,6 +118,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
- #define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
-+#define _TIF_NOTIFY_IPI		(1<<TIF_NOTIFY_IPI)
- #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
+diff --git a/arch/parisc/Makefile b/arch/parisc/Makefile
+index 316f84f1d15c8..21b8166a68839 100644
+--- a/arch/parisc/Makefile
++++ b/arch/parisc/Makefile
+@@ -119,7 +119,7 @@ export LIBGCC
  
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index 1a44372e2bc0..3558101ccdd1 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -194,6 +194,7 @@ extern struct thread_info *current_thread_info(void);
- #define TIF_MCDPER		12	/* Precise MCD exception */
- #define TIF_MEMDIE		13	/* is terminating due to OOM killer */
- #define TIF_POLLING_NRFLAG	14
-+#define TIF_NOTIFY_IPI		15	/* Pending IPI on TIF_POLLLING idle CPU */
+ libs-y	+= arch/parisc/lib/ $(LIBGCC)
  
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -208,6 +209,7 @@ extern struct thread_info *current_thread_info(void);
- #define _TIF_SYSCALL_AUDIT	(1<<TIF_SYSCALL_AUDIT)
- #define _TIF_SYSCALL_TRACEPOINT	(1<<TIF_SYSCALL_TRACEPOINT)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
-+#define _TIF_NOTIFY_IPI		(1<<TIF_NOTIFY_IPI)
+-drivers-y += arch/parisc/video/
++drivers-$(CONFIG_VIDEO) += arch/parisc/video/
  
- #define _TIF_USER_WORK_MASK	((0xff << TI_FLAG_WSAVED_SHIFT) | \
- 				 _TIF_DO_NOTIFY_RESUME_MASK | \
+ boot	:= arch/parisc/boot
+ 
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 5f60359361312..757451c3ea1df 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -59,8 +59,8 @@ endif
+ libs-y                 += arch/sparc/prom/
+ libs-y                 += arch/sparc/lib/
+ 
+-drivers-$(CONFIG_PM) += arch/sparc/power/
+-drivers-$(CONFIG_FB) += arch/sparc/video/
++drivers-$(CONFIG_PM)    += arch/sparc/power/
++drivers-$(CONFIG_VIDEO) += arch/sparc/video/
+ 
+ boot := arch/sparc/boot
+ 
+diff --git a/arch/sparc/video/Makefile b/arch/sparc/video/Makefile
+index 6baddbd58e4db..9dd82880a027a 100644
+--- a/arch/sparc/video/Makefile
++++ b/arch/sparc/video/Makefile
+@@ -1,3 +1,3 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ 
+-obj-$(CONFIG_FB) += fbdev.o
++obj-y	+= fbdev.o
+diff --git a/arch/x86/Makefile b/arch/x86/Makefile
+index 15a5f4f2ff0aa..c0ea612c62ebe 100644
+--- a/arch/x86/Makefile
++++ b/arch/x86/Makefile
+@@ -265,7 +265,7 @@ drivers-$(CONFIG_PCI)            += arch/x86/pci/
+ # suspend and hibernation support
+ drivers-$(CONFIG_PM) += arch/x86/power/
+ 
+-drivers-$(CONFIG_FB_CORE) += arch/x86/video/
++drivers-$(CONFIG_VIDEO) += arch/x86/video/
+ 
+ ####
+ # boot loader support. Several targets are kept for legacy purposes
+diff --git a/arch/x86/video/Makefile b/arch/x86/video/Makefile
+index 5ebe48752ffc4..9dd82880a027a 100644
+--- a/arch/x86/video/Makefile
++++ b/arch/x86/video/Makefile
+@@ -1,2 +1,3 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-obj-$(CONFIG_FB_CORE)		+= fbdev.o
++
++obj-y	+= fbdev.o
 -- 
-2.34.1
+2.43.0
 
