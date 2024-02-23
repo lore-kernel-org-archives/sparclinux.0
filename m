@@ -1,55 +1,68 @@
-Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F7171448D8
-	for <sparclinux@vger.kernel.org>; Fri, 23 Feb 2024 19:39:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61C0F1419B3
+	for <sparclinux@vger.kernel.org>; Fri, 23 Feb 2024 23:32:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708717151; cv=none; b=Tz/6pyv9v4scnuxELHs4fJ/FTH+5NZU56bSM4/0san846Qw0YeTjBXpG6Sf66FRzMghzgh+qq+aCFEpe87gq8ll5VgcL7LIqWe9HUPkf/gcktTnpUZsxqI2Dz9A/XoEgaq0RXQgoeBQysGfVC9bGeS01Wwlxq+t+bXuB0W5m3kk=
+	t=1708731161; cv=none; b=OzkBLLkVBJLW3Q6IuhC+NZckeo1Z5M3xFOmM5nxZ7yJ2KuyoaD+9J9q7Brj9eOUsmLmCky8Ed/Z6JEVyPCm2UTQpowrYfGTFJxF6tA9JNyN7Uhsgb1EzjljNDxG8bWGiwAVNCkRs5SElrnMLSq3GFJZo1pHC7IWX8wEUE4HiAMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708717151; c=relaxed/simple;
-	bh=gtjsAtzY6CoR2uHPdcQk0akokLqtoegbn5o87uU296A=;
+	s=arc-20240116; t=1708731161; c=relaxed/simple;
+	bh=qAlzQZJ5HuSuEuorKunTFjf+EG4KPnsGK6iZyg24Wgg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J41msMojWgVXrIzKRxVSa2JvXAmeaMgj+1Hl77yHZYDi/TEF25rpl03WuSkiVNJJaGlZmDo95GyT+EHesUq6ZY1xXMKZ+G7X5Ptw3GvVf6C9moCqTVpdN4aWJ4H3WMlCAJvEzAUjG9K1kNeqORgDBIVZfPacI7JgkDB6RgcZygc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=Himi804K; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=JLDJWSde; arc=none smtp.client-ip=46.30.211.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=CObufBj7qiiu5eBgHH0WX+Qsh3UND9Kcub7hHVw7SPEzh8FXBNMqrlHrVFIV7SHmyYoGq7Y8iKjymriuwlFtzivHe0nOJSsyk/OE6xWRCIsHuPjXBm4o3HtvM7pjjD/mR6CVoOutj6w3uK7bdkljP8qLLv+1c8IS1UOdWdJg+1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=VexPIpQy; arc=none smtp.client-ip=209.85.210.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="Himi804K";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="JLDJWSde"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="VexPIpQy"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-6e47c503fb5so1036643b3a.2
+        for <sparclinux@vger.kernel.org>; Fri, 23 Feb 2024 15:32:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=vu84hH5wRX3+Gs3JvJLrbmmDszO+NlEAIZz3j6i15YE=;
-	b=Himi804KE7bsZ6kFLeknxwAxVJhaUDkq1b9PrxlmwGUZVdEybO2jj+2enpaSFdOSmYuUv+wxhruqk
-	 OBffDeyUKCq1mvj9fPDvxY0dEEy+LVkR3riBb43Y3cf1+aksru/NZrXwHDWqK4QE9ys3MD1btyzndd
-	 SOdpWH0uIC2NB5Bc6glcatY8+xyDfrDqFieHcw3bnz0A8TynfB2cWKlAbTCYFDrhMuyRYr3q/Pknzp
-	 Gjd7Wka2g/09ceH9epSUt9WNwN9FGJVlKecbhXO4ugcp+NuMveJdzsqjUvrDFJt9ubTgewkNZLKMlL
-	 1RcR0DxSqx6k3Y7NTv1sGMpM8Lu06Yg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=vu84hH5wRX3+Gs3JvJLrbmmDszO+NlEAIZz3j6i15YE=;
-	b=JLDJWSdeYgburo9haKco0WXEWlTU9LkFLZKrhthvQYjfNirWZI+Wd9tRPQqsdvbVYNG/LkdYoiYyR
-	 nCsTwFrDw==
-X-HalOne-ID: 323fe0ec-d283-11ee-ade9-657a30c718c6
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 323fe0ec-d283-11ee-ade9-657a30c718c6;
-	Fri, 23 Feb 2024 19:39:04 +0000 (UTC)
-Date: Fri, 23 Feb 2024 20:39:03 +0100
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        d=chromium.org; s=google; t=1708731159; x=1709335959; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=8MiC/Y9ij7qyWusfGRR5nYD1rSzZT16R0qiyjbvTN78=;
+        b=VexPIpQynMJpr5w1yrIXPjAHDjOcx/VUBRL5eWcotfubjmLqsciY4Wsxxis3HmKkFo
+         WtpoxrUMOkMj7sQERAk15cnPPl3VC3cyxgslb8DQ+qpJxlWkkWhAkY7mX8O/1C4g27KA
+         dPTuGwDDEGOABbeO/q5ElywMCB9JAMbYJ88vc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708731159; x=1709335959;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8MiC/Y9ij7qyWusfGRR5nYD1rSzZT16R0qiyjbvTN78=;
+        b=l/0uKBjD66Z0BsWFWLQvEoUsEoH4iosnZtb9u1qCzLwEE8qXL1DI8JV2NIS+jXVgPH
+         1SW3yy5EISF2C1op4rcbvtzjq2CZscStnTkr5iQB83/cH9YlgV+q2n+suV8p5g/ILaZp
+         2PAUTkWl7IBydfTPbR85tSdaAbzQzen9oaYEWmOzVoTB9KjvLYPjIFn9nKSYWg6dT3BW
+         xXxhEsujXGUunZphclXEYDmNQZ9ZmFjVyrk1My6TFHzjW8worqJ2eQBUkP1BQ3foE/+l
+         lxTy3npI6wojyRzxUFiAi05eq/8kDnhWff3dE110aNTuZdkP1PYVZGhpblsL1USDtr4J
+         Xtyg==
+X-Forwarded-Encrypted: i=1; AJvYcCURU+WOoPKaoR5lblPjlAei77v5g9jF88JiLWsDVNDjXp9E+tvkDMPqJ4RN3HvOyxEWVax4FQ3MfN931lXkkKQNud0VgJXxQF/jSw==
+X-Gm-Message-State: AOJu0YxFvuNVaoM5+8NRS/VHIw/CoEZyIMYKXo42/Lq9EzfqRijhqDy6
+	sDI3g+czT3IANIqYgmQkas1kGM0yGMY1cqJV5KZS9xK4Lu+r2x+cB9m79BVQNg==
+X-Google-Smtp-Source: AGHT+IHHbtlWvqXEAzKyFPhXFwCSzfqpoXYQuYUCa/E3PcHbBOBfwUkS3YRGeulfKSQAuy98RxjMlw==
+X-Received: by 2002:a05:6a20:d386:b0:1a0:e463:fcad with SMTP id iq6-20020a056a20d38600b001a0e463fcadmr1483733pzb.2.1708731159688;
+        Fri, 23 Feb 2024 15:32:39 -0800 (PST)
+Received: from www.outflux.net ([198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id a28-20020a631a1c000000b005dcbb855530sm32149pga.76.2024.02.23.15.32.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Feb 2024 15:32:38 -0800 (PST)
+Date: Fri, 23 Feb 2024 15:32:37 -0800
+From: Kees Cook <keescook@chromium.org>
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	"Maciej W. Rozycki" <macro@orcam.me.uk>
-Subject: Re: sparc: patch to fix parport_pc build on 32-bit
-Message-ID: <20240223193903.GA2938185@ravnborg.org>
-References: <4c4e2845-c7a8-4d0b-aa4a-7c5e3399b3dc@infradead.org>
- <20240223093416.GA2800152@ravnborg.org>
+	Masahiro Yamada <masahiroy@kernel.org>,
+	Helge Deller <deller@gmx.de>, Guo Ren <guoren@kernel.org>,
+	sparclinux@vger.kernel.org,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] sparc: vdso: Disable UBSAN instrumentation
+Message-ID: <202402231523.F9E3740EB@keescook>
+References: <20240223165942.work.950-kees@kernel.org>
+ <20240223182646.GA2825372@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -58,41 +71,76 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240223093416.GA2800152@ravnborg.org>
+In-Reply-To: <20240223182646.GA2825372@ravnborg.org>
 
-Hi Randy,
-
-On Fri, Feb 23, 2024 at 10:34:16AM +0100, Sam Ravnborg wrote:
-> Hi Randy/Andreas.
+On Fri, Feb 23, 2024 at 07:26:46PM +0100, Sam Ravnborg wrote:
+> Hi Kees,
 > 
-> On Thu, Feb 22, 2024 at 09:15:28PM -0800, Randy Dunlap wrote:
-> > Hi Andreas,
+> On Fri, Feb 23, 2024 at 08:59:45AM -0800, Kees Cook wrote:
+> > The UBSAN instrumentation cannot work in the vDSO since it is executing
+> > in userspace, so disable it in the Makefile. Fixes the build failures
+> > such as:
 > > 
-> > Please pick up this patch from June/2023. I have already replied to
-> > the patch with:
+> > arch/sparc/vdso/vclock_gettime.c:217: undefined reference to `__ubsan_handle_shift_out_of_bounds'
 > > 
-> > Acked-by: Randy Dunlap <rdunlap@infradead.org>
-> > Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > ---
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Andreas Larsson <andreas@gaisler.com>
+> > Cc: Masahiro Yamada <masahiroy@kernel.org>
+> > Cc: Sam Ravnborg <sam@ravnborg.org>
+> > Cc: Helge Deller <deller@gmx.de>
+> > Cc: Guo Ren <guoren@kernel.org>
+> > Cc: sparclinux@vger.kernel.org
+> > ---
+> >  arch/sparc/vdso/Makefile | 1 +
+> >  1 file changed, 1 insertion(+)
 > > 
-> > and I just rechecked it on linux-next-20240223 to make sure that it
-> > builds cleanly. It does; however, there is one trivial merge warning:
-> > 
-> > patching file arch/sparc/include/asm/parport.h
-> > Hunk #1 succeeded at 20 (offset 1 line).
-> > Hunk #2 succeeded at 252 (offset 1 line).
-> > 
-> > The patch:
-> > https://lore.kernel.org/lkml/alpine.DEB.2.21.2306190121540.14084@angie.orcam.me.uk/
+> > diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+> > index 7f5eedf1f5e0..e8aef2c8ae99 100644
+> > --- a/arch/sparc/vdso/Makefile
+> > +++ b/arch/sparc/vdso/Makefile
+> > @@ -2,6 +2,7 @@
+> >  #
+> >  # Building vDSO images for sparc.
+> >  #
+> > +UBSAN_SANITIZE := n
 > 
-> I took a quick look at the patch. It does the minimal to fix the build
-> but the ebus_dma thing is only used by sparc64 an should not be visible
-> at all for sparc32.
+> When I read:
 > 
-> I think the right fix is to make the current
-> arch/sparc/include/asm/parport.h sparc64 specific and use
-> asm-generic/parport.h for sparc32.
+> config UBSAN_SANITIZE_ALL
+>         bool "Enable instrumentation for the entire kernel"
+>         depends on ARCH_HAS_UBSAN_SANITIZE_ALL
+>         default y
+>         help
+>           This option activates instrumentation for the entire kernel.
+>           If you don't enable this option, you have to explicitly specify
+>           UBSAN_SANITIZE := y for the files/directories you want to check for UB.
+>           Enabling this option will get kernel image size increased
+>           significantly.
+> 
+> 
+> I am left with the understanding that only arch's that
+> selects ARCH_HAS_UBSAN_SANITIZE_ALL would need to turn off
+> UBSAN_SANITIZE.
 
-I posted a set of fixes here, including an updated parport fix.
-https://lore.kernel.org/sparclinux/20240223-sam-fix-sparc32-all-builds-v1-0-5c60fd5c9250@ravnborg.org/T/#t
+Ah, right. So, I removed[1] UBSAN_SANITIZE_ALL in -next (it was the only
+sanitizer using this logic) and this appears to be one of the impacts. :)
+I sent similar fixes for sh[2] and LoongArch[3].
 
-	Sam
+> Are this fix papering over some other bug where we enable
+> UBSAN_SANITIZE_ALL for arch's that should not have it,
+> or something else that enable it?
+
+It's possible we should implement HAVE_ARCH_UBSAN, but in my testing
+everything built fine with it, so I didn't opt to do that (it looked
+like just additional configs for no real benefit). What do you think?
+
+-Kees
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/commit/?h=for-next/kspp&id=918327e9b7ffb45321cbb4b9b86b58ec555fe6b3
+[2] https://lore.kernel.org/lkml/20240130232717.work.088-kees@kernel.org/
+[3] https://lore.kernel.org/lkml/20240130233140.work.887-kees@kernel.org/
+
+-- 
+Kees Cook
