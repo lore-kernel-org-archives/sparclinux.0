@@ -1,70 +1,91 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78D7B66B;
-	Fri, 23 Feb 2024 05:15:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E3E15C8FC
+	for <sparclinux@vger.kernel.org>; Fri, 23 Feb 2024 09:35:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708665360; cv=none; b=YQwhWw33bE95FubajrooL/ouQrdHhLhF0RVVNXDukzhpHhvep3dzAMdogNDoorsNfP2twy4Wt/h/ZMeLFPspYRKxU2+ek8pAiocjeFJPFL+7tHYKm4/QjLQ2wd+SPLpNOscsOWYEC7C9wedo4Fd6mNfUCcRTU3HEzSun5CCTzVk=
+	t=1708680932; cv=none; b=pdPZEjj74VIJ9fSwjy+p+QLlNbtxVYIS2gPa6t2aLucI+K0xaSgr/VlUgz5ZWFfrVM1T6LhDDm08HccubUDGpxekJok/rePBIQv9ipsQGxRR9sZilBFEUXuH82HlTkcCSVe2G/L6m2pHEaqrk0VrBynJcHb4NEuqkJiJzIjY/Zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708665360; c=relaxed/simple;
-	bh=WuL1uQewecYalXVHDaYYtlroaae/JXx3HQFuHa4Fq5E=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=qvp23YS7kP8yHwqHLyn7TXBAmL1hV9lr2ReFTd8or5RG+ZPio9PORYiAvciOBVxT7MzOUFTGuX0srNbgbHz7jadxPkPg++QJjRvcFv+Aidv7v+T3VbLOu2rWzsX9vgeDmUEbkbZzciOgjnnfR5INyrDhWKN/MV6MH0SBzFOU5kU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:Subject:From:Cc:To:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=K4pZXLcE/2qx7/60xUGjLqbdHGX9Oq/cAHz4EffVmhs=; b=TJTibySTb/nEdkBxr6pXorTJu+
-	fNpbiFnNAYVjJGi7zJhNEEXqDIz+80ctyjvWohVwAPJjzL0cDEYIWsC/4APSDdDdIBQiRkejhu6f0
-	UlVuvJKEgD+nhCN1KsBi0PFKKwnQcgVTeek5enfinKeijrYa1W6hfcQFduMbJ2WudW/npir7QWfkg
-	Zk4U5xnp7Mf5bluvnPZ/sRoC5fYs55QWsU6BOceIrwg+OwOod9YTPFrpnRIWxqvidI7IUWBOjgPby
-	oRJFnec6i8kDAA/ADjNwycJngFEpqdmJ4TlRslJDqiZ2LAzEtcS0Lmk8OP228K9bwmUUwH58aC8H/
-	5alvaMtA==;
-Received: from [50.53.50.0] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rdNuF-00000007xVV-3zqp;
-	Fri, 23 Feb 2024 05:15:37 +0000
-Message-ID: <4c4e2845-c7a8-4d0b-aa4a-7c5e3399b3dc@infradead.org>
-Date: Thu, 22 Feb 2024 21:15:28 -0800
+	s=arc-20240116; t=1708680932; c=relaxed/simple;
+	bh=1AuFo9AfZZjMBhRnQTvCb4B3WDa1c0+Ea+mu6365uDQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dNTeFsi+R2VZJVy77DT7dmUxmOEl+prnrO4qCpJQGAYwV+QThB+3rNhD/XT1dGEumCy48zkXeAXI/CWCPjieJ7QQMzpHmWsO60Xu6z4VGGYpT8sAE6ZxVPV8ZJsuypSVJ2eW8CPn2kJLG6sABxSRC5Np47fSLZTk1L0vqGoAjFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=QoxcclqC; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=U8Qo2tdD; arc=none smtp.client-ip=46.30.211.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="QoxcclqC";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="U8Qo2tdD"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=b9DVkpvcR7/h1gy9vtR0pGRtWbblb47ZL60TRaWUHFQ=;
+	b=QoxcclqCooYXSycrWqe51U/lHSyIwOxCt/eKvo59wzb5L7JwHuhwKzNGTJgAlRyxPphW0Jz/ezXcb
+	 Ejl5fdHG6UU9+sd9iX+9TP06PegzHHpeXIPq7PCDJRVLPJd0y4QlBrWXEYUflLdgQ/Ed1duM00VMM+
+	 GnrVsA8w1QiGjPPzIcbQxkmhqyf7YbUhS4OlRlLHGV9c8okHV7WWMaL2O6SiprK2CioyxvMm6CB67g
+	 BuRocIt4V2JZFNHcwZ2wJg1ShNz8PwWNHmv/o+RDdetDlXR83uaFj3vT9sUo5pe0TFW/ifq7ZhWhub
+	 wz52WkGZfb7lGCSZuEzoTVIBwVVBV+g==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=b9DVkpvcR7/h1gy9vtR0pGRtWbblb47ZL60TRaWUHFQ=;
+	b=U8Qo2tdD2GOyZ4ktLKLjEgLf1Vv6OiJMJdBXIIP892Aej7Lx30DlYRqgc+7MUhvJsMTGKAqbj5AZ7
+	 vRLGr3EAQ==
+X-HalOne-ID: b5829225-d22e-11ee-a484-31e85a7fa845
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay4.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id b5829225-d22e-11ee-a484-31e85a7fa845;
+	Fri, 23 Feb 2024 09:34:17 +0000 (UTC)
+Date: Fri, 23 Feb 2024 10:34:16 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Andreas Larsson <andreas@gaisler.com>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: Re: sparc: patch to fix parport_pc build on 32-bit
+Message-ID: <20240223093416.GA2800152@ravnborg.org>
+References: <4c4e2845-c7a8-4d0b-aa4a-7c5e3399b3dc@infradead.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: sparclinux <sparclinux@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- Andreas Larsson <andreas@gaisler.com>
-Cc: "Maciej W. Rozycki" <macro@orcam.me.uk>
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: sparc: patch to fix parport_pc build on 32-bit
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4c4e2845-c7a8-4d0b-aa4a-7c5e3399b3dc@infradead.org>
 
-Hi Andreas,
+Hi Randy/Andreas.
 
-Please pick up this patch from June/2023. I have already replied to
-the patch with:
+On Thu, Feb 22, 2024 at 09:15:28PM -0800, Randy Dunlap wrote:
+> Hi Andreas,
+> 
+> Please pick up this patch from June/2023. I have already replied to
+> the patch with:
+> 
+> Acked-by: Randy Dunlap <rdunlap@infradead.org>
+> Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+> 
+> and I just rechecked it on linux-next-20240223 to make sure that it
+> builds cleanly. It does; however, there is one trivial merge warning:
+> 
+> patching file arch/sparc/include/asm/parport.h
+> Hunk #1 succeeded at 20 (offset 1 line).
+> Hunk #2 succeeded at 252 (offset 1 line).
+> 
+> The patch:
+> https://lore.kernel.org/lkml/alpine.DEB.2.21.2306190121540.14084@angie.orcam.me.uk/
 
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+I took a quick look at the patch. It does the minimal to fix the build
+but the ebus_dma thing is only used by sparc64 an should not be visible
+at all for sparc32.
 
-and I just rechecked it on linux-next-20240223 to make sure that it
-builds cleanly. It does; however, there is one trivial merge warning:
+I think the right fix is to make the current
+arch/sparc/include/asm/parport.h sparc64 specific and use
+asm-generic/parport.h for sparc32.
 
-patching file arch/sparc/include/asm/parport.h
-Hunk #1 succeeded at 20 (offset 1 line).
-Hunk #2 succeeded at 252 (offset 1 line).
-
-The patch:
-https://lore.kernel.org/lkml/alpine.DEB.2.21.2306190121540.14084@angie.orcam.me.uk/
-
-
-Thank you.
--- 
-#Randy
+	Sam
