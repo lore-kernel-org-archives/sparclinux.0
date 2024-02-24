@@ -1,37 +1,37 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD0551391;
-	Sat, 24 Feb 2024 00:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7816517C8;
+	Sat, 24 Feb 2024 00:32:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708734604; cv=none; b=Eol/A53GTo0fpsw/lSdoqYQRLCTa/xEwCOLgG/UtFIV1piRiNqrzX1QQ9xHtIIvTR2zXLwS6oqVNSyMu4qz4u3J/EsQDNsosmoDbuwUYgNFtwsJGPq2DD8R74N5IsERBN+sUnYh9+hmHjbfi02K10EUIcXHB/LgJ9mBLkZSAI4U=
+	t=1708734721; cv=none; b=WSEnFwFeRlwQbrlPE7nyJ2VbmXsFNuR9HyGfCUz25bOLzBu2FM9I+8a+gdJ7RO4IdW/aJR7XmKwKwHa9JSFT4ETyR+qVAh6pMpBq0qweEU3YpaVqwHeM53HmYUgKbg0OMoxfRC/cfaDJF1AutH26B6T1rr3naRpZ1KPkuAuNNsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708734604; c=relaxed/simple;
-	bh=kxojQVNnM759VfcUUvz9/QIZ54cjntTrT98mGnYBwf0=;
+	s=arc-20240116; t=1708734721; c=relaxed/simple;
+	bh=cLOlkiiIsBxs+c5aYZU7dTcatV2BS4MYwoiO1dPJuXo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=YQTL+0bPydhziYos4KmKjkH3bMMXk6PM+X9J+NC8L04W/r6rlAkBkkZmQcMtgYH6YA9kghHI48Je3MLysw/JDekQgrY8AA2mocc0pWHMRkeB3TTSjnoZJnlSzApgYXrnfv/81pa19uqvoVvm2PGZgX7cVrge7abrPysXfJ/cbO8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Ua0b7SgM; arc=none smtp.client-ip=198.137.202.133
+	 In-Reply-To:Content-Type; b=mrkhhpelmBfH75xp03n0BWpr68UFSQ0beH0V4N8uKM3FT+pT2qJwoTsWRw0Hkynmb6dJLUB0vzRY8qx0oiifWkYgP5b4GRjaDv9SQyvYmVi26+8VUClZmvkHSq1wTH4LkzL6Ib6VMS4wSZsSBMStexKOsisrC3CUmADja+3NOoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=viZL1Mlj; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Ua0b7SgM"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="viZL1Mlj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
 	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=gOpJqIKHrYdAdrp4+8xh2s9+ZzmBOi5gRguaabwYj6Q=; b=Ua0b7SgM3o2+rmgI0f5S1lgiUz
-	kwWwPpdCeOpP8Ja27XL71SEJF6Rchsn0uiuZqzhGdmjN8576y9wJDVYnLbM0J4fn3NuIcOFvyTs45
-	kpyeex8URTRDpzL3gCUu9wduj6rmNGgBwQRkR3KimSs4R2SDYk0QRa8C1QwgsXCIPvd5rBGztiii4
-	UKc4QZYDO+qMr3jihcebANk+byfII/jLIJjoa7syMGlvBoqvjGwuL1Zjqo1/lcwu1wm8WgOxF0v4Q
-	EuNLpVRXrxRr1qrZLQn7nMK3mhjZ6Hz7lxTbBd9eBC+Zy8+yQ42Ex6SLLrG+HH8H/guTgCmmiWSGg
-	PWI94tQQ==;
+	bh=XKTcNlrx6kwLrC+QszV23LItEKAakzaqp1Ccgq00X8I=; b=viZL1Mljrj/9IMdJlawg3z4Y0P
+	6nnCs0VbEuQujhg3Yz74g8bxTAaP0I392OjyEkqbNFKkH5vIqt/CNQA5559fN/sz2SisDxqkXb4sI
+	ZGbIAgvFwqNx6KM7O/nG0Yd+B3KhyrBsAQC/seEmOMt+XLWIwjrK/hCX7v+F6sQ/WyHd9el4PZa+i
+	wGnSSG6g9/5E9XKnepoTlWcLTS6Bo5g4pwFuEGHWUUk9cV0hE7VxHnaF7cw6OtPrCI48lzlNAyvnw
+	qXAXX3orJ1qE+37atbQO+C2X1ZHndTzIB8pYQKRN+Nph6CMWiO2ckGqIkLVyL6GmNrenhs1r+6Ud3
+	vokGQjWQ==;
 Received: from [50.53.50.0] (helo=[192.168.254.15])
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rdfvW-0000000BgUh-0Mfq;
-	Sat, 24 Feb 2024 00:30:02 +0000
-Message-ID: <d6ed0068-6f04-4a3c-b981-5c27f57985f6@infradead.org>
-Date: Fri, 23 Feb 2024 16:30:01 -0800
+	id 1rdfxN-0000000BhCA-1Dr3;
+	Sat, 24 Feb 2024 00:31:59 +0000
+Message-ID: <19ecb47a-a168-49df-9673-bc1522f7d2c4@infradead.org>
+Date: Fri, 23 Feb 2024 16:31:56 -0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -39,18 +39,19 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/6] mtd: maps: sun_uflash: Declare uflash_devinit static
+Subject: Re: [PATCH 4/6] usb: host: uhci-grlib.c: Fix build, add
+ platform_device
 Content-Language: en-US
 To: sam@ravnborg.org, Miquel Raynal <miquel.raynal@bootlin.com>,
  "Maciej W. Rozycki" <macro@orcam.me.uk>
 Cc: sparclinux@vger.kernel.org, linux-parport@lists.infradead.org,
  "David S. Miller" <davem@davemloft.net>,
  Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>,
- linux-kernel@vger.kernel.org
+ linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 References: <20240223-sam-fix-sparc32-all-builds-v1-0-5c60fd5c9250@ravnborg.org>
- <20240223-sam-fix-sparc32-all-builds-v1-3-5c60fd5c9250@ravnborg.org>
+ <20240223-sam-fix-sparc32-all-builds-v1-4-5c60fd5c9250@ravnborg.org>
 From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20240223-sam-fix-sparc32-all-builds-v1-3-5c60fd5c9250@ravnborg.org>
+In-Reply-To: <20240223-sam-fix-sparc32-all-builds-v1-4-5c60fd5c9250@ravnborg.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
@@ -59,36 +60,35 @@ Content-Transfer-Encoding: 7bit
 On 2/23/24 11:36, Sam Ravnborg via B4 Relay wrote:
 > From: Sam Ravnborg <sam@ravnborg.org>
 > 
-> This fixes the following warning:
-> sun_uflash.c:50:5: error: no previous prototype for 'uflash_devinit'
+> Fix the followig build error:
+> uhci-grlib.c:92:29: error: invalid use of undefined type 'struct platform_device'
+> 
+> The fix was straightforward, and no attempt was made to understand why
+> the build failed.
 > 
 > Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 > Cc: Andreas Larsson <andreas@gaisler.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
-
-Thanks.
+This looks good but the same patch is already in linux-next, courtesy of
+Andreas.
 
 > ---
->  drivers/mtd/maps/sun_uflash.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/usb/host/uhci-grlib.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/mtd/maps/sun_uflash.c b/drivers/mtd/maps/sun_uflash.c
-> index f58cfb15d6e8..b69dade3f7ad 100644
-> --- a/drivers/mtd/maps/sun_uflash.c
-> +++ b/drivers/mtd/maps/sun_uflash.c
-> @@ -47,7 +47,7 @@ struct map_info uflash_map_templ = {
->  	.bankwidth =	UFLASH_BUSWIDTH,
->  };
+> diff --git a/drivers/usb/host/uhci-grlib.c b/drivers/usb/host/uhci-grlib.c
+> index ac3fc5970315..cfebb833668e 100644
+> --- a/drivers/usb/host/uhci-grlib.c
+> +++ b/drivers/usb/host/uhci-grlib.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/of_irq.h>
+>  #include <linux/of_address.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/platform_device.h>
 >  
-> -int uflash_devinit(struct platform_device *op, struct device_node *dp)
-> +static int uflash_devinit(struct platform_device *op, struct device_node *dp)
+>  static int uhci_grlib_init(struct usb_hcd *hcd)
 >  {
->  	struct uflash_dev *up;
->  
 > 
 
 -- 
