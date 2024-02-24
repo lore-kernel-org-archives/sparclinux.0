@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6650F47F59;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709B3481D0;
 	Sat, 24 Feb 2024 17:42:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708796547; cv=none; b=mbTamu+tk0kP0zUwTZuOs5BLS4DefPyraK+l7lMXHCfDNcsx+Zy9UkGkheL/hOAslN1Yy21o2UxQ0HDLvkOSLfO3wKmX633XfTzJJno/wkPGg9P9hpb0bEb/AnVJu/gYdKEGsjvEs4/OE41HVBXzAeybvoCra3cab/InMbrLUUc=
+	t=1708796547; cv=none; b=jwM1l/7KJQVNopp3tQfekbjP1vb71dPHVEtc8V9qVeWldwYl/Hluy6A2NS6T+aCwg/UtZlcRqDIj7vKWQ/r1uV+x6N3pK1WBAKWN8EDzNT+d2nLr3Xx5JCRTYxebLPl2+TqVX9udyrwJE5ANhGVfKnYmew6K1HYTIaMKDiamvlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708796547; c=relaxed/simple;
-	bh=cTWwSnGLk/pM/d3HuBGFVevuzYQU4YydbqLVII6r0V4=;
+	bh=u0AAmcTQTypGp4uSwwmS/uHNMvpmNjjwLex7HeF5FKw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=rphqdJDW6uhYDld/tTzca9+SDGzDRUqkkTUQBYigkkuwSP8TkuzpWX3T/sIZHf5gmiQRaoO3pyrRdTOVRww+lVxOgT2qrNebHUj8nomwmVmg33FnZvFD3LjVq5lNKJ1C6Peub5yFdTt69vMwYkOj3cgxh1fbzPDuEuZYyrByq68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pdvWCZAS; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=OIcKlnm78ckSUNfnsmqToafOa7LA0KrTUpFhW5svbUE/JPH17pj9z59MMGH8Y69M27huBWAzB/3oXslrHaJy3fIAwEhQor8/hjShwe7N/qROR4XFsZ6ndGKrBi4xSefODq5kHNGYlBEp4MCyxwwqDbRDc3Zp6hykig720QFhsXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pCZSbrwk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pdvWCZAS"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0ACDDC43394;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pCZSbrwk"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 27307C433B1;
 	Sat, 24 Feb 2024 17:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1708796547;
-	bh=cTWwSnGLk/pM/d3HuBGFVevuzYQU4YydbqLVII6r0V4=;
+	bh=u0AAmcTQTypGp4uSwwmS/uHNMvpmNjjwLex7HeF5FKw=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=pdvWCZASAi+WNfRDh2KsqzBL+9Hc/gzwtu7buOAMWaXRROJV1/Dt756GV8/vgOzDl
-	 +9NWVatyLUb4uanYAYh/aq1FRsJM5q5IeXjSUyAGJlQvCsL48hwIK84adtC7b7EZnm
-	 Lx0WjCtragrMPIW7fw42Fno5S6ALJydead7DUW4FZQZszKlx5XGU48o9IeulMRkipI
-	 zJDik67RT0wgv+Y3lv0dEGP9JR+t2Z7svtiprL+gELIPFXIqQTWo2GhSj/9xr/E6lN
-	 h6pppKoeplQVj36+loti7iq9it37sYNw3PGAoRp7y4TdeGvBlHor0qMVxa7GU/Jgaz
-	 5xJqmXe1e6tAg==
+	b=pCZSbrwkL9/e642Vk6RPAVvF4CN8L+fJ6tAFLW54+TMFala7V6bWP1I69Pu3mEmFF
+	 JPoheV03sIOIngy8axzqi0bzjnF8iq6KtA3LQUXaK0SkUkYFDc9VVL9rjD/NFSd8Q2
+	 V29KQSL+7vlctvLgtH3n3GkKhxgwBMFZbvWWxKBOaG+P1ZbfsiZWIOJKRk01/3CuF3
+	 Z2O9Db3r2ANcm+FX7jTIQJnf/Ewv3gD91LEGZOPJqZQp3JewvfPtgacdKlyGYzzykb
+	 HUYpFbB//sX7UKx+PaBGDgW97YvMo5nTLlH9V+NLx+d5bGA87hffoL6waZWpZtarTi
+	 6AqtkiDnIPiMw==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF6A3C54E49;
-	Sat, 24 Feb 2024 17:42:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15956C48BF6;
+	Sat, 24 Feb 2024 17:42:27 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 24 Feb 2024 18:42:24 +0100
-Subject: [PATCH v2 3/7] mtd: maps: sun_uflash: Declare uflash_devinit
- static
+Date: Sat, 24 Feb 2024 18:42:26 +0100
+Subject: [PATCH v2 5/7] sparc32: Do not select GENERIC_ISA_DMA
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -42,7 +41,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Message-Id:
- <20240224-sam-fix-sparc32-all-builds-v2-3-1f186603c5c4@ravnborg.org>
+ <20240224-sam-fix-sparc32-all-builds-v2-5-1f186603c5c4@ravnborg.org>
 References:
  <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
 In-Reply-To:
@@ -54,11 +53,11 @@ Cc: Miquel Raynal <miquel.raynal@bootlin.com>,
  Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, 
  Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1708796545; l=1022;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1708796545; l=1135;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=1CQEn1rR62vDngISirB1bMAgXc9+BD3JSgTxbntNHpM=; =?utf-8?q?b=3DJ7vmq08a1WA/?=
- =?utf-8?q?yKaJnn8961lo1M50MdiWJaS56NAsS66meT3rhpm7+wO7l1LTep/srhdb9PoD+9SA?=
- OHZdMimeCmy5hI9xnAPkeScVn7WU6Yy3CoFvNqOgAlKwHkwNbP+z
+ bh=OWAinB5URH3jM/Z4sqc7e9m3++OQMwYINtdPlTPG+3w=; =?utf-8?q?b=3DIarfFy+3MHxh?=
+ =?utf-8?q?NsZ6KvRnK2UXkA3EcCfDklgPPW35n08X0QuMF3S7OCNXV+xsMYB11dgu5G8uxlWu?=
+ oHxA3Ud3BP7eCnoq1lfEMf3GTDc4b3d1ofPjxcyUBNxO04uvCIoj
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -67,32 +66,39 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-This fixes the following warning:
-sun_uflash.c:50:5: error: no previous prototype for 'uflash_devinit'
+sparc32 do not support generic isa dma, so do not select the symbol.
+
+This fixes the following warnings:
+dma.c:70:5: error: no previous prototype for 'request_dma' [-Werror=missing-prototypes]
+dma.c:88:6: error: no previous prototype for 'free_dma' [-Werror=missing-prototypes]
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Fixes: 0fcb70851fbf ("Makefile.extrawarn: turn on missing-prototypes globally")
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
- drivers/mtd/maps/sun_uflash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/Kconfig | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/mtd/maps/sun_uflash.c b/drivers/mtd/maps/sun_uflash.c
-index f58cfb15d6e8..b69dade3f7ad 100644
---- a/drivers/mtd/maps/sun_uflash.c
-+++ b/drivers/mtd/maps/sun_uflash.c
-@@ -47,7 +47,7 @@ struct map_info uflash_map_templ = {
- 	.bankwidth =	UFLASH_BUSWIDTH,
- };
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index bdbde506c01e..440e53d37d20 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -137,10 +137,6 @@ config HIGHMEM
+ 	default y if SPARC32
+ 	select KMAP_LOCAL
  
--int uflash_devinit(struct platform_device *op, struct device_node *dp)
-+static int uflash_devinit(struct platform_device *op, struct device_node *dp)
- {
- 	struct uflash_dev *up;
- 
+-config GENERIC_ISA_DMA
+-	bool
+-	default y if SPARC32
+-
+ config PGTABLE_LEVELS
+ 	default 4 if 64BIT
+ 	default 3
 
 -- 
 2.34.1
