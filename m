@@ -1,95 +1,67 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326A4A59;
-	Sat, 24 Feb 2024 00:34:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1064910A3F;
+	Sat, 24 Feb 2024 02:55:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.133.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708734868; cv=none; b=mmeeH/MgJBzoz2lcVZ8cf/T1xXy+5n5Mw48NLUdZNqxSEm1p7xFcH00m2e9Upxpa1UyUq9wAUUAumd/Wg74l0dUqRi1eMqQZsnulD7mgH2NPpq7u2GLDW8iPtTIiZelbM8nehuSaLOP627NYnijg2cUQkoIIqnSlunR5oBNuwb0=
+	t=1708743306; cv=none; b=SplXA3/5L4uO02sTudRF4NI3xZWkApr+Ddzccwmil2hjFRwbwD5MEsDq67+LAOxisqmlBKZuiJS2B9YSL4qON09sc7o9XMkjABNpzpMFqn/hP+don4wqhJd0rmbGATY7za/315XrRpPmyLnnxFexO0ntxCBwqIr6w+ZhW8C9PBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708734868; c=relaxed/simple;
-	bh=NyZC7DMt9AaOWyzhLHalvlIineDokNGezKhcwMO0G0U=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mlPcIVXDfXO5oH7Ux09nUbxu22DjiBiqIx5MRJt/hZIZrU/qCuBEtuqtf3i6K/X/n2zK9BTI46Ej+JaQTqInO6YsZ6Epe4PD6VQiXo6cDorzOUL854eT17oYF5z8K/rqOCE5+D2Jw3Dz0hwqR17jvDqczDWEnCfJbw5hS/LcmgA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=w///kqWz; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="w///kqWz"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=+78lHf6wE1V3WvNZO4eC3Ft1qvYeNcUsJdGOhWgLsHc=; b=w///kqWz7t4I9I5u3Ax8UN47Qh
-	tgOJUr6O1eUMIuIJyXxuKnQ1ziqZslIU5GaIqI/djIYeEoc9mQbf7LXRKOiSxjtAYWedd9hcKe3SH
-	1K0KR6TbPzUF83VqncPipDwAbRGOcCRjqmRDk/HljYzvcNJlQw07wtI1WPtDb7hXXLb7FhETQDZ8W
-	ljzsvIkmN78gxdV9CZiR+1qKEuPLXAJwB+3fYdYJkHWILyCD2KhryCvZJHcQPR4dOWZA+Zd+jixyJ
-	Fm6aN6pkq92EtpPu2yJkY9yOhSaIjaW/BASxRGJ/LPODLcFICL59hJpdRHRGLAuKbvCc+s7LDvcWM
-	9LY+68mA==;
-Received: from [50.53.50.0] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rdfzl-0000000BhS0-0u0z;
-	Sat, 24 Feb 2024 00:34:25 +0000
-Message-ID: <874c4cbb-d904-4aa3-9c87-cb3d639d3661@infradead.org>
-Date: Fri, 23 Feb 2024 16:34:24 -0800
+	s=arc-20240116; t=1708743306; c=relaxed/simple;
+	bh=o9PwcRVz3DFLQYky+sxag4JuWd3kakiCVBE3JNsT4Jk=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=cezLXuGVSujLyg0vYDrqRAgw4Im/LNhoxFTosadGN2o1oDsZa9SRwrs/TBRviOqH/cQLCO0SXoZDyoamg3Kz0D/kHd9RmxPA1XpeNErxu6lcsGxivIqOx8fHC3kHzMrRBAQPGBe+gaQd2PJIQGALE3I1JlKQh3YTZ/48olJaoW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk; spf=none smtp.mailfrom=orcam.me.uk; arc=none smtp.client-ip=78.133.224.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+	id 3456592009D; Sat, 24 Feb 2024 03:55:01 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by angie.orcam.me.uk (Postfix) with ESMTP id 24EB192009B;
+	Sat, 24 Feb 2024 02:55:01 +0000 (GMT)
+Date: Sat, 24 Feb 2024 02:55:01 +0000 (GMT)
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+To: Sam Ravnborg <sam@ravnborg.org>
+cc: Miquel Raynal <miquel.raynal@bootlin.com>, sparclinux@vger.kernel.org, 
+    linux-parport@lists.infradead.org, "David S. Miller" <davem@davemloft.net>, 
+    Andreas Larsson <andreas@gaisler.com>, 
+    Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, 
+    linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 5/6] sparc32: Do not select GENERIC_ISA_DMA
+In-Reply-To: <20240223-sam-fix-sparc32-all-builds-v1-5-5c60fd5c9250@ravnborg.org>
+Message-ID: <alpine.DEB.2.21.2402240235570.61493@angie.orcam.me.uk>
+References: <20240223-sam-fix-sparc32-all-builds-v1-0-5c60fd5c9250@ravnborg.org> <20240223-sam-fix-sparc32-all-builds-v1-5-5c60fd5c9250@ravnborg.org>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 6/6] sparc32: Fix parport build with sparc32
-Content-Language: en-US
-To: sam@ravnborg.org, Miquel Raynal <miquel.raynal@bootlin.com>,
- "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc: sparclinux@vger.kernel.org, linux-parport@lists.infradead.org,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20240223-sam-fix-sparc32-all-builds-v1-0-5c60fd5c9250@ravnborg.org>
- <20240223-sam-fix-sparc32-all-builds-v1-6-5c60fd5c9250@ravnborg.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20240223-sam-fix-sparc32-all-builds-v1-6-5c60fd5c9250@ravnborg.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 
+On Fri, 23 Feb 2024, Sam Ravnborg via B4 Relay wrote:
 
+> sparc32 do not support generic isa dma, so do not select the symbol.
+> Without this fix, the following patch would break the build with a
+> missing prototype.
 
-On 2/23/24 11:36, Sam Ravnborg via B4 Relay wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> 
-> include/asm/parport.h is sparc64 specific.
-> Rename it to parport_64.h and use the generic version for sparc32.
-> 
-> This fixed all{mod,yes}config build errors like:
-> 
-> parport_pc.c:(.text):undefined-reference-to-ebus_dma_enable
-> parport_pc.c:(.text):undefined-reference-to-ebus_dma_irq_enable
-> parport_pc.c:(.text):undefined-reference-to-ebus_dma_register
-> 
-> The errors occur as the sparc32 build references sparc64 symbols.
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Maciej W. Rozycki <macro@orcam.me.uk>
-> Closes: https://lore.kernel.org/r/20230406160548.25721-1-rdunlap@infradead.org/
-> Fixes: 66bcd06099bb ("parport_pc: Also enable driver for PCI systems")
-> Cc: stable@vger.kernel.org # v5.18+
+ Not according to my observations, kernel/dma.c is always built for 
+GENERIC_ISA_DMA configurations, so:
 
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+kernel/dma.c:70:5: error: no previous prototype for 'request_dma' [-Werror=missing-prototypes]
+   70 | int request_dma(unsigned int dmanr, const char * device_id)
+      |     ^~~~~~~~~~~
+kernel/dma.c:88:6: error: no previous prototype for 'free_dma' [-Werror=missing-prototypes]
+   88 | void free_dma(unsigned int dmanr)
+      |      ^~~~~~~~
 
-Thanks.
+are issued regardless (and FAOD with PARPORT_PC unset).
 
-> ---
->  arch/sparc/include/asm/parport.h    | 259 +-----------------------------------
->  arch/sparc/include/asm/parport_64.h | 256 +++++++++++++++++++++++++++++++++++
->  2 files changed, 263 insertions(+), 252 deletions(-)
-> 
+ I can't speak for SPARC support for ISA DMA, but it seems to me like the 
+second sentence would best be removed, as would the Fixes: tag (in favour 
+to:
 
+Fixes: 0fcb70851fbf ("Makefile.extrawarn: turn on missing-prototypes globally")
 
--- 
-#Randy
+I presume), and possibly the messages quoted above included instead.
+
+  Maciej
