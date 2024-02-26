@@ -1,84 +1,205 @@
-Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [217.70.183.199])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F51F4D9E1;
-	Mon, 26 Feb 2024 10:24:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBEE7604A7;
+	Mon, 26 Feb 2024 16:14:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708943045; cv=none; b=dt3jAVRb5gn9Gh/+jiH8l1yEQpKMNhdx6n2PRTHOqiOB1zCUaSwXRXW0fZj3ZtR4w6l0EwJbqMIe41A2SNEUmgqYyrpSMwv8EGKfvDRhgMgP60gO1XHCQStmK9qXUUciJK1g8Jj7mXK46v38+Ufut0AvzUp7Mh8heHSBSNPxZ/M=
+	t=1708964074; cv=none; b=SKNsP3AB76Z27dRKQvJMO194jmhCMGQoMoPq7tazGgSWXNLktisWG6+S5GaVJB9bNvcNdyPEJDCxWAa1c6NQAgr5e8vJCLc6Nd3XSWFLSChfSUO49QTKcJhwzhDy9poGL9fBuV/+N/B1Hrgo4c7E9gkjDokX2dD8uTN4DYw0kO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708943045; c=relaxed/simple;
-	bh=bv9zQCDIFjU9iZ/siR5BjYkMJRSOD9B3H7xbDz0eK7I=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rCaCjNG31oKEWtPDamMdYb3jC8pMFduJbV7m5pBjGdoYi+SKpeQ8+l7xzvL3IoPbTQK/d+KjaPJuSdgKBhPKi990xwDyxEzIIl3yPnEFyatwQdByhl/NEvXIOQshcNq2zx6G8qt8rUY+9/g3PEftDG6py71y5RyRLKocA29tFiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=eaGvoC/r; arc=none smtp.client-ip=217.70.183.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1708964074; c=relaxed/simple;
+	bh=zxbqCp3xg1MTZv6nVkuYc0VOPy7Z/0KoLu5xdBZOcDY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Y4iChQ2UuZf25lq9UumAyHHLuSd8Ri+0IcLnRkWadsISLl70JgGMzwAHsA3oqUXZFQO2pfETieol5457UVZvwy4XwdoEgoh9BIMfLdi013iX/Kfj0bHJaCZc3T66mqby6yQUBs6vdqp6eQb23gk55bUach6ffqnz8Birv+R/NBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ouv+E5W1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="eaGvoC/r"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id 90B14FF817;
-	Mon, 26 Feb 2024 10:24:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-	t=1708943041;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bv9zQCDIFjU9iZ/siR5BjYkMJRSOD9B3H7xbDz0eK7I=;
-	b=eaGvoC/rz3Snz5oDpSrZH3zPnKeH/TqGVVnv/kS72xHt0rgy7dLVEQkjsr5+SOjfPK/+vE
-	j5jUp0myNjKS+8CuAD7WseUeyrk44n8Q9SVSr/4OU8TAChvkQ9w3csAw2KZCbowP+z9soB
-	0ca+aCuNlk57C1/TKawJM6qtNvSqEmPX33uAqfHuRqd6aNHEwo/q9LO2RVvEnpDpND0zbf
-	BI6uFD0ITbv73r79b20mm2bkz3+0jmscIbMn4zTfSaXt5x9IEALEYO8QfaSudKkP6E9Wnh
-	+1ppkzGKA8p5XBs9qILDHv94TsUqG8b7aza2FmYpoDtcD38q9av4wPtTN59D+A==
-Date: Mon, 26 Feb 2024 11:23:59 +0100
-From: Miquel Raynal <miquel.raynal@bootlin.com>
-To: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Cc: <sam@ravnborg.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
- sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Randy
- Dunlap <rdunlap@infradead.org>, linux-parport@lists.infradead.org, "David
- S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 3/7] mtd: maps: sun_uflash: Declare uflash_devinit
- static
-Message-ID: <20240226112359.3c3cf74d@xps-13>
-In-Reply-To: <20240224-sam-fix-sparc32-all-builds-v2-3-1f186603c5c4@ravnborg.org>
-References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
-	<20240224-sam-fix-sparc32-all-builds-v2-3-1f186603c5c4@ravnborg.org>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ouv+E5W1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D63C433C7;
+	Mon, 26 Feb 2024 16:14:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1708964073;
+	bh=zxbqCp3xg1MTZv6nVkuYc0VOPy7Z/0KoLu5xdBZOcDY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ouv+E5W1cQ1zHWEvJshxERHNgYSjJzR7JdvZMtKsmjTnnYsjb50xz7yQ6NNDLjL+R
+	 zIivYPxRBLqLiotGJhvVTBVfzRjkLFR+UKz+Blle7mLm83hZaxjZLxJiSIm8KsFpk8
+	 T2yQYC7g3LmUbscrU9t5jUZdMHfRtyoT7a/p66cZn/Wi8wvAOCFlueNWvORfaCli+Z
+	 S5t1BgjPEeJ3eGf1KMTEe7SIO0Rv5QLKXRaKqNQXL1yQWzRzHXLOOgf0gh7VMNEgGS
+	 /h/uyIFz30OGZTAygrSMurYRpnmZAOjoQMG9QUrFxlxLnbjp2UPK2IvIxVWUAhRAM9
+	 8PLY/d6Nx9Yzg==
+From: Arnd Bergmann <arnd@kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Kees Cook <keescook@chromium.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Matt Turner <mattst88@gmail.com>,
+	Vineet Gupta <vgupta@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Guo Ren <guoren@kernel.org>,
+	Brian Cain <bcain@quicinc.com>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Michal Simek <monstr@monstr.eu>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Helge Deller <deller@gmx.de>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Richard Weinberger <richard@nod.at>,
+	x86@kernel.org,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Kieran Bingham <kbingham@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org,
+	linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org
+Subject: [PATCH 0/4] arch: mm, vdso: consolidate PAGE_SIZE definition
+Date: Mon, 26 Feb 2024 17:14:10 +0100
+Message-Id: <20240226161414.2316610-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-GND-Sasl: miquel.raynal@bootlin.com
+Content-Transfer-Encoding: 8bit
 
-Hi Sam,
+From: Arnd Bergmann <arnd@arndb.de>
 
-devnull+sam.ravnborg.org@kernel.org wrote on Sat, 24 Feb 2024 18:42:24
-+0100:
+Naresh noticed that the newly added usage of the PAGE_SIZE macro in
+include/vdso/datapage.h introduced a build regression. I had an older
+patch that I revived to have this defined through Kconfig rather than
+through including asm/page.h, which is not allowed in vdso code.
 
-> From: Sam Ravnborg <sam@ravnborg.org>
->=20
-> This fixes the following warning:
-> sun_uflash.c:50:5: error: no previous prototype for 'uflash_devinit'
->=20
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Fixes: 0fcb70851fbf ("Makefile.extrawarn: turn on missing-prototypes glob=
-ally")
-> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-> Tested-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
+I rebased and tested on top of the tip/timers/core branch that
+introduced the regression. If these patches get added, the
+compat VDSOs all build again, but the changes are a bit invasive.
 
-I was about to take this but linux-mtd is not Cced, so I'm letting this
-to the Sparc maintainers. Please resend to the mtd list if I need to
-take it.
+      Arnd
 
-Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
+Link: https://lore.kernel.org/lkml/CA+G9fYtrXXm_KO9fNPz3XaRxHV7UD_yQp-TEuPQrNRHU+_0W_Q@mail.gmail.com/
+Link: https://lore.kernel.org/all/65dc6c14.170a0220.f4a3f.91dd@mx.google.com/
 
-Thanks,
-Miqu=C3=A8l
+Arnd Bergmann (4):
+  arch: consolidate existing CONFIG_PAGE_SIZE_*KB definitions
+  arch: simplify architecture specific page size configuration
+  arch: define CONFIG_PAGE_SIZE_*KB on all architectures
+  vdso: avoid including asm/page.h
+
+ arch/Kconfig                       | 58 ++++++++++++++++++++++++++++--
+ arch/alpha/Kconfig                 |  1 +
+ arch/alpha/include/asm/page.h      |  2 +-
+ arch/arc/Kconfig                   |  3 ++
+ arch/arc/include/uapi/asm/page.h   |  6 ++--
+ arch/arm/Kconfig                   |  1 +
+ arch/arm/include/asm/page.h        |  2 +-
+ arch/arm64/Kconfig                 | 29 +++++++--------
+ arch/arm64/include/asm/page-def.h  |  2 +-
+ arch/csky/Kconfig                  |  1 +
+ arch/csky/include/asm/page.h       |  2 +-
+ arch/hexagon/Kconfig               | 25 +++----------
+ arch/hexagon/include/asm/page.h    |  6 +---
+ arch/loongarch/Kconfig             | 21 ++++-------
+ arch/loongarch/include/asm/page.h  | 10 +-----
+ arch/m68k/Kconfig                  |  3 ++
+ arch/m68k/Kconfig.cpu              |  2 ++
+ arch/m68k/include/asm/page.h       |  6 +---
+ arch/microblaze/Kconfig            |  1 +
+ arch/microblaze/include/asm/page.h |  2 +-
+ arch/mips/Kconfig                  | 58 +++---------------------------
+ arch/mips/include/asm/page.h       | 16 +--------
+ arch/nios2/Kconfig                 |  1 +
+ arch/nios2/include/asm/page.h      |  2 +-
+ arch/openrisc/Kconfig              |  1 +
+ arch/openrisc/include/asm/page.h   |  2 +-
+ arch/parisc/Kconfig                |  3 ++
+ arch/parisc/include/asm/page.h     | 10 +-----
+ arch/powerpc/Kconfig               | 31 ++++------------
+ arch/powerpc/include/asm/page.h    |  2 +-
+ arch/riscv/Kconfig                 |  1 +
+ arch/riscv/include/asm/page.h      |  2 +-
+ arch/s390/Kconfig                  |  1 +
+ arch/s390/include/asm/page.h       |  2 +-
+ arch/sh/include/asm/page.h         | 13 +------
+ arch/sh/mm/Kconfig                 | 42 +++++++---------------
+ arch/sparc/Kconfig                 |  2 ++
+ arch/sparc/include/asm/page_32.h   |  2 +-
+ arch/sparc/include/asm/page_64.h   |  3 +-
+ arch/um/Kconfig                    |  1 +
+ arch/um/include/asm/page.h         |  2 +-
+ arch/x86/Kconfig                   |  1 +
+ arch/x86/include/asm/page_types.h  |  2 +-
+ arch/xtensa/Kconfig                |  1 +
+ arch/xtensa/include/asm/page.h     |  2 +-
+ include/vdso/datapage.h            |  4 +--
+ scripts/gdb/linux/constants.py.in  |  2 +-
+ scripts/gdb/linux/mm.py            |  2 +-
+ 48 files changed, 153 insertions(+), 241 deletions(-)
+
+-- 
+2.39.2
+To: Thomas Gleixner <tglx@linutronix.de>
+To: Vincenzo Frascino <vincenzo.frascino@arm.com>
+To: Kees Cook <keescook@chromium.org>
+To: Anna-Maria Behnsen <anna-maria@linutronix.de>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: x86@kernel.org
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: loongarch@lists.linux.dev
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-openrisc@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
