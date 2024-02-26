@@ -1,292 +1,207 @@
-Received: from mail-io1-f52.google.com (mail-io1-f52.google.com [209.85.166.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from FRA01-PR2-obe.outbound.protection.outlook.com (mail-pr2fra01on2102.outbound.protection.outlook.com [40.107.12.102])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B7D012FB04
-	for <sparclinux@vger.kernel.org>; Mon, 26 Feb 2024 16:55:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.52
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708966520; cv=none; b=Px74czg9MtDH4VQYmPU0aYCwdqFCr2hMVPU75K76QPKtFIzgpoauDgVZf33WLX4lQUFJO6E2i4TkKVy37TI8SjW/HIIPowu2zjezYL2u/ES6DU/JkJzN24We9r3qrlWLUlOa2ypUqO3S36nOmCY4cr2XHGbwonXi8lU+ZsZdZKE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708966520; c=relaxed/simple;
-	bh=efqSYWlmPvvmoW5hTpteGQgbaViN1str2LnrNPJgrD0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Nq/AE5rve4p688f7Ny8od279kqx7L/zhsvId8ZBTHzPgitOYkoC42hvgPTYiDYxUQzy6l4cNEr5Mfi6ea3736crbzkEty32MoB72Tx560B2hI4I9MPmcgEveOEKfXL98pmZIviJafVT1Hg5ZhHMgiRZvyMgL+sFtnhGRolKJ91A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sifive.com; spf=pass smtp.mailfrom=sifive.com; dkim=pass (2048-bit key) header.d=sifive.com header.i=@sifive.com header.b=eIpG+p8O; arc=none smtp.client-ip=209.85.166.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sifive.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sifive.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC17A12E1D5;
+	Mon, 26 Feb 2024 18:54:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.12.102
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1708973644; cv=fail; b=uK8YK2ZcaGfuvruXo2oubMGorGBTt4guRhgxBX0kFQ1dClaieGKDeqNS2DMD3eEJ0QEt5AbsUcN/ApJSm2RwvmC4QGiujqZ7dYkXxQa03FGL1u+OQBNXzw7+rDDI5H9rbnq32jusS/d9XRDH79b+Teq/qLSKhXNikXxjsD5Yclk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1708973644; c=relaxed/simple;
+	bh=XYGe+zWU3Kna6wmlC6InTwUxBqGETMrm0x8fGoU6LYc=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=cJfbE/F1OLbaSPpHk2neqXN9CqiM59Ys25I3Nqzmm0p8+BG51jKaWNENw7RTds1MVKeHI0b2N8nRj6/re0HUweum0sfuK5TPfHloLCFi3GjVzRTEjFb2f4CgH5ZhdyXMbwBY4MuYDRuLDOzqyAS9OqENiIKsDYji4H/47BQ4d58=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b=Fd7NBOeQ; arc=fail smtp.client-ip=40.107.12.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sifive.com header.i=@sifive.com header.b="eIpG+p8O"
-Received: by mail-io1-f52.google.com with SMTP id ca18e2360f4ac-7c7b8fb8ba6so77231239f.2
-        for <sparclinux@vger.kernel.org>; Mon, 26 Feb 2024 08:55:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1708966516; x=1709571316; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=YapG2Iuz3DeMuojGrZ4IACVCP3buEgPcxL/agJvMeoI=;
-        b=eIpG+p8Ov/rRaNeI6uaoNEoiYBVxOHKyiRlBtWJu2YvdUhbCuZtqkdDm4a56GJy2rl
-         nr1kusUTL0Wl7M9Ji9Ua9DtzmR6hHbt5OlBxcUSmFZCT03axU42bBVhU1HGSMIMyOO0f
-         sbTz+A9TH0p/ARPuqtbkKPLG5u5lynUcIdQiCImUzTN3k9DDK2aJti8Yd8R+nR5lnzZZ
-         tf9Qw7vKBeKHeeYuR5NoWOqRIeWfAXJoR5RBRkvloBlBcjIFPoqjQz0fp/ddbnmPa0Cl
-         JGvzU0+WJVMNaw5gb8FVTL4VrrmUoyB+DXEqhk669C/mUXRYlnP2dLjCxqXojz2F2tpX
-         Uitg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708966516; x=1709571316;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YapG2Iuz3DeMuojGrZ4IACVCP3buEgPcxL/agJvMeoI=;
-        b=p7Jl7Ebb6pRrSABgsdtFvP/AAFizr58HKbwVKpEQWNzyV7eupr8iwmNcyHiMrCDSv2
-         Z2bpN+IhMrGGT+36B9bXY9NeJiB38sXK51waK2Jc9i0acb+wkd+el5bhNMoqFuaPAqE2
-         Susn1E+JhuZ4mcxK5/1GZToGO9sRzgZ/Dct2V9DxWmF4ruo3dA0j/IMIJ6YVpDCr+s1J
-         HX83OoPkgmD97y67nJ3TCy5Ff/7ZkDbuYP9goc9v5TZ+25nIZZSGwxWzV+lRnFPqJosM
-         fOGIDnbbKzuggxfa5vvnEP/4wq5SAQh+r+nLK+vcpAy9JZG+50YhNEfjJripU7i/cq4J
-         oIXg==
-X-Forwarded-Encrypted: i=1; AJvYcCXgxm06/kQwFeXoTHprILS+PU2Zn7Gm+XySjsHuNUjCo5tKnxo7ZZ5Pq4hhdA2sHHeDNN/G9yqXKbPYg9Ct75j1i/7Q8OdAKN2Teg==
-X-Gm-Message-State: AOJu0Yz2Q7gacxYDqUVnEr4EG6JWNFpJOTYQ3OtqOXN8aAiMLqmIv9C5
-	hRyGqknktpqdiOrrQfvBdem1Wwny19fkGOM1lsrHwD/NzT929oT9YOs5EKuJfR4=
-X-Google-Smtp-Source: AGHT+IHuaCs5d/f2oApxcwZJ00c0VtAfeY0TQXQD6OLSfI1tJf749yVYK76BLp2wH1JUJFxCC31KGw==
-X-Received: by 2002:a5e:c819:0:b0:7c7:247e:34c7 with SMTP id y25-20020a5ec819000000b007c7247e34c7mr9575536iol.9.1708966515786;
-        Mon, 26 Feb 2024 08:55:15 -0800 (PST)
-Received: from [100.64.0.1] ([170.85.6.200])
-        by smtp.gmail.com with ESMTPSA id f23-20020a6be817000000b007c7938867adsm1309067ioh.33.2024.02.26.08.55.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 26 Feb 2024 08:55:15 -0800 (PST)
-Message-ID: <764fafb0-2206-4ab1-84ea-ebb7848c8ff2@sifive.com>
-Date: Mon, 26 Feb 2024 10:55:11 -0600
+	dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b="Fd7NBOeQ"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=lM+yljWb2C18J4Jw/CSnWRpPTICg6xMnHYFMG8CwPac789mqtJFH5v9OCfpsWPFgXS6nunq4H0hWDJd26U7ENao1nTzVKciMsNc7MPp5aDIOAGElmVVcJiuy0NGuQcnfni84r6lnQKOfI/HrafKDXeyQsLdygTQh6LutS/hhUjKoP/6cAGiOvDpW3CfOQ8qTgjlkMptGSHlQ9L2Jqp66Dg1EcR3KMDv3ouynY3wwMujcrKN8QnEUOLt7BCBxbHehgqi19BCJII6ZtdoJCqBPnvgSM3iQ0GesltGKruzZyFB5yZ0I+2QlwgpIy5rydiJtZ3Scjz6yHGh3itKikmn/KQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=XYGe+zWU3Kna6wmlC6InTwUxBqGETMrm0x8fGoU6LYc=;
+ b=ep4MEFvGlJtE/Z2CeFovRI5z7+WZcCeskvJu6ESRbESPoNRV1g3gEZl2LC7WhEMLCxj5F4eRJPV22PuH85XszrkAeC5UmaF1ZvTmJqwT1g+HGTKh8UrKpELSeTbyxUh+dXpUFgNcR7cbiSRM5GDBlDaNFT0Tx84vvCnyFFtF3l9q1T17Cp6RZdE4tVE02LAgD2qOHoN6MFQ/NS11wC2qEX/7TymKTX98yi2jtqEa1ABZtWhGe26kFfl5IAwm1DCfAqLMxlh/AZXxTNEXSO/admcJo6Td7U8CM6tXckwIniI0jXmmgB7V+OBMBjmTWDVpjwZJNlkkplO/g+weU2l2wA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
+ dkim=pass header.d=csgroup.eu; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=csgroup.eu;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XYGe+zWU3Kna6wmlC6InTwUxBqGETMrm0x8fGoU6LYc=;
+ b=Fd7NBOeQjrg6As/9RayTeQNFGQ4AlSC3Cvq8IYkw5U+eZ33oj0wVHQ3VYxCLF5iqXE7E/j6UjIvzRTW3tlILOEB5Aen+Z7ZYQ7euyfqZVo9ZZ9UUmHg6+RIB3zG6uBzQ+8On8KscdYK4F54Ow26XLT7QUfmXezVO/r785fzDyZkGP+WdxoAOAgbFLEptuaMynH9uczFibARZaI+ghhoR5i4eI3gzdhsG9kLK1d3pJE/1tvxy+FAntRrCfl4LrWQxqYxQtqMHjggJVZiUEI+ZUJQsaTWY3m2rdLSjVANKBf5tM2zI7uL2PhgEIKRt+Y1WHEFJtbs/cdS07DwfMWZ1Wg==
+Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
+ by PAZP264MB2655.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:1e5::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7316.36; Mon, 26 Feb
+ 2024 18:53:57 +0000
+Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+ ([fe80::c192:d40f:1c33:1f4e]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+ ([fe80::c192:d40f:1c33:1f4e%6]) with mapi id 15.20.7316.035; Mon, 26 Feb 2024
+ 18:53:57 +0000
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+To: Arnd Bergmann <arnd@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>, Kees Cook
+	<keescook@chromium.org>, Anna-Maria Behnsen <anna-maria@linutronix.de>
+CC: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet
+ Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Catalin
+ Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, Brian Cain
+	<bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, Geert Uytterhoeven
+	<geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer
+	<tsbogend@alpha.franken.de>, Helge Deller <deller@gmx.de>, Michael Ellerman
+	<mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>, John Paul Adrian
+ Glaubitz <glaubitz@physik.fu-berlin.de>, Andreas Larsson
+	<andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, "x86@kernel.org"
+	<x86@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Andy Lutomirski
+	<luto@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>, Kieran Bingham
+	<kbingham@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
+	"linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, "linux-csky@vger.kernel.org"
+	<linux-csky@vger.kernel.org>, "linux-hexagon@vger.kernel.org"
+	<linux-hexagon@vger.kernel.org>, "loongarch@lists.linux.dev"
+	<loongarch@lists.linux.dev>, "linux-m68k@lists.linux-m68k.org"
+	<linux-m68k@lists.linux-m68k.org>, "linux-mips@vger.kernel.org"
+	<linux-mips@vger.kernel.org>, "linux-openrisc@vger.kernel.org"
+	<linux-openrisc@vger.kernel.org>, "linux-parisc@vger.kernel.org"
+	<linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org"
+	<linuxppc-dev@lists.ozlabs.org>, "linux-riscv@lists.infradead.org"
+	<linux-riscv@lists.infradead.org>, "linux-s390@vger.kernel.org"
+	<linux-s390@vger.kernel.org>, "linux-sh@vger.kernel.org"
+	<linux-sh@vger.kernel.org>, "sparclinux@vger.kernel.org"
+	<sparclinux@vger.kernel.org>, "linux-um@lists.infradead.org"
+	<linux-um@lists.infradead.org>, Linux Kernel Functional Testing
+	<lkft@linaro.org>
+Subject: Re: [PATCH 4/4] vdso: avoid including asm/page.h
+Thread-Topic: [PATCH 4/4] vdso: avoid including asm/page.h
+Thread-Index: AQHaaM783I0sqYE5uU2LN0m8jk9xFbEc+K2A
+Date: Mon, 26 Feb 2024 18:53:57 +0000
+Message-ID: <80bc4de5-a351-4ac0-93c8-80c8d80fb202@csgroup.eu>
+References: <20240226161414.2316610-1-arnd@kernel.org>
+ <20240226161414.2316610-5-arnd@kernel.org>
+In-Reply-To: <20240226161414.2316610-5-arnd@kernel.org>
+Accept-Language: fr-FR, en-US
+Content-Language: fr-FR
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Mozilla Thunderbird
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=csgroup.eu;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MRZP264MB2988:EE_|PAZP264MB2655:EE_
+x-ms-office365-filtering-correlation-id: 4cb29eea-cdb1-4825-0e70-08dc36fc4978
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ EOOY6FIum82fElAgWLKO7l+EaGwdM6nML9V8cDoWK9A3C8aEOG0hRjd4VC+AwbI6SX+dU1UCWFyKYND8IkgnS0Of9Lii1q4LSBTUHNjk2ijbHL7tib+Av3hMbiuVT6/bdv4b+qExpocmSkdgVBHa7rsIpz9K9Ezz+LlLegx9FA1owV5vOoA67pwt/Wdx5utkNYu8prsUV5FFywoL0FZYLw++Hl+9tcWvIBVAdV/7QRDzjvST996JCENrrCBsGaMRI6i/1tLl4WgaVtblmNzSx9za+JotNWIcyrcGOL1iiDVc9LlCzX6dRQu11/Wp7OBPF5NbtguTP/uc29jZhLrqjoR/TDWXXWIPr/MLjf/i2Jjy2DsOxx/FsJWb+JH0wxo14cHKX23YaJdgFte/ht1yDuCnr3ON8TGFgcEtd/m0rBIdUK9OGFS/RBpXe+U0sIUKbZP26071HNmmS+UW/QQzvsu4Z++Z7p+f6V94Y25bBgb5+Zj+TPKCjiQy6KrNmwij5QRUNF64gTwlOe6vZMZA17VARdCSgWEwvwWmDd0RfjuV/PHlKnsUxQ87bbBcrd/cXB7Kqmk3vEoOTd6iCTtLZSOUywn8g7gC+NrdBxe8sqrBcU/AK2M5HzWgI6jOMrZW0QAdZQwQvrw1r/UxxeXabjLg41rA5ae/ZaTekSFpoJmK5wvjBSxREos/wI2QuejT4aG9Z+dhvTB7KJT3Ycj09w==
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230031)(38070700009);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?NTlob2dhNzhGaWMyQnl3RWs4SytSZEE4QkV5SmlVeUk3cjZDN1JxZkdJT1Rp?=
+ =?utf-8?B?cHBncWFxcUFoWXVvYmFBenlGV2IvMWpuN0N3QitGMXBqR3I3U2FFYzJwY2Ja?=
+ =?utf-8?B?b0tUUHIvblEvUGgraVIwOWFSQmNnc0t4K0dRVUlyemdLcEtEVkVCVmRRdjNx?=
+ =?utf-8?B?d2ZKV21Kem1rV1VHV1gyWXZiQ0JjMzJ1aG1jTTJPNVI1RmxHdk05bWVwaHUw?=
+ =?utf-8?B?T3lZQzhoZ0szRmZmaUhnMHdQSUxONHE4TjFqVThLSXMwNmlXSFdCM3dEWWN3?=
+ =?utf-8?B?Z3JGWlcxQy92NDJrdEZ2bFJnNTBSc3I2QStSYlBmYUw2UldsbFd3emFvVGJ0?=
+ =?utf-8?B?cEtSOGdLQWRObjdzZjVrVFkvZHhqVVpNTzEzVjB6QjZ1eWZQem5YUWlJRktI?=
+ =?utf-8?B?RUdrNGlqdWJTdnEvOGE3YkVkUXRhU1RhdmtzcXFmNzBCaENkWkRXWE0rRm1V?=
+ =?utf-8?B?ZGJDbjVhU2JmTU9tMWpnZ1BGVlhhY0kyL0M0MUhMeDJsWXBDampJOERPY1lN?=
+ =?utf-8?B?eS9hZXdLbWt2cGFQQkpsTjlVUWRIcjhKYk5CMGlienJxUEhybEVDemlIQm9p?=
+ =?utf-8?B?UWNjNWJTSmh6RnJWTjcrbU9GazhpLzlaK2RTYTJ2WmVyamtEa2lLaTlMbWY1?=
+ =?utf-8?B?dDVyWVcyYng5dis2T1dzRmFOL21jUDgvY2szVHpGcFFPc1JqYmpUMTVFU2dw?=
+ =?utf-8?B?a0dJcVRPdTBiM3N6ZGtBTytEa1Zscmx1WVNIcTI1c3hnNWIwYXJpaUdZQ29n?=
+ =?utf-8?B?dXpUVGt1cjVnZTZIUDljZGg4TFlQSmM0WEtsaFMxOHg0U21IMHd0bHRqK0Rm?=
+ =?utf-8?B?ZXpJTi9zVjdPdFh0am5GRndhMGtEUTFCc05yV2Ezb2dDaDF4TjJ5L21zWVZR?=
+ =?utf-8?B?ZDk5V09CbllFTDJEbXVtdlMxSEN2STNQVXNIYUJvQzNRZEFac21XQ0FOdEZE?=
+ =?utf-8?B?ajA0WDBGQmR2bTArOFdYUnRHL2tURVlGUUNTODBlckpUVzZsMkZXSEJFOXkz?=
+ =?utf-8?B?NmVWbDFUV1VCb0RkYXMySkZtMEVlMERnSWRYTlZrd2hBeVRMdVQzSW5UVXBY?=
+ =?utf-8?B?MzRWNm5jdEVsajZzelFMK1NFdzRyM2JVSmE0bjU0MUZJZUFpV0RLZy9GRURx?=
+ =?utf-8?B?L1pLRTZqRDhJZ0VLam5kaXZVUHhoaEZ4Vm1tdmtkZ3NjdC9SRm9uVnREd2kw?=
+ =?utf-8?B?ajNGb3lsRGRDeEloUlhSdGdUV09KbEhZb212SWFnWU5Ha0pFWm42UHQxOUFZ?=
+ =?utf-8?B?UTVWQnhXV1FDS1BPazdyNCtHaTJyMVlvV3A4cXJldjNsZENOUS90RGgySEJE?=
+ =?utf-8?B?QWFMdFVEMnJaSytnMExISFpYTkxhKzQvbnhEeTM0NmpWUGhDTFRDcVBZVk05?=
+ =?utf-8?B?eUdIdk1iYnBoSmJKU2hPRkVQZVl3cjMyMWdaakNrazFsWE9HTzQxYUFRUVNI?=
+ =?utf-8?B?ZEtneDEyc0FLdG1zdS9LU1N6TDI2MzMrdWJsaHdCaWpQeXUyRlVhQ25rdUZU?=
+ =?utf-8?B?U081SnFRTnEyV3RmaS9zWXBCNElhMktSQVpCTEpiVGVQUzJwVzVWZndTNVFn?=
+ =?utf-8?B?L2x2R0M0cTVsUktha0Flc1h3TEZOaVZmOEo1Qmx6ekNseXhkbWZTT0YvVUUr?=
+ =?utf-8?B?NkVRL2RhY2I1bHh2Sm9rNmVJaUZPTDlKcmw0d3FwZHdaZlNrSi8rMWUwUmlB?=
+ =?utf-8?B?R3piK3BIVC8vZjhuSktIaGhFZURYeWtSaDJodURZS2xxSlE2Y0hMcjVmcFhl?=
+ =?utf-8?B?M0kydFpzeWtBaHVldzhCT1RMUXF4aXRMMHcxQ1BvSHh3NzQwakNiaUt1ZWNj?=
+ =?utf-8?B?bk1UTU03NFZMQzFqTU9Eb1NaUFdGTUNsc0l2bjJubElaU3QrOGxrTjNORkdE?=
+ =?utf-8?B?Z3FKM0FMQnBpam90bXhHeDZPcTNxZys2UkluSUl3cmhTTUhyMGJnZk1rL2VM?=
+ =?utf-8?B?dnBTdk96ZGQvQ3hmcWErZ3g2d3NvOWprTkFJNTdnR3puS293elRCMFVVMVRR?=
+ =?utf-8?B?YVM5UTVKM245d3NzdmVqa0M1bGZVbVA3R1BicVhoTmNpa0h6dE1nNzcrTytO?=
+ =?utf-8?B?VHZXRTVJRmRUY20zTC9pNUNORkZTN0ZxeUs1d1p6WnRTQU1GUXNoSWxRcEdT?=
+ =?utf-8?B?b21zWDk1aVFmaW13TUtuRWx2cnUwenUzd1JHL0xIb3kyVys5NFJ1ZXVFN2Zt?=
+ =?utf-8?B?Y3c9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <BDC56866773E974D9137022655A4D547@FRAP264.PROD.OUTLOOK.COM>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/4] arch: consolidate existing CONFIG_PAGE_SIZE_*KB
- definitions
-Content-Language: en-US
-To: Arnd Bergmann <arnd@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
- Vincenzo Frascino <vincenzo.frascino@arm.com>,
- Kees Cook <keescook@chromium.org>,
- Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>,
- Vineet Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>,
- Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>,
- Brian Cain <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>,
- Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller
- <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Palmer Dabbelt <palmer@dabbelt.com>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Andreas Larsson <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>,
- x86@kernel.org, Max Filippov <jcmvbkbc@gmail.com>,
- Andy Lutomirski <luto@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>,
- Kieran Bingham <kbingham@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org
-References: <20240226161414.2316610-1-arnd@kernel.org>
- <20240226161414.2316610-2-arnd@kernel.org>
-From: Samuel Holland <samuel.holland@sifive.com>
-In-Reply-To: <20240226161414.2316610-2-arnd@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: csgroup.eu
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4cb29eea-cdb1-4825-0e70-08dc36fc4978
+X-MS-Exchange-CrossTenant-originalarrivaltime: 26 Feb 2024 18:53:57.2010
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 2oI3dHryQEhrd3o6vjMwUt1CpfrM8Widlr3G6Dkkxf4ZgqLImfwnjP0WKK11Y7wqsORGS854IwMF3wxLAxZ93FLXnE9NrLP2f1R9p7nwlRM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAZP264MB2655
 
-On 2024-02-26 10:14 AM, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
-> 
-> These four architectures define the same Kconfig symbols for configuring
-> the page size. Move the logic into a common place where it can be shared
-> with all other architectures.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/Kconfig                      | 58 +++++++++++++++++++++++++++++--
->  arch/hexagon/Kconfig              | 25 +++----------
->  arch/hexagon/include/asm/page.h   |  6 +---
->  arch/loongarch/Kconfig            | 21 ++++-------
->  arch/loongarch/include/asm/page.h | 10 +-----
->  arch/mips/Kconfig                 | 58 +++----------------------------
->  arch/mips/include/asm/page.h      | 16 +--------
->  arch/sh/include/asm/page.h        | 13 +------
->  arch/sh/mm/Kconfig                | 42 +++++++---------------
->  9 files changed, 88 insertions(+), 161 deletions(-)
-> 
-> diff --git a/arch/Kconfig b/arch/Kconfig
-> index a5af0edd3eb8..237cea01ed9b 100644
-> --- a/arch/Kconfig
-> +++ b/arch/Kconfig
-> @@ -1078,17 +1078,71 @@ config HAVE_ARCH_COMPAT_MMAP_BASES
->  	  and vice-versa 32-bit applications to call 64-bit mmap().
->  	  Required for applications doing different bitness syscalls.
->  
-> +config HAVE_PAGE_SIZE_4KB
-> +	bool
-> +
-> +config HAVE_PAGE_SIZE_8KB
-> +	bool
-> +
-> +config HAVE_PAGE_SIZE_16KB
-> +	bool
-> +
-> +config HAVE_PAGE_SIZE_32KB
-> +	bool
-> +
-> +config HAVE_PAGE_SIZE_64KB
-> +	bool
-> +
-> +config HAVE_PAGE_SIZE_256KB
-> +	bool
-> +
-> +choice
-> +	prompt "MMU page size"
-
-Should this have some generic help text (at least a warning about compatibility)?
-
-> +
-> +config PAGE_SIZE_4KB
-> +	bool "4KB pages"
-> +	depends on HAVE_PAGE_SIZE_4KB
-> +
-> +config PAGE_SIZE_8KB
-> +	bool "8KB pages"
-> +	depends on HAVE_PAGE_SIZE_8KB
-> +
-> +config PAGE_SIZE_16KB
-> +	bool "16KB pages"
-> +	depends on HAVE_PAGE_SIZE_16KB
-> +
-> +config PAGE_SIZE_32KB
-> +	bool "32KB pages"
-> +	depends on HAVE_PAGE_SIZE_32KB
-> +
-> +config PAGE_SIZE_64KB
-> +	bool "64KB pages"
-> +	depends on HAVE_PAGE_SIZE_64KB
-> +
-> +config PAGE_SIZE_256KB
-> +	bool "256KB pages"
-> +	depends on HAVE_PAGE_SIZE_256KB
-> +
-> +endchoice
-> +
->  config PAGE_SIZE_LESS_THAN_64KB
->  	def_bool y
-> -	depends on !ARM64_64K_PAGES
->  	depends on !PAGE_SIZE_64KB
-> -	depends on !PARISC_PAGE_SIZE_64KB
->  	depends on PAGE_SIZE_LESS_THAN_256KB
->  
->  config PAGE_SIZE_LESS_THAN_256KB
->  	def_bool y
->  	depends on !PAGE_SIZE_256KB
->  
-> +config PAGE_SHIFT
-> +	int
-> +	default 12 if PAGE_SIZE_4KB
-> +	default 13 if PAGE_SIZE_8KB
-> +	default 14 if PAGE_SIZE_16KB
-> +	default 15 if PAGE_SIZE_32KB
-> +	default 16 if PAGE_SIZE_64KB
-> +	default 18 if PAGE_SIZE_256KB
-> +
->  # This allows to use a set of generic functions to determine mmap base
->  # address by giving priority to top-down scheme only if the process
->  # is not in legacy mode (compat task, unlimited stack size or
-> diff --git a/arch/hexagon/Kconfig b/arch/hexagon/Kconfig
-> index a880ee067d2e..aac46ee1a000 100644
-> --- a/arch/hexagon/Kconfig
-> +++ b/arch/hexagon/Kconfig
-> @@ -8,6 +8,11 @@ config HEXAGON
->  	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
->  	select ARCH_NO_PREEMPT
->  	select DMA_GLOBAL_POOL
-> +	select FRAME_POINTER
-
-Looks like a paste error.
-
-> +	select HAVE_PAGE_SIZE_4KB
-> +	select HAVE_PAGE_SIZE_16KB
-> +	select HAVE_PAGE_SIZE_64KB
-> +	select HAVE_PAGE_SIZE_256KB
->  	# Other pending projects/to-do items.
->  	# select HAVE_REGS_AND_STACK_ACCESS_API
->  	# select HAVE_HW_BREAKPOINT if PERF_EVENTS
-> @@ -120,26 +125,6 @@ config NR_CPUS
->  	  This is purely to save memory - each supported CPU adds
->  	  approximately eight kilobytes to the kernel image.
->  
-> -choice
-> -	prompt "Kernel page size"
-> -	default PAGE_SIZE_4KB
-> -	help
-> -	  Changes the default page size; use with caution.
-> -
-> -config PAGE_SIZE_4KB
-> -	bool "4KB"
-> -
-> -config PAGE_SIZE_16KB
-> -	bool "16KB"
-> -
-> -config PAGE_SIZE_64KB
-> -	bool "64KB"
-> -
-> -config PAGE_SIZE_256KB
-> -	bool "256KB"
-> -
-> -endchoice
-> -
->  source "kernel/Kconfig.hz"
->  
->  endmenu
-> diff --git a/arch/hexagon/include/asm/page.h b/arch/hexagon/include/asm/page.h
-> index 10f1bc07423c..65c9bac639fa 100644
-> --- a/arch/hexagon/include/asm/page.h
-> +++ b/arch/hexagon/include/asm/page.h
-> @@ -13,27 +13,22 @@
->  /*  This is probably not the most graceful way to handle this.  */
->  
->  #ifdef CONFIG_PAGE_SIZE_4KB
-> -#define PAGE_SHIFT 12
->  #define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_4KB
->  #endif
->  
->  #ifdef CONFIG_PAGE_SIZE_16KB
-> -#define PAGE_SHIFT 14
->  #define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_16KB
->  #endif
->  
->  #ifdef CONFIG_PAGE_SIZE_64KB
-> -#define PAGE_SHIFT 16
->  #define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_64KB
->  #endif
->  
->  #ifdef CONFIG_PAGE_SIZE_256KB
-> -#define PAGE_SHIFT 18
->  #define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_256KB
->  #endif
->  
->  #ifdef CONFIG_PAGE_SIZE_1MB
-> -#define PAGE_SHIFT 20
->  #define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_1MB
->  #endif
-
-The corresponding Kconfig option does not exist (and did not exist before this
-patch).
-
->  
-> @@ -50,6 +45,7 @@
->  #define HVM_HUGEPAGE_SIZE 0x5
->  #endif
->  
-> +#define PAGE_SHIFT CONFIG_PAGE_SHIFT
->  #define PAGE_SIZE  (1UL << PAGE_SHIFT)
->  #define PAGE_MASK  (~((1 << PAGE_SHIFT) - 1))
->  
-
+DQoNCkxlIDI2LzAyLzIwMjQgw6AgMTc6MTQsIEFybmQgQmVyZ21hbm4gYSDDqWNyaXTCoDoNCj4g
+RnJvbTogQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4NCj4gDQo+IFRoZSByZWNlbnQgY2hh
+bmdlIHRvIHRoZSB2ZHNvX2RhdGFfc3RvcmUgYnJva2UgYnVpbGRpbmcgY29tcGF0IFZEU08NCj4g
+b24gYXQgbGVhc3QgYXJtNjQgYmVjYXVzZSBpdCBpbmNsdWRlcyBoZWFkZXJzIG91dHNpZGUgb2Yg
+dGhlIGluY2x1ZGUvdmRzby8NCj4gbmFtZXNwYWNlOg0KDQpJIHVuZGVyc3RhbmQgdGhhdCBwb3dl
+cnBjNjQgYWxzbyBoYXMgYW4gaXNzdWUsIHNlZSANCmh0dHBzOi8vcGF0Y2h3b3JrLm96bGFicy5v
+cmcvcHJvamVjdC9saW51eHBwYy1kZXYvcGF0Y2gvMjAyMzEyMjExMjA0MTAuMjIyNjY3OC0xLW1w
+ZUBlbGxlcm1hbi5pZC5hdS8NCg0KPiANCj4gSW4gZmlsZSBpbmNsdWRlZCBmcm9tIGFyY2gvYXJt
+NjQvaW5jbHVkZS9hc20vbHNlLmg6NSwNCj4gICAgICAgICAgICAgICAgICAgZnJvbSBhcmNoL2Fy
+bTY0L2luY2x1ZGUvYXNtL2NtcHhjaGcuaDoxNCwNCj4gICAgICAgICAgICAgICAgICAgZnJvbSBh
+cmNoL2FybTY0L2luY2x1ZGUvYXNtL2F0b21pYy5oOjE2LA0KPiAgICAgICAgICAgICAgICAgICBm
+cm9tIGluY2x1ZGUvbGludXgvYXRvbWljLmg6NywNCj4gICAgICAgICAgICAgICAgICAgZnJvbSBp
+bmNsdWRlL2FzbS1nZW5lcmljL2JpdG9wcy9hdG9taWMuaDo1LA0KPiAgICAgICAgICAgICAgICAg
+ICBmcm9tIGFyY2gvYXJtNjQvaW5jbHVkZS9hc20vYml0b3BzLmg6MjUsDQo+ICAgICAgICAgICAg
+ICAgICAgIGZyb20gaW5jbHVkZS9saW51eC9iaXRvcHMuaDo2OCwNCj4gICAgICAgICAgICAgICAg
+ICAgZnJvbSBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL21lbW9yeS5oOjIwOSwNCj4gICAgICAgICAg
+ICAgICAgICAgZnJvbSBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL3BhZ2UuaDo0NiwNCj4gICAgICAg
+ICAgICAgICAgICAgZnJvbSBpbmNsdWRlL3Zkc28vZGF0YXBhZ2UuaDoyMiwNCj4gICAgICAgICAg
+ICAgICAgICAgZnJvbSBsaWIvdmRzby9nZXR0aW1lb2ZkYXkuYzo1LA0KPiAgICAgICAgICAgICAg
+ICAgICBmcm9tIDxjb21tYW5kLWxpbmU+Og0KPiBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL2F0b21p
+Y19sbF9zYy5oOjI5ODo5OiBlcnJvcjogdW5rbm93biB0eXBlIG5hbWUgJ3UxMjgnDQo+ICAgIDI5
+OCB8ICAgICAgICAgdTEyOCBmdWxsOw0KPiANCj4gVXNlIGFuIG9wZW4tY29kZWQgcGFnZSBzaXpl
+IGNhbGN1bGF0aW9uIGJhc2VkIG9uIHRoZSBuZXcgQ09ORklHX1BBR0VfU0hJRlQNCj4gS2NvbmZp
+ZyBzeW1ib2wgaW5zdGVhZC4NCj4gDQo+IFJlcG9ydGVkLWJ5OiBMaW51eCBLZXJuZWwgRnVuY3Rp
+b25hbCBUZXN0aW5nIDxsa2Z0QGxpbmFyby5vcmc+DQo+IEZpeGVzOiBhMGQyZmNkNjJhYzIgKCJ2
+ZHNvL0FSTTogTWFrZSB1bmlvbiB2ZHNvX2RhdGFfc3RvcmUgYXZhaWxhYmxlIGZvciBhbGwgYXJj
+aGl0ZWN0dXJlcyIpDQo+IExpbms6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xrbWwvQ0ErRzlm
+WXRyWFhtX0tPOWZOUHozWGFSeEhWN1VEX3lRcC1URXVQUXJOUkhVK18wV19RQG1haWwuZ21haWwu
+Y29tLw0KPiBTaWduZWQtb2ZmLWJ5OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPg0KPiAt
+LS0NCj4gICBpbmNsdWRlL3Zkc28vZGF0YXBhZ2UuaCB8IDQgKy0tLQ0KPiAgIDEgZmlsZSBjaGFu
+Z2VkLCAxIGluc2VydGlvbigrKSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9p
+bmNsdWRlL3Zkc28vZGF0YXBhZ2UuaCBiL2luY2x1ZGUvdmRzby9kYXRhcGFnZS5oDQo+IGluZGV4
+IDdiYTQ0Mzc5YTA5NS4uMmMzOWE2N2Q3ZTIzIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL3Zkc28v
+ZGF0YXBhZ2UuaA0KPiArKysgYi9pbmNsdWRlL3Zkc28vZGF0YXBhZ2UuaA0KPiBAQCAtMTksOCAr
+MTksNiBAQA0KPiAgICNpbmNsdWRlIDx2ZHNvL3RpbWUzMi5oPg0KPiAgICNpbmNsdWRlIDx2ZHNv
+L3RpbWU2NC5oPg0KPiAgIA0KPiAtI2luY2x1ZGUgPGFzbS9wYWdlLmg+DQo+IC0NCj4gICAjaWZk
+ZWYgQ09ORklHX0FSQ0hfSEFTX1ZEU09fREFUQQ0KPiAgICNpbmNsdWRlIDxhc20vdmRzby9kYXRh
+Lmg+DQo+ICAgI2Vsc2UNCj4gQEAgLTEyOCw3ICsxMjYsNyBAQCBleHRlcm4gc3RydWN0IHZkc29f
+ZGF0YSBfdGltZW5zX2RhdGFbQ1NfQkFTRVNdIF9fYXR0cmlidXRlX18oKHZpc2liaWxpdHkoImhp
+ZGRlbg0KPiAgICAqLw0KPiAgIHVuaW9uIHZkc29fZGF0YV9zdG9yZSB7DQo+ICAgCXN0cnVjdCB2
+ZHNvX2RhdGEJZGF0YVtDU19CQVNFU107DQo+IC0JdTgJCQlwYWdlW1BBR0VfU0laRV07DQo+ICsJ
+dTgJCQlwYWdlWzF1bCA8PCBDT05GSUdfUEFHRV9TSElGVF07DQoNClVzdWFsbHkgMVVMIGlzIHVz
+ZWQgKGNhcGl0YWwgbGV0dGVyKQ0KDQpNYXliZSBiZXR0ZXIgdG8gKHJlKWRlZmluZSBQQUdFX1NJ
+WkUgaW5zdGVhZCwgc29tZXRoaW5nIGxpa2U6DQoNCiNkZWZpbmUgUEFHRV9TSVpFICgxVUwgPDwg
+Q09ORklHX1BBR0VfU0hJRlQpDQoNCg0KPiAgIH07DQo+ICAgDQo+ICAgLyoNCg==
