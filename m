@@ -1,104 +1,147 @@
-Received: from mail-pg1-f173.google.com (mail-pg1-f173.google.com [209.85.215.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pegase1.c-s.fr (pegase1.c-s.fr [93.17.236.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D40116FF4E
-	for <sparclinux@vger.kernel.org>; Thu, 29 Feb 2024 21:32:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D71FB224C9;
+	Fri,  1 Mar 2024 07:52:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.236.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709242376; cv=none; b=jyyE0BcPokt/qELH9w2pV2m6EOLdrNGkMAKu/3x7c+zLSgazRRw/zrYSO2QE9rpTJRg9olgNH36cM+pfBGk1VMichFOtQRrvjeuUjEJlrtZuze2a6fn4JhJCVr8TGVzQlUo2/ly3PsyzQ3CXTLgP0PhjGCMhJCGXMCBK2tUHLIE=
+	t=1709279566; cv=none; b=bJwHCuev+pQvlQrDcEwxBfa+kffHUk30mS5x509q077C2EtAC7f54ylmQgctTRrnX+tIVyLjDA1hHTsvrzEv6lbN09dli2FzoSOmpiT5ADjyWwdTvT1RV5WYBUnnxDPmcZ8LiveL5DQypMk/9cp657TaT+Bahq8f6hGW6TQUV7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709242376; c=relaxed/simple;
-	bh=M1OIAA0ItaLeA6OMZsMNhafiM0P2mVk8eYOUN2HrEfw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jnm/JaE5ZrTAUxPg06MOcNz5Nrc3RoRORi04zhh9y4V+taCWIfi7C1of6vsH+yQgYzzquPSAC+2edK8FjCLVFi+cEiNHY/jkA6vQVMf6qD03dLnvQA3rP2XQDaj+U5OtAKl9D9CIcK+qs9LibcBiyLUM15CKujVR9pGj/IfjLSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=I+9QetA6; arc=none smtp.client-ip=209.85.215.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="I+9QetA6"
-Received: by mail-pg1-f173.google.com with SMTP id 41be03b00d2f7-5dc20645871so1002906a12.1
-        for <sparclinux@vger.kernel.org>; Thu, 29 Feb 2024 13:32:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1709242374; x=1709847174; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=nZXiBnNhAhi4ZtO0SADmUcnGG7Y1r2RQ91McDK9U7hM=;
-        b=I+9QetA60AKN7+t5WCRGjyqQwKr9rI+ukig6Mf/i2z299vpTYLGtWS9tn9ZHxElQkt
-         dFio/wStFf14NLTi30iYq8N8D09+JygkatmXoIRG1z9YbJKvEnTi8GQHUGsOWiK/spJF
-         1zSwoSK5171OWb4jpi4BY+BLYI7PQ+0/a6jaE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709242374; x=1709847174;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nZXiBnNhAhi4ZtO0SADmUcnGG7Y1r2RQ91McDK9U7hM=;
-        b=oj/7DpqUVTPnQTnnrcxwVlyPnTClDE4zY3LW57hljs9K4A2SosAwq7pNTv6ZjQJkz9
-         H5k+ApOYcY5yZ91eP66Gt94OCmmSTUOkfAzCj3Bp2m0tuOrflyHRsU/FndY72kRBhvl2
-         UES3z6Iuj6basBfQU4WEE6E9gjn4d0R3jVOhTvzA7K4iChntenbBOXKF+omIISjolKh9
-         2cGNoXWZER7n7OM18qXGkAViS3MKviC7qdjTnYgnVVdxVEKN5lYCBuKUMiDG3sPeRupG
-         mCkSruXEme6AQ+Q9RPzYgFEeO3IiX01tpkJYUGn8sYSnW9xAJqEW5ySwsF8Ss6F5NjeD
-         CpRg==
-X-Forwarded-Encrypted: i=1; AJvYcCVskepSid+YL7mOyhtLmFU1EQp9f7PI79xG+agVmVxp4Wh8NYHYL4mGirU9Y4ZYh0BM3ixrcqoir/f+6qCWjHxDRJgtDBtUbL9nxA==
-X-Gm-Message-State: AOJu0Yx9VPJWcn17MUMvbb82JZ/4O4XxsCJ6k4qeJ31nsMX/OlLti640
-	UKDkRKG63qF0u0Cttt0TX4q+gQ+fJnNx7RMVN08y2aZGHdbt+HhjoMUutA4kTA==
-X-Google-Smtp-Source: AGHT+IEvsn9DgpO+cW37vUplHd97MaD5TAZWQ0EdSVcQR53nFAD39hdF/sei1lWoc7NAH+n5Ef2cEw==
-X-Received: by 2002:a17:90a:4491:b0:299:3c2c:b680 with SMTP id t17-20020a17090a449100b002993c2cb680mr241994pjg.15.1709242374560;
-        Thu, 29 Feb 2024 13:32:54 -0800 (PST)
-Received: from www.outflux.net ([198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id c6-20020aa78806000000b006e53cc789c3sm1728164pfo.107.2024.02.29.13.32.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Feb 2024 13:32:54 -0800 (PST)
-Date: Thu, 29 Feb 2024 13:32:53 -0800
-From: Kees Cook <keescook@chromium.org>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	Sam Ravnborg <sam@ravnborg.org>, Helge Deller <deller@gmx.de>,
-	Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	"Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] sparc: vdso: Disable UBSAN instrumentation
-Message-ID: <202402291332.2C89081A@keescook>
-References: <20240223165942.work.950-kees@kernel.org>
- <ZeDiZrrLuqkvxrIY@smile.fi.intel.com>
+	s=arc-20240116; t=1709279566; c=relaxed/simple;
+	bh=m9JyN+OfZnBfNduvWL6HlRt2Ws8qdQM+zYhc2tHrO60=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TjLu8oj5/wja4dRS73eiuFFpI+WQoMqhXJ6PheR2+C0e24fljpIfsfbhoZp9yQyqQKQGIrBKsrj+/R7SjJQaG6qHYn2YQTfeHOE8+Zyzl3276TLY2GIxxjVWDOCzm9gpnH4htaVsvGpE+J3rN5ck6+oWA41EbkUfgyheC5SOD/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.236.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub3.si.c-s.fr [192.168.12.233])
+	by localhost (Postfix) with ESMTP id 4TmL0g4qB7z9tHZ;
+	Fri,  1 Mar 2024 08:52:35 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+	by localhost (pegase1.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id BqoZa5JD5ZwP; Fri,  1 Mar 2024 08:52:35 +0100 (CET)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase1.c-s.fr (Postfix) with ESMTP id 4TmL0f46Qcz9tFS;
+	Fri,  1 Mar 2024 08:52:34 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 857FB8B774;
+	Fri,  1 Mar 2024 08:52:34 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id X5jlVshACLyB; Fri,  1 Mar 2024 08:52:34 +0100 (CET)
+Received: from PO20335.idsi0.si.c-s.fr (unknown [192.168.232.117])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 6FC788B766;
+	Fri,  1 Mar 2024 08:52:33 +0100 (CET)
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+To: Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	KP Singh <kpsingh@kernel.org>,
+	Stanislav Fomichev <sdf@google.com>,
+	Hao Luo <haoluo@google.com>,
+	Jiri Olsa <jolsa@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>,
+	bpf@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	netdev@vger.kernel.org,
+	"linux-hardening @ vger . kernel . org" <linux-hardening@vger.kernel.org>,
+	Kees Cook <keescook@chromium.org>
+Subject: [PATCH bpf-next v2 1/2] bpf: Take return from set_memory_ro() into account with bpf_prog_lock_ro()
+Date: Fri,  1 Mar 2024 08:52:24 +0100
+Message-ID: <8f3b3823cce2177e5912ff5f2f11381a16db07db.1709279160.git.christophe.leroy@csgroup.eu>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZeDiZrrLuqkvxrIY@smile.fi.intel.com>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1709279548; l=2705; i=christophe.leroy@csgroup.eu; s=20211009; h=from:subject:message-id; bh=m9JyN+OfZnBfNduvWL6HlRt2Ws8qdQM+zYhc2tHrO60=; b=BM8D7LKNIqd4yL3OmV1oY3lqs5bdcfaokGX528YFWG10bGRYTPO7xmnY3X/YTK0+TrgdD1oe0 Jcv1743O7HSBXVnLAvfrfkWf80mkc3ESZY06KRQSThm9AifGg/N13eN
+X-Developer-Key: i=christophe.leroy@csgroup.eu; a=ed25519; pk=HIzTzUj91asvincQGOFx6+ZF5AoUuP9GdOtQChs7Mm0=
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 29, 2024 at 10:00:38PM +0200, Andy Shevchenko wrote:
-> On Fri, Feb 23, 2024 at 08:59:45AM -0800, Kees Cook wrote:
-> > The UBSAN instrumentation cannot work in the vDSO since it is executing
-> > in userspace, so disable it in the Makefile. Fixes the build failures
-> > such as:
-> > 
-> > arch/sparc/vdso/vclock_gettime.c:217: undefined reference to `__ubsan_handle_shift_out_of_bounds'
-> > 
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > ---
-> > Cc: "David S. Miller" <davem@davemloft.net>
-> > Cc: Andreas Larsson <andreas@gaisler.com>
-> > Cc: Masahiro Yamada <masahiroy@kernel.org>
-> > Cc: Sam Ravnborg <sam@ravnborg.org>
-> > Cc: Helge Deller <deller@gmx.de>
-> > Cc: Guo Ren <guoren@kernel.org>
-> > Cc: sparclinux@vger.kernel.org
-> 
-> I dunno how you applied patches, but these Cc seems to appear in a few commits
-> in your hardening branch.
-> 
-> I formatted patch from 9fd54b08040669, checked out the new branch just before
-> this commit and run `git am 0001-...`. I don't see them.
+set_memory_ro() can fail, leaving memory unprotected.
 
-Ah, hm, yes, I'll need to split up my trees a bit to get the right
-results. Thanks for pointing that out!
+Check its return and take it into account as an error.
 
+Link: https://github.com/KSPP/linux/issues/7
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: linux-hardening@vger.kernel.org <linux-hardening@vger.kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+---
+Note: next patch is autonomous, it is sent as a follow-up of this one to minimize risk of conflict on filter.h because the two changes are too close to each other.
+
+v2: No modification (Just added link in patch message), patchwork discarded this series due to failed test of s390 but it seems unrelated, see https://lore.kernel.org/bpf/wvd5gzde5ejc2rzsbrtwqyof56uw5ea3rxntfrxtkdabzcuwt6@w7iczzhmay2i/T/#m2e61446f42d5dc3d78f2e0e8b7a783f15cfb109d
+---
+ include/linux/filter.h | 5 +++--
+ kernel/bpf/core.c      | 4 +++-
+ kernel/bpf/verifier.c  | 4 +++-
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 36cc29a2934c..7dd59bccaeec 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -884,14 +884,15 @@ bpf_ctx_narrow_access_offset(u32 off, u32 size, u32 size_default)
+ 
+ #define bpf_classic_proglen(fprog) (fprog->len * sizeof(fprog->filter[0]))
+ 
+-static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
++static inline int __must_check bpf_prog_lock_ro(struct bpf_prog *fp)
+ {
+ #ifndef CONFIG_BPF_JIT_ALWAYS_ON
+ 	if (!fp->jited) {
+ 		set_vm_flush_reset_perms(fp);
+-		set_memory_ro((unsigned long)fp, fp->pages);
++		return set_memory_ro((unsigned long)fp, fp->pages);
+ 	}
+ #endif
++	return 0;
+ }
+ 
+ static inline void bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
+diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+index 71c459a51d9e..c49619ef55d0 100644
+--- a/kernel/bpf/core.c
++++ b/kernel/bpf/core.c
+@@ -2392,7 +2392,9 @@ struct bpf_prog *bpf_prog_select_runtime(struct bpf_prog *fp, int *err)
+ 	}
+ 
+ finalize:
+-	bpf_prog_lock_ro(fp);
++	*err = bpf_prog_lock_ro(fp);
++	if (*err)
++		return fp;
+ 
+ 	/* The tail call compatibility check can only be done at
+ 	 * this late stage as we need to determine, if we deal
+diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
+index 1c34b91b9583..6ec134f76a11 100644
+--- a/kernel/bpf/verifier.c
++++ b/kernel/bpf/verifier.c
+@@ -19096,7 +19096,9 @@ static int jit_subprogs(struct bpf_verifier_env *env)
+ 	 * bpf_prog_load will add the kallsyms for the main program.
+ 	 */
+ 	for (i = 1; i < env->subprog_cnt; i++) {
+-		bpf_prog_lock_ro(func[i]);
++		err = bpf_prog_lock_ro(func[i]);
++		if (err)
++			goto out_free;
+ 		bpf_prog_kallsyms_add(func[i]);
+ 	}
+ 
 -- 
-Kees Cook
+2.43.0
+
