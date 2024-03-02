@@ -1,44 +1,44 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74D786FB2
-	for <sparclinux@vger.kernel.org>; Sat,  2 Mar 2024 00:17:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C225C6FCB
+	for <sparclinux@vger.kernel.org>; Sat,  2 Mar 2024 00:17:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709338653; cv=none; b=GGPfw6HxprTD2GIWSMe9uKJCiywGr7QAglGQSz1yoR8hhBd01r58qFfX7ubLjhPAGhu34o7HOSXeCiyvYciJNEGEoGRykQQyZn5Ng8fMBeJjxOmeY7TUA7o5H0nWZH6vQDnhcKXYQ2JVOkjRJzav6elmmmPopmAVCldVsr8aCng=
+	t=1709338654; cv=none; b=Z7WSRtoBfdIOsdFVh4VFOm4GfZYTsr+wwmfQC6LYyjt76NvygKiUYEZ7ZEuP+2MV9gA4LynvqPQ7cx1EZuQ/MLDjg9hLqrSyjDHtJiE4bBEXuZUUkn4jTCVxApwjAxGsvTDIvYz4jcCQmp/tQFudsBBo1u8cHl7IHmCRbGEeaBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709338653; c=relaxed/simple;
-	bh=21GyrqURHtvFmMAO+cmO/9c174x9Wwx0oUnYUzHkErY=;
+	s=arc-20240116; t=1709338654; c=relaxed/simple;
+	bh=aUPn2kr2ywGgbEfcgtrb26nDcn4EKmG6jav1jyMSZgw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=emm0zIzyHMPzG6yF/PuM1wzVsbXJhMXLqwtn7YZLDb0qnHnPMvO3yG++VkS0YVoZmpVME83Io/fXE4KA6lhfJlWn60k3jc30oWNeEbDTPoSINOlUQBlf9uE7kLoV8POgehULVw6QBPN3xcGwEz6pVygOECvUU7cuss5tjUri8aU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fgmAqI/a; arc=none smtp.client-ip=198.175.65.15
+	 MIME-Version; b=qWNS7ZM6ywiUTSBGW6BDxozJxJpmtgW0VEzDd0yWxdCRyGPb44X7+NoLxljknwYIXBKT3MIJx0hPFkyFCpoax91qnO234tX0sv2aiiGityO+fixF5OOUEJxntrVQaCntf6V6iphyORGIFwXDktxgpxPMyBnwGyi/IoR31XG7YZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VIikdHGe; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fgmAqI/a"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VIikdHGe"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709338651; x=1740874651;
+  t=1709338652; x=1740874652;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=21GyrqURHtvFmMAO+cmO/9c174x9Wwx0oUnYUzHkErY=;
-  b=fgmAqI/arFaHo/jAiGF42NfUcFBMtD1uFWx7e+GFrDTJJCjgrWfwpZh9
-   5lsoFmbyvRsyoxz4RPOA0LAQcwKQohWvxA2CiMTU61xWiBq9NQjPHZ7iY
-   eb5NuXTLzHKLZSjmwUwKhqMq4KNRbQFzxtsyPIjdmV4tRj9rIm9Wiby6y
-   liN87WgyHDuXaNsK+eGW+1bNuADIn+2DSolwWmzgVOY6wZxc+l0mN2TzU
-   9Ll4Qk4cW5gTYOCuaajIlB67JgTB2QQlBLywIWIXNxY5xFPqUpAusqjsB
-   ZlR6Noe/gUrOA4g3qYw1M3WmitsRrsITLsCH0SgdAEr+pzVm82txBDiLI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7715790"
+  bh=aUPn2kr2ywGgbEfcgtrb26nDcn4EKmG6jav1jyMSZgw=;
+  b=VIikdHGein+4kvcMtELdq9pT6FCTR851BIVaVVP/efxdYSO4+JhIhXqN
+   seGJepXkbG90WN5aaHOdq6zeg6zOqc8Ad/hqplnKtIMlFmhcQyvILMGZ0
+   m/CQWP1iYdq52iauMVZwL15Dt0qydkYVdQRd63iaO18xtKgaK3/REchAD
+   S8jlj9dB/w0Qsf7LrrQuPiwt+fcKlAr1hunoUbql+yULsfbvW8b+XFuOv
+   mf+BD67nv3iU97I14oyJ8hiEgKPNp7xNCIwhe+fuP32+AnC/qIdLhl3Ek
+   ijmGELvTy4txLbqqxTLV3S+IWzAt0wlN2E9vXrGwgbSVlMmXzoKhO09IH
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7715813"
 X-IronPort-AV: E=Sophos;i="6.06,197,1705392000"; 
-   d="scan'208";a="7715790"
+   d="scan'208";a="7715813"
 Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 16:17:30 -0800
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 16:17:32 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.06,197,1705392000"; 
-   d="scan'208";a="8495994"
+   d="scan'208";a="8496003"
 Received: from thwood-mobl1.amr.corp.intel.com (HELO rpedgeco-desk4.intel.com) ([10.251.7.75])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 16:17:29 -0800
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 16:17:31 -0800
 From: Rick Edgecombe <rick.p.edgecombe@intel.com>
 To: rick.p.edgecombe@intel.com
 Cc: Liam.Howlett@oracle.com,
@@ -56,10 +56,11 @@ Cc: Liam.Howlett@oracle.com,
 	sparclinux@vger.kernel.org,
 	tglx@linutronix.de,
 	x86@kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-Subject: [RFC v2.1 10/12] sparc: Use initializer for struct vm_unmapped_area_info
-Date: Fri,  1 Mar 2024 16:17:12 -0800
-Message-Id: <20240302001714.674091-10-rick.p.edgecombe@intel.com>
+	Muchun Song <muchun.song@linux.dev>,
+	linux-mm@kvack.org
+Subject: [RFC v2.1 12/12] hugetlbfs: Use initializer for struct vm_unmapped_area_info
+Date: Fri,  1 Mar 2024 16:17:14 -0800
+Message-Id: <20240302001714.674091-12-rick.p.edgecombe@intel.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240302001714.674091-1-rick.p.edgecombe@intel.com>
 References: <20240226190951.3240433-6-rick.p.edgecombe@intel.com>
@@ -104,8 +105,8 @@ that were manually initialized to zero, as this would be redundant for
 designated initializers.
 
 Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: linux-mm@kvack.org
 Link: https://lore.kernel.org/lkml/202402280912.33AEE7A9CF@keescook/#t
 Link: https://lore.kernel.org/lkml/j7bfvig3gew3qruouxrh7z7ehjjafrgkbcmg6tcghhfh3rhmzi@wzlcoecgy5rs/
 ---
@@ -123,150 +124,51 @@ Rick
 
 [0] https://lore.kernel.org/lkml/20240226190951.3240433-6-rick.p.edgecombe@intel.com/
 ---
- arch/sparc/kernel/sys_sparc_32.c | 16 ++++++++--------
- arch/sparc/kernel/sys_sparc_64.c | 23 ++++++++++++-----------
- arch/sparc/mm/hugetlbpage.c      | 25 ++++++++++++-------------
- 3 files changed, 32 insertions(+), 32 deletions(-)
+ fs/hugetlbfs/inode.c | 27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/arch/sparc/kernel/sys_sparc_32.c b/arch/sparc/kernel/sys_sparc_32.c
-index 082a551897ed..13226d921a23 100644
---- a/arch/sparc/kernel/sys_sparc_32.c
-+++ b/arch/sparc/kernel/sys_sparc_32.c
-@@ -41,7 +41,14 @@ SYSCALL_DEFINE0(getpagesize)
- 
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index a63d2eee086f..510e66598991 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -165,14 +165,13 @@ hugetlb_get_unmapped_area_bottomup(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
  {
+ 	struct hstate *h = hstate_file(file);
 -	struct vm_unmapped_area_info info;
 +	struct vm_unmapped_area_info info = {
 +		.length = len,
-+		.low_limit = addr,
-+		.high_limit = TASK_SIZE,
-+		.align_mask = (flags & MAP_SHARED) ?
-+			(PAGE_MASK & (SHMLBA - 1)) : 0,
-+		info.align_offset = pgoff << PAGE_SHIFT
++		.low_limit = current->mm->mmap_base,
++		.high_limit = arch_get_mmap_end(addr, len, flags),
++		.align_mask = PAGE_MASK & ~huge_page_mask(h),
 +	};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -59,13 +66,6 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
- 	if (!addr)
- 		addr = TASK_UNMAPPED_BASE;
  
 -	info.flags = 0;
 -	info.length = len;
--	info.low_limit = addr;
--	info.high_limit = TASK_SIZE;
--	info.align_mask = (flags & MAP_SHARED) ?
--		(PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
+-	info.low_limit = current->mm->mmap_base;
+-	info.high_limit = arch_get_mmap_end(addr, len, flags);
+-	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+-	info.align_offset = 0;
  	return vm_unmapped_area(&info);
  }
  
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index 1dbf7211666e..83c273043962 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -93,7 +93,11 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
- 	struct vm_area_struct * vma;
- 	unsigned long task_size = TASK_SIZE;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {
-+		.length = len,
-+		.low_limit = TASK_UNMAPPED_BASE,
-+		.align_offset = pgoff << PAGE_SHIFT
-+	};
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -126,12 +130,8 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
- 			return addr;
- 	}
- 
--	info.flags = 0;
--	info.length = len;
--	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = min(task_size, VA_EXCLUDE_START);
- 	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
- 
- 	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-@@ -154,7 +154,13 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- 	unsigned long task_size = STACK_TOP32;
- 	unsigned long addr = addr0;
- 	int do_color_align;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {
-+		.flags = VM_UNMAPPED_AREA_TOPDOWN,
-+		.length = len,
-+		.low_limit = PAGE_SIZE,
-+		.high_limit = mm->mmap_base,
-+		.align_offset = pgoff << PAGE_SHIFT
-+	};
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
-@@ -189,12 +195,7 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- 			return addr;
- 	}
- 
--	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
--	info.length = len;
--	info.low_limit = PAGE_SIZE;
--	info.high_limit = mm->mmap_base;
- 	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
--	info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
- 
- 	/*
-diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
-index 38a1bef47efb..5307781020bf 100644
---- a/arch/sparc/mm/hugetlbpage.c
-+++ b/arch/sparc/mm/hugetlbpage.c
-@@ -31,17 +31,16 @@ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
+@@ -181,14 +180,14 @@ hugetlb_get_unmapped_area_topdown(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
  {
- 	struct hstate *h = hstate_file(filp);
- 	unsigned long task_size = TASK_SIZE;
--	struct vm_unmapped_area_info info;
-+	struct vm_unmapped_area_info info = {
-+		.length = len,
-+		.low_limit = TASK_UNMAPPED_BASE,
-+		.align_mask = PAGE_MASK & ~huge_page_mask(h)
-+	};
- 
- 	if (test_thread_flag(TIF_32BIT))
- 		task_size = STACK_TOP32;
- 
--	info.flags = 0;
--	info.length = len;
--	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = min(task_size, VA_EXCLUDE_START);
--	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
- 
- 	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-@@ -63,17 +62,17 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- 	struct hstate *h = hstate_file(filp);
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
+ 	struct hstate *h = hstate_file(file);
 -	struct vm_unmapped_area_info info;
 +	struct vm_unmapped_area_info info = {
 +		.flags = VM_UNMAPPED_AREA_TOPDOWN,
 +		.length = len,
 +		.low_limit = PAGE_SIZE,
-+		.high_limit = mm->mmap_base,
++		.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base),
 +		.align_mask = PAGE_MASK & ~huge_page_mask(h)
 +	};
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
  
 -	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
 -	info.length = len;
 -	info.low_limit = PAGE_SIZE;
--	info.high_limit = mm->mmap_base;
+-	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
 -	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
 -	info.align_offset = 0;
  	addr = vm_unmapped_area(&info);
