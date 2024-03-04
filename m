@@ -1,167 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from albert.telenet-ops.be (albert.telenet-ops.be [195.130.137.90])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 370A37F;
-	Sun,  3 Mar 2024 03:09:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 992F21A731
+	for <sparclinux@vger.kernel.org>; Mon,  4 Mar 2024 09:00:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.137.90
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709435354; cv=none; b=Cl+p/cBE/8Lc+ja496VPzsm74DX2dxFLiiar29clIQiGKhJO49zk4XZ9FFg3XhB8iRU3l+ULlHKw2jxsLgVxs6pZwrS0oYuodUKePH5tPKDmRW+WfuYwf1pLKwNsbrBFMM2282V/ZwUJinFYzdAScUEUR2ME6tDJuOgyEZng6fA=
+	t=1709542811; cv=none; b=jL8sQSqM567sdNoHOs1HcjDs0lUogoXfyqGIMcCEIMd2j+7+IijAg/nK4zqBLtluUV1HPtUBvQQrkY6mLbxfuppJZxIk7emq+kVCDSeT6ARsGKwLqYsJrTY+X1faQBhQKVuMAmRjUKY3P4qhXmUM8f59Koknq98zFTILDHYl71I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709435354; c=relaxed/simple;
-	bh=U9vFa7R1cZbTVY8TgC99jtc/yq8v79DPan1lLC0trv4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Z7ITw9Ax+8VLpYAe0XD7mtMvHGlHdVZ0F7wbcnrF6gNVio3OAZJrS3sJneXH5wCT7O8ARjca8iDXbx+ORmDF6d1b7ESOrKAf50bSQMvOZCC20w0QWJvFtEqhYEBl3UwJKEROYLuPjfVwIvj3soJQsfMXQTnHddJuOFGY5xzPrOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nG19RN6e; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nG19RN6e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6928C43399;
-	Sun,  3 Mar 2024 03:09:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1709435353;
-	bh=U9vFa7R1cZbTVY8TgC99jtc/yq8v79DPan1lLC0trv4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=nG19RN6eG/zQjq7qxI33DDNUEgfaDVVRF5NqoVIkofd4hjPY83KMTm6bcam4zpO+7
-	 ggx+P9lWwh8oBX0/y1WWQuXVxGFnPV9Ma8t7c5un0Si2XdKA0ocxMfo/3HftDk+LVB
-	 IFyugzC+/VHTvtRVwK3gTUNFbJiMfTU9XVId3s7KsxOaQucgYju8EB3EoLMlR43DvJ
-	 I4MpkjWk1W0+lhkXb055GKDnpWenLxeFTDXiE4E+TGtWFQQHc8w6m+KXxjeSW/5Ok7
-	 gnDCTJT/JvH736w91sf1tqFgejGd1Un1f42HOdzcARYVIFmE9zuf8m3x+xFr4Hnl7B
-	 CJWjpxQvgABCQ==
-Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-2d23d301452so35728911fa.1;
-        Sat, 02 Mar 2024 19:09:13 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUXc7mcf20vFb13lq+m2rGV8z8qBdcFDm0n6MSpgbxVb5YF+VgIDT3w+RSTSRoHv7COaYh8Et0p1FDTlIIj8g8Z+pCubCv8gsMpt6UQWLuvlL4pLg+7KPGxYDVar+LEeXBymhRWlZE=
-X-Gm-Message-State: AOJu0YwBY4tclgDlkSXjnGtzygOZx0Tmp4Oy0lJfjqEWuRSiWU0kvTqt
-	jQUyzD9Q+YFj7Jl5rYfnBq+gBCNtHfJeeXmySVZSLwwCi+mj4XOpn+tpS/j9fg5KhSvHaTi19WB
-	keZ93n/xiNP4NrYOPHDtLBlwJ1pA=
-X-Google-Smtp-Source: AGHT+IGD78Wt0ncu+3aqMeWqNCB8JI7FP0zctiNsiIeugXcEmHUGawXXLZN7+mt4gVmwoSw/0oiyjgdsn/WF8N7af0k=
-X-Received: by 2002:a2e:bc26:0:b0:2d3:1172:c07f with SMTP id
- b38-20020a2ebc26000000b002d31172c07fmr5072878ljf.17.1709435351907; Sat, 02
- Mar 2024 19:09:11 -0800 (PST)
+	s=arc-20240116; t=1709542811; c=relaxed/simple;
+	bh=fkFvKS6wbb3bjx6Xi0ab716kzkSQfBfhQVCG+goLYcY=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=tZ/Ouj6cR5ORswz/cTGIT5RetJsTxYtb9fzqYxXey3ZOss/CsspDVs9ylKHBUQ3St6+mmLss1d32QFr6I6aAcO3PjjhhRv+z5Y2FG+0oAVZJgmFFtCDGiP2ThqXZ+1D0eS2Gd2aTgICgz42yEtN1l12jqGF1EjxE6iivUERNS2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.137.90
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:2716:1247:52e8:4f90])
+	by albert.telenet-ops.be with bizsmtp
+	id uZ072B00D2qflky06Z074z; Mon, 04 Mar 2024 10:00:07 +0100
+Received: from geert (helo=localhost)
+	by ramsan.of.borg with local-esmtp (Exim 4.95)
+	(envelope-from <geert@linux-m68k.org>)
+	id 1rh4B5-002H9k-C1;
+	Mon, 04 Mar 2024 10:00:07 +0100
+Date: Mon, 4 Mar 2024 10:00:07 +0100 (CET)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-kernel@vger.kernel.org
+cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: Build regressions/improvements in v6.8-rc7
+In-Reply-To: <20240304083122.361773-1-geert@linux-m68k.org>
+Message-ID: <35a869c8-52e8-177-1d4d-e57578b99b6@linux-m68k.org>
+References: <CAHk-=wgwt9b3yMxAQRCVJ0Jh6-4Dz1Fgo2au7g_U9VWVxXoS6Q@mail.gmail.com> <20240304083122.361773-1-geert@linux-m68k.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240226190951.3240433-6-rick.p.edgecombe@intel.com>
- <20240302001714.674091-1-rick.p.edgecombe@intel.com> <20240302001714.674091-3-rick.p.edgecombe@intel.com>
-In-Reply-To: <20240302001714.674091-3-rick.p.edgecombe@intel.com>
-From: Guo Ren <guoren@kernel.org>
-Date: Sun, 3 Mar 2024 11:09:00 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTTjfW4DG8WaVrVopxQsak6X9YPnUXG3a-XWs2C=-vjxxg@mail.gmail.com>
-Message-ID: <CAJF2gTTjfW4DG8WaVrVopxQsak6X9YPnUXG3a-XWs2C=-vjxxg@mail.gmail.com>
-Subject: Re: [RFC v2.1 03/12] csky: Use initializer for struct vm_unmapped_area_info
-To: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Liam.Howlett@oracle.com, akpm@linux-foundation.org, bp@alien8.de, 
-	broonie@kernel.org, dave.hansen@linux.intel.com, debug@rivosinc.com, 
-	hpa@zytor.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, 
-	luto@kernel.org, mingo@redhat.com, peterz@infradead.org, 
-	sparclinux@vger.kernel.org, tglx@linutronix.de, x86@kernel.org, 
-	linux-csky@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-On Sat, Mar 2, 2024 at 8:17=E2=80=AFAM Rick Edgecombe
-<rick.p.edgecombe@intel.com> wrote:
->
-> Future changes will need to add a new member to struct
-> vm_unmapped_area_info. This would cause trouble for any call site that
-> doesn't initialize the struct. Currently every caller sets each field
-> manually, so if new fields are added they will be unitialized and the cor=
-e
-> code parsing the struct will see garbage in the new field.
->
-> It could be possible to initialize the new field manually to 0 at each
-> call site. This and a couple other options were discussed, and the
-> consensus (see links) was that in general the best way to accomplish this
-> would be via static initialization with designated field initiators.
-> Having some struct vm_unmapped_area_info instances not zero initialized
-> will put those sites at risk of feeding garbage into vm_unmapped_area() i=
-f
-> the convention is to zero initialize the struct and any new field additio=
-n
-> misses a call site that initializes each field manually.
->
-> It could be possible to leave the code mostly untouched, and just change
-> the line:
-> struct vm_unmapped_area_info info
-> to:
-> struct vm_unmapped_area_info info =3D {};
->
-> However, that would leave cleanup for the fields that are manually set
-> to zero, as it would no longer be required.
->
-> So to be reduce the chance of bugs via uninitialized fields, instead
-> simply continue the process to initialize the struct this way tree wide.
-> This will zero any unspecified members. Move the field initializers to th=
-e
-> struct declaration when they are known at that time. Leave the fields out
-> that were manually initialized to zero, as this would be redundant for
-> designated initializers.
->
-> Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-> Cc: Guo Ren <guoren@kernel.org>
-> Cc: linux-csky@vger.kernel.org
-> Link: https://lore.kernel.org/lkml/202402280912.33AEE7A9CF@keescook/#t
-> Link: https://lore.kernel.org/lkml/j7bfvig3gew3qruouxrh7z7ehjjafrgkbcmg6t=
-cghhfh3rhmzi@wzlcoecgy5rs/
-> ---
-> Hi,
->
-> This patch was split and refactored out of a tree-wide change [0] to just
-> zero-init each struct vm_unmapped_area_info. The overall goal of the
-> series is to help shadow stack guard gaps. Currently, there is only one
-> arch with shadow stacks, but two more are in progress. It is 0day tested
-> only.
->
-> Thanks,
->
-> Rick
->
-> [0] https://lore.kernel.org/lkml/20240226190951.3240433-6-rick.p.edgecomb=
-e@intel.com/
-> ---
->  arch/csky/abiv1/mmap.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/csky/abiv1/mmap.c b/arch/csky/abiv1/mmap.c
-> index 6792aca49999..7f826331d409 100644
-> --- a/arch/csky/abiv1/mmap.c
-> +++ b/arch/csky/abiv1/mmap.c
-> @@ -28,7 +28,12 @@ arch_get_unmapped_area(struct file *filp, unsigned lon=
-g addr,
->         struct mm_struct *mm =3D current->mm;
->         struct vm_area_struct *vma;
->         int do_align =3D 0;
-> -       struct vm_unmapped_area_info info;
-> +       struct vm_unmapped_area_info info =3D {
-> +               .length =3D len,
-> +               .low_limit =3D mm->mmap_base,
-> +               .high_limit =3D TASK_SIZE,
-> +               .align_offset =3D pgoff << PAGE_SHIFT
-> +       };
->
->         /*
->          * We only need to do colour alignment if either the I or D
-> @@ -61,11 +66,6 @@ arch_get_unmapped_area(struct file *filp, unsigned lon=
-g addr,
->                         return addr;
->         }
->
-> -       info.flags =3D 0;
-> -       info.length =3D len;
-> -       info.low_limit =3D mm->mmap_base;
-> -       info.high_limit =3D TASK_SIZE;
->         info.align_mask =3D do_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
-> -       info.align_offset =3D pgoff << PAGE_SHIFT;
->         return vm_unmapped_area(&info);
->  }
-> --
-> 2.34.1
->
-LGTM, that's equivalent.
+On Mon, 4 Mar 2024, Geert Uytterhoeven wrote:
+> JFYI, when comparing v6.8-rc7[1] to v6.8-rc6[3], the summaries are:
+>  - build errors: +6/-0
 
-Reviewed-by: Guo Ren <guoren@kernel.org>
+   + /kisskb/src/drivers/sbus/char/bbc_envctrl.c: error: no previous prototype for 'bbc_envctrl_cleanup' [-Werror=missing-prototypes]:  => 594:6
+   + /kisskb/src/drivers/sbus/char/bbc_envctrl.c: error: no previous prototype for 'bbc_envctrl_init' [-Werror=missing-prototypes]:  => 566:5
 
---=20
-Best Regards
- Guo Ren
+sparc64-gcc13/sparc64-allmodconfig (seen before)
+
+   + /kisskb/src/include/linux/rcupdate.h: error: dereferencing pointer to incomplete type 'struct dpll_pin':  => 462:36
+
+arm64-gcc5/arm64-allmodconfig
+mips-gcc8/mips-allmodconfig
+powerpc-gcc5/powerpc-all{mod,yes}config
+powerpc-gcc5/{ppc32,ppc64_book3e,ppc64le}_allmodconfig
+sparc64-gcc5/sparc{,64}-allmodconfig
+x86_64-gcc8/x86-allmodconfig
+
+     src/net/core/dev.c: In function 'netdev_dpll_pin_assign':
+     include/linux/rcupdate.h:462:36: error: dereferencing pointer to incomplete type 'struct dpll_pin'
+      #define RCU_INITIALIZER(v) (typeof(*(v)) __force __rcu *)(v)
+ 					^~~~
+     include/asm-generic/rwonce.h:55:33: note: in definition of macro '__WRITE_ONCE'
+       *(volatile typeof(x) *)&(x) = (val);    \
+ 				     ^~~
+     arch/x86/include/asm/barrier.h:67:2: note: in expansion of macro 'WRITE_ONCE'
+       WRITE_ONCE(*p, v);      \
+       ^~~~~~~~~~
+     include/asm-generic/barrier.h:172:55: note: in expansion of macro '__smp_store_release'
+      #define smp_store_release(p, v) do { kcsan_release(); __smp_store_release(p, v); } while (0)
+ 							   ^~~~~~~~~~~~~~~~~~~
+     include/linux/rcupdate.h:503:3: note: in expansion of macro 'smp_store_release'
+        smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
+        ^~~~~~~~~~~~~~~~~
+     include/linux/rcupdate.h:503:25: note: in expansion of macro 'RCU_INITIALIZER'
+        smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
+ 			     ^~~~~~~~~~~~~~~
+     net/core/dev.c:9081:2: note: in expansion of macro 'rcu_assign_pointer'
+       rcu_assign_pointer(dev->dpll_pin, dpll_pin);
+       ^~~~~~~~~~~~~~~~~~
+
+   + {standard input}: Error: invalid operands for opcode:  => 606
+   + {standard input}: Error: missing operand:  => 606
+   + {standard input}: Error: unknown pseudo-op: `.cfi_def_cfa_offse':  => 605
+
+SH ICE crickets
+
+*** WARNINGS ***
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/90d35da658da8cff0d4ecbb5113f5fac9d00eb72/ (138 out of 239 configs)
+
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/d206a76d7d2726f3b096037f2079ce0bd3ba329b/ (138 out of 239 configs)
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
