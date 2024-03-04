@@ -1,16 +1,16 @@
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F22A8F44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A12B29CFE
 	for <sparclinux@vger.kernel.org>; Mon,  4 Mar 2024 22:30:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709591442; cv=none; b=UVcSuF7BGZLAumg8lEZ3QN41kfHUJExA+v5CaaVu6WQElWkUZD+rz4ktGNSk+O9umC/QE4JDsQXaenCOFlzXnsACwj20vGqW2OWSyGdsqKRDuQMFcKFeNWSs8w3tHKcWjoO4OZbT8D+EBMw8wmPLBFXvCqNzTFTAbX9yTfQ/Qnc=
+	t=1709591442; cv=none; b=VQM88qZG1xTUgRHo7nT0/Lxz2dSamj49evYFygGTWNOSMmbhdvM/Gio2mAaaZKk/sfy2oFG3hMJ8bytez+QJO9pVbZyKstBCZnnfazWEokuTWmrXyOWGkiOnrJZMIDdUav4OeezM6qqmI5jGqd0buaPNFlYtWIid7HKjNPJi89Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1709591442; c=relaxed/simple;
-	bh=OAKDjDIddRlFTzMDovtXkPNXvM2o/xSAgM43YJwZtQ4=;
+	bh=yMGaQO67z+KNEEEHI+prlq7mK7nx4TgQCjmCDNAFxsI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cltcCbyF3YoHlLbPKh4DdedHFUWpsG8h4iP8k91YE4Wb3i8wNuy182M1AiBnNdlxym0XNiZXJZeoGDDgL0PLhPqjad0g4LumVmwOikfbNhgOzu3mfWCgGBWdKQmPk26R+EsyNXROcZFZtAfy1ru7y9DovQQkRNrIN8t61MArKWg=
+	 MIME-Version:Content-Type; b=nguI0aLsUnU5+I191PjIy5k05PaSSMATG3fX8UXHNyEL+oxhWAsMJbXfHlW3g/uRw05EFJEXipJYZElaV4exb5o+21RyVUO7KA2YbkILTo+U+hs5c6KJuORAOo6il9EXkPXKHKQSeiVl/XqwBadknrBcLWYx8Hg9deA3jCb9Mp8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
@@ -18,26 +18,26 @@ Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
 	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
 	(Exim 4.92)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpQ-00073T-Cy; Mon, 04 Mar 2024 23:30:36 +0100
+	id 1rhGpQ-00073j-L9; Mon, 04 Mar 2024 23:30:36 +0100
 Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
 	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpP-004RAh-V5; Mon, 04 Mar 2024 23:30:35 +0100
+	id 1rhGpQ-004RAk-7G; Mon, 04 Mar 2024 23:30:36 +0100
 Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpP-00H7IR-2o;
-	Mon, 04 Mar 2024 23:30:35 +0100
+	id 1rhGpQ-00H7IV-0S;
+	Mon, 04 Mar 2024 23:30:36 +0100
 From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>,
-	Rob Herring <robh@kernel.org>,
+Cc: Rob Herring <robh@kernel.org>,
+	Sam Ravnborg <sam@ravnborg.org>,
 	sparclinux@vger.kernel.org,
 	kernel@pengutronix.de
-Subject: [PATCH 4/6] sbus: envctrl: Convert to platform remove callback returning void
-Date: Mon,  4 Mar 2024 23:30:11 +0100
-Message-ID:  <0b61ed6fb4ebe2880951b1e849551dbc63402802.1709591118.git.u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 5/6] sbus: flash: Convert to platform remove callback returning void
+Date: Mon,  4 Mar 2024 23:30:12 +0100
+Message-ID:  <a9c6351fc24c40d011697cd7540950f412507965.1709591118.git.u.kleine-koenig@pengutronix.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1709591118.git.u.kleine-koenig@pengutronix.de>
 References: <cover.1709591118.git.u.kleine-koenig@pengutronix.de>
@@ -48,7 +48,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1783; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=OAKDjDIddRlFTzMDovtXkPNXvM2o/xSAgM43YJwZtQ4=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBl5kuAXvo05LDwFKtUVtrOzirfWwz5iPJddWwPo /jYPzzWl8KJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZeZLgAAKCRCPgPtYfRL+ TnZYCACCtht62hhqQseRq7w50iq5eqlcVj5H1+z4KLevy0fVeOd3IvZL1th9Kvi0Qyv/DehKvch Pm5Mq3tXPe5yKrcTMLbCzPaqb0+75HA6HYW2jEEljj9GU/fD7BdrFkDMf2uhg3ncyqDV9bX8c5c ZzmIHN9m8tsg3RDplA8tGgUW95UZu8QDEgGQa9Jd+yvDn2vTILXQIvHp9vaStgWJ/Xv+dGUTKq5 FcYRMwiQjp3sqs7pfebSJHxVQRNwqaZJ7H6Gbg+w+nHHyKWRVlITihOcDYMFiA93+/sfR97h87i HxA3tBevRs5doMORDUwJbXqsst4K4LCstKhRiZ6j1I6EAqhm
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1610; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=yMGaQO67z+KNEEEHI+prlq7mK7nx4TgQCjmCDNAFxsI=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBl5kuGxLo3jT3R7aIaqIjDniACLL1ru7UgCHf87 typP0EkJvKJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZeZLhgAKCRCPgPtYfRL+ TrveB/4jcS/kJq5vdriuBvivWI12j0Yd3qLhHK0Vj8MqcYDQRkSvdGjNdZ1Qgx5rWjyJli1sM2n fL6fvHD6aHnjmOHSrbgMTUI9mvutZgsAxp21sikLG4vnZv4FXDYGFW8wwcsQQpFOpykyc0HV4XO OsRijUdV4vwQmGZku2yobglCBN21XUdN/t5lyKZnOFQd9fZHuyJckSF+ZSlSOByHbn61ppNwj14 SU/nLWhA6rD3nHrjc3SXltdBxlR3df1G31jdaGS/4aaUfebhRVVOEYbiZ1SNafk0Sm/1Fi8OL/i b0hAkAdTqPw3lzE6lbpZfpxU2ZND+9an5fsyMX6upX1mNZJv
 X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
@@ -71,40 +71,35 @@ callback to the void returning variant.
 
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/sbus/char/envctrl.c | 6 ++----
+ drivers/sbus/char/flash.c | 6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 3dd7274cb0a3..491cc6c0b3f9 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -1097,7 +1097,7 @@ static int envctrl_probe(struct platform_device *op)
- 	return err;
+diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
+index ea2d903ba673..05d37d31c3b8 100644
+--- a/drivers/sbus/char/flash.c
++++ b/drivers/sbus/char/flash.c
+@@ -187,11 +187,9 @@ static int flash_probe(struct platform_device *op)
+ 	return misc_register(&flash_dev);
  }
  
--static int envctrl_remove(struct platform_device *op)
-+static void envctrl_remove(struct platform_device *op)
+-static int flash_remove(struct platform_device *op)
++static void flash_remove(struct platform_device *op)
  {
- 	int index;
- 
-@@ -1108,8 +1108,6 @@ static int envctrl_remove(struct platform_device *op)
- 
- 	for (index = 0; index < ENVCTRL_MAX_CPU * 2; index++)
- 		kfree(i2c_childlist[index].tables);
+ 	misc_deregister(&flash_dev);
 -
 -	return 0;
  }
  
- static const struct of_device_id envctrl_match[] = {
-@@ -1127,7 +1125,7 @@ static struct platform_driver envctrl_driver = {
- 		.of_match_table = envctrl_match,
+ static const struct of_device_id flash_match[] = {
+@@ -208,7 +206,7 @@ static struct platform_driver flash_driver = {
+ 		.of_match_table = flash_match,
  	},
- 	.probe		= envctrl_probe,
--	.remove		= envctrl_remove,
-+	.remove_new	= envctrl_remove,
+ 	.probe		= flash_probe,
+-	.remove		= flash_remove,
++	.remove_new	= flash_remove,
  };
  
- module_platform_driver(envctrl_driver);
+ module_platform_driver(flash_driver);
 -- 
 2.43.0
 
