@@ -1,105 +1,116 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7AAE7B3D4
-	for <sparclinux@vger.kernel.org>; Mon,  4 Mar 2024 22:30:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D195FC0E
+	for <sparclinux@vger.kernel.org>; Tue,  5 Mar 2024 00:51:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709591444; cv=none; b=VFxrv8JXASG/2XXh5IwV0g/NpXQaOImxvjzAMExKztBvxyyhejnh3kLB4IomubvgXSJCNmfE2mZuNkG80RpTQKZU7FgNIWclmQOSQrFxXF6ikfIfV3onc7qkwDBS84O8SWTtaY1W58+2ubZhzsE5bzL39jwiv85Oln0cffQDhXo=
+	t=1709599879; cv=none; b=ZgmvJVbKMrFVYTbUGBXpZp207154UPmtV7dDY89stwOApRBE2akjNuBaEGIILUHxZIz6CspL6Xcji8WS/KRKW339YXeDIK0G1ueuWx56Izwe5YBeeKI00HgdFMuH/2bFqZG/IKLYNycmxst9MBjT/BKox+xpLzI81DznmgTe3b8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709591444; c=relaxed/simple;
-	bh=GcjH/9kfyEXS9YEbG8nq/NtVg0wo03epd8gVuP1qfFU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XmbHnihI6QaGsjJkisUk5Al3IGWk5lIoM0m0mJ75zrJwMpJbjlNEbml6QVeUXGUyAbo//iYjW5qrw//sb4voWNHGcGeqx6UndlvPOZcx8i3lGJktsagq26lLFJV0nr6KNGScC3hl2EdgdI5YPN5TLOMqD3KjInGMYMcYoG+Drj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpQ-00072X-Cy; Mon, 04 Mar 2024 23:30:36 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpP-004RAY-BA; Mon, 04 Mar 2024 23:30:35 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rhGpP-00H7IB-0n;
-	Mon, 04 Mar 2024 23:30:35 +0100
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: Rob Herring <robh@kernel.org>,
-	Sam Ravnborg <sam@ravnborg.org>,
-	sparclinux@vger.kernel.org,
-	kernel@pengutronix.de
-Subject: [PATCH 1/6] sbus: Add prototype for bbc_envctrl_init and bbc_envctrl_cleanup to header
-Date: Mon,  4 Mar 2024 23:30:08 +0100
-Message-ID:  <57bc3b43b405431a486162fb8c2558072e976747.1709591118.git.u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1709591118.git.u.kleine-koenig@pengutronix.de>
-References: <cover.1709591118.git.u.kleine-koenig@pengutronix.de>
+	s=arc-20240116; t=1709599879; c=relaxed/simple;
+	bh=wK8JuTd8nM8EJSY9ofq56Z0uYnZNseajGjvNBfcna38=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=LQcyn7yYio/oL6/ixnd7SYlk+cReOXKAsL87gbCgzo9WoMrFgMzgt2pggDHQwMGmypdGnr3ZZ+C0JcTD1WzBCFFHV54zUMNQyBsM+YGRxD6n4m0iOoMPSfwQjCtjj5NY/kee6bzxm+r+DcsdXmxOriMBZTEA8t9KamabjOHFjEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au; spf=pass smtp.mailfrom=ellerman.id.au; dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b=XP9j8i2G; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ellerman.id.au
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="XP9j8i2G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+	s=201909; t=1709599875;
+	bh=wK8JuTd8nM8EJSY9ofq56Z0uYnZNseajGjvNBfcna38=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=XP9j8i2GbeIRIQ/eFgcEtAca5GxRqxBFTdprLfh1GJYPpZTSm5veBPp5MZ9kaZNeb
+	 52zRt0nrLX7dPHyIMT0Jc6Jst0em2KzlIBCN1lO4kgGSUAhGUK0Ahkh2/ljjKeRF/F
+	 i09yhOK5Ra08AK0Pyb+0LjEpif3epQCmaIpmp50D4b1gs/0pr9tkdu2nTHwvdfEftR
+	 sgKg+yGkiQft6wr7JpKbySYioDKgLvskj14IvKWIHDbLmOgXd6axEBQ6d5Ze4FMEum
+	 sR+vAEW+YxN4W9C3ly/ZMm62PX6H/wQIA5/Kb2GBroC1PHrg873OEiGdlsZjqxdkU8
+	 pGqMf19V+JMdg==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4TpcSd38SYz4wc9;
+	Tue,  5 Mar 2024 11:51:13 +1100 (AEDT)
+From: Michael Ellerman <mpe@ellerman.id.au>
+To: Rick Edgecombe <rick.p.edgecombe@intel.com>, rick.p.edgecombe@intel.com
+Cc: Liam.Howlett@oracle.com, akpm@linux-foundation.org, bp@alien8.de,
+ broonie@kernel.org, dave.hansen@linux.intel.com, debug@rivosinc.com,
+ hpa@zytor.com, keescook@chromium.org, kirill.shutemov@linux.intel.com,
+ luto@kernel.org, mingo@redhat.com, peterz@infradead.org,
+ sparclinux@vger.kernel.org, tglx@linutronix.de, x86@kernel.org, Nicholas
+ Piggin <npiggin@gmail.com>, Christophe Leroy
+ <christophe.leroy@csgroup.eu>, "Aneesh Kumar K . V"
+ <aneesh.kumar@kernel.org>, "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+ linuxppc-dev@lists.ozlabs.org
+Subject: Re: [RFC v2.1 07/12] powerpc: Use initializer for struct
+ vm_unmapped_area_info
+In-Reply-To: <20240302001714.674091-7-rick.p.edgecombe@intel.com>
+References: <20240226190951.3240433-6-rick.p.edgecombe@intel.com>
+ <20240302001714.674091-1-rick.p.edgecombe@intel.com>
+ <20240302001714.674091-7-rick.p.edgecombe@intel.com>
+Date: Tue, 05 Mar 2024 11:51:12 +1100
+Message-ID: <87a5ndpklb.fsf@mail.lhotse>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1886; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=GcjH/9kfyEXS9YEbG8nq/NtVg0wo03epd8gVuP1qfFU=; b=owGbwMvMwMXY3/A7olbonx/jabUkhtRn3kVnZzLfuf2a82RMc9vM0NWvtjr7ZlirdPafP1a5i Zd/rlZxJ6MxCwMjF4OsmCKLfeOaTKsqucjOtf8uwwxiZQKZwsDFKQATUdjIwdBZcMT3xmoBG8bV N24oT50Z/eDGBxXbDMe62N46E49KhQ32Zx14K4+EeK2+KGL3MFDdWXalQv3dnar/zwXtm7bU87f cniyZy56W92fNL4pdsWzJrIzH/W32lxZXVDveLOgPl1B15VmSsnmfkqeh2sv2eutHIR5ekmaVz+ 9GCO8pO1lR7VommPR5h5yn9/enTm6FabKdkbocfNJhHfs+XYlVepNyV6LjrncIu27kfebjfu3xO 3ZeePRW8t/zd/Yuk3akJF/I0pw45Vb1PqNXWztO5i9N1fqSx7BypYri0rbSQ7zlQnGV07pb/I3n 7eO5aTsn/z/3dx2RA+s3epo/0XZYXHF95YVsrdsGVSr3AQ==
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: sparclinux@vger.kernel.org
+Content-Type: text/plain
 
-This fixes the following build warning:
+Rick Edgecombe <rick.p.edgecombe@intel.com> writes:
+> Future changes will need to add a new member to struct
+> vm_unmapped_area_info. This would cause trouble for any call site that
+> doesn't initialize the struct. Currently every caller sets each field
+> manually, so if new fields are added they will be unitialized and the core
+> code parsing the struct will see garbage in the new field.
+>
+> It could be possible to initialize the new field manually to 0 at each
+> call site. This and a couple other options were discussed, and the
+> consensus (see links) was that in general the best way to accomplish this
+> would be via static initialization with designated field initiators.
+> Having some struct vm_unmapped_area_info instances not zero initialized
+> will put those sites at risk of feeding garbage into vm_unmapped_area() if
+> the convention is to zero initialize the struct and any new field addition
+> misses a call site that initializes each field manually.
+>
+> It could be possible to leave the code mostly untouched, and just change
+> the line:
+> struct vm_unmapped_area_info info
+> to:
+> struct vm_unmapped_area_info info = {};
+>
+> However, that would leave cleanup for the fields that are manually set
+> to zero, as it would no longer be required.
+>
+> So to be reduce the chance of bugs via uninitialized fields, instead
+> simply continue the process to initialize the struct this way tree wide.
+> This will zero any unspecified members. Move the field initializers to the
+> struct declaration when they are known at that time. Leave the fields out
+> that were manually initialized to zero, as this would be redundant for
+> designated initializers.
+>
+> Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+> Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+> Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+> Cc: linuxppc-dev@lists.ozlabs.org
+> Link: https://lore.kernel.org/lkml/202402280912.33AEE7A9CF@keescook/#t
+> Link: https://lore.kernel.org/lkml/j7bfvig3gew3qruouxrh7z7ehjjafrgkbcmg6tcghhfh3rhmzi@wzlcoecgy5rs/
+> ---
+> Hi,
+>
+> This patch was split and refactored out of a tree-wide change [0] to just
+> zero-init each struct vm_unmapped_area_info. The overall goal of the
+> series is to help shadow stack guard gaps. Currently, there is only one
+> arch with shadow stacks, but two more are in progress. It is 0day tested
+> only.
 
-	drivers/sbus/char/bbc_envctrl.c:566:5: error: no previous prototype for ‘bbc_envctrl_init’ [-Werror=missing-prototypes]
-	  566 | int bbc_envctrl_init(struct bbc_i2c_bus *bp)
-	      |     ^~~~~~~~~~~~~~~~
-	drivers/sbus/char/bbc_envctrl.c:594:6: error: no previous prototype for ‘bbc_envctrl_cleanup’ [-Werror=missing-prototypes]
-	  594 | void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp)
-	      |      ^~~~~~~~~~~~~~~~~~~
+I gave it a quick boot test, all good.
 
-which in the presence of -Werror=missing-prototypes yields a compiler
-error.
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/sbus/char/bbc_i2c.c | 3 ---
- drivers/sbus/char/bbc_i2c.h | 3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
-index 1c76e27d527a..970e04d8937d 100644
---- a/drivers/sbus/char/bbc_i2c.c
-+++ b/drivers/sbus/char/bbc_i2c.c
-@@ -358,9 +358,6 @@ static struct bbc_i2c_bus * attach_one_i2c(struct platform_device *op, int index
- 	return NULL;
- }
- 
--extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
--extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
--
- static int bbc_i2c_probe(struct platform_device *op)
- {
- 	struct bbc_i2c_bus *bp;
-diff --git a/drivers/sbus/char/bbc_i2c.h b/drivers/sbus/char/bbc_i2c.h
-index 7ffe908c62dc..6c748836754b 100644
---- a/drivers/sbus/char/bbc_i2c.h
-+++ b/drivers/sbus/char/bbc_i2c.h
-@@ -82,4 +82,7 @@ extern int bbc_i2c_readb(struct bbc_i2c_client *, unsigned char *byte, int off);
- extern int bbc_i2c_write_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- extern int bbc_i2c_read_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- 
-+extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
-+extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
-+
- #endif /* _BBC_I2C_H */
--- 
-2.43.0
-
+cheers
