@@ -1,87 +1,105 @@
-Received: from sipsolutions.net (s3.sipsolutions.net [168.119.38.16])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577DF59B7F;
-	Tue,  5 Mar 2024 10:59:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=168.119.38.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B640B58AB6;
+	Tue,  5 Mar 2024 12:54:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709636376; cv=none; b=aZz03g1KirEZW+iCT4kNzJbaAwc+A++gSJtpE46aUl58h0pIQFPRRfByPNJNvKGhhNzHD57ChrWTKMpwpP1DOgko5zPn1HzVskTEG3ZTzedOzeyvlWrAhMFFVLpAsYY+lGsfP1O2SVSInrO48+DmRE/RMgt6Oo+RFMe0GnZdvgo=
+	t=1709643292; cv=none; b=WNjjBZ0cH6it0nAGwU79vaNbgOi9IgmfHVlh6af3v3aCHN4v992VQYqgf3lvK7bpTDst+vTNF3hoBAmX4ELjdcfM4XftLv6apQ7aWlvEq6JJ8TOc43yrfWiT428Yt9KDGC0NQvF66FyUu5kpp9ZX+1DGAltRANgh1kBTUkJT9w8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709636376; c=relaxed/simple;
-	bh=rkU/EUWBtwWWABqUxTFkTNu+QCtdjbQlVV4iGQMgjT8=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=m2JUoL61m6nwAzeLs7V1xWdu+Z76w4eci5hdBe9OpDw49sp4Y31fOleCVVNzBDaSNEUBvF8xPWPehptTjyGWupux3YPQ1OneutJdPKb4mERinxuRtOiLnbyrRfoXxkpm3S/yyCVfPa7fXKtRamGRjuuRPQ36RSiQoUSXy9gxZew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sipsolutions.net; spf=pass smtp.mailfrom=sipsolutions.net; dkim=pass (2048-bit key) header.d=sipsolutions.net header.i=@sipsolutions.net header.b=X7C4VvEe; arc=none smtp.client-ip=168.119.38.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sipsolutions.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sipsolutions.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sipsolutions.net header.i=@sipsolutions.net header.b="X7C4VvEe"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=sipsolutions.net; s=mail; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
-	Resent-Cc:Resent-Message-ID; bh=FUU17H/883Su4y5t0ORguJT8aM0bkdnEyWS9d9zukeE=;
-	t=1709636375; x=1710845975; b=X7C4VvEe0XoukI77UaTDV4bGeCXBV771Gu9ERiz88HDBiMA
-	wiNhlP1PONCTqxxUB9re9XIa88z3+CUro2HByrE1SwpDCdmvJ9HpF6TuZok1Fd4UpvUKgtgeg1AO/
-	0vlwVi61MyGG2XAo8o11z/RxWuMl+aNIbXcBVj0pouC7eK8arBWgyrhCIT8tdKCfgrVLIKd+PbO9V
-	G/oFZNV3Uy8fq6YJZcgmiGaNWrnsz/DSuBFPGa+1OSISxTVNDNv7guStZ8OyeTzVhDLBGavPzligP
-	ihDx+kYtd9pcb9l2YFWRSJVg8dShtvbYbV2G+j6R2scs2U/kaX2K0cICt89n95ZA==;
-Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.97)
-	(envelope-from <johannes@sipsolutions.net>)
-	id 1rhSVn-00000002j5H-3fnE;
-	Tue, 05 Mar 2024 11:59:08 +0100
-Message-ID: <65f6e65e90ca5f134ef1a238a38ab02a6c1c3360.camel@sipsolutions.net>
-Subject: Re: [PATCH 3/4] arch: define CONFIG_PAGE_SIZE_*KB on all
- architectures
-From: Johannes Berg <johannes@sipsolutions.net>
-To: Arnd Bergmann <arnd@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
- Vincenzo Frascino <vincenzo.frascino@arm.com>, Kees Cook
- <keescook@chromium.org>, Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet
- Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Catalin
- Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, Brian Cain
- <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, Geert
- Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller
- <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>, Christophe Leroy
- <christophe.leroy@csgroup.eu>, Palmer Dabbelt <palmer@dabbelt.com>, John
- Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,  Andreas Larsson
- <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, x86@kernel.org,
- Max Filippov <jcmvbkbc@gmail.com>, Andy Lutomirski <luto@kernel.org>, Jan
- Kiszka <jan.kiszka@siemens.com>, Kieran Bingham <kbingham@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, 
- linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, 
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev, 
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
- linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org,  linux-um@lists.infradead.org
-Date: Tue, 05 Mar 2024 11:59:05 +0100
-In-Reply-To: <20240226161414.2316610-4-arnd@kernel.org>
-References: <20240226161414.2316610-1-arnd@kernel.org>
-	 <20240226161414.2316610-4-arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.4 (3.50.4-1.fc39) 
+	s=arc-20240116; t=1709643292; c=relaxed/simple;
+	bh=dBll0MMe1cd+COq57v39zRTivh0aNAY6WcRafFYM2J8=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=RvhzBhkAw8qz3BVDSHI+CLCGlmP1Keqk6FfQCNlG+VaX2YwffXxybJfgJ/yfzPC6eOz461gcPnvGDIjnvAXuHZqnFWZVf+GVHFUZ6DTchEhJkBQrxzDrM4f/kY3k9oFJ+B+toY0dxPizz5C2AWU1r/+uDSr8I/ND2nFNOl5PtPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4TpwVc6CY4zbcjb;
+	Tue,  5 Mar 2024 20:54:00 +0800 (CST)
+Received: from dggpemm500005.china.huawei.com (unknown [7.185.36.74])
+	by mail.maildlp.com (Postfix) with ESMTPS id D491214037C;
+	Tue,  5 Mar 2024 20:54:42 +0800 (CST)
+Received: from [10.69.30.204] (10.69.30.204) by dggpemm500005.china.huawei.com
+ (7.185.36.74) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Tue, 5 Mar
+ 2024 20:54:42 +0800
+Subject: Re: [RFC PATCH net-next v6 00/15] Device Memory TCP
+To: Mina Almasry <almasrymina@google.com>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-alpha@vger.kernel.org>, <linux-mips@vger.kernel.org>,
+	<linux-parisc@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+	<linux-trace-kernel@vger.kernel.org>, <linux-arch@vger.kernel.org>,
+	<bpf@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
+CC: "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+	<edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Henderson
+	<richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer
+	<tsbogend@alpha.franken.de>, "James E.J. Bottomley"
+	<James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>,
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
+	<hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
+ Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
+	<arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau
+	<martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>, Song Liu
+	<song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>, John Fastabend
+	<john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>, Stanislav Fomichev
+	<sdf@google.com>, Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	David Ahern <dsahern@kernel.org>, Willem de Bruijn
+	<willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, Sumit
+ Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=c3=b6nig?=
+	<christian.koenig@amd.com>, Pavel Begunkov <asml.silence@gmail.com>, David
+ Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand
+	<shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel
+ Butt <shakeelb@google.com>, Jeroen de Borst <jeroendb@google.com>, Praveen
+ Kaligineedi <pkaligineedi@google.com>
+References: <20240305020153.2787423-1-almasrymina@google.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Message-ID: <6208950d-6453-e797-7fc3-1dcf15b49dbe@huawei.com>
+Date: Tue, 5 Mar 2024 20:54:42 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-malware-bazaar: not-scanned
+In-Reply-To: <20240305020153.2787423-1-almasrymina@google.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpemm500005.china.huawei.com (7.185.36.74)
 
-On Mon, 2024-02-26 at 17:14 +0100, Arnd Bergmann wrote:
->=20
->  arch/um/Kconfig                    | 1 +
->  arch/um/include/asm/page.h         | 2 +-
+On 2024/3/5 10:01, Mina Almasry wrote:
 
+...
 
-LGTM, thanks.
+> 
+> Perf - page-pool benchmark:
+> ---------------------------
+> 
+> bench_page_pool_simple.ko tests with and without these changes:
+> https://pastebin.com/raw/ncHDwAbn
+> 
+> AFAIK the number that really matters in the perf tests is the
+> 'tasklet_page_pool01_fast_path Per elem'. This one measures at about 8
+> cycles without the changes but there is some 1 cycle noise in some
+> results.
+> 
+> With the patches this regresses to 9 cycles with the changes but there
+> is 1 cycle noise occasionally running this test repeatedly.
+> 
+> Lastly I tried disable the static_branch_unlikely() in
+> netmem_is_net_iov() check. To my surprise disabling the
+> static_branch_unlikely() check reduces the fast path back to 8 cycles,
+> but the 1 cycle noise remains.
+> 
 
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
-
-johannes
+The last sentence seems to be suggesting the above 1 ns regresses is caused
+by the static_branch_unlikely() checking?
