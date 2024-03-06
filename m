@@ -1,126 +1,288 @@
-Received: from wfhigh4-smtp.messagingengine.com (wfhigh4-smtp.messagingengine.com [64.147.123.155])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A29995D48F;
-	Wed,  6 Mar 2024 18:19:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.155
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1F2413E7DB;
+	Wed,  6 Mar 2024 19:14:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709749178; cv=none; b=UJ1sSUccnuhNiwaByu3IF1GUjPIx3ynFsuE4TN2sej7IPPGEysMDjFrBRraZ0d4iZPdVm/LeuiGx9Mua4UXD2WriW75pcRPy319qy0y/i+wdZKjAPEu14bmgdTTN2RwYdUS0X/7iull1di91f8WijcvHmEwcDTs0gfjJop8JE+A=
+	t=1709752464; cv=none; b=loGbv408TEa9RHBx1373figaTC8c7O6QaPjoa0gSIYEpQuBCwSYVV/ge3+UFULqA5z4aWT6PKsFQMJ2C/pP7eUVt9qJ84n7/8hFeN4dD6gFrgZhJN9EWh3af7O7+H7b+3hwRlNu87xg5/pE+7kcBoMBSZBNMTbwQSHzfXe5WxXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709749178; c=relaxed/simple;
-	bh=KhlJ/Ab+W1AWjLf+j3juvafBR8eh3gB4I0CcT472KlA=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
-	 Subject:Content-Type; b=icrz8VknTcwfo1zzgB/vp+jXUx2ipBJf1KDU2qy4DYNzf+wlCBT+ZUKOt8DExIQD3EqZKfM0nZtEBJNQIjyIhRFaWdwREAhROTIxg535eFQ0SwjCvKaDvQcLDwsePeSEqQq2sbHUlYX5LvF5GpkYymUcw6C0J5uA809prqtl3Xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=ZbJbXne+; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=KL34O+bc; arc=none smtp.client-ip=64.147.123.155
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1709752464; c=relaxed/simple;
+	bh=rqeHAwxjnBJfSjkh66zxDx3278+2ytmY3CRS/ZATqfE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=DFLV5EyvDJy6u9emfgK0JHs+RjibcGx/66ywUmpT32aZjdKMe/exQV7QZxpktM2bZHfd4PnkoBobh5TB+AlZjE6c/ehXFXvJGz8MyYUsCac+jrsBRU4IxSkJoZ6ZIxwkfZ+Tinve8SfZsxMmdvscm6V9p+R2V3CGUW//iDRQvMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ViWF+FBv; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="ZbJbXne+";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="KL34O+bc"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailfhigh.west.internal (Postfix) with ESMTP id DCA8918000B0;
-	Wed,  6 Mar 2024 13:19:34 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Wed, 06 Mar 2024 13:19:35 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm3; t=1709749174; x=1709835574; bh=lo1Pj86qFJ
-	EkBBfYsfFvyUEgtJ0BHAS3UhI2od29BS4=; b=ZbJbXne+U5F4DQlgT7/OSVkhU9
-	XDiMkIJgGNcJVzEBgc1ud4nwDUt4awZTKV/9GSzvWjYx35/BIjjfjXmr3tABVlF5
-	F9NE7aXPSORotdqc2nhgxB+lNEtUettRH7zAl/0UjHCUJE4PFxcQI5ycN82qVI4z
-	6mvBg6iGmdF0ubP1E8HIBgXf1Z8bBU+IefIJxDWZwqCBVye22SRKWHvgCHp1yAhw
-	eZYO2YUlbn/OL3pyXiriBWNxxA2WrtSC+T5WnH3BZ7gH4V91AyYL4ylgpWutGz+1
-	wLyfgypXvrzYczq+lh0d9FP7huqX3+d9/5xhkqbDmGRM19xhTw2GlWpQLkgQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm1; t=1709749174; x=1709835574; bh=lo1Pj86qFJEkBBfYsfFvyUEgtJ0B
-	HAS3UhI2od29BS4=; b=KL34O+bcSXak4L7wUl5l279a0PjG2INm6xj1pSK09boo
-	DDdwFB0By2FDjOxnh5GLgqnTwIZRyUdR8lLvp7RfKsA6VjFLQYTKittpckBfYHsY
-	WxmgGsST1nRu9VCjB4iiZIHUW5ryYBOQ8j6XViGAr9Hb+d8Eq5DHtET2re/upU7K
-	rM2hHT4FDHWesI1V0MOd9pSZH8XqPiXOU4HhEhDD9/JxYRgNs1+qeFPMnPlHNVNs
-	3fq2CcErpzMC2srghM1/EXzRRIo1q0qnxSl9QXFiYHmoviOn8gz6csmzqxyNT2yg
-	KRPwHxMRnhn+ic927pJHKJjdNzbh8eEt6J0Qsure1A==
-X-ME-Sender: <xms:tbPoZRzfFwFF5k3GX9MqPrTnib2c4P-n73ALEx_B0soOsiQaar9egw>
-    <xme:tbPoZRRDYyd4RdghtSctobtzuwbdfez8eWl2WtebpKjx7vaTIuAIjODEd_X91IU6H
-    AME4ggQqP0xF_XKBgk>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledriedugddutdekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:tbPoZbXfVxnPwLJkipb8DXXTopckc63XqbLltvLP7qBjLmRWjDTfdQ>
-    <xmx:tbPoZThKJjPnIHtIuc7HUoCPItR1_SrYSbGhR-SNa8jNPDwpUlrTVw>
-    <xmx:tbPoZTCu32U-Yy4BL_an_kc_eHoczjZdkVErteugy0Kt9xcC0P-bXQ>
-    <xmx:trPoZX0fwpROSn-VM02InywUWNA98K7mJJAWDlt8pQVcxawhGKWlFPwagiY>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id 87B3AB6008D; Wed,  6 Mar 2024 13:19:33 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-251-g8332da0bf6-fm-20240305.001-g8332da0b
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ViWF+FBv"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a450615d1c4so23425466b.0;
+        Wed, 06 Mar 2024 11:14:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709752461; x=1710357261; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=koyC+OXWaVBitynJT4B5M9yEfbXa623u0u8Rn+ueAuI=;
+        b=ViWF+FBvFlvBOiv5PWd8lqtxy62GRdL5k8hrxoy9p20taYwc758/aHJZXCv2+nBCPv
+         qdssh2R0rkZh1yG+/oHkP+uAPqhObdc7dtJAcfG/+JVo2mQqiHzt8/NRCDv2U0/0lSdb
+         Yir14GaJjWcgTdXnrBUGNn9sr+/bBxO8CD+6AEUDeKCR/W9595868P+Oz0B0M0t0mTNM
+         oXPI11DlFkqa/vfHF8NHGachH/drmTFjNI4LepEGdDRXg6juU6KcNbDadAsxpI+gasT3
+         iLaOGZq9AaX8TQw9bzQtFfFgANzG2zhorb8B2tSAeR9If0aRdWFwjgoqjpjNHV+5uiMn
+         Jl+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709752461; x=1710357261;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=koyC+OXWaVBitynJT4B5M9yEfbXa623u0u8Rn+ueAuI=;
+        b=QNsR6mXmjyD8/QQ5C5PdNEXVD/GPAYuCjpnpqvK1d/PbT9sUZtRU5WyUGBRVY3fhqc
+         lUn7CYj/DS3jwHJKzKlR5Lp7va8v/TfSiHQTQDZTXeVhmZr222Z4SoQXFTnZ5tdAU1t3
+         Vt9f8lwEPbOvNra5C9P5SWwdjCzZUdGd9FuIhwB+ky0RFpeyAXys1WRahZBYnMmkwecf
+         5EzQ92KMADYp0JmxpX+LBBRkT+aPLld7gkrTqGMpP1F6Mn5TZhuhZ4ljuzeyCrh54Imo
+         JTMgWKczAcKAXfy2tlBrzAiknPHpcYF2E/PoDItJdg2QnlOYjzvWLrb/JaLRZwaY+7Lp
+         0PYw==
+X-Forwarded-Encrypted: i=1; AJvYcCVrOja2zARvneyG562nxQHrlzimwkdzbE82PK+4BZ1RToTx3C95zCrrsFaMMvT7qtQ40RNK9wHAzTJNtjC6jImSaQFcSU8/yl2snfEyEOEOSq/qHJzi9zLK4rFtMTiduFlz4QFlmNm03L6WW00aeIwf4FUKSUB9PCiFBc1/t205fvoXFZegcpVdeW2HoSueJ0FXb3dfNGlU4xOg7it6H9Jb2zq4iR7pikdM2KVhEMPIIezbJiA/X5jZwOxK9mmfBxIM3romxZji9yBiNWN4uxggMasPoi2aWERXEjv0mydV/D85z+YEw7+Xjy3FIAe/AkT90ghwcsSv8DZUVH51TQTtXvu+gXLGCIG6Pa2TZb9bxqc6yt/eFoLo2KdFCVC9LiplpZVPOvtnR5pSvGZyjJ3zKGVRXwi9AjGvOE9FWWI8+3+fYpcSSleaUi9rB/OPg8GcJV67+LgdaqiEMpZHL6Q/xS13lFswCr7JW93EAGXnw3phls+RWx6UrVZzQuuRZWBFnujYmg==
+X-Gm-Message-State: AOJu0YxhSRB0qK/UuVoXCMmPC9+K8Mkr08GGN1h2Z57fdHjEF5zxwOtD
+	TZ4l4iw7s7YCeweEjdvfjUZnH66L+rPwHCNQo+wLXxTJMb3/nK/G
+X-Google-Smtp-Source: AGHT+IFItB8heVRezTYv3CUtiqgvQIid/hRamLnrcs20FhE6FaoKpuU57YkPC1CFMKt9DanhDiASxQ==
+X-Received: by 2002:a17:906:74d:b0:a45:8b6d:42c9 with SMTP id z13-20020a170906074d00b00a458b6d42c9mr5974291ejb.23.1709752460817;
+        Wed, 06 Mar 2024 11:14:20 -0800 (PST)
+Received: from [192.168.8.100] ([148.252.132.18])
+        by smtp.gmail.com with ESMTPSA id jw11-20020a170906e94b00b00a455d78be5bsm3479312ejb.9.2024.03.06.11.14.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 06 Mar 2024 11:14:20 -0800 (PST)
+Message-ID: <772b9ab0-c6d7-4b13-8e05-44dd312b9879@gmail.com>
+Date: Wed, 6 Mar 2024 19:12:58 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <5568f26d-9e1a-4530-a086-564659b21666@app.fastmail.com>
-In-Reply-To: <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
-References: 
- <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
- <20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org>
- <8d5780f5-1047-48d7-a9c9-09b95c7b5604@gaisler.com>
- <5648dca0-4853-4dfb-91cf-282a656beb1e@app.fastmail.com>
- <bc33b608-e0b5-4dff-aa05-8513dce409b3@gaisler.com>
- <75a4a08d-85c2-4a60-9cbd-90dd50f765a8@app.fastmail.com>
- <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
- <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
-Date: Wed, 06 Mar 2024 19:19:12 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Andreas Larsson" <andreas@gaisler.com>,
- "Sam Ravnborg" <sam@ravnborg.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
- sparclinux@vger.kernel.org, "Randy Dunlap" <rdunlap@infradead.org>
-Cc: "Miquel Raynal" <miquel.raynal@bootlin.com>,
- linux-parport@lists.infradead.org, "David S . Miller" <davem@davemloft.net>,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/7] sparc32: Do not select ZONE_DMA
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH net-next v6 02/15] net: page_pool: create hooks for
+ custom page providers
+Content-Language: en-US
+To: Mina Almasry <almasrymina@google.com>
+Cc: David Wei <dw@davidwei.uk>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+ bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Jonathan Corbet <corbet@lwn.net>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+ Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
+ <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+ Yonghong Song <yonghong.song@linux.dev>,
+ John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
+ Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
+ Jiri Olsa <jolsa@kernel.org>, David Ahern <dsahern@kernel.org>,
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+ Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>,
+ Shailend Chand <shailend@google.com>,
+ Harshitha Ramamurthy <hramamurthy@google.com>,
+ Jeroen de Borst <jeroendb@google.com>,
+ Praveen Kaligineedi <pkaligineedi@google.com>, shakeel.butt@linux.dev
+References: <20240305020153.2787423-1-almasrymina@google.com>
+ <20240305020153.2787423-3-almasrymina@google.com>
+ <1b57dac2-4b04-4bec-b2d7-d0edb4fcabbc@davidwei.uk>
+ <CAHS8izM5O39mnTQ8mhcQE75amDT4G-3vcgozzjcYsAdd_-he1g@mail.gmail.com>
+ <417f293a-848e-4eb2-b690-c8696079b452@gmail.com>
+ <CAHS8izNPtHb2GnEMviiJTFT_dPxsxgYsNw5V9s-gSC2YnJRPRg@mail.gmail.com>
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <CAHS8izNPtHb2GnEMviiJTFT_dPxsxgYsNw5V9s-gSC2YnJRPRg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 6, 2024, at 17:22, Arnd Bergmann wrote:
-> On Wed, Mar 6, 2024, at 16:31, Andreas Larsson wrote:
+On 3/6/24 17:04, Mina Almasry wrote:
+> On Wed, Mar 6, 2024 at 6:30 AM Pavel Begunkov <asml.silence@gmail.com> wrote:
+>>
+>> On 3/5/24 22:36, Mina Almasry wrote:
+>>> On Tue, Mar 5, 2024 at 1:55 PM David Wei <dw@davidwei.uk> wrote:
+>>>>
+>>>> On 2024-03-04 18:01, Mina Almasry wrote:
+>>>>> +struct memory_provider_ops {
+>>>>> +     int (*init)(struct page_pool *pool);
+>>>>> +     void (*destroy)(struct page_pool *pool);
+>>>>> +     struct page *(*alloc_pages)(struct page_pool *pool, gfp_t gfp);
+>>>>> +     bool (*release_page)(struct page_pool *pool, struct page *page);
+>>>>
+>>>> For ZC Rx we added a scrub() function to memory_provider_ops that is
+>>>> called from page_pool_scrub(). Does TCP devmem not custom behaviour
+>>>> waiting for all netmem_refs to return before destroying the page pool?
+>>>> What happens if e.g. application crashes?
+>>>
+>>> (sorry for the long reply, but he refcounting is pretty complicated to
+>>> explain and I feel like we need to agree on how things currently work)
+>>>
+>>> Yeah, the addition of the page_pool_scrub() function is a bit of a
+>>> head scratcher for me. Here is how the (complicated) refcounting works
+>>> for devmem TCP (assuming the driver is not doing its own recycling
+>>> logic which complicates things further):
+>>>
+>>> 1. When a netmem_ref is allocated by the page_pool (from dmabuf or
+>>> page), the netmem_get_pp_ref_count_ref()==1 and belongs to the page
+>>> pool as long as the netmem is waiting in the pool for driver
+>>> allocation.
+>>>
+>>> 2. When a netmem is allocated by the driver, no refcounting is
+>>> changed, but the ownership of the netmem_get_pp_ref_count_ref() is
+>>> implicitly transferred from the page pool to the driver. i.e. the ref
+>>> now belongs to the driver until an skb is formed.
+>>>
+>>> 3. When the driver forms an skb using skb_rx_add_frag_netmem(), no
+>>> refcounting is changed, but the ownership of the
+>>> netmem_get_pp_ref_count_ref() is transferred from the driver to the
+>>> TCP stack.
+>>>
+>>> 4. When the TCP stack hands the skb to the application, the TCP stack
+>>> obtains an additional refcount, so netmem_get_pp_ref_count_ref()==2,
+>>> and frees the skb using skb_frag_unref(), which drops the
+>>> netmem_get_pp_ref_count_ref()==1.
+>>>
+>>> 5. When the user is done with the skb, the user calls the
+>>> DEVMEM_DONTNEED setsockopt which calls napi_pp_put_netmem() which
+>>> recycles the netmem back to the page pool. This doesn't modify any
+>>> refcounting, but the refcount ownership transfers from the userspace
+>>> back to the page pool, and we're back at step 1.
+>>>
+>>> So all in all netmem can belong either to (a) the page pool, or (b)
+>>> the driver, or (c) the TCP stack, or (d) the application depending on
+>>> where exactly it is in the RX path.
+>>>
+>>> When an application running devmem TCP crashes, the netmem that belong
+>>> to the page pool or driver are not touched, because the page pool is
+>>> not tied to the application in our case really. However, the TCP stack
+>>> notices the devmem socket of the application close, and when it does,
+>>> the TCP stack will:
+>>>
+>>> 1. Free all the skbs in the sockets receive queue. This is not custom
+>>> behavior for devmem TCP, it's just standard for TCP to free all skbs
+>>> waiting to be received by the application.
+>>> 2. The TCP stack will free references that belong to the application.
+>>> Since the application crashed, it will not call the DEVMEM_DONTNEED
+>>> setsockopt, so we need to free those on behalf of the application.
+>>> This is done in this diff:
+>>>
+>>> @@ -2498,6 +2498,15 @@ static void tcp_md5sig_info_free_rcu(struct
+>>> rcu_head *head)
+>>>    void tcp_v4_destroy_sock(struct sock *sk)
+>>>    {
+>>>     struct tcp_sock *tp = tcp_sk(sk);
+>>> + __maybe_unused unsigned long index;
+>>> + __maybe_unused void *netmem;
+>>> +
+>>> +#ifdef CONFIG_PAGE_POOL
+>>> + xa_for_each(&sk->sk_user_frags, index, netmem)
+>>> + WARN_ON_ONCE(!napi_pp_put_page((__force netmem_ref)netmem, false));
+>>> +#endif
+>>> +
+>>> + xa_destroy(&sk->sk_user_frags);
+>>>
+>>>     trace_tcp_destroy_sock(sk);
+>>>
+>>> To be honest, I think it makes sense for the TCP stack to be
+>>> responsible for putting the references that belong to it and the
+>>> application. To me, it does not make much sense for the page pool to
+>>> be responsible for putting the reference that belongs to the TCP stack
+>>> or driver via a page_pool_scrub() function, as those references do not
+>>> belong to the page pool really. I'm not sure why there is a diff
+>>> between our use cases here because I'm not an io_uring expert. Why do
+>>> you need to scrub all the references on page pool destruction? Don't
+>>> these belong to non-page pool components like io_uring stack or TCP
+>>> stack ol otherwise?
+>>
+>> That one is about cleaning buffers that are in b/w 4 and 5, i.e.
+>> owned by the user, which devmem does at sock destruction. io_uring
+>> could get by without scrub, dropping user refs while unregistering
+>> ifq, but then it'd need to wait for all requests to finish so there
+>> is no step 4 in the meantime. Might change, can be useful, but it
+>> was much easier to hook into the pp release loop.
+>>
+>> Another concern is who and when can reset ifq / kill pp outside
+>> of io_uring/devmem. I assume it can happen on a whim, which is
+>> hard to handle gracefully.
+>>
+> 
+> If this is about dropping application refs in step 4 & step 5, then
+> from devmem TCP perspective it must be done on socket close & skb
+> freeing AFAIU, and not delayed until page_pool destruction. 
 
-> On a relate note, it does seem odd to have such a small
-> lowmem area, and I wonder if that could be extended.
-> The 192MB lowmem limit comes from 
->
-> #define SRMMU_MAXMEM            0x0c000000
->
-> but I don't understand if that is a hardware limitation
-> or a design choice that can be changed, and if it is
-> even valid on leon or only on the old sun machines.
+Right, something in the kernel should take care of it. You temporarily
+attach it to the socket, which is fine. And you could've also stored
+it in the netlink socket or some other object. In case of zcrx io_uring
+impl, it's bound to io_uring, io_uring is responsible for cleaning them
+up. And we do it before __page_pool_destroy, otherwise there would be
+a ref dependency.
 
-I had another look and found that this is a result of
+A side note, attaching to netlink or some other global object sounds
+conceptually better, as once you return a buffer to the user, the
+socket should not have any further business with the buffer. FWIW,
+that better resembles io_uring approach. For example allows to:
 
-arch/sparc/include/asm/page_32.h:#define PAGE_OFFSET    0xf0000000
+recv(sock);
+close(sock);
+process_rx_buffers();
 
-which gives 3840MiB to userspace addresses, leaving only
-256MiB for kernel lowmem and vmalloc space, which is
-less than any other architectures.
+or to return (i.e. DEVMEM_DONTNEED) buffers from different sockets
+in one call. However, I don't think it's important for devmem and
+perhaps more implementation dictated.
 
-I still don't know the history behind this choice, but I
-see this was already configured the same when arch/sparc/
-was originally merged. You can probably change it to a more
-sensible 0xc0000000 or 0x80000000 like on other
-architectures and run without highmem on anything with
-less than 2GB of total RAM.
+> Think
+> about a stupid or malicious user that does something like:
+> 
+> 1. Set up dmabuf binding using netlink api.
+> 2. While (100000):
+> 3.   create devmem TCP socket.
+> 4.   receive some devmem data on TCP socket.
+> 5.   close TCP socket without calling DEVMEM_DONTNEED.
+> 6. clean up dmabuf binding using netlink api.
+> 
+> In this case, we need to drop the references in step 5 when the socket
+> is destroyed, so the memory is freed to the page pool and available
+> for the next socket in step 3. We cannot delay the freeing until step
+> 6 when the rx queue is recreated and the page pool is destroyed,
+> otherwise the net_iovs would leak in the loop and eventually the NIC
+> would fail to find available memory. The same bug would be
 
-How much RAM do Leon machines have typically, or at the
-maximum?
+By "would leak" you probably mean until step 6, right? There are
+always many ways to shoot yourself in the leg. Even if you clean
+up in 5, the user can just leak the socket and get the same result
+with pp starvation. I see it not as a requirement but rather a
+uapi choice, that's assuming netlink would be cleaned as a normal
+socket when the task exits.
 
-     Arnd
+> reproducible with io_uring unless you're creating a new page pool for
+> each new io_uring socket equivalent.
+
+Surely we don't, but it's still the user's responsibility to
+return buffers back. And in case of io_uring buffers returned
+to the user are not attached to a socket, so even the
+scope / lifetime is a bit different.
+
+> But even outside of this, I think it's a bit semantically off to ask
+> the page_pool to drop references that belong to the application IMO,
+> because those references are not the page_pool's.
+
+Completely agree with you, which is why it was in a callback,
+totally controlled by io_uring.
+
+-- 
+Pavel Begunkov
