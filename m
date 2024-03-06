@@ -1,45 +1,45 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77980605B1
-	for <sparclinux@vger.kernel.org>; Wed,  6 Mar 2024 10:42:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F961E520
+	for <sparclinux@vger.kernel.org>; Wed,  6 Mar 2024 10:42:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709721745; cv=none; b=b6O4QNO3RBaXi/uIvkKP+Q8r5G6ESWt8vGJFtMG5RUOOs9ZqcYYOLHs9Obw1ymVUt95bUkT+zoAUBwp2S/h+6a8aZGmKYZw2brexh6b+SGupU5cPEpgPeGYWEQG78DqG+9KQWrWHviaAx7vW7u+D6Cjsn4GQWTF+gGQGL4q7VOo=
+	t=1709721752; cv=none; b=Vv3W1vEBO1gLQNlHQHQgAeu/9thni9tHUoHCQntytBu8vdV5tPMKGui50/yiC/SAJdtsh01N7WSH9pfcndKcva3cLPfgm2tcE7r6B8w/QtYZ/lfMhNW+9lE4dvMziEl4G9zWmO5YQ48LelBdKoHNuWO2JVEpxfzrO5AXg3dHJhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709721745; c=relaxed/simple;
-	bh=CxV8MifY1lrwJx7GkesgEIYplTEI/H1POQkB3NsGQqU=;
+	s=arc-20240116; t=1709721752; c=relaxed/simple;
+	bh=xsXv+igcIa2LD7vY6Lm1s+FcdmOPBabwjo2Ma8p3Wuc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dUFWFH6onW7XjWPOy5yceEpXmSrPf3UOvF4LJ9FyfFBcNSI9psKlnl2NN7EuOeaksVnl5DLTtqCewbMUERdyv7ZhYlkcQ5dxhr6PimV3Ry5xc3XhZzW65GQS7LbFAn9Z4Kgk8G5ztv6xo4LPdlrOHZXCyR/XKD+8RYumYOZXH2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=g/Xzzd3l; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version:Content-Type; b=bF5+cm+VbQpxyaetYbMJJlilKYdadkkn/QHrHkWSEFVlMrQTPP2b0l4AcAyGdgB77yDI1htq7GbJFX0zmrivAixXuvBsmaeqFjuqKkE4x6/4Eda0VNUD5M7/Hx+ToITX6JZeZOV9qtbhuGIK2B2SK6K0eeouZaiI4LbC2QS3B/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=VRjm1fdi; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="g/Xzzd3l"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VRjm1fdi"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709721742;
+	s=mimecast20190719; t=1709721750;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1JTq1zOoPcvZLzyDHIG6xTSG66u1JMVbpFEt5kpx07M=;
-	b=g/Xzzd3lNJ2QcBUjkbtdjRPZ0Yfhl04FZ9EEkTA5QcSVqKWSbXDSUbW048JySJRPPuHVS3
-	/RFRObX6AJhPTtEJIDw8Wg5QKPprQ1fZUE2SND2ISa2rB/Ucs1xOKUs6/iT0b2ID9yAZLE
-	s3Ze+BuRVyQRgcXwLqFhT4eawNsY6as=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-630-w92BStQdNuqU_EljwB5_jw-1; Wed, 06 Mar 2024 05:42:18 -0500
-X-MC-Unique: w92BStQdNuqU_EljwB5_jw-1
+	bh=vtZJyICZEGrBJHpYWSu5beimQ7UmPGzVa4S5UCB/Dcs=;
+	b=VRjm1fdi9IkjkEYwRTvp3lQqzyJKLYUGUs7D0K5tF8+0MQOJ8Blf4Uq/jnwHJSv8lBach3
+	Fm6jcvee1YDSWtw+GWZ+F7DwpVfOz5VLXBIkWMGyvLegp9sQ7Q9kSZJxmhOXQ1mAGj25gH
+	7jyWP0ekFp+V5COySdFO+W3snmuhmIY=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-543-pSuV4CgQPZqjr3JAlJcBuA-1; Wed,
+ 06 Mar 2024 05:42:27 -0500
+X-MC-Unique: pSuV4CgQPZqjr3JAlJcBuA-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6AC0E800267;
-	Wed,  6 Mar 2024 10:42:17 +0000 (UTC)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 22C123C0DF60;
+	Wed,  6 Mar 2024 10:42:26 +0000 (UTC)
 Received: from x1n.redhat.com (unknown [10.72.116.8])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id A7360111E3F3;
-	Wed,  6 Mar 2024 10:42:11 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 252A3112131D;
+	Wed,  6 Mar 2024 10:42:17 +0000 (UTC)
 From: peterx@redhat.com
 To: linux-mm@kvack.org,
 	linux-kernel@vger.kernel.org
@@ -53,10 +53,15 @@ Cc: linuxppc-dev@lists.ozlabs.org,
 	Christophe Leroy <christophe.leroy@csgroup.eu>,
 	x86@kernel.org,
 	sparclinux@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH RFC 03/13] mm/gup: Check p4d presence before going on
-Date: Wed,  6 Mar 2024 18:41:37 +0800
-Message-ID: <20240306104147.193052-4-peterx@redhat.com>
+	linux-arm-kernel@lists.infradead.org,
+	Naoya Horiguchi <naoya.horiguchi@nec.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>
+Subject: [PATCH RFC 04/13] mm/x86: Change pXd_huge() behavior to exclude swap entries
+Date: Wed,  6 Mar 2024 18:41:38 +0800
+Message-ID: <20240306104147.193052-5-peterx@redhat.com>
 In-Reply-To: <20240306104147.193052-1-peterx@redhat.com>
 References: <20240306104147.193052-1-peterx@redhat.com>
 Precedence: bulk
@@ -65,43 +70,109 @@ List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
 
 From: Peter Xu <peterx@redhat.com>
 
-Currently there should have no p4d swap entries so it may not matter much,
-however this may help us to rule out swap entries in pXd_huge() API, which
-will include p4d_huge().  The p4d_present() checks make it 100% clear that
-we won't rely on p4d_huge() for swap entries.
+This patch partly reverts below commits:
 
+3a194f3f8ad0 ("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry")
+cbef8478bee5 ("mm/hugetlb: pmd_huge() returns true for non-present hugepage")
+
+Right now, pXd_huge() definition across kernel is unclear. We have two
+groups that think differently on swap entries:
+
+  - x86/sparc:     Allow pXd_huge() to accept swap entries
+  - all the rest:  Doesn't allow pXd_huge() to accept swap entries
+
+This is so confusing.  Since the sparc helpers seem to be added in 2016,
+which is after x86's (2015), so sparc could have followed a trend.  x86
+proposed such swap handling in 2015 to resolve hugetlb swap entries hit in
+GUP, but now GUP guards swap entries with !pXd_present() in all layers so
+we should be safe.
+
+We should define this API properly, one way or another, rather than keep
+them defined differently across archs.
+
+Gut feeling tells me that pXd_huge() shouldn't include swap entries, and it
+turns out that I am not the only one thinking so, the question was raised
+when the current pmd_huge() for x86 was proposed by Ville Syrjälä:
+
+https://lore.kernel.org/all/Y2WQ7I4LXh8iUIRd@intel.com/
+
+  I might also be missing something obvious, but why is it even necessary
+  to treat PRESENT==0+PSE==0 as a huge entry?
+
+It is also questioned when Jason Gunthorpe reviewed the other patchset on
+swap entry handlings:
+
+https://lore.kernel.org/all/20240221125753.GQ13330@nvidia.com/
+
+Revert its meaning back to original.  It shouldn't have any functional
+change as we should be ready with guards on !pXd_present() explicitly
+everywhere.
+
+Note that I also dropped the "#if CONFIG_PGTABLE_LEVELS > 2", it was there
+probably because it was breaking things when 3a194f3f8ad0 was proposed,
+according to the report here:
+
+https://lore.kernel.org/all/Y2LYXItKQyaJTv8j@intel.com/
+
+Now we shouldn't need that.
+
+Instead of reverting to _PAGE_PSE raw check, leverage pXd_leaf().
+
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: x86@kernel.org
 Signed-off-by: Peter Xu <peterx@redhat.com>
 ---
- mm/gup.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/hugetlbpage.c | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 69a777f4fc5c..f87a7d90f2ae 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -776,7 +776,7 @@ static struct page *follow_p4d_mask(struct vm_area_struct *vma,
+diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
+index 5804bbae4f01..8362953a24ce 100644
+--- a/arch/x86/mm/hugetlbpage.c
++++ b/arch/x86/mm/hugetlbpage.c
+@@ -20,29 +20,19 @@
+ #include <asm/elf.h>
  
- 	p4dp = p4d_offset(pgdp, address);
- 	p4d = READ_ONCE(*p4dp);
--	if (p4d_none(p4d))
-+	if (p4d_none(p4d) || !p4d_present(p4d))
- 		return no_page_table(vma, flags);
- 	BUILD_BUG_ON(p4d_huge(p4d));
- 	if (unlikely(p4d_bad(p4d)))
-@@ -3069,7 +3069,7 @@ static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned lo
- 		p4d_t p4d = READ_ONCE(*p4dp);
+ /*
+- * pmd_huge() returns 1 if @pmd is hugetlb related entry, that is normal
+- * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
+- * Otherwise, returns 0.
++ * pmd_huge() returns 1 if @pmd is hugetlb related entry.
+  */
+ int pmd_huge(pmd_t pmd)
+ {
+-	return !pmd_none(pmd) &&
+-		(pmd_val(pmd) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
++	return pmd_leaf(pmd);
+ }
  
- 		next = p4d_addr_end(addr, end);
--		if (p4d_none(p4d))
-+		if (p4d_none(p4d) || !p4d_present(p4d))
- 			return 0;
- 		BUILD_BUG_ON(p4d_huge(p4d));
- 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
+ /*
+- * pud_huge() returns 1 if @pud is hugetlb related entry, that is normal
+- * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
+- * Otherwise, returns 0.
++ * pud_huge() returns 1 if @pud is hugetlb related entry.
+  */
+ int pud_huge(pud_t pud)
+ {
+-#if CONFIG_PGTABLE_LEVELS > 2
+-	return !pud_none(pud) &&
+-		(pud_val(pud) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
+-#else
+-	return 0;
+-#endif
++	return pud_leaf(pud);
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
 -- 
 2.44.0
 
