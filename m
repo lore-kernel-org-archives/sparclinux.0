@@ -1,149 +1,165 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from wfhigh2-smtp.messagingengine.com (wfhigh2-smtp.messagingengine.com [64.147.123.153])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBD871339B1;
-	Wed,  6 Mar 2024 15:31:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171F5135A4B;
+	Wed,  6 Mar 2024 16:22:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.153
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709739117; cv=none; b=U+/gql+2SLr7t5M2UpvtX1TggsLeME9NmVrNgplaqGn79SpESfqAP1rkAYfv6op+7VNNxc3JM4pWQ6Qul594bsYg+/7U5FWhFC0l85FW0BC/KOZ8DDW4cqC5YjvWnjqYu0bUickwRaj/GcEzGT+pEKToRyUUDgwnDY0zatplQ1E=
+	t=1709742171; cv=none; b=QWLZbtCmrPIpTdsitEPDNPxLu0okBGF6VycaYnHvXkLig8+kj9Sjd/tz10RFeQmq8lwsqpyY+LWXSX5n0PxHqA7Fl53di4Qmn5NfHwsFEE1Bv1gVcc1VeLS+h+eenvQvVZsiD9kQaxhMcRNnkLJlqP6Sma2htcXRYfX0VNPeBSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709739117; c=relaxed/simple;
-	bh=Er8af+lGOgxUMzgP3Inja3okhV/X568racGzl39cuMs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=PvR1jg6w/HAsHt1kJ4wC+fUDuMDvImo4uuIK9U8tX+D4gMETMobhxFUBRW37A+l8gTTniFau0JYFrDU1LCqJ2Z3n/PcqNlQCPpZ2bq95XpmYYMnc/MytpBqf5Ajc6J3a3aOa4D4JttxmAX3Ae0QHphHw/hkxTNvHCHSxfmn0Upk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=UySXwnwO; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1709742171; c=relaxed/simple;
+	bh=M9RLoKUf78mtmNWUmr/Q4R2rYL8ZPqcxbZWZInXujfA=;
+	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
+	 Subject:Content-Type; b=X05oATxd3xhCJ/fLAjJ7a47RA67WJ09Yv8p7fXnO69sDAQoMrcZ4cmyLv6Y/qZ9t2TeXlsr5TIEIKbTutAJ51ZMN8iPe2SxisdQwvFxREfWW0cb/Py0igFbtrzzE6BW4olvUlZFFLoLkCjXliZvIvlMgQMUnTV3dC/SXAnaFBuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=SwDaX5z8; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eslNcsda; arc=none smtp.client-ip=64.147.123.153
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="UySXwnwO"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Tqby86K5Pz67w5;
-	Wed,  6 Mar 2024 16:31:44 +0100 (CET)
-Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Tqby03gWFz682J;
-	Wed,  6 Mar 2024 16:31:35 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1709739104;
-	bh=RsF6B/eQwmXOP8pTFuG0TBVvW6JiFTIq+o4WK6bOdPg=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=UySXwnwOsDGcj952f3Oo3beT2eS6E79FYqgsqUanIjCh1G93YHtsXgN9CDzNaGuKW
-	 5k9gkKxZouTeKN+00KjNvuRob/yJWuBeslnxWS1a5PjUGz9PEDD7c5ic5sJOIGkp7r
-	 Ay63yZLVq1P8MycG+sMNdfl8uf+PUa9UaZTagijk=
-Message-ID: <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
-Date: Wed, 6 Mar 2024 16:31:35 +0100
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="SwDaX5z8";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eslNcsda"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailfhigh.west.internal (Postfix) with ESMTP id 65E3F18000A6;
+	Wed,  6 Mar 2024 11:22:47 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Wed, 06 Mar 2024 11:22:48 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm3; t=1709742166; x=1709828566; bh=y7A79WQklI
+	QfY4J0P/pXJ8877SJ7uzmXrpsOWbznmOo=; b=SwDaX5z85c8xMbp5u9Renmu+YO
+	RVuOOxKKheLzugrl7ROAGe59GaIIuO5JP4UayAe3YaMwK1ZoP8ALm8omF1KnUsoX
+	Nnu+VU4L5YiE/Dw/zPyJz4mx48gBMfUHVMpN87HOLuEaaG6A+LjIBBCEtBOn+5Dp
+	mnY+eejMhHj/dhUagvKraE6WqJCrdO20bouKFtD617X1L39eQUFXFoCW3VUq1Srr
+	NC+r633l+dHaA0hzFOzFtkgJNpaQXLuEc3mlLm1e9ETd7Df/v6cU2N+E+1gmnbAb
+	aqRV4a82yGsDIcyUSpISOz6gnS8HhzaMEnpvpssV9ougfHbs3qByRX77iVLA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm1; t=1709742166; x=1709828566; bh=y7A79WQklIQfY4J0P/pXJ8877SJ7
+	uzmXrpsOWbznmOo=; b=eslNcsda+Mjzl4w1+yGxHJQWHFDwip7x+vekYREMIglf
+	cHqg/jMkuXrepeDXqALR+SSBzK6chAryjU/fk8UELoyz623bXF5zsx+HmqsGWhzR
+	iSA4I1zbfhsVwojL4GeI/uyXoqrhKMvOuEb4ZayrNM1rbe09B4QjMy221OqeBG8+
+	+RIp8aLt/irITWBSwvToIxMa57oWaH2iI1jn8r0wSyfmxaKiD9+HjycnDQdc+nKJ
+	PTU/rR8fsQJ+Ko5t0fXuWfxmsou+PL2qi5WBw4VNAAIdtHNCIiaBsGDIAq03D6Lu
+	1hecS/s74zSSC3aMspKFyIifScSNr0NeJGbPJgQQfQ==
+X-ME-Sender: <xms:VZjoZU7kkNCO2LuMzeJS7UotWCFW0bIIwpde-jvpYRfxs2Zj7-H5yQ>
+    <xme:VZjoZV5lrV7Nxb6RKkBi__Nv1rGv8LYaJD-I6hhFVRnWJiDWedMdCl0jMyuNeC5Tl
+    S81MANdUatz9moRyQ8>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledriedugdekgecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
+    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
+    gvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedtkeet
+    ffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrh
+    hnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:VpjoZTf17gbaBsLZQ9s2Qrn5pqJOhyFT-FOGkLhkrDa98OUzXGGcIQ>
+    <xmx:VpjoZZI-pakuZcGCZGrxeNSo4vbc1azWDe8j8e4gWsFRzELXuNLNjA>
+    <xmx:VpjoZYKUbjjsx9foTFJhI0P3lpkSILb9DE_fBYWq5b85LZXLx440DQ>
+    <xmx:VpjoZX-ZMZUFgLBJHWQVUK35jNINl3Ldm1o2D626T0lMxmpl-eFU_FFn-hQ>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id E45FEB6008D; Wed,  6 Mar 2024 11:22:45 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.11.0-alpha0-251-g8332da0bf6-fm-20240305.001-g8332da0b
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 4/7] sparc32: Do not select ZONE_DMA
-Content-Language: en-US
-To: Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>,
- "Maciej W. Rozycki" <macro@orcam.me.uk>, sparclinux@vger.kernel.org,
- Randy Dunlap <rdunlap@infradead.org>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>,
- linux-parport@lists.infradead.org, "David S . Miller" <davem@davemloft.net>,
- linux-kernel@vger.kernel.org
-References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
+Message-Id: <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
+In-Reply-To: <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
+References: 
+ <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
  <20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org>
  <8d5780f5-1047-48d7-a9c9-09b95c7b5604@gaisler.com>
  <5648dca0-4853-4dfb-91cf-282a656beb1e@app.fastmail.com>
  <bc33b608-e0b5-4dff-aa05-8513dce409b3@gaisler.com>
  <75a4a08d-85c2-4a60-9cbd-90dd50f765a8@app.fastmail.com>
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <75a4a08d-85c2-4a60-9cbd-90dd50f765a8@app.fastmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+ <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
+Date: Wed, 06 Mar 2024 17:22:25 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Andreas Larsson" <andreas@gaisler.com>,
+ "Sam Ravnborg" <sam@ravnborg.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
+ sparclinux@vger.kernel.org, "Randy Dunlap" <rdunlap@infradead.org>
+Cc: "Miquel Raynal" <miquel.raynal@bootlin.com>,
+ linux-parport@lists.infradead.org, "David S . Miller" <davem@davemloft.net>,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 4/7] sparc32: Do not select ZONE_DMA
+Content-Type: text/plain
 
-On 2024-03-06 15:45, Arnd Bergmann wrote:
->> Testing, in a different driver, setting and
->> allocating under a 30-bit DMA mask (or even a 28-bit DMA mask depending
->> on where the physical memory resides) is possible before removing
->> ZONE_DMA, but not after. 
-> 
-> I still don't see how that changes anything if
-> max_zone_pfn[ZONE_DMA] and max_zone_pfn[ZONE_NORMAL] are set
-> to the same value. Did you test this on a mainline kernel, or
-> do you have any patches on top that might have set up
-> the zones differently?
-
-This was tested on my for-next plus this patch series, i.e. v6.8-rc1
-plus these ones:
-
-(local)       sparc32: Fix section mismatch in leon_pci_grpci
-(local)       sparc32: Fix parport build with sparc32
-(local)       sparc32: Do not select GENERIC_ISA_DMA
-(local)       sparc32: Do not select ZONE_DMA
-(local)       mtd: maps: sun_uflash: Declare uflash_devinit static
-(local)       sparc32: Fix build with trapbase
-(local)       sparc32: Use generic cmpdi2/ucmpdi2 variants
-626db6ee8ee1e sparc: select FRAME_POINTER instead of redefining it
-5378f00c935be sparc: vDSO: fix return value of __setup handler
-3ed7c61e49d65 sparc64: NMI watchdog: fix return value of __setup handler
-079431ea9ed3e sparc: vio: make vio_bus_type const
-3cc208ffa84a7 sparc: Fix typos
-0f1991949d9bd sparc: Use shared font data
-0955723ef9358 sparc: remove obsolete config ARCH_ATU
-
-so nothing else that should affect zones.
-
-> More specifically, what do you see in the boot log for the
-> size of each zone? 
-
-dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) fails with
-the ZONE_DMA removed, and no other differences. Boot log:
-
-831MB HIGHMEM available.
-Zone ranges:
-  Normal   [mem 0x0000000000000000-0x000000000bffffff]
-  HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
-Movable zone start for each node
-Early memory node ranges
-  node   0: [mem 0x0000000000000000-0x000000003fff7fff]
-Initmem setup node 0 [mem 0x0000000000000000-0x000000003fff7fff]
+On Wed, Mar 6, 2024, at 16:31, Andreas Larsson wrote:
+> On 2024-03-06 15:45, Arnd Bergmann wrote:
+>> More specifically, what do you see in the boot log for the
+>> size of each zone? 
+>
+> dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) fails with
+> the ZONE_DMA removed, and no other differences. Boot log:
+>
+> 831MB HIGHMEM available.
+> Zone ranges:
+>   Normal   [mem 0x0000000000000000-0x000000000bffffff]
+>   HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
 
 
-dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) succeeds with
-ZONE_DMA still in place (i.e. the above plus the ZONE_DMA patch
-reverted and no other differences). Boot log:
+> dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) succeeds with
+> ZONE_DMA still in place (i.e. the above plus the ZONE_DMA patch
+> reverted and no other differences). Boot log:
+>
+> 831MB HIGHMEM available.
+> Zone ranges:
+>   DMA      [mem 0x0000000000000000-0x000000000bffffff]
+>   Normal   empty
+>   HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
 
-831MB HIGHMEM available.
-Zone ranges:
-  DMA      [mem 0x0000000000000000-0x000000000bffffff]
-  Normal   empty
-  HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
-Movable zone start for each node
-Early memory node ranges
-  node   0: [mem 0x0000000000000000-0x000000003fff7fff]
-Initmem setup node 0 [mem 0x0000000000000000-0x000000003fff7fff]
+That sounds like a bug somewhere else. As Sam explained in
+the patch description, ZONE_NORMAL and ZONE_DMA always have
+the same limit, which explains that without the patch you
+only have DMA and highmem, but not normal.
 
+What we expected to happen here is that anything that asks
+for ZONE_DMA memory just uses ZONE_NORMAL instead and the
+behavior never changes.
 
-> 
->> I am also a bit concerned if removing ZONE_DMA will let DMA be allocated
->> in highmem and what that could lead to.
-> 
-> It's not supposed to make a difference, but this is a bit
-> more complex:
-> 
-> - Any kernel allocation (kmalloc etc) by definition comes from
->   lowmem, regardless of GFP_DMA/GFP_KERNEL.
-> 
-> - user pages that get mapped using dma_map_sg() or dma_map_page()
->   can be in highmem, but this should not depend on the presence
->   of ZONE_DMA
-> 
-> - If you have devices that can only access a subset of the RAM
->   and there is no IOMMU, you really need to use swiotlb to
->   make it use bounce buffers, at least for the streaming
->   (dma_map_*) API. A driver using only the coherent (dma_alloc_*)
->   API should use ZONE_DMA if ZONE_NORMAL goes beyond the
->   dma mask.
-Thanks for the explanation!
+It looks like this is not how dma_direct_supported()
+works though:
 
-Cheers,
-Andreas
+        u64 min_mask = (max_pfn - 1) << PAGE_SHIFT;
+        [...]
+        /*
+         * This check needs to be against the actual bit mask value, so use
+         * phys_to_dma_unencrypted() here so that the SME encryption mask isn't
+         * part of the check.
+         */     
+        if (IS_ENABLED(CONFIG_ZONE_DMA))
+                min_mask = min_t(u64, min_mask, DMA_BIT_MASK(zone_dma_bits));
+        return mask >= phys_to_dma_unencrypted(dev, min_mask);
 
+Without ZONE_DMA, it checks for the highest page of any
+zone, but that is ZONE_HIGHMEM in your case, which apparently
+is outside of the device's mask, while ZONE_NORMAL is inside
+the mask.
+
+Not sure if it's worth changing the generic code for this,
+or if we want to just keep the existing version without
+Sam's patch now that we understand the issue.
+
+On a relate note, it does seem odd to have such a small
+lowmem area, and I wonder if that could be extended.
+The 192MB lowmem limit comes from 
+
+#define SRMMU_MAXMEM            0x0c000000
+
+but I don't understand if that is a hardware limitation
+or a design choice that can be changed, and if it is
+even valid on leon or only on the old sun machines.
+
+There is a recurring discussion about eventually
+killing off support for CONFIG_HIGHMEM in the kernel,
+so if you have a hardware limit of 192MB of lowmem,
+this would hit you particularly hard.
+
+      Arnd
