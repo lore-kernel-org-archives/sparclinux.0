@@ -1,195 +1,219 @@
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 921DB12D767;
-	Wed,  6 Mar 2024 12:57:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9624A5DF27;
+	Wed,  6 Mar 2024 14:15:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709729825; cv=none; b=MWKbXzQKr0ZG8CX5wwvm2fBX1wRegu6pwzSQ/Dld07P/C4SbQ0E0ab0Mchmhpwrd718RPdxOMylCfO/HYjI8yFUiKuQ//pHaf6ZgiL3KttmHSMva8C3UrAiu8djkVFSCWWJM6kWAhKVC18779fdyQ/yWBPSCTudh00t9Jpif9V8=
+	t=1709734517; cv=none; b=OKiPF+fcKBxeqpBjdCMc+ZrAk0uxqkazXJjUXZSH+9+GDw9oSbOFPJm4S/8GD7ne9i2N8tprqoTHdHu10dMuLMtFCfYXgsyGMchfixzWsPHJCtjI/fy/7LKzUbjh+nuHVIHT5wRbh8nhII4T5LwWW1ItUPx9PKxpBPV9tpYtGTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709729825; c=relaxed/simple;
-	bh=33SuGDVKhyAmIEY/wnNy0LGNUvfWeALTFWmEh2mPwPA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=JoTvS75aw5Z+85b0WqdtgjEHGNwhtcs3jdmGjHsYmRVyVMjWpUHs/NR4RXPY+NcNPzhreluNQm0mt4zUHsjTUlr0tgJuqgqLSMAYJmq/ZvHDooQ+R/AtkL4M2ohH/r9HdFJItABXiltSVo5Q9H7jqSvfHtkNoT9ZHAsGVevfAHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au; spf=pass smtp.mailfrom=ellerman.id.au; dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b=UfEtVolq; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ellerman.id.au
+	s=arc-20240116; t=1709734517; c=relaxed/simple;
+	bh=6p2hAt3DJTtWEmWkGiNmsPvIqV/lUSZTutyoSUX5wpE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=q9zCiavFJ94/ebGWvPPBfJS5GZL3U5exLP5N19rpPXfSa1nku5TJohqKSpqGliznqwPWH62eFtrBeoedB8nZ3J2OAGPtdAZOMAQr5ckSMb0+sIt5VobTQteAEoJ+h8vWZaS/P5qvFoxO0xRKxnD1a+htfEx1Sdlt8pNa+MsorIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LqIp2kZT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="UfEtVolq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-	s=201909; t=1709729819;
-	bh=7qMkj855gnIh1UQkcFt0aaaoTWPFayqXkWGgolRjo9E=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=UfEtVolq5MqXw9jCn/GeBb+IBQz1dQvJaH/0rnEilELcXz+ev5Hbtp9B7h7mEpBX6
-	 Qz3f0JVrd097eeURWnaXC2C/GW5fBXQWNrwBK0QxwWX1YaRiQ6aIQQ0XFTkV+WzC5v
-	 GXYLf6FZmSDmamdgEA80gV9hcMOlFslVWN4X9wP38RFheO1qGLQawaGr7s8/LUFbMT
-	 gHkmLZS2HLXRCVJcdsFeWrt3RUA35VQsD9LPG6nt3TSnIA5kK6I5fFJLsrkNZ/vfmm
-	 hPS72F4Sajlz8pB2B5k39v9Xa14Hc85llYzAKp2qodd6KdX7Cyd3f5C9srqntJv+gy
-	 0gOjJMv33jZmA==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4TqXWY0xZyz4wc8;
-	Wed,  6 Mar 2024 23:56:56 +1100 (AEDT)
-From: Michael Ellerman <mpe@ellerman.id.au>
-To: peterx@redhat.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org, Andrew Morton
- <akpm@linux-foundation.org>, Muchun Song <muchun.song@linux.dev>, Jason
- Gunthorpe <jgg@nvidia.com>, peterx@redhat.com, Matthew Wilcox
- <willy@infradead.org>, Mike Rapoport <rppt@kernel.org>, Christophe Leroy
- <christophe.leroy@csgroup.eu>, x86@kernel.org, sparclinux@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, Nicholas Piggin <npiggin@gmail.com>,
- "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, "Naveen N. Rao"
- <naveen.n.rao@linux.ibm.com>
-Subject: Re: [PATCH RFC 09/13] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
-In-Reply-To: <20240306104147.193052-10-peterx@redhat.com>
-References: <20240306104147.193052-1-peterx@redhat.com>
- <20240306104147.193052-10-peterx@redhat.com>
-Date: Wed, 06 Mar 2024 23:56:56 +1100
-Message-ID: <87v85zo6w7.fsf@mail.lhotse>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LqIp2kZT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F782C433F1;
+	Wed,  6 Mar 2024 14:15:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1709734517;
+	bh=6p2hAt3DJTtWEmWkGiNmsPvIqV/lUSZTutyoSUX5wpE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=LqIp2kZTKEk6BDtlGN9YtFBVHmwGfTij/0yFkUBE5XGhta0eqXHuPZZJ3/MIusuUG
+	 1/ai7edE6AbiuxHWjDBSN5GwSx4jO1RwWivNR0PUtakQUcitU1uJh1+vHWYGSiPn+I
+	 /dBaVrtPErxMiFpuWjYe3LW95xWi64gxsDrEvpuJ8OizSORBDPypoeSsLWyXEUGdmf
+	 fJeiWqTrhJi5qxh7Jya6058wrIYZrMi99CnlK2WXNiIm+MJuSG+gSvaihlsEMOBWt5
+	 2fKuqVl7eyYLUWkzPRqLl2zDWANVIuecGX2Qr2I58K0QII0FK3WksaSXHLTuDSmpIM
+	 TYoPCbqqY5j5A==
+From: Arnd Bergmann <arnd@kernel.org>
+To: Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Matt Turner <mattst88@gmail.com>,
+	Vineet Gupta <vgupta@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Guo Ren <guoren@kernel.org>,
+	Brian Cain <bcain@quicinc.com>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Michal Simek <monstr@monstr.eu>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Helge Deller <deller@gmx.de>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Richard Weinberger <richard@nod.at>,
+	x86@kernel.org,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Kieran Bingham <kbingham@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org,
+	linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org
+Subject: [v2 PATCH 0/3] arch: mm, vdso: consolidate PAGE_SIZE definition
+Date: Wed,  6 Mar 2024 15:14:50 +0100
+Message-Id: <20240306141453.3900574-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-peterx@redhat.com writes:
-> From: Peter Xu <peterx@redhat.com>
->
-> PowerPC book3s 4K mostly has the same definition on both, except pXd_huge=
-()
-> constantly returns 0 for hash MMUs.  AFAICT that is fine to be removed,
-> because pXd_huge() reflects a hugetlb entry, while it's own hugetlb pgtab=
-le
-> lookup function (__find_linux_pte() shared by all powerpc code) already u=
-se
-> pXd_leaf() irrelevant of the MMU type.  It means pXd_leaf() should work a=
-ll
-> fine with hash MMU pgtables or something could already went wrong.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Yes I think that's correct.
+Naresh noticed that the newly added usage of the PAGE_SIZE macro in
+include/vdso/datapage.h introduced a build regression. I had an older
+patch that I revived to have this defined through Kconfig rather than
+through including asm/page.h, which is not allowed in vdso code.
 
-4K Hash MMU doesn't support any hugepage size at PMD or PUD level (the
-geometry is wrong), so pmd/pud_huge() were written with that in mind,
-ie. they are hard coded to return false.
+The vdso patch series now has a temporary workaround, but I still want to
+get this into v6.9 so we can place the hack with CONFIG_PAGE_SIZE
+in the vdso.
 
-But it should be OK to use pmd/pud_leaf(), they will actually look for
-_PAGE_PTE, but it should never be set for 4K Hash.
+I've applied this to the asm-generic tree already, please let me know if
+there are still remaining issues. It's really close to the merge window
+already, so I'd probably give this a few more days before I send a pull
+request, or defer it to v6.10 if anything goes wrong.
 
-See eg. arch/powerpc/include/asm/book3s/64/hash-4k.h:
+Sorry for the delay, I was still waiting to resolve the m68k question,
+but there were no further replies in the end, so I kept my original
+version.
 
-static inline pmd_t hash__pmd_mkhuge(pmd_t pmd)
-{
-	BUG();
-	return pmd;
-}
+Changes from v1:
 
-> The goal should be that we will have one API pXd_leaf() to detect all kin=
-ds
-> of huge mappings.  AFAICT we need to use the pXd_leaf() impl (rather than
-> pXd_huge() ones) to make sure ie. THPs on hash MMU will also return true.
->
-> This helps to simplify a follow up patch to drop pXd_huge() treewide.
->
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Nicholas Piggin <npiggin@gmail.com>
-> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-> Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-> Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Signed-off-by: Peter Xu <peterx@redhat.com>
-> ---
->  arch/powerpc/include/asm/book3s/64/pgtable-4k.h | 14 ++------------
->  1 file changed, 2 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h b/arch/power=
-pc/include/asm/book3s/64/pgtable-4k.h
-> index 48f21820afe2..92545981bb49 100644
-> --- a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-> +++ b/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-> @@ -8,22 +8,12 @@
->  #ifdef CONFIG_HUGETLB_PAGE
->  static inline int pmd_huge(pmd_t pmd)
->  {
-> -	/*
-> -	 * leaf pte for huge page
-> -	 */
-> -	if (radix_enabled())
-> -		return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-> -	return 0;
-> +	return pmd_leaf(pmd);
->  }
->=20=20
->  static inline int pud_huge(pud_t pud)
->  {
-> -	/*
-> -	 * leaf pte for huge page
-> -	 */
-> -	if (radix_enabled())
-> -		return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-> -	return 0;
-> +	return pud_leaf(pud);
->  }
+ - improve Kconfig help texts
+ - remove an extraneous line in hexagon
 
-This doesn't actually compile though.
+      Arnd
 
-  arch/powerpc/include/asm/book3s/64/pgtable-4k.h:11:16: error: implicit de=
-claration of function =E2=80=98pmd_leaf=E2=80=99; did you mean =E2=80=98pgd=
-_clear=E2=80=99? [-Werror=3Dimplicit-function-declaration]
+Link: https://lore.kernel.org/lkml/CA+G9fYtrXXm_KO9fNPz3XaRxHV7UD_yQp-TEuPQrNRHU+_0W_Q@mail.gmail.com/
+Link: https://lore.kernel.org/all/65dc6c14.170a0220.f4a3f.91dd@mx.google.com/
+Link: https://lore.kernel.org/lkml/20240226161414.2316610-1-arnd@kernel.org/
 
-etc.
+Arnd Bergmann (3):
+  arch: consolidate existing CONFIG_PAGE_SIZE_*KB definitions
+  arch: simplify architecture specific page size configuration
+  arch: define CONFIG_PAGE_SIZE_*KB on all architectures
 
-To make it compile we'd need to relocate the pmd/pud_leaf() definitions:
+ arch/Kconfig                       | 92 +++++++++++++++++++++++++++++-
+ arch/alpha/Kconfig                 |  1 +
+ arch/alpha/include/asm/page.h      |  2 +-
+ arch/arc/Kconfig                   |  3 +
+ arch/arc/include/uapi/asm/page.h   |  6 +-
+ arch/arm/Kconfig                   |  1 +
+ arch/arm/include/asm/page.h        |  2 +-
+ arch/arm64/Kconfig                 | 29 +++++-----
+ arch/arm64/include/asm/page-def.h  |  2 +-
+ arch/csky/Kconfig                  |  1 +
+ arch/csky/include/asm/page.h       |  2 +-
+ arch/hexagon/Kconfig               | 24 ++------
+ arch/hexagon/include/asm/page.h    |  6 +-
+ arch/loongarch/Kconfig             | 21 ++-----
+ arch/loongarch/include/asm/page.h  | 10 +---
+ arch/m68k/Kconfig                  |  3 +
+ arch/m68k/Kconfig.cpu              |  2 +
+ arch/m68k/include/asm/page.h       |  6 +-
+ arch/microblaze/Kconfig            |  1 +
+ arch/microblaze/include/asm/page.h |  2 +-
+ arch/mips/Kconfig                  | 58 ++-----------------
+ arch/mips/include/asm/page.h       | 16 +-----
+ arch/nios2/Kconfig                 |  1 +
+ arch/nios2/include/asm/page.h      |  2 +-
+ arch/openrisc/Kconfig              |  1 +
+ arch/openrisc/include/asm/page.h   |  2 +-
+ arch/parisc/Kconfig                |  3 +
+ arch/parisc/include/asm/page.h     | 10 +---
+ arch/powerpc/Kconfig               | 31 ++--------
+ arch/powerpc/include/asm/page.h    |  2 +-
+ arch/riscv/Kconfig                 |  1 +
+ arch/riscv/include/asm/page.h      |  2 +-
+ arch/s390/Kconfig                  |  1 +
+ arch/s390/include/asm/page.h       |  2 +-
+ arch/sh/include/asm/page.h         | 13 +----
+ arch/sh/mm/Kconfig                 | 42 ++++----------
+ arch/sparc/Kconfig                 |  2 +
+ arch/sparc/include/asm/page_32.h   |  2 +-
+ arch/sparc/include/asm/page_64.h   |  3 +-
+ arch/um/Kconfig                    |  1 +
+ arch/um/include/asm/page.h         |  2 +-
+ arch/x86/Kconfig                   |  1 +
+ arch/x86/include/asm/page_types.h  |  2 +-
+ arch/xtensa/Kconfig                |  1 +
+ arch/xtensa/include/asm/page.h     |  2 +-
+ scripts/gdb/linux/constants.py.in  |  2 +-
+ scripts/gdb/linux/mm.py            |  2 +-
+ 47 files changed, 185 insertions(+), 238 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/in=
-clude/asm/book3s/64/pgtable.h
-index df66dce8306f..fd7180fded75 100644
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -262,6 +262,18 @@ extern unsigned long __kernel_io_end;
+-- 
+2.39.2
 
- extern struct page *vmemmap;
- extern unsigned long pci_io_base;
-+
-+#define pmd_leaf pmd_leaf
-+static inline bool pmd_leaf(pmd_t pmd)
-+{
-+       return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-+}
-+
-+#define pud_leaf pud_leaf
-+static inline bool pud_leaf(pud_t pud)
-+{
-+       return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-+}
- #endif /* __ASSEMBLY__ */
-
- #include <asm/book3s/64/hash.h>
-@@ -1436,20 +1448,5 @@ static inline bool is_pte_rw_upgrade(unsigned long o=
-ld_val, unsigned long new_va
-        return false;
- }
-
--/*
-- * Like pmd_huge(), but works regardless of config options
-- */
--#define pmd_leaf pmd_leaf
--static inline bool pmd_leaf(pmd_t pmd)
--{
--       return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
--}
--
--#define pud_leaf pud_leaf
--static inline bool pud_leaf(pud_t pud)
--{
--       return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
--}
--
- #endif /* __ASSEMBLY__ */
- #endif /* _ASM_POWERPC_BOOK3S_64_PGTABLE_H_ */
-
-cheers
+To: Thomas Gleixner <tglx@linutronix.de>
+To: Vincenzo Frascino <vincenzo.frascino@arm.com>
+To: Kees Cook <keescook@chromium.org>
+To: Anna-Maria Behnsen <anna-maria@linutronix.de>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: x86@kernel.org
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: loongarch@lists.linux.dev
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-openrisc@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
