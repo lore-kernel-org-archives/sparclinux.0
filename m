@@ -1,45 +1,45 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 349026089E
-	for <sparclinux@vger.kernel.org>; Wed,  6 Mar 2024 10:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77980605B1
+	for <sparclinux@vger.kernel.org>; Wed,  6 Mar 2024 10:42:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709721739; cv=none; b=dJ5812sG2wbxNtEO6eLYrmqFX0oVmerAjFzs+c58LJN28WuGBHl4FVzR8T9Os/7ItqkSwvv/9IsC5BIXVca9bBHTfYhlnhnUPhKkY1UZzmIRu1ZWYW2xP+gRJT/J27N5qmECShYCuG2lNjFhT0liO6x+IoYAdisYnll+yLxwWHc=
+	t=1709721745; cv=none; b=b6O4QNO3RBaXi/uIvkKP+Q8r5G6ESWt8vGJFtMG5RUOOs9ZqcYYOLHs9Obw1ymVUt95bUkT+zoAUBwp2S/h+6a8aZGmKYZw2brexh6b+SGupU5cPEpgPeGYWEQG78DqG+9KQWrWHviaAx7vW7u+D6Cjsn4GQWTF+gGQGL4q7VOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709721739; c=relaxed/simple;
-	bh=PJKzqnHG6HtyEXo/aXT9kPop7Tc4xiPLd1rW13UePCc=;
+	s=arc-20240116; t=1709721745; c=relaxed/simple;
+	bh=CxV8MifY1lrwJx7GkesgEIYplTEI/H1POQkB3NsGQqU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rXf3hym8zDDy4sSpaJuskblpt74eRJR4w+8G91PncBst/5XhOHd4si75jqlxzzleAkq9pBe4cdAVWoZAgtyOie9RDz2erOid0KYcPUJ95HDC1z0tfDWEL1RBqanCWVCTfp+d5sGsRbVnhVpeGwpWIr94mevucomTHIiWgj7Rivs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GFsbtedn; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version; b=dUFWFH6onW7XjWPOy5yceEpXmSrPf3UOvF4LJ9FyfFBcNSI9psKlnl2NN7EuOeaksVnl5DLTtqCewbMUERdyv7ZhYlkcQ5dxhr6PimV3Ry5xc3XhZzW65GQS7LbFAn9Z4Kgk8G5ztv6xo4LPdlrOHZXCyR/XKD+8RYumYOZXH2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=g/Xzzd3l; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GFsbtedn"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="g/Xzzd3l"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709721737;
+	s=mimecast20190719; t=1709721742;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=3D9LYre9es5Pr/ZmF0ksBqg/v+REJVkPqwZxeVyu2sc=;
-	b=GFsbtednPaA4KzBXKK4uD2Jr3QnquLYWokFhihg3yKEZtwQz5lSCOeMM1En2bXVZdG+B3O
-	bb3sSycZFo37y/kkG824fNpqyHd1nXYKC+TxucQVFov0onk9xFv4J9OI6wv1IL8KTgK3zu
-	FeQB+z2QRO/C1H2pcyjNHtQnuBvN+hE=
+	bh=1JTq1zOoPcvZLzyDHIG6xTSG66u1JMVbpFEt5kpx07M=;
+	b=g/Xzzd3lNJ2QcBUjkbtdjRPZ0Yfhl04FZ9EEkTA5QcSVqKWSbXDSUbW048JySJRPPuHVS3
+	/RFRObX6AJhPTtEJIDw8Wg5QKPprQ1fZUE2SND2ISa2rB/Ucs1xOKUs6/iT0b2ID9yAZLE
+	s3Ze+BuRVyQRgcXwLqFhT4eawNsY6as=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-158-uC-oagQgMFWs_CgooWNVxQ-1; Wed, 06 Mar 2024 05:42:11 -0500
-X-MC-Unique: uC-oagQgMFWs_CgooWNVxQ-1
+ us-mta-630-w92BStQdNuqU_EljwB5_jw-1; Wed, 06 Mar 2024 05:42:18 -0500
+X-MC-Unique: w92BStQdNuqU_EljwB5_jw-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D81EA8007A2;
-	Wed,  6 Mar 2024 10:42:10 +0000 (UTC)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6AC0E800267;
+	Wed,  6 Mar 2024 10:42:17 +0000 (UTC)
 Received: from x1n.redhat.com (unknown [10.72.116.8])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 97C19112131D;
-	Wed,  6 Mar 2024 10:42:04 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id A7360111E3F3;
+	Wed,  6 Mar 2024 10:42:11 +0000 (UTC)
 From: peterx@redhat.com
 To: linux-mm@kvack.org,
 	linux-kernel@vger.kernel.org
@@ -54,9 +54,9 @@ Cc: linuxppc-dev@lists.ozlabs.org,
 	x86@kernel.org,
 	sparclinux@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH RFC 02/13] mm/gup: Cache p4d in follow_p4d_mask()
-Date: Wed,  6 Mar 2024 18:41:36 +0800
-Message-ID: <20240306104147.193052-3-peterx@redhat.com>
+Subject: [PATCH RFC 03/13] mm/gup: Check p4d presence before going on
+Date: Wed,  6 Mar 2024 18:41:37 +0800
+Message-ID: <20240306104147.193052-4-peterx@redhat.com>
 In-Reply-To: <20240306104147.193052-1-peterx@redhat.com>
 References: <20240306104147.193052-1-peterx@redhat.com>
 Precedence: bulk
@@ -70,42 +70,38 @@ X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
 
 From: Peter Xu <peterx@redhat.com>
 
-Add a variable to cache p4d in follow_p4d_mask().  It's a good practise to
-make sure all the following checks will have a consistent view of the entry.
+Currently there should have no p4d swap entries so it may not matter much,
+however this may help us to rule out swap entries in pXd_huge() API, which
+will include p4d_huge().  The p4d_present() checks make it 100% clear that
+we won't rely on p4d_huge() for swap entries.
 
 Signed-off-by: Peter Xu <peterx@redhat.com>
 ---
- mm/gup.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/gup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/mm/gup.c b/mm/gup.c
-index df83182ec72d..69a777f4fc5c 100644
+index 69a777f4fc5c..f87a7d90f2ae 100644
 --- a/mm/gup.c
 +++ b/mm/gup.c
-@@ -772,16 +772,17 @@ static struct page *follow_p4d_mask(struct vm_area_struct *vma,
- 				    unsigned int flags,
- 				    struct follow_page_context *ctx)
- {
--	p4d_t *p4d;
-+	p4d_t *p4dp, p4d;
+@@ -776,7 +776,7 @@ static struct page *follow_p4d_mask(struct vm_area_struct *vma,
  
--	p4d = p4d_offset(pgdp, address);
--	if (p4d_none(*p4d))
-+	p4dp = p4d_offset(pgdp, address);
-+	p4d = READ_ONCE(*p4dp);
-+	if (p4d_none(p4d))
+ 	p4dp = p4d_offset(pgdp, address);
+ 	p4d = READ_ONCE(*p4dp);
+-	if (p4d_none(p4d))
++	if (p4d_none(p4d) || !p4d_present(p4d))
  		return no_page_table(vma, flags);
--	BUILD_BUG_ON(p4d_huge(*p4d));
--	if (unlikely(p4d_bad(*p4d)))
-+	BUILD_BUG_ON(p4d_huge(p4d));
-+	if (unlikely(p4d_bad(p4d)))
- 		return no_page_table(vma, flags);
+ 	BUILD_BUG_ON(p4d_huge(p4d));
+ 	if (unlikely(p4d_bad(p4d)))
+@@ -3069,7 +3069,7 @@ static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned lo
+ 		p4d_t p4d = READ_ONCE(*p4dp);
  
--	return follow_pud_mask(vma, address, p4d, flags, ctx);
-+	return follow_pud_mask(vma, address, p4dp, flags, ctx);
- }
- 
- /**
+ 		next = p4d_addr_end(addr, end);
+-		if (p4d_none(p4d))
++		if (p4d_none(p4d) || !p4d_present(p4d))
+ 			return 0;
+ 		BUILD_BUG_ON(p4d_huge(p4d));
+ 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
 -- 
 2.44.0
 
