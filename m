@@ -1,90 +1,89 @@
-Received: from smtp.gentoo.org (woodpecker.gentoo.org [140.211.166.183])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6646A13BAC6;
-	Wed,  6 Mar 2024 17:11:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=140.211.166.183
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E704132C0C;
+	Wed,  6 Mar 2024 17:14:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709745115; cv=none; b=lvmgyf9iOGS4XLwHaNrFlw0afVKrGmLNR5nuRHBnAREg2g/J7iisZF+LFmLJKw9occWpuI6pl2YF2bFib1iYDZYUYXIoBwMVyJO/L+K8+q8X0fjQWVXuO7UA6JHh/JLhSt8Mt1YSSIOF8vUOUe/bcYx1Mnp1J0RwjM3ADuPATKg=
+	t=1709745292; cv=none; b=UyimjW+kFB/k48w6HZLRkrZqliWXY4P6ZGn5UliZbwn1CkGqHRYKedi3cakAaYVhcJsh6zcq7+p0W0mSkBK5Mc8EHsud4RJeif+ChMXnKOIPPcAEDYzJ1IFrJ8mGB7QdqvCpt6/1/4SjNmcf6bF7lozIJ0JXP793vmWwnPfP9lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709745115; c=relaxed/simple;
-	bh=PMy2Vo7jx6LV3SSY6p3haKD9pKM2+dPz+OS364W64Tc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=e00qSxK1WmjYGZNwlGxNfEJCmV9f6OdlBVOOmtYI9zmh6ACCn8uCGcUMfro6h89Ib7bQolpfbJ/RBmvYJgbICjsqSQGlTHWA1TnLe6oUj3BHP6uF7BofkvCAePe+K75v5UOvscxbN1ZpHI9kSDMwykC/phuFrsreDgDxxTapDaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org; spf=pass smtp.mailfrom=gentoo.org; arc=none smtp.client-ip=140.211.166.183
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gentoo.org
-From: Mike Gilbert <floppym@gentoo.org>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Mike Gilbert <floppym@gentoo.org>
-Subject: [PATCH] sparc: move struct termio to asm/termios.h
-Date: Wed,  6 Mar 2024 12:11:47 -0500
-Message-ID: <20240306171149.3843481-1-floppym@gentoo.org>
-X-Mailer: git-send-email 2.44.0
+	s=arc-20240116; t=1709745292; c=relaxed/simple;
+	bh=Vp8CgcEh2+XD1rrYCq9vFCOWhJV6Gj0UcBPHVO/mG3I=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=dqlOdOfS0WvFUpfk6O+hYTbqOXylNZ9WO1bX7dy/p6b4c5HMLQGh2g0KAvRLZnAu2mInePlqi00jjWp59eM4EVFpl+tfsSGrAOV4iGoOsMtNHlMRpS7WPHhFIXrsyEHP7OQTWbqWp424a5sTVvY52LjOmwpi0KcWmuizsftAacg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=hLcCHGoD; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=r2OKQF+b; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="hLcCHGoD";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="r2OKQF+b"
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1709745282;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Vp8CgcEh2+XD1rrYCq9vFCOWhJV6Gj0UcBPHVO/mG3I=;
+	b=hLcCHGoDD+mz8ZbKjQeB5xXhhoPU/fE2kNC3hQNfd1ma/u8J/zddviA/HqdTgqdG3oVELs
+	yVs1/hPOwmAOTuivi7bn/t5AdXxzOgCbrjnNic9a7P3UD6t9DbBcDDZEQv9mdkZ5gNQmWv
+	7vbCgHbSJECaiSNWreeRIZmRe08ButQng2h/CGVRcpYXfkeDvP8s8MUjoaw0ejkV2aOd6J
+	GhCC5IBZxfnMkFg4BEdSUxSJkuNwB3HEKPGk8Ts8FrpJGs4nl/zkw473YhePn+NXGru8W6
+	nrJgDF25SYoVsf+V+wjNsd9UV9qsXdOpH54xyHauuhHRCs6LH5fgqRzBOaZs6A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1709745282;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Vp8CgcEh2+XD1rrYCq9vFCOWhJV6Gj0UcBPHVO/mG3I=;
+	b=r2OKQF+b39Jbfxu8K1wz0pKjaanVs2rF1CqBPX6sZtQq8gqd45t5LNMwP4WV+c9wRqAr36
+	puBSYY3XgU94OPAA==
+To: Arnd Bergmann <arnd@kernel.org>, Anna-Maria Behnsen
+ <anna-maria@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>,
+ Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet
+ Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Catalin
+ Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, Brian Cain
+ <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, Geert
+ Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller
+ <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>, Christophe Leroy
+ <christophe.leroy@csgroup.eu>, Palmer Dabbelt <palmer@dabbelt.com>, John
+ Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Andreas Larsson
+ <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>,
+ x86@kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Andy Lutomirski
+ <luto@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>, Kieran Bingham
+ <kbingham@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+ linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-um@lists.infradead.org
+Subject: Re: [PATCH v2 1/3] arch: consolidate existing CONFIG_PAGE_SIZE_*KB
+ definitions
+In-Reply-To: <20240306141453.3900574-2-arnd@kernel.org>
+References: <20240306141453.3900574-1-arnd@kernel.org>
+ <20240306141453.3900574-2-arnd@kernel.org>
+Date: Wed, 06 Mar 2024 18:14:42 +0100
+Message-ID: <875xxzuvst.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-Every other arch declares struct termio in asm/termios.h, so make sparc
-match them.
+On Wed, Mar 06 2024 at 15:14, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> These four architectures define the same Kconfig symbols for configuring
+> the page size. Move the logic into a common place where it can be shared
+> with all other architectures.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Resolves a build failure in the PPP software package, which includes
-both bits/ioctl-types.h via sys/ioctl.h (glibc) and asm/termbits.h.
-
-Closes: https://bugs.gentoo.org/918992
-Signed-off-by: Mike Gilbert <floppym@gentoo.org>
-Cc: stable@vger.kernel.org
----
- arch/sparc/include/uapi/asm/termbits.h | 10 ----------
- arch/sparc/include/uapi/asm/termios.h  |  9 +++++++++
- 2 files changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/arch/sparc/include/uapi/asm/termbits.h b/arch/sparc/include/uapi/asm/termbits.h
-index 4321322701fc..0da2b1adc0f5 100644
---- a/arch/sparc/include/uapi/asm/termbits.h
-+++ b/arch/sparc/include/uapi/asm/termbits.h
-@@ -10,16 +10,6 @@ typedef unsigned int	tcflag_t;
- typedef unsigned long	tcflag_t;
- #endif
- 
--#define NCC 8
--struct termio {
--	unsigned short c_iflag;		/* input mode flags */
--	unsigned short c_oflag;		/* output mode flags */
--	unsigned short c_cflag;		/* control mode flags */
--	unsigned short c_lflag;		/* local mode flags */
--	unsigned char c_line;		/* line discipline */
--	unsigned char c_cc[NCC];	/* control characters */
--};
--
- #define NCCS 17
- struct termios {
- 	tcflag_t c_iflag;		/* input mode flags */
-diff --git a/arch/sparc/include/uapi/asm/termios.h b/arch/sparc/include/uapi/asm/termios.h
-index ee86f4093d83..cceb32260881 100644
---- a/arch/sparc/include/uapi/asm/termios.h
-+++ b/arch/sparc/include/uapi/asm/termios.h
-@@ -40,5 +40,14 @@ struct winsize {
- 	unsigned short ws_ypixel;
- };
- 
-+#define NCC 8
-+struct termio {
-+	unsigned short c_iflag;		/* input mode flags */
-+	unsigned short c_oflag;		/* output mode flags */
-+	unsigned short c_cflag;		/* control mode flags */
-+	unsigned short c_lflag;		/* local mode flags */
-+	unsigned char c_line;		/* line discipline */
-+	unsigned char c_cc[NCC];	/* control characters */
-+};
- 
- #endif /* _UAPI_SPARC_TERMIOS_H */
--- 
-2.44.0
-
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
