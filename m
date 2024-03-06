@@ -1,121 +1,142 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5722160B84
-	for <sparclinux@vger.kernel.org>; Wed,  6 Mar 2024 10:43:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E72878668;
+	Wed,  6 Mar 2024 12:37:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709721824; cv=none; b=ux3FbcKQNchoJttqhhYKDh6GbQ0zvRSGBHJlz/og74i7Vy29BR9zXt9LQKQ7fnHLy+iyLks3QCzu6uDFJ/Jsbwc+XfPDVUtlMobfGHU3U2aqF/j4LhdpWAEnw0eW5SRLDp7VXRjlgEFlhYT6GMezw0dditKVwhoKa3zgMnwn1CU=
+	t=1709728667; cv=none; b=QpWkcgKPLc5Q1K5Vk5PO1NrQpp6hpoRlKWCD07ag9VSukTF2BFdyOhkI8znjGh5k8D50wHluq2C7xIQkuZgpMZAaMMdGnP3SLInIC0HzZ8cjE/afjJUh2jRfcay7J2Y8dAeq38TlSbkoomEQiTlUs1rPH9p7CDY+YtTJuU7lpKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709721824; c=relaxed/simple;
-	bh=c49fwyRKoS6wfKvCgxkRGT+RfTOSzCUnQcMvkubeAHI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=U8wkIZ+4zG20gNdrAUw/SVsxrvMafs83jMEqdHGZDusXcRVkksyNekJ0NcnUc3BMcHFRwMo+8FX0Jm3ht5l14c9BFqLPO2ubBjo2okJzlbjJTiOj0FUFQHf1gx/KBI+y0Z46p1wYpGC3lZD6B0aJtf5uoiSuk9cULKiIvKHaHzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=crW/mnrk; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="crW/mnrk"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709721822;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EszM++ZyWA4F0AEHMeW0S6yDLENEL5nIwjErtg69nlA=;
-	b=crW/mnrkoNdMql6lL8JBanSvEWR3cQvtb9v/aCWQuJrzVR53wolsmv6vAiOTfgxXUF1Mia
-	fvnFnH5snLPXzWUL53R3uXXGeu18FlF/UPA4prRquUxJ+3jmI0SbpUrWYLQ99hllslspeZ
-	LR+FDNcDqN/sobHcKb81zG2TbFjMNGo=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-122-so8_Bz8AP0eINzkAwxTEYA-1; Wed, 06 Mar 2024 05:43:38 -0500
-X-MC-Unique: so8_Bz8AP0eINzkAwxTEYA-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 0BD8284B0C5;
-	Wed,  6 Mar 2024 10:43:38 +0000 (UTC)
-Received: from x1n.redhat.com (unknown [10.72.116.8])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id A13A3111DD02;
-	Wed,  6 Mar 2024 10:43:31 +0000 (UTC)
-From: peterx@redhat.com
-To: linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	peterx@redhat.com,
-	Matthew Wilcox <willy@infradead.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	x86@kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH RFC 13/13] mm: Document pXd_leaf() API
-Date: Wed,  6 Mar 2024 18:41:47 +0800
-Message-ID: <20240306104147.193052-14-peterx@redhat.com>
-In-Reply-To: <20240306104147.193052-1-peterx@redhat.com>
-References: <20240306104147.193052-1-peterx@redhat.com>
+	s=arc-20240116; t=1709728667; c=relaxed/simple;
+	bh=H4l2DgnqyQlVDiFExqxtFkBp3iqUS/pZqNwziWPDq4U=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=qvMqvTdAUXSIB5KZiE4NvSAoivIkCipYaC+PQnluYCyaSQFfZj7mHmv0ogADWIdAx9G7DoQ+Sf5SgOwTdfhJ2SUXriTHo1/EmwhOPFmmTlCTieztvSc0OrSVo19EYP0PiHliIuFL7FINh7PP/aWg/0RQrsT1fBmRydN9T0Ml+fI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.189
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4TqX3L3NVrzNlbl;
+	Wed,  6 Mar 2024 20:35:58 +0800 (CST)
+Received: from dggpemm500005.china.huawei.com (unknown [7.185.36.74])
+	by mail.maildlp.com (Postfix) with ESMTPS id ABDAC14011F;
+	Wed,  6 Mar 2024 20:37:36 +0800 (CST)
+Received: from [10.69.30.204] (10.69.30.204) by dggpemm500005.china.huawei.com
+ (7.185.36.74) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Wed, 6 Mar
+ 2024 20:37:36 +0800
+Subject: Re: [RFC PATCH net-next v6 00/15] Device Memory TCP
+To: Mina Almasry <almasrymina@google.com>
+CC: <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-alpha@vger.kernel.org>,
+	<linux-mips@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
+	<sparclinux@vger.kernel.org>, <linux-trace-kernel@vger.kernel.org>,
+	<linux-arch@vger.kernel.org>, <bpf@vger.kernel.org>,
+	<linux-kselftest@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<dri-devel@lists.freedesktop.org>, "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
+ Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard
+ Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky
+	<ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Thomas
+ Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
+	<James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>,
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
+	<hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
+ Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
+	<arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau
+	<martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>, Song Liu
+	<song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>, John Fastabend
+	<john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>, Stanislav Fomichev
+	<sdf@google.com>, Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	David Ahern <dsahern@kernel.org>, Willem de Bruijn
+	<willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, Sumit
+ Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=c3=b6nig?=
+	<christian.koenig@amd.com>, Pavel Begunkov <asml.silence@gmail.com>, David
+ Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand
+	<shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel
+ Butt <shakeelb@google.com>, Jeroen de Borst <jeroendb@google.com>, Praveen
+ Kaligineedi <pkaligineedi@google.com>
+References: <20240305020153.2787423-1-almasrymina@google.com>
+ <6208950d-6453-e797-7fc3-1dcf15b49dbe@huawei.com>
+ <CAHS8izMwTRyqUS0iRtErfAqDVsXRia5Ajx9PRK3vcfo8utJoUA@mail.gmail.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Message-ID: <de633244-6d6e-f568-dc09-49b56abd0423@huawei.com>
+Date: Wed, 6 Mar 2024 20:37:35 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+In-Reply-To: <CAHS8izMwTRyqUS0iRtErfAqDVsXRia5Ajx9PRK3vcfo8utJoUA@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ dggpemm500005.china.huawei.com (7.185.36.74)
 
-From: Peter Xu <peterx@redhat.com>
+On 2024/3/6 3:38, Mina Almasry wrote:
+> On Tue, Mar 5, 2024 at 4:54 AM Yunsheng Lin <linyunsheng@huawei.com> wrote:
+>>
+>> On 2024/3/5 10:01, Mina Almasry wrote:
+>>
+>> ...
+>>
+>>>
+>>> Perf - page-pool benchmark:
+>>> ---------------------------
+>>>
+>>> bench_page_pool_simple.ko tests with and without these changes:
+>>> https://pastebin.com/raw/ncHDwAbn
+>>>
+>>> AFAIK the number that really matters in the perf tests is the
+>>> 'tasklet_page_pool01_fast_path Per elem'. This one measures at about 8
+>>> cycles without the changes but there is some 1 cycle noise in some
+>>> results.
+>>>
+>>> With the patches this regresses to 9 cycles with the changes but there
+>>> is 1 cycle noise occasionally running this test repeatedly.
+>>>
+>>> Lastly I tried disable the static_branch_unlikely() in
+>>> netmem_is_net_iov() check. To my surprise disabling the
+>>> static_branch_unlikely() check reduces the fast path back to 8 cycles,
+>>> but the 1 cycle noise remains.
+>>>
+>>
+>> The last sentence seems to be suggesting the above 1 ns regresses is caused
+>> by the static_branch_unlikely() checking?
+> 
+> Note it's not a 1ns regression, it's looks like maybe a 1 cycle
+> regression (slightly less than 1ns if I'm reading the output of the
+> test correctly):
+> 
+> # clean net-next
+> time_bench: Type:tasklet_page_pool01_fast_path Per elem: 8 cycles(tsc)
+> 2.993 ns (step:0)
+> 
+> # with patches
+> time_bench: Type:tasklet_page_pool01_fast_path Per elem: 9 cycles(tsc)
+> 3.679 ns (step:0)
+> 
+> # with patches and with diff that disables static branching:
 
-There's one small section already, but since we're going to remove
-pXd_huge(), that comment may start to obsolete.
+> time_bench: Type:tasklet_page_pool01_fast_path Per elem: 8 cycles(tsc)
+> 3.248 ns (step:0)
+> 
+> I do see noise in the test results between run and run, and any
+> regression (if any) is slightly obfuscated by the noise, so it's a bit
+> hard to make confident statements. So far it looks like a ~0.25ns
+> regression without static branch and about ~0.65ns with static branch.
+> 
+> Honestly when I saw all 3 results were within some noise I did not
+> investigate more, but if this looks concerning to you I can dig
+> further. I likely need to gather a few test runs to filter out the
+> noise and maybe investigate the assembly my compiler is generating to
+> maybe narrow down what changes there.
 
-Rewrite that section with more information, hopefully with that the API is
-crystal clear on what it implies.
+Yes, that is confusing enough that need more investigation.
 
-Signed-off-by: Peter Xu <peterx@redhat.com>
----
- include/linux/pgtable.h | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
-
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 85fc7554cd52..6b0d222a7fad 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -1770,11 +1770,25 @@ typedef unsigned int pgtbl_mod_mask;
- #endif
- 
- /*
-- * p?d_leaf() - true if this entry is a final mapping to a physical address.
-- * This differs from p?d_huge() by the fact that they are always available (if
-- * the architecture supports large pages at the appropriate level) even
-- * if CONFIG_HUGETLB_PAGE is not defined.
-- * Only meaningful when called on a valid entry.
-+ * pXd_leaf() is the API to check whether a pgtable entry is a huge page
-+ * mapping.  It should work globally across all archs, without any
-+ * dependency on CONFIG_* options.  For architectures that do not support
-+ * huge mappings on specific levels, below fallbacks will be used.
-+ *
-+ * A leaf pgtable entry should always imply the following:
-+ *
-+ * - It is a "present" entry.  IOW, before using this API, please check it
-+ *   with pXd_present() first. NOTE: it may not always mean the "present
-+ *   bit" is set.  For example, PROT_NONE entries are always "present".
-+ *
-+ * - It should _never_ be a swap entry of any type.  Above "present" check
-+ *   should have guarded this, but let's be crystal clear on this.
-+ *
-+ * - It should contain a huge PFN, which points to a huge page larger than
-+ *   PAGE_SIZE of the platform.  The PFN format isn't important here.
-+ *
-+ * - It should cover all kinds of huge mappings (e.g., pXd_trans_huge(),
-+ *   pXd_devmap(), or hugetlb mappings).
-  */
- #ifndef pgd_leaf
- #define pgd_leaf(x)	false
--- 
-2.44.0
-
+> 
