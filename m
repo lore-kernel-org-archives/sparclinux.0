@@ -1,92 +1,126 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from wfhigh4-smtp.messagingengine.com (wfhigh4-smtp.messagingengine.com [64.147.123.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3EEF13A276;
-	Wed,  6 Mar 2024 17:18:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A29995D48F;
+	Wed,  6 Mar 2024 18:19:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.155
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709745482; cv=none; b=bkbXulTAv8KkhIhi2+vQC5+MCKNpnCG/BgXb8hcNfyaR2wn0gjzcrNp0MANBIShB4HxlisDbiEanxa8laOmc9P5YCORPyTI2jky1hrjqaJGprt2uAuyqJhW4IrPCXOFXlzlhSDzH1WHAGRw+RcIAFi6SmjZWoTs94ZtwhMDp58M=
+	t=1709749178; cv=none; b=UJ1sSUccnuhNiwaByu3IF1GUjPIx3ynFsuE4TN2sej7IPPGEysMDjFrBRraZ0d4iZPdVm/LeuiGx9Mua4UXD2WriW75pcRPy319qy0y/i+wdZKjAPEu14bmgdTTN2RwYdUS0X/7iull1di91f8WijcvHmEwcDTs0gfjJop8JE+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709745482; c=relaxed/simple;
-	bh=cGH9oveyYZrJR4sQqUZvr3RgdUZ1IunEgpUKcc2IsXA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=EFA4SKJrBZMn5PK0p7EnN6aDEyYQcEJ6NUeUa3KsqDIoTRqRXPVvqlXjb+xjKS+RGhj4C25ZzKQWEYbcOjMWf17EWxPLODL3hJiWGXHzJ5ECOxUIJuQPoaOcHSP5X3143ForH3TlRm82xPSXLTLVBpNNRnqgO1n4U+BY4wtfnVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=gDCCIQT1; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Ba8NRrLO; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1709749178; c=relaxed/simple;
+	bh=KhlJ/Ab+W1AWjLf+j3juvafBR8eh3gB4I0CcT472KlA=;
+	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
+	 Subject:Content-Type; b=icrz8VknTcwfo1zzgB/vp+jXUx2ipBJf1KDU2qy4DYNzf+wlCBT+ZUKOt8DExIQD3EqZKfM0nZtEBJNQIjyIhRFaWdwREAhROTIxg535eFQ0SwjCvKaDvQcLDwsePeSEqQq2sbHUlYX5LvF5GpkYymUcw6C0J5uA809prqtl3Xg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=ZbJbXne+; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=KL34O+bc; arc=none smtp.client-ip=64.147.123.155
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="gDCCIQT1";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Ba8NRrLO"
-From: Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1709745479;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/OQqHSSiFO9QvgB4mY2J+LyWd+etZHTC3EZIIQab4fo=;
-	b=gDCCIQT1qxbWXTzhufSmoNS52MsO6T6khcDRU4R/DvjT4G7MoNh9Ky1nmGGMUA5kBJGmB5
-	azsjDUOsuP8fnYd10g8AahY82D+0bOAV5U3WP5daAn+croDLWUY3Ux3Xh7i9JWhMGu7ILz
-	CZx/MWC+XoyW1OE1/HgI9ImOzMQ3Hsu7ZGgFD0XsFBH1gJkU/OqCW7ZFdp75gTfSAIe5PP
-	r0Jjoh6AeTDkw4LFACDFt43V3o5FzJyQ23zOJdJCOPm4FdIlpDNblApjxSKyFng8p2xu18
-	6rz3+EZYW43r4daGc6RkeHzoLH9pHS88uirHCfRuC4FSfS7+MEcP8Bkyg26BgA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1709745479;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/OQqHSSiFO9QvgB4mY2J+LyWd+etZHTC3EZIIQab4fo=;
-	b=Ba8NRrLO9SKa1kou0+rIbBztNEAwJsDv3WFMK2NllzRQnMhckZV3x6THtTFG81tO6REjSx
-	6aQnDwMJIY/8bAAA==
-To: Arnd Bergmann <arnd@kernel.org>, Anna-Maria Behnsen
- <anna-maria@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>,
- Kees Cook <keescook@chromium.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet
- Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Catalin
- Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, Brian Cain
- <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, Geert
- Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller
- <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>, Christophe Leroy
- <christophe.leroy@csgroup.eu>, Palmer Dabbelt <palmer@dabbelt.com>, John
- Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Andreas Larsson
- <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>,
- x86@kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Andy Lutomirski
- <luto@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>, Kieran Bingham
- <kbingham@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
- linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
- linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
- loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
- linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-um@lists.infradead.org
-Subject: Re: [v2 PATCH 0/3] arch: mm, vdso: consolidate PAGE_SIZE definition
-In-Reply-To: <20240306141453.3900574-1-arnd@kernel.org>
-References: <20240306141453.3900574-1-arnd@kernel.org>
-Date: Wed, 06 Mar 2024 18:17:58 +0100
-Message-ID: <87wmqfth2x.ffs@tglx>
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="ZbJbXne+";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="KL34O+bc"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailfhigh.west.internal (Postfix) with ESMTP id DCA8918000B0;
+	Wed,  6 Mar 2024 13:19:34 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Wed, 06 Mar 2024 13:19:35 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm3; t=1709749174; x=1709835574; bh=lo1Pj86qFJ
+	EkBBfYsfFvyUEgtJ0BHAS3UhI2od29BS4=; b=ZbJbXne+U5F4DQlgT7/OSVkhU9
+	XDiMkIJgGNcJVzEBgc1ud4nwDUt4awZTKV/9GSzvWjYx35/BIjjfjXmr3tABVlF5
+	F9NE7aXPSORotdqc2nhgxB+lNEtUettRH7zAl/0UjHCUJE4PFxcQI5ycN82qVI4z
+	6mvBg6iGmdF0ubP1E8HIBgXf1Z8bBU+IefIJxDWZwqCBVye22SRKWHvgCHp1yAhw
+	eZYO2YUlbn/OL3pyXiriBWNxxA2WrtSC+T5WnH3BZ7gH4V91AyYL4ylgpWutGz+1
+	wLyfgypXvrzYczq+lh0d9FP7huqX3+d9/5xhkqbDmGRM19xhTw2GlWpQLkgQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm1; t=1709749174; x=1709835574; bh=lo1Pj86qFJEkBBfYsfFvyUEgtJ0B
+	HAS3UhI2od29BS4=; b=KL34O+bcSXak4L7wUl5l279a0PjG2INm6xj1pSK09boo
+	DDdwFB0By2FDjOxnh5GLgqnTwIZRyUdR8lLvp7RfKsA6VjFLQYTKittpckBfYHsY
+	WxmgGsST1nRu9VCjB4iiZIHUW5ryYBOQ8j6XViGAr9Hb+d8Eq5DHtET2re/upU7K
+	rM2hHT4FDHWesI1V0MOd9pSZH8XqPiXOU4HhEhDD9/JxYRgNs1+qeFPMnPlHNVNs
+	3fq2CcErpzMC2srghM1/EXzRRIo1q0qnxSl9QXFiYHmoviOn8gz6csmzqxyNT2yg
+	KRPwHxMRnhn+ic927pJHKJjdNzbh8eEt6J0Qsure1A==
+X-ME-Sender: <xms:tbPoZRzfFwFF5k3GX9MqPrTnib2c4P-n73ALEx_B0soOsiQaar9egw>
+    <xme:tbPoZRRDYyd4RdghtSctobtzuwbdfez8eWl2WtebpKjx7vaTIuAIjODEd_X91IU6H
+    AME4ggQqP0xF_XKBgk>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledriedugddutdekucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:tbPoZbXfVxnPwLJkipb8DXXTopckc63XqbLltvLP7qBjLmRWjDTfdQ>
+    <xmx:tbPoZThKJjPnIHtIuc7HUoCPItR1_SrYSbGhR-SNa8jNPDwpUlrTVw>
+    <xmx:tbPoZTCu32U-Yy4BL_an_kc_eHoczjZdkVErteugy0Kt9xcC0P-bXQ>
+    <xmx:trPoZX0fwpROSn-VM02InywUWNA98K7mJJAWDlt8pQVcxawhGKWlFPwagiY>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id 87B3AB6008D; Wed,  6 Mar 2024 13:19:33 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.11.0-alpha0-251-g8332da0bf6-fm-20240305.001-g8332da0b
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Message-Id: <5568f26d-9e1a-4530-a086-564659b21666@app.fastmail.com>
+In-Reply-To: <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
+References: 
+ <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
+ <20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org>
+ <8d5780f5-1047-48d7-a9c9-09b95c7b5604@gaisler.com>
+ <5648dca0-4853-4dfb-91cf-282a656beb1e@app.fastmail.com>
+ <bc33b608-e0b5-4dff-aa05-8513dce409b3@gaisler.com>
+ <75a4a08d-85c2-4a60-9cbd-90dd50f765a8@app.fastmail.com>
+ <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
+ <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
+Date: Wed, 06 Mar 2024 19:19:12 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Andreas Larsson" <andreas@gaisler.com>,
+ "Sam Ravnborg" <sam@ravnborg.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
+ sparclinux@vger.kernel.org, "Randy Dunlap" <rdunlap@infradead.org>
+Cc: "Miquel Raynal" <miquel.raynal@bootlin.com>,
+ linux-parport@lists.infradead.org, "David S . Miller" <davem@davemloft.net>,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 4/7] sparc32: Do not select ZONE_DMA
 Content-Type: text/plain
 
-On Wed, Mar 06 2024 at 15:14, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> Naresh noticed that the newly added usage of the PAGE_SIZE macro in
-> include/vdso/datapage.h introduced a build regression. I had an older
-> patch that I revived to have this defined through Kconfig rather than
-> through including asm/page.h, which is not allowed in vdso code.
->
-> The vdso patch series now has a temporary workaround, but I still want to
-> get this into v6.9 so we can place the hack with CONFIG_PAGE_SIZE
-> in the vdso.
+On Wed, Mar 6, 2024, at 17:22, Arnd Bergmann wrote:
+> On Wed, Mar 6, 2024, at 16:31, Andreas Larsson wrote:
 
-Thank you for cleaning this up!
+> On a relate note, it does seem odd to have such a small
+> lowmem area, and I wonder if that could be extended.
+> The 192MB lowmem limit comes from 
+>
+> #define SRMMU_MAXMEM            0x0c000000
+>
+> but I don't understand if that is a hardware limitation
+> or a design choice that can be changed, and if it is
+> even valid on leon or only on the old sun machines.
 
-      tglx
+I had another look and found that this is a result of
+
+arch/sparc/include/asm/page_32.h:#define PAGE_OFFSET    0xf0000000
+
+which gives 3840MiB to userspace addresses, leaving only
+256MiB for kernel lowmem and vmalloc space, which is
+less than any other architectures.
+
+I still don't know the history behind this choice, but I
+see this was already configured the same when arch/sparc/
+was originally merged. You can probably change it to a more
+sensible 0xc0000000 or 0x80000000 like on other
+architectures and run without highmem on anything with
+less than 2GB of total RAM.
+
+How much RAM do Leon machines have typically, or at the
+maximum?
+
+     Arnd
