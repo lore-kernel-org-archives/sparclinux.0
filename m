@@ -1,165 +1,122 @@
-Received: from wfhigh2-smtp.messagingengine.com (wfhigh2-smtp.messagingengine.com [64.147.123.153])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f172.google.com (mail-yb1-f172.google.com [209.85.219.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171F5135A4B;
-	Wed,  6 Mar 2024 16:22:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.153
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75686135403;
+	Wed,  6 Mar 2024 16:23:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709742171; cv=none; b=QWLZbtCmrPIpTdsitEPDNPxLu0okBGF6VycaYnHvXkLig8+kj9Sjd/tz10RFeQmq8lwsqpyY+LWXSX5n0PxHqA7Fl53di4Qmn5NfHwsFEE1Bv1gVcc1VeLS+h+eenvQvVZsiD9kQaxhMcRNnkLJlqP6Sma2htcXRYfX0VNPeBSY=
+	t=1709742226; cv=none; b=SgWr/3NrARfwFxfpmIDsxzxFPg072wB9c8EnacF2aXnqvoDtem39FJppsnrP8rv8gDr6FetfFjViy6Ix7naFnHj+hUs6VDQ6uGCdpO0Bt2oh0yeNJiIpgT1IVxg3kDUXFeuOgNa9rlJhXgif+5vS+z/bVj7q1quUnP2NmA2CbeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709742171; c=relaxed/simple;
-	bh=M9RLoKUf78mtmNWUmr/Q4R2rYL8ZPqcxbZWZInXujfA=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
-	 Subject:Content-Type; b=X05oATxd3xhCJ/fLAjJ7a47RA67WJ09Yv8p7fXnO69sDAQoMrcZ4cmyLv6Y/qZ9t2TeXlsr5TIEIKbTutAJ51ZMN8iPe2SxisdQwvFxREfWW0cb/Py0igFbtrzzE6BW4olvUlZFFLoLkCjXliZvIvlMgQMUnTV3dC/SXAnaFBuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=SwDaX5z8; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eslNcsda; arc=none smtp.client-ip=64.147.123.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="SwDaX5z8";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eslNcsda"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailfhigh.west.internal (Postfix) with ESMTP id 65E3F18000A6;
-	Wed,  6 Mar 2024 11:22:47 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Wed, 06 Mar 2024 11:22:48 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm3; t=1709742166; x=1709828566; bh=y7A79WQklI
-	QfY4J0P/pXJ8877SJ7uzmXrpsOWbznmOo=; b=SwDaX5z85c8xMbp5u9Renmu+YO
-	RVuOOxKKheLzugrl7ROAGe59GaIIuO5JP4UayAe3YaMwK1ZoP8ALm8omF1KnUsoX
-	Nnu+VU4L5YiE/Dw/zPyJz4mx48gBMfUHVMpN87HOLuEaaG6A+LjIBBCEtBOn+5Dp
-	mnY+eejMhHj/dhUagvKraE6WqJCrdO20bouKFtD617X1L39eQUFXFoCW3VUq1Srr
-	NC+r633l+dHaA0hzFOzFtkgJNpaQXLuEc3mlLm1e9ETd7Df/v6cU2N+E+1gmnbAb
-	aqRV4a82yGsDIcyUSpISOz6gnS8HhzaMEnpvpssV9ougfHbs3qByRX77iVLA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm1; t=1709742166; x=1709828566; bh=y7A79WQklIQfY4J0P/pXJ8877SJ7
-	uzmXrpsOWbznmOo=; b=eslNcsda+Mjzl4w1+yGxHJQWHFDwip7x+vekYREMIglf
-	cHqg/jMkuXrepeDXqALR+SSBzK6chAryjU/fk8UELoyz623bXF5zsx+HmqsGWhzR
-	iSA4I1zbfhsVwojL4GeI/uyXoqrhKMvOuEb4ZayrNM1rbe09B4QjMy221OqeBG8+
-	+RIp8aLt/irITWBSwvToIxMa57oWaH2iI1jn8r0wSyfmxaKiD9+HjycnDQdc+nKJ
-	PTU/rR8fsQJ+Ko5t0fXuWfxmsou+PL2qi5WBw4VNAAIdtHNCIiaBsGDIAq03D6Lu
-	1hecS/s74zSSC3aMspKFyIifScSNr0NeJGbPJgQQfQ==
-X-ME-Sender: <xms:VZjoZU7kkNCO2LuMzeJS7UotWCFW0bIIwpde-jvpYRfxs2Zj7-H5yQ>
-    <xme:VZjoZV5lrV7Nxb6RKkBi__Nv1rGv8LYaJD-I6hhFVRnWJiDWedMdCl0jMyuNeC5Tl
-    S81MANdUatz9moRyQ8>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledriedugdekgecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
-    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
-    gvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedtkeet
-    ffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrh
-    hnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:VpjoZTf17gbaBsLZQ9s2Qrn5pqJOhyFT-FOGkLhkrDa98OUzXGGcIQ>
-    <xmx:VpjoZZI-pakuZcGCZGrxeNSo4vbc1azWDe8j8e4gWsFRzELXuNLNjA>
-    <xmx:VpjoZYKUbjjsx9foTFJhI0P3lpkSILb9DE_fBYWq5b85LZXLx440DQ>
-    <xmx:VpjoZX-ZMZUFgLBJHWQVUK35jNINl3Ldm1o2D626T0lMxmpl-eFU_FFn-hQ>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id E45FEB6008D; Wed,  6 Mar 2024 11:22:45 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-251-g8332da0bf6-fm-20240305.001-g8332da0b
+	s=arc-20240116; t=1709742226; c=relaxed/simple;
+	bh=n9KzasEm6N9ttGn6mpPVBfxcCLfd5JbkdxZ4Q6PxRSg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=TvTXBaRseBX1RpNWF6TsdSN63h2U8hYb5Pg+sIKLjJwu5y9K49/qNdvABtZ5jBX7+aDPoAf6Oc8t/s4gjaNNmJX774x03qxswBaqmosGAB3FMQ3stymsIGGHaDDtxGeT1jlMZe4GakvWlFU6TjiStVm2xe4c6Xo+M2Araksmxdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.219.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-yb1-f172.google.com with SMTP id 3f1490d57ef6-dcc7cdb3a98so6993103276.2;
+        Wed, 06 Mar 2024 08:23:44 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709742222; x=1710347022;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=D7JdIeS9zNSJ+HV+qdpk2QYV7GDhHiD75PCrvSyuiH4=;
+        b=SZUYhYBo0nx1y7mnzJDmvgNS3wzApvxDVo3+Pah97Mg+DxhDyeIquoe4NzvR+FHzvG
+         N6XEiDnssKjwEQfGDr1jtubtcbnHns/aXmDuAg8V6X6Eag+B9LuojEM50P4Ryn9C7rUo
+         XsLqVzFpXgItgm4WJeikJ0p+/5JADxahTli/zWoNDGvnuSjVId5kqly0zIfr8JzeTcPM
+         GiBwXxgS+G7AzFmwFFtWxoobrHEsx9vInEQJCXCvDHTCDmj5OD4If5GMmrGb5gdKs+ur
+         0U5byAU2ZCChyBZxZlwlf+znS1Ef6uyvM17apcHwj5SsC2Wj8FB3hoD6vHQlfbTmrVDU
+         nsvQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXZx35nkFHC4N3Uta/v1GkDKiJwR7H29jByrAxfEwKmeUpaps+bMt5KgVWFqPgIymW7XE6m2Jq2fMAcha+feNq/skJmVxssW7pz03DfLPZgBvM30zgt4GOdBnzd0JLWwtahs6Iuztf9vSDFxcf/PSjv3wfSgwOUvcIptcIG86kvn07YkXwgDh+b7DTNljeD6FnqAlyT+qrzmMOZWoCwl09xpM6F4Qb2vAxijA5UgvMbU+xtsp49p+7d+45vUB3YuiyXOoE4Rdn+pj62/HQr6ShIDqSeiFGlClhfyEU2Lz7wnTyaNFmKyxOPkLIGribVUcmAtxHDvpm/C2DEnN0emw2Q4Yae6azLam1MPgGPUenuX7Ekj+al+uZY1DKLM6Su8bOG+NJx+kqgItQ9ioCFwTq7kAEm9DM6Uom9UKR8Wtv5iTB5a/pPRcGq2cyOFSvUpfE=
+X-Gm-Message-State: AOJu0YwPmn93DDrOePP1DH7PUNHHQ5LZhnlMhY/mChFpSohDp2lG9eO3
+	Oa1fJZWcVUAhNcppbD7ujwekqy1z7b/8pVpilB20fH83rFKzvVdRppiwNDWWHJk=
+X-Google-Smtp-Source: AGHT+IGgSdhac2GHHcAzYhActpOED8YvM09CkLEZxG5iaAPw4UkWzA8BzxA7+s1R82Aaz71yF5E/qw==
+X-Received: by 2002:a25:1984:0:b0:dcd:23eb:3203 with SMTP id 126-20020a251984000000b00dcd23eb3203mr12281907ybz.38.1709742222214;
+        Wed, 06 Mar 2024 08:23:42 -0800 (PST)
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com. [209.85.219.175])
+        by smtp.gmail.com with ESMTPSA id v15-20020a25848f000000b00dcdc3763d72sm3040524ybk.61.2024.03.06.08.23.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 06 Mar 2024 08:23:40 -0800 (PST)
+Received: by mail-yb1-f175.google.com with SMTP id 3f1490d57ef6-dc236729a2bso6516355276.0;
+        Wed, 06 Mar 2024 08:23:40 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVBtaP6oQSknzGk2mwEqRxaHMhMn9OU5hlFSBsJ8fElS23hTc1/ScgZvvEQsDAz9ZhnMcPRTLkDNH3TMnJOyYtSRRNkbOnUEzvI1EDL2kZlKvJ5mXDwb7rCj0xjH7UMxcwhR8oHBYrk4ZkwyuPUeFRzSXRKf01p/TlJq6SJnJ8w99VKb2QWWZr2KiQbbJrcu3RsNYZrZQEDUo3z6qEjLEHLYcP7rvB1hu4VaXEEXeuVFYrI3o2N0R5vtYknYe7uPHdSgAJ3moFnR0xBmRpFFgLLzTSFq0D+FUivs45NezzRg6xx/NVcg/8F6TIJRqK1gxzCAnEy/JYPWHgcA8FnoiiZIagHum16xKvvVjOZ4tanas7rhGX8dB2N9tMVDVF5TFuuHlceJh9+NuDFtfWhPIPbDvk9jB9tGtVeaEWoH/W9mTIKAkVWixx8SW05leiCF2g=
+X-Received: by 2002:a25:580b:0:b0:dcf:c7ef:e4e0 with SMTP id
+ m11-20020a25580b000000b00dcfc7efe4e0mr11968959ybb.1.1709742220242; Wed, 06
+ Mar 2024 08:23:40 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <001ba36a-9d4c-45c4-b1f2-448824848afc@app.fastmail.com>
-In-Reply-To: <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
-References: 
- <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
- <20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org>
- <8d5780f5-1047-48d7-a9c9-09b95c7b5604@gaisler.com>
- <5648dca0-4853-4dfb-91cf-282a656beb1e@app.fastmail.com>
- <bc33b608-e0b5-4dff-aa05-8513dce409b3@gaisler.com>
- <75a4a08d-85c2-4a60-9cbd-90dd50f765a8@app.fastmail.com>
- <5d97d50a-9d40-4651-8071-073dee5f9aa8@gaisler.com>
-Date: Wed, 06 Mar 2024 17:22:25 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Andreas Larsson" <andreas@gaisler.com>,
- "Sam Ravnborg" <sam@ravnborg.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
- sparclinux@vger.kernel.org, "Randy Dunlap" <rdunlap@infradead.org>
-Cc: "Miquel Raynal" <miquel.raynal@bootlin.com>,
- linux-parport@lists.infradead.org, "David S . Miller" <davem@davemloft.net>,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/7] sparc32: Do not select ZONE_DMA
-Content-Type: text/plain
+References: <20240306141453.3900574-1-arnd@kernel.org> <20240306141453.3900574-4-arnd@kernel.org>
+In-Reply-To: <20240306141453.3900574-4-arnd@kernel.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 6 Mar 2024 17:23:28 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdU5ut09=b+5Qti6CD17XOOmsm+VtfA7TKac7qHNOBC2-A@mail.gmail.com>
+Message-ID: <CAMuHMdU5ut09=b+5Qti6CD17XOOmsm+VtfA7TKac7qHNOBC2-A@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] arch: define CONFIG_PAGE_SIZE_*KB on all architectures
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, 
+	Vincenzo Frascino <vincenzo.frascino@arm.com>, Kees Cook <keescook@chromium.org>, 
+	Arnd Bergmann <arnd@arndb.de>, Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>, 
+	Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Guo Ren <guoren@kernel.org>, Brian Cain <bcain@quicinc.com>, 
+	Huacai Chen <chenhuacai@kernel.org>, Michal Simek <monstr@monstr.eu>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Helge Deller <deller@gmx.de>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Andreas Larsson <andreas@gaisler.com>, 
+	Richard Weinberger <richard@nod.at>, x86@kernel.org, Max Filippov <jcmvbkbc@gmail.com>, 
+	Andy Lutomirski <luto@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>, 
+	Kieran Bingham <kbingham@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-um@lists.infradead.org, Heiko Carstens <hca@linux.ibm.com>, 
+	Stafford Horne <shorne@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 6, 2024, at 16:31, Andreas Larsson wrote:
-> On 2024-03-06 15:45, Arnd Bergmann wrote:
->> More specifically, what do you see in the boot log for the
->> size of each zone? 
+On Wed, Mar 6, 2024 at 3:15=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wrot=
+e:
+> From: Arnd Bergmann <arnd@arndb.de>
 >
-> dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) fails with
-> the ZONE_DMA removed, and no other differences. Boot log:
+> Most architectures only support a single hardcoded page size. In order
+> to ensure that each one of these sets the corresponding Kconfig symbols,
+> change over the PAGE_SHIFT definition to the common one and allow
+> only the hardware page size to be selected.
 >
-> 831MB HIGHMEM available.
-> Zone ranges:
->   Normal   [mem 0x0000000000000000-0x000000000bffffff]
->   HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
+> Acked-by: Guo Ren <guoren@kernel.org>
+> Acked-by: Heiko Carstens <hca@linux.ibm.com>
+> Acked-by: Stafford Horne <shorne@gmail.com>
+> Acked-by: Johannes Berg <johannes@sipsolutions.net>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> No changes from v1
 
+>  arch/m68k/Kconfig                  | 3 +++
+>  arch/m68k/Kconfig.cpu              | 2 ++
+>  arch/m68k/include/asm/page.h       | 6 +-----
 
-> dma_set_mask_and_coherent(dev, DMA_BIT_MASK(28)) succeeds with
-> ZONE_DMA still in place (i.e. the above plus the ZONE_DMA patch
-> reverted and no other differences). Boot log:
->
-> 831MB HIGHMEM available.
-> Zone ranges:
->   DMA      [mem 0x0000000000000000-0x000000000bffffff]
->   Normal   empty
->   HighMem  [mem 0x000000000c000000-0x000000003fff7fff]
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-That sounds like a bug somewhere else. As Sam explained in
-the patch description, ZONE_NORMAL and ZONE_DMA always have
-the same limit, which explains that without the patch you
-only have DMA and highmem, but not normal.
+Gr{oetje,eeting}s,
 
-What we expected to happen here is that anything that asks
-for ZONE_DMA memory just uses ZONE_NORMAL instead and the
-behavior never changes.
+                        Geert
 
-It looks like this is not how dma_direct_supported()
-works though:
+--=20
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
-        u64 min_mask = (max_pfn - 1) << PAGE_SHIFT;
-        [...]
-        /*
-         * This check needs to be against the actual bit mask value, so use
-         * phys_to_dma_unencrypted() here so that the SME encryption mask isn't
-         * part of the check.
-         */     
-        if (IS_ENABLED(CONFIG_ZONE_DMA))
-                min_mask = min_t(u64, min_mask, DMA_BIT_MASK(zone_dma_bits));
-        return mask >= phys_to_dma_unencrypted(dev, min_mask);
-
-Without ZONE_DMA, it checks for the highest page of any
-zone, but that is ZONE_HIGHMEM in your case, which apparently
-is outside of the device's mask, while ZONE_NORMAL is inside
-the mask.
-
-Not sure if it's worth changing the generic code for this,
-or if we want to just keep the existing version without
-Sam's patch now that we understand the issue.
-
-On a relate note, it does seem odd to have such a small
-lowmem area, and I wonder if that could be extended.
-The 192MB lowmem limit comes from 
-
-#define SRMMU_MAXMEM            0x0c000000
-
-but I don't understand if that is a hardware limitation
-or a design choice that can be changed, and if it is
-even valid on leon or only on the old sun machines.
-
-There is a recurring discussion about eventually
-killing off support for CONFIG_HIGHMEM in the kernel,
-so if you have a hardware limit of 192MB of lowmem,
-this would hit you particularly hard.
-
-      Arnd
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
