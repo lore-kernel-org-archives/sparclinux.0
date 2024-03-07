@@ -1,349 +1,184 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF6254C83
-	for <sparclinux@vger.kernel.org>; Thu,  7 Mar 2024 03:05:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC444129A7D;
+	Thu,  7 Mar 2024 12:15:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709780742; cv=none; b=aAvasWQh7W+ZSwLYkXRvI5lTQc94YDpzHet43rkl37V5iU3E9Z3+r9rBsToisgN9lDAd9G/iSYREE0uooPxcjqHFl0eVKi/pHHHdxp6wCCaZp+Lq92iW+DjFsTcOtw4Ao1gVNcB+prz5xgxcWcFvby0WJKqs+XlVWC6NYKsLPrc=
+	t=1709813739; cv=none; b=KPTA8dK7cCg52Bmpo5MmX+2VioQPz3kiPv+WhJu8tFCWRgsXL+BwiwKYFzO59ypyyTGwSI3Ip/Xnk7cxB/XSdQsJ0TcQS7N28uxpcg+qU1A5ewvzFk2MbbWKYCY4eBfw4O4JE637bhSlMaDnkq50c8nfDWd+fnW4SpmZKYVL3PU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709780742; c=relaxed/simple;
-	bh=aTfnNVOzuTStvs0tdoETXdWCW8y9BVUMXLGNAwHRpZg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RMaX2+zMu7LdSvbK7wZU3JGYC2cB864zqr7ISRCiHhLIo0jTo+n3qCsY/zZWAdu2wuhFoW6m55dU4HzYftYuDTSRgl/MdQkLPYsAE2ggansLCkfW7cGEXdSYFpOwnfcWcfUqSjv7MuYc3b4f1+3I4mkFhdDrlyRfIPurCzH7/QY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GVtYZ27h; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GVtYZ27h"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709780739;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PkR96+oCUTcXVjSNgBM5A0Wxc2Bmtn+g3wn0Jg6Nemc=;
-	b=GVtYZ27hOned6302mTfm4cRb4FJ6q43zFKebqHzBlOk8RNEhYDXJeGGKqJiF6BKU28r5Ep
-	SoKAyyZHrEHk5HnnjM+F37CE1yZsO4ADVqZ6p0py9F0H1Qt2e7jIwWGEGijD2D+6HpTdd4
-	SHVaChCnVTm63r/x+orBBOdWlUBaM74=
-Received: from mail-pf1-f198.google.com (mail-pf1-f198.google.com
- [209.85.210.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-542-vM2SwN0DPWGo7A3WMBPrNA-1; Wed, 06 Mar 2024 22:05:37 -0500
-X-MC-Unique: vM2SwN0DPWGo7A3WMBPrNA-1
-Received: by mail-pf1-f198.google.com with SMTP id d2e1a72fcca58-6dbd919aba8so112072b3a.0
-        for <sparclinux@vger.kernel.org>; Wed, 06 Mar 2024 19:05:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709780736; x=1710385536;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=PkR96+oCUTcXVjSNgBM5A0Wxc2Bmtn+g3wn0Jg6Nemc=;
-        b=UQeHHIW0udYYbBjyYoAMhJ4HQ91pyw3XN714OHt3NZaxV3hnh9ThsW53iLBt5I0hfd
-         iocNwt7WRfLhUpITerzyRwpIfS9yoQ+gBw8xKzwIqQFg9MLVP4dGyHa711h7/jA0VtFv
-         itp5j0lbj25CoBaUNijfrB9Q28QASWBv4BizCmtFbr6D5os35d1jxmAr/B9Ol0cPuOsV
-         qFsrWHQmyzL6hn6LKQYJt+1n0AqojYbdwRLoQCh5WeXPqYfoDcORp6SloHIpSG8J5NdN
-         C581H0qAlb22wXrBacPRzplMGcxxbOSj2RqD6S7wPUHevuVG3QQnEXwq/3Q5v9R2yV/T
-         DMlA==
-X-Forwarded-Encrypted: i=1; AJvYcCVTp0TEkaWJ9bZjIsD55OJidHRQhp7RPb3t3y41IqwmNy4vUB5eibNQdY99MR9mMEhvpvNqXwjP0QpeO6I6n87K0xq7A/UXYMDwog==
-X-Gm-Message-State: AOJu0YxvoZlqQ731iPsxK9VfmRo96nz4/zs3EsHDvmVDRxpGh53BY9B+
-	uoVi9oDgDRGaiOnRZSgZy1RnT1vtqhRUXepGWleMT6Qq7Da/FVgNcLgfEth1L9lfYmzLGhzycbe
-	KEL8LC/hDow1+DkYYLbkYrEuNHPnf+gE2i87PIxvnHIpho8QESjPrsW4aVdg=
-X-Received: by 2002:a05:6a00:cce:b0:6e6:c6f:dc7e with SMTP id b14-20020a056a000cce00b006e60c6fdc7emr1026108pfv.3.1709780736635;
-        Wed, 06 Mar 2024 19:05:36 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEkCBHVN9ZAc+1XyRReKazlag268zheivJJl2EtGptHK/Yo1IMFuR7cjV0MKh9sysGGci92ug==
-X-Received: by 2002:a05:6a00:cce:b0:6e6:c6f:dc7e with SMTP id b14-20020a056a000cce00b006e60c6fdc7emr1026089pfv.3.1709780736228;
-        Wed, 06 Mar 2024 19:05:36 -0800 (PST)
-Received: from x1n ([43.228.180.230])
-        by smtp.gmail.com with ESMTPSA id n11-20020a056a000d4b00b006e65720e892sm568324pfv.94.2024.03.06.19.05.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Mar 2024 19:05:35 -0800 (PST)
-Date: Thu, 7 Mar 2024 11:05:21 +0800
-From: Peter Xu <peterx@redhat.com>
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>, x86@kernel.org,
-	sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
-	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Subject: Re: [PATCH RFC 09/13] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
-Message-ID: <Zeku8SsorvytLJGe@x1n>
-References: <20240306104147.193052-1-peterx@redhat.com>
- <20240306104147.193052-10-peterx@redhat.com>
- <87v85zo6w7.fsf@mail.lhotse>
+	s=arc-20240116; t=1709813739; c=relaxed/simple;
+	bh=33Uzy2N/rqj/7YQgQGuWOf/5Tv1toMJF0Qi0AcbhFw0=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=daHia+g5WZ7eODuIVAll5m8QwdGKqk00OLE0IvF8P6SZV7ETbWPIs2RfpKSz6iT7ggoEThqt1pPvRqiq3lSg0uJPztCHDmqMQnoSFsMn4ChBBZ9SznujZovIg76PZ12yj/2cv0iSKnwXhoarG6SjrIUj7nymYXGgpU8EkHdlcF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Tr7Vw2yQsz1Q9QH;
+	Thu,  7 Mar 2024 20:13:28 +0800 (CST)
+Received: from dggpemm500005.china.huawei.com (unknown [7.185.36.74])
+	by mail.maildlp.com (Postfix) with ESMTPS id 7C1EA14059C;
+	Thu,  7 Mar 2024 20:15:27 +0800 (CST)
+Received: from [10.69.30.204] (10.69.30.204) by dggpemm500005.china.huawei.com
+ (7.185.36.74) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Thu, 7 Mar
+ 2024 20:15:26 +0800
+Subject: Re: [RFC PATCH net-next v6 05/15] netdev: support binding dma-buf to
+ netdevice
+To: Mina Almasry <almasrymina@google.com>
+CC: <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-alpha@vger.kernel.org>,
+	<linux-mips@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
+	<sparclinux@vger.kernel.org>, <linux-trace-kernel@vger.kernel.org>,
+	<linux-arch@vger.kernel.org>, <bpf@vger.kernel.org>,
+	<linux-kselftest@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<dri-devel@lists.freedesktop.org>, "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
+ Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard
+ Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky
+	<ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Thomas
+ Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
+	<James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>,
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
+	<hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
+ Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
+	<arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau
+	<martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>, Song Liu
+	<song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>, John Fastabend
+	<john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>, Stanislav Fomichev
+	<sdf@google.com>, Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	David Ahern <dsahern@kernel.org>, Willem de Bruijn
+	<willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, Sumit
+ Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=c3=b6nig?=
+	<christian.koenig@amd.com>, Pavel Begunkov <asml.silence@gmail.com>, David
+ Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand
+	<shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel
+ Butt <shakeelb@google.com>, Jeroen de Borst <jeroendb@google.com>, Praveen
+ Kaligineedi <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>,
+	Kaiyuan Zhang <kaiyuanz@google.com>
+References: <20240305020153.2787423-1-almasrymina@google.com>
+ <20240305020153.2787423-6-almasrymina@google.com>
+ <da42cea9-c169-599e-f087-d38c419e3dab@huawei.com>
+ <CAHS8izM7GbvWHrH=h9q0oG0DMU649EjT1udNEW_8F-hGeC15EQ@mail.gmail.com>
+ <aa892723-7396-998d-db06-166c28fba1e0@huawei.com>
+ <CAHS8izNJFnKGn9nrJ3kRxGwhvjiDey_bfrxQNfsfj=S9hZR_UA@mail.gmail.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Message-ID: <76266a89-8ec1-6a4c-716b-da422f0b2cd5@huawei.com>
+Date: Thu, 7 Mar 2024 20:15:26 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <87v85zo6w7.fsf@mail.lhotse>
+In-Reply-To: <CAHS8izNJFnKGn9nrJ3kRxGwhvjiDey_bfrxQNfsfj=S9hZR_UA@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ dggpemm500005.china.huawei.com (7.185.36.74)
 
-On Wed, Mar 06, 2024 at 11:56:56PM +1100, Michael Ellerman wrote:
-> peterx@redhat.com writes:
-> > From: Peter Xu <peterx@redhat.com>
-> >
-> > PowerPC book3s 4K mostly has the same definition on both, except pXd_huge()
-> > constantly returns 0 for hash MMUs.  AFAICT that is fine to be removed,
-> > because pXd_huge() reflects a hugetlb entry, while it's own hugetlb pgtable
-> > lookup function (__find_linux_pte() shared by all powerpc code) already use
-> > pXd_leaf() irrelevant of the MMU type.  It means pXd_leaf() should work all
-> > fine with hash MMU pgtables or something could already went wrong.
+On 2024/3/7 6:10, Mina Almasry wrote:
+
+...
+
+>>>>> +static int netdev_restart_rx_queue(struct net_device *dev, int rxq_idx)
+>>>>> +{
+>>>>> +     void *new_mem;
+>>>>> +     void *old_mem;
+>>>>> +     int err;
+>>>>> +
+>>>>> +     if (!dev || !dev->netdev_ops)
+>>>>> +             return -EINVAL;
+>>>>> +
+>>>>> +     if (!dev->netdev_ops->ndo_queue_stop ||
+>>>>> +         !dev->netdev_ops->ndo_queue_mem_free ||
+>>>>> +         !dev->netdev_ops->ndo_queue_mem_alloc ||
+>>>>> +         !dev->netdev_ops->ndo_queue_start)
+>>>>> +             return -EOPNOTSUPP;
+>>>>> +
+>>>>> +     new_mem = dev->netdev_ops->ndo_queue_mem_alloc(dev, rxq_idx);
+>>>>> +     if (!new_mem)
+>>>>> +             return -ENOMEM;
+>>>>> +
+>>>>> +     err = dev->netdev_ops->ndo_queue_stop(dev, rxq_idx, &old_mem);
+>>>>> +     if (err)
+>>>>> +             goto err_free_new_mem;
+>>>>> +
+>>>>> +     err = dev->netdev_ops->ndo_queue_start(dev, rxq_idx, new_mem);
+>>>>> +     if (err)
+>>>>> +             goto err_start_queue;
+>>>>> +
+>>>>> +     dev->netdev_ops->ndo_queue_mem_free(dev, old_mem);
+>>>>> +
+>>>>> +     return 0;
+>>>>> +
+>>>>> +err_start_queue:
+>>>>> +     dev->netdev_ops->ndo_queue_start(dev, rxq_idx, old_mem);
+>>>>
+>>>> It might worth mentioning why queue start with old_mem will always
+>>>> success here as the return value seems to be ignored here.
+>>>>
+>>>
+>>> So the old queue, we stopped it, and if we fail to bring up the new
+>>> queue, then we want to start the old queue back up to get the queue
+>>> back to a workable state.
+>>>
+>>> I don't see what we can do to recover if restarting the old queue
+>>> fails. Seems like it should be a requirement that the driver tries as
+>>> much as possible to keep the old queue restartable.
+>>
+>> Is it possible that we may have the 'old_mem' leaking if the driver
+>> fails to restart the old queue? how does the driver handle the
+>> firmware cmd failure for ndo_queue_start()? it seems a little
+>> tricky to implement it.
+>>
 > 
-> Yes I think that's correct.
-> 
-> 4K Hash MMU doesn't support any hugepage size at PMD or PUD level (the
-> geometry is wrong), so pmd/pud_huge() were written with that in mind,
-> ie. they are hard coded to return false.
-> 
-> But it should be OK to use pmd/pud_leaf(), they will actually look for
-> _PAGE_PTE, but it should never be set for 4K Hash.
-> 
-> See eg. arch/powerpc/include/asm/book3s/64/hash-4k.h:
-> 
-> static inline pmd_t hash__pmd_mkhuge(pmd_t pmd)
-> {
-> 	BUG();
-> 	return pmd;
-> }
+> I'm not sure what we can do to meaningfully recover from failure to
+> restarting the old queue, except log it so the error is visible. In
+> theory because we have not modifying any queue configurations
+> restarting it would be straight forward, but since it's dealing with
+> hardware then any failures are possible.
 
-Good to get confirmation on this, thanks, Michael.  These explanations also
-look better than what I wrote, I'll amend the commit message.
+Yes, we may need to have a clear semantics of how should the driver
+implement the above interface, for example if the driver should free
+the memory when fail to start a queue or the driver should restart
+the queue when fail to stop a queue? Otherwise we may have different
+driver implementing different behavior.
+
+From the disscusion you mentioned below, does it make senses to
+modeling rdma subsystem by using create_queue/modify_queue/destroy_queue
+semantics instead?
 
 > 
-> > The goal should be that we will have one API pXd_leaf() to detect all kinds
-> > of huge mappings.  AFAICT we need to use the pXd_leaf() impl (rather than
-> > pXd_huge() ones) to make sure ie. THPs on hash MMU will also return true.
-> >
-> > This helps to simplify a follow up patch to drop pXd_huge() treewide.
-> >
-> > Cc: Michael Ellerman <mpe@ellerman.id.au>
-> > Cc: Nicholas Piggin <npiggin@gmail.com>
-> > Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-> > Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-> > Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-> > Cc: linuxppc-dev@lists.ozlabs.org
-> > Signed-off-by: Peter Xu <peterx@redhat.com>
-> > ---
-> >  arch/powerpc/include/asm/book3s/64/pgtable-4k.h | 14 ++------------
-> >  1 file changed, 2 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h b/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-> > index 48f21820afe2..92545981bb49 100644
-> > --- a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-> > +++ b/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-> > @@ -8,22 +8,12 @@
-> >  #ifdef CONFIG_HUGETLB_PAGE
-> >  static inline int pmd_huge(pmd_t pmd)
-> >  {
-> > -	/*
-> > -	 * leaf pte for huge page
-> > -	 */
-> > -	if (radix_enabled())
-> > -		return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-> > -	return 0;
-> > +	return pmd_leaf(pmd);
-> >  }
-> >  
-> >  static inline int pud_huge(pud_t pud)
-> >  {
-> > -	/*
-> > -	 * leaf pte for huge page
-> > -	 */
-> > -	if (radix_enabled())
-> > -		return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-> > -	return 0;
-> > +	return pud_leaf(pud);
-> >  }
+>>>
+>>> I can improve this by at least logging or warning if restarting the
+>>> old queue fails.
+>>
+>> Also the semantics of the above function seems odd that it is not
+>> only restarting rx queue, but also freeing and allocating memory
+>> despite the name only suggests 'restart', I am a litte afraid that
+>> it may conflict with future usecae when user only need the
+>> 'restart' part, perhaps rename it to a more appropriate name.
+>>
 > 
-> This doesn't actually compile though.
+> Oh, what we want here is just the 'restart' part. However, Jakub
+> mandates that if you restart a queue (or a driver), you do it like
+> this, hence the slightly more complicated implementation.
 > 
->   arch/powerpc/include/asm/book3s/64/pgtable-4k.h:11:16: error: implicit declaration of function ‘pmd_leaf’; did you mean ‘pgd_clear’? [-Werror=implicit-function-declaration]
+> https://patchwork.kernel.org/project/netdevbpf/patch/20231106024413.2801438-13-almasrymina@google.com/#25590262
+> https://lore.kernel.org/netdev/20230815171638.4c057dcd@kernel.org/
+
+Thanks for the link.
+
+I like david's idea of "a more generic design where H/W queues are created
+and destroyed - e.g., queues unique to a process which makes the cleanup
+so much easier." , but it seems it is a lot of work for networking to
+implement that for now.
+
 > 
-> etc.
-> 
-> To make it compile we'd need to relocate the pmd/pud_leaf() definitions:
-> 
-> diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
-> index df66dce8306f..fd7180fded75 100644
-> --- a/arch/powerpc/include/asm/book3s/64/pgtable.h
-> +++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
-> @@ -262,6 +262,18 @@ extern unsigned long __kernel_io_end;
-> 
->  extern struct page *vmemmap;
->  extern unsigned long pci_io_base;
-> +
-> +#define pmd_leaf pmd_leaf
-> +static inline bool pmd_leaf(pmd_t pmd)
-> +{
-> +       return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-> +}
-> +
-> +#define pud_leaf pud_leaf
-> +static inline bool pud_leaf(pud_t pud)
-> +{
-> +       return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-> +}
->  #endif /* __ASSEMBLY__ */
-> 
->  #include <asm/book3s/64/hash.h>
-> @@ -1436,20 +1448,5 @@ static inline bool is_pte_rw_upgrade(unsigned long old_val, unsigned long new_va
->         return false;
->  }
-> 
-> -/*
-> - * Like pmd_huge(), but works regardless of config options
-> - */
-> -#define pmd_leaf pmd_leaf
-> -static inline bool pmd_leaf(pmd_t pmd)
-> -{
-> -       return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-> -}
-> -
-> -#define pud_leaf pud_leaf
-> -static inline bool pud_leaf(pud_t pud)
-> -{
-> -       return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-> -}
-> -
->  #endif /* __ASSEMBLY__ */
->  #endif /* _ASM_POWERPC_BOOK3S_64_PGTABLE_H_ */
-
-Thanks for the help, I'll fix that.  I'm wondering when syzbot will start
-to feed my series into the testers; I do still rely on those feedbacks on
-compilation issues with such treewide changes, but so far I didn't yet
-receive any reports.
-
-I've also attached the new patch directly here in case of any further
-comment.
-
-Thanks,
-
-==========8<===========
-From 9e75aef2141170f241577e7786aaa4bbbfd93360 Mon Sep 17 00:00:00 2001
-From: Peter Xu <peterx@redhat.com>
-Date: Wed, 6 Mar 2024 14:49:48 +0800
-Subject: [PATCH] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
-
-PowerPC book3s 4K mostly has the same definition on both, except pXd_huge()
-constantly returns 0 for hash MMUs.  As Michael Ellerman pointed out [1],
-it is safe to check _PAGE_PTE on hash MMUs, as the bit will never be set so
-it will keep returning false.
-
-As a reference, __p[mu]d_mkhuge() will trigger a BUG_ON trying to create
-such huge mappings for 4K hash MMUs.  Meanwhile, the major powerpc hugetlb
-pgtable walker __find_linux_pte(), already used pXd_leaf() to check hugetlb
-mappings.
-
-The goal should be that we will have one API pXd_leaf() to detect all kinds
-of huge mappings.  AFAICT we need to use the pXd_leaf() impl (rather than
-pXd_huge() ones) to make sure ie. THPs on hash MMU will also return true.
-
-This helps to simplify a follow up patch to drop pXd_huge() treewide.
-
-NOTE: *_leaf() definition need to be moved before the inclusion of
-asm/book3s/64/pgtable-4k.h, which defines pXd_huge() with it.
-
-[1] https://lore.kernel.org/r/87v85zo6w7.fsf@mail.lhotse
-
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: linuxppc-dev@lists.ozlabs.org
-Signed-off-by: Peter Xu <peterx@redhat.com>
----
- .../include/asm/book3s/64/pgtable-4k.h        | 14 ++--------
- arch/powerpc/include/asm/book3s/64/pgtable.h  | 27 +++++++++----------
- 2 files changed, 14 insertions(+), 27 deletions(-)
-
-diff --git a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h b/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-index 48f21820afe2..92545981bb49 100644
---- a/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgtable-4k.h
-@@ -8,22 +8,12 @@
- #ifdef CONFIG_HUGETLB_PAGE
- static inline int pmd_huge(pmd_t pmd)
- {
--	/*
--	 * leaf pte for huge page
--	 */
--	if (radix_enabled())
--		return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
--	return 0;
-+	return pmd_leaf(pmd);
- }
- 
- static inline int pud_huge(pud_t pud)
- {
--	/*
--	 * leaf pte for huge page
--	 */
--	if (radix_enabled())
--		return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
--	return 0;
-+	return pud_leaf(pud);
- }
- 
- /*
-diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
-index df66dce8306f..fd7180fded75 100644
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -262,6 +262,18 @@ extern unsigned long __kernel_io_end;
- 
- extern struct page *vmemmap;
- extern unsigned long pci_io_base;
-+
-+#define pmd_leaf pmd_leaf
-+static inline bool pmd_leaf(pmd_t pmd)
-+{
-+	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
-+}
-+
-+#define pud_leaf pud_leaf
-+static inline bool pud_leaf(pud_t pud)
-+{
-+	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-+}
- #endif /* __ASSEMBLY__ */
- 
- #include <asm/book3s/64/hash.h>
-@@ -1436,20 +1448,5 @@ static inline bool is_pte_rw_upgrade(unsigned long old_val, unsigned long new_va
- 	return false;
- }
- 
--/*
-- * Like pmd_huge(), but works regardless of config options
-- */
--#define pmd_leaf pmd_leaf
--static inline bool pmd_leaf(pmd_t pmd)
--{
--	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
--}
--
--#define pud_leaf pud_leaf
--static inline bool pud_leaf(pud_t pud)
--{
--	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
--}
--
- #endif /* __ASSEMBLY__ */
- #endif /* _ASM_POWERPC_BOOK3S_64_PGTABLE_H_ */
--- 
-2.44.0
-
--- 
-Peter Xu
-
