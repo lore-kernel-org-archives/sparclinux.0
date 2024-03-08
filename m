@@ -1,334 +1,127 @@
-Received: from pegase1.c-s.fr (pegase1.c-s.fr [93.17.236.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8C9374F1;
-	Fri,  8 Mar 2024 05:38:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.236.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639934E1CF
+	for <sparclinux@vger.kernel.org>; Fri,  8 Mar 2024 06:50:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709876310; cv=none; b=Opa/JSIzCoEEXyegjiDk8kbd+dE+pnpyQkGiUMJA6KWKiOEzTiYrSIkAAbELxuX5+Q6IGvgJTWRXAwCf/4hPygu2kTYGJ4VnNxtgc/C7kq9Ubm0hhUllgMrfrjsrg2mI4xrRR/8i2bpQF7JrA5Akymiuyn69mIA1Ut4Ad0OF3hQ=
+	t=1709880638; cv=none; b=QfdEViebZ7ebuVLi4WCodHp7eSSBRA9MAYRpkfs2Gj/6RO1IEZtiDFCnXM2LASBa5ZH+0mUIvIv0en7f2GsC0KNNBN+6xKeFf2UmLlAT3QYM8Yevi2EcuqVbltPR2GinRVmYpeqzFajtsMroRP5FJBWj2bfePaNxWPC6K4ZmrZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709876310; c=relaxed/simple;
-	bh=VB7aCjrEyzCQl6Nd/SXyLObblfAjTNf+f9jJHdI22IY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kX26G5ie/yRpn8p1uLJPhyfME9JL7UxkRwf65As6plN0ctvDlgBKFra6kdEKRShEs4Z1o7li0KSpxOuMfCYYhQTFbLjcjQ2y0XwrAkJgl2iQ7kLwd8FtoaNalumw/pTyeO9EHOK0XkhDMaDYEEtFNSW0XLlhgfFuZ+95ez6muak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.236.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
-Received: from localhost (mailhub3.si.c-s.fr [192.168.12.233])
-	by localhost (Postfix) with ESMTP id 4TrZhS5TqJz9sq0;
-	Fri,  8 Mar 2024 06:38:16 +0100 (CET)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-	by localhost (pegase1.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id iQWDwp23YgG0; Fri,  8 Mar 2024 06:38:16 +0100 (CET)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-	by pegase1.c-s.fr (Postfix) with ESMTP id 4TrZhR6Sgnz9sps;
-	Fri,  8 Mar 2024 06:38:15 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id CBE128B775;
-	Fri,  8 Mar 2024 06:38:15 +0100 (CET)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-	with ESMTP id ENLZYn_Rd5af; Fri,  8 Mar 2024 06:38:15 +0100 (CET)
-Received: from PO20335.idsi0.si.c-s.fr (PO23130.IDSI0.si.c-s.fr [192.168.232.110])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id B13378B774;
-	Fri,  8 Mar 2024 06:38:14 +0100 (CET)
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-To: Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	John Fastabend <john.fastabend@gmail.com>,
-	KP Singh <kpsingh@kernel.org>,
-	Stanislav Fomichev <sdf@google.com>,
-	Hao Luo <haoluo@google.com>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Puranjay Mohan <puranjay12@gmail.com>,
-	Tiezhu Yang <yangtiezhu@loongson.cn>,
-	Hengqi Chen <hengqi.chen@gmail.com>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Johan Almbladh <johan.almbladh@anyfinetworks.com>,
-	Paul Burton <paulburton@kernel.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	Helge Deller <deller@gmx.de>,
-	Ilya Leoshkevich <iii@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Wang YanQing <udknight@gmail.com>,
-	David Ahern <dsahern@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>,
-	bpf@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	loongarch@lists.linux.dev,
-	linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	netdev@vger.kernel.org,
-	"linux-hardening @ vger . kernel . org" <linux-hardening@vger.kernel.org>,
-	Kees Cook <keescook@chromium.org>
-Subject: [PATCH bpf-next v3 2/2] bpf: Take return from set_memory_rox() into account with bpf_jit_binary_lock_ro()
-Date: Fri,  8 Mar 2024 06:38:08 +0100
-Message-ID: <036b6393f23a2032ce75a1c92220b2afcb798d5d.1709850515.git.christophe.leroy@csgroup.eu>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <286def78955e04382b227cb3e4b6ba272a7442e3.1709850515.git.christophe.leroy@csgroup.eu>
-References: <286def78955e04382b227cb3e4b6ba272a7442e3.1709850515.git.christophe.leroy@csgroup.eu>
+	s=arc-20240116; t=1709880638; c=relaxed/simple;
+	bh=icevmjjQzy7T8gdOkFpqgnXBgi/VX04oIsM5bIcpiN4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=b87rzTVhKunGTm6S5Qu+/WlfDKHqAxEBzV46KNx/8wFAPEJqAaDzmBQM8jhfgegMyw9pQ65CXxxLCtxp5l0P9Lcxj3CYuZkVn8kZyxvk3O8celfpczxDudjBlvMAA5TKKL4sAvhukhBJ2Am+urijzUzHvkhI/iztmUq1Put4SRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=heDxVs4J; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="heDxVs4J"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1709880635;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=epRg3dGewUcblPePlS+KzZdY/GgoToAmRabId8Bpp4I=;
+	b=heDxVs4JuJWDoEnTziGBu+wOhirVIly0obbjgcHGDLl/w0Ujbc/n9faMMLhkFuGUgGitDi
+	ckYwO4zwgUjdIoTTDaLCNHl/u6NC7d0ptkUi4Icx1EuVocmpWuCYsdZru5rTEqKhMRYDTD
+	zZ9VNu4nQBrHTnuq+GvA3bD9uZOLatA=
+Received: from mail-oa1-f72.google.com (mail-oa1-f72.google.com
+ [209.85.160.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-96-AJEqZs8uNXi6WvkSGrSKPA-1; Fri, 08 Mar 2024 01:50:31 -0500
+X-MC-Unique: AJEqZs8uNXi6WvkSGrSKPA-1
+Received: by mail-oa1-f72.google.com with SMTP id 586e51a60fabf-21e4604101bso607475fac.0
+        for <sparclinux@vger.kernel.org>; Thu, 07 Mar 2024 22:50:31 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709880631; x=1710485431;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=epRg3dGewUcblPePlS+KzZdY/GgoToAmRabId8Bpp4I=;
+        b=NhT0KEzZq6Bq1JuDPM2Bx0yBxnKZhiPckv7ZATLpEaF6VADr/xZXVpFFoT2ZOHTZ0J
+         9xtHpPgbHBVQtrqzvr/fxSDHhExBg0VVVE/zGM+9sLBumqZPyL5lgEpLjwJ+kPwJYPMJ
+         HxPM2JSZsDC5NVD2ZBUAxQkCxqP65cSUU2a3Td7vfRp6OcxwouCGzpatDvhR4aKfU6E3
+         Q/0dgSMXuU+d9mGi3wpUYoeHpdwkdniaFcjoXQc0JiQzdc1LQvp5riyF9hh3cVv2NInD
+         NsKHgjs4RpyD47hBrUetFD8HM/j8cRg2p10cguBdnXijzOYIxDOBjIsDuYSHqouywkXb
+         AklQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVZCsdNfztasxg4IvczeV40CU+Ypyow/sKcFxogS+jiwOb3hNpgrle0KmUILUqySS3x41LgRtAkOMHwcG8hnbrXS0VMZXrph9hOGA==
+X-Gm-Message-State: AOJu0Ywgeb5Uv9uI4qOvufPMyQoHPrcjEKCq1vkyLjmYNeFD9DCpxwY2
+	qVLG8R9BCDO1xU8bYLCmVyV8+LYbK3gAvY/O3qOc4J36am1h6JzzUpa5WZrXmtIEJoYUriA8ja4
+	MwNROfpbtrmzHXXPmCeMZFUD1bMt/2ASTCEtUO96jV2zlCy+29irD/v/W+VA=
+X-Received: by 2002:a05:6870:911f:b0:221:9798:22ce with SMTP id o31-20020a056870911f00b00221979822cemr1235678oae.5.1709880630972;
+        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IF5WJ4Hs7BOa4+cQmkVKBMn/KDqWDXIuEQmCh9SbFC/cz4o3SLGxNN1BrH2AJEolH8ck0I8Eg==
+X-Received: by 2002:a05:6870:911f:b0:221:9798:22ce with SMTP id o31-20020a056870911f00b00221979822cemr1235655oae.5.1709880630429;
+        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
+Received: from x1n ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id r37-20020a632065000000b005dcc075d5edsm13621982pgm.60.2024.03.07.22.50.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
+Date: Fri, 8 Mar 2024 14:50:20 +0800
+From: Peter Xu <peterx@redhat.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Muchun Song <muchun.song@linux.dev>,
+	Matthew Wilcox <willy@infradead.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>, x86@kernel.org,
+	sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Alistair Popple <apopple@nvidia.com>
+Subject: Re: [PATCH RFC 01/13] mm/hmm: Process pud swap entry without
+ pud_huge()
+Message-ID: <Zeq1LNValPosuWgw@x1n>
+References: <20240306104147.193052-1-peterx@redhat.com>
+ <20240306104147.193052-2-peterx@redhat.com>
+ <20240307181233.GD9179@nvidia.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1709876288; l=8100; i=christophe.leroy@csgroup.eu; s=20211009; h=from:subject:message-id; bh=VB7aCjrEyzCQl6Nd/SXyLObblfAjTNf+f9jJHdI22IY=; b=W33lPIDIgr8PEUyjwxEMcKO+D+Z+D1qaqtgtxD+CJRhI5nR6avIRzXxN4xH8ZhGslueQokkTD 6pCCtavJARKCNfgTPc1pXtSM6n9j4jA+SIP+lOhNv4QtO4ONZe1cMHc
-X-Developer-Key: i=christophe.leroy@csgroup.eu; a=ed25519; pk=HIzTzUj91asvincQGOFx6+ZF5AoUuP9GdOtQChs7Mm0=
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240307181233.GD9179@nvidia.com>
 
-set_memory_rox() can fail, leaving memory unprotected.
+On Thu, Mar 07, 2024 at 02:12:33PM -0400, Jason Gunthorpe wrote:
+> On Wed, Mar 06, 2024 at 06:41:35PM +0800, peterx@redhat.com wrote:
+> > From: Peter Xu <peterx@redhat.com>
+> > 
+> > Swap pud entries do not always return true for pud_huge() for all archs.
+> > x86 and sparc (so far) allow it, but all the rest do not accept a swap
+> > entry to be reported as pud_huge().  So it's not safe to check swap entries
+> > within pud_huge().  Check swap entries before pud_huge(), so it should be
+> > always safe.
+> > 
+> > This is the only place in the kernel that (IMHO, wrongly) relies on
+> > pud_huge() to return true on pud swap entries.  The plan is to cleanup
+> > pXd_huge() to only report non-swap mappings for all archs.
+> > 
+> > Cc: Alistair Popple <apopple@nvidia.com>
+> > Signed-off-by: Peter Xu <peterx@redhat.com>
+> > ---
+> >  mm/hmm.c | 7 +------
+> >  1 file changed, 1 insertion(+), 6 deletions(-)
+> 
+> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> 
+> > @@ -424,7 +424,7 @@ static int hmm_vma_walk_pud(pud_t *pudp, unsigned long start, unsigned long end,
+> >  	walk->action = ACTION_CONTINUE;
+> >  
+> >  	pud = READ_ONCE(*pudp);
+> > -	if (pud_none(pud)) {
+> > +	if (pud_none(pud) || !pud_present(pud)) {
+> 
+> Isn't this a tautology? pud_none always implies !present() ?
 
-Check return and bail out when bpf_jit_binary_lock_ro() returns
-an error.
+Hmm yes I think so, afact, it should be "all=none+swap+present". I still
+remember I missed that once previously, it's not always obvious when
+preparing such patches. :( I'll simplify this and also on patch 3.
 
-Link: https://github.com/KSPP/linux/issues/7
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: linux-hardening@vger.kernel.org <linux-hardening@vger.kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Puranjay Mohan <puranjay12@gmail.com>
-Reviewed-by: Ilya Leoshkevich <iii@linux.ibm.com>  # s390x
-Acked-by: Tiezhu Yang <yangtiezhu@loongson.cn>  # LoongArch
-Reviewed-by: Johan Almbladh <johan.almbladh@anyfinetworks.com> # MIPS Part
----
-Previous patch introduces a dependency on this patch because it modifies bpf_prog_lock_ro(), but they are independant.
-It is possible to apply this patch as standalone by handling trivial conflict with unmodified bpf_prog_lock_ro().
+Thanks,
 
-v3: No change.
-
-v2:
-- Dropped arm64 change following commit 1dad391daef1 ("bpf, arm64: use bpf_prog_pack for memory management")
-- Fixed too long lines reported by checkpatch
----
- arch/arm/net/bpf_jit_32.c        | 25 ++++++++++++-------------
- arch/loongarch/net/bpf_jit.c     | 22 ++++++++++++++++------
- arch/mips/net/bpf_jit_comp.c     |  3 ++-
- arch/parisc/net/bpf_jit_core.c   |  8 +++++++-
- arch/s390/net/bpf_jit_comp.c     |  6 +++++-
- arch/sparc/net/bpf_jit_comp_64.c |  6 +++++-
- arch/x86/net/bpf_jit_comp32.c    |  3 +--
- include/linux/filter.h           |  5 +++--
- 8 files changed, 51 insertions(+), 27 deletions(-)
-
-diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
-index 1d672457d02f..01516f83a95a 100644
---- a/arch/arm/net/bpf_jit_32.c
-+++ b/arch/arm/net/bpf_jit_32.c
-@@ -2222,28 +2222,21 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	/* If building the body of the JITed code fails somehow,
- 	 * we fall back to the interpretation.
- 	 */
--	if (build_body(&ctx) < 0) {
--		image_ptr = NULL;
--		bpf_jit_binary_free(header);
--		prog = orig_prog;
--		goto out_imms;
--	}
-+	if (build_body(&ctx) < 0)
-+		goto out_free;
- 	build_epilogue(&ctx);
- 
- 	/* 3.) Extra pass to validate JITed Code */
--	if (validate_code(&ctx)) {
--		image_ptr = NULL;
--		bpf_jit_binary_free(header);
--		prog = orig_prog;
--		goto out_imms;
--	}
-+	if (validate_code(&ctx))
-+		goto out_free;
- 	flush_icache_range((u32)header, (u32)(ctx.target + ctx.idx));
- 
- 	if (bpf_jit_enable > 1)
- 		/* there are 2 passes here */
- 		bpf_jit_dump(prog->len, image_size, 2, ctx.target);
- 
--	bpf_jit_binary_lock_ro(header);
-+	if (bpf_jit_binary_lock_ro(header))
-+		goto out_free;
- 	prog->bpf_func = (void *)ctx.target;
- 	prog->jited = 1;
- 	prog->jited_len = image_size;
-@@ -2260,5 +2253,11 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 		bpf_jit_prog_release_other(prog, prog == orig_prog ?
- 					   tmp : orig_prog);
- 	return prog;
-+
-+out_free:
-+	image_ptr = NULL;
-+	bpf_jit_binary_free(header);
-+	prog = orig_prog;
-+	goto out_imms;
- }
- 
-diff --git a/arch/loongarch/net/bpf_jit.c b/arch/loongarch/net/bpf_jit.c
-index e73323d759d0..7dbefd4ba210 100644
---- a/arch/loongarch/net/bpf_jit.c
-+++ b/arch/loongarch/net/bpf_jit.c
-@@ -1294,16 +1294,19 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	flush_icache_range((unsigned long)header, (unsigned long)(ctx.image + ctx.idx));
- 
- 	if (!prog->is_func || extra_pass) {
-+		int err;
-+
- 		if (extra_pass && ctx.idx != jit_data->ctx.idx) {
- 			pr_err_once("multi-func JIT bug %d != %d\n",
- 				    ctx.idx, jit_data->ctx.idx);
--			bpf_jit_binary_free(header);
--			prog->bpf_func = NULL;
--			prog->jited = 0;
--			prog->jited_len = 0;
--			goto out_offset;
-+			goto out_free;
-+		}
-+		err = bpf_jit_binary_lock_ro(header);
-+		if (err) {
-+			pr_err_once("bpf_jit_binary_lock_ro() returned %d\n",
-+				    err);
-+			goto out_free;
- 		}
--		bpf_jit_binary_lock_ro(header);
- 	} else {
- 		jit_data->ctx = ctx;
- 		jit_data->image = image_ptr;
-@@ -1334,6 +1337,13 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	out_offset = -1;
- 
- 	return prog;
-+
-+out_free:
-+	bpf_jit_binary_free(header);
-+	prog->bpf_func = NULL;
-+	prog->jited = 0;
-+	prog->jited_len = 0;
-+	goto out_offset;
- }
- 
- /* Indicate the JIT backend supports mixing bpf2bpf and tailcalls. */
-diff --git a/arch/mips/net/bpf_jit_comp.c b/arch/mips/net/bpf_jit_comp.c
-index a40d926b6513..e355dfca4400 100644
---- a/arch/mips/net/bpf_jit_comp.c
-+++ b/arch/mips/net/bpf_jit_comp.c
-@@ -1012,7 +1012,8 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	bpf_prog_fill_jited_linfo(prog, &ctx.descriptors[1]);
- 
- 	/* Set as read-only exec and flush instruction cache */
--	bpf_jit_binary_lock_ro(header);
-+	if (bpf_jit_binary_lock_ro(header))
-+		goto out_err;
- 	flush_icache_range((unsigned long)header,
- 			   (unsigned long)&ctx.target[ctx.jit_index]);
- 
-diff --git a/arch/parisc/net/bpf_jit_core.c b/arch/parisc/net/bpf_jit_core.c
-index d6ee2fd45550..979f45d4d1fb 100644
---- a/arch/parisc/net/bpf_jit_core.c
-+++ b/arch/parisc/net/bpf_jit_core.c
-@@ -167,7 +167,13 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	bpf_flush_icache(jit_data->header, ctx->insns + ctx->ninsns);
- 
- 	if (!prog->is_func || extra_pass) {
--		bpf_jit_binary_lock_ro(jit_data->header);
-+		if (bpf_jit_binary_lock_ro(jit_data->header)) {
-+			bpf_jit_binary_free(jit_data->header);
-+			prog->bpf_func = NULL;
-+			prog->jited = 0;
-+			prog->jited_len = 0;
-+			goto out_offset;
-+		}
- 		prologue_len = ctx->epilogue_offset - ctx->body_len;
- 		for (i = 0; i < prog->len; i++)
- 			ctx->offset[i] += prologue_len;
-diff --git a/arch/s390/net/bpf_jit_comp.c b/arch/s390/net/bpf_jit_comp.c
-index b418333bb086..e613eebfd349 100644
---- a/arch/s390/net/bpf_jit_comp.c
-+++ b/arch/s390/net/bpf_jit_comp.c
-@@ -2111,7 +2111,11 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *fp)
- 		print_fn_code(jit.prg_buf, jit.size_prg);
- 	}
- 	if (!fp->is_func || extra_pass) {
--		bpf_jit_binary_lock_ro(header);
-+		if (bpf_jit_binary_lock_ro(header)) {
-+			bpf_jit_binary_free(header);
-+			fp = orig_fp;
-+			goto free_addrs;
-+		}
- 	} else {
- 		jit_data->header = header;
- 		jit_data->ctx = jit;
-diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
-index fa0759bfe498..73bf0aea8baf 100644
---- a/arch/sparc/net/bpf_jit_comp_64.c
-+++ b/arch/sparc/net/bpf_jit_comp_64.c
-@@ -1602,7 +1602,11 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	bpf_flush_icache(header, (u8 *)header + header->size);
- 
- 	if (!prog->is_func || extra_pass) {
--		bpf_jit_binary_lock_ro(header);
-+		if (bpf_jit_binary_lock_ro(header)) {
-+			bpf_jit_binary_free(header);
-+			prog = orig_prog;
-+			goto out_off;
-+		}
- 	} else {
- 		jit_data->ctx = ctx;
- 		jit_data->image = image_ptr;
-diff --git a/arch/x86/net/bpf_jit_comp32.c b/arch/x86/net/bpf_jit_comp32.c
-index b18ce19981ec..f2be1dcf3b24 100644
---- a/arch/x86/net/bpf_jit_comp32.c
-+++ b/arch/x86/net/bpf_jit_comp32.c
-@@ -2600,8 +2600,7 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 	if (bpf_jit_enable > 1)
- 		bpf_jit_dump(prog->len, proglen, pass + 1, image);
- 
--	if (image) {
--		bpf_jit_binary_lock_ro(header);
-+	if (image && !bpf_jit_binary_lock_ro(header)) {
- 		prog->bpf_func = (void *)image;
- 		prog->jited = 1;
- 		prog->jited_len = proglen;
-diff --git a/include/linux/filter.h b/include/linux/filter.h
-index 7dd59bccaeec..fc42dcfdbd62 100644
---- a/include/linux/filter.h
-+++ b/include/linux/filter.h
-@@ -895,10 +895,11 @@ static inline int __must_check bpf_prog_lock_ro(struct bpf_prog *fp)
- 	return 0;
- }
- 
--static inline void bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
-+static inline int __must_check
-+bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
- {
- 	set_vm_flush_reset_perms(hdr);
--	set_memory_rox((unsigned long)hdr, hdr->size >> PAGE_SHIFT);
-+	return set_memory_rox((unsigned long)hdr, hdr->size >> PAGE_SHIFT);
- }
- 
- int sk_filter_trim_cap(struct sock *sk, struct sk_buff *skb, unsigned int cap);
 -- 
-2.43.0
+Peter Xu
 
