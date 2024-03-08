@@ -1,127 +1,83 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639934E1CF
-	for <sparclinux@vger.kernel.org>; Fri,  8 Mar 2024 06:50:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B0D36125;
+	Fri,  8 Mar 2024 07:06:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709880638; cv=none; b=QfdEViebZ7ebuVLi4WCodHp7eSSBRA9MAYRpkfs2Gj/6RO1IEZtiDFCnXM2LASBa5ZH+0mUIvIv0en7f2GsC0KNNBN+6xKeFf2UmLlAT3QYM8Yevi2EcuqVbltPR2GinRVmYpeqzFajtsMroRP5FJBWj2bfePaNxWPC6K4ZmrZo=
+	t=1709881584; cv=none; b=GTbZm0rj+SZWoNQXaxCc22kw+wYr+RoxPhFqbnv4BGDB4KcWWvGM10Kzid7zK8hvz4rtEzx/zf+y8JeHwX1U7lRSn3kMb4bY+pSyy8zCWMiTG4Cqp8cryTodq/orc/FP1YCOi9BcXh5Cw1HRKbBk9bsu7/juoKuOeZS7XRrkFcA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709880638; c=relaxed/simple;
-	bh=icevmjjQzy7T8gdOkFpqgnXBgi/VX04oIsM5bIcpiN4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b87rzTVhKunGTm6S5Qu+/WlfDKHqAxEBzV46KNx/8wFAPEJqAaDzmBQM8jhfgegMyw9pQ65CXxxLCtxp5l0P9Lcxj3CYuZkVn8kZyxvk3O8celfpczxDudjBlvMAA5TKKL4sAvhukhBJ2Am+urijzUzHvkhI/iztmUq1Put4SRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=heDxVs4J; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1709881584; c=relaxed/simple;
+	bh=tp1vcelglTamYAbD/dUICI38SgIAnEhonNlGt++MjpE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=H5aAC+KOUmt7wtGv57i5iFH5ehHHcpY5TfnK+kyE3RWnLJdYl86ipjFsxeOB+DpYIsEEQByY+rFSJ8IXSLGK6rjivyarlhttRY/Q3Q2Rb2EYoV04ohzHzEFoSl0rP2+hA25C49W9pnbPFruSon8//BbhWSqUoN10hE2DH+UdQwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=qoFWA+1H; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="heDxVs4J"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709880635;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=epRg3dGewUcblPePlS+KzZdY/GgoToAmRabId8Bpp4I=;
-	b=heDxVs4JuJWDoEnTziGBu+wOhirVIly0obbjgcHGDLl/w0Ujbc/n9faMMLhkFuGUgGitDi
-	ckYwO4zwgUjdIoTTDaLCNHl/u6NC7d0ptkUi4Icx1EuVocmpWuCYsdZru5rTEqKhMRYDTD
-	zZ9VNu4nQBrHTnuq+GvA3bD9uZOLatA=
-Received: from mail-oa1-f72.google.com (mail-oa1-f72.google.com
- [209.85.160.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-96-AJEqZs8uNXi6WvkSGrSKPA-1; Fri, 08 Mar 2024 01:50:31 -0500
-X-MC-Unique: AJEqZs8uNXi6WvkSGrSKPA-1
-Received: by mail-oa1-f72.google.com with SMTP id 586e51a60fabf-21e4604101bso607475fac.0
-        for <sparclinux@vger.kernel.org>; Thu, 07 Mar 2024 22:50:31 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709880631; x=1710485431;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=epRg3dGewUcblPePlS+KzZdY/GgoToAmRabId8Bpp4I=;
-        b=NhT0KEzZq6Bq1JuDPM2Bx0yBxnKZhiPckv7ZATLpEaF6VADr/xZXVpFFoT2ZOHTZ0J
-         9xtHpPgbHBVQtrqzvr/fxSDHhExBg0VVVE/zGM+9sLBumqZPyL5lgEpLjwJ+kPwJYPMJ
-         HxPM2JSZsDC5NVD2ZBUAxQkCxqP65cSUU2a3Td7vfRp6OcxwouCGzpatDvhR4aKfU6E3
-         Q/0dgSMXuU+d9mGi3wpUYoeHpdwkdniaFcjoXQc0JiQzdc1LQvp5riyF9hh3cVv2NInD
-         NsKHgjs4RpyD47hBrUetFD8HM/j8cRg2p10cguBdnXijzOYIxDOBjIsDuYSHqouywkXb
-         AklQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVZCsdNfztasxg4IvczeV40CU+Ypyow/sKcFxogS+jiwOb3hNpgrle0KmUILUqySS3x41LgRtAkOMHwcG8hnbrXS0VMZXrph9hOGA==
-X-Gm-Message-State: AOJu0Ywgeb5Uv9uI4qOvufPMyQoHPrcjEKCq1vkyLjmYNeFD9DCpxwY2
-	qVLG8R9BCDO1xU8bYLCmVyV8+LYbK3gAvY/O3qOc4J36am1h6JzzUpa5WZrXmtIEJoYUriA8ja4
-	MwNROfpbtrmzHXXPmCeMZFUD1bMt/2ASTCEtUO96jV2zlCy+29irD/v/W+VA=
-X-Received: by 2002:a05:6870:911f:b0:221:9798:22ce with SMTP id o31-20020a056870911f00b00221979822cemr1235678oae.5.1709880630972;
-        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IF5WJ4Hs7BOa4+cQmkVKBMn/KDqWDXIuEQmCh9SbFC/cz4o3SLGxNN1BrH2AJEolH8ck0I8Eg==
-X-Received: by 2002:a05:6870:911f:b0:221:9798:22ce with SMTP id o31-20020a056870911f00b00221979822cemr1235655oae.5.1709880630429;
-        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
-Received: from x1n ([43.228.180.230])
-        by smtp.gmail.com with ESMTPSA id r37-20020a632065000000b005dcc075d5edsm13621982pgm.60.2024.03.07.22.50.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Mar 2024 22:50:30 -0800 (PST)
-Date: Fri, 8 Mar 2024 14:50:20 +0800
-From: Peter Xu <peterx@redhat.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Matthew Wilcox <willy@infradead.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>, x86@kernel.org,
-	sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Alistair Popple <apopple@nvidia.com>
-Subject: Re: [PATCH RFC 01/13] mm/hmm: Process pud swap entry without
- pud_huge()
-Message-ID: <Zeq1LNValPosuWgw@x1n>
-References: <20240306104147.193052-1-peterx@redhat.com>
- <20240306104147.193052-2-peterx@redhat.com>
- <20240307181233.GD9179@nvidia.com>
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="qoFWA+1H"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4Trcdz6G7Kz67xf;
+	Fri,  8 Mar 2024 08:06:15 +0100 (CET)
+Received: from [10.10.15.20] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4Trcdn35q9z67xv;
+	Fri,  8 Mar 2024 08:06:04 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1709881575;
+	bh=tc5+Y8aKBDk8x+b6Zio3l2GymSNXUOEtVEUc/9zX6cE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=qoFWA+1HR+G6ZpXVE5w724e0sQb39QXZzKhNG3rxj2AvSabjDBqKUe41g6UkiKKO2
+	 InNiL3v1CJewG4w2fpm8A2a8ciCfCNBV+iUi8Bt1UyWxigzS5aIqOdPH5liYPbLXcb
+	 oFHRHLqxPbsBgNFL1wj5yvi8vTsXTf2yOikwBIj0=
+Message-ID: <8398f430-14be-4447-9c17-9f6ac0af024a@gaisler.com>
+Date: Fri, 8 Mar 2024 08:06:04 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240307181233.GD9179@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 7/7] sparc32: Fix section mismatch in leon_pci_grpci
+Content-Language: en-US
+To: "Maciej W. Rozycki" <macro@orcam.me.uk>
+Cc: sam@ravnborg.org, sparclinux@vger.kernel.org,
+ Randy Dunlap <rdunlap@infradead.org>,
+ Miquel Raynal <miquel.raynal@bootlin.com>,
+ linux-parport@lists.infradead.org, "David S. Miller" <davem@davemloft.net>,
+ Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+ Arvind Yadav <arvind.yadav.cs@gmail.com>
+References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
+ <20240224-sam-fix-sparc32-all-builds-v2-7-1f186603c5c4@ravnborg.org>
+ <b62d0ae6-c2cb-4f2c-b792-2dba52a44e35@gaisler.com>
+ <c5654b69-209e-4406-ac70-9a4547adfc36@gaisler.com>
+ <alpine.DEB.2.21.2403072015010.29359@angie.orcam.me.uk>
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <alpine.DEB.2.21.2403072015010.29359@angie.orcam.me.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 07, 2024 at 02:12:33PM -0400, Jason Gunthorpe wrote:
-> On Wed, Mar 06, 2024 at 06:41:35PM +0800, peterx@redhat.com wrote:
-> > From: Peter Xu <peterx@redhat.com>
-> > 
-> > Swap pud entries do not always return true for pud_huge() for all archs.
-> > x86 and sparc (so far) allow it, but all the rest do not accept a swap
-> > entry to be reported as pud_huge().  So it's not safe to check swap entries
-> > within pud_huge().  Check swap entries before pud_huge(), so it should be
-> > always safe.
-> > 
-> > This is the only place in the kernel that (IMHO, wrongly) relies on
-> > pud_huge() to return true on pud swap entries.  The plan is to cleanup
-> > pXd_huge() to only report non-swap mappings for all archs.
-> > 
-> > Cc: Alistair Popple <apopple@nvidia.com>
-> > Signed-off-by: Peter Xu <peterx@redhat.com>
-> > ---
-> >  mm/hmm.c | 7 +------
-> >  1 file changed, 1 insertion(+), 6 deletions(-)
+On 2024-03-07 21:16, Maciej W. Rozycki wrote:
+> On Thu, 7 Mar 2024, Andreas Larsson wrote:
 > 
-> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+>> I'll pick up the whole series apart for the ZONE_DMA removal, so there
+>> is no other need for a v3. I can add the Fixes lines to this one, if it
+>> is ok with you Sam, or take it as is.
 > 
-> > @@ -424,7 +424,7 @@ static int hmm_vma_walk_pud(pud_t *pudp, unsigned long start, unsigned long end,
-> >  	walk->action = ACTION_CONTINUE;
-> >  
-> >  	pud = READ_ONCE(*pudp);
-> > -	if (pud_none(pud)) {
-> > +	if (pud_none(pud) || !pud_present(pud)) {
+>  Can I have the spelling of my name fixed though (which was supposed to be 
+> included with v3)?
 > 
-> Isn't this a tautology? pud_none always implies !present() ?
+>   Maciej
 
-Hmm yes I think so, afact, it should be "all=none+swap+present". I still
-remember I missed that once previously, it's not always obvious when
-preparing such patches. :( I'll simplify this and also on patch 3.
+Based on the outcome of the testing and discussions that followed I will
+not pick up the "sparc32: Do not select ZONE_DMA" patch from
 
-Thanks,
+https://lore.kernel.org/sparclinux/20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org/
 
--- 
-Peter Xu
+which was the one that got your name misspelled, unless I missed some
+other occurrence.
 
+Cheers,
+Andreas
