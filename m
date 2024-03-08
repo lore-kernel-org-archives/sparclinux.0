@@ -1,83 +1,55 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B0D36125;
-	Fri,  8 Mar 2024 07:06:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3A66E5731B;
+	Fri,  8 Mar 2024 12:09:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.133.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709881584; cv=none; b=GTbZm0rj+SZWoNQXaxCc22kw+wYr+RoxPhFqbnv4BGDB4KcWWvGM10Kzid7zK8hvz4rtEzx/zf+y8JeHwX1U7lRSn3kMb4bY+pSyy8zCWMiTG4Cqp8cryTodq/orc/FP1YCOi9BcXh5Cw1HRKbBk9bsu7/juoKuOeZS7XRrkFcA=
+	t=1709899803; cv=none; b=N6RA5OpYGOYQhKs9iYihG6vR7r09ZfIjQi3rxCAksVpkAenYxRuxUJKWxcEVyPzztbzOG5Y1MwdVLnxor+ODNfpmxgEdTVQDnSIniySfwORlKb8678s4X9tNM/ANod46QbqzvDr+4hKkM+RtryW45TzMZcjtv5y/bOzN0gL56zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709881584; c=relaxed/simple;
-	bh=tp1vcelglTamYAbD/dUICI38SgIAnEhonNlGt++MjpE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=H5aAC+KOUmt7wtGv57i5iFH5ehHHcpY5TfnK+kyE3RWnLJdYl86ipjFsxeOB+DpYIsEEQByY+rFSJ8IXSLGK6rjivyarlhttRY/Q3Q2Rb2EYoV04ohzHzEFoSl0rP2+hA25C49W9pnbPFruSon8//BbhWSqUoN10hE2DH+UdQwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=qoFWA+1H; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="qoFWA+1H"
+	s=arc-20240116; t=1709899803; c=relaxed/simple;
+	bh=9T09C1YQCN5oBbpYEijWlMzI0K+d0IQxA9WFgqToIXA=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=YYqI+pu7W5M10Vit5a4B6XTYTUj3ImjcYaZOVzoz2+55L1Dk4g279NqczDYWC6zLEzIGHlAiN6vwjyoWMyOR1iCSCSrSi50tTwQ/a94OBAo3ItA2R51cRpMVfc+hEXsdDSfwkBGvVRv+scPgDrCy7/riUzhlQg9fo0mn1DUjFbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk; spf=none smtp.mailfrom=orcam.me.uk; arc=none smtp.client-ip=78.133.224.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+	id DC9D692009C; Fri,  8 Mar 2024 13:09:57 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Trcdz6G7Kz67xf;
-	Fri,  8 Mar 2024 08:06:15 +0100 (CET)
-Received: from [10.10.15.20] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Trcdn35q9z67xv;
-	Fri,  8 Mar 2024 08:06:04 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1709881575;
-	bh=tc5+Y8aKBDk8x+b6Zio3l2GymSNXUOEtVEUc/9zX6cE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=qoFWA+1HR+G6ZpXVE5w724e0sQb39QXZzKhNG3rxj2AvSabjDBqKUe41g6UkiKKO2
-	 InNiL3v1CJewG4w2fpm8A2a8ciCfCNBV+iUi8Bt1UyWxigzS5aIqOdPH5liYPbLXcb
-	 oFHRHLqxPbsBgNFL1wj5yvi8vTsXTf2yOikwBIj0=
-Message-ID: <8398f430-14be-4447-9c17-9f6ac0af024a@gaisler.com>
-Date: Fri, 8 Mar 2024 08:06:04 +0100
+	by angie.orcam.me.uk (Postfix) with ESMTP id D63B192009B;
+	Fri,  8 Mar 2024 12:09:57 +0000 (GMT)
+Date: Fri, 8 Mar 2024 12:09:57 +0000 (GMT)
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+To: Andreas Larsson <andreas@gaisler.com>
+cc: sam@ravnborg.org, sparclinux@vger.kernel.org, 
+    Randy Dunlap <rdunlap@infradead.org>, 
+    Miquel Raynal <miquel.raynal@bootlin.com>, 
+    linux-parport@lists.infradead.org, "David S. Miller" <davem@davemloft.net>, 
+    Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, 
+    Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: Re: [PATCH v2 7/7] sparc32: Fix section mismatch in leon_pci_grpci
+In-Reply-To: <8398f430-14be-4447-9c17-9f6ac0af024a@gaisler.com>
+Message-ID: <alpine.DEB.2.21.2403081209100.45777@angie.orcam.me.uk>
+References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org> <20240224-sam-fix-sparc32-all-builds-v2-7-1f186603c5c4@ravnborg.org> <b62d0ae6-c2cb-4f2c-b792-2dba52a44e35@gaisler.com> <c5654b69-209e-4406-ac70-9a4547adfc36@gaisler.com>
+ <alpine.DEB.2.21.2403072015010.29359@angie.orcam.me.uk> <8398f430-14be-4447-9c17-9f6ac0af024a@gaisler.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 7/7] sparc32: Fix section mismatch in leon_pci_grpci
-Content-Language: en-US
-To: "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc: sam@ravnborg.org, sparclinux@vger.kernel.org,
- Randy Dunlap <rdunlap@infradead.org>,
- Miquel Raynal <miquel.raynal@bootlin.com>,
- linux-parport@lists.infradead.org, "David S. Miller" <davem@davemloft.net>,
- Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
- Arvind Yadav <arvind.yadav.cs@gmail.com>
-References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
- <20240224-sam-fix-sparc32-all-builds-v2-7-1f186603c5c4@ravnborg.org>
- <b62d0ae6-c2cb-4f2c-b792-2dba52a44e35@gaisler.com>
- <c5654b69-209e-4406-ac70-9a4547adfc36@gaisler.com>
- <alpine.DEB.2.21.2403072015010.29359@angie.orcam.me.uk>
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <alpine.DEB.2.21.2403072015010.29359@angie.orcam.me.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 
-On 2024-03-07 21:16, Maciej W. Rozycki wrote:
-> On Thu, 7 Mar 2024, Andreas Larsson wrote:
+On Fri, 8 Mar 2024, Andreas Larsson wrote:
+
+> Based on the outcome of the testing and discussions that followed I will
+> not pick up the "sparc32: Do not select ZONE_DMA" patch from
 > 
->> I'll pick up the whole series apart for the ZONE_DMA removal, so there
->> is no other need for a v3. I can add the Fixes lines to this one, if it
->> is ok with you Sam, or take it as is.
+> https://lore.kernel.org/sparclinux/20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org/
 > 
->  Can I have the spelling of my name fixed though (which was supposed to be 
-> included with v3)?
-> 
->   Maciej
+> which was the one that got your name misspelled, unless I missed some
+> other occurrence.
 
-Based on the outcome of the testing and discussions that followed I will
-not pick up the "sparc32: Do not select ZONE_DMA" patch from
+ Ah, OK then, thank you for double-checking.
 
-https://lore.kernel.org/sparclinux/20240224-sam-fix-sparc32-all-builds-v2-4-1f186603c5c4@ravnborg.org/
-
-which was the one that got your name misspelled, unless I missed some
-other occurrence.
-
-Cheers,
-Andreas
+  Maciej
