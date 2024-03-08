@@ -1,38 +1,38 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE615B5BF;
-	Fri,  8 Mar 2024 20:08:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7DAF5B5D6;
+	Fri,  8 Mar 2024 20:10:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709928482; cv=none; b=XjyHdp3keUBWKqqdWGupKur12LTip9XNShOnhpvnHMSvEssBr0lfmjoANT0a7Jk0pxb3N5cX7ewVB+as2dBYRSArllSegjKY1sQ/tWtMb3+17pdruMSf6wOG2xz5Iqxz9LN3/8VIZxgsRQ8JH/n5lfUWAELQZtFbgcHQpHYSJBg=
+	t=1709928661; cv=none; b=RJOJOhXZ20NB6FIwH6Moir/XlYvQNNNynMeSioc6aAMtC70GArSGVZ4u3e0nhMtppgeEQLv2lgnxYIoZaAzrxrwHIaPSvbeJACLVVsLzXxYq43TEQNrt1TQWtUtWx87fXBM855HMzOWxe6CXgoB2Qk9EiBM293RkmujvZjhtsQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709928482; c=relaxed/simple;
-	bh=xAERMgCujrfifEteuSUDjxAfd4XIhWAnKbg9DxQgEOc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=d5qTzd36n76bZVXX2uO84AvnSL+96Tp+nADrVjE53uutRvkwdYkkOpR5GXuslJZp86LIdg3nwHI8koMw84oS7VUmnP1i68EDCX4XCjGE5787e0WUYMP0LUcJmnjstEAKsKIMvbU9FkNkqMQ0zd6IqHz/av83Ht3qEeVpMTcg5ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=a2Giue5x; arc=none smtp.client-ip=94.231.106.210
+	s=arc-20240116; t=1709928661; c=relaxed/simple;
+	bh=neQwbdw1yLPYJXkxKc/FISqqenfam9MUiXWCEuGu2N4=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=pdBgQE299u2fpHLzLW0ukxmPrGlB3w5RV6ydTCo4sckwhZYVhj4CyAyu2IZeW7iB85ZH0UJpns89N9eJ2mmPbKFnDI0WMOfSHVKz6kVeRX7SNhcXz3C4dTqFLXEQGTZykDD+yswCN4NpU4puBch4nayym1G7hX1seIQZ0gOBHMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=TVpfsy5z; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="a2Giue5x"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="TVpfsy5z"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Trxzy4tCwz6832;
-	Fri,  8 Mar 2024 21:07:58 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4Try3P2cPGz684f;
+	Fri,  8 Mar 2024 21:10:57 +0100 (CET)
 Received: from [10.10.15.2] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Trxzm3bdGz684f;
-	Fri,  8 Mar 2024 21:07:47 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4Try3D2VQ1z6848;
+	Fri,  8 Mar 2024 21:10:47 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1709928478;
-	bh=He/UK3oqyjgGWmXjpK0wImcsBcgiNZLdqiQiyB3AFhU=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=a2Giue5xXMen8T06EOdnB+qokmVCZyIE15Bda/dK7fd9KtxVT8E5Km0saQ/YjnVDb
-	 NY/oKqS7V5xmmg/Jd6DPs5RbXMtkHTVK7usXg8sP5r/J078V5/aA9OxuaG1sSU8Rdj
-	 9BUPXsTr5egvIkOk+OwSD0q/7nXNevTJSj/Ykg6A=
-Message-ID: <248d38bd-c116-47fd-af57-3379d1770aee@gaisler.com>
-Date: Fri, 8 Mar 2024 21:07:47 +0100
+	s=unoeuro; t=1709928657;
+	bh=JRhGEq9uZ6Vp9hWu99RmsfqSEWaRtAnKR+DBLuclBzY=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To;
+	b=TVpfsy5zEBnpv30AH9HP26awuHv4AGrRu6DmqLOny1VSPr+CJp0RaMNQKRmFz5fqv
+	 QC1gEbUvG/Nkkk7tUlLhgmfC4YTaYgyEyrizAwrmSO3iv4LxL9k04Kpw6hcWc6KOdw
+	 Sbg9u/E+QSD9Eq/+eUAIFRmGEAwtfGYJ1NGWm6P4=
+Message-ID: <5805f289-9851-4b8b-9d12-ae0187b7859a@gaisler.com>
+Date: Fri, 8 Mar 2024 21:10:46 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,43 +40,45 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 7/7] sparc32: Fix section mismatch in leon_pci_grpci
+Subject: Re: [PATCH] lib/fonts: Allow Sparc console 8x16 font for sparc64
+ early boot text console
 Content-Language: en-US
-To: sam@ravnborg.org, "Maciej W. Rozycki" <macro@orcam.me.uk>,
- sparclinux@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>,
- linux-parport@lists.infradead.org, "David S. Miller" <davem@davemloft.net>,
- Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
-References: <20240224-sam-fix-sparc32-all-builds-v2-0-1f186603c5c4@ravnborg.org>
- <20240224-sam-fix-sparc32-all-builds-v2-7-1f186603c5c4@ravnborg.org>
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240224-sam-fix-sparc32-all-builds-v2-7-1f186603c5c4@ravnborg.org>
+To: sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+ "Dr. David Alan Gilbert" <linux@treblig.org>
+Cc: linux-kernel@vger.kernel.org, kernel test robot <lkp@intel.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Sam Ravnborg <sam@ravnborg.org>,
+ Randy Dunlap <rdunlap@infradead.org>
+References: <20240307180742.900068-1-andreas@gaisler.com>
+In-Reply-To: <20240307180742.900068-1-andreas@gaisler.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-02-24 18:42, Sam Ravnborg via B4 Relay wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> 
-> Passing a datastructre marked _initconst to platform_driver_register()
-> is wrong. Drop the __initconst notation.
-> 
-> This fixes the following warnings:
-> 
-> WARNING: modpost: vmlinux: section mismatch in reference: grpci1_of_driver+0x30 (section: .data) -> grpci1_of_match (section: .init.rodata)
-> WARNING: modpost: vmlinux: section mismatch in reference: grpci2_of_driver+0x30 (section: .data) -> grpci2_of_match (section: .init.rodata)
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> ---
->  arch/sparc/kernel/leon_pci_grpci1.c | 2 +-
->  arch/sparc/kernel/leon_pci_grpci2.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-Tested-by: Andreas Larsson <andreas@gaisler.com>
+
+On 2024-03-07 19:07, Andreas Larsson wrote:
+> Allow FONT_SUN8x16 when EARLYFB is enabled for sparc64, even when
+> FRAMEBUFFER_CONSOLE is not to avoid the following warning for this case
+> 
+>    WARNING: unmet direct dependencies detected for FONT_SUN8x16
+>      Depends on [n]: FONT_SUPPORT [=y] && (FRAMEBUFFER_CONSOLE [=n] && (FONTS [=n] || SPARC [=y]) || BOOTX_TEXT)
+>      Selected by [y]:
+>      - EARLYFB [=y] && SPARC64 [=y]
+> 
+> by allowing it in the same manner as is done for powerpc in commit
+> 0ebc7feae79a ("powerpc: Use shared font data").
+> 
+> Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+> Fixes: 0f1991949d9b ("sparc: Use shared font data")
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/202402241539.epQT43nI-lkp@intel.com/
+> Cc: "Dr. David Alan Gilbert" <linux@treblig.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Sam Ravnborg <sam@ravnborg.org>
+> Cc: Randy Dunlap <rdunlap@infradead.org>
+> Cc: "David S. Miller" <davem@davemloft.net>
 
 Picking this up to my for-next.
 
-Thanks,
+Cheers,
 Andreas
