@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92E35481A2;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE67481B1;
 	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710008149; cv=none; b=fxAGzvvw4f4xphSb2VTCZ9fs8GecTlS0CwrOooMp2XV1/ddJ2097W4RhQA7NpoFcO0kVLImKgy5PZxZ7FtxsFgHUaKlqkRXUG+FzLmUsQGbvdY1wWogNY4H2xTwJVksQ0bnsClhN/iUT/7wVkveDX3a++OoPwC+dglKIFzW0j6w=
+	t=1710008149; cv=none; b=K7oAFeWjaYokbtl2xOiCBoKzajBy86eBCUIm0z1D8sq4bcgiAJpAedArqgfqL9qKNnsX1D9oqF9VPdy1yohGLVoVWZi9Wiay1HKZrzJrCehwSj3/ARZzWWybNddMavlfvYXSVlosw3/7jJ2njIGRx4l4HKkP6+8zj2+gydmehBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1710008149; c=relaxed/simple;
-	bh=qDAwksNFFoUEU4ximpzZ+wMUYGrLivM5LBLJbhQrECg=;
+	bh=xwGHJdiU+5rpNpoMuivxmKWxjS8qrzD13Vu4JHbBJy4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ST2ovMRYL8Uud3X9+YlOnDI4HZOYQDfMb18+g1eDgixKfoqZT2wrqjXqxvanT3RvzZumqRNXTPbcuY+tdQT90aY228E8QN5Ev93nWbbNHmk3oosiOWTtysl7ssJrJZO1AdzD2fbDtKExUqlwSW7JW9MbDMa5vuDjbIbtfqkMkfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SIDvOjVI; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=A3FlzBUVhpyFbMvDPOt5Ammyo1kxorDAUzuh4GiW1m3sDodmDZ43q5zMJj4eNoGVWi3mAOd42XvPksLQTWhgCJaVor+uvrTxd6vj5rBYdnrq8QK2V6ugwXp6rqoqQkEAEMSlQ05ss2L02/WgLEmJx80a8X/9UMoJ+fBhe30GhvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ly0U2UnI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SIDvOjVI"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 7156DC32785;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ly0U2UnI"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 37B47C43394;
 	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1710008149;
-	bh=qDAwksNFFoUEU4ximpzZ+wMUYGrLivM5LBLJbhQrECg=;
+	bh=xwGHJdiU+5rpNpoMuivxmKWxjS8qrzD13Vu4JHbBJy4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=SIDvOjVIRmKJ2UVpWMg9PmzJJ+TW0VoyYK5mMMZQlyn01wgu/2w3Rx6s5rWVc2hq7
-	 eDYbbd3YtgH1KYMXGEUX6S5zf0GC6tSkFgzddp23dAHAwOml5nFNZJh9rrm0PNzB0n
-	 1ZJqh4kjlk5IHzmqhBvKvqpv+e2z5J9ZYLX/V4IhWDvx0THbMogCas5ISl0KMVNDN2
-	 PUyodVily30qf/qf1Z174o/TzSR6YCNFDR8NUCZtwbk85jNcQFO4sxrFF/Zb6nd7Sd
-	 9IwXBBLO4F8zcc7WEvsjXooJF9gHYH9khFdYJ3cKNnn0g087vVZjooSYL5B/aWVr66
-	 0SncQLs+IKOjA==
+	b=Ly0U2UnIqxPNU5ijGloqwygMmhVUYS6gjcaRaikjPKyRKfyWitUYi37Vo4XanHHib
+	 Ciu1pUuc4VlTHIfki9mt3snP5U7/lNjFL/4ZLeoWlKYy5Bj1PvFX+qxk5HQNigHcIs
+	 nx9LE+918sabzgvsDrpM8YSiuDJv17pM4BW/xWKOZ7Ze1p+Gblk5EvxZ92AQn4UEc+
+	 4euitDg9LD0bMwqo05/0CqIGOfWJmmENhUyhYWoPA2oXNomLA0u+/45zZt9PCh179S
+	 07ycuLPE5whFrtguLQHuxiQYQ7qu4Oknygbe1xN8FlKR3qyCUZIAb39YS8QosaxTLs
+	 4D7T0YSNZH/kg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EA30C54E60;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 234E5C54E60;
 	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 09 Mar 2024 19:15:35 +0100
-Subject: [PATCH v2 14/28] sparc32: Drop unused mmu models
+Date: Sat, 09 Mar 2024 19:15:32 +0100
+Subject: [PATCH v2 11/28] sparc32: Drop pcic support
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240309-sunset-v2-14-f09912574d2c@ravnborg.org>
+Message-Id: <20240309-sunset-v2-11-f09912574d2c@ravnborg.org>
 References: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
 In-Reply-To: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -57,11 +57,11 @@ Cc: Helge Deller <deller@gmx.de>, Randy Dunlap <rdunlap@infradead.org>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1710008145; l=89374;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1710008145; l=34306;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=Q/diIjsuCxLUlvInm+2NbBeJ9C5AGoEBSxIvzZ9TuUk=; =?utf-8?q?b=3DI80GdYKLgTiy?=
- =?utf-8?q?T0yhlpQqmvenB1jcK4DqBKxg+giMS8HKrsA52mwr9WSdylPts5Ghli89AKsdKmSJ?=
- RHXfoB8uCq1zeki/uMW81oEKejmu7C8wgnxKALIhZx3TpB5hj3YR
+ bh=DGZ2wxuXZ7nYM5BEE2klNGM387YzyWeERBacPj+W/yI=; =?utf-8?q?b=3D+pAmp6tuSlnL?=
+ =?utf-8?q?dvytdk4FDhH2HZWFXkhJp+1gGHtwI+sP9MgoWSi+tsjBRB/898IrsQoKBBGTkr8I?=
+ 0qAj/YNNBgovoYA2ocIhNxl7ellDNFjeZd1oVG29/lKPBgnUvwvC
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -70,9 +70,7 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Drop mmu models not used by LEON, including their header files.
-This includes removal of unused includes in various files to fix the
-build.
+pcic is only used by MicroSPARC-IIep and not relevant for LEON.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Arnd Bergmann <arnd@kernel.org>
@@ -80,3026 +78,1124 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/mxcc.h       | 138 -------
- arch/sparc/include/asm/ross.h       | 192 ---------
- arch/sparc/include/asm/swift.h      | 107 -----
- arch/sparc/include/asm/tsunami.h    |  65 ---
- arch/sparc/include/asm/turbosparc.h | 126 ------
- arch/sparc/include/asm/viking.h     | 255 ------------
- arch/sparc/kernel/entry.S           |   1 -
- arch/sparc/mm/Makefile              |   1 -
- arch/sparc/mm/hypersparc.S          | 414 -------------------
- arch/sparc/mm/io-unit.c             |   1 -
- arch/sparc/mm/iommu.c               |  31 +-
- arch/sparc/mm/mm_32.h               |   1 -
- arch/sparc/mm/srmmu.c               | 776 +-----------------------------------
- arch/sparc/mm/swift.S               | 256 ------------
- arch/sparc/mm/tsunami.S             | 132 ------
- arch/sparc/mm/viking.S              | 284 -------------
- 16 files changed, 21 insertions(+), 2759 deletions(-)
+ arch/sparc/Kconfig            |   5 -
+ arch/sparc/include/asm/pcic.h | 130 -------
+ arch/sparc/kernel/Makefile    |   1 -
+ arch/sparc/kernel/entry.S     |  48 ---
+ arch/sparc/kernel/irq_32.c    |   1 -
+ arch/sparc/kernel/kernel.h    |   4 -
+ arch/sparc/kernel/pcic.c      | 829 ------------------------------------------
+ arch/sparc/kernel/time_32.c   |   6 +-
+ 8 files changed, 1 insertion(+), 1023 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mxcc.h b/arch/sparc/include/asm/mxcc.h
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 23cdf1959991..19ee7bc0b2ea 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -410,11 +410,6 @@ config SUN_LDOMS
+ 	  Say Y here is you want to support virtual devices via
+ 	  Logical Domains.
+ 
+-config PCIC_PCI
+-	bool
+-	depends on PCI && SPARC32 && !SPARC_LEON
+-	default y
+-
+ config LEON_PCI
+ 	bool
+ 	depends on PCI && SPARC_LEON
+diff --git a/arch/sparc/include/asm/pcic.h b/arch/sparc/include/asm/pcic.h
 deleted file mode 100644
-index 3a2561bea4dd..000000000000
---- a/arch/sparc/include/asm/mxcc.h
+index 238376b1ffcc..000000000000
+--- a/arch/sparc/include/asm/pcic.h
 +++ /dev/null
-@@ -1,138 +0,0 @@
+@@ -1,130 +0,0 @@
 -/* SPDX-License-Identifier: GPL-2.0 */
 -/*
-- * mxcc.h:  Definitions of the Viking MXCC registers
+- * pcic.h: JavaEngine 1 specific PCI definitions.
 - *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+- * Copyright (C) 1998 V. Roganov and G. Raiko
 - */
 -
--#ifndef _SPARC_MXCC_H
--#define _SPARC_MXCC_H
--
--/* These registers are accessed through ASI 0x2. */
--#define MXCC_DATSTREAM       0x1C00000  /* Data stream register */
--#define MXCC_SRCSTREAM       0x1C00100  /* Source stream register */
--#define MXCC_DESSTREAM       0x1C00200  /* Destination stream register */
--#define MXCC_RMCOUNT         0x1C00300  /* Count of references and misses */
--#define MXCC_STEST           0x1C00804  /* Internal self-test */
--#define MXCC_CREG            0x1C00A04  /* Control register */
--#define MXCC_SREG            0x1C00B00  /* Status register */
--#define MXCC_RREG            0x1C00C04  /* Reset register */
--#define MXCC_EREG            0x1C00E00  /* Error code register */
--#define MXCC_PREG            0x1C00F04  /* Address port register */
--
--/* Some MXCC constants. */
--#define MXCC_STREAM_SIZE     0x20       /* Size in bytes of one stream r/w */
--
--/* The MXCC Control Register:
-- *
-- * ----------------------------------------------------------------------
-- * |                                   | RRC | RSV |PRE|MCE|PARE|ECE|RSV|
-- * ----------------------------------------------------------------------
-- *  31                              10    9    8-6   5   4    3   2  1-0
-- *
-- * RRC: Controls what you read from MXCC_RMCOUNT reg.
-- *      0=Misses 1=References
-- * PRE: Prefetch enable
-- * MCE: Multiple Command Enable
-- * PARE: Parity enable
-- * ECE: External cache enable
-- */
--
--#define MXCC_CTL_RRC   0x00000200
--#define MXCC_CTL_PRE   0x00000020
--#define MXCC_CTL_MCE   0x00000010
--#define MXCC_CTL_PARE  0x00000008
--#define MXCC_CTL_ECE   0x00000004
--
--/* The MXCC Error Register:
-- *
-- * --------------------------------------------------------
-- * |ME| RSV|CE|PEW|PEE|ASE|EIV| MOPC|ECODE|PRIV|RSV|HPADDR|
-- * --------------------------------------------------------
-- *  31   30 29  28  27  26  25 24-15  14-7   6  5-3   2-0
-- *
-- * ME: Multiple Errors have occurred
-- * CE: Cache consistency Error
-- * PEW: Parity Error during a Write operation
-- * PEE: Parity Error involving the External cache
-- * ASE: ASynchronous Error
-- * EIV: This register is toast
-- * MOPC: MXCC Operation Code for instance causing error
-- * ECODE: The Error CODE
-- * PRIV: A privileged mode error? 0=no 1=yes
-- * HPADDR: High PhysicalADDRess bits (35-32)
-- */
--
--#define MXCC_ERR_ME     0x80000000
--#define MXCC_ERR_CE     0x20000000
--#define MXCC_ERR_PEW    0x10000000
--#define MXCC_ERR_PEE    0x08000000
--#define MXCC_ERR_ASE    0x04000000
--#define MXCC_ERR_EIV    0x02000000
--#define MXCC_ERR_MOPC   0x01FF8000
--#define MXCC_ERR_ECODE  0x00007F80
--#define MXCC_ERR_PRIV   0x00000040
--#define MXCC_ERR_HPADDR 0x0000000f
--
--/* The MXCC Port register:
-- *
-- * -----------------------------------------------------
-- * |                | MID |                            |
-- * -----------------------------------------------------
-- *  31            21 20-18 17                         0
-- *
-- * MID: The moduleID of the cpu your read this from.
-- */
+-#ifndef __SPARC_PCIC_H
+-#define __SPARC_PCIC_H
 -
 -#ifndef __ASSEMBLY__
 -
--static inline void mxcc_set_stream_src(unsigned long *paddr)
--{
--	unsigned long data0 = paddr[0];
--	unsigned long data1 = paddr[1];
--
--	__asm__ __volatile__ ("or %%g0, %0, %%g2\n\t"
--			      "or %%g0, %1, %%g3\n\t"
--			      "stda %%g2, [%2] %3\n\t" : :
--			      "r" (data0), "r" (data1),
--			      "r" (MXCC_SRCSTREAM),
--			      "i" (ASI_M_MXCC) : "g2", "g3");
--}
--
--static inline void mxcc_set_stream_dst(unsigned long *paddr)
--{
--	unsigned long data0 = paddr[0];
--	unsigned long data1 = paddr[1];
--
--	__asm__ __volatile__ ("or %%g0, %0, %%g2\n\t"
--			      "or %%g0, %1, %%g3\n\t"
--			      "stda %%g2, [%2] %3\n\t" : :
--			      "r" (data0), "r" (data1),
--			      "r" (MXCC_DESSTREAM),
--			      "i" (ASI_M_MXCC) : "g2", "g3");
--}
--
--static inline unsigned long mxcc_get_creg(void)
--{
--	unsigned long mxcc_control;
--
--	__asm__ __volatile__("set 0xffffffff, %%g2\n\t"
--			     "set 0xffffffff, %%g3\n\t"
--			     "stda %%g2, [%1] %2\n\t"
--			     "lda [%3] %2, %0\n\t" :
--			     "=r" (mxcc_control) :
--			     "r" (MXCC_EREG), "i" (ASI_M_MXCC),
--			     "r" (MXCC_CREG) : "g2", "g3");
--	return mxcc_control;
--}
--
--static inline void mxcc_set_creg(unsigned long mxcc_control)
--{
--	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
--			     "r" (mxcc_control), "r" (MXCC_CREG),
--			     "i" (ASI_M_MXCC));
--}
--
--#endif /* !__ASSEMBLY__ */
--
--#endif /* !(_SPARC_MXCC_H) */
-diff --git a/arch/sparc/include/asm/ross.h b/arch/sparc/include/asm/ross.h
-deleted file mode 100644
-index 79a54d66a2c0..000000000000
---- a/arch/sparc/include/asm/ross.h
-+++ /dev/null
-@@ -1,192 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * ross.h: Ross module specific definitions and defines.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_ROSS_H
--#define _SPARC_ROSS_H
--
--#include <asm/asi.h>
--#include <asm/page.h>
--
--/* Ross made Hypersparcs have a %psr 'impl' field of '0001'.  The 'vers'
-- * field has '1111'.
-- */
--
--/* The MMU control register fields on the HyperSparc.
-- *
-- * -----------------------------------------------------------------
-- * |implvers| RSV |CWR|SE|WBE| MID |BM| C|CS|MR|CM|RSV|CE|RSV|NF|ME|
-- * -----------------------------------------------------------------
-- *  31    24 23-22 21  20  19 18-15 14 13 12 11 10  9   8 7-2  1  0
-- *
-- * Phew, lots of fields there ;-)
-- *
-- * CWR: Cache Wrapping Enabled, if one cache wrapping is on.
-- * SE: Snoop Enable, turns on bus snooping for cache activity if one.
-- * WBE: Write Buffer Enable, one turns it on.
-- * MID: The ModuleID of the chip for MBus transactions.
-- * BM: Boot-Mode. One indicates the MMU is in boot mode.
-- * C: Indicates whether accesses are cachable while the MMU is
-- *    disabled.
-- * CS: Cache Size -- 0 = 128k, 1 = 256k
-- * MR: Memory Reflection, one indicates that the memory bus connected
-- *     to the MBus supports memory reflection.
-- * CM: Cache Mode -- 0 = write-through, 1 = copy-back
-- * CE: Cache Enable -- 0 = no caching, 1 = cache is on
-- * NF: No Fault -- 0 = faults trap the CPU from supervisor mode
-- *                 1 = faults from supervisor mode do not generate traps
-- * ME: MMU Enable -- 0 = MMU is off, 1 = MMU is on
-- */
--
--#define HYPERSPARC_CWENABLE   0x00200000
--#define HYPERSPARC_SBENABLE   0x00100000
--#define HYPERSPARC_WBENABLE   0x00080000
--#define HYPERSPARC_MIDMASK    0x00078000
--#define HYPERSPARC_BMODE      0x00004000
--#define HYPERSPARC_ACENABLE   0x00002000
--#define HYPERSPARC_CSIZE      0x00001000
--#define HYPERSPARC_MRFLCT     0x00000800
--#define HYPERSPARC_CMODE      0x00000400
--#define HYPERSPARC_CENABLE    0x00000100
--#define HYPERSPARC_NFAULT     0x00000002
--#define HYPERSPARC_MENABLE    0x00000001
--
--
--/* The ICCR instruction cache register on the HyperSparc.
-- *
-- * -----------------------------------------------
-- * |                                 | FTD | ICE |
-- * -----------------------------------------------
-- *  31                                  1     0
-- *
-- * This register is accessed using the V8 'wrasr' and 'rdasr'
-- * opcodes, since not all assemblers understand them and those
-- * that do use different semantics I will just hard code the
-- * instruction with a '.word' statement.
-- *
-- * FTD:  If set to one flush instructions executed during an
-- *       instruction cache hit occurs, the corresponding line
-- *       for said cache-hit is invalidated.  If FTD is zero,
-- *       an unimplemented 'flush' trap will occur when any
-- *       flush is executed by the processor.
-- *
-- * ICE:  If set to one, the instruction cache is enabled.  If
-- *       zero, the cache will not be used for instruction fetches.
-- *
-- * All other bits are read as zeros, and writes to them have no
-- * effect.
-- *
-- * Wheee, not many assemblers understand the %iccr register nor
-- * the generic asr r/w instructions.
-- *
-- *  1000 0011 0100 0111 1100 0000 0000 0000   ! rd %iccr, %g1
-- *
-- * 0x  8    3    4    7    c    0    0    0   ! 0x8347c000
-- *
-- *  1011 1111 1000 0000 0110 0000 0000 0000   ! wr %g1, 0x0, %iccr
-- *
-- * 0x  b    f    8    0    6    0    0    0   ! 0xbf806000
-- *
-- */
--
--#define HYPERSPARC_ICCR_FTD     0x00000002
--#define HYPERSPARC_ICCR_ICE     0x00000001
--
--#ifndef __ASSEMBLY__
--
--static inline unsigned int get_ross_icr(void)
--{
--	unsigned int icreg;
--
--	__asm__ __volatile__(".word 0x8347c000\n\t" /* rd %iccr, %g1 */
--			     "mov %%g1, %0\n\t"
--			     : "=r" (icreg)
--			     : /* no inputs */
--			     : "g1", "memory");
--
--	return icreg;
--}
--
--static inline void put_ross_icr(unsigned int icreg)
--{
--	__asm__ __volatile__("or %%g0, %0, %%g1\n\t"
--			     ".word 0xbf806000\n\t" /* wr %g1, 0x0, %iccr */
--			     "nop\n\t"
--			     "nop\n\t"
--			     "nop\n\t"
--			     : /* no outputs */
--			     : "r" (icreg)
--			     : "g1", "memory");
--
--	return;
--}
--
--/* HyperSparc specific cache flushing. */
--
--/* This is for the on-chip instruction cache. */
--static inline void hyper_flush_whole_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_FLUSH_IWHOLE)
--			     : "memory");
--	return;
--}
--
--extern int vac_cache_size;
--extern int vac_line_size;
--
--static inline void hyper_clear_all_tags(void)
--{
--	unsigned long addr;
--
--	for(addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_DATAC_TAG)
--				     : "memory");
--}
--
--static inline void hyper_flush_unconditional_combined(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_FLUSH_CTX)
--				     : "memory");
--}
--
--static inline void hyper_flush_cache_user(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_FLUSH_USER)
--				     : "memory");
--}
--
--static inline void hyper_flush_cache_page(unsigned long page)
--{
--	unsigned long end;
--
--	page &= PAGE_MASK;
--	end = page + PAGE_SIZE;
--	while (page < end) {
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (page), "i" (ASI_M_FLUSH_PAGE)
--				     : "memory");
--		page += vac_line_size;
--	}
--}
--
--#endif /* !(__ASSEMBLY__) */
--
--#endif /* !(_SPARC_ROSS_H) */
-diff --git a/arch/sparc/include/asm/swift.h b/arch/sparc/include/asm/swift.h
-deleted file mode 100644
-index 96f6526b964e..000000000000
---- a/arch/sparc/include/asm/swift.h
-+++ /dev/null
-@@ -1,107 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* swift.h: Specific definitions for the _broken_ Swift SRMMU
-- *          MMU module.
-- *
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_SWIFT_H
--#define _SPARC_SWIFT_H
--
--/* Swift is so brain damaged, here is the mmu control register. */
--#define SWIFT_ST       0x00800000   /* SW tablewalk enable */
--#define SWIFT_WP       0x00400000   /* Watchpoint enable   */
--
--/* Branch folding (buggy, disable on production systems!)  */
--#define SWIFT_BF       0x00200000
--#define SWIFT_PMC      0x00180000   /* Page mode control   */
--#define SWIFT_PE       0x00040000   /* Parity enable       */
--#define SWIFT_PC       0x00020000   /* Parity control      */
--#define SWIFT_AP       0x00010000   /* Graphics page mode control (TCX/SX) */
--#define SWIFT_AC       0x00008000   /* Alternate Cacheability (see viking.h) */
--#define SWIFT_BM       0x00004000   /* Boot mode */
--#define SWIFT_RC       0x00003c00   /* DRAM refresh control */
--#define SWIFT_IE       0x00000200   /* Instruction cache enable */
--#define SWIFT_DE       0x00000100   /* Data cache enable */
--#define SWIFT_SA       0x00000080   /* Store Allocate */
--#define SWIFT_NF       0x00000002   /* No fault mode */
--#define SWIFT_EN       0x00000001   /* MMU enable */
--
--/* Bits [13:5] select one of 512 instruction cache tags */
--static inline void swift_inv_insn_tag(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_TXTC_TAG)
--			     : "memory");
--}
--
--/* Bits [12:4] select one of 512 data cache tags */
--static inline void swift_inv_data_tag(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_DATAC_TAG)
--			     : "memory");
--}
--
--static inline void swift_flush_dcache(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x2000; addr += 0x10)
--		swift_inv_data_tag(addr);
--}
--
--static inline void swift_flush_icache(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x4000; addr += 0x20)
--		swift_inv_insn_tag(addr);
--}
--
--static inline void swift_idflash_clear(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x2000; addr += 0x10) {
--		swift_inv_insn_tag(addr<<1);
--		swift_inv_data_tag(addr);
--	}
--}
--
--/* Swift is so broken, it isn't even safe to use the following. */
--static inline void swift_flush_page(unsigned long page)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (page), "i" (ASI_M_FLUSH_PAGE)
--			     : "memory");
--}
--
--static inline void swift_flush_segment(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_FLUSH_SEG)
--			     : "memory");
--}
--
--static inline void swift_flush_region(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_FLUSH_REGION)
--			     : "memory");
--}
--
--static inline void swift_flush_context(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_FLUSH_CTX)
--			     : "memory");
--}
--
--#endif /* !(_SPARC_SWIFT_H) */
-diff --git a/arch/sparc/include/asm/tsunami.h b/arch/sparc/include/asm/tsunami.h
-deleted file mode 100644
-index acaf014eff46..000000000000
---- a/arch/sparc/include/asm/tsunami.h
-+++ /dev/null
-@@ -1,65 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * tsunami.h:  Module specific definitions for Tsunami V8 Sparcs
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_TSUNAMI_H
--#define _SPARC_TSUNAMI_H
--
--#include <asm/asi.h>
--
--/* The MMU control register on the Tsunami:
-- *
-- * -----------------------------------------------------------------------
-- * | implvers |SW|AV|DV|MV| RSV |PC|ITD|ALC| RSV |PE| RC |IE|DE|RSV|NF|ME|
-- * -----------------------------------------------------------------------
-- *  31      24 23 22 21 20 19-18 17  16 14  13-12 11 10-9  8  7 6-2  1  0
-- *
-- * SW: Enable Software Table Walks  0=off 1=on
-- * AV: Address View bit
-- * DV: Data View bit
-- * MV: Memory View bit
-- * PC: Parity Control
-- * ITD: ITBR disable
-- * ALC: Alternate Cacheable
-- * PE: Parity Enable   0=off 1=on
-- * RC: Refresh Control
-- * IE: Instruction cache Enable  0=off 1=on
-- * DE: Data cache Enable  0=off 1=on
-- * NF: No Fault, same as all other SRMMUs
-- * ME: MMU Enable, same as all other SRMMUs
-- */
--
--#define TSUNAMI_SW        0x00800000
--#define TSUNAMI_AV        0x00400000
--#define TSUNAMI_DV        0x00200000
--#define TSUNAMI_MV        0x00100000
--#define TSUNAMI_PC        0x00020000
--#define TSUNAMI_ITD       0x00010000
--#define TSUNAMI_ALC       0x00008000
--#define TSUNAMI_PE        0x00001000
--#define TSUNAMI_RCMASK    0x00000C00
--#define TSUNAMI_IENAB     0x00000200
--#define TSUNAMI_DENAB     0x00000100
--#define TSUNAMI_NF        0x00000002
--#define TSUNAMI_ME        0x00000001
--
--static inline void tsunami_flush_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void tsunami_flush_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--#endif /* !(_SPARC_TSUNAMI_H) */
-diff --git a/arch/sparc/include/asm/turbosparc.h b/arch/sparc/include/asm/turbosparc.h
-deleted file mode 100644
-index 23df777f9cea..000000000000
---- a/arch/sparc/include/asm/turbosparc.h
-+++ /dev/null
-@@ -1,126 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * turbosparc.h:  Defines specific to the TurboSparc module.
-- *            This is SRMMU stuff.
-- *
-- * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-- */
--#ifndef _SPARC_TURBOSPARC_H
--#define _SPARC_TURBOSPARC_H
--
--#include <asm/asi.h>
--#include <asm/pgtsrmmu.h>
--
--/* Bits in the SRMMU control register for TurboSparc modules.
-- *
-- * -------------------------------------------------------------------
-- * |impl-vers| RSV| PMC |PE|PC| RSV |BM| RFR |IC|DC|PSO|RSV|ICS|NF|ME|
-- * -------------------------------------------------------------------
-- *  31    24 23-21 20-19 18 17 16-15 14 13-10  9  8  7  6-3   2  1  0
-- *
-- * BM: Boot Mode -- 0 = not in boot mode, 1 = in boot mode
-- *
-- * This indicates whether the TurboSparc is in boot-mode or not.
-- *
-- * IC: Instruction Cache -- 0 = off, 1 = on
-- * DC: Data Cache -- 0 = off, 1 = 0n
-- *
-- * These bits enable the on-cpu TurboSparc split I/D caches.
-- *
-- * ICS: ICache Snooping -- 0 = disable, 1 = enable snooping of icache
-- * NF: No Fault -- 0 = faults generate traps, 1 = faults don't trap
-- * ME: MMU enable -- 0 = mmu not translating, 1 = mmu translating
-- *
-- */
--
--#define TURBOSPARC_MMUENABLE    0x00000001
--#define TURBOSPARC_NOFAULT      0x00000002
--#define TURBOSPARC_ICSNOOP	0x00000004
--#define TURBOSPARC_PSO          0x00000080
--#define TURBOSPARC_DCENABLE     0x00000100   /* Enable data cache */
--#define TURBOSPARC_ICENABLE     0x00000200   /* Enable instruction cache */
--#define TURBOSPARC_BMODE        0x00004000   
--#define TURBOSPARC_PARITYODD	0x00020000   /* Parity odd, if enabled */
--#define TURBOSPARC_PCENABLE	0x00040000   /* Enable parity checking */
--
--/* Bits in the CPU configuration register for TurboSparc modules.
-- *
-- * -------------------------------------------------------
-- * |IOClk|SNP|AXClk| RAH |  WS |  RSV  |SBC|WT|uS2|SE|SCC|
-- * -------------------------------------------------------
-- *    31   30 29-28 27-26 25-23   22-8  7-6  5  4   3 2-0
-- *
-- */
--
--#define TURBOSPARC_SCENABLE 0x00000008	 /* Secondary cache enable */
--#define TURBOSPARC_uS2	    0x00000010   /* Swift compatibility mode */
--#define TURBOSPARC_WTENABLE 0x00000020	 /* Write thru for dcache */
--#define TURBOSPARC_SNENABLE 0x40000000	 /* DVMA snoop enable */
--
--#ifndef __ASSEMBLY__
--
--/* Bits [13:5] select one of 512 instruction cache tags */
--static inline void turbosparc_inv_insn_tag(unsigned long addr)
--{
--        __asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_TXTC_TAG)
--			     : "memory");
--}
--
--/* Bits [13:5] select one of 512 data cache tags */
--static inline void turbosparc_inv_data_tag(unsigned long addr)
--{
--        __asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_DATAC_TAG)
--			     : "memory");
--}
--
--static inline void turbosparc_flush_icache(void)
--{
--	unsigned long addr;
--
--        for (addr = 0; addr < 0x4000; addr += 0x20)
--                turbosparc_inv_insn_tag(addr);
--}
--
--static inline void turbosparc_flush_dcache(void)
--{
--	unsigned long addr;
--
--        for (addr = 0; addr < 0x4000; addr += 0x20)
--                turbosparc_inv_data_tag(addr);
--}
--
--static inline void turbosparc_idflash_clear(void)
--{
--	unsigned long addr;
--
--        for (addr = 0; addr < 0x4000; addr += 0x20) {
--                turbosparc_inv_insn_tag(addr);
--                turbosparc_inv_data_tag(addr);
--	}
--}
--
--static inline void turbosparc_set_ccreg(unsigned long regval)
--{
--	__asm__ __volatile__("sta %0, [%1] %2\n\t"
--			     : /* no outputs */
--			     : "r" (regval), "r" (0x600), "i" (ASI_M_MMUREGS)
--			     : "memory");
--}
--
--static inline unsigned long turbosparc_get_ccreg(void)
--{
--	unsigned long regval;
--
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (regval)
--			     : "r" (0x600), "i" (ASI_M_MMUREGS));
--	return regval;
--}
--
--#endif /* !__ASSEMBLY__ */
--
--#endif /* !(_SPARC_TURBOSPARC_H) */
-diff --git a/arch/sparc/include/asm/viking.h b/arch/sparc/include/asm/viking.h
-deleted file mode 100644
-index 08ffc605035f..000000000000
---- a/arch/sparc/include/asm/viking.h
-+++ /dev/null
-@@ -1,255 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * viking.h:  Defines specific to the GNU/Viking MBUS module.
-- *            This is SRMMU stuff.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--#ifndef _SPARC_VIKING_H
--#define _SPARC_VIKING_H
--
--#include <asm/asi.h>
--#include <asm/mxcc.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--
--/* Bits in the SRMMU control register for GNU/Viking modules.
-- *
-- * -----------------------------------------------------------
-- * |impl-vers| RSV |TC|AC|SP|BM|PC|MBM|SB|IC|DC|PSO|RSV|NF|ME|
-- * -----------------------------------------------------------
-- *  31     24 23-17 16 15 14 13 12 11  10  9  8  7  6-2  1  0
-- *
-- * TC: Tablewalk Cacheable -- 0 = Twalks are not cacheable in E-cache
-- *                            1 = Twalks are cacheable in E-cache
-- *
-- * GNU/Viking will only cache tablewalks in the E-cache (mxcc) if present
-- * and never caches them internally (or so states the docs).  Therefore
-- * for machines lacking an E-cache (ie. in MBUS mode) this bit must
-- * remain cleared.
-- *
-- * AC: Alternate Cacheable -- 0 = Passthru physical accesses not cacheable
-- *                            1 = Passthru physical accesses cacheable
-- *
-- * This indicates whether accesses are cacheable when no cachable bit
-- * is present in the pte when the processor is in boot-mode or the
-- * access does not need pte's for translation (ie. pass-thru ASI's).
-- * "Cachable" is only referring to E-cache (if present) and not the
-- * on chip split I/D caches of the GNU/Viking.
-- *
-- * SP: SnooP Enable -- 0 = bus snooping off, 1 = bus snooping on
-- *
-- * This enables snooping on the GNU/Viking bus.  This must be on
-- * for the hardware cache consistency mechanisms of the GNU/Viking
-- * to work at all.  On non-mxcc GNU/Viking modules the split I/D
-- * caches will snoop regardless of whether they are enabled, this
-- * takes care of the case where the I or D or both caches are turned
-- * off yet still contain valid data.  Note also that this bit does
-- * not affect GNU/Viking store-buffer snoops, those happen if the
-- * store-buffer is enabled no matter what.
-- *
-- * BM: Boot Mode -- 0 = not in boot mode, 1 = in boot mode
-- *
-- * This indicates whether the GNU/Viking is in boot-mode or not,
-- * if it is then all instruction fetch physical addresses are
-- * computed as 0xff0000000 + low 28 bits of requested address.
-- * GNU/Viking boot-mode does not affect data accesses.  Also,
-- * in boot mode instruction accesses bypass the split on chip I/D
-- * caches, they may be cached by the GNU/MXCC if present and enabled.
-- *
-- * MBM: MBus Mode -- 0 = not in MBus mode, 1 = in MBus mode
-- *
-- * This indicated the GNU/Viking configuration present.  If in
-- * MBUS mode, the GNU/Viking lacks a GNU/MXCC E-cache.  If it is
-- * not then the GNU/Viking is on a module VBUS connected directly
-- * to a GNU/MXCC cache controller.  The GNU/MXCC can be thus connected
-- * to either an GNU/MBUS (sun4m) or the packet-switched GNU/XBus (sun4d).
-- *
-- * SB: StoreBuffer enable -- 0 = store buffer off, 1 = store buffer on
-- *
-- * The GNU/Viking store buffer allows the chip to continue execution
-- * after a store even if the data cannot be placed in one of the
-- * caches during that cycle.  If disabled, all stores operations
-- * occur synchronously.
-- *
-- * IC: Instruction Cache -- 0 = off, 1 = on
-- * DC: Data Cache -- 0 = off, 1 = 0n
-- *
-- * These bits enable the on-cpu GNU/Viking split I/D caches.  Note,
-- * as mentioned above, these caches will snoop the bus in GNU/MBUS
-- * configurations even when disabled to avoid data corruption.
-- *
-- * NF: No Fault -- 0 = faults generate traps, 1 = faults don't trap
-- * ME: MMU enable -- 0 = mmu not translating, 1 = mmu translating
-- *
-- */
--
--#define VIKING_MMUENABLE    0x00000001
--#define VIKING_NOFAULT      0x00000002
--#define VIKING_PSO          0x00000080
--#define VIKING_DCENABLE     0x00000100   /* Enable data cache */
--#define VIKING_ICENABLE     0x00000200   /* Enable instruction cache */
--#define VIKING_SBENABLE     0x00000400   /* Enable store buffer */
--#define VIKING_MMODE        0x00000800   /* MBUS mode */
--#define VIKING_PCENABLE     0x00001000   /* Enable parity checking */
--#define VIKING_BMODE        0x00002000   
--#define VIKING_SPENABLE     0x00004000   /* Enable bus cache snooping */
--#define VIKING_ACENABLE     0x00008000   /* Enable alternate caching */
--#define VIKING_TCENABLE     0x00010000   /* Enable table-walks to be cached */
--#define VIKING_DPENABLE     0x00040000   /* Enable the data prefetcher */
--
--/*
-- * GNU/Viking Breakpoint Action Register fields.
-- */
--#define VIKING_ACTION_MIX   0x00001000   /* Enable multiple instructions */
--
--/*
-- * GNU/Viking Cache Tags.
-- */
--#define VIKING_PTAG_VALID   0x01000000   /* Cache block is valid */
--#define VIKING_PTAG_DIRTY   0x00010000   /* Block has been modified */
--#define VIKING_PTAG_SHARED  0x00000100   /* Shared with some other cache */
--
--#ifndef __ASSEMBLY__
--
--static inline void viking_flush_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_flush_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_unlock_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (0x80000000), "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_unlock_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (0x80000000), "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_set_bpreg(unsigned long regval)
--{
--	__asm__ __volatile__("sta %0, [%%g0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (regval), "i" (ASI_M_ACTION)
--			     : "memory");
--}
--
--static inline unsigned long viking_get_bpreg(void)
--{
--	unsigned long regval;
--
--	__asm__ __volatile__("lda [%%g0] %1, %0\n\t"
--			     : "=r" (regval)
--			     : "i" (ASI_M_ACTION));
--	return regval;
--}
--
--static inline void viking_get_dcache_ptag(int set, int block,
--					      unsigned long *data)
--{
--	unsigned long ptag = ((set & 0x7f) << 5) | ((block & 0x3) << 26) |
--			     0x80000000;
--	unsigned long info, page;
--
--	__asm__ __volatile__ ("ldda [%2] %3, %%g2\n\t"
--			      "or %%g0, %%g2, %0\n\t"
--			      "or %%g0, %%g3, %1\n\t"
--			      : "=r" (info), "=r" (page)
--			      : "r" (ptag), "i" (ASI_M_DATAC_TAG)
--			      : "g2", "g3");
--	data[0] = info;
--	data[1] = page;
--}
--
--static inline void viking_mxcc_turn_off_parity(unsigned long *mregp,
--						   unsigned long *mxcc_cregp)
--{
--	unsigned long mreg = *mregp;
--	unsigned long mxcc_creg = *mxcc_cregp;
--
--	mreg &= ~(VIKING_PCENABLE);
--	mxcc_creg &= ~(MXCC_CTL_PARE);
--
--	__asm__ __volatile__ ("set 1f, %%g2\n\t"
--			      "andcc %%g2, 4, %%g0\n\t"
--			      "bne 2f\n\t"
--			      " nop\n"
--			      "1:\n\t"
--			      "sta %0, [%%g0] %3\n\t"
--			      "sta %1, [%2] %4\n\t"
--			      "b 1f\n\t"
--			      " nop\n\t"
--			      "nop\n"
--			      "2:\n\t"
--			      "sta %0, [%%g0] %3\n\t"
--			      "sta %1, [%2] %4\n"
--			      "1:\n\t"
--			      : /* no output */
--			      : "r" (mreg), "r" (mxcc_creg),
--			        "r" (MXCC_CREG), "i" (ASI_M_MMUREGS),
--			        "i" (ASI_M_MXCC)
--			      : "g2", "memory", "cc");
--	*mregp = mreg;
--	*mxcc_cregp = mxcc_creg;
--}
--
--static inline unsigned long viking_hwprobe(unsigned long vaddr)
--{
--	unsigned long val;
--
--	vaddr &= PAGE_MASK;
--	/* Probe all MMU entries. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
--	if (!val)
--		return 0;
--
--	/* Probe region. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x200), "i" (ASI_M_FLUSH_PROBE));
--	if ((val & SRMMU_ET_MASK) == SRMMU_ET_PTE) {
--		vaddr &= ~PGDIR_MASK;
--		vaddr >>= PAGE_SHIFT;
--		return val | (vaddr << 8);
--	}
--
--	/* Probe segment. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x100), "i" (ASI_M_FLUSH_PROBE));
--	if ((val & SRMMU_ET_MASK) == SRMMU_ET_PTE) {
--		vaddr &= ~PMD_MASK;
--		vaddr >>= PAGE_SHIFT;
--		return val | (vaddr << 8);
--	}
--
--	/* Probe page. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr), "i" (ASI_M_FLUSH_PROBE));
--	return val;
--}
--
--#endif /* !__ASSEMBLY__ */
--
--#endif /* !(_SPARC_VIKING_H) */
+-#include <linux/types.h>
+-#include <linux/smp.h>
+-#include <linux/pci.h>
+-#include <linux/ioport.h>
+-#include <asm/pbm.h>
+-
+-struct linux_pcic {
+-        void __iomem            *pcic_regs;
+-        unsigned long           pcic_io;
+-        void __iomem            *pcic_config_space_addr;
+-        void __iomem            *pcic_config_space_data;
+-	struct resource		pcic_res_regs;
+-	struct resource		pcic_res_io;
+-	struct resource		pcic_res_cfg_addr;
+-	struct resource		pcic_res_cfg_data;
+-        struct linux_pbm_info   pbm;
+-	struct pcic_ca2irq	*pcic_imap;
+-	int			pcic_imdim;
+-};
+-
+-#ifdef CONFIG_PCIC_PCI
+-int pcic_present(void);
+-int pcic_probe(void);
+-void pci_time_init(void);
+-void sun4m_pci_init_IRQ(void);
+-#else
+-static inline int pcic_present(void) { return 0; }
+-static inline int pcic_probe(void) { return 0; }
+-static inline void pci_time_init(void) {}
+-static inline void sun4m_pci_init_IRQ(void) {}
+-#endif
+-#endif
+-
+-/* Size of PCI I/O space which we relocate. */
+-#define PCI_SPACE_SIZE                  0x1000000       /* 16 MB */
+-
+-/* PCIC Register Set. */
+-#define PCI_DIAGNOSTIC_0                0x40    /* 32 bits */
+-#define PCI_SIZE_0                      0x44    /* 32 bits */
+-#define PCI_SIZE_1                      0x48    /* 32 bits */
+-#define PCI_SIZE_2                      0x4c    /* 32 bits */
+-#define PCI_SIZE_3                      0x50    /* 32 bits */
+-#define PCI_SIZE_4                      0x54    /* 32 bits */
+-#define PCI_SIZE_5                      0x58    /* 32 bits */
+-#define PCI_PIO_CONTROL                 0x60    /* 8  bits */
+-#define PCI_DVMA_CONTROL                0x62    /* 8  bits */
+-#define  PCI_DVMA_CONTROL_INACTIVITY_REQ        (1<<0)
+-#define  PCI_DVMA_CONTROL_IOTLB_ENABLE          (1<<0)
+-#define  PCI_DVMA_CONTROL_IOTLB_DISABLE         0
+-#define  PCI_DVMA_CONTROL_INACTIVITY_ACK        (1<<4)
+-#define PCI_INTERRUPT_CONTROL           0x63    /* 8  bits */
+-#define PCI_CPU_INTERRUPT_PENDING       0x64    /* 32 bits */
+-#define PCI_DIAGNOSTIC_1                0x68    /* 16 bits */
+-#define PCI_SOFTWARE_INT_CLEAR          0x6a    /* 16 bits */
+-#define PCI_SOFTWARE_INT_SET            0x6e    /* 16 bits */
+-#define PCI_SYS_INT_PENDING             0x70    /* 32 bits */
+-#define  PCI_SYS_INT_PENDING_PIO		0x40000000
+-#define  PCI_SYS_INT_PENDING_DMA		0x20000000
+-#define  PCI_SYS_INT_PENDING_PCI		0x10000000
+-#define  PCI_SYS_INT_PENDING_APSR		0x08000000
+-#define PCI_SYS_INT_TARGET_MASK         0x74    /* 32 bits */
+-#define PCI_SYS_INT_TARGET_MASK_CLEAR   0x78    /* 32 bits */
+-#define PCI_SYS_INT_TARGET_MASK_SET     0x7c    /* 32 bits */
+-#define PCI_SYS_INT_PENDING_CLEAR       0x83    /* 8  bits */
+-#define  PCI_SYS_INT_PENDING_CLEAR_ALL		0x80
+-#define  PCI_SYS_INT_PENDING_CLEAR_PIO		0x40
+-#define  PCI_SYS_INT_PENDING_CLEAR_DMA		0x20
+-#define  PCI_SYS_INT_PENDING_CLEAR_PCI		0x10
+-#define PCI_IOTLB_CONTROL               0x84    /* 8  bits */
+-#define PCI_INT_SELECT_LO               0x88    /* 16 bits */
+-#define PCI_ARBITRATION_SELECT          0x8a    /* 16 bits */
+-#define PCI_INT_SELECT_HI               0x8c    /* 16 bits */
+-#define PCI_HW_INT_OUTPUT               0x8e    /* 16 bits */
+-#define PCI_IOTLB_RAM_INPUT             0x90    /* 32 bits */
+-#define PCI_IOTLB_CAM_INPUT             0x94    /* 32 bits */
+-#define PCI_IOTLB_RAM_OUTPUT            0x98    /* 32 bits */
+-#define PCI_IOTLB_CAM_OUTPUT            0x9c    /* 32 bits */
+-#define PCI_SMBAR0                      0xa0    /* 8  bits */
+-#define PCI_MSIZE0                      0xa1    /* 8  bits */
+-#define PCI_PMBAR0                      0xa2    /* 8  bits */
+-#define PCI_SMBAR1                      0xa4    /* 8  bits */
+-#define PCI_MSIZE1                      0xa5    /* 8  bits */
+-#define PCI_PMBAR1                      0xa6    /* 8  bits */
+-#define PCI_SIBAR                       0xa8    /* 8  bits */
+-#define   PCI_SIBAR_ADDRESS_MASK        0xf
+-#define PCI_ISIZE                       0xa9    /* 8  bits */
+-#define   PCI_ISIZE_16M                 0xf
+-#define   PCI_ISIZE_32M                 0xe
+-#define   PCI_ISIZE_64M                 0xc
+-#define   PCI_ISIZE_128M                0x8
+-#define   PCI_ISIZE_256M                0x0
+-#define PCI_PIBAR                       0xaa    /* 8  bits */
+-#define PCI_CPU_COUNTER_LIMIT_HI        0xac    /* 32 bits */
+-#define PCI_CPU_COUNTER_LIMIT_LO        0xb0    /* 32 bits */
+-#define PCI_CPU_COUNTER_LIMIT           0xb4    /* 32 bits */
+-#define PCI_SYS_LIMIT                   0xb8    /* 32 bits */
+-#define PCI_SYS_COUNTER                 0xbc    /* 32 bits */
+-#define   PCI_SYS_COUNTER_OVERFLOW      (1<<31) /* Limit reached */
+-#define PCI_SYS_LIMIT_PSEUDO            0xc0    /* 32 bits */
+-#define PCI_USER_TIMER_CONTROL          0xc4    /* 8  bits */
+-#define PCI_USER_TIMER_CONFIG           0xc5    /* 8  bits */
+-#define PCI_COUNTER_IRQ                 0xc6    /* 8  bits */
+-#define  PCI_COUNTER_IRQ_SET(sys_irq, cpu_irq)  ((((sys_irq) & 0xf) << 4) | \
+-                                                  ((cpu_irq) & 0xf))
+-#define  PCI_COUNTER_IRQ_SYS(v)                 (((v) >> 4) & 0xf)
+-#define  PCI_COUNTER_IRQ_CPU(v)                 ((v) & 0xf)
+-#define PCI_PIO_ERROR_COMMAND           0xc7    /* 8  bits */
+-#define PCI_PIO_ERROR_ADDRESS           0xc8    /* 32 bits */
+-#define PCI_IOTLB_ERROR_ADDRESS         0xcc    /* 32 bits */
+-#define PCI_SYS_STATUS                  0xd0    /* 8  bits */
+-#define   PCI_SYS_STATUS_RESET_ENABLE           (1<<0)
+-#define   PCI_SYS_STATUS_RESET                  (1<<1)
+-#define   PCI_SYS_STATUS_WATCHDOG_RESET         (1<<4)
+-#define   PCI_SYS_STATUS_PCI_RESET              (1<<5)
+-#define   PCI_SYS_STATUS_PCI_RESET_ENABLE       (1<<6)
+-#define   PCI_SYS_STATUS_PCI_SATTELITE_MODE     (1<<7)
+-
+-#endif /* !(__SPARC_PCIC_H) */
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index bd31bdd0b13e..50d696c8a9d2 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -73,7 +73,6 @@ obj-$(CONFIG_SPARC64)	+= pcr.o
+ obj-$(CONFIG_SPARC64)	+= nmi.o
+ obj-$(CONFIG_SPARC64_SMP) += cpumap.o
+ 
+-obj-$(CONFIG_PCIC_PCI)    += pcic.o
+ obj-$(CONFIG_LEON_PCI)    += leon_pci.o
+ obj-$(CONFIG_SPARC_GRPCI2)+= leon_pci_grpci2.o
+ obj-$(CONFIG_SPARC_GRPCI1)+= leon_pci_grpci1.o
 diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 13011969e7eb..0f2417ee3f95 100644
+index 9bd3813b872d..13011969e7eb 100644
 --- a/arch/sparc/kernel/entry.S
 +++ b/arch/sparc/kernel/entry.S
-@@ -25,7 +25,6 @@
- #include <asm/winmacro.h>
- #include <asm/signal.h>
- #include <asm/obio.h>
--#include <asm/mxcc.h>
- #include <asm/thread_info.h>
- #include <asm/param.h>
- #include <asm/unistd.h>
-diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
-index 809d993f6d88..7b3ff6dd382e 100644
---- a/arch/sparc/mm/Makefile
-+++ b/arch/sparc/mm/Makefile
-@@ -9,7 +9,6 @@ obj-y                   += fault_$(BITS).o
- obj-y                   += init_$(BITS).o
- obj-$(CONFIG_SPARC32)   += srmmu.o iommu.o io-unit.o
- obj-$(CONFIG_SPARC32)   += srmmu_access.o
--obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
- obj-$(CONFIG_SPARC32)   += leon_mm.o
+@@ -965,54 +965,6 @@ restore_current:
+ 	retl
+ 	 nop
  
- # Only used by sparc64
-diff --git a/arch/sparc/mm/hypersparc.S b/arch/sparc/mm/hypersparc.S
-deleted file mode 100644
-index 6c2521e85a42..000000000000
---- a/arch/sparc/mm/hypersparc.S
-+++ /dev/null
-@@ -1,414 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * hypersparc.S: High speed Hypersparc mmu/cache operations.
-- *
-- * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)
-- */
+-#ifdef CONFIG_PCIC_PCI
+-#include <asm/pcic.h>
 -
--#include <asm/ptrace.h>
--#include <asm/psr.h>
--#include <asm/asm-offsets.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--#include <linux/init.h>
--
--	.text
 -	.align	4
+-	.globl	linux_trap_ipi15_pcic
+-linux_trap_ipi15_pcic:
+-	rd	%wim, %l3
+-	SAVE_ALL
 -
--	.globl	hypersparc_flush_cache_all, hypersparc_flush_cache_mm
--	.globl	hypersparc_flush_cache_range, hypersparc_flush_cache_page
--	.globl	hypersparc_flush_page_to_ram
--	.globl	hypersparc_flush_page_for_dma, hypersparc_flush_sig_insns
--	.globl	hypersparc_flush_tlb_all, hypersparc_flush_tlb_mm
--	.globl	hypersparc_flush_tlb_range, hypersparc_flush_tlb_page
--
--hypersparc_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--	sethi	%hi(vac_cache_size), %g4
--	ld	[%g4 + %lo(vac_cache_size)], %g5
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %g2
--1:	
--	subcc	%g5, %g2, %g5			! hyper_flush_unconditional_combined
--	bne	1b
--	 sta	%g0, [%g5] ASI_M_FLUSH_CTX
--	retl
--	 sta	%g0, [%g0] ASI_M_FLUSH_IWHOLE	! hyper_flush_whole_icache
--
--	/* We expand the window flush to get maximum performance. */
--hypersparc_flush_cache_mm:
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	be	hypersparc_flush_cache_mm_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
--
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o1
--	sethi	%hi(vac_cache_size), %g2
--	ld	[%g2 + %lo(vac_cache_size)], %o0
--	add	%o1, %o1, %g1
--	add	%o1, %g1, %g2
--	add	%o1, %g2, %g3
--	add	%o1, %g3, %g4
--	add	%o1, %g4, %g5
--	add	%o1, %g5, %o4
--	add	%o1, %o4, %o5
--
--	/* BLAMMO! */
--1:
--	subcc	%o0, %o5, %o0				! hyper_flush_cache_user
--	sta	%g0, [%o0 + %g0] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %o1] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g1] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g4] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g5] ASI_M_FLUSH_USER
--	bne	1b
--	 sta	%g0, [%o0 + %o4] ASI_M_FLUSH_USER
--hypersparc_flush_cache_mm_out:
--	retl
--	 nop
--
--	/* The things we do for performance... */
--hypersparc_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	be	hypersparc_flush_cache_range_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
--
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	sethi	%hi(vac_cache_size), %g2
--	ld	[%g2 + %lo(vac_cache_size)], %o3
--
--	/* Here comes the fun part... */
--	add	%o2, (PAGE_SIZE - 1), %o2
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	add	%o4, %o4, %o5
--	andn	%o2, (PAGE_SIZE - 1), %o2
--	add	%o4, %o5, %g1
--	sub	%o2, %o1, %g4
--	add	%o4, %g1, %g2
--	sll	%o3, 2, %g5
--	add	%o4, %g2, %g3
--	cmp	%g4, %g5
--	add	%o4, %g3, %g4
--	blu	0f
--	 add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
--
--	/* Flush entire user space, believe it or not this is quicker
--	 * than page at a time flushings for range > (cache_size<<2).
+-	/*
+-	 * First deactivate NMI
+-	 * or we cannot drop ET, cannot get window spill traps.
+-	 * The busy loop is necessary because the PIO error
+-	 * sometimes does not go away quickly and we trap again.
 -	 */
+-	sethi	%hi(pcic_regs), %o1
+-	ld	[%o1 + %lo(pcic_regs)], %o2
+-
+-	! Get pending status for printouts later.
+-	ld	[%o2 + PCI_SYS_INT_PENDING], %o0
+-
+-	mov	PCI_SYS_INT_PENDING_CLEAR_ALL, %o1
+-	stb	%o1, [%o2 + PCI_SYS_INT_PENDING_CLEAR]
 -1:
--	subcc	%o3, %g7, %o3
--	sta	%g0, [%o3 + %g0] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %o4] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %o5] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g1] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g2] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g3] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g4] ASI_M_FLUSH_USER
+-	ld	[%o2 + PCI_SYS_INT_PENDING], %o1
+-	andcc	%o1, ((PCI_SYS_INT_PENDING_PIO|PCI_SYS_INT_PENDING_PCI)>>24), %g0
 -	bne	1b
--	 sta	%g0, [%o3 + %g5] ASI_M_FLUSH_USER
--	retl
 -	 nop
 -
--	/* Below our threshold, flush one page at a time. */
--0:
--	ld	[%o0 + AOFF_mm_context], %o0
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %o3
--	sta	%o0, [%g7] ASI_M_MMUREGS
--	add	%o2, -PAGE_SIZE, %o0
--1:
--	or	%o0, 0x400, %g7
--	lda	[%g7] ASI_M_FLUSH_PROBE, %g7
--	orcc	%g7, 0, %g0
--	be,a	3f
--	 mov	%o0, %o2
--	add	%o4, %g5, %g7
--2:
--	sub	%o2, %g7, %o2
--	sta	%g0, [%o2 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o2, 0xffc, %g0
--	sta	%g0, [%o2 + %g4] ASI_M_FLUSH_PAGE
--	bne	2b
--	 sta	%g0, [%o2 + %g5] ASI_M_FLUSH_PAGE
--3:
--	cmp	%o2, %o1
--	bne	1b
--	 add	%o2, -PAGE_SIZE, %o0
--	mov	SRMMU_FAULT_STATUS, %g5
--	lda	[%g5] ASI_M_MMUREGS, %g0
--	mov	SRMMU_CTX_REG, %g7
--	sta	%o3, [%g7] ASI_M_MMUREGS
--hypersparc_flush_cache_range_out:
--	retl
--	 nop
+-	or	%l0, PSR_PIL, %l4
+-	wr	%l4, 0x0, %psr
+-	WRITE_PAUSE
+-	wr	%l4, PSR_ET, %psr
+-	WRITE_PAUSE
 -
--	/* HyperSparc requires a valid mapping where we are about to flush
--	 * in order to check for a physical tag match during the flush.
--	 */
--	/* Verified, my ass... */
--hypersparc_flush_cache_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %g2
--#ifndef CONFIG_SMP
--	cmp	%g2, -1
--	be	hypersparc_flush_cache_page_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
+-	call	pcic_nmi
+-	 add	%sp, STACKFRAME_SZ, %o1	! struct pt_regs *regs
+-	RESTORE_ALL
 -
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	mov	SRMMU_CTX_REG, %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	lda	[%o3] ASI_M_MMUREGS, %o2
--	sta	%g2, [%o3] ASI_M_MMUREGS
--	or	%o1, 0x400, %o5
--	lda	[%o5] ASI_M_FLUSH_PROBE, %g1
--	orcc	%g0, %g1, %g0
--	be	2f
--	 add	%o4, %o4, %o5
--	sub	%o1, -PAGE_SIZE, %o1
--	add	%o4, %o5, %g1
--	add	%o4, %g1, %g2
--	add	%o4, %g2, %g3
--	add	%o4, %g3, %g4
--	add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
+-	.globl	pcic_nmi_trap_patch
+-pcic_nmi_trap_patch:
+-	sethi	%hi(linux_trap_ipi15_pcic), %l3
+-	jmpl	%l3 + %lo(linux_trap_ipi15_pcic), %g0
+-	 rd	%psr, %l0
+-	.word	0
 -
--	/* BLAMMO! */
--1:
--	sub	%o1, %g7, %o1
--	sta	%g0, [%o1 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o1, 0xffc, %g0
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	bne	1b
--	 sta	%g0, [%o1 + %g5] ASI_M_FLUSH_PAGE
--2:
--	mov	SRMMU_FAULT_STATUS, %g7
--	mov	SRMMU_CTX_REG, %g4
--	lda	[%g7] ASI_M_MMUREGS, %g0
--	sta	%o2, [%g4] ASI_M_MMUREGS
--hypersparc_flush_cache_page_out:
--	retl
--	 nop
+-#endif /* CONFIG_PCIC_PCI */
 -
--hypersparc_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	/* HyperSparc is copy-back. */
--hypersparc_flush_page_to_ram:
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	andn	%o0, (PAGE_SIZE - 1), %o0
--	add	%o4, %o4, %o5
--	or	%o0, 0x400, %g7
--	lda	[%g7] ASI_M_FLUSH_PROBE, %g5
--	add	%o4, %o5, %g1
--	orcc	%g5, 0, %g0
--	be	2f
--	 add	%o4, %g1, %g2
--	add	%o4, %g2, %g3
--	sub	%o0, -PAGE_SIZE, %o0
--	add	%o4, %g3, %g4
--	add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
--
--	/* BLAMMO! */
--1:
--	sub	%o0, %g7, %o0
--	sta	%g0, [%o0 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o0, 0xffc, %g0
--	sta	%g0, [%o0 + %g4] ASI_M_FLUSH_PAGE
--	bne	1b
--	 sta	%g0, [%o0 + %g5] ASI_M_FLUSH_PAGE
--2:
--	mov	SRMMU_FAULT_STATUS, %g1
--	retl
--	 lda	[%g1] ASI_M_MMUREGS, %g0
--
--	/* HyperSparc is IO cache coherent. */
--hypersparc_flush_page_for_dma:
--	retl
--	 nop
--
--	/* It was noted that at boot time a TLB flush all in a delay slot
--	 * can deliver an illegal instruction to the processor if the timing
--	 * is just right...
--	 */
--hypersparc_flush_tlb_all:
--	mov	0x400, %g1
--	sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--	retl
--	 nop
--
--hypersparc_flush_tlb_mm:
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o1, -1
--	be	hypersparc_flush_tlb_mm_out
--#endif
--	 mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_mm_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--hypersparc_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	hypersparc_flush_tlb_range_out
--#endif
--	 sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--1:
--	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	1b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_range_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--hypersparc_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	hypersparc_flush_tlb_page_out
--#endif
--	 lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_page_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--	__INIT
--	
--	/* High speed page clear/copy. */
--hypersparc_bzero_1page:
--/* NOTE: This routine has to be shorter than 40insns --jj */
--	clr	%g1
--	mov	32, %g2
--	mov	64, %g3
--	mov	96, %g4
--	mov	128, %g5
--	mov	160, %g7
--	mov	192, %o2
--	mov	224, %o3
--	mov	16, %o1
--1:
--	stda	%g0, [%o0 + %g0] ASI_M_BFILL
--	stda	%g0, [%o0 + %g2] ASI_M_BFILL
--	stda	%g0, [%o0 + %g3] ASI_M_BFILL
--	stda	%g0, [%o0 + %g4] ASI_M_BFILL
--	stda	%g0, [%o0 + %g5] ASI_M_BFILL
--	stda	%g0, [%o0 + %g7] ASI_M_BFILL
--	stda	%g0, [%o0 + %o2] ASI_M_BFILL
--	stda	%g0, [%o0 + %o3] ASI_M_BFILL
--	subcc	%o1, 1, %o1
--	bne	1b
--	 add	%o0, 256, %o0
--
--	retl
--	 nop
--
--hypersparc_copy_1page:
--/* NOTE: This routine has to be shorter than 70insns --jj */
--	sub	%o1, %o0, %o2		! difference
--	mov	16, %g1
--1:
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	subcc	%g1, 1, %g1
--	bne	1b
--	 add	%o0, 32, %o0
--
--	retl
--	 nop
--
--	.globl	hypersparc_setup_blockops
--hypersparc_setup_blockops:
--	sethi	%hi(bzero_1page), %o0
--	or	%o0, %lo(bzero_1page), %o0
--	sethi	%hi(hypersparc_bzero_1page), %o1
--	or	%o1, %lo(hypersparc_bzero_1page), %o1
--	sethi	%hi(hypersparc_copy_1page), %o2
--	or	%o2, %lo(hypersparc_copy_1page), %o2
--	ld	[%o1], %o4
--1:
--	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	 ld	[%o1], %o4
--	sethi	%hi(__copy_1page), %o0
--	or	%o0, %lo(__copy_1page), %o0
--	sethi	%hi(hypersparc_setup_blockops), %o2
--	or	%o2, %lo(hypersparc_setup_blockops), %o2
--	ld	[%o1], %o4
--1:
--	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	 ld	[%o1], %o4
--	sta	%g0, [%g0] ASI_M_FLUSH_IWHOLE
--	retl
--	 nop
-diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
-index d94d7868feb9..a2cfa8757795 100644
---- a/arch/sparc/mm/io-unit.c
-+++ b/arch/sparc/mm/io-unit.c
-@@ -18,7 +18,6 @@
- 
- #include <asm/io.h>
- #include <asm/io-unit.h>
--#include <asm/mxcc.h>
+ 	.globl	flushw_all
+ flushw_all:
+ 	save	%sp, -0x40, %sp
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 135170f362c1..a6af08fce796 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -19,7 +19,6 @@
  #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/dma.h>
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 832e5ff8b663..482e08df7bad 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -18,7 +18,6 @@
- #include <linux/platform_device.h>
- 
- #include <asm/io.h>
--#include <asm/mxcc.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/bitext.h>
-@@ -37,11 +36,6 @@
- #define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
- #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
- 
--static int viking_flush;
--/* viking.S */
--extern void viking_flush_page(unsigned long page);
--extern void viking_mxcc_flush_page(unsigned long page);
--
- /*
-  * Values precomputed according to CPU type.
-  */
-@@ -156,21 +150,9 @@ static void iommu_flush_iotlb(iopte_t *iopte, unsigned int niopte)
- 	start = (unsigned long)iopte;
- 	end = PAGE_ALIGN(start + niopte*sizeof(iopte_t));
- 	start &= PAGE_MASK;
--	if (viking_mxcc_present) {
--		while(start < end) {
--			viking_mxcc_flush_page(start);
--			start += PAGE_SIZE;
--		}
--	} else if (viking_flush) {
--		while(start < end) {
--			viking_flush_page(start);
--			start += PAGE_SIZE;
--		}
--	} else {
--		while(start < end) {
--			__flush_page_to_ram(start);
--			start += PAGE_SIZE;
--		}
-+	while(start < end) {
-+		__flush_page_to_ram(start);
-+		start += PAGE_SIZE;
- 	}
- }
- 
-@@ -344,12 +326,7 @@ static void *sbus_iommu_alloc(struct device *dev, size_t len,
- 			pmd_t *pmdp;
- 			pte_t *ptep;
- 
--			if (viking_mxcc_present)
--				viking_mxcc_flush_page(page);
--			else if (viking_flush)
--				viking_flush_page(page);
--			else
--				__flush_page_to_ram(page);
-+			__flush_page_to_ram(page);
- 
- 			pmdp = pmd_off_k(addr);
- 			ptep = pte_offset_kernel(pmdp, addr);
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index ee55f1080634..2c83b8ce742d 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -9,7 +9,6 @@ void window_ret_fault(struct pt_regs *regs);
- 
- /* srmmu.c */
- extern char *srmmu_name;
--extern int viking_mxcc_present;
- extern int flush_page_for_dma_global;
- 
- extern void (*poke_srmmu)(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 3a7e10729a02..4a3778549c6f 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -40,13 +40,7 @@
- #include <asm/io.h>
- 
- /* Now the cpu specific definitions. */
--#include <asm/turbosparc.h>
--#include <asm/tsunami.h>
--#include <asm/viking.h>
--#include <asm/swift.h>
+ #include <asm/cpudata.h>
+ #include <asm/setup.h>
+-#include <asm/pcic.h>
  #include <asm/leon.h>
--#include <asm/mxcc.h>
--#include <asm/ross.h>
  
- #include "mm_32.h"
+ #include "kernel.h"
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 621fb7b6ec64..4fcd782f16a7 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -138,10 +138,6 @@ asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn);
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
  
-@@ -65,12 +59,6 @@ EXPORT_SYMBOL(sparc32_cachetlb_ops);
- 
- #ifdef CONFIG_SMP
- const struct sparc32_cachetlb_ops *local_ops;
+-/* pcic.c */
+-extern void __iomem *pcic_regs;
+-void pcic_nmi(unsigned int pend, struct pt_regs *regs);
 -
--#define FLUSH_BEGIN(mm)
--#define FLUSH_END
--#else
--#define FLUSH_BEGIN(mm) if ((mm)->context != NO_CONTEXT) {
--#define FLUSH_END	}
- #endif
+ /* time_32.c */
+ void __init time_init(void);
  
- int flush_page_for_dma_global = 1;
-@@ -80,11 +68,8 @@ char *srmmu_name;
- ctxd_t *srmmu_ctx_table_phys;
- static ctxd_t *srmmu_context_table;
- 
--int viking_mxcc_present;
- static DEFINE_SPINLOCK(srmmu_context_spinlock);
- 
--static int is_hypersparc;
--
- static int srmmu_cache_pagetables;
- 
- /* these will be initialized in srmmu_nocache_calcsize() */
-@@ -112,25 +97,6 @@ static inline void srmmu_ctxd_set(ctxd_t *ctxp, pgd_t *pgdp)
- 	set_pte((pte_t *)ctxp, pte);
- }
- 
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+deleted file mode 100644
+index d952bcbbc395..000000000000
+--- a/arch/sparc/kernel/pcic.c
++++ /dev/null
+@@ -1,829 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
 -/*
-- * Locations of MSI Registers.
-- */
--#define MSI_MBUS_ARBEN	0xe0001008	/* MBus Arbiter Enable register */
--
--/*
-- * Useful bits in the MSI Registers.
-- */
--#define MSI_ASYNC_MODE  0x80000000	/* Operate the MSI asynchronously */
--
--static void msi_set_sync(void)
--{
--	__asm__ __volatile__ ("lda [%0] %1, %%g3\n\t"
--			      "andn %%g3, %2, %%g3\n\t"
--			      "sta %%g3, [%0] %1\n\t" : :
--			      "r" (MSI_MBUS_ARBEN),
--			      "i" (ASI_M_CTL), "r" (MSI_ASYNC_MODE) : "g3");
--}
--
- void pmd_set(pmd_t *pmdp, pte_t *ptep)
- {
- 	unsigned long ptp = __nocache_pa(ptep) >> 4;
-@@ -478,11 +444,7 @@ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
- 		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
- 	}
- 
--	if (sparc_cpu_model == sparc_leon)
--		leon_switch_mm();
--
--	if (is_hypersparc)
--		hyper_flush_whole_icache();
-+	leon_switch_mm();
- 
- 	srmmu_set_context(mm->context);
- }
-@@ -557,110 +519,6 @@ void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len)
- 	flush_tlb_all();
- }
- 
--/* tsunami.S */
--extern void tsunami_flush_cache_all(void);
--extern void tsunami_flush_cache_mm(struct mm_struct *mm);
--extern void tsunami_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void tsunami_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void tsunami_flush_page_to_ram(unsigned long page);
--extern void tsunami_flush_page_for_dma(unsigned long page);
--extern void tsunami_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void tsunami_flush_tlb_all(void);
--extern void tsunami_flush_tlb_mm(struct mm_struct *mm);
--extern void tsunami_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void tsunami_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--extern void tsunami_setup_blockops(void);
--
--/* swift.S */
--extern void swift_flush_cache_all(void);
--extern void swift_flush_cache_mm(struct mm_struct *mm);
--extern void swift_flush_cache_range(struct vm_area_struct *vma,
--				    unsigned long start, unsigned long end);
--extern void swift_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void swift_flush_page_to_ram(unsigned long page);
--extern void swift_flush_page_for_dma(unsigned long page);
--extern void swift_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void swift_flush_tlb_all(void);
--extern void swift_flush_tlb_mm(struct mm_struct *mm);
--extern void swift_flush_tlb_range(struct vm_area_struct *vma,
--				  unsigned long start, unsigned long end);
--extern void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--
--#if 0  /* P3: deadwood to debug precise flushes on Swift. */
--void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
--{
--	int cctx, ctx1;
--
--	page &= PAGE_MASK;
--	if ((ctx1 = vma->vm_mm->context) != -1) {
--		cctx = srmmu_get_context();
--/* Is context # ever different from current context? P3 */
--		if (cctx != ctx1) {
--			printk("flush ctx %02x curr %02x\n", ctx1, cctx);
--			srmmu_set_context(ctx1);
--			swift_flush_page(page);
--			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--					"r" (page), "i" (ASI_M_FLUSH_PROBE));
--			srmmu_set_context(cctx);
--		} else {
--			 /* Rm. prot. bits from virt. c. */
--			/* swift_flush_cache_all(); */
--			/* swift_flush_cache_page(vma, page); */
--			swift_flush_page(page);
--
--			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--				"r" (page), "i" (ASI_M_FLUSH_PROBE));
--			/* same as above: srmmu_flush_tlb_page() */
--		}
--	}
--}
--#endif
--
--/*
-- * The following are all MBUS based SRMMU modules, and therefore could
-- * be found in a multiprocessor configuration.  On the whole, these
-- * chips seems to be much more touchy about DVMA and page tables
-- * with respect to cache coherency.
+- * pcic.c: MicroSPARC-IIep PCI controller support
+- *
+- * Copyright (C) 1998 V. Roganov and G. Raiko
+- *
+- * Code is derived from Ultra/PCI PSYCHO controller support, see that
+- * for author info.
+- *
+- * Support for diverse IIep based platforms by Pete Zaitcev.
+- * CP-1200 by Eric Brower.
 - */
 -
--/* viking.S */
--extern void viking_flush_cache_all(void);
--extern void viking_flush_cache_mm(struct mm_struct *mm);
--extern void viking_flush_cache_range(struct vm_area_struct *vma, unsigned long start,
--				     unsigned long end);
--extern void viking_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void viking_flush_page_to_ram(unsigned long page);
--extern void viking_flush_page_for_dma(unsigned long page);
--extern void viking_flush_sig_insns(struct mm_struct *mm, unsigned long addr);
--extern void viking_flush_page(unsigned long page);
--extern void viking_mxcc_flush_page(unsigned long page);
--extern void viking_flush_tlb_all(void);
--extern void viking_flush_tlb_mm(struct mm_struct *mm);
--extern void viking_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
--				   unsigned long end);
--extern void viking_flush_tlb_page(struct vm_area_struct *vma,
--				  unsigned long page);
--extern void sun4dsmp_flush_tlb_all(void);
--extern void sun4dsmp_flush_tlb_mm(struct mm_struct *mm);
--extern void sun4dsmp_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
--				   unsigned long end);
--extern void sun4dsmp_flush_tlb_page(struct vm_area_struct *vma,
--				  unsigned long page);
+-#include <linux/kernel.h>
+-#include <linux/types.h>
+-#include <linux/init.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/jiffies.h>
 -
--/* hypersparc.S */
--extern void hypersparc_flush_cache_all(void);
--extern void hypersparc_flush_cache_mm(struct mm_struct *mm);
--extern void hypersparc_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void hypersparc_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void hypersparc_flush_page_to_ram(unsigned long page);
--extern void hypersparc_flush_page_for_dma(unsigned long page);
--extern void hypersparc_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void hypersparc_flush_tlb_all(void);
--extern void hypersparc_flush_tlb_mm(struct mm_struct *mm);
--extern void hypersparc_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void hypersparc_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--extern void hypersparc_setup_blockops(void);
+-#include <asm/swift.h> /* for cache flushing. */
+-#include <asm/io.h>
 -
- /*
-  * NOTE: All of this startup code assumes the low 16mb (approx.) of
-  *       kernel mappings are done with one single contiguous chunk of
-@@ -747,18 +605,7 @@ static void __init srmmu_allocate_ptable_skeleton(unsigned long start,
- /* These flush types are not available on all chips... */
- static inline unsigned long srmmu_probe(unsigned long vaddr)
- {
--	unsigned long retval;
+-#include <linux/ctype.h>
+-#include <linux/pci.h>
+-#include <linux/time.h>
+-#include <linux/timex.h>
+-#include <linux/interrupt.h>
+-#include <linux/export.h>
 -
--	if (sparc_cpu_model != sparc_leon) {
+-#include <asm/irq.h>
+-#include <asm/oplib.h>
+-#include <asm/prom.h>
+-#include <asm/pcic.h>
+-#include <asm/timex.h>
+-#include <asm/timer.h>
+-#include <linux/uaccess.h>
+-#include <asm/irq_regs.h>
 -
--		vaddr &= PAGE_MASK;
--		__asm__ __volatile__("lda [%1] %2, %0\n\t" :
--				     "=r" (retval) :
--				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
--	} else {
--		retval = leon_swprobe(vaddr, NULL);
--	}
--	return retval;
-+	return leon_swprobe(vaddr, NULL);
- }
- 
- /*
-@@ -904,20 +751,16 @@ void __init srmmu_paging_init(void)
- 	init_mm.context = (unsigned long) NO_CONTEXT;
- 	sparc_iomap.start = SUN4M_IOBASE_VADDR;	/* 16MB of IOSPACE on all sun4m's. */
- 
--	if (sparc_cpu_model == sun4d)
--		num_contexts = 65536; /* We know it is Viking */
--	else {
--		/* Find the number of contexts on the srmmu. */
--		cpunode = prom_getchild(prom_root_node);
--		num_contexts = 0;
--		while (cpunode != 0) {
--			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
--			if (!strcmp(node_str, "cpu")) {
--				num_contexts = prom_getintdefault(cpunode, "mmu-nctx", 0x8);
--				break;
--			}
--			cpunode = prom_getsibling(cpunode);
-+	/* Find the number of contexts on the srmmu. */
-+	cpunode = prom_getchild(prom_root_node);
-+	num_contexts = 0;
-+	while (cpunode != 0) {
-+		prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
-+		if (!strcmp(node_str, "cpu")) {
-+			num_contexts = prom_getintdefault(cpunode, "mmu-nctx", 0x8);
-+			break;
- 		}
-+		cpunode = prom_getsibling(cpunode);
- 	}
- 
- 	if (!num_contexts) {
-@@ -1014,577 +857,6 @@ void destroy_context(struct mm_struct *mm)
- 	}
- }
- 
--/* Init various srmmu chip types. */
--static void __init srmmu_is_bad(void)
+-#include "kernel.h"
+-#include "irq.h"
+-
+-/*
+- * I studied different documents and many live PROMs both from 2.30
+- * family and 3.xx versions. I came to the amazing conclusion: there is
+- * absolutely no way to route interrupts in IIep systems relying on
+- * information which PROM presents. We must hardcode interrupt routing
+- * schematics. And this actually sucks.   -- zaitcev 1999/05/12
+- *
+- * To find irq for a device we determine which routing map
+- * is in effect or, in other words, on which machine we are running.
+- * We use PROM name for this although other techniques may be used
+- * in special cases (Gleb reports a PROMless IIep based system).
+- * Once we know the map we take device configuration address and
+- * find PCIC pin number where INT line goes. Then we may either program
+- * preferred irq into the PCIC or supply the preexisting irq to the device.
+- */
+-struct pcic_ca2irq {
+-	unsigned char busno;		/* PCI bus number */
+-	unsigned char devfn;		/* Configuration address */
+-	unsigned char pin;		/* PCIC external interrupt pin */
+-	unsigned char irq;		/* Preferred IRQ (mappable in PCIC) */
+-	unsigned int force;		/* Enforce preferred IRQ */
+-};
+-
+-struct pcic_sn2list {
+-	char *sysname;
+-	struct pcic_ca2irq *intmap;
+-	int mapdim;
+-};
+-
+-/*
+- * JavaEngine-1 apparently has different versions.
+- *
+- * According to communications with Sun folks, for P2 build 501-4628-03:
+- * pin 0 - parallel, audio;
+- * pin 1 - Ethernet;
+- * pin 2 - su;
+- * pin 3 - PS/2 kbd and mouse.
+- *
+- * OEM manual (805-1486):
+- * pin 0: Ethernet
+- * pin 1: All EBus
+- * pin 2: IGA (unused)
+- * pin 3: Not connected
+- * OEM manual says that 501-4628 & 501-4811 are the same thing,
+- * only the latter has NAND flash in place.
+- *
+- * So far unofficial Sun wins over the OEM manual. Poor OEMs...
+- */
+-static struct pcic_ca2irq pcic_i_je1a[] = {	/* 501-4811-03 */
+-	{ 0, 0x00, 2, 12, 0 },		/* EBus: hogs all */
+-	{ 0, 0x01, 1,  6, 1 },		/* Happy Meal */
+-	{ 0, 0x80, 0,  7, 0 },		/* IGA (unused) */
+-};
+-
+-/* XXX JS-E entry is incomplete - PCI Slot 2 address (pin 7)? */
+-static struct pcic_ca2irq pcic_i_jse[] = {
+-	{ 0, 0x00, 0, 13, 0 },		/* Ebus - serial and keyboard */
+-	{ 0, 0x01, 1,  6, 0 },		/* hme */
+-	{ 0, 0x08, 2,  9, 0 },		/* VGA - we hope not used :) */
+-	{ 0, 0x10, 6,  8, 0 },		/* PCI INTA# in Slot 1 */
+-	{ 0, 0x18, 7, 12, 0 },		/* PCI INTA# in Slot 2, shared w. RTC */
+-	{ 0, 0x38, 4,  9, 0 },		/* All ISA devices. Read 8259. */
+-	{ 0, 0x80, 5, 11, 0 },		/* EIDE */
+-	/* {0,0x88, 0,0,0} - unknown device... PMU? Probably no interrupt. */
+-	{ 0, 0xA0, 4,  9, 0 },		/* USB */
+-	/*
+-	 * Some pins belong to non-PCI devices, we hardcode them in drivers.
+-	 * sun4m timers - irq 10, 14
+-	 * PC style RTC - pin 7, irq 4 ?
+-	 * Smart card, Parallel - pin 4 shared with USB, ISA
+-	 * audio - pin 3, irq 5 ?
+-	 */
+-};
+-
+-/* SPARCengine-6 was the original release name of CP1200.
+- * The documentation differs between the two versions
+- */
+-static struct pcic_ca2irq pcic_i_se6[] = {
+-	{ 0, 0x08, 0,  2, 0 },		/* SCSI	*/
+-	{ 0, 0x01, 1,  6, 0 },		/* HME	*/
+-	{ 0, 0x00, 3, 13, 0 },		/* EBus	*/
+-};
+-
+-/*
+- * Krups (courtesy of Varol Kaptan)
+- * No documentation available, but it was easy to guess
+- * because it was very similar to Espresso.
+- *  
+- * pin 0 - kbd, mouse, serial;
+- * pin 1 - Ethernet;
+- * pin 2 - igs (we do not use it);
+- * pin 3 - audio;
+- * pin 4,5,6 - unused;
+- * pin 7 - RTC (from P2 onwards as David B. says).
+- */
+-static struct pcic_ca2irq pcic_i_jk[] = {
+-	{ 0, 0x00, 0, 13, 0 },		/* Ebus - serial and keyboard */
+-	{ 0, 0x01, 1,  6, 0 },		/* hme */
+-};
+-
+-/*
+- * Several entries in this list may point to the same routing map
+- * as several PROMs may be installed on the same physical board.
+- */
+-#define SN2L_INIT(name, map)	\
+-  { name, map, ARRAY_SIZE(map) }
+-
+-static struct pcic_sn2list pcic_known_sysnames[] = {
+-	SN2L_INIT("SUNW,JavaEngine1", pcic_i_je1a),	/* JE1, PROM 2.32 */
+-	SN2L_INIT("SUNW,JS-E", pcic_i_jse),	/* PROLL JavaStation-E */
+-	SN2L_INIT("SUNW,SPARCengine-6", pcic_i_se6), /* SPARCengine-6/CP-1200 */
+-	SN2L_INIT("SUNW,JS-NC", pcic_i_jk),	/* PROLL JavaStation-NC */
+-	SN2L_INIT("SUNW,JSIIep", pcic_i_jk),	/* OBP JavaStation-NC */
+-	{ NULL, NULL, 0 }
+-};
+-
+-/*
+- * Only one PCIC per IIep,
+- * and since we have no SMP IIep, only one per system.
+- */
+-static int pcic0_up;
+-static struct linux_pcic pcic0;
+-
+-void __iomem *pcic_regs;
+-static volatile int pcic_speculative;
+-static volatile int pcic_trapped;
+-
+-/* forward */
+-unsigned int pcic_build_device_irq(struct platform_device *op,
+-                                   unsigned int real_irq);
+-
+-#define CONFIG_CMD(bus, device_fn, where) (0x80000000 | (((unsigned int)bus) << 16) | (((unsigned int)device_fn) << 8) | (where & ~3))
+-
+-static int pcic_read_config_dword(unsigned int busno, unsigned int devfn,
+-    int where, u32 *value)
 -{
--	prom_printf("Could not determine SRMMU chip type.\n");
--	prom_halt();
+-	struct linux_pcic *pcic;
+-	unsigned long flags;
+-
+-	pcic = &pcic0;
+-
+-	local_irq_save(flags);
+-#if 0 /* does not fail here */
+-	pcic_speculative = 1;
+-	pcic_trapped = 0;
+-#endif
+-	writel(CONFIG_CMD(busno, devfn, where), pcic->pcic_config_space_addr);
+-#if 0 /* does not fail here */
+-	nop();
+-	if (pcic_trapped) {
+-		local_irq_restore(flags);
+-		*value = ~0;
+-		return 0;
+-	}
+-#endif
+-	pcic_speculative = 2;
+-	pcic_trapped = 0;
+-	*value = readl(pcic->pcic_config_space_data + (where&4));
+-	nop();
+-	if (pcic_trapped) {
+-		pcic_speculative = 0;
+-		local_irq_restore(flags);
+-		*value = ~0;
+-		return 0;
+-	}
+-	pcic_speculative = 0;
+-	local_irq_restore(flags);
+-	return 0;
 -}
 -
--static void __init init_vac_layout(void)
+-static int pcic_read_config(struct pci_bus *bus, unsigned int devfn,
+-   int where, int size, u32 *val)
 -{
--	phandle nd;
--	int cache_lines;
--	char node_str[128];
--#ifdef CONFIG_SMP
--	int cpu = 0;
--	unsigned long max_size = 0;
--	unsigned long min_line_size = 0x10000000;
--#endif
+-	unsigned int v;
 -
--	nd = prom_getchild(prom_root_node);
--	while ((nd = prom_getsibling(nd)) != 0) {
--		prom_getstring(nd, "device_type", node_str, sizeof(node_str));
--		if (!strcmp(node_str, "cpu")) {
--			vac_line_size = prom_getint(nd, "cache-line-size");
--			if (vac_line_size == -1) {
--				prom_printf("can't determine cache-line-size, halting.\n");
--				prom_halt();
--			}
--			cache_lines = prom_getint(nd, "cache-nlines");
--			if (cache_lines == -1) {
--				prom_printf("can't determine cache-nlines, halting.\n");
--				prom_halt();
--			}
--
--			vac_cache_size = cache_lines * vac_line_size;
--#ifdef CONFIG_SMP
--			if (vac_cache_size > max_size)
--				max_size = vac_cache_size;
--			if (vac_line_size < min_line_size)
--				min_line_size = vac_line_size;
--			//FIXME: cpus not contiguous!!
--			cpu++;
--			if (cpu >= nr_cpu_ids || !cpu_online(cpu))
--				break;
--#else
--			break;
--#endif
--		}
+-	if (bus->number != 0) return -EINVAL;
+-	switch (size) {
+-	case 1:
+-		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
+-		*val = 0xff & (v >> (8*(where & 3)));
+-		return 0;
+-	case 2:
+-		if (where&1) return -EINVAL;
+-		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
+-		*val = 0xffff & (v >> (8*(where & 3)));
+-		return 0;
+-	case 4:
+-		if (where&3) return -EINVAL;
+-		pcic_read_config_dword(bus->number, devfn, where&~3, val);
+-		return 0;
 -	}
--	if (nd == 0) {
--		prom_printf("No CPU nodes found, halting.\n");
+-	return -EINVAL;
+-}
+-
+-static int pcic_write_config_dword(unsigned int busno, unsigned int devfn,
+-    int where, u32 value)
+-{
+-	struct linux_pcic *pcic;
+-	unsigned long flags;
+-
+-	pcic = &pcic0;
+-
+-	local_irq_save(flags);
+-	writel(CONFIG_CMD(busno, devfn, where), pcic->pcic_config_space_addr);
+-	writel(value, pcic->pcic_config_space_data + (where&4));
+-	local_irq_restore(flags);
+-	return 0;
+-}
+-
+-static int pcic_write_config(struct pci_bus *bus, unsigned int devfn,
+-   int where, int size, u32 val)
+-{
+-	unsigned int v;
+-
+-	if (bus->number != 0) return -EINVAL;
+-	switch (size) {
+-	case 1:
+-		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
+-		v = (v & ~(0xff << (8*(where&3)))) |
+-		    ((0xff&val) << (8*(where&3)));
+-		return pcic_write_config_dword(bus->number, devfn, where&~3, v);
+-	case 2:
+-		if (where&1) return -EINVAL;
+-		pcic_read_config_dword(bus->number, devfn, where&~3, &v);
+-		v = (v & ~(0xffff << (8*(where&3)))) |
+-		    ((0xffff&val) << (8*(where&3)));
+-		return pcic_write_config_dword(bus->number, devfn, where&~3, v);
+-	case 4:
+-		if (where&3) return -EINVAL;
+-		return pcic_write_config_dword(bus->number, devfn, where, val);
+-	}
+-	return -EINVAL;
+-}
+-
+-static struct pci_ops pcic_ops = {
+-	.read =		pcic_read_config,
+-	.write =	pcic_write_config,
+-};
+-
+-/*
+- * On sparc64 pcibios_init() calls pci_controller_probe().
+- * We want PCIC probed little ahead so that interrupt controller
+- * would be operational.
+- */
+-int __init pcic_probe(void)
+-{
+-	struct linux_pcic *pcic;
+-	struct linux_prom_registers regs[PROMREG_MAX];
+-	struct linux_pbm_info* pbm;
+-	char namebuf[64];
+-	phandle node;
+-	int err;
+-
+-	if (pcic0_up) {
+-		prom_printf("PCIC: called twice!\n");
 -		prom_halt();
 -	}
--#ifdef CONFIG_SMP
--	vac_cache_size = max_size;
--	vac_line_size = min_line_size;
--#endif
--	printk("SRMMU: Using VAC size of %d bytes, line size %d bytes.\n",
--	       (int)vac_cache_size, (int)vac_line_size);
--}
+-	pcic = &pcic0;
 -
--static void poke_hypersparc(void)
--{
--	volatile unsigned long clear;
--	unsigned long mreg = srmmu_get_mmureg();
--
--	hyper_flush_unconditional_combined();
--
--	mreg &= ~(HYPERSPARC_CWENABLE);
--	mreg |= (HYPERSPARC_CENABLE | HYPERSPARC_WBENABLE);
--	mreg |= (HYPERSPARC_CMODE);
--
--	srmmu_set_mmureg(mreg);
--
--#if 0 /* XXX I think this is bad news... -DaveM */
--	hyper_clear_all_tags();
--#endif
--
--	put_ross_icr(HYPERSPARC_ICCR_FTD | HYPERSPARC_ICCR_ICE);
--	hyper_flush_whole_icache();
--	clear = srmmu_get_faddr();
--	clear = srmmu_get_fstatus();
--}
--
--static const struct sparc32_cachetlb_ops hypersparc_ops = {
--	.cache_all	= hypersparc_flush_cache_all,
--	.cache_mm	= hypersparc_flush_cache_mm,
--	.cache_page	= hypersparc_flush_cache_page,
--	.cache_range	= hypersparc_flush_cache_range,
--	.tlb_all	= hypersparc_flush_tlb_all,
--	.tlb_mm		= hypersparc_flush_tlb_mm,
--	.tlb_page	= hypersparc_flush_tlb_page,
--	.tlb_range	= hypersparc_flush_tlb_range,
--	.page_to_ram	= hypersparc_flush_page_to_ram,
--	.sig_insns	= hypersparc_flush_sig_insns,
--	.page_for_dma	= hypersparc_flush_page_for_dma,
--};
--
--static void __init init_hypersparc(void)
--{
--	srmmu_name = "ROSS HyperSparc";
--
--	init_vac_layout();
--
--	is_hypersparc = 1;
--	sparc32_cachetlb_ops = &hypersparc_ops;
--
--	poke_srmmu = poke_hypersparc;
--
--	hypersparc_setup_blockops();
--}
--
--static void poke_swift(void)
--{
--	unsigned long mreg;
--
--	/* Clear any crap from the cache or else... */
--	swift_flush_cache_all();
--
--	/* Enable I & D caches */
--	mreg = srmmu_get_mmureg();
--	mreg |= (SWIFT_IE | SWIFT_DE);
+-	node = prom_getchild (prom_root_node);
+-	node = prom_searchsiblings (node, "pci");
+-	if (node == 0)
+-		return -ENODEV;
 -	/*
--	 * The Swift branch folding logic is completely broken.  At
--	 * trap time, if things are just right, if can mistakenly
--	 * think that a trap is coming from kernel mode when in fact
--	 * it is coming from user mode (it mis-executes the branch in
--	 * the trap code).  So you see things like crashme completely
--	 * hosing your machine which is completely unacceptable.  Turn
--	 * this shit off... nice job Fujitsu.
+-	 * Map in PCIC register set, config space, and IO base
 -	 */
--	mreg &= ~(SWIFT_BF);
--	srmmu_set_mmureg(mreg);
--}
+-	err = prom_getproperty(node, "reg", (char*)regs, sizeof(regs));
+-	if (err == 0 || err == -1) {
+-		prom_printf("PCIC: Error, cannot get PCIC registers "
+-			    "from PROM.\n");
+-		prom_halt();
+-	}
 -
--static const struct sparc32_cachetlb_ops swift_ops = {
--	.cache_all	= swift_flush_cache_all,
--	.cache_mm	= swift_flush_cache_mm,
--	.cache_page	= swift_flush_cache_page,
--	.cache_range	= swift_flush_cache_range,
--	.tlb_all	= swift_flush_tlb_all,
--	.tlb_mm		= swift_flush_tlb_mm,
--	.tlb_page	= swift_flush_tlb_page,
--	.tlb_range	= swift_flush_tlb_range,
--	.page_to_ram	= swift_flush_page_to_ram,
--	.sig_insns	= swift_flush_sig_insns,
--	.page_for_dma	= swift_flush_page_for_dma,
--};
+-	pcic0_up = 1;
 -
--#define SWIFT_MASKID_ADDR  0x10003018
--static void __init init_swift(void)
--{
--	unsigned long swift_rev;
+-	pcic->pcic_res_regs.name = "pcic_registers";
+-	pcic->pcic_regs = ioremap(regs[0].phys_addr, regs[0].reg_size);
+-	if (!pcic->pcic_regs) {
+-		prom_printf("PCIC: Error, cannot map PCIC registers.\n");
+-		prom_halt();
+-	}
 -
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     "srl %0, 0x18, %0\n\t" :
--			     "=r" (swift_rev) :
--			     "r" (SWIFT_MASKID_ADDR), "i" (ASI_M_BYPASS));
--	srmmu_name = "Fujitsu Swift";
+-	pcic->pcic_res_io.name = "pcic_io";
+-	if ((pcic->pcic_io = (unsigned long)
+-	    ioremap(regs[1].phys_addr, 0x10000)) == 0) {
+-		prom_printf("PCIC: Error, cannot map PCIC IO Base.\n");
+-		prom_halt();
+-	}
 -
--	sparc32_cachetlb_ops = &swift_ops;
--	flush_page_for_dma_global = 0;
+-	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
+-	if ((pcic->pcic_config_space_addr =
+-	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) == NULL) {
+-		prom_printf("PCIC: Error, cannot map "
+-			    "PCI Configuration Space Address.\n");
+-		prom_halt();
+-	}
 -
 -	/*
--	 * Are you now convinced that the Swift is one of the
--	 * biggest VLSI abortions of all time?  Bravo Fujitsu!
--	 * Fujitsu, the !#?!%$'d up processor people.  I bet if
--	 * you examined the microcode of the Swift you'd find
--	 * XXX's all over the place.
+-	 * Docs say three least significant bits in address and data
+-	 * must be the same. Thus, we need adjust size of data.
 -	 */
--	poke_srmmu = poke_swift;
--}
--
--static void turbosparc_flush_cache_all(void)
--{
--	flush_user_windows();
--	turbosparc_idflash_clear();
--}
--
--static void turbosparc_flush_cache_mm(struct mm_struct *mm)
--{
--	FLUSH_BEGIN(mm)
--	flush_user_windows();
--	turbosparc_idflash_clear();
--	FLUSH_END
--}
--
--static void turbosparc_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	flush_user_windows();
--	turbosparc_idflash_clear();
--	FLUSH_END
--}
--
--static void turbosparc_flush_cache_page(struct vm_area_struct *vma, unsigned long page)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	flush_user_windows();
--	if (vma->vm_flags & VM_EXEC)
--		turbosparc_flush_icache();
--	turbosparc_flush_dcache();
--	FLUSH_END
--}
--
--/* TurboSparc is copy-back, if we turn it on, but this does not work. */
--static void turbosparc_flush_page_to_ram(unsigned long page)
--{
--#ifdef TURBOSPARC_WRITEBACK
--	volatile unsigned long clear;
--
--	if (srmmu_probe(page))
--		turbosparc_flush_page_cache(page);
--	clear = srmmu_get_fstatus();
--#endif
--}
--
--static void turbosparc_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
--{
--}
--
--static void turbosparc_flush_page_for_dma(unsigned long page)
--{
--	turbosparc_flush_dcache();
--}
--
--static void turbosparc_flush_tlb_all(void)
--{
--	srmmu_flush_whole_tlb();
--}
--
--static void turbosparc_flush_tlb_mm(struct mm_struct *mm)
--{
--	FLUSH_BEGIN(mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--static void turbosparc_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--static void turbosparc_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--
--static void poke_turbosparc(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--	unsigned long ccreg;
--
--	/* Clear any crap from the cache or else... */
--	turbosparc_flush_cache_all();
--	/* Temporarily disable I & D caches */
--	mreg &= ~(TURBOSPARC_ICENABLE | TURBOSPARC_DCENABLE);
--	mreg &= ~(TURBOSPARC_PCENABLE);		/* Don't check parity */
--	srmmu_set_mmureg(mreg);
--
--	ccreg = turbosparc_get_ccreg();
--
--#ifdef TURBOSPARC_WRITEBACK
--	ccreg |= (TURBOSPARC_SNENABLE);		/* Do DVMA snooping in Dcache */
--	ccreg &= ~(TURBOSPARC_uS2 | TURBOSPARC_WTENABLE);
--			/* Write-back D-cache, emulate VLSI
--			 * abortion number three, not number one */
--#else
--	/* For now let's play safe, optimize later */
--	ccreg |= (TURBOSPARC_SNENABLE | TURBOSPARC_WTENABLE);
--			/* Do DVMA snooping in Dcache, Write-thru D-cache */
--	ccreg &= ~(TURBOSPARC_uS2);
--			/* Emulate VLSI abortion number three, not number one */
--#endif
--
--	switch (ccreg & 7) {
--	case 0: /* No SE cache */
--	case 7: /* Test mode */
--		break;
--	default:
--		ccreg |= (TURBOSPARC_SCENABLE);
--	}
--	turbosparc_set_ccreg(ccreg);
--
--	mreg |= (TURBOSPARC_ICENABLE | TURBOSPARC_DCENABLE); /* I & D caches on */
--	mreg |= (TURBOSPARC_ICSNOOP);		/* Icache snooping on */
--	srmmu_set_mmureg(mreg);
--}
--
--static const struct sparc32_cachetlb_ops turbosparc_ops = {
--	.cache_all	= turbosparc_flush_cache_all,
--	.cache_mm	= turbosparc_flush_cache_mm,
--	.cache_page	= turbosparc_flush_cache_page,
--	.cache_range	= turbosparc_flush_cache_range,
--	.tlb_all	= turbosparc_flush_tlb_all,
--	.tlb_mm		= turbosparc_flush_tlb_mm,
--	.tlb_page	= turbosparc_flush_tlb_page,
--	.tlb_range	= turbosparc_flush_tlb_range,
--	.page_to_ram	= turbosparc_flush_page_to_ram,
--	.sig_insns	= turbosparc_flush_sig_insns,
--	.page_for_dma	= turbosparc_flush_page_for_dma,
--};
--
--static void __init init_turbosparc(void)
--{
--	srmmu_name = "Fujitsu TurboSparc";
--	sparc32_cachetlb_ops = &turbosparc_ops;
--	poke_srmmu = poke_turbosparc;
--}
--
--static void poke_tsunami(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--
--	tsunami_flush_icache();
--	tsunami_flush_dcache();
--	mreg &= ~TSUNAMI_ITD;
--	mreg |= (TSUNAMI_IENAB | TSUNAMI_DENAB);
--	srmmu_set_mmureg(mreg);
--}
--
--static const struct sparc32_cachetlb_ops tsunami_ops = {
--	.cache_all	= tsunami_flush_cache_all,
--	.cache_mm	= tsunami_flush_cache_mm,
--	.cache_page	= tsunami_flush_cache_page,
--	.cache_range	= tsunami_flush_cache_range,
--	.tlb_all	= tsunami_flush_tlb_all,
--	.tlb_mm		= tsunami_flush_tlb_mm,
--	.tlb_page	= tsunami_flush_tlb_page,
--	.tlb_range	= tsunami_flush_tlb_range,
--	.page_to_ram	= tsunami_flush_page_to_ram,
--	.sig_insns	= tsunami_flush_sig_insns,
--	.page_for_dma	= tsunami_flush_page_for_dma,
--};
--
--static void __init init_tsunami(void)
--{
--	/*
--	 * Tsunami's pretty sane, Sun and TI actually got it
--	 * somewhat right this time.  Fujitsu should have
--	 * taken some lessons from them.
--	 */
--
--	srmmu_name = "TI Tsunami";
--	sparc32_cachetlb_ops = &tsunami_ops;
--	poke_srmmu = poke_tsunami;
--
--	tsunami_setup_blockops();
--}
--
--static void poke_viking(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--	static int smp_catch;
--
--	if (viking_mxcc_present) {
--		unsigned long mxcc_control = mxcc_get_creg();
--
--		mxcc_control |= (MXCC_CTL_ECE | MXCC_CTL_PRE | MXCC_CTL_MCE);
--		mxcc_control &= ~(MXCC_CTL_RRC);
--		mxcc_set_creg(mxcc_control);
--
--		/*
--		 * We don't need memory parity checks.
--		 * XXX This is a mess, have to dig out later. ecd.
--		viking_mxcc_turn_off_parity(&mreg, &mxcc_control);
--		 */
--
--		/* We do cache ptables on MXCC. */
--		mreg |= VIKING_TCENABLE;
--	} else {
--		unsigned long bpreg;
--
--		mreg &= ~(VIKING_TCENABLE);
--		if (smp_catch++) {
--			/* Must disable mixed-cmd mode here for other cpu's. */
--			bpreg = viking_get_bpreg();
--			bpreg &= ~(VIKING_ACTION_MIX);
--			viking_set_bpreg(bpreg);
--
--			/* Just in case PROM does something funny. */
--			msi_set_sync();
--		}
+-	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
+-	if ((pcic->pcic_config_space_data =
+-	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) == NULL) {
+-		prom_printf("PCIC: Error, cannot map "
+-			    "PCI Configuration Space Data.\n");
+-		prom_halt();
 -	}
 -
--	mreg |= VIKING_SPENABLE;
--	mreg |= (VIKING_ICENABLE | VIKING_DCENABLE);
--	mreg |= VIKING_SBENABLE;
--	mreg &= ~(VIKING_ACENABLE);
--	srmmu_set_mmureg(mreg);
--}
+-	pbm = &pcic->pbm;
+-	pbm->prom_node = node;
+-	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
+-	strcpy(pbm->prom_name, namebuf);
 -
--static struct sparc32_cachetlb_ops viking_ops __ro_after_init = {
--	.cache_all	= viking_flush_cache_all,
--	.cache_mm	= viking_flush_cache_mm,
--	.cache_page	= viking_flush_cache_page,
--	.cache_range	= viking_flush_cache_range,
--	.tlb_all	= viking_flush_tlb_all,
--	.tlb_mm		= viking_flush_tlb_mm,
--	.tlb_page	= viking_flush_tlb_page,
--	.tlb_range	= viking_flush_tlb_range,
--	.page_to_ram	= viking_flush_page_to_ram,
--	.sig_insns	= viking_flush_sig_insns,
--	.page_for_dma	= viking_flush_page_for_dma,
--};
+-	prom_getstring(prom_root_node, "name", namebuf, 63);  namebuf[63] = 0;
+-	{
+-		struct pcic_sn2list *p;
 -
--#ifdef CONFIG_SMP
--/* On sun4d the cpu broadcasts local TLB flushes, so we can just
-- * perform the local TLB flush and all the other cpus will see it.
-- * But, unfortunately, there is a bug in the sun4d XBUS backplane
-- * that requires that we add some synchronization to these flushes.
-- *
-- * The bug is that the fifo which keeps track of all the pending TLB
-- * broadcasts in the system is an entry or two too small, so if we
-- * have too many going at once we'll overflow that fifo and lose a TLB
-- * flush resulting in corruption.
-- *
-- * Our workaround is to take a global spinlock around the TLB flushes,
-- * which guarentees we won't ever have too many pending.  It's a big
-- * hammer, but a semaphore like system to make sure we only have N TLB
-- * flushes going at once will require SMP locking anyways so there's
-- * no real value in trying any harder than this.
-- */
--static struct sparc32_cachetlb_ops viking_sun4d_smp_ops __ro_after_init = {
--	.cache_all	= viking_flush_cache_all,
--	.cache_mm	= viking_flush_cache_mm,
--	.cache_page	= viking_flush_cache_page,
--	.cache_range	= viking_flush_cache_range,
--	.tlb_all	= sun4dsmp_flush_tlb_all,
--	.tlb_mm		= sun4dsmp_flush_tlb_mm,
--	.tlb_page	= sun4dsmp_flush_tlb_page,
--	.tlb_range	= sun4dsmp_flush_tlb_range,
--	.page_to_ram	= viking_flush_page_to_ram,
--	.sig_insns	= viking_flush_sig_insns,
--	.page_for_dma	= viking_flush_page_for_dma,
--};
--#endif
--
--static void __init init_viking(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--
--	/* Ahhh, the viking.  SRMMU VLSI abortion number two... */
--	if (mreg & VIKING_MMODE) {
--		srmmu_name = "TI Viking";
--		viking_mxcc_present = 0;
--		msi_set_sync();
--
--		/*
--		 * We need this to make sure old viking takes no hits
--		 * on its cache for dma snoops to workaround the
--		 * "load from non-cacheable memory" interrupt bug.
--		 * This is only necessary because of the new way in
--		 * which we use the IOMMU.
--		 */
--		viking_ops.page_for_dma = viking_flush_page;
--#ifdef CONFIG_SMP
--		viking_sun4d_smp_ops.page_for_dma = viking_flush_page;
--#endif
--		flush_page_for_dma_global = 0;
--	} else {
--		srmmu_name = "TI Viking/MXCC";
--		viking_mxcc_present = 1;
--		srmmu_cache_pagetables = 1;
--	}
--
--	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
--		&viking_ops;
--#ifdef CONFIG_SMP
--	if (sparc_cpu_model == sun4d)
--		sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
--			&viking_sun4d_smp_ops;
--#endif
--
--	poke_srmmu = poke_viking;
--}
--
--/* Probe for the srmmu chip version. */
--static void __init get_srmmu_type(void)
--{
--	unsigned long mreg, psr;
--	unsigned long mod_typ, mod_rev, psr_typ, psr_vers;
--
--	mreg = srmmu_get_mmureg(); psr = get_psr();
--	mod_typ = (mreg & 0xf0000000) >> 28;
--	mod_rev = (mreg & 0x0f000000) >> 24;
--	psr_typ = (psr >> 28) & 0xf;
--	psr_vers = (psr >> 24) & 0xf;
--
--	/* First, check for sparc-leon. */
--	if (sparc_cpu_model == sparc_leon) {
--		init_leon();
--		return;
--	}
--
--	/* Second, check for HyperSparc or Cypress. */
--	if (mod_typ == 1) {
--		switch (mod_rev) {
--		case 7:
--			/* UP or MP Hypersparc */
--			init_hypersparc();
--			break;
--		case 0:
--		case 2:
--		case 10:
--		case 11:
--		case 12:
--		case 13:
--		case 14:
--		case 15:
--		default:
--			prom_printf("Sparc-Linux Cypress support does not longer exit.\n");
--			prom_halt();
--			break;
--		}
--		return;
--	}
--
--	/* Now Fujitsu TurboSparc. It might happen that it is
--	 * in Swift emulation mode, so we will check later...
--	 */
--	if (psr_typ == 0 && psr_vers == 5) {
--		init_turbosparc();
--		return;
--	}
--
--	/* Next check for Fujitsu Swift. */
--	if (psr_typ == 0 && psr_vers == 4) {
--		phandle cpunode;
--		char node_str[128];
--
--		/* Look if it is not a TurboSparc emulating Swift... */
--		cpunode = prom_getchild(prom_root_node);
--		while ((cpunode = prom_getsibling(cpunode)) != 0) {
--			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
--			if (!strcmp(node_str, "cpu")) {
--				if (!prom_getintdefault(cpunode, "psr-implementation", 1) &&
--				    prom_getintdefault(cpunode, "psr-version", 1) == 5) {
--					init_turbosparc();
--					return;
--				}
+-		for (p = pcic_known_sysnames; p->sysname != NULL; p++) {
+-			if (strcmp(namebuf, p->sysname) == 0)
 -				break;
+-		}
+-		pcic->pcic_imap = p->intmap;
+-		pcic->pcic_imdim = p->mapdim;
+-	}
+-	if (pcic->pcic_imap == NULL) {
+-		/*
+-		 * We do not panic here for the sake of embedded systems.
+-		 */
+-		printk("PCIC: System %s is unknown, cannot route interrupts\n",
+-		    namebuf);
+-	}
+-
+-	return 0;
+-}
+-
+-static void __init pcic_pbm_scan_bus(struct linux_pcic *pcic)
+-{
+-	struct linux_pbm_info *pbm = &pcic->pbm;
+-
+-	pbm->pci_bus = pci_scan_bus(pbm->pci_first_busno, &pcic_ops, pbm);
+-	if (!pbm->pci_bus)
+-		return;
+-
+-#if 0 /* deadwood transplanted from sparc64 */
+-	pci_fill_in_pbm_cookies(pbm->pci_bus, pbm, pbm->prom_node);
+-	pci_record_assignments(pbm, pbm->pci_bus);
+-	pci_assign_unassigned(pbm, pbm->pci_bus);
+-	pci_fixup_irq(pbm, pbm->pci_bus);
+-#endif
+-	pci_bus_add_devices(pbm->pci_bus);
+-}
+-
+-/*
+- * Main entry point from the PCI subsystem.
+- */
+-static int __init pcic_init(void)
+-{
+-	struct linux_pcic *pcic;
+-
+-	/*
+-	 * PCIC should be initialized at start of the timer.
+-	 * So, here we report the presence of PCIC and do some magic passes.
+-	 */
+-	if(!pcic0_up)
+-		return 0;
+-	pcic = &pcic0;
+-
+-	/*
+-	 *      Switch off IOTLB translation.
+-	 */
+-	writeb(PCI_DVMA_CONTROL_IOTLB_DISABLE, 
+-	       pcic->pcic_regs+PCI_DVMA_CONTROL);
+-
+-	/*
+-	 *      Increase mapped size for PCI memory space (DMA access).
+-	 *      Should be done in that order (size first, address second).
+-	 *      Why we couldn't set up 4GB and forget about it? XXX
+-	 */
+-	writel(0xF0000000UL, pcic->pcic_regs+PCI_SIZE_0);
+-	writel(0+PCI_BASE_ADDRESS_SPACE_MEMORY, 
+-	       pcic->pcic_regs+PCI_BASE_ADDRESS_0);
+-
+-	pcic_pbm_scan_bus(pcic);
+-
+-	return 0;
+-}
+-
+-int pcic_present(void)
+-{
+-	return pcic0_up;
+-}
+-
+-static int pdev_to_pnode(struct linux_pbm_info *pbm, struct pci_dev *pdev)
+-{
+-	struct linux_prom_pci_registers regs[PROMREG_MAX];
+-	int err;
+-	phandle node = prom_getchild(pbm->prom_node);
+-
+-	while(node) {
+-		err = prom_getproperty(node, "reg", 
+-				       (char *)&regs[0], sizeof(regs));
+-		if(err != 0 && err != -1) {
+-			unsigned long devfn = (regs[0].which_io >> 8) & 0xff;
+-			if(devfn == pdev->devfn)
+-				return node;
+-		}
+-		node = prom_getsibling(node);
+-	}
+-	return 0;
+-}
+-
+-static inline struct pcidev_cookie *pci_devcookie_alloc(void)
+-{
+-	return kmalloc(sizeof(struct pcidev_cookie), GFP_ATOMIC);
+-}
+-
+-static void pcic_map_pci_device(struct linux_pcic *pcic,
+-    struct pci_dev *dev, int node)
+-{
+-	char namebuf[64];
+-	unsigned long address;
+-	unsigned long flags;
+-	int j;
+-
+-	if (node == 0 || node == -1) {
+-		strcpy(namebuf, "???");
+-	} else {
+-		prom_getstring(node, "name", namebuf, 63); namebuf[63] = 0;
+-	}
+-
+-	for (j = 0; j < 6; j++) {
+-		address = dev->resource[j].start;
+-		if (address == 0) break;	/* are sequential */
+-		flags = dev->resource[j].flags;
+-		if ((flags & IORESOURCE_IO) != 0) {
+-			if (address < 0x10000) {
+-				/*
+-				 * A device responds to I/O cycles on PCI.
+-				 * We generate these cycles with memory
+-				 * access into the fixed map (phys 0x30000000).
+-				 *
+-				 * Since a device driver does not want to
+-				 * do ioremap() before accessing PC-style I/O,
+-				 * we supply virtual, ready to access address.
+-				 *
+-				 * Note that request_region()
+-				 * works for these devices.
+-				 *
+-				 * XXX Neat trick, but it's a *bad* idea
+-				 * to shit into regions like that.
+-				 * What if we want to allocate one more
+-				 * PCI base address...
+-				 */
+-				dev->resource[j].start =
+-				    pcic->pcic_io + address;
+-				dev->resource[j].end = 1;  /* XXX */
+-				dev->resource[j].flags =
+-				    (flags & ~IORESOURCE_IO) | IORESOURCE_MEM;
+-			} else {
+-				/*
+-				 * OOPS... PCI Spec allows this. Sun does
+-				 * not have any devices getting above 64K
+-				 * so it must be user with a weird I/O
+-				 * board in a PCI slot. We must remap it
+-				 * under 64K but it is not done yet. XXX
+-				 */
+-				pci_info(dev, "PCIC: Skipping I/O space at "
+-					 "0x%lx, this will Oops if a driver "
+-					 "attaches device '%s'\n", address,
+-					 namebuf);
 -			}
 -		}
--
--		init_swift();
--		return;
 -	}
--
--	/* Now the Viking family of srmmu. */
--	if (psr_typ == 4 &&
--	   ((psr_vers == 0) ||
--	    ((psr_vers == 1) && (mod_typ == 0) && (mod_rev == 0)))) {
--		init_viking();
--		return;
--	}
--
--	/* Finally the Tsunami. */
--	if (psr_typ == 4 && psr_vers == 1 && (mod_typ || mod_rev)) {
--		init_tsunami();
--		return;
--	}
--
--	/* Oh well */
--	srmmu_is_bad();
 -}
 -
- #ifdef CONFIG_SMP
- /* Local cross-calls. */
- static void smp_flush_page_for_dma(unsigned long page)
-@@ -1734,34 +1006,20 @@ static struct sparc32_cachetlb_ops smp_cachetlb_ops __ro_after_init = {
- };
- #endif
- 
--/* Load up routines and constants for sun4m and sun4d mmu */
-+/* Load up routines and constants for mmu */
- void __init load_mmu(void)
- {
- 	/* Functions */
--	get_srmmu_type();
-+	init_leon();
- 
- #ifdef CONFIG_SMP
- 	/* El switcheroo... */
- 	local_ops = sparc32_cachetlb_ops;
- 
--	if (sparc_cpu_model == sun4d || sparc_cpu_model == sparc_leon) {
--		smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
--		smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
--		smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
--		smp_cachetlb_ops.tlb_page = local_ops->tlb_page;
+-static void
+-pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
+-{
+-	struct pcic_ca2irq *p;
+-	unsigned int real_irq;
+-	int i, ivec;
+-	char namebuf[64];
+-
+-	if (node == 0 || node == -1) {
+-		strcpy(namebuf, "???");
+-	} else {
+-		prom_getstring(node, "name", namebuf, sizeof(namebuf));
 -	}
 -
--	if (poke_srmmu == poke_viking) {
--		/* Avoid unnecessary cross calls. */
--		smp_cachetlb_ops.cache_all = local_ops->cache_all;
--		smp_cachetlb_ops.cache_mm = local_ops->cache_mm;
--		smp_cachetlb_ops.cache_range = local_ops->cache_range;
--		smp_cachetlb_ops.cache_page = local_ops->cache_page;
--
--		smp_cachetlb_ops.page_to_ram = local_ops->page_to_ram;
--		smp_cachetlb_ops.sig_insns = local_ops->sig_insns;
--		smp_cachetlb_ops.page_for_dma = local_ops->page_for_dma;
+-	if ((p = pcic->pcic_imap) == NULL) {
+-		dev->irq = 0;
+-		return;
 -	}
-+	smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
-+	smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
-+	smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
-+	smp_cachetlb_ops.tlb_page = local_ops->tlb_page;
+-	for (i = 0; i < pcic->pcic_imdim; i++) {
+-		if (p->busno == dev->bus->number && p->devfn == dev->devfn)
+-			break;
+-		p++;
+-	}
+-	if (i >= pcic->pcic_imdim) {
+-		pci_info(dev, "PCIC: device %s not found in %d\n", namebuf,
+-			 pcic->pcic_imdim);
+-		dev->irq = 0;
+-		return;
+-	}
+-
+-	i = p->pin;
+-	if (i >= 0 && i < 4) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
+-		real_irq = ivec >> (i << 2) & 0xF;
+-	} else if (i >= 4 && i < 8) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
+-		real_irq = ivec >> ((i-4) << 2) & 0xF;
+-	} else {					/* Corrupted map */
+-		pci_info(dev, "PCIC: BAD PIN %d\n", i); for (;;) {}
+-	}
+-/* P3 */ /* printk("PCIC: device %s pin %d ivec 0x%x irq %x\n", namebuf, i, ivec, dev->irq); */
+-
+-	/* real_irq means PROM did not bother to program the upper
+-	 * half of PCIC. This happens on JS-E with PROM 3.11, for instance.
+-	 */
+-	if (real_irq == 0 || p->force) {
+-		if (p->irq == 0 || p->irq >= 15) {	/* Corrupted map */
+-			pci_info(dev, "PCIC: BAD IRQ %d\n", p->irq); for (;;) {}
+-		}
+-		pci_info(dev, "PCIC: setting irq %d at pin %d\n", p->irq,
+-			 p->pin);
+-		real_irq = p->irq;
+-
+-		i = p->pin;
+-		if (i >= 4) {
+-			ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
+-			ivec &= ~(0xF << ((i - 4) << 2));
+-			ivec |= p->irq << ((i - 4) << 2);
+-			writew(ivec, pcic->pcic_regs+PCI_INT_SELECT_HI);
+-		} else {
+-			ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
+-			ivec &= ~(0xF << (i << 2));
+-			ivec |= p->irq << (i << 2);
+-			writew(ivec, pcic->pcic_regs+PCI_INT_SELECT_LO);
+-		}
+-	}
+-	dev->irq = pcic_build_device_irq(NULL, real_irq);
+-}
+-
+-/*
+- * Normally called from {do_}pci_scan_bus...
+- */
+-void pcibios_fixup_bus(struct pci_bus *bus)
+-{
+-	struct pci_dev *dev;
+-	struct linux_pcic *pcic;
+-	/* struct linux_pbm_info* pbm = &pcic->pbm; */
+-	int node;
+-	struct pcidev_cookie *pcp;
+-
+-	if (!pcic0_up) {
+-		pci_info(bus, "pcibios_fixup_bus: no PCIC\n");
+-		return;
+-	}
+-	pcic = &pcic0;
+-
+-	/*
+-	 * Next crud is an equivalent of pbm = pcic_bus_to_pbm(bus);
+-	 */
+-	if (bus->number != 0) {
+-		pci_info(bus, "pcibios_fixup_bus: nonzero bus 0x%x\n",
+-			 bus->number);
+-		return;
+-	}
+-
+-	list_for_each_entry(dev, &bus->devices, bus_list) {
+-		node = pdev_to_pnode(&pcic->pbm, dev);
+-		if(node == 0)
+-			node = -1;
+-
+-		/* cookies */
+-		pcp = pci_devcookie_alloc();
+-		pcp->pbm = &pcic->pbm;
+-		pcp->prom_node = of_find_node_by_phandle(node);
+-		dev->sysdata = pcp;
+-
+-		/* fixing I/O to look like memory */
+-		if ((dev->class>>16) != PCI_BASE_CLASS_BRIDGE)
+-			pcic_map_pci_device(pcic, dev, node);
+-
+-		pcic_fill_irq(pcic, dev, node);
+-	}
+-}
+-
+-int pcibios_enable_device(struct pci_dev *dev, int mask)
+-{
+-	struct resource *res;
+-	u16 cmd, oldcmd;
+-	int i;
+-
+-	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+-	oldcmd = cmd;
+-
+-	pci_dev_for_each_resource(dev, res, i) {
+-		/* Only set up the requested stuff */
+-		if (!(mask & (1<<i)))
+-			continue;
+-
+-		if (res->flags & IORESOURCE_IO)
+-			cmd |= PCI_COMMAND_IO;
+-		if (res->flags & IORESOURCE_MEM)
+-			cmd |= PCI_COMMAND_MEMORY;
+-	}
+-
+-	if (cmd != oldcmd) {
+-		pci_info(dev, "enabling device (%04x -> %04x)\n", oldcmd, cmd);
+-		pci_write_config_word(dev, PCI_COMMAND, cmd);
+-	}
+-	return 0;
+-}
+-
+-/* Makes compiler happy */
+-static volatile int pcic_timer_dummy;
+-
+-static void pcic_clear_clock_irq(void)
+-{
+-	pcic_timer_dummy = readl(pcic0.pcic_regs+PCI_SYS_LIMIT);
+-}
+-
+-/* CPU frequency is 100 MHz, timer increments every 4 CPU clocks */
+-#define USECS_PER_JIFFY  (1000000 / HZ)
+-#define TICK_TIMER_LIMIT ((100 * 1000000 / 4) / HZ)
+-
+-static unsigned int pcic_cycles_offset(void)
+-{
+-	u32 value, count;
+-
+-	value = readl(pcic0.pcic_regs + PCI_SYS_COUNTER);
+-	count = value & ~PCI_SYS_COUNTER_OVERFLOW;
+-
+-	if (value & PCI_SYS_COUNTER_OVERFLOW)
+-		count += TICK_TIMER_LIMIT;
+-	/*
+-	 * We divide all by HZ
+-	 * to have microsecond resolution and to avoid overflow
+-	 */
+-	count = ((count / HZ) * USECS_PER_JIFFY) / (TICK_TIMER_LIMIT / HZ);
+-
+-	/* Coordinate with the sparc_config.clock_rate setting */
+-	return count * 2;
+-}
+-
+-void __init pci_time_init(void)
+-{
+-	struct linux_pcic *pcic = &pcic0;
+-	unsigned long v;
+-	int timer_irq, irq;
+-	int err;
+-
+-#ifndef CONFIG_SMP
+-	/*
+-	 * The clock_rate is in SBUS dimension.
+-	 * We take into account this in pcic_cycles_offset()
+-	 */
+-	sparc_config.clock_rate = SBUS_CLOCK_RATE / HZ;
+-	sparc_config.features |= FEAT_L10_CLOCKEVENT;
+-#endif
+-	sparc_config.features |= FEAT_L10_CLOCKSOURCE;
+-	sparc_config.get_cycles_offset = pcic_cycles_offset;
+-
+-	writel (TICK_TIMER_LIMIT, pcic->pcic_regs+PCI_SYS_LIMIT);
+-	/* PROM should set appropriate irq */
+-	v = readb(pcic->pcic_regs+PCI_COUNTER_IRQ);
+-	timer_irq = PCI_COUNTER_IRQ_SYS(v);
+-	writel (PCI_COUNTER_IRQ_SET(timer_irq, 0),
+-		pcic->pcic_regs+PCI_COUNTER_IRQ);
+-	irq = pcic_build_device_irq(NULL, timer_irq);
+-	err = request_irq(irq, timer_interrupt,
+-			  IRQF_TIMER, "timer", NULL);
+-	if (err) {
+-		prom_printf("time_init: unable to attach IRQ%d\n", timer_irq);
+-		prom_halt();
+-	}
+-	local_irq_enable();
+-}
+-
+-
+-#if 0
+-static void watchdog_reset() {
+-	writeb(0, pcic->pcic_regs+PCI_SYS_STATUS);
+-}
+-#endif
+-
+-/*
+- * NMI
+- */
+-void pcic_nmi(unsigned int pend, struct pt_regs *regs)
+-{
+-	pend = swab32(pend);
+-
+-	if (!pcic_speculative || (pend & PCI_SYS_INT_PENDING_PIO) == 0) {
+-		/*
+-		 * XXX On CP-1200 PCI #SERR may happen, we do not know
+-		 * what to do about it yet.
+-		 */
+-		printk("Aiee, NMI pend 0x%x pc 0x%x spec %d, hanging\n",
+-		    pend, (int)regs->pc, pcic_speculative);
+-		for (;;) { }
+-	}
+-	pcic_speculative = 0;
+-	pcic_trapped = 1;
+-	regs->pc = regs->npc;
+-	regs->npc += 4;
+-}
+-
+-static inline unsigned long get_irqmask(int irq_nr)
+-{
+-	return 1 << irq_nr;
+-}
+-
+-static void pcic_mask_irq(struct irq_data *data)
+-{
+-	unsigned long mask, flags;
+-
+-	mask = (unsigned long)data->chip_data;
+-	local_irq_save(flags);
+-	writel(mask, pcic0.pcic_regs+PCI_SYS_INT_TARGET_MASK_SET);
+-	local_irq_restore(flags);
+-}
+-
+-static void pcic_unmask_irq(struct irq_data *data)
+-{
+-	unsigned long mask, flags;
+-
+-	mask = (unsigned long)data->chip_data;
+-	local_irq_save(flags);
+-	writel(mask, pcic0.pcic_regs+PCI_SYS_INT_TARGET_MASK_CLEAR);
+-	local_irq_restore(flags);
+-}
+-
+-static unsigned int pcic_startup_irq(struct irq_data *data)
+-{
+-	irq_link(data->irq);
+-	pcic_unmask_irq(data);
+-	return 0;
+-}
+-
+-static struct irq_chip pcic_irq = {
+-	.name		= "pcic",
+-	.irq_startup	= pcic_startup_irq,
+-	.irq_mask	= pcic_mask_irq,
+-	.irq_unmask	= pcic_unmask_irq,
+-};
+-
+-unsigned int pcic_build_device_irq(struct platform_device *op,
+-                                   unsigned int real_irq)
+-{
+-	unsigned int irq;
+-	unsigned long mask;
+-
+-	irq = 0;
+-	mask = get_irqmask(real_irq);
+-	if (mask == 0)
+-		goto out;
+-
+-	irq = irq_alloc(real_irq, real_irq);
+-	if (irq == 0)
+-		goto out;
+-
+-	irq_set_chip_and_handler_name(irq, &pcic_irq,
+-	                              handle_level_irq, "PCIC");
+-	irq_set_chip_data(irq, (void *)mask);
+-
+-out:
+-	return irq;
+-}
+-
+-
+-static void pcic_load_profile_irq(int cpu, unsigned int limit)
+-{
+-	printk("PCIC: unimplemented code: FILE=%s LINE=%d", __FILE__, __LINE__);
+-}
+-
+-void __init sun4m_pci_init_IRQ(void)
+-{
+-	sparc_config.build_device_irq = pcic_build_device_irq;
+-	sparc_config.clear_clock_irq  = pcic_clear_clock_irq;
+-	sparc_config.load_profile_irq = pcic_load_profile_irq;
+-}
+-
+-subsys_initcall(pcic_init);
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 08bbdc458596..848404610b86 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -43,7 +43,6 @@
+ #include <asm/io.h>
+ #include <asm/idprom.h>
+ #include <asm/page.h>
+-#include <asm/pcic.h>
+ #include <asm/irq_regs.h>
+ #include <asm/setup.h>
  
- 	/* It really is const after this point. */
- 	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
-diff --git a/arch/sparc/mm/swift.S b/arch/sparc/mm/swift.S
-deleted file mode 100644
-index f414bfd8d899..000000000000
---- a/arch/sparc/mm/swift.S
-+++ /dev/null
-@@ -1,256 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * swift.S: MicroSparc-II mmu/cache operations.
-- *
-- * Copyright (C) 1999 David S. Miller (davem@redhat.com)
-- */
--
--#include <asm/psr.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtsrmmu.h>
--#include <asm/asm-offsets.h>
--
--	.text
--	.align	4
--
--#if 1	/* XXX screw this, I can't get the VAC flushes working
--	 * XXX reliably... -DaveM
--	 */
--	.globl	swift_flush_cache_all, swift_flush_cache_mm
--	.globl	swift_flush_cache_range, swift_flush_cache_page
--	.globl	swift_flush_page_for_dma
--	.globl	swift_flush_page_to_ram
--
--swift_flush_cache_all:
--swift_flush_cache_mm:
--swift_flush_cache_range:
--swift_flush_cache_page:
--swift_flush_page_for_dma:
--swift_flush_page_to_ram:
--	sethi	%hi(0x2000), %o0
--1:	subcc	%o0, 0x10, %o0
--	add	%o0, %o0, %o1
--	sta	%g0, [%o0] ASI_M_DATAC_TAG
--	bne	1b
--	 sta	%g0, [%o1] ASI_M_TXTC_TAG
--	retl
--	 nop
--#else
--
--	.globl	swift_flush_cache_all
--swift_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--
--	/* Just clear out all the tags. */
--	sethi	%hi(16 * 1024), %o0
--1:	subcc	%o0, 16, %o0
--	sta	%g0, [%o0] ASI_M_TXTC_TAG
--	bne	1b
--	 sta	%g0, [%o0] ASI_M_DATAC_TAG
--	retl
--	 nop
--
--	.globl	swift_flush_cache_mm
--swift_flush_cache_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_cache_mm_out
--	WINDOW_FLUSH(%g4, %g5)
--	rd	%psr, %g1
--	andn	%g1, PSR_ET, %g3
--	wr	%g3, 0x0, %psr
--	nop
--	nop
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %g5
--	sta	%g2, [%g7] ASI_M_MMUREGS
--
--#if 1
--	sethi	%hi(0x2000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o0] ASI_M_FLUSH_CTX
--	bne	1b
--	 nop
--#else
--	clr	%o0
--	or	%g0, 2048, %g7
--	or	%g0, 2048, %o1
--	add	%o1, 2048, %o2
--	add	%o2, 2048, %o3
--	mov	16, %o4
--	add	%o4, 2048, %o5
--	add	%o5, 2048, %g2
--	add	%g2, 2048, %g3
--1:	sta	%g0, [%o0      ] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o1] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o2] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o3] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o4] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o5] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_CTX
--	subcc	%g7, 32, %g7
--	bne	1b
--	 add	%o0, 32, %o0
--#endif
--
--	mov	SRMMU_CTX_REG, %g7
--	sta	%g5, [%g7] ASI_M_MMUREGS
--	wr	%g1, 0x0, %psr
--	nop
--	nop
--swift_flush_cache_mm_out:
--	retl
--	 nop
--
--	.globl	swift_flush_cache_range
--swift_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	sub	%o2, %o1, %o2
--	sethi	%hi(4096), %o3
--	cmp	%o2, %o3
--	bgu	swift_flush_cache_mm
--	 nop
--	b	70f
--	 nop
--
--	.globl	swift_flush_cache_page
--swift_flush_cache_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--70:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_cache_page_out
--	WINDOW_FLUSH(%g4, %g5)
--	rd	%psr, %g1
--	andn	%g1, PSR_ET, %g3
--	wr	%g3, 0x0, %psr
--	nop
--	nop
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %g5
--	sta	%g2, [%g7] ASI_M_MMUREGS
--
--	andn	%o1, (PAGE_SIZE - 1), %o1
--#if 1
--	sethi	%hi(0x1000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	bne	1b
--	 nop
--#else
--	or	%g0, 512, %g7
--	or	%g0, 512, %o0
--	add	%o0, 512, %o2
--	add	%o2, 512, %o3
--	add	%o3, 512, %o4
--	add	%o4, 512, %o5
--	add	%o5, 512, %g3
--	add	%g3, 512, %g4
--1:	sta	%g0, [%o1      ] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	subcc	%g7, 16, %g7
--	bne	1b
--	 add	%o1, 16, %o1
--#endif
--
--	mov	SRMMU_CTX_REG, %g7
--	sta	%g5, [%g7] ASI_M_MMUREGS
--	wr	%g1, 0x0, %psr
--	nop
--	nop
--swift_flush_cache_page_out:
--	retl
--	 nop
--
--	/* Swift is write-thru, however it is not
--	 * I/O nor TLB-walk coherent.  Also it has
--	 * caches which are virtually indexed and tagged.
--	 */
--	.globl	swift_flush_page_for_dma
--	.globl	swift_flush_page_to_ram
--swift_flush_page_for_dma:
--swift_flush_page_to_ram:
--	andn	%o0, (PAGE_SIZE - 1), %o1
--#if 1
--	sethi	%hi(0x1000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	bne	1b
--	 nop
--#else
--	or	%g0, 512, %g7
--	or	%g0, 512, %o0
--	add	%o0, 512, %o2
--	add	%o2, 512, %o3
--	add	%o3, 512, %o4
--	add	%o4, 512, %o5
--	add	%o5, 512, %g3
--	add	%g3, 512, %g4
--1:	sta	%g0, [%o1      ] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	subcc	%g7, 16, %g7
--	bne	1b
--	 add	%o1, 16, %o1
--#endif
--	retl
--	 nop
--#endif
--
--	.globl	swift_flush_sig_insns
--swift_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	.globl	swift_flush_tlb_mm
--	.globl	swift_flush_tlb_range
--	.globl	swift_flush_tlb_all
--swift_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--swift_flush_tlb_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_tlb_all_out
--swift_flush_tlb_all:
--	mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--swift_flush_tlb_all_out:
--	retl
--	 nop
--
--	.globl	swift_flush_tlb_page
--swift_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	cmp	%o3, -1
--	be	swift_flush_tlb_page_out
--	 nop
--#if 1
--	mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE	
--#else
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PAGE	/* rem. virt. cache. prot. */
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--#endif
--swift_flush_tlb_page_out:
--	retl
--	 nop
-diff --git a/arch/sparc/mm/tsunami.S b/arch/sparc/mm/tsunami.S
-deleted file mode 100644
-index 62b742df65dc..000000000000
---- a/arch/sparc/mm/tsunami.S
-+++ /dev/null
-@@ -1,132 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * tsunami.S: High speed MicroSparc-I mmu/cache operations.
-- *
-- * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <asm/ptrace.h>
--#include <asm/asm-offsets.h>
--#include <asm/psr.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtsrmmu.h>
--
--	.text
--	.align	4
--
--	.globl	tsunami_flush_cache_all, tsunami_flush_cache_mm
--	.globl	tsunami_flush_cache_range, tsunami_flush_cache_page
--	.globl	tsunami_flush_page_to_ram, tsunami_flush_page_for_dma
--	.globl	tsunami_flush_sig_insns
--	.globl	tsunami_flush_tlb_all, tsunami_flush_tlb_mm
--	.globl	tsunami_flush_tlb_range, tsunami_flush_tlb_page
--
--	/* Sliiick... */
--tsunami_flush_cache_page:
--tsunami_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--tsunami_flush_cache_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	tsunami_flush_cache_out
--tsunami_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--tsunami_flush_page_for_dma:
--	sta	%g0, [%g0] ASI_M_IC_FLCLEAR
--	sta	%g0, [%g0] ASI_M_DC_FLCLEAR
--tsunami_flush_cache_out:
--tsunami_flush_page_to_ram:
--	retl
--	 nop
--
--tsunami_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	/* More slick stuff... */
--tsunami_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--tsunami_flush_tlb_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	tsunami_flush_tlb_out
--tsunami_flush_tlb_all:
--	 mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	nop
--	nop
--	nop
--	nop
--	nop
--tsunami_flush_tlb_out:
--	retl
--	 nop
--
--	/* This one can be done in a fine grained manner... */
--tsunami_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	cmp	%o3, -1
--	be	tsunami_flush_tlb_page_out
--	 lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	nop
--	nop
--	nop
--	nop
--	nop
--tsunami_flush_tlb_page_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--#define MIRROR_BLOCK(dst, src, offset, t0, t1, t2, t3) \
--	ldd	[src + offset + 0x18], t0; \
--	std	t0, [dst + offset + 0x18]; \
--	ldd	[src + offset + 0x10], t2; \
--	std	t2, [dst + offset + 0x10]; \
--	ldd	[src + offset + 0x08], t0; \
--	std	t0, [dst + offset + 0x08]; \
--	ldd	[src + offset + 0x00], t2; \
--	std	t2, [dst + offset + 0x00];
--
--tsunami_copy_1page:
--/* NOTE: This routine has to be shorter than 70insns --jj */
--	or	%g0, (PAGE_SIZE >> 8), %g1
--1:
--	MIRROR_BLOCK(%o0, %o1, 0x00, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x20, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x40, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x60, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x80, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xa0, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xc0, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xe0, %o2, %o3, %o4, %o5)
--	subcc	%g1, 1, %g1
--	add	%o0, 0x100, %o0
--	bne	1b
--	 add	%o1, 0x100, %o1
--
--	.globl	tsunami_setup_blockops
--tsunami_setup_blockops:
--	sethi	%hi(__copy_1page), %o0
--	or	%o0, %lo(__copy_1page), %o0
--	sethi	%hi(tsunami_copy_1page), %o1
--	or	%o1, %lo(tsunami_copy_1page), %o1
--	sethi	%hi(tsunami_setup_blockops), %o2
--	or	%o2, %lo(tsunami_setup_blockops), %o2
--	ld	[%o1], %o4
--1:	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	ld	[%o1], %o4
--	sta	%g0, [%g0] ASI_M_IC_FLCLEAR
--	sta	%g0, [%g0] ASI_M_DC_FLCLEAR
--	retl
--	 nop
-diff --git a/arch/sparc/mm/viking.S b/arch/sparc/mm/viking.S
-deleted file mode 100644
-index 48f062de7a7f..000000000000
---- a/arch/sparc/mm/viking.S
-+++ /dev/null
-@@ -1,284 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * viking.S: High speed Viking cache/mmu operations
-- *
-- * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)
-- * Copyright (C) 1997,1998,1999  Jakub Jelinek  (jj@ultra.linux.cz)
-- * Copyright (C) 1999  Pavel Semerad  (semerad@ss1000.ms.mff.cuni.cz)
-- */
--
--#include <asm/ptrace.h>
--#include <asm/psr.h>
--#include <asm/asm-offsets.h>
--#include <asm/asi.h>
--#include <asm/mxcc.h>
--#include <asm/page.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--#include <asm/viking.h>
--
--#ifdef CONFIG_SMP
--	.data
--	.align	4
--sun4dsmp_flush_tlb_spin:
--	.word	0
--#endif
--
--	.text
--	.align	4
--
--	.globl	viking_flush_cache_all, viking_flush_cache_mm
--	.globl	viking_flush_cache_range, viking_flush_cache_page
--	.globl	viking_flush_page, viking_mxcc_flush_page
--	.globl	viking_flush_page_for_dma, viking_flush_page_to_ram
--	.globl	viking_flush_sig_insns
--	.globl	viking_flush_tlb_all, viking_flush_tlb_mm
--	.globl	viking_flush_tlb_range, viking_flush_tlb_page
--
--viking_flush_page:
--	sethi	%hi(PAGE_OFFSET), %g2
--	sub	%o0, %g2, %g3
--	srl	%g3, 12, %g1		! ppage >> 12
--
--	clr	%o1			! set counter, 0 - 127
--	sethi	%hi(PAGE_OFFSET + PAGE_SIZE - 0x80000000), %o3
--	sethi	%hi(0x80000000), %o4
--	sethi	%hi(VIKING_PTAG_VALID), %o5
--	sethi	%hi(2*PAGE_SIZE), %o0
--	sethi	%hi(PAGE_SIZE), %g7
--	clr	%o2			! block counter, 0 - 3
--5:
--	sll	%o1, 5, %g4
--	or	%g4, %o4, %g4		! 0x80000000 | (set << 5)
--
--	sll	%o2, 26, %g5		! block << 26
--6:
--	or	%g5, %g4, %g5
--	ldda	[%g5] ASI_M_DATAC_TAG, %g2
--	cmp	%g3, %g1		! ptag == ppage?
--	bne	7f
--	 inc	%o2
--
--	andcc	%g2, %o5, %g0		! ptag VALID?
--	be	7f
--	 add	%g4, %o3, %g2		! (PAGE_OFFSET + PAGE_SIZE) | (set << 5)
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	b	8f
--	 ld	[%g2 + %g7], %g3
--
--7:
--	cmp	%o2, 3
--	ble	6b
--	 sll	%o2, 26, %g5			! block << 26
--
--8:	inc	%o1
--	cmp	%o1, 0x7f
--	ble	5b
--	 clr	%o2
--
--9:	retl
--	 nop
--
--viking_mxcc_flush_page:
--	sethi	%hi(PAGE_OFFSET), %g2
--	sub	%o0, %g2, %g3
--	sub	%g3, -PAGE_SIZE, %g3		! ppage + PAGE_SIZE
--	sethi	%hi(MXCC_SRCSTREAM), %o3	! assume %hi(MXCC_SRCSTREAM) == %hi(MXCC_DESTSTREAM)
--	mov	0x10, %g2			! set cacheable bit
--	or	%o3, %lo(MXCC_SRCSTREAM), %o2
--	or	%o3, %lo(MXCC_DESSTREAM), %o3
--	sub	%g3, MXCC_STREAM_SIZE, %g3
--6:
--	stda	%g2, [%o2] ASI_M_MXCC
--	stda	%g2, [%o3] ASI_M_MXCC
--	andncc	%g3, PAGE_MASK, %g0
--	bne	6b
--	 sub	%g3, MXCC_STREAM_SIZE, %g3
--
--9:	retl
--	 nop
--
--viking_flush_cache_page:
--viking_flush_cache_range:
--#ifndef CONFIG_SMP
--	ld	[%o0 + VMA_VM_MM], %o0
--#endif
--viking_flush_cache_mm:
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	bne	viking_flush_cache_all
--	 nop
--	b,a	viking_flush_cache_out
--#endif
--viking_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--viking_flush_cache_out:
--	retl
--	 nop
--
--viking_flush_tlb_all:
--	mov	0x400, %g1
--	retl
--	 sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--
--viking_flush_tlb_mm:
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o1, -1
--	be	1f
--#endif
--	mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--1:	retl
--	 nop
--#endif
--
--viking_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	2f
--#endif
--	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--1:	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	1b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--2:	retl
--	 nop
--#endif
--
--viking_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	1f
--#endif
--	and	%o1, PAGE_MASK, %o1
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--1:	retl
--	 nop
--#endif
--
--viking_flush_page_to_ram:
--viking_flush_page_for_dma:
--viking_flush_sig_insns:
--	retl
--	 nop
--
--#ifdef CONFIG_SMP
--	.globl	sun4dsmp_flush_tlb_all, sun4dsmp_flush_tlb_mm
--	.globl	sun4dsmp_flush_tlb_range, sun4dsmp_flush_tlb_page
--sun4dsmp_flush_tlb_all:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	0x400, %g1
--	sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_mm:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_range:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	3f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--2:	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	2b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--3:	tst	%g5
--	bne,a	3b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_page:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	and	%o1, PAGE_MASK, %o1
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--	 nop
--#endif
+@@ -347,9 +346,6 @@ void __init time_init(void)
+ 	sparc_config.features = 0;
+ 	late_time_init = sparc32_late_time_init;
+ 
+-	if (pcic_present())
+-		pci_time_init();
+-	else
+-		sbus_time_init();
++	sbus_time_init();
+ }
+ 
 
 -- 
 2.34.1
