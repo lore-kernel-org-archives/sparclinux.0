@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DDE447768;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 723B247794;
 	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710008149; cv=none; b=s3ouqB2JOgVQERFIWI+6iu0OcMvPbjzt4jvuLdzn46WDrFyXN5kXT/JsUElNj1VJMGIikFp8F1cxzoTx+r+ZKiehUDjygfsT5pn03/Jlon1priTqr1Hu/oa01aIRKZxwl8LPmk+strbg95xC7c2M73vqh4AOQEIX5Ln6z7K412c=
+	t=1710008149; cv=none; b=Bk9VTzV1F09YE2m24OypIFtUTArgAUHYQI7dSkLCMmyGGTlJm1p/FZgLX87J49ouJvcjszeD7ewGlOTx9Ver62iD/3m1+3CUaLHWokLbCt6lt3zQZxXXxbGuteaiB3p7g8atwnS8ZsyUvkakC1uOWpkihdg74jklzYJrxAkq7U4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1710008149; c=relaxed/simple;
-	bh=zdAy0Xr0AnQQ4NyqA4RA58vzeuCeKFwnVIJtR0fcyNk=;
+	bh=6cZ7EkkqsT3XsnxcYHDC+rLmlQ/2YmlMGvCEvx4DQkU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=FT6LkxqV420TzIBj94KlhlhjH7r2h6LWwxaImao5480gBO+9AORuK3voczsBB3t4cmee25JzQ2LNHGf0ieZ0ewvdYI2hzmA3roo+vt3mRJb6JqThLVR88FuYPvLBFm0WWzC4sV7A5xjgt6lW+Fsyg5ceH0CDIkmcEp9n9yu+CJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qil3HXjw; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=e2ETQIr+fQ85LYSwSNOCpijOGoJBab0G6UVAPIigdp8A0nVwtDPVYRfMUIQE+1MeijDhgcM70pJrlEg0T2iyDW4Iwx88bnw8NxjgR1MOqRIpUUK+2cthnlNSD7r6fJUllHmUksEB4bDXCKIVUr6R4IduEfu6oGty4dO50DTauQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h5QnxHzn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qil3HXjw"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id D3CC6C43143;
-	Sat,  9 Mar 2024 18:15:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h5QnxHzn"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 4DACDC4160D;
+	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710008148;
-	bh=zdAy0Xr0AnQQ4NyqA4RA58vzeuCeKFwnVIJtR0fcyNk=;
+	s=k20201202; t=1710008149;
+	bh=6cZ7EkkqsT3XsnxcYHDC+rLmlQ/2YmlMGvCEvx4DQkU=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=Qil3HXjwJsVtA2J/mwV+icSdko3v9L+DFuQGNG6+xk3HKF7a+YzIHglIU4+LtdFDv
-	 Wvyr+i7FY5mqnu9OZYDThk+vJRD5GSpO3i/n8gcUmmxu7yjS2cap3gamTwYb8EHnjv
-	 jMnkTQ1OaMQBpoggVKqsG57CJI6tDZ8e7kq0gxdNkrEfDOnXx3HLIJJ1Zlzg2+jZsy
-	 GJV/6Cw9T2WVdi8JEPQGvWK+O89F2FBmp+1GEI9ds+NzfFatykEi2zPI0y2ASXpK+z
-	 Z8qpMmlcTFAcVWY0OA+BgzFIhvxA63CcAawnmXEACF/qEj7vTEwZnrMkN3BMKtnXK0
-	 o7OpxlWinzQzg==
+	b=h5QnxHznCJMQ/0V9s49tqUuUgquKbJwkXSXT5RM90yQVGMWQliOiwIP7OrODGaWhf
+	 oHkC0AAbmbdxojho8vDj2BZkPCGwQh4j3n7fpsIHoymsU/Sjh8UVhEkraBhF+L+5S3
+	 TPDy8kC/P1Onj5cD5EnwuFPvvjwUoT4Mmqq48jxo6gTxmCqv6x/+fqwzDsnBMotnqi
+	 1oA5GJN5PPWvvksoHdzsCcgiu71bkuQpO+5dEJ2j1TShj+Af+BFWRUUu2NxfRhhk5J
+	 EoOKcZlrC/7mpj5iK6+N/FHW0IT4tRdYeHBRcA3ncunww668B8ZUmRNREPKk9jH+Kb
+	 KpHhZ2Y3haBJQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2E7CC54E61;
-	Sat,  9 Mar 2024 18:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 397D0C54E61;
+	Sat,  9 Mar 2024 18:15:49 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 09 Mar 2024 19:15:28 +0100
-Subject: [PATCH v2 07/28] sparc32: Drop run-time patching of ipi trap
+Date: Sat, 09 Mar 2024 19:15:33 +0100
+Subject: [PATCH v2 12/28] sparc32: Drop mbus support
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240309-sunset-v2-7-f09912574d2c@ravnborg.org>
+Message-Id: <20240309-sunset-v2-12-f09912574d2c@ravnborg.org>
 References: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
 In-Reply-To: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -57,11 +57,11 @@ Cc: Helge Deller <deller@gmx.de>, Randy Dunlap <rdunlap@infradead.org>,
  linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
  linux-sound@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1710008145; l=7150;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1710008145; l=9892;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=X8zjXluzKWbFIcpgmaunf+yz3YUUIB2TYhKrHE6RXP4=; =?utf-8?q?b=3DSDqDKVflKSgo?=
- =?utf-8?q?AdqXfmrUT9t+zo9fqC7uIzf3KVyb4ZwXWOxYSYIkTW2AqAknJswhGugjAjeWrHUg?=
- xnEF+e3TCH12GjXjjTc2LJWgIj+CxvXUqgHc/KJR3/75w5xf2WBK
+ bh=61rc+oDXOzeFmUjj78H6jDuEkLnEv0pp1W/du55+hy4=; =?utf-8?q?b=3DHmYQOQTD5tDZ?=
+ =?utf-8?q?9UuBJJnx/g+Nd4CNGpsy9yRCCHJ2BRGD/ijmiUNfHzsopy4jB2gF09XkcP6e+9vg?=
+ FyxYvqYiCIIhZZ5eOTxPWaJsr0OVshf0VmLa5hRlTvkE2aCMETYH
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with auth_id=22
@@ -70,12 +70,7 @@ Reply-To: <sam@ravnborg.org>
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-There is no longer any need for the run-time patching of the ipi trap
-with the removal of sun4m and sun4d. Remove the patching and drop the
-ipi implementation for the two machines.
-
-The patch includes removal of patching from pcic as this was needed to
-fix the build. pcic will be removed in a later commit.
+Only used by older SPARC HW, not used by LEON.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Arnd Bergmann <arnd@kernel.org>
@@ -83,216 +78,296 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/kernel/entry.S     | 70 ++-----------------------------------------
- arch/sparc/kernel/kernel.h    |  4 ---
- arch/sparc/kernel/leon_smp.c  |  3 --
- arch/sparc/kernel/pcic.c      | 11 -------
- arch/sparc/kernel/sun4d_smp.c |  3 --
- arch/sparc/kernel/ttable_32.S |  9 +++---
- 6 files changed, 7 insertions(+), 93 deletions(-)
+ arch/sparc/include/asm/elf_32.h |  2 -
+ arch/sparc/include/asm/mbus.h   | 97 -----------------------------------------
+ arch/sparc/kernel/cpu.c         |  1 -
+ arch/sparc/kernel/setup_32.c    |  1 -
+ arch/sparc/mm/iommu.c           | 18 ++------
+ arch/sparc/mm/srmmu.c           | 48 --------------------
+ 6 files changed, 3 insertions(+), 164 deletions(-)
 
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index c6a5cb949381..7cf148a996b9 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -174,32 +174,6 @@ maybe_smp4m_msg_check_resched:
- maybe_smp4m_msg_out:
- 	RESTORE_ALL
+diff --git a/arch/sparc/include/asm/elf_32.h b/arch/sparc/include/asm/elf_32.h
+index 37a6016c9ccd..b2cca9be55c2 100644
+--- a/arch/sparc/include/asm/elf_32.h
++++ b/arch/sparc/include/asm/elf_32.h
+@@ -91,8 +91,6 @@ typedef struct {
+ 	unsigned int	pr_q[64];
+ } elf_fpregset_t;
  
--	.align	4
--	.globl	linux_trap_ipi15_sun4m
--linux_trap_ipi15_sun4m:
--	SAVE_ALL
--	sethi	%hi(0x80000000), %o2
--	GET_PROCESSOR4M_ID(o0)
--	sethi	%hi(sun4m_irq_percpu), %l5
--	or	%l5, %lo(sun4m_irq_percpu), %o5
--	sll	%o0, 2, %o0
--	ld	[%o5 + %o0], %o5
--	ld	[%o5 + 0x00], %o3	! sun4m_irq_percpu[cpu]->pending
--	andcc	%o3, %o2, %g0
--	be	sun4m_nmi_error		! Must be an NMI async memory error
--	 st	%o2, [%o5 + 0x04]	! sun4m_irq_percpu[cpu]->clear=0x80000000
--	WRITE_PAUSE
--	ld	[%o5 + 0x00], %g0	! sun4m_irq_percpu[cpu]->pending
--	WRITE_PAUSE
--	or	%l0, PSR_PIL, %l4
--	wr	%l4, 0x0, %psr
--	WRITE_PAUSE
--	wr	%l4, PSR_ET, %psr
--	WRITE_PAUSE
--	call	smp4m_cross_call_irq
--	 nop
--	b	ret_trap_lockless_ipi
--	 clr	%l6
- 
- 	.globl	smp4d_ticker
- 	/* SMP per-cpu ticker interrupts are handled specially. */
-@@ -220,44 +194,6 @@ smp4d_ticker:
- 	WRITE_PAUSE
- 	RESTORE_ALL
- 
--	.align	4
--	.globl	linux_trap_ipi15_sun4d
--linux_trap_ipi15_sun4d:
--	SAVE_ALL
--	sethi	%hi(CC_BASE), %o4
--	sethi	%hi(MXCC_ERR_ME|MXCC_ERR_PEW|MXCC_ERR_ASE|MXCC_ERR_PEE), %o2
--	or	%o4, (CC_EREG - CC_BASE), %o0
--	ldda	[%o0] ASI_M_MXCC, %o0
--	andcc	%o0, %o2, %g0
--	bne	1f
--	 sethi	%hi(BB_STAT2), %o2
--	lduba	[%o2] ASI_M_CTL, %o2
--	andcc	%o2, BB_STAT2_MASK, %g0
--	bne	2f
--	 or	%o4, (CC_ICLR - CC_BASE), %o0
--	sethi	%hi(1 << 15), %o1
--	stha	%o1, [%o0] ASI_M_MXCC	/* Clear PIL 15 in MXCC's ICLR */
--	or	%l0, PSR_PIL, %l4
--	wr	%l4, 0x0, %psr
--	WRITE_PAUSE
--	wr	%l4, PSR_ET, %psr
--	WRITE_PAUSE
--	call	smp4d_cross_call_irq
--	 nop
--	b	ret_trap_lockless_ipi
--	 clr	%l6
+-#include <asm/mbus.h>
 -
--1:	/* MXCC error */
--2:	/* BB error */
--	/* Disable PIL 15 */
--	set	CC_IMSK, %l4
--	lduha	[%l4] ASI_M_MXCC, %l5
--	sethi	%hi(1 << 15), %l7
--	or	%l5, %l7, %l5
--	stha	%l5, [%l4] ASI_M_MXCC
--	/* FIXME */
--1:	b,a	1b
+ /*
+  * This is used to ensure we don't load something for the wrong architecture.
+  */
+diff --git a/arch/sparc/include/asm/mbus.h b/arch/sparc/include/asm/mbus.h
+deleted file mode 100644
+index 8b6dbe701b9b..000000000000
+--- a/arch/sparc/include/asm/mbus.h
++++ /dev/null
+@@ -1,97 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * mbus.h:  Various defines for MBUS modules.
+- *
+- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
+- */
 -
- 	.globl	smpleon_ipi
- 	.extern leon_ipi_interrupt
- 	/* SMP per-cpu IPI interrupts are handled specially. */
-@@ -618,11 +554,11 @@ sun4m_nmi_error:
- 
- #ifndef CONFIG_SMP
- 	.align	4
--	.globl	linux_trap_ipi15_sun4m
--linux_trap_ipi15_sun4m:
-+	.globl	linux_trap_ipi15_leon
-+linux_trap_ipi15_leon:
- 	SAVE_ALL
- 
--	ba	sun4m_nmi_error
-+	ba      sun4m_nmi_error
- 	 nop
- #endif /* CONFIG_SMP */
- 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 64703be6c015..3ba842c6b6da 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -134,10 +134,6 @@ void leonsmp_ipi_interrupt(void);
- void leon_cross_call_irq(void);
- 
- /* head_32.S */
--extern unsigned int t_nmi[];
--extern unsigned int linux_trap_ipi15_sun4d[];
--extern unsigned int linux_trap_ipi15_sun4m[];
+-#ifndef _SPARC_MBUS_H
+-#define _SPARC_MBUS_H
 -
- extern struct tt_entry trapbase[];
- extern struct tt_entry trapbase_cpu1[];
- extern struct tt_entry trapbase_cpu2[];
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 1ee393abc463..7d5e423c186d 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -463,8 +463,5 @@ static const struct sparc32_ipi_ops leon_ipi_ops = {
+-#include <asm/ross.h>    /* HyperSparc stuff */
+-#include <asm/viking.h>  /* Ugh, bug city... */
+-
+-enum mbus_module {
+-	HyperSparc        = 0,
+-	Swift_ok          = 4,
+-	Swift_bad_c       = 5,
+-	Swift_lots_o_bugs = 6,
+-	Tsunami           = 7,
+-	Viking_12         = 8,
+-	Viking_2x         = 9,
+-	Viking_30         = 10,
+-	Viking_35         = 11,
+-	Viking_new        = 12,
+-	TurboSparc	  = 13,
+-	SRMMU_INVAL_MOD   = 14,
+-};
+-
+-extern enum mbus_module srmmu_modtype;
+-extern unsigned int viking_rev, swift_rev, cypress_rev;
+-
+-/* HW Mbus module bugs we have to deal with */
+-#define HWBUG_COPYBACK_BROKEN        0x00000001
+-#define HWBUG_ASIFLUSH_BROKEN        0x00000002
+-#define HWBUG_VACFLUSH_BITROT        0x00000004
+-#define HWBUG_KERN_ACCBROKEN         0x00000008
+-#define HWBUG_KERN_CBITBROKEN        0x00000010
+-#define HWBUG_MODIFIED_BITROT        0x00000020
+-#define HWBUG_PC_BADFAULT_ADDR       0x00000040
+-#define HWBUG_SUPERSCALAR_BAD        0x00000080
+-#define HWBUG_PACINIT_BITROT         0x00000100
+-
+-/* First the module type values. To find out which you have, just load
+- * the mmu control register from ASI_M_MMUREG alternate address space and
+- * shift the value right 28 bits.
+- */
+-/* IMPL field means the company which produced the chip. */
+-#define MBUS_VIKING        0x4   /* bleech, Texas Instruments Module */
+-#define MBUS_LSI           0x3   /* LSI Logics */
+-#define MBUS_ROSS          0x1   /* Ross is nice */
+-#define MBUS_FMI           0x0   /* Fujitsu Microelectronics/Swift */
+-
+-/* Ross Module versions */
+-#define ROSS_604_REV_CDE        0x0   /* revisions c, d, and e */
+-#define ROSS_604_REV_F          0x1   /* revision f */
+-#define ROSS_605                0xf   /* revision a, a.1, and a.2 */
+-#define ROSS_605_REV_B          0xe   /* revision b */
+-
+-/* TI Viking Module versions */
+-#define VIKING_REV_12           0x1   /* Version 1.2 or SPARCclassic's CPU */
+-#define VIKING_REV_2            0x2   /* Version 2.1, 2.2, 2.3, and 2.4 */
+-#define VIKING_REV_30           0x3   /* Version 3.0 */
+-#define VIKING_REV_35           0x4   /* Version 3.5 */
+-
+-/* LSI Logics. */
+-#define LSI_L64815		0x0
+-
+-/* Fujitsu */
+-#define FMI_AURORA		0x4   /* MB8690x, a Swift module... */
+-#define FMI_TURBO		0x5   /* MB86907, a TurboSparc module... */
+-
+-/* For multiprocessor support we need to be able to obtain the CPU id and
+- * the MBUS Module id.
+- */
+-
+-/* The CPU ID is encoded in the trap base register, 20 bits to the left of
+- * bit zero, with 2 bits being significant.
+- */
+-#define TBR_ID_SHIFT            20
+-
+-static inline int get_cpuid(void)
+-{
+-	register int retval;
+-	__asm__ __volatile__("rd %%tbr, %0\n\t"
+-			     "srl %0, %1, %0\n\t" :
+-			     "=r" (retval) :
+-			     "i" (TBR_ID_SHIFT));
+-	return (retval & 3);
+-}
+-
+-static inline int get_modid(void)
+-{
+-	return (get_cpuid() | 0x8);
+-}
+-
+-	
+-#endif /* !(_SPARC_MBUS_H) */
+diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+index 79cd6ccfeac0..cca7de051593 100644
+--- a/arch/sparc/kernel/cpu.c
++++ b/arch/sparc/kernel/cpu.c
+@@ -19,7 +19,6 @@
+ #include <asm/page.h>
+ #include <asm/head.h>
+ #include <asm/psr.h>
+-#include <asm/mbus.h>
+ #include <asm/cpudata.h>
  
- void __init leon_init_smp(void)
+ #include "kernel.h"
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 704375c061e7..3c6c16fde8c3 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -41,7 +41,6 @@
+ #include <asm/page.h>
+ #include <asm/traps.h>
+ #include <asm/vaddrs.h>
+-#include <asm/mbus.h>
+ #include <asm/idprom.h>
+ #include <asm/cpudata.h>
+ #include <asm/setup.h>
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 5a5080db800f..832e5ff8b663 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -19,7 +19,6 @@
+ 
+ #include <asm/io.h>
+ #include <asm/mxcc.h>
+-#include <asm/mbus.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm/bitext.h>
+@@ -117,13 +116,7 @@ static void __init sbus_iommu_init(struct platform_device *op)
+ 		prom_halt();
+ 	}
+ 	bit_map_init(&iommu->usemap, bitmap, IOMMU_NPTES);
+-	/* To be coherent on HyperSparc, the page color of DVMA
+-	 * and physical addresses must match.
+-	 */
+-	if (srmmu_modtype == HyperSparc)
+-		iommu->usemap.num_colors = vac_cache_size >> PAGE_SHIFT;
+-	else
+-		iommu->usemap.num_colors = 1;
++	iommu->usemap.num_colors = 1;
+ 
+ 	printk(KERN_INFO "IOMMU: impl %d vers %d table 0x%p[%d B] map [%d b]\n",
+ 	       impl, vers, iommu->page_table,
+@@ -445,11 +438,6 @@ static const struct dma_map_ops sbus_iommu_dma_pflush_ops = {
+ 
+ void __init ld_mmu_iommu(void)
  {
--	/* Patch ipi15 trap table */
--	t_nmi[1] = t_nmi[1] + (linux_trap_ipi15_leon - linux_trap_ipi15_sun4m);
--
- 	sparc32_ipi_ops = &leon_ipi_ops;
- }
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 25fe0a061732..d952bcbbc395 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -354,17 +354,6 @@ int __init pcic_probe(void)
- 	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
- 	strcpy(pbm->prom_name, namebuf);
- 
--	{
--		extern int pcic_nmi_trap_patch[4];
--
--		t_nmi[0] = pcic_nmi_trap_patch[0];
--		t_nmi[1] = pcic_nmi_trap_patch[1];
--		t_nmi[2] = pcic_nmi_trap_patch[2];
--		t_nmi[3] = pcic_nmi_trap_patch[3];
--		swift_flush_dcache();
--		pcic_regs = pcic->pcic_regs;
+-	if (viking_mxcc_present || srmmu_modtype == HyperSparc) {
+-		dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
+-		ioperm_noc = IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID;
+-	} else {
+-		dvma_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV);
+-		ioperm_noc = IOPTE_WRITE | IOPTE_VALID;
 -	}
--
- 	prom_getstring(prom_root_node, "name", namebuf, 63);  namebuf[63] = 0;
- 	{
- 		struct pcic_sn2list *p;
-diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-index 9a62a5cf3337..be5bcbee1af4 100644
---- a/arch/sparc/kernel/sun4d_smp.c
-+++ b/arch/sparc/kernel/sun4d_smp.c
-@@ -403,9 +403,6 @@ void __init sun4d_init_smp(void)
++	dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
++	ioperm_noc = IOPTE_CACHE | IOPTE_WRITE | IOPTE_VALID;
+ }
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 04d9653890c5..3a7e10729a02 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -34,7 +34,6 @@
+ #include <asm/cache.h>
+ #include <asm/traps.h>
+ #include <asm/oplib.h>
+-#include <asm/mbus.h>
+ #include <asm/page.h>
+ #include <asm/asi.h>
+ #include <asm/smp.h>
+@@ -51,8 +50,6 @@
+ 
+ #include "mm_32.h"
+ 
+-enum mbus_module srmmu_modtype;
+-static unsigned int hwbug_bitmask;
+ int vac_cache_size;
+ EXPORT_SYMBOL(vac_cache_size);
+ int vac_line_size;
+@@ -1117,7 +1114,6 @@ static const struct sparc32_cachetlb_ops hypersparc_ops = {
+ static void __init init_hypersparc(void)
  {
- 	int i;
+ 	srmmu_name = "ROSS HyperSparc";
+-	srmmu_modtype = HyperSparc;
  
--	/* Patch ipi15 trap table */
--	t_nmi[1] = t_nmi[1] + (linux_trap_ipi15_sun4d - linux_trap_ipi15_sun4m);
+ 	init_vac_layout();
+ 
+@@ -1176,45 +1172,6 @@ static void __init init_swift(void)
+ 			     "=r" (swift_rev) :
+ 			     "r" (SWIFT_MASKID_ADDR), "i" (ASI_M_BYPASS));
+ 	srmmu_name = "Fujitsu Swift";
+-	switch (swift_rev) {
+-	case 0x11:
+-	case 0x20:
+-	case 0x23:
+-	case 0x30:
+-		srmmu_modtype = Swift_lots_o_bugs;
+-		hwbug_bitmask |= (HWBUG_KERN_ACCBROKEN | HWBUG_KERN_CBITBROKEN);
+-		/*
+-		 * Gee george, I wonder why Sun is so hush hush about
+-		 * this hardware bug... really braindamage stuff going
+-		 * on here.  However I think we can find a way to avoid
+-		 * all of the workaround overhead under Linux.  Basically,
+-		 * any page fault can cause kernel pages to become user
+-		 * accessible (the mmu gets confused and clears some of
+-		 * the ACC bits in kernel ptes).  Aha, sounds pretty
+-		 * horrible eh?  But wait, after extensive testing it appears
+-		 * that if you use pgd_t level large kernel pte's (like the
+-		 * 4MB pages on the Pentium) the bug does not get tripped
+-		 * at all.  This avoids almost all of the major overhead.
+-		 * Welcome to a world where your vendor tells you to,
+-		 * "apply this kernel patch" instead of "sorry for the
+-		 * broken hardware, send it back and we'll give you
+-		 * properly functioning parts"
+-		 */
+-		break;
+-	case 0x25:
+-	case 0x31:
+-		srmmu_modtype = Swift_bad_c;
+-		hwbug_bitmask |= HWBUG_KERN_CBITBROKEN;
+-		/*
+-		 * You see Sun allude to this hardware bug but never
+-		 * admit things directly, they'll say things like,
+-		 * "the Swift chip cache problems" or similar.
+-		 */
+-		break;
+-	default:
+-		srmmu_modtype = Swift_ok;
+-		break;
+-	}
+ 
+ 	sparc32_cachetlb_ops = &swift_ops;
+ 	flush_page_for_dma_global = 0;
+@@ -1367,7 +1324,6 @@ static const struct sparc32_cachetlb_ops turbosparc_ops = {
+ static void __init init_turbosparc(void)
+ {
+ 	srmmu_name = "Fujitsu TurboSparc";
+-	srmmu_modtype = TurboSparc;
+ 	sparc32_cachetlb_ops = &turbosparc_ops;
+ 	poke_srmmu = poke_turbosparc;
+ }
+@@ -1406,7 +1362,6 @@ static void __init init_tsunami(void)
+ 	 */
+ 
+ 	srmmu_name = "TI Tsunami";
+-	srmmu_modtype = Tsunami;
+ 	sparc32_cachetlb_ops = &tsunami_ops;
+ 	poke_srmmu = poke_tsunami;
+ 
+@@ -1546,9 +1501,6 @@ static void __init get_srmmu_type(void)
+ 	unsigned long mreg, psr;
+ 	unsigned long mod_typ, mod_rev, psr_typ, psr_vers;
+ 
+-	srmmu_modtype = SRMMU_INVAL_MOD;
+-	hwbug_bitmask = 0;
 -
- 	sparc32_ipi_ops = &sun4d_ipi_ops;
- 
- 	for (i = 0; i < NR_CPUS; i++) {
-diff --git a/arch/sparc/kernel/ttable_32.S b/arch/sparc/kernel/ttable_32.S
-index e79fd786fbbb..78bbf2548e1f 100644
---- a/arch/sparc/kernel/ttable_32.S
-+++ b/arch/sparc/kernel/ttable_32.S
-@@ -43,8 +43,7 @@ t_irq12:TRAP_ENTRY_INTERRUPT(12)            /* IRQ Zilog serial chip         */
- t_irq13:TRAP_ENTRY_INTERRUPT(13)            /* IRQ Audio Intr.               */
- t_irq14:TRAP_ENTRY_INTERRUPT(14)            /* IRQ Timer #2                  */
- 
--	.globl	t_nmi
--t_nmi:	TRAP_ENTRY(0x1f, linux_trap_ipi15_sun4m)
-+t_nmi:	TRAP_ENTRY(0x1f, linux_trap_ipi15_leon)
- 
- t_racc:	TRAP_ENTRY(0x20, do_reg_access)     /* General Register Access Error */
- t_iacce:BAD_TRAP(0x21)                      /* Instr Access Error            */
-@@ -146,7 +145,7 @@ trapbase_cpu1:
- 	TRAP_ENTRY_INTERRUPT(9) TRAP_ENTRY_INTERRUPT(10)
- 	TRAP_ENTRY_INTERRUPT(11) TRAP_ENTRY_INTERRUPT(12)
- 	TRAP_ENTRY_INTERRUPT(13) TRAP_ENTRY_INTERRUPT(14)
--	TRAP_ENTRY(0x1f, linux_trap_ipi15_sun4m)
-+	TRAP_ENTRY(0x1f, linux_trap_ipi15_leon)
- 	TRAP_ENTRY(0x20, do_reg_access)
- 	BAD_TRAP(0x21)
- 	BAD_TRAP(0x22)
-@@ -245,7 +244,7 @@ trapbase_cpu2:
- 	TRAP_ENTRY_INTERRUPT(12)
- 	TRAP_ENTRY_INTERRUPT(13)
- 	TRAP_ENTRY_INTERRUPT(14)
--	TRAP_ENTRY(0x1f, linux_trap_ipi15_sun4m)
-+	TRAP_ENTRY(0x1f, linux_trap_ipi15_leon)
- 	TRAP_ENTRY(0x20, do_reg_access)
- 	BAD_TRAP(0x21)
- 	BAD_TRAP(0x22)
-@@ -345,7 +344,7 @@ trapbase_cpu3:
- 	TRAP_ENTRY_INTERRUPT(12)
- 	TRAP_ENTRY_INTERRUPT(13)
- 	TRAP_ENTRY_INTERRUPT(14)
--	TRAP_ENTRY(0x1f, linux_trap_ipi15_sun4m)
-+	TRAP_ENTRY(0x1f, linux_trap_ipi15_leon)
- 	TRAP_ENTRY(0x20, do_reg_access)
- 	BAD_TRAP(0x21)
- 	BAD_TRAP(0x22)
+ 	mreg = srmmu_get_mmureg(); psr = get_psr();
+ 	mod_typ = (mreg & 0xf0000000) >> 28;
+ 	mod_rev = (mreg & 0x0f000000) >> 24;
 
 -- 
 2.34.1
