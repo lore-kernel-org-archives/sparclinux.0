@@ -1,124 +1,92 @@
-Received: from mailrelay4-1.pub.mailoutpod2-cph3.one.com (mailrelay4-1.pub.mailoutpod2-cph3.one.com [46.30.211.179])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB7022318
-	for <sparclinux@vger.kernel.org>; Sun, 10 Mar 2024 12:35:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4AFA10E3;
+	Mon, 11 Mar 2024 01:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710074135; cv=none; b=a0VuK3MV/h5pdEmJkPac1eqEiEx8blSo1i+/cfTLnKtbHVXwJ+PbF9QUnQNzNmbwTwQp8CUQdW3A/R0UP327qcYZ0/EyfTu5GRcAHUKlVih8Lz0q3E9ttiqbYSfkqfBPhMn3SOBWBXJCK1iu5wAjtmsxbXprGdP2nUk0IbWDy9o=
+	t=1710119559; cv=none; b=PBgRMeTH3eE3HtmcUB//hIJjJubSogc2ZVWGYicHaFdRfr4JpCr8oSIma+yrrc4k3iTqcWvCbOZfKiQAz4XTLWsRLULu/8IF89KufRfoRMuQnAJVeVZ/HigZ7dMO30F4pkO7+HAyZkVXb6srHVEdthmIlHfdTW19hkuwWcCjR/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710074135; c=relaxed/simple;
-	bh=eVb3cFCjq/wLYohZULzNmR4wY1wWmg+rXCBfYx/lovk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q0peAED3GSP/JxmDOynF5gn8z0zu4LlodT0D4ADX1/GMsBsBBX1R9scpbDLI330OaNMuCI8D4LELJfcMvofjShWf1Cz1Dri1kCQcpYy9SyhB55hplsQnmFX4ooSy11N5HDnNLaTmrWhhyBkvNS1xFuKMT/6Cnpx6Ia9oLklbN8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=XrZGVqiL; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=m3RslpyQ; arc=none smtp.client-ip=46.30.211.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	s=arc-20240116; t=1710119559; c=relaxed/simple;
+	bh=2z5jInwHvNUuGQ13fZ+9l+YxupANHQadDhz4Wpt4Yg4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TMaDHusuOG6qDO06CyVMw2Hohhh/ZhKvidGRBjK3tWhgbcrhVRNu+h6J1lyQKyY1Gtv3xjpCon9/qlyF3xj/BUe//bCqFTY3JBwEiB9/EsWSH/JPx0dyKhThdqGski8izbGoDMYdmvHCjJzeBpohVhWQkDWUxzeQhemEAii7L64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cPm6Sx4E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="XrZGVqiL";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="m3RslpyQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=YPj7mJSOmbCaNiEGC/t0Gr13wSnOz33kScWhnHNog2A=;
-	b=XrZGVqiLZ7HmxgauHv34KliKYg3bdIPWco3WbmOUS/lB8zsCC5CO+ZmGjgOxo2GjOG74rWmUTzeTD
-	 b/mY6sUBDEHan3+MiNqavhep1+qPHkyBDaWl6exwf4yZnQXZflm2ZNKhjgrSRP7oI7myR7O69SGebo
-	 XlYfPZUDqofK/AVeAQ8SbwF/6PyanxchTuw/gVeaNJjgYIqCt52w0/UnbwyIPRtB3Doc3R096J0hgI
-	 65BFZAHEQ6DOTY5XCc3HExn3ycYD4hb6fzaL/ouKN7wTNatsDLSWPfo0LIq8G88c92fKpkXAryb068
-	 idmG4syFCwOqfBYTzt3xyh947vR51BQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=YPj7mJSOmbCaNiEGC/t0Gr13wSnOz33kScWhnHNog2A=;
-	b=m3RslpyQ6rat08/y9fWoWhKLFFXulH2lxA/XDZXt362zndzEJbzwHFpTAVufQTF1BKRUZp5V6l5Ws
-	 lWldjHQAQ==
-X-HalOne-ID: 84422ca7-deda-11ee-9cef-31e85a7fa845
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay4.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 84422ca7-deda-11ee-9cef-31e85a7fa845;
-	Sun, 10 Mar 2024 12:34:22 +0000 (UTC)
-Date: Sun, 10 Mar 2024 13:34:20 +0100
-From: Sam Ravnborg <sam@ravnborg.org>
-To: kernel test robot <lkp@intel.com>
-Cc: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Arnd Bergmann <arnd@kernel.org>,
-	Andreas Larsson <andreas@gaisler.com>,
-	oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
-	Helge Deller <deller@gmx.de>, Randy Dunlap <rdunlap@infradead.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
-	Kjetil Oftedal <oftedal@gmail.com>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-sound@vger.kernel.org
-Subject: Re: [PATCH v2 14/28] sparc32: Drop unused mmu models
-Message-ID: <20240310123420.GA989676@ravnborg.org>
-References: <20240309-sunset-v2-14-f09912574d2c@ravnborg.org>
- <202403101854.Z94SAU13-lkp@intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cPm6Sx4E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76CBFC433C7;
+	Mon, 11 Mar 2024 01:12:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1710119558;
+	bh=2z5jInwHvNUuGQ13fZ+9l+YxupANHQadDhz4Wpt4Yg4=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=cPm6Sx4E1EG59Iov80OXl2MFAXOcYsH6sW5GBiEeM0WcaeXdKWeKnjLgnzkJAJNUQ
+	 ZGzu+uinfXZiBrCQs/BnKum3xWBjuxiG2Jnz71jbsD0IMC436SUkVVtHUBc/15b5J5
+	 FlPk3Ywx0H9l5f6XBzTHnrtsVcxrCsUls2TXOjJDboqFM5zle++N9DatBuzt45gQv9
+	 A18j7hc9e2S5CULTkLup888zf+AZXZNNkNXEhSYF1+RpxOAoMtWrJsod25hXkO9GSU
+	 RHXZrgsBmlzTI8CgfJbqud+ntqAvcBQ37IkpFwFwxWMNfwcwgLu6iaf5Hgq8eaTHuq
+	 I4nNxU2JaTS7Q==
+Message-ID: <9bd5ff0c-2f56-4fa5-9a78-f3b8981c970f@kernel.org>
+Date: Sun, 10 Mar 2024 19:12:34 -0600
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <202403101854.Z94SAU13-lkp@intel.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH net-next v6 01/15] queue_api: define queue api
+Content-Language: en-US
+To: David Wei <dw@davidwei.uk>, Mina Almasry <almasrymina@google.com>,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+ linux-arch@vger.kernel.org, bpf@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+ Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
+ <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+ Yonghong Song <yonghong.song@linux.dev>,
+ John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
+ Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
+ Jiri Olsa <jolsa@kernel.org>,
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+ Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Pavel Begunkov <asml.silence@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
+ Harshitha Ramamurthy <hramamurthy@google.com>,
+ Jeroen de Borst <jeroendb@google.com>,
+ Praveen Kaligineedi <pkaligineedi@google.com>
+References: <20240305020153.2787423-1-almasrymina@google.com>
+ <20240305020153.2787423-2-almasrymina@google.com>
+ <54891f27-555a-4ed1-b92f-668813c18c37@davidwei.uk>
+From: David Ahern <dsahern@kernel.org>
+In-Reply-To: <54891f27-555a-4ed1-b92f-668813c18c37@davidwei.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi kernel test robot et al.
-
-On Sun, Mar 10, 2024 at 06:37:53PM +0800, kernel test robot wrote:
-> Hi Sam,
+On 3/8/24 4:47 PM, David Wei wrote:
 > 
-> kernel test robot noticed the following build warnings:
+> I'm working to port bnxt over to using this API. What are your thoughts
+> on maybe pulling this out and use bnxt to drive it?
 > 
-> [auto build test WARNING on 84b76d05828a1909e20d0f66553b876b801f98c8]
-> 
-> url:    https://github.com/intel-lab-lkp/linux/commits/Sam-Ravnborg-via-B4-Relay/sparc32-Update-defconfig-to-LEON-SMP/20240310-021717
-> base:   84b76d05828a1909e20d0f66553b876b801f98c8
-> patch link:    https://lore.kernel.org/r/20240309-sunset-v2-14-f09912574d2c%40ravnborg.org
-> patch subject: [PATCH v2 14/28] sparc32: Drop unused mmu models
-> config: sparc-randconfig-r113-20240310 (https://download.01.org/0day-ci/archive/20240310/202403101854.Z94SAU13-lkp@intel.com/config)
-> compiler: sparc-linux-gcc (GCC) 13.2.0
-> reproduce: (https://download.01.org/0day-ci/archive/20240310/202403101854.Z94SAU13-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202403101854.Z94SAU13-lkp@intel.com/
-> 
-> sparse warnings: (new ones prefixed by >>)
-> >> arch/sparc/mm/srmmu.c:49:5: sparse: sparse: symbol 'vac_line_size' was not declared. Should it be static?
-> 
-> vim +/vac_line_size +49 arch/sparc/mm/srmmu.c
-> 
-> accf032cfa582e Sam Ravnborg   2012-05-19  46  
-> ^1da177e4c3f41 Linus Torvalds 2005-04-16  47  int vac_cache_size;
-> 9d262d95114cf2 Guenter Roeck  2017-04-01  48  EXPORT_SYMBOL(vac_cache_size);
-> ^1da177e4c3f41 Linus Torvalds 2005-04-16 @49  int vac_line_size;
-> ^1da177e4c3f41 Linus Torvalds 2005-04-16  50  
 
-vac_line_size is no longer used and can be deleted.
-vac_cache_size is never written to and can be deleted too.
+I would love to see a second nic implementation; this patch set and
+overall design is driven by GVE limitations.
 
-vac_cache_size is used in shmparam_32.h like this:
-#define SHMLBA (vac_cache_size ? vac_cache_size : PAGE_SIZE)
-
-The same file has:
-#define __ARCH_FORCE_SHMLBA	1
-
-If I understand it right then when SHMLBA equals PAGE_SIZE then there is
-no need to define __ARCH_FORCE_SHMLBA and sparc32 can use the asm-generic
-variant of shmparam.h
-
-I will do this change in v3.
-
-	Sam
