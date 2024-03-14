@@ -1,187 +1,231 @@
-Received: from PAUP264CU001.outbound.protection.outlook.com (mail-francecentralazon11021011.outbound.protection.outlook.com [52.101.167.11])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32AC95813E;
-	Thu, 14 Mar 2024 13:12:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.167.11
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710421925; cv=fail; b=qdzGYt+7ple+TR6WGkukEdNnw3bhYioSZ60RUlwtf1DRxa9zeuRW5J7IolgRuC03JR3AeQt2h/7bhJE6UJwG2g56vZ9NHyIvjX/qL+I4ZsynFIoq2YXJPBF64zxcDEYS+9UCRxYl+ZwbkMUzDTdOwdLB2xRoqpSFdlNOAlieMBc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710421925; c=relaxed/simple;
-	bh=5LYjtinn5cYqmaPoN6hSvk3ywtRAlD/oWsyyviVanjU=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=O957tBm++iRRQFoxeR7qNeqB+sEyPpTLwAFyrgit3hxoNPs2va/M7t2dNY7uw7t8lgOCpIbOP582usKcEBOZomi01g8sKOVoBZfoAovO/4kumTjt827f+JN1vpwiuDfX4Yv7hBjTYSdo7R4Sbx0kGGHKuRAbPHVo4gprp2Flut0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b=jtUE/1dt; arc=fail smtp.client-ip=52.101.167.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6C6F6CDD7
+	for <sparclinux@vger.kernel.org>; Thu, 14 Mar 2024 14:09:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1710425342; cv=none; b=rc5hCW9GJ9SQLoAAwfDq/h19Xp8GTMmKwjD5uInb3EiXxcCR9gBGHCrZFhDogA79qnAzKlkbXGtjNNlMilHuOXxdaxcjndb1UIMLA0nTJBlpLTggjPfkBVwSaxVURU1eOw7PVHCvH5kkPL1cS1wERI4DSE8yiy1062nYXuekoBc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1710425342; c=relaxed/simple;
+	bh=Z0ILnZeNBHrRrotQP/MGhhY17p/IzYz2MVEg1mCXeQ4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kzeS+7w4br5TImrlV/r6NsMKYh0fVjFBmhxbJF5+3XLuONSX036Bgcfhgx1neEm/oOQx2mYSgkHyVS1uIabGpXlD4h78i74R+EzRd46YjBce/RhD9LWUMRTdnUko1c4zHFJXHZhwa554hV5JI3pJR154wgXOoBiP26f2hGOyXE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ETUK4psn; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b="jtUE/1dt"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Hnuw3lh0S61LEYwPDbWahedTg9flpAg+ml8OlE2Ww2PTIyzyAdp2H9GTl+u4Uwqkazu2/2QSxiYtjhWB5pT1vHVunRJAyp1hX5hwhTvRAwxtGp+vxy+nECvi/QBWdsntkyui5TrdensPD0tmZSl32ZF06P1VlVG+XZEcjo18yh4VQrHuYAy71xWHp1h6fXjeDKEsZleCY7viuk6bWUhjULusZYWmp6M/qir+rZzHVk43gxtJAeKJbm0YWHR/N8MezOqFtQ+KoVecN/+DMQzyG2dxIlqkbUBdu4yqR/QFHMzKgmTaBqmbsSLLI6xo3ia5x/i6rx5/8LOctQyBZJVNAg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5LYjtinn5cYqmaPoN6hSvk3ywtRAlD/oWsyyviVanjU=;
- b=SG4RPQVdPEFT5NW16ezPqL5tR+VlXuftAz4w5xUGDnRO6ZCvKxfKOXN7CxqEc7ueugQ9VH/r2zALs97vJ+mP9pg74+qf+rwQIWypINGWfYPa6xXH+v1xER7lQGLNK7cokxSjxo5xwfaCkMf4hsEk1L0QIKIAEkmAfPruPff+shayFQahHLHT4rO/cXdGPpbxHja6OKqYjmN5h+dFnp/6R+BnE/bolgjQSghq4KXbnw07p1tIvBbsy6ScDnZSDWU3Orc10fs4d2jAIkOLPpKPugjxVgqb5RYYCGBxLrszMdBQbdxWo++KwfYukElwAlmzY2wYJv6Dkb0jc8ZRT+8Kuw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
- dkim=pass header.d=csgroup.eu; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=csgroup.eu;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5LYjtinn5cYqmaPoN6hSvk3ywtRAlD/oWsyyviVanjU=;
- b=jtUE/1dtBzIabdtUZV/HM9ksoxFoGyohI/5+oWWo5KdTx/NivYASzEYxKNW5wu/Fqn1E9dAjqv0n6j/JSa9SUeESzdbKaJ2XimkazoycepHk5kqLnHjWpXSkaI5kKLj1OVcz9ED/1QYccZ8tgxDpDonJbgupQ6zJ/y1VWTWeLpUPfRDaMJ7t1BaoGlVKzgTqb5uQkVzimwYeSuVeThHK0uG9cN7yNewJ1sLR0MApiH8OrrhWO2mOidFQR2sKijWXqG5DG2vqH6XZ4o6w7EXvVcqljtsOapa/7cOXb/hYGv+JfsqqaVaJdsmnR4KuFQy1FOC5u0+mdHKF33rfjHAxFQ==
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
- by PR1P264MB1885.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:1b0::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7386.21; Thu, 14 Mar
- 2024 13:11:59 +0000
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::c192:d40f:1c33:1f4e]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::c192:d40f:1c33:1f4e%6]) with mapi id 15.20.7386.020; Thu, 14 Mar 2024
- 13:11:59 +0000
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-To: Peter Xu <peterx@redhat.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ETUK4psn"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1710425339;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=H0Ur324GEdYx6Na4EUzT7uu0LrdRXgiT37bQ9SRfD/k=;
+	b=ETUK4psn3Asc5IGuCN8XF7Dk7AygTR7DEVSzbLgqrcG7FYY2kgYDtz5q/ccuge4Ul6cTO1
+	TcyYjU/atSLAqLbOiHwD4wXdCDYQ7zafcFmGxu3B3p8g0h/ZjYJhDRHUgc2UBx9DpGCAaE
+	xaXZdTXZbF3iGl4bvgpnZAbECkhaf0U=
+Received: from mail-qv1-f71.google.com (mail-qv1-f71.google.com
+ [209.85.219.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-122-gf0y0Dv6M22lWYurCKLv_A-1; Thu, 14 Mar 2024 10:08:58 -0400
+X-MC-Unique: gf0y0Dv6M22lWYurCKLv_A-1
+Received: by mail-qv1-f71.google.com with SMTP id 6a1803df08f44-69120b349c9so3075866d6.1
+        for <sparclinux@vger.kernel.org>; Thu, 14 Mar 2024 07:08:58 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710425338; x=1711030138;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=H0Ur324GEdYx6Na4EUzT7uu0LrdRXgiT37bQ9SRfD/k=;
+        b=vGtyO77auwJDSpKJq2HtMVhRKd1hPstZN5486x3G1B5N3/Ho2Q4K45LxcsaUiGO3ka
+         cY4+0bla/PKyXogn+RzMcrBYijlGTwI2SjIugqAZIFb54Ev4aWtY5DWLoodwdxgLDh11
+         xxuOigiHUAN4Zv+2D97Qy2F3L3/aTAHINwtOhhJZSZAbdZbwfN/a7iEO3t8j1Np4qZtn
+         UeRdcC/3l4zABN9id46eJ/oebvxguhrS++ab3f0Z56ihUyRORq3St5UMIJV93ESN5csR
+         28mrERsr5J9q3VyyqTnuijxKaD0Tvd8Xxlwnp+sQyFNWLLLh0yBmOfHceCLDchIjmM64
+         E2Wg==
+X-Forwarded-Encrypted: i=1; AJvYcCXQWsQVQOheNSli1zxj2f9oQpWHpxWk79eFdVcKlVcNJLsmdUTwed0HsmFpmJ+Rw9Zc0K38OYrUBV5HyUkFnyZiXTw+mwkN2FdgJg==
+X-Gm-Message-State: AOJu0YxvKUs7vxQY+gEwUvT5gRZqcUb1zB6H1UaNrOG3zjm/hErG6Pnc
+	Rt9l637V5OSHslO8BUhXmN2CF2lwkIFoxG4QO/yD1UBIozd/yq41e5Gtg8UOJVL74vLm6efENBO
+	1lsNmOs0vyXFABTqyJZ+Dvk7pGumcGc+gmxIktWSq/CZ22DELTD7UWZSc6DM=
+X-Received: by 2002:a05:6214:568f:b0:690:d848:5223 with SMTP id qm15-20020a056214568f00b00690d8485223mr1930025qvb.1.1710425336427;
+        Thu, 14 Mar 2024 07:08:56 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHucQiNsYz/grbilWzCKNHDTJ2JNCr8u+qXqtyrFQdPGNDAiC8YJGtZ0KjeTmr272RirFzDNA==
+X-Received: by 2002:a05:6214:568f:b0:690:d848:5223 with SMTP id qm15-20020a056214568f00b00690d8485223mr1929810qvb.1.1710425332941;
+        Thu, 14 Mar 2024 07:08:52 -0700 (PDT)
+Received: from x1n ([99.254.121.117])
+        by smtp.gmail.com with ESMTPSA id eq9-20020ad45969000000b0069155a36f67sm499868qvb.9.2024.03.14.07.08.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 14 Mar 2024 07:08:52 -0700 (PDT)
+Date: Thu, 14 Mar 2024 10:08:50 -0400
+From: Peter Xu <peterx@redhat.com>
+To: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>, Matthew Wilcox <willy@infradead.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, Andrew
- Morton <akpm@linux-foundation.org>, "x86@kernel.org" <x86@kernel.org>, Mike
- Rapoport <rppt@kernel.org>, Muchun Song <muchun.song@linux.dev>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Jason Gunthorpe
-	<jgg@nvidia.com>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin
-	<npiggin@gmail.com>, Aneesh Kumar K.V <aneesh.kumar@kernel.org>, "Naveen N.
- Rao" <naveen.n.rao@linux.ibm.com>
-Subject: Re: [PATCH 09/13] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
-Thread-Topic: [PATCH 09/13] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
-Thread-Index: AQHadZASkAUcDDurK02wtpi3kLRmM7E27NOAgABFZ4CAAAUJAA==
-Date: Thu, 14 Mar 2024 13:11:59 +0000
-Message-ID: <1f6ad500-3ff7-44d4-8223-067bd2ed9ffe@csgroup.eu>
+	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"x86@kernel.org" <x86@kernel.org>, Mike Rapoport <rppt@kernel.org>,
+	Muchun Song <muchun.song@linux.dev>,
+	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH 12/13] mm/treewide: Remove pXd_huge()
+Message-ID: <ZfME8vjFhl8AdyFe@x1n>
 References: <20240313214719.253873-1-peterx@redhat.com>
- <20240313214719.253873-10-peterx@redhat.com>
- <7b7d6ce1-4a3f-4392-951d-a9bd146c954c@csgroup.eu> <ZfLzZekFBp3J6JUy@x1n>
-In-Reply-To: <ZfLzZekFBp3J6JUy@x1n>
-Accept-Language: fr-FR, en-US
-Content-Language: fr-FR
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla Thunderbird
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=csgroup.eu;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MRZP264MB2988:EE_|PR1P264MB1885:EE_
-x-ms-office365-filtering-correlation-id: 22163883-e5dd-4220-c877-08dc442854ec
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- DGTC2JFS9v1rZCIpXGOAhslN8+UV1UZLPsjPN12TaYpiBwoeQsLMNa0bEJ/uPk5h1WPbfhjHp0cAHyNoIqLMZSkX7VIQkSMQepTCEoBGHKbUpyzm8FoIKv4+UzXNljLyOH35XgcZvh8uLZYCb39Sk/8JHFqDC2c6le+LJLVfQ5Rfwl03WyZ8EDfBAEabjxVudSIKmJlYwfE+Vaxbo0zDcKdbG3uWrCmYOHjSA21933vxZaTl73UScmLIcMDEOk9xDDKInPhXc0KqSdMP657PHvwJL67rnWqRhOmu5eTMaAL5+SeAuyoRxFpSyPh2Vg7jK0FA9aXKwn49dcAV3r/re47XSsK66nNP1H2HJHCACgptVjZTrv10/vXrFHyQ3yUHC73Y8hDY+uTcS06dWpqsUhEvl2qdrsoG5mlzBa367iyb+Iz55GYp1mpi+Pw+MfLKM9QJQD4f879cutEcFvMmNdmAby3yluLtKk0T2jJwV3YPahgBRdQ5ttFF7td8E8u0JoBWs0ackD5rfZwAgO3I6H4gbtb8fgIldVbi57OHRXOMRrjExgOeldvuUrIbIlE2/uPecRIaP73cgtWCLM0o97lnefJDN6S3dwgKPleHcNI+OKNU7vA39mMBqf/6Kb3I2gGNWDQ5Izc7QG0N+GoptobbXHPj5vlovt8KYtJ2PPy6q3ul3lo2YwaD9rnUIlA/UlOJUUYFb3Ed/GDp7PAqqMN41q3jHFzOWpPgTfy4tAM=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230031)(7416005)(1800799015)(376005)(38070700009);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?TnBmV3ZReHU4VHJ3bTRNQSsvVzFYbFpSRzYxYlZpMEdhZDJSVkhYYTV5T1hX?=
- =?utf-8?B?M2sxeXZ1dlRTUGdpaWZTM0NXUnFid0JwWGV0M0paTDBXejBWRkVodVp2bG9y?=
- =?utf-8?B?Nk5XdTNwTTBaLzJ3OUNETHVtOHYxWGRxZUhURnY2SDQzY2VtRmlXYjVWYlNU?=
- =?utf-8?B?R1JOTk9USTRldTdSU0gwMk1xcmRONjRNaHY4TFpPRkxCeFlSeUwrSkw2OHdO?=
- =?utf-8?B?Vm1jeGZ5cjM1ckFYM0h5WDhrSVFjZzIrZ1puQmo2eXlKOEh3OS9LOExuNkhW?=
- =?utf-8?B?alNwK1FndWJ5QUR1UG9LSEp5N3luVUtJdFFvRXM3R3J0a24vcTRwTDJEODNE?=
- =?utf-8?B?bndWMXpQWUF5enNHdGU1QnRtd0tqSmFWVG9nOVJDUFc0N0YxTHIrUm5rVk85?=
- =?utf-8?B?TVY1WHhSS2pxbmJLZXdXcCt2Wkk2c2gzUGtVSzVBS3BWcXhmWnVGeWRkZWZ2?=
- =?utf-8?B?QzFOLzQ0RzB4d1NVSlZndElBUHBUam9JTFhrZlRDWCszVG5GT083NFhBZHpq?=
- =?utf-8?B?SGVWeWhVU3lFbEV4aUlKQ09LUld5WGRmd3dZV2g5QU5WUlJwVWpFdTFjRlEy?=
- =?utf-8?B?TTFYMmozR2psWnAxWXBJc01yZ0l1YVcyRTZWajVWL1kzWHZjNkw5c1VTYUl3?=
- =?utf-8?B?ekdHeFkyckpJNXlyTDRVN2t5NzVERFAxQUJkRnN2bGZTZjFKbktSV3ozdXRJ?=
- =?utf-8?B?Mzh5K0hvUnhrWStGbUNlQko4RllNMVBEaDZmOEtyUVc4UWhXWVRxRmhCMW5j?=
- =?utf-8?B?WkpDNmtqcEgxUWRhSHlhSFdFbWZJajltcnJ4OEQ3cy9NVXpGRWdaS1FiS1RB?=
- =?utf-8?B?bUFSZFFvTGtiZmg5QjExYWhjRUJpYlBwY1BIZTZZTW04OUY5OVhDWEpJaXR5?=
- =?utf-8?B?cGlFMUhSMGlVQlpDVU5yZkNMMFhvcldKdHVITXk2blFlQm1tcjdvazJlWUV4?=
- =?utf-8?B?TjZWK2lqcEVNUmM0TXZmLzFWSHE2YkdHZ0EyU0R4QWh4VGhIbHhEait5ZW0w?=
- =?utf-8?B?ZDkxbWJiQWlTNVlDOW4xVUJQV0EwdVBHa2RBRUg2ZmxVejlSeU9OOEpTdlk5?=
- =?utf-8?B?OC9DTGZYMjE0dkNqeUpxL0svdnVSSEwyaXgwZXorSWF5MjRjbnlMZ0Nha2dM?=
- =?utf-8?B?b2YzN2R3c00ya2NGTXFLQmJ0ZFVLcnVkN1hxL2NSc1ROb0tnb2hJazc0bUha?=
- =?utf-8?B?NGE1d2R3RU40UFhWV1c0Nmg2cEd0M2FWQTRCdDVsaFJzemtwS0xuYXdnUlpp?=
- =?utf-8?B?cU40elI2SEQyMXlrTWNLNzV2WTVFRzVOaUE3elU3SW1jeldSc2ZOY2VkU3Rx?=
- =?utf-8?B?OHNscDdQNkV5OS9tZVFtMFNLZEtLVTJlM3N5OVhBWFJsZGE5VEhzVEJ1NlAw?=
- =?utf-8?B?Syt1YVBDdUs5MWFFMnBkS2lzSy9zZ1NFa1ZhL2tVSEFvenBQcGlpeDFDWDBr?=
- =?utf-8?B?REZPeVJUTHRYeFU0cUVyV1pGVjNLanVhdjNGNVpKcnIzeFZXcjhMRnlDQjFI?=
- =?utf-8?B?dWhzYjNZa3dUS0VWQS9vcS9YZ1VhcG1yL1hYWktqNG9sM3BvL3JTUXllN2pl?=
- =?utf-8?B?RmlVTFZCU3RjOGV0WlAxUUFzUTBsbjZFWGxSTElvMHcvcU9EL3BSdkd4UDBi?=
- =?utf-8?B?YVlCZHFsWnFxTTl5OUJxQjVlVlhLNmdDcm9XNHhnSEJUVkRsME1TeUJiNTRI?=
- =?utf-8?B?UWtZdHNYWHFsQW55U0FsOWg3ZEhDeG9QQXZCZVVsTmpJaHZHT1gzZ1VNc3hF?=
- =?utf-8?B?OWZURnV4KzE4VitHRU9NUlphTVUvZVMwTy9yTzc3aTV4OHFGQUlOa1JXN1BG?=
- =?utf-8?B?ZWMrbW14THZFVy9UNnh1TnZMTll1Yy9HWndIWFB2NnNRNXMvNVpDMXg1dkNO?=
- =?utf-8?B?ck1aOEg4bnpKdVYzRGZHb3VUWHJMZjJ1cExLa1hMVlZzOGVyemxwcVRUSlMr?=
- =?utf-8?B?NjNubjJuMlVzc21MWlZxNW5OV20vS2k0RnRkaFRyb1NXL25ad2txVVpRZnhN?=
- =?utf-8?B?Z0h4bkJtcHovU2owSWFQNjZ6WmZGbHEybHRGSjdKQ0o3ZzJkWG05V2FYSHc3?=
- =?utf-8?B?Y1dMV01kTndYN3RBS2xPVi9uSENqcm9GRFRnSWNVcURQeHZnRmVIc2syWGZI?=
- =?utf-8?B?YW8yaFE5b25oa215cjlwR0dZdlBzU3RUUmdXOG13bWhYdHdQL3FPVmMxc2Uy?=
- =?utf-8?B?bWNtTFBZa09GMSsrZEJ5RytFNVp1RnpsRS9JNXJpOTZ1eG9IZEJNZWdqMnRY?=
- =?utf-8?B?MFUraUN6ZWE5MVFSa0JGUnRTQzh3PT0=?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <9BBB8ADAB602D54087A433C82F663C9A@FRAP264.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
+ <20240313214719.253873-13-peterx@redhat.com>
+ <7e93ab99-c956-42d0-9afd-3c856f3ad951@csgroup.eu>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: csgroup.eu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 22163883-e5dd-4220-c877-08dc442854ec
-X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Mar 2024 13:11:59.3905
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: RIkd5ATO0OCQTOdbEG9mHkZDV880pEv8gn9ulL/SEwh6jzcG05Pagy2fJm0yjddJ1cC2u3GbkpcW2EMnmiMkmDFS7gO6EAFTvWpsZ8bOEEw=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR1P264MB1885
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7e93ab99-c956-42d0-9afd-3c856f3ad951@csgroup.eu>
 
-DQoNCkxlIDE0LzAzLzIwMjQgw6AgMTM6NTMsIFBldGVyIFh1IGEgw6ljcml0wqA6DQo+IE9uIFRo
-dSwgTWFyIDE0LCAyMDI0IGF0IDA4OjQ1OjM0QU0gKzAwMDAsIENocmlzdG9waGUgTGVyb3kgd3Jv
-dGU6DQo+Pg0KPj4NCj4+IExlIDEzLzAzLzIwMjQgw6AgMjI6NDcsIHBldGVyeEByZWRoYXQuY29t
-IGEgw6ljcml0wqA6DQo+Pj4gRnJvbTogUGV0ZXIgWHUgPHBldGVyeEByZWRoYXQuY29tPg0KPj4+
-DQo+Pj4gUG93ZXJQQyBib29rM3MgNEsgbW9zdGx5IGhhcyB0aGUgc2FtZSBkZWZpbml0aW9uIG9u
-IGJvdGgsIGV4Y2VwdCBwWGRfaHVnZSgpDQo+Pj4gY29uc3RhbnRseSByZXR1cm5zIDAgZm9yIGhh
-c2ggTU1Vcy4gIEFzIE1pY2hhZWwgRWxsZXJtYW4gcG9pbnRlZCBvdXQgWzFdLA0KPj4+IGl0IGlz
-IHNhZmUgdG8gY2hlY2sgX1BBR0VfUFRFIG9uIGhhc2ggTU1VcywgYXMgdGhlIGJpdCB3aWxsIG5l
-dmVyIGJlIHNldCBzbw0KPj4+IGl0IHdpbGwga2VlcCByZXR1cm5pbmcgZmFsc2UuDQo+Pj4NCj4+
-PiBBcyBhIHJlZmVyZW5jZSwgX19wW211XWRfbWtodWdlKCkgd2lsbCB0cmlnZ2VyIGEgQlVHX09O
-IHRyeWluZyB0byBjcmVhdGUNCj4+PiBzdWNoIGh1Z2UgbWFwcGluZ3MgZm9yIDRLIGhhc2ggTU1V
-cy4gIE1lYW53aGlsZSwgdGhlIG1ham9yIHBvd2VycGMgaHVnZXRsYg0KPj4+IHBndGFibGUgd2Fs
-a2VyIF9fZmluZF9saW51eF9wdGUoKSBhbHJlYWR5IHVzZWQgcFhkX2xlYWYoKSB0byBjaGVjayBo
-dWdldGxiDQo+Pj4gbWFwcGluZ3MuDQo+Pj4NCj4+PiBUaGUgZ29hbCBzaG91bGQgYmUgdGhhdCB3
-ZSB3aWxsIGhhdmUgb25lIEFQSSBwWGRfbGVhZigpIHRvIGRldGVjdCBhbGwga2luZHMNCj4+PiBv
-ZiBodWdlIG1hcHBpbmdzLiAgQUZBSUNUIHdlIG5lZWQgdG8gdXNlIHRoZSBwWGRfbGVhZigpIGlt
-cGwgKHJhdGhlciB0aGFuDQo+Pj4gcFhkX2h1Z2UoKSBvbmVzKSB0byBtYWtlIHN1cmUgaWUuIFRI
-UHMgb24gaGFzaCBNTVUgd2lsbCBhbHNvIHJldHVybiB0cnVlLg0KPj4NCj4+IEFsbCBraW5kcyBv
-ZiBodWdlIG1hcHBpbmdzID8NCj4+DQo+PiBwWGRfbGVhZigpIHdpbGwgZGV0ZWN0IG9ubHkgbGVh
-ZiBtYXBwaW5ncyAobGlrZSBwWGRfaHVnZSgpICkuIFRoZXJlIGFyZQ0KPj4gYWxzbyBodWdlIG1h
-cHBpbmdzIHRocm91Z2ggaHVnZXBkLiBPbiBwb3dlcnBjIDh4eCB3ZSBoYXZlIDhNIGh1Z2UgcGFn
-ZXMNCj4+IGFuZCA1MTJrIGh1Z2UgcGFnZXMuIEEgUEdEIGVudHJ5IGNvdmVycyA0TSBzbyBwZ2Rf
-bGVhZigpIHdvbid0IHJlcG9ydA0KPj4gdGhvc2UgaHVnZSBwYWdlcy4NCj4gDQo+IEFoIHllcywg
-SSBzaG91bGQgYWx3YXlzIG1lbnRpb24gdGhpcyBpcyBpbiB0aGUgY29udGV4dCBvZiBsZWFmIGh1
-Z2UgcGFnZXMNCj4gb25seS4gIEFyZSB0aGUgZXhhbXBsZXMgeW91IHByb3ZpZGVkIGFsbCBmYWxs
-IGludG8gaHVnZXBkIGNhdGVnb3J5PyAgSWYgc28NCj4gSSBjYW4gcmV3b3JkIHRoZSBjb21taXQg
-bWVzc2FnZSwgYXM6DQoNCk9uIHBvd2VycGMgOHh4LCBvbmx5IHRoZSA4TSBodWdlIHBhZ2VzIGZh
-bGwgaW50byB0aGUgaHVnZXBkIGNhc2UuDQoNClRoZSA1MTJrIGh1Z2VwYWdlcyBhcmUgYXQgUFRF
-IGxldmVsLCB0aGV5IGFyZSBoYW5kbGVkIG1vcmUgb3IgbGVzcyBsaWtlIA0KQ09OVF9QVEUgb24g
-QVJNLiBzZWUgZnVuY3Rpb24gc2V0X2h1Z2VfcHRlX2F0KCkgZm9yIG1vcmUgY29udGV4dC4NCg0K
-WW91IGNhbiBhbHNvIGxvb2sgYXQgcHRlX2xlYWZfc2l6ZSgpIGFuZCBwZ2RfbGVhZl9zaXplKCku
-DQoNCkJ5IHRoZSB3YXkgcGdkX2xlYWZfc2l6ZSgpIGxvb2tzIG9kZCBiZWNhdXNlIGl0IGlzIGNh
-bGxlZCBvbmx5IHdoZW4gDQpwZ2RfbGVhZl9zaXplKCkgcmV0dXJucyB0cnVlLCB3aGljaCBuZXZl
-ciBoYXBwZW5zIGZvciA4TSBwYWdlcy4NCg0KPiANCj4gICAgICAgICAgQXMgYSByZWZlcmVuY2Us
-IF9fcFttdV1kX21raHVnZSgpIHdpbGwgdHJpZ2dlciBhIEJVR19PTiB0cnlpbmcgdG8NCj4gICAg
-ICAgICAgY3JlYXRlIHN1Y2ggaHVnZSBtYXBwaW5ncyBmb3IgNEsgaGFzaCBNTVVzLiAgTWVhbndo
-aWxlLCB0aGUgbWFqb3INCj4gICAgICAgICAgcG93ZXJwYyBodWdldGxiIHBndGFibGUgd2Fsa2Vy
-IF9fZmluZF9saW51eF9wdGUoKSBhbHJlYWR5IHVzZWQNCj4gICAgICAgICAgcFhkX2xlYWYoKSB0
-byBjaGVjayBsZWFmIGh1Z2V0bGIgbWFwcGluZ3MuDQo+IA0KPiAgICAgICAgICBUaGUgZ29hbCBz
-aG91bGQgYmUgdGhhdCB3ZSB3aWxsIGhhdmUgb25lIEFQSSBwWGRfbGVhZigpIHRvIGRldGVjdA0K
-PiAgICAgICAgICBhbGwga2luZHMgb2YgaHVnZSBtYXBwaW5ncyBleGNlcHQgaHVnZXBkLiAgQUZB
-SUNUIHdlIG5lZWQgdG8gdXNlDQo+ICAgICAgICAgIHRoZSBwWGRfbGVhZigpIGltcGwgKHJhdGhl
-ciB0aGFuIHBYZF9odWdlKCkgb25lcykgdG8gbWFrZSBzdXJlDQo+ICAgICAgICAgIGllLiBUSFBz
-IG9uIGhhc2ggTU1VIHdpbGwgYWxzbyByZXR1cm4gdHJ1ZS4NCj4gDQo+IERvZXMgdGhpcyBsb29r
-IGdvb2QgdG8geW91Pw0KPiANCj4gVGhhbmtzLA0KPiANCg==
+On Thu, Mar 14, 2024 at 08:56:59AM +0000, Christophe Leroy wrote:
+> 
+> 
+> Le 13/03/2024 à 22:47, peterx@redhat.com a écrit :
+> > From: Peter Xu <peterx@redhat.com>
+> > 
+> > This API is not used anymore, drop it for the whole tree.
+> > 
+> > Signed-off-by: Peter Xu <peterx@redhat.com>
+> > ---
+> >   arch/arm/mm/Makefile                          |  1 -
+> >   arch/arm/mm/hugetlbpage.c                     | 29 -------------------
+> >   arch/arm64/mm/hugetlbpage.c                   | 10 -------
+> >   arch/loongarch/mm/hugetlbpage.c               | 10 -------
+> >   arch/mips/include/asm/pgtable-32.h            |  2 +-
+> >   arch/mips/include/asm/pgtable-64.h            |  2 +-
+> >   arch/mips/mm/hugetlbpage.c                    | 10 -------
+> >   arch/parisc/mm/hugetlbpage.c                  | 11 -------
+> >   .../include/asm/book3s/64/pgtable-4k.h        | 10 -------
+> >   .../include/asm/book3s/64/pgtable-64k.h       | 25 ----------------
+> >   arch/powerpc/include/asm/nohash/pgtable.h     | 10 -------
+> >   arch/riscv/mm/hugetlbpage.c                   | 10 -------
+> >   arch/s390/mm/hugetlbpage.c                    | 10 -------
+> >   arch/sh/mm/hugetlbpage.c                      | 10 -------
+> >   arch/sparc/mm/hugetlbpage.c                   | 10 -------
+> >   arch/x86/mm/hugetlbpage.c                     | 16 ----------
+> >   include/linux/hugetlb.h                       | 24 ---------------
+> >   17 files changed, 2 insertions(+), 198 deletions(-)
+> >   delete mode 100644 arch/arm/mm/hugetlbpage.c
+> > 
+> 
+> > diff --git a/arch/mips/include/asm/pgtable-32.h b/arch/mips/include/asm/pgtable-32.h
+> > index 0e196650f4f4..92b7591aac2a 100644
+> > --- a/arch/mips/include/asm/pgtable-32.h
+> > +++ b/arch/mips/include/asm/pgtable-32.h
+> > @@ -129,7 +129,7 @@ static inline int pmd_none(pmd_t pmd)
+> >   static inline int pmd_bad(pmd_t pmd)
+> >   {
+> >   #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+> > -	/* pmd_huge(pmd) but inline */
+> > +	/* pmd_leaf(pmd) but inline */
+> 
+> Shouldn't this comment have been changed in patch 11 ?
+
+IMHO it's fine to be here, as this is the patch to finally drop _huge().
+Patch 11 only converts the callers to use _leaf()s.  So this comment is
+still valid until this patch, because this patch removes that definition.
+
+> 
+> >   	if (unlikely(pmd_val(pmd) & _PAGE_HUGE))
+> 
+> Unlike pmd_huge() which is an outline function, pmd_leaf() is a macro so 
+> it could be used here instead of open coping.
+
+I worry it will break things as pmd_leaf() can sometimes be defined after
+arch *pgtable.h headers.  So I avoided touching it except what I think I'm
+confident.  I had a feeling it's inlined just because of a similar reason
+for the old _huge().
+
+> 
+> >   		return 0;
+> >   #endif
+> > diff --git a/arch/mips/include/asm/pgtable-64.h b/arch/mips/include/asm/pgtable-64.h
+> > index 20ca48c1b606..7c28510b3768 100644
+> > --- a/arch/mips/include/asm/pgtable-64.h
+> > +++ b/arch/mips/include/asm/pgtable-64.h
+> > @@ -245,7 +245,7 @@ static inline int pmd_none(pmd_t pmd)
+> >   static inline int pmd_bad(pmd_t pmd)
+> >   {
+> >   #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+> > -	/* pmd_huge(pmd) but inline */
+> > +	/* pmd_leaf(pmd) but inline */
+> 
+> Same
+> 
+> >   	if (unlikely(pmd_val(pmd) & _PAGE_HUGE))
+> 
+> Same
+> 
+> >   		return 0;
+> >   #endif
+> 
+> > diff --git a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h b/arch/powerpc/include/asm/book3s/64/pgtable-64k.h
+> > index 2fce3498b000..579a7153857f 100644
+> > --- a/arch/powerpc/include/asm/book3s/64/pgtable-64k.h
+> > +++ b/arch/powerpc/include/asm/book3s/64/pgtable-64k.h
+> > @@ -4,31 +4,6 @@
+> >   
+> >   #ifndef __ASSEMBLY__
+> >   #ifdef CONFIG_HUGETLB_PAGE
+> > -/*
+> > - * We have PGD_INDEX_SIZ = 12 and PTE_INDEX_SIZE = 8, so that we can have
+> > - * 16GB hugepage pte in PGD and 16MB hugepage pte at PMD;
+> > - *
+> > - * Defined in such a way that we can optimize away code block at build time
+> > - * if CONFIG_HUGETLB_PAGE=n.
+> > - *
+> > - * returns true for pmd migration entries, THP, devmap, hugetlb
+> > - * But compile time dependent on CONFIG_HUGETLB_PAGE
+> > - */
+> 
+> Should we keep this comment somewhere for documentation ?
+
+The 2nd/3rd paragraphs are definitely obsolete, so should be dropped.
+
+OTOH, I'm not sure how much that will help if e.g. I move that over to
+pmd_leaf(): a check over cpu_to_be64(_PAGE_PTE) is an implementation as
+simple as it could be to explain itself with even no comment to me..
+
+I also don't fully digest why that 1st paragraph discusses PGD entries: for
+example, there's no pgd_huge() defined.  It may not mean that the comment
+is wrong, perhaps it means that I may lack some knowledge around this area
+on Power..
+
+Would you suggest how I should move paragraph 1 (and help to explain what
+it is describing)?  Or maybe we can provide a separate patch for Power's
+huge page sizes but posted separately (and very possibly I'm not the best
+candidate then..).
+
+> 
+> > -static inline int pmd_huge(pmd_t pmd)
+> > -{
+> > -	/*
+> > -	 * leaf pte for huge page
+> > -	 */
+> > -	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+> > -}
+> > -
+> > -static inline int pud_huge(pud_t pud)
+> > -{
+> > -	/*
+> > -	 * leaf pte for huge page
+> > -	 */
+> > -	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
+> > -}
+> >   
+> >   /*
+> >    * With 64k page size, we have hugepage ptes in the pgd and pmd entries. We don't
+
+-- 
+Peter Xu
+
