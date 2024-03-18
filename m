@@ -1,138 +1,201 @@
-Received: from mail-oi1-f170.google.com (mail-oi1-f170.google.com [209.85.167.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2088.outbound.protection.outlook.com [40.107.101.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D71BB1EEE4
-	for <sparclinux@vger.kernel.org>; Mon, 18 Mar 2024 02:49:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.170
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710730189; cv=none; b=gC42vY/enWNp2eJEc7+yYonwVcUJ5N6a7iFbNkG3uOTYHOELmEWtxqKO0JFyNHnHEb3CgIzFdoGF/zOw4UN+d/VYgr+m/PpXShADuzbTrtxTWPM4s6GJWSOfhbt0hhIcLuhHMSvZicp2TCEVvIxI7CO8+kfHmrD6g9KatX/RpiU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710730189; c=relaxed/simple;
-	bh=ybVBqVNCXzGJGuz6lwF+tzdhl5wD9gmQp2PXPNadGZI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NmIgxwUeVZmC6sGF9z+y9S1y2lt2hyT6+66zVwVbk4YSAVyZ11twCz5uVkq8ivGJsbjOailot140811PVO2FZqOjMDXoZ8LkRI16QyVoR4xF7LN+Oqkq4WPmhGzkQIVigodjh16xmDLj83vNYJqv4wbEqskgGdKp39H14yN7Olo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk; spf=none smtp.mailfrom=davidwei.uk; dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b=iV4pzRO6; arc=none smtp.client-ip=209.85.167.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=davidwei.uk
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0911381AB;
+	Mon, 18 Mar 2024 16:15:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.101.88
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1710778525; cv=fail; b=pcNG8sc/b0QkX3szTvzGAMDqaxeFAnrSWx1AnuAQUrR3SifXBuWo3EJ9QrcidDWxz9Lr/tYtcZSjthVvSbaVft2uSgUhDggNMjo+mxtIzwWYDJaWUI6ZRPhwFwjZJt+NxlJA8d72GwKlKM/3NFlQ0LvtNn2IG+XWaNDI6A6y9qo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1710778525; c=relaxed/simple;
+	bh=PJtS7zI0u2qOVABnmf7JxLmekBIS12Spk/QjUoD8sT0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=uSFVzVx4ZbwtiiuvjbY2w47cJ92eoT6bPqoFgZTUE+Fnei/sD06BYXu+71GPPYqgu71QTrvLptN+g+tr6KVh4yVBRe05+R7TNBtKLi9BE1S4MCXo7lWMg3yk09ZNSnid+SPZBu22IZYhT7sPWUbUz1h5dkltslX3Zojb2ku0k+g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=QzZuBY7h; arc=fail smtp.client-ip=40.107.101.88
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b="iV4pzRO6"
-Received: by mail-oi1-f170.google.com with SMTP id 5614622812f47-3c38b719ab5so21514b6e.2
-        for <sparclinux@vger.kernel.org>; Sun, 17 Mar 2024 19:49:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=davidwei-uk.20230601.gappssmtp.com; s=20230601; t=1710730186; x=1711334986; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=QE0CXFBu76tpBM6gpoJrOe0mC6QUf5XbAI8puJxCLjs=;
-        b=iV4pzRO6P3GXwlCKnBLXNP1M23gu1zQrspv6JPJ8fStuXR6pQ39ApKrDntPI5tx/uE
-         /MnuWm41o/lbyJAypmV8amaK7R/DY9hx5GRXs/0r9iXayTGjDZNX/3a3xzI+TRbmrgc5
-         CKaIjiPutwDoASk/sLDAWwavRiaWn0pBM9030+PUUupT3yeK7y4jPmhcyEMY7r4Hl52y
-         XWNfIYJJTMt5wTngWdOXFC2+N/RSAkoF1vsgGy7/X1ZW8EIw0zE/PfsaGzUF6O4qnNcM
-         v/ZuzSbzmtn0escS9ERzZ4uMFZQ9IggD068oFEU9q2JSyZaFtYe56f0HASQWjPvNI5se
-         3jpg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710730186; x=1711334986;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=QE0CXFBu76tpBM6gpoJrOe0mC6QUf5XbAI8puJxCLjs=;
-        b=DUXgHrg2dUANPxy0L9Xy4uT8H6OQhdI6nwWrtcKZyI1Z1NK9ORRs3MU5j8jhfg5Qcx
-         aur8HqJvKPa5ioGY4nNap6EClVQ6voY7vIwZOo4VVH5nPSGAwkqlI4rIjFGrFSG92YwA
-         6u2gUxTaOHUs8WCgDti840Snztpqm/iLym9emjE/fOvgsaHLgeQ3pJrW3S7/U0YUHm84
-         TYUrDAojxeary9j1DopiTG9JwD3qIkDb++mSwyHP3LXwwUxAJJqVHLesV5IT8taCECQw
-         l+2hMfhle5HqTMksHd7nG0ZPPBmT9Iv8c1hCOq8d4R39gqKraUeA7xCkVVHz90/Eb2BH
-         uo/A==
-X-Forwarded-Encrypted: i=1; AJvYcCWJ9J+Zd6QQZMBDw4QQn409i1LKeekxlV2YKAJN0Lq1UoMhQF+3RpPOrEHaMr/QrSjcwfF4v2kNy6BzSurZEZrfpx6sgiptIaU/Lg==
-X-Gm-Message-State: AOJu0YwJe8NmNCyRfG9ETHBz8vzoZo7qhxI78Effiq3bzRZ3p+KHj/N4
-	B2TDFJJn9ui7CsGQGnoJUXA6zzzxh4K1C5bmImPI/xA9GzQ8eJdO9zIuZFtXFT4=
-X-Google-Smtp-Source: AGHT+IENq8waTwhUkJrEOrb8DEHjfl4QDem6FZJYYGTlmjRRGItMoHQ4P2wTQfIoEZJr502KAVnEEA==
-X-Received: by 2002:a05:6870:8e05:b0:222:d6a:9ae8 with SMTP id lw5-20020a0568708e0500b002220d6a9ae8mr10284561oab.35.1710730185882;
-        Sun, 17 Mar 2024 19:49:45 -0700 (PDT)
-Received: from [192.168.1.24] (71-212-18-124.tukw.qwest.net. [71.212.18.124])
-        by smtp.gmail.com with ESMTPSA id i189-20020a62c1c6000000b006e66a76d877sm7120229pfg.153.2024.03.17.19.49.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 17 Mar 2024 19:49:45 -0700 (PDT)
-Message-ID: <b938514c-61cc-41e6-b592-1003b8deccae@davidwei.uk>
-Date: Sun, 17 Mar 2024 19:49:43 -0700
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="QzZuBY7h"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=e+CcdGzsnTq72yJAOE+f8Me64HjGti6A26PWbOMrP9LABVfDZd5KReGe/kTpZ1XR/0AtN1nfXox3rlh3cvZtbrYpfKLKPBrgjSKAM/jb+9n/wZazTNXs9m4dpfGNRIX0TEkmVsmY6fz/dFd0n8IvSrWz9q363qOXaqq0VhOPqVG+3nRmTn9WzIe3gQPBiY/IOP7O/oCgsf7wGKzw1xvFPpGRgKCaT97ei1AIjBH3W7ktfh7pign0vjWX0xYLmWwYBT5W49GMgE74PaSNoC+4UuQJzZFKUulPc8NaryvfBTi7QHw+UmZZgNji6vjjz4XyVkh9WNahxGnju+n3uQStUA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dlv9s2X6IUZXoWRPusJ/nMrZ6cYw3m45dbmZorYVX7Y=;
+ b=dEsp+C/289gGr6movhZhmTpf5fAFa3IVXYDdL7+OGeCNrSY62JV3JmuJv7AQT33mzSikZgaDEYgX6HYzMsn9MRHhGJnqlgX4sVbaQBASZUjVUABBHA+dwKJLwCUEhrIK2jxXJl69bqoFMG5+btyksOkKCi4SR8R1SgNRUpkdFhcPEDBXyxYwfs+6K8jLwzqz5PWJh9DY+1sgeoQbfeKceUMHMrDydmUdlXEPqVu5gX5iz9NQUWAnU4p+jKJpWGXz/o2ANXNBv8DXd9S6NLpJRRTiz+qb9RXcax9RupgqaRvtzQ1mY+r85mKUfUNnJb3h8mef/S8zMAGMxrME35OuVA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dlv9s2X6IUZXoWRPusJ/nMrZ6cYw3m45dbmZorYVX7Y=;
+ b=QzZuBY7hXHCOR8706MkWbH1fDoSq2MN/Ob7GM/NjS74eXtzpITp3CC9bmX3IGr9mNw93+0Tyi8JlwgkOwCiwsDiSyMl0P5M1J4u5gAR0QAz6xdw74EFoUP13hFo7j6Fm5DEw4DtsMTIW+qTU3sQWTzzR3vDmXqzx5O1beJAkwl1GQS8Afujp1LXSzeo92aXztc8WxD0Uo3CfPZcGB6YIjVaRUSDm27pPZJRO7LJkUJCIJZY07leuZ2RiJcnpFQPZ+rAEgq81xxYP8Ksu6AGDir/sAZPBuFtCXyJoB1lZIaRruUU6ksq0rhtN8vHJ9VqO5s+iXPTHZyF9qC0QvJwIIA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3849.namprd12.prod.outlook.com (2603:10b6:5:1c7::26)
+ by CH3PR12MB8331.namprd12.prod.outlook.com (2603:10b6:610:12f::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7386.26; Mon, 18 Mar
+ 2024 16:15:21 +0000
+Received: from DM6PR12MB3849.namprd12.prod.outlook.com
+ ([fe80::6aec:dbca:a593:a222]) by DM6PR12MB3849.namprd12.prod.outlook.com
+ ([fe80::6aec:dbca:a593:a222%5]) with mapi id 15.20.7386.025; Mon, 18 Mar 2024
+ 16:15:21 +0000
+Date: Mon, 18 Mar 2024 13:15:19 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Peter Xu <peterx@redhat.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"x86@kernel.org" <x86@kernel.org>, Mike Rapoport <rppt@kernel.org>,
+	Muchun Song <muchun.song@linux.dev>,
+	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Subject: Re: [PATCH 09/13] mm/powerpc: Redefine pXd_huge() with pXd_leaf()
+Message-ID: <20240318161519.GA5825@nvidia.com>
+References: <20240313214719.253873-1-peterx@redhat.com>
+ <20240313214719.253873-10-peterx@redhat.com>
+ <7b7d6ce1-4a3f-4392-951d-a9bd146c954c@csgroup.eu>
+ <ZfLzZekFBp3J6JUy@x1n>
+ <1f6ad500-3ff7-44d4-8223-067bd2ed9ffe@csgroup.eu>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1f6ad500-3ff7-44d4-8223-067bd2ed9ffe@csgroup.eu>
+X-ClientProxiedBy: SA9PR13CA0141.namprd13.prod.outlook.com
+ (2603:10b6:806:27::26) To DM6PR12MB3849.namprd12.prod.outlook.com
+ (2603:10b6:5:1c7::26)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH net-next v6 02/15] net: page_pool: create hooks for
- custom page providers
-Content-Language: en-GB
-To: Christoph Hellwig <hch@infradead.org>,
- Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, bpf@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>,
- Richard Henderson <richard.henderson@linaro.org>,
- Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
- <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
- Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
- Jesper Dangaard Brouer <hawk@kernel.org>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
- <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
- Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
- Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
- <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
- Yonghong Song <yonghong.song@linux.dev>,
- John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
- Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
- Jiri Olsa <jolsa@kernel.org>, David Ahern <dsahern@kernel.org>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
- Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Pavel Begunkov <asml.silence@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
- Harshitha Ramamurthy <hramamurthy@google.com>,
- Jeroen de Borst <jeroendb@google.com>,
- Praveen Kaligineedi <pkaligineedi@google.com>
-References: <20240305020153.2787423-1-almasrymina@google.com>
- <20240305020153.2787423-3-almasrymina@google.com>
- <ZfegzB341oNc_Ocz@infradead.org>
-From: David Wei <dw@davidwei.uk>
-In-Reply-To: <ZfegzB341oNc_Ocz@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM6PR12MB3849:EE_|CH3PR12MB8331:EE_
+X-MS-Office365-Filtering-Correlation-Id: 21eacb3b-8bd6-4b62-a007-08dc47669c17
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	VeKXYvAoK6iWXmAcXLaQEH4lPt94aqq5ovoSX7V3j15TdBEc7W4CWTVb4GuQrIsYtcEn2mr8Y031SJcq0lDu6/8ciSsxpyRcnYGNyPe5HuoXyea7ddZlen3EnoV+xkxHAMeLbZc+sUFV3X7YIAxpv8yNywKaXKDpucWj49i3yGvn4Rmc8QOenBXgMulnvoxda/8Q4rX+V+eliOpyIVoqKF5jeWwIev8VxDgxNPW/XPEDS9xAvC28QBdb5gImHjBjbRSm3MSq7FymDuEGdc51Hrsczy7FTDrQ8s77Tm2DUvQ5YrhEyQ7Q5LZpH1K2cM6u1XxEWmoQJRjtflJFMogrMDAiq+h43g+TovnTPRxVBpKQ7JwmUpYgRZSYeVhkBN4zHpJAmqZsqooTuupFc2zfdLi93rV+EuQUa8v2xBK0s7CuE/OdNz1eUNWYySCi3HcTOQWy8lrJut1qCU8cssJS9DfHGiSfbvnNriv6rgZr+RFKplNXdC+NaK/C+TdoLPgn/kEG1pJ4dmCRkDpd26wwyjPvbX1jihoLvtNQ7nu1pAdnRY79lgcpPsZShhzWjVoY35wbGf6xDeJTwrYYNppqvAHARxi7+r4GitMqw8oQ3d6aNDXWWCQF6uUekUvbnNzT7d7t0IzW2KOQstVWUVwyEXm/qADHXC1ekb/Uk6/oM6Q=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3849.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(366007)(1800799015)(7416005);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?bHhHUWZoQllXU0VoeTFmTE9SZkdIbU96VFpLSHdrSFJJd0s1blBzMFZ5NExp?=
+ =?utf-8?B?dG01RGwzOEN3Y1Ztck9ScjZnaUpKYXJkSjFjcFlBdkhCUzNwc2MwTXRGcWcr?=
+ =?utf-8?B?MmhzdWNQcUp6WFd6Wi82MWZRV3V4YjBERUJqdHdvWUlRNlpwYVJZOGcrREFL?=
+ =?utf-8?B?Skl4U1RFUUlZbWVvYnJGSVNncWZIWjlDQmNOSXJhb0VMUWhSSHJhMVlpb2hP?=
+ =?utf-8?B?NS80N2drWXpYQ21HVnAzS2hnTnZOblBVb1BtOE9vVENDSERLNkJGcU9RZHkx?=
+ =?utf-8?B?WDk5MnZQUXRJdHcvT1Z2TmNxRENHVGtzMGNiU1htUUkrTEJxblh6QXpJS2Mx?=
+ =?utf-8?B?THhEek0zM2xVWVJESDRhNDFXTUtrajhqQWwwaGVucldqWmdLMkxYUEN1ZUhI?=
+ =?utf-8?B?cVZObFBFRjdUcUhablVkOElYMXkyTFd4NVMvS3NBN2EyVjR2WUthOFdCVzJr?=
+ =?utf-8?B?Z2ZUOVBmTyt3RStOSlJhclkyRVFjREtjTkpzR0xMY0ZGU0VraWNSKzJtUzNS?=
+ =?utf-8?B?RTVsN1dRYnFMMnlsYUNpd2hsMGhaTTNxQVlEV0Z3RmM1OTJJbzJPRmR0Mm9R?=
+ =?utf-8?B?aUtFOFVJVjZPZElkRk4yWGcrWjZuNGtUdnhjOFpJZ04yNWQxaGdsamN0M1Rw?=
+ =?utf-8?B?TGc5YWExdElLb0tsTnlRdGxHM1BhSjB5ZW5id0lwLzlLSGNHMVBaZjk0bXJN?=
+ =?utf-8?B?a1JFbDlkemR6S3ppcSttT2dYOFlselJWZ1RLVGZkeEZlVWp3bG5KSnFtbWkw?=
+ =?utf-8?B?aS9nV2VQd3dqcUxodzF1ekJBbTlDQXU0SXcvL25WUnBSMDhaNm8xanV4Nlcr?=
+ =?utf-8?B?Q0FlZ0hOYm1yTFhwSVF1dHhiZXJ1NHNXRlliOWNlZjM1VUhrWlI3Wm5qRHpD?=
+ =?utf-8?B?ZjU5dW84UWNUZXJXUWVQWmZEbXlJYllHbWVWL2tjdlN1MGt0ekwyMnVyZWxV?=
+ =?utf-8?B?VjM4VzJmc2NxUy9NTWdINDIrL0RyVVI2ZHpndGJWWW5PaDdkSmhTUTBzbDJZ?=
+ =?utf-8?B?MFJFUndqVEhrTDhjUUFiVDUwbkpIM3cvMXBhWWRNNzRXWXJJODc0Slc4eFVq?=
+ =?utf-8?B?bDF2TXk2Z1hsQ1BsaUxRT1A4OFJJWlo2TG1OanBJaC8yeU1NelFCOU1SK2VT?=
+ =?utf-8?B?RXE4THp0bGx0YVZTQmtPYy9BZFEzSWowWnhpbFgxMHFyU29odE1pd1BOTmMy?=
+ =?utf-8?B?S3UwZWxyN0FzblNIdHp5SnpjaER2N3o0eXVQR2F0WTRpRWx6N0QyMVRUVVVv?=
+ =?utf-8?B?QUd2M01DcUs5N29OZ3hjWmY1aWN5b21tQzJwZjZkekliU01WUDFBTjQyMzNS?=
+ =?utf-8?B?cmZLcUtoenBWUWY2a0QxVGpweVp3MWY2WExmcnd1K01UWmxPOUZmeTZzQ1Ey?=
+ =?utf-8?B?ZnBPdDhDNWcyTFlBV3dCTzhCOVB6MCszeVdIejJlY2xCUkk1V2szZTRHdXJl?=
+ =?utf-8?B?NFpCTjBzY0k3N0xOSVI4eTV2OXNhTDhqZ2RzUGp6NWR1VHhlQVBWMlo1SWZF?=
+ =?utf-8?B?ckpXOVVsN2diK0w0OHY2MlRTVlp0cW9DQllSTEZTTFBjMEpBRi83bFN1LzQ2?=
+ =?utf-8?B?TTJJZ3E3bGw0ajZwSkhwdGN5YTdzcVRmYXV4MlFydFpha3YrMnpKa3hxYkdE?=
+ =?utf-8?B?VlBXbitWb3lqUnVTUzdTRzRGNG1oZCtPRVg5Mkg1SERpTkRFUFhEZFk5U0lK?=
+ =?utf-8?B?OS9tL1NsdHZwTkg5bDhPdE5HUUJSWlFNOWxSTUhDK0ZRQ0JrQWQvS0Y1eFZu?=
+ =?utf-8?B?QWxWVWNBVGVzNzdwcFozQThiY2M0RnlndlBzVnNvRXpvYmFJS3djRTd3eGp2?=
+ =?utf-8?B?b3Bja0JHdUppSGJjSTRNQllGTmlzTThaMkJHbnJSaFNsVUFacno4STlHRUU5?=
+ =?utf-8?B?OGxxckZhZkhZVUl3MElRNFlCZGpQTmJveWtxc2F4aE52SVRTYmVLYUNoQ3Jt?=
+ =?utf-8?B?WldzQzBFS2djaG5YVnRSRk81bWZqVmI3UXRKc0dzc1A3QXRGdmtnQ3R5Z1Iv?=
+ =?utf-8?B?RkxwY01pT21NcVF1bnRPRG5OR0UvSzdwL3ZNVkUwRTliYnRLdDMyUXFacURW?=
+ =?utf-8?B?UG5ZTVFOQ04wbXk5enFjd2s3NDZSSndrMklKQW1CTEdkM1RIRGNuUm0yZU1V?=
+ =?utf-8?Q?fYwU=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 21eacb3b-8bd6-4b62-a007-08dc47669c17
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3849.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2024 16:15:21.2007
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ptvgPTtAQp9uxgSCr5rnubGdY/jszhNphhnpNM1hGNKovsx6qNC1ywe+pYvIhi6b
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8331
 
-On 2024-03-17 19:02, Christoph Hellwig wrote:
-> On Mon, Mar 04, 2024 at 06:01:37PM -0800, Mina Almasry wrote:
->> From: Jakub Kicinski <kuba@kernel.org>
->>
->> The page providers which try to reuse the same pages will
->> need to hold onto the ref, even if page gets released from
->> the pool - as in releasing the page from the pp just transfers
->> the "ownership" reference from pp to the provider, and provider
->> will wait for other references to be gone before feeding this
->> page back into the pool.
+On Thu, Mar 14, 2024 at 01:11:59PM +0000, Christophe Leroy wrote:
 > 
-> The word hook always rings a giant warning bell for me, and looking into
-> this series I am concerned indeed.
 > 
-> The only provider provided here is the dma-buf one, and that basically
-> is the only sensible one for the documented design.  So instead of
-> adding hooks that random proprietary crap can hook into, why not hard
-> code the dma buf provide and just use a flag?  That'll also avoid
-> expensive indirect calls.
-
-I'm working on a similar proposal for zero copy Rx but to host memory
-and depend on this memory provider API.
-
-Jakub also designed this API for hugepages too IIRC. Basically there's
-going to be at least three fancy ways of providing pages (one of which
-isn't actually pages, hence the merged netmem_t series) to drivers.
-
+> Le 14/03/2024 à 13:53, Peter Xu a écrit :
+> > On Thu, Mar 14, 2024 at 08:45:34AM +0000, Christophe Leroy wrote:
+> >>
+> >>
+> >> Le 13/03/2024 à 22:47, peterx@redhat.com a écrit :
+> >>> From: Peter Xu <peterx@redhat.com>
+> >>>
+> >>> PowerPC book3s 4K mostly has the same definition on both, except pXd_huge()
+> >>> constantly returns 0 for hash MMUs.  As Michael Ellerman pointed out [1],
+> >>> it is safe to check _PAGE_PTE on hash MMUs, as the bit will never be set so
+> >>> it will keep returning false.
+> >>>
+> >>> As a reference, __p[mu]d_mkhuge() will trigger a BUG_ON trying to create
+> >>> such huge mappings for 4K hash MMUs.  Meanwhile, the major powerpc hugetlb
+> >>> pgtable walker __find_linux_pte() already used pXd_leaf() to check hugetlb
+> >>> mappings.
+> >>>
+> >>> The goal should be that we will have one API pXd_leaf() to detect all kinds
+> >>> of huge mappings.  AFAICT we need to use the pXd_leaf() impl (rather than
+> >>> pXd_huge() ones) to make sure ie. THPs on hash MMU will also return true.
+> >>
+> >> All kinds of huge mappings ?
+> >>
+> >> pXd_leaf() will detect only leaf mappings (like pXd_huge() ). There are
+> >> also huge mappings through hugepd. On powerpc 8xx we have 8M huge pages
+> >> and 512k huge pages. A PGD entry covers 4M so pgd_leaf() won't report
+> >> those huge pages.
+> > 
+> > Ah yes, I should always mention this is in the context of leaf huge pages
+> > only.  Are the examples you provided all fall into hugepd category?  If so
+> > I can reword the commit message, as:
 > 
+> On powerpc 8xx, only the 8M huge pages fall into the hugepd case.
+> 
+> The 512k hugepages are at PTE level, they are handled more or less like 
+> CONT_PTE on ARM. see function set_huge_pte_at() for more context.
+> 
+> You can also look at pte_leaf_size() and pgd_leaf_size().
+
+IMHO leaf should return false if the thing is pointing to a next level
+page table, even if that next level is fully populated with contiguous
+pages.
+
+This seems more aligned with the contig page direction that hugepd
+should be moved over to..
+
+> By the way pgd_leaf_size() looks odd because it is called only when 
+> pgd_leaf_size() returns true, which never happens for 8M pages.
+
+Like this, you should reach the actual final leaf that the HW will
+load and leaf_size() should say it is greater size than the current
+table level. Other levels should return 0.
+
+If necessary the core MM code should deal with this by iterating over
+adjacent tables.
+
+Jason
