@@ -1,63 +1,63 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B59359B55
-	for <sparclinux@vger.kernel.org>; Mon, 18 Mar 2024 20:04:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B30EC5A4C7
+	for <sparclinux@vger.kernel.org>; Mon, 18 Mar 2024 20:04:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710792259; cv=none; b=MVRMrfEojJ6IXlqgdkRakj4VvnrQ+ZFgCt3aImqSXemKVF3UhNKn90MLrdhG47szJW39PCONxD/M62f/php+SQf6Eu48QHoybkZMJHGG8zYfJsekx8C2hpyxApLJyUzL/HF7MBWFwmwtyPLa6Rh7sF62G+ZJcV2ncuz7fUY58Mk=
+	t=1710792262; cv=none; b=upFwF/QAF6KqoOwDktJLEsOEDmUcBzH8ZMXzpS44LfBFHJKxno4BaLJn4bsKzAjAeGwZ3MFaImGaUcAi4sQKuOavpifVML4cs03DKGnWn1rhdlxPlVWu/1GVlBImd7+wDbXwXvbo3QC5McHL0tZ67LdK2QCgS8pMM5wkZ9CK0Xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710792259; c=relaxed/simple;
-	bh=udgt5BojDZ8EVWkeL4uhl2LfvjHvU9M2T020easV1nc=;
+	s=arc-20240116; t=1710792262; c=relaxed/simple;
+	bh=5RHxSgtdvJKVCp5Pr7PrdSJPxWg3TC/UA6xoLVOm0PY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CDv8TMdYvYoTPL+suO8kI9Vnf+Qiv/LPV8+BS1NpGutsBLymIjDaxYCOkivRba+Qn6f331y9nh7KH5b2Q2o1W7dv630oHZQE/Ir2JqoQqlwabEfQu9iMJLhS9qwSY3HcpdB7mRyqWgjL0zp+78Cq5tIX5a/Hymxwn4I3tUaU+Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Z077qJD5; arc=none smtp.client-ip=170.10.129.124
+	 MIME-Version; b=OtU/n2/jQaHp/xqYysABgxVTrxnj/zWq+3fCP7uMkvTw6bROFmxH6/IZ29je2sXFjpuATqXZdzsHgve8sg77lCmtnSCM6A7qTwr3xHFVuk6QJ6kmDQpWu07QfnyRIx7pjBkM1odOXQ640VswxwPnGMtiBCOGmmaeb9TJvJOQxZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q4pSmCqs; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z077qJD5"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q4pSmCqs"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1710792257;
+	s=mimecast20190719; t=1710792259;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=PXv9WADGZnpW9LG755UO1HRR+yBh/xYRmZG+iRDILn4=;
-	b=Z077qJD5OWr5105K86hzv98RQ18ZKL716T5LPhoWcg6JI3RCtQ5uqlqBELD76njNNEcXXg
-	3qHlahPBCJaX9dx8jmn8/i8rFDMB/TsV/d8g2Ct6S5GJ0HKi0rRu6XFwav/zlm9QE4bzkE
-	RXCccDnsdBHqp4AZlwNUIzMxnKAI+e8=
-Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
- [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=4C+lWpN1qDfU+nymiqOVXkY7IqPiijqTb8F5rFjpmTU=;
+	b=Q4pSmCqsAEUSRMQIAZlKkFU4pvuON9ds096d1EDQeGDqj50BeVFZe+bY9sOZlWKANnK7fz
+	2Wx9hRaNILhQfMRzRgBYsydoh2WLwe5tp8ZvlNDuoXwieiGh4t0dNZGr69N9bxFU0bisK4
+	VVH4ZxO2sqjSL6kXrn70nKNHnb2vi+k=
+Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com
+ [209.85.210.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-167--5tCQERUO_y4xpzjpI6MYg-1; Mon, 18 Mar 2024 16:04:16 -0400
-X-MC-Unique: -5tCQERUO_y4xpzjpI6MYg-1
-Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-430b4572a97so17523391cf.1
-        for <sparclinux@vger.kernel.org>; Mon, 18 Mar 2024 13:04:16 -0700 (PDT)
+ us-mta-347-FNmq79Z7Ppui1w9vxpghZg-1; Mon, 18 Mar 2024 16:04:17 -0400
+X-MC-Unique: FNmq79Z7Ppui1w9vxpghZg-1
+Received: by mail-ot1-f72.google.com with SMTP id 46e09a7af769-6e4fe655c93so1708763a34.1
+        for <sparclinux@vger.kernel.org>; Mon, 18 Mar 2024 13:04:17 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710792255; x=1711397055;
+        d=1e100.net; s=20230601; t=1710792257; x=1711397057;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=PXv9WADGZnpW9LG755UO1HRR+yBh/xYRmZG+iRDILn4=;
-        b=EXI3chDiEZvxnL+OkzHcMG7V0p0zX+kLDcq25Ha0CurWd/jMYFyV4s/xMfgYAeGG2a
-         DR8WgDAHpekCegoDAA5oMYDWpDXvAWpRSc8XMd9h0vYDVQFYCI6H1b61TcLhRUP1RAwZ
-         WiILt4850Zd1so2noH4E71ayAkNVcbnKAqms34fJkNMW9K5uFFOq7BqBz3DcrkaKiK7W
-         PiIIN5Xl75J/4N9gVoYm3gI/YvED/fNjOZmhl0UNJ/nZ+zTjXBZxxKloPk4R8uNq5Vd4
-         cSjHbjcIMEl6cvNInBLruH0PTTNNKSwcaqkLCNxBVT+0YHrtZumWvkeCyDoN+CzI+Ecy
-         b2Xg==
-X-Forwarded-Encrypted: i=1; AJvYcCWTnILk2BU+V+NUQSfMVH6NE7WqtLjJzy0pyM1Z8kKofI1Q69TIjX0/qz7NQGWbHUyT7fOCiffaVeno2pHbvTtzjkbTENFpbBqy6Q==
-X-Gm-Message-State: AOJu0YyU2+QH2fqMFYXuCumKVwJwHDm+LKtvWE9FrhZiYQ8kHdgKJd5M
-	QhdF9cCtgtWKxxZtCJI29CKIC4Ye3nh4ttV6TiUmbjccVyIzsH7ha+tVLaSJsnEFy7BkUm1VD2+
-	Jf73cDxhbyYzjyqgR057BcRRIDoib4k4Rnv6KcasMBGTmZDuCx9WIvUAopAE=
-X-Received: by 2002:a05:6214:ab2:b0:695:c55d:fdf8 with SMTP id ew18-20020a0562140ab200b00695c55dfdf8mr6345888qvb.1.1710792255541;
-        Mon, 18 Mar 2024 13:04:15 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHM5if+BJ4z/wKMKgmRKGlctu1Y5Zn0gs2J/D1UPDtxcNZL4bpQ3QnCrk82omp9xwt5ITq/IA==
-X-Received: by 2002:a05:6214:ab2:b0:695:c55d:fdf8 with SMTP id ew18-20020a0562140ab200b00695c55dfdf8mr6345849qvb.1.1710792254868;
-        Mon, 18 Mar 2024 13:04:14 -0700 (PDT)
+        bh=4C+lWpN1qDfU+nymiqOVXkY7IqPiijqTb8F5rFjpmTU=;
+        b=pxXo5DT6omggKJYl86mDZ9DMKXPU5C2mRN6xvN+EOwgoj+F7WH0xNXDepWq+UivdZj
+         hGRN4gRe3Hha4xzruPQtrTmVzmS3/ct6VfI8vcBPBZIUctFnzkUvZNF+K3Dp7p35mfLF
+         ioKGtu82uUWw/Px9DWlNi2tGpzezdHHcFGQUrW5Z19Sl5Zwnc5afoEtxKBPbomlBMaiD
+         dv+acGhUurIeSXj2qPZoVsu6e5yNKPuIRIEo9FcFfU476ChgYzHo3C/jeP1qQj0DZF5M
+         LUu8oBi77/X+xPDsD7P3FCLGWVLQaeOkRLZPOCNTlhGOu6KZEO7yrCI4qXbVzyqoQoKz
+         TeBg==
+X-Forwarded-Encrypted: i=1; AJvYcCWohn9emoEh585yMc1FvrdSOQof6HwHz2HU12N/CytsGsCv7nl0nU1cJjT7jU3pAPEzEiAtddEerXoX/0aSjD7VVVpKSzstTS/RKA==
+X-Gm-Message-State: AOJu0YzFSRr0i9cMFb2S2TzSd4YzcqjS6CdZMNtCtjcGN5gWG2Xic+Ls
+	dwI2sFC+1eV28glPCbfyh3slWrH6EiEYZWg8W+B3W52bIp+DUg5crYZzWf28VaxMUBLEYv75A/3
+	9H61A5BTz+krwD1n05zvU8Z53xVwijX5vXtuCFAiRk2GlXoQwpa6r6Yixxl0=
+X-Received: by 2002:a05:6830:33eb:b0:6e5:14d1:54bc with SMTP id i11-20020a05683033eb00b006e514d154bcmr11071062otu.0.1710792257067;
+        Mon, 18 Mar 2024 13:04:17 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEa6+F4MLCWW6AG4iEABFfgYmZgzy20NeyXKIcAPU+wG9nL9kvLpyVpLWIkaaqT6A2sxlc6og==
+X-Received: by 2002:a05:6830:33eb:b0:6e5:14d1:54bc with SMTP id i11-20020a05683033eb00b006e514d154bcmr11071025otu.0.1710792256645;
+        Mon, 18 Mar 2024 13:04:16 -0700 (PDT)
 Received: from x1n.. ([99.254.121.117])
-        by smtp.gmail.com with ESMTPSA id hj10-20020a05622a620a00b0042ebbc1196fsm3484491qtb.87.2024.03.18.13.04.13
+        by smtp.gmail.com with ESMTPSA id hj10-20020a05622a620a00b0042ebbc1196fsm3484491qtb.87.2024.03.18.13.04.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Mar 2024 13:04:14 -0700 (PDT)
+        Mon, 18 Mar 2024 13:04:16 -0700 (PDT)
 From: peterx@redhat.com
 To: linux-kernel@vger.kernel.org,
 	linux-mm@kvack.org
@@ -79,9 +79,9 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Arnd Bergmann <arnd@arndb.de>,
 	Konrad Dybcio <konrad.dybcio@linaro.org>,
 	Fabio Estevam <festevam@denx.de>
-Subject: [PATCH v2 06/14] mm/arm: Use macros to define pmd/pud helpers
-Date: Mon, 18 Mar 2024 16:03:56 -0400
-Message-ID: <20240318200404.448346-7-peterx@redhat.com>
+Subject: [PATCH v2 07/14] mm/arm: Redefine pmd_huge() with pmd_leaf()
+Date: Mon, 18 Mar 2024 16:03:57 -0400
+Message-ID: <20240318200404.448346-8-peterx@redhat.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240318200404.448346-1-peterx@redhat.com>
 References: <20240318200404.448346-1-peterx@redhat.com>
@@ -95,8 +95,21 @@ Content-Transfer-Encoding: 8bit
 
 From: Peter Xu <peterx@redhat.com>
 
-It's already confusing that ARM 2-level v.s. 3-level defines SECT bit
-differently on pmd/puds.  Always use a macro which is much clearer.
+Most of the archs already define these two APIs the same way.  ARM is more
+complicated in two aspects:
+
+  - For pXd_huge() it's always checking against !PXD_TABLE_BIT, while for
+    pXd_leaf() it's always checking against PXD_TYPE_SECT.
+
+  - SECT/TABLE bits are defined differently on 2-level v.s. 3-level ARM
+    pgtables, which makes the whole thing even harder to follow.
+
+Luckily, the second complexity should be hidden by the pmd_leaf()
+implementation against 2-level v.s. 3-level headers.  Invoke pmd_leaf()
+directly for pmd_huge(), to remove the first part of complexity.  This
+prepares to drop pXd_huge() API globally.
+
+When at it, drop the obsolete comments - it's outdated.
 
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Shawn Guo <shawnguo@kernel.org>
@@ -108,60 +121,32 @@ Cc: Fabio Estevam <festevam@denx.de>
 Cc: linux-arm-kernel@lists.infradead.org
 Signed-off-by: Peter Xu <peterx@redhat.com>
 ---
- arch/arm/include/asm/pgtable-2level.h       | 4 ++--
- arch/arm/include/asm/pgtable-3level-hwdef.h | 1 +
- arch/arm/include/asm/pgtable-3level.h       | 4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mm/hugetlbpage.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
-index b0a262566eb9..4245c2e74720 100644
---- a/arch/arm/include/asm/pgtable-2level.h
-+++ b/arch/arm/include/asm/pgtable-2level.h
-@@ -213,8 +213,8 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
+diff --git a/arch/arm/mm/hugetlbpage.c b/arch/arm/mm/hugetlbpage.c
+index dd7a0277c5c0..c2fa643f6bb5 100644
+--- a/arch/arm/mm/hugetlbpage.c
++++ b/arch/arm/mm/hugetlbpage.c
+@@ -18,11 +18,6 @@
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
  
- #define pmd_pfn(pmd)		(__phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
+-/*
+- * On ARM, huge pages are backed by pmd's rather than pte's, so we do a lot
+- * of type casting from pmd_t * to pte_t *.
+- */
+-
+ int pud_huge(pud_t pud)
+ {
+ 	return 0;
+@@ -30,5 +25,5 @@ int pud_huge(pud_t pud)
  
--#define pmd_leaf(pmd)		(pmd_val(pmd) & 2)
--#define pmd_bad(pmd)		(pmd_val(pmd) & 2)
-+#define pmd_leaf(pmd)		(pmd_val(pmd) & PMD_TYPE_SECT)
-+#define pmd_bad(pmd)		pmd_leaf(pmd)
- #define pmd_present(pmd)	(pmd_val(pmd))
- 
- #define copy_pmd(pmdpd,pmdps)		\
-diff --git a/arch/arm/include/asm/pgtable-3level-hwdef.h b/arch/arm/include/asm/pgtable-3level-hwdef.h
-index 2f35b4eddaa8..e7b666cf0060 100644
---- a/arch/arm/include/asm/pgtable-3level-hwdef.h
-+++ b/arch/arm/include/asm/pgtable-3level-hwdef.h
-@@ -14,6 +14,7 @@
-  * + Level 1/2 descriptor
-  *   - common
-  */
-+#define PUD_TABLE_BIT		(_AT(pmdval_t, 1) << 1)
- #define PMD_TYPE_MASK		(_AT(pmdval_t, 3) << 0)
- #define PMD_TYPE_FAULT		(_AT(pmdval_t, 0) << 0)
- #define PMD_TYPE_TABLE		(_AT(pmdval_t, 3) << 0)
-diff --git a/arch/arm/include/asm/pgtable-3level.h b/arch/arm/include/asm/pgtable-3level.h
-index 4b1d9eb3908a..e7aecbef75c9 100644
---- a/arch/arm/include/asm/pgtable-3level.h
-+++ b/arch/arm/include/asm/pgtable-3level.h
-@@ -112,7 +112,7 @@
- #ifndef __ASSEMBLY__
- 
- #define pud_none(pud)		(!pud_val(pud))
--#define pud_bad(pud)		(!(pud_val(pud) & 2))
-+#define pud_bad(pud)		(!(pud_val(pud) & PUD_TABLE_BIT))
- #define pud_present(pud)	(pud_val(pud))
- #define pmd_table(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
- 						 PMD_TYPE_TABLE)
-@@ -137,7 +137,7 @@ static inline pmd_t *pud_pgtable(pud_t pud)
- 	return __va(pud_val(pud) & PHYS_MASK & (s32)PAGE_MASK);
+ int pmd_huge(pmd_t pmd)
+ {
+-	return pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT);
++	return pmd_leaf(pmd);
  }
- 
--#define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
-+#define pmd_bad(pmd)		(!(pmd_val(pmd) & PMD_TABLE_BIT))
- 
- #define copy_pmd(pmdpd,pmdps)		\
- 	do {				\
 -- 
 2.44.0
 
