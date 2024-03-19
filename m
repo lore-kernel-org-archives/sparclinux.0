@@ -1,103 +1,128 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [46.30.211.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 533EE7D3EA
-	for <sparclinux@vger.kernel.org>; Tue, 19 Mar 2024 14:04:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 582B559B76
+	for <sparclinux@vger.kernel.org>; Tue, 19 Mar 2024 22:17:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710857079; cv=none; b=KqWi3B5Ohngo0j1PqjAWukqOuLuJPcKwytCCu+kOoaNWOxqgdgVhlys5eDU/1GuMtwP8zuE960XDRvz1TurEU+4Kea96OzGZFRKXCOWDNc9kfaGDLikwu43F9nNKS4Fr3Tb2vSRf8zU5+BdBtAyDqEcVXokgfilqxZVmWCaCKbw=
+	t=1710886651; cv=none; b=AGUNuHroKh17HL7R1XM8GeBFV7nzKrRcwEK2+oL4zj8LnzmbkNyVEHQaJahaal+SlxMs/igTrTJaWsJd6JcAf8UGqULUJnVbnqbPq9jigs8YaJQGk8MJloLyzp8zCpslNjD9jPf22lQlV7iJfj1KW8KfoiA27zEoZvjgMZuTWk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710857079; c=relaxed/simple;
-	bh=yNVTuH8Tx4LSKyNlUvmV1JciL2tHoqgg0gSm10mQhSI=;
+	s=arc-20240116; t=1710886651; c=relaxed/simple;
+	bh=Cu6YYeq/2XeoSQ689tlnEMX24gA8Vo52A8XVPrbfWew=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FKIgJwsJbfGpbMRwumIJ/HXPbZ5RUDIxTWTIJ/bbLeM/XsQsXP63c1IW7NrVIH9iTbuoZZh885dRLDsLeqSug2yy76auqZNylxKERzlJjipc+CAKAs4msEnhIvedG3AGPmlql1WNK2CChmIfY48lUbaMqnDl5FI0SkA+5BcXp7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Dhdd4sVL; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=nhmayOFEukV4cK5Rs8szUO3ruUn/X8++kvideKbAc6BOMfBXKoOuVTT/XPo0ajg4IQmA8t3vRCjccy3OZ7R18FfEmY3j5awICB1zNVQmaFspiLX7IUimNN8QT8aZTOuFJylwJMVe+aVF428HLnxOIb4rTGn3/55zNH3YS4jiPZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=gFiTuutF; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=sGyI9Shg; arc=none smtp.client-ip=46.30.211.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Dhdd4sVL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1710857077;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=8w0eeleNwYf+7p/hWMlw61q+s/j0K+e36TEHXQ6sQvU=;
-	b=Dhdd4sVLgkgdh3Z5QXzj0spXGyeB/YJRyfoyFFc4U0688tvIzbZJPGqznrAi9SMkPsOI2g
-	eHFnZz08bLMeyz5X1zLSKwqkqFSudYV/NjjADz9TV7WbsDGqcXnBaz9eq2hsHPTMq3yC9m
-	ufnYuknGtzBTCK0QIwi08uACmtJHqzI=
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com
- [209.85.222.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-462-2Yr466-NM0aaUugiDEEIxQ-1; Tue, 19 Mar 2024 10:04:33 -0400
-X-MC-Unique: 2Yr466-NM0aaUugiDEEIxQ-1
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-7830635331bso155304685a.1
-        for <sparclinux@vger.kernel.org>; Tue, 19 Mar 2024 07:04:33 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710857073; x=1711461873;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8w0eeleNwYf+7p/hWMlw61q+s/j0K+e36TEHXQ6sQvU=;
-        b=LN5RlZgIGj/trnGNppEe6vz0l9mKs2AHjdhS1XCMkSJg98Wv0MJOB31WpvSTEINVTb
-         RCK4yovPxL7nx2n/2sqBiGN5UndqRHqkoKo/pKCUvAZraY9+HCQIMjhSAMuDX7xFsXE/
-         vFS1mKar7emge7DNzIL01zNBxBCRNfyUk1NA/EC0vWefdQNHUirmS/AH16Zi/E/AYVM7
-         se7XLHePg+RSQbaD6Cz5sfjsP1VuxundMqb/EKd0SP12O6QxsZiBS9yDV/kMlvecmZin
-         dVCFZO7jskAVPO34xR5u1d8MTTzvuMbIFs6F/Jd/b2neaylwj9xEzlmDdZ8jpMX/LDS/
-         Na9w==
-X-Forwarded-Encrypted: i=1; AJvYcCXGJi/CsdilqEdR4/UnrccWdUzsauulWS6euczPH6PyIA0wqMyw8EI3UrZVvIiV9AJ71QB13ZtaXyj0/xy9Kbn/3QN3S40UsdJCQQ==
-X-Gm-Message-State: AOJu0Yynp3WQjZjG6CaGjr0/PgGCLXf0jj6UTih2Lgj/E1/dpIJ3MfcG
-	bblyUHvWBG0hBR1na4whzns8mCtH8gj5LOM3NuzeXmiQW9Wqq4hLRY5zi4DTVU1fZqPtEG2q2V2
-	MnO5MLEqNrgzz0gh1dgjDsTShxoux7wVFoPcVCsE/crHQ120VujXcFBZ1m3c=
-X-Received: by 2002:a05:620a:1911:b0:789:ea58:d3b1 with SMTP id bj17-20020a05620a191100b00789ea58d3b1mr2518348qkb.4.1710857073237;
-        Tue, 19 Mar 2024 07:04:33 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IG2woW7UEchY2IkBVWYzgRK0KWJ4spUtcTxNI2cDq95Ac2i5H9cK+iTpsS+AG/gM2n1vRK6zQ==
-X-Received: by 2002:a05:620a:1911:b0:789:ea58:d3b1 with SMTP id bj17-20020a05620a191100b00789ea58d3b1mr2518292qkb.4.1710857072670;
-        Tue, 19 Mar 2024 07:04:32 -0700 (PDT)
-Received: from x1n ([99.254.121.117])
-        by smtp.gmail.com with ESMTPSA id ye1-20020a05620a3b8100b00789e1874eccsm4708269qkn.41.2024.03.19.07.04.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Mar 2024 07:04:32 -0700 (PDT)
-Date: Tue, 19 Mar 2024 10:04:31 -0400
-From: Peter Xu <peterx@redhat.com>
-To: Muchun Song <muchun.song@linux.dev>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>,
-	Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org,
-	Mike Rapoport <rppt@kernel.org>,
-	Matthew Wilcox <willy@infradead.org>, sparclinux@vger.kernel.org,
-	Jason Gunthorpe <jgg@nvidia.com>, linuxppc-dev@lists.ozlabs.org,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	linux-arm-kernel@lists.infradead.org,
-	"David S . Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>
-Subject: Re: [PATCH v2 05/14] mm/sparc: Change pXd_huge() behavior to exclude
- swap entries
-Message-ID: <Zfmbb82ErXU8WXt3@x1n>
-References: <20240318200404.448346-1-peterx@redhat.com>
- <20240318200404.448346-6-peterx@redhat.com>
- <744C19CB-4AE0-472B-ABD8-2064EB04FDA0@linux.dev>
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="gFiTuutF";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="sGyI9Shg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=2FvB7B4OmmOJN0vg9gCAXa7QKYXongHRRCXDXkAKEOQ=;
+	b=gFiTuutFnmDe76dVyDDi9Ov4M9j/iuGhawez/R4SqW9SxATUbf5z0yk3MJNAXWmuzMVaQBlOTZNSR
+	 WDlEcv3rsmPD12q7Rg6jeSe6HOH1zvpMxuiR2OHPm5kwnbBZHrnXoddQ+zpsjYJQsKnT3lGBUNSN9Z
+	 QAJa46ykhtWMez/vETZ2eniB6aApdGMwepB7lhx5mJBR6dOBaFXP/PiZZSynR3rMxvkq6JXBfPLck8
+	 iKF/RK4aLytUxIl/zgWFWviiSi4YjqNYUmWOhBmvc8Mgg2I/U5VRsyZIVzw48yCMsHlQ70Hi8aYDgY
+	 01ag0khMWi+htjuyTmAAsVvbzV6EkTw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=2FvB7B4OmmOJN0vg9gCAXa7QKYXongHRRCXDXkAKEOQ=;
+	b=sGyI9ShgAdpuzllQOIi+YqSHtlQIhem6BUJEe9VZYbZ2nt7whROncfJovtB+DTsNQA/TrmweoNEsG
+	 Rs6oViyDg==
+X-HalOne-ID: 4d1aed18-e63e-11ee-b023-b520e3c7e1da
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay2.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 4d1aed18-e63e-11ee-b023-b520e3c7e1da;
+	Tue, 19 Mar 2024 22:16:16 +0000 (UTC)
+Date: Tue, 19 Mar 2024 23:16:15 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Koakuma <koachan@protonmail.com>
+Cc: "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"ndesaulniers@google.com" <ndesaulniers@google.com>,
+	"arnd@arndb.de" <arnd@arndb.de>
+Subject: Re: [sparc] Use of -fcall-used-* flags in Makefile?
+Message-ID: <20240319221615.GA379167@ravnborg.org>
+References: <JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <744C19CB-4AE0-472B-ABD8-2064EB04FDA0@linux.dev>
+In-Reply-To: <JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com>
 
-On Tue, Mar 19, 2024 at 12:25:39PM +0800, Muchun Song wrote:
-> > @@ -409,14 +409,12 @@ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-> > 
-> > int pmd_huge(pmd_t pmd)
-> > {
-> > - 	return !pmd_none(pmd) &&
-> > - 	(pmd_val(pmd) & (_PAGE_VALID|_PAGE_PMD_HUGE)) != _PAGE_VALID;
-> > + 	return pmd_leaf(pmd);;
+Hi Koakuma,
+
+On Sat, Mar 16, 2024 at 02:59:42PM +0000, Koakuma wrote:
+> Hello, first time poster so apologies if I posted to the wrong list.
 > 
-> There is a redundant semicolon in the end.
+> Anyone knows why the SPARC makefiles (arch/sparc/Makefile and
+> arch/sparc/vdso/Makefile) set `-fcall-used-g5` and  `-fcall-used-g7`
+> in their CFLAGS?
 
-Will touch it up, thanks.  PS: This will be dropped as a whole in patch 12.
+sparc32 uses:
+-fcall-used-g5 -fcall-used-g7
 
--- 
-Peter Xu
 
+sparc64 uses:
+-ffixed-g4 -ffixed-g5 -fcall-used-g7
+
+
+For sparc64:
+
+-ffixed-g4 is added because sparc64 uses the g4 register to hold the
+pointer to the current task. See:
+
+    arch/sparc/include/asm/current.h line 18.
+
+
+g2, g5, g7 all have their specific use or assumptions.
+
+From arch/sparc/include/asm/ttable.h: 
+
+ * Further note that we cannot use the g2, g4, g5, and g7 alternate
+ * globals in the spill routines, check out the save instruction in
+ * arch/sparc64/kernel/etrap.S to see what I mean about g2, and
+ * g4/g5 are the globals which are preserved by etrap processing
+ * for the caller of it.  The g7 register is the return pc for
+ * etrap.  Finally, g6 is the current thread register so we cannot
+ * us it in the spill handlers either.  Most of these rules do not
+ * apply to fill processing, only g6 is not usable.
+ */
+
+
+Looking at https://github.com/gcc-mirror/gcc/blob/master/gcc/config/sparc/sparc.h
+I read that:
+
+   On v9 systems:
+   g1,g5 are free to use as temporaries, and are free to use between calls
+   ...
+   g6-g7 are reserved for the operating system (or application in
+   embedded case).
+
+Based on the above I would assume gcc do not change behaviour with or
+without -fcall-used-g7.
+
+I do not have a sparc64 system at my hands - and for this qemu may not
+cut it. But it would be super if someone with a working sparc64 target
+could verify if the kernel could be built and works without
+-fcall-used-g7.
+
+
+For sparc32 the above file says:
+
+    g5 through g7 are reserved for the operating system.
+
+So again - it looks like -fcall-used-g5 -fcall-used-g7 should have no
+effect here and verification on a real target would be nice.
+
+	Sam
