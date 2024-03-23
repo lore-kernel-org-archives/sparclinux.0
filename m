@@ -1,86 +1,98 @@
-Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
+Received: from mail-0201.mail-europe.com (mail-0201.mail-europe.com [51.77.79.158])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD8CE4C6B;
-	Sat, 23 Mar 2024 06:49:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.50.62.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8646A4DA04
+	for <sparclinux@vger.kernel.org>; Sat, 23 Mar 2024 16:37:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.77.79.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711176587; cv=none; b=UuvkRsetT3+B6rh/NqIqMg5FxO+KIXk+kQurMLrva2yyeeGFGdXOs1LAnwBOfMRYJElPZFNBin4ivLvKVmVSFHmTLpeYPPglk0Df1aaZI1UnretPVzwO96fpSA5RlZDncDze6LCRPogCW2qk9FVX7n7/nSUwOvz8cWdkXx5UFhI=
+	t=1711211878; cv=none; b=DYrEO8VmAi5NvcEiz5jcpZCeqST3Bt1DT6BNIiy6oxoA9gIaQRAnte63aeJk4ONQru3hUsslmKJb0C4BGWIjmxBd7WrYjZKn2fYgqamUEVo1E1wlzx+9j1SZBZgywKMPSHb5SBl1TfQyCDmdnnpFvfflQSpN4NNgyStB3aTH4NY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711176587; c=relaxed/simple;
-	bh=NqzzK0iz78KIPvtZ1w0JtdqyZDW7tedW5UnASOm5zGQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p/abi34v6ClC1f3Zfm7UTQ0MSu8QWWT8BSzwKEtjNt/RcRxoqb84c815IpkiKeIdgeqnNNeDEkpr0wM3ble1DH4VzmdamdjyOkqrYKmd2g4J+6Do5c2JkSJJdhxy3wE9D9dQb7kTRjgjFCRmaVkXy/laHCX6z8sXZ/gAK2BNgeo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com; spf=fail smtp.mailfrom=atomide.com; dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b=KxJDs5kU; arc=none smtp.client-ip=74.50.62.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=atomide.com
+	s=arc-20240116; t=1711211878; c=relaxed/simple;
+	bh=XEiB6i9LbUv2gvZ0g7Rzdz2DBRkWU14YeEGBU6bTRsc=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=c5khF4T0aq+3N0ZnY11Vuv+jw+3Emb3oeNSk6hnqJr2+W/bctASCaLld4B6WPlqu/tOmVFWH/9TXzKfjsN/T3uvqosRbnYDIlkn+qaTUJH9icGsR6apDfvuOcXaQSquqf9Miyv+G/qTp1hswHhGdYKJHDEaOsLFkY5Gu+0i9q9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=vh6YNanG; arc=none smtp.client-ip=51.77.79.158
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="KxJDs5kU"
-Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
-	by mail5.25mail.st (Postfix) with ESMTPSA id AF5B060412;
-	Sat, 23 Mar 2024 06:49:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
-	s=25mailst; t=1711176578;
-	bh=NqzzK0iz78KIPvtZ1w0JtdqyZDW7tedW5UnASOm5zGQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KxJDs5kUZdfOQ1L2jFBxRGef4vObdcMlhJiKC2R1m0lQiwuZHEusMKDibM79sSFbT
-	 8mjLaNPaxxtvaVcZm+n8s89byOt0z9FO0uGyRfJe90wE1t9ntm81v6rTQLUW5gYbD4
-	 PDWscr2BWoXto6AemF++NYujKC8EAM7hy5dAwiPo5A/wMU+t4OM0c0mtlyGE1hVjBa
-	 TZCpkxA5e1devphdXOcb3TeL1kQ3uftEzn/RxDMJ/htD6LStfpL5lIOIfi8W7NimuC
-	 JaIPkSznA7+8VrNajtNofg/glL1O1XuP/f5Aqv0aNEeiQPrJ83pw99hMWNlKnkWR2h
-	 Z1KWIGTU0fmjQ==
-Date: Sat, 23 Mar 2024 08:49:25 +0200
-From: Tony Lindgren <tony@atomide.com>
-To: Nick Bowler <nbowler@draconx.ca>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-	regressions@lists.linux.dev, linux-serial@vger.kernel.org
-Subject: Re: PROBLEM: Sun Ultra 60 hangs on boot since Linux 6.8
-Message-ID: <20240323064925.GE5132@atomide.com>
-References: <d84baa5d-a092-3647-8062-ed7081d329d4@draconx.ca>
- <20240322051531.GA5132@atomide.com>
- <d7337014-09ac-8a35-7159-e75ecd2707b6@draconx.ca>
- <20240322064843.GC5132@atomide.com>
- <20240322090657.GD5132@atomide.com>
- <193a134c-f0da-4a45-b45a-a3605f91cfa4@draconx.ca>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="vh6YNanG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1711211860; x=1711471060;
+	bh=XEiB6i9LbUv2gvZ0g7Rzdz2DBRkWU14YeEGBU6bTRsc=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=vh6YNanGH1X20zGK1tfAaV4nESkLDgECUm44By3xP/rrepE0RC54y96FmF8vXXoAX
+	 C8OKoFzrhRaela23fr04aAr9c9G2k19VwHX2hon3KR5Ww1bdaSY3UiHRthffDJvkbO
+	 vGnHnfWrjy3AqBoDJlHzl0sN3UtpvfHC1wkQiFeZzIg2BjW8P4jyQJcs/uNsUOAo8b
+	 hRInHyvu2tAFYn2J7gbRiwVWNGTN3SKlnU3vwFFRAnSLfUFFaRPx7Zh8H1BW/APelU
+	 UOHoNnylCMXjdiHAPiN/8IXicIHHkO52kCjxeGvzWdlGLNNJYDuqcCv8wRFnta3igC
+	 6Wb2bQ5hnio2Q==
+Date: Sat, 23 Mar 2024 16:37:27 +0000
+To: Sam Ravnborg <sam@ravnborg.org>
+From: Koakuma <koachan@protonmail.com>
+Cc: "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "ndesaulniers@google.com" <ndesaulniers@google.com>, "arnd@arndb.de" <arnd@arndb.de>
+Subject: Re: [sparc] Use of -fcall-used-* flags in Makefile?
+Message-ID: <FLtGz1AK53Qsar2xlt7KBdmT7JLz3H_NoxJQ0UaC0zqNmBtsQ2eSU6LA_lojbVQh8gArSmZoVikYxEuTC4j75PMP_BcnGPuAM2mv1YK7GHA=@protonmail.com>
+In-Reply-To: <20240319221615.GA379167@ravnborg.org>
+References: <JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com> <20240319221615.GA379167@ravnborg.org>
+Feedback-ID: 6608610:user:proton
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <193a134c-f0da-4a45-b45a-a3605f91cfa4@draconx.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-* Nick Bowler <nbowler@draconx.ca> [240322 14:12]:
-> On 2024-03-22 05:06, Tony Lindgren wrote:
+Hello Sam,
+
+Sam Ravnborg <sam@ravnborg.org> wrote:
+
+> Hi Koakuma,
+> Looking at https://github.com/gcc-mirror/gcc/blob/master/gcc/config/sparc=
+/sparc.h
+> I read that:
+>=20
+> On v9 systems:
+> g1,g5 are free to use as temporaries, and are free to use between calls
+> ...
+> g6-g7 are reserved for the operating system (or application in
+> embedded case).
+>=20
+> Based on the above I would assume gcc do not change behaviour with or
+> without -fcall-used-g7.
 > [...]
-> > I can't reproduce this on qemu-system-sparc64, probably as it does not use
-> > the sunsab driver.
-> > 
-> > I noticed something though, I think we need to test for the port device
-> > instead for being runtime PM enabled.
-> > 
-> > Can you please test if the updated patch below make things work again?
-> 
-> Yes, with the below patch applied on top of 6.8 things are working.
+> For sparc32 the above file says:
+>=20
+> g5 through g7 are reserved for the operating system.
+>=20
+> So again - it looks like -fcall-used-g5 -fcall-used-g7 should have no
+> effect here and verification on a real target would be nice.
+>=20
+> Sam
 
-OK great thanks for testing, I'll send out a proper patch.
+From my understanding (and looking at the codegen results) those flags
+forces GCC to treat the named register as volatile, despite what the ABI
+says. However, I also believe that removing them wouldn't be harmful?
 
-Regards,
+To quote my reasoning in the LLVM tracker:
+> omitting the flags shouldn't be harmful either - compilers will now
+> simply refuse to touch them, and any assembly code that happens
+> to touch them would still work like usual (because Linux' conventions
+> already treats them as volatile anyway).
 
-Tony
+But I am not entirely sure about it, that is why it'd be great if there's
+some explaination on why those flags were added in the first place.
 
-> > 8< -------------------
-> > diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
-> > --- a/drivers/tty/serial/serial_core.c
-> > +++ b/drivers/tty/serial/serial_core.c
-> > @@ -156,7 +156,7 @@ static void __uart_start(struct uart_state *state)
-> >  	 * enabled, serial_port_runtime_resume() calls start_tx() again
-> >  	 * after enabling the device.
-> >  	 */
-> > -	if (pm_runtime_active(&port_dev->dev))
-> > +	if (!pm_runtime_enabled(port->dev) || pm_runtime_active(&port_dev->dev))
-> >  		port->ops->start_tx(port);
-> >  	pm_runtime_mark_last_busy(&port_dev->dev);
-> >  	pm_runtime_put_autosuspend(&port_dev->dev)
+> I do not have a sparc64 system at my hands - and for this qemu may not
+> cut it. But it would be super if someone with a working sparc64 target
+> could verify if the kernel could be built and works without
+> -fcall-used-g7.
+
+I am currently running a build with those flags taken out on a T5120,
+and the kernel seems to be running okay for what I do (LLVM development),
+but I don't know if there are more comprehensive test suite for me
+to try on.
+
