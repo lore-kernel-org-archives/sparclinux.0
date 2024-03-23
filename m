@@ -1,89 +1,86 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6225A7EF05;
-	Fri, 22 Mar 2024 23:19:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD8CE4C6B;
+	Sat, 23 Mar 2024 06:49:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.50.62.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711149588; cv=none; b=a2h41iclxISNtDykq63G75cGAjlPziiNcrggb6+v2qlIEi29BkIMEoJwODhxjqvxXZw037Tk8RPJxJPZAX1VQjvW3QCAI4MEzE86qgMfQ1ofgWRHAZduLJOyE4umIFLiaiEsZnoWOsxax9Rw/3Q2GJgFLo2zcwM8YsoAzbxicSE=
+	t=1711176587; cv=none; b=UuvkRsetT3+B6rh/NqIqMg5FxO+KIXk+kQurMLrva2yyeeGFGdXOs1LAnwBOfMRYJElPZFNBin4ivLvKVmVSFHmTLpeYPPglk0Df1aaZI1UnretPVzwO96fpSA5RlZDncDze6LCRPogCW2qk9FVX7n7/nSUwOvz8cWdkXx5UFhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711149588; c=relaxed/simple;
-	bh=msieq1rlX+OhvWYoM0YV5KS97Dsg2PJYaBtuHVmZvcg=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=O7Z0zjKFbLW2twVBovyLEITwGs2kEFiBvyAVEAKpsdXtE/I5dwwEkED+9gN5c8MvbeekxI9f4GDl8iy4RSUVHlny9rKMbj3kPdBIDa5rW7SR6qTyZQZ5UGuLmxK53ukuIli31AFhVyIug2TA6Jy/HxH2fbsqXU67llLohuOZwlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ka5PHCyY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711176587; c=relaxed/simple;
+	bh=NqzzK0iz78KIPvtZ1w0JtdqyZDW7tedW5UnASOm5zGQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=p/abi34v6ClC1f3Zfm7UTQ0MSu8QWWT8BSzwKEtjNt/RcRxoqb84c815IpkiKeIdgeqnNNeDEkpr0wM3ble1DH4VzmdamdjyOkqrYKmd2g4J+6Do5c2JkSJJdhxy3wE9D9dQb7kTRjgjFCRmaVkXy/laHCX6z8sXZ/gAK2BNgeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com; spf=fail smtp.mailfrom=atomide.com; dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b=KxJDs5kU; arc=none smtp.client-ip=74.50.62.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=atomide.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ka5PHCyY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8F27C433C7;
-	Fri, 22 Mar 2024 23:19:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711149587;
-	bh=msieq1rlX+OhvWYoM0YV5KS97Dsg2PJYaBtuHVmZvcg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=ka5PHCyYmoZX9PsvxUAGJqdDBExkTkresHF1kC0nKcGUkpNWTtXfCM9eM3lON00E/
-	 sdTUglbJIwNhSuRIDCc+Shrxp7Q7F8OSC60m4cCVgaPGJWVHsM13+iCe/YoHIFFgiu
-	 5HybDp8YS06v2Xztbb1h0oBMyxoqE2gUndhvBCAbY26U2oBUOD1EZxE7LZ38fBL/QI
-	 5JZ0BUBtxg5FufRT6Zts8zD6NNC0atF7skifKgwBOdLblk5mTaX0LRELnaXdtdEHfX
-	 1o+GQ6VMkk+C/AzTNXltKD4XdDE8tCJ68h7rFM9MN2K/6Z5mQBQ5/GwiPbhToKc2vD
-	 QsSjoQ81Meb1g==
-Date: Fri, 22 Mar 2024 16:19:44 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Mina Almasry <almasrymina@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>, David Wei <dw@davidwei.uk>,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, bpf@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
- Jonathan Corbet <corbet@lwn.net>, Richard Henderson
- <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
- Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
- <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>,
- Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
- <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
- Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
- <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
- <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, Martin KaFai
- Lau <martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>, Song Liu
- <song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>, John Fastabend
- <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>, Stanislav
- Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, Jiri Olsa
- <jolsa@kernel.org>, David Ahern <dsahern@kernel.org>, Willem de Bruijn
- <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, Sumit
- Semwal <sumit.semwal@linaro.org>, Christian =?UTF-8?B?S8O2bmln?=
- <christian.koenig@amd.com>, Pavel Begunkov <asml.silence@gmail.com>, Jason
- Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, Shailend
- Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>,
- Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi
- <pkaligineedi@google.com>
-Subject: Re: [RFC PATCH net-next v6 02/15] net: page_pool: create hooks for
- custom page providers
-Message-ID: <20240322161944.4eba02b6@kernel.org>
-In-Reply-To: <CAHS8izMT1Smz6UWu2uwAQRqgZPU7jTfS3GKiA_sDw9KLqoP-JA@mail.gmail.com>
-References: <20240305020153.2787423-1-almasrymina@google.com>
-	<20240305020153.2787423-3-almasrymina@google.com>
-	<ZfegzB341oNc_Ocz@infradead.org>
-	<b938514c-61cc-41e6-b592-1003b8deccae@davidwei.uk>
-	<ZfjMopBl27-7asBc@infradead.org>
-	<CAHS8izMT1Smz6UWu2uwAQRqgZPU7jTfS3GKiA_sDw9KLqoP-JA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="KxJDs5kU"
+Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
+	by mail5.25mail.st (Postfix) with ESMTPSA id AF5B060412;
+	Sat, 23 Mar 2024 06:49:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
+	s=25mailst; t=1711176578;
+	bh=NqzzK0iz78KIPvtZ1w0JtdqyZDW7tedW5UnASOm5zGQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KxJDs5kUZdfOQ1L2jFBxRGef4vObdcMlhJiKC2R1m0lQiwuZHEusMKDibM79sSFbT
+	 8mjLaNPaxxtvaVcZm+n8s89byOt0z9FO0uGyRfJe90wE1t9ntm81v6rTQLUW5gYbD4
+	 PDWscr2BWoXto6AemF++NYujKC8EAM7hy5dAwiPo5A/wMU+t4OM0c0mtlyGE1hVjBa
+	 TZCpkxA5e1devphdXOcb3TeL1kQ3uftEzn/RxDMJ/htD6LStfpL5lIOIfi8W7NimuC
+	 JaIPkSznA7+8VrNajtNofg/glL1O1XuP/f5Aqv0aNEeiQPrJ83pw99hMWNlKnkWR2h
+	 Z1KWIGTU0fmjQ==
+Date: Sat, 23 Mar 2024 08:49:25 +0200
+From: Tony Lindgren <tony@atomide.com>
+To: Nick Bowler <nbowler@draconx.ca>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+	regressions@lists.linux.dev, linux-serial@vger.kernel.org
+Subject: Re: PROBLEM: Sun Ultra 60 hangs on boot since Linux 6.8
+Message-ID: <20240323064925.GE5132@atomide.com>
+References: <d84baa5d-a092-3647-8062-ed7081d329d4@draconx.ca>
+ <20240322051531.GA5132@atomide.com>
+ <d7337014-09ac-8a35-7159-e75ecd2707b6@draconx.ca>
+ <20240322064843.GC5132@atomide.com>
+ <20240322090657.GD5132@atomide.com>
+ <193a134c-f0da-4a45-b45a-a3605f91cfa4@draconx.ca>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <193a134c-f0da-4a45-b45a-a3605f91cfa4@draconx.ca>
 
-On Fri, 22 Mar 2024 10:40:26 -0700 Mina Almasry wrote:
-> Other designs for this hugepage use case are possible, I'm just
-> describing Jakub's idea for it as a potential use-case for these
-> hooks. 
+* Nick Bowler <nbowler@draconx.ca> [240322 14:12]:
+> On 2024-03-22 05:06, Tony Lindgren wrote:
+> [...]
+> > I can't reproduce this on qemu-system-sparc64, probably as it does not use
+> > the sunsab driver.
+> > 
+> > I noticed something though, I think we need to test for the port device
+> > instead for being runtime PM enabled.
+> > 
+> > Can you please test if the updated patch below make things work again?
+> 
+> Yes, with the below patch applied on top of 6.8 things are working.
 
-I made it ops because I had 4 different implementations with different
-recycling algorithms. I think it's a fairly reasonable piece of code.
+OK great thanks for testing, I'll send out a proper patch.
+
+Regards,
+
+Tony
+
+> > 8< -------------------
+> > diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+> > --- a/drivers/tty/serial/serial_core.c
+> > +++ b/drivers/tty/serial/serial_core.c
+> > @@ -156,7 +156,7 @@ static void __uart_start(struct uart_state *state)
+> >  	 * enabled, serial_port_runtime_resume() calls start_tx() again
+> >  	 * after enabling the device.
+> >  	 */
+> > -	if (pm_runtime_active(&port_dev->dev))
+> > +	if (!pm_runtime_enabled(port->dev) || pm_runtime_active(&port_dev->dev))
+> >  		port->ops->start_tx(port);
+> >  	pm_runtime_mark_last_busy(&port_dev->dev);
+> >  	pm_runtime_put_autosuspend(&port_dev->dev)
