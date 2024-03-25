@@ -1,115 +1,68 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D80D1C257F;
-	Mon, 25 Mar 2024 04:42:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63C9B82D98;
+	Mon, 25 Mar 2024 07:40:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.50.62.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711341756; cv=none; b=BXYC03+e9Pf8tNjlmaC1/b3s1mJhF7xoiuVyBtZWF5w0dGyQ2ILl7DyowtlJ8N93//FLR8mC/Oid1kWOEImu9HGUc7yjU3YSQ0H6JIRq9HKYm2nBfn/oLVKP2nlqWqy+aSNqZLmWtBsguIkBfwrT4mAePx69Rn5gOryRcrWU/6U=
+	t=1711352405; cv=none; b=b1I3wgjEwM0jhN99XkmxmSYUutE/5MiAkz83EnANBDnxLHRRYnmWGSWNF7eqbW2+bnJ8VSur0clDi6ndboKRLeWnzL8HRq+cTGtckWRU9+YcvjPwO2YlFk+KZTy+voli1qJbR9SUStbDva//XkKMCKX1BCdYa/XMpn1lWJiruDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711341756; c=relaxed/simple;
-	bh=XMszcJq9qKpbV4DFBwSekh9f/MWb18ne5dXsAM6kKD8=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=n6GUeeA950p+sk6iXYaZAimMUE/yxDbJ1+xLOKUDGpOiNkSW2dLd65hj7kHgwHe492ZHdrzfZT3vpzC6P+6aKbRdY2Yhq4qMBGZ7KKoLi9EHaU/bRE4HDTjC5ItxMTZ5v88uF3moovDA/2PsMZj3bfUYnA3oXMrJb+2IijCkVnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GdKqpJYq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711352405; c=relaxed/simple;
+	bh=P57Y9I6HUeQDxtauGaO6GSib3ALlVXY8LaHqz73i1f8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=n7vxoIHQJdSzV5SkkyvWTZWtpya/A8HRZlM/07OxhPvNCYpSk8eTZues/FUl/akCfM2yzL1yy1vXx0rM/wVHX6IiMse1nkBcfyrp8VkHLh6bUpQhNvlVGmopi6IOAone077P9G0DGjDc/dtimh+2ClfmPfsAaHgihq8B+w47WGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com; spf=fail smtp.mailfrom=atomide.com; dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b=g+X8BfP7; arc=none smtp.client-ip=74.50.62.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=atomide.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GdKqpJYq"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CB0CCC43143;
-	Mon, 25 Mar 2024 04:42:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711341754;
-	bh=XMszcJq9qKpbV4DFBwSekh9f/MWb18ne5dXsAM6kKD8=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=GdKqpJYqq4nzWFRO9Hpv5UH3Py1smxmB/DXoCXJtllla7M+UbtYM4CJ5/L896W7IV
-	 yQNZ+TVXisg+8sTpUFlmLRoFuUc0LEioY4l5kubTTV7+kTnb8wBKXBmUQuqxFirQOM
-	 +r7s6pXT4cgp/uVDoprMn8sgYkXHbx8mHeeSxDTGj5EF3mvSNK50KxsmorJkJA4wO7
-	 zDT9ZpkpOD2ZRWN3OzSLAbYkoL+iyKgdNDK5cCLI9ndEy0u4mkYkxx8ZcQ9kia61k/
-	 zgU/eNUoN3a7r9NnvA0lfHszFUpclZw3XcF/Xe2dG4exz/EXhbcXzChTQzT6SVcFzX
-	 xxSpvAwPq1e4Q==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id BB1EAD95072;
-	Mon, 25 Mar 2024 04:42:34 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="g+X8BfP7"
+Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
+	by mail5.25mail.st (Postfix) with ESMTPSA id F06E1603C4;
+	Mon, 25 Mar 2024 07:39:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
+	s=25mailst; t=1711352402;
+	bh=P57Y9I6HUeQDxtauGaO6GSib3ALlVXY8LaHqz73i1f8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=g+X8BfP7UAqtNQ8ZFM7VgwQinktNdorUxeqytHyLkjTUiXzCek6R0jqRYD11os0S0
+	 boDprVrdjuxGB8ot5GDZXKDiR1R4IhFbYikVjPuGDX9+ayiTdlRiZZePp7USDaO24N
+	 T96vqRYLetIHrCZRZnvNZ3lNRLFkBuGvZcTDCpd21OqNUaRHXArL82HnXXGFLRhhsv
+	 w46xvAQcj9wJVi3V0dqyWVsTu2nXqp/+8OyCNgXCPfXn+GemV9rPaWXhDOv6U9RkPn
+	 +8+xBNcYLAwT6UQ4v1ghKL6YtPZbDzp1my35hOrLiCRsw8rBEhg0zZnlc8fYVzqslT
+	 akrkEtlF1mQdQ==
+Date: Mon, 25 Mar 2024 09:39:50 +0200
+From: Tony Lindgren <tony@atomide.com>
+To: Nick Bowler <nbowler@draconx.ca>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+	regressions@lists.linux.dev, linux-serial@vger.kernel.org
+Subject: Re: PROBLEM: Sun Ultra 60 hangs on boot since Linux 6.8
+Message-ID: <20240325073950.GF5132@atomide.com>
+References: <d84baa5d-a092-3647-8062-ed7081d329d4@draconx.ca>
+ <20240322051531.GA5132@atomide.com>
+ <d7337014-09ac-8a35-7159-e75ecd2707b6@draconx.ca>
+ <20240322064843.GC5132@atomide.com>
+ <20240322090657.GD5132@atomide.com>
+ <193a134c-f0da-4a45-b45a-a3605f91cfa4@draconx.ca>
+ <20240323064925.GE5132@atomide.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v3 00/15] mm/memory: optimize fork() with PTE-mapped THP
-From: patchwork-bot+linux-riscv@kernel.org
-Message-Id: 
- <171134175476.18749.11889611045887549553.git-patchwork-notify@kernel.org>
-Date: Mon, 25 Mar 2024 04:42:34 +0000
-References: <20240129124649.189745-1-david@redhat.com>
-In-Reply-To: <20240129124649.189745-1-david@redhat.com>
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, akpm@linux-foundation.org, willy@infradead.org,
- ryan.roberts@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com,
- will@kernel.org, dinguyen@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
- christophe.leroy@csgroup.eu, aneesh.kumar@kernel.org,
- naveen.n.rao@linux.ibm.com, paul.walmsley@sifive.com, palmer@dabbelt.com,
- aou@eecs.berkeley.edu, agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com,
- hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@linux.ibm.com,
- svens@linux.ibm.com, davem@davemloft.net,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240323064925.GE5132@atomide.com>
 
-Hello:
-
-This series was applied to riscv/linux.git (fixes)
-by Andrew Morton <akpm@linux-foundation.org>:
-
-On Mon, 29 Jan 2024 13:46:34 +0100 you wrote:
-> Now that the rmap overhaul[1] is upstream that provides a clean interface
-> for rmap batching, let's implement PTE batching during fork when processing
-> PTE-mapped THPs.
+* Tony Lindgren <tony@atomide.com> [240323 08:49]:
+> * Nick Bowler <nbowler@draconx.ca> [240322 14:12]:
+> > Yes, with the below patch applied on top of 6.8 things are working.
 > 
-> This series is partially based on Ryan's previous work[2] to implement
-> cont-pte support on arm64, but its a complete rewrite based on [1] to
-> optimize all architectures independent of any such PTE bits, and to
-> use the new rmap batching functions that simplify the code and prepare
-> for further rmap accounting changes.
-> 
-> [...]
+> OK great thanks for testing, I'll send out a proper patch.
 
-Here is the summary with links:
-  - [v3,01/15] arm64/mm: Make set_ptes() robust when OAs cross 48-bit boundary
-    (no matching commit)
-  - [v3,02/15] arm/pgtable: define PFN_PTE_SHIFT
-    (no matching commit)
-  - [v3,03/15] nios2/pgtable: define PFN_PTE_SHIFT
-    (no matching commit)
-  - [v3,04/15] powerpc/pgtable: define PFN_PTE_SHIFT
-    (no matching commit)
-  - [v3,05/15] riscv/pgtable: define PFN_PTE_SHIFT
-    https://git.kernel.org/riscv/c/57c254b2fb31
-  - [v3,06/15] s390/pgtable: define PFN_PTE_SHIFT
-    (no matching commit)
-  - [v3,07/15] sparc/pgtable: define PFN_PTE_SHIFT
-    (no matching commit)
-  - [v3,08/15] mm/pgtable: make pte_next_pfn() independent of set_ptes()
-    (no matching commit)
-  - [v3,09/15] arm/mm: use pte_next_pfn() in set_ptes()
-    (no matching commit)
-  - [v3,10/15] powerpc/mm: use pte_next_pfn() in set_ptes()
-    (no matching commit)
-  - [v3,11/15] mm/memory: factor out copying the actual PTE in copy_present_pte()
-    (no matching commit)
-  - [v3,12/15] mm/memory: pass PTE to copy_present_pte()
-    (no matching commit)
-  - [v3,13/15] mm/memory: optimize fork() with PTE-mapped THP
-    (no matching commit)
-  - [v3,14/15] mm/memory: ignore dirty/accessed/soft-dirty bits in folio_pte_batch()
-    (no matching commit)
-  - [v3,15/15] mm/memory: ignore writable bit in folio_pte_batch()
-    (no matching commit)
+For reference, patch posted now at [0] below.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Regards,
 
+Tony
 
+[0] https://lore.kernel.org/linux-serial/20240325071649.27040-1-tony@atomide.com/T/#u
