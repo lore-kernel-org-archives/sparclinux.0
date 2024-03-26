@@ -1,113 +1,97 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+Received: from xavier.telenet-ops.be (xavier.telenet-ops.be [195.130.132.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D637F128823;
-	Tue, 26 Mar 2024 03:32:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05FC71804F
+	for <sparclinux@vger.kernel.org>; Tue, 26 Mar 2024 07:51:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.132.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711423974; cv=none; b=PLrxTrwdjILWshfjMuC5XDmwSW/IMqKlj9FqLkUyO1KIt8GRkUfPuJbIhkC2JX61fkpqwbNF7ITxMW6Pm0CM4KQUiEEp0WpAiMv1qfuxAnVNCJsoryeaiFb6jR3cKkwpJzVkQuXOiw+OsIK5HqIfpwotPjH3VEKPl9caz3gU67g=
+	t=1711439467; cv=none; b=bcGqfcjPW/XUAB4XO6Osxk1/Mvl8n6NJDX88IZxA6qmXhJIjEoiLraH/RleywO46Shkz9Kl59b1fBn9D+oW0QiJY7NaLLqxbMcExkIqxo/jWvZO0DdUjon1iUiuP3YGoylJZluW9LhuafpamcoF+UocGmM+Bl7mYe9hPq6BJZPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711423974; c=relaxed/simple;
-	bh=f5P7jXuaPxF8gxKTJOiUPKZMuLKQpBGNZmyCMdfpQew=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=W8AGvVYmbVUe2apVdz2PsqbPJLgZQSM/KTAOfUD01iaYVo2ZMihkLuX9HAWNCoMwYKUsWAoNAQKu8LyM3KyBqleOwEy0bpgzUuPxFU//s0GFX3sbIuqmt9ji0GzmL1Uffn5h8/1Mg/sa7QspryVqnCUKldOdm70XjBWKMZOhlbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GQ/yKgv4; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GQ/yKgv4"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-41488d6752eso10821765e9.2;
-        Mon, 25 Mar 2024 20:32:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1711423971; x=1712028771; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lA5o6h754u6ODWqcXZI/yfZmhgXKlz5ceCEo4tpQucE=;
-        b=GQ/yKgv46sqFnSCBelHnAnN508cFDTH28rJLuZ6V2bjpScVQ3HKjJalz+ylvKz2hmB
-         DBF3ShSXyxxp6u0Kh1ZhSdVJ8hxor/zl5vsZPXMp20oXODQvp5897+fIEUkKcf93x8mL
-         KBbtYe3H2NGGyMYstb37YLWepFJmicNDM/0G0InWzIDnL7gjDG5InDxMlTPBz/nxPNab
-         7cPgbPTjscyAqu5npqXXomA8HAwVfxqTr3TXc4svWbzx41gzXXtezxDS1rc1mJ69ESi3
-         E5ybo69ULxBgoZgrSVqtEtktM/wdkmCLjC9ch73wt+VrBL4JzbIiZoZ9S87j9hApctwr
-         aEmg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711423971; x=1712028771;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lA5o6h754u6ODWqcXZI/yfZmhgXKlz5ceCEo4tpQucE=;
-        b=N0klvxvfSE8JxEsdNayWaepFKiRxCYeXN4J1qGYyqy6Tl5G1NkaUHbJsrZWINdG+gh
-         imcVFh7GREh5T9bAALkEHRZG0U88I4Strc90PB2zUd1lQqfYuOM12FlnzDT8VfsegaDY
-         bSSiQlase5SvGmWJcXcvrfqOIlOFmUJNl7sScAloJNZu86gu8pB9tyX6bdiMtdIUaYcB
-         ZUPFY/dbvyO+hOCl8v9mdHxijLUi+yB/tL7Y7/u0C+CoNDx3KFMO+zyDzyFw4DkO+HOB
-         z/SaDAkpcO7WAVKgomKrb6t+D8OUqETOKztnEpoozB088OsswWeZuQFnQy+LytRdcWpP
-         fyjA==
-X-Forwarded-Encrypted: i=1; AJvYcCXt9vUv1hboSJIa2Wk0CGjD1afSVZLRfkz3WSs2uB+fCN65VGYGcmrmRcOfoG4Xs4iKa8chh2WPpcHwo05wQLJltymwj2gQ1X8OJxtW4tq7vtGeV1EstlKt9JT+ekJWHrLEeX+Yg8cRddUlA23iz7n+lW0jjQb96hOWwJhQOgcriKDZAEVBKUoLG0T9E6OpuprnBS2pBKUH15e2XVku5Ifj1qiJFwq3MB4XCEwqIN67kdpvlH0aoDHYJc17pqJ1E5aBxcBNSVhKjATrKvk3NIBb6MgWtcXcbfybFCQwwlBlXgSjJ/OwEDAeTNYxT5JmB/r2qQlCN+3Uma/G+KUoFfNRkT+BBWg8dEc=
-X-Gm-Message-State: AOJu0Yx2L+Ugcmv/iPcXz+KA1Brw1i6kPdtRDEdgyN7EpNBACsVJs0tc
-	NXCkdqwe6fTxnLigincKMPvAT7kV0WCeCuq0mxzZijtq3AI4i0vtMjhznrefb+Iv7GQA/uroAZ9
-	LDyiTZLKcC2GOHr9ryTmt3djgMus=
-X-Google-Smtp-Source: AGHT+IFQ9mbx3pz3lWDfK2p6wsj2aDG+6I6RjpqCge2Sd5poBB31E3vi/9DrtwhPj4IF4gJiiqaho8oQ5gTSaHJ4YJE=
-X-Received: by 2002:a05:6000:120d:b0:33e:a5e1:eccc with SMTP id
- e13-20020a056000120d00b0033ea5e1ecccmr5218777wrx.68.1711423971122; Mon, 25
- Mar 2024 20:32:51 -0700 (PDT)
+	s=arc-20240116; t=1711439467; c=relaxed/simple;
+	bh=gr9JgkrESZ4jhKkfEzPbJwRvivaU77MYSxc+lDGeHU4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=nBKMOnc3BcaQEksVPae3/FVCYH96rOR9jJwg23rmJ6++FfIIKvbb5gDJAYjwO6eLnlzJOKpt+NJMh6dhBcCJUlIyDY6Ryj2ShLQXauKaSi7FijMjcT/KqMRwDZtgUUL7VAq0IzbQQUgrvAOjHEFgVtwboyw/aCo7X4lUEJaSceo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.132.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed80:76d0:2bff:fec8:549])
+	by xavier.telenet-ops.be with bizsmtp
+	id 3Kqp2C00C0SSLxL01KqpkN; Tue, 26 Mar 2024 08:50:56 +0100
+Received: from geert (helo=localhost)
+	by ramsan.of.borg with local-esmtp (Exim 4.95)
+	(envelope-from <geert@linux-m68k.org>)
+	id 1rp1a5-004zii-Gc;
+	Tue, 26 Mar 2024 08:50:49 +0100
+Date: Tue, 26 Mar 2024 08:50:49 +0100 (CET)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-kernel@vger.kernel.org
+cc: linux-crypto@vger.kernel.org, Chris Zankel <chris@zankel.net>, 
+    Max Filippov <jcmvbkbc@gmail.com>, Rob Clark <robdclark@gmail.com>, 
+    Abhinav Kumar <quic_abhinavk@quicinc.com>, 
+    Dmitry Baryshkov <dmitry.baryshkov@linaro.org>, 
+    linux-arm-msm@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+    freedreno@lists.freedesktop.org, 
+    Lucas De Marchi <lucas.demarchi@intel.com>, 
+    Oded Gabbay <ogabbay@kernel.org>, 
+    =?ISO-8859-15?Q?Thomas_Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>, 
+    intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+    linux-mips@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: Build regressions/improvements in v6.9-rc1
+In-Reply-To: <20240325200315.3896021-1-geert@linux-m68k.org>
+Message-ID: <8d78894-dd89-9f4d-52bb-1b873c50be9c@linux-m68k.org>
+References: <CAHk-=wgOw_13JuuX4khpn4K+n09cRG3EBQWufAPBWoa0GLLQ0A@mail.gmail.com> <20240325200315.3896021-1-geert@linux-m68k.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240326021656.202649-1-rick.p.edgecombe@intel.com> <20240326021656.202649-3-rick.p.edgecombe@intel.com>
-In-Reply-To: <20240326021656.202649-3-rick.p.edgecombe@intel.com>
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Mon, 25 Mar 2024 20:32:40 -0700
-Message-ID: <CAADnVQKHtRX2WS9c2qcMUJTmNNda+attkXoiNurFyMKvHNfa=A@mail.gmail.com>
-Subject: Re: [PATCH v4 02/14] mm: Switch mm->get_unmapped_area() to a flag
-To: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Liam.Howlett@oracle.com, Andrew Morton <akpm@linux-foundation.org>, 
-	Borislav Petkov <bp@alien8.de>, Mark Brown <broonie@kernel.org>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	debug@rivosinc.com, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, 
-	Thomas Gleixner <tglx@linutronix.de>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	linux-mm <linux-mm@kvack.org>, linux-s390 <linux-s390@vger.kernel.org>, 
-	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, 
-	io-uring@vger.kernel.org, bpf <bpf@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-On Mon, Mar 25, 2024 at 7:17=E2=80=AFPM Rick Edgecombe
-<rick.p.edgecombe@intel.com> wrote:
+On Mon, 25 Mar 2024, Geert Uytterhoeven wrote:
+> Below is the list of build error/warning regressions/improvements in
+> v6.9-rc1[1] compared to v6.8[2].
 >
->
-> diff --git a/mm/util.c b/mm/util.c
-> index 669397235787..8619d353a1aa 100644
-> --- a/mm/util.c
-> +++ b/mm/util.c
-> @@ -469,17 +469,17 @@ void arch_pick_mmap_layout(struct mm_struct *mm, st=
-ruct rlimit *rlim_stack)
->
->         if (mmap_is_legacy(rlim_stack)) {
->                 mm->mmap_base =3D TASK_UNMAPPED_BASE + random_factor;
-> -               mm->get_unmapped_area =3D arch_get_unmapped_area;
-> +               clear_bit(MMF_TOPDOWN, &mm->flags);
->         } else {
->                 mm->mmap_base =3D mmap_base(random_factor, rlim_stack);
-> -               mm->get_unmapped_area =3D arch_get_unmapped_area_topdown;
-> +               set_bit(MMF_TOPDOWN, &mm->flags);
->         }
->  }
->  #elif defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
->  void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_sta=
-ck)
->  {
->         mm->mmap_base =3D TASK_UNMAPPED_BASE;
-> -       mm->get_unmapped_area =3D arch_get_unmapped_area;
-> +       clear_bit(MMF_TOPDOWN, &mm->flags);
->  }
->  #endif
+> Summarized:
+>  - build errors: +8/-8
 
-Makes sense to me.
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-for the idea and for bpf bits.
+   + /kisskb/src/crypto/scompress.c: error: unused variable 'dst_page' [-Werror=unused-variable]:  => 174:38
+
+xtensa-gcc13/xtensa-allmodconfig
+
+   + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_0_0_snapshot.h: error: 'gen7_0_0_external_core_regs' defined but not used [-Werror=unused-variable]:  => 924:19
+   + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_2_0_snapshot.h: error: 'gen7_2_0_external_core_regs' defined but not used [-Werror=unused-variable]:  => 748:19
+
+arm64-gcc5/arm64-allmodconfig
+powerpc-gcc5/powerpc-allmodconfig
+powerpc-gcc5/powerpc-allyesconfig
+powerpc-gcc5/ppc32_allmodconfig
+powerpc-gcc5/ppc64_book3e_allmodconfig
+powerpc-gcc5/ppc64le_allmodconfig
+sparc64-gcc5/sparc64-allmodconfig
+
+   + /kisskb/src/drivers/gpu/drm/xe/xe_lrc.c: error: "END" redefined [-Werror]:  => 100
+
+mips-gcc8/mips-allmodconfig
+mips-gcc13/mips-allmodconfig
+
+   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0xc), (.fixup+0x4)
+   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x18), (.fixup+0x8), (.fixup+0x0), (.fixup+0x20), (.fixup+0x10)
+   + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
+   + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+
+sparc64-gcc13/sparc-allmodconfig
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/4cece764965020c22cff7665b18a012006359095/ (all 138 configs)
+> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/e8f897f4afef0031fe618a8e94127a0934896aba/ (all 138 configs)
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
