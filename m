@@ -1,97 +1,69 @@
-Received: from xavier.telenet-ops.be (xavier.telenet-ops.be [195.130.132.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05FC71804F
-	for <sparclinux@vger.kernel.org>; Tue, 26 Mar 2024 07:51:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.132.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D7FE6E61D;
+	Tue, 26 Mar 2024 11:57:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711439467; cv=none; b=bcGqfcjPW/XUAB4XO6Osxk1/Mvl8n6NJDX88IZxA6qmXhJIjEoiLraH/RleywO46Shkz9Kl59b1fBn9D+oW0QiJY7NaLLqxbMcExkIqxo/jWvZO0DdUjon1iUiuP3YGoylJZluW9LhuafpamcoF+UocGmM+Bl7mYe9hPq6BJZPU=
+	t=1711454264; cv=none; b=USrDyUDbxrTHXCsaC/FoL9kxSgpT+B+QK8wqLMxPXTJNOd+h0gAs0CCGBNlpD3T0eICy0mB1n825GvHvXus7IqSRGm9eK9sn3M+RhjlKa2FNpAaunKdje7B1D0pPTBlWujsm+YOWld3VjRAklwNuvoWfvkhogTFUXn9b3tnvWy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711439467; c=relaxed/simple;
-	bh=gr9JgkrESZ4jhKkfEzPbJwRvivaU77MYSxc+lDGeHU4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=nBKMOnc3BcaQEksVPae3/FVCYH96rOR9jJwg23rmJ6++FfIIKvbb5gDJAYjwO6eLnlzJOKpt+NJMh6dhBcCJUlIyDY6Ryj2ShLQXauKaSi7FijMjcT/KqMRwDZtgUUL7VAq0IzbQQUgrvAOjHEFgVtwboyw/aCo7X4lUEJaSceo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.132.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed80:76d0:2bff:fec8:549])
-	by xavier.telenet-ops.be with bizsmtp
-	id 3Kqp2C00C0SSLxL01KqpkN; Tue, 26 Mar 2024 08:50:56 +0100
-Received: from geert (helo=localhost)
-	by ramsan.of.borg with local-esmtp (Exim 4.95)
-	(envelope-from <geert@linux-m68k.org>)
-	id 1rp1a5-004zii-Gc;
-	Tue, 26 Mar 2024 08:50:49 +0100
-Date: Tue, 26 Mar 2024 08:50:49 +0100 (CET)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: linux-kernel@vger.kernel.org
-cc: linux-crypto@vger.kernel.org, Chris Zankel <chris@zankel.net>, 
-    Max Filippov <jcmvbkbc@gmail.com>, Rob Clark <robdclark@gmail.com>, 
-    Abhinav Kumar <quic_abhinavk@quicinc.com>, 
-    Dmitry Baryshkov <dmitry.baryshkov@linaro.org>, 
-    linux-arm-msm@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-    freedreno@lists.freedesktop.org, 
-    Lucas De Marchi <lucas.demarchi@intel.com>, 
-    Oded Gabbay <ogabbay@kernel.org>, 
-    =?ISO-8859-15?Q?Thomas_Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>, 
-    intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
-    linux-mips@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v6.9-rc1
-In-Reply-To: <20240325200315.3896021-1-geert@linux-m68k.org>
-Message-ID: <8d78894-dd89-9f4d-52bb-1b873c50be9c@linux-m68k.org>
-References: <CAHk-=wgOw_13JuuX4khpn4K+n09cRG3EBQWufAPBWoa0GLLQ0A@mail.gmail.com> <20240325200315.3896021-1-geert@linux-m68k.org>
+	s=arc-20240116; t=1711454264; c=relaxed/simple;
+	bh=EKJhulSFxLWQLaF7yaxSDnu58jC9IeQn/dXAU0JKliQ=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
+	 References:In-Reply-To; b=QoPZOEwAk0Yt6nEs/hzNVqxnig8kslz/wTvcTI/TW57XOoaVHHnZzsngqormlyVJfCCu+L+CNjtq9lGn6RcoQwcCmOf405Y9daau7UXgq/mE3zda2M5HjZE67E+o1QZhNHGm4UOdeZl2x3HzdUXJ73us5PAoYPZmZ3Gjm9j5F+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hMw4D1PQ; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hMw4D1PQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E9C1C433F1;
+	Tue, 26 Mar 2024 11:57:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1711454264;
+	bh=EKJhulSFxLWQLaF7yaxSDnu58jC9IeQn/dXAU0JKliQ=;
+	h=Date:Cc:Subject:From:To:References:In-Reply-To:From;
+	b=hMw4D1PQCahqfw8MtYxsjzHrzUNPiIFh/by6PO26L5JBoud0NXvOoP+pWDolP6A7W
+	 MHWxMfRihenzXqisqycL3g12C+CTWoltIvH4CNPUdz+72PbKPN+WRf81R/oXG8bDpf
+	 T1dkgCTQSYki+AzT7VZB67H8zKEuIGM/3R4nByOKzGAkwCto7GnC2k4qJLIzF7Eq/D
+	 /5kSEGrmMOO3Stz0ZnDtyv2/s9EdzPUq06xhiB22b5Veavz/fy0YY//StezneyCMcw
+	 b0BhOnWShhQodg0X1OfcREnyS8OlaUMwqW9UypBtbcnB46bzRA+9vjV1wmjQjZJ4Bo
+	 J5FymRUa+DgSQ==
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 26 Mar 2024 13:57:37 +0200
+Message-Id: <D03NWFQM9XP2.1AWMB9VW98Z98@kernel.org>
+Cc: <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
+ <linux-s390@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+ <linux-sgx@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+ <linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+ <io-uring@vger.kernel.org>, <bpf@vger.kernel.org>
+Subject: Re: [PATCH v4 02/14] mm: Switch mm->get_unmapped_area() to a flag
+From: "Jarkko Sakkinen" <jarkko@kernel.org>
+To: "Rick Edgecombe" <rick.p.edgecombe@intel.com>,
+ <Liam.Howlett@oracle.com>, <akpm@linux-foundation.org>, <bp@alien8.de>,
+ <broonie@kernel.org>, <christophe.leroy@csgroup.eu>,
+ <dave.hansen@linux.intel.com>, <debug@rivosinc.com>, <hpa@zytor.com>,
+ <keescook@chromium.org>, <kirill.shutemov@linux.intel.com>,
+ <luto@kernel.org>, <mingo@redhat.com>, <peterz@infradead.org>,
+ <tglx@linutronix.de>, <x86@kernel.org>
+X-Mailer: aerc 0.17.0
+References: <20240326021656.202649-1-rick.p.edgecombe@intel.com>
+ <20240326021656.202649-3-rick.p.edgecombe@intel.com>
+In-Reply-To: <20240326021656.202649-3-rick.p.edgecombe@intel.com>
 
-On Mon, 25 Mar 2024, Geert Uytterhoeven wrote:
-> Below is the list of build error/warning regressions/improvements in
-> v6.9-rc1[1] compared to v6.8[2].
->
-> Summarized:
->  - build errors: +8/-8
+On Tue Mar 26, 2024 at 4:16 AM EET, Rick Edgecombe wrote:
+> The mm_struct contains a function pointer *get_unmapped_area(), which
+> is set to either arch_get_unmapped_area() or
+> arch_get_unmapped_area_topdown() during the initialization of the mm.
 
-   + /kisskb/src/crypto/scompress.c: error: unused variable 'dst_page' [-Werror=unused-variable]:  => 174:38
+In which conditions which path is used during the initialization of mm
+and why is this the case? It is an open claim in the current form.
 
-xtensa-gcc13/xtensa-allmodconfig
+That would be nice to have documented for the sake of being complete
+description. I have zero doubts of the claim being untrue.
 
-   + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_0_0_snapshot.h: error: 'gen7_0_0_external_core_regs' defined but not used [-Werror=unused-variable]:  => 924:19
-   + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_2_0_snapshot.h: error: 'gen7_2_0_external_core_regs' defined but not used [-Werror=unused-variable]:  => 748:19
-
-arm64-gcc5/arm64-allmodconfig
-powerpc-gcc5/powerpc-allmodconfig
-powerpc-gcc5/powerpc-allyesconfig
-powerpc-gcc5/ppc32_allmodconfig
-powerpc-gcc5/ppc64_book3e_allmodconfig
-powerpc-gcc5/ppc64le_allmodconfig
-sparc64-gcc5/sparc64-allmodconfig
-
-   + /kisskb/src/drivers/gpu/drm/xe/xe_lrc.c: error: "END" redefined [-Werror]:  => 100
-
-mips-gcc8/mips-allmodconfig
-mips-gcc13/mips-allmodconfig
-
-   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0xc), (.fixup+0x4)
-   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x18), (.fixup+0x8), (.fixup+0x0), (.fixup+0x20), (.fixup+0x10)
-   + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
-   + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
-
-sparc64-gcc13/sparc-allmodconfig
-
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/4cece764965020c22cff7665b18a012006359095/ (all 138 configs)
-> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/e8f897f4afef0031fe618a8e94127a0934896aba/ (all 138 configs)
-
-Gr{oetje,eeting}s,
-
- 						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
+BR, Jarkko
