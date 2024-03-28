@@ -1,168 +1,137 @@
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAF67460;
-	Thu, 28 Mar 2024 19:36:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.237.130.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 377BA137907
+	for <sparclinux@vger.kernel.org>; Thu, 28 Mar 2024 20:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711654571; cv=none; b=sYiLnpLAOpLV3kIYMdKaMEfKFEORadPzB/jexjQn3B6M8JKqaRAAGiA0qyXgx7wx5/X0IuQGvKDYBcMdrCH0K0qFU+RLUuz6T8UpRw4U4AIZ1mnpN37tJt+b5roTapqvEa8byL354MmoX8785qS8/NS/t9IqlkLCT2CwOwGjI2w=
+	t=1711656570; cv=none; b=sMOJVsdvHS28/Ktmt0gNdN0bwu/sFvixNrPPtK1Snn/hOkmuZeLXsG/XgEwQlbxnJFFm3p2V0k/pjg7jiZbqaIzxDQ9ZpXrBQBQC6bRme9qW/hjd4ynlnatR56kLMJrxRA3BmYlwzdCotjq7nxT6KpwE9N7NWUsnfCIOOlUw28k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711654571; c=relaxed/simple;
-	bh=GBMP9eUzd576uCKEfwrAbrzJQU5ydmFcRsIdjAE9gJU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=LZU4qz1QIvXPqKMKGuaXTFgkpe+yOj0UWRuupvgBNbJP2ZXRyycB0q0Ix47yopvjPfK5nJg5gC10tZz3E2Ih4NK4Iosc0A6GEqqxgQQB7ERZ2qx8cx9BoTLSjrbkygqN/45yXyGUN8oj200KbpHdgoXBfzIspnl3QZD9bXZ0rkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=pnkZFVIZ; arc=none smtp.client-ip=80.237.130.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+	s=arc-20240116; t=1711656570; c=relaxed/simple;
+	bh=OrfH9kHPnKygy3hofZhQXKxDKdHWeNXPs7Z+BPCJInw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aZ6kvlXkYiqbOIDOcodMRtZ7660dl1mPhCnLsgTa6jie9FbrRTS1yzxpRjT9S40fasAXU4tBZVJ+fF6hTAnwp1WK7uCMLvsYPq+6S2yL7Q3tZCla7nFTmp2LX9No9RCAkARLYP5QTYq7mV9XZzGHNRylmJ8XAsHdUcxOns5JEWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b/LxhMJ5; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="pnkZFVIZ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=leemhuis.info; s=he214686; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:From:Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:
-	Content-Type:Content-Transfer-Encoding:Content-ID:Content-Description:
-	In-Reply-To:References; bh=hOLQ5DNBslqKcP2P0bqf6nLCFB2CmCUnxKgsxc2Zg4o=;
-	t=1711654569; x=1712086569; b=pnkZFVIZyJ2TujNDEb9SvZAIgM20GaX8xQNys3ymRxyCyn+
-	ZGKaBV9CHMZPCaBlvxmpPmEZIlhUnNtRaewTja65NJzx7OqbsbSEAnQphhmsgGl0LFqiSBZFVpQUQ
-	cK9aNiOkI5zH2882cK7l+DH1LcJoFXkHm3srOLVsRJTEH/V28h7se6AD+KQp6fCpuo7cE5z/w8pxX
-	n8sK6H7h5DUnl723SjzPU3YD6m82MkTc6P9bH2rE1dUwpLlum8zFCRIMP1zGIRnwG9BoxvqvgT21/
-	oBEQmSnCeAl++1Ue7j4aQ1FH7TcLG8wZWobr/Xdpb8dgkCuLTWLIkDip/4xUwosQ==;
-Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
-	by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-	id 1rpvXi-0004a7-Hq; Thu, 28 Mar 2024 20:36:06 +0100
-Message-ID: <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
-Date: Thu, 28 Mar 2024 20:36:04 +0100
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b/LxhMJ5"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-56890b533aaso1536512a12.3
+        for <sparclinux@vger.kernel.org>; Thu, 28 Mar 2024 13:09:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1711656566; x=1712261366; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=XTxbVAahUUqo8qIWTib74cjwQuWnxXYmY/UOpSlb0dE=;
+        b=b/LxhMJ57ZDdtRC1jnmbGYmHuyi7ZeUNhv+WO4VtE6p2IjBs4Sh6EDg2vfrOHpTRRE
+         ySp5gYKo/2TisecQtLdTEAeGRTEEax8c2YO7gNfnkT60JNQb+iwq5XPDvaMDyONlorTe
+         R/DuoDJ5Qp+aFmQcJWLaTSY+ZmEvQjCGPxAlU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711656566; x=1712261366;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=XTxbVAahUUqo8qIWTib74cjwQuWnxXYmY/UOpSlb0dE=;
+        b=lmXnIDhGHX1WUeM9NUYpF3duMRHi1Q9YR/661iV/7SETg47QaaU62kB3WABEm20Fj+
+         d2Z3tIM75/JM6YATFcMfaalf8T45Ltd6FYUEPnqV6OfKeCALiG0Kj7z7W1BrrO3VHOiQ
+         JDDZZgVhTfgysmWewieCdIulA6Ktbsahf+i9yPY1foPDtgN4YB0RQ1GD+2lyVoQuLNRQ
+         WWRZ6M6DvrF5DiGEz+sInGxxaYmk6jB6VdLcJSC+5b0b0gZLV0PLET9R5zPTcOO/x/bB
+         3CGjcAUk0mTw1MeDRh7dFf+8lCukQo/A6qfg7cVuxuTIwsYmtGan6n+HYF9lT7mQMN5V
+         rpZw==
+X-Forwarded-Encrypted: i=1; AJvYcCUY8Bw6YnpnpgivrVZXyOuhM0NGAEEvo6Wb94jTjjV/L1ySCSCz6iyE1ZofyVBxoMdZ3RyWVrcVNfNDA0jaKHUHDn0AOTE80WjOaw==
+X-Gm-Message-State: AOJu0Yz9SCg82lx/jBv0+CcrOzOSy8hngr+nTXRBnVVNcMawJUaPD/oe
+	7LKZC0X9MbgZ0HXJusvRMCZtVmr9fxg4ZqZSqjUDUvrMsQU3Fln5Pp3EEr8xPRrSeoHZj1um9jM
+	iwPBZFw==
+X-Google-Smtp-Source: AGHT+IH0YpKd8ttLiED/8o4oe8v09O8AvrjAeZO01Kw1oy3YdbTk+q/PLsjchSYmR4SgmwLjCNcSqg==
+X-Received: by 2002:a17:906:7245:b0:a4e:2269:bc21 with SMTP id n5-20020a170906724500b00a4e2269bc21mr222432ejk.1.1711656566334;
+        Thu, 28 Mar 2024 13:09:26 -0700 (PDT)
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com. [209.85.218.45])
+        by smtp.gmail.com with ESMTPSA id c3-20020a170906340300b00a4739efd7cesm1118159ejb.60.2024.03.28.13.09.24
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 28 Mar 2024 13:09:26 -0700 (PDT)
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-a466a27d30aso171802966b.1
+        for <sparclinux@vger.kernel.org>; Thu, 28 Mar 2024 13:09:24 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVW4ui/vCgsRgpuE2XmbKaQJmvZHNuCCICwL3sZq3DyedW6lF9MAr60mmxlgDEZtxs8hqfjntXbo8KLewdCK3HXS8WTZ4cOEj79GA==
+X-Received: by 2002:a17:906:2698:b0:a47:4d61:de44 with SMTP id
+ t24-20020a170906269800b00a474d61de44mr190688ejc.55.1711656564444; Thu, 28 Mar
+ 2024 13:09:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
-To: Nick Bowler <nbowler@draconx.ca>,
- Linux regressions mailing list <regressions@lists.linux.dev>
-Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- sparclinux@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 References: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
  <CADyTPEyAidGgBT3f1VJLHb3ouO-r1UyvFp1PcwXxy0NRG94sbw@mail.gmail.com>
- <1df92fec-7f57-5080-94ed-b149ed384280@leemhuis.info>
- <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
-From: "Linux regression tracking (Thorsten Leemhuis)"
- <regressions@leemhuis.info>
-Content-Language: en-US, de-DE
-Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
-In-Reply-To: <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1711654569;30692136;
-X-HE-SMSGID: 1rpvXi-0004a7-Hq
+ <1df92fec-7f57-5080-94ed-b149ed384280@leemhuis.info> <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
+ <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
+In-Reply-To: <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 28 Mar 2024 13:09:07 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
+Message-ID: <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
+Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
+To: Linux regressions mailing list <regressions@lists.linux.dev>, Andreas Larsson <andreas@gaisler.com>
+Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
+	"David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-[CCing Linus, in case I say something to his disliking]
+On Thu, 28 Mar 2024 at 12:36, Linux regression tracking (Thorsten
+Leemhuis) <regressions@leemhuis.info> wrote:
+>
+> [CCing Linus, in case I say something to his disliking]
+>
+> On 22.03.24 05:57, Nick Bowler wrote:
+> >
+> > Just a friendly reminder that this issue still happens on Linux 6.8 and
+> > reverting commit 9b2f753ec237 as indicated below is still sufficient to
+> > resolve the problem.
+>
+> FWIW, that commit 9b2f753ec23710 ("sparc64: Fix cpu_possible_mask if
+> nr_cpus is set") is from v4.8. Reverting it after all that time might
+> easily lead to even bigger trouble.
 
-On 22.03.24 05:57, Nick Bowler wrote:
-> 
-> Just a friendly reminder that this issue still happens on Linux 6.8 and
-> reverting commit 9b2f753ec237 as indicated below is still sufficient to
-> resolve the problem.
+I'm definitely not reverting a patch from almost a decade ago as a regression.
 
-FWIW, that commit 9b2f753ec23710 ("sparc64: Fix cpu_possible_mask if
-nr_cpus is set") is from v4.8. Reverting it after all that time might
-easily lead to even bigger trouble. That's why it might be better to
-handle this like a bug and not like a regression. At least unless we
-find someone to judge how likely such an outcome is. But it seems nobody
-really cared so far, so unless this mail makes someone act you might be
-out of luck. :-/
+If it took that long to find, it can't be that critical of a regression.
 
-I wish it was different, but in the end we (including the maintainers)
-are all just volunteers here which you can only motivate or compel (up
-to some point) to look into some issue, but can not force to do so.
+So yes, let's treat it as a regular bug. And let's bring in Andreas to
+the discussion too (although presumably he has seen it on the
+sparclinux mailing list).
 
-Ciao, Thorsten
+Andreas, if not, here's the link to lore for the beginning of the thread:
 
-> On 2023-01-21 08:31, Linux kernel regression tracking (Thorsten Leemhuis) wrote:
->> CCing the sparc maintainer. Also CCing the regression list, as it should
->> be in the loop for regressions:
->> https://docs.kernel.org/admin-guide/reporting-regressions.html
->>
->> The the mail address of the culprit's author bounces. There is another
->> Atish Patra still active; does anyone known if those two are the same
->> person?
->>
->> Anyway, that's it from my side.
-> [...]
->> On 20.01.23 04:15, Nick Bowler wrote:
->>> Hi,
->>>
->>> I'm resending this report CC'd to linux-kernel as there was no response
->>> on the sparclinux list.
->>>
->>> I tried 6.2-rc4 and there is no change in behaviour.  Reverting the
->>> indicated commit still works to fix the problem.
->>>
->>> On 2022-07-12, Nick Bowler <nbowler@draconx.ca> wrote:
->>>> When using newer kernels on my Ultra 60 with dual 450MHz UltraSPARC-II
->>>> CPUs, I noticed that only CPU 0 comes up, while older kernels (including
->>>> 4.7) are working fine with both CPUs.
->>>>
->>>> I bisected the failure to this commit:
->>>>
->>>>   9b2f753ec23710aa32c0d837d2499db92fe9115b is the first bad commit
->>>>   commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
->>>>   Author: Atish Patra <atish.patra@oracle.com>
->>>>   Date:   Thu Sep 15 14:54:40 2016 -0600
->>>>
->>>>       sparc64: Fix cpu_possible_mask if nr_cpus is set
->>>>
->>>> This is a small change that reverts very easily on top of 5.18: there is
->>>> just one trivial conflict.  Once reverted, both CPUs work again.
->>>>
->>>> Maybe this is related to the fact that the CPUs on this system are
->>>> numbered CPU0 and CPU2 (there is no CPU1)?
->>>>
->>>> Here is /proc/cpuinfo on a working kernel:
->>>>
->>>>     % cat /proc/cpuinfo
->>>>     cpu             : TI UltraSparc II  (BlackBird)
->>>>     fpu             : UltraSparc II integrated FPU
->>>>     pmu             : ultra12
->>>>     prom            : OBP 3.23.1 1999/07/16 12:08
->>>>     type            : sun4u
->>>>     ncpus probed    : 2
->>>>     ncpus active    : 2
->>>>     D$ parity tl1   : 0
->>>>     I$ parity tl1   : 0
->>>>     cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
->>>>     Cpu0ClkTck      : 000000001ad31b4f
->>>>     Cpu2ClkTck      : 000000001ad31b4f
->>>>     MMU Type        : Spitfire
->>>>     MMU PGSZs       : 8K,64K,512K,4MB
->>>>     State:
->>>>     CPU0:           online
->>>>     CPU2:           online
->>>>
->>>> And on a broken kernel:
->>>>
->>>>     % cat /proc/cpuinfo
->>>>     cpu             : TI UltraSparc II  (BlackBird)
->>>>     fpu             : UltraSparc II integrated FPU
->>>>     pmu             : ultra12
->>>>     prom            : OBP 3.23.1 1999/07/16 12:08
->>>>     type            : sun4u
->>>>     ncpus probed    : 2
->>>>     ncpus active    : 1
->>>>     D$ parity tl1   : 0
->>>>     I$ parity tl1   : 0
->>>>     cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
->>>>     Cpu0ClkTck      : 000000001ad31861
->>>>     MMU Type        : Spitfire
->>>>     MMU PGSZs       : 8K,64K,512K,4MB
->>>>     State:
->>>>     CPU0:           online
->>>>
->>>> Let me know if you need any more info.
->>>>
->>>> Thanks,
->>>>   Nick
-> 
-> 
+  https://lore.kernel.org/all/CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com/
+
+And from a quick look I do think that commit is buggy, and yes, the
+fix probably is just be to revert it.
+
+As the original report makes clear, that commit 9b2f753ec23710 is
+clearly confused about the difference between "number of CPU's", and
+"index of CPU numbers".
+
+When that smp_fill_in_cpu_possible_map() does
+
+        int possible_cpus = num_possible_cpus();
+
+and then uses that to fill in &__cpu_possible_mask, that's completely
+nonsensical. Because we literally have
+
+  #define cpu_possible_mask ((const struct cpumask *)&__cpu_possible_mask)
+  #define num_possible_cpus()     cpumask_weight(cpu_possible_mask)
+
+so it's reading cpu_possible_mask to figure out how many cpus it might
+have, and then using that number to set possibly *different* bits in
+the same bitmap that is just used to judge what the max number is.
+
+So I do think a revert is called for, but I'm not going to treat this
+as a regression, I'm going to just treat it as "sparc bug" and hope
+that the sparc people try to figure out why that crazy code was
+written.
+
+And maybe it made more sense back a decade ago than it does now.
+
+Andreas?
+
+                Linus
