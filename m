@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1EE17333C;
-	Fri, 29 Mar 2024 12:35:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CCA6175C91;
+	Fri, 29 Mar 2024 12:35:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711715707; cv=none; b=gGiPds7/vjg69CoDA1zKUX+L90jmcl4Sbw6tOUa8lPNTEnx583PDN/16PhP/fnTk23x7y1oxSk/M6YU7RKHBUqdGfCZr93szC+CmzIBdeMDljN2wSUB3zCdBdrkbLbZiN3ME3fXrEBxwDDwNVUCQw2pX032vW/LifY4lHQeGMig=
+	t=1711715734; cv=none; b=pbER57WKuOHk5KUXZY8AVAspYHQr6Q5rCbmNvFD4+nIbI3iiGGpXI0JzX+57Gh68nnJeJWu5TtijqtLpODbCZcyVSSY0mRbT+JO62RX9jx4eiI2JjBdEo9H8VfIHqhn3NQzx9xS5jZDmwVTIbn/1ayB/cnj6qrRC+LgN5vEVTkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711715707; c=relaxed/simple;
-	bh=lRVkrFF93OgjKTOJxfW5xcxxpMm4wx7SGwA+QNECwS0=;
+	s=arc-20240116; t=1711715734; c=relaxed/simple;
+	bh=e6smQi1YdhW/dUGgauSLAn2658GEXnwU88IsD3J1bTI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qZbDxWe0qhrvmcOMDQiowNEPgLbGN0hhjBux+B03uGFHcvgLHBM5zkrLa6+G5kYjQDK83Mci9EFZkBVUTrS7d06B4pl/Eok1cWEE8pMRb1im35Fj5dnvbE65iH4WDxmB6ODD3N/y5bhC+1A/BMQlJqiAFKmXi0gMM02acb4aDik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MVu1dyvs; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=CFQFU60nWOJkoXN6/Tu+5camdz/ePMTdgxqbVQD0USYPl7XQhVNwHv3NUoinMO8e34p0VhR0dkIWbpfBZ6jRJ69NXOG0oCsLv6yLy467jThtY15+SueeaPVETFZ+q6E+Pg/ltdYrs07yFU/mCr5HsObybgMk3I0LIDqYfpPRXLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BuzacE92; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MVu1dyvs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02513C433B1;
-	Fri, 29 Mar 2024 12:35:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BuzacE92"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A8F7C43394;
+	Fri, 29 Mar 2024 12:35:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711715707;
-	bh=lRVkrFF93OgjKTOJxfW5xcxxpMm4wx7SGwA+QNECwS0=;
+	s=k20201202; t=1711715733;
+	bh=e6smQi1YdhW/dUGgauSLAn2658GEXnwU88IsD3J1bTI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MVu1dyvsb3T5GDJOLKlXARnTZAOWUh34XCTnpA1Iy1D+CTy92lZHmYZ9CVSd/LE2e
-	 NzR+DiorzIfR1W2SaRHBpj1DL6UZXN7xQaE8/JI5sY1STsJuJCQFr3YIZMsO36pXrs
-	 MBOXGuVPzvzM0t6fGGNCPfFQOzox4UpYCHgYdXfg5NOkCGLuaGaTGJFy6RVyZ2yFKr
-	 hajaa7c249YoDON6wjQbxjgh8pjVnpg79b7xLEuvsyG38RfZBIfuIJbkxcPkG9PvbV
-	 8F1qtX0hQdh14hmukrksZVNGKopceUUCNmc5b8+eU3JmGzx/qcNpy3xLElISCR46HP
-	 9R1zjeVEfFj9Q==
+	b=BuzacE92nKLYwcnW9ZkKLYvpfLltMCWiOz/KXOV4OLKBc4IVxUr+PM4mGbUIdFTBT
+	 LnFBGoJMOVDk7TUoiEsCi+4rD8KXYaLhLafcZimZEVkCOV2EiDJywwUpI0inYPVmiJ
+	 xbaYYerT4hCriTv+pGP9ce/srr+2C68rRgjmf7Yhfhb/UElmkAJ2rkdzBM2/2/ZGmJ
+	 UbZusczMImra//7N07MLlSD6AVlZY1bBPU1K+PPA98O3RT5ePMNWr+pas7L4D0106p
+	 29Zr3Fi1Tn6h6hE4ij2NeeSdCHR7YbGLSXqMwpIua/3rrS7P3mrIGxv1+bdRm5q5W9
+	 QTh4nQ20ZZ8uA==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -35,16 +35,16 @@ Cc: Kees Cook <keescook@chromium.org>,
 	davem@davemloft.net,
 	andreas@gaisler.com,
 	masahiroy@kernel.org,
+	rmk+kernel@armlinux.org.uk,
+	deller@gmx.de,
 	catalin.marinas@arm.com,
-	guoren@kernel.org,
-	svens@linux.ibm.com,
 	sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 10/15] sparc: vdso: Disable UBSAN instrumentation
-Date: Fri, 29 Mar 2024 08:34:33 -0400
-Message-ID: <20240329123445.3086536-10-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 06/11] sparc: vdso: Disable UBSAN instrumentation
+Date: Fri, 29 Mar 2024 08:35:12 -0400
+Message-ID: <20240329123522.3086878-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240329123445.3086536-1-sashal@kernel.org>
-References: <20240329123445.3086536-1-sashal@kernel.org>
+In-Reply-To: <20240329123522.3086878-1-sashal@kernel.org>
+References: <20240329123522.3086878-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -53,7 +53,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.4.273
+X-stable-base: Linux 4.19.311
 Content-Transfer-Encoding: 8bit
 
 From: Kees Cook <keescook@chromium.org>
@@ -75,10 +75,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 997ffe46e953a..5b869c2c84363 100644
+index dc85570d88395..4fa1cb1a67fca 100644
 --- a/arch/sparc/vdso/Makefile
 +++ b/arch/sparc/vdso/Makefile
-@@ -2,6 +2,7 @@
+@@ -1,6 +1,7 @@
  #
  # Building vDSO images for sparc.
  #
