@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77520224DA;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F0D241EC;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=a/sjNxlAFIW7Ou5DJBefuJMgUNDJWmOisYl6sSt8Z42gT02ETeWUhNN/owcIH0cunOcWrn1xXQpu6ikjtTt/ogEgNQgtYkifz+8I5jOqAsc0gdW6FO1XISUkf3yaZ1xlFJII4Y8xQszChq0l70sf9rVHSFbFzbQkIcC4aPgZDts=
+	t=1711792677; cv=none; b=WnQaqdT6gJ6xPMb6iXHfshgNsgC4QNR3rTb41p8ZRBWzWIWSTq5BXGB0IGoFs3czvwrQLBOk+GtduuIGHkh0zHu4BYYXj1e25eonQAzi6KcRX7eQ41Fv62lojktFrqsaPXnr8ljZh52PujiLgZRlSemASdFSvIFhnEygfArr+WU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=AVnxMaD8P3lGJwIeugtBUSpep/nX1zh+KPd+aSmXedU=;
+	bh=2x1IekDisWrxO1QZCgeGBonkq2kpGwPfzqPpLTwCkTg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QXCNmd3SbBjkWK0umrxmpZblmffqWFEzHw5HMGwimqE/uTV+qxC3ZsUZjTQBveNXtNSqksN5ncnE9avmGYjiNELuctuMfS/v4qNTR8ZMMo4dheCMxF0W9/MTsSkMhtMDwszWKuCLlIsAIIzNZCBHcKaDVTcVCxmrchwtz2g16eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=odzuW5+u; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=stcMCBPs5GSqLIjz8gk+bE6zGBMIRhI9GUcZ99PQ6Sb1VEFLwrQq2CR5a80DasE+7rULWTIdnzFV+ehZXrGfPkOT/vdd7kJYcVPggvnQOl46ZV+21yFOvI8H/M7bVos5+fCUycVBnS0CupRZoEsYKMYVzGPdxYHe1xXMZvWy1uI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LWqa0DJA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="odzuW5+u"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 45DC7C43601;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LWqa0DJA"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 31874C43330;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1711792677;
-	bh=AVnxMaD8P3lGJwIeugtBUSpep/nX1zh+KPd+aSmXedU=;
+	bh=2x1IekDisWrxO1QZCgeGBonkq2kpGwPfzqPpLTwCkTg=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=odzuW5+u/B/jYnzavgkMaEERbZf1qIKGj60zuug5SPLmJS1ofIqgQgZ9v7N+Eh2pO
-	 GwkMdXXATupfvRYwTPRR7iOlWSqbsmwDTcO8W1/fK40xmak4stFtBUEL+aqwnLrJ2J
-	 gNfxhXQ8IwvK1+2RnYOtOCk6tdWIidIJvjcgf/vHmZXJXH+nfCptSnmwgBt8KwtMAP
-	 Pqw5kc22Pmh0FHy74R0U+LFgDn41ebLXdwVaFeOrBLDswJrvs12dgcOhxF9Jz7mcRh
-	 nsa806NfOm10v+TDYt2roJYQXbvCsP+4FNLhtnikD5fX0ZSPwpnkljYWWqndDmkvGY
-	 zFSSJD3G+l0LA==
+	b=LWqa0DJAIsItDuvPm2rnGmxWDwcB8YCM0NFLG6hA1HsHVE5v0mkCqwQGhUX8wGa6K
+	 kpeVYt3WJOP+J9BEL2nGQSgY2788DWykWZXI82ZqgTSYQDzzk4j8rOUv95SeS6mEUe
+	 oCSpesB1M62aQCnOisnw5yM5KOHQwfFDV9hJZsFd7mB8ynJuXJwAC1U1KoxAgrWOgm
+	 azWienMxItEXyGQ8u7iH7KXkMGs9FmwgjbZn3wNf0yh3mwlo+lhdpZTGtut3taQ1g4
+	 2X4c4171aqYPEY2HTTUWO51jm+3kLWE80W3Ozc26x0vasj4pQ8sGR7ribuEsX0Qg3a
+	 ssYxPanNCpVog==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F67ECD1290;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2975FCD1288;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 30 Mar 2024 10:57:46 +0100
-Subject: [PATCH 10/10] sparc64: Fix prototype warnings for vdso
+Date: Sat, 30 Mar 2024 10:57:44 +0100
+Subject: [PATCH 08/10] sparc64: Fix prototype warning for sched_clock
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240330-sparc64-warnings-v1-10-37201023ee2f@ravnborg.org>
+Message-Id: <20240330-sparc64-warnings-v1-8-37201023ee2f@ravnborg.org>
 References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 To: Andreas Larsson <andreas@gaisler.com>, 
@@ -48,11 +48,11 @@ To: Andreas Larsson <andreas@gaisler.com>,
 Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
  Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=2638;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=793;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=R3MJg/E/GhMxnu0wstTitJ5mJt9vPs+kNGIj3nVyBSg=;
- b=4VEx0rmCrYuq7fkcXCME2F2VaTvqyGizSK4moRhBlf1ov0rAPRrYYeczpL2dZngQSGnIn9AKOHKW
- VHWtcmrbCPy4hZGFW+ksDOU06O+Ax51RL6YmSQBF7KdC78OA3ryF
+ bh=LqRShLF2pPHi8lE2rdN92NEyqocrs1j4uVYYbMfSLj4=;
+ b=PMlAy600lZhsdddNHFih9ANgCUb2ySEAKULe4KxaXQj8cNuE9rH8bUgekUv0O74HWlQK3QFI8FQT
+ 6K32pHisBTZybIa4zA2VFCw4AylacJr627XuYudCqRPoXxaNfq7O
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
@@ -62,62 +62,30 @@ Reply-To: sam@ravnborg.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix the following warnings:
-arch/sparc/vdso/vclock_gettime.c:254:1: error: no previous prototype for ‘__vdso_clock_gettime’
-arch/sparc/vdso/vclock_gettime.c:282:1: error: no previous prototype for ‘__vdso_clock_gettime_stick’
-arch/sparc/vdso/vclock_gettime.c:307:1: error: no previous prototype for ‘__vdso_gettimeofday’
-arch/sparc/vdso/vclock_gettime.c:343:1: error: no previous prototype for ‘__vdso_gettimeofday_stick’
-arch/sparc/vdso/vdso32/../vclock_gettime.c:254:1: error: no previous prototype for ‘__vdso_clock_gettime’
-arch/sparc/vdso/vdso32/../vclock_gettime.c:282:1: error: no previous prototype for ‘__vdso_clock_gettime_stick’
-arch/sparc/vdso/vdso32/../vclock_gettime.c:307:1: error: no previous prototype for ‘__vdso_gettimeofday’
-arch/sparc/vdso/vdso32/../vclock_gettime.c:343:1: error: no previous prototype for ‘__vdso_gettimeofday_stick’
+Fix the following warning:
+arch/sparc/kernel/time_64.c:880:20: warning: no previous prototype for ‘sched_clock’
 
-The warnings were fixed by adding the proper prototypes to asm/vdso.h.
-The better fix would be to convert sparc to be y2038 compliant so the
-generic variant of vdso.h could be used.
+Add the missing include to pick up the prototype.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/sparc/include/asm/vdso.h    | 10 ++++++++++
- arch/sparc/vdso/vclock_gettime.c |  1 +
- 2 files changed, 11 insertions(+)
+ arch/sparc/kernel/time_64.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/include/asm/vdso.h b/arch/sparc/include/asm/vdso.h
-index 59e79d35cd73..af630cad185c 100644
---- a/arch/sparc/include/asm/vdso.h
-+++ b/arch/sparc/include/asm/vdso.h
-@@ -5,6 +5,16 @@
- #ifndef _ASM_SPARC_VDSO_H
- #define _ASM_SPARC_VDSO_H
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 89fb05f90609..60f1c8cc5363 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -33,6 +33,7 @@
+ #include <linux/clockchips.h>
+ #include <linux/clocksource.h>
+ #include <linux/platform_device.h>
++#include <linux/sched/clock.h>
+ #include <linux/ftrace.h>
  
-+#include <linux/linkage.h>
-+#include <linux/time.h>
-+#include <linux/time_types.h>
-+#include <linux/types.h>
-+
-+notrace int __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts);
-+notrace int __vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts);
-+notrace int __vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz);
-+notrace int __vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz);
-+
- struct vdso_image {
- 	void *data;
- 	unsigned long size;   /* Always a multiple of PAGE_SIZE */
-diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
-index e794edde6755..a3f85d9cea52 100644
---- a/arch/sparc/vdso/vclock_gettime.c
-+++ b/arch/sparc/vdso/vclock_gettime.c
-@@ -19,6 +19,7 @@
- #include <asm/unistd.h>
- #include <asm/timex.h>
- #include <asm/clocksource.h>
-+#include <asm/vdso.h>
- #include <asm/vvar.h>
- 
- #ifdef	CONFIG_SPARC64
+ #include <asm/oplib.h>
 
 -- 
 2.34.1
