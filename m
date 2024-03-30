@@ -1,66 +1,63 @@
-Received: from mail-oo1-f52.google.com (mail-oo1-f52.google.com [209.85.161.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C39A15C9
-	for <sparclinux@vger.kernel.org>; Sat, 30 Mar 2024 02:05:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDBEC2CA5
+	for <sparclinux@vger.kernel.org>; Sat, 30 Mar 2024 09:17:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711764342; cv=none; b=qKfCMsk1zXM4RZ/aH/bfKLIc71tP0zZHb2MFJc8ww6uH4JXuDHT0C87jD0/fatwpSZ5hcnkYs9UMd6Hc4AZAjXegxL+evJbsdHtyeblxF14RLI/ZG20QAqyzAQS0T0neYzOfi9cyVvKKzCPGcSCgioDLeinW0G91EkFFXN5vtzQ=
+	t=1711790237; cv=none; b=l/OgOw+U2Enfvk1f4aQyCRVU9XTjzEhCmnlMwcjhtI4yHEmQGsgRNay4Z2CacLeq6GbJem2VqpnXGaYh6kmyfB5nfywJHaal48eRF4JHhk0T6COOh+Y6vN8oMp+x/YvJd32ejli8FwCKI4NHQ9XCOQJSxQ7MGTEolY0+DjSo+Lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711764342; c=relaxed/simple;
-	bh=E/jX4KlSIaa/Q8QtoYy4eUqMqZjvH5LqwLaZpzp/ucc=;
+	s=arc-20240116; t=1711790237; c=relaxed/simple;
+	bh=4yCpOsncwsjmF7Gb9PqlOTig4TQC6m97ufbASYA4VrI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hZsC8VGyU3Ih5zy+3oLyWsfsn42Y/Fvx5TCa0Z3RZlOHhYDZIS7Y8NgIXCCfOtBFLMkqo6+ZSo/an7y2bUWXnu35wN+7kOZa0fFu9mSj4vAwlrib5P8x1bcpwiPc/pape2XyR1wu50Bf+ceBtBw9rMKoIG5GC0rtQcB2T82xEWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=iRVpnaMQ; arc=none smtp.client-ip=209.85.161.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=lgumawXCvpk/joiBR1xGtxk1ExurFh+IjgzjB6AnYtB4ngAqkKDYthLxgSAlLjs0t3cHS1Fw2xbSHZL67lRUNbG64z8Q3NMB49uHN3uhsK/ciP1uHHp/jt4H761ssnooVSVTp6gkSTS+Rz1Bta3ZruzM3IKYrcF1uDJA/MlvuNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=bYitXpzg; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=YyUcNGh8; arc=none smtp.client-ip=46.30.211.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="iRVpnaMQ"
-Received: by mail-oo1-f52.google.com with SMTP id 006d021491bc7-5a4f608432bso1584702eaf.2
-        for <sparclinux@vger.kernel.org>; Fri, 29 Mar 2024 19:05:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="bYitXpzg";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="YyUcNGh8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1711764340; x=1712369140; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=F4b5SWRCYZt8i7P0MBjW3Wz+qnk6OUO4+JznjTM8IgU=;
-        b=iRVpnaMQGyOifKDMKfV4HDQhfKO2I3PqjSeGvk1BCJL2XQEgqxw6gG5AIc67e8Ex48
-         MgrsqNrt6KRr8GNhnVCpn7oa/2iZGkQI62KN+vNLkBCTEfeMhw3apZHPPwq79axC8JP7
-         XIcvafJRVutcxNUFOUoU1vTP7a4o3bh1xpkvY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711764340; x=1712369140;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=F4b5SWRCYZt8i7P0MBjW3Wz+qnk6OUO4+JznjTM8IgU=;
-        b=SLKc5kWPcCTLeAraMSov86TZShFObRd9yGTqetZvIPvz0FmiqBo7h7J1MXCr5TQnJD
-         EZR+NEOOWaQrYZoNcjCGq8EwCF91h2Ejr11NlmQvr2A6B7hWff+X0Df1qRZgoL3iTPgm
-         mo9LdQDrwtbqcTGsiA1H0x7Fnpi/ksG6zhaB42n6dMHAx6ZoDgIWYnAlwGNoQB7gkSOs
-         yX1mkXuv33T8V5gRdn8CwozFgZAf1tlJPnXCjCXsF7yIWGvsolBfBZJ7UE+58qiE5vZ3
-         XMgmCEzvnPt2cU+yo0wyLzNrziDFg4hvg74eRLPJ6RuvNoiIXJXg0K3sNmYGJwFEpvaW
-         nLCA==
-X-Forwarded-Encrypted: i=1; AJvYcCWYy/Gbkvxqwy92FXq33uk5UuAbvvwPQQMkfhVd8uzHxReVF/mO+PL+BXoto/ZayAeEDaEVmvO5CCwoJJkgXaurxJylsJ7V1upZwQ==
-X-Gm-Message-State: AOJu0YwRX0iz+4nE7udN6VgBZM55cFMMKVMjTshxsJjRzJchS8e1ILsP
-	Gqj4jJFSl8wQHgDs75/6YR/vI9ArKGdSaARtKbDV1oomlapFAyVVdsLQDwZU5Q==
-X-Google-Smtp-Source: AGHT+IGZUureMcBcAiDHCXDSBEA1ISgTNfHGRDI1385rMqG8mvlZa9e/AHhEQI+LXUMGNEiBGPFkDA==
-X-Received: by 2002:a05:6359:5a81:b0:183:861a:a6ff with SMTP id mx1-20020a0563595a8100b00183861aa6ffmr1969988rwb.1.1711764340110;
-        Fri, 29 Mar 2024 19:05:40 -0700 (PDT)
-Received: from www.outflux.net ([198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id m14-20020a17090ab78e00b0029c68206e2bsm3521375pjr.0.2024.03.29.19.05.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 29 Mar 2024 19:05:38 -0700 (PDT)
-Date: Fri, 29 Mar 2024 19:05:37 -0700
-From: Kees Cook <keescook@chromium.org>
-To: Sasha Levin <sashal@kernel.org>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-	Sam Ravnborg <sam@ravnborg.org>, davem@davemloft.net,
-	andreas@gaisler.com, masahiroy@kernel.org, nicolas@fjasle.eu,
-	guoren@kernel.org, rmk+kernel@armlinux.org.uk,
-	sparclinux@vger.kernel.org
-Subject: Re: [PATCH AUTOSEL 6.8 69/98] sparc: vdso: Disable UBSAN
- instrumentation
-Message-ID: <202403291904.05D45FDD2@keescook>
-References: <20240329123919.3087149-1-sashal@kernel.org>
- <20240329123919.3087149-69-sashal@kernel.org>
+	d=ravnborg.org; s=rsa2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=/mhpK7cMvkSIkKaWzItraRPcybJp/qChOJB5FME0Oy0=;
+	b=bYitXpzgV0X8hkAiH7Oc9oyyp16nkEmYUjgtrQJ8JTwsZ30MjpFYDY4pM7S0TdBOL64Fe3oT78tWn
+	 r/UsUybpsmbJpdzoYDMp0MsNf0Jj2UnJ5X6wt4tE8HUsOsYaYl9iFlVisFjVoSnpUvKz5OKeyBRRQw
+	 LozuIQsu1ezgMT3RjMhrCzQduUuFvFXao5Gf649JI2zBelVN+BM/+HA+8fy6W7VFbf5LWUqflweOvb
+	 RhSlwE2e9WSO/KjDkSK6TSOasnwsZekrpmnIrMmPVnzfCRAVgzi4jW4Yyh5CBa0g/O/4rZITdvzGf1
+	 Fu5j8vXpeMfccDo5pvFMHIviOLyYFRQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=/mhpK7cMvkSIkKaWzItraRPcybJp/qChOJB5FME0Oy0=;
+	b=YyUcNGh8sEeSweAntykWQGuUlOERhyDOoKAbUkzhtUoznwfXfn8WTuE03pdG3G0+ar3RnJCE8kGwQ
+	 ihu/RiMBQ==
+X-HalOne-ID: 20560aca-ee76-11ee-99ae-657a30c718c6
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 20560aca-ee76-11ee-99ae-657a30c718c6;
+	Sat, 30 Mar 2024 09:16:02 +0000 (UTC)
+Date: Sat, 30 Mar 2024 10:16:01 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Nick Bowler <nbowler@draconx.ca>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org,
+	Andreas Larsson <andreas@gaisler.com>,
+	Linux regressions mailing list <regressions@lists.linux.dev>
+Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
+Message-ID: <20240330091601.GA128565@ravnborg.org>
+References: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
+ <CADyTPEyAidGgBT3f1VJLHb3ouO-r1UyvFp1PcwXxy0NRG94sbw@mail.gmail.com>
+ <1df92fec-7f57-5080-94ed-b149ed384280@leemhuis.info>
+ <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
+ <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
+ <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
+ <943c6d11-e214-43c8-8813-8e1aba6be15c@draconx.ca>
+ <20240329094456.GA44268@ravnborg.org>
+ <a7c155ed-71fc-4ed9-a8c8-f98024b74651@draconx.ca>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -69,28 +66,28 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240329123919.3087149-69-sashal@kernel.org>
+In-Reply-To: <a7c155ed-71fc-4ed9-a8c8-f98024b74651@draconx.ca>
 
-On Fri, Mar 29, 2024 at 08:37:40AM -0400, Sasha Levin wrote:
-> From: Kees Cook <keescook@chromium.org>
+On Fri, Mar 29, 2024 at 04:11:06PM -0400, Nick Bowler wrote:
+> Hi Sam,
 > 
-> [ Upstream commit d4be85d068b4418c341f79b654399f7f0891069a ]
+> On 2024-03-29 05:44, Sam Ravnborg wrote:
+> > I took a look at this and may have a fix. Could you try the following
+> > patch. It builds - but I have not tested it.
 > 
-> The UBSAN instrumentation cannot work in the vDSO since it is executing
-> in userspace, so disable it in the Makefile. Fixes the build failures
-> such as:
+> With this patch applied on top of 6.9-rc1, both CPUs appear to come up:
 > 
-> arch/sparc/vdso/vclock_gettime.c:217: undefined reference to `__ubsan_handle_shift_out_of_bounds'
-> 
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
-> Link: https://lore.kernel.org/all/20240224073617.GA2959352@ravnborg.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: Sasha Levin <sashal@kernel.org>
+>   % cat /proc/cpuinfo 
+>   [...]
+>   ncpus probed	: 2
+>   ncpus active	: 2
+>   [...]
+>   State:
+>   CPU0:		online
+>   CPU2:		online
 
-This is harmless to backport, but doesn't do anything. (The UBSAN
-changes needing this are only in Linus's tree.)
+Thanks, I will add a Tested-by: Nick Bowler <nbowler@draconx.ca>
+and submit the patch properly along with a few other sparc64 related
+fixes.
 
--Kees
-
--- 
-Kees Cook
+	Sam
