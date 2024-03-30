@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E381EB5A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E3D71EF1E;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=UBroF+nQKze7k5kkZdy+nsVtLKS7OwGg42paDCoR4ReIxsGcQAYz6/7FkDw/O0ayTSfreTBbXv3REuPJeZabDcTIk3guOML7miPFKJ7Avx0G5RNPTgQUz5WJNU5v5vmmgSr2x3AC4X6uf9hxBC7he20ETy+aIrbOdhEQunRs7wo=
+	t=1711792677; cv=none; b=ebUj+mGUCc9TZTW+w8WOGg4rFz/jG/ZDSQV7VXxYq9CUjjipaVbpoXQ05dnwVIWSix4jfnjYPsCGoBOtl+Sup9kK9WGL/1SalaUdSnfumg1DgV7reDU3VPRMpp4roFOf6bPAPw4uAgcCUBQ3uBySB4D+X/lmap7chvHNKanlUt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=QfauZKJJH+s1+v0RjTZV41bZp5+jTw2RjxC3cvG4cVS7IQD4ORfx8ITsf2U3AIN+A0PyQTdQXSap+O9opTBP2UEPuVyBqm6hubyWjJ/V32hcYyrD3Eo1oCSN+aUAYIsDcgJ+mY8KvTJb9SPi4R9vUcXgivBUlTYi2bXqJOcyX5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JhF/qfMG; arc=none smtp.client-ip=10.30.226.201
+	bh=xijoPd3AjErmRPkXatkTO/Hnlh2T7fYc4IsuaGUg97Y=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=XMmQbdIweMuiuhWfnTkBMAVcTcG/ILEURB/wQbTcmKH/FCwfm16TaWbH2tvDIFJg0teuE49uKWDhnr6tdl4awmjXxVNR074UC/BQmBeV+8/7nnbYvD3bUA2gmyaCu1CLLXySJYE0TV6KQBah34AEercggKV1a27I+XmXK01Yy8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VX6X73Wm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JhF/qfMG"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id DBA97C433C7;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VX6X73Wm"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id ECB63C43394;
 	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711792676;
-	bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
-	h=From:Subject:Date:To:Cc:Reply-To:From;
-	b=JhF/qfMGRF2vRF9lE7VZ9fXM8H87R6irghexmiTHRAAyGdBzRAuQ8CNW4iyOk2XnV
-	 JXXDTzTq82CQ4xQR/1ykWZFZ6dzSPyxI9Zbt3Z2QR5OM273vEmxIcvdxd84mnkxZml
-	 HZR+FhYjZXYqQNZz1pt5oB0sxaKFLTJOteIPMRFxCRnwjth13nwPioeLluXmFA2/W2
-	 JXNRe76Guf5Y1v1pBfxlUsCeBGeau2f+bwyhvdxnSNTqjVNLA2J+gAAtTjLCSxBQVO
-	 3bkGe8UtsPK0VoWih9WUqyrD7jTFd3v1LeSyrZ00mguL96ztYSYQqiS6/cUry3MMS+
-	 0ZQo7ntmGqIMA==
+	s=k20201202; t=1711792677;
+	bh=xijoPd3AjErmRPkXatkTO/Hnlh2T7fYc4IsuaGUg97Y=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=VX6X73WmM/T3D19mA1XNhd0bzQBGg5LEGq3J1S774zbSWnjIRrI2WYdgxxs1qpTzv
+	 6vDXDmzry6xE3YdMnku8kxykz3ZyilCpQxR4Xx376TSEFtn5la02YsCfvKCGGVvaIA
+	 OZmbZGBMdxtWu3agFHdGG1QkD7kNemEzSkDLmJXKauI0A/BKCTgdL6POHeFTP+TEKh
+	 5j6E8nooQVom3lJjbO4bREKv/va3oqOLgKyZ2v/iJOSbqVO9eRNVXf8jeiQ2ARlFOG
+	 U1ip3sVQjnEkPckT7q0Jlele40Qqgu42m5F235ZY/sgb/tbbeILr6XcM0oWl6T698g
+	 wy9AliYhNjHIw==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCFE5CD11DD;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1DE3CD1288;
 	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Subject: [PATCH 00/10] sparc64: Fix CPU online bug and warning fixes
-Date: Sat, 30 Mar 2024 10:57:36 +0100
-Message-Id: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
+Date: Sat, 30 Mar 2024 10:57:38 +0100
+Subject: [PATCH 02/10] sparc64: Fix prototype warnings in traps_64.c
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -39,22 +39,20 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIABHiB2YC/x3MQQqAIBBA0avErBNMTaqrRAuzsWZjMQMVRHdPW
- r7F/w8IMqHAUD3AeJLQnguauoK4hbyioqUYjDZOW9MrOQJH79QVOFNeRXnfxdhrTK2doWQHY6L
- 7X47T+35CLiOJYgAAAA==
+Content-Transfer-Encoding: 8bit
+Message-Id: <20240330-sparc64-warnings-v1-2-37201023ee2f@ravnborg.org>
+References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
+In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 To: Andreas Larsson <andreas@gaisler.com>, 
  "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
- Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>, 
- Atish Patra <atish.patra@oracle.com>, stable@vger.kernel.org, 
- Bob Picco <bob.picco@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>
+ Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=2071;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=2153;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
- b=XbiHaZ/tYJDLA+a14/hq+RNLsBlpQeOA1+rEeZk7TbiaKPXwytF49GTZiGF68WZIeOwb02V/RLnH
- CJVACzeFBQ/ioYueEX2mS2PTVVtDyJVb3DKSvYn8mxZNLwri6H+R
+ bh=x35RxU+Vu3bnerMBWt77mDb+LYsbUbJuDZXBkLmdqBE=;
+ b=sJOxVCwvgkeOscu8VipEE3bBj95LtQd0tKjvKMM3RSrFFjm6lQa4M09UYF9bg4ZRp+h4+v/1sLSl
+ XuOHO41RB5PDevDu/UuWE4KoSaaO+G/8s6ha2E+Sj/4ogWGYVRbQ
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
@@ -62,58 +60,60 @@ X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
 X-Original-From: Sam Ravnborg <sam@ravnborg.org>
 Reply-To: sam@ravnborg.org
 
-Nick Bowler reported that sparc64 failed to bring all his CPU's online,
-and that turned out to be an easy fix.
+From: Sam Ravnborg <sam@ravnborg.org>
 
-The sparc64 build was rather noisy with a lot of warnings which had
-irritated me enough to go ahead and fix them.
-With this set of patches my arch/sparc/ is almost warning free for
-all{no,yes,mod}config + defconfig builds.
+Fix the following warnings:
+arch/sparc/kernel/traps_64.c:253:6: warning: no previous prototype for ‘is_no_fault_exception’
+arch/sparc/kernel/traps_64.c:2035:6: warning: no previous prototype for ‘do_mcd_err’
+rch/sparc/kernel/traps_64.c:2153:6: warning: no previous prototype for ‘sun4v_nonresum_error_user_handled’
 
-There is one warning about "clone3 not implemented", which I have ignored.
+In all cases make the function static as there were no users outside
+traps_64.c
 
-The warning fixes hides the fact that sparc64 is not yet y2038 prepared,
-and it would be preferable if someone knowledgeable would fix this
-poperly.
-
-All fixes looks like 6.9 material to me.
-
-	Sam 
-
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 ---
-Sam Ravnborg (10):
-      sparc64: Fix prototype warning for init_vdso_image
-      sparc64: Fix prototype warnings in traps_64.c
-      sparc64: Fix prototype warning for vmemmap_free
-      sparc64: Fix prototype warning for alloc_irqstack_bootmem
-      sparc64: Fix prototype warning for uprobe_trap
-      sparc64: Fix prototype warning for dma_4v_iotsb_bind
-      sparc64: Fix prototype warnings in adi_64.c
-      sparc64: Fix prototype warning for sched_clock
-      sparc64: Fix number of online CPUs
-      sparc64: Fix prototype warnings for vdso
+ arch/sparc/kernel/traps_64.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
- arch/sparc/include/asm/smp_64.h  |  2 --
- arch/sparc/include/asm/vdso.h    | 10 ++++++++++
- arch/sparc/kernel/adi_64.c       | 14 +++++++-------
- arch/sparc/kernel/kernel.h       |  4 ++++
- arch/sparc/kernel/pci_sun4v.c    |  6 +++---
- arch/sparc/kernel/prom_64.c      |  4 +++-
- arch/sparc/kernel/setup_64.c     |  3 +--
- arch/sparc/kernel/smp_64.c       | 14 --------------
- arch/sparc/kernel/time_64.c      |  1 +
- arch/sparc/kernel/traps_64.c     | 10 +++++-----
- arch/sparc/kernel/uprobes.c      |  2 ++
- arch/sparc/mm/init_64.c          |  5 -----
- arch/sparc/vdso/vclock_gettime.c |  1 +
- arch/sparc/vdso/vma.c            |  5 +++--
- 14 files changed, 40 insertions(+), 41 deletions(-)
----
-base-commit: 84b76d05828a1909e20d0f66553b876b801f98c8
-change-id: 20240329-sparc64-warnings-668cc90ef53b
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index dd048023bff5..28cb0d66ab40 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -250,7 +250,7 @@ void sun4v_insn_access_exception_tl1(struct pt_regs *regs, unsigned long addr, u
+ 	sun4v_insn_access_exception(regs, addr, type_ctx);
+ }
+ 
+-bool is_no_fault_exception(struct pt_regs *regs)
++static bool is_no_fault_exception(struct pt_regs *regs)
+ {
+ 	unsigned char asi;
+ 	u32 insn;
+@@ -2032,7 +2032,7 @@ static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
+ /* Handle memory corruption detected error which is vectored in
+  * through resumable error trap.
+  */
+-void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
++static void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
+ {
+ 	if (notify_die(DIE_TRAP, "MCD error", regs, 0, 0x34,
+ 		       SIGSEGV) == NOTIFY_STOP)
+@@ -2150,9 +2150,9 @@ static unsigned long sun4v_get_vaddr(struct pt_regs *regs)
+ /* Attempt to handle non-resumable errors generated from userspace.
+  * Returns true if the signal was handled, false otherwise.
+  */
+-bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
+-				  struct sun4v_error_entry *ent) {
+-
++static bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
++					      struct sun4v_error_entry *ent)
++{
+ 	unsigned int attrs = ent->err_attrs;
+ 
+ 	if (attrs & SUN4V_ERR_ATTRS_MEMORY) {
 
-Best regards,
 -- 
-Sam Ravnborg <sam@ravnborg.org>
+2.34.1
 
 
