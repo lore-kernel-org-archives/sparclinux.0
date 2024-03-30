@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259C4200BA;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49D12200DA;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=JaaBhaOp7veI9BZzPZd6OWUk4p4+zz/wflDXIYYOmx8B+JtFXUuGFTIb/GCba1RpVQ9SuRge8tICYp3X99oZoENVEme3sevVie274SfPcF0sUY3QIJ8UaTf1SjM9EqPSjchSsRxfV9lP+yjzyfEb78J48u4YIih8p2qTelUROp8=
+	t=1711792677; cv=none; b=uMpLqWXCLVtz4fQaIvlNM2Ofhp/wV5QAciXitAUA4I2TGy9PZH+qNRclpGsAfAlGCdmuqdyy3i8yqnH4KHLoDBVjQpeD6aBkJn1mcR8HxAaxnLkLa/GVhMNZ7z93uN+CHsyf3gG+ozltxhGYpwzGtzrsg0/jbyvnOYD2+X5z600=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=2Q6VY0DGMACrjNS3qT1yPJApGJKAhjr7VSLFZ///1Y8=;
+	bh=T3eeH+zoBspeTvtzab9Ckmy0OMDrNqIq1L29N8s6Q9U=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QIWhVhAbazdKochdO0wPupxKNgs2V13Tf+i7h6jiPVhAm8VgObHrNRI5mqJwWrV6zlF2xy+sl5OxKGXEBBAQ4qcOPojIyNGNFeinR11xNjiLGwZwJ4f1EpFWWIG0hrG+oCi0zrXUg2IJaY/RHFAjxP4mt8xcXMc+++CUTXGRBDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BIKPjrCm; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=gjnJ4LRjW2v+xMTfEaQ8L+N/8iT+dpdwC+q6yYTExMnBku0lG90y4KKh6a1TMZWeogzt/nxuQeq/SbxVfA8sb6+B7PphidGD6YXznkem8WYaAgNa48FA9JYm5ZiGkA7xijN6vgvo3Q6AbTnhdymMeB/NFnE0M8NQPw/7/hvohVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FMzKNsWc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BIKPjrCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 03D85C43399;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FMzKNsWc"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 14627C433B1;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1711792677;
-	bh=2Q6VY0DGMACrjNS3qT1yPJApGJKAhjr7VSLFZ///1Y8=;
+	bh=T3eeH+zoBspeTvtzab9Ckmy0OMDrNqIq1L29N8s6Q9U=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=BIKPjrCmuop+w7k+pVQ/5GQFzv/kREJ+oNMmkgs00gVX+LKr1itZO/AQn8KxMd/02
-	 LbY8k7BsgHrYZSdGsq6OmDswW0zTlFVm0wpq1HfYDqSRLm4VvHsle6oUuBkj0Q290l
-	 7GlyVG4MGAmPPhJQLR62zGs2dRxiUd1ovBphkjrFEzbmZbTaKbw7bnT3skeaIf8pzG
-	 g/GbJCjFeGqA3oEyixr+X7xiEJwEMaDj19wcaxq3cR6aknv8pbmeJsc0hQFkHzBNmC
-	 Z24U7Ouq3TgBabu+kd1eF5f7q/+L4kcdXpmBOxqFcgegX/tZSDW7FCaMx+ZAu0fZh6
-	 hX3PI6ZheN7qg==
+	b=FMzKNsWcXILkg9NWP1RWTaH1sDIfOWEVXCZqyKVhJyGNJeV5I9ntBz8pNirUMV+rw
+	 7+yP/7PGQSHFc4wEaM1maodIVNi5iSUBTvsmhaHdKR3vu+WFeU3C7uTQW+e9KbolUs
+	 6NqlLfB4XuyYsFeIe8wV1J12hfpgjlz7YB8e1o0Fzw2NKHn7+W0/SB/Hh9AI+Sh5Dx
+	 jUE0ac0twcHgKNx1yZC8vQOKuUKihoQFmUtjSFT+zKhMS8R0FNYqjKnQnzYJyc5xAr
+	 4/hgpNgeZQGLZNffUGVPlAAAFnhTH60fP9KSdwnTAAoHRFnqKey4f9AsZ+z4Ge8LlP
+	 ouHMS1W257asw==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF2BCD1290;
-	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB3DCD1291;
+	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 30 Mar 2024 10:57:39 +0100
-Subject: [PATCH 03/10] sparc64: Fix prototype warning for vmemmap_free
+Date: Sat, 30 Mar 2024 10:57:41 +0100
+Subject: [PATCH 05/10] sparc64: Fix prototype warning for uprobe_trap
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240330-sparc64-warnings-v1-3-37201023ee2f@ravnborg.org>
+Message-Id: <20240330-sparc64-warnings-v1-5-37201023ee2f@ravnborg.org>
 References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 To: Andreas Larsson <andreas@gaisler.com>, 
@@ -48,11 +48,11 @@ To: Andreas Larsson <andreas@gaisler.com>,
 Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
  Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=1023;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=1615;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=+iIEu1z65nIiaVFud5jDAU2EF2qjq+E//QvstvA1vGg=;
- b=5VSMXsJDe14dfB5oOTmmYLuyPXBP0AEI7kkhlo+yFPQJH9hBDtSPFVLukEaLXfZBrY9t+daDfF0L
- L8uXsXFQCPOI5uioh9DGaOBI8cOkimdx9zSDJ9alHiqMpCCrM+VV
+ bh=sf6irUkOpJPOHLMvdHazAyqgENdDMFjW8tXTw6Ir0YU=;
+ b=Gfn8FAdb7ELFmL9Xcub36vvtnz7E7OCSYIXAo8fV5xyY4x0+njqdmCR+uM9iEVVY8///Z73EpFA4
+ RPXfaePaAJcWQc+Vj5Y6mTgZtSJLBCRZRV1jUnnsJYbTcN+SmQ1Y
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
@@ -63,35 +63,47 @@ Reply-To: sam@ravnborg.org
 From: Sam Ravnborg <sam@ravnborg.org>
 
 Fix the following warning:
-arch/sparc/mm/init_64.c:2644:6: warning: no previous prototype for ‘vmemmap_free’
+arch/sparc/kernel/uprobes.c:237:17: warning: no previous prototype for ‘uprobe_trap’
 
-The function vmemmap_free() is only used for systems with
-CONFIG_MEMORY_HOTPLUG defined - and sparc64 do not support this.
-Drop the empty function as it has no users.
+Add a prototype to kernel/kernel.h to silence the warning.
+This is a fix already used for other trap handlers.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 ---
- arch/sparc/mm/init_64.c | 5 -----
- 1 file changed, 5 deletions(-)
+ arch/sparc/kernel/kernel.h  | 4 ++++
+ arch/sparc/kernel/uprobes.c | 2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index f83017992eaa..5444b515815a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2640,11 +2640,6 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index a8fb7c0bf053..8328a3b78a44 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -40,6 +40,10 @@ int handle_popc(u32 insn, struct pt_regs *regs);
+ void handle_lddfmna(struct pt_regs *regs, unsigned long sfar, unsigned long sfsr);
+ void handle_stdfmna(struct pt_regs *regs, unsigned long sfar, unsigned long sfsr);
  
- 	return 0;
- }
--
--void vmemmap_free(unsigned long start, unsigned long end,
--		struct vmem_altmap *altmap)
--{
--}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
++/* uprobes.c */
++asmlinkage void uprobe_trap(struct pt_regs *regs,
++			    unsigned long trap_level);
++
+ /* smp_64.c */
+ void __irq_entry smp_call_function_client(int irq, struct pt_regs *regs);
+ void __irq_entry smp_call_function_single_client(int irq, struct pt_regs *regs);
+diff --git a/arch/sparc/kernel/uprobes.c b/arch/sparc/kernel/uprobes.c
+index 1a0600206bf5..305017bec164 100644
+--- a/arch/sparc/kernel/uprobes.c
++++ b/arch/sparc/kernel/uprobes.c
+@@ -18,6 +18,8 @@
  
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
+ #include <asm/cacheflush.h>
+ 
++#include "kernel.h"
++
+ /* Compute the address of the breakpoint instruction and return it.
+  *
+  * Note that uprobe_get_swbp_addr is defined as a weak symbol in
 
 -- 
 2.34.1
