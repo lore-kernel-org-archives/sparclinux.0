@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BCD3208B6;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5683020DCD;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=Y8MZ/ai17tIfKV3SOXN4whHZrOx4W1mSmBncyZg4Vv0JdXOmL+pdJDnJai3bFgXO2c2iXhghjN736sacLNdt/ls9LQwhXwB+KpEbUtPWAIqBH5M/phK3gAkEUhDwTWtSZMkIgK73He+4tm8BJchNDgcpFdz8wEGKbSz97b8ynvg=
+	t=1711792677; cv=none; b=S0ASKBQ6DPznGdOlq6yF6UWylOaksFo0G9k0ib2ScR/qL7mH+unN2UIeEfyHvxsy2byZCFZoqIyD4sT4JK7WuEbR2ReoP1A6Q0uyK3carlHuCZ1EBc+W7/54NI0c/ruJuHuXSHKc8BiZ0g5RE0VRxXhPqV+hWr9q8lTYhb02kVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=lhcM6K3TrpZBNI30rUUArfcpy+N8YiTmUvxeRdnrB5k=;
+	bh=znSQZ+RM/9bvAWoDcrE1grU/bOJFvpoINbFAcHKmzU0=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QtRpjaxQYOX4RyPcxSNxQLaqMWYFU51tD6z/Y+NYFxUX/qTFwyiEif1tXLniCQi41PYxagpKFuyY0J3jQfzBgPPGUI8LGUWCpnoGSM00GtUWBddLz1yl6XUx1dxKj8bBatReDQzCqqWMZ1LHIJWrLmQ/qQOmK3HQROQbEQCye6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eIiZZARl; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=QTNZBLcShEEPv4qa4Y9F1HW6W0CNR1vTT/hcgCMzC38LfVV3KQXi1lrHzkshGfsAPOiTsPY5qYrPgPjpGnRJ5/Ckf4R3MK6XJJmMzBmX8pdeM7RNvMFL0uGSbKbNTeHBIfzWWRUrYGnyCzPZSz4IK0iJFQvGyj2lIrcVvuyI0iU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z4rtyxn3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eIiZZARl"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 277F1C433B2;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z4rtyxn3"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0811DC43390;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1711792677;
-	bh=lhcM6K3TrpZBNI30rUUArfcpy+N8YiTmUvxeRdnrB5k=;
+	bh=znSQZ+RM/9bvAWoDcrE1grU/bOJFvpoINbFAcHKmzU0=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=eIiZZARle/xlgXKw20QrbbCRJt0vYL5/z4leI4zsHCLp9cNlF/mJ2/PduJARKA40b
-	 JIfsBYRKqn2if1aVgQzQzuV8bxUAWn6ZVpzLWSzpdBokkYJd3IpLnZA/Xw7z7QkpK+
-	 sQFWWycg99PAhY9A3214AkVS/qg2aqj/CF8qCNDCHXgupZ4vGDoI/1IkyiS+UCoc6S
-	 NK1dw4+vPKBr4L6jl/6D+MhZ2C8G8T6V0xURZ7Q9CeXdI2ryDja9DNGExmv1rtK41Y
-	 u3h9Sdcoy8Me1JijmJkLJ79YOBNGeDkF3yGIrVsohxoMO4fRLeM4VHI15NWg88ohmc
-	 BaM6ONovnIpZA==
+	b=Z4rtyxn3af+SZLBb07MVwPSdN4NPsJHwcKuBTvcxsBh0kkjCr1+RktJCsKdRnMZos
+	 lzGoiHnMrgd46S9aOPoWruUUJHEx1wrQLcnDSxfvxDUnmEFJEhdpM+gsMv9+SNynvj
+	 uBTZn5BMgvCAHfXPFsWxn8rIZJx9Dl0Xefl44mzEnQE2ZQaGBnCCvV/zYqnBTiJVz9
+	 +8xlet4HhNv7Ybtysq3+P6WoWtpvkkNT7TTNkeXvyLY8OaWUUh/xBit0t2VmUF5Ol/
+	 zfrTC0XT3KWPce0lZYo5+SFU0LI8OWJgH6V+CglwYEUI8Wc7JBDdHwEFSVBUK9lPLp
+	 Yz5FwDEa7lvmA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 206F3CD1290;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01AFCCD128E;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 30 Mar 2024 10:57:43 +0100
-Subject: [PATCH 07/10] sparc64: Fix prototype warnings in adi_64.c
+Date: Sat, 30 Mar 2024 10:57:40 +0100
+Subject: [PATCH 04/10] sparc64: Fix prototype warning for
+ alloc_irqstack_bootmem
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +41,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240330-sparc64-warnings-v1-7-37201023ee2f@ravnborg.org>
+Message-Id: <20240330-sparc64-warnings-v1-4-37201023ee2f@ravnborg.org>
 References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 To: Andreas Larsson <andreas@gaisler.com>, 
@@ -48,11 +49,11 @@ To: Andreas Larsson <andreas@gaisler.com>,
 Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
  Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=1998;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=877;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=4x3bdFE7JXKdL9191J0m+VT2gS8HRbYF0N4eZvrNsnU=;
- b=KqifCim/T+astHCsES+LmkrKBcWtdEitfmvxz1BoClBokgS1XQlcr/JHLjv9RGX/Od9w5o4aOkH0
- f0LJ8jV5CPZjNphmsQqyVbM3ErgZW6krl3I5AYTISzKCQum0oi8T
+ bh=hR1E8vg8CGDYDik5XN2GQOk33c8EjJhA30OsWe34a5M=;
+ b=5y52pp+9cWGwXXEVdYXKKaopN1VKfX8WuRlPMgDaXdoQ0CqhfOyr9569kP/JZSl9fR9ZcPdeOem5
+ 5YiL5Ib2DKwFLPLfipiRNfAvXMwNmevHWCfz6YrVABfnmoBVIau8
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
@@ -62,59 +63,32 @@ Reply-To: sam@ravnborg.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix the following warnings:
-arch/sparc/kernel/adi_64.c:124:21: warning: no previous prototype for ‘find_tag_store’
-arch/sparc/kernel/adi_64.c:156:21: warning: no previous prototype for ‘alloc_tag_store’
-arch/sparc/kernel/adi_64.c:299:6: warning: no previous prototype for ‘del_tag_store’
+Fix the following warning:
+arch/sparc/kernel/setup_64.c:602:13: warning: no previous prototype for ‘alloc_irqstack_bootmem’
 
-None of the functions were used outside the file, so declare them static.
+The function alloc_irqstack_bootmem had no users outside setup_64.c so
+declare it static.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 ---
- arch/sparc/kernel/adi_64.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/setup_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
-index ce332942de2d..e0e4fc527b24 100644
---- a/arch/sparc/kernel/adi_64.c
-+++ b/arch/sparc/kernel/adi_64.c
-@@ -121,9 +121,9 @@ void __init mdesc_adi_init(void)
- 		mdesc_release(hp);
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 6a4797dec34b..1d519f18d2b2 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -599,7 +599,7 @@ static void __init init_sparc64_elf_hwcap(void)
+ 		pause_patch();
  }
  
--tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
--				   struct vm_area_struct *vma,
--				   unsigned long addr)
-+static tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
-+					  struct vm_area_struct *vma,
-+					  unsigned long addr)
+-void __init alloc_irqstack_bootmem(void)
++static void __init alloc_irqstack_bootmem(void)
  {
- 	tag_storage_desc_t *tag_desc = NULL;
- 	unsigned long i, max_desc, flags;
-@@ -153,9 +153,9 @@ tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
- 	return tag_desc;
- }
+ 	unsigned int i, node;
  
--tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
--				    struct vm_area_struct *vma,
--				    unsigned long addr)
-+static tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
-+					   struct vm_area_struct *vma,
-+					   unsigned long addr)
- {
- 	unsigned char *tags;
- 	unsigned long i, size, max_desc, flags;
-@@ -296,7 +296,7 @@ tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
- 	return tag_desc;
- }
- 
--void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
-+static void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
- {
- 	unsigned long flags;
- 	unsigned char *tags = NULL;
 
 -- 
 2.34.1
