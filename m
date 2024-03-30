@@ -1,117 +1,100 @@
-Received: from fout4-smtp.messagingengine.com (fout4-smtp.messagingengine.com [103.168.172.147])
+Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [46.30.211.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1AD61C0DD5;
-	Sat, 30 Mar 2024 10:19:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 445881E865
+	for <sparclinux@vger.kernel.org>; Sat, 30 Mar 2024 18:40:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711794000; cv=none; b=tgiUxWqnZI0E5fqgpa4bkTMUN1k376e3NOWiUAeknQBFSF4TBlKPiTkIBCYaFctc+U/QJQXsJ2E0NUeXyqi19o19qJ7Pn+KSlXYJ6CuEPqb0PHUzhRSRPrMaxiVF45OmumQugtkeHFeCHE7zhsDKo/Ga1Fh8ySAe1e//GK4uecw=
+	t=1711824053; cv=none; b=Q+9f6gR6Br3GipQX5AUVK/m9jYe0z5Qm2iQFM0qMl1R0iyvSZxwZNes3Vji2Ghvs6jZbx7MDFpbgmuzj0I2vTQ1pdhEhaGGhTmQDEXh0LcadLoPsWsqvbBlJdrcU8i44Zpdrf9eLwLQNedQSn1ewNCyJqes9ZMRoSp5ZntC6LCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711794000; c=relaxed/simple;
-	bh=MhKZZ8Mjj6u+jepgsjCGC+XkNcSBwTwz5oCrL8z0nic=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
-	 Subject:Content-Type; b=RzSSW+Sl+hY6n/sNseJ39V6rzkCg50aKZxX/FUfgCmGckUXnD9+yELmAh6/bQvkD+/9bUqs6INEhLL67+wBDDzpMmNnaXaL7tOAtxu6mKiuFlWLt7pbflyDj9A3TgyREK5/Kda7IrtgTAnbzLfA7UnUQhPRy+2j90owSPFIYA/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=W/H5UHy8; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=p0ClvWXu; arc=none smtp.client-ip=103.168.172.147
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1711824053; c=relaxed/simple;
+	bh=+fKm55pvJInq7E1oiY4SA54W6AbzUuuzHvH9tWxJRYU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C4jSjz/DlJbrxTb0LSbW8SEanQCqlhTQXowdcjXp21e62X0rKv8D3SkfDy30cOm32zs17uv1c1FlNjsrcZdvwZGR0IuTIfO73QhIaHg3Gq4ecFMjKXjJFZE0D+hV7ilDYDyjf+2NnSRqO10wfu4MUKK2CvD4vKAJmmPLLcqIKnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=W1nqs/H5; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=f4Dkfc8k; arc=none smtp.client-ip=46.30.211.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="W/H5UHy8";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="p0ClvWXu"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailfout.nyi.internal (Postfix) with ESMTP id F2F5D13800A1;
-	Sat, 30 Mar 2024 06:19:57 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Sat, 30 Mar 2024 06:19:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1711793997; x=1711880397; bh=gYQUywggWk
-	t3lojA/q48Eke62WZWW42/D/zhK3t7AWw=; b=W/H5UHy85C1c8XawRzQvt85Lm/
-	8h+VMnftbgWUO+MfezKNPAp/pdPG4DehGuvcqax/DhFeRns08LKcMa4QVSkDpmhp
-	+9N9UC8+0r12z08Fxqizls1IgRj1NpVmJ5ycMPMHKaKFXrn+tZt0g2et25c61v3l
-	tUFlxnn1K74PhE1AnqZwGOWnDzMAMg+E8vRP6oNArmS7Mmk0adSITqnnAF6lu3uh
-	w9KP4yhTEjzubH0GLuhDCCGMMK4xz+gGVyT52f2tiD9B1OF9UOS2xDon/l1IOY8Q
-	/bSAvJOuDb+bQzwj3bqBew39vZEd0l3AfJq0w7UZVTi/WMfd4s40x0XA99Sw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm2; t=1711793997; x=1711880397; bh=gYQUywggWkt3lojA/q48Eke62WZW
-	W42/D/zhK3t7AWw=; b=p0ClvWXuOzrCt700Nosc8cBW8iYRjph2wMSHS+DHp+W9
-	c8xlEfLYXMXjqfyx/h2ZhnbVdx/7zBujVzcVnvFPlZooMiccI8joNbOedFy2qJ0J
-	qhXXJ/elB5Qt8kPMiLZxtBz3U//XjOQTTFClkNm7f4pC1Fc3i2KKQjOax6wTuf4j
-	dSkTEfb606PDaWb1OlGcLnOMx56yjsHqfU5g/ugpdJf3UfHYWcS5+XRymT9aampo
-	Is8jqqj6XetL4cCnANRgZEMHH+zeDzWDwDDvvSvvKSreZP0YTUK02M0JVkDAp+lT
-	ytxQ/JyVdNfTWcGrg5LbkLFmHZ2AZ2bMmY7cSz7W6w==
-X-ME-Sender: <xms:TecHZoDjf4TNNKEtu6Ai-Q-O7dUMWufKcaqXNum15joB87Ivq6fJ2g>
-    <xme:TecHZqj5zlKtThTOD8QSqRU8nUoboGrvflLobQV5K3nmyFltxWD2ugXyrrFKToZX0
-    Z2xfurxQzsi6mGjRVU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledruddvgedgudehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:TecHZrmUrQS_FaqJzpRHfaNiFce7GSt5lPOh-6ESS4wwPKzxKd3BrQ>
-    <xmx:TecHZuz09b75CwNZfFqRl2qmechWqKb0_jRj425tBlUHEOoeuOW6jg>
-    <xmx:TecHZtQUmfb0_k3vS9XN7udXCARxjjah20UNTVqAM5tKAsHZalnMKg>
-    <xmx:TecHZpbyOhQt5GcIpp3TQo4TA5b5W0KIF1mLzd2Y92apAq6aHCluoQ>
-    <xmx:TecHZiKEfk8lbjgeqTt6qCbVaNMxXwecbcdZK4y0_BuiSP0LdR3LvA>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id AF635B6008D; Sat, 30 Mar 2024 06:19:57 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-333-gbfea15422e-fm-20240327.001-gbfea1542
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="W1nqs/H5";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="f4Dkfc8k"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=Xeeh2dg6zdnZbEZ/lUmV7A/JWt00HE94jarkf2OAKXw=;
+	b=W1nqs/H5MmWtsVize4yOqv5zdPv5BOIEbvoB7e+mMiiTmOTMjUevbBzHBATpsEk5ypP+S0gb07Ea7
+	 lYIwTt7rTRjGJK04mnHWquqc4RfbS/2FdyNOapO2cDBM8jHPt0DFb5p9FXWM2pgCHkwS1hJhLmm1hb
+	 UfgPQjbXjjvGpXKSXisIHKdtWrR57wFf6vKW1JCLfjzl6UQqwNwFZx6uG3hiQYtNnURydBl82WqyL8
+	 8Khl7QCX0SIKmVe8XhdZ4fT1A0rPLgPU1jE0jyE9ebkJeZQHjRcHGsAk6sfww+GqU5zrpR+v0Qv8fJ
+	 gDl3Zsjg/AQUE4+cLwF1EYXMacoW2Pg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed2;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=Xeeh2dg6zdnZbEZ/lUmV7A/JWt00HE94jarkf2OAKXw=;
+	b=f4Dkfc8kcLussvHSfDwqYMUW8E8Ke7ibwfhSRoadQwiTSPL1XpNhGZ4TBp+VxxwEsa4367kFop+2M
+	 kmnjvaFCg==
+X-HalOne-ID: dba5c148-eec4-11ee-9dce-516168859393
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay1.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id dba5c148-eec4-11ee-9dce-516168859393;
+	Sat, 30 Mar 2024 18:39:39 +0000 (UTC)
+Date: Sat, 30 Mar 2024 19:39:37 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Larsson <andreas@gaisler.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org, Nick Bowler <nbowler@draconx.ca>,
+	linux-kernel@vger.kernel.org, Atish Patra <atish.patra@oracle.com>,
+	stable@vger.kernel.org, Bob Picco <bob.picco@oracle.com>,
+	Vijay Kumar <vijay.ac.kumar@oracle.com>
+Subject: Re: [PATCH 00/10] sparc64: Fix CPU online bug and warning fixes
+Message-ID: <20240330183937.GA191882@ravnborg.org>
+References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
+ <4e57929b-1539-4a25-ab05-a2a9e04ecc1d@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <4e57929b-1539-4a25-ab05-a2a9e04ecc1d@app.fastmail.com>
-In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
-References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
-Date: Sat, 30 Mar 2024 11:19:37 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Sam Ravnborg" <sam@ravnborg.org>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: "Nick Bowler" <nbowler@draconx.ca>, linux-kernel@vger.kernel.org,
- "Atish Patra" <atish.patra@oracle.com>, stable@vger.kernel.org,
- "Bob Picco" <bob.picco@oracle.com>, "Vijay Kumar" <vijay.ac.kumar@oracle.com>
-Subject: Re: [PATCH 00/10] sparc64: Fix CPU online bug and warning fixes
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4e57929b-1539-4a25-ab05-a2a9e04ecc1d@app.fastmail.com>
 
-On Sat, Mar 30, 2024, at 10:57, Sam Ravnborg via B4 Relay wrote:
-> Nick Bowler reported that sparc64 failed to bring all his CPU's online,
-> and that turned out to be an easy fix.
->
-> The sparc64 build was rather noisy with a lot of warnings which had
-> irritated me enough to go ahead and fix them.
-> With this set of patches my arch/sparc/ is almost warning free for
-> all{no,yes,mod}config + defconfig builds.
+Hi Arnd,
 
-Patches 1-9 look good to me,
+On Sat, Mar 30, 2024 at 11:19:37AM +0100, Arnd Bergmann wrote:
+> On Sat, Mar 30, 2024, at 10:57, Sam Ravnborg via B4 Relay wrote:
+> > Nick Bowler reported that sparc64 failed to bring all his CPU's online,
+> > and that turned out to be an easy fix.
+> >
+> > The sparc64 build was rather noisy with a lot of warnings which had
+> > irritated me enough to go ahead and fix them.
+> > With this set of patches my arch/sparc/ is almost warning free for
+> > all{no,yes,mod}config + defconfig builds.
+> 
+> Patches 1-9 look good to me,
+> 
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+Thanks!
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> > There is one warning about "clone3 not implemented", which I have ignored.
+> >
+> > The warning fixes hides the fact that sparc64 is not yet y2038 prepared,
+> > and it would be preferable if someone knowledgeable would fix this
+> > poperly.
+> 
+> The clone3 bug has been around for ages, it's probably not even that
+> hard to fix and just needs a little bit of testing.
+I looked briefly and it involves a better understanding of the window
+register manipulation than what I have today.
 
-> There is one warning about "clone3 not implemented", which I have ignored.
->
-> The warning fixes hides the fact that sparc64 is not yet y2038 prepared,
-> and it would be preferable if someone knowledgeable would fix this
-> poperly.
+> 
+> If anyone wants to work on the time64 support for the vdso, I can
+> explain the details for how it's done.
+I am happy to type the patches but need to rely on others for testing.
+Anything to help me get started would be super.
 
-The clone3 bug has been around for ages, it's probably not even that
-hard to fix and just needs a little bit of testing.
-
-If anyone wants to work on the time64 support for the vdso, I can
-explain the details for how it's done.
-
-Both of these are real bugs that should be addressed, unlike
-the other warning fixes that are mostly cosmetic aside from
-allowing the build with CONFIG_WERROR=y.
-
-     Arnd
+	Sam
