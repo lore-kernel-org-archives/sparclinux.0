@@ -1,93 +1,119 @@
-Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDBEC2CA5
-	for <sparclinux@vger.kernel.org>; Sat, 30 Mar 2024 09:17:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E381EB5A;
+	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711790237; cv=none; b=l/OgOw+U2Enfvk1f4aQyCRVU9XTjzEhCmnlMwcjhtI4yHEmQGsgRNay4Z2CacLeq6GbJem2VqpnXGaYh6kmyfB5nfywJHaal48eRF4JHhk0T6COOh+Y6vN8oMp+x/YvJd32ejli8FwCKI4NHQ9XCOQJSxQ7MGTEolY0+DjSo+Lk=
+	t=1711792677; cv=none; b=UBroF+nQKze7k5kkZdy+nsVtLKS7OwGg42paDCoR4ReIxsGcQAYz6/7FkDw/O0ayTSfreTBbXv3REuPJeZabDcTIk3guOML7miPFKJ7Avx0G5RNPTgQUz5WJNU5v5vmmgSr2x3AC4X6uf9hxBC7he20ETy+aIrbOdhEQunRs7wo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711790237; c=relaxed/simple;
-	bh=4yCpOsncwsjmF7Gb9PqlOTig4TQC6m97ufbASYA4VrI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lgumawXCvpk/joiBR1xGtxk1ExurFh+IjgzjB6AnYtB4ngAqkKDYthLxgSAlLjs0t3cHS1Fw2xbSHZL67lRUNbG64z8Q3NMB49uHN3uhsK/ciP1uHHp/jt4H761ssnooVSVTp6gkSTS+Rz1Bta3ZruzM3IKYrcF1uDJA/MlvuNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=bYitXpzg; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=YyUcNGh8; arc=none smtp.client-ip=46.30.211.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	s=arc-20240116; t=1711792677; c=relaxed/simple;
+	bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=QfauZKJJH+s1+v0RjTZV41bZp5+jTw2RjxC3cvG4cVS7IQD4ORfx8ITsf2U3AIN+A0PyQTdQXSap+O9opTBP2UEPuVyBqm6hubyWjJ/V32hcYyrD3Eo1oCSN+aUAYIsDcgJ+mY8KvTJb9SPi4R9vUcXgivBUlTYi2bXqJOcyX5o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JhF/qfMG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="bYitXpzg";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="YyUcNGh8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=/mhpK7cMvkSIkKaWzItraRPcybJp/qChOJB5FME0Oy0=;
-	b=bYitXpzgV0X8hkAiH7Oc9oyyp16nkEmYUjgtrQJ8JTwsZ30MjpFYDY4pM7S0TdBOL64Fe3oT78tWn
-	 r/UsUybpsmbJpdzoYDMp0MsNf0Jj2UnJ5X6wt4tE8HUsOsYaYl9iFlVisFjVoSnpUvKz5OKeyBRRQw
-	 LozuIQsu1ezgMT3RjMhrCzQduUuFvFXao5Gf649JI2zBelVN+BM/+HA+8fy6W7VFbf5LWUqflweOvb
-	 RhSlwE2e9WSO/KjDkSK6TSOasnwsZekrpmnIrMmPVnzfCRAVgzi4jW4Yyh5CBa0g/O/4rZITdvzGf1
-	 Fu5j8vXpeMfccDo5pvFMHIviOLyYFRQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=/mhpK7cMvkSIkKaWzItraRPcybJp/qChOJB5FME0Oy0=;
-	b=YyUcNGh8sEeSweAntykWQGuUlOERhyDOoKAbUkzhtUoznwfXfn8WTuE03pdG3G0+ar3RnJCE8kGwQ
-	 ihu/RiMBQ==
-X-HalOne-ID: 20560aca-ee76-11ee-99ae-657a30c718c6
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 20560aca-ee76-11ee-99ae-657a30c718c6;
-	Sat, 30 Mar 2024 09:16:02 +0000 (UTC)
-Date: Sat, 30 Mar 2024 10:16:01 +0100
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Nick Bowler <nbowler@draconx.ca>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org,
-	Andreas Larsson <andreas@gaisler.com>,
-	Linux regressions mailing list <regressions@lists.linux.dev>
-Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
-Message-ID: <20240330091601.GA128565@ravnborg.org>
-References: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
- <CADyTPEyAidGgBT3f1VJLHb3ouO-r1UyvFp1PcwXxy0NRG94sbw@mail.gmail.com>
- <1df92fec-7f57-5080-94ed-b149ed384280@leemhuis.info>
- <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
- <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
- <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
- <943c6d11-e214-43c8-8813-8e1aba6be15c@draconx.ca>
- <20240329094456.GA44268@ravnborg.org>
- <a7c155ed-71fc-4ed9-a8c8-f98024b74651@draconx.ca>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JhF/qfMG"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id DBA97C433C7;
+	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1711792676;
+	bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
+	h=From:Subject:Date:To:Cc:Reply-To:From;
+	b=JhF/qfMGRF2vRF9lE7VZ9fXM8H87R6irghexmiTHRAAyGdBzRAuQ8CNW4iyOk2XnV
+	 JXXDTzTq82CQ4xQR/1ykWZFZ6dzSPyxI9Zbt3Z2QR5OM273vEmxIcvdxd84mnkxZml
+	 HZR+FhYjZXYqQNZz1pt5oB0sxaKFLTJOteIPMRFxCRnwjth13nwPioeLluXmFA2/W2
+	 JXNRe76Guf5Y1v1pBfxlUsCeBGeau2f+bwyhvdxnSNTqjVNLA2J+gAAtTjLCSxBQVO
+	 3bkGe8UtsPK0VoWih9WUqyrD7jTFd3v1LeSyrZ00mguL96ztYSYQqiS6/cUry3MMS+
+	 0ZQo7ntmGqIMA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCFE5CD11DD;
+	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
+From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
+Subject: [PATCH 00/10] sparc64: Fix CPU online bug and warning fixes
+Date: Sat, 30 Mar 2024 10:57:36 +0100
+Message-Id: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a7c155ed-71fc-4ed9-a8c8-f98024b74651@draconx.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIABHiB2YC/x3MQQqAIBBA0avErBNMTaqrRAuzsWZjMQMVRHdPW
+ r7F/w8IMqHAUD3AeJLQnguauoK4hbyioqUYjDZOW9MrOQJH79QVOFNeRXnfxdhrTK2doWQHY6L
+ 7X47T+35CLiOJYgAAAA==
+To: Andreas Larsson <andreas@gaisler.com>, 
+ "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
+ Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>, 
+ Atish Patra <atish.patra@oracle.com>, stable@vger.kernel.org, 
+ Bob Picco <bob.picco@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>
+X-Mailer: b4 0.12.4
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=2071;
+ i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
+ bh=eDnRUPngHqoQZ7G0b6cjOURT4uhlTvBwqKCHkp86dUI=;
+ b=XbiHaZ/tYJDLA+a14/hq+RNLsBlpQeOA1+rEeZk7TbiaKPXwytF49GTZiGF68WZIeOwb02V/RLnH
+ CJVACzeFBQ/ioYueEX2mS2PTVVtDyJVb3DKSvYn8mxZNLwri6H+R
+X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
+ pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
+X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
+ auth_id=22
+X-Original-From: Sam Ravnborg <sam@ravnborg.org>
+Reply-To: sam@ravnborg.org
 
-On Fri, Mar 29, 2024 at 04:11:06PM -0400, Nick Bowler wrote:
-> Hi Sam,
-> 
-> On 2024-03-29 05:44, Sam Ravnborg wrote:
-> > I took a look at this and may have a fix. Could you try the following
-> > patch. It builds - but I have not tested it.
-> 
-> With this patch applied on top of 6.9-rc1, both CPUs appear to come up:
-> 
->   % cat /proc/cpuinfo 
->   [...]
->   ncpus probed	: 2
->   ncpus active	: 2
->   [...]
->   State:
->   CPU0:		online
->   CPU2:		online
+Nick Bowler reported that sparc64 failed to bring all his CPU's online,
+and that turned out to be an easy fix.
 
-Thanks, I will add a Tested-by: Nick Bowler <nbowler@draconx.ca>
-and submit the patch properly along with a few other sparc64 related
-fixes.
+The sparc64 build was rather noisy with a lot of warnings which had
+irritated me enough to go ahead and fix them.
+With this set of patches my arch/sparc/ is almost warning free for
+all{no,yes,mod}config + defconfig builds.
 
-	Sam
+There is one warning about "clone3 not implemented", which I have ignored.
+
+The warning fixes hides the fact that sparc64 is not yet y2038 prepared,
+and it would be preferable if someone knowledgeable would fix this
+poperly.
+
+All fixes looks like 6.9 material to me.
+
+	Sam 
+
+---
+Sam Ravnborg (10):
+      sparc64: Fix prototype warning for init_vdso_image
+      sparc64: Fix prototype warnings in traps_64.c
+      sparc64: Fix prototype warning for vmemmap_free
+      sparc64: Fix prototype warning for alloc_irqstack_bootmem
+      sparc64: Fix prototype warning for uprobe_trap
+      sparc64: Fix prototype warning for dma_4v_iotsb_bind
+      sparc64: Fix prototype warnings in adi_64.c
+      sparc64: Fix prototype warning for sched_clock
+      sparc64: Fix number of online CPUs
+      sparc64: Fix prototype warnings for vdso
+
+ arch/sparc/include/asm/smp_64.h  |  2 --
+ arch/sparc/include/asm/vdso.h    | 10 ++++++++++
+ arch/sparc/kernel/adi_64.c       | 14 +++++++-------
+ arch/sparc/kernel/kernel.h       |  4 ++++
+ arch/sparc/kernel/pci_sun4v.c    |  6 +++---
+ arch/sparc/kernel/prom_64.c      |  4 +++-
+ arch/sparc/kernel/setup_64.c     |  3 +--
+ arch/sparc/kernel/smp_64.c       | 14 --------------
+ arch/sparc/kernel/time_64.c      |  1 +
+ arch/sparc/kernel/traps_64.c     | 10 +++++-----
+ arch/sparc/kernel/uprobes.c      |  2 ++
+ arch/sparc/mm/init_64.c          |  5 -----
+ arch/sparc/vdso/vclock_gettime.c |  1 +
+ arch/sparc/vdso/vma.c            |  5 +++--
+ 14 files changed, 40 insertions(+), 41 deletions(-)
+---
+base-commit: 84b76d05828a1909e20d0f66553b876b801f98c8
+change-id: 20240329-sparc64-warnings-668cc90ef53b
+
+Best regards,
+-- 
+Sam Ravnborg <sam@ravnborg.org>
+
+
