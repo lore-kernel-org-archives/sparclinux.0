@@ -1,188 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F3224A03;
-	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C045B67F;
+	Sat, 30 Mar 2024 10:16:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.111.4.29
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=YyZtDEsFziNpiYfe8pTUXuTo2EoAKykXWVJWAAP0Ycf4dBeBSMLLOTccIR2l05hxoeeAZzKu5sXfB6NzKdt8s+v5rEZeZncFQdSEh9ReKgE7I0i/trEbtB8Y/y1UOXlff6IKwrg0hyQNVMxxyRhL79WPXQpCj+EpITLZJKHMCA8=
+	t=1711793786; cv=none; b=Ihm4pNbw2Wf960xNrLH8DQ0qtE3HXGkE7ZKXdWxwt8qiG4J6Zg19j5o87khW5aKmlXLUmp594TOJDtV76r1PkTwqZJcqBsQMkg0SLBFBoc/8AXisM5gOhBn1ep6mBSsuYM2BVcwHlD1luRed+4fFoeZ6SkSbfL13bN6Ix7VM8nc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=bebuIwcUBNMtYbSzdkVNlj0yN3Mms/4B8BSns5s9jWM=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=CGytvjMe4oCbrEIMB9oeWTl8ysc6giLPLB03B4hi9D6j+kW/pg6ScXKQ7WgXiCdMpSYdOPdUXlKrAJCft/7KNiFSV9TT52Qj3rJ91G2+Zcrmd1g3O/pM34tn7YF61JJKSC4kDCf4nUKNPTkbQIUYeKnR+QeA1Ji+hBWrArySujw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bBkJQNjm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711793786; c=relaxed/simple;
+	bh=VmXkUZOyIKmfkUOUul0zspsIq3cKy0cxTdecNyGNAME=;
+	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
+	 Subject:Content-Type; b=kpOkTQaMkYn9FVsS9A26tcqGSNjt4RH9q3BBm40n3/ZdLAyACVRsfAV7parh/ZkwsGqAXU6aJTCVuiIMOcUBDm36AdNZmTyqKcD5PoRCRpMXNa0WV/Q3PEtEc2R51p3Vp6HVLD5zU0gKJeLIrr/CfR1waMvaB3S2r+eRa5oIauQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=QprOH3yu; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=xNfaTlbN; arc=none smtp.client-ip=66.111.4.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bBkJQNjm"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3BC5DC43609;
-	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711792677;
-	bh=bebuIwcUBNMtYbSzdkVNlj0yN3Mms/4B8BSns5s9jWM=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=bBkJQNjm6+iwK7Oo9ZKoxNPmM3KMVEUXraK+5rpydUUIlhQ3PfN0XSdH7C9+wPHmR
-	 cBcCs8E6sUbfGsTKzwQBSJwE14ia6ZB7xJNCzTpEsroVuYh4iDEZOCVBZ1Kol6VJ2o
-	 kA4QD/IKVxnYS23KTndmvSLuJZ+uL9d3F7EvR1pUCjZIYgflD8Uk9Ewdmg0UtJzWXs
-	 fCirwBwTgORYFKUMCZufd89cmOjNcTA4VqNEMFfH+IIBqj2m+hSooSiMbqcUjtQetj
-	 gSMc4ScZ+QKsfIeWfbYS//UIfMf3dfxZ6bnDc7SBo3nPjTD9dngiVwJztg8miM0UZE
-	 FRgqmQOKOMxWw==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34F4FCD128E;
-	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
-From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 30 Mar 2024 10:57:45 +0100
-Subject: [PATCH 09/10] sparc64: Fix number of online CPUs
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="QprOH3yu";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="xNfaTlbN"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailout.nyi.internal (Postfix) with ESMTP id E1B4F5C005E;
+	Sat, 30 Mar 2024 06:16:22 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Sat, 30 Mar 2024 06:16:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1711793782;
+	 x=1711880182; bh=C1agP3KE9ryTsfFxMj9pcesfkkbP9jyl0WFWmkHubNM=; b=
+	QprOH3yuKFDQDntorjsPIreNnbvEkxsW+LmXiF1qGNzpS47PfEepBqTd2OqLtajV
+	mSLJ8oiE7kijeDm0yvM87RPEKnGOY/zji1kXpyoe013n7XYRReohpY14MvEMj+O+
+	vuRfrhA7RLNXpi8XXDrOZwqzqcERci/Kir87igaJA4CvUF3BKbS6fHeBDoMVgupb
+	SwMLawXjmp6yG+PLPf3U8NFdKS4KQdJuvDtQ1l+lDR6OsbYC4f4js3eyRUp544sk
+	vv50GSikJDok1SeGQAplNgjSTXnVxY6qtDzc92XuLy9LKc6C+Ia1NucG/Jw4niTO
+	Vb/WhNafw5T1oqjLlQqwIw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1711793782; x=
+	1711880182; bh=C1agP3KE9ryTsfFxMj9pcesfkkbP9jyl0WFWmkHubNM=; b=x
+	NfaTlbNWBW+sVsI7ghHjZUwYpDK9xbyQXR7QwSHcRLHl99PDlKuIwynvO6D4Oech
+	6/F5MOMegGQw+0V8wqAXl1QbQ4pfWJMrftsX4/0iPQr/L2oWhoIkI8fnYhoHixAC
+	3VkZLKZ2C/envoKqpFO++RQNEv4cTPqEd2x7CT2sP+SDxVU4sKchz+DMH0ngZ/ay
+	/HL2YrWeClZG/M/zj4tui6LxM1T+QS6AtoghUHRbPdkaK+8LdTjMpfw1Y/9FzcWK
+	LswCme7RstbRro94IfHraOINi8bETAcJ45lHx9lrQng5mUjn5i72DqbzKfiGBjzn
+	KP/vL+gdbs3E8OanNk9bA==
+X-ME-Sender: <xms:duYHZvb35RNnFDwhsbm151E4XReMVdjCFZzlRRbv_rmU3_8xB_sOIg>
+    <xme:duYHZuazb0hiw-BvPtoOhCbNbSaKirAN7fIrPyjDTgpKkBsEBgJP2EwbeNC4OaBl4
+    -5P2mzLF4hgMiFJz2M>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledruddvgedgudegucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtgfesthhqredtreerjeenucfhrhhomhepfdet
+    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
+    htthgvrhhnpeegfeejhedvledvffeijeeijeeivddvhfeliedvleevheejleetgedukedt
+    gfejveenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    grrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:duYHZh-VmHa4EDKQcBmvf3F07F0fYMO5jWqcSq_pYRlAJOawCQ0DQw>
+    <xmx:duYHZlrEaDQPOXdQnk6EFbFFLJvpy0aSQHp1r7RZcyXkqUghAhx4ig>
+    <xmx:duYHZqo6QLwUpq2AIticZTMp6hZCYytI_LcGGePfd9gWebLxLWcACw>
+    <xmx:duYHZrRSrN1C8PNZ5JCzWIVjAhTbB9ij5fdEsEcI8n8DaGzeOQ3ztA>
+    <xmx:duYHZnAm3sTV72qgC1z2Iwd3iPINTZFQbtpFopJExiRJGm-JxvQ_Nw>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id 6CC7DB6008D; Sat, 30 Mar 2024 06:16:22 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.11.0-alpha0-333-gbfea15422e-fm-20240327.001-gbfea1542
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240330-sparc64-warnings-v1-9-37201023ee2f@ravnborg.org>
+Message-Id: <5e956d59-65f5-405c-8fc1-8faf68f1f02d@app.fastmail.com>
+In-Reply-To: <20240330-sparc64-warnings-v1-10-37201023ee2f@ravnborg.org>
 References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
-In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
-To: Andreas Larsson <andreas@gaisler.com>, 
- "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
- Arnd Bergmann <arnd@arndb.de>, Atish Patra <atish.patra@oracle.com>, 
- Sam Ravnborg <sam@ravnborg.org>, stable@vger.kernel.org, 
- Bob Picco <bob.picco@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>
-X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=4552;
- i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=dn/Iq8dROBgEtbrmvGqdZDKLIQGxfIlMZA5xlo5LiLk=;
- b=Mm0tyHZeXe/t+CUAz0TIDK29Bnh9pWuLw9N9PngOUrSliPSuEf3HaRhoErcq25a4YyE9mnLixJng
- DR+0exWWCpJJ9L0PynCkfmAWNCYEio9DUJVIyayOkKqpOy3h29V7
-X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
- pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
-X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
- auth_id=22
-X-Original-From: Sam Ravnborg <sam@ravnborg.org>
-Reply-To: sam@ravnborg.org
+ <20240330-sparc64-warnings-v1-10-37201023ee2f@ravnborg.org>
+Date: Sat, 30 Mar 2024 11:16:02 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Sam Ravnborg" <sam@ravnborg.org>,
+ "Andreas Larsson" <andreas@gaisler.com>,
+ "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: "Nick Bowler" <nbowler@draconx.ca>, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 10/10] sparc64: Fix prototype warnings for vdso
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-From: Sam Ravnborg <sam@ravnborg.org>
+On Sat, Mar 30, 2024, at 10:57, Sam Ravnborg via B4 Relay wrote:
+> From: Sam Ravnborg <sam@ravnborg.org>
+>
+> Fix the following warnings:
+> arch/sparc/vdso/vclock_gettime.c:254:1: error: no previous prototype=20
+> for =E2=80=98__vdso_clock_gettime=E2=80=99
+> arch/sparc/vdso/vclock_gettime.c:282:1: error: no previous prototype=20
+> for =E2=80=98__vdso_clock_gettime_stick=E2=80=99
+> arch/sparc/vdso/vclock_gettime.c:307:1: error: no previous prototype=20
+> for =E2=80=98__vdso_gettimeofday=E2=80=99
+> arch/sparc/vdso/vclock_gettime.c:343:1: error: no previous prototype=20
+> for =E2=80=98__vdso_gettimeofday_stick=E2=80=99
+> arch/sparc/vdso/vdso32/../vclock_gettime.c:254:1: error: no previous=20
+> prototype for =E2=80=98__vdso_clock_gettime=E2=80=99
+> arch/sparc/vdso/vdso32/../vclock_gettime.c:282:1: error: no previous=20
+> prototype for =E2=80=98__vdso_clock_gettime_stick=E2=80=99
+> arch/sparc/vdso/vdso32/../vclock_gettime.c:307:1: error: no previous=20
+> prototype for =E2=80=98__vdso_gettimeofday=E2=80=99
+> arch/sparc/vdso/vdso32/../vclock_gettime.c:343:1: error: no previous=20
+> prototype for =E2=80=98__vdso_gettimeofday_stick=E2=80=99
+>
+> The warnings were fixed by adding the proper prototypes to asm/vdso.h.
+> The better fix would be to convert sparc to be y2038 compliant so the
+> generic variant of vdso.h could be used.
 
-Nick Bowler reported:
-    When using newer kernels on my Ultra 60 with dual 450MHz UltraSPARC-II
-    CPUs, I noticed that only CPU 0 comes up, while older kernels (including
-    4.7) are working fine with both CPUs.
+I would prefer leaving the warning here until it is fixed
+properly, or possibly removing the broken compat vdso
+support. The other patches look fine though.
 
-      I bisected the failure to this commit:
-
-      9b2f753ec23710aa32c0d837d2499db92fe9115b is the first bad commit
-      commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
-      Author: Atish Patra <atish.patra@oracle.com>
-      Date:   Thu Sep 15 14:54:40 2016 -0600
-
-      sparc64: Fix cpu_possible_mask if nr_cpus is set
-
-    This is a small change that reverts very easily on top of 5.18: there is
-    just one trivial conflict.  Once reverted, both CPUs work again.
-
-    Maybe this is related to the fact that the CPUs on this system are
-    numbered CPU0 and CPU2 (there is no CPU1)?
-
-The current code that adjust cpu_possible based on nr_cpu_ids do not
-take into account that CPU's may not come one after each other.
-Move the chech to the function that setup the cpu_possible mask
-so there is no need to adjust it later.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Fixes: 9b2f753ec237 ("sparc64: Fix cpu_possible_mask if nr_cpus is set")
-Reported-by: Nick Bowler <nbowler@draconx.ca>
-Tested-by: Nick Bowler <nbowler@draconx.ca>
-Link: https://lore.kernel.org/sparclinux/20201009161924.c8f031c079dd852941307870@gmx.de/
-Link: https://lore.kernel.org/all/CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com/
-Cc: <stable@vger.kernel.org> # v4.8+
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Atish Patra <atish.patra@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/smp_64.h |  2 --
- arch/sparc/kernel/prom_64.c     |  4 +++-
- arch/sparc/kernel/setup_64.c    |  1 -
- arch/sparc/kernel/smp_64.c      | 14 --------------
- 4 files changed, 3 insertions(+), 18 deletions(-)
-
-diff --git a/arch/sparc/include/asm/smp_64.h b/arch/sparc/include/asm/smp_64.h
-index 505b6700805d..0964fede0b2c 100644
---- a/arch/sparc/include/asm/smp_64.h
-+++ b/arch/sparc/include/asm/smp_64.h
-@@ -47,7 +47,6 @@ void arch_send_call_function_ipi_mask(const struct cpumask *mask);
- int hard_smp_processor_id(void);
- #define raw_smp_processor_id() (current_thread_info()->cpu)
- 
--void smp_fill_in_cpu_possible_map(void);
- void smp_fill_in_sib_core_maps(void);
- void __noreturn cpu_play_dead(void);
- 
-@@ -77,7 +76,6 @@ void __cpu_die(unsigned int cpu);
- #define smp_fill_in_sib_core_maps() do { } while (0)
- #define smp_fetch_global_regs() do { } while (0)
- #define smp_fetch_global_pmu() do { } while (0)
--#define smp_fill_in_cpu_possible_map() do { } while (0)
- #define smp_init_cpu_poke() do { } while (0)
- #define scheduler_poke() do { } while (0)
- 
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index 998aa693d491..ba82884cb92a 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -483,7 +483,9 @@ static void *record_one_cpu(struct device_node *dp, int cpuid, int arg)
- 	ncpus_probed++;
- #ifdef CONFIG_SMP
- 	set_cpu_present(cpuid, true);
--	set_cpu_possible(cpuid, true);
-+
-+	if (num_possible_cpus() < nr_cpu_ids)
-+		set_cpu_possible(cpuid, true);
- #endif
- 	return NULL;
- }
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 1d519f18d2b2..63615f5c99b4 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -671,7 +671,6 @@ void __init setup_arch(char **cmdline_p)
- 
- 	paging_init();
- 	init_sparc64_elf_hwcap();
--	smp_fill_in_cpu_possible_map();
- 	/*
- 	 * Once the OF device tree and MDESC have been setup and nr_cpus has
- 	 * been parsed, we know the list of possible cpus.  Therefore we can
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index f3969a3600db..e50c38eba2b8 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1220,20 +1220,6 @@ void __init smp_setup_processor_id(void)
- 		xcall_deliver_impl = hypervisor_xcall_deliver;
- }
- 
--void __init smp_fill_in_cpu_possible_map(void)
--{
--	int possible_cpus = num_possible_cpus();
--	int i;
--
--	if (possible_cpus > nr_cpu_ids)
--		possible_cpus = nr_cpu_ids;
--
--	for (i = 0; i < possible_cpus; i++)
--		set_cpu_possible(i, true);
--	for (; i < NR_CPUS; i++)
--		set_cpu_possible(i, false);
--}
--
- void smp_fill_in_sib_core_maps(void)
- {
- 	unsigned int i;
-
--- 
-2.34.1
-
-
+      Arnd
