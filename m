@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E407200A6;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259C4200BA;
 	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711792677; cv=none; b=PYThi49YGKvKTceauJDlDRxsegLivyIYR6pm2WffXwYcJvCCIkq4rGAloV4WlWrt2jF53j7J3I+tkmbEk894lIe+i4QHf6rJx39vRbHPLoi0C40IQfXUMruquqBuw67lF96FjFON2RWjq36erP9aclNS+Ta2z0T9qLhwVhnL6uk=
+	t=1711792677; cv=none; b=JaaBhaOp7veI9BZzPZd6OWUk4p4+zz/wflDXIYYOmx8B+JtFXUuGFTIb/GCba1RpVQ9SuRge8tICYp3X99oZoENVEme3sevVie274SfPcF0sUY3QIJ8UaTf1SjM9EqPSjchSsRxfV9lP+yjzyfEb78J48u4YIih8p2qTelUROp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711792677; c=relaxed/simple;
-	bh=F2ZcqOvsB6gLqMjloYzhDex1+N0kVg8On75ida+P8PM=;
+	bh=2Q6VY0DGMACrjNS3qT1yPJApGJKAhjr7VSLFZ///1Y8=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=l/Mog53OArUxtiDCrU2IrpdBMho0jtlWjqJh5LBd1RdpgJfRpDEcBzxzk+RSWpgHiYgx4fQVuvATfHSpaFYgZ8K/8uFPMQZK3EKcYiP7RN2dqlZmAvV5ZOJz12/nOYxoLKgWgcyAVSDlWpbT+3EEjmrAeHmvPohthgJE9mOmlt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PUxcK34M; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=QIWhVhAbazdKochdO0wPupxKNgs2V13Tf+i7h6jiPVhAm8VgObHrNRI5mqJwWrV6zlF2xy+sl5OxKGXEBBAQ4qcOPojIyNGNFeinR11xNjiLGwZwJ4f1EpFWWIG0hrG+oCi0zrXUg2IJaY/RHFAjxP4mt8xcXMc+++CUTXGRBDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BIKPjrCm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PUxcK34M"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E50C1C433F1;
-	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BIKPjrCm"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 03D85C43399;
+	Sat, 30 Mar 2024 09:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711792676;
-	bh=F2ZcqOvsB6gLqMjloYzhDex1+N0kVg8On75ida+P8PM=;
+	s=k20201202; t=1711792677;
+	bh=2Q6VY0DGMACrjNS3qT1yPJApGJKAhjr7VSLFZ///1Y8=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=PUxcK34MA+2z/WsdF6ogE90nplqBeqv41gqT+akDadPUUSdujPJ+thcxS+/j8hG2z
-	 ZbApKgti2m/mX1z3P5+thrtCu738EwHD0iy7mAroO88dIY4hnnKFydVIbqLDIQU7Kk
-	 kDQlvmcBJ0b+BUIFWK4kA3mOihRbYXFXRlcgSJuGwuG2BP54B7z2iv2Sl8xxwJGynk
-	 vblf00ZPuCq7qL131UabB4OrIfsfq111lLUBO0lqoEFKk9Agwg1nuM0e42clZfU0Uy
-	 l8j7XmIzh9ejr0bWpACcdj3OUn4+9PoBi69ksh6XAOlUN6RoBF3mc2IcZYJSv8NZv1
-	 zIgYJLq6p+fiA==
+	b=BIKPjrCmuop+w7k+pVQ/5GQFzv/kREJ+oNMmkgs00gVX+LKr1itZO/AQn8KxMd/02
+	 LbY8k7BsgHrYZSdGsq6OmDswW0zTlFVm0wpq1HfYDqSRLm4VvHsle6oUuBkj0Q290l
+	 7GlyVG4MGAmPPhJQLR62zGs2dRxiUd1ovBphkjrFEzbmZbTaKbw7bnT3skeaIf8pzG
+	 g/GbJCjFeGqA3oEyixr+X7xiEJwEMaDj19wcaxq3cR6aknv8pbmeJsc0hQFkHzBNmC
+	 Z24U7Ouq3TgBabu+kd1eF5f7q/+L4kcdXpmBOxqFcgegX/tZSDW7FCaMx+ZAu0fZh6
+	 hX3PI6ZheN7qg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7C06CD128D;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF2BCD1290;
 	Sat, 30 Mar 2024 09:57:56 +0000 (UTC)
 From: Sam Ravnborg via B4 Relay <devnull+sam.ravnborg.org@kernel.org>
-Date: Sat, 30 Mar 2024 10:57:37 +0100
-Subject: [PATCH 01/10] sparc64: Fix prototype warning for init_vdso_image
+Date: Sat, 30 Mar 2024 10:57:39 +0100
+Subject: [PATCH 03/10] sparc64: Fix prototype warning for vmemmap_free
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240330-sparc64-warnings-v1-1-37201023ee2f@ravnborg.org>
+Message-Id: <20240330-sparc64-warnings-v1-3-37201023ee2f@ravnborg.org>
 References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 In-Reply-To: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
 To: Andreas Larsson <andreas@gaisler.com>, 
@@ -48,11 +48,11 @@ To: Andreas Larsson <andreas@gaisler.com>,
 Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org, 
  Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=1128;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1711792675; l=1023;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=N9b4/JHlSvx7NLzDXct2fVraabjc7Gt8Q7BQyF6OslM=;
- b=pqCSBh8K2ae9bOOHPujcfnCWfW2c5NPkgwVpUmfkAUcvddT2O83UJiZhFCoDwOvrMIzqVXWX7XJB
- OCUNfTFQDk483lfMK9cJTCWlpEz4kMSy069ZmTRUAiKTkt+BsfeR
+ bh=+iIEu1z65nIiaVFud5jDAU2EF2qjq+E//QvstvA1vGg=;
+ b=5VSMXsJDe14dfB5oOTmmYLuyPXBP0AEI7kkhlo+yFPQJH9hBDtSPFVLukEaLXfZBrY9t+daDfF0L
+ L8uXsXFQCPOI5uioh9DGaOBI8cOkimdx9zSDJ9alHiqMpCCrM+VV
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Relay for sam@ravnborg.org/20230107 with
@@ -63,33 +63,35 @@ Reply-To: sam@ravnborg.org
 From: Sam Ravnborg <sam@ravnborg.org>
 
 Fix the following warning:
-arch/sparc/vdso/vma.c:246:12: warning: no previous prototype for ‘init_vdso_image’
+arch/sparc/mm/init_64.c:2644:6: warning: no previous prototype for ‘vmemmap_free’
 
-init_vdso_image has no users outside vma.c, make it static.
+The function vmemmap_free() is only used for systems with
+CONFIG_MEMORY_HOTPLUG defined - and sparc64 do not support this.
+Drop the empty function as it has no users.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 ---
- arch/sparc/vdso/vma.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc/mm/init_64.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/arch/sparc/vdso/vma.c b/arch/sparc/vdso/vma.c
-index 1bbf4335de45..bab7a59575e8 100644
---- a/arch/sparc/vdso/vma.c
-+++ b/arch/sparc/vdso/vma.c
-@@ -243,8 +243,9 @@ static int stick_patch(const struct vdso_image *image, struct vdso_elfinfo *e, b
-  * Allocate pages for the vdso and vvar, and copy in the vdso text from the
-  * kernel image.
-  */
--int __init init_vdso_image(const struct vdso_image *image,
--			   struct vm_special_mapping *vdso_mapping, bool elf64)
-+static int __init init_vdso_image(const struct vdso_image *image,
-+				  struct vm_special_mapping *vdso_mapping,
-+				  bool elf64)
- {
- 	int cnpages = (image->size) / PAGE_SIZE;
- 	struct page *dp, **dpp = NULL;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index f83017992eaa..5444b515815a 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2640,11 +2640,6 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 
+ 	return 0;
+ }
+-
+-void vmemmap_free(unsigned long start, unsigned long end,
+-		struct vmem_altmap *altmap)
+-{
+-}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
 
 -- 
 2.34.1
