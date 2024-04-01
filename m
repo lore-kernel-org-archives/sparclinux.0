@@ -1,100 +1,107 @@
-Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [46.30.211.176])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 445881E865
-	for <sparclinux@vger.kernel.org>; Sat, 30 Mar 2024 18:40:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C2047768;
+	Mon,  1 Apr 2024 15:52:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711824053; cv=none; b=Q+9f6gR6Br3GipQX5AUVK/m9jYe0z5Qm2iQFM0qMl1R0iyvSZxwZNes3Vji2Ghvs6jZbx7MDFpbgmuzj0I2vTQ1pdhEhaGGhTmQDEXh0LcadLoPsWsqvbBlJdrcU8i44Zpdrf9eLwLQNedQSn1ewNCyJqes9ZMRoSp5ZntC6LCA=
+	t=1711986730; cv=none; b=U/PsKiT3AMfpecyU3JcFaaSkX089DhP0rVwlnARFFryJzgYLd9YXb5sGAHGReOzIcADehl27xn7TQwmX8dxglt6A4i4g2mmb8LL48QOGucEFD+f9bTDKhSbp5jldq3vLszVcUysG1UHLrLFjQmTmXNj62liU87eoAxs4WcdrQWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711824053; c=relaxed/simple;
-	bh=+fKm55pvJInq7E1oiY4SA54W6AbzUuuzHvH9tWxJRYU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=C4jSjz/DlJbrxTb0LSbW8SEanQCqlhTQXowdcjXp21e62X0rKv8D3SkfDy30cOm32zs17uv1c1FlNjsrcZdvwZGR0IuTIfO73QhIaHg3Gq4ecFMjKXjJFZE0D+hV7ilDYDyjf+2NnSRqO10wfu4MUKK2CvD4vKAJmmPLLcqIKnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=W1nqs/H5; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=f4Dkfc8k; arc=none smtp.client-ip=46.30.211.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	s=arc-20240116; t=1711986730; c=relaxed/simple;
+	bh=kcYpRHBkrw31yKDWEgNbPfZ32JYvHWwjx3vpz1/bb54=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=sCg/c7KtgxUSnQ4+6rWRuGg1LJMcQfI4zELzpCYbaz2UbohRdDqjr03Bf09uEo0ge38nyFSdZUp59u+Fx6fOLyAHAGeKBQvPkfkltej1RwHMuA1btkYvLevHV5ZQadjt9d6rJ24hyUO9L2l4B/XbTPf7/oXuFBk9+Fcv57kweLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=UTHTSXmY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="W1nqs/H5";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="f4Dkfc8k"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=Xeeh2dg6zdnZbEZ/lUmV7A/JWt00HE94jarkf2OAKXw=;
-	b=W1nqs/H5MmWtsVize4yOqv5zdPv5BOIEbvoB7e+mMiiTmOTMjUevbBzHBATpsEk5ypP+S0gb07Ea7
-	 lYIwTt7rTRjGJK04mnHWquqc4RfbS/2FdyNOapO2cDBM8jHPt0DFb5p9FXWM2pgCHkwS1hJhLmm1hb
-	 UfgPQjbXjjvGpXKSXisIHKdtWrR57wFf6vKW1JCLfjzl6UQqwNwFZx6uG3hiQYtNnURydBl82WqyL8
-	 8Khl7QCX0SIKmVe8XhdZ4fT1A0rPLgPU1jE0jyE9ebkJeZQHjRcHGsAk6sfww+GqU5zrpR+v0Qv8fJ
-	 gDl3Zsjg/AQUE4+cLwF1EYXMacoW2Pg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed2;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=Xeeh2dg6zdnZbEZ/lUmV7A/JWt00HE94jarkf2OAKXw=;
-	b=f4Dkfc8kcLussvHSfDwqYMUW8E8Ke7ibwfhSRoadQwiTSPL1XpNhGZ4TBp+VxxwEsa4367kFop+2M
-	 kmnjvaFCg==
-X-HalOne-ID: dba5c148-eec4-11ee-9dce-516168859393
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay1.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id dba5c148-eec4-11ee-9dce-516168859393;
-	Sat, 30 Mar 2024 18:39:39 +0000 (UTC)
-Date: Sat, 30 Mar 2024 19:39:37 +0100
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andreas Larsson <andreas@gaisler.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	sparclinux@vger.kernel.org, Nick Bowler <nbowler@draconx.ca>,
-	linux-kernel@vger.kernel.org, Atish Patra <atish.patra@oracle.com>,
-	stable@vger.kernel.org, Bob Picco <bob.picco@oracle.com>,
-	Vijay Kumar <vijay.ac.kumar@oracle.com>
-Subject: Re: [PATCH 00/10] sparc64: Fix CPU online bug and warning fixes
-Message-ID: <20240330183937.GA191882@ravnborg.org>
-References: <20240330-sparc64-warnings-v1-0-37201023ee2f@ravnborg.org>
- <4e57929b-1539-4a25-ab05-a2a9e04ecc1d@app.fastmail.com>
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="UTHTSXmY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013DBC433F1;
+	Mon,  1 Apr 2024 15:52:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1711986729;
+	bh=kcYpRHBkrw31yKDWEgNbPfZ32JYvHWwjx3vpz1/bb54=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=UTHTSXmYFaGiTZnoLDh2oKtnTnU/4CV/dFmHEZCLg1o4MF2ujtHFjTj5GBZvHITt6
+	 V/naKy0IxZ7ldnfq6xE4xuo/ahpYeOasq/wFPfijySqN4XlpL9e42tnWI2IlNl4Hwi
+	 QqzuDT6ZxNbimyx0O9dle9Ki6lJKlWjGo46TsFRs=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Igor Zhbanov <izh1979@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.8 036/399] sparc64: NMI watchdog: fix return value of __setup handler
+Date: Mon,  1 Apr 2024 17:40:02 +0200
+Message-ID: <20240401152550.242999480@linuxfoundation.org>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20240401152549.131030308@linuxfoundation.org>
+References: <20240401152549.131030308@linuxfoundation.org>
+User-Agent: quilt/0.67
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e57929b-1539-4a25-ab05-a2a9e04ecc1d@app.fastmail.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Arnd,
+6.8-stable review patch.  If anyone has any objections, please let me know.
 
-On Sat, Mar 30, 2024 at 11:19:37AM +0100, Arnd Bergmann wrote:
-> On Sat, Mar 30, 2024, at 10:57, Sam Ravnborg via B4 Relay wrote:
-> > Nick Bowler reported that sparc64 failed to bring all his CPU's online,
-> > and that turned out to be an easy fix.
-> >
-> > The sparc64 build was rather noisy with a lot of warnings which had
-> > irritated me enough to go ahead and fix them.
-> > With this set of patches my arch/sparc/ is almost warning free for
-> > all{no,yes,mod}config + defconfig builds.
-> 
-> Patches 1-9 look good to me,
-> 
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-Thanks!
+------------------
 
-> 
-> > There is one warning about "clone3 not implemented", which I have ignored.
-> >
-> > The warning fixes hides the fact that sparc64 is not yet y2038 prepared,
-> > and it would be preferable if someone knowledgeable would fix this
-> > poperly.
-> 
-> The clone3 bug has been around for ages, it's probably not even that
-> hard to fix and just needs a little bit of testing.
-I looked briefly and it involves a better understanding of the window
-register manipulation than what I have today.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-> 
-> If anyone wants to work on the time64 support for the vdso, I can
-> explain the details for how it's done.
-I am happy to type the patches but need to rely on others for testing.
-Anything to help me get started would be super.
+[ Upstream commit 3ed7c61e49d65dacb96db798c0ab6fcd55a1f20f ]
 
-	Sam
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
+
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <izh1979@gmail.com>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Link: https://lore.kernel.org/r/20240211052802.22612-1-rdunlap@infradead.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/sparc/kernel/nmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 17cdfdbf1f3b7..149adc0947530 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -279,7 +279,7 @@ static int __init setup_nmi_watchdog(char *str)
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
+ 
+-	return 0;
++	return 1;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
+-- 
+2.43.0
+
+
+
