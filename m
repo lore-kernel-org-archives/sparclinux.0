@@ -1,66 +1,63 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CDC8286A
-	for <sparclinux@vger.kernel.org>; Thu,  4 Apr 2024 11:23:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06CC4133426
+	for <sparclinux@vger.kernel.org>; Thu,  4 Apr 2024 19:30:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712229829; cv=none; b=jpkQg/Ue1QyfSXxafbHjWRrCkQQIVq2H9GmSPnbA70zm3O6aGLP/5wD0ugU5+JR9af6s9zltfvkQakIMDT2cL0LdeoEiU5aczE44bzYPu6YvDqx20v5+jlGOVcYLeGjMyrpayZiEnq+b0aNyCngnFd5tcFIdgfpPRwR8FGct8o8=
+	t=1712259034; cv=none; b=QOaWpj/vhZENBKTWHKqHR38EItAzPXqPjAb2v4tspkM9ijpVA8jXxAXwXNTq05+2AeNR+eghgNiTs98O5cvgSDQ1u+yy22oFMlYHCE9178z2kHOtgLQ43OvxrLi9VuQ9Lyh6k6J2M6dgt8bo81TZN2/e/WZ4Vs5xAepsZLN7OsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712229829; c=relaxed/simple;
-	bh=KedSSz3/IrCa1VpTRibBfxMxza6Zzrin2mfQ1u9MHtA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bOfWOGYfQVqo0zcAgDuAbSKffmM4MuYV+yPqnjm66uH2h6/oaCKchbnHhzo55fbGXJIFtx4+DxJJOCXEq5uneqGdyysPdnC38GDd+eEZUqHIVXT7P3VJx9hplX6C3A2t/DmVi3uqVbICyNIoy8noRzTx4fT3dgAk5uy8BnEAGco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toblux.com; spf=none smtp.mailfrom=toblux.com; dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b=RMvN4s6u; arc=none smtp.client-ip=209.85.218.52
+	s=arc-20240116; t=1712259034; c=relaxed/simple;
+	bh=dXY4VqV2dgu2W0tvqxrSc6CK/AEkg1qzMSsPoi4MjiQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YO22bImibpJGjfWvwQlWQI8VnuBm+FAhVNmv3PM2iyGtxXJGsDulrAncw2yrEnBnVaddxDLC+KZuqxtc7U1dRlJZoV+cqydrYu2m1qsBieFzb3pvsoOPQHcfuVS9V5jSPkdwzGvjX5zClrQ0Ppg1QS7vqennjIDu1GucXeavpbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toblux.com; spf=none smtp.mailfrom=toblux.com; dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b=l9DyFMpu; arc=none smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toblux.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=toblux.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b="RMvN4s6u"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a517a492055so127939166b.1
-        for <sparclinux@vger.kernel.org>; Thu, 04 Apr 2024 04:23:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b="l9DyFMpu"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a4e40fad4fdso195264866b.2
+        for <sparclinux@vger.kernel.org>; Thu, 04 Apr 2024 12:30:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toblux-com.20230601.gappssmtp.com; s=20230601; t=1712229825; x=1712834625; darn=vger.kernel.org;
+        d=toblux-com.20230601.gappssmtp.com; s=20230601; t=1712259029; x=1712863829; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=pkYU619QNOAcumaNgRtOFKm08inQ9YEczozqDufhPwE=;
-        b=RMvN4s6u/eGVLoA6ghv5c+8SE26TvwTwC89IipK9evb6MvNRO3UGbXpQ0ncxE3jAkK
-         1yLAYUm+LmLyznpCo8mh1R4vG7dkIyAN/zZ9tFpTSQiX4HObYNEx/Gu2KvsK4HLBLb2a
-         O+45dDbRDGGqz5f9/7Ntn2Z1Oo86Eo12WR+lNdmYU8kNdLvvHFb4XGTnCsJvMLTfrraK
-         8/75r7Gku+IJor6Nh6ViQXBhVEB9yz2PUquMBcbdw/ewsSj+vBdIurlWEHTOFla7Q8pq
-         tgl6JHzPJm3EWZYICLa3l8RBu1aIZ5a6oq7gF6D/lQo9l8lp1L1ACWSaEjLTx59hqTT2
-         rPXw==
+        bh=YftQBH4K5k1eA4ljqzTyg0/24HcF6aTvgonFgjzZs9Q=;
+        b=l9DyFMpuH5iZp8yRXD2IEjiJeCrlX2btyTYA5n84C+kCiWjreXcDNA/9kUdMZhBNSM
+         3C3pRkikqkoPJbzOxLv1vn3qfOUdAAIF+GOxRBJywD3+hBk+SgPlAeSR5zmsAmhvIQ6g
+         Ibdo4r9at/r3P7RgU8rGqQ9qNWpW6urB/ah0umZ2PALWUinZC8ixt9v8NOeww9Eev1lQ
+         /lDRHDMlVRUm06EAAQT94cm4tJ+mntCp8XdV67eM6Dz1UToS4sbgi3nGFOAHtZVlSJPw
+         oTW5j4z52ZLsx9Hwqx+rQ7M/rxSwZ5WqwwcjmUlqXgkCzqfKrlPRVRtZu3z/d9CZpBGW
+         xx/w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712229825; x=1712834625;
+        d=1e100.net; s=20230601; t=1712259029; x=1712863829;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=pkYU619QNOAcumaNgRtOFKm08inQ9YEczozqDufhPwE=;
-        b=SbWnRGL7t8kaEq5iAK3OjxJwoOXiiCC8NMI/rKcH9zd0Fy/1fgzzdthHLBz7srO1Dd
-         QIcDBNCIJ2rKbMLmI5ElFm45h7qohE9tCs3kAisb7fGjhLaa2JL7HwMgDswdrGW4Aj/J
-         W5RrpK/1w6LQ600RJ3P8Pf3cp0rGmLC/dwANz9/Ir4Q7p+D+nQxeAZgU0jj6zQjL9Gf+
-         5ZPWLwFekk8yTs5V4Q2wvVnKZlBTX40k6RX3wlgvoE3qd3ZbVI5KiDJn8Kk1TvXotpo4
-         P1OpcOjvnUZZEfEGj3J574GJnSpQBftaf5hzFSeK1UWEIvT4CoptE9lqNZl5N8tn7Vt4
-         jOdA==
-X-Forwarded-Encrypted: i=1; AJvYcCXRQcZYIh9YDut+c4RpnK7UmXJrE2ddvFBWhLmA7LCMxtFn5FddV0f6hgI6Y+tewTkAIQP6c+8D2oG1lK1gGNrWqw/knkLtz/454g==
-X-Gm-Message-State: AOJu0YzrQb3hsoHY7/HG8ovCB6DdV0wdRHXAd7/w0Sz+jaHL7ITtsxkk
-	8wS4FR86/KebEC6b3iCDq/8gi+MSYoiltBm6Ndqk5qE2KNL+KVj5wV4ylJKvkzE=
-X-Google-Smtp-Source: AGHT+IFK8jr37Yvi1onGXTMfiS4hACEokH0HQITqdKdAKcYVNNcSynsV9ZUFQOqjrDeb97MoSUaPgQ==
-X-Received: by 2002:a17:906:30d9:b0:a47:52ff:194d with SMTP id b25-20020a17090630d900b00a4752ff194dmr1338735ejb.35.1712229825255;
-        Thu, 04 Apr 2024 04:23:45 -0700 (PDT)
+        bh=YftQBH4K5k1eA4ljqzTyg0/24HcF6aTvgonFgjzZs9Q=;
+        b=lOY4laqoPGOIL+SVpMWFQEUh2AMKdb+XtGq3qJus2QTawepbs2mZKGjh2lj9pMUBHx
+         gKmCW54pKRHg2pUK9CVvu/Mf9S2xCyLCRq89nEKfJ7qOsQDhq8hhjXUV5XNXfoqsyjU2
+         YqKla2wwvEDXmxN9ePC1zrBs8xR6UauhEqyLZaFc+rdWRLBDTLV8xMVAFgKUHU+YWda+
+         AedRwI/tJszR4KGlI55ONaEXzt84BRir0VCRFeNiXKyfZQ9Z0euvslloh50oHGdeMgkT
+         mEwfdlsJMhHD9ez7S4iQrkvu+G0qCbEjqVdzljFSxiJ384SFbspNXItzOUqqRgtBWQmP
+         0PuQ==
+X-Gm-Message-State: AOJu0YwS7ezdJRmrxQSfrABQG4iuaCx4xaIaA0PEq5w+asrUgoSNrCYv
+	16atqJqvDLWj5ZyuITbiARrnCDuzZTr+XnS9LlASfWw1wTmIzYEi0UCZVENOqb8=
+X-Google-Smtp-Source: AGHT+IHCwoiLEcG6OP23A1J6qWX+Ltb1CEDPb6mHfowgHbsbwpZ3SH5Q1cIQNWi+cyWfm3Rk2qcrrQ==
+X-Received: by 2002:a17:906:456:b0:a4e:2777:37c7 with SMTP id e22-20020a170906045600b00a4e277737c7mr385955eja.49.1712259029236;
+        Thu, 04 Apr 2024 12:30:29 -0700 (PDT)
 Received: from fedora.fritz.box (aftr-82-135-80-212.dynamic.mnet-online.de. [82.135.80.212])
-        by smtp.gmail.com with ESMTPSA id os26-20020a170906af7a00b00a465b72a1f3sm8943302ejb.85.2024.04.04.04.23.44
+        by smtp.gmail.com with ESMTPSA id t25-20020a170906269900b00a4c9b39b726sm9394909ejc.75.2024.04.04.12.30.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Apr 2024 04:23:44 -0700 (PDT)
+        Thu, 04 Apr 2024 12:30:28 -0700 (PDT)
 From: Thorsten Blum <thorsten.blum@toblux.com>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
-Cc: Rob Herring <robh@kernel.org>,
-	Sam Ravnborg <sam@ravnborg.org>,
-	sparclinux@vger.kernel.org,
+Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Thorsten Blum <thorsten.blum@toblux.com>
-Subject: [PATCH] sparc: Use swap() to fix Coccinelle warning
-Date: Thu,  4 Apr 2024 13:23:14 +0200
-Message-ID: <20240404112313.11898-2-thorsten.blum@toblux.com>
+Subject: [PATCH] sparc: Compare pointers to NULL instead of 0
+Date: Thu,  4 Apr 2024 21:29:33 +0200
+Message-ID: <20240404192932.13075-2-thorsten.blum@toblux.com>
 X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -70,31 +67,30 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Fixes the following Coccinelle/coccicheck warning reported by
-swap.cocci:
+Fixes the following two Coccinelle/coccicheck warnings reported by
+badzero.cocci:
 
-	WARNING opportunity for swap()
+	WARNING comparing pointer to 0
+	WARNING comparing pointer to 0
 
 Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
 ---
- arch/sparc/include/asm/floppy_64.h | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/sparc/prom/tree_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
-index 6efeb24b0a92..83decacd0a2d 100644
---- a/arch/sparc/include/asm/floppy_64.h
-+++ b/arch/sparc/include/asm/floppy_64.h
-@@ -704,9 +704,7 @@ static unsigned long __init sun_floppy_init(void)
- 			ns87303_modify(config, ASC, ASC_DRV2_SEL, 0);
- 			ns87303_modify(config, FCR, 0, FCR_LDE);
+diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
+index 989e7992d629..88793e5b0ab5 100644
+--- a/arch/sparc/prom/tree_64.c
++++ b/arch/sparc/prom/tree_64.c
+@@ -332,7 +332,7 @@ prom_setprop(phandle node, const char *pname, char *value, int size)
  
--			config = sun_floppy_types[0];
--			sun_floppy_types[0] = sun_floppy_types[1];
--			sun_floppy_types[1] = config;
-+			swap(sun_floppy_types[0], sun_floppy_types[1]);
- 
- 			if (sun_pci_broken_drive != -1) {
- 				sun_pci_broken_drive = 1 - sun_pci_broken_drive;
+ 	if (size == 0)
+ 		return 0;
+-	if ((pname == 0) || (value == 0))
++	if ((pname == NULL) || (value == NULL))
+ 		return 0;
+ 	
+ #ifdef CONFIG_SUN_LDOMS
 -- 
 2.44.0
 
