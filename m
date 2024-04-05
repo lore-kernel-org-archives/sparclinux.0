@@ -1,38 +1,50 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED67F16EBF3;
-	Fri,  5 Apr 2024 15:11:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A229F16EC0B;
+	Fri,  5 Apr 2024 16:20:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712329909; cv=none; b=WOXAleSo0wzYr5XT6k6OLpUldrIV6KI+lWvqcq0eV+StQrGXEgXchysBcIPiTEUfSGwT8or5VCDG2lnCsOnSGbGfYEgM+Vg8oR5WFcML7JCK56zcV3e5jYH0da6WY0i8+1dLu9PunhhPpFCS+DOvsnOyOyZTkiKZIS6DtCGYHz4=
+	t=1712334023; cv=none; b=AdrHaGquIBeE1VYPJoXeT+j6pafJDdaneJ3n03R/ybdf96Iacdy3kmUB+luXONESbIU+VKLSIB2MaMPIw/Bp4Dss79/i4TU/fiK1hSltHYaG2CzTygY/zb3qtSoloUq7isnNk5qggnl6uaBz7MDQ0FlhdKFtZyf3/9f8lbmcCRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712329909; c=relaxed/simple;
-	bh=i/FBrmXeRYRAkZo+w8z9IKfnevF7NzMKdBcR5i1GyaM=;
+	s=arc-20240116; t=1712334023; c=relaxed/simple;
+	bh=STODT/c3z6ypoEyUkP1OAtZ6EfyLMQK08sm/bPAw1AU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=F443aVuFKkdkpS12sG8fpctS5fBl3PV0thXZdzFoBFbc4s4fI3OF3vpRKPrpWJhWlDc1clujUyN/b5tXQZCeJZKSxSnyKENfm68UGq7LssYSWYfkDpl3cX9xZuEvXUpeNzT6bRjix9uYasN4GQ26qC+DECIwzMymYQ1gDx4CavM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=KAAtwnPj; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	 In-Reply-To:Content-Type; b=bpCe1wr+PhrXcDLHMINC/2k3Hfz7yUiqrhZCFfQQwCsrEXp/a/fYnvuxwHxGt9pQtCawtRIofy9vFYuMuZLcSey5CbBMeUTlfFuT95YLKbh/ZmuFctV1pxRayk6ulrG4Uxdt71HFIqxABpWkSwSSJPo471TRVEp1IfONY+SVDVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C/HZKJyO; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="KAAtwnPj"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4VB1yQ1vzLz6839;
-	Fri,  5 Apr 2024 17:05:50 +0200 (CEST)
-Received: from [10.10.15.20] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4VB1yP6kvsz680y;
-	Fri,  5 Apr 2024 17:05:49 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1712329550;
-	bh=6CbXOq/C6yEQwlReHz1yEL3Ba6l2jK2jJJv8AXL2LzE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=KAAtwnPjCFUeznelsBSSFkOTTnV258nZcPC+4Ie3DHVGsOl5E2LGvjPvWv8SY0tAu
-	 beI/vYsBcUWaA8xVC0CbFQCSwViXKnjvaOHG/5byuWOMgNbyGSkc4G5DN9EPfwTJon
-	 3kMOc8fNBTousHgMdaARXBuvBApkqf6cEEQ+cnLY=
-Message-ID: <5f022f30-e1f2-46e3-b75b-0cb4b157448e@gaisler.com>
-Date: Fri, 5 Apr 2024 17:05:49 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C/HZKJyO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1712334022; x=1743870022;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=STODT/c3z6ypoEyUkP1OAtZ6EfyLMQK08sm/bPAw1AU=;
+  b=C/HZKJyOXQsAnQLLdmXcHCDA1Oj9zUYbkZJI3PKPtdR14MbisCDrDaB2
+   r5e0RsjB6CgPAD5n2FAuURvNDJscUSlVjKokVsRNBfzkvdkx/VLPo9jfr
+   wcHaxJyEPoE4BNO5SbRekOeDN5GSNg05N0VwD/Ng42ZTgkYG35vq4jCPu
+   welg7W7cuKNTu+rsVkPVQ5ccEpLGhuJtyfJuzysb5SzSEBfAMujObO0Q3
+   y/sW3at4rgzjODiCno7yi00nesMOHXwWrH9DI22WB5RTSxtst9rA0vBuT
+   OhlrFWlej/VLezTiY2N7B719jUixuNzr9T9FCWGZH1ExFDb2FLOrYaz0t
+   w==;
+X-CSE-ConnectionGUID: VfvLy42BRLKqtvdc08ALkQ==
+X-CSE-MsgGUID: Lkc5O6X7Sd6hAg5bOc/uqA==
+X-IronPort-AV: E=McAfee;i="6600,9927,11035"; a="11462790"
+X-IronPort-AV: E=Sophos;i="6.07,181,1708416000"; 
+   d="scan'208";a="11462790"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2024 09:20:21 -0700
+X-CSE-ConnectionGUID: EGOUsw1jS4iffZcF7In7vA==
+X-CSE-MsgGUID: OzVkpaElRkSa/fAWFgBa3A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,181,1708416000"; 
+   d="scan'208";a="19141333"
+Received: from ahajda-mobl.ger.corp.intel.com (HELO [10.245.80.70]) ([10.245.80.70])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2024 09:20:15 -0700
+Message-ID: <340d23fc-7abf-4ad0-bd95-f1760b9ac458@intel.com>
+Date: Fri, 5 Apr 2024 18:20:11 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,57 +52,82 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
-To: Linus Torvalds <torvalds@linux-foundation.org>,
- Linux regressions mailing list <regressions@lists.linux.dev>
-Cc: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org,
- Sam Ravnborg <sam@ravnborg.org>
-References: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
- <CADyTPEyAidGgBT3f1VJLHb3ouO-r1UyvFp1PcwXxy0NRG94sbw@mail.gmail.com>
- <1df92fec-7f57-5080-94ed-b149ed384280@leemhuis.info>
- <14dcd743-144a-9f7b-849c-0843d50e4c04@draconx.ca>
- <4dce7447-678d-4e60-b76e-b01988bd6515@leemhuis.info>
- <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
+Subject: Re: [Intel-gfx] [PATCH v5 0/7] Introduce __xchg, non-atomic xchg
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+ Peter Zijlstra <peterz@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org,
+ linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ intel-gfx@lists.freedesktop.org, linux-xtensa@linux-xtensa.org,
+ Arnd Bergmann <arnd@arndb.de>, Boqun Feng <boqun.feng@gmail.com>,
+ linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org,
+ loongarch@lists.linux.dev, Rodrigo Vivi <rodrigo.vivi@intel.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-alpha@vger.kernel.org,
+ Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org
+References: <20230118153529.57695-1-andrzej.hajda@intel.com>
+ <Y/ZLH5F8LA3H10aL@hirez.programming.kicks-ass.net>
+ <17f40b7c-f98d-789d-fa19-12ec077b756a@intel.com>
+ <Y/y0/VoPAVCXGKp3@hirez.programming.kicks-ass.net> <87r0fjc1cz.fsf@intel.com>
 Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <CAHk-=wgFuoHpMk_Z_R3qMXVDgq0N1592+bABkyGjwwSL4zBtHA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+From: Andrzej Hajda <andrzej.hajda@intel.com>
+Organization: Intel Technology Poland sp. z o.o. - ul. Slowackiego 173, 80-298
+ Gdansk - KRS 101882 - NIP 957-07-52-316
+In-Reply-To: <87r0fjc1cz.fsf@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
-On 2024-03-28 21:09, Linus Torvalds wrote:
-> On Thu, 28 Mar 2024 at 12:36, Linux regression tracking (Thorsten
-> Leemhuis) <regressions@leemhuis.info> wrote:
->>
->> [CCing Linus, in case I say something to his disliking]
->>
->> On 22.03.24 05:57, Nick Bowler wrote:
+On 05.04.2024 16:47, Jani Nikula wrote:
+> On Mon, 27 Feb 2023, Peter Zijlstra <peterz@infradead.org> wrote:
+>> On Thu, Feb 23, 2023 at 10:24:19PM +0100, Andrzej Hajda wrote:
+>>> On 22.02.2023 18:04, Peter Zijlstra wrote:
+>>>> On Wed, Jan 18, 2023 at 04:35:22PM +0100, Andrzej Hajda wrote:
+>>>>
+>>>>> Andrzej Hajda (7):
+>>>>>     arch: rename all internal names __xchg to __arch_xchg
+>>>>>     linux/include: add non-atomic version of xchg
+>>>>>     arch/*/uprobes: simplify arch_uretprobe_hijack_return_addr
+>>>>>     llist: simplify __llist_del_all
+>>>>>     io_uring: use __xchg if possible
+>>>>>     qed: use __xchg if possible
+>>>>>     drm/i915/gt: use __xchg instead of internal helper
+>>>> Nothing crazy in here I suppose, I somewhat wonder why you went through
+>>>> the trouble, but meh.
+>>> If you are asking why I have proposed this patchset, then the answer is
+>>> simple, 1st I've tried to find a way to move internal i915 helper to core
+>>> (see patch 7).
+>>> Then I was looking for possible other users of this helper. And apparently
+>>> there are many of them, patches 3-7 shows some.
 >>>
->>> Just a friendly reminder that this issue still happens on Linux 6.8 and
->>> reverting commit 9b2f753ec237 as indicated below is still sufficient to
->>> resolve the problem.
->>
->> FWIW, that commit 9b2f753ec23710 ("sparc64: Fix cpu_possible_mask if
->> nr_cpus is set") is from v4.8. Reverting it after all that time might
->> easily lead to even bigger trouble.
-> 
-> I'm definitely not reverting a patch from almost a decade ago as a regression.
-> 
-> If it took that long to find, it can't be that critical of a regression.
-> 
-> So yes, let's treat it as a regular bug. And let's bring in Andreas to
-> the discussion too (although presumably he has seen it on the
-> sparclinux mailing list).
-Yes, I am aware and I agree we should treat it as a regular bug.
+>>>
+>>>> You want me to take this through te locking tree (for the next cycle,
+>>>> not this one) where I normally take atomic things or does someone else
+>>>> want this?
+>>> If you could take it I will be happy.
+>> OK, I'll go queue it in tip/locking/core after -rc1. Thanks!
+> Is this where the series fell between the cracks, or was there some
+> follow-up that I missed?
+>
+> I think this would still be useful. Andrzej, would you mind rebasing and
+> resending if there are no objections?
 
-Reverting it as a regression fix would lead to followup issues like
-canceling the effect of commit ebb99a4c12e4 ("sparc64: Fix irq stack
-bootmem allocation.") but with misleading comments left in place. 
+The patchset was rejected/dropped by Linus at the pull-request stage.
+He didn't like many things, but the most __xchg name. However he was 
+quite positive about i915 name fetch_and_zero.
+I can try to revive patchset with fetch_and_zero, and maybe 
+fetch_and_set, instead of __xchg.
 
-Sam's fix looks like a good solution for me to pick up to my
-for-next branch.
+Regards
+Andrzej
 
-Thanks,
-Andreas
+>
+> BR,
+> Jani.
+>
+>
+
