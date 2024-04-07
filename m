@@ -1,133 +1,78 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A229F16EC0B;
-	Fri,  5 Apr 2024 16:20:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EADDD446D3;
+	Sun,  7 Apr 2024 23:46:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712334023; cv=none; b=AdrHaGquIBeE1VYPJoXeT+j6pafJDdaneJ3n03R/ybdf96Iacdy3kmUB+luXONESbIU+VKLSIB2MaMPIw/Bp4Dss79/i4TU/fiK1hSltHYaG2CzTygY/zb3qtSoloUq7isnNk5qggnl6uaBz7MDQ0FlhdKFtZyf3/9f8lbmcCRs=
+	t=1712533611; cv=none; b=ZLGNq33/4BZeWeBHldwi1G+C1x32yaqSsRiTD02VDqJUxTggazGYU4dGL7mIwk83RU2i7O8cb/tJBz7aRKoQnyErk3P1yHz20jn/K6XqAgGBavUdKpjwReMoWPQKlZKv3kE0vxjyF3msnpR8nbAbOfPhUZnk/LFYdv5xvsIemEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712334023; c=relaxed/simple;
-	bh=STODT/c3z6ypoEyUkP1OAtZ6EfyLMQK08sm/bPAw1AU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bpCe1wr+PhrXcDLHMINC/2k3Hfz7yUiqrhZCFfQQwCsrEXp/a/fYnvuxwHxGt9pQtCawtRIofy9vFYuMuZLcSey5CbBMeUTlfFuT95YLKbh/ZmuFctV1pxRayk6ulrG4Uxdt71HFIqxABpWkSwSSJPo471TRVEp1IfONY+SVDVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C/HZKJyO; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1712533611; c=relaxed/simple;
+	bh=P+OunsRxmPow7mnjnbhNCSULHtX+QKprpv8k/fKlJkc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mrMFUPh3wJztM42WZxq8eweB3qJeZoOzENAirzCqTpKRGW8PBqKTrpQ7O0LnNW5MASV3CMGCwiRPXpNvILrgkyO9E4lcjkuNlZQ5msHHzQr/PFD64QhrIczWzOggwaJeJeUlF4AovfWaKDXr3HHsR7U2ageQZ7cHpTlXxWPea9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X5mtmvi8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C/HZKJyO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712334022; x=1743870022;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=STODT/c3z6ypoEyUkP1OAtZ6EfyLMQK08sm/bPAw1AU=;
-  b=C/HZKJyOXQsAnQLLdmXcHCDA1Oj9zUYbkZJI3PKPtdR14MbisCDrDaB2
-   r5e0RsjB6CgPAD5n2FAuURvNDJscUSlVjKokVsRNBfzkvdkx/VLPo9jfr
-   wcHaxJyEPoE4BNO5SbRekOeDN5GSNg05N0VwD/Ng42ZTgkYG35vq4jCPu
-   welg7W7cuKNTu+rsVkPVQ5ccEpLGhuJtyfJuzysb5SzSEBfAMujObO0Q3
-   y/sW3at4rgzjODiCno7yi00nesMOHXwWrH9DI22WB5RTSxtst9rA0vBuT
-   OhlrFWlej/VLezTiY2N7B719jUixuNzr9T9FCWGZH1ExFDb2FLOrYaz0t
-   w==;
-X-CSE-ConnectionGUID: VfvLy42BRLKqtvdc08ALkQ==
-X-CSE-MsgGUID: Lkc5O6X7Sd6hAg5bOc/uqA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11035"; a="11462790"
-X-IronPort-AV: E=Sophos;i="6.07,181,1708416000"; 
-   d="scan'208";a="11462790"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2024 09:20:21 -0700
-X-CSE-ConnectionGUID: EGOUsw1jS4iffZcF7In7vA==
-X-CSE-MsgGUID: OzVkpaElRkSa/fAWFgBa3A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,181,1708416000"; 
-   d="scan'208";a="19141333"
-Received: from ahajda-mobl.ger.corp.intel.com (HELO [10.245.80.70]) ([10.245.80.70])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Apr 2024 09:20:15 -0700
-Message-ID: <340d23fc-7abf-4ad0-bd95-f1760b9ac458@intel.com>
-Date: Fri, 5 Apr 2024 18:20:11 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X5mtmvi8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEDCC433F1;
+	Sun,  7 Apr 2024 23:46:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1712533610;
+	bh=P+OunsRxmPow7mnjnbhNCSULHtX+QKprpv8k/fKlJkc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=X5mtmvi8tSG2KQEhFYa0jlYBE8HknG/5hgWPYQWYaPPkcXzwCnpAVuSUH2ZQOTqKA
+	 fT7fy/cCBaVuucVOTXNIHDytoNtfVUDlTPko5AK3hinSxomPzxr6L23V3Uj9/eLPFF
+	 OKSqPK8ptsShZden9yMexeHBaDUlqih0pwTtFgMLmGFXpbbhfyK7YwHQEiWazITIAU
+	 mOn1UfMgeIaX/a+lzT/6Al3J6Wkz+N/8xDL/HjJq1JD+U/5LeZ+TaXQLqt7GyGAcfJ
+	 wUp6OqYAZYfVuxZ05M6CtWQj1cS/vWYTpKzKWMScxZt9cpRXoAjm4l+P4J4fdV6pf6
+	 kCk7omAoS/Wrw==
+Date: Sun, 7 Apr 2024 19:46:50 -0400
+From: Sasha Levin <sashal@kernel.org>
+To: Kees Cook <keescook@chromium.org>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>, davem@davemloft.net,
+	andreas@gaisler.com, masahiroy@kernel.org, nicolas@fjasle.eu,
+	guoren@kernel.org, rmk+kernel@armlinux.org.uk,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 6.8 69/98] sparc: vdso: Disable UBSAN
+ instrumentation
+Message-ID: <ZhMwahvAWzOeq40a@sashalap>
+References: <20240329123919.3087149-1-sashal@kernel.org>
+ <20240329123919.3087149-69-sashal@kernel.org>
+ <202403291904.05D45FDD2@keescook>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [Intel-gfx] [PATCH v5 0/7] Introduce __xchg, non-atomic xchg
-To: Jani Nikula <jani.nikula@linux.intel.com>,
- Peter Zijlstra <peterz@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org,
- linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-hexagon@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- intel-gfx@lists.freedesktop.org, linux-xtensa@linux-xtensa.org,
- Arnd Bergmann <arnd@arndb.de>, Boqun Feng <boqun.feng@gmail.com>,
- linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org,
- loongarch@lists.linux.dev, Rodrigo Vivi <rodrigo.vivi@intel.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-alpha@vger.kernel.org,
- Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org
-References: <20230118153529.57695-1-andrzej.hajda@intel.com>
- <Y/ZLH5F8LA3H10aL@hirez.programming.kicks-ass.net>
- <17f40b7c-f98d-789d-fa19-12ec077b756a@intel.com>
- <Y/y0/VoPAVCXGKp3@hirez.programming.kicks-ass.net> <87r0fjc1cz.fsf@intel.com>
-Content-Language: en-US
-From: Andrzej Hajda <andrzej.hajda@intel.com>
-Organization: Intel Technology Poland sp. z o.o. - ul. Slowackiego 173, 80-298
- Gdansk - KRS 101882 - NIP 957-07-52-316
-In-Reply-To: <87r0fjc1cz.fsf@intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <202403291904.05D45FDD2@keescook>
 
-
-
-On 05.04.2024 16:47, Jani Nikula wrote:
-> On Mon, 27 Feb 2023, Peter Zijlstra <peterz@infradead.org> wrote:
->> On Thu, Feb 23, 2023 at 10:24:19PM +0100, Andrzej Hajda wrote:
->>> On 22.02.2023 18:04, Peter Zijlstra wrote:
->>>> On Wed, Jan 18, 2023 at 04:35:22PM +0100, Andrzej Hajda wrote:
->>>>
->>>>> Andrzej Hajda (7):
->>>>>     arch: rename all internal names __xchg to __arch_xchg
->>>>>     linux/include: add non-atomic version of xchg
->>>>>     arch/*/uprobes: simplify arch_uretprobe_hijack_return_addr
->>>>>     llist: simplify __llist_del_all
->>>>>     io_uring: use __xchg if possible
->>>>>     qed: use __xchg if possible
->>>>>     drm/i915/gt: use __xchg instead of internal helper
->>>> Nothing crazy in here I suppose, I somewhat wonder why you went through
->>>> the trouble, but meh.
->>> If you are asking why I have proposed this patchset, then the answer is
->>> simple, 1st I've tried to find a way to move internal i915 helper to core
->>> (see patch 7).
->>> Then I was looking for possible other users of this helper. And apparently
->>> there are many of them, patches 3-7 shows some.
->>>
->>>
->>>> You want me to take this through te locking tree (for the next cycle,
->>>> not this one) where I normally take atomic things or does someone else
->>>> want this?
->>> If you could take it I will be happy.
->> OK, I'll go queue it in tip/locking/core after -rc1. Thanks!
-> Is this where the series fell between the cracks, or was there some
-> follow-up that I missed?
+On Fri, Mar 29, 2024 at 07:05:37PM -0700, Kees Cook wrote:
+>On Fri, Mar 29, 2024 at 08:37:40AM -0400, Sasha Levin wrote:
+>> From: Kees Cook <keescook@chromium.org>
+>>
+>> [ Upstream commit d4be85d068b4418c341f79b654399f7f0891069a ]
+>>
+>> The UBSAN instrumentation cannot work in the vDSO since it is executing
+>> in userspace, so disable it in the Makefile. Fixes the build failures
+>> such as:
+>>
+>> arch/sparc/vdso/vclock_gettime.c:217: undefined reference to `__ubsan_handle_shift_out_of_bounds'
+>>
+>> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+>> Link: https://lore.kernel.org/all/20240224073617.GA2959352@ravnborg.org
+>> Signed-off-by: Kees Cook <keescook@chromium.org>
+>> Signed-off-by: Sasha Levin <sashal@kernel.org>
 >
-> I think this would still be useful. Andrzej, would you mind rebasing and
-> resending if there are no objections?
+>This is harmless to backport, but doesn't do anything. (The UBSAN
+>changes needing this are only in Linus's tree.)
 
-The patchset was rejected/dropped by Linus at the pull-request stage.
-He didn't like many things, but the most __xchg name. However he was 
-quite positive about i915 name fetch_and_zero.
-I can try to revive patchset with fetch_and_zero, and maybe 
-fetch_and_set, instead of __xchg.
+I'll drop this and the rest of the ubsan commits you've pointed out,
+thanks!
 
-Regards
-Andrzej
-
->
-> BR,
-> Jani.
->
->
-
+-- 
+Thanks,
+Sasha
