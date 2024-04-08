@@ -1,78 +1,107 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EADDD446D3;
-	Sun,  7 Apr 2024 23:46:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5CF6CDA8;
+	Mon,  8 Apr 2024 13:01:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712533611; cv=none; b=ZLGNq33/4BZeWeBHldwi1G+C1x32yaqSsRiTD02VDqJUxTggazGYU4dGL7mIwk83RU2i7O8cb/tJBz7aRKoQnyErk3P1yHz20jn/K6XqAgGBavUdKpjwReMoWPQKlZKv3kE0vxjyF3msnpR8nbAbOfPhUZnk/LFYdv5xvsIemEs=
+	t=1712581285; cv=none; b=e8j0mt7/iN/Re3dxF+7hK0v8n9ntbv0Ae7uhfXpnYlytFQwwVk5U/i/eMCHnSy4z8v1AsXq6yfukPHypEY/6CE4pOrqKYi0EatJA+kvrZqqo8lDRmDMaFY/JR4yguc7iGaXSC4O9HvQvkjO+NJda49RhhLBs3Gx6CNRS355Y0sY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712533611; c=relaxed/simple;
-	bh=P+OunsRxmPow7mnjnbhNCSULHtX+QKprpv8k/fKlJkc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mrMFUPh3wJztM42WZxq8eweB3qJeZoOzENAirzCqTpKRGW8PBqKTrpQ7O0LnNW5MASV3CMGCwiRPXpNvILrgkyO9E4lcjkuNlZQ5msHHzQr/PFD64QhrIczWzOggwaJeJeUlF4AovfWaKDXr3HHsR7U2ageQZ7cHpTlXxWPea9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X5mtmvi8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1712581285; c=relaxed/simple;
+	bh=p2KMVWv67NTy8nvjTERmGmxyCAdE+iB4OHdf3eXimlU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GKVW32sCH+S0aviKKPJiELNxihKehgtr5irkwKM4KFcwjgTEh0T0Afftf4opl2hEXi2zU7cuMlSGbwCobt+TTOX+TQHiGKuzFyPlehXaI1YhjQU5xqn7/3CJLQn5/pnGcELSAkoHRa8IC+bqoeHwsx/JxVZnFIA2HJyUaH4NC0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=GN4WWLoS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X5mtmvi8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEDCC433F1;
-	Sun,  7 Apr 2024 23:46:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1712533610;
-	bh=P+OunsRxmPow7mnjnbhNCSULHtX+QKprpv8k/fKlJkc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=X5mtmvi8tSG2KQEhFYa0jlYBE8HknG/5hgWPYQWYaPPkcXzwCnpAVuSUH2ZQOTqKA
-	 fT7fy/cCBaVuucVOTXNIHDytoNtfVUDlTPko5AK3hinSxomPzxr6L23V3Uj9/eLPFF
-	 OKSqPK8ptsShZden9yMexeHBaDUlqih0pwTtFgMLmGFXpbbhfyK7YwHQEiWazITIAU
-	 mOn1UfMgeIaX/a+lzT/6Al3J6Wkz+N/8xDL/HjJq1JD+U/5LeZ+TaXQLqt7GyGAcfJ
-	 wUp6OqYAZYfVuxZ05M6CtWQj1cS/vWYTpKzKWMScxZt9cpRXoAjm4l+P4J4fdV6pf6
-	 kCk7omAoS/Wrw==
-Date: Sun, 7 Apr 2024 19:46:50 -0400
-From: Sasha Levin <sashal@kernel.org>
-To: Kees Cook <keescook@chromium.org>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-	Sam Ravnborg <sam@ravnborg.org>, davem@davemloft.net,
-	andreas@gaisler.com, masahiroy@kernel.org, nicolas@fjasle.eu,
-	guoren@kernel.org, rmk+kernel@armlinux.org.uk,
-	sparclinux@vger.kernel.org
-Subject: Re: [PATCH AUTOSEL 6.8 69/98] sparc: vdso: Disable UBSAN
- instrumentation
-Message-ID: <ZhMwahvAWzOeq40a@sashalap>
-References: <20240329123919.3087149-1-sashal@kernel.org>
- <20240329123919.3087149-69-sashal@kernel.org>
- <202403291904.05D45FDD2@keescook>
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="GN4WWLoS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB922C433F1;
+	Mon,  8 Apr 2024 13:01:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1712581285;
+	bh=p2KMVWv67NTy8nvjTERmGmxyCAdE+iB4OHdf3eXimlU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=GN4WWLoStGAyr5r6t7gCZklr1oi2NRFViNmLdgv7HV9GYRwiSbF9TJKjnrpAcUjIv
+	 2ouWtONtEuKs4Jy7pKIdQfIF3jl5jVCcdh2RyUZN1Yz/3iCQ1kyVZafFxZiGDb0TA+
+	 UnqinmkShCWOjyngN3ypcSV7WcTwFrx3x+qjQWY4=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Igor Zhbanov <izh1979@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 5.15 020/690] sparc64: NMI watchdog: fix return value of __setup handler
+Date: Mon,  8 Apr 2024 14:48:06 +0200
+Message-ID: <20240408125400.288355617@linuxfoundation.org>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20240408125359.506372836@linuxfoundation.org>
+References: <20240408125359.506372836@linuxfoundation.org>
+User-Agent: quilt/0.67
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <202403291904.05D45FDD2@keescook>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Mar 29, 2024 at 07:05:37PM -0700, Kees Cook wrote:
->On Fri, Mar 29, 2024 at 08:37:40AM -0400, Sasha Levin wrote:
->> From: Kees Cook <keescook@chromium.org>
->>
->> [ Upstream commit d4be85d068b4418c341f79b654399f7f0891069a ]
->>
->> The UBSAN instrumentation cannot work in the vDSO since it is executing
->> in userspace, so disable it in the Makefile. Fixes the build failures
->> such as:
->>
->> arch/sparc/vdso/vclock_gettime.c:217: undefined reference to `__ubsan_handle_shift_out_of_bounds'
->>
->> Acked-by: Sam Ravnborg <sam@ravnborg.org>
->> Link: https://lore.kernel.org/all/20240224073617.GA2959352@ravnborg.org
->> Signed-off-by: Kees Cook <keescook@chromium.org>
->> Signed-off-by: Sasha Levin <sashal@kernel.org>
->
->This is harmless to backport, but doesn't do anything. (The UBSAN
->changes needing this are only in Linus's tree.)
+5.15-stable review patch.  If anyone has any objections, please let me know.
 
-I'll drop this and the rest of the ubsan commits you've pointed out,
-thanks!
+------------------
 
+From: Randy Dunlap <rdunlap@infradead.org>
+
+[ Upstream commit 3ed7c61e49d65dacb96db798c0ab6fcd55a1f20f ]
+
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
+
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <izh1979@gmail.com>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Link: https://lore.kernel.org/r/20240211052802.22612-1-rdunlap@infradead.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/sparc/kernel/nmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 060fff95a305c..fbf25e926f67c 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -274,7 +274,7 @@ static int __init setup_nmi_watchdog(char *str)
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
+ 
+-	return 0;
++	return 1;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
 -- 
-Thanks,
-Sasha
+2.43.0
+
+
+
