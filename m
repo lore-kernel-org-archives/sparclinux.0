@@ -1,151 +1,110 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDF913E8AB;
-	Mon,  8 Apr 2024 15:57:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6931B13D607
+	for <sparclinux@vger.kernel.org>; Wed, 10 Apr 2024 13:35:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712591875; cv=none; b=PQywnX5uztTVx9AI0iExlBcQNFRTCMK+tBcYC6yxbJ+sZq/y8aqC2igGy4QhuWL4q14iyuT4Mv15pnMP0ND4DLtu36TRDpTuoCK2JMyyPzW6Gh7L3MG/MmMBE0HPzmJgkycEXq1GxdT9sRRVbsnyXkFywPKwFCXJiSNkpZjh8SM=
+	t=1712756119; cv=none; b=GDBLrzBOpsh36824RTmqC4UyTCw9UKVQxNVHi/HhMMbHTFNNfpnvoVe3wNIq5HtF06WBfCHgv12a2jg7wZSKRv6mqdTIfoeQtOhs+8jTqUJKZRf9CBXNLfBdmUWPwOIQcLgqjaRX1T4LxuHnM/7FWYGnmeMIcxa6ij5m1i6LDwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712591875; c=relaxed/simple;
-	bh=untIyZUBolJmBC+haXZFudxoskemR2WDjgQpB/oOF7s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RAhNUrixkYqgxk2QY20ZvekhYMobftoLrmhVzYKVELwU+qDx7DRtdaUNPIhRTJZ4FZ+HgmypCMZjqT8vwKOYIgkT7THIh5MJFVtXcZQCFzrshdRGeQkDV24MEksvuAvaJZ0NWNokb+j6EzHRcCmdzSAGBCBz56FAAglruVA41to=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TrzSNofB; arc=none smtp.client-ip=209.85.216.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TrzSNofB"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-2a2dd2221d3so2964693a91.0;
-        Mon, 08 Apr 2024 08:57:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1712591873; x=1713196673; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=untIyZUBolJmBC+haXZFudxoskemR2WDjgQpB/oOF7s=;
-        b=TrzSNofB/+7iwz1qwxJ1kx0l5z5mdAWXGOBXrFX0/7cCpJd56VBWD77mwheGgmZXka
-         x/bkuUA47B7QKpQNp27XN05H2RS7obfhlX6q79Uy7QOCbxxGBRnu/8dQgJPAaeBfHDij
-         d9b7GrCih5KNDBgz8KQd09ZF66VWfxTDDLhR1QAFn7l2qA2yCJwJci9KMa21ysJAyonc
-         0kK9/Q1Hzvrmsd/NNt+3ZrWR7dCvOsuGJERt6rMBWKbFJytsE5iSl2LQWF6Cy/puXDn5
-         IGqpGy5FYYbmIdMlgclBw3TAuAalaLPliQTaKsN1jvtFJalCo1Uk29ywbrF95rph4zEa
-         Ab8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712591873; x=1713196673;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=untIyZUBolJmBC+haXZFudxoskemR2WDjgQpB/oOF7s=;
-        b=lVuarr2uS2MH6lsfPCn6zLOuWVoko2A3PPf5Zc69DJogpOnpHeLeDP5dO2qBBPN5ya
-         11TXycCdMsVPXwofEXHKMsRq6ILjaiCDHp84/dShSk34KMSANBPS8JJ4Wof4m0HAlGSm
-         wiebhAp8RAxADqV/PQSkNV0C0cSCVT940s+Azz2x4PdVPczGZa6lKzt2Ao4mW+GQgITZ
-         HKKJAubI4TFOldsBt9Q3xHusQ6Cv+PDrvrpGUdAbqzIOCIyIvbKd0UXJYK4DtS3dOlcj
-         CGISW2uckWR/2TPAgStAaLk2oI3fbjR75r37njFswkeGfiopgFVsAD/VF11TRcfcPRbH
-         29YA==
-X-Forwarded-Encrypted: i=1; AJvYcCWNso1C0Ns8zo1jhEyzhhtO74YZHqpNsZ/trlLewZmZwA8OAT6d7dgMFxa1YoQ99j3lexpRp+qwhVJntQx7q2/BhW4+m5fiATA/fTcFgfrKzUAvy4eWyk8DSr05BTwVXcO7FaZbwZkc4pyArUDvqRE23nM+UG0DqCyUsuVkEmOjb62mF6FgqZ44zG/rddngL+NHUWGpZvPaQXSwTK4KX53BfEDOxPMO2FRju/0Q+E4Sm/kNO8jz5OYlgRxCirRFtf5AxRpv0NPQY3K5c0vxJ13mTA/7I8ZDbDzXZ5Iy2Ll+Om8NwzHYlAuN8OmxF3IQ454PKvxs3daX21Imr0NoijRlDwIlJsUectnnMC97qrj5IZzQpQtPvUgA5/edslVDkxXGYEygawhsNWSr2i9USbDtzOOk5vEahcNx0+n6VS+0v2dkpPo/gbdO1kbBmyUE+gKssjdT0JOGXB1ZxfnAD1z+OhSN3tPTATeoRC+WtQ==
-X-Gm-Message-State: AOJu0YyXWuQctnrMCEUojAFSK1BQfSW5IAp/oDstMbA8vc7dZ6DwaeB4
-	FC+8NkTMNiO0moavdL5qhWZM8bBWyfRQVR52u1gFmrH+FmV3wcZ8
-X-Google-Smtp-Source: AGHT+IGJbb2MaWRtYADIA840woW+fg7lVmIt69WB4JS2RPl12DQD69jPbBmSk/iEenJzneHNW7DHjg==
-X-Received: by 2002:a17:90a:ab0d:b0:2a5:513:921e with SMTP id m13-20020a17090aab0d00b002a50513921emr2739861pjq.31.1712591873008;
-        Mon, 08 Apr 2024 08:57:53 -0700 (PDT)
-Received: from localhost ([2601:647:6881:9060:13a8:4fe8:4da1:7ea2])
-        by smtp.gmail.com with ESMTPSA id z24-20020a17090ab11800b002a2559fe52esm6580894pjq.56.2024.04.08.08.57.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Apr 2024 08:57:52 -0700 (PDT)
-Date: Mon, 8 Apr 2024 08:57:51 -0700
-From: Cong Wang <xiyou.wangcong@gmail.com>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, bpf@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-	Matt Turner <mattst88@gmail.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
-	Jesper Dangaard Brouer <hawk@kernel.org>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	John Fastabend <john.fastabend@gmail.com>,
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>,
-	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	David Ahern <dsahern@kernel.org>,
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
-	Shuah Khan <shuah@kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Amritha Nambiar <amritha.nambiar@intel.com>,
-	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
-	Alexander Mikhalitsyn <alexander@mihalicyn.com>,
-	Kaiyuan Zhang <kaiyuanz@google.com>,
-	Christian Brauner <brauner@kernel.org>,
-	Simon Horman <horms@kernel.org>,
-	David Howells <dhowells@redhat.com>,
-	Florian Westphal <fw@strlen.de>,
-	Yunsheng Lin <linyunsheng@huawei.com>,
-	Kuniyuki Iwashima <kuniyu@amazon.com>, Jens Axboe <axboe@kernel.dk>,
-	Arseniy Krasnov <avkrasnov@salutedevices.com>,
-	Aleksander Lobakin <aleksander.lobakin@intel.com>,
-	Michael Lass <bevan@bi-co.net>, Jiri Pirko <jiri@resnulli.us>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Lorenzo Bianconi <lorenzo@kernel.org>,
-	Richard Gobert <richardbgobert@gmail.com>,
-	Sridhar Samudrala <sridhar.samudrala@intel.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Johannes Berg <johannes.berg@intel.com>,
-	Abel Wu <wuyun.abel@bytedance.com>,
-	Breno Leitao <leitao@debian.org>,
-	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Shailend Chand <shailend@google.com>,
-	Harshitha Ramamurthy <hramamurthy@google.com>,
-	Shakeel Butt <shakeel.butt@linux.dev>,
-	Jeroen de Borst <jeroendb@google.com>,
-	Praveen Kaligineedi <pkaligineedi@google.com>
-Subject: Re: [RFC PATCH net-next v8 14/14] selftests: add ncdevmem, netcat
- for devmem TCP
-Message-ID: <ZhQT/4RpKIkUmWut@pop-os.localdomain>
-References: <20240403002053.2376017-1-almasrymina@google.com>
- <20240403002053.2376017-15-almasrymina@google.com>
+	s=arc-20240116; t=1712756119; c=relaxed/simple;
+	bh=9/aI6C1S1aJSIOesjnJTAKtzPhucx8Qmarc0aWUhi9E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qCrvgtj4M8skoKU4L5x1mBK0vgQEiH+pNSYkTem+gl768P2xZcXlFIt9zgcw7YoJXEPMeVwobnCGGpTrMtiR7TOO1XSfzBrcMJPuqArCTkzhytCDl14Uga2W9Uqblg+RnjMmLyfvtMoClrK9zYgwRgfxPCbn8ozIMmn/nPW9OFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1ruY6a-00054X-PG; Wed, 10 Apr 2024 15:35:12 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1ruY6Z-00BVM2-H8; Wed, 10 Apr 2024 15:35:11 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1ruY6Z-00HaOo-1R;
+	Wed, 10 Apr 2024 15:35:11 +0200
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Rob Herring <robh@kernel.org>
+Cc: sparclinux@vger.kernel.org,
+	kernel@pengutronix.de
+Subject: [PATCH 1/2] sparc: parport: Convert to platform remove callback returning void
+Date: Wed, 10 Apr 2024 15:35:06 +0200
+Message-ID:  <2765e090dba2d99f92e16c92b6aa55090aae053b.1712755381.git.u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1712755381.git.u.kleine-koenig@pengutronix.de>
+References: <cover.1712755381.git.u.kleine-koenig@pengutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240403002053.2376017-15-almasrymina@google.com>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1827; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=9/aI6C1S1aJSIOesjnJTAKtzPhucx8Qmarc0aWUhi9E=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBmFpWLdInwdJ2G1z13S0ieCecZ6McX2XQgwoJ8m RAtfI9gXQ+JATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZhaViwAKCRCPgPtYfRL+ TkcsB/0btYWUDL7Q36v9OzDq2nPWaUQSIexcXAvo+x33U4nwn6JLsqG3ig3MPRZgqNqfXqoAMsH UPMrsjqvJkTleIAR8Udg8WUVWU0eKCzDPVDE1Qp/53qgR1QHHqrT1PCq+Vyg9WIv+8Luz42uNBJ GbF3yNGUkop3qmGrs+Ocq8g6SGdqjELj4FDNNmh33acBBzgMxPNl1tPzWTd8Ib4BcBrEVWu1woL 6OwGCDEqtX0R8ZxA7yfbBJDlcEytzNdGdKQurJFouPWIr9Yn7KGCcrWCo9j/TqawJrn9VCbFLfL f/q0ZwmSbBYSRUQ8SfEH8AShxKBUxm3SY9wBeVeFc8fxTm9e
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: sparclinux@vger.kernel.org
 
-On Tue, Apr 02, 2024 at 05:20:51PM -0700, Mina Almasry wrote:
-> +static char *server_ip = "192.168.1.4";
-> +static char *client_ip = "192.168.1.2";
-> +static char *port = "5201";
-> +static size_t do_validation;
-> +static int start_queue = 8;
-> +static int num_queues = 8;
-> +static char *ifname = "eth1";
-> +static unsigned int ifindex = 3;
-> +static char *nic_pci_addr = "0000:06:00.0";
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
 
-It seems this is set but never used.
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new(), which already returns void. Eventually after all drivers
+are converted, .remove_new() will be renamed to .remove().
 
-Thanks.
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ arch/sparc/include/asm/parport_64.h | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/include/asm/parport_64.h b/arch/sparc/include/asm/parport_64.h
+index 0a7ffcfd59cd..4f530a270760 100644
+--- a/arch/sparc/include/asm/parport_64.h
++++ b/arch/sparc/include/asm/parport_64.h
+@@ -196,7 +196,7 @@ static int ecpp_probe(struct platform_device *op)
+ 	return err;
+ }
+ 
+-static int ecpp_remove(struct platform_device *op)
++static void ecpp_remove(struct platform_device *op)
+ {
+ 	struct parport *p = dev_get_drvdata(&op->dev);
+ 	int slot = p->dma;
+@@ -216,8 +216,6 @@ static int ecpp_remove(struct platform_device *op)
+ 			   d_len);
+ 		clear_bit(slot, dma_slot_map);
+ 	}
+-
+-	return 0;
+ }
+ 
+ static const struct of_device_id ecpp_match[] = {
+@@ -245,7 +243,7 @@ static struct platform_driver ecpp_driver = {
+ 		.of_match_table = ecpp_match,
+ 	},
+ 	.probe			= ecpp_probe,
+-	.remove			= ecpp_remove,
++	.remove_new		= ecpp_remove,
+ };
+ 
+ static int parport_pc_find_nonpci_ports(int autoirq, int autodma)
+-- 
+2.43.0
+
