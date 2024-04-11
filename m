@@ -1,111 +1,107 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0443B15E5B1
-	for <sparclinux@vger.kernel.org>; Wed, 10 Apr 2024 13:35:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A446A13DDDD;
+	Thu, 11 Apr 2024 09:58:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712756123; cv=none; b=VBpgneS1yTK8QfFGei8dRpX8/S2ciDRxbaqTDmwV4y8ZYEO+nVpEe2fjcIT5Ujo24Zs7R3jPnxoEhWXwfDGOOoCISdowrBj+Ahwvp3GJDVNa/AD0EtSxpYmlYWJH8hE7vxkzbvFB29Yn59eOu3URg0RhHEKGRnU4I8j9rGp72FE=
+	t=1712829525; cv=none; b=TZdQKToxF8OgQuyo6qU6lIrkqQnqa5YTcFGHovKlgKZy1weaA50X23AR0id5RMvMvhS7X3wKEajijI7nWekLxOK3x00cmdE9PJ5gq24FixqxTgzRCgEqBOpKzHcrkci0LNXXw+akTA6vmI0fP23ijyBbMwJzCF06+Dpw8GZkhGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712756123; c=relaxed/simple;
-	bh=+3NCIwNoU3FZjXcssF0F4YqxUiatzW3IS6tXHFNtK+A=;
+	s=arc-20240116; t=1712829525; c=relaxed/simple;
+	bh=s0JC/z39eKoY7OcvtWFVy51YccbLPOnSHxuMUUAj7dY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hKybDsHXASei/K4w3bM12NWPGhuJjYZ8ETKH6d1hAT+DFHjFw66qEMcg8/mcmpj8CXN5fBcUvNtgWDvtpHJgqLsRsRxSBBq4DlijV30j8hLF+dYh0rCgdyPPZ4VfW1AAS1G0ZtAE/Ncq6SdKvghCglmX7OZ6mZ7nJU4LcmHNZ2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruY6a-00054Y-TA; Wed, 10 Apr 2024 15:35:12 +0200
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruY6Z-00BVM5-OD; Wed, 10 Apr 2024 15:35:11 +0200
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruY6Z-00HaOs-29;
-	Wed, 10 Apr 2024 15:35:11 +0200
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
+	 MIME-Version; b=im6+uLUz1GquhTrsH7+SwyjjXHyMV6hOUjbpC1oAUQLfkEbhOKlX4R/3K3QsNTK7ZXyjzFNNUFH5B6q0H+1H2RkpxJAfl9GAnH3xZLHrygP4fSuU++JSPQZTVvefGkj1cpHp603CR83+N4O1sjwrPWi6uFjxULuCW/CulhFT7QY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=v6ndrwUo; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="v6ndrwUo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D93BFC433F1;
+	Thu, 11 Apr 2024 09:58:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1712829525;
+	bh=s0JC/z39eKoY7OcvtWFVy51YccbLPOnSHxuMUUAj7dY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=v6ndrwUoQi/KU1oo9v3WwCmN4unLIHgw70Cvixhy4tm1+1UwQ6JchQ0C7oDXIEBdh
+	 VaFhl0YkOvGIyszCtuxwM6S6u9Oy3fkZPafpqgGZO1MmKPlA0SOePMUtxWGMHnmZ+E
+	 qZqrNxxUn11gzvTQ4Rv/H2g5Bil1u7yHdYI4iwhg=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Igor Zhbanov <izh1979@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org,
 	Sam Ravnborg <sam@ravnborg.org>,
-	=?utf-8?q?Ahelenia_Ziemia=C5=84ska?= <nabijaczleweli@nabijaczleweli.xyz>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	Rob Herring <robh@kernel.org>
-Cc: sparclinux@vger.kernel.org,
-	kernel@pengutronix.de
-Subject: [PATCH 2/2] sparc: chmc: Convert to platform remove callback returning void
-Date: Wed, 10 Apr 2024 15:35:07 +0200
-Message-ID:  <9fbd788bbca4efd2f596e3c56d045db450756c80.1712755381.git.u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1712755381.git.u.kleine-koenig@pengutronix.de>
-References: <cover.1712755381.git.u.kleine-koenig@pengutronix.de>
+	Arnd Bergmann <arnd@arndb.de>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 4.19 017/175] sparc64: NMI watchdog: fix return value of __setup handler
+Date: Thu, 11 Apr 2024 11:54:00 +0200
+Message-ID: <20240411095420.065988249@linuxfoundation.org>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20240411095419.532012976@linuxfoundation.org>
+References: <20240411095419.532012976@linuxfoundation.org>
+User-Agent: quilt/0.67
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1755; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=+3NCIwNoU3FZjXcssF0F4YqxUiatzW3IS6tXHFNtK+A=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBmFpWMGP22wzIX9/fF6DhMGaGbzWvV/taUtdzWQ Hgml6ag8YqJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZhaVjAAKCRCPgPtYfRL+ TnBxB/wKaQuw4EymJt1jrSWUqbt5VTwOxqAXz/AGkIBRnUp18Oln4B1nQ2+VfnkmsZGdebOJ0/+ TSnLv3/j6+4Y7MpGAmBFHqbCOQohUR+rj/lmxxr0VWTGjr45m3p/zfKfMGkjIIViTyPD9InmPrU s6hL9/WHjGuFexZZepxucsCXO0MOoH9zfuiTdWZ1WAeI80vqik1j7wHe0hZ4lbDi5B7SAxGK2Hi iP6TNIPkMED0eq5Ddi8ptk6R4C4At2QIoYK4PuWwAxq7iemHTq83tY6/z/drHrbjqgO3LfHcRAd 6qU00QXdQcDTEdsi5LJ6waEQxbb1MkqQOpPrZzLa0QBj89+U
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: sparclinux@vger.kernel.org
 
-The .remove() callback for a platform driver returns an int which makes
-many driver authors wrongly assume it's possible to do error handling by
-returning an error code. However the value returned is ignored (apart
-from emitting a warning) and this typically results in resource leaks.
+4.19-stable review patch.  If anyone has any objections, please let me know.
 
-To improve here there is a quest to make the remove callback return
-void. In the first step of this quest all drivers are converted to
-.remove_new(), which already returns void. Eventually after all drivers
-are converted, .remove_new() will be renamed to .remove().
+------------------
 
-Trivially convert this driver from always returning zero in the remove
-callback to the void returning variant.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+[ Upstream commit 3ed7c61e49d65dacb96db798c0ab6fcd55a1f20f ]
+
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
+
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <izh1979@gmail.com>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Link: https://lore.kernel.org/r/20240211052802.22612-1-rdunlap@infradead.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/kernel/chmc.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/nmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
-index 00e571c30bb5..e02074062001 100644
---- a/arch/sparc/kernel/chmc.c
-+++ b/arch/sparc/kernel/chmc.c
-@@ -788,7 +788,7 @@ static void jbusmc_destroy(struct platform_device *op, struct jbusmc *p)
- 	kfree(p);
- }
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 8babbeb30adf9..1f356928a06d5 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -273,7 +273,7 @@ static int __init setup_nmi_watchdog(char *str)
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
  
--static int us3mc_remove(struct platform_device *op)
-+static void us3mc_remove(struct platform_device *op)
- {
- 	void *p = dev_get_drvdata(&op->dev);
- 
-@@ -798,7 +798,6 @@ static int us3mc_remove(struct platform_device *op)
- 		else if (mc_type == MC_TYPE_JBUS)
- 			jbusmc_destroy(op, p);
- 	}
 -	return 0;
++	return 1;
  }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
  
- static const struct of_device_id us3mc_match[] = {
-@@ -815,7 +814,7 @@ static struct platform_driver us3mc_driver = {
- 		.of_match_table = us3mc_match,
- 	},
- 	.probe		= us3mc_probe,
--	.remove		= us3mc_remove,
-+	.remove_new	= us3mc_remove,
- };
- 
- static inline bool us3mc_platform(void)
 -- 
 2.43.0
+
+
 
