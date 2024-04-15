@@ -1,40 +1,34 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54164F5F8;
-	Mon, 15 Apr 2024 09:37:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4233642072;
+	Mon, 15 Apr 2024 16:53:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713173842; cv=none; b=pbQqkCTcje0HWDFhbzBqrEPHQx2b6HeINO5CanXLwM1bWOq8S/AnvHg5BTywTq4oVZIuv+g0aAFyPgGm1ErLhRzdEm94U+Ul/rOa5tgZ6AN6nuIdm1RQ4edWwkTcKC3acHEGvQH6tctxRJuQeFS9aX2K8LCuDJ1qnv/+zJYjQHo=
+	t=1713199990; cv=none; b=Pci6F4BLaJbSnJCtfw0RQXSH2KUYyJg/21lTO4yrsWcG4PdkgGnPEYvuP/+7j09E07wDZ84S9ar0J8YslP2ZbZQHybKPSQPPcUvPo/j63eT8EdmWnlPjt3bi/NI9ZzQg/Bhp67eBLEvWNwstM+aRtMBsUtj0mcQORNPx13B7OsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713173842; c=relaxed/simple;
-	bh=iWSAcKBzCT/GfR3CUsNAvXWE2GqvA4i8aFyoJ/HJFOE=;
+	s=arc-20240116; t=1713199990; c=relaxed/simple;
+	bh=xJZBsBz/ovkewwHaqkWgEKUCLl3sCJ9igaEyaiYi248=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q2lNb9r/DxUP93+ofQORD7YKXJKeRsJoE/3dIqBgHS5rsnw59UpuUAiIXByBpnqgJJMx/UNjjt62ks4laRvVeCLv82IiHSQ4JB5dYZ8nLxD0+Up5pAjZ/soNov6lJiecpVMDpS8YICWGIy2cEgqWycZTJy7RywZeMzDIt2RR+4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WL3mGK96; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=B+zQfhfRZUb683zSkhUtYDFDYn/bvHU6nvLZL6TLONTpV6+GTMtmLFwd9AK3LXvJ/wftAN3INL5I7WnAwUHy3VrvCfdXfEevTnNX4gH3SB+26f0OIpvHNk+s8Lk0xxcKmRCR/73S+WrBh2Rw8+05OleT1cTD3y6Eju4ShGk44SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n9583Q6y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WL3mGK96"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=gJURSN8ZhZs54MX6UPe8WS991KHmcU3CMSr/wsPBYas=; b=WL3mGK96b4dqocWg2WT6S+o3Lh
-	6R4hcBA6RfcHuQQK7isTyMyXCwDos8Q1HdHKBvnc80dazhTsMKZZh+HOA+2p3MytoMgm0z79fe1lO
-	6VNzmYAbfQ0K4rY/gTJDrpu5Cj+twK8P8H6r2xTaYF5wANkZ19gJAqZM8x7uwfcFkyoEWlipCNTWk
-	6fylSl1gmglon4eNg+zb/yC04zTO/2Lfq8d+LNZPMMi03er3jB/2uzdVHk4Db9ls69FN+sjSeErGv
-	ir1OIAWRPD8gvlVd9eQwbdsiTncbhidLvva928W/3FSV8BR+sXBV2NxpcV2Vc46i56RkcJA4zwnpr
-	gpLaCNRw==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rwIlk-0000000FOjV-0IDN;
-	Mon, 15 Apr 2024 09:36:56 +0000
-Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
-	id B1DC030040C; Mon, 15 Apr 2024 11:36:55 +0200 (CEST)
-Date: Mon, 15 Apr 2024 11:36:55 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Mike Rapoport <rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n9583Q6y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57527C113CC;
+	Mon, 15 Apr 2024 16:52:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713199989;
+	bh=xJZBsBz/ovkewwHaqkWgEKUCLl3sCJ9igaEyaiYi248=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=n9583Q6y/kVDUsC/Sk35DHsUlzQxomP4brOeJWEqMK5tTGdFfL5yXDBwNh/dc1R8t
+	 OnTvm1XERGxz1JxTUG2JWpufMQFhEpCf0upLztHBi97mz83HQzMB81Cj+bMHmQeLrO
+	 vdSyDt4foue7u5p0z1MAb6dHJ1a7FzO8x/EelybB33sZUvBK4gAoiim0DQVOThRBq2
+	 3ERPw7wOWw5Nw3DB6b+PtiKpkHgDPedzRaGZsUTWRIfT1yQsmJ+qNm4oAZ/M1rF747
+	 dHBdlhRGfIq7wIyTjPR6B4GdpTUD5V0JGj4lcLZS8oQu4cdKYlcTv5ldjuZ1AicK/r
+	 qCFC3y/AMEfuA==
+Date: Mon, 15 Apr 2024 19:51:52 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
 Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
@@ -65,11 +59,11 @@ Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
 	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
 	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v4 07/15] mm/execmem, arch: convert remaining overrides
- of module_alloc to execmem
-Message-ID: <20240415093655.GH40213@noisy.programming.kicks-ass.net>
+Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
+Message-ID: <Zh1bKAaD7nLyJ9ya@kernel.org>
 References: <20240411160051.2093261-1-rppt@kernel.org>
- <20240411160051.2093261-8-rppt@kernel.org>
+ <20240411160051.2093261-6-rppt@kernel.org>
+ <20240415075241.GF40213@noisy.programming.kicks-ass.net>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -78,52 +72,72 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240411160051.2093261-8-rppt@kernel.org>
+In-Reply-To: <20240415075241.GF40213@noisy.programming.kicks-ass.net>
 
-On Thu, Apr 11, 2024 at 07:00:43PM +0300, Mike Rapoport wrote:
+On Mon, Apr 15, 2024 at 09:52:41AM +0200, Peter Zijlstra wrote:
+> On Thu, Apr 11, 2024 at 07:00:41PM +0300, Mike Rapoport wrote:
+> > +/**
+> > + * enum execmem_type - types of executable memory ranges
+> > + *
+> > + * There are several subsystems that allocate executable memory.
+> > + * Architectures define different restrictions on placement,
+> > + * permissions, alignment and other parameters for memory that can be used
+> > + * by these subsystems.
+> > + * Types in this enum identify subsystems that allocate executable memory
+> > + * and let architectures define parameters for ranges suitable for
+> > + * allocations by each subsystem.
+> > + *
+> > + * @EXECMEM_DEFAULT: default parameters that would be used for types that
+> > + * are not explcitly defined.
+> > + * @EXECMEM_MODULE_TEXT: parameters for module text sections
+> > + * @EXECMEM_KPROBES: parameters for kprobes
+> > + * @EXECMEM_FTRACE: parameters for ftrace
+> > + * @EXECMEM_BPF: parameters for BPF
+> > + * @EXECMEM_TYPE_MAX:
+> > + */
+> > +enum execmem_type {
+> > +	EXECMEM_DEFAULT,
+> > +	EXECMEM_MODULE_TEXT = EXECMEM_DEFAULT,
+> > +	EXECMEM_KPROBES,
+> > +	EXECMEM_FTRACE,
+> > +	EXECMEM_BPF,
+> > +	EXECMEM_TYPE_MAX,
+> > +};
+> 
+> Can we please get a break-down of how all these types are actually
+> different from one another?
+> 
+> I'm thinking some platforms have a tiny immediate space (arm64 comes to
+> mind) and has less strict placement constraints for some of them?
 
-> +static struct execmem_info execmem_info __ro_after_init = {
-> +	.ranges = {
-> +		[EXECMEM_DEFAULT] = {
-> +			.flags = EXECMEM_KASAN_SHADOW,
-> +			.alignment = MODULE_ALIGN,
-> +		},
-> +	},
-> +};
->  
-> +struct execmem_info __init *execmem_arch_setup(void)
->  {
-> +	unsigned long start, offset = 0;
->  
-> +	if (kaslr_enabled())
-> +		offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
->  
-> +	start = MODULES_VADDR + offset;
-> +	execmem_info.ranges[EXECMEM_DEFAULT].start = start;
-> +	execmem_info.ranges[EXECMEM_DEFAULT].end = MODULES_END;
-> +	execmem_info.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
->  
-> +	return &execmem_info;
->  }
+loongarch, mips, nios2 and sparc define modules address space different
+from vmalloc and use that for modules, kprobes and bpf (where supported).
 
-struct execmem_info __init *execmem_arch_setup(void)
-{
-	unsigned long offset = 0;
+parisc uses vmalloc range for everything, but it sets permissions to
+PAGE_KERNEL_RWX because it's PAGE_KERNEL_EXEC is read only and it lacks
+set_memory_* APIs.
 
-	if (kaslr_enabled())
-		offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+arm has an address space for modules, but it fall back to the entire
+vmalloc with CONFIG_ARM_MODULE_PLTS=y.
 
-	execmem_info = (struct execmem_info){
-		.ranges = {
-			[EXECMEM_DEFAULT] = {
-				.start     = MODULES_VADDR + offset,
-				.end       = MODULES_END,
-				.pgprot    = PAGE_KERNEL,
-				.flags     = EXECMEM_KASAN_SHADOW,
-				.alignment = 1,
-			},
-		},
-	};
+arm64 uses different ranges for modules and bpf/kprobes. For kprobes it
+does vmalloc(PAGE_KERNEL_ROX) and for bpf just plain vmalloc().
+For modules arm64 first tries to allocated from 128M below kernel_end and
+if that fails it uses 2G below kernel_end as a fallback.
 
-	return &execmem_info;
-}
+powerpc uses vmalloc space for everything for some configurations. For
+book3s-32 and 8xx it defines two ranges that are used for module text,
+kprobes and bpf and the module data can be allocated anywhere in vmalloc.
+
+riscv has an address space for modules, a different address space for bpf
+and uses vmalloc space for kprobes.
+
+s390 and x86 have modules address space and use that space for all
+executable allocations.
+
+The EXECMEM_FTRACE type is only used on s390 and x86 and for now it's there
+more for completeness rather to denote special constraints or properties.
+
+-- 
+Sincerely yours,
+Mike.
