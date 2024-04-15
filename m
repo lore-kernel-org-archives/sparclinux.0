@@ -1,37 +1,30 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4233642072;
-	Mon, 15 Apr 2024 16:53:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A082386630;
+	Mon, 15 Apr 2024 17:36:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713199990; cv=none; b=Pci6F4BLaJbSnJCtfw0RQXSH2KUYyJg/21lTO4yrsWcG4PdkgGnPEYvuP/+7j09E07wDZ84S9ar0J8YslP2ZbZQHybKPSQPPcUvPo/j63eT8EdmWnlPjt3bi/NI9ZzQg/Bhp67eBLEvWNwstM+aRtMBsUtj0mcQORNPx13B7OsU=
+	t=1713202626; cv=none; b=m4eQ6SR7zHQL4WMM4wt71bfbtg7jo/Nqpnf9N+UnsMU++KZn/GzVMkT66KfZBqWD2R1kfNbFDg1ajhqrM9kViSwB8NcxE0zfNA92aoN8CeS7Do6fD5QeYXVm9s2fUtYtH7hhMXxexxko83dtLQypF29BEXr3mkqB5jwnxud3W4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713199990; c=relaxed/simple;
-	bh=xJZBsBz/ovkewwHaqkWgEKUCLl3sCJ9igaEyaiYi248=;
+	s=arc-20240116; t=1713202626; c=relaxed/simple;
+	bh=ugJ7VhityyPTecy8wf9JRI9YbfU9MGW+oLb8yf0nono=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=B+zQfhfRZUb683zSkhUtYDFDYn/bvHU6nvLZL6TLONTpV6+GTMtmLFwd9AK3LXvJ/wftAN3INL5I7WnAwUHy3VrvCfdXfEevTnNX4gH3SB+26f0OIpvHNk+s8Lk0xxcKmRCR/73S+WrBh2Rw8+05OleT1cTD3y6Eju4ShGk44SM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n9583Q6y; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n9583Q6y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57527C113CC;
-	Mon, 15 Apr 2024 16:52:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713199989;
-	bh=xJZBsBz/ovkewwHaqkWgEKUCLl3sCJ9igaEyaiYi248=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n9583Q6y/kVDUsC/Sk35DHsUlzQxomP4brOeJWEqMK5tTGdFfL5yXDBwNh/dc1R8t
-	 OnTvm1XERGxz1JxTUG2JWpufMQFhEpCf0upLztHBi97mz83HQzMB81Cj+bMHmQeLrO
-	 vdSyDt4foue7u5p0z1MAb6dHJ1a7FzO8x/EelybB33sZUvBK4gAoiim0DQVOThRBq2
-	 3ERPw7wOWw5Nw3DB6b+PtiKpkHgDPedzRaGZsUTWRIfT1yQsmJ+qNm4oAZ/M1rF747
-	 dHBdlhRGfIq7wIyTjPR6B4GdpTUD5V0JGj4lcLZS8oQu4cdKYlcTv5ldjuZ1AicK/r
-	 qCFC3y/AMEfuA==
-Date: Mon, 15 Apr 2024 19:51:52 +0300
-From: Mike Rapoport <rppt@kernel.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=lz398WWt3ASiObpqk1Z5cKfqqu9lzTk6vRmdOAFSzKUdkrUjXW7A99sMSDWgXkhb/WbdGPpGOV4HO4VOEtytUzYkyJL2VTeuFJWzpqgJbnt7xnGyy5Bt98pl8+nOQ+SpNYhzDXIQrbaUNXWMDOuS4D7dK4DnRuoS8T6E/JGVY/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 30ED11515;
+	Mon, 15 Apr 2024 10:37:23 -0700 (PDT)
+Received: from FVFF77S0Q05N.cambridge.arm.com (FVFF77S0Q05N.cambridge.arm.com [10.1.38.162])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6579A3F64C;
+	Mon, 15 Apr 2024 10:36:49 -0700 (PDT)
+Date: Mon, 15 Apr 2024 18:36:39 +0100
+From: Mark Rutland <mark.rutland@arm.com>
 To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
+Cc: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	"Bj\"orn T\"opel" <bjorn@kernel.org>,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Christophe Leroy <christophe.leroy@csgroup.eu>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -42,7 +35,6 @@ Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
 	Huacai Chen <chenhuacai@kernel.org>,
 	Kent Overstreet <kent.overstreet@linux.dev>,
 	Luis Chamberlain <mcgrof@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
 	Michael Ellerman <mpe@ellerman.id.au>,
 	Nadav Amit <nadav.amit@gmail.com>,
 	Palmer Dabbelt <palmer@dabbelt.com>,
@@ -60,7 +52,7 @@ Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
 	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
 	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
 Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
-Message-ID: <Zh1bKAaD7nLyJ9ya@kernel.org>
+Message-ID: <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
 References: <20240411160051.2093261-1-rppt@kernel.org>
  <20240411160051.2093261-6-rppt@kernel.org>
  <20240415075241.GF40213@noisy.programming.kicks-ass.net>
@@ -110,34 +102,39 @@ On Mon, Apr 15, 2024 at 09:52:41AM +0200, Peter Zijlstra wrote:
 > I'm thinking some platforms have a tiny immediate space (arm64 comes to
 > mind) and has less strict placement constraints for some of them?
 
-loongarch, mips, nios2 and sparc define modules address space different
-from vmalloc and use that for modules, kprobes and bpf (where supported).
+Yeah, and really I'd *much* rather deal with that in arch code, as I have said
+several times.
 
-parisc uses vmalloc range for everything, but it sets permissions to
-PAGE_KERNEL_RWX because it's PAGE_KERNEL_EXEC is read only and it lacks
-set_memory_* APIs.
+For arm64 we have two bsaic restrictions: 
 
-arm has an address space for modules, but it fall back to the entire
-vmalloc with CONFIG_ARM_MODULE_PLTS=y.
+1) Direct branches can go +/-128M
+   We can expand this range by having direct branches go to PLTs, at a
+   performance cost.
 
-arm64 uses different ranges for modules and bpf/kprobes. For kprobes it
-does vmalloc(PAGE_KERNEL_ROX) and for bpf just plain vmalloc().
-For modules arm64 first tries to allocated from 128M below kernel_end and
-if that fails it uses 2G below kernel_end as a fallback.
+2) PREL32 relocations can go +/-2G
+   We cannot expand this further.
 
-powerpc uses vmalloc space for everything for some configurations. For
-book3s-32 and 8xx it defines two ranges that are used for module text,
-kprobes and bpf and the module data can be allocated anywhere in vmalloc.
+* We don't need to allocate memory for ftrace. We do not use trampolines.
 
-riscv has an address space for modules, a different address space for bpf
-and uses vmalloc space for kprobes.
+* Kprobes XOL areas don't care about either of those; we don't place any
+  PC-relative instructions in those. Maybe we want to in future.
 
-s390 and x86 have modules address space and use that space for all
-executable allocations.
+* Modules care about both; we'd *prefer* to place them within +/-128M of all
+  other kernel/module code, but if there's no space we can use PLTs and expand
+  that to +/-2G. Since modules can refreence other modules, that ends up
+  actually being halved, and modules have to fit within some 2G window that
+  also covers the kernel.
 
-The EXECMEM_FTRACE type is only used on s390 and x86 and for now it's there
-more for completeness rather to denote special constraints or properties.
+* I'm not sure about BPF's requirements; it seems happy doing the same as
+  modules.
 
--- 
-Sincerely yours,
-Mike.
+So if we *must* use a common execmem allocator, what we'd reall want is our own
+types, e.g.
+
+	EXECMEM_ANYWHERE
+	EXECMEM_NOPLT
+	EXECMEM_PREL32
+
+... and then we use those in arch code to implement module_alloc() and friends.
+
+Mark.
