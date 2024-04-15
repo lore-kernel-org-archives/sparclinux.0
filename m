@@ -1,38 +1,38 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82052C868;
-	Mon, 15 Apr 2024 08:03:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54164F5F8;
+	Mon, 15 Apr 2024 09:37:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713168236; cv=none; b=HWF4GD2Lxmj906WHA4TLryPBM5gIvdUvuiItwD71mM4VcDQ83wv1Bl5lR7NGw8+RqugD1739KjaEOVObfqiQ52bEWok6yUlCSlWhHpiUH0QsCv7nS0kLb050/lDHRXrnWSbEHJC1KgpFIaYCYNvcEarSZfkBsAc8Sa7VDeStzIo=
+	t=1713173842; cv=none; b=pbQqkCTcje0HWDFhbzBqrEPHQx2b6HeINO5CanXLwM1bWOq8S/AnvHg5BTywTq4oVZIuv+g0aAFyPgGm1ErLhRzdEm94U+Ul/rOa5tgZ6AN6nuIdm1RQ4edWwkTcKC3acHEGvQH6tctxRJuQeFS9aX2K8LCuDJ1qnv/+zJYjQHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713168236; c=relaxed/simple;
-	bh=uAA0xNw3uXQEeAj18M82ry2VhWPmemP8F66GIQVJJSo=;
+	s=arc-20240116; t=1713173842; c=relaxed/simple;
+	bh=iWSAcKBzCT/GfR3CUsNAvXWE2GqvA4i8aFyoJ/HJFOE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rm+izJIVMHv2b3ER5HvDOyanVNOjJPEbRWmDw25wQYLRzjUVIhty5tPZDfEFNwdg7WAIW4XkyYwPmgQm1v2RQeRyaowT8067IkJ6Fz3Md4dWSuUpj4ds46VZ8tIywQoqCOsT1l6j+xmY+fSLxjcYxTOZx7GXLBZIzrcqfuxEjtM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=hKFfLh3Z; arc=none smtp.client-ip=90.155.50.34
+	 Content-Type:Content-Disposition:In-Reply-To; b=q2lNb9r/DxUP93+ofQORD7YKXJKeRsJoE/3dIqBgHS5rsnw59UpuUAiIXByBpnqgJJMx/UNjjt62ks4laRvVeCLv82IiHSQ4JB5dYZ8nLxD0+Up5pAjZ/soNov6lJiecpVMDpS8YICWGIy2cEgqWycZTJy7RywZeMzDIt2RR+4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WL3mGK96; arc=none smtp.client-ip=90.155.50.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="hKFfLh3Z"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WL3mGK96"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
 	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=SnC5QhRh3mlXbiY7BQLXM/Gh385CPpYbuU5jeG1ji44=; b=hKFfLh3ZzFSzJGPDsRiopYa0ZT
-	efNxCJqPzVqpITxLJsqCQRDO/uvf69qkc9BXqmWr7IXteAQce+itGNJYH8NcZtrv9mowEIaYK6OnE
-	zu1E4zjHKlTRzhIC1ZV1QOADiXZdrVLff1qYNP1JR24KuBKOy5EmbA81XuxsDuKJyy+iJ89PdOUI/
-	efJhNT73J6k+ohWLAe+NOaJ0tLI7iHDK5KHmXtq9go12IpYLvh58Vu6qfltj09NU88Ez/5/ao6M2e
-	ksvVbHfa9e2PLeJq7LlMBgltQx/i+r0JGyYLxMjQF0iD8WvUaOibeLqFhJKeJcs34Gs9iz6tlyZPZ
-	lKITRWCQ==;
+	bh=gJURSN8ZhZs54MX6UPe8WS991KHmcU3CMSr/wsPBYas=; b=WL3mGK96b4dqocWg2WT6S+o3Lh
+	6R4hcBA6RfcHuQQK7isTyMyXCwDos8Q1HdHKBvnc80dazhTsMKZZh+HOA+2p3MytoMgm0z79fe1lO
+	6VNzmYAbfQ0K4rY/gTJDrpu5Cj+twK8P8H6r2xTaYF5wANkZ19gJAqZM8x7uwfcFkyoEWlipCNTWk
+	6fylSl1gmglon4eNg+zb/yC04zTO/2Lfq8d+LNZPMMi03er3jB/2uzdVHk4Db9ls69FN+sjSeErGv
+	ir1OIAWRPD8gvlVd9eQwbdsiTncbhidLvva928W/3FSV8BR+sXBV2NxpcV2Vc46i56RkcJA4zwnpr
+	gpLaCNRw==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
 	by casper.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rwHJC-0000000FFhi-3aDy;
-	Mon, 15 Apr 2024 08:03:22 +0000
+	id 1rwIlk-0000000FOjV-0IDN;
+	Mon, 15 Apr 2024 09:36:56 +0000
 Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
-	id 12C5730040C; Mon, 15 Apr 2024 10:03:22 +0200 (CEST)
-Date: Mon, 15 Apr 2024 10:03:21 +0200
+	id B1DC030040C; Mon, 15 Apr 2024 11:36:55 +0200 (CEST)
+Date: Mon, 15 Apr 2024 11:36:55 +0200
 From: Peter Zijlstra <peterz@infradead.org>
 To: Mike Rapoport <rppt@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
@@ -65,11 +65,11 @@ Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
 	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
 	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v4 06/15] mm/execmem, arch: convert simple overrides of
- module_alloc to execmem
-Message-ID: <20240415080321.GG40213@noisy.programming.kicks-ass.net>
+Subject: Re: [PATCH v4 07/15] mm/execmem, arch: convert remaining overrides
+ of module_alloc to execmem
+Message-ID: <20240415093655.GH40213@noisy.programming.kicks-ass.net>
 References: <20240411160051.2093261-1-rppt@kernel.org>
- <20240411160051.2093261-7-rppt@kernel.org>
+ <20240411160051.2093261-8-rppt@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -78,116 +78,52 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240411160051.2093261-7-rppt@kernel.org>
+In-Reply-To: <20240411160051.2093261-8-rppt@kernel.org>
 
-On Thu, Apr 11, 2024 at 07:00:42PM +0300, Mike Rapoport wrote:
-> +static struct execmem_info execmem_info __ro_after_init = {
-> +	.ranges = {
-> +		[EXECMEM_DEFAULT] = {
-> +			.start = MODULES_VADDR,
-> +			.end = MODULES_END,
-> +			.alignment = 1,
-> +		},
-> +	},
-> +};
-> +
-> +struct execmem_info __init *execmem_arch_setup(void)
->  {
-> +	execmem_info.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
-> +
-> +	return &execmem_info;
->  }
+On Thu, Apr 11, 2024 at 07:00:43PM +0300, Mike Rapoport wrote:
 
 > +static struct execmem_info execmem_info __ro_after_init = {
 > +	.ranges = {
 > +		[EXECMEM_DEFAULT] = {
-> +			.start = MODULES_VADDR,
-> +			.end = MODULES_END,
-> +			.pgprot = PAGE_KERNEL_EXEC,
-> +			.alignment = 1,
+> +			.flags = EXECMEM_KASAN_SHADOW,
+> +			.alignment = MODULE_ALIGN,
 > +		},
 > +	},
 > +};
-> +
+>  
 > +struct execmem_info __init *execmem_arch_setup(void)
 >  {
-> +	return &execmem_info;
->  }
-
-> +static struct execmem_info execmem_info __ro_after_init = {
-> +	.ranges = {
-> +		[EXECMEM_DEFAULT] = {
-> +			.pgprot = PAGE_KERNEL_RWX,
-> +			.alignment = 1,
-> +		},
-> +	},
-> +};
-> +
-> +struct execmem_info __init *execmem_arch_setup(void)
->  {
-> +	execmem_info.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
-> +	execmem_info.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
-> +
-> +	return &execmem_info;
->  }
-
-> +static struct execmem_info execmem_info __ro_after_init = {
-> +	.ranges = {
-> +		[EXECMEM_DEFAULT] = {
-> +			.pgprot = PAGE_KERNEL,
-> +			.alignment = 1,
-> +		},
-> +	},
-> +};
-> +
-> +struct execmem_info __init *execmem_arch_setup(void)
->  {
-> +	execmem_info.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
+> +	unsigned long start, offset = 0;
+>  
+> +	if (kaslr_enabled())
+> +		offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+>  
+> +	start = MODULES_VADDR + offset;
+> +	execmem_info.ranges[EXECMEM_DEFAULT].start = start;
 > +	execmem_info.ranges[EXECMEM_DEFAULT].end = MODULES_END;
-> +
-> +	return &execmem_info;
->  }
-
-> +static struct execmem_info execmem_info __ro_after_init = {
-> +	.ranges = {
-> +		[EXECMEM_DEFAULT] = {
->  #ifdef CONFIG_SPARC64
-> +			.start = MODULES_VADDR,
-> +			.end = MODULES_END,
->  #else
-> +			.start = VMALLOC_START,
-> +			.end = VMALLOC_END,
-> +#endif
-> +			.alignment = 1,
-> +		},
-> +	},
-> +};
-> +
-> +struct execmem_info __init *execmem_arch_setup(void)
->  {
 > +	execmem_info.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
 >  
 > +	return &execmem_info;
 >  }
 
-I'm amazed by the weird and inconsistent breakup of initializations.
-
-What exactly is wrong with something like:
-
-static struct execmem_info execmem_info __ro_after_init;
-
 struct execmem_info __init *execmem_arch_setup(void)
 {
+	unsigned long offset = 0;
+
+	if (kaslr_enabled())
+		offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+
 	execmem_info = (struct execmem_info){
 		.ranges = {
 			[EXECMEM_DEFAULT] = {
-				.start	= MODULES_VADDR,
-				.end	= MODULES_END,
-				.pgprot	= PAGE_KERNEL,
+				.start     = MODULES_VADDR + offset,
+				.end       = MODULES_END,
+				.pgprot    = PAGE_KERNEL,
+				.flags     = EXECMEM_KASAN_SHADOW,
 				.alignment = 1,
 			},
 		},
 	};
+
 	return &execmem_info;
 }
-
