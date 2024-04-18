@@ -1,85 +1,202 @@
-Received: from smtpbgbr2.qq.com (smtpbgbr2.qq.com [54.207.22.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159C915E5CE;
-	Thu, 18 Apr 2024 10:50:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.22.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B5616C6B2;
+	Thu, 18 Apr 2024 15:37:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713437462; cv=none; b=hylpwdp5Nmazadiy0OgZjvezRkcTczcn4uaMWnF/kjSgU2QdXoeHi2tN8eSd2zE/dz2dVfWzWubYQ5JUIYj49c+2MmnxHf5xCVgWkkCA8NCzEFMTd0ALezpgolBY9i3Fsb4LycBj8iimo49r5xYOwv7pb9ZccsXke9CSjybAigI=
+	t=1713454627; cv=none; b=EjsNuF/e3w8gwcWSe5prn/SOCOKoMzrSXPVzcmHEgb7phSP9Hf2cHHUXuXjcY99tQuuknSehA+9ts4b/VehqPGs10AzLz+w8RvpyL/igJNXIivbHvvHM9YMRV/OyOdPVZbwp015fcNi6m4f2nWG8ZUfOb1dh7CgOeVysTiWlzCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713437462; c=relaxed/simple;
-	bh=WBVRxLIdWKwIhWvkYX40p+kNDCgLtSNi083tiZeIF84=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=fnRGtYme9OVMocRXu5P/61iDzIDzpyYMKdc05qVxdV/JEflcRHKX4Rih3BUoAIOBoq82/O9r42rEkkUzQJJhkvMS0oHzxfbebZw6XDPiBppb6nzcum53yrE+y/BFzvvbBFWyGu1htL9n06V+SGyNaouJRJF6SmSSorVzGE//ee0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.207.22.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtp84t1713437427tx0r3mqm
-X-QQ-Originating-IP: rYl7aVSFMInFEJldnKJN23SbhrmIjafTmB1/3rjQe6U=
-Received: from localhost ( [112.0.147.129])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 18 Apr 2024 18:50:26 +0800 (CST)
-X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: W+onFc5Tw4NcMRc6QjsEEEWUHz1Dtd6wntwnHBFMv84a1FNBfmtd9FZStN0R2
-	pRuiVh5Lt5J9wTXP4CQmlu//N65YJM560JYcenFgkSZ05ACquRteIQyqZt1kfSIv4ssg1ay
-	krqKI7k0wgODYU+qmaUu7fRFfxU1JW/zuD17MH8q1dH++dnPS5aeboX1rlXwNgZjUC5HgvB
-	0ulamcokuYP3VI82BzrOpn1EyPKaOOQSyxtZot6ZPtCw4Wzw6e3WRcCT+jMctf2mGslBL58
-	WaDY4mt3Zyk+QPpmu9Q3FkB/OcGubiqIxXVxwTrbOpcTeJTKYWc6EH97Xmji9YyYvo77Fdj
-	hU/7frTVLIfTSI0j1/j8+gyNXLmO79tUHpXe+HLldtbKd0RQ4P4mPvauZ0x9Q4cS9Yb3Yjh
-	giPuUAwE5DZckGRWffT69w==
-X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 17361949652161301272
-From: Dawei Li <dawei.li@shingroup.cn>
-To: davem@davemloft.net,
-	andreas@gaisler.com
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH 5/5] sparc: Remove on-stack cpumask var
-Date: Thu, 18 Apr 2024 18:49:49 +0800
-Message-Id: <20240418104949.3606645-6-dawei.li@shingroup.cn>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20240418104949.3606645-1-dawei.li@shingroup.cn>
-References: <20240418104949.3606645-1-dawei.li@shingroup.cn>
+	s=arc-20240116; t=1713454627; c=relaxed/simple;
+	bh=/6e7koqBjxGvjgcyfyqozsKjWrzhFa989KlG6h+G83A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=h/O/9YP2XAw2VJx+ElzT1qWtTQidbE/OLxYy6Fzyo9F5B7biSUsL6bqeMzZSKjn7InQ4yAMugzGRAvatMWtdbH7T/vaU6jJCiKgAeMxOAXvruBfYx1zX6hNrABOkKWwNKsYy+mDa7efNr9gRlbw1Gv6fJXr+zGrLrKj33ePkgk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aeWcQxDn; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aeWcQxDn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19B5DC113CC;
+	Thu, 18 Apr 2024 15:36:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713454626;
+	bh=/6e7koqBjxGvjgcyfyqozsKjWrzhFa989KlG6h+G83A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=aeWcQxDnlnHobtWl/wSsLjnz0sXveyb3C9ZWUzhRio2isgl/ECkWL5MfHpcmEMTW7
+	 /3gTsH9zle5F7iUK2MtYGoEYVXSVNBMbfrRBJdAbuLXT5C4Rci/tim3vMb2/HkXNT3
+	 0BdaT4fZ5qEwRw4j04psUJzOpDE+rRKi3VjZ9pFXSPLklZtfjmSfaFH4UR8286lGH5
+	 60/sHoFS02dtG3EW7cMEMNkjH3P1jYGW/oaOVey/LIzfE2ojr8NLFIf5bqbQCitx7d
+	 hsc5w5cHL6aJI5zSA/0oAAIzFKyYOhtBXIDwcp4O2/SqIU/0gLgXdRamRK8O7d7lre
+	 JIoqk7vYwCgbA==
+Date: Thu, 18 Apr 2024 18:35:48 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Song Liu <song@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+	Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bjorn Topel <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Puranjay Mohan <puranjay12@gmail.com>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
+Message-ID: <ZiE91CJcNw7gBj9g@kernel.org>
+References: <20240411160051.2093261-1-rppt@kernel.org>
+ <20240411160051.2093261-6-rppt@kernel.org>
+ <20240415075241.GF40213@noisy.programming.kicks-ass.net>
+ <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
+ <Zh4nJp8rv1qRBs8m@kernel.org>
+ <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
+In-Reply-To: <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
 
-In general it's preferable to avoid placing cpumasks on the stack, as
-for large values of NR_CPUS these can consume significant amounts of
-stack space and make stack overflows more likely.
+On Wed, Apr 17, 2024 at 04:32:49PM -0700, Song Liu wrote:
+> On Tue, Apr 16, 2024 at 12:23 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > On Mon, Apr 15, 2024 at 06:36:39PM +0100, Mark Rutland wrote:
+> > > On Mon, Apr 15, 2024 at 09:52:41AM +0200, Peter Zijlstra wrote:
+> > > > On Thu, Apr 11, 2024 at 07:00:41PM +0300, Mike Rapoport wrote:
+> > > > > +/**
+> > > > > + * enum execmem_type - types of executable memory ranges
+> > > > > + *
+> > > > > + * There are several subsystems that allocate executable memory.
+> > > > > + * Architectures define different restrictions on placement,
+> > > > > + * permissions, alignment and other parameters for memory that can be used
+> > > > > + * by these subsystems.
+> > > > > + * Types in this enum identify subsystems that allocate executable memory
+> > > > > + * and let architectures define parameters for ranges suitable for
+> > > > > + * allocations by each subsystem.
+> > > > > + *
+> > > > > + * @EXECMEM_DEFAULT: default parameters that would be used for types that
+> > > > > + * are not explcitly defined.
+> > > > > + * @EXECMEM_MODULE_TEXT: parameters for module text sections
+> > > > > + * @EXECMEM_KPROBES: parameters for kprobes
+> > > > > + * @EXECMEM_FTRACE: parameters for ftrace
+> > > > > + * @EXECMEM_BPF: parameters for BPF
+> > > > > + * @EXECMEM_TYPE_MAX:
+> > > > > + */
+> > > > > +enum execmem_type {
+> > > > > + EXECMEM_DEFAULT,
+> > > > > + EXECMEM_MODULE_TEXT = EXECMEM_DEFAULT,
+> > > > > + EXECMEM_KPROBES,
+> > > > > + EXECMEM_FTRACE,
+> > > > > + EXECMEM_BPF,
+> > > > > + EXECMEM_TYPE_MAX,
+> > > > > +};
+> > > >
+> > > > Can we please get a break-down of how all these types are actually
+> > > > different from one another?
+> > > >
+> > > > I'm thinking some platforms have a tiny immediate space (arm64 comes to
+> > > > mind) and has less strict placement constraints for some of them?
+> > >
+> > > Yeah, and really I'd *much* rather deal with that in arch code, as I have said
+> > > several times.
+> > >
+> > > For arm64 we have two bsaic restrictions:
+> > >
+> > > 1) Direct branches can go +/-128M
+> > >    We can expand this range by having direct branches go to PLTs, at a
+> > >    performance cost.
+> > >
+> > > 2) PREL32 relocations can go +/-2G
+> > >    We cannot expand this further.
+> > >
+> > > * We don't need to allocate memory for ftrace. We do not use trampolines.
+> > >
+> > > * Kprobes XOL areas don't care about either of those; we don't place any
+> > >   PC-relative instructions in those. Maybe we want to in future.
+> > >
+> > > * Modules care about both; we'd *prefer* to place them within +/-128M of all
+> > >   other kernel/module code, but if there's no space we can use PLTs and expand
+> > >   that to +/-2G. Since modules can refreence other modules, that ends up
+> > >   actually being halved, and modules have to fit within some 2G window that
+> > >   also covers the kernel.
+> 
+> Is +/- 2G enough for all realistic use cases? If so, I guess we don't
+> really need
+> EXECMEM_ANYWHERE below?
+> 
+> > >
+> > > * I'm not sure about BPF's requirements; it seems happy doing the same as
+> > >   modules.
+> >
+> > BPF are happy with vmalloc().
+> >
+> > > So if we *must* use a common execmem allocator, what we'd reall want is our own
+> > > types, e.g.
+> > >
+> > >       EXECMEM_ANYWHERE
+> > >       EXECMEM_NOPLT
+> > >       EXECMEM_PREL32
+> > >
+> > > ... and then we use those in arch code to implement module_alloc() and friends.
+> >
+> > I'm looking at execmem_types more as definition of the consumers, maybe I
+> > should have named the enum execmem_consumer at the first place.
+> 
+> I think looking at execmem_type from consumers' point of view adds
+> unnecessary complexity. IIUC, for most (if not all) archs, ftrace, kprobe,
+> and bpf (and maybe also module text) all have the same requirements.
+> Did I miss something?
 
-Since the cpumask var resides in __init function, which means it's free
-of any concurrenct access, it can be safely marked with static to get
-rid of allocation on stack.
+It's enough to have one architecture with different constrains for kprobes
+and bpf to warrant a type for each.
 
-while at it, mark it with __initdata to keep it from persistently
-consumed memory.
-
-Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
----
- arch/sparc/mm/init_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 1ca9054d9b97..088d9c103dcc 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1438,7 +1438,7 @@ static int __init numa_attach_mlgroup(struct mdesc_handle *md, u64 grp,
- static int __init numa_parse_mdesc_group(struct mdesc_handle *md, u64 grp,
- 					 int index)
- {
--	cpumask_t mask;
-+	static cpumask_t mask __initdata;
- 	int cpu;
+Where do you see unnecessary complexity?
  
- 	numa_parse_mdesc_group_cpus(md, grp, &mask);
--- 
-2.27.0
+> IOW, we have
+> 
+> enum execmem_type {
+>         EXECMEM_DEFAULT,
+>         EXECMEM_TEXT,
+>         EXECMEM_KPROBES = EXECMEM_TEXT,
+>         EXECMEM_FTRACE = EXECMEM_TEXT,
+>         EXECMEM_BPF = EXECMEM_TEXT,      /* we may end up without
+> _KPROBE, _FTRACE, _BPF */
+>         EXECMEM_DATA,  /* rw */
+>         EXECMEM_RO_DATA,
+>         EXECMEM_RO_AFTER_INIT,
+>         EXECMEM_TYPE_MAX,
+> };
+> 
+> Does this make sense?
+ 
+How do you suggest to deal with e.g. riscv that has separate address spaces
+for modules, kprobes and bpf?
 
+> Thanks,
+> Song
+
+-- 
+Sincerely yours,
+Mike.
