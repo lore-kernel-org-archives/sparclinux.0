@@ -1,199 +1,187 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f52.google.com (mail-vs1-f52.google.com [209.85.217.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10AE38004A;
-	Wed, 17 Apr 2024 23:33:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D5F15AAAD;
+	Thu, 18 Apr 2024 09:55:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713396784; cv=none; b=tStEU1qZ3kPrUPt4zO2FXdihlFei6FjD0B7bp6AF4aFqa8loJsyyEiDZ9bwaVQizWc+Gyn9cZudEgKIXgJFKeLBxr4gm9+zCi8JB/wmFRXpVNXDYKJ3Fa8RUol4F1DJw95aPiD4F4oGxI3DN0un9ZLK8sxda7khEFwYtjY9R0/8=
+	t=1713434121; cv=none; b=gd4sE74m3uDLMsJW+NHA+OPxmJw3Ptg7H8bMgYcaBMm3CfE3XFinL3OOhC7V4BHE4lk1VK5MlfuTvoohG8+Af8eqLVj0LWemGiCufaTval5sxkaFi3wEMjYIrWwiqQpif5kZ/JezPcd7m7KjTiWXfU3cJqoLGk42GExZZ4qODX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713396784; c=relaxed/simple;
-	bh=UVEJ59zmDjoboUO24xHkWUbtsfOaV4nMW96i+du0QWo=;
+	s=arc-20240116; t=1713434121; c=relaxed/simple;
+	bh=3O4VXBmq13hTwbbI7YnN0BOaaWIeJbncdRXQP4KB/68=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hD+sh86VP2lCUppSurKD/L+rUY8cfZvRrMZUmdGsKcHdRpy92xeEQMLXVngZYg1M372dbwOIOli+rjcX/qwOmPWC2CXT2pbmYmwkMbf/QVmu408XchGLSPtmJSX1h7DzIPdWLqPzu5msbdk/LP1Tims5JIGYosyhge3mjQMIvGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g9dcUgih; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=eW6c7ABlzOiCFQns+g9tQMnmutKkTKkDCgwsCncrUNjWgK5nWnnLAIHPPT202F3aKIlJAOSfOQfzmwHdb2+ifATua0O9Opt/IKlY6Ys+i2ocGQb6dx62aOPkTVAnfwwksXDoqXaP+36Xgjh+I44k9CBzBlhX7Sv9L3cI3cK/uCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZldljFQX; arc=none smtp.client-ip=209.85.217.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g9dcUgih"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E66C2BD11;
-	Wed, 17 Apr 2024 23:33:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713396782;
-	bh=UVEJ59zmDjoboUO24xHkWUbtsfOaV4nMW96i+du0QWo=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=g9dcUgihUruqLdH2UkphJBhOp4CI2upjvdLl3d3rVz9siUPLfDQYchyou7LXngIUI
-	 cWzssC+Ais5exj0vlxdgkfD0UISDabYE9ps2nLAsnUvPuJqZuWrDEKlEQm/130dxlJ
-	 TrDcK7sck1xghtXie5KS50aVdgaMGiZE0PmL7090xIdMdRRtto0B1IoLe8MFPUV77p
-	 MjHgPTklEJZLkSAT7P4KNSPweSGMUIkieLAdyvPoe4eF1OoYaNQIWGFhr3Y6mGm6h+
-	 jJ7M8h436v/tDSG5Z2WP2ZPQpJ7Xt9Fh8ZQRH+KDS3CTVxJrkYmgSzmsULNtE2/7ia
-	 VcpAfL6YqmCUQ==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-518931f8d23so181559e87.3;
-        Wed, 17 Apr 2024 16:33:02 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWU+Mf3njgqRifWxHNpROfCS/UruBBh8dyGnOStdbmcfQ1BA9TTxFeQZdcP/NktvCH9tRvk1GBXhEnQ2/Id0n1nOAs1N5KzdtGf38Ohka637wbiMGMiwxcUEx8ULsm3PjZvZ7PEP7eR5MfYnqTqQnCJxSJMNOZjKdGP7f21H7fJENmcgHGWiTS+nQor5G1Zoydv+JRjRyXK3Y+sniFHtakwH+szWz+/xo7xbh5c2S+4XHf/8ERz1U6Viutvs1sSGfogDyA5Ugcu0XyAcMAOZd63H5JW3JkcosODo9URBruOpi9rnIJON0yn5nwZtipqIcfT1wqJ5XRDtBfCsSi4FRjbvwoox2BI/7N5bh8SRp4o5AEvUvIewouxPYy0FxtwnBdtn9/ju33Cc+RjExNDt6BocTVAmFtotyjmzPDTICgvOabDu1BU1vVbUWk=
-X-Gm-Message-State: AOJu0Yxp3ZJcwr3NGUg945EqKE2eQ6SFNdNTi+8iMeKrnZK6kQzGpujY
-	QXpq+nG8gzn9qAhGZ/VNMh1jqtO+K9ut5wM42wMW9u9csx75aIvPH9fMyD7Oy7nwS3xLPFU3Qw6
-	8AfGAYq/KVgTrYxBdx/hr/fFXt98=
-X-Google-Smtp-Source: AGHT+IEHuhOgcI3i5xgKWDt/RXWKyZ/pV78ei3ikSzZKT8X4nbojHe59GGn0FqOU5qFFQVvC8y10X+N0SPB8sxHbE0Q=
-X-Received: by 2002:a05:6512:3184:b0:519:b95:22b5 with SMTP id
- i4-20020a056512318400b005190b9522b5mr446945lfe.51.1713396780753; Wed, 17 Apr
- 2024 16:33:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZldljFQX"
+Received: by mail-vs1-f52.google.com with SMTP id ada2fe7eead31-479dd0261c8so794959137.0;
+        Thu, 18 Apr 2024 02:55:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713434119; x=1714038919; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=23lIG3TvMr9vKJrzIXmok+99Y+uLlvdIb8Z9VEsm6UA=;
+        b=ZldljFQXX26Hob/f/y/waUER6JboYUBDfR2j6yXqNHrlnWlF+e+QdL3ipdOGeVTG+a
+         5UfuGBRVZ4VGkHdmt8w4KVnlt2kpW5g9MwyGd+q/GT8hnQtWP+hETtQXN0mQQyek+2oN
+         ltkMSC6bv/H5+DO5BFLlBkEvfOQzlhNRU2o1gmO8LNZDoE971zQ3YWUrNvZtrDkbVRAT
+         1cxvKh8TA7iY96I6y4d8kcRshTXkQCis7RcNzpkBqdDeyDbiPDoAKfFsDAmGneWLNnVK
+         iVVGXSUlsIfLJ2moy0EZ/13IjeyzLmLe1fxbrNW1zsDFERb1FvPxdRt/WZJGiLBqKFF1
+         gtzQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713434119; x=1714038919;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=23lIG3TvMr9vKJrzIXmok+99Y+uLlvdIb8Z9VEsm6UA=;
+        b=oFshnPRAS4ye2VsN1lZBZjJOA57Qzi5kt5lakdTFGwOYW+mjDuSomY39EQ/uVGTUz9
+         HoSXsbOZfxndN+O/ucVsfL252lY2xllPi9cZm7/2B/dwYxS2wYOtXY46FeQ8KNg1YnxF
+         bLdl1a5gKajve74/sPSunP3CbnXawgu6YykohYEAvDf97awWD3I+KYYFg2aT2pnK+EaI
+         d/OiGHDSA183fXjDTt03X7nFMD5tIGmYqyhcLSW/9U9swxWR0kVVs8l34nL6ksa4LFjJ
+         7iD5jGr9tB4hKxOXM8bencylgWZpRp61K8+JM/VteNRgHrtM4Q/JtVwiwaA+t8xpYRA+
+         IUPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVmCk3yHCIcQ0c/wXGfYbvg6rXfLVwg2Y0aPPMyR+z2XjH6iC+7J4IbbYy+m0sh27FeuJs2LSdTF/dokr0vwhD2Lz7x3NhB/9GnI43Nm1jsYijfHmvZSEClYM6dT5ZNcc0BltAjTCR1fA==
+X-Gm-Message-State: AOJu0YzWlCPXwdisROzs5tpf5HXEnclf+bJrJlW8tvyD5oKlIK00aSh1
+	cYfB4UbY+x+HRoDzNUfWE8ZlyFNRqQOhmOEIJI7WLdYZh3VPy7fMVzabKGrUD0ikOkjmcAg9fj+
+	1X/GpKclqhTg0vFdjuyXO+cubVx8=
+X-Google-Smtp-Source: AGHT+IHGbdjFtzwMlZyafVRC/B4/XYa6y0rqJeTmsifzombtE+Knj8iAIOzodI0FPv9LCko1GnibHJF+bInK7wUSYo8=
+X-Received: by 2002:a05:6102:3b8a:b0:47b:beaf:b4d1 with SMTP id
+ z10-20020a0561023b8a00b0047bbeafb4d1mr750162vsu.14.1713434119202; Thu, 18 Apr
+ 2024 02:55:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240411160051.2093261-1-rppt@kernel.org> <20240411160051.2093261-6-rppt@kernel.org>
- <20240415075241.GF40213@noisy.programming.kicks-ass.net> <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
- <Zh4nJp8rv1qRBs8m@kernel.org>
-In-Reply-To: <Zh4nJp8rv1qRBs8m@kernel.org>
-From: Song Liu <song@kernel.org>
-Date: Wed, 17 Apr 2024 16:32:49 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
-Message-ID: <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
-Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Peter Zijlstra <peterz@infradead.org>, 
-	linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, Bjorn Topel <bjorn@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	"David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, 
-	Donald Dutile <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>, 
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
-	Kent Overstreet <kent.overstreet@linux.dev>, Luis Chamberlain <mcgrof@kernel.org>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Puranjay Mohan <puranjay12@gmail.com>, 
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, Russell King <linux@armlinux.org.uk>, 
-	Steven Rostedt <rostedt@goodmis.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, bpf@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-modules@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+References: <20240409082631.187483-1-21cnbao@gmail.com> <20240409082631.187483-5-21cnbao@gmail.com>
+ <87frvn2f89.fsf@yhuang6-desk2.ccr.corp.intel.com> <CAGsJ_4x_bOchG=bJjR8WE=vQxu3ke8fkxcDOFhqX5FS_a-0heA@mail.gmail.com>
+ <8734rm2gdj.fsf@yhuang6-desk2.ccr.corp.intel.com> <CAGsJ_4xHVN_QXu5Q8c_FcjsnffZYWsjOx4KR4G_2GNyaxfVWAw@mail.gmail.com>
+In-Reply-To: <CAGsJ_4xHVN_QXu5Q8c_FcjsnffZYWsjOx4KR4G_2GNyaxfVWAw@mail.gmail.com>
+From: Barry Song <21cnbao@gmail.com>
+Date: Thu, 18 Apr 2024 21:55:07 +1200
+Message-ID: <CAGsJ_4yOrn3OP-jP+hZxrb__AarK+U7Pc15z0XmQ26RmT7h8xQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/5] mm: swap: entirely map large folios found in swapcache
+To: "Huang, Ying" <ying.huang@intel.com>, Khalid Aziz <khalid.aziz@oracle.com>, 
+	sparclinux@vger.kernel.org
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, 
+	baolin.wang@linux.alibaba.com, chrisl@kernel.org, david@redhat.com, 
+	hanchuanhua@oppo.com, hannes@cmpxchg.org, hughd@google.com, 
+	kasong@tencent.com, ryan.roberts@arm.com, surenb@google.com, 
+	v-songbaohua@oppo.com, willy@infradead.org, xiang@kernel.org, 
+	yosryahmed@google.com, yuzhao@google.com, ziy@nvidia.com, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 16, 2024 at 12:23=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wr=
-ote:
->
-> On Mon, Apr 15, 2024 at 06:36:39PM +0100, Mark Rutland wrote:
-> > On Mon, Apr 15, 2024 at 09:52:41AM +0200, Peter Zijlstra wrote:
-> > > On Thu, Apr 11, 2024 at 07:00:41PM +0300, Mike Rapoport wrote:
-> > > > +/**
-> > > > + * enum execmem_type - types of executable memory ranges
-> > > > + *
-> > > > + * There are several subsystems that allocate executable memory.
-> > > > + * Architectures define different restrictions on placement,
-> > > > + * permissions, alignment and other parameters for memory that can=
- be used
-> > > > + * by these subsystems.
-> > > > + * Types in this enum identify subsystems that allocate executable=
- memory
-> > > > + * and let architectures define parameters for ranges suitable for
-> > > > + * allocations by each subsystem.
-> > > > + *
-> > > > + * @EXECMEM_DEFAULT: default parameters that would be used for typ=
-es that
-> > > > + * are not explcitly defined.
-> > > > + * @EXECMEM_MODULE_TEXT: parameters for module text sections
-> > > > + * @EXECMEM_KPROBES: parameters for kprobes
-> > > > + * @EXECMEM_FTRACE: parameters for ftrace
-> > > > + * @EXECMEM_BPF: parameters for BPF
-> > > > + * @EXECMEM_TYPE_MAX:
-> > > > + */
-> > > > +enum execmem_type {
-> > > > + EXECMEM_DEFAULT,
-> > > > + EXECMEM_MODULE_TEXT =3D EXECMEM_DEFAULT,
-> > > > + EXECMEM_KPROBES,
-> > > > + EXECMEM_FTRACE,
-> > > > + EXECMEM_BPF,
-> > > > + EXECMEM_TYPE_MAX,
-> > > > +};
+[snip]
+
+> > >> >
+> > >> >       VM_BUG_ON(!folio_test_anon(folio) ||
+> > >> >                       (pte_write(pte) && !PageAnonExclusive(page)));
+> > >> > -     set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
+> > >> > -     arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
+> > >> > +     set_ptes(vma->vm_mm, start_address, start_pte, pte, nr_pages);
+> > >> > +     vmf->orig_pte = ptep_get(vmf->pte);
+> > >> > +     arch_do_swap_page(vma->vm_mm, vma, start_address, pte, pte);
+> > >>
+> > >> Do we need to call arch_do_swap_page() for each subpage?  IIUC, the
+> > >> corresponding arch_unmap_one() will be called for each subpage.
 > > >
-> > > Can we please get a break-down of how all these types are actually
-> > > different from one another?
+> > > i actually thought about this very carefully, right now, the only one who
+> > > needs this is sparc and it doesn't support THP_SWAPOUT at all. and
+> > > there is no proof doing restoration one by one won't really break sparc.
+> > > so i'd like to defer this to when sparc really needs THP_SWAPOUT.
+> >
+> > Let's ask SPARC developer (Cced) for this.
+> >
+> > IMHO, even if we cannot get help, we need to change code with our
+> > understanding instead of deferring it.
+>
+> ok. Thanks for Ccing sparc developers.
+
+Hi Khalid & Ying (also Cced sparc maillist),
+
+SPARC is the only platform which needs arch_do_swap_page(), right now,
+its THP_SWAPOUT is not enabled. so we will not really hit a large folio
+in swapcache. just in case you might need THP_SWAPOUT later, i am
+changing the code as below,
+
+@@ -4286,7 +4285,11 @@ vm_fault_t do_swap_page(struct vm_fault *vmf)
+        VM_BUG_ON(!folio_test_anon(folio) ||
+                        (pte_write(pte) && !PageAnonExclusive(page)));
+        set_ptes(vma->vm_mm, start_address, start_ptep, pte, nr_pages);
+-       arch_do_swap_page(vma->vm_mm, vma, start_address, pte, pte);
++       for (int i = 0; i < nr_pages; i++) {
++               arch_do_swap_page(vma->vm_mm, vma, start_address + i *
+PAGE_SIZE,
++                                 pte, pte);
++               pte = pte_advance_pfn(pte, 1);
++       }
+
+        folio_unlock(folio);
+        if (folio != swapcache && swapcache) {
+
+for sparc, nr_pages will always be 1(THP_SWAPOUT not enabled). for
+arm64/x86/riscv,
+it seems redundant to do a for loop "for (int i = 0; i < nr_pages; i++)".
+
+so another option is adding a helper as below to avoid the idle loop
+for arm64/x86/riscv etc.
+
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index e2f45e22a6d1..ea314a5f9b5e 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -1085,6 +1085,28 @@ static inline void arch_do_swap_page(struct
+mm_struct *mm,
+ {
+
+ }
++
++static inline void arch_do_swap_page_nr(struct mm_struct *mm,
++                                    struct vm_area_struct *vma,
++                                    unsigned long addr,
++                                    pte_t pte, pte_t oldpte,
++                                    int nr)
++{
++
++}
++#else
++static inline void arch_do_swap_page_nr(struct mm_struct *mm,
++                                    struct vm_area_struct *vma,
++                                    unsigned long addr,
++                                    pte_t pte, pte_t oldpte,
++                                    int nr)
++{
++       for (int i = 0; i < nr; i++) {
++               arch_do_swap_page(vma->vm_mm, vma, addr + i * PAGE_SIZE,
++                                pte_advance_pfn(pte, i),
++                                pte_advance_pfn(oldpte, i));
++       }
++}
+ #endif
+
+Please tell me your preference.
+
+BTW, i found oldpte and pte are always same in do_swap_page(), is it
+something wrong? does arch_do_swap_page() really need two same
+arguments?
+
+
+vmf->orig_pte = pte;
+...
+arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
+
+
+>
+> >
+> > > on the other hand, it seems really bad we have both
+> > > arch_swap_restore  - for this, arm64 has moved to using folio
+> > > and
+> > > arch_do_swap_page
 > > >
-> > > I'm thinking some platforms have a tiny immediate space (arm64 comes =
-to
-> > > mind) and has less strict placement constraints for some of them?
-> >
-> > Yeah, and really I'd *much* rather deal with that in arch code, as I ha=
-ve said
-> > several times.
-> >
-> > For arm64 we have two bsaic restrictions:
-> >
-> > 1) Direct branches can go +/-128M
-> >    We can expand this range by having direct branches go to PLTs, at a
-> >    performance cost.
-> >
-> > 2) PREL32 relocations can go +/-2G
-> >    We cannot expand this further.
-> >
-> > * We don't need to allocate memory for ftrace. We do not use trampoline=
-s.
-> >
-> > * Kprobes XOL areas don't care about either of those; we don't place an=
-y
-> >   PC-relative instructions in those. Maybe we want to in future.
-> >
-> > * Modules care about both; we'd *prefer* to place them within +/-128M o=
-f all
-> >   other kernel/module code, but if there's no space we can use PLTs and=
- expand
-> >   that to +/-2G. Since modules can refreence other modules, that ends u=
-p
-> >   actually being halved, and modules have to fit within some 2G window =
-that
-> >   also covers the kernel.
+> > > we should somehow unify them later if sparc wants THP_SWPOUT.
 
-Is +/- 2G enough for all realistic use cases? If so, I guess we don't
-really need
-EXECMEM_ANYWHERE below?
-
-> >
-> > * I'm not sure about BPF's requirements; it seems happy doing the same =
-as
-> >   modules.
->
-> BPF are happy with vmalloc().
->
-> > So if we *must* use a common execmem allocator, what we'd reall want is=
- our own
-> > types, e.g.
-> >
-> >       EXECMEM_ANYWHERE
-> >       EXECMEM_NOPLT
-> >       EXECMEM_PREL32
-> >
-> > ... and then we use those in arch code to implement module_alloc() and =
-friends.
->
-> I'm looking at execmem_types more as definition of the consumers, maybe I
-> should have named the enum execmem_consumer at the first place.
-
-I think looking at execmem_type from consumers' point of view adds
-unnecessary complexity. IIUC, for most (if not all) archs, ftrace, kprobe,
-and bpf (and maybe also module text) all have the same requirements.
-Did I miss something?
-
-IOW, we have
-
-enum execmem_type {
-        EXECMEM_DEFAULT,
-        EXECMEM_TEXT,
-        EXECMEM_KPROBES =3D EXECMEM_TEXT,
-        EXECMEM_FTRACE =3D EXECMEM_TEXT,
-        EXECMEM_BPF =3D EXECMEM_TEXT,      /* we may end up without
-_KPROBE, _FTRACE, _BPF */
-        EXECMEM_DATA,  /* rw */
-        EXECMEM_RO_DATA,
-        EXECMEM_RO_AFTER_INIT,
-        EXECMEM_TYPE_MAX,
-};
-
-Does this make sense?
-
-Thanks,
-Song
+Thanks
+Barry
