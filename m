@@ -1,115 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B75B1181BB2;
-	Thu, 18 Apr 2024 21:01:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9853619E;
+	Fri, 19 Apr 2024 00:20:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713474096; cv=none; b=juJVu8Pax7GY/2jO7F3QFUV2bMvNmO3PYQKqR270aq9nhRsFMRT1pHXTh6vNegjsO76hGpnp27D/LZOsYB3prDpto9hAp5SelZsC8WUZFZ9/EkLMlASjIUFCAJYgnLxDIYe2HRMUR5+/drE8yZWwtdFFsLi4XqdUCCjKBs2OwgU=
+	t=1713486039; cv=none; b=mbEmfoubqpTGjcaxZXCDpHvhDEGgaByMJ6RXn+jTj0HKf8hIx+65MBfeKrNyHjx83aB/1eCujMAJHe00XFuB4UA9tEZhOT6I/8bvQu6qo2iurJqHABbJKdtKManmXy0TcuJLSoE9uvVl9nDVVordQ5/zZ8WCJmd46N80ZtX9fM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713474096; c=relaxed/simple;
-	bh=Q9xFEu3Y5LoeO0EqCkhUGHL0dsvPtZI4/AmKYvf5MnY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=b+0txUzk5jK372QzTaz06e3UetBupnMUMh0c0sXUWXVGXQbNID8oChy+JzzSmHlvrbXEBhABFCYWr1jkplkUVNUld8ypXwzVqN/rfPwJ3r67GfYI2KH1PZxyEhljlZQoB3vXJHhS1sFr5xDKu3NQSoWCKV7cNkptrG0rWtw4EI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=os3i7OUl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713486039; c=relaxed/simple;
+	bh=LpOfZNVE6nHnz9BR7fw7WPp7kKPKZbrSWak6+3gqXIE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=chvZFuC+0ACxXRd+7dT+GG1VMydaRJ7xaYJTqBzA6yvnSaVawaM+yY1s/GVLYdvlv5gClTSH49e0XNG9AQ9f5oN4mBDyh8trnouHc0pOwmmC9ipY0mA08RDs02UCPfKRkuMX/y+Z3t0Xxd0XyFK7YIDV9JqwZCxXI2mZ3+X81G8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WxB+WSJP; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="os3i7OUl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2941AC116B1;
-	Thu, 18 Apr 2024 21:01:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713474096;
-	bh=Q9xFEu3Y5LoeO0EqCkhUGHL0dsvPtZI4/AmKYvf5MnY=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=os3i7OUlnuFPwuywx5IIlmo6dtB59/Q7XJaGiZcHLePn7Eo9BufTvQVTR9mtW/eWI
-	 r4VK8QYyOlINdoOVjMcOehKmc6Sz4RWc7AtrGTHCmGpbXOTolpO+C2kb76Yr0cYvCD
-	 FMV4Iw8AtSf28SLOw4t9ku4hBlZ5jBKnjL2Jb3XS6QpCLdtSLjS9TIGuRVkBAtaceK
-	 Ynk+zxcFm8+Rdi8k+nN2pCkddAj7x4BuIRqRa6CNsxBp/r1PxXoHz9fS6XaoKD1pY8
-	 suIp6V5PCH1MCOf8eW5abdXsn+Qdv014GIVeNCWNab/ijMMs94IjvrIAImNdFlp9rg
-	 H2pmiaunPJ3ng==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5193363d255so1680614e87.3;
-        Thu, 18 Apr 2024 14:01:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXdsvnbLDbcUzdTwvNlfEf/J2+sRkWH+nKCsviXNlfBx3cDYng6/7AWgS6PTAFPIlk3Z7Emj69Zu/ZGHHYs6zSXTa+Oy+ttoUBdIdBtHg0AB+4XjekacyTx1qh8Xh4+4JHTTQhdTQ+jGFirf0pTn4wZvIlU+Wg4vdnMjDWgzIaVaAd7rS03c8i+nPQWdUt3TjBWi1VarY3Px16fo2aGdrqPKH5CS/6T4MWguKsofonzcpAiBdB4iLBHmVm10oLwbvgCTsWQd3fJz6jm6LstPIDpaYS3CwJv7i1M4sTdgKKMHw3vdySSytDoWcsXfUPNvSW4GNQcgA3k4V+741spUVa0kElB0fwD4htNDnjEwsEkAZxtyKRztK773FFcbfUfBoJAj6GsNkKwJzXlhAmzpWfTwhRIFnPCpXf8aOD/IRjXSd/AhUAO1LLgLos=
-X-Gm-Message-State: AOJu0YyVr8D8aTN3AsKi5MTkbI+ETPboRkITKyi31uZXtp7shRbDFjct
-	TfiUcwVZ+Ay5YhV7bwS6+4UzYAL+m0x4/5LUtYwf4kuu7tAZbeG0JeItREuz8sqnDrsZA2qeiTN
-	xRtZE+HXyocLjRYPOJs5fQESe6dY=
-X-Google-Smtp-Source: AGHT+IHNxy9sJsnZs3KQVfU0+czeg8tBpsYhbjwNsSaDNt4tlgSyRo9Mz2ssjEN7kjA5vVRJEg5DihQkgyMA2Jl/jC4=
-X-Received: by 2002:a05:6512:1251:b0:516:cec0:1fc0 with SMTP id
- fb17-20020a056512125100b00516cec01fc0mr104453lfb.63.1713474094462; Thu, 18
- Apr 2024 14:01:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WxB+WSJP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1713486037; x=1745022037;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=LpOfZNVE6nHnz9BR7fw7WPp7kKPKZbrSWak6+3gqXIE=;
+  b=WxB+WSJPiaoLlt2rUA++KIumx9QFY2/HFQliM4PwzXvAnhZde80mObAS
+   8VsGtE7SYQArt4jIgis7X6U+in/MFpPtJksutZXrYYHlEB4vdHBxxxqLu
+   EPBrF8NgdODWXwykzBlDVW8LYdakhSLjs0YXcrr6WLzVCkCAQHBhbkyDv
+   bkdY3plbtBGc8DHOAmQH2RsSLU92PCfjK2/oTQlo8B23Efn8j8rHc5bXj
+   F4b1MIXDtkV7advusAh9/N7zg+dSyttceA3IeSTDrik6pTwDgChedzjrF
+   1oiRxMZ+AnteOnc4iTuOqdBXe3bM64r4nznENrfVJf+l04biHRzY0xLLy
+   g==;
+X-CSE-ConnectionGUID: xt2pBpLITXOmY8r3A70/Og==
+X-CSE-MsgGUID: 0IKSk0LsReWgrPxgBVzZEw==
+X-IronPort-AV: E=McAfee;i="6600,9927,11047"; a="8929243"
+X-IronPort-AV: E=Sophos;i="6.07,213,1708416000"; 
+   d="scan'208";a="8929243"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Apr 2024 17:20:36 -0700
+X-CSE-ConnectionGUID: YNCy/pPDQhCLFUtFdq7zow==
+X-CSE-MsgGUID: hRzoxbpLRBmHDOxlJgJYlQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,213,1708416000"; 
+   d="scan'208";a="23232293"
+Received: from unknown (HELO 23c141fc0fd8) ([10.239.97.151])
+  by fmviesa007.fm.intel.com with ESMTP; 18 Apr 2024 17:20:35 -0700
+Received: from kbuild by 23c141fc0fd8 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1rxbzU-0009OO-31;
+	Fri, 19 Apr 2024 00:20:32 +0000
+Date: Fri, 19 Apr 2024 08:19:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Dawei Li <dawei.li@shingroup.cn>, davem@davemloft.net,
+	andreas@gaisler.com
+Cc: oe-kbuild-all@lists.linux.dev, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Dawei Li <dawei.li@shingroup.cn>
+Subject: Re: [PATCH 2/5] sparc/irq: Remove on-stack cpumask var
+Message-ID: <202404190826.Zi1J5nCx-lkp@intel.com>
+References: <20240418104949.3606645-3-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240411160051.2093261-1-rppt@kernel.org> <20240411160051.2093261-6-rppt@kernel.org>
- <20240415075241.GF40213@noisy.programming.kicks-ass.net> <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
- <Zh4nJp8rv1qRBs8m@kernel.org> <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
- <ZiE91CJcNw7gBj9g@kernel.org> <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
- <ZiFd567L4Zzm2okO@kernel.org>
-In-Reply-To: <ZiFd567L4Zzm2okO@kernel.org>
-From: Song Liu <song@kernel.org>
-Date: Thu, 18 Apr 2024 14:01:22 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
-Message-ID: <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
-Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Peter Zijlstra <peterz@infradead.org>, 
-	linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, Bjorn Topel <bjorn@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	"David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, 
-	Donald Dutile <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>, 
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
-	Kent Overstreet <kent.overstreet@linux.dev>, Luis Chamberlain <mcgrof@kernel.org>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Puranjay Mohan <puranjay12@gmail.com>, 
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, Russell King <linux@armlinux.org.uk>, 
-	Steven Rostedt <rostedt@goodmis.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, bpf@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-modules@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240418104949.3606645-3-dawei.li@shingroup.cn>
 
-On Thu, Apr 18, 2024 at 10:54=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wr=
-ote:
->
-> On Thu, Apr 18, 2024 at 09:13:27AM -0700, Song Liu wrote:
-> > On Thu, Apr 18, 2024 at 8:37=E2=80=AFAM Mike Rapoport <rppt@kernel.org>=
- wrote:
-> > > > >
-> > > > > I'm looking at execmem_types more as definition of the consumers,=
- maybe I
-> > > > > should have named the enum execmem_consumer at the first place.
-> > > >
-> > > > I think looking at execmem_type from consumers' point of view adds
-> > > > unnecessary complexity. IIUC, for most (if not all) archs, ftrace, =
-kprobe,
-> > > > and bpf (and maybe also module text) all have the same requirements=
-.
-> > > > Did I miss something?
-> > >
-> > > It's enough to have one architecture with different constrains for kp=
-robes
-> > > and bpf to warrant a type for each.
-> >
-> > AFAICT, some of these constraints can be changed without too much work.
->
-> But why?
-> I honestly don't understand what are you trying to optimize here. A few
-> lines of initialization in execmem_info?
+Hi Dawei,
 
-IIUC, having separate EXECMEM_BPF and EXECMEM_KPROBE makes it
-harder for bpf and kprobe to share the same ROX page. In many use cases,
-a 2MiB page (assuming x86_64) is enough for all BPF, kprobe, ftrace, and
-module text. It is not efficient if we have to allocate separate pages for =
-each
-of these use cases. If this is not a problem, the current approach works.
+kernel test robot noticed the following build warnings:
 
-Thanks,
-Song
+[auto build test WARNING on v6.9-rc4]
+[also build test WARNING on linus/master next-20240418]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Dawei-Li/sparc-srmmu-Remove-on-stack-cpumask-var/20240418-185348
+base:   v6.9-rc4
+patch link:    https://lore.kernel.org/r/20240418104949.3606645-3-dawei.li%40shingroup.cn
+patch subject: [PATCH 2/5] sparc/irq: Remove on-stack cpumask var
+config: sparc64-defconfig (https://download.01.org/0day-ci/archive/20240419/202404190826.Zi1J5nCx-lkp@intel.com/config)
+compiler: sparc64-linux-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240419/202404190826.Zi1J5nCx-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202404190826.Zi1J5nCx-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+   arch/sparc/kernel/irq_64.c: In function 'irq_choose_cpu':
+>> arch/sparc/kernel/irq_64.c:358:46: warning: the omitted middle operand in '?:' will always be 'true', suggest explicit middle operand [-Wparentheses]
+     358 |                 cpuid = cpuid < nr_cpu_ids ? : map_to_cpu(irq);
+         |                                              ^
+
+
+vim +358 arch/sparc/kernel/irq_64.c
+
+   348	
+   349	#ifdef CONFIG_SMP
+   350	static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
+   351	{
+   352		int cpuid;
+   353	
+   354		if (cpumask_equal(affinity, cpu_online_mask)) {
+   355			cpuid = map_to_cpu(irq);
+   356		} else {
+   357			cpuid = cpumask_first_and(affinity, cpu_online_mask);
+ > 358			cpuid = cpuid < nr_cpu_ids ? : map_to_cpu(irq);
+   359		}
+   360	
+   361		return cpuid;
+   362	}
+   363	#else
+   364	#define irq_choose_cpu(irq, affinity)	\
+   365		real_hard_smp_processor_id()
+   366	#endif
+   367	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
