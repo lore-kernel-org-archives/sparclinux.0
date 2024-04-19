@@ -1,190 +1,141 @@
-Received: from mailrelay3-1.pub.mailoutpod2-cph3.one.com (mailrelay3-1.pub.mailoutpod2-cph3.one.com [46.30.211.178])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F409C1118B
-	for <sparclinux@vger.kernel.org>; Fri, 19 Apr 2024 20:34:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AFA213CF83;
+	Fri, 19 Apr 2024 21:42:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713558888; cv=none; b=dhqlkNKjufT9wScqAzjbYcUR+uNOu+YggEEIJgSiFH1Ho73ftcDWWpi07Y3lRbxfDSRdSlo6K0Jd1dnCiAhbnXn+um/YJbU5qeSXRRJM/MlM6SL2dFia2Ck5UMSdDEheUL5vm4Hbgmc7Bi7lZseVU0i1wX4ZGmCVu0T486OM/9w=
+	t=1713562951; cv=none; b=cazohCjQntChEdyj2M3HDCzuE4mejGNeXiLENMWI0fTKFEXIicbvWKO+4LCZiKoZkunO5/3kH5JOIZSQ8oSkFUwFwmuQ1VI1yC/hahrR5CRXgxQ0RNkw+Vb56AHU3s/gXeqcM0OJllVUTvMaf+V7h/Za5sIXn+tVWKHX9MGaePw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713558888; c=relaxed/simple;
-	bh=jsNFyX+UqakUKLcMvkHbDUM9oTRLL9cxwzpKLZBXvD0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mAY4/009+6JBvWVp9vHORF1TKMF/I+MGgq9bwLRan9MS8p1NEz0RzzyeixKoLit5+uTyqTjvYgv65jcamI/eLHQIp0/uJN80tg4A/Qi1OD8MJXK9jLvdPglQ7qPDGjS4EU8BVWkLQI0A7bx2YdBdJfud9bxsdSzMmlkNd+Hg0dI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=MnyEiFVk; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=1hnXvVM2; arc=none smtp.client-ip=46.30.211.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	s=arc-20240116; t=1713562951; c=relaxed/simple;
+	bh=TCFccoU0QynIlhNVSwfE9PBflv6m2g3eer2smjEjHo0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EH/PPm6n+1GFffV4eCyFCu44GODztqpIPITkiLlC0LPGtDxEdKTuFjMJWnlratHLjsmHJ3aU2Px4aVuB11bHa64vUhcVb4tzbEVj5aRsLsc8LZ283MuQwF/PRoy+5jkPpykqJyyl/RiytDZjQMM+Upq2MSTywuXs9kXQgeCx4xQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S3GIF3P/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="MnyEiFVk";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="1hnXvVM2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=kFPdY1ZX/9aPR1Qd/Z+2kf2AETIJI1lTPV3LIR/f+NM=;
-	b=MnyEiFVkl/n7XjywrBokadxLjQDiCZpi3Av/ovKFhvKlo3YtodWHPWCKPMIa3A/m54UaAU0ImuwXK
-	 mRD1k2xl7y1DctylRMhAs8FLD3b22OuJSb2NMnOxS1xEr04HyPinYRoW5FNsloB4t0atCdhboXtDs1
-	 jT8ZV4uWECiAz8L0KzUCoyAv1WfPM32ijHjRem9LXnI3mb48qlb/EpXj/oetHHpHtnKgpzbRr40Pqq
-	 cyupaKK/XG6Z7VHMrtM6cpACnEtaRUBXUPgGr5yUQtZt2SAtpF7hK/2Pbp2ZyxuZS/ZBwEjEEv+Fg6
-	 O3ndDj8foSDpdcl7+OwihSWnUwhxfCg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=kFPdY1ZX/9aPR1Qd/Z+2kf2AETIJI1lTPV3LIR/f+NM=;
-	b=1hnXvVM2/nmmAD45sl4bQAgTkVeLkDpsmz6oB3hge+57vwHI+BgflL/qwx7bf929MgCoReHCBLdbE
-	 bX5GqO6DA==
-X-HalOne-ID: 142855b1-fe8c-11ee-a58f-79f4c2873f57
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay3.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 142855b1-fe8c-11ee-a58f-79f4c2873f57;
-	Fri, 19 Apr 2024 20:33:32 +0000 (UTC)
-Date: Fri, 19 Apr 2024 22:33:29 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Dawei Li <dawei.li@shingroup.cn>
-Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, yury.norov@gmail.com
-Subject: Re: [PATCH 0/5] Remove onstack cpumask var usage
-Message-ID: <20240419203329.GA590733@ravnborg.org>
-References: <20240418104949.3606645-1-dawei.li@shingroup.cn>
- <20240419051350.GA558245@ravnborg.org>
- <A60F94A9589C8589+ZiI4yj073cgmt5Qq@centos8>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S3GIF3P/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37403C4AF0B;
+	Fri, 19 Apr 2024 21:42:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713562950;
+	bh=TCFccoU0QynIlhNVSwfE9PBflv6m2g3eer2smjEjHo0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=S3GIF3P/lDyeKxFIF4pk3NB4voyc3jDBvrFx7J4R0RQPC7qB48PFG4JdR+LWTb5VG
+	 TVulfp4sZtTnavHG7YfjZx+qr0QC9dnKVswTmcKFscRs89DTdJ23BJZNcgr5rE8cTP
+	 GCYa7AVlhR6m2vNKGUfB4+E4ZP2+XMRA/mcbxKvZziVuxteHhStK2mndLtDfNVjE2Q
+	 rzZN4Ndc6tabVJQRtfseS5l8TWvfuyZ7Mgpj8k3neEzSInMxgygeIakC9HPWB8pW1A
+	 KTMwYXzpirJYjOMMHMhlNA3kWiCrgIQzk8AyhFrzS/yZyyqTAd0BMIA4fStLj4N5Cc
+	 q3NQekhLjCLew==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-516d2b9cd69so3034818e87.2;
+        Fri, 19 Apr 2024 14:42:30 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUU60prFRWB6VKhtng5Uq8uprJ4pnlQJhq3BvWZPthcxwoC5zi3YZYEIJIsORsFh4uUQno3c2ENqcb3GO0BnMJy3U5bIsD0oFJdLBCv/gkEyxKfty0MTukwGUPq5VRA5HqPYsOrot0jkgfXjYjXOsKXH13B9hlzi91guyoB4neAm7It/gloqfGWsOS4Zw/ZqSPO2b6PobgniVy2ZkYB53tzvCNj8CBI7yT6eKS50pkeLeBQi78GKGSAAEsNxKgPpRmt55aovdklsaMpUz8XNUwWqr2M4D0ux8G+xi7oB0cxhLEy60udwNwUtOGmaMb1PysHr1HPj4X5IIuMg8MlqdRwsOWKlRF6r2sFZe0QTtwVZl5RB45w1RKWZRvGV1DLweFCgYKdptzeRflh3rvDugEJNkWTubWBPLahdnQUho2TD2rQydosGIksvZo=
+X-Gm-Message-State: AOJu0YzFFLhSlRvGvDmc/YE9tvA6UFuX3e5OXU47SvW8ghwd9J4HiLEB
+	pTTy74IhfnHLOGIPqkeXeyQ6DBytR2hq1uL/xmxlKaMwiW+63Q5DTLwdYX3OmsyxwSahBSzT0NN
+	7h4SOseSPZTrCdyUXhH9Lcny4RYg=
+X-Google-Smtp-Source: AGHT+IH4AnwX5zN14P6kYOA/5jMldeW1Bv8FPwjpWGtVTE89ihBaxTYgE7/68A2MjqxVZZCm/ny8Sr/SdDVp6qchZyo=
+X-Received: by 2002:a19:5f4d:0:b0:519:5b84:1038 with SMTP id
+ a13-20020a195f4d000000b005195b841038mr1897119lfj.20.1713562948432; Fri, 19
+ Apr 2024 14:42:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A60F94A9589C8589+ZiI4yj073cgmt5Qq@centos8>
+References: <Zh4nJp8rv1qRBs8m@kernel.org> <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
+ <ZiE91CJcNw7gBj9g@kernel.org> <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
+ <ZiFd567L4Zzm2okO@kernel.org> <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
+ <ZiIVVBgaDN4RsroT@kernel.org> <CAPhsuW7WoU+a46FhqqH8f-3=ehxeD4wSgKDWegMin1pT49OSWw@mail.gmail.com>
+ <ZiKjmaDgz_56ovbv@kernel.org> <CAPhsuW7Nj1Sa_9xQtTgHz9AmX39zdh2x2COqA-qmkfpfX9hNWw@mail.gmail.com>
+ <ZiLNGgVSQ7_cg58y@kernel.org>
+In-Reply-To: <ZiLNGgVSQ7_cg58y@kernel.org>
+From: Song Liu <song@kernel.org>
+Date: Fri, 19 Apr 2024 14:42:16 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW4KRM4O4RFbYQrt=Coqyh9w29WiF2YF=8soDfauLFsKBA@mail.gmail.com>
+Message-ID: <CAPhsuW4KRM4O4RFbYQrt=Coqyh9w29WiF2YF=8soDfauLFsKBA@mail.gmail.com>
+Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Peter Zijlstra <peterz@infradead.org>, 
+	linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Bjorn Topel <bjorn@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	"David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Donald Dutile <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>, 
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Luis Chamberlain <mcgrof@kernel.org>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Puranjay Mohan <puranjay12@gmail.com>, 
+	Rick Edgecombe <rick.p.edgecombe@intel.com>, Russell King <linux@armlinux.org.uk>, 
+	Steven Rostedt <rostedt@goodmis.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, bpf@vger.kernel.org, 
+	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-modules@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Dawei,
+On Fri, Apr 19, 2024 at 1:00=E2=80=AFPM Mike Rapoport <rppt@kernel.org> wro=
+te:
+>
+> On Fri, Apr 19, 2024 at 10:32:39AM -0700, Song Liu wrote:
+> > On Fri, Apr 19, 2024 at 10:03=E2=80=AFAM Mike Rapoport <rppt@kernel.org=
+> wrote:
+> > [...]
+> > > > >
+> > > > > [1] https://lore.kernel.org/all/20240411160526.2093408-1-rppt@ker=
+nel.org
+> > > >
+> > > > For the ROX to work, we need different users (module text, kprobe, =
+etc.) to have
+> > > > the same execmem_range. From [1]:
+> > > >
+> > > > static void *execmem_cache_alloc(struct execmem_range *range, size_=
+t size)
+> > > > {
+> > > > ...
+> > > >        p =3D __execmem_cache_alloc(size);
+> > > >        if (p)
+> > > >                return p;
+> > > >       err =3D execmem_cache_populate(range, size);
+> > > > ...
+> > > > }
+> > > >
+> > > > We are calling __execmem_cache_alloc() without range. For this to w=
+ork,
+> > > > we can only call execmem_cache_alloc() with one execmem_range.
+> > >
+> > > Actually, on x86 this will "just work" because everything shares the =
+same
+> > > address space :)
+> > >
+> > > The 2M pages in the cache will be in the modules space, so
+> > > __execmem_cache_alloc() will always return memory from that address s=
+pace.
+> > >
+> > > For other architectures this indeed needs to be fixed with passing th=
+e
+> > > range to __execmem_cache_alloc() and limiting search in the cache for=
+ that
+> > > range.
+> >
+> > I think we at least need the "map to" concept (initially proposed by Th=
+omas)
+> > to get this work. For example, EXECMEM_BPF and EXECMEM_KPROBE
+> > maps to EXECMEM_MODULE_TEXT, so that all these actually share
+> > the same range.
+>
+> Why?
 
-> About this case, it's kinda tricky for:
-> - dr_cpu_data() returns void, so alloc_cpumask_var() is no go.
-> 
-> - No idea of the calling context of dr_cpu_data(). IIUC,
->   dr_cpu_data()
->   ->dr_cpu_configure()  
->    ->kzalloc(resp_len, GFP_KERNEL)
->   So I guess it's in process context?
->   If consumption above is OK, a simple but _ugly_ solution could be:
-> 
-> diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
-> index ffdc15588ac2..c9e4ebdccf49 100644
-> --- a/arch/sparc/kernel/ds.c
-> +++ b/arch/sparc/kernel/ds.c
-> @@ -634,7 +634,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
->         struct dr_cpu_tag *tag = (struct dr_cpu_tag *) (data + 1);
->         u32 *cpu_list = (u32 *) (tag + 1);
->         u64 req_num = tag->req_num;
-> -       cpumask_t mask;
-> +       static DEFINE_MUTEX(mask_lock);
-> +       static cpumask_t mask;
->         unsigned int i;
->         int err;
-> 
-> @@ -651,6 +652,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
-> 
->         purge_dups(cpu_list, tag->num_records);
-> 
-> +       mutex_lock(&mask_lock);
-> +
->         cpumask_clear(&mask);
->         for (i = 0; i < tag->num_records; i++) {
->                 if (cpu_list[i] == CPU_SENTINEL)
-> @@ -665,6 +668,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
->         else
->                 err = dr_cpu_unconfigure(dp, cp, req_num, &mask);
-> 
-> +       mutex_unlock(&mask_lock);
-> +
->         if (err)
->                 dr_cpu_send_error(dp, cp, data);
->  }
-> 
-> How does it sound to you?
-This introduces too much complexity to solve a potential stack issue.
-If an improvement is required, then we need a simpler solution.
+IIUC, we need to update __execmem_cache_alloc() to take a range pointer as
+input. module text will use "range" for EXECMEM_MODULE_TEXT, while kprobe
+will use "range" for EXECMEM_KPROBE. Without "map to" concept or sharing
+the "range" object, we will have to compare different range parameters to c=
+heck
+we can share cached pages between module text and kprobe, which is not
+efficient. Did I miss something?
 
-> 
-> > kernel/leon_kernel.c:   cpumask_t mask;
-> 
-> It's in irqchip::irq_set_affinity(), which is in atomic context(raw spinlock(s) held),
-> so dynamic allocation is not a good idea.
-> 
-> My proposal(*untested*) is somewhat complicated for it introduces a new helper.
-> 
-> diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-> index 4c61da491fee..6eced7acb8bc 100644
-> --- a/arch/sparc/kernel/leon_kernel.c
-> +++ b/arch/sparc/kernel/leon_kernel.c
-> @@ -104,15 +104,25 @@ unsigned long leon_get_irqmask(unsigned int irq)
->  }
-> 
->  #ifdef CONFIG_SMP
-> +
-> +static bool cpumask_include(const struct cpumask *srcp1, const struct cpumask *srcp2)
-> +{
-> +       unsigned int cpu;
-> +
-> +       for_each_cpu(cpu, srcp2) {
-> +               if (!cpumask_test_cpu(cpu, srcp1))
-> +                       return false;
-> +       }
-> +
-> +       return true;
-> +}
-> +
->  static int irq_choose_cpu(const struct cpumask *affinity)
->  {
-> -       cpumask_t mask;
-> +       unsigned int cpu = cpumask_first_and(affinity, cpu_online_mask);
-> 
-> -       cpumask_and(&mask, cpu_online_mask, affinity);
-> -       if (cpumask_equal(&mask, cpu_online_mask) || cpumask_empty(&mask))
-> -               return boot_cpu_id;
-> -       else
-> -               return cpumask_first(&mask);
-> +       return cpumask_include(affinity, cpu_online_mask) || cpu >= nr_cpu_ids ?
-> +              boot_cpu_id : cpu;
->  }
-
-I think something like the following should do the trick.
-
-
-	if (cpumask_equal(affinity, cpu_online_mask))
-		return boot_cpu_id;
-
-	cpuid = cpumask_first_and(affinity, cpu_online_mask);
-	if (cpuid < nr_cpu_ids)
-		return cpuid;
-	else
-		return boot_cpu_id;
-
-If the passed affinity equals the online cpu's, then use the boot cpu.
-Else, use the first online cpu in the affinity mask.
-If none found use the boot cpu.
-
-
-
->  #else
->  #define irq_choose_cpu(affinity) boot_cpu_id
-> 
-> Is it OK?
-> 
-> [cc Yury for bitmap API]
-> 
-> > kernel/leon_smp.c:static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-> > kernel/sun4d_smp.c:static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-Looks simple, just pass a pointer and not by value.
-> 
-> Actually I am awared of existence of (at least some of) them, but so far I
-> have not found a _proper_ way of dealing with them(especially for case of
-> ds.c).
-> 
-> Please lemme dig into it.
-Looks forward to next iteration.
-
-	Sam
+Thanks,
+Song
