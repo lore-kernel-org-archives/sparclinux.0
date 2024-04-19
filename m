@@ -1,113 +1,159 @@
-Received: from smtp.gentoo.org (woodpecker.gentoo.org [140.211.166.183])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E5C01311B9;
-	Fri, 19 Apr 2024 16:29:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=140.211.166.183
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4608712FB05;
+	Fri, 19 Apr 2024 17:03:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713544147; cv=none; b=LJZP4Rim3OyO5PoswEiFp1Zo9CrTA6pVqm98+z0disFLiuQ4ZJ/67mc1nD6NZpLqnHlu93msdJgZ+KKMZoJV9DfSVVaaP8RtD1EBMNlOomxXDEOs7JQsYa+vxUH3nQ8AlKhorUJhdMHKSdWuI/3ngv9WIrYKht+0kookRZvA9JI=
+	t=1713546219; cv=none; b=nsMz7ChFXQUquMH/1LJKq3fciYWxhRA0ojHrmOV2zgTnLwgDSI0uP3hI7whCDzM4lKcWELNsxkiG1+OSwAe9W2bB2tcaIZ3x1bAP9WILtbK3eH43ra+5gZZcbmjef9ZEjunkP+6Yr4ESfrCzPz0zhhRmFW47WgGlxNBIr4aoa34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713544147; c=relaxed/simple;
-	bh=ezY9lIHJUPii+5GdCwA6/18Koh5RgsMU5I39216AfOk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ShQij+Ls2W953oJflNSNqejeKb++mOpPdaBaHGwMFN/Tk8PurM2YpHEHqppnTcO8OMIrwiGt+WuMHmAjt4EwHjtBpEVm3EWl1ohVnQHXLh3Ks8eIshPGlJFrPiWX2JsHZemq8jHlMjXmeBMxBMKy8aLovScUfZx/vclYTx43OrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org; spf=pass smtp.mailfrom=gentoo.org; arc=none smtp.client-ip=140.211.166.183
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gentoo.org
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a5568bef315so390403066b.1;
-        Fri, 19 Apr 2024 09:29:05 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXy2U0jC1PEbcNO31z4xeQjR1lI6bwEgnGmAYB935/LpOOHqaEsKjDUP69PE+KpBPZ8QWfag3MJUgajmLBNxluYpItPks0eQT85Kw==
-X-Gm-Message-State: AOJu0YyF+YfGWI99qj05VipgxDEHqjyxK+CvAmDvJW76Q3ctph+bdof9
-	ddR+5ye+CRxaQ5LpqUEI/UaeV8G9afz9XYMrrA2u8rnUayUt5bqnZgV2WxfLduHQSrWqbc7T947
-	4A8hoU34vkLJx4lDddaedejKyF0o=
-X-Google-Smtp-Source: AGHT+IEVEabqKcu9eSY49T1AtpQFY4UB0nkwSjaSaTuptyXMJCug2muIi2v3znemu/NffBUEWviDXqEITFTlgcoMj4c=
-X-Received: by 2002:a17:907:3601:b0:a55:577e:4e2e with SMTP id
- bk1-20020a170907360100b00a55577e4e2emr5791100ejc.20.1713544142900; Fri, 19
- Apr 2024 09:29:02 -0700 (PDT)
+	s=arc-20240116; t=1713546219; c=relaxed/simple;
+	bh=jFxi5qZrScF2xjH3z+fMU0rA+S3WPw/R5/k/PlfLlD4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M4ek9+vpT8JzKWf48sYDBD4TxWUGYKv1hvrhUh3Nxip5z2b4Fob52CcB8CoHsXPt/W9HDsthfVmv2LjwHOndiQcFEbyBDywszlnNn/inRk2Nv3mrWehTUbqJpLdaW7CA7ZT0ICC3p1ge+5Moq7+VQFeIAPBt3ijBXdevda2RjWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RUL9Opqg; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RUL9Opqg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20D36C3277B;
+	Fri, 19 Apr 2024 17:03:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713546218;
+	bh=jFxi5qZrScF2xjH3z+fMU0rA+S3WPw/R5/k/PlfLlD4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=RUL9Opqg9lVQKyIEyIuq2xjKwlBEmIHBH/IVoveA6aP2JLQi0uzPvTDRn7OmSzfgD
+	 nIb4g/5o2RBtfUp3FCsBZLo4UMhQBN8itmVTPuHB1vCt7tnCtqGOlM7w17hYv3aiWy
+	 FPRpIYW/h0QBF2/1gYcg2KSSl6cBIyHw8P1BRp78GQ/1rnAZNqj1HgINRQQE2y6kx8
+	 pa/lP0BVFbrI+oqwHSJpzLJUH1OONwzfgc8jyKWmKgwbnoS/jGKAA+PE+NrL1eKBBr
+	 VPLO+D3Fy9QluAkUMgIaLcYTb9+hJ5Az7wIHrpBlSplLPGXqXzT9s0UFhk3C1grs7n
+	 akOPXTz5YdCXA==
+Date: Fri, 19 Apr 2024 20:02:17 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Song Liu <song@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+	Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bjorn Topel <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Puranjay Mohan <puranjay12@gmail.com>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
+Message-ID: <ZiKjmaDgz_56ovbv@kernel.org>
+References: <20240415075241.GF40213@noisy.programming.kicks-ass.net>
+ <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
+ <Zh4nJp8rv1qRBs8m@kernel.org>
+ <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
+ <ZiE91CJcNw7gBj9g@kernel.org>
+ <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
+ <ZiFd567L4Zzm2okO@kernel.org>
+ <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
+ <ZiIVVBgaDN4RsroT@kernel.org>
+ <CAPhsuW7WoU+a46FhqqH8f-3=ehxeD4wSgKDWegMin1pT49OSWw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240306171149.3843481-1-floppym@gentoo.org> <CAJ0EP42dLgjk5ucgzDoknBzkByL=O5v43gCmMR2BvgBxsaAkCg@mail.gmail.com>
-In-Reply-To: <CAJ0EP42dLgjk5ucgzDoknBzkByL=O5v43gCmMR2BvgBxsaAkCg@mail.gmail.com>
-From: Mike Gilbert <floppym@gentoo.org>
-Date: Fri, 19 Apr 2024 12:28:51 -0400
-X-Gmail-Original-Message-ID: <CAJ0EP41garVk6XMggpQ-zsvREa-oy7qq6PpuyyCPoztBr=8K6A@mail.gmail.com>
-Message-ID: <CAJ0EP41garVk6XMggpQ-zsvREa-oy7qq6PpuyyCPoztBr=8K6A@mail.gmail.com>
-Subject: Re: [PATCH] sparc: move struct termio to asm/termios.h
-To: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPhsuW7WoU+a46FhqqH8f-3=ehxeD4wSgKDWegMin1pT49OSWw@mail.gmail.com>
 
-On Wed, Apr 3, 2024 at 3:15=E2=80=AFPM Mike Gilbert <floppym@gentoo.org> wr=
-ote:
->
-> On Wed, Mar 6, 2024 at 12:11=E2=80=AFPM Mike Gilbert <floppym@gentoo.org>=
- wrote:
+On Fri, Apr 19, 2024 at 08:54:40AM -0700, Song Liu wrote:
+> On Thu, Apr 18, 2024 at 11:56 PM Mike Rapoport <rppt@kernel.org> wrote:
 > >
-> > Every other arch declares struct termio in asm/termios.h, so make sparc
-> > match them.
+> > On Thu, Apr 18, 2024 at 02:01:22PM -0700, Song Liu wrote:
+> > > On Thu, Apr 18, 2024 at 10:54 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > > >
+> > > > On Thu, Apr 18, 2024 at 09:13:27AM -0700, Song Liu wrote:
+> > > > > On Thu, Apr 18, 2024 at 8:37 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > > > > > > >
+> > > > > > > > I'm looking at execmem_types more as definition of the consumers, maybe I
+> > > > > > > > should have named the enum execmem_consumer at the first place.
+> > > > > > >
+> > > > > > > I think looking at execmem_type from consumers' point of view adds
+> > > > > > > unnecessary complexity. IIUC, for most (if not all) archs, ftrace, kprobe,
+> > > > > > > and bpf (and maybe also module text) all have the same requirements.
+> > > > > > > Did I miss something?
+> > > > > >
+> > > > > > It's enough to have one architecture with different constrains for kprobes
+> > > > > > and bpf to warrant a type for each.
+> > > > >
+> > > > > AFAICT, some of these constraints can be changed without too much work.
+> > > >
+> > > > But why?
+> > > > I honestly don't understand what are you trying to optimize here. A few
+> > > > lines of initialization in execmem_info?
+> > >
+> > > IIUC, having separate EXECMEM_BPF and EXECMEM_KPROBE makes it
+> > > harder for bpf and kprobe to share the same ROX page. In many use cases,
+> > > a 2MiB page (assuming x86_64) is enough for all BPF, kprobe, ftrace, and
+> > > module text. It is not efficient if we have to allocate separate pages for each
+> > > of these use cases. If this is not a problem, the current approach works.
 > >
-> > Resolves a build failure in the PPP software package, which includes
-> > both bits/ioctl-types.h via sys/ioctl.h (glibc) and asm/termbits.h.
+> > The caching of large ROX pages does not need to be per type.
 > >
-> > Closes: https://bugs.gentoo.org/918992
-> > Signed-off-by: Mike Gilbert <floppym@gentoo.org>
-> > Cc: stable@vger.kernel.org
-> > ---
-> >  arch/sparc/include/uapi/asm/termbits.h | 10 ----------
-> >  arch/sparc/include/uapi/asm/termios.h  |  9 +++++++++
-> >  2 files changed, 9 insertions(+), 10 deletions(-)
+> > In the POC I've posted for caching of large ROX pages on x86 [1], the cache is
+> > global and to make kprobes and bpf use it it's enough to set a flag in
+> > execmem_info.
 > >
-> > diff --git a/arch/sparc/include/uapi/asm/termbits.h b/arch/sparc/includ=
-e/uapi/asm/termbits.h
-> > index 4321322701fc..0da2b1adc0f5 100644
-> > --- a/arch/sparc/include/uapi/asm/termbits.h
-> > +++ b/arch/sparc/include/uapi/asm/termbits.h
-> > @@ -10,16 +10,6 @@ typedef unsigned int tcflag_t;
-> >  typedef unsigned long  tcflag_t;
-> >  #endif
-> >
-> > -#define NCC 8
-> > -struct termio {
-> > -       unsigned short c_iflag;         /* input mode flags */
-> > -       unsigned short c_oflag;         /* output mode flags */
-> > -       unsigned short c_cflag;         /* control mode flags */
-> > -       unsigned short c_lflag;         /* local mode flags */
-> > -       unsigned char c_line;           /* line discipline */
-> > -       unsigned char c_cc[NCC];        /* control characters */
-> > -};
-> > -
-> >  #define NCCS 17
-> >  struct termios {
-> >         tcflag_t c_iflag;               /* input mode flags */
-> > diff --git a/arch/sparc/include/uapi/asm/termios.h b/arch/sparc/include=
-/uapi/asm/termios.h
-> > index ee86f4093d83..cceb32260881 100644
-> > --- a/arch/sparc/include/uapi/asm/termios.h
-> > +++ b/arch/sparc/include/uapi/asm/termios.h
-> > @@ -40,5 +40,14 @@ struct winsize {
-> >         unsigned short ws_ypixel;
-> >  };
-> >
-> > +#define NCC 8
-> > +struct termio {
-> > +       unsigned short c_iflag;         /* input mode flags */
-> > +       unsigned short c_oflag;         /* output mode flags */
-> > +       unsigned short c_cflag;         /* control mode flags */
-> > +       unsigned short c_lflag;         /* local mode flags */
-> > +       unsigned char c_line;           /* line discipline */
-> > +       unsigned char c_cc[NCC];        /* control characters */
-> > +};
-> >
-> >  #endif /* _UAPI_SPARC_TERMIOS_H */
-> > --
-> > 2.44.0
-> >
->
-> Ping. Could we get this merged please?
+> > [1] https://lore.kernel.org/all/20240411160526.2093408-1-rppt@kernel.org
+> 
+> For the ROX to work, we need different users (module text, kprobe, etc.) to have
+> the same execmem_range. From [1]:
+> 
+> static void *execmem_cache_alloc(struct execmem_range *range, size_t size)
+> {
+> ...
+>        p = __execmem_cache_alloc(size);
+>        if (p)
+>                return p;
+>       err = execmem_cache_populate(range, size);
+> ...
+> }
+> 
+> We are calling __execmem_cache_alloc() without range. For this to work,
+> we can only call execmem_cache_alloc() with one execmem_range.
 
-Ping again. Any response from a SPARC maintainer would be appreciated.
+Actually, on x86 this will "just work" because everything shares the same
+address space :)
+
+The 2M pages in the cache will be in the modules space, so
+__execmem_cache_alloc() will always return memory from that address space.
+
+For other architectures this indeed needs to be fixed with passing the
+range to __execmem_cache_alloc() and limiting search in the cache for that
+range.
+ 
+> Did I miss something?
+> 
+> Thanks,
+> Song
+
+-- 
+Sincerely yours,
+Mike.
