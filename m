@@ -1,43 +1,69 @@
-Received: from smtpbguseast2.qq.com (smtpbguseast2.qq.com [54.204.34.130])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5DC37350E;
-	Fri, 19 Apr 2024 09:27:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A52BC77F13;
+	Fri, 19 Apr 2024 15:50:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713518857; cv=none; b=LNeFzBYLfyk1WVJ/1FEKmPfutqBZnbVGEdvaqAZxHYf838XRf29A3xtAi6ZJ/SEhjE5RiNUsfRVBv7c4V+7rdpfekQIwIiYZme3uLZFlb5omPG8Dtv0eV1fwKRGBgkabx/r4KCqry9vrXDrJyj1cWZWAKEMV+eVhSOCGbw+99PU=
+	t=1713541839; cv=none; b=llxUtTwdAiKq8S2FEKL8LydSacvUQ9TpvrR9IJhg6N05U6DgWqyv6AGjaWydIydVEz5g0C0lpIwrVRZkWuNf/mYF7s6xZI1D5eBUk476x9Pph/MxBKWrwKPxcSuyAi/6wqycKbzEIdg91jxUnH9NppKyaWOLzDxaonOTtiP4YfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713518857; c=relaxed/simple;
-	bh=Qmc9EhkIIpbFeNtP0amEmcND1IWo5a+HNUEfwXlCQEM=;
+	s=arc-20240116; t=1713541839; c=relaxed/simple;
+	bh=4syrMVBjLG+mqSAuWdu45onjerLE6hugRcJZYIbTm9w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UtqVZ3bg43iV6Jq0/iSn8cvF1483kOv+xgbTCUaRgPyu4Lh2ym7QOOThQEBtT1/lgznI7/IEuEwhhN5Fth0MXEZP/zz4tlqP2GhJVRCGJp3y7Xw6MUtQ6kk8TRUH/v2QIzqBszjN9DQlonGQxgy1ZeHGBWCMsT/ilouxVyjXiRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.204.34.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtp81t1713518795t5jgjnqm
-X-QQ-Originating-IP: jXEkGEh+B+S0nZ2C29fIOx9NXHavu5sUQaHThL7wZlM=
-Received: from localhost ( [112.0.147.129])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 19 Apr 2024 17:26:34 +0800 (CST)
-X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: Q2yP8jvsZ988yftLcKE2iBRbKi+JY8eZPdsG5w93SH/6DQ9/iMXbEg+46jVVC
-	l+GQZzrrXkNmvOfoMTTCLABJDCtD2La/UFlrrhOsmsxsmRTEudlYdmBa4CMesDAfiM/pvKl
-	wxG/PTwMbaFF6G9YyYH14Kx2koU18EJT6nNO6CAl5zB/lurQ9E0IdoTr13MR2adKPEsvHA2
-	7Nqn9sLcuFZc6bTGkYfeISu62VfoRqQczjhG5LwkpQqQvQdJoAMw/8QtaPwsu4y1rQHrpBd
-	qoy0JLLW5F+OxR3CmhFALqw7O6+ugbKhvSxTJBPCywjGjrxYaP8UPDiuS3dKt6uwOx2Ynq6
-	UTakw+RyFprKhG85cfk5agnJZGOHWCb0Ki2IZy5Jo8h4nD0KZqrL6tpM6U2awK0OMwJdEND
-	2AHAzPhqbqA=
-X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 9083245040578109237
-Date: Fri, 19 Apr 2024 17:26:34 +0800
-From: Dawei Li <dawei.li@shingroup.cn>
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, yury.norov@gmail.com
-Subject: Re: [PATCH 0/5] Remove onstack cpumask var usage
-Message-ID: <A60F94A9589C8589+ZiI4yj073cgmt5Qq@centos8>
-References: <20240418104949.3606645-1-dawei.li@shingroup.cn>
- <20240419051350.GA558245@ravnborg.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=eRQOzsrj/ljKZqDXeCjzoqjDfNZ7gDiQqNMj/V3zxy6Yy3GW8lNZ8Wpj+4Ze0h9to0OYve361+ZtgU+i+EptEWjNOZhPbTulto8OduVyHbVsfZKROE8yHI0m5CxDzD1YOGYxJOieOXc7RpR1PtGT81f/avI2+EjtzQDf6o8E0W0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OHj3fHUB; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OHj3fHUB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B33F9C3277B;
+	Fri, 19 Apr 2024 15:50:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713541839;
+	bh=4syrMVBjLG+mqSAuWdu45onjerLE6hugRcJZYIbTm9w=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OHj3fHUBZ5oW6uWZr153zLjsZ6q0yv8DxwxD0Zy4isctsEWry5XXGSfR8Vc3hMrh/
+	 vizLT7qFrrEF533kmJCP3HWtZ7Qzr6mVAw251VXfA8O2WlqLyeSYgvuFfPALuIdv03
+	 8KfWQePVkfruiceot7yZycnjNdoMZw4MifC81l3AU9dBYam0QRDoIaUN7a6lFYb8MN
+	 K0Whze6qtl25bkJdh4oiv03gWibiSz5LhY9l5mv+w3PTDhkRKRk4JGDzV2xKnexhV7
+	 tGBMGlG1WEFnNmkggVGWaWOAgxzIa+Avjitv3Mny3kNElAG5XpvzSHnQsEDp7b51Tm
+	 Ziw7Ozh3aQ/+w==
+Date: Fri, 19 Apr 2024 18:49:17 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Masami Hiramatsu <masami.hiramatsu@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Puranjay Mohan <puranjay12@gmail.com>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v4 14/15] kprobes: remove dependency on CONFIG_MODULES
+Message-ID: <ZiKSffcTiP2c6fbs@kernel.org>
+References: <20240411160051.2093261-1-rppt@kernel.org>
+ <20240411160051.2093261-15-rppt@kernel.org>
+ <20240418061615.5fad23b954bf317c029acc4d@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -46,145 +72,41 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240419051350.GA558245@ravnborg.org>
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
+In-Reply-To: <20240418061615.5fad23b954bf317c029acc4d@gmail.com>
 
-Hi Sam,
+Hi Masami,
 
-Thanks for the review.
-
-On Fri, Apr 19, 2024 at 07:13:50AM +0200, Sam Ravnborg wrote:
-> Hi Dawei,
+On Thu, Apr 18, 2024 at 06:16:15AM +0900, Masami Hiramatsu wrote:
+> Hi Mike,
 > 
-> On Thu, Apr 18, 2024 at 06:49:44PM +0800, Dawei Li wrote:
-> > Hi,
+> On Thu, 11 Apr 2024 19:00:50 +0300
+> Mike Rapoport <rppt@kernel.org> wrote:
+> 
+> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 > > 
-> > This series aims at removing on-stack cpumask var usage for sparc arch.
+> > kprobes depended on CONFIG_MODULES because it has to allocate memory for
+> > code.
 > > 
-> > Generally it's preferable to avoid placing cpumasks on the stack, as
-> > for large values of NR_CPUS these can consume significant amounts of
-> > stack space and make stack overflows more likely.
+> > Since code allocations are now implemented with execmem, kprobes can be
+> > enabled in non-modular kernels.
+> > 
+> > Add #ifdef CONFIG_MODULE guards for the code dealing with kprobes inside
+> > modules, make CONFIG_KPROBES select CONFIG_EXECMEM and drop the
+> > dependency of CONFIG_KPROBES on CONFIG_MODULES.
 > 
-> Took a quick look at the patches, looks good except the one the bot
-> already complained about.
+> Thanks for this work, but this conflicts with the latest fix in v6.9-rc4.
+> Also, can you use IS_ENABLED(CONFIG_MODULES) instead of #ifdefs in
+> function body? We have enough dummy functions for that, so it should
+> not make a problem.
 
-I will fix this building warning in respinning.
+The code in check_kprobe_address_safe() that gets the module and checks for
+__init functions does not compile with IS_ENABLED(CONFIG_MODULES). 
+I can pull it out to a helper or leave #ifdef in the function body,
+whichever you prefer.
+ 
+> -- 
+> Masami Hiramatsu
 
-> A quick grep shows a few more cases where we have an on-stack cpumask
-> in sparc code.
-> 
-> kernel/ds.c:    cpumask_t mask;
-
-About this case, it's kinda tricky for:
-- dr_cpu_data() returns void, so alloc_cpumask_var() is no go.
-
-- No idea of the calling context of dr_cpu_data(). IIUC,
-  dr_cpu_data()
-  ->dr_cpu_configure()  
-   ->kzalloc(resp_len, GFP_KERNEL)
-  So I guess it's in process context?
-  If consumption above is OK, a simple but _ugly_ solution could be:
-
-diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
-index ffdc15588ac2..c9e4ebdccf49 100644
---- a/arch/sparc/kernel/ds.c
-+++ b/arch/sparc/kernel/ds.c
-@@ -634,7 +634,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
-        struct dr_cpu_tag *tag = (struct dr_cpu_tag *) (data + 1);
-        u32 *cpu_list = (u32 *) (tag + 1);
-        u64 req_num = tag->req_num;
--       cpumask_t mask;
-+       static DEFINE_MUTEX(mask_lock);
-+       static cpumask_t mask;
-        unsigned int i;
-        int err;
-
-@@ -651,6 +652,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
-
-        purge_dups(cpu_list, tag->num_records);
-
-+       mutex_lock(&mask_lock);
-+
-        cpumask_clear(&mask);
-        for (i = 0; i < tag->num_records; i++) {
-                if (cpu_list[i] == CPU_SENTINEL)
-@@ -665,6 +668,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
-        else
-                err = dr_cpu_unconfigure(dp, cp, req_num, &mask);
-
-+       mutex_unlock(&mask_lock);
-+
-        if (err)
-                dr_cpu_send_error(dp, cp, data);
- }
-
-How does it sound to you?
-
-> kernel/leon_kernel.c:   cpumask_t mask;
-
-It's in irqchip::irq_set_affinity(), which is in atomic context(raw spinlock(s) held),
-so dynamic allocation is not a good idea.
-
-My proposal(*untested*) is somewhat complicated for it introduces a new helper.
-
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index 4c61da491fee..6eced7acb8bc 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -104,15 +104,25 @@ unsigned long leon_get_irqmask(unsigned int irq)
- }
-
- #ifdef CONFIG_SMP
-+
-+static bool cpumask_include(const struct cpumask *srcp1, const struct cpumask *srcp2)
-+{
-+       unsigned int cpu;
-+
-+       for_each_cpu(cpu, srcp2) {
-+               if (!cpumask_test_cpu(cpu, srcp1))
-+                       return false;
-+       }
-+
-+       return true;
-+}
-+
- static int irq_choose_cpu(const struct cpumask *affinity)
- {
--       cpumask_t mask;
-+       unsigned int cpu = cpumask_first_and(affinity, cpu_online_mask);
-
--       cpumask_and(&mask, cpu_online_mask, affinity);
--       if (cpumask_equal(&mask, cpu_online_mask) || cpumask_empty(&mask))
--               return boot_cpu_id;
--       else
--               return cpumask_first(&mask);
-+       return cpumask_include(affinity, cpu_online_mask) || cpu >= nr_cpu_ids ?
-+              boot_cpu_id : cpu;
- }
- #else
- #define irq_choose_cpu(affinity) boot_cpu_id
-
-Is it OK?
-
-[cc Yury for bitmap API]
-
-> kernel/leon_smp.c:static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-> kernel/sun4d_smp.c:static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-
-Actually I am awared of existence of (at least some of) them, but so far I
-have not found a _proper_ way of dealing with them(especially for case of
-ds.c).
-
-Please lemme dig into it.
-
-Thanks,
-
-    Dawei
-
-> 
-> Do you plan to look at the other on-stack users too?
-> It would be nice to see them all gone in one patch-set.
-> 
-> 	Sam
-> 
+-- 
+Sincerely yours,
+Mike.
