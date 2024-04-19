@@ -1,128 +1,190 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpbguseast2.qq.com (smtpbguseast2.qq.com [54.204.34.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77DA63E;
-	Fri, 19 Apr 2024 06:56:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5DC37350E;
+	Fri, 19 Apr 2024 09:27:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713509798; cv=none; b=uSluC9zo28vHSoNgnpCTH08/ccnBLEO8gH6TK5xWBiFM5Mj2WodUMDcTCP+DgAZvoSe/JFTO7t0wTfWMQxTdeY+XuOSCRP+QGzcwAi1XwGisjgI+chvmpjnSOeV7+zLindn5TMjqfqYWoRFBugF/QePjG3f07+1kKDwNSJ20dLU=
+	t=1713518857; cv=none; b=LNeFzBYLfyk1WVJ/1FEKmPfutqBZnbVGEdvaqAZxHYf838XRf29A3xtAi6ZJ/SEhjE5RiNUsfRVBv7c4V+7rdpfekQIwIiYZme3uLZFlb5omPG8Dtv0eV1fwKRGBgkabx/r4KCqry9vrXDrJyj1cWZWAKEMV+eVhSOCGbw+99PU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713509798; c=relaxed/simple;
-	bh=QyMnC6yNCYeGf0vrwo+bvOEGlhU1enTkpEMS1UdTz3o=;
+	s=arc-20240116; t=1713518857; c=relaxed/simple;
+	bh=Qmc9EhkIIpbFeNtP0amEmcND1IWo5a+HNUEfwXlCQEM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nfeXrSOHRfzoP83QFoYBbmVcyWej2sBnyV6u8bkYQKL4THyJKWx3Lf+tKiXXLWm+KPl3tx31E9mwK1BP+kQCHb38y9WM8sYfUi+nPCaL24bUDc5/YYAghrAP3yqhqoIAzAMprsIP3bJUFivCquJ9mBFkvBGfLUPa1kXva/J6dFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GGPxC8PC; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GGPxC8PC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5881C072AA;
-	Fri, 19 Apr 2024 06:56:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713509797;
-	bh=QyMnC6yNCYeGf0vrwo+bvOEGlhU1enTkpEMS1UdTz3o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GGPxC8PCY8SnZrF0RCOMbIgSLrKy8hMUcTwQhGg04AArCCIqcrHmv5Ozj+/15Mxmb
-	 Z5tAH7Vdwb4CwNtAt3c/UrCpMIZJPngEV7ak2csa/7FlHToGNqqaiOtjXXYFiXJWt3
-	 6ObsP+646nnF8SnH5skC5WEdWELGtHSHzBDWXZqXYwBofamn2QdDvdgy5CTKGNpPOO
-	 1v84dtOt7AKF4KxvZWU3TOdBN2g9tkVxrJyakFg/qwL0NKQfGsXLfFOWV0O05jtLTZ
-	 wM29U64qOuZV772RLQ5j7ljjoO+qx0/azdfHFMH7xioH9AhimXQ/fqnfmBiI3Sy0+P
-	 8Za6g/P3pUaVg==
-Date: Fri, 19 Apr 2024 09:55:16 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Song Liu <song@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org,
-	Alexandre Ghiti <alexghiti@rivosinc.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Bjorn Topel <bjorn@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nadav Amit <nadav.amit@gmail.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Puranjay Mohan <puranjay12@gmail.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-mm@kvack.org, linux-modules@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
-Message-ID: <ZiIVVBgaDN4RsroT@kernel.org>
-References: <20240411160051.2093261-1-rppt@kernel.org>
- <20240411160051.2093261-6-rppt@kernel.org>
- <20240415075241.GF40213@noisy.programming.kicks-ass.net>
- <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
- <Zh4nJp8rv1qRBs8m@kernel.org>
- <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
- <ZiE91CJcNw7gBj9g@kernel.org>
- <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
- <ZiFd567L4Zzm2okO@kernel.org>
- <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=UtqVZ3bg43iV6Jq0/iSn8cvF1483kOv+xgbTCUaRgPyu4Lh2ym7QOOThQEBtT1/lgznI7/IEuEwhhN5Fth0MXEZP/zz4tlqP2GhJVRCGJp3y7Xw6MUtQ6kk8TRUH/v2QIzqBszjN9DQlonGQxgy1ZeHGBWCMsT/ilouxVyjXiRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.204.34.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
+X-QQ-mid: bizesmtp81t1713518795t5jgjnqm
+X-QQ-Originating-IP: jXEkGEh+B+S0nZ2C29fIOx9NXHavu5sUQaHThL7wZlM=
+Received: from localhost ( [112.0.147.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Fri, 19 Apr 2024 17:26:34 +0800 (CST)
+X-QQ-SSF: 01400000000000903000000A0000000
+X-QQ-FEAT: Q2yP8jvsZ988yftLcKE2iBRbKi+JY8eZPdsG5w93SH/6DQ9/iMXbEg+46jVVC
+	l+GQZzrrXkNmvOfoMTTCLABJDCtD2La/UFlrrhOsmsxsmRTEudlYdmBa4CMesDAfiM/pvKl
+	wxG/PTwMbaFF6G9YyYH14Kx2koU18EJT6nNO6CAl5zB/lurQ9E0IdoTr13MR2adKPEsvHA2
+	7Nqn9sLcuFZc6bTGkYfeISu62VfoRqQczjhG5LwkpQqQvQdJoAMw/8QtaPwsu4y1rQHrpBd
+	qoy0JLLW5F+OxR3CmhFALqw7O6+ugbKhvSxTJBPCywjGjrxYaP8UPDiuS3dKt6uwOx2Ynq6
+	UTakw+RyFprKhG85cfk5agnJZGOHWCb0Ki2IZy5Jo8h4nD0KZqrL6tpM6U2awK0OMwJdEND
+	2AHAzPhqbqA=
+X-QQ-GoodBg: 2
+X-BIZMAIL-ID: 9083245040578109237
+Date: Fri, 19 Apr 2024 17:26:34 +0800
+From: Dawei Li <dawei.li@shingroup.cn>
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, yury.norov@gmail.com
+Subject: Re: [PATCH 0/5] Remove onstack cpumask var usage
+Message-ID: <A60F94A9589C8589+ZiI4yj073cgmt5Qq@centos8>
+References: <20240418104949.3606645-1-dawei.li@shingroup.cn>
+ <20240419051350.GA558245@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
+In-Reply-To: <20240419051350.GA558245@ravnborg.org>
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-On Thu, Apr 18, 2024 at 02:01:22PM -0700, Song Liu wrote:
-> On Thu, Apr 18, 2024 at 10:54 AM Mike Rapoport <rppt@kernel.org> wrote:
-> >
-> > On Thu, Apr 18, 2024 at 09:13:27AM -0700, Song Liu wrote:
-> > > On Thu, Apr 18, 2024 at 8:37 AM Mike Rapoport <rppt@kernel.org> wrote:
-> > > > > >
-> > > > > > I'm looking at execmem_types more as definition of the consumers, maybe I
-> > > > > > should have named the enum execmem_consumer at the first place.
-> > > > >
-> > > > > I think looking at execmem_type from consumers' point of view adds
-> > > > > unnecessary complexity. IIUC, for most (if not all) archs, ftrace, kprobe,
-> > > > > and bpf (and maybe also module text) all have the same requirements.
-> > > > > Did I miss something?
-> > > >
-> > > > It's enough to have one architecture with different constrains for kprobes
-> > > > and bpf to warrant a type for each.
-> > >
-> > > AFAICT, some of these constraints can be changed without too much work.
-> >
-> > But why?
-> > I honestly don't understand what are you trying to optimize here. A few
-> > lines of initialization in execmem_info?
+Hi Sam,
+
+Thanks for the review.
+
+On Fri, Apr 19, 2024 at 07:13:50AM +0200, Sam Ravnborg wrote:
+> Hi Dawei,
 > 
-> IIUC, having separate EXECMEM_BPF and EXECMEM_KPROBE makes it
-> harder for bpf and kprobe to share the same ROX page. In many use cases,
-> a 2MiB page (assuming x86_64) is enough for all BPF, kprobe, ftrace, and
-> module text. It is not efficient if we have to allocate separate pages for each
-> of these use cases. If this is not a problem, the current approach works.
+> On Thu, Apr 18, 2024 at 06:49:44PM +0800, Dawei Li wrote:
+> > Hi,
+> > 
+> > This series aims at removing on-stack cpumask var usage for sparc arch.
+> > 
+> > Generally it's preferable to avoid placing cpumasks on the stack, as
+> > for large values of NR_CPUS these can consume significant amounts of
+> > stack space and make stack overflows more likely.
+> 
+> Took a quick look at the patches, looks good except the one the bot
+> already complained about.
 
-The caching of large ROX pages does not need to be per type. 
+I will fix this building warning in respinning.
 
-In the POC I've posted for caching of large ROX pages on x86 [1], the cache is
-global and to make kprobes and bpf use it it's enough to set a flag in
-execmem_info.
+> A quick grep shows a few more cases where we have an on-stack cpumask
+> in sparc code.
+> 
+> kernel/ds.c:    cpumask_t mask;
 
-[1] https://lore.kernel.org/all/20240411160526.2093408-1-rppt@kernel.org
+About this case, it's kinda tricky for:
+- dr_cpu_data() returns void, so alloc_cpumask_var() is no go.
 
-> Thanks,
-> Song
+- No idea of the calling context of dr_cpu_data(). IIUC,
+  dr_cpu_data()
+  ->dr_cpu_configure()  
+   ->kzalloc(resp_len, GFP_KERNEL)
+  So I guess it's in process context?
+  If consumption above is OK, a simple but _ugly_ solution could be:
 
--- 
-Sincerely yours,
-Mike.
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index ffdc15588ac2..c9e4ebdccf49 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -634,7 +634,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
+        struct dr_cpu_tag *tag = (struct dr_cpu_tag *) (data + 1);
+        u32 *cpu_list = (u32 *) (tag + 1);
+        u64 req_num = tag->req_num;
+-       cpumask_t mask;
++       static DEFINE_MUTEX(mask_lock);
++       static cpumask_t mask;
+        unsigned int i;
+        int err;
+
+@@ -651,6 +652,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
+
+        purge_dups(cpu_list, tag->num_records);
+
++       mutex_lock(&mask_lock);
++
+        cpumask_clear(&mask);
+        for (i = 0; i < tag->num_records; i++) {
+                if (cpu_list[i] == CPU_SENTINEL)
+@@ -665,6 +668,8 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
+        else
+                err = dr_cpu_unconfigure(dp, cp, req_num, &mask);
+
++       mutex_unlock(&mask_lock);
++
+        if (err)
+                dr_cpu_send_error(dp, cp, data);
+ }
+
+How does it sound to you?
+
+> kernel/leon_kernel.c:   cpumask_t mask;
+
+It's in irqchip::irq_set_affinity(), which is in atomic context(raw spinlock(s) held),
+so dynamic allocation is not a good idea.
+
+My proposal(*untested*) is somewhat complicated for it introduces a new helper.
+
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 4c61da491fee..6eced7acb8bc 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -104,15 +104,25 @@ unsigned long leon_get_irqmask(unsigned int irq)
+ }
+
+ #ifdef CONFIG_SMP
++
++static bool cpumask_include(const struct cpumask *srcp1, const struct cpumask *srcp2)
++{
++       unsigned int cpu;
++
++       for_each_cpu(cpu, srcp2) {
++               if (!cpumask_test_cpu(cpu, srcp1))
++                       return false;
++       }
++
++       return true;
++}
++
+ static int irq_choose_cpu(const struct cpumask *affinity)
+ {
+-       cpumask_t mask;
++       unsigned int cpu = cpumask_first_and(affinity, cpu_online_mask);
+
+-       cpumask_and(&mask, cpu_online_mask, affinity);
+-       if (cpumask_equal(&mask, cpu_online_mask) || cpumask_empty(&mask))
+-               return boot_cpu_id;
+-       else
+-               return cpumask_first(&mask);
++       return cpumask_include(affinity, cpu_online_mask) || cpu >= nr_cpu_ids ?
++              boot_cpu_id : cpu;
+ }
+ #else
+ #define irq_choose_cpu(affinity) boot_cpu_id
+
+Is it OK?
+
+[cc Yury for bitmap API]
+
+> kernel/leon_smp.c:static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
+> kernel/sun4d_smp.c:static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
+
+Actually I am awared of existence of (at least some of) them, but so far I
+have not found a _proper_ way of dealing with them(especially for case of
+ds.c).
+
+Please lemme dig into it.
+
+Thanks,
+
+    Dawei
+
+> 
+> Do you plan to look at the other on-stack users too?
+> It would be nice to see them all gone in one patch-set.
+> 
+> 	Sam
+> 
