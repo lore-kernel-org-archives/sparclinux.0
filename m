@@ -1,84 +1,128 @@
-Received: from mailrelay1-1.pub.mailoutpod3-cph3.one.com (mailrelay1-1.pub.mailoutpod3-cph3.one.com [46.30.211.240])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6CB0BA31
-	for <sparclinux@vger.kernel.org>; Fri, 19 Apr 2024 05:15:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.240
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77DA63E;
+	Fri, 19 Apr 2024 06:56:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713503706; cv=none; b=CyIYvzBxehJDx9NIREaGI7uEtv9ArpzEgS3Bri/7fm1pmqzoGVNjNAlmeckQvIJY1X5islY1UzR25VZp020Yp/nEsuBeIiMe0N0JnODKLUjVJysx9TkhpKiaPwW831VQ17FAGseVXm4oFUBTuoZvQjbtA4ALaZf+z2GPLjxoDrU=
+	t=1713509798; cv=none; b=uSluC9zo28vHSoNgnpCTH08/ccnBLEO8gH6TK5xWBiFM5Mj2WodUMDcTCP+DgAZvoSe/JFTO7t0wTfWMQxTdeY+XuOSCRP+QGzcwAi1XwGisjgI+chvmpjnSOeV7+zLindn5TMjqfqYWoRFBugF/QePjG3f07+1kKDwNSJ20dLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713503706; c=relaxed/simple;
-	bh=uN8JfYQ/aBEsywlESJUlU0Btqt0nXX9MQQidv/c8OSA=;
+	s=arc-20240116; t=1713509798; c=relaxed/simple;
+	bh=QyMnC6yNCYeGf0vrwo+bvOEGlhU1enTkpEMS1UdTz3o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u+CypaH1VEKTRFmOrIaFEbt+I4tIoXC29vSgZkyOoFbpfeIJrJWNVV3MN23gQA/b8CkevoFVvhJEU9+1+Tj0HvzmVsDe0rzQRpn0nmZFUVTXFDas4oB58gJBKR2j2yEcghzn1X7KSgf9OnOUDmGMPQnzlq5CCRoqLqW8+HT8+Ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=kGLIj4zl; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=XKuHJR3l; arc=none smtp.client-ip=46.30.211.240
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=nfeXrSOHRfzoP83QFoYBbmVcyWej2sBnyV6u8bkYQKL4THyJKWx3Lf+tKiXXLWm+KPl3tx31E9mwK1BP+kQCHb38y9WM8sYfUi+nPCaL24bUDc5/YYAghrAP3yqhqoIAzAMprsIP3bJUFivCquJ9mBFkvBGfLUPa1kXva/J6dFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GGPxC8PC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="kGLIj4zl";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="XKuHJR3l"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=u/go6+i7e7RyNSuoXpPTIqP0/jBntZGsQA2HrLzeU90=;
-	b=kGLIj4zl3nZh5NPG9HxXvsvmBgJ04w7Rum2A5Mt39cNRvmWQbP/1QE/wnztuQ/QQ2pUtg5yeAEvMt
-	 kV3ADRncWjmrKbDjAPN/ihny18P9q8Xs1PYV7jiT9/TgZ0akaBWlNkSVjyTslHs2cqBHbZw35W4LTA
-	 rb6sMFQvNcI+rnQl0LpautsKNovRDA7s+vq5LAIVSqV9cSsWNk3xu+6Ur2h3PjqY9EHOD3rjljrAju
-	 UDNlPDsXzk/2iZcxpelBSy7Par8t4wldrx3P+gi9Ff0ePcMmub+y10rpyarIJonmbEGK6gPxpylq8K
-	 9cuK9Du48/w3u9b80zfCYTvTiUFguMQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=u/go6+i7e7RyNSuoXpPTIqP0/jBntZGsQA2HrLzeU90=;
-	b=XKuHJR3lOYplrKFaJTtPySHfacKIGmSnuGzDgCnksG7MIX6+YIEVxQ5oZacqLgM2I9FUmdnkMwzxR
-	 Mzmm3KvAg==
-X-HalOne-ID: 9b761f07-fe0b-11ee-b787-bf3d7f4c9d3b
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay1.pub.mailoutpod3-cph3.one.com (Halon) with ESMTPSA
-	id 9b761f07-fe0b-11ee-b787-bf3d7f4c9d3b;
-	Fri, 19 Apr 2024 05:13:52 +0000 (UTC)
-Date: Fri, 19 Apr 2024 07:13:50 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Dawei Li <dawei.li@shingroup.cn>
-Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/5] Remove onstack cpumask var usage
-Message-ID: <20240419051350.GA558245@ravnborg.org>
-References: <20240418104949.3606645-1-dawei.li@shingroup.cn>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GGPxC8PC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5881C072AA;
+	Fri, 19 Apr 2024 06:56:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1713509797;
+	bh=QyMnC6yNCYeGf0vrwo+bvOEGlhU1enTkpEMS1UdTz3o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=GGPxC8PCY8SnZrF0RCOMbIgSLrKy8hMUcTwQhGg04AArCCIqcrHmv5Ozj+/15Mxmb
+	 Z5tAH7Vdwb4CwNtAt3c/UrCpMIZJPngEV7ak2csa/7FlHToGNqqaiOtjXXYFiXJWt3
+	 6ObsP+646nnF8SnH5skC5WEdWELGtHSHzBDWXZqXYwBofamn2QdDvdgy5CTKGNpPOO
+	 1v84dtOt7AKF4KxvZWU3TOdBN2g9tkVxrJyakFg/qwL0NKQfGsXLfFOWV0O05jtLTZ
+	 wM29U64qOuZV772RLQ5j7ljjoO+qx0/azdfHFMH7xioH9AhimXQ/fqnfmBiI3Sy0+P
+	 8Za6g/P3pUaVg==
+Date: Fri, 19 Apr 2024 09:55:16 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Song Liu <song@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+	Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bjorn Topel <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Puranjay Mohan <puranjay12@gmail.com>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
+Message-ID: <ZiIVVBgaDN4RsroT@kernel.org>
+References: <20240411160051.2093261-1-rppt@kernel.org>
+ <20240411160051.2093261-6-rppt@kernel.org>
+ <20240415075241.GF40213@noisy.programming.kicks-ass.net>
+ <Zh1lnIdgFeM1o8S5@FVFF77S0Q05N.cambridge.arm.com>
+ <Zh4nJp8rv1qRBs8m@kernel.org>
+ <CAPhsuW6Pbg2k_Gu4dsBx+H8H5XCHvNdtEZJBPiG_eT0qqr9D1w@mail.gmail.com>
+ <ZiE91CJcNw7gBj9g@kernel.org>
+ <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
+ <ZiFd567L4Zzm2okO@kernel.org>
+ <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240418104949.3606645-1-dawei.li@shingroup.cn>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
 
-Hi Dawei,
-
-On Thu, Apr 18, 2024 at 06:49:44PM +0800, Dawei Li wrote:
-> Hi,
+On Thu, Apr 18, 2024 at 02:01:22PM -0700, Song Liu wrote:
+> On Thu, Apr 18, 2024 at 10:54 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > On Thu, Apr 18, 2024 at 09:13:27AM -0700, Song Liu wrote:
+> > > On Thu, Apr 18, 2024 at 8:37 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > > > > >
+> > > > > > I'm looking at execmem_types more as definition of the consumers, maybe I
+> > > > > > should have named the enum execmem_consumer at the first place.
+> > > > >
+> > > > > I think looking at execmem_type from consumers' point of view adds
+> > > > > unnecessary complexity. IIUC, for most (if not all) archs, ftrace, kprobe,
+> > > > > and bpf (and maybe also module text) all have the same requirements.
+> > > > > Did I miss something?
+> > > >
+> > > > It's enough to have one architecture with different constrains for kprobes
+> > > > and bpf to warrant a type for each.
+> > >
+> > > AFAICT, some of these constraints can be changed without too much work.
+> >
+> > But why?
+> > I honestly don't understand what are you trying to optimize here. A few
+> > lines of initialization in execmem_info?
 > 
-> This series aims at removing on-stack cpumask var usage for sparc arch.
-> 
-> Generally it's preferable to avoid placing cpumasks on the stack, as
-> for large values of NR_CPUS these can consume significant amounts of
-> stack space and make stack overflows more likely.
+> IIUC, having separate EXECMEM_BPF and EXECMEM_KPROBE makes it
+> harder for bpf and kprobe to share the same ROX page. In many use cases,
+> a 2MiB page (assuming x86_64) is enough for all BPF, kprobe, ftrace, and
+> module text. It is not efficient if we have to allocate separate pages for each
+> of these use cases. If this is not a problem, the current approach works.
 
-Took a quick look at the patches, looks good except the one the bot
-already complained about.
-A quick grep shows a few more cases where we have an on-stack cpumask
-in sparc code.
+The caching of large ROX pages does not need to be per type. 
 
-kernel/ds.c:    cpumask_t mask;
-kernel/leon_kernel.c:   cpumask_t mask;
-kernel/leon_smp.c:static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-kernel/sun4d_smp.c:static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
+In the POC I've posted for caching of large ROX pages on x86 [1], the cache is
+global and to make kprobes and bpf use it it's enough to set a flag in
+execmem_info.
 
-Do you plan to look at the other on-stack users too?
-It would be nice to see them all gone in one patch-set.
+[1] https://lore.kernel.org/all/20240411160526.2093408-1-rppt@kernel.org
 
-	Sam
+> Thanks,
+> Song
+
+-- 
+Sincerely yours,
+Mike.
