@@ -1,34 +1,34 @@
-Received: from smtpbgbr1.qq.com (smtpbgbr1.qq.com [54.207.19.206])
+Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C294B17BC9;
-	Sat, 20 Apr 2024 05:16:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.19.206
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D60EE17BCB;
+	Sat, 20 Apr 2024 05:17:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713590223; cv=none; b=rYUhNM7iP7W/Cg9JkDlDxrUre9HbFO1AWkYHR8Vtujd2YhZlSrrl8ZKdUDRA13Hz1gwhIOM90b2wpLU635eIvS8m+Tcm5ug39s6wexWrGVEksnhqlGF2PMpy/rfD2LGb6veEzcG/eoww5zOpbMD5kq/owzyiQreyAx9SE92GWak=
+	t=1713590224; cv=none; b=r/0K30fK6G4hNtEzZXwaq4D/WpvNKlaXq8wJCo3IpytRYv228q6yHQ/G/SpAK1NSGrgBzPbU/bsJi0Tm5Xhh/kKIRCsp01GAuSuiVeWKf3LIZbQSK4u3CpAj7iu++2la/7IYyYQKEbHxnV08w0Y/8tGQ3XoF7JtV+Rghv3ivtPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713590223; c=relaxed/simple;
-	bh=sFnCyAezPJqAAlu3qDvF7erthkLHTCeXNJjaVGL6Y6w=;
+	s=arc-20240116; t=1713590224; c=relaxed/simple;
+	bh=jLfNnCBXksQdRcun7e+P6Gzbclr84PhONO9mQqHTh0w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=W8o1MLurG1Z1/Qe9I0zIgE8P6X90aTcOEkYqfvEnbcFwGOJDZfiCTNs77W8Oa6ArMhe3TqgMFISpf03YusdOr1NrcER/fpnSAFIVmir63b62OgAwsZkNODXiur8xZ3r9+DufpY5gbeYna0mTEPkk4FfJ75TYZCFdmHFdFm1fnvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.207.19.206
+	 MIME-Version; b=qVzWwwMgp6BA2tnYYtS+7QWaXRLihhHjL5XyNgpNz92OjH0q/rv/yEoQ48JNFEPC7Dj+DY108qwvnKaV9b3iXeM6BiYqsA31/X738quKAnoKfX8dxD7RT+OR+P8I648cvJ4J0kbUt5goGFMx+hEM3d+gBzhgG3eSHMvar2t18fY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.254.200.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtp79t1713590179t1j0ojyx
-X-QQ-Originating-IP: usNWeg3p56fbl6S4O5hLIa/2vcCL/sUddDTvjUu6ZQk=
+X-QQ-mid: bizesmtp87t1713590193tckay5hz
+X-QQ-Originating-IP: YKD5jxrExFmZCeXNPd1zDEkYWQBcJUhZJZw3aGY2xlg=
 Received: from localhost ( [112.0.147.129])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Sat, 20 Apr 2024 13:16:17 +0800 (CST)
+	id ; Sat, 20 Apr 2024 13:16:32 +0800 (CST)
 X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: kXE5muS/leEbbuoBaiU+TdzUdL8x1DtGffTVB18ZZSjdZkb7ukY1/vsQEbTcj
-	/NXvomoV18BJGH7GSXpOT4kPYqdzRkXp2cswMMBLFO7EFgU3Pr1hY/7VYyesv4D1cvIMV6W
-	HdN9MK0b25112qI1mqXixVzW4O7ZWSlEn4tPhnK/uhx+Yf+u0Bh5BtcHYZQEgfo1NFXX8wv
-	W/UVodAkBuo5rh8V+NvcF7K0WOpS281MfHV1BPbqVX47V/rkPl6A6cTSDZ1r6yx7wUcs+we
-	f+djCR4KWNJYQmJErZxhtT8GLtyti8qGk0+HpGKqXlwTnrDzJjwhzuCjhWrrKS2PHKS6ISU
-	0GrnJu3Zc/j1deuop76NewiI7M6R27Qb2R0pBGFD8+NcYaUMb8qQGjRaC+DfZCzFBL+r4mA
-	eqVicjisW3I=
+X-QQ-FEAT: RLrSOnjbvYFlqV1mdTGOKnCqxqWyu0oq4qmWlQWNmG2Y1zZZLysBSSxH4ilo0
+	RnHKsK7/CxOdCv1/mmM6zDJRHwYnOGSXxTwuoo3QRp8FlBkMIb57lzMh2bTxZHaY6lJEMpP
+	FchEoK7g2OYvxH1I1SGY/sHS1eQ/1GlGUE1BFbl8aQ6pH/EMVg3J9bT2epRR8XkLIYZsQPw
+	9tt8Sp5/q0E0rUWMdxz5mYBTmI4JmZO4/vnspF+oXe6QCK8vNRCVwGocp7TGdIShklug1Ua
+	9wrjdEiyLV93fdVnTV83/30GqomX5vOWhuBsNO8cMm3+vINyiseLRC9oILcqNe39q2LEtYV
+	wOxsQdJf5CQVD97aN+Jr8j6le/eyIsZKOzftovHieVsOoX9jmMVM31xXJqbppHZhTABxE/q
+	XDADwWjn82fSfAgFCrWP/g==
 X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 13105262653113255618
+X-BIZMAIL-ID: 6810044621724373392
 From: Dawei Li <dawei.li@shingroup.cn>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -36,9 +36,9 @@ Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	sam@ravnborg.org,
 	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH v2 4/7] sparc/pci_msi: Remove on-stack cpumask var
-Date: Sat, 20 Apr 2024 13:15:44 +0800
-Message-Id: <20240420051547.3681642-5-dawei.li@shingroup.cn>
+Subject: [PATCH v2 6/7] sparc/leon: Remove on-stack cpumask var
+Date: Sat, 20 Apr 2024 13:15:46 +0800
+Message-Id: <20240420051547.3681642-7-dawei.li@shingroup.cn>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20240420051547.3681642-1-dawei.li@shingroup.cn>
 References: <20240420051547.3681642-1-dawei.li@shingroup.cn>
@@ -56,30 +56,35 @@ In general it's preferable to avoid placing cpumasks on the stack, as
 for large values of NR_CPUS these can consume significant amounts of
 stack space and make stack overflows more likely.
 
-@cpumask of irq_set_affinity() is read-only and free of change, drop
-unneeded cpumask var.
+Use cpumask_subset() and cpumask_first_and() to avoid the need for a
+temporary cpumask on the stack.
 
 Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
 ---
- arch/sparc/kernel/pci_msi.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/sparc/kernel/leon_kernel.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
-index fc7402948b7b..acb2f83a1d5c 100644
---- a/arch/sparc/kernel/pci_msi.c
-+++ b/arch/sparc/kernel/pci_msi.c
-@@ -287,10 +287,7 @@ static int bringup_one_msi_queue(struct pci_pbm_info *pbm,
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 4c61da491fee..0070655041bb 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -106,13 +106,10 @@ unsigned long leon_get_irqmask(unsigned int irq)
+ #ifdef CONFIG_SMP
+ static int irq_choose_cpu(const struct cpumask *affinity)
+ {
+-	cpumask_t mask;
++	unsigned int cpu = cpumask_first_and(affinity, cpu_online_mask);
  
- 	nid = pbm->numa_node;
- 	if (nid != -1) {
--		cpumask_t numa_mask;
--
--		cpumask_copy(&numa_mask, cpumask_of_node(nid));
--		irq_set_affinity(irq, &numa_mask);
-+		irq_set_affinity(irq, cpumask_of_node(nid));
- 	}
- 	err = request_irq(irq, sparc64_msiq_interrupt, 0,
- 			  "MSIQ",
+-	cpumask_and(&mask, cpu_online_mask, affinity);
+-	if (cpumask_equal(&mask, cpu_online_mask) || cpumask_empty(&mask))
+-		return boot_cpu_id;
+-	else
+-		return cpumask_first(&mask);
++	return cpumask_subset(cpu_online_mask, affinity) || cpu >= nr_cpu_ids ?
++	       boot_cpu_id : cpu;
+ }
+ #else
+ #define irq_choose_cpu(affinity) boot_cpu_id
 -- 
 2.27.0
 
