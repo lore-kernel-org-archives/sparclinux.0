@@ -1,141 +1,105 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D4720EB;
-	Sat, 20 Apr 2024 07:35:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C6CF9DF
+	for <sparclinux@vger.kernel.org>; Sat, 20 Apr 2024 08:00:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713598501; cv=none; b=NEJIQASP3Ux0IRBMlmLbRO1DwkcnRXowI+ccL0hzeoDZKOOfU8/RMng5REfSY15sIvPAzNlS6mvu+TCUmmUhN+BFpwP0C0eVoaEMIstQgbhVDGRD4clvXzmN0U3EWwboWhDps0TZVFWeJrUzCcWe2A99ek+g3H3KIYLKt2LVpNI=
+	t=1713600010; cv=none; b=qc/X93QhZiUxL/PFGRrypz9oiIrP9Q0sqq+i4IomukfPVT09HUGhMbJZ/gC64wm+qbHabexMlu8ZHKlT4QcKooF4Ayg6SM2Hw/ppV0VoPTxAGh7qxyI38qXLcStz8QF9MX7YCUHGRzGo5UClaQYxuZod51Pc9P/fJuidsKvWrP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713598501; c=relaxed/simple;
-	bh=YQ9KfPtm5Gq9HYepBoPJrHlxAcwZYbjakD5piFpGBCI=;
+	s=arc-20240116; t=1713600010; c=relaxed/simple;
+	bh=Zgce6zv1q2p3ZzIim3wBuPu7uvIRjBuJqkyxEkf1f3c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XLxl6jNNEst2IqF5XyMzMm82Xg8yJj4+7+iWllu0I+9/7J/iwHLHvBsh8AuzwxMOwekkExF8wcmFVqi/Cg8qyyN3l4WwEDpA1H12Ki3o1gYt2QeHg7FwgCnr1Vof9BkqkBnCwGTNYSzmQ6N+NLAkyoeBp99rBZLphCBV9icN8UQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HstIwZ4k; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=e4SbRSpz1rU3CPDvkoRIML1sbBbbn4DFeRa9n7Plq59I2ph+YNw01sXZ1jLOq9PYjSct0uxhGLIAtQNUTBdWFIx56szmNHgg2E8NorGg7N8U3IhmcsbHvBVXnsC1u0FDs47zLkVd0asy4t3uA8dpTsjgMo49SdiwMVq8ID2SLVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=DgBUJ93W; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=7aDLeJh6; arc=none smtp.client-ip=46.30.211.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HstIwZ4k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB26C113CE;
-	Sat, 20 Apr 2024 07:34:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713598501;
-	bh=YQ9KfPtm5Gq9HYepBoPJrHlxAcwZYbjakD5piFpGBCI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HstIwZ4kXYt594F3dTAKefbjqk59LgLelJ4wfeugjHKdccg9U6QSsThvKUdOj6kpr
-	 cxBq3QX4LKiL1ekSZ4hlwHrg2Qo19wEMdjfcoqJC1hKB987QXK8Wq3oegsKl2zZTfI
-	 0ahwnVH2zTwg0WMFDB5bQY2DWepkh6sfONxxfG+SnniZiiLcfZnS8gmDD4/taXFr4a
-	 gNoyuT99b/yZU19nTHh4Wm4L6MjmbQoSYrPwuVYcHB2CCTGISZcttYnTQA36iEYp8c
-	 S1AEVNMPdbCPnyweb2c/fhVBUzL5EOQDTyFmN+U+fX6hUzHCENDjnN15hBAkD3dzc1
-	 3OfMh4fyGR7Ag==
-Date: Sat, 20 Apr 2024 10:33:38 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Masami Hiramatsu <masami.hiramatsu@gmail.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Alexandre Ghiti <alexghiti@rivosinc.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nadav Amit <nadav.amit@gmail.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Puranjay Mohan <puranjay12@gmail.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
-	"bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
-	"linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-modules@vger.kernel.org" <linux-modules@vger.kernel.org>,
-	"linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-	"linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-	"linux-trace-kernel@vger.kernel.org" <linux-trace-kernel@vger.kernel.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-	"loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-	"x86@kernel.org" <x86@kernel.org>
-Subject: Re: [PATCH v4 14/15] kprobes: remove dependency on CONFIG_MODULES
-Message-ID: <ZiNv0jY7Ebw75iQl@kernel.org>
-References: <20240411160051.2093261-1-rppt@kernel.org>
- <20240411160051.2093261-15-rppt@kernel.org>
- <20240418061615.5fad23b954bf317c029acc4d@gmail.com>
- <ZiKSffcTiP2c6fbs@kernel.org>
- <321def3e-8bf1-4920-92dd-037b20f1272d@csgroup.eu>
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="DgBUJ93W";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="7aDLeJh6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=0loidWV2ihloVcz5aeoH7O995WGy2I4QV0SsCN+3csU=;
+	b=DgBUJ93WY+ZlppT5tNOlP59Rjftn0Te0tB/+MFEU2hz0/VkI6iwuCM5pQiTRO7OH6oLVFRue3SRfk
+	 socPbvhEADcygyCTVwXeUN0eZ5KE1aEch6ezTptaCw5OJNZV0NNglv14t7l++Iy383iC5tOGJrdkxt
+	 Vw4AzReUbNw5+0smrdZ08XzipdMYbJ+6zYAexH4VTCDfctLkgj5ll6hu6RP6e/JzokDPwqw7KYGMui
+	 ZJF3xWq6rP1EIDjphQOzD/9Zppbf5NwnGUnGeasveMj6JZ00fMoz8FYpiSiRSLZkXUFUntK8Ff8XYm
+	 /vG255cYfjv86lgDLh1AR4DIp0PcDSw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=0loidWV2ihloVcz5aeoH7O995WGy2I4QV0SsCN+3csU=;
+	b=7aDLeJh6FyNvSeTi7QIRA+4wSdkJs7s6d40T3TJm4G1tc4yye1gQibzEtxguxPpH1jQsk6/2Fori7
+	 wXIn0iqDw==
+X-HalOne-ID: d08ee4b9-feeb-11ee-93d5-edf132814434
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id d08ee4b9-feeb-11ee-93d5-edf132814434;
+	Sat, 20 Apr 2024 07:58:55 +0000 (UTC)
+Date: Sat, 20 Apr 2024 09:58:46 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Dawei Li <dawei.li@shingroup.cn>
+Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/7] sparc/srmmu: Remove on-stack cpumask var
+Message-ID: <20240420075846.GA614130@ravnborg.org>
+References: <20240420051547.3681642-1-dawei.li@shingroup.cn>
+ <20240420051547.3681642-2-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <321def3e-8bf1-4920-92dd-037b20f1272d@csgroup.eu>
+In-Reply-To: <20240420051547.3681642-2-dawei.li@shingroup.cn>
 
-On Fri, Apr 19, 2024 at 03:59:40PM +0000, Christophe Leroy wrote:
+Hi Dawei,
+On Sat, Apr 20, 2024 at 01:15:41PM +0800, Dawei Li wrote:
+> In general it's preferable to avoid placing cpumasks on the stack, as
+> for large values of NR_CPUS these can consume significant amounts of
+> stack space and make stack overflows more likely.
 > 
+> Use cpumask_any_but() to avoid the need for a temporary cpumask on
+> the stack.
+
+Another good argument for this patch is the simplification of the code.
+
 > 
-> Le 19/04/2024 à 17:49, Mike Rapoport a écrit :
-> > Hi Masami,
-> > 
-> > On Thu, Apr 18, 2024 at 06:16:15AM +0900, Masami Hiramatsu wrote:
-> >> Hi Mike,
-> >>
-> >> On Thu, 11 Apr 2024 19:00:50 +0300
-> >> Mike Rapoport <rppt@kernel.org> wrote:
-> >>
-> >>> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> >>>
-> >>> kprobes depended on CONFIG_MODULES because it has to allocate memory for
-> >>> code.
-> >>>
-> >>> Since code allocations are now implemented with execmem, kprobes can be
-> >>> enabled in non-modular kernels.
-> >>>
-> >>> Add #ifdef CONFIG_MODULE guards for the code dealing with kprobes inside
-> >>> modules, make CONFIG_KPROBES select CONFIG_EXECMEM and drop the
-> >>> dependency of CONFIG_KPROBES on CONFIG_MODULES.
-> >>
-> >> Thanks for this work, but this conflicts with the latest fix in v6.9-rc4.
-> >> Also, can you use IS_ENABLED(CONFIG_MODULES) instead of #ifdefs in
-> >> function body? We have enough dummy functions for that, so it should
-> >> not make a problem.
-> > 
-> > The code in check_kprobe_address_safe() that gets the module and checks for
-> > __init functions does not compile with IS_ENABLED(CONFIG_MODULES).
-> > I can pull it out to a helper or leave #ifdef in the function body,
-> > whichever you prefer.
+> Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
+> ---
+>  arch/sparc/mm/srmmu.c | 40 ++++++++++++----------------------------
+>  1 file changed, 12 insertions(+), 28 deletions(-)
 > 
-> As far as I can see, the only problem is MODULE_STATE_COMING.
-> Can we move 'enum module_state' out of #ifdef CONFIG_MODULES in module.h  ?
+> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+> index 852085ada368..86fd20c878ae 100644
+> --- a/arch/sparc/mm/srmmu.c
+> +++ b/arch/sparc/mm/srmmu.c
+> @@ -1653,13 +1653,15 @@ static void smp_flush_tlb_all(void)
+>  	local_ops->tlb_all();
+>  }
+>  
+> +static bool cpumask_any_but_current(struct mm_struct *mm)
+> +{
+> +	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
+> +}
 
-There's dereference of 'struct module' there:
- 
-		(*probed_mod)->state != MODULE_STATE_COMING) {
-			...
-		}
+This helper is not a cpumask helper - the name should reflect what it is
+used for.
 
-so moving out 'enum module_state' won't be enough.
- 
-> >   
-> >> -- 
-> >> Masami Hiramatsu
-> > 
+Something like:
+static bool any_other_mm_cpus(struct mm_struct *mm)
+{
+	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
+}
 
--- 
-Sincerely yours,
-Mike.
+The implementation is fine - it is only the naming that should be
+improve.
+With this change (or a better name):
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+
+	Sam
