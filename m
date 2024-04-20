@@ -1,34 +1,34 @@
-Received: from smtpbg156.qq.com (smtpbg156.qq.com [15.184.82.18])
+Received: from smtpbguseast3.qq.com (smtpbguseast3.qq.com [54.243.244.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE89E55F;
-	Sat, 20 Apr 2024 05:16:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=15.184.82.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E70E17BCC;
+	Sat, 20 Apr 2024 05:16:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.243.244.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713590208; cv=none; b=Ofcs3vorNw+3gICfl4iILo8uU0Z5Jbd5DyabAhHsF9U4UeE3TyVpp/OJp/joW2T3IW48sOFLkBQvw9Wfgb/Ex6xbC4JWt7ns5dDRzfDMzdxNxrZ7bMx2yTxxCYcz1BmgOTBmZNLFWK2ehUK+9XHFUxnq1smubneRfBcJDncIVdk=
+	t=1713590222; cv=none; b=dnDbbRH+XXdl1TByYCkKZ09FfXuny1E/GLMMp7IXz3aTuUMxN3cQyHwoKF0mF0s6kqHe0e0r7dcrJNnV19Wima0PlzEIOLzSCugn8AK7NMt336iqgKV9F6lujGf2GQk4K0CWdYAFwmObVZ3YUkE2xHQxNqQ/cEkNhfSnwH1IdOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713590208; c=relaxed/simple;
-	bh=J3xx7uCwxqDnvOjB2f/TyE777o+chO9jhWnCFlaoiFk=;
+	s=arc-20240116; t=1713590222; c=relaxed/simple;
+	bh=WBVRxLIdWKwIhWvkYX40p+kNDCgLtSNi083tiZeIF84=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=iNxWQFsUIuS5z9WwhBnO/fg7D0yXvxOVCCdJoZ9onUTH3L4pidKQzqjMY/K3L2RnKt6T/MHzaefrU8mUbcPZiWh2gBMJsjOcC6jDOmtqLsGzAd+OXcWqe1YyYGD8YHGK/rucZjB7Lk+wtFRpQGX6HXYxlA+ZiJW7XCb9KIjhT6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=15.184.82.18
+	 MIME-Version; b=FccMjHRAxmXIyITDk4UkjQB2YgE4foAU6Oo0fbMfOeotY8U9tKi6JP1e+awe3svGYImf//v/LuDeg0+3tBxmmkqVfQ5IVUV/mVjz9Kcikx/8x+n47Cjoig4YXcYu6KNnD+WpLEFWNLyPgAGK/95dVSivLtgwuFZk8X6zRoldAJw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.243.244.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtp84t1713590173tizhh7rd
-X-QQ-Originating-IP: 8MtURKbY14c/8/zzXdbr2mv34MhaCyJmjCscKsCI8Ts=
+X-QQ-mid: bizesmtpsz5t1713590188tfw8vcz
+X-QQ-Originating-IP: TNQvptNIxgg5QGK1FQfunMTw1q79c5Uv8QKx3BF48ik=
 Received: from localhost ( [112.0.147.129])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Sat, 20 Apr 2024 13:16:12 +0800 (CST)
+	id ; Sat, 20 Apr 2024 13:16:26 +0800 (CST)
 X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: 7YFKcddXagjUdEvd7pTyWsQ4VLtezgpliaI64kOzXjRCa35JZRCrMEOCTqGhV
-	qng8CLtYjSU4vPeW/USn80ZBPzeHD5ntGK/QkI3/6S9881J7o1Sr7qqwipZAPGvAVaN+oDt
-	nV3xJ7A/0dPzfaKjQZ379/v77zl5nQmZHQekOCI7hu3vHu622JrM1p3O7AlmMnNzCkwRGd0
-	FvyLmQgGhK8b8nhCbcis+qaayFaQOURFPBTQ7M8aYyryM34uJR0VDbpjNXmxjbKfzz5pdv+
-	FQ2JVxjwjsRwWJbz53Tsqvs0xQIOEjZkPtuTAYUlM3d9FGu6UWzBrzmXqc0ecBpSrMZtasp
-	VBavlsaY+kUu7+IcSbIMKs4afXgfFL/Sd/RkWjRNsMd5JjNVb3dkYi3lVtr/B9jUbESTkJ2
-	jz5FYmU3rfc7AT47u3FsPw==
+X-QQ-FEAT: E6xLhkkW4u1WF/joyXGZBmgPq4Ovo3WKIDIrTweysvZbw5XLBL8UAFeSYqUo0
+	DtDM10nNSTTpfqeWXh3On5re9mcvuSVgwBVIpuLvcTE9Y362B3eK1zkG8YyrHN8wRN9wts4
+	HLMNy0gCm6oM0AQyBZ49Fl5y6AJj5lV/z7Mt/ZYwiSEwItGLmFia81WnE9lWD0GpWZN5pZb
+	dzJLKLFM0e2Qg/VxpJ5ctncxlAcSVdGAZCsn3Sc3ydUu6rqhnChi9clHllZt7OCH4u5PF62
+	gIXmnU6ZpzGc0+dsJPYm4mEPSCq6Qh8kVjGnd8CKDWZGZsbY9Hf3DGupHY34QeggwVaphas
+	1aZOtdoeHOF7Q+6WtMguW9IhmcMpT0THL9/CLZqtQeCFrwatuiAbxC86O+MxvBMx24eqgNZ
+	rHK/hISZ/y1xk2+zeWdekg==
 X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 15600578157613225618
+X-BIZMAIL-ID: 16907030830474196779
 From: Dawei Li <dawei.li@shingroup.cn>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -36,9 +36,9 @@ Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	sam@ravnborg.org,
 	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH v2 3/7] sparc/of: Remove on-stack cpumask var
-Date: Sat, 20 Apr 2024 13:15:43 +0800
-Message-Id: <20240420051547.3681642-4-dawei.li@shingroup.cn>
+Subject: [PATCH v2 5/7] sparc: Remove on-stack cpumask var
+Date: Sat, 20 Apr 2024 13:15:45 +0800
+Message-Id: <20240420051547.3681642-6-dawei.li@shingroup.cn>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20240420051547.3681642-1-dawei.li@shingroup.cn>
 References: <20240420051547.3681642-1-dawei.li@shingroup.cn>
@@ -50,36 +50,37 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
+Feedback-ID: bizesmtpsz:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
 In general it's preferable to avoid placing cpumasks on the stack, as
 for large values of NR_CPUS these can consume significant amounts of
 stack space and make stack overflows more likely.
 
-@cpumask of irq_set_affinity() is read-only and free of change, drop
-unneeded cpumask var.
+Since the cpumask var resides in __init function, which means it's free
+of any concurrenct access, it can be safely marked with static to get
+rid of allocation on stack.
+
+while at it, mark it with __initdata to keep it from persistently
+consumed memory.
 
 Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
 ---
- arch/sparc/kernel/of_device_64.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/sparc/mm/init_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index c350c58c7f69..f98c2901f335 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -624,10 +624,7 @@ static unsigned int __init build_one_device_irq(struct platform_device *op,
- out:
- 	nid = of_node_to_nid(dp);
- 	if (nid != -1) {
--		cpumask_t numa_mask;
--
--		cpumask_copy(&numa_mask, cpumask_of_node(nid));
--		irq_set_affinity(irq, &numa_mask);
-+		irq_set_affinity(irq, cpumask_of_node(nid));
- 	}
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1ca9054d9b97..088d9c103dcc 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1438,7 +1438,7 @@ static int __init numa_attach_mlgroup(struct mdesc_handle *md, u64 grp,
+ static int __init numa_parse_mdesc_group(struct mdesc_handle *md, u64 grp,
+ 					 int index)
+ {
+-	cpumask_t mask;
++	static cpumask_t mask __initdata;
+ 	int cpu;
  
- 	return irq;
+ 	numa_parse_mdesc_group_cpus(md, grp, &mask);
 -- 
 2.27.0
 
