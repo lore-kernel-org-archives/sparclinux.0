@@ -1,53 +1,44 @@
-Received: from mailrelay2-1.pub.mailoutpod3-cph3.one.com (mailrelay2-1.pub.mailoutpod3-cph3.one.com [46.30.211.241])
+Received: from smtpbg154.qq.com (smtpbg154.qq.com [15.184.224.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B1526ACC
-	for <sparclinux@vger.kernel.org>; Sat, 20 Apr 2024 11:43:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.241
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F32418042;
+	Mon, 22 Apr 2024 05:47:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=15.184.224.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713613403; cv=none; b=QNCJOTdpmSeMf3OjV8Q2Z57cwJs6sgrWV6rF8UlPcWUn2cv5Lr1ftY3VyJmhVB8PbVvXZak80Rl2oBI0CgNpr/DRmE3AXZVaUkuj9RWFcH1uuWW7Zuei1vlICp7IGXSwXZ+iUNKYE/ssUYOlniVnhF2PdJzeiOihxXJ5bM3Odd0=
+	t=1713764864; cv=none; b=syU4Asn5KQBHU+1PnaoVyx+6XkfIVET97o9NadzmvBAqFYy6+5B/JjZbKlu0wK9tri1gIqmOIW2tfh95wFLbgSn4H3glJsZAIISSluL119iSuHimJ6zCiVRe9BvaRIeHViow8lzIu+svt7vYZBBsuhdJHbWv6sTEjp52RNFgujU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713613403; c=relaxed/simple;
-	bh=CWpb+UjIM+Wa1SyU2aZ96qljFnfJi45lXvaVXn+ZsRI=;
+	s=arc-20240116; t=1713764864; c=relaxed/simple;
+	bh=CPJ8hmz1NSv031GNi1i1JJdxjfv+UTld52TKHzK9QLA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rezx0t9vxyC4nGbvLswCQ17ZhsUQH+vCByy4LLS2tlmmDPujrNWjrVb0IGXRfaEfucd13DISdhTAn074WT33ae5NnvxtBPmDN/G6jAANjN0OkBlGGcbc9EYPfsjJanZm74dHC/+kZqxWciUlHvfHSGkAVfDzDNzrIpUonyw9sPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=ZicOOW/V; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=l43BUJm/; arc=none smtp.client-ip=46.30.211.241
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="ZicOOW/V";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="l43BUJm/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=2hAsso187noZhmI6+mlBe9QIFxiLVH0hhqShdOzAkr8=;
-	b=ZicOOW/Vsiy19+EjAWM/cagEXavTjKXmlbx3Zqd0MIdU5uuJ1WkLFI8heSLIMHRwEPozHMcYTIRzo
-	 oqTQepl0bbNnNuNaDrxzuQdKBF+llftvEcnaHKfUkmvOizM7xz72qF9wYkbIUnAzDxX0xQJOmCmf/w
-	 XLqR33UOgu0bmjICOt0ltQoL9FpJ0rhaPv2XxQr1ITzhc/fqDJxQdKgUr1uXBg1o3hcYZuADSBc+lc
-	 IgGTsHZN/nIPdB6OocY7NsYVQDDsA2Vg33bjs5E5F/HxOZbLjeW2L3A8Ejmco1ZieFzKvUGJJ7QqOV
-	 xNtWpcR+BAOI+9Y0ntSP8BgFB/Z94Qg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=2hAsso187noZhmI6+mlBe9QIFxiLVH0hhqShdOzAkr8=;
-	b=l43BUJm/WqSGjzcwU2T4TPxwjeqKffAP2tlnPEoongTNXu3JwRQQqw+VlRdEBVV4c7FmsNOQksoal
-	 I9pUDy1AA==
-X-HalOne-ID: 03526c3a-ff0b-11ee-aee7-953526d7c221
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-	by mailrelay2.pub.mailoutpod3-cph3.one.com (Halon) with ESMTPSA
-	id 03526c3a-ff0b-11ee-aee7-953526d7c221;
-	Sat, 20 Apr 2024 11:42:09 +0000 (UTC)
-Date: Sat, 20 Apr 2024 13:42:07 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Dawei Li <dawei.li@shingroup.cn>
+	 Content-Type:Content-Disposition:In-Reply-To; b=k3bdN5g6U61cMJWBkg9HX+8IA1XOoU792PXk1gcBHrRNF8qAgA2BwoJM8CnMtho6yPP3o26FTG9sPBueBqt5R1UyHYZ5Ld47P/lN92x3y7YkhbFH7gl9t2m/6F5t2fAkMGxzyYLWObZOlIo1NneWw9J+4a4DLC7FuiQi28rQLpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=15.184.224.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
+X-QQ-mid: bizesmtp79t1713764790t2zbf2uk
+X-QQ-Originating-IP: DpWM8cAKs4r/Ooi93xKKyAUIGVCHQnWBgMmTGe/LkxM=
+Received: from localhost ( [112.0.147.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Mon, 22 Apr 2024 13:46:29 +0800 (CST)
+X-QQ-SSF: 01400000000000903000000A0000000
+X-QQ-FEAT: q8pcCawQh8Sfml57looHtYOgsSS/CXYG7p1ZqpXjl/UV5J4a5DQ0Sjfiby5tv
+	2sidi/tEOqJldU0hRfzfmxPYIBd9cYUp5yRBTom+KCi/Zmey6GXrzUB+d5FXQPsS4LaKIc3
+	Yutwss1aViXK3k2GEdElcgbZP0q2TZuB6eXDizI4y0SsXoE1K1insRGypqTEbrDAAlaDJO1
+	C1SJc4TsDFPziGqlGqnAA4wP2bBHSduKAqHg4+XgsLrB1c9Vr9mVHjfhArz0pzVQkzvhJj5
+	cuGMD0cuSALAhJzAbLn34jxGcYbZp+xut7KvphPDqsXkTRxyzS28FT/dPapDSKcES7D8Mpa
+	fXBP/WeX1el8/CsO2wVKMrNyY/D7EQhI1s5rYW1Hoj/Jr2I0VeMF2/D7BctPAmCTMQTtfK3
+	zx5YM3opgwE=
+X-QQ-GoodBg: 2
+X-BIZMAIL-ID: 16241362233858428748
+Date: Mon, 22 Apr 2024 13:46:28 +0800
+From: Dawei Li <dawei.li@shingroup.cn>
+To: Sam Ravnborg <sam@ravnborg.org>
 Cc: davem@davemloft.net, andreas@gaisler.com, sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 7/7] sparc/smp: Remove on-stack cpumask var
-Message-ID: <20240420114207.GG614130@ravnborg.org>
+Subject: Re: [PATCH v2 1/7] sparc/srmmu: Remove on-stack cpumask var
+Message-ID: <8932691918B6B5F5+ZiX5tIZF9bZKbiBp@centos8>
 References: <20240420051547.3681642-1-dawei.li@shingroup.cn>
- <20240420051547.3681642-8-dawei.li@shingroup.cn>
+ <20240420051547.3681642-2-dawei.li@shingroup.cn>
+ <20240420075846.GA614130@ravnborg.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -56,252 +47,65 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240420051547.3681642-8-dawei.li@shingroup.cn>
+In-Reply-To: <20240420075846.GA614130@ravnborg.org>
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-Hi Dawei
+Hi Sam,
 
-On Sat, Apr 20, 2024 at 01:15:47PM +0800, Dawei Li wrote:
-> In general it's preferable to avoid placing cpumasks on the stack, as
-> for large values of NR_CPUS these can consume significant amounts of
-> stack space and make stack overflows more likely.
+Thanks for review.
+
+On Sat, Apr 20, 2024 at 09:58:46AM +0200, Sam Ravnborg wrote:
+> Hi Dawei,
+> On Sat, Apr 20, 2024 at 01:15:41PM +0800, Dawei Li wrote:
+> > In general it's preferable to avoid placing cpumasks on the stack, as
+> > for large values of NR_CPUS these can consume significant amounts of
+> > stack space and make stack overflows more likely.
+> > 
+> > Use cpumask_any_but() to avoid the need for a temporary cpumask on
+> > the stack.
 > 
-> - Change prototype of sparc32_ipi_ops::cross_call() so that it takes
->   const cpumask * arg and all its callers accordingly.
+> Another good argument for this patch is the simplification of the code.
 > 
-> - As for all cross_call() implementations, divide cpumask_test_cpu() call
->   into several sub calls to avoid on-stack cpumask var.
+> > 
+> > Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
+> > ---
+> >  arch/sparc/mm/srmmu.c | 40 ++++++++++++----------------------------
+> >  1 file changed, 12 insertions(+), 28 deletions(-)
+> > 
+> > diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+> > index 852085ada368..86fd20c878ae 100644
+> > --- a/arch/sparc/mm/srmmu.c
+> > +++ b/arch/sparc/mm/srmmu.c
+> > @@ -1653,13 +1653,15 @@ static void smp_flush_tlb_all(void)
+> >  	local_ops->tlb_all();
+> >  }
+> >  
+> > +static bool cpumask_any_but_current(struct mm_struct *mm)
+> > +{
+> > +	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
+> > +}
 > 
-> Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
-
-The code changes looks ok from a quick look.
-But we have a bunch of patches pending touching or removing the same
-files. On top of this, the right approach would be to take a
-look at code from a higher level.
-
-In other words - I advise to drop this, and maybe re-visit in a few
-months after the pending patches has hit -next.
-
-Sorry for asking you to look as this.
-
-	Sam
-
-> ---
->  arch/sparc/include/asm/smp_32.h | 12 ++++++------
->  arch/sparc/kernel/kernel.h      | 11 +++++++++++
->  arch/sparc/kernel/leon_smp.c    | 11 ++++-------
->  arch/sparc/kernel/sun4d_smp.c   | 10 ++++------
->  arch/sparc/kernel/sun4m_smp.c   | 10 ++++------
->  5 files changed, 29 insertions(+), 25 deletions(-)
+> This helper is not a cpumask helper - the name should reflect what it is
+> used for.
 > 
-> diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
-> index 2cf7971d7f6c..9b6a166f6a57 100644
-> --- a/arch/sparc/include/asm/smp_32.h
-> +++ b/arch/sparc/include/asm/smp_32.h
-> @@ -54,7 +54,7 @@ void smp_bogo(struct seq_file *);
->  void smp_info(struct seq_file *);
->  
->  struct sparc32_ipi_ops {
-> -	void (*cross_call)(void *func, cpumask_t mask, unsigned long arg1,
-> +	void (*cross_call)(void *func, const cpumask_t *mask, unsigned long arg1,
->  			   unsigned long arg2, unsigned long arg3,
->  			   unsigned long arg4);
->  	void (*resched)(int cpu);
-> @@ -65,29 +65,29 @@ extern const struct sparc32_ipi_ops *sparc32_ipi_ops;
->  
->  static inline void xc0(void *func)
->  {
-> -	sparc32_ipi_ops->cross_call(func, *cpu_online_mask, 0, 0, 0, 0);
-> +	sparc32_ipi_ops->cross_call(func, cpu_online_mask, 0, 0, 0, 0);
->  }
->  
->  static inline void xc1(void *func, unsigned long arg1)
->  {
-> -	sparc32_ipi_ops->cross_call(func, *cpu_online_mask, arg1, 0, 0, 0);
-> +	sparc32_ipi_ops->cross_call(func, cpu_online_mask, arg1, 0, 0, 0);
->  }
->  static inline void xc2(void *func, unsigned long arg1, unsigned long arg2)
->  {
-> -	sparc32_ipi_ops->cross_call(func, *cpu_online_mask, arg1, arg2, 0, 0);
-> +	sparc32_ipi_ops->cross_call(func, cpu_online_mask, arg1, arg2, 0, 0);
->  }
->  
->  static inline void xc3(void *func, unsigned long arg1, unsigned long arg2,
->  		       unsigned long arg3)
->  {
-> -	sparc32_ipi_ops->cross_call(func, *cpu_online_mask,
-> +	sparc32_ipi_ops->cross_call(func, cpu_online_mask,
->  				    arg1, arg2, arg3, 0);
->  }
->  
->  static inline void xc4(void *func, unsigned long arg1, unsigned long arg2,
->  		       unsigned long arg3, unsigned long arg4)
->  {
-> -	sparc32_ipi_ops->cross_call(func, *cpu_online_mask,
-> +	sparc32_ipi_ops->cross_call(func, cpu_online_mask,
->  				    arg1, arg2, arg3, arg4);
->  }
->  
-> diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-> index a8fb7c0bf053..36747e8f7e36 100644
-> --- a/arch/sparc/kernel/kernel.h
-> +++ b/arch/sparc/kernel/kernel.h
-> @@ -4,6 +4,7 @@
->  
->  #include <linux/interrupt.h>
->  #include <linux/ftrace.h>
-> +#include <linux/smp.h>
->  
->  #include <asm/traps.h>
->  #include <asm/head.h>
-> @@ -75,6 +76,16 @@ int sparc32_classify_syscall(unsigned int syscall);
->  #endif
->  
->  #ifdef CONFIG_SPARC32
-> +
-> +#ifdef CONFIG_SMP
-> +static inline bool cpu_for_ipi(const cpumask_t *mask, unsigned int cpu)
-> +{
-> +	return cpumask_test_cpu(cpu, mask) &&
-> +	       cpumask_test_cpu(cpu, cpu_online_mask) &&
-> +	       cpu != smp_processor_id();
-> +}
-> +#endif /* CONFIG_SMP */
-> +
->  /* setup_32.c */
->  struct linux_romvec;
->  void sparc32_start_kernel(struct linux_romvec *rp);
-> diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-> index 1ee393abc463..291884c8d82a 100644
-> --- a/arch/sparc/kernel/leon_smp.c
-> +++ b/arch/sparc/kernel/leon_smp.c
-> @@ -372,7 +372,7 @@ static struct smp_funcall {
->  static DEFINE_SPINLOCK(cross_call_lock);
->  
->  /* Cross calls must be serialized, at least currently. */
-> -static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-> +static void leon_cross_call(void *func, const cpumask_t *mask, unsigned long arg1,
->  			    unsigned long arg2, unsigned long arg3,
->  			    unsigned long arg4)
->  {
-> @@ -403,14 +403,11 @@ static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  		{
->  			register int i;
->  
-> -			cpumask_clear_cpu(smp_processor_id(), &mask);
-> -			cpumask_and(&mask, cpu_online_mask, &mask);
->  			for (i = 0; i <= high; i++) {
-> -				if (cpumask_test_cpu(i, &mask)) {
-> +				if (cpu_for_ipi(mask, i)) {
->  					ccall_info.processors_in[i] = 0;
->  					ccall_info.processors_out[i] = 0;
->  					leon_send_ipi(i, LEON3_IRQ_CROSS_CALL);
-> -
->  				}
->  			}
->  		}
-> @@ -420,7 +417,7 @@ static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  
->  				while (!ccall_info.processors_in[i])
-> @@ -429,7 +426,7 @@ static void leon_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  
->  				while (!ccall_info.processors_out[i])
-> diff --git a/arch/sparc/kernel/sun4d_smp.c b/arch/sparc/kernel/sun4d_smp.c
-> index 9a62a5cf3337..7dc57ca05728 100644
-> --- a/arch/sparc/kernel/sun4d_smp.c
-> +++ b/arch/sparc/kernel/sun4d_smp.c
-> @@ -281,7 +281,7 @@ static struct smp_funcall {
->  static DEFINE_SPINLOCK(cross_call_lock);
->  
->  /* Cross calls must be serialized, at least currently. */
-> -static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-> +static void sun4d_cross_call(void *func, const cpumask_t *mask, unsigned long arg1,
->  			     unsigned long arg2, unsigned long arg3,
->  			     unsigned long arg4)
->  {
-> @@ -315,10 +315,8 @@ static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  		{
->  			register int i;
->  
-> -			cpumask_clear_cpu(smp_processor_id(), &mask);
-> -			cpumask_and(&mask, cpu_online_mask, &mask);
->  			for (i = 0; i <= high; i++) {
-> -				if (cpumask_test_cpu(i, &mask)) {
-> +				if (cpu_for_ipi(mask, i)) {
->  					ccall_info.processors_in[i] = 0;
->  					ccall_info.processors_out[i] = 0;
->  					sun4d_send_ipi(i, IRQ_CROSS_CALL);
-> @@ -331,7 +329,7 @@ static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  				while (!ccall_info.processors_in[i])
->  					barrier();
-> @@ -339,7 +337,7 @@ static void sun4d_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  				while (!ccall_info.processors_out[i])
->  					barrier();
-> diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
-> index 056df034e79e..3f43f64e3489 100644
-> --- a/arch/sparc/kernel/sun4m_smp.c
-> +++ b/arch/sparc/kernel/sun4m_smp.c
-> @@ -170,7 +170,7 @@ static struct smp_funcall {
->  static DEFINE_SPINLOCK(cross_call_lock);
->  
->  /* Cross calls must be serialized, at least currently. */
-> -static void sun4m_cross_call(void *func, cpumask_t mask, unsigned long arg1,
-> +static void sun4m_cross_call(void *func, const cpumask_t *mask, unsigned long arg1,
->  			     unsigned long arg2, unsigned long arg3,
->  			     unsigned long arg4)
->  {
-> @@ -191,10 +191,8 @@ static void sun4m_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  		{
->  			register int i;
->  
-> -			cpumask_clear_cpu(smp_processor_id(), &mask);
-> -			cpumask_and(&mask, cpu_online_mask, &mask);
->  			for (i = 0; i < ncpus; i++) {
-> -				if (cpumask_test_cpu(i, &mask)) {
-> +				if (cpu_for_ipi(mask, i)) {
->  					ccall_info.processors_in[i] = 0;
->  					ccall_info.processors_out[i] = 0;
->  					sun4m_send_ipi(i, IRQ_CROSS_CALL);
-> @@ -210,7 +208,7 @@ static void sun4m_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  				while (!ccall_info.processors_in[i])
->  					barrier();
-> @@ -218,7 +216,7 @@ static void sun4m_cross_call(void *func, cpumask_t mask, unsigned long arg1,
->  
->  			i = 0;
->  			do {
-> -				if (!cpumask_test_cpu(i, &mask))
-> +				if (!cpu_for_ipi(mask, i))
->  					continue;
->  				while (!ccall_info.processors_out[i])
->  					barrier();
-> -- 
-> 2.27.0
+> Something like:
+> static bool any_other_mm_cpus(struct mm_struct *mm)
+> {
+> 	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
+> }
+
+Acked. I will rename the helper as you suggested.
+
+> 
+> The implementation is fine - it is only the naming that should be
+> improve.
+> With this change (or a better name):
+> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+> 
+> 	Sam
+
+Thanks,
+
+    Dawei
+> 
