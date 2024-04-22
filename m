@@ -1,313 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C338414F9E1;
-	Mon, 22 Apr 2024 14:12:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BDF01F5FD
+	for <sparclinux@vger.kernel.org>; Mon, 22 Apr 2024 14:30:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713795124; cv=none; b=I8NvMLwqdlQrL69bFqT3d0w6JhCFuJp58mH4j+iwVSK+pPnEAhObe1/JB9IdQQyFcr/XF9+6A/KxCZkqFpC/Qub5zmiLdQmgANRuFdUa2gbPa3HHAySNrMS1eQhezZttUupEirvnPm2HGG6ECYIr75FhebBS0rqX21fhTWzQRLY=
+	t=1713796235; cv=none; b=BS84wkcNa6j9ujlPNWRC8Yl8lJfCdjyJohRhRPNZGVjUqmVJumvV1QcSXP1vBOJNbOnNvfgGtDI/x0G2g+FOaiYiL18EHXdXmoR10LCgJcGnD3w5apEbOTRfhOSAxr4HQ5IgOptfdCP3PYrRNIPZE6d/adhl/tXysarIEAFr4X0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713795124; c=relaxed/simple;
-	bh=63rvt2yz8r57hl8myRcuStiGVHTSpmv479F+BVPlgOk=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=EXwSD1gOrzC1UFPRGE5PVklfn2EoSRdpM7bDx5A8c6v9xGY92yUE7DYBMuHjcoWboURdTr2w4X7aiJpQwuRUlk6lCh0sCZljFPZTVx+fOjhme6Pl/doOqdc+R6TiLVs9/VPwgnkJtli8CrbQU9LQGi+34iQfac4+sgukfYDjUD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XZI2g4Uq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713796235; c=relaxed/simple;
+	bh=OV7VeNYW3irmBjmL25FIMrDZTOmNWH2zPHGpy0nthr4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=gyfvxUsby2+ygAlEetBqTmbnU9WcyGJiJXD4SCkjVlCmEHWswUnlOJEor2+CaU3/4+h0Ies8u6Mfb9PSjOqEm/RDC985mS/UeiS0cl98DSPgvFVKwJjPbTwkMH3qwhMQrLlaNkw1WvkEBW1u0Dpni0V/wyeNQugFWbaGTSK4loY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=KfRFvc7z; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XZI2g4Uq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAAD5C32783;
-	Mon, 22 Apr 2024 14:11:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713795123;
-	bh=63rvt2yz8r57hl8myRcuStiGVHTSpmv479F+BVPlgOk=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=XZI2g4UqcleGPHMCMSqV3/iC7oJP0tZWbpfXP00rfR9bLCRfpzFMwC9X4q54oxXMM
-	 DnhZrHtKfWP5KsKR0UwBwIDd4eHpEkLzxxX7LPi42cCObWXCldmkT2ETPDxFRfwhiK
-	 nyXLCvvf3mWcIJjGAf2BRpg+sGk/r9FACse9FCIZKTAIMRKChgqXwhJ7CqFLLV8oy/
-	 QLrmKiFkxPB4YBmwLg/Hf4QkKGO2SUvS8pCcc0bNoMWOtMRS3u0h3n+olJg1vGec5V
-	 55mbL/zgu8a6qrqHPaT4tJ+d8LCTGjRW/TTRHz6/VaV0UanNJA0VfQalKnV9xzPuaQ
-	 EUKZMBGXl8nFQ==
-Date: Mon, 22 Apr 2024 23:11:51 +0900
-From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
- Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Christophe
- Leroy <christophe.leroy@csgroup.eu>, "David S. Miller"
- <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, Donald Dutile
- <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>, Heiko Carstens
- <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen
- <chenhuacai@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, Luis
- Chamberlain <mcgrof@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Masami Hiramatsu <mhiramat@kernel.org>, Michael Ellerman
- <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>, Palmer Dabbelt
- <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe
- <rick.p.edgecombe@intel.com>, Russell King <linux@armlinux.org.uk>, Sam
- Ravnborg <sam@ravnborg.org>, Song Liu <song@kernel.org>, Steven Rostedt
- <rostedt@goodmis.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
- bpf@vger.kernel.org, linux-arch@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-modules@vger.kernel.org,
- linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v5 14/15] kprobes: remove dependency on CONFIG_MODULES
-Message-Id: <20240422231151.0d7c18ec1917887c7f323d4c@kernel.org>
-In-Reply-To: <20240422094436.3625171-15-rppt@kernel.org>
-References: <20240422094436.3625171-1-rppt@kernel.org>
-	<20240422094436.3625171-15-rppt@kernel.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="KfRFvc7z"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4VNSMk369fz67vh;
+	Mon, 22 Apr 2024 16:30:26 +0200 (CEST)
+Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4VNSMk0ksXz6823;
+	Mon, 22 Apr 2024 16:30:25 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1713796226;
+	bh=ab1Jv9yBKnXPHFwpLnN8UByUwhmhObq3b9XSNM3fUNI=;
+	h=Date:Subject:To:References:From:In-Reply-To;
+	b=KfRFvc7zEJ8qAeQxcWliBKUP6XF5C0ynuNpdiDjKJtFWKk5N+B6OXJkQ7h2+ikeHQ
+	 pXv0729A0jolGeXgcYQizM2WMbqvGtuUJr6LolugrxBPxR10ASTKZytckyzIBm5vEu
+	 eOUyXBn8cqjbbJTp/4ESlReVCz98/yV03exJMcz4=
+Message-ID: <217bf3cb-9baa-42a6-bdc5-39d0b339ab2f@gaisler.com>
+Date: Mon, 22 Apr 2024 16:30:25 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc32: Fix version generation failed warnings
+To: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller" <davem@davemloft.net>,
+ sparclinux@vger.kernel.org
+References: <20240324065622.GA1032122@ravnborg.org>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20240324065622.GA1032122@ravnborg.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On Mon, 22 Apr 2024 12:44:35 +0300
-Mike Rapoport <rppt@kernel.org> wrote:
-
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+On 2024-03-24 07:56, Sam Ravnborg wrote:
+> An allmodconfig build of sparc32 resulted in several warnings:
 > 
-> kprobes depended on CONFIG_MODULES because it has to allocate memory for
-> code.
+> WARNING: modpost: EXPORT symbol "empty_zero_page" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "empty_zero_page" prototyped in <asm/asm-prototypes.h>?
+> WARNING: modpost: EXPORT symbol "__udelay" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "__udelay" prototyped in <asm/asm-prototypes.h>?
+> WARNING: modpost: EXPORT symbol "__ndelay" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "__ndelay" prototyped in <asm/asm-prototypes.h>?
+> WARNING: modpost: EXPORT symbol "__ashldi3" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "__ashldi3" prototyped in <asm/asm-prototypes.h>?
+> WARNING: modpost: EXPORT symbol "__ashrdi3" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "__ashrdi3" prototyped in <asm/asm-prototypes.h>?
+> WARNING: modpost: EXPORT symbol "__lshrdi3" [vmlinux] version generation failed, symbol will not be versioned.
+> Is "__lshrdi3" prototyped in <asm/asm-prototypes.h>?
 > 
-> Since code allocations are now implemented with execmem, kprobes can be
-> enabled in non-modular kernels.
+> And later a lot of warnings like this:
+> WARNING: modpost: "__udelay" [kernel/locking/locktorture.ko] has no CRC!
+> WARNING: modpost: "__udelay" [kernel/rcu/rcutorture.ko] has no CRC!
+> WARNING: modpost: "__udelay" [kernel/rcu/rcuscale.ko] has no CRC!
+> WARNING: modpost: "__udelay" [kernel/rcu/refscale.ko] has no CRC!
+> WARNING: modpost: "__ndelay" [kernel/rcu/refscale.ko] has no CRC!
+> WARNING: modpost: "__udelay" [kernel/time/test_udelay.ko] has no CRC!
+> WARNING: modpost: "__udelay" [kernel/scftorture.ko] has no CRC!
+> WARNING: modpost: "__ashrdi3" [fs/quota/quota_tree.ko] has no CRC!
+> WARNING: modpost: "__ashldi3" [fs/ext4/ext4.ko] has no CRC!
 > 
-> Add #ifdef CONFIG_MODULE guards for the code dealing with kprobes inside
-> modules, make CONFIG_KPROBES select CONFIG_EXECMEM and drop the
-> dependency of CONFIG_KPROBES on CONFIG_MODULES.
-
-Looks good to me.
-
-Acked-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-
-Thank you!
-
+> The fix was, as hinted, to add missing prototypes to asm-prototypes.h.
 > 
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> For the __*di3 functions add the prototypes direct to the
+> asm-prototypes.h file.
+> Some of the symbols were already declared, so pulled in the relevant
+> headers (delay.h, pgtable.h).
+> The include files was alphabetically sorted to make the list somehow
+> readable.
+> 
+> The .S files exporting the symbols do not include asm-prototypes.h,
+> so they need to be explicit rebuild to generate symbol versioning.
+> One or more of the generic headers pulled in by asm-prototypes.h
+> did not support being used from .S files, so adding asm-prototypes.h
+> as an include file was not an option.
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> Cc: Andreas Larsson <andreas@gaisler.com>
+> Cc: "David S. Miller" <davem@davemloft.net>
 > ---
->  arch/Kconfig                |  2 +-
->  include/linux/module.h      |  9 ++++++
->  kernel/kprobes.c            | 55 +++++++++++++++++++++++--------------
->  kernel/trace/trace_kprobe.c | 20 +++++++++++++-
->  4 files changed, 63 insertions(+), 23 deletions(-)
 > 
-> diff --git a/arch/Kconfig b/arch/Kconfig
-> index 7006f71f0110..a48ce6a488b3 100644
-> --- a/arch/Kconfig
-> +++ b/arch/Kconfig
-> @@ -52,9 +52,9 @@ config GENERIC_ENTRY
->  
->  config KPROBES
->  	bool "Kprobes"
-> -	depends on MODULES
->  	depends on HAVE_KPROBES
->  	select KALLSYMS
-> +	select EXECMEM
->  	select TASKS_RCU if PREEMPTION
->  	help
->  	  Kprobes allows you to trap at almost any kernel address and
-> diff --git a/include/linux/module.h b/include/linux/module.h
-> index 1153b0d99a80..ffa1c603163c 100644
-> --- a/include/linux/module.h
-> +++ b/include/linux/module.h
-> @@ -605,6 +605,11 @@ static inline bool module_is_live(struct module *mod)
->  	return mod->state != MODULE_STATE_GOING;
->  }
->  
-> +static inline bool module_is_coming(struct module *mod)
-> +{
-> +        return mod->state == MODULE_STATE_COMING;
-> +}
-> +
->  struct module *__module_text_address(unsigned long addr);
->  struct module *__module_address(unsigned long addr);
->  bool is_module_address(unsigned long addr);
-> @@ -857,6 +862,10 @@ void *dereference_module_function_descriptor(struct module *mod, void *ptr)
->  	return ptr;
->  }
->  
-> +static inline bool module_is_coming(struct module *mod)
-> +{
-> +	return false;
-> +}
->  #endif /* CONFIG_MODULES */
->  
->  #ifdef CONFIG_SYSFS
-> diff --git a/kernel/kprobes.c b/kernel/kprobes.c
-> index ddd7cdc16edf..ca2c6cbd42d2 100644
-> --- a/kernel/kprobes.c
-> +++ b/kernel/kprobes.c
-> @@ -1588,7 +1588,7 @@ static int check_kprobe_address_safe(struct kprobe *p,
->  	}
->  
->  	/* Get module refcount and reject __init functions for loaded modules. */
-> -	if (*probed_mod) {
-> +	if (IS_ENABLED(CONFIG_MODULES) && *probed_mod) {
->  		/*
->  		 * We must hold a refcount of the probed module while updating
->  		 * its code to prohibit unexpected unloading.
-> @@ -1603,12 +1603,13 @@ static int check_kprobe_address_safe(struct kprobe *p,
->  		 * kprobes in there.
->  		 */
->  		if (within_module_init((unsigned long)p->addr, *probed_mod) &&
-> -		    (*probed_mod)->state != MODULE_STATE_COMING) {
-> +		    !module_is_coming(*probed_mod)) {
->  			module_put(*probed_mod);
->  			*probed_mod = NULL;
->  			ret = -ENOENT;
->  		}
->  	}
-> +
->  out:
->  	preempt_enable();
->  	jump_label_unlock();
-> @@ -2488,24 +2489,6 @@ int kprobe_add_area_blacklist(unsigned long start, unsigned long end)
->  	return 0;
->  }
->  
-> -/* Remove all symbols in given area from kprobe blacklist */
-> -static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
-> -{
-> -	struct kprobe_blacklist_entry *ent, *n;
-> -
-> -	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
-> -		if (ent->start_addr < start || ent->start_addr >= end)
-> -			continue;
-> -		list_del(&ent->list);
-> -		kfree(ent);
-> -	}
-> -}
-> -
-> -static void kprobe_remove_ksym_blacklist(unsigned long entry)
-> -{
-> -	kprobe_remove_area_blacklist(entry, entry + 1);
-> -}
-> -
->  int __weak arch_kprobe_get_kallsym(unsigned int *symnum, unsigned long *value,
->  				   char *type, char *sym)
->  {
-> @@ -2570,6 +2553,25 @@ static int __init populate_kprobe_blacklist(unsigned long *start,
->  	return ret ? : arch_populate_kprobe_blacklist();
->  }
->  
-> +#ifdef CONFIG_MODULES
-> +/* Remove all symbols in given area from kprobe blacklist */
-> +static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
-> +{
-> +	struct kprobe_blacklist_entry *ent, *n;
-> +
-> +	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
-> +		if (ent->start_addr < start || ent->start_addr >= end)
-> +			continue;
-> +		list_del(&ent->list);
-> +		kfree(ent);
-> +	}
-> +}
-> +
-> +static void kprobe_remove_ksym_blacklist(unsigned long entry)
-> +{
-> +	kprobe_remove_area_blacklist(entry, entry + 1);
-> +}
-> +
->  static void add_module_kprobe_blacklist(struct module *mod)
->  {
->  	unsigned long start, end;
-> @@ -2672,6 +2674,17 @@ static struct notifier_block kprobe_module_nb = {
->  	.priority = 0
->  };
->  
-> +static int kprobe_register_module_notifier(void)
-> +{
-> +	return register_module_notifier(&kprobe_module_nb);
-> +}
-> +#else
-> +static int kprobe_register_module_notifier(void)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_MODULES */
-> +
->  void kprobe_free_init_mem(void)
->  {
->  	void *start = (void *)(&__init_begin);
-> @@ -2731,7 +2744,7 @@ static int __init init_kprobes(void)
->  	if (!err)
->  		err = register_die_notifier(&kprobe_exceptions_nb);
->  	if (!err)
-> -		err = register_module_notifier(&kprobe_module_nb);
-> +		err = kprobe_register_module_notifier();
->  
->  	kprobes_initialized = (err == 0);
->  	kprobe_sysctls_init();
-> diff --git a/kernel/trace/trace_kprobe.c b/kernel/trace/trace_kprobe.c
-> index 14099cc17fc9..2cb2a3951b4f 100644
-> --- a/kernel/trace/trace_kprobe.c
-> +++ b/kernel/trace/trace_kprobe.c
-> @@ -111,6 +111,7 @@ static nokprobe_inline bool trace_kprobe_within_module(struct trace_kprobe *tk,
->  	return strncmp(module_name(mod), name, len) == 0 && name[len] == ':';
->  }
->  
-> +#ifdef CONFIG_MODULES
->  static nokprobe_inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
->  {
->  	char *p;
-> @@ -129,6 +130,12 @@ static nokprobe_inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
->  
->  	return ret;
->  }
-> +#else
-> +static inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
-> +{
-> +	return false;
-> +}
-> +#endif
->  
->  static bool trace_kprobe_is_busy(struct dyn_event *ev)
->  {
-> @@ -670,6 +677,7 @@ static int register_trace_kprobe(struct trace_kprobe *tk)
->  	return ret;
->  }
->  
-> +#ifdef CONFIG_MODULES
->  /* Module notifier call back, checking event on the module */
->  static int trace_kprobe_module_callback(struct notifier_block *nb,
->  				       unsigned long val, void *data)
-> @@ -704,6 +712,16 @@ static struct notifier_block trace_kprobe_module_nb = {
->  	.notifier_call = trace_kprobe_module_callback,
->  	.priority = 1	/* Invoked after kprobe module callback */
->  };
-> +static int trace_kprobe_register_module_notifier(void)
-> +{
-> +	return register_module_notifier(&trace_kprobe_module_nb);
-> +}
-> +#else
-> +static int trace_kprobe_register_module_notifier(void)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_MODULES */
->  
->  static int count_symbols(void *data, unsigned long unused)
->  {
-> @@ -1933,7 +1951,7 @@ static __init int init_kprobe_trace_early(void)
->  	if (ret)
->  		return ret;
->  
-> -	if (register_module_notifier(&trace_kprobe_module_nb))
-> +	if (trace_kprobe_register_module_notifier())
->  		return -EINVAL;
->  
->  	return 0;
-> -- 
-> 2.43.0
+>  arch/sparc/include/asm/asm-prototypes.h | 17 ++++++++++++-----
+>  1 file changed, 12 insertions(+), 5 deletions(-)
 > 
+> diff --git a/arch/sparc/include/asm/asm-prototypes.h b/arch/sparc/include/asm/asm-prototypes.h
+> index 4987c735ff56..08810808ca6d 100644
+> --- a/arch/sparc/include/asm/asm-prototypes.h
+> +++ b/arch/sparc/include/asm/asm-prototypes.h
+> @@ -3,15 +3,18 @@
+>   * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+>   */
+>  
+> -#include <asm/xor.h>
+> -#include <asm/checksum.h>
+> -#include <asm/trap_block.h>
+> +#include <linux/atomic.h>
+>  #include <linux/uaccess.h>
+> +
+>  #include <asm/atomic.h>
+> -#include <asm/ftrace.h>
+>  #include <asm/cacheflush.h>
+> +#include <asm/checksum.h>
+> +#include <asm/delay.h>
+> +#include <asm/ftrace.h>
+>  #include <asm/oplib.h>
+> -#include <linux/atomic.h>
+> +#include <asm/pgtable.h>
+> +#include <asm/trap_block.h>
+> +#include <asm/xor.h>
+>  
+>  void *__memscan_zero(void *, size_t);
+>  void *__memscan_generic(void *, int, size_t);
+> @@ -23,3 +26,7 @@ void *memcpy(void *dest, const void *src, size_t n);
+>  void *memset(void *s, int c, size_t n);
+>  typedef int TItype __attribute__((mode(TI)));
+>  TItype __multi3(TItype a, TItype b);
+> +
+> +s64 __ashldi3(s64, int);
+> +s64 __lshrdi3(s64, int);
+> +s64 __ashrdi3(s64, int);
 
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+Tested-by: Andreas Larsson <andreas@gaisler.com>
 
--- 
-Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Picking this up to my for-next.
+
+Thanks,
+Andreas
