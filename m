@@ -1,38 +1,38 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF461514F2;
-	Mon, 22 Apr 2024 14:43:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8440152185;
+	Mon, 22 Apr 2024 14:43:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713797018; cv=none; b=DO5NPttBLD9DY/k9FKSdPc91InCNQ5vKVMXw+9iLJxwEvcE92zZ18ovaQkjy4p+kSXLxdA/0C9aQd+WvdwZaAJL4sGgnOWidTLazs/lTjQM6jnv56+M3kx15WdHbv1lONW94YYzIr28WY3DTh1hzCF1SOz95x2v9ZUr9rSnZgFc=
+	t=1713797041; cv=none; b=sYeLjtYLCnHy3rOF7Z1p91U0+nEhaQCrXtT2aWoRHBJRUprM/vX6SXnupnAeCcyNXVen6nyLPQ7AMARXWgdIVISll/oL7OFXI1JXokPXXX6+T0BrDOD9yjB7sLh5hVbzWWvXmFZMC8BaT1ftQnvzQtGIBjNj2LxK8QI5azkXiqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713797018; c=relaxed/simple;
-	bh=JHAVx1UbHScmt4hvKoeDlVoViBT2sv86G8QQ6y0qpBM=;
+	s=arc-20240116; t=1713797041; c=relaxed/simple;
+	bh=yMovu4U6dwLgJL6CC1aBYeE54TAOy5NOEuyjqme4oBM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oNZm0of+UAQ33lZw6v6cXHHY2coh8TXZrrZol8U0n3PbmjxttYxVXDqx1wwC7ZaivDn+Zw3kGBYPxkcodJfrvPiotJ0EZO2AkpLvLLH1G3buQTmOec56UxLlTeNkvTqh+hRDU8UIyNbF2CKxVbC/XBjQ6+l3luFwWKijwqEt3as=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=O8co8mw6; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=pYiutxoPBnFhJgpPhKt37tQoke/gvuDJDzuwbwE+rpFvi9kx+cLjJzSrnb8o4Uwl2qvT4YY4gUWdN91qS2Q6B3GkbiO0TvkVLOSxEcopOwgNq0YRbSnVlqaGCuQyUorlKjYg9MhuxI4Uf+W3/pjzlVgUvnXDpOKv+S1mACp1Dsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=PkVdyipG; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="O8co8mw6"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="PkVdyipG"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4VNSfs25kcz6834;
-	Mon, 22 Apr 2024 16:43:33 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTP id 4VNSgK21Lvz683S;
+	Mon, 22 Apr 2024 16:43:57 +0200 (CEST)
 Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4VNSfr5rfwz6835;
-	Mon, 22 Apr 2024 16:43:32 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4VNSgJ6rSDz683R;
+	Mon, 22 Apr 2024 16:43:56 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1713797013;
-	bh=fYnT2ay+ckJZ8vZiWjb4Fxs7tz4/M2KnGcKHzTgKOSQ=;
+	s=unoeuro; t=1713797037;
+	bh=E/VQrc1Wk46yNt/v9gfE9nC2UOnA5UyTQmxjteQRhhY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=O8co8mw6WFTRpuYqa+LGFwiaOyxN+TQwfvumh8MAZgZf1IgIA9OVs2/HR9v3MiGF1
-	 9qpGdJhfmfU6cPc6VVJqzQGzZl+ji+VLRxI4ajoQbvy5jbDEPf1Ae8yeIi8Ju4+6t6
-	 USirjvqdfMI7mp0fsi49B5FOejY+UN73HybcNcPE=
-Message-ID: <e9dbc4ac-7724-4565-a1d1-ddf19a6488f8@gaisler.com>
-Date: Mon, 22 Apr 2024 16:43:32 +0200
+	b=PkVdyipGUROjU9tlrSKwGdUnOqYyt4wV5NyhYM9aKUS0wJsW9YjeIVTNBjpTYcz/Q
+	 C9D/DVX2Abv0thUNFVW+n/8L4HBX0P28NJJetVpQu7gufk0OdiJWjM8Vyz7OQSpWSI
+	 BAW7QYe8hi87W5/s3exJzbEBl2ur0DahH7KNhnoU=
+Message-ID: <be681d47-81d4-470a-bdf2-d147d0cd4789@gaisler.com>
+Date: Mon, 22 Apr 2024 16:43:56 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,44 +40,42 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc: Use swap() to fix Coccinelle warning
+Subject: Re: [PATCH] sparc: Compare pointers to NULL instead of 0
 To: Thorsten Blum <thorsten.blum@toblux.com>,
  "David S. Miller" <davem@davemloft.net>
-Cc: Rob Herring <robh@kernel.org>, Sam Ravnborg <sam@ravnborg.org>,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20240404112313.11898-2-thorsten.blum@toblux.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20240404192932.13075-2-thorsten.blum@toblux.com>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240404112313.11898-2-thorsten.blum@toblux.com>
+In-Reply-To: <20240404192932.13075-2-thorsten.blum@toblux.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-04-04 13:23, Thorsten Blum wrote:
-> Fixes the following Coccinelle/coccicheck warning reported by
-> swap.cocci:
+On 2024-04-04 21:29, Thorsten Blum wrote:
+> Fixes the following two Coccinelle/coccicheck warnings reported by
+> badzero.cocci:
 > 
-> 	WARNING opportunity for swap()
+> 	WARNING comparing pointer to 0
+> 	WARNING comparing pointer to 0
 > 
 > Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
 > ---
->  arch/sparc/include/asm/floppy_64.h | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  arch/sparc/prom/tree_64.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
-> index 6efeb24b0a92..83decacd0a2d 100644
-> --- a/arch/sparc/include/asm/floppy_64.h
-> +++ b/arch/sparc/include/asm/floppy_64.h
-> @@ -704,9 +704,7 @@ static unsigned long __init sun_floppy_init(void)
->  			ns87303_modify(config, ASC, ASC_DRV2_SEL, 0);
->  			ns87303_modify(config, FCR, 0, FCR_LDE);
+> diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
+> index 989e7992d629..88793e5b0ab5 100644
+> --- a/arch/sparc/prom/tree_64.c
+> +++ b/arch/sparc/prom/tree_64.c
+> @@ -332,7 +332,7 @@ prom_setprop(phandle node, const char *pname, char *value, int size)
 >  
-> -			config = sun_floppy_types[0];
-> -			sun_floppy_types[0] = sun_floppy_types[1];
-> -			sun_floppy_types[1] = config;
-> +			swap(sun_floppy_types[0], sun_floppy_types[1]);
->  
->  			if (sun_pci_broken_drive != -1) {
->  				sun_pci_broken_drive = 1 - sun_pci_broken_drive;
+>  	if (size == 0)
+>  		return 0;
+> -	if ((pname == 0) || (value == 0))
+> +	if ((pname == NULL) || (value == NULL))
+>  		return 0;
+>  	
+>  #ifdef CONFIG_SUN_LDOMS
 
 Reviewed-by: Andreas Larsson <andreas@gaisler.com>
 
