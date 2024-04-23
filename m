@@ -1,145 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpbgsg2.qq.com (smtpbgsg2.qq.com [54.254.200.128])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A85A41847;
-	Mon, 22 Apr 2024 18:32:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D497D79D3;
+	Tue, 23 Apr 2024 08:31:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.128
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713810736; cv=none; b=QznZ5pBJl0AHmDy48WduUBUcGmD1B5IijLy07IEf5r/lnv88qxYRvA5oQaYlwdAlpqc1GVY1w1jWVl0QJqGwczxeeYfnZSSyAcfepfHnjKaKOF2nbfqgLPQaF761qomi9Pp7CLQeTv3/4Q6nT+jkRFMRRAHrU+7khNTTDfbwIaI=
+	t=1713861104; cv=none; b=imwsumO9XqomoKXWOsQirIzfZ5cWF4v4wPmMA8+y1i4R3Lw4kh2Vs7Lx0QcjtcGOl0Ax1sDTOEV5CscwpsZDq+9R8+6y3HWvOmuddz+qdrda/MejnnVtKmxEL1n/8gxLzCoAz9chOXFDkrPRvb7MbzI2I70D82CqUBBmHZe42rw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713810736; c=relaxed/simple;
-	bh=41bQmayZLa9F2TS6BjEFSDm7V8S6LLEq/o95h7wxG6E=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=l28eZyiFEZGZ1i/VsciXHLakue8jpER4MkOl+eJHmzT4EU9NaymBI9aKgNE9lZM/8yoE6WRNH4NyIldiPpWKYf1t9kvuTHhyts5SEsj2/ZLFCkaNrcxQpiqy6FhTHbHod+xQPd+97s1/vPOsXJ5KKbqXRqeBgtbDl/8gOtm5gBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WFjAm3nG; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WFjAm3nG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA94C4AF0B;
-	Mon, 22 Apr 2024 18:32:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1713810736;
-	bh=41bQmayZLa9F2TS6BjEFSDm7V8S6LLEq/o95h7wxG6E=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=WFjAm3nG7XUTrBnb9o2ks89OQgjxiSe5eWX8YxXd1sW0hbIxt8VjaFgdNY7jwwl/k
-	 AfWjBBQkR55Va8AnJ9aZ9HNo3aWGj92Hg8yQfe6AZc/sgCyr09/ddJev56eXLxhUbk
-	 bYRNUKDXSWSv0PHnlWydUHx0kp/IGq0ZRSR0xO71ow/Lfv7EI3MTbMaLFw4v7bXSFJ
-	 3STUYz/yJHlp6VqKWBeoWQO13+U5j6+pSZw+u4eCUWHpkY832oOPrwYV84rmuYW4C/
-	 bOCj02N41ZbDl+Gdwcz6EkWfYsWwZ5MhWh4lcO8wHP44/mjOjwNi1xfPxSrEJkKHPw
-	 nRWV7XhBkaFPQ==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-2da08b06e0dso56752861fa.2;
-        Mon, 22 Apr 2024 11:32:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVAiL4f0XpoTnbX2tsCYaeKCYRiAi5LlPsAXRg2XqaLnBfw0mAuWdG/n2s/rm1fN67yq2GFli/x7nix6Ci20zGBFF2tfTCPkpcU/cIUBXZfkl7bWOQ674srKDnADgriyGJjKil0QaqrFI6dYTBROAkgPQKjtNQoJOgjlaRxPYZtdGQ1xcGmfmo0LD51lKKVhfV+73d6mxcL3emy2Up/snWYvkBkSLoI6l8HPx139+GJVqJqGWEqCwbslJXVJ+i8E6ipAnU54pLeSVwJhoM1dTOLgvLRzXWjcDvU2C4oMB/Tgx3uj0qCNRGpKIrpvjSk81tsEbxLki9rk8infjoGwWTgUgZ/U+KECMhad5na35inrctV6TP7qU+I+9l7U++LRZ9ZsqeiFMXTp8B2pjo9iEXyJe6o+/8L3LQDsvbol2gD9M6TJmM+Tb/uvUQ=
-X-Gm-Message-State: AOJu0YzIVj4kudDkOfIdSzPU7qWk5hi4ACyrTbrFxV2xQk0sd40r9cdc
-	G+YEaqz2iHHiLezycD0rMYEcmoO8FS2eYfkJpBR1rkwmo709PQ8NsIDTsIZrqnsyZnn0247incU
-	B6rCbtRT3RUAl8E2ws3o7ouKDoIs=
-X-Google-Smtp-Source: AGHT+IEL0FWUHmCKYIOk93aax6U4BdFHP3q3Bogcq6+CoScwmomqpj0/rB2eiX3SYQzXlZuuQSNAuqDXXtIwEOxd65Y=
-X-Received: by 2002:a2e:9496:0:b0:2d8:1d29:23a8 with SMTP id
- c22-20020a2e9496000000b002d81d2923a8mr6582027ljh.29.1713810734431; Mon, 22
- Apr 2024 11:32:14 -0700 (PDT)
+	s=arc-20240116; t=1713861104; c=relaxed/simple;
+	bh=eGgBQtvqHszHLZjEaVNOzyrzgGeymXRzgL/zYDf5Cj0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=eTWgdPYEuLzSv88+tdnSh7515TxlmqF47Lb+OYuYv+s3n4Lw1Egn57bzAOu4T6OTV43o8qsHNvXAWRUUP48U9NH5jlKCG6s6yFtlFJqPudnY50XXMHUQxD3Wx9YmQRw+T2HboXaYY/24j3NE1TTyfAYGwnx1Ns23Yw26BzAvXlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.254.200.128
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
+X-QQ-mid: bizesmtp82t1713861067tou125gg
+X-QQ-Originating-IP: 51OwVtAtuarwI4cCOTceEqcV9mknxm2HbvPOgPobPo0=
+Received: from localhost ( [112.0.147.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Tue, 23 Apr 2024 16:31:05 +0800 (CST)
+X-QQ-SSF: 01400000000000903000000A0000000
+X-QQ-FEAT: j86OQQvu8eQ1KhrGmCdEjrtfAbzGLSdea3066tUtHFRZeB3xbcnbrMa6/vNVC
+	qrSR54Kjk6fKefvit8IzvrooMnYPYRldF/GLWR3VBzoNXJDegfDGxizLpcW5z8RAkdnEOqt
+	+u5QwNny/+pQvYGlX5aXNN5X10gLT4fdxQvBOgBde5x+mfYFFoP3lsEba7xyM59vv6tHNzR
+	odb+ahZYquwTveFuVonFYmjHqFZizYWVTnBy33DpzDA4ErmqvAS8Lw4z3SfvdBK3t26FJP+
+	CNXbFhfNr9+r3NFdR/Nhuy9TFIHpdyXronYd9V+Mgv/mvkXCocZ6vr86HNSkMfm51gmWKoj
+	2h5hHsqqc4Brr5j4aFah4xry9zGQEtJRkbjvVbbb514WM2qdUxmb11BhkiyIltY7SLDREfd
+	UFtB97v3rjRrcqHuYo6p8g==
+X-QQ-GoodBg: 2
+X-BIZMAIL-ID: 7545835907098097455
+From: Dawei Li <dawei.li@shingroup.cn>
+To: davem@davemloft.net,
+	andreas@gaisler.com
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	sam@ravnborg.org,
+	Dawei Li <dawei.li@shingroup.cn>
+Subject: [PATCH v3 1/6] sparc/srmmu: Remove on-stack cpumask var
+Date: Tue, 23 Apr 2024 16:30:38 +0800
+Message-Id: <20240423083043.3735921-2-dawei.li@shingroup.cn>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20240423083043.3735921-1-dawei.li@shingroup.cn>
+References: <20240423083043.3735921-1-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <ZiE91CJcNw7gBj9g@kernel.org> <CAPhsuW4au6v8k8Ab7Ff6Yj64rGvZ7wkz=Xrgh8ZZtLyscpChqQ@mail.gmail.com>
- <ZiFd567L4Zzm2okO@kernel.org> <CAPhsuW5SL4_=ZXdHZV8o0KS+5Vf25UMvEKhRgFQLioFtf2pgoQ@mail.gmail.com>
- <ZiIVVBgaDN4RsroT@kernel.org> <CAPhsuW7WoU+a46FhqqH8f-3=ehxeD4wSgKDWegMin1pT49OSWw@mail.gmail.com>
- <ZiKjmaDgz_56ovbv@kernel.org> <CAPhsuW7Nj1Sa_9xQtTgHz9AmX39zdh2x2COqA-qmkfpfX9hNWw@mail.gmail.com>
- <ZiLNGgVSQ7_cg58y@kernel.org> <CAPhsuW4KRM4O4RFbYQrt=Coqyh9w29WiF2YF=8soDfauLFsKBA@mail.gmail.com>
- <ZiNDGjkcqEPqruza@kernel.org> <20240420181121.d6c7be11a6f98dc2462f8b41@kernel.org>
-In-Reply-To: <20240420181121.d6c7be11a6f98dc2462f8b41@kernel.org>
-From: Song Liu <song@kernel.org>
-Date: Mon, 22 Apr 2024 11:32:02 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW5RYfq8FOtMkO69cdQ3Bc1p2kQPWE2crts1UMhqJr+7sQ@mail.gmail.com>
-Message-ID: <CAPhsuW5RYfq8FOtMkO69cdQ3Bc1p2kQPWE2crts1UMhqJr+7sQ@mail.gmail.com>
-Subject: Re: [PATCH v4 05/15] mm: introduce execmem_alloc() and execmem_free()
-To: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, 
-	Alexandre Ghiti <alexghiti@rivosinc.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Bjorn Topel <bjorn@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, "David S. Miller" <davem@davemloft.net>, 
-	Dinh Nguyen <dinguyen@kernel.org>, Donald Dutile <ddutile@redhat.com>, 
-	Eric Chanudet <echanude@redhat.com>, Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, 
-	Huacai Chen <chenhuacai@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
-	Luis Chamberlain <mcgrof@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nadav Amit <nadav.amit@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, 
-	Puranjay Mohan <puranjay12@gmail.com>, Rick Edgecombe <rick.p.edgecombe@intel.com>, 
-	Russell King <linux@armlinux.org.uk>, Steven Rostedt <rostedt@goodmis.org>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Thomas Gleixner <tglx@linutronix.de>, 
-	Will Deacon <will@kernel.org>, bpf@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, 
-	linux-mm@kvack.org, linux-modules@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-Hi Masami and Mike,
+In general it's preferable to avoid placing cpumasks on the stack, as
+for large values of NR_CPUS these can consume significant amounts of
+stack space and make stack overflows more likely.
 
-On Sat, Apr 20, 2024 at 2:11=E2=80=AFAM Masami Hiramatsu <mhiramat@kernel.o=
-rg> wrote:
-[...]
-> > >
-> > > IIUC, we need to update __execmem_cache_alloc() to take a range point=
-er as
-> > > input. module text will use "range" for EXECMEM_MODULE_TEXT, while kp=
-robe
-> > > will use "range" for EXECMEM_KPROBE. Without "map to" concept or shar=
-ing
-> > > the "range" object, we will have to compare different range parameter=
-s to check
-> > > we can share cached pages between module text and kprobe, which is no=
-t
-> > > efficient. Did I miss something?
->
-> Song, thanks for trying to eplain. I think I need to explain why I used
-> module_alloc() originally.
->
-> This depends on how kprobe features are implemented on the architecture, =
-and
-> how much features are supported on kprobes.
->
-> Because kprobe jump optimization and kprobe jump-back optimization need t=
-o
-> use a jump instruction to jump into the trampoline and jump back from the
-> trampoline directly, if the architecuture jmp instruction supports +-2GB =
-range
-> like x86, it needs to allocate the trampoline buffer inside such address =
-space.
-> This requirement is similar to the modules (because module function needs=
- to
-> call other functions in the kernel etc.), at least kprobes on x86 used
-> module_alloc().
->
-> However, if an architecture only supports breakpoint/trap based kprobe,
-> it does not need to consider whether the execmem is allocated.
->
-> >
-> > We can always share large ROX pages as long as they are within the corr=
-ect
-> > address space. The permissions for them are ROX and the alignment
-> > differences are due to KASAN and this is handled during allocation of t=
-he
-> > large page to refill the cache. __execmem_cache_alloc() only needs to l=
-imit
-> > the search for the address space of the range.
->
-> So I don't think EXECMEM_KPROBE always same as EXECMEM_MODULE_TEXT, it
-> should be configured for each arch. Especially, if it is only used for
-> searching parameter, it looks OK to me.
+Use cpumask_any_but() to avoid the need for a temporary cpumask on
+the stack and simplify code.
 
-Thanks for the explanation!
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
+---
+ arch/sparc/mm/srmmu.c | 40 ++++++++++++----------------------------
+ 1 file changed, 12 insertions(+), 28 deletions(-)
 
-I was thinking "we can have EXECMEM_KPROBE share the same parameters as
-EXECMEM_MODULE_TEXT for all architectures". But this thought is built on to=
-p
-of assumptions on future changes/improvements within multiple sub systems.
-At this moment, I have no objections moving forward with current execmem AP=
-Is.
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 852085ada368..9df51a62333d 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1653,13 +1653,15 @@ static void smp_flush_tlb_all(void)
+ 	local_ops->tlb_all();
+ }
+ 
++static bool any_other_mm_cpus(struct mm_struct *mm)
++{
++	return cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids;
++}
++
+ static void smp_flush_cache_mm(struct mm_struct *mm)
+ {
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask))
++		if (any_other_mm_cpus(mm))
+ 			xc1(local_ops->cache_mm, (unsigned long)mm);
+ 		local_ops->cache_mm(mm);
+ 	}
+@@ -1668,10 +1670,7 @@ static void smp_flush_cache_mm(struct mm_struct *mm)
+ static void smp_flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask)) {
++		if (any_other_mm_cpus(mm)) {
+ 			xc1(local_ops->tlb_mm, (unsigned long)mm);
+ 			if (atomic_read(&mm->mm_users) == 1 && current->active_mm == mm)
+ 				cpumask_copy(mm_cpumask(mm),
+@@ -1688,10 +1687,7 @@ static void smp_flush_cache_range(struct vm_area_struct *vma,
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask))
++		if (any_other_mm_cpus(mm))
+ 			xc3(local_ops->cache_range, (unsigned long)vma, start,
+ 			    end);
+ 		local_ops->cache_range(vma, start, end);
+@@ -1705,10 +1701,7 @@ static void smp_flush_tlb_range(struct vm_area_struct *vma,
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask))
++		if (any_other_mm_cpus(mm))
+ 			xc3(local_ops->tlb_range, (unsigned long)vma, start,
+ 			    end);
+ 		local_ops->tlb_range(vma, start, end);
+@@ -1720,10 +1713,7 @@ static void smp_flush_cache_page(struct vm_area_struct *vma, unsigned long page)
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask))
++		if (any_other_mm_cpus(mm))
+ 			xc2(local_ops->cache_page, (unsigned long)vma, page);
+ 		local_ops->cache_page(vma, page);
+ 	}
+@@ -1734,10 +1724,7 @@ static void smp_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	if (mm->context != NO_CONTEXT) {
+-		cpumask_t cpu_mask;
+-		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask))
++		if (any_other_mm_cpus(mm))
+ 			xc2(local_ops->tlb_page, (unsigned long)vma, page);
+ 		local_ops->tlb_page(vma, page);
+ 	}
+@@ -1759,10 +1746,7 @@ static void smp_flush_page_to_ram(unsigned long page)
+ 
+ static void smp_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
+ {
+-	cpumask_t cpu_mask;
+-	cpumask_copy(&cpu_mask, mm_cpumask(mm));
+-	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-	if (!cpumask_empty(&cpu_mask))
++	if (any_other_mm_cpus(mm))
+ 		xc2(local_ops->sig_insns, (unsigned long)mm, insn_addr);
+ 	local_ops->sig_insns(mm, insn_addr);
+ }
+-- 
+2.27.0
 
-Thanks,
-Song
