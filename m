@@ -1,83 +1,108 @@
-Received: from smtpbg151.qq.com (smtpbg151.qq.com [18.169.211.239])
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D24E5914C;
-	Tue, 23 Apr 2024 08:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.169.211.239
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0EC313D254
+	for <sparclinux@vger.kernel.org>; Tue, 23 Apr 2024 16:41:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713861123; cv=none; b=iQETiklktwg7RvrvrxEAA5ensJ8HixPfn4VkYQpkEk0++E8vh6q8clRpe+bhAOqVEai2ANXJNuyilfF7ZnhgvG81/xig+xMa4VnEEWAlKGkx9G2XSh90oXASAv1589GqobZMFqq/DnU/4GTo7aecNhhbdKaooMGlvjMlIZsjP8k=
+	t=1713890494; cv=none; b=AW1SgTO8FTrgz5LEQNt3mGAunGfc4HWMaTHD5acjWykrIApWYzFe/HjyaKpY3GfQ9b5X47wlHnBkXlBc5wz760ZT7gOApIyYtrsc+ts0yt8r4co1nM2zATH8ApfP5Ky8Hvboa+u+9bzAYxgsuNBwRHD6fGsgY+ioKNo2JjKyquM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713861123; c=relaxed/simple;
-	bh=/BNrLKrkj1zztdJw2Le2jc+2s6d9f8gUuEhcw02th40=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=HqqZ93bDJADras4TJCD6Ok0P9G8a6bxOBiQVa1K3ahuECs1c8s1oGB1mPzSEU1djIrOJuJToMjWYQVMnDYfEwXaDmFK6HgSdD1zYIllpFGThZhxHHMKuxwpJyvhRxfBZ2XVQAxZk7ldC8H9lNsV/RPwxTrBIEn14QiPuJpVS/94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=18.169.211.239
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtp89t1713861089t0jhys44
-X-QQ-Originating-IP: cUCVoziNrOH0fCzCgaYoM4CE29S8xvLsFE/5E51zYr4=
-Received: from localhost ( [112.0.147.129])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 23 Apr 2024 16:31:28 +0800 (CST)
-X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: 3M0okmaRx3gIbRIk2WH2P98KRMGrw6qQIogcjcz+juF05Qy9jWNZ5WfFQNFP+
-	Qdg736uGmqd4IulIwzKDwxF/x5o3JLvSNQqZkXdSLDIfEEABzxBYxs3GIKR7tdYbTbIh6VW
-	lGjtboHecdALAcVUsLh3e5EPQbJWdoIWRtcEX+nimoHqh3FW5MkRsdrBFi/XoGWIGio7Pw4
-	cCExKXTgxcaJkPwjd4BQsS/lRtg3O93DFoz8UQA9DL0wPxVgYjm4U4bfsxls9IZCJi57Uzc
-	qASAiXm1mHblBWjweThsDHm6hnslRtaIpU83G1xwkNLsXPgSucX/vuzYvd7bZS+Q+WMANGP
-	ElGWHsRJZTUna1M+D3pim5bFsMXPBLNPs0hZXkzXth9kCCWYnsma2sb0z8rknmDX5wXFbg6
-	3cDdArJ0vLd2k34QBRBoDm4g3+fgXAh0
-X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 10010987221185693144
-From: Dawei Li <dawei.li@shingroup.cn>
-To: davem@davemloft.net,
-	andreas@gaisler.com
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	sam@ravnborg.org,
-	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH v3 5/6] sparc/init: Remove on-stack cpumask var
-Date: Tue, 23 Apr 2024 16:30:42 +0800
-Message-Id: <20240423083043.3735921-6-dawei.li@shingroup.cn>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20240423083043.3735921-1-dawei.li@shingroup.cn>
-References: <20240423083043.3735921-1-dawei.li@shingroup.cn>
+	s=arc-20240116; t=1713890494; c=relaxed/simple;
+	bh=Ew4ZwP340aTNrveQuDNc86ipPLYtcqn5HIz7uAO7cFI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QNgBKmlSr4fMa+N9is+Q6d6xeXigrYWI2AKXkqcFwzsb898NObS7YshlRbvJMajVJ3/vYIKJIFlzpw6yOPvnWkl7ExKuf45nFB+62Ki/M7kyD5ZBf4GVTYJH8UXXcA97olbmBagVztm9OcOHuJBD962zfpIMTvNTaeHfQpWvE44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=Tw8FQkWz; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=MCt7cKSc; arc=none smtp.client-ip=46.30.211.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="Tw8FQkWz";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="MCt7cKSc"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=ce+ZqFlarA8IAt5zfwbr2hxRLFQAtI7f0O/GFL7QRfQ=;
+	b=Tw8FQkWzueJByde49pf2Etw1JNd+9Cs/a8VSdP4sAjZamDT998lpGJ8OUSXZPgdnq9YK80Ld79By0
+	 E1ZePxzkIVPPM3w68Ti2ki86ZQSTo/Qengh+ox/5EsZdMfGxT/LtyRbZzNkl+eBPCbtoD00qByBVfh
+	 QlogVQorbOUCuNhfuDWjsPIOEK757mimusKghDsKCrDlzJS1s6Psw/PaVE8r407gkh53FMLrF7D1dO
+	 uDYiPtxot3rmREDV43Zw4JTzOwK/+pqOJcBE6+tKyTzcGurjSzSuf0Roh28MmUDSp64HXkjpWwAEu0
+	 fCub6cvUfUdVz3Rx5TFyQR6t2+r0Tlw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=ce+ZqFlarA8IAt5zfwbr2hxRLFQAtI7f0O/GFL7QRfQ=;
+	b=MCt7cKScu1j54dhTCuf6RoKzDR6Pxv4AhcExl3aouinnY7Cygl2lgVcGjoVORGMB/icOvVzGnLV0S
+	 zdG43KuBQ==
+X-HalOne-ID: 4e317c2c-0190-11ef-8c96-edf132814434
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 4e317c2c-0190-11ef-8c96-edf132814434;
+	Tue, 23 Apr 2024 16:41:22 +0000 (UTC)
+Date: Tue, 23 Apr 2024 18:41:17 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v5 04/15] sparc: simplify module_alloc()
+Message-ID: <20240423164117.GA897977@ravnborg.org>
+References: <20240422094436.3625171-1-rppt@kernel.org>
+ <20240422094436.3625171-5-rppt@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240422094436.3625171-5-rppt@kernel.org>
 
-In general it's preferable to avoid placing cpumasks on the stack, as
-for large values of NR_CPUS these can consume significant amounts of
-stack space and make stack overflows more likely.
+Hi Mike,
+On Mon, Apr 22, 2024 at 12:44:25PM +0300, Mike Rapoport wrote:
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> 
+> Define MODULES_VADDR and MODULES_END as VMALLOC_START and VMALLOC_END
+> for 32-bit and reduce module_alloc() to
+> 
+> 	__vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END, ...)
+> 
+> as with the new defines the allocations becames identical for both 32
+> and 64 bits.
+> 
+> While on it, drop unsed include of <linux/jump_label.h>
+> 
+> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 
-Since the cpumask var resides in __init function, which means it's free
-of any concurrenct access, it can be safely marked with static to get
-rid of allocation on stack.
-
-Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
----
- arch/sparc/mm/init_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 1ca9054d9b97..9edbf57a2c59 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1438,7 +1438,7 @@ static int __init numa_attach_mlgroup(struct mdesc_handle *md, u64 grp,
- static int __init numa_parse_mdesc_group(struct mdesc_handle *md, u64 grp,
- 					 int index)
- {
--	cpumask_t mask;
-+	static cpumask_t mask;
- 	int cpu;
- 
- 	numa_parse_mdesc_group_cpus(md, grp, &mask);
--- 
-2.27.0
-
+Looks good.
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
