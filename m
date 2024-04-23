@@ -1,34 +1,32 @@
-Received: from smtpbgau2.qq.com (smtpbgau2.qq.com [54.206.34.216])
+Received: from smtpbg153.qq.com (smtpbg153.qq.com [13.245.218.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D8B55C29;
-	Tue, 23 Apr 2024 08:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.206.34.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0FE18633;
+	Tue, 23 Apr 2024 08:31:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.245.218.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713861105; cv=none; b=FNohrKDjxqxYf6GiZEe90RjCYEcqQ/G1nsHuvd41R4W08jYTNu0tVKtEjF4Lvz8iS/wvgu20lS97ZZ4IhXnF8pGw/Mx569NNMbTSmpRgnOBhktRI2T9lcl6KfYTMNV/iMk1SrjjbzM+anErEJv6KKsshwJ6EprU6L5Jed7dq26o=
+	t=1713861106; cv=none; b=nsXZ5ePDN51ZcIO9MCrnEytA05+8eZ/8wLcEVwf39sZv0otlsZqYECxllGJQdYTUOddeEJotFKHgL81YiGQHdxElmj3VvBnSfY5Qma0h+A3naATa6L1QOC26rmqiPZDVnwOShWxEHi9S4EnVPqtCBEpPEC2NTz0XltyriKrk5vo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713861105; c=relaxed/simple;
-	bh=N6XTfdxhJpxdxT4fVSZa/iMWuusbHZ+zYGBsuw2wehU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=U2kdD1oZZjpuG9hn/bG9Z1DEnd/Z2of/4KrDTYdSoIU8n7pDadhE+kQALDEpU6kSxJ9gkhY/z1/oLyEvFy5ukCeDLaL19F2FOVpaFNCAGYqQwozSOJYhyyVOP8AeKA02IbFrJhsvTg9bGdmicJqw51IlYQuQZdIUjn1IaTEk0yU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.206.34.216
+	s=arc-20240116; t=1713861106; c=relaxed/simple;
+	bh=N89eRTnCH1N/2oc+ooWVrn5cRdrpACplHdyHdeobZgs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=slr6qEbxNnLP3Fno1bDvnDbQt9vEs4wS15il7yrLposUS6fKfPAv7zm5y9KW56LQtZ3IjUAN5CbDm5iMjc27XcJVV2uXMTCcJBHJnDptUzU0QNwWocIvS85+lTEaAriZzd1xM+tSCM92/TdCeDg+DbWZQghAVE3njzmuBi33JkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=13.245.218.24
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtpsz3t1713861072tkyi525
-X-QQ-Originating-IP: fGT2JpDpkETB9GS/V58vu3/bYUIW5c4lzZ4qzFlnZTY=
+X-QQ-mid: bizesmtp78t1713861059twhsxzp3
+X-QQ-Originating-IP: PJU0zuqdMCLB46WKpz5MLQwdo2zfMW3mOnPOPYynrlo=
 Received: from localhost ( [112.0.147.129])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 23 Apr 2024 16:31:11 +0800 (CST)
+	id ; Tue, 23 Apr 2024 16:30:58 +0800 (CST)
 X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: +ynUkgUhZJmV6ir1LCfaBLTxrWfpQKuO3gs5cDJVDOKYEFq3lIG2Jn74P36cc
-	RhOHMWGc+DzOw6s8ljXZHqWPeVLy2MOYRnKI7pdP5/v2VIJbeOhYgjt7S8ZvBI4zHRWX+Of
-	GMMHS74/FZZcTUGxaUXez/GyOw4uRlIfO2PW7w8KgDol1rhkGS7BGp9rUhsFVq2Nb2Dawr9
-	wIjSDrgATISh0AX6I8y44XMamA1TEptpYc3O1Ik5ryhMkWnLTtkr99tPxThx0xt7265oa4J
-	zFqoHfyc9cjNN6vWWvj/qHWhITAdQgOl4u7SbDB3rBeXL47r86eDAggKnr8Or7nGiRsI2Zr
-	u0924ugv14lrZPD2pazOh7XYs2KQRUPwPgkcHw0BJMNihI1qTAB69R1dsLhZTj/uNFnkons
-	62GkfIH/xsvrN+b7wVJav0rMn3YzY9GV
+X-QQ-FEAT: Wyle2N1OIGmB8JVYMGaU1f4HDMwIWzfmqpAIpE1BE/PVFMglJAHoo7a3IQYbV
+	TtaCVcEUsA3uf8mO+RInlEy5HxuxcGyrwNyc4fGUJBM5oS8h7tXK87XTqUXQJnjkz3mgsnU
+	QVlFCtnVAOVwPgAlM1pCim5H7srS/uRa37NLNiZ9UwtRW6+KsgCW0msRDcBIGk2DUiZywRd
+	JJahIQ157wunWDWrrOx/FlHp3xYNVh3GfTWxadN8ZOEM0MQ6aJljlf2k/uUaE/njfhjG1eR
+	bmuOv84+FkMX/sqOYF8PuQntx86hbtXFNpZFE3HIC50arJPMJyavb04+lkQ6l5zlP0Dxx0v
+	jy14joMc5YyNZxSeUa6H3y5kbIPl75tJZRkgMef4AawlHL/QDaibkxbBI+sdcYbmjPgv91O
 X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 4099338334242054873
+X-BIZMAIL-ID: 11416567546493999041
 From: Dawei Li <dawei.li@shingroup.cn>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -36,12 +34,10 @@ Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	sam@ravnborg.org,
 	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH v3 2/6] sparc/irq: Remove on-stack cpumask var
-Date: Tue, 23 Apr 2024 16:30:39 +0800
-Message-Id: <20240423083043.3735921-3-dawei.li@shingroup.cn>
+Subject: [PATCH v3 0/6] Remove onstack cpumask var for sparc
+Date: Tue, 23 Apr 2024 16:30:37 +0800
+Message-Id: <20240423083043.3735921-1-dawei.li@shingroup.cn>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20240423083043.3735921-1-dawei.li@shingroup.cn>
-References: <20240423083043.3735921-1-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -50,49 +46,57 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtpsz:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
+Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-In general it's preferable to avoid placing cpumasks on the stack, as
-for large values of NR_CPUS these can consume significant amounts of
-stack space and make stack overflows more likely.
+Hi,
 
-- Both 2 arguments of cpumask_equal() is constant and free of change, no
-  need to allocate extra cpumask variables.
+This is v3 of previous series on removal of on-stack cpumask var for
+sparc arch.
 
-- Merge cpumask_and(), cpumask_first() and cpumask_empty() into
-  cpumask_first_and().
+Change since v2:
 
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
----
- arch/sparc/kernel/irq_64.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+- PATCH[1]:
+  - Rename helper, cpumask_any_but_current -> any_other_mm_cpus. (Sam)
+  - Add Reviewed-by from Sam.
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 5280e325d4d6..01ee800efde3 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -349,17 +349,13 @@ static unsigned int sun4u_compute_tid(unsigned long imap, unsigned long cpuid)
- #ifdef CONFIG_SMP
- static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
- {
--	cpumask_t mask;
- 	int cpuid;
- 
--	cpumask_copy(&mask, affinity);
--	if (cpumask_equal(&mask, cpu_online_mask)) {
-+	if (cpumask_equal(affinity, cpu_online_mask)) {
- 		cpuid = map_to_cpu(irq);
- 	} else {
--		cpumask_t tmp;
--
--		cpumask_and(&tmp, cpu_online_mask, &mask);
--		cpuid = cpumask_empty(&tmp) ? map_to_cpu(irq) : cpumask_first(&tmp);
-+		cpuid = cpumask_first_and(affinity, cpu_online_mask);
-+		cpuid = cpuid < nr_cpu_ids ? cpuid : map_to_cpu(irq);
- 	}
- 
- 	return cpuid;
+- PATCH[2-4]:
+  - Add Reviewed-by from Sam.
+
+- PATCH[5]:
+  - Remove __initdata annotation and related commit message. (Sam)
+
+- PATCH[6]:
+  - Change from ":?" to "if else" style. (Sam)
+  - Core logic _unchanged_.
+
+- PATCH[7]:
+  - Removed due to potentially conflicted with other pending series. (Sam) 
+
+v1:
+https://lore.kernel.org/all/20240418104949.3606645-1-dawei.li@shingroup.cn/
+
+v2:
+https://lore.kernel.org/lkml/20240420051547.3681642-1-dawei.li@shingroup.cn/
+
+Dawei Li (6):
+  sparc/srmmu: Remove on-stack cpumask var
+  sparc/irq: Remove on-stack cpumask var
+  sparc/of: Remove on-stack cpumask var
+  sparc/pci_msi: Remove on-stack cpumask var
+  sparc/init: Remove on-stack cpumask var
+  sparc/leon: Remove on-stack cpumask var
+
+ arch/sparc/kernel/irq_64.c       | 10 +++-----
+ arch/sparc/kernel/leon_kernel.c  |  7 +++---
+ arch/sparc/kernel/of_device_64.c |  5 +---
+ arch/sparc/kernel/pci_msi.c      |  5 +---
+ arch/sparc/mm/init_64.c          |  2 +-
+ arch/sparc/mm/srmmu.c            | 40 ++++++++++----------------------
+ 6 files changed, 21 insertions(+), 48 deletions(-)
+
+Thanks,
+
+    Dawei
 -- 
 2.27.0
 
