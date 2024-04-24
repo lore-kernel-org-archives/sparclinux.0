@@ -1,33 +1,34 @@
-Received: from smtpbgau2.qq.com (smtpbgau2.qq.com [54.206.34.216])
+Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5432A7F490;
-	Wed, 24 Apr 2024 02:56:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.206.34.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31AF142E9D;
+	Wed, 24 Apr 2024 02:56:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713927397; cv=none; b=aD1Jljgd+UFypxtF62OaHcDpOqtkWmLHS3klKSQlbF2VmsYn+QVC22xV83ogQe6I9JgaUXTTSf8mck9YlH6DLK6Y6/Sks9fiFQchzeSHBOkmo8ZjKPLbwLz2f2uFUT4WuQHpXk2XsLyqf07maTHcZ+0WxfttmeB2E9CeOE5dTn8=
+	t=1713927408; cv=none; b=QbSlL/94YhD/RAk0CKA7qpkeRJ3ae7WqFlQPc0wNSSdPZ8zSEARNi7/viVQ3bvQrH/4X1/+GlEFrXBcVPLgDPYyajruuVWTnAY1Ksrm3EkIkEo4itfVqd3ubV9KhGKxNZvUE0JPmMxgHYgW+3U260Yq9mWuvFP1MFwN43p8ZEKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713927397; c=relaxed/simple;
-	bh=yb8eJJPFl2tkuFQKzjHMxdKWsZ9qcqM55zk2rzYZcCI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ccfBH3J8aqZbtMdpekfSW23rBTW/bFTnSHYyGUKhSWEpdfvbUIfZGjFZOfrwSKwURVoEhYfAfV1ZBQZ/IwTYvBmPilYhLXQFVovPYA5yfm0PYsOr3LhM4C8crR2wcnIM/p8+qOWeJgQ32y/orZ18P7V/miyVjloyc08grqOmbOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.206.34.216
+	s=arc-20240116; t=1713927408; c=relaxed/simple;
+	bh=j26qiSSL/SsQJ3RIDKCP/7AkspKH1HFq2LoNpDQ+AE0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=X8wdWOfqWebo06HCTqsDu5Jh5S/aOyP4FKsFx4lh52M7Z1FzYo4k3YhpHzSRvuoYwJGUK1L1pz7guqZ+plZFOzP20q9Kfb/W1X4GbOS10eBZzAN6jmxDFlCF68h7PYGs4CVnsQ3GrkpwGmOkuNZP6wAjPPJ+r17idgBLJEJpN8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.254.200.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
-X-QQ-mid: bizesmtpsz7t1713927354tf7i31l
-X-QQ-Originating-IP: yi9okuZ1DjO/2d4GcZAw+6JBRr0iS7O8rnPasZkzw2Y=
+X-QQ-mid: bizesmtpsz5t1713927379tfy09bc
+X-QQ-Originating-IP: 2Y46ZsfS8TiAWhD15nAchyw47WXrXxioXt00IGlBVCE=
 Received: from localhost ( [112.0.147.129])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Wed, 24 Apr 2024 10:55:53 +0800 (CST)
+	id ; Wed, 24 Apr 2024 10:56:17 +0800 (CST)
 X-QQ-SSF: 01400000000000903000000A0000000
-X-QQ-FEAT: znfcQSa1hKboFoGnXB/PrQQ0NNwe+m6eDs3goMm7htGyD+AKm7LTs6X2jWl5j
-	M5ER50h3POS0SpVpGxyjhEtogJU+GDNOu1YsNQrzUxYrLs7/YBGDQqdWq4grdNhkhrKTMUj
-	adSlXjRZyqTdrF/sshiw4nLE7gOdAlmrZQDGr4NAGgJFV5sjyZbPzVdxI8HlabHKFLJP2TW
-	r8Pwng790psoWLoGAbIXlDQFBm8/BcOL28wr4K6LjAgQ/9ctCjr4wTbJlZVpgtfstRdoyL4
-	7MIiQafjI8uxMCxqz5vC98UnoWWGWBxbQgmtC7oQNkJevqsxAMvOa23VppPlX7d0xdMhZ6N
-	MBNseG7vHaRbYnK2dQJT3CJ1FIIqrn3la5l8tBz7Z8tajaQvWU9U4wUdRVARmwPjIe/J1oT
-	sr9TXxlvV70=
+X-QQ-FEAT: fm3u6yrcHUttQI+skDEKiZYLMDN8WIG5UvAUyFEu1vT01wH8FXRlNDBWALWja
+	7TR7LrgwZktkn2IpxneBpS5ysyXVQOjEurCYQCKoPei9H0EHmUq4iATC/5/zb5i8pjgMZE1
+	VhCJQBrXh1pqrhcKlGCqi4AWNnYJci7fd1YtFDRYB8ZWOp0M4IvdzSUCgaATAw7rK+ddTY3
+	GONiDRfOApPTuLaDTwYK4iLGir4fsQYUZbnGb99eYWpJC5qyltOdNx2ffoOj+uCOf6Io1ro
+	PTalqFx8vXyESbXPUWKhNxYTuPPYSh48J6mH8IZmaiQB6509hw6GZIXbDqi+084MfZLytEd
+	JVprMiqW8VfXyMXMh7sZrKINJXrUTRtfqYaKs7ArV3h0FAnbqMGD8PfgvnO8+N39aFg76Cd
+	f40Exugzedg=
 X-QQ-GoodBg: 2
-X-BIZMAIL-ID: 18105697174608553188
+X-BIZMAIL-ID: 4302958687084006626
 From: Dawei Li <dawei.li@shingroup.cn>
 To: davem@davemloft.net,
 	andreas@gaisler.com
@@ -35,10 +36,12 @@ Cc: sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	sam@ravnborg.org,
 	Dawei Li <dawei.li@shingroup.cn>
-Subject: [PATCH v4 0/5] Remove onstack cpumask var for sparc
-Date: Wed, 24 Apr 2024 10:55:43 +0800
-Message-Id: <20240424025548.3765250-1-dawei.li@shingroup.cn>
+Subject: [PATCH v4 4/5] sparc/pci_msi: Remove on-stack cpumask var
+Date: Wed, 24 Apr 2024 10:55:47 +0800
+Message-Id: <20240424025548.3765250-5-dawei.li@shingroup.cn>
 X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20240424025548.3765250-1-dawei.li@shingroup.cn>
+References: <20240424025548.3765250-1-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,42 +52,35 @@ Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
 Feedback-ID: bizesmtpsz:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-Hi,
+In general it's preferable to avoid placing cpumasks on the stack, as
+for large values of NR_CPUS these can consume significant amounts of
+stack space and make stack overflows more likely.
 
-This is v4 of previous series on removal of on-stack cpumask var for
-sparc arch.
+@cpumask of irq_set_affinity() is read-only and free of change, drop
+unneeded cpumask var.
 
-Change since v3:
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
+---
+ arch/sparc/kernel/pci_msi.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-- Rebased against for-next of Andreas.
-
-- Add Reviewed-by from Sam.
-
-- Remove PATCH(sparc/init: Remove on-stack cpumask var).
-
-v1:
-https://lore.kernel.org/all/20240418104949.3606645-1-dawei.li@shingroup.cn/
-
-v2:
-https://lore.kernel.org/all/20240420051547.3681642-1-dawei.li@shingroup.cn/
-
-v3:
-https://lore.kernel.org/all/20240423083043.3735921-1-dawei.li@shingroup.cn/
-
-Dawei Li (5):
-  sparc/srmmu: Remove on-stack cpumask var
-  sparc/irq: Remove on-stack cpumask var
-  sparc/of: Remove on-stack cpumask var
-  sparc/pci_msi: Remove on-stack cpumask var
-  sparc/leon: Remove on-stack cpumask var
-
- arch/sparc/kernel/irq_64.c       | 10 +++-----
- arch/sparc/kernel/leon_kernel.c  |  7 +++---
- arch/sparc/kernel/of_device_64.c |  5 +---
- arch/sparc/kernel/pci_msi.c      |  5 +---
- arch/sparc/mm/srmmu.c            | 40 ++++++++++----------------------
- 5 files changed, 20 insertions(+), 47 deletions(-)
-
+diff --git a/arch/sparc/kernel/pci_msi.c b/arch/sparc/kernel/pci_msi.c
+index fc7402948b7b..acb2f83a1d5c 100644
+--- a/arch/sparc/kernel/pci_msi.c
++++ b/arch/sparc/kernel/pci_msi.c
+@@ -287,10 +287,7 @@ static int bringup_one_msi_queue(struct pci_pbm_info *pbm,
+ 
+ 	nid = pbm->numa_node;
+ 	if (nid != -1) {
+-		cpumask_t numa_mask;
+-
+-		cpumask_copy(&numa_mask, cpumask_of_node(nid));
+-		irq_set_affinity(irq, &numa_mask);
++		irq_set_affinity(irq, cpumask_of_node(nid));
+ 	}
+ 	err = request_irq(irq, sparc64_msiq_interrupt, 0,
+ 			  "MSIQ",
 -- 
 2.27.0
 
