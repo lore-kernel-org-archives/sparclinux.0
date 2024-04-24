@@ -1,102 +1,98 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtpbgau2.qq.com (smtpbgau2.qq.com [54.206.34.216])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D6701E53F;
-	Tue, 23 Apr 2024 18:44:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5436A83CD6;
+	Wed, 24 Apr 2024 02:56:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.206.34.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713897855; cv=none; b=eJJojNpP+YNG4y5RvlwFITjSZtddyNUeYxGe4j7Ipali/3MK1X1vjwuKdWj64M/U5RnyY8rzx3fn7LNvzEuQr5KOuu5cF7WCe4sBjsNIuGC2P1ukYF8aD1uzUqcLj9UqTZ+8701ApLORvmA8DMl3Si8XR2U8WdMi1ZHlQm0AMzE=
+	t=1713927396; cv=none; b=eBsuxbB3dSihpNHPpH5bbMeD0rlGZ1PK0NlgoRJRF6984SfuQxPRb0AwnGWAUhrqnQnGNp0Dl6v+wWqY3K+IeVDzhUEM7hr3EzvI8jjKRMizJRlpM9+6xiIkGf0RtjlYkSj57QvhrnZbi9OFBt/v0zxLhr1VwiW8l2X8L9bQU3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713897855; c=relaxed/simple;
-	bh=Eh9zhjxxN1SsvPJ8tSCa0BbWuSgXZjcEkhJDt0+ZCWw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AUZ00UZ42UCGzpoyUbY1XGugCFOzUC2zLogpeZJ10rHI29unvdOiaTbXhqbqr0kRWaaCQliUxfDhZRrt5EulyFg09YRArOh3r53M/ftmVKe6WJaBl8wIXOrsrduBnCqD2JkSXBnIhybDnZWmW3xyP1XNyIHJMPWgTqk+rCbrNcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=sTdsLXFR; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="sTdsLXFR"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=r34+nTm/8Jbk3qeyC42lEKxQEubfYHcW3Uknob791/g=; b=sTdsLXFRE+QcyX+0QJ8WCgaQYk
-	jiSZ6Kg9oD2pelNjtWjILcEQkP/tyHd4UJmsQbaA2Jitxjalcki5VI03zdGPwpwTxSoe3aIbli3qQ
-	dWH7sElHDAutoKt8KDm5nian7HuEUHVgySIzKpZXw53KNkQNHisfiYi9aT2zUjYwSYlqMi/pKFh4h
-	lR+8fzkY2is97ohNEfJiNYIyw5wG0OUC6MDW4MRyh7HEtQLG80vucUI1prRhC7ITcRjqm0SAho5j2
-	lxk7qbgnL2WHJoutm2s37b7MEjM+hCAz2PrtFU951qAi7PqrN+vxilNTvPssOcF0h7m744Qbr1drk
-	dX6rIqQw==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rzL7i-00000001AcU-0fdH;
-	Tue, 23 Apr 2024 18:44:10 +0000
-Date: Tue, 23 Apr 2024 11:44:10 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nadav Amit <nadav.amit@gmail.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Sam Ravnborg <sam@ravnborg.org>, Song Liu <song@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-mm@kvack.org, linux-modules@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v5 00/15] mm: jit/text allocator
-Message-ID: <ZigBepQBSfqLsyL7@bombadil.infradead.org>
-References: <20240422094436.3625171-1-rppt@kernel.org>
+	s=arc-20240116; t=1713927396; c=relaxed/simple;
+	bh=N6XTfdxhJpxdxT4fVSZa/iMWuusbHZ+zYGBsuw2wehU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=RcFys5OkvNooH02opqoBKl0HzMYJe84lM/RkQUzOGuNpFUPEQxeVAFFU0WxmtXeznE1YQ4qExNhCokzIA2D1wlrBsYgx1PWhfxDUbBCSDSar6xPdEfA7+XAwuQ8GrT0du3HMJE3Bj23f0lxATnlSK7u2ei5kxBVKwzjt7FP0XN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.206.34.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
+X-QQ-mid: bizesmtp82t1713927368tef5l9jp
+X-QQ-Originating-IP: vQmXng/c3dGqL6fSQ4IxNGeevQoaOnnsVqltFEHgBq4=
+Received: from localhost ( [112.0.147.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Wed, 24 Apr 2024 10:56:06 +0800 (CST)
+X-QQ-SSF: 01400000000000903000000A0000000
+X-QQ-FEAT: xo0edGM1fUg8OrjGWNCZct+YyvqES/JAHSbFFKFnwFlgur39ypV4UskcVQyYP
+	my9UL+zR8lm+96oqM4Iez/ISdHGwwW6dLM65UV+wSB5NDzjH5Id1DhhMi6/fPe0GxJfmQyu
+	DNGqR2JeKx9TBeNMMZWlVTOlKk2B0JXCyHzvyMn/PGgFHhtCLaWVOmBArTKpzuRklSuecJZ
+	O5lowNPUopa1JQUpq+mWuoSA4tfng6Oq25+HOJrHgPyIDQS0OsUaDG+Fk9LVv4xahfUi+ej
+	rebCGQXKbsD1vjwF+CZgHPN02Lf09kTzmZ7QcSGdpyKDhbic9GjP/KQ0abj0H0VS2WJ5H7A
+	wauoaOfWOTvz+NqKf6niy4S/RiGgIra3PnsaMtI/osZqIle5QS7XKMWC9DEWdg9P8XQDUEg
+	n2cZ1D4jsNxfsWO2LHa+Uw==
+X-QQ-GoodBg: 2
+X-BIZMAIL-ID: 14914195552382651279
+From: Dawei Li <dawei.li@shingroup.cn>
+To: davem@davemloft.net,
+	andreas@gaisler.com
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	sam@ravnborg.org,
+	Dawei Li <dawei.li@shingroup.cn>
+Subject: [PATCH v4 2/5] sparc/irq: Remove on-stack cpumask var
+Date: Wed, 24 Apr 2024 10:55:45 +0800
+Message-Id: <20240424025548.3765250-3-dawei.li@shingroup.cn>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20240424025548.3765250-1-dawei.li@shingroup.cn>
+References: <20240424025548.3765250-1-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240422094436.3625171-1-rppt@kernel.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-On Mon, Apr 22, 2024 at 12:44:21PM +0300, Mike Rapoport wrote:
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> 
-> (something went wrong with the prevois posting, sorry for the noise)
-> 
-> Hi,
-> 
-> Since v3 I looked into making execmem more of an utility toolbox, as we
-> discussed at LPC with Mark Rutland, but it was getting more hairier than
-> having a struct describing architecture constraints and a type identifying
-> the consumer of execmem.
-> 
-> And I do think that having the description of architecture constraints for
-> allocations of executable memory in a single place is better than having it
-> spread all over the place.
-> 
-> The patches available via git:
-> https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git/log/?h=execmem/v5
+In general it's preferable to avoid placing cpumasks on the stack, as
+for large values of NR_CPUS these can consume significant amounts of
+stack space and make stack overflows more likely.
 
-Thanks! I've merged and pushed this onto modules-next in its entirety now for
-wider testing.
+- Both 2 arguments of cpumask_equal() is constant and free of change, no
+  need to allocate extra cpumask variables.
 
-  Luis
+- Merge cpumask_and(), cpumask_first() and cpumask_empty() into
+  cpumask_first_and().
+
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Dawei Li <dawei.li@shingroup.cn>
+---
+ arch/sparc/kernel/irq_64.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 5280e325d4d6..01ee800efde3 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -349,17 +349,13 @@ static unsigned int sun4u_compute_tid(unsigned long imap, unsigned long cpuid)
+ #ifdef CONFIG_SMP
+ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
+ {
+-	cpumask_t mask;
+ 	int cpuid;
+ 
+-	cpumask_copy(&mask, affinity);
+-	if (cpumask_equal(&mask, cpu_online_mask)) {
++	if (cpumask_equal(affinity, cpu_online_mask)) {
+ 		cpuid = map_to_cpu(irq);
+ 	} else {
+-		cpumask_t tmp;
+-
+-		cpumask_and(&tmp, cpu_online_mask, &mask);
+-		cpuid = cpumask_empty(&tmp) ? map_to_cpu(irq) : cpumask_first(&tmp);
++		cpuid = cpumask_first_and(affinity, cpu_online_mask);
++		cpuid = cpuid < nr_cpu_ids ? cpuid : map_to_cpu(irq);
+ 	}
+ 
+ 	return cpuid;
+-- 
+2.27.0
+
