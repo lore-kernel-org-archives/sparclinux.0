@@ -1,134 +1,152 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E74AF15FD04
-	for <sparclinux@vger.kernel.org>; Wed, 24 Apr 2024 22:11:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB4927473;
+	Thu, 25 Apr 2024 06:14:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713996681; cv=none; b=Icr6PRuQDE8lbfxQAIw+8oO9t1qeTtBUsvSQMT2S0f9uuCrtsq5/2gRPHex7HXxI1HqL6TMlutz5rwEF1ePmRQWCdvsHdngGntJkEog/fdlrdcFB1D92T74XkZaYTdQKMQNRn2Tdgps8OFQ7BAdOd3zNO5efXGUnhynJX+hpcvU=
+	t=1714025660; cv=none; b=i7kTpgoeKfhO8NGaX+rve9k/jj0peSPIydU0O0afBBgrz0kpMOHNzhpE7emN54x+oC3P77tQuG2n8vhnoqCeeWuJf8bSc7z9UjQvH2UCawdp6k39AXk7dVRJtQ/8UKyy17Iqv8ierBlcy1UVUjlw4gcwUwYBWRd4l41TWPbIRJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713996681; c=relaxed/simple;
-	bh=pxhvcjOGdzqPJKU0g6cyW3p8OljKVeVIwlTbmM5Usw4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jaSvntOlEPVYlu+82mKuRQv/hjdQLzOyIx3yYdIGWEBi9VJLxKL5lII5JZk+pzSNMWYgZoaYCTR4AfmzKU0f9Tzrkwo1njZK0Rwbi1i+/j7Qw/dITBpIZtjgKSaJzZA/wnhcefuEJJtcL4PVgACiqOda3ibMkrdL/HVCpIJaI9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bgLn94E/; arc=none smtp.client-ip=209.85.167.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1714025660; c=relaxed/simple;
+	bh=CRrjSsRbZZXBe3Zg1o6lhtldh9D/juwsek3Ag08YBpY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CuLhyDboeArDaSxSuzKQPQX5gqU+X4GyP8p62u30wnSKuLvwEBhPo3iVNlvsMUtJnsOcO2xAuDEQfBpBjI05fbvUD7BpC769Ngk3EwT0txffL86C4kd/unepNF3+sX1Y13OsKIOJueSM+cgX20wcKya3VwdTpfF/Hb+esO+1HPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ehncrRY8; arc=none smtp.client-ip=209.85.215.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bgLn94E/"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-516d2b9cd69so365190e87.2
-        for <sparclinux@vger.kernel.org>; Wed, 24 Apr 2024 15:11:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ehncrRY8"
+Received: by mail-pg1-f174.google.com with SMTP id 41be03b00d2f7-6082fd3e96eso481777a12.1;
+        Wed, 24 Apr 2024 23:14:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1713996677; x=1714601477; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Nrt9xX8+bezTu6PJtCUFo83NI4xccREO2afrxNR68uc=;
-        b=bgLn94E/CBQ884LE+ijvvnf0wc5fCnOBsuVQwf0kdx5Tvu1MsMwCy/ZgLXEf+zLMzy
-         Y507Bu7nMKmO0V1fYKsC7auy9IwFF0mRCuD0CtU2NdBuVX/7ke4VZCpXuPnu2jcqigmW
-         1lNkpky8mr6qNJ76t2uOjHa+MK9zHbnfuXkn63hLgVaEqnd5IDrHwq7hgNSRMWrf9Dr3
-         /ZBYM0OTowmJzbPzN0r9KMiLLRL06LRVo9PhZ47ZWi0o1ozpbHsShOnIxucAQ2z4p4wp
-         GjMIJC99e7lgk0nAB7lCGi6BfmMDlIC9A+L8KwGYMM6cZT8U6+3B5TAvSabm+oC/eT+s
-         Yf8w==
+        d=gmail.com; s=20230601; t=1714025658; x=1714630458; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=P+cnrqP7ROZMYIZmqn7REt8CdXQIz/KakKw0fvi+u8k=;
+        b=ehncrRY8cmRafg0ysC+haERsyOjzcUwJmQpLoxvqi6sQR4GB3HOJ3dox8TX3Rrmo4D
+         lKQSpSsYiJta6+RA7OVjuNp02j3YE31zRuUQnoXberqwhvraTtyGcGFp8c655GmAf9Is
+         0ZsEbqZU2AfCQF/gmIn9RDV7DwjJEQMhWnzcVhbgocq1nxRXIXkvbT1nsRE2h4+WPkrC
+         +Lz/Df3DldSfpcBJjoGJXsH/VtO9CsOoi0FZ03oMB5La5qk2xo5uc99YPZ0dp1WxsPTa
+         /jvj7RfSfwQtLVhyR0D3gelu22vl6ltAgrJwplSq5cUdQywc5SNol+XcgzBpugtW2zof
+         avXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713996677; x=1714601477;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Nrt9xX8+bezTu6PJtCUFo83NI4xccREO2afrxNR68uc=;
-        b=ozeg2/BM10ArWa++9omtIlGOiltss6nRCRCXUzoDmB6cCqgjWiyXFzekVS4ws4DChV
-         msy2KGsuSFHft1X70w/xd0qGUM1NWk1A8ps3I99oUFQFjDOXewL2Yc7xj4GDYEY8Qbzj
-         u6/5YFs5P7XUjAeIaYAY8jIPTwV0lreRQhlX9l53TIGZbEgM0LZkFKuBBAG0tZSp+Nv6
-         vdFp+Atrywc7jnhbgM53N0qlGG6isdU6K/NeEqT7YAwms/FGYYXKxhQx8SXWyRPYfn0P
-         lYxretiKMaus0x8iF3dtEz+/lZ9x7ukcT/FGUwNQcloKFo/DDcdepR2B6ZkAOHjn4OgG
-         WKyA==
-X-Forwarded-Encrypted: i=1; AJvYcCU0UepEiOp+FPko13yWMEI2kWtUrrMbqnci1boeKLcDNyGuA3FSRaOoAvV35wlcWd1L98/IyRvafwJ3aBn+6a8doP3thnWYTB8UAg==
-X-Gm-Message-State: AOJu0Yw9vubfQNME+QJOPy9LdfsXAQPveraYRH4WbQHPH5Pq31rIUl7+
-	soymTHgf6/yUxO1NAygIgFvg52Xo1hsCnH4S6MArlOB5FgOYD4CkuypyPpa65QosY8HeXv/b6Vd
-	FdrF1j/PhsWhlDFDYTNZe8BHV6uHvQCJNQhAI
-X-Google-Smtp-Source: AGHT+IED2HbFEA0ewLNL7QH6VWfyVpE66498USZfd4zxtqZP/+CZ2KiwNYrpEZU2PM0GAlsCBDXy7oQT2HUG8Bnws0w=
-X-Received: by 2002:a05:6512:1315:b0:51c:15fa:985 with SMTP id
- x21-20020a056512131500b0051c15fa0985mr1591764lfu.15.1713996676557; Wed, 24
- Apr 2024 15:11:16 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1714025658; x=1714630458;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=P+cnrqP7ROZMYIZmqn7REt8CdXQIz/KakKw0fvi+u8k=;
+        b=ftT5qiPu3qsGWvAIS298DsK9geOKVp9QgqPt8vbFSJgnl4zrEv3DVYgBW4c/JgASHE
+         SnTZ3KB7brL/ky52PwRxViuRwwuy/DlqnpZqBy4zdqHexNlTtFQgAMdSiOhPHuHeztRn
+         7z3K13ypmuPj8HvhHArhL/wD0cb9ee7cYa2uIsKAzpo1Br4DYE1fUQbB3WckHoPxenzA
+         UN5xPtVqrncwEjtxCSTWSp2rzH7fa/48dAiPKKyQn1EFKSrFNVUS5IMjK/SzlvfynU6D
+         5zA/aBAO8ieJdgTd7JpiFK7ODmqgYcP/VDVfolP4Ki8I5CW452OVi8QMgnvO4MU6+8fR
+         xu/A==
+X-Forwarded-Encrypted: i=1; AJvYcCWnWmaj0mV0/9u5nsQ6LqQf3i8Pdv7/4FesoKqswhTw4mEQPhwmzdSAbpVi3Ovq9DdiWngI+eYKAReC4II+AW+q2qxcqw+z2pS20Zy/HET3Jm22SBRFXLhxr746CiKw5uVS1aQl4qhDpakM
+X-Gm-Message-State: AOJu0YzFQQOqzna6Y0oFtUf9o7BEbEdSRDUlE26Qm7LK03WjnxZpflih
+	CcPPSjYC0PK+SPgNQqrIqOLpRaC+e4d1B1311OmAhRSVatONkipW2FmKZxYw
+X-Google-Smtp-Source: AGHT+IHs42AUj8gwluZCiYM0AKuesrQTubnz7h1dTGYRvbTsCK1ahmnIaAw4hwETEPrlhp7SKP1wKw==
+X-Received: by 2002:a05:6a20:7285:b0:1a7:5402:8a92 with SMTP id o5-20020a056a20728500b001a754028a92mr5639944pzk.31.1714025658299;
+        Wed, 24 Apr 2024 23:14:18 -0700 (PDT)
+Received: from shresth-aspirea71576g.abesec.ac.in ([139.5.197.146])
+        by smtp.gmail.com with ESMTPSA id r6-20020a17090a5c8600b002ade3490b4asm6461667pji.22.2024.04.24.23.14.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Apr 2024 23:14:17 -0700 (PDT)
+From: Shresth Prasad <shresthprasad7@gmail.com>
+To: davem@davemloft.net,
+	gregkh@linuxfoundation.org,
+	jirislaby@kernel.org
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	skhan@linuxfoundation.org,
+	javier.carrasco.cruz@gmail.com,
+	Shresth Prasad <shresthprasad7@gmail.com>,
+	Julia Lawall <julia.lawall@inria.fr>
+Subject: [PATCH][next] tty: sunsu: Simplify device_node cleanup by using __free
+Date: Thu, 25 Apr 2024 11:33:04 +0530
+Message-ID: <20240425060303.8045-2-shresthprasad7@gmail.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240403002053.2376017-1-almasrymina@google.com>
- <20240403002053.2376017-5-almasrymina@google.com> <b30cb265-26ee-40f9-a25b-6c909e63fc79@davidwei.uk>
-In-Reply-To: <b30cb265-26ee-40f9-a25b-6c909e63fc79@davidwei.uk>
-From: Mina Almasry <almasrymina@google.com>
-Date: Wed, 24 Apr 2024 15:11:04 -0700
-Message-ID: <CAHS8izPf5ZnpUw9o6Oo-iTdoKkOEzerobP0Vkq7KZQOab2+_LQ@mail.gmail.com>
-Subject: Re: [RFC PATCH net-next v8 04/14] netdev: support binding dma-buf to netdevice
-To: David Wei <dw@davidwei.uk>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, 
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Amritha Nambiar <amritha.nambiar@intel.com>, 
-	Maciej Fijalkowski <maciej.fijalkowski@intel.com>, 
-	Alexander Mikhalitsyn <alexander@mihalicyn.com>, Kaiyuan Zhang <kaiyuanz@google.com>, 
-	Christian Brauner <brauner@kernel.org>, Simon Horman <horms@kernel.org>, 
-	David Howells <dhowells@redhat.com>, Florian Westphal <fw@strlen.de>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Kuniyuki Iwashima <kuniyu@amazon.com>, Jens Axboe <axboe@kernel.dk>, 
-	Arseniy Krasnov <avkrasnov@salutedevices.com>, 
-	Aleksander Lobakin <aleksander.lobakin@intel.com>, Michael Lass <bevan@bi-co.net>, 
-	Jiri Pirko <jiri@resnulli.us>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
-	Lorenzo Bianconi <lorenzo@kernel.org>, Richard Gobert <richardbgobert@gmail.com>, 
-	Sridhar Samudrala <sridhar.samudrala@intel.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
-	Johannes Berg <johannes.berg@intel.com>, Abel Wu <wuyun.abel@bytedance.com>, 
-	Breno Leitao <leitao@debian.org>, Pavel Begunkov <asml.silence@gmail.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Willem de Bruijn <willemb@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Apr 24, 2024 at 10:36=E2=80=AFAM David Wei <dw@davidwei.uk> wrote:
->
-> On 2024-04-02 5:20 pm, Mina Almasry wrote:
-> > +     /* We hold the rtnl_lock while binding/unbinding dma-buf, so we c=
-an't
-> > +      * race with another thread that is also modifying this value. Ho=
-wever,
-> > +      * the driver may read this config while it's creating its * rx-q=
-ueues.
-> > +      * WRITE_ONCE() here to match the READ_ONCE() in the driver.
-> > +      */
-> > +     WRITE_ONCE(rxq->mp_params.mp_priv, binding);
->
-> Is the mp_ops update missing here?
->
+Add `__free` function attribute to `ap` and `match` pointer
+initialisations which ensure that the pointers are freed as soon as they
+go out of scope, thus removing the need to manually free them using
+`of_node_put`.
 
-I  do it in this patch, because it's the one that introduces mp_ops:
-https://patchwork.kernel.org/project/netdevbpf/patch/20240403002053.2376017=
--9-almasrymina@google.com/
+This also removes the need for the `goto` statement and the `rc`
+variable.
 
+Suggested-by: Julia Lawall <julia.lawall@inria.fr>
+Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
+---
+ drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
+ 1 file changed, 11 insertions(+), 26 deletions(-)
 
---=20
-Thanks,
-Mina
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 67a5fc70bb4b..0f463da5e7ce 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(void)
+ 
+ static enum su_type su_get_type(struct device_node *dp)
+ {
+-	struct device_node *ap = of_find_node_by_path("/aliases");
+-	enum su_type rc = SU_PORT_PORT;
++	struct device_node *ap __free(device_node) =
++			    of_find_node_by_path("/aliases");
+ 
+ 	if (ap) {
+ 		const char *keyb = of_get_property(ap, "keyboard", NULL);
+ 		const char *ms = of_get_property(ap, "mouse", NULL);
+-		struct device_node *match;
+ 
+ 		if (keyb) {
+-			match = of_find_node_by_path(keyb);
++			struct device_node *match __free(device_node) =
++					    of_find_node_by_path(keyb);
+ 
+-			/*
+-			 * The pointer is used as an identifier not
+-			 * as a pointer, we can drop the refcount on
+-			 * the of__node immediately after getting it.
+-			 */
+-			of_node_put(match);
+-
+-			if (dp == match) {
+-				rc = SU_PORT_KBD;
+-				goto out;
+-			}
++			if (dp == match)
++				return SU_PORT_KBD;
+ 		}
+ 		if (ms) {
+-			match = of_find_node_by_path(ms);
++			struct device_node *match __free(device_node) =
++					    of_find_node_by_path(ms);
+ 
+-			of_node_put(match);
+-
+-			if (dp == match) {
+-				rc = SU_PORT_MS;
+-				goto out;
+-			}
++			if (dp == match)
++				return SU_PORT_MS;
+ 		}
+ 	}
+-
+-out:
+-	of_node_put(ap);
+-	return rc;
++	return SU_PORT_PORT;
+ }
+ 
+ static int su_probe(struct platform_device *op)
+-- 
+2.44.0
+
