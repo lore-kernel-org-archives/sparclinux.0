@@ -1,119 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B441E13D52F;
-	Fri, 26 Apr 2024 08:32:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB43469D;
+	Fri, 26 Apr 2024 16:31:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714120332; cv=none; b=haWEOI+7SSue+syBSyTWLkIs8nLPTtqVU+x9wW9KUmSPagxNFNvkohkT5nfvwAZ6+bh6MVqgqqU5m3M0uW007GEdGqhaC4B/hgSrxkIx7nc8X4/ccSvWJxlQk4ZDZkdGjLUd3JjoEFfea/RSTLlcHFsf85uL1dOFZiK4BiITKoA=
+	t=1714149087; cv=none; b=QacFyPiI6dFQz5XX9DaSS2RwRGiTEw9RJ4VbziV9Gkzrc/KWyCLiRBAckivQJs462i2VsX3S2oCu1qDmOZCA1cA7Djs1fOB4pLJyIGqAa+4WhNLfjnX3cE2tGQaqg/1/wba+pEClUYeciyI1jU0K1V7m8KnDGtWTHOtROeSXpg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714120332; c=relaxed/simple;
-	bh=+AOj3OMDSB3feHYUPdQfVhUVtDWDdcImqVlO1v4xpng=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=d4yTNvNciG6F2KxfthpWPe879IjVVOii7I592AN79HB+9qBhcmHkq03D4g3j+IRSgegoqfikD2DD0rKmxNror5Y8UyYoNENPAGSj1jPnOWFR2yND0pzvMRW9+GUbly1Eg3mt4oZivJEKVU6aELbc5YjpYysFWgMkIGxUdm5zXJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vQ8mtMLc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1714149087; c=relaxed/simple;
+	bh=7dZ7krTYAZxq8cPoPdHSIbY+K7yXIIJx3qWxQhJ/RRk=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:References:
+	 In-Reply-To:Content-Type; b=HDeaKGWWM+6FKQfSBnILJSQM4g232iG90fbqndQ+LN+GR2rBbj/jtirYLRH4lvL2O6hwNB+AQcN5M+sDIK2mMn7dZk4yg7LMZRo4kEJFkYlv/Uryr+VNEk6AsqFFDGUgDHfOun2/+XLSPztyJj1rWNNO6gSDmVmhZXNdB1TTE5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Qip71L1C; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vQ8mtMLc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5724C2BD10;
-	Fri, 26 Apr 2024 08:32:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1714120332;
-	bh=+AOj3OMDSB3feHYUPdQfVhUVtDWDdcImqVlO1v4xpng=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vQ8mtMLcrimNPX91Y2YQmvdQw4cikExY2pLxFz+/UT+e9TLir0xOZ3FBo5RrzGpzb
-	 JWR44T3XJshDZMYXiba7l/A544v2LOC9MQLrngwOyrxDozIHscwKHoIb5QIGzqfNXg
-	 hlLFV/4Q2E5d2sHTZ7tlXh/zsv1dp1lvJElyqwmb0wchrenBmob4Dc1MtkVQ+MEtdh
-	 7oC9vfii7ckW0bsH176/J480uOF/fn8rgcExibP+RvW506G6An6Z0c8ibMrhm9JIVO
-	 4Z8XvkBOO1+QWHViSo081jrAt8THz37irqAEYTIKSADYbtZr55Yu4BB7vII7ZC4wKk
-	 Q8kmGiXMxjpQQ==
-From: Mike Rapoport <rppt@kernel.org>
-To: linux-kernel@vger.kernel.org
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Mike Rapoport <rppt@kernel.org>,
-	Nadav Amit <nadav.amit@gmail.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Sam Ravnborg <sam@ravnborg.org>,
-	Song Liu <song@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-modules@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev,
-	netdev@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org
-Subject: [PATCH v6 16/16] bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of
-Date: Fri, 26 Apr 2024 11:28:54 +0300
-Message-ID: <20240426082854.7355-17-rppt@kernel.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240426082854.7355-1-rppt@kernel.org>
-References: <20240426082854.7355-1-rppt@kernel.org>
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Qip71L1C"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4VQysF4BZqz681r;
+	Fri, 26 Apr 2024 18:31:13 +0200 (CEST)
+Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4VQysD6C6Lz681M;
+	Fri, 26 Apr 2024 18:31:12 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1714149073;
+	bh=7dZ7krTYAZxq8cPoPdHSIbY+K7yXIIJx3qWxQhJ/RRk=;
+	h=Date:From:Subject:To:References:In-Reply-To;
+	b=Qip71L1CB2hsoOlwuKmcv17dZwZJcIodp8s9eiGLiE2SdJKEkPWTctJVORe6CHLyw
+	 w1vgSpFi5Etpn/M8S373xPLJoB8krfHcRZKzkUxQEs9wK1YY2FZkFjRYS1WsI7YWxh
+	 vepEI2N+D2i5R7QMzj66NgwXNxt6h05IqlTiooW4=
+Message-ID: <7749e9f4-2540-4618-8689-b6bb757f9cd0@gaisler.com>
+Date: Fri, 26 Apr 2024 18:31:12 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+From: Andreas Larsson <andreas@gaisler.com>
+Subject: Re: [PATCH v2 00/28] sparc32: sunset sun4m and sun4d
+To: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller" <davem@davemloft.net>,
+ Arnd Bergmann <arnd@kernel.org>, Helge Deller <deller@gmx.de>,
+ Randy Dunlap <rdunlap@infradead.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
+ Kjetil Oftedal <oftedal@gmail.com>, Thomas Zimmermann <tzimmermann@suse.de>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Alan Stern <stern@rowland.harvard.edu>, Jaroslav Kysela <perex@perex.cz>,
+ Takashi Iwai <tiwai@suse.com>, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-sound@vger.kernel.org
+References: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
+ <20240423180216.GA906720@ravnborg.org>
+Content-Language: en-US
+In-Reply-To: <20240423180216.GA906720@ravnborg.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+On 2024-04-23 20:02, Sam Ravnborg wrote:
+> Please let me know if you expect me to rebase this on for-next.
+> I have not yet tried if there are merge conflicts but can take a look in
+> a some days if required.
 
-BPF just-in-time compiler depended on CONFIG_MODULES because it used
-module_alloc() to allocate memory for the generated code.
+My local testing branch for this patchset rebased with trivial fixups,
+so no immediate rebase and resubmission is needed. I do run into some
+strange problems on SMP with this patchset plus your CAS patchset, that
+I do not get when I rebase the Linux patches from our kernel release
+that has my CAS patchset. With no CAS at all these things fails even
+worse, so do I need one or the other for these tests.
 
-Since code allocations are now implemented with execmem, drop dependency of
-CONFIG_BPF_JIT on CONFIG_MODULES and make it select CONFIG_EXECMEM.
+I will need to dig deeper into figuring out the problems seems to be due
+to something in any of your two patchsets in themselves or if it is
+something else. I do need some additional fixes from our kernel release
+for SMP to work properly, so it could also be that there is something
+with my combination of your patches and my patches adapted on top of
+yours.
 
-Suggested-by: Björn Töpel <bjorn@kernel.org>
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
----
- kernel/bpf/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+There are also some needed fixes for LEON that relies upon code removed
+in this patchset. Maybe the best solution for that would be if I submit
+those and you then rebase upon them.
 
-diff --git a/kernel/bpf/Kconfig b/kernel/bpf/Kconfig
-index bc25f5098a25..f999e4e0b344 100644
---- a/kernel/bpf/Kconfig
-+++ b/kernel/bpf/Kconfig
-@@ -43,7 +43,7 @@ config BPF_JIT
- 	bool "Enable BPF Just In Time compiler"
- 	depends on BPF
- 	depends on HAVE_CBPF_JIT || HAVE_EBPF_JIT
--	depends on MODULES
-+	select EXECMEM
- 	help
- 	  BPF programs are normally handled by a BPF interpreter. This option
- 	  allows the kernel to generate native code when a program is loaded
--- 
-2.43.0
+> That is assuming you agree with the sunset of the sun platforms...
 
+I do agree with the idea in general, but being busy with other things I
+have had little time to dig into this lately.
+
+Thanks,
+Andreas
