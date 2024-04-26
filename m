@@ -1,142 +1,123 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [46.30.211.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9175D148FF6
-	for <sparclinux@vger.kernel.org>; Fri, 26 Apr 2024 16:52:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D1B156F38
+	for <sparclinux@vger.kernel.org>; Fri, 26 Apr 2024 16:54:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714150382; cv=none; b=d9VEAWot2M38exWOaMjMdIoyF03DEIvXs92JKRqUx3bSKr2U92tI6LRuriWznMuXDeqx3LPg3QMm06iEX8vJ7rGEO5LsJ31UZGIFnnhVyrUD6ybaqCpwD2mdMzVLBfdVURXmb5/DXfSn+0GjA+a+vO7RMU3L5aCVOzE3VNn4Pw8=
+	t=1714150448; cv=none; b=GnBb/qggVNZLWLoRZ0h3Xl7wHHENnB3okhS9v/fRQv/7gLW48bEy99BKLdF+7m2i5UUgzM1Nt/30WbAJS44Mv3iUUN5i6cgEZ1UERNcMhx3ynI1uIH3oit+H68IMLFy/boheABY2EfsNnAVs95m3GY26fYCAfw1H8RP+h0azaGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714150382; c=relaxed/simple;
-	bh=n+swDYlRkep2TFba88JYofx+RK+l7QpKnAUk9GLX/mM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=S+iZNupDxDxNSAqJbIweqhEpVUbtThDweHS8JZYX38VSSlCFnNtbHbWqqKnhl107ePabXWAG2zRV2cj/wnF+/n3cGmYXfx1H8NjZAmcixhlYiddrshvegK+OezcWjpDgIeH2oNTbkiiyPmv2+5S7iw/v8lUZJsxiY78Fm0QQUcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Qt8MYRjE; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1714150448; c=relaxed/simple;
+	bh=SESjyC2SnswbHWd90IQq6SamRr91p8J8x/FjEOy5PSA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ia2IxhRRHzuOn1DXVklsTfM+0JBNWVAwLhIFV6hSgqbsdN2PqdzN9AjrIMle7ZVDvlTbBUb7dQAq3iwEGqwYo9QzoLEEfZlWx+jIhi1Nq0HMQ/Flq+0r31OFaEKCqUKkAXY2jyldve2Sc/kh7aKIFPiOK5dZ8mRx8JOPrAxoa0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=MoHD/9VX; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=UoBFHtU2; arc=none smtp.client-ip=46.30.211.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Qt8MYRjE"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4VQzLJ3sMrz67xt;
-	Fri, 26 Apr 2024 18:52:56 +0200 (CEST)
-Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4VQzLJ28Xgz680r;
-	Fri, 26 Apr 2024 18:52:56 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1714150376;
-	bh=5uG/+7EO1Njy3ESIewJAJKfHHvLTEwJt9Kjxl9rrUbs=;
-	h=Date:Subject:To:References:From:In-Reply-To;
-	b=Qt8MYRjEfkVzv/vsE2QESQMLhHj4lwgFKYeCt83foba50xnIv3eCjz1Gi69mEBY66
-	 S7yyYjmztg2REjMMKO8P2sQ1h/WsMHwYb/sGn8GP/Y7O6zDbi/7hb4FWP1/RanPRmU
-	 afPVdhtrCYEbv0FymW6eJRUXyLagu9mu9LU6/Hh8=
-Message-ID: <d2848a93-898b-4122-8a48-1922f4e42db1@gaisler.com>
-Date: Fri, 26 Apr 2024 18:52:55 +0200
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="MoHD/9VX";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="UoBFHtU2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=QtZJ+LaGtIZ9ah30lpFZvZR00WRRy58GXdQC7OFQJvU=;
+	b=MoHD/9VXVJdzxrnQFpHynPdxGTbT/vbJiwcQ89Bth3NPZNEnworXAklQwsjFYCyV06ASHH9qeeBjc
+	 L1yHijxar53c9gWDEWhiyzlrk8Fm9LY7eM3kOKvNK8ZhXUEjAkdWnMt4lYS/JdIhZLaeNP3TkhtVg2
+	 8XkKHKrqIuXItkQ3X6016KOeHFYI+XBcHXTmcSPHKEpi26K5TVVjw3umF3oZtHjwtToDYOrkUjjI4W
+	 R8Ht9IhvfH8wj5M/93zD2v22VXMWcZyQDrFKAwYwcHEvhXS6o0Psk3n9atX642heDucQFCr3K7duxP
+	 RZNLCCIJtIbEpc/d+6ftbiLoheAS0wA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed1;
+	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+	 from:date:from;
+	bh=QtZJ+LaGtIZ9ah30lpFZvZR00WRRy58GXdQC7OFQJvU=;
+	b=UoBFHtU2GhTQiRAYO19X9G1fRST8HcVcM02AGyrOgGn6HCCRO212CV3fr67lyIksMV2Fwh6mjubCq
+	 gYCnLc5Cg==
+X-HalOne-ID: 91560707-03ed-11ef-827c-edf132814434
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+	by mailrelay5.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
+	id 91560707-03ed-11ef-827c-edf132814434;
+	Fri, 26 Apr 2024 16:53:57 +0000 (UTC)
+Date: Fri, 26 Apr 2024 18:53:55 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Arnd Bergmann <arnd@kernel.org>, Helge Deller <deller@gmx.de>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>,
+	Kjetil Oftedal <oftedal@gmail.com>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-sound@vger.kernel.org
+Subject: Re: [PATCH v2 00/28] sparc32: sunset sun4m and sun4d
+Message-ID: <20240426165355.GA1092388@ravnborg.org>
+References: <20240309-sunset-v2-0-f09912574d2c@ravnborg.org>
+ <20240423180216.GA906720@ravnborg.org>
+ <7749e9f4-2540-4618-8689-b6bb757f9cd0@gaisler.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/4] sparc32: Add support for specifying -mcpu
-To: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller" <davem@davemloft.net>,
- Arnd Bergmann <arnd@kernel.org>, sparclinux@vger.kernel.org
-References: <20231229200604.GA4033529@ravnborg.org>
- <20231229200726.GA4034411@ravnborg.org>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20231229200726.GA4034411@ravnborg.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7749e9f4-2540-4618-8689-b6bb757f9cd0@gaisler.com>
 
-On 2023-12-29 21:07, Sam Ravnborg wrote:
-> Add support for selecting the CPU architecture.
-> The default is leon3 - which is the minimum required as the kernel uses
-> CAS instructions.
+Hi Andreas.
+
+On Fri, Apr 26, 2024 at 06:31:12PM +0200, Andreas Larsson wrote:
+> On 2024-04-23 20:02, Sam Ravnborg wrote:
+> > Please let me know if you expect me to rebase this on for-next.
+> > I have not yet tried if there are merge conflicts but can take a look in
+> > a some days if required.
 > 
-> Inspired by (from gaisler-buildroot-2023.02-1.0):
->     0001-sparc32-leon-Build-with-mcpu-leon3-for-SPARC_LEON.patch
->     0028-sparc32-leon-Make-what-mcpu-to-be-used-configurable-.patch
+> My local testing branch for this patchset rebased with trivial fixups,
+> so no immediate rebase and resubmission is needed. I do run into some
+> strange problems on SMP with this patchset plus your CAS patchset, that
+> I do not get when I rebase the Linux patches from our kernel release
+> that has my CAS patchset. With no CAS at all these things fails even
+> worse, so do I need one or the other for these tests.
+:-(
+
 > 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Andreas Larsson <andreas@gaisler.com>
-> Cc: Arnd Bergmann <arnd@kernel.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> ---
->  arch/sparc/Kconfig  | 24 ++++++++++++++++++++++++
->  arch/sparc/Makefile | 13 +++++--------
->  2 files changed, 29 insertions(+), 8 deletions(-)
+> I will need to dig deeper into figuring out the problems seems to be due
+> to something in any of your two patchsets in themselves or if it is
+> something else. I do need some additional fixes from our kernel release
+> for SMP to work properly, so it could also be that there is something
+> with my combination of your patches and my patches adapted on top of
+> yours.
 > 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 1b9cf7f3c500..e94783ceb409 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -161,6 +161,30 @@ config ARCH_SUPPORTS_UPROBES
->  
->  menu "Processor type and features"
->  
-> +choice
-> +	prompt "LEON architecture"
-> +	default SPARC_CPU_LEON3
-> +	help
-> +	  Select the architecture the kernel shall be built for
-> +
-> +config SPARC_CPU_LEON3
-> +	prompt "LEON 3"
+> There are also some needed fixes for LEON that relies upon code removed
+> in this patchset. Maybe the best solution for that would be if I submit
+> those and you then rebase upon them.
+If you can make LEON stable before starting the code removal that would
+be the best way forward. Then it should be easier to identify when
+the removal patches breaks things.
 
-This should rather be bool than prompt...
+With all the surgery I had to do to remove stuff it would have been a
+big surprise if it just worked - so it goes as expected. qemu only
+verify so much - the real target (and SMP) is way better.
 
-> +	help
-> +	  Build the kernel for the LEON 3 architecture
-> +
-> +config SPARC_CPU_LEON5
-> +	prompt "LEON 5"
+> > That is assuming you agree with the sunset of the sun platforms...
+> 
+> I do agree with the idea in general, but being busy with other things I
+> have had little time to dig into this lately.
 
-...and the same here.
+If this round could be used to stabilize LEON and apply other more
+trivial stuff, then I am happy to rebase the "sunset" patchset sometimes
+after next -rc1.
 
-> +	help
-> +	  Build the kernel for the LEON 5 architecture
-> +
-> +config SPARC_CPU_DEFAULT
-> +	bool "Toolchain default"
-> +	help
-> +	  Build the kernel with no -mcpu option, getting the default
-> +	  for the toolchain that is being used.
-> +
-> +endchoice
-> +
->  config SMP
->  	bool "Symmetric multi-processing support"
->  	help
-> diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-> index 5f6035936131..3c3a1fd8c873 100644
-> --- a/arch/sparc/Makefile
-> +++ b/arch/sparc/Makefile
-> @@ -25,14 +25,11 @@ KBUILD_LDFLAGS := -m elf32_sparc
->  export BITS    := 32
->  UTS_MACHINE    := sparc
->  
-> -# We are adding -Wa,-Av8 to KBUILD_CFLAGS to deal with a specs bug in some
-> -# versions of gcc.  Some gcc versions won't pass -Av8 to binutils when you
-> -# give -mcpu=v8.  This silently worked with older bintutils versions but
-> -# does not any more.
-> -KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
-> -KBUILD_CFLAGS  += -Wa,-Av8
-> -
-> -KBUILD_AFLAGS  += -m32 -Wa,-Av8
-> +cpuflags-$(CONFIG_SPARC_CPU_LEON3)	:= -mcpu=leon3
-> +cpuflags-$(CONFIG_SPARC_CPU_LEON5)	:= -mcpu=leon5
-> +
-> +KBUILD_CFLAGS  += -m32 $(cpuflags-y) -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
-> +KBUILD_AFLAGS  += -m32 $(cpuflags-y)
->  
->  else
->  #####
+I have accumulated a bit more on top of what I already posted, and I
+will include a few more patches in the next round.
 
-As said in the sunset thread, more vetting is needed from my side, so no
-need to respin this series yet.
+In other words - take your time!
 
-Thanks,
-Andreas
+	Sam
