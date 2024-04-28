@@ -1,150 +1,115 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4089538DC7
-	for <sparclinux@vger.kernel.org>; Sat, 27 Apr 2024 02:11:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64DB6EED0;
+	Sun, 28 Apr 2024 06:56:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714183885; cv=none; b=AzhZz+3J85r4wBGbJQ3U4B30+r6tBHVjnUJ5GnAKeW/duWNY1bVVtMxj1VkJ1nIvZ4zXhJ/bsmNY8jrVrf7GoYT7O5EsHOGHOiFIeac+mIdV+laS4/afQPPLqmFJ0XlkncVw0UBcLsyN/HfU5G3NnssOrzJbztD8HSKEJhIV1qs=
+	t=1714287394; cv=none; b=ayp2SHFhmGd+wutBIzD6ayDbef85RnziqESmRg6c5gRUihh9nEzhXmNGTgUyFryj68TbWD3+ddD92gYmk0wesyaiAH28gSAxGUmNKMoSTESWOFVs2ebXHEgvsp8nx3l/yMXL6savh59lY49HDQkJSagBgnwuzDTl6K0KqWDqaIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714183885; c=relaxed/simple;
-	bh=3TH1qKN/8kDOE9KfhYRZV82BLgZZskB3YkO2+4vu+tY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dvpFEJh17V7Yqn7wJu2//AI8SS7c/ln1Ao7yoeF69QTSnOkA2DSf/ihFguedLEAWbqJb8wcOH9YBXg+R3HxE7QaWW1YrfP2mHW+3o6fZzn3l8XwMjj+e9Ofh9Ei/imxbR02XFlqWY7rBSmILMKFn8pWqBs+due2K/cj/IV//tFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=mRu4S3Xu; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1714287394; c=relaxed/simple;
+	bh=r0oXOuLVQhCBCby5vRLJpkXcTQDGNz/eiiiW5fCcIdI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=a3imFH0UThs4DbUDvBr+5fkIgB6IpQo/fUZaBMk5DDIGuu6KfBltQKm3BV26tnRVo16uOcU4DKhJnJ2I59yYqHD82Xet+D1osjE743YGS1JtVIrC8jKFmmvgoNfrgzmFOo9N7WUs7LKNGlDt0jRy5A0N7f5uPFo9yZE7c9o/NZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XTZs9sEm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="mRu4S3Xu"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-a58872c07d8so685139866b.0
-        for <sparclinux@vger.kernel.org>; Fri, 26 Apr 2024 19:11:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1714183880; x=1714788680; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VCqXmA+0tJPmuPol3Ypy0jPmfZ3hkXnnk0DE4uLAUwU=;
-        b=mRu4S3XuUIqgZ4Zuu0XgismEQ5/XUBilPfFw+Xm1y6jIuBkNYDGqtJpVPfr3+pUbZf
-         sAyOLb5LdfBvQbmhLVih+PhEODGod32DbRItT4xo6P4xZydC8tce2YXd8+WGUheKnvMl
-         0gsDcMKy6EBMpWyVbsMo1ZYgFLSjchUULUluFbRjoQMZtHnCgGtdyMdP/eTFH75BbT8K
-         FVX5+bOMpdzkiS5xZzDrCWaSldC5RZPNVAUarByQRaAUL3UsGpPK9BwIUf856PWynKMz
-         yJGJKrx4/S1+RH9spj8VX4cHz3UyMAPh/HkI2nBx0BpnQc3OmMiXbW/kS0kmdQqOktCD
-         Fhzw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714183880; x=1714788680;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=VCqXmA+0tJPmuPol3Ypy0jPmfZ3hkXnnk0DE4uLAUwU=;
-        b=pjsAGeZjQgWmTDAhgT/mQqRW2OYOOGMiHxGNdrkExwEJiSf2g3SxqcMdtYL0y8Qkdn
-         Au/EgKk3wuYIpbuoUXqr8piU7DDaAZ3wwIctLoruoEFtdCW7q2JS0jKLcK9Tfn+vE2iK
-         OwXy1YIjgcwGvc8jtEmNWoIERQKupdK/lhiuoIJNWvN5+yYw02sBSKOQpWCcht+d3Sdr
-         yFNq8vGaHzzqBu6CfigXZkwgic7p3blKLs1wAzdf50tOLhR8mjybamb5bKoof764WL5X
-         G8bpIr08lGjCxA4sPy8F8Q8fqzexAbpUxJ9jSUpApHJXcrEpoNNmeDwjQ7zwGpFeaavi
-         ngHw==
-X-Forwarded-Encrypted: i=1; AJvYcCU9EAQIsYvQYKnQwmTzmnH79CpYjMhuevM0NjPNTmTGPgVhvefeiDoi+9FNzSWhNPWhrRs3HCHQJW1LToT2pkvcMI9nrN1LivtKhQ==
-X-Gm-Message-State: AOJu0YxsFX3b/49ReEqiN6y1dZGdBPbGff+ShbGXvh80WeiDFs+9n827
-	ZVnrm3HTvxGuq40S8KRYz8TtQVH50WutM6+ttu4FVw1bTrlALga1FOd5q7gQenm/akkFUT3las9
-	WxW3iONiW+5s9hsvqY0I2IKpmxG1vKMLoC2I8
-X-Google-Smtp-Source: AGHT+IGYpMq0S7NMYmgbheltdqICqswpFYbRt1nWr9f34ViEhM+DD9iOxk080j42Jd8vuPQgs8NIkJRSPoJ58AydrBw=
-X-Received: by 2002:a17:907:a49:b0:a58:c550:a102 with SMTP id
- be9-20020a1709070a4900b00a58c550a102mr4510853ejc.29.1714183880204; Fri, 26
- Apr 2024 19:11:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XTZs9sEm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 702DBC113CC;
+	Sun, 28 Apr 2024 06:56:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1714287393;
+	bh=r0oXOuLVQhCBCby5vRLJpkXcTQDGNz/eiiiW5fCcIdI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=XTZs9sEmm6/FaMuCbn9MAi43Dw5JaVHQ6Qo9kJKbgmQydz8t76xJqWvnLhWUbFuTg
+	 eamwTb265HrxR6LlvTN02ea5enG0DyL5UUA409iL+FIlWuV8f+cOfIaceW/tsQa49F
+	 k2+JGlrBeOuDTKAFlJG+dXckGS6E9qKllGv1lUiwvcOxOHi2PgVOFnk2K6JjT6mOLy
+	 8wMBJhYy7rqcZ88dgAjki/503FzqraXQOZ8LtGXr77oJlvx8mQlCJ0bpcLxvSbj8II
+	 FNv6UFgUz6gnk7tZPPzx3XToNx6Luyxbilf/EWAJ9azbxmvqxQI0iy3aMf/86QxAUL
+	 09CFFAwUkdXQQ==
+Date: Sun, 28 Apr 2024 09:55:02 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Song Liu <song@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nadav Amit <nadav.amit@gmail.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-modules@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v6 08/16] mm/execmem, arch: convert remaining overrides
+ of module_alloc to execmem
+Message-ID: <Zi3yxk_7rMEPp0lT@kernel.org>
+References: <20240426082854.7355-1-rppt@kernel.org>
+ <20240426082854.7355-9-rppt@kernel.org>
+ <CAPhsuW52MYy4Md5O=7XVGvkw395-LB+BiSadxoDdw8CrLw5t7A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240403002053.2376017-1-almasrymina@google.com>
- <20240403002053.2376017-8-almasrymina@google.com> <8357256a-f0e9-4640-8fec-23341fc607db@davidwei.uk>
-In-Reply-To: <8357256a-f0e9-4640-8fec-23341fc607db@davidwei.uk>
-From: Mina Almasry <almasrymina@google.com>
-Date: Fri, 26 Apr 2024 19:11:07 -0700
-Message-ID: <CAHS8izPeYryoLdCAQdGQU-wn7YVdtuofVKNvRFjFjhqTDsT7zA@mail.gmail.com>
-Subject: Re: [RFC PATCH net-next v8 07/14] page_pool: devmem support
-To: David Wei <dw@davidwei.uk>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, 
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Amritha Nambiar <amritha.nambiar@intel.com>, 
-	Maciej Fijalkowski <maciej.fijalkowski@intel.com>, 
-	Alexander Mikhalitsyn <alexander@mihalicyn.com>, Kaiyuan Zhang <kaiyuanz@google.com>, 
-	Christian Brauner <brauner@kernel.org>, Simon Horman <horms@kernel.org>, 
-	David Howells <dhowells@redhat.com>, Florian Westphal <fw@strlen.de>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Kuniyuki Iwashima <kuniyu@amazon.com>, Jens Axboe <axboe@kernel.dk>, 
-	Arseniy Krasnov <avkrasnov@salutedevices.com>, 
-	Aleksander Lobakin <aleksander.lobakin@intel.com>, Michael Lass <bevan@bi-co.net>, 
-	Jiri Pirko <jiri@resnulli.us>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
-	Lorenzo Bianconi <lorenzo@kernel.org>, Richard Gobert <richardbgobert@gmail.com>, 
-	Sridhar Samudrala <sridhar.samudrala@intel.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
-	Johannes Berg <johannes.berg@intel.com>, Abel Wu <wuyun.abel@bytedance.com>, 
-	Breno Leitao <leitao@debian.org>, Pavel Begunkov <asml.silence@gmail.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, linux-mm@kvack.org, 
-	Matthew Wilcox <willy@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPhsuW52MYy4Md5O=7XVGvkw395-LB+BiSadxoDdw8CrLw5t7A@mail.gmail.com>
 
-On Fri, Apr 26, 2024 at 5:18=E2=80=AFPM David Wei <dw@davidwei.uk> wrote:
->
-> On 2024-04-02 5:20 pm, Mina Almasry wrote:
-> > @@ -69,20 +106,26 @@ net_iov_binding(const struct net_iov *niov)
-> >   */
-> >  typedef unsigned long __bitwise netmem_ref;
+On Fri, Apr 26, 2024 at 12:01:34PM -0700, Song Liu wrote:
+> On Fri, Apr 26, 2024 at 1:30 AM Mike Rapoport <rppt@kernel.org> wrote:
 > >
-> > +static inline bool netmem_is_net_iov(const netmem_ref netmem)
-> > +{
-> > +#if defined(CONFIG_PAGE_POOL) && defined(CONFIG_DMA_SHARED_BUFFER)
->
-> I am guessing you added this to try and speed up the fast path? It's
-> overly restrictive for us since we do not need dmabuf necessarily. I
-> spent a bit too much time wondering why things aren't working only to
-> find this :(
+> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> >
+> > Extend execmem parameters to accommodate more complex overrides of
+> > module_alloc() by architectures.
+> >
+> > This includes specification of a fallback range required by arm, arm64
+> > and powerpc, EXECMEM_MODULE_DATA type required by powerpc, support for
+> > allocation of KASAN shadow required by s390 and x86 and support for
+> > late initialization of execmem required by arm64.
+> >
+> > The core implementation of execmem_alloc() takes care of suppressing
+> > warnings when the initial allocation fails but there is a fallback range
+> > defined.
+> >
+> > Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> > Acked-by: Will Deacon <will@kernel.org>
+> 
+> nit: We should probably move the logic for ARCH_WANTS_EXECMEM_LATE
+> to a separate patch.
 
-My apologies, I'll try to put the changelog somewhere prominent, or
-notify you when I do something that I think breaks you.
+This would require to split arm64 and I prefer to keep all these changes
+together. 
 
-Yes, this is a by-product of a discussion with regards to the
-page_pool benchmark regressions due to adding devmem. There is some
-background on why this was added and the impact on the
-bench_page_pool_simple tests in the cover letter.
+> Otherwise,
+> 
+> Acked-by: Song Liu <song@kernel.org>
+ 
+Thanks!
 
-For you, I imagine you want to change this to something like:
-
-#if defined(CONFIG_PAGE_POOL)
-#if defined(CONFIG_DMA_SHARED_BUFFER) || defined(CONFIG_IOURING)
-
-or something like that, right? Not sure if this is something I should
-do here or if something more appropriate to be in the patches you
-apply on top.
-
-I additionally think you may also need to run the
-page_pool_benchmark_simple tests like I do in the cover letter to see
-if you're affecting those.
-
---
-Thanks,
-Mina
+-- 
+Sincerely yours,
+Mike.
