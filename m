@@ -1,99 +1,63 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from rdns0.nona.1cooldns.com (rdns0.nona.1cooldns.com [31.192.235.70])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A1D82881;
-	Mon, 29 Apr 2024 16:29:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F160A13BAFF
+	for <sparclinux@vger.kernel.org>; Mon, 29 Apr 2024 19:49:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=31.192.235.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714408168; cv=none; b=pwiPNM0dnd8a5olKvq6zlCrnLQ/ZJSnZX+wLMcxq6hOo7ZbXZ6ukZWBfPxK2Ne/34VzfZ37Y5Yv8WPYfnl3XZ1NsbnAu8eZ/jE2/1LOW59bYvPw8wVooiaa2qIu7XQ7j+Yqu4Ny7rsj4X4l/3eh7QAjFDv8J+Souq13vJCUP1ts=
+	t=1714420175; cv=none; b=EKado6fJoaueruRlNc9jKkTSOiTfeVvqwN1CJ4Enmqggw2AD8Uq5E0XtaGRQ0iz0LVzN/xOypHAFM20eVBH/ZxtMTRpVQ6lghZCMX5MZP1zmOwsrVrT2DlPgFnMGgBlqGoA7cvWp1PLCMigJfWbeYhE5OygIrik1uj30hbDxECU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714408168; c=relaxed/simple;
-	bh=nYPavCCoxidSZbCRihx8B881f2cuJlxE/5foMBuO5Lc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SxSGEYurpSFh7g0ZnhocmQfmGn6KTOTDr8X6IcILLXDqE9myECmUnm5g1PlD1nlXYh7uDaFaNiJjCc7d3ycXSrDFSB01cfGqJ4+jleC7fXABHMzBElanKBoI0gonu9N0b/VKdps6TiOj9voIg5tBLuzQrU17AzCJSyl3w3nS0g4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WeJYpsdE; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1714420175; c=relaxed/simple;
+	bh=JG0SV9hXY/1TtbjjSQkLyMvYYfN5KWdFuiRFpI+nqE8=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=EnRFM8jiqRH3yMVL/gsXYW7pMnHsuOup62UUsrbNqGhcBUyyn5rCOFEY75MTf+wNTJ+qgQAs6gg3lHRC+ymhY1MaDfCj9KADE/q6svmYzyKAHyWydOxWb/v6o81+SEuGK86SUfhCiJrnVfYj4ch0A45VFAYpv1XrBF4FyneXVws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=permerror header.from=nona.1cooldns.com; spf=pass smtp.mailfrom=nona.1cooldns.com; dkim=pass (1024-bit key) header.d=nona.1cooldns.com header.i=ghim@nona.1cooldns.com header.b=V+ODM02C; arc=none smtp.client-ip=31.192.235.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=permerror header.from=nona.1cooldns.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nona.1cooldns.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WeJYpsdE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=KPqOap7oAAWDfgBIlLA+hhXhc3DGpgBlCQEjbi7Mkqg=; b=WeJYpsdE3pzRcYrUgXjXEHgq2F
-	Au0hu0pqNCFmhBhQ4KGrogKlFJGZwGMtM4SyFfUKNtbHcOXXep7Vnw+z0PRJndd8b2PkadZ7Zn3Ac
-	Bd44/JfmM5Zohl7D4h0zs8FSYQcvvYKs6qMG9ibpx1uCS9buAn8FVT19gnFMrXXiB2+gKId3huUSy
-	Z2Zftq+4UXv2spyyS8wfG+0A+n484k0N00StfXYvvfIeI6X9PrVp1Y56s2LcwAI5R44Jnehlf0rFO
-	PZ4u2QpnVH6ViWEp0fgDMWG03NWBmgbJMYFGUg1CJuVS0paDnd1njBSdL5tf7bYmwL6Z0+5iy1/L0
-	Lihz29cw==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1s1TsW-00000003aGE-0Yao;
-	Mon, 29 Apr 2024 16:29:20 +0000
-Date: Mon, 29 Apr 2024 09:29:20 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nadav Amit <nadav.amit@gmail.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Philippe =?iso-8859-1?Q?Mathieu-Daud=E9?= <philmd@linaro.org>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Sam Ravnborg <sam@ravnborg.org>, Song Liu <song@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-mm@kvack.org, linux-modules@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v7 00/16] mm: jit/text allocator
-Message-ID: <Zi_K4K-j-VB_WI4i@bombadil.infradead.org>
-References: <20240429121620.1186447-1-rppt@kernel.org>
+	dkim=pass (1024-bit key) header.d=nona.1cooldns.com header.i=ghim@nona.1cooldns.com header.b="V+ODM02C"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=default; d=nona.1cooldns.com;
+ h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:
+ Content-Transfer-Encoding; i=ghim@nona.1cooldns.com;
+ bh=JG0SV9hXY/1TtbjjSQkLyMvYYfN5KWdFuiRFpI+nqE8=;
+ b=V+ODM02CbpZqM8XQmmdUVZbYSTulYeFhTYPzTEaY91cCLTeYUYLryeTOHKH5itZBdy9M96ezsbPs
+   BZiGyBd6djBGi4NUJzt1oIZYCLZzdeXdqNOmNZVV64Cy1eNWjy9sDNVgDaLfgohnbS/l63QRcRHS
+   mMcrTwLJhPmyFNizOl4=
+Reply-To: stanislav.marcel@aliancegroup-se.com
+From: "Support" <ghim@nona.1cooldns.com>
+To: sparclinux@vger.kernel.org
+Subject: request for quote from sweden
+Date: 30 Apr 2024 05:49:30 +1000
+Message-ID: <20240430054930.8D8F4166F928969C@nona.1cooldns.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240429121620.1186447-1-rppt@kernel.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 29, 2024 at 03:16:04PM +0300, Mike Rapoport wrote:
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> 
-> Hi,
-> 
-> The patches are also available in git:
-> https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git/log/?h=execmem/v7
-> 
-> v7 changes:
-> * define MODULE_{VADDR,END} for riscv32 to fix the build and avoid
->   #ifdefs in a function body
-> * add Acks, thanks everybody
+Hello,
 
-Thanks, I've pushed this to modules-next for further exposure / testing.
-Given the status of testing so far with prior revisions, in that only a
-few issues were found and that those were fixed, and the status of
-reviews, this just might be ripe for v6.10.
+My name is Stanislav Head of Department, purchase. We would
+like to know if you export to Sweden, as we need some of your
+products for our client, kindly gives us a reply so we can send
+you the full specifications and details of what we would like to
+purchase.
 
-  Luis
+
+We would appreciate your prompt attention to this request, as we
+should begin a cooperation as soon as possible.
+
+
+thanks & best regards.
+
+
+Sten Arnlund
+
+Purchase Manager
+stanislav.marcel@aliancegrup-se.com
+
+
+a: Veddige by 2, Holmerskulle, 432 68 Sweden.
