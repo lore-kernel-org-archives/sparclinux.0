@@ -1,59 +1,59 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A12175570;
-	Tue, 30 Apr 2024 13:31:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C77BD171E45
+	for <sparclinux@vger.kernel.org>; Tue, 30 Apr 2024 13:46:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714483882; cv=none; b=LNbMPl+/NNTstr8Aqe2Wg5GmEn6xOe9b668l3tX2xADQmNbf72XPyB6ndkhT5j070lIW3o92pRV/l6mdtcxQ5xhm42gXvxYx7muZmQTFATacUw4W8KGWIxUQSAqlizqNk+0MucC3c5kEiTa6rv1kP5SXx/VdJH/DU1HIPxyPvGs=
+	t=1714484765; cv=none; b=FFF3Jre5vipOjpATHtcy8ZDg74/RTNUsDCBMoh9kKYjJpR6nBgDYTyemlcyQPEpyp9w76+aWcTAruRj/u2u4Nieui/0wamENV/zgnxdxqoCECdHElcwlp1RkkojPhXyk8Xn+LrmFFgvrdnx36aRxNhJWcHw2vxOENIllJISV+Ws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714483882; c=relaxed/simple;
-	bh=SuC9FZBFdHxF1mZgxsS3cEgWTqlhBFUTnYsCDjyTNtU=;
+	s=arc-20240116; t=1714484765; c=relaxed/simple;
+	bh=T1pCeAqcp0hagoseX+NBrv4VuqjeZqvX4PDGNfjpbho=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NC00rlowCeXRadA/6XkeLdmWhGYisXKP7liXe1wRROjAXuFUoRG0vSSaslhyTlMZXKkjEd1kG3e8EuhFTr/3NDQ1c2q0YAedM8Y3B3YnVMfAv/to9n111W+88DEaJ6OCpW6Po32B+B0uzAipNrKpDiu0P5FAQ4k0Ld4P/1R0gcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZGDkLB6Z; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 In-Reply-To:Content-Type; b=MBTPMMrCqWx5jMnvh0PffBuPLFelFS0vVjgLI1S3ekmo/wu3ovcYpzMTj+Z3LUgpzzKjxp9Fs5cZLd/0hWckHrMEHZIM1fEVBxUXUYsx/fjd5xqhqqQ4z/6+0TWskcuI6PK3PqNitCIC7LXcgJX4EBMQLeNTMsTK/dLC8n68gjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b=TrbWzzUJ; arc=none smtp.client-ip=209.85.216.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZGDkLB6Z"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-a556d22fa93so620037066b.3;
-        Tue, 30 Apr 2024 06:31:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b="TrbWzzUJ"
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-2b2aab2d46dso116264a91.0
+        for <sparclinux@vger.kernel.org>; Tue, 30 Apr 2024 06:46:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714483879; x=1715088679; darn=vger.kernel.org;
+        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1714484761; x=1715089561; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=sQkyBn4Lnt15qpQKjjn6/FTdXdojZaggT0oJDgNx33c=;
-        b=ZGDkLB6ZeQHM7S3Is+kCTnTiARqKq4qV587fbHYAro6WfXbhqOJl4xElhj+paZsYmf
-         zsAUaz2PKpwWr/nReu83KrPWzL6GJ3NUIxxkikoY8QndVlFBB2kiW68I82oyP7jC6rRy
-         Kue90XOs9J1KUp/gg2ntdEqvPa2dNn7gTu+YQBJukKO9o97AEgFgOwO/3/oDzmTNYn7Z
-         y11S4Gq7YyhptxbmCSG4fqN/oKfSdHaJfTjR+/gghddtiAmMsnce6A9NKgDCIc8BdxRr
-         259AoX88DoDPU3UBi4BHE09WQIb1BCfB+Y6qiyc+rt/Pb6Hau/+OsPS5FrxyhRdjsoO+
-         KPYQ==
+        bh=JjNR4wPlgvb/NrdAvCR/ceifiIGObytGntMYaBKjRCU=;
+        b=TrbWzzUJm4ACtdJyO8oibE6KYZmSqfTX2Jp4Q0yG9JcxctyXvP+CDWGCRkRrVsuMY5
+         iMVNVsN3muXq+fKDdYw5GJRGGzLAyrSmaV0eEKQRnVARtWliWdQoTqQ1FD1RUlHU5m3U
+         gDdLu5C5HjkqWAIpLZ4ayF0asn66ueCZTz0j8eCPMTI0Z8v/bSHAT2v+b0W4MSZMvrlE
+         oROpvzBoqEz7hAfm06s0TLcuLfyELeqxigNRtGhSdBSBaHmYeXwgI8qUnuKDsSwX9Nh2
+         5g8SyL48LiJV6qg+w5MFs+9pri8thZKS40PTXmP8hzxdCZM8eyX9NKg32HgQ9RPA9Rcw
+         IC2w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714483879; x=1715088679;
+        d=1e100.net; s=20230601; t=1714484761; x=1715089561;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=sQkyBn4Lnt15qpQKjjn6/FTdXdojZaggT0oJDgNx33c=;
-        b=JAcftVU9819Df72KVKUuHnMPN5upC2nEnDHOXmwiHa/Mqd+nmSAv3AMwHfJtBagS+e
-         cT4dtJMHpeiKwD8GOBBfy7z9s+FlYWcf8y8O5DNvEbZ3jmEGdrqyeDORwHPNtJheMH8u
-         wbr8sgNO5kk1/HagI63jfYfPZwnByelcETO0aRYQuUgULnKKWyrBVDRskUDNMqTI48+k
-         Scnd785HFs5P9LWN4GE3HWvYb1Vr7EbjCdPGIYTLiprCO5P9LexLTNzWT1FY3dzcvFGe
-         8m82EnqztsJ+xRGTCSXLCXolzX7vhAll+CV5KiHaYTWPwu8g1HR9KqJcWBL0x3QmA995
-         /xXA==
-X-Forwarded-Encrypted: i=1; AJvYcCWO3Mh4iihGe+Ze3I9w69Mb8md/2Vgbcuk/pLV58IhsuuR2WJFdzyOfltYCYnTAzhyC3Q96pMnb/hapYki6ldbplKvipp/UGR14OMd7t+nyiHg9UAEhuQyqT390Cak0Dp389zqiVBmq8K56IZOWCR8LL7yrlDLr2eY7tghHxSHpoHbqi6gG11LFCEFiamASp3Vrj8sSNxwdF3/F5xLeXnqUhkRjJqFPXVMh4gGkdCMqR1e8LsIHJbmvUqAQjD+Plg/Xl64uBE2w1oL0lHwfzLclfEkOhylIGPpOYN0HOcP6L6hr4f568biULGqbqyAzHy+JxxkK/4RF2UQCccyO5l2TEBEKp0GpRMmu0l8RZU2Y/sDSbbOEDEI7+zWPY+EmYTeaBzOlsJQtRv9FwrepTHNgSLpUZDI/61aJJ5X7bi3PfaaLuxs5TehX6+ZnU5donnEdr74tYqEGIpcQNFOXqKitiOaOjKw1UyKmuRb9EQ==
-X-Gm-Message-State: AOJu0Yw6lPjiuEN734nsx/qsNMGgMZPKsd83Z7mLWp1YTakIoYgSLDHK
-	97DEipXt50d6B6REktqCeL5bFxAzsqNHolJf7BHCzaFFBuLw0vNj
-X-Google-Smtp-Source: AGHT+IG4D9H/56/A4rQ0pU5al3G+zQuIMq1mBSgq9KUwXS9Rk/+kL4o0ZAf4JvbTFbHU0G4DNFxL/g==
-X-Received: by 2002:a17:906:fb17:b0:a58:e74b:7e16 with SMTP id lz23-20020a170906fb1700b00a58e74b7e16mr2032608ejb.46.1714483879081;
-        Tue, 30 Apr 2024 06:31:19 -0700 (PDT)
-Received: from [192.168.42.188] ([163.114.131.193])
-        by smtp.gmail.com with ESMTPSA id l9-20020a17090615c900b00a555be38aaasm15011385ejd.164.2024.04.30.06.31.16
+        bh=JjNR4wPlgvb/NrdAvCR/ceifiIGObytGntMYaBKjRCU=;
+        b=OtG94k9AC46RVHpcpDiNX7Cd61SbSLWhQiIXUXeIPWciqkh/g8fhNlqpm0mrhkLty2
+         nrMqv8KcYsWHQ/5pzWFi1Dku9tP8zHj+P7bXGtvteqEAWdF8ZqTugMZqo+NNH/7uu/Dd
+         BIrCthBaLfWJAwMCirgsjqzTf2GF0FmsR0lsWXpn3vjLL5p3cR1rfcxqXY+LoyOmNfSt
+         DFksMvCw7iINvKLrZng8iHWvrhkLnD/FPsezND+lroVFVZSeI8JMk8f8Q7ffkV2ud3gX
+         fbRZFck6DMBLcdqy7bLrOX7hZ4gUyXTOHMcxIclNDlpfAYF0toBijSGU3G1sZ7f7v3TL
+         bkCQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUxHdgfaTC+4JTEjI0kp2i1Cgc/quWUbV6i3LNns675sEOeoWkAzZc5EomNZQNvdaxS8Epf0Y4SGfGSqS9pINImV7Fa3RSqD0/oOA==
+X-Gm-Message-State: AOJu0YwMks8Y4TCq5bJy2IkDopdCk1HMdSuG/T2C1zvJM0ph1ozoE9Od
+	3l5ztSJ7t+Y0OZ4mKGKGWvVKSCCm6DplcnSX0G5xjAUa2g8+LTULvmzur5hpjsQ=
+X-Google-Smtp-Source: AGHT+IH9R1bNbi/b5An2t0YujuKFT91RDi4jOUG3j3R9m2Jy6nNwhLv9ihFj9tl7tQbksDchw49Kdw==
+X-Received: by 2002:a05:6a00:1d22:b0:6ed:cc50:36cd with SMTP id a34-20020a056a001d2200b006edcc5036cdmr14955130pfx.2.1714484761068;
+        Tue, 30 Apr 2024 06:46:01 -0700 (PDT)
+Received: from [192.168.1.150] ([198.8.77.194])
+        by smtp.gmail.com with ESMTPSA id fe8-20020a056a002f0800b006ed00ea504asm21108186pfb.159.2024.04.30.06.45.55
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 30 Apr 2024 06:31:18 -0700 (PDT)
-Message-ID: <35a79edf-e4ca-4501-99ad-231a3ab2b216@gmail.com>
-Date: Tue, 30 Apr 2024 14:31:33 +0100
+        Tue, 30 Apr 2024 06:46:00 -0700 (PDT)
+Message-ID: <aafbbf09-a33d-4e73-99c8-9ddab5910657@kernel.dk>
+Date: Tue, 30 Apr 2024 07:45:52 -0600
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -100,7 +100,7 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  Kaiyuan Zhang <kaiyuanz@google.com>, Christian Brauner <brauner@kernel.org>,
  Simon Horman <horms@kernel.org>, David Howells <dhowells@redhat.com>,
  Florian Westphal <fw@strlen.de>, Yunsheng Lin <linyunsheng@huawei.com>,
- Kuniyuki Iwashima <kuniyu@amazon.com>, Jens Axboe <axboe@kernel.dk>,
+ Kuniyuki Iwashima <kuniyu@amazon.com>,
  Arseniy Krasnov <avkrasnov@salutedevices.com>,
  Aleksander Lobakin <aleksander.lobakin@intel.com>,
  Michael Lass <bevan@bi-co.net>, Jiri Pirko <jiri@resnulli.us>,
@@ -110,8 +110,8 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  Sridhar Samudrala <sridhar.samudrala@intel.com>,
  Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
  Johannes Berg <johannes.berg@intel.com>, Abel Wu <wuyun.abel@bytedance.com>,
- Breno Leitao <leitao@debian.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- Shailend Chand <shailend@google.com>,
+ Breno Leitao <leitao@debian.org>, Pavel Begunkov <asml.silence@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand <shailend@google.com>,
  Harshitha Ramamurthy <hramamurthy@google.com>,
  Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst
  <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
@@ -121,18 +121,18 @@ References: <20240403002053.2376017-1-almasrymina@google.com>
  <8357256a-f0e9-4640-8fec-23341fc607db@davidwei.uk>
  <CAHS8izPeYryoLdCAQdGQU-wn7YVdtuofVKNvRFjFjhqTDsT7zA@mail.gmail.com>
 Content-Language: en-US
-From: Pavel Begunkov <asml.silence@gmail.com>
+From: Jens Axboe <axboe@kernel.dk>
 In-Reply-To: <CAHS8izPeYryoLdCAQdGQU-wn7YVdtuofVKNvRFjFjhqTDsT7zA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On 4/27/24 03:11, Mina Almasry wrote:
-> On Fri, Apr 26, 2024 at 5:18 PM David Wei <dw@davidwei.uk> wrote:
+On 4/26/24 8:11 PM, Mina Almasry wrote:
+> On Fri, Apr 26, 2024 at 5:18?PM David Wei <dw@davidwei.uk> wrote:
 >>
 >> On 2024-04-02 5:20 pm, Mina Almasry wrote:
 >>> @@ -69,20 +106,26 @@ net_iov_binding(const struct net_iov *niov)
->>>    */
->>>   typedef unsigned long __bitwise netmem_ref;
+>>>   */
+>>>  typedef unsigned long __bitwise netmem_ref;
 >>>
 >>> +static inline bool netmem_is_net_iov(const netmem_ref netmem)
 >>> +{
@@ -157,20 +157,14 @@ On 4/27/24 03:11, Mina Almasry wrote:
 > #if defined(CONFIG_DMA_SHARED_BUFFER) || defined(CONFIG_IOURING)
 > 
 > or something like that, right? Not sure if this is something I should
-
-Feels a bit flimsy, if the argument is that you want to be able
-to disable netmem overhead, then adding a netmem config option
-sounds like a better way forward.
-
-I have doubts this conditional handling is desirable in the first
-place, but perhaps I missed the discussion.
-
 > do here or if something more appropriate to be in the patches you
 > apply on top.
-> 
-> I additionally think you may also need to run the
-> page_pool_benchmark_simple tests like I do in the cover letter to see
-> if you're affecting those.
+
+In general, attempting to hide overhead behind config options is always
+a losing proposition. It merely serves to say "look, if these things
+aren't enabled, the overhead isn't there", while distros blindly enable
+pretty much everything and then you're back where you started.
 
 -- 
-Pavel Begunkov
+Jens Axboe
+
