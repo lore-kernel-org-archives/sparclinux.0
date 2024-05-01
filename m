@@ -1,108 +1,121 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57154AEC3;
-	Wed,  1 May 2024 05:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DF564F5FA;
+	Wed,  1 May 2024 07:54:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714541558; cv=none; b=lNMSlyueHEZOGejVAaw1BmOqWuFlf7vm01G+ZXvDTF6HZM28bFMJXufR3K+ELnpgl8lmIkRHkgdWrIeMRVocKDZ7iMTNIRZiaTjbaw2x+oO+XYBoM4Ir2jbrbFbS7tDyc6SZ3DU4hWXRmhbhH8wOFppme+BIJiWzB/iAO/oufFs=
+	t=1714550099; cv=none; b=rjdCquukknCfDz29ADYnVcV8mc1T3W8O/EvXQ0bz8iwSx6nh3jxHBmIn/qlZKdTD3Pb/14dNsB1UCbXYa/asjAiHhk92IQQ51SrkqbAqW49hVY7kk2pb3fwTo+YVBgr2VCaAmWbxGJvNgrchFsFb/u4aFRIARGpwAXMc8rccYXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714541558; c=relaxed/simple;
-	bh=LhUQypmCj6FihMXMgHiHgd8f2gMkEN6+/WGmjHLMtsQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sHuNivvu+zRBTipRQ5G6U/MW6e7acs0QYCo3FGI13QUZMNJ5DHksaLP2A7WrRLKbN1SnOxScrno8nz71q6CXZtYTIhJi0XtT9XXEYgcCOZAseE+oxUIra2O9TbkKMWdfkwaJJQobH7wO/Rw2WsV1dxnHATkgYbsBce4vAOrH4RM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nL+jrcV8; arc=none smtp.client-ip=209.85.216.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1714550099; c=relaxed/simple;
+	bh=8sTLmBe4e6NEzE5W91OaWrAkBkkpZr1qotPYVHDkhKw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BGujQ0JVbADiNrPSQQToPEbzRCzw93yUbGEhHmIbbMObrys3ZKFpnF8YmLZ/2rmNwGAoBzN9S+l6ih5IW+yiCBsMtLkotiU5iA0bKZNHDi1Z7XC7WF4Prr2CVpsiksd6oAuQsbkBBFKErb0YMHBura9cD+Xp9ez3zbGI5WsprQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=bfGhnYDC; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nL+jrcV8"
-Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-2b24dbd1bb6so1519849a91.3;
-        Tue, 30 Apr 2024 22:32:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714541556; x=1715146356; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LhUQypmCj6FihMXMgHiHgd8f2gMkEN6+/WGmjHLMtsQ=;
-        b=nL+jrcV8t5U4Jcd2F37YY16zv3eK1n59hzUYBDqWA0Rmz/G87Ga0r+GfA7Yaw+n3MW
-         OKteE7rbAPRdo0L4LyZeLU/8C5MfrLW5qJhrhyX6mhMXWJ2aUlO0S/OPB2RMRH9QIxKv
-         RJaOOXWl5tftT71JGMwtmQ6OnPf1EL+/jDCF4rVcnticGSQjMFOwK1V0fhv86CmgkLQh
-         h8bZAfEi4mNDcaEWwOq+uErB8vYPWlKDr12T1OtKxpVZ3wNYV9YGyyTzeZiNp6WxN9nT
-         e48IMnEGHtGUh/bb1wgNlBKtLCzcC3YBK8WYHbzjj8lR1NIeJKVhC+2BadTxRmIczivW
-         tRJQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714541556; x=1715146356;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=LhUQypmCj6FihMXMgHiHgd8f2gMkEN6+/WGmjHLMtsQ=;
-        b=W0TTgxYi4uS6blFDxGyODT9o0aE0mZiRQXnpfBGVpR3JYNSWxxauncprKjC0zGR3ur
-         1EganiLDjpUlN1PsVTetMpzDmWz7D8JGWG7Zd2yFRp1aZoTE9uM/+VYGobToeGsfqChW
-         EFY7GTmPa4k5914+WpJBZbTH1A2J10pKPflZnf8FuMSthbfVIF8BHBDC36gZiQqu2P2E
-         NIFGPmLmd11VW+PXjgofAZjlig283XzVEq7jhGAbZroVLIa3EJrGdfHZg/Vuj20QhhmZ
-         EOAJEJmzunAXnCg+ykufG+RPlpG0ObE/Afr16+QzkLfBaiT5PhVJAbsoFrkic4ZJ/FOV
-         79yg==
-X-Forwarded-Encrypted: i=1; AJvYcCUs4izYCWTjaASX27iNcltrFJ9LEHDI3otswQvM5EdEhvNXTaf8dbBkX24jqzIxE8igEnicKPWO9Un50GGL/CYOcrs7tkriB82/H7fbpE97t8UVxia+zTsBPxmzoEKfnw4EIQ6AvR20fGNCx27czfyHbfn+MhaNktQieDYI89qSCsw6VzlMpA==
-X-Gm-Message-State: AOJu0Ywy3RdZcNql0hTo7KhNu7ZDTreucXZqoQQ8mjcm7FFDHrw+puj+
-	eJ9Y8s75K317WAgtoctzj9pp2P/99lx30NXnPyPhHPD1uPUV1bDovuMthmXTg4OkPZTLhhbG+p8
-	siUGIenaMaCBi074RJ0/Jh4pSUGM=
-X-Google-Smtp-Source: AGHT+IHiMOGLd/+67g95LqIkRpVDEp1zqfi64FrDgiZ4JUy/3e1V8BHvssHdIkCZW6yhQ4K5LDcsY6QZXtCz416hve0=
-X-Received: by 2002:a17:90a:714a:b0:2af:b977:363a with SMTP id
- g10-20020a17090a714a00b002afb977363amr1483032pjs.43.1714541556119; Tue, 30
- Apr 2024 22:32:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="bfGhnYDC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Transfer-Encoding
+	:Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Sender:Reply-To:Content-ID:Content-Description;
+	bh=aBV+1nnc4nEQPCYOtpvvVf+o4bvFOap0m5gmh/nCYCg=; b=bfGhnYDCggaTx9oehvzxFbXZrH
+	ZqN7cmIAB1BbFtRc1wHMmVusw6cJUlB1NhMP5Dv9X2RjN2QTpx0PK4oFkz9ZGdl187+6ZNQoywux3
+	YaswCMA448yCQjeTjqLvziQtoTm2XxogyzKlXiOR33bwaVqdb+dUgagWMMtAGzbvM5VW2eYbMPBp5
+	UZmgpSzzglnokVtmBzlR/PGhMgzd2ozpXwfaB65HARTyYzFd0mcijD9gKhI++AXS/jl1oL1qBWOYh
+	FhcojGxJt4eoAXXvprPABlnDQp25Z3AMOSchEbU7ghrBQivczGlag9TchdpTxarWXXcZG0Z6+9nxL
+	nvVbtMrg==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1s24nZ-00000008nfR-35ld;
+	Wed, 01 May 2024 07:54:41 +0000
+Date: Wed, 1 May 2024 00:54:41 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Mina Almasry <almasrymina@google.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org,
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>,
+	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	David Ahern <dsahern@kernel.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	Shuah Khan <shuah@kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Amritha Nambiar <amritha.nambiar@intel.com>,
+	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
+	Alexander Mikhalitsyn <alexander@mihalicyn.com>,
+	Kaiyuan Zhang <kaiyuanz@google.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Simon Horman <horms@kernel.org>,
+	David Howells <dhowells@redhat.com>,
+	Florian Westphal <fw@strlen.de>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	Kuniyuki Iwashima <kuniyu@amazon.com>, Jens Axboe <axboe@kernel.dk>,
+	Arseniy Krasnov <avkrasnov@salutedevices.com>,
+	Aleksander Lobakin <aleksander.lobakin@intel.com>,
+	Michael Lass <bevan@bi-co.net>, Jiri Pirko <jiri@resnulli.us>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Lorenzo Bianconi <lorenzo@kernel.org>,
+	Richard Gobert <richardbgobert@gmail.com>,
+	Sridhar Samudrala <sridhar.samudrala@intel.com>,
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+	Johannes Berg <johannes.berg@intel.com>,
+	Abel Wu <wuyun.abel@bytedance.com>,
+	Breno Leitao <leitao@debian.org>,
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Shailend Chand <shailend@google.com>,
+	Harshitha Ramamurthy <hramamurthy@google.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Jeroen de Borst <jeroendb@google.com>,
+	Praveen Kaligineedi <pkaligineedi@google.com>
+Subject: Re: [RFC PATCH net-next v8 02/14] net: page_pool: create hooks for
+ custom page providers
+Message-ID: <ZjH1QaSSQ98mw158@infradead.org>
+References: <20240403002053.2376017-1-almasrymina@google.com>
+ <20240403002053.2376017-3-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAE8VWi+UwYWw+RBMPi5ozg+sQHKtyxp2i2K3u9e3b42Gt8D+qw@mail.gmail.com>
- <2024050119-pediatric-prankish-64b9@gregkh> <CAE8VWiKqrPge_OaeCXXAER6ofFLULLPrPK8StCMV9DPM+WHuHw@mail.gmail.com>
- <2024050149-blob-afoot-af04@gregkh>
-In-Reply-To: <2024050149-blob-afoot-af04@gregkh>
-From: Shresth Prasad <shresthprasad7@gmail.com>
-Date: Wed, 1 May 2024 11:02:24 +0530
-Message-ID: <CAE8VWiKZSGM_JXnvsbp3jo+A80puYGA58FoLY3+ZQar5tFAyCg@mail.gmail.com>
-Subject: Re: [PATCH][next] tty: sunsu: Simplify device_node cleanup by using __free
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: davem@davemloft.net, jirislaby@kernel.org, linux-serial@vger.kernel.org, 
-	Javier Carrasco <javier.carrasco.cruz@gmail.com>, Julia Lawall <julia.lawall@inria.fr>, 
-	Shuah Khan <skhan@linuxfoundation.org>, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20240403002053.2376017-3-almasrymina@google.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-> Yes, but you did not include it in your response at all, so how were we
-> to see it?
+Still NAK to creating aⅺbitrary hooks here.  This should be a page or
+dmabuf pool and not an indirect call abstraction allowing random
+crap to hook into it.
 
-Oh, really sorry about that.
-I thought I was replying to the thread with the patch.
-
-> Great, please say so in your changelog text.
-
-Right, I'll do that. My bad.
-I'll resubmit the patch.
-
-Regards,
-Shresth
-
-On Wed, May 1, 2024 at 10:33=E2=80=AFAM Greg KH <gregkh@linuxfoundation.org=
-> wrote:
->
-> On Wed, May 01, 2024 at 10:28:35AM +0530, Shresth Prasad wrote:
-> > > I don't see anything here, sorry.
-> > I'm sorry but is this patch not visible?
-> > https://lore.kernel.org/all/20240425060303.8045-2-shresthprasad7@gmail.=
-com/
->
-> Yes, but you did not include it in your response at all, so how were we
-> to see it?
->
-> > > Also, how was this tested?
-> > I tested it using a qemu x86_64 virtual machine
->
-> Great, please say so in your changelog text.
->
-> thanks,
->
-> greg k-h
