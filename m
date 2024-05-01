@@ -1,157 +1,139 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF7DB39FFB;
-	Wed,  1 May 2024 08:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC09212C490;
+	Wed,  1 May 2024 13:59:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714552901; cv=none; b=UN3iB1qNzZL1b59XdaLRWcD5WKeAZUTuoKW6ymjEIoHFybcHKXlPn/CwdBh9A0tS5BK6lykPzIxS2dp0MwmF46UNIRqYG0CuqeKqH0IeqkReg/qwjefvys9RH/UbnF0qmjhJKsBi2kbCwHm8CpFgOMk1Zb3BbeAsBtU5qgZ3tsI=
+	t=1714571957; cv=none; b=J3nv4JNhCH3zr/s7JdeCsI2Z5LuWf1arbxDg7Qyw7WRs8NW/s+Ms+ZHv1rgylDWWOPIEg7X1kQ0Ich2HQzQ+nboY35WZXfcQc7sKgsxTfa8x/5sXx2f+pVpQnKr9XRTaacybTZNig9nm+QFiRTEg5LGAeJjQFINFafgtD1bON2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714552901; c=relaxed/simple;
-	bh=1rBxLhkgeuavduZH//Lz0Tf/8rm0k3X7h/lFl7E10qc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=M5AnS9qeJVgQ/Fkn17BrMWetlg7u9G2r3u+LYBEAPOZWQ/kr4nQFzBM1obe+Pd6R4tBU6CJ8LPm9N0s3puWgWvkbyc7KF5fKT20704iDJWgLhRZr7qTk3QMSmj6N+fPYZPAM8MFEELvAR0yvl1B90d75oy1+Jqp8npOtLrHPbtU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ekMQ6Sr7; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1714571957; c=relaxed/simple;
+	bh=Fi4PvMRZrF9DXNpSOwwia/BblzTiRO6iyf1z/eVq1XU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NbchjvG3iRoD7tZsVbSHBC2VDA1pFY2cj3SWAp5gw7+QlIJJAkkhCxOyXperwsUU5+WmLLsJDxONdC8ykFbY6y9qB9qCS+FG6ugqs8QH6pC8ieafJ/cFNzvbEp2j2Hhzi3kO26lzjrgh3dVTN/naxrWwGNw4DCa+GCEq30m/AXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sCbrUaES; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ekMQ6Sr7"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-6ed691fb83eso5765088b3a.1;
-        Wed, 01 May 2024 01:41:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714552899; x=1715157699; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Nk32MppqLYyzvvpjGhxvJDk9rGDas0edOjH8vlcv3TM=;
-        b=ekMQ6Sr7LJXqyMSkR8ThCXXoLixwrX01Ue3B4+GmfwaNHrsF/YOhRxNP796gJRqx06
-         LTu4pcddaVisuvbW6aR2HEOFGrlaBOdAp/PbB2FLvzSlIFuddZlR/8C405QF9JLCvCaP
-         aDVGABdPRgw7tg5Op+IFmhSjLw3ma5byzNWj9nHvcbRkUjrClOVTvOmgzYCSz0Rbi1Hv
-         zfhcWeM+rpstT42jInQg8iA+jduFQ5SrB6CdbbQrAkkvbiIaCQxv6FjlPg7YcfInsv2Z
-         1DpP19FszTP/ELF9CjkmN66YnKY8wIP7hCwbmb19xTllKKnl/qgcgJPh2Mub7TbEx+vt
-         yPvQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714552899; x=1715157699;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Nk32MppqLYyzvvpjGhxvJDk9rGDas0edOjH8vlcv3TM=;
-        b=kPQfx8FdFFzzBo12X7JETOFmd4oYzaDnwfFMUeh72UV0Dk1FzPbbhezabvbL+ME8ON
-         wiTA0OCnnAqkV+n/+uL4O5Rueeb1CI6ilq2KbTABfieyTdZutOX+UXiPvM8gpqHlJQnc
-         GRmoqR0t7422ti6KzZGXWUqpZwqQhQkfgeOONWsxr5hi//Fo4uyAMPkeVZoB0OTOWwjF
-         KEtmfzvGOzpPeoUD8H4TuSlv/FBXLNH1+wRJVSc04krS73XFpvfRmliB1y6D+hhj078F
-         +nRQJ0eitKP655ohX58mQXGhVDXcMdaRVc8ir1jZkn07OwcTfBv8sI3ueFwKwdzB+cg/
-         aeeQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVZbFTRK9BaBYdv+TZ/W4Ie2F3xdB0DhBmBEB10CDWvi9r5PQuYzbxdAFRPbm47sWOlQlN0fLws4oi4Hn0A0tIIYpOIxvIM0pVsz72ud1RpkbZ+TjWdwOYnhjx8eofuBb72Qpn2r7/O7E+p
-X-Gm-Message-State: AOJu0YwEA6McAjwyBzWGMuVM9TC/scN+LC5OLNK5hYf1lMgPJtuSroQ2
-	C6M96iXtVMUU9yyqhAfDznYho2vUn+YFi4Qh9IS/tnn+FzyQhe3U
-X-Google-Smtp-Source: AGHT+IFdMgsivwUAwFkQnIOUgQV65FC8VM+NDSAIMsU5iviWctfVG1fGtAfk/j8w5WdwVR5ohOw/Xg==
-X-Received: by 2002:a05:6a21:788a:b0:1a7:bb6d:6589 with SMTP id bf10-20020a056a21788a00b001a7bb6d6589mr1745740pzc.29.1714552898848;
-        Wed, 01 May 2024 01:41:38 -0700 (PDT)
-Received: from shresth-aspirea71576g.abesec.ac.in ([139.5.197.146])
-        by smtp.gmail.com with ESMTPSA id li6-20020a17090b48c600b002b0dea23239sm878052pjb.49.2024.05.01.01.41.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 May 2024 01:41:38 -0700 (PDT)
-From: Shresth Prasad <shresthprasad7@gmail.com>
-To: davem@davemloft.net,
-	gregkh@linuxfoundation.org,
-	jirislaby@kernel.org
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	javier.carrasco.cruz@gmail.com,
-	skhan@linuxfoundation.org,
-	Shresth Prasad <shresthprasad7@gmail.com>,
-	Julia Lawall <julia.lawall@inria.fr>
-Subject: [PATCH v2][next] tty: sunsu: Simplify device_node cleanup by using __free
-Date: Wed,  1 May 2024 14:11:11 +0530
-Message-ID: <20240501084110.4165-2-shresthprasad7@gmail.com>
-X-Mailer: git-send-email 2.45.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sCbrUaES"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B3C7C072AA;
+	Wed,  1 May 2024 13:59:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1714571956;
+	bh=Fi4PvMRZrF9DXNpSOwwia/BblzTiRO6iyf1z/eVq1XU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=sCbrUaESax+zNwmTNdY7otL0UFOQLPT1tCLvxhS1E2UCWFKHW4CFOG8eHXGAPEzYV
+	 K59HSeGnESqWuVyypeDsfjxCGIwlrkTiIB8RtlSIeODJISpG+bjrjqgUZTNnVYoXFo
+	 0nAjOD3kay/wsGxmwOPaAc5VD0eUhuiBlauj3Z2WQisvO7reiDxOn7qiXguQyswbXz
+	 eGzZQLUgdh76hRrtTEFJVQdEHnMA2UjgtwHVl2z9L4Tsb3ZTSE/wBE57PdTiTs8Ocp
+	 FhNUI+PSuIOyAwwjpVUsbAi1uNR+QWMI+7HqtFjSwPStPFYwbkZKYGKHcbZk0YZOQW
+	 CZlqUKG4oenXA==
+Message-ID: <779b9542-4170-483a-af54-ca0dd471f774@kernel.org>
+Date: Wed, 1 May 2024 15:58:59 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH net-next v8 07/14] page_pool: devmem support
+To: Jens Axboe <axboe@kernel.dk>, Mina Almasry <almasrymina@google.com>
+Cc: David Wei <dw@davidwei.uk>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+ bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Jonathan Corbet <corbet@lwn.net>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+ Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
+ <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+ Yonghong Song <yonghong.song@linux.dev>,
+ John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
+ Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
+ Jiri Olsa <jolsa@kernel.org>, Steffen Klassert
+ <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
+ David Ahern <dsahern@kernel.org>,
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+ Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Amritha Nambiar <amritha.nambiar@intel.com>,
+ Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
+ Alexander Mikhalitsyn <alexander@mihalicyn.com>,
+ Kaiyuan Zhang <kaiyuanz@google.com>, Christian Brauner <brauner@kernel.org>,
+ Simon Horman <horms@kernel.org>, David Howells <dhowells@redhat.com>,
+ Florian Westphal <fw@strlen.de>, Yunsheng Lin <linyunsheng@huawei.com>,
+ Kuniyuki Iwashima <kuniyu@amazon.com>,
+ Arseniy Krasnov <avkrasnov@salutedevices.com>,
+ Aleksander Lobakin <aleksander.lobakin@intel.com>,
+ Michael Lass <bevan@bi-co.net>, Jiri Pirko <jiri@resnulli.us>,
+ Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+ Lorenzo Bianconi <lorenzo@kernel.org>,
+ Richard Gobert <richardbgobert@gmail.com>,
+ Sridhar Samudrala <sridhar.samudrala@intel.com>,
+ Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+ Johannes Berg <johannes.berg@intel.com>, Abel Wu <wuyun.abel@bytedance.com>,
+ Breno Leitao <leitao@debian.org>, Pavel Begunkov <asml.silence@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand <shailend@google.com>,
+ Harshitha Ramamurthy <hramamurthy@google.com>,
+ Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst
+ <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
+ linux-mm@kvack.org, Matthew Wilcox <willy@infradead.org>
+References: <20240403002053.2376017-1-almasrymina@google.com>
+ <20240403002053.2376017-8-almasrymina@google.com>
+ <8357256a-f0e9-4640-8fec-23341fc607db@davidwei.uk>
+ <CAHS8izPeYryoLdCAQdGQU-wn7YVdtuofVKNvRFjFjhqTDsT7zA@mail.gmail.com>
+ <aafbbf09-a33d-4e73-99c8-9ddab5910657@kernel.dk>
+ <CAHS8izMKLYATo6g3xkj_thFo3whCfq6LSoex5s0m5XZd-U7SVQ@mail.gmail.com>
+ <11f52113-7b67-4b45-ba1d-29b070050cec@kernel.dk>
+Content-Language: en-US
+From: Jesper Dangaard Brouer <hawk@kernel.org>
+In-Reply-To: <11f52113-7b67-4b45-ba1d-29b070050cec@kernel.dk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Add `__free` function attribute to `ap` and `match` pointer
-initialisations which ensure that the pointers are freed as soon as they
-go out of scope, thus removing the need to manually free them using
-`of_node_put`.
 
-This also removes the need for the `goto` statement and the `rc`
-variable.
 
-Tested using a qemu x86_64 virtual machine.
+On 30/04/2024 20.55, Jens Axboe wrote:
+> On 4/30/24 12:29 PM, Mina Almasry wrote:
+>> On Tue, Apr 30, 2024 at 6:46?AM Jens Axboe<axboe@kernel.dk>  wrote:
+[...]
+>>> In general, attempting to hide overhead behind config options is always
+>>> a losing proposition. It merely serves to say "look, if these things
+>>> aren't enabled, the overhead isn't there", while distros blindly enable
+>>> pretty much everything and then you're back where you started.
+>>>
+>> The history there is that this check adds 1 cycle regression to the
+>> page_pool fast path benchmark. The regression last I measured is 8->9
+>> cycles, so in % wise it's a quite significant 12.5% (more details in
+>> the cover letter[1]). I doubt I can do much better than that to be
+>> honest.
+>
+> I'm all for cycle counting, and do it myself too, but is that even
+> measurable in anything that isn't a super targeted microbenchmark? Or
+> even in that?
 
-Suggested-by: Julia Lawall <julia.lawall@inria.fr>
-Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
----
-Changes in v2:
-    - Specify how the patch was tested
+The reason for page_pool fast path being critical is that it is used for 
+the XDP_DROP use-case.
+E.g on Mellanox mlx5 driver we see 24 Mpps XDP_DROP, which is approx 42 
+nanosec per packet. Adding 9 nanosec will reduce this to 19.6 Mpps.
 
- drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
- 1 file changed, 11 insertions(+), 26 deletions(-)
+   1/(42+9)*10^9 = 19607843
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 67a5fc70bb4b..0f463da5e7ce 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(void)
- 
- static enum su_type su_get_type(struct device_node *dp)
- {
--	struct device_node *ap = of_find_node_by_path("/aliases");
--	enum su_type rc = SU_PORT_PORT;
-+	struct device_node *ap __free(device_node) =
-+			    of_find_node_by_path("/aliases");
- 
- 	if (ap) {
- 		const char *keyb = of_get_property(ap, "keyboard", NULL);
- 		const char *ms = of_get_property(ap, "mouse", NULL);
--		struct device_node *match;
- 
- 		if (keyb) {
--			match = of_find_node_by_path(keyb);
-+			struct device_node *match __free(device_node) =
-+					    of_find_node_by_path(keyb);
- 
--			/*
--			 * The pointer is used as an identifier not
--			 * as a pointer, we can drop the refcount on
--			 * the of__node immediately after getting it.
--			 */
--			of_node_put(match);
--
--			if (dp == match) {
--				rc = SU_PORT_KBD;
--				goto out;
--			}
-+			if (dp == match)
-+				return SU_PORT_KBD;
- 		}
- 		if (ms) {
--			match = of_find_node_by_path(ms);
-+			struct device_node *match __free(device_node) =
-+					    of_find_node_by_path(ms);
- 
--			of_node_put(match);
--
--			if (dp == match) {
--				rc = SU_PORT_MS;
--				goto out;
--			}
-+			if (dp == match)
-+				return SU_PORT_MS;
- 		}
- 	}
--
--out:
--	of_node_put(ap);
--	return rc;
-+	return SU_PORT_PORT;
- }
- 
- static int su_probe(struct platform_device *op)
--- 
-2.44.0
+--Jesper
 
+p.s. Upstreaming my PP microbenchmark[1] is still at the bottom of my 
+todo-list.
+  [1] 
+https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/lib/bench_page_pool_simple.c
