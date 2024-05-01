@@ -1,201 +1,72 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C03EF199E80
-	for <sparclinux@vger.kernel.org>; Tue, 30 Apr 2024 19:19:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B782572;
+	Wed,  1 May 2024 04:31:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714504776; cv=none; b=tvyWgK7pTh6bC0yfDUjyk3+a1RV11ex5wT86Ov/yM3z5WeUykFlmnYzwPMe8QVFyOCSzTl7GkeXBSoWPDQY/aY9yt9gxHkLlMjg5sP9DzJF5OgOEuFcT3dgDnjuLMazt9OvduVc3QKFlZBIuZQWM3h10aF7Lu2vtfkqAEDBtbQE=
+	t=1714537873; cv=none; b=b0ZV/8XPSSeX8BY/OxWp493FTu4mp0psXI0I/mOl9bNM5avh6QAdgLyh34XAD+xg9963gIyoG69E7mQv/QZQRGOwj8eFiTroUZ7UZhg/4ebW7Jbg2a6lKX94NoyRuKISBj8KtmNps0lRy74Jtuc7ViWTRUmOtPD2Nlm+KwlLOxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714504776; c=relaxed/simple;
-	bh=rXrYXwxz8utS37Zdd/NHXMvvYHT1Pko55fdXpz+a0f8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UrRyi0YYgk8iOvQXKLl5ppv8ejwhxfgYZVjAkwvG4vTusSW8Xq2c7VSY5C2QktbGxxMOxYrimo6uV56ByNrdCjI0yxOLpi+3g1D09wbGZJolfiasNfyVhqeL6egf4b7hZ4OLfc1+GazbDaK3zs+Vo+0cyPXn7Dk+ZWNzkojF8vs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=yhrCM4Yd; arc=none smtp.client-ip=209.85.167.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1714537873; c=relaxed/simple;
+	bh=ehtlKgUoW2wMkIdQbSn6yZOg4NRiq5q4R0ZqTQom8Y4=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=k2G57g9cJtPsqsEUaUH14lGNMMOSIgUNVkqxR4+16n/APc+/BPjw66nbf4kcr7WyHi2b62l8OOFgX6uCiMa8XgoU3VlMUmW8uzTMViJCkE6NdmT99f/GMeCR7Xi7Z0lvMZaGcQRQvp4qaDaRX9O/gAe3RuLvVpkQCJ8C4SLkT4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SWXlYc1r; arc=none smtp.client-ip=209.85.210.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="yhrCM4Yd"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-51d20472133so4691159e87.3
-        for <sparclinux@vger.kernel.org>; Tue, 30 Apr 2024 12:19:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SWXlYc1r"
+Received: by mail-pf1-f169.google.com with SMTP id d2e1a72fcca58-6f0b9f943cbso5259581b3a.0;
+        Tue, 30 Apr 2024 21:31:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1714504773; x=1715109573; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JBbLSd4KX1Ml6Kx/U9tspaOWXAez2c+6/7rMF07WiMA=;
-        b=yhrCM4YdS1mVSkC6dZlf25VsI6foSQBCk1DyesxJ/3Nf9GIMHy2gLaao5m1yno4E4y
-         LtG62zQbF9BTkR0aOMYlQm1EEMYIDUCq9PMx9uJmf3kKE2VKFDXgbV/etlhd83AV68Mw
-         q0LoGQlekuHwfa+7Hc6GI0DZ/Iir29gHWQ93YeFSVeB4ebbTLs1IPAMrizUw1zcYmLPc
-         dGrMy+HB86r/BLLws08RKvC1H2mXBtxc86+vZP7uOFNjHzPyfH/Yc46yDsB17PHHg3/8
-         cmY8hLG3CzLveY5qMgQT1zM60pq2ET0rzg8DrUA3vcerRTlTRWGeqNRVTZKVEPp06M3c
-         o+RQ==
+        d=gmail.com; s=20230601; t=1714537872; x=1715142672; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=ehtlKgUoW2wMkIdQbSn6yZOg4NRiq5q4R0ZqTQom8Y4=;
+        b=SWXlYc1ryY5wEvUW62/+r13niO0VUNQq5V2fPu3wX+Mcu6JDhi5FcI5YK9o0+z5x7L
+         /yOIHMbncHhlZNIBu0wc2A3fjF5DyCg/B+4X4tmYE1abciqkmerOojbKadvxsMALOxjq
+         8p/6tbYNRBWc8HPubS8lzNn9ZJatDs37GVTwQ+XfBVkxmA1hCP7ipe+g9HM1S68qdaKN
+         Rky2d9fWJlupOVZZjV3dJlMuGUaNXanc67zbxFE9h1ab3JZs1JRJKY1cfilU6SYbWsPc
+         6BuFt/WNXoTPYYH/NgRVyCurN9Ku6tQIyet1dJ8DsS4HlCgApBr1bDwNWCH1xymjrs18
+         e6Ng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714504773; x=1715109573;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=JBbLSd4KX1Ml6Kx/U9tspaOWXAez2c+6/7rMF07WiMA=;
-        b=Ubify2OaOAhZzAJ1fo5oehMEt0ClYcBKdFlxi16G8Lx4794+cnYdBR4vGRXofpE4L2
-         Xblg6mBZDryJcehl96QMJSqTGsVW3brNzZnEv6pk+7GSkDWrwc8c3Ni1t0wEauTBfC5F
-         f+KRR2mMlDzgFZaMZdyCldzeFjf0SupLc5al25RG7q5Hy8tBZbBXIkk0zpN15KJmrrgT
-         00orrkcoSGwOTQWtbMqANCIZOOvV9zjLHM/nW1DdN1V6JIOhPkTQVk0qrz39NXu/rjJx
-         3iYUhSZWZd/xVx16aXM5hcijXvD8H84jpk2VyBjYZFpPi+EUE4Vo7/8qxKNwaq7OcAMj
-         +R/w==
-X-Forwarded-Encrypted: i=1; AJvYcCWFZv+VhpEHjt9emUaRZJvIQSFhPJE0APbQ9x3ipSxcnX4qvsd/UbmWLHEijMNAiNn7WrwGCfRDnBl7l5xvQ1xKj6uNQd5jhlPMgw==
-X-Gm-Message-State: AOJu0YwSsYgrYkKVmoijQU+n2SwxN4+ffHg+cb8MHuOFp3FW7IOx08vA
-	pXIdypoqdwusW/QkKq8CD9n409bg6dYF9pimQGHdlVMKc75sgbdfG9gOVJypPeN32GkRUQSG/LQ
-	D5G+tVyDHyagNi7usKwiBprwd0kaHFzpk9wjJ
-X-Google-Smtp-Source: AGHT+IEv1vAD5KmPx2DuK83e++oMbqGnWC2h94YZYICJhje+Ouaos+1vgy9d2n+Zn+VtRp04liNfK+AEGoM+Z6BbCWI=
-X-Received: by 2002:a05:6512:3492:b0:517:8ad8:c64 with SMTP id
- v18-20020a056512349200b005178ad80c64mr259130lfr.21.1714504772286; Tue, 30 Apr
- 2024 12:19:32 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1714537872; x=1715142672;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ehtlKgUoW2wMkIdQbSn6yZOg4NRiq5q4R0ZqTQom8Y4=;
+        b=c70oWwmouLsvLCMPVc7seThZrYVn2nHr86RLPat0COsFcsAS1duIc70xaBAJAJw58F
+         4gUcdNueHe0u5mzKy3yhh2gu24Z1RGBffE2Vu1TWFsYy5hA5xNJYuHjl45RttuM/JAGB
+         ZGqaoT1woImw6DZVxAu0YJAYC2t6KFO1iqd8EDWi7I6cVvbKPpWSu1j/tbYuTYgdexxA
+         VYsQkjtysaM4O844ciojwjHA1XanzITkJCDOOOMJOn0bMmK2UxbJ43zkZy7zmtY8kEe0
+         d4XOawtR1wAYGjZAiECj+JfmldZaD6f9BymO4/KXRnwS97CexaZ2OqwvrEoI5Gsd6yC0
+         i6Jw==
+X-Forwarded-Encrypted: i=1; AJvYcCVjB85NDn9sIAkhdXHw9pG4itRsjo22HTd32HJHEtDH3nPoV+StB+iDMQLKga82RSgwxQOgi0i/Rs6dTIeT5fnwA6Wfm4K8TQnNYQd55PdqiJ2F8QRVDfwp7dVpHMuy0KVjKz8gCn10MYJjV7PSgOTzBTsXT2DbjU6z/06DUWGiU9gFGeOImA==
+X-Gm-Message-State: AOJu0Yxb5DE52m3HhRNRK1BZvN+XiZDIRSrcGeTp5aYQ1UWZHFTs8gh0
+	sgclW+zjreiDG6W9SqZVlMzLObavl/s5NJ9eRHyKD2yyXXtNgwvTp+sXLyNvdClvsE1L7pay6ff
+	YiiMvuDDPBX5YkxtrZMdHht6pdUI=
+X-Google-Smtp-Source: AGHT+IF1S+z589TJNkRFleq3ZlYQTlbiZ8DyCgYD0YriYJog/J956Bm/0/tLqzT9TTV754T6OCSvrlxbQELm9a2NVVw=
+X-Received: by 2002:a05:6a20:d491:b0:1aa:6178:345 with SMTP id
+ im17-20020a056a20d49100b001aa61780345mr2108072pzb.7.1714537871593; Tue, 30
+ Apr 2024 21:31:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240403002053.2376017-1-almasrymina@google.com>
- <20240403002053.2376017-8-almasrymina@google.com> <8357256a-f0e9-4640-8fec-23341fc607db@davidwei.uk>
- <CAHS8izPeYryoLdCAQdGQU-wn7YVdtuofVKNvRFjFjhqTDsT7zA@mail.gmail.com>
- <aafbbf09-a33d-4e73-99c8-9ddab5910657@kernel.dk> <CAHS8izMKLYATo6g3xkj_thFo3whCfq6LSoex5s0m5XZd-U7SVQ@mail.gmail.com>
- <11f52113-7b67-4b45-ba1d-29b070050cec@kernel.dk>
-In-Reply-To: <11f52113-7b67-4b45-ba1d-29b070050cec@kernel.dk>
-From: Mina Almasry <almasrymina@google.com>
-Date: Tue, 30 Apr 2024 12:19:17 -0700
-Message-ID: <CAHS8izP3KtH_CHyQKE+=vrY-yREq5Bb_Kd+KLyJ4j-_AdjNk-Q@mail.gmail.com>
-Subject: Re: [RFC PATCH net-next v8 07/14] page_pool: devmem support
-To: Jens Axboe <axboe@kernel.dk>
-Cc: David Wei <dw@davidwei.uk>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, 
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Amritha Nambiar <amritha.nambiar@intel.com>, 
-	Maciej Fijalkowski <maciej.fijalkowski@intel.com>, 
-	Alexander Mikhalitsyn <alexander@mihalicyn.com>, Kaiyuan Zhang <kaiyuanz@google.com>, 
-	Christian Brauner <brauner@kernel.org>, Simon Horman <horms@kernel.org>, 
-	David Howells <dhowells@redhat.com>, Florian Westphal <fw@strlen.de>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Kuniyuki Iwashima <kuniyu@amazon.com>, 
-	Arseniy Krasnov <avkrasnov@salutedevices.com>, 
-	Aleksander Lobakin <aleksander.lobakin@intel.com>, Michael Lass <bevan@bi-co.net>, 
-	Jiri Pirko <jiri@resnulli.us>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
-	Lorenzo Bianconi <lorenzo@kernel.org>, Richard Gobert <richardbgobert@gmail.com>, 
-	Sridhar Samudrala <sridhar.samudrala@intel.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
-	Johannes Berg <johannes.berg@intel.com>, Abel Wu <wuyun.abel@bytedance.com>, 
-	Breno Leitao <leitao@debian.org>, Pavel Begunkov <asml.silence@gmail.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, linux-mm@kvack.org, 
-	Matthew Wilcox <willy@infradead.org>
+From: Shresth Prasad <shresthprasad7@gmail.com>
+Date: Wed, 1 May 2024 10:01:00 +0530
+Message-ID: <CAE8VWi+UwYWw+RBMPi5ozg+sQHKtyxp2i2K3u9e3b42Gt8D+qw@mail.gmail.com>
+Subject: Re: [PATCH][next] tty: sunsu: Simplify device_node cleanup by using __free
+To: gregkh@linuxfoundation.org, davem@davemloft.net, jirislaby@kernel.org, 
+	linux-serial@vger.kernel.org
+Cc: Javier Carrasco <javier.carrasco.cruz@gmail.com>, Julia Lawall <julia.lawall@inria.fr>, 
+	Shuah Khan <skhan@linuxfoundation.org>, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Shresth Prasad <shresthprasad7@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 30, 2024 at 11:55=E2=80=AFAM Jens Axboe <axboe@kernel.dk> wrote=
-:
->
-> On 4/30/24 12:29 PM, Mina Almasry wrote:
-> > On Tue, Apr 30, 2024 at 6:46?AM Jens Axboe <axboe@kernel.dk> wrote:
-> >>
-> >> On 4/26/24 8:11 PM, Mina Almasry wrote:
-> >>> On Fri, Apr 26, 2024 at 5:18?PM David Wei <dw@davidwei.uk> wrote:
-> >>>>
-> >>>> On 2024-04-02 5:20 pm, Mina Almasry wrote:
-> >>>>> @@ -69,20 +106,26 @@ net_iov_binding(const struct net_iov *niov)
-> >>>>>   */
-> >>>>>  typedef unsigned long __bitwise netmem_ref;
-> >>>>>
-> >>>>> +static inline bool netmem_is_net_iov(const netmem_ref netmem)
-> >>>>> +{
-> >>>>> +#if defined(CONFIG_PAGE_POOL) && defined(CONFIG_DMA_SHARED_BUFFER)
-> >>>>
-> >>>> I am guessing you added this to try and speed up the fast path? It's
-> >>>> overly restrictive for us since we do not need dmabuf necessarily. I
-> >>>> spent a bit too much time wondering why things aren't working only t=
-o
-> >>>> find this :(
-> >>>
-> >>> My apologies, I'll try to put the changelog somewhere prominent, or
-> >>> notify you when I do something that I think breaks you.
-> >>>
-> >>> Yes, this is a by-product of a discussion with regards to the
-> >>> page_pool benchmark regressions due to adding devmem. There is some
-> >>> background on why this was added and the impact on the
-> >>> bench_page_pool_simple tests in the cover letter.
-> >>>
-> >>> For you, I imagine you want to change this to something like:
-> >>>
-> >>> #if defined(CONFIG_PAGE_POOL)
-> >>> #if defined(CONFIG_DMA_SHARED_BUFFER) || defined(CONFIG_IOURING)
-> >>>
-> >>> or something like that, right? Not sure if this is something I should
-> >>> do here or if something more appropriate to be in the patches you
-> >>> apply on top.
-> >>
-> >> In general, attempting to hide overhead behind config options is alway=
-s
-> >> a losing proposition. It merely serves to say "look, if these things
-> >> aren't enabled, the overhead isn't there", while distros blindly enabl=
-e
-> >> pretty much everything and then you're back where you started.
-> >>
-> >
-> > The history there is that this check adds 1 cycle regression to the
-> > page_pool fast path benchmark. The regression last I measured is 8->9
-> > cycles, so in % wise it's a quite significant 12.5% (more details in
-> > the cover letter[1]). I doubt I can do much better than that to be
-> > honest.
->
-> I'm all for cycle counting, and do it myself too, but is that even
-> measurable in anything that isn't a super targeted microbenchmark? Or
-> even in that?
->
+Hi,
 
-Not as far as I can tell, no. This was purely to improve the page_pool
-benchmark.
+Could I please get some feedback for this patch?
 
-> > There was a desire not to pay this overhead in setups that will likely
-> > not care about devmem, like embedded devices maybe, or setups without
-> > GPUs. Adding a CONFIG check here seemed like very low hanging fruit,
-> > but yes it just hides the overhead in some configs, not really removes
-> > it.
-> >
-> > There was a discussion about adding this entire netmem/devmem work
-> > under a new CONFIG. There was pushback particularly from Willem that
-> > at the end of the day what is enabled on most distros is what matters
-> > and we added code churn and CONFIG churn for little value.
-> >
-> > If there is significant pushback to the CONFIG check I can remove it.
-> > I don't feel like it's critical, it just mirco-optimizes some setups
-> > that doesn't really care about this work area.
->
-> That is true, but in practice it'll be enabled anyway. Seems like it's
-> not really worth it in this scenario.
->
-
-OK, no pushback from me. I'll remove the CONFIG check in the next iteration=
-.
-
---=20
-Thanks,
-Mina
+Regards,
+Shresth
