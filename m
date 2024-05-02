@@ -1,130 +1,157 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 491C353362;
-	Thu,  2 May 2024 08:55:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46DF915359A;
+	Thu,  2 May 2024 16:05:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714640127; cv=none; b=Tcx+8xBk8Tf0qR412AxVfMvt1Ib8vm6QWi72hX4bWCQLyer+6G3mIzIXil9qZCFF7IkbW7gZz/4fqbqqNcZdH3WUFRVJb2b/F2UDpcKF9vIJ03//l2TMEOAJg5rOx2EI+Bzaq8crco7VUtfbLrDjQXJ4nl1jx08JxgpZxYho9u4=
+	t=1714665950; cv=none; b=ethDiv3BSBuswi9vHNOFQXwdV00J6M7mIsFfE+3rqD4d8ZSsqxcQf9EaS/funz+14Cysd7tbZbqFWFcWyfsBIBLo8vrBugJws3wbaQVqCc/Hq0PntQ93jBWz7ASlNMYSPtBl9xeG/Rw/d5N57VRWHdkYMnj0KB56VGG0I+26hfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714640127; c=relaxed/simple;
-	bh=Yg56ikL/SLLyAKrOTSpxjb8Cuea3ldNSUoH4sMs7lUY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Rj2kvHKi+SH8JZFvEePmJAl9fFjJljKLjl7zyWuCf8NlSkb+knt5/T0T0JODx6xRebYZrnjt3voZ76GB2uxWyiL3sk3bG1YbEsyQ1D/AG3+qvwf83KGx1E6n7RL24+6CP8HuH0rIw/YJYAaq4v8Tjx1FMkyqLEzzFp91ZaE+duY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T27ZpsYG; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1714665950; c=relaxed/simple;
+	bh=liNJpqZaUusEYaet5+AZ8QmE2V1rDP/SCGnddJWnXNg=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=nwTnGcDCByU2EgATjK+4odkPAf7wICjLQLnj7cLCTrgVnQ1aKZsj53jci4nHtZFJWOLRfTvz7z++QHqGVN4awfma3QIssd9Cuq+WOgG/0bbX066b71jA7pN1mPVUNYLmM8QLc7Qgi2EZC7ukxSbrF7fmoBbvG8ZmcqGIO101ejs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DCqaaOI4; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T27ZpsYG"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-2b2769f017aso2137171a91.3;
-        Thu, 02 May 2024 01:55:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714640125; x=1715244925; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/1qq9S2aGRtwilUT9y/lJAq9N983piKfJAV7Zk6wN1M=;
-        b=T27ZpsYGSC7AbRT+wZE/mkfPjogsK6azZcYHQPSVZKANx6/oKrXKY+ciWtjhu5Nj7P
-         o5Y/N46pZAaxK2KAiByFLMsvFIWDjyt7a/tkqg7ofoW0GqSXN4l0bKhwK0+x3URbURuw
-         9SarYhRl6QaV066W1juPTjleDk0EHG9bGvb0wjLufx5o75suZnRm2KLq8+xnaakHKxNb
-         EDIR7dBGnPJI1nsvFSbCzSDv1jWITySGTtp6/JV7PmLNY0U0DdQUwEnpL0lMARc3czaE
-         DTRtiWV2IXDfGaLOgmFqq+bY3dwvJXmkoLxXjAw9NJDM8+P0n/3yZKvH+mvaXkSH1CTn
-         9Z1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714640125; x=1715244925;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/1qq9S2aGRtwilUT9y/lJAq9N983piKfJAV7Zk6wN1M=;
-        b=ResGPgoYyEIOCP/KivnxakmQAiydH79flPtqRxn5niNqs/JivK/CnuDp+olgXYT1XF
-         6Vpx5WI+lqTgt9aX10hadRHLAwt0GVLImh39mMe6N3oFTZ+Y0wKJsdvo4WbJAVobE1F4
-         G/S+C/TRg0j/XpkZMJ5utc2XDJ4uGBzYLrG2EN30zLBX0edCmsHNu6X3IAIIybXCGkbl
-         WAWOkJRyBaeqvg6qcitx/IorQkVyrNynAv16hDMQgqQmcXUW6K9Q0H3lx1vXje1Rh4Uv
-         YmtQXf7sYtLtCDCgJmIX7nbbuMfChZhUr9kGqqYmHNXrPlf3SB8vxfJtzHiufkc+MYTc
-         D41Q==
-X-Forwarded-Encrypted: i=1; AJvYcCV+JLEC6UwcoRlSXyc0YATCtm4tN/1llRHi8Ohlu79ReX9nMn8VuKQxdCoNB4JWzJI8jJSCEkcLoDJbX+5SHXT8KF7d5ylJOAVEA2L2nvK3CIYms1W5V2iUIDFPTScnk7agVqL/9xWy3JBtHo+W7XdgkjASSl9dY4LVDsIj3/3lnfvci4a52g==
-X-Gm-Message-State: AOJu0Ywzntgfqq0UjMpQg9bHcKK0ivoGDL/0qy6JTyyg5n5EueoGfftQ
-	D+jViVQNWGUn9dpAbYWcrsNg5BRJKyG1DNet0F6KdzkAzZV1LmkUIE9yqp4Pe4UMV4KqF1iOJne
-	HedyzM/HNBrZSNwec8klCWI4ds/8=
-X-Google-Smtp-Source: AGHT+IEWHFfdPOAuzI1wYhBzIMGfNagBvY1J9P+TQuJFavD+2hsjIBw0Rk4R/Vs2x7OpvMNZ1kKU7tqxZIW8TeHH/vE=
-X-Received: by 2002:a17:90a:e68b:b0:2b0:8497:1c57 with SMTP id
- s11-20020a17090ae68b00b002b084971c57mr4710346pjy.27.1714640125591; Thu, 02
- May 2024 01:55:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DCqaaOI4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1714665949; x=1746201949;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=liNJpqZaUusEYaet5+AZ8QmE2V1rDP/SCGnddJWnXNg=;
+  b=DCqaaOI4SxpvTEmveF/UnfOdQ7Uek6XSnLcKsxj6Jj8IitMPS+vz397J
+   sfyj3QuJT2lQpFIEsg7i1+6Snx0aVszcoHpIGNClyD1tzOB+TLPbVLnuy
+   5FqUHtur/Ajf07Pk4/hGiHWNUAJVsGfMns5e4KdsfT4rJpGZr1gwFZW3R
+   l2FH+JK40mxXVm9FXYI/+BFobwTkj/NKXoAC2qJUlIot06FmAyyYvFSf1
+   VYT7vMPIpTpUzWrv0rMxpgjwBxh1zDT7B/9vQltCMucwQZapODC56vNBW
+   SamN4Jx0FCWIkA/6NdpUv0vjQOHWCGmOMVw1YJepoZZgaumza2TebnuAR
+   Q==;
+X-CSE-ConnectionGUID: G9xQVcqaSA+/5yPn+P9v1A==
+X-CSE-MsgGUID: vNDf5q9SRlqAcGN1UdcKQg==
+X-IronPort-AV: E=McAfee;i="6600,9927,11062"; a="10374567"
+X-IronPort-AV: E=Sophos;i="6.07,247,1708416000"; 
+   d="scan'208";a="10374567"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 May 2024 09:05:17 -0700
+X-CSE-ConnectionGUID: gWDa5TmKQPuG2RdMmF7q/A==
+X-CSE-MsgGUID: IoiQcfODT/G8bTRHDEkG9Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,247,1708416000"; 
+   d="scan'208";a="64606203"
+Received: from ijarvine-desk1.ger.corp.intel.com (HELO localhost) ([10.245.247.54])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 May 2024 09:05:10 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Thu, 2 May 2024 19:05:03 +0300 (EEST)
+To: Shresth Prasad <shresthprasad7@gmail.com>
+cc: davem@davemloft.net, gregkh@linuxfoundation.org, jirislaby@kernel.org, 
+    sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+    linux-serial@vger.kernel.org, javier.carrasco.cruz@gmail.com, 
+    skhan@linuxfoundation.org, Julia Lawall <julia.lawall@inria.fr>
+Subject: Re: [PATCH v2][next] tty: sunsu: Simplify device_node cleanup by
+ using __free
+In-Reply-To: <20240501084110.4165-2-shresthprasad7@gmail.com>
+Message-ID: <f1707254-ec32-4884-275a-c3c85b48d7d5@linux.intel.com>
+References: <20240501084110.4165-2-shresthprasad7@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240501084110.4165-2-shresthprasad7@gmail.com> <01cbcdf5-8a7a-4b47-a2aa-05c041e3cab2@kernel.org>
-In-Reply-To: <01cbcdf5-8a7a-4b47-a2aa-05c041e3cab2@kernel.org>
-From: Shresth Prasad <shresthprasad7@gmail.com>
-Date: Thu, 2 May 2024 14:25:14 +0530
-Message-ID: <CAE8VWiKqnM0BGnSDxT5+ZjD67UXxjY3PZAyNwsxbD0nZs3cJ4A@mail.gmail.com>
-Subject: Re: [PATCH v2][next] tty: sunsu: Simplify device_node cleanup by
- using __free
-To: Jiri Slaby <jirislaby@kernel.org>
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org, 
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-serial@vger.kernel.org, javier.carrasco.cruz@gmail.com, 
-	skhan@linuxfoundation.org, Julia Lawall <julia.lawall@inria.fr>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 
-On Thu, May 2, 2024 at 1:26=E2=80=AFPM Jiri Slaby <jirislaby@kernel.org> wr=
-ote:
->
-> On 01. 05. 24, 10:41, Shresth Prasad wrote:
-> > Add `__free` function attribute to `ap` and `match` pointer
-> > initialisations which ensure that the pointers are freed as soon as the=
-y
-> > go out of scope, thus removing the need to manually free them using
-> > `of_node_put`.
-> >
-> > This also removes the need for the `goto` statement and the `rc`
-> > variable.
-> >
-> > Tested using a qemu x86_64 virtual machine.
-> >
-> > Suggested-by: Julia Lawall <julia.lawall@inria.fr>
-> > Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
-> > ---
-> > Changes in v2:
-> >      - Specify how the patch was tested
-> >
-> >   drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
-> >   1 file changed, 11 insertions(+), 26 deletions(-)
->
-> Nice cleanup.
+On Wed, 1 May 2024, Shresth Prasad wrote:
 
-Thanks :)
+> Add `__free` function attribute to `ap` and `match` pointer
+> initialisations which ensure that the pointers are freed as soon as they
+> go out of scope, thus removing the need to manually free them using
+> `of_node_put`.
+> 
+> This also removes the need for the `goto` statement and the `rc`
+> variable.
+> 
+> Tested using a qemu x86_64 virtual machine.
 
->
-> > --- a/drivers/tty/serial/sunsu.c
-> > +++ b/drivers/tty/serial/sunsu.c
-> > @@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(voi=
-d)
-> >
-> >   static enum su_type su_get_type(struct device_node *dp)
-> >   {
-> > -     struct device_node *ap =3D of_find_node_by_path("/aliases");
-> > -     enum su_type rc =3D SU_PORT_PORT;
-> > +     struct device_node *ap __free(device_node) =3D
-> > +                         of_find_node_by_path("/aliases");
->
-> If we used c++, that would be even nicer; like:
-> Destroyer ap(of_find_node_by_path("/aliases"));
->
-> But we don't :P. OTOH. can't we achieve that with macro-fu and typeof()
-> magic? Perhaps not really exactly the above, but something like
->    Destroyer(ap, of_find_node_by_path("/aliases"));
-> maybe?
+Eh, how can you test this with an x86_64 VM ???
 
-Hmm, a macro like that could probably be written but it's more convenient
-to use the GCC attribute like in the current implementation, IMO.
+config SERIAL_SUNSU
+        tristate "Sun SU serial support"
+        depends on SPARC && PCI
 
-Jonathan Corbert, who introduced this, wrote about it here:
-https://lwn.net/Articles/934679/
+-- 
+ i.
 
-Regards,
-Shresth
+
+> Suggested-by: Julia Lawall <julia.lawall@inria.fr>
+> Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
+> ---
+> Changes in v2:
+>     - Specify how the patch was tested
+> 
+>  drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
+>  1 file changed, 11 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+> index 67a5fc70bb4b..0f463da5e7ce 100644
+> --- a/drivers/tty/serial/sunsu.c
+> +++ b/drivers/tty/serial/sunsu.c
+> @@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(void)
+>  
+>  static enum su_type su_get_type(struct device_node *dp)
+>  {
+> -	struct device_node *ap = of_find_node_by_path("/aliases");
+> -	enum su_type rc = SU_PORT_PORT;
+> +	struct device_node *ap __free(device_node) =
+> +			    of_find_node_by_path("/aliases");
+>  
+>  	if (ap) {
+>  		const char *keyb = of_get_property(ap, "keyboard", NULL);
+>  		const char *ms = of_get_property(ap, "mouse", NULL);
+> -		struct device_node *match;
+>  
+>  		if (keyb) {
+> -			match = of_find_node_by_path(keyb);
+> +			struct device_node *match __free(device_node) =
+> +					    of_find_node_by_path(keyb);
+>  
+> -			/*
+> -			 * The pointer is used as an identifier not
+> -			 * as a pointer, we can drop the refcount on
+> -			 * the of__node immediately after getting it.
+> -			 */
+> -			of_node_put(match);
+> -
+> -			if (dp == match) {
+> -				rc = SU_PORT_KBD;
+> -				goto out;
+> -			}
+> +			if (dp == match)
+> +				return SU_PORT_KBD;
+>  		}
+>  		if (ms) {
+> -			match = of_find_node_by_path(ms);
+> +			struct device_node *match __free(device_node) =
+> +					    of_find_node_by_path(ms);
+>  
+> -			of_node_put(match);
+> -
+> -			if (dp == match) {
+> -				rc = SU_PORT_MS;
+> -				goto out;
+> -			}
+> +			if (dp == match)
+> +				return SU_PORT_MS;
+>  		}
+>  	}
+> -
+> -out:
+> -	of_node_put(ap);
+> -	return rc;
+> +	return SU_PORT_PORT;
+>  }
+>  
+>  static int su_probe(struct platform_device *op)
+> 
