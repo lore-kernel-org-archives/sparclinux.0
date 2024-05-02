@@ -1,154 +1,130 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6EE022F00;
-	Thu,  2 May 2024 07:56:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 491C353362;
+	Thu,  2 May 2024 08:55:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714636566; cv=none; b=PNXCQNlSgp9Vmk2PvejcaDIqwiBrAdgSXxdhisTECYocXE25t+WkEjWiOC1tvUD4l+fiEK2b9CXKDr+bxyiJhTc3WLs9o9A9BWjZrrkmq+Mj07Nw8gIuOPIUdu1D1KxzOzWdhKUNx9j67UJmlosHJwPtoRYwKUI244QWHU/BuTg=
+	t=1714640127; cv=none; b=Tcx+8xBk8Tf0qR412AxVfMvt1Ib8vm6QWi72hX4bWCQLyer+6G3mIzIXil9qZCFF7IkbW7gZz/4fqbqqNcZdH3WUFRVJb2b/F2UDpcKF9vIJ03//l2TMEOAJg5rOx2EI+Bzaq8crco7VUtfbLrDjQXJ4nl1jx08JxgpZxYho9u4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714636566; c=relaxed/simple;
-	bh=Vc+UiWe/PFfiLW9+QHsBDK/nqefj6balOiVXYNuF3i0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=IT0Tvdm0tQ517aRMic8XKB88AqjVVPVmfuWT7lFhqLVV+kNJWbUsfgd5qJbzRZVBjp+mCcV9/MjIBeI/F9bo3klOopRaAmKlc0GsyEVdGdOS9B164S4NUSGd3gzS+b7iMKsepVdNh/5XzWFIJfbJ8KAtyljQtguOYdCA4Z7zLOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	s=arc-20240116; t=1714640127; c=relaxed/simple;
+	bh=Yg56ikL/SLLyAKrOTSpxjb8Cuea3ldNSUoH4sMs7lUY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Rj2kvHKi+SH8JZFvEePmJAl9fFjJljKLjl7zyWuCf8NlSkb+knt5/T0T0JODx6xRebYZrnjt3voZ76GB2uxWyiL3sk3bG1YbEsyQ1D/AG3+qvwf83KGx1E6n7RL24+6CP8HuH0rIw/YJYAaq4v8Tjx1FMkyqLEzzFp91ZaE+duY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T27ZpsYG; arc=none smtp.client-ip=209.85.216.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-a58e787130fso265321966b.0;
-        Thu, 02 May 2024 00:56:04 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714636563; x=1715241363;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T27ZpsYG"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-2b2769f017aso2137171a91.3;
+        Thu, 02 May 2024 01:55:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714640125; x=1715244925; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gCHs5AyIZZ846owNPHrscIolxUHAkH2dX6I4QmI8RyU=;
-        b=XPkIocWuy4hwM7UhR0NcfEzSxSsMW104AseASWvLZDx5Fmox9+lc3Mw9kzXf3AA/DT
-         j54EQuBspHA6jzGRiKiZdpWZAoPeaRJ0Uq0jCxrxFhPvmMBZUlfjN6qbShHzQe3Lm1Tf
-         nn6U7X2ZVMk/M4l8UOhFoChwEAtzDe5UlJv9l2g47Gi7mIRVdUzLtKbNNcB5vWxtU2uj
-         /qcQYA3akFC1md2l8pZljyQKQq/sVW3ltwa5g84Rl/u/gmSFknFH+rDeC3+tUl8PA/uz
-         EmMa/O4kZ7gMZbYkidGRX78GmqYdwrfajxQznCHCYgUb6O4hCdfl/OROYryL3cgf4p16
-         5xHw==
-X-Forwarded-Encrypted: i=1; AJvYcCU1JJb/A6BlJU3bP7Bg3jnt6vhBiXGygiYx9N0hsCp1TaQom1HfdFlFPOG+fZWnKnGlo69GHfnwSdA+fmlR4pLjXTyXo4kscAsPJI2UI8IlV5uTfqUX9no7BOIiqeA5+eA7dihZURNMXkQx
-X-Gm-Message-State: AOJu0Yw4rbkGyS1ndTzVFkkROF5rGJyuVofAzuaGAacPeAOeCRa3w979
-	Z29XppxPPAQQ3qvEuwDz0Midcwrpn09q+mE5D7Hj/qh5KMjc2t7c
-X-Google-Smtp-Source: AGHT+IGFME45YUcGSIYJpvtT0MBUCcOSCBGxBO1lqQJPYJ00YYSsDdQL+TsG9vmbcHd1ZjwEt6x6mw==
-X-Received: by 2002:a17:906:1ccc:b0:a58:85ab:354c with SMTP id i12-20020a1709061ccc00b00a5885ab354cmr1587893ejh.1.1714636562454;
-        Thu, 02 May 2024 00:56:02 -0700 (PDT)
-Received: from ?IPV6:2a0b:e7c0:0:107::aaaa:69? ([2a0b:e7c0:0:107::aaaa:69])
-        by smtp.gmail.com with ESMTPSA id jw20-20020a17090776b400b00a4660b63502sm253754ejc.12.2024.05.02.00.56.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 02 May 2024 00:56:02 -0700 (PDT)
-Message-ID: <01cbcdf5-8a7a-4b47-a2aa-05c041e3cab2@kernel.org>
-Date: Thu, 2 May 2024 09:56:00 +0200
+        bh=/1qq9S2aGRtwilUT9y/lJAq9N983piKfJAV7Zk6wN1M=;
+        b=T27ZpsYGSC7AbRT+wZE/mkfPjogsK6azZcYHQPSVZKANx6/oKrXKY+ciWtjhu5Nj7P
+         o5Y/N46pZAaxK2KAiByFLMsvFIWDjyt7a/tkqg7ofoW0GqSXN4l0bKhwK0+x3URbURuw
+         9SarYhRl6QaV066W1juPTjleDk0EHG9bGvb0wjLufx5o75suZnRm2KLq8+xnaakHKxNb
+         EDIR7dBGnPJI1nsvFSbCzSDv1jWITySGTtp6/JV7PmLNY0U0DdQUwEnpL0lMARc3czaE
+         DTRtiWV2IXDfGaLOgmFqq+bY3dwvJXmkoLxXjAw9NJDM8+P0n/3yZKvH+mvaXkSH1CTn
+         9Z1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714640125; x=1715244925;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/1qq9S2aGRtwilUT9y/lJAq9N983piKfJAV7Zk6wN1M=;
+        b=ResGPgoYyEIOCP/KivnxakmQAiydH79flPtqRxn5niNqs/JivK/CnuDp+olgXYT1XF
+         6Vpx5WI+lqTgt9aX10hadRHLAwt0GVLImh39mMe6N3oFTZ+Y0wKJsdvo4WbJAVobE1F4
+         G/S+C/TRg0j/XpkZMJ5utc2XDJ4uGBzYLrG2EN30zLBX0edCmsHNu6X3IAIIybXCGkbl
+         WAWOkJRyBaeqvg6qcitx/IorQkVyrNynAv16hDMQgqQmcXUW6K9Q0H3lx1vXje1Rh4Uv
+         YmtQXf7sYtLtCDCgJmIX7nbbuMfChZhUr9kGqqYmHNXrPlf3SB8vxfJtzHiufkc+MYTc
+         D41Q==
+X-Forwarded-Encrypted: i=1; AJvYcCV+JLEC6UwcoRlSXyc0YATCtm4tN/1llRHi8Ohlu79ReX9nMn8VuKQxdCoNB4JWzJI8jJSCEkcLoDJbX+5SHXT8KF7d5ylJOAVEA2L2nvK3CIYms1W5V2iUIDFPTScnk7agVqL/9xWy3JBtHo+W7XdgkjASSl9dY4LVDsIj3/3lnfvci4a52g==
+X-Gm-Message-State: AOJu0Ywzntgfqq0UjMpQg9bHcKK0ivoGDL/0qy6JTyyg5n5EueoGfftQ
+	D+jViVQNWGUn9dpAbYWcrsNg5BRJKyG1DNet0F6KdzkAzZV1LmkUIE9yqp4Pe4UMV4KqF1iOJne
+	HedyzM/HNBrZSNwec8klCWI4ds/8=
+X-Google-Smtp-Source: AGHT+IEWHFfdPOAuzI1wYhBzIMGfNagBvY1J9P+TQuJFavD+2hsjIBw0Rk4R/Vs2x7OpvMNZ1kKU7tqxZIW8TeHH/vE=
+X-Received: by 2002:a17:90a:e68b:b0:2b0:8497:1c57 with SMTP id
+ s11-20020a17090ae68b00b002b084971c57mr4710346pjy.27.1714640125591; Thu, 02
+ May 2024 01:55:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
+References: <20240501084110.4165-2-shresthprasad7@gmail.com> <01cbcdf5-8a7a-4b47-a2aa-05c041e3cab2@kernel.org>
+In-Reply-To: <01cbcdf5-8a7a-4b47-a2aa-05c041e3cab2@kernel.org>
+From: Shresth Prasad <shresthprasad7@gmail.com>
+Date: Thu, 2 May 2024 14:25:14 +0530
+Message-ID: <CAE8VWiKqnM0BGnSDxT5+ZjD67UXxjY3PZAyNwsxbD0nZs3cJ4A@mail.gmail.com>
 Subject: Re: [PATCH v2][next] tty: sunsu: Simplify device_node cleanup by
  using __free
-To: Shresth Prasad <shresthprasad7@gmail.com>, davem@davemloft.net,
- gregkh@linuxfoundation.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-serial@vger.kernel.org, javier.carrasco.cruz@gmail.com,
- skhan@linuxfoundation.org, Julia Lawall <julia.lawall@inria.fr>
-References: <20240501084110.4165-2-shresthprasad7@gmail.com>
-Content-Language: en-US
-From: Jiri Slaby <jirislaby@kernel.org>
-Autocrypt: addr=jirislaby@kernel.org; keydata=
- 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
-In-Reply-To: <20240501084110.4165-2-shresthprasad7@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jiri Slaby <jirislaby@kernel.org>
+Cc: davem@davemloft.net, gregkh@linuxfoundation.org, 
+	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-serial@vger.kernel.org, javier.carrasco.cruz@gmail.com, 
+	skhan@linuxfoundation.org, Julia Lawall <julia.lawall@inria.fr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 01. 05. 24, 10:41, Shresth Prasad wrote:
-> Add `__free` function attribute to `ap` and `match` pointer
-> initialisations which ensure that the pointers are freed as soon as they
-> go out of scope, thus removing the need to manually free them using
-> `of_node_put`.
-> 
-> This also removes the need for the `goto` statement and the `rc`
-> variable.
-> 
-> Tested using a qemu x86_64 virtual machine.
-> 
-> Suggested-by: Julia Lawall <julia.lawall@inria.fr>
-> Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
-> ---
-> Changes in v2:
->      - Specify how the patch was tested
-> 
->   drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
->   1 file changed, 11 insertions(+), 26 deletions(-)
+On Thu, May 2, 2024 at 1:26=E2=80=AFPM Jiri Slaby <jirislaby@kernel.org> wr=
+ote:
+>
+> On 01. 05. 24, 10:41, Shresth Prasad wrote:
+> > Add `__free` function attribute to `ap` and `match` pointer
+> > initialisations which ensure that the pointers are freed as soon as the=
+y
+> > go out of scope, thus removing the need to manually free them using
+> > `of_node_put`.
+> >
+> > This also removes the need for the `goto` statement and the `rc`
+> > variable.
+> >
+> > Tested using a qemu x86_64 virtual machine.
+> >
+> > Suggested-by: Julia Lawall <julia.lawall@inria.fr>
+> > Signed-off-by: Shresth Prasad <shresthprasad7@gmail.com>
+> > ---
+> > Changes in v2:
+> >      - Specify how the patch was tested
+> >
+> >   drivers/tty/serial/sunsu.c | 37 +++++++++++--------------------------
+> >   1 file changed, 11 insertions(+), 26 deletions(-)
+>
+> Nice cleanup.
 
-Nice cleanup.
+Thanks :)
 
-> --- a/drivers/tty/serial/sunsu.c
-> +++ b/drivers/tty/serial/sunsu.c
-> @@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(void)
->   
->   static enum su_type su_get_type(struct device_node *dp)
->   {
-> -	struct device_node *ap = of_find_node_by_path("/aliases");
-> -	enum su_type rc = SU_PORT_PORT;
-> +	struct device_node *ap __free(device_node) =
-> +			    of_find_node_by_path("/aliases");
+>
+> > --- a/drivers/tty/serial/sunsu.c
+> > +++ b/drivers/tty/serial/sunsu.c
+> > @@ -1382,44 +1382,29 @@ static inline struct console *SUNSU_CONSOLE(voi=
+d)
+> >
+> >   static enum su_type su_get_type(struct device_node *dp)
+> >   {
+> > -     struct device_node *ap =3D of_find_node_by_path("/aliases");
+> > -     enum su_type rc =3D SU_PORT_PORT;
+> > +     struct device_node *ap __free(device_node) =3D
+> > +                         of_find_node_by_path("/aliases");
+>
+> If we used c++, that would be even nicer; like:
+> Destroyer ap(of_find_node_by_path("/aliases"));
+>
+> But we don't :P. OTOH. can't we achieve that with macro-fu and typeof()
+> magic? Perhaps not really exactly the above, but something like
+>    Destroyer(ap, of_find_node_by_path("/aliases"));
+> maybe?
 
-If we used c++, that would be even nicer; like:
-Destroyer ap(of_find_node_by_path("/aliases"));
+Hmm, a macro like that could probably be written but it's more convenient
+to use the GCC attribute like in the current implementation, IMO.
 
-But we don't :P. OTOH. can't we achieve that with macro-fu and typeof() 
-magic? Perhaps not really exactly the above, but something like
-   Destroyer(ap, of_find_node_by_path("/aliases"));
-maybe?
+Jonathan Corbert, who introduced this, wrote about it here:
+https://lwn.net/Articles/934679/
 
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
-
-thanks,
--- 
-js
-suse labs
-
+Regards,
+Shresth
