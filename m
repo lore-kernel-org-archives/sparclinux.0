@@ -1,82 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpbgbr2.qq.com (smtpbgbr2.qq.com [54.207.22.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB1613D50E;
-	Mon,  6 May 2024 18:22:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDED515B992;
+	Tue,  7 May 2024 12:57:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.22.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715019760; cv=none; b=lnOXLXNMbCkNmDhBwT7Qq/SUCQo2xvSZMy4dy58w3rVDNQPP/6pmPogf3vI0+LddIQyHohiQum9PUwqYC+HkpAuSXYJ90eP8w9dvOZDU8zYyqdqgz8an08pOy2HMnswAn00mqpol5HfFEBRSBeJJWSpNsh9VJ+aKBHnZeDaTLgI=
+	t=1715086631; cv=none; b=nrqmlh68XP4Gipu4Rb3nSKQjV+ZP6OvbeNgWZl3DAhz26oKmDQkLzT+WTh/a1pZyPS5Jp1eOa1kcYzoM+iuRvUkExixuisYvMIvZ7zRKx7+Z0rRQkj/W06U0YhYfSI0Ma3hqHdvnCqqTF7syrek8TIjR4yHSnnHLRzpZTv+GtEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715019760; c=relaxed/simple;
-	bh=WsHe/FafqFnwnZcWZSxrr9+9n6uZZXGez9G447n+Nfo=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qbj5XPjy7er31WWFCVTWzkj56yZ7AoJS5Zr7rZtWHRps/CBeeWoP5VPx16w/HT8l3z9OJvWflWL/tIP5+GXD22uoh6FV4KWhWl6SNpDessMFmlXEQVQXXaPJeux/RsnvscasOWx1TpT0RSDJrtERQyW8OPF9P27lvPY6nK9gOlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B99BC116B1;
-	Mon,  6 May 2024 18:22:35 +0000 (UTC)
-Date: Mon, 6 May 2024 14:22:40 -0400
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Alexandre Ghiti <alexghiti@rivosinc.com>,
- Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Christophe
- Leroy <christophe.leroy@csgroup.eu>, "David S. Miller"
- <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, Donald Dutile
- <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>, Heiko Carstens
- <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen
- <chenhuacai@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, Liviu
- Dudau <liviu@dudau.co.uk>, Luis Chamberlain <mcgrof@kernel.org>, Mark
- Rutland <mark.rutland@arm.com>, Masami Hiramatsu <mhiramat@kernel.org>,
- Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>,
- Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
- Philippe =?UTF-8?B?TWF0aGlldS1EYXVkw6k=?= <philmd@linaro.org>, Rick
- Edgecombe <rick.p.edgecombe@intel.com>, Russell King
- <linux@armlinux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, Song Liu
- <song@kernel.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Thomas
- Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
- bpf@vger.kernel.org, linux-arch@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-modules@vger.kernel.org,
- linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v8 13/17] x86/ftrace: enable dynamic ftrace without
- CONFIG_MODULES
-Message-ID: <20240506142240.36c38d7f@gandalf.local.home>
-In-Reply-To: <20240505142600.2322517-14-rppt@kernel.org>
-References: <20240505142600.2322517-1-rppt@kernel.org>
-	<20240505142600.2322517-14-rppt@kernel.org>
-X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	s=arc-20240116; t=1715086631; c=relaxed/simple;
+	bh=/comYDFeZO3j2RnZQDpuK4pS2vPgW1NhCSZjPfkTJxU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DgeTmZD3tS3BSolnuq+NXbfrJo2ScEOgTbMS7r6ot3Q6r4cLRba9rl3nQ9HUTh8OcCn3AbBI+cgLqz7ukmyLYqoRSCVo7c/Bnhh/1/pxiJRY+Ou7MRg8kW8xQy2J/LoUx4nv4O2CriYVdD2eO2FpLyevyJdeV/vKkA5fxEVP0Uw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn; spf=pass smtp.mailfrom=shingroup.cn; arc=none smtp.client-ip=54.207.22.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shingroup.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shingroup.cn
+X-QQ-mid: bizesmtpsz1t1715086578ty0akl4
+X-QQ-Originating-IP: tyGXQ7k/fVCDZ9cvJSokRBgm4NEcZ1aL6t7xf1Nvo/I=
+Received: from localhost ( [112.0.147.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Tue, 07 May 2024 20:56:16 +0800 (CST)
+X-QQ-SSF: 01400000000000903000000A0000000
+X-QQ-FEAT: ih8wnZWEUfUUqXQrgL7//rRaWUv/yoomnC4L9l+N0nevDKkud67FOPB78fLtB
+	LUgVjX8w4VZ/XPC+ZqUMW2hAp02WMCRNAIUgHnpW/l8E8e4mlZdBXkRjzg5bYwzxGi8FdUo
+	x7Jn3d2SQFcmRxHC0djtkBo9z72Bb2w9KYLZrySqRwtrS1XhkHAQINdY7MPGbTvxklMZFyZ
+	pq+98plMi/hYvQVCu7ngY+Ept6rhTYIu6KuII7OvqKz933J7083LvxAqrgOl7TX9ymBGQXD
+	9ZL6uWLEm2lQWKgZGPETpkJhkejOPiZbQSAT3K68vAjlwXh3VNMOz8/wyjkqqqPBSNwCmfx
+	FEFLkT9EIeIt+jV5hNx5NQw+uH22l+dUBKiDFtvNgii29PGx77gNnNka0b+5kVhVnhvhzpG
+	Ja/3mn5OTYs=
+X-QQ-GoodBg: 2
+X-BIZMAIL-ID: 10700211031431174611
+Date: Tue, 7 May 2024 20:56:16 +0800
+From: Dawei Li <dawei.li@shingroup.cn>
+To: davem@davemloft.net, andreas@gaisler.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sam@ravnborg.org
+Subject: Re: [PATCH v4 0/5] Remove onstack cpumask var for sparc
+Message-ID: <2E1672E07EE140B4+Zjok8JvIOXBNZnVJ@centos8>
+References: <20240424025548.3765250-1-dawei.li@shingroup.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240424025548.3765250-1-dawei.li@shingroup.cn>
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtpsz:shingroup.cn:qybglogicsvrgz:qybglogicsvrgz5a-1
 
-On Sun,  5 May 2024 17:25:56 +0300
-Mike Rapoport <rppt@kernel.org> wrote:
+Hi Andreas,
 
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+On Wed, Apr 24, 2024 at 10:55:43AM +0800, Dawei Li wrote:
+> Hi,
 > 
-> Dynamic ftrace must allocate memory for code and this was impossible
-> without CONFIG_MODULES.
+> This is v4 of previous series on removal of on-stack cpumask var for
+> sparc arch.
 > 
-> With execmem separated from the modules code, execmem_text_alloc() is
-> available regardless of CONFIG_MODULES.
+> Change since v3:
 > 
-> Remove dependency of dynamic ftrace on CONFIG_MODULES and make
-> CONFIG_DYNAMIC_FTRACE select CONFIG_EXECMEM in Kconfig.
+> - Rebased against for-next of Andreas.
 > 
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> ---
->  arch/x86/Kconfig         |  1 +
->  arch/x86/kernel/ftrace.c | 10 ----------
->  2 files changed, 1 insertion(+), 10 deletions(-)
+> - Add Reviewed-by from Sam.
+> 
+> - Remove PATCH(sparc/init: Remove on-stack cpumask var).
+> 
+> v1:
+> https://lore.kernel.org/all/20240418104949.3606645-1-dawei.li@shingroup.cn/
+> 
+> v2:
+> https://lore.kernel.org/all/20240420051547.3681642-1-dawei.li@shingroup.cn/
+> 
+> v3:
+> https://lore.kernel.org/all/20240423083043.3735921-1-dawei.li@shingroup.cn/
+> 
+> Dawei Li (5):
+>   sparc/srmmu: Remove on-stack cpumask var
+>   sparc/irq: Remove on-stack cpumask var
+>   sparc/of: Remove on-stack cpumask var
+>   sparc/pci_msi: Remove on-stack cpumask var
+>   sparc/leon: Remove on-stack cpumask var
+> 
+>  arch/sparc/kernel/irq_64.c       | 10 +++-----
+>  arch/sparc/kernel/leon_kernel.c  |  7 +++---
+>  arch/sparc/kernel/of_device_64.c |  5 +---
+>  arch/sparc/kernel/pci_msi.c      |  5 +---
+>  arch/sparc/mm/srmmu.c            | 40 ++++++++++----------------------
+>  5 files changed, 20 insertions(+), 47 deletions(-)
 
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Any chance of getting this series queued up for v6.10?
 
--- Steve
+Thanks,
+
+    Dawei
+
+> 
+> -- 
+> 2.27.0
+> 
