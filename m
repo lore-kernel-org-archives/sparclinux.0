@@ -1,59 +1,59 @@
-Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com [209.85.208.170])
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E0A2EAE1;
-	Fri, 17 May 2024 16:09:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F24F7323D
+	for <sparclinux@vger.kernel.org>; Sat, 18 May 2024 00:39:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715962189; cv=none; b=acPGVc2me7c9+7EKOs6WvsCqzQV/9Ya6YyfrqUu3lG+umJ3s9UUruqo8NGEty4SyQOSg+0TCV5TKoiUT5USfExJV6YRipBACNog3u3VCy7nm5Arqlq7BdHO8x9GSelwxa2G7YvJmEPmNHSLMnqOocKD9cR9z4u6pYulZxl5hnmk=
+	t=1715992774; cv=none; b=V5Wfw3yR2WV7IwzzwbWiqUd2eJ9VWL8tujcTX2arTgYDFkh7789+kah7CDstrSi0QRbYeFnkwEVfCf6xNzDS7YzrCEJ3mkfOxuZ/L3bKl6B6WCYcLED/47HOuF7g4peL6r0ilStORuU9nUDnkTuPxZvspkHhl3XU2hJ9VXbyQWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715962189; c=relaxed/simple;
-	bh=Nf4RNkeImLEAmR+itasCgmxOOOn/nmm3CPvksEHRQiQ=;
+	s=arc-20240116; t=1715992774; c=relaxed/simple;
+	bh=4V5YW8ORGMY45KRj8UEqSm59pF8Y+sc6mDeE+TSeGJM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e/4D3wXVH3g7ZYzav0YUFeSkZyznpy4HASdZk+nRjeNipuuqOTdl4XBGZJwgqz5DJv+cWXCy4YJfsZ1gjMv258XOPdBFYPU1XQ+nbb2OHQJWFT+CBMBCicPFMyKviNld8BLIjBKDTDpbx7WngkH08lVlBjOFm7itTrTYQQvykac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gzY46KJ2; arc=none smtp.client-ip=209.85.208.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 In-Reply-To:Content-Type; b=gR0XZj2/WmS4MvBiLKw1GXzSCDiJcrJgPT82eDHsMLMpl9Qz/Q+D5vuMfznhDyOrcw2omaD/2y6VIkzQi1Rp8NCxzWtRY7DlOCw0SRI4yKqEotgIBOIO5dLRaoZy8F289FMS6FBNyBRuhdUDUyqt5qG3SjkE2nM83qQJhF009qM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk; spf=none smtp.mailfrom=davidwei.uk; dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b=SV2zemg5; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=davidwei.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gzY46KJ2"
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-2e09138a2b1so11564841fa.3;
-        Fri, 17 May 2024 09:09:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b="SV2zemg5"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-1ee42b97b32so26031635ad.2
+        for <sparclinux@vger.kernel.org>; Fri, 17 May 2024 17:39:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1715962186; x=1716566986; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
+        d=davidwei-uk.20230601.gappssmtp.com; s=20230601; t=1715992772; x=1716597572; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=IstAfylTBNaTxmmaRyk4imp16sEYUHGaznoMjv7UZHs=;
-        b=gzY46KJ24SqO952EeXZ1ZO64bPCcjC9ww5yqMYdkda2VCXqZ1BHujAjp48nLIIhP+S
-         cT2FibLbWOCcbAhe8wD3crfcaviP0/zRZ0+5bs/6JiMQuG/Mm20itWyTvIQvzY6+Dv3X
-         mVYiRewPhKc3UO/H0zDT1uzxqM1GzZ6WFT8uWdUxhjOC0j1zyuLVpQEXUAds8Ll8SBDR
-         2vaUVuPdVRMjfp+cGKOXGirmJAWaP00pVr9bE8jAxG+UVkMd4K1xyMzGy9vD2fh0ubz/
-         Hh62aMMN+izN0mgiwBL1BNy4ecDGxBLvL+wc++odjdJ+dGXHRMjUn+ySqQY3LKvMmAle
-         8vXg==
+        bh=p7Punv+O2VI5RKAkHRkhtEk7CBj9yRK2PJX5XN6bfhc=;
+        b=SV2zemg5NtIR3pbXcUpjQL4Nh2uV808bM0bYra4XbVqoECYENJz6/Yy1du6GUsBF1T
+         XjClNZyHgkq1IjzGsNu0VF4KSRcFvP8duWW93pNhihxONKxIBHEuEju184pzDGSNNupq
+         ib3YMvRdDHjiHmp2OxcZgusnPxfFWYkd34Nlw+eS/M5SIsLUf3Mrx9wPF3j4JbN0L51J
+         8Ns52iIbDMMJzhPw7VAE6tB2RCkaU9f1rM9auoIgPX19Bn4lqARdC5AzZbrjVYBG9xPX
+         cdNuEoJX1TmbwOv4k+7AFSI4ow5gFWRUrYzogvoH4IJNgoo7XBVgU2ba15ADfeNZaYsV
+         sGRA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1715962186; x=1716566986;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
+        d=1e100.net; s=20230601; t=1715992772; x=1716597572;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=IstAfylTBNaTxmmaRyk4imp16sEYUHGaznoMjv7UZHs=;
-        b=U23BflJQlQ2SGJx6BVQqRxoFzFWgcmhTqIm1wSvgx3EyT3hwUs2+5BGBwZNKB7kere
-         MoeIJ946/NxmLgjRu3LL8wV2uecsu37yvbcF6GGWVRtFIc3iEoXeZuqTLXtT6XP30GhO
-         9pr1lnw7TPURUUP7nhr6sUiPYcYHTBst/pfXzMJUF+WDjaFo7KAx7CEItwyXwG60rhRz
-         LQU8wait7HO3oaeXn9gt+F3SZItVu6J7zzvGwC6xDdqavqJ0qT0PTVYPrwNXaz1y5FU2
-         oK6FfLTOVtxcpBkNxrZ+BCGko7ppZQnA3BOeia8I6Kkc+RUtXSiJdb/4S4Mu2NRRZHaP
-         S/4A==
-X-Forwarded-Encrypted: i=1; AJvYcCVzrSMCrjLxH+iRV0A35S2goPPB7Ob/Ks0PtFJEQluR3WUOaZ0wAYAojqCSrw8LUSgND8nWjrVyAC0iudBvgq6lu30F+E3jX21QEK8DdPIglEJt5keV3Aj39yBeuqAqo5/dktfEo7vyZFtjosNlbp/kPvsf/EczQHymfiMM66snE7D2egW8Qqm+D07E2Yz9JkiOIk4NL421Xz+mmp4nGlAkQr4IHxjjfHlyM7XPbz2gMw5tWwvtp4+AB4q7qhgLjkxwQFFFL6VKautv5puOPnvg3f3l8FEjWH8PXei73VlCeADJcTqi6Tj9RYW5msNrhPedxvJu5x/U6bjMnK+ZwTxt8R0tsLrwcuNs9Wc6ctG72lMZXsXr1s9S0c67BGUm/qFAjrXMxcPlqFMC0+mFcY/VhsCtMc9EWF2OV+OeDoCnN1jmwBZ9izYEcKY=
-X-Gm-Message-State: AOJu0Yx1QqQpPvKlKY35dejdl+ioSYdJ8e3F1ggS4wOeT4PT6j9KumUx
-	JijzxMan+uhxZgF5wivoX6We58viImiA10v2lncSfF0OabKe5kks
-X-Google-Smtp-Source: AGHT+IHgmwwit2WhgD28ItKwKm0UGYj6mPQDthm9VUXNUEsMkvdnQLGvWiUajRHCK+r/d8TH466Lzg==
-X-Received: by 2002:ac2:54b9:0:b0:51f:d72:cd2d with SMTP id 2adb3069b0e04-5220fc7aeb4mr13493469e87.22.1715962185544;
-        Fri, 17 May 2024 09:09:45 -0700 (PDT)
-Received: from ?IPV6:2001:678:a5c:1202:2659:d6e4:5d55:b864? (soda.int.kasm.eu. [2001:678:a5c:1202:2659:d6e4:5d55:b864])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-521f38d7ee4sm3314135e87.182.2024.05.17.09.09.43
+        bh=p7Punv+O2VI5RKAkHRkhtEk7CBj9yRK2PJX5XN6bfhc=;
+        b=RIfm9QcG4UEoYCcyh+HVNCwYAzPBcYyfol/BLPK0Qvl8i/OfULSw9cVvcrun4oUWM2
+         0FchcSa6L3vFZ8Eexq7wiXmmaxJMz1BGz6DV4pXmgsY7E3sMzPBTCq+FDEk+KGlqrIOh
+         O9tWhpUCnOfXyaYEHVue0EuBMBDZ/cjp6LzM6HnhvkATyCGXnYlG9ZBpxGZdQ6OVpDaQ
+         MzAQp9vaf5DRGjtW4rkcY7yqbqfNpDviH2umjx+hscxzXfStsv5Lr+cIhWFwfEyzlb1t
+         vUprs8O33Y1BobdXzPh7xMDov9baSHBTALQhJG+11BHm1JEKP/h6eQORfU0AV7vibapm
+         AaPg==
+X-Forwarded-Encrypted: i=1; AJvYcCWSe6UqRmzv8OD0xX+XO3/Ykq+7woIkcmReUgpVSvCXZXdHfrk1gLJNUXBhdSAUYQyH1o6wQ5/pzwsgWkKvTnt/6TVmz5wwf2ehTQ==
+X-Gm-Message-State: AOJu0YwFxtyA5cDHwZz5XepW7pDfLrDpGNniJ67Tb8eAfWOyma37muof
+	MqiNM/qYqLWDHzWLDKXiS+Sq4Vzr1oqXwoA1mTIV+CymOneRhlozZJy/1qNBKlA=
+X-Google-Smtp-Source: AGHT+IG2kizdOiSw0uylPEq0qK5Nujj1quEtxgB2wxc39/tXdkGx33RSfpvHjRCh3dNNGsAUN6Msjg==
+X-Received: by 2002:a05:6a00:1397:b0:6e6:89ad:1233 with SMTP id d2e1a72fcca58-6f4e02a6150mr30537733b3a.2.1715992772166;
+        Fri, 17 May 2024 17:39:32 -0700 (PDT)
+Received: from ?IPV6:2a03:83e0:1156:1:1cbd:da2b:a9f2:881? ([2620:10d:c090:500::6:9fd9])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-6f4d2af2bccsm16503658b3a.170.2024.05.17.17.39.26
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 17 May 2024 09:09:45 -0700 (PDT)
-Message-ID: <170eca58-8950-40b5-b2af-3ac3844af3aa@gmail.com>
-Date: Fri, 17 May 2024 18:09:42 +0200
+        Fri, 17 May 2024 17:39:31 -0700 (PDT)
+Message-ID: <090be3c0-42e6-4b97-8b03-eb64b06a2911@davidwei.uk>
+Date: Fri, 17 May 2024 17:39:25 -0700
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -61,82 +61,135 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND v8 16/16] bpf: remove CONFIG_BPF_JIT dependency on
- CONFIG_MODULES of
-To: Will Deacon <will@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
- Alexandre Ghiti <alexghiti@rivosinc.com>,
- Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- "David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>,
- Donald Dutile <ddutile@redhat.com>, Eric Chanudet <echanude@redhat.com>,
- Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
- Huacai Chen <chenhuacai@kernel.org>,
- Kent Overstreet <kent.overstreet@linux.dev>, Liviu Dudau
- <liviu@dudau.co.uk>, Luis Chamberlain <mcgrof@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>, Masami Hiramatsu <mhiramat@kernel.org>,
- Michael Ellerman <mpe@ellerman.id.au>, Nadav Amit <nadav.amit@gmail.com>,
- Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
- =?UTF-8?Q?Philippe_Mathieu-Daud=C3=A9?= <philmd@linaro.org>,
- Rick Edgecombe <rick.p.edgecombe@intel.com>,
- Russell King <linux@armlinux.org.uk>, Sam Ravnborg <sam@ravnborg.org>,
- Song Liu <song@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, bpf@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-mips@vger.kernel.org, linux-mm@kvack.org,
- linux-modules@vger.kernel.org, linux-parisc@vger.kernel.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- loongarch@lists.linux.dev, netdev@vger.kernel.org,
- sparclinux@vger.kernel.org, x86@kernel.org
-References: <20240505160628.2323363-1-rppt@kernel.org>
- <20240505160628.2323363-17-rppt@kernel.org>
- <7983fbbf-0127-457c-9394-8d6e4299c685@gmail.com>
- <20240517154632.GA320@willie-the-truck>
-Content-Language: en-US, sv-SE
-From: Klara Modin <klarasmodin@gmail.com>
-In-Reply-To: <20240517154632.GA320@willie-the-truck>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Subject: Re: [PATCH net-next v9 05/14] netdev: netdevice devmem allocator
+Content-Language: en-GB
+To: Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+ bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: Donald Hunter <donald.hunter@gmail.com>, Jakub Kicinski
+ <kuba@kernel.org>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+ Jonathan Corbet <corbet@lwn.net>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+ Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
+ <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+ Yonghong Song <yonghong.song@linux.dev>,
+ John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
+ Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
+ Jiri Olsa <jolsa@kernel.org>, Steffen Klassert
+ <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
+ David Ahern <dsahern@kernel.org>,
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+ Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Pavel Begunkov <asml.silence@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
+ Harshitha Ramamurthy <hramamurthy@google.com>,
+ Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst
+ <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
+ Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
+References: <20240510232128.1105145-1-almasrymina@google.com>
+ <20240510232128.1105145-6-almasrymina@google.com>
+From: David Wei <dw@davidwei.uk>
+In-Reply-To: <20240510232128.1105145-6-almasrymina@google.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-05-17 17:46, Will Deacon wrote:
-> Hi Klara,
-> 
-> On Fri, May 17, 2024 at 01:00:31AM +0200, Klara Modin wrote:
->>
->> This does not seem to work entirely. If build with BPF_JIT without module
->> support for my Raspberry Pi 3 B I get warnings in my kernel log (easiest way
->> to trigger it seems to be trying to ssh into it, which fails).
-> 
-> Thanks for the report. I was able to reproduce this using QEMU and it
-> looks like the problem is because bpf_arch_text_copy() silently fails
-> to write to the read-only area as a result of patch_map() faulting and
-> the resulting -EFAULT being chucked away.
-> 
-> Please can you try the diff below?
-> 
-> Will
-> 
-> --->8
-> 
-> diff --git a/arch/arm64/kernel/patching.c b/arch/arm64/kernel/patching.c
-> index 255534930368..94b9fea65aca 100644
-> --- a/arch/arm64/kernel/patching.c
-> +++ b/arch/arm64/kernel/patching.c
-> @@ -36,7 +36,7 @@ static void __kprobes *patch_map(void *addr, int fixmap)
->   
->          if (image)
->                  page = phys_to_page(__pa_symbol(addr));
-> -       else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
-> +       else if (IS_ENABLED(CONFIG_EXECMEM))
->                  page = vmalloc_to_page(addr);
->          else
->                  return addr;
-> 
+On 2024-05-10 16:21, Mina Almasry wrote:
+> +/* This returns the absolute dma_addr_t calculated from
+> + * net_iov_owner(niov)->owner->base_dma_addr, not the page_pool-owned
+> + * niov->dma_addr.
+> + *
+> + * The absolute dma_addr_t is a dma_addr_t that is always uncompressed.
+> + *
+> + * The page_pool-owner niov->dma_addr is the absolute dma_addr compressed into
+> + * an unsigned long. Special handling is done when the unsigned long is 32-bit
+> + * but the dma_addr_t is 64-bit.
+> + *
+> + * In general code looking for the dma_addr_t should use net_iov_dma_addr(),
+> + * while page_pool code looking for the unsigned long dma_addr which mirrors
+> + * the field in struct page should use niov->dma_addr.
+> + */
+> +static inline dma_addr_t net_iov_dma_addr(const struct net_iov *niov)
+> +{
+> +	struct dmabuf_genpool_chunk_owner *owner = net_iov_owner(niov);
+> +
+> +	return owner->base_dma_addr +
+> +	       ((dma_addr_t)net_iov_idx(niov) << PAGE_SHIFT);
+> +}
 
-This seems to work from my short testing.
+This part feels like devmem TCP specific, yet the function is in
+netmem.h. Please consider moving it into devmem.{h,c} which makes it
+less likely that people not reading your comment will try using it.
 
-Thanks,
-Tested-by: Klara Modin <klarasmodin@gmail.com>
+> +
+> +static inline struct net_devmem_dmabuf_binding *
+> +net_iov_binding(const struct net_iov *niov)
+> +{
+> +	return net_iov_owner(niov)->binding;
+> +}
+> +
+>  /* netmem */
+>  
+>  /**
+> diff --git a/net/core/devmem.c b/net/core/devmem.c
+> index d82f92d7cf9ce..1f90e23a81441 100644
+> --- a/net/core/devmem.c
+> +++ b/net/core/devmem.c
+> @@ -54,6 +54,42 @@ void __net_devmem_dmabuf_binding_free(struct net_devmem_dmabuf_binding *binding)
+>  	kfree(binding);
+>  }
+>  
+> +struct net_iov *
+> +net_devmem_alloc_dmabuf(struct net_devmem_dmabuf_binding *binding)
+> +{
+> +	struct dmabuf_genpool_chunk_owner *owner;
+> +	unsigned long dma_addr;
+> +	struct net_iov *niov;
+> +	ssize_t offset;
+> +	ssize_t index;
+> +
+> +	dma_addr = gen_pool_alloc_owner(binding->chunk_pool, PAGE_SIZE,
+> +					(void **)&owner);
+> +	if (!dma_addr)
+> +		return NULL;
+> +
+> +	offset = dma_addr - owner->base_dma_addr;
+> +	index = offset / PAGE_SIZE;
+> +	niov = &owner->niovs[index];
+> +
+> +	niov->dma_addr = 0;
+> +
+> +	net_devmem_dmabuf_binding_get(binding);
+> +
+> +	return niov;
+> +}
+> +
+> +void net_devmem_free_dmabuf(struct net_iov *niov)
+> +{
+> +	struct net_devmem_dmabuf_binding *binding = net_iov_binding(niov);
+> +	unsigned long dma_addr = net_iov_dma_addr(niov);
+> +
+> +	if (gen_pool_has_addr(binding->chunk_pool, dma_addr, PAGE_SIZE))
+> +		gen_pool_free(binding->chunk_pool, dma_addr, PAGE_SIZE);
+> +
+> +	net_devmem_dmabuf_binding_put(binding);
+> +}
+> +
+>  /* Protected by rtnl_lock() */
+>  static DEFINE_XARRAY_FLAGS(net_devmem_dmabuf_bindings, XA_FLAGS_ALLOC1);
+>  
