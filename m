@@ -1,59 +1,59 @@
-Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+Received: from mail-io1-f47.google.com (mail-io1-f47.google.com [209.85.166.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6ED65E20
-	for <sparclinux@vger.kernel.org>; Sat, 18 May 2024 18:57:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 599AA13B299
+	for <sparclinux@vger.kernel.org>; Thu, 23 May 2024 06:02:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716058652; cv=none; b=f2rQUH+WJVLNdcqCC6AajELrAYeeGrqmDicmlRPcFiOIOFW4e8TcXhrtVTnv9h++K5pP7hLbU22TTKEMIJGWS4ImCO/5FMg6HHvO/ztvBPD3lXBdJtmMy9+TmJC1ly8NngDIMdQh0uaKu0oXnbTzZSDSWsouJKI+ZorMVJ926rg=
+	t=1716444178; cv=none; b=DMGixZvF8I0eSfRl42i1HAz1P3UPpCh5JywIpVARG3wxWQDRJ/XIALAh/fYVeto98e9v7U/5lnn+9wDgUe/K0J0NpALh7ayp5KE7XQTTaMqzBFXL+KIGsUDnDOFf4arRVvB41PLA8ziAvIWjQkN9S/HnobeNIzmfTdo+O3Vhw+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716058652; c=relaxed/simple;
-	bh=wAqIRcCabbfn5FNmvGNIGPL+iroeEmFcrvMhrlMZdAE=;
+	s=arc-20240116; t=1716444178; c=relaxed/simple;
+	bh=B9lGrOwbzZ9cwWP1ohGSBcMGMvcXioUh06F1RRqtc5A=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=VCc7d8fJtwZTFl0ikterF8vc6Yf30zmELofZEUQCTklpbh/n/H6b5FiGtExbWuE1RyfUPAsr5kop4yEiAHT/bZKBwA0TSjl+ZEC+VIeuvO6xxGJuYy6FHjEPS89HEKvd3iw/bJt0cu2rdV+aSE4j0WSXsqCMMLpyMTXuNzvw9HY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk; spf=none smtp.mailfrom=davidwei.uk; dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b=v/AmV8kq; arc=none smtp.client-ip=209.85.161.50
+	 In-Reply-To:Content-Type; b=BuHStP3lUhb8HOYxjn6BGsyfZqrGMAfJdw7GBypqGwjoDIDGKd6yx76tKyNoDcUv/jmMGo2Pg/AwRrVR5dFSV5L3cBniqGGV2DYXLdbvmPqp2n1Ghrc0fi1rcDoG9V5i9vUeQPfHe5fyA174CNWmYOnrkt09itS+IzFkWUjtdbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk; spf=none smtp.mailfrom=davidwei.uk; dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b=Uz2AHfik; arc=none smtp.client-ip=209.85.166.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=davidwei.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b="v/AmV8kq"
-Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5b3241373adso775238eaf.2
-        for <sparclinux@vger.kernel.org>; Sat, 18 May 2024 11:57:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b="Uz2AHfik"
+Received: by mail-io1-f47.google.com with SMTP id ca18e2360f4ac-7e25df4ccecso106184039f.1
+        for <sparclinux@vger.kernel.org>; Wed, 22 May 2024 23:02:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=davidwei-uk.20230601.gappssmtp.com; s=20230601; t=1716058649; x=1716663449; darn=vger.kernel.org;
+        d=davidwei-uk.20230601.gappssmtp.com; s=20230601; t=1716444176; x=1717048976; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=YguLbfIUe9SPEVY4PVRNzJgWNLjHIbYrZNjYPjw1wDY=;
-        b=v/AmV8kq3UZnHRDaqHKqhNVypfUF8x6d6yBi1N5G0tcfRYE7ce3MRpUzwl4YK2pDOY
-         0gSkGZswCXm5bMtnmSlhuxkbS/tIUF9okGsjBZ5fby4NKwqYTPIwTzC4ZoclOyTZFLem
-         RT2+G780T4Rvt6sAdooeJFD4Qw3kSZNGJ+JoLSw1NmiZZpBQstNxMDIY5BleC4qlptFg
-         +S8gDOPygxpPebphBpPjxk+hnz5mYSWeMnl3BWZFaLUWoQw272KOFLgpA509meCbeaTc
-         1zy687rDIDcZ+p0a/pi8z2PkHBDskEdl/PpU+UT704u1+W7ImWvpp5WEZODo1Gd2YGEU
-         ZAqg==
+        bh=txOSv1K2CA1USg0Ze10vD1qMyJxbEs9Mfk9GiCoI090=;
+        b=Uz2AHfikahhuUowwWHZ/rUV3mnPgvxCUBUVLy75Ni4QVr3Zm8DMJc7X+YPT/ZlueFf
+         fM09t2fSBt5pPpQRo2M2zZC0pkRmdXI9FCcScF4/EKN/cySBOR/qDzA5ekE4ILkpPwpy
+         5mKNJ6bHDg+TEheZbQ3IkCrHP/NZCEn3hQOxoKAsaSNFqq1PjKOo0dSQD72z4WdrL11T
+         SDuOkvOaGOZFmfxRTdXg/vfbkBY5oBXpiOFGPI2dN03MwRCRVp7zTktF7l5JeFQL9kbh
+         gj4aNjvikrd9qQBAiO+5XOkySFNkgVh2QVR/GkOax5g1Q2KM/PsKBO5u3BVjXDevfa5r
+         Zpcw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716058649; x=1716663449;
+        d=1e100.net; s=20230601; t=1716444176; x=1717048976;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YguLbfIUe9SPEVY4PVRNzJgWNLjHIbYrZNjYPjw1wDY=;
-        b=pvfjrA5JBpDzE41v3FhYoUANvYh5hrumN9ZpbMM+3/VmYgrtLXa6w5pniultMnioYs
-         BogUqpjqxHpXLniihpqbDlBM8HlIaLGXg1vAYYa/H1GEnyrvd5VkUiwTCU/bq0994VOp
-         3MWAGweYEzLof/x576VzYRf9N7+wz7aIxLgmFRsfxeILZpzCrEod85Itto7PsiVs9V94
-         wCdzBL23uqtB7uq1zf0v0D2+of5Pfgsc1sXlmW3TTBTQD412bfFDh3bxDuTQ58OozMVz
-         gCA97MHvL8u5qKu2XzkcGuoU5nqmq1zopUil9IHRYrCGAFAi6cA4+FTmZFZP7TpXqAc7
-         DpZg==
-X-Forwarded-Encrypted: i=1; AJvYcCWg0lg6fLxzRSDTHa6p1iDaYVP05XCc5dZSItTgyoQH92sq9YNTkK3pAFNSVtSZV1PzDO9a1lxhD8xyhOMuTYCtO+qLi1Mxo2DqHw==
-X-Gm-Message-State: AOJu0YyihSBetf4p6OeXEVHu+RlLinxtcwY1J9Lmopn7ydpgzQ+APOmL
-	scOWbYA2IxNFpsfwtyd+jviQNa6RJk0/9j4yPFJE+vLvK/fM3dk8E/DDu4MyGcU=
-X-Google-Smtp-Source: AGHT+IHilXoeJ/w5ohYR0i7AU3401ochXIU5LArEI0v5RdvvJ31YBmDQam4A7KpiPZymCfWrte5bew==
-X-Received: by 2002:a05:6358:3a11:b0:17b:5661:5e2b with SMTP id e5c5f4694b2df-193bb64065bmr2817534555d.18.1716058648846;
-        Sat, 18 May 2024 11:57:28 -0700 (PDT)
+        bh=txOSv1K2CA1USg0Ze10vD1qMyJxbEs9Mfk9GiCoI090=;
+        b=TDPyTuufSp9EhVCRp1tyNlmcAuNVmdcomJHNOsC9F4B5vkpXsz0QCPvZZalKSo69ur
+         AXId24fCDgRH5WhBSDbCI7YtR4OTbpcRvEUB6N1Y2dMEVGJNFmKGNctJNTSQFg2Nz4eV
+         50DNFIjn+g5bNes11ztqp0pYLARp8xqvKcn/2AEcUNGsUBMZ12Mzbg3hDiDdGm4xLlML
+         TqCezyust6z5a7d6/cUY28jfLqoJd15cw7GDFD9QcZH59Egm924GGDvIHtyYLrdGVBG8
+         P8bwLN48mb/TUXVp4AsGGiVwTSS3TtAp+sdDKJFRviN1j0/M3dJ8pZ4tAXUmU9/iMwiA
+         OSUA==
+X-Forwarded-Encrypted: i=1; AJvYcCWKas+X1ZStfOnRgMADiR/xM8wOPSltlIE8YwBnJpJ5p7VmpBj19J7s+o2b1Pl73savDpG0PKrldJ3LKhJqQf90gcCg6NCuqm7PNQ==
+X-Gm-Message-State: AOJu0Yw0hZV8rXSEo5OQiKCEtq42YRQg+Y7wfLXADdEItjHR5rjW92YR
+	ktzMAbmqULHet//ZYJWeJgdwCAX3yZPY4dNrfzEhB8DonOL2jXSqa3+i1RvNeMM=
+X-Google-Smtp-Source: AGHT+IEHlOqXvdbfYiugVF0TXgIiftVk0fEr87owHTsVUKSpnXRyU8iozPM5JlvqTh0LUpuxvOHGhg==
+X-Received: by 2002:a05:6e02:1447:b0:36c:7f3d:59a with SMTP id e9e14a558f8ab-371f7c80fe6mr48056835ab.4.1716444176327;
+        Wed, 22 May 2024 23:02:56 -0700 (PDT)
 Received: from [192.168.1.16] (174-21-188-197.tukw.qwest.net. [174.21.188.197])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-658764fda40sm5342410a12.5.2024.05.18.11.57.27
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-634117190absm23448503a12.87.2024.05.22.23.02.54
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 18 May 2024 11:57:28 -0700 (PDT)
-Message-ID: <eeb59c4f-9208-4700-b73b-9652398371d7@davidwei.uk>
-Date: Sat, 18 May 2024 11:57:26 -0700
+        Wed, 22 May 2024 23:02:55 -0700 (PDT)
+Message-ID: <9097e78d-0e7d-43bd-bafd-e53a4872a4d1@davidwei.uk>
+Date: Wed, 22 May 2024 23:02:54 -0700
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -61,8 +61,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v9 04/14] netdev: support binding dma-buf to
- netdevice
+Subject: Re: [PATCH net-next v9 11/14] tcp: RX path for devmem TCP
 Content-Language: en-GB
 To: Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
@@ -104,111 +103,105 @@ Cc: Donald Hunter <donald.hunter@gmail.com>, Jakub Kicinski
  <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>,
  Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
 References: <20240510232128.1105145-1-almasrymina@google.com>
- <20240510232128.1105145-5-almasrymina@google.com>
+ <20240510232128.1105145-12-almasrymina@google.com>
 From: David Wei <dw@davidwei.uk>
-In-Reply-To: <20240510232128.1105145-5-almasrymina@google.com>
+In-Reply-To: <20240510232128.1105145-12-almasrymina@google.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 2024-05-10 16:21, Mina Almasry wrote:
-> -/* Stub */
->  int netdev_nl_bind_rx_doit(struct sk_buff *skb, struct genl_info *info)
->  {
-> -	return 0;
-> +	struct nlattr *tb[ARRAY_SIZE(netdev_queue_dmabuf_nl_policy)];
-> +	struct net_devmem_dmabuf_binding *out_binding;
-> +	struct list_head *sock_binding_list;
-> +	u32 ifindex, dmabuf_fd, rxq_idx;
-> +	struct net_device *netdev;
-> +	struct sk_buff *rsp;
-> +	struct nlattr *attr;
-> +	int rem, err = 0;
-> +	void *hdr;
+> +/* On error, returns the -errno. On success, returns number of bytes sent to the
+> + * user. May not consume all of @remaining_len.
+> + */
+> +static int tcp_recvmsg_dmabuf(struct sock *sk, const struct sk_buff *skb,
+> +			      unsigned int offset, struct msghdr *msg,
+> +			      int remaining_len)
+> +{
+> +	struct dmabuf_cmsg dmabuf_cmsg = { 0 };
+> +	struct tcp_xa_pool tcp_xa_pool;
+> +	unsigned int start;
+> +	int i, copy, n;
+> +	int sent = 0;
+> +	int err = 0;
 > +
-> +	if (GENL_REQ_ATTR_CHECK(info, NETDEV_A_DEV_IFINDEX) ||
-> +	    GENL_REQ_ATTR_CHECK(info, NETDEV_A_BIND_DMABUF_DMABUF_FD) ||
-> +	    GENL_REQ_ATTR_CHECK(info, NETDEV_A_BIND_DMABUF_QUEUES))
-> +		return -EINVAL;
+> +	tcp_xa_pool.max = 0;
+> +	tcp_xa_pool.idx = 0;
+> +	do {
+> +		start = skb_headlen(skb);
 > +
-> +	ifindex = nla_get_u32(info->attrs[NETDEV_A_DEV_IFINDEX]);
-> +	dmabuf_fd = nla_get_u32(info->attrs[NETDEV_A_BIND_DMABUF_DMABUF_FD]);
-> +
-> +	rtnl_lock();
-> +
-> +	netdev = __dev_get_by_index(genl_info_net(info), ifindex);
-> +	if (!netdev) {
-> +		err = -ENODEV;
-> +		goto err_unlock;
-> +	}
-> +
-> +	err = net_devmem_bind_dmabuf(netdev, dmabuf_fd, &out_binding);
-> +	if (err)
-> +		goto err_unlock;
-> +
-> +	nla_for_each_attr(attr, genlmsg_data(info->genlhdr),
-> +			  genlmsg_len(info->genlhdr), rem) {
-> +		if (nla_type(attr) != NETDEV_A_BIND_DMABUF_QUEUES)
-> +			continue;
-> +
-> +		err = nla_parse_nested(
-> +			tb, ARRAY_SIZE(netdev_queue_dmabuf_nl_policy) - 1, attr,
-> +			netdev_queue_dmabuf_nl_policy, info->extack);
-> +		if (err < 0)
-> +			goto err_unbind;
-> +
-> +		rxq_idx = nla_get_u32(tb[NETDEV_A_QUEUE_DMABUF_IDX]);
-> +		if (rxq_idx >= netdev->num_rx_queues) {
-> +			err = -ERANGE;
-> +			goto err_unbind;
+> +		if (skb_frags_readable(skb)) {
+> +			err = -ENODEV;
+> +			goto out;
 > +		}
+> +
+> +		/* Copy header. */
+> +		copy = start - offset;
+> +		if (copy > 0) {
+> +			copy = min(copy, remaining_len);
+> +
+> +			n = copy_to_iter(skb->data + offset, copy,
+> +					 &msg->msg_iter);
+> +			if (n != copy) {
+> +				err = -EFAULT;
+> +				goto out;
+> +			}
+> +
+> +			offset += copy;
+> +			remaining_len -= copy;
+> +
+> +			/* First a dmabuf_cmsg for # bytes copied to user
+> +			 * buffer.
+> +			 */
+> +			memset(&dmabuf_cmsg, 0, sizeof(dmabuf_cmsg));
+> +			dmabuf_cmsg.frag_size = copy;
+> +			err = put_cmsg(msg, SOL_SOCKET, SO_DEVMEM_LINEAR,
+> +				       sizeof(dmabuf_cmsg), &dmabuf_cmsg);
+> +			if (err || msg->msg_flags & MSG_CTRUNC) {
+> +				msg->msg_flags &= ~MSG_CTRUNC;
+> +				if (!err)
+> +					err = -ETOOSMALL;
+> +				goto out;
+> +			}
+> +
+> +			sent += copy;
+> +
+> +			if (remaining_len == 0)
+> +				goto out;
+> +		}
+> +
+> +		/* after that, send information of dmabuf pages through a
+> +		 * sequence of cmsg
+> +		 */
+> +		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+> +			skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
+> +			struct net_iov *niov;
+> +			u64 frag_offset;
+> +			int end;
+> +
+> +			/* !skb_frags_readable() should indicate that ALL the
+> +			 * frags in this skb are dmabuf net_iovs. We're checking
+> +			 * for that flag above, but also check individual frags
+> +			 * here. If the tcp stack is not setting
+> +			 * skb_frags_readable() correctly, we still don't want
+> +			 * to crash here.
+> +			 */
+> +			if (!skb_frag_net_iov(frag)) {
+> +				net_err_ratelimited("Found non-dmabuf skb with net_iov");
+> +				err = -ENODEV;
+> +				goto out;
+> +			}
+> +
+> +			niov = skb_frag_net_iov(frag);
 
-net_devmem_bind_dmabuf_to_queue() checks for rxq_idx >=
-netdev->num_rx_queues as well. I'd say remove the one in
-netdev_nl_bind_rx_doit().
+Sorry if we've already discussed this.
 
-Also we may want a generic netdev function e.g. netdev_rx_queue_set_mp()
-since I need the same functionality.
+We have this additional hunk:
 
-> +
-> +		err = net_devmem_bind_dmabuf_to_queue(netdev, rxq_idx,
-> +						      out_binding);
-> +		if (err)
-> +			goto err_unbind;
-> +	}
-> +
-> +	sock_binding_list = genl_sk_priv_get(&netdev_nl_family,
-> +					     NETLINK_CB(skb).sk);
-> +	if (IS_ERR(sock_binding_list)) {
-> +		err = PTR_ERR(sock_binding_list);
-> +		goto err_unbind;
-> +	}
-> +
-> +	list_add(&out_binding->list, sock_binding_list);
-> +
-> +	rsp = genlmsg_new(GENLMSG_DEFAULT_SIZE, GFP_KERNEL);
-> +	if (!rsp) {
-> +		err = -ENOMEM;
-> +		goto err_unbind;
-> +	}
-> +
-> +	hdr = genlmsg_iput(rsp, info);
-> +	if (!hdr) {
-> +		err = -EMSGSIZE;
-> +		goto err_genlmsg_free;
-> +	}
-> +
-> +	nla_put_u32(rsp, NETDEV_A_BIND_DMABUF_DMABUF_ID, out_binding->id);
-> +	genlmsg_end(rsp, hdr);
-> +
-> +	rtnl_unlock();
-> +
-> +	return genlmsg_reply(rsp, info);
-> +
-> +err_genlmsg_free:
-> +	nlmsg_free(rsp);
-> +err_unbind:
-> +	net_devmem_unbind_dmabuf(out_binding);
-> +err_unlock:
-> +	rtnl_unlock();
-> +	return err;
->  }
++ if (niov->pp->mp_ops != &dmabuf_devmem_ops) {
++ 	err = -ENODEV;
++ 	goto out;
++ }
+
+In case one of our skbs end up here, skb_frag_is_net_iov() and
+!skb_frags_readable(). Does this even matter? And if so then is there a
+better way to distinguish between our two types of net_iovs?
