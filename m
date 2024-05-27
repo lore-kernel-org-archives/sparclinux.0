@@ -1,179 +1,159 @@
-Received: from MRZP264CU002.outbound.protection.outlook.com (mail-francesouthazon11020002.outbound.protection.outlook.com [52.101.165.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [195.130.137.89])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAD7D12E63;
-	Mon, 27 May 2024 06:03:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.165.2
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716789815; cv=fail; b=lJxMtGQuyKabtXhxF+nfWn9BxxKmq1Wm3pEJvvABC74S9AFKfjLx4zgHWX2+0v4/woQvwfDe9k9u6Nfo4JqCbMhQe70kNuQP5RD4OnMS3JyX07J9XmxqDYWg10aTPzS15e1ok0Ob1U1KxhXFo0QjGBCHjbyrSCzzHZ6OmcFytKg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716789815; c=relaxed/simple;
-	bh=gqrYc4toH3PrpztAB8zxrTsD/zJCqvGtLzdkIBZ2zUs=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=apPeNp3EhDfdov0lUGq78t44USLb9wQ4HXZQjMSlpU2EJlET5HGOVGx5DQhYhtuR/6PM/XSLhChtyo+qhcDU/C0P/bp3p2wt/Ceq2Hm8msmlghvznKXmEC+1/MwenBld4RtN+0KJjuQUHDGL8v0pvRm0cx4yk+d3vHRC5nXBxso=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b=FLjaKnxM; arc=fail smtp.client-ip=52.101.165.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=csgroup.eu header.i=@csgroup.eu header.b="FLjaKnxM"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CkVRqPBQsHZ4QcN4LLhJD9NniT4EXRZfwnXE259tSx9Z+RVV9MJGss5k3Yra6k/1d+yw18Seoy5a6SgR6G/vRLKNuzsCbkCGilysQfzaSEU1eAnXtebGwYCkhmoLJmbiow5pyWzOVEgEFTozgYScGoaqSLU/U/dXZCV8B2adYg+ABV/yT6/zCPt3hePbslkXUGAGk6d7NsR6IAmkEE8n/WnlUAxF3PxDDjf8uSlwbGySI+poUCDanQOCdgIZGRE9edhgJhGrCHMydoN3hqVWCQDTG3U+3FeiXwnCN8B0TouDL04fH5uA8X5Atw2wQF63fCJtzqcf40JSvXqm6U3aEw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=gqrYc4toH3PrpztAB8zxrTsD/zJCqvGtLzdkIBZ2zUs=;
- b=ZIsw84JsFOXhk2Rf7HWmZsntIVRFN0Viei5cnMSJ2e3Fbyq0wuA1SUU965ZavnIHUMG2dR1pqvqyL8O5PPh+5BX03qvSjb4MFZ7DfTg/TAtyipf9Yt9WI+BOe2mqGpUCv0ga2vOxSA+CB+Pd5ZqzzW9PD97EKM0tvArGH2uvYeHqRwA+TUlrVwS6oGfoMwkQXfRIlUUsceHtfDz/U9y9Id063Ar1JxkhHYujkfy88MUm7EeuSo+6ColUnzt4JtbRTwEm8WDN00M0e33CrYolIhqQ0GCTiKXO3gQXBnQKsqlFnOBrxFN7VaruhEBO9ZrMKPz3wSffyaJPF85i5+jGAQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
- dkim=pass header.d=csgroup.eu; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=csgroup.eu;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gqrYc4toH3PrpztAB8zxrTsD/zJCqvGtLzdkIBZ2zUs=;
- b=FLjaKnxMmaQfu2tOcFvFjDHxR6VqwepAq9/1iIn0VdroIQpRB9zXbcCCWR4BHRz1JFDSc14kQjSkfrLwbICLSqvd3kFUeQqw6KRlT7mHgxQ2TAjRlnGIsM7G8Q7GKsPod1s0YAYkuM0ml05CKxXQ3KoAdDDvzQEaE+pXfcOZGIi6kGh/pZRpEhZavC3NCnnTRbKmR4kclo7RuutECUhKqJJBLs2e39K9p56sXGc3GwujgN9Jei8MgmhE4tcRe9Q+cvegkZnTkh9zZW7aS5rbWAHDiuhgZgNdNb2xTja54sPsVsYpE9USD59JDc9refBjc28nDGYPyignRVqy0Anj8A==
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
- by PR0P264MB1627.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:16e::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7611.29; Mon, 27 May
- 2024 06:03:30 +0000
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::96ff:7284:1fa1:b02a]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::96ff:7284:1fa1:b02a%4]) with mapi id 15.20.7611.025; Mon, 27 May 2024
- 06:03:30 +0000
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-To: "peterx@redhat.com" <peterx@redhat.com>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-CC: Andrew Morton <akpm@linux-foundation.org>, "x86@kernel.org"
-	<x86@kernel.org>, Muchun Song <muchun.song@linux.dev>, Mike Rapoport
-	<rppt@kernel.org>, Matthew Wilcox <willy@infradead.org>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Jason Gunthorpe
-	<jgg@nvidia.com>, "linuxppc-dev@lists.ozlabs.org"
-	<linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v2 12/14] mm/treewide: Remove pXd_huge()
-Thread-Topic: [PATCH v2 12/14] mm/treewide: Remove pXd_huge()
-Thread-Index: AQHaeW98oG47YYZ6C0m6O6DSjKZgKbGrBFGA
-Date: Mon, 27 May 2024 06:03:30 +0000
-Message-ID: <60ea6d69-a5f8-4e7b-8c4c-e54488adfadb@csgroup.eu>
-References: <20240318200404.448346-1-peterx@redhat.com>
- <20240318200404.448346-13-peterx@redhat.com>
-In-Reply-To: <20240318200404.448346-13-peterx@redhat.com>
-Accept-Language: fr-FR, en-US
-Content-Language: fr-FR
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla Thunderbird
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=csgroup.eu;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MRZP264MB2988:EE_|PR0P264MB1627:EE_
-x-ms-office365-filtering-correlation-id: 9073671a-a1dd-4b4f-df3b-08dc7e12bba0
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230031|366007|376005|7416005|1800799015|38070700009;
-x-microsoft-antispam-message-info:
- =?utf-8?B?aDh3VU1rVGRuK21DUGl2VkZQbVhsaTB2RmFsaEtYY0N5NUJ2SHZQbjFaY09B?=
- =?utf-8?B?aEI1elBGcWRUYUNjSzVGVEpBNkRSSXFGTThEd1pqOTc5TTNha3JldE0reWFG?=
- =?utf-8?B?aktyNklicHNWejAyMWZpR0U4cGZYcU9Nc2g1Y08wVUVvZHk3WWpFYlR4T0FP?=
- =?utf-8?B?a0lTaWdPbjdSN0hjSFRIeU16dWFYdHVZNit5TTI5d0gwVEVyVDZmS0tOSzNw?=
- =?utf-8?B?S1BBNWJBMHhTZ1NFWm0xc0ZJaWVlR3h6WnU3bWpPYnN0cy9CM1BnK1crVkNh?=
- =?utf-8?B?ZHdNMTVDUmZUVE9vT0NXMGZVMWF4bDlZeVpGWnZncUw1cGYwUldiaGZqbUVR?=
- =?utf-8?B?RnZoc09la1hCL0VrcWRuTHU2ZWlZSTBGaGhrd1dhWjYyRWFaczRpZnJYVmk5?=
- =?utf-8?B?VUx4ZUFYUHN6cWNNNnRscWdKRW9mSWNCSGRncXVMZmg5Z3BsQ3hsa1pwOE9s?=
- =?utf-8?B?ZmtDdlJwNVBDV0xqTHVNTForMlhJZVZxR3U1ZjBIYmw3WVhrKzA5OVJ2NUkv?=
- =?utf-8?B?VUd4TlB2UUFaZk1LTUxNUVhBRmZndGdDSFBwVlVzTUlrdEdYQ3h6REpSMGEv?=
- =?utf-8?B?VTRFRWsvS0QzY201Ty9nV3NMTGNDRlp2emsyQnBBYnpuT2RpbDBxb0N4TDVF?=
- =?utf-8?B?TDYzSGYxM3RWcE1ZMmEzaGZRWEt3d09SNVcyaVVPOXh5VmRrcHEyZUNnWFdp?=
- =?utf-8?B?UmwwUjVwODF0aGRwR1BuZmxPVDhJUU9zMDZoeERwOFZlRVBzbU5uVVl5aVgx?=
- =?utf-8?B?NDVISHBRMU1Wa0FLL2JQaFJNLy9XVFRtMFlFN3ZKbFRoWjlyUWFCVlFGczgr?=
- =?utf-8?B?V0xvcUozUEUvR08yT1FBUFRneEVEaVZCYjZzZndKR1dRRnllYTdZK3RodFVU?=
- =?utf-8?B?TDV3cDFTejByZkdWS2Q5aytmaWZacHQzWjBLU1NHbXh5M0t5YnZoc3ErSmhH?=
- =?utf-8?B?TGdneE1PMjhCTWxvL0dIbFhsUXNMT2liOW9zbDkvQ0VpMEFsZjBzRTBhMVNn?=
- =?utf-8?B?SjNTaVN1bTRWazY3dFVMY3Ntbm9XT3IyK3AyckhHNWlEdHVGOU00Ynd3c01p?=
- =?utf-8?B?djhvMlkxODdBbDNDU25OYlJBSGdiOU5CWUtUcXVySVNQWGJpcTU2OTZLZk92?=
- =?utf-8?B?bktleWs4KzE0OUxYMndQVksvMUVRcFo3OXFwWFhzcmMza0FCM2czT2swKzlN?=
- =?utf-8?B?N1ZCRGlRSGNBRGdwUHIxVlYwYTF4ZmVBUUdScWN0UDljR1lKNkcvOEo1aWc4?=
- =?utf-8?B?c290bE9iOU55UDdvSVVhQk1HTllQVHoxSUllOHRsYTN4bVFFd2JUQ3d1UGlx?=
- =?utf-8?B?VytOSEJVaWZhdVZIUitiL3VTRGc5b3FYSmRhNXJhaSs2QklqakkwRm9hbFFm?=
- =?utf-8?B?YTlmbGlPNTY5MGpOZnRaaGRIT2VVYVZvWmQrWUVZMlJUN21oVDc4bEhvOC8x?=
- =?utf-8?B?c2VTRU0wTHJ0RVNsY0x4VlFBUW5lcTF4ZUtmdVA4OUV3eDNUYzhvRWhEaHYx?=
- =?utf-8?B?T3hPeFl4K2d3M3RncDlEdmVRQVpGUitzcHRCcGZpS0NPanJBbDdKS21MQkY2?=
- =?utf-8?B?ck5BTnUvTnF2Qk5Hb0Qyd0FJYTNvTnZuLzdaSGt1YnREQTlBUkswclY5MGZU?=
- =?utf-8?B?M2tEeFJiZzg4Y0I3Wk90czZ4dE05Kzh3ZjdxbElUcDJJYXByT2V0MjB1Y1o0?=
- =?utf-8?B?YS9LTVE4V0Era2hORWZ6S2ZvQ0wyNnZiRVFjZXdPWmxpTTN0YmRDcUZCNzR2?=
- =?utf-8?B?SlF1SmcrT3paeWdCVXBRZVNWQnBUWVp2K2VIVUZXQW5GU3JmeDdDVXF1NCty?=
- =?utf-8?B?K1psRlE5cmZiSW9IMk9hUT09?=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230031)(366007)(376005)(7416005)(1800799015)(38070700009);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?U2JqL1FDNVd5WEkvYjN3ZmNmM2crV01WdlhqdWRFUEJuWTBwQ29SU3Y0emFH?=
- =?utf-8?B?MTZ0Y3FqaEpaSENVQjlSemxTa1ZzTWZVektUSUVFMW1nZC9ZZkhuV3dpeEF3?=
- =?utf-8?B?ZTduQ213N2pkUCtDOGpwUTBvdHhnSmlhWXhBL2pvSGVBc3lDTjRQSUdiWVZE?=
- =?utf-8?B?YmViaW9lNUNhbzNoWXlMSXY3d0xFNHZxMnZMcE1HK05BL1NXM2pjcGpRZVFw?=
- =?utf-8?B?ODZEamFEMGFiRkFJUSs0SHEwNWpVT3UzOVltZ3RiYXQ3dUwzWmdJdnFrbUlq?=
- =?utf-8?B?MndGZGs2alR6L2h2REdzY2xucHBsMCtTY0NCMktqWUxpdUZVSnIyTnR2T09z?=
- =?utf-8?B?UExWL2h3M1BobnU5a3RpS3FMUWlvaHRrbXQ2Y3JsaW5nSVArQzVObUQvQW5v?=
- =?utf-8?B?elFCSFppZzQwRFFwS09Ta3pWNGdyOHBGTnNVSlF1enZjUytlOFhXajdWQkNl?=
- =?utf-8?B?S3RZNEFZdHhkSlllbUoyaTdBc1JkdmFPYkJxYXNRVS92MU5vbVo0TktXNmhT?=
- =?utf-8?B?OGdMWTVSdVNtNzZVcEo2SEFtVFVMbFhVRlFwbVFhd296Tk9GOGZSUFh1SHlq?=
- =?utf-8?B?TDFMYURRdGhIM0U2R2w2aEFJc1lvSG91SHdUUDV4ZWNELytteTg5Qld4eDE4?=
- =?utf-8?B?dFhhS2RzMmhYd3lRRVNLWStMcnZicUV6RVd3RTVuQTg0bHBJQkJxSi9VUUwr?=
- =?utf-8?B?bnpXWk0wdlBZU0I1Q0I4eHRXSUxzdHpXUkx5aEpZcGt5WGF6dUh3Uis3ZXBL?=
- =?utf-8?B?QzhzbmxHTld6KzAzZzZjbTVQUi9BV21LRVhBRkNwRjdGK29jQlR0MnQ2ejdV?=
- =?utf-8?B?NmRKUjdncFd5YWZRMUJMSlU4b0lLSTVvQWJkVTR1V25Kc1hrMDFnSG81L0N2?=
- =?utf-8?B?MjJGQTJWam5INHcwWHRRN21kaHNTdGhBMUZCRy9vcWtVak1venVmc2pqSDdV?=
- =?utf-8?B?NHBWd1Y0aDEyd2V4MzBITUtNY2N3d2haNWVUUTBESTJIUFlzUlFXUXgwR29L?=
- =?utf-8?B?ODl5cGgwU1QrOEp5ekZRY0VRUTZReDFYeW1jL2k2ZzB2MGlkbUlybXNua29r?=
- =?utf-8?B?N0ZJUEE2SWJBZU02aktGaU5qNldTYStHa1haaFFtOXVCR00rVXVoeHY5WDRn?=
- =?utf-8?B?MUtQTWt3cVhiNmJYZTIrNjY5R09kUTBEZEs0emVYYU9aWUpzTkxtbDg1bzd4?=
- =?utf-8?B?NmtQK2lKb3pVZWR3VU13ZWk2VzNkd0VpcHF4ckVoc0lBaVR1bi9TYmhpYkRG?=
- =?utf-8?B?dTZMME5oamIrQWowQkF5cFF3VHY1VHNzTmFwcG5nVlhQaFU0VnFZUkNZdG96?=
- =?utf-8?B?NUtuWFJOUE1nc2o4OGdVekxIK1E5OFM4WlhJNnBJWXVnQTA2QWNrMGt2cHhm?=
- =?utf-8?B?N2RiMVk3b0I1NDIxcjJVOVVXWGRqR2hpZVJhOWE4SUVBeXo4Vks1VndFUnZO?=
- =?utf-8?B?NFR5bnpTK2xDYnRNVGMwQTNCVStTMU9nZlIzWEpPTm5jOEpDMUNvTktWZHVh?=
- =?utf-8?B?cnNXZGR2ZkRva3hRSnJ3clQ4OXFMOHNRUUk5S3RzU25OZWQxUGJOTW5wMVNC?=
- =?utf-8?B?VThTeUJFQ093TkhHY3JTMVluK2VMcG5NUjlXb3FBejJINUU4YzdFYjcxY0pE?=
- =?utf-8?B?YnRwVWx0NW5IYWgwNi9KYkRhMnlMQWtqM1RqOFBKcDlIWW5CdU9jZ1Y1RTBu?=
- =?utf-8?B?SHBtKzRrS0ozeVNpSS9JNTlwS1A1L3dmNzltMDBINGxPclk0aXpDbS9oWGNa?=
- =?utf-8?B?aS9FOUs0U3dzZklBRTFIdEFNRUw0MDlIbCtCL2lEbjBGaS83aHFUTW1POVhM?=
- =?utf-8?B?RUoxYjAzUEtlQWV0L1NkRmx4aWcwdUNFNC9wYy9qVUxqOGl5ZWtGeUUrdkVv?=
- =?utf-8?B?U0RVT0xnczFFYkJlMUJYelQwZTRVWVVnUmNqQlpqSjJVMkVRREJobmZFcE0v?=
- =?utf-8?B?U255SFBnaitObDJPVzVqdm1OSVV0dFFmc3k3OThpTnpRM29tazYvM25Ha2sx?=
- =?utf-8?B?emg4ZUhhb2o1UlltZHNBNnF5S0kzdkxDQk9TU1ZiOVJzTlNZUi84a2diRjBh?=
- =?utf-8?B?UEhxbWhJSlFFNzJwNC9SY2pHd1pPVnUyQ09peEEwaG1SMDJEWldmeUVNUTJa?=
- =?utf-8?B?STR1QnVRdzBBbVd6VENPMDI1UE1sdFpLNTdmN0lWUTNMOEtpRmxQUWx5R2Z5?=
- =?utf-8?Q?U8t0aRh2ayz+pUnlo2J2i9fBzC0KYjaw1nJCzEr4wodH?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <3C0CDEB7E7D8CE4AB6473151BAF8545A@FRAP264.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 958023FE46
+	for <sparclinux@vger.kernel.org>; Mon, 27 May 2024 08:21:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.137.89
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1716798109; cv=none; b=E4ymGOyKeFcW+xFjpdwisQgXlbmCbOC6CW9pK0mRIuHcXw6sM7+m3b1RNbtY7SvySlLzHMLL2rhBWyfTz1BCkWIf96tiLHAqIacSJGVdcQ99f9l27rR0s+XU4o3SNOE//cjJFmaJc3GMYyxEg0kI7x+VyNwXx7a8771nYuaN9Ow=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1716798109; c=relaxed/simple;
+	bh=VUoipgzKELAh07Yxw3K4MnePp0QyvFWZ+vCKCEYjJ/A=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=Cuq8cV/lqa1TegjStI5EabsQeGv6y5K9Md4IcPvdTQargh3GfAHpZLIdhSeoXu0yED9zBqoN2JnQyohL2l+Nn/ZEfmA6hSItpXqyQ8AH6GVlU1e87VDX9+3ls6n9z1NQ36LNY/QfvsNWEoqFc/vo9eJOCqH5XnwDJ21vzqVkcX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.137.89
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed80:c993:5573:f894:7353])
+	by laurent.telenet-ops.be with bizsmtp
+	id U8Ma2C00B2nC7mg018Ma4k; Mon, 27 May 2024 10:21:40 +0200
+Received: from geert (helo=localhost)
+	by ramsan.of.borg with local-esmtp (Exim 4.95)
+	(envelope-from <geert@linux-m68k.org>)
+	id 1sBVbq-00C8pf-Cj;
+	Mon, 27 May 2024 10:21:34 +0200
+Date: Mon, 27 May 2024 10:21:34 +0200 (CEST)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-kernel@vger.kernel.org
+cc: sparclinux@vger.kernel.org, amd-gfx@lists.freedesktop.org, 
+    dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, 
+    freedreno@lists.freedesktop.org, nouveau@lists.freedesktop.org, 
+    mpi3mr-linuxdrv.pdl@broadcom.com, linux-scsi@vger.kernel.org, 
+    linux-um@lists.infradead.org, bpf@vger.kernel.org, 
+    loongarch@lists.linux.dev, linux-parisc@vger.kernel.org
+Subject: Re: Build regressions/improvements in v6.10-rc1
+In-Reply-To: <20240527075047.4004654-1-geert@linux-m68k.org>
+Message-ID: <5483dbca-9826-4d15-8d4-cacce091666c@linux-m68k.org>
+References: <CAHk-=wjQv_CSPzhjOMoOjGO3FmuHe5hzm6Ds69zZSFPa4PeuCA@mail.gmail.com> <20240527075047.4004654-1-geert@linux-m68k.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: csgroup.eu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9073671a-a1dd-4b4f-df3b-08dc7e12bba0
-X-MS-Exchange-CrossTenant-originalarrivaltime: 27 May 2024 06:03:30.1883
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: bYH20CSU2tE6XT1HtMX9/MyyqyJA0SPXsnpPk55i4CDIoRofH210C+YWKKZdLLXrwqaG+2kGv+cyzX2NbdghpLos6I0ftXS0+1IMTjG5+Vs=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR0P264MB1627
+Content-Type: multipart/mixed; boundary="8323329-1442935893-1716798094=:2884583"
 
-DQoNCkxlIDE4LzAzLzIwMjQgw6AgMjE6MDQsIHBldGVyeEByZWRoYXQuY29tIGEgw6ljcml0wqA6
-DQo+IEZyb206IFBldGVyIFh1IDxwZXRlcnhAcmVkaGF0LmNvbT4NCj4gDQo+IFRoaXMgQVBJIGlz
-IG5vdCB1c2VkIGFueW1vcmUsIGRyb3AgaXQgZm9yIHRoZSB3aG9sZSB0cmVlLg0KDQpTb21lIGRv
-Y3VtZW50YXRpb24gcmVtYWluIGluIHY2LjEwLXJjMToNCg0KJCBnaXQgZ3JlcCAtdyBwLmRfaHVn
-ZQ0KRG9jdW1lbnRhdGlvbi9tbS9hcmNoX3BndGFibGVfaGVscGVycy5yc3Q6fCBwbWRfaHVnZSAg
-ICAgICAgICAgICAgICAgIHwgDQpUZXN0cyBhIEh1Z2VUTEIgbWFwcGVkIFBNRCAgICAgICAgICAg
-ICAgICAgICAgICAgfA0KRG9jdW1lbnRhdGlvbi9tbS9hcmNoX3BndGFibGVfaGVscGVycy5yc3Q6
-fCBwdWRfaHVnZSAgICAgICAgICAgICAgICAgIHwgDQpUZXN0cyBhIEh1Z2VUTEIgbWFwcGVkIFBV
-RCAgICAgICAgICAgICAgICAgICAgICAgfA0KYXJjaC94ODYvbW0vcGF0L3NldF9tZW1vcnkuYzog
-ICAgICAgICAgICAqIG90aGVyd2lzZSANCnBtZF9wcmVzZW50L3BtZF9odWdlIHdpbGwgcmV0dXJu
-IHRydWUNCg0KDQpDaHJpc3RvcGhlDQo=
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--8323329-1442935893-1716798094=:2884583
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
+
+On Mon, 27 May 2024, Geert Uytterhoeven wrote:
+> Below is the list of build error/warning regressions/improvements in
+> v6.10-rc1[1] compared to v6.9[2].
+>
+> Summarized:
+>  - build errors: +27/-20
+>  - build warnings: +3/-1601
+>
+> Happy fixing! ;-)
+>
+> Thanks to the linux-next team for providing the build service.
+>
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/1613e604df0cd359cf2a7fbd9be7a0bcfacfabd0/ (all 138 configs)
+> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/a38297e3fb012ddfa7ce0321a7e5a8daeb1872b6/ (all 138 configs)
+>
+>
+> *** ERRORS ***
+>
+> 27 error regressions:
+>  + /kisskb/src/arch/sparc/prom/p1275.c: error: no previous prototype for 'prom_cif_init' [-Werror=missing-prototypes]:  => 52:6
+
+sparc64-gcc13/sparc64-allmodconfig (seen before)
+
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn20/display_mode_vba_20.c: error: the frame size of 2192 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 5118:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn20/display_mode_vba_20v2.c: error: the frame size of 2280 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 5234:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn30/display_mode_vba_30.c: error: the frame size of 2096 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 5188:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn30/display_mode_vba_30.c: error: the frame size of 2184 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 3049:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn31/display_mode_vba_31.c: error: the frame size of 2264 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 3274:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_mode_vba_314.c: error: the frame size of 2232 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 3296:1
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c: error: the frame size of 2080 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 1646:1
+
+powerpc-gcc5/ppc32_allmodconfig
+
+>  + /kisskb/src/drivers/gpu/drm/msm/adreno/a6xx_gpu_state.c: error: unknown option after '#pragma GCC diagnostic' kind [-Werror=pragmas]:  => 16:9
+>  + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_9_0_snapshot.h: error: 'gen7_9_0_external_core_regs' defined but not used [-Werror=unused-variable]:  => 1438:19
+>  + /kisskb/src/drivers/gpu/drm/msm/adreno/adreno_gen7_9_0_snapshot.h: error: 'gen7_9_0_sptp_clusters' defined but not used [-Werror=unused-variable]:  => 1188:43
+
+arm64-gcc5/arm64-allmodconfig
+powerpc-gcc5/powerpc-all{mod,yes}config
+powerpc-gcc5/ppc32_allmodconfig
+powerpc-gcc5/ppc64_book3e_allmodconfig
+powerpc-gcc5/ppc64le_allmodconfig
+sparc64-gcc5/sparc64-allmodconfig
+
+Looks like #pragma "-Wunused-const-variable" is not supported by gcc-5
+
+>  + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: error: 'memcpy' accessing 4294967240 or more bytes at offsets 0 and 56 overlaps 6442450833 bytes at offset -2147483593 [-Werror=restrict]:  => 298:17
+>  + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: error: 'memcpy' accessing 4294967264 or more bytes at offsets 0 and 32 overlaps 6442450881 bytes at offset -2147483617 [-Werror=restrict]:  => 161:9
+
+parisc-gcc13/generic-32bit_defconfig
+parisc-gcc13/parisc-{def,allmod}config
+
+>  + /kisskb/src/include/linux/kern_levels.h: error: format '%lu' expects argument of type 'long unsigned int', but argument 4 has type 'unsigned int' [-Werror=format=]:  => 5:18, 5:25
+
+mips-gcc{8,13}/mips-allmodconfig
+parisc-gcc13/parisc-allmodconfig
+powerpc-gcc{5,13}/ppc32_allmodconfig
+sparc64-gcc{5,13}/sparc-allmodconfig
+xtensa-gcc13/xtensa-allmodconfig
+
+drivers/scsi/mpi3mr/mpi3mr_transport.c: In function 'mpi3mr_sas_port_add':
+drivers/scsi/mpi3mr/mpi3mr_transport.c:1367:62: note: format string is defined here
+     ioc_warn(mrioc, "skipping port %u, max allowed value is %lu\n",
+                                                             ~~^
+                                                             %u
+
+>  + /kisskb/src/kernel/bpf/verifier.c: error: ‘pcpu_hot’ undeclared (first use in this function):  => 20317:85
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘ioread64_hi_lo’ [-Werror=missing-prototypes]:  => 163:5
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘ioread64_lo_hi’ [-Werror=missing-prototypes]:  => 156:5
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘ioread64be_hi_lo’ [-Werror=missing-prototypes]:  => 178:5
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘ioread64be_lo_hi’ [-Werror=missing-prototypes]:  => 170:5
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘iowrite64_hi_lo’ [-Werror=missing-prototypes]:  => 272:6
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘iowrite64_lo_hi’ [-Werror=missing-prototypes]:  => 264:6
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘iowrite64be_hi_lo’ [-Werror=missing-prototypes]:  => 288:6
+>  + /kisskb/src/lib/iomap.c: error: no previous prototype for ‘iowrite64be_lo_hi’ [-Werror=missing-prototypes]:  => 280:6
+
+um-x86_64-gcc12/um-all{mod,yes}config
+
+>  + {standard input}: Error: displacement to undefined symbol .L137 overflows 8-bit field :  => 1105, 1031
+>  + {standard input}: Error: displacement to undefined symbol .L158 overflows 8-bit field :  => 1110
+>  + {standard input}: Error: unknown pseudo-op: `.al':  => 1270
+>  + {standard input}: Error: unknown pseudo-op: `.siz':  => 1273
+
+sh4-gcc13/sh-all{mod,yes}config (SH ICE crickets)
+
+> 3 warning regressions:
+>  + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: warning: 'memcpy' accessing 4294967240 or more bytes at offsets 0 and 56 overlaps 6442450833 bytes at offset -2147483593 [-Wrestrict]:  => 298:17
+>  + /kisskb/src/drivers/gpu/drm/nouveau/nvif/object.c: warning: 'memcpy' accessing 4294967264 or more bytes at offsets 0 and 32 overlaps 6442450881 bytes at offset -2147483617 [-Wrestrict]:  => 161:9
+
+parisc-gcc13/generic-32bit_defconfig
+parisc-gcc13/parisc-{def,allmod}config
+
+>  + {standard input}: Warning: setting incorrect section attributes for .rodata..c_jump_table:  => 10174
+
+loongarch-gcc13/loongson3_defconfig
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
+--8323329-1442935893-1716798094=:2884583--
