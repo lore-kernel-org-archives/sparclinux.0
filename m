@@ -1,55 +1,55 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26951A0B0B
-	for <sparclinux@vger.kernel.org>; Wed, 29 May 2024 17:20:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F521C6885
+	for <sparclinux@vger.kernel.org>; Wed, 29 May 2024 19:49:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717003224; cv=none; b=llsvT21DeEKxl7uhVnOGJJcGiAmbX0MJBEX+9LDIqaHFY8y0ihjKluYTE0eTLLSGuUyvZAJPDKUEzbfhfFPBYQVodywWia88As0IMqTauyMxAWSbqYtoy3xgi33t4SXZ1GQybg1038kzByRI2/zGzZZqDZCc1nfM5vBg9I/OKWk=
+	t=1717012166; cv=none; b=Qxuk98KLkhnDVTD8A/TNUK73KUUPTRijD2g7c4U+L8UA+4MUFIN+UUEAknrjE8dKHprr4vpTDsnhZoGlkcC4fq0PPVX95VZp0eVJW1Syk3oHy3SShIuYRPHfAks5FLixstNofcf3IqHaYMtaL8UpXwbUd9njJ+Zmm1erj5V0ZGc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717003224; c=relaxed/simple;
-	bh=7Dvlwp3cj9kBhnrZACSLGYw+fDrt3VMF9KkgcqNKF7g=;
+	s=arc-20240116; t=1717012166; c=relaxed/simple;
+	bh=6SM4nGMq6YXwjPx3hzOgTtkr8rnEX3Vki2GtQ9/v/Tg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=X8+sQ9vTGpfREsUv+7Iz2vfdW6mbNwsZdssIfq+D80eeQzobF5yLakBQQOIwLLIizNTKn69dOzvcv2Oe4hbHO+7yAX1CRqOJyzK+AfGRjt3+sf65fIGNj9ZO2MOU8H8SyXzDe/KgQkQfeBZRjwPbWFbVydPSNnn+us/Se6muZxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OahVjF+u; arc=none smtp.client-ip=209.85.218.51
+	 To:Cc:Content-Type; b=S6cKk51hsQJJ741JOthGgOutpC9+NNKkSuetGvyaRf0D5ygkSW3gIOxmvbhBhIVZ4hS8jLAXhFQtuKgDTbjjlBGJYnbOAPEIyWewrzHtt+1idI5XXXiiFvLjv5VL8qz8WL5Xmtgc5zEoyN/0kBr9XvAJet9+EBd1HrJ/AZfNsug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=WaKJxj2r; arc=none smtp.client-ip=209.85.208.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OahVjF+u"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a59a609dd3fso37918466b.0
-        for <sparclinux@vger.kernel.org>; Wed, 29 May 2024 10:20:21 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="WaKJxj2r"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-57883b25b50so106674a12.2
+        for <sparclinux@vger.kernel.org>; Wed, 29 May 2024 12:49:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1717003220; x=1717608020; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1717012162; x=1717616962; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=T6S92XYKao8zmEwYTt3a/Nczc/mks5grdh4+BnfyPTc=;
-        b=OahVjF+uze/S9Yn0R/e+72J80Eo14Ndb0JX3BX7MdTwFUtnWHqryLwOZV9e/HwNRn/
-         KCzJSttyBaVlcSU8Aii7iGYJnLXOnG/vYNoV9ub7xA++Wb/uaDy335X6NZe/d0MZ4KmA
-         Yemfy5Zcudp9/S6EY/5hs9Z0auOiK+7PZnIHC97KPZtxaRwTe04/w8S7LccXPI7E7tWD
-         PEuSnKcy5PguqBJ+VJOY+H20C1JqxCF7VOzCbyV9PZf5dOwX7ILRV2T4KIDbhzzMEIgf
-         F2HFp+dgVFKGX0yDYiaEGS6Kw/9n2i+uyrYYhyw+0lo+xD51tEUpd0vb5ywrXcox0zmZ
-         d3nw==
+        bh=Mc6m1mM9m4Ud5DdSGHmt9Zcx4NpBQQ1agEgintMCgFk=;
+        b=WaKJxj2rSmiptfxPuIpvUd4DO37VpSMk36dQcSjU2nfbhLrs/6sj+L957ozHRkSxyE
+         TahFIlyXavs4CwVkXbGgibHaZ78nBGAoNz1E+2HWXC9+7wpBE9x3fU/+vVUNcUW6rJqc
+         n0wSQUBi2d3dc4nr8ulLpmSegCq86rCBEhG/icMRdmocKpO4NWAppHoIuWkJ8uNPH+jX
+         o2ArPykUTi8L9m/w0vlaDn5Dc8OxRXwlaoO9jd/ezYSXQJ3I6lBNJtlfF/AcwBvjH0to
+         Qv6SqMuA/Yte/M52TzTy7XMHZ3YE8iF0RhhZ/93YZjD2Ch6+/yU4fVLtCjI9qC9Bx0KN
+         3KUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717003220; x=1717608020;
+        d=1e100.net; s=20230601; t=1717012162; x=1717616962;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=T6S92XYKao8zmEwYTt3a/Nczc/mks5grdh4+BnfyPTc=;
-        b=eMV/ZrKijMJ3Tg9CI0kdxlRTs0cpgkaX3OTIJZB+zCiVXm50YeK94gdyDekLNQykqv
-         I3Njou09Yhrt3zWXPKH9xi6WF5n3ruizrVp0ZUvQN0/S6QhtwjMg1lfk5mXMHbrfs9Rj
-         viv3GJDrNWjKYH9lZ7fDKv4Werd/iLjDD17g4qf/xJTj3e4nD/swuiSM1nR5+HGgoZh/
-         QVs4d/5LaRzmkFVGhQIXidlULRHHS+mrIDvIT275LJGt20JsDXvDyYIXEDSOCTp63PjP
-         A220kt6Py6lA4GTjMVUVkQXP3U3YwdT3ubkkXqswJZEDiNqRCx3bNmRoi65VBUZxHSLu
-         h2Cg==
-X-Forwarded-Encrypted: i=1; AJvYcCVdN8EXuw1AZ9c11OJtExDC5kSg6x5L6GHY5965bn14sSAhObtp2eW2wbiyA7xFTrdLlA+BhKVe0U4IREWYottKjRZ6NpDD5K4xqQ==
-X-Gm-Message-State: AOJu0Yw3iKhEsZ0XrpqRKsFV++Ffrisv/n50QpYSmXb3nBV7/gOLNK8N
-	hdgYopu1Mh+ztpk6aF3MC0S5bcn39MuqJZWFIln5mQrMipsxsvKL0PpBwkAkXwLu3lB+T8X0jZj
-	1Js8US+sFXQIlUm5IBN/BsnwH6EzGwMgwBk2z
-X-Google-Smtp-Source: AGHT+IFAhIhHvER4srrkWNvWRV5ZrC6gug/SN6NLXzcRRgpzDjuVBSfERRb5LBk6wrj7S1gKnfcF1nodGURXGds/8UM=
-X-Received: by 2002:a17:906:2dc2:b0:a62:c41d:c25f with SMTP id
- a640c23a62f3a-a642d6b1573mr258384666b.21.1717003219656; Wed, 29 May 2024
- 10:20:19 -0700 (PDT)
+        bh=Mc6m1mM9m4Ud5DdSGHmt9Zcx4NpBQQ1agEgintMCgFk=;
+        b=HbdFaHCpUtEyolbloS3Rd1oIHfO1FM/uF/En/fcdQyBlstQnyLrDUyv6Njlhj17+I2
+         eQIGy+SjHH43E9kESEzDQyvm2psElauhHF0bAUEeGBjzFxiffSeZP3IPCmhJgXSSN52N
+         OHWvwAmRBwYI62w8hhU71xtPhq57dpJ+CcejplQGxFaVyhSkwW87kRpxWClg0qPaFQSk
+         hjfZ5rTB7a3Bb/U1DJrTrhWMv/TgUMUx0Rx4cn9JhHcg80uEd8XXdA7scd9I8lkmVtVx
+         K/LSkPxfwCUMKvhKNduLvmtc1MdGfB+/Ex9jxSq7nQEWdgNDnRLHPNnx5Hq3YjUFh6w0
+         nlTw==
+X-Forwarded-Encrypted: i=1; AJvYcCUxwc8JtRJ3ZgwBSIJvHpm3HquF6XOSlr/e2XKpVJNJghwsqqhpZ4wJLbfKyUmw6Sm3MLH3NXKGgJ+JtVMWabil+6S74LLxJL04Qg==
+X-Gm-Message-State: AOJu0YyYSyVJGmfq2kAMR1evPLSSPHFQ+DZaR3V3lo3WVNpbTnvaSkkW
+	qk8pZD6wkWQOzPFU2D3GO50Jm/QE8ZV530ELQeMoxMfLndbyQ6TYO7RFwA/pz+LZoeB6JIcd/72
+	zLjxtqQWhjmdgwdtkDVce33aDwIysEd97T76h
+X-Google-Smtp-Source: AGHT+IF9PV9JeYxxToH3qJtJfXsnwGUXtNUCB5FusC4DI8sGVRwbRTrnhLkmsIc9tQHh+KHAMPViyk6pTFPRs1HCH10=
+X-Received: by 2002:a17:906:c18f:b0:a63:49a5:9390 with SMTP id
+ a640c23a62f3a-a65e8f74d3dmr11845366b.41.1717012162364; Wed, 29 May 2024
+ 12:49:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -57,15 +57,14 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20240510232128.1105145-1-almasrymina@google.com>
- <20240510232128.1105145-12-almasrymina@google.com> <9097e78d-0e7d-43bd-bafd-e53a4872a4d1@davidwei.uk>
- <CAHS8izOe-uYjm0ttQgHOFpvp_Tj4_oRHV6d1Y1sWJAZJdCdCBA@mail.gmail.com> <29464e46-e196-47aa-9ff5-23173099c95e@gmail.com>
-In-Reply-To: <29464e46-e196-47aa-9ff5-23173099c95e@gmail.com>
+ <20240510232128.1105145-5-almasrymina@google.com> <d85f4ba4-774f-4577-985f-45a5a1866da7@davidwei.uk>
+In-Reply-To: <d85f4ba4-774f-4577-985f-45a5a1866da7@davidwei.uk>
 From: Mina Almasry <almasrymina@google.com>
-Date: Wed, 29 May 2024 10:20:03 -0700
-Message-ID: <CAHS8izOnD3J3i+z1nxg=AZQW9dm0w2JBtbg2=oouiER8xqeRPA@mail.gmail.com>
-Subject: Re: [PATCH net-next v9 11/14] tcp: RX path for devmem TCP
-To: Pavel Begunkov <asml.silence@gmail.com>
-Cc: David Wei <dw@davidwei.uk>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+Date: Wed, 29 May 2024 12:49:08 -0700
+Message-ID: <CAHS8izPVhDaokO9C+S4RR9b6+77OV2CsNb8jnGGKxNqGTa6DXg@mail.gmail.com>
+Subject: Re: [PATCH net-next v9 04/14] netdev: support binding dma-buf to netdevice
+To: David Wei <dw@davidwei.uk>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
 	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
 	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
@@ -90,113 +89,78 @@ Cc: David Wei <dw@davidwei.uk>, netdev@vger.kernel.org, linux-kernel@vger.kernel
 	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
 	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
 	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, 
-	Shailend Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst <jeroendb@google.com>, 
-	Praveen Kaligineedi <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>, 
-	Kaiyuan Zhang <kaiyuanz@google.com>
+	Pavel Begunkov <asml.silence@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
+	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 28, 2024 at 7:42=E2=80=AFPM Pavel Begunkov <asml.silence@gmail.=
-com> wrote:
+On Sat, May 18, 2024 at 11:46=E2=80=AFAM David Wei <dw@davidwei.uk> wrote:
 >
-> On 5/28/24 18:36, Mina Almasry wrote:
-> > On Wed, May 22, 2024 at 11:02=E2=80=AFPM David Wei <dw@davidwei.uk> wro=
-te:
-> ...
-> >>> +                      */
-> >>> +                     if (!skb_frag_net_iov(frag)) {
-> >>> +                             net_err_ratelimited("Found non-dmabuf s=
-kb with net_iov");
-> >>> +                             err =3D -ENODEV;
-> >>> +                             goto out;
-> >>> +                     }
-> >>> +
-> >>> +                     niov =3D skb_frag_net_iov(frag);
-> >>
-> >> Sorry if we've already discussed this.
-> >>
-> >> We have this additional hunk:
-> >>
-> >> + if (niov->pp->mp_ops !=3D &dmabuf_devmem_ops) {
-> >> +       err =3D -ENODEV;
-> >> +       goto out;
-> >> + }
-> >>
-> >> In case one of our skbs end up here, skb_frag_is_net_iov() and
-> >> !skb_frags_readable(). Does this even matter? And if so then is there =
-a
-> >> better way to distinguish between our two types of net_iovs?
-> >
-> > Thanks for bringing this up, yes, maybe we do need a way to
-> > distinguish, but it's not 100% critical, no? It's mostly for debug
-> > checking?
+> On 2024-05-10 16:21, Mina Almasry wrote:
+> > +void net_devmem_unbind_dmabuf(struct net_devmem_dmabuf_binding *bindin=
+g)
+> > +{
+> > +     struct netdev_rx_queue *rxq;
+> > +     unsigned long xa_idx;
+> > +     unsigned int rxq_idx;
+> > +
+> > +     if (!binding)
+> > +             return;
+> > +
+> > +     if (binding->list.next)
+> > +             list_del(&binding->list);
+> > +
+> > +     xa_for_each(&binding->bound_rxq_list, xa_idx, rxq) {
+> > +             if (rxq->mp_params.mp_priv =3D=3D binding) {
+> > +                     /* We hold the rtnl_lock while binding/unbinding
+> > +                      * dma-buf, so we can't race with another thread =
+that
+> > +                      * is also modifying this value. However, the pag=
+e_pool
+> > +                      * may read this config while it's creating its
+> > +                      * rx-queues. WRITE_ONCE() here to match the
+> > +                      * READ_ONCE() in the page_pool.
+> > +                      */
+> > +                     WRITE_ONCE(rxq->mp_params.mp_ops, NULL);
+> > +                     WRITE_ONCE(rxq->mp_params.mp_priv, NULL);
+> > +
+> > +                     rxq_idx =3D get_netdev_rx_queue_index(rxq);
+> > +
+> > +                     netdev_rx_queue_restart(binding->dev, rxq_idx);
 >
-> Not really. io_uring definitely wouldn't want the devmem completion path
-> taking an iov and basically stashing it into a socket (via refcount),
-> that's a lifetime problem. Nor we'd have all the binding/chunk_owner
-> parts you have and probably use there.
+> What if netdev_rx_queue_restart() fails? Depending on where it failed, a
+> queue might still be filled from struct net_devmem_dmabuf_binding. This
+> is one downside of the current situation with netdev_rx_queue_restart()
+> needing to do allocations each time.
 >
-> Same the other way around, you don't want io_uring grabbing your iov
-> and locking it up, it won't even be possible to return it back. We
-> also may want to have access to backing pages for different fallback
-> purposes, for which we need to know the iov came from this particular
-> ring.
->
-> It shouldn't happen for a behaving user, but most of it would likely
-> be exploitable one way or another.
->
-> > I would say add a helper, like net_iov_is_dmabuf() or net_iov_is_io_uri=
-ng().
->
-> We're verifying that the context the iov bound to is the current
-> context (e.g. io_uring instance) we're executing from. If we can
-> agree that mp_priv should be a valid pointer, the check would look
-> like:
->
-> if (pp->mp_priv =3D=3D io_uring_ifq)
->
-> > Checking for niov->pp->mp_ops seems a bit hacky to me, and may be
-> > outright broken. IIRC niov's can be disconnected from the page_pool
-> > via page_pool_clear_pp_info(), and niov->pp may be null. Abstractly
->
-> It's called in the release path like page_pool_return_page(),
-> I can't imagine someone can sanely clear it while inflight ...
+> Perhaps a full reset if individual queue restart fails?
 >
 
-Ah, yes, I wasn't sure what happens to the inflight pages when the pp
-gets destroyed. I thought maybe the pp would return the inflight
-pages, but it looks to me like the pp just returns the free pages in
-the alloc cache and the ptr_ring, and the pp stays alive until all the
-inflight pages are freed. So indeed niov->pp should always be valid
-while it's in flight. I still prefer to have the memory type to be
-part of the niov itself, but I don't feel strongly at this point; up
-to you.
+Sorry for the late reply, I've been out on vacation for a few days and
+caught up to some other work.
 
-> > speaking the niov type maybe should be a property of the niov itself,
-> > and not the pp the niov is attached to.
->
-> ... but I can just stash all that in niov->owner,
-> struct dmabuf_genpool_chunk_owner you have. That might be even
-> cleaner. And regardless of it I'll be making some minor changes
-> to the structure to make it generic.
->
-> > It is not immediately obvious to me what the best thing to do here is,
-> > maybe it's best to add a flag to niov or to use niov->pp_magic for
-> > this.
-> >
-> > I would humbly ask that your follow up patchset takes care of this
-> > bit, if possible. I think mine is doing quite a bit of heavy lifting
-> > as is (and I think may be close to ready?), when it comes to concerns
-> > of devmem + io_uring coexisting if you're able to take care, awesome,
-> > if not, I can look into squashing some fix.
->
-> Let it be this way then. It's not a problem while there is
-> only one such a provider.
->
+Yes, netdev_rx_queue_restart() can fail, but I'm not sure how to
+recover. Full reset would be an option, but it may be way too big of a
+hammer to do a full reset on this failure. Also, last I discussed with
+Jakub, AFAIU, there is no way for core to reset the driver? I had
+suggested to Jakub to use ndo_stop/ndo_open to reset the driver on
+queue binding/unbinding, but he rejected that as it could cause the
+driver to fail to come back up, which would leave the machine stranded
+from the network. This is why we implemented the queue API, as a way
+to do the binding/unbinding without risking the machine stranding via
+a full reset. This is the previous convo from months back[1].
 
-Thank you!
+So, all in all, I don't see anything amazing we can do here to
+recover. How about just log? I will add a warning in the next
+iteration.
+
+(I applied most of the rest of your suggestions btw).
+
+[1] https://patchwork.kernel.org/project/netdevbpf/patch/20231106024413.280=
+1438-13-almasrymina@google.com/#25590262
 
 --=20
 Thanks,
