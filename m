@@ -1,127 +1,103 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E32018399B
-	for <sparclinux@vger.kernel.org>; Thu, 30 May 2024 23:51:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB4B5EAD5;
+	Fri, 31 May 2024 00:34:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717113110; cv=none; b=t2PfRLFVwzPoV08eu1V45QqZkQx5g/TbMjqSVUvNOErQVlepJ8ryuB6FlVS9l8637VOeMe8qMkcqu0a/i7Me8LbViU9oMcB5dkgrZVOAZZ9jvZxsFv2uSrgvHibgKtNyCkdw/LWeBY9/gptr4XUc16iUxiv1B8SWWw0SMdGojvw=
+	t=1717115652; cv=none; b=fi518GI2FWJZjddVhtDGnP87w2AAompSbO37arKi+zwbhFdd+RsONeUUlaIU3SqBNUN+eWq6eHdCEuLKy5L+4cWhUPBC735Mha3Kg2hfF5bSEuCeWyqqfK79qltlcsHrtExfl9V+m/oYspAP88KwLMrgrpKqenCcp4gihTlDK7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717113110; c=relaxed/simple;
-	bh=W93FmhGSt5rN/d9ZkTtKHNbj8y2kiVp3BB6JpqBPjtM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=P6E3YhJb0JWmZmyW6WJAMa+hiWjfy+6ntLOft19OHhGbMEU54Awukp4HQAPdN9k7U70f42ViRNwXHc3HbPX78MRvX11stZtq+TT0eA2knCpI8Mb1hCdt0EpZjVUWyWvL7hDJG7y1fLZo771L9IldNNDwz2F2ZSxM2l35lcho4Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk; spf=none smtp.mailfrom=davidwei.uk; dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b=QL4+RqL0; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=davidwei.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=davidwei.uk
+	s=arc-20240116; t=1717115652; c=relaxed/simple;
+	bh=4iD+jMVrqhrZtx04FcJs/ARGL03L84pPco+/wK/UA+8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fQN+Ls5sFJ8OaHvRP4SyfzLikKFLNXQmnvDXIyiQM/6MuWQQsgAK1OIY9+xbxRCMNDBZ9PdtvwgcGNrSAansyra0ibDsurPS+6Fl15CIiesE3HT3UhoVvMP25UJKulZVSwd8kj1zMZtKRpLR+MRBEJTOf3BbBTK7YDOFKhOzFXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b6x7kPSN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=davidwei-uk.20230601.gappssmtp.com header.i=@davidwei-uk.20230601.gappssmtp.com header.b="QL4+RqL0"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-6f693306b7cso1343030b3a.1
-        for <sparclinux@vger.kernel.org>; Thu, 30 May 2024 16:51:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=davidwei-uk.20230601.gappssmtp.com; s=20230601; t=1717113107; x=1717717907; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=zLw2WCX7NzhXHaHBtGiNDa+0R1r9ENCFVNNCzI5O8YY=;
-        b=QL4+RqL090NmzqnmmaV35StPPgSYrm0/E5FYyEyBNDFbnjFYn4+7lynHidmbHWfEVL
-         1iBcOwtdX/+OmGH9OHA6Ly9dCXC0kAmMRNt7jsngsMzCorwTnvSYwsuvbd/30RasDM2J
-         CgWFzSw7fo3h/P0Vna2SEUkG3BW1pwRp2ZYJmicLk3iur+HVCLaN4mTrgCpO4EGR65xr
-         zvIJIWco9NeeSE1nTauAdHI2pE5kFmj0GGL6zKrRbn7msIZJ7JKuUeM9tM4Yd+OHVqGp
-         tw2mwrdzVMXg0wyfG0apx+qaFVSep6SjKcJrNGom1L34fJ84bOjAqASDJTHdFqEXjqA6
-         2XTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717113107; x=1717717907;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zLw2WCX7NzhXHaHBtGiNDa+0R1r9ENCFVNNCzI5O8YY=;
-        b=cx1mKuU8UxNDmV4dC+mrm+ozoGhmIqqA3g1epKV1mTeo4ZQJdUs2Nzd2cl6TugOVDA
-         Vbo0spitnY9UMJJB8nY4LNyI5iTNjmmNNzHK6SEWEKRug2epRLLFOoj6YLHJrbo446sO
-         EHiPUNuJe4mxfiorgRwIhN3ZZ6Ty5gd5EeOd6cdLW1K9buAChR+RMYWSvqA2wGPy4yZu
-         Q6YrSkso873oMKKcrZJ5gkMeFh7+/E1eBeBGi72SmbkIQljqi++pSZIE43OVAjkbTnM9
-         SYEnZp34791mLdU4hDVF+RyGo+LhbilqN1AE/uZW4+htFo65gXPENc82NZu7kf7o0YN6
-         EJgg==
-X-Forwarded-Encrypted: i=1; AJvYcCUQa4gbtjBZv3UoGZ0/svziOt8dSoAcbv+3aTB0m4TyBtVUJdkKV0px8pdpBJdkT7Kg8o7OwfohG5X8TdQSQqJzQnR53DeIQOUNsw==
-X-Gm-Message-State: AOJu0YxpPuYAbbf7VoiZOVmcA+4G1J19waYQd4EOvZF49F4tAsZod88E
-	RRNwV/s2HjO4gv8r/bDxMGdT/n5Ik26QtezqYQXhzTmqsvWMEpjuZqERSxf9FEc=
-X-Google-Smtp-Source: AGHT+IGLIircvxxELNZp6hQL4M8a4oqQMuIfbGbj5ESP+8hykh0tgC9NyJcGdtZhysmk5TffXmp10A==
-X-Received: by 2002:a05:6a21:7807:b0:1af:f23c:804a with SMTP id adf61e73a8af0-1b26f245bedmr579669637.38.1717113107315;
-        Thu, 30 May 2024 16:51:47 -0700 (PDT)
-Received: from ?IPV6:2a03:83e0:1156:1:1cbd:da2b:a9f2:881? ([2620:10d:c090:500::4:5439])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-702423c7b7esm298915b3a.13.2024.05.30.16.51.42
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 30 May 2024 16:51:46 -0700 (PDT)
-Message-ID: <49e4d52c-59f1-4321-9012-aabb1e8cc005@davidwei.uk>
-Date: Thu, 30 May 2024 16:51:41 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b6x7kPSN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D406C32789;
+	Fri, 31 May 2024 00:34:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1717115652;
+	bh=4iD+jMVrqhrZtx04FcJs/ARGL03L84pPco+/wK/UA+8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=b6x7kPSN5aAVzsB/HUrBHdjU+AYePayTWNmjFw0naAiPhXJoMdR3Y/q1DOv/UtA9a
+	 pmsbQFXjh+tebTUPZnk5+M9xSEX/wT59tC7MQPoo5YT6XMmTuq7eMVV+db0jhPxzms
+	 U7gFEeF5SVTJgoOaVM5iKd+Wd2ll4ymPOVkPQbNj1rRv/U/1VMB6Ih0mxeDvodamwE
+	 pd6OFKFWk5hza4bMFrN7BGTNkk5KDkgvPba+WjOGVHH9WSitMDsAzyAgNB7RW/J6KJ
+	 mhPvkZ5xh6p9YQEAXPsT9WpM9XcbIrcOO5jzd8dD3zYiTC9zTUlz4wcpCZDH8U5G9E
+	 KjoZlylYjeHuw==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-52b78ef397bso1524927e87.0;
+        Thu, 30 May 2024 17:34:12 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCV2SqcfQ6CDTU6JkHa3CcBOoMKXiOfD3httDUJ0IzOC5UTTAZkiu3VwJUH5Zu1AGfThAL2rYoIl5oK6iYF7hCJLtdpeogpfsdMrgZmuj9DhsSHzdWbRFxk3IvUEhzseO3QgaSb2bzuiJWGh4gMqLMDCYmmHic0FkHR5/3cyj3ZB2SBDYDo=
+X-Gm-Message-State: AOJu0Yy0H3yx/II0a3rjXhhDDjklxgb8XB6EncAAyXMGOwWOYun1zFd4
+	VWaaDhT6+97z6z+En4ZADemH1saOISzfoRedGOwjMZvzdCiAU+UNYWT6g2G1ce09m0yfPeQsyXV
+	Wh7zNOVPJUgea/bSM90A62QVI0w==
+X-Google-Smtp-Source: AGHT+IG9Z2EpLaf4ub5p6M8NL3Z9H8cwWJ6uYyD+6TnyOEekF3Ohw3BBBbGyhA2vy6pz+C0o5/Vt7mALs2KAtVfTuys=
+X-Received: by 2002:a19:5504:0:b0:52b:6a18:5b00 with SMTP id
+ 2adb3069b0e04-52b8878cc6bmr131096e87.34.1717115650688; Thu, 30 May 2024
+ 17:34:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v10 01/14] netdev: add netdev_rx_queue_restart()
-Content-Language: en-GB
-To: Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
- bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Donald Hunter <donald.hunter@gmail.com>,
- Jonathan Corbet <corbet@lwn.net>,
- Richard Henderson <richard.henderson@linaro.org>,
- Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
- <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
- Jesper Dangaard Brouer <hawk@kernel.org>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
- <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
- Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
- Martin KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman
- <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
- Yonghong Song <yonghong.song@linux.dev>,
- John Fastabend <john.fastabend@gmail.com>, KP Singh <kpsingh@kernel.org>,
- Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>,
- Jiri Olsa <jolsa@kernel.org>, Steffen Klassert
- <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
- David Ahern <dsahern@kernel.org>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
- Shuah Khan <shuah@kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Pavel Begunkov <asml.silence@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>,
- Harshitha Ramamurthy <hramamurthy@google.com>,
- Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst
- <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
-References: <20240530201616.1316526-1-almasrymina@google.com>
- <20240530201616.1316526-2-almasrymina@google.com>
-From: David Wei <dw@davidwei.uk>
-In-Reply-To: <20240530201616.1316526-2-almasrymina@google.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20240530185049.2851617-1-robh@kernel.org> <20240530-surging-sprinkled-f209b2452395@spud>
+In-Reply-To: <20240530-surging-sprinkled-f209b2452395@spud>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 30 May 2024 19:33:57 -0500
+X-Gmail-Original-Message-ID: <CAL_JsqKC5kkMvWDHVdt-3gS-sW=t=cvLctVVbHhcvPXpe-2nSQ@mail.gmail.com>
+Message-ID: <CAL_JsqKC5kkMvWDHVdt-3gS-sW=t=cvLctVVbHhcvPXpe-2nSQ@mail.gmail.com>
+Subject: Re: [PATCH] of: WARN on using default root node #address-cells/#size-cells
+To: Conor Dooley <conor@kernel.org>
+Cc: Saravana Kannan <saravanak@google.com>, Andreas Larsson <andreas@gaisler.com>, 
+	Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2024-05-30 13:16, Mina Almasry wrote:
-[...]
-> +err_start_queue:
-> +	/* Restarting the queue with old_mem should be successful as we haven't
-> +	 * changed any of the queue configuration, and there is not much we can
-> +	 * do to recover from a failure here.
-> +	 *
-> +	 * WARN if the we fail to recover the old rx queue, and at least free
-> +	 * old_mem so we don't also leak that.
-> +	 */
-> +	if (dev->queue_mgmt_ops->ndo_queue_start(dev, old_mem, rxq_idx)) {
-> +		WARN(1,
-> +		     "Failed to restart old queue in error path. RX queue %d may be unhealthy.",
-> +		     rxq_idx);
-> +		dev->queue_mgmt_ops->ndo_queue_mem_free(dev, &old_mem);
+On Thu, May 30, 2024 at 2:21=E2=80=AFPM Conor Dooley <conor@kernel.org> wro=
+te:
+>
+> On Thu, May 30, 2024 at 01:50:48PM -0500, Rob Herring (Arm) wrote:
+> > While OpenFirmware originally allowed default values of #address-cells
+> > and #size-cells, FDT has long required explicit values. It's been a
+> > warning in dtc for the root node since the beginning (2005) and for
+> > any parent node since 2007. Of course, not all FDT uses dtc, but that
+> > should be the majority by far. The various extracted OF devicetrees I
+> > have dating back to the 1990s (various PowerMac, OLPC, PASemi Nemo)
+> > all have explicit root node properties.
+> >
+> > I have no idea what exists for Sparc, so disabling the warning for it.
+> > If any other platforms hit the warning, then the warning can be
+> > disabled for them.
+> >
+> > Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
+> > ---
+> > Sparc folks, If anyone can dump DTs from some Sparc systems it would be
+> > helpful.
+> > ---
+> >  drivers/of/base.c | 2 ++
+> >  drivers/of/fdt.c  | 2 ++
+> >  2 files changed, 4 insertions(+)
+> >
+> > diff --git a/drivers/of/base.c b/drivers/of/base.c
+> > index 61fff13bbee5..6930aa29fec1 100644
+> > --- a/drivers/of/base.c
+> > +++ b/drivers/of/base.c
+> > @@ -96,6 +96,7 @@ int of_bus_n_addr_cells(struct device_node *np)
+> >                       return cells;
+> >
+> >       /* No #address-cells property for the root node */
+> > +     WARN_ONCE(!IS_ENABLED(CONFIG_SPARC), "Only listed platforms shoul=
+d rely on default '#address-cells'\n");
+>
+> I assume "listed platforms" means things in the first parameter of
+> WARN_ONCE()? Since that's only SPARC, why not just say it? The error
+> message is rather obtuse as-is I think.
 
-This should be ->ndo_queue_mem_free(dev, old_mem).
+My intent is if you hit this warning, add the platform here. I imagine
+it will be older stuff we can't or don't want to fix. Maybe I should
+just say that as a comment instead.
+
+Rob
