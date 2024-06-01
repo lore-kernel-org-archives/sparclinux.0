@@ -1,122 +1,106 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 573D87483;
-	Fri, 31 May 2024 15:11:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32ABAB645;
+	Sat,  1 Jun 2024 05:35:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717168279; cv=none; b=aO3Z3JFl0NLQ3eT/scJPnEvjteSH5gor5c/Xi1yGn+qfiAi7l4NXuS58kGD1ndFKGSTYMmSEMQXf7Mr3odO/S+8mEjDe2OJHyAlRZR4LyKYDHoIZJvT33dTNPQ9dchSjxQLjo0j9+Q/RPNL/C7iZZBUcQxZeB82WEpiqIqR4TIw=
+	t=1717220130; cv=none; b=ncUJ+67RK5bkMTNskJsB9JSWGTRsMWecrDIsPIXoJccVjN8DSk/TIuGo5Iv6m44UpNvRbhBp1FwBqJvuUyaoid715e75RdcTgcRCMLFLkyNbLcnAO3qKyid5w1r3aNkaakidM/Z3OwJWcRcWRIMZHkhWKCcp0XYXptbC7v9WIOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717168279; c=relaxed/simple;
-	bh=BGnnpDBcKYL3dKJjZSbZGcYNM5FmYIuUanB00h62RZY=;
+	s=arc-20240116; t=1717220130; c=relaxed/simple;
+	bh=Qcg2EsWp+MetVfVlJ1MsRloFldhkkthqt6s0XSJGGUQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ixyO+IWfnZl3xk2E5CU7dfT1HjX5ic/2JGchrFHSkk2BbS0j4G9NMkMia0vKjL6QdRbcmgHGnN7585zYjQlez/rtvXoF43FL9ZIyaVkGNk3qrOQprbu0D8Bmoj60h9OY9svl9TneRj30HK1WXGHTTnihc9ZBC60OF9PSFCNjfOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PhVY1QDU; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=CNBROIVzzRad9bD4fki+dKwX/enbEizuT9BVZjQByrJXz1Mi/vGyRxNbpTbc5d5r2bhithO+moS1qz2G3RcCHxWU59Xxt6JDQiwvEwDYkY2E2Km5/btk7e5ZdQ/870GV/tV1XuU11sY6dP1+D8L/Skgh6BO24PBeGtWf9gxSsuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=HKdrUCcb; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PhVY1QDU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62B9BC116B1;
-	Fri, 31 May 2024 15:11:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717168278;
-	bh=BGnnpDBcKYL3dKJjZSbZGcYNM5FmYIuUanB00h62RZY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PhVY1QDU+pk0ZiuCfmbyiENiKCKaBpbqyaTe087TxsNKREnXaqiYYkhZTSxI6wk1h
-	 j1TQiMRQN4/y5gdcUdM1Nl2GCByWf+Bp5nRm/ENGXrIuR85+rHtWrYjwirJbUuVgWd
-	 V4Jh1kBxdE3JHJUb/6QVtpSQ59yr0+bKFqjVrnSl+pDKFJ+V+enMDQaLbNUUnlPa1F
-	 eVM7Ms4+CviV96OPCO4SSoLHMCyQgZ9XglgaPN2qeUKQcCjjq4WBPHhyI8hAcrNzwX
-	 LqJwTprQkIDkgktw/BswwKu+7ub6hzGFxO6D9EO3Qkicf1cu6WapKhx4qyGWqKXQpQ
-	 LwiNnZVNVn0rg==
-Date: Fri, 31 May 2024 16:11:15 +0100
-From: Conor Dooley <conor@kernel.org>
-To: Rob Herring <robh@kernel.org>
-Cc: Saravana Kannan <saravanak@google.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] of: WARN on using default root node
- #address-cells/#size-cells
-Message-ID: <20240531-excursion-synapse-13c198fc61cb@spud>
-References: <20240530185049.2851617-1-robh@kernel.org>
- <20240530-surging-sprinkled-f209b2452395@spud>
- <CAL_JsqKC5kkMvWDHVdt-3gS-sW=t=cvLctVVbHhcvPXpe-2nSQ@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HKdrUCcb"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=456lYLJFZKzRl4SbmbA36m1MZ6kwxd5EdW3HB35jgrg=; b=HKdrUCcbh7nuL8yjXhHjQH/2c7
+	U49VdUoahQ9mXcAW41e+bwbDxOi+Vq+eFNiyQVP2sy8gBiQ6/Hs6+GeSqxfWD/fEs3RKX4yjsxvrB
+	QBk3NOphsBeQ5nznYjVhhCXtbxYIF7rSg/FLAq5/WvFZcw7b0toA8m5usAMU+ni1+Y1TWlial5hme
+	KvsVSNOSB79AJSWThDvRC+li8uz2EJJdKOhF707Lf0dpLWLJF6cjRoFrWm8dEvxyi/ImC8yGynqHB
+	uNmkck8LcVheHGVvgWeTovxzhvSb0cCLQIyOyRoHvtbV3ADVSDQFcZmf/3qL/6AwY4q8Fs+FMEG7K
+	BxU0btmg==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1sDHOb-0000000C0oj-3fR7;
+	Sat, 01 Jun 2024 05:35:13 +0000
+Date: Fri, 31 May 2024 22:35:13 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Mina Almasry <almasrymina@google.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org,
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Donald Hunter <donald.hunter@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>,
+	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	David Ahern <dsahern@kernel.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	Shuah Khan <shuah@kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	Shailend Chand <shailend@google.com>,
+	Harshitha Ramamurthy <hramamurthy@google.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Jeroen de Borst <jeroendb@google.com>,
+	Praveen Kaligineedi <pkaligineedi@google.com>,
+	Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH net-next v10 02/14] net: page_pool: create hooks for
+ custom page providers
+Message-ID: <ZlqzER_ufrhlB28v@infradead.org>
+References: <20240530201616.1316526-1-almasrymina@google.com>
+ <20240530201616.1316526-3-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="uyjlUp5eqmodPrmz"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqKC5kkMvWDHVdt-3gS-sW=t=cvLctVVbHhcvPXpe-2nSQ@mail.gmail.com>
+In-Reply-To: <20240530201616.1316526-3-almasrymina@google.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
+On Thu, May 30, 2024 at 08:16:01PM +0000, Mina Almasry wrote:
+> I'm unsure if the discussion has been resolved yet. Sending the series
+> anyway to get reviews/feedback on the (unrelated) rest of the series.
 
---uyjlUp5eqmodPrmz
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+As far as I'm concerned it is not.  I've not seen any convincing
+argument for more than page/folio allocator including larger order /
+huge page and dmabuf.
 
-On Thu, May 30, 2024 at 07:33:57PM -0500, Rob Herring wrote:
-> On Thu, May 30, 2024 at 2:21=E2=80=AFPM Conor Dooley <conor@kernel.org> w=
-rote:
-> >
-> > On Thu, May 30, 2024 at 01:50:48PM -0500, Rob Herring (Arm) wrote:
-> > > While OpenFirmware originally allowed default values of #address-cells
-> > > and #size-cells, FDT has long required explicit values. It's been a
-> > > warning in dtc for the root node since the beginning (2005) and for
-> > > any parent node since 2007. Of course, not all FDT uses dtc, but that
-> > > should be the majority by far. The various extracted OF devicetrees I
-> > > have dating back to the 1990s (various PowerMac, OLPC, PASemi Nemo)
-> > > all have explicit root node properties.
-> > >
-> > > I have no idea what exists for Sparc, so disabling the warning for it.
-> > > If any other platforms hit the warning, then the warning can be
-> > > disabled for them.
-> > >
-> > > Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
-> > > ---
-> > > Sparc folks, If anyone can dump DTs from some Sparc systems it would =
-be
-> > > helpful.
-> > > ---
-> > >  drivers/of/base.c | 2 ++
-> > >  drivers/of/fdt.c  | 2 ++
-> > >  2 files changed, 4 insertions(+)
-> > >
-> > > diff --git a/drivers/of/base.c b/drivers/of/base.c
-> > > index 61fff13bbee5..6930aa29fec1 100644
-> > > --- a/drivers/of/base.c
-> > > +++ b/drivers/of/base.c
-> > > @@ -96,6 +96,7 @@ int of_bus_n_addr_cells(struct device_node *np)
-> > >                       return cells;
-> > >
-> > >       /* No #address-cells property for the root node */
-> > > +     WARN_ONCE(!IS_ENABLED(CONFIG_SPARC), "Only listed platforms sho=
-uld rely on default '#address-cells'\n");
-> >
-> > I assume "listed platforms" means things in the first parameter of
-> > WARN_ONCE()? Since that's only SPARC, why not just say it? The error
-> > message is rather obtuse as-is I think.
->=20
-> My intent is if you hit this warning, add the platform here.
-
-Aye, I figured as much. My point was mostly that if you see this warning
-during boot etc the message doesn't make that much sense. It only really
-makes sense when you look at the kernel sources.
-
-> I imagine
-> it will be older stuff we can't or don't want to fix. Maybe I should
-> just say that as a comment instead.
-
---uyjlUp5eqmodPrmz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZlnokwAKCRB4tDGHoIJi
-0igyAP9ZMYa40yBgxnzlWirEDEOVEZkczT/VxnyqupfD+G1u1QD+LK3+LfsxDO2D
-LrADJ6wRuOK7XFE8wdPAexoqL7dTMgM=
-=uUF7
------END PGP SIGNATURE-----
-
---uyjlUp5eqmodPrmz--
