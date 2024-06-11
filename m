@@ -1,84 +1,128 @@
-Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [46.30.211.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com [209.85.167.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEB1441C6D
-	for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 17:38:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83FCA6EB74
+	for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 17:49:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718127532; cv=none; b=DT66WuKiIgxZDbnAuVKwljQIOInwado+S4bXvvi+B8J7NqN051sYRvEaWnVymmyvoahg+haDyOX9PU+dfmy3e2NMfhOUwXc99rUxI2KxUlK4rF0huqqg/XdwPnmdBN5rFnXM0qnSt5RN3s66H4cJqMOxJMlvyHidJR1BFTXFGZc=
+	t=1718128143; cv=none; b=BhVzOmt6Xxbd9zvebD1ZcAT/b11f7ZXh2FJ+gZF20qzlDe6W86k1cZUTUcX/yvW/hCRan7NBGBe1un6fR8JfjQKoXSveNgD/3i7xjis+mHGvOeFvDiDQ6BOGZ66QzTzR/R+mScXqQABpN1iTzRV0kgsYuCEPrhmGKT7ad9CG2BI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718127532; c=relaxed/simple;
-	bh=gaNq3fC+MZp3PDlomdoMLzwN5PZ9Cxb12EgPGkMtvJY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Qh3UMAkqp7xMlCh21LrrzU7cxeF0/xn54otkGDXRD9mi18NQkNqspIQy4IbegEIWPuA7WVBYxMHZhZsFxW53OTcBlcrYsSDZF1dchUuytQ6jNKpYJ4SIlcJdzy+In+mbhYSQWqQMf5ANmiY2H3J2cqSG5I7oDo7pZdbmzeE+dKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=SJa8nts3; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=dPBuPwhg; arc=none smtp.client-ip=46.30.211.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	s=arc-20240116; t=1718128143; c=relaxed/simple;
+	bh=qqI28F86pyCn46b6E2hC9EGzpBvx1aR16iSkTi1rBL8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=peaJsswF+tgEyXdmiDVaqGDD3Zdjs0sEVHUeCPKdvqip+YuVa0+nLpC0+H77wKlK0se23UbmhGZ3mlB0gbyuS8ByqLnh4E33szmSnBkNXp9okdDJHMR7jqGOdwVv59Qb8nx7IL4ljWjffKVP+7iOx9uUY+tB3K/xwek46YrDAhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=IPVFjqjN; arc=none smtp.client-ip=209.85.167.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="SJa8nts3";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="dPBuPwhg"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="IPVFjqjN"
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5295eb47b48so7037560e87.1
+        for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 10:49:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=9ZfjXa/hnECETyrDldud1i66Ab4iFu37h9HZkZGnH9Q=;
-	b=SJa8nts3q+P7A+Gl9yYp8R+W0wOOSBAGF2s2GKGFzeIm8dmgaEyzL+yvfwxzoCkmVgIIHjSdla+Hg
-	 AnYaPrGOb5euKlHLNdhaPoQtCur+JfqnAIsQ5AcYeLJbZ9DlgmmQgPDm6Sgkfx+zy3HXe463IjF33+
-	 sTdSjrwK9xwCMkJwgUK/AMea5ZxoWLQJGtXPraQ1KB409J/Ac8NMk2Wl6JhvNqojPt4wuUu4KCcBBq
-	 iSH9afVR99ZyXVsyZ1F3EVHK3EE7lpD5+ARERXVe+35gudYd+nzuCyla5NXKQSsjAIV7a6JsBD/cNp
-	 kkjkrxKeH3QfJL54KH8RvcpdwPZ+4uA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-	 from:date:from;
-	bh=9ZfjXa/hnECETyrDldud1i66Ab4iFu37h9HZkZGnH9Q=;
-	b=dPBuPwhgV8p4BmgDsKLok0un18HEonux1vMbYsGnb2KIDlJYWoUPQx81LscEj5pSQmGXK8LHK6cin
-	 4hgJgo7DA==
-X-HalOne-ID: 4bb23e55-2819-11ef-aeab-8b4f1ef432ad
-Received: from ravnborg.org (2-105-16-150-cable.dk.customer.tdc.net [2.105.16.150])
-	by mailrelay1.pub.mailoutpod2-cph3.one.com (Halon) with ESMTPSA
-	id 4bb23e55-2819-11ef-aeab-8b4f1ef432ad;
-	Tue, 11 Jun 2024 17:37:40 +0000 (UTC)
-Date: Tue, 11 Jun 2024 19:37:39 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Andreas Larsson <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v6.10-rc3
-Message-ID: <20240611173739.GB545417@ravnborg.org>
-References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
- <20240610071049.933142-1-geert@linux-m68k.org>
- <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
+        d=google.com; s=20230601; t=1718128140; x=1718732940; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qqI28F86pyCn46b6E2hC9EGzpBvx1aR16iSkTi1rBL8=;
+        b=IPVFjqjN/tV8zxx7PkHbMF4K/IYb/jlC2tNit5JdvoLifzWpkyDf9JrBFefkflu+aW
+         hiA18c2EjQNXyBLcSixdWO0kk2xuSNuKdKO/T7XNH/JOiYXo+V6xtEBI+/UQnZVN4Wi4
+         wJmV3pBdP3FZ+M+BJPCgzvoMJX6U7b0v6zRx97/K244ibz8EcDPiJyb24JuTdFHzGOps
+         N87qOHVGTsz0jLlKV2cAcqOd96eJfNPr8SjRHvz2/Ne5EGuStsAG8Se3GTIfhH3848XQ
+         tTf1dm55Al2vnllfL+M3Kh3sVeZM4YFd8HbBIyODEajeZeimEvCZznCejuVCGbBO8fyz
+         HLTQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718128140; x=1718732940;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qqI28F86pyCn46b6E2hC9EGzpBvx1aR16iSkTi1rBL8=;
+        b=qCj6HXstEFjY7EMblR2STcO4BFn+vD3oaidxqhUDm8BIzvbso0C8pmMw1RHKoe3R8E
+         RN+MtLEswXUIJqItoUVLYmxSmpPBNpQjZgWzh5b3iZfPQtUvbI3/DxCPh1W3DVm/lCj/
+         BHAGYD7UMH+JhjAv8t6J6krBJramZD/kCMW/BAogWQtbu1ZmZ0A9G9GyIZB1r00I4/sk
+         I+UcrOhfwS+vD8M1MPAxY0mLXi/mEtFMOk3lfk3qlOpU5gdd1T8s2rn7GR/iS7DFjIxl
+         6pMFvNt7edtnGBxoSzPwNr5uCsHHAsWpIdgEPFrtikD3uqXprxlpA8TY1/WTeBDN7+5v
+         cYyw==
+X-Forwarded-Encrypted: i=1; AJvYcCUOZhqj6S37N5OKr5Vm72Ddqx7zVRHGG0+kvfubRCPCkpuoD4iZJAP1MRg9X7gPIX6gpZYlzqdfbnj1ApSCfn6DZNZBqhsT7lLIOQ==
+X-Gm-Message-State: AOJu0YxYQRgjx25sYiMtVef6rWFBR1B/bJLg8f2mYUR4kkK48XLAAAmV
+	8/T2kkSV5HMdvExU4PPVnbBdFsTvv9QtKL8TLJfpFwo7bilA6TPaFuYYxVbXmyugpjH/I4sCsei
+	/9/P4vHzT5YvRYKfo6+5w0FQ8TCjXhl2sK5Bq
+X-Google-Smtp-Source: AGHT+IGQwZWXRepZRotKaxzF2bqAPZNCNL5wX5Y/FzlEvs4cnUetjrNqG6bJ0xN0MmD46e2zpfETL/dJPuZcdCbp5Pc=
+X-Received: by 2002:a05:6512:324f:b0:52b:fc90:acdc with SMTP id
+ 2adb3069b0e04-52bfc90ae01mr6138523e87.32.1718128139379; Tue, 11 Jun 2024
+ 10:48:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
+References: <CAHS8izMU_nMEr04J9kXiX6rJqK4nQKA+W-enKLhNxvK7=H2pgA@mail.gmail.com>
+ <5aee4bba-ca65-443c-bd78-e5599b814a13@gmail.com> <CAHS8izNmT_NzgCu1pY1RKgJh+kP2rCL_90Gqau2Pkd3-48Q1_w@mail.gmail.com>
+ <eb237e6e-3626-4435-8af5-11ed3931b0ac@gmail.com> <be2d140f-db0f-4d15-967c-972ea6586b5c@kernel.org>
+ <20240607145247.GG791043@ziepe.ca> <45803740-442c-4298-b47e-2d87ae5a6012@davidwei.uk>
+ <54975459-7a5a-46ff-a9ae-dc16ceffbab4@gmail.com> <20240610121625.GI791043@ziepe.ca>
+ <59443d14-1f1d-42bb-8be3-73e6e4a0b683@kernel.org> <ZmfuGUugiwMPdnkR@infradead.org>
+In-Reply-To: <ZmfuGUugiwMPdnkR@infradead.org>
+From: Mina Almasry <almasrymina@google.com>
+Date: Tue, 11 Jun 2024 10:48:47 -0700
+Message-ID: <CAHS8izOyV4ZFi=sC5BofaS2NQ=QDAKsmpd2Z1iaNDLpd9rOKVw@mail.gmail.com>
+Subject: Re: [PATCH net-next v10 02/14] net: page_pool: create hooks for
+ custom page providers
+To: Christoph Hellwig <hch@infradead.org>
+Cc: David Ahern <dsahern@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, netdev@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
+	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
+	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
+	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Andreas,
+On Mon, Jun 10, 2024 at 11:26=E2=80=AFPM Christoph Hellwig <hch@infradead.o=
+rg> wrote:
+>
+> On Mon, Jun 10, 2024 at 09:16:43AM -0600, David Ahern wrote:
+> >
+> > exactly. io_uring, page_pool, dmabuf - all kernel building blocks for
+> > solutions. This why I was pushing for Mina's set not to be using the
+> > name `devmem` - it is but one type of memory and with dmabuf it should
+> > not matter if it is gpu or host (or something else later on - cxl?).
+>
+> While not really realted to the rest of the discussion I agree.
+> It really is dmabuf integration now, so let's call it that?
 
-On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
-> On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
-> > JFYI, when comparing v6.10-rc3[1] to v6.10-rc2[3], the summaries are:
-> >  - build errors: +6/-1
-> 
->   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0xc)
->   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x34), (.fixup+0x10), (.fixup+0x0), (.fixup+0x28), (.fixup+0x4), (.fixup+0x18), (.fixup+0x20), (.fixup+0x1c), (.fixup+0x8)
->   + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5040), (.head.text+0x5100)
->   + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+My mental model is that the feature folks care about is the ability to
+use TCP with device memory, and dmabuf is an implementation detail
+that is the format that device memory is packaged in. Although not
+likely given this discussion, in theory we could want to extend devmem
+TCP to support p2pdma for nvme, or some other format if a new one
+arises in device drivers. I also think it's more obvious to an end
+user what 'devmem TCP' aims to do rather than 'dmabuf TCP' especially
+if the user is not a kernel developer familiar with dmabuf.
 
-Did you have something in a local branch that would address this?
-I have no idea how to fix it.
-> 
-> sparc64-gcc5/sparc-allmodconfig
-> sparc64-gcc13/sparc-allmodconfig
-> 
->   + {standard input}: Error: pcrel too far: 1095, 1074, 1022, 1020, 1021, 1096, 1126 => 1074, 1021, 1255, 1096, 1095, 1020, 1022, 1126, 1254
->   + {standard input}: Error: unknown pseudo-op: `.al':  => 1270
-Hmm, strange..
-
-	Sam
+--=20
+Thanks,
+Mina
