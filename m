@@ -1,151 +1,94 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34C8D5B05E
-	for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 18:09:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFBF14F9ED;
+	Tue, 11 Jun 2024 19:50:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718129374; cv=none; b=mkL5LGeP9zFMNPLV/FCrxzT8waaueScc/ezJ62O6achwKFeEwYlHGuvCLVJbdSAViZJtxRrh3QQsRvksNQnem7gFmZY/+UHSmzZ98Zpq4BpO0cjCCpV//BEfeZUtFPJVsktI8rQxl2Ly/B10By08kOavk0C/i3/4PXfOFFNkTrc=
+	t=1718135460; cv=none; b=Vvfkl/FBGR7gQYv5hw67/17JxhR4YGTZjfoITQFtxXcv+794chlCU7XgR49L7NkM4ln52mzhxSMIDvKwGuWJZmjgINiNYQH9rQaFjU3mCLGJWgqAb6oz3qGdPA8lN/p8ihQqL0mS85VqLvJPKkBwMSBD0SopXXeqCvlzPNBTM4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718129374; c=relaxed/simple;
-	bh=+lxPetrPpHvENSTokBRC6xognbIAj4RmicEAyuXDxTU=;
+	s=arc-20240116; t=1718135460; c=relaxed/simple;
+	bh=TrgoARjs7ThYWQ1Zax5XgzNUc6x1JMOv/8bIggoKkyo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kQM6KKznUHizFz6FOsjxLcbkk3rXmZV/rk3jSZY6SBfvHgb6fuYC2mHDaXrWImcOLgf+XpCgR26tu06G97HwamPfWt8D4iWhsX/jzUb9x/lSCZ5B2xGE+3/SxlQIdXzQMvuzEXEaS3HaEkJ3Petb0zVPCIq0oS0NBTQLXcHFo1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ORBH1T28; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ORBH1T28"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-a68b41ef3f6so677469166b.1
-        for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 11:09:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1718129370; x=1718734170; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+lxPetrPpHvENSTokBRC6xognbIAj4RmicEAyuXDxTU=;
-        b=ORBH1T28Kv+Gm9vfDRFh0o9KoHNuPBRhIxafHB3qgyANZSEAx+9LLa6Wv5Iv2FulVM
-         1C4r4QsMP/tolax4DaWy4QrJlMTPTRDUpbMg8JdQqiADkwRyXa1Iy11Ylt5B7YbjRIRq
-         OctBI7JiWrNqmKnqBVdhpMRueuExFqKOmwSK+7OfBSrsjK4SgORfTkvjgaMoS3DMo0Q7
-         FkTsN8QksrcUNYzFDEG1UmAfTCd8yxst6SYakYd6YSlIZ9FEq+7SBeD6XMUjZNk9BCcy
-         Wrv4JJvkiSqmCMz3b9EpLjg4cplFB6acY4gYixvwk4VoXVVCe+PzWeGjji2mognTN5AY
-         C0/A==
+	 To:Cc:Content-Type; b=MGHKKVkBp0tYaAyFZiNl+TbUpIInfXoGZYYqK8f8bpJmCb6YqwdFs99+Zdx8kwlKLOpMjM0NRkk+nZ7Ct9rjazDgeyZKwqb7jnbgYNnpS+eEdLEPS8VWEu/97f6HoWykBrmbx1VYOtrdulrxdkmQpxdBVYf2XYPI1EHXuysOJAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-52c84a21c62so3234458e87.1;
+        Tue, 11 Jun 2024 12:50:58 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718129370; x=1718734170;
+        d=1e100.net; s=20230601; t=1718135455; x=1718740255;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=+lxPetrPpHvENSTokBRC6xognbIAj4RmicEAyuXDxTU=;
-        b=Kav6KmaQI6Nwnh9hgZ1K+GpFKycbFNy+AVkl/dnV2XqYK2zMlPhXvPWrtCL9RFcWIH
-         A26pGHtxrSdeli1hVpo+7+KvVpQyfW0BVKZt+C2LCDpthvJBQuxjkXHWmqmxiDV6BBjl
-         JB9eN4O2/ovl6VQxnpybKEtvrsnZxGdIuL/ApVh6Bx/J5SnpQEeYA2EXBXLAEQ5YJVxo
-         4Pfpdjku4I6dPbZiyK73LdlPNt1L5ZTFIfoinz+Cws0HFFAxMAY+Nnn+sRhUOzArgAQx
-         mAOUx74nTh2OG3CsYluwGl/+qsSd/7jc8M3UPNYXBSWBfRxLBnfENiamX5G6HESZbn79
-         UwWA==
-X-Forwarded-Encrypted: i=1; AJvYcCV+wLnGtJUC9EmkdBtGeB7qfncaU+Eqac56GeCtv0UjO//eevZHLN79gzdHn6bM201ZjzYVPr+fVMzh9NhiVa5U+Ues1wM32c+8xg==
-X-Gm-Message-State: AOJu0Yy7k+TmvCuuQwJgkJDIKHVCpEqWs6J5SSUs3srquucGpzH4PtC3
-	lGPwELTiRGxIpmCTOGcBDXATEoPCb5tXxOjnul2KVjLY0iTNBm4HBHi9BvY9TxSPYXsUTFS0kQD
-	RECng/j4Q4iX1KmZgJUDQxRhV+8BWrYc5emHl
-X-Google-Smtp-Source: AGHT+IHSnbMlQQE9x/zPWpkI90JIlOTBHgyEzLn5RoXQZyiGaSSB2YwhfXwjdqq72pgI+LQF0hGDSafJjuWqavJQlB4=
-X-Received: by 2002:a17:906:4742:b0:a6f:393a:9dea with SMTP id
- a640c23a62f3a-a6f393aa161mr132795366b.77.1718129370030; Tue, 11 Jun 2024
- 11:09:30 -0700 (PDT)
+        bh=7eXZ8+T5QNNII5GeGoRAsMrF7X6NWE3VbH6k9q/af+g=;
+        b=UltwJOCUOmza9Ewmv00X0SKViFajiCyilS5DbuS2ucj0BF/9IE6BHCc/wBABM50p3V
+         dW1GKjQjGdljuDLUP1WdukLnPbUFInoNCc+XASxj4E9rnjMbXBCTiczvvgVIIQqmOprU
+         rBsgEr7GMVpg8Oa3Ib9tf+XpzOZd4jTYoqQKCDLoyRX7KNi+DLMFe2KbJcASg1rX5567
+         8oVb7K2lv/gcVi2EACELcII2/+DWwg6G1NRSotrbQRqQUzgIA6G1vSDdnJzqWs4K1yCX
+         6jP7kOOUmfunXjT4T6ru8LZYTKAbhSuknxDncqqHF4zEmvMfQmUGBrZbq+xacI3VzJMj
+         AHmw==
+X-Forwarded-Encrypted: i=1; AJvYcCVJ45uLCYB+E+UajH4xyZit/FC7sh72Mn1Jys+Xtrn+eVcJU9NWIzZqTiO4V/CEXa+cVyIpZt9uykFt1kXccsRiENSDU0qENVQkyDtDLFqtcC3uN+DPuIwWZwlmEdHgI4BNFunqNTrVQw==
+X-Gm-Message-State: AOJu0Yxnvrjwj5B+ODFG7YKYtZzwWNIiSJ2EUMgEKP9AHplc8LJcfxaZ
+	uAgVkbOwQ8JcP90jCubNkVQyK9O8457511LSTA7m/ckEF+8iNEWwuLyTHHfGEUs=
+X-Google-Smtp-Source: AGHT+IHbfvOLQbzltn9ppiEf4S9LdE6FO/nSopWZEZIOSQbGhM6/qe/9CWsh0eqbtGVlZZzwZOWHlA==
+X-Received: by 2002:a05:6512:12c4:b0:52c:8a12:3d3b with SMTP id 2adb3069b0e04-52c8a123eacmr5335573e87.56.1718135455348;
+        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
+Received: from mail-lj1-f171.google.com (mail-lj1-f171.google.com. [209.85.208.171])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52bb423db88sm2216098e87.223.2024.06.11.12.50.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-2eaa89464a3so65978871fa.3;
+        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXaOPdF/oqFBuLDEgyyeuqNIT/4PZsLTSDJeFHkSD+jG48lsmY4pmMw9wxMkW1AURNDS/32MuVOlH+qLN2DheYnaNlAUpkfOebPIMUEYVF3sBHc78QjcW5frg3budzihFHI6Gpm5tiV0Q==
+X-Received: by 2002:a2e:b889:0:b0:2eb:f8ae:1cb0 with SMTP id
+ 38308e7fff4ca-2ebf8ae1ce0mr12433271fa.37.1718135454888; Tue, 11 Jun 2024
+ 12:50:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5aee4bba-ca65-443c-bd78-e5599b814a13@gmail.com>
- <CAHS8izNmT_NzgCu1pY1RKgJh+kP2rCL_90Gqau2Pkd3-48Q1_w@mail.gmail.com>
- <eb237e6e-3626-4435-8af5-11ed3931b0ac@gmail.com> <be2d140f-db0f-4d15-967c-972ea6586b5c@kernel.org>
- <20240607145247.GG791043@ziepe.ca> <45803740-442c-4298-b47e-2d87ae5a6012@davidwei.uk>
- <54975459-7a5a-46ff-a9ae-dc16ceffbab4@gmail.com> <20240610121625.GI791043@ziepe.ca>
- <59443d14-1f1d-42bb-8be3-73e6e4a0b683@kernel.org> <00c67cf0-2bf3-4eaf-b200-ffe00d91593b@gmail.com>
- <20240610221500.GN791043@ziepe.ca>
-In-Reply-To: <20240610221500.GN791043@ziepe.ca>
-From: Mina Almasry <almasrymina@google.com>
-Date: Tue, 11 Jun 2024 11:09:15 -0700
-Message-ID: <CAHS8izNRd=f=jHgrYKKfzgcU3JzkZA1NkZnbQM+hfYd8-0NyBQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v10 02/14] net: page_pool: create hooks for
- custom page providers
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Pavel Begunkov <asml.silence@gmail.com>, David Ahern <dsahern@kernel.org>, 
-	David Wei <dw@davidwei.uk>, Christoph Hellwig <hch@infradead.org>, netdev@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
-	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
+References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
+ <20240610071049.933142-1-geert@linux-m68k.org> <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
+ <20240611173739.GB545417@ravnborg.org>
+In-Reply-To: <20240611173739.GB545417@ravnborg.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 11 Jun 2024 21:50:41 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
+Message-ID: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
+Subject: Re: Build regressions/improvements in v6.10-rc3
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, 
+	sparclinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 10, 2024 at 3:15=E2=80=AFPM Jason Gunthorpe <jgg@ziepe.ca> wrot=
-e:
->
-> On Mon, Jun 10, 2024 at 08:20:08PM +0100, Pavel Begunkov wrote:
-> > On 6/10/24 16:16, David Ahern wrote:
->
-> > > > There is no reason you shouldn't be able to use your fast io_uring
-> > > > completion and lifecycle flow with DMABUF backed memory. Those are =
-not
-> > > > widly different things and there is good reason they should work
-> > > > together.
-> >
-> > Let's not mix up devmem TCP and dmabuf specifically, as I see it
-> > your question was concerning the latter: "... DMABUF memory registered
-> > through Mina's mechanism". io_uring's zcrx can trivially get dmabuf
-> > support in future, as mentioned it's mostly the setup side. ABI,
-> > buffer workflow and some details is a separate issue, and I don't
-> > see how further integration aside from what we're already sharing
-> > is beneficial, on opposite it'll complicate things.
->
-> Again, I am talking about composability here, duplicating the DMABUF
-> stuff into io_uring is not composable, it is just duplicating things.
->
-> It does not match the view that there should be two distinct layers
-> here, one that provides the pages and one that manages the
-> lifecycle. As HCH pushes for pages either come from the allocator and
-> get to use the struct folio or the come from a dmabuf and they
-> don't. That is it, the only two choices.
->
-> The iouring stuff is trying to confuse the source of the pages with
-> the lifecycle - which is surely convenient, but is why Christoph is
-> opposing it.
->
+Hi Sam,
 
-Just curious: in Pavel's effort, io_uring - which is not a device - is
-trying to share memory with the page_pool, which is also not a device.
-And Pavel is being asked to wrap the memory in a dmabuf. Is dmabuf
-going to be the kernel's standard for any memory sharing between any 2
-components in the future, even when they're not devices? As in you
-expect dmabuf exporters which are not devices to be added to the
-kernel? Currently the only dmabuf exporter which is not a device
-(AFAIK) is udmabuf, which is used for testing and emulation, not
-really a production thing, I think.
+On Tue, Jun 11, 2024 at 7:37=E2=80=AFPM Sam Ravnborg <sam@ravnborg.org> wro=
+te:
+> On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
+> > On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
+> >   + {standard input}: Error: pcrel too far: 1095, 1074, 1022, 1020, 102=
+1, 1096, 1126 =3D> 1074, 1021, 1255, 1096, 1095, 1020, 1022, 1126, 1254
+> >   + {standard input}: Error: unknown pseudo-op: `.al':  =3D> 1270
+> Hmm, strange..
+
+Just in case you missed that: these are not SPARC build issues,
+but SH build issues (gcc ICE).
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 --=20
-Thanks,
-Mina
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
