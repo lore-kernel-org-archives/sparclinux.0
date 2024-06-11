@@ -1,94 +1,80 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailrelay5-1.pub.mailoutpod3-cph3.one.com (mailrelay5-1.pub.mailoutpod3-cph3.one.com [46.30.211.244])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFBF14F9ED;
-	Tue, 11 Jun 2024 19:50:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0FA14B973
+	for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 20:55:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.244
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718135460; cv=none; b=Vvfkl/FBGR7gQYv5hw67/17JxhR4YGTZjfoITQFtxXcv+794chlCU7XgR49L7NkM4ln52mzhxSMIDvKwGuWJZmjgINiNYQH9rQaFjU3mCLGJWgqAb6oz3qGdPA8lN/p8ihQqL0mS85VqLvJPKkBwMSBD0SopXXeqCvlzPNBTM4I=
+	t=1718139306; cv=none; b=HiZzsTkYZjcUzA3ooD5OhL4IvL+1PXP99FLc9ylqdgakjxHKN9mN00D9p4Eln8eJy311QPc3kyOF+VmtV67S1SJiTPqtKo0OJwhf2gWpbEIAA9nOYRs2EUCO1mO74GlIEuzDr6BjX79irVcxl8lkPO351IzA/lGW8fmi7GcEXRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718135460; c=relaxed/simple;
-	bh=TrgoARjs7ThYWQ1Zax5XgzNUc6x1JMOv/8bIggoKkyo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MGHKKVkBp0tYaAyFZiNl+TbUpIInfXoGZYYqK8f8bpJmCb6YqwdFs99+Zdx8kwlKLOpMjM0NRkk+nZ7Ct9rjazDgeyZKwqb7jnbgYNnpS+eEdLEPS8VWEu/97f6HoWykBrmbx1VYOtrdulrxdkmQpxdBVYf2XYPI1EHXuysOJAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-52c84a21c62so3234458e87.1;
-        Tue, 11 Jun 2024 12:50:58 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718135455; x=1718740255;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=7eXZ8+T5QNNII5GeGoRAsMrF7X6NWE3VbH6k9q/af+g=;
-        b=UltwJOCUOmza9Ewmv00X0SKViFajiCyilS5DbuS2ucj0BF/9IE6BHCc/wBABM50p3V
-         dW1GKjQjGdljuDLUP1WdukLnPbUFInoNCc+XASxj4E9rnjMbXBCTiczvvgVIIQqmOprU
-         rBsgEr7GMVpg8Oa3Ib9tf+XpzOZd4jTYoqQKCDLoyRX7KNi+DLMFe2KbJcASg1rX5567
-         8oVb7K2lv/gcVi2EACELcII2/+DWwg6G1NRSotrbQRqQUzgIA6G1vSDdnJzqWs4K1yCX
-         6jP7kOOUmfunXjT4T6ru8LZYTKAbhSuknxDncqqHF4zEmvMfQmUGBrZbq+xacI3VzJMj
-         AHmw==
-X-Forwarded-Encrypted: i=1; AJvYcCVJ45uLCYB+E+UajH4xyZit/FC7sh72Mn1Jys+Xtrn+eVcJU9NWIzZqTiO4V/CEXa+cVyIpZt9uykFt1kXccsRiENSDU0qENVQkyDtDLFqtcC3uN+DPuIwWZwlmEdHgI4BNFunqNTrVQw==
-X-Gm-Message-State: AOJu0Yxnvrjwj5B+ODFG7YKYtZzwWNIiSJ2EUMgEKP9AHplc8LJcfxaZ
-	uAgVkbOwQ8JcP90jCubNkVQyK9O8457511LSTA7m/ckEF+8iNEWwuLyTHHfGEUs=
-X-Google-Smtp-Source: AGHT+IHbfvOLQbzltn9ppiEf4S9LdE6FO/nSopWZEZIOSQbGhM6/qe/9CWsh0eqbtGVlZZzwZOWHlA==
-X-Received: by 2002:a05:6512:12c4:b0:52c:8a12:3d3b with SMTP id 2adb3069b0e04-52c8a123eacmr5335573e87.56.1718135455348;
-        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
-Received: from mail-lj1-f171.google.com (mail-lj1-f171.google.com. [209.85.208.171])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52bb423db88sm2216098e87.223.2024.06.11.12.50.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-2eaa89464a3so65978871fa.3;
-        Tue, 11 Jun 2024 12:50:55 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXaOPdF/oqFBuLDEgyyeuqNIT/4PZsLTSDJeFHkSD+jG48lsmY4pmMw9wxMkW1AURNDS/32MuVOlH+qLN2DheYnaNlAUpkfOebPIMUEYVF3sBHc78QjcW5frg3budzihFHI6Gpm5tiV0Q==
-X-Received: by 2002:a2e:b889:0:b0:2eb:f8ae:1cb0 with SMTP id
- 38308e7fff4ca-2ebf8ae1ce0mr12433271fa.37.1718135454888; Tue, 11 Jun 2024
- 12:50:54 -0700 (PDT)
+	s=arc-20240116; t=1718139306; c=relaxed/simple;
+	bh=tTiQIOR5fXfoTAL0Ccw5hIwFJl0c8eM1AKdXxiCxyRo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nA0DFuztRazEcHKz0fgQEKoZD43eijZL12rdP0PCgh8E+thyIPcEY4ppuuN1HDkERUNSZzmfi+0wpjyD1vn8h914NwYjYAtd8sjgkGU7Zs2bg1fuBcDSlVtkPX78LbuR+9+C7Vlgu8pxO1MnjI8tvDWpa7zUddUxCHegttkQJ5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=AiulmEbX; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=y8bJqY1F; arc=none smtp.client-ip=46.30.211.244
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="AiulmEbX";
+	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="y8bJqY1F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=rsa1;
+	h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
+	 message-id:subject:cc:to:from:date:from;
+	bh=k3ERBR7pPMabLon7+j+2K3RUQpylljUKVmTxI1gsd+4=;
+	b=AiulmEbX+BwDK4kBlV7SqhmTnhf1udadW8kzRtO+NusdCn3B0+7bNSxasJVkji5utbjqdOuaGK4wE
+	 xVmFjT8tIIykEzVzI2VxaS1dkb8sE3AvuDuIq+eVNCQDkz2L0K6WNxxxeTUAc4JQkytjycnPAZhebB
+	 Tj51a9nw2JPv7eBCcyQ/v2eiwye7uWCnB4BdcCR0Y/IHMEPI1+uTu4N2XFQeBIf6W9XB5In1aS5WBc
+	 0RCMzDvHuXcG1Kq7cDikgZ2Hw6tD0LNI+Ovx839KkLq1jA8GgoKwbc3I4iWwCdfHlCKZY0vmMqETKw
+	 xtQRkfJUYZOi1DufeOO8L2ae7HAipKw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+	d=ravnborg.org; s=ed1;
+	h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
+	 message-id:subject:cc:to:from:date:from;
+	bh=k3ERBR7pPMabLon7+j+2K3RUQpylljUKVmTxI1gsd+4=;
+	b=y8bJqY1FxZO9r/gLtSUOuwA9y9IhgmjIkq1Sqkv/6i/IFYmftufvg+5MUsKotboMU6JDflf/WJ0Wz
+	 B8ZnwiiBQ==
+X-HalOne-ID: b4f7f42f-2834-11ef-97e2-e973630cf47d
+Received: from ravnborg.org (2-105-16-150-cable.dk.customer.tdc.net [2.105.16.150])
+	by mailrelay5.pub.mailoutpod3-cph3.one.com (Halon) with ESMTPSA
+	id b4f7f42f-2834-11ef-97e2-e973630cf47d;
+	Tue, 11 Jun 2024 20:53:54 +0000 (UTC)
+Date: Tue, 11 Jun 2024 22:53:52 +0200
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: Re: Build regressions/improvements in v6.10-rc3
+Message-ID: <20240611205352.GA557485@ravnborg.org>
+References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
+ <20240610071049.933142-1-geert@linux-m68k.org>
+ <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
+ <20240611173739.GB545417@ravnborg.org>
+ <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
- <20240610071049.933142-1-geert@linux-m68k.org> <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
- <20240611173739.GB545417@ravnborg.org>
-In-Reply-To: <20240611173739.GB545417@ravnborg.org>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 11 Jun 2024 21:50:41 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
-Message-ID: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
-Subject: Re: Build regressions/improvements in v6.10-rc3
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
 
-Hi Sam,
+On Tue, Jun 11, 2024 at 09:50:41PM +0200, Geert Uytterhoeven wrote:
+> Hi Sam,
+> 
+> On Tue, Jun 11, 2024 at 7:37 PM Sam Ravnborg <sam@ravnborg.org> wrote:
+> > On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
+> > > On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
+> > >   + {standard input}: Error: pcrel too far: 1095, 1074, 1022, 1020, 1021, 1096, 1126 => 1074, 1021, 1255, 1096, 1095, 1020, 1022, 1126, 1254
+> > >   + {standard input}: Error: unknown pseudo-op: `.al':  => 1270
+> > Hmm, strange..
+> 
+> Just in case you missed that: these are not SPARC build issues,
+> but SH build issues (gcc ICE).
 
-On Tue, Jun 11, 2024 at 7:37=E2=80=AFPM Sam Ravnborg <sam@ravnborg.org> wro=
-te:
-> On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
-> > On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
-> >   + {standard input}: Error: pcrel too far: 1095, 1074, 1022, 1020, 102=
-1, 1096, 1126 =3D> 1074, 1021, 1255, 1096, 1095, 1020, 1022, 1126, 1254
-> >   + {standard input}: Error: unknown pseudo-op: `.al':  =3D> 1270
-> Hmm, strange..
+Thanks, I saw that as sparc64 issues. Then I will ignore them :-)
 
-Just in case you missed that: these are not SPARC build issues,
-but SH build issues (gcc ICE).
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+	Sam
