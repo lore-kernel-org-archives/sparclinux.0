@@ -1,80 +1,146 @@
-Received: from mailrelay5-1.pub.mailoutpod3-cph3.one.com (mailrelay5-1.pub.mailoutpod3-cph3.one.com [46.30.211.244])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0FA14B973
-	for <sparclinux@vger.kernel.org>; Tue, 11 Jun 2024 20:55:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.30.211.244
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 840D316F287
+	for <sparclinux@vger.kernel.org>; Wed, 12 Jun 2024 12:06:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718139306; cv=none; b=HiZzsTkYZjcUzA3ooD5OhL4IvL+1PXP99FLc9ylqdgakjxHKN9mN00D9p4Eln8eJy311QPc3kyOF+VmtV67S1SJiTPqtKo0OJwhf2gWpbEIAA9nOYRs2EUCO1mO74GlIEuzDr6BjX79irVcxl8lkPO351IzA/lGW8fmi7GcEXRw=
+	t=1718193970; cv=none; b=C22LLSKQuQv5OhdekEkEYzToGyoh7cxqh7xD7i63wriFAPhphKjMlIo8D7fJ9psweuGqMFfYof+QFBU7LMtfUsk5eBCXwyFZdUbPXA7yAgKl/Dvvgy9XlxR13vUWtUb9txzuUuIsPEj/wG3GLHKgTDnx2UDE/8ZFPOcNGRXUpgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718139306; c=relaxed/simple;
-	bh=tTiQIOR5fXfoTAL0Ccw5hIwFJl0c8eM1AKdXxiCxyRo=;
+	s=arc-20240116; t=1718193970; c=relaxed/simple;
+	bh=654VBwTTZj6O5cwvd+Nmv/nVSh8Rktw+YZv2YfH5NqU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nA0DFuztRazEcHKz0fgQEKoZD43eijZL12rdP0PCgh8E+thyIPcEY4ppuuN1HDkERUNSZzmfi+0wpjyD1vn8h914NwYjYAtd8sjgkGU7Zs2bg1fuBcDSlVtkPX78LbuR+9+C7Vlgu8pxO1MnjI8tvDWpa7zUddUxCHegttkQJ5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org; spf=none smtp.mailfrom=ravnborg.org; dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=AiulmEbX; dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b=y8bJqY1F; arc=none smtp.client-ip=46.30.211.244
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ravnborg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ravnborg.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=QRz240VtDNFOutdmB1BesjB6pqTfo9mlcaH5icuDvAifdWvKulTWbnKg+KAzCWUiUMMiu1Fb6ns2HXRfmg6l5vPou6RYrLpwzkmR3JJ6/nlpwZohty21B2WJw4ntOjVZ1mwjbXn9MyEsOoS8CnuZhL1apL98VDyVRde82IlIfCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=b+K+9yut; arc=none smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="AiulmEbX";
-	dkim=permerror (0-bit key) header.d=ravnborg.org header.i=@ravnborg.org header.b="y8bJqY1F"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="b+K+9yut"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-4405304d062so28208151cf.1
+        for <sparclinux@vger.kernel.org>; Wed, 12 Jun 2024 05:06:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=rsa1;
-	h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
-	 message-id:subject:cc:to:from:date:from;
-	bh=k3ERBR7pPMabLon7+j+2K3RUQpylljUKVmTxI1gsd+4=;
-	b=AiulmEbX+BwDK4kBlV7SqhmTnhf1udadW8kzRtO+NusdCn3B0+7bNSxasJVkji5utbjqdOuaGK4wE
-	 xVmFjT8tIIykEzVzI2VxaS1dkb8sE3AvuDuIq+eVNCQDkz2L0K6WNxxxeTUAc4JQkytjycnPAZhebB
-	 Tj51a9nw2JPv7eBCcyQ/v2eiwye7uWCnB4BdcCR0Y/IHMEPI1+uTu4N2XFQeBIf6W9XB5In1aS5WBc
-	 0RCMzDvHuXcG1Kq7cDikgZ2Hw6tD0LNI+Ovx839KkLq1jA8GgoKwbc3I4iWwCdfHlCKZY0vmMqETKw
-	 xtQRkfJUYZOi1DufeOO8L2ae7HAipKw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-	d=ravnborg.org; s=ed1;
-	h=in-reply-to:content-transfer-encoding:content-type:mime-version:references:
-	 message-id:subject:cc:to:from:date:from;
-	bh=k3ERBR7pPMabLon7+j+2K3RUQpylljUKVmTxI1gsd+4=;
-	b=y8bJqY1FxZO9r/gLtSUOuwA9y9IhgmjIkq1Sqkv/6i/IFYmftufvg+5MUsKotboMU6JDflf/WJ0Wz
-	 B8ZnwiiBQ==
-X-HalOne-ID: b4f7f42f-2834-11ef-97e2-e973630cf47d
-Received: from ravnborg.org (2-105-16-150-cable.dk.customer.tdc.net [2.105.16.150])
-	by mailrelay5.pub.mailoutpod3-cph3.one.com (Halon) with ESMTPSA
-	id b4f7f42f-2834-11ef-97e2-e973630cf47d;
-	Tue, 11 Jun 2024 20:53:54 +0000 (UTC)
-Date: Tue, 11 Jun 2024 22:53:52 +0200
-From: Sam Ravnborg <sam@ravnborg.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v6.10-rc3
-Message-ID: <20240611205352.GA557485@ravnborg.org>
-References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
- <20240610071049.933142-1-geert@linux-m68k.org>
- <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
- <20240611173739.GB545417@ravnborg.org>
- <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
+        d=ziepe.ca; s=google; t=1718193967; x=1718798767; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=654VBwTTZj6O5cwvd+Nmv/nVSh8Rktw+YZv2YfH5NqU=;
+        b=b+K+9yutIZvL7EhYnDc9PCqyJQyg2rNZnBSM82DUh/mVjbpDQy0AjlTT1QxvPywdj1
+         5x3Bd9/ca2iYboUwAHk3ommKdZwLtidiIZFwneX47/uHtGfpvI9RYqChNL0+zSjfMHo1
+         eLjMobFz+Qu1oy3MVyvb4rEeOUKTLSjore47JD2UdH3oqgTIkXqhVcGm+UYAEnMiQ+T5
+         RK5UP92BF1rCkwKJet0x6kGN6ceBNfxoJL/qrz8UJcsTrQpKGIJJ91JIlvqFFjM3nnYj
+         7adAlrkKUSp2YwiQ+JcrIa0p91XG2fUzPI4njv/lY/djRSEZJX+zpmehJwwsBOi4fkfY
+         pCDg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1718193967; x=1718798767;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=654VBwTTZj6O5cwvd+Nmv/nVSh8Rktw+YZv2YfH5NqU=;
+        b=cITDoQdWGcPWHgCP4m0uSBZeyvr7yNPM5+RurFLw4DpgzauVXkF77udtIbZH+Th6cR
+         AUP7X3BVVt/z23bq1HVr+XxBm1wgdWQdWmycjyPFZ+rFhTvGWuNo9TxK3xSGFdogBPHa
+         5xjGEG037wlyS74ieKO9kGDHZEMuehGyebdmbTCWrOP92YSda4GPK7wJNuWvQLOkkNhe
+         2QSV8g8I9ssGE97kuNFrOv/sX8p4wAoiqCxAc0dojzfheCHljEL7YOuWKnqMCQ+pEpCD
+         bsBXHWO9tKroFG8EBbKS/4bMebxO4veiMaLnM4/OOLhcYrLz1Vv59mP/+7931iug9GeW
+         Hqbw==
+X-Forwarded-Encrypted: i=1; AJvYcCUQLK/tg6oZ4smmepR6wYubB592+t1WnXX31XMXHOBnL5Qn2znkcmt74VsHhegw/q/5hyFf/11BtMQx9oFIIUnAGUEETOaK0Ba8uw==
+X-Gm-Message-State: AOJu0YyuwQuDI7yRL0gGq77+jd/1KUWclcv5zMFTIwBZbfiM1dUW+kuB
+	MPhMaV5hz0LQzmz/n0rZa8o4b9IEhKBJaMl6fDS7C3joLTcQpzYcb25XNJ15mo8=
+X-Google-Smtp-Source: AGHT+IElu+dk9DZ7aij8c0y6F8TXy6i5LV0OSLpqQpTgGbv9PZ9NHP5JfFSWjv6MHZMgeDua9fHUGQ==
+X-Received: by 2002:a05:622a:30f:b0:440:5de2:2a03 with SMTP id d75a77b69052e-4415abae5a3mr13859041cf.1.1718193967008;
+        Wed, 12 Jun 2024 05:06:07 -0700 (PDT)
+Received: from ziepe.ca ([128.77.69.89])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-44152b1585bsm12849751cf.27.2024.06.12.05.06.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Jun 2024 05:06:06 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1sHMjq-008UjB-Tl;
+	Wed, 12 Jun 2024 09:06:02 -0300
+Date: Wed, 12 Jun 2024 09:06:02 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Mina Almasry <almasrymina@google.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>,
+	David Ahern <dsahern@kernel.org>, David Wei <dw@davidwei.uk>,
+	Christoph Hellwig <hch@infradead.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Donald Hunter <donald.hunter@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Andreas Larsson <andreas@gaisler.com>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>,
+	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	Shuah Khan <shuah@kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	Shailend Chand <shailend@google.com>,
+	Harshitha Ramamurthy <hramamurthy@google.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Jeroen de Borst <jeroendb@google.com>,
+	Praveen Kaligineedi <pkaligineedi@google.com>
+Subject: Re: [PATCH net-next v10 02/14] net: page_pool: create hooks for
+ custom page providers
+Message-ID: <20240612120602.GQ791043@ziepe.ca>
+References: <eb237e6e-3626-4435-8af5-11ed3931b0ac@gmail.com>
+ <be2d140f-db0f-4d15-967c-972ea6586b5c@kernel.org>
+ <20240607145247.GG791043@ziepe.ca>
+ <45803740-442c-4298-b47e-2d87ae5a6012@davidwei.uk>
+ <54975459-7a5a-46ff-a9ae-dc16ceffbab4@gmail.com>
+ <20240610121625.GI791043@ziepe.ca>
+ <59443d14-1f1d-42bb-8be3-73e6e4a0b683@kernel.org>
+ <00c67cf0-2bf3-4eaf-b200-ffe00d91593b@gmail.com>
+ <20240610221500.GN791043@ziepe.ca>
+ <CAHS8izNRd=f=jHgrYKKfzgcU3JzkZA1NkZnbQM+hfYd8-0NyBQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMuHMdW__Uak2qkUAJc1b1eK1nOzGy=+cneRrtmj_QgBTanK-Q@mail.gmail.com>
+In-Reply-To: <CAHS8izNRd=f=jHgrYKKfzgcU3JzkZA1NkZnbQM+hfYd8-0NyBQ@mail.gmail.com>
 
-On Tue, Jun 11, 2024 at 09:50:41PM +0200, Geert Uytterhoeven wrote:
-> Hi Sam,
-> 
-> On Tue, Jun 11, 2024 at 7:37 PM Sam Ravnborg <sam@ravnborg.org> wrote:
-> > On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
-> > > On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
-> > >   + {standard input}: Error: pcrel too far: 1095, 1074, 1022, 1020, 1021, 1096, 1126 => 1074, 1021, 1255, 1096, 1095, 1020, 1022, 1126, 1254
-> > >   + {standard input}: Error: unknown pseudo-op: `.al':  => 1270
-> > Hmm, strange..
-> 
-> Just in case you missed that: these are not SPARC build issues,
-> but SH build issues (gcc ICE).
+On Tue, Jun 11, 2024 at 11:09:15AM -0700, Mina Almasry wrote:
 
-Thanks, I saw that as sparc64 issues. Then I will ignore them :-)
+> Just curious: in Pavel's effort, io_uring - which is not a device - is
+> trying to share memory with the page_pool, which is also not a device.
+> And Pavel is being asked to wrap the memory in a dmabuf. Is dmabuf
+> going to be the kernel's standard for any memory sharing between any 2
+> components in the future, even when they're not devices?
 
-	Sam
+dmabuf is how we are refcounting non-struct page memory, there is
+nothing about it that says it has to be MMIO memory, or even that the
+memory doesn't have struct pages.
+
+All it says is that the memory is alive according to dmabuf
+refcounting rules. And the importer obviously don't get to touch the
+underlying folios, if any.
+
+Jason
