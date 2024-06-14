@@ -1,141 +1,233 @@
-Received: from mout.web.de (mout.web.de [212.227.17.11])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3CC0190076;
-	Fri, 14 Jun 2024 08:38:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A3C2AEE9;
+	Fri, 14 Jun 2024 09:28:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718354304; cv=none; b=k/POQJIIW55lLlq5YBAi24pughg6SnK9ACiiew+nzrUS4ZxXyoVMN7hPTIVG1RnGKq/rEpk58VXCYQqg6nzpyup0LUnCqWsWDqDQ1LmGy84G4Uvb4ZDH49csu8+6qZwqmjVKaAeB4kBNRKUioqhWZ9zimvVox917Vr4e9Pe0tOk=
+	t=1718357294; cv=none; b=WmumhJpjWXEmclV1y3HLvPRj23EBAv+aOS49Pzqn6Vb/nCXE9g6C5cicFNjaDnfyqSoRU0YDUj7kksdSxwO81OSlEOHE16NiSCyfQmw5sNMoG4k3q5k5ObfkzwyWghPYKOCX3ADDs6WFc1imVfUdAjXA6qa0pAHBJsi0JvQH1r4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718354304; c=relaxed/simple;
-	bh=jhzzQfqKw1hMISbJwFaZUOiev++Tk0+v3bVIiRntaiE=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
-	 In-Reply-To:Content-Type; b=rVp5mo+0FND71Bf6USBHW5cjikWTmBy/StxHbA84GQbjd8/IUG0AbsS1UGA13nTgfc8G7MSu9Q3MdEpf8aPQW25+IjVgNSWlf425PoX6T03FfJ9lJZrU8U+mNrXkbJogJOJWNGYxqAgR8HNyY2t8Ir8d01oyCoNBLKAECoMKk/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=UCBixyj5; arc=none smtp.client-ip=212.227.17.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1718357294; c=relaxed/simple;
+	bh=prViNruXaplkIxh+X59Uxa4c4C3WYXYBdnkSq4UnATM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q2IEEyH24r4Bhv99HXHKIxHx7Xv8DgKmS2rOWbTwOti2XTGVIY4otWoeN5/eduUDLbijP37byBmcz7RXWdeH5lFNpkzB1UNPOkMSOxsSAYq0wrfk9F4ke5kigrASO5NiaRnwvbF8aW7jSS/y6+o/NzN/N7kbenAsOkIVzqgBqKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=u/iXU3Cu; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="UCBixyj5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
-	s=s29768273; t=1718354196; x=1718958996; i=markus.elfring@web.de;
-	bh=tEN7viMJ5j3aehgKMwObJKvDGkUQ8ivpak0HTe06Zb0=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
-	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 cc:content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=UCBixyj5wpF5GgGFSwmalxQQctIhRpiA18Je4F3tDkkWuZZtiUZZrMUXCZPyMOVZ
-	 BYZDl3EpPwwD/apF1P25VP9Ot+K2kyLQsaUNIrvXQyRqIlOwyDeh2APn34DkOfBys
-	 SIr96xLKx5ejIBZ2mKYVLUfEGwLjwzplWyXuVBcV2qqaKyzmtbFzBGdYnm5eSnwGl
-	 9up3Ikch+oqHIj3d5yJ9fTsVN7xSkTw0ZW9pQ/I4wRSREavOCJmmBv6zIcRLK6R3i
-	 ZC0sZGi+QLFDNnlR2nKGYrlV/sUVxn91jET0tkNih/92sP3GHPQ6U6mBFDsfAkyD1
-	 +H7DKcisO4YMufm+og==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.21] ([94.31.83.95]) by smtp.web.de (mrweb105
- [213.165.67.124]) with ESMTPSA (Nemesis) id 1MTOha-1roSMR2rm8-00NMNN; Fri, 14
- Jun 2024 10:36:35 +0200
-Message-ID: <e8763c5a-564f-4028-9a53-6952bb8d3567@web.de>
-Date: Fri, 14 Jun 2024 10:36:11 +0200
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="u/iXU3Cu"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=k5Jozg+gaCeSQ8tXyXAfQ8zvUH35mGnejlLYGUNU73c=; b=u/iXU3CuapkrBpGgNpXL7oKWw2
+	akDjIAg46tPSfA09potIFN7iNNRLBOcOWOruqnNqrpF1A3vztyYK1CNKi+YApQjX3TSGtWpbWvyjk
+	2QqPlMXSDtQKcOldgtX8kcSD5J30dKJYqKq6+Uz9Dpx2rr4E2LSxU/hTB06ppUtiMhmkFRH1tWGFL
+	SfzhC+xbBy+GIFrMIMF6R5HPq1V6egCAlbsXOj1XPxLUL9MBd97xrATfvTJKkPgIW/99fc5N3cCoO
+	8Ohm27l1SS86ljlIsb/2oqUYH2Fu/E6Ki2TnRAQh7OggP52Coo4MDKT6lhmrwNRr9/Jrmz4YKJWVc
+	W386n8dQ==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1sI3E1-0000000GowQ-3hJA;
+	Fri, 14 Jun 2024 09:28:01 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id 2A6ED300886; Fri, 14 Jun 2024 11:28:01 +0200 (CEST)
+Date: Fri, 14 Jun 2024 11:28:01 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: linux-kernel@vger.kernel.org,
+	"Gautham R. Shenoy" <gautham.shenoy@amd.com>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>,
+	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>,
+	Jonas Bonn <jonas@southpole.se>,
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+	Stafford Horne <shorne@gmail.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+	Daniel Bristot de Oliveira <bristot@redhat.com>,
+	Valentin Schneider <vschneid@redhat.com>,
+	Andrew Donnellan <ajd@linux.ibm.com>,
+	Benjamin Gray <bgray@linux.ibm.com>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Xin Li <xin3.li@intel.com>, Kees Cook <keescook@chromium.org>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Tony Battersby <tonyb@cybernetics.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Brian Gerst <brgerst@gmail.com>, Leonardo Bras <leobras@redhat.com>,
+	Imran Khan <imran.f.khan@oracle.com>,
+	"Paul E. McKenney" <paulmck@kernel.org>,
+	Rik van Riel <riel@surriel.com>,
+	Tim Chen <tim.c.chen@linux.intel.com>,
+	David Vernet <void@manifault.com>,
+	Julia Lawall <julia.lawall@inria.fr>, linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org,
+	x86@kernel.org
+Subject: Re: [PATCH v2 00/14] Introducing TIF_NOTIFY_IPI flag
+Message-ID: <20240614092801.GL8774@noisy.programming.kicks-ass.net>
+References: <20240613181613.4329-1-kprateek.nayak@amd.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Kaiyuan Zhang <kaiyuanz@google.com>, Mina Almasry
- <almasrymina@google.com>, Willem de Bruijn <willemb@google.com>,
- netdev@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
- bpf@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
- Alexei Starovoitov <ast@kernel.org>, Andreas Larsson <andreas@gaisler.com>,
- Andrii Nakryiko <andrii@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
- Bagas Sanjaya <bagasdotme@gmail.com>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Christoph Hellwig <hch@infradead.org>, Daniel Borkmann
- <daniel@iogearbox.net>, David Ahern <dsahern@kernel.org>,
- "David S. Miller" <davem@davemloft.net>, David Wei <dw@davidwei.uk>,
- Donald Hunter <donald.hunter@gmail.com>, Eduard Zingerman
- <eddyz87@gmail.com>, Eric Dumazet <edumazet@google.com>,
- Hao Luo <haoluo@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>,
- Helge Deller <deller@gmx.de>, Herbert Xu <herbert@gondor.apana.org.au>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Jakub Kicinski
- <kuba@kernel.org>,
- "James E. J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Jeroen de Borst <jeroendb@google.com>,
- Jesper Dangaard Brouer <hawk@kernel.org>, Jiri Olsa <jolsa@kernel.org>,
- John Fastabend <john.fastabend@gmail.com>, Jonathan Corbet <corbet@lwn.net>,
- KP Singh <kpsingh@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>,
- Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Matt Turner <mattst88@gmail.com>, Nikolay Aleksandrov <razor@blackwall.org>,
- Paolo Abeni <pabeni@redhat.com>, Pavel Begunkov <asml.silence@gmail.com>,
- Praveen Kaligineedi <pkaligineedi@google.com>,
- Richard Henderson <richard.henderson@linaro.org>,
- Sergey Shtylyov <s.shtylyov@omp.ru>, Shailend Chand <shailend@google.com>,
- Shakeel Butt <shakeel.butt@linux.dev>, Shuah Khan <shuah@kernel.org>,
- Simon Horman <horms@kernel.org>, Song Liu <song@kernel.org>,
- Stanislav Fomichev <sdf@google.com>,
- Steffen Klassert <steffen.klassert@secunet.com>,
- Steven Rostedt <rostedt@goodmis.org>, Sumit Semwal
- <sumit.semwal@linaro.org>, =?UTF-8?Q?Thomas_Bogend=C3=B6rfer?=
- <tsbogend@alpha.franken.de>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
- Yonghong Song <yonghong.song@linux.dev>,
- Yunsheng Lin <linyunsheng@huawei.com>
-References: <20240613013557.1169171-4-almasrymina@google.com>
-Subject: Re: [PATCH net-next v12 03/13] netdev: support binding dma-buf to
- netdevice
-Content-Language: en-GB
-From: Markus Elfring <Markus.Elfring@web.de>
-In-Reply-To: <20240613013557.1169171-4-almasrymina@google.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:+k1dYnD+EokvOe1vbwZlKNTe1TX0WUdQkgaGG/qsgw+71bzJaIU
- QidjeMvWeiD+dR5qKEkr1x+LV3+NTDoz+xri6Tx700wOznJ1fcTyqDWN8Zimu67gntD9Pmc
- /opcmuVaUY3GrrOadwjoget165QeYilWHUurHYshbsEVVlXEFAA4s6i99lnb50QeTC8K9+C
- Uz8ayCasgXn+9xWrignEw==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:BWour/0vIC0=;GtGBkBE59JGFyQW5lwppqOQAJBO
- uUOT/qCm3s5hRQMKWcOgrm418Qdi4TOAZQBmou+I/sOwuv1i0hshrjzqo3MtvwrCL59oveA5C
- gtnkjHRykPBBeQBxupv6OnToEd23YIvzF+eG9l90ogEgzFGYxS9vNTzIcNhEZma4YGAmX8ITh
- MRmp2BAbgjuQRBd2F+7RPDHNvybhEmzY8pmyXVK4LJL+qr8DRmTqyiBmz4pmuG1LubCE6e0dW
- wl/bh5SP42t8LGPBA3IT76V7Ckqi7e/MKnmL2RioijJNeq+h7L3udV4p9KWr3qZmicA2RKscL
- mqt3OrMpu4uyAHqDvqlsCUpLHPvX5GhhRCFXP/JRyyITzDhcNf0DVERCEURylJJxEwaJG1OsD
- wopYbRTfG+YokVG8icH2pVI2/uRp2EIRqRuAgOh6DUzPZovh7LBwyj+0ok2hm9VkhWfp2Lp+J
- TAIv6wXbXHrhubxFbGjdmGSRph4Bow72Z7FscIUZDsTmrsT5ocGItVRpAY+Z8B8i9gU5JHc7o
- I9JZVHUxLWeKXDVW4EG9dfLtUDNw78xIWH4yTAizE5+UWLA0CWFmjuyDYMxe7gjjQZzPyQ5Gu
- NETFv6FRokjhiYVoUBKSSWhMFAc7c1YAPuvb/l7/u4oNblimt1rBfyvIV5SyHtCvxFsqlz4Xp
- RCRtXf7r2iGX1Slo230gSISOxIBvS3BYvNrArD1fT2IuVcntR4VMmwVylu7dRSULhioUKnByW
- 8t0dfDjUXyACqbKCgOJfWEuAvo6cPVlN18Zof2kowY/767rdYgQam5blW2HRgtvrkfhBhdKzL
- YhNAMFS5MC9go/S33daoNUGbIZbVyFgs+cN3xErNaBkb0=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240613181613.4329-1-kprateek.nayak@amd.com>
 
-=E2=80=A6
-> +++ b/net/core/netdev-genl.c
-=E2=80=A6
->  int netdev_nl_bind_rx_doit(struct sk_buff *skb, struct genl_info *info)
->  {
-=E2=80=A6
-> +	rtnl_lock();
-> +
-> +	netdev =3D __dev_get_by_index(genl_info_net(info), ifindex);
-=E2=80=A6
-> +err_unlock:
-> +	rtnl_unlock();
-> +	return err;
->  }
-=E2=80=A6
+On Thu, Jun 13, 2024 at 06:15:59PM +0000, K Prateek Nayak wrote:
+> Effects of call_function_single_prep_ipi()
+> ==========================================
+> 
+> To pull a TIF_POLLING thread out of idle to process an IPI, the sender
+> sets the TIF_NEED_RESCHED bit in the idle task's thread info in
+> call_function_single_prep_ipi() and avoids sending an actual IPI to the
+> target. As a result, the scheduler expects a task to be enqueued when
+> exiting the idle path. This is not the case with non-polling idle states
+> where the idle CPU exits the non-polling idle state to process the
+> interrupt, and since need_resched() returns false, soon goes back to
+> idle again.
+> 
+> When TIF_NEED_RESCHED flag is set, do_idle() will call schedule_idle(),
+> a large part of which runs with local IRQ disabled. In case of ipistorm,
+> when measuring IPI throughput, this large IRQ disabled section delays
+> processing of IPIs. Further auditing revealed that in absence of any
+> runnable tasks, pick_next_task_fair(), which is called from the
+> pick_next_task() fast path, will always call newidle_balance() in this
+> scenario, further increasing the time spent in the IRQ disabled section.
+> 
+> Following is the crude visualization of the problem with relevant
+> functions expanded:
+> --
+> CPU0							CPU1
+> ====							====
+> 							do_idle() {
+> 								__current_set_polling();
+> 								...
+> 								monitor(addr);
+> 								if (!need_resched())
+> 									mwait() {
+> 									/* Waiting */
+> smp_call_function_single(CPU1, func, wait = 1) {				...
+> 	...									...
+> 	set_nr_if_polling(CPU1) {						...
+> 		/* Realizes CPU1 is polling */					...
+> 		try_cmpxchg(addr,						...
+> 			    &val,						...
+> 			    val | _TIF_NEED_RESCHED);				...
+> 	} /* Does not send an IPI */						...
+> 	...								} /* mwait exit due to write at addr */
+> 	csd_lock_wait() {					} 
+> 	/* Waiting */						preempt_set_need_resched();
+> 		...						__current_clr_polling();
+> 		...						flush_smp_call_function_queue() {
+> 		...							func();
+> 	} /* End of wait */					}
+> }								schedule_idle() {
+> 									...
+> 									local_irq_disable();
+> smp_call_function_single(CPU1, func, wait = 1) {			...
+> 	...								...
+> 	arch_send_call_function_single_ipi(CPU1);			...
+> 						\			...
+> 						 \			newidle_balance() {
+> 						  \				...
+> 					      /* Delay */			...
+> 						    \			}
+> 					     	     \			...
+> 						      \-------------->	local_irq_enable();
+> 									/* Processes the IPI */
+> --
+> 
+> 
+> Skipping newidle_balance()
+> ==========================
+> 
+> In an earlier attempt to solve the challenge of the long IRQ disabled
+> section, newidle_balance() was skipped when a CPU waking up from idle
+> was found to have no runnable tasks, and was transitioning back to
+> idle [2]. Tim [3] and David [4] had pointed out that newidle_balance()
+> may be viable for CPUs that are idling with tick enabled, where the
+> newidle_balance() has the opportunity to pull tasks onto the idle CPU.
 
-Would you become interested to apply another lock guard?
-https://elixir.bootlin.com/linux/v6.10-rc3/source/include/linux/cleanup.h#=
-L124
+I don't think we should be relying on this in any way shape or form.
+NOHZ can kill that tick at any time.
 
-Will scope-based resource management become more attractive
-(also for the current source code adjustment)?
+Also, semantically, calling newidle from the idle thread is just daft.
+You're really not newly idle in that case.
 
-Regards,
-Markus
+> Vincent [5] pointed out a case where the idle load kick will fail to
+> run on an idle CPU since the IPI handler launching the ILB will check
+> for need_resched(). In such cases, the idle CPU relies on
+> newidle_balance() to pull tasks towards itself.
+
+Is this the need_resched() in _nohz_idle_balance() ? Should we change
+this to 'need_resched() && (rq->nr_running || rq->ttwu_pending)' or
+something long those lines?
+
+I mean, it's fairly trivial to figure out if there really is going to be
+work there.
+
+> Using an alternate flag instead of NEED_RESCHED to indicate a pending
+> IPI was suggested as the correct approach to solve this problem on the
+> same thread.
+
+So adding per-arch changes for this seems like something we shouldn't
+unless there really is no other sane options.
+
+That is, I really think we should start with something like the below
+and then fix any fallout from that.
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 0935f9d4bb7b..cfa45338ae97 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -5799,7 +5800,7 @@ static inline struct task_struct *
+ __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+ {
+ 	const struct sched_class *class;
+-	struct task_struct *p;
++	struct task_struct *p = NULL;
+ 
+ 	/*
+ 	 * Optimization: we know that if all tasks are in the fair class we can
+@@ -5810,9 +5811,11 @@ __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+ 	if (likely(!sched_class_above(prev->sched_class, &fair_sched_class) &&
+ 		   rq->nr_running == rq->cfs.h_nr_running)) {
+ 
+-		p = pick_next_task_fair(rq, prev, rf);
+-		if (unlikely(p == RETRY_TASK))
+-			goto restart;
++		if (rq->nr_running) {
++			p = pick_next_task_fair(rq, prev, rf);
++			if (unlikely(p == RETRY_TASK))
++				goto restart;
++		}
+ 
+ 		/* Assume the next prioritized class is idle_sched_class */
+ 		if (!p) {
