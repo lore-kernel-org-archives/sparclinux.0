@@ -1,300 +1,202 @@
-Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2084.outbound.protection.outlook.com [40.107.100.84])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CEA1101E6
-	for <sparclinux@vger.kernel.org>; Sun, 16 Jun 2024 14:57:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.169
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718549851; cv=none; b=PgaH7mXAuwtPn9JF4EeevXhhkY3gAalJGo52ruACSHtNoiOpUnIUwItTcA/TcBdRGXxbWrhANlRIAsIk09UKPnErWL+P9o6zRxFR6YZosLqYjTeVwaSR8Y7m5ZHpBDRHn0WA1ii81EEdeBMriRoSp3/rO44rLXW9yo+OAa2Ee8s=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718549851; c=relaxed/simple;
-	bh=utvuP9IoAszxWoU3ajATZDQZ4+EdgvtsV0c8Mt+Ezag=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=N7KQFhE94IWzEXh7ByrUFojsMSSe6uj9q7M+lwa4CtVB7VxAaAYNyNH1dJa4ddSBw7XX8r8IApflux56B0ypyE+N2XtY3eWmf8VffSgka9frQaLY3nLudXD7UoFmKUrNyz5RQVsqNvIUyZh+G6CIb461fFT+mOx/S7dvfh8whrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=BTWk6Jr4; arc=none smtp.client-ip=209.85.210.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4058F819;
+	Mon, 17 Jun 2024 04:35:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.100.84
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1718598962; cv=fail; b=Ud+xBWj3xn0noBq7iU2Ae3ZzBbq8mqlSrLPjEPN2slRFWSo4EgrR3Fq6XFFN/Bi8WfIg4lqrEfHs8sPIAyiQWlcCewTAneDzU38XcQM+jQ7UB7gddYnTZ4iJeq5Xz05yvEOsSnBWJRZi9x40qI2c5P/Yjxgu7xwdCpnJ8fSj/SQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1718598962; c=relaxed/simple;
+	bh=yewums6JxpdyYrTZn+c0bFz2jxNG5+b3bUNergndDI0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=bu8dFFtctZKdeTF1UAH/sqW+pUIZbYlj4Ffd6Yg1tO9iCvbb6+hQkd50W58O8pFOF+efLub+yeph95J3rMTKuTr7teEnE4P5seDpBnJ5LCruET+0yzzUnnZwF/oFx9RnXspQNfA50vG1JK1hzQvaYcrTRPMr6GinuNtjjO+D2JQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=uPHAVcMf; arc=fail smtp.client-ip=40.107.100.84
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="BTWk6Jr4"
-Received: by mail-pf1-f169.google.com with SMTP id d2e1a72fcca58-70413de08c7so2613455b3a.0
-        for <sparclinux@vger.kernel.org>; Sun, 16 Jun 2024 07:57:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1718549849; x=1719154649; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=rYjghgjKd1ZembdVlTN5XgkOTmluzZxorMJSTjILbTo=;
-        b=BTWk6Jr43HB5uLdZ1kqYT9v+Uh1yHBmOszId7TEphwKZUSpQgOgtmAQEVRHOHUk5ps
-         dOzp+NiZqGgQJULG+2q5LClsi7eWZphmrcBXSRnji6Nu9zRlX/JWjQ16SJ2IUleL/mqC
-         UtNaafyh3gVavNj4wcp6BKuvf891Yw5VP41YO/PXdcu3iWzwmrw9OqPWNMdIajSdonme
-         +2UUm+3fARTdxu94y9ofOVvzZ5jYKBw3OyYAKedtLu8mC8egQiKtK+QHgZ6PBxbPBTh7
-         BDTzN8M8RXd2dTo62d6smEF6DJRL9lPgRAwzzNKw1sprjApz+yMmWP2kbo02QNJeH6YO
-         C9hw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718549849; x=1719154649;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=rYjghgjKd1ZembdVlTN5XgkOTmluzZxorMJSTjILbTo=;
-        b=JThCtZkHueKrmU6t2pCuDnQzI+9BwvnnCwtHV1CO3aDWxdojqgUzVU3pPsGxXIs4YQ
-         LnYQTct6Kpffgilff+01UpJ/P5LC1FmOzlUz3atfqhZoFJWglFNaA5CYF4OukMoFedtm
-         S5uDnVskwOFiqqjeT+9pErPa/6MqHKSuWYabyN20mY3G6ofOJ19Vw9zGjgqwCgK+n0pD
-         H6wTQEuO7kBEkCzK1lO20w/sw90vPu07yhuYHMQcw8IANrEA0ca9jdsAP4fjUYUfXUqc
-         e7r/pkAje2bxk/CbIPZ246iGcPlvj2ITzizoSrBGqYOE/WbxBDI3STaZ5IACBTLKwAu3
-         sKrg==
-X-Forwarded-Encrypted: i=1; AJvYcCUzBFoVj74XE7aGIcQEU778VFyr6e4r1q8dwtIeplPUjohxCNyvB2tm0JC7Thm4v/KWFgReo9vLvN4myFd3DM7teRcc99fdOLydsg==
-X-Gm-Message-State: AOJu0Yz7aPH8fRAlF4I+oNbS/LqrollIy+0ThPZReo1nG3GobQYwJisJ
-	E23JfwN0vVhm5zDKLnQ1n6MiO5zF/fOnyF3D8Ghc1ZHKWRguIoDWxNfvQf1rIcadm+F/mso3o+E
-	xEsco3vh2lU6jDq1JXMBXpMALMpKXb5yr5uvaGw==
-X-Google-Smtp-Source: AGHT+IHTgpoQyjqHNervCjt0EPZEZ7aZDOr+YosfkhATeXzbUFa46nGvC/JpQ1fK4xIcVu7QUZh21abUsAxqmPSmJcc=
-X-Received: by 2002:a05:6a21:32a5:b0:1b8:a188:53da with SMTP id
- adf61e73a8af0-1bae7f0bb4bmr7762840637.29.1718549848620; Sun, 16 Jun 2024
- 07:57:28 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="uPHAVcMf"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cS6MBv1kpEUKbn752opehSE8vuVo40+QHM/CwSA36vDW9hvLn6kU+OH4YhuOoDvjAy3zIW0wdCSPiMvzSynGz3fa7vRg11PzLhihjMwTSAQ7F+7TLqjImnqhguMg91FxR6u9fPQ/tdtRjdPzgn9k2vBxeo5BIVDk1yVKIM3hNjrUfani50miJgb0T6m3WGVtW4TKcvZLRgJIh9YEKSCXGpAe8XC0pPdErBkqzTJ2gWDz4JZILuWRUfn1mq4rBDYgnT1cJrDm2SsE+jXAqRiR4UGsFANBGRLdgCaEhX0JfyGnROd2eTXxlFgzb7eyeEFJCm1HXGCsM/gyNLFgO/RbTQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=WGWQmqRyqMXs038b48yvR4MdWmcP7CQlSWGCb1h0oU0=;
+ b=BBukvcezG+b1PkkgZbfctaSvOznCeLdMGUx94vbSaAnZuBrgi0hS+xDDSMIvIzsOEl66coOqqTte+TfdzKGixpoHW4cOT1Bv91Dm7FCys/aM8GvdyP6GpaUb06ISLpiv2D8Ic9Ejh2/lt9gPaISrhmPTr9X4WlZyk8Z4tcsqhlEUyIv0HXklKFHhbz5FRWboachWvbi6H7wdWZH0ZIOcl748qGAa6h1o/0UNXz2AHtfF+1IX873Qf1yRas0BGHEkUGi04VrzNdFkov0UlHOw4IFLl1xerTLmeAeF2AFConwfieTVjV38Lwuuunii2Wg1xg3YHKl1es5t+IcVhpaTxA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=armlinux.org.uk smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=WGWQmqRyqMXs038b48yvR4MdWmcP7CQlSWGCb1h0oU0=;
+ b=uPHAVcMffkz/6M7XVxYV9akUNTj9LIsREr1MivnHsRsKAEpHDTZsKu97eNIuYRaHh9lJqWrQ0kLrlqw7LkebTL+u7JTRNRHCjBEU7//gRKHjBOIcS3bUDXJUD+7dN6ANTUfm8ahrL/JEv2x7r0jA+s8ikoETRdm+jO4t0Jjoorw=
+Received: from DM6PR03CA0072.namprd03.prod.outlook.com (2603:10b6:5:100::49)
+ by DS7PR12MB8249.namprd12.prod.outlook.com (2603:10b6:8:ea::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.30; Mon, 17 Jun
+ 2024 04:35:54 +0000
+Received: from DS1PEPF0001709C.namprd05.prod.outlook.com
+ (2603:10b6:5:100:cafe::23) by DM6PR03CA0072.outlook.office365.com
+ (2603:10b6:5:100::49) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.30 via Frontend
+ Transport; Mon, 17 Jun 2024 04:35:54 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ DS1PEPF0001709C.mail.protection.outlook.com (10.167.18.106) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.7677.15 via Frontend Transport; Mon, 17 Jun 2024 04:35:54 +0000
+Received: from [10.136.33.236] (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Sun, 16 Jun
+ 2024 23:35:39 -0500
+Message-ID: <4f872eec-f302-5ac4-e914-bcc3ce65950c@amd.com>
+Date: Mon, 17 Jun 2024 10:05:36 +0530
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240613181613.4329-1-kprateek.nayak@amd.com> <20240614092801.GL8774@noisy.programming.kicks-ass.net>
- <CAKfTPtBTxhbmh=605TJ9sRw-nFu6w-KY7QpAxRUh5AjhQWa2ig@mail.gmail.com> <20240615012814.GP8774@noisy.programming.kicks-ass.net>
-In-Reply-To: <20240615012814.GP8774@noisy.programming.kicks-ass.net>
-From: Vincent Guittot <vincent.guittot@linaro.org>
-Date: Sun, 16 Jun 2024 16:57:17 +0200
-Message-ID: <CAKfTPtD2fUBqw09QDPGgAHyvQRmcvzbq9o3FDsctw=R6HP+=CA@mail.gmail.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
 Subject: Re: [PATCH v2 00/14] Introducing TIF_NOTIFY_IPI flag
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: K Prateek Nayak <kprateek.nayak@amd.com>, linux-kernel@vger.kernel.org, 
-	"Gautham R. Shenoy" <gautham.shenoy@amd.com>, Richard Henderson <richard.henderson@linaro.org>, 
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
-	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>, 
-	Michal Simek <monstr@monstr.eu>, Dinh Nguyen <dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, 
-	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>, 
-	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	"H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Daniel Lezcano <daniel.lezcano@linaro.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, 
-	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, 
-	Daniel Bristot de Oliveira <bristot@redhat.com>, Valentin Schneider <vschneid@redhat.com>, 
-	Andrew Donnellan <ajd@linux.ibm.com>, Benjamin Gray <bgray@linux.ibm.com>, 
-	Frederic Weisbecker <frederic@kernel.org>, Xin Li <xin3.li@intel.com>, 
-	Kees Cook <keescook@chromium.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, 
-	Tony Battersby <tonyb@cybernetics.com>, Bjorn Helgaas <bhelgaas@google.com>, 
-	Brian Gerst <brgerst@gmail.com>, Leonardo Bras <leobras@redhat.com>, 
-	Imran Khan <imran.f.khan@oracle.com>, "Paul E. McKenney" <paulmck@kernel.org>, 
-	Rik van Riel <riel@surriel.com>, Tim Chen <tim.c.chen@linux.intel.com>, 
-	David Vernet <void@manifault.com>, Julia Lawall <julia.lawall@inria.fr>, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, 
-	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Language: en-US
+To: "Russell King (Oracle)" <linux@armlinux.org.uk>
+CC: <linux-kernel@vger.kernel.org>, "Gautham R. Shenoy"
+	<gautham.shenoy@amd.com>, Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>,
+	Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Dinh Nguyen
+	<dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson
+	<stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller
+	<deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin
+	<npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, "Naveen
+ N. Rao" <naveen.n.rao@linux.ibm.com>, Yoshinori Sato
+	<ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "John Paul
+ Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>, "David S. Miller"
+	<davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner
+	<tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+	<bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin"
+	<hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano
+	<daniel.lezcano@linaro.org>, Peter Zijlstra <peterz@infradead.org>, "Juri
+ Lelli" <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt
+	<rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman
+	<mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, "Valentin
+ Schneider" <vschneid@redhat.com>, Andrew Donnellan <ajd@linux.ibm.com>,
+	Benjamin Gray <bgray@linux.ibm.com>, Frederic Weisbecker
+	<frederic@kernel.org>, Xin Li <xin3.li@intel.com>, Kees Cook
+	<keescook@chromium.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, "Tony
+ Battersby" <tonyb@cybernetics.com>, Bjorn Helgaas <bhelgaas@google.com>,
+	"Brian Gerst" <brgerst@gmail.com>, Leonardo Bras <leobras@redhat.com>, Imran
+ Khan <imran.f.khan@oracle.com>, "Paul E. McKenney" <paulmck@kernel.org>, "Rik
+ van Riel" <riel@surriel.com>, Tim Chen <tim.c.chen@linux.intel.com>, David
+ Vernet <void@manifault.com>, Julia Lawall <julia.lawall@inria.fr>,
+	<linux-alpha@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-csky@vger.kernel.org>, <linux-openrisc@vger.kernel.org>,
+	<linux-parisc@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
+	<linux-sh@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, <x86@kernel.org>
+References: <20240613181613.4329-1-kprateek.nayak@amd.com>
+ <Zm2kouKx/NSSrr6x@shell.armlinux.org.uk>
+From: K Prateek Nayak <kprateek.nayak@amd.com>
+In-Reply-To: <Zm2kouKx/NSSrr6x@shell.armlinux.org.uk>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS1PEPF0001709C:EE_|DS7PR12MB8249:EE_
+X-MS-Office365-Filtering-Correlation-Id: 62c378d6-3196-4602-553a-08dc8e86f99f
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230037|7416011|376011|36860700010|1800799021|82310400023;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?aHVjNUI3OGVUdW5VK2pqVlFNZTFlTE83MklqUS9TWW1FMDdQeUN1WDRmdXl1?=
+ =?utf-8?B?Nkg0NldIc0tqcU82RnM3Z0Rxd3YwRC9tay9UOWV1YW1NTlVKaDgrOFptRE1F?=
+ =?utf-8?B?M3VMSWNJUGlQY0VNbjBJSWlqMXFQMzVFSU0wVlR6REN6bXpLUXpITGJLVWZ1?=
+ =?utf-8?B?QzVoVEhvaXRybE84c2lObnN5WXJ6ZjNhUU84My9ldmxqL1oyb1JMdWk2MDh0?=
+ =?utf-8?B?aEJtcVY2T1dsL1Y2WlZXZStwWXdoZlVyR3JIeXh3eU5mY2ZyQU1kNHgxQk9w?=
+ =?utf-8?B?L2NwK1pTRDQ4YXBQNFdwdmFPbGo5SjZnUjViVytTN1FwS2lTdW5UZUR4QmNP?=
+ =?utf-8?B?Q29xUGUwaDlzeGxwdlhEeFVucGJ4c0pkdGpJMitmZXNKcmQvbXR0OUZYdVNk?=
+ =?utf-8?B?Vm9lSDdUN053N0hsOXZzd3dJdWNxY2cvWktTMjg3bnZwbUtXQUcxNThaTUYr?=
+ =?utf-8?B?cmk1U2pSbEVEVWRlN1BqT3NRWVlXYTRMaERiOUJ1S2FvNkhtT2R2WitKbHFk?=
+ =?utf-8?B?YmtOZDZXVXpjNjRSODVuL01ETWVibkVBdGRJeWVUZHlhaVF2cDB1Ni9xdlBp?=
+ =?utf-8?B?VHRValdGekFkVWp2elJHZFh3b0FSdk8xWUh4b3BSR0JRVHBZSnFZWHJBdE5z?=
+ =?utf-8?B?NzlMTEZnUnBiUTBZbm43WEFpZE5heFBJWDNrbk5UMUtySksrSCs1Ynl5c2FO?=
+ =?utf-8?B?UlVJWE1BM3hQYlBsMFJndGsvTHNoZDlRWXpaN2NmcVFIN1VyU0tRM1M1ZzM2?=
+ =?utf-8?B?NGk5clV4NWVOU3pBMkhzY1ZkVVROUkNBa3lEQjZXNmtXcFlnY1ZEZWxhZUNE?=
+ =?utf-8?B?aG1mTDM0QUh6MmxiZXR6cnd3b04rZUlFU0czT1A2TWlTcnFtT3RtZUJWU0Nt?=
+ =?utf-8?B?ZFJmdVBlOGJIVGFkM2NSQmxGelN0WVI1WjhkeEc2cDd2elgwenBSNGhoRDJU?=
+ =?utf-8?B?OStmQllRTHFmSmh5VDZHcEhKTG9aQ0dSUUJiOGtSRmoyckJSQnhnMWFieEpj?=
+ =?utf-8?B?aU5SRmN0aXc5dTdvYzUrTSsrWkt0MnhyeVRrdCsxZkY3R1FydFRMNC9GOXJN?=
+ =?utf-8?B?STROV3BLMWo2VXBSNDZTSVJVaHRHdjlqd0Z4NnFSOWJMMmdaeXMzSlVMNUsw?=
+ =?utf-8?B?RVZZZFZYRjNqeTlNTXVldEsyMFFOd015alVRSUdvZWU0UEJESWp5U0dNSCtr?=
+ =?utf-8?B?YVlOdUVHeU44L0FNVkQ1cnpsT2F1dy8wbmphaUFncjFuQ3JRRVQwMWZlUVB0?=
+ =?utf-8?B?ODFJSUV4V2IxeUQ2TzlseVErWVRZOXo0OEJlR1ZQYXovS0grbjgzWDMxcUFt?=
+ =?utf-8?B?c0JOM0VndXNyMlMwUXl4ekU5YksxSU9wNlUrSWhUdUtJVDZsTEJFODRQR1Zw?=
+ =?utf-8?B?cWZzWi8zWFcxSWlpaVhLU054cll6cGZtN28xRUVLL3hrdlFIakVBcG5NU2Rm?=
+ =?utf-8?B?YndMMkl1M0k2ZUIwbUJJbWF1cWZBVzVZY0ZML2lmSlA5dzRHenZOSWR2R1Vs?=
+ =?utf-8?B?OEMrWlgwczJsNXR6QjNjeDkvYUI1Mk02bVRHVUpLUUlSbXNveWEzbE9lQkVn?=
+ =?utf-8?B?b3pXK0NNeTNma2xJM1lRWHZBY3N0aWt1SFB3TDc2eThNUW52WFBHd2VoZGJ5?=
+ =?utf-8?B?U1BZb3U3bEZTWWhvZWhXZVlwUyt0NUNndE1mS25mNzQ4Z1lDb0EraGpaNlFE?=
+ =?utf-8?B?VGY2S1BEMlE3VDBXZDV3WlBDaXZWYmQ3c3pWblpJWnRmKytJOThMVFR4ZW9L?=
+ =?utf-8?B?U0FTSmliam1POFM3TzE3ZnEyNTJSZWt1ZEFyTlkrQWI3ZTh6b29KekFxS2NH?=
+ =?utf-8?B?RmFDa1JEVzJLMkg0VGNwdz09?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(7416011)(376011)(36860700010)(1800799021)(82310400023);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jun 2024 04:35:54.3404
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 62c378d6-3196-4602-553a-08dc8e86f99f
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS1PEPF0001709C.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8249
 
-On Sat, 15 Jun 2024 at 03:28, Peter Zijlstra <peterz@infradead.org> wrote:
->
-> On Fri, Jun 14, 2024 at 12:48:37PM +0200, Vincent Guittot wrote:
-> > On Fri, 14 Jun 2024 at 11:28, Peter Zijlstra <peterz@infradead.org> wrote:
->
-> > > > Vincent [5] pointed out a case where the idle load kick will fail to
-> > > > run on an idle CPU since the IPI handler launching the ILB will check
-> > > > for need_resched(). In such cases, the idle CPU relies on
-> > > > newidle_balance() to pull tasks towards itself.
-> > >
-> > > Is this the need_resched() in _nohz_idle_balance() ? Should we change
-> > > this to 'need_resched() && (rq->nr_running || rq->ttwu_pending)' or
-> > > something long those lines?
-> >
-> > It's not only this but also in do_idle() as well which exits the loop
-> > to look for tasks to schedule
->
-> Is that really a problem? Reading the initial email the problem seems to
-> be newidle balance, not hitting schedule. Schedule should be fairly
-> quick if there's nothing to do, no?
+Hello Russell,
 
-There are 2 problems:
-- Because of NEED_RESCHED being set, we go through the full schedule
-path for no reason and we finally do a sched_balance_newidle()
-- Because of need_resched being set o wake up the cpu, we will not
-kick the softirq to run the nohz idle load balance and get a chance to
-pull a task on an idle CPU
+On 6/15/2024 7:56 PM, Russell King (Oracle) wrote:
+> On Thu, Jun 13, 2024 at 06:15:59PM +0000, K Prateek Nayak wrote:
+>> o Dropping the ARM results since I never got my hands on the ARM64
+>>    system I used in my last testing. If I do manage to get my hands on it
+>>    again, I'll rerun the experiments and share the results on the thread.
+>>    To test the case where TIF_NOTIFY_IPI is not enabled for a particular
+>>    architecture, I applied the series only until Patch 3 and tested the
+>>    same on my x86 machine with a WARN_ON_ONCE() in do_idle() to check if
+>>    tif_notify_ipi() ever return true and then repeated the same with
+>>    Patch 4 applied.
+> 
+> Confused. ARM (32-bit) or ARM64? You patch 32-bit ARM, but you don't
+> touch 64-bit Arm. "ARM" on its own in the context above to me suggests
+> 32-bit, since you refer to ARM64 later.
+> 
 
->
-> > > I mean, it's fairly trivial to figure out if there really is going to be
-> > > work there.
-> > >
-> > > > Using an alternate flag instead of NEED_RESCHED to indicate a pending
-> > > > IPI was suggested as the correct approach to solve this problem on the
-> > > > same thread.
-> > >
-> > > So adding per-arch changes for this seems like something we shouldn't
-> > > unless there really is no other sane options.
-> > >
-> > > That is, I really think we should start with something like the below
-> > > and then fix any fallout from that.
-> >
-> > The main problem is that need_resched becomes somewhat meaningless
-> > because it doesn't  only mean "I need to resched a task" and we have
-> > to add more tests around even for those not using polling
->
-> True, however we already had some of that by having the wakeup list,
-> that made nr_running less 'reliable'.
->
-> The thing is, most architectures seem to have the TIF_POLLING_NRFLAG
-> bit, even if their main idle routine isn't actually using it, much of
+In my first RFC posting, I had shared the results for ipistorm on an
+ARM64 server [1]. Vincent and Linus Walleij brought to my attention that
+ARM32 and ARM64 do not share the thread info flags and I probably saw a
+one-off behavior during my testing. Since then, it has been slightly
+challenging to get my hands on that machine again in a stable condition
+to see if there was any scenario that I might have missed but I tried a
+bunch of things on my x86 machine to confirm that an arch that does not
+define the TIF_NOTIFY_IPI would not hit these changes.
 
-Yes, I'm surprised that Arm arch has the TIF_POLLING_NRFLAG whereas it
-has never been supported by the arch
+Rest assured, Patch 5 is for ARM32 machines that currently define
+TIF_POLLING_NRFLAG
 
-> the idle loop until it hits the arch idle will be having it set and will
-> thus tickle these cases *sometimes*.
->
-> > > diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-> > > index 0935f9d4bb7b..cfa45338ae97 100644
-> > > --- a/kernel/sched/core.c
-> > > +++ b/kernel/sched/core.c
-> > > @@ -5799,7 +5800,7 @@ static inline struct task_struct *
-> > >  __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
-> > >  {
-> > >         const struct sched_class *class;
-> > > -       struct task_struct *p;
-> > > +       struct task_struct *p = NULL;
-> > >
-> > >         /*
-> > >          * Optimization: we know that if all tasks are in the fair class we can
-> > > @@ -5810,9 +5811,11 @@ __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
-> > >         if (likely(!sched_class_above(prev->sched_class, &fair_sched_class) &&
-> > >                    rq->nr_running == rq->cfs.h_nr_running)) {
-> > >
-> > > -               p = pick_next_task_fair(rq, prev, rf);
-> > > -               if (unlikely(p == RETRY_TASK))
-> > > -                       goto restart;
-> > > +               if (rq->nr_running) {
-> >
-> > How do you make the diff between a spurious need_resched() because of
-> > polling and a cpu becoming idle ? isn't rq->nr_running null in both
-> > cases ?
->
-> Bah, true. It should also check current being idle, which then makes a
-> mess of things again. Still, we shouldn't be calling newidle from idle,
-> that's daft.
->
-> I should probably not write code at 3am, but the below horror is what
-> I came up with.
->
-> ---
->
-> diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-> index 0935f9d4bb7b..cfe8d3350819 100644
-> --- a/kernel/sched/core.c
-> +++ b/kernel/sched/core.c
-> @@ -6343,19 +6344,12 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
->   * Constants for the sched_mode argument of __schedule().
->   *
->   * The mode argument allows RT enabled kernels to differentiate a
-> - * preemption from blocking on an 'sleeping' spin/rwlock. Note that
-> - * SM_MASK_PREEMPT for !RT has all bits set, which allows the compiler to
-> - * optimize the AND operation out and just check for zero.
-> + * preemption from blocking on an 'sleeping' spin/rwlock.
->   */
-> -#define SM_NONE                        0x0
-> -#define SM_PREEMPT             0x1
-> -#define SM_RTLOCK_WAIT         0x2
-> -
-> -#ifndef CONFIG_PREEMPT_RT
-> -# define SM_MASK_PREEMPT       (~0U)
-> -#else
-> -# define SM_MASK_PREEMPT       SM_PREEMPT
-> -#endif
-> +#define SM_IDLE                        (-1)
-> +#define SM_NONE                        0
-> +#define SM_PREEMPT             1
-> +#define SM_RTLOCK_WAIT         2
->
->  /*
->   * __schedule() is the main scheduler function.
-> @@ -6396,11 +6390,12 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
->   *
->   * WARNING: must be called with preemption disabled!
->   */
-> -static void __sched notrace __schedule(unsigned int sched_mode)
-> +static void __sched notrace __schedule(int sched_mode)
->  {
->         struct task_struct *prev, *next;
->         unsigned long *switch_count;
->         unsigned long prev_state;
-> +       bool preempt = sched_mode > 0;
->         struct rq_flags rf;
->         struct rq *rq;
->         int cpu;
-> @@ -6409,13 +6404,13 @@ static void __sched notrace __schedule(unsigned int sched_mode)
->         rq = cpu_rq(cpu);
->         prev = rq->curr;
->
-> -       schedule_debug(prev, !!sched_mode);
-> +       schedule_debug(prev, preempt);
->
->         if (sched_feat(HRTICK) || sched_feat(HRTICK_DL))
->                 hrtick_clear(rq);
->
->         local_irq_disable();
-> -       rcu_note_context_switch(!!sched_mode);
-> +       rcu_note_context_switch(preempt);
->
->         /*
->          * Make sure that signal_pending_state()->signal_pending() below
-> @@ -6449,7 +6444,12 @@ static void __sched notrace __schedule(unsigned int sched_mode)
->          * that we form a control dependency vs deactivate_task() below.
->          */
->         prev_state = READ_ONCE(prev->__state);
-> -       if (!(sched_mode & SM_MASK_PREEMPT) && prev_state) {
-> +       if (sched_mode == SM_IDLE) {
-> +               if (!rq->nr_running) {
-> +                       next = prev;
-> +                       goto picked;
-> +               }
-> +       } else if (!preempt && prev_state) {
->                 if (signal_pending_state(prev_state, prev)) {
->                         WRITE_ONCE(prev->__state, TASK_RUNNING);
->                 } else {
-> @@ -6483,6 +6483,7 @@ static void __sched notrace __schedule(unsigned int sched_mode)
->         }
->
->         next = pick_next_task(rq, prev, &rf);
-> +picked:
->         clear_tsk_need_resched(prev);
->         clear_preempt_need_resched();
->  #ifdef CONFIG_SCHED_DEBUG
-> @@ -6521,9 +6522,9 @@ static void __sched notrace __schedule(unsigned int sched_mode)
->                 ++*switch_count;
->
->                 migrate_disable_switch(rq, prev);
->                 psi_sched_switch(prev, next, !task_on_rq_queued(prev));
->
-> -               trace_sched_switch(sched_mode & SM_MASK_PREEMPT, prev, next, prev_state);
-> +               trace_sched_switch(preempt, prev, next, prev_state);
->
->                 /* Also unlocks the rq: */
->                 rq = context_switch(rq, prev, next, &rf);
-> @@ -6599,7 +6601,7 @@ static void sched_update_worker(struct task_struct *tsk)
->         }
->  }
->
-> -static __always_inline void __schedule_loop(unsigned int sched_mode)
-> +static __always_inline void __schedule_loop(int sched_mode)
->  {
->         do {
->                 preempt_disable();
-> @@ -6644,7 +6646,7 @@ void __sched schedule_idle(void)
->          */
->         WARN_ON_ONCE(current->__state);
->         do {
-> -               __schedule(SM_NONE);
-> +               __schedule(SM_IDLE);
->         } while (need_resched());
->  }
->
+[1] https://lore.kernel.org/lkml/20240220171457.703-6-kprateek.nayak@amd.com/
+
+-- 
+Thanks and Regards,
+Prateek
