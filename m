@@ -1,170 +1,172 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDE61B0131;
-	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E325E1B29C6;
+	Thu, 20 Jun 2024 16:23:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718899138; cv=none; b=HmmD9Kc/tKREGabTn3pKcUj3j00OVLGGbC3TDMvauajgsp3Vnhgvx/xFU3d7/prKHktcjFDYL9NmTboP9N5XoP59CBTUKGTy4Z1yJnIWSFKGIRJFs9oH97CUJrdt4fprPXa/NOKi3QM2cspO6hiEl5ZntWL/CXv0flKpqqtJ838=
+	t=1718900616; cv=none; b=DYwCH91wjXbamxsHHFuFiBwLRNsfSm2+kyVQU+brawzwa7WlKlJwoTTsdtdB3kXXB97OTlEOlXski419akZYZAnLRTFP+k8j0rfXWb8aquBu1RfxRDY+ZvehKtLUwd/lZ8RySDIKVZnYokr+Kn3FZt77n/fR4Fim+jOZIFcZVlU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718899138; c=relaxed/simple;
-	bh=sWSXWB4N7t/4NgW/qJPLeZiznzbwX6q7yzTv728kcDE=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=lhevtw0YfgKV4wSQNOsz9m1/3dD8AU012Z4Sg0OmjhwjCM4S9bFVeXFHgNd4BHUehGIoTCUPiN6pkoXkg1fPwRAp8Sk6G7j9snaCdMZT8T89FsV2HjXfcIaj82CFCWSqex/QZVzc0BDJtitXHBEvbjL+sleRyIwhT7+N8y3GLIQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EmYuXbLu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718900616; c=relaxed/simple;
+	bh=c2+3nT3Fz2YE3y2yTCQ/lqf84edhGpnQvBt5hH6hrrc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qQK2KQiOcxxrzCEsfKQ2qhAMidttfu7IDYwEZyvOAyX79regfuRag7GMcryofO737LpJ7lL3MVEJxe55xm3HO2X+DIJyymeA6r1pXdfKR3c3uZHrfvN6yckdFh8yq2+0N8BZr/Hjy8vkkteTD6fkdfHeKJFPBJb2TWl5isMYtHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XC1XYPkS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EmYuXbLu"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 58EC9C2BD10;
-	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XC1XYPkS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C294C32786;
+	Thu, 20 Jun 2024 16:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718899138;
-	bh=sWSXWB4N7t/4NgW/qJPLeZiznzbwX6q7yzTv728kcDE=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=EmYuXbLu1/20fopNdDUbO5tEHmgQybhiDTRdta3hJQSkrQCavjGrPbNxQ9WHsYGoJ
-	 U7sjc1mvkM9X7Wq6lSq08RphDY+DbIgjiRISmdnrsAnued5rdyv+/MvMPAJheBgNzO
-	 AZVff29KUIBNs/EimnS1hnFe2BVwT+BzCl7VyxtWp0R0QhgLFrPTgvRFeyTJwahya7
-	 ThpZnG8/Syed7HP0251DDSADLcjQ1Fg6J4D5iPvLfwsr4yNc/RKHwfFBoCLe9kj4U3
-	 s93Xb9MJUYNgOdgEIOGv1HMMlNZ049Z5/NPUVA3vwaqA4gYDngYff6LXZFTJmKERGK
-	 a9AfM8cx3x26Q==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E08C2BA1A;
-	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
-From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
-Date: Thu, 20 Jun 2024 22:56:00 +0700
-Subject: [PATCH] sparc/build: Make all compiler flags also clang-compatible
+	s=k20201202; t=1718900615;
+	bh=c2+3nT3Fz2YE3y2yTCQ/lqf84edhGpnQvBt5hH6hrrc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=XC1XYPkSMkLHnz9abDPwB+ZF9PlO95SQ+oHvZ5uCctS66b+uYGD9F2IRJX7pEtMkc
+	 tv1ySBBzxr5W7wpTOSPmwFLPSaG8DZ+VHBfx2P4XohH/2B5Ig5ZAdTDxK0UXwPOa9f
+	 kgG01VSndf2XvLA6qgkIX+rPcLDIj4cedf9ebxSx7WytcpCCbPGct3kqyatbZdmobi
+	 VeFKF+urVmNd2v+/KXJBz8itdjWMHDfq1hlwgrSDbn0Mq69GGfKJxQF+5Zd1+MyiaZ
+	 tJ0Pd6jm0rAgBQhogByTNSzjJmQ0Xpzjvie1YBoPoSwU/RqtdxmBuhM5TomoNaluGz
+	 sj55VopFCAeAw==
+From: Arnd Bergmann <arnd@kernel.org>
+To: linux-arch@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	linux-mips@vger.kernel.org,
+	Helge Deller <deller@gmx.de>,
+	linux-parisc@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+	linuxppc-dev@lists.ozlabs.org,
+	Brian Cain <bcain@quicinc.com>,
+	linux-hexagon@vger.kernel.org,
+	Guo Ren <guoren@kernel.org>,
+	linux-csky@vger.kernel.org,
+	Heiko Carstens <hca@linux.ibm.com>,
+	linux-s390@vger.kernel.org,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	linux-sh@vger.kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	libc-alpha@sourceware.org,
+	musl@lists.openwall.com,
+	ltp@lists.linux.it
+Subject: [PATCH 00/15] linux system call fixes
+Date: Thu, 20 Jun 2024 18:23:01 +0200
+Message-Id: <20240620162316.3674955-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
-X-B4-Tracking: v=1; b=H4sIAA9RdGYC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIxMDMyMD3eKCxKJk3eS0nMT0Yt1U8zSjlKSkFJMkyxQloJaCotS0zAqwcdG
- xtbUA5qLBpV4AAAA=
-To: "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, 
- Nathan Chancellor <nathan@kernel.org>, 
- Nick Desaulniers <ndesaulniers@google.com>, 
- Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
- glaubitz@physik.fu-berlin.de
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
- llvm@lists.linux.dev, Koakuma <koachan@protonmail.com>
-X-Mailer: b4 0.14.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1718899135; l=4329;
- i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
- bh=TPTX/hXnvGP/7Q/0XONtbbKGd6MWmhWh/U9alDskK+Y=;
- b=lh38GZIlN9C76lksV8Ck1O5eb0K5JSJr87+5/LTH1ly8d2aesSmDXIyPPuZubaHwQx4txD/2i
- V2CnGn0gKQnCyMM56PYtjZ0z2keC5F7xp5LyBJQ5E3rmZffWNPuf8jl
-X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
- pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
-X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
- auth_id=174
-X-Original-From: Koakuma <koachan@protonmail.com>
-Reply-To: koachan@protonmail.com
+Content-Transfer-Encoding: 8bit
 
-From: Koakuma <koachan@protonmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-Remove flags not supported by clang and make sure that all the flags
-used are portable between clang and GCC.
+I'm working on cleanup series for Linux system call handling, trying to
+unify some of the architecture specific code there among other things.
 
-The reasoning for removing the -fcall-used* ones is as follows:
+In the process, I came across a number of bugs that are ABI relevant,
+so I'm trying to merge these first. I found all of these by inspection,
+not by running the code, so any extra review would help. I assume some
+of the issues were already caught by existing LTP tests, while for others
+we could add a test. Again, I did not check what is already there.
 
-In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
-the 64-bit ABI, %g7 is the reserved one.
-Linux turns them into volatile registers by the way of -fcall-used-*,
-but on the other hand, omitting the flags shouldn't be harmful;
-compilers will now simply refuse to touch them, and any assembly
-code that happens to touch them would still work like usual (because
-Linux' conventions already treats them as volatile anyway).
+The sync_file_range and fadvise64_64 changes on sh, csky and hexagon
+are likely to also require changes in the libc implementation.
 
-Signed-off-by: Koakuma <koachan@protonmail.com>
----
-Hello~
+Once the patches are reviewed, I plan to merge my changes as bugfixes
+through the asm-generic tree, but architecture maintainers can also
+pick them up directly to speed up the bugfix.
 
-This changes the CFLAGS for building the SPARC kernel so that it can be
-built with clang, as a follow up from the discussion in this thread:
+     Arnd
 
-https://lore.kernel.org/lkml/JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com/T/#u
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: linux-mips@vger.kernel.org
+Cc: Helge Deller <deller@gmx.de>
+Cc: linux-parisc@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: linux-hexagon@vger.kernel.org
+Cc: Guo Ren <guoren@kernel.org>
+Cc: linux-csky@vger.kernel.org
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: linux-s390@vger.kernel.org
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: linux-sh@vger.kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: libc-alpha@sourceware.org
+Cc: musl@lists.openwall.com
+Cc: ltp@lists.linux.it
 
-The changes are removal of various `-fcall-used-*` flags, and changing
-`-mv8plus` to `-mcpu=v9`:
+Arnd Bergmann (15):
+  ftruncate: pass a signed offset
+  syscalls: fix compat_sys_io_pgetevents_time64 usage
+  mips: fix compat_sys_lseek syscall
+  sparc: fix old compat_sys_select()
+  sparc: fix compat recv/recvfrom syscalls
+  parisc: use correct compat recv/recvfrom syscalls
+  parisc: use generic sys_fanotify_mark implementation
+  powerpc: restore some missing spu syscalls
+  sh: rework sync_file_range ABI
+  csky, hexagon: fix broken sys_sync_file_range
+  hexagon: fix fadvise64_64 calling conventions
+  s390: remove native mmap2() syscall
+  syscalls: mmap(): use unsigned offset type consistently
+  asm-generic: unistd: fix time32 compat syscall handling
+  linux/syscalls.h: add missing __user annotations
 
-- `-fcall-used-*` flags should be safe to remove; the compiler will
-  stop using the registers specified as temporaries, but it is a safe
-  change wrt. the ABI. Assembly code can still use those registers
-  as needed.
-  It does bring a theoretical possible slowdown due to the compiler
-  having less registers to work with, but in practice - in my case,
-  at least - it seems to not make any difference with daily usage.
+ arch/arm64/include/asm/unistd32.h         |   2 +-
+ arch/csky/include/uapi/asm/unistd.h       |   1 +
+ arch/csky/kernel/syscall.c                |   2 +-
+ arch/hexagon/include/asm/syscalls.h       |   6 +
+ arch/hexagon/include/uapi/asm/unistd.h    |   1 +
+ arch/hexagon/kernel/syscalltab.c          |   7 +
+ arch/loongarch/kernel/syscall.c           |   2 +-
+ arch/microblaze/kernel/sys_microblaze.c   |   2 +-
+ arch/mips/kernel/syscalls/syscall_n32.tbl |   2 +-
+ arch/mips/kernel/syscalls/syscall_o32.tbl |   4 +-
+ arch/parisc/Kconfig                       |   1 +
+ arch/parisc/kernel/sys_parisc32.c         |   9 -
+ arch/parisc/kernel/syscalls/syscall.tbl   |   6 +-
+ arch/powerpc/kernel/syscalls/syscall.tbl  |   6 +-
+ arch/riscv/kernel/sys_riscv.c             |   4 +-
+ arch/s390/kernel/syscall.c                |  27 ---
+ arch/s390/kernel/syscalls/syscall.tbl     |   2 +-
+ arch/sh/kernel/sys_sh32.c                 |  11 ++
+ arch/sh/kernel/syscalls/syscall.tbl       |   3 +-
+ arch/sparc/kernel/sys32.S                 | 221 ----------------------
+ arch/sparc/kernel/syscalls/syscall.tbl    |   8 +-
+ arch/x86/entry/syscalls/syscall_32.tbl    |   2 +-
+ fs/open.c                                 |   4 +-
+ include/asm-generic/syscalls.h            |   2 +-
+ include/linux/compat.h                    |   2 +-
+ include/linux/syscalls.h                  |  20 +-
+ include/uapi/asm-generic/unistd.h         | 146 +++++++++-----
+ 27 files changed, 160 insertions(+), 343 deletions(-)
+ create mode 100644 arch/hexagon/include/asm/syscalls.h
 
-- More trivial is to change `-mv8plus` -> `-mcpu=v9`.
-  This should be safe too since the kernel seems to require a V9
-  processor to run anyway, so I'm changing the flag to one that is
-  portable between GCC and clang.
-
-Also, as stated in the thread, building with these changes still result
-in a working kernel, at least for Sun T5120 and qemu virtual machines.
-
-On the LLVM side, the effort for building Linux/SPARC is tracked here:
-https://github.com/llvm/llvm-project/issues/40792
----
- arch/sparc/Makefile      | 4 ++--
- arch/sparc/vdso/Makefile | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index 757451c3ea1d..7318a8b452c3 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -29,7 +29,7 @@ UTS_MACHINE    := sparc
- # versions of gcc.  Some gcc versions won't pass -Av8 to binutils when you
- # give -mcpu=v8.  This silently worked with older bintutils versions but
- # does not any more.
--KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
-+KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu
- KBUILD_CFLAGS  += -Wa,-Av8
- 
- KBUILD_AFLAGS  += -m32 -Wa,-Av8
-@@ -45,7 +45,7 @@ export BITS   := 64
- UTS_MACHINE   := sparc64
- 
- KBUILD_CFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow
--KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
-+KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -Wno-sign-compare
- KBUILD_CFLAGS += -Wa,--undeclared-regs
- KBUILD_CFLAGS += $(call cc-option,-mtune=ultrasparc3)
- KBUILD_AFLAGS += -m64 -mcpu=ultrasparc -Wa,--undeclared-regs
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 243dbfc4609d..929140facabf 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -46,7 +46,7 @@ CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables -m64
-        -fno-omit-frame-pointer -foptimize-sibling-calls \
-        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
- 
--SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
-+SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5
- 
- $(vobjs): KBUILD_CFLAGS := $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
- 
-@@ -86,7 +86,7 @@ KBUILD_CFLAGS_32 += -fno-stack-protector
- KBUILD_CFLAGS_32 += $(call cc-option, -foptimize-sibling-calls)
- KBUILD_CFLAGS_32 += -fno-omit-frame-pointer
- KBUILD_CFLAGS_32 += -DDISABLE_BRANCH_PROFILING
--KBUILD_CFLAGS_32 += -mv8plus
-+KBUILD_CFLAGS_32 += -mcpu=v9
- $(obj)/vdso32.so.dbg: KBUILD_CFLAGS = $(KBUILD_CFLAGS_32)
- 
- $(obj)/vdso32.so.dbg: FORCE \
-
----
-base-commit: 92e5605a199efbaee59fb19e15d6cc2103a04ec2
-change-id: 20240620-sparc-cflags-e7f2dbbd4b9d
-
-Best regards,
 -- 
-Koakuma <koachan@protonmail.com>
-
+2.39.2
 
