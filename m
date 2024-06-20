@@ -1,141 +1,128 @@
-Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com [209.85.208.174])
+Received: from mail-il1-f179.google.com (mail-il1-f179.google.com [209.85.166.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3C0D1BD51F
-	for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 18:01:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8FAF1B4C4C
+	for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 18:02:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718906480; cv=none; b=QEbxpIjV0POPcCmiu0Yrm8A4NVKaiS94dmxk5AFW7zVRByrUuKbQv3N/F63INXbobrX6lSx1HeKULc+/n81skKgBSNPjLtSFSQgS7WgB15v1Fek8ExxKcP0e2BXG5LG+Is2soPWg8ueEKZRxR0LBP6PQzBIsNtn3nW8dftrN9mk=
+	t=1718906576; cv=none; b=HrMo89bl+So13+UTVHdt9PWh0IsgRPOBDQYTdizlVP2TrupKTOspg1Ugqwz8EEr3oGZ7xfw34yRckKkxrEhTSHDeJCUl5A4IoVhHsGShbSg6ZA6lrXPSkjsh4vp2hC9FkwXmdExQP4MWka4Ytd8wEEFSIb98emSvxdb8QUY1BmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718906480; c=relaxed/simple;
-	bh=29OxgEL3l6wtk/wr9HSlAcydEGnms+qvS9bonjZCeq4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=U6bxnrXs+GGmMVCITCIIkJPgArgYw9MHUVnJmLPj+YuhYzbKFEv8EmTUzwitPwZIDjaldrLlLjWcS0PzbE/H5biOx7nGaEKy2UyPTQDJ9iVbCWWXcDH3u8pBX6xdR1gN1kE48tuxeLIn4bC5HeVWtFkZH+wjq3O2YgUeA9MxkQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V+wOkkYY; arc=none smtp.client-ip=209.85.208.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1718906576; c=relaxed/simple;
+	bh=Po3QlY7negO5UCla1ZS7JLYvAfUuS5/ro263AlASoqc=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=Mcb21Dj2iQ9cX8o3FRZR4krdi+KBRcdRre36w4MG+100VY6Wo4YHij00Y1kPNTTDijICx/gcas6ppxZbuh7qYtl4AKCQlYpoCiySb1PRSHukmh/SavD7cDG2Rq0Fg6hRc522o3gVhC+YX8muJk/XQMb5FLcRlnPzV+pXnHIVD38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=0PJ9bHf0; arc=none smtp.client-ip=209.85.166.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V+wOkkYY"
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-2ec17eb4493so17728421fa.2
-        for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 11:01:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="0PJ9bHf0"
+Received: by mail-il1-f179.google.com with SMTP id e9e14a558f8ab-3762c172d9aso2064265ab.2
+        for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 11:02:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1718906477; x=1719511277; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=fuatl8An2r1cXJScFESolD1f90VPFvdc9a3mKIi/oro=;
-        b=V+wOkkYYR8Vr1ouUmxA3Rz1kx9u301U6NkRgSuN3yRAswX2FJyGU3pvUngiUunJRv6
-         zgsUhdbIHal3pvOlYRw3IcZGg5d38PnlxHon172utGDFdgrJpl8ZX+eIi0p8XUI851JK
-         ml2xzptai5M1N9BqvW1Yj+AYtd2x3/p6BaO04=
+        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1718906574; x=1719511374; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:references:to:from
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=+Qz9jlWmDkZmtbdUlVdk29k4QOcWOt4wWsvvxN5FWug=;
+        b=0PJ9bHf0qxQtv0tkmxbtTokC6Xxm5LCMSLnk/SrJP7AyMYP8idyhoo+rcRqNh7Pl9U
+         w1MLFQIlTmSs9e1mGdr16MKZVc1pgsMQVun7nQu14TgR4tNS42zH1f17+x4m+fJx7nXq
+         ulICD/L4KODyqzL/IbcPJ8NpYXl0u+2jsORgf2QmK/ld5ucS4vyMlaPqtZi1p/oFVel8
+         5BPbfK62trjwuCOT3CdlqeqW0XjnW8/FvsB86fmPkVfSF6K4Yz5JonqI4lX+5DcnrH3x
+         AmX7q851gcBcxhaCdiSlrrDrKgZzc59mU35X+zEcmL/QLJMY7HOQK8fW52YS69Eq+Ji2
+         NSDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718906477; x=1719511277;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=fuatl8An2r1cXJScFESolD1f90VPFvdc9a3mKIi/oro=;
-        b=ScdWyP4MVSHJMSAxh0QpCtbKhH+HdwONiraV3KSVLJA7nOb2HioK1Egg+Nkvtm+FB8
-         JbPKtX1rnNiqesw+bqfERcteP4eTJpKGeZvbZsbI3v1a08yTGzduhDIXLdBq/eO7N8QV
-         QQeZ2Wa1YgswChjvKOp/QZeuNDoRXOvt2IHlQ9ocO19WJhHpZvuIJJVjL7kTGJlid//N
-         WJAg4H7MkoXfNFQX8PIQkoVIiVq7NoW2lQNBd1hN/0OKFQpajHfrlAybSfmWlrhcSJB8
-         tgJ1xpBZoMOMcPD1Y/zEBe5KquGb9whiaBAdY0CGD3n+NBKNVdLBrf+BMi+PgcMK+rdZ
-         xV3g==
-X-Forwarded-Encrypted: i=1; AJvYcCVGLNkrU4unUapJI33y6XCZFPA+mwxb6NR5OCtlEUaZ8ScDHDr9UzudXRQ9sBckm1edmiPx5Qsd/Gak3TjZMzQS88OcIFZXINg5+Q==
-X-Gm-Message-State: AOJu0YysfNOfaTZYoHKyf5+UhXlrURMGth0qR9Q74JtPMNfZuxKSLe5W
-	wNOMqnpRqWPZ5XrKx+xnfK33VYEy3z0YVYK7e2wLmcAtsTVfNE/8pZ0w0F1fnUbZnChpdtcLbcH
-	r/gNDPQ==
-X-Google-Smtp-Source: AGHT+IGA4gk5CJwNmSJ5MMSMtlmSdH9QlZyZr/2ZOIv0Uo5kHQk4PXL6BSIkKOsvIGhUOifb3qiYtA==
-X-Received: by 2002:a2e:90d1:0:b0:2eb:eb82:4112 with SMTP id 38308e7fff4ca-2ec3cec08d6mr48437941fa.17.1718906477236;
-        Thu, 20 Jun 2024 11:01:17 -0700 (PDT)
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com. [209.85.128.49])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a6f56da40f6sm786325266b.43.2024.06.20.11.01.16
-        for <sparclinux@vger.kernel.org>
+        d=1e100.net; s=20230601; t=1718906574; x=1719511374;
+        h=content-transfer-encoding:in-reply-to:references:to:from
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=+Qz9jlWmDkZmtbdUlVdk29k4QOcWOt4wWsvvxN5FWug=;
+        b=QwzTRJ35FcxhAEo8uU82BglAX6aOvCOwZrSumRaGIlK7k/80ykPPi4ITdMFWOmX0yi
+         LfDFA3zKO+oeHKyy2iMuuQKP3XcJsjSOnGpPYRgwLvVD2GtlF8jmjpv9GYNqNYZ5RSAa
+         ALL0PHeEEshxBZ4I4yW0SicB2/2/buTPsCISIswBBW1jnnQEi1NP38KucZ2Tz2/PhXtx
+         LxmgJTw86QRMMTWJHr1vvAbabRIfVNJvXN74a9P/iewgeb84mAvRqXvhCvu4PTg3DPSE
+         N7+pYXDx9jsgQP14vrZA8xxB3I+UvspQv4TNShO4SgimGQbCronwBj/Tuf5dbJpgXeAb
+         urXw==
+X-Forwarded-Encrypted: i=1; AJvYcCVcwMMY/8ttCNEfZNHQDogeEtB/aOI4B2d7pkvCBwqS59pc8p5Ge3v8iaf9cGEfAlxKLS8eOACHgdvSEjYUNR90DeOcqG9sDgtqXg==
+X-Gm-Message-State: AOJu0YwwmgKboQi86awYheYXCfwABAzzPNWPsWAvntn0xtMB16a0CBPm
+	+MuhMIYsSb5GFtD77MAO/T13iTLZtlBCGsUQs2pL7ATj6loBL+RRJath3eAAEgltJDmWENhaA84
+	Dc88=
+X-Google-Smtp-Source: AGHT+IFfEEgDs4n2+MF/0tHKPsSrZUMKCSuyV8ocM4F5arwnroC2vy4H2Ws/7SUtA9bHKoG4bq/m/g==
+X-Received: by 2002:a05:6e02:148c:b0:375:b19d:deb4 with SMTP id e9e14a558f8ab-3761d657299mr74849545ab.7.1718906573851;
+        Thu, 20 Jun 2024 11:02:53 -0700 (PDT)
+Received: from [192.168.0.50] (dhcp-24-53-241-2.cable.user.start.ca. [24.53.241.2])
+        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4b956934522sm4442432173.58.2024.06.20.11.02.52
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Jun 2024 11:01:17 -0700 (PDT)
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-42189d3c7efso13832415e9.2
-        for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 11:01:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCV9ClgXvmAbViyrIHq+S8hWepd9YJ6VcpxNALQk+dn647FnTo2e7lV0lsRByM3ASh2uz0EPQATUGo03EuPv2ldIjvGy/vzgeOBPUQ==
-X-Received: by 2002:a50:96cf:0:b0:57c:5874:4f5c with SMTP id
- 4fb4d7f45d1cf-57d07ea857fmr5124279a12.32.1718906455555; Thu, 20 Jun 2024
- 11:00:55 -0700 (PDT)
+        Thu, 20 Jun 2024 11:02:53 -0700 (PDT)
+Message-ID: <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
+Date: Thu, 20 Jun 2024 14:02:51 -0400
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240620175703.605111-1-yury.norov@gmail.com>
-In-Reply-To: <20240620175703.605111-1-yury.norov@gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 20 Jun 2024 11:00:38 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wiUTXC452qbypG3jW6XCZGfc8d-iehSavxn5JkQ=sv0zA@mail.gmail.com>
-Message-ID: <CAHk-=wiUTXC452qbypG3jW6XCZGfc8d-iehSavxn5JkQ=sv0zA@mail.gmail.com>
-Subject: Re: [PATCH v4 00/40] lib/find: add atomic find_bit() primitives
-To: Yury Norov <yury.norov@gmail.com>
-Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
-	"H. Peter Anvin" <hpa@zytor.com>, "James E.J. Bottomley" <jejb@linux.ibm.com>, 
-	"K. Y. Srinivasan" <kys@microsoft.com>, "Md. Haris Iqbal" <haris.iqbal@ionos.com>, 
-	Akinobu Mita <akinobu.mita@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Bjorn Andersson <andersson@kernel.org>, Borislav Petkov <bp@alien8.de>, Chaitanya Kulkarni <kch@nvidia.com>, 
-	Christian Brauner <brauner@kernel.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, David Disseldorp <ddiss@suse.de>, 
-	Edward Cree <ecree.xilinx@gmail.com>, Eric Dumazet <edumazet@google.com>, 
-	Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gregory Greenman <gregory.greenman@intel.com>, 
-	Hans Verkuil <hverkuil@xs4all.nl>, Hans de Goede <hdegoede@redhat.com>, 
-	Hugh Dickins <hughd@google.com>, Ingo Molnar <mingo@redhat.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>, 
-	Jiri Pirko <jiri@resnulli.us>, Jiri Slaby <jirislaby@kernel.org>, Kalle Valo <kvalo@kernel.org>, 
-	Karsten Graul <kgraul@linux.ibm.com>, Karsten Keil <isdn@linux-pingi.de>, 
-	Kees Cook <keescook@chromium.org>, Leon Romanovsky <leon@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Martin Habets <habetsm.xilinx@gmail.com>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, 
-	Nicholas Piggin <npiggin@gmail.com>, Oliver Neukum <oneukum@suse.com>, Paolo Abeni <pabeni@redhat.com>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Peter Zijlstra <peterz@infradead.org>, 
-	Ping-Ke Shih <pkshih@realtek.com>, Rich Felker <dalias@libc.org>, Rob Herring <robh@kernel.org>, 
-	Robin Murphy <robin.murphy@arm.com>, Sean Christopherson <seanjc@google.com>, 
-	Shuai Xue <xueshuai@linux.alibaba.com>, Stanislaw Gruszka <stf_xl@wp.pl>, 
-	Steven Rostedt <rostedt@goodmis.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Thomas Gleixner <tglx@linutronix.de>, Valentin Schneider <vschneid@redhat.com>, 
-	Vitaly Kuznetsov <vkuznets@redhat.com>, Wenjia Zhang <wenjia@linux.ibm.com>, 
-	Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	GR-QLogic-Storage-Upstream@marvell.com, alsa-devel@alsa-project.org, 
-	ath10k@lists.infradead.org, dmaengine@vger.kernel.org, iommu@lists.linux.dev, 
-	kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-block@vger.kernel.org, 
-	linux-bluetooth@vger.kernel.org, linux-hyperv@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-media@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-net-drivers@amd.com, 
-	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-sound@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	mpi3mr-linuxdrv.pdl@broadcom.com, netdev@vger.kernel.org, 
-	sparclinux@vger.kernel.org, x86@kernel.org, 
-	Alexey Klimov <alexey.klimov@linaro.org>, Bart Van Assche <bvanassche@acm.org>, Jan Kara <jack@suse.cz>, 
-	Matthew Wilcox <willy@infradead.org>, Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>, 
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>, Sergey Shtylyov <s.shtylyov@omp.ru>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
+Content-Language: en-US
+From: Nick Bowler <nbowler@draconx.ca>
+To: linux-kernel@vger.kernel.org,
+ Linux regressions mailing list <regressions@lists.linux.dev>,
+ linux-mm@kvack.org, sparclinux@vger.kernel.org,
+ "Uladzislau Rezki (Sony)" <urezki@gmail.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+In-Reply-To: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, 20 Jun 2024 at 10:57, Yury Norov <yury.norov@gmail.com> wrote:
->
->
-> The typical lock-protected bit allocation may look like this:
+On 2024-06-20 02:19, Nick Bowler wrote:
+> After upgrading my sparc to 6.9.5 I noticed that attempting to run
+> xfsdump instantly (within a couple seconds) and reliably crashes the
+> kernel.  The same problem is also observed on 6.10-rc4.
+[...]
+>   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
+>   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
+>   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
+>   Date:   Thu Mar 30 21:06:38 2023 +0200
+>   
+>       mm: vmalloc: remove a global vmap_blocks xarray
 
-If it looks like this, then nobody cares. Clearly the user in question
-never actually cared about performance, and you SHOULD NOT then say
-"let's optimize this that nobody cares about":.
+I think I might see what is happening here.
 
-Yury, I spend an inordinate amount of time just double-checking your
-patches. I ended up having to basically undo one of them just days
-ago.
+On this machine, there are two CPUs numbered 0 and 2 (there is no CPU1).
 
-New rule: before you send some optimization, you need to have NUMBERS.
+The per-cpu variables in mm/vmalloc.c are initialized like this, in
+vmalloc_init
 
-Some kind of "look, this code is visible in profiles, so we actually care".
+  for_each_possible_cpu(i) {
+    /* ... */
+    vbq = &per_cpu(vmap_block_queue, i);
+    /* initialize stuff in vbq */
+  }
 
-Because without numbers, I'm just not going to pull anything from you.
-These insane inlines for things that don't matter need to stop.
+This loops over the set bits of cpu_possible_mask, bits 0 and 2 are set,
+so it initializes stuff with i=0 and i=2, skipping i=1 (I added prints to
+confirm this).
 
-And if they *DO* matter, you need to show that they matter.
+Then, in vm_map_ram, with the problematic change it calls the new
+function addr_to_vb_xa, which does this:
 
-               Linus
+  int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+  return &per_cpu(vmap_block_queue, index).vmap_blocks;
+
+The num_possible_cpus() function counts the number of set bits in
+cpu_possible_mask, so it returns 2.  Thus, index is either 0 or 1, which
+does not correspond to what was initialized (0 or 2).  The crash occurs
+when the computed index is 1 in this function.  In this case, the
+returned value appears to be garbage (I added prints to confirm this).
+
+If I change addr_to_vb_xa function to this:
+
+  int index = ((addr / VMAP_BLOCK_SIZE) & 1) << 1; /* 0 or 2 */
+  return &per_cpu(vmap_block_queue, index).vmap_blocks;
+
+xfsdump is working again.
+
+Cheers,
+  Nick
+
