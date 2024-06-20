@@ -1,81 +1,77 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F951803A;
-	Thu, 20 Jun 2024 07:46:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BA8C3CF6A;
+	Thu, 20 Jun 2024 11:49:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718869596; cv=none; b=p56w9jp1paPGmoWCgBmS3dvSPXzhr+AWXgAdqatUEaYi1Hy/dGWyX6isyj79oQExI3QCoMns7Ekb99uUefVryrDkCtrFXrBKyO00P2F5ZNSjrTRisWNLFpaaoxKGWjVPs0Se2eXiXZO0rXBStlAi0gC1ab/65pnkfzRR+ZXyavI=
+	t=1718884176; cv=none; b=EfXDoZei12u0MLW0ZRCmjHB4GGeUj9nWUTDdMLQVf9xov5STJTBIQEiD07c0vVCfMM2G6+gq+FcG6muqmucM4mE1jlqdwQZks9tDDHbQu/fI668i0fTJehqkV7285y0Wrq9HmYc5GNQWRyd4A+UxbiwvDSCLQKIJf3EfUIpeWAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718869596; c=relaxed/simple;
-	bh=v2gXpKgBK7Qhc0Qigkxufj6SFVYQaHNJh7yaTp7lIjE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DHjjP9bCpw72Krxg1JqPlV97FN55aWJPs3B3g+z/BmcaUOfEBPJv5M837gwUfCPoR++o4bfT4c8+gWTO6PADLGwXP8sWJqS8pkQZQpB44/zvwElHO8RRt0sU+cbzsfAnOHOck0/0pcjZL4CquzY59gd2g9lHskHvqKeKqpF6wlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CWHbd+m3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718884176; c=relaxed/simple;
+	bh=dY8z+smoB7m2JuIIGgKesBPayVZV0SvtARYT3rVvhvY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GF7Jzomcmz3zNhVGi8QTkyAwWCyCKn9DMMZppTOWtx4kvizoDqyJ1jc1ffSUIaBJ/D/qpS6Fd3T9pFvT+nDqzElAONBd3BefoYaiDj+TsFC8izQQEGgCHPQ2JU8N1OfvcevR8RKc/ULFg3npasmWjWKVsyIYHT3fOmyMU7gEXcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=TNfv5+js; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CWHbd+m3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87BDCC2BD10;
-	Thu, 20 Jun 2024 07:46:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718869596;
-	bh=v2gXpKgBK7Qhc0Qigkxufj6SFVYQaHNJh7yaTp7lIjE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CWHbd+m3Lyicvoc6NVwiI70irdmZ7m2/V/fn0f9jRrL7MJDvsvFwIhQOQ5FIRKEqo
-	 L1dDSsfk3Acw8QmOesIOQiBSiaAZQVbN4lRWpbEEoHRrNYx0EPYGIZugA2lQr4mlm3
-	 kY/au8NDHWjUSAlTz3aj5y2MzyBArPIwtsc3o9svgMAFC0nivk0o3j4wo4Dw87RwNx
-	 HK/5TPn9YRKsjTKGz3r+ms6+a+3ZD8fVKDWNUawBWbHbw2oxs4GY5Ky/qPzbJyjxMw
-	 DseKV3Yc920blW/EigtLemKgxlLFQQnXHHZ+h3rtoIV386fvwhBcYgjASkmDfCmHe9
-	 MDTcrTEik+WpA==
-From: Christian Brauner <brauner@kernel.org>
-To: Jeff Johnson <quic_jjohnson@quicinc.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Jan Kara <jack@suse.cz>,
-	linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH] openpromfs: add missing MODULE_DESCRIPTION() macro
-Date: Thu, 20 Jun 2024 09:46:19 +0200
-Message-ID: <20240620-periodisch-begleichen-68d1d06b70c6@brauner>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240619-md-sparc-fs-openpromfs-v1-1-51c85ce90fa3@quicinc.com>
-References: <20240619-md-sparc-fs-openpromfs-v1-1-51c85ce90fa3@quicinc.com>
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="TNfv5+js"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4W4dqj1SZxz67xy;
+	Thu, 20 Jun 2024 13:41:37 +0200 (CEST)
+Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4W4dqh6S7gz680P;
+	Thu, 20 Jun 2024 13:41:36 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1718883697;
+	bh=fRfd3BQtT7px5Q7LqnzxUXpp3PwV32t2tLWoVB0AXGY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=TNfv5+jsGU315+0/fG1eyBCiE9nAjozPshqaWQl8sLPaF33ct0AIX1CGZz1axyZev
+	 dwnP+1aww/F/qsVMv1j5mdYpMxHB0X6Jzmuf/2dQwNCjChDb3RdIe1Y0jd0lumhinW
+	 TjW2XeLu6ns9w3Z/sRk4ottzcCFTVart03c3ZUrQ=
+Message-ID: <74331eda-9582-48f7-a343-1dd0e785323d@gaisler.com>
+Date: Thu, 20 Jun 2024 13:41:36 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1081; i=brauner@kernel.org; h=from:subject:message-id; bh=v2gXpKgBK7Qhc0Qigkxufj6SFVYQaHNJh7yaTp7lIjE=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaQV3wuZq3Geze38Mpvzt7oUXB7qXrLfo7Eg//8SmYa/M +9bRW5S7yhlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIAS1GhuvrM4/PWxr+5Opr ju2aX85+7ub48FnvZqrK560Wi5rn+KgyMszZO2fNO/X7U+tC5bQu3PbW9grP4Ny4+oDuk6CmFbs P6nEBAA==
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: Build regressions/improvements in v6.10-rc3
+To: Sam Ravnborg <sam@ravnborg.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+References: <CAHk-=wiK75SY+r3W5hx+Tt_bjhcSKPLdji-Zf_8HjikRPbn9wg@mail.gmail.com>
+ <20240610071049.933142-1-geert@linux-m68k.org>
+ <46c5a25-ea8c-4a1-5241-df88a9848a9@linux-m68k.org>
+ <20240611173739.GB545417@ravnborg.org>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20240611173739.GB545417@ravnborg.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, 19 Jun 2024 07:38:14 -0700, Jeff Johnson wrote:
-> With ARCH=sparc, make allmodconfig && make W=1 C=1 reports:
-> WARNING: modpost: missing MODULE_DESCRIPTION() in fs/openpromfs/openpromfs.o
+On 2024-06-11 19:37, Sam Ravnborg wrote:
+> Hi Andreas,
 > 
-> Add the missing invocation of the MODULE_DESCRIPTION() macro.
+> On Mon, Jun 10, 2024 at 09:28:25AM +0200, Geert Uytterhoeven wrote:
+>> On Mon, 10 Jun 2024, Geert Uytterhoeven wrote:
+>>> JFYI, when comparing v6.10-rc3[1] to v6.10-rc2[3], the summaries are:
+>>>  - build errors: +6/-1
+>>
+>>   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0xc)
+>>   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x34), (.fixup+0x10), (.fixup+0x0), (.fixup+0x28), (.fixup+0x4), (.fixup+0x18), (.fixup+0x20), (.fixup+0x1c), (.fixup+0x8)
+>>   + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5040), (.head.text+0x5100)
+>>   + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
 > 
-> 
+> Did you have something in a local branch that would address this?
+> I have no idea how to fix it.
+Hi Sam,
 
-Applied to the vfs.module.description branch of the vfs/vfs.git tree.
-Patches in the vfs.module.description branch should appear in linux-next soon.
+Yes, I'll try to get it sent next week.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+Cheers,
+Andreas
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.module.description
-
-[1/1] openpromfs: add missing MODULE_DESCRIPTION() macro
-      https://git.kernel.org/vfs/vfs/c/807221c54db6
