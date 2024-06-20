@@ -1,223 +1,345 @@
-Received: from APC01-PSA-obe.outbound.protection.outlook.com (mail-psaapc01on2043.outbound.protection.outlook.com [40.107.255.43])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06AD12B9D6;
-	Thu, 20 Jun 2024 06:37:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.255.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BFC41C680;
+	Thu, 20 Jun 2024 07:31:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718865472; cv=fail; b=dA7mDuw/QTFEhdp2TprFgSb/W3OGJZ/bH85h8CEn8bhYhJZxgbcI1EzrcF08cQaYx6S4sNWR6+65e4seCanEZJHxd1ZT5oKod+1dZ19E5m1gx/qlcxax5HllNUfaUGgcJyWZ80lf8MNikltXj6wIEe30cYkDLDohjPT9df68LIo=
+	t=1718868692; cv=fail; b=TBCgOdkrdKL4NT3OicIe22Aq1MIOGj8l+hWZvOqGZXvXeM2B5MQkNOMNtey0sVMg/3oNWyUUxQd7XdNTBNQ76pB4bwSxT2NXM8JlfFdjvk8WNNvmwF8q+gIkHaoAY7PfEEIUHaAKPNu1ImUmR6e94LWTYHoKwNs0olPrJOIoNjc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718865472; c=relaxed/simple;
-	bh=o9MiHyEXhw4sTHHoTm3qvYXanYEFxgWMV7tM5Tq1dRY=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pVCjJ6BTfJaKWW09l18+GJ+nWndu9Sx048/ZZ8LgEJpz/LTYyN0F5218SVK8TtflQjlWrb3JFbC2E9PcdxkAF/uxn9lBIdRcWu/BRGhFFoHbhC0JajZDRfL8jiCmG+jDw0tsqXp2TMxDRSl/dgylKnG5oYP3Wc83akK2c0eSwlY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com; spf=pass smtp.mailfrom=oppo.com; dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b=s9yo794l; arc=fail smtp.client-ip=40.107.255.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oppo.com
+	s=arc-20240116; t=1718868692; c=relaxed/simple;
+	bh=ObMyqpfdH9oiXJmEmISO11yjx0/QHExLNbkw2XLDljE=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=mb8JTcQsXuAYq+WnsshopGVrS6kWAI9zxiO9DNoZssgcHFX9OUOu7GYyf4L0H93JO0Zc5rYPmno8R7j19nf82hvT+uoA3gqVyAExoUL5lMdy3ZfW3m4Gx+LMcW9rA57065eZEWgsTFdwHdQJCLQR8Bpp6Wx3ZcihtjC4fcTXKCg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LxJfB6ts; arc=fail smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b="s9yo794l"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LxJfB6ts"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1718868691; x=1750404691;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=ObMyqpfdH9oiXJmEmISO11yjx0/QHExLNbkw2XLDljE=;
+  b=LxJfB6tsQuFPwyfoaMBzkSwsIt6RQXw9SWgCJ/5o65YVHAdK66Rh9r5P
+   hVjxTwaWPPT8ABXmoYnVOE1DP1PKV22Y4ysUcmnNEJ12/UoDOtZ+gHGAe
+   elGoBuQXy1AzkE85B98Iky5joKdLSiFIBikds0YCVCsTfjxPM8x39w6e1
+   5xG8XORNprWjlkDKLnL8v/ldIe0tGmESa07Bamf7QllI/wBC2ucEUDh8k
+   LsqQJIk936x/ic2bp/Vp71SYw7Ik3OipNK9PUKHGED8uAlPKUP6sbkcL3
+   UucU7cll1dxr5X7FA+CwrRbZwYj6uYTqNbkF3N37b00oJlijqM4foNTsz
+   Q==;
+X-CSE-ConnectionGUID: O4BsQU2CQsmOCxc84CYqbg==
+X-CSE-MsgGUID: JTp8DaDxQwm9ZydlnB4cjw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11108"; a="15539363"
+X-IronPort-AV: E=Sophos;i="6.08,251,1712646000"; 
+   d="scan'208";a="15539363"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2024 00:31:29 -0700
+X-CSE-ConnectionGUID: DPvGtP0/SyeTYeZbTTE/JA==
+X-CSE-MsgGUID: s6ygVqnNRAKhVDNhI6/1Bg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.08,251,1712646000"; 
+   d="scan'208";a="42812024"
+Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
+  by orviesa008.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 20 Jun 2024 00:31:21 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Thu, 20 Jun 2024 00:31:21 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Thu, 20 Jun 2024 00:31:20 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39 via Frontend Transport; Thu, 20 Jun 2024 00:31:20 -0700
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.169)
+ by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Thu, 20 Jun 2024 00:31:20 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XWPeavYbdnOSHtrJX2OmeVYNXPN2n6fHPCwK+UOX+67hjy3dO0/LiDBPbpW4OVHXhl9dZf9VNj7m8C8DPHLC1C8kd5MMZjXmwWfyAF9zMy0MTrTKaPEigtM3htFHnUn2RWmSS1tJl6mIOVtkO3gpj27jmyuBUbzhJ1v+0f55alTlfXMF1X4R3ZiuEgo1zPTxTuh3bFF/yx43xuJUud7IKTp0vbSVL44xCz1j+QZpYluF4BaV8AOqA/KuENorRP62GlRGVL2958Kw4yUwerGVMyLfRYnyZwVvTd67Xx7+JpYf8neAJqyRkJ0gH3PKbTBbSw0+408dPNuXhCV4NKx3GA==
+ b=Uyw15Xnk882zvH/1BdOLC0cR/3zvCYq1h0Pws9sV46SYJO6s/XQrjzzzJm0zhUzLocoF5eRTSChmIknSW94ehrQhaXTPYOZWhwSUTP5lZGhRsuSsVLSfdUyC6CzUkVHCZcv4DKUNSoEK7/ag3IFP8sG73X8BwMQY3pYLHEuJ1DxRduaTYTtYNx0m6lSfm4ZAHchwydiKBLk2wJCi4qP9LAVbhpqmub4hdjArChaOYUw6LhLHqj9RX/eUAXhPu4XLSix6GlC49Zmuc1L6apZ3cUgcw/CtZZfFkR2eFGNcuzxVgCc7b8SWuThBM+PFJReZimuuHHTdQhTpE7DT8ym+WQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SmDArJGpA0cWcDqC2g2sGxL2DYTZ1IaHCVmVBxbrkfM=;
- b=jnDbWjsm3kVeHW/isfBZbd/kKWGTaX+49K0LeV1VUfepPlNAYahn91KqCZiq36EhvWfGzGiQ/KtKyVAXs8wAqZuwtZ2+fmPZDewu2nzmSpJo8nsbTIiEWdMm/q6NrfWl3sfAOzu43IX3pJ5GsT11Ff1yEK1g3JLOusmTHpIWfZec7nYfgnRrwx24+T7udZDbxRK4lb8zW0TnbQYmcLb0hFAWUQFLKNYEvUNjeDU3yyp8NkII8VBeXpo/bZXtChCH0cwGytx7iX2a2v85ZQHS430en/UoeRpei127YaK8BIep2D/rxUpjFS4nwM3T0gPmHjZM3eScMooAhbbl3msxkw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 58.252.5.68) smtp.rcpttodomain=draconx.ca smtp.mailfrom=oppo.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=oppo.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oppo.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SmDArJGpA0cWcDqC2g2sGxL2DYTZ1IaHCVmVBxbrkfM=;
- b=s9yo794lSvPbbE8gmBBM1nU4t6dS1gXIINSLqJnmha55+cQMIXe9nDnRpAfp5q7cA9sjbAxJape2njC4x1t5rCpfh4swKDnw1838+M2FS0psfy5J2Ef2tKYW/VzWDAEUbA1JMT2Q0QOvo5aL/zva8w0xGhwfML5wWBLXJHlCvmo=
-Received: from SI1PR02CA0024.apcprd02.prod.outlook.com (2603:1096:4:1f4::12)
- by KL1PR02MB6353.apcprd02.prod.outlook.com (2603:1096:820:e4::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7698.19; Thu, 20 Jun
- 2024 06:37:48 +0000
-Received: from SG1PEPF000082E1.apcprd02.prod.outlook.com
- (2603:1096:4:1f4:cafe::b6) by SI1PR02CA0024.outlook.office365.com
- (2603:1096:4:1f4::12) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.34 via Frontend
- Transport; Thu, 20 Jun 2024 06:37:48 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 58.252.5.68)
- smtp.mailfrom=oppo.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=oppo.com;
-Received-SPF: Pass (protection.outlook.com: domain of oppo.com designates
- 58.252.5.68 as permitted sender) receiver=protection.outlook.com;
- client-ip=58.252.5.68; helo=mail.oppo.com; pr=C
-Received: from mail.oppo.com (58.252.5.68) by
- SG1PEPF000082E1.mail.protection.outlook.com (10.167.240.4) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.7677.15 via Frontend Transport; Thu, 20 Jun 2024 06:37:48 +0000
-Received: from oppo.com (172.16.40.118) by mailappw31.adc.com (172.16.56.198)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Thu, 20 Jun
- 2024 14:37:47 +0800
-Date: Thu, 20 Jun 2024 14:37:42 +0800
-From: Hailong Liu <hailong.liu@oppo.com>
-To: Nick Bowler <nbowler@draconx.ca>
-CC: <linux-kernel@vger.kernel.org>, Linux regressions mailing list
-	<regressions@lists.linux.dev>, <linux-mm@kvack.org>,
-	<sparclinux@vger.kernel.org>, "Uladzislau Rezki (Sony)" <urezki@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <20240620063742.7qugmebodtlogn5r@oppo.com>
-References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+ bh=VAXBiEak0UNXNAp5/SjuoqXlMk+EvUg1YvcnDFb3ekQ=;
+ b=nIRfPAyWY52al8ZEnjEajUx2huwn2OoK6OwhBDbfM3F+ycbbUxu3dAdTRDFWIxNAbk11Jy64ctsu1TRIA38XuN14lOG9564QCEGL5f6TiFF1Av04Bnw309r9Qbx5I83LcFXAeYneO1zMrgas5kN4+ZXcgiDCQZHNPOh++laGGegzJHZthTPxIzz/eSux3gm3P9B7upI4hujY/U/eyYUrGoOrk41HaRuhXBSF9/jZdKxDSesxg7WEeo89IQkROdYG7b/lgWRjvXMucjlH3d5ZyncJOPqkE8vuvAnHfa6Z2GS11Ojpt2AoY4W9J3Pg72F/7d0/0/zXbPa2YiuvNsWW/w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DM4PR11MB6020.namprd11.prod.outlook.com (2603:10b6:8:61::19) by
+ MW3PR11MB4731.namprd11.prod.outlook.com (2603:10b6:303:2f::8) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.7698.19; Thu, 20 Jun 2024 07:31:14 +0000
+Received: from DM4PR11MB6020.namprd11.prod.outlook.com
+ ([fe80::4af6:d44e:b6b0:fdce]) by DM4PR11MB6020.namprd11.prod.outlook.com
+ ([fe80::4af6:d44e:b6b0:fdce%7]) with mapi id 15.20.7633.036; Thu, 20 Jun 2024
+ 07:31:14 +0000
+Date: Thu, 20 Jun 2024 15:30:36 +0800
+From: Chen Yu <yu.c.chen@intel.com>
+To: K Prateek Nayak <kprateek.nayak@amd.com>
+CC: Peter Zijlstra <peterz@infradead.org>, Vincent Guittot
+	<vincent.guittot@linaro.org>, <linux-kernel@vger.kernel.org>, "Gautham R.
+ Shenoy" <gautham.shenoy@amd.com>, Richard Henderson
+	<richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, "Guo
+ Ren" <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Dinh Nguyen
+	<dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson
+	<stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller
+	<deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin
+	<npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, "Naveen
+ N. Rao" <naveen.n.rao@linux.ibm.com>, Yoshinori Sato
+	<ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "John Paul
+ Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>, "David S. Miller"
+	<davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner
+	<tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+	<bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin"
+	<hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano
+	<daniel.lezcano@linaro.org>, Juri Lelli <juri.lelli@redhat.com>, "Dietmar
+ Eggemann" <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>,
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, "Daniel
+ Bristot de Oliveira" <bristot@redhat.com>, Valentin Schneider
+	<vschneid@redhat.com>, Andrew Donnellan <ajd@linux.ibm.com>, Benjamin Gray
+	<bgray@linux.ibm.com>, Frederic Weisbecker <frederic@kernel.org>, Xin Li
+	<xin3.li@intel.com>, Kees Cook <keescook@chromium.org>, Rick Edgecombe
+	<rick.p.edgecombe@intel.com>, Tony Battersby <tonyb@cybernetics.com>, "Bjorn
+ Helgaas" <bhelgaas@google.com>, Brian Gerst <brgerst@gmail.com>, Leonardo
+ Bras <leobras@redhat.com>, Imran Khan <imran.f.khan@oracle.com>, "Paul E.
+ McKenney" <paulmck@kernel.org>, Rik van Riel <riel@surriel.com>, Tim Chen
+	<tim.c.chen@linux.intel.com>, David Vernet <void@manifault.com>, "Julia
+ Lawall" <julia.lawall@inria.fr>, <linux-alpha@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-csky@vger.kernel.org>,
+	<linux-openrisc@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
+	<linuxppc-dev@lists.ozlabs.org>, <linux-sh@vger.kernel.org>,
+	<sparclinux@vger.kernel.org>, <linux-pm@vger.kernel.org>, <x86@kernel.org>
+Subject: Re: [PATCH v2 00/14] Introducing TIF_NOTIFY_IPI flag
+Message-ID: <ZnPam37GQleKSBsP@chenyu5-mobl2>
+References: <20240613181613.4329-1-kprateek.nayak@amd.com>
+ <20240614092801.GL8774@noisy.programming.kicks-ass.net>
+ <CAKfTPtBTxhbmh=605TJ9sRw-nFu6w-KY7QpAxRUh5AjhQWa2ig@mail.gmail.com>
+ <ZmxwWdW78hjNuxWU@chenyu5-mobl2>
+ <4748fabf-c359-9199-16aa-469840201540@amd.com>
+ <ZnE77ons3lb/JAxP@chenyu5-mobl2>
+ <1035ec64-b3d3-c398-d6e7-99745a14c294@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1035ec64-b3d3-c398-d6e7-99745a14c294@amd.com>
+X-ClientProxiedBy: SI2PR01CA0016.apcprd01.prod.exchangelabs.com
+ (2603:1096:4:191::20) To DM4PR11MB6020.namprd11.prod.outlook.com
+ (2603:10b6:8:61::19)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
-X-ClientProxiedBy: mailappw31.adc.com (172.16.56.198) To mailappw31.adc.com
- (172.16.56.198)
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SG1PEPF000082E1:EE_|KL1PR02MB6353:EE_
-X-MS-Office365-Filtering-Correlation-Id: dfcb97f3-7150-44ec-c056-08dc90f38054
+X-MS-TrafficTypeDiagnostic: DM4PR11MB6020:EE_|MW3PR11MB4731:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7fceb8d7-4b67-4626-1c74-08dc90faf6df
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230037|1800799021|82310400023|376011|36860700010;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?YgbWPOndJ18Lt79qgC1w90i/6CHuUkShk8EaltFjXXKUy826PYv2Mv0bRsTq?=
- =?us-ascii?Q?nz6Fq7kp7y3iypiaaXH+r7wqUfo8Pf4olYp8mh+t6VCSONqEmvJ0cMfTj3rh?=
- =?us-ascii?Q?iRH/K73WHsJs1FjPdf4f2LQJQ5uQblJcMEO9rEFXIyxfZEKzNfljcC+B1UOR?=
- =?us-ascii?Q?/XdsBlhucG+ht9yx/kLcj8of7OufEniLhxubctJnMHgrxwtboZKq/7RyFE/W?=
- =?us-ascii?Q?YMAWV8BO+1xD3ISWdAnGho82nTAboB48FKU2RufS3DMLqn6YEU8fADmz6rNr?=
- =?us-ascii?Q?ShiT5i9IIN4zImnGUEAmvC0FNgoUfE2T8LmgbkVWXDTke36FfpG0PU0mgs1S?=
- =?us-ascii?Q?+1FadKtn/9028dvWV/h/ocBCRIuYg6iVlfQe6Mqr7gw7o095H5qLW27C3mrB?=
- =?us-ascii?Q?n+MknzqG/7xXit72Swm/fY3NOJvzlRbgH3PrzYXloe2ia1FqFAYbQUchSfaj?=
- =?us-ascii?Q?NHjoZGCbtseW0Q3Fc2jkBFpskW8LQ3+zBVvTAzx3Nl5L1KYfVBSGBp8yNoUM?=
- =?us-ascii?Q?wF9GdYPqJJekdlezCGdX2rVNkz1S/HhFFXYQiDyiHefRJSRkw9ido+A6XiQh?=
- =?us-ascii?Q?DF6Z+iaxn2i7xaOlos02ZPpIiyfBd+Xs25I+pla/GQiVRh5Ih9XNLweDTKbt?=
- =?us-ascii?Q?3EXTub0wZGm4Q22/5wONmlo/FyuKtCNIMwy+/XQxVuq8GWsLYzUagCAdzWQG?=
- =?us-ascii?Q?BRxP5TS62gN4+KRDtpMNuPyItbxg4d2ITjEv15eSGhzGIK776hT4vky3qicI?=
- =?us-ascii?Q?OEhGyrdF4o9F8PqxoteUak5Kf5h3zKBfLcc2gkOFuGEJwfUz7p3hZffblEcP?=
- =?us-ascii?Q?03Xx7je24RJmRPvIgkwqmYIT0jiosUCQ5w138v6TRTobFfi4BkEvI4+rGEWp?=
- =?us-ascii?Q?GS8+fdwkr3/1/E9EBh2HZk6th3oz32oc6SNfbh+3rBza+fRhZQFp3IUIh8So?=
- =?us-ascii?Q?0P8WI8F629QXeS5qJsT9nSr01eok1W4oL2S1hdMmI3AEV2hl8u4FIdlkki87?=
- =?us-ascii?Q?DSU5kLBjuLKrYywJ+eTs/cqJIl42cMNzH4cPu94+DDtNX9UMSGVkiZH9pc2H?=
- =?us-ascii?Q?rQcvPBWF+jBWpeCnUYIqggp6iVIZhuRDN2ujeovAryhNpRFhKZtAMmKbQPJt?=
- =?us-ascii?Q?X9XBpH2EQWBYL0z7c00Qvr4tehVkcn+XYPFPWTH0GL2DL9QFQVejg8K5WClP?=
- =?us-ascii?Q?xQnCwPV2tmcjvVhGHLtZB2eMLd5AR6k6krGjwY7ePx6k6FiqJC/uaBOrKWKH?=
- =?us-ascii?Q?M9Pmu/vUTtHbPnaQrIkVU1R7cidGF7D7XFnj0P2IdMl+SoWHF7gG9ZxoWfhy?=
- =?us-ascii?Q?S1KYxx3U6vlpJEqWHFlkcV3YJIFplIOrYlaa/WAqwf2UaLxa3EtJPYy4ZWk9?=
- =?us-ascii?Q?1nQ1P5s=3D?=
-X-Forefront-Antispam-Report:
-	CIP:58.252.5.68;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.oppo.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(1800799021)(82310400023)(376011)(36860700010);DIR:OUT;SFP:1101;
-X-OriginatorOrg: oppo.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jun 2024 06:37:48.3164
+X-Microsoft-Antispam: BCL:0;ARA:13230037|366013|7416011|376011|1800799021;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?cZqxyq9AkcZxv0mMnubYCg7roTk7PzCKK5VxPJbQXZp1G9Pjv9oaigDHJQkZ?=
+ =?us-ascii?Q?CRPh3xiNLUgLtQMeJisylXUttlb/pLASvH2his7hlRSSeC+UiVcuYy2FoohB?=
+ =?us-ascii?Q?nFwO6oWS/vIF6y8iGUw5zjIzIV5UnYuB/aAKZJrBeMua33V9k1Gjge+HMWMs?=
+ =?us-ascii?Q?AjhU1brp1VGFW3j/HYKmWvstC9xrigEIrwHfXWZ33aUSl3n2vUGaFUSROTMJ?=
+ =?us-ascii?Q?5qnuJGt/6EyXzzM7/6VQD8HIlnLfhDOUUwonfd3mWsroVgi2ea4WyY50YLPA?=
+ =?us-ascii?Q?GpSKgJ3kPwo6Dvdlzqt3Nj+BPs8WPC9UQNteI1GxotGex8XhNcVRiUNHZRmX?=
+ =?us-ascii?Q?7xoXnuAC/egURr3uJ6SqKuin0YqBCiSCXoIXiY9ZhnX9bq1JHXr3+B7+oD45?=
+ =?us-ascii?Q?FvEEER99jsZFA0bPD83XkO5QRzR0C+GWy7dgZa8zzR9RdN1FAQ6ATXLGXCBx?=
+ =?us-ascii?Q?lCC7Fl9UKzDVzFpfDbgev14cG18lRAhwpNOXTt9egw8zVAP9oSyN3wh8vbdl?=
+ =?us-ascii?Q?W+Ho5Q5LgVQVEd7YNLIMvybp3y3RjviUkG/3b2e7vLkPEAo/Bzdz0vYT4mxK?=
+ =?us-ascii?Q?AmRCFuTQAI2r3fXr8r6lfPpop7+Mo+HENoJPEQ/2yX3W5zjp6d6Tc595ay/b?=
+ =?us-ascii?Q?geJ60kd9djD9IA4x5eML+Ne3lh9HYhnLdiaDkSZuZ7J2ee2Etd+hgP53LdgC?=
+ =?us-ascii?Q?wW5PctgDavNosnyQ1H0JjkU4hkCByo5e3oNSd22Qr9sdKMfES60YZfnBDC2r?=
+ =?us-ascii?Q?NVlWs2mko02kLVnZuNc6M359SgFZU7dwMQFf8GfdvdBT0D+PZjW0s2jQaPxk?=
+ =?us-ascii?Q?50qemdTyPeW5NdemsjyVvY3LDdzECvzK3ZDJ2mFmj6BlIArMb7lj3U/mwHHw?=
+ =?us-ascii?Q?/rlVSwe6RDfi1lx50NS6LXcCydkQOUim9XYzchPDNlsryU5wUH+gC50B6c80?=
+ =?us-ascii?Q?6d2aD0TXKok5+N9g6OrHQpojiZypH3aRnLZnYYlPwuyFFeHfZDK+5EAut8Cu?=
+ =?us-ascii?Q?WGrE68nNAqaop0JCfv/eZ4waDT4sy3WGBxA3uYjXdfC1EbzTjq0Ld2SxJxFp?=
+ =?us-ascii?Q?tKnXM1mDWsTBHlZ+/iU0E41jaqWR9McXIaBci2Aqy21J6SLicx/F3ys/QYS+?=
+ =?us-ascii?Q?hzPjbO3H/qxVlcYSEg+oSWz2tbgeL62FmzPi2FMjexzFthvv6Pxc1sLtIVDc?=
+ =?us-ascii?Q?zvSryYHkuoqX4Yu6RS36ZHzXzXo6FgXHtby6evmNG8L2JgehvhoVG3vRFCET?=
+ =?us-ascii?Q?hcqRnuCuJwIOB7E+WictwfhGnY+74vkfLpS+wQYmcJFG97qu+1zagGl6f3NR?=
+ =?us-ascii?Q?C8tub8j/QcbtZXJrHhCG39TH?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR11MB6020.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230037)(366013)(7416011)(376011)(1800799021);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?FxMskAbaVe+b8/ZjvRwmb0IJvXu8RtfyvNApl+0w6qKcRxx1m+6BY+JSg9Sf?=
+ =?us-ascii?Q?e2rDTcnREOqEigyJozsOwM/x8FPoTIQlb6Qc775bSBJ8SXhlqcxh4Dl6Vto7?=
+ =?us-ascii?Q?70taGFJEGI/v8jM824ZQ2TYsgwynJJSpBWsC7oL1b8WAlZqB1q1DkVJg+fzp?=
+ =?us-ascii?Q?dW+iKcSNvQ6dgEQvdP/R5gaeJCDQGyBALTkEiJU/fZAYhxyDyb+MMVYlp/m4?=
+ =?us-ascii?Q?alBuP8G36Qo/CS9hAkwMNDFwfjW3bZPDh8KWPkB6GBLqyr+ez8vRyS1Hpk8F?=
+ =?us-ascii?Q?bcdmYyfZnDUieJgT+W2UukxnXTfawREGmhLovz3Lb7hwonMbArsIxQuMB9k7?=
+ =?us-ascii?Q?gOXn/9akLLzluYZDYEQSv3hn6baqIZkbDwfV94/G6+ehGJGA6FzrrQQOkbrC?=
+ =?us-ascii?Q?jGQHetwOMJzhx5zqkmmPBFuQffBJqgB2g7sPuBdDK7d0wU282XHFQk2jLyu4?=
+ =?us-ascii?Q?UqPIz9wuZ8z6+3+stqgRvFkUu021eeQD2Kk33Dj0tvI02pwxmv5ytj2Gtf3M?=
+ =?us-ascii?Q?uMU3Md6h4S9kxH+3+kZ/qbxVYOuAovW7kDGKbPky9uNbJAD+iQ/hAS3L0wTH?=
+ =?us-ascii?Q?j2fk1MGoeSByaIeK+tJmCMVdeHWiLfaSY8vsQmMjyc8Ct4Ahk16YqC0Gy+7a?=
+ =?us-ascii?Q?6TTRkyNg7y7aSTcaTujsV0r1JnBtw/aoVRyBXwRbuDfSJgz9CwqtHmpSN4PR?=
+ =?us-ascii?Q?QgAepiXeBB+M268TIvAgH2X00MWCDyl2M8DdTerSveqkoPyIcDK0JTKHkzHX?=
+ =?us-ascii?Q?aBPgMxzgBNXvltT2ImFvFKWIQuZcBmxVPl5ni4lU6jV0R6Ce4CKlZlhp4h+b?=
+ =?us-ascii?Q?rR3U8lV3RHUKi2rlCqMkg1yKhPISzHMsEHTX6u5VVSup9emTxQkM0C9zYZ2P?=
+ =?us-ascii?Q?OFsDkr22WKI22vK3or0ZK2XiKJnmdZRwQ2P/UY7GzQ1e3TRpXNsXZnVgUxJy?=
+ =?us-ascii?Q?ZsIsnqXjjEo5Q4exhMwgu3HqTUZmfcNRDrq309u8/nz7zq2hJUb7sgAWdhTv?=
+ =?us-ascii?Q?yPSHdovlBkCSGxnLntM6DdKWlsRWavbfj6eLG4fjQDj5ljPvZVygACRxpNaG?=
+ =?us-ascii?Q?CdUzDDg3DruPmu8fO1qZCqZRGIKuaWcCtcLPdc6B5tDd1mEcmdRV5fh05kAr?=
+ =?us-ascii?Q?7RCUiKmUW3bFsCRTQLWfUFvFiN4mDo6yodXAlI8JCY7Mn4wbR6j0E2kZOGDm?=
+ =?us-ascii?Q?eoKMr3TLpd3/2JPS9ImB1mJm5bwyWpoWOpA5a/FKjIncI+PL9nYBJBLYdNYs?=
+ =?us-ascii?Q?fUd5fDENWAvFGASLdeCHqLH4vUkiDduTMK/w6FpfU0UdtfSeux27uDgtyG4R?=
+ =?us-ascii?Q?ZlG4DqIF1O4XMqUgcbFvnITdu6dx9qngKyEnCw8LxLOkldVpoozooIUOpS+8?=
+ =?us-ascii?Q?SZ11mgD+4jqCpi3JsWXBF/q7uM02W6V2y/KKstaKT8pvcsyoP/pxUAnwVOpf?=
+ =?us-ascii?Q?Ka0crjQFfDkV9GmavCvpWwRTIFZUQ13/jTVU3tEhqW0U1/ba+zz+WJZeB+FW?=
+ =?us-ascii?Q?Gr4FN+Cte/WFlE+iX+EgAnLBU7AJLr8k43IVWaSqMVJfiNsxkyQU+dBc/YgV?=
+ =?us-ascii?Q?HxSfbed+vPaNR7pdWE7KtWcKsdDkbQ3DpKJneJS5?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7fceb8d7-4b67-4626-1c74-08dc90faf6df
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR11MB6020.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jun 2024 07:31:13.9963
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: dfcb97f3-7150-44ec-c056-08dc90f38054
-X-MS-Exchange-CrossTenant-Id: f1905eb1-c353-41c5-9516-62b4a54b5ee6
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f1905eb1-c353-41c5-9516-62b4a54b5ee6;Ip=[58.252.5.68];Helo=[mail.oppo.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SG1PEPF000082E1.apcprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: KL1PR02MB6353
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Dr+suYxs+ViDfYkwoCd2MLB+ofI6+lkjZE7hi+4REIbIc0yOHEEHbMPuYVdrPV/O6+o65DO9WjgW++EkB3LQ9g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4731
+X-OriginatorOrg: intel.com
 
-On Thu, 20. Jun 02:19, Nick Bowler wrote:
-> Hi,
->
-> After upgrading my sparc to 6.9.5 I noticed that attempting to run
-> xfsdump instantly (within a couple seconds) and reliably crashes the
-> kernel.  The same problem is also observed on 6.10-rc4.
->
-> This is a regression introduced around 6.4 timeframe.  6.3 appears
-> to work fine and xfsdump goes about its business dumping stuff.
->
-> Bisection implicates the following:
->
->   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
->   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
->   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
->   Date:   Thu Mar 30 21:06:38 2023 +0200
->
->       mm: vmalloc: remove a global vmap_blocks xarray
->
-> This reverts pretty easily on top of v6.10-rc4, as long as I first
-> revert fa1c77c13ca5 ("mm: vmalloc: rename addr_to_vb_xarray() function")
-> as this just causes conflicts.  Then there is one easily-corrected build
-> failure (adjust the one remaining &vbq->vmap_blocks back to &vmap_blocks).
->
-> If I do all of that then the kernel is not crashing anymore.
->
-> A splat like this one is output on the console when the crash occurs (varies a bit):
->
->   spitfire_data_access_exception: SFSR[000000000080100d] SFAR[0000000000c51ba0], going.
->                 \|/ ____ \|/
->                 "@'/ .. \`@"
->                 /_| \__/ |_\
->                    \__U_/
->   xfsdump(2028): Dax [#1]
->   CPU: 0 PID: 2028 Comm: xfsdump Not tainted 6.9.5 #199
->   TSTATE: 0000000811001607 TPC: 0000000000974fc4 TNPC: 0000000000974fc8 Y: 00000000    Not tainted
->   TPC: <queued_spin_lock_slowpath+0x1d0/0x2cc>
->   g0: 0000000000aa9110 g1: 0000000000c51ba0 g2: 444b000000000000 g3: 0000000000c560c0
->   g4: fffff800a71a1f00 g5: fffff800bebb6000 g6: fffff800ac0ec000 g7: 0000000000040000
->   o0: 0000000000000002 o1: 00000000000007d8 o2: fffff800a4131420 o3: ffffffff0000ffff
->   o4: 00000000900a2001 o5: 0000000000c4f5a0 sp: fffff800ac0eeac1 ret_pc: 0000000000040000
->   RPC: <0x40000>
->   l0: fffff800a40098c0 l1: 0000000100800000 l2: 0000000000000000 l3: 0000000000000103
->   l4: fffff800a40081b0 l5: 0000000000aeec00 l6: fffff800a40080a0 l7: 0000000101000000
->   i0: 0000000000c4f5a0 i1: 00000000900a2001 i2: 0000000000000000 i3: fffff800bf807b80
->   i4: 0000000000000000 i5: fffff800bf807b80 i6: fffff800ac0eeb71 i7: 0000000000503438
->   I7: <vm_map_ram+0x210/0x724>
->   Call Trace:
->   [<0000000000503438>] vm_map_ram+0x210/0x724
->   [<00000000006661f8>] _xfs_buf_map_pages+0x58/0xa0
->   [<0000000000667058>] xfs_buf_get_map+0x668/0x7a4
->   [<00000000006673e0>] xfs_buf_read_map+0x20/0x160
->   [<0000000000667548>] xfs_buf_readahead_map+0x28/0x38
->   [<000000000067a4f8>] xfs_iwalk_ichunk_ra.isra.0+0xa8/0xc4
->   [<000000000067a8f0>] xfs_iwalk_ag+0x1c0/0x260
->   [<000000000067ab08>] xfs_iwalk+0xdc/0x130
->   [<0000000000679fc8>] xfs_bulkstat+0x10c/0x140
->   [<0000000000695528>] xfs_compat_ioc_fsbulkstat+0x1a4/0x1e8
->   [<000000000069572c>] xfs_file_compat_ioctl+0x8c/0x1f4
->   [<0000000000534ab0>] compat_sys_ioctl+0x9c/0xfc
->   [<0000000000406214>] linux_sparc_syscall32+0x34/0x60
->   Disabling lock debugging due to kernel taint
->   Caller[0000000000503438]: vm_map_ram+0x210/0x724
->   Caller[00000000006661f8]: _xfs_buf_map_pages+0x58/0xa0
->   Caller[0000000000667058]: xfs_buf_get_map+0x668/0x7a4
->   Caller[00000000006673e0]: xfs_buf_read_map+0x20/0x160
->   Caller[0000000000667548]: xfs_buf_readahead_map+0x28/0x38
->   Caller[000000000067a4f8]: xfs_iwalk_ichunk_ra.isra.0+0xa8/0xc4
->   Caller[000000000067a8f0]: xfs_iwalk_ag+0x1c0/0x260
->   Caller[000000000067ab08]: xfs_iwalk+0xdc/0x130
->   Caller[0000000000679fc8]: xfs_bulkstat+0x10c/0x140
->   Caller[0000000000695528]: xfs_compat_ioc_fsbulkstat+0x1a4/0x1e8
->   Caller[000000000069572c]: xfs_file_compat_ioctl+0x8c/0x1f4
->   Caller[0000000000534ab0]: compat_sys_ioctl+0x9c/0xfc
->   Caller[0000000000406214]: linux_sparc_syscall32+0x34/0x60
->   Caller[00000000f789ccdc]: 0xf789ccdc
->   Instruction DUMP:
->    8610e0c0
->    8400c002
->    c458a0f8
->   <f6704002>
->    c206e008
->    80a06000
->    12400012
->    01000000
->    81408000
->
-> Let me know if you need any more info!
->
-> Thanks,
->   Nick
->
-I guess you can patch this
-https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/commit/?h=mm-hotfixes-unstable&id=00468d41c20cac748c2e4bfcf003283d554673f5
+On 2024-06-19 at 00:03:30 +0530, K Prateek Nayak wrote:
+> Hello Chenyu,
+> 
+> On 6/18/2024 1:19 PM, Chen Yu wrote:
+> > [..snip..]
+> > > > > > 
+> > > > > > > Vincent [5] pointed out a case where the idle load kick will fail to
+> > > > > > > run on an idle CPU since the IPI handler launching the ILB will check
+> > > > > > > for need_resched(). In such cases, the idle CPU relies on
+> > > > > > > newidle_balance() to pull tasks towards itself.
+> > > > > > 
+> > > > > > Is this the need_resched() in _nohz_idle_balance() ? Should we change
+> > > > > > this to 'need_resched() && (rq->nr_running || rq->ttwu_pending)' or
+> > > > > > something long those lines?
+> > > > > 
+> > > > > It's not only this but also in do_idle() as well which exits the loop
+> > > > > to look for tasks to schedule
+> > > > > 
+> > > > > > 
+> > > > > > I mean, it's fairly trivial to figure out if there really is going to be
+> > > > > > work there.
+> > > > > > 
+> > > > > > > Using an alternate flag instead of NEED_RESCHED to indicate a pending
+> > > > > > > IPI was suggested as the correct approach to solve this problem on the
+> > > > > > > same thread.
+> > > > > > 
+> > > > > > So adding per-arch changes for this seems like something we shouldn't
+> > > > > > unless there really is no other sane options.
+> > > > > > 
+> > > > > > That is, I really think we should start with something like the below
+> > > > > > and then fix any fallout from that.
+> > > > > 
+> > > > > The main problem is that need_resched becomes somewhat meaningless
+> > > > > because it doesn't  only mean "I need to resched a task" and we have
+> > > > > to add more tests around even for those not using polling
+> > > > > 
+> > > > > > 
+> > > > > > diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+> > > > > > index 0935f9d4bb7b..cfa45338ae97 100644
+> > > > > > --- a/kernel/sched/core.c
+> > > > > > +++ b/kernel/sched/core.c
+> > > > > > @@ -5799,7 +5800,7 @@ static inline struct task_struct *
+> > > > > >    __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+> > > > > >    {
+> > > > > >           const struct sched_class *class;
+> > > > > > -       struct task_struct *p;
+> > > > > > +       struct task_struct *p = NULL;
+> > > > > > 
+> > > > > >           /*
+> > > > > >            * Optimization: we know that if all tasks are in the fair class we can
+> > > > > > @@ -5810,9 +5811,11 @@ __pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+> > > > > >           if (likely(!sched_class_above(prev->sched_class, &fair_sched_class) &&
+> > > > > >                      rq->nr_running == rq->cfs.h_nr_running)) {
+> > > > > > 
+> > > > > > -               p = pick_next_task_fair(rq, prev, rf);
+> > > > > > -               if (unlikely(p == RETRY_TASK))
+> > > > > > -                       goto restart;
+> > > > > > +               if (rq->nr_running) {
+> > > > > 
+> > > > > How do you make the diff between a spurious need_resched() because of
+> > > > > polling and a cpu becoming idle ? isn't rq->nr_running null in both
+> > > > > cases ?
+> > > > > In the later case, we need to call sched_balance_newidle() but not in the former
+> > > > > 
+> > > > 
+> > > > Not sure if I understand correctly, if the goal of smp_call_function_single() is to
+> > > > kick the idle CPU and do not force it to launch the schedule()->sched_balance_newidle(),
+> > > > can we set the _TIF_POLLING_NRFLAG rather than _TIF_NEED_RESCHED in set_nr_if_polling()?
+> > > > I think writing any value to the monitor address would wakeup the idle CPU. And _TIF_POLLING_NRFLAG
+> > > > will be cleared once that idle CPU exit the idle loop, so we don't introduce arch-wide flag.
+> > > Although this might work for MWAIT, there is no way for the generic idle
+> > > path to know if there is a pending interrupt within a TIF_POLLING_NRFLAG
+> > > section. do_idle() sets TIF_POLLING_NRFLAG and relies on a bunch of
+> > > need_resched() checks along the way to bail early until finally doing a
+> > > current_clr_polling_and_test() before handing off to the cpuidle driver
+> > > in call_cpuidle(). I believe this section will necessarily need the sender
+> > > to indicate a pending interrupt via TIF_NEED_RESCHED flag to enable the
+> > > early bail out before going into the cpuidle driver since this case cannot
+> > > be considered the same as a break from MWAIT.
+> > > 
+> > 
+> > I see, this is a good point. So you mean with only TIF_POLLING_NRFLAG there is
+> > possibility that the 'ipi kick CPU out of idle' is lost after the CPU enters
+> > do_idle() and before finally entering the idle state. While setting _TIF_NEED_RESCHED
+> > could help the do_idle() loop to detect pending request easier.
+> 
+> Yup, that is correct.
+> 
+> > BTW, before the
+> > commit b2a02fc43a1f ("smp: Optimize send_call_function_single_ipi()"), the
+> > lost of ipi after entering do_idle() and before entering driver idle state
+> > is also possible, right(the local irq is disabled)?
+> 
+> From what I understand, the IPI remains pending until the interrupts
+> are enabled again. Before the optimization, the interrupts would be
+> disabled all the way until the instruction that is used to put the CPU
+> to sleep which is what __sti_mwait() and native_safe_halt() does. The
+> CPU would have received the IPI then and broke out of idle before
+> Peter's optimization went in.
 
---
-help you, help me,
-Hailong.
+I see, once local irq is enabled, the pending ipi will be served.
+
+> There is an elaborate comment on this in
+> do_idle() function above the call to local_irq_disable(). In  commit
+> edc8fc01f608 ("x86: Fix CPUIDLE_FLAG_IRQ_ENABLE leaking timer
+> reprogram") Peter describes a case of actually missing the break from
+> an interrupt as the driver enabled interrupts much earlier than
+> executing the sleep instruction.
+>
+
+Yup, the commit edc8fc01f608 deals with delay of the timer handling. If
+a timer queues the callback after local irq enabled and before mwait,
+the long sleep time after mwait might delay the handling of the callback.
+
+> Since the CPU was in TIF_POLLING_NRFLAG state, one could simply get away
+> by setting TIF_NEED_RESCHED and not sending an actual IPI which the
+> need_resched() checks in the idle path would catch and the
+> flush_smp_call_function_queue() on the exit path would have serviced the
+> call function.
+> 
+> MWAIT with Interrupt Break extension (CPUID 0x5 ECX[IBE]) can break out
+> on pending interrupts even if interrupts are disabled  which is why
+> "mwait_idle_with_hints()" now checks "ecx" to choose between "__mwait()"
+> and "__mwait_sti()". The APM describes the extension to "allows
+> interrupts to wake MWAIT, even when eFLAGS.IF = 0". (Vol. 3.
+> "General-Purpose and System Instructions", Chapter 4. "System Instruction
+> Reference", Section "MWAIT")
+> 
+> I do hope someone corrects me if I'm wrong :)
+>
+
+You are right, and thanks for the description.
+
+thanks,
+Chenyu
