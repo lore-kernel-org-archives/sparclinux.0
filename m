@@ -1,109 +1,170 @@
-Received: from mail-il1-f177.google.com (mail-il1-f177.google.com [209.85.166.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F19642ABA
-	for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 14:36:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDE61B0131;
+	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718894175; cv=none; b=CpUKZ4918pJj+aFrE/2njcb0ebOxiyT1lDVzBeYXWp28hu57K5U+adAGZNSFEKirvVDVyMW285e9vaojdjm0RF2PnM9P1iQdQvNWAIDCcYxYWEEHD6c+BdDdAXY7ZTpXV15CSMCQYkAAnBWzEyedQl0DWPh4nSxLAx/ShgTf6KM=
+	t=1718899138; cv=none; b=HmmD9Kc/tKREGabTn3pKcUj3j00OVLGGbC3TDMvauajgsp3Vnhgvx/xFU3d7/prKHktcjFDYL9NmTboP9N5XoP59CBTUKGTy4Z1yJnIWSFKGIRJFs9oH97CUJrdt4fprPXa/NOKi3QM2cspO6hiEl5ZntWL/CXv0flKpqqtJ838=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718894175; c=relaxed/simple;
-	bh=C/7etpkN1EyOxZMX7kH6rf1YdH7lnLSLobU/qcTAhKw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JtYteUAsDl6ZqQ1soF54MxYXS9GbA5ZyzrJEFfHeeMZI5zgtGa33copkbfvX71mdHvhMUH4ttyJTbCzzPNj5jS3N58/fFqeEFK1NRdW0BrbdsIWNWLtrYWztPlehlZb0WJhreCnS7R2gkuc+VEzHPUwCMU5h3ytB23NfdnqfDaM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=Vjbi0zXY; arc=none smtp.client-ip=209.85.166.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
+	s=arc-20240116; t=1718899138; c=relaxed/simple;
+	bh=sWSXWB4N7t/4NgW/qJPLeZiznzbwX6q7yzTv728kcDE=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=lhevtw0YfgKV4wSQNOsz9m1/3dD8AU012Z4Sg0OmjhwjCM4S9bFVeXFHgNd4BHUehGIoTCUPiN6pkoXkg1fPwRAp8Sk6G7j9snaCdMZT8T89FsV2HjXfcIaj82CFCWSqex/QZVzc0BDJtitXHBEvbjL+sleRyIwhT7+N8y3GLIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EmYuXbLu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="Vjbi0zXY"
-Received: by mail-il1-f177.google.com with SMTP id e9e14a558f8ab-375f43e005cso2904295ab.0
-        for <sparclinux@vger.kernel.org>; Thu, 20 Jun 2024 07:36:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1718894173; x=1719498973; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=A98UevaERdbTC/YwOFyWmTbSR1N+hw0zQSVldl8RhYU=;
-        b=Vjbi0zXYpYweq3mJUapFzCctHjKrGGk0yxW9yXU+KJRbQPYkcP0dow2FwNaIzb/5/j
-         xZzLJBhBLaQl8AyagdIxzf3RLNzEEHPrzfSK6mRb5fnNBkqEdnyDgDRmcs79RBowlwD3
-         28miW94Ktr+ugSKGSw6pjvAlya6KaI7fMS6oyn9YWgeyK6CkQH5EnN4/a969hklvKnlt
-         smR0BJyqyRTGg0cRwDPftQA9QXRrJrsbUSM/VJXKjOg6pLf9SKpnF1lcnJgw1elcNZcE
-         3mgpCrhBKh+l3T9SZjVw2FBLUGzXp9dy7zLP6VjiiVtuwL8o8FPnc/pviSSW+uUZ3LCv
-         RTOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718894173; x=1719498973;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=A98UevaERdbTC/YwOFyWmTbSR1N+hw0zQSVldl8RhYU=;
-        b=gBVbmVtEWuTp/K706jKd2Yx05l0jZ+MfIEMCj0ArWByhVoAGcjJoc8ZoXbNc+v9/OI
-         6RcvFpE9ZYOXT/rZ0pwcrei1jlVlIA7+7Ae9b+c2MEgAqlLNJQ3up+M6lZCEa+VMNsPk
-         j6tlWxbVMbuufb3tmAlJOb344xwqFLJ5qZ42j+Npn0hjq/LAGV1aEyluHDL9ZiBq8rW0
-         SG0yHSA5gfJmcLOA+ULDPNUSeQyoNNQ51Dkb0ZyNK0PcDbrfGZQorNZCwJR1aFPHBsXb
-         xjVa5HZz2OezIPII7b4icdgJ72cnuXeads5l1CDmtQ3D4HSXpH/IOTdzAl2AFOdoTCnl
-         vvyQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUK9Lx9afc10yRGYoCK30eufBSW9zncSgZ+L2gXqe2ImIxENpuSLOhWe/7f5C45T8QPBSv1tuMIrVptTDqvBeUhWNUni9J3R7HL/w==
-X-Gm-Message-State: AOJu0YzOD6GpbRshZtXlKDsOJwLQ2ri2Qe60HmqEORdQgAl6Ggjj6/eb
-	czfGOAbgzfl5ZnFZBGClSEhrhPLEg7xp2oQykyw8sW4SHzGjOZWfsOgccOoQKuM=
-X-Google-Smtp-Source: AGHT+IHEX4VWi6NFf2OYvYNfmsh9bNN5+QvL49KMSIcQjonXWJpIa7TVyKkpnYOby5F1SBrP2YKhQw==
-X-Received: by 2002:a92:dd0c:0:b0:376:296b:1754 with SMTP id e9e14a558f8ab-376296b17c3mr7852465ab.15.1718894173249;
-        Thu, 20 Jun 2024 07:36:13 -0700 (PDT)
-Received: from [192.168.0.50] (dhcp-24-53-241-2.cable.user.start.ca. [24.53.241.2])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4b9568dfb15sm4517876173.18.2024.06.20.07.36.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Jun 2024 07:36:12 -0700 (PDT)
-Message-ID: <012b7244-fa12-452c-9d76-7768e59f7e03@draconx.ca>
-Date: Thu, 20 Jun 2024 10:36:11 -0400
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EmYuXbLu"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 58EC9C2BD10;
+	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1718899138;
+	bh=sWSXWB4N7t/4NgW/qJPLeZiznzbwX6q7yzTv728kcDE=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=EmYuXbLu1/20fopNdDUbO5tEHmgQybhiDTRdta3hJQSkrQCavjGrPbNxQ9WHsYGoJ
+	 U7sjc1mvkM9X7Wq6lSq08RphDY+DbIgjiRISmdnrsAnued5rdyv+/MvMPAJheBgNzO
+	 AZVff29KUIBNs/EimnS1hnFe2BVwT+BzCl7VyxtWp0R0QhgLFrPTgvRFeyTJwahya7
+	 ThpZnG8/Syed7HP0251DDSADLcjQ1Fg6J4D5iPvLfwsr4yNc/RKHwfFBoCLe9kj4U3
+	 s93Xb9MJUYNgOdgEIOGv1HMMlNZ049Z5/NPUVA3vwaqA4gYDngYff6LXZFTJmKERGK
+	 a9AfM8cx3x26Q==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E08C2BA1A;
+	Thu, 20 Jun 2024 15:58:58 +0000 (UTC)
+From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
+Date: Thu, 20 Jun 2024 22:56:00 +0700
+Subject: [PATCH] sparc/build: Make all compiler flags also clang-compatible
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Content-Language: en-US
-To: Hailong Liu <hailong.liu@oppo.com>
-Cc: linux-kernel@vger.kernel.org,
- Linux regressions mailing list <regressions@lists.linux.dev>,
- linux-mm@kvack.org, sparclinux@vger.kernel.org,
- "Uladzislau Rezki (Sony)" <urezki@gmail.com>,
- Andrew Morton <akpm@linux-foundation.org>
-References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
- <20240620063742.7qugmebodtlogn5r@oppo.com>
-From: Nick Bowler <nbowler@draconx.ca>
-In-Reply-To: <20240620063742.7qugmebodtlogn5r@oppo.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
+X-B4-Tracking: v=1; b=H4sIAA9RdGYC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIxMDMyMD3eKCxKJk3eS0nMT0Yt1U8zSjlKSkFJMkyxQloJaCotS0zAqwcdG
+ xtbUA5qLBpV4AAAA=
+To: "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, 
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
+ glaubitz@physik.fu-berlin.de
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ llvm@lists.linux.dev, Koakuma <koachan@protonmail.com>
+X-Mailer: b4 0.14.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1718899135; l=4329;
+ i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
+ bh=TPTX/hXnvGP/7Q/0XONtbbKGd6MWmhWh/U9alDskK+Y=;
+ b=lh38GZIlN9C76lksV8Ck1O5eb0K5JSJr87+5/LTH1ly8d2aesSmDXIyPPuZubaHwQx4txD/2i
+ V2CnGn0gKQnCyMM56PYtjZ0z2keC5F7xp5LyBJQ5E3rmZffWNPuf8jl
+X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
+ pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
+X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
+ auth_id=174
+X-Original-From: Koakuma <koachan@protonmail.com>
+Reply-To: koachan@protonmail.com
 
-On 2024-06-20 02:37, Hailong Liu wrote:
-> On Thu, 20. Jun 02:19, Nick Bowler wrote:
->> After upgrading my sparc to 6.9.5 I noticed that attempting to run
->> xfsdump instantly (within a couple seconds) and reliably crashes the
->> kernel.  The same problem is also observed on 6.10-rc4.
-[...]
->>   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
->>   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
->>   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
->>   Date:   Thu Mar 30 21:06:38 2023 +0200
->>
->>       mm: vmalloc: remove a global vmap_blocks xarray
-[...]
->>   spitfire_data_access_exception: SFSR[000000000080100d] SFAR[0000000000c51ba0], going.
->>                 \|/ ____ \|/
->>                 "@'/ .. \`@"
->>                 /_| \__/ |_\
->>                    \__U_/
->>   xfsdump(2028): Dax [#1]
->>   CPU: 0 PID: 2028 Comm: xfsdump Not tainted 6.9.5 #199
->>   TSTATE: 0000000811001607 TPC: 0000000000974fc4 TNPC: 0000000000974fc8 Y: 00000000    Not tainted
->>   TPC: <queued_spin_lock_slowpath+0x1d0/0x2cc>
-[...]
-> I guess you can patch this
-> https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/commit/?h=mm-hotfixes-unstable&id=00468d41c20cac748c2e4bfcf003283d554673f5
+From: Koakuma <koachan@protonmail.com>
 
-I tried with that patch applied on top of 6.10-rc4, and the crash still
-occurs.  There is no obvious change in behaviour.
+Remove flags not supported by clang and make sure that all the flags
+used are portable between clang and GCC.
 
-Thanks,
-  Nick
+The reasoning for removing the -fcall-used* ones is as follows:
+
+In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
+the 64-bit ABI, %g7 is the reserved one.
+Linux turns them into volatile registers by the way of -fcall-used-*,
+but on the other hand, omitting the flags shouldn't be harmful;
+compilers will now simply refuse to touch them, and any assembly
+code that happens to touch them would still work like usual (because
+Linux' conventions already treats them as volatile anyway).
+
+Signed-off-by: Koakuma <koachan@protonmail.com>
+---
+Hello~
+
+This changes the CFLAGS for building the SPARC kernel so that it can be
+built with clang, as a follow up from the discussion in this thread:
+
+https://lore.kernel.org/lkml/JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com/T/#u
+
+The changes are removal of various `-fcall-used-*` flags, and changing
+`-mv8plus` to `-mcpu=v9`:
+
+- `-fcall-used-*` flags should be safe to remove; the compiler will
+  stop using the registers specified as temporaries, but it is a safe
+  change wrt. the ABI. Assembly code can still use those registers
+  as needed.
+  It does bring a theoretical possible slowdown due to the compiler
+  having less registers to work with, but in practice - in my case,
+  at least - it seems to not make any difference with daily usage.
+
+- More trivial is to change `-mv8plus` -> `-mcpu=v9`.
+  This should be safe too since the kernel seems to require a V9
+  processor to run anyway, so I'm changing the flag to one that is
+  portable between GCC and clang.
+
+Also, as stated in the thread, building with these changes still result
+in a working kernel, at least for Sun T5120 and qemu virtual machines.
+
+On the LLVM side, the effort for building Linux/SPARC is tracked here:
+https://github.com/llvm/llvm-project/issues/40792
+---
+ arch/sparc/Makefile      | 4 ++--
+ arch/sparc/vdso/Makefile | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 757451c3ea1d..7318a8b452c3 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -29,7 +29,7 @@ UTS_MACHINE    := sparc
+ # versions of gcc.  Some gcc versions won't pass -Av8 to binutils when you
+ # give -mcpu=v8.  This silently worked with older bintutils versions but
+ # does not any more.
+-KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
++KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu
+ KBUILD_CFLAGS  += -Wa,-Av8
+ 
+ KBUILD_AFLAGS  += -m32 -Wa,-Av8
+@@ -45,7 +45,7 @@ export BITS   := 64
+ UTS_MACHINE   := sparc64
+ 
+ KBUILD_CFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow
+-KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
++KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -Wno-sign-compare
+ KBUILD_CFLAGS += -Wa,--undeclared-regs
+ KBUILD_CFLAGS += $(call cc-option,-mtune=ultrasparc3)
+ KBUILD_AFLAGS += -m64 -mcpu=ultrasparc -Wa,--undeclared-regs
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index 243dbfc4609d..929140facabf 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -46,7 +46,7 @@ CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables -m64
+        -fno-omit-frame-pointer -foptimize-sibling-calls \
+        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+ 
+-SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
++SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5
+ 
+ $(vobjs): KBUILD_CFLAGS := $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
+ 
+@@ -86,7 +86,7 @@ KBUILD_CFLAGS_32 += -fno-stack-protector
+ KBUILD_CFLAGS_32 += $(call cc-option, -foptimize-sibling-calls)
+ KBUILD_CFLAGS_32 += -fno-omit-frame-pointer
+ KBUILD_CFLAGS_32 += -DDISABLE_BRANCH_PROFILING
+-KBUILD_CFLAGS_32 += -mv8plus
++KBUILD_CFLAGS_32 += -mcpu=v9
+ $(obj)/vdso32.so.dbg: KBUILD_CFLAGS = $(KBUILD_CFLAGS_32)
+ 
+ $(obj)/vdso32.so.dbg: FORCE \
+
+---
+base-commit: 92e5605a199efbaee59fb19e15d6cc2103a04ec2
+change-id: 20240620-sparc-cflags-e7f2dbbd4b9d
+
+Best regards,
+-- 
+Koakuma <koachan@protonmail.com>
+
+
