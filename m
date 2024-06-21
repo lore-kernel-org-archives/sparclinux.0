@@ -1,60 +1,90 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C151C6AF
-	for <sparclinux@vger.kernel.org>; Fri, 21 Jun 2024 14:04:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819CC208A4;
+	Fri, 21 Jun 2024 14:18:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718978696; cv=none; b=PHyw/o693elyjQKMbvcW8Rc/5hvwjEv5CvF4hmrypursaXs9TKh892Z2eiPvQmwAQB+ESPQOMjJavTgdbWdBdA2cKT0DhOJ+orT24PTGIjEW9/38j3Um1fizp4ivm66gMQz5R90QXCcBw4kiC3Kh5u190tMUSUDVmjTA9ctWxmg=
+	t=1718979540; cv=none; b=fzt9DOGiQHBQqAGJ5SBQJrxEvUai2VgAdQ49wFgi/vO5DmGS7DfYRSfk66O8+4iyum1A6/tf348M6Y8xJAKfeN28FKYiZP1ybS16sTvKwA+E5MAc/HcdMS3UZ3A2Dak/GIEh8gk0rYtp0QRGnrdYywNeb1zUlGFvQ8xHdac92PU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718978696; c=relaxed/simple;
-	bh=sO2Vqa/xiHVkUc1MI7sSYJtHx5kboa5sTEpZ4k7n0Q0=;
+	s=arc-20240116; t=1718979540; c=relaxed/simple;
+	bh=1c8Qc1Y5GCm2rehTE2RjE51jiJjppd4c+lxxUpnpk1w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gbQbxSG0mFB0EN2FyBR0W8qO/qGOmxCN50qlqY+XEWyv4nvw5+kLhNMAM0HuEsLQlKihq3WRl3m+DVLv69CRT+N2g596LIcfYzF8Akp0DMeLAle+CYY2zWTm1biigcIzym/Ih8Zq60phcVIHLIXeWrZtrSU7b+x+CjXyJ51JvVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DXGcqxoy; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=dQ2C7vLD70uWs0ZRjEHfL1syynIOAlzOHqzSsrBxsh6hUL6igeUY10JGJawHqpCVjliYm5CaJIvnUwm9hOFTKd3awsWXVfB1dLctgIvHfeh2kPGTpPqNQpwD9wK+nW0pFmDWeX9eRKV42FqAdA9AYDtepqz6g0mpvsRvSVM3faQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=L/kGsDc0; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DXGcqxoy"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1718978693;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=akLFQtt/+POxVR4pxOkO3hxUvw7PQRoqpGG2Zvxz0Ao=;
-	b=DXGcqxoyn7mN1LvnKORjmm0AslQ2pHkqaDkM0QvD03Ic96D+2wp2jm+WCCENNry7y8CKkE
-	OVlVvCsFftWQuPe0MDU8R4KiqQHSJ4sN6x947qydstWVHtoIKfhyiVGANsH9kYmsYCqoht
-	OFolrOPtSMHtd+JcND8oA2nuuPVNXyo=
-Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-1-boMQmNw-Nki6ogvq3fnK8Q-1; Fri,
- 21 Jun 2024 10:02:58 -0400
-X-MC-Unique: boMQmNw-Nki6ogvq3fnK8Q-1
-Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 3D6BA1955F01;
-	Fri, 21 Jun 2024 14:02:57 +0000 (UTC)
-Received: from localhost (unknown [10.72.112.17])
-	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 7D6303000218;
-	Fri, 21 Jun 2024 14:02:54 +0000 (UTC)
-Date: Fri, 21 Jun 2024 22:02:50 +0800
-From: Baoquan He <bhe@redhat.com>
-To: Uladzislau Rezki <urezki@gmail.com>
-Cc: Nick Bowler <nbowler@draconx.ca>, Hailong Liu <hailong.liu@oppo.com>,
-	linux-kernel@vger.kernel.org,
-	Linux regressions mailing list <regressions@lists.linux.dev>,
-	linux-mm@kvack.org, sparclinux@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
-References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
- <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
- <20240621033005.6mccm7waduelb4m5@oppo.com>
- <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
- <ZnVLbCCkvhf5GaTf@pc636>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="L/kGsDc0"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 45LDmh2Q002183;
+	Fri, 21 Jun 2024 14:17:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date
+	:from:to:cc:subject:message-id:references:mime-version
+	:content-type:in-reply-to; s=pp1; bh=LF1s2xvSDPljT0oEHiEGquZZeto
+	2SHuFoShwJ3ChVqM=; b=L/kGsDc0HEiswhQufYopyCdldOClTJuhdzH8JmGDxfz
+	Lk6zfv7ZyAlKnlmxJRrrh4aH4Vo6AZ29JHrHYdzne6RrZ4VcWKqV2+MkkG5QRfhy
+	0qSKEGCUNJuiNPU3fsTgezxRrE19zpuQPZuyJojvXd57h4Yj8KrPObmRu8KNTLke
+	EUFZoNvo/uubNeebvEIH/6KQFdffHWduJsAL68+/zmvfOSbM3fvgFWlSvxrd10Us
+	O0u6hG6qdpucSGkxfJgvRJWn+W4PbMfk8oRJ2Q7wUTAY+t7wJCsvfANxwea+5aMZ
+	H9e98wxZ3Yopq6+ZaYKDwc/LvuNqTd9Eoqe7SGyTp4A==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ywa0mr7fu-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 21 Jun 2024 14:17:46 +0000 (GMT)
+Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 45LEHjOc030057;
+	Fri, 21 Jun 2024 14:17:45 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ywa0mr7fn-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 21 Jun 2024 14:17:45 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 45LBuPa6031319;
+	Fri, 21 Jun 2024 14:17:44 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3yvrrq7k29-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 21 Jun 2024 14:17:44 +0000
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 45LEHe7240436050
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 21 Jun 2024 14:17:42 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 38C4E2004D;
+	Fri, 21 Jun 2024 14:17:40 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1861F20040;
+	Fri, 21 Jun 2024 14:17:39 +0000 (GMT)
+Received: from osiris (unknown [9.171.32.192])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Fri, 21 Jun 2024 14:17:39 +0000 (GMT)
+Date: Fri, 21 Jun 2024 16:17:37 +0200
+From: Heiko Carstens <hca@linux.ibm.com>
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org, Helge Deller <deller@gmx.de>,
+        linux-parisc@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+        linuxppc-dev@lists.ozlabs.org, Brian Cain <bcain@quicinc.com>,
+        linux-hexagon@vger.kernel.org, Guo Ren <guoren@kernel.org>,
+        linux-csky@vger.kernel.org, linux-s390@vger.kernel.org,
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        linux-sh@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org,
+        libc-alpha@sourceware.org, musl@lists.openwall.com, ltp@lists.linux.it
+Subject: Re: [PATCH 12/15] s390: remove native mmap2() syscall
+Message-ID: <20240621141737.14882-B-hca@linux.ibm.com>
+References: <20240620162316.3674955-1-arnd@kernel.org>
+ <20240620162316.3674955-13-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -63,60 +93,31 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZnVLbCCkvhf5GaTf@pc636>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
+In-Reply-To: <20240620162316.3674955-13-arnd@kernel.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: fSdaLowT_gOM0sMbXX9GJzu_e6RTRa0y
+X-Proofpoint-ORIG-GUID: fxa5htH3kxDrqY5Kq65cIpVvdeHEdHtv
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.680,FMLib:17.12.28.16
+ definitions=2024-06-21_06,2024-06-21_01,2024-05-17_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1011
+ lowpriorityscore=0 bulkscore=0 malwarescore=0 suspectscore=0 mlxscore=0
+ mlxlogscore=341 priorityscore=1501 impostorscore=0 phishscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2406140001 definitions=main-2406210101
 
-On 06/21/24 at 11:44am, Uladzislau Rezki wrote:
-> On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
-> > On 06/21/24 at 11:30am, Hailong Liu wrote:
-> > > On Thu, 20. Jun 14:02, Nick Bowler wrote:
-> > > > On 2024-06-20 02:19, Nick Bowler wrote:
-......
-> > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> > index be2dd281ea76..18e87cafbaf2 100644
-> > --- a/mm/vmalloc.c
-> > +++ b/mm/vmalloc.c
-> > @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
-> >  static struct xarray *
-> >  addr_to_vb_xa(unsigned long addr)
-> >  {
-> > -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-> > +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
-> >  
-> >  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
-> >  }
-> > 
-> The problem i see is about not-initializing of the:
-> <snip>
-> 	for_each_possible_cpu(i) {
-> 		struct vmap_block_queue *vbq;
-> 		struct vfree_deferred *p;
+On Thu, Jun 20, 2024 at 06:23:13PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
 > 
-> 		vbq = &per_cpu(vmap_block_queue, i);
-> 		spin_lock_init(&vbq->lock);
-> 		INIT_LIST_HEAD(&vbq->free);
-> 		p = &per_cpu(vfree_deferred, i);
-> 		init_llist_head(&p->list);
-> 		INIT_WORK(&p->wq, delayed_vfree_work);
-> 		xa_init(&vbq->vmap_blocks);
-> 	}
-> <snip>
+> The mmap2() syscall has never been used on 64-bit s390x and should
+> have been removed as part of 5a79859ae0f3 ("s390: remove 31 bit
+> support").
 > 
-> correctly or fully. It is my bad i did not think that CPUs in a possible mask
-> can be non sequential :-/
+> Remove it now.
 > 
-> nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
-> when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/s390/kernel/syscall.c | 27 ---------------------------
+>  1 file changed, 27 deletions(-)
 
-I checked the generic version of setup_nr_cpu_ids(), from codes, they
-are different with my understanding.
-
-kernel/smp.c
-void __init setup_nr_cpu_ids(void)
-{
-        set_nr_cpu_ids(find_last_bit(cpumask_bits(cpu_possible_mask), NR_CPUS) + 1);
-}
-
-include/linux/cpumask.h:
-#define num_possible_cpus()     cpumask_weight(cpu_possible_mask)
-
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
