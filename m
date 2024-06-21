@@ -1,46 +1,46 @@
-Received: from APC01-SG2-obe.outbound.protection.outlook.com (mail-sgaapc01on2042.outbound.protection.outlook.com [40.107.215.42])
+Received: from APC01-PSA-obe.outbound.protection.outlook.com (mail-psaapc01on2045.outbound.protection.outlook.com [40.107.255.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77ECB171E5F;
-	Fri, 21 Jun 2024 10:45:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.215.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B2B171E68;
+	Fri, 21 Jun 2024 11:15:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.255.45
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718966734; cv=fail; b=XplKRRu5/P6EFrsIJwPry03Xef1A3MR/UU5dIbwB4SbroHbvYZh2bJKLePUqDdVsLKTk7HLh8DoQqTcgihoJqB4rKs/kjohD/L7Y5YKSJYPZSL0Sb2WO7lCAX9dWdSOXPjl70x+r+pHNJWSzxzBsnAWO8Rc6Zq+sXC01ThmvlTE=
+	t=1718968556; cv=fail; b=WJRIJmMN5E3UC435RaIyH8HOT5EpzxBhUzDYQc455kDJMPgKZ13hY44mhZTLBODeJVKs6jmbGsx5aSjdFu59JS533hievMu5qDZ+nUS4oZyl9PjoUB0APj2YQRytrvR3xSkBevpHpybCZMmjMVAl1CYb4VUVxeLekz7/ivji7z8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718966734; c=relaxed/simple;
-	bh=7HzLElzkYmEx1fWQzDXu/laGXYtulLAiIeCqeyJIiWA=;
+	s=arc-20240116; t=1718968556; c=relaxed/simple;
+	bh=qf1xe6DlL/I2vah51rEunZTJRUwXdv4eSsClLjci25o=;
 	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r3t6NNrKCfUw06OhC2m5q7nnozowzrHBtRZ9hpp+8rI2q2+lllgGdUxmQzxQsrKoIY0Hn2ZnL6J5N4BHnkV9R0YR5MvJFNA3XkWbNDv0irFlFsMWSG52rCT4soxNhPTOIdzpAz7ed57lHcgmM+qVOFkatUL3s+XX76Nxr26NWuo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com; spf=pass smtp.mailfrom=oppo.com; dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b=gBsxRt9h; arc=fail smtp.client-ip=40.107.215.42
+	 Content-Type:Content-Disposition:In-Reply-To; b=FPkJAgBchMwtyZWFYk3/F/lKdgs/X9QUGcXUiZAwpP76lF5FcotR6PyT7G9zFLNvYdqcwhkE0yVOAJaATRwgScbfvh5jB/svZIp2nZO6twCDZSOCoZW5trDUqfIZc1p3U+ko6bcO8/irY+iD+JKKkF0DSLrpMWZRpM1mJwstWBw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com; spf=pass smtp.mailfrom=oppo.com; dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b=gWqfZNRi; arc=fail smtp.client-ip=40.107.255.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oppo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b="gBsxRt9h"
+	dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b="gWqfZNRi"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=DzoZGrGMaNqc40GZYZIauB486WpIkcTOOGGhoQcjjWUqDaDSUplQHqGKxFLZZRjrJU3eibL+/KbFS8mL3/xc++3Ccfj3lOKZzx4l18vknZetGUrI+awlvlpUHFhyGDYbQbhjnKGjKTKhURZbwQyWqf60aigCO2m+Uqe8SbvIU7PJ6dQxDZt8ZR6ixWcgnlRPuAoWl6Nr7xNRUEYyo6TmuE8HOCyCRG7PO5mFekwcJJoBfAuPtO80VH4RB1dTMjNRrjJfuxMIPxJD1FLPMQ+NzsOy4oS1KixQYHsBSV73RyVe8iESvtKP2wQhkA2eRQniOmYz2dRSbv6k5YgLf3dkfQ==
+ b=RPWH7J3if0/Fx9k6yKObkpd2+UnmkD8vV8TROWJ8QZ6P4uXLG9UyKcOrxfW3/lhQYj7XWbLFhvZMAkJVhNGoHCZNFSDmAZvBki7Iuvj/saH4voSv5jGiY3VqUMMqc2aUaoGo58OAyrUwSTZyDnyfCl2IQVRAyZEIRI6AWxmGVoF7A9J8lsuEEzqt4HPfTuZARgTeRXmxaClR4KkvaKkAnIpx5ECWjld8Ck+7UT1V46YSi6wd67qd82KbOkEilw5mUb4W5VXBkXAemuCQEHntkQSC+CcSPUDY6//pu8cbrzIuPCQzA3ltNgC+sSSNcelO6JYznbqTfmp3T2AtuGqYkw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jlVvWLkDz8GUbyHNkXsElcbog7x/l+YsIFtAHSBM2aQ=;
- b=h7dccqUERyrK0lAviDrXZcYiCVUJWVBui1g8bz9OaJG4p8/e4yKlV5ZDrPTMqG7gwPUREegwkQ2Cx8K11bPkVy85VaRTyzZqm6Yiyr7VFDl2tuqjK/Tg9pY9ZUBnYXiVmohZnyqdCkG1eVqpFijARL5tG9s4nlhwrJtEpwDKxbOfnyNbpORxmiHwOGdAxut+OiJqjrQ3UUePZKtgSIhug2cBewwrtwCBDvgwM/tO6c79WcbisL/awACx5NOY77CnHz7xv8NF2QDXQZkD7yBZteAearL001IW2l0wu7/xFJvotP6BA1yWuacanfKFEZ08PN7sam2DdYV3xu7/bnmYhA==
+ bh=Aul5vaVzJf++w+6GW0Zz8yhsj/0b1HhMbOFLJk61bkI=;
+ b=XYFvTOjsjee1iBHIEVeY8i2iRjhVWxKzY2sp5M31//af2B9/idU0OjCEoSPCCYjgOrDlh/irEPXwBCAZXyt9oy+ylDxZ6aHyEaOYf61+VQa63ljaw2QkXuUAbvQBTbKVoZlEZLPQ5RPdMGuTLD6ObUi1EGBjmZfx/Sr8lP2RE5D6cGPsvDqMffpCAo6RXEsYNosSNvkDpchdUUV9nYnLL9O2Pqoj/QcQ6i+wcS3QQWCDsfBE43OogXD+zGyQF8Rzy+2G/1yKeLD7JtYvHrsSVTn7L1XGrIi4/lvo+vbhI8ZyynuwMTxjOrFoDQm1ZmaEkLi0ZpYfYPhfIHb5GlCvUQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  58.252.5.68) smtp.rcpttodomain=gmail.com smtp.mailfrom=oppo.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=oppo.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oppo.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=jlVvWLkDz8GUbyHNkXsElcbog7x/l+YsIFtAHSBM2aQ=;
- b=gBsxRt9hyBXzvCNVi+l1e1Grw8nEMgHzQYdAp2uPxpHLpSeeDhsH+Ntxzik/5McAjzvshbBFpAfrcGyFWqp+l48OgzDNaNE8KFoq/8ORM7KMc+gDWflb0AWGa/0RJG6ORhPtZLsBWzCNWSofRwd6pFuAgVz94zNBh1vr+dH2PdI=
-Received: from PU1PR01CA0035.apcprd01.prod.exchangelabs.com
- (2603:1096:803:16::23) by TYZPR02MB7080.apcprd02.prod.outlook.com
- (2603:1096:405:2f::12) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7698.19; Fri, 21 Jun
- 2024 10:45:28 +0000
-Received: from HK3PEPF0000021A.apcprd03.prod.outlook.com
- (2603:1096:803:16:cafe::5) by PU1PR01CA0035.outlook.office365.com
- (2603:1096:803:16::23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.36 via Frontend
- Transport; Fri, 21 Jun 2024 10:45:28 +0000
+ bh=Aul5vaVzJf++w+6GW0Zz8yhsj/0b1HhMbOFLJk61bkI=;
+ b=gWqfZNRi2/mQIcrYjuFAQm9DNnNkXDmAHB285kwSqI9AEnmmcvjOPCHrYov6Uk8383j9j7QXxFLOawbitTy0nMUz9eJRWWqRGvfV65ZkXB6QdC2tQHTA5s7NoLpD/BUdHjA6Cp8uV2S8HQ00x7EjKt7HfzNnTBKLwyXvay76+6c=
+Received: from SI2PR01CA0008.apcprd01.prod.exchangelabs.com
+ (2603:1096:4:191::10) by SG2PR02MB5724.apcprd02.prod.outlook.com
+ (2603:1096:4:1b4::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.34; Fri, 21 Jun
+ 2024 11:15:51 +0000
+Received: from SG1PEPF000082E6.apcprd02.prod.outlook.com
+ (2603:1096:4:191:cafe::48) by SI2PR01CA0008.outlook.office365.com
+ (2603:1096:4:191::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.34 via Frontend
+ Transport; Fri, 21 Jun 2024 11:15:51 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 58.252.5.68)
  smtp.mailfrom=oppo.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=oppo.com;
@@ -48,22 +48,21 @@ Received-SPF: Pass (protection.outlook.com: domain of oppo.com designates
  58.252.5.68 as permitted sender) receiver=protection.outlook.com;
  client-ip=58.252.5.68; helo=mail.oppo.com; pr=C
 Received: from mail.oppo.com (58.252.5.68) by
- HK3PEPF0000021A.mail.protection.outlook.com (10.167.8.36) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.7677.15 via Frontend Transport; Fri, 21 Jun 2024 10:45:28 +0000
+ SG1PEPF000082E6.mail.protection.outlook.com (10.167.240.9) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.7677.15 via Frontend Transport; Fri, 21 Jun 2024 11:15:51 +0000
 Received: from oppo.com (172.16.40.118) by mailappw31.adc.com (172.16.56.198)
  with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Fri, 21 Jun
- 2024 18:45:27 +0800
-Date: Fri, 21 Jun 2024 18:45:27 +0800
+ 2024 19:15:50 +0800
+Date: Fri, 21 Jun 2024 19:15:45 +0800
 From: Hailong Liu <hailong.liu@oppo.com>
-To: Uladzislau Rezki <urezki@gmail.com>
-CC: Baoquan He <bhe@redhat.com>, Nick Bowler <nbowler@draconx.ca>,
-	<linux-kernel@vger.kernel.org>, Linux regressions mailing list
-	<regressions@lists.linux.dev>, <linux-mm@kvack.org>,
+To: Uladzislau Rezki <urezki@gmail.com>, Baoquan He <bhe@redhat.com>
+CC: Nick Bowler <nbowler@draconx.ca>, <linux-kernel@vger.kernel.org>, Linux
+ regressions mailing list <regressions@lists.linux.dev>, <linux-mm@kvack.org>,
 	<sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <20240621104527.hzu3tsu2pwhxbhzt@oppo.com>
+Message-ID: <20240621111545.awvgrap2nscgehxv@oppo.com>
 References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
  <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
  <20240621033005.6mccm7waduelb4m5@oppo.com>
@@ -75,66 +74,57 @@ List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
 In-Reply-To: <ZnVLbCCkvhf5GaTf@pc636>
 X-ClientProxiedBy: mailappw31.adc.com (172.16.56.198) To mailappw31.adc.com
  (172.16.56.198)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: HK3PEPF0000021A:EE_|TYZPR02MB7080:EE_
-X-MS-Office365-Filtering-Correlation-Id: abde0a8f-c712-4d7e-b04a-08dc91df43fe
+X-MS-TrafficTypeDiagnostic: SG1PEPF000082E6:EE_|SG2PR02MB5724:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1542f1f7-172f-4d61-1e89-08dc91e382b7
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230037|82310400023|1800799021|376011|36860700010;
+	BCL:0;ARA:13230037|1800799021|82310400023|376011|36860700010;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?aU9WVHhPSWg0R3JKTTVXMGVSU3FNVGcxUFhUVld3S2hMZ01qSDg1bFAwalJZ?=
- =?utf-8?B?QnBjSHNRNWVHR25uYmVUWVRrb2llSGlRKzRHQVJTdkM5R0o4RDQ5U2JwUjlk?=
- =?utf-8?B?dFk0QlB6RXhuT2xZdGhOOE16UitLcjJ4QnRKWFMxd0xPTnhsTjF4OVEyUUJt?=
- =?utf-8?B?U0RKQjE2dmk1N3FCcDNGbU1VQ2RWNkkySnlxbjIxSldDSkdKZWJDVy9wNDEx?=
- =?utf-8?B?VitlTjRIdFBhWHNuYXBwbU40MVArS21YM2tnb1pIZC9ZZ3JUd2MzZ0k3ZVFV?=
- =?utf-8?B?TnRhVTN3dHlPRXljUC8rTFB4dTdqeWhHNnllYitnZmVZWXVZdEpRK2p1K1Nt?=
- =?utf-8?B?VzVjOGRnbENSbkQwYXp4cDd4ZUZBbmJBR0tJcXpyOUpXOGFnWGNicDRaUTVo?=
- =?utf-8?B?MUxkZDZqamcxckprUFhYUjcyL0hLQ0xXMkhsZldLMSt3cWFBeG0yM0ppbDRJ?=
- =?utf-8?B?Q1RpUDZZR0s5RUpVTzk0YWIrSWVlMGkrK0h1bFY1azJXRXNvb1hFQXE3TVQ2?=
- =?utf-8?B?ZGFYd1o5NXFHLzJhNTl0QUNFeGpzZEpPOUJ2Yk82ZXczVXduZGNqSlNReFMr?=
- =?utf-8?B?OXg1S2VOemNIMURiTlBwcUVQQTFHenM0N3VhK3pmTEQ2TVBmT3EyVXdOMGxq?=
- =?utf-8?B?WUgyQ3pKVXMzQWFiRy8vNkZGUXJoS0tpNmd0dGpmUVNSTGpxSXRib3ZvREJR?=
- =?utf-8?B?UzY1ZEdHcEd3c1paWnJNcWJLRWp2bGZIQkx5VGIzbzVXZFBldXNnQzk4QmtC?=
- =?utf-8?B?T3M5d1g0QndZVUdaOTRXc3NkY1E2MFk1R1Q1S2JZUVh1aGQ4WE01WE90c0Fn?=
- =?utf-8?B?bjB0ZGdxQUtuTkdOSm5wSi9waTl4SExSajJJRXpwaVJDRGNHK3drZk5CZFdN?=
- =?utf-8?B?cHRCWkNDSTA3SkgxN0dJTmJFQWt2aWJPcU5VRUpCQjN6WHNyZDZYY1Q1OXlj?=
- =?utf-8?B?UzF3WTlNQjhKYmFMYzh0c2NhSFFPNTVzVStiZmNqbGFJQ2NWT3crckErQlZF?=
- =?utf-8?B?bkZ1bDJUSjVMV1FPbG1sQVAxRkplZzFDaVdMSGZuSk1nalo0TWdYMHJkN3hY?=
- =?utf-8?B?c2lkMTBRN2hhVXpxeVZHN082ZHlvc0Rrd3JpeDFKMTNQN244WFk0MzduMlVV?=
- =?utf-8?B?cHhLUE1ISFNOSDRoc2c3OThFL0VNb2RWbFhjamtpMGYrdU1ZSjl4Z3NaSkFa?=
- =?utf-8?B?K1l0eFJ1ZzVtU3pKN3VHMWhUbkxDUHZaWitIWHJaQmlidnR6dGJlWCtnT25j?=
- =?utf-8?B?OFZoajBXeXlEYXArcFZRTUkwU2NpeUhldnFlMEVBV0VGTklENDZlVVprZWJ1?=
- =?utf-8?B?TUEzRmtVSkQ3bXBqbzlLMVNFRFdVZndieTVlL21JN2tIY2ZjbDcyeVZ0ZnBq?=
- =?utf-8?B?cFkrRURGcElHREVXNXBVdG96TllFUlpTbUhiY3NQTnA0WWVVaFJtdnU2cy9x?=
- =?utf-8?B?SVVBQUUreVlqVzlLNmp3VkJndmJkYzJ2cXdXR0IzQUNBVGVmc2FQR2tZTkdO?=
- =?utf-8?B?UkdCMEJXK1AyTWQ3dUdEeXhJcnJrdW5kWjhEZisrdW5qSGp0bXNqdW14bU1j?=
- =?utf-8?B?blAwMmFEQzNEc2pnL3F5SFY4d2cyZWRtWS9VL3hGNUJ2U2N4VUVsUnpybk1N?=
- =?utf-8?B?MGlGMkVSZFAxbi9McHlMOTh2TlU3Z3lmVFJOdWw0VGNPalorcUVnbkh1N3Fy?=
- =?utf-8?B?U0srYnh6MzJYOGhOc0hsK1hjM3kwK21DM3g3N0tBdFU0aWZWbUh0Yy9jdVds?=
- =?utf-8?B?Qm9ZKytiVU5nQjVyOSt1NG5hNm1oVXJickV3cmEwRWpVMFM1RzNFL2l1VGMy?=
- =?utf-8?B?UDdtSmVNU2hvbUNMV0dMZlpUQm9HVE1aODEwc2Q2MGJ4SWk3MjlDVkFZWW9N?=
- =?utf-8?B?RmUxQ1FvbHZKMTkvdHhwNUo0OVJwdml6RWQ3alRYOWNVZkE9PQ==?=
+	=?us-ascii?Q?Zm7oMC2yOGdOgIzta3wdwwJVrQ7sNIrIUGL8VWKoGr2Dwcxd9R2oE+dpEsm/?=
+ =?us-ascii?Q?kV/aq01Uu2VsNlQ++06rFGfb6Pk3KdppF7L+xUUfbH3f5qlg2zGZT/6udlfD?=
+ =?us-ascii?Q?EEFaOxT2c1/RQ4soR4CL+yMykaN6rSQ5OPg4Wi6WrGXaIKjDJpuUbqrvhiWs?=
+ =?us-ascii?Q?3kMdy1gAzIV4yCMWoa8ZyFMzRJ5L4o4YfHy4TICE3zYGCJjf9Mtout08tjqE?=
+ =?us-ascii?Q?FzDWTZpDdJF3emlc2by30HB9I9Nep/vpUiIuN/hT6gTXqvyfMEHyOyw0V/8L?=
+ =?us-ascii?Q?O9KtjoLPbdCQ2byCPdYfRn0X9J7qUoadUuoCHqBKvk1k8nfQmC0d7ng8ht3c?=
+ =?us-ascii?Q?j7Hzti+DUesDt4N0ur34ewe22bFEd/b8dQDXsoETs6wkvDHemoHu8Zx/chJL?=
+ =?us-ascii?Q?i+NuTpehqVd+ZWlzonE45C3HruZncd924p4F0nkX22dBc+5f0GSiPfkUmXj2?=
+ =?us-ascii?Q?hCuYU5NHE21ix4zoUCwYBCR16s9nYVEWRCo2sC4MeQvL1yQ9KaSiutRd+nul?=
+ =?us-ascii?Q?/0WoMYnm4aK7byGyPt3ACuGFmI/951XoN5vjx5eoMtqgqk/AHlAXuus5N9bJ?=
+ =?us-ascii?Q?hB+uc4ExIr7iNtispXGIl0Bz6e1zu1I19nZPhFmJ/mpsouxxuNStJUh+hR/O?=
+ =?us-ascii?Q?0y/J2WCAb24vj7EZAmVjr/DvqOAF07O6Oud64X6g/B3Raz7P31cOj8KSOnOC?=
+ =?us-ascii?Q?pAwbJmEEhFQgpgCiTYyhXhBcz+Nr9YB4yo+aR3nXGu7hT4nrkai6AmVRJnQL?=
+ =?us-ascii?Q?hXcz3CQiyOvl0HZI6Akpxe81+kdkcDIsYJ3CswooC2fJKe59oKVqPbGkt6cA?=
+ =?us-ascii?Q?b3kKVADyERkPngFkuoCbAo9CUJ5gTY+cDNQBA4U4PaoduZjII/nlavJ8At3K?=
+ =?us-ascii?Q?8gKEPxMYNXyup0wOn87HWr7rScl3KFCqtygUpxl/mNCirZJ0Wd6Ce18i7i45?=
+ =?us-ascii?Q?viF/+QQ80LZ6VtXb/jjebNvWAx4kSz30DovqXqhSohb3bo4b42aH8ybwmctT?=
+ =?us-ascii?Q?9IwWMtnTNQCwA2H3J/K4YBMTlX8/Pp0h0kyY4qbLg/vCs6vZCVfUjluAxk8V?=
+ =?us-ascii?Q?sHwX96WFWwRZ772LFf07uuv/dndFdth0lS4shaFBVpdwEQfV0A3vu7QFSJpE?=
+ =?us-ascii?Q?0Zu3se9csLDXaXEeXws1x4nm9d+UCQqo2VtQebpf4VhWQo/4RwMUkFBNdbn+?=
+ =?us-ascii?Q?Awsrc9Fm5LA41xLNqX3sHJI4c/D55vthSY6OmtnuBCTUetmeJ5IHsPb/Xqcr?=
+ =?us-ascii?Q?7160pVunYiFs0MWQ2cciNLhLn37ONUxoYTWu1nEFNZbiQlYX0CBVgXA2jRqH?=
+ =?us-ascii?Q?QwJ7CVnRjSv9FsgVTwPo5hsCKWWlCiYWVuKWCiP5aZz/yf9D0d1eXih9Uhed?=
+ =?us-ascii?Q?J0YlwFRV3x4lF72lqVmA0obn30Tc9Obe51ZVrwfnmTo+waqnMQ=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:58.252.5.68;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.oppo.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(82310400023)(1800799021)(376011)(36860700010);DIR:OUT;SFP:1101;
+	CIP:58.252.5.68;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.oppo.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(1800799021)(82310400023)(376011)(36860700010);DIR:OUT;SFP:1101;
 X-OriginatorOrg: oppo.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2024 10:45:28.2548
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2024 11:15:51.5473
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: abde0a8f-c712-4d7e-b04a-08dc91df43fe
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1542f1f7-172f-4d61-1e89-08dc91e382b7
 X-MS-Exchange-CrossTenant-Id: f1905eb1-c353-41c5-9516-62b4a54b5ee6
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f1905eb1-c353-41c5-9516-62b4a54b5ee6;Ip=[58.252.5.68];Helo=[mail.oppo.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	HK3PEPF0000021A.apcprd03.prod.outlook.com
+	SG1PEPF000082E6.apcprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYZPR02MB7080
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SG2PR02MB5724
 
 On Fri, 21. Jun 11:44, Uladzislau Rezki wrote:
 > On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
@@ -243,37 +233,6 @@ On Fri, 21. Jun 11:44, Uladzislau Rezki wrote:
 > 	}
 > <snip>
 >
-
-Sorry to trouble you. do you mean as follows:
-@@ -4480,7 +4480,7 @@ void __init vmalloc_init(void)
-         */
-        vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
-
--       for_each_possible_cpu(i) {
-+       for (i = 0; i < nr_cpu_ids; i++) {
-                struct vmap_block_queue *vbq;
-                struct vfree_deferred *p;
-
-That’s exactly what I was thinking for the first solution as
-well. However, Do we really need this for the impossible CPU's variable
-initialization? How about using the index to find the CPU?
-Just like the following, but this is not the optimal solution, and it
-also wastes a lot of CPU time :).
-
-@@ -1994,8 +1994,12 @@ static struct xarray *
- addr_to_vb_xa(unsigned long addr)
- {
-        int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-+       int cpu;
-
--       return &per_cpu(vmap_block_queue, index).vmap_blocks;
-+       for_each_possible_cpu(cpu)
-+               if (!index--)
-+                       break;
-+       return &per_cpu(vmap_block_queue, cpu).vmap_blocks;
-
-BTW, Using raw_smp_processor_id in this manner is incorrect; that’s my mistake.
-
 > correctly or fully. It is my bad i did not think that CPUs in a possible mask
 > can be non sequential :-/
 >
@@ -284,6 +243,38 @@ BTW, Using raw_smp_processor_id in this manner is incorrect; that’s my mistake
 >
 > --
 > Uladzislau Rezki
+
+IMO, I thought we can fix this by following.
+It doesn't initialize unused variables and utilize the percpu xarray. If I said
+anything wrong, please do let me know. I can learn a lot from you all :).
+
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 11fe5ea208aa..f9f981674b2d 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -4480,17 +4480,21 @@ void __init vmalloc_init(void)
+         */
+        vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
+
+-       for_each_possible_cpu(i) {
++       for (i = 0; i < nr_cpu_ids; i++) {
+                struct vmap_block_queue *vbq;
+                struct vfree_deferred *p;
+
+                vbq = &per_cpu(vmap_block_queue, i);
++               xa_init(&vbq->vmap_blocks);
++
++               if (!cpu_possible(i))
++                       continue;
++
+                spin_lock_init(&vbq->lock);
+                INIT_LIST_HEAD(&vbq->free);
+                p = &per_cpu(vfree_deferred, i);
+                init_llist_head(&p->list);
+                INIT_WORK(&p->wq, delayed_vfree_work);
+-               xa_init(&vbq->vmap_blocks);
+        }
 
 --
 help you, help me,
