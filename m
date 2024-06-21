@@ -1,195 +1,126 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout4-smtp.messagingengine.com (fout4-smtp.messagingengine.com [103.168.172.147])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E213716E895;
-	Fri, 21 Jun 2024 09:44:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA79B82D66;
+	Fri, 21 Jun 2024 09:52:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718963057; cv=none; b=r2V1V1XFKnrTevItF+awUh3CyTYRXe6OHMGSmk0I/iYuXer4AinvOZCcTq9VHC1jfbADbviCGCDuywQm8O7PY/dmInrzCqAokFz9RjxSmIlxL+kMK7xwivbkGEOEi6JQ3sgUu1xmiSK/UkilK5fJu09KfRS8Dqon/6Z1gTtYhcU=
+	t=1718963567; cv=none; b=QZ/ROz4RRf8N2W2wtQvFp9YBoBOjC7uP2YD/qZLPsDWp5vYe/21DSHe6akkvTws6p56+jX45blE7cJwKjYoL4QuSaW0DtKtIMys3n1WYtXDQ2V5XPXDDlHzG1Jdv+6bjYFRwHwo3lXbvbw/2QHuhU6vIRgmonFKyrLzPj8nH3dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718963057; c=relaxed/simple;
-	bh=c+X4o8yOOqmqqo+T6TcDvzWoDO4BblrQxz4brlJHuSg=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GuSP4zdSik2Wo6SVJkKwhdlIuhMomGGEFefSw2yMbSMljg8zLYyIeIzg2PEQUR0YXh06VnDPFImtIhsaR5jJsqOJs8I3JB2n7k3MhKNP5B3PEIk6QrZ16ti0iNJL8thzCp0wf1V6imZE+byOO2dyv2UESseDPhzI35rAIE7/A4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jygJFWOz; arc=none smtp.client-ip=209.85.218.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1718963567; c=relaxed/simple;
+	bh=l0lDQgZrcjAUqFhBaSXXDIaBllThVG1SJNZgat8tRkA=;
+	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
+	 Subject:Content-Type; b=GHuNi2TNuZphHN1AvGpkNOWDpH/DPdvgz3HR3e0Q4T/+Qg41NuffODU0q+L8j0BaCa67mlNpBe5AjjfPyzReHt5vBAPzmpW9uL+1kxQBujbIb4Iw0WhbmGSk1lM1HMyVmLn+saL1GsX0DCzsrDPWeaB7tssrRopPQW6F50VHqmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=MKJcxPLG; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=X7nAgy7B; arc=none smtp.client-ip=103.168.172.147
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jygJFWOz"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-a6f09b457fdso187865866b.2;
-        Fri, 21 Jun 2024 02:44:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1718963054; x=1719567854; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=YH8HgTmsyYTHd1UBCvXdgm36Yrr0b+GSZnRwwUHMfH4=;
-        b=jygJFWOzE7qDhvCZMYt53YmCfoMYPk4jpPHVbxlnSWSzffOyBHjLawePlBBliQ5+nK
-         ILmZkBNYOzAR7i2DJ207S6mWv2DN1M6GlYZ8SUSaN7hkTWtBS7PaE1VR63PvGY5pVbx9
-         p3Ih0jb9C4YkWq73+R1HK4bEhyowuFkKTzlgT9j85jqzIr+EG0mN7xjO24snaMMgPMuS
-         nB8YA3I+lhb7vpFOBWaZU0l5PvKuEA9ocdbCFc5QVfUJqo6OmtjhaoHc4kTvP+DVQ57k
-         IhWojDFSDkgNc9s4P0HJcn2PTnIMNJYFOoehLR+gHj7klfIeJXV9L+tWCdgUy2lV2XJL
-         cs9g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718963054; x=1719567854;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=YH8HgTmsyYTHd1UBCvXdgm36Yrr0b+GSZnRwwUHMfH4=;
-        b=dKMpez965GDd2VlX2312zldlPTcSS1Op35P+U9kGsWMHun9/o9w+ufVRK8x8ovHjHW
-         s8n2wD5O/0t7VPBIDSwtn1tKLsRYqmoaTfloJM2fj9FkzSJ7IT1JjX60DlY5Scz50OpA
-         U7ubSC+cKeP1cyu9oRPVO1I1CGAw/cbnkOrlDQroFtIcSqr3APa9KEDr3oUz3KYM92e/
-         ikmzbub0he9S7pGaURrXrtIJQa65Qf5SuYcDf/Ww1Vn5gNXcHZSKq7+2poOA0nJM+PRO
-         +NZX91I2RjSTjxEs0xCSbK+KACb951HDiHCw/cwSaYGLVTCio4o5ViFqm7Y+mdUsQzgi
-         i80g==
-X-Forwarded-Encrypted: i=1; AJvYcCVmLMLJzmv3XbrmIUnEz+o3sCCVfQzAXhaMEMmGqTod7a+3rVWw2F4IMCfWs/GaGpWL1t2ob2PH4bxeZQIQ6RXjbvmvYplmb0cLMDvlOlBM2eVxyAs2tS6ZnB1ejsqq8o7Hcvij0ryH3Q==
-X-Gm-Message-State: AOJu0YzYPXx4wTV66W8EBy2XBR+nRdiYtlCpa1g14c5GPWpPLIY8WgxN
-	ZvocEhB5Xfl/wDRtaPYG9QMP3ciXGqK2DO+g1BsIRzxzi/FdGOOH
-X-Google-Smtp-Source: AGHT+IHFvIYFRPxClWRA8y4JLBhyArN9ZGGm2+KYv28v2EmS+G6m3eLsRivYBY4rUA6LGQZV4cbFow==
-X-Received: by 2002:a17:907:a602:b0:a6f:5efb:5c8 with SMTP id a640c23a62f3a-a6fab6088e7mr596883766b.9.1718963054027;
-        Fri, 21 Jun 2024 02:44:14 -0700 (PDT)
-Received: from pc636 (176-227-201-31.ftth.glasoperator.nl. [31.201.227.176])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a6fcf48b17esm64261166b.88.2024.06.21.02.44.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Jun 2024 02:44:13 -0700 (PDT)
-From: Uladzislau Rezki <urezki@gmail.com>
-X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
-Date: Fri, 21 Jun 2024 11:44:12 +0200
-To: Baoquan He <bhe@redhat.com>, Nick Bowler <nbowler@draconx.ca>
-Cc: Hailong Liu <hailong.liu@oppo.com>, Nick Bowler <nbowler@draconx.ca>,
-	linux-kernel@vger.kernel.org,
-	Linux regressions mailing list <regressions@lists.linux.dev>,
-	linux-mm@kvack.org, sparclinux@vger.kernel.org,
-	"Uladzislau Rezki (Sony)" <urezki@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <ZnVLbCCkvhf5GaTf@pc636>
-References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
- <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
- <20240621033005.6mccm7waduelb4m5@oppo.com>
- <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="MKJcxPLG";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="X7nAgy7B"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailfout.nyi.internal (Postfix) with ESMTP id B795513801A0;
+	Fri, 21 Jun 2024 05:52:44 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Fri, 21 Jun 2024 05:52:44 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm1; t=1718963564; x=1719049964; bh=WMGDo/weqH
+	B9YDWLlQD6sLBRrGER7ScpjCWRSqIRAJU=; b=MKJcxPLGgvmkBY+j/HTLZjZ8KI
+	pvGXw459FAlanf7Ac5v5b80QkLQF8xlXMpxYpBvx4w9U/JqBjy+WLg42sp2LCoU7
+	Q1b7sVY0U9atF6syLC4XY52fNn0nDOmK/ZAU1NPDw3Ole9FWcIKsJ3WhrUSbjS0O
+	i2l2ZiXzugEyGrEBwdm3cuJRW2BdSaCh9EPr80/iCCtKcq6Na1X7f0bajgjej8Tx
+	FitYQuzmPjk0hPwNzDjYuPI+Yp1cAv/YSHWqMQzL0+ow//AxFir6unBR1Xx43VMt
+	sTtOJWUxx7oJFStml4ol1MIfUqgzo4a50v7aYyXLtepLNGOKd3V6UG9I95kw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm2; t=1718963564; x=1719049964; bh=WMGDo/weqHB9YDWLlQD6sLBRrGER
+	7ScpjCWRSqIRAJU=; b=X7nAgy7BTqyAvR65qflUPcwaq1L6pXZMoo47rxn9ZM3V
+	sKDdHt5wvqDbT5sa14aR9hCMiL0oj6CvWrv8SKMrJq40IWWOWM8MbFp61EphmqmA
+	GCBih7Z83pGEIOJtdrxEY58EcLZTCfr3LtYlO5Bk5HkZc4y2HUPbxdUUvLm78WWR
+	6tuoSmWxlD/uu2pPsgmL8g2dFZKC0Xt/QAcoFkPreb180QnAWGYkaopwGC6yCFEm
+	/Z+Br4e5r/bgM/ZXXRokPJT4v4p+Ba0c7m4Kpk7n6XdiBc6ZZ4ATNt57/k27/Yh7
+	tkRb7e0hgdJYE6Yo5pJL5NM0EiwSlMy6buj3koNHsA==
+X-ME-Sender: <xms:a011ZoRKk0xgtXrnk7B-qG7CoQgSoOMrP6uxlJU8ziJL2FLkCKjJ-g>
+    <xme:a011ZlxuT2HoJobpF--UwiCQxrck0_h0q9Qbx7ELDLXtD-5We7CXp5ouF-xDkVRRJ
+    XeIZNFUDqIuP2U5LAw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrfeefgedgvdduucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:a011Zl39KEhZ-U9AaTAu3qpgNWAWYG4Puo5AAhWDqyHAU63ILvKvOg>
+    <xmx:a011ZsDatAkgsBYef_mlo8HxX4iiDqSBQuQ7pbgM9HyizWRoDF7JfA>
+    <xmx:a011ZhhozQMBHEtX3Ty6cO1Tqt3jE9LlaBWOyo6ySWIoCH-OSDkLxg>
+    <xmx:a011Zop-AXFZkCbuJe_8FCJsMNZLUN5VvVeVPrHUajKBVXxUTW5uxQ>
+    <xmx:bE11ZsMsQ8wP4yZocAMKl9MACO-_6K03a9Qh0f0TNL0WVY97DHdpMQGU>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id D8547B6008D; Fri, 21 Jun 2024 05:52:43 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.11.0-alpha0-522-ga39cca1d5-fm-20240610.002-ga39cca1d
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
+Message-Id: <83613d85-53f9-4644-be68-4f438abe2e52@app.fastmail.com>
+In-Reply-To: 
+ <a623c1979ac494d01977abe6dfc22e8381dc6e4f.camel@physik.fu-berlin.de>
+References: <20240620162316.3674955-1-arnd@kernel.org>
+ <20240620162316.3674955-8-arnd@kernel.org>
+ <e80809ba-ee81-47a5-9b08-54b11f118a78@gmx.de>
+ <1537113c4396cd043a08a72bdca80cccfa2d54d9.camel@physik.fu-berlin.de>
+ <ba14c4fb-e6a7-46b3-a030-081482264a99@app.fastmail.com>
+ <a623c1979ac494d01977abe6dfc22e8381dc6e4f.camel@physik.fu-berlin.de>
+Date: Fri, 21 Jun 2024 11:52:23 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
+ "Helge Deller" <deller@gmx.de>, "Arnd Bergmann" <arnd@kernel.org>,
+ Linux-Arch <linux-arch@vger.kernel.org>, linux-kernel@vger.kernel.org
+Cc: "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ "David S . Miller" <davem@davemloft.net>,
+ "Andreas Larsson" <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+ "Michael Ellerman" <mpe@ellerman.id.au>,
+ "Nicholas Piggin" <npiggin@gmail.com>,
+ "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+ "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+ linuxppc-dev@lists.ozlabs.org, "Brian Cain" <bcain@quicinc.com>,
+ linux-hexagon@vger.kernel.org, guoren <guoren@kernel.org>,
+ "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+ "Heiko Carstens" <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
+ "Rich Felker" <dalias@libc.org>, linux-sh@vger.kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org,
+ "Xi Ruoyao" <libc-alpha@sourceware.org>,
+ "musl@lists.openwall.com" <musl@lists.openwall.com>,
+ "LTP List" <ltp@lists.linux.it>,
+ "Adhemerval Zanella Netto" <adhemerval.zanella@linaro.org>
+Subject: Re: [PATCH 07/15] parisc: use generic sys_fanotify_mark implementation
+Content-Type: text/plain
 
-On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
-> On 06/21/24 at 11:30am, Hailong Liu wrote:
-> > On Thu, 20. Jun 14:02, Nick Bowler wrote:
-> > > On 2024-06-20 02:19, Nick Bowler wrote:
-> > > > After upgrading my sparc to 6.9.5 I noticed that attempting to run
-> > > > xfsdump instantly (within a couple seconds) and reliably crashes the
-> > > > kernel.  The same problem is also observed on 6.10-rc4.
-> > > [...]
-> > > >   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
-> > > >   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
-> > > >   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
-> > > >   Date:   Thu Mar 30 21:06:38 2023 +0200
-> > > >
-> > > >       mm: vmalloc: remove a global vmap_blocks xarray
-> > >
-> > > I think I might see what is happening here.
-> > >
-> > > On this machine, there are two CPUs numbered 0 and 2 (there is no CPU1).
-> > >
-> > +Baoquan
-> 
-> Thanks for adding me, Hailong.
-> 
-> > 
-> > Ahh, I thought you are right. addr_to_vb_xa assume that the CPU numbers are
-> > contiguous. I don't have knowledge about CPU at all.
-> > Technically change the implement addr_to_vb_xa() to
-> > return &per_cpu(vmap_block_queue, raw_smp_processor_id()).vmap_blocks;
-> > would also work, but it violate the load balance. Wating for
-> > experts reply.
-> 
-> Yeah, I think so as you explained.
-> 
-> > 
-> > > The per-cpu variables in mm/vmalloc.c are initialized like this, in
-> > > vmalloc_init
-> > >
-> > >   for_each_possible_cpu(i) {
-> > >     /* ... */
-> > >     vbq = &per_cpu(vmap_block_queue, i);
-> > >     /* initialize stuff in vbq */
-> > >   }
-> > >
-> > > This loops over the set bits of cpu_possible_mask, bits 0 and 2 are set,
-> > > so it initializes stuff with i=0 and i=2, skipping i=1 (I added prints to
-> > > confirm this).
-> > >
-> > > Then, in vm_map_ram, with the problematic change it calls the new
-> > > function addr_to_vb_xa, which does this:
-> > >
-> > >   int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-> > >   return &per_cpu(vmap_block_queue, index).vmap_blocks;
-> > >
-> > > The num_possible_cpus() function counts the number of set bits in
-> > > cpu_possible_mask, so it returns 2.  Thus, index is either 0 or 1, which
-> > > does not correspond to what was initialized (0 or 2).  The crash occurs
-> > > when the computed index is 1 in this function.  In this case, the
-> > > returned value appears to be garbage (I added prints to confirm this).
-> 
-> This is a great catch. 
-> 
-Indeed :)
-
-> > >
-> > > If I change addr_to_vb_xa function to this:
-> > >
-> > >   int index = ((addr / VMAP_BLOCK_SIZE) & 1) << 1; /* 0 or 2 */
-> > >   return &per_cpu(vmap_block_queue, index).vmap_blocks;
-> 
-> Yeah, while above change is not generic, e.g if it's CPU0 and CPU3.
-> I think we should take the max possible CPU number as the hush bucket
-> size. The vb->va is also got from global free_vmap_area, so no need to
-> worry about the waste.
+On Fri, Jun 21, 2024, at 11:03, John Paul Adrian Glaubitz wrote:
+> On Fri, 2024-06-21 at 10:56 +0200, Arnd Bergmann wrote:
+>> Feel free to pick up the sh patch directly, I'll just merge whatever
+>> is left in the end. I mainly want to ensure we can get all the bugfixes
+>> done for v6.10 so I can build my longer cleanup series on top of it
+>> for 6.11.
 >
-Agree.
+> This series is still for 6.10?
 
-> diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> index be2dd281ea76..18e87cafbaf2 100644
-> --- a/mm/vmalloc.c
-> +++ b/mm/vmalloc.c
-> @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
->  static struct xarray *
->  addr_to_vb_xa(unsigned long addr)
->  {
-> -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-> +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
->  
->  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
->  }
-> 
-The problem i see is about not-initializing of the:
-<snip>
-	for_each_possible_cpu(i) {
-		struct vmap_block_queue *vbq;
-		struct vfree_deferred *p;
+Yes, these are all the bugfixes that I think we want to backport
+to stable kernels, so it makes sense to merge them as quickly as
+possible. The actual stuff I'm working on will come as soon as
+I have it in a state for public review and won't need to be
+backported.
 
-		vbq = &per_cpu(vmap_block_queue, i);
-		spin_lock_init(&vbq->lock);
-		INIT_LIST_HEAD(&vbq->free);
-		p = &per_cpu(vfree_deferred, i);
-		init_llist_head(&p->list);
-		INIT_WORK(&p->wq, delayed_vfree_work);
-		xa_init(&vbq->vmap_blocks);
-	}
-<snip>
-
-correctly or fully. It is my bad i did not think that CPUs in a possible mask
-can be non sequential :-/
-
-nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
-when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
-
-Or i missed something in your patch, Baoquan?
-
---
-Uladzislau Rezki
+     Arnd
