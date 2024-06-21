@@ -1,250 +1,192 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+Received: from APC01-TYZ-obe.outbound.protection.outlook.com (mail-tyzapc01on2040.outbound.protection.outlook.com [40.107.117.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CC6E80C03;
-	Thu, 20 Jun 2024 21:23:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718918601; cv=none; b=NKVHwKVI+9AZ4tH3I1eDWY5LwjpG2TkKi6c7ObQml3S/JM4V4W/O+WQnDnTe4G0jx/7KBtuA1IH2dmQ6ARmy3atoEWkttU8cgJy2gKSikhp6uLSvJ2jwxEqtR3kuDfBcdC5FBkORcCnQfpI1RcaD9+YWyqyeprIWRwZYepMoil4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718918601; c=relaxed/simple;
-	bh=+Uo7sonqUh5Rfxt7PuAB78dQaC+jLKNfw3Y25y2aTz8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=a48ah7fk7jU3S4JXenQukTXW7SYDHIwiqA44VkbXTIPKPLJOQQuG+gUxIoU0eWRONAkQPJB8mFuI2pWcPTksXeF2u8J2Uir7Q0mo101cJgCf+yC8WauuQEubhvfJiL1/xCKPo/fCgZr8IgqtISYYzK0m/fGrI+for73bkAuM4zA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=deller@gmx.de header.b=KnHLzNaE; arc=none smtp.client-ip=212.227.15.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1E902746F;
+	Fri, 21 Jun 2024 03:30:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.117.40
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1718940628; cv=fail; b=mMtcgwg/0ikm64JKTmLuVFLunaEWO2ZhNuFaS5YpkzfWZyDTnjOziZ6xV9vskeCyY8jmL53s75si4/iH5eo8Lv55FgeuGi49LXhbo3MggdjP3N3Kzlvlek7qOcmKz7fVRyUo5fEgkuG1k/Cx2X8UlcUWEAoJXe+vJcjAZ6ocR/k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1718940628; c=relaxed/simple;
+	bh=m6fOaIrIDH47qZntJTN35PQNKkUsA2MYQidr8EGOjPk=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=U9BzkG2vpw84Bu+aRSTUupmFTi/BEm6+3vyjn1HTOHZv77Xku6OeR/t5H0bq7EoLjTw+18H1NBqkWlwPBWSIsDiJiehSrGpYheHqJI3TfqtjldqXiJSL65ROh3EDLi+9b6EQHFxhqUKazYUexMZIOPvzgOu+sMN5TiTwCCovCwM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com; spf=pass smtp.mailfrom=oppo.com; dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b=tDTMFMgt; arc=fail smtp.client-ip=40.107.117.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oppo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=deller@gmx.de header.b="KnHLzNaE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1718918524; x=1719523324; i=deller@gmx.de;
-	bh=6VCd1TqwAbp3zAEcjaKM6L/q747d5LQnckUw8HW0fKQ=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=KnHLzNaETegScDXA4KLTbpOouNlDC5HK80KPxpnpc40DX4T77w59Ss3e/HCAWSye
-	 B5FFpnXjd36IThbLSgp9AsD1FIjyapMoaXduiedhffga9f8izZAcQieP/arXioZr1
-	 JKTwkwKglRCGFTD34YyX5mgixXE+4SieRCr0oc2R4CDSn++J7hULKoKmY/5cX3jPf
-	 Uotwdjhj0gZS3ylvnDgxiDkmmDvNJtaAk2YPeg837491xS6QrhgubQkxJhTUMX/O8
-	 vU+csoxYJ8FEp1YyPi6pumi5ketDs80L0fdIZ88ioSMXKu5/pWdh1iQEghPUO2QQU
-	 E6PtQWx0ll+p+Yvz5g==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.20.55] ([109.250.63.133]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MJmKh-1s5LBS43M9-00LsXl; Thu, 20
- Jun 2024 23:22:04 +0200
-Message-ID: <e80809ba-ee81-47a5-9b08-54b11f118a78@gmx.de>
-Date: Thu, 20 Jun 2024 23:21:58 +0200
+	dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b="tDTMFMgt"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Fpvoe9pC02BlWt2W6ieAJ5dniLHhA3ybK6joaJhhxQaeqwD51VgAfLIH5hDTBDJqKngiL1G1lbtl3NPU9ZHGBuu1GzCDQm98wF6gXZP/1/83MgagptOtoD1lH2WocFOPwt3DB6f4brV8MdMBSrogUdUzZ9vfZqAIveGcQW6z3bEPVIS8j4dzskLffIf1vk5vafS8HPShD6jg1tZ+63/tRW/r8uaK6FxjtCFI8Dy3iUVVaDkcokVCeS4+8vBxdMOQTt0rbXAFjYftmzNyMDjEV3duHG4seITjLtdaykFdhw2H6ExmSeP+ABon5v7RRKVg0qLmI/MZUXClEq+n2HwVuQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=yoxSo6n5OyRjUQ1Jz52s4G5ESzFfW2UgwEtOIbPtFZg=;
+ b=jYxk4rfYb+zG9YdeoNkY0xYYRzWpYTg5ZKMc+aDrLIYjidx54mmgfQKFyNKsNKQqDXA3yJ7Sy0p0G8pdQpEK+SUzDoJ2u78ZRz9fVeVb2X5Z/vI2GLuNOmPKPc8Sl91v3GNwSXtvM60XioxbgW1z3KeBN7Hw6Cphgy6sqXm/j6CALDA/OUSD1O35Np4Hy7aF/cWgjXwBrnVW8WP06FSkG43czufQqynPa1j51vaSgVGRUJY+jAJvh+BzHar2zB/kl+D8+ny+2ELswZ8X8YDq4PmRqsZgWlgyN0HHgNp3Vm8rHEznZdVXrKSaoqwDyVLHI/mCmB7TlXyAQt1mQc+jSw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 58.252.5.68) smtp.rcpttodomain=draconx.ca smtp.mailfrom=oppo.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=oppo.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oppo.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=yoxSo6n5OyRjUQ1Jz52s4G5ESzFfW2UgwEtOIbPtFZg=;
+ b=tDTMFMgtk/BKu7m4konqFwpojVJHN1EYw9oZUrxVOn6FRc+VHp+aB7nH3W+g45Rb5i/E2Rn7B7Kd7wiCYzymAsk7YJwGwCmlu4WwTEtOapE0sslgqE1motXUcwmmmc4c1XPFreP+7p/PGR9Q3/Vaq3LEiPyecnuv5TC+yos257k=
+Received: from KL1PR01CA0099.apcprd01.prod.exchangelabs.com
+ (2603:1096:820:3::15) by TY0PR02MB5924.apcprd02.prod.outlook.com
+ (2603:1096:400:205::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7698.19; Fri, 21 Jun
+ 2024 03:30:22 +0000
+Received: from HK3PEPF0000021C.apcprd03.prod.outlook.com
+ (2603:1096:820:3:cafe::9b) by KL1PR01CA0099.outlook.office365.com
+ (2603:1096:820:3::15) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.33 via Frontend
+ Transport; Fri, 21 Jun 2024 03:30:21 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 58.252.5.68)
+ smtp.mailfrom=oppo.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=oppo.com;
+Received-SPF: Pass (protection.outlook.com: domain of oppo.com designates
+ 58.252.5.68 as permitted sender) receiver=protection.outlook.com;
+ client-ip=58.252.5.68; helo=mail.oppo.com; pr=C
+Received: from mail.oppo.com (58.252.5.68) by
+ HK3PEPF0000021C.mail.protection.outlook.com (10.167.8.38) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.7677.15 via Frontend Transport; Fri, 21 Jun 2024 03:30:20 +0000
+Received: from oppo.com (172.16.40.118) by mailappw31.adc.com (172.16.56.198)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Fri, 21 Jun
+ 2024 11:30:05 +0800
+Date: Fri, 21 Jun 2024 11:30:05 +0800
+From: Hailong Liu <hailong.liu@oppo.com>
+To: Nick Bowler <nbowler@draconx.ca>
+CC: <linux-kernel@vger.kernel.org>, Linux regressions mailing list
+	<regressions@lists.linux.dev>, <linux-mm@kvack.org>,
+	<sparclinux@vger.kernel.org>, Baoquan He <bhe@redhat.com>, "Uladzislau Rezki
+ (Sony)" <urezki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
+Message-ID: <20240621033005.6mccm7waduelb4m5@oppo.com>
+References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+ <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 07/15] parisc: use generic sys_fanotify_mark
- implementation
-To: Arnd Bergmann <arnd@kernel.org>, linux-arch@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org,
- linux-parisc@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
- linuxppc-dev@lists.ozlabs.org, Brian Cain <bcain@quicinc.com>,
- linux-hexagon@vger.kernel.org, Guo Ren <guoren@kernel.org>,
- linux-csky@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>,
- linux-s390@vger.kernel.org, Rich Felker <dalias@libc.org>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- linux-sh@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org,
- libc-alpha@sourceware.org, musl@lists.openwall.com, ltp@lists.linux.it,
- Adhemerval Zanella <adhemerval.zanella@linaro.org>
-References: <20240620162316.3674955-1-arnd@kernel.org>
- <20240620162316.3674955-8-arnd@kernel.org>
-Content-Language: en-US
-From: Helge Deller <deller@gmx.de>
-Autocrypt: addr=deller@gmx.de; keydata=
- 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
-In-Reply-To: <20240620162316.3674955-8-arnd@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:cTOmKaZgB4+8zdTJJh1n5TDacfeJ38i7AgNBdwGwc4CoHa/X8U4
- bE+1vJy0vhvQ2uWD+vixAMUbThDwHKmI1c65UoVWRiM/nQoMEdjbqq1otbBNx+OGkFQx4fn
- mgJ5rTZYpK+2fKlwVnN5rHKZd/pen/VHbL9pcK3jqJcyR3UYVt4o8k+0GGaMmIGz+hI3M7M
- mxH58vLwhXQKSSi6vLPJg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:x5UQlMD/2YU=;CsNl/nTOJkYUZhki9fDs6q9vDdf
- oM+hcHUSHc2ExRaAv7sWxiFIV8RJgpM+0H30e2S+d0xjY5m5CFKsoiphUxhHCh4nDQzy9j4f/
- CAskEQ1LAWY63KLspKWj1iGcZmCy15ITifFhVoSXQpQDvhWolZHd+sZ/FWzC9Jskhw58xC3St
- zCb4lTQHRcOW3K1ff+yoDOzakZ+eIJFBCtjWod6xoF7MIYAl1aLPFkYJTwRNB2/I9SmW27sg4
- lO6OtLdS7MW2LW5Z51kQkGtA8pg1iScpKIwu9GRxCU4nEvo+WsH0N+ANLqOcuQUexTYTNBMVo
- grsDY67nIhqyh2iE5ily0sSTCby/JVN9stnKQW+s0gbtMpxa2VT6zy4UvXaTolnHPmzaX1z9+
- E/8tW6ZOsyl9AFn0H+Uh1HmbcHDxK0yVbK8WU3bVEcpJ63PUlFdD70l1k7BrQ57p6yNrWKR+e
- w0mlz7jE2kn5yoCFlcZjPKc3Wy5/aGfcXSBOT92fvinOiFkULNI76JsjwtbKefoj8xeEj1Ife
- EI9MfxKRMepPXxJ5+zkDukmniYaJihem8WojdMAe1HdqPseztXPpwCEhMVIB6vTlJGNuofmIQ
- yLv4eyDDE2Y2CIdo2MYGlDlXh0hvgYVjJSDwEDyBEZmo37kVFpruNTpwigw3f8pTFtIj3GS3J
- WRTi/Qd3p8WceIYbj3c2sSF4dSzle72ZmdOqSRxapMn5CasyJmt8R9AW5ygWmr+mivL1X4F/1
- fBo8Go3QBJop+BznMDn+WSuee6eImhKYr1ixjpi5z4KOmxDsWMfflgHzm21WPAGAqegbt8keP
- y6o3DzmUma2nfAV/lB6gdbPyBEkpAuZoY91r3fqj87H6I=
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
+X-ClientProxiedBy: mailappw31.adc.com (172.16.56.198) To mailappw31.adc.com
+ (172.16.56.198)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: HK3PEPF0000021C:EE_|TY0PR02MB5924:EE_
+X-MS-Office365-Filtering-Correlation-Id: f7136f1c-a4d8-40d0-6a17-08dc91a27ad4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230037|1800799021|82310400023|376011|36860700010;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?ue9R0KkAYSnDizo4T7une3UovIr9f1VxhT7g0mZQEkskw6xp39C7klysDpDg?=
+ =?us-ascii?Q?BojaB3RiuPKeT+rZ0JDvhL5xk4pw3oaUS4qk5ML29Eql48mtnVFsa156bRvn?=
+ =?us-ascii?Q?/mtE+wQnwO9e0sLR2cnjqw4eJt2YplRRlF+1qco5S60cUTRu7QS7/+0YpIAp?=
+ =?us-ascii?Q?l1D1+eSr+dtx0KoHKVsSMEHA4sGmwO4Rf8i+m/v9gkXs9Ab5iZ6RCJEeFEso?=
+ =?us-ascii?Q?IhvkjAjuWWjt+hHfQzFc58PEb4jxqAghI6r0ukvGsbTB8pPIbuAJ+5558WyJ?=
+ =?us-ascii?Q?2o/5teWWaoIS8wuOQ/R2sg7wQYur3q96Ksj3J1nbbw3twRu3CnfyLxd3RJmn?=
+ =?us-ascii?Q?SAKVkranrfOcl6Pl6lITTQa7wCtqi1+YB67IXLkJfv00VrPspIa7la2wLGky?=
+ =?us-ascii?Q?VsgWBoUy7zk8hiK+UqyGkKdSUYTE3HtJTCfryaIGFYle4thFiQdaYDSATW/C?=
+ =?us-ascii?Q?aIpLR5eJ6Qia4vLf+ctfVHMff+gsuie8PAmTjqTpm8aGkDt7B5TB8Mbd374q?=
+ =?us-ascii?Q?TJw4Y2KeXWJTpi7dL4qfIHPN7Q4xThBvOKy9u1oMDkVzEmtk3DFfwM6mktRy?=
+ =?us-ascii?Q?3czhkXKodE70db5OdzxjBmE/NU3bgxfKk6RtDRgU/Z/RDUVL0DNv6KHyeKXc?=
+ =?us-ascii?Q?67rePC+Qccnjdf7onAk57RT84H0e2e9+RtTxWxYsvpPCBaH5QHLjvdbg5dLZ?=
+ =?us-ascii?Q?ngmug5Zkl6SxURcrm221FpSpBsL35rWpYKzNSKLWSinyt6tpY8uIbc0SU9KK?=
+ =?us-ascii?Q?+29cL5uU7F7nfCkO4hJcVmmfNt/JDBh/NnrApz2gNmbqaLxnrmmC9fyPf+Hw?=
+ =?us-ascii?Q?b11WtjIxPrAOfUynvbj9m7qXmrvqjoqBV2dQroMqyJstZpXv6y0rPdOV5G7B?=
+ =?us-ascii?Q?UDhAzaqhxUH1xzwRIz9ZKolNeaCtZRnIMFURNAjiis7sxUzL+OzpjanIXZiY?=
+ =?us-ascii?Q?7XSYxbp6QzVhxUMC+NeDkv4kh2DZQOpqltG0qoMSorhq1UnQSYc2pJlrImyQ?=
+ =?us-ascii?Q?oLbhSu+Zs/GP3PuyU6CABVdDIw5WmYG7WADryDg1q2N0xcUwzjnH59PXwZ7r?=
+ =?us-ascii?Q?3x6KZYuGcSiDSA7fPcIjZvLV6pzQG62R1UU++oT/TQpoJj4prFAx8XnWpEhK?=
+ =?us-ascii?Q?l6SNE2cbf2SBTs720cViXsrAK/aIFzTdziqo/EiO9zYVDAvf5mehCScZRH7L?=
+ =?us-ascii?Q?792Bki2bG2a2hfIbkHtk6H+IsFoRY8BtNtp5VYH21SeRb6RE0jcbGE+FThnw?=
+ =?us-ascii?Q?xa/AXUjDbfcxkg4tT58wU08HjbZsn08l6NWQ2Xdw8AdNQPeWzSnWR2Ts6V6b?=
+ =?us-ascii?Q?5Qbb/MUiCt3qAcxMb49uY3sLRIjnnjlrqLpLDx/Q+dMIkudBH+vb4ZcHOe48?=
+ =?us-ascii?Q?njcNPz6HmsiYt94U/zLxID56HM4ZyhHn9nZd/exCwqEoK1GweA=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:58.252.5.68;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.oppo.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(1800799021)(82310400023)(376011)(36860700010);DIR:OUT;SFP:1101;
+X-OriginatorOrg: oppo.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2024 03:30:20.9519
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: f7136f1c-a4d8-40d0-6a17-08dc91a27ad4
+X-MS-Exchange-CrossTenant-Id: f1905eb1-c353-41c5-9516-62b4a54b5ee6
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f1905eb1-c353-41c5-9516-62b4a54b5ee6;Ip=[58.252.5.68];Helo=[mail.oppo.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	HK3PEPF0000021C.apcprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY0PR02MB5924
 
-On 6/20/24 18:23, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
+On Thu, 20. Jun 14:02, Nick Bowler wrote:
+> On 2024-06-20 02:19, Nick Bowler wrote:
+> > After upgrading my sparc to 6.9.5 I noticed that attempting to run
+> > xfsdump instantly (within a couple seconds) and reliably crashes the
+> > kernel.  The same problem is also observed on 6.10-rc4.
+> [...]
+> >   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
+> >   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
+> >   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> >   Date:   Thu Mar 30 21:06:38 2023 +0200
+> >
+> >       mm: vmalloc: remove a global vmap_blocks xarray
 >
-> The sys_fanotify_mark() syscall on parisc uses the reverse word order
-> for the two halves of the 64-bit argument compared to all syscalls on
-> all 32-bit architectures. As far as I can tell, the problem is that
-> the function arguments on parisc are sorted backwards (26, 25, 24, 23,
-> ...) compared to everyone else,
-
-r26 is arg0, r25 is arg1, and so on.
-I'm not sure I would call this "sorted backwards".
-I think the reason is simply that hppa is the only 32-bit big-endian
-arch left...
-
-> so the calling conventions of using an
-> even/odd register pair in native word order result in the lower word
-> coming first in function arguments, matching the expected behavior
-> on little-endian architectures. The system call conventions however
-> ended up matching what the other 32-bit architectures do.
+> I think I might see what is happening here.
 >
-> A glibc cleanup in 2020 changed the userspace behavior in a way that
-> handles all architectures consistently, but this inadvertently broke
-> parisc32 by changing to the same method as everyone else.
-
-I appreciate such cleanups to make arches consistent.
-But it's bad if breakages aren't noticed or reported then...
-
-> The change made it into glibc-2.35 and subsequently into debian 12
-> (bookworm), which is the latest stable release. This means we
-> need to choose between reverting the glibc change or changing the
-> kernel to match it again, but either hange will leave some systems
-> broken.
+> On this machine, there are two CPUs numbered 0 and 2 (there is no CPU1).
 >
-> Pick the option that is more likely to help current and future
-> users and change the kernel to match current glibc.
++Baoquan
 
-Agreed (assuming we have really a problem on parisc).
+Ahh, I thought you are right. addr_to_vb_xa assume that the CPU numbers are
+contiguous. I don't have knowledge about CPU at all.
+Technically change the implement addr_to_vb_xa() to
+return &per_cpu(vmap_block_queue, raw_smp_processor_id()).vmap_blocks;
+would also work, but it violate the load balance. Wating for
+experts reply.
 
-> This also
-> means the behavior is now consistent across architectures, but
-> it breaks running new kernels with old glibc builds before 2.35.
+> The per-cpu variables in mm/vmalloc.c are initialized like this, in
+> vmalloc_init
 >
-> Link: https://sourceware.org/git/?p=3Dglibc.git;a=3Dcommitdiff;h=3Dd1501=
-81d73d9
-> Link: https://git.kernel.org/pub/scm/linux/kernel/git/history/history.gi=
-t/commit/arch/parisc/kernel/sys_parisc.c?h=3D57b1dfbd5b4a39d
-> Cc: Adhemerval Zanella <adhemerval.zanella@linaro.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> I found this through code inspection, please double-check to make
-> sure I got the bug and the fix right.
-
-The patch looks good at first sight.
-I'll pick it up in my parisc git tree and will do some testing the
-next few days and then push forward for 6.11 when it opens....
-
-Thank you!!
-
-Helge
-
-> The alternative is to fix this by reverting glibc back to the
-> unusual behavior.
-> ---
->   arch/parisc/Kconfig                     | 1 +
->   arch/parisc/kernel/sys_parisc32.c       | 9 ---------
->   arch/parisc/kernel/syscalls/syscall.tbl | 2 +-
->   3 files changed, 2 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
-> index daafeb20f993..dc9b902de8ea 100644
-> --- a/arch/parisc/Kconfig
-> +++ b/arch/parisc/Kconfig
-> @@ -16,6 +16,7 @@ config PARISC
->   	select ARCH_HAS_UBSAN
->   	select ARCH_HAS_PTE_SPECIAL
->   	select ARCH_NO_SG_CHAIN
-> +	select ARCH_SPLIT_ARG64 if !64BIT
->   	select ARCH_SUPPORTS_HUGETLBFS if PA20
->   	select ARCH_SUPPORTS_MEMORY_FAILURE
->   	select ARCH_STACKWALK
-> diff --git a/arch/parisc/kernel/sys_parisc32.c b/arch/parisc/kernel/sys_=
-parisc32.c
-> index 2a12a547b447..826c8e51b585 100644
-> --- a/arch/parisc/kernel/sys_parisc32.c
-> +++ b/arch/parisc/kernel/sys_parisc32.c
-> @@ -23,12 +23,3 @@ asmlinkage long sys32_unimplemented(int r26, int r25,=
- int r24, int r23,
->       	current->comm, current->pid, r20);
->       return -ENOSYS;
+>   for_each_possible_cpu(i) {
+>     /* ... */
+>     vbq = &per_cpu(vmap_block_queue, i);
+>     /* initialize stuff in vbq */
 >   }
-> -
-> -asmlinkage long sys32_fanotify_mark(compat_int_t fanotify_fd, compat_ui=
-nt_t flags,
-> -	compat_uint_t mask0, compat_uint_t mask1, compat_int_t dfd,
-> -	const char  __user * pathname)
-> -{
-> -	return sys_fanotify_mark(fanotify_fd, flags,
-> -			((__u64)mask1 << 32) | mask0,
-> -			 dfd, pathname);
-> -}
-> diff --git a/arch/parisc/kernel/syscalls/syscall.tbl b/arch/parisc/kerne=
-l/syscalls/syscall.tbl
-> index 39e67fab7515..66dc406b12e4 100644
-> --- a/arch/parisc/kernel/syscalls/syscall.tbl
-> +++ b/arch/parisc/kernel/syscalls/syscall.tbl
-> @@ -364,7 +364,7 @@
->   320	common	accept4			sys_accept4
->   321	common	prlimit64		sys_prlimit64
->   322	common	fanotify_init		sys_fanotify_init
-> -323	common	fanotify_mark		sys_fanotify_mark		sys32_fanotify_mark
-> +323	common	fanotify_mark		sys_fanotify_mark		compat_sys_fanotify_mark
->   324	32	clock_adjtime		sys_clock_adjtime32
->   324	64	clock_adjtime		sys_clock_adjtime
->   325	common	name_to_handle_at	sys_name_to_handle_at
+>
+> This loops over the set bits of cpu_possible_mask, bits 0 and 2 are set,
+> so it initializes stuff with i=0 and i=2, skipping i=1 (I added prints to
+> confirm this).
+>
+> Then, in vm_map_ram, with the problematic change it calls the new
+> function addr_to_vb_xa, which does this:
+>
+>   int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+>   return &per_cpu(vmap_block_queue, index).vmap_blocks;
+>
+> The num_possible_cpus() function counts the number of set bits in
+> cpu_possible_mask, so it returns 2.  Thus, index is either 0 or 1, which
+> does not correspond to what was initialized (0 or 2).  The crash occurs
+> when the computed index is 1 in this function.  In this case, the
+> returned value appears to be garbage (I added prints to confirm this).
+>
+> If I change addr_to_vb_xa function to this:
+>
+>   int index = ((addr / VMAP_BLOCK_SIZE) & 1) << 1; /* 0 or 2 */
+>   return &per_cpu(vmap_block_queue, index).vmap_blocks;
+>
+> xfsdump is working again.
+>
+> Cheers,
+>   Nick
+>
+>
 
+--
+help you, help me,
+Hailong.
