@@ -1,126 +1,290 @@
-Received: from fout4-smtp.messagingengine.com (fout4-smtp.messagingengine.com [103.168.172.147])
+Received: from APC01-SG2-obe.outbound.protection.outlook.com (mail-sgaapc01on2042.outbound.protection.outlook.com [40.107.215.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA79B82D66;
-	Fri, 21 Jun 2024 09:52:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718963567; cv=none; b=QZ/ROz4RRf8N2W2wtQvFp9YBoBOjC7uP2YD/qZLPsDWp5vYe/21DSHe6akkvTws6p56+jX45blE7cJwKjYoL4QuSaW0DtKtIMys3n1WYtXDQ2V5XPXDDlHzG1Jdv+6bjYFRwHwo3lXbvbw/2QHuhU6vIRgmonFKyrLzPj8nH3dk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718963567; c=relaxed/simple;
-	bh=l0lDQgZrcjAUqFhBaSXXDIaBllThVG1SJNZgat8tRkA=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
-	 Subject:Content-Type; b=GHuNi2TNuZphHN1AvGpkNOWDpH/DPdvgz3HR3e0Q4T/+Qg41NuffODU0q+L8j0BaCa67mlNpBe5AjjfPyzReHt5vBAPzmpW9uL+1kxQBujbIb4Iw0WhbmGSk1lM1HMyVmLn+saL1GsX0DCzsrDPWeaB7tssrRopPQW6F50VHqmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=MKJcxPLG; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=X7nAgy7B; arc=none smtp.client-ip=103.168.172.147
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77ECB171E5F;
+	Fri, 21 Jun 2024 10:45:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.215.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1718966734; cv=fail; b=XplKRRu5/P6EFrsIJwPry03Xef1A3MR/UU5dIbwB4SbroHbvYZh2bJKLePUqDdVsLKTk7HLh8DoQqTcgihoJqB4rKs/kjohD/L7Y5YKSJYPZSL0Sb2WO7lCAX9dWdSOXPjl70x+r+pHNJWSzxzBsnAWO8Rc6Zq+sXC01ThmvlTE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1718966734; c=relaxed/simple;
+	bh=7HzLElzkYmEx1fWQzDXu/laGXYtulLAiIeCqeyJIiWA=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r3t6NNrKCfUw06OhC2m5q7nnozowzrHBtRZ9hpp+8rI2q2+lllgGdUxmQzxQsrKoIY0Hn2ZnL6J5N4BHnkV9R0YR5MvJFNA3XkWbNDv0irFlFsMWSG52rCT4soxNhPTOIdzpAz7ed57lHcgmM+qVOFkatUL3s+XX76Nxr26NWuo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com; spf=pass smtp.mailfrom=oppo.com; dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b=gBsxRt9h; arc=fail smtp.client-ip=40.107.215.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oppo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oppo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="MKJcxPLG";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="X7nAgy7B"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailfout.nyi.internal (Postfix) with ESMTP id B795513801A0;
-	Fri, 21 Jun 2024 05:52:44 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Fri, 21 Jun 2024 05:52:44 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1718963564; x=1719049964; bh=WMGDo/weqH
-	B9YDWLlQD6sLBRrGER7ScpjCWRSqIRAJU=; b=MKJcxPLGgvmkBY+j/HTLZjZ8KI
-	pvGXw459FAlanf7Ac5v5b80QkLQF8xlXMpxYpBvx4w9U/JqBjy+WLg42sp2LCoU7
-	Q1b7sVY0U9atF6syLC4XY52fNn0nDOmK/ZAU1NPDw3Ole9FWcIKsJ3WhrUSbjS0O
-	i2l2ZiXzugEyGrEBwdm3cuJRW2BdSaCh9EPr80/iCCtKcq6Na1X7f0bajgjej8Tx
-	FitYQuzmPjk0hPwNzDjYuPI+Yp1cAv/YSHWqMQzL0+ow//AxFir6unBR1Xx43VMt
-	sTtOJWUxx7oJFStml4ol1MIfUqgzo4a50v7aYyXLtepLNGOKd3V6UG9I95kw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm2; t=1718963564; x=1719049964; bh=WMGDo/weqHB9YDWLlQD6sLBRrGER
-	7ScpjCWRSqIRAJU=; b=X7nAgy7BTqyAvR65qflUPcwaq1L6pXZMoo47rxn9ZM3V
-	sKDdHt5wvqDbT5sa14aR9hCMiL0oj6CvWrv8SKMrJq40IWWOWM8MbFp61EphmqmA
-	GCBih7Z83pGEIOJtdrxEY58EcLZTCfr3LtYlO5Bk5HkZc4y2HUPbxdUUvLm78WWR
-	6tuoSmWxlD/uu2pPsgmL8g2dFZKC0Xt/QAcoFkPreb180QnAWGYkaopwGC6yCFEm
-	/Z+Br4e5r/bgM/ZXXRokPJT4v4p+Ba0c7m4Kpk7n6XdiBc6ZZ4ATNt57/k27/Yh7
-	tkRb7e0hgdJYE6Yo5pJL5NM0EiwSlMy6buj3koNHsA==
-X-ME-Sender: <xms:a011ZoRKk0xgtXrnk7B-qG7CoQgSoOMrP6uxlJU8ziJL2FLkCKjJ-g>
-    <xme:a011ZlxuT2HoJobpF--UwiCQxrck0_h0q9Qbx7ELDLXtD-5We7CXp5ouF-xDkVRRJ
-    XeIZNFUDqIuP2U5LAw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrfeefgedgvdduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:a011Zl39KEhZ-U9AaTAu3qpgNWAWYG4Puo5AAhWDqyHAU63ILvKvOg>
-    <xmx:a011ZsDatAkgsBYef_mlo8HxX4iiDqSBQuQ7pbgM9HyizWRoDF7JfA>
-    <xmx:a011ZhhozQMBHEtX3Ty6cO1Tqt3jE9LlaBWOyo6ySWIoCH-OSDkLxg>
-    <xmx:a011Zop-AXFZkCbuJe_8FCJsMNZLUN5VvVeVPrHUajKBVXxUTW5uxQ>
-    <xmx:bE11ZsMsQ8wP4yZocAMKl9MACO-_6K03a9Qh0f0TNL0WVY97DHdpMQGU>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id D8547B6008D; Fri, 21 Jun 2024 05:52:43 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-522-ga39cca1d5-fm-20240610.002-ga39cca1d
+	dkim=pass (1024-bit key) header.d=oppo.com header.i=@oppo.com header.b="gBsxRt9h"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=DzoZGrGMaNqc40GZYZIauB486WpIkcTOOGGhoQcjjWUqDaDSUplQHqGKxFLZZRjrJU3eibL+/KbFS8mL3/xc++3Ccfj3lOKZzx4l18vknZetGUrI+awlvlpUHFhyGDYbQbhjnKGjKTKhURZbwQyWqf60aigCO2m+Uqe8SbvIU7PJ6dQxDZt8ZR6ixWcgnlRPuAoWl6Nr7xNRUEYyo6TmuE8HOCyCRG7PO5mFekwcJJoBfAuPtO80VH4RB1dTMjNRrjJfuxMIPxJD1FLPMQ+NzsOy4oS1KixQYHsBSV73RyVe8iESvtKP2wQhkA2eRQniOmYz2dRSbv6k5YgLf3dkfQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=jlVvWLkDz8GUbyHNkXsElcbog7x/l+YsIFtAHSBM2aQ=;
+ b=h7dccqUERyrK0lAviDrXZcYiCVUJWVBui1g8bz9OaJG4p8/e4yKlV5ZDrPTMqG7gwPUREegwkQ2Cx8K11bPkVy85VaRTyzZqm6Yiyr7VFDl2tuqjK/Tg9pY9ZUBnYXiVmohZnyqdCkG1eVqpFijARL5tG9s4nlhwrJtEpwDKxbOfnyNbpORxmiHwOGdAxut+OiJqjrQ3UUePZKtgSIhug2cBewwrtwCBDvgwM/tO6c79WcbisL/awACx5NOY77CnHz7xv8NF2QDXQZkD7yBZteAearL001IW2l0wu7/xFJvotP6BA1yWuacanfKFEZ08PN7sam2DdYV3xu7/bnmYhA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 58.252.5.68) smtp.rcpttodomain=gmail.com smtp.mailfrom=oppo.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=oppo.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oppo.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jlVvWLkDz8GUbyHNkXsElcbog7x/l+YsIFtAHSBM2aQ=;
+ b=gBsxRt9hyBXzvCNVi+l1e1Grw8nEMgHzQYdAp2uPxpHLpSeeDhsH+Ntxzik/5McAjzvshbBFpAfrcGyFWqp+l48OgzDNaNE8KFoq/8ORM7KMc+gDWflb0AWGa/0RJG6ORhPtZLsBWzCNWSofRwd6pFuAgVz94zNBh1vr+dH2PdI=
+Received: from PU1PR01CA0035.apcprd01.prod.exchangelabs.com
+ (2603:1096:803:16::23) by TYZPR02MB7080.apcprd02.prod.outlook.com
+ (2603:1096:405:2f::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7698.19; Fri, 21 Jun
+ 2024 10:45:28 +0000
+Received: from HK3PEPF0000021A.apcprd03.prod.outlook.com
+ (2603:1096:803:16:cafe::5) by PU1PR01CA0035.outlook.office365.com
+ (2603:1096:803:16::23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7677.36 via Frontend
+ Transport; Fri, 21 Jun 2024 10:45:28 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 58.252.5.68)
+ smtp.mailfrom=oppo.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=oppo.com;
+Received-SPF: Pass (protection.outlook.com: domain of oppo.com designates
+ 58.252.5.68 as permitted sender) receiver=protection.outlook.com;
+ client-ip=58.252.5.68; helo=mail.oppo.com; pr=C
+Received: from mail.oppo.com (58.252.5.68) by
+ HK3PEPF0000021A.mail.protection.outlook.com (10.167.8.36) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.7677.15 via Frontend Transport; Fri, 21 Jun 2024 10:45:28 +0000
+Received: from oppo.com (172.16.40.118) by mailappw31.adc.com (172.16.56.198)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Fri, 21 Jun
+ 2024 18:45:27 +0800
+Date: Fri, 21 Jun 2024 18:45:27 +0800
+From: Hailong Liu <hailong.liu@oppo.com>
+To: Uladzislau Rezki <urezki@gmail.com>
+CC: Baoquan He <bhe@redhat.com>, Nick Bowler <nbowler@draconx.ca>,
+	<linux-kernel@vger.kernel.org>, Linux regressions mailing list
+	<regressions@lists.linux.dev>, <linux-mm@kvack.org>,
+	<sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
+Message-ID: <20240621104527.hzu3tsu2pwhxbhzt@oppo.com>
+References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+ <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
+ <20240621033005.6mccm7waduelb4m5@oppo.com>
+ <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
+ <ZnVLbCCkvhf5GaTf@pc636>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <83613d85-53f9-4644-be68-4f438abe2e52@app.fastmail.com>
-In-Reply-To: 
- <a623c1979ac494d01977abe6dfc22e8381dc6e4f.camel@physik.fu-berlin.de>
-References: <20240620162316.3674955-1-arnd@kernel.org>
- <20240620162316.3674955-8-arnd@kernel.org>
- <e80809ba-ee81-47a5-9b08-54b11f118a78@gmx.de>
- <1537113c4396cd043a08a72bdca80cccfa2d54d9.camel@physik.fu-berlin.de>
- <ba14c4fb-e6a7-46b3-a030-081482264a99@app.fastmail.com>
- <a623c1979ac494d01977abe6dfc22e8381dc6e4f.camel@physik.fu-berlin.de>
-Date: Fri, 21 Jun 2024 11:52:23 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "Helge Deller" <deller@gmx.de>, "Arnd Bergmann" <arnd@kernel.org>,
- Linux-Arch <linux-arch@vger.kernel.org>, linux-kernel@vger.kernel.org
-Cc: "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- "David S . Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>, sparclinux@vger.kernel.org,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Nicholas Piggin" <npiggin@gmail.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
- linuxppc-dev@lists.ozlabs.org, "Brian Cain" <bcain@quicinc.com>,
- linux-hexagon@vger.kernel.org, guoren <guoren@kernel.org>,
- "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
- "Heiko Carstens" <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
- "Rich Felker" <dalias@libc.org>, linux-sh@vger.kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org,
- "Xi Ruoyao" <libc-alpha@sourceware.org>,
- "musl@lists.openwall.com" <musl@lists.openwall.com>,
- "LTP List" <ltp@lists.linux.it>,
- "Adhemerval Zanella Netto" <adhemerval.zanella@linaro.org>
-Subject: Re: [PATCH 07/15] parisc: use generic sys_fanotify_mark implementation
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <ZnVLbCCkvhf5GaTf@pc636>
+X-ClientProxiedBy: mailappw31.adc.com (172.16.56.198) To mailappw31.adc.com
+ (172.16.56.198)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: HK3PEPF0000021A:EE_|TYZPR02MB7080:EE_
+X-MS-Office365-Filtering-Correlation-Id: abde0a8f-c712-4d7e-b04a-08dc91df43fe
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230037|82310400023|1800799021|376011|36860700010;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?aU9WVHhPSWg0R3JKTTVXMGVSU3FNVGcxUFhUVld3S2hMZ01qSDg1bFAwalJZ?=
+ =?utf-8?B?QnBjSHNRNWVHR25uYmVUWVRrb2llSGlRKzRHQVJTdkM5R0o4RDQ5U2JwUjlk?=
+ =?utf-8?B?dFk0QlB6RXhuT2xZdGhOOE16UitLcjJ4QnRKWFMxd0xPTnhsTjF4OVEyUUJt?=
+ =?utf-8?B?U0RKQjE2dmk1N3FCcDNGbU1VQ2RWNkkySnlxbjIxSldDSkdKZWJDVy9wNDEx?=
+ =?utf-8?B?VitlTjRIdFBhWHNuYXBwbU40MVArS21YM2tnb1pIZC9ZZ3JUd2MzZ0k3ZVFV?=
+ =?utf-8?B?TnRhVTN3dHlPRXljUC8rTFB4dTdqeWhHNnllYitnZmVZWXVZdEpRK2p1K1Nt?=
+ =?utf-8?B?VzVjOGRnbENSbkQwYXp4cDd4ZUZBbmJBR0tJcXpyOUpXOGFnWGNicDRaUTVo?=
+ =?utf-8?B?MUxkZDZqamcxckprUFhYUjcyL0hLQ0xXMkhsZldLMSt3cWFBeG0yM0ppbDRJ?=
+ =?utf-8?B?Q1RpUDZZR0s5RUpVTzk0YWIrSWVlMGkrK0h1bFY1azJXRXNvb1hFQXE3TVQ2?=
+ =?utf-8?B?ZGFYd1o5NXFHLzJhNTl0QUNFeGpzZEpPOUJ2Yk82ZXczVXduZGNqSlNReFMr?=
+ =?utf-8?B?OXg1S2VOemNIMURiTlBwcUVQQTFHenM0N3VhK3pmTEQ2TVBmT3EyVXdOMGxq?=
+ =?utf-8?B?WUgyQ3pKVXMzQWFiRy8vNkZGUXJoS0tpNmd0dGpmUVNSTGpxSXRib3ZvREJR?=
+ =?utf-8?B?UzY1ZEdHcEd3c1paWnJNcWJLRWp2bGZIQkx5VGIzbzVXZFBldXNnQzk4QmtC?=
+ =?utf-8?B?T3M5d1g0QndZVUdaOTRXc3NkY1E2MFk1R1Q1S2JZUVh1aGQ4WE01WE90c0Fn?=
+ =?utf-8?B?bjB0ZGdxQUtuTkdOSm5wSi9waTl4SExSajJJRXpwaVJDRGNHK3drZk5CZFdN?=
+ =?utf-8?B?cHRCWkNDSTA3SkgxN0dJTmJFQWt2aWJPcU5VRUpCQjN6WHNyZDZYY1Q1OXlj?=
+ =?utf-8?B?UzF3WTlNQjhKYmFMYzh0c2NhSFFPNTVzVStiZmNqbGFJQ2NWT3crckErQlZF?=
+ =?utf-8?B?bkZ1bDJUSjVMV1FPbG1sQVAxRkplZzFDaVdMSGZuSk1nalo0TWdYMHJkN3hY?=
+ =?utf-8?B?c2lkMTBRN2hhVXpxeVZHN082ZHlvc0Rrd3JpeDFKMTNQN244WFk0MzduMlVV?=
+ =?utf-8?B?cHhLUE1ISFNOSDRoc2c3OThFL0VNb2RWbFhjamtpMGYrdU1ZSjl4Z3NaSkFa?=
+ =?utf-8?B?K1l0eFJ1ZzVtU3pKN3VHMWhUbkxDUHZaWitIWHJaQmlidnR6dGJlWCtnT25j?=
+ =?utf-8?B?OFZoajBXeXlEYXArcFZRTUkwU2NpeUhldnFlMEVBV0VGTklENDZlVVprZWJ1?=
+ =?utf-8?B?TUEzRmtVSkQ3bXBqbzlLMVNFRFdVZndieTVlL21JN2tIY2ZjbDcyeVZ0ZnBq?=
+ =?utf-8?B?cFkrRURGcElHREVXNXBVdG96TllFUlpTbUhiY3NQTnA0WWVVaFJtdnU2cy9x?=
+ =?utf-8?B?SVVBQUUreVlqVzlLNmp3VkJndmJkYzJ2cXdXR0IzQUNBVGVmc2FQR2tZTkdO?=
+ =?utf-8?B?UkdCMEJXK1AyTWQ3dUdEeXhJcnJrdW5kWjhEZisrdW5qSGp0bXNqdW14bU1j?=
+ =?utf-8?B?blAwMmFEQzNEc2pnL3F5SFY4d2cyZWRtWS9VL3hGNUJ2U2N4VUVsUnpybk1N?=
+ =?utf-8?B?MGlGMkVSZFAxbi9McHlMOTh2TlU3Z3lmVFJOdWw0VGNPalorcUVnbkh1N3Fy?=
+ =?utf-8?B?U0srYnh6MzJYOGhOc0hsK1hjM3kwK21DM3g3N0tBdFU0aWZWbUh0Yy9jdVds?=
+ =?utf-8?B?Qm9ZKytiVU5nQjVyOSt1NG5hNm1oVXJickV3cmEwRWpVMFM1RzNFL2l1VGMy?=
+ =?utf-8?B?UDdtSmVNU2hvbUNMV0dMZlpUQm9HVE1aODEwc2Q2MGJ4SWk3MjlDVkFZWW9N?=
+ =?utf-8?B?RmUxQ1FvbHZKMTkvdHhwNUo0OVJwdml6RWQ3alRYOWNVZkE9PQ==?=
+X-Forefront-Antispam-Report:
+	CIP:58.252.5.68;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.oppo.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230037)(82310400023)(1800799021)(376011)(36860700010);DIR:OUT;SFP:1101;
+X-OriginatorOrg: oppo.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2024 10:45:28.2548
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: abde0a8f-c712-4d7e-b04a-08dc91df43fe
+X-MS-Exchange-CrossTenant-Id: f1905eb1-c353-41c5-9516-62b4a54b5ee6
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f1905eb1-c353-41c5-9516-62b4a54b5ee6;Ip=[58.252.5.68];Helo=[mail.oppo.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	HK3PEPF0000021A.apcprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYZPR02MB7080
 
-On Fri, Jun 21, 2024, at 11:03, John Paul Adrian Glaubitz wrote:
-> On Fri, 2024-06-21 at 10:56 +0200, Arnd Bergmann wrote:
->> Feel free to pick up the sh patch directly, I'll just merge whatever
->> is left in the end. I mainly want to ensure we can get all the bugfixes
->> done for v6.10 so I can build my longer cleanup series on top of it
->> for 6.11.
+On Fri, 21. Jun 11:44, Uladzislau Rezki wrote:
+> On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
+> > On 06/21/24 at 11:30am, Hailong Liu wrote:
+> > > On Thu, 20. Jun 14:02, Nick Bowler wrote:
+> > > > On 2024-06-20 02:19, Nick Bowler wrote:
+> > > > > After upgrading my sparc to 6.9.5 I noticed that attempting to run
+> > > > > xfsdump instantly (within a couple seconds) and reliably crashes the
+> > > > > kernel.  The same problem is also observed on 6.10-rc4.
+> > > > [...]
+> > > > >   062eacf57ad91b5c272f89dc964fd6dd9715ea7d is the first bad commit
+> > > > >   commit 062eacf57ad91b5c272f89dc964fd6dd9715ea7d
+> > > > >   Author: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> > > > >   Date:   Thu Mar 30 21:06:38 2023 +0200
+> > > > >
+> > > > >       mm: vmalloc: remove a global vmap_blocks xarray
+> > > >
+> > > > I think I might see what is happening here.
+> > > >
+> > > > On this machine, there are two CPUs numbered 0 and 2 (there is no CPU1).
+> > > >
+> > > +Baoquan
+> >
+> > Thanks for adding me, Hailong.
+> >
+> > >
+> > > Ahh, I thought you are right. addr_to_vb_xa assume that the CPU numbers are
+> > > contiguous. I don't have knowledge about CPU at all.
+> > > Technically change the implement addr_to_vb_xa() to
+> > > return &per_cpu(vmap_block_queue, raw_smp_processor_id()).vmap_blocks;
+> > > would also work, but it violate the load balance. Wating for
+> > > experts reply.
+> >
+> > Yeah, I think so as you explained.
+> >
+> > >
+> > > > The per-cpu variables in mm/vmalloc.c are initialized like this, in
+> > > > vmalloc_init
+> > > >
+> > > >   for_each_possible_cpu(i) {
+> > > >     /* ... */
+> > > >     vbq = &per_cpu(vmap_block_queue, i);
+> > > >     /* initialize stuff in vbq */
+> > > >   }
+> > > >
+> > > > This loops over the set bits of cpu_possible_mask, bits 0 and 2 are set,
+> > > > so it initializes stuff with i=0 and i=2, skipping i=1 (I added prints to
+> > > > confirm this).
+> > > >
+> > > > Then, in vm_map_ram, with the problematic change it calls the new
+> > > > function addr_to_vb_xa, which does this:
+> > > >
+> > > >   int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+> > > >   return &per_cpu(vmap_block_queue, index).vmap_blocks;
+> > > >
+> > > > The num_possible_cpus() function counts the number of set bits in
+> > > > cpu_possible_mask, so it returns 2.  Thus, index is either 0 or 1, which
+> > > > does not correspond to what was initialized (0 or 2).  The crash occurs
+> > > > when the computed index is 1 in this function.  In this case, the
+> > > > returned value appears to be garbage (I added prints to confirm this).
+> >
+> > This is a great catch.
+> >
+> Indeed :)
 >
-> This series is still for 6.10?
+> > > >
+> > > > If I change addr_to_vb_xa function to this:
+> > > >
+> > > >   int index = ((addr / VMAP_BLOCK_SIZE) & 1) << 1; /* 0 or 2 */
+> > > >   return &per_cpu(vmap_block_queue, index).vmap_blocks;
+> >
+> > Yeah, while above change is not generic, e.g if it's CPU0 and CPU3.
+> > I think we should take the max possible CPU number as the hush bucket
+> > size. The vb->va is also got from global free_vmap_area, so no need to
+> > worry about the waste.
+> >
+> Agree.
+>
+> > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+> > index be2dd281ea76..18e87cafbaf2 100644
+> > --- a/mm/vmalloc.c
+> > +++ b/mm/vmalloc.c
+> > @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
+> >  static struct xarray *
+> >  addr_to_vb_xa(unsigned long addr)
+> >  {
+> > -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+> > +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
+> >
+> >  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
+> >  }
+> >
+> The problem i see is about not-initializing of the:
+> <snip>
+> 	for_each_possible_cpu(i) {
+> 		struct vmap_block_queue *vbq;
+> 		struct vfree_deferred *p;
+>
+> 		vbq = &per_cpu(vmap_block_queue, i);
+> 		spin_lock_init(&vbq->lock);
+> 		INIT_LIST_HEAD(&vbq->free);
+> 		p = &per_cpu(vfree_deferred, i);
+> 		init_llist_head(&p->list);
+> 		INIT_WORK(&p->wq, delayed_vfree_work);
+> 		xa_init(&vbq->vmap_blocks);
+> 	}
+> <snip>
+>
 
-Yes, these are all the bugfixes that I think we want to backport
-to stable kernels, so it makes sense to merge them as quickly as
-possible. The actual stuff I'm working on will come as soon as
-I have it in a state for public review and won't need to be
-backported.
+Sorry to trouble you. do you mean as follows:
+@@ -4480,7 +4480,7 @@ void __init vmalloc_init(void)
+         */
+        vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
 
-     Arnd
+-       for_each_possible_cpu(i) {
++       for (i = 0; i < nr_cpu_ids; i++) {
+                struct vmap_block_queue *vbq;
+                struct vfree_deferred *p;
+
+That’s exactly what I was thinking for the first solution as
+well. However, Do we really need this for the impossible CPU's variable
+initialization? How about using the index to find the CPU?
+Just like the following, but this is not the optimal solution, and it
+also wastes a lot of CPU time :).
+
+@@ -1994,8 +1994,12 @@ static struct xarray *
+ addr_to_vb_xa(unsigned long addr)
+ {
+        int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
++       int cpu;
+
+-       return &per_cpu(vmap_block_queue, index).vmap_blocks;
++       for_each_possible_cpu(cpu)
++               if (!index--)
++                       break;
++       return &per_cpu(vmap_block_queue, cpu).vmap_blocks;
+
+BTW, Using raw_smp_processor_id in this manner is incorrect; that’s my mistake.
+
+> correctly or fully. It is my bad i did not think that CPUs in a possible mask
+> can be non sequential :-/
+>
+> nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
+> when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
+>
+> Or i missed something in your patch, Baoquan?
+>
+> --
+> Uladzislau Rezki
+
+--
+help you, help me,
+Hailong.
