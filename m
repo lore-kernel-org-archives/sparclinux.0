@@ -1,246 +1,134 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A01717BB02
-	for <sparclinux@vger.kernel.org>; Fri, 21 Jun 2024 20:31:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10A692B2CC;
+	Sat, 22 Jun 2024 07:29:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719001907; cv=none; b=AZ2p6qdpjOevL5bxZbgxNVV+yIj50v18+vXDHrr7OTC4Fb5FCgg/1GccEfnRif2lyCQh1WJI4K/117jskv7JdHBYOhJtqg0zmxuujmg0jFzHRbIvC25cu7+E4TzGJz7G4d8sJtviFy7tok80f2m8FsOh1H6Eoke2qwgPv0XaTj8=
+	t=1719041356; cv=none; b=VxsobAEn5opYn97EqIbMgBOsYPcXDJmfn/8D09ZyiFoBVKQ5/HGvGtYY3EE10RBNuDPXL9sTa5jxkl9q+pKEPOZaf8NGbIrvqWHi+t0f3aFG0mG0jd9y6Ozbj3n2Aa6R8NHZG4L8/XBUvIoHmo/f+ltZFeEe4vMoiaXXSti2XfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719001907; c=relaxed/simple;
-	bh=J/WeQifhAeBIIgjlkHp6YVizjCJ078ih4ojm5iVrUNI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bgl5UnAawW7MGqFdas8QcskLcIcnP64FzrmTjIoqYUkZ0Tymr87S1vfcyBIMoFqZAVYzM2PtTtB9IX7NHD5Q54pSaHo1Z3P3LK0Gk/znvvkxsKs6cVAvOgHkI+RpWm3M/1kwiHj/jtkPKM0Sjex1BtOqyO6NSoFb+tMlle8kIRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=a1aBUw0V; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1719041356; c=relaxed/simple;
+	bh=iqLulf/rD1NvA0LE8LuLF/+Z2k5eg20+82y5x+UFl6g=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=rTCJC6T4aeDeIpfxuellw96M5esnPX8UHbdV48dtmq9AtthqdU3EoWuF9rejdx5+Ak6e3K2PDlch9nmI19B+2O2Z+nzeA6qLXwtWnGt8eznv/04vktABLXx+GoxO7mjhmixD4HDHCbzd324LdBofe3EyEqPUqjvS+06Uei0PsgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=RcfV2RhY; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="a1aBUw0V"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-a6f176c5c10so296673266b.2
-        for <sparclinux@vger.kernel.org>; Fri, 21 Jun 2024 13:31:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1719001904; x=1719606704; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=CnCN0NXOSNtwy42IdVdysfTTD5ti/ff9XMDOhhfiLx4=;
-        b=a1aBUw0VkzZ3oSHlCqDR+ATOXDYi+sX+izSgTyOwlIGSfvtoki8ooXg63v6L0Z3SBf
-         KiyzZ1pJvQ1WWzksNTFwyyeoqTssrN8S10fKlK5s9S/d//Xvdx2XwzEhza32lsyerNAI
-         rrRvIQQqKXdtV/r5lndW2K+6e9aaYnNAPI/MpYaRwcXuVF5DzUOzTrBFgxEDNxedSwyv
-         BDdLcthc9hfrnKRIXR37CCa55VW1UJHSxCushckLKFvJozqRZelHSsccnM0cLejLlUU3
-         IKIynf0IwbAzXqvQqepVmjQ/q13kNtP0V4e9VpvIE+GxavHiACiAIZqmCNhoB7dnJzlU
-         DDtw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719001904; x=1719606704;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=CnCN0NXOSNtwy42IdVdysfTTD5ti/ff9XMDOhhfiLx4=;
-        b=j1rdAVCgqsZpjcl4mrIXFgRxjEmN5R8XtkuKfACvbClSbPX5FsWK2/4x/djIb1R6np
-         hqvJwjvzGeODtYAYnU8TgSkERF8vYBUfjotnQVAGVr8SYOQ0TgDexd/92h4SxpzdQ0BD
-         NorU0NzLmyZw7PuvqExhzNkUuTio5obLCa3c2dTbKZoj3fyliQ0xBPIdO9gV4G41ZdLl
-         xte9EMRiUf6i0n8KZyj6jOQfFh71EuIMD8mzvdNNnwj2yKuEtWMI1gYmJlnRxe2prTUS
-         tdhZvWYApKBR8/piK6BJDL5TJmpWJmi5tEPdEB+EqADTvSCA7XH6FcLqFi81knSQKm79
-         Gt+A==
-X-Forwarded-Encrypted: i=1; AJvYcCUxXdTGevSyp6WVf6FD9swSLm45dUtZOMP4nBt7962dGB6IojgDUq6vcvogSdQ/A+NZbddhiCqmwEu8mhTHQa5gtcrmo3NEXue/2w==
-X-Gm-Message-State: AOJu0Yxul2W4gobWbUKJpIpInIFHLquLMxnLSnQAFeBhfvbEe6L50a3+
-	RJ2CvUYWwaD20ZDDU3sl8HdiKPFnvXygb2HZMEKE+vkSxGawqbp/FE51AJ67Kax57Ei8DZsi/Aa
-	DurPuKlPprKEi/rtbFXfi6ki5/IjpaasPQSTX
-X-Google-Smtp-Source: AGHT+IH800HqMIWMw3Gfm64r6WN21nh+bezjnNGagk7G9R1DzDSpY7p4WYQEQWPwKzYCAyy4hb9MTRJUxXOTUM+VMbg=
-X-Received: by 2002:a17:906:f349:b0:a6f:49eb:31a5 with SMTP id
- a640c23a62f3a-a6fab7d0b64mr465681666b.77.1719001903259; Fri, 21 Jun 2024
- 13:31:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="RcfV2RhY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=4BlOodcHBQPbIPkH5yQr6ccoGViUa7yXt3bhkI+0hmk=; t=1719041353; x=1719646153; 
+	b=RcfV2RhYqBRjPoR6zBqFAcJYJ5yCEXPLXOaR7p88+A3wafqUOIQzQcC2GuX9EWeVLm1rrBvsfIr
+	zZ0Zvdqma8o4CI6iCVjvdEPanVa+YdPyVnKRMDtN0peH0S1IVZy/Bg2nEnA5J7hu67XN4B5LY4wqB
+	m52ODWajfSSNlNIVMDGWkO5oXcFPeopB3yJ0mKW7Bhw8nidofYaGHG/H5sHM1abHNcSmUE1njGvcg
+	VsQYcOCpB4CCeV9SkG71jjFxbBx2hOlayM2cONpg+EIFVf6ekW/v5jgJ4caMxp7/we90/yc0F5wrM
+	hmTU8zM+VtYFl2KGWUqcQAeHJVfmJHw+d2rw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.97)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1sKvBK-000000044kH-1Bvk; Sat, 22 Jun 2024 09:29:06 +0200
+Received: from p5b13a475.dip0.t-ipconnect.de ([91.19.164.117] helo=suse-laptop.fritz.box)
+          by inpost2.zedat.fu-berlin.de (Exim 4.97)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1sKvBK-00000000bCd-2ErI; Sat, 22 Jun 2024 09:29:06 +0200
+Message-ID: <ee12bbe782e44a96f4894dfd9ab0550233014c19.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH] sparc/build: Make all compiler flags also
+ clang-compatible
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Nathan Chancellor <nathan@kernel.org>, koachan@protonmail.com
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson
+ <andreas@gaisler.com>, Nick Desaulniers <ndesaulniers@google.com>, Bill
+ Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
+ sparclinux@vger.kernel.org,  linux-kernel@vger.kernel.org,
+ llvm@lists.linux.dev
+Date: Sat, 22 Jun 2024 09:29:05 +0200
+In-Reply-To: <20240621185345.GA416370@thelio-3990X>
+References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
+	 <20240621185345.GA416370@thelio-3990X>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240613013557.1169171-1-almasrymina@google.com>
- <20240613013557.1169171-11-almasrymina@google.com> <20a6a727-d9f2-495c-bf75-72c27740dd82@gmail.com>
-In-Reply-To: <20a6a727-d9f2-495c-bf75-72c27740dd82@gmail.com>
-From: Mina Almasry <almasrymina@google.com>
-Date: Fri, 21 Jun 2024 13:31:29 -0700
-Message-ID: <CAHS8izMce36FwLhFB0znHQYmxpe5hmTSXtZA7+b5VsmSJUfhRw@mail.gmail.com>
-Subject: Re: [PATCH net-next v12 10/13] tcp: RX path for devmem TCP
-To: Pavel Begunkov <asml.silence@gmail.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
-	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Sergey Shtylyov <s.shtylyov@omp.ru>, 
-	Jesper Dangaard Brouer <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
-	Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>, 
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
-	Nikolay Aleksandrov <razor@blackwall.org>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Mon, Jun 17, 2024 at 9:36=E2=80=AFAM Pavel Begunkov <asml.silence@gmail.=
-com> wrote:
->
-> On 6/13/24 02:35, Mina Almasry wrote:
-> >
-> > The pages awaiting freeing are stored in the newly added
-> > sk->sk_user_frags, and each page passed to userspace is get_page()'d.
-> > This reference is dropped once the userspace indicates that it is
-> > done reading this page.  All pages are released when the socket is
-> > destroyed.
->
-> One small concern is that if the pool gets destroyed (i.e.
-> page_pool_destroy) before sockets holding netiov, page pool will
-> semi-busily poll until the sockets die or such and will spam with
-> pr_warn(). E.g. when a user drops the nl but leaks data sockets
-> and continues with its userspace business. You can probably do
-> it in a loop and create dozens of such pending
-> page_pool_release_retry().
->
+Hi Nathan,
 
-Yes, true, but this is not really an issue with netiovs per se, it's a
-quirk with the page_pool in general. If a non-devmem page_pool is
-destroyed while there are pages waiting in the receive queues to be
-recvmsg'd, the behavior you described happens anyway AFAIU.
+On Fri, 2024-06-21 at 11:53 -0700, Nathan Chancellor wrote:
+> I think a good amount of the reasoning below the '---' could probably
+> make it into the commit message as well but I don't have much of a
+> vision there, maybe one of the SPARC folks will.
+>=20
+> I saw through the LLVM issue above that one other patch is necessary to
+> fix an issue in the vDSO [1], which I applied in testing this one. I
+> noticed in applying that change that you appear to be working on 6.1,
+> which is fine for now, but you'll need another diff once you get to a
+> newer version, as we stopped using CROSS_COMPILE to set clang's
+> '--target=3D' value:
+>=20
+> diff --git a/scripts/Makefile.clang b/scripts/Makefile.clang
+> index 6c23c6af797f..2435efae67f5 100644
+> --- a/scripts/Makefile.clang
+> +++ b/scripts/Makefile.clang
+> @@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips		:=3D mipsel-linux-gnu
+>  CLANG_TARGET_FLAGS_powerpc	:=3D powerpc64le-linux-gnu
+>  CLANG_TARGET_FLAGS_riscv	:=3D riscv64-linux-gnu
+>  CLANG_TARGET_FLAGS_s390		:=3D s390x-linux-gnu
+> +CLANG_TARGET_FLAGS_sparc	:=3D sparc64-linux-gnu
+>  CLANG_TARGET_FLAGS_x86		:=3D x86_64-linux-gnu
+>  CLANG_TARGET_FLAGS_um		:=3D $(CLANG_TARGET_FLAGS_$(SUBARCH))
+>  CLANG_TARGET_FLAGS		:=3D $(CLANG_TARGET_FLAGS_$(SRCARCH))
+>=20
+> With those, I can successfully build a kernel with clang that boots in
+> QEMU :)
+>=20
+>   $ make -skj"$(nproc)" \
+>          ARCH=3Dsparc64 \
+>          CC=3Dclang \
+>          CROSS_COMPILE=3Dsparc64-linux-gnu- \
+>          LLVM_IAS=3D0 \
+>          mrproper defconfig all
+>=20
+>   $ qemu-system-sparc64 \
+>         -serial mon:stdio \
+>         -display none \
+>         -no-reboot \
+>         -M sun4u \
+>         -cpu 'TI UltraSparc IIi' \
+>         -m 512 \
+>         -append console=3DttyS0 \
+>         -initrd sparc64-rootfs.cpio \
+>         -kernel arch/sparc/boot/image
+>   ...
+>   [    1.788544] Run /init as init process
+>   ...
+>   Linux version 6.10.0-rc4+ (nathan@thelio-3990X) (ClangBuiltLinux clang =
+version 19.0.0git (https://github.com/llvm/llvm-project a083e50f53f0f9eb9ad=
+0c5b65f3c627cf97043e6), GNU ld (GNU Binutils) 2.42) #1 SMP Fri Jun 21 11:36=
+:18 MST 2024
+>   ...
 
-Jakub did some work to improve this. IIRC he disabled the regular
-warning and he reparents the orphan page_pools so they appear in the
-stats of his netlink API.
+Wow, this is really great progress. Kudos to everyone who helped to make th=
+is happen!
 
-Since this is behavior already applying to pages, I did not seek to
-improve it as I add devmem support, I just retain it. We could improve
-it in a separate patchset, but I do not see this behavior as a
-critical issue really, especially since the alarming pr_warn has been
-removed.
-
-> > +static int tcp_xa_pool_refill(struct sock *sk, struct tcp_xa_pool *p,
-> > +                           unsigned int max_frags)
-> > +{
-> > +     int err, k;
-> > +
-> > +     if (p->idx < p->max)
-> > +             return 0;
-> > +
-> > +     xa_lock_bh(&sk->sk_user_frags);
-> > +
-> > +     tcp_xa_pool_commit_locked(sk, p);
-> > +
-> > +     for (k =3D 0; k < max_frags; k++) {
-> > +             err =3D __xa_alloc(&sk->sk_user_frags, &p->tokens[k],
-> > +                              XA_ZERO_ENTRY, xa_limit_31b, GFP_KERNEL)=
-;
-> > +             if (err)
-> > +                     break;
-> > +     }
-> > +
-> > +     xa_unlock_bh(&sk->sk_user_frags);
-> > +
-> > +     p->max =3D k;
-> > +     p->idx =3D 0;
-> > +     return k ? 0 : err;
-> > +}
->
-> Personally, I'd prefer this optimisation to be in a separate patch,
-> especially since there is some degree of hackiness to it.
->
->
-
-To be honest this optimization is very necessary from my POV. We ran
-into real production problems due to the excessive locking when we use
-regular xa_alloc(), and Eric implemented this optimization to resolve
-that. I simply squashed the optimization for this upstream series.
-
-If absolutely necessary I can refactor it into a separate patch or
-carry the optimization locally, but this seems like a problem everyone
-looking to use devmem TCP will re-discover, so probably worth just
-having here?
-
-> > +             /* if remaining_len is not satisfied yet, we need to go t=
-o the
-> > +              * next frag in the frag_list to satisfy remaining_len.
-> > +              */
-> > +             skb =3D skb_shinfo(skb)->frag_list ?: skb->next;
-> > +
-> > +             offset =3D offset - start;
->
-> It's an offset into the current skb, isn't it? Wouldn't
-> offset =3D 0; be less confusing?
->
-
-Seems so, AFAICT. Let me try to apply this and see if it trips up any tests=
-.
-
-> > +     } while (skb);
-> > +
-> > +     if (remaining_len) {
-> > +             err =3D -EFAULT;
-> > +             goto out;
-> > +     }
->
-> Having data left is not a fault,
-
-I think it is. The caller of tcp_recvmsg_dmabuf() expects all of
-remaining_len to be used up, otherwise it messes up with the math in
-the caller. __skb_datagram_iter(), which is the equivalent to this one
-for pages, regards having left over data as a fault and also returns
--EFAULT, AFAICT.
-
-> and to get here you
-> need to get an skb with no data left, which shouldn't
-> happen. Seems like everything you need is covered by
-> the "!sent" check below.
->
-
-I think we can get here if we run out of skbs with data, no?
-
-> > @@ -2503,6 +2504,15 @@ static void tcp_md5sig_info_free_rcu(struct rcu_=
-head *head)
-> >   void tcp_v4_destroy_sock(struct sock *sk)
-> >   {
-> >       struct tcp_sock *tp =3D tcp_sk(sk);
-> > +     __maybe_unused unsigned long index;
-> > +     __maybe_unused void *netmem;
->
-> How about adding a function to get rid of __maybe_unused?.
->
-> static void sock_release_devmem_frags() {
-> #ifdef PP
->         unsigned index;
->         ...
-> #endif PP
-> }
->
-
-Will do.
-
-> Also, even though you wire it up for TCP, since ->sk_user_frags
-> is in struct sock I'd expect the release to be somewhere in the
-> generic sock path like __sk_destruct(), and same for init.
-> Perhpas, it's better to leave it for later.
->
-
+Adrian
 
 --=20
-Thanks,
-Mina
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
