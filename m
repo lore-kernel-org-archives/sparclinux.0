@@ -1,81 +1,66 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from mail-40132.protonmail.ch (mail-40132.protonmail.ch [185.70.40.132])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10A692B2CC;
-	Sat, 22 Jun 2024 07:29:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECEE16D9B1
+	for <sparclinux@vger.kernel.org>; Sat, 22 Jun 2024 12:18:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.40.132
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719041356; cv=none; b=VxsobAEn5opYn97EqIbMgBOsYPcXDJmfn/8D09ZyiFoBVKQ5/HGvGtYY3EE10RBNuDPXL9sTa5jxkl9q+pKEPOZaf8NGbIrvqWHi+t0f3aFG0mG0jd9y6Ozbj3n2Aa6R8NHZG4L8/XBUvIoHmo/f+ltZFeEe4vMoiaXXSti2XfE=
+	t=1719058713; cv=none; b=s2i+jDGQy7DCW16AuxmSTKtrS2QECNgA5GhT1MCyfYTf9RE/OZ3U1LQmrZTk+TPS0YvwZ+KIyYrkQ69lUqZFAuI03IbRbvLCXLIPoMjS1Eakn4dD27w8ctkrfJAhE7L8BVQDB3EM4fBjql3q169wHPTXTnwt6lvHFaRvJn9d2tM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719041356; c=relaxed/simple;
-	bh=iqLulf/rD1NvA0LE8LuLF/+Z2k5eg20+82y5x+UFl6g=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=rTCJC6T4aeDeIpfxuellw96M5esnPX8UHbdV48dtmq9AtthqdU3EoWuF9rejdx5+Ak6e3K2PDlch9nmI19B+2O2Z+nzeA6qLXwtWnGt8eznv/04vktABLXx+GoxO7mjhmixD4HDHCbzd324LdBofe3EyEqPUqjvS+06Uei0PsgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=RcfV2RhY; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1719058713; c=relaxed/simple;
+	bh=luy69jnF5njL8gUfluNCNLhAakoaL/yegWrkpfKE/rU=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=DkDFBEX1Fi44elBjV4VQI7jLNVWNxx86ussRh7vuAA/DEzgHKli3+c2XeBJTHg2z6cyTxTYPXGCgxT047ZFEJLcMK9FeChkEcXunyyrZ57xKGgCztTV7mnN9l/fuyJgM8OqS+S2E0WbMzvHahLISmEahhBQ3Uc5z/qBlJCcEo28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=cH49pnWe; arc=none smtp.client-ip=185.70.40.132
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="RcfV2RhY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=4BlOodcHBQPbIPkH5yQr6ccoGViUa7yXt3bhkI+0hmk=; t=1719041353; x=1719646153; 
-	b=RcfV2RhYqBRjPoR6zBqFAcJYJ5yCEXPLXOaR7p88+A3wafqUOIQzQcC2GuX9EWeVLm1rrBvsfIr
-	zZ0Zvdqma8o4CI6iCVjvdEPanVa+YdPyVnKRMDtN0peH0S1IVZy/Bg2nEnA5J7hu67XN4B5LY4wqB
-	m52ODWajfSSNlNIVMDGWkO5oXcFPeopB3yJ0mKW7Bhw8nidofYaGHG/H5sHM1abHNcSmUE1njGvcg
-	VsQYcOCpB4CCeV9SkG71jjFxbBx2hOlayM2cONpg+EIFVf6ekW/v5jgJ4caMxp7/we90/yc0F5wrM
-	hmTU8zM+VtYFl2KGWUqcQAeHJVfmJHw+d2rw==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.97)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1sKvBK-000000044kH-1Bvk; Sat, 22 Jun 2024 09:29:06 +0200
-Received: from p5b13a475.dip0.t-ipconnect.de ([91.19.164.117] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.97)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1sKvBK-00000000bCd-2ErI; Sat, 22 Jun 2024 09:29:06 +0200
-Message-ID: <ee12bbe782e44a96f4894dfd9ab0550233014c19.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH] sparc/build: Make all compiler flags also
- clang-compatible
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Nathan Chancellor <nathan@kernel.org>, koachan@protonmail.com
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson
- <andreas@gaisler.com>, Nick Desaulniers <ndesaulniers@google.com>, Bill
- Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
- sparclinux@vger.kernel.org,  linux-kernel@vger.kernel.org,
- llvm@lists.linux.dev
-Date: Sat, 22 Jun 2024 09:29:05 +0200
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="cH49pnWe"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1719058703; x=1719317903;
+	bh=luy69jnF5njL8gUfluNCNLhAakoaL/yegWrkpfKE/rU=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=cH49pnWeR6k+nnE2zzNlVZ9ld0S/hoSZduwUitTHA10DJ+ICOAk+Z42SNhXkpROjX
+	 4+0XRsEts8n9OBiBMRxhPRHFApprxhKdrGYYObqGY2L3xcmx/VNHr48k3tzGHn39Rm
+	 uMk4Q9M1t7inlqzc7KwrtcyDfq4Sbq+LJSKhEfIIA3xww8MKaGReY5YYvOJr39U9Jm
+	 PGJJbh9sA12AL7XN8d/1r28hywKazGtehwqGZ0QMWFRTMesU/8eID+LitF4R8QZTad
+	 wIXhs1c2J7WQ+5cAkIU8DgPvF4vj0zY6FFqJClF4SX0KSo/ILfUxJcSZ0uvKXKV+6L
+	 gX6MJjFVJhAsA==
+Date: Sat, 22 Jun 2024 12:18:17 +0000
+To: Nathan Chancellor <nathan@kernel.org>
+From: Koakuma <koachan@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH] sparc/build: Make all compiler flags also clang-compatible
+Message-ID: <e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFwdB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=@protonmail.com>
 In-Reply-To: <20240621185345.GA416370@thelio-3990X>
-References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
-	 <20240621185345.GA416370@thelio-3990X>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.2 
+References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com> <20240621185345.GA416370@thelio-3990X>
+Feedback-ID: 6608610:user:proton
+X-Pm-Message-ID: a46a21971ad74a875ee1462ced2663a00c9316b2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
 Hi Nathan,
 
-On Fri, 2024-06-21 at 11:53 -0700, Nathan Chancellor wrote:
-> I think a good amount of the reasoning below the '---' could probably
-> make it into the commit message as well but I don't have much of a
-> vision there, maybe one of the SPARC folks will.
->=20
+Nathan Chancellor <nathan@kernel.org> wrote:
+
 > I saw through the LLVM issue above that one other patch is necessary to
-> fix an issue in the vDSO [1], which I applied in testing this one. I
-> noticed in applying that change that you appear to be working on 6.1,
+> fix an issue in the vDSO [1], which I applied in testing this one.=20
+
+Mhmm, I did not submit that yet because I don't feel fully confident
+with it. I think it should probably live in include/vdso/math64.h
+as plain C code instead of the current asm version, but I don't know
+what is the proper way to check the current environment's word size.
+Is checking BITS_PER_LONG enough, or should I do it in another way?
+
+> I noticed in applying that change that you appear to be working on 6.1,
 > which is fine for now, but you'll need another diff once you get to a
 > newer version, as we stopped using CROSS_COMPILE to set clang's
 > '--target=3D' value:
@@ -84,51 +69,18 @@ On Fri, 2024-06-21 at 11:53 -0700, Nathan Chancellor wrote:
 > index 6c23c6af797f..2435efae67f5 100644
 > --- a/scripts/Makefile.clang
 > +++ b/scripts/Makefile.clang
-> @@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips		:=3D mipsel-linux-gnu
->  CLANG_TARGET_FLAGS_powerpc	:=3D powerpc64le-linux-gnu
->  CLANG_TARGET_FLAGS_riscv	:=3D riscv64-linux-gnu
->  CLANG_TARGET_FLAGS_s390		:=3D s390x-linux-gnu
-> +CLANG_TARGET_FLAGS_sparc	:=3D sparc64-linux-gnu
->  CLANG_TARGET_FLAGS_x86		:=3D x86_64-linux-gnu
->  CLANG_TARGET_FLAGS_um		:=3D $(CLANG_TARGET_FLAGS_$(SUBARCH))
->  CLANG_TARGET_FLAGS		:=3D $(CLANG_TARGET_FLAGS_$(SRCARCH))
->=20
-> With those, I can successfully build a kernel with clang that boots in
-> QEMU :)
->=20
->   $ make -skj"$(nproc)" \
->          ARCH=3Dsparc64 \
->          CC=3Dclang \
->          CROSS_COMPILE=3Dsparc64-linux-gnu- \
->          LLVM_IAS=3D0 \
->          mrproper defconfig all
->=20
->   $ qemu-system-sparc64 \
->         -serial mon:stdio \
->         -display none \
->         -no-reboot \
->         -M sun4u \
->         -cpu 'TI UltraSparc IIi' \
->         -m 512 \
->         -append console=3DttyS0 \
->         -initrd sparc64-rootfs.cpio \
->         -kernel arch/sparc/boot/image
->   ...
->   [    1.788544] Run /init as init process
->   ...
->   Linux version 6.10.0-rc4+ (nathan@thelio-3990X) (ClangBuiltLinux clang =
-version 19.0.0git (https://github.com/llvm/llvm-project a083e50f53f0f9eb9ad=
-0c5b65f3c627cf97043e6), GNU ld (GNU Binutils) 2.42) #1 SMP Fri Jun 21 11:36=
-:18 MST 2024
->   ...
+> @@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips :=3D mipsel-linux-gnu
+> CLANG_TARGET_FLAGS_powerpc :=3D powerpc64le-linux-gnu
+> CLANG_TARGET_FLAGS_riscv :=3D riscv64-linux-gnu
+> CLANG_TARGET_FLAGS_s390 :=3D s390x-linux-gnu
+> +CLANG_TARGET_FLAGS_sparc :=3D sparc64-linux-gnu
+> CLANG_TARGET_FLAGS_x86 :=3D x86_64-linux-gnu
+> CLANG_TARGET_FLAGS_um :=3D $(CLANG_TARGET_FLAGS_$(SUBARCH))
+> CLANG_TARGET_FLAGS :=3D $(CLANG_TARGET_FLAGS_$(SRCARCH))
 
-Wow, this is really great progress. Kudos to everyone who helped to make th=
-is happen!
+Yeah, I was working with 6.1 at that time since it's the version
+that my distro have installed for me. Now this is more of a workflow
+question, but this means I should submit a v2 with this change
+merged in with mine too, right?
 
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+And thanks for the feedback!
