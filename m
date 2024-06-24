@@ -1,253 +1,163 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1164225D9;
-	Mon, 24 Jun 2024 06:14:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072CC4503C;
+	Mon, 24 Jun 2024 12:16:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719209688; cv=none; b=BCDSkad1t9VpPpO8fEHnAEQfZj6jru9UokItF4ZPJxVyxMV/d6N6IDAVXlKlPj1GQdpAcGQfnbl3u3TqB77A2/NnV8Igf+SUjeikV10oEy4i6CLyANce57Ok0YwQu6g+T6v3p5r5Or4pt/yOjkoAik3PPAMlfcYZcK6gmCFCfI8=
+	t=1719231420; cv=none; b=Bh06/W8nDwMZsIUMm4JZryPnib44DAnawxz25kXTeuDmPgQ6ZWeDeANXPCnbcyQNjQuVyxWHNJtmnA19X0zpe8C3DdhUeNGty1ygkSLh6oDE5JKP/Pv+HuE9DjY/yGy5B1jX6HfXE7lcqRHqtJD7E1iQ3DM+Arsayu6o3UFnpp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719209688; c=relaxed/simple;
-	bh=pRGt+YpMPsKjwZfW86V837WN4JGPkKGnorvBXTL/O2g=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TJsUk8aKDtPzhpBKSkCP/knB9+oPmUw0UxXznm8RQjDRHObd+n9AwdJTEAIA3DEfE2GdBMcAextzEVpMKL2aRAk7eDd7tNxo4B0GAkS3VtnH4HVRh0DBV1zDpPZbrBV/gNlher+gpFdt21luf3gVKT8hgGH/SrSsMc04eArXobA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=dQ9BR6as; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1719231420; c=relaxed/simple;
+	bh=qyFUq+scYKsMZVcWCOoCO9/4yb0PF8TUDetkIaa6PBQ=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=t3Y1GAKwq5GaH4TOkX+e4x1t5NwmtFiatltHtL0/+w8yxP55mzmzyi+NdidDNm/3emfz/KUfIP75glieLAnWAaYE/oCzvoB0kd3WVOt+JCbMxm8inTJMF8M5tGSqiZDTarIc+9DA0Lik3feX/zo0AXKJgkHNd4CSzJFlCaAbglY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IT1iQSvo; arc=none smtp.client-ip=209.85.167.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="dQ9BR6as"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=ew1xoLiUEpaRO/Rd2+BU3bX5mn9fF1xUB9iaO1b3Vho=; t=1719209684; x=1719814484; 
-	b=dQ9BR6asAKMN2pqrPhzQT4pEo2OWxYr6vtX66xZ8kyycsc/u1IVh2RwUhv6K9mQu2KybYllWwPR
-	PCpBe6uSEwnvDJqPCmaOBYlF/Ztg+NcI09GK2cXDHqG8CNAwK5I67wKXaXP/TrUEg5/LUkGitqz4M
-	FjueDU0/MeYJV45J1ji5bCX8MAinSm/9TYjOFQ0PBLiQkOh+PDyJ8bs5CQNTG5C4I4J6TSLweF2Hg
-	BpfnO/2K3VGc0NJHulI0qn5eGL55Com37tDttEiS+kaSFzLhuxmSkwwwlGJ5WZqthjQbNzk82CNhY
-	nmUkL9vGte34g0uS6eVfqRFHRk58pTg/tcDA==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.97)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1sLcyL-00000003SnY-21KD; Mon, 24 Jun 2024 08:14:37 +0200
-Received: from dynamic-077-191-015-086.77.191.pool.telefonica.de ([77.191.15.86] helo=[192.168.178.20])
-          by inpost2.zedat.fu-berlin.de (Exim 4.97)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1sLcyL-00000002KF0-2nE0; Mon, 24 Jun 2024 08:14:37 +0200
-Message-ID: <e0e373fa13636a403322fd0ba96915fd25dbbefa.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH 09/15] sh: rework sync_file_range ABI
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Arnd Bergmann <arnd@arndb.de>, Arnd Bergmann <arnd@kernel.org>,
- Linux-Arch <linux-arch@vger.kernel.org>, linux-kernel@vger.kernel.org
-Cc: Rich Felker <dalias@libc.org>, Andreas Larsson <andreas@gaisler.com>, 
- guoren <guoren@kernel.org>, Christophe Leroy <christophe.leroy@csgroup.eu>,
- "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
- linux-s390@vger.kernel.org, Helge Deller <deller@gmx.de>,
- linux-sh@vger.kernel.org, "linux-csky@vger.kernel.org"
- <linux-csky@vger.kernel.org>, "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
-  Heiko Carstens <hca@linux.ibm.com>, "musl@lists.openwall.com"
- <musl@lists.openwall.com>, Nicholas Piggin <npiggin@gmail.com>, Alexander
- Viro <viro@zeniv.linux.org.uk>, LTP List <ltp@lists.linux.it>, Brian Cain
- <bcain@quicinc.com>, Christian Brauner <brauner@kernel.org>, Thomas
- Bogendoerfer <tsbogend@alpha.franken.de>, Xi Ruoyao
- <libc-alpha@sourceware.org>, linux-parisc@vger.kernel.org,
- linux-mips@vger.kernel.org,  stable@vger.kernel.org,
- linux-hexagon@vger.kernel.org,  linux-fsdevel@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>
-Date: Mon, 24 Jun 2024 08:14:36 +0200
-In-Reply-To: <9d4ba5e5-bb7f-432e-9354-47cc84eaa9e1@app.fastmail.com>
-References: <20240620162316.3674955-1-arnd@kernel.org>
-	 <20240620162316.3674955-10-arnd@kernel.org>
-	 <366548c1a0d9749e42c0d0c993414a353c9b0b02.camel@physik.fu-berlin.de>
-	 <9d4ba5e5-bb7f-432e-9354-47cc84eaa9e1@app.fastmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.2 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IT1iQSvo"
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5295e488248so4814323e87.2;
+        Mon, 24 Jun 2024 05:16:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1719231417; x=1719836217; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=VOwwUCn4o91Hx00RzgGfd9DNWIUVFFDkTLA5vyA8/fM=;
+        b=IT1iQSvofs+xKudYU/qcflUGPg256N3lEMX/a1pts6S090LHTfLol/BX0z19ILGRcF
+         jGcfkVg6O7ZyFHOR4QpR6npJw1Pm8OwaRkxd51Ku/tDbJpSKkFvrNe0pfhTyr252aPLe
+         BLzq7veJn5qmpbPRUQQtI3+NGzfZrHjcdZY2z0VtLnVMRKimpcUXrdkfuivGP78SZm/Z
+         qGzEeHrjyFYUTMQk991kn28qSc11HJT0CfQjwBYcU5ubb7a0prt5IQEcYfk9u0Uj5Ao/
+         TSPbv34yBGGNwv372dhbg8T0U0hfdIY5u4H+aV3YfSy9rHLry/AkGiQJPJWhtbv16glh
+         lndA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719231417; x=1719836217;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VOwwUCn4o91Hx00RzgGfd9DNWIUVFFDkTLA5vyA8/fM=;
+        b=nHIrTIMCsrA1m8aLfJ+aai1xLDi5DoftpmuXsHqQUS2bRQ3KH1aWntURoAGc0Uf18h
+         aJ+vl1sNZT+n/UcExSxUdK5l2BaG+QXlH0vP3vR7guZAa4dLBpLPjWKIuY2/zRsgjxsy
+         0Po+Vgtfj+Deq/BaDSZWGRR7dXrWEUZjyCKL6q2PfRTVcBYk9u55frUPvwqhQi+1e5a9
+         Mh67+DJEwwy7zOm9IoXesJxwJm6bqSWD/LkszfKxJOUdwprFl28fB2c9OcBeLXCoZeLJ
+         1G842+1sTMuzuybTHL5N9w5gJgcdo+kQg+pWQqUnEKUS8meqz86JHCROMDEHJ61qG2AR
+         j9fQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWW3Tkobz0IYbmuXL4MIQx7lDZS9V3tpiVGRxhySGLxR0lmorZaLFpzVnJu7AabibknGLhrnhKqszoTF0vlvIa8rPCGarQgw+4l0Sj8Z7fQYiGkaiTmG33rNzqWn/6TeSGFHYtD2+D+rQ==
+X-Gm-Message-State: AOJu0YxWyLn93ahwSD60T/NsOjvRSMvzT07mcA3/vSCEzDK49Ja+IA6d
+	ofbi3cz7qzvs/M6HwN+zsYg5JEjwDZx3XfVHOEom7Mb14JadN/j9
+X-Google-Smtp-Source: AGHT+IEsFRWCKZJoK13E+Pt3s17fNddxxyoVj/A//QIxbCu+pr046XEFbPnc02WFGZ3DEx8RMoJ0rA==
+X-Received: by 2002:a05:6512:3b13:b0:52c:dbee:bdb0 with SMTP id 2adb3069b0e04-52ce186271amr3543920e87.59.1719231416848;
+        Mon, 24 Jun 2024 05:16:56 -0700 (PDT)
+Received: from pc636 (host-90-233-219-252.mobileonline.telia.com. [90.233.219.252])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52cd6449b48sm957965e87.275.2024.06.24.05.16.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Jun 2024 05:16:56 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Mon, 24 Jun 2024 14:16:54 +0200
+To: Baoquan He <bhe@redhat.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Nick Bowler <nbowler@draconx.ca>,
+	Hailong Liu <hailong.liu@oppo.com>, linux-kernel@vger.kernel.org,
+	Linux regressions mailing list <regressions@lists.linux.dev>,
+	linux-mm@kvack.org, sparclinux@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
+Message-ID: <Znljtv5n-6EBgpsF@pc636>
+References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
+ <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
+ <20240621033005.6mccm7waduelb4m5@oppo.com>
+ <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
+ <ZnVLbCCkvhf5GaTf@pc636>
+ <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
 
-Hi Arnd,
-
-On Fri, 2024-06-21 at 11:41 +0200, Arnd Bergmann wrote:
-> On Fri, Jun 21, 2024, at 10:44, John Paul Adrian Glaubitz wrote:
-> > On Thu, 2024-06-20 at 18:23 +0200, Arnd Bergmann wrote:
-> > > From: Arnd Bergmann <arnd@arndb.de>
-> > >=20
-> > > The unusual function calling conventions on superh ended up causing
-> >                                               ^^^^^^
-> >                                        It's spelled SuperH
->=20
-> Fixed now.
->=20
-> > > diff --git a/arch/sh/kernel/sys_sh32.c b/arch/sh/kernel/sys_sh32.c
-> > > index 9dca568509a5..d5a4f7c697d8 100644
-> > > --- a/arch/sh/kernel/sys_sh32.c
-> > > +++ b/arch/sh/kernel/sys_sh32.c
-> > > @@ -59,3 +59,14 @@ asmlinkage int sys_fadvise64_64_wrapper(int fd, u3=
-2 offset0, u32 offset1,
-> > >  				 (u64)len0 << 32 | len1, advice);
-> > >  #endif
+On Fri, Jun 21, 2024 at 10:02:50PM +0800, Baoquan He wrote:
+> On 06/21/24 at 11:44am, Uladzislau Rezki wrote:
+> > On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
+> > > On 06/21/24 at 11:30am, Hailong Liu wrote:
+> > > > On Thu, 20. Jun 14:02, Nick Bowler wrote:
+> > > > > On 2024-06-20 02:19, Nick Bowler wrote:
+> ......
+> > > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+> > > index be2dd281ea76..18e87cafbaf2 100644
+> > > --- a/mm/vmalloc.c
+> > > +++ b/mm/vmalloc.c
+> > > @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
+> > >  static struct xarray *
+> > >  addr_to_vb_xa(unsigned long addr)
+> > >  {
+> > > -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+> > > +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
+> > >  
+> > >  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
 > > >  }
-> > > +
-> > > +/*
-> > > + * swap the arguments the way that libc wants it instead of
-> >=20
-> > I think "swap the arguments to the order that libc wants them" would
-> > be easier to understand here.
->=20
-> Done
+> > > 
+> > The problem i see is about not-initializing of the:
+> > <snip>
+> > 	for_each_possible_cpu(i) {
+> > 		struct vmap_block_queue *vbq;
+> > 		struct vfree_deferred *p;
+> > 
+> > 		vbq = &per_cpu(vmap_block_queue, i);
+> > 		spin_lock_init(&vbq->lock);
+> > 		INIT_LIST_HEAD(&vbq->free);
+> > 		p = &per_cpu(vfree_deferred, i);
+> > 		init_llist_head(&p->list);
+> > 		INIT_WORK(&p->wq, delayed_vfree_work);
+> > 		xa_init(&vbq->vmap_blocks);
+> > 	}
+> > <snip>
+> > 
+> > correctly or fully. It is my bad i did not think that CPUs in a possible mask
+> > can be non sequential :-/
+> > 
+> > nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
+> > when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
+> 
+> I checked the generic version of setup_nr_cpu_ids(), from codes, they
+> are different with my understanding.
+> 
+> kernel/smp.c
+> void __init setup_nr_cpu_ids(void)
+> {
+>         set_nr_cpu_ids(find_last_bit(cpumask_bits(cpu_possible_mask), NR_CPUS) + 1);
+> }
+> 
+I see that it is not a weak function, so it is generic, thus the
+behavior can not be overwritten, which is great. This does what we
+need.
 
-Thanks for the two improvements!
+Thank you for checking this you are right!
 
-> > > diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/sys=
-calls/syscall.tbl
-> > > index bbf83a2db986..c55fd7696d40 100644
-> > > --- a/arch/sh/kernel/syscalls/syscall.tbl
-> > > +++ b/arch/sh/kernel/syscalls/syscall.tbl
-> > > @@ -321,7 +321,7 @@
-> > >  311	common	set_robust_list			sys_set_robust_list
-> > >  312	common	get_robust_list			sys_get_robust_list
-> > >  313	common	splice				sys_splice
-> > > -314	common	sync_file_range			sys_sync_file_range
-> > > +314	common	sync_file_range			sys_sh_sync_file_range6
-> >                                                                  ^^^^^^=
-=20
-> > Why the suffix 6 here?
->=20
-> In a later part of my cleanup, I'm consolidating all the
-> copies of this function (arm64, mips, parisc, powerpc,
-> s390, sh, sparc, x86) and picked the name
-> sys_sync_file_range6() for common implementation.
->=20
-> I end up with four entry points here, so the naming is a bit
-> confusing:
->=20
-> - sys_sync_file_range() is only used on 64-bit architectures,
->   on x32 and on mips-n32. This uses four arguments, including
->   two 64-bit wide ones.
->=20
-> - sys_sync_file_range2() continues to be used on arm, powerpc,
->   xtensa and now on sh, hexagon and csky. I change the
->   implementation to take six 32-bit arguments, but the ABI
->   remains the same as before, with the flags before offset.
->=20
-> - sys_sync_file_range6() is used for most other 32-bit ABIs:
->   arc, m68k, microblaze, nios2, openrisc, parisc, s390, sh, sparc
->   and x86. This also has six 32-bit arguments but in the
->   default order (fd, offset, nbytes, flags).
->=20
-> - sys_sync_file_range7() is exclusive to mips-o32, this one
->   has an unused argument and is otherwise the same as
->   sys_sync_file_range6().
->=20
-> My plan is to then have some infrastructure to ensure
-> userspace tools (libc, strace, qemu, rust, ...) use the
-> same calling conventions as the kernel. I'm doing the
-> same thing for all other syscalls that have architecture
-> specific calling conventions, so far I'm using
->=20
-> fadvise64_64_7
-> fanotify_mark6
-> truncate3
-> truncate4
-> ftruncate3
-> ftruncate4
-> fallocate6
-> pread5
-> pread6
-> pwrite5
-> pwrite6
-> preadv5
-> preadv6
-> pwritev5
-> pwritev6
-> sync_file_range6
-> fadvise64_64_2
-> fadvise64_64_6
-> fadvise64_5
-> fadvise64_6
-> readahead4
-> readahead5
->=20
-> The last number here is usually the number of 32-bit
-> arguments, except for fadvise64_64_2 that uses the
-> same argument reordering trick as sync_file_range2.
->=20
-> I'm not too happy with the naming but couldn't come up with
-> anything clearer either, so let me know if you have any
-> ideas there.
+Then it is just a matter of proper initialization of the hash:
 
-OK, gotcha. I thought the 6 suffix was for SH only. I'm fine
-with the naming scheme.
+<snip>
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 5d3aa2dc88a8..1733946f7a12 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -5087,7 +5087,13 @@ void __init vmalloc_init(void)
+         */
+        vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
+ 
+-       for_each_possible_cpu(i) {
++       /*
++        * We use "nr_cpu_ids" here because some architectures
++        * may have "gaps" in cpu-possible-mask. It is OK for
++        * per-cpu approaches but is not OK for cases where it
++        * can be used as hashes also.
++        */
++       for (i = 0; i < nr_cpu_ids; i++) {
+                struct vmap_block_queue *vbq;
+                struct vfree_deferred *p;
+<snip>
 
-> > >  315	common	tee				sys_tee
-> > >  316	common	vmsplice			sys_vmsplice
-> > >  317	common	move_pages			sys_move_pages
-> > > @@ -395,6 +395,7 @@
-> > >  385	common	pkey_alloc			sys_pkey_alloc
-> > >  386	common	pkey_free			sys_pkey_free
-> > >  387	common	rseq				sys_rseq
-> > > +388	common	sync_file_range2		sys_sync_file_range2
-> > >  # room for arch specific syscalls
-> > >  393	common	semget				sys_semget
-> > >  394	common	semctl				sys_semctl
-> >=20
-> > I wonder how you discovered this bug. Did you look up the calling=20
-> > convention on SuperH
-> > and compare the argument order for the sys_sync_file_range system call=
-=20
-> > documented there
-> > with the order in the kernel?
->=20
-> I had to categorize all architectures based on their calling
-> conventions to see if 64-bit arguments need aligned pairs or
-> not, so I wrote a set of simple C files that I compiled for
-> all architectures to see in which cases they insert unused
-> arguments or swap the order of the upper and lower halves.
->=20
-> SuperH, parisc and s390 are each slightly different from all the
-> others here, so I ended up reading the ELF psABI docs and/or
-> the compiler sources to be sure.
-> I also a lot of git history.
-
-Great job, thanks for doing the extra work to verify the ABI.
-
-> > Did you also check what order libc uses? I would expect libc on SuperH=
-=20
-> > misordering the
-> > arguments as well unless I am missing something. Or do we know that the=
-=20
-> > code is actually
-> > currently broken?
->=20
-> Yes, I checked glibc, musl and uclibc-ng for all the cases in
-> which the ABI made no sense, as well as to check that my analysis
-> of the kernel sources matches the expectations of the libc.
-
-OK, awesome.
-
-Will you send a v2 so I can ack the updated version of the patch?
-
-I'm also fine with the patch going through your tree, as I would
-like to start with the changes for v6.11 this week.
-
-Thanks,
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+--
+Uladzislau Rezki
