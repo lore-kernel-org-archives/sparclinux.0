@@ -1,73 +1,76 @@
-Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
+Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072CC4503C;
-	Mon, 24 Jun 2024 12:16:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7D64776A;
+	Mon, 24 Jun 2024 12:17:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719231420; cv=none; b=Bh06/W8nDwMZsIUMm4JZryPnib44DAnawxz25kXTeuDmPgQ6ZWeDeANXPCnbcyQNjQuVyxWHNJtmnA19X0zpe8C3DdhUeNGty1ygkSLh6oDE5JKP/Pv+HuE9DjY/yGy5B1jX6HfXE7lcqRHqtJD7E1iQ3DM+Arsayu6o3UFnpp4=
+	t=1719231463; cv=none; b=JojriDa0ftOZeCIWwjpYaSybSODOqwpdbH3C2tiEpxjIDuxRBCpazv76YYf/MR3ApfgztEcdc1Rp6iWJjKir6Dtt3saFWNAAUWVywEa8Wm2JaxpoNdne/UYc18g4ZSquzhhwMdhTtmIBwXzHTAaemX0tz7jEofH4OsK4670SGZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719231420; c=relaxed/simple;
-	bh=qyFUq+scYKsMZVcWCOoCO9/4yb0PF8TUDetkIaa6PBQ=;
+	s=arc-20240116; t=1719231463; c=relaxed/simple;
+	bh=8isc60jFDMeop4LN4TyUF39/5jrEisrf7Jddr2pusSI=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t3Y1GAKwq5GaH4TOkX+e4x1t5NwmtFiatltHtL0/+w8yxP55mzmzyi+NdidDNm/3emfz/KUfIP75glieLAnWAaYE/oCzvoB0kd3WVOt+JCbMxm8inTJMF8M5tGSqiZDTarIc+9DA0Lik3feX/zo0AXKJgkHNd4CSzJFlCaAbglY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IT1iQSvo; arc=none smtp.client-ip=209.85.167.49
+	 Content-Type:Content-Disposition:In-Reply-To; b=i2QNmcmTQ1Gq5edw96J3RyZaqfAS+mYt/rRAo2eb6zdEh3shtfzYgiMXjaJIh1Ms2bsSguslN7Kzfi6VdXBXKomUaekf2pgCNWq6H/FyR0pkFLIOwmTwBKs9hjd2BngR9fmVl6TD0elLB9ox1ox/YM2IjlZ8tOZcQ0zB+mNzSgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nddWPtMb; arc=none smtp.client-ip=209.85.167.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IT1iQSvo"
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5295e488248so4814323e87.2;
-        Mon, 24 Jun 2024 05:16:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nddWPtMb"
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-52ce01403f6so1609577e87.0;
+        Mon, 24 Jun 2024 05:17:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1719231417; x=1719836217; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1719231460; x=1719836260; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=VOwwUCn4o91Hx00RzgGfd9DNWIUVFFDkTLA5vyA8/fM=;
-        b=IT1iQSvofs+xKudYU/qcflUGPg256N3lEMX/a1pts6S090LHTfLol/BX0z19ILGRcF
-         jGcfkVg6O7ZyFHOR4QpR6npJw1Pm8OwaRkxd51Ku/tDbJpSKkFvrNe0pfhTyr252aPLe
-         BLzq7veJn5qmpbPRUQQtI3+NGzfZrHjcdZY2z0VtLnVMRKimpcUXrdkfuivGP78SZm/Z
-         qGzEeHrjyFYUTMQk991kn28qSc11HJT0CfQjwBYcU5ubb7a0prt5IQEcYfk9u0Uj5Ao/
-         TSPbv34yBGGNwv372dhbg8T0U0hfdIY5u4H+aV3YfSy9rHLry/AkGiQJPJWhtbv16glh
-         lndA==
+        bh=od+jH6L9t73h5zcRVnTnTfDsZO/0F05mRIypT0waugI=;
+        b=nddWPtMbev4kDtDuwHlFA3Z9D98GcR6QJHOXA53CSPfX3eSIazMGpl+xCUJsIXezVE
+         57PBSwvjPVYsM4s+idAxgSOwRqKW6ucUT3Y8xgtMQT4gUxbzhSNq6k2SWhfrWOVGIKXC
+         HBV2SqqIItrixaJOkROhOstD7XJwp95scMtboVDqbhNQtXCK7rlph4fJvcCY5QhCcA93
+         RMqBIG45ukuhCJhktMwAoeOuRkRlVWKUOuU91rhjuZeuvVol1jbrI+IHqLKzav+h3Jk5
+         8WNCb3hNeQ8H4YOC/HJjLiBg8UAhDV6uQokdZgLXwjF3lYb7yxjUfWhpWN28KH2iPx4I
+         K1ag==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719231417; x=1719836217;
+        d=1e100.net; s=20230601; t=1719231460; x=1719836260;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=VOwwUCn4o91Hx00RzgGfd9DNWIUVFFDkTLA5vyA8/fM=;
-        b=nHIrTIMCsrA1m8aLfJ+aai1xLDi5DoftpmuXsHqQUS2bRQ3KH1aWntURoAGc0Uf18h
-         aJ+vl1sNZT+n/UcExSxUdK5l2BaG+QXlH0vP3vR7guZAa4dLBpLPjWKIuY2/zRsgjxsy
-         0Po+Vgtfj+Deq/BaDSZWGRR7dXrWEUZjyCKL6q2PfRTVcBYk9u55frUPvwqhQi+1e5a9
-         Mh67+DJEwwy7zOm9IoXesJxwJm6bqSWD/LkszfKxJOUdwprFl28fB2c9OcBeLXCoZeLJ
-         1G842+1sTMuzuybTHL5N9w5gJgcdo+kQg+pWQqUnEKUS8meqz86JHCROMDEHJ61qG2AR
-         j9fQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWW3Tkobz0IYbmuXL4MIQx7lDZS9V3tpiVGRxhySGLxR0lmorZaLFpzVnJu7AabibknGLhrnhKqszoTF0vlvIa8rPCGarQgw+4l0Sj8Z7fQYiGkaiTmG33rNzqWn/6TeSGFHYtD2+D+rQ==
-X-Gm-Message-State: AOJu0YxWyLn93ahwSD60T/NsOjvRSMvzT07mcA3/vSCEzDK49Ja+IA6d
-	ofbi3cz7qzvs/M6HwN+zsYg5JEjwDZx3XfVHOEom7Mb14JadN/j9
-X-Google-Smtp-Source: AGHT+IEsFRWCKZJoK13E+Pt3s17fNddxxyoVj/A//QIxbCu+pr046XEFbPnc02WFGZ3DEx8RMoJ0rA==
-X-Received: by 2002:a05:6512:3b13:b0:52c:dbee:bdb0 with SMTP id 2adb3069b0e04-52ce186271amr3543920e87.59.1719231416848;
-        Mon, 24 Jun 2024 05:16:56 -0700 (PDT)
+        bh=od+jH6L9t73h5zcRVnTnTfDsZO/0F05mRIypT0waugI=;
+        b=aDuH8uVvxenpNSu7vjaZinLbsqUvZrPKlHkQe/HvLzFwYu4ev7Frb17aVpz1lNapQV
+         xu4wVSZ9ZmOVEFGy7Vel8fjAjJj9fgEwE34pEBslijtAwyH1+nTdghtpeADRIkqK4aOP
+         dL1gncta5a7IUOPLt+iG/A/q6Vy3qSF2FLfYgcMCgLknsXF+up6fGzEfIUcppm1uYgNf
+         s0GL6nFMKAgYg/xp9kldBWWiUSt5PHc8duCbaaBydOptzWrFFDD29VqkOdYyr7pFgBAr
+         W8mB9xCeM0FJk7egIg4urwWNK3zKCxfKZVaKFLy9g1gi5k5f15AiX5CsK7nafpmJsc7S
+         PnDw==
+X-Forwarded-Encrypted: i=1; AJvYcCUaKm2m06VVu27+KHk3T3lMzaSqkBVDLxOToEKFXMJ1Vt6c8DjBQLJ8FW/ZTFA8EsR7IOjEGg7Vxv4M04+HiaJiKWddWY9iYLazbGI22mh6+bFjRy/N0PziHkahq3O9/vsnCOcCkUqK9g==
+X-Gm-Message-State: AOJu0YzngwfyLg1tPVHuYzkED2hgDzLAkhhWG14UXzw3ABm5ewo9TLAO
+	an02z7t1Y8wRIEVFkRjDDwCdl8Iol0A/ePLT2ksG2UrtEQqq5zLBkuDm+w==
+X-Google-Smtp-Source: AGHT+IHcVpH3CudI+W5MvprM1/PmweuKVDd3GbvgLYGCPocT+n9ET+XbztV/qerkXuZ6NHsNPBrR+g==
+X-Received: by 2002:a05:6512:55c:b0:52c:d9c6:f934 with SMTP id 2adb3069b0e04-52ce18356e5mr2532189e87.18.1719231459616;
+        Mon, 24 Jun 2024 05:17:39 -0700 (PDT)
 Received: from pc636 (host-90-233-219-252.mobileonline.telia.com. [90.233.219.252])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52cd6449b48sm957965e87.275.2024.06.24.05.16.55
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-52ce17c3821sm470190e87.241.2024.06.24.05.17.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Jun 2024 05:16:56 -0700 (PDT)
+        Mon, 24 Jun 2024 05:17:39 -0700 (PDT)
 From: Uladzislau Rezki <urezki@gmail.com>
 X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
-Date: Mon, 24 Jun 2024 14:16:54 +0200
-To: Baoquan He <bhe@redhat.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>, Nick Bowler <nbowler@draconx.ca>,
-	Hailong Liu <hailong.liu@oppo.com>, linux-kernel@vger.kernel.org,
+Date: Mon, 24 Jun 2024 14:17:37 +0200
+To: Michael Kelley <mhklinux@outlook.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Baoquan He <bhe@redhat.com>,
+	Nick Bowler <nbowler@draconx.ca>,
+	Hailong Liu <hailong.liu@oppo.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	Linux regressions mailing list <regressions@lists.linux.dev>,
-	linux-mm@kvack.org, sparclinux@vger.kernel.org,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
 	Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <Znljtv5n-6EBgpsF@pc636>
+Message-ID: <Znlj4YTzoT08XJHH@pc636>
 References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
  <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
  <20240621033005.6mccm7waduelb4m5@oppo.com>
  <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
  <ZnVLbCCkvhf5GaTf@pc636>
- <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
+ <SN6PR02MB4157D2FA39A5491C915D186FD4C92@SN6PR02MB4157.namprd02.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,88 +79,64 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
+In-Reply-To: <SN6PR02MB4157D2FA39A5491C915D186FD4C92@SN6PR02MB4157.namprd02.prod.outlook.com>
 
-On Fri, Jun 21, 2024 at 10:02:50PM +0800, Baoquan He wrote:
-> On 06/21/24 at 11:44am, Uladzislau Rezki wrote:
+On Fri, Jun 21, 2024 at 01:42:28PM +0000, Michael Kelley wrote:
+> From: Uladzislau Rezki <urezki@gmail.com> Sent: Friday, June 21, 2024 2:44 AM
+> > 
 > > On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
 > > > On 06/21/24 at 11:30am, Hailong Liu wrote:
 > > > > On Thu, 20. Jun 14:02, Nick Bowler wrote:
 > > > > > On 2024-06-20 02:19, Nick Bowler wrote:
-> ......
-> > > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> > > index be2dd281ea76..18e87cafbaf2 100644
-> > > --- a/mm/vmalloc.c
-> > > +++ b/mm/vmalloc.c
-> > > @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
-> > >  static struct xarray *
-> > >  addr_to_vb_xa(unsigned long addr)
-> > >  {
-> > > -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-> > > +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
-> > >  
-> > >  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
-> > >  }
-> > > 
-> > The problem i see is about not-initializing of the:
-> > <snip>
-> > 	for_each_possible_cpu(i) {
-> > 		struct vmap_block_queue *vbq;
-> > 		struct vfree_deferred *p;
-> > 
-> > 		vbq = &per_cpu(vmap_block_queue, i);
-> > 		spin_lock_init(&vbq->lock);
-> > 		INIT_LIST_HEAD(&vbq->free);
-> > 		p = &per_cpu(vfree_deferred, i);
-> > 		init_llist_head(&p->list);
-> > 		INIT_WORK(&p->wq, delayed_vfree_work);
-> > 		xa_init(&vbq->vmap_blocks);
-> > 	}
-> > <snip>
-> > 
-> > correctly or fully. It is my bad i did not think that CPUs in a possible mask
-> > can be non sequential :-/
-> > 
-> > nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
-> > when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
 > 
-> I checked the generic version of setup_nr_cpu_ids(), from codes, they
-> are different with my understanding.
+> [snip]
 > 
-> kernel/smp.c
-> void __init setup_nr_cpu_ids(void)
-> {
->         set_nr_cpu_ids(find_last_bit(cpumask_bits(cpu_possible_mask), NR_CPUS) + 1);
-> }
+> > > > > The per-cpu variables in mm/vmalloc.c are initialized like this, in
+> > > > > vmalloc_init
+> > > > >
+> > > > >   for_each_possible_cpu(i) {
+> > > > >     /* ... */
+> > > > >     vbq = &per_cpu(vmap_block_queue, i);
+> > > > >     /* initialize stuff in vbq */
+> > > > >   }
+> > > > >
+> > > > > This loops over the set bits of cpu_possible_mask, bits 0 and 2 are set,
+> > > > > so it initializes stuff with i=0 and i=2, skipping i=1 (I added prints to
+> > > > > confirm this).
+> > > > >
+> > > > > Then, in vm_map_ram, with the problematic change it calls the new
+> > > > > function addr_to_vb_xa, which does this:
+> > > > >
+> > > > >   int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+> > > > >   return &per_cpu(vmap_block_queue, index).vmap_blocks;
+> > > > >
+> > > > > The num_possible_cpus() function counts the number of set bits in
+> > > > > cpu_possible_mask, so it returns 2.  Thus, index is either 0 or 1, which
+> > > > > does not correspond to what was initialized (0 or 2).  The crash occurs
+> > > > > when the computed index is 1 in this function.  In this case, the
+> > > > > returned value appears to be garbage (I added prints to confirm this).
+> > >
+> > > This is a great catch.
+> > >
+> > Indeed :)
+> > 
 > 
-I see that it is not a weak function, so it is generic, thus the
-behavior can not be overwritten, which is great. This does what we
-need.
-
-Thank you for checking this you are right!
-
-Then it is just a matter of proper initialization of the hash:
-
-<snip>
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index 5d3aa2dc88a8..1733946f7a12 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -5087,7 +5087,13 @@ void __init vmalloc_init(void)
-         */
-        vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
- 
--       for_each_possible_cpu(i) {
-+       /*
-+        * We use "nr_cpu_ids" here because some architectures
-+        * may have "gaps" in cpu-possible-mask. It is OK for
-+        * per-cpu approaches but is not OK for cases where it
-+        * can be used as hashes also.
-+        */
-+       for (i = 0; i < nr_cpu_ids; i++) {
-                struct vmap_block_queue *vbq;
-                struct vfree_deferred *p;
-<snip>
+> +1
+> 
+> More broadly, throughout kernel code there are a number of places
+> that incorrectly assume the cpu_possible_mask has no gaps in it. The
+> typical case does kcalloc() or kmalloc_array() with num_possible_cpus()
+> as the first argument, then indexes into the allocated array with a CPU
+> number from smp_processor_id() or a variant. These places should be
+> using nr_cpu_ids instead of num_possible_cpus().
+> 
+> I'm usually working on the code for Linux guests on Hyper-V, and
+> there are six occurrences in that code. While they probably don't
+> have immediate practical impact because I don't think the ACPI MADT
+> in a such a VM would have a gap in the processor enumeration,
+> I'm planning to do fixes in the interest of general correctness.
+> 
+Thank you for valuable information!
 
 --
 Uladzislau Rezki
