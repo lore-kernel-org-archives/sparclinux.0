@@ -1,200 +1,159 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96BE671B27
-	for <sparclinux@vger.kernel.org>; Tue, 25 Jun 2024 03:30:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AAEE1B806;
+	Tue, 25 Jun 2024 06:12:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719286250; cv=none; b=ZArekkUBbzkRBqDejfrY/+91iEbxg32/ruucwXH7WHRA4bfTFiBd5EwyMWEioEdRtPOXxgkNV9AK+x9eybER8wnq0c1tvKQaT7HKagm79TJgKVHYaHxfH/RhLJ1WY8U+egDYCswMiBUWyzp0SHmCHbSfkaeLcS/z2rgYDRojrhw=
+	t=1719295934; cv=none; b=oony8bf1leb2i0a+rNk6DQBSKtXGz5DNI6IYKC2ur6Z0/jWqci1KKN5JPWas++U85XX9rmVPepcek2j2AmnaHe8cN4yYTlriplgQJwJ8yat6h5Uul+K2Rb+kyl2n954h0/hzHOkvXqCxJGAfqD5TUzISTEMLygF8IyIFn00caSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719286250; c=relaxed/simple;
-	bh=obtN4FIZCGHWBgEuYxhVZcQaprmAm9UaJ5RFq/VLNBs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RVX38DOYlfPRwdIJEt4wQdl9ENGpOSXGG3xGZbVfWMY+IsIsR7jSMpGDnFAJ/c0/skkwN/sVeebXxfwUT8ecQFtJETFeONxteyl8X8cf5Rbm9tZbnTbnLEDx1g/4bEQhVv9hgcerrV883AjHL/Kse9BdZrcIbHeFwbbp4mzDHsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=T7Ez+oM5; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1719295934; c=relaxed/simple;
+	bh=A9l5QJ5wVUxN0j1TWgVqhhHFCdASWZMj33PGqLt6VA0=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=b4nabD8O1g8vM98AvMhvOhz9h+88q3ljAqTLSNGcMKUVfZvwrT25sAMFwvZwokWMEEwu5NHB8R3oMFQUWmMg+4WqsLCLCEn3ELvLin/syKK1hX3DLGjwCByhaavGQqf0BCBl/tyofMvFe5XU4qFkW5Z2uOzpZxy5SDfGe8tRDLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=kMKIkUXC; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="T7Ez+oM5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1719286247;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/m8GXm0K69AMAk67ZrMEf4R6vclpB6T2QuYU2G6K8jY=;
-	b=T7Ez+oM5DZoPGbobHz3BqtJEKF8f/4kZXnpzK5E0AExNEx7fCuH33xTIelzYJx7vcYLOMk
-	yFmP2j5vwAEjfqL6Jr/l7qhZupL1gS9t1qGe8u+WZzCk0db+SyU8O5ZiImAjXlcEoO4CM0
-	35H5ggsQfucqcbKW3O9QcC4rWgIWYzM=
-Received: from mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-256-WvBvJypYP3eb65TvXjMe_g-1; Mon,
- 24 Jun 2024 23:30:41 -0400
-X-MC-Unique: WvBvJypYP3eb65TvXjMe_g-1
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 4A4E819560B1;
-	Tue, 25 Jun 2024 03:30:39 +0000 (UTC)
-Received: from localhost (unknown [10.72.116.8])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id CB24F19560BF;
-	Tue, 25 Jun 2024 03:30:37 +0000 (UTC)
-Date: Tue, 25 Jun 2024 11:30:33 +0800
-From: Baoquan He <bhe@redhat.com>
-To: Uladzislau Rezki <urezki@gmail.com>
-Cc: Nick Bowler <nbowler@draconx.ca>, Hailong Liu <hailong.liu@oppo.com>,
-	linux-kernel@vger.kernel.org,
-	Linux regressions mailing list <regressions@lists.linux.dev>,
-	linux-mm@kvack.org, sparclinux@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
-Message-ID: <Zno52QBG0g5Z+otD@MiWiFi-R3L-srv>
-References: <75e17b57-1178-4288-b792-4ae68b19915e@draconx.ca>
- <00d74f24-c49c-460e-871c-d5af64701306@draconx.ca>
- <20240621033005.6mccm7waduelb4m5@oppo.com>
- <ZnUmpMbCBFWnvaEz@MiWiFi-R3L-srv>
- <ZnVLbCCkvhf5GaTf@pc636>
- <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
- <Znljtv5n-6EBgpsF@pc636>
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="kMKIkUXC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=QR3y2Y/czPDzz8uhrOTX+qZKGKnv9qtlOLRYnVuIPwY=; t=1719295930; x=1719900730; 
+	b=kMKIkUXCpW4k/lh4bfIHLQJ7yXaQaua42W5My0YpiNHiilmaG69pdb5IiE9StEvH36UYTlg2wfF
+	Tdb/CPgfLOpILqYOWYZS7k0EvxHiB4Yz6K+AIaa5OtXhE9YR5RjGJ4STuCmmYTd8HRVm+pACcRawL
+	EVS4LdZZkx88lnlVGO7hwGqOdh0gF+Kg22Ipn2MdidppsNRFw/yqNvlnXtamDkZEYlONN/1b8Vl0s
+	oPBAMYWW7go097qgb9r16qmHKOvCsm2PLjS56KL1M/z+bU8T/eKUNkYZNAKl9ItLFseIrud1TmZ9t
+	Ci3ZLg7RBgLYlLuJny8/YueTY14197NeyvAA==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.97)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1sLzPJ-00000002pcY-2WGY; Tue, 25 Jun 2024 08:11:58 +0200
+Received: from p5b13a475.dip0.t-ipconnect.de ([91.19.164.117] helo=[192.168.178.20])
+          by inpost2.zedat.fu-berlin.de (Exim 4.97)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1sLzPJ-00000001jTk-3HF5; Tue, 25 Jun 2024 08:11:57 +0200
+Message-ID: <b7e20a2dbf5bad8cae0227644b2f78531dd6ef5a.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH v2 08/13] sh: rework sync_file_range ABI
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Arnd Bergmann <arnd@kernel.org>, linux-arch@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Thomas Bogendoerfer
+ <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Helge Deller
+ <deller@gmx.de>, linux-parisc@vger.kernel.org, "David S. Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+ sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Nicholas
+ Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+ linuxppc-dev@lists.ozlabs.org, Brian Cain <bcain@quicinc.com>,
+ linux-hexagon@vger.kernel.org, Guo Ren <guoren@kernel.org>, 
+ linux-csky@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, 
+ linux-s390@vger.kernel.org, Rich Felker <dalias@libc.org>, 
+ linux-sh@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Alexander Viro
+ <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+ linux-fsdevel@vger.kernel.org, libc-alpha@sourceware.org, 
+ musl@lists.openwall.com, stable@vger.kernel.org
+Date: Tue, 25 Jun 2024 08:11:56 +0200
+In-Reply-To: <20240624163707.299494-9-arnd@kernel.org>
+References: <20240624163707.299494-1-arnd@kernel.org>
+	 <20240624163707.299494-9-arnd@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Znljtv5n-6EBgpsF@pc636>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On 06/24/24 at 02:16pm, Uladzislau Rezki wrote:
-> On Fri, Jun 21, 2024 at 10:02:50PM +0800, Baoquan He wrote:
-> > On 06/21/24 at 11:44am, Uladzislau Rezki wrote:
-> > > On Fri, Jun 21, 2024 at 03:07:16PM +0800, Baoquan He wrote:
-> > > > On 06/21/24 at 11:30am, Hailong Liu wrote:
-> > > > > On Thu, 20. Jun 14:02, Nick Bowler wrote:
-> > > > > > On 2024-06-20 02:19, Nick Bowler wrote:
-> > ......
-> > > > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> > > > index be2dd281ea76..18e87cafbaf2 100644
-> > > > --- a/mm/vmalloc.c
-> > > > +++ b/mm/vmalloc.c
-> > > > @@ -2542,7 +2542,7 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
-> > > >  static struct xarray *
-> > > >  addr_to_vb_xa(unsigned long addr)
-> > > >  {
-> > > > -	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-> > > > +	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
-> > > >  
-> > > >  	return &per_cpu(vmap_block_queue, index).vmap_blocks;
-> > > >  }
-> > > > 
-> > > The problem i see is about not-initializing of the:
-> > > <snip>
-> > > 	for_each_possible_cpu(i) {
-> > > 		struct vmap_block_queue *vbq;
-> > > 		struct vfree_deferred *p;
-> > > 
-> > > 		vbq = &per_cpu(vmap_block_queue, i);
-> > > 		spin_lock_init(&vbq->lock);
-> > > 		INIT_LIST_HEAD(&vbq->free);
-> > > 		p = &per_cpu(vfree_deferred, i);
-> > > 		init_llist_head(&p->list);
-> > > 		INIT_WORK(&p->wq, delayed_vfree_work);
-> > > 		xa_init(&vbq->vmap_blocks);
-> > > 	}
-> > > <snip>
-> > > 
-> > > correctly or fully. It is my bad i did not think that CPUs in a possible mask
-> > > can be non sequential :-/
-> > > 
-> > > nr_cpu_ids - is not the max possible CPU. For example, in Nick case,
-> > > when he has two CPUs, num_possible_cpus() and nr_cpu_ids are the same.
-> > 
-> > I checked the generic version of setup_nr_cpu_ids(), from codes, they
-> > are different with my understanding.
-> > 
-> > kernel/smp.c
-> > void __init setup_nr_cpu_ids(void)
-> > {
-> >         set_nr_cpu_ids(find_last_bit(cpumask_bits(cpu_possible_mask), NR_CPUS) + 1);
-> > }
-> > 
-> I see that it is not a weak function, so it is generic, thus the
-> behavior can not be overwritten, which is great. This does what we
-> need.
-> 
-> Thank you for checking this you are right!
+On Mon, 2024-06-24 at 18:37 +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+>=20
+> The unusual function calling conventions on SuperH ended up causing
+> sync_file_range to have the wrong argument order, with the 'flags'
+> argument getting sorted before 'nbytes' by the compiler.
+>=20
+> In userspace, I found that musl, glibc, uclibc and strace all expect the
+> normal calling conventions with 'nbytes' last, so changing the kernel
+> to match them should make all of those work.
+>=20
+> In order to be able to also fix libc implementations to work with existin=
+g
+> kernels, they need to be able to tell which ABI is used. An easy way
+> to do this is to add yet another system call using the sync_file_range2
+> ABI that works the same on all architectures.
+>=20
+> Old user binaries can now work on new kernels, and new binaries can
+> try the new sync_file_range2() to work with new kernels or fall back
+> to the old sync_file_range() version if that doesn't exist.
+>=20
+> Cc: stable@vger.kernel.org
+> Fixes: 75c92acdd5b1 ("sh: Wire up new syscalls.")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/sh/kernel/sys_sh32.c           | 11 +++++++++++
+>  arch/sh/kernel/syscalls/syscall.tbl |  3 ++-
+>  2 files changed, 13 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/arch/sh/kernel/sys_sh32.c b/arch/sh/kernel/sys_sh32.c
+> index 9dca568509a5..d6f4afcb0e87 100644
+> --- a/arch/sh/kernel/sys_sh32.c
+> +++ b/arch/sh/kernel/sys_sh32.c
+> @@ -59,3 +59,14 @@ asmlinkage int sys_fadvise64_64_wrapper(int fd, u32 of=
+fset0, u32 offset1,
+>  				 (u64)len0 << 32 | len1, advice);
+>  #endif
+>  }
+> +
+> +/*
+> + * swap the arguments the way that libc wants them instead of
+> + * moving flags ahead of the 64-bit nbytes argument
+> + */
+> +SYSCALL_DEFINE6(sh_sync_file_range6, int, fd, SC_ARG64(offset),
+> +                SC_ARG64(nbytes), unsigned int, flags)
+> +{
+> +        return ksys_sync_file_range(fd, SC_VAL64(loff_t, offset),
+> +                                    SC_VAL64(loff_t, nbytes), flags);
+> +}
+> diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscall=
+s/syscall.tbl
+> index bbf83a2db986..c55fd7696d40 100644
+> --- a/arch/sh/kernel/syscalls/syscall.tbl
+> +++ b/arch/sh/kernel/syscalls/syscall.tbl
+> @@ -321,7 +321,7 @@
+>  311	common	set_robust_list			sys_set_robust_list
+>  312	common	get_robust_list			sys_get_robust_list
+>  313	common	splice				sys_splice
+> -314	common	sync_file_range			sys_sync_file_range
+> +314	common	sync_file_range			sys_sh_sync_file_range6
+>  315	common	tee				sys_tee
+>  316	common	vmsplice			sys_vmsplice
+>  317	common	move_pages			sys_move_pages
+> @@ -395,6 +395,7 @@
+>  385	common	pkey_alloc			sys_pkey_alloc
+>  386	common	pkey_free			sys_pkey_free
+>  387	common	rseq				sys_rseq
+> +388	common	sync_file_range2		sys_sync_file_range2
+>  # room for arch specific syscalls
+>  393	common	semget				sys_semget
+>  394	common	semctl				sys_semctl
 
-Thanks for confirming this.
+Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 
-> 
-> Then it is just a matter of proper initialization of the hash:
-> 
-> <snip>
-> diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> index 5d3aa2dc88a8..1733946f7a12 100644
-> --- a/mm/vmalloc.c
-> +++ b/mm/vmalloc.c
-> @@ -5087,7 +5087,13 @@ void __init vmalloc_init(void)
->          */
->         vmap_area_cachep = KMEM_CACHE(vmap_area, SLAB_PANIC);
->  
-> -       for_each_possible_cpu(i) {
-> +       /*
-> +        * We use "nr_cpu_ids" here because some architectures
-> +        * may have "gaps" in cpu-possible-mask. It is OK for
-> +        * per-cpu approaches but is not OK for cases where it
-> +        * can be used as hashes also.
-> +        */
-> +       for (i = 0; i < nr_cpu_ids; i++) {
+Adrian
 
-I was wrong about earlier comments. Percpu variables are only available
-on possible CPUs. For those nonexistent possible CPUs of static percpu
-variable vmap_block_queue, there isn't memory allocated and mapped for
-them. So accessing into them will cause problem.
-
-In Nick's case, there are only CPU0, CPU2. If you access
-&per_cpu(vmap_block_queue, 1), problem occurs. So I think we may need to
-change to take other way for vbq. E.g:
-1) Storing the vb in the nearest neighbouring vbq on possible CPU as
-   below draft patch;
-2) create an normal array to store vbq of size nr_cpu_ids, then we can
-   store/fetch each vbq on non-possible CPU?
-
-The way 1) is simpler, the existing code can be adapted a little just as
-below.
-
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index 633363997dec..59a8951cc6c0 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -2542,7 +2542,10 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
- static struct xarray *
- addr_to_vb_xa(unsigned long addr)
- {
--	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-+	int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
-+
-+	if (!cpu_possible(idex))
-+		index = cpumask_next(index, cpu_possible_mask);
- 
- 	return &per_cpu(vmap_block_queue, index).vmap_blocks;
- }
-@@ -2556,9 +2559,15 @@ addr_to_vb_xa(unsigned long addr)
- 
- static unsigned long addr_to_vb_idx(unsigned long addr)
- {
-+	int id = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
-+	int id_dest = id; 
-+
-+	if (!cpu_possible(id))
-+		id_dest = cpumask_next(id, cpu_possible_mask);
-+
- 	addr -= VMALLOC_START & ~(VMAP_BLOCK_SIZE-1);
- 	addr /= VMAP_BLOCK_SIZE;
--	return addr;
-+	return addr + (id_dest - id);
- }
-
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
