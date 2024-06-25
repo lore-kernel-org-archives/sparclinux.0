@@ -1,55 +1,55 @@
-Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
+Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E9914375C
-	for <sparclinux@vger.kernel.org>; Tue, 25 Jun 2024 02:47:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 243B7144315
+	for <sparclinux@vger.kernel.org>; Tue, 25 Jun 2024 02:47:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719283674; cv=none; b=tzubTFzBfT5rYOLsiIajUdSMiUd4PUYvsxeK/Il7+IJwUw73QVjBUjK4fNqeGxSA5CAPPx68rI/qQxOm0HMZ0qhbW6tL137e3ZZv/d7RC63YPw7IxLMrpdJ3dqWiKfLK5+Hc0jaSS2t+ulU2OHAWgX/pqbKTTmbx79gmbHxkmX4=
+	t=1719283678; cv=none; b=UJS+hJK4lUUYv7Lf0NmGjE/wkk1uq7Qe184CyzmVLb77NIxCmlGjig7tdO3MJkBmMWT+8OSksE9ZJrJFUa4O6q4O+xHuWG0tdaID96tpe+c99SGdlPn0M7E5wQV47BY2/QUxbcA9E1XvA5zRMb7PrBCyl/bSUvbNvogPmalMvKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719283674; c=relaxed/simple;
-	bh=m3ZrCpA4iGOGEwTjOi2A7jZ1gSinTJ3Ms+w9lOZ2j44=;
+	s=arc-20240116; t=1719283678; c=relaxed/simple;
+	bh=Br8FJTa1gWhy+XA9c6qJ8j4wzWPr8UepVmk/sBYVGhM=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=pHAO43f8whR/nBIroxdPtGYI+7fnhRo/g5h304bbg97w+VgIcJeoTG8DTr5sWS30edAl1mSgTbVGr6a6ljtWORBT3HvMcfOgbe5NRm9qXpWKJ9zFUgcYJ/tu6QpSDQUd93s3TnPIiUiwID/oEVwqqanpiRsiFrP0W5tk13Q+r/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hZfBFku3; arc=none smtp.client-ip=209.85.128.202
+	 To:Cc:Content-Type; b=miXRYhmooram66+0xKSAUTxPD3j3QImVJ5mXXNKbg+2wqQ61mIpBT/7CRODiurlKX+ZgB3+2Ggz/2UyivoUB5UPssqmr+bPWtyqiA0A6VBMJZvDw/2nVrAXCprMn921S9eGIi5q8SMlHJFBHsJmiVeQZ/FnrZ22Fc5DyAAOeopI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=LLxpcO6t; arc=none smtp.client-ip=209.85.219.202
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hZfBFku3"
-Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-631b498f981so90403867b3.0
-        for <sparclinux@vger.kernel.org>; Mon, 24 Jun 2024 19:47:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LLxpcO6t"
+Received: by mail-yb1-f202.google.com with SMTP id 3f1490d57ef6-df773f9471fso10333418276.3
+        for <sparclinux@vger.kernel.org>; Mon, 24 Jun 2024 19:47:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1719283666; x=1719888466; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1719283670; x=1719888470; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=fwzym0FwQ/rpSoAlwAPKIHf1/qVj+EbPSE9irYNrCpU=;
-        b=hZfBFku3zOTokJubfPuqfXKBExF1TQyX4bIwq+5CEzsL1iGgUs8NcdvH/c2mGBy2DD
-         5L5Buq4G14JSnwvaJN7Sm1/TdzNXuXUkaKWTjWFGnUccIMo3CygsuWpaj1XShD6twERf
-         tipOnwqwQG3fAW5VIJAAor4REQpj1r/bjocXN1uSnBq0lueu0sZUM/M6XadCH4jDqFk1
-         iZhpTnWkDbS2M9EqV4daLL98BF9piLYkCsI3HQ3Up59dh8ETK91aSumH6r/ObK+uG+WE
-         FdPMKGIg+LYq1ow2RX7tliZRg3otK2IIVxmBlum761rIp1GBageG5l2Q61T0pRJtM1MV
-         Z3CA==
+        bh=22bjBJSFHF6mgE/vq3jKe8j3RYXRUm1WUoO7T7s0eHM=;
+        b=LLxpcO6tn5Ot55hiwBlnNW1chcMfYKaoJRiJBaVhY1GtWnUBVXsXxWWOz43EyG+YB8
+         NFXZg0sFLkM0z6hgau3QI0tyxCD/yZAEv0vSr1uRR8NaHAg3Lrsv754vLP+fWpGtPd8l
+         eM3qLsl4fo+ko7Q5GxItipIpeYgWDA/V/sbjdmh1OhseeOhCWylfQcl0VsxLhB64rs3V
+         ppSuCj7f6bwNmBvybe3nAXSJa5P9wzEYqh7gEsYTDgKdEDyc5kde1qUxhdOahVhaytZf
+         96mRyTL3IIrNBpti6iBsET7NbL9vyNDijVUJND+Ufq8CaMtyPmjGaIDnESxA7zWOWa5S
+         1j5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719283666; x=1719888466;
+        d=1e100.net; s=20230601; t=1719283670; x=1719888470;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=fwzym0FwQ/rpSoAlwAPKIHf1/qVj+EbPSE9irYNrCpU=;
-        b=Aas9U2PljdY/DiIt4t+xLdQBikKl6A/t9DDE6Y7C/3XprOaEceXOPIqKLIqqeucRFP
-         6bfEAq5PGwKl4B828odegT9DxDhupjcL8DBWhc2LS3/swh4I+fug5tB+zIjCuzu8sF6N
-         0Ky6aPAqPK9SCFgX2VJnHnGILalm3PIDJk1+4L+2+HSYO95C7Tsa7m0ywSMiJwS6YDyY
-         SnJ33Q+TwkkBNY+E2nEzRppGFFnoLVtkqMNt67Ykw46ny41O3y4BlNtVJUjlt2ikoKht
-         PSMAU4oXbJ7XHTpwZq2ghIZx0TpFR+m7ttqzb500d3Pm/0AhKd3G9+ABw/suAvHTY8cx
-         DATg==
-X-Forwarded-Encrypted: i=1; AJvYcCVuoZRaEp79VunQaRY8WTPe4VxMKOB5ON7M+VIPU3rP8wE0SoupqIWxiVqUmdjSplEHGP8+uG4lqXp5ElPJkfek5YjPGkZJuApPPQ==
-X-Gm-Message-State: AOJu0Ywrv58NCjTcxJXUIhgODVyCbunftj7LrZq+IhYu4zu81U3Dnd6I
-	NZ6abwYbG03LVNIn648FR5Vv4ltRJ6w6GiodzjeP2l3M4mmXkonZ6loVIe/1QV9X7jha7DK4Kpx
-	XLTiuU59r24q0Jf0JjnZ5FA==
-X-Google-Smtp-Source: AGHT+IHD3ohWJCOmLV64+mFo2TxAT112HqXoX9fQcwK0XcJmm5ry7c7tN/0fbNzilFhCvt62QaDMCMjCbgdvAVQRdA==
+        bh=22bjBJSFHF6mgE/vq3jKe8j3RYXRUm1WUoO7T7s0eHM=;
+        b=VDh4EUXMjKZVevguAEoVQgjUC/vtNic3IA7eVNsjP0flaV2Z0rbcxHssNgQo3+uupH
+         aPA8CLZOMAa7pZHMpsfFgSsYU/IiIHx5JUSs/S9Pk+39bVVN6rUL7420JgLUlRDEQiro
+         QZ4uviiIFl47SJdCV7pwjyPD/sQ7bVn23+N17Pr6ZE2kKUfSwBXYAPFNkU1vkOx7h212
+         q8ZZ0TZCRvIF0SrAxzs62Smsu3HsJhOPGMXuOixt01aD4Sz9Gp2RouZvsPzGfPN1BOcb
+         UQg8nma29uTAj9hrrgmgcovKJhciNL/fv706xYkQdHzrMNu28g+yYgug9wYt1PZZ0Gik
+         Zztg==
+X-Forwarded-Encrypted: i=1; AJvYcCXfFXO7FsUX81HSM01ZqcDQpAe3b5PspF7RuWYIkZJ1Tdnu6dRwZbMOgzNzSbp5eqiipgL5eR+eStZ4w8C7oMYuArwYY4VbtbKRTA==
+X-Gm-Message-State: AOJu0YwyagASJxGTKqXUJTFy5WTFboubZY1qGgxW3zE3cywIB98nNEPI
+	w8I4sKnJsMwvVNkzEwOpO4msTkzs70r0MYps+Sq2J2XpR5c7LYqX2Q+rhIMTCSKZdzetU8x/X0Q
+	5D+j/aQDqMZQYRg3ChS6Lcg==
+X-Google-Smtp-Source: AGHT+IFzqJjjXO3+3idNm338vO6Ib1inFl6UuZSA3t9NkOqpaEB02iOJuR7oLEBKBddfH0Sjh6BohWEkyivggWmW5A==
 X-Received: from almasrymina.c.googlers.com ([fda3:e722:ac3:cc00:20:ed76:c0a8:4bc5])
- (user=almasrymina job=sendgmr) by 2002:a05:690c:668d:b0:62d:cb6:1cff with
- SMTP id 00721157ae682-6433e61e89cmr210387b3.1.1719283665797; Mon, 24 Jun 2024
- 19:47:45 -0700 (PDT)
-Date: Tue, 25 Jun 2024 02:47:14 +0000
+ (user=almasrymina job=sendgmr) by 2002:a05:6902:723:b0:dff:3a41:3670 with
+ SMTP id 3f1490d57ef6-e03040be33cmr94231276.10.1719283670091; Mon, 24 Jun 2024
+ 19:47:50 -0700 (PDT)
+Date: Tue, 25 Jun 2024 02:47:16 +0000
 In-Reply-To: <20240625024721.2140656-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -59,9 +59,8 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20240625024721.2140656-1-almasrymina@google.com>
 X-Mailer: git-send-email 2.45.2.741.gdbec12cfda-goog
-Message-ID: <20240625024721.2140656-12-almasrymina@google.com>
-Subject: [PATCH net-next v13 11/13] net: add SO_DEVMEM_DONTNEED setsockopt to
- release RX frags
+Message-ID: <20240625024721.2140656-14-almasrymina@google.com>
+Subject: [PATCH net-next v13 13/13] selftests: add ncdevmem, netcat for devmem TCP
 From: Mina Almasry <almasrymina@google.com>
 To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
@@ -94,206 +93,628 @@ Cc: Mina Almasry <almasrymina@google.com>, "David S. Miller" <davem@davemloft.ne
 	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
 	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
 	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
+	Stanislav Fomichev <sdf@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Add an interface for the user to notify the kernel that it is done
-reading the devmem dmabuf frags returned as cmsg. The kernel will
-drop the reference on the frags to make them available for reuse.
+ncdevmem is a devmem TCP netcat. It works similarly to netcat, but it
+sends and receives data using the devmem TCP APIs. It uses udmabuf as
+the dmabuf provider. It is compatible with a regular netcat running on
+a peer, or a ncdevmem running on a peer.
 
-Signed-off-by: Willem de Bruijn <willemb@google.com>
-Signed-off-by: Kaiyuan Zhang <kaiyuanz@google.com>
+In addition to normal netcat support, ncdevmem has a validation mode,
+where it sends a specific pattern and validates this pattern on the
+receiver side to ensure data integrity.
+
+Suggested-by: Stanislav Fomichev <sdf@google.com>
 Signed-off-by: Mina Almasry <almasrymina@google.com>
 
 ---
-
-v10:
-- Fix leak of tokens (Nikolay).
-
-v7:
-- Updated SO_DEVMEM_* uapi to use the next available entry (Arnd).
+v9: https://lore.kernel.org/netdev/20240403002053.2376017-15-almasrymina@google.com/
+- Remove unused nic_pci_addr entry (Cong).
 
 v6:
-- Squash in locking optimizations from edumazet@google.com. With his
-  changes we lock the xarray once per sock_devmem_dontneed operation
-  rather than once per frag.
+- Updated to bind 8 queues.
+- Added RSS configuration.
+- Added some more tests for the netlink API.
 
 Changes in v1:
-- devmemtoken -> dmabuf_token (David).
-- Use napi_pp_put_page() for refcounting (Yunsheng).
-- Fix build error with missing socket options on other asms.
+- Many more general cleanups (Willem).
+- Removed driver reset (Jakub).
+- Removed hardcoded if index (Paolo).
+
+RFC v2:
+- General cleanups (Willem).
 
 ---
- arch/alpha/include/uapi/asm/socket.h  |  1 +
- arch/mips/include/uapi/asm/socket.h   |  1 +
- arch/parisc/include/uapi/asm/socket.h |  1 +
- arch/sparc/include/uapi/asm/socket.h  |  1 +
- include/uapi/asm-generic/socket.h     |  1 +
- include/uapi/linux/uio.h              |  4 ++
- net/core/sock.c                       | 61 +++++++++++++++++++++++++++
- 7 files changed, 70 insertions(+)
+ tools/testing/selftests/net/.gitignore |   1 +
+ tools/testing/selftests/net/Makefile   |   5 +
+ tools/testing/selftests/net/ncdevmem.c | 542 +++++++++++++++++++++++++
+ 3 files changed, 548 insertions(+)
+ create mode 100644 tools/testing/selftests/net/ncdevmem.c
 
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index ef4656a41058a..251b73c5481ea 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -144,6 +144,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
+diff --git a/tools/testing/selftests/net/.gitignore b/tools/testing/selftests/net/.gitignore
+index 49a56eb5d0368..9cd3c99c6e5d4 100644
+--- a/tools/testing/selftests/net/.gitignore
++++ b/tools/testing/selftests/net/.gitignore
+@@ -17,6 +17,7 @@ ipv6_flowlabel
+ ipv6_flowlabel_mgr
+ log.txt
+ msg_zerocopy
++ncdevmem
+ nettest
+ psock_fanout
+ psock_snd
+diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selftests/net/Makefile
+index bc3925200637c..e693a39df4b4f 100644
+--- a/tools/testing/selftests/net/Makefile
++++ b/tools/testing/selftests/net/Makefile
+@@ -5,6 +5,10 @@ CFLAGS =  -Wall -Wl,--no-as-needed -O2 -g
+ CFLAGS += -I../../../../usr/include/ $(KHDR_INCLUDES)
+ # Additional include paths needed by kselftest.h
+ CFLAGS += -I../
++CFLAGS += -I../../../net/ynl/generated/
++CFLAGS += -I../../../net/ynl/lib/
++
++LDLIBS += ../../../net/ynl/lib/ynl.a ../../../net/ynl/generated/protos.a
  
- #if !defined(__KERNEL__)
+ TEST_PROGS := run_netsocktests run_afpackettests test_bpf.sh netdevice.sh \
+ 	      rtnetlink.sh xfrm_policy.sh test_blackhole_dev.sh
+@@ -94,6 +98,7 @@ TEST_PROGS += fdb_flush.sh
+ TEST_PROGS += fq_band_pktlimit.sh
+ TEST_PROGS += vlan_hw_filter.sh
+ TEST_PROGS += bpf_offload.py
++TEST_GEN_FILES += ncdevmem
  
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index 414807d55e33f..8ab7582291abf 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -155,6 +155,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
- 
- #if !defined(__KERNEL__)
- 
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index 2b817efd45444..38fc0b188e084 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -136,6 +136,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
- 
- #if !defined(__KERNEL__)
- 
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index 00248fc689773..57084ed2f3c4e 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -137,6 +137,7 @@
- #define SCM_DEVMEM_LINEAR        SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF         0x0058
- #define SCM_DEVMEM_DMABUF        SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED       0x0059
- 
- #if !defined(__KERNEL__)
- 
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index 25a2f5255f523..1acb77780f103 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -135,6 +135,7 @@
- #define SO_PASSPIDFD		76
- #define SO_PEERPIDFD		77
- 
-+#define SO_DEVMEM_DONTNEED	97
- #define SO_DEVMEM_LINEAR	98
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	99
-diff --git a/include/uapi/linux/uio.h b/include/uapi/linux/uio.h
-index 3a22ddae376a2..d17f8fcd93ec9 100644
---- a/include/uapi/linux/uio.h
-+++ b/include/uapi/linux/uio.h
-@@ -33,6 +33,10 @@ struct dmabuf_cmsg {
- 				 */
- };
- 
-+struct dmabuf_token {
-+	__u32 token_start;
-+	__u32 token_count;
-+};
- /*
-  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)
-  */
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 9abc4fe259535..040c66ac26244 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -124,6 +124,7 @@
- #include <linux/netdevice.h>
- #include <net/protocol.h>
- #include <linux/skbuff.h>
-+#include <linux/skbuff_ref.h>
- #include <net/net_namespace.h>
- #include <net/request_sock.h>
- #include <net/sock.h>
-@@ -1049,6 +1050,62 @@ static int sock_reserve_memory(struct sock *sk, int bytes)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PAGE_POOL
-+static noinline_for_stack int
-+sock_devmem_dontneed(struct sock *sk, sockptr_t optval, unsigned int optlen)
+ TEST_FILES := settings
+ TEST_FILES += in_netns.sh lib.sh net_helper.sh setup_loopback.sh setup_veth.sh
+diff --git a/tools/testing/selftests/net/ncdevmem.c b/tools/testing/selftests/net/ncdevmem.c
+new file mode 100644
+index 0000000000000..e00255e54f77b
+--- /dev/null
++++ b/tools/testing/selftests/net/ncdevmem.c
+@@ -0,0 +1,542 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#define __EXPORTED_HEADERS__
++
++#include <linux/uio.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <stdbool.h>
++#include <string.h>
++#include <errno.h>
++#define __iovec_defined
++#include <fcntl.h>
++#include <malloc.h>
++#include <error.h>
++
++#include <arpa/inet.h>
++#include <sys/socket.h>
++#include <sys/mman.h>
++#include <sys/ioctl.h>
++#include <sys/syscall.h>
++
++#include <linux/memfd.h>
++#include <linux/if.h>
++#include <linux/dma-buf.h>
++#include <linux/udmabuf.h>
++#include <libmnl/libmnl.h>
++#include <linux/types.h>
++#include <linux/netlink.h>
++#include <linux/genetlink.h>
++#include <linux/netdev.h>
++#include <time.h>
++
++#include "netdev-user.h"
++#include <ynl.h>
++
++#define PAGE_SHIFT 12
++#define TEST_PREFIX "ncdevmem"
++#define NUM_PAGES 16000
++
++#ifndef MSG_SOCK_DEVMEM
++#define MSG_SOCK_DEVMEM 0x2000000
++#endif
++
++/*
++ * tcpdevmem netcat. Works similarly to netcat but does device memory TCP
++ * instead of regular TCP. Uses udmabuf to mock a dmabuf provider.
++ *
++ * Usage:
++ *
++ *	On server:
++ *	ncdevmem -s <server IP> -c <client IP> -f eth1 -d 3 -n 0000:06:00.0 -l \
++ *		-p 5201 -v 7
++ *
++ *	On client:
++ *	yes $(echo -e \\x01\\x02\\x03\\x04\\x05\\x06) | \
++ *		tr \\n \\0 | \
++ *		head -c 5G | \
++ *		nc <server IP> 5201 -p 5201
++ *
++ * Note this is compatible with regular netcat. i.e. the sender or receiver can
++ * be replaced with regular netcat to test the RX or TX path in isolation.
++ */
++
++static char *server_ip = "192.168.1.4";
++static char *client_ip = "192.168.1.2";
++static char *port = "5201";
++static size_t do_validation;
++static int start_queue = 8;
++static int num_queues = 8;
++static char *ifname = "eth1";
++static unsigned int ifindex = 3;
++static unsigned int iterations;
++static unsigned int dmabuf_id;
++
++void print_bytes(void *ptr, size_t size)
 +{
-+	unsigned int num_tokens, i, j, k, netmem_num = 0;
-+	struct dmabuf_token *tokens;
-+	netmem_ref netmems[16];
-+	int ret = 0;
++	unsigned char *p = ptr;
++	int i;
 +
-+	if (sk->sk_type != SOCK_STREAM || sk->sk_protocol != IPPROTO_TCP)
-+		return -EBADF;
++	for (i = 0; i < size; i++)
++		printf("%02hhX ", p[i]);
++	printf("\n");
++}
 +
-+	if (optlen % sizeof(struct dmabuf_token) ||
-+	    optlen > sizeof(*tokens) * 128)
-+		return -EINVAL;
++void print_nonzero_bytes(void *ptr, size_t size)
++{
++	unsigned char *p = ptr;
++	unsigned int i;
 +
-+	tokens = kvmalloc_array(128, sizeof(*tokens), GFP_KERNEL);
-+	if (!tokens)
-+		return -ENOMEM;
++	for (i = 0; i < size; i++)
++		putchar(p[i]);
++	printf("\n");
++}
 +
-+	num_tokens = optlen / sizeof(struct dmabuf_token);
-+	if (copy_from_sockptr(tokens, optval, optlen)) {
-+		kvfree(tokens);
-+		return -EFAULT;
++void validate_buffer(void *line, size_t size)
++{
++	static unsigned char seed = 1;
++	unsigned char *ptr = line;
++	int errors = 0;
++	size_t i;
++
++	for (i = 0; i < size; i++) {
++		if (ptr[i] != seed) {
++			fprintf(stderr,
++				"Failed validation: expected=%u, actual=%u, index=%lu\n",
++				seed, ptr[i], i);
++			errors++;
++			if (errors > 20)
++				error(1, 0, "validation failed.");
++		}
++		seed++;
++		if (seed == do_validation)
++			seed = 0;
 +	}
 +
-+	xa_lock_bh(&sk->sk_user_frags);
-+	for (i = 0; i < num_tokens; i++) {
-+		for (j = 0; j < tokens[i].token_count; j++) {
-+			netmem_ref netmem = (__force netmem_ref)__xa_erase(
-+				&sk->sk_user_frags, tokens[i].token_start + j);
++	fprintf(stdout, "Validated buffer\n");
++}
 +
-+			if (netmem &&
-+			    !WARN_ON_ONCE(!netmem_is_net_iov(netmem))) {
-+				netmems[netmem_num++] = netmem;
-+				if (netmem_num == ARRAY_SIZE(netmems)) {
-+					xa_unlock_bh(&sk->sk_user_frags);
-+					for (k = 0; k < netmem_num; k++)
-+						WARN_ON_ONCE(!napi_pp_put_page(netmems[k]));
-+					netmem_num = 0;
-+					xa_lock_bh(&sk->sk_user_frags);
-+				}
-+				ret++;
++static void reset_flow_steering(void)
++{
++	char command[256];
++
++	memset(command, 0, sizeof(command));
++	snprintf(command, sizeof(command), "sudo ethtool -K %s ntuple off",
++		 "eth1");
++	system(command);
++
++	memset(command, 0, sizeof(command));
++	snprintf(command, sizeof(command), "sudo ethtool -K %s ntuple on",
++		 "eth1");
++	system(command);
++}
++
++static void configure_rss(void)
++{
++	char command[256];
++
++	memset(command, 0, sizeof(command));
++	snprintf(command, sizeof(command), "sudo ethtool -X %s equal %d",
++		 ifname, start_queue);
++	system(command);
++}
++
++static void configure_flow_steering(void)
++{
++	char command[256];
++
++	memset(command, 0, sizeof(command));
++	snprintf(command, sizeof(command),
++		 "sudo ethtool -N %s flow-type tcp4 src-ip %s dst-ip %s src-port %s dst-port %s queue %d",
++		 ifname, client_ip, server_ip, port, port, start_queue);
++	system(command);
++}
++
++static int bind_rx_queue(unsigned int ifindex, unsigned int dmabuf_fd,
++			 struct netdev_queue_dmabuf *queues,
++			 unsigned int n_queue_index, struct ynl_sock **ys)
++{
++	struct netdev_bind_rx_req *req = NULL;
++	struct netdev_bind_rx_rsp *rsp = NULL;
++	struct ynl_error yerr;
++
++	*ys = ynl_sock_create(&ynl_netdev_family, &yerr);
++	if (!*ys) {
++		fprintf(stderr, "YNL: %s\n", yerr.msg);
++		return -1;
++	}
++
++	req = netdev_bind_rx_req_alloc();
++	netdev_bind_rx_req_set_ifindex(req, ifindex);
++	netdev_bind_rx_req_set_dmabuf_fd(req, dmabuf_fd);
++	__netdev_bind_rx_req_set_queues(req, queues, n_queue_index);
++
++	rsp = netdev_bind_rx(*ys, req);
++	if (!rsp) {
++		perror("netdev_bind_rx");
++		goto err_close;
++	}
++
++	if (!rsp->_present.dmabuf_id) {
++		perror("dmabuf_id not present");
++		goto err_close;
++	}
++
++	printf("got dmabuf id=%d\n", rsp->dmabuf_id);
++	dmabuf_id = rsp->dmabuf_id;
++
++	netdev_bind_rx_req_free(req);
++	netdev_bind_rx_rsp_free(rsp);
++
++	return 0;
++
++err_close:
++	fprintf(stderr, "YNL failed: %s\n", (*ys)->err.msg);
++	netdev_bind_rx_req_free(req);
++	ynl_sock_destroy(*ys);
++	return -1;
++}
++
++static void create_udmabuf(int *devfd, int *memfd, int *buf, size_t dmabuf_size)
++{
++	struct udmabuf_create create;
++	int ret;
++
++	*devfd = open("/dev/udmabuf", O_RDWR);
++	if (*devfd < 0) {
++		error(70, 0,
++		      "%s: [skip,no-udmabuf: Unable to access DMA buffer device file]\n",
++		      TEST_PREFIX);
++	}
++
++	*memfd = memfd_create("udmabuf-test", MFD_ALLOW_SEALING);
++	if (*memfd < 0)
++		error(70, 0, "%s: [skip,no-memfd]\n", TEST_PREFIX);
++
++	/* Required for udmabuf */
++	ret = fcntl(*memfd, F_ADD_SEALS, F_SEAL_SHRINK);
++	if (ret < 0)
++		error(73, 0, "%s: [skip,fcntl-add-seals]\n", TEST_PREFIX);
++
++	ret = ftruncate(*memfd, dmabuf_size);
++	if (ret == -1)
++		error(74, 0, "%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
++
++	memset(&create, 0, sizeof(create));
++
++	create.memfd = *memfd;
++	create.offset = 0;
++	create.size = dmabuf_size;
++	*buf = ioctl(*devfd, UDMABUF_CREATE, &create);
++	if (*buf < 0)
++		error(75, 0, "%s: [FAIL, create udmabuf]\n", TEST_PREFIX);
++}
++
++int do_server(void)
++{
++	char ctrl_data[sizeof(int) * 20000];
++	struct netdev_queue_dmabuf *queues;
++	size_t non_page_aligned_frags = 0;
++	struct sockaddr_in client_addr;
++	struct sockaddr_in server_sin;
++	size_t page_aligned_frags = 0;
++	int devfd, memfd, buf, ret;
++	size_t total_received = 0;
++	socklen_t client_addr_len;
++	bool is_devmem = false;
++	char *buf_mem = NULL;
++	struct ynl_sock *ys;
++	size_t dmabuf_size;
++	char iobuf[819200];
++	char buffer[256];
++	int socket_fd;
++	int client_fd;
++	size_t i = 0;
++	int opt = 1;
++
++	dmabuf_size = getpagesize() * NUM_PAGES;
++
++	create_udmabuf(&devfd, &memfd, &buf, dmabuf_size);
++
++	reset_flow_steering();
++
++	/* Configure RSS to divert all traffic from our devmem queues */
++	configure_rss();
++
++	/* Flow steer our devmem flows to start_queue */
++	configure_flow_steering();
++
++	sleep(1);
++
++	queues = malloc(sizeof(*queues) * num_queues);
++
++	for (i = 0; i < num_queues; i++) {
++		queues[i]._present.type = 1;
++		queues[i]._present.idx = 1;
++		queues[i].type = NETDEV_QUEUE_TYPE_RX;
++		queues[i].idx = start_queue + i;
++	}
++
++	if (bind_rx_queue(ifindex, buf, queues, num_queues, &ys))
++		error(1, 0, "Failed to bind\n");
++
++	buf_mem = mmap(NULL, dmabuf_size, PROT_READ | PROT_WRITE, MAP_SHARED,
++		       buf, 0);
++	if (buf_mem == MAP_FAILED)
++		error(1, 0, "mmap()");
++
++	server_sin.sin_family = AF_INET;
++	server_sin.sin_port = htons(atoi(port));
++
++	ret = inet_pton(server_sin.sin_family, server_ip, &server_sin.sin_addr);
++	if (socket < 0)
++		error(79, 0, "%s: [FAIL, create socket]\n", TEST_PREFIX);
++
++	socket_fd = socket(server_sin.sin_family, SOCK_STREAM, 0);
++	if (socket < 0)
++		error(errno, errno, "%s: [FAIL, create socket]\n", TEST_PREFIX);
++
++	ret = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &opt,
++			 sizeof(opt));
++	if (ret)
++		error(errno, errno, "%s: [FAIL, set sock opt]\n", TEST_PREFIX);
++
++	ret = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt,
++			 sizeof(opt));
++	if (ret)
++		error(errno, errno, "%s: [FAIL, set sock opt]\n", TEST_PREFIX);
++
++	printf("binding to address %s:%d\n", server_ip,
++	       ntohs(server_sin.sin_port));
++
++	ret = bind(socket_fd, &server_sin, sizeof(server_sin));
++	if (ret)
++		error(errno, errno, "%s: [FAIL, bind]\n", TEST_PREFIX);
++
++	ret = listen(socket_fd, 1);
++	if (ret)
++		error(errno, errno, "%s: [FAIL, listen]\n", TEST_PREFIX);
++
++	client_addr_len = sizeof(client_addr);
++
++	inet_ntop(server_sin.sin_family, &server_sin.sin_addr, buffer,
++		  sizeof(buffer));
++	printf("Waiting or connection on %s:%d\n", buffer,
++	       ntohs(server_sin.sin_port));
++	client_fd = accept(socket_fd, &client_addr, &client_addr_len);
++
++	inet_ntop(client_addr.sin_family, &client_addr.sin_addr, buffer,
++		  sizeof(buffer));
++	printf("Got connection from %s:%d\n", buffer,
++	       ntohs(client_addr.sin_port));
++
++	while (1) {
++		struct iovec iov = { .iov_base = iobuf,
++				     .iov_len = sizeof(iobuf) };
++		struct dmabuf_cmsg *dmabuf_cmsg = NULL;
++		struct dma_buf_sync sync = { 0 };
++		struct cmsghdr *cm = NULL;
++		struct msghdr msg = { 0 };
++		struct dmabuf_token token;
++		ssize_t ret;
++
++		is_devmem = false;
++		printf("\n\n");
++
++		msg.msg_iov = &iov;
++		msg.msg_iovlen = 1;
++		msg.msg_control = ctrl_data;
++		msg.msg_controllen = sizeof(ctrl_data);
++		ret = recvmsg(client_fd, &msg, MSG_SOCK_DEVMEM);
++		printf("recvmsg ret=%ld\n", ret);
++		if (ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
++			continue;
++		if (ret < 0) {
++			perror("recvmsg");
++			continue;
++		}
++		if (ret == 0) {
++			printf("client exited\n");
++			goto cleanup;
++		}
++
++		i++;
++		for (cm = CMSG_FIRSTHDR(&msg); cm; cm = CMSG_NXTHDR(&msg, cm)) {
++			if (cm->cmsg_level != SOL_SOCKET ||
++			    (cm->cmsg_type != SCM_DEVMEM_DMABUF &&
++			     cm->cmsg_type != SCM_DEVMEM_LINEAR)) {
++				fprintf(stdout, "skipping non-devmem cmsg\n");
++				continue;
 +			}
++
++			dmabuf_cmsg = (struct dmabuf_cmsg *)CMSG_DATA(cm);
++			is_devmem = true;
++
++			if (cm->cmsg_type == SCM_DEVMEM_LINEAR) {
++				/* TODO: process data copied from skb's linear
++				 * buffer.
++				 */
++				fprintf(stdout,
++					"SCM_DEVMEM_LINEAR. dmabuf_cmsg->frag_size=%u\n",
++					dmabuf_cmsg->frag_size);
++
++				continue;
++			}
++
++			token.token_start = dmabuf_cmsg->frag_token;
++			token.token_count = 1;
++
++			total_received += dmabuf_cmsg->frag_size;
++			printf("received frag_page=%llu, in_page_offset=%llu, frag_offset=%llu, frag_size=%u, token=%u, total_received=%lu, dmabuf_id=%u\n",
++			       dmabuf_cmsg->frag_offset >> PAGE_SHIFT,
++			       dmabuf_cmsg->frag_offset % getpagesize(),
++			       dmabuf_cmsg->frag_offset, dmabuf_cmsg->frag_size,
++			       dmabuf_cmsg->frag_token, total_received,
++			       dmabuf_cmsg->dmabuf_id);
++
++			if (dmabuf_cmsg->dmabuf_id != dmabuf_id)
++				error(1, 0,
++				      "received on wrong dmabuf_id: flow steering error\n");
++
++			if (dmabuf_cmsg->frag_size % getpagesize())
++				non_page_aligned_frags++;
++			else
++				page_aligned_frags++;
++
++			sync.flags = DMA_BUF_SYNC_READ | DMA_BUF_SYNC_START;
++			ioctl(buf, DMA_BUF_IOCTL_SYNC, &sync);
++
++			if (do_validation)
++				validate_buffer(
++					((unsigned char *)buf_mem) +
++						dmabuf_cmsg->frag_offset,
++					dmabuf_cmsg->frag_size);
++			else
++				print_nonzero_bytes(
++					((unsigned char *)buf_mem) +
++						dmabuf_cmsg->frag_offset,
++					dmabuf_cmsg->frag_size);
++
++			sync.flags = DMA_BUF_SYNC_READ | DMA_BUF_SYNC_END;
++			ioctl(buf, DMA_BUF_IOCTL_SYNC, &sync);
++
++			ret = setsockopt(client_fd, SOL_SOCKET,
++					 SO_DEVMEM_DONTNEED, &token,
++					 sizeof(token));
++			if (ret != 1)
++				error(1, 0,
++				      "SO_DEVMEM_DONTNEED not enough tokens");
++		}
++		if (!is_devmem)
++			error(1, 0, "flow steering error\n");
++
++		printf("total_received=%lu\n", total_received);
++	}
++
++	fprintf(stdout, "%s: ok\n", TEST_PREFIX);
++
++	fprintf(stdout, "page_aligned_frags=%lu, non_page_aligned_frags=%lu\n",
++		page_aligned_frags, non_page_aligned_frags);
++
++	fprintf(stdout, "page_aligned_frags=%lu, non_page_aligned_frags=%lu\n",
++		page_aligned_frags, non_page_aligned_frags);
++
++cleanup:
++
++	munmap(buf_mem, dmabuf_size);
++	close(client_fd);
++	close(socket_fd);
++	close(buf);
++	close(memfd);
++	close(devfd);
++	ynl_sock_destroy(ys);
++
++	return 0;
++}
++
++void run_devmem_tests(void)
++{
++	struct netdev_queue_dmabuf *queues;
++	int devfd, memfd, buf;
++	struct ynl_sock *ys;
++	size_t dmabuf_size;
++	size_t i = 0;
++
++	dmabuf_size = getpagesize() * NUM_PAGES;
++
++	create_udmabuf(&devfd, &memfd, &buf, dmabuf_size);
++
++	/* Configure RSS to divert all traffic from our devmem queues */
++	configure_rss();
++
++	sleep(1);
++
++	queues = malloc(sizeof(*queues) * num_queues);
++
++	for (i = 0; i < num_queues; i++) {
++		queues[i]._present.type = 1;
++		queues[i]._present.idx = 1;
++		queues[i].type = NETDEV_QUEUE_TYPE_RX;
++		queues[i].idx = start_queue + i;
++	}
++
++	if (bind_rx_queue(ifindex, buf, queues, num_queues, &ys))
++		error(1, 0, "Failed to bind\n");
++
++	/* Closing the netlink socket does an implicit unbind */
++	ynl_sock_destroy(ys);
++}
++
++int main(int argc, char *argv[])
++{
++	int is_server = 0, opt;
++
++	while ((opt = getopt(argc, argv, "ls:c:p:v:q:f:n:i:d:")) != -1) {
++		switch (opt) {
++		case 'l':
++			is_server = 1;
++			break;
++		case 's':
++			server_ip = optarg;
++			break;
++		case 'c':
++			client_ip = optarg;
++			break;
++		case 'p':
++			port = optarg;
++			break;
++		case 'v':
++			do_validation = atoll(optarg);
++			break;
++		case 'q':
++			num_queues = atoi(optarg);
++			break;
++		case 't':
++			start_queue = atoi(optarg);
++			break;
++		case 'f':
++			ifname = optarg;
++			break;
++		case 'd':
++			ifindex = atoi(optarg);
++			break;
++		case 'i':
++			iterations = atoll(optarg);
++			break;
++		case '?':
++			printf("unknown option: %c\n", optopt);
++			break;
 +		}
 +	}
 +
-+	xa_unlock_bh(&sk->sk_user_frags);
-+	for (k = 0; k < netmem_num; k++)
-+		WARN_ON_ONCE(!napi_pp_put_page(netmems[k]));
++	for (; optind < argc; optind++)
++		printf("extra arguments: %s\n", argv[optind]);
 +
-+	kvfree(tokens);
-+	return ret;
++	run_devmem_tests();
++
++	if (is_server)
++		return do_server();
++
++	return 0;
 +}
-+#endif
-+
- void sockopt_lock_sock(struct sock *sk)
- {
- 	/* When current->bpf_ctx is set, the setsockopt is called from
-@@ -1211,6 +1268,10 @@ int sk_setsockopt(struct sock *sk, int level, int optname,
- 			ret = -EOPNOTSUPP;
- 		return ret;
- 		}
-+#ifdef CONFIG_PAGE_POOL
-+	case SO_DEVMEM_DONTNEED:
-+		return sock_devmem_dontneed(sk, optval, optlen);
-+#endif
- 	}
- 
- 	sockopt_lock_sock(sk);
 -- 
 2.45.2.741.gdbec12cfda-goog
 
