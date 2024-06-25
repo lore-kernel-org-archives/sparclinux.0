@@ -1,143 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-43167.protonmail.ch (mail-43167.protonmail.ch [185.70.43.167])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A8D1A01B7;
-	Mon, 24 Jun 2024 20:14:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378404437A
+	for <sparclinux@vger.kernel.org>; Tue, 25 Jun 2024 02:07:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.167
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719260090; cv=none; b=R4uSLv7/10kI+T3nZst7Vp28ALfU0S5hjKpZbLQjT3XoQ7gBF0dw4C8QlPcZZfF8sl1g9/hVhawG6vNqDjA0XcROadiu4DmefBtYlJSn83S3nVZVN5wDEbgjfrrkLYzlqDAb1jFsnJgaz4XytcHqn5ZYScy3yvSw1Wy6SAN60Y8=
+	t=1719281226; cv=none; b=ThMZZCdStxQoHWQPyh82cC0hGdpp4PVlxUoxfOClI4QkMqd2JxhbJz4EvIHs46GjrcO/5BA6c2z/+bQzcQenY1aUuMa9ew0lUkyS3TU/Fs89H2UPExFVgR51oE89hi2aupHBWhY0bfvfaNfaisEHvO1JvVsNzN1TD1mrosYJlLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719260090; c=relaxed/simple;
-	bh=B7G4o+wl4uVsOmOk5mkRzYTclrWJ1qPeYOyEfL5YUNs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HihgAvXUE2zMnqReZJD20UljoxvOBMmstHvnWLuTSWnm4SvvQ0Sej2xmQ3GSEHj3k2pg4kyTgMEwZCNvPPubpxI8a7RHq3fyuqd743XdM1Q4wR2oJgUhzFQwdhrIHRI1INpRvLfP33NJELbk99dhEREmQuJyUSNdeQ8r5WMisCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nuFvNqsB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719281226; c=relaxed/simple;
+	bh=9oiFlq7AV3k2xbej2ZbU4/OiFqF+imjoOPmd3hJcCBI=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=GVRm6Urv8pnPqj6Bm058Dt5liR5ZRhmO3P/PiSzTrnFMjyzuanP9H30ZjgSQzPBPYgdy1w/IsptXVbZiNozba1rTFbhrr0bcFr1Kq1PMaPbBItg19nsyMB/g5fl0Fq/my6bvJx1DryqNaGrDthxFaYRhqbo7t/oFZa8B5VEqo+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=ip6dVi2p; arc=none smtp.client-ip=185.70.43.167
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nuFvNqsB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD15C2BBFC;
-	Mon, 24 Jun 2024 20:14:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719260089;
-	bh=B7G4o+wl4uVsOmOk5mkRzYTclrWJ1qPeYOyEfL5YUNs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nuFvNqsBwAJtlu4pr/J7euof725uBNi2M7AwbpWG+GLkXBxGcxi4M4b0bSxKclnZX
-	 OVGOsA+MXgga4gPerliU6Kaw2x/QrA6zXG50VYbq48Fqy1eUvNxf3iKXW1sr+DLYf4
-	 iqHq69B0OaV1VNTvklt9o7C5NZ0qufAAvwJl0AHg3q00g3ta3c2ZRHUoK3+YhPyp2L
-	 Sz0ulQ6AmLS1sf+kyvbfm/Xz+LDDoRpGaOQdTN31nUkRs1BuDDHaCUGWLTgHBM67BL
-	 HDtx89T3wCoxd67+IPDu1RlPBvwfM3PZHWkxB1/TLpOJ2unp6CbEF5MJxPV1vdx5MM
-	 k/5NDuyZN7kAA==
-Date: Mon, 24 Jun 2024 13:14:47 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
-	sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-	llvm@lists.linux.dev
-Subject: Re: [PATCH] sparc/build: Make all compiler flags also
- clang-compatible
-Message-ID: <20240624201447.GA774138@thelio-3990X>
-References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
- <20240621185345.GA416370@thelio-3990X>
- <e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFwdB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=@protonmail.com>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="ip6dVi2p"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1719281217; x=1719540417;
+	bh=9oiFlq7AV3k2xbej2ZbU4/OiFqF+imjoOPmd3hJcCBI=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=ip6dVi2pEojfzMU9DGPZTBmQOQSKgW4Qy78HLmOWkXVVOjweDC6PixuVRJzjKVlSz
+	 aOWKbOkz1drEdV9SHT+UcZ18xxx2H9cSlElSRCqdEsxTZMLUKKzKXuce/KMAyTECc+
+	 9LC7Rsb2mrvlbkxkwXZzU+uoqEnZQ7MkrH0Jma56etAjrzHrs/MedrtKeHdnI3tIY5
+	 dgc/Sk/9Z8f0QT6RxViqAU0MthZkYXYlz12csAjahmE1CJm8f9bKHv3kKli82I17d/
+	 FXAZ34EwhRSXg7lJ1ujVOgTjMxX7Zam3o/N0dS1oq21oBjA1x3zDNQox6zfTkrYLbk
+	 IfPNVGmCU0GcA==
+Date: Tue, 25 Jun 2024 02:06:54 +0000
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+From: Koakuma <koachan@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH] sparc/build: Make all compiler flags also clang-compatible
+Message-ID: <Mz-kWneLsFvKbBcTaGnC2xMA2U55fINzOJqmMRMumrtTaeHW40WfS5rYUjF_71aoXG56jSHo0vJ0oRPNoCrxpE_oIr7mmnK6fg9dFC_J9hk=@protonmail.com>
+In-Reply-To: <9449319ebbcd59719614ee786f1abe18256d0331.camel@physik.fu-berlin.de>
+References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com> <9449319ebbcd59719614ee786f1abe18256d0331.camel@physik.fu-berlin.de>
+Feedback-ID: 6608610:user:proton
+X-Pm-Message-ID: 537760d7c9f6ad72dbf6cbce2b6cb1dce58bdca2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFwdB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=@protonmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi Koakuma,
+Hi Adrian~
 
-On Sat, Jun 22, 2024 at 12:18:17PM +0000, Koakuma wrote:
-> Nathan Chancellor <nathan@kernel.org> wrote:
-> 
-> > I saw through the LLVM issue above that one other patch is necessary to
-> > fix an issue in the vDSO [1], which I applied in testing this one. 
-> 
-> Mhmm, I did not submit that yet because I don't feel fully confident
-> with it. I think it should probably live in include/vdso/math64.h
-> as plain C code instead of the current asm version, but I don't know
-> what is the proper way to check the current environment's word size.
-> Is checking BITS_PER_LONG enough, or should I do it in another way?
+John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
+> V8plus does not use VIS instructions and also has a different ELF machine
+> type, namely EM_SPARC32PLUS instead of EM_SPARCV9 if I understand correct=
+ly.
+>
+> So, we should make sure that the above change will not affect the ELF mac=
+hine
+> type.
 
-Yes, I believe that is what BITS_PER_LONG is there for, you will see
-other checks in the tree for that. You could also reach out to the
-maintainers of the generic vDSO infrastructure to see if they have any
-ideas or suggestions for integration.
+When assembling with GNU as, there seem to be no control as to what
+machine type we want to emit, as it simply tries to autodetect it based
+on the instruction mix in the assembly code:
+- If there's a V9 instruction inside, then use EM_SPARC32PLUS; and
+- Emit EM_SPARC otherwise.
 
-> > I noticed in applying that change that you appear to be working on 6.1,
-> > which is fine for now, but you'll need another diff once you get to a
-> > newer version, as we stopped using CROSS_COMPILE to set clang's
-> > '--target=' value:
-> > 
-> > diff --git a/scripts/Makefile.clang b/scripts/Makefile.clang
-> > index 6c23c6af797f..2435efae67f5 100644
-> > --- a/scripts/Makefile.clang
-> > +++ b/scripts/Makefile.clang
-> > @@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips := mipsel-linux-gnu
-> > CLANG_TARGET_FLAGS_powerpc := powerpc64le-linux-gnu
-> > CLANG_TARGET_FLAGS_riscv := riscv64-linux-gnu
-> > CLANG_TARGET_FLAGS_s390 := s390x-linux-gnu
-> > +CLANG_TARGET_FLAGS_sparc := sparc64-linux-gnu
-> > CLANG_TARGET_FLAGS_x86 := x86_64-linux-gnu
-> > CLANG_TARGET_FLAGS_um := $(CLANG_TARGET_FLAGS_$(SUBARCH))
-> > CLANG_TARGET_FLAGS := $(CLANG_TARGET_FLAGS_$(SRCARCH))
-> 
-> Yeah, I was working with 6.1 at that time since it's the version
-> that my distro have installed for me. Now this is more of a workflow
+This is also the case with GCC - it simply happens that GCC will try
+to emit V9 instructions whenever possible with `-m32 -mv8plus`
+or `-m32 -mcpu=3Dv9` so there's a high chance that the resulting object
+file will be of a EM_SPARC32PLUS type, but this does not seem to be
+a guaranteed behavior.
 
-That makes sense. I do think you should start working off of a more
-recent version (ideally at least mainline) for your future revisions,
-just so that your patches can be applied with less friction on
-maintainers. That can help your patches get picked up quicker :)
+With LLVM's as, we can have finer control of emitted machine type, but
+so far it never sets the type to EM_SPARC32PLUS - for this I have made
+a patch over at https://github.com/llvm/llvm-project/pull/96583.
 
-> question, but this means I should submit a v2 with this change
-> merged in with mine too, right?
+As for VIS, GCC (and clang when it eventually supports vectorization)
+should not emit it unless explicitly asked, so I think we are
+in the clear here?
 
-Here is what I would do:
+> With `-mvis`, GCC generates code that takes advantage of
+> the UltraSPARC Visual Instruction Set extensions.
+> The default is `-mno-vis`.
 
-1. Either keep this patch the way that it is or break it up into two
-   separate patches (especially given Adrian's other review comment):
-
-   One for removing the '-fcall-used' flags, with the comments about how
-   it does not impact the ABI and the registers can still be used in
-   assembly if needed, perhaps with some benchmarks with any codegen?
-   Might not be strictly necessary since Sam did not seem opposed in the
-   previous discussion.
-
-   One for changing the vDSO from '-mv8plus' to '-mcpu=v9' (if this is
-   still okay).
-
-2. Add another patch with that diff above with some notes about what was
-   tested to justify allowing this now.
-
-You'll end up with either a two or three patch series. I would send this
-series to both the SPARC people that you have added here along with the
-Kbuild and ClangBuiltLinux folks, which you can get from the output of
-
-  $ scripts/get_maintainers.pl scripts/Makefile.clang
-
-or use 'b4 prep --auto-to-cc' after crafting the series, since it
-appears you used it for this series. For the cover letter, you can add
-some commentary about what was tested and request integration from
-either the SPARC folks or Masahiro, depending on who wants to carry the
-changes, since they should go through one tree atomically ideally.
-
-If you have any questions about or issues with that comment or any other
-aspect of this process, I am happy to answer or clarify as necessary!
-I am in the #clang-built-linux channel in the LLVM Discord and
-#clangbuiltlinux on Libera if anything comes up.
-
-> And thanks for the feedback!
-
-Always happy to help get more people involved with the kernel,
-especially from the clang/LLVM side :)
-
-Cheers,
-Nathan
+From https://gcc.gnu.org/onlinedocs/gcc/SPARC-Options.html#index-mvis
