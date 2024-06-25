@@ -1,117 +1,171 @@
-Received: from mail-0301.mail-europe.com (mail-0301.mail-europe.com [188.165.51.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CE814A0B8;
-	Tue, 25 Jun 2024 16:37:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=188.165.51.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08062176230;
+	Tue, 25 Jun 2024 16:49:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719333443; cv=none; b=U8MRJih7E0MOx7E7gW2Lcz/fsndIIN5LK9/jKboBQvSQ6AAAQWuFdJI6o2KME1+ufrCwCfkgR4zLKsBuJMF36f+v6v01fMR7l35t4Mya311pJTSFcAacvUgPMGBh9nvumlwiELeqRpr+9iZCyddGzmu27YPq4M48m+tabMBUvrs=
+	t=1719334183; cv=none; b=NmIv43yc7TdIhwcciA3Ssw+lKQYhVPTg+0aq7UKhO6vFTlrTxeW21TeZ5BfD6psxKPA7jnwjryZF39umbjbO9slFhOHTPpz6T9iRDuBtmj9vVuTQ1lfz3CCogMpemlTk4EpfLuiX1LmqoHMQr5AX3IUCWVP8pZCk45ww3TyVciM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719333443; c=relaxed/simple;
-	bh=fnPzckJzBpwtTvvkEfm3K3Gv3jko4xHw6k7B6ll5zXc=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Mk5Qc4ZFniXQABqkhJDeM6ooUu3p4vS4wi9Kz+sff3Di7kn+Eoff3MmB1leZog1kPHDChUzWSsTBdsalIWr7alLnNoacszr9ngxKtptfHDR5/puxJwFlG4dTOsuUK/7hVFtspYSE2L8Z+YdEVRMX5nuG5cxOnXizpekyNdsKuas=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=xDiSTt7t; arc=none smtp.client-ip=188.165.51.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	s=arc-20240116; t=1719334183; c=relaxed/simple;
+	bh=9/N/lZxSE7O6j9KicH3kaHG+FZylOMFwRNg/yBKCloI=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=t/v+lqG5yUddk2yf6ibfNHkxfcs+xwagH+jCvNhOWk0Eu51Px+1z0SOniKRi8RVyCl2zHhdwQ33L0AT00gT8IzpVjB4+GZzwmeZjk/hvatz5u2pP26HS4UP8ZE6rvJd0KQ83khBjagQeK7cL+tvv/DlFNN8VdhauwTjFb1j78gA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l2b0PcRb; arc=none smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="xDiSTt7t"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1719333431; x=1719592631;
-	bh=fnPzckJzBpwtTvvkEfm3K3Gv3jko4xHw6k7B6ll5zXc=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=xDiSTt7tz+4vsmZSrWjaFL63uTKGBV2BWBe5l7IioUo9YKRQ28uXYf5jyaKpErlh6
-	 78UjmOal/QfRHOzVWF0fG0Z3yzEhl9Lm9vcPs/0jfQu1XqXAv5BT4wtbHF6SohTflJ
-	 Tg6y5HqjycK/2g7ScNRenhuRLA4k7hwzt6LB/AckGZ4xyA7mOfG+JyjaNcSS9WlZp7
-	 BVEWNFNVtMa2fxohYYxI7pHB+CuCEVPsSifs/KkFbWw4VVFyRzCCzAmBEntjbmE9W3
-	 9jmFW+p4Reg9oej3/rh6rg72OJZ9Kq+FSWO9mYmcKQCrXAIRI/crtH9YbGN+w3TVy2
-	 xgt74pjbJWbuA==
-Date: Tue, 25 Jun 2024 16:37:08 +0000
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-From: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH] sparc/build: Make all compiler flags also clang-compatible
-Message-ID: <Wcr4bsqUbuLm7J7tfuNMYZZ1cvYyh4CfBDt-siTQySe6jReMpHb7-AXX_Mao7uEh8exzhq6_Tyg9YoRzKCE77KfqFoc6L7_TEE5CuWg5Pp0=@protonmail.com>
-In-Reply-To: <e359b140839606b1856c5625669e5b6bd7ebc7eb.camel@physik.fu-berlin.de>
-References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com> <9449319ebbcd59719614ee786f1abe18256d0331.camel@physik.fu-berlin.de> <Mz-kWneLsFvKbBcTaGnC2xMA2U55fINzOJqmMRMumrtTaeHW40WfS5rYUjF_71aoXG56jSHo0vJ0oRPNoCrxpE_oIr7mmnK6fg9dFC_J9hk=@protonmail.com> <e359b140839606b1856c5625669e5b6bd7ebc7eb.camel@physik.fu-berlin.de>
-Feedback-ID: 6608610:user:proton
-X-Pm-Message-ID: 2dda54422a63525ab282c15bd0175fdcac607147
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l2b0PcRb"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a6fe61793e2so217878866b.0;
+        Tue, 25 Jun 2024 09:49:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1719334180; x=1719938980; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=i8tcHw7piGXCwRcIpKZBGAUeAPhX7LMHTxD2UwRCUME=;
+        b=l2b0PcRb9pwdu8s0K1Wudk7UbVyCyFBCU1+okSr2KCpKL57POsRtoStpFV4u93m3fU
+         grGZtHOSCGeI/ttPxZMWi1HWSaPFpB3OkJfFw5f8HkT1tld8f7OAmmL8pDsJwBEEnGeJ
+         JabNei1SPap9f0pWeTDh4ODB2F2LVOIfCDbUb4/X5Q7CkcURhZptN98nlosBJ/TsY1kU
+         ROT0cVNi1P59Ma68QGTVi/Lzioav4nXVowGH1dgC5MBi5QunkTSBQL+kEQy7BtQig5+e
+         pAqHmkmd8k6cg1e59y+WBmwEPrEhLhSl/ntcjoy9y2c+pnJrQxxoOkDAVbCbT+I1MXht
+         5PDg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719334180; x=1719938980;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i8tcHw7piGXCwRcIpKZBGAUeAPhX7LMHTxD2UwRCUME=;
+        b=Wo2o2ZJO3u9+SKunb6j2pPHGhmDYZSYrQWSDy1uytaW06GmyarOZ99uAjWqEZ/DVMZ
+         LtICOfxdZ8bkE7xIYv7OYvzle26YhtlfsCeVx3hUrZKmXQspl2k/GnNcPymXM8n/sTzP
+         0b5zYrHZVdNvw83AByCWmr7k73RmUGdczGoyFn6icm1XpkpcqIpUeqme0Y5COdRiiohC
+         tKPzocUTygPg374yCFEFbjei/Ml4NNS3OmT3QNpZHZsMfPFoX0L57HnGKRo8VsEeZd0m
+         KCl6XC/TpLu9+P6LOuOMwTU+vI7ZTj49Sd+HRNuSNj53El2WVkZN9gkt8pO3X5RbtT9M
+         3y7Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXfYPbyG52hL+HASg9LDOoWTZQQbtNrQgdPOOH0GyCfRXbAkHKRJqDVOuuwiyfQMk1+8EV7x9YoLgq01x4ftYq/Pcr1u6s/PhqTZlAZvMmczNQ1PAkWcMRIyK1752IY8lOba4vKQJxfGg==
+X-Gm-Message-State: AOJu0YxFkWSsviM7MChopzObNuchAwgSotxIAUNlQ/2wUnN+p9DuwpAv
+	8G75Gp1/VnF3BT9gRuWQHzKuwBuAFN20vLHb9insC2cs/krosiHh
+X-Google-Smtp-Source: AGHT+IG1iYnAnB1dQfk+8aYmQF2ecfD43JBj0FrCqW8RDRv+XN+QynXr42cGTxWqNwxe8YLLOqAPmw==
+X-Received: by 2002:a50:ab5b:0:b0:57d:2659:9143 with SMTP id 4fb4d7f45d1cf-57d4bde078cmr6401540a12.37.1719334180082;
+        Tue, 25 Jun 2024 09:49:40 -0700 (PDT)
+Received: from pc638.lan (host-185-121-47-193.sydskane.nu. [185.121.47.193])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-57d30583e93sm6095989a12.96.2024.06.25.09.49.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Jun 2024 09:49:39 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc638.lan>
+Date: Tue, 25 Jun 2024 18:49:37 +0200
+To: Nick Bowler <nbowler@draconx.ca>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Hailong Liu <hailong.liu@oppo.com>,
+	Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org,
+	Linux regressions mailing list <regressions@lists.linux.dev>,
+	linux-mm@kvack.org, sparclinux@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: PROBLEM: kernel crashes when running xfsdump since ~6.4
+Message-ID: <Znr1IQ1mssdNNXbv@pc638.lan>
+References: <ZnVLbCCkvhf5GaTf@pc636>
+ <ZnWICsPgYuBlrWlt@MiWiFi-R3L-srv>
+ <Znljtv5n-6EBgpsF@pc636>
+ <Zno52QBG0g5Z+otD@MiWiFi-R3L-srv>
+ <ZnqcuKt2qrR-wmH3@pc636>
+ <ZnqspTVl/76jM9WD@MiWiFi-R3L-srv>
+ <Znq6tEtCgB6QnnJH@pc638.lan>
+ <Znq/8/HAc/0p6Ja0@MiWiFi-R3L-srv>
+ <ZnrjZRq5-_hemrbD@pc636>
+ <ZnrnADHvOiNcZv9t@MiWiFi-R3L-srv>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZnrnADHvOiNcZv9t@MiWiFi-R3L-srv>
 
-Hi Adrian~
+> > > > /**
+> > > >  * cpumask_next - get the next cpu in a cpumask
+> > > >  * @n: the cpu prior to the place to search (i.e. return will be > @n)
+> > > >  * @srcp: the cpumask pointer
+> > > >  *
+> > > >  * Return: >= nr_cpu_ids if no further cpus set.
+> > > 
+> > > Ah, I got what you mean. In the vbq case, it may not have chance to get
+> > > a return number as nr_cpu_ids. Becuase the hashed index limits the
+> > > range to [0, nr_cpu_ids-1], and cpu_possible(index) will guarantee it
+> > > won't be the highest cpu number [nr_cpu_ids-1] since CPU[nr_cpu_ids-1] must
+> > > be possible CPU.
+> > > 
+> > > Do I miss some corner cases?
+> > > 
+> > Right. We guarantee that a highest CPU is available by doing: % nr_cpu_ids.
+> > So we do not need to use *next_wrap() variant. You do not miss anything :)
+> > 
+> > Hailong Liu has proposed more simpler version:
+> > 
+> > <snip>
+> > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+> > index 11fe5ea208aa..e1e63ffb9c57 100644
+> > --- a/mm/vmalloc.c
+> > +++ b/mm/vmalloc.c
+> > @@ -1994,8 +1994,9 @@ static struct xarray *
+> >  addr_to_vb_xa(unsigned long addr)
+> >  {
+> >         int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
+> > +       int cpu = cpumask_nth(index, cpu_possible_mask);
+> > 
+> > -       return &per_cpu(vmap_block_queue, index).vmap_blocks;
+> > +       return &per_cpu(vmap_block_queue, cpu).vmap_blocks;
+> > <snip>
+> > 
+> > which just takes a next CPU if an index is not set in the cpu_possible_mask.
+> > 
+> > The only thing that can be updated in the patch is to replace num_possible_cpu()
+> > by the nr_cpu_ids.
+> > 
+> > Any thoughts? I think we need to fix it by a minor change so it is
+> > easier to back-port on stable kernels.
+> 
+> Yeah, sounds good since the regresson commit is merged in v6.3.
+> Please feel free to post this and the hash array patch separately for
+> formal reviewing.
+> 
+Agreed! The patch about hash array i will post later.
 
-John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
-> Would be interesting to find out what Sun's own C/C++ compiler (Sun Studi=
-o)
-> does in this case. I can try to run some tests on Solaris or you can chec=
-k
-> out the Solaris machines in the GCC compile farm [1].
+> By the way, when I am replying this mail, I check the cpumask_nth()
+> again. I doubt it may take more checking then cpu_possible(), given most
+> of systems don't have gaps in cpu_possible_mask. I could be dizzy at
+> this moment.
+> 
+> static inline unsigned int cpumask_nth(unsigned int cpu, const struct cpumask *srcp)
+> {
+>         return find_nth_bit(cpumask_bits(srcp), small_cpumask_bits, cpumask_check(cpu));
+> }
+> 
+Yep, i do not think it is a big problem based on your noted fact.
 
-I am using the version included in Oracle Studio 12.6, and it seems
-that it always emit a EM_SPARC32PLUS type for 32-bit objects.
+Nick, could you please test your machine with below change?
 
-The documentation for the -xarch also states that even when using
-the most generic target (`sparc`), it only supports emitting for V9 ISA
-(that is, EM_SPARC32PLUS for 32-bit target):
+<snip>
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 45e1506d58c3..5458fd2290cf 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2542,9 +2542,10 @@ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
+ static struct xarray *
+ addr_to_vb_xa(unsigned long addr)
+ {
+-       int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
++       int index = (addr / VMAP_BLOCK_SIZE) % nr_cpu_ids;
++       int cpu = cpumask_nth(index, cpu_possible_mask);
 
-> sparc
-> Compile for the SPARC-V9 ISA.
-> Compile for the V9 ISA, but without the Visual Instruction Set (VIS),
-> and without other implementation-specific ISA extensions. This option
-> enables the compiler to generate code for good performance on
-> the V9 ISA.
+-       return &per_cpu(vmap_block_queue, index).vmap_blocks;
++       return &per_cpu(vmap_block_queue, cpu).vmap_blocks;
+ }
 
-From https://docs.oracle.com/cd/E77782_01/html/E77803/cc-1.html
+ /*
+<snip>
 
-Other versions of the compiler might act differently, but sadly I have
-no access to them.
+Thank you in advance!
 
-> I just had a brief look - will do the proper review later - and I think
-> it's the right approach for the time being. However, I am wondering wheth=
-er
-> we should add "-mv8plus" to clang as well.
->=20
-> I wondering though whether "-mcpu=3Dv9 -m32" is truly identical to "-mv8p=
-lus"
-> or not.
-
-Hmm, so I just found out after some digging that while `-m32 -mv8plus`
-and `-m32 -mcpu=3Dv9` can differ a little, I am not sure if supporting
-the full behavior in clang would be worth the effort? I think I can
-add `-mv8plus`/`-mno-v8plus` as an alias for `-mcpu=3Dv9`/`-mcpu=3Dv8`, but
-any more would probably be too much effort for too little gain?
-
-`-mv8plus` basically allows the compiler to treat the G and O registers
-as being 64-bit wide, allowing the compiler to use any of the new
-64-bit V9 instructions (e.g. `casx`) as it sees fit. From GCC's docs:
-
-> With `-mv8plus`, GCC generates code for the SPARC-V8+ ABI.
-> The difference from the V8 ABI is that the global and out registers
-> are considered 64 bits wide.=20
-
-https://gcc.gnu.org/onlinedocs/gcc/SPARC-Options.html#index-mv8plus
-
-Note that it does not change value passing in parameters or returns
-(outgoing parameters still need to be trimmed to 32-bit even though
-they are placed in the O registers, for example) so EM_SPARC32PLUS
-objects can be freely mixed with EM_SPARC ones.
-
-Also, this seems to be undocumented, but at least from my testing,
-`-mv8plus` implies `-mcpu=3Dv9` unless it gets overridden by a later
-`-mcpu` flag. So, in theory, it is totally permissible to have
-flags like `-m32 -mno-v8plus -mcpu=3Dv9` or `-m32 -mv8plus -mcpu=3Dv8`,
-however this will be useless in practice since the combination will
-end up disallowing the compiler from using any V9 instructions...
-
-And so far, looking around at kernel sources at least, there seem
-to be no need for such kind of flag combinations... though probably
-you or others who are more familar could comment on this?
+--
+Uladzislau Rezki
