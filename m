@@ -1,69 +1,60 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AAEE1B806;
-	Tue, 25 Jun 2024 06:12:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A36FE73463;
+	Tue, 25 Jun 2024 07:20:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719295934; cv=none; b=oony8bf1leb2i0a+rNk6DQBSKtXGz5DNI6IYKC2ur6Z0/jWqci1KKN5JPWas++U85XX9rmVPepcek2j2AmnaHe8cN4yYTlriplgQJwJ8yat6h5Uul+K2Rb+kyl2n954h0/hzHOkvXqCxJGAfqD5TUzISTEMLygF8IyIFn00caSk=
+	t=1719300029; cv=none; b=AT0aSA4OwyHWEaL4+4nZmAem5M0qufvNEt18KF7BUZa0B457+YOokctsmKaSByy+vrLIcA9Pws8WYOdCbg4sIB5426coOhlWhCqoYyudRdXtCNLBvJo7lYqhjCDd31wmoSb0QjefjfDv7PPCNuV6jH4L8mk6fRHfB4Mg6D34n4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719295934; c=relaxed/simple;
-	bh=A9l5QJ5wVUxN0j1TWgVqhhHFCdASWZMj33PGqLt6VA0=;
+	s=arc-20240116; t=1719300029; c=relaxed/simple;
+	bh=Tozkm9wtFnnT9G4JCNr0lovUdYwf0yT3Ep2RxifKdZQ=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=b4nabD8O1g8vM98AvMhvOhz9h+88q3ljAqTLSNGcMKUVfZvwrT25sAMFwvZwokWMEEwu5NHB8R3oMFQUWmMg+4WqsLCLCEn3ELvLin/syKK1hX3DLGjwCByhaavGQqf0BCBl/tyofMvFe5XU4qFkW5Z2uOzpZxy5SDfGe8tRDLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=kMKIkUXC; arc=none smtp.client-ip=130.133.4.66
+	 Content-Type:MIME-Version; b=DA6S6Jz8v55cSXpgD/XykztZ6xNC9y1DQY+8+5JhM3pjCUBw4SpZPrIjQ4QY6ioY/uIXTAtdsJ52rIz8ZEUDrlPROAs8nw2gJ2KzHH7JfLLOCH/F2SAT8yXeZfJKBMxD15xoUwVoktLyY+piv5ZrE1GVhKxIvlqE3m7/+/xTJ24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=W1Sbe4+p; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="kMKIkUXC"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="W1Sbe4+p"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
 	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
 	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
 	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=QR3y2Y/czPDzz8uhrOTX+qZKGKnv9qtlOLRYnVuIPwY=; t=1719295930; x=1719900730; 
-	b=kMKIkUXCpW4k/lh4bfIHLQJ7yXaQaua42W5My0YpiNHiilmaG69pdb5IiE9StEvH36UYTlg2wfF
-	Tdb/CPgfLOpILqYOWYZS7k0EvxHiB4Yz6K+AIaa5OtXhE9YR5RjGJ4STuCmmYTd8HRVm+pACcRawL
-	EVS4LdZZkx88lnlVGO7hwGqOdh0gF+Kg22Ipn2MdidppsNRFw/yqNvlnXtamDkZEYlONN/1b8Vl0s
-	oPBAMYWW7go097qgb9r16qmHKOvCsm2PLjS56KL1M/z+bU8T/eKUNkYZNAKl9ItLFseIrud1TmZ9t
-	Ci3ZLg7RBgLYlLuJny8/YueTY14197NeyvAA==;
+	bh=Fa8kWntRwF1lrvqp0Rvt4vbr7SvGesSexMl/o2xfm1U=; t=1719300025; x=1719904825; 
+	b=W1Sbe4+p1nOTW9a/sl4OuEabim6oYnpvNDQfCTjGKTLYf+idFFOee+vDwDqNlpY216c36pjLJHc
+	Pkp2indPxng3dT2HRXeSdoAMBieeeQRQzaPLGB3j/ZhLW9Px+pwieEcMlMnahcbBoQ9BcE6xyT9TD
+	3p53iVH9uoax33vggK7R6Cxx+VzcYjlSJ0TJx6wPnwTpvEpcAL9qa2EyO0w8Q3+lz0fwX+d+/uYwR
+	6Uea3xZHEIlQGz/6N/M1u8Hc44kHWnsJYL67cMKh5+CEmvtPtzT+KTWeswa+zpe2dSmKrMHuCdGWX
+	RL3IgfS5y/sU8nwlEIGMuKo2JLW9VG6iNEtw==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.97)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1sLzPJ-00000002pcY-2WGY; Tue, 25 Jun 2024 08:11:58 +0200
+          id 1sM0TM-00000003B5S-0vEE; Tue, 25 Jun 2024 09:20:12 +0200
 Received: from p5b13a475.dip0.t-ipconnect.de ([91.19.164.117] helo=[192.168.178.20])
           by inpost2.zedat.fu-berlin.de (Exim 4.97)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1sLzPJ-00000001jTk-3HF5; Tue, 25 Jun 2024 08:11:57 +0200
-Message-ID: <b7e20a2dbf5bad8cae0227644b2f78531dd6ef5a.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v2 08/13] sh: rework sync_file_range ABI
+          id 1sM0TM-00000001slu-20jW; Tue, 25 Jun 2024 09:20:12 +0200
+Message-ID: <e359b140839606b1856c5625669e5b6bd7ebc7eb.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH] sparc/build: Make all compiler flags also
+ clang-compatible
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Arnd Bergmann <arnd@kernel.org>, linux-arch@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Helge Deller
- <deller@gmx.de>, linux-parisc@vger.kernel.org, "David S. Miller"
- <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
- sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Nicholas
- Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
- "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
- linuxppc-dev@lists.ozlabs.org, Brian Cain <bcain@quicinc.com>,
- linux-hexagon@vger.kernel.org, Guo Ren <guoren@kernel.org>, 
- linux-csky@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, 
- linux-s390@vger.kernel.org, Rich Felker <dalias@libc.org>, 
- linux-sh@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Alexander Viro
- <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
- linux-fsdevel@vger.kernel.org, libc-alpha@sourceware.org, 
- musl@lists.openwall.com, stable@vger.kernel.org
-Date: Tue, 25 Jun 2024 08:11:56 +0200
-In-Reply-To: <20240624163707.299494-9-arnd@kernel.org>
-References: <20240624163707.299494-1-arnd@kernel.org>
-	 <20240624163707.299494-9-arnd@kernel.org>
+To: Koakuma <koachan@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson
+ <andreas@gaisler.com>, Nathan Chancellor <nathan@kernel.org>, Nick
+ Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>,
+ Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Date: Tue, 25 Jun 2024 09:20:11 +0200
+In-Reply-To: <Mz-kWneLsFvKbBcTaGnC2xMA2U55fINzOJqmMRMumrtTaeHW40WfS5rYUjF_71aoXG56jSHo0vJ0oRPNoCrxpE_oIr7mmnK6fg9dFC_J9hk=@protonmail.com>
+References: <20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com>
+	 <9449319ebbcd59719614ee786f1abe18256d0331.camel@physik.fu-berlin.de>
+	 <Mz-kWneLsFvKbBcTaGnC2xMA2U55fINzOJqmMRMumrtTaeHW40WfS5rYUjF_71aoXG56jSHo0vJ0oRPNoCrxpE_oIr7mmnK6fg9dFC_J9hk=@protonmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.52.2 
@@ -76,81 +67,69 @@ MIME-Version: 1.0
 X-Original-Sender: glaubitz@physik.fu-berlin.de
 X-ZEDAT-Hint: PO
 
-On Mon, 2024-06-24 at 18:37 +0200, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->=20
-> The unusual function calling conventions on SuperH ended up causing
-> sync_file_range to have the wrong argument order, with the 'flags'
-> argument getting sorted before 'nbytes' by the compiler.
->=20
-> In userspace, I found that musl, glibc, uclibc and strace all expect the
-> normal calling conventions with 'nbytes' last, so changing the kernel
-> to match them should make all of those work.
->=20
-> In order to be able to also fix libc implementations to work with existin=
-g
-> kernels, they need to be able to tell which ABI is used. An easy way
-> to do this is to add yet another system call using the sync_file_range2
-> ABI that works the same on all architectures.
->=20
-> Old user binaries can now work on new kernels, and new binaries can
-> try the new sync_file_range2() to work with new kernels or fall back
-> to the old sync_file_range() version if that doesn't exist.
->=20
-> Cc: stable@vger.kernel.org
-> Fixes: 75c92acdd5b1 ("sh: Wire up new syscalls.")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/sh/kernel/sys_sh32.c           | 11 +++++++++++
->  arch/sh/kernel/syscalls/syscall.tbl |  3 ++-
->  2 files changed, 13 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/sh/kernel/sys_sh32.c b/arch/sh/kernel/sys_sh32.c
-> index 9dca568509a5..d6f4afcb0e87 100644
-> --- a/arch/sh/kernel/sys_sh32.c
-> +++ b/arch/sh/kernel/sys_sh32.c
-> @@ -59,3 +59,14 @@ asmlinkage int sys_fadvise64_64_wrapper(int fd, u32 of=
-fset0, u32 offset1,
->  				 (u64)len0 << 32 | len1, advice);
->  #endif
->  }
-> +
-> +/*
-> + * swap the arguments the way that libc wants them instead of
-> + * moving flags ahead of the 64-bit nbytes argument
-> + */
-> +SYSCALL_DEFINE6(sh_sync_file_range6, int, fd, SC_ARG64(offset),
-> +                SC_ARG64(nbytes), unsigned int, flags)
-> +{
-> +        return ksys_sync_file_range(fd, SC_VAL64(loff_t, offset),
-> +                                    SC_VAL64(loff_t, nbytes), flags);
-> +}
-> diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscall=
-s/syscall.tbl
-> index bbf83a2db986..c55fd7696d40 100644
-> --- a/arch/sh/kernel/syscalls/syscall.tbl
-> +++ b/arch/sh/kernel/syscalls/syscall.tbl
-> @@ -321,7 +321,7 @@
->  311	common	set_robust_list			sys_set_robust_list
->  312	common	get_robust_list			sys_get_robust_list
->  313	common	splice				sys_splice
-> -314	common	sync_file_range			sys_sync_file_range
-> +314	common	sync_file_range			sys_sh_sync_file_range6
->  315	common	tee				sys_tee
->  316	common	vmsplice			sys_vmsplice
->  317	common	move_pages			sys_move_pages
-> @@ -395,6 +395,7 @@
->  385	common	pkey_alloc			sys_pkey_alloc
->  386	common	pkey_free			sys_pkey_free
->  387	common	rseq				sys_rseq
-> +388	common	sync_file_range2		sys_sync_file_range2
->  # room for arch specific syscalls
->  393	common	semget				sys_semget
->  394	common	semctl				sys_semctl
+Hi Koakuma,
 
-Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+thanks for doing the research work!
+
+On Tue, 2024-06-25 at 02:06 +0000, Koakuma wrote:
+> John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
+> > V8plus does not use VIS instructions and also has a different ELF machi=
+ne
+> > type, namely EM_SPARC32PLUS instead of EM_SPARCV9 if I understand corre=
+ctly.
+> >=20
+> > So, we should make sure that the above change will not affect the ELF m=
+achine
+> > type.
+>=20
+> When assembling with GNU as, there seem to be no control as to what
+> machine type we want to emit, as it simply tries to autodetect it based
+> on the instruction mix in the assembly code:
+> - If there's a V9 instruction inside, then use EM_SPARC32PLUS; and
+> - Emit EM_SPARC otherwise.
+
+Interesting. I actually expected some flags being passed to the linker to
+enable the EM_SPARC32PLUS machine type.
+
+> This is also the case with GCC - it simply happens that GCC will try
+> to emit V9 instructions whenever possible with `-m32 -mv8plus`
+> or `-m32 -mcpu=3Dv9` so there's a high chance that the resulting object
+> file will be of a EM_SPARC32PLUS type, but this does not seem to be
+> a guaranteed behavior.
+
+Would be interesting to find out what Sun's own C/C++ compiler (Sun Studio)
+does in this case. I can try to run some tests on Solaris or you can check
+out the Solaris machines in the GCC compile farm [1].
+
+> With LLVM's as, we can have finer control of emitted machine type, but
+> so far it never sets the type to EM_SPARC32PLUS - for this I have made
+> a patch over at https://github.com/llvm/llvm-project/pull/96583.
+
+I just had a brief look - will do the proper review later - and I think
+it's the right approach for the time being. However, I am wondering whether
+we should add "-mv8plus" to clang as well.
+
+I wondering though whether "-mcpu=3Dv9 -m32" is truly identical to "-mv8plu=
+s"
+or not.
+
+> As for VIS, GCC (and clang when it eventually supports vectorization)
+> should not emit it unless explicitly asked, so I think we are
+> in the clear here?
+>=20
+> > With `-mvis`, GCC generates code that takes advantage of
+> > the UltraSPARC Visual Instruction Set extensions.
+> > The default is `-mno-vis`.
+>=20
+> From https://gcc.gnu.org/onlinedocs/gcc/SPARC-Options.html#index-mvis
+
+OK, very good to know. Yes, I think we should be safe here.
+
+Again, thanks a lot for getting this sorted out so quickly!
 
 Adrian
+
+> [1] https://gcc.gnu.org/wiki/CompileFarm
 
 --=20
  .''`.  John Paul Adrian Glaubitz
