@@ -1,55 +1,55 @@
-Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
+Received: from mail-pj1-f74.google.com (mail-pj1-f74.google.com [209.85.216.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A6D1E517
-	for <sparclinux@vger.kernel.org>; Fri, 28 Jun 2024 00:33:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F4154CB35
+	for <sparclinux@vger.kernel.org>; Fri, 28 Jun 2024 00:33:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719534806; cv=none; b=Cxroxyo4JCOPTkZaqYwy4E6kZh1KYAhE4pusmbYmYcZigNw59v7ms+ClLd3Xo1qBuvx0a+T+07vfMD4So4euUKRwUYG8mmvtnvjHXg+AsxRtFzhwHIk9leU1ViGoLZlE3DDBPPM9zl++4qW0qc5nNbB23sD8q+X2SvCCLuOYWIA=
+	t=1719534810; cv=none; b=lwrLfysiLinGESPSgoQoYbZxDu2NtCnRCgLu0I/qnUxCHMoXOtq5I9nX4eTSrLmEYE68tAWKbwUW0O/Hwuhwu8W8j1XfmMuVi6Gxumi/r031687IEG221U+l7Ov2os7XI3hd0oQmDyylXWoM6J3g5bJzeywkJh+HZ1z+Jryihpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719534806; c=relaxed/simple;
-	bh=SCRsV4Yl4jWe+7QYrzVO29DYaVxLsnKvuypWu/hXr0g=;
+	s=arc-20240116; t=1719534810; c=relaxed/simple;
+	bh=VIdQ960Dcv8A+OPQudKrpMY7gCZvwJ1R4w3Ia/nWdpI=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=dOK4j/UHEDIxf0ym6VnX8S7+gi3uULbIPrK1GXhWj6us7a90MabamHtz6FBulfMZAUp+CnYjcPpGRYEya5uq1CmqVwOd/mbQdVMu5Lv2LBYbVMOMQzyf1EhMKKkCIo+aVM8VSlBnK6gR6W1NmvbKuHTmCK3geP16kun3j2LpGfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=SfR1a8bl; arc=none smtp.client-ip=209.85.128.202
+	 To:Cc:Content-Type; b=T8dN7/80cQ2WsYGt+5l8WQL9gxCILXmJ6gjOZDdxvywQCe1Yvw7SJRUX5AjV91uDL7hHvanMw3/SLcTeyIdQ0Itq9+M8zj5Nd/RGKoE94KVLXYa50+Oo2H0oC7OsSMylkdi4E59mqxaEnhF+POye9tUf+3tZ3vQRjwa1biH1ch8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=UdXcbO7V; arc=none smtp.client-ip=209.85.216.74
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="SfR1a8bl"
-Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-64afe97f5fcso709007b3.3
-        for <sparclinux@vger.kernel.org>; Thu, 27 Jun 2024 17:33:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="UdXcbO7V"
+Received: by mail-pj1-f74.google.com with SMTP id 98e67ed59e1d1-2c7a68c3a85so123430a91.2
+        for <sparclinux@vger.kernel.org>; Thu, 27 Jun 2024 17:33:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1719534797; x=1720139597; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1719534801; x=1720139601; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Y0zbHIOcaHQHHhbOhdTRXanQacqf+fgaBi3YuOe2Dpk=;
-        b=SfR1a8bl6qnnsWrXj2Db/f5DgMlU6tE6IhL53e5sUOHhsLtp13qmWGwZ4E6k9lW0pr
-         ierdzOzuE9C620/HhoVoEM0RF0GrBGt6WwHKc7vUlzD2DHfk72LDWKG79fJ4qknUALvk
-         J/EzmN+hb4zMagBexnODnZOSptqiJoie5eeceV3sdjC792UMbdE/AkHpRPR9WhqNLGBV
-         5glQ9+yz3KV9KcOPOR2eeDB/ROQosZRyfqSy/Ty7hqmGgUV8WbcqHIYIw7zLcHKyHdpF
-         KyZB8diR6EWsE3c9NZie6PkM4nOplP/05f5puTCwUAysJTB3rTS5WGRxQPwY5qldS0Z9
-         H9BA==
+        bh=HtAkC7dc7eD7owfI6upy3bTZg9Fqg9IfLoFV+/ACewo=;
+        b=UdXcbO7VlGQSKwAt2o2TpwzjpeDF4TApPC5qkpp6zGB9vZIYx74kW1Nk9gIZyQJw2W
+         2Ks9yTf2WhdpImsmyllxWUYrD8hBkvnjlZ2rF23bPoaNWb805NPTvEXLc1CG+FLe38t3
+         w81xLUUZLaFOThVpTwKIWCnVcoJgCf6ZSVwzv4FcOijg69iAy8EoKMCBZa+gzViF0jaX
+         aPlAyCe1YNsfFk0rA/QovXjSKUMfnRql72KR54Fl5+SSp10QvRnyjg/SmSurqXal86F5
+         NK6GrT2siy8vtXf2YgRMl7VGI3gA/YetgXSrIwZqE5RCI2518qqA/0blm6E8zZHsQSQd
+         Zemg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719534797; x=1720139597;
+        d=1e100.net; s=20230601; t=1719534801; x=1720139601;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Y0zbHIOcaHQHHhbOhdTRXanQacqf+fgaBi3YuOe2Dpk=;
-        b=FfpZlzii421bETr/9rQft70oEIfpkIR1hOk7wIcO0TQ1yFWYRG8vfKkCMr4hy9NgD/
-         FKGQl7tVEBbZy60JJwjMa9iOCrTIVMLyRIIQqkpBeEcDu5zy1U8JjfUHHEY4CjibGdz+
-         1eFtB4ExXKsayfNBfpFv+55aJvmmLGQKfimWqwNb0I0am1d2b+a6OiJEkhR+cUnL0U/D
-         HYWjMgdpXmL/tBFPcdTi/10K37CmGW0Vx8aZ4qA/kneyhFA+1Est2VY/5Y7k4jreV6a1
-         xohxOuE78xxqHxwBVGFqEsBTN+DIC54RSr5CHqCG095dV6fZmb8a974UrRZF301vOudI
-         sNkA==
-X-Forwarded-Encrypted: i=1; AJvYcCUpzdhWNYll3Aeue5xhbd0P3Pz7CPhImv/NPJ7JqbWz4XruUorq+Uhry5i3AGjiTpFuRABvC7joHcVlQo5ptxuJyRzzsSUN9HQl+g==
-X-Gm-Message-State: AOJu0YyQ1stDpAxAhizrlRn4+Kkbb4QWHaPvKjHqkjTx2kbvoB85XeQP
-	egnAoSE/mUu6SKUT8Yb0HXH3LQXodfooZDjgjfnG3Oknz4EKRJ96NgWlkGmuFTtGc5rS3o/y1hO
-	FHJGvta/kIr6Z7mr9PM1tIw==
-X-Google-Smtp-Source: AGHT+IFK6OK/ZrAdsRJtEEYER6hNjQSYgVOoSSFr7OucS9G/UfTzeNlvaxGEsXjaqV0DZE9aQ4AQlCWM8ykE4ij3eA==
+        bh=HtAkC7dc7eD7owfI6upy3bTZg9Fqg9IfLoFV+/ACewo=;
+        b=DmXiIkeS4xOaye2BXzXRYlLz0HGHlbBKnz7ca0nDkb8ASfUrYW8xm6XfhrwnwY9g5B
+         xXfxiskzOJ7niBuInDRzaT/m/NON7zgglEy9/jIhCO+LIbawf0Iu+PYK86wuFEwqK6iC
+         T+DmKX1h5mpFWTvMmU1mnzf7Smuh4cHBwbvn89vvQ5nxcqcMmjQ4yUIcnt0vespzjYQL
+         yqQLBQGwDlaUy2hSe6wpsSHXYidBPiDrLpKV/yDOYv19IG7bAq4UTQ1dw5Z+wJzqC25z
+         fZC5Chw4vJ3bZBKjAfqvq6xqe8fFBfaQZYKT9yYbfiyJlrGh3y3e15r6eLc8Pnrnn7YU
+         DEjA==
+X-Forwarded-Encrypted: i=1; AJvYcCW3A8TNiESZTjanbOx/eilqKPD8yDlqgGZNNGQQaQfyoGUMwZVUlvFjw6nHL/dXuMD+F0BZtBLDWFKw7N7ZKpW70KIqdfjrX+Qjsg==
+X-Gm-Message-State: AOJu0YyA/g5Uk9Cu+QVXABPsyqcTQw9/hlGBP1c/sCeF/I7FNvlx5P0T
+	XpVLE5FEDxVd1H09zmhR5Iheu/zQlNYLn3QPIp4VGJBATUIx43lahDzdOfSCnG49CGIxL0EmXDk
+	h3HpQao9dfwD63AejaJIeiA==
+X-Google-Smtp-Source: AGHT+IGLRaLTSytcMUc42cO5VbPk30udJR/OWLWuA3cZvbicGZ/TcfoTV4BSYF/3gyDoC1Kg15GgKgYZNfdRX/OyyQ==
 X-Received: from almasrymina.c.googlers.com ([fda3:e722:ac3:cc00:20:ed76:c0a8:4bc5])
- (user=almasrymina job=sendgmr) by 2002:a05:690c:7201:b0:62c:f976:a763 with
- SMTP id 00721157ae682-643ab84e6f5mr5736997b3.1.1719534796723; Thu, 27 Jun
- 2024 17:33:16 -0700 (PDT)
-Date: Fri, 28 Jun 2024 00:32:48 +0000
+ (user=almasrymina job=sendgmr) by 2002:a17:90a:6fa4:b0:2c4:bb9e:fcdc with
+ SMTP id 98e67ed59e1d1-2c86144e0femr168873a91.9.1719534800464; Thu, 27 Jun
+ 2024 17:33:20 -0700 (PDT)
+Date: Fri, 28 Jun 2024 00:32:50 +0000
 In-Reply-To: <20240628003253.1694510-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -59,9 +59,8 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20240628003253.1694510-1-almasrymina@google.com>
 X-Mailer: git-send-email 2.45.2.803.g4e1b14247a-goog
-Message-ID: <20240628003253.1694510-12-almasrymina@google.com>
-Subject: [PATCH net-next v15 11/14] net: add SO_DEVMEM_DONTNEED setsockopt to
- release RX frags
+Message-ID: <20240628003253.1694510-14-almasrymina@google.com>
+Subject: [PATCH net-next v15 13/14] tools: net: package libynl for use in selftests
 From: Mina Almasry <almasrymina@google.com>
 To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
@@ -93,207 +92,97 @@ Cc: Mina Almasry <almasrymina@google.com>, "David S. Miller" <davem@davemloft.ne
 	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
 	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
 	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Add an interface for the user to notify the kernel that it is done
-reading the devmem dmabuf frags returned as cmsg. The kernel will
-drop the reference on the frags to make them available for reuse.
+From: Jakub Kicinski <kuba@kernel.org>
 
-Signed-off-by: Willem de Bruijn <willemb@google.com>
-Signed-off-by: Kaiyuan Zhang <kaiyuanz@google.com>
+Support building the C YNL userspace library into one big static file.
+We can then link selftests against it for easy to use C netlink
+interface.
+
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Mina Almasry <almasrymina@google.com>
 
 ---
 
-v10:
-- Fix leak of tokens (Nikolay).
-
-v7:
-- Updated SO_DEVMEM_* uapi to use the next available entry (Arnd).
-
-v6:
-- Squash in locking optimizations from edumazet@google.com. With his
-  changes we lock the xarray once per sock_devmem_dontneed operation
-  rather than once per frag.
-
-Changes in v1:
-- devmemtoken -> dmabuf_token (David).
-- Use napi_pp_put_page() for refcounting (Yunsheng).
-- Fix build error with missing socket options on other asms.
-
+v15:
+- Added this patch from Jakub to fix linking against ynl.
+- Squashed fix from Jakub to support O=xyz builds.
 ---
- arch/alpha/include/uapi/asm/socket.h  |  1 +
- arch/mips/include/uapi/asm/socket.h   |  1 +
- arch/parisc/include/uapi/asm/socket.h |  1 +
- arch/sparc/include/uapi/asm/socket.h  |  1 +
- include/uapi/asm-generic/socket.h     |  1 +
- include/uapi/linux/uio.h              |  4 ++
- net/core/sock.c                       | 61 +++++++++++++++++++++++++++
- 7 files changed, 70 insertions(+)
+ tools/net/ynl/Makefile             |  6 +++++-
+ tools/net/ynl/lib/Makefile         |  4 +++-
+ tools/testing/selftests/net/ynl.mk | 21 +++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 2 deletions(-)
+ create mode 100644 tools/testing/selftests/net/ynl.mk
 
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index ef4656a41058a..251b73c5481ea 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -144,6 +144,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
+diff --git a/tools/net/ynl/Makefile b/tools/net/ynl/Makefile
+index 8e9e09d84e269..d1cdf2a8f8266 100644
+--- a/tools/net/ynl/Makefile
++++ b/tools/net/ynl/Makefile
+@@ -2,9 +2,12 @@
  
- #if !defined(__KERNEL__)
+ SUBDIRS = lib generated samples
  
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index 414807d55e33f..8ab7582291abf 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -155,6 +155,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
+-all: $(SUBDIRS)
++all: $(SUBDIRS) libynl.a
  
- #if !defined(__KERNEL__)
+ samples: | lib generated
++libynl.a: | lib generated
++	@echo -e "\tAR $@"
++	@ar rcs $@ lib/ynl.o generated/*-user.o
  
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index 2b817efd45444..38fc0b188e084 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -136,6 +136,7 @@
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	79
- #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED	80
+ $(SUBDIRS):
+ 	@if [ -f "$@/Makefile" ] ; then \
+@@ -17,5 +20,6 @@ clean distclean:
+ 			$(MAKE) -C $$dir $@; \
+ 		fi \
+ 	done
++	rm -f libynl.a
  
- #if !defined(__KERNEL__)
+ .PHONY: all clean distclean $(SUBDIRS)
+diff --git a/tools/net/ynl/lib/Makefile b/tools/net/ynl/lib/Makefile
+index dfff3ecd1cbab..2887cc5de530f 100644
+--- a/tools/net/ynl/lib/Makefile
++++ b/tools/net/ynl/lib/Makefile
+@@ -14,7 +14,9 @@ include $(wildcard *.d)
+ all: ynl.a
  
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index 00248fc689773..57084ed2f3c4e 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -137,6 +137,7 @@
- #define SCM_DEVMEM_LINEAR        SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF         0x0058
- #define SCM_DEVMEM_DMABUF        SO_DEVMEM_DMABUF
-+#define SO_DEVMEM_DONTNEED       0x0059
- 
- #if !defined(__KERNEL__)
- 
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index 25a2f5255f523..1acb77780f103 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -135,6 +135,7 @@
- #define SO_PASSPIDFD		76
- #define SO_PEERPIDFD		77
- 
-+#define SO_DEVMEM_DONTNEED	97
- #define SO_DEVMEM_LINEAR	98
- #define SCM_DEVMEM_LINEAR	SO_DEVMEM_LINEAR
- #define SO_DEVMEM_DMABUF	99
-diff --git a/include/uapi/linux/uio.h b/include/uapi/linux/uio.h
-index 3a22ddae376a2..d17f8fcd93ec9 100644
---- a/include/uapi/linux/uio.h
-+++ b/include/uapi/linux/uio.h
-@@ -33,6 +33,10 @@ struct dmabuf_cmsg {
- 				 */
- };
- 
-+struct dmabuf_token {
-+	__u32 token_start;
-+	__u32 token_count;
-+};
- /*
-  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)
-  */
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 9abc4fe259535..040c66ac26244 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -124,6 +124,7 @@
- #include <linux/netdevice.h>
- #include <net/protocol.h>
- #include <linux/skbuff.h>
-+#include <linux/skbuff_ref.h>
- #include <net/net_namespace.h>
- #include <net/request_sock.h>
- #include <net/sock.h>
-@@ -1049,6 +1050,62 @@ static int sock_reserve_memory(struct sock *sk, int bytes)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PAGE_POOL
-+static noinline_for_stack int
-+sock_devmem_dontneed(struct sock *sk, sockptr_t optval, unsigned int optlen)
-+{
-+	unsigned int num_tokens, i, j, k, netmem_num = 0;
-+	struct dmabuf_token *tokens;
-+	netmem_ref netmems[16];
-+	int ret = 0;
+ ynl.a: $(OBJS)
+-	ar rcs $@ $(OBJS)
++	@echo -e "\tAR $@"
++	@ar rcs $@ $(OBJS)
 +
-+	if (sk->sk_type != SOCK_STREAM || sk->sk_protocol != IPPROTO_TCP)
-+		return -EBADF;
+ clean:
+ 	rm -f *.o *.d *~
+ 	rm -rf __pycache__
+diff --git a/tools/testing/selftests/net/ynl.mk b/tools/testing/selftests/net/ynl.mk
+new file mode 100644
+index 0000000000000..59cb26cf3f738
+--- /dev/null
++++ b/tools/testing/selftests/net/ynl.mk
+@@ -0,0 +1,21 @@
++# SPDX-License-Identifier: GPL-2.0
 +
-+	if (optlen % sizeof(struct dmabuf_token) ||
-+	    optlen > sizeof(*tokens) * 128)
-+		return -EINVAL;
++# YNL selftest build snippet
 +
-+	tokens = kvmalloc_array(128, sizeof(*tokens), GFP_KERNEL);
-+	if (!tokens)
-+		return -ENOMEM;
++# Inputs:
++#
++# YNL_GENS:      families we need in the selftests
++# YNL_PROGS:     TEST_PROGS which need YNL (TODO, none exist, yet)
++# YNL_GEN_FILES: TEST_GEN_FILES which need YNL
 +
-+	num_tokens = optlen / sizeof(struct dmabuf_token);
-+	if (copy_from_sockptr(tokens, optval, optlen)) {
-+		kvfree(tokens);
-+		return -EFAULT;
-+	}
++YNL_OUTPUTS := $(patsubst %,$(OUTPUT)/%,$(YNL_GEN_FILES))
 +
-+	xa_lock_bh(&sk->sk_user_frags);
-+	for (i = 0; i < num_tokens; i++) {
-+		for (j = 0; j < tokens[i].token_count; j++) {
-+			netmem_ref netmem = (__force netmem_ref)__xa_erase(
-+				&sk->sk_user_frags, tokens[i].token_start + j);
++$(YNL_OUTPUTS): $(OUTPUT)/libynl.a
++$(YNL_OUTPUTS): CFLAGS += \
++	-I$(top_srcdir)/usr/include/ $(KHDR_INCLUDES) \
++	-I$(top_srcdir)/tools/net/ynl/lib/ \
++	-I$(top_srcdir)/tools/net/ynl/generated/
 +
-+			if (netmem &&
-+			    !WARN_ON_ONCE(!netmem_is_net_iov(netmem))) {
-+				netmems[netmem_num++] = netmem;
-+				if (netmem_num == ARRAY_SIZE(netmems)) {
-+					xa_unlock_bh(&sk->sk_user_frags);
-+					for (k = 0; k < netmem_num; k++)
-+						WARN_ON_ONCE(!napi_pp_put_page(netmems[k]));
-+					netmem_num = 0;
-+					xa_lock_bh(&sk->sk_user_frags);
-+				}
-+				ret++;
-+			}
-+		}
-+	}
-+
-+	xa_unlock_bh(&sk->sk_user_frags);
-+	for (k = 0; k < netmem_num; k++)
-+		WARN_ON_ONCE(!napi_pp_put_page(netmems[k]));
-+
-+	kvfree(tokens);
-+	return ret;
-+}
-+#endif
-+
- void sockopt_lock_sock(struct sock *sk)
- {
- 	/* When current->bpf_ctx is set, the setsockopt is called from
-@@ -1211,6 +1268,10 @@ int sk_setsockopt(struct sock *sk, int level, int optname,
- 			ret = -EOPNOTSUPP;
- 		return ret;
- 		}
-+#ifdef CONFIG_PAGE_POOL
-+	case SO_DEVMEM_DONTNEED:
-+		return sock_devmem_dontneed(sk, optval, optlen);
-+#endif
- 	}
- 
- 	sockopt_lock_sock(sk);
++$(OUTPUT)/libynl.a:
++	$(Q)$(MAKE) -C $(top_srcdir)/tools/net/ynl GENS="$(YNL_GENS)" libynl.a
++	$(Q)cp $(top_srcdir)/tools/net/ynl/libynl.a $(OUTPUT)/libynl.a
 -- 
 2.45.2.803.g4e1b14247a-goog
 
