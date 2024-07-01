@@ -1,55 +1,55 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3754916F0F9
-	for <sparclinux@vger.kernel.org>; Mon,  1 Jul 2024 19:01:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F241E16F27E
+	for <sparclinux@vger.kernel.org>; Mon,  1 Jul 2024 19:05:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719860462; cv=none; b=gxg3/Jv3Cf/SfFzFk+WnMSBS5/9bYDx1+TDJ0FpivL/QT745qlpfzC4UW4GCecjy5XPNJhFi96/pxsbLA9dmrohdMIflVaEXUDHOLrqqyGaV9kSjKXipErkIHVmobl5znwFIvS3sIqIj0+enHU/nAN02cjy5VukUq9WEiRLl8RA=
+	t=1719860705; cv=none; b=qgMLYbA8Gl2A6QestFRe2vM/Aj8Pq2NuxeNUqWpW4DonpKm97GT7BiHGI7/ZI46tyccgXnnypLBTYYxQlDYHPZm6iL9R8fwYpy3V8ph16ENHqePZN2dG4uL9Ci4w//MbH2it11IgU8FfJW93HXZDIRSq8clprtKa/B22nf9MHxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719860462; c=relaxed/simple;
-	bh=nBEjUU1jP0cTXpDAibWGkU5XKOL/L/nsa6YcOdFrVXQ=;
+	s=arc-20240116; t=1719860705; c=relaxed/simple;
+	bh=8k0AtF9KiolyJWuK8HLhDCv/hmVhr/rBk1ct5cuT9AA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RmggdHue7V4wJg9vbvaEg5iCusBq7v/IRy9ctcqrotXuGcNOqVlNOLNcxTzMoQMekQ0ep7+yuOD4CfSu9p3nvWgfJQwzHf6rGBubfi4fe8GrqtUpdqWgjXWwzUWuVoN7oBDKj+E1I9iD20pmw1soi01ytPHKH7j5/T5xEh1VYaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=VUj8CS78; arc=none smtp.client-ip=209.85.222.170
+	 To:Cc:Content-Type; b=tV5xhHm0OkRk3TAp5eCpb9SyYbZ+1XWYZIf4alRSHyPUHoHx0NJaY67hne8l1v4FtnxwNXMPenTv9KwQLYvF2DX7OKv38s+MQ31IzXfD70y8esWES4fukkjiSNm5axHh4C8VYe2vovValZKa7UOj77rE6d2baojeHEhwYZ0yT7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=2MyhNwXk; arc=none smtp.client-ip=209.85.219.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="VUj8CS78"
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-79c03abfb18so210352085a.0
-        for <sparclinux@vger.kernel.org>; Mon, 01 Jul 2024 12:01:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="2MyhNwXk"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-6b5834b3a95so16612776d6.2
+        for <sparclinux@vger.kernel.org>; Mon, 01 Jul 2024 12:05:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1719860459; x=1720465259; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1719860702; x=1720465502; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=R4LpFR6VRPZBJqkm7iRXIp87VCy5+OyuBQMHBVpgrKc=;
-        b=VUj8CS785cnwFWXu49a2yynTw9v5uBv7xV7sGzsKtbIvoTNL6XebeeShoCz1c7N9c6
-         QOGHor2VqLzp0K1m3SZv/SBZFaz2CHuoZ8oXsw9KXCDQBvxqwRikiIBLCAwCxlrGz2/X
-         hc5nYlLBRPdmRh7yHptNjyDMOkgHY7SjCvJS28YqP94iKO8zw4Mki7+1k4fCVqn2nprb
-         AiEC6vWgc/hFEkSr2d8vF6MUm+f6Rooj1daMQNmskdu5fEMYG+P6YjIjLh3es+Yqqrz7
-         2lha05Ab6XzuOpNcXnRqBElcdyOWL4r79CX5gf3ok4YE8CL5mfO8kfLJtqzYR8j0qAh1
-         t3Lg==
+        bh=1iyaJckUfwKLOavZsL0Dti/NvsfMxOg4fM60nbeLb3c=;
+        b=2MyhNwXkCa2AA3Z+FkWBFUSIczECBuY034xv2sUMnsVK1JAGLplHV/guNmfssGc5I1
+         D8a0j2y08JPde7IkGpN8LX30r6ezveA3/hMjlXq8zLe04mWt0qnAaEPrTDd2BA5v2l+6
+         Iv6dLD0aQ4owbIcrPfZLc6za9Tr+2iQ9eqqZvMOtORPI139I+ePbnZT4DFLnSJ0yCTX/
+         I/orwGmbJSNtOjqGr9Dob5WykAAa2DWlpbQrXkaBJxQatFPLN+TjE2bJtG1b6pQdCRRg
+         3423j6YO0fWBhsDvK3mvzQk7JxL7pIv0ng1zlCqmSW/aZyWSkjeH3DBPrQtlyq6xCOFw
+         myxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719860459; x=1720465259;
+        d=1e100.net; s=20230601; t=1719860702; x=1720465502;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=R4LpFR6VRPZBJqkm7iRXIp87VCy5+OyuBQMHBVpgrKc=;
-        b=gTyPpYxKtMmai9HvtPFfqWGezGYz9bpjNM3tyn9jXi/pp6tjHApH4k5b8gr65wUkaN
-         sFiBfSt72RvuyKKshhCSYA5kkefqZpjhoZpX7nShZzGFAfEUogIpNNcXM24npSnevSFb
-         s29fgIiH/C7iWzEOgJ++nGBPOLhnbXnw9lyH9uSDYmcIHfjEF5EEB9hq21SEx/4Mq+7N
-         fjdgH0nrWBBVwLDYn/VXMF/5xgqBDXP7Azlm/HOFgfu6qCP3c/9EGqd/2H60NKKLT3ou
-         xPP7yWnAqMoDvZ/1DOVTvcx+GsROAgUtpHJLV0sMFS44currJrkP0LUwOVFqF4FDthKa
-         60uA==
-X-Forwarded-Encrypted: i=1; AJvYcCXNkD+pqKamBJXPw+6ducb57MWYbho+U5vSu/8JZ1UPvw5RpEvtQ/nYEykdTrIPonKrtgH93B2vpcAJw3DoXOtkIotOJf7Bk5/zJQ==
-X-Gm-Message-State: AOJu0YwO/G2laKvFOkFZ+OG46b9oarBMnKL9clPa66MT0bgoNEHY6LBi
-	K/u8PrGlJu8xeq72svr/SLTVf1MRCw2glA2ID0Ze6mM7AHqF8Pg9nxPlT/pyf97XKsNfm9qEeVw
-	MkPs7Z3eQht2bi8pVS6TZ4YyfclzCIGQtR3fF
-X-Google-Smtp-Source: AGHT+IHqGzU9tZFX9QqaBsD++nA7soWtr02PwwhDHubls3yJUOnaqW81EaDVu4zWNv2Iw9IsPTEVGjOAs2RkVILAwGg=
-X-Received: by 2002:ad4:5c68:0:b0:6b5:4249:7c4 with SMTP id
- 6a1803df08f44-6b5b7057b8emr78735846d6.2.1719860458778; Mon, 01 Jul 2024
- 12:00:58 -0700 (PDT)
+        bh=1iyaJckUfwKLOavZsL0Dti/NvsfMxOg4fM60nbeLb3c=;
+        b=uw7q6eM32KRE6X3Z7NinzLECXDKC1tJU9yefLl2VeXBLlMJ9f/7LJWUVTETMvcSrUH
+         ERHryx+EfucNs5ICDUHSVWW2y62p+4xQL9qTp3Qno2rB9dJIR3+AWFX59iAqLPtWWyOD
+         oh8OByDOn1/JXYUkbQDycCJoz7eU+qmvtrrX/vZE7t/hyD2q5VScSasmqXyx1SujTwkP
+         26/LnWK7KwBp5r4xmpiIQrHA6gY38QnD8d7W8lMJ82w4uDZMiJJSjBXObUijN0TsPKgK
+         TGmTYx4O/mRTXNAWfzIs95oK/hDNxtxNliejMyxUhEsPx3XjDlJnWeqdhUEwrnwyzh00
+         MVNg==
+X-Forwarded-Encrypted: i=1; AJvYcCVnvF4Xlb7FlB5GPc0+FiNiFs2FzSq8zZk1+haN9gyqh0VQS4EkLKHkJRT7intq28+veIZIa0Nc7I3gfBlN75rllMBqKJhd5v+oRw==
+X-Gm-Message-State: AOJu0YyI8OipbzHDHh1FOGCCQOIajC/jTDeTBa32WYppcpw8zzmgxzaH
+	pbMXp8vHEH/r4OpP7kMQRMVYHsIz1kt6LhbbJnew0pxwu9W+pP3evBQdxDnfhW3xumomvSYUbPs
+	9bkOYqunm8+mHvWnf54vHIP6IGWTRkCDunhPH
+X-Google-Smtp-Source: AGHT+IFMk/Fy8HmApu9Nagm7rkVtZNRgXI7ZtAkmxpMtHuX4P9lSyGrItN72Z9tf2GD9wH/LCrC3alUkG3t3FzAjxFY=
+X-Received: by 2002:ad4:5762:0:b0:6b5:413a:3f96 with SMTP id
+ 6a1803df08f44-6b5b704f0e0mr82787156d6.10.1719860701461; Mon, 01 Jul 2024
+ 12:05:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -57,12 +57,13 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20240628003253.1694510-1-almasrymina@google.com>
- <20240628003253.1694510-13-almasrymina@google.com> <m234oxcraf.fsf@gmail.com>
-In-Reply-To: <m234oxcraf.fsf@gmail.com>
+ <20240628003253.1694510-3-almasrymina@google.com> <m27ce9cris.fsf@gmail.com>
+In-Reply-To: <m27ce9cris.fsf@gmail.com>
 From: Mina Almasry <almasrymina@google.com>
-Date: Mon, 1 Jul 2024 12:00:44 -0700
-Message-ID: <CAHS8izOUJMnCxK0ZfOOOZH0auNF_Kk+WVA=oTEzJe8mYHdonfA@mail.gmail.com>
-Subject: Re: [PATCH net-next v15 12/14] net: add devmem TCP documentation
+Date: Mon, 1 Jul 2024 12:04:49 -0700
+Message-ID: <CAHS8izNM8TjJ1DU+7gzq-0kH=tVeM6j-QsaKk=2FHNDF6RLwnA@mail.gmail.com>
+Subject: Re: [PATCH net-next v15 02/14] net: netdev netlink api to bind
+ dma-buf to a net device
 To: Donald Hunter <donald.hunter@gmail.com>
 Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
@@ -93,7 +94,7 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, 
 	Shailend Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
 	Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst <jeroendb@google.com>, 
-	Praveen Kaligineedi <pkaligineedi@google.com>
+	Praveen Kaligineedi <pkaligineedi@google.com>, Stanislav Fomichev <sdf@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -101,42 +102,35 @@ On Fri, Jun 28, 2024 at 3:10=E2=80=AFAM Donald Hunter <donald.hunter@gmail.=
 com> wrote:
 >
 > Mina Almasry <almasrymina@google.com> writes:
-> > +
-> > +The user must bind a dmabuf to any number of RX queues on a given NIC =
-using
-> > +the netlink API::
-> > +
-> > +     /* Bind dmabuf to NIC RX queue 15 */
-> > +     struct netdev_queue *queues;
-> > +     queues =3D malloc(sizeof(*queues) * 1);
-> > +
-> > +     queues[0]._present.type =3D 1;
-> > +     queues[0]._present.idx =3D 1;
-> > +     queues[0].type =3D NETDEV_RX_QUEUE_TYPE_RX;
-> > +     queues[0].idx =3D 15;
-> > +
-> > +     *ys =3D ynl_sock_create(&ynl_netdev_family, &yerr);
-> > +
-> > +     req =3D netdev_bind_rx_req_alloc();
-> > +     netdev_bind_rx_req_set_ifindex(req, 1 /* ifindex */);
-> > +     netdev_bind_rx_req_set_dmabuf_fd(req, dmabuf_fd);
-> > +     __netdev_bind_rx_req_set_queues(req, queues, n_queue_index);
-> > +
-> > +     rsp =3D netdev_bind_rx(*ys, req);
-> > +
-> > +     dmabuf_id =3D rsp->dmabuf_id;
-> > +
-> > +
-> > +The netlink API returns a dmabuf_id: a unique ID that refers to this d=
-mabuf
-> > +that has been bound.
+> > +  -
+> > +    name: bind-dmabuf
+> > +    attributes:
+> > +      -
+> > +        name: ifindex
+> > +        doc: netdev ifindex to bind the dma-buf to.
 >
-> The docs don't mention the unbinding behaviour. Can you add the text
-> from the commit message for patch 3 ?
+> Minor nit:
+>
+> The series uses a mix of dmabuf and dma-buf but the doc additions
+> (devmem.rst) consistently uses dmabuf. I think it would be helpful to be
+> consistent here and say 'devmem dmabuf' in the docstring to highlight
+> whos dmabuf it is and keep the generated netdev docs in alignment.
+>
 
-Thanks, will do, if I end up sending another version of this with more
-feedback. If this gets merged I'll follow up with a patch updating the
-docs (there seems to be no other feedback at the moment).
+To be honest, even the dmabuf docs mixes 'dma-buf' and 'dmabuf', to my eye:
+
+https://docs.kernel.org/driver-api/dma-buf.html
+
+I can edit these docs I'm adding so these are consistent.
+
+But on 'devmem dmabuf', not sure to be honest. Technically all dmabufs
+are supported, even non-devmem ones. I'm not sure non-devmem dmabufs
+are common at all, the only example I can think of is udmabuf whose
+primary user is qemu and testing, so it's somewhat implied that the
+dmabuf is devmem, and even if it isn't, it would be supported. I
+prefer to keep the docs saying just 'dmabuf' as technically all are
+supported. Maybe I should add a note about this somewhere in the
+dedicated docs.
 
 --=20
 Thanks,
