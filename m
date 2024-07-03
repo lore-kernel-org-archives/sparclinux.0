@@ -1,123 +1,149 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 332DE61FDF;
-	Wed,  3 Jul 2024 04:20:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACAD41836DA
+	for <sparclinux@vger.kernel.org>; Wed,  3 Jul 2024 16:56:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719980430; cv=none; b=pT3/PPYOvbk1ScE4GCaM84ERtaVltiqLIRcbVSwoUoDtFmDOGLamR3iT4H23+FcL7/gT8msbDYCPpv/hROEI6ZpBzPF02z1/ilGIva0NJLa/xVgXUoxiNIuC5OE+rmkpQ0FLPqvzqYEQziRI5djJbxeo+svig9QFoCRG84KIQtg=
+	t=1720025820; cv=none; b=sj5OgreLQRyLSG6XotsnOwe2l+SkwK8o6NkuGvBKZVbKDe3vuX3tbL/FR909ztKwmlm75LcDYhO1/AUBgrMg0KGkP+d8dkMuNaeZurqhvABrlFuhbtmjmJ82qaf4q/kgTZEK5+qlIwb2T1dEvgShBhNzRwqxDMBLIJ/xOY5NsXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719980430; c=relaxed/simple;
-	bh=7tQ5DdUsAmsK80QqEziD7LvBBaCh71k7AGhTaH0Y/38=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=XunHJAjUCyUkOlD4DrmEugdZyOkMfQI9L0UKfw2qlDMYueLWuwoUVXUsXXof1dGVPpaNnnAi367ufSMqNRs1QlDgfNzeklKuY+PCFTmicEaDS1TC+7RWcMBMdJJU0jGABefsSaVocfDXxtrmfpNxTWCvGQELVmJAItQqsXYaQR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cUBrMKDu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720025820; c=relaxed/simple;
+	bh=teX37XgyvV7Ru/Jak1UKwFMmY5CaQcTdzWuf15lXc+M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=h9eAJodjEeEC8DUV6p5wMj7G9IS6kN6TkatpLwtLvkU/fHfEQ2/Ga7XYNYEdJjcfNk5Ctj91Um10il+QUGmmQOb5rZhwqft11trq6STOzPMbATw++zAcIl7mmA61gXMySzfYuoUheM4vzoWAgY3Wodn6LmhXz8O3XY5ZkNQUj/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=vQZE0GZb; arc=none smtp.client-ip=209.85.160.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cUBrMKDu"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id B81C3C4AF0A;
-	Wed,  3 Jul 2024 04:20:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719980429;
-	bh=7tQ5DdUsAmsK80QqEziD7LvBBaCh71k7AGhTaH0Y/38=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=cUBrMKDudMtKU7fLylCIzX419wYJo1pg5HK6TOjByeXAaK+Iu9MB36YZ/JOwT9btt
-	 TW7uzotImCielBB9ZnjBfupBNdVNyd7Or8vKHUkKdIFgGxYzZPQ7dk0qjdjSxwb4Rp
-	 F/rMa7aLBslRu+qPTQ8XJDbadjFZxXq4OgWd9JMrq8WJzwiZVFYD/vVvbFwe+xy565
-	 Vz+M5IbfIIdgKv/Xn4OTGbQzcrwDFQfWNBk+vfQsUkHdumQ29dKV4EmtbBcNf/dbqG
-	 c42fYAdxunJw+w6thOmBVcroXRlFUa5+niTYgcDUeg0q0PWoqoNHEXFH28n9hMe0k2
-	 8XqAG78rRlr5w==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 945A6C54BB7;
-	Wed,  3 Jul 2024 04:20:29 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="vQZE0GZb"
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-446427c5923so6846731cf.0
+        for <sparclinux@vger.kernel.org>; Wed, 03 Jul 2024 09:56:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1720025817; x=1720630617; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZrJD6ayDYRlKNRvFck9p1oXm/3SuBonkBJdf4YKQA4Q=;
+        b=vQZE0GZb7fexqOcBdhRYPWAj0P4ObfKnMLiFFpPLEmD/xufEEl++ynxXqybA5aFUSP
+         kr4/XxCNQcPnfcgi0L32zq+/yxC1t2hvvqdx4xBe3HjZ/smRNixqDs2/WXoVZZknAM3L
+         WJTWnsdzRIBK1WMafbT/G283v09bfBV5zsJ+Zq7/hpfvn3r4DpBL+Ahyw9K4t4EFW5V+
+         RwrUTmV9adUhP0NdR4wl8WLp9xxDxHRU7XGmRZIUSdGYmt/9H4AxO+XwJgn6V1uIOuq2
+         RShRkje5Pjmx9VEP1HnD6OSPcHC+R/7+CLuAJEfwNsy5Pioa232pVhNz7kyzRLGaMgf1
+         jw9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720025817; x=1720630617;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ZrJD6ayDYRlKNRvFck9p1oXm/3SuBonkBJdf4YKQA4Q=;
+        b=i97yq+RP2hQ7TZx4xR2C5uS5Zu35OkkZKnfKT603SoAxbk2kHFPgBSORw7g8QceA5w
+         Y3KS0vEH+EIbHAZvGIvwExsfk0Foj2rWF4KzH37LHL8FF3QFCY42Tj8zrUhNHE5GylaL
+         5z1yVDq25ahn6fwIjf4RkQ7Y8w4pP9tfOdzvMCWQLSSx0LGDvm78ux9YePCjweks0mdK
+         hEpfLea2R+gTgc66JQYvTfLKUfb96hUiwRAE98t5Tzk6YoXie41bfFMZItfOq7+xtgvG
+         s9F/kjoyJHFTu1QquXYpRQmCAgXaJ5XqnUjxO+U+dj0Bkj4GATWDaR7mcyVHLGrjc0sr
+         MU4A==
+X-Forwarded-Encrypted: i=1; AJvYcCWe79rVWVZ/Bq+sUUYKQ0BgAiT8GoXKDPB7YAvW5jvyCxqv2eYLu9p1xrlfOlYU5pDJ1O/1MJwSOcWea79ufymNhfdXOs5E6g6atQ==
+X-Gm-Message-State: AOJu0Yx1uVOyc4LojVilwMIxbEAgK+3dvSFR6tGZRo68uIyPkxhozBCH
+	Lmxi+ayRgfdh7cfWwelrQdFQwm36g15hf5UOq1efvwG/ueJ6aK4wklKaRtzofh4ciC6n3CHizL3
+	2kT2pz2cqgPn6+iSe57zDzW4NJv2tQq3YhkOj
+X-Google-Smtp-Source: AGHT+IHa/cTtQMTpCl1GUnThR28S74I0bK2ol+291xiVaR+Vs/Jxc9vIdy+MzRrhMch0GbY9JMd0YjCsO1EcciUeO1w=
+X-Received: by 2002:a05:6214:20e2:b0:6b5:198e:353d with SMTP id
+ 6a1803df08f44-6b5e18b18f4mr30603556d6.10.1720025817412; Wed, 03 Jul 2024
+ 09:56:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v15 00/14] Device Memory TCP
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171998042959.21654.14959154340779220111.git-patchwork-notify@kernel.org>
-Date: Wed, 03 Jul 2024 04:20:29 +0000
 References: <20240628003253.1694510-1-almasrymina@google.com>
-In-Reply-To: <20240628003253.1694510-1-almasrymina@google.com>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, bpf@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, donald.hunter@gmail.com, corbet@lwn.net,
- richard.henderson@linaro.org, ink@jurassic.park.msu.ru, mattst88@gmail.com,
- tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
- deller@gmx.de, andreas@gaisler.com, hawk@kernel.org,
- ilias.apalodimas@linaro.org, rostedt@goodmis.org, mhiramat@kernel.org,
- mathieu.desnoyers@efficios.com, arnd@arndb.de, ast@kernel.org,
- daniel@iogearbox.net, andrii@kernel.org, martin.lau@linux.dev,
- eddyz87@gmail.com, song@kernel.org, yonghong.song@linux.dev,
- john.fastabend@gmail.com, kpsingh@kernel.org, sdf@fomichev.me,
- haoluo@google.com, jolsa@kernel.org, steffen.klassert@secunet.com,
- herbert@gondor.apana.org.au, dsahern@kernel.org,
- willemdebruijn.kernel@gmail.com, shuah@kernel.org, sumit.semwal@linaro.org,
- christian.koenig@amd.com, bagasdotme@gmail.com, hch@infradead.org,
- razor@blackwall.org, asml.silence@gmail.com, dw@davidwei.uk, jgg@ziepe.ca,
- linyunsheng@huawei.com, shailend@google.com, hramamurthy@google.com,
- shakeel.butt@linux.dev, jeroendb@google.com, pkaligineedi@google.com
+ <20240628003253.1694510-4-almasrymina@google.com> <20240702180908.0eccf78f@kernel.org>
+In-Reply-To: <20240702180908.0eccf78f@kernel.org>
+From: Mina Almasry <almasrymina@google.com>
+Date: Wed, 3 Jul 2024 09:56:45 -0700
+Message-ID: <CAHS8izOCuNZWfZR_jecFOMu2XGqcYUkuVf38wRqBvoE9tmGzoQ@mail.gmail.com>
+Subject: Re: [PATCH net-next v15 03/14] netdev: support binding dma-buf to netdevice
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
+	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
+	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>, 
+	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, 
+	Shailend Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst <jeroendb@google.com>, 
+	Praveen Kaligineedi <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>, 
+	Kaiyuan Zhang <kaiyuanz@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello:
+On Tue, Jul 2, 2024 at 6:09=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wro=
+te:
+>
+> On Fri, 28 Jun 2024 00:32:40 +0000 Mina Almasry wrote:
+> > +     if (binding->list.next)
+> > +             list_del(&binding->list);
+> > +
+> > +     xa_for_each(&binding->bound_rxq_list, xa_idx, rxq) {
+>
+> nit: s/bound_rxq_list/bound_rxqs/ ? it's not a list
+>
+> > +             if (rxq->mp_params.mp_priv =3D=3D binding) {
+> > +                     /* We hold the rtnl_lock while binding/unbinding
+> > +                      * dma-buf, so we can't race with another thread =
+that
+> > +                      * is also modifying this value. However, the pag=
+e_pool
+> > +                      * may read this config while it's creating its
+> > +                      * rx-queues. WRITE_ONCE() here to match the
+> > +                      * READ_ONCE() in the page_pool.
+> > +                      */
+> > +                     WRITE_ONCE(rxq->mp_params.mp_priv, NULL);
+>
+> Is this really sufficient in terms of locking? @binding is not
+> RCU-protected and neither is the reader guaranteed to be in
+> an RCU critical section. Actually the "reader" tries to take a ref
+> and use this struct so it's not even a pure reader.
+>
+> Let's add a lock or use one of the existing locks
+>
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Can we just use rtnl_lock() for this synchronization? It seems it's
+already locked everywhere that access mp_params.mp_priv, so the
+WRITE/READ_ONCE are actually superfluous. Both the dmabuf bind/unbind
+already lock rtnl_lock, and the only other place that access
+mp_params.mp_priv is page_pool_init(). I think it's reasonable to
+assume rtnl_lock is also held during page_pool_init, no? AFAICT it
+would be very weird for some code path to be reconfiguring the driver
+page_pools without holding rtnl_lock?
 
-On Fri, 28 Jun 2024 00:32:37 +0000 you wrote:
-> v15: https://patchwork.kernel.org/project/netdevbpf/list/?series=865481&state=*
-> ====
-> 
-> No material changes in this version, only a fix to linking against
-> libynl.a from the last version. Per Jakub's instructions I've pulled one
-> of his patches into this series, and now use the new libynl.a correctly,
-> I hope.
-> 
-> [...]
+What I wanna do here is delete the incorrect comment, remove the
+READ/WRITE_ONCE, and maybe add a DEBUG_NET_WARN_ON(!rtnl_is_locked())
+in mp_dmabuf_devmem_init() but probably that is too defensive.
 
-Here is the summary with links:
-  - [net-next,v15,01/14] netdev: add netdev_rx_queue_restart()
-    (no matching commit)
-  - [net-next,v15,02/14] net: netdev netlink api to bind dma-buf to a net device
-    (no matching commit)
-  - [net-next,v15,03/14] netdev: support binding dma-buf to netdevice
-    (no matching commit)
-  - [net-next,v15,04/14] netdev: netdevice devmem allocator
-    (no matching commit)
-  - [net-next,v15,05/14] page_pool: convert to use netmem
-    https://git.kernel.org/netdev/net-next/c/4dec64c52e24
-  - [net-next,v15,06/14] page_pool: devmem support
-    (no matching commit)
-  - [net-next,v15,07/14] memory-provider: dmabuf devmem memory provider
-    (no matching commit)
-  - [net-next,v15,08/14] net: support non paged skb frags
-    (no matching commit)
-  - [net-next,v15,09/14] net: add support for skbs with unreadable frags
-    (no matching commit)
-  - [net-next,v15,10/14] tcp: RX path for devmem TCP
-    (no matching commit)
-  - [net-next,v15,11/14] net: add SO_DEVMEM_DONTNEED setsockopt to release RX frags
-    (no matching commit)
-  - [net-next,v15,12/14] net: add devmem TCP documentation
-    (no matching commit)
-  - [net-next,v15,13/14] tools: net: package libynl for use in selftests
-    https://git.kernel.org/netdev/net-next/c/07c3cc51a085
-  - [net-next,v15,14/14] selftests: add ncdevmem, netcat for devmem TCP
-    (no matching commit)
+Will apply the other comments, thanks.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+--=20
+Thanks,
+Mina
