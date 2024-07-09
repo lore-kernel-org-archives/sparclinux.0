@@ -1,201 +1,209 @@
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 281752E62D
-	for <sparclinux@vger.kernel.org>; Mon,  8 Jul 2024 20:08:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CED81DA2F;
+	Tue,  9 Jul 2024 09:16:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720469300; cv=none; b=QgnBdPnkCay6G+fRDqzJ6mxNMX37xkdrEaoyFs+HwJ6urHYD+kLSeJpuN4uPodPyf3DEuraxPUZ1YcCw/PIsIy1L3LVopna7JR99Vd73LUQxTQK6lLkzxzfwNXk2Tf3FMlWDtSeBzji0ddloFYf8J8oN+0VK0eaarHfRojkCQsE=
+	t=1720516560; cv=none; b=o46AuTjU/Oh2+A7B8xHMywvUTEh6lIxPcf6buc8eA1b+UWAgk3i94jb7bL0SvHuviHiq+q4yg2LTkw58Zrf4jOiEjgELNURKxioXlXegFK9Z/24bGlZXv7W3c2qx5YvvtqaFcWr3Qb+OwM5Hf8lCEjW/tfA+wyNSXd0kPEC9KxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720469300; c=relaxed/simple;
-	bh=ZRZU9TG8IKJPir335kv6uvmf5/6XvlnF0lVWn7S/s+4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lmXtTDAgfQCn3ZCZylUHpG4V1vMePhArfiTAZMvbKONzGPYgcnZifbRd3SmjU/g0Aqyy6J2NP1xtJu8sskc6D3XtURN3d0QfuEW7939lC9nAg3gbzTcKxl2hIpmFUx4PB04ppTH0+KpZGMKzKiQM7B5y5O0dNFItuH/nVXFVEYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Nvt70lDq; arc=none smtp.client-ip=209.85.222.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1720516560; c=relaxed/simple;
+	bh=hK2QUQoSLsKZsz2jegmGiISGgACqpgV+13IffX5u+qA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Hpmhwe9C7pKFype5pMQ3KhGNl+0+F0MqfREeyOD+KduE8idQ3v7UnEEBpGkJ/USUsh04/IenZrDxOqkXoPr6jB97EVzTP+1kG/SjO4XwoJMB6AqYUVIFhw/YflpcyOJ1qKZZrUZTlzAFBELz3L0fNJTaiN/L5CyzI8xVS1G/wk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=b5CS9d8E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Nvt70lDq"
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-79f15e7c89cso63820785a.1
-        for <sparclinux@vger.kernel.org>; Mon, 08 Jul 2024 13:08:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1720469297; x=1721074097; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ef8kYUavZDQKnlAolqYPRC/e9sM3ztTKFUbqIbLKTok=;
-        b=Nvt70lDqisNpfwC9Q3U8CpMPR/mXlio5gK5xUUEULro9iTsTMaVhWouG0PNbjJ764Z
-         XmuqOmW4OjLY/v8ncqtpAZLDqReczDacqRUd29wMBjK/Pl4UMDLOac/fYtgDxnPuoJuk
-         IvS6KFzrbX1CnMTF0cH7coo7IaDMyw1XZt115Qc3Z1r/aqwK4LbCLyhPxSQ+MKzH0BRY
-         su7qtvbvu/b/Gm6/C3zgPrrezPL6pUG/2KhsGXdSNhifEyjUHDw42lqBmvOsllSmGx37
-         m7jNmIPpAZLTMJS3tYsSuWUEADMiOD8uidBdDgUGHbJGi7yFwJGzzteXip+0OASqNo2g
-         7E3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720469297; x=1721074097;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Ef8kYUavZDQKnlAolqYPRC/e9sM3ztTKFUbqIbLKTok=;
-        b=RmoL42jwblh+TIIV1GAHQDoC+DsAVGqBY1xPzNb9Nj/OB3pzYefvzclp6t02cAGZ5a
-         zs+eLJTXLOwOEkLz+0q08wf3oFXGjonaiOUDbz0xlX6Qagqq2VMuynLoNnce7moFtjYz
-         /blEnm8HNPofSW8Yst/fX4bgdLjYEi5OHjx1U7nxmtH1RHzi+0flMU5YSu48/ozGwhMS
-         8lbBOXX0z+s4xJHUsnY7NxYcLVFC4UTgE2bUyFq6uhDNKmfVuD+04KsH2tput1beAyIE
-         CPe3bOmRLHO1nhDK8gnWMy1gtg6iuozSZ+njQ9Mi6iozeDn3PS6THSYZQzpQWYHTw1CR
-         8RaA==
-X-Forwarded-Encrypted: i=1; AJvYcCV3DBS5jRxj5kyGHHQlCjCDvBK1sXhwDrl1X3R9uokx8bTVWyKTnXLx5KvK1TzKosvTuAYdt+GPpy4KnKXElf6MAo9P1saaSjY2dg==
-X-Gm-Message-State: AOJu0YwkMS+M0jaWk/sXjU0nFMQjhS6EyROJh7ycAUmPVwtzwi1RlDDD
-	X5fXLJk9feXfVqvFqs2dvpM1JmwlnkNLsKBAXAw77aplAM5wdRRsMPP+yPysUiobJymWL/BXTAo
-	gsABYpXoAJZiG2nw/fzBF2xoTryHZKqBKN6SF
-X-Google-Smtp-Source: AGHT+IHB+Sby5xb3KQY4fJme46cOICuiSOSK7oxUno8JfmvAwWNnn3nyYgyDJgtIcLGc/wIzDrQoP+07XuveT6i0qf0=
-X-Received: by 2002:a05:6214:c44:b0:6b4:b179:8eeb with SMTP id
- 6a1803df08f44-6b61c230e3fmr8398346d6.63.1720469296819; Mon, 08 Jul 2024
- 13:08:16 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="b5CS9d8E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E023C3277B;
+	Tue,  9 Jul 2024 09:15:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1720516560;
+	bh=hK2QUQoSLsKZsz2jegmGiISGgACqpgV+13IffX5u+qA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=b5CS9d8EmjYuSh4Oeec2RjoRUGGvRd0pLtlX6LmRJt4hCd5HbYeEb7JcMhMOETUiL
+	 nJGOijZI7omuHyu+1Qf35faihpB0P+eHXoiC/u41ezJKQHr3qA2gW9sxBtTIXizM63
+	 z1FgzWNtkl38ekbRw1GjxAc4UY7Jz4/WW8/AIhfs=
+Date: Tue, 9 Jul 2024 11:15:57 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: LEROY Christophe <christophe.leroy2@cs-soprasteria.com>
+Cc: WangYuli <wangyuli@uniontech.com>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>,
+	"sashal@kernel.org" <sashal@kernel.org>,
+	"ast@kernel.org" <ast@kernel.org>,
+	"keescook@chromium.org" <keescook@chromium.org>,
+	"linux-hardening@vger.kernel.org" <linux-hardening@vger.kernel.org>,
+	"catalin.marinas@arm.com" <catalin.marinas@arm.com>,
+	"song@kernel.org" <song@kernel.org>,
+	"puranjay12@gmail.com" <puranjay12@gmail.com>,
+	"daniel@iogearbox.net" <daniel@iogearbox.net>,
+	"andrii@kernel.org" <andrii@kernel.org>,
+	"martin.lau@linux.dev" <martin.lau@linux.dev>,
+	"yonghong.song@linux.dev" <yonghong.song@linux.dev>,
+	"john.fastabend@gmail.com" <john.fastabend@gmail.com>,
+	"kpsingh@kernel.org" <kpsingh@kernel.org>,
+	"sdf@google.com" <sdf@google.com>,
+	"haoluo@google.com" <haoluo@google.com>,
+	"jolsa@kernel.org" <jolsa@kernel.org>,
+	"illusionist.neo@gmail.com" <illusionist.neo@gmail.com>,
+	"linux@armlinux.org.uk" <linux@armlinux.org.uk>,
+	"bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"chenhuacai@kernel.org" <chenhuacai@kernel.org>,
+	"kernel@xen0n.name" <kernel@xen0n.name>,
+	"loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
+	"johan.almbladh@anyfinetworks.com" <johan.almbladh@anyfinetworks.com>,
+	"paulburton@kernel.org" <paulburton@kernel.org>,
+	"tsbogend@alpha.franken.de" <tsbogend@alpha.franken.de>,
+	"linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+	"deller@gmx.de" <deller@gmx.de>,
+	"linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
+	"iii@linux.ibm.com" <iii@linux.ibm.com>,
+	"hca@linux.ibm.com" <hca@linux.ibm.com>,
+	"gor@linux.ibm.com" <gor@linux.ibm.com>,
+	"agordeev@linux.ibm.com" <agordeev@linux.ibm.com>,
+	"borntraeger@linux.ibm.com" <borntraeger@linux.ibm.com>,
+	"svens@linux.ibm.com" <svens@linux.ibm.com>,
+	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+	"kuba@kernel.org" <kuba@kernel.org>,
+	"hawk@kernel.org" <hawk@kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"dsahern@kernel.org" <dsahern@kernel.org>,
+	"tglx@linutronix.de" <tglx@linutronix.de>,
+	"mingo@redhat.com" <mingo@redhat.com>,
+	"bp@alien8.de" <bp@alien8.de>,
+	"dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
+	"x86@kernel.org" <x86@kernel.org>, "hpa@zytor.com" <hpa@zytor.com>,
+	"guanwentao@uniontech.com" <guanwentao@uniontech.com>,
+	"baimingcong@uniontech.com" <baimingcong@uniontech.com>
+Subject: Re: [PATCH] Revert "bpf: Take return from set_memory_rox() into
+ account with bpf_jit_binary_lock_ro()" for linux-6.6.37
+Message-ID: <2024070908-glade-granny-1137@gregkh>
+References: <5A29E00D83AB84E3+20240706031101.637601-1-wangyuli@uniontech.com>
+ <2024070631-unrivaled-fever-8548@gregkh>
+ <B7E3B29557B78CB1+afadbaa6-987e-4db4-96b5-4e4d5465c37b@uniontech.com>
+ <2024070815-udder-charging-7f75@gregkh>
+ <a1dac525-4e6d-4d28-87ee-63723abbafad@cs-soprasteria.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240628003253.1694510-1-almasrymina@google.com>
- <20240628003253.1694510-4-almasrymina@google.com> <CAMArcTUqqxam+BPwGExOFOLVi3t=dwA-5sSagKC5dndv07GDLQ@mail.gmail.com>
-In-Reply-To: <CAMArcTUqqxam+BPwGExOFOLVi3t=dwA-5sSagKC5dndv07GDLQ@mail.gmail.com>
-From: Mina Almasry <almasrymina@google.com>
-Date: Mon, 8 Jul 2024 13:08:01 -0700
-Message-ID: <CAHS8izNS5jZjPfc-sARbHV7mzqzH+UhHfAtCTKRRTfSAdhY4Cw@mail.gmail.com>
-Subject: Re: [PATCH net-next v15 03/14] netdev: support binding dma-buf to netdevice
-To: Taehee Yoo <ap420073@gmail.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
-	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
-	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
-	Nikolay Aleksandrov <razor@blackwall.org>, Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, 
-	Shailend Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst <jeroendb@google.com>, 
-	Praveen Kaligineedi <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>, 
-	Kaiyuan Zhang <kaiyuanz@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <a1dac525-4e6d-4d28-87ee-63723abbafad@cs-soprasteria.com>
 
-On Thu, Jul 4, 2024 at 10:57=E2=80=AFAM Taehee Yoo <ap420073@gmail.com> wro=
-te:
->
-> I found several locking warnings while testing.
->
+On Mon, Jul 08, 2024 at 03:12:55PM +0000, LEROY Christophe wrote:
+> 
+> 
+> Le 08/07/2024 à 14:36, Greg KH a écrit :
+> > On Sun, Jul 07, 2024 at 03:34:15PM +0800, WangYuli wrote:
+> >>
+> >> On 2024/7/6 17:30, Greg KH wrote:
+> >>> This makes it sound like you are reverting this because of a build
+> >>> error, which is not the case here, right?  Isn't this because of the
+> >>> powerpc issue reported here:
+> >>>     https://lore.kernel.org/r/20240705203413.wbv2nw3747vjeibk@altlinux.org
+> >>> ?
+> >>
+> >> No, it only occurs on ARM64 architecture. The reason is that before being
+> >> modified, the function
+> >>
+> >> bpf_jit_binary_lock_ro() in arch/arm64/net/bpf_jit_comp.c +1651
+> >>
+> >> was introduced with __must_check, which is defined as
+> >> __attribute__((__warn_unused_result__)).
+> >>
+> >>
+> >> However, at this point, calling bpf_jit_binary_lock_ro(header)
+> >> coincidentally results in an unused-result
+> >>
+> >> warning.
+> >
+> > Ok, thanks, but why is no one else seeing this in their testing?
+> 
+> Probably the configs used by robots do not activate BPF JIT ?
+> 
+> >
+> >>> If not, why not just backport the single missing arm64 commit,
+> >>
+> >> Upstream commit 1dad391daef1 ("bpf, arm64: use bpf_prog_pack for memory
+> >> management") is part of
+> >>
+> >> a larger change that involves multiple commits. It's not an isolated commit.
+> >>
+> >>
+> >> We could certainly backport all of them to solve this problem, buthas it's not
+> >> the simplest solution.
+> >
+> > reverting the change feels wrong in that you will still have the bug
+> > present that it was trying to solve, right?  If so, can you then provide
+> > a working version?
+> 
+> Indeed, by reverting the change you "punish" all architectures because
+> arm64 hasn't properly been backported, is it fair ?
+> 
+> In fact, when I implemented commit e60adf513275 ("bpf: Take return from
+> set_memory_rox() into account with bpf_jit_binary_lock_ro()"), we had
+> the following users for function bpf_jit_binary_lock_ro() :
+> 
+> $ git grep bpf_jit_binary_lock_ro e60adf513275~
+> e60adf513275~:arch/arm/net/bpf_jit_32.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:arch/loongarch/net/bpf_jit.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:arch/mips/net/bpf_jit_comp.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:arch/parisc/net/bpf_jit_core.c:
+> bpf_jit_binary_lock_ro(jit_data->header);
+> e60adf513275~:arch/s390/net/bpf_jit_comp.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:arch/sparc/net/bpf_jit_comp_64.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:arch/x86/net/bpf_jit_comp32.c:
+> bpf_jit_binary_lock_ro(header);
+> e60adf513275~:include/linux/filter.h:static inline void
+> bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
+> 
+> But when commit 08f6c05feb1d ("bpf: Take return from set_memory_rox()
+> into account with bpf_jit_binary_lock_ro()") was applied, we had one
+> more user which is arm64:
+> 
+> $ git grep bpf_jit_binary_lock_ro 08f6c05feb1d~
+> 08f6c05feb1d~:arch/arm/net/bpf_jit_32.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/arm64/net/bpf_jit_comp.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/loongarch/net/bpf_jit.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/mips/net/bpf_jit_comp.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/parisc/net/bpf_jit_core.c:
+> bpf_jit_binary_lock_ro(jit_data->header);
+> 08f6c05feb1d~:arch/s390/net/bpf_jit_comp.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/sparc/net/bpf_jit_comp_64.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:arch/x86/net/bpf_jit_comp32.c:
+> bpf_jit_binary_lock_ro(header);
+> 08f6c05feb1d~:include/linux/filter.h:static inline void
+> bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
+> 
+> Therefore, commit 08f6c05feb1d should have included a backport for arm64.
+> 
+> So yes, I agree with Greg, the correct fix should be to backport to
+> ARM64 the changes done on other architectures in order to properly
+> handle return of set_memory_rox() in bpf_jit_binary_lock_ro().
 
-Thanks for Testing Taehee! And sorry for the late reply. I was off for
-a couple of days. With some minor tweaks to my test setup I was able
-to reproduce and fix all 3 warnings.
+Ok, but it looks like due to this series, the powerpc tree is crashing
+at the first bpf load, so something went wrong.  Let me go revert these
+4 patches for now, and then I will be glad to queue them up if you can
+provide a working series for all arches.
 
-> [ 1135.125874] WARNING: CPU: 1 PID: 1644 at
-> drivers/dma-buf/dma-buf.c:1123 dma_buf_map_attachment+0x164/0x2f0
-...
-> [ 1136.178258] WARNING: CPU: 1 PID: 1644 at
-> drivers/dma-buf/dma-buf.c:1226 dma_buf_unmap_attachment+0x267/0x320
+thanks,
 
-Both of these are warnings that dma->resv is not locked when calling
-dma_buf_[un]map_attachment(). As far as I can tell so far, this can be
-resolved by using the unlocked versions:
-dma_buf_[un]map_attachment_unlocked() which is correct here for this
-static importer.
-
-...
-
-> [ 1135.709313] WARNING: CPU: 3 PID: 1644 at
-> net/core/netdev_rx_queue.c:18 netdev_rx_queue_restart+0x3f4/0x5a0
-
-This is due to rtnl_lock() actually not being acquired in the unbind
-path, when the netlink socket is closed. Sorry about that. This is
-fixed by obtaining rtnl_lock() in the unbind path.
-
-With the fixes below all the warnings disappear. I'm planning to
-squash them to the next version. Let me know if those don't work for
-you. Thanks!
-
-diff --git a/net/core/devmem.c b/net/core/devmem.c
-index e52bca1a55c7c..a6ef1485b80f2 100644
---- a/net/core/devmem.c
-+++ b/net/core/devmem.c
-@@ -46,8 +46,8 @@ void __net_devmem_dmabuf_binding_free(struct
-net_devmem_dmabuf_binding *binding)
-                  size, avail))
-                gen_pool_destroy(binding->chunk_pool);
-
--       dma_buf_unmap_attachment(binding->attachment, binding->sgt,
--                                DMA_FROM_DEVICE);
-+       dma_buf_unmap_attachment_unlocked(binding->attachment, binding->sgt=
-,
-+                                         DMA_FROM_DEVICE);
-        dma_buf_detach(binding->dmabuf, binding->attachment);
-        dma_buf_put(binding->dmabuf);
-        xa_destroy(&binding->bound_rxqs);
-@@ -157,8 +157,8 @@ struct net_devmem_dmabuf_binding
-*net_devmem_bind_dmabuf(struct net_device *dev,
-                goto err_free_id;
-        }
-
--       binding->sgt =3D
--               dma_buf_map_attachment(binding->attachment, DMA_FROM_DEVICE=
-);
-+       binding->sgt =3D dma_buf_map_attachment_unlocked(binding->attachmen=
-t,
-+                                                      DMA_FROM_DEVICE);
-        if (IS_ERR(binding->sgt)) {
-                err =3D PTR_ERR(binding->sgt);
-                goto err_detach;
-@@ -225,8 +225,8 @@ struct net_devmem_dmabuf_binding
-*net_devmem_bind_dmabuf(struct net_device *dev,
-                                net_devmem_dmabuf_free_chunk_owner, NULL);
-        gen_pool_destroy(binding->chunk_pool);
- err_unmap:
--       dma_buf_unmap_attachment(binding->attachment, binding->sgt,
--                                DMA_FROM_DEVICE);
-+       dma_buf_unmap_attachment_unlocked(binding->attachment, binding->sgt=
-,
-+                                         DMA_FROM_DEVICE);
- err_detach:
-        dma_buf_detach(dmabuf, binding->attachment);
- err_free_id:
-diff --git a/net/core/netdev-genl.c b/net/core/netdev-genl.c
-index 4b16b3ad2ec5b..33bb20c143997 100644
---- a/net/core/netdev-genl.c
-+++ b/net/core/netdev-genl.c
-@@ -861,6 +861,9 @@ void netdev_nl_sock_priv_destroy(struct list_head *priv=
-)
-        struct net_devmem_dmabuf_binding *binding;
-        struct net_devmem_dmabuf_binding *temp;
-
--       list_for_each_entry_safe(binding, temp, priv, list)
-+       list_for_each_entry_safe(binding, temp, priv, list) {
-+               rtnl_lock();
-                net_devmem_unbind_dmabuf(binding);
-+               rtnl_unlock();
-+       }
- }
-
-
-
---
-Thanks,
-Mina
+greg k-h
