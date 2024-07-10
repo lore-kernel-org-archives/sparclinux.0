@@ -1,297 +1,136 @@
-Received: from mail-yw1-f201.google.com (mail-yw1-f201.google.com [209.85.128.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE057824AE
-	for <sparclinux@vger.kernel.org>; Wed, 10 Jul 2024 00:18:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FC6617FD;
+	Wed, 10 Jul 2024 09:32:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720570704; cv=none; b=bUMyUkZZN2sm8HFgwEYMlJQhnQjQlntrF7tbEtwFbPOgZjgtO/q/Holzj1lF67MXlDneLxh0yS8AaIoqPk1vOYi0rLI8jUP4KoY2n2FOziDEOzcufsUMTN6TcWlOSz4VjZC0MP60aVPC6R1xy/FugTSC9CsVLHh6G36rVS8YdT4=
+	t=1720603951; cv=none; b=hEThDf1gnw5vgPq8EWe+POdNRCddkEUm0PkPTy5zMSvNRnqFAd9l+k8OshKUbVEyndE7KilyT97Hh2xY8WzMbEyT7syxlKSp/RNwhsKbb/tug1iT+ztH6LpEZspD2gjYxk5e0veot58U9NDwwcAcifU9NZ/3qzwc9XvWnzZpnCI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720570704; c=relaxed/simple;
-	bh=p9TCrtunq3Sc+tHM9HSo0pjT1D7aMbYnoIhXBBRGHcA=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=A0xQN1FXlTUDdJ98oD/rNcr4W8Y6pJpQ/mmYQfrEqvWK/9jdaaCOqEN9b92ijcAf9Y0xTU9X1PB7jxyshwABExdsQjs9ACmbxYAPRINMS+dQkfuX/ZO/H6QPdj+Fl3/uzCPDIXwyUIXzkO15rvohEK6QgYkxqHqY8Ad0KQLkTyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=EVV77sFc; arc=none smtp.client-ip=209.85.128.201
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
+	s=arc-20240116; t=1720603951; c=relaxed/simple;
+	bh=acLe3ldn1XAUOZC1eJHeqqQHZemln1Q0UW4ImH3kPpc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ynin7xttHHx17F+uI+zZvD5o3IbkFZqAGR2It0O9x8eicgrYL36yPuMFZ18nu38pBzKn8h8MiKq+Lek3972aq2fws/YhvZlus90n8Tmgg5ho7bqpPVQucfSJAakZ7LYuQD0+/RHnsK994mrH7rG1l9OdmBs9PZI2cx5dA8muJEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=VeczMIl9; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="EVV77sFc"
-Received: by mail-yw1-f201.google.com with SMTP id 00721157ae682-650f5b28822so92407647b3.2
-        for <sparclinux@vger.kernel.org>; Tue, 09 Jul 2024 17:18:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1720570696; x=1721175496; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=5P7T8nlF1fJQfwxNLMQaeLRVD2aIiRw+Td5GpIM/t7s=;
-        b=EVV77sFceVqLWviNlasFmMPXU4GBHJpENMZH+Sm/tHPX0TueSjK0ZKKCFVJYMSvNDs
-         reOH61jlO3qdfcn85MDS69sd0u0z2PaX2tkL2SumrxgSCDJASw4I4k4T/vrSOf5/PI/S
-         o/0rKIrMrafJDGJzLCcQ9gFNUbhyT1FSl//biVrprxtE5umFIri2bP5/3BPMs+nHkV80
-         RvSB6kg4gO+DOlNId2ampA+XNE3J+RrBGzOimDFJsFPBeG8UeftfdAnuhyhmR1M0gHeh
-         HKzeFZow9jYU8bsN0lY2yIazW9QYEScP2bu/ncwvzuj1bZ3rh1PLNGxsYv0LhKPlNzB8
-         Sfqw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720570696; x=1721175496;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=5P7T8nlF1fJQfwxNLMQaeLRVD2aIiRw+Td5GpIM/t7s=;
-        b=hASzk02aFkV55fTfZ2E/Xe1K3t4hizKhFH+YSvlnAqDG6kLnKj8tTjGg+v3533ljh2
-         nd2ncqUFVg1nwxqY++EmBnvKyrr+7bRgBCzmik7VlCzXevn7VJmcuxZafHkYZPGzGTIL
-         FV0FiJe/hGsMp1gXV78EAvpOj7NSZ9WQRBDCCt7vw55fBAvFVCNQYvi4CeZdbiZkl18s
-         6N9Ebgig8ZVef+Vwx6tiPqhW2QpzCO9Fgu9tU9Vl8g+y0GtggaHRdJasahF/BY4KRa+N
-         6udnJA7WNB9VUqKFumTYrhVK3WJHcfROnPzGYBjDLgLOGHNLum4IhnBOakUT9WhMkMNP
-         F8jQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX2on76GMJjM6uAFROkl+PANU7xc5ieWYCphSx2CmWkJDoXyWX3SZmX/uHtx+ssvZIgbzu23a59SaqF/mKOHd46oR52sPUI20MNXQ==
-X-Gm-Message-State: AOJu0YwK0vV1TBSv2tIcAvO0NfTcXi3HFHzWZRhBpDVko7IWX2At17g3
-	aG5fcqLFjuRe9X86GA0SHqcewv2ErFXFhdlaVIlK7tMf0EJvUWkAWgY/P53M/BZOIoKCgaTmJ0D
-	UqDWt0/3C8ZeJIpfqKvLF/Q==
-X-Google-Smtp-Source: AGHT+IFcaWW5jqfEL6UmmKDurzwGMgILdQq8qULJRfWHlLzreMoST4DZONBBVue+Todgr1TAQxDVXsqBdlPZBjt4Ag==
-X-Received: from almasrymina.c.googlers.com ([fda3:e722:ac3:cc00:20:ed76:c0a8:4bc5])
- (user=almasrymina job=sendgmr) by 2002:a05:690c:4882:b0:627:a787:abf4 with
- SMTP id 00721157ae682-658eed5ddcamr1032287b3.3.1720570696535; Tue, 09 Jul
- 2024 17:18:16 -0700 (PDT)
-Date: Wed, 10 Jul 2024 00:17:46 +0000
-In-Reply-To: <20240710001749.1388631-1-almasrymina@google.com>
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="VeczMIl9"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4WJsqw0X4Xz1DPkj;
+	Wed, 10 Jul 2024 11:24:12 +0200 (CEST)
+Received: from andreas.got.gaisler.com (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	by smtp.simply.com (Simply.com) with ESMTPA id 4WJsqv5S0dz1DPkB;
+	Wed, 10 Jul 2024 11:24:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1720603451;
+	bh=eYu5bXT7dIaOhYcImSTacFJvmy2a/tFfDo4KgkIKANM=;
+	h=From:To:Cc:Subject:Date;
+	b=VeczMIl9sddXJPmuyutEJAO6jfajx2XYK2OgueiVSyqGu8mdd0u6jxPGix74xWZBu
+	 GVslai9DR1j8hfjEre6gfSgb7RqST5aBTvdlxpN5gCtTGxVTvC0LN92QbadqkzhUEx
+	 RWpwZB7QXKb9cz+8S+5z/aszuVG+7v1v2X6CM1hI=
+From: Andreas Larsson <andreas@gaisler.com>
+To: David Miller <davem@davemloft.net>,
+	sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>,
+	linux-kernel@vger.kernel.org,
+	kernel test robot <lkp@intel.com>
+Subject: [PATCH] sparc32: Fix truncated relocation errors when linking large kernels
+Date: Wed, 10 Jul 2024 11:23:41 +0200
+Message-Id: <20240710092341.457591-1-andreas@gaisler.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20240710001749.1388631-1-almasrymina@google.com>
-X-Mailer: git-send-email 2.45.2.803.g4e1b14247a-goog
-Message-ID: <20240710001749.1388631-14-almasrymina@google.com>
-Subject: [PATCH net-next v16 13/13] netdev: add dmabuf introspection
-From: Mina Almasry <almasrymina@google.com>
-To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org
-Cc: Mina Almasry <almasrymina@google.com>, Donald Hunter <donald.hunter@gmail.com>, 
-	Jakub Kicinski <kuba@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, 
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, 
-	"=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
-	Christoph Hellwig <hch@infradead.org>, Nikolay Aleksandrov <razor@blackwall.org>, Taehee Yoo <ap420073@gmail.com>, 
-	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Add dmabuf information to page_pool stats:
+Use jumps instead of branches when jumping from one section to another
+to avoid branches to addresses further away than 22 bit offsets can
+handle that results in errors such as
 
-$ ./cli.py --spec ../netlink/specs/netdev.yaml --dump page-pool-get
-...
- {'dmabuf': 10,
-  'id': 456,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 455,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 454,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 453,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 452,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 451,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 450,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 449,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
+arch/sparc/kernel/signal_32.o:(.fixup+0x0): relocation truncated to fit: R_SPARC_WDISP22 against `.text'
 
-And queue stats:
+This is the same approach that was taken for sparc64 in commit
+52eb053b7191 ("[SPARC64]: Fix linkage of enormous kernels.")
 
-$ ./cli.py --spec ../netlink/specs/netdev.yaml --dump queue-get
-...
-{'dmabuf': 10, 'id': 8, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 9, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 10, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 11, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 12, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 13, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 14, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 15, 'ifindex': 3, 'type': 'rx'},
-
-Suggested-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202405080936.tWaJdO3P-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202406240441.5zaoshVX-lkp@intel.com/
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
- Documentation/netlink/specs/netdev.yaml | 10 ++++++++++
- include/uapi/linux/netdev.h             |  2 ++
- net/core/netdev-genl.c                  | 10 ++++++++++
- net/core/page_pool_user.c               |  4 ++++
- tools/include/uapi/linux/netdev.h       |  2 ++
- 5 files changed, 28 insertions(+)
+ arch/sparc/include/asm/uaccess_32.h |  6 ++++--
+ arch/sparc/kernel/head_32.S         | 15 +++++++++++----
+ 2 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/netlink/specs/netdev.yaml b/Documentation/netlink/specs/netdev.yaml
-index 0c747530c275e..08412c279297b 100644
---- a/Documentation/netlink/specs/netdev.yaml
-+++ b/Documentation/netlink/specs/netdev.yaml
-@@ -167,6 +167,10 @@ attribute-sets:
-           "re-attached", they are just waiting to disappear.
-           Attribute is absent if Page Pool has not been detached, and
-           can still be used to allocate new memory.
-+      -
-+        name: dmabuf
-+        doc: ID of the dmabuf this page-pool is attached to.
-+        type: u32
-   -
-     name: page-pool-info
-     subset-of: page-pool
-@@ -268,6 +272,10 @@ attribute-sets:
-         name: napi-id
-         doc: ID of the NAPI instance which services this queue.
-         type: u32
-+      -
-+        name: dmabuf
-+        doc: ID of the dmabuf attached to this queue, if any.
-+        type: u32
+diff --git a/arch/sparc/include/asm/uaccess_32.h b/arch/sparc/include/asm/uaccess_32.h
+index 9fd6c53644b6..43284b6ec46a 100644
+--- a/arch/sparc/include/asm/uaccess_32.h
++++ b/arch/sparc/include/asm/uaccess_32.h
+@@ -95,7 +95,8 @@ __asm__ __volatile__(							\
+ 		".section .fixup,#alloc,#execinstr\n\t"			\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
+-		"b	2b\n\t"						\
++		"sethi	%%hi(2b), %0\n\t"				\
++		"jmpl	%0 + %%lo(2b), %%g0\n\t"			\
+ 		" mov	%3, %0\n\t"					\
+ 		".previous\n\n\t"					\
+ 		".section __ex_table,#alloc\n\t"			\
+@@ -163,8 +164,9 @@ __asm__ __volatile__(							\
+ 		".section .fixup,#alloc,#execinstr\n\t"			\
+ 		".align	4\n"						\
+ 	"3:\n\t"							\
++		"sethi	%%hi(2b), %0\n\t"				\
+ 		"clr	%1\n\t"						\
+-		"b	2b\n\t"						\
++		"jmpl	%0 + %%lo(2b), %%g0\n\t"			\
+ 		" mov	%3, %0\n\n\t"					\
+ 		".previous\n\t"						\
+ 		".section __ex_table,#alloc\n\t"			\
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index 964c61b5cd03..38345460d542 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -118,9 +118,12 @@ current_pc:
+ 		mov	%o7, %g3
  
-   -
-     name: qstats
-@@ -543,6 +551,7 @@ operations:
-             - inflight
-             - inflight-mem
-             - detach-time
-+            - dmabuf
-       dump:
-         reply: *pp-reply
-       config-cond: page-pool
-@@ -607,6 +616,7 @@ operations:
-             - type
-             - napi-id
-             - ifindex
-+            - dmabuf
-       dump:
-         request:
-           attributes:
-diff --git a/include/uapi/linux/netdev.h b/include/uapi/linux/netdev.h
-index 91bf3ecc5f1d9..7c308f04e7a06 100644
---- a/include/uapi/linux/netdev.h
-+++ b/include/uapi/linux/netdev.h
-@@ -93,6 +93,7 @@ enum {
- 	NETDEV_A_PAGE_POOL_INFLIGHT,
- 	NETDEV_A_PAGE_POOL_INFLIGHT_MEM,
- 	NETDEV_A_PAGE_POOL_DETACH_TIME,
-+	NETDEV_A_PAGE_POOL_DMABUF,
+ 		tst	%o0
+-		be	no_sun4u_here
++		bne	2f
+ 		 mov	%g4, %o7		/* Previous %o7. */
+-
++		sethi	%hi(no_sun4u_here), %l1
++		jmpl	%l1 + %lo(no_sun4u_here), %g0
++		 nop
++2:
+ 		mov	%o0, %l0		! stash away romvec
+ 		mov	%o0, %g7		! put it here too
+ 		mov	%o1, %l1		! stash away debug_vec too
+@@ -195,7 +198,8 @@ halt_notsup:
+ 		sub	%o0, %l6, %o0
+ 		call	%o1
+ 		 nop
+-		ba	halt_me
++		sethi	%hi(halt_me), %o0
++		jmpl	%o0 + %lo(halt_me), %g0
+ 		 nop
  
- 	__NETDEV_A_PAGE_POOL_MAX,
- 	NETDEV_A_PAGE_POOL_MAX = (__NETDEV_A_PAGE_POOL_MAX - 1)
-@@ -131,6 +132,7 @@ enum {
- 	NETDEV_A_QUEUE_IFINDEX,
- 	NETDEV_A_QUEUE_TYPE,
- 	NETDEV_A_QUEUE_NAPI_ID,
-+	NETDEV_A_QUEUE_DMABUF,
- 
- 	__NETDEV_A_QUEUE_MAX,
- 	NETDEV_A_QUEUE_MAX = (__NETDEV_A_QUEUE_MAX - 1)
-diff --git a/net/core/netdev-genl.c b/net/core/netdev-genl.c
-index bd54cf50b658a..e944fd56c6b8e 100644
---- a/net/core/netdev-genl.c
-+++ b/net/core/netdev-genl.c
-@@ -293,6 +293,7 @@ static int
- netdev_nl_queue_fill_one(struct sk_buff *rsp, struct net_device *netdev,
- 			 u32 q_idx, u32 q_type, const struct genl_info *info)
- {
-+	struct net_devmem_dmabuf_binding *binding;
- 	struct netdev_rx_queue *rxq;
- 	struct netdev_queue *txq;
- 	void *hdr;
-@@ -312,6 +313,15 @@ netdev_nl_queue_fill_one(struct sk_buff *rsp, struct net_device *netdev,
- 		if (rxq->napi && nla_put_u32(rsp, NETDEV_A_QUEUE_NAPI_ID,
- 					     rxq->napi->napi_id))
- 			goto nla_put_failure;
-+
-+		binding = (struct net_devmem_dmabuf_binding *)
-+				  rxq->mp_params.mp_priv;
-+		if (binding) {
-+			if (nla_put_u32(rsp, NETDEV_A_QUEUE_DMABUF,
-+					binding->id))
-+				goto nla_put_failure;
-+		}
-+
- 		break;
- 	case NETDEV_QUEUE_TYPE_TX:
- 		txq = netdev_get_tx_queue(netdev, q_idx);
-diff --git a/net/core/page_pool_user.c b/net/core/page_pool_user.c
-index 3a3277ba167b1..ca13363aea343 100644
---- a/net/core/page_pool_user.c
-+++ b/net/core/page_pool_user.c
-@@ -212,6 +212,7 @@ static int
- page_pool_nl_fill(struct sk_buff *rsp, const struct page_pool *pool,
- 		  const struct genl_info *info)
- {
-+	struct net_devmem_dmabuf_binding *binding = pool->mp_priv;
- 	size_t inflight, refsz;
- 	void *hdr;
- 
-@@ -241,6 +242,9 @@ page_pool_nl_fill(struct sk_buff *rsp, const struct page_pool *pool,
- 			 pool->user.detach_time))
- 		goto err_cancel;
- 
-+	if (binding && nla_put_u32(rsp, NETDEV_A_PAGE_POOL_DMABUF, binding->id))
-+		goto err_cancel;
-+
- 	genlmsg_end(rsp, hdr);
- 
- 	return 0;
-diff --git a/tools/include/uapi/linux/netdev.h b/tools/include/uapi/linux/netdev.h
-index 91bf3ecc5f1d9..7c308f04e7a06 100644
---- a/tools/include/uapi/linux/netdev.h
-+++ b/tools/include/uapi/linux/netdev.h
-@@ -93,6 +93,7 @@ enum {
- 	NETDEV_A_PAGE_POOL_INFLIGHT,
- 	NETDEV_A_PAGE_POOL_INFLIGHT_MEM,
- 	NETDEV_A_PAGE_POOL_DETACH_TIME,
-+	NETDEV_A_PAGE_POOL_DMABUF,
- 
- 	__NETDEV_A_PAGE_POOL_MAX,
- 	NETDEV_A_PAGE_POOL_MAX = (__NETDEV_A_PAGE_POOL_MAX - 1)
-@@ -131,6 +132,7 @@ enum {
- 	NETDEV_A_QUEUE_IFINDEX,
- 	NETDEV_A_QUEUE_TYPE,
- 	NETDEV_A_QUEUE_NAPI_ID,
-+	NETDEV_A_QUEUE_DMABUF,
- 
- 	__NETDEV_A_QUEUE_MAX,
- 	NETDEV_A_QUEUE_MAX = (__NETDEV_A_QUEUE_MAX - 1)
+ not_a_sun4:
+@@ -431,8 +435,11 @@ leon_init:
+ #ifdef CONFIG_SMP
+ 		ldub	[%g2 + %lo(boot_cpu_id)], %g1
+ 		cmp	%g1, 0xff		! unset means first CPU
+-		bne	leon_smp_cpu_startup	! continue only with master
++		be 1f
++		 sethi	%hi(leon_smp_cpu_startup), %g1
++		jmpl	%g1 + %lo(leon_smp_cpu_startup), %g0
+ 		 nop
++1:
+ #endif
+ 		/* Get CPU-ID from most significant 4-bit of ASR17 */
+ 		rd     %asr17, %g1
 -- 
-2.45.2.803.g4e1b14247a-goog
+2.34.1
 
