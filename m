@@ -1,45 +1,42 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086A518FA0F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 712EE127B56;
 	Wed, 10 Jul 2024 09:42:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720604526; cv=none; b=FDcF+KfYd/8GGI7+iaB2J8VkFjjxUSxgntah/1ONVb1FTEJxIHxlIcWtnj/31MU/oIMEzypmJivnyutQGyMnxbmlKhIEqc7AQm3xzlJ7SXWEqXOW3/0rt5VxHn6u8AcbU0XysY1fdrwVRXngv2mQQoGJh5xyRH2+IqjPHYS1phk=
+	t=1720604526; cv=none; b=k5RyUz6hUrTr57eMeTRbhAXQiwY097eWucjuG+XQ+kS9nRb/32iINVOiW2TymX49qXNUNBQoYqBNhLmE3zpKOPNUFbGGUFnVFsgxjL5qncaNiEVvXwlHJWE5v3Qutk0iUZZEDgdNiPNzLlm/YL8JT9U8bmLa+8twrOOaiMMOwWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1720604526; c=relaxed/simple;
-	bh=mFJu3AuQwBhYu6nvYHmXFe8W3vkUUK1zringR+EoIf0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KsAsjNovXnI/wNeNilybaGnZsXIDDMu1UrpaHYBGo80Cs5TArtQkHVipn0XR10wOn+ztZfDvo5X6+uIVIGqvPy7TeJpeTZ5iSPpfkJZrMfbvkDKQBlM84d8z3mGvml4jX+sw0CYvZI7bEbyJzXleYec4CuGeaYbO+hq7nMp+TZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=S3Q35DX5; arc=none smtp.client-ip=94.231.106.210
+	bh=KS+qvAx1EoGG96GjQqClATf/z1pU9qcada1WDpqWhfY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=HJw/FoLf9WFcSLagfVHBwFm8drQYGMP1b4dshaJ86E2qsBvNnvHQABausD/UACtKC33DTqloycGh+7j+a9iSTsnkSQSjREp1Ag75njbhvLyZiI3BjQmDr3KDgSE1Y++gf4yLIJWrbgaMaBbKRiRF4zJrgzzCZ6htYoZZVFuJHI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=HyYVSSTE; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="S3Q35DX5"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="HyYVSSTE"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4WJtDT3mTfz1DPkb;
-	Wed, 10 Jul 2024 11:42:01 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTP id 4WJtDS3jxPz1DPkM;
+	Wed, 10 Jul 2024 11:42:00 +0200 (CEST)
 Received: from andreas.got.gaisler.com (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	by smtp.simply.com (Simply.com) with ESMTPA id 4WJtDT1gsPz1DPks;
-	Wed, 10 Jul 2024 11:42:01 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTPA id 4WJtDS1lmmz1DPky;
+	Wed, 10 Jul 2024 11:42:00 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1720604521;
-	bh=JmftKPWxL9NkSuMkpkySeuAYiQ7NRqf/1r5N/kj6mYY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=S3Q35DX5rS1BXnVgEVE4/WB5zVvohltKTwzz38IeMNQG6iyNmXExdfn7w9aiy+SCb
-	 Ajd5dxrjFihYpo8tDpZHJ7YjmNQf/hAX0G4ZQ4BtEq/dGVbcI+eOp94piZ3KnXaFml
-	 A5gFqSP6vbCJ7xc9qbrKX/Ug7DCDG6ySnEqqNNSk=
+	s=unoeuro; t=1720604520;
+	bh=0cD+Z41g0piXbmmhQwTaymP7pDZpu9QQXg7EeO0YG3Q=;
+	h=From:To:Cc:Subject:Date;
+	b=HyYVSSTEVFNoLaifc8XKta1f0GFxup19kLIm35T/wySoS47HFPy2iL54i7slHqPsU
+	 C1yXf0e1uPiCml/ew6NPwBOz638ZDYerFuQsW1hR6wCIXGKEATuCV4pHoQMs+oSc7d
+	 j1V6uf+9YpE+QxuHLJaQxona/aOMbVGJ1evmK7HQ=
 From: Andreas Larsson <andreas@gaisler.com>
 To: David Miller <davem@davemloft.net>,
 	sparclinux@vger.kernel.org
 Cc: Sam Ravnborg <sam@ravnborg.org>,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 3/4] sparc64: Fix prototype warning for prom_get_mmu_ihandle
-Date: Wed, 10 Jul 2024 11:41:54 +0200
-Message-Id: <20240710094155.458731-4-andreas@gaisler.com>
+Subject: [PATCH 0/4] sparc64: Fix prototype warnings and out of sync function signature
+Date: Wed, 10 Jul 2024 11:41:51 +0200
+Message-Id: <20240710094155.458731-1-andreas@gaisler.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20240710094155.458731-1-andreas@gaisler.com>
-References: <20240710094155.458731-1-andreas@gaisler.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,29 +46,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-arch/sparc/prom/misc_64.c:165:5: warning: no previous prototype for ‘prom_get_mmu_ihandle’
+This patch series fixes a number of prototype warnings as well as fixes a
+function signature that has become out of sync with its caller.
 
-The function prom_get_mmu_ihandle has no users outside of misc_64.c so
-declare it static.
+Andreas Larsson (4):
+  sparc64: Fix prototype warnings for floppy_64.h
+  sparc64: Fix incorrect function signature and add prototype for
+    prom_cif_init
+  sparc64: Fix prototype warning for prom_get_mmu_ihandle
+  sparc64: Fix prototype warnings in hibernate.c
 
-Signed-off-by: Andreas Larsson <andreas@gaisler.com>
----
- arch/sparc/prom/misc_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/include/asm/floppy_64.h | 5 +++--
+ arch/sparc/include/asm/oplib_64.h  | 1 +
+ arch/sparc/power/hibernate.c       | 1 +
+ arch/sparc/prom/init_64.c          | 3 ---
+ arch/sparc/prom/misc_64.c          | 2 +-
+ arch/sparc/prom/p1275.c            | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/prom/misc_64.c b/arch/sparc/prom/misc_64.c
-index aed94cd4a1e73..3792736ff21fd 100644
---- a/arch/sparc/prom/misc_64.c
-+++ b/arch/sparc/prom/misc_64.c
-@@ -162,7 +162,7 @@ unsigned char prom_get_idprom(char *idbuf, int num_bytes)
- 	return 0xff;
- }
- 
--int prom_get_mmu_ihandle(void)
-+static int prom_get_mmu_ihandle(void)
- {
- 	phandle node;
- 	int ret;
 -- 
 2.34.1
 
