@@ -1,42 +1,42 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086F718FA10;
-	Wed, 10 Jul 2024 09:42:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E8B18FA14;
+	Wed, 10 Jul 2024 09:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720604525; cv=none; b=qIFktZyDvnEYTRhAjOMLG4Ibg8KT6iXPXpaDgR9yGdwJtlW4zbOQ9KVHuNAhp5Sr+nSI8HTVURI7g3JK25Ng4uwfxm4wDSVRPiho7+6YPnGFSScH/FEQplOvAkA6P07l6v9e2jurMZcKeb/ftRMXcjJkTdQzPlrxanp/QO6T+GY=
+	t=1720604525; cv=none; b=YAxGacjTziZGMcc4etngTWbwDWkdzpnzTQ7ZjsZ9mPgOzZFlsFv69U9cYdJ/tebIgwJcZBGp/bVu5q68gjS+3+UJI+Zuj0cUu6f3eN8MG2448GoP89DQMZJii5wYJdyiCPQZ+tqtF9QKBdDgxwlw6j6z+VRnhrBy7P2B2mxrIvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1720604525; c=relaxed/simple;
-	bh=noBYTgg81ZU8cu0/+c0Q/0EfJggIqOPLTcc8Qq/l6Ck=;
+	bh=F09pGXI36gTc54xO6rR55cxg708answbdVUpxYTieXM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZonD4YWdvNCcDSpRZI/8cKnzHk0vpIfmafrTrG70rY8qwEQGidNTg6dBI8pYMsehT43+dIQ8QMFurnOUXtCKktLkrz7DcgowpkHFUrzMijjtG58luK2URht3jhedaoo3JnPjs39WixWIR3EYj6nA4muSp4PmZ3VduHcEdhZguDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=JiE0Oj3A; arc=none smtp.client-ip=94.231.106.210
+	 MIME-Version:Content-Type; b=kegXGpb5RVUmqtoFxEp6cBTf9MVgJcqXqdcbUHtKM0Yi+DittFvgVFNMlMoXu243NwkbM+xAuHIL1tsjEVqb+poyD457nyIpnFIAVlHi6Btjt6zySQELyxfd4CD0hnyCQ0Xc607Ic48OYYIYVuLfurKpLEaWlwdq2tYubV3Y0a8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=UmnX5lmT; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="JiE0Oj3A"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="UmnX5lmT"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4WJtDT28Pdz1DPkr;
+	by smtp.simply.com (Simply.com) with ESMTP id 4WJtDT6944z1DPkh;
 	Wed, 10 Jul 2024 11:42:01 +0200 (CEST)
 Received: from andreas.got.gaisler.com (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	by smtp.simply.com (Simply.com) with ESMTPA id 4WJtDS6yYGz1DPkh;
-	Wed, 10 Jul 2024 11:42:00 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTPA id 4WJtDT3bjgz1DPkC;
+	Wed, 10 Jul 2024 11:42:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
 	s=unoeuro; t=1720604521;
-	bh=CBlJ5z2MKq7rgo7HzbdN4LVE4I3xLgtSKjY4UTWkJLg=;
+	bh=a+ls+m7uo39S1xs1SfdgV4y0qwjJ1vBlTRzPr3sdHZE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=JiE0Oj3AO9NT3Bx8EmOqbq+smItHF6gMIALGpTe4c9o29U+rM7vIM7AeGyffK9Hu3
-	 VmEijsJWDWahExt+hfmzZbwVDRepphC8ca1qy/jhMLV7WjMxMP4TMNPy/Iju78Cm7X
-	 w42gcqFWn8HZxkk2clGZUF3GH94DpJYRkyOXEx6I=
+	b=UmnX5lmTyQpYLdiu6IU9+qTo5B2FuuF5f9P/dbGIKkGs0wmeXwAFWqjBuIrTQK5oJ
+	 BGXowgm7FxiPoOtRAcr1IgqkHj+mwZzPD+CJUDvFQZpBbytK+2bDJv3Av7n+nfH8bj
+	 LAB73dTZabjzHNgs1SUIWTWnEhHZUW0OBiTzS0/s=
 From: Andreas Larsson <andreas@gaisler.com>
 To: David Miller <davem@davemloft.net>,
 	sparclinux@vger.kernel.org
 Cc: Sam Ravnborg <sam@ravnborg.org>,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/4] sparc64: Fix incorrect function signature and add prototype for prom_cif_init
-Date: Wed, 10 Jul 2024 11:41:53 +0200
-Message-Id: <20240710094155.458731-3-andreas@gaisler.com>
+Subject: [PATCH 4/4] sparc64: Fix prototype warnings in hibernate.c
+Date: Wed, 10 Jul 2024 11:41:55 +0200
+Message-Id: <20240710094155.458731-5-andreas@gaisler.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240710094155.458731-1-andreas@gaisler.com>
 References: <20240710094155.458731-1-andreas@gaisler.com>
@@ -49,63 +49,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Remove the unused cif_stack argument and add a protype in oplib_64.h
-Commit ef3e035c3a9b ("sparc64: Fix register corruption in top-most
-kernel stack frame during boot.") removed the cif_stack argument to
-prom_cif init in the declaration at the caller site and the usage of it
-within prom_cif_init, but not in the function signature of the function
-itself.
+Fix the following warnings:
+arch/sparc/power/hibernate.c:22:5: warning: no previous prototype for ‘pfn_is_nosave’
+arch/sparc/power/hibernate.c:30:6: warning: no previous prototype for ‘save_processor_state’
+arch/sparc/power/hibernate.c:35:6: warning: no previous prototype for ‘restore_processor_state’
 
-This also fixes the following warning:
-arch/sparc/prom/p1275.c:52:6: warning: no previous prototype for ‘prom_cif_init’
+The prototypes are available from linux/suspend.h so include that.
 
-Fixes: ef3e035c3a9b ("sparc64: Fix register corruption in top-most kernel stack frame during boot.")
 Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/oplib_64.h | 1 +
- arch/sparc/prom/init_64.c         | 3 ---
- arch/sparc/prom/p1275.c           | 2 +-
- 3 files changed, 2 insertions(+), 4 deletions(-)
+ arch/sparc/power/hibernate.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
-index a67abebd43592..1b86d02a84556 100644
---- a/arch/sparc/include/asm/oplib_64.h
-+++ b/arch/sparc/include/asm/oplib_64.h
-@@ -247,6 +247,7 @@ void prom_sun4v_guest_soft_state(void);
- int prom_ihandle2path(int handle, char *buffer, int bufsize);
- 
- /* Client interface level routines. */
-+void prom_cif_init(void *cif_handler);
- void p1275_cmd_direct(unsigned long *);
- 
- #endif /* !(__SPARC64_OPLIB_H) */
-diff --git a/arch/sparc/prom/init_64.c b/arch/sparc/prom/init_64.c
-index 103aa91043185..f7b8a1a865b8f 100644
---- a/arch/sparc/prom/init_64.c
-+++ b/arch/sparc/prom/init_64.c
-@@ -26,9 +26,6 @@ phandle prom_chosen_node;
-  * routines in the prom library.
-  * It gets passed the pointer to the PROM vector.
+diff --git a/arch/sparc/power/hibernate.c b/arch/sparc/power/hibernate.c
+index 47b06f4af1f91..da8e2bc2e516a 100644
+--- a/arch/sparc/power/hibernate.c
++++ b/arch/sparc/power/hibernate.c
+@@ -5,6 +5,7 @@
+  * Copyright (C) 2013 Kirill V Tkhai (tkhai@yandex.ru)
   */
--
--extern void prom_cif_init(void *);
--
- void __init prom_init(void *cif_handler)
- {
- 	phandle node;
-diff --git a/arch/sparc/prom/p1275.c b/arch/sparc/prom/p1275.c
-index 889aa602f8d86..51c3f984bbf72 100644
---- a/arch/sparc/prom/p1275.c
-+++ b/arch/sparc/prom/p1275.c
-@@ -49,7 +49,7 @@ void p1275_cmd_direct(unsigned long *args)
- 	local_irq_restore(flags);
- }
  
--void prom_cif_init(void *cif_handler, void *cif_stack)
-+void prom_cif_init(void *cif_handler)
- {
- 	p1275buf.prom_cif_handler = (void (*)(long *))cif_handler;
- }
++#include <linux/suspend.h>
+ #include <linux/mm.h>
+ 
+ #include <asm/hibernate.h>
 -- 
 2.34.1
 
