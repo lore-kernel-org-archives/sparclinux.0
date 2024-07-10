@@ -1,55 +1,55 @@
-Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com [209.85.210.41])
+Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDE27198A36
-	for <sparclinux@vger.kernel.org>; Wed, 10 Jul 2024 20:29:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD44A14AD3B
+	for <sparclinux@vger.kernel.org>; Wed, 10 Jul 2024 22:45:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720643360; cv=none; b=M8tIbmVI6jzHKtUvk0VUyf847Saw8v1mEW3Qe7oKH3BAgd3SGp3jca4LR1crHm5k4d324nDXw2n8iRcBJh9LHBULWHtC9395M0q8yPHG0mGg6wowDKIIX4VXuRthNPLgKa5UZ4uDHCQQfr3iL5K5A8eT/giLfS58HLpzaKciemM=
+	t=1720651537; cv=none; b=Ie9xTBI7AXIQKqepbBHH6wKMVlFUvse8H8yQ/HgAUqtGXO6NIZI+VKcwUFJED8agN/bGjdqAQdLttEJiLns+kNQCDd7S7HyRQfIA2bPePj+rzvXJWyTz+0Jq+eZyG3OriK8KIyH9FDVBI2+lNKhxNAIWo/j7tUR0JrJRZsJ8w3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720643360; c=relaxed/simple;
-	bh=lUBEgBl64OukQYoXw+IzWRxkunsos7uu5wD0WIADxEc=;
+	s=arc-20240116; t=1720651537; c=relaxed/simple;
+	bh=zEZ4qa1KY5W/ArZqfvSqtxOP5I0qkz6xjUA5gKFEtjE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hu1WmKl77GdFc3641kH/jd8p2LJs/GBTG3ABx1MoHzoY6CKMfz5qwuaZXwucvGM0r6HlThr4cNuOxJebOpM6w2qZPJM/c3+Ly5+Q3fk39q+xq2Vjlcupcbr53u3T6iyDysVqU3XPXO9mbeF+TOiKK2bHuK6zJWCJjY6fMajkjNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=BJZxbkmN; arc=none smtp.client-ip=209.85.210.41
+	 To:Cc:Content-Type; b=c5+z2FWcqZoVZnvEeDRDhgssXI40AqGT/dZYtTgH8+It76Dkccr63NthGAvpSQ9knHVGjtqX8Pm3PuwWNQyYK9hATXouE64F6h2vnp9G/TbSiHRWxYS8iouWT2xJEz9q1Rd9uQGvyq8PWw4VuMbUHsllaQueiTulxKnkdqlUWqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tdjJ17+5; arc=none smtp.client-ip=209.85.219.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="BJZxbkmN"
-Received: by mail-ot1-f41.google.com with SMTP id 46e09a7af769-7039e4a4a03so72744a34.3
-        for <sparclinux@vger.kernel.org>; Wed, 10 Jul 2024 13:29:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tdjJ17+5"
+Received: by mail-qv1-f49.google.com with SMTP id 6a1803df08f44-6b5dd7cd945so1727076d6.1
+        for <sparclinux@vger.kernel.org>; Wed, 10 Jul 2024 15:45:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1720643356; x=1721248156; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1720651535; x=1721256335; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Ip/0MDOrHp5lX/Irp7UEa2BIGo3LvwiW3nUCmkpVR3o=;
-        b=BJZxbkmNVvsrwsOuaaprwEqVg0CMet2325nHNs5uvMq63SzxrXSfmdtUd5/igfuBB5
-         jgvxXpBg+b5P9K4cSsYXndaGhb9pG6io8fOpsrAVQd6eQbisUPDp5GX2yK3xOT31K+hB
-         rLXwaUbLpXIB9Q8v6gUxwPZvMaiutAxat3yGpdgYDau0bKKtb1PqBwTj9smNTxWa9uqn
-         ZOCLTZyhZ/8hIrlgllUXJArVcKmiCm1dWbpOErCJbkZe5/sFJt4kL9PtuqFW0Ove1CUu
-         Nh8cY4TxxbDibsYnfTcPZ/+y1o+vX+c63l8fC/vydJq0Ce+I40QGkc0fyN+PLM3HKAgI
-         +oSg==
+        bh=ewitibS3zX+WzUTqst3po2B/GkvecNeXUFCMiBjweyg=;
+        b=tdjJ17+5BiKAbEvFm/bTZZzzeiiuS2bzDiid0gXaBYsG5QBdfjBTyZ10S1L+z9OmfJ
+         i2b8kliyvcF2mUD5KyQmAplFOedGO69LhmT6jJWy0JP68Z7LqfmLCFJojtm7G1D6xahE
+         BGELmK27tCIRvjRszqt74+slO+hb0WcuzSCNTbmccmZrVUxtZ8NzK7VoL7+HjIQ6V1ws
+         9maAlusmQ8tdmc4g2j152mq/GNfVm37aQb4hCFbmvL6lnexAPE1M4CtbZry8Xy9j+Gg8
+         9kNGJvyZ6yZsJV9OfllYLEj+k3aADj7IaE3Fs50CuDe6z1ztPvz33gASo+aPVafropCy
+         jrxA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720643356; x=1721248156;
+        d=1e100.net; s=20230601; t=1720651535; x=1721256335;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Ip/0MDOrHp5lX/Irp7UEa2BIGo3LvwiW3nUCmkpVR3o=;
-        b=d4tdrtPIHAjBxcIjZ1wDzPo4lR8JLlj1YrqiY6HlSMeRYYDpV+/uTKfaJWfdpEgLID
-         qyP5tZeg4FoODDyOWrWTmOYEAEcmZYSKoJn1wkppYZgwNCHXMHiBSfGYguq4Pm08hojB
-         XwZropeEryJgPZGVGa4enQl4K9yLNS5C/OgXIiO2vojbRVnBjpYJhNg7OFpqcS8IrHmn
-         Fxoi6qFG+MuMvJCGn0Id85J2zbCV90n/nKbOmYIrZV3vMQ3CVT8i4gsT8hlivk87oMVY
-         OJNlJJqNPg+J6jjmRQEKncPmTnmIQtQWrZznkjArU2D91cf3cIThRMWgWT0DNmXJyQo1
-         /rTw==
-X-Forwarded-Encrypted: i=1; AJvYcCWyfPVqNkoE4xSLrnMY5ZWgnc65w6mYab6xBJhxPrrxQhPJMv6C2Vjxq+oITNYoN+uxse3VJT3QGuCumF2DUahoa+QdZv4AZvrM1g==
-X-Gm-Message-State: AOJu0Yz14+yjEYSv1tY3y76NxjbDr52pwqQ+kZEM0xITf5s0IlAyUsh5
-	oP9+r0lg//cR4YSA+XN66A8hQnK/0aOSyFQlH5GLigfjZU4IF4+xRCL4FWODrJoYDnd40Ntkliy
-	06VmjP6X7dPoPQyUUtqoSZBYDvJKVcvMykioD
-X-Google-Smtp-Source: AGHT+IFh61JWNinxflrD0b4ZVWkvEczGu6mIg9bnLfCV6X6pe63Th6j/ytHY2kvRgro//9ydMtTk5x6Go2aTaB1/aws=
-X-Received: by 2002:a05:6830:22ed:b0:704:4995:3733 with SMTP id
- 46e09a7af769-704499539f5mr3557560a34.31.1720643355799; Wed, 10 Jul 2024
- 13:29:15 -0700 (PDT)
+        bh=ewitibS3zX+WzUTqst3po2B/GkvecNeXUFCMiBjweyg=;
+        b=qBBIqgmTrGDmMuFuifBoxia/g2POK0Cv/aXWjPHofChd4fFwdZTMIHFyscY6+umv46
+         MAm3X+uzu4hOSNG26tMgw2vc98+c+vsCGtWF0vLMoieMwMH4u1p4wbumSi+drDP/7cBM
+         rEqzYOSfGEqqD79FTwRcQQT+y/80hx89wVGq+3Y8uxa5j1Euu5KUPCxTClnVVsGn8hcP
+         iovMaV1J39ihGjXRtV13Wez/oFME0OTUVUwEcM+WN1Lt1CMoe9YN61Etjl+pz5mPVC3M
+         74aG2NOaHP2kIqAuPAhRzmR8CdkwESBWxvsCViZ2lV1HiDuK/GnyAgd/LqFdElnTVqZH
+         mCag==
+X-Forwarded-Encrypted: i=1; AJvYcCWRDPQ+VauMW4NdpC82EVgJMK2wzY65pRsueb6581+6g6/lRtmrpW4aZIBF6lV0fR+ouTQl3tNlEt3UKRf4JdEd/nwL4677MlWo/Q==
+X-Gm-Message-State: AOJu0YxFbWRbETs6joDtLFTjEak8+3VIylJ6/jiPfsDpBPDkFtXJ8e/D
+	RzA3+oHX53qg+kZm/UhkG2nBEGfj4pWGGit00GtRTV6/IqTOqaIu7vcfEcFCi5a4zCYTsx8QAUI
+	jEZ98jWKqlIPVdZmAZ9oZxX6lGw7reu99J/EP
+X-Google-Smtp-Source: AGHT+IF5eUrWI3iGBloyaIenGjn6niXEyyaOV4S/5O4aymX7e6kogYU+UbBk/KI5YYE/pmMB4biArqXH6clq6XINtH0=
+X-Received: by 2002:ad4:5c68:0:b0:6b5:d9ef:d576 with SMTP id
+ 6a1803df08f44-6b61bc80440mr73134066d6.12.1720651534418; Wed, 10 Jul 2024
+ 15:45:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -57,12 +57,13 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20240710001749.1388631-1-almasrymina@google.com>
- <20240710001749.1388631-6-almasrymina@google.com> <20240710094900.0f808684@kernel.org>
-In-Reply-To: <20240710094900.0f808684@kernel.org>
+ <20240710001749.1388631-5-almasrymina@google.com> <20240710093624.26d22f02@kernel.org>
+ <CAHS8izOoM3YfcQorLJXL4H+t2OL+oJ4fPP5ZBJRhnH5AxsUqfQ@mail.gmail.com> <20240710125533.7a14bbe7@kernel.org>
+In-Reply-To: <20240710125533.7a14bbe7@kernel.org>
 From: Mina Almasry <almasrymina@google.com>
-Date: Wed, 10 Jul 2024 13:29:03 -0700
-Message-ID: <CAHS8izPnFxeEMEQkxq=A9Rp7T8ADJ__3eWfeQmC2hEBYQVzcvw@mail.gmail.com>
-Subject: Re: [PATCH net-next v16 05/13] page_pool: devmem support
+Date: Wed, 10 Jul 2024 15:45:19 -0700
+Message-ID: <CAHS8izMhTKndLEYrCyNK5WcUHQB6iXefr1=TcxKNxd+ghJGp0w@mail.gmail.com>
+Subject: Re: [PATCH net-next v16 04/13] netdev: netdevice devmem allocator
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
@@ -88,149 +89,80 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
 	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
 	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, linux-mm@kvack.org, 
-	Matthew Wilcox <willy@infradead.org>
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 10, 2024 at 9:49=E2=80=AFAM Jakub Kicinski <kuba@kernel.org> wr=
-ote:
+On Wed, Jul 10, 2024 at 12:55=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> w=
+rote:
 >
-> On Wed, 10 Jul 2024 00:17:38 +0000 Mina Almasry wrote:
-> > @@ -68,17 +107,103 @@ static inline netmem_ref page_to_netmem(struct pa=
-ge *page)
+> On Wed, 10 Jul 2024 12:29:58 -0700 Mina Almasry wrote:
+> > On Wed, Jul 10, 2024 at 9:37=E2=80=AFAM Jakub Kicinski <kuba@kernel.org=
+> wrote:
+> > > On Wed, 10 Jul 2024 00:17:37 +0000 Mina Almasry wrote:
+> > > > +     net_devmem_dmabuf_binding_get(binding);
+> > >
+> > > Why does every iov need to hold a ref? pp holds a ref and does its ow=
+n
+> > > accounting, so it won't disappear unless all the pages are returned.
 > >
-> >  static inline int netmem_ref_count(netmem_ref netmem)
-> >  {
-> > +     /* The non-pp refcount of net_iov is always 1. On net_iov, we onl=
-y
-> > +      * support pp refcounting which uses the pp_ref_count field.
-> > +      */
-> > +     if (netmem_is_net_iov(netmem))
-> > +             return 1;
-> > +
-> >       return page_ref_count(netmem_to_page(netmem));
-> >  }
+> > I guess it doesn't really need to, but this is the design/approach I
+> > went with, and I actually prefer it a bit. The design is borrowed from
+> > how struct dev_pagemap does this, IIRC. Every page allocated from the
+> > pgmap holds a reference to the pgmap to ensure the pgmap doesn't go
+> > away while some page that originated from it is out in the wild, and
+> > similarly I did so in the binding here.
 >
-> How can this work if we had to revert the patch which made all of
-> the networking stack take pp-aware refs? Maybe we should add the
-> refcount, and let it be bumped, but WARN() if the net_iov is released
-> with refcount other than 1? Or we need a very solid explanation why
-> the conversion had to be reverted and this is fine.
+> Oh, you napi_pp_put_page() on the other end! I can see how that could
+> be fine.
 >
-
-Right, as you are aware, page refcounting is based on 2 refcounts: pp
-refs and full page refs. To be honest I find the 2-ref flow confusing
-and I made an effort to avoid porting this bit to net_iovs. net_iovs
-just supports 1 refcount, which is the pp-ref.
-
-My intention is that when a reference is needed on a net_iov, we
-obtain the pp-ref, and when we drop a reference on a net_iov, we drop
-the pp_ref. This is able to work for net_iov but not pages, because
-(as you explained to me) pages can be inserted into the net stack with
-full page refs. So when it comes to refcounting pages we need to be
-careful which ref to obtain or drop depending on is_pp_netmem() and
-skb->pp_recycle (as pp_recycle serves as a concurrency check, like you
-explained).
-
-AFAICT, since net_iovs always originate from the net stack, we can
-make the simplification that they're always seeded with 1 pp-ref, and
-never support non-pp-refs. This simplifies the refcounting such that:
-
-1. net_iov are always is_pp_netmem (they are never disconnected from
-the pp as they never have elevated non-pp refcount), and
-2. net_iov refcounting doesn't need to check skb->pp_recycle for
-refcounting, because we can be sure that the caller always has a
-non-pp ref (since it's the only one supported).
-
-Currently, as written, I just realized I did not add net_iov support
-to __skb_frag_ref(). But net_iov does support skb_pp_frag_ref(). So
-there is no way to increment a non-pp ref for net_iov.
-
-If we want to add __skb_frag_ref() support for net_iov I suggest something =
-like:
-
-diff --git a/include/linux/skbuff_ref.h b/include/linux/skbuff_ref.h
-index 0f3c58007488a..02f7f4c7d4821 100644
---- a/include/linux/skbuff_ref.h
-+++ b/include/linux/skbuff_ref.h
-@@ -17,7 +17,13 @@
-  */
- static inline void __skb_frag_ref(skb_frag_t *frag)
- {
--       get_page(skb_frag_page(frag));
-+       netmem_ref netmem =3D skb_frag_netmem(frag);
-+
-+       /* netmem always uses pp-refs for refcounting. Never non-pp refs. *=
-/
-+       if (!netmem_is_net_iov(netmem))
-+               get_page(netmem_to_page(netmem));
-+       else
-+               page_pool_ref_netmem(netmem);
- }
-
-If you don't like the 1 ref simplification, I can definitely add a
-second refcount as you suggest, but AFAICT the simplification is safe
-due to how net_iov are originated, and maybe also because devmem usage
-in the net stack is limited due to all the skb_is_readable() checks,
-and it's possible that the edge cases don't reproduce. I was looking
-to find a concrete bug report with devmem before taking a hammer and
-adding a secondary refcount, rather than do it preemptively, but I'm
-happy to look into it if you insist.
-
-> >  static inline unsigned long netmem_to_pfn(netmem_ref netmem)
-> >  {
-> > +     if (netmem_is_net_iov(netmem))
-> > +             return 0;
-> > +
-> >       return page_to_pfn(netmem_to_page(netmem));
-> >  }
+> > We could assume that the page_pool is accounting iovs for us, but that
+> > is not always true, right? page_pool_return_page() disconnects a
+> > netmem from the page_pool and AFAIU the page_pool can go away while
+> > there is such a netmem still in use in the net stack. Currently this
+> > can't happen with iovs because I currently don't support non-pp
+> > refcounting for iovs (so they're always recyclable), but you have a
+> > comment on the other patch asking why that works; depending on how we
+> > converge on that conversation, the details of how the pp refcounting
+> > could change.
 >
-> Can we move this out and rename it to netmem_pfn_trace() ?
-> Silently returning 0 is not generally okay, but since it's only
-> for tracing we don't care.
+> Even then - we could take the ref as the page "leaks" out of the pool,
+> rather than doing it on the fast path, right? Or just BUG_ON() 'cause
+> that reference ain't coming back ;)
 >
 
-Yes, I will do.
+OK, I'll see how the conversation on the other thread converges
+vis-a-vis net_iov refcounting happens, and then look at if I can avoid
+the binding_get/put per page in that framework.
 
-> > +static inline struct net_iov *__netmem_clear_lsb(netmem_ref netmem)
-> > +{
-> > +     return (struct net_iov *)((__force unsigned long)netmem & ~NET_IO=
-V);
-> > +}
-> > +
-> > +static inline unsigned long netmem_get_pp_magic(netmem_ref netmem)
-> > +{
-> > +     return __netmem_clear_lsb(netmem)->pp_magic;
-> > +}
-> > +
-> > +static inline void netmem_or_pp_magic(netmem_ref netmem, unsigned long=
- pp_magic)
-> > +{
-> > +     __netmem_clear_lsb(netmem)->pp_magic |=3D pp_magic;
-> > +}
-> > +
-> > +static inline void netmem_clear_pp_magic(netmem_ref netmem)
-> > +{
-> > +     __netmem_clear_lsb(netmem)->pp_magic =3D 0;
-> > +}
-> > +
-> > +static inline struct page_pool *netmem_get_pp(netmem_ref netmem)
-> > +{
-> > +     return __netmem_clear_lsb(netmem)->pp;
-> > +}
-> > +
-> > +static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *=
-pool)
-> > +{
-> > +     __netmem_clear_lsb(netmem)->pp =3D pool;
-> > +}
+> > It's nice to know that the binding refcounting will work regardless of
+> > the details of how the pp refcounting works. IMHO having the binding
+> > rely on the pp refcounting to ensure all the iovs are freed introduces
+> > some fragility.
+> >
+> > Additionally IMO the net_devmem_dmabuf_binding_get/put aren't so
+> > expensive to want to optimize out, right? The allocation is a slow
+> > path anyway and the fast path recycles netmem.
 >
-> Why is all this stuff in the main header? It's really low level.
-> Please put helpers which are only used by the core in a header
-> under net/core/, like net/core/dev.h
+> Yes, I should have read patch 10. I think it's avoidable :) but with
+> recycling it can indeed perform just fine (do you happen to have
+> recycling rate stats from prod runs?)
 
-Sorry, will do.
+I don't to be honest. For a couple of reasons, one is that gcloud VMs
+where we mainly use this, these stats are private to the VM and is not
+something I can query widly. I only get access to the data when shared
+with bug reports on specific issues.
+
+In our internal test runs, I do not monitor the recycling rate to be
+honest, as that is fine as long as the recycling is fast enough to
+find available memory for incoming data. What I do look at very
+closely is the allocation failure rate. That is when GVE tries to
+alloc a new devmem but it's out of devmem (which would likely be due
+to recycling not happening fast enough). The stat is `page_alloc_fail`
+in ethtool -S for us and it's one of the first things I check when
+things go wrong. It hasn't been the root cause for any of our issues
+in reality.
 
 --
 Thanks,
