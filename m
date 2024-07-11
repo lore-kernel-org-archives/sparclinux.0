@@ -1,82 +1,80 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B6B5101E4;
-	Thu, 11 Jul 2024 01:36:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDF7C15CD42;
+	Thu, 11 Jul 2024 12:10:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720661762; cv=none; b=B9R9OXe9g0dV02ttm6LG4dfmO4GAjo4YY16sf86dogVBnyf1ivL4xAQJlXHlUDI+TebYFhLNoAc4yCNXZPlClrx3QSjq8IPNgw1uGsepOqm2ZygYcK6eakn1yFiDGu3lONYVuPPobT8BczLLpiucSK0/NEUp/nO7cK9ADPsfnvM=
+	t=1720699861; cv=none; b=TaXh0I6x7/+pzlnFG0Qpbq/KCBD8yDbCowjKGcL/lpFbyzOv4a/B/Fy4amYD3vBniTXBq5qLr0aZ9Rkr6FAq6Y/hKRezQxK98w5B5/X+d3RJYR4dcbWAoX+m5UeE61BDhyjRRe2uI1IPoepSKZ4Lmu249Iu9FbhPD5LOKOwkkmQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720661762; c=relaxed/simple;
-	bh=Hqr9mmbkEJ+SKI+sb4EdVGkA9dVoZOX7yW+I50QePp4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TJa1AAbj7Bnf0520iErKBWewyxfK6lpnv+bVKKNm9N2jbuO89Pi9EtAmU/n4H6VHXkA3elDXpKHmYJ9Ohy4dWsG+D9MF717ySfMLnsWG4TP05XzquezfOK5MWAi7uAjjCyw7NNIEa/Vw/MLeh4ajH4ZRxWQws/YxzZczoDWt5pg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rZ+GOJjB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720699861; c=relaxed/simple;
+	bh=Z20/sCF5g3WtCr9/UKphITxI8tzAAYNyK+hrlF3OdIE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CBJZKD/gTcikO0iPAEkX0M536SuluquMdCso3dgV2S57NxZr6G72OjFeBeNY0TEcf685+mWT8Dv+F+4FH7bhh6aoNRpsd+eJ2FH2+VCSuTpcJCKS1IQ7EJIt2XcMnFpmtm2dyrqW7XNo+y1Px4kLsWLMi3wZGaiZrJJC+zuZlgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Owb2RnTI; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rZ+GOJjB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F41FC32781;
-	Thu, 11 Jul 2024 01:36:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720661762;
-	bh=Hqr9mmbkEJ+SKI+sb4EdVGkA9dVoZOX7yW+I50QePp4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=rZ+GOJjB93xoU6UJ2PdTrOFqj6GaZIkE9XcK6GAgChSeAygix+EySdQXQ0WR5Kz+H
-	 WCjNqakxEQLT6/Af+MwzHg1x4tCzR5hPjqsoOlVcL/1rcSJr6S9AeA4ZN0I0HittDJ
-	 bUGA3V+8b3i7ULWXkwvf6D//5Kzlg+/oUCcYIVgmnTeKxMRKg41EwjPD3SBCwBSYov
-	 ZTEFlT3e4YHM2jDotLjffFrrNk34zKJndcvFAfee3/1+SOhBbUPU7HaStIvkVPR6dW
-	 dYaO9ltHOHaCeXYK60ww88Q9AHqSlwIEYVIfGHWIGsPp/F1t2GYOu4fF58ce+oWeZp
-	 iBrKtAm718JUA==
-Date: Wed, 10 Jul 2024 18:35:59 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org,
- bpf@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, Donald Hunter <donald.hunter@gmail.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet
- <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, Ivan
- Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
- <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>,
- Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
- <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
- Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
- <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, Herbert
- Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, Willem
- de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>,
- Sumit Semwal <sumit.semwal@linaro.org>, "Christian =?UTF-8?B?S8O2bmln?="
- <christian.koenig@amd.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Christoph
- Hellwig <hch@infradead.org>, Nikolay Aleksandrov <razor@blackwall.org>,
- Taehee Yoo <ap420073@gmail.com>, Pavel Begunkov <asml.silence@gmail.com>,
- David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin
- <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, Harshitha
- Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>,
- Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi
- <pkaligineedi@google.com>
-Subject: Re: [PATCH net-next v16 13/13] netdev: add dmabuf introspection
-Message-ID: <20240710183559.64c9071f@kernel.org>
-In-Reply-To: <20240710001749.1388631-14-almasrymina@google.com>
-References: <20240710001749.1388631-1-almasrymina@google.com>
-	<20240710001749.1388631-14-almasrymina@google.com>
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Owb2RnTI"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4WKYTg6vNSz1DPkZ;
+	Thu, 11 Jul 2024 14:10:47 +0200 (CEST)
+Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4WKYTg4L2Cz1DPkS;
+	Thu, 11 Jul 2024 14:10:47 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=unoeuro; t=1720699847;
+	bh=ZhVrQsILYydXW0I2ququWpuLnNjaS/9rHPIQZwxhGVg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=Owb2RnTI4WtlRVyr6Ifmq2UuJsDQ0Jy/+UHIK1DEPPc6T8Ur+snybV/lYlHfnj2+i
+	 5gLSAbx00ic+HOv9w8TcC5cyn7mTu/OixRbiLP1JZlg46Pw6Ypdry63CLW+CIlqc+h
+	 /E0N/7a6Z8OxZoQS/gdJEEcKhB9xw1W02wzS4NqA=
+Message-ID: <5aa81417-9fe3-41e5-ac75-8dac52d02c64@gaisler.com>
+Date: Thu, 11 Jul 2024 14:10:47 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sbus: add missing MODULE_DESCRIPTION() macros
+To: Jeff Johnson <quic_jjohnson@quicinc.com>,
+ "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+ kernel-janitors@vger.kernel.org
+References: <20240619-md-sparc-drivers-sbus-char-v1-1-85acadb8f789@quicinc.com>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20240619-md-sparc-drivers-sbus-char-v1-1-85acadb8f789@quicinc.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On Wed, 10 Jul 2024 00:17:46 +0000 Mina Almasry wrote:
-> Add dmabuf information to page_pool stats:
+On 2024-06-19 16:07, Jeff Johnson wrote:
+> With ARCH=sparc, make allmodconfig && make W=1 C=1 reports:
+> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/envctrl.o
+> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/flash.o
+> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/uctrl.o
+> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/bbc.o
 > 
-> $ ./cli.py --spec ../netlink/specs/netdev.yaml --dump page-pool-get
+> Add the missing invocations of the MODULE_DESCRIPTION() macro.
+> 
+> Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+> ---
+>  drivers/sbus/char/bbc_i2c.c | 1 +
+>  drivers/sbus/char/envctrl.c | 1 +
+>  drivers/sbus/char/flash.c   | 1 +
+>  drivers/sbus/char/uctrl.c   | 1 +
+>  4 files changed, 4 insertions(+)
 
-Aha, thanks!
 
-Reviewed-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+
+Picking this up to my for-next.
+
+Thanks,
+Andreas
+
