@@ -1,80 +1,144 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDF7C15CD42;
-	Thu, 11 Jul 2024 12:10:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C2C16C687
+	for <sparclinux@vger.kernel.org>; Thu, 11 Jul 2024 15:28:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720699861; cv=none; b=TaXh0I6x7/+pzlnFG0Qpbq/KCBD8yDbCowjKGcL/lpFbyzOv4a/B/Fy4amYD3vBniTXBq5qLr0aZ9Rkr6FAq6Y/hKRezQxK98w5B5/X+d3RJYR4dcbWAoX+m5UeE61BDhyjRRe2uI1IPoepSKZ4Lmu249Iu9FbhPD5LOKOwkkmQ=
+	t=1720711701; cv=none; b=NSWDVVjk4ZUPn9+RJ3fJ6vLE0VoMUyqgO4p0w7wLtTd/0VmxFWRrxNv4LsIT45qmHF7BAcIrgnf03oREjcrCwJwcdFR1ks9aRE6Ez8Swri3980ys6yaG18CbcwK6+NwnRUmF+2jiQciDPK4XEtyjK+yrsPjs8/YSlGPu/t4yq+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720699861; c=relaxed/simple;
-	bh=Z20/sCF5g3WtCr9/UKphITxI8tzAAYNyK+hrlF3OdIE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CBJZKD/gTcikO0iPAEkX0M536SuluquMdCso3dgV2S57NxZr6G72OjFeBeNY0TEcf685+mWT8Dv+F+4FH7bhh6aoNRpsd+eJ2FH2+VCSuTpcJCKS1IQ7EJIt2XcMnFpmtm2dyrqW7XNo+y1Px4kLsWLMi3wZGaiZrJJC+zuZlgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Owb2RnTI; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1720711701; c=relaxed/simple;
+	bh=SilAbBLlHxF1fFiXA5nZv8t2dj5EmTE+T6I22rXMb5M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sLLl9aZuLDBvmvUB3ufKhhaPPOdbb2ber9GWAI4BB7IR5UD8+CDUkQ2ifhAi0tvoSyjXAKK4bFbyqtdD9YU4Ilf10tZip5apGxGCfWgNczCnDl8UQaU1YkRIcNFnEwJAUIwSDuTuL0+DRWw3ExjQGnnCsMZFsfB+vwk964r4OQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tvbdEsk4; arc=none smtp.client-ip=209.85.222.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Owb2RnTI"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4WKYTg6vNSz1DPkZ;
-	Thu, 11 Jul 2024 14:10:47 +0200 (CEST)
-Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4WKYTg4L2Cz1DPkS;
-	Thu, 11 Jul 2024 14:10:47 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1720699847;
-	bh=ZhVrQsILYydXW0I2ququWpuLnNjaS/9rHPIQZwxhGVg=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Owb2RnTI4WtlRVyr6Ifmq2UuJsDQ0Jy/+UHIK1DEPPc6T8Ur+snybV/lYlHfnj2+i
-	 5gLSAbx00ic+HOv9w8TcC5cyn7mTu/OixRbiLP1JZlg46Pw6Ypdry63CLW+CIlqc+h
-	 /E0N/7a6Z8OxZoQS/gdJEEcKhB9xw1W02wzS4NqA=
-Message-ID: <5aa81417-9fe3-41e5-ac75-8dac52d02c64@gaisler.com>
-Date: Thu, 11 Jul 2024 14:10:47 +0200
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tvbdEsk4"
+Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-79ef72bb8c8so50922785a.2
+        for <sparclinux@vger.kernel.org>; Thu, 11 Jul 2024 08:28:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1720711699; x=1721316499; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WQkM2Ryk0ZQZFnLcaLIzbhoe7KSMFKbN9WHRd1zSTLE=;
+        b=tvbdEsk4sodNSvw9dH8d0RTBCUCIMpLRnkDWzwu+htuFGz9CKFgr7WVU3tljAoy3nm
+         hq++uQy+j+zsmqSFprVU8kf2JMITO/neuc77g+lZ3I11/gED/4qmLT5sywvJtSN1P2s/
+         Rw0IPojdYEmIuRqp2FDXdstx+z4YbcILMMm4jeXPKt2fdJSHOO/4qy55yPCcQ4qfHb5n
+         OgfJPbuVjsIc2HSwdt/TVN7xX0RCdKr9VHnb2j4BZdpkA4MqKHZCNrF4ryhprX2kM1YH
+         nbBCiHiZyEnGJuvFSFv6/cC6OfZU0QYi/JDkO1yidn53SMazkEtK1qJwK6CdGXv22vGM
+         r3OQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720711699; x=1721316499;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=WQkM2Ryk0ZQZFnLcaLIzbhoe7KSMFKbN9WHRd1zSTLE=;
+        b=YG9wkBuvWVqjDA++gnWYXwA2ZCgD9FEvbvqcuukqtTVaOZ63GQJlxpLJ/wXmKWSqKL
+         F1pgWDDpJzEa1RL37f8dclj48RNkQTVjQwGzD3yMwm+WpursqAEdBRVE5Dcc89mA+0qK
+         u9zysJD+jD8G7TXlvvr4fz3nmP48OGwMVQtx9YU3t7fxkLgD8BzOG5qyEQPB4xTK0dzq
+         MswFzZIi0XNSrCmsOrJ5Ty1EhkBJJj0WrUltxVU1mbHyHmV2BRNmlE+OnzWbCcPT8Afi
+         0DJLjzz0KSdv8TQhLGGVdPsquL3tRbjezmwgppPF++xvwYN9vT6UbOKv2UoUHQaavdgw
+         5jBA==
+X-Forwarded-Encrypted: i=1; AJvYcCV4Mtbob7lR27/euVQQVMTZCa3gpvbkC1zVGBlqFrzVQj+9l3i7dlBXxDdBjFlfpnlZk4H9SSL9JUrs47dm2dGAh8duS58GKx88Ig==
+X-Gm-Message-State: AOJu0Yypx2ZnEjb2zFjY7Uw3RKOojY0VrSDbAG4MmqA//9fvLf69Mugr
+	J0lGe1HUHLOPBJggMEqvnxBLcMUahYO5Ta5KrGWjWBQJyioamTHA298jzAQik3nvYjVZKO8SVVJ
+	yv49jN1/+uFOITQ5YWlfzN9t+MFvDFwonlTWD
+X-Google-Smtp-Source: AGHT+IE8HI6rD0D7bFmLR1Mn8tZE0XSsSvK7NyBw9sFmyI90jMNxfVlBfEcxHI84DHJue4HhA0QN9oG7JH/Vd9MHPxg=
+X-Received: by 2002:a05:6214:cad:b0:6b0:76f1:8639 with SMTP id
+ 6a1803df08f44-6b61c1b6d8fmr100368136d6.42.1720711698460; Thu, 11 Jul 2024
+ 08:28:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sbus: add missing MODULE_DESCRIPTION() macros
-To: Jeff Johnson <quic_jjohnson@quicinc.com>,
- "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- kernel-janitors@vger.kernel.org
-References: <20240619-md-sparc-drivers-sbus-char-v1-1-85acadb8f789@quicinc.com>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240619-md-sparc-drivers-sbus-char-v1-1-85acadb8f789@quicinc.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20240710001749.1388631-1-almasrymina@google.com>
+ <20240710001749.1388631-13-almasrymina@google.com> <4b0479b0-1e0f-43db-8333-26b7a1fd791c@nvidia.com>
+In-Reply-To: <4b0479b0-1e0f-43db-8333-26b7a1fd791c@nvidia.com>
+From: Mina Almasry <almasrymina@google.com>
+Date: Thu, 11 Jul 2024 08:28:03 -0700
+Message-ID: <CAHS8izOc4gZUP-aS747OVf3uyn8KAyfeBcYDx2CQc-L9RnvrXA@mail.gmail.com>
+Subject: Re: [PATCH net-next v16 12/13] selftests: add ncdevmem, netcat for
+ devmem TCP
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-media@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, Donald Hunter <donald.hunter@gmail.com>, 
+	Jakub Kicinski <kuba@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, 
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Taehee Yoo <ap420073@gmail.com>, 
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
+	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Stanislav Fomichev <sdf@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2024-06-19 16:07, Jeff Johnson wrote:
-> With ARCH=sparc, make allmodconfig && make W=1 C=1 reports:
-> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/envctrl.o
-> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/flash.o
-> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/uctrl.o
-> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/sbus/char/bbc.o
-> 
-> Add the missing invocations of the MODULE_DESCRIPTION() macro.
-> 
-> Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
-> ---
->  drivers/sbus/char/bbc_i2c.c | 1 +
->  drivers/sbus/char/envctrl.c | 1 +
->  drivers/sbus/char/flash.c   | 1 +
->  drivers/sbus/char/uctrl.c   | 1 +
->  4 files changed, 4 insertions(+)
+On Wed, Jul 10, 2024 at 5:44=E2=80=AFPM John Hubbard <jhubbard@nvidia.com> =
+wrote:
+>
+> On 7/9/24 5:17 PM, Mina Almasry wrote:
+> ...
+> > diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selft=
+ests/net/Makefile
+> > index bc3925200637c..39420a6e86b7f 100644
+> > --- a/tools/testing/selftests/net/Makefile
+> > +++ b/tools/testing/selftests/net/Makefile
+> > @@ -95,6 +95,11 @@ TEST_PROGS +=3D fq_band_pktlimit.sh
+> >   TEST_PROGS +=3D vlan_hw_filter.sh
+> >   TEST_PROGS +=3D bpf_offload.py
+> >
+> > +# YNL files, must be before "include ..lib.mk"
+> > +EXTRA_CLEAN +=3D $(OUTPUT)/libynl.a
+> > +YNL_GEN_FILES :=3D ncdevmem
+> > +TEST_GEN_FILES +=3D $(YNL_GEN_FILES)
+> > +
+> >   TEST_FILES :=3D settings
+> >   TEST_FILES +=3D in_netns.sh lib.sh net_helper.sh setup_loopback.sh se=
+tup_veth.sh
+> >
+> > @@ -104,6 +109,10 @@ TEST_INCLUDES :=3D forwarding/lib.sh
+> >
+> >   include ../lib.mk
+> >
+> > +# YNL build
+> > +YNL_GENS :=3D netdev
+> > +include ynl.mk
+>
+> This seems to be missing a rule to generate ynl.mk, right?
+>
 
+Hi John,
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+tools/testing/selftests/net/ynl.mk was merged as part of this patch a
+few days ago:
 
-Picking this up to my for-next.
+https://patchwork.kernel.org/project/netdevbpf/patch/20240628003253.1694510=
+-14-almasrymina@google.com/
 
+Is it not working for you by any chance?
+
+--=20
 Thanks,
-Andreas
-
+Mina
