@@ -1,108 +1,238 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.envs.net (mail.envs.net [5.199.136.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F4742042;
-	Thu, 11 Jul 2024 21:41:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801C249659;
+	Sun, 14 Jul 2024 08:58:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=5.199.136.28
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720734070; cv=none; b=NkAdIyl/ln7Yr9JDS83PO99lR8Yp/7Facpdt66a3fQVW+qftYUjHw1NU5xf+ESTm44cdM1sdHUNtScHyAJZZlSLFwmLrBvkag7ZO3KFc72YprsGK35YNW7+OZsIPCramfyorf+B0r/czICMkSzskEBn6uoZbkVAEzL4O4XN7HT8=
+	t=1720947511; cv=none; b=VOwLoUdMIzaSXUwR0DZq3+Ze4I0e3EMerV/4WoZouLJtFch017VLmZP6cb4rlqlQDXirlk3Ac5CbK5xjjVHktmPrWaSEAvOi1gGIDdcCtMYocDDiGn8Qcy0qjMKubjcCFOoYl2cu6odBCvp0zEs6bZ87aqDe7YZKS3t17BpbEos=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720734070; c=relaxed/simple;
-	bh=g1fNHOiGZm5mn96BaOhihxmzcRcyf74Q/bsZs8K17xc=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mS15uyU7uEN/YBA8rcw3899mmQM+1tliJ4Cub2R+B+zltPaz2nWpw5G52i1Fqg4sJGKX3MBekcmWIe9eVF7u941w7JWggt4VU0hJvEymXdJv+3wrpt/9TjbfxkbYMpKqaVgjOrpIdyFyRZRxt82dmSZLZg4yWwVEH+DsJXtbsAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zp1w1M0V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720947511; c=relaxed/simple;
+	bh=ftAJHSxo5Rsx/0DaR5hsL6pNxlltkkDCUMwyIZ5u780=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=JUQfPW8LjByn1/NAgO72DDkYuwHvK98+FNVmjIBVlPHzv1hbxqm5xvqiK2i833xOHgGEVrtmu6eNS5FM6W4CUycLHWBpHxPMg4Fk4M80zR27DvsPsn5Uq3gMG1LnAYV2mv25PsLzCmatAzjc1SYvkQgKnUYkqMxugntLAXf2ezc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=envs.net; spf=pass smtp.mailfrom=envs.net; dkim=pass (4096-bit key) header.d=envs.net header.i=@envs.net header.b=BX096ylv; arc=none smtp.client-ip=5.199.136.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=envs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=envs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zp1w1M0V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45582C116B1;
-	Thu, 11 Jul 2024 21:41:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720734070;
-	bh=g1fNHOiGZm5mn96BaOhihxmzcRcyf74Q/bsZs8K17xc=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Zp1w1M0VOLmBNoOKjAT5CTE8BYrya+H1UwJrflrWESuo7uZue7iRKRZ4zpVGBcO2r
-	 JfHDmhOh1K91cHcdNCjHshXjwawtPn6kxyHX3Y6rlLk3zHEnjhuBZX277+OqLX05+W
-	 +wUPVw/el9mcJ7uNpa3f0WEVqpMx9whj46qVyNBYA1YxFt6Gc+Aap+0IpsZsYS6b6x
-	 99LfRRVFyVT/9XwfcLz99b+8pOGsjni6NXPXPe6e3QNwec5LKy0mZnyaCTJLepsVDG
-	 wYu/+B5BdVB3cVS+n3GFpmp+4R/sbXU58e8C1Y6LSMHLZtG/aJJGaGXSa+fE4rRz4E
-	 M3SWkeRQ1GlnA==
-Date: Thu, 11 Jul 2024 14:41:07 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org,
- bpf@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, Donald Hunter <donald.hunter@gmail.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet
- <corbet@lwn.net>, Richard Henderson <richard.henderson@linaro.org>, Ivan
- Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley"
- <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>,
- Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer
- <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven
- Rostedt <rostedt@goodmis.org>, Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnd Bergmann
- <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, Herbert
- Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, Willem
- de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>,
- Sumit Semwal <sumit.semwal@linaro.org>, Christian =?UTF-8?B?S8O2bmln?=
- <christian.koenig@amd.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Christoph
- Hellwig <hch@infradead.org>, Nikolay Aleksandrov <razor@blackwall.org>,
- Taehee Yoo <ap420073@gmail.com>, Pavel Begunkov <asml.silence@gmail.com>,
- David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin
- <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, Harshitha
- Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>,
- Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi
- <pkaligineedi@google.com>, linux-mm@kvack.org, Matthew Wilcox
- <willy@infradead.org>
-Subject: Re: [PATCH net-next v16 05/13] page_pool: devmem support
-Message-ID: <20240711144107.0086e0e1@kernel.org>
-In-Reply-To: <CAHS8izNMsCHhJM4hf7pf2p98sp9-3gxL6o7sC6JQnqThxiWjYw@mail.gmail.com>
-References: <20240710001749.1388631-1-almasrymina@google.com>
-	<20240710001749.1388631-6-almasrymina@google.com>
-	<20240710094900.0f808684@kernel.org>
-	<CAHS8izPTqsNQnQWKpDPTxULTFL4vr4k6j9Zw8TQzJVDBMXWMaA@mail.gmail.com>
-	<20240710182322.667f0108@kernel.org>
-	<CAHS8izNMsCHhJM4hf7pf2p98sp9-3gxL6o7sC6JQnqThxiWjYw@mail.gmail.com>
+	dkim=pass (4096-bit key) header.d=envs.net header.i=@envs.net header.b="BX096ylv"
+Received: from localhost (mail.envs.net [127.0.0.1])
+	by mail.envs.net (Postfix) with ESMTP id CEA8038A399F;
+	Sun, 14 Jul 2024 08:58:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=envs.net; s=modoboa;
+	t=1720947501; bh=yyUazkvkRh10ZbEGZX7/MXwA6mkniL0Aqt6WS89cGkk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=BX096ylvPXeYrwWxZLty8ghuITn9TBNUlXRIqKxN+XshUOIFiMHVkGUd3M1TCwpdF
+	 cRrFXlBajCA2QRwXaxHfz/LsIQftwAqqONaCO5bNb7P/K2scRD8mdcQIq/NrYYXBe8
+	 FS19q6QjODirpRtBtetibQpu0xC59ex3C4KRg7b60GUyzRsYPpdB+6TzJSxesmUY84
+	 CoSH/YCUPea038A6D17yPZwULk86CHmRQ2w4TkUN+H8iST31M7BDpGEyuIs2MqVLpO
+	 d0yvtBxEIWMJ7mODw14gN6Qd6UvyYI+N1KLcUQ2ii4egWCHcB+9srYosrjMgrLiURC
+	 7lhJQnt+QrPQPwNKHChdHpvYzr5iN9eqXx33CdncsejIxnH/1LV3P6K1uZwKNfHjtY
+	 ClOnQlX5FsC6uq50sIJ8LnPf6e/haVGUp6Opr2IKu/vb6wNc4uDridsOAMHqND3GYu
+	 IMG6aA7Sk8PzP5T/ETm6CwNaAdJo4ClbtFZuN3BzvLkKNvwm61RYC/eCDyHnF8IJMF
+	 pojLYS9Pe16lhyqu56OWfjPld0TWD739HoGYkOv5XxSsYSjpqzdOyJ8miviKd2OmbR
+	 a48tzEXKLNrrk2ZJLwEt0aTLZKbjbVKef7eMJHN9gOf453lE5hSF5ZucKdPK0owt5f
+	 y+sUAWIiuuxzx990L62vMwAs=
+X-Virus-Scanned: Debian amavisd-new at mail.envs.net
+Received: from mail.envs.net ([127.0.0.1])
+	by localhost (mail.envs.net [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id GYBywokYmGiX; Sun, 14 Jul 2024 08:58:11 +0000 (UTC)
+Received: from xtexx.eu.org (unknown [120.230.214.120])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.envs.net (Postfix) with ESMTPSA;
+	Sun, 14 Jul 2024 08:58:11 +0000 (UTC)
+From: Zhang Bingwu <xtex@envs.net>
+To: Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Helge Deller <deller@gmx.de>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Zhang Bingwu <xtexchooser@duck.com>,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nicolas Schier <nicolas@fjasle.eu>
+Cc: x86@kernel.org,
+	linux-kbuild@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-parisc@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: [PATCH 1/2] kbuild: Abort make on install failures
+Date: Sun, 14 Jul 2024 16:57:50 +0800
+Message-ID: <20240714085751.176357-2-xtex@envs.net>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <20240714085751.176357-1-xtex@envs.net>
+References: <20240714085751.176357-1-xtex@envs.net>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, 11 Jul 2024 13:57:01 -0700 Mina Almasry wrote:
-> > > Sorry none of those are only used by net/core/*. Pretty much all of
-> > > these are used by include/net/page_pool/helpers.h, and some have
-> > > callers in net/core/devmem.c or net/core/skbuff.c
-> > >
-> > > Would you like me to move these pp specific looking ones to
-> > > include/net/page_pool/netmem.h or something similar?  
-> >
-> > That's because some things already in helpers have no real business
-> > being there either. Why is page_pool_set_pp_info() in helpers.h?  
-> 
-> OK, I looked into this a bit. It looks like I can trivially move
-> page_pool_set/clear_pp_info() to page_pool_priv.h, and that lets me
-> move out a few of these netmem helpers to a header under net/core.
-> 
-> However, to move more of these netmem helpers to a private header, I
-> think I need to move all the page pool dma helpers and reffing helpers
-> to a private header or the .c file, which I think will uninline them
-> as they're eventually called from drivers.
-> 
-> I had guessed the previous authors put those dma and ref helpers in
-> the .h file to inline them as they're used in fast paths. Do you think
-> the refactor and the uninling is desirable? Or should I just do with
-> the trivial moving of the page_pool_set/clear_pp_info() to the private
-> file?
+From: Zhang Bingwu <xtexchooser@duck.com>
 
-The helpers which modify pp_magic and dma_addr should go. I don't see
-anything else on a quick look, but in general the public header
-shouldn't contain helpers which are meant for setup / init of a buffer.
+Setting '-e' flag tells shells to exit with error exit code immediately
+after any of commands fails, and causes make(1) to regard recipes as
+failed.
+
+Before this, make will still continue to succeed even after the
+installation failed, for example, for insufficient permission or
+directory does not exist.
+
+Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
+---
+ arch/arm/boot/install.sh   | 2 ++
+ arch/arm64/boot/install.sh | 2 ++
+ arch/m68k/install.sh       | 2 ++
+ arch/nios2/boot/install.sh | 2 ++
+ arch/parisc/install.sh     | 2 ++
+ arch/riscv/boot/install.sh | 2 ++
+ arch/s390/boot/install.sh  | 2 ++
+ arch/sparc/boot/install.sh | 2 ++
+ arch/x86/boot/install.sh   | 2 ++
+ 9 files changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/install.sh b/arch/arm/boot/install.sh
+index 9ec11fac7d8d..34e2c6e31fd1 100755
+--- a/arch/arm/boot/install.sh
++++ b/arch/arm/boot/install.sh
+@@ -17,6 +17,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ "$(basename $2)" = "zImage" ]; then
+ # Compressed install
+   echo "Installing compressed kernel"
+diff --git a/arch/arm64/boot/install.sh b/arch/arm64/boot/install.sh
+index 9b7a09808a3d..cc2f4ccca6c0 100755
+--- a/arch/arm64/boot/install.sh
++++ b/arch/arm64/boot/install.sh
+@@ -17,6 +17,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ "$(basename $2)" = "Image.gz" ] || [ "$(basename $2)" = "vmlinuz.efi" ]
+ then
+ # Compressed install
+diff --git a/arch/m68k/install.sh b/arch/m68k/install.sh
+index af65e16e5147..b6829b3942b3 100755
+--- a/arch/m68k/install.sh
++++ b/arch/m68k/install.sh
+@@ -16,6 +16,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ -f $4/vmlinuz ]; then
+ 	mv $4/vmlinuz $4/vmlinuz.old
+ fi
+diff --git a/arch/nios2/boot/install.sh b/arch/nios2/boot/install.sh
+index 34a2feec42c8..1161f2bf59ec 100755
+--- a/arch/nios2/boot/install.sh
++++ b/arch/nios2/boot/install.sh
+@@ -16,6 +16,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ -f $4/vmlinuz ]; then
+ 	mv $4/vmlinuz $4/vmlinuz.old
+ fi
+diff --git a/arch/parisc/install.sh b/arch/parisc/install.sh
+index 933d031c249a..664c2d77f776 100755
+--- a/arch/parisc/install.sh
++++ b/arch/parisc/install.sh
+@@ -16,6 +16,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ "$(basename $2)" = "vmlinuz" ]; then
+ # Compressed install
+   echo "Installing compressed kernel"
+diff --git a/arch/riscv/boot/install.sh b/arch/riscv/boot/install.sh
+index 4c63f3f0643d..a59639dff64f 100755
+--- a/arch/riscv/boot/install.sh
++++ b/arch/riscv/boot/install.sh
+@@ -17,6 +17,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ "$(basename $2)" = "Image.gz" ]; then
+ # Compressed install
+   echo "Installing compressed kernel"
+diff --git a/arch/s390/boot/install.sh b/arch/s390/boot/install.sh
+index a13dd2f2aa1c..fa41486258ee 100755
+--- a/arch/s390/boot/install.sh
++++ b/arch/s390/boot/install.sh
+@@ -15,6 +15,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ echo "Warning: '${INSTALLKERNEL}' command not available - additional " \
+      "bootloader config required" >&2
+ if [ -f "$4/vmlinuz-$1" ]; then mv -- "$4/vmlinuz-$1" "$4/vmlinuz-$1.old"; fi
+diff --git a/arch/sparc/boot/install.sh b/arch/sparc/boot/install.sh
+index 4f130f3f30d6..68de67c5621e 100755
+--- a/arch/sparc/boot/install.sh
++++ b/arch/sparc/boot/install.sh
+@@ -16,6 +16,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ -f $4/vmlinuz ]; then
+ 	mv $4/vmlinuz $4/vmlinuz.old
+ fi
+diff --git a/arch/x86/boot/install.sh b/arch/x86/boot/install.sh
+index 0849f4b42745..93784abcd66d 100755
+--- a/arch/x86/boot/install.sh
++++ b/arch/x86/boot/install.sh
+@@ -16,6 +16,8 @@
+ #   $3 - kernel map file
+ #   $4 - default install path (blank if root directory)
+ 
++set -e
++
+ if [ -f $4/vmlinuz ]; then
+ 	mv $4/vmlinuz $4/vmlinuz.old
+ fi
+-- 
+2.43.0
+
