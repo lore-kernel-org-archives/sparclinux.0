@@ -1,112 +1,213 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117311FDD;
-	Sun, 14 Jul 2024 19:25:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 969EB196C7C;
+	Tue, 16 Jul 2024 11:14:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720985136; cv=none; b=o0vxmXYOGttJYlDSIw/FQXp+CARhBWpV1qKxF4NHhFcNs+Q5m0cfpUctYHISkapp5eEH5oURVujcILUSAjut//S+E+rX/H/dyfuU2qfJ6MgZbDQrhSjMtD97M70mI4a6uNZFxwYkObJuYjboKMpwS31/KJ2IwwDxA7lXnGv19z4=
+	t=1721128446; cv=none; b=PGmDqMMbtRy9CAWz7D1zktLqh1NaOcCne1iZTw5GPB/+LfyMPhMWyB0wW6640ARlSHo97dYKk4i4+YVbkI+wuABOVJj0vE5nFdAwOBy6AB2kwGDNTMKmMG76ehF1ec+RDuLV3AXkQ8u9Xb3H9s6+1Aodp0jlTAEAeg7fV9H1DAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720985136; c=relaxed/simple;
-	bh=pWElLRFvLTb94HVMKGtwP+k/lzQ0EhEm/hblzKYrhEg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aLRpLQF+Cy6iBzho8NkkAR2QilgLMbK3NJcMMwG84F7GJfMEvkefYN6mTmaVlgT0bUo4CHkcvzJKmJSlP3vHzVBxKN7iKNzGSRCdIOvInRGSLg0tvvK4v4DuIMolSyMVUjOJEAc9AokfHvMyiGP2aZ786M6prSIjYA5+Yd7IHVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eX6C3Wrs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1721128446; c=relaxed/simple;
+	bh=if+tcTirPJEjQZ9+hNu3pbhZeoosE+eYDqBL2iUCmhY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rHy1+azpywQVftRFwwIaCKDX/5CtPveQ5O7R0NTs8TBe4J5CRr5eXXGb7qbbJSDcKL1ulgHrcaPPCMSIr7sArLtLSbJNFHHdT+3Kcuyk4R/GN5i3YA0wMHlizmy/ZhAZU8VIKqISD5UhBNfYEfdB3evuspQWQ7OySAM0i1nKDBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X0VhN6dJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eX6C3Wrs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B59DC4AF09;
-	Sun, 14 Jul 2024 19:25:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X0VhN6dJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C31C116B1;
+	Tue, 16 Jul 2024 11:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720985135;
-	bh=pWElLRFvLTb94HVMKGtwP+k/lzQ0EhEm/hblzKYrhEg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=eX6C3Wrsm9BCcg/uR+nBsC9Yi9uiQzgkg8uRD/Jxx6sYZ5wokC3asSl4RYiGCrCxb
-	 vGQWDmPOjWA+gvjDRT9l60XO86VesoxuhbYGiI5QU9t4vp8mBi98lbUDjsbJ5Ut/WC
-	 g92fQjnaqDgyk06toDZq7zfe+bACJyU6pBR8IFOYMwI6pJ7gbX5CCfAP8SKrifMMVP
-	 5TWxwi+PBHkfw1l6lnfoaQBMyyLcdEIZCS+ICceIENxg3b1TqSYWYqBg8yM1dbxUOs
-	 VzK1CY6n90CbPeKTPQm4bUx8TE4PKU+3fEIXAHq/o8xzTZ0qBlMFi4ToNO3ymxz52u
-	 2XLQz5drH1QjA==
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4279ca8af51so20242985e9.3;
-        Sun, 14 Jul 2024 12:25:35 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXsCMBsJanaKuclQrtUpsSnjXYZda4OVHpsVKmSCRPEjREJr2ZBq+Sfxadi2hBpF/CE4glOCUnY5gabxVxQSVxNy4CuTq5ZtOmoaV8J/IdcXLoaKe1XhACviPTKu2Yz6NGFcLgnNOG4Yc5bKO5PUMqiJ/ye8qlskimIymsgPdcPQ5MCV85vme/E0PlE5/m4txKS+6lgKbWmIAn0tCOIYUItpUjFr1AHyv65SFWtkDjqP60fC+uzB7P5oStrukVK8iM=
-X-Gm-Message-State: AOJu0YzqlRNOKVwrdDkWESGlKuClgNwe40dbTu/wxXzCF4HG8dDk0XiR
-	IpRBfQi2HPBo3GZMuB9E1+0dOO0kdDj0QB/xrEWrEQo6sOe0g8GPApo4WcrO8BFT8pOw3UD2/ZW
-	aBdvKrMKnZ1H8f9T3eKteWBXhTnI=
-X-Google-Smtp-Source: AGHT+IHNi+bkhtGO/tFdAGdozXKSzwunOc9SL8x+E8ESxsKl+svJChMzCUdwALSjb4LjW8Uu8yudrhwNRE6vlxT8+cQ=
-X-Received: by 2002:a05:6512:3985:b0:52c:cc46:d59 with SMTP id
- 2adb3069b0e04-52eb9999d90mr13194916e87.18.1720985113376; Sun, 14 Jul 2024
- 12:25:13 -0700 (PDT)
+	s=k20201202; t=1721128446;
+	bh=if+tcTirPJEjQZ9+hNu3pbhZeoosE+eYDqBL2iUCmhY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=X0VhN6dJqtR1KjO/1/PYElok6T5zjLlAKyzAypL4irsN/XbVAZy4V4Ko34zh46mCO
+	 InPiqKaVQ28tbxcwQ4aVimRVIlcIG7FVByt+0X2HkmQfxKOSXpmdUg7tVXXoPVH3O7
+	 BbMLzCEmNdPLheUOe2MVcpjILhanEbMxkyz6KTiQZpDiolKr6j+cpBRJ2wk7C/sjqQ
+	 hk60jD7l8cR3gBkksbgwjOCoU9d6TY2/m3y2t9kHZ617IrSe3LuiYwKTxaVw+SfXFM
+	 /XDwcDu/Py0vDadDsPVCXJ0VUNSQL7zgFwuHdJEjuK5Diy7HEvAJBTt1a5YVs8Sy7X
+	 kjipDXq1Ftupw==
+From: Mike Rapoport <rppt@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Borislav Petkov <bp@alien8.de>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Mike Rapoport <rppt@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Will Deacon <will@kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	devicetree@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	linux-mm@kvack.org,
+	x86@kernel.org
+Subject: [PATCH 00/17] mm: introduce numa_memblks
+Date: Tue, 16 Jul 2024 14:13:29 +0300
+Message-ID: <20240716111346.3676969-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240714085751.176357-1-xtex@envs.net> <20240714085751.176357-3-xtex@envs.net>
-In-Reply-To: <20240714085751.176357-3-xtex@envs.net>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Mon, 15 Jul 2024 04:24:37 +0900
-X-Gmail-Original-Message-ID: <CAK7LNAQfe7284DrJzo5MCy_vhd+JDytKYbzSbWvRJGiyMT462A@mail.gmail.com>
-Message-ID: <CAK7LNAQfe7284DrJzo5MCy_vhd+JDytKYbzSbWvRJGiyMT462A@mail.gmail.com>
-Subject: Re: [PATCH 2/2] kbuild: Create INSTALL_PATH directory if it does not exist
-To: Zhang Bingwu <xtex@envs.net>
-Cc: Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Dinh Nguyen <dinguyen@kernel.org>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, 
-	Albert Ou <aou@eecs.berkeley.edu>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Zhang Bingwu <xtexchooser@duck.com>, Nathan Chancellor <nathan@kernel.org>, 
-	Nicolas Schier <nicolas@fjasle.eu>, x86@kernel.org, linux-kbuild@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-parisc@vger.kernel.org, 
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sun, Jul 14, 2024 at 5:58=E2=80=AFPM Zhang Bingwu <xtex@envs.net> wrote:
->
-> From: Zhang Bingwu <xtexchooser@duck.com>
->
-> If INSTALL_PATH is not a valid directory, create it, like what
-> modules_install and dtbs_install will do in the same situation.
->
-> Signed-off-by: Zhang Bingwu <xtexchooser@duck.com>
-> ---
->  scripts/install.sh | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/scripts/install.sh b/scripts/install.sh
-> index 9bb0fb44f04a..02b845e7ab33 100755
-> --- a/scripts/install.sh
-> +++ b/scripts/install.sh
-> @@ -20,6 +20,10 @@ do
->         fi
->  done
->
-> +if [ "${INSTALL_PATH}" !=3D "" ] && ! [ -e "${INSTALL_PATH}" ]; then
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 
-I changed the first check to [ -n "${INSTALL_PATH}" ]
-Applied to linux-kbuild. Thanks!
+Hi,
+
+Following the discussion about handling of CXL fixed memory windows on
+arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
+the generic code so they will be available on arm64/riscv and maybe on
+loongarch sometime later.
+
+While it could be possible to use memblock to describe CXL memory windows,
+it currently lacks notion of unpopulated memory ranges and numa_memblks
+does implement this.
+
+Another reason to make numa_memblks generic is that both arch_numa (arm64
+and riscv) and loongarch use trimmed copy of x86 code although there is no
+fundamental reason why the same code cannot be used on all these platforms.
+Having numa_memblks in mm/ will make it's interaction with ACPI and FDT
+more consistent and I believe will reduce maintenance burden.
+
+And with generic numa_memblks it is (almost) straightforward to enable NUMA
+emulation on arm64 and riscv.
+
+The first 5 commits in this series are cleanups that are not strictly
+related to numa_memblks.
+
+Commits 6-11 slightly reorder code in x86 to allow extracting numa_memblks
+and NUMA emulation to the generic code.
+
+Commits 12-14 actually move the code from arch/x86/ to mm/ and commit 15
+does some aftermath cleanups.
+
+Commit 16 switches arch_numa to numa_memblks.
+
+Commit 17 enables usage of phys_to_target_node() and
+memory_add_physaddr_to_nid() with numa_memblks.
+
+[1] https://lore.kernel.org/all/20240529171236.32002-1-Jonathan.Cameron@huawei.com/
+
+Mike Rapoport (Microsoft) (17):
+  mm: move kernel/numa.c to mm/
+  MIPS: sgi-ip27: make NODE_DATA() the same as on all other
+    architectures
+  MIPS: loongson64: rename __node_data to node_data
+  arch, mm: move definition of node_data to generic code
+  arch, mm: pull out allocation of NODE_DATA to generic code
+  x86/numa: simplify numa_distance allocation
+  x86/numa: move FAKE_NODE_* defines to numa_emu
+  x86/numa_emu: simplify allocation of phys_dist
+  x86/numa_emu: split __apicid_to_node update to a helper function
+  x86/numa_emu: use a helper function to get MAX_DMA32_PFN
+  x86/numa: numa_{add,remove}_cpu: make cpu parameter unsigned
+  mm: introduce numa_memblks
+  mm: move numa_distance and related code from x86 to numa_memblks
+  mm: introduce numa_emulation
+  mm: make numa_memblks more self-contained
+  arch_numa: switch over to numa_memblks
+  mm: make range-to-target_node lookup facility a part of numa_memblks
+
+ arch/arm64/include/asm/Kbuild                 |   1 +
+ arch/arm64/include/asm/mmzone.h               |  13 -
+ arch/arm64/include/asm/topology.h             |   1 +
+ arch/loongarch/include/asm/Kbuild             |   1 +
+ arch/loongarch/include/asm/mmzone.h           |  16 -
+ arch/loongarch/include/asm/topology.h         |   1 +
+ arch/loongarch/kernel/numa.c                  |  21 -
+ arch/mips/include/asm/mach-ip27/mmzone.h      |   1 -
+ .../mips/include/asm/mach-loongson64/mmzone.h |   4 -
+ arch/mips/loongson64/numa.c                   |  20 +-
+ arch/mips/sgi-ip27/ip27-memory.c              |   2 +-
+ arch/powerpc/include/asm/mmzone.h             |   6 -
+ arch/powerpc/mm/numa.c                        |  26 +-
+ arch/riscv/include/asm/Kbuild                 |   1 +
+ arch/riscv/include/asm/mmzone.h               |  13 -
+ arch/riscv/include/asm/topology.h             |   4 +
+ arch/s390/include/asm/Kbuild                  |   1 +
+ arch/s390/include/asm/mmzone.h                |  17 -
+ arch/s390/kernel/numa.c                       |   3 -
+ arch/sh/include/asm/mmzone.h                  |   3 -
+ arch/sh/mm/init.c                             |   7 +-
+ arch/sh/mm/numa.c                             |   3 -
+ arch/sparc/include/asm/mmzone.h               |   4 -
+ arch/sparc/mm/init_64.c                       |  11 +-
+ arch/x86/Kconfig                              |   9 +-
+ arch/x86/include/asm/Kbuild                   |   1 +
+ arch/x86/include/asm/mmzone.h                 |   6 -
+ arch/x86/include/asm/mmzone_32.h              |  17 -
+ arch/x86/include/asm/mmzone_64.h              |  18 -
+ arch/x86/include/asm/numa.h                   |  24 +-
+ arch/x86/include/asm/sparsemem.h              |   9 -
+ arch/x86/mm/Makefile                          |   1 -
+ arch/x86/mm/amdtopology.c                     |   1 +
+ arch/x86/mm/numa.c                            | 618 +-----------------
+ arch/x86/mm/numa_internal.h                   |  24 -
+ drivers/acpi/numa/srat.c                      |   1 +
+ drivers/base/Kconfig                          |   1 +
+ drivers/base/arch_numa.c                      | 223 ++-----
+ drivers/cxl/Kconfig                           |   2 +-
+ drivers/dax/Kconfig                           |   2 +-
+ drivers/of/of_numa.c                          |   1 +
+ include/asm-generic/mmzone.h                  |   5 +
+ include/asm-generic/numa.h                    |   6 +-
+ include/linux/numa.h                          |   5 +
+ include/linux/numa_memblks.h                  |  58 ++
+ kernel/Makefile                               |   1 -
+ kernel/numa.c                                 |  26 -
+ mm/Kconfig                                    |  11 +
+ mm/Makefile                                   |   3 +
+ mm/numa.c                                     |  57 ++
+ {arch/x86/mm => mm}/numa_emulation.c          |  42 +-
+ mm/numa_memblks.c                             | 565 ++++++++++++++++
+ 52 files changed, 847 insertions(+), 1070 deletions(-)
+ delete mode 100644 arch/arm64/include/asm/mmzone.h
+ delete mode 100644 arch/loongarch/include/asm/mmzone.h
+ delete mode 100644 arch/riscv/include/asm/mmzone.h
+ delete mode 100644 arch/s390/include/asm/mmzone.h
+ delete mode 100644 arch/x86/include/asm/mmzone.h
+ delete mode 100644 arch/x86/include/asm/mmzone_32.h
+ delete mode 100644 arch/x86/include/asm/mmzone_64.h
+ create mode 100644 include/asm-generic/mmzone.h
+ create mode 100644 include/linux/numa_memblks.h
+ delete mode 100644 kernel/numa.c
+ create mode 100644 mm/numa.c
+ rename {arch/x86/mm => mm}/numa_emulation.c (94%)
+ create mode 100644 mm/numa_memblks.c
 
 
-> +       mkdir -p "${INSTALL_PATH}"
-> +fi
-> +
->  # User/arch may have a custom install script
->  for file in "${HOME}/bin/${INSTALLKERNEL}"             \
->             "/sbin/${INSTALLKERNEL}"                    \
-> --
-> 2.43.0
->
+base-commit: 22a40d14b572deb80c0648557f4bd502d7e83826
+-- 
+2.43.0
 
-
---=20
-Best Regards
-Masahiro Yamada
