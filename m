@@ -1,242 +1,129 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C73E61802D2
-	for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 14:42:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26003181B9A;
+	Wed, 17 Jul 2024 16:12:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721227378; cv=none; b=p/VS5eBHRUKKwxR11KgiNERYj5AzE5MWo8aXe80ufniOxF2RGxOFK7ziPrWUxD7WTSoh/rI8qzHbN7USa1EWSi3dNLGndjSM6Shpqba9JiUhS78pbT3rrAXZdaMvZ+EPyTNl1zFxex6GB/NnkBpHgrBDTFU8dmuyES7w5Mflyn4=
+	t=1721232729; cv=none; b=YDDQLhvYV6xK0hx7fN2GCG7cbHPJE2yo5XunprWs58eQrWJlBFFACmGl8E3kSZ9UP31DRvXkZuYTITdDfmbA1E8jRhKx3I+7BFkv4qHmKpL8WIv84W/DBo2Jra8eSlpMMdCxEmtINR4J3H4nKjJXAKbNDRydZ8t5+LOruhhC/zg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721227378; c=relaxed/simple;
-	bh=zUVIvHCsTCCXlgAEsrezINakY7JgduDyy2tKWsIjEJc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gDoHAsY36H3pAD03AqAPzQDYTRG52ytMByFs57xEZzt6S5dnii1663L5LklETFOey4JZdMbyuyEPgp6BPhqVA48o0DYJi8Rbe7vV5t44BxKvlp8v5wz0+QPAgXYhWMP0fT2y40dP4ennNTe8JQMI6qxMbLilHkAPUE/GUFQxs0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=TEJC5mgE; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1721232729; c=relaxed/simple;
+	bh=RAy/ksV3bI+jYpZMEbAnaO3B61n/1HcPTXV7BHINhDU=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=ZrpVRd0jLwt4v5v79TUj2fMO3wJwvzT0yJMrhKO+tYlwgOw/63O4eQwi78wq01El7wJDPZO2NOPsYD9aHt+za8KDB/po7YcVMkR/P1y0UWXsYyCJ96QZh/WFeH4xk5+82vDmAki5W0ZxRlpqkzrmVqRUMtV5BkM0LzbfjOb+83g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=shbXjLPJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TEJC5mgE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721227374;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=M2vL8rRc69gotddfUAFMWYk4nVzDmp9tj4adCdBDziU=;
-	b=TEJC5mgEqqLu+j5SkvTipJT3CBFqO6gWUNsYjXWc1qS5Jju1GXl9Kp3enqyRCML9siWLCM
-	3tlfqdFwQONyuuPuC+PT2rcmqBF86/tquI2PeGpCTG61OcSUrcGDaqcRULov4+YKvDkOyp
-	WyCZ5Nw5Rgk180NYLALDBdlgSgQH+S8=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-471-QwuoAnuxNk-WZ99WPFmNdw-1; Wed, 17 Jul 2024 10:42:53 -0400
-X-MC-Unique: QwuoAnuxNk-WZ99WPFmNdw-1
-Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-a77cb9467beso135110866b.0
-        for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 07:42:53 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721227372; x=1721832172;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=M2vL8rRc69gotddfUAFMWYk4nVzDmp9tj4adCdBDziU=;
-        b=cVK8BC3v6Q/HASkjTJ9oyRPVzlOur18tyxZmTdiAquU0b5Pfl6pY1Nd720WXWEKhTp
-         alG5HvOw0M0AeeBz9pb3dOigZ4NClWGOtumqchCfrpguURGJRL93dUjiM04tHWU9f6uw
-         KMfZDIjVvtAuZSl0qJmbDyYfluTzXhI7GY471aOOVEMBaIfNAjVZWkl/aauBen5ydtBS
-         AjsGvRe7w9+PWtSEi+Vhe3g7r7hk03Ro/z0Yvs6YnOg1CDm5NHdMfyxxdozm0orV1i5F
-         X4qAup/cMXb+cpPh40eJscfv5wBx/jXciOm8KJ39MdwiQyoSWGZK+IeF9XH9LXzNEhY3
-         +1Jw==
-X-Forwarded-Encrypted: i=1; AJvYcCW6kmqc5z8vNpT9zHy2X8PD7F5RBWzIgAvx+zauI1UAV1YZBE7/G0f4ChV4P7YNG+P6/9EKkTenRCAcKdTxbJKYwYgKZ1/5TnP90g==
-X-Gm-Message-State: AOJu0Ywxap7ViAagK8rYnGeRLrGMR+EEetID2hzEPvpXz+GylV5zGmRj
-	9oHzLleYOjJ0JJ2fIFfnHbxZ381LYnYDlNFXtzV2h1XKUdmkdj0esXNdqu9AuILwOQdT54YoBlv
-	AAa6LKqqUU7jA/Ar+qel28emtPmviZ7CzKRaciTYJJ2MgEZWMbLyIY9+rLEs=
-X-Received: by 2002:a17:906:1c0f:b0:a6f:46f1:5434 with SMTP id a640c23a62f3a-a79eda04168mr521684866b.6.1721227372349;
-        Wed, 17 Jul 2024 07:42:52 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEi6DrDSqxxObcD+4KvqZEIVIf6XCAhrJ0LWIBdtNZjezxwhMU5bcwwGQ0tRJ1krbBOftaEqw==
-X-Received: by 2002:a17:906:1c0f:b0:a6f:46f1:5434 with SMTP id a640c23a62f3a-a79eda04168mr521682366b.6.1721227371866;
-        Wed, 17 Jul 2024 07:42:51 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c714:c00:b08b:a871:ce99:dfde? (p200300cbc7140c00b08ba871ce99dfde.dip0.t-ipconnect.de. [2003:cb:c714:c00:b08b:a871:ce99:dfde])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a79bc5d2018sm453924466b.85.2024.07.17.07.42.49
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 17 Jul 2024 07:42:51 -0700 (PDT)
-Message-ID: <220da8ed-337a-4b1e-badf-2bff1d36e6c3@redhat.com>
-Date: Wed, 17 Jul 2024 16:42:48 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="shbXjLPJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C5132C4AF0B;
+	Wed, 17 Jul 2024 16:12:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1721232728;
+	bh=RAy/ksV3bI+jYpZMEbAnaO3B61n/1HcPTXV7BHINhDU=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=shbXjLPJXdRB1tVuUt0uLxZSsuyUDn5AMTlsJxjNvye+zdF07wlNebxOI3d7Qcm73
+	 EA0tE0PAnr4MtBgVPn5NrDa+gQOKkLuaVPiaQLyheI3gV3gfDG/bK3wTJqrCdk+OPR
+	 KeVhHVfpkivSAxT0vlD9sKhMYMrqdCkOIJuousO8DaY22Wvko5Pzh39D2xNousN4H+
+	 Z2AApmNlwYnUNayL7Bz4BoJVCPN+3BXPeruNC2JFtczLyFrU4QQlUdAwetSauJjkyg
+	 TqIWU4IpdyWH7aVirsZnzAs6bG2Cu4z1ZnnxPwiwohZnuBZUonEdPL2M4GnzDkh4E9
+	 9x1uwC++Z0mZg==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDECC3DA61;
+	Wed, 17 Jul 2024 16:12:08 +0000 (UTC)
+From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
+Date: Wed, 17 Jul 2024 23:10:15 +0700
+Subject: [PATCH v2 1/2] sparc/build: Remove all usage of -fcall-used* flags
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 05/17] arch, mm: pull out allocation of NODE_DATA to
- generic code
-To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
- Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dan Williams <dan.j.williams@intel.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
- Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
- loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
- x86@kernel.org
-References: <20240716111346.3676969-1-rppt@kernel.org>
- <20240716111346.3676969-6-rppt@kernel.org>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <20240716111346.3676969-6-rppt@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20240717-sparc-cflags-v2-1-259407e6eb5f@protonmail.com>
+References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
+In-Reply-To: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, 
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
+ glaubitz@physik.fu-berlin.de, Masahiro Yamada <masahiroy@kernel.org>, 
+ Nicolas Schier <nicolas@fjasle.eu>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ llvm@lists.linux.dev, linux-kbuild@vger.kernel.org, 
+ Koakuma <koachan@protonmail.com>
+X-Mailer: b4 0.14.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1721232727; l=2404;
+ i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
+ bh=BmBOSeK5N1Oy/bbdHrIC4l2mSYFoxSF/u0TXtn+HPh4=;
+ b=MDVSlMcoYXgsyyvNQtnK9WTRCXYuPfjMAj3GvKKG5BXguIwLI3+64HoWlTSXoJtvYHolxIPZQ
+ VI+Ux/+2ko0C0mb15ccb41nEUfBNAcPw2n5uAA2Dd+rz808U+R8Z+yE
+X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
+ pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
+X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
+ auth_id=174
+X-Original-From: Koakuma <koachan@protonmail.com>
+Reply-To: koachan@protonmail.com
 
-On 16.07.24 13:13, Mike Rapoport wrote:
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> 
-> Architectures that support NUMA duplicate the code that allocates
-> NODE_DATA on the node-local memory with slight variations in reporting
-> of the addresses where the memory was allocated.
-> 
-> Use x86 version as the basis for the generic alloc_node_data() function
-> and call this function in architecture specific numa initialization.
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> ---
+From: Koakuma <koachan@protonmail.com>
 
-[...]
+Remove all usage of -fcall-used* flags so that all flags used are
+portable between GCC and clang.
 
-> diff --git a/arch/mips/loongson64/numa.c b/arch/mips/loongson64/numa.c
-> index 9208eaadf690..909f6cec3a26 100644
-> --- a/arch/mips/loongson64/numa.c
-> +++ b/arch/mips/loongson64/numa.c
-> @@ -81,12 +81,8 @@ static void __init init_topology_matrix(void)
->   
->   static void __init node_mem_init(unsigned int node)
->   {
-> -	struct pglist_data *nd;
->   	unsigned long node_addrspace_offset;
->   	unsigned long start_pfn, end_pfn;
-> -	unsigned long nd_pa;
-> -	int tnid;
-> -	const size_t nd_size = roundup(sizeof(pg_data_t), SMP_CACHE_BYTES);
+The reasoning is as follows:
 
-One interesting change is that we now always round up to full pages on 
-architectures where we previously rounded up to SMP_CACHE_BYTES.
+In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
+the 64-bit ABI, %g7 is the reserved one.
+Linux turns them into volatile registers by the way of -fcall-used-*,
+but on the other hand, omitting the flags shouldn't be harmful;
+compilers will now simply refuse to touch them, and any assembly
+code that happens to touch them would still work like usual (because
+Linux' conventions already treats them as volatile anyway).
 
-I assume we don't really expect a significant growth in memory 
-consumption that we care about, especially because most systems with 
-many nodes also have  quite some memory around.
+Signed-off-by: Koakuma <koachan@protonmail.com>
+---
+ arch/sparc/Makefile      | 4 ++--
+ arch/sparc/vdso/Makefile | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-
-> -/* Allocate NODE_DATA for a node on the local memory */
-> -static void __init alloc_node_data(int nid)
-> -{
-> -	const size_t nd_size = roundup(sizeof(pg_data_t), PAGE_SIZE);
-> -	u64 nd_pa;
-> -	void *nd;
-> -	int tnid;
-> -
-> -	/*
-> -	 * Allocate node data.  Try node-local memory and then any node.
-> -	 * Never allocate in DMA zone.
-> -	 */
-> -	nd_pa = memblock_phys_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
-> -	if (!nd_pa) {
-> -		pr_err("Cannot find %zu bytes in any node (initial node: %d)\n",
-> -		       nd_size, nid);
-> -		return;
-> -	}
-> -	nd = __va(nd_pa);
-> -
-> -	/* report and initialize */
-> -	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
-> -	       nd_pa, nd_pa + nd_size - 1);
-> -	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
-> -	if (tnid != nid)
-> -		printk(KERN_INFO "    NODE_DATA(%d) on node %d\n", nid, tnid);
-> -
-> -	node_data[nid] = nd;
-> -	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
-> -
-> -	node_set_online(nid);
-> -}
-> -
->   /**
->    * numa_cleanup_meminfo - Cleanup a numa_meminfo
->    * @mi: numa_meminfo to clean up
-> @@ -571,6 +538,7 @@ static int __init numa_register_memblks(struct numa_meminfo *mi)
->   			continue;
->   
->   		alloc_node_data(nid);
-> +		node_set_online(nid);
->   	}
-
-I can spot that we only remove a single node_set_online() call from x86.
-
-What about all the other architectures? Will there be any change in 
-behavior for them? Or do we simply set the nodes online later once more?
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 757451c3ea1d..7318a8b452c3 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -29,7 +29,7 @@ UTS_MACHINE    := sparc
+ # versions of gcc.  Some gcc versions won't pass -Av8 to binutils when you
+ # give -mcpu=v8.  This silently worked with older bintutils versions but
+ # does not any more.
+-KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
++KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu
+ KBUILD_CFLAGS  += -Wa,-Av8
+ 
+ KBUILD_AFLAGS  += -m32 -Wa,-Av8
+@@ -45,7 +45,7 @@ export BITS   := 64
+ UTS_MACHINE   := sparc64
+ 
+ KBUILD_CFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow
+-KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
++KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -Wno-sign-compare
+ KBUILD_CFLAGS += -Wa,--undeclared-regs
+ KBUILD_CFLAGS += $(call cc-option,-mtune=ultrasparc3)
+ KBUILD_AFLAGS += -m64 -mcpu=ultrasparc -Wa,--undeclared-regs
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index 243dbfc4609d..e009443145af 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -46,7 +46,7 @@ CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables -m64
+        -fno-omit-frame-pointer -foptimize-sibling-calls \
+        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+ 
+-SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
++SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5
+ 
+ $(vobjs): KBUILD_CFLAGS := $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
+ 
 
 -- 
-Cheers,
+2.45.2
 
-David / dhildenb
 
