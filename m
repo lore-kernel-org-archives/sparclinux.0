@@ -1,66 +1,66 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0777D18132E
-	for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 14:33:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52B3181313
+	for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 14:35:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721226820; cv=none; b=foBp4nsZlNtwOzn/NFZzXePOd0ahW99pV98Rtp84i8g6GgTH1IdpLk0rgoWzo7mLJAFnT5ee7bHeIBKYYuvIKfQ03b5yd5gXIJJx+7qsBWQldBnuHC/4sW6mE2ZwA7zZ2z8Z4ieKCgGLqBBdJgePWz+C3jOkmnsoezfFFCIIJog=
+	t=1721226911; cv=none; b=jD27dtmT5TrMgDZNe7TkAMfVuj6j/kNlicY/hhRjgSQWi8hST0T3QnyMI8g9vZs7aN12F29P+SXSUH4YstQaa0IH0jkEyGMlvzKc99XziFDoL4QmiHsrI+WefvybCM9eMR+q2NZmeJ9hmAABN2N2pw14tnd75BKxEwX8tsgRnJc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721226820; c=relaxed/simple;
-	bh=UKE4C3ChcQCqvqZtO8WYSa+lxSVP5PaklsSxUaTSpEg=;
+	s=arc-20240116; t=1721226911; c=relaxed/simple;
+	bh=fnm4iemd7xvqFvDqI1KPJ1+UlIwFqVX26iV0ULfsN98=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=f56jse8tO+vHTK8bejik/SbHNYFh454zRPoGCe/Ddj+CNvnUjC/qTplGfXKg9q9RPYEQjCx4LGoZwdBo2mRPSabtbRD9sbO7jioIw4uCn+49V5ABUllszYt5AzggGjNtwOWO3nHRmIC4t6QM4pAwjApGf++hfX6IRbor7kmNxu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=MoYdd8RW; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=QmScFlahjOdpblVWZjpSii8O5mUFrXYDQQDkQ2lUWtxfrRbNd1mi6ny8QIhyEtKzM+4jzlLJNzXtk4z9AZ2HOs50uwlufQe/BsKztNLJ/ndsHbp61qLu67QUe2MStrnPexglv3qN3ZZ8SXPEwTPHu1s8bZrtlsZCvBhnQFRTXas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=F5ryX/Ff; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MoYdd8RW"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F5ryX/Ff"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721226818;
+	s=mimecast20190719; t=1721226909;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=mXBB0qjMEXfzqVaUDcGt6NXANeyKiUeQZZAQu7kGYb4=;
-	b=MoYdd8RWd8Z+fnh6dS/KDNHyYbYJIJrEvV7igKUd/X9+5BfKbfPuSGJHZhL/2txgLiQe6b
-	QWXxvF9JZW+OPhro3Db84TBZ7JOJlSniWgUpcgBL6GxgpxNIlrc5mqvzBe4nXzN3tnaSVC
-	unKDFESpxeqtMxCwVXpoxVjotfdNQQs=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=bQ+fqkZTCVbwQr6DwGYo0tiSadNAEaaTmdSJdfMrkK4=;
+	b=F5ryX/FfzPO93vBbawShVyRcQ/tEIN/Zfdbd8yhL8LduLJkKvs3l5lcVeNKryXdU6ZtXW6
+	SJr3sKu+nomOncjeLV0VsfdUCfN+bvSNxdvnh8MgKmrzYOwxwPJHARGEHRgOH3u3xcgCq1
+	pEdzHIepF9nUWaH96EP2WjZdMIxvV0E=
+Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
+ [209.85.208.197]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-138-SE9k0rWwMYiDyjWO-SBSBA-1; Wed, 17 Jul 2024 10:33:36 -0400
-X-MC-Unique: SE9k0rWwMYiDyjWO-SBSBA-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-426624f4ce3so45417445e9.1
-        for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 07:33:34 -0700 (PDT)
+ us-mta-475-EceTAWREMbyRp_zoGyn27g-1; Wed, 17 Jul 2024 10:35:06 -0400
+X-MC-Unique: EceTAWREMbyRp_zoGyn27g-1
+Received: by mail-lj1-f197.google.com with SMTP id 38308e7fff4ca-2ee81ff717fso73415021fa.3
+        for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 07:35:06 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721226813; x=1721831613;
+        d=1e100.net; s=20230601; t=1721226905; x=1721831705;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=mXBB0qjMEXfzqVaUDcGt6NXANeyKiUeQZZAQu7kGYb4=;
-        b=s2pcyIytwxgZFhMmiAKU25PwLJg6dZ0UldhiS+KC3RsLHz53U80EhoTWsqVmBzXskt
-         En6YNRczuUuOoMoViFpg3X3nTvDGQ78QQ0Y9pyIejXOttfaI5EOWoHqxQkeFWzNCpa0h
-         J2Sh8Q6DGUFGWa/RP42U3L9zwqHCZ1EsoqzcUcPlgIx4Xnb7+jgv4oxi6KmjEnRTD01U
-         7nRw5vMxcQ7yRpNxTDuR6Y6t0WE48e9TKChASbxlRWhH5/pPIKVlvZh9hTTUIsey6P/7
-         kNMbSNHQeM70/1GeeKYCC0ZJWgHxGqwoa7hL4rAFf7wjPKyUf7G1CEyMgijgAdIWSFY0
-         u6/A==
-X-Forwarded-Encrypted: i=1; AJvYcCU4M2pro9KUxcvBnDAa5m0R9rXZkVGDyda+cE2PZ2bykOm5KpGi7fRvVWxrPe9CYj+Qh9DZ+EToRcGKVB3zF0OnrFiGQ33toq10pQ==
-X-Gm-Message-State: AOJu0Yz4vhCk53k+fdH1tSYc8oH32ypEeYrfYyIALqcQ6d6S5u4XyWsM
-	3XZA+G9uAWUvwNrsZISjfBwchJPvstRyHSMsgOVfbbDgIFSKf/8HO/vJN6K4fQE0XQKYx4pdmXP
-	FHnkaazTOxjBnvvSmN039ZnB0waOkZzhf6xDkwzCVUsjBSv5flazP0kRRePw=
-X-Received: by 2002:a05:600c:3d96:b0:426:6f81:d235 with SMTP id 5b1f17b1804b1-427c303a321mr14977035e9.15.1721226813636;
-        Wed, 17 Jul 2024 07:33:33 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGgu8rq663eT8ufhgNgCFLg21tSPwYTS9ihkX5BMsdTSuq5GcoEgyv7xkCuRjh9w8LzVIxZFg==
-X-Received: by 2002:a05:600c:3d96:b0:426:6f81:d235 with SMTP id 5b1f17b1804b1-427c303a321mr14976865e9.15.1721226813241;
-        Wed, 17 Jul 2024 07:33:33 -0700 (PDT)
+        bh=bQ+fqkZTCVbwQr6DwGYo0tiSadNAEaaTmdSJdfMrkK4=;
+        b=ckc7iPDI6wCmFNGEFQ+DMMFhFnIOK3HCdIG7eK5a6gmy51y/iZb262Sa+CRhwAjaGW
+         cniBbVo3uGFoIafdA/Rmo/g6b9WizHdWwISCg/hpb/8TqkgRaX1F4RRfDoiuusyvLxXc
+         SVErcVvRCNtybEvS1NB+xYv11AmILyuqM6gGPN9Th9s+ABHDD/xeb4BmiYfMKLcbXC7W
+         9UFklQqMBqgFSuwE2I7kV9xVOMOVPXnWM1I5ffm9vyBOIOp7PZUhQdm/Ptg9cw/G8yOb
+         lI+lA+DoWJRjA5J9aGxGY7O60V4TdR2qrvTOhKuQiKqt9FQ5wtcCLPYgJsChJhjXjkJc
+         GqKw==
+X-Forwarded-Encrypted: i=1; AJvYcCX7hlMPpTzHqLdb5RbKvUqu+c3IlGiipR1rApIPXw3iP60HkepdB+Qaquq3lbUPNaAS+vnoYOxEgaEZCatyxfGg+6g4wzn6V5ryXg==
+X-Gm-Message-State: AOJu0Yw0KIKZ6Ge1ryfUgP4/KmcaLbMD7Ns2MPncG+2nL/2/kNI5HW7m
+	0MXFWldpyOtCa8u5vQPkCCA3qLe/8Pb+wgkl3BAZkIHO3HOTV8i9q8gaE3zrgqSud/gJ2L1Y+j2
+	UmXfrznA5M8srqNsbWGbZXIHIP4qwSoulbeOPQ9MLdN8zzS9D6w9hPIFJ/mI=
+X-Received: by 2002:a05:6512:1316:b0:52e:a60e:3a04 with SMTP id 2adb3069b0e04-52ee542a129mr1866194e87.59.1721226905232;
+        Wed, 17 Jul 2024 07:35:05 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IH04Gq57875HpWPakTIyYyIvXlTOyNbE9pUtdgazlRW5m2Y5upStMZ+SEMfPLUpoxgxOiDOHQ==
+X-Received: by 2002:a05:6512:1316:b0:52e:a60e:3a04 with SMTP id 2adb3069b0e04-52ee542a129mr1866156e87.59.1721226904762;
+        Wed, 17 Jul 2024 07:35:04 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c714:c00:b08b:a871:ce99:dfde? (p200300cbc7140c00b08ba871ce99dfde.dip0.t-ipconnect.de. [2003:cb:c714:c00:b08b:a871:ce99:dfde])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427c77bffa1sm74815e9.18.2024.07.17.07.33.31
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427c779847asm301165e9.8.2024.07.17.07.35.02
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 17 Jul 2024 07:33:32 -0700 (PDT)
-Message-ID: <f73022b4-20d4-4358-9b15-949934d52b5e@redhat.com>
-Date: Wed, 17 Jul 2024 16:33:30 +0200
+        Wed, 17 Jul 2024 07:35:04 -0700 (PDT)
+Message-ID: <11c4ffb9-ea48-44d0-8a58-2c705c7176de@redhat.com>
+Date: Wed, 17 Jul 2024 16:35:02 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -68,7 +68,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 03/17] MIPS: loongson64: rename __node_data to node_data
+Subject: Re: [PATCH 04/17] arch, mm: move definition of node_data to generic
+ code
 To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -96,7 +97,7 @@ Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
  x86@kernel.org
 References: <20240716111346.3676969-1-rppt@kernel.org>
- <20240716111346.3676969-4-rppt@kernel.org>
+ <20240716111346.3676969-5-rppt@kernel.org>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -144,21 +145,71 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20240716111346.3676969-4-rppt@kernel.org>
+In-Reply-To: <20240716111346.3676969-5-rppt@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 16.07.24 13:13, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Make definition of node_data match other architectures.
-> This will allow pulling declaration of node_data to the generic mm code in
-> the following commit.
+> Every architecture that supports NUMA defines node_data in the same way:
+> 
+> 	struct pglist_data *node_data[MAX_NUMNODES];
+> 
+> No reason to keep multiple copies of this definition and its forward
+> declarations, especially when such forward declaration is the only thing
+> in include/asm/mmzone.h for many architectures.
+> 
+> Add definition and declaration of node_data to generic code and drop
+> architecture-specific versions.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
+>   arch/arm64/include/asm/Kbuild                  |  1 +
+>   arch/arm64/include/asm/mmzone.h                | 13 -------------
+>   arch/arm64/include/asm/topology.h              |  1 +
+>   arch/loongarch/include/asm/Kbuild              |  1 +
+>   arch/loongarch/include/asm/mmzone.h            | 16 ----------------
+>   arch/loongarch/include/asm/topology.h          |  1 +
+>   arch/loongarch/kernel/numa.c                   |  3 ---
+>   arch/mips/include/asm/mach-ip27/mmzone.h       |  4 ----
+>   arch/mips/include/asm/mach-loongson64/mmzone.h |  4 ----
+>   arch/mips/loongson64/numa.c                    |  2 --
+>   arch/mips/sgi-ip27/ip27-memory.c               |  3 ---
+>   arch/powerpc/include/asm/mmzone.h              |  6 ------
+>   arch/powerpc/mm/numa.c                         |  2 --
+>   arch/riscv/include/asm/Kbuild                  |  1 +
+>   arch/riscv/include/asm/mmzone.h                | 13 -------------
+>   arch/riscv/include/asm/topology.h              |  4 ++++
+>   arch/s390/include/asm/Kbuild                   |  1 +
+>   arch/s390/include/asm/mmzone.h                 | 17 -----------------
+>   arch/s390/kernel/numa.c                        |  3 ---
+>   arch/sh/include/asm/mmzone.h                   |  3 ---
+>   arch/sh/mm/numa.c                              |  3 ---
+>   arch/sparc/include/asm/mmzone.h                |  4 ----
+>   arch/sparc/mm/init_64.c                        |  2 --
+>   arch/x86/include/asm/Kbuild                    |  1 +
+>   arch/x86/include/asm/mmzone.h                  |  6 ------
+>   arch/x86/include/asm/mmzone_32.h               | 17 -----------------
+>   arch/x86/include/asm/mmzone_64.h               | 18 ------------------
+>   arch/x86/mm/numa.c                             |  3 ---
+>   drivers/base/arch_numa.c                       |  2 --
+>   include/asm-generic/mmzone.h                   |  5 +++++
+>   include/linux/numa.h                           |  3 +++
+>   mm/numa.c                                      |  3 +++
+>   32 files changed, 22 insertions(+), 144 deletions(-)
+>   delete mode 100644 arch/arm64/include/asm/mmzone.h
+>   delete mode 100644 arch/loongarch/include/asm/mmzone.h
+>   delete mode 100644 arch/riscv/include/asm/mmzone.h
+>   delete mode 100644 arch/s390/include/asm/mmzone.h
+>   delete mode 100644 arch/x86/include/asm/mmzone.h
+>   delete mode 100644 arch/x86/include/asm/mmzone_32.h
+>   delete mode 100644 arch/x86/include/asm/mmzone_64.h
+>   create mode 100644 include/asm-generic/mmzone.h
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Nice!
+
+Acked-by: David Hildenbrand <david@redhat.com>
 
 -- 
 Cheers,
