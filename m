@@ -1,66 +1,66 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2224E17F513
-	for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 14:33:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0777D18132E
+	for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 14:33:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721226787; cv=none; b=P4TNuEJBFQlHaAUNLwZRiN8X6gvqGygGbvGuBxnKDBOboYoMkdKXEsfPqJ2OVGTYBNEzC9HbT4KaEn5ucAoxNYC1aBUY6Gu8mSILW0Wumn0eCTlyr/O/IX0P2GMM102t6NrUid6nDdYx4ahJyRtlpEm9+7Q4oGseYmGqRLrxSnA=
+	t=1721226820; cv=none; b=foBp4nsZlNtwOzn/NFZzXePOd0ahW99pV98Rtp84i8g6GgTH1IdpLk0rgoWzo7mLJAFnT5ee7bHeIBKYYuvIKfQ03b5yd5gXIJJx+7qsBWQldBnuHC/4sW6mE2ZwA7zZ2z8Z4ieKCgGLqBBdJgePWz+C3jOkmnsoezfFFCIIJog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721226787; c=relaxed/simple;
-	bh=CrDDYOcmyPQoZCPC1i4Y1DcAZ3+d7HcTSETFYRrG8VQ=;
+	s=arc-20240116; t=1721226820; c=relaxed/simple;
+	bh=UKE4C3ChcQCqvqZtO8WYSa+lxSVP5PaklsSxUaTSpEg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DsqQntcD1JdgdVe8NV3W/90MARKg4Mz12I3igByBF/pl+Ke06uXsTOAPkqgofwwaExTXeq4LU+UO15/yf7UI/yqR9hwkBGJXPuc4bsKW/yXsM+qxTxNG8D7x3dRqdPwXdbFWK6hs/4n2eeZVP/I5SG83eRV2K6wUh6PjnhoGmGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=dT97eKJ8; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=f56jse8tO+vHTK8bejik/SbHNYFh454zRPoGCe/Ddj+CNvnUjC/qTplGfXKg9q9RPYEQjCx4LGoZwdBo2mRPSabtbRD9sbO7jioIw4uCn+49V5ABUllszYt5AzggGjNtwOWO3nHRmIC4t6QM4pAwjApGf++hfX6IRbor7kmNxu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=MoYdd8RW; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dT97eKJ8"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MoYdd8RW"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721226785;
+	s=mimecast20190719; t=1721226818;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=GICXT0BFVJy0QIZX9VPtiCc3OM2RPQjhgUFSA0WTx1U=;
-	b=dT97eKJ8TzQxT9NkFXYCwXAehUW1rKTroapjgB1z0JGLjQsTie/DGKEGBffBZWfqffkJJh
-	BXMMTluAgs8yIYwrmP+I6wVhmoivworP+62qK8EBZE21ZcETHuAoSZGLKcO6uWMepIsF0k
-	UJUzYCFBJjRPNGjtadsilCYULMmssCg=
-Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
- [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=mXBB0qjMEXfzqVaUDcGt6NXANeyKiUeQZZAQu7kGYb4=;
+	b=MoYdd8RWd8Z+fnh6dS/KDNHyYbYJIJrEvV7igKUd/X9+5BfKbfPuSGJHZhL/2txgLiQe6b
+	QWXxvF9JZW+OPhro3Db84TBZ7JOJlSniWgUpcgBL6GxgpxNIlrc5mqvzBe4nXzN3tnaSVC
+	unKDFESpxeqtMxCwVXpoxVjotfdNQQs=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-440-OU3cDAokNY2J1gIKgCDfpA-1; Wed, 17 Jul 2024 10:33:03 -0400
-X-MC-Unique: OU3cDAokNY2J1gIKgCDfpA-1
-Received: by mail-lf1-f70.google.com with SMTP id 2adb3069b0e04-52ebdb0ef28so8431201e87.0
-        for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 07:33:03 -0700 (PDT)
+ us-mta-138-SE9k0rWwMYiDyjWO-SBSBA-1; Wed, 17 Jul 2024 10:33:36 -0400
+X-MC-Unique: SE9k0rWwMYiDyjWO-SBSBA-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-426624f4ce3so45417445e9.1
+        for <sparclinux@vger.kernel.org>; Wed, 17 Jul 2024 07:33:34 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721226782; x=1721831582;
+        d=1e100.net; s=20230601; t=1721226813; x=1721831613;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=GICXT0BFVJy0QIZX9VPtiCc3OM2RPQjhgUFSA0WTx1U=;
-        b=KanxNpD/0+HoLXZrX9yDMtGDSeH1liWO9mzZE2WoS/Lwm0HpAcIUvqnqUtdRL78rv0
-         j+nEMhRfmQDeCun9gmfYzRjHYU4PfKKWQUg/SS+u/DAva5Nl/YfRfn2Ru6YRgU01IUyy
-         ViXwawF2hub4xvCNlbThvsvdOdD8vQ3rfamIahaTmvkNRU1TpMQEjqlygrHoKEorfxBz
-         7Ze/GrQPj5Enx4xnjF5My+AiQYpZw330CiSoWRAjcurk+0ze6HHB5g99yeSr+dcKiqIW
-         nlO7jlpidSwwOkCP5umt6pYVedKySiFsQ5Jt/ZxrPgD4ksfH2EaoPED6q8OqfHVoGn6w
-         1hWQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWGUGaYhByo3D05uIOVjN/D8Rk5qjHW4PYod73axg8th+uFOU7aHSv0E+Gi2f4Z5kN3T2y5hpIH6wXsOlKac9y0SHvSI8EG/b0QbA==
-X-Gm-Message-State: AOJu0Yye5BBkUMvXXlyZCZouZjgchPXgC/qU2Bj3jU4n/W2p83cX8p1d
-	wnBwrUvGvcJ/GEW5vHK7It4EXRsyXeERdyme4nAePmINLm/vMEbHx899cnVn+fwgZlQho13x08W
-	7/EVh9wMqd3xaVWEhh6Hlj0hWEOiyGKwl+HaOXCh1f07l46zZjhCdCjm6Je4=
-X-Received: by 2002:a05:6512:33c5:b0:52c:ec68:6165 with SMTP id 2adb3069b0e04-52ee53cc00bmr1663783e87.33.1721226782341;
-        Wed, 17 Jul 2024 07:33:02 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGrqpAiEHpfyNE8LzYLpjmIqAoQj/aWWnfve8BOPOkkfeVMrwCw7kn1k4etYvjz09EiWJN/XQ==
-X-Received: by 2002:a05:6512:33c5:b0:52c:ec68:6165 with SMTP id 2adb3069b0e04-52ee53cc00bmr1663731e87.33.1721226781780;
-        Wed, 17 Jul 2024 07:33:01 -0700 (PDT)
+        bh=mXBB0qjMEXfzqVaUDcGt6NXANeyKiUeQZZAQu7kGYb4=;
+        b=s2pcyIytwxgZFhMmiAKU25PwLJg6dZ0UldhiS+KC3RsLHz53U80EhoTWsqVmBzXskt
+         En6YNRczuUuOoMoViFpg3X3nTvDGQ78QQ0Y9pyIejXOttfaI5EOWoHqxQkeFWzNCpa0h
+         J2Sh8Q6DGUFGWa/RP42U3L9zwqHCZ1EsoqzcUcPlgIx4Xnb7+jgv4oxi6KmjEnRTD01U
+         7nRw5vMxcQ7yRpNxTDuR6Y6t0WE48e9TKChASbxlRWhH5/pPIKVlvZh9hTTUIsey6P/7
+         kNMbSNHQeM70/1GeeKYCC0ZJWgHxGqwoa7hL4rAFf7wjPKyUf7G1CEyMgijgAdIWSFY0
+         u6/A==
+X-Forwarded-Encrypted: i=1; AJvYcCU4M2pro9KUxcvBnDAa5m0R9rXZkVGDyda+cE2PZ2bykOm5KpGi7fRvVWxrPe9CYj+Qh9DZ+EToRcGKVB3zF0OnrFiGQ33toq10pQ==
+X-Gm-Message-State: AOJu0Yz4vhCk53k+fdH1tSYc8oH32ypEeYrfYyIALqcQ6d6S5u4XyWsM
+	3XZA+G9uAWUvwNrsZISjfBwchJPvstRyHSMsgOVfbbDgIFSKf/8HO/vJN6K4fQE0XQKYx4pdmXP
+	FHnkaazTOxjBnvvSmN039ZnB0waOkZzhf6xDkwzCVUsjBSv5flazP0kRRePw=
+X-Received: by 2002:a05:600c:3d96:b0:426:6f81:d235 with SMTP id 5b1f17b1804b1-427c303a321mr14977035e9.15.1721226813636;
+        Wed, 17 Jul 2024 07:33:33 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGgu8rq663eT8ufhgNgCFLg21tSPwYTS9ihkX5BMsdTSuq5GcoEgyv7xkCuRjh9w8LzVIxZFg==
+X-Received: by 2002:a05:600c:3d96:b0:426:6f81:d235 with SMTP id 5b1f17b1804b1-427c303a321mr14976865e9.15.1721226813241;
+        Wed, 17 Jul 2024 07:33:33 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c714:c00:b08b:a871:ce99:dfde? (p200300cbc7140c00b08ba871ce99dfde.dip0.t-ipconnect.de. [2003:cb:c714:c00:b08b:a871:ce99:dfde])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427c77a5804sm92385e9.16.2024.07.17.07.32.59
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427c77bffa1sm74815e9.18.2024.07.17.07.33.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 17 Jul 2024 07:33:01 -0700 (PDT)
-Message-ID: <e57eca18-b66d-4b5d-9e73-8ab22f6bc747@redhat.com>
-Date: Wed, 17 Jul 2024 16:32:59 +0200
+        Wed, 17 Jul 2024 07:33:32 -0700 (PDT)
+Message-ID: <f73022b4-20d4-4358-9b15-949934d52b5e@redhat.com>
+Date: Wed, 17 Jul 2024 16:33:30 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -68,8 +68,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 02/17] MIPS: sgi-ip27: make NODE_DATA() the same as on all
- other architectures
+Subject: Re: [PATCH 03/17] MIPS: loongson64: rename __node_data to node_data
 To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -97,7 +96,7 @@ Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
  x86@kernel.org
 References: <20240716111346.3676969-1-rppt@kernel.org>
- <20240716111346.3676969-3-rppt@kernel.org>
+ <20240716111346.3676969-4-rppt@kernel.org>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -145,75 +144,19 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20240716111346.3676969-3-rppt@kernel.org>
+In-Reply-To: <20240716111346.3676969-4-rppt@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 16.07.24 13:13, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> sgi-ip27 is the only system that defines NODE_DATA() differently than
-> the rest of NUMA machines.
-> 
-> Add node_data array of struct pglist pointers that will point to
-> __node_data[node]->pglist and redefine NODE_DATA() to use node_data
-> array.
-> 
-> This will allow pulling declaration of node_data to the generic mm code
-> in the next commit.
+> Make definition of node_data match other architectures.
+> This will allow pulling declaration of node_data to the generic mm code in
+> the following commit.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
->   arch/mips/include/asm/mach-ip27/mmzone.h | 5 ++++-
->   arch/mips/sgi-ip27/ip27-memory.c         | 5 ++++-
->   2 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/mips/include/asm/mach-ip27/mmzone.h b/arch/mips/include/asm/mach-ip27/mmzone.h
-> index 08c36e50a860..629c3f290203 100644
-> --- a/arch/mips/include/asm/mach-ip27/mmzone.h
-> +++ b/arch/mips/include/asm/mach-ip27/mmzone.h
-> @@ -22,7 +22,10 @@ struct node_data {
->   
->   extern struct node_data *__node_data[];
->   
-> -#define NODE_DATA(n)		(&__node_data[(n)]->pglist)
->   #define hub_data(n)		(&__node_data[(n)]->hub)
->   
-> +extern struct pglist_data *node_data[];
-> +
-> +#define NODE_DATA(nid)		(node_data[nid])
-> +
->   #endif /* _ASM_MACH_MMZONE_H */
-> diff --git a/arch/mips/sgi-ip27/ip27-memory.c b/arch/mips/sgi-ip27/ip27-memory.c
-> index b8ca94cfb4fe..c30ef6958b97 100644
-> --- a/arch/mips/sgi-ip27/ip27-memory.c
-> +++ b/arch/mips/sgi-ip27/ip27-memory.c
-> @@ -34,8 +34,10 @@
->   #define SLOT_PFNSHIFT		(SLOT_SHIFT - PAGE_SHIFT)
->   #define PFN_NASIDSHFT		(NASID_SHFT - PAGE_SHIFT)
->   
-> -struct node_data *__node_data[MAX_NUMNODES];
-> +struct pglist_data *node_data[MAX_NUMNODES];
-> +EXPORT_SYMBOL(node_data);
->   
-> +struct node_data *__node_data[MAX_NUMNODES];
->   EXPORT_SYMBOL(__node_data);
->   
->   static u64 gen_region_mask(void)
-> @@ -361,6 +363,7 @@ static void __init node_mem_init(nasid_t node)
->   	 */
->   	__node_data[node] = __va(slot_freepfn << PAGE_SHIFT);
->   	memset(__node_data[node], 0, PAGE_SIZE);
-> +	node_data[node] = &__node_data[node]->pglist;
->   
->   	NODE_DATA(node)->node_start_pfn = start_pfn;
->   	NODE_DATA(node)->node_spanned_pages = end_pfn - start_pfn;
-
-I was assuming we could get rid of __node_data->pglist.
-
-But now I am confused where that is actually set.
-
-Anyhow
 
 Reviewed-by: David Hildenbrand <david@redhat.com>
 
