@@ -1,196 +1,173 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37FCD2CA9
-	for <sparclinux@vger.kernel.org>; Mon, 22 Jul 2024 13:29:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AA1216DEBC
+	for <sparclinux@vger.kernel.org>; Mon, 22 Jul 2024 15:31:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721654990; cv=none; b=ZMUe7mqThVwBIMDco3rSRq/Uq1XJaSeYmlMgvBdDsHPDxe1zvmP6noFxRu2Pm7oaA9ghY3yDaz7X7RTBk/HH3OCHCVSmAit0S+ZAPZSRlQc0TXZJiWRDgNmgD3thJ10UYsE+zYeFd8Uag5JzbGtQ7bR6XcdT0lbXAh6oqnLVP94=
+	t=1721662316; cv=none; b=V0qcp9Csn4t15np9s7dEthOMru4knfnPGurKmXQUOMN1pH2M7OoXzZxZHC1lqvOBamO6K20RL8tA2WdqnJTze5pQgxOZozdsPBo1pokySjKWNKdBzR3XKofFp75AHnKhpC+NQPTKXOQULlg7zR4Zli/EGIPWOwsfN+W/Bwzw5ew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721654990; c=relaxed/simple;
-	bh=shTJrxd4i+mcysedkPUPCsWV1pmIpJo7ixhYECyPaKw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=PFrJRtSer0FAMZlL0NIg173V6ShSDuxqCnUFXPKtncH85QiNNzyOCpjg0/GxPCbdT4uluE16K7DA+MJg3j3YpOd8qf6CQbI5iU0OR1XVX5P6BhltzGOzostGofEzrLVpGbhFlzK5Vi1Io5piiRStwe4LxyGBcT9buIt34EFoggE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=gDkcmi5T; arc=none smtp.client-ip=170.10.133.124
+	s=arc-20240116; t=1721662316; c=relaxed/simple;
+	bh=Qme2HpEsv7RSmE58takLuJoDVmou4OYpE5Ns+lgc4w8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rZKwf6zV/09pjOnKIm14f4VP1tPjNNT30PrRMqOC36TpVUU/zhnuCYSlGEElZ7wP9XyPmcfMImSsQV8z5Y8bvWGbMqd6M5vcOcKkFfYjWriybDcI/Og0sOw6PmB8intqevDzpIaABxH05EuzW1mcSDjN4nleuLLMQ1XBvtyPq4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=e8iFXR5F; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gDkcmi5T"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e8iFXR5F"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721654988;
+	s=mimecast20190719; t=1721662313;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=hj0518Q+ag2Y9NZVcsCpncBBpD7wr8EEpXH9Btxb4Io=;
-	b=gDkcmi5TVNyGlqFfxcskf6VBMKxlpyXMFn9Zq2XqdldbJ2xvJjKn0zyKxQ+wyK7K7mJ4vy
-	1JSRUhlzk0SDxhXZ9aSfagboK0pMOlaEpFC3ovoKFs8JPIrBOoRfIY43izqKs6NVFgvOEW
-	/NCjf/266dVSBis5JrY7O/mfI7x7DyI=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	 in-reply-to:in-reply-to:references:references;
+	bh=Jy2hKoepXG/rD4fs1gDu/NkLXDQ0MSD+ICWqPzfOpkw=;
+	b=e8iFXR5FjMpRqjzWoXmGV4rVxrRhwQLPbExuo+6FB8bJBWWWOEcpYU1zIpdPcpXaZtM6E6
+	W3LxbECIGSLpocxBe7XynleoT7Mv17Q7iwGsbKE3M175bPCgJ64BQs/EhhTRdkZVy8WIKr
+	txoJwVW24+lWXCJmGu2IZ+bVK8HHwzA=
+Received: from mail-yw1-f198.google.com (mail-yw1-f198.google.com
+ [209.85.128.198]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-630-iISywSKHNhCr48Ck6tMLog-1; Mon, 22 Jul 2024 09:29:46 -0400
-X-MC-Unique: iISywSKHNhCr48Ck6tMLog-1
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4272718b9b0so32824155e9.1
-        for <sparclinux@vger.kernel.org>; Mon, 22 Jul 2024 06:29:46 -0700 (PDT)
+ us-mta-670-2QjjkkVXOoyErIZO0vBhSw-1; Mon, 22 Jul 2024 11:31:52 -0400
+X-MC-Unique: 2QjjkkVXOoyErIZO0vBhSw-1
+Received: by mail-yw1-f198.google.com with SMTP id 00721157ae682-66a9bff5a4eso9216877b3.0
+        for <sparclinux@vger.kernel.org>; Mon, 22 Jul 2024 08:31:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721654985; x=1722259785;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=hj0518Q+ag2Y9NZVcsCpncBBpD7wr8EEpXH9Btxb4Io=;
-        b=xVms/VX5oxD5HZPNZOvfCDf+wcmapTxWCS6KuJimonLdlE7mLAOMDc03yLW3ld27GJ
-         3lKC1oYBDJ2wO0HPzjSq+i+JpjCqVqBt72bC0pRlLGSq/Svio/gi7IScw1kNyHzDnp9t
-         NWBk9iGfipFGak1G5wnNDCmK/igIEc/IKBEK2RzeYbpTs+Tze6+FmP1864xii+tNmam3
-         P7uTlb+oQTEWuV0YDhLq6mj4lyFUdQBq6Xvjwl9kn/oywyvCbKL9tcY3Tv6pAMnAikRb
-         Vb248LUtMuqe+qrkvdgH5xwmX8VI3yR1nI+y3ZIisDomKukDxE135Z4kWhsZRAUbLFRT
-         W45A==
-X-Forwarded-Encrypted: i=1; AJvYcCU4b62r+PWfNapZ+W3Y+yb1fsQsKb+c1OUZtXSid26Ss37mL9v6yZTk3wEsrYuGAZaiGvwMSKrs0iX/J85fvSDYNErqN9rJkWkTcw==
-X-Gm-Message-State: AOJu0YyDqzjD4ZKN8WQeqFhKzOd3O/IAPBHESKL1IxY+KhdORWRdXHqz
-	Ke9HGltxqKQ43epy6FTc9nhZzja7j8hlR2OKx4xw6AZo1rmbRG9h6QtgdfjZOgHsATEqVVoZOQ5
-	gh0fDO5nRBw9OqML66PAurOzhqQn52qlI3npVkveUcpfpGDfRo+uPufmT1AQ=
-X-Received: by 2002:a05:600c:a4c:b0:426:6389:94c4 with SMTP id 5b1f17b1804b1-427ea1d5a2dmr9070915e9.37.1721654985327;
-        Mon, 22 Jul 2024 06:29:45 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGIyw9dA2YYXh0wR+3Pj025bxjyvTGi6gFSINBbowgn9GBPFQbhi8MNgjqnWB9eXV6rnCmpfg==
-X-Received: by 2002:a05:600c:a4c:b0:426:6389:94c4 with SMTP id 5b1f17b1804b1-427ea1d5a2dmr9070715e9.37.1721654984893;
-        Mon, 22 Jul 2024 06:29:44 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c727:7000:c050:e303:f8a7:6ed9? (p200300cbc7277000c050e303f8a76ed9.dip0.t-ipconnect.de. [2003:cb:c727:7000:c050:e303:f8a7:6ed9])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427d6900caasm126895385e9.11.2024.07.22.06.29.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 22 Jul 2024 06:29:44 -0700 (PDT)
-Message-ID: <cf36725d-c197-4c07-8998-d34711335fdb@redhat.com>
-Date: Mon, 22 Jul 2024 15:29:43 +0200
+        d=1e100.net; s=20230601; t=1721662312; x=1722267112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Jy2hKoepXG/rD4fs1gDu/NkLXDQ0MSD+ICWqPzfOpkw=;
+        b=VxN/9qOdjue06m+yeuOubzK5lvyF/2FL3spc2xsLh/Yq75/T69e4pZu0ZU8ff/fxd9
+         uTVw/8BYHNCiZ+TnTnXJwT7HfmNI1pe531HykfSzhLlmIwbV0a6axKPE/QCfe24Ihbq5
+         ztRZWqMNAX7j0UIi9hVc9zGFmFQBfdXcMkI5P9qS4vcc2xXEb8knD69E1/4OIqY5fK4c
+         QD0rKqKBZfsD+7VL2T4gQpQEpt8Dxo3XmaUyy/sMr0rLNlfOx0B/42yWCYCaeXM743fh
+         X2jKTtPcrNFQV5n8gasaXgEdBOkoaB/fpMzyVTNyUZWRlWUiqdyBUboj8G/4ty4fgQro
+         jJrg==
+X-Forwarded-Encrypted: i=1; AJvYcCVGJzdwWLiSfPRMkvBGoVtNhWQUlWvy1SEDykYjUqWfJmkZBpw4kQPF+1z2pd2QvLL6EmNgYoPJ7+QPuX0HCn02Kya9h7XJr18ciw==
+X-Gm-Message-State: AOJu0Yznik2ND+YkvURQb/1WhshDDvDn6RBip876BNngVKAP1RbQSC2l
+	QuDhvBe8i441pkA1cs7u0g/KFXHnxazBSTgCXxkI80c57n2Kyz/mcntiOhlAO0YRgmjXHbFd5TH
+	xEUtpD8WCQcR3HTk9b/Hp9lEi6dFKJUlWzpcMy3DZT8dp8uhMtpw9bOggias=
+X-Received: by 2002:a05:690c:12:b0:62f:7951:fe4d with SMTP id 00721157ae682-66a6645377bmr38047537b3.4.1721662311579;
+        Mon, 22 Jul 2024 08:31:51 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEjAYBMqsJOtNPwFqnMhMAJ/HDPRITSVBivrOVSPNdHxvmNPnz6ZnQiqjkhPkHbmoLpOWtDQA==
+X-Received: by 2002:a05:690c:12:b0:62f:7951:fe4d with SMTP id 00721157ae682-66a6645377bmr38047287b3.4.1721662311092;
+        Mon, 22 Jul 2024 08:31:51 -0700 (PDT)
+Received: from x1n (pool-99-254-121-117.cpe.net.cable.rogers.com. [99.254.121.117])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7a198fba6efsm372071285a.41.2024.07.22.08.31.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 22 Jul 2024 08:31:50 -0700 (PDT)
+Date: Mon, 22 Jul 2024 11:31:48 -0400
+From: Peter Xu <peterx@redhat.com>
+To: David Hildenbrand <david@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Oscar Salvador <osalvador@suse.de>, linux-s390@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Michal Hocko <mhocko@kernel.org>, linux-riscv@lists.infradead.org,
+	sparclinux@vger.kernel.org,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Jason Gunthorpe <jgg@nvidia.com>, x86@kernel.org,
+	Alistair Popple <apopple@nvidia.com>, linuxppc-dev@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Hugh Dickins <hughd@google.com>,
+	Axel Rasmussen <axelrasmussen@google.com>
+Subject: Re: [PATCH RFC 0/6] mm: THP-agnostic refactor on huge mappings
+Message-ID: <Zp57ZLk2IQoHOI7u@x1n>
+References: <20240717220219.3743374-1-peterx@redhat.com>
+ <cf36725d-c197-4c07-8998-d34711335fdb@redhat.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC 0/6] mm: THP-agnostic refactor on huge mappings
-To: Peter Xu <peterx@redhat.com>, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org
-Cc: Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>,
- linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
- Matthew Wilcox <willy@infradead.org>, Dan Williams
- <dan.j.williams@intel.com>, Michal Hocko <mhocko@kernel.org>,
- linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
- Alex Williamson <alex.williamson@redhat.com>,
- Jason Gunthorpe <jgg@nvidia.com>, x86@kernel.org,
- Alistair Popple <apopple@nvidia.com>, linuxppc-dev@lists.ozlabs.org,
- linux-arm-kernel@lists.infradead.org, Ryan Roberts <ryan.roberts@arm.com>,
- Hugh Dickins <hughd@google.com>, Axel Rasmussen <axelrasmussen@google.com>
-References: <20240717220219.3743374-1-peterx@redhat.com>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <20240717220219.3743374-1-peterx@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <cf36725d-c197-4c07-8998-d34711335fdb@redhat.com>
 
-On 18.07.24 00:02, Peter Xu wrote:
-> This is an RFC series, so not yet for merging.  Please don't be scared by
-> the code changes: most of them are code movements only.
+On Mon, Jul 22, 2024 at 03:29:43PM +0200, David Hildenbrand wrote:
+> On 18.07.24 00:02, Peter Xu wrote:
+> > This is an RFC series, so not yet for merging.  Please don't be scared by
+> > the code changes: most of them are code movements only.
+> > 
+> > This series is based on the dax mprotect fix series here (while that one is
+> > based on mm-unstable):
+> > 
+> >    [PATCH v3 0/8] mm/mprotect: Fix dax puds
+> >    https://lore.kernel.org/r/20240715192142.3241557-1-peterx@redhat.com
+> > 
+> > Overview
+> > ========
+> > 
+> > This series doesn't provide any feature change.  The only goal of this
+> > series is to start decoupling two ideas: "THP" and "huge mapping".  We
+> > already started with having PGTABLE_HAS_HUGE_LEAVES config option, and this
+> > one extends that idea into the code.
+> > 
+> > The issue is that we have so many functions that only compile with
+> > CONFIG_THP=on, even though they're about huge mappings, and huge mapping is
+> > a pretty common concept, which can apply to many things besides THPs
+> > nowadays.  The major THP file is mm/huge_memory.c as of now.
+> > 
+> > The first example of such huge mapping users will be hugetlb.  We lived
+> > until now with no problem simply because Linux almost duplicated all the
+> > logics there in the "THP" files into hugetlb APIs.  If we want to get rid
+> > of hugetlb specific APIs and paths, this _might_ be the first thing we want
+> > to do, because we want to be able to e.g., zapping a hugetlb pmd entry even
+> > if !CONFIG_THP.
+> > 
+> > Then consider other things like dax / pfnmaps.  Dax can depend on THP, then
+> > it'll naturally be able to use pmd/pud helpers, that's okay.  However is it
+> > a must?  Do we also want to have every new pmd/pud mappings in the future
+> > to depend on THP (like PFNMAP)?  My answer is no, but I'm open to opinions.
+> > 
+> > If anyone agrees with me that "huge mapping" (aka, PMD/PUD mappings that
+> > are larger than PAGE_SIZE) is a more generic concept than THP, then I think
+> > at some point we need to move the generic code out of THP code into a
+> > common code base.
+> > 
+> > This is what this series does as a start.
 > 
-> This series is based on the dax mprotect fix series here (while that one is
-> based on mm-unstable):
+> Hi Peter!
 > 
->    [PATCH v3 0/8] mm/mprotect: Fix dax puds
->    https://lore.kernel.org/r/20240715192142.3241557-1-peterx@redhat.com
+> From a quick glimpse, patch #1-#4 do make sense independent of patch #5.
 > 
-> Overview
-> ========
+> I am not so sure about all of the code movement in patch #5. If large folios
+> are the future, then likely huge_memory.c should simply be the home for all
+> that logic.
 > 
-> This series doesn't provide any feature change.  The only goal of this
-> series is to start decoupling two ideas: "THP" and "huge mapping".  We
-> already started with having PGTABLE_HAS_HUGE_LEAVES config option, and this
-> one extends that idea into the code.
+> Maybe the goal should better be to compile huge_memory.c not only for THP,
+> but also for other use cases that require that logic, and fence off all THP
+> specific stuff using #ifdef?
 > 
-> The issue is that we have so many functions that only compile with
-> CONFIG_THP=on, even though they're about huge mappings, and huge mapping is
-> a pretty common concept, which can apply to many things besides THPs
-> nowadays.  The major THP file is mm/huge_memory.c as of now.
-> 
-> The first example of such huge mapping users will be hugetlb.  We lived
-> until now with no problem simply because Linux almost duplicated all the
-> logics there in the "THP" files into hugetlb APIs.  If we want to get rid
-> of hugetlb specific APIs and paths, this _might_ be the first thing we want
-> to do, because we want to be able to e.g., zapping a hugetlb pmd entry even
-> if !CONFIG_THP.
-> 
-> Then consider other things like dax / pfnmaps.  Dax can depend on THP, then
-> it'll naturally be able to use pmd/pud helpers, that's okay.  However is it
-> a must?  Do we also want to have every new pmd/pud mappings in the future
-> to depend on THP (like PFNMAP)?  My answer is no, but I'm open to opinions.
-> 
-> If anyone agrees with me that "huge mapping" (aka, PMD/PUD mappings that
-> are larger than PAGE_SIZE) is a more generic concept than THP, then I think
-> at some point we need to move the generic code out of THP code into a
-> common code base.
-> 
-> This is what this series does as a start.
+> Not sure, though. But a lot of this code movements/churn might be avoidable.
 
-Hi Peter!
+I'm fine using ifdefs in the current fine, but IMHO it's a matter of
+whether we want to keep huge_memory.c growing into even larger file, and
+keep all large folio logics only in that file.  Currently it's ~4000 LOCs.
 
- From a quick glimpse, patch #1-#4 do make sense independent of patch #5.
+Nornally I don't see this as much of a "code churn" category, because it
+doesn't changes the code itself but only move things.  I personally also
+prefer without code churns, but only in the case where there'll be tiny
+little functional changes here and there without real benefit.
 
-I am not so sure about all of the code movement in patch #5. If large 
-folios are the future, then likely huge_memory.c should simply be the 
-home for all that logic.
+It's pretty unavoidable to me when one file grows too large and we'll need
+to split, and in this case git doesn't have a good way to track such
+movement..
 
-Maybe the goal should better be to compile huge_memory.c not only for 
-THP, but also for other use cases that require that logic, and fence off 
-all THP specific stuff using #ifdef?
+Irrelevant of this, just to mention I think there's still one option that I
+at least can make the huge pfnmap depends on THP again which shouldn't be a
+huge deal (I don't have any use case that needs huge pfnmap but disable
+THP, anyway..), so this series isn't an immediate concern to me for that
+route.  But for a hugetlb rework this might be something we need to do,
+because we simplly can't make CONFIG_HUGETLB rely on CONFIG_THP..
 
-Not sure, though. But a lot of this code movements/churn might be avoidable.
+Thanks,
 
 -- 
-Cheers,
-
-David / dhildenb
+Peter Xu
 
