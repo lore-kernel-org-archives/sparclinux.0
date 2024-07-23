@@ -1,247 +1,190 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA37F1422CE
-	for <sparclinux@vger.kernel.org>; Tue, 23 Jul 2024 21:22:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C061465AB
+	for <sparclinux@vger.kernel.org>; Tue, 23 Jul 2024 21:49:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721769730; cv=none; b=LSegWjMkx1CAPEyWqFSsabdWKaBZVEBclJJAjojMDAaQAnVD+nwMdjg3LRWzxZ3gQNHZeHOnCjU3oSUdFP3IAcheW4yeansNA7Qj0lZbS6ryrEF/jBbHaJquPYoMjVjZr983MvoKRgWjQsm+Oq2k8hBsDPLW7ynC3nkkaO5vpV0=
+	t=1721771391; cv=none; b=IpXojZiAWdiAFHsdt/N+4sv17DduHqdhQq5efKsyZTG3HtAkpXfEExa+NbqyG7f/xd7jmuZJLnXKsJeIYpFda/33xJzOmLCov6VhCVxPGmBqKYkoJlXPlsLXt8aYis45eTsp0gc4nwQVldezZlZmfvGNz1SxCJ73KetYZu1SW1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721769730; c=relaxed/simple;
-	bh=i3pfAw1KaudTzwEu/10QbazMMjEIIPlHKdgBDzRR5o4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HPq5de1SUICIqBzEBzwPFQ3+CPaOYYBzG6avOIg2LLHCayCJ3DsnTNCHqCY5lXzWkL4/iLmE84I3Ghrg6KuYSGobJztutXUbmp0Pjy+xm/dIpk8c8x8YxV1hf19xE69h7UlYAyMZDNgOJKLbNta+rZxN16RnlVNsFb1ZHPDSQHQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=XN3Qp4e5; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1721771391; c=relaxed/simple;
+	bh=2SPyJdYRw87M7kH/eiezDyPqKNLNQ+jlKjgodNew6rA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sb/Qx8xJo7v/uiHosirHmR8T73RlTrEy0YiqYEmJ/bAEEl8b+I3/5HLYp0fscVXq1cVdD9yh01b1VmiFoAJkshljOoBdwh/w903/zsRpapJ1Iu9HYXYQ6fPoq9f9najd8JpHjXudCWmCq6vASOGlronMF7tP2QVGtJR/GnVbfLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Fyfp56ZR; arc=none smtp.client-ip=209.85.219.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XN3Qp4e5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1721769727;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=g2K985F+JisyaO1P/JvvQtZwZa+DhsuE69ZrR+fszhY=;
-	b=XN3Qp4e5liel8eofgyl0Xy0ch/m4trotEunQ5LvifTN5vwH5s8u2AJjEjW/wsQui/4mOxC
-	vuVGSCsmE0ixIxIUzV2vWhrMKTfnehCkWysDmLoC+zX2djIsVpNd20kxOBfHIIiJSefH3F
-	pDzH4wkc3nEkKmRMKKuoVa7obYvNOS4=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-610-N_tqZx9qMXyNeKmI7h8YLA-1; Tue, 23 Jul 2024 17:22:06 -0400
-X-MC-Unique: N_tqZx9qMXyNeKmI7h8YLA-1
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-367962f0cb0so3541553f8f.1
-        for <sparclinux@vger.kernel.org>; Tue, 23 Jul 2024 14:22:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Fyfp56ZR"
+Received: by mail-yb1-f181.google.com with SMTP id 3f1490d57ef6-e0b10e8b6b7so14536276.2
+        for <sparclinux@vger.kernel.org>; Tue, 23 Jul 2024 14:49:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1721771388; x=1722376188; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=yF33mP3g3PVeShTJgLfx3fwdjlEE8z1s+DJQDSjcr+Y=;
+        b=Fyfp56ZR1ESGsr5WcO9ANtOIhEqOM3JSjZfk33f5RdokqN6GS9KYDSotLO4rDc3quS
+         RjaSdEa0xexo57qp/8eaJFSf+zj5XZipWjYU5j75zimicvyKmO6rnpXwNNJR6lYmWmJk
+         SG8Xxr9K0V+ggX/45/VWRKhbVNl7RGpR5nqlxjZgEbAojfKUDkcdkYwfHCzinB3T4Wye
+         jU2Gr6XsGMiaC47jaEWYclfWUf4OEtEWFLohdXMcuV2HfjZSalRjbdEiMVf9YPTCh+7y
+         F4XQxmwOHpl+ni2pn+YZF4mTb/UoJS4vHc26G62cqtXWxBfuopA2MLJPu0kXOMGaDy+R
+         Ijxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721769725; x=1722374525;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=g2K985F+JisyaO1P/JvvQtZwZa+DhsuE69ZrR+fszhY=;
-        b=HZKoQOxx38ekqsBj8o9XrsZLJiF8q8CAg08GwAm0+IIFIW1T43kBv7JqQIFv82uknX
-         RURnFO10u5DvuErPQ38HOLUTlz2MLCmf4w/QCl+g8apQt15DTl1LjX79MXiftkt4LKBg
-         RW8wBP8SDTOejHjtyGiRq5agHa8qvHtZWQa0Y8lTR9MKNEKi4l1C9YEUeTQ7Ol2qMQ2I
-         Egl5+k3VxAdXpAxyjQqWNbCBiqVOJGNJpl5/YI8yOSortZ7QyVEiHX85D1kQxyKzGa3R
-         2mLsRXWnQp+JT6iXn/DZ6ttErRL/MxPG7Hb4oaxU2IU4PYejcMsyLbFvyBVMJq4T4bKC
-         u3/g==
-X-Forwarded-Encrypted: i=1; AJvYcCW8BeGJWeZM+yFTwBJY4GHzyM/hrPrNaANsxhWsM5y5/ta99j7Pf8x4g9+4adhjQf1fbnsomZ4XtyJCG4T2nIUXa13bdsTb4bhQcw==
-X-Gm-Message-State: AOJu0YxL8I9zLLbPAL/UIlvm+W2/fTWP7824ItXkShyOyiyw/fFKn0US
-	a1GxDpiijnKHgw2alzuHLo7MnmO8cq4wL5F7gmid7eA7b3M09OuGF24ViZP0ettK1zW5+5nTP+J
-	WGyG4i/m1WcXizh0FT+8BHYfJZDIBEOaFO3dAUZkdIrNtZ0jpplEHcefKVYw=
-X-Received: by 2002:a5d:64a8:0:b0:367:94b8:1df1 with SMTP id ffacd0b85a97d-369bae97e75mr7352138f8f.55.1721769725081;
-        Tue, 23 Jul 2024 14:22:05 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEZpJY61ZWZsVtUXIZgPXhIWFxqPYeKoLxP8USF6rP/yxwg/LgUFS9ATMnvRHeV1H1e/zaoew==
-X-Received: by 2002:a5d:64a8:0:b0:367:94b8:1df1 with SMTP id ffacd0b85a97d-369bae97e75mr7352118f8f.55.1721769724633;
-        Tue, 23 Jul 2024 14:22:04 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c72f:ed00:9dc2:1adb:d133:4434? (p200300cbc72fed009dc21adbd1334434.dip0.t-ipconnect.de. [2003:cb:c72f:ed00:9dc2:1adb:d133:4434])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-36878684839sm12529422f8f.22.2024.07.23.14.22.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 23 Jul 2024 14:22:04 -0700 (PDT)
-Message-ID: <263e4414-24c0-4245-9c6d-7799c7bb9f77@redhat.com>
-Date: Tue, 23 Jul 2024 23:22:02 +0200
+        d=1e100.net; s=20230601; t=1721771388; x=1722376188;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=yF33mP3g3PVeShTJgLfx3fwdjlEE8z1s+DJQDSjcr+Y=;
+        b=AhBIxfEZmq8qevRhLk5vusNWv1lBv5/yg/BC0233fMkU1mYNQIVL6BrdqhohRSeJ3/
+         ivKmj5ajDqkVXfEVvcGPaLH2mHnS8AthTPP5HErU4biX4Fq3q1DAjzHlUId7nMd2DD8H
+         rsbSeycNc25x+bWU99Xc5KfJGAdaApWJYmsJasD0i48QQ4fO63vA2xQlllKwsX6KrgAh
+         cF+PW7ksNNHOH20MUhmz8b5clIWEDnt6JkUyPECZnhzs8ZouL0r9zeuDNxJ9Uig+43W5
+         VzLU7pYFdiv+340aTBue84Wm0rPJvcanZBeOAXF4kqexLHwxJEaw2uIEDYyCM33xncp2
+         7z6w==
+X-Forwarded-Encrypted: i=1; AJvYcCWVoTYoHwiIns2jq3B3+DTwNArkNjJRxQm8K3472MV9CiyKm1hyaqL6P8autFdtxFmFHhLc7TUA4M7W9Gf2HIKmjVeTBu6SdCK4Hw==
+X-Gm-Message-State: AOJu0YxqXGtnywSHHgSHjU3suO+iSOPYDn1dV06wBNpvcUrbJysrG14w
+	piJVMk+oxJxVFSLvtvfR/WUsAfr0b7Np0P8Nw3vlvmyEP+SOmfbdiPVPeaab+ePnWFLMHMZRjTv
+	VKTjpYHEZ7G7p5TyaqhaGrPRAKeqLrINO4F6L
+X-Google-Smtp-Source: AGHT+IH5JJRTlNbepSdsOAGPfU8tDz3MNG4de1Wtf/RZgU4beT2V9Y9SRFjNnPwNA1SLBZA82p/Z63pCaOnO/csApGk=
+X-Received: by 2002:a05:6902:1108:b0:e08:7607:bbf3 with SMTP id
+ 3f1490d57ef6-e0b097d5744mr1316657276.34.1721771388342; Tue, 23 Jul 2024
+ 14:49:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC 0/6] mm: THP-agnostic refactor on huge mappings
-To: Peter Xu <peterx@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>,
- linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
- Matthew Wilcox <willy@infradead.org>, Dan Williams
- <dan.j.williams@intel.com>, Michal Hocko <mhocko@kernel.org>,
- linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
- Alex Williamson <alex.williamson@redhat.com>,
- Jason Gunthorpe <jgg@nvidia.com>, x86@kernel.org,
- Alistair Popple <apopple@nvidia.com>, linuxppc-dev@lists.ozlabs.org,
- linux-arm-kernel@lists.infradead.org, Ryan Roberts <ryan.roberts@arm.com>,
- Hugh Dickins <hughd@google.com>, Axel Rasmussen <axelrasmussen@google.com>
-References: <20240717220219.3743374-1-peterx@redhat.com>
- <cf36725d-c197-4c07-8998-d34711335fdb@redhat.com> <Zp57ZLk2IQoHOI7u@x1n>
- <cfe94481-233a-421c-b607-08517588de6c@redhat.com> <ZqAayNSDf_6cfziw@x1n>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <ZqAayNSDf_6cfziw@x1n>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20240628003253.1694510-1-almasrymina@google.com>
+ <20240628003253.1694510-4-almasrymina@google.com> <CAMArcTUqqxam+BPwGExOFOLVi3t=dwA-5sSagKC5dndv07GDLQ@mail.gmail.com>
+ <CAHS8izNS5jZjPfc-sARbHV7mzqzH+UhHfAtCTKRRTfSAdhY4Cw@mail.gmail.com> <CAMArcTUdCxOBYGF3vpbq=eBvqZfnc44KBaQTN7H-wqdUxZdziw@mail.gmail.com>
+In-Reply-To: <CAMArcTUdCxOBYGF3vpbq=eBvqZfnc44KBaQTN7H-wqdUxZdziw@mail.gmail.com>
+From: Mina Almasry <almasrymina@google.com>
+Date: Tue, 23 Jul 2024 14:49:34 -0700
+Message-ID: <CAHS8izMTGgZ+4fOKegUDLqAoxrdVEb+nqjQEt8bP0WLBV=FfrQ@mail.gmail.com>
+Subject: Re: [PATCH net-next v15 03/14] netdev: support binding dma-buf to netdevice
+To: Taehee Yoo <ap420073@gmail.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, 
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, 
+	Yonghong Song <yonghong.song@linux.dev>, John Fastabend <john.fastabend@gmail.com>, 
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>, 
+	Jiri Olsa <jolsa@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Yunsheng Lin <linyunsheng@huawei.com>, 
+	Shailend Chand <shailend@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Jeroen de Borst <jeroendb@google.com>, 
+	Praveen Kaligineedi <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>, 
+	Kaiyuan Zhang <kaiyuanz@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 23.07.24 23:04, Peter Xu wrote:
-> On Tue, Jul 23, 2024 at 10:18:37AM +0200, David Hildenbrand wrote:
->> On 22.07.24 17:31, Peter Xu wrote:
->>> On Mon, Jul 22, 2024 at 03:29:43PM +0200, David Hildenbrand wrote:
->>>> On 18.07.24 00:02, Peter Xu wrote:
->>>>> This is an RFC series, so not yet for merging.  Please don't be scared by
->>>>> the code changes: most of them are code movements only.
->>>>>
->>>>> This series is based on the dax mprotect fix series here (while that one is
->>>>> based on mm-unstable):
->>>>>
->>>>>      [PATCH v3 0/8] mm/mprotect: Fix dax puds
->>>>>      https://lore.kernel.org/r/20240715192142.3241557-1-peterx@redhat.com
->>>>>
->>>>> Overview
->>>>> ========
->>>>>
->>>>> This series doesn't provide any feature change.  The only goal of this
->>>>> series is to start decoupling two ideas: "THP" and "huge mapping".  We
->>>>> already started with having PGTABLE_HAS_HUGE_LEAVES config option, and this
->>>>> one extends that idea into the code.
->>>>>
->>>>> The issue is that we have so many functions that only compile with
->>>>> CONFIG_THP=on, even though they're about huge mappings, and huge mapping is
->>>>> a pretty common concept, which can apply to many things besides THPs
->>>>> nowadays.  The major THP file is mm/huge_memory.c as of now.
->>>>>
->>>>> The first example of such huge mapping users will be hugetlb.  We lived
->>>>> until now with no problem simply because Linux almost duplicated all the
->>>>> logics there in the "THP" files into hugetlb APIs.  If we want to get rid
->>>>> of hugetlb specific APIs and paths, this _might_ be the first thing we want
->>>>> to do, because we want to be able to e.g., zapping a hugetlb pmd entry even
->>>>> if !CONFIG_THP.
->>>>>
->>>>> Then consider other things like dax / pfnmaps.  Dax can depend on THP, then
->>>>> it'll naturally be able to use pmd/pud helpers, that's okay.  However is it
->>>>> a must?  Do we also want to have every new pmd/pud mappings in the future
->>>>> to depend on THP (like PFNMAP)?  My answer is no, but I'm open to opinions.
->>>>>
->>>>> If anyone agrees with me that "huge mapping" (aka, PMD/PUD mappings that
->>>>> are larger than PAGE_SIZE) is a more generic concept than THP, then I think
->>>>> at some point we need to move the generic code out of THP code into a
->>>>> common code base.
->>>>>
->>>>> This is what this series does as a start.
->>>>
->>>> Hi Peter!
->>>>
->>>>   From a quick glimpse, patch #1-#4 do make sense independent of patch #5.
->>>>
->>>> I am not so sure about all of the code movement in patch #5. If large folios
->>>> are the future, then likely huge_memory.c should simply be the home for all
->>>> that logic.
->>>>
->>>> Maybe the goal should better be to compile huge_memory.c not only for THP,
->>>> but also for other use cases that require that logic, and fence off all THP
->>>> specific stuff using #ifdef?
->>>>
->>>> Not sure, though. But a lot of this code movements/churn might be avoidable.
->>>
->>> I'm fine using ifdefs in the current fine, but IMHO it's a matter of
->>> whether we want to keep huge_memory.c growing into even larger file, and
->>> keep all large folio logics only in that file.  Currently it's ~4000 LOCs.
->>
->> Depends on "how much" for sure. huge_memory.c is currently on place 12 of
->> the biggest files in mm/. So there might not be immediate cause for action
->> ... just yet :) [guess which file is on #2 :) ]
-> 
-> 7821, hugetlb.c
-> 7602, vmscan.c
-> 7275, slub.c
-> 7072, page_alloc.c
-> 6673, memory.c
-> 5402, memcontrol.c
-> 5239, shmem.c
-> 5155, vmalloc.c
-> 4419, filemap.c
-> 4060, mmap.c
-> 3882, huge_memory.c
-> 
-> IMHO a split is normally better than keeping everything in one file, but
-> yeah I'd confess THP file isn't that bad comparing to others..  And I'm
-> definitely surprised it's even out of top ten.
+On Tue, Jul 9, 2024 at 8:37=E2=80=AFAM Taehee Yoo <ap420073@gmail.com> wrot=
+e:
+...
+> Reproducer:
+> ./ncdevmem -f <interface name> -l -p 5201 -v 7 -t 0 -q 2 &
+> sleep 10
+> modprobe -rv bnxt_en
+> killall ncdevmem
+>
+> I think it's a devmemTCP core bug so this issue would be reproduced
+> with other drivers.
 
-It's always interesting looking at the numbers here. For v6.10 we had:
+Sorry for the late reply. I was out at netdev.
 
-     8521 mm/memcontrol.c
-     7813 mm/hugetlb.c
-     7550 mm/vmscan.c
-     7266 mm/slub.c
-     7018 mm/page_alloc.c
-     6468 mm/memory.c
-     5154 mm/vmalloc.c
-     5002 mm/shmem.c
-     4419 mm/filemap.c
-     4019 mm/mmap.c
-     3954 mm/ksm.c
-     3740 mm/swapfile.c
-     3730 mm/huge_memory.c
-     3689 mm/gup.c
-     3542 mm/mempolicy.c
+I'm also having trouble reproducing this, not because the bug doesn't
+exist, but quirks with my test setup that I need to figure out. AFAICT
+this diff should fix the issue. If you have time to confirm, let me
+know if it doesn't work for you. It should apply on top of v16:
 
-I suspect memcontrol.c shrunk because of the v1 split-off, leaving 
-hugetlb.c now at #1 :)
+commit 795b8ff01906d ("fix for release issue")
+Author: Mina Almasry <almasrymina@google.com>
+Date:   Tue Jul 23 00:18:23 2024 +0000
 
--- 
-Cheers,
+    fix for release issue
 
-David / dhildenb
+    Change-Id: Ib45a0aa6cba2918db5f7ba535414ffa860911fa4
 
+
+
+diff --git a/include/net/devmem.h b/include/net/devmem.h
+index 51b25ba193c96..df52526bb516a 100644
+--- a/include/net/devmem.h
++++ b/include/net/devmem.h
+@@ -68,6 +68,9 @@ net_devmem_bind_dmabuf(struct net_device *dev,
+unsigned int dmabuf_fd);
+ void net_devmem_unbind_dmabuf(struct net_devmem_dmabuf_binding *binding);
+ int net_devmem_bind_dmabuf_to_queue(struct net_device *dev, u32 rxq_idx,
+                                    struct net_devmem_dmabuf_binding *bindi=
+ng);
++
++void dev_dmabuf_uninstall(struct net_device *dev);
++
+ struct net_iov *
+ net_devmem_alloc_dmabuf(struct net_devmem_dmabuf_binding *binding);
+ void net_devmem_free_dmabuf(struct net_iov *ppiov);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 5882ddc3f8592..7be084e4936e4 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -11320,6 +11320,7 @@ void unregister_netdevice_many_notify(struct
+list_head *head,
+                dev_tcx_uninstall(dev);
+                dev_xdp_uninstall(dev);
+                bpf_dev_bound_netdev_unregister(dev);
++               dev_dmabuf_uninstall(dev);
+
+                netdev_offload_xstats_disable_all(dev);
+
+diff --git a/net/core/devmem.c b/net/core/devmem.c
+index e75057ecfa6de..227bcb1070ec0 100644
+--- a/net/core/devmem.c
++++ b/net/core/devmem.c
+@@ -362,4 +362,20 @@ bool mp_dmabuf_devmem_release_page(struct
+page_pool *pool, netmem_ref netmem)
+        return false;
+ }
+
++void dev_dmabuf_uninstall(struct net_device *dev)
++{
++       unsigned int i, count =3D dev->num_rx_queues;
++       struct net_devmem_dmabuf_binding *binding;
++       struct netdev_rx_queue *rxq;
++       unsigned long xa_idx;
++
++       for (i =3D 0; i < count; i++) {
++               binding =3D dev->_rx[i].mp_params.mp_priv;
++               if (binding)
++                       xa_for_each(&binding->bound_rxqs, xa_idx, rxq)
++                               if (rxq =3D=3D &dev->_rx[i])
++                                       xa_erase(&binding->bound_rxqs, xa_i=
+dx);
++       }
++}
++
+ #endif
+
+--=20
+Thanks,
+Mina
