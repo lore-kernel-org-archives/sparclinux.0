@@ -1,155 +1,122 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A1B41A286;
-	Fri, 26 Jul 2024 09:40:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2441984D10;
+	Mon, 29 Jul 2024 06:44:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721986831; cv=none; b=cSKIVcGjEuOI9NDHxWdnPFSYJGadddiqw0Bw/0X10KKNQXsK+T586XWkmjViHLQBi75JLWTcx9H8jD/kPQa1zuF3d+av7WhxwGg7eOxlMiDVNHR1rTzuAL+3Qb/YC/yfXZCT/5G/nII3OjHukfkaWkPJm2ERsBsTgwytbSaoGUY=
+	t=1722235457; cv=none; b=eZyBuq9UnIfcJi5RRaQGzuDYtrPKPQ30Pgw0/W+px6mEoebWDPNthyCub6CIvJJqUYP++ibLrIKPNuuOcaM771BrBh78yyGyIOT+BMbyasteMPD8yHDcTxUkM9P7xTFD0PH4xWMSQF+mDsAxS5rDb/ytJkK9KYoaMLtUtPXPCzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721986831; c=relaxed/simple;
-	bh=/W5kbKWSvcsVRYIH6lNhUURaeOalcNxprGj7xwqXc8w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EBFRF6w5Vc95asL3rDHbR9IyvGpyJW8RyLF4m8jvJfeiZ9TbNfkxFXhNTkEgyb2EfbKzOkhe8itvQ8yDnIc34LaRSjJTPpRK1uaaclvpze6DmYhMZ1ytM4j6x22UoK01mD6eCTSao2XH4fzP6WxwehwuZW3EQQVd+ba9Yh5W9zg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=erbBnHVt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722235457; c=relaxed/simple;
+	bh=TBV9wTACyzpErDnIaeSoSzD9b2nZ0a3vathBCa0feuw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Y+Il+VwB136SuEDaDeVmp5CChAl8d8XWRWnn6b3xd2eZfGgoBLZf+9MpjQDoZZj20+TY5RQE+Uv2B0Abb3XGtgHoeA+w1hPfp0gahzBxBdGT4qhCO40SaYmG9gpMVfeiIWGHBKHO5ZoIqIfXoAEde+kv62v+tSq9T0SKblmHIyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hbV7b53v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="erbBnHVt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9535FC32782;
-	Fri, 26 Jul 2024 09:40:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hbV7b53v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E54AC32786;
+	Mon, 29 Jul 2024 06:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1721986830;
-	bh=/W5kbKWSvcsVRYIH6lNhUURaeOalcNxprGj7xwqXc8w=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=erbBnHVtheMUAGs7sb6st1OpVR9FaIVHYj78yec90OKFphlkSZV5k/wAOzf9v7bHw
-	 qD/B4sk/oLODwsgv3p0XiErsiTqRDrNBJUfunPPt2ly/fcLhz146SfXfrJeznvLkZe
-	 U5MzHL6oELYwecQ5CE2FRGA7zc5ak6Om4kOHFE+xDor4Bpwaxj+6BMtxs9zpKRb0zj
-	 t0frO2fOt1mK8tuZJlZLn78/gGZpvARM3U+4DMaFSKK7j8fCZBwVSU2h9+v0uuhWmf
-	 doJp2N540bOFVoqeMi8DgOk/gCs4xM/TGYVOkNqWaGGBNobmAGDB5q2iYuCtHTHaiN
-	 kQwqqR1cv6trg==
-Date: Fri, 26 Jul 2024 12:40:03 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: linux-kernel@vger.kernel.org,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
+	s=k20201202; t=1722235456;
+	bh=TBV9wTACyzpErDnIaeSoSzD9b2nZ0a3vathBCa0feuw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=hbV7b53vH0exB1KWQBRZgD1Szrm+NtA1PoGFvK37J7Ad7eXYJmviGrDo0+NyKtrnG
+	 xx6pFG4MN368Fu0uJLzlKZNwNNvo0rzu044GGQKX4wA7DiHgIuAcGH9D/PNvCoUMdc
+	 JS9wPj4enjm15mJAY7kN4JdKalJuR6EIbu5dqS+mfXlTGmJ6Ir744GCJIHwZKlDjfa
+	 LU02k8rjfgA1PykMAQnnLXeM1S/SSTiIc5fOaajwXByI3ujkkN2JqKwBLHOIApVS7q
+	 tgtZADZiHRvKUioLxg0TW6gP9pqWauQCRDY9YGYvrmM9hCxJxJ47DRgP39BzDaq/Cz
+	 YITFdlfEJD1fg==
+From: alexs@kernel.org
+To: "David S . Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will@kernel.org>,
-	devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-mips@vger.kernel.org, linux-mm@kvack.org,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev, nvdimm@lists.linux.dev,
-	sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v2 00/25] mm: introduce numa_memblks
-Message-ID: <ZqNu8zwjhiTkbpIB@kernel.org>
-References: <20240723064156.4009477-1-rppt@kernel.org>
- <1D474894-F8AC-427B-8F90-5A6808E77CC5@nvidia.com>
- <6336C276-113E-4D93-A09E-13420A6438D8@nvidia.com>
- <231F6DF6-96C8-4149-92CF-4FC03C9FE357@nvidia.com>
+	Christian Brauner <brauner@kernel.org>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Alex Shi <alexs@kernel.org>
+Subject: [PATCH] arch/sparc: remove unused varible paddrbase in function leon_swprobe()
+Date: Mon, 29 Jul 2024 14:49:26 +0800
+Message-ID: <20240729064926.3126528-1-alexs@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <231F6DF6-96C8-4149-92CF-4FC03C9FE357@nvidia.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 24, 2024 at 10:48:42PM -0400, Zi Yan wrote:
-> On 24 Jul 2024, at 20:35, Zi Yan wrote:
-> > On 24 Jul 2024, at 18:44, Zi Yan wrote:
-> >>
-> >> Hi,
-> >>
-> >> I have tested this series on both x86_64 and arm64. It works fine on x86_64.
-> >> All numa=fake= options work as they did before the series.
-> >>
-> >> But I am not able to boot the kernel (no printout at all) on arm64 VM
-> >> (Mac mini M1 VMWare). By git bisecting, arch_numa: switch over to numa_memblks
-> >> is the first patch causing the boot failure. I see the warning:
-> >>
-> >> WARNING: modpost: vmlinux: section mismatch in reference: numa_add_cpu+0x1c (section: .text) -> early_cpu_to_node (section: .init.text)
-> >>
-> >> I am not sure if it is red herring or not, since changing early_cpu_to_node
-> >> to cpu_to_node in numa_add_cpu() from mm/numa_emulation.c did get rid of the
-> >> warning, but the system still failed to boot.
-> >>
-> >> Please note that you need binutils 2.40 to build the arm64 kernel, since there
-> >> is a bug(https://sourceware.org/bugzilla/show_bug.cgi?id=31924) in 2.42 preventing
-> >> arm64 kernel from booting as well.
-> >>
-> >> My config is attached.
-> >
-> > I get more info after adding earlycon to the boot option.
-> > pgdat is NULL, causing issues when free_area_init_node() is dereferencing
-> > it at first WARN_ON.
-> >
-> > FYI, my build is this series on top of v6.10 instead of the base commit,
-> > where the series applies cleanly on top v6.10.
-> 
-> OK, the issue comes from that my arm64 VM has no ACPI but x86_64 VM has it,
-> thus on arm64 VM numa_init(arch_acpi_numa_ini) failed in arch_numa_init()
-> and the code falls back to numa_init(dummy_numa_init). In dummy_numa_init(),
-> before patch 23 "arch_numa: switch over to numa_memblks", numa_add_memblk()
-> from drivers/base/arch_numa.c is called on arm64, which unconditionally
-> set 0 to numa_nodes_parsed. This is missing in the x86 version of
-> numa_add_memblk(), which is now used by all arch. By adding the patch
-> below, my arm64 kernel boots in the VM.
-> 
-> 
-> diff --git a/drivers/base/arch_numa.c b/drivers/base/arch_numa.c
-> index 806550239d08..354f15b8d9b7 100644
-> --- a/drivers/base/arch_numa.c
-> +++ b/drivers/base/arch_numa.c
-> @@ -279,6 +279,7 @@ static int __init dummy_numa_init(void)
->                 pr_err("NUMA init failed\n");
->                 return ret;
->         }
-> +       node_set(0, numa_nodes_parsed);
-> 
->         numa_off = true;
->         return 0;
-> 
-> 
-> Feel free to add
-> 
-> Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-> 
-> after you incorporate the fix.
+From: Alex Shi <alexs@kernel.org>
 
-Thanks a lot for testing, debugging and fixing! 
-> 
-> --
-> Best Regards,
-> Yan, Zi
+commit f22ed71cd602 ("sparc32,leon: SRMMU MMU Table probe fix") change
+return value from paddrbase to 'pte', but left the varible here.
+That causes a build warning for this varible, so we may remove it.
 
+make --keep-going CROSS_COMPILE=/home/alexs/0day/gcc-14.1.0-nolibc/sparc-linux/bin/sparc-linux- --jobs=16 KCFLAGS= -Wtautological-compare -Wno-error=return-type -Wreturn-type -Wcast-function-type -funsigned-char -Wundef -fstrict-flex-arrays=3 -Wformat-overflow -Wformat-truncation -Wrestrict -Wenum-conversion W=1 O=sparc ARCH=sparc defconfig SHELL=/bin/bash arch/sparc/mm/ mm/ -s
+<stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
+../arch/sparc/mm/leon_mm.c: In function 'leon_swprobe':
+../arch/sparc/mm/leon_mm.c:42:32: warning: variable 'paddrbase' set but not used [-Wunused-but-set-variable]
+   42 |         unsigned int lvl, pte, paddrbase;
+      |                                ^~~~~~~~~
 
+Signed-off-by: Alex Shi <alexs@kernel.org>
+To: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
+To: Christian Brauner <brauner@kernel.org>
+To: Andreas Larsson <andreas@gaisler.com>
+To: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/leon_mm.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
+diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
+index ec61ff1f96b7..1dc9b3d70eda 100644
+--- a/arch/sparc/mm/leon_mm.c
++++ b/arch/sparc/mm/leon_mm.c
+@@ -39,12 +39,10 @@ unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 	unsigned int ctxtbl;
+ 	unsigned int pgd, pmd, ped;
+ 	unsigned int ptr;
+-	unsigned int lvl, pte, paddrbase;
++	unsigned int lvl, pte;
+ 	unsigned int ctx;
+ 	unsigned int paddr_calc;
+ 
+-	paddrbase = 0;
+-
+ 	if (srmmu_swprobe_trace)
+ 		printk(KERN_INFO "swprobe: trace on\n");
+ 
+@@ -73,7 +71,6 @@ unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 			printk(KERN_INFO "swprobe: pgd is entry level 3\n");
+ 		lvl = 3;
+ 		pte = pgd;
+-		paddrbase = pgd & _SRMMU_PTE_PMASK_LEON;
+ 		goto ready;
+ 	}
+ 	if (((pgd & SRMMU_ET_MASK) != SRMMU_ET_PTD)) {
+@@ -96,7 +93,6 @@ unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 			printk(KERN_INFO "swprobe: pmd is entry level 2\n");
+ 		lvl = 2;
+ 		pte = pmd;
+-		paddrbase = pmd & _SRMMU_PTE_PMASK_LEON;
+ 		goto ready;
+ 	}
+ 	if (((pmd & SRMMU_ET_MASK) != SRMMU_ET_PTD)) {
+@@ -124,7 +120,6 @@ unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 			printk(KERN_INFO "swprobe: ped is entry level 1\n");
+ 		lvl = 1;
+ 		pte = ped;
+-		paddrbase = ped & _SRMMU_PTE_PMASK_LEON;
+ 		goto ready;
+ 	}
+ 	if (((ped & SRMMU_ET_MASK) != SRMMU_ET_PTD)) {
+@@ -147,7 +142,6 @@ unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr)
+ 			printk(KERN_INFO "swprobe: ptr is entry level 0\n");
+ 		lvl = 0;
+ 		pte = ptr;
+-		paddrbase = ptr & _SRMMU_PTE_PMASK_LEON;
+ 		goto ready;
+ 	}
+ 	if (srmmu_swprobe_trace)
 -- 
-Sincerely yours,
-Mike.
+2.43.0
+
