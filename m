@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED832190467;
-	Tue, 30 Jul 2024 06:45:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E12318EFF4;
+	Tue, 30 Jul 2024 07:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722321908; cv=none; b=bse2Q0PKf1SQ7Dcz+NvQmlejy85zq720Spg2PiQytegKrSPV825KX0hlHPdOT5f2MzAJd2tygXzlWK0hGwGWX4zmN8n96i7e85WAkcDfcY/rdyxZK21uPzKDMc5tZjLnp0rvY3ex0xpFtd2taHbXMaB5FfXZ8nQy53H/w4kzS3M=
+	t=1722324175; cv=none; b=IQKj89tzOiRt/p4ZfsHLkp01GdU94fE3JeXyzr3Ows0As+C2B+pU1M65jiV9WmmxWTlkZ/D0F1b4yl8NfSvvTBHOQyvsrK1jFffPnd2JZA1tvSayXM2OqV4m7vohkN+ib+GLUk1c6q6cmxQ3pxjz2Wg9hGcsAiz3+6z2va5q0bc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722321908; c=relaxed/simple;
-	bh=W5tYBso4UoPS/fKSVOluC4Ch4cJZaP/H2xHcE2b1FHU=;
+	s=arc-20240116; t=1722324175; c=relaxed/simple;
+	bh=0TbHGOJe6xjBQAxgBmZt5/6tHpzUCuFv7Fnp2SPF0/s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sOMPA+O+1vwfracG62r5W9DXfbU1r7fxZ13o9EwneulrRBV8FiUBWJ5eWB5mvJOXzXaYdn5AujP61bebIrM0nrsTk17550M4+JuG+/kxehsGr8KQlRnIcjQ7iljPZyKs+86au/nQYl0eL3/oNDuzzH3tgQkCS8PsRgcvteROSH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=otPDGIS+; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=N+L48vj02aLjkJvp5oeKeGy2aSfbhIMv58J/Sy3yM8BJSUEpPz2q93gJShBWd6e8AxeELtQ1TFhKYTb2OCxALoHuysIvXgf+kllOzs76EpH+88CzcrVpkTSbZQ34Zu5t1jB0RcHrErqShKAO53jVWh1iG9wedZBvXLi5qPvpD1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VX1gqElX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="otPDGIS+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59076C4AF0E;
-	Tue, 30 Jul 2024 06:44:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VX1gqElX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02314C4AF18;
+	Tue, 30 Jul 2024 07:22:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722321907;
-	bh=W5tYBso4UoPS/fKSVOluC4Ch4cJZaP/H2xHcE2b1FHU=;
+	s=k20201202; t=1722324175;
+	bh=0TbHGOJe6xjBQAxgBmZt5/6tHpzUCuFv7Fnp2SPF0/s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=otPDGIS+BP+zJU1WerV1XStPgq7KbeiiHRdcUEyZGtj4yf/zK6A7xDzbi5ECaayAt
-	 YVSoB/3bQTSLE8x8/QN40AJ0s2PdSq3df6HoYbaIj4z13Vl5vZw9N5ye4PEjdht//7
-	 bqv0egHAAAYkaLavBipdxSHoduTULRxYgtDM4b4mjLw9jYnjamZKyZ8Y6tyDakNpzC
-	 Y0Ij1GnGY4gY870o0InOzrbMFIggAcxm9mvmF741jpwmx9ZohF6o5cMeki7Psq4dLD
-	 /4dfI13pYO7FfkQIWJrOHrtaZ1MHS6fgo+N7tVvA1Q6NzphZJuPFR1n3WFSvbuCYFD
-	 UKCxIcO9HG0sA==
+	b=VX1gqElX7WCCLiUWy2ntLa+Ucwphw4/QSxbhHNT0raPC4/UkeHmzo9W0nHE9Mpecx
+	 GiufKIepmOHPcYPzSaWYuLKiSsVBbybFMQZ9B61DOBMKp6hANUQcKP3+nRBipeuwBf
+	 ugpyKDaDVAkIMoeBe17I8tOhrD6R4mB8TeoZK7sFzVjOFfs948DRJNpd6K2obeDmkP
+	 Jo8Bqwcsk9Y8AJMGzmYkRltiRneJQdQnfGXx+EqBl49hPEStt5gmDVcD28UqmIHves
+	 ETiZ03dTkJdj+XtouaSH1+gTnn7AFo+OzJm5Opx0xYfz4rxDS0SAqH+YYi9e12gtZu
+	 JdZQXBJ9yyREw==
 From: alexs@kernel.org
 To: Will Deacon <will@kernel.org>,
 	"Aneesh Kumar K . V" <aneesh.kumar@kernel.org>,
@@ -92,24 +92,20 @@ Cc: Guo Ren <guoren@kernel.org>,
 	Ryan Roberts <ryan.roberts@arm.com>,
 	Matthew Wilcox <willy@infradead.org>,
 	Alex Shi <alexs@kernel.org>,
-	nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Christian Brauner <brauner@kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Jan Kara <jack@suse.cz>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"David S . Miller" <davem@davemloft.net>,
 	"Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
-	Dawei Li <dawei.li@shingroup.cn>
-Subject: [RFC PATCH 10/18] mm/pgtable: pass ptdesc to pte_free()
-Date: Tue, 30 Jul 2024 14:47:04 +0800
-Message-ID: <20240730064712.3714387-11-alexs@kernel.org>
+	sparclinux@vger.kernel.org,
+	Kinsey Ho <kinseyho@google.com>,
+	Benjamin Gray <bgray@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [RFC PATCH 13/18] mm/pgtable: return ptdesc pointer in pgtable_trans_huge_withdraw
+Date: Tue, 30 Jul 2024 15:27:14 +0800
+Message-ID: <20240730072719.3715016-3-alexs@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240730064712.3714387-1-alexs@kernel.org>
+In-Reply-To: <20240730072719.3715016-1-alexs@kernel.org>
 References: <20240730064712.3714387-1-alexs@kernel.org>
+ <20240730072719.3715016-1-alexs@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -120,298 +116,370 @@ Content-Transfer-Encoding: 8bit
 
 From: Alex Shi <alexs@kernel.org>
 
-Now we could remove couple of page<->ptdesc converters now.
+Way to replace pgtable_t aka struct page in most of archs.
 
 Signed-off-by: Alex Shi <alexs@kernel.org>
 Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: nvdimm@lists.linux.dev
-Cc: linux-fsdevel@vger.kernel.org
 Cc: sparclinux@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-s390@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Vishal Moola  <vishal.moola@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Kinsey Ho <kinseyho@google.com>
+Cc: Aneesh Kumar K.V  <aneesh.kumar@kernel.org>
+Cc: Benjamin Gray <bgray@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Russell King <linux@armlinux.org.uk>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Matthew Wilcox  <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Mike Rapoport  <rppt@kernel.org>
-Cc: Dawei Li <dawei.li@shingroup.cn>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 ---
- arch/arm/mm/pgd.c                            |  2 +-
- arch/m68k/include/asm/motorola_pgalloc.h     |  4 ++--
- arch/powerpc/include/asm/book3s/64/pgalloc.h |  2 +-
- arch/powerpc/include/asm/pgalloc.h           |  2 +-
- arch/sparc/include/asm/pgalloc_32.h          |  2 +-
- arch/sparc/mm/srmmu.c                        |  2 +-
- fs/dax.c                                     |  2 +-
- include/asm-generic/pgalloc.h                |  4 +---
- mm/debug_vm_pgtable.c                        |  2 +-
- mm/huge_memory.c                             | 20 ++++++++++----------
- mm/memory.c                                  |  4 ++--
- mm/pgtable-generic.c                         |  2 +-
- 12 files changed, 23 insertions(+), 25 deletions(-)
+ arch/powerpc/include/asm/book3s/64/hash-4k.h  |  4 +--
+ arch/powerpc/include/asm/book3s/64/hash-64k.h |  4 +--
+ arch/powerpc/include/asm/book3s/64/pgtable.h  |  2 +-
+ arch/powerpc/include/asm/book3s/64/radix.h    |  4 +--
+ arch/powerpc/mm/book3s64/hash_pgtable.c       |  4 +--
+ arch/powerpc/mm/book3s64/radix_pgtable.c      |  4 +--
+ arch/s390/include/asm/pgtable.h               |  2 +-
+ arch/s390/mm/pgtable.c                        |  4 +--
+ arch/sparc/include/asm/pgtable_64.h           |  2 +-
+ arch/sparc/mm/tlb.c                           |  4 +--
+ include/linux/pgtable.h                       |  2 +-
+ mm/huge_memory.c                              | 35 ++++++++++---------
+ mm/pgtable-generic.c                          |  4 +--
+ 13 files changed, 38 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm/mm/pgd.c b/arch/arm/mm/pgd.c
-index f8e9bc58a84f..c384b734d752 100644
---- a/arch/arm/mm/pgd.c
-+++ b/arch/arm/mm/pgd.c
-@@ -168,7 +168,7 @@ void pgd_free(struct mm_struct *mm, pgd_t *pgd_base)
- 
- 	pte = pmd_pgtable(*pmd);
- 	pmd_clear(pmd);
--	pte_free(mm, pte);
-+	pte_free(mm, page_ptdesc(pte));
- 	mm_dec_nr_ptes(mm);
- no_pmd:
- 	pud_clear(pud);
-diff --git a/arch/m68k/include/asm/motorola_pgalloc.h b/arch/m68k/include/asm/motorola_pgalloc.h
-index 74a817d9387f..f6bb375971dc 100644
---- a/arch/m68k/include/asm/motorola_pgalloc.h
-+++ b/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -39,9 +39,9 @@ static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
- 	return get_pointer_table(TABLE_PTE);
+diff --git a/arch/powerpc/include/asm/book3s/64/hash-4k.h b/arch/powerpc/include/asm/book3s/64/hash-4k.h
+index c654c376ef8b..3a99a0229c37 100644
+--- a/arch/powerpc/include/asm/book3s/64/hash-4k.h
++++ b/arch/powerpc/include/asm/book3s/64/hash-4k.h
+@@ -133,8 +133,8 @@ extern unsigned long hash__pmd_hugepage_update(struct mm_struct *mm,
+ extern pmd_t hash__pmdp_collapse_flush(struct vm_area_struct *vma,
+ 				   unsigned long address, pmd_t *pmdp);
+ extern void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+-					 pgtable_t pgtable);
+-extern pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++					 struct ptdesc *ptdesc);
++extern struct ptdesc *hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ extern pmd_t hash__pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pmd_t *pmdp);
+ extern int hash__has_transparent_hugepage(void);
+diff --git a/arch/powerpc/include/asm/book3s/64/hash-64k.h b/arch/powerpc/include/asm/book3s/64/hash-64k.h
+index 0bf6fd0bf42a..8f497e1617bd 100644
+--- a/arch/powerpc/include/asm/book3s/64/hash-64k.h
++++ b/arch/powerpc/include/asm/book3s/64/hash-64k.h
+@@ -274,8 +274,8 @@ extern unsigned long hash__pmd_hugepage_update(struct mm_struct *mm,
+ extern pmd_t hash__pmdp_collapse_flush(struct vm_area_struct *vma,
+ 				   unsigned long address, pmd_t *pmdp);
+ extern void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+-					 pgtable_t pgtable);
+-extern pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++					     struct ptdesc *ptdesc);
++extern struct ptdesc *hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ extern pmd_t hash__pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pmd_t *pmdp);
+ extern int hash__has_transparent_hugepage(void);
+diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
+index 519b1743a0f4..0ee440b819d7 100644
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h
++++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1373,7 +1373,7 @@ static inline void pgtable_trans_huge_deposit(struct mm_struct *mm,
  }
  
--static inline void pte_free(struct mm_struct *mm, pgtable_t pgtable)
-+static inline void pte_free(struct mm_struct *mm, struct ptdesc *ptdesc)
+ #define __HAVE_ARCH_PGTABLE_WITHDRAW
+-static inline pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm,
++static inline struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm,
+ 						    pmd_t *pmdp)
  {
--	free_pointer_table(pgtable, TABLE_PTE);
-+	free_pointer_table(ptdesc_page(ptdesc), TABLE_PTE);
+ 	if (radix_enabled())
+diff --git a/arch/powerpc/include/asm/book3s/64/radix.h b/arch/powerpc/include/asm/book3s/64/radix.h
+index 8f55ff74bb68..a8630b249f4c 100644
+--- a/arch/powerpc/include/asm/book3s/64/radix.h
++++ b/arch/powerpc/include/asm/book3s/64/radix.h
+@@ -291,8 +291,8 @@ extern unsigned long radix__pud_hugepage_update(struct mm_struct *mm, unsigned l
+ extern pmd_t radix__pmdp_collapse_flush(struct vm_area_struct *vma,
+ 				  unsigned long address, pmd_t *pmdp);
+ extern void radix__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+-					pgtable_t pgtable);
+-extern pgtable_t radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++					struct ptdesc *ptdesc);
++extern struct ptdesc *radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ extern pmd_t radix__pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 				      unsigned long addr, pmd_t *pmdp);
+ pud_t radix__pudp_huge_get_and_clear(struct mm_struct *mm,
+diff --git a/arch/powerpc/mm/book3s64/hash_pgtable.c b/arch/powerpc/mm/book3s64/hash_pgtable.c
+index 988948d69bc1..35562d1f4267 100644
+--- a/arch/powerpc/mm/book3s64/hash_pgtable.c
++++ b/arch/powerpc/mm/book3s64/hash_pgtable.c
+@@ -284,7 +284,7 @@ void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 	smp_wmb();
  }
  
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
-diff --git a/arch/powerpc/include/asm/book3s/64/pgalloc.h b/arch/powerpc/include/asm/book3s/64/pgalloc.h
-index dd2cff53a111..eb7d2ca59f62 100644
---- a/arch/powerpc/include/asm/book3s/64/pgalloc.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgalloc.h
-@@ -162,7 +162,7 @@ static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
- }
- 
- static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
--				pgtable_t pte_page)
-+				struct ptdesc *pte_page)
+-pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
++struct ptdesc *hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
  {
- 	*pmd = __pmd(__pgtable_ptr_val(pte_page) | PMD_VAL_BITS);
- }
-diff --git a/arch/powerpc/include/asm/pgalloc.h b/arch/powerpc/include/asm/pgalloc.h
-index 37512f344b37..12520521163e 100644
---- a/arch/powerpc/include/asm/pgalloc.h
-+++ b/arch/powerpc/include/asm/pgalloc.h
-@@ -40,7 +40,7 @@ static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
- 	pte_fragment_free((unsigned long *)pte, 1);
+ 	pgtable_t pgtable;
+ 	pgtable_t *pgtable_slot;
+@@ -302,7 +302,7 @@ pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	 * zero out the content on withdraw.
+ 	 */
+ 	memset(pgtable, 0, PTE_FRAG_SIZE);
+-	return pgtable;
++	return (struct ptdesc *)pgtable;
  }
  
--static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
-+static inline void pte_free(struct mm_struct *mm, struct ptdesc *ptepage)
+ /*
+diff --git a/arch/powerpc/mm/book3s64/radix_pgtable.c b/arch/powerpc/mm/book3s64/radix_pgtable.c
+index b0d927009af8..3b9bb19510e3 100644
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c
++++ b/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -1492,7 +1492,7 @@ void radix__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 	pmd_huge_pte(mm, pmdp) = pgtable;
+ }
+ 
+-pgtable_t radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
++struct ptdesc *radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
  {
- 	pte_fragment_free((unsigned long *)ptepage, 0);
- }
-diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
-index bc3ef54d9564..addaade56f21 100644
---- a/arch/sparc/include/asm/pgalloc_32.h
-+++ b/arch/sparc/include/asm/pgalloc_32.h
-@@ -71,7 +71,7 @@ static inline void free_pte_fast(pte_t *pte)
- 
- #define pte_free_kernel(mm, pte)	free_pte_fast(pte)
- 
--void pte_free(struct mm_struct * mm, pgtable_t pte);
-+void pte_free(struct mm_struct *mm, struct ptdesc *pte);
- #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
- 
- #endif /* _SPARC_PGALLOC_H */
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 60bb8628bb1f..05be7d86eda3 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -365,7 +365,7 @@ struct ptdesc *pte_alloc_one(struct mm_struct *mm)
- 	return (struct ptdesc *)ptep;
+ 	pte_t *ptep;
+ 	pgtable_t pgtable;
+@@ -1513,7 +1513,7 @@ pgtable_t radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	*ptep = __pte(0);
+ 	ptep++;
+ 	*ptep = __pte(0);
+-	return pgtable;
++	return (struct ptdesc *)pgtable;
  }
  
--void pte_free(struct mm_struct *mm, pgtable_t ptep)
-+void pte_free(struct mm_struct *mm, struct ptdesc *ptep)
+ pmd_t radix__pmdp_huge_get_and_clear(struct mm_struct *mm,
+diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
+index 3fa280d0672a..cf0baf4bfe5c 100644
+--- a/arch/s390/include/asm/pgtable.h
++++ b/arch/s390/include/asm/pgtable.h
+@@ -1738,7 +1738,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				pgtable_t pgtable);
+ 
+ #define __HAVE_ARCH_PGTABLE_WITHDRAW
+-pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ 
+ #define  __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
+ static inline int pmdp_set_access_flags(struct vm_area_struct *vma,
+diff --git a/arch/s390/mm/pgtable.c b/arch/s390/mm/pgtable.c
+index 201d350abd1e..b9016ee145cb 100644
+--- a/arch/s390/mm/pgtable.c
++++ b/arch/s390/mm/pgtable.c
+@@ -577,7 +577,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 	pmd_huge_pte(mm, pmdp) = (struct ptdesc *)pgtable;
+ }
+ 
+-pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
++struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
  {
- 	struct page *page;
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index 51cbc08b22e7..61b9bd5200da 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1246,7 +1246,7 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
- 
- fallback:
- 	if (ptdesc)
--		pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+		pte_free(vma->vm_mm, ptdesc);
- 	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_folio, *entry);
- 	return VM_FAULT_FALLBACK;
+ 	struct list_head *lh;
+ 	pgtable_t pgtable;
+@@ -598,7 +598,7 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	set_pte(ptep, __pte(_PAGE_INVALID));
+ 	ptep++;
+ 	set_pte(ptep, __pte(_PAGE_INVALID));
+-	return pgtable;
++	return (struct ptdesc *)pgtable;
  }
-diff --git a/include/asm-generic/pgalloc.h b/include/asm-generic/pgalloc.h
-index 1a4070f8d5dd..5f249ec9d289 100644
---- a/include/asm-generic/pgalloc.h
-+++ b/include/asm-generic/pgalloc.h
-@@ -105,10 +105,8 @@ static inline struct ptdesc *pte_alloc_one_noprof(struct mm_struct *mm)
-  * @mm: the mm_struct of the current context
-  * @pte_page: the `struct page` referencing the ptdesc
-  */
--static inline void pte_free(struct mm_struct *mm, struct page *pte_page)
-+static inline void pte_free(struct mm_struct *mm, struct ptdesc *ptdesc)
- {
--	struct ptdesc *ptdesc = page_ptdesc(pte_page);
--
- 	pagetable_pte_dtor(ptdesc);
- 	pagetable_free(ptdesc);
- }
-diff --git a/mm/debug_vm_pgtable.c b/mm/debug_vm_pgtable.c
-index e4969fb54da3..f256bc816744 100644
---- a/mm/debug_vm_pgtable.c
-+++ b/mm/debug_vm_pgtable.c
-@@ -1049,7 +1049,7 @@ static void __init destroy_args(struct pgtable_debug_args *args)
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	/* Free page table entries */
- 	if (args->start_ptep) {
--		pte_free(args->mm, args->start_ptep);
-+		pte_free(args->mm, page_ptdesc(args->start_ptep));
- 		mm_dec_nr_ptes(args->mm);
- 	}
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3fe429d73a65..bfefd678e220 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -998,7 +998,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				pgtable_t pgtable);
  
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 6274eb7559ac..dc323453fa02 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -987,7 +987,7 @@ static vm_fault_t __do_huge_pmd_anonymous_page(struct vm_fault *vmf,
- 		if (userfaultfd_missing(vma)) {
- 			spin_unlock(vmf->ptl);
- 			folio_put(folio);
--			pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+			pte_free(vma->vm_mm, ptdesc);
- 			ret = handle_userfault(vmf, VM_UFFD_MISSING);
- 			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
- 			return ret;
-@@ -1013,7 +1013,7 @@ static vm_fault_t __do_huge_pmd_anonymous_page(struct vm_fault *vmf,
- 	spin_unlock(vmf->ptl);
- release:
- 	if (ptdesc)
--		pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+		pte_free(vma->vm_mm, ptdesc);
- 	folio_put(folio);
- 	return ret;
- 
-@@ -1096,7 +1096,7 @@ vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
- 			return VM_FAULT_OOM;
- 		zero_folio = mm_get_huge_zero_folio(vma->vm_mm);
- 		if (unlikely(!zero_folio)) {
--			pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+			pte_free(vma->vm_mm, ptdesc);
- 			count_vm_event(THP_FAULT_FALLBACK);
- 			return VM_FAULT_FALLBACK;
- 		}
-@@ -1106,10 +1106,10 @@ vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
- 			ret = check_stable_address_space(vma->vm_mm);
- 			if (ret) {
- 				spin_unlock(vmf->ptl);
--				pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+				pte_free(vma->vm_mm, ptdesc);
- 			} else if (userfaultfd_missing(vma)) {
- 				spin_unlock(vmf->ptl);
--				pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+				pte_free(vma->vm_mm, ptdesc);
- 				ret = handle_userfault(vmf, VM_UFFD_MISSING);
- 				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
- 			} else {
-@@ -1120,7 +1120,7 @@ vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
- 			}
- 		} else {
- 			spin_unlock(vmf->ptl);
--			pte_free(vma->vm_mm, ptdesc_page(ptdesc));
-+			pte_free(vma->vm_mm, ptdesc);
- 		}
- 		return ret;
- 	}
-@@ -1178,7 +1178,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
- out_unlock:
- 	spin_unlock(ptl);
- 	if (ptdesc)
--		pte_free(mm, ptdesc_page(ptdesc));
-+		pte_free(mm, ptdesc);
- }
- 
- /**
-@@ -1414,7 +1414,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ #define __HAVE_ARCH_PGTABLE_WITHDRAW
+-pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
  #endif
  
- 	if (unlikely(!pmd_trans_huge(pmd))) {
--		pte_free(dst_mm, ptdesc_page(ptdesc));
-+		pte_free(dst_mm, ptdesc);
- 		goto out_unlock;
- 	}
- 	/*
-@@ -1440,7 +1440,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, src_vma))) {
- 		/* Page maybe pinned: split and retry the fault on PTEs. */
- 		folio_put(src_folio);
--		pte_free(dst_mm, ptdesc_page(ptdesc));
-+		pte_free(dst_mm, ptdesc);
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
- 		__split_huge_pmd(src_vma, src_pmd, addr, false, NULL);
-@@ -1830,7 +1830,7 @@ static inline void zap_deposited_table(struct mm_struct *mm, pmd_t *pmd)
- 	pgtable_t pgtable;
+ /*
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index 903825b4c997..bd2d3b1f6ba3 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -281,7 +281,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 	pmd_huge_pte(mm, pmdp) = (struct ptdesc *)pgtable;
+ }
  
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
--	pte_free(mm, pgtable);
-+	pte_free(mm, page_ptdesc(pgtable));
+-pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
++struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ {
+ 	struct list_head *lh;
+ 	pgtable_t pgtable;
+@@ -300,6 +300,6 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	pte_val(pgtable[0]) = 0;
+ 	pte_val(pgtable[1]) = 0;
+ 
+-	return pgtable;
++	return (struct ptdesc *)pgtable;
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index 2a6a3cccfc36..3fa7b93580a3 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -929,7 +929,7 @@ extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
+-extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
++extern struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ #endif
+ 
+ #ifndef arch_needs_pgtable_deposit
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 1c121ec85447..4dc36910c8aa 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1827,10 +1827,10 @@ bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 
+ static inline void zap_deposited_table(struct mm_struct *mm, pmd_t *pmd)
+ {
+-	pgtable_t pgtable;
++	struct ptdesc *ptdesc;
+ 
+-	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+-	pte_free(mm, page_ptdesc(pgtable));
++	ptdesc = pgtable_trans_huge_withdraw(mm, pmd);
++	pte_free(mm, ptdesc);
  	mm_dec_nr_ptes(mm);
  }
  
-diff --git a/mm/memory.c b/mm/memory.c
-index 37529e0a9ce2..3014168e7296 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -451,7 +451,7 @@ int __pte_alloc(struct mm_struct *mm, pmd_t *pmd)
+@@ -1959,9 +1959,10 @@ bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		VM_BUG_ON(!pmd_none(*new_pmd));
  
- 	pmd_install(mm, pmd, (pgtable_t *)&ptdesc);
- 	if (ptdesc)
--		pte_free(mm, ptdesc_page(ptdesc));
-+		pte_free(mm, ptdesc);
- 	return 0;
+ 		if (pmd_move_must_withdraw(new_ptl, old_ptl, vma)) {
+-			pgtable_t pgtable;
+-			pgtable = pgtable_trans_huge_withdraw(mm, old_pmd);
+-			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
++			struct ptdesc *ptdesc;
++
++			ptdesc = pgtable_trans_huge_withdraw(mm, old_pmd);
++			pgtable_trans_huge_deposit(mm, new_pmd, ptdesc_page(ptdesc));
+ 		}
+ 		pmd = move_soft_dirty_pmd(pmd);
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
+@@ -2130,7 +2131,7 @@ int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pm
+ 	struct folio *src_folio;
+ 	struct anon_vma *src_anon_vma;
+ 	spinlock_t *src_ptl, *dst_ptl;
+-	pgtable_t src_pgtable;
++	struct ptdesc *src_ptdesc;
+ 	struct mmu_notifier_range range;
+ 	int err = 0;
+ 
+@@ -2234,8 +2235,8 @@ int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pm
+ 	}
+ 	set_pmd_at(mm, dst_addr, dst_pmd, _dst_pmd);
+ 
+-	src_pgtable = pgtable_trans_huge_withdraw(mm, src_pmd);
+-	pgtable_trans_huge_deposit(mm, dst_pmd, src_pgtable);
++	src_ptdesc = pgtable_trans_huge_withdraw(mm, src_pmd);
++	pgtable_trans_huge_deposit(mm, dst_pmd, ptdesc_page(src_ptdesc));
+ unlock_ptls:
+ 	double_pt_unlock(src_ptl, dst_ptl);
+ 	if (src_anon_vma) {
+@@ -2347,7 +2348,7 @@ static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
+ 		unsigned long haddr, pmd_t *pmd)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pgtable_t pgtable;
++	struct ptdesc *ptdesc;
+ 	pmd_t _pmd, old_pmd;
+ 	unsigned long addr;
+ 	pte_t *pte;
+@@ -2363,8 +2364,8 @@ static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
+ 	 */
+ 	old_pmd = pmdp_huge_clear_flush(vma, haddr, pmd);
+ 
+-	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+-	pmd_populate(mm, &_pmd, pgtable);
++	ptdesc = pgtable_trans_huge_withdraw(mm, pmd);
++	pmd_populate(mm, &_pmd, ptdesc_page(ptdesc));
+ 
+ 	pte = pte_offset_map(&_pmd, haddr);
+ 	VM_BUG_ON(!pte);
+@@ -2381,7 +2382,7 @@ static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
+ 	}
+ 	pte_unmap(pte - 1);
+ 	smp_wmb(); /* make pte visible before pmd */
+-	pmd_populate(mm, pmd, pgtable);
++	pmd_populate(mm, pmd, ptdesc_page(ptdesc));
  }
  
-@@ -5196,7 +5196,7 @@ static vm_fault_t do_fault(struct vm_fault *vmf)
+ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -2390,7 +2391,7 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct folio *folio;
+ 	struct page *page;
+-	pgtable_t pgtable;
++	struct ptdesc *ptdesc;
+ 	pmd_t old_pmd, _pmd;
+ 	bool young, write, soft_dirty, pmd_migration = false, uffd_wp = false;
+ 	bool anon_exclusive = false, dirty = false;
+@@ -2535,8 +2536,8 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+ 	 * Withdraw the table only after we mark the pmd entry invalid.
+ 	 * This's critical for some architectures (Power).
+ 	 */
+-	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+-	pmd_populate(mm, &_pmd, pgtable);
++	ptdesc = pgtable_trans_huge_withdraw(mm, pmd);
++	pmd_populate(mm, &_pmd, ptdesc_page(ptdesc));
  
- 	/* preallocated pagetable is unused: free it */
- 	if (vmf->prealloc_pte) {
--		pte_free(vm_mm, vmf->prealloc_pte);
-+		pte_free(vm_mm, page_ptdesc(vmf->prealloc_pte));
- 		vmf->prealloc_pte = NULL;
- 	}
- 	return ret;
+ 	pte = pte_offset_map(&_pmd, haddr);
+ 	VM_BUG_ON(!pte);
+@@ -2601,7 +2602,7 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+ 		put_page(page);
+ 
+ 	smp_wmb(); /* make pte visible before pmd */
+-	pmd_populate(mm, pmd, pgtable);
++	pmd_populate(mm, pmd, ptdesc_page(ptdesc));
+ }
+ 
+ void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
 diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
-index f34a8d115f5b..92245a32656b 100644
+index 92245a32656b..de1ed30fea16 100644
 --- a/mm/pgtable-generic.c
 +++ b/mm/pgtable-generic.c
-@@ -241,7 +241,7 @@ static void pte_free_now(struct rcu_head *head)
+@@ -178,7 +178,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 
+ #ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
+ /* no "address" argument so destroys page coloring of some arch */
+-pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
++struct ptdesc *pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ {
  	struct ptdesc *ptdesc;
  
- 	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
--	pte_free(NULL /* mm not passed and not used */, (pgtable_t)ptdesc);
-+	pte_free(NULL /* mm not passed and not used */, ptdesc);
+@@ -190,7 +190,7 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 							  struct ptdesc, pt_list);
+ 	if (pmd_huge_pte(mm, pmdp))
+ 		list_del(&ptdesc->pt_list);
+-	return ptdesc_page(ptdesc);
++	return ptdesc;
  }
+ #endif
  
- void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
 -- 
 2.43.0
 
