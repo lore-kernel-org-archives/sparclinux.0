@@ -1,297 +1,268 @@
-Received: from mail-yw1-f201.google.com (mail-yw1-f201.google.com [209.85.128.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24495190057
-	for <sparclinux@vger.kernel.org>; Tue, 30 Jul 2024 02:26:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F42022563;
+	Tue, 30 Jul 2024 06:43:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722306423; cv=none; b=LJAzJuJh92W4UNnUOO9Xo6TXg6BP40L1GOyki8evwXU/Aa0Thjik9o3BLPeQLEiUskqfhmWVML0Mz9RemEThR4h5+PH/dr1CGNEhVX8GY3M4sxphDi9K5fJ32LJSdQsGQrzDDj4ZFmgFa3K4gRBx3q47IZegDS1DKeYMocVpo4U=
+	t=1722321794; cv=none; b=niOhqBaFvq0kIcQoCMH61TdBVvAofdeX8zZFFuYbIJx4zwaDrY9MDkUf8FNliG0V7HtpyrrHhb6Sq7GJhpZ7/12imhK88nbAIuf32H+TiHgBrjl8cVTEQcDQiHuR5X3CWovdGKDk3usBqBxr2DOILp0iuDjG7lo5Ye2ifv6h3d8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722306423; c=relaxed/simple;
-	bh=lWFZoXTllZzDQ5KVW7/ITGpCF1rpfZvNs38SGJyNKoI=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=G60455B2DIj63uodYxSvgIB9F2JSEe8jZUaUPTqqvL7vaXTLx7DSRuk4HAz0j2ZF5rxK85ubkK2q1gp3nJoo8asgMyVcT7I3/37v0AafMpe0hiYEGITIj7mq21+ouib5ogPgmRct3A6wMBBq/l+3uuaq+NTgMb+y7CLc3e7rETI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=THAh/aUD; arc=none smtp.client-ip=209.85.128.201
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
+	s=arc-20240116; t=1722321794; c=relaxed/simple;
+	bh=9NZb0rrKQqKYXT4j44hct+A4v/K9XblH1QcI1NJ86wY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=eI4E/ejlpGi+tb2Lu4lXHcXCjowazjh37bFkPlIojh1kbrsKbMO4ropTLsiUASbCN47dmDWsV2rWF0q+/xHQpe9RIhjaiteq9SRMJA5bR/bb9g0bP2myOoTTD6rZqanOTi7LVlSGYoMdQLRhSipAHhPX9XBA7Og06jS6rl0pn0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uXb4byD4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="THAh/aUD"
-Received: by mail-yw1-f201.google.com with SMTP id 00721157ae682-64b70c4a269so70648827b3.1
-        for <sparclinux@vger.kernel.org>; Mon, 29 Jul 2024 19:26:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1722306416; x=1722911216; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=YpeL2jjjuQiDotVyStSYknocEdgkMBCGkLNpfXlLDrU=;
-        b=THAh/aUDClyx15DqWIoGLWSXzUOSV/VmWRa2IjEVmel+G6UnLKVMxZ0e6mgZmTuMDi
-         kdgL2Kq2CiD4iLBJuent3eWsAZRAHeEqjgsOWsgLWfE6Qakw0k4IhOrdjYp1n6YWPMjY
-         gOrxL3AELs505g+6/0EA36eeTrOjnckx21hW03w5VcdCyYC194ZD7wKgNcGe8Bb3zQ1n
-         BHYjOT4LHbttDrmFNYDHJNGXQMp9/iNq6zO5J7WDgr2uv+Ww/njP+FyddxBbyD2iBYgH
-         JZSRZBhjABWM2WzHjqlgvCUzyVWXGFK4KIPT9mEZP7yXnWARvmYg3D86mDFGMGjIOiW/
-         F/rw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722306416; x=1722911216;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YpeL2jjjuQiDotVyStSYknocEdgkMBCGkLNpfXlLDrU=;
-        b=B0UkalRRvuF8LuJhTgHTs/LOO63gNmmJgmK4iioW2LF6tBK1/bA+ocPs7pm76PEUqc
-         qlP9ByK/+vC8E6n5DwEvRZ8Mk4ZK2rkXZKamWbG0DhoKoz3sUaEgs+yYAKSmSrZVnyiZ
-         o/rPZ0HCdNEAuvHCDVaxh9EQEVlUslEF7xp76Oz1++9otTclUTnpy4ChI53mQEy/HIvs
-         fO+iF3kJTLYczGbAnMVyF8mMLE20TultSZPrfbaVuUN+doQn6j5jDShDSIHwP0LrEXM7
-         s2ANlqZMubr/eMc//o+mgtxmNalANzCWbSfdO7FnO9yqJKxQvKYXXEsQtypHBCFVidJ5
-         3Fyg==
-X-Forwarded-Encrypted: i=1; AJvYcCWUcPCwEaxDTvkrNxXov2YeSh9sgAdPdXmiI3xaU469yZ/D/pQfrfSapTsePOJG4CZGA4Mu6VVaoWwEI87WeSwU71taO1CurbmsHA==
-X-Gm-Message-State: AOJu0Yzg19IA5XFA+UI8TudUnMPO9bSpBxyuGU0hBDyp8Gp1Re11P3/p
-	dMiad3B+Abdkahigg9rXZaCkeHUrukwGChWKYyXYye5OPUbPqCT8w99+XzXp5ABU/svk6UvBd1g
-	TV+FWVg6jj0L4xHeyJ047nA==
-X-Google-Smtp-Source: AGHT+IHC29ZYOcgw90qZqEqccd2UZ1WHTmKpe+12sX2SEVfmpnkgtaiJhRBXg0BZNAdwmD96v+mTgP75qI/xOgbFKg==
-X-Received: from almasrymina.c.googlers.com ([fda3:e722:ac3:cc00:20:ed76:c0a8:4bc5])
- (user=almasrymina job=sendgmr) by 2002:a05:6902:1029:b0:e0b:9b5:8647 with
- SMTP id 3f1490d57ef6-e0b544ec4ddmr18023276.8.1722306415855; Mon, 29 Jul 2024
- 19:26:55 -0700 (PDT)
-Date: Tue, 30 Jul 2024 02:26:18 +0000
-In-Reply-To: <20240730022623.98909-1-almasrymina@google.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uXb4byD4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 469FBC32782;
+	Tue, 30 Jul 2024 06:43:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1722321793;
+	bh=9NZb0rrKQqKYXT4j44hct+A4v/K9XblH1QcI1NJ86wY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=uXb4byD4QEB/pykGQSUxfRgInQG2nhMHKXm5xZNegBtn3rrGWMaLewVYiqUNRYDtJ
+	 aQ+opzP1rC4aJUxCXkL2wAnqAIW3nIQYdRxHYnksJ0PJsaNlzE/MV3jYxsY7CWC6i6
+	 A55O5dfE29WFwTXyQHh6asj1EX4qez2hBgWChYq1nW9wZhzPJt7adzM3dujj4fTqjW
+	 GPMlZQsWyciJ/EykTgqqAmIjcZelbGlK8I8ok7QSAhrcTaitTlPHXoD4wXFz71j46R
+	 BpZv8MZ6nqA/BUfQ66+uiCN6lG0xAGpqKsFp7FzaM7qSm50/Hdt7uFpAhZjkPrnNQ4
+	 JZOzjdQ+jlf0A==
+From: alexs@kernel.org
+To: Will Deacon <will@kernel.org>,
+	"Aneesh Kumar K . V" <aneesh.kumar@kernel.org>,
+	Nick Piggin <npiggin@gmail.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Brian Cain <bcain@quicinc.com>,
+	WANG Xuerui <kernel@xen0n.name>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Jonas Bonn <jonas@southpole.se>,
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+	Stafford Horne <shorne@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Naveen N Rao <naveen@kernel.org>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Bibo Mao <maobibo@loongson.cn>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	linux-arch@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-openrisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Vishal Moola <vishal.moola@gmail.com>,
+	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+	Kemeng Shi <shikemeng@huaweicloud.com>,
+	Lance Yang <ioworker0@gmail.com>,
+	Peter Xu <peterx@redhat.com>,
+	Barry Song <baohua@kernel.org>,
+	linux-s390@vger.kernel.org
+Cc: Guo Ren <guoren@kernel.org>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Alexandre Ghiti <alexghiti@rivosinc.com>,
+	Jisheng Zhang <jszhang@kernel.org>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Anup Patel <anup@brainfault.org>,
+	Josh Poimboeuf <jpoimboe@kernel.org>,
+	Breno Leitao <leitao@debian.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Hugh Dickins <hughd@google.com>,
+	David Hildenbrand <david@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Alex Shi <alexs@kernel.org>,
+	sparclinux@vger.kernel.org,
+	Andreas Larsson <andreas@gaisler.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Zi Yan <ziy@nvidia.com>
+Subject: [RFC PATCH 02/18] mm/pgtable: convert ptdesc.pmd_huge_pte to ptdesc pointer
+Date: Tue, 30 Jul 2024 14:46:56 +0800
+Message-ID: <20240730064712.3714387-3-alexs@kernel.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240730064712.3714387-1-alexs@kernel.org>
+References: <20240730064712.3714387-1-alexs@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20240730022623.98909-1-almasrymina@google.com>
-X-Mailer: git-send-email 2.46.0.rc1.232.g9752f9e123-goog
-Message-ID: <20240730022623.98909-15-almasrymina@google.com>
-Subject: [PATCH net-next v17 14/14] netdev: add dmabuf introspection
-From: Mina Almasry <almasrymina@google.com>
-To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org
-Cc: Mina Almasry <almasrymina@google.com>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
-	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, 
-	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Shuah Khan <shuah@kernel.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, 
-	"=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
-	Christoph Hellwig <hch@infradead.org>, Nikolay Aleksandrov <razor@blackwall.org>, Taehee Yoo <ap420073@gmail.com>, 
-	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Add dmabuf information to page_pool stats:
+From: Alex Shi <alexs@kernel.org>
 
-$ ./cli.py --spec ../netlink/specs/netdev.yaml --dump page-pool-get
-...
- {'dmabuf': 10,
-  'id': 456,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 455,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 454,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 453,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 452,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 451,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 450,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
- {'dmabuf': 10,
-  'id': 449,
-  'ifindex': 3,
-  'inflight': 1023,
-  'inflight-mem': 4190208},
+folio/page.pmd_huge_pte is a pointer to pagetable descriptor: pgtable_t.
+In most arch, it is a typedef of 'struct page *'. But we have ptdesc now,
+tt's better to convert it to right one: struct ptdesc pointer.
 
-And queue stats:
+Different from others, s390/sparc use typedef 'pte_t *' as pgtable_t, so
+they need different cost in their arch.
 
-$ ./cli.py --spec ../netlink/specs/netdev.yaml --dump queue-get
-...
-{'dmabuf': 10, 'id': 8, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 9, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 10, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 11, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 12, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 13, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 14, 'ifindex': 3, 'type': 'rx'},
-{'dmabuf': 10, 'id': 15, 'ifindex': 3, 'type': 'rx'},
+Thanks for lkp found the build issue for s390/sparc, it fixed now.
 
-Suggested-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Reviewed-by: Jakub Kicinski <kuba@kernel.org>
-
+Signed-off-by: Alex Shi <alexs@kernel.org>
+Cc: linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-s390@vger.kernel.org
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox  <willy@infradead.org>
+Cc: Mike Rapoport  <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 ---
- Documentation/netlink/specs/netdev.yaml | 10 ++++++++++
- include/uapi/linux/netdev.h             |  2 ++
- net/core/netdev-genl.c                  | 10 ++++++++++
- net/core/page_pool_user.c               |  4 ++++
- tools/include/uapi/linux/netdev.h       |  2 ++
- 5 files changed, 28 insertions(+)
+ arch/s390/mm/pgtable.c   |  6 +++---
+ arch/sparc/mm/tlb.c      |  6 +++---
+ include/linux/mm_types.h |  4 ++--
+ mm/pgtable-generic.c     | 16 ++++++++--------
+ 4 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/netlink/specs/netdev.yaml b/Documentation/netlink/specs/netdev.yaml
-index 0c747530c275e..08412c279297b 100644
---- a/Documentation/netlink/specs/netdev.yaml
-+++ b/Documentation/netlink/specs/netdev.yaml
-@@ -167,6 +167,10 @@ attribute-sets:
-           "re-attached", they are just waiting to disappear.
-           Attribute is absent if Page Pool has not been detached, and
-           can still be used to allocate new memory.
-+      -
-+        name: dmabuf
-+        doc: ID of the dmabuf this page-pool is attached to.
-+        type: u32
-   -
-     name: page-pool-info
-     subset-of: page-pool
-@@ -268,6 +272,10 @@ attribute-sets:
-         name: napi-id
-         doc: ID of the NAPI instance which services this queue.
-         type: u32
-+      -
-+        name: dmabuf
-+        doc: ID of the dmabuf attached to this queue, if any.
-+        type: u32
+diff --git a/arch/s390/mm/pgtable.c b/arch/s390/mm/pgtable.c
+index 2c944bafb030..201d350abd1e 100644
+--- a/arch/s390/mm/pgtable.c
++++ b/arch/s390/mm/pgtable.c
+@@ -574,7 +574,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 		INIT_LIST_HEAD(lh);
+ 	else
+ 		list_add(lh, (struct list_head *) pmd_huge_pte(mm, pmdp));
+-	pmd_huge_pte(mm, pmdp) = pgtable;
++	pmd_huge_pte(mm, pmdp) = (struct ptdesc *)pgtable;
+ }
  
-   -
-     name: qstats
-@@ -543,6 +551,7 @@ operations:
-             - inflight
-             - inflight-mem
-             - detach-time
-+            - dmabuf
-       dump:
-         reply: *pp-reply
-       config-cond: page-pool
-@@ -607,6 +616,7 @@ operations:
-             - type
-             - napi-id
-             - ifindex
-+            - dmabuf
-       dump:
-         request:
-           attributes:
-diff --git a/include/uapi/linux/netdev.h b/include/uapi/linux/netdev.h
-index 91bf3ecc5f1d9..7c308f04e7a06 100644
---- a/include/uapi/linux/netdev.h
-+++ b/include/uapi/linux/netdev.h
-@@ -93,6 +93,7 @@ enum {
- 	NETDEV_A_PAGE_POOL_INFLIGHT,
- 	NETDEV_A_PAGE_POOL_INFLIGHT_MEM,
- 	NETDEV_A_PAGE_POOL_DETACH_TIME,
-+	NETDEV_A_PAGE_POOL_DMABUF,
+ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+@@ -586,12 +586,12 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	assert_spin_locked(pmd_lockptr(mm, pmdp));
  
- 	__NETDEV_A_PAGE_POOL_MAX,
- 	NETDEV_A_PAGE_POOL_MAX = (__NETDEV_A_PAGE_POOL_MAX - 1)
-@@ -131,6 +132,7 @@ enum {
- 	NETDEV_A_QUEUE_IFINDEX,
- 	NETDEV_A_QUEUE_TYPE,
- 	NETDEV_A_QUEUE_NAPI_ID,
-+	NETDEV_A_QUEUE_DMABUF,
+ 	/* FIFO */
+-	pgtable = pmd_huge_pte(mm, pmdp);
++	pgtable = (pte_t *)pmd_huge_pte(mm, pmdp);
+ 	lh = (struct list_head *) pgtable;
+ 	if (list_empty(lh))
+ 		pmd_huge_pte(mm, pmdp) = NULL;
+ 	else {
+-		pmd_huge_pte(mm, pmdp) = (pgtable_t) lh->next;
++		pmd_huge_pte(mm, pmdp) = (struct ptdesc *) lh->next;
+ 		list_del(lh);
+ 	}
+ 	ptep = (pte_t *) pgtable;
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index 8648a50afe88..903825b4c997 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -278,7 +278,7 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 		INIT_LIST_HEAD(lh);
+ 	else
+ 		list_add(lh, (struct list_head *) pmd_huge_pte(mm, pmdp));
+-	pmd_huge_pte(mm, pmdp) = pgtable;
++	pmd_huge_pte(mm, pmdp) = (struct ptdesc *)pgtable;
+ }
  
- 	__NETDEV_A_QUEUE_MAX,
- 	NETDEV_A_QUEUE_MAX = (__NETDEV_A_QUEUE_MAX - 1)
-diff --git a/net/core/netdev-genl.c b/net/core/netdev-genl.c
-index bd54cf50b658a..e944fd56c6b8e 100644
---- a/net/core/netdev-genl.c
-+++ b/net/core/netdev-genl.c
-@@ -293,6 +293,7 @@ static int
- netdev_nl_queue_fill_one(struct sk_buff *rsp, struct net_device *netdev,
- 			 u32 q_idx, u32 q_type, const struct genl_info *info)
+ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+@@ -289,12 +289,12 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
+ 	assert_spin_locked(&mm->page_table_lock);
+ 
+ 	/* FIFO */
+-	pgtable = pmd_huge_pte(mm, pmdp);
++	pgtable = (pte_t *)pmd_huge_pte(mm, pmdp);
+ 	lh = (struct list_head *) pgtable;
+ 	if (list_empty(lh))
+ 		pmd_huge_pte(mm, pmdp) = NULL;
+ 	else {
+-		pmd_huge_pte(mm, pmdp) = (pgtable_t) lh->next;
++		pmd_huge_pte(mm, pmdp) = (struct ptdesc *) lh->next;
+ 		list_del(lh);
+ 	}
+ 	pte_val(pgtable[0]) = 0;
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 485424979254..2e3eddf6edc9 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -462,7 +462,7 @@ struct ptdesc {
+ 		struct list_head pt_list;
+ 		struct {
+ 			unsigned long _pt_pad_1;
+-			pgtable_t pmd_huge_pte;
++			struct ptdesc *pmd_huge_pte;
+ 		};
+ 	};
+ 	unsigned long __page_mapping;
+@@ -948,7 +948,7 @@ struct mm_struct {
+ 		struct mmu_notifier_subscriptions *notifier_subscriptions;
+ #endif
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+-		pgtable_t pmd_huge_pte; /* protected by page_table_lock */
++		struct ptdesc *pmd_huge_pte; /* protected by page_table_lock */
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+ 		/*
+diff --git a/mm/pgtable-generic.c b/mm/pgtable-generic.c
+index 2ce714f1dd15..f34a8d115f5b 100644
+--- a/mm/pgtable-generic.c
++++ b/mm/pgtable-generic.c
+@@ -171,8 +171,8 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 	if (!pmd_huge_pte(mm, pmdp))
+ 		INIT_LIST_HEAD(&pgtable->lru);
+ 	else
+-		list_add(&pgtable->lru, &pmd_huge_pte(mm, pmdp)->lru);
+-	pmd_huge_pte(mm, pmdp) = pgtable;
++		list_add(&pgtable->lru, &pmd_huge_pte(mm, pmdp)->pt_list);
++	pmd_huge_pte(mm, pmdp) = page_ptdesc(pgtable);
+ }
+ #endif
+ 
+@@ -180,17 +180,17 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ /* no "address" argument so destroys page coloring of some arch */
+ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
  {
-+	struct net_devmem_dmabuf_binding *binding;
- 	struct netdev_rx_queue *rxq;
- 	struct netdev_queue *txq;
- 	void *hdr;
-@@ -312,6 +313,15 @@ netdev_nl_queue_fill_one(struct sk_buff *rsp, struct net_device *netdev,
- 		if (rxq->napi && nla_put_u32(rsp, NETDEV_A_QUEUE_NAPI_ID,
- 					     rxq->napi->napi_id))
- 			goto nla_put_failure;
-+
-+		binding = (struct net_devmem_dmabuf_binding *)
-+				  rxq->mp_params.mp_priv;
-+		if (binding) {
-+			if (nla_put_u32(rsp, NETDEV_A_QUEUE_DMABUF,
-+					binding->id))
-+				goto nla_put_failure;
-+		}
-+
- 		break;
- 	case NETDEV_QUEUE_TYPE_TX:
- 		txq = netdev_get_tx_queue(netdev, q_idx);
-diff --git a/net/core/page_pool_user.c b/net/core/page_pool_user.c
-index 3a3277ba167b1..ca13363aea343 100644
---- a/net/core/page_pool_user.c
-+++ b/net/core/page_pool_user.c
-@@ -212,6 +212,7 @@ static int
- page_pool_nl_fill(struct sk_buff *rsp, const struct page_pool *pool,
- 		  const struct genl_info *info)
- {
-+	struct net_devmem_dmabuf_binding *binding = pool->mp_priv;
- 	size_t inflight, refsz;
- 	void *hdr;
+-	pgtable_t pgtable;
++	struct ptdesc *ptdesc;
  
-@@ -241,6 +242,9 @@ page_pool_nl_fill(struct sk_buff *rsp, const struct page_pool *pool,
- 			 pool->user.detach_time))
- 		goto err_cancel;
+ 	assert_spin_locked(pmd_lockptr(mm, pmdp));
  
-+	if (binding && nla_put_u32(rsp, NETDEV_A_PAGE_POOL_DMABUF, binding->id))
-+		goto err_cancel;
-+
- 	genlmsg_end(rsp, hdr);
+ 	/* FIFO */
+-	pgtable = pmd_huge_pte(mm, pmdp);
+-	pmd_huge_pte(mm, pmdp) = list_first_entry_or_null(&pgtable->lru,
+-							  struct page, lru);
++	ptdesc = pmd_huge_pte(mm, pmdp);
++	pmd_huge_pte(mm, pmdp) = list_first_entry_or_null(&ptdesc->pt_list,
++							  struct ptdesc, pt_list);
+ 	if (pmd_huge_pte(mm, pmdp))
+-		list_del(&pgtable->lru);
+-	return pgtable;
++		list_del(&ptdesc->pt_list);
++	return ptdesc_page(ptdesc);
+ }
+ #endif
  
- 	return 0;
-diff --git a/tools/include/uapi/linux/netdev.h b/tools/include/uapi/linux/netdev.h
-index 91bf3ecc5f1d9..7c308f04e7a06 100644
---- a/tools/include/uapi/linux/netdev.h
-+++ b/tools/include/uapi/linux/netdev.h
-@@ -93,6 +93,7 @@ enum {
- 	NETDEV_A_PAGE_POOL_INFLIGHT,
- 	NETDEV_A_PAGE_POOL_INFLIGHT_MEM,
- 	NETDEV_A_PAGE_POOL_DETACH_TIME,
-+	NETDEV_A_PAGE_POOL_DMABUF,
- 
- 	__NETDEV_A_PAGE_POOL_MAX,
- 	NETDEV_A_PAGE_POOL_MAX = (__NETDEV_A_PAGE_POOL_MAX - 1)
-@@ -131,6 +132,7 @@ enum {
- 	NETDEV_A_QUEUE_IFINDEX,
- 	NETDEV_A_QUEUE_TYPE,
- 	NETDEV_A_QUEUE_NAPI_ID,
-+	NETDEV_A_QUEUE_DMABUF,
- 
- 	__NETDEV_A_QUEUE_MAX,
- 	NETDEV_A_QUEUE_MAX = (__NETDEV_A_QUEUE_MAX - 1)
 -- 
-2.46.0.rc1.232.g9752f9e123-goog
+2.43.0
 
