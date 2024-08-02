@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4237C1B4C2A;
-	Thu,  1 Aug 2024 17:47:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1986B1DAC65;
+	Fri,  2 Aug 2024 09:49:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722534465; cv=none; b=C1Tb0JJRaxIYOiFVkvxB6csO/NtZSuTd8XAnmG1bEI6fj6ADVORkotV9P3uvR6PsqGFy1i479uXmHnp/yknVQ8pKTdtA/Y405GTn3ffQ2UDKYfGaF4ChcXsfSvKPY+h3qwS4mKnGD+/yF1ytraynxSiQvkye9HtixZxmzx37b+4=
+	t=1722592172; cv=none; b=D9wWN/FsAzaKPb5scFTI+bakvck1iRYCDL7uF2H8N/ttNQjus3gD8zpzzHB+KmtPw7fLVkL4DHKGkj+5ckLtUfWN0bTpdZWoCzMBHXQMazPM/7WQPRyAV58xF1DRwXr2rW+xW735nG9WICW1mPazDbEvaxGL/A7LPLdbTz+Ctec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722534465; c=relaxed/simple;
-	bh=QjDENAGyYUfkxISJ55CXGA0nu5yApMiihtQuD/xC0eQ=;
+	s=arc-20240116; t=1722592172; c=relaxed/simple;
+	bh=V6rv7TGpmKX1umA5P31mK46zzcAigO8h1m0IHBWCnyE=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=FhjFoqAfZXPTbMOq4AS355s959Eev0/lJruJ5XRJdTf60fdkUB72y8NMTHgyyO5n4bPmYOJzKal2z7aJyBOxCfjAbyUxadG0jRboNtytrZzBy665q+KAW+intcaSDqjAH6Ym9SNDtIHh/tlkctTPNWTVslVEDYW35VrBGqoei1o=
+	 MIME-Version:Content-Type; b=BnQKWjHgYBWIMQYS5djQ0Dmxf2vrtOMWJQ/bDZ4fKK+Aj99nyTn9PFAavj27ZmFDoyYvMiEQ79GGCmKoIej2AyL1xhS4bHKnXEWQsmZkbXZDB+LMdfbG4CAzdU7NHS/FJljz/lLqufbND3rJIi0qC6bKTYaefTqphey3A5vj6RY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WZbvg4GP6z6K91N;
-	Fri,  2 Aug 2024 01:45:03 +0800 (CST)
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb1G048mKz6K610;
+	Fri,  2 Aug 2024 17:47:20 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id DD56C140B55;
-	Fri,  2 Aug 2024 01:47:39 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 129BE140A08;
+	Fri,  2 Aug 2024 17:49:24 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 1 Aug
- 2024 18:47:38 +0100
-Date: Thu, 1 Aug 2024 18:47:38 +0100
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
+ 2024 10:49:23 +0100
+Date: Fri, 2 Aug 2024 10:49:22 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Mike Rapoport <rppt@kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
@@ -51,12 +51,11 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
 	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 06/26] MIPS: loongson64: drop
- HAVE_ARCH_NODEDATA_EXTENSION
-Message-ID: <20240801184738.00003e6e@Huawei.com>
-In-Reply-To: <20240801060826.559858-7-rppt@kernel.org>
+Subject: Re: [PATCH v3 07/26] mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+Message-ID: <20240802104922.000051a0@Huawei.com>
+In-Reply-To: <20240801060826.559858-8-rppt@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
-	<20240801060826.559858-7-rppt@kernel.org>
+	<20240801060826.559858-8-rppt@kernel.org>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -67,76 +66,126 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu,  1 Aug 2024 09:08:06 +0300
+On Thu,  1 Aug 2024 09:08:07 +0300
 Mike Rapoport <rppt@kernel.org> wrote:
 
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Commit f8f9f21c7848 ("MIPS: Fix build error for loongson64 and
-> sgi-ip27") added HAVE_ARCH_NODEDATA_EXTENSION to loongson64 to silence a
-> compilation error that happened because loongson64 didn't define array
-> of pg_data_t as node_data like most other architectures did.
+> There are no users of HAVE_ARCH_NODEDATA_EXTENSION left, so
+> arch_alloc_nodedata() and arch_refresh_nodedata() are not needed
+> anymore.
 > 
-> After rename of __node_data to node_data arch_alloc_nodedata() and
-> HAVE_ARCH_NODEDATA_EXTENSION can be dropped from loongson64.
-> 
-> Since it was the only user of HAVE_ARCH_NODEDATA_EXTENSION config option
-> also remove this option from arch/mips/Kconfig.
+> Replace the call to arch_alloc_nodedata() in free_area_init() with
+> memblock_alloc(), remove arch_refresh_nodedata() and cleanup
+> include/linux/memory_hotplug.h from the associated ifdefery.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 
-These are as you say now identical to the generic form, so
-don't need a special version for any reason I can see.
+Hi Mike, 
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+This has an accidental (I assume) functional change and if
+you have an initially offline node it all goes wrong.
 
 
 > ---
->  arch/mips/Kconfig           |  4 ----
->  arch/mips/loongson64/numa.c | 10 ----------
->  2 files changed, 14 deletions(-)
+>  include/linux/memory_hotplug.h | 48 ----------------------------------
+>  mm/mm_init.c                   |  3 +--
+>  2 files changed, 1 insertion(+), 50 deletions(-)
 > 
-> diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-> index ea5f3c3c31f6..43da6d596e2b 100644
-> --- a/arch/mips/Kconfig
-> +++ b/arch/mips/Kconfig
-> @@ -502,7 +502,6 @@ config MACH_LOONGSON64
->  	select USE_OF
->  	select BUILTIN_DTB
->  	select PCI_HOST_GENERIC
-> -	select HAVE_ARCH_NODEDATA_EXTENSION if NUMA
->  	help
->  	  This enables the support of Loongson-2/3 family of machines.
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index ebe876930e78..b27ddce5d324 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -16,54 +16,6 @@ struct resource;
+>  struct vmem_altmap;
+>  struct dev_pagemap;
 >  
-> @@ -2612,9 +2611,6 @@ config NUMA
->  config SYS_SUPPORTS_NUMA
->  	bool
->  
-> -config HAVE_ARCH_NODEDATA_EXTENSION
-> -	bool
+> -#ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+> -/*
+> - * For supporting node-hotadd, we have to allocate a new pgdat.
+> - *
+> - * If an arch has generic style NODE_DATA(),
+> - * node_data[nid] = kzalloc() works well. But it depends on the architecture.
+> - *
+> - * In general, generic_alloc_nodedata() is used.
+> - *
+> - */
+> -extern pg_data_t *arch_alloc_nodedata(int nid);
+> -extern void arch_refresh_nodedata(int nid, pg_data_t *pgdat);
 > -
->  config RELOCATABLE
->  	bool "Relocatable kernel"
->  	depends on SYS_SUPPORTS_RELOCATABLE
-> diff --git a/arch/mips/loongson64/numa.c b/arch/mips/loongson64/numa.c
-> index b50ce28d2741..64fcfaa885b6 100644
-> --- a/arch/mips/loongson64/numa.c
-> +++ b/arch/mips/loongson64/numa.c
-> @@ -198,13 +198,3 @@ void __init prom_init_numa_memory(void)
->  	pr_info("CP0_PageGrain: CP0 5.1 (0x%x)\n", read_c0_pagegrain());
->  	prom_meminit();
->  }
+> -#else /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
 > -
-> -pg_data_t * __init arch_alloc_nodedata(int nid)
-> -{
-> -	return memblock_alloc(sizeof(pg_data_t), SMP_CACHE_BYTES);
-> -}
+> -#define arch_alloc_nodedata(nid)	generic_alloc_nodedata(nid)
 > -
-> -void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+> -#ifdef CONFIG_NUMA
+> -/*
+> - * XXX: node aware allocation can't work well to get new node's memory at this time.
+> - *	Because, pgdat for the new node is not allocated/initialized yet itself.
+> - *	To use new node's memory, more consideration will be necessary.
+> - */
+> -#define generic_alloc_nodedata(nid)				\
+> -({								\
+> -	memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);	\
+> -})
+> -
+> -extern pg_data_t *node_data[];
+> -static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
 > -{
 > -	node_data[nid] = pgdat;
 > -}
+> -
+> -#else /* !CONFIG_NUMA */
+> -
+> -/* never called */
+> -static inline pg_data_t *generic_alloc_nodedata(int nid)
+> -{
+> -	BUG();
+> -	return NULL;
+> -}
+> -static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+> -{
+> -}
+> -#endif /* CONFIG_NUMA */
+> -#endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+> -
+>  #ifdef CONFIG_MEMORY_HOTPLUG
+>  struct page *pfn_to_online_page(unsigned long pfn);
+>  
+> diff --git a/mm/mm_init.c b/mm/mm_init.c
+> index 75c3bd42799b..bcc2f2dd8021 100644
+> --- a/mm/mm_init.c
+> +++ b/mm/mm_init.c
+> @@ -1838,11 +1838,10 @@ void __init free_area_init(unsigned long *max_zone_pfn)
+>  
+>  		if (!node_online(nid)) {
+>  			/* Allocator not initialized yet */
+> -			pgdat = arch_alloc_nodedata(nid);
+> +			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
+>  			if (!pgdat)
+>  				panic("Cannot allocate %zuB for node %d.\n",
+>  				       sizeof(*pgdat), nid);
+> -			arch_refresh_nodedata(nid, pgdat);
+
+This allocates pgdat but never sets node_data[nid] to it
+and promptly leaks it on the line below. 
+
+Just to sanity check this I spun up a qemu machine with no memory
+initially present on some nodes and it went boom as you'd expect.
+
+I tested with addition of
+			NODE_DATA(nid) = pgdat;
+and it all seems to work as expected.
+
+Jonathan
+
+
+
+>  		}
+>  
+>  		pgdat = NODE_DATA(nid);
+
 
