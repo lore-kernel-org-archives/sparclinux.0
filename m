@@ -1,103 +1,96 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4823816BE0B;
-	Fri,  2 Aug 2024 16:44:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 441731ABEB6;
+	Fri,  2 Aug 2024 22:42:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722617089; cv=none; b=D++J5nz4W2qB0UvFG9MIHJXD8C7wV6h5WlA4WoHP6DaOmfQ6Z0yK9BADE2hpDG0L++hmOSS3w4aHIiFpw+G/w/64hKhVnqkcOQDX8u6awsSAA79dtqngqscDCIraPv0p9bOP49sn6aecIpxyA2EZzJXvXP7kLqJl99NP0acsCkw=
+	t=1722638539; cv=none; b=mv47jYVZTN0w9tyfxne6+uWytGqspmiwnfifTy88vd7W6UsYX+N/kTMTc3n8L4suBXQeYjHrb4QVbJhpdjp/pKSjXyy6Bo0TZIkEtJk2f7YvGglTlO26zfVzyAAebOCGYEzOERcFYVDgNhf73dhSdxRg9a9OGugXzc5ZJ4s/6N0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722617089; c=relaxed/simple;
-	bh=NCbcoYaXRkWCPqQyDc3SvLTQKqJDdoxXXdNRp7Lxpbs=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lCLHlV6CpOm8I3ytXZV58odGzhKssSn4mYVx+u82uzv2NNPAt2KhqqLINfwmoktDWEPfarSn0pNNgy2pndspbrAFJOAOv800Z1YiIQHDiCFGqttqzLNKeoo+jeIP/yMK0EOY3KVFIeqaHdCChPcptQkkK+4SJIg+2NX1uFpYF8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WbBTD2kfFz6K5YZ;
-	Sat,  3 Aug 2024 00:42:40 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id A6A811404F5;
-	Sat,  3 Aug 2024 00:44:44 +0800 (CST)
-Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
- 2024 17:44:43 +0100
-Date: Fri, 2 Aug 2024 17:44:43 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Mike Rapoport <rppt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
-	<agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, "Andrew
- Morton" <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "Borislav
- Petkov" <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christophe
- Leroy <christophe.leroy@csgroup.eu>, Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand
-	<david@redhat.com>, "David S. Miller" <davem@davemloft.net>, Davidlohr Bueso
-	<dave@stgolabs.net>, "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, Heiko
- Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>, Ingo
- Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>, "John Paul
- Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>, Jonathan Corbet
-	<corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt
-	<palmer@dabbelt.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring
-	<robh@kernel.org>, Samuel Holland <samuel.holland@sifive.com>, Thomas
- Bogendoerfer <tsbogend@alpha.franken.de>, Thomas Gleixner
-	<tglx@linutronix.de>, "Vasily Gorbik" <gor@linux.ibm.com>, Will Deacon
-	<will@kernel.org>, Zi Yan <ziy@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-arch@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-cxl@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-mips@vger.kernel.org>,
-	<linux-mm@kvack.org>, <linux-riscv@lists.infradead.org>,
-	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
-	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
-	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 00/26] mm: introduce numa_memblks
-Message-ID: <20240802174443.0000710c@Huawei.com>
-In-Reply-To: <20240801060826.559858-1-rppt@kernel.org>
-References: <20240801060826.559858-1-rppt@kernel.org>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1722638539; c=relaxed/simple;
+	bh=XNrB//VVqcE7SxjnYzrswtMDOUrFrcTtTzxGahrzo10=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=L9EBmLekNwQl+CFXWKJhMDSE476PDUaPqJ6DCaYElM1h2pC3GVjO9FcLc2qHclBctAAQzqC+mzyye9A2IDGFc/g2ezMwxdzzc+XdASa42Wy5wkDh7waax5oAXQAJFFBpL9tEbeRyL8DrVpFPx5zkWUJ5cw0t4ywDwSyHk2Ljaqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VGlIVrYQ; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VGlIVrYQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2428C4AF0B;
+	Fri,  2 Aug 2024 22:42:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1722638538;
+	bh=XNrB//VVqcE7SxjnYzrswtMDOUrFrcTtTzxGahrzo10=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VGlIVrYQFy5UMofJUIUPO7hEWdYKkie9UhxTVCRXxhXWRLPKoaN/r5a42KOCJw3JU
+	 7MVRUmlUH70oMNG2kgJzZ29l3OYmE2dwjZjSGpi/fydKbPmJHvr7rKG7PEil+7Xisv
+	 jHhfelSW4LVmhZXWV+u2gpoMjSOBeO3tFI3MbQheNfSjAUBQ65JmIKuCfYro2/Aivc
+	 YisLekgwsM+5B+zX08y0m9Ho73MqBsp1tm56ehDt0ma8GUylOT9nsbamwIce/rSwYp
+	 cV6+Rx0sI6KL58XqWOY+irds5Lfb4BnF4APJdpYiAHd6z7Wdabs49Yv/aTBO//TUyt
+	 zyFZuhTEqeLfw==
+Date: Fri, 2 Aug 2024 15:42:16 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+To: Koakuma <koachan@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+	linux-kbuild@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] sparc/build: Add SPARC target flags for compiling
+ with clang
+Message-ID: <20240802224216.GA853635@thelio-3990X>
+References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
+ <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
 
-On Thu,  1 Aug 2024 09:08:00 +0300
-Mike Rapoport <rppt@kernel.org> wrote:
+Hi Koakuma,
 
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On Wed, Jul 17, 2024 at 11:10:16PM +0700, Koakuma wrote:
+> clang only supports building 64-bit kernel, so we use the
+> sparc64-linux-gnu target.
+
+It should not really matter which sparc target you pick (32-bit or
+64-bit), as the comment at the top of the file mentions that
+architectures should use the command line options to control word size
+and endianness, which arch/sparc does. Not that I really think it is
+worth correcting, just thought I would mention :)
+
+> See also: https://lore.kernel.org/lkml/e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFwdB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=@protonmail.com/T/#m068e010dcf8b99d3510a90d7532bcdb70e2e2c6b
 > 
-> Hi,
-> 
-> Following the discussion about handling of CXL fixed memory windows on
-> arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
-> the generic code so they will be available on arm64/riscv and maybe on
-> loongarch sometime later.
-> 
-> While it could be possible to use memblock to describe CXL memory windows,
-> it currently lacks notion of unpopulated memory ranges and numa_memblks
-> does implement this.
-> 
-> Another reason to make numa_memblks generic is that both arch_numa (arm64
-> and riscv) and loongarch use trimmed copy of x86 code although there is no
-> fundamental reason why the same code cannot be used on all these platforms.
-> Having numa_memblks in mm/ will make it's interaction with ACPI and FDT
-> more consistent and I believe will reduce maintenance burden.
-> 
-> And with generic numa_memblks it is (almost) straightforward to enable NUMA
-> emulation on arm64 and riscv.
+> Signed-off-by: Koakuma <koachan@protonmail.com>
 
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> #arm64 + CXL via QEMU
-With that one fix in patch 7.
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
 
-Feel free to figure out which patches actually got tested by that
-(or tag them all - I'll pretend I tested ip27 :)
+Thanks for all the work you have done driving this, it is pretty cool to
+see :)
 
-Jonathan
-
+> ---
+>  scripts/Makefile.clang | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/scripts/Makefile.clang b/scripts/Makefile.clang
+> index 6c23c6af797f..2435efae67f5 100644
+> --- a/scripts/Makefile.clang
+> +++ b/scripts/Makefile.clang
+> @@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips		:= mipsel-linux-gnu
+>  CLANG_TARGET_FLAGS_powerpc	:= powerpc64le-linux-gnu
+>  CLANG_TARGET_FLAGS_riscv	:= riscv64-linux-gnu
+>  CLANG_TARGET_FLAGS_s390		:= s390x-linux-gnu
+> +CLANG_TARGET_FLAGS_sparc	:= sparc64-linux-gnu
+>  CLANG_TARGET_FLAGS_x86		:= x86_64-linux-gnu
+>  CLANG_TARGET_FLAGS_um		:= $(CLANG_TARGET_FLAGS_$(SUBARCH))
+>  CLANG_TARGET_FLAGS		:= $(CLANG_TARGET_FLAGS_$(SRCARCH))
+> 
+> -- 
+> 2.45.2
+> 
