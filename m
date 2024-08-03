@@ -1,89 +1,111 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96193136351;
-	Sat,  3 Aug 2024 05:59:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D741BC40;
+	Sat,  3 Aug 2024 18:58:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722664758; cv=none; b=A3OWrxpwUDffuKPrQfQiuXGpv8K/5lSVqeD5ewZ/vyC0JYwH4R+Olcl/rq7tNlIQvOtfqFPPMDbCubWw8/FGBovr2qOUvRQ4fWpYaAIkNvQy19e/K+i1tSFQ1iY4VVw6kjdaIoWl8IRFMtm8JvabY56vO4FDaWVPlF+lt9tL87k=
+	t=1722711495; cv=none; b=nX1tcve8U7xJp2L6UF19XIufshC7F17rKLJ5MFZwKhBvHtloRMrHY533uePlGwLap6+Iq88Q3prZ0XZh7Ke3WuMAydOgj0ugFf7b8dilgIeEblPiaCm3O4aO350PUI4erCfOS5ymX079S2fU1VsPcx24qKQ81oR+GQgBkqxsqUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722664758; c=relaxed/simple;
-	bh=CRTjdpok2ylJOBVRB5NG+v3YKMZN4sDLzRfETUx+ZQ8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PxVT+Yu+GwWhekPlqSVyzurnMqL7ZJwinyI1QjaNodnKyUQCoFEfHS2m785wIaFxFj7WUgeIUer44TA7Ha6CQL6YmYR/NvrDsUv5pZPSQpTDcMYLtsgAqJJ8ePUkAfWNA67rKdLNqBtm3LKpiL1X/B0oc6powaatAobVw6j+r+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XCGLtZRM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722711495; c=relaxed/simple;
+	bh=Tpqmomamf68VJd3BX6Aa+aldBw76MPQW/c629qHRnbg=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=IbrSsGqOBStGIMJEps8mhKenKBf8B+hM7axxPIe76H166t8p4nL4QhbwZ42LjTqQlk0gUtF0LZatRQUt9L+FkSP1WB5smK97TLSZL41p+0UpSKXSri8jR/T2wYhe3tuluqqfZIKT+a95bhVG5V7Hst9Hf5Iv045WfuhfJdcqgSM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o5Y2Rmax; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XCGLtZRM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CFC0C4AF0F;
-	Sat,  3 Aug 2024 05:59:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722664758;
-	bh=CRTjdpok2ylJOBVRB5NG+v3YKMZN4sDLzRfETUx+ZQ8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=XCGLtZRMUCMbu6BQGQk49WxH5ioOsEqgD/dlbMGahAWxu/FIHRvD4heSeli5ntERw
-	 wwuMI7EOh3r4LHLtUPIhwyeaouzexismarEux3mtMgNa5kzrvWM4E70ICdsPxnnWAS
-	 RndLH+2XsXWPFQzAoyiSgZSXPoKuIQ8WSjkKK6rkLquL9QWt6IlAbQEMTWqLNgPxts
-	 4O59B8dg76/sxj5C/Nmxo3jMpxDojqmR+lafqyLd/nDUm4bGNKtueWr+Np/7hMQcgg
-	 xUQSIFR+grHcWFMVE1J+kYiuhVw1Wbw4LDe1L/y9j252Cx4vgX+fbwosdk4kodFSUU
-	 53rKEz9rwt1LA==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-530c2e5f4feso734196e87.0;
-        Fri, 02 Aug 2024 22:59:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVT2UDfpiYZNiLdlNHJXH/TsRdVQrmejJWJtKea3Y9PHJCjsXMhphySs7NN6FsXoQFbc0wc95aoi/n5kEYao82Xn4lszVMx2beETLXh5jBqqczvjumMDD3ixNxW9qyx+SfDW+lq8XRYLpgo3lRNvF5wIFTpghl6h48w7ca8J+XAjHOnZxIDhg==
-X-Gm-Message-State: AOJu0Yzou48IT2x5UlpGTN81mhDb4AH9/vc1KvOOfRsRpk/AvU9/C4DC
-	dRf6IdMwLpLURQ2whdeSsOZHbr7nBGNS4ptwUiDhf9HfqtEX4+8+juWR1pVBNl1q5nscEh+L/XX
-	gbtjqLzlA3XbqD/6tBar5nXVGdv0=
-X-Google-Smtp-Source: AGHT+IGH3RhSkPSqDeBQj38zD+0ibup0k8GYvLycZ0CcyN+aNPlxgoEpaXhYyETxTBdvMTXtFmvfO0h4X1uuLe82UVE=
-X-Received: by 2002:a05:6512:ba3:b0:52e:bdfc:1d09 with SMTP id
- 2adb3069b0e04-530bb36f0b1mr3632046e87.18.1722664756789; Fri, 02 Aug 2024
- 22:59:16 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o5Y2Rmax"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93706C116B1;
+	Sat,  3 Aug 2024 18:58:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1722711495;
+	bh=Tpqmomamf68VJd3BX6Aa+aldBw76MPQW/c629qHRnbg=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=o5Y2RmaxDgbz57iITn10F1azWivNnKphArt1mFz2o1k24QgUghcLPFcCl4Skc3J7n
+	 2U6mfRYJicjGnJ/Lcha0tyWotwjt/73kHML1EvfQheasAaHT4z+JnEhKa6yfFin34R
+	 FpUPzEcCObDFHQbrY87xJxqJmIAHp6RYNOzd/x7s=
+Date: Sat, 3 Aug 2024 11:58:13 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+Cc: Mike Rapoport <rppt@kernel.org>, <linux-kernel@vger.kernel.org>,
+ Alexander Gordeev <agordeev@linux.ibm.com>, Andreas Larsson
+ <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, "Borislav Petkov"
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy
+ <christophe.leroy@csgroup.eu>, Dan Williams <dan.j.williams@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand
+ <david@redhat.com>, "David S. Miller" <davem@davemloft.net>, Davidlohr
+ Bueso <dave@stgolabs.net>, "Greg Kroah-Hartman"
+ <gregkh@linuxfoundation.org>, Heiko Carstens <hca@linux.ibm.com>, Huacai
+ Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>, Jiaxun Yang
+ <jiaxun.yang@flygoat.com>, "John Paul Adrian Glaubitz"
+ <glaubitz@physik.fu-berlin.de>, Jonathan Corbet <corbet@lwn.net>, Michael
+ Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
+ Samuel Holland <samuel.holland@sifive.com>, Thomas Bogendoerfer
+ <tsbogend@alpha.franken.de>, Thomas Gleixner <tglx@linutronix.de>,
+ "Vasily Gorbik" <gor@linux.ibm.com>, Will Deacon <will@kernel.org>, Zi Yan
+ <ziy@nvidia.com>, <devicetree@vger.kernel.org>,
+ <linux-acpi@vger.kernel.org>, <linux-arch@vger.kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>, <linux-cxl@vger.kernel.org>,
+ <linux-doc@vger.kernel.org>, <linux-mips@vger.kernel.org>,
+ <linux-mm@kvack.org>, <linux-riscv@lists.infradead.org>,
+ <linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
+ <linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
+ <nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
+Subject: Re: [PATCH v3 07/26] mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+Message-Id: <20240803115813.809f808f1afbe9f9feaae129@linux-foundation.org>
+In-Reply-To: <20240802104922.000051a0@Huawei.com>
+References: <20240801060826.559858-1-rppt@kernel.org>
+	<20240801060826.559858-8-rppt@kernel.org>
+	<20240802104922.000051a0@Huawei.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com> <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
-In-Reply-To: <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sat, 3 Aug 2024 14:58:40 +0900
-X-Gmail-Original-Message-ID: <CAK7LNAQmrzNHbAHC91OSS3TXwex7W4bjsoKaYVBULx+-e6Omfw@mail.gmail.com>
-Message-ID: <CAK7LNAQmrzNHbAHC91OSS3TXwex7W4bjsoKaYVBULx+-e6Omfw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] sparc/build: Add SPARC target flags for compiling
- with clang
-To: koachan@protonmail.com
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
-	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, 
-	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev, 
-	linux-kbuild@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 18, 2024 at 1:12=E2=80=AFAM Koakuma via B4 Relay
-<devnull+koachan.protonmail.com@kernel.org> wrote:
->
-> From: Koakuma <koachan@protonmail.com>
->
-> clang only supports building 64-bit kernel, so we use the
-> sparc64-linux-gnu target.
->
-> See also: https://lore.kernel.org/lkml/e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFw=
-dB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=
-=3D@protonmail.com/T/#m068e010dcf8b99d3510a90d7532bcdb70e2e2c6b
->
-> Signed-off-by: Koakuma <koachan@protonmail.com>
+On Fri, 2 Aug 2024 10:49:22 +0100 Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
 
+> > --- a/mm/mm_init.c
+> > +++ b/mm/mm_init.c
+> > @@ -1838,11 +1838,10 @@ void __init free_area_init(unsigned long *max_zone_pfn)
+> >  
+> >  		if (!node_online(nid)) {
+> >  			/* Allocator not initialized yet */
+> > -			pgdat = arch_alloc_nodedata(nid);
+> > +			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
+> >  			if (!pgdat)
+> >  				panic("Cannot allocate %zuB for node %d.\n",
+> >  				       sizeof(*pgdat), nid);
+> > -			arch_refresh_nodedata(nid, pgdat);
+> 
+> This allocates pgdat but never sets node_data[nid] to it
+> and promptly leaks it on the line below. 
+> 
+> Just to sanity check this I spun up a qemu machine with no memory
+> initially present on some nodes and it went boom as you'd expect.
+> 
+> I tested with addition of
+> 			NODE_DATA(nid) = pgdat;
+> and it all seems to work as expected.
 
+Thanks, I added that.  It blew up on x86_64 allnoconfig because
+node_data[] (and hence NODE_DATA()) isn't an lvalue when CONFIG_NUMA=n.
 
-Acked-by: Masahiro Yamada <masahiroy@kernel.org>
+I'll put some #ifdef CONFIG_NUMAs in there for now but
 
+a) NODE_DATA() is upper-case. Implies "constant".  Shouldn't be assigned to.
 
-(I assume this will go through the sparc subsystem)
+b) NODE_DATA() should be non-lvalue when CONFIG_NUMA=y also.  But no,
+   we insist on implementing things in cpp instead of in C.
 
+c) In fact assigning to anything which ends in "()" is nuts.  Please
+   clean up my tempfix.
 
+c) Mike, generally I'm wondering if there's a bunch of code here
+   which isn't needed on CONFIG_NUMA=n.  Please check all of this for
+   unneeded bloatiness.
 
-
---=20
-Best Regards
-Masahiro Yamada
