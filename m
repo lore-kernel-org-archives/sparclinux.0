@@ -1,121 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05DBD5258;
-	Fri,  2 Aug 2024 23:04:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96193136351;
+	Sat,  3 Aug 2024 05:59:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722639860; cv=none; b=jkvajuFjEhl0Opet8z6ZlWYYD9osE8q8+TERyD4K6F2cWsFNa0j2HTBti0awI/pR8HUG8Ld/tQtItbVri/GEiylm7Tdg1xORcdHy6ykk4kmyRoNGFc8I9wmqp7yLQeTY1jpa0wvIhmrqYHtsNWa9KtfK9/VDoFg1njV+bQMYvFY=
+	t=1722664758; cv=none; b=A3OWrxpwUDffuKPrQfQiuXGpv8K/5lSVqeD5ewZ/vyC0JYwH4R+Olcl/rq7tNlIQvOtfqFPPMDbCubWw8/FGBovr2qOUvRQ4fWpYaAIkNvQy19e/K+i1tSFQ1iY4VVw6kjdaIoWl8IRFMtm8JvabY56vO4FDaWVPlF+lt9tL87k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722639860; c=relaxed/simple;
-	bh=iIjDB6hSxLVkrCrMpfondG5ucRaBxFNaNNgaLKgyOM0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sEpJc4R9o0px7/r8f8QtV8Pxjhm3nObXRR+vXupLtCVmWch7U0+kXjW5maDBMVTg77rZP3SX4UiiD+w2XXcDdIQTThiK8J789Er0T98HcmouuQf17suTLj+pFc7M7ohk1+geXlRxUGMiczNueZvsccUCMwg0TFMBHID8IN1D2p4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HzpylkbS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722664758; c=relaxed/simple;
+	bh=CRTjdpok2ylJOBVRB5NG+v3YKMZN4sDLzRfETUx+ZQ8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=PxVT+Yu+GwWhekPlqSVyzurnMqL7ZJwinyI1QjaNodnKyUQCoFEfHS2m785wIaFxFj7WUgeIUer44TA7Ha6CQL6YmYR/NvrDsUv5pZPSQpTDcMYLtsgAqJJ8ePUkAfWNA67rKdLNqBtm3LKpiL1X/B0oc6powaatAobVw6j+r+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XCGLtZRM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HzpylkbS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0346C32782;
-	Fri,  2 Aug 2024 23:04:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XCGLtZRM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CFC0C4AF0F;
+	Sat,  3 Aug 2024 05:59:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722639859;
-	bh=iIjDB6hSxLVkrCrMpfondG5ucRaBxFNaNNgaLKgyOM0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HzpylkbS7oULAgh4yHoGZQoiNmiZKtx2nSFhfY0Ie9FEggok+KMDcsf9CC1hEsNTG
-	 Cw03IqxXtDTI3+zeOgdifUhXO76bOLzK4I23UWYkKIyYFB/m6/eOZPaRxhVNNUZ60l
-	 EUZn+QJy1MWBRVZL7RJ+K5kJXTAFNOqVGkD6tOIDQtkSWf83W/z9x5d3G2ws+kBcte
-	 KJfwVFRV6cxDChzA0jau7Js8CcbC63y9NCLca0LylbJQIoNWxQvhCs2pgkyHiopPHG
-	 yA1cUasAv5Gy6VNjS/pIaBqgGeM3pBaT+tw4pi3vPmGDesRlhG3P5qStaT9uracpI1
-	 5FszcsmhOsVpA==
-Date: Fri, 2 Aug 2024 16:04:17 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
-	linux-kbuild@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] sparc/build: Remove all usage of -fcall-used*
- flags
-Message-ID: <20240802230417.GB853635@thelio-3990X>
-References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
- <20240717-sparc-cflags-v2-1-259407e6eb5f@protonmail.com>
+	s=k20201202; t=1722664758;
+	bh=CRTjdpok2ylJOBVRB5NG+v3YKMZN4sDLzRfETUx+ZQ8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=XCGLtZRMUCMbu6BQGQk49WxH5ioOsEqgD/dlbMGahAWxu/FIHRvD4heSeli5ntERw
+	 wwuMI7EOh3r4LHLtUPIhwyeaouzexismarEux3mtMgNa5kzrvWM4E70ICdsPxnnWAS
+	 RndLH+2XsXWPFQzAoyiSgZSXPoKuIQ8WSjkKK6rkLquL9QWt6IlAbQEMTWqLNgPxts
+	 4O59B8dg76/sxj5C/Nmxo3jMpxDojqmR+lafqyLd/nDUm4bGNKtueWr+Np/7hMQcgg
+	 xUQSIFR+grHcWFMVE1J+kYiuhVw1Wbw4LDe1L/y9j252Cx4vgX+fbwosdk4kodFSUU
+	 53rKEz9rwt1LA==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-530c2e5f4feso734196e87.0;
+        Fri, 02 Aug 2024 22:59:18 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVT2UDfpiYZNiLdlNHJXH/TsRdVQrmejJWJtKea3Y9PHJCjsXMhphySs7NN6FsXoQFbc0wc95aoi/n5kEYao82Xn4lszVMx2beETLXh5jBqqczvjumMDD3ixNxW9qyx+SfDW+lq8XRYLpgo3lRNvF5wIFTpghl6h48w7ca8J+XAjHOnZxIDhg==
+X-Gm-Message-State: AOJu0Yzou48IT2x5UlpGTN81mhDb4AH9/vc1KvOOfRsRpk/AvU9/C4DC
+	dRf6IdMwLpLURQ2whdeSsOZHbr7nBGNS4ptwUiDhf9HfqtEX4+8+juWR1pVBNl1q5nscEh+L/XX
+	gbtjqLzlA3XbqD/6tBar5nXVGdv0=
+X-Google-Smtp-Source: AGHT+IGH3RhSkPSqDeBQj38zD+0ibup0k8GYvLycZ0CcyN+aNPlxgoEpaXhYyETxTBdvMTXtFmvfO0h4X1uuLe82UVE=
+X-Received: by 2002:a05:6512:ba3:b0:52e:bdfc:1d09 with SMTP id
+ 2adb3069b0e04-530bb36f0b1mr3632046e87.18.1722664756789; Fri, 02 Aug 2024
+ 22:59:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240717-sparc-cflags-v2-1-259407e6eb5f@protonmail.com>
+References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com> <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
+In-Reply-To: <20240717-sparc-cflags-v2-2-259407e6eb5f@protonmail.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Sat, 3 Aug 2024 14:58:40 +0900
+X-Gmail-Original-Message-ID: <CAK7LNAQmrzNHbAHC91OSS3TXwex7W4bjsoKaYVBULx+-e6Omfw@mail.gmail.com>
+Message-ID: <CAK7LNAQmrzNHbAHC91OSS3TXwex7W4bjsoKaYVBULx+-e6Omfw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] sparc/build: Add SPARC target flags for compiling
+ with clang
+To: koachan@protonmail.com
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
+	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, 
+	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, llvm@lists.linux.dev, 
+	linux-kbuild@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 17, 2024 at 11:10:15PM +0700, Koakuma wrote:
-> Remove all usage of -fcall-used* flags so that all flags used are
-> portable between GCC and clang.
-> 
-> The reasoning is as follows:
-> 
-> In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
-> the 64-bit ABI, %g7 is the reserved one.
-> Linux turns them into volatile registers by the way of -fcall-used-*,
-> but on the other hand, omitting the flags shouldn't be harmful;
-> compilers will now simply refuse to touch them, and any assembly
-> code that happens to touch them would still work like usual (because
-> Linux' conventions already treats them as volatile anyway).
-> 
+On Thu, Jul 18, 2024 at 1:12=E2=80=AFAM Koakuma via B4 Relay
+<devnull+koachan.protonmail.com@kernel.org> wrote:
+>
+> From: Koakuma <koachan@protonmail.com>
+>
+> clang only supports building 64-bit kernel, so we use the
+> sparc64-linux-gnu target.
+>
+> See also: https://lore.kernel.org/lkml/e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFw=
+dB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=
+=3D@protonmail.com/T/#m068e010dcf8b99d3510a90d7532bcdb70e2e2c6b
+>
 > Signed-off-by: Koakuma <koachan@protonmail.com>
 
-As before, I tested this series with the vDSO patch mentioned before and
-a version of LLVM that supports the -m{,no-}v8plus flags and I was able
-to successfully boot a kernel in QEMU :)
 
-Tested-by: Nathan Chancellor <nathan@kernel.org>
 
-> ---
->  arch/sparc/Makefile      | 4 ++--
->  arch/sparc/vdso/Makefile | 2 +-
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-> index 757451c3ea1d..7318a8b452c3 100644
-> --- a/arch/sparc/Makefile
-> +++ b/arch/sparc/Makefile
-> @@ -29,7 +29,7 @@ UTS_MACHINE    := sparc
->  # versions of gcc.  Some gcc versions won't pass -Av8 to binutils when you
->  # give -mcpu=v8.  This silently worked with older bintutils versions but
->  # does not any more.
-> -KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
-> +KBUILD_CFLAGS  += -m32 -mcpu=v8 -pipe -mno-fpu
->  KBUILD_CFLAGS  += -Wa,-Av8
->  
->  KBUILD_AFLAGS  += -m32 -Wa,-Av8
-> @@ -45,7 +45,7 @@ export BITS   := 64
->  UTS_MACHINE   := sparc64
->  
->  KBUILD_CFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow
-> -KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
-> +KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -Wno-sign-compare
->  KBUILD_CFLAGS += -Wa,--undeclared-regs
->  KBUILD_CFLAGS += $(call cc-option,-mtune=ultrasparc3)
->  KBUILD_AFLAGS += -m64 -mcpu=ultrasparc -Wa,--undeclared-regs
-> diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-> index 243dbfc4609d..e009443145af 100644
-> --- a/arch/sparc/vdso/Makefile
-> +++ b/arch/sparc/vdso/Makefile
-> @@ -46,7 +46,7 @@ CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables -m64
->         -fno-omit-frame-pointer -foptimize-sibling-calls \
->         -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
->  
-> -SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
-> +SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5
->  
->  $(vobjs): KBUILD_CFLAGS := $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
->  
-> 
-> -- 
-> 2.45.2
-> 
+Acked-by: Masahiro Yamada <masahiroy@kernel.org>
+
+
+(I assume this will go through the sparc subsystem)
+
+
+
+
+--=20
+Best Regards
+Masahiro Yamada
