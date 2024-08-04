@@ -1,173 +1,212 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40562F2E;
-	Sun,  4 Aug 2024 03:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8323182AE;
+	Sun,  4 Aug 2024 07:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722742845; cv=none; b=OZoNkNr0iqVLSIBS2EDRdwF9lLzlSyxxs7rfgTrAZnlhx4UPVSfhAJAWWRJv2klsToePv4StQX04q0oJsQ7QTNURZxBhjiLxeHH91QiG3OjT6EOLxzEtj5WN1gdIzmGkLz/my5q8TOH4L/0W/aVQgq089TunMDblUUF2NpWUI3k=
+	t=1722756394; cv=none; b=Z7CadaDeegNVS7gRk3bQlQXC0tSwb295nAVtwl8CiSOyK3Sya2a+6tPgPKn0eZlj5KcsMAxtP/qTN3es5P/1n5mI+MAId4P/pAzOpBuBHBNCkfo99twUzKF+qR9UL+XZgkv7uTdAMvXbL0pk3tmqiz57iMlFllu9bp9hpT7xHRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722742845; c=relaxed/simple;
-	bh=tTsJlsqt9PgjobXbGaWgUj5lIlY9CiKIWXIQpxm4yR8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ixsIXO7lT2XbwAl1nJZejK5VnkEwipkg9kNtlODpBgq3WNPQdjTDMTYsffHIhnUDPwbGwPm4A9A2BtXl63odf53GHd33preIccckSGcHCnY9F0v1PEZ64AWKFKJF9GZ9oMP7796duELEPnMqqYz9z39r6NI1Z0OCujDNnje9EQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iAj7dy//; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722756394; c=relaxed/simple;
+	bh=rx2UdBu3Jn4YvMBlkSpIvWfaZAHG3g5eVDYxreRC0w8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=X20AeBFAVk/Wo5HEZjYW3gPQIelM1eCMXWKq8vKdHwmk8E/N/Nct7eEC5LGF0vkZMmAE6I4fQ6F42FlLpYZEXrNUw4QAGlptnhT4Tho9LTiU3ik5alz5qy8RJaeel0D+gT68fkYAoIRSSPWHOHV+ovPbDUNsAadScBG+oLr7c6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KIU8LoVO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iAj7dy//"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 822E6C32786;
-	Sun,  4 Aug 2024 03:40:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KIU8LoVO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD611C32786;
+	Sun,  4 Aug 2024 07:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722742844;
-	bh=tTsJlsqt9PgjobXbGaWgUj5lIlY9CiKIWXIQpxm4yR8=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=iAj7dy//39uhNuW1ig3EEYyw5ji+po4WcI0mqcoWKEFq/0ItPjOKSiZ6FFmaGg+JU
-	 bxDfZxcbp+7IIhBWzLUqDx6Aol+eozg8TEuHCzuIPAdBH2WTBBuDfwNxCcU4d26V/P
-	 v7ERjDKk4jVQB54KRwlzhhy/roGFE3kz7lz2fgg83cgPUnNpdcNRI653g4lNwf7AsC
-	 L/QCkc4UORv3VIVVftQEJ4BO9hljiRe/+FF8aKJc0ldGWVznIQ/gALTC75EyjY7PFp
-	 c6jQs/5zlqWoBOcHjMdrkiMCXS7skFnEUsiracWQuLnnuV2KKNoxXKFRJKWiQhniat
-	 e3xc2FLHIIiYw==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F373C3DA7F;
-	Sun,  4 Aug 2024 03:40:44 +0000 (UTC)
-From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
-Date: Sun, 04 Aug 2024 10:39:49 +0700
-Subject: [PATCH] sparc/vdso: Add helper function for 64-bit right shift on
- 32-bit target
+	s=k20201202; t=1722756393;
+	bh=rx2UdBu3Jn4YvMBlkSpIvWfaZAHG3g5eVDYxreRC0w8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KIU8LoVOwFPBw/i+e9r4MNw3lCZ9Vibx6Dii6JlG87646MCH9g5WB4uLhl1sgD8XY
+	 fdhDH8dGci/plC04bp2qqqFN5dQbJHMWc6fWKJYivJ+bk5+GubVSlg3B3t+HSNIfir
+	 JTwRTaCcEoGzTNU1jYvwPfIqnBAdwUe1xFf3HqAX19LfaXMjWdmtrEyuqIK93JEmBz
+	 EFHb56nL5u7GvI90DNZwVtfaVmCpUg9fU4iOezzHPPuQFpcF1invnI5Iw9ThB6TUT4
+	 ADe9mcgPXLgojRwwccp6Y65CANZWgRQC4iHBhVf31YxxkVq1gi+zDus1lvqFhKf27J
+	 Jc+qx/YNiH/Gg==
+Date: Sun, 4 Aug 2024 10:24:15 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	linux-kernel@vger.kernel.org,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will@kernel.org>,
+	Zi Yan <ziy@nvidia.com>, devicetree@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v3 07/26] mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+Message-ID: <Zq8sn5iD1iOmYrss@kernel.org>
+References: <20240801060826.559858-1-rppt@kernel.org>
+ <20240801060826.559858-8-rppt@kernel.org>
+ <20240802104922.000051a0@Huawei.com>
+ <20240803115813.809f808f1afbe9f9feaae129@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240804-sparc-shr64-v1-1-25050968339a@protonmail.com>
-X-B4-Tracking: v=1; b=H4sIAAT4rmYC/x3MMQqAMAxA0atIZgtpKUa8ijgUjZpFSwIilN7d4
- viG/wsYq7DB1BVQfsTkvhp838F6putgJ1szBAwRyZOznHR1duoQXdgRE41jJEJoRVbe5f1v81L
- rB4OsFpBdAAAA
-To: "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
- Thomas Gleixner <tglx@linutronix.de>, 
- Vincenzo Frascino <vincenzo.frascino@arm.com>, 
- Nathan Chancellor <nathan@kernel.org>, 
- Nick Desaulniers <ndesaulniers@google.com>, 
- Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
- llvm@lists.linux.dev, Koakuma <koachan@protonmail.com>
-X-Mailer: b4 0.14.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1722742843; l=3316;
- i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
- bh=5vLiK7ELLqD1RRIEMvqkT4bYtvygqFoGLfpouZxp/Ns=;
- b=VGHa0DUmTa67NoKaZwaMHf2po7TjbodTym97uTjAmdtk/iY/OmPZTEI5cVbFiZWWBQBEJKWku
- Jhid1FM83fRAZ8JbZbH+jGYt7MRV1DsT9z8K7DrQRITNzWjcW7eIzDb
-X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
- pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
-X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
- auth_id=174
-X-Original-From: Koakuma <koachan@protonmail.com>
-Reply-To: koachan@protonmail.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240803115813.809f808f1afbe9f9feaae129@linux-foundation.org>
 
-From: Koakuma <koachan@protonmail.com>
+On Sat, Aug 03, 2024 at 11:58:13AM -0700, Andrew Morton wrote:
+> On Fri, 2 Aug 2024 10:49:22 +0100 Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
+> 
+> > > --- a/mm/mm_init.c
+> > > +++ b/mm/mm_init.c
+> > > @@ -1838,11 +1838,10 @@ void __init free_area_init(unsigned long *max_zone_pfn)
+> > >  
+> > >  		if (!node_online(nid)) {
+> > >  			/* Allocator not initialized yet */
+> > > -			pgdat = arch_alloc_nodedata(nid);
+> > > +			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
+> > >  			if (!pgdat)
+> > >  				panic("Cannot allocate %zuB for node %d.\n",
+> > >  				       sizeof(*pgdat), nid);
+> > > -			arch_refresh_nodedata(nid, pgdat);
+> > 
+> > This allocates pgdat but never sets node_data[nid] to it
+> > and promptly leaks it on the line below. 
+> > 
+> > Just to sanity check this I spun up a qemu machine with no memory
+> > initially present on some nodes and it went boom as you'd expect.
+> > 
+> > I tested with addition of
+> > 			NODE_DATA(nid) = pgdat;
+> > and it all seems to work as expected.
+> 
+> Thanks, I added that.  It blew up on x86_64 allnoconfig because
+> node_data[] (and hence NODE_DATA()) isn't an lvalue when CONFIG_NUMA=n.
+> 
+> I'll put some #ifdef CONFIG_NUMAs in there for now but
+> 
+> a) NODE_DATA() is upper-case. Implies "constant".  Shouldn't be assigned to.
+> 
+> b) NODE_DATA() should be non-lvalue when CONFIG_NUMA=y also.  But no,
+>    we insist on implementing things in cpp instead of in C.
 
-Add helper function for 64-bit right shift on 32-bit target so that
-clang does not emit a runtime library call.
-
-Signed-off-by: Koakuma <koachan@protonmail.com>
----
-Hi~
-
-This adds a small function to do 64-bit right shifts for use in vDSO
-code, needed so that clang does not emit a call to runtime library.
----
- arch/sparc/vdso/vclock_gettime.c |  8 ++++----
- include/vdso/math64.h            | 28 ++++++++++++++++++++++++++++
- 2 files changed, 32 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
-index e794edde6755..c0251a632bdb 100644
---- a/arch/sparc/vdso/vclock_gettime.c
-+++ b/arch/sparc/vdso/vclock_gettime.c
-@@ -154,7 +154,7 @@ notrace static __always_inline int do_realtime(struct vvar_data *vvar,
- 		ts->tv_sec = vvar->wall_time_sec;
- 		ns = vvar->wall_time_snsec;
- 		ns += vgetsns(vvar);
--		ns >>= vvar->clock.shift;
-+		ns = __shr64(ns, vvar->clock.shift);
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
+This looks like a candidate for a separate tree-wide cleanup.
  
- 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-@@ -174,7 +174,7 @@ notrace static __always_inline int do_realtime_stick(struct vvar_data *vvar,
- 		ts->tv_sec = vvar->wall_time_sec;
- 		ns = vvar->wall_time_snsec;
- 		ns += vgetsns_stick(vvar);
--		ns >>= vvar->clock.shift;
-+		ns = __shr64(ns, vvar->clock.shift);
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
+> c) In fact assigning to anything which ends in "()" is nuts.  Please
+>    clean up my tempfix.
+> 
+> c) Mike, generally I'm wondering if there's a bunch of code here
+>    which isn't needed on CONFIG_NUMA=n.  Please check all of this for
+>    unneeded bloatiness.
+
+I believe the patch addresses your concerns, just with this the commit log
+needs update. Instead of 
+
+    Replace the call to arch_alloc_nodedata() in free_area_init() with
+    memblock_alloc(), remove arch_refresh_nodedata() and cleanup
+    include/linux/memory_hotplug.h from the associated ifdefery.
+
+it should be
+
+    Replace the call to arch_alloc_nodedata() in free_area_init() with a
+    new helper alloc_offline_node_data(), remove arch_refresh_nodedata()
+    and cleanup include/linux/memory_hotplug.h from the associated
+    ifdefery.
+
+I can send an updated patch if you prefer.
+
+diff --git a/include/linux/numa.h b/include/linux/numa.h
+index 3b12d8ca0afd..5a749fd67f39 100644
+--- a/include/linux/numa.h
++++ b/include/linux/numa.h
+@@ -34,6 +34,7 @@ extern struct pglist_data *node_data[];
+ #define NODE_DATA(nid)	(node_data[nid])
  
- 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-@@ -194,7 +194,7 @@ notrace static __always_inline int do_monotonic(struct vvar_data *vvar,
- 		ts->tv_sec = vvar->monotonic_time_sec;
- 		ns = vvar->monotonic_time_snsec;
- 		ns += vgetsns(vvar);
--		ns >>= vvar->clock.shift;
-+		ns = __shr64(ns, vvar->clock.shift);
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ void __init alloc_node_data(int nid);
++void __init alloc_offline_node_data(int nit);
  
- 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-@@ -214,7 +214,7 @@ notrace static __always_inline int do_monotonic_stick(struct vvar_data *vvar,
- 		ts->tv_sec = vvar->monotonic_time_sec;
- 		ns = vvar->monotonic_time_snsec;
- 		ns += vgetsns_stick(vvar);
--		ns >>= vvar->clock.shift;
-+		ns = __shr64(ns, vvar->clock.shift);
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ /* Generic implementation available */
+ int numa_nearest_node(int node, unsigned int state);
+@@ -62,6 +63,8 @@ static inline int phys_to_target_node(u64 start)
+ {
+ 	return 0;
+ }
++
++static inline void alloc_offline_node_data(int nit) {}
+ #endif
  
- 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-diff --git a/include/vdso/math64.h b/include/vdso/math64.h
-index 22ae212f8b28..771d84faa8d7 100644
---- a/include/vdso/math64.h
-+++ b/include/vdso/math64.h
-@@ -21,6 +21,34 @@ __iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
- 	return ret;
+ #define numa_map_to_online_node(node) numa_nearest_node(node, N_ONLINE)
+diff --git a/mm/mm_init.c b/mm/mm_init.c
+index bcc2f2dd8021..2785be04e7bb 100644
+--- a/mm/mm_init.c
++++ b/mm/mm_init.c
+@@ -1836,13 +1836,8 @@ void __init free_area_init(unsigned long *max_zone_pfn)
+ 	for_each_node(nid) {
+ 		pg_data_t *pgdat;
+ 
+-		if (!node_online(nid)) {
+-			/* Allocator not initialized yet */
+-			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
+-			if (!pgdat)
+-				panic("Cannot allocate %zuB for node %d.\n",
+-				       sizeof(*pgdat), nid);
+-		}
++		if (!node_online(nid))
++			alloc_offline_node_data(nid);
+ 
+ 		pgdat = NODE_DATA(nid);
+ 		free_area_init_node(nid);
+diff --git a/mm/numa.c b/mm/numa.c
+index da27eb151dc5..07e486a977c7 100644
+--- a/mm/numa.c
++++ b/mm/numa.c
+@@ -34,6 +34,18 @@ void __init alloc_node_data(int nid)
+ 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
  }
  
-+#if BITS_PER_LONG == 32
-+/* This is to prevent the compiler from emitting a call to __lshrdi3. */
-+static __always_inline u64
-+__shr64(u64 val, int amt)
++void __init alloc_offline_node_data(int nit)
 +{
-+	u32 mask = (1U << amt) - 1;
-+	u32 lo = val;
-+	u32 hi = val >> 32;
-+	u32 mi;
++	pg_data_t *pgdat;
 +
-+	if (amt >= 32)
-+		return hi >> (amt - 32);
++	pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
++	if (!pgdat)
++		panic("Cannot allocate %zuB for node %d.\n",
++		      sizeof(*pgdat), nid);
 +
-+
-+	mi = (hi & mask) << (32 - amt);
-+	hi >>= amt;
-+	lo = (lo >> amt) | mi;
-+
-+	return ((u64) hi) << 32 | lo;
++	node_data[nid] = pgdat;
 +}
-+#else
-+static __always_inline u64
-+__shr64(u64 val, int amt)
-+{
-+	return val >> amt;
-+}
-+#endif /* BITS_PER_LONG == 32 */
 +
- #if defined(CONFIG_ARCH_SUPPORTS_INT128) && defined(__SIZEOF_INT128__)
+ /* Stub functions: */
  
- #ifndef mul_u64_u32_add_u64_shr
+ #ifndef memory_add_physaddr_to_nid
 
----
-base-commit: defaf1a2113a22b00dfa1abc0fd2014820eaf065
-change-id: 20240717-sparc-shr64-2f00a7884770
+ 
 
-Best regards,
 -- 
-Koakuma <koachan@protonmail.com>
-
-
+Sincerely yours,
+Mike.
