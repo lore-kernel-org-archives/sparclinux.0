@@ -1,122 +1,137 @@
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 121D415B115
-	for <sparclinux@vger.kernel.org>; Mon,  5 Aug 2024 16:34:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD9D2C684;
+	Mon,  5 Aug 2024 17:17:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722875651; cv=none; b=eNjzCgp9dP+qrP7vAGgp0AudKvPGC1VS+kAbpXWE/SiTh+CPkbVD+EbZsJG/pisA0aWn30RBAgSs3JYawrsdXs0+g2xevVdClzLDUV2WxlDQ8tITkm9DHToIA0lhtf/973nVZ2pCl5887GuaY280+U57sYxg5C6X60G9S7/001Y=
+	t=1722878260; cv=none; b=I5czU5lgfJeItm1sdUPEHk75g5NILwgvGeBs60LyJCZLdAADTti/MwXJ6+fWAAv3MT9gM3NfJ8i+p0ydzC4FNuQi45dZeoIFtSipbsXmFg5PVW75IW7QVywsUYJR5g7z7rhsoehrg6HrXaj7tM3gwEnipYWCz6OK5iYkhd3V2RM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722875651; c=relaxed/simple;
-	bh=WShIfcyB1WIBp1LMFRNAOGPYq4so52JcsO4pudunr3k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KiBLZz3edfXfrV1B9Wt12daM8g+IyuaGFDZ2joGTCbwSGp5UNBSnlhfeKkwWxiX3FUJ1WWIK28KDNCzW2x8a4QvvyYMQdXTyd4DplNISXWZZvIla/y/PKbIy3rLdoxbgs3HMXuMJf/i2HNRQr+J4FTy/Ifnm3MsMXiKnlA3COBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ooMfse3W; arc=none smtp.client-ip=209.85.219.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1722878260; c=relaxed/simple;
+	bh=xUiHKiiFB+eGRf4/0vdH6U+v/YkOQHoLKaT521lWFxI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=D6fonsPxPoEW1w3NbypP1JGml4NY44fBfEzA9w4WOi9HJwnHAx6jpjf1iA/8hXIiLeH7vDZv0y3LkVBAJqYIuCNFQQs9dxVfYEWfrpLJHCg0D1svymfbkT1DgVSsGqMwI8lSqP64kU4tcMbR3TZAe0+PNtJenJzLXSF3sEQT53A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z7q/lW63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ooMfse3W"
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-6b7a4668f1fso65310906d6.3
-        for <sparclinux@vger.kernel.org>; Mon, 05 Aug 2024 09:34:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1722875649; x=1723480449; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=WShIfcyB1WIBp1LMFRNAOGPYq4so52JcsO4pudunr3k=;
-        b=ooMfse3WVKfuxOLSSKdlcT9aqFqVw/RtyRXpOBsgOCTn9wKceQcM71mSUyFUCGbjdh
-         26+ROdikowegVtjSUS4uWVUhtc95hLL23dlnWFj8cp65MVc4drKNIX9u43DWF2Bats8h
-         t0heAI4eFDoxqmiGWoYtMgQD56gP+7qgIFOqzvLbDpke6iJR6YapJ+kA8HjUL+DyHiKy
-         +7NkKP96kiTMdLcfY8EpRMfItKrh6siytmWkC/b0tGgiJkDeyeXjOqlFRgZJ9luyNyNG
-         6FpewpnZhlzpQ9biBgMEY7x44yXFsfP3XIyl2lb1fAFA0jwMYwVdtCGFuyqF5RwPlBAL
-         hg0A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722875649; x=1723480449;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=WShIfcyB1WIBp1LMFRNAOGPYq4so52JcsO4pudunr3k=;
-        b=LmTzXWc0OFyOhWwdMnhNbTH7rOTC6XdLZ+NyE/KoVTvmKcgXQFR7z8WRy3YutCbWku
-         GAvumKB62kyZ5/i6U9KyU//R49HLI77G+2rQn6ppvWNMvdRQ0P3X0kw/YeDGOWxJKyzX
-         iY4C1A2BfO7PJMwljwwnq/0kDOH0S3yzPZG/YMAeFCeexpHrmbgFeUwapJuaSbTLsXhz
-         EOdlpjjNHPHkuCbZn7VO4NOcRYGGObCBPtLB/8En/Pp9ssdw1j9N6TtrQYw4AnwSuBAo
-         Ps2CqIO3LnJUnJ6qQh4vCYozwVuEk6pDiDD6lcGWIGyVtVQClDevAHQ31dvMBxfj2+AB
-         uqow==
-X-Forwarded-Encrypted: i=1; AJvYcCVUX8iTWYFoLM8RsDRM1u6LyXOtlfAeNDFc/TKkdpGsdWdbwwrbU/+22v/0oNI9EitSpeih6Zfxz122ClyIzdVHELhZJ1Ryr+LV6A==
-X-Gm-Message-State: AOJu0YwhX2JOw8KeL52ZNnjPwyneNufRz3VWfQo1Cq/nsF2KqMAlK4H7
-	htn+zNscNNmEDNz/GeVQYGhNffvnVeuNGw39oJXZuHApNPSLykI9y0170J1ML1a/L6S51B+t6RQ
-	r8+Jy18lby5qTRRvtL3iPMebYH/QfrlQ9f/CS
-X-Google-Smtp-Source: AGHT+IE3X2dzKDTfvW579W1ONWZvzHmSuPdaFYmL6fjjzD5I45yXHVQPoF1XfHnvXWK/VzgEqMK+gXEJqks0i1Xyhdk=
-X-Received: by 2002:a05:6214:4412:b0:6b5:7e97:7151 with SMTP id
- 6a1803df08f44-6bb98345fa9mr131458736d6.17.1722875648824; Mon, 05 Aug 2024
- 09:34:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z7q/lW63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A951C32782;
+	Mon,  5 Aug 2024 17:17:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1722878259;
+	bh=xUiHKiiFB+eGRf4/0vdH6U+v/YkOQHoLKaT521lWFxI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Z7q/lW639aowtINXwVebTG+OLoxrXof+zBNSeR/8WY86B+624ZIuqcPJ12uz6WAq3
+	 TOktvjQuFO3Psh/zSZk6bupzno8UjNgzGdjWYsGzuDHPa53tI5UwJrFUIiEWAMkla2
+	 aZhopzXWwqHlnm+KETHsoZ8cxcOCV/ES/RMeaNClV0U/lI74zaSa7QLz8oGGmPM5b+
+	 WVRXAQQqToAOAcGGygHFeY2KPxgU/pB39IDAe0i7d4FyqehFfReXcy3JQ8TWWNvwl/
+	 YnEvZ6i15oUR+XxxozKV+u9zlrKVedpz+W1ReJtnBjYdPuNzzekfqSWqwV+cKpPHX5
+	 XzWc8YkjVKQSQ==
+Date: Mon, 5 Aug 2024 20:15:22 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: linux-kernel@vger.kernel.org,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will@kernel.org>,
+	Zi Yan <ziy@nvidia.com>, devicetree@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v3 09/26] arch, mm: pull out allocation of NODE_DATA to
+ generic code
+Message-ID: <ZrEIqogZ4UJJY0c2@kernel.org>
+References: <20240801060826.559858-1-rppt@kernel.org>
+ <20240801060826.559858-10-rppt@kernel.org>
+ <20240802105527.00005240@Huawei.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240730022623.98909-4-almasrymina@google.com> <5d3c74da-7d44-4b88-8961-60f21f84f0ac@web.de>
-In-Reply-To: <5d3c74da-7d44-4b88-8961-60f21f84f0ac@web.de>
-From: Mina Almasry <almasrymina@google.com>
-Date: Mon, 5 Aug 2024 12:33:55 -0400
-Message-ID: <CAHS8izPxfCv1VMFBK1FahGTjVmUSSfrabgY5y6V+XtaszoHQ4w@mail.gmail.com>
-Subject: Re: [PATCH net-next v17 03/14] netdev: support binding dma-buf to netdevice
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Kaiyuan Zhang <kaiyuanz@google.com>, 
-	Pavel Begunkov <asml.silence@gmail.com>, Willem de Bruijn <willemb@google.com>, netdev@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-media@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, LKML <linux-kernel@vger.kernel.org>, 
-	Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Christoph Hellwig <hch@infradead.org>, David Ahern <dsahern@kernel.org>, 
-	"David S. Miller" <davem@davemloft.net>, David Wei <dw@davidwei.uk>, 
-	Donald Hunter <donald.hunter@gmail.com>, Eric Dumazet <edumazet@google.com>, 
-	Harshitha Ramamurthy <hramamurthy@google.com>, Helge Deller <deller@gmx.de>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
-	Jakub Kicinski <kuba@kernel.org>, 
-	"James E. J. Bottomley" <James.Bottomley@hansenpartnership.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Jeroen de Borst <jeroendb@google.com>, Jesper Dangaard Brouer <hawk@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Matt Turner <mattst88@gmail.com>, Nikolay Aleksandrov <razor@blackwall.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
-	Richard Henderson <richard.henderson@linaro.org>, Shailend Chand <shailend@google.com>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Shuah Khan <shuah@kernel.org>, 
-	Steffen Klassert <steffen.klassert@secunet.com>, Steven Rostedt <rostedt@goodmis.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, Taehee Yoo <ap420073@gmail.com>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Yunsheng Lin <linyunsheng@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240802105527.00005240@Huawei.com>
 
-On Tue, Jul 30, 2024 at 4:38=E2=80=AFAM Markus Elfring <Markus.Elfring@web.=
-de> wrote:
->
-> =E2=80=A6
-> > +++ b/include/net/devmem.h
-> > @@ -0,0 +1,115 @@
-> =E2=80=A6
-> > +#ifndef _NET_DEVMEM_H
-> > +#define _NET_DEVMEM_H
-> =E2=80=A6
->
-> I suggest to omit leading underscores from such identifiers.
-> https://wiki.sei.cmu.edu/confluence/display/c/DCL37-C.+Do+not+declare+or+=
-define+a+reserved+identifier
->
+On Fri, Aug 02, 2024 at 10:55:27AM +0100, Jonathan Cameron wrote:
+> On Thu,  1 Aug 2024 09:08:09 +0300
+> Mike Rapoport <rppt@kernel.org> wrote:
+> 
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > 
+> > Architectures that support NUMA duplicate the code that allocates
+> > NODE_DATA on the node-local memory with slight variations in reporting
+> > of the addresses where the memory was allocated.
+> > 
+> > Use x86 version as the basis for the generic alloc_node_data() function
+> > and call this function in architecture specific numa initialization.
+> > 
+> > Round up node data size to SMP_CACHE_BYTES rather than to PAGE_SIZE like
+> > x86 used to do since the bootmem era when allocation granularity was
+> > PAGE_SIZE anyway.
+> > 
+> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> > Acked-by: David Hildenbrand <david@redhat.com>
+> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
+> 
+> One comment unrelated to this patch set as such, just made
+> more obvious by it.
+> 
+> > diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
+> > index 0744a9a2944b..3c1da08304d0 100644
+> > --- a/arch/powerpc/mm/numa.c
+> > +++ b/arch/powerpc/mm/numa.c
+> > @@ -1093,27 +1093,9 @@ void __init dump_numa_cpu_topology(void)
+> >  static void __init setup_node_data(int nid, u64 start_pfn, u64 end_pfn)
+> >  {
+> >  	u64 spanned_pages = end_pfn - start_pfn;
+> 
+> Trivial, but might as well squash this local variable into the
+> single place it's used.
+ 
 
-I was gonna apply this change, but I ack'd existing files and I find
-that all of them include leading underscores, including some very
-recently added files like net/core/page_pool_priv.h.
+> > -	const size_t nd_size = roundup(sizeof(pg_data_t), SMP_CACHE_BYTES);
 
-I would prefer to stick to existing conventions if that's OK, unless
-there is widespread agreement to the contrary.
+...
 
---=20
-Thanks,
-Mina
+> > +
+> > +	alloc_node_data(nid);
+> > +
+> >  	NODE_DATA(nid)->node_id = nid;
+> >  	NODE_DATA(nid)->node_start_pfn = start_pfn;
+> >  	NODE_DATA(nid)->node_spanned_pages = spanned_pages;
+
+These are actually overridden later in free_area_init(), it would make
+sense to audit all arch-specific node setup functions and clean them up a
+bit.
+
+-- 
+Sincerely yours,
+Mike.
