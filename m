@@ -1,183 +1,177 @@
-Received: from mail-vk1-f173.google.com (mail-vk1-f173.google.com [209.85.221.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7EFC1C57BD;
-	Tue,  6 Aug 2024 12:39:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9E5A1C9ED8
+	for <sparclinux@vger.kernel.org>; Tue,  6 Aug 2024 13:05:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722947978; cv=none; b=B7IWww1Fg6972u4BDApPUB8xMKPbdGTTLWK8zv/Rcz78+M8yuv4Ntqf4OSP4zzQD6co6C/q4OW0ygKWL4t2PzzLpTOpoagQ5sQUbSt3TkfMYQlIE0luURcExN6BblQPmSn+oWPIIDBAWg/OA8FKse0wrkXTVoZ/ZxJ4wlkZpLGA=
+	t=1722949519; cv=none; b=fP1YS/zzfF3QJujRWJ4DmvOsV0dMf7K78EryeT2P3bLpiaRd7PvbiPqQ0w4pQ5bwYCmGtTeqBhj615aThziYAnjl9j23136npk7wAZ0LLJWJx7R8ukc6JoKrGq6KpUgqMUbAlQ/5lyIvBvG39UbeCdbD0tQyCsOF2xsrbMWvup8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722947978; c=relaxed/simple;
-	bh=pRGjwMQFuXx8nS2LCderaOx79LtJsbSQjU6aMaxd08o=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=TKK2KnVVy1rJbTHObhoK3/wKw5taAyFPyFvVG0RZpbtLNHUJ15pfoX+fEnYFWkkgCrkj90LaHHeTPz54ahzTFBBpb37lZQ0b8fuEUtGvgLQ5Nr/krMquGBR8NuPLanCWQsQY0Hmwqb/6qIDGrktMHds0OUcA0ut4GWUxNQP1NTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VKlxrqan; arc=none smtp.client-ip=209.85.221.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1722949519; c=relaxed/simple;
+	bh=TP+b0YSIIsDD4y4rkrToKJh1FYgm2hkAD/y9iEnO8Ug=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=pWO3c6nnc1Jclidm6Ixmgp0Mm1kPulJXVXmNaV74Mi7kxJ+nC7kcXcianyqVmMy8n8zq4YGR6MVeEftYbhXt0+DyQDGr1skroDoAdwzj0fdJWh/Fgp52PkWnsfkqbbeIM3w175sWc2nwOsp/Pzam1fP1L30eEd0ty3G+JsuFDg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=c3edYHbd; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VKlxrqan"
-Received: by mail-vk1-f173.google.com with SMTP id 71dfb90a1353d-4f50dd3eab9so240273e0c.1;
-        Tue, 06 Aug 2024 05:39:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1722947976; x=1723552776; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=zrdmTtiXVmTM/1NHHOYdmmDXOI3jR7XQcOI+pwOJhWY=;
-        b=VKlxrqanIheS9Sd5XzmNfv9ScS8GGE/obB6rli6JcQfzv8OQyH1ms5LfzyftBPJlAw
-         sfZMoNB7fMIUVJbfSp28rtM1yLUdMdnW27USd+yevM4WhMxcn2tC0kCwT21BzrtIUUHR
-         Gs3J1wl0qryBTZV4pStD26pH1HB09vV81qeXzTdRPH8cT7SCJpF5PsIvdPYcQcoZb/bU
-         lS+DuGbMun0iJwWow8q9nb7YSa1fpQ79XatO8EdXq8FWVvnWo4atP4i/rHxrlW27fHfJ
-         SUpp7IX8Dh3JdPkm8lpi4n5ypupMKNxoU+XW+rEQCrGBXD5UQfBs/vy59JIZ6bD1Fmo1
-         zdgQ==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="c3edYHbd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1722949514;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=2OksTN73HxjsIsPl77kQrWLaGS0nfyIcgwcT/pZ9bvc=;
+	b=c3edYHbdV7WIyipZhQEIEbjdrVNC5mMM0VMmF9h46fc3PAqDx39MnDqSbIKEcy77Bjhgmr
+	n74SE+zywyuIPax5RYQcdUN/PVe3Y4ozVICkRlEDvPKz67SETiS3lKpdKi+KCk2DNunrV6
+	rnSd3rEHDI54RBu6//MhEpxowOIKwU4=
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
+ [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-244-RJwf8ipCPzS2GZ2JL4OqcQ-1; Tue, 06 Aug 2024 09:05:13 -0400
+X-MC-Unique: RJwf8ipCPzS2GZ2JL4OqcQ-1
+Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-a7aa56d8b14so39439566b.1
+        for <sparclinux@vger.kernel.org>; Tue, 06 Aug 2024 06:05:13 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722947976; x=1723552776;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=zrdmTtiXVmTM/1NHHOYdmmDXOI3jR7XQcOI+pwOJhWY=;
-        b=YwoX+XXfHLFESv4nU6ef39maHkPDlzto+lpgxBYhmTJEGyg2MbrBTQuBRLzRIMetp7
-         MQo8C31NtC9IZUGo9PHUc9W5l2dFksMlgvi0QohkNNrkdg4xQrtwhhuVJp8AE+/6ZwsQ
-         18SRSbZ2kcflIWn99kpghh+EsNMIKy603tqnS5oZtciShQj7G1+LyGSVb1bWbmQlC4s6
-         zOFuUMxal+8Y4F6zIsS88V3ZjSIHwj26kh2J0B93/ye4/Pfxq7mRdnBEDbepUUVUF+Un
-         E/8H1bwvmgq3UU6gjegXYWuZJmcJeH8x9s01MRCBTsNyyPGs315OJchwwKbtfo1ePb8w
-         FjPg==
-X-Forwarded-Encrypted: i=1; AJvYcCUCTL3GifOoTkGotVQKHsht3DH11hDZibW61aSUOHYmvH8IO2m8nbbHB4vV63n+wNxBJfCcxiS88C2+z1upzJbLrWmIu6BvineuFcHLv+zQRkbWwJ5woYB0Rp6z1J9OsObiq0BDbZy8aUaI/o8DoCpcfiIn5M4NjWpUVOucS89c+cCJYuFy3hblNRb+aS9l7uNxbvPYmIqIO/SKZa//lBNIJmEfQGAWGB6KOX6w4lu0PECsvwrDEIHRoSypUvkwoM6wr8nbiwptxAlGu0Q2nfri3ivhFPaQ0a58BZ3JjhgHBkMZ+ZxRbGFJjExm9gtw7Q6DN/0jI/infzNnGKupNyYRy9ob9tkjzf4Giii2kSAGYdSkDzMcMup97D6whg1Arys+dL0HfUhjVC2cdmgR+NzVZX2Dcq6rmsYNH42+t182nBhSh2GY21ecMPVrx3+rk6rROHyUGoWoVjbrnX1mVY8JOfgyEYZALUMv2CcFUQDww0dClYG9XRp3hPYyliKGX6G+v7PhjQ==
-X-Gm-Message-State: AOJu0YwpsNYteLdDFoX1IKaNFFCuUC+P89kqXZcyX2ui47QVOzUubQGf
-	/7ZVPgtJdbk9sA4CS5+NFrTN9dPmJbKUl6w6X+olQ2zL47KdPisM
-X-Google-Smtp-Source: AGHT+IEzF8kEieTvm400vGSAD/FxkfKWUdB+Qp9zmFjvlH9NnaUdLi1L0Oe0+UqgMX4/h+bhgaOPVA==
-X-Received: by 2002:a05:6122:4584:b0:4eb:5cb9:f219 with SMTP id 71dfb90a1353d-4f89fe84d6fmr18355377e0c.0.1722947975581;
-        Tue, 06 Aug 2024 05:39:35 -0700 (PDT)
-Received: from localhost (73.84.86.34.bc.googleusercontent.com. [34.86.84.73])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7a34f6dce75sm450350985a.14.2024.08.06.05.39.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Aug 2024 05:39:34 -0700 (PDT)
-Date: Tue, 06 Aug 2024 08:39:34 -0400
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-To: Markus Elfring <Markus.Elfring@web.de>, 
- Mina Almasry <almasrymina@google.com>, 
- netdev@vger.kernel.org, 
- linux-doc@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, 
- Kaiyuan Zhang <kaiyuanz@google.com>, 
- Pavel Begunkov <asml.silence@gmail.com>, 
- Willem de Bruijn <willemb@google.com>, 
- linux-alpha@vger.kernel.org, 
- linux-mips@vger.kernel.org, 
- linux-parisc@vger.kernel.org, 
- sparclinux@vger.kernel.org, 
- linux-trace-kernel@vger.kernel.org, 
- linux-arch@vger.kernel.org, 
- linux-kselftest@vger.kernel.org, 
- bpf@vger.kernel.org, 
- linux-media@vger.kernel.org, 
- dri-devel@lists.freedesktop.org, 
- LKML <linux-kernel@vger.kernel.org>, 
- Andreas Larsson <andreas@gaisler.com>, 
- Arnd Bergmann <arnd@arndb.de>, 
- Bagas Sanjaya <bagasdotme@gmail.com>, 
- =?UTF-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, 
- Christoph Hellwig <hch@infradead.org>, 
- David Ahern <dsahern@kernel.org>, 
- "David S. Miller" <davem@davemloft.net>, 
- David Wei <dw@davidwei.uk>, 
- Donald Hunter <donald.hunter@gmail.com>, 
- Eric Dumazet <edumazet@google.com>, 
- Harshitha Ramamurthy <hramamurthy@google.com>, 
- Helge Deller <deller@gmx.de>, 
- Herbert Xu <herbert@gondor.apana.org.au>, 
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
- Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
- Jakub Kicinski <kuba@kernel.org>, 
- "James E. J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, 
- Jeroen de Borst <jeroendb@google.com>, 
- Jesper Dangaard Brouer <hawk@kernel.org>, 
- Jonathan Corbet <corbet@lwn.net>, 
- Masami Hiramatsu <mhiramat@kernel.org>, 
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
- Matt Turner <mattst88@gmail.com>, 
- Nikolay Aleksandrov <razor@blackwall.org>, 
- Paolo Abeni <pabeni@redhat.com>, 
- Praveen Kaligineedi <pkaligineedi@google.com>, 
- Richard Henderson <richard.henderson@linaro.org>, 
- Shailend Chand <shailend@google.com>, 
- Shakeel Butt <shakeel.butt@linux.dev>, 
- Shuah Khan <shuah@kernel.org>, 
- Steffen Klassert <steffen.klassert@secunet.com>, 
- Steven Rostedt <rostedt@goodmis.org>, 
- Sumit Semwal <sumit.semwal@linaro.org>, 
- Taehee Yoo <ap420073@gmail.com>, 
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>, 
- Yunsheng Lin <linyunsheng@huawei.com>
-Message-ID: <66b2198686b91_3206cf29453@willemb.c.googlers.com.notmuch>
-In-Reply-To: <9aad36fe-cd4c-4ce5-b4d8-6c8619d10c46@web.de>
-References: <20240730022623.98909-4-almasrymina@google.com>
- <5d3c74da-7d44-4b88-8961-60f21f84f0ac@web.de>
- <CAHS8izPxfCv1VMFBK1FahGTjVmUSSfrabgY5y6V+XtaszoHQ4w@mail.gmail.com>
- <9aad36fe-cd4c-4ce5-b4d8-6c8619d10c46@web.de>
-Subject: Re: [PATCH net-next v17 03/14] netdev: support binding dma-buf to
- netdevice
+        d=1e100.net; s=20230601; t=1722949512; x=1723554312;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=2OksTN73HxjsIsPl77kQrWLaGS0nfyIcgwcT/pZ9bvc=;
+        b=cZ9mkYRm75R4lF/72nTqI7yaLAt+LPg1y0JX8x+In3fvziLyNd001dVC3/omR9Sfk3
+         ZasZLV6Jlo7DUiHh6SOOz1l8F4CMjPeTYjnF+gjqjTuZPL9YNZj0zlnJStSRp6vkJPEl
+         1LInw1a7CGDFnbusFONOK7aXkrEznNIdoFak+zjW1gYcBHXJCIU0LiJjiboVY6pHY4Ix
+         36waRCuiTHyW+Jpj93hrFUBC9hSCkumRJ0ziprXDv/Kz6qbiU8vfXti8z7gHaHXb2gDp
+         KDnBPY7G/ZlTJqH0Lfno1UMvg76ZET0IdT/Z1hyS43CeK54icvpiV1qim8a7zFY+7sCO
+         USIw==
+X-Forwarded-Encrypted: i=1; AJvYcCX8Ljf2RWItxf8r9d13puQV6iDI0juKH0HDDf1TQX/iA+y4VznrEC9uhxcE388xj2IusGekfB8Zji1N@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw9dUEVPGmUIc3bEhFlGO5KlaAg89i12fcxMd8jPE3OxV0S/lEu
+	mqf+Yn2vjYqHKCwoak8PamnvKjaJpvhF8PUUVTbt8/jEm5EeHiAQF5KQt7PHiSvFeFRJHbsl3Du
+	V46AZ/9S2PzbSbG3EQXI8LfACSzv2F+qbAKg8IxM0KbsiZM9Wy8SGXLN5U1A=
+X-Received: by 2002:a17:907:d92:b0:a77:deb2:8b01 with SMTP id a640c23a62f3a-a7dc4fd89c8mr1523737966b.1.1722949512258;
+        Tue, 06 Aug 2024 06:05:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF4VEl7CRhNLkeZ8kGCy+77PRKCTJdFsXXGg5cULvkdg3s5MpQ0XvVjnTTjpGy7TbqbES+Rlw==
+X-Received: by 2002:a17:907:d92:b0:a77:deb2:8b01 with SMTP id a640c23a62f3a-a7dc4fd89c8mr1523733166b.1.1722949511728;
+        Tue, 06 Aug 2024 06:05:11 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c73f:8500:f83c:3602:5300:88af? (p200300cbc73f8500f83c3602530088af.dip0.t-ipconnect.de. [2003:cb:c73f:8500:f83c:3602:5300:88af])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a7dc9e8674dsm558172166b.146.2024.08.06.06.05.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 06 Aug 2024 06:05:11 -0700 (PDT)
+Message-ID: <df47ba66-47cc-40ec-99f2-0b030114d804@redhat.com>
+Date: Tue, 6 Aug 2024 15:05:06 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 02/26] MIPS: sgi-ip27: make NODE_DATA() the same as on
+ all other architectures
+To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>, Davidlohr Bueso
+ <dave@stgolabs.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>,
+ Palmer Dabbelt <palmer@dabbelt.com>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
+ Samuel Holland <samuel.holland@sifive.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Will Deacon <will@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-mm@kvack.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ loongarch@lists.linux.dev, nvdimm@lists.linux.dev,
+ sparclinux@vger.kernel.org, x86@kernel.org
+References: <20240801060826.559858-1-rppt@kernel.org>
+ <20240801060826.559858-3-rppt@kernel.org>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <20240801060826.559858-3-rppt@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Markus Elfring wrote:
-> >> =E2=80=A6
-> >>> +++ b/include/net/devmem.h
-> >>> @@ -0,0 +1,115 @@
-> >> =E2=80=A6
-> >>> +#ifndef _NET_DEVMEM_H
-> >>> +#define _NET_DEVMEM_H
-> >> =E2=80=A6
-> >>
-> >> I suggest to omit leading underscores from such identifiers.
-> >> https://wiki.sei.cmu.edu/confluence/display/c/DCL37-C.+Do+not+declar=
-e+or+define+a+reserved+identifier
-> >>
-> >
-> > I was gonna apply this change, but I ack'd existing files and I find
-> > that all of them include leading underscores, including some very
-> > recently added files like net/core/page_pool_priv.h.
-> >
-> > I would prefer to stick to existing conventions if that's OK, unless
-> > there is widespread agreement to the contrary.
-> =
+On 01.08.24 08:08, Mike Rapoport wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> 
+> sgi-ip27 is the only system that defines NODE_DATA() differently than
+> the rest of NUMA machines.
+> 
+> Add node_data array of struct pglist pointers that will point to
+> __node_data[node]->pglist and redefine NODE_DATA() to use node_data
+> array.
+> 
+> This will allow pulling declaration of node_data to the generic mm code
+> in the next commit.
+> 
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> ---
 
-> Under which circumstances would you become interested to reduce develop=
-ment risks
-> also according to undefined behaviour?
-> https://wiki.sei.cmu.edu/confluence/display/c/CC.+Undefined+Behavior#CC=
-.UndefinedBehavior-ub_106
+Acked-by: David Hildenbrand <david@redhat.com>
 
-This series is following established practice in kernel networking.
+-- 
+Cheers,
 
-If that conflicts with a C standard, then perhaps that needs to be
-resolved project wide.
+David / dhildenb
 
-Forcing an individual feature to diverge just brings inconsistency.
-That said, this appears to be inconsistent already.
-
-Main question is whether this is worth respinning a series already at
-v17 with no more fundamental feedback.
-
-For reference:
-
-$ grep -nrI '^#ifndef\ _\+NET[_A-Z]\+H' include/  | wc -l
-149
-
-$ grep -nrI '^#ifndef\ NET[_A-Z]\+H' include/  | wc -l
-4
-
-$ grep -nrI '^#ifndef\ [_]\+[A-Z][_A-Z]\+H' include/  | wc -l
-3805
-
-$ grep -nrI '^#ifndef\ [A-Z][_A-Z]\+H' include/  | wc -l
-583
