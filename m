@@ -1,143 +1,173 @@
-Received: from flow7-smtp.messagingengine.com (flow7-smtp.messagingengine.com [103.168.172.142])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C224113D61D;
-	Wed,  7 Aug 2024 18:53:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36E4A23;
+	Thu,  8 Aug 2024 02:05:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723056809; cv=none; b=FAO6fv0IPE57hxrufn3OI3Le+HJcjRUPkZVcfc/JI8pChZ86NI4Xck8A9OTYxwhDv9av5177SPJPwN5GuV6iGS6c0S6jLugvpZddGh5inWieJi/ETVC5UYx2tF2LRwUZGABwImEp0cYW92cFS4++XcupEk/jSAf08J2TQawWkCc=
+	t=1723082702; cv=none; b=SZFCvd70XMON6STGcab+OYNVWtHbMfXguvl/mKAn44xtrP4bSgNh3KkAWxvWMIQ6j642BGLK+HKXjRkW4V2BrVWp+2OH9JjKXFA8+7oKCSyjSU5p6eedTkDhb5ORuZtpT2+o9osbn9rvQJQ8QRcFh4Y38vtBG/psC9hgqG8ma5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723056809; c=relaxed/simple;
-	bh=Ae/yFOnscB0LM68KscBwrE7D7vNdMDnnAeb+RIaDy6M=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=O7YNGngTs98rc4ibxaV3sKGFYUo3oqXix71OvHenG7ylTIXx0BYb8BiAy8RzsZ5nt4f8sHXB3xxtbayOBGdhCmd29mIpaqNlEf9GPJcvn37z8/8egsMM3wQzhWOkk+4US3MkrDndwKQWs19btoqT4rMIwhasK/HwdTMhULPIiQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=M+AgFKcn; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Cbd0u4JX; arc=none smtp.client-ip=103.168.172.142
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1723082702; c=relaxed/simple;
+	bh=2EcT3zPydLdHe4h+d6LItih1FkoUOBaRXJ1Xwae7odY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Zcy0a5SWWqdJCc61Y/8JAPzGsZWLIj0cjGE1klU9mZnSM0Xc4IA6TMgT44HJCIaBv1WjfwWDnL7QBp5VoRBEBf7Mzvh+hr++LdzciOwFML2X6ELFrV97YxcGZhSKMSkPCdrKsAq2gKASmIKGYZAp4tvfGeovoTnsnWqruLXtkM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MnfKY1B2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="M+AgFKcn";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Cbd0u4JX"
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailflow.nyi.internal (Postfix) with ESMTP id B9FE8200F9C;
-	Wed,  7 Aug 2024 14:53:26 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute4.internal (MEProxy); Wed, 07 Aug 2024 14:53:26 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1723056806;
-	 x=1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=
-	M+AgFKcnD/Nuugw9QWMdK0TNIorx7c9kz4u4kWeEtoBkeDVxq1i8AfEINi28F8pD
-	mqxXrgNc0hd7DLIVn8ZdgKKw1WixvvvthvoPlB32dikpdRyZeayfzxol4TWH5zV/
-	sctoPTqK+Gpjs6mQSC5g5LuM5+hqde8Awr3BiE9VBetstqH9G+Y73dGI251beJG0
-	KD/S9aRYjMWru5ducc9JFCJqHqrV4tG/Fb2biX0pP/55/wPz4yqBj2Cwo3Jic+yq
-	Ts4ZD1s3I/J9I7pooC8Z3JaExlDJaha/uLa/IoywBt1Fj2dxnikSyGwL/537oKvz
-	3Ga11kSBaDC1us7TovA9WQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723056806; x=
-	1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=C
-	bd0u4JXHiwM85jQmCceR5thBnLlVROGCSHq6uqUQH7EES4yd9w+rGDAsQiWGz/KE
-	Tx9ieCb+syV32NMwTs+deNuAAbSSJe2g2WC6Q1eWWQa6JXLDL+jX7+woQX4AVmls
-	7LKrhVy6yJsezqFhMNl/XzM0DJIJdjB2cO6q+5fT/oDBlh0O4crlMEUa9nDaj5+w
-	8Li1kDK8ZNJzdI09O84Vv3hC186LsTWkCUiEZ2/yFGg3ilPlXUGqR2TZ+rh7pN7b
-	zrQN9qvczGLLR6LFQdfP+t0gWYdb1IFiN8QXdil4RtN7+rEubC/YANNF+1Cs12kw
-	Bcw5FrUO4Qwt7abMjpS7w==
-X-ME-Sender: <xms:pcKzZnopk042s10_adxzzpGQqjjj1zN1aqGfzwY9vdXxA-HcaMU7yw>
-    <xme:pcKzZhphWvwWMwSmYbDYPH1KAUK7_qukQL58dPLkKZwJ6qZO-PD0mTILf37wC-VkJ
-    yuGeXAZyjmZouRsKac>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrledtgddufedtucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefh
-    vdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvgdpnhgspghrtghpthhtoheptd
-X-ME-Proxy: <xmx:pcKzZkMMEa1QCyx9DYya--xGnOf_SSr3_VdEDtu9hV8xSe9yXZqVCw>
-    <xmx:pcKzZq7W7a2W3QiuibYT4n87PxFgIhVytpph5nF0kYnO4gUYERaGxQ>
-    <xmx:pcKzZm6A0MWzdmDLhHIywLO77HSPGI_SIwlTXUWpWoknLUo6ctrjwg>
-    <xmx:pcKzZigfeNcP1X2tQ3rm8J0r0mNkRKSh21gYx64IauzFFFTIOJUQRw>
-    <xmx:psKzZuEqNacnXDRDYO1s0FZVTS1ct0wiplIuRye5vQU_o20dyn1ygN6I>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id ED628B6008D; Wed,  7 Aug 2024 14:53:24 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MnfKY1B2"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 5E7C5C32781;
+	Thu,  8 Aug 2024 02:05:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1723082701;
+	bh=2EcT3zPydLdHe4h+d6LItih1FkoUOBaRXJ1Xwae7odY=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=MnfKY1B2ugtjj0Ah/aw35kKJY+FvKHU9WcoIangAwcExW5aK5Jorg3pVqxnI4yioC
+	 8HhofzvQDyiQPI3ssLvHDn4EuMTrqoG/JOu3UyZ682j2p+v9WKJrsOyDPiXdHaAJ61
+	 7/NYlWxweE2V3fUfJNdTJdVQg6dOmEfp1kcmxtZVktF+5XsHriLcWu8w7uFTJNq71h
+	 BLI13zvbrWVxrs+cI30SxoCCgQU5ge8fm6ASclzcOtZ6u89OGG+4wJF7Rop9VuFhG6
+	 2kna466QI6d/+Xk8LRCX85nedp6HHdBSc8gwIwQot6jK4321joN+Qn8MQ95VX6arFW
+	 mhCqgDWEKjZhA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AC3AC52D6F;
+	Thu,  8 Aug 2024 02:05:01 +0000 (UTC)
+From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
+Date: Thu, 08 Aug 2024 09:05:00 +0700
+Subject: [PATCH v2] sparc/vdso: Add helper function for 64-bit right shift
+ on 32-bit target
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Wed, 07 Aug 2024 20:53:04 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Mike Rapoport" <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
- "Alexander Gordeev" <agordeev@linux.ibm.com>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Borislav Petkov" <bp@alien8.de>,
- "Catalin Marinas" <catalin.marinas@arm.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Dan Williams" <dan.j.williams@intel.com>,
- "Dave Hansen" <dave.hansen@linux.intel.com>,
- "David Hildenbrand" <david@redhat.com>,
- "David S . Miller" <davem@davemloft.net>,
- "Davidlohr Bueso" <dave@stgolabs.net>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Heiko Carstens" <hca@linux.ibm.com>,
- "Huacai Chen" <chenhuacai@kernel.org>, "Ingo Molnar" <mingo@redhat.com>,
- "Jiaxun Yang" <jiaxun.yang@flygoat.com>,
- "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "Jonathan Cameron" <jonathan.cameron@huawei.com>,
- "Jonathan Corbet" <corbet@lwn.net>,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Palmer Dabbelt" <palmer@dabbelt.com>,
- "Rafael J . Wysocki" <rafael@kernel.org>,
- "Rob Herring" <robh@kernel.org>,
- "Samuel Holland" <samuel.holland@sifive.com>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "Thomas Gleixner" <tglx@linutronix.de>,
- "Vasily Gorbik" <gor@linux.ibm.com>, "Will Deacon" <will@kernel.org>,
- "Zi Yan" <ziy@nvidia.com>, devicetree@vger.kernel.org,
- linux-acpi@vger.kernel.org, Linux-Arch <linux-arch@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
-Message-Id: <19f7ccec-db2a-4176-b6d9-12abe0586d07@app.fastmail.com>
-In-Reply-To: <ZrO6cExVz1He_yPn@kernel.org>
-References: <20240807064110.1003856-1-rppt@kernel.org>
- <20240807064110.1003856-25-rppt@kernel.org>
- <1befc540-8904-4c23-b0e6-e2c556fe22b9@app.fastmail.com>
- <ZrO6cExVz1He_yPn@kernel.org>
-Subject: Re: [PATCH v4 24/26] arch_numa: switch over to numa_memblks
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
+X-B4-Tracking: v=1; b=H4sIAMsntGYC/1XMQQ6CMBCF4auQWVszLYUWV97DsGhqkUmEkikhG
+ tK7W3Hl8n/J+3ZIgSkkuFQ7cNgoUZxLqFMFfnTzIwi6lwaFSqORRqTFsRdp5FYLNSA6Y602BqE
+ 8Fg4DvQ7t1pceKa2R3we+ye/6cyzqP2eTQgrVYINda+u6c9eF4xrnydHz7OMEfc75A6nfi5OrA
+ AAA
+To: "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+ Thomas Gleixner <tglx@linutronix.de>, 
+ Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+ Nathan Chancellor <nathan@kernel.org>, 
+ Nick Desaulniers <ndesaulniers@google.com>, 
+ Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ llvm@lists.linux.dev, Koakuma <koachan@protonmail.com>
+X-Mailer: b4 0.14.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1723082700; l=3512;
+ i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
+ bh=Si3c44/d6jXgPlqHAyYiaOjLlLDe1/nmaPBaKpcPsPo=;
+ b=kN78zuvs/mL6hPLposgcU9M29S3E9kBq3BS+8FzltzlrdxSTJDNeaDNDLou81Sqo6m93sqG47
+ MEVfcgCRTcJAQlIIHmzdXbKSV8zMnEkOycj+RuqbwOfStGRK4FjLCgw
+X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
+ pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
+X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
+ auth_id=174
+X-Original-From: Koakuma <koachan@protonmail.com>
+Reply-To: koachan@protonmail.com
 
-On Wed, Aug 7, 2024, at 20:18, Mike Rapoport wrote:
-> On Wed, Aug 07, 2024 at 08:58:37AM +0200, Arnd Bergmann wrote:
->> On Wed, Aug 7, 2024, at 08:41, Mike Rapoport wrote:
->> > 
->> >  void __init arch_numa_init(void);
->> >  int __init numa_add_memblk(int nodeid, u64 start, u64 end);
->> > -void __init numa_set_distance(int from, int to, int distance);
->> > -void __init numa_free_distance(void);
->> >  void __init early_map_cpu_to_node(unsigned int cpu, int nid);
->> >  int __init early_cpu_to_node(int cpu);
->> >  void numa_store_cpu_info(unsigned int cpu);
->> 
->> but is still declared as __init in the header, so it is
->> still put in that section and discarded after boot.
->
-> I believe this should fix it
+From: Koakuma <koachan@protonmail.com>
 
-Yes, sorry I should have posted the patch as well, this is
-what I tested with locally.
+Add helper function for 64-bit right shift on 32-bit target so that
+clang does not emit a runtime library call.
 
-     Arnd
+Signed-off-by: Koakuma <koachan@protonmail.com>
+---
+Hi~
+
+This adds a small function to do 64-bit right shifts for use in vDSO
+code, needed so that clang does not emit a call to runtime library.
+---
+Changes in v2:
+- Move __shr64 to sparc code since there are no other users of it.
+- Now that __shr64 is not in portable code, redo it in inline asm for simpler implementation & better performance.
+- Link to v1: https://lore.kernel.org/r/20240804-sparc-shr64-v1-1-25050968339a@protonmail.com
+---
+ arch/sparc/vdso/vclock_gettime.c | 28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
+index e794edde6755..79607804ea1b 100644
+--- a/arch/sparc/vdso/vclock_gettime.c
++++ b/arch/sparc/vdso/vclock_gettime.c
+@@ -86,6 +86,11 @@ notrace static long vdso_fallback_gettimeofday(struct __kernel_old_timeval *tv,
+ }
+ 
+ #ifdef	CONFIG_SPARC64
++notrace static __always_inline u64 __shr64(u64 val, int amt)
++{
++	return val >> amt;
++}
++
+ notrace static __always_inline u64 vread_tick(void)
+ {
+ 	u64	ret;
+@@ -102,6 +107,21 @@ notrace static __always_inline u64 vread_tick_stick(void)
+ 	return ret;
+ }
+ #else
++notrace static __always_inline u64 __shr64(u64 val, int amt)
++{
++	u64 ret;
++
++	__asm__ __volatile__("sllx %H1, 32, %%g1\n\t"
++			     "srl %L1, 0, %L1\n\t"
++			     "or %%g1, %L1, %%g1\n\t"
++			     "srlx %%g1, %2, %L0\n\t"
++			     "srlx %L0, 32, %H0"
++			     : "=r" (ret)
++			     : "r" (val), "r" (amt)
++			     : "g1");
++	return ret;
++}
++
+ notrace static __always_inline u64 vread_tick(void)
+ {
+ 	register unsigned long long ret asm("o4");
+@@ -154,7 +174,7 @@ notrace static __always_inline int do_realtime(struct vvar_data *vvar,
+ 		ts->tv_sec = vvar->wall_time_sec;
+ 		ns = vvar->wall_time_snsec;
+ 		ns += vgetsns(vvar);
+-		ns >>= vvar->clock.shift;
++		ns = __shr64(ns, vvar->clock.shift);
+ 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ 
+ 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+@@ -174,7 +194,7 @@ notrace static __always_inline int do_realtime_stick(struct vvar_data *vvar,
+ 		ts->tv_sec = vvar->wall_time_sec;
+ 		ns = vvar->wall_time_snsec;
+ 		ns += vgetsns_stick(vvar);
+-		ns >>= vvar->clock.shift;
++		ns = __shr64(ns, vvar->clock.shift);
+ 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ 
+ 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+@@ -194,7 +214,7 @@ notrace static __always_inline int do_monotonic(struct vvar_data *vvar,
+ 		ts->tv_sec = vvar->monotonic_time_sec;
+ 		ns = vvar->monotonic_time_snsec;
+ 		ns += vgetsns(vvar);
+-		ns >>= vvar->clock.shift;
++		ns = __shr64(ns, vvar->clock.shift);
+ 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ 
+ 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+@@ -214,7 +234,7 @@ notrace static __always_inline int do_monotonic_stick(struct vvar_data *vvar,
+ 		ts->tv_sec = vvar->monotonic_time_sec;
+ 		ns = vvar->monotonic_time_snsec;
+ 		ns += vgetsns_stick(vvar);
+-		ns >>= vvar->clock.shift;
++		ns = __shr64(ns, vvar->clock.shift);
+ 	} while (unlikely(vvar_read_retry(vvar, seq)));
+ 
+ 	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+
+---
+base-commit: defaf1a2113a22b00dfa1abc0fd2014820eaf065
+change-id: 20240717-sparc-shr64-2f00a7884770
+
+Best regards,
+-- 
+Koakuma <koachan@protonmail.com>
+
+
