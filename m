@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7942E3E5;
-	Wed, 14 Aug 2024 17:30:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B1B93D64;
+	Fri, 16 Aug 2024 00:48:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723656652; cv=none; b=bOq9tlF0SaPHrEbFovBAXpDa5DPrJqHEW309zCTWNLpcEk0ST5VZ/yzS0gYmDn2yM/ehlCrVLsSzMH/vAZZRA0gYlS2Nel5e/CoKrPcZPXEvmscDy4+dpYbn64clVnKlbkVVOVNUSJxvWi6gXNZ/DbnMwXwl3LPJEuL2B4xQFZ8=
+	t=1723769336; cv=none; b=hM7t2UtWG79RXaYpnazMEWjvYXl4XV7xPUb0Lp+o299IJfQCalpbC1MDsh9g9vuKOyPMq6X/whfVFWefeybLuAGstyqF8SuNop7tQuIdLgTgNvgsbG4J5Mgy5WjiTGj6VC15PB1lb/sBKKOMoVFPyDi2APnyATobeRIQ9SK6MFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723656652; c=relaxed/simple;
-	bh=wWHERfWY68t43c/I0nTa2dlB6DGK9M9cJU/cQg1GFRc=;
+	s=arc-20240116; t=1723769336; c=relaxed/simple;
+	bh=Ytv9yoDmPpxLpzsc/yRsSXmYq/2gwEitzTmx7ZSGLI4=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UdJBqwy4JGM8EYmCkapVHpVgzjfdOAkGRa3r5ZqJXElOtNV/9IKqZaGZg+apW8x715qpwu55kTmYsosUSytwC869TuMUHmFFdcwLXPDRwCXABk12K0uJYg0/dNe/oivcgGM5offVcS4d3yOqFsvifANjmlCGRnlQoxgH+rlxJ+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gEwMyUpe; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=AK2dVa/UI+er9WvHD2h1yPh0pLaHMIputNVffjywqzM5FBy7NVmzsOa6+dLJAIaxTuPJI/xLsKOMXprDHpqmkpg9bz3lLgcJiqhprIz1Q9PacDchH9qHfy8MWPT3i6x0RLFg9WIRmOK+zlgssVevUNqWz8LgRNxn2SFAxV5NPIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e5ITK+WQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gEwMyUpe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86B2C4AF09;
-	Wed, 14 Aug 2024 17:30:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e5ITK+WQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62AD2C32786;
+	Fri, 16 Aug 2024 00:48:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723656651;
-	bh=wWHERfWY68t43c/I0nTa2dlB6DGK9M9cJU/cQg1GFRc=;
+	s=k20201202; t=1723769335;
+	bh=Ytv9yoDmPpxLpzsc/yRsSXmYq/2gwEitzTmx7ZSGLI4=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=gEwMyUpeNPru3Xnvr2ilgC6PztNBLoeEdZ8ljTX9udmARzUvA9tkqTJZfy3yTn6fq
-	 CC9tyjWcRnePf7SmaBwaTEHJyhBH+xxVOIwaS6ReKH9/JKW/+lyEAovr9qNpoMrHMg
-	 7zHdLphV5CaALjf4WmDfwutI2/blIXXAqRWfHcNqCCem8svfdm6I9QIQKeUZA0sS8W
-	 6n2URHv+udD6i037bJJvn5y84H/PIUz8+xYAd3KJplA6M4XmJAmWU4eo8P2dcQaii3
-	 PdA/UOkZN3gLKvNdxbnXqcLXVv7klKRFi8fGIYk3SScvZEX/E1nwb92PRJ1s9dyEg4
-	 1EqU+ww04GwTg==
-Date: Wed, 14 Aug 2024 10:30:48 -0700
+	b=e5ITK+WQTBSBd0ONLrV8Z07tHWXazMUo9DUF+ybTMbIx8l9X8e7vv9fHgLRLwkL+F
+	 fUFlVZCO1aZmTn7HWjJSb1AFkTLPqJqexHx6JDAUHI/lE1ooDN/ZmbwRaq0hcD2sIc
+	 /F7bmJ0uF7YPbeEXlceauH+SehcI+RC1efSfm1PYPBCp+HRMArbvvawNtTwYtB8POl
+	 9zKqa00MUqjxTyPKr3oN4UM5dGM6BoxIx87kHA8X+R1VWZcpQ8zvTvKpwX3WbVenMV
+	 YHtccFvyDipTPgy5bT8DeAmspcKtDeaACtk8f7jp3VsmXF75Z6u27ITubBXiFFaH7U
+	 ddgfGM5Dpvcxw==
+Date: Thu, 15 Aug 2024 17:48:52 -0700
 From: Jakub Kicinski <kuba@kernel.org>
 To: Mina Almasry <almasrymina@google.com>
 Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -59,11 +59,13 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, Harshitha
  Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>,
  Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi
- <pkaligineedi@google.com>
-Subject: Re: [PATCH net-next v19 00/13] Device Memory TCP
-Message-ID: <20240814103048.670378e9@kernel.org>
-In-Reply-To: <20240813211317.3381180-1-almasrymina@google.com>
-References: <20240813211317.3381180-1-almasrymina@google.com>
+ <pkaligineedi@google.com>, Willem de Bruijn <willemb@google.com>, Kaiyuan
+ Zhang <kaiyuanz@google.com>, Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH net-next v19 03/13] netdev: support binding dma-buf to
+ netdevice
+Message-ID: <20240815174852.48bbfccf@kernel.org>
+In-Reply-To: <20240813211317.3381180-4-almasrymina@google.com>
+References: <20240813211317.3381180-4-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -73,36 +75,22 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 13 Aug 2024 21:13:02 +0000 Mina Almasry wrote:
-> v18 got a thorough review (thanks!), and this iteration addresses the
-> feedback.
-> 
-> Major changes:
-> - Prevent deactivating mp bound queues.
-> - Prevent installing xdp on mp bound netdevs, or installing mps on xdp
->   installed netdevs.
-> - Fix corner cases in netlink API vis-a-vis missing attributes.
-> - Iron out the unreadable netmem driver support story. To be honest, the
->   conversation with Jakub & Pavel got a bit confusing for me. I've
->   implemented an approach in this set that makes sense to me, and
->   AFAICT, addresses the requirements. It may be good as-is, or it
->   may be a conversation starter/continuer. To be honest IMO there
->   are many ways to skin this cat and I don't see an extremely strong
->   reason to go for one approach over another. Here is one approach you
->   may like.
-> - Don't reset niov dma_addr on allocation & free.
-> - Add some tests to the selftest that catches some of the issues around
->   missing netlink attributes or deactivating mp-bound queues.
+On Tue, 13 Aug 2024 21:13:05 +0000 Mina Almasry wrote:
+> +int dev_get_max_mp_channel(const struct net_device *dev)
+> +{
+> +	int i, max = -1;
 
-Something is going awry in two existing test:
+I presume the bug from yesterday is self evident once reported? :)
 
-https://netdev.bots.linux.dev/contest.html?branch=net-next-2024-08-14--15-00&pw-n=0&pass=0
+> +	ASSERT_RTNL();
+> +
+> +	for (i = 0; i < dev->real_num_rx_queues; i++)
+> +		if (dev->_rx[i].mp_params.mp_priv)
+> +			/* The number of queues is the idx plus 1. */
+> +			max = i + 1;
 
-Example:
+The +1 is odd. The function as it stands reports min channel count.
+Not max_mp_channel, if you ask me. And if you renamed it, you don't
+have to use -1 as "not installed".
 
-https://netdev-3.bots.linux.dev/vmksft-net-drv/results/727462/2-queues-py/stdout
-
-I'll take a closer look at the code in the evening, but gotta discard
-if from pw already..
--- 
-pw-bot: cr
+> +	return max;
