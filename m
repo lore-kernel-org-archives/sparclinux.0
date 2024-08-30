@@ -1,162 +1,137 @@
-Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83E5CD27E
-	for <sparclinux@vger.kernel.org>; Fri, 30 Aug 2024 01:16:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F161514ED
+	for <sparclinux@vger.kernel.org>; Fri, 30 Aug 2024 05:41:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724980610; cv=none; b=K9Dpc07d8F788m87JZGwKdbkALmcwFK5qidfAxfOfI7s9jIq1fHfNtgeu0IqJnx5LkM6LkjzIIObmQlit37hl+3Lsn1nivt7FBaS9P5eTjepWJzbGLwcJaedRaqQ+I5hyfZB89HGPjDZFqpQosxjK4WhtISAYjWdf46EZ9piANw=
+	t=1724996494; cv=none; b=Zh7F/QAaYUAAVRw4iwiYaOjYcX5L4m95uspJojK46KYqaP2aQ97qQvGboZDHaaGdH8jOWiGYbYdE5wN2RszpIWb++y/YVAT/Y0VXKacZHf/J9o2ChF4fO+KnQO/Yft9fjnux+mESfzmw897kvQR/yoQwEB3lBR1gPt0dT0hV0BI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724980610; c=relaxed/simple;
-	bh=O19E6wddJJJyBiqtf0WyxrT1W9vHMvm3yZWRAq+bKOY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RPWinoYrBFTYVLW5ormbt77/PzDBs9qeqGigkT6H7m5weI8ogDhEiq7C2lPgyedMoMyT9ZSEnyDnH6oeOMF0D+8rnPQZyViuTLAzbDLWCuuuhlwb/qNW8L99d3jANxGVvEGDxk6ApsCS1/lS+ESZvcaGS3xgViYgz4ieTbITjQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=YFJUp2F7; arc=none smtp.client-ip=209.85.161.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rivosinc.com
+	s=arc-20240116; t=1724996494; c=relaxed/simple;
+	bh=sw/z0V7t62DQd/qzCRru7G5IMJTzCRndRN+lm9ctM2E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YTw1SbxnhZ9r68Ju+h5fI/5H/buoGTLGzq7l3E643lDkkKpSh6SKkoHIypj9BS0RgxaNsYmiwAylQ4koQTYGKn5RArPhgggiB64jNnVh5xFGwPy6TuyF3EJPGDKHevrjr29Izv4RzmrdEa26cS6S7QNkjpfW5FI/jgU3MOkir+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=mzuDB1rY; arc=none smtp.client-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="YFJUp2F7"
-Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5df9a9f7fe2so770417eaf.2
-        for <sparclinux@vger.kernel.org>; Thu, 29 Aug 2024 18:16:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="mzuDB1rY"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-4567fe32141so217531cf.0
+        for <sparclinux@vger.kernel.org>; Thu, 29 Aug 2024 22:41:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1724980608; x=1725585408; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Y7xDP+Z9ioGU1Ej/VigLqskETGN0WUiHvrKI/4LF5a8=;
-        b=YFJUp2F7VZKkmuKY3JFZJ9ib01B4eGtOnBH7NzUpM8FGDoYAIq63n/VcUc6QexoBKK
-         rd/zwXru8JGrpEFTxV/3nUfh+4F45yJbFaSVm8u1TrVGIchZ/6nqXpmjzvSLcd5ctPWw
-         XyAVcuc2x+spsX1R2M2IATWuqgMRbUJG9Qqcr0URqg9uEqBpbqTglUByOkeElFeJBdbr
-         JiabxBaBHPWacTqLnk9RC42y1ng5KI1V72chSZr/LzHpBJOUCN1fLjOYAFmIMu3uWLDJ
-         MiTsh4VZ3jbMU8LfIuE8H2RLpnKvbeZ6yOo151vjnEhyZddNfqeTvaNkpsknRFQk06nT
-         wU1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724980608; x=1725585408;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=google.com; s=20230601; t=1724996491; x=1725601291; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Y7xDP+Z9ioGU1Ej/VigLqskETGN0WUiHvrKI/4LF5a8=;
-        b=gSyffMurU+mJTfS12VSfWVZwaiZRERoIDSbOJSJWgQm5qZ66tTrQLCqTC5paefpAi0
-         gheXXX6a37ZO4v8ec6CtYRLuL1ca2K1ts2qGDN/rNlnxwye+b4fAe5Nb8v43b/GdgKrP
-         Aifmmg9aWTVvN8pnvNY2NwUvgKfmWXhLvlvnoNFXvse+gtIPMHMK+EBkJcJTSHCCtqnp
-         bAotsz4izfDmlYVmdQOMwMZKvxWwiYeqP2km4qYjyGXDG64LQeqYnyXcfKuRvCkMiW8u
-         gimJwDW6NJcA9ytGJlpms+/DUdgluJPOCUrszJwiDRttCoua+opdSA7Gah4Hqlgf6h93
-         OkAg==
-X-Forwarded-Encrypted: i=1; AJvYcCVHEYhwkCxprK4YiOXOKRABPGpfh6O0ekK70h87eQtDYVUmJ7lkfeg7Jbn9wxqptOOFJorAr/niecmX@vger.kernel.org
-X-Gm-Message-State: AOJu0YzKwbSpiorWtNkv540lRvFy102KCM0WbuJbn6J8/fw2s6IRZ1Rf
-	kA6U6Bt8GH/RikSrvBgsKO+Ql94qjJLbsFeqzzPfhzVcNdTOC0UTF0zzUv5pOZQ=
-X-Google-Smtp-Source: AGHT+IH958S4ePdwDnUiHubyspadJoOLZkUZCeioopGjkAA0KkZUXlfkSz3mG+kkmopghBfnyH6A6g==
-X-Received: by 2002:a05:6358:2803:b0:1ac:f109:e248 with SMTP id e5c5f4694b2df-1b603c00435mr551866655d.2.1724980607523;
-        Thu, 29 Aug 2024 18:16:47 -0700 (PDT)
-Received: from ghost ([50.145.13.30])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-715e55a5961sm1734132b3a.63.2024.08.29.18.16.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Aug 2024 18:16:46 -0700 (PDT)
-Date: Thu, 29 Aug 2024 18:16:42 -0700
-From: Charlie Jenkins <charlie@rivosinc.com>
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
-	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>, Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Naveen N Rao <naveen@kernel.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Shuah Khan <shuah@kernel.org>, linux-arch@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-mm@kvack.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH RFC v2 1/4] mm: Add MAP_BELOW_HINT
-Message-ID: <ZtEdevUWzplteQWv@ghost>
-References: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
- <20240829-patches-below_hint_mmap-v2-1-638a28d9eae0@rivosinc.com>
- <87mskvenum.fsf@mail.lhotse>
+        bh=fGeAe2VvLt867O6PJvkuLBlyvjINITixvnm768ff9FY=;
+        b=mzuDB1rYWDyPjZzvdX79WUt2S6rBiqFOtJAmdGK5qkwibD266jlpF2ukdux+pwTHrA
+         igSeLo8xdS6RHMHxckeZBY5j+BECFTrueAM8NoF+fNX1bCJewdx4eLfcL3g5Sv7EFINz
+         29Cy7yftlxEReyl7svsdeDc2jqhndKdN0qlPa5y35yDmdKDafvURbkhfFsFDn+/SCCuI
+         yK1/578XwWSP4rBkeZBZt7q2MRBtYIrxc+y23/CMbJYRhR/z/7h6KtAuBWUqay4Q/G4/
+         bFfuYvt5W8KIHEFweRFzxO9BinqJ8XTLALfFCAHLd36EMJ2I6pS0HZHyQVv79YIohtA8
+         kCoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724996491; x=1725601291;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fGeAe2VvLt867O6PJvkuLBlyvjINITixvnm768ff9FY=;
+        b=rwfBDTmsr0yLjq5rmSx/O0PFkwCFz9vWhoQj+zQz7AjTQR7ZgnJcxSmpj3J7+zfpDM
+         2eCumOKDJ3frk0xcfhF6kSNX5yLSj3/V6sEYqU1wJVslzN167sz8GJtDV1zYXkczclFC
+         9+MHx4QohGhD0gDVv0SltH65z+edA72w42gODxrMhCotj00fRcHB5wjP5IKnLi2SDquv
+         BdcF5y9hpQi0fsyrMCcZ8pEeYbqfFiiRvHZuRDv7DQFBwra8tmwf73nSBQzGxk5IRhN0
+         1JFgIdFN6kLR0pN/MFzAJF0X5BQLqkOxr9aWBSPPQfQY18f/4eBm+yRtPo28xqd6Qzcl
+         RzaQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXBErZ6KKczbnU3zR802AjgXs3CMQ4yUZMBjDM22lytzSFbV5xQKzHJSPy3uVQXhbHZSbahzx3PZFqm@vger.kernel.org
+X-Gm-Message-State: AOJu0YzHJVO3f+hmoic9fXPvB4ncMzu59CnLJVzLlBKg1ndepDQ/Qhb7
+	CeuxSC8DImFT4oRdnoRKLuOI/XTVqdVQkU1lzP7nkCx719wU4uKSgQzWlCyJ3nwxuCz3TENoV+r
+	m3RTmicc2aa3Fl9M9bwzzqa7t7BKBXgiqQWPz
+X-Google-Smtp-Source: AGHT+IFJ5dSdgHloFb1Pn4hIJolGDXJPa0ot44BqfHuQJyxrQVYkduwL7EuLxMx9wUjPI6We8cpcbnMVMN++0hRnKxw=
+X-Received: by 2002:a05:622a:1a9a:b0:453:56e7:c62b with SMTP id
+ d75a77b69052e-4568a9fb7edmr1721641cf.12.1724996491072; Thu, 29 Aug 2024
+ 22:41:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87mskvenum.fsf@mail.lhotse>
+References: <20240829060126.2792671-1-almasrymina@google.com>
+ <20240829060126.2792671-4-almasrymina@google.com> <20240829140824.555d016c@kernel.org>
+ <e6df00ec-2c52-489e-a510-b69db7e9dbf9@linux.dev>
+In-Reply-To: <e6df00ec-2c52-489e-a510-b69db7e9dbf9@linux.dev>
+From: Mina Almasry <almasrymina@google.com>
+Date: Thu, 29 Aug 2024 22:41:17 -0700
+Message-ID: <CAHS8izOy26r0uoWdASgmBCENNS6cDjHpkp+AHhOaKVkZR1LZqQ@mail.gmail.com>
+Subject: Re: [PATCH net-next v23 03/13] netdev: support binding dma-buf to netdevice
+To: Vadim Fedorenko <vadim.fedorenko@linux.dev>
+Cc: Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
+	Donald Hunter <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>, 
+	Magnus Karlsson <magnus.karlsson@intel.com>, 
+	Maciej Fijalkowski <maciej.fijalkowski@intel.com>, Jonathan Lemon <jonathan.lemon@gmail.com>, 
+	Shuah Khan <shuah@kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
+	Daniel Borkmann <daniel@iogearbox.net>, John Fastabend <john.fastabend@gmail.com>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
+	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Taehee Yoo <ap420073@gmail.com>, 
+	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>, 
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 29, 2024 at 06:26:41PM +1000, Michael Ellerman wrote:
-> Charlie Jenkins <charlie@rivosinc.com> writes:
-> > Some applications rely on placing data in free bits addresses allocated
-> > by mmap. Various architectures (eg. x86, arm64, powerpc) restrict the
-> > address returned by mmap to be less than the 48-bit address space,
-> > unless the hint address uses more than 47 bits (the 48th bit is reserved
-> > for the kernel address space).
+On Thu, Aug 29, 2024 at 2:24=E2=80=AFPM Vadim Fedorenko
+<vadim.fedorenko@linux.dev> wrote:
+>
+> On 29/08/2024 22:08, Jakub Kicinski wrote:
+> > On Thu, 29 Aug 2024 06:01:16 +0000 Mina Almasry wrote:
+> >> +    err =3D genlmsg_reply(rsp, info);
+> >> +    if (err)
+> >> +            goto err_unbind;
+> >> +
+> >>      return 0;
+> >> +
+> >> +err_unbind:
 > >
-> > To make this behavior explicit and more versatile across all
-> > architectures, define a mmap flag that allows users to define an
-> > arbitrary upper limit on addresses returned by mmap.
-> >
-> > Signed-off-by: Charlie Jenkins <charlie@rivosinc.com>
-> > ---
-> >  include/uapi/asm-generic/mman-common.h       | 1 +
-> >  tools/include/uapi/asm-generic/mman-common.h | 1 +
->   
-> You're not meant to update the headers in tools/ directly. There's a
-> mail somewhere from acme somewhere describing the proper process, but
-> the tldr is leave it up to him.
+> > rtnl_lock()
+>
+> There are 2 places with goto err_unbind, and one is under the lock,
+> additional label (or rearrange of the last check) is needed..
+>
 
-Oh okay, thank you.
+Thank you, I think the right fix here is to reacquire rtnl_lock before
+the `goto err_unbind;`, since err_unbind expects rtnl to be locked at
+this point.
 
-> 
-> > diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-> > index 6ce1f1ceb432..03ac13d9aa37 100644
-> > --- a/include/uapi/asm-generic/mman-common.h
-> > +++ b/include/uapi/asm-generic/mman-common.h
-> > @@ -32,6 +32,7 @@
-> >  
-> >  #define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
-> >  					 * uninitialized */
-> > +#define MAP_BELOW_HINT	  0x8000000	/* give out address that is below (inclusive) hint address */
-> 
-> IMHO the API would be clearer if this actually forced the address to be
-> below the hint. That's what the flag name implies after all.
-> 
-> It would also mean the application doesn't need to take into account the
-> length of the mapping when passing the hint.
-> 
-> cheers
+This could introduce a weird edge case where we drop rtnl_lock, then
+find out genlmsg_reply failed, then reacquire rtnl_lock to do the
+cleanup. I can't think of anything that would horribly break if we do
+that, but I may be missing something. In theory we could race with a
+dmabuf unbind call happening in parallel.
 
-That's a good point. The reason I did it this way was to allow mmap the
-possibility of returning the same address as the hint. If it must be
-strictly less than the hint then the hint address can never be returned.
-Maybe that doesn't matter though.
+If we can't reacquire rtnl_lock to do the cleanup, I think I need to
+revert back to doing genlmsg_reply inside of rtnl_lock, and dropping
+the lock before we return from the function.
 
-- Charlie
-
+--=20
+Thanks,
+Mina
