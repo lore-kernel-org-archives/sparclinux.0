@@ -1,142 +1,164 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3952D18C334;
-	Tue,  3 Sep 2024 16:34:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D252F3C092;
+	Tue,  3 Sep 2024 17:18:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.235.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725381251; cv=none; b=WYMn8aFoj3Xqe3dN8fWDXo4U67KbSnLheuEOhRLZMOzQ98fV24G1UB976on9r0FoZGwfe0jHARdcdGFQPe6v/GIYA9riK9DuTbR9es+Fot1XbO4DhUN/KFyegPRe4X9beEh2YvMncPVAQ7MPfOpcadGHBQa5YLSfLKUqmvi6ixs=
+	t=1725383913; cv=none; b=jnKldOXS7YQM9IDNUQ4a7Y/eIqrxC2xR+scejKFhfq4OSsh6xXWKtosWcvOgtYqw+W25vpV0mHXaTdZBXfX1niUWpRs7Budz2QaMZdETDWdZPhuuWKIx24CYTEoX5kw3cKN+zXAzbdLNamZWcwZrDzGyUGtPQhOSQe6VV8oxMO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725381251; c=relaxed/simple;
-	bh=hnoOMPHIelaOOG6+6DV+DgPu+uv33EXGZHi0Ebg/Xbw=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZIxnKVGQyuMY6p4AP0YoSOKYLO67XlWyJ0cEQEou9kazYjT9QbXsc7Wm2CuhPZUy5vTv0ARVfOmFi6fNxjqa61Sl/Flzpjonhv6j1i3EJJf4aGFJQuvF5YU4lZy48B8TyPYBcfUWX1h6EwnWdijigmhVd3NOIxOUaqc7C2zOppY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=odfxCAf9; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="odfxCAf9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=Content-Transfer-Encoding:MIME-Version:References:
-	In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=Iu88FFSUL1wGyVd5VlbCTjXI0fMdyq6cAE9Sm953SYc=; t=1725381247; x=1725986047; 
-	b=odfxCAf9t9DqQ4Zb/XeF15thxUjaFgtq/G2pOXZoTsr4fHfC1fABOEauYsiwUDh7b0g5MHgPBi3
-	AVXZKp6e5ngFwC3VE1BLJ4Wg0bLbpDd3cXAM+dtfYSXU6ulFqN74oQyzYGNnby3lYzveNaqwTwcqF
-	x832YE+9dxZ0+GCyS8vcbYS9hyY1tg6sxHRnoWrtXoG87sQ7zumfqbjnNZM2pxZyw4stFNnM73h+/
-	hbrrrVHNSK2NsJxXyk0uiqKtr9UZmqgiWOhC99vWNNHg9wJWwEJB2C2toye0ceoy9ZcpvZ4EegAPf
-	6y/CWYJ3pMqafd+XgdkGf9pNxtwa6bDOZVxA==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1slWTb-00000003v4f-3lLf; Tue, 03 Sep 2024 18:33:55 +0200
-Received: from p5b13a591.dip0.t-ipconnect.de ([91.19.165.145] helo=z6.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1slWTb-00000000Z4H-2cwv; Tue, 03 Sep 2024 18:33:55 +0200
-Received: from glaubitz by z6.fritz.box with local (Exim 4.96)
-	(envelope-from <glaubitz@physik.fu-berlin.de>)
-	id 1slWTb-0000pX-0e;
-	Tue, 03 Sep 2024 18:33:55 +0200
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: feng.tang@intel.com
-Cc: akpm@linux-foundation.org,
-	bristot@redhat.com,
-	bsegall@google.com,
-	dietmar.eggemann@arm.com,
-	juri.lelli@redhat.com,
-	linux-kernel@vger.kernel.org,
-	mgorman@suse.de,
-	mingo@redhat.com,
-	peterz@infradead.org,
-	rostedt@goodmis.org,
-	vbabka@suse.cz,
-	vincent.guittot@linaro.org,
-	vschneid@redhat.com,
-	sparclinux@vger.kernel.org
-Subject: Re: sched/debug: Dump end of stack when detected corrupted
-Date: Tue,  3 Sep 2024 18:33:55 +0200
-Message-Id: <20240903163355.3187-1-glaubitz@physik.fu-berlin.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231219032254.96685-1-feng.tang@intel.com>
-References: <20231219032254.96685-1-feng.tang@intel.com>
+	s=arc-20240116; t=1725383913; c=relaxed/simple;
+	bh=rAT/16lEXiR/FQGCf8mH61WrxLJvKpfnUCw3JXbOKlk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=avqldA+j2/KSk3b5d6kJVRCAJLdAaZGo8rcdSP33W6Kgusq6CW5wSXQjS9RaemA5+49C3z0IerOGdrTeypCfyWU0rhUYYekbpz/oRIcHoRHopgtuf9uVfX0CMIqqIQsCjfj2b8iZOiDEHuq3t02UCR6QuGtHp0yCkkmdbiz5yLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.235.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+	by localhost (Postfix) with ESMTP id 4Wysln5hp8z9sSK;
+	Tue,  3 Sep 2024 19:18:29 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+	by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Es6jtyXV_O1v; Tue,  3 Sep 2024 19:18:29 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase2.c-s.fr (Postfix) with ESMTP id 4Wysln4Pwgz9sSC;
+	Tue,  3 Sep 2024 19:18:29 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 7B7CC8B778;
+	Tue,  3 Sep 2024 19:18:29 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id roQ3ugp6WN-D; Tue,  3 Sep 2024 19:18:29 +0200 (CEST)
+Received: from [192.168.234.228] (unknown [192.168.234.228])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 3CEB98B774;
+	Tue,  3 Sep 2024 19:18:27 +0200 (CEST)
+Message-ID: <6b07c48d-656f-4e42-bfa7-0ecead72a7b8@csgroup.eu>
+Date: Tue, 3 Sep 2024 19:18:26 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC v2 2/4] mm: Add hint and mmap_flags to struct
+ vm_unmapped_area_info
+To: Charlie Jenkins <charlie@rivosinc.com>, Arnd Bergmann <arnd@arndb.de>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+ Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>, Naveen N Rao <naveen@kernel.org>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner <tglx@linutronix.de>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
+ Peter Zijlstra <peterz@infradead.org>, Muchun Song <muchun.song@linux.dev>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
+ <vbabka@suse.cz>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Shuah Khan <shuah@kernel.org>
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-mm@kvack.org,
+ linux-kselftest@vger.kernel.org
+References: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
+ <20240829-patches-below_hint_mmap-v2-2-638a28d9eae0@rivosinc.com>
+Content-Language: fr-FR
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+In-Reply-To: <20240829-patches-below_hint_mmap-v2-2-638a28d9eae0@rivosinc.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
 
-Hi Feng,
+Hi Charlie,
 
-> When debugging a kernel hang during suspend/resume, there are random
-> memory corruptions in different places like being detected by scheduler
-> with error message:
+Le 29/08/2024 à 09:15, Charlie Jenkins a écrit :
+> The hint address and mmap_flags are necessary to determine if
+> MAP_BELOW_HINT requirements are satisfied.
 > 
->   "Kernel panic - not syncing: corrupted stack end detected inside scheduler"
-> 
-> Dump the corrupted memory around the stack end will give more direct
-> hints about how the memory is corrupted:
-> 
->  "
->  Corrupted Stack: ff11000122770000: ff ff ff ff ff ff 14 91 82 3b 78 e8 08 00 45 00  .........;x...E.
->  Corrupted Stack: ff11000122770010: 00 1d 2a ff 40 00 40 11 98 c8 0a ef 30 2c 0a ef  ..*.@.@.....0,..
->  Corrupted Stack: ff11000122770020: 30 ff a2 00 22 3d 00 09 9a 95 2a 00 00 00 00 00  0..."=....*.....
->  ...
->  Kernel panic - not syncing: corrupted stack end detected inside scheduler
->  "
-> 
-> And with it, the culprit was quickly identified to be an ethernet
-> driver with its DMA operations.
-> 
-> Signed-off-by: Feng Tang <feng.tang@intel.com>
+> Signed-off-by: Charlie Jenkins <charlie@rivosinc.com>
 > ---
->  kernel/sched/core.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
+>   arch/alpha/kernel/osf_sys.c      | 2 ++
+>   arch/arc/mm/mmap.c               | 3 +++
+>   arch/arm/mm/mmap.c               | 7 +++++++
+>   arch/csky/abiv1/mmap.c           | 3 +++
+>   arch/loongarch/mm/mmap.c         | 3 +++
+>   arch/mips/mm/mmap.c              | 3 +++
+>   arch/parisc/kernel/sys_parisc.c  | 3 +++
+>   arch/powerpc/mm/book3s64/slice.c | 7 +++++++
+>   arch/s390/mm/hugetlbpage.c       | 4 ++++
+>   arch/s390/mm/mmap.c              | 6 ++++++
+>   arch/sh/mm/mmap.c                | 6 ++++++
+>   arch/sparc/kernel/sys_sparc_32.c | 3 +++
+>   arch/sparc/kernel/sys_sparc_64.c | 6 ++++++
+>   arch/sparc/mm/hugetlbpage.c      | 4 ++++
+>   arch/x86/kernel/sys_x86_64.c     | 6 ++++++
+>   arch/x86/mm/hugetlbpage.c        | 4 ++++
+>   fs/hugetlbfs/inode.c             | 4 ++++
+>   include/linux/mm.h               | 2 ++
+>   mm/mmap.c                        | 6 ++++++
+>   19 files changed, 82 insertions(+)
 > 
-> diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-> index a795e030678c..1280f7012bc5 100644
-> --- a/kernel/sched/core.c
-> +++ b/kernel/sched/core.c
-> @@ -5949,8 +5949,18 @@ static noinline void __schedule_bug(struct task_struct *prev)
->  static inline void schedule_debug(struct task_struct *prev, bool preempt)
->  {
->  #ifdef CONFIG_SCHED_STACK_END_CHECK
-> -	if (task_stack_end_corrupted(prev))
-> +	if (task_stack_end_corrupted(prev)) {
-> +		unsigned long *ptr = end_of_stack(prev);
+
+>   
+> diff --git a/arch/powerpc/mm/book3s64/slice.c b/arch/powerpc/mm/book3s64/slice.c
+> index ef3ce37f1bb3..f0e2550af6d0 100644
+> --- a/arch/powerpc/mm/book3s64/slice.c
+> +++ b/arch/powerpc/mm/book3s64/slice.c
+> @@ -286,6 +286,10 @@ static unsigned long slice_find_area_bottomup(struct mm_struct *mm,
+>   		.length = len,
+>   		.align_mask = PAGE_MASK & ((1ul << pshift) - 1),
+>   	};
 > +
-> +		/* Dump 16 ulong words around the corruption point */
-> +#ifdef CONFIG_STACK_GROWSUP
-> +		ptr -= 15;
-> +#endif
-> +		print_hex_dump(KERN_ERR, "Corrupted Stack: ",
-> +			DUMP_PREFIX_ADDRESS, 16, 1, ptr, 16 * sizeof(*ptr), 1);
+> +	info.hint = addr;
+> +	info.mmap_flags = flags;
 > +
->  		panic("corrupted stack end detected inside scheduler\n");
-> +	}
->  
->  	if (task_scs_end_corrupted(prev))
->  		panic("corrupted shadow stack detected inside scheduler\n");
+>   	/*
+>   	 * Check till the allow max value for this mmap request
+>   	 */
+> @@ -331,6 +335,9 @@ static unsigned long slice_find_area_topdown(struct mm_struct *mm,
+>   	};
+>   	unsigned long min_addr = max(PAGE_SIZE, mmap_min_addr);
+>   
+> +	info.hint = addr;
+> +	info.mmap_flags = flags;
+> +
+>   	/*
+>   	 * If we are trying to allocate above DEFAULT_MAP_WINDOW
+>   	 * Add the different to the mmap_base.
 
-Have you gotten any feedback on this? Would be nice to get this merged as we're
-seeing crashes due to stack corruption on sparc from time to time and having the
-end of the stack dumped in such cases would make debugging here a bit easier.
+ppc64_defconfig:
 
-Thanks,
-Adrian
-
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+   CC      arch/powerpc/mm/book3s64/slice.o
+arch/powerpc/mm/book3s64/slice.c: In function 'slice_find_area_bottomup':
+arch/powerpc/mm/book3s64/slice.c:291:27: error: 'flags' undeclared 
+(first use in this function)
+   291 |         info.mmap_flags = flags;
+       |                           ^~~~~
+arch/powerpc/mm/book3s64/slice.c:291:27: note: each undeclared 
+identifier is reported only once for each function it appears in
+arch/powerpc/mm/book3s64/slice.c: In function 'slice_find_area_topdown':
+arch/powerpc/mm/book3s64/slice.c:339:27: error: 'flags' undeclared 
+(first use in this function)
+   339 |         info.mmap_flags = flags;
+       |                           ^~~~~
+make[5]: *** [scripts/Makefile.build:244: 
+arch/powerpc/mm/book3s64/slice.o] Error 1
