@@ -1,152 +1,116 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542791C768A
-	for <sparclinux@vger.kernel.org>; Tue,  3 Sep 2024 09:22:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 664611A0BD3
+	for <sparclinux@vger.kernel.org>; Tue,  3 Sep 2024 09:39:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725355351; cv=none; b=pADhZaR949N1JZWJC63PXAwdE+lf/6bc1GZeuayCxhUAvwy9xhQBr4xbEYXU+OBznJmOA3upomK5XsK/knyY96hhAIpTh2TKnja2KD4lrBxlIQ00rUhHTXQIQztwsntO14HsbW3EHH/vuODw/4Krfx0gRbAA9Mr0VUS3P9z9nFQ=
+	t=1725356356; cv=none; b=Vdt30xfgAh3jNO7b4FSsmUx0LuVCqa+I8MIlqwdb1vW4RWSNNvhemCS3P3ye4cR82ejcS1W5THtm95PMB6fkokZpnm1Kc7rGysDAoEiwyIl4V3lgLfAjhbTce5FXjlM+CROuQMzn3HDzAGGql9w7VVebYzzSGsm0juwEq2FNpro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725355351; c=relaxed/simple;
-	bh=DMF1dizToCJNRnn473u3BRPHzZIv9q/N1A0cNuiDumM=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=H3K2wMaeMD5/sOCq2GKVksL8NybWPYN/QzI7yrHjS8VuVlqug5STQAGQ1k0pvYFzvTKtoFNuDncHsKQX/bGy8IH1KVlT4Ch5eE4TgtHziwwyFQNv8Sh4HeCnpjGkxCtLv4nsTvpU2enwljh3ldlpzk7B0bjzG/BfUxPxa/0FCyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=JX3NdfP8; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1725356356; c=relaxed/simple;
+	bh=Roj+Ea7LEvenEhyYiuiVmXINZE+I65g3EEz0Bl+4ooc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nhVf4kPHHg9JAI2/XNSusnuJwawlNwaPcKt6DDX9lsF2fFIazG4NGEQVihtI4ybtp0UWFUFsCrPAc0+TyjryFtwve6U1YSeKPjTo/meuwrRnUxy6XvLRBpziy4sGEXQ3rrHmdM4cuW1coJUlnzeSLJbDGoy0lILM6W5pOgRbT3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Dzg0MTH8; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="JX3NdfP8"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=qnM2gK5NdGjBLF/5F/M4KRNE4zeSeN6pM63qk6yVXLs=; t=1725355347; x=1725960147; 
-	b=JX3NdfP8xWWxRqTMDEbA944qkXf/CZYB7A0v8mxFv82S7wVR4d2uxdxYvMMfMykooEnA1YVtwiV
-	636N48fDgE1FlEi/LH/dHzdZvXNneajmOe3kTeQm/yo74KoIj4waH1U0QIX5Uo9PNubaipgakbFbp
-	m2KsTNm8qTRmyqOZkNFXUdaogjHimfiHv0HVpbyOjFKzmDO/R70MW0uGPvYpesXn0yO/w6AQrBlcn
-	rvCkFgM1883A+ijZes8a82Me6f4wpT8bmaMOXBhX/MtRLBeRMX4per65xfIq4YtBnWNKBO1oDKWVJ
-	PTyrZGvcCcZ51WPIT0JICZ5JLGOmnx/shKjw==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1slPk1-000000011u6-1Nyk; Tue, 03 Sep 2024 11:22:25 +0200
-Received: from p5b13a591.dip0.t-ipconnect.de ([91.19.165.145] helo=[192.168.178.20])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1slPk1-00000003WdM-0WZ6; Tue, 03 Sep 2024 11:22:25 +0200
-Message-ID: <cdcc68cc5967f13b4755b9e18ef54ab4b8a560cd.camel@physik.fu-berlin.de>
-Subject: Re: Linux kernel  stability fixes for older SPARCs
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: =?ISO-8859-1?Q?Ren=E9?= Rebe <rene@exactcode.com>
-Cc: Ignacio Soriano Hernandez <bond6872@googlemail.com>, sparclinux
-	 <sparclinux@vger.kernel.org>, "<debian-sparc@lists.debian.org>"
-	 <debian-sparc@lists.debian.org>
-Date: Tue, 03 Sep 2024 11:22:24 +0200
-In-Reply-To: <E03776ED-377E-4FE5-86B9-A07306E4B4D4@exactcode.com>
-References: 
-	<caf9102c649a8c76e7eb444ab8c702e3a8da8a52.camel@physik.fu-berlin.de>
-	 <E03776ED-377E-4FE5-86B9-A07306E4B4D4@exactcode.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.4 
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Dzg0MTH8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1725356352;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ROekkmcoe+OX/H/SJ0CegmonvJxcYbn0m80zXzGYZLw=;
+	b=Dzg0MTH81X5MuDrt2OLTZjTsfh9S3IMwT3enhoGoSO6WkamznRckYPFV/zOLIYifHtDPca
+	1BhbhhsTEHZPay5jkVb1UzEAC5MMmXvBQ+sjnV4TH/VcTe8ZWyQmeNvCC9sazU0q3Vk4Zx
+	a1E8p1kuNnRNg9omv2MGxYn1oIYzP+I=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-214-WVa1NlJCO9W96Hu-PvKY9A-1; Tue, 03 Sep 2024 05:39:11 -0400
+X-MC-Unique: WVa1NlJCO9W96Hu-PvKY9A-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-42c80412dc1so21029035e9.2
+        for <sparclinux@vger.kernel.org>; Tue, 03 Sep 2024 02:39:11 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725356350; x=1725961150;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ROekkmcoe+OX/H/SJ0CegmonvJxcYbn0m80zXzGYZLw=;
+        b=syBTMF1zQAkA+BDOJo9PrLMMglJQLGDNfMUHsalEAXCTlZPadFwN0gGmfcS8DAaqUd
+         g7xeR1Keyj/9qqv5I570RZTykYfl7kmYcd/v1OB7fLhKt8tML9uNVFwAmjaIYRrh6WXk
+         4kwEry4ab3e7rEZQbOflwi0EqSC17iu9mc3zzhZU7sjyXXPiBzarH+qCoyDmucxMa6+3
+         M/9GvpYqQjrNKlrsBz0eOU3ZRUsB9u46HBQ23QE0EQmcPYdHkjs10jlHhW3tFiDdfy0I
+         0yANKVatqQEnLPM6QPRNrksuYhILTwimjwLhcKIDE1PEujDQMvUTBSXi51Skv1XB6FgG
+         7hsg==
+X-Forwarded-Encrypted: i=1; AJvYcCXigTUSihjEcel/noFZ04cglbAe7ajeegjiSbbUOynbbh3xX/5KiRaHyE8NZWcfNqhDu+O7iiFeWAjL@vger.kernel.org
+X-Gm-Message-State: AOJu0YyfNiZfjTpg7p+Tm6PGL7wStApfNIrmtMvt11Wr1XyITcLjbNi5
+	tBbmREjSYBs64mALELC751bAzBK0+M6tyzYEDC29aqQ7g76OWxJJL5ZybUfR4PpXfko/A52+RgU
+	YV48DbqNDIJmDIcGkrQnjqTh/dj6ZhXAGzlMaU557pPm0YUXLQoLRLDxLFZI=
+X-Received: by 2002:a05:600c:3d0d:b0:426:4f47:6037 with SMTP id 5b1f17b1804b1-42bdc6375abmr66533125e9.19.1725356350124;
+        Tue, 03 Sep 2024 02:39:10 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGmeosf/mJIf4OuBVOC1FXDQtaN47WobnVUFS/lrBzspPK+LAJFhvAiwYTR4QIKkjIzV+Hhfw==
+X-Received: by 2002:a05:600c:3d0d:b0:426:4f47:6037 with SMTP id 5b1f17b1804b1-42bdc6375abmr66532735e9.19.1725356349385;
+        Tue, 03 Sep 2024 02:39:09 -0700 (PDT)
+Received: from redhat.com ([2a0d:6fc7:441:95c6:9977:c577:f3d1:99e1])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-42bba57bb20sm142356975e9.4.2024.09.03.02.39.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Sep 2024 02:39:08 -0700 (PDT)
+Date: Tue, 3 Sep 2024 05:39:04 -0400
+From: "Michael S. Tsirkin" <mst@redhat.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: iommu@lists.linux.dev, Marek Szyprowski <m.szyprowski@samsung.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bingbu Cao <bingbu.cao@intel.com>, Jason Wang <jasowang@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-media@vger.kernel.org, virtualization@lists.linux.dev,
+	xen-devel@lists.xenproject.org
+Subject: Re: [PATCH 1/2] vdpa_sim: don't select DMA_OPS
+Message-ID: <20240903053857-mutt-send-email-mst@kernel.org>
+References: <20240828061104.1925127-1-hch@lst.de>
+ <20240828061104.1925127-2-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240828061104.1925127-2-hch@lst.de>
 
-Hello Rene,
+On Wed, Aug 28, 2024 at 09:10:28AM +0300, Christoph Hellwig wrote:
+> vdpa_sim has been fixed to not override the dma_map_ops in commit
+> 6c3d329e6486 ("vdpa_sim: get rid of DMA ops"), so don't select the
+> symbol and don't depend on HAS_DMA.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-On Tue, 2024-09-03 at 11:09 +0200, Ren=C3=A9 Rebe wrote:
-> > according to these posts [1][2] by Iggi, you figured out the stability =
-problem
->=20
-> No, we are just sometimes lucky it run that long stable. I was only made =
-aware
-> recently that sun4u was not 100% and my fasted UltraSPARC until some year=
- ago
-> was only a 360MHz Ultra5 until I was donated a Sun Blade 1000 recently. I=
- see
-> some MM corruption that I wanted to hunt next.
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 
-Hmm, ok. I was under the impression that you made some changes that made th=
-e kernel
-on Iggi's machine stable. Currently, the kernel crashes randomly on older S=
-PARCs
-such as reported by Iggi:
+> ---
+>  drivers/vdpa/Kconfig | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/vdpa/Kconfig b/drivers/vdpa/Kconfig
+> index 5265d09fc1c409..b08de3b7706109 100644
+> --- a/drivers/vdpa/Kconfig
+> +++ b/drivers/vdpa/Kconfig
+> @@ -11,8 +11,7 @@ if VDPA
+>  
+>  config VDPA_SIM
+>  	tristate "vDPA device simulator core"
+> -	depends on RUNTIME_TESTING_MENU && HAS_DMA
+> -	select DMA_OPS
+> +	depends on RUNTIME_TESTING_MENU
+>  	select VHOST_RING
+>  	select IOMMU_IOVA
+>  	help
+> -- 
+> 2.43.0
 
-> https://x.com/Iggi76123640/status/1827658841581896152
-
-> > with newer kernels on older SPARC machines. There has been a regression=
- on older
-> > SPARCs since around kernel 4.19.x which I haven't gotten around to bise=
-cting yet.
->=20
-> Happy to bi-sect. I guess you mean random memory corruption I see or anyt=
-hing
-> else?
-
-Not sure what the underlying issue is, but the kernel just crashes complete=
-ly.
-
-> If you have issues to bi-sect just let us know for any arch. Given T2=E2=
-=80=99s cross-compile
-> support and I have most hardware in my museum now, I can usually bisect i=
-ssues
-> within a day or two.
-
-I don't have issues with bisecting, I'm just rather time-constrained at the=
- moment, so
-I'm always happy when someone else can step in and help. Would be great to =
-get this issue
-fixed upstream.
-
-> > If you've found and fixed the bug in question, it would be great if you=
- could share
-> > your fix with the community and maybe whip up a kernel patch to fix the=
- bug upstream.
->=20
->=20
-> Of course - all patches are always nicely sorted in our public and nicely=
- readable
-> SVN tree in any case.
->=20
-> 	https://t2linux.com
-
-Is there a web view available? I'm not really a big fan of SVN, to be hones=
-t.
-
-> > Newer SPARCs are not affected by this bug, although there are other iss=
-ues.
->=20
-> You mean sun4v? I found a cheap T4-1 some month ago, and T2/Linux appears
-> to run stable on that. Any list of issues w/ sun4v I should be aware of?
-
-Linux runs mostly stable on sun4v, but there are filesystem corruption issu=
-es when you
-run Linux inside an LDOM on Solaris 11.3 and 11.4 even with the latest SRU =
-of Solaris.
-
-These happen rarely, but they do occur and they are quite annoying as they =
-mandate rebooting
-the LDOM as the root filesystem is mounted read-only and the filesystems as=
- errors afterwards.
-
-It seems to be a bug in the LDOM vdisk driver (drivers/block/sunvdc.c).
-
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
