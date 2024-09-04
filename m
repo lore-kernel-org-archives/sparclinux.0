@@ -1,57 +1,57 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03FE481723
-	for <sparclinux@vger.kernel.org>; Wed,  4 Sep 2024 18:51:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B66421E00BD
+	for <sparclinux@vger.kernel.org>; Wed,  4 Sep 2024 18:53:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725475921; cv=none; b=mjRESYjxOa5jPwcYezaSMtwV+tQGLCOPmCfcjFH4c9ICyPLL3XB5NkxcntU6+F+9PB8n1i3hzAf1LkMVN3+cIUsT6agwGM4aVxNSzlUVkyUCNVs3CYcgyPM5NJSWOYI5nFhoLyXDd6UiC8iPx6FesQpB36y1O/l8m9Mz/Bl+uZo=
+	t=1725476032; cv=none; b=CffmkyqFcWkMkCGMysrNGHN4zzRFFzpJofIixkxrvAooXNTuVXG8FZKxMW670le/NUeXh7UuKC3k96NB35h+P0x4j87qdzuc3p0jdXyBrcAtXeVrZ+ShaLYADGY+jcjs6b0Z6M1nHZvnPqGD7rlpGamYO1QM1MLDPCpCz+KW2Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725475921; c=relaxed/simple;
-	bh=eoj+VLOqGJa6LbdWtGkk6SXvNIMddi3dJ20lVqlAgkQ=;
+	s=arc-20240116; t=1725476032; c=relaxed/simple;
+	bh=s92rW/1gEQr3xvJKMRwsWt6P8BZ8Funj1rbavwH4oWQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s497hbLrPHx9FFp7G5UJvliXZcM11YZgkeziHjgExljtqE5tiMEjvTE7GQ/mycVuHYWfH4VnZE7NxLKbvuam0dduSawNj8ODjCJqlcVlXTQWQUpzxlFeZYSKCraJpeuVZMe90+rjWBKNR/MnBNW5E17Xq+EJluT2ii21SPPBcFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=IzEmcNyK; arc=none smtp.client-ip=209.85.216.47
+	 Content-Type:Content-Disposition:In-Reply-To; b=avkeqYgUuil8qISf3j4fTUQhp5pZhfyIgGDhDWXVmEhUumctocU3iFr6zPGtyMWIHFwIDr1PraSnq3qa4t3Nmz5TP4sZS72HQBh4Lhn70SF4hooXzNMQmMIjkvaZQm/DoWJ2VOiIgRnNbPENjhFzoAgxoWCTsatpiiFyf9aQ5bA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=I1V7lquB; arc=none smtp.client-ip=209.85.215.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rivosinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="IzEmcNyK"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-2d87196ec9fso3898933a91.1
-        for <sparclinux@vger.kernel.org>; Wed, 04 Sep 2024 11:51:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="I1V7lquB"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-7c6aee8e8daso4958354a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 04 Sep 2024 11:53:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1725475918; x=1726080718; darn=vger.kernel.org;
+        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1725476030; x=1726080830; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=O6ZVaLfTmncaiFC3xCMQJd5Si2uYtr9Mg2hPai6p2Zs=;
-        b=IzEmcNyK1v9vlTdaK4RPuV6wC1TlHPRAFRKHo/3OXzA3xD4sTLudbsYe5ZmMsoeKAa
-         HqYz7zKizlvCocbvqVirQtVcJHjhqdkHX5jbjyi7mEjPNmTw2CtZAChH9tsIGnr31W34
-         mUb+81c1cyLJMcCyiYr54F1PtE68RrLS+7b+Moblb2axPGonufIgAiJ7I+m/LCSV5g4g
-         G7XEuW8Wa3xnHZcXkVfcY/tzbCZj0sQRsuBz2NUn+Jfc/0+xojqv3DPOXe2lOrKuwTaO
-         9/caw2ck37/3nFwELF/atx00pKlQnXm75R3f3//3PPQsyHsNRB8XTKadJ2DHafShOzJg
-         DAtg==
+        bh=s92rW/1gEQr3xvJKMRwsWt6P8BZ8Funj1rbavwH4oWQ=;
+        b=I1V7lquBIV1tuMbzWo1Rmr78uwgd64Cz90/LN5ociO6ZEW/Wqw8V1kSNDjHwc1SQrl
+         gBaI66alz16WK+pvTbrtual3WbJtpGuczxNRYdc1gLcuOrMZ4usss1N5f7NdK8JHnD2p
+         F0XUwhgMpxkeLvZRW8Uzgt0KvOaFvkDxTAi68bTiJhkqBH+yK8paVuDHYd72QvNHI6kY
+         nwO80rF+Oxe0S7e2FzsxLeUgvXejLVpZZJVNZGqiQ+eQ9RCbCRxo2YOrTrYuADPwYNeo
+         UMBDEP1bCuHsTMQKOvPWkizZfCYV9cQhfOEuy7O2CfqqeC+9S4/t4PFaZ6WN6eBloGGM
+         W2FA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725475918; x=1726080718;
+        d=1e100.net; s=20230601; t=1725476030; x=1726080830;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=O6ZVaLfTmncaiFC3xCMQJd5Si2uYtr9Mg2hPai6p2Zs=;
-        b=UQ763193uBHfb7AlFd6bGTH+ieEjnvJUJtUDXkdYlVWs6trG0toR3TtmZy7w5msCjM
-         eBZ9I4ndRG4404KhkD9m3PcW/uNhVJIfb8w+Q1Qj2I786ToAtPjjjbSGuErVdXYE/nBQ
-         jvq9pcyJQpfGjYlTNCeBEbNo+aaw2wGgJyUOsH0sK8s5fapIs849J/lR2uHzubozSgaP
-         SEWEmj0zhuPaboW6jetRKTerUWlOZply/JSo0uFoWCJq1UbVo2xsb09B0f+9+JeRqSfz
-         BzTL98MnNQixmXBgaXoKg15STZQifhiPKei2mK5EKR4o87v7Z9Itm41wC2ys2RzjmEup
-         adkQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVBmC6bUNANJzf3rkMrxkFezl1QZ2GLRIlefenl9FTvtC3hfnrZy8YaEGrTEm3B4iZbvv7C7SXbL0sm@vger.kernel.org
-X-Gm-Message-State: AOJu0YyzS6xVlIADoPUzSLphfezVzk/gr2BBi/mCFn2IZ41jKq+TGBkE
-	8ANi0xzdqAH/7h/hj6sS+yU8zQ2VhqhL7o+HUH8Ur/vRMX3ftJZg8Bf6HYxOpdU=
-X-Google-Smtp-Source: AGHT+IGxM6h9S0OM8htpvDl1qRKbi0apkGb/RUsvutqrVBDacyDPb7hJbcL2mjRY0/SNPdo0kubr6w==
-X-Received: by 2002:a17:90b:3903:b0:2d8:8430:8a91 with SMTP id 98e67ed59e1d1-2d89728b29emr15224775a91.10.1725475918042;
-        Wed, 04 Sep 2024 11:51:58 -0700 (PDT)
+        bh=s92rW/1gEQr3xvJKMRwsWt6P8BZ8Funj1rbavwH4oWQ=;
+        b=qAAZuRT1AIVcoFvgxDUD9jjy5bBNis831XWdqo4G8pJSZjsxC57SqKDNbYCZL9W/c1
+         tr4Py9QSUFq259MCFOXe983exuh7zpIICqia2oFKnd9PHpDigQnQc2n9aSzK/Fe1qs0a
+         GW4hRHZU/GkWMMiiT9qGWfWG+IR3smHdTEJVfpYQM9b+fB/Qa6n4e0ay/Bw8B0xHkvGq
+         Nv2bcpmefA7JVYvAAIWJeWOXWlzo/wkfK98rM0OQ4/pzXAW83KM+UjV8VyqIbA7/i/yH
+         YwbrKsO/GXRBK17d8evHhOiM0C0Qfs8HHHEaqj/718B379DXEAXLqATnN/bpWZv/3DBI
+         kJKA==
+X-Forwarded-Encrypted: i=1; AJvYcCVBCJ3m1NdZKbpDvft+0/e32kSGjJ3Jj3BTz7SODlpmxi6dv0nQyfYbQN1zrT5qYGXk6+mQpfyIahcM@vger.kernel.org
+X-Gm-Message-State: AOJu0YyoIXEvLXjmJtn6LBEc3RnoGtnJ0lBAMAXT4TNWcQQKAwm3S+zK
+	RBLELw9f1gEvQASOszLvRnnxW2S5t6/YuEyOX45/FktY6A3OYjZve9Lb7yzEFN8=
+X-Google-Smtp-Source: AGHT+IE2IsoC0LRmiLcI1CkvV1DU3vw4DUJdyqp6MID1n1cX+56uyYB7jBo1wGGq/wkl04oTY4Plng==
+X-Received: by 2002:a05:6a21:318b:b0:1ce:cbcf:aaa9 with SMTP id adf61e73a8af0-1cecdfdea62mr20770394637.36.1725476029832;
+        Wed, 04 Sep 2024 11:53:49 -0700 (PDT)
 Received: from debug.ba.rivosinc.com ([64.71.180.162])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2d8e1ae1b3fsm6674555a91.33.2024.09.04.11.51.55
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71778522979sm1947597b3a.30.2024.09.04.11.53.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Sep 2024 11:51:57 -0700 (PDT)
-Date: Wed, 4 Sep 2024 11:51:53 -0700
+        Wed, 04 Sep 2024 11:53:49 -0700 (PDT)
+Date: Wed, 4 Sep 2024 11:53:45 -0700
 From: Deepak Gupta <debug@rivosinc.com>
 To: Mark Brown <broonie@kernel.org>
 Cc: Richard Henderson <richard.henderson@linaro.org>,
@@ -92,12 +92,11 @@ Cc: Richard Henderson <richard.henderson@linaro.org>,
 	loongarch@lists.linux.dev, linux-parisc@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
 	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-mm@kvack.org, Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: Re: [PATCH 3/3] mm: Care about shadow stack guard gap when getting
- an unmapped area
-Message-ID: <ZtisSerxbnDaWr5l@debug.ba.rivosinc.com>
+	linux-mm@kvack.org
+Subject: Re: [PATCH 2/3] mm: Pass vm_flags to generic_get_unmapped_area()
+Message-ID: <ZtisuRySfREHjnN/@debug.ba.rivosinc.com>
 References: <20240902-mm-generic-shadow-stack-guard-v1-0-9acda38b3dd3@kernel.org>
- <20240902-mm-generic-shadow-stack-guard-v1-3-9acda38b3dd3@kernel.org>
+ <20240902-mm-generic-shadow-stack-guard-v1-2-9acda38b3dd3@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -106,74 +105,15 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <20240902-mm-generic-shadow-stack-guard-v1-3-9acda38b3dd3@kernel.org>
+In-Reply-To: <20240902-mm-generic-shadow-stack-guard-v1-2-9acda38b3dd3@kernel.org>
 
-On Mon, Sep 02, 2024 at 08:08:15PM +0100, Mark Brown wrote:
->As covered in the commit log for c44357c2e76b ("x86/mm: care about shadow
->stack guard gap during placement") our current mmap() implementation does
->not take care to ensure that a new mapping isn't placed with existing
->mappings inside it's own guard gaps. This is particularly important for
->shadow stacks since if two shadow stacks end up getting placed adjacent to
->each other then they can overflow into each other which weakens the
->protection offered by the feature.
+On Mon, Sep 02, 2024 at 08:08:14PM +0100, Mark Brown wrote:
+>In preparation for using vm_flags to ensure guard pages for shadow stacks
+>supply them as an argument to generic_get_unmapped_area(). The only user
+>outside of the core code is the PowerPC book3s64 implementation which is
+>trivially wrapping the generic implementation in the radix_enabled() case.
 >
->On x86 there is a custom arch_get_unmapped_area() which was updated by the
->above commit to cover this case by specifying a start_gap for allocations
->with VM_SHADOW_STACK. Both arm64 and RISC-V have equivalent features and
->use the generic implementation of arch_get_unmapped_area() so let's make
->the equivalent change there so they also don't get shadow stack pages
->placed without guard pages.
->
->Architectures which do not have this feature will define VM_SHADOW_STACK
->to VM_NONE and hence be unaffected.
->
->Suggested-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 >Signed-off-by: Mark Brown <broonie@kernel.org>
->---
-> mm/mmap.c | 10 ++++++++++
-> 1 file changed, 10 insertions(+)
->
->diff --git a/mm/mmap.c b/mm/mmap.c
->index b06ba847c96e..902c482b6084 100644
->--- a/mm/mmap.c
->+++ b/mm/mmap.c
->@@ -1753,6 +1753,14 @@ static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
-> 	return gap;
-> }
->
->+static inline unsigned long stack_guard_placement(vm_flags_t vm_flags)
->+{
->+	if (vm_flags & VM_SHADOW_STACK)
->+		return PAGE_SIZE;
->+
->+	return 0;
->+}
->+
-> /*
->  * Search for an unmapped address range.
->  *
->@@ -1814,6 +1822,7 @@ generic_get_unmapped_area(struct file *filp, unsigned long addr,
-> 	info.length = len;
-> 	info.low_limit = mm->mmap_base;
-> 	info.high_limit = mmap_end;
->+	info.start_gap = stack_guard_placement(vm_flags);
-> 	return vm_unmapped_area(&info);
-> }
->
->@@ -1863,6 +1872,7 @@ generic_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
-> 	info.length = len;
-> 	info.low_limit = PAGE_SIZE;
-> 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
->+	info.start_gap = stack_guard_placement(vm_flags);
-> 	addr = vm_unmapped_area(&info);
->
-> 	/*
->
-
-lgtm
 
 Reviewed-by: Deepak Gupta <debug@rivosinc.com>
 
->-- 
->2.39.2
->
