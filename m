@@ -1,130 +1,175 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow4-smtp.messagingengine.com (flow4-smtp.messagingengine.com [103.168.172.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA02D145330
-	for <sparclinux@vger.kernel.org>; Wed,  4 Sep 2024 19:07:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45BD21922C7;
+	Thu,  5 Sep 2024 06:48:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725476839; cv=none; b=hsRcWcCpURZLQNqlqJrHn27qr2K+FnrL8ljVsNtkvrBVfMO+lZgrPPfY7OwbYu3Lst5eU1k2xZFSUpO7uBM4IJJ6J8RKJN0rvm+sf/ueLLzTwn2314YErd8JvEY5EXEDgEQOF8QIy6hN73XAj9h/FhlhKeV6HbEUvCyem8OXNsw=
+	t=1725518896; cv=none; b=q1OsBcaLeQ4kkPvIUuDeIJbw9aBByZXeU6u3RykqSx/ddxPOCMdvYViEmpgtj/OQqKs5P1Ln7A0zYejx8PVBNrMamdU9p7pH+qK6R0/J4RHpwZbI76VEhjpkfKFh9zltL2AU/1bidT9GxIBEzqt5/gk7gULKaWTp/TqQcdpA5QQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725476839; c=relaxed/simple;
-	bh=hLtrV9fo2ENFsppI3EM5//2a1v6xLdR6UciGmLp3E0Q=;
+	s=arc-20240116; t=1725518896; c=relaxed/simple;
+	bh=xKGgHTaV5Qj/7OwfJTbkb+FrlLm6jv9l6WZEWAUNA5Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nAjn+6z914rrce6MLO3Xq+T91w5t54fccLBHV/Y5CAD/A9KBTQAe2vnZoYb695i1PSfFF4Rdvh3MoBUsqRU5skF+Hz9ueb2FIk9GQVFn+HgDqB4lxAd+t+5Urj/245FUqNurrc0HxWPRTth71EBoonpIlVsQ1h0WNgZnTidXlu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=O83/Gbf8; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rivosinc.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=lAtt0A/cUyZoM4Ep5YpYYKv2JlGdV35DxA3oitjM7yiNCmyUgCRrlYZLek+l2V7MydwCCTivc6KZbPwPcqc/6jlyUrFf28jGVGfPh+ceHF0y2PGv/VRAE6vxtqqvPC/VJtmt0OTcHeMPS9qeRXVD7+1vsVlkyxEcFcfp64C1pks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name; spf=pass smtp.mailfrom=shutemov.name; dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b=Q8crL5EL; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=OU81mlQL; arc=none smtp.client-ip=103.168.172.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shutemov.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="O83/Gbf8"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-2da55ea8163so1940142a91.1
-        for <sparclinux@vger.kernel.org>; Wed, 04 Sep 2024 12:07:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1725476837; x=1726081637; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=o2U7wgEbLS4i4a8ingcWCBDQrhNmwXrz+ffgx64j+qE=;
-        b=O83/Gbf8QHytDjtKBC2VP1NHGE69K97QzsnnPLhood4y27NcYWvbRpAYJZHt9lWN5L
-         piIbJArzYN5Qf7SPBI49vUE2VjW4GYvYSSeWevifsRIo2JwxWESaOWjUw9KNQUlcAOjW
-         M57C0o6ln8DywnEEETUAFokbAoSyohPtRCDiZcplIwBMyuz2tior5wk9DBWcDqSCynVu
-         jAvaHC4YqJY0ofPBytPoIllLrn/HiP7br0fsxdsL6Iq9qfvJZ6jQmTfrZAaTKNkj8iqz
-         t2z+vruq/jHHUU7ujoGLdO82BtEDxwSzFDLuOmaaNt8DQwT2aKkt8z2EJBcsRPlrEHcB
-         kXQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725476837; x=1726081637;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=o2U7wgEbLS4i4a8ingcWCBDQrhNmwXrz+ffgx64j+qE=;
-        b=bPnA3/SbUmUDoCtqMV3wOljWPt7e0A8UR7OrTaLUR4PDuZliFZHsO5uKcuG+O9lyZw
-         MzknfAI3ZLfDdM1oFctYWARCnp6gj7jLF4yPWVnI6bKy8hH5mEkqTs6cGavQgWrjexkv
-         POhcVQ/KO2VCzudEvGQlQdAN0k5bStE93w90+8tqi/byDgcsERTleL97H4nlar5iUoZZ
-         wriOkK4MNXfzrIdwGvYvXBEneqiRZxMq1MQdj+qO4B2Fvj3GW9W0+XnILM2sBCS5qU49
-         oCeQp9HAgZvT2eZt1VmdOXX+B4fpLid4GN3ZwUGTj24SGEgXw40uhuhSgINAVPHEgryB
-         oeJA==
-X-Forwarded-Encrypted: i=1; AJvYcCW7XmHEI4nQcWZO9YO+zp7UzMAzRNwNlkR66JN4VNYRRG/qJd6eg9sU8jeK29klqOI2hYak1B6XvtVe@vger.kernel.org
-X-Gm-Message-State: AOJu0YyUE7jvrVd80qj+gKtQXFrJ9E8acV5GdVk0w5K2mwr/e41IcAtO
-	yCSQ9g38eKLYTDO6pL+yjuwbqTzoNJdMcjR04Wa8mk+TDN9a+f8T6jByNOpBcR8=
-X-Google-Smtp-Source: AGHT+IGRXMFw8eODDeHuSZGixob1QmbWy894YR3dac/q8kTYt2afjYPzXJiDq5qdDnRm4AHLgT4d4Q==
-X-Received: by 2002:a17:90b:300e:b0:2d8:27c3:87d7 with SMTP id 98e67ed59e1d1-2d893284ebdmr13545892a91.8.1725476836620;
-        Wed, 04 Sep 2024 12:07:16 -0700 (PDT)
-Received: from debug.ba.rivosinc.com ([64.71.180.162])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2da53740084sm4858056a91.32.2024.09.04.12.07.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Sep 2024 12:07:16 -0700 (PDT)
-Date: Wed, 4 Sep 2024 12:07:12 -0700
-From: Deepak Gupta <debug@rivosinc.com>
-To: Mark Brown <broonie@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
-	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Naveen N Rao <naveen@kernel.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
-	linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org, linux-csky@vger.kernel.org,
-	loongarch@lists.linux.dev, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-mm@kvack.org, Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: Re: [PATCH 3/3] mm: Care about shadow stack guard gap when getting
- an unmapped area
-Message-ID: <Ztiv4NtsIkKnyiLO@debug.ba.rivosinc.com>
-References: <20240902-mm-generic-shadow-stack-guard-v1-0-9acda38b3dd3@kernel.org>
- <20240902-mm-generic-shadow-stack-guard-v1-3-9acda38b3dd3@kernel.org>
- <is6ewj3bhtqy3zadj6lbdv6maupx4kmduvhny66ntifkji6hoj@xmhcf5jt4o66>
- <dbaf5653-df46-4e17-bce1-aec7fb168197@sirena.org.uk>
+	dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b="Q8crL5EL";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="OU81mlQL"
+Received: from phl-compute-07.internal (phl-compute-07.phl.internal [10.202.2.47])
+	by mailflow.phl.internal (Postfix) with ESMTP id 2A50C200312;
+	Thu,  5 Sep 2024 02:48:13 -0400 (EDT)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-07.internal (MEProxy); Thu, 05 Sep 2024 02:48:13 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
+	 h=cc:cc:content-type:content-type:date:date:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm2; t=1725518893; x=
+	1725526093; bh=Mf2wLWEzbgEDGO9xDiUM7qVc6lrNS1Frm04RYEBk1sI=; b=Q
+	8crL5ELpizMZj53aZEPPP8KupjNzGuUtN+S5Eql/8fjeevh2FEI8C/KRzBgjisY8
+	ios3Pgjc7SkHZNFrwTBdbN9vLV0hQOPZ0eGAbRLWcSFDhE/k/dFK/6686hm06Qc7
+	j+d1+irVVZvEWixrzNwCK0W0NFAOLfexqwJSuWjLycECHToeCwRE/1nGc1l53s4y
+	bTxHKlADHmHXtzGUzzaiGYjtQhWPUZPI1/USh3xl6u1Sv+0nc2TPrbw6UIkv/TH5
+	o0fe/l4uJKU0W7HYU3dmXPK5TN/niHwvbSVEfHyU6/SyMLvAiqJybTS8Vdvh4PKb
+	H+eYihXIcEOzrl4xD0b/g==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm1; t=1725518893; x=1725526093; bh=Mf2wLWEzbgEDGO9xDiUM7qVc6lrN
+	S1Frm04RYEBk1sI=; b=OU81mlQLPJz3hQL5seRxaoll2jedmTxaU/rc98Aelm4E
+	LAxjKKoyXT3sGMCDk5gVUo9sxMNF10KBdu8zNR469iNU+zb+tCPxEiRvZRViIIGY
+	4fRFF6UlbxvVpD5zNmimnvrmkdHBLjbsEEMeFENIAWyU688aW4sL4S7nK33Ed+/W
+	TyoXbq/qhCQqfRaAUgcJL4Qlr9Fj3Kdw1fErx8TN92mDg+L0IfsQjqkdjZyqKyoX
+	xxZY1zHYiN3d8+EpCTErHeTz8LagFsN6v0fROg/TqD03KtfFlVXL4OQSdmSkjWEs
+	7+FNGRNxSZmK+xVN+gK5oYOL0OpwypHDNQIa583pLA==
+X-ME-Sender: <xms:KVTZZtmPE-thdTnuY_8p_VYbScCFsLPUpHQE1sSDWOUGpPhis5okIQ>
+    <xme:KVTZZo1Rk7zksy2dploGdpr-AyeT9WYUGP1TsK2AxLpGyZ512Gxr45tn13iRPanwo
+    jUygEc69YU63tyiwpI>
+X-ME-Received: <xmr:KVTZZjq_WhH3u82jxZ84wXaPI17hSYcHUbnROaZ7wU0ggfeJ3nMXkfr_MNvXqfbD0Tby-A>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrudehkedguddugecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdp
+    uffrtefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivg
+    hnthhsucdlqddutddtmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstddttddv
+    necuhfhrohhmpedfmfhirhhilhhlucetrdcuufhhuhhtvghmohhvfdcuoehkihhrihhllh
+    esshhhuhhtvghmohhvrdhnrghmvgeqnecuggftrfgrthhtvghrnhepffdvveeuteduhffh
+    ffevlefhteefveevkeelveejudduvedvuddvleetudevhfeknecuvehluhhsthgvrhfuih
+    iivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepkhhirhhilhhlsehshhhuthgvmhho
+    vhdrnhgrmhgvpdhnsggprhgtphhtthhopeehjedpmhhouggvpehsmhhtphhouhhtpdhrtg
+    hpthhtoheptghhrghrlhhivgesrhhivhhoshhinhgtrdgtohhmpdhrtghpthhtoheprghr
+    nhgusegrrhhnuggsrdguvgdprhgtphhtthhopehrihgthhgrrhgurdhhvghnuggvrhhsoh
+    hnsehlihhnrghrohdrohhrghdprhgtphhtthhopehinhhksehjuhhrrghsshhitgdrphgr
+    rhhkrdhmshhurdhruhdprhgtphhtthhopehmrghtthhsthekkeesghhmrghilhdrtghomh
+    dprhgtphhtthhopehvghhuphhtrgeskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhi
+    nhhugiesrghrmhhlihhnuhigrdhorhhgrdhukhdprhgtphhtthhopehguhhorhgvnheskh
+    gvrhhnvghlrdhorhhgpdhrtghpthhtoheptghhvghnhhhurggtrghisehkvghrnhgvlhdr
+    ohhrgh
+X-ME-Proxy: <xmx:KVTZZtnzzMVFQMQuTZtC752mZiRRbs6t6YcMoPbuWvOsshNuIpN2ZA>
+    <xmx:KVTZZr2NqJHS-K1m6CZXX9gA76bE8gj6MA6NfpzKnkdoePcXVRrFGA>
+    <xmx:KVTZZsvDPoUpWv-9vcqAuPt1ffOgwMCdy7jO9etPU_H5-IK1rvsyPg>
+    <xmx:KVTZZvVQYxvPemikvBptMQf8FFNrgJR1-TyZmjrtc_-NhbXBtGvm-w>
+    <xmx:LVTZZrXmQ5mCcW2zvtjGPHJiDs11N1_ZXK9wQrKvm9JMfjCFohmINZ7A>
+Feedback-ID: ie3994620:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 5 Sep 2024 02:47:52 -0400 (EDT)
+Date: Thu, 5 Sep 2024 09:47:47 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+To: Charlie Jenkins <charlie@rivosinc.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+ 	Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+ 	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+ 	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+ Huacai Chen <chenhuacai@kernel.org>, 	WANG Xuerui <kernel@xen0n.name>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ 	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, 	Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>,
+ 	Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>,
+ 	Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ 	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ 	Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ 	Yoshinori Sato <ysato@users.sourceforge.jp>,
+ Rich Felker <dalias@libc.org>,
+ 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "David S. Miller" <davem@davemloft.net>,
+ 	Andreas Larsson <andreas@gaisler.com>,
+ Thomas Gleixner <tglx@linutronix.de>, 	Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>,
+ 	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, 	Andy Lutomirski <luto@kernel.org>,
+ Peter Zijlstra <peterz@infradead.org>,
+ 	Muchun Song <muchun.song@linux.dev>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ 	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>,
+ 	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Shuah Khan <shuah@kernel.org>, linux-arch@vger.kernel.org,
+ 	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org,
+ 	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ loongarch@lists.linux.dev, 	linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ 	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, 	linux-mm@kvack.org,
+ linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH RFC v2 0/4] mm: Introduce MAP_BELOW_HINT
+Message-ID: <yu7um2tcxg2apoz372rmzpkrfgbb42ndvabvrsp4usb2e3bkrf@huaucjsp5vlj>
+References: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <dbaf5653-df46-4e17-bce1-aec7fb168197@sirena.org.uk>
+In-Reply-To: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
 
-On Tue, Sep 03, 2024 at 08:57:20PM +0100, Mark Brown wrote:
->On Tue, Sep 03, 2024 at 03:41:49PM -0400, Liam R. Howlett wrote:
->> * Mark Brown <broonie@kernel.org> [240902 15:09]:
->
->> > +static inline unsigned long stack_guard_placement(vm_flags_t vm_flags)
->> > +{
->> > +	if (vm_flags & VM_SHADOW_STACK)
->> > +		return PAGE_SIZE;
->
->> Is PAGE_SIZE is enough?
->
->It's what x86 currently uses so it'll be no worse off if it gets moved
->to the generic code (there's a comment in the arch code explaing what's
->needed there) and it's enough for arm64, we only do single record
->pushes/pops or (optionally) writes to unconstrained addresses.
+On Thu, Aug 29, 2024 at 12:15:57AM -0700, Charlie Jenkins wrote:
+> Some applications rely on placing data in free bits addresses allocated
+> by mmap. Various architectures (eg. x86, arm64, powerpc) restrict the
+> address returned by mmap to be less than the 48-bit address space,
+> unless the hint address uses more than 47 bits (the 48th bit is reserved
+> for the kernel address space).
+> 
+> The riscv architecture needs a way to similarly restrict the virtual
+> address space. On the riscv port of OpenJDK an error is thrown if
+> attempted to run on the 57-bit address space, called sv57 [1].  golang
+> has a comment that sv57 support is not complete, but there are some
+> workarounds to get it to mostly work [2].
+> 
+> These applications work on x86 because x86 does an implicit 47-bit
+> restriction of mmap() address that contain a hint address that is less
+> than 48 bits.
+> 
+> Instead of implicitly restricting the address space on riscv (or any
+> current/future architecture), a flag would allow users to opt-in to this
+> behavior rather than opt-out as is done on other architectures. This is
+> desirable because it is a small class of applications that do pointer
+> masking.
 
-It's enough for RISC-V too.
+This argument looks broken to me.
 
+The "small class of applications" is going to be broken unless they got
+patched to use your new mmap() flag. You are asking for bugs.
+
+Consider the case when you write, compile and validate a piece of software
+on machine that has <=47bit VA. The binary got shipped to customers.
+Later, customer gets a new shiny machine that supports larger address
+space and your previously working software is broken. Such binaries might
+exist today.
+
+It is bad idea to use >47bit VA by default. Most of software got tested on
+x86 with 47bit VA.
+
+We can consider more options to opt-in into wider address space like
+personality or prctl() handle. But opt-out is no-go from what I see.
+
+-- 
+  Kiryl Shutsemau / Kirill A. Shutemov
