@@ -1,135 +1,185 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from fhigh3-smtp.messagingengine.com (fhigh3-smtp.messagingengine.com [103.168.172.154])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C97B21CB31D;
-	Fri,  6 Sep 2024 12:09:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B0E114C5AE;
+	Sun,  8 Sep 2024 11:26:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.154
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725624580; cv=none; b=Kvo5mH0cMGizng3TfmMapE1RH2+f7RGRKPW9nUBZkQWE8M3YcpwtFgCf9+dUwojiyvXCQoDj3obdZ0Dab3qy81AfMQEea9nNxK4BohC/W7OYSVgm2szhCiAWmgfvXefwqoGFC0hLcZI/ND4HgxfSd/nnkzK2Pc7uwgHRvlXCCXo=
+	t=1725794794; cv=none; b=WLT3NBmDpcWc8wBAQCGpyeAQS8PMCy4fGTLalsiD5tmcSnfzdBdRHQyvqR1CiWrMnF6fZb09N+KYZeJxQRkIAnE4SQdjI0vA5JpOdRdB3GxQgbSD5kuF/8uRKKq4r8g1MHOnk0F+VbQjzYJyj0DkQFPsDdjfSXDH9fkDafQmUUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725624580; c=relaxed/simple;
-	bh=5p+4Bl9mqbxouOtptcDfPPmou1wvxYkLSmiClXxVh3c=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=lCfacO7Fbo2HvNMsbrZxMBZWDZhhnBiheSzlRJWAAEa46uqs77XTsy7xMSm0oFnMUa4ylVkrCHsLiLwUoLg5wZh8HDmydi8y59VvYAILgNJzWN7fDS19gpJjdp9SwL7jgzHFbZrwfPa7ZoHSI7SynO37ElmqfGTMu/P2iLiJxDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SrkJxtGM; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1725794794; c=relaxed/simple;
+	bh=s22LiCvHg5GCcJ/0gjfyATBl5wTKkAzg5feHIKI+9mg=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=aYcxkp484MmM+FrfRhD5VqerfdH0vkf5usJzw9Ghkfl4K39nUeCD69aafatkYKxxoX0GF9+PfHeBSmsv7DyVf5SfxfjGmFZ8kqhvwHMb4IYPV86KsFqp/Z9O6HSxvWhcCllcb1GxDdYIG4+LTUYbentBtcLlj05RkPYMWq0BieU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com; spf=pass smtp.mailfrom=flygoat.com; dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b=oHOi2tzi; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=fg90YUwB; arc=none smtp.client-ip=103.168.172.154
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flygoat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SrkJxtGM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1725624578; x=1757160578;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=5p+4Bl9mqbxouOtptcDfPPmou1wvxYkLSmiClXxVh3c=;
-  b=SrkJxtGMHPJiX/RwVQt1DklGBHaJAIo8/yuvjl6J9smHuUb+FFRLDV+m
-   SieNzKCj2vScjQ2+aQJtyB46He7Vb0VYUzA17/JX54ogQj4/aCF5KwhMa
-   63+n4cquFujAImLUp7ctxLVyLlTrNYmqA+rhPlRXBa0q2Zamr17WDDEwO
-   jtHDCmmZawa6vyyKfeXOFaZnqJj2uv0d4bUd9hbjhKhWc+3r9Qrho8IbW
-   G7+Tn2mRfqqgYZTzvGozgb/usnPAYpFkjxMwWsXD/MN3ypPjY5rFg/fMM
-   GvqcCIzZ8HJdvudLj+rGwEG/HxxoI+c5f2Md3cOFCke+coagG1mhncYYf
-   g==;
-X-CSE-ConnectionGUID: djVm1GvPTJ2W5AHWRNbOHQ==
-X-CSE-MsgGUID: 12BQj/ELR1Cd1xsskltAYw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11187"; a="24535761"
-X-IronPort-AV: E=Sophos;i="6.10,207,1719903600"; 
-   d="scan'208";a="24535761"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2024 05:09:38 -0700
-X-CSE-ConnectionGUID: HprW+X66SaqXRjfUb/ltHQ==
-X-CSE-MsgGUID: mTrxtkOGSAKpg0n5x8l8qA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,207,1719903600"; 
-   d="scan'208";a="70734766"
-Received: from feng-clx.sh.intel.com ([10.239.159.50])
-  by orviesa005.jf.intel.com with ESMTP; 06 Sep 2024 05:09:34 -0700
-From: Feng Tang <feng.tang@intel.com>
-To: Ingo Molnar <mingo@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Juri Lelli <juri.lelli@redhat.com>,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	rostedt@goodmis.org,
-	linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	sparclinux@vger.kernel.org,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Feng Tang <feng.tang@intel.com>
-Subject: [PATCH v3] sched/debug: Dump end of stack when detected corrupted
-Date: Fri,  6 Sep 2024 20:09:33 +0800
-Message-Id: <20240906120933.2176727-1-feng.tang@intel.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b="oHOi2tzi";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="fg90YUwB"
+Received: from phl-compute-09.internal (phl-compute-09.phl.internal [10.202.2.49])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 303BC1140239;
+	Sun,  8 Sep 2024 07:26:31 -0400 (EDT)
+Received: from phl-imap-12 ([10.202.2.86])
+  by phl-compute-09.internal (MEProxy); Sun, 08 Sep 2024 07:26:31 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=flygoat.com; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1725794791;
+	 x=1725881191; bh=XEUlxjTawgkGJUbuV5995m7w7A2+JrHLDxzMf66rOFU=; b=
+	oHOi2tziFYipU/36G0P4pMedwfORQXdZAEe5c9Wj6Pkgv2OwPwT8YruLqHeDtPPl
+	aYsVkmP6MoSs3CPhOdnNnBGy1EB5dQRcXluTi7nR3uZ/IDhEp7vIUihrBhkfgOQR
+	4j/c6PqoGTCGYa4f9b5UUfA47nFjzGxrAO5K6afnIZDUmCftz5UOHhJvGMudLFdR
+	rSgAL4fXR0uC4GGqwHMng2woukdSPh5Nqwjlr2tYXmkYDBL4QJWPUAkQDVZrkSYD
+	oCgX/0eT5ac+iDDRk/ni/6T8yfLtxVDLu3kVGfhB6uGlgNQxAoF7BKg/Uo7g09m6
+	MdYX7iA0mE0HTDF/kiQgZw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1725794791; x=
+	1725881191; bh=XEUlxjTawgkGJUbuV5995m7w7A2+JrHLDxzMf66rOFU=; b=f
+	g90YUwBHInWhIR7eot/GF/L5V8rTEiLKyfgrEwEGaITOsFWt+MRMHpLTuqzTFmCc
+	HA44h/q1BXd4iJMNi4nfHe6z24uwouoQ4RMWlqcwyKrjROgMakTgYu6gfEHlzrUr
+	i0hjfXXqfZRRehxdtj+aZa+1cwviPfTK+T6zzG6WGuFIe0xPI7jQ2Y3nPhlYRt37
+	Z5c7fxczZEhGsHiXmlTZFd3F73OxlTU5QGWxZSnZ3oUznMRj9qp+QkcdwGmLd5ZU
+	LjBieS65NRQt0Ufia4wkB0gY7cNhU/+mjeq4n2QgZCei4VKJJM5vk5T2uR8ZIyce
+	A8dS7WV0a6DERl6qoyLBg==
+X-ME-Sender: <xms:5ondZv5EyLULksTd86Gox8AAQuTkdW8_EDaOnSzJ807aoMMq3SvXKw>
+    <xme:5ondZk6wX3pv5Yj08ahY3NmdyrnN8xyC9XqeN4JEBp7G18z0_I04to5vGA7mByLdc
+    zyCAe6ZBI3bkPAOBEU>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrudeihedgfeelucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
+    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
+    htshculddquddttddmnecujfgurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdej
+    necuhfhrohhmpedflfhirgiguhhnucgjrghnghdfuceojhhirgiguhhnrdihrghnghesfh
+    hlhihgohgrthdrtghomheqnecuggftrfgrthhtvghrnhepjeehfeduvddtgffgvdffkeet
+    hefhlefgvdevvdekuefffeekheehgeevhfevteejnecuvehluhhsthgvrhfuihiivgeptd
+    enucfrrghrrghmpehmrghilhhfrhhomhepjhhirgiguhhnrdihrghnghesfhhlhihgohgr
+    thdrtghomhdpnhgspghrtghpthhtohepuddvpdhmohguvgepshhmthhpohhuthdprhgtph
+    htthhopehlihhnuhigqdgrlhhphhgrsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghp
+    thhtoheplhhinhhugidqrghrtghhsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
+    htoheplhhinhhugidqtghskhihsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
+    oheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
+    htoheplhhinhhugidqkhhsvghlfhhtvghsthesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
+    rhgtphhtthhopehlihhnuhigqdhmihhpshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
+    gtphhtthhopehlihhnuhigqdhprghrihhstgesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
+    rhgtphhtthhopehlihhnuhigqdhsfeeltdesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
+    gtphhtthhopehlihhnuhigqdhshhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:5ondZmd9bDZgTBNLmCVK9WctNnt9UdyUUYLzicp8fRUQJOEeEHozCQ>
+    <xmx:5ondZgJbs9ZbQEnjCxeIQX3jr6jp32cCYqcxW8vB_4rDfb71lY8o7g>
+    <xmx:5ondZjJQPWwtLvEPjhQrPNIUhMsNJM9qEgpuiiWJGtcO2UPfCU6EbA>
+    <xmx:5ondZpytJvdFgsOqTwWS9Vs06wpz46tg4dTRIE_gHhIODGZYtV_FWQ>
+    <xmx:54ndZlxfc3c_LrCS3N9s-1LqRMFbltsGr3zCZwtJfxdiMSPhLMCNLrFL>
+Feedback-ID: ifd894703:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 900D51C20065; Sun,  8 Sep 2024 07:26:30 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Date: Sun, 08 Sep 2024 12:26:09 +0100
+From: "Jiaxun Yang" <jiaxun.yang@flygoat.com>
+To: "Charlie Jenkins" <charlie@rivosinc.com>,
+ "Arnd Bergmann" <arnd@arndb.de>,
+ "Richard Henderson" <richard.henderson@linaro.org>,
+ "Ivan Kokshaysky" <ink@jurassic.park.msu.ru>,
+ "Matt Turner" <mattst88@gmail.com>, "Vineet Gupta" <vgupta@kernel.org>,
+ "Russell King" <linux@armlinux.org.uk>, "Guo Ren" <guoren@kernel.org>,
+ "Huacai Chen" <chenhuacai@kernel.org>, "Xuerui Wang" <kernel@xen0n.name>,
+ "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
+ "James Bottomley" <James.Bottomley@hansenpartnership.com>,
+ "Helge Deller" <deller@gmx.de>, "Michael Ellerman" <mpe@ellerman.id.au>,
+ "Nicholas Piggin" <npiggin@gmail.com>,
+ "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+ "Naveen N Rao" <naveen@kernel.org>,
+ "Alexander Gordeev" <agordeev@linux.ibm.com>,
+ "Gerald Schaefer" <gerald.schaefer@linux.ibm.com>,
+ "Heiko Carstens" <hca@linux.ibm.com>,
+ "Vasily Gorbik" <gor@linux.ibm.com>,
+ "Christian Borntraeger" <borntraeger@linux.ibm.com>,
+ "Sven Schnelle" <svens@linux.ibm.com>,
+ "Yoshinori Sato" <ysato@users.sourceforge.jp>,
+ "Rich Felker" <dalias@libc.org>,
+ "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
+ "David S . Miller" <davem@davemloft.net>,
+ "Andreas Larsson" <andreas@gaisler.com>,
+ "Thomas Gleixner" <tglx@linutronix.de>, "Ingo Molnar" <mingo@redhat.com>,
+ "Borislav Petkov" <bp@alien8.de>,
+ "Dave Hansen" <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, "Andy Lutomirski" <luto@kernel.org>,
+ "Peter Zijlstra" <peterz@infradead.org>,
+ "Muchun Song" <muchun.song@linux.dev>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ "Vlastimil Babka" <vbabka@suse.cz>,
+ "Lorenzo Stoakes" <lorenzo.stoakes@oracle.com>,
+ "Shuah Khan" <shuah@kernel.org>, "Christoph Hellwig" <hch@infradead.org>,
+ "Michal Hocko" <mhocko@suse.com>,
+ "Kirill A. Shutemov" <kirill@shutemov.name>,
+ "Chris Torek" <chris.torek@gmail.com>
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ loongarch@lists.linux.dev,
+ "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-mm@kvack.org,
+ linux-kselftest@vger.kernel.org, linux-abi-devel@lists.sourceforge.net
+Message-Id: <53384dc9-38c9-4d05-bcde-a3552fbed7ac@app.fastmail.com>
+In-Reply-To: 
+ <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
+References: <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
+Subject: Re: [PATCH RFC v3 0/2] mm: Introduce ADDR_LIMIT_47BIT personality flag
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-When debugging a kernel hang during suspend/resume [1], there were random
-memory corruptions in different places like being reported by
-slub_debug+KASAN, or detected by scheduler with error message:
 
-  "Kernel panic - not syncing: corrupted stack end detected inside scheduler"
 
-So dump the corrupted memory around the stack end to give more direct
-hints about how the memory is corrupted:
+=E5=9C=A82024=E5=B9=B49=E6=9C=885=E6=97=A5=E4=B9=9D=E6=9C=88 =E4=B8=8B=E5=
+=8D=8810:15=EF=BC=8CCharlie Jenkins=E5=86=99=E9=81=93=EF=BC=9A
+> Some applications rely on placing data in free bits addresses allocated
+> by mmap. Various architectures (eg. x86, arm64, powerpc) restrict the
+> address returned by mmap to be less than the 48-bit address space,
+> unless the hint address uses more than 47 bits (the 48th bit is reserv=
+ed
+> for the kernel address space).
+>
+> The riscv architecture needs a way to similarly restrict the virtual
+> address space. On the riscv port of OpenJDK an error is thrown if
+> attempted to run on the 57-bit address space, called sv57 [1].  golang
+> has a comment that sv57 support is not complete, but there are some
+> workarounds to get it to mostly work [2].
+>
+> These applications work on x86 because x86 does an implicit 47-bit
+> restriction of mmap() address that contain a hint address that is less
+> than 48 bits.
+>
+> Instead of implicitly restricting the address space on riscv (or any
+> current/future architecture), provide a flag to the personality syscall
+> that can be used to ensure an application works in any arbitrary VA
+> space. A similar feature has already been implemented by the personali=
+ty
+> syscall in ADDR_LIMIT_32BIT.
+>
+> This flag will also allow seemless compatibility between all
+> architectures, so applications like Go and OpenJDK that use bits in a
+> virtual address can request the exact number of bits they need in a
+> generic way. The flag can be checked inside of vm_unmapped_area() so
+> that this flag does not have to be handled individually by each
+> architecture.=20
 
- "
- Corrupted Stack: ff11000122770000: ff ff ff ff ff ff 14 91 82 3b 78 e8 08 00 45 00  .........;x...E.
- Corrupted Stack: ff11000122770010: 00 1d 2a ff 40 00 40 11 98 c8 0a ef 30 2c 0a ef  ..*.@.@.....0,..
- Corrupted Stack: ff11000122770020: 30 ff a2 00 22 3d 00 09 9a 95 2a 00 00 00 00 00  0..."=....*.....
- ...
- Kernel panic - not syncing: corrupted stack end detected inside scheduler
- "
+Tested-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
 
-And with it, the culprit was quickly identified to be ethernet driver
-that it frees RX related memory back to kernel in suspend hook, but
-its HW is not really stopped, and still send RX data to those old
-buffer through DMA.
+Tested on MIPS VA 48 system, fixed pointer tagging on mozjs!
 
-[1]. https://bugzilla.kernel.org/show_bug.cgi?id=217854
+Thanks!
 
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Reviewed-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
----
-Changlog:
-
-  since v2:
-    * Change code format (Adrian)
-    * Add Reviewed tag from Adrian
-
-  since v1:
-    * Refine the commit log with more info, and rebase againt 6.8-rc3
-
- kernel/sched/core.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
-
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index f3951e4a55e5..0c5cc3bdc02b 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -5741,8 +5741,19 @@ static noinline void __schedule_bug(struct task_struct *prev)
- static inline void schedule_debug(struct task_struct *prev, bool preempt)
- {
- #ifdef CONFIG_SCHED_STACK_END_CHECK
--	if (task_stack_end_corrupted(prev))
-+	if (task_stack_end_corrupted(prev)) {
-+		unsigned long *ptr = end_of_stack(prev);
-+
-+		/* Dump 16 ulong words around the corruption point */
-+#ifdef CONFIG_STACK_GROWSUP
-+		ptr -= 15;
-+#endif
-+		print_hex_dump(KERN_ERR, "Corrupted Stack: ",
-+			DUMP_PREFIX_ADDRESS, 16, 1, ptr,
-+			16 * sizeof(unsigned long), true);
-+
- 		panic("corrupted stack end detected inside scheduler\n");
-+	}
- 
- 	if (task_scs_end_corrupted(prev))
- 		panic("corrupted shadow stack detected inside scheduler\n");
--- 
-2.34.1
-
+[...]
+--=20
+- Jiaxun
