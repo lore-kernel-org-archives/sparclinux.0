@@ -1,185 +1,177 @@
-Received: from fhigh3-smtp.messagingengine.com (fhigh3-smtp.messagingengine.com [103.168.172.154])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B0E114C5AE;
-	Sun,  8 Sep 2024 11:26:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.154
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D710E63A9
+	for <sparclinux@vger.kernel.org>; Mon,  9 Sep 2024 00:21:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725794794; cv=none; b=WLT3NBmDpcWc8wBAQCGpyeAQS8PMCy4fGTLalsiD5tmcSnfzdBdRHQyvqR1CiWrMnF6fZb09N+KYZeJxQRkIAnE4SQdjI0vA5JpOdRdB3GxQgbSD5kuF/8uRKKq4r8g1MHOnk0F+VbQjzYJyj0DkQFPsDdjfSXDH9fkDafQmUUY=
+	t=1725841298; cv=none; b=Id+CyVSp9vG6ynbdjQ5qZWXtUAtRYsScoXEw7BVFAtH//GDIFOQeFoTvESqSOe8yaUGm1sHfaBH0oAYeEtlg+j7sF1iLfoWbvtBHtP097eL+xfkJEdMcwL7+ZBGApbfS4RRBNpC7Es5vXTfN3gzqCGI8p+yr1R8GpHOvXvreNzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725794794; c=relaxed/simple;
-	bh=s22LiCvHg5GCcJ/0gjfyATBl5wTKkAzg5feHIKI+9mg=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=aYcxkp484MmM+FrfRhD5VqerfdH0vkf5usJzw9Ghkfl4K39nUeCD69aafatkYKxxoX0GF9+PfHeBSmsv7DyVf5SfxfjGmFZ8kqhvwHMb4IYPV86KsFqp/Z9O6HSxvWhcCllcb1GxDdYIG4+LTUYbentBtcLlj05RkPYMWq0BieU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com; spf=pass smtp.mailfrom=flygoat.com; dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b=oHOi2tzi; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=fg90YUwB; arc=none smtp.client-ip=103.168.172.154
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flygoat.com
+	s=arc-20240116; t=1725841298; c=relaxed/simple;
+	bh=KVZMNnMYMnNRh9XEUd/AbAsrshEQNXgSkDB5lDD5qq8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Z1RuhVBsVWUVy+rV4HMU7OOt/IPNfLQXH+CZMCJaPkScoVP0G6Q7rtFU36xBzfuU6eKOiHDaiauikEAmAm4XyYFXph2m8pQBKSohSQhrSA++E4EENBSN6WWJMDZ7guUt6LK/2idRMjpnGSiCty48IfrlOwH39Hstt62JD0NpVHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=L1Phm7wG; arc=none smtp.client-ip=209.85.160.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b="oHOi2tzi";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="fg90YUwB"
-Received: from phl-compute-09.internal (phl-compute-09.phl.internal [10.202.2.49])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 303BC1140239;
-	Sun,  8 Sep 2024 07:26:31 -0400 (EDT)
-Received: from phl-imap-12 ([10.202.2.86])
-  by phl-compute-09.internal (MEProxy); Sun, 08 Sep 2024 07:26:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=flygoat.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1725794791;
-	 x=1725881191; bh=XEUlxjTawgkGJUbuV5995m7w7A2+JrHLDxzMf66rOFU=; b=
-	oHOi2tziFYipU/36G0P4pMedwfORQXdZAEe5c9Wj6Pkgv2OwPwT8YruLqHeDtPPl
-	aYsVkmP6MoSs3CPhOdnNnBGy1EB5dQRcXluTi7nR3uZ/IDhEp7vIUihrBhkfgOQR
-	4j/c6PqoGTCGYa4f9b5UUfA47nFjzGxrAO5K6afnIZDUmCftz5UOHhJvGMudLFdR
-	rSgAL4fXR0uC4GGqwHMng2woukdSPh5Nqwjlr2tYXmkYDBL4QJWPUAkQDVZrkSYD
-	oCgX/0eT5ac+iDDRk/ni/6T8yfLtxVDLu3kVGfhB6uGlgNQxAoF7BKg/Uo7g09m6
-	MdYX7iA0mE0HTDF/kiQgZw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1725794791; x=
-	1725881191; bh=XEUlxjTawgkGJUbuV5995m7w7A2+JrHLDxzMf66rOFU=; b=f
-	g90YUwBHInWhIR7eot/GF/L5V8rTEiLKyfgrEwEGaITOsFWt+MRMHpLTuqzTFmCc
-	HA44h/q1BXd4iJMNi4nfHe6z24uwouoQ4RMWlqcwyKrjROgMakTgYu6gfEHlzrUr
-	i0hjfXXqfZRRehxdtj+aZa+1cwviPfTK+T6zzG6WGuFIe0xPI7jQ2Y3nPhlYRt37
-	Z5c7fxczZEhGsHiXmlTZFd3F73OxlTU5QGWxZSnZ3oUznMRj9qp+QkcdwGmLd5ZU
-	LjBieS65NRQt0Ufia4wkB0gY7cNhU/+mjeq4n2QgZCei4VKJJM5vk5T2uR8ZIyce
-	A8dS7WV0a6DERl6qoyLBg==
-X-ME-Sender: <xms:5ondZv5EyLULksTd86Gox8AAQuTkdW8_EDaOnSzJ807aoMMq3SvXKw>
-    <xme:5ondZk6wX3pv5Yj08ahY3NmdyrnN8xyC9XqeN4JEBp7G18z0_I04to5vGA7mByLdc
-    zyCAe6ZBI3bkPAOBEU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrudeihedgfeelucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdej
-    necuhfhrohhmpedflfhirgiguhhnucgjrghnghdfuceojhhirgiguhhnrdihrghnghesfh
-    hlhihgohgrthdrtghomheqnecuggftrfgrthhtvghrnhepjeehfeduvddtgffgvdffkeet
-    hefhlefgvdevvdekuefffeekheehgeevhfevteejnecuvehluhhsthgvrhfuihiivgeptd
-    enucfrrghrrghmpehmrghilhhfrhhomhepjhhirgiguhhnrdihrghnghesfhhlhihgohgr
-    thdrtghomhdpnhgspghrtghpthhtohepuddvpdhmohguvgepshhmthhpohhuthdprhgtph
-    htthhopehlihhnuhigqdgrlhhphhgrsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghp
-    thhtoheplhhinhhugidqrghrtghhsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
-    htoheplhhinhhugidqtghskhihsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthht
-    oheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpth
-    htoheplhhinhhugidqkhhsvghlfhhtvghsthesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
-    rhgtphhtthhopehlihhnuhigqdhmihhpshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
-    gtphhtthhopehlihhnuhigqdhprghrihhstgesvhhgvghrrdhkvghrnhgvlhdrohhrghdp
-    rhgtphhtthhopehlihhnuhigqdhsfeeltdesvhhgvghrrdhkvghrnhgvlhdrohhrghdprh
-    gtphhtthhopehlihhnuhigqdhshhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:5ondZmd9bDZgTBNLmCVK9WctNnt9UdyUUYLzicp8fRUQJOEeEHozCQ>
-    <xmx:5ondZgJbs9ZbQEnjCxeIQX3jr6jp32cCYqcxW8vB_4rDfb71lY8o7g>
-    <xmx:5ondZjJQPWwtLvEPjhQrPNIUhMsNJM9qEgpuiiWJGtcO2UPfCU6EbA>
-    <xmx:5ondZpytJvdFgsOqTwWS9Vs06wpz46tg4dTRIE_gHhIODGZYtV_FWQ>
-    <xmx:54ndZlxfc3c_LrCS3N9s-1LqRMFbltsGr3zCZwtJfxdiMSPhLMCNLrFL>
-Feedback-ID: ifd894703:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 900D51C20065; Sun,  8 Sep 2024 07:26:30 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="L1Phm7wG"
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-4581cec6079so317031cf.0
+        for <sparclinux@vger.kernel.org>; Sun, 08 Sep 2024 17:21:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1725841296; x=1726446096; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=+M1qVooEyNPT1gAAftfRiR4Q5Ah3XuHi08JSkLTfyCg=;
+        b=L1Phm7wGMuZuJebhYKnd+JQyBUyE9C1zk1fQHdZNxb97P8m+M+PxEraXZjvXXUAMxN
+         YgeLRp+lFQS66t9ESCBstlYEggoxa0L1O/PC+UpZxl6L665n3Rv4OnKWpcbaTlaXpWf0
+         9c/7mIYxN3/DmAJu6trHAsXv8hyRFuuFoFHjV/iJGToGgpxTbH2z/J2T93C6Ekh9D9Xw
+         mKakVQhQm860axVGd1VHj7SIRv/pB5vXfMZqrzwpugZo5E1rbuACJ0d/qs9z36lc0gC4
+         v+H5OuBq9pX20rpRn3oES5ryQ4nnoL4jusdt9JjBhzBLJ3hxIViJUR2dmGv04meKCtBN
+         ye6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725841296; x=1726446096;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=+M1qVooEyNPT1gAAftfRiR4Q5Ah3XuHi08JSkLTfyCg=;
+        b=uEgpoLnm7QtyZfPgcYQdtc4gVnwQAkRLpkRank1IF2mqqM3tbdgkJg+JmDIJO6W2PV
+         fkRTtbFa77bn1DS0XyXIKrM2yBoVt62ohXj5b8hcGaSRbTBnZSqqPj3H+x8A22ipXAGe
+         enhMN/TTvjVTmx1KRAX7WyA9yR7+un5Rbuh/w8Midsteb+iB92HESM/8dHgkQFUX1mKV
+         ixUf+ee8TDhr4LRg3ovtKLgW+JV2Cves9WQ3ipakcoiLtcI7r8+3c1aE4PECywIKuOP6
+         onF/dgpQxpe2q7Utz029pT1oZx4H4bxtCqW8MiaSzpJJoIncMgKNex1Yzf8KJTMQBP6I
+         xYxg==
+X-Forwarded-Encrypted: i=1; AJvYcCUAvMLHxpXwvk9/y/6i/mF7WOs10pz1Tj9anEVvy+jiuJqRnGHULdbIQVxnzaKsWdFh7N+w+nB3wZNj@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxu2QRAocomxR6JS3tiP07oU4DsBnIQFLKwbMygU03TMVTcOiAU
+	9rXX3jf2B8+zd4iPx3QI9akl0B8bi7ogi/XzVJ4KTiANjPYio0PKqpkkUq0abJQARShUQqM8yQO
+	pOe3HS/w8TtnI9+8OrkC4kaQ2iOdMcaKeQd9g
+X-Google-Smtp-Source: AGHT+IHeebo47LrVuqQNlmWSroknDWyh0p2+ySnmSfFMd++vvWmH0RLig1T8xF/sYDtVArFYD/iKIyTthz+4Y2vdWxE=
+X-Received: by 2002:ac8:5714:0:b0:456:796b:2fe5 with SMTP id
+ d75a77b69052e-4582147fdcamr3000151cf.9.1725841295262; Sun, 08 Sep 2024
+ 17:21:35 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sun, 08 Sep 2024 12:26:09 +0100
-From: "Jiaxun Yang" <jiaxun.yang@flygoat.com>
-To: "Charlie Jenkins" <charlie@rivosinc.com>,
- "Arnd Bergmann" <arnd@arndb.de>,
- "Richard Henderson" <richard.henderson@linaro.org>,
- "Ivan Kokshaysky" <ink@jurassic.park.msu.ru>,
- "Matt Turner" <mattst88@gmail.com>, "Vineet Gupta" <vgupta@kernel.org>,
- "Russell King" <linux@armlinux.org.uk>, "Guo Ren" <guoren@kernel.org>,
- "Huacai Chen" <chenhuacai@kernel.org>, "Xuerui Wang" <kernel@xen0n.name>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "James Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Helge Deller" <deller@gmx.de>, "Michael Ellerman" <mpe@ellerman.id.au>,
- "Nicholas Piggin" <npiggin@gmail.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Naveen N Rao" <naveen@kernel.org>,
- "Alexander Gordeev" <agordeev@linux.ibm.com>,
- "Gerald Schaefer" <gerald.schaefer@linux.ibm.com>,
- "Heiko Carstens" <hca@linux.ibm.com>,
- "Vasily Gorbik" <gor@linux.ibm.com>,
- "Christian Borntraeger" <borntraeger@linux.ibm.com>,
- "Sven Schnelle" <svens@linux.ibm.com>,
- "Yoshinori Sato" <ysato@users.sourceforge.jp>,
- "Rich Felker" <dalias@libc.org>,
- "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "David S . Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "Thomas Gleixner" <tglx@linutronix.de>, "Ingo Molnar" <mingo@redhat.com>,
- "Borislav Petkov" <bp@alien8.de>,
- "Dave Hansen" <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, "Andy Lutomirski" <luto@kernel.org>,
- "Peter Zijlstra" <peterz@infradead.org>,
- "Muchun Song" <muchun.song@linux.dev>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- "Vlastimil Babka" <vbabka@suse.cz>,
- "Lorenzo Stoakes" <lorenzo.stoakes@oracle.com>,
- "Shuah Khan" <shuah@kernel.org>, "Christoph Hellwig" <hch@infradead.org>,
- "Michal Hocko" <mhocko@suse.com>,
- "Kirill A. Shutemov" <kirill@shutemov.name>,
- "Chris Torek" <chris.torek@gmail.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- loongarch@lists.linux.dev,
- "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-mm@kvack.org,
- linux-kselftest@vger.kernel.org, linux-abi-devel@lists.sourceforge.net
-Message-Id: <53384dc9-38c9-4d05-bcde-a3552fbed7ac@app.fastmail.com>
-In-Reply-To: 
- <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
-References: <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
-Subject: Re: [PATCH RFC v3 0/2] mm: Introduce ADDR_LIMIT_47BIT personality flag
-Content-Type: text/plain; charset=utf-8
+References: <20240831004313.3713467-1-almasrymina@google.com>
+ <20240831004313.3713467-7-almasrymina@google.com> <20240903141948.269e22bb@kernel.org>
+In-Reply-To: <20240903141948.269e22bb@kernel.org>
+From: Mina Almasry <almasrymina@google.com>
+Date: Sun, 8 Sep 2024 17:21:23 -0700
+Message-ID: <CAHS8izN_6_0VUWJzyXZ60kDjvGpdJv1a=-6mGOURapHdfHbcMQ@mail.gmail.com>
+Subject: Re: [PATCH net-next v24 06/13] memory-provider: dmabuf devmem memory provider
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-media@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, Donald Hunter <donald.hunter@gmail.com>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Paolo Abeni <pabeni@redhat.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Richard Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, 
+	Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, David Ahern <dsahern@kernel.org>, 
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>, 
+	Magnus Karlsson <magnus.karlsson@intel.com>, 
+	Maciej Fijalkowski <maciej.fijalkowski@intel.com>, Jonathan Lemon <jonathan.lemon@gmail.com>, 
+	Shuah Khan <shuah@kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
+	Daniel Borkmann <daniel@iogearbox.net>, John Fastabend <john.fastabend@gmail.com>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Pavel Begunkov <asml.silence@gmail.com>, David Wei <dw@davidwei.uk>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Yunsheng Lin <linyunsheng@huawei.com>, Shailend Chand <shailend@google.com>, 
+	Harshitha Ramamurthy <hramamurthy@google.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Jeroen de Borst <jeroendb@google.com>, Praveen Kaligineedi <pkaligineedi@google.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Christoph Hellwig <hch@infradead.org>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Taehee Yoo <ap420073@gmail.com>, 
+	Willem de Bruijn <willemb@google.com>, Kaiyuan Zhang <kaiyuanz@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-
-
-=E5=9C=A82024=E5=B9=B49=E6=9C=885=E6=97=A5=E4=B9=9D=E6=9C=88 =E4=B8=8B=E5=
-=8D=8810:15=EF=BC=8CCharlie Jenkins=E5=86=99=E9=81=93=EF=BC=9A
-> Some applications rely on placing data in free bits addresses allocated
-> by mmap. Various architectures (eg. x86, arm64, powerpc) restrict the
-> address returned by mmap to be less than the 48-bit address space,
-> unless the hint address uses more than 47 bits (the 48th bit is reserv=
-ed
-> for the kernel address space).
+On Tue, Sep 3, 2024 at 2:19=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wro=
+te:
 >
-> The riscv architecture needs a way to similarly restrict the virtual
-> address space. On the riscv port of OpenJDK an error is thrown if
-> attempted to run on the 57-bit address space, called sv57 [1].  golang
-> has a comment that sv57 support is not complete, but there are some
-> workarounds to get it to mostly work [2].
+> On Sat, 31 Aug 2024 00:43:06 +0000 Mina Almasry wrote:
+> > diff --git a/include/net/mp_dmabuf_devmem.h b/include/net/mp_dmabuf_dev=
+mem.h
+> > new file mode 100644
+> > index 000000000000..6d1cf2a77f6b
+> > --- /dev/null
+> > +++ b/include/net/mp_dmabuf_devmem.h
 >
-> These applications work on x86 because x86 does an implicit 47-bit
-> restriction of mmap() address that contain a hint address that is less
-> than 48 bits.
+> this header can live under net/core/ like netmem_priv.h right?
+> devmem internals should be of no interest outside of core networking.
 >
-> Instead of implicitly restricting the address space on riscv (or any
-> current/future architecture), provide a flag to the personality syscall
-> that can be used to ensure an application works in any arbitrary VA
-> space. A similar feature has already been implemented by the personali=
-ty
-> syscall in ADDR_LIMIT_32BIT.
+
+Yes, those can be moved under net/core trivially. done.
+
+> In fact the same is true for include/net/devmem.h ?
 >
-> This flag will also allow seemless compatibility between all
-> architectures, so applications like Go and OpenJDK that use bits in a
-> virtual address can request the exact number of bits they need in a
-> generic way. The flag can be checked inside of vm_unmapped_area() so
-> that this flag does not have to be handled individually by each
-> architecture.=20
 
-Tested-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
+This turned out to be possible, but with a minor moving around of some
+helpers. Basically netmem.h included devmem.h to get access to some
+devmem internals for some of the net_iov helpers specific to devmem.
+Moving these helpers to devmem.h enabled me to keep
+include/net/netmem.h but put devmem.h under net/core. Now netmem.h
+doesn't need to include devmem.h. I think this is an improvement.
 
-Tested on MIPS VA 48 system, fixed pointer tagging on mozjs!
+> > +static inline netmem_ref mp_dmabuf_devmem_alloc_netmems(struct page_po=
+ol *pool,
+> > +                                                     gfp_t gfp)
+>
+> Please break the lines after the return type if the line gets long:
+>
+> static inline netmem_ref
+> mp_dmabuf_devmem_alloc_netmems(struct page_pool *pool, gfp_t gfp)
+>
+> Please fix where you can (at least where it cases going over 80 chars)
+>
 
-Thanks!
+FWIW I use a formatting tool (clang-format) which seems to prefer
+breaking in between the args, but I'll fix this manually and wherever
+else I notice.
 
-[...]
---=20
-- Jiaxun
+> >       struct_group_tagged(page_pool_params_slow, slow,
+> >               struct net_device *netdev;
+> > +             struct netdev_rx_queue *queue;
+>
+> Why set a pointer? It should work but drivers don't usually deal with
+> netdev_rx_queue struct directly. struct xdp_rxq_info takes an integer
+> queue id, and it serves a somewhat similar function.
+>
+> Keep in mind that there will be more drivers than core code, so
+> convenience for them matters more.
+>
+
+Makes sense.
+
+> > +bool mp_dmabuf_devmem_release_page(struct page_pool *pool, netmem_ref =
+netmem)
+> > +{
+> > +     if (WARN_ON_ONCE(!netmem_is_net_iov(netmem)))
+> > +             return false;
+> > +
+> > +     if (WARN_ON_ONCE(atomic_long_read(netmem_get_pp_ref_count_ref(net=
+mem)) !=3D
+> > +                  1))
+>
+> something needs factoring out here, to make this line shorter, please..
+> either netmem -> net_iov conversion or at least reading of the ref
+> count?
+>
+
+Ah, sorry I think you pointed this out earlier and I missed applying
+it. Should be done in the next iteration.
+
+--
+Thanks,
+Mina
