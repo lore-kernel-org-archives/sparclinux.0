@@ -1,72 +1,35 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A4312D20D
-	for <sparclinux@vger.kernel.org>; Thu, 12 Sep 2024 06:20:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D46B15D5D9;
+	Thu, 12 Sep 2024 10:54:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726122044; cv=none; b=rBp8TV7R7S4bezgPqK/IE0oi7PrMegzBqC7+zzo1jejfwGgSwsnOL+42y8ygwa8eLl4kYSpbrNzFw5VtVYKyWeSTXYel1/jo7AEyC9olY2qPz/WLcrPgvcFrg3L2rL3pct0njbxHxpnVyh6hGiGGPph5CRrHBIXsFT0YbTAKg1I=
+	t=1726138442; cv=none; b=S2AXU3xekDNTgJ/BrDkAo+uZwJ5LZ+0jeVpvsgHhI73Tyvln+CgrBp2slKwxImvsPb61KRDzG0MNWxkrqEKPUjyqZVJ96FyjrjtiiPSfgZa6hynNEDkC79hO5KbOADsxJXeStm9FZM6lMnxwnSkCzltJEzByucH+RRNv7z078+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726122044; c=relaxed/simple;
-	bh=2F6IKkpv/Qwlr7Q/6xNHbyfy5PQ3xNesTPaXOFDb4UY=;
+	s=arc-20240116; t=1726138442; c=relaxed/simple;
+	bh=p/e83P9WYk3m3KBV4mYnrlxzhIZufzNwL5TA3046OjE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LwjFN3Ipgz2M2eQGI37XJvijCD4hEVfXwYcBqZm01Lzj3xZfjPwHdK2qNBrXPb888yC/JAHcMRtPeCf2M+Wr6CWu2oD4S+kft9fGcWQ5pu/WyUNaAPceozTdiVhUcLE0CLuCV1T8urJxRGBGzGhNacvu+fuxyrcXXn3Lw96O22I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=f7ImMjz5; arc=none smtp.client-ip=209.85.214.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rivosinc.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="f7ImMjz5"
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-20551eeba95so5569815ad.2
-        for <sparclinux@vger.kernel.org>; Wed, 11 Sep 2024 23:20:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1726122042; x=1726726842; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=4MH+VWCTNjiA22bJ+vIa1h0/NxuAZxX6cpAlaipl1hg=;
-        b=f7ImMjz5nD3GVetxCwMWoMX0kbIS4lvT7rEllYmLdT1KxiOENjPfwGS0uGx1s49aoE
-         e+S6xHj/IwKOfMTOWQabXZVX65tJFPq0fLcBDOfXfsFJhwEvgMvrUr9UlGXPbcb7Lay4
-         Gi/IQ6rnGZ8UYdmka+oBZwvNaR+WwIpIymqItrNmjNailKIQdWCBeH89j2wDY3mlS/wx
-         FvHk8yCVj+VYIQSt+IwVrm0VnCz09SHus+F7QpDCtn0bPIzDT+K5kwUg6cnCIkY1VOMH
-         97dX+cVLAMHx/6gRUewjaflWeYX++hO2+QEGMn2rXsKqWiltX77adLjzFL/QhUylIYvo
-         MahA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726122042; x=1726726842;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=4MH+VWCTNjiA22bJ+vIa1h0/NxuAZxX6cpAlaipl1hg=;
-        b=oH6BwLGwCv8+QrTg+JNhYTeGOOmp31tTUfAe4Rlh0gn1DIVz3LYqnn5p0jau5Im7K5
-         ADJ5RL0C0v1mKNMoVI7GwkBQOuRKLgrm/SKkRYqKOTN7Y+JEYGD8x8bnCX+4g/HLbFQS
-         dOgRVjh3Sm8NRCz7RFYgZP8pbTanBnMv0i+v6uR3M/HutWVJ2KQzyOZXf6sUxlNxppVV
-         T2ulr07loHFtybHqpYeeoEs5SNrij2GfhOLTUeMtUZ7K2ql30H1tqeg63tApFJAtnrbt
-         PAMiWvs2uNqtbiIxvYRAxF30zzpg7r7YsFlhb4KkU6hKHkJ6qfiFosRmkYmv64xrskTE
-         7k3A==
-X-Forwarded-Encrypted: i=1; AJvYcCUiFnpgxuFQ2a4cWpoNgiSkFTFoO+gsBDSuNka0gwjQXOuJZqdpMOPTCURrgJe28cj7VIsCbE0FEj6+@vger.kernel.org
-X-Gm-Message-State: AOJu0YwtWL3CkDU+V4x8UQ+fOxSknrYSZ3P98gS/Gr8sZ7SzYGT4MCCi
-	c8+FejdypZIL+srrfc8Jxq9LW09nVRYUDRwX761Ny0Pa/tm2QgpPW4pQtfdXuLE=
-X-Google-Smtp-Source: AGHT+IEU0tdlu4WO+IdyYZyQDbQui3iM6ZAtkm5A4CWh7CFo7CMKirqsrpvUAjbSGnQEOy1Vcb5RUw==
-X-Received: by 2002:a17:903:191:b0:206:aa2e:6d1f with SMTP id d9443c01a7336-2076e423272mr22083755ad.46.1726122041553;
-        Wed, 11 Sep 2024 23:20:41 -0700 (PDT)
-Received: from ghost ([2601:647:6700:64d0:7acc:9910:2c1d:4e65])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2076afdd82asm8286105ad.129.2024.09.11.23.20.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Sep 2024 23:20:40 -0700 (PDT)
-Date: Wed, 11 Sep 2024 23:20:35 -0700
-From: Charlie Jenkins <charlie@rivosinc.com>
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Arnd Bergmann <arnd@arndb.de>,
+	 Content-Type:Content-Disposition:In-Reply-To; b=Wssc+QCGsELjR6I2FLEUchW//FNHbrg/AU+wImdq2RhB/Y7DUROKxzIcinZwCwAqr4le9yxZ0RqT+1/fOHiIxnNHte3idUnLIHernjr3pTsMMBmxI9/KKDjD9XnJqxzyadY0epHx+kTxr/Dl94A0WgwQcPZaZ6Dl0zuhaHWHeZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67C3EC4CEC3;
+	Thu, 12 Sep 2024 10:53:51 +0000 (UTC)
+Date: Thu, 12 Sep 2024 11:53:49 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+To: Charlie Jenkins <charlie@rivosinc.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Arnd Bergmann <arnd@arndb.de>, guoren <guoren@kernel.org>,
 	Richard Henderson <richard.henderson@linaro.org>,
 	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
 	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
-	Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
 	Huacai Chen <chenhuacai@kernel.org>,
 	WANG Xuerui <kernel@xen0n.name>,
 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>, Nicholas Piggin <npiggin@gmail.com>,
+	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
 	Naveen N Rao <naveen@kernel.org>,
 	Alexander Gordeev <agordeev@linux.ibm.com>,
 	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
@@ -77,7 +40,7 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	Yoshinori Sato <ysato@users.sourceforge.jp>,
 	Rich Felker <dalias@libc.org>,
 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S. Miller" <davem@davemloft.net>,
+	"David S . Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
@@ -86,17 +49,17 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Muchun Song <muchun.song@linux.dev>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
 	Vlastimil Babka <vbabka@suse.cz>,
 	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Shuah Khan <shuah@kernel.org>,
-	Christoph Hellwig <hch@infradead.org>,
+	shuah <shuah@kernel.org>, Christoph Hellwig <hch@infradead.org>,
 	Michal Hocko <mhocko@suse.com>,
 	"Kirill A. Shutemov" <kirill@shutemov.name>,
-	Chris Torek <chris.torek@gmail.com>, linux-arch@vger.kernel.org,
+	Chris Torek <chris.torek@gmail.com>,
+	Linux-Arch <linux-arch@vger.kernel.org>,
 	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
 	linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
 	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
 	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
 	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
@@ -105,62 +68,49 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	linux-abi-devel@lists.sourceforge.net
 Subject: Re: [PATCH RFC v3 1/2] mm: Add personality flag to limit address to
  47 bits
-Message-ID: <ZuKIMz7U8rDrq8jA@ghost>
+Message-ID: <ZuLIPZId9aHcAY2j@arm.com>
 References: <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
  <20240905-patches-below_hint_mmap-v3-1-3cd5564efbbb@rivosinc.com>
- <87zfol468z.fsf@mail.lhotse>
- <Zt9HboH/PmPlRPmH@ghost>
- <1aca8e4c-1c12-4624-a689-147ff60b75d6@csgroup.eu>
- <CAMuHMdURgy6NPthHhfOv_h=C_gw2hEpnGQ7iBGoDE=ZazUPRHA@mail.gmail.com>
- <8734m6s428.fsf@mail.lhotse>
+ <9fc4746b-8e9d-4a75-b966-e0906187e6b7@app.fastmail.com>
+ <CAJF2gTTVX9CFM3oRZZP3hGExwVwA_=n1Lrq_0DQKWA+-ZbOekg@mail.gmail.com>
+ <f23b18c6-1856-4b59-9ba3-59809b425c81@app.fastmail.com>
+ <Ztrq8PBLJ3QuFJz7@arm.com>
+ <oshwto46wbbgneiayj63umllyozm3c4267rvpszqzaopwnt2l7@6mxl5vydtons>
+ <ZuDoExckq21fePoe@ghost>
+ <ZuHfp0_tAQhaymdy@arm.com>
+ <ZuKHpFB+uWuJe2xm@ghost>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8734m6s428.fsf@mail.lhotse>
+In-Reply-To: <ZuKHpFB+uWuJe2xm@ghost>
 
-On Wed, Sep 11, 2024 at 11:38:55PM +1000, Michael Ellerman wrote:
-> Geert Uytterhoeven <geert@linux-m68k.org> writes:
-> > Hi Christophe,
-> >
-> > On Tue, Sep 10, 2024 at 11:21 AM Christophe Leroy
-> > <christophe.leroy@csgroup.eu> wrote:
-> >> >>> diff --git a/include/uapi/linux/personality.h b/include/uapi/linux/personality.h
-> >> >>> index 49796b7756af..cd3b8c154d9b 100644
-> >> >>> --- a/include/uapi/linux/personality.h
-> >> >>> +++ b/include/uapi/linux/personality.h
-> >> >>> @@ -22,6 +22,7 @@ enum {
-> >> >>>     WHOLE_SECONDS =         0x2000000,
-> >> >>>     STICKY_TIMEOUTS =       0x4000000,
-> >> >>>     ADDR_LIMIT_3GB =        0x8000000,
-> >> >>> +   ADDR_LIMIT_47BIT =      0x10000000,
-> >> >>>   };
-> >> >>
-> >> >> I wonder if ADDR_LIMIT_128T would be clearer?
-> >> >>
-> >> >
-> >> > I don't follow, what does 128T represent?
-> >>
-> >> 128T is 128 Terabytes, that's the maximum size achievable with a 47BIT
-> >> address, that naming would be more consistant with the ADDR_LIMIT_3GB
-> >> just above that means a 3 Gigabytes limit.
-> >
-> > Hence ADDR_LIMIT_128TB?
-> 
-> Yes it should be 128TB. Typo by me.
-> 
-> cheers
+On Wed, Sep 11, 2024 at 11:18:12PM -0700, Charlie Jenkins wrote:
+> Opting-in to the higher address space is reasonable. However, it is not
+> my preference, because the purpose of this flag is to ensure that
+> allocations do not exceed 47-bits, so it is a clearer ABI to have the
+> applications that want this guarantee to be the ones setting the flag,
+> rather than the applications that want the higher bits setting the flag.
 
-47BIT was selected because the usecase for this flag is for applications
-that want to store data in the upper bits of a virtual address space. In
-this case, how large the virtual address space is irrelevant, and only
-the number of bits that are being used, and hence the number of bits
-that are free.
+Yes, this would be ideal. Unfortunately those applications don't know
+they need to set a flag in order to work.
 
-- Charlie
+A slightly better option is to leave the default 47-bit at the kernel
+ABI level and have the libc/dynamic loader issue the prctl(). You can
+control the default with environment variables if needed.
 
+We do something similar in glibc for arm64 MTE. When MTE is enabled, the
+top byte of an allocated pointer contains the tag that must not be
+corrupted. We left the decision to the C library via the
+glibc.mem.tagging tunable (Android has something similar via the app
+manifest). An app can change the default if it wants but if you run with
+old glibc or no environment variable to say otherwise, the default would
+be safe. Distros can set the environment to be the maximum range by
+default if they know the apps included have been upgraded and tested.
+
+-- 
+Catalin
