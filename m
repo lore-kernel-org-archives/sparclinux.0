@@ -1,86 +1,177 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B59D126BE6;
-	Fri, 13 Sep 2024 18:09:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC4482F860
+	for <sparclinux@vger.kernel.org>; Fri, 13 Sep 2024 20:15:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726250964; cv=none; b=pofDGi+D23y4PRtG3vRVkCoqJrMdqJFhkSPGeIt04ofo1QONx8C8lF0/n+4u/N/4B3EiILNH7aBUcF6LUrS5JJssa632OfuufggQ9fGzwlttPlLwn6YKVSgOtcJxduNJMMq/EbbJhATs/YhL54Z21AEqlJwi1Rc3A8/JISRgoRU=
+	t=1726258544; cv=none; b=LXeeSn1lsj6SQOChOYj6QDnOLiMSJl7iliQBFZyNfSTSxttarSv1RxLTsTFxCNIXdjdwUSF8LLRP9ceZX8YztO4ASMB9w692Mv4Ku0PKtsZ/Ec0ihiOsi7kfILbkO9GRoE/Lm9xjVmtm20n8TIiVm/Jd03ybkrSfjPpLPuGQiXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726250964; c=relaxed/simple;
-	bh=CYsnOF3mg7HRqKjs8+zohjNJM8L3/gkDXeAgSnJOS/8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=JHVRuZhqoSaC4pjo3Ow2BYo57hGCN2lskFBXU8bceFpEtjVz8MHScBFIU0apR7Xa2onhYTW9fYP9t8Ca6praBttu412Y0zXH2CQ5Z5s3QfY0Tm4fkinW02CSUwb0gX6AnUO2XJHruSnP3etWbUnYh9Zm5/tfBZLuTmhkSmZfsZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=gGMBvjRN; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1726258544; c=relaxed/simple;
+	bh=wfj+NyO2O/69MLo77jEarnaBvuUhTtqSf9r0p1hDvRY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cCBEK+FEicS4WMAzNYAihz6FNfCgLSuCrmYrDNl+Ye2rM9eUPv5/iLX+0HFVNfvEM9wTsMkxjrfpj15Z2TzJUyT67MtdK9JCXf6DSpeENygoj/llpgVg0pFlRFk5gBugVl31Dqye+aCjVBd072IM5N1fbgXTDQucmP/85+daZ1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com; spf=pass smtp.mailfrom=rivosinc.com; dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b=NclhStDM; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rivosinc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rivosinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="gGMBvjRN"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4X52C92QGHz1FXSC;
-	Fri, 13 Sep 2024 20:00:05 +0200 (CEST)
-Received: from [10.10.15.13] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4X52C90KsQz1DPl0;
-	Fri, 13 Sep 2024 20:00:05 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1726250405;
-	bh=SWvXRVsmJjaa9ejRemRSz9PHWcu0seHqqpEBo4CbFBs=;
-	h=Date:Subject:To:References:From:In-Reply-To;
-	b=gGMBvjRNvr61acm1rTtvWLXKfCX18UDdEju1gTxvBk7OYtXkmLWmhm/bMNAbheuyR
-	 bKzb/VFlaZBuWaJgM/6m+8h02Qu603llsCKr/Xy54epP+F30LjbsFZDhE+LrfXTTiK
-	 w+j9RdsLXmyqut7g2fNULu8dDjPfiQyy7e3KB1JM=
-Message-ID: <59d604b6-8672-4c90-ab10-b3b74e79f9b1@gaisler.com>
-Date: Fri, 13 Sep 2024 20:00:03 +0200
+	dkim=pass (2048-bit key) header.d=rivosinc-com.20230601.gappssmtp.com header.i=@rivosinc-com.20230601.gappssmtp.com header.b="NclhStDM"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-20688fbaeafso15483225ad.0
+        for <sparclinux@vger.kernel.org>; Fri, 13 Sep 2024 13:15:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1726258542; x=1726863342; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=w1FIyAVC28uVndIDT9MHoNGdB/uDnM+DRyhrjJeTBk0=;
+        b=NclhStDMADg+8rXY3zMnZpgklTfAa14ssn3kbwcunDGIz8h6cP2BZtmssaHCmo+XOJ
+         afFH5gBp913WPHfI2fXDd/ETRIKFQ2E+mhYvWTOvQlNDtgWxTG/luQK68hxQAeRIi0Yp
+         3pLKyaSHb3rzRtbDj2Jhk8wgo81Y3Sg0bzWuQ6FR0l9TD95Esg0P/FPoBQwntMo27yP1
+         upGpiwNQurnnkLkQpHmNZaTtbC0Pfyuwny6dPEuUbkIOzqlsayMfGeVb5jjH/nCu8+Cx
+         Kw35OleCdW3SI017ABWPNVRfPB5EWupJtrF2RjuRb7jru2tnCpndmJ1x9Y1EOLLYXcHw
+         il8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726258542; x=1726863342;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=w1FIyAVC28uVndIDT9MHoNGdB/uDnM+DRyhrjJeTBk0=;
+        b=FiPaYcVUrf/bpk9EkCR+/fadp0h7YL8HpTs/8GNT/IiM+taDqJEtp7fCwAcAp01ewj
+         T0EQsGTSkOyTyiiSqVdqAwdHE4VqPPkSnRO0p21K7eoVJXiHye4EJpO9+A4A8GF52OIO
+         5oYaso+YEYTGkqWMQ+gbsw2S0/E0DWH7XgZO3HaDshm79wDvh4Dd+11DPNmjA9CNvFdp
+         WlzWu6F3SrEFzd0dwTgkLpA1awPN5/7af+NILn8lUNax2JbN4LE+s4QQtXo8HQm1FPF2
+         70EY1RCuX5/dDP0bY9mVC+2IMPmrllG9yNoCwGACfmWYPGUM6PA6AY2quEtnTw3Rb66j
+         mzHg==
+X-Forwarded-Encrypted: i=1; AJvYcCULbwPHo+Y95IeOXqDBP3Nyry/cUZS9gb9RLqsfgQkfVODJDe5T2Eu1bnSINIlO1eL9PpdWaqKBVXdQ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxB5GPGEmGfee+zXSCsRc/fA8xJqi8DkuFWFBbu/6i4AG+rZtQv
+	fXBmpb6amULsK03VBJK//jizeOrTSw+oiZyKvnxUKAW+02DeRCCD6oCWdNayk6s=
+X-Google-Smtp-Source: AGHT+IF+aNQZr3gdahRoQqk9W7f54mB5JjUQKc3RHBzDdb3qrFRnfek72JEtbqkZMIR2o3KSJzgpeA==
+X-Received: by 2002:a17:902:dad1:b0:205:8407:6321 with SMTP id d9443c01a7336-20781b4740dmr63844425ad.9.1726258541784;
+        Fri, 13 Sep 2024 13:15:41 -0700 (PDT)
+Received: from ghost ([50.145.13.30])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-207945db10csm315195ad.53.2024.09.13.13.15.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 13 Sep 2024 13:15:41 -0700 (PDT)
+Date: Fri, 13 Sep 2024 13:15:35 -0700
+From: Charlie Jenkins <charlie@rivosinc.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Arnd Bergmann <arnd@arndb.de>, guoren <guoren@kernel.org>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+	Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Naveen N Rao <naveen@kernel.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Muchun Song <muchun.song@linux.dev>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	shuah <shuah@kernel.org>, Christoph Hellwig <hch@infradead.org>,
+	Michal Hocko <mhocko@suse.com>,
+	"Kirill A. Shutemov" <kirill@shutemov.name>,
+	Chris Torek <chris.torek@gmail.com>,
+	Linux-Arch <linux-arch@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-mm@kvack.org,
+	linux-kselftest@vger.kernel.org,
+	linux-abi-devel@lists.sourceforge.net
+Subject: Re: [PATCH RFC v3 1/2] mm: Add personality flag to limit address to
+ 47 bits
+Message-ID: <ZuSdZ2bi1JvLJVYe@ghost>
+References: <CAJF2gTTVX9CFM3oRZZP3hGExwVwA_=n1Lrq_0DQKWA+-ZbOekg@mail.gmail.com>
+ <f23b18c6-1856-4b59-9ba3-59809b425c81@app.fastmail.com>
+ <Ztrq8PBLJ3QuFJz7@arm.com>
+ <oshwto46wbbgneiayj63umllyozm3c4267rvpszqzaopwnt2l7@6mxl5vydtons>
+ <ZuDoExckq21fePoe@ghost>
+ <ZuHfp0_tAQhaymdy@arm.com>
+ <ZuKHpFB+uWuJe2xm@ghost>
+ <ZuLIPZId9aHcAY2j@arm.com>
+ <ZuNaD+zAXiAulc0n@ghost>
+ <ZuQPF7Gbcqzq0U6N@arm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] arch/sparc: remove unused varible paddrbase in function
- leon_swprobe()
-To: alexs@kernel.org, "David S . Miller" <davem@davemloft.net>,
- Christian Brauner <brauner@kernel.org>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20240729064926.3126528-1-alexs@kernel.org>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20240729064926.3126528-1-alexs@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZuQPF7Gbcqzq0U6N@arm.com>
 
-On 2024-07-29 08:49, alexs@kernel.org wrote:
-> From: Alex Shi <alexs@kernel.org>
+On Fri, Sep 13, 2024 at 11:08:23AM +0100, Catalin Marinas wrote:
+> On Thu, Sep 12, 2024 at 02:15:59PM -0700, Charlie Jenkins wrote:
+> > On Thu, Sep 12, 2024 at 11:53:49AM +0100, Catalin Marinas wrote:
+> > > On Wed, Sep 11, 2024 at 11:18:12PM -0700, Charlie Jenkins wrote:
+> > > > Opting-in to the higher address space is reasonable. However, it is not
+> > > > my preference, because the purpose of this flag is to ensure that
+> > > > allocations do not exceed 47-bits, so it is a clearer ABI to have the
+> > > > applications that want this guarantee to be the ones setting the flag,
+> > > > rather than the applications that want the higher bits setting the flag.
+> > > 
+> > > Yes, this would be ideal. Unfortunately those applications don't know
+> > > they need to set a flag in order to work.
+> > 
+> > It's not a regression, the applications never worked (on platforms that
+> > do not have this default). The 47-bit default would allow applications
+> > that didn't work to start working at the cost of a non-ideal ABI. That
+> > doesn't seem like a reasonable tradeoff to me.  If applications want to
+> > run on new hardware that has different requirements, shouldn't they be
+> > required to update rather than expect the kernel will solve their
+> > problems for them?
 > 
-> commit f22ed71cd602 ("sparc32,leon: SRMMU MMU Table probe fix") change
-> return value from paddrbase to 'pte', but left the varible here.
-> That causes a build warning for this varible, so we may remove it.
+> That's a valid point but it depends on the application and how much you
+> want to spend updating user-space. OpenJDK is fine, if you need a JIT
+> you'll have to add support for that architecture anyway. But others are
+> arch-agnostic, you just recompile to your target. It's not an ABI
+> problem, more of an API one.
+
+The arch-agnosticism is my hope with this personality flag, it can be
+added arch-agnostic userspace code and allow the application to work
+everywhere, but it does have the downside of requiring that change to
+user-space code.
+
 > 
-> make --keep-going CROSS_COMPILE=/home/alexs/0day/gcc-14.1.0-nolibc/sparc-linux/bin/sparc-linux- --jobs=16 KCFLAGS= -Wtautological-compare -Wno-error=return-type -Wreturn-type -Wcast-function-type -funsigned-char -Wundef -fstrict-flex-arrays=3 -Wformat-overflow -Wformat-truncation -Wrestrict -Wenum-conversion W=1 O=sparc ARCH=sparc defconfig SHELL=/bin/bash arch/sparc/mm/ mm/ -s
-> <stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
-> ../arch/sparc/mm/leon_mm.c: In function 'leon_swprobe':
-> ../arch/sparc/mm/leon_mm.c:42:32: warning: variable 'paddrbase' set but not used [-Wunused-but-set-variable]
->    42 |         unsigned int lvl, pte, paddrbase;
->       |                                ^~~~~~~~~
+> The x86 case (and powerpc/arm64) was different, the 47-bit worked for a
+> long time before expanding it. So it made a lot of sense to keep the
+> same default.
+
+Yes it is very reasonable that this solution was selected for those
+architectures since the support for higher address spaces evolved in the
+manner that it did!
+
+- Charlie
+
 > 
-> Signed-off-by: Alex Shi <alexs@kernel.org>
-> To: linux-kernel@vger.kernel.org
-> To: sparclinux@vger.kernel.org
-> To: Christian Brauner <brauner@kernel.org>
-> To: Andreas Larsson <andreas@gaisler.com>
-> To: David S. Miller <davem@davemloft.net>
-> ---
->  arch/sparc/mm/leon_mm.c | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
-
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-Tested-by: Andreas Larsson <andreas@gaisler.com>
-
-Picking this up to my for-next.
-
-Thanks,
-Andreas
+> Anyway, the prctl() can go both ways, either expanding or limiting the
+> default address space. So I'd be fine with such interface.
+> 
+> -- 
+> Catalin
