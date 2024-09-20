@@ -1,134 +1,190 @@
-Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542972746B;
-	Fri, 20 Sep 2024 05:10:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D691F4ED;
+	Fri, 20 Sep 2024 15:37:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726809047; cv=none; b=MgBN6GiCBe//e5zNuni0uItBiPt1xqSGkfJCLW85YFV6w1YrEaAnsvG1cJemRiqEhGMJ98hQ4MiaYBO5lX7YBPrfLfinqM357+UBVsXCwRCGgGPoK0r3zum1UeuKiavhE1BMNC6z1/DzLPI9thz71eqBXyG1cG68tkkWv4wJo0A=
+	t=1726846663; cv=none; b=eGuAfpk2XxhGAvYRHR5cbxi8xXz9mRWw13ghADwmjDJgOwKl/dpt46qyqarIs27kODIWFhITZp4Fr5w7IzeqALSp+M6akpCoAC8OTuFojzNtWtixafs2wZzGZQYrhZJlu3x1ob73OobTP0YHuEO0ypmpCBlCR3e7GCY8BIEfDFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726809047; c=relaxed/simple;
-	bh=SIZ1Q/wo1mQfB+zST0x4uvKH29iwuWl1MayRDNCIRcM=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=jIcL/uXYAR5xFXML85VzFo/F4NoGu8bOXeprKeJ27TuWshRKSSvJshTmo3dMf/27jXJpJ0UEKoFZwJLNkA9G3NYNSF1J6ZXSyHy4syDenNpS6YfEszzwsMNRo6O0vyt25mKoc4fZ1AIDJY/ICqhS+3bBncjLsRhRewfXL1//OSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au; spf=pass smtp.mailfrom=ellerman.id.au; dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b=SMnj41MD; arc=none smtp.client-ip=150.107.74.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ellerman.id.au
+	s=arc-20240116; t=1726846663; c=relaxed/simple;
+	bh=IBNi5+etZxBxaJtA4MvHJd8EcTOHUlXwvzlgxQMIVZo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=nMEsYXyfH71aVKAKUYPQ/qKelCMfkMHiuDwpdSupRLabXmLoJC1j8gUhtI+8Z7Obbg2oMJ2HpLCCTGxoVnbSFZJGGpDflxenBt1a8iIoz/mmH0QtuzjxIVXrZyDvYjSNZWZ88AH3zHqvniOEPvMDFMvWvc2E80i7fNCMzZpiFQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nmf7IF0k; arc=none smtp.client-ip=209.85.214.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="SMnj41MD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-	s=201909; t=1726809043;
-	bh=rRnqIQfUKl5hMqMziAAuyLYljr0XWCtIu8tELgZL7Kk=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=SMnj41MDT0Lf3PfeIXIT3YwHOI0uAuuDLjE0t47tRZRaNTFGPp7CmsiqP5xtDHrve
-	 GQpxRf3WsppyZZ4VsMpffig95QUjZAZcDTfAYoQRqb1kT/tFerPynOIHTZHPuzrIZ0
-	 6IUod3m4WM+YcquTxyACp+qQoBmzjqHxZaUgk+jSzmb/iMutuZKenA1h2ctddPY4VB
-	 zq+UuDefISa1ohGSToaZ++xjvfQUbK1tokALiwcAwa1KGWQEeHrE7fds5GO8aUidii
-	 ZlBYq9K3KPr01kqIlLozoiNa0r5uQQx7O30KTZoarDO3+tCBmjhV32YlfcEEOMpICG
-	 jWz/PZdm+HR7A==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4X90nx2nGtz4xD3;
-	Fri, 20 Sep 2024 15:10:29 +1000 (AEST)
-From: Michael Ellerman <mpe@ellerman.id.au>
-To: Charlie Jenkins <charlie@rivosinc.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Christophe Leroy
- <christophe.leroy@csgroup.eu>, Arnd Bergmann <arnd@arndb.de>, Richard
- Henderson <richard.henderson@linaro.org>, Ivan Kokshaysky
- <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Vineet Gupta
- <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, Guo Ren
- <guoren@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui
- <kernel@xen0n.name>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge
- Deller <deller@gmx.de>, Nicholas Piggin <npiggin@gmail.com>, Naveen N Rao
- <naveen@kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Gerald
- Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens
- <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian
- Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle
- <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich
- Felker <dalias@libc.org>, John Paul Adrian Glaubitz
- <glaubitz@physik.fu-berlin.de>, "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner
- <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
- <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, Peter
- Zijlstra <peterz@infradead.org>, Muchun Song <muchun.song@linux.dev>,
- Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, Lorenzo
- Stoakes <lorenzo.stoakes@oracle.com>, Shuah Khan <shuah@kernel.org>,
- Christoph Hellwig <hch@infradead.org>, Michal Hocko <mhocko@suse.com>,
- "Kirill A. Shutemov" <kirill@shutemov.name>, Chris Torek
- <chris.torek@gmail.com>, linux-arch@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
- linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org,
- linux-kselftest@vger.kernel.org, linux-abi-devel@lists.sourceforge.net
-Subject: Re: [PATCH RFC v3 1/2] mm: Add personality flag to limit address to
- 47 bits
-In-Reply-To: <ZuKIMz7U8rDrq8jA@ghost>
-References: <20240905-patches-below_hint_mmap-v3-0-3cd5564efbbb@rivosinc.com>
- <20240905-patches-below_hint_mmap-v3-1-3cd5564efbbb@rivosinc.com>
- <87zfol468z.fsf@mail.lhotse> <Zt9HboH/PmPlRPmH@ghost>
- <1aca8e4c-1c12-4624-a689-147ff60b75d6@csgroup.eu>
- <CAMuHMdURgy6NPthHhfOv_h=C_gw2hEpnGQ7iBGoDE=ZazUPRHA@mail.gmail.com>
- <8734m6s428.fsf@mail.lhotse> <ZuKIMz7U8rDrq8jA@ghost>
-Date: Fri, 20 Sep 2024 15:10:28 +1000
-Message-ID: <87y13mnc57.fsf@mail.lhotse>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nmf7IF0k"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2053525bd90so22108685ad.0;
+        Fri, 20 Sep 2024 08:37:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1726846661; x=1727451461; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=vZPEWZoZN6gyioYEDJsWWtC09rzdzpFL6+7dviCo3C8=;
+        b=nmf7IF0kWlXHbCbay3kjoBkYO18pg0nz0C2Ta62e6yDxF7lm3IwU7paR1gdBGC8tBd
+         ckGk1sGiqNlSFpmNMH9hWUuepTtRvQcmHQ7bxFzhJ6rTNGfg0OewXID0QZXf5fW/ozsd
+         R8TAemCwUb5NGeRE+UythzrBp3QudvSWxPW3bw8TzkphOs8e1lauJEIuKgn4QKmZv4ln
+         CVfZljwpp9XDRgB/8E3TnZpvp/HvFWSsFCb23ok+6eXs+IdqUCqQpaT1lyZ0mm0Lhyff
+         oRDX/K0uVuw6n1vMXiYjOKyoAvTPhSS9Jule1Q1pnL2Ly3kwdGtKovXs8L5MWqJUxKT3
+         PP3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726846661; x=1727451461;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=vZPEWZoZN6gyioYEDJsWWtC09rzdzpFL6+7dviCo3C8=;
+        b=gi1tFA7SzO3F/6m/BxqB5zNfq0Hb3x4MhHEEjSNAdBH1cxjOAT0XXWXdl1jDalLS0C
+         AXhjyP2GouGe5+Uje0l2t44VGjg9RDY3ukhqTE8nk4wykDlLQGk+F1RiRK27F7zJ5pxL
+         0gGIw0qtRxUFKJ1WLoLhu8ze/lpGHE44CeTnEAASy+yt5p7Pjsn7c3bJXvIWL6UNpsMh
+         WBWdM0QWyizPOlZlYBOfjzKkuNxvgOMBufssTWXyRww71krqQIHHT82qDyBrz48U5bky
+         nQUKO3Dv7lJdFj8692M6hNXFxBYuCJMSIQAGkWp90hjzsIVH5f8p//ec0GPptccSCVmD
+         g2+g==
+X-Forwarded-Encrypted: i=1; AJvYcCUad4OiGRFbBbYs2tFyOtC3L0KZ08TqyNkwUOiaGFODC4TRXJo+nOgK1vh5fFyHv9CyHraDlhTaPLyq+9E=@vger.kernel.org, AJvYcCV3/hz7Vyzj75xuQZoQbZo4ZP3pyO10fA7vPNvp1fLv2lWBva1z5+T7w/+VLHB05bOsu0PELmWmZitMxA==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy154+7n5Agnf5HblGja1bW8oUvpdYUcI7Ubo3ADq+w+7SpUAnb
+	H2Bt1ioKnX/PeYZeZkgmd0M/Epxkwm1RYQy+zH8iR8V6WJl6x9WJ
+X-Google-Smtp-Source: AGHT+IGPosCOh7nMMAoZzPbV+Z8FF/maBKEqdN9fsZINhjrwcKMd3EXETF6KUBqarQWAqD8AXU9C9A==
+X-Received: by 2002:a17:903:2c8:b0:207:625:cf04 with SMTP id d9443c01a7336-208d8565119mr52721765ad.52.1726846661158;
+        Fri, 20 Sep 2024 08:37:41 -0700 (PDT)
+Received: from localhost ([116.198.225.81])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-207945da8a3sm95990985ad.56.2024.09.20.08.37.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Sep 2024 08:37:40 -0700 (PDT)
+From: Tao Chen <chen.dylane@gmail.com>
+To: Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	Tao Chen <chen.dylane@gmail.com>
+Subject: [PATCH bpf-next 2/2] bpf: Add BPF_CALL_FUNC* to simplify code
+Date: Fri, 20 Sep 2024 23:37:06 +0800
+Message-Id: <20240920153706.919154-1-chen.dylane@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Charlie Jenkins <charlie@rivosinc.com> writes:
-> On Wed, Sep 11, 2024 at 11:38:55PM +1000, Michael Ellerman wrote:
->> Geert Uytterhoeven <geert@linux-m68k.org> writes:
->> > Hi Christophe,
->> >
->> > On Tue, Sep 10, 2024 at 11:21=E2=80=AFAM Christophe Leroy
->> > <christophe.leroy@csgroup.eu> wrote:
->> >> >>> diff --git a/include/uapi/linux/personality.h b/include/uapi/linu=
-x/personality.h
->> >> >>> index 49796b7756af..cd3b8c154d9b 100644
->> >> >>> --- a/include/uapi/linux/personality.h
->> >> >>> +++ b/include/uapi/linux/personality.h
->> >> >>> @@ -22,6 +22,7 @@ enum {
->> >> >>>     WHOLE_SECONDS =3D         0x2000000,
->> >> >>>     STICKY_TIMEOUTS =3D       0x4000000,
->> >> >>>     ADDR_LIMIT_3GB =3D        0x8000000,
->> >> >>> +   ADDR_LIMIT_47BIT =3D      0x10000000,
->> >> >>>   };
->> >> >>
->> >> >> I wonder if ADDR_LIMIT_128T would be clearer?
->> >> >>
->> >> >
->> >> > I don't follow, what does 128T represent?
->> >>
->> >> 128T is 128 Terabytes, that's the maximum size achievable with a 47BIT
->> >> address, that naming would be more consistant with the ADDR_LIMIT_3GB
->> >> just above that means a 3 Gigabytes limit.
->> >
->> > Hence ADDR_LIMIT_128TB?
->>=20
->> Yes it should be 128TB. Typo by me.
->
-> 47BIT was selected because the usecase for this flag is for applications
-> that want to store data in the upper bits of a virtual address space. In
-> this case, how large the virtual address space is irrelevant, and only
-> the number of bits that are being used, and hence the number of bits
-> that are free.
+No logic changed, like macro BPF_CALL_IMM, add BPF_CALL_FUNC/_FUNC_ARGS
+to simplify code.
 
-Yeah I understand that's how you came to the problem.
+Signed-off-by: Tao Chen <chen.dylane@gmail.com>
+---
+ arch/sparc/net/bpf_jit_comp_64.c | 2 +-
+ arch/x86/net/bpf_jit_comp.c      | 2 +-
+ arch/x86/net/bpf_jit_comp32.c    | 5 ++---
+ include/linux/filter.h           | 4 ++++
+ kernel/bpf/core.c                | 6 +++---
+ 5 files changed, 11 insertions(+), 8 deletions(-)
 
-But for the user API I think using the size of the address space is
-clearer, easier to explain, and matches the existing ADDR_LIMIT_3GB.
+diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
+index 73bf0aea8baf..076b1f216360 100644
+--- a/arch/sparc/net/bpf_jit_comp_64.c
++++ b/arch/sparc/net/bpf_jit_comp_64.c
+@@ -1213,7 +1213,7 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx)
+ 	/* function call */
+ 	case BPF_JMP | BPF_CALL:
+ 	{
+-		u8 *func = ((u8 *)__bpf_call_base) + imm;
++		u8 *func = BPF_CALL_FUNC(imm);
+ 
+ 		ctx->saw_call = true;
+ 
+diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
+index 06b080b61aa5..052e5cc65fc0 100644
+--- a/arch/x86/net/bpf_jit_comp.c
++++ b/arch/x86/net/bpf_jit_comp.c
+@@ -2126,7 +2126,7 @@ st:			if (is_imm8(insn->off))
+ 		case BPF_JMP | BPF_CALL: {
+ 			u8 *ip = image + addrs[i - 1];
+ 
+-			func = (u8 *) __bpf_call_base + imm32;
++			func = BPF_CALL_FUNC(imm32);
+ 			if (tail_call_reachable) {
+ 				LOAD_TAIL_CALL_CNT_PTR(bpf_prog->aux->stack_depth);
+ 				ip += 7;
+diff --git a/arch/x86/net/bpf_jit_comp32.c b/arch/x86/net/bpf_jit_comp32.c
+index de0f9e5f9f73..f7277639bd2c 100644
+--- a/arch/x86/net/bpf_jit_comp32.c
++++ b/arch/x86/net/bpf_jit_comp32.c
+@@ -1627,8 +1627,7 @@ static int emit_kfunc_call(const struct bpf_prog *bpf_prog, u8 *end_addr,
+ 	/* mov dword ptr [ebp+off],eax */
+ 	if (fm->ret_size)
+ 		end_addr -= 3;
+-
+-	jmp_offset = (u8 *)__bpf_call_base + insn->imm - end_addr;
++	jmp_offset = BPF_CALL_FUNC(insn->imm) - end_addr;
+ 	if (!is_simm32(jmp_offset)) {
+ 		pr_err("unsupported BPF kernel function jmp_offset:%lld\n",
+ 		       jmp_offset);
+@@ -2103,7 +2102,7 @@ static int do_jit(struct bpf_prog *bpf_prog, int *addrs, u8 *image,
+ 				break;
+ 			}
+ 
+-			func = (u8 *) __bpf_call_base + imm32;
++			func = BPF_CALL_FUNC(imm32);
+ 			jmp_offset = func - (image + addrs[i]);
+ 
+ 			if (!imm32 || !is_simm32(jmp_offset)) {
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 99b6fc83825b..d06526decc6d 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -461,6 +461,10 @@ static inline bool insn_is_cast_user(const struct bpf_insn *insn)
+ 
+ #define BPF_CALL_IMM(x)	((void *)(x) - (void *)__bpf_call_base)
+ 
++#define BPF_CALL_FUNC(x)	((x) + (u8 *)__bpf_call_base)
++
++#define BPF_CALL_FUNC_ARGS(x)	((x) + (u8 *)__bpf_call_base_args)
++
+ #define BPF_EMIT_CALL(FUNC)					\
+ 	((struct bpf_insn) {					\
+ 		.code  = BPF_JMP | BPF_CALL,			\
+diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+index 4e07cc057d6f..f965f0d586f3 100644
+--- a/kernel/bpf/core.c
++++ b/kernel/bpf/core.c
+@@ -1278,7 +1278,7 @@ int bpf_jit_get_func_addr(const struct bpf_prog *prog,
+ 		 * and the helper with imm relative to it are both in core
+ 		 * kernel.
+ 		 */
+-		addr = (u8 *)__bpf_call_base + imm;
++		addr = BPF_CALL_FUNC(imm);
+ 	}
+ 
+ 	*func_addr = (unsigned long)addr;
+@@ -2007,12 +2007,12 @@ static u64 ___bpf_prog_run(u64 *regs, const struct bpf_insn *insn)
+ 		 * preserves BPF_R6-BPF_R9, and stores return value
+ 		 * into BPF_R0.
+ 		 */
+-		BPF_R0 = (__bpf_call_base + insn->imm)(BPF_R1, BPF_R2, BPF_R3,
++		BPF_R0 = BPF_CALL_FUNC(insn->imm)(BPF_R1, BPF_R2, BPF_R3,
+ 						       BPF_R4, BPF_R5);
+ 		CONT;
+ 
+ 	JMP_CALL_ARGS:
+-		BPF_R0 = (__bpf_call_base_args + insn->imm)(BPF_R1, BPF_R2,
++		BPF_R0 = BPF_CALL_FUNC_ARGS(insn->imm)(BPF_R1, BPF_R2,
+ 							    BPF_R3, BPF_R4,
+ 							    BPF_R5,
+ 							    insn + insn->off + 1);
+-- 
+2.43.0
 
-cheers
