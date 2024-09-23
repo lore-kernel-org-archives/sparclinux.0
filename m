@@ -1,151 +1,94 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3C054BD8;
-	Sun, 22 Sep 2024 19:37:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C521E487;
+	Mon, 23 Sep 2024 11:58:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727033838; cv=none; b=RZW/zwQRD8emgRifmIHnXB/Fb9VGTcMi1G6r8PCoPLejzd0oIDvV+SN9qJrFR2umMP1q/sSoyGREjOLwoyw6M1VoUP43GykVsqonGCM1qaN87TMnFzyfxyFw8zox4VSPA5vItLBCP3hlyjmch4RKqN0sN9eKwMUMhZCr87wTG3I=
+	t=1727092689; cv=none; b=h65u1ypLOETtOiNQ3STBGCy0JQmj3DydNvRn2cp47TYr5PLlwA0VL/sNZUt2O05UVFOH0ckwXOK73oTGEaHUJEPHqMLuAJ/TJOkxnPtU4M7a0GIgxEgVkmFGAsCfyOthzrENdhCgkuwAYy6CFHcmOMJO2ggjKpuJ2S+cJsvZQmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727033838; c=relaxed/simple;
-	bh=6OLw3KQ9Id+36Of4MyqNEVVuMKmyZVb/xQStwECSFYs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J26X0/QB55VrhsscFoRnQqCk3KCe1Nz/+fAVSThqmmbDctvfMjNimYqJKxlrZZSHZ1630KFd3q+E138OYJ63Fo3sH/2qDL/cKGIxLB9mmQvTT5exg4Yu3NFWk9bJhFd2tth71uaCDboAcH1Dv8zRKmXy7x/TuS+g9t16ouoGJ88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IjQI8F5w; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1727092689; c=relaxed/simple;
+	bh=L3zeoFmAIIXDXWSfU1tSlP2ph85oqLVyrbsXzLRnnZ4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=De4wm0uUqQ56BmnnTlr4o07abv5DOvHaTefB3JlZvVKXmWJO2Bbr8sF92UP2wI+JheBld8aZKYKcOVVi2QgPc3rdnbaDKPzkoXoLTvDPw6zgYA1fNzpwdLqrt0oiffIwseYjcb4kdlicSQmesBFNgz1Z6tdxNvzYdS+RQXw8pzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OjH68SXd; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IjQI8F5w"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1727033837; x=1758569837;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6OLw3KQ9Id+36Of4MyqNEVVuMKmyZVb/xQStwECSFYs=;
-  b=IjQI8F5w6QyUR38AkdqeiIXxKc0S9HP/H0UujMvYKshS02p+QaMe7E6C
-   5CTnjRYEJRa3EB2Nr0smtXJVq9Gzto6hxVBDm9QZFiIi00MgXmw2gUEJQ
-   I3YpKvj/A7+9sDsYMeAHZWuUrZbp5/G9hDtE37EndJl59ZHY1vARz1cST
-   WQAHJ3gu3bLOge7c0E1rCEZlVLXN30HqGAqjXtUvMWw9VzOTAYxQT+0ny
-   a7JLWEDbWv5wfYRKUBiugjpjMBHveD9u5iOSDRtxjavwfaRg2Z8enZF6J
-   0TrBufIIaTbLGVmoQiH3q3NU/R+Kq5SiunVGoCR+h3tkMFRsCEwx9LbgD
-   A==;
-X-CSE-ConnectionGUID: xiL/W/oRRYCP5Q5V/r+Xpw==
-X-CSE-MsgGUID: vEEM7xwJTLCOEPNnuNSebQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11202"; a="26165479"
-X-IronPort-AV: E=Sophos;i="6.10,250,1719903600"; 
-   d="scan'208";a="26165479"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2024 12:37:13 -0700
-X-CSE-ConnectionGUID: aowQNLVzSmG3LDQPSyDrtw==
-X-CSE-MsgGUID: uH31ZW4XSq+pLndr8kHZvw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,250,1719903600"; 
-   d="scan'208";a="75243054"
-Received: from lkp-server01.sh.intel.com (HELO 53e96f405c61) ([10.239.97.150])
-  by fmviesa005.fm.intel.com with ESMTP; 22 Sep 2024 12:37:08 -0700
-Received: from kbuild by 53e96f405c61 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1ssSOI-000GcU-0Y;
-	Sun, 22 Sep 2024 19:37:06 +0000
-Date: Mon, 23 Sep 2024 03:36:56 +0800
-From: kernel test robot <lkp@intel.com>
-To: Tao Chen <chen.dylane@gmail.com>, Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	Jiri Olsa <jolsa@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H . Peter Anvin" <hpa@zytor.com>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-	sparclinux@vger.kernel.org, Tao Chen <chen.dylane@gmail.com>
-Subject: Re: [PATCH bpf-next 2/2] bpf: Add BPF_CALL_FUNC* to simplify code
-Message-ID: <202409230306.7OGURpiH-lkp@intel.com>
-References: <20240920153706.919154-1-chen.dylane@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OjH68SXd"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a8d6ac24a3bso15309666b.1;
+        Mon, 23 Sep 2024 04:58:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1727092686; x=1727697486; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Gx23M8paYAJhY6HQhk7rOEMPFOSG2hreLD2XyM5Mz1I=;
+        b=OjH68SXdaE3ncgOJN1xVtTwIJxxVrZ3Mmms4qkJPs0bAlauhoZ6qmZWgDFbRQio8mE
+         6fD5cgzl7KWvw3eM2QCVPpVl8jqY6Fmlaiv4TqTQR4/CQkOeSTgf8adAfvRteX0Rqq5Q
+         AFX8XMz5aZboGVeC/eKJ7vrouzd7KwFd/05FBehC/oc0FmkoeI2Y8JrhQ4nu4yGiaUyI
+         Js777AKPP6Wu+J4d4yqasyo8VcMBv3OuyToIMyOK8pNqHo4eFZ93Xdlw743FEywnBY0u
+         LlRISP27QPthe6ffSxx9zcB0MvFkrviBPo87ADRwjiAPTJPAIRWBssLP5HRrtgDtRxOR
+         DtsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1727092686; x=1727697486;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Gx23M8paYAJhY6HQhk7rOEMPFOSG2hreLD2XyM5Mz1I=;
+        b=oJqaWnuUCqIv+wDp7XAOMXZeQTq9kLl4T5OrSIKgBBJSjFb0lMe4XtlREJMRggNp98
+         1aQihvmp2qb8KawbCQNHFZXwfPeKoNLhVWUUeNkEHkMHnTBotQ/F0Tsa3jXW1ziJlJpW
+         030iw9N8POr6MN5uhVCqv33/MWrywSgQ8HJoLvCQseBVWXDZYJ3KmXcg+qukiy13FhZY
+         vwclToTiOdRRj+KXqzezAzwfbeGPvuaK3shwFKP9VSNRUwGJ/4A1enSgiP88iLaqlwjG
+         m/0lYaMNBTWbc05WmlCIUAwrtK2kpLug4UNCqhfHzxLi+Qt12cnbilEJep7ep+sq1SvQ
+         RfBw==
+X-Forwarded-Encrypted: i=1; AJvYcCUV4tzrrrYSeibmGyvdmXiBiTGUC5atokakNWBUdZYU199+PT6JHt3EKjKXLNN9bbtzPlR3TNRKih9neO0=@vger.kernel.org, AJvYcCUX6JqPrZDNBedoA1EnvLXVKh5dlj4pA7J1VWs7TTtzkzSr0mPlp7Lp6zhBVFU1uOYjXrJ6zJAG1srZJw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YwovX4gU9xg2whAWG2FuFvmfnEr31ZkwnI74AgljHtb+8XQRhlj
+	r8CCx13gPx+XWupKHDKACiiXInL8hlrIDRaPyMvCX//iGvAaYuW5
+X-Google-Smtp-Source: AGHT+IHAm/Nn+89z+Op4B2/Etymkgok5/SWK+WDNKeN9yfOL3atld/KjLQBYFWWMLDgxXcvUw3pCWA==
+X-Received: by 2002:a17:907:268e:b0:a8a:754a:e1c1 with SMTP id a640c23a62f3a-a90c1c73fabmr1622152666b.8.1727092685579;
+        Mon, 23 Sep 2024 04:58:05 -0700 (PDT)
+Received: from localhost (craw-09-b2-v4wan-169726-cust2117.vm24.cable.virginm.net. [92.238.24.70])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a9061331b7csm1208179566b.225.2024.09.23.04.58.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Sep 2024 04:58:05 -0700 (PDT)
+From: Colin Ian King <colin.i.king@gmail.com>
+To: "David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH][next] sparc: leon: Fix spelling mistake "wont" -> "won't"
+Date: Mon, 23 Sep 2024 12:58:04 +0100
+Message-Id: <20240923115804.836547-1-colin.i.king@gmail.com>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240920153706.919154-1-chen.dylane@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-Hi Tao,
+There is a spelling mistake in a prom_printf. Fix it.
 
-kernel test robot noticed the following build warnings:
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+---
+ arch/sparc/kernel/leon_smp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[auto build test WARNING on bpf-next/master]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Tao-Chen/bpf-Add-BPF_CALL_FUNC-to-simplify-code/20240920-233936
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
-patch link:    https://lore.kernel.org/r/20240920153706.919154-1-chen.dylane%40gmail.com
-patch subject: [PATCH bpf-next 2/2] bpf: Add BPF_CALL_FUNC* to simplify code
-config: mips-mtx1_defconfig (https://download.01.org/0day-ci/archive/20240923/202409230306.7OGURpiH-lkp@intel.com/config)
-compiler: clang version 16.0.6 (https://github.com/llvm/llvm-project 7cbf1a2591520c2491aa35339f227775f4d3adf6)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240923/202409230306.7OGURpiH-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202409230306.7OGURpiH-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
-   kernel/bpf/core.c:2010:36: error: called object type 'u8 *' (aka 'unsigned char *') is not a function or function pointer
-                   BPF_R0 = BPF_CALL_FUNC(insn->imm)(BPF_R1, BPF_R2, BPF_R3,
-                            ~~~~~~~~~~~~~~~~~~~~~~~~^
-   kernel/bpf/core.c:2015:41: error: called object type 'u8 *' (aka 'unsigned char *') is not a function or function pointer
-                   BPF_R0 = BPF_CALL_FUNC_ARGS(insn->imm)(BPF_R1, BPF_R2,
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
-   In file included from kernel/bpf/core.c:3079:
-   In file included from include/linux/bpf_trace.h:5:
-   In file included from include/trace/events/xdp.h:427:
-   In file included from include/trace/define_trace.h:102:
-   In file included from include/trace/trace_events.h:21:
-   In file included from include/linux/trace_events.h:6:
-   In file included from include/linux/ring_buffer.h:7:
->> include/linux/poll.h:136:27: warning: division by zero is undefined [-Wdivision-by-zero]
-                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
-                                           ^~~~~~~~~
-   include/linux/poll.h:134:32: note: expanded from macro 'M'
-   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
-                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/poll.h:120:51: note: expanded from macro '__MAP'
-           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
-                                                            ^ ~~~~~~~~~
-   include/linux/poll.h:136:39: warning: division by zero is undefined [-Wdivision-by-zero]
-                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
-                                                       ^~~~~~~~~
-   include/linux/poll.h:134:32: note: expanded from macro 'M'
-   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
-                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/poll.h:120:51: note: expanded from macro '__MAP'
-           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
-                                                            ^ ~~~~~~~~~
-   2 warnings and 2 errors generated.
-
-
-vim +136 include/linux/poll.h
-
-7a163b2195cda0 Al Viro 2018-02-01  131  
-7a163b2195cda0 Al Viro 2018-02-01  132  static inline __poll_t demangle_poll(u16 val)
-7a163b2195cda0 Al Viro 2018-02-01  133  {
-7a163b2195cda0 Al Viro 2018-02-01  134  #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
-7a163b2195cda0 Al Viro 2018-02-01  135  	return M(IN) | M(OUT) | M(PRI) | M(ERR) | M(NVAL) |
-7a163b2195cda0 Al Viro 2018-02-01 @136  		M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
-7a163b2195cda0 Al Viro 2018-02-01  137  		M(HUP) | M(RDHUP) | M(MSG);
-7a163b2195cda0 Al Viro 2018-02-01  138  #undef M
-7a163b2195cda0 Al Viro 2018-02-01  139  }
-7a163b2195cda0 Al Viro 2018-02-01  140  #undef __MAP
-7a163b2195cda0 Al Viro 2018-02-01  141  
-7a163b2195cda0 Al Viro 2018-02-01  142  
-
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index 1ee393abc463..0a33db5e35bf 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -135,7 +135,7 @@ static void leon_smp_setbroadcast(unsigned int mask)
+ 	    ((LEON3_BYPASS_LOAD_PA(&(leon3_irqctrl_regs->mpstatus)) >>
+ 	      LEON3_IRQMPSTATUS_BROADCAST) & 1);
+ 	if (!broadcast) {
+-		prom_printf("######## !!!! The irqmp-ctrl must have broadcast enabled, smp wont work !!!!! ####### nr cpus: %d\n",
++		prom_printf("######## !!!! The irqmp-ctrl must have broadcast enabled, smp won't work !!!!! ####### nr cpus: %d\n",
+ 		     leon_smp_nrcpus());
+ 		if (leon_smp_nrcpus() > 1) {
+ 			BUG();
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.39.2
+
