@@ -1,116 +1,206 @@
-Received: from fhigh-a7-smtp.messagingengine.com (fhigh-a7-smtp.messagingengine.com [103.168.172.158])
+Received: from fout-a2-smtp.messagingengine.com (fout-a2-smtp.messagingengine.com [103.168.172.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4FF17279E;
-	Mon,  7 Oct 2024 22:43:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.158
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E68BB18CBE3;
+	Mon,  7 Oct 2024 22:43:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728341000; cv=none; b=iQXpnrv7UNBnlwvNSONdFBqz4u8U6sTFxIKfGiXtx79qOQXVy9gqthV3zxmvP4EZHlHRgraOCmpDpM5DhWzlDu5+c2zf+HD8i0sMQNsCBeWFy9z6b5LnQ+K3kxxEOePk86mvi+JDoAmEa1Z94qP0ADgw2/zGBgIC+l3PxwmfLZA=
+	t=1728341008; cv=none; b=N4CXyf9ihhiiDGNZbfJUpX3jNn4kxyLZq6rrRb1c0gq2Wj1T4wBezRNZ0hFdekIDccPIxGQblP92ZH5oN0NGGUNEEF7LvlLpCy4B0KCUTnye3lvyVqFr47m/QalV40xrNS1b4EOjz9r+fU5h4rCCBL5xk8SfxgbyY+wNsqC96kA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728341000; c=relaxed/simple;
-	bh=ULJNkUi3nWPA/nIXK1IrKcjvPDnqlFUo5yXcBFj4uAQ=;
-	h=Message-Id:From:Subject:Date:To:Cc; b=uGahLYLD617M25k+m8tjM1kVNyhL7Jw/BChaW8ZdqH/EaJIGqqNWeyFKBLgvnLJ0EjebY+fi9VzyrBg7oW89EVMSbfPyt0Y6Uq7eAfIBGtUx24m2UWm5jIOvEwEsvSIyIao55CVVKo0PQs/LB7GZL39woEHUcHPSE7R0tnN2I64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eWPIclJ7; arc=none smtp.client-ip=103.168.172.158
+	s=arc-20240116; t=1728341008; c=relaxed/simple;
+	bh=XV5YbZRRrsc8MmSBXAbVWjCukL5lMxgr/JIS1Dd0vuE=;
+	h=To:Cc:Message-Id:In-Reply-To:References:From:Subject:Date; b=t8WQtUEKeGKtQnfXcQaqdwA5ZAsmAUfBLyon0N/B1K7pRm4KJK8uiH/pdpa07fODX/16pJwRvHFh/Z76ywHlqFBV4uh2vL8aEwuIas8oQ1+ktRmuk70UvrXfakI48P/WpJhiMYFPAp2x/acPtZ8X+qZ6a3FzMRIfAllWfehiOSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=mOPqG09u; arc=none smtp.client-ip=103.168.172.145
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eWPIclJ7"
-Received: from phl-compute-02.internal (phl-compute-02.phl.internal [10.202.2.42])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 4E4101140155;
-	Mon,  7 Oct 2024 18:43:17 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="mOPqG09u"
+Received: from phl-compute-05.internal (phl-compute-05.phl.internal [10.202.2.45])
+	by mailfout.phl.internal (Postfix) with ESMTP id EBBE91380540;
+	Mon,  7 Oct 2024 18:43:25 -0400 (EDT)
 Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-02.internal (MEProxy); Mon, 07 Oct 2024 18:43:17 -0400
+  by phl-compute-05.internal (MEProxy); Mon, 07 Oct 2024 18:43:25 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-	:feedback-id:from:from:in-reply-to:message-id:reply-to:subject
-	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-	:x-sasl-enc; s=fm2; t=1728340997; x=1728427397; bh=PSbighUzhdllJ
-	PAPWW22AFgW90piD0NXx5zzmIwwePY=; b=eWPIclJ7vq+6uXi9K7peN0wrGAxgh
-	O5m/lE7mtm6yMe1oUpOnF6CA3g9acrcJVyRyC/NgmnMbZlISRXyEZvBVzqipP9MA
-	Iic5K3jLaMsJXmAhWVAm42Q5gLJR5hKx9Wpm7CZtxoJYlc7/S7hHPx6EVuyMcMBG
-	iJh8oWLpH6fiD9bgsfRNvDHUleIECChAHjNj2b4Qg4VxNa3mLnp+Yzy6judtxY7D
-	grYc3w3wzgyXkEzLzMRLkRm4sZqTcZ7tOsrXfwjtT7gzC2947DReOpk5exk2HA/x
-	PXApqm1AIaYsooTj8cZ/X8B/aZQP9C7w6yYahOI9IppDVG3RbDEXgHlWQ==
-X-ME-Sender: <xms:BGQEZ3DvCztAM_Winef_PRp8riKn1UvE15cL8nWOuMckpv4VbTyVsw>
-    <xme:BGQEZ9iuaQD1FTDX1KnSRAKHcLSCWCjysKUXqjVr2YeHNtsVLZKQQqZn3iAIjb0VE
-    KJGXvHTbUBDAaqCswo>
-X-ME-Received: <xmr:BGQEZynalZZ8Rv6_SmyHF0gGKKD0R3baHk7UyaEedeljQ_aKGCRtJme5EqfwYTo2z9Bb58k2v8peNUKrVAqmv8py9RdOIqxHqPU>
+	:feedback-id:from:from:in-reply-to:in-reply-to:message-id
+	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1728341005; x=
+	1728427405; bh=Sejz/rLOEMbCYCfBmFSejBAhf5tD9ye4Vs7WkeVOMVc=; b=m
+	OPqG09ucUTsnU1v11hMb42ZqQOYVULntDQtXKN4kPWZIRkcFBWk1SMWjpjYs6ZDM
+	CimJtpVtyhhvhxqp4P9tK3E5Ywfx8AqSi2xX+RbuX/rvHY9AK917HmD4CYG/HQXL
+	DmIrqB0h2q0gitTbD8svzScMpPF+bHDAk/M8jOxvzdWYaYcZdXiTY1oMO9T5eMSR
+	qEVzSVDZhCYzuH3hmhk8mtQ1A96uokIftUadfAPf13s0j5WpVkbHQTsJPIy9vtiU
+	AR+ujjRaTe3UaO5/rEYSKQtk5jXJMdQoEs4/YRbl6qHm18O3Ds9NJ6C2Cem5c29+
+	wuqWKIRgtMbRYqnv/xBIA==
+X-ME-Sender: <xms:DWQEZ5GdrpHqBP1ahjCciWUjvTRsk0V5MIG5G81tdQ7xxTVBtDViUw>
+    <xme:DWQEZ-V4izBjvfksnhIa6GfAS3FSB015b225cjYpu4c9hG6P0RWvnZuUsHqSUE0j-
+    UORdj8sbLi64PJiH5w>
+X-ME-Received: <xmr:DWQEZ7KPfPobWMyzJMXIGO18vwfITD0pdgEfMs60q3TOwW6zxp3w6PdYMU8c88R4n08dtOgIO4C4NCOSfofvNveXOfcI2FGlWnA>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrvdeftddgudefucetufdoteggodetrfdotf
     fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
     rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepkffhufffvfevsedttdertddttddtnecuhfhrohhm
-    pefhihhnnhcuvfhhrghinhcuoehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgqe
-    enucggtffrrghtthgvrhhnpeehffdukeetffdutedvffffheegtdetkeekfeevgfeitefh
-    vedvtdelhfduudettdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
-    hlfhhrohhmpehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgpdhnsggprhgtphht
-    thhopedutddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtoheprghlvgigrghnughrvg
-    drsggvlhhlohhnihessghoohhtlhhinhdrtghomhdprhgtphhtthhopegrnhgurhgvrghs
-    sehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhfth
-    drnhgvthdprhgtphhtthhopehgvggvrhhtsehlihhnuhigqdhmieekkhdrohhrghdprhgt
-    phhtthhopegurghnihgvlhestdigtdhfrdgtohhmpdhrtghpthhtohepphgrvhhonhgvse
-    hrvghtrhhouggvvhdrtghomhdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhg
-    vghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhmieekkheslhhish
-    htshdrlhhinhhugidqmheikehkrdhorhhgpdhrtghpthhtoheplhhinhhugidqrhhttges
-    vhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:BGQEZ5wlfrA9yetGxYaygMmOiLsmjnRKywrptNSZquqnSMC41RmF9A>
-    <xmx:BGQEZ8Tvk6s1Z_kWuCLVCyoAZcNlVyf6V3LW2kGw7V6DaWq-v7JCpw>
-    <xmx:BGQEZ8bK_Xgx9lCEzr5NLMYfl2rKsYaH5xChjw5XH0pk3K_BoRICvg>
-    <xmx:BGQEZ9TLYp38ZENRM59shdG6lSkyBcD0m8bn3ppbVhwZkodRlQswqA>
-    <xmx:BWQEZ1_lF3QKNqDAYPy6NVEh-n451HIxisdgDAD4rukNHSX8bMYCE6bf>
+    htshculddquddttddmnecujfgurhepvfevkfgjfhfhufffsedttdertddttddtnecuhfhr
+    ohhmpefhihhnnhcuvfhhrghinhcuoehfthhhrghinheslhhinhhugidqmheikehkrdhorh
+    hgqeenucggtffrrghtthgvrhhnpeevgffgtdfhhfefveeuudfgtdeugfeftedtveekieeg
+    gfduleetgeegueehgeffffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmh
+    grihhlfhhrohhmpehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgpdhnsggprhgt
+    phhtthhopeelpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopegurghvvghmsegurg
+    hvvghmlhhofhhtrdhnvghtpdhrtghpthhtoheprghnughrvggrshesghgrihhslhgvrhdr
+    tghomhdprhgtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohhothhlih
+    hnrdgtohhmpdhrtghpthhtohepuggrnhhivghlsedtgidtfhdrtghomhdprhgtphhtthho
+    pehprghvohhnvgesrhgvthhrohguvghvrdgtohhmpdhrtghpthhtoheplhhinhhugidqmh
+    eikehksehlihhsthhsrdhlihhnuhigqdhmieekkhdrohhrghdprhgtphhtthhopehlihhn
+    uhigqdhrthgtsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepshhprghrtg
+    hlihhnuhigsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidq
+    khgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:DWQEZ_GGHqkKU1vwEccZz2nsYsiM4QgEApWH2xd9C57KgSmx7NSzpg>
+    <xmx:DWQEZ_W-qw-l_t2dw2ZeS1C88epoRR0EepsCAqv8t1T0q395DFLyRg>
+    <xmx:DWQEZ6MIc_ohmKxzXyTgcJMl-fN1rph3qarjvB2k76UGKF2PTzUz2w>
+    <xmx:DWQEZ-2wnr8WHhDJTp6kLwzOSl9PlDiDz4gxdSkf5chnOkhPy777TQ>
+    <xmx:DWQEZ7rIFqfV1SrDj9wlcAfiOJnEgToat9siR4-xy98E7wkFD-3KjyLT>
 Feedback-ID: i58a146ae:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 7 Oct 2024 18:43:13 -0400 (EDT)
-Message-Id: <cover.1728340717.git.fthain@linux-m68k.org>
-From: Finn Thain <fthain@linux-m68k.org>
-Subject: [PATCH v2 0/2] MVME: Adopt standard RTC driver
-Date: Tue, 08 Oct 2024 09:38:37 +1100
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ 7 Oct 2024 18:43:22 -0400 (EDT)
+To: "David S. Miller" <davem@davemloft.net>,
     Andreas Larsson <andreas@gaisler.com>,
-    "David S. Miller" <davem@davemloft.net>,
-    Geert Uytterhoeven <geert@linux-m68k.org>
+    Alexandre Belloni <alexandre.belloni@bootlin.com>
 Cc: Daniel Palmer <daniel@0x0f.com>,
     Michael Pavone <pavone@retrodev.com>,
-    linux-kernel@vger.kernel.org,
     linux-m68k@lists.linux-m68k.org,
     linux-rtc@vger.kernel.org,
-    sparclinux@vger.kernel.org
+    sparclinux@vger.kernel.org,
+    linux-kernel@vger.kernel.org
+Message-Id: <fb25eb97521363ab8a18d2fd499cb4c76209cebf.1728340717.git.fthain@linux-m68k.org>
+In-Reply-To: <cover.1728340717.git.fthain@linux-m68k.org>
+References: <cover.1728340717.git.fthain@linux-m68k.org>
+From: Finn Thain <fthain@linux-m68k.org>
+Subject: [PATCH v2 1/2] rtc: m48t59: Use platform_data struct for year offset
+ value
+Date: Tue, 08 Oct 2024 09:38:37 +1100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 
-This series removes some duplicated RTC driver code.
-First rtc-m48t59 is tweaked to bring it into equivalence with the RTC
-drivers in arch/m68k/mvme*. Then platform devices are added for the
-former driver and the latter drivers are removed.
+Instead of hard-coded values and ifdefs, store the year offset in the
+platform_data struct.
 
+Tested-by: Daniel Palmer <daniel@0x0f.com>
+Signed-off-by: Finn Thain <fthain@linux-m68k.org>
 ---
-Changed since v1:
- - Instead of adding ifdefs to the portable driver, store the year offset
-   in struct m48t59_plat_data.
+I tested this for regressions using qemu-system-sparc64.
+Also, Daniel tested the RTC functionality on his MVME147 system.
+---
+ arch/sparc/kernel/time_32.c |  1 +
+ arch/sparc/kernel/time_64.c |  1 +
+ drivers/rtc/rtc-m48t59.c    | 26 ++++----------------------
+ include/linux/rtc/m48t59.h  |  3 +++
+ 4 files changed, 9 insertions(+), 22 deletions(-)
 
-
-Finn Thain (2):
-  rtc: m48t59: Use platform_data struct for year offset value
-  m68k: mvme147, mvme16x: Adopt rtc-m48t59 platform driver
-
- arch/m68k/configs/multi_defconfig   |   1 +
- arch/m68k/configs/mvme147_defconfig |   1 +
- arch/m68k/configs/mvme16x_defconfig |   1 +
- arch/m68k/include/asm/mvme147hw.h   |  19 +---
- arch/m68k/include/asm/mvme16xhw.h   |  18 +--
- arch/m68k/mvme147/config.c          |  55 ++++------
- arch/m68k/mvme16x/Makefile          |   2 +-
- arch/m68k/mvme16x/config.c          |  57 ++++------
- arch/m68k/mvme16x/rtc.c             | 165 ----------------------------
- arch/sparc/kernel/time_32.c         |   1 +
- arch/sparc/kernel/time_64.c         |   1 +
- drivers/rtc/rtc-m48t59.c            |  26 +----
- include/linux/rtc/m48t59.h          |   3 +
- 13 files changed, 63 insertions(+), 287 deletions(-)
- delete mode 100644 arch/m68k/mvme16x/rtc.c
-
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 08bbdc458596..578fd0d49f30 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -255,6 +255,7 @@ static void mostek_write_byte(struct device *dev, u32 ofs, u8 val)
+ static struct m48t59_plat_data m48t59_data = {
+ 	.read_byte = mostek_read_byte,
+ 	.write_byte = mostek_write_byte,
++	.yy_offset = 68,
+ };
+ 
+ /* resource is set at runtime */
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 60f1c8cc5363..b32f27f929d1 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -544,6 +544,7 @@ static void mostek_write_byte(struct device *dev, u32 ofs, u8 val)
+ static struct m48t59_plat_data m48t59_data = {
+ 	.read_byte	= mostek_read_byte,
+ 	.write_byte	= mostek_write_byte,
++	.yy_offset	= 68,
+ };
+ 
+ static struct platform_device m48t59_rtc = {
+diff --git a/drivers/rtc/rtc-m48t59.c b/drivers/rtc/rtc-m48t59.c
+index f0f6b9b6daec..4c339fb45b5c 100644
+--- a/drivers/rtc/rtc-m48t59.c
++++ b/drivers/rtc/rtc-m48t59.c
+@@ -71,7 +71,7 @@ static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ 	/* Issue the READ command */
+ 	M48T59_SET_BITS(M48T59_CNTL_READ, M48T59_CNTL);
+ 
+-	tm->tm_year	= bcd2bin(M48T59_READ(M48T59_YEAR));
++	tm->tm_year	= bcd2bin(M48T59_READ(M48T59_YEAR)) + pdata->yy_offset;
+ 	/* tm_mon is 0-11 */
+ 	tm->tm_mon	= bcd2bin(M48T59_READ(M48T59_MONTH)) - 1;
+ 	tm->tm_mday	= bcd2bin(M48T59_READ(M48T59_MDAY));
+@@ -82,10 +82,6 @@ static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ 		dev_dbg(dev, "Century bit is enabled\n");
+ 		tm->tm_year += 100;	/* one century */
+ 	}
+-#ifdef CONFIG_SPARC
+-	/* Sun SPARC machines count years since 1968 */
+-	tm->tm_year += 68;
+-#endif
+ 
+ 	tm->tm_wday	= bcd2bin(val & 0x07);
+ 	tm->tm_hour	= bcd2bin(M48T59_READ(M48T59_HOUR) & 0x3F);
+@@ -106,12 +102,7 @@ static int m48t59_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ 	struct m48t59_private *m48t59 = dev_get_drvdata(dev);
+ 	unsigned long flags;
+ 	u8 val = 0;
+-	int year = tm->tm_year;
+-
+-#ifdef CONFIG_SPARC
+-	/* Sun SPARC machines count years since 1968 */
+-	year -= 68;
+-#endif
++	int year = tm->tm_year - pdata->yy_offset;
+ 
+ 	dev_dbg(dev, "RTC set time %04d-%02d-%02d %02d/%02d/%02d\n",
+ 		year + 1900, tm->tm_mon, tm->tm_mday,
+@@ -162,11 +153,7 @@ static int m48t59_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
+ 	/* Issue the READ command */
+ 	M48T59_SET_BITS(M48T59_CNTL_READ, M48T59_CNTL);
+ 
+-	tm->tm_year = bcd2bin(M48T59_READ(M48T59_YEAR));
+-#ifdef CONFIG_SPARC
+-	/* Sun SPARC machines count years since 1968 */
+-	tm->tm_year += 68;
+-#endif
++	tm->tm_year = bcd2bin(M48T59_READ(M48T59_YEAR)) + pdata->yy_offset;
+ 	/* tm_mon is 0-11 */
+ 	tm->tm_mon = bcd2bin(M48T59_READ(M48T59_MONTH)) - 1;
+ 
+@@ -197,12 +184,7 @@ static int m48t59_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
+ 	struct rtc_time *tm = &alrm->time;
+ 	u8 mday, hour, min, sec;
+ 	unsigned long flags;
+-	int year = tm->tm_year;
+-
+-#ifdef CONFIG_SPARC
+-	/* Sun SPARC machines count years since 1968 */
+-	year -= 68;
+-#endif
++	int year = tm->tm_year - pdata->yy_offset;
+ 
+ 	/* If no irq, we don't support ALARM */
+ 	if (m48t59->irq == NO_IRQ)
+diff --git a/include/linux/rtc/m48t59.h b/include/linux/rtc/m48t59.h
+index 9465d5405fe2..6ac1eb2cbeac 100644
+--- a/include/linux/rtc/m48t59.h
++++ b/include/linux/rtc/m48t59.h
+@@ -56,6 +56,9 @@ struct m48t59_plat_data {
+ 	void __iomem *ioaddr;
+ 	/* offset to RTC registers, automatically set according to the type */
+ 	unsigned int offset;
++
++	/* YY digits (in RTC) are offset, i.e. year is 1900 + yy_offset + YY */
++	time64_t yy_offset;
+ };
+ 
+ #endif /* _LINUX_RTC_M48T59_H_ */
 -- 
 2.39.5
 
