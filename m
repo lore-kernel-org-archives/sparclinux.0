@@ -1,165 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fhigh-a7-smtp.messagingengine.com (fhigh-a7-smtp.messagingengine.com [103.168.172.158])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C2013D53B;
-	Mon,  7 Oct 2024 06:31:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4FF17279E;
+	Mon,  7 Oct 2024 22:43:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728282689; cv=none; b=kHrYN13bLWNUnubk62CEddQqOxQDLR73vZ3Qgb3rTgrjIJxGKdnPR5pLjC7urOX4EKxv7CnnjrQkczKYq6zlcu0WfFoy5B1JvjNGPuHrPdHYdVfWxVV2enMVTIQ4/mPneXucAh8wNIkAVl7WVNDR79j6BAHCcZDsPXHV3oZO6Zg=
+	t=1728341000; cv=none; b=iQXpnrv7UNBnlwvNSONdFBqz4u8U6sTFxIKfGiXtx79qOQXVy9gqthV3zxmvP4EZHlHRgraOCmpDpM5DhWzlDu5+c2zf+HD8i0sMQNsCBeWFy9z6b5LnQ+K3kxxEOePk86mvi+JDoAmEa1Z94qP0ADgw2/zGBgIC+l3PxwmfLZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728282689; c=relaxed/simple;
-	bh=l7egSUNcilONf7gTBq0Hjl37ut+S55vwboWjXSdFWe0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YlGTfFU0BNUNHjO3SPmPKByoH7cPXtBHJ+mTEpTLGAhE91jFSw8ZH3NH1xgS4iKT4fa+GgUhKYwmnySNui6zyPPoOI+NyxUN3WxIAGTF6EuqNl2efpfPluUbnvX+s7f09yzTncXrIvaAtWkiqCJLo2hqPTQqkT08SAVE/bMg4ug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d5WdCg6Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728341000; c=relaxed/simple;
+	bh=ULJNkUi3nWPA/nIXK1IrKcjvPDnqlFUo5yXcBFj4uAQ=;
+	h=Message-Id:From:Subject:Date:To:Cc; b=uGahLYLD617M25k+m8tjM1kVNyhL7Jw/BChaW8ZdqH/EaJIGqqNWeyFKBLgvnLJ0EjebY+fi9VzyrBg7oW89EVMSbfPyt0Y6Uq7eAfIBGtUx24m2UWm5jIOvEwEsvSIyIao55CVVKo0PQs/LB7GZL39woEHUcHPSE7R0tnN2I64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eWPIclJ7; arc=none smtp.client-ip=103.168.172.158
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d5WdCg6Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01844C4CECF;
-	Mon,  7 Oct 2024 06:31:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1728282689;
-	bh=l7egSUNcilONf7gTBq0Hjl37ut+S55vwboWjXSdFWe0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=d5WdCg6QSd7SstfrUQDCwWsvOnXL2HjQin7m1gEvD09o/DpyujqnKes3WgYGTvKOT
-	 8fJupYh4P7AD8z21iOCA24rSlPpZgrC0ler/FB88Rk83zueQWu5DliMx8e2O8aTZy1
-	 2WuyKBqO7T0WcSvhAXTmxQ8uEF0O7cPfGLlPULXqmDuI73io26/AinRB6Mxie4EdiX
-	 eqqjSoB2Hzf0RdcuIX8LTr/1ZAWIhDwvRQaFN3mQv0heCDOMIj3IHzRdHmbpyUkqBx
-	 A7M0PE4IScMmPLSDTSkp1aHDV0LltxKlDIJG2E+qlhVUGri7q26OTN/ytz1rzd+xsQ
-	 LLK619DlFqppA==
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@quicinc.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>,
-	Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>,
-	Mike Rapoport <rppt@kernel.org>,
-	Oleg Nesterov <oleg@redhat.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>,
-	Song Liu <song@kernel.org>,
-	Stafford Horne <shorne@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Uladzislau Rezki <urezki@gmail.com>,
-	Vineet Gupta <vgupta@kernel.org>,
-	Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org,
-	linux-alpha@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-modules@vger.kernel.org,
-	linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-sh@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org
-Subject: [PATCH v4 8/8] x86/module: enable ROX caches for module text
-Date: Mon,  7 Oct 2024 09:28:58 +0300
-Message-ID: <20241007062858.44248-9-rppt@kernel.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241007062858.44248-1-rppt@kernel.org>
-References: <20241007062858.44248-1-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eWPIclJ7"
+Received: from phl-compute-02.internal (phl-compute-02.phl.internal [10.202.2.42])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 4E4101140155;
+	Mon,  7 Oct 2024 18:43:17 -0400 (EDT)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-02.internal (MEProxy); Mon, 07 Oct 2024 18:43:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+	:feedback-id:from:from:in-reply-to:message-id:reply-to:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm2; t=1728340997; x=1728427397; bh=PSbighUzhdllJ
+	PAPWW22AFgW90piD0NXx5zzmIwwePY=; b=eWPIclJ7vq+6uXi9K7peN0wrGAxgh
+	O5m/lE7mtm6yMe1oUpOnF6CA3g9acrcJVyRyC/NgmnMbZlISRXyEZvBVzqipP9MA
+	Iic5K3jLaMsJXmAhWVAm42Q5gLJR5hKx9Wpm7CZtxoJYlc7/S7hHPx6EVuyMcMBG
+	iJh8oWLpH6fiD9bgsfRNvDHUleIECChAHjNj2b4Qg4VxNa3mLnp+Yzy6judtxY7D
+	grYc3w3wzgyXkEzLzMRLkRm4sZqTcZ7tOsrXfwjtT7gzC2947DReOpk5exk2HA/x
+	PXApqm1AIaYsooTj8cZ/X8B/aZQP9C7w6yYahOI9IppDVG3RbDEXgHlWQ==
+X-ME-Sender: <xms:BGQEZ3DvCztAM_Winef_PRp8riKn1UvE15cL8nWOuMckpv4VbTyVsw>
+    <xme:BGQEZ9iuaQD1FTDX1KnSRAKHcLSCWCjysKUXqjVr2YeHNtsVLZKQQqZn3iAIjb0VE
+    KJGXvHTbUBDAaqCswo>
+X-ME-Received: <xmr:BGQEZynalZZ8Rv6_SmyHF0gGKKD0R3baHk7UyaEedeljQ_aKGCRtJme5EqfwYTo2z9Bb58k2v8peNUKrVAqmv8py9RdOIqxHqPU>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrvdeftddgudefucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
+    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
+    htshculddquddttddmnecujfgurhepkffhufffvfevsedttdertddttddtnecuhfhrohhm
+    pefhihhnnhcuvfhhrghinhcuoehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgqe
+    enucggtffrrghtthgvrhhnpeehffdukeetffdutedvffffheegtdetkeekfeevgfeitefh
+    vedvtdelhfduudettdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
+    hlfhhrohhmpehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgpdhnsggprhgtphht
+    thhopedutddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtoheprghlvgigrghnughrvg
+    drsggvlhhlohhnihessghoohhtlhhinhdrtghomhdprhgtphhtthhopegrnhgurhgvrghs
+    sehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhfth
+    drnhgvthdprhgtphhtthhopehgvggvrhhtsehlihhnuhigqdhmieekkhdrohhrghdprhgt
+    phhtthhopegurghnihgvlhestdigtdhfrdgtohhmpdhrtghpthhtohepphgrvhhonhgvse
+    hrvghtrhhouggvvhdrtghomhdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhg
+    vghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhmieekkheslhhish
+    htshdrlhhinhhugidqmheikehkrdhorhhgpdhrtghpthhtoheplhhinhhugidqrhhttges
+    vhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:BGQEZ5wlfrA9yetGxYaygMmOiLsmjnRKywrptNSZquqnSMC41RmF9A>
+    <xmx:BGQEZ8Tvk6s1Z_kWuCLVCyoAZcNlVyf6V3LW2kGw7V6DaWq-v7JCpw>
+    <xmx:BGQEZ8bK_Xgx9lCEzr5NLMYfl2rKsYaH5xChjw5XH0pk3K_BoRICvg>
+    <xmx:BGQEZ9TLYp38ZENRM59shdG6lSkyBcD0m8bn3ppbVhwZkodRlQswqA>
+    <xmx:BWQEZ1_lF3QKNqDAYPy6NVEh-n451HIxisdgDAD4rukNHSX8bMYCE6bf>
+Feedback-ID: i58a146ae:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 7 Oct 2024 18:43:13 -0400 (EDT)
+Message-Id: <cover.1728340717.git.fthain@linux-m68k.org>
+From: Finn Thain <fthain@linux-m68k.org>
+Subject: [PATCH v2 0/2] MVME: Adopt standard RTC driver
+Date: Tue, 08 Oct 2024 09:38:37 +1100
+To: Alexandre Belloni <alexandre.belloni@bootlin.com>,
+    Andreas Larsson <andreas@gaisler.com>,
+    "David S. Miller" <davem@davemloft.net>,
+    Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Daniel Palmer <daniel@0x0f.com>,
+    Michael Pavone <pavone@retrodev.com>,
+    linux-kernel@vger.kernel.org,
+    linux-m68k@lists.linux-m68k.org,
+    linux-rtc@vger.kernel.org,
+    sparclinux@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+This series removes some duplicated RTC driver code.
+First rtc-m48t59 is tweaked to bring it into equivalence with the RTC
+drivers in arch/m68k/mvme*. Then platform devices are added for the
+former driver and the latter drivers are removed.
 
-Enable execmem's cache of PMD_SIZE'ed pages mapped as ROX for module
-text allocations.
-
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 ---
- arch/x86/mm/init.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+Changed since v1:
+ - Instead of adding ifdefs to the portable driver, store the year offset
+   in struct m48t59_plat_data.
 
-diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index eb503f53c319..a0ec99fb9385 100644
---- a/arch/x86/mm/init.c
-+++ b/arch/x86/mm/init.c
-@@ -1053,6 +1053,15 @@ unsigned long arch_max_swapfile_size(void)
- #ifdef CONFIG_EXECMEM
- static struct execmem_info execmem_info __ro_after_init;
- 
-+static void execmem_fill_trapping_insns(void *ptr, size_t size, bool writeable)
-+{
-+	/* fill memory with INT3 instructions */
-+	if (writeable)
-+		memset(ptr, INT3_INSN_OPCODE, size);
-+	else
-+		text_poke_set(ptr, INT3_INSN_OPCODE, size);
-+}
-+
- struct execmem_info __init *execmem_arch_setup(void)
- {
- 	unsigned long start, offset = 0;
-@@ -1063,8 +1072,23 @@ struct execmem_info __init *execmem_arch_setup(void)
- 	start = MODULES_VADDR + offset;
- 
- 	execmem_info = (struct execmem_info){
-+		.fill_trapping_insns = execmem_fill_trapping_insns,
- 		.ranges = {
--			[EXECMEM_DEFAULT] = {
-+			[EXECMEM_MODULE_TEXT] = {
-+				.flags	= EXECMEM_KASAN_SHADOW | EXECMEM_ROX_CACHE,
-+				.start	= start,
-+				.end	= MODULES_END,
-+				.pgprot	= PAGE_KERNEL_ROX,
-+				.alignment = MODULE_ALIGN,
-+			},
-+			[EXECMEM_KPROBES ... EXECMEM_BPF] = {
-+				.flags	= EXECMEM_KASAN_SHADOW,
-+				.start	= start,
-+				.end	= MODULES_END,
-+				.pgprot	= PAGE_KERNEL,
-+				.alignment = MODULE_ALIGN,
-+			},
-+			[EXECMEM_MODULE_DATA] = {
- 				.flags	= EXECMEM_KASAN_SHADOW,
- 				.start	= start,
- 				.end	= MODULES_END,
+
+Finn Thain (2):
+  rtc: m48t59: Use platform_data struct for year offset value
+  m68k: mvme147, mvme16x: Adopt rtc-m48t59 platform driver
+
+ arch/m68k/configs/multi_defconfig   |   1 +
+ arch/m68k/configs/mvme147_defconfig |   1 +
+ arch/m68k/configs/mvme16x_defconfig |   1 +
+ arch/m68k/include/asm/mvme147hw.h   |  19 +---
+ arch/m68k/include/asm/mvme16xhw.h   |  18 +--
+ arch/m68k/mvme147/config.c          |  55 ++++------
+ arch/m68k/mvme16x/Makefile          |   2 +-
+ arch/m68k/mvme16x/config.c          |  57 ++++------
+ arch/m68k/mvme16x/rtc.c             | 165 ----------------------------
+ arch/sparc/kernel/time_32.c         |   1 +
+ arch/sparc/kernel/time_64.c         |   1 +
+ drivers/rtc/rtc-m48t59.c            |  26 +----
+ include/linux/rtc/m48t59.h          |   3 +
+ 13 files changed, 63 insertions(+), 287 deletions(-)
+ delete mode 100644 arch/m68k/mvme16x/rtc.c
+
 -- 
-2.43.0
+2.39.5
 
