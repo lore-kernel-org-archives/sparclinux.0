@@ -1,423 +1,167 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from fout-a3-smtp.messagingengine.com (fout-a3-smtp.messagingengine.com [103.168.172.146])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3D47192585;
-	Wed,  9 Oct 2024 11:43:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC6F819ABAB;
+	Wed,  9 Oct 2024 14:06:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.146
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728474222; cv=none; b=WC5vohH/BqVz17dKVIF3OUgtZT8wDAs5iQuDH+w2cN9TqETNeObwFThbF6To9WnCDRRLual+wUEbZEBirzfcD8wcGjjXXaT/3mQJQrERxQf09Gy5GxAF+ZvK+bF390RtUO3eiTmeb7TUwHyJt2QGUL6K8+kMepELzw8M7OupSWo=
+	t=1728482813; cv=none; b=UXJnP/ArO8YLgHcMM3lcz3SLhcK2p1OWKbKO+Rp4+015wbr6x7OhrAekq9YEtnRpgYXHpJYeVklj7WKQSV55PJZ/z0ceY47ygB0HmzgqmX0Av1Mjevdj8jZ282/Qth5vBZBYS01hMal0TuchO9LrnMxJQOx4ApVAZhUr7tzW+jE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728474222; c=relaxed/simple;
-	bh=sE54vGCk2lBRKQY29uMwc+pX2+ZSb9emctdtHdAvph4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KbH8RcLabYkdJUGsIqqBWzSlUQRDBunGHCxibp/Sq4dvJfevzVDvetBHbAtv0M6KBSgu1RvsEpXz23Gvx5WQ52FUfJk2nWVuSQ7Vyc36/t5r2R+GoWNvCpQZlsHANtXJ6Nw+NZLNKuEvGDdg3hTd0QhzWj416mOsThjEJDax49s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=42VbIf/D; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1728482813; c=relaxed/simple;
+	bh=El3JqQRpLCkxhPsPMxKfjev55jeNH5mnmmxjPHwk2Ig=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=Hr5QiaPj9Z9tXkl0CTFcp1JHdgbF93duUGkbekYnOxkhC+tqSPjFUE/UK26Onqu8r44xPe9Ex83OirfngW+b2ra01gVaPdHQaoXHn68VbTY61ec9bpVrusnQzYIV4dznT7kfyHizIzxMMGb8MIeO5k2HmzGe0cF0rqmBO0UkQIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=oQOs8kCK; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=oMeceCAt; arc=none smtp.client-ip=103.168.172.146
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="42VbIf/D"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=NM8ug2XISrmucNWiBDmldBwY2XaRi/sfCGk1W4bj/+c=; b=42VbIf/DxZKIx9nbWItYFw61xC
-	VJSdIcrD+nOhMXYqtjpgGcS6nQM8bEUq7ifCYa0tePqzKDOF537GVfBu45Uwq6QjP1VWPhLJ/9P4S
-	xbOs1jQBmz8123gurDpA3LxRpNJBfEKJglCC4YIbTUAeGXt3nY4Zdaf0NE/EcMx8b2810eglrCHvj
-	yMY5OomPqysIeuOm4oP7nlBp0Vppx05AyWW94ep4ljxTbZKv6njQ35mGG/dMesScpj3IAEGKAopuk
-	vxifGeEuYNPP2F7pECYp03O7CP+WvvEsgrHlCdz/KQqo1DioPVhUvWjnqNDXvh4ekGHW9d+hG+VKK
-	YQEn6hAA==;
-Received: from 2a02-8389-2341-5b80-164d-fdb4-bac5-9f5e.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:164d:fdb4:bac5:9f5e] helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.98 #2 (Red Hat Linux))
-	id 1syV6R-000000095px-0mHC;
-	Wed, 09 Oct 2024 11:43:39 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-alpha@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org,
-	loongarch@lists.linux.dev,
-	linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org,
-	linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linux-arch@vger.kernel.org
-Subject: [PATCH] asm-generic: provide generic page_to_phys and phys_to_page implementations
-Date: Wed,  9 Oct 2024 13:43:22 +0200
-Message-ID: <20241009114334.558004-2-hch@lst.de>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241009114334.558004-1-hch@lst.de>
-References: <20241009114334.558004-1-hch@lst.de>
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="oQOs8kCK";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="oMeceCAt"
+Received: from phl-compute-10.internal (phl-compute-10.phl.internal [10.202.2.50])
+	by mailfout.phl.internal (Postfix) with ESMTP id EEAA61380261;
+	Wed,  9 Oct 2024 10:06:48 -0400 (EDT)
+Received: from phl-imap-11 ([10.202.2.101])
+  by phl-compute-10.internal (MEProxy); Wed, 09 Oct 2024 10:06:48 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1728482808;
+	 x=1728569208; bh=7AEiig9c/7wiIG97Hr2tulDdk8lJo3CwPWgfvG3cqr0=; b=
+	oQOs8kCK/NnoDFbeh8NYIFgnU7EWDJq210AZ17pgPcVr0s8t4Vq4QjsRC0QOkm8Q
+	jU6UCfS39M7vux56KrOng2F6Y0yrmrZzpWAKeXdUH11BGy73irTZQZopAtPBoIkT
+	1qC9nbDwA8/QYmCZINeI38PZMF52GH342I+9Xx4uF8HHCQoNYhw+Gl6pC0Fq/eRT
+	sKFmEByr3o62fi0DvAiYokJQUdQeXxzYLELzNb+wrIAU5eDcakrfFxQHKQxdH1O9
+	SfHAqBhlAMLApF0BxQP2CZcSwupwtvb+I4PNSyMIrfCHzthssd5U3WwMYy/6epDW
+	rVBtFbK/Zt7gxM1+EguZpg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1728482808; x=
+	1728569208; bh=7AEiig9c/7wiIG97Hr2tulDdk8lJo3CwPWgfvG3cqr0=; b=o
+	MeceCAtz/bmQ10Z5D2RfVpXPfnSZkZguqJBx9lKa+IB8SFlwBCPlk5eEgsedk1Ie
+	lXF69pWqnMlOmP8/el8nzFs+N+NKzBsmp91Bivm/h9eXpymcH4Zmlqw+RhggqN5v
+	usMX3ePPR7QMH2UIKTSUK5NKiCsVomo/cryyyOEe4cHwZWQ8kdXYlrry93U9sDmP
+	SfRh7XW/SZAqG14pXP1hy4afWVVe8+b+b1MEnAvf/sRjrbTolgC7ZYkemBMpUUMw
+	AKYoXUl+0OsZy23/NtcODfuTUpj4FP4ZVjVxsYouXmnW5e1V615fvPw2n3qtF3rL
+	qCd2RQ66eCJAJaUhMoWfw==
+X-ME-Sender: <xms:-I0GZwkgABMbFhbjz5TAOeVpoKCpcWalQaX4IdSNB_nP5VmiOxElgw>
+    <xme:-I0GZ_3VF9LLk4LXZvZCIUX45tmeF4wKrKwW8xtPlyIdYcfa4bEIMHpaaENRKTmSm
+    4hUYMbpzfQANV3Cbyg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrvdeffedgjeehucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
+    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
+    htshculddquddttddmnecujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddt
+    necuhfhrohhmpedftehrnhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrd
+    guvgeqnecuggftrfgrthhtvghrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefg
+    gfevudegudevledvkefhvdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpe
+    hmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvgdpnhgspghrtghpthhtohepudel
+    pdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehlihhnuhigqdgrrhhmqdhkvghrnh
+    gvlheslhhishhtshdrihhnfhhrrgguvggrugdrohhrghdprhgtphhtthhopehlihhnuhig
+    qdhrihhstghvsehlihhsthhsrdhinhhfrhgruggvrggurdhorhhgpdhrtghpthhtoheplh
+    hinhhugidqshhnphhsqdgrrhgtsehlihhsthhsrdhinhhfrhgruggvrggurdhorhhgpdhr
+    tghpthhtoheplhhinhhugidquhhmsehlihhsthhsrdhinhhfrhgruggvrggurdhorhhgpd
+    hrtghpthhtoheplhhinhhugidqmheikehksehlihhsthhsrdhlihhnuhigqdhmieekkhdr
+    ohhrghdprhgtphhtthhopehlohhonhhgrghrtghhsehlihhsthhsrdhlihhnuhigrdguvg
+    hvpdhrtghpthhtoheplhhinhhugihpphgtqdguvghvsehlihhsthhsrdhoiihlrggsshdr
+    ohhrghdprhgtphhtthhopehhtghhsehlshhtrdguvgdprhgtphhtthhopehlihhnuhigqd
+    grlhhphhgrsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:-I0GZ-rCA4Fl-YeMz1EBuIcKDdpCuuOpo3T0vD4P-oZf1RDDpjgaqQ>
+    <xmx:-I0GZ8mlUzBY8q2JinIfwPVZi9LXVI32mxMdmVvdp7L9Ai9Y55jtVA>
+    <xmx:-I0GZ-3wHxqRWliSbYlqcPrqe2D1EgoLFl-IXjLV57dSVwzcK3wCfg>
+    <xmx:-I0GZzsfcfMxXvtiXOnA8c6Djn-ORiK0A1lBW73Gqi1mdoezKwNZiQ>
+    <xmx:-I0GZ1v-G53-56c9PHxvQsMFLRDeTrW4Vm6CR0BrqtzB4K1yF0i2ERan>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 6D3232220071; Wed,  9 Oct 2024 10:06:48 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Date: Wed, 09 Oct 2024 14:06:27 +0000
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Christoph Hellwig" <hch@lst.de>
+Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
+ linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+ "linux-openrisc@vger.kernel.org" <linux-openrisc@vger.kernel.org>,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-um@lists.infradead.org, Linux-Arch <linux-arch@vger.kernel.org>
+Message-Id: <3e12014e-47a7-4cae-bcd1-87d301e1f80c@app.fastmail.com>
+In-Reply-To: <20241009114334.558004-2-hch@lst.de>
+References: <20241009114334.558004-1-hch@lst.de>
+ <20241009114334.558004-2-hch@lst.de>
+Subject: Re: [PATCH] asm-generic: provide generic page_to_phys and phys_to_page
+ implementations
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-page_to_phys is duplicated by all architectures, and from some strange
-reason placed in <asm/io.h> where it doesn't fit at all.
+On Wed, Oct 9, 2024, at 11:43, Christoph Hellwig wrote:
+> page_to_phys is duplicated by all architectures, and from some strange
+> reason placed in <asm/io.h> where it doesn't fit at all.
+>
+> phys_to_page is only provided by a few architectures despite having a lot
+> of open coded users.
+>
+> Provide generic versions in <asm-generic/memory_model.h> to make these
+> helpers more easily usable.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-phys_to_page is only provided by a few architectures despite having a lot
-of open coded users.
+This is clearly a good idea, and I'm happy to take that through
+the asm-generic tree if there are no complaints.
 
-Provide generic versions in <asm-generic/memory_model.h> to make these
-helpers more easily usable.
+Do you have any other patches that depend on it?
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/alpha/include/asm/io.h         |  1 -
- arch/arc/include/asm/io.h           |  3 ---
- arch/arm/include/asm/memory.h       |  6 ------
- arch/arm64/include/asm/memory.h     |  6 ------
- arch/csky/include/asm/page.h        |  3 ---
- arch/hexagon/include/asm/page.h     |  6 ------
- arch/loongarch/include/asm/page.h   |  3 ---
- arch/m68k/include/asm/virtconvert.h |  3 ---
- arch/microblaze/include/asm/page.h  |  1 -
- arch/mips/include/asm/io.h          |  5 -----
- arch/nios2/include/asm/io.h         |  3 ---
- arch/openrisc/include/asm/page.h    |  2 --
- arch/parisc/include/asm/page.h      |  1 -
- arch/powerpc/include/asm/io.h       | 12 ------------
- arch/riscv/include/asm/page.h       |  3 ---
- arch/s390/include/asm/page.h        |  2 --
- arch/sh/include/asm/page.h          |  1 -
- arch/sparc/include/asm/page.h       |  2 --
- arch/um/include/asm/pgtable.h       |  2 --
- arch/x86/include/asm/io.h           |  5 -----
- arch/xtensa/include/asm/page.h      |  1 -
- include/asm-generic/memory_model.h  |  3 +++
- 22 files changed, 3 insertions(+), 71 deletions(-)
+> -/*
+> - * Change "struct page" to physical address.
+> - */
+> -static inline phys_addr_t page_to_phys(struct page *page)
+> -{
+> -	unsigned long pfn = page_to_pfn(page);
+> -
+> -	WARN_ON(IS_ENABLED(CONFIG_DEBUG_VIRTUAL) && !pfn_valid(pfn));
+> -
+> -	return PFN_PHYS(pfn);
+> -}
 
-diff --git a/arch/alpha/include/asm/io.h b/arch/alpha/include/asm/io.h
-index b191d87f89c401..65fe1e54c6da09 100644
---- a/arch/alpha/include/asm/io.h
-+++ b/arch/alpha/include/asm/io.h
-@@ -88,7 +88,6 @@ static inline void * phys_to_virt(unsigned long address)
- 
- #define virt_to_phys		virt_to_phys
- #define phys_to_virt		phys_to_virt
--#define page_to_phys(page)	page_to_pa(page)
- 
- /* Maximum PIO space address supported?  */
- #define IO_SPACE_LIMIT 0xffff
-diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
-index f57cb5a6b62403..00171a212b3cb2 100644
---- a/arch/arc/include/asm/io.h
-+++ b/arch/arc/include/asm/io.h
-@@ -42,9 +42,6 @@ static inline void ioport_unmap(void __iomem *addr)
- #define iowrite16be(v,p)	({ __iowmb(); __raw_writew((__force u16)cpu_to_be16(v), p); })
- #define iowrite32be(v,p)	({ __iowmb(); __raw_writel((__force u32)cpu_to_be32(v), p); })
- 
--/* Change struct page to physical address */
--#define page_to_phys(page)		(page_to_pfn(page) << PAGE_SHIFT)
--
- #define __raw_readb __raw_readb
- static inline u8 __raw_readb(const volatile void __iomem *addr)
- {
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index ef2aa79ece5ad5..7c2fa7dcec6d4b 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -147,12 +147,6 @@ extern unsigned long vectors_base;
- #define DTCM_OFFSET	UL(0xfffe8000)
- #endif
- 
--/*
-- * Convert a page to/from a physical address
-- */
--#define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
--#define phys_to_page(phys)	(pfn_to_page(__phys_to_pfn(phys)))
--
- /*
-  * PLAT_PHYS_OFFSET is the offset (from zero) of the start of physical
-  * memory.  This is used for XIP and NoMMU kernels, and on platforms that don't
-diff --git a/arch/arm64/include/asm/memory.h b/arch/arm64/include/asm/memory.h
-index 0480c61dbb4f30..b9b992908a569c 100644
---- a/arch/arm64/include/asm/memory.h
-+++ b/arch/arm64/include/asm/memory.h
-@@ -353,12 +353,6 @@ extern phys_addr_t __phys_addr_symbol(unsigned long x);
- #define __phys_to_virt(x)	((unsigned long)((x) - PHYS_OFFSET) | PAGE_OFFSET)
- #define __phys_to_kimg(x)	((unsigned long)((x) + kimage_voffset))
- 
--/*
-- * Convert a page to/from a physical address
-- */
--#define page_to_phys(page)	(__pfn_to_phys(page_to_pfn(page)))
--#define phys_to_page(phys)	(pfn_to_page(__phys_to_pfn(phys)))
--
- /*
-  * Note: Drivers should NOT use these.  They are the wrong
-  * translation for translating DMA addresses.  Use the driver
-diff --git a/arch/csky/include/asm/page.h b/arch/csky/include/asm/page.h
-index 0ca6c408c07f27..a5afdfe27dc62d 100644
---- a/arch/csky/include/asm/page.h
-+++ b/arch/csky/include/asm/page.h
-@@ -43,9 +43,6 @@ extern void *memcpy(void *to, const void *from, size_t l);
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to, from)	memcpy((to), (from), PAGE_SIZE)
- 
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
--#define phys_to_page(paddr)	(pfn_to_page(PFN_DOWN(paddr)))
--
- struct page;
- 
- #include <abi/page.h>
-diff --git a/arch/hexagon/include/asm/page.h b/arch/hexagon/include/asm/page.h
-index 8a6af57274c2db..aba4d790130518 100644
---- a/arch/hexagon/include/asm/page.h
-+++ b/arch/hexagon/include/asm/page.h
-@@ -118,12 +118,6 @@ static inline void clear_page(void *page)
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
--/*
-- * page_to_phys - convert page to physical address
-- * @page - pointer to page entry in mem_map
-- */
--#define page_to_phys(page)      (page_to_pfn(page) << PAGE_SHIFT)
--
- static inline unsigned long virt_to_pfn(const void *kaddr)
- {
- 	return __pa(kaddr) >> PAGE_SHIFT;
-diff --git a/arch/loongarch/include/asm/page.h b/arch/loongarch/include/asm/page.h
-index e85df33f11c772..8b4e6b280f2b86 100644
---- a/arch/loongarch/include/asm/page.h
-+++ b/arch/loongarch/include/asm/page.h
-@@ -81,9 +81,6 @@ struct page *tlb_virt_to_page(unsigned long kaddr);
- #define pfn_to_phys(pfn)	__pfn_to_phys(pfn)
- #define phys_to_pfn(paddr)	__phys_to_pfn(paddr)
- 
--#define page_to_phys(page)	pfn_to_phys(page_to_pfn(page))
--#define phys_to_page(paddr)	pfn_to_page(phys_to_pfn(paddr))
--
- #ifndef CONFIG_KFENCE
- 
- #define page_to_virt(page)	__va(page_to_phys(page))
-diff --git a/arch/m68k/include/asm/virtconvert.h b/arch/m68k/include/asm/virtconvert.h
-index 0a27905b0036ff..32e27bddb7d430 100644
---- a/arch/m68k/include/asm/virtconvert.h
-+++ b/arch/m68k/include/asm/virtconvert.h
-@@ -28,9 +28,6 @@ static inline void *phys_to_virt(unsigned long address)
- 	return __va(address);
- }
- 
--/* Permanent address of a page. */
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
--
- /*
-  * IO bus memory addresses are 1:1 with the physical address,
-  * deprecated globally but still used on two machines.
-diff --git a/arch/microblaze/include/asm/page.h b/arch/microblaze/include/asm/page.h
-index 8810f4f1c3b02d..ecd4bf2779a0bb 100644
---- a/arch/microblaze/include/asm/page.h
-+++ b/arch/microblaze/include/asm/page.h
-@@ -101,7 +101,6 @@ extern int page_is_ram(unsigned long pfn);
- 
- #  define virt_to_page(kaddr)	(pfn_to_page(__pa(kaddr) >> PAGE_SHIFT))
- #  define page_to_virt(page)   __va(page_to_pfn(page) << PAGE_SHIFT)
--#  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
- 
- #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
- # endif /* __ASSEMBLY__ */
-diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
-index af58d6ae06b85e..0bddb568af7c1c 100644
---- a/arch/mips/include/asm/io.h
-+++ b/arch/mips/include/asm/io.h
-@@ -125,11 +125,6 @@ static inline unsigned long isa_virt_to_bus(volatile void *address)
- 	return virt_to_phys(address);
- }
- 
--/*
-- * Change "struct page" to physical address.
-- */
--#define page_to_phys(page)	((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
--
- void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
- 		unsigned long prot_val);
- void iounmap(const volatile void __iomem *addr);
-diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
-index 746853ac7d8d38..36e3550673b34b 100644
---- a/arch/nios2/include/asm/io.h
-+++ b/arch/nios2/include/asm/io.h
-@@ -28,9 +28,6 @@
- void __iomem *ioremap(unsigned long physaddr, unsigned long size);
- void iounmap(void __iomem *addr);
- 
--/* Pages to physical address... */
--#define page_to_phys(page)	virt_to_phys(page_to_virt(page))
--
- /* Macros used for converting between virtual and physical mappings. */
- #define phys_to_virt(vaddr)	\
- 	((void *)((unsigned long)(vaddr) | CONFIG_NIOS2_KERNEL_REGION_BASE))
-diff --git a/arch/openrisc/include/asm/page.h b/arch/openrisc/include/asm/page.h
-index 1d5913f67c312f..45d6c440729ce3 100644
---- a/arch/openrisc/include/asm/page.h
-+++ b/arch/openrisc/include/asm/page.h
-@@ -80,8 +80,6 @@ static inline unsigned long virt_to_pfn(const void *kaddr)
- #define virt_to_page(addr) \
- 	(mem_map + (((unsigned long)(addr)-PAGE_OFFSET) >> PAGE_SHIFT))
- 
--#define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
--
- #define virt_addr_valid(kaddr)	(pfn_valid(virt_to_pfn(kaddr)))
- 
- #endif /* __ASSEMBLY__ */
-diff --git a/arch/parisc/include/asm/page.h b/arch/parisc/include/asm/page.h
-index 4bea2e95798f02..6cb5b02aca9a77 100644
---- a/arch/parisc/include/asm/page.h
-+++ b/arch/parisc/include/asm/page.h
-@@ -168,7 +168,6 @@ extern int npmem_ranges;
- 
- #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
- 
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- #define virt_to_page(kaddr)     pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
- 
- #include <asm-generic/memory_model.h>
-diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
-index 52e1b1d15ff63a..fd92ac4501693c 100644
---- a/arch/powerpc/include/asm/io.h
-+++ b/arch/powerpc/include/asm/io.h
-@@ -969,18 +969,6 @@ static inline void * phys_to_virt(unsigned long address)
- }
- #define phys_to_virt phys_to_virt
- 
--/*
-- * Change "struct page" to physical address.
-- */
--static inline phys_addr_t page_to_phys(struct page *page)
--{
--	unsigned long pfn = page_to_pfn(page);
--
--	WARN_ON(IS_ENABLED(CONFIG_DEBUG_VIRTUAL) && !pfn_valid(pfn));
--
--	return PFN_PHYS(pfn);
--}
--
- /*
-  * 32 bits still uses virt_to_bus() for its implementation of DMA
-  * mappings se we have to keep it defined here. We also have some old
-diff --git a/arch/riscv/include/asm/page.h b/arch/riscv/include/asm/page.h
-index 32d308a3355fd4..16f4141f005561 100644
---- a/arch/riscv/include/asm/page.h
-+++ b/arch/riscv/include/asm/page.h
-@@ -194,9 +194,6 @@ extern phys_addr_t __phys_addr_symbol(unsigned long x);
- #define virt_to_page(vaddr)	(pfn_to_page(virt_to_pfn(vaddr)))
- #define page_to_virt(page)	(pfn_to_virt(page_to_pfn(page)))
- 
--#define page_to_phys(page)	(pfn_to_phys(page_to_pfn(page)))
--#define phys_to_page(paddr)	(pfn_to_page(phys_to_pfn(paddr)))
--
- #define sym_to_pfn(x)           __phys_to_pfn(__pa_symbol(x))
- 
- unsigned long kaslr_offset(void);
-diff --git a/arch/s390/include/asm/page.h b/arch/s390/include/asm/page.h
-index 73e1e03317b433..16d62a4eccccef 100644
---- a/arch/s390/include/asm/page.h
-+++ b/arch/s390/include/asm/page.h
-@@ -245,9 +245,7 @@ static inline unsigned long __phys_addr(unsigned long x, bool is_31bit)
- #define phys_to_pfn(phys)	((phys) >> PAGE_SHIFT)
- #define pfn_to_phys(pfn)	((pfn) << PAGE_SHIFT)
- 
--#define phys_to_page(phys)	pfn_to_page(phys_to_pfn(phys))
- #define phys_to_folio(phys)	page_folio(phys_to_page(phys))
--#define page_to_phys(page)	pfn_to_phys(page_to_pfn(page))
- #define folio_to_phys(page)	pfn_to_phys(folio_pfn(folio))
- 
- static inline void *pfn_to_virt(unsigned long pfn)
-diff --git a/arch/sh/include/asm/page.h b/arch/sh/include/asm/page.h
-index f780b467e75d7c..4e82ea84a06fce 100644
---- a/arch/sh/include/asm/page.h
-+++ b/arch/sh/include/asm/page.h
-@@ -147,7 +147,6 @@ typedef struct page *pgtable_t;
- #endif
- 
- #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- 
- /*
-  * PFN = physical frame number (ie PFN 0 == physical address 0)
-diff --git a/arch/sparc/include/asm/page.h b/arch/sparc/include/asm/page.h
-index 5e44cdf2a8f2bd..1a00cc0a1893eb 100644
---- a/arch/sparc/include/asm/page.h
-+++ b/arch/sparc/include/asm/page.h
-@@ -2,8 +2,6 @@
- #ifndef ___ASM_SPARC_PAGE_H
- #define ___ASM_SPARC_PAGE_H
- 
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
--
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/page_64.h>
- #else
-diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
-index 83373c9963e7c9..faab5a2a4b061f 100644
---- a/arch/um/include/asm/pgtable.h
-+++ b/arch/um/include/asm/pgtable.h
-@@ -287,9 +287,7 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
-  * and a page entry and page directory to the page they refer to.
-  */
- 
--#define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
- #define mk_pte(page, pgprot) \
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index 1d60427379c939..ed580c7f9d0aaf 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -151,11 +151,6 @@ static inline void *phys_to_virt(phys_addr_t address)
- }
- #define phys_to_virt phys_to_virt
- 
--/*
-- * Change "struct page" to physical address.
-- */
--#define page_to_phys(page)    ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
--
- /*
-  * ISA I/O bus memory addresses are 1:1 with the physical address.
-  * However, we truncate the address to unsigned int to avoid undesirable
-diff --git a/arch/xtensa/include/asm/page.h b/arch/xtensa/include/asm/page.h
-index 4db56ef052d223..dc3d5b094ecd98 100644
---- a/arch/xtensa/include/asm/page.h
-+++ b/arch/xtensa/include/asm/page.h
-@@ -195,7 +195,6 @@ static inline unsigned long ___pa(unsigned long va)
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
- #define page_to_virt(page)	__va(page_to_pfn(page) << PAGE_SHIFT)
- #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
--#define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- 
- #endif /* __ASSEMBLY__ */
- 
-diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-index 6796abe1900e30..3d51066f88f819 100644
---- a/include/asm-generic/memory_model.h
-+++ b/include/asm-generic/memory_model.h
-@@ -64,6 +64,9 @@ static inline int pfn_valid(unsigned long pfn)
- #define page_to_pfn __page_to_pfn
- #define pfn_to_page __pfn_to_page
- 
-+#define page_to_phys(page)	__pfn_to_phys(page_to_pfn(page))
-+#define phys_to_page(phys)	pfn_to_page(__phys_to_pfn(phys))
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif
--- 
-2.45.2
+This part is technically a change in behavior, not sure how
+much anyone cares.
 
+> diff --git a/include/asm-generic/memory_model.h 
+> b/include/asm-generic/memory_model.h
+> index 6796abe1900e30..3d51066f88f819 100644
+> --- a/include/asm-generic/memory_model.h
+> +++ b/include/asm-generic/memory_model.h
+> @@ -64,6 +64,9 @@ static inline int pfn_valid(unsigned long pfn)
+>  #define page_to_pfn __page_to_pfn
+>  #define pfn_to_page __pfn_to_page
+> 
+> +#define page_to_phys(page)	__pfn_to_phys(page_to_pfn(page))
+> +#define phys_to_page(phys)	pfn_to_page(__phys_to_pfn(phys))
+
+I think we should try to have a little fewer nested macros
+to evaluate here, right now this ends up expanding
+__pfn_to_phys, PFN_PHYS, PAGE_SHIFT, CONFIG_PAGE_SHIFT,
+page_to_pfn and __page_to_pfn. While the behavior is fine,
+modern gcc versions list all of those in an warning message
+if someone passes the wrong arguments.
+
+Changing the two macros above into inline functions
+would help as well, but may cause other problems.
+
+On a related note, it would be even better if we could come
+up with a generic definition for either __pa/__va or
+virt_to_phys/phys_to_virt. Most architectures define one
+of the two pairs in terms of the other, which leads to
+confusion with header include order.
+
+      Arnd
