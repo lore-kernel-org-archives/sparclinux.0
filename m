@@ -1,128 +1,214 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D437D20CCD9;
-	Fri, 11 Oct 2024 09:18:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD882218D69;
+	Fri, 11 Oct 2024 13:01:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728638337; cv=none; b=Ri1nTJs71RcnsvGv4ILuAr1mQW9tTi4rkL0SYen8/jVvBYm5QPY9mvv79+LT7pZ2mTiHi+YJY0XEe0EYXvz0/NPepB8Z/cT/xIcU8Q9QC8bSSWMreCIlJ79ZeSNgH4sosZCOc9M7IXTHaLdZsZRIQxtwFcU3pHENXcRAkI05Z38=
+	t=1728651715; cv=none; b=Qyoiimoe8Ms2p2HcaJ+vIuN+xrB6uhv9YpsdQLKJabgCs0Ii50l7NXielSprcakeUTNDbPtUysZMZPZlQbuBZoLGs3H78ZXZAyAZKNPZjVv8vyYSwhHLfcJzELtYx7MscuDcakpW2iAmj04t1+cl6HCLoTZOsYg00IB7ZdX2rCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728638337; c=relaxed/simple;
-	bh=t1AATzKotfQo47rXCJvuPRI3mhX3sXVhtvZQtdB1CqY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=UIKvVDskW/EmPaqeNHdK1CPHvkw4xjt5qZc+LBPb6z+YWc9+ydSmmRbQtBzXx+b2hmpeup+RmwV58yKa3a45Oe/X8oWlpLS5GU+FH2fgfdPkFk+xq6a6emz8dpHIm3ozL6N+v0CmkgZEt4BhTfUj5lfnZAL18OyGQG0zZJIypsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Azdsz7gp; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=YQaX3Xlr; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1728651715; c=relaxed/simple;
+	bh=j6FIkJsgrJb7Fy59tSRAkzfdThNSkDRiwl7mc5Gyfrs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lui3SpDtahZHaPTCJziDEtUrwD2PfBBiKXeauK5K+qjqfR2Q2Q/ewELhImdolxa1PbOUES4jOUS8BqybyoOnnJxcSIl5/22kK+Vsen8mOOf4pISca40n2fmHaM8qTPEago80rPSFs5uj1J+78kSB5Kdch4Auo3yuoxkqSG0cd/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oaq6u26x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Azdsz7gp";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="YQaX3Xlr"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1728638334;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kg9B8PQ0+lOyKlgoz+gQ2Jyp4iAe3qYLBwLYXFt7qs0=;
-	b=Azdsz7gpKjh7+LH3mmcClME+4j4GCUx//ySNzUyPGieMaTYeqheWB33EJDWCkOeeBClFDm
-	8mOtiBEbKplTI0DloFBIinFll7YGD9/dT0Q9M5pulKs2dnG78hi0QmLb1fMYubVEtZGRJT
-	gGgOD9fbCSAcjGXVCOyHHfbo09Dk5ovcf0hYSa3sVWeuqp4qK5+jhqeyLp8Vt0jnjJ5bwM
-	TMfPzOKaxy8w3jZ/aEzgXRqRDblylw6SFQpvBnPfFfI5fDepGyjV6LAIf0x6JXFq1cQe1M
-	OPkpTYJKswVzifW6e6QqjabKbojAtbjwJKTo1xb+Z+DQUFypYwwmgPY3Qt2uhQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1728638334;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kg9B8PQ0+lOyKlgoz+gQ2Jyp4iAe3qYLBwLYXFt7qs0=;
-	b=YQaX3Xlru3m2t43QFH8dxz9o9eqAXcWc9oghCmk2YfnucKpAh7+poULkH5OfFCtT9vyvzz
-	VDKp96rMH+UNZwDg==
-Date: Fri, 11 Oct 2024 11:18:27 +0200
-Subject: [PATCH 3/3] sparc: vdso: Always reject undefined references in
- during linking
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oaq6u26x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DABE8C4CECC;
+	Fri, 11 Oct 2024 13:01:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728651714;
+	bh=j6FIkJsgrJb7Fy59tSRAkzfdThNSkDRiwl7mc5Gyfrs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oaq6u26xuDAEns7R2BMHzk4mIfr5FvGiVAeZZthgyUlPcz06DFRl95J0wmkdOT54S
+	 YxSAeidiUzjAm9FHVkdDWMVY0Rbrih0bi/ggL0JYHKzOopKm6PqY7SOiicdRP66yLH
+	 5VGXr5I3OyVhwrNf1s3DsezlYqKELPmsDJA9V5PkevyRbR9c/cPzuOfoCS+m2Co7l0
+	 +b6MYlu7b05Tu5XRA7HGcdEBXgbkMUXnasokDLcI2U83NwvkTB9/gQY3jZ2G5u5tvh
+	 AFQJNhIyJak3q6KuqIiMeMoh+g8h6wyqQ854Avo5pBLLyOPI6RqZBJ4HC26lw54SRH
+	 zUMItw7kbSuLg==
+Date: Fri, 11 Oct 2024 15:58:04 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Nathan Chancellor <nathan@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+	Brian Cain <bcain@quicinc.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Simek <monstr@monstr.eu>, Oleg Nesterov <oleg@redhat.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Richard Weinberger <richard@nod.at>,
+	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
+	Stafford Horne <shorne@gmail.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Uladzislau Rezki <urezki@gmail.com>,
+	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
+	bpf@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org, linux-mm@kvack.org,
+	linux-modules@vger.kernel.org, linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-trace-kernel@vger.kernel.org, linux-um@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH v5 6/8] x86/module: perpare module loading for ROX
+ allocations of text
+Message-ID: <Zwkg3LwlNJOwNWZh@kernel.org>
+References: <20241009180816.83591-1-rppt@kernel.org>
+ <20241009180816.83591-7-rppt@kernel.org>
+ <20241010225411.GA922684@thelio-3990X>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20241011-vdso-checkundef-v1-3-1a46e0352d20@linutronix.de>
-References: <20241011-vdso-checkundef-v1-0-1a46e0352d20@linutronix.de>
-In-Reply-To: <20241011-vdso-checkundef-v1-0-1a46e0352d20@linutronix.de>
-To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
- Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
- "H. Peter Anvin" <hpa@zytor.com>, Richard Weinberger <richard@nod.at>, 
- Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
- Johannes Berg <johannes@sipsolutions.net>, 
- "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org, linux-um@lists.infradead.org, 
- sparclinux@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1728638330; l=1993;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=t1AATzKotfQo47rXCJvuPRI3mhX3sXVhtvZQtdB1CqY=;
- b=Eek2fn25N6T9f+HSgVJC+e6+MNtLYV0HzJLw9/OPZ6RC3lZPRES2yGQNKYH1dSHp0sTu22Efm
- FMeeW9L9LMaAoXuDSKNNdJyDRYrCSWkAh0TVYmUhGvPBbu7ddYKiO8y
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241010225411.GA922684@thelio-3990X>
 
-Instead of using a custom script to detect and fail on undefined
-references, use --no-undefined for all VDSO linker invocations.
+On Thu, Oct 10, 2024 at 03:54:11PM -0700, Nathan Chancellor wrote:
+> Hi Mike,
+> 
+> On Wed, Oct 09, 2024 at 09:08:14PM +0300, Mike Rapoport wrote:
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > 
+> > When module text memory will be allocated with ROX permissions, the
+> > memory at the actual address where the module will live will contain
+> > invalid instructions and there will be a writable copy that contains the
+> > actual module code.
+> > 
+> > Update relocations and alternatives patching to deal with it.
+> > 
+> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> 
+> I bisected a boot failure that I see with CONFIG_CFI_CLANG enabled to
+> this change as commit be712757cabd ("x86/module: perpare module loading
+> for ROX allocations of text") in -next.
+ 
+>   [    0.000000] Linux version 6.12.0-rc2-00140-gbe712757cabd (nathan@n3-xlarge-x86) (ClangBuiltLinux clang version 19.1.0 (https://github.com/llvm/llvm-project.git a4bf6cd7cfb1a1421ba92bca9d017b49936c55e4), ClangBuiltLinux LLD 19.1.0 (https://github.com/llvm/llvm-project.git a4bf6cd7cfb1a1421ba92bca9d017b49936c55e4)) #1 SMP PREEMPT_DYNAMIC Thu Oct 10 22:42:57 UTC 2024
+>   ...
+>   [    0.092204] Speculative Store Bypass: Mitigation: Speculative Store Bypass disabled via prctl
+>   [    0.093207] TAA: Mitigation: TSX disabled
+>   [    0.093711] MMIO Stale Data: Mitigation: Clear CPU buffers
+>   [    0.094228] x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'
+>   [    0.095203] x86/fpu: Supporting XSAVE feature 0x002: 'SSE registers'
+>   [    0.096203] x86/fpu: Supporting XSAVE feature 0x004: 'AVX registers'
+>   [    0.097203] x86/fpu: Supporting XSAVE feature 0x020: 'AVX-512 opmask'
+>   [    0.098003] x86/fpu: Supporting XSAVE feature 0x040: 'AVX-512 Hi256'
+>   [    0.098203] x86/fpu: Supporting XSAVE feature 0x080: 'AVX-512 ZMM_Hi256'
+>   [    0.099203] x86/fpu: Supporting XSAVE feature 0x200: 'Protection Keys User registers'
+>   [    0.100204] x86/fpu: xstate_offset[2]:  576, xstate_sizes[2]:  256
+>   [    0.101204] x86/fpu: xstate_offset[5]:  832, xstate_sizes[5]:   64
+>   [    0.102203] x86/fpu: xstate_offset[6]:  896, xstate_sizes[6]:  512
+>   [    0.103204] x86/fpu: xstate_offset[7]: 1408, xstate_sizes[7]: 1024
+>   [    0.104051] x86/fpu: xstate_offset[9]: 2432, xstate_sizes[9]:    8
+>   [    0.104204] x86/fpu: Enabled xstate features 0x2e7, context size is 2440 bytes, using 'compacted' format.
+> 
+> then nothing after that. Boot is successful if CFI is not enabled (the
+> initrd will just shutdown the machine after printing the version string).
+> 
+> If there is any further information I can provide or patches I can test,
+> I am more than happy to do so.
 
-Drop the now unused checkundef.sh script.
+I overlooked how cfi_*_callers routines update addr.
+This patch should fix it:
 
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
----
- arch/sparc/vdso/Makefile      |  7 +++----
- arch/sparc/vdso/checkundef.sh | 10 ----------
- 2 files changed, 3 insertions(+), 14 deletions(-)
-
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 243dbfc4609d804fc221c3591eebe891107ffdab..c7697884975ea09ccb9bda1e42d2f9f09f23fc49 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -22,7 +22,7 @@ targets += $(foreach x, 32 64, vdso-image-$(x).c vdso$(x).so vdso$(x).so.dbg)
+diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
+index 3b3fa93af3b1..cf782f431110 100644
+--- a/arch/x86/kernel/alternative.c
++++ b/arch/x86/kernel/alternative.c
+@@ -1148,11 +1148,13 @@ static int cfi_disable_callers(s32 *start, s32 *end, struct module *mod)
  
- CPPFLAGS_vdso.lds += -P -C
+ 	for (s = start; s < end; s++) {
+ 		void *addr = (void *)s + *s;
+-		void *wr_addr = module_writable_address(mod, addr);
++		void *wr_addr;
+ 		u32 hash;
  
--VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 --no-undefined \
-+VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 \
- 			-z max-page-size=8192
+ 		addr -= fineibt_caller_size;
+-		hash = decode_caller_hash(addr);
++		wr_addr = module_writable_address(mod, addr);
++		hash = decode_caller_hash(wr_addr);
++
+ 		if (!hash) /* nocfi callers */
+ 			continue;
  
- $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs) FORCE
-@@ -101,7 +101,6 @@ $(obj)/vdso32.so.dbg: FORCE \
- quiet_cmd_vdso = VDSO    $@
-       cmd_vdso = $(LD) -nostdlib -o $@ \
- 		       $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
--		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
--		sh $(src)/checkundef.sh '$(OBJDUMP)' '$@'
-+		       -T $(filter %.lds,$^) $(filter %.o,$^)
+@@ -1172,11 +1174,12 @@ static int cfi_enable_callers(s32 *start, s32 *end, struct module *mod)
  
--VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic
-+VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic --no-undefined
-diff --git a/arch/sparc/vdso/checkundef.sh b/arch/sparc/vdso/checkundef.sh
-deleted file mode 100644
-index 2d85876ffc32519ab8a0702917fedd31293cd9da..0000000000000000000000000000000000000000
---- a/arch/sparc/vdso/checkundef.sh
-+++ /dev/null
-@@ -1,10 +0,0 @@
--#!/bin/sh
--objdump="$1"
--file="$2"
--$objdump -t "$file" | grep '*UUND*' | grep -v '#scratch' > /dev/null 2>&1
--if [ $? -eq 1 ]; then
--    exit 0
--else
--    echo "$file: undefined symbols found" >&2
--    exit 1
--fi
+ 	for (s = start; s < end; s++) {
+ 		void *addr = (void *)s + *s;
+-		void *wr_addr = module_writable_address(mod, addr);
++		void *wr_addr;
+ 		u32 hash;
+ 
+ 		addr -= fineibt_caller_size;
+-		hash = decode_caller_hash(addr);
++		wr_addr = module_writable_address(mod, addr);
++		hash = decode_caller_hash(wr_addr);
+ 		if (!hash) /* nocfi callers */
+ 			continue;
+ 
+@@ -1249,11 +1252,12 @@ static int cfi_rand_callers(s32 *start, s32 *end, struct module *mod)
+ 
+ 	for (s = start; s < end; s++) {
+ 		void *addr = (void *)s + *s;
+-		void *wr_addr = module_writable_address(mod, addr);
++		void *wr_addr;
+ 		u32 hash;
+ 
+ 		addr -= fineibt_caller_size;
+-		hash = decode_caller_hash(addr);
++		wr_addr = module_writable_address(mod, addr);
++		hash = decode_caller_hash(wr_addr);
+ 		if (hash) {
+ 			hash = -cfi_rehash(hash);
+ 			text_poke_early(wr_addr + 2, &hash, 4);
+@@ -1269,14 +1273,15 @@ static int cfi_rewrite_callers(s32 *start, s32 *end, struct module *mod)
+ 
+ 	for (s = start; s < end; s++) {
+ 		void *addr = (void *)s + *s;
+-		void *wr_addr = module_writable_address(mod, addr);
++		void *wr_addr;
+ 		u32 hash;
+ 
+ 		addr -= fineibt_caller_size;
+-		hash = decode_caller_hash(addr);
++		wr_addr = module_writable_address(mod, addr);
++		hash = decode_caller_hash(wr_addr);
+ 		if (hash) {
+ 			text_poke_early(wr_addr, fineibt_caller_start, fineibt_caller_size);
+-			WARN_ON(*(u32 *)(addr + fineibt_caller_hash) != 0x12345678);
++			WARN_ON(*(u32 *)(wr_addr + fineibt_caller_hash) != 0x12345678);
+ 			text_poke_early(wr_addr + fineibt_caller_hash, &hash, 4);
+ 		}
+ 		/* rely on apply_retpolines() */
+ 
+> Cheers,
+> Nathan
 
 -- 
-2.47.0
-
+Sincerely yours,
+Mike.
