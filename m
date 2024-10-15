@@ -1,175 +1,199 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0ACF17335E;
-	Tue, 15 Oct 2024 08:29:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CEF2D189BB2;
+	Tue, 15 Oct 2024 11:16:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728980951; cv=none; b=BpGslpAjb/SScjF6F21OPKp+TH/nP5BXNhVm3OJC5e3DzloFNGYTrPaIPnn0Dk7o7T9A2nycDD/vwTKmZSI2CKBmmH6b/kkhIH1D6IN8DAE4N+qJwXMHLdhVE1es9xCY1Ve2RQwxYhxEKgbdSQecTTMFHsgdsr6ArDr2XY2z9MA=
+	t=1728990986; cv=none; b=cCJ9DQCOVcPk0T50RYPeFPq9kBuJKBciOy9hkj6VVg6AM9mBwtm/UjCOcCQCJLrUJzRguuq1uRqS0ga6ortG8xKqFW2oonHHJpcBGSqYoFFisSJx4tj+ooGCWano6qiy3S7NnHU50kE1ZtHtKj9js9qsOepajDnhkgOMQWAPUdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728980951; c=relaxed/simple;
-	bh=DsgcZIwzu+lcz+sCcqq5yd6bbrmg5UWNN75kmiN7u1o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DXgvpzrUod20Noaa/8bLii5yxXW7uUaTmt925QivCJv8uQa6AikUCy3ZpfBJTKGT101k50Ih3SSxzVl5Hyzzprfk5FOq4MYDpyqpSLeM8erfL/Ek5qxul1RTIPsZUkbrF0f0xwW7lF6b937+FxTcq83N2lZgk/fmnsEzCciKrdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=egqvVNG6; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="egqvVNG6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFFDFC4CEC7;
-	Tue, 15 Oct 2024 08:29:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1728980950;
-	bh=DsgcZIwzu+lcz+sCcqq5yd6bbrmg5UWNN75kmiN7u1o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=egqvVNG6q9wlgpkO2ihI5nbC6bmr+MKMXS2UkyLdtZUnRa2mJjPhb/GoHeE8B3JIV
-	 VDOtfy1iCH02B47+vC2mLdYrhXPmRCcdJ1+Qf6WXe8/wfp0qMu9/oa8S2JtMyqJO/O
-	 ZmBQkqH3b1vcstwGj/aIQZ/QJ/x/VWHD7oxFh+9oQa2EPZRfC0PAr1bUMSRbgTw0WX
-	 C7Lug7jeKA6ulz3nyHPgkg0UGzQL6Atd/tuR2Y2ST5aOa7GcMnBjH9MVS3YMhP6L1x
-	 3BVwGozDPiF2n6afO7840UO9nN2SDmvcqv5gq/FNe0QhCmwM6wOayqIt/j1N459swo
-	 /mUI7oPo31iJQ==
-Date: Tue, 15 Oct 2024 01:29:05 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@quicinc.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>, Oleg Nesterov <oleg@redhat.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
-	Stafford Horne <shorne@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Uladzislau Rezki <urezki@gmail.com>,
-	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-mm@kvack.org,
-	linux-modules@vger.kernel.org, linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-trace-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v5 6/8] x86/module: perpare module loading for ROX
- allocations of text
-Message-ID: <20241015082905.GA1235948@thelio-3990X>
-References: <20241009180816.83591-1-rppt@kernel.org>
- <20241009180816.83591-7-rppt@kernel.org>
- <20241010225411.GA922684@thelio-3990X>
- <Zwkg3LwlNJOwNWZh@kernel.org>
+	s=arc-20240116; t=1728990986; c=relaxed/simple;
+	bh=uw0HbJ0kiobzTbS5RjhFjh8Y60N2Q6x4PT1X8C2PtW0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GBl8/rbz6mCsa/wPYYs6ZXEWXwYt7BDGDHtvl/eNY5M3273pefkLo891o3SBnM3ChV3wFR7YaptaeZFziFYmFA4mooY7UM5xJOrh0GhbPrTifAdVqM9SDIUbzpmjHJJc7B2Ww3KsYD1HJRjX4hoBIWRxBuyqg8Z4sK4erJVkKVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DBF221063;
+	Tue, 15 Oct 2024 04:16:53 -0700 (PDT)
+Received: from [10.57.86.207] (unknown [10.57.86.207])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 613183F51B;
+	Tue, 15 Oct 2024 04:16:14 -0700 (PDT)
+Message-ID: <c04323d5-6dcd-4391-81bb-94ee580ae98f@arm.com>
+Date: Tue, 15 Oct 2024 12:16:12 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zwkg3LwlNJOwNWZh@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v1 01/57] mm: Add macros ahead of supporting boot-time
+ page size selection
+Content-Language: en-GB
+To: Pingfan Liu <piliu@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Anshuman Khandual <anshuman.khandual@arm.com>,
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Chris Zankel <chris@zankel.net>, Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, Dinh Nguyen <dinguyen@kernel.org>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
+ Greg Marsden <greg.marsden@oracle.com>, Helge Deller <deller@gmx.de>,
+ Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Ivan Ivanov <ivan.ivanov@suse.com>, Johannes Berg
+ <johannes@sipsolutions.net>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Jonas Bonn <jonas@southpole.se>, Kalesh Singh <kaleshsingh@google.com>,
+ Marc Zyngier <maz@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Matthias Brugger <mbrugger@suse.com>, Max Filippov <jcmvbkbc@gmail.com>,
+ Miroslav Benes <mbenes@suse.cz>, Rich Felker <dalias@libc.org>,
+ Richard Weinberger <richard@nod.at>, Stafford Horne <shorne@gmail.com>,
+ Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, x86@kernel.org,
+ linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+ linux-mm@kvack.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+ sparclinux@vger.kernel.org
+References: <20241014105514.3206191-1-ryan.roberts@arm.com>
+ <20241014105912.3207374-1-ryan.roberts@arm.com> <Zw0iegwMp5ZVGypy@fedora>
+ <9b7e4f65-a171-4574-bd53-580e79527fbc@arm.com>
+ <CAF+s44QbdPBN-8EcPiWiZgYgZY4v8RK-wA0VEaVXbfnc9_HQ9Q@mail.gmail.com>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <CAF+s44QbdPBN-8EcPiWiZgYgZY4v8RK-wA0VEaVXbfnc9_HQ9Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 11, 2024 at 03:58:04PM +0300, Mike Rapoport wrote:
-> I overlooked how cfi_*_callers routines update addr.
-> This patch should fix it:
-
-Thanks, can confirm. My boot is working again and LKDTM's
-CFI_FORWARD_PROTO test properly fails.
-
-> diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
-> index 3b3fa93af3b1..cf782f431110 100644
-> --- a/arch/x86/kernel/alternative.c
-> +++ b/arch/x86/kernel/alternative.c
-> @@ -1148,11 +1148,13 @@ static int cfi_disable_callers(s32 *start, s32 *end, struct module *mod)
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> -		void *wr_addr = module_writable_address(mod, addr);
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
-> +
->  		if (!hash) /* nocfi callers */
->  			continue;
->  
-> @@ -1172,11 +1174,12 @@ static int cfi_enable_callers(s32 *start, s32 *end, struct module *mod)
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> -		void *wr_addr = module_writable_address(mod, addr);
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (!hash) /* nocfi callers */
->  			continue;
->  
-> @@ -1249,11 +1252,12 @@ static int cfi_rand_callers(s32 *start, s32 *end, struct module *mod)
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> -		void *wr_addr = module_writable_address(mod, addr);
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (hash) {
->  			hash = -cfi_rehash(hash);
->  			text_poke_early(wr_addr + 2, &hash, 4);
-> @@ -1269,14 +1273,15 @@ static int cfi_rewrite_callers(s32 *start, s32 *end, struct module *mod)
->  
->  	for (s = start; s < end; s++) {
->  		void *addr = (void *)s + *s;
-> -		void *wr_addr = module_writable_address(mod, addr);
-> +		void *wr_addr;
->  		u32 hash;
->  
->  		addr -= fineibt_caller_size;
-> -		hash = decode_caller_hash(addr);
-> +		wr_addr = module_writable_address(mod, addr);
-> +		hash = decode_caller_hash(wr_addr);
->  		if (hash) {
->  			text_poke_early(wr_addr, fineibt_caller_start, fineibt_caller_size);
-> -			WARN_ON(*(u32 *)(addr + fineibt_caller_hash) != 0x12345678);
-> +			WARN_ON(*(u32 *)(wr_addr + fineibt_caller_hash) != 0x12345678);
->  			text_poke_early(wr_addr + fineibt_caller_hash, &hash, 4);
->  		}
->  		/* rely on apply_retpolines() */
->  
-> > Cheers,
-> > Nathan
+On 15/10/2024 04:04, Pingfan Liu wrote:
+> On Mon, Oct 14, 2024 at 10:07 PM Ryan Roberts <ryan.roberts@arm.com> wrote:
+>>
+>> On 14/10/2024 14:54, Pingfan Liu wrote:
+>>> Hello Ryan,
+>>>
+>>> On Mon, Oct 14, 2024 at 11:58:08AM +0100, Ryan Roberts wrote:
+>>>> arm64 can support multiple base page sizes. Instead of selecting a page
+>>>> size at compile time, as is done today, we will make it possible to
+>>>> select the desired page size on the command line.
+>>>>
+>>>> In this case PAGE_SHIFT and it's derivatives, PAGE_SIZE and PAGE_MASK
+>>>> (as well as a number of other macros related to or derived from
+>>>> PAGE_SHIFT, but I'm not worrying about those yet), are no longer
+>>>> compile-time constants. So the code base needs to cope with that.
+>>>>
+>>>> As a first step, introduce MIN and MAX variants of these macros, which
+>>>> express the range of possible page sizes. These are always compile-time
+>>>> constants and can be used in many places where PAGE_[SHIFT|SIZE|MASK]
+>>>> were previously used where a compile-time constant is required.
+>>>> (Subsequent patches will do that conversion work). When the arch/build
+>>>> doesn't support boot-time page size selection, the MIN and MAX variants
+>>>> are equal and everything resolves as it did previously.
+>>>>
+>>>
+>>> MIN and MAX appear to construct a boundary, but it may be not enough.
+>>> Please see the following comment inline.
+>>>
+>>>> Additionally, introduce DEFINE_GLOBAL_PAGE_SIZE_VAR[_CONST]() which wrap
+>>>> global variable defintions so that for boot-time page size selection
+>>>> builds, the variable being wrapped is initialized at boot-time, instead
+>>>> of compile-time. This is done by defining a function to do the
+>>>> assignment, which has the "constructor" attribute. Constructor is
+>>>> preferred over initcall, because when compiling a module, the module is
+>>>> limited to a single initcall but constructors are unlimited. For
+>>>> built-in code, constructors are now called earlier to guarrantee that
+>>>> the variables are initialized by the time they are used. Any arch that
+>>>> wants to enable boot-time page size selection will need to select
+>>>> CONFIG_CONSTRUCTORS.
+>>>>
+>>>> These new macros need to be available anywhere PAGE_SHIFT and friends
+>>>> are available. Those are defined via asm/page.h (although some arches
+>>>> have a sub-include that defines them). Unfortunately there is no
+>>>> reliable asm-generic header we can easily piggy-back on, so let's define
+>>>> a new one, pgtable-geometry.h, which we include near where each arch
+>>>> defines PAGE_SHIFT. Ugh.
+>>>>
+>>>> -------
+>>>>
+>>>> Most of the problems that need to be solved over the next few patches
+>>>> fall into these broad categories, which are all solved with the help of
+>>>> these new macros:
+>>>>
+>>>> 1. Assignment of values derived from PAGE_SIZE in global variables
+>>>>
+>>>>   For boot-time page size builds, we must defer the initialization of
+>>>>   these variables until boot-time, when the page size is known. See
+>>>>   DEFINE_GLOBAL_PAGE_SIZE_VAR[_CONST]() as described above.
+>>>>
+>>>> 2. Define static storage in units related to PAGE_SIZE
+>>>>
+>>>>   This static storage will be defined according to PAGE_SIZE_MAX.
+>>>>
+>>>> 3. Define size of struct so that it is related to PAGE_SIZE
+>>>>
+>>>>   The struct often contains an array that is sized to fill the page. In
+>>>>   this case, use a flexible array with dynamic allocation. In other
+>>>>   cases, the struct fits exactly over a page, which is a header (e.g.
+>>>>   swap file header). In this case, remove the padding, and manually
+>>>>   determine the struct pointer within the page.
+>>>>
+>>>
+>>> About two years ago, I tried to do similar thing in your series, but ran
+>>> into problem at this point, or maybe not exactly as the point you list
+>>> here. I consider this as the most challenged part.
+>>>
+>>> The scenario is
+>>> struct X {
+>>>       a[size_a];
+>>>       b[size_b];
+>>>       c;
+>>> };
+>>>
+>>> Where size_a = f(PAGE_SHIFT), size_b=g(PAGE_SHIFT). One of f() and g()
+>>> is proportional to PAGE_SHIFT, the other is inversely proportional.
+>>>
+>>> How can you fix the reference of X.a and X.b?
+>>
+>> If you need to allocate static memory, then in this scenario, assuming f() is
+>> proportional and g() is inversely-proportional, then I guess you need
+>> size_a=f(PAGE_SIZE_MAX) and size_b=g(PAGE_SIZE_MIN). Or if you can allocate the
 > 
-> -- 
-> Sincerely yours,
-> Mike.
+> My point is that such stuff can not be handled by scripts
+> automatically and needs manual intervention.
+
+Yes agreed. I spent some time thinking about how much of this could be automated
+(i.e. with Cochinelle or otherwise), but concluded that it's very difficult. As
+a result, all of the patches in this series are manually created.
+
+> 
+>> memory dynamically, then make a and b pointers to dynamically allocated buffers.
+>>
+> 
+> This seems a better way out.
+> 
+>> Is there a specific place in the source where this pattern is used today? It
+>> might be easier to discuss in the context of the code if so.
+>>
+> 
+> No such code at hand. Just throw out the potential issue and be
+> curious about it which frustrates me.
+> I hope people can reach an agreement on it and turn this useful series
+> into reality.
+
+Yes, hope so!
+
+> 
+> Thanks,
+> 
+> Pingfan
+> 
+
