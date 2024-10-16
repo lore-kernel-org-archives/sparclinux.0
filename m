@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC27D1B3936;
-	Tue, 15 Oct 2024 20:11:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C2C41C9DC8;
+	Wed, 16 Oct 2024 10:44:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729023120; cv=none; b=flCsEz+TU8eycGVeQoWJkRTr17a7UmKJZislmuBLfNA6sjQytuSJx6B3nGQUtgkdN+hfwDAWid6sszyIMUBwUYClyMFrF42Fyhu1byCCiPDAHKSXeCWx+8G8kEdXu9tryTz0c6KxW+OLVzyyxWiiACa2569OXbdYWfVyZ+ywkfI=
+	t=1729075491; cv=none; b=aVJRpJeeuCfA088n8apUXU0J5NhbVjFC9mVuT2HJGHLyYg6mnblpCpdRvSAw9GhAd1joR7jWlTKI+mvLjXF30seoUMpqAT5CzOpijDDdcDSoYMOi2005uf17czDoaIAmSBs0ZVkaabazWsQ/eSy86ou5vq3CnfZOg5JlQ7MuPq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729023120; c=relaxed/simple;
-	bh=Y6PhmBa/nN+iDUxTFqcR/Mb33RbOlJl9A4RsS6bV0b4=;
+	s=arc-20240116; t=1729075491; c=relaxed/simple;
+	bh=REY0yUs/eb8jGqS7iPmNLu0O7M3zjCPm2K1uOQnlIfY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vh7lmVVpJqvfT2SuyTn01QJQPSrNqOINo1fmqe0P++7LKpc+a7oe7d2sBQw0SCHjpZfwrGDP+Vqtlu6EVwfKHSZN3mGjoCyaqag5LelnjsPyKKzYBJcSPjHWwBpPiy/sZZb8tMw7v2E3jk9A0vxXbRHdO0Jjadx65pR0YDiQrNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NeA6yj5h; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=YfWqYCZ0cda3DGVYPs/1s0FKMi5bcMzksfVhVb4m9JqnkyLoKypMooWDasO+QH4lkeuomcSO3EsCGRhsBuK76A/7ZWyq3+1BRSR4FxRaGOAZQKiK4RJSp3s/O4dcYZhMj5IIAIvpfwBHMQ5W/pJ1MHu50HBhB8mFYDHZZsHrQl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tu7R+TE5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NeA6yj5h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAB4EC4CEC6;
-	Tue, 15 Oct 2024 20:11:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tu7R+TE5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A439EC4CEC5;
+	Wed, 16 Oct 2024 10:44:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729023118;
-	bh=Y6PhmBa/nN+iDUxTFqcR/Mb33RbOlJl9A4RsS6bV0b4=;
+	s=k20201202; t=1729075491;
+	bh=REY0yUs/eb8jGqS7iPmNLu0O7M3zjCPm2K1uOQnlIfY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NeA6yj5hajfLYEdkGLWG8XB5N4aid73nUjDZb/ugsyZ3AQoALVnXt8x2U69teh7bp
-	 +Jxn6eME2rpnC6+5s7BU9sn0TueSyVekqQmYatz9jkvCTO794aSB0wivMugKOyBQcF
-	 f12fUI4D7cG8AqwuNBz90ooW8BLJGSzfYerkziVJS4gVWwzpr6llRoBCSoxKz8d+Fs
-	 0rPGTZgvQEw9IByGG03TdQUKWcviEE7gexwsotoi1Pu3fbgseCJrzYVZZZHzQHsDOS
-	 xg878mky4sIBNDtU8Y7CZD0UtD4jLkQQWx+cO7Oq3WKQ8DmXAZc3hC28g+NG7SbCgU
-	 uBbk2RUOwLABQ==
-Date: Tue, 15 Oct 2024 13:11:54 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
+	b=tu7R+TE5l4rMjxEyzDDIH6fpt5ZNmC1c7xJx7SQDlI9CzDxMt5yOQnVYNAW9hdV8J
+	 OeaDo9Hr12xvhUKQgId1tm4/CewmMpWCLOk3wgiUJwXyvWq4QlFB+Uh/pOgd95q0F1
+	 zyNekZpzro5oJZ2JEUpyorUNUZLep/wgUFWwzFdkGHL+BF7JNIRifDS33KF/5qGC2v
+	 jYrUvBLfr/xZZ4LfL7bWflm1YPeuIUzgGbLP+eWNj7AbuOUcsPGdhrgXCl4uUGrO38
+	 j9PqqivnqqmoYQsjfU9edkgWUJ3Ic8/MVLUiY8xlv+pKvbZQmwKQdokHEcp8hCdCUB
+	 nLnfE4mx3UK6g==
+Date: Wed, 16 Oct 2024 13:40:55 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Christoph Hellwig <hch@infradead.org>, Petr Pavlu <petr.pavlu@suse.com>,
 	Sami Tolvanen <samitolvanen@google.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
@@ -74,9 +74,8 @@ Cc: Christoph Hellwig <hch@infradead.org>, Petr Pavlu <petr.pavlu@suse.com>,
 	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
 	sparclinux@vger.kernel.org, x86@kernel.org, kdevops@lists.linux.dev
 Subject: Re: [PATCH v5 7/8] execmem: add support for cache of large ROX pages
-Message-ID: <Zw7MirnsHnhRveBB@bombadil.infradead.org>
-References: <20241009180816.83591-1-rppt@kernel.org>
- <20241009180816.83591-8-rppt@kernel.org>
+Message-ID: <Zw-YN4JIltntY52Y@kernel.org>
+References: <20241009180816.83591-8-rppt@kernel.org>
  <Zwd7GRyBtCwiAv1v@infradead.org>
  <ZwfPPZrxHzQgYfx7@kernel.org>
  <ZwjXz0dz-RldVNx0@infradead.org>
@@ -85,6 +84,7 @@ References: <20241009180816.83591-1-rppt@kernel.org>
  <Zw1uBBcG-jAgxF_t@bombadil.infradead.org>
  <Zw3rDS3GRWZe4CBu@bombadil.infradead.org>
  <Zw4DlTTbz4QwhOvU@kernel.org>
+ <Zw7MirnsHnhRveBB@bombadil.infradead.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -93,36 +93,33 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Zw4DlTTbz4QwhOvU@kernel.org>
+In-Reply-To: <Zw7MirnsHnhRveBB@bombadil.infradead.org>
 
-On Tue, Oct 15, 2024 at 08:54:29AM +0300, Mike Rapoport wrote:
-> On Mon, Oct 14, 2024 at 09:09:49PM -0700, Luis Chamberlain wrote:
-> > Mike, please run this with kmemleak enabled and running, and also try to get
-> > tools/testing/selftests/kmod/kmod.sh to pass.
+On Tue, Oct 15, 2024 at 01:11:54PM -0700, Luis Chamberlain wrote:
+> On Tue, Oct 15, 2024 at 08:54:29AM +0300, Mike Rapoport wrote:
+> > On Mon, Oct 14, 2024 at 09:09:49PM -0700, Luis Chamberlain wrote:
+> > > Mike, please run this with kmemleak enabled and running, and also try to get
+> > > tools/testing/selftests/kmod/kmod.sh to pass.
+> > 
+> > There was an issue with kmemleak, I fixed it here:
+> > 
+> > https://lore.kernel.org/linux-mm/20241009180816.83591-1-rppt@kernel.org/T/#m020884c1795218cc2be245e8091fead1cda3f3e4
 > 
-> There was an issue with kmemleak, I fixed it here:
+> Ah, so this was a side fix, not part of this series, thanks.
 > 
-> https://lore.kernel.org/linux-mm/20241009180816.83591-1-rppt@kernel.org/T/#m020884c1795218cc2be245e8091fead1cda3f3e4
-
-Ah, so this was a side fix, not part of this series, thanks.
-
-> > I run into silly boot issues with just a guest.
+> > > I run into silly boot issues with just a guest.
+> > 
+> > Was it kmemleak or something else?
 > 
-> Was it kmemleak or something else?
+> Both kmemleak and the kmod selftest failed, here is a run of the test
+> with this patch series:
+> 
+> https://github.com/linux-kdevops/linux-modules-kpd/actions/runs/11352286624/job/31574722735
 
-Both kmemleak and the kmod selftest failed, here is a run of the test
-with this patch series:
+Is there a kernel log to look at? Could not find it in the run report
+ 
+>   Luis
 
-https://github.com/linux-kdevops/linux-modules-kpd/actions/runs/11352286624/job/31574722735
-
-We now have automated tests generated when people post patches to
-linux-modules, but if you give me your github username you can push
-onto the linux-kdevops/linux-modules-kpd [0] repo a random branch once you
-have it ready, just cp -a the linux-ci-modules/.github [1] directory onto
-your branch before a push and that'll trigger a test run (you need to
-git add -f .github on your Linux branch) with our self-hosted runners.
-
-[0] https://github.com/linux-kdevops/linux-modules-kpd
-[1] https://github.com/linux-kdevops/kdevops-ci-modules
-
-  Luis
+-- 
+Sincerely yours,
+Mike.
