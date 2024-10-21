@@ -1,120 +1,168 @@
-Received: from mail-40137.protonmail.ch (mail-40137.protonmail.ch [185.70.40.137])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43C315575F
-	for <sparclinux@vger.kernel.org>; Mon, 21 Oct 2024 06:55:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.40.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2994195FEC;
+	Mon, 21 Oct 2024 10:40:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729493744; cv=none; b=nnf79nEQDOUmoojVqMjHjSpMwUuFd1vqIj4ZoNF+oaE2eSeh0ENnM8w9gkdlvE08oXw22BigKAEgxnjSv67qH/qW3XLPISlcqFOuMi5GoTcMGPdSDOmSV+kcwsYVqzEZ/ikmZqxCrSzusJmQG00JLzeZAgaJcN9HL5lq/ezn9Mg=
+	t=1729507234; cv=none; b=UbKxnbvgVsnVLVoEJfP83q+y4AePUB00Ha2bEWi3CgNYanD8g0ZVz5xZsQrf95llqmsCHb5a5yDBsGwUXZGKsq+ue7WcEQz3XacsNXRagcT/GA5h/J9llT6e4vQb6uPlKQ9FPZ2b54X2DbCZ56b5VN1CcyNHUomPhKn9Wy3LKaw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729493744; c=relaxed/simple;
-	bh=arkWI03su4YSBSMmr5PkdZjKRvultl8DVI/Ao8Lq9UQ=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Vc3k+437CKWYX/fXTHcCsFkDrLNLz9qf7Q7QD3F14cbc2MIloUVUGMqo2LhHJCbJl1CiAnR1yIGuX4qXAKa9RO9lKqTudQte85f4VfrE7ZycsBykLhQCoTavTg/7q7e92e0gWIqsqDYDbSBiee0oO1doSWEUTNp6X7dU9U/hQHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=F71kmBZ5; arc=none smtp.client-ip=185.70.40.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	s=arc-20240116; t=1729507234; c=relaxed/simple;
+	bh=41f6oEtljvqz5Te0x1SNWi4SHNJw6n7wHUBSgCBwR3g=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CB6/4heloakgrVdG+7Sf1Hm4L928IJ+O90B2SFgKvEIPle/tPnAMB6s7cAUO2hv+zL21ZHsEnXWUXa8y95jqJqzjlxpK6WVFALRWl49WOIQ6clz0/p5EsyJdTYmbXo0nrLV7oczntzE+wYLUSqdFZRF822T2Y5Jawj0yMXCNFG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=WL4D7lJN; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="F71kmBZ5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1729493740; x=1729752940;
-	bh=arkWI03su4YSBSMmr5PkdZjKRvultl8DVI/Ao8Lq9UQ=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=F71kmBZ5RES2Ir+IWSGNZDbm78U1UiT1fbYk0BVQxwXV3CfipwjYeWB6dN3WtMQTm
-	 dmK6v2GCZ5Obtz51Ri8F94paK6LNY54/kv/QWr57jVdCd7sU7/OWUwTfoTryRrxyqU
-	 EAQ33pIbKn5Qe2HDgwQAnut7GQTL21RaqeQkD0hKEuP9B9kPNldkcezZTez4Hk9gU7
-	 fApobs8rITw0PG91KlrICVVkyHC6htMV/vGKtqelCzpoHgaNHbyK6LGXmMxcPKDNQ5
-	 qwKE0b8wABFGDC3qIz7YyG5KaqbyRSl8zCXoSWY8Zx4B73F0dJJEvVb5Rq9ufoehFx
-	 BN74jFVgsNYtQ==
-Date: Mon, 21 Oct 2024 06:55:35 +0000
-To: koachan@protonmail.com
-From: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, Masahiro Yamada <masahiroy@kernel.org>, Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev, linux-kbuild@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] sparc/build: Remove all usage of -fcall-used* flags
-Message-ID: <iBnrR9d4gRwtBGXlD_1AXH2OXuzLp6oR4PGkk4pg7KUVIsfs0G1zvzJTrO8o4y5ZHBWHdYOifN2_ZhbnrVd9jUTwJjeA5sdQhIcHp1o4xd0=@protonmail.com>
-In-Reply-To: <20240716-sparc-cflags-v2-1-40bdc4484d10@protonmail.com>
-References: <20240716-sparc-cflags-v2-0-40bdc4484d10@protonmail.com> <20240716-sparc-cflags-v2-1-40bdc4484d10@protonmail.com>
-Feedback-ID: 6608610:user:proton
-X-Pm-Message-ID: 1a094c75eebe4bf961b497dbdf4c0791a94cc949
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="WL4D7lJN"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 49L2KH3K032533;
+	Mon, 21 Oct 2024 10:40:13 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=92knE4jiltiV907EhRGLVYeamkXayI
+	7j0BwYX0ZH1JA=; b=WL4D7lJNas37Nzdhxi9rX+lx/0u/7ytK48q3TqjJR++gKt
+	r7ueMht7alDtgQ7pasPryEpqoYRd0OWJqyszZwZ+SpNOF2LJ1isSitDYhyMC/LAS
+	FwERDIOSqxtV94TGFg/XwPocGXOJNG9slT3/uBhOpxWpILgE6aPOyXK2xUh7rTpF
+	iZSfIsmznUv35ep6vlQ2EA5avKOIqsYrhOQyes8ee48qcQRT99bJpKxarFGhHfc/
+	Sf1AmAC4Lua0AKvgB9CPRIHyiQxUS0kOC4/Q4iiF3ywr7qQlDkQN+CyvM61jpuW4
+	hTkpnbK13JKGJKjwKEuAWROXZpMXdSctg6J3mWmA==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 42c5hm8my5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 21 Oct 2024 10:40:13 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 49L9CWB9018605;
+	Mon, 21 Oct 2024 10:40:12 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 42csaj5kvs-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 21 Oct 2024 10:40:12 +0000
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 49LAe94P24249044
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 21 Oct 2024 10:40:10 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 389B320043;
+	Mon, 21 Oct 2024 10:40:09 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7F0602004B;
+	Mon, 21 Oct 2024 10:40:08 +0000 (GMT)
+Received: from osiris (unknown [9.171.37.192])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Mon, 21 Oct 2024 10:40:08 +0000 (GMT)
+Date: Mon, 21 Oct 2024 12:40:07 +0200
+From: Heiko Carstens <hca@linux.ibm.com>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        loongarch@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org,
+        Hendrik Brueckner <brueckner@linux.ibm.com>
+Subject: Re: [PATCH 07/15] s390/crc32: expose CRC32 functions through lib
+Message-ID: <20241021104007.6950-E-hca@linux.ibm.com>
+References: <20241021002935.325878-1-ebiggers@kernel.org>
+ <20241021002935.325878-8-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241021002935.325878-8-ebiggers@kernel.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: f0A5vIL1iLbWasgVAUuToCuIbQMCR4iX
+X-Proofpoint-GUID: f0A5vIL1iLbWasgVAUuToCuIbQMCR4iX
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-15_01,2024-10-11_01,2024-09-30_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 clxscore=1011
+ phishscore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
+ bulkscore=0 mlxscore=0 adultscore=0 mlxlogscore=730 suspectscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2409260000 definitions=main-2410210076
 
-Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org> wrote:
-
-> From: Koakuma koachan@protonmail.com
->
->
-> Remove all usage of -fcall-used* flags so that all flags used are
-> portable between GCC and clang.
->
-> The reasoning is as follows:
->
-> In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
-> the 64-bit ABI, %g7 is the reserved one.
-> Linux turns them into volatile registers by the way of -fcall-used-*,
-> but on the other hand, omitting the flags shouldn't be harmful;
-> compilers will now simply refuse to touch them, and any assembly
-> code that happens to touch them would still work like usual (because
-> Linux' conventions already treats them as volatile anyway).
->
-> Signed-off-by: Koakuma koachan@protonmail.com
->
+On Sun, Oct 20, 2024 at 05:29:27PM -0700, Eric Biggers wrote:
+> From: Eric Biggers <ebiggers@google.com>
+> 
+> Move the s390 CRC32 assembly code into the lib directory and wire it up
+> to the library interface.  This allows it to be used without going
+> through the crypto API.  It remains usable via the crypto API too via
+> the shash algorithms that use the library interface.  Thus all the
+> arch-specific "shash" code becomes unnecessary and is removed.
+> 
+> Note: to see the diff from arch/s390/crypto/crc32-vx.c to
+> arch/s390/lib/crc32-glue.c, view this commit with 'git show -M10'.
+> 
+> Signed-off-by: Eric Biggers <ebiggers@google.com>
 > ---
-> arch/sparc/Makefile | 4 ++--
-> arch/sparc/vdso/Makefile | 2 +-
-> 2 files changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-> index 757451c3ea1d..7318a8b452c3 100644
-> --- a/arch/sparc/Makefile
-> +++ b/arch/sparc/Makefile
-> @@ -29,7 +29,7 @@ UTS_MACHINE :=3D sparc
-> # versions of gcc. Some gcc versions won't pass -Av8 to binutils when you
-> # give -mcpu=3Dv8. This silently worked with older bintutils versions but
-> # does not any more.
-> -KBUILD_CFLAGS +=3D -m32 -mcpu=3Dv8 -pipe -mno-fpu -fcall-used-g5 -fcall-=
-used-g7
-> +KBUILD_CFLAGS +=3D -m32 -mcpu=3Dv8 -pipe -mno-fpu
-> KBUILD_CFLAGS +=3D -Wa,-Av8
->
-> KBUILD_AFLAGS +=3D -m32 -Wa,-Av8
-> @@ -45,7 +45,7 @@ export BITS :=3D 64
-> UTS_MACHINE :=3D sparc64
->
-> KBUILD_CFLAGS +=3D -m64 -pipe -mno-fpu -mcpu=3Dultrasparc -mcmodel=3Dmedl=
-ow
-> -KBUILD_CFLAGS +=3D -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compar=
-e
-> +KBUILD_CFLAGS +=3D -ffixed-g4 -ffixed-g5 -Wno-sign-compare
-> KBUILD_CFLAGS +=3D -Wa,--undeclared-regs
-> KBUILD_CFLAGS +=3D $(call cc-option,-mtune=3Dultrasparc3)
-> KBUILD_AFLAGS +=3D -m64 -mcpu=3Dultrasparc -Wa,--undeclared-regs
-> diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-> index 243dbfc4609d..e009443145af 100644
-> --- a/arch/sparc/vdso/Makefile
-> +++ b/arch/sparc/vdso/Makefile
-> @@ -46,7 +46,7 @@ CFL :=3D $(PROFILING) -mcmodel=3Dmedlow -fPIC -O2 -fasy=
-nchronous-unwind-tables -m64
-> -fno-omit-frame-pointer -foptimize-sibling-calls \
-> -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
->
-> -SPARC_REG_CFLAGS =3D -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
-> +SPARC_REG_CFLAGS =3D -ffixed-g4 -ffixed-g5
->
-> $(vobjs): KBUILD_CFLAGS :=3D $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUG=
-INS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
->
->
-> --
-> 2.45.2
+>  arch/s390/Kconfig                      |   1 +
+>  arch/s390/configs/debug_defconfig      |   1 -
+>  arch/s390/configs/defconfig            |   1 -
+>  arch/s390/crypto/Kconfig               |  12 -
+>  arch/s390/crypto/Makefile              |   2 -
+>  arch/s390/crypto/crc32-vx.c            | 306 -------------------------
+>  arch/s390/lib/Makefile                 |   3 +
+>  arch/s390/lib/crc32-glue.c             |  82 +++++++
+>  arch/s390/{crypto => lib}/crc32-vx.h   |   0
+>  arch/s390/{crypto => lib}/crc32be-vx.c |   0
+>  arch/s390/{crypto => lib}/crc32le-vx.c |   0
+>  11 files changed, 86 insertions(+), 322 deletions(-)
+>  delete mode 100644 arch/s390/crypto/crc32-vx.c
+>  create mode 100644 arch/s390/lib/crc32-glue.c
+>  rename arch/s390/{crypto => lib}/crc32-vx.h (100%)
+>  rename arch/s390/{crypto => lib}/crc32be-vx.c (100%)
+>  rename arch/s390/{crypto => lib}/crc32le-vx.c (100%)
 
-Hmm, hello, is there anything else I should do for this patch
-(and the series as a whole)?
+...
+
+> -static int __init crc_vx_mod_init(void)
+> -{
+> -	return crypto_register_shashes(crc32_vx_algs,
+> -				       ARRAY_SIZE(crc32_vx_algs));
+> -}
+> -
+> -static void __exit crc_vx_mod_exit(void)
+> -{
+> -	crypto_unregister_shashes(crc32_vx_algs, ARRAY_SIZE(crc32_vx_algs));
+> -}
+> -
+> -module_cpu_feature_match(S390_CPU_FEATURE_VXRS, crc_vx_mod_init);
+
+What makes sure that all of the code is available automatically if the
+CPU supports the instructions like before? I can see that all CRC32
+related config options support also module build options.
+
+Before this patch, this module and hence the fast crc32 variants were
+loaded automatically when required CPU features were present.
+Right now I don't how this is happening with this series.
+
+> -MODULE_ALIAS_CRYPTO("crc32");
+> -MODULE_ALIAS_CRYPTO("crc32-vx");
+> -MODULE_ALIAS_CRYPTO("crc32c");
+> -MODULE_ALIAS_CRYPTO("crc32c-vx");
+
+...
+
+> +static int __init crc32_s390_init(void)
+> +{
+> +	if (cpu_have_feature(S390_CPU_FEATURE_VXRS))
+> +		static_branch_enable(&have_vxrs);
+> +	return 0;
+> +}
+> +arch_initcall(crc32_s390_init);
+
+I guess this should be changed to:
+
+module_cpu_feature_match(S390_CPU_FEATURE_VXRS, ...);
+
+Which would make at least the library functions available if cpu
+features are present. But this looks only like a partial solution of
+the above described problem.
+
+But maybe I'm missing something.
