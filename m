@@ -1,43 +1,43 @@
-Received: from mail-43167.protonmail.ch (mail-43167.protonmail.ch [185.70.43.167])
+Received: from mail-40137.protonmail.ch (mail-40137.protonmail.ch [185.70.40.137])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA88C1EEE0
-	for <sparclinux@vger.kernel.org>; Mon, 21 Oct 2024 06:54:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.167
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43C315575F
+	for <sparclinux@vger.kernel.org>; Mon, 21 Oct 2024 06:55:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.40.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729493690; cv=none; b=A9rxILAX6aFiJ5EOgnjbpbyCGmvTiOeR9WlF1g+0RdDukm7FKX5ylt4qn8T+L8JvA1zkKYcpLmG+T88Lbs3Q9j4X8Ve62XDi1Yhu7mem3fKOIGeCPyaV8IOv+L+l4VGevvgSnl9bLsKYHTnc7QMBKo7NqbWutY8/eAv443BnBT0=
+	t=1729493744; cv=none; b=nnf79nEQDOUmoojVqMjHjSpMwUuFd1vqIj4ZoNF+oaE2eSeh0ENnM8w9gkdlvE08oXw22BigKAEgxnjSv67qH/qW3XLPISlcqFOuMi5GoTcMGPdSDOmSV+kcwsYVqzEZ/ikmZqxCrSzusJmQG00JLzeZAgaJcN9HL5lq/ezn9Mg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729493690; c=relaxed/simple;
-	bh=mKszSO2uodhB/SVawf/fZzSNYzvQqPz+HdN5wa27pkY=;
+	s=arc-20240116; t=1729493744; c=relaxed/simple;
+	bh=arkWI03su4YSBSMmr5PkdZjKRvultl8DVI/Ao8Lq9UQ=;
 	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GS2ykvcOABxHpxTmZrePLMEbk8/7JSWYp5FNIcUuPnsbldTVNoyKH2tsIJ53C/MuARbp8S7/ufpPSjli8NkKvLcFURtK0PJQgFM+Inydm8mwdGOztjE5bWyPPcpfgZ57gpX8+h6l/BSeXYi2DcdnCdXrU9PNcWEMJGNsovJHvBY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=svGzb9j9; arc=none smtp.client-ip=185.70.43.167
+	 MIME-Version:Content-Type; b=Vc3k+437CKWYX/fXTHcCsFkDrLNLz9qf7Q7QD3F14cbc2MIloUVUGMqo2LhHJCbJl1CiAnR1yIGuX4qXAKa9RO9lKqTudQte85f4VfrE7ZycsBykLhQCoTavTg/7q7e92e0gWIqsqDYDbSBiee0oO1doSWEUTNp6X7dU9U/hQHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=F71kmBZ5; arc=none smtp.client-ip=185.70.40.137
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="svGzb9j9"
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="F71kmBZ5"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1729493686; x=1729752886;
-	bh=mKszSO2uodhB/SVawf/fZzSNYzvQqPz+HdN5wa27pkY=;
+	s=protonmail3; t=1729493740; x=1729752940;
+	bh=arkWI03su4YSBSMmr5PkdZjKRvultl8DVI/Ao8Lq9UQ=;
 	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
 	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
 	 Message-ID:BIMI-Selector;
-	b=svGzb9j9yZ6ZgssC/fXMy4RKdUYPQffidIAYoe/ApFaTyB8MkhZOhmcEfUX0hPBYk
-	 3uYrjo4iu3EqDsETxwGX+t8K1/ulpiq1Hroq76Y6ss0EkspVhadprAzHn3FvEodqiX
-	 t8ohW57R+bBpRDOg3aBNFApODJqyi3kw9Yauc0gV6sHtelEn/y8DzJcDhbxkW9pLrz
-	 Woya34sWO4648EQuTjwJ6erBTTmc5GXt2mCvuIg6xJZCRxv+souHirafYcw1dcCym1
-	 /vV2avSDVGoV3j4SExIkSdZb1ZXbPkr+1YNdsulgAU7tvwiKGhMCkaLzwwRW+djg7X
-	 s6huH1Adf+n6A==
-Date: Mon, 21 Oct 2024 06:54:39 +0000
+	b=F71kmBZ5RES2Ir+IWSGNZDbm78U1UiT1fbYk0BVQxwXV3CfipwjYeWB6dN3WtMQTm
+	 dmK6v2GCZ5Obtz51Ri8F94paK6LNY54/kv/QWr57jVdCd7sU7/OWUwTfoTryRrxyqU
+	 EAQ33pIbKn5Qe2HDgwQAnut7GQTL21RaqeQkD0hKEuP9B9kPNldkcezZTez4Hk9gU7
+	 fApobs8rITw0PG91KlrICVVkyHC6htMV/vGKtqelCzpoHgaNHbyK6LGXmMxcPKDNQ5
+	 qwKE0b8wABFGDC3qIz7YyG5KaqbyRSl8zCXoSWY8Zx4B73F0dJJEvVb5Rq9ufoehFx
+	 BN74jFVgsNYtQ==
+Date: Mon, 21 Oct 2024 06:55:35 +0000
 To: koachan@protonmail.com
 From: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH v2] sparc/vdso: Add helper function for 64-bit right shift on 32-bit target
-Message-ID: <-I-Ljs420E94P091A2LOUkq7SOKMg2yY3jCj8aTjDtN4r3hH3NvnoNfuGQbrJTEMAKKZP-BV2Qsmu9ARUjpngc7-71R26iB4q0bpZgxBgzk=@protonmail.com>
-In-Reply-To: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
-References: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, Masahiro Yamada <masahiroy@kernel.org>, Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev, linux-kbuild@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] sparc/build: Remove all usage of -fcall-used* flags
+Message-ID: <iBnrR9d4gRwtBGXlD_1AXH2OXuzLp6oR4PGkk4pg7KUVIsfs0G1zvzJTrO8o4y5ZHBWHdYOifN2_ZhbnrVd9jUTwJjeA5sdQhIcHp1o4xd0=@protonmail.com>
+In-Reply-To: <20240716-sparc-cflags-v2-1-40bdc4484d10@protonmail.com>
+References: <20240716-sparc-cflags-v2-0-40bdc4484d10@protonmail.com> <20240716-sparc-cflags-v2-1-40bdc4484d10@protonmail.com>
 Feedback-ID: 6608610:user:proton
-X-Pm-Message-ID: 1fda092beb2bf4a3b6ea843d0280416627e36948
+X-Pm-Message-ID: 1a094c75eebe4bf961b497dbdf4c0791a94cc949
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -52,138 +52,69 @@ Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org> wrote:
 > From: Koakuma koachan@protonmail.com
 >
 >
-> Add helper function for 64-bit right shift on 32-bit target so that
-> clang does not emit a runtime library call.
+> Remove all usage of -fcall-used* flags so that all flags used are
+> portable between GCC and clang.
+>
+> The reasoning is as follows:
+>
+> In the (normal) 32-bit ABI, %g5 and %g7 is normally reserved, and in
+> the 64-bit ABI, %g7 is the reserved one.
+> Linux turns them into volatile registers by the way of -fcall-used-*,
+> but on the other hand, omitting the flags shouldn't be harmful;
+> compilers will now simply refuse to touch them, and any assembly
+> code that happens to touch them would still work like usual (because
+> Linux' conventions already treats them as volatile anyway).
 >
 > Signed-off-by: Koakuma koachan@protonmail.com
 >
 > ---
-> Hi~
+> arch/sparc/Makefile | 4 ++--
+> arch/sparc/vdso/Makefile | 2 +-
+> 2 files changed, 3 insertions(+), 3 deletions(-)
 >
-> This adds a small function to do 64-bit right shifts for use in vDSO
-> code, needed so that clang does not emit a call to runtime library.
-> ---
-> Changes in v2:
-> - Move __shr64 to sparc code since there are no other users of it.
-> - Now that __shr64 is not in portable code, redo it in inline asm for sim=
-pler implementation & better performance.
-> - Link to v1: https://lore.kernel.org/r/20240804-sparc-shr64-v1-1-2505096=
-8339a@protonmail.com
-> ---
-> arch/sparc/vdso/vclock_gettime.c | 28 ++++++++++++++++++++++++----
-> 1 file changed, 24 insertions(+), 4 deletions(-)
+> diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+> index 757451c3ea1d..7318a8b452c3 100644
+> --- a/arch/sparc/Makefile
+> +++ b/arch/sparc/Makefile
+> @@ -29,7 +29,7 @@ UTS_MACHINE :=3D sparc
+> # versions of gcc. Some gcc versions won't pass -Av8 to binutils when you
+> # give -mcpu=3Dv8. This silently worked with older bintutils versions but
+> # does not any more.
+> -KBUILD_CFLAGS +=3D -m32 -mcpu=3Dv8 -pipe -mno-fpu -fcall-used-g5 -fcall-=
+used-g7
+> +KBUILD_CFLAGS +=3D -m32 -mcpu=3Dv8 -pipe -mno-fpu
+> KBUILD_CFLAGS +=3D -Wa,-Av8
 >
-> diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_ge=
-ttime.c
-> index e794edde6755..79607804ea1b 100644
-> --- a/arch/sparc/vdso/vclock_gettime.c
-> +++ b/arch/sparc/vdso/vclock_gettime.c
-> @@ -86,6 +86,11 @@ notrace static long vdso_fallback_gettimeofday(struct =
-__kernel_old_timeval *tv,
-> }
+> KBUILD_AFLAGS +=3D -m32 -Wa,-Av8
+> @@ -45,7 +45,7 @@ export BITS :=3D 64
+> UTS_MACHINE :=3D sparc64
 >
-> #ifdef CONFIG_SPARC64
-> +notrace static __always_inline u64 __shr64(u64 val, int amt)
-> +{
-> + return val >> amt;
+> KBUILD_CFLAGS +=3D -m64 -pipe -mno-fpu -mcpu=3Dultrasparc -mcmodel=3Dmedl=
+ow
+> -KBUILD_CFLAGS +=3D -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compar=
+e
+> +KBUILD_CFLAGS +=3D -ffixed-g4 -ffixed-g5 -Wno-sign-compare
+> KBUILD_CFLAGS +=3D -Wa,--undeclared-regs
+> KBUILD_CFLAGS +=3D $(call cc-option,-mtune=3Dultrasparc3)
+> KBUILD_AFLAGS +=3D -m64 -mcpu=3Dultrasparc -Wa,--undeclared-regs
+> diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+> index 243dbfc4609d..e009443145af 100644
+> --- a/arch/sparc/vdso/Makefile
+> +++ b/arch/sparc/vdso/Makefile
+> @@ -46,7 +46,7 @@ CFL :=3D $(PROFILING) -mcmodel=3Dmedlow -fPIC -O2 -fasy=
+nchronous-unwind-tables -m64
+> -fno-omit-frame-pointer -foptimize-sibling-calls \
+> -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 >
-> +}
-> +
-> notrace static __always_inline u64 vread_tick(void)
-> {
-> u64 ret;
-> @@ -102,6 +107,21 @@ notrace static __always_inline u64 vread_tick_stick(=
-void)
-> return ret;
-> }
-> #else
-> +notrace static __always_inline u64 __shr64(u64 val, int amt)
-> +{
-> + u64 ret;
-> +
-> + asm volatile("sllx %H1, 32, %%g1\n\t"
-> + "srl %L1, 0, %L1\n\t"
-> + "or %%g1, %L1, %%g1\n\t"
-> + "srlx %%g1, %2, %L0\n\t"
-> + "srlx %L0, 32, %H0"
-> + : "=3Dr" (ret)
-> + : "r" (val), "r" (amt)
-> + : "g1");
-> + return ret;
-> +}
-> +
-> notrace static __always_inline u64 vread_tick(void)
-> {
-> register unsigned long long ret asm("o4");
-> @@ -154,7 +174,7 @@ notrace static __always_inline int do_realtime(struct=
- vvar_data *vvar,
-> ts->tv_sec =3D vvar->wall_time_sec;
+> -SPARC_REG_CFLAGS =3D -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
+> +SPARC_REG_CFLAGS =3D -ffixed-g4 -ffixed-g5
 >
-> ns =3D vvar->wall_time_snsec;
->
-> ns +=3D vgetsns(vvar);
-> - ns >>=3D vvar->clock.shift;
->
-> + ns =3D __shr64(ns, vvar->clock.shift);
->
-> } while (unlikely(vvar_read_retry(vvar, seq)));
->
-> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
->
-> @@ -174,7 +194,7 @@ notrace static __always_inline int do_realtime_stick(=
-struct vvar_data *vvar,
-> ts->tv_sec =3D vvar->wall_time_sec;
->
-> ns =3D vvar->wall_time_snsec;
->
-> ns +=3D vgetsns_stick(vvar);
-> - ns >>=3D vvar->clock.shift;
->
-> + ns =3D __shr64(ns, vvar->clock.shift);
->
-> } while (unlikely(vvar_read_retry(vvar, seq)));
->
-> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
->
-> @@ -194,7 +214,7 @@ notrace static __always_inline int do_monotonic(struc=
-t vvar_data *vvar,
-> ts->tv_sec =3D vvar->monotonic_time_sec;
->
-> ns =3D vvar->monotonic_time_snsec;
->
-> ns +=3D vgetsns(vvar);
-> - ns >>=3D vvar->clock.shift;
->
-> + ns =3D __shr64(ns, vvar->clock.shift);
->
-> } while (unlikely(vvar_read_retry(vvar, seq)));
->
-> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
->
-> @@ -214,7 +234,7 @@ notrace static __always_inline int do_monotonic_stick=
-(struct vvar_data *vvar,
-> ts->tv_sec =3D vvar->monotonic_time_sec;
->
-> ns =3D vvar->monotonic_time_snsec;
->
-> ns +=3D vgetsns_stick(vvar);
-> - ns >>=3D vvar->clock.shift;
->
-> + ns =3D __shr64(ns, vvar->clock.shift);
->
-> } while (unlikely(vvar_read_retry(vvar, seq)));
->
-> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+> $(vobjs): KBUILD_CFLAGS :=3D $(filter-out $(RANDSTRUCT_CFLAGS) $(GCC_PLUG=
+INS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
 >
 >
-> ---
-> base-commit: defaf1a2113a22b00dfa1abc0fd2014820eaf065
-> change-id: 20240717-sparc-shr64-2f00a7884770
->
-> Best regards,
 > --
-> Koakuma koachan@protonmail.com
->
->
+> 2.45.2
 
-Hi, is there anything else I need to do for this patch?
+Hmm, hello, is there anything else I should do for this patch
+(and the series as a whole)?
