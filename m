@@ -1,194 +1,189 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-43167.protonmail.ch (mail-43167.protonmail.ch [185.70.43.167])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E05A14830F;
-	Mon, 21 Oct 2024 00:29:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA88C1EEE0
+	for <sparclinux@vger.kernel.org>; Mon, 21 Oct 2024 06:54:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.167
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729470599; cv=none; b=ClkoqdmqW/rwpgIF5W1bq7oCsGhwBg9CmmrG/k1jXEBaDvnzsiSs7kDKbxcFrUCapQROWKcVAfZPRuNbaYdc/YNHtElREYspXrD/ZVg0MFtNZKzn/i/NFvtgux/G6XptOS4uMeBZQsLw5nA/xSk5Z75Mjj+qJR2WT+wiluPguZk=
+	t=1729493690; cv=none; b=A9rxILAX6aFiJ5EOgnjbpbyCGmvTiOeR9WlF1g+0RdDukm7FKX5ylt4qn8T+L8JvA1zkKYcpLmG+T88Lbs3Q9j4X8Ve62XDi1Yhu7mem3fKOIGeCPyaV8IOv+L+l4VGevvgSnl9bLsKYHTnc7QMBKo7NqbWutY8/eAv443BnBT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729470599; c=relaxed/simple;
-	bh=2edVn3yzlgvTIcU4OYne6VaRBmOeBMvpuDRrHbVNdrI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oGoohfC3AJJKp+I9JdTM7rGeMiA+bimxvlVQmu+SCee0SBRdI8Yx7uMvS6fYNV7/XBxrGbCsaEc5lopM6st+ffv7FFT2U1nJ5KjEoUO8vmvebafRLXt7DO4xuetHDIJa4OCSukXJDopmhxQLLWr0QHCpC1TZ3Km/7I/hH/qWFP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NFFk4W0d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1729493690; c=relaxed/simple;
+	bh=mKszSO2uodhB/SVawf/fZzSNYzvQqPz+HdN5wa27pkY=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=GS2ykvcOABxHpxTmZrePLMEbk8/7JSWYp5FNIcUuPnsbldTVNoyKH2tsIJ53C/MuARbp8S7/ufpPSjli8NkKvLcFURtK0PJQgFM+Inydm8mwdGOztjE5bWyPPcpfgZ57gpX8+h6l/BSeXYi2DcdnCdXrU9PNcWEMJGNsovJHvBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=svGzb9j9; arc=none smtp.client-ip=185.70.43.167
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NFFk4W0d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B75C4CEE5;
-	Mon, 21 Oct 2024 00:29:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729470598;
-	bh=2edVn3yzlgvTIcU4OYne6VaRBmOeBMvpuDRrHbVNdrI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NFFk4W0dyvHD7M3v36IIWTb5ySBBZX5uZ/VLRYiArPPR5++D/baWB8d+lyfAaBOhk
-	 rztTLk/6ilOUZBWwQxzKVpNgy7hbS+bAqO2cV8DFYmzWDyAaKEezQcPZFBrYh8vShT
-	 roh7zUz+tjlNZy+E9vuB5Q59JQnN14hGjhkd5gjyQeUJqlHGIc+Uf3/5EwjEZ4O6Ps
-	 TvEpzXEcAb/PHAsselt3G1remC4TFMm//VXM0Ciyn11PZQ9zsIxfN5iARYumUTBA9J
-	 8pJ0BrJoKwcW+JUENnQzEDWoyb2qcx6NpA2gan0ia3pz9LbggvtIVcVcrMMhn+Rn2b
-	 w+zTkdQuRqfwg==
-From: Eric Biggers <ebiggers@kernel.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-crypto@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-f2fs-devel@lists.sourceforge.net,
-	linux-mips@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org
-Subject: [PATCH 15/15] f2fs: switch to using the crc32 library
-Date: Sun, 20 Oct 2024 17:29:35 -0700
-Message-ID: <20241021002935.325878-16-ebiggers@kernel.org>
-X-Mailer: git-send-email 2.47.0
-In-Reply-To: <20241021002935.325878-1-ebiggers@kernel.org>
-References: <20241021002935.325878-1-ebiggers@kernel.org>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="svGzb9j9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1729493686; x=1729752886;
+	bh=mKszSO2uodhB/SVawf/fZzSNYzvQqPz+HdN5wa27pkY=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=svGzb9j9yZ6ZgssC/fXMy4RKdUYPQffidIAYoe/ApFaTyB8MkhZOhmcEfUX0hPBYk
+	 3uYrjo4iu3EqDsETxwGX+t8K1/ulpiq1Hroq76Y6ss0EkspVhadprAzHn3FvEodqiX
+	 t8ohW57R+bBpRDOg3aBNFApODJqyi3kw9Yauc0gV6sHtelEn/y8DzJcDhbxkW9pLrz
+	 Woya34sWO4648EQuTjwJ6erBTTmc5GXt2mCvuIg6xJZCRxv+souHirafYcw1dcCym1
+	 /vV2avSDVGoV3j4SExIkSdZb1ZXbPkr+1YNdsulgAU7tvwiKGhMCkaLzwwRW+djg7X
+	 s6huH1Adf+n6A==
+Date: Mon, 21 Oct 2024 06:54:39 +0000
+To: koachan@protonmail.com
+From: Koakuma <koachan@protonmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH v2] sparc/vdso: Add helper function for 64-bit right shift on 32-bit target
+Message-ID: <-I-Ljs420E94P091A2LOUkq7SOKMg2yY3jCj8aTjDtN4r3hH3NvnoNfuGQbrJTEMAKKZP-BV2Qsmu9ARUjpngc7-71R26iB4q0bpZgxBgzk=@protonmail.com>
+In-Reply-To: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
+References: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
+Feedback-ID: 6608610:user:proton
+X-Pm-Message-ID: 1fda092beb2bf4a3b6ea843d0280416627e36948
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-From: Eric Biggers <ebiggers@google.com>
+Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org> wrote:
 
-Now that the crc32() library function takes advantage of
-architecture-specific optimizations, it is unnecessary to go through the
-crypto API.  Just use crc32().  This is much simpler, and it improves
-performance due to eliminating the crypto API overhead.
+> From: Koakuma koachan@protonmail.com
+>
+>
+> Add helper function for 64-bit right shift on 32-bit target so that
+> clang does not emit a runtime library call.
+>
+> Signed-off-by: Koakuma koachan@protonmail.com
+>
+> ---
+> Hi~
+>
+> This adds a small function to do 64-bit right shifts for use in vDSO
+> code, needed so that clang does not emit a call to runtime library.
+> ---
+> Changes in v2:
+> - Move __shr64 to sparc code since there are no other users of it.
+> - Now that __shr64 is not in portable code, redo it in inline asm for sim=
+pler implementation & better performance.
+> - Link to v1: https://lore.kernel.org/r/20240804-sparc-shr64-v1-1-2505096=
+8339a@protonmail.com
+> ---
+> arch/sparc/vdso/vclock_gettime.c | 28 ++++++++++++++++++++++++----
+> 1 file changed, 24 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_ge=
+ttime.c
+> index e794edde6755..79607804ea1b 100644
+> --- a/arch/sparc/vdso/vclock_gettime.c
+> +++ b/arch/sparc/vdso/vclock_gettime.c
+> @@ -86,6 +86,11 @@ notrace static long vdso_fallback_gettimeofday(struct =
+__kernel_old_timeval *tv,
+> }
+>
+> #ifdef CONFIG_SPARC64
+> +notrace static __always_inline u64 __shr64(u64 val, int amt)
+> +{
+> + return val >> amt;
+>
+> +}
+> +
+> notrace static __always_inline u64 vread_tick(void)
+> {
+> u64 ret;
+> @@ -102,6 +107,21 @@ notrace static __always_inline u64 vread_tick_stick(=
+void)
+> return ret;
+> }
+> #else
+> +notrace static __always_inline u64 __shr64(u64 val, int amt)
+> +{
+> + u64 ret;
+> +
+> + asm volatile("sllx %H1, 32, %%g1\n\t"
+> + "srl %L1, 0, %L1\n\t"
+> + "or %%g1, %L1, %%g1\n\t"
+> + "srlx %%g1, %2, %L0\n\t"
+> + "srlx %L0, 32, %H0"
+> + : "=3Dr" (ret)
+> + : "r" (val), "r" (amt)
+> + : "g1");
+> + return ret;
+> +}
+> +
+> notrace static __always_inline u64 vread_tick(void)
+> {
+> register unsigned long long ret asm("o4");
+> @@ -154,7 +174,7 @@ notrace static __always_inline int do_realtime(struct=
+ vvar_data *vvar,
+> ts->tv_sec =3D vvar->wall_time_sec;
+>
+> ns =3D vvar->wall_time_snsec;
+>
+> ns +=3D vgetsns(vvar);
+> - ns >>=3D vvar->clock.shift;
+>
+> + ns =3D __shr64(ns, vvar->clock.shift);
+>
+> } while (unlikely(vvar_read_retry(vvar, seq)));
+>
+> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+>
+> @@ -174,7 +194,7 @@ notrace static __always_inline int do_realtime_stick(=
+struct vvar_data *vvar,
+> ts->tv_sec =3D vvar->wall_time_sec;
+>
+> ns =3D vvar->wall_time_snsec;
+>
+> ns +=3D vgetsns_stick(vvar);
+> - ns >>=3D vvar->clock.shift;
+>
+> + ns =3D __shr64(ns, vvar->clock.shift);
+>
+> } while (unlikely(vvar_read_retry(vvar, seq)));
+>
+> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+>
+> @@ -194,7 +214,7 @@ notrace static __always_inline int do_monotonic(struc=
+t vvar_data *vvar,
+> ts->tv_sec =3D vvar->monotonic_time_sec;
+>
+> ns =3D vvar->monotonic_time_snsec;
+>
+> ns +=3D vgetsns(vvar);
+> - ns >>=3D vvar->clock.shift;
+>
+> + ns =3D __shr64(ns, vvar->clock.shift);
+>
+> } while (unlikely(vvar_read_retry(vvar, seq)));
+>
+> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+>
+> @@ -214,7 +234,7 @@ notrace static __always_inline int do_monotonic_stick=
+(struct vvar_data *vvar,
+> ts->tv_sec =3D vvar->monotonic_time_sec;
+>
+> ns =3D vvar->monotonic_time_snsec;
+>
+> ns +=3D vgetsns_stick(vvar);
+> - ns >>=3D vvar->clock.shift;
+>
+> + ns =3D __shr64(ns, vvar->clock.shift);
+>
+> } while (unlikely(vvar_read_retry(vvar, seq)));
+>
+> ts->tv_sec +=3D __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+>
+>
+> ---
+> base-commit: defaf1a2113a22b00dfa1abc0fd2014820eaf065
+> change-id: 20240717-sparc-shr64-2f00a7884770
+>
+> Best regards,
+> --
+> Koakuma koachan@protonmail.com
+>
+>
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
----
- fs/f2fs/Kconfig |  3 +--
- fs/f2fs/f2fs.h  | 19 +------------------
- fs/f2fs/super.c | 15 ---------------
- 3 files changed, 2 insertions(+), 35 deletions(-)
-
-diff --git a/fs/f2fs/Kconfig b/fs/f2fs/Kconfig
-index 68a1e23e1557c..5916a02fb46dd 100644
---- a/fs/f2fs/Kconfig
-+++ b/fs/f2fs/Kconfig
-@@ -2,12 +2,11 @@
- config F2FS_FS
- 	tristate "F2FS filesystem support"
- 	depends on BLOCK
- 	select BUFFER_HEAD
- 	select NLS
--	select CRYPTO
--	select CRYPTO_CRC32
-+	select CRC32
- 	select F2FS_FS_XATTR if FS_ENCRYPTION
- 	select FS_ENCRYPTION_ALGS if FS_ENCRYPTION
- 	select FS_IOMAP
- 	select LZ4_COMPRESS if F2FS_FS_LZ4
- 	select LZ4_DECOMPRESS if F2FS_FS_LZ4
-diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
-index 33f5449dc22d5..1fc5c2743c8d4 100644
---- a/fs/f2fs/f2fs.h
-+++ b/fs/f2fs/f2fs.h
-@@ -1761,13 +1761,10 @@ struct f2fs_sb_info {
- 
- 	/* For write statistics */
- 	u64 sectors_written_start;
- 	u64 kbytes_written;
- 
--	/* Reference to checksum algorithm driver via cryptoapi */
--	struct crypto_shash *s_chksum_driver;
--
- 	/* Precomputed FS UUID checksum for seeding other checksums */
- 	__u32 s_chksum_seed;
- 
- 	struct workqueue_struct *post_read_wq;	/* post read workqueue */
- 
-@@ -1941,25 +1938,11 @@ static inline unsigned int f2fs_time_to_wait(struct f2fs_sb_info *sbi,
-  * Inline functions
-  */
- static inline u32 __f2fs_crc32(struct f2fs_sb_info *sbi, u32 crc,
- 			      const void *address, unsigned int length)
- {
--	struct {
--		struct shash_desc shash;
--		char ctx[4];
--	} desc;
--	int err;
--
--	BUG_ON(crypto_shash_descsize(sbi->s_chksum_driver) != sizeof(desc.ctx));
--
--	desc.shash.tfm = sbi->s_chksum_driver;
--	*(u32 *)desc.ctx = crc;
--
--	err = crypto_shash_update(&desc.shash, address, length);
--	BUG_ON(err);
--
--	return *(u32 *)desc.ctx;
-+	return crc32(crc, address, length);
- }
- 
- static inline u32 f2fs_crc32(struct f2fs_sb_info *sbi, const void *address,
- 			   unsigned int length)
- {
-diff --git a/fs/f2fs/super.c b/fs/f2fs/super.c
-index 87ab5696bd482..003d3bcb0caa2 100644
---- a/fs/f2fs/super.c
-+++ b/fs/f2fs/super.c
-@@ -1670,12 +1670,10 @@ static void f2fs_put_super(struct super_block *sb)
- 
- 	f2fs_destroy_post_read_wq(sbi);
- 
- 	kvfree(sbi->ckpt);
- 
--	if (sbi->s_chksum_driver)
--		crypto_free_shash(sbi->s_chksum_driver);
- 	kfree(sbi->raw_super);
- 
- 	f2fs_destroy_page_array_cache(sbi);
- 	f2fs_destroy_xattr_caches(sbi);
- #ifdef CONFIG_QUOTA
-@@ -4419,19 +4417,10 @@ static int f2fs_fill_super(struct super_block *sb, void *data, int silent)
- 		INIT_LIST_HEAD(&sbi->inode_list[i]);
- 		spin_lock_init(&sbi->inode_lock[i]);
- 	}
- 	mutex_init(&sbi->flush_lock);
- 
--	/* Load the checksum driver */
--	sbi->s_chksum_driver = crypto_alloc_shash("crc32", 0, 0);
--	if (IS_ERR(sbi->s_chksum_driver)) {
--		f2fs_err(sbi, "Cannot load crc32 driver.");
--		err = PTR_ERR(sbi->s_chksum_driver);
--		sbi->s_chksum_driver = NULL;
--		goto free_sbi;
--	}
--
- 	/* set a block size */
- 	if (unlikely(!sb_set_blocksize(sb, F2FS_BLKSIZE))) {
- 		f2fs_err(sbi, "unable to set blocksize");
- 		goto free_sbi;
- 	}
-@@ -4872,12 +4861,10 @@ static int f2fs_fill_super(struct super_block *sb, void *data, int silent)
- 	fscrypt_free_dummy_policy(&F2FS_OPTION(sbi).dummy_enc_policy);
- 	kvfree(options);
- free_sb_buf:
- 	kfree(raw_super);
- free_sbi:
--	if (sbi->s_chksum_driver)
--		crypto_free_shash(sbi->s_chksum_driver);
- 	kfree(sbi);
- 	sb->s_fs_info = NULL;
- 
- 	/* give only one another chance */
- 	if (retry_cnt > 0 && skip_recovery) {
-@@ -5080,7 +5067,5 @@ module_init(init_f2fs_fs)
- module_exit(exit_f2fs_fs)
- 
- MODULE_AUTHOR("Samsung Electronics's Praesto Team");
- MODULE_DESCRIPTION("Flash Friendly File System");
- MODULE_LICENSE("GPL");
--MODULE_SOFTDEP("pre: crc32");
--
--- 
-2.47.0
-
+Hi, is there anything else I need to do for this patch?
