@@ -1,168 +1,172 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2994195FEC;
-	Mon, 21 Oct 2024 10:40:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B69181E285E;
+	Mon, 21 Oct 2024 13:23:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729507234; cv=none; b=UbKxnbvgVsnVLVoEJfP83q+y4AePUB00Ha2bEWi3CgNYanD8g0ZVz5xZsQrf95llqmsCHb5a5yDBsGwUXZGKsq+ue7WcEQz3XacsNXRagcT/GA5h/J9llT6e4vQb6uPlKQ9FPZ2b54X2DbCZ56b5VN1CcyNHUomPhKn9Wy3LKaw=
+	t=1729516993; cv=none; b=nn0CJafYOUNDB706Eu6eCVx3izyCtAXOMcNmJu26qrTvF5kydczVk963ksOj0Eivt/KzzpMNiMgi6ee2dueTM4OIJymGTnALDLdTn/V9IUZgquXCXU0Ie0r5UY3Aib47vrOfxCU+0P8B7UL+WXF5gGT8HzqDGxWBN5Q8pWJys8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729507234; c=relaxed/simple;
-	bh=41f6oEtljvqz5Te0x1SNWi4SHNJw6n7wHUBSgCBwR3g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CB6/4heloakgrVdG+7Sf1Hm4L928IJ+O90B2SFgKvEIPle/tPnAMB6s7cAUO2hv+zL21ZHsEnXWUXa8y95jqJqzjlxpK6WVFALRWl49WOIQ6clz0/p5EsyJdTYmbXo0nrLV7oczntzE+wYLUSqdFZRF822T2Y5Jawj0yMXCNFG4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=WL4D7lJN; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="WL4D7lJN"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 49L2KH3K032533;
-	Mon, 21 Oct 2024 10:40:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=92knE4jiltiV907EhRGLVYeamkXayI
-	7j0BwYX0ZH1JA=; b=WL4D7lJNas37Nzdhxi9rX+lx/0u/7ytK48q3TqjJR++gKt
-	r7ueMht7alDtgQ7pasPryEpqoYRd0OWJqyszZwZ+SpNOF2LJ1isSitDYhyMC/LAS
-	FwERDIOSqxtV94TGFg/XwPocGXOJNG9slT3/uBhOpxWpILgE6aPOyXK2xUh7rTpF
-	iZSfIsmznUv35ep6vlQ2EA5avKOIqsYrhOQyes8ee48qcQRT99bJpKxarFGhHfc/
-	Sf1AmAC4Lua0AKvgB9CPRIHyiQxUS0kOC4/Q4iiF3ywr7qQlDkQN+CyvM61jpuW4
-	hTkpnbK13JKGJKjwKEuAWROXZpMXdSctg6J3mWmA==
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 42c5hm8my5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 21 Oct 2024 10:40:13 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 49L9CWB9018605;
-	Mon, 21 Oct 2024 10:40:12 GMT
-Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 42csaj5kvs-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 21 Oct 2024 10:40:12 +0000
-Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
-	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 49LAe94P24249044
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 21 Oct 2024 10:40:10 GMT
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 389B320043;
-	Mon, 21 Oct 2024 10:40:09 +0000 (GMT)
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7F0602004B;
-	Mon, 21 Oct 2024 10:40:08 +0000 (GMT)
-Received: from osiris (unknown [9.171.37.192])
-	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Mon, 21 Oct 2024 10:40:08 +0000 (GMT)
-Date: Mon, 21 Oct 2024 12:40:07 +0200
-From: Heiko Carstens <hca@linux.ibm.com>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
-        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org,
-        Hendrik Brueckner <brueckner@linux.ibm.com>
-Subject: Re: [PATCH 07/15] s390/crc32: expose CRC32 functions through lib
-Message-ID: <20241021104007.6950-E-hca@linux.ibm.com>
-References: <20241021002935.325878-1-ebiggers@kernel.org>
- <20241021002935.325878-8-ebiggers@kernel.org>
+	s=arc-20240116; t=1729516993; c=relaxed/simple;
+	bh=sZVT35tPktjswObqMzDeNjpp8MfKEIT8nIy1KCQbxUQ=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=TejOHOYjZ9dc1l3wOZWn7VcyyrZF6AtMhwPvVg47NUxh0elDuDcVUT00GLuUdE9gykbZXrroOAC1hvOpqiYRBrNoe0rg7MYS7XVvAaGMhnteSpqLb/u3ZAQn8AtRr1QoHYTF6WaC59A1uoOEeuGh/uZkUkV2/4dcjGGbVUDKVBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D2598FEC;
+	Mon, 21 Oct 2024 06:23:40 -0700 (PDT)
+Received: from [10.57.24.27] (unknown [10.57.24.27])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E8DCB3F73B;
+	Mon, 21 Oct 2024 06:22:59 -0700 (PDT)
+Message-ID: <b6ca55b7-4de2-4085-97bd-619f91d9fcb8@arm.com>
+Date: Mon, 21 Oct 2024 14:22:56 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241021002935.325878-8-ebiggers@kernel.org>
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: f0A5vIL1iLbWasgVAUuToCuIbQMCR4iX
-X-Proofpoint-GUID: f0A5vIL1iLbWasgVAUuToCuIbQMCR4iX
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
- definitions=2024-10-15_01,2024-10-11_01,2024-09-30_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 clxscore=1011
- phishscore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
- bulkscore=0 mlxscore=0 adultscore=0 mlxlogscore=730 suspectscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2409260000 definitions=main-2410210076
+User-Agent: Mozilla Thunderbird
+From: Steven Price <steven.price@arm.com>
+Subject: Re: [PATCH RFC v2 0/4] mm: Introduce MAP_BELOW_HINT
+To: "Kirill A. Shutemov" <kirill@shutemov.name>,
+ Charlie Jenkins <charlie@rivosinc.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+ Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner <tglx@linutronix.de>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
+ Peter Zijlstra <peterz@infradead.org>, Muchun Song <muchun.song@linux.dev>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
+ <vbabka@suse.cz>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Shuah Khan <shuah@kernel.org>, linux-arch@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org,
+ linux-kselftest@vger.kernel.org
+References: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
+ <yu7um2tcxg2apoz372rmzpkrfgbb42ndvabvrsp4usb2e3bkrf@huaucjsp5vlj>
+ <Ztnp3OAIRz/daj7s@ghost>
+ <pbotlphw77fkfacldtpxfjcs2w5nhb2uvxszv5rmlrhjm42akd@4pvcqb7ojq4v>
+Content-Language: en-GB
+In-Reply-To: <pbotlphw77fkfacldtpxfjcs2w5nhb2uvxszv5rmlrhjm42akd@4pvcqb7ojq4v>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Sun, Oct 20, 2024 at 05:29:27PM -0700, Eric Biggers wrote:
-> From: Eric Biggers <ebiggers@google.com>
+On 09/09/2024 10:46, Kirill A. Shutemov wrote:
+> On Thu, Sep 05, 2024 at 10:26:52AM -0700, Charlie Jenkins wrote:
+>> On Thu, Sep 05, 2024 at 09:47:47AM +0300, Kirill A. Shutemov wrote:
+>>> On Thu, Aug 29, 2024 at 12:15:57AM -0700, Charlie Jenkins wrote:
+>>>> Some applications rely on placing data in free bits addresses allocated
+>>>> by mmap. Various architectures (eg. x86, arm64, powerpc) restrict the
+>>>> address returned by mmap to be less than the 48-bit address space,
+>>>> unless the hint address uses more than 47 bits (the 48th bit is reserved
+>>>> for the kernel address space).
+>>>>
+>>>> The riscv architecture needs a way to similarly restrict the virtual
+>>>> address space. On the riscv port of OpenJDK an error is thrown if
+>>>> attempted to run on the 57-bit address space, called sv57 [1].  golang
+>>>> has a comment that sv57 support is not complete, but there are some
+>>>> workarounds to get it to mostly work [2].
 > 
-> Move the s390 CRC32 assembly code into the lib directory and wire it up
-> to the library interface.  This allows it to be used without going
-> through the crypto API.  It remains usable via the crypto API too via
-> the shash algorithms that use the library interface.  Thus all the
-> arch-specific "shash" code becomes unnecessary and is removed.
+> I also saw libmozjs crashing with 57-bit address space on x86.
 > 
-> Note: to see the diff from arch/s390/crypto/crc32-vx.c to
-> arch/s390/lib/crc32-glue.c, view this commit with 'git show -M10'.
+>>>> These applications work on x86 because x86 does an implicit 47-bit
+>>>> restriction of mmap() address that contain a hint address that is less
+>>>> than 48 bits.
+>>>>
+>>>> Instead of implicitly restricting the address space on riscv (or any
+>>>> current/future architecture), a flag would allow users to opt-in to this
+>>>> behavior rather than opt-out as is done on other architectures. This is
+>>>> desirable because it is a small class of applications that do pointer
+>>>> masking.
 > 
-> Signed-off-by: Eric Biggers <ebiggers@google.com>
-> ---
->  arch/s390/Kconfig                      |   1 +
->  arch/s390/configs/debug_defconfig      |   1 -
->  arch/s390/configs/defconfig            |   1 -
->  arch/s390/crypto/Kconfig               |  12 -
->  arch/s390/crypto/Makefile              |   2 -
->  arch/s390/crypto/crc32-vx.c            | 306 -------------------------
->  arch/s390/lib/Makefile                 |   3 +
->  arch/s390/lib/crc32-glue.c             |  82 +++++++
->  arch/s390/{crypto => lib}/crc32-vx.h   |   0
->  arch/s390/{crypto => lib}/crc32be-vx.c |   0
->  arch/s390/{crypto => lib}/crc32le-vx.c |   0
->  11 files changed, 86 insertions(+), 322 deletions(-)
->  delete mode 100644 arch/s390/crypto/crc32-vx.c
->  create mode 100644 arch/s390/lib/crc32-glue.c
->  rename arch/s390/{crypto => lib}/crc32-vx.h (100%)
->  rename arch/s390/{crypto => lib}/crc32be-vx.c (100%)
->  rename arch/s390/{crypto => lib}/crc32le-vx.c (100%)
+> You reiterate the argument about "small class of applications". But it
+> makes no sense to me.
 
-...
+Sorry to chime in late on this - I had been considering implementing
+something like MAP_BELOW_HINT and found this thread.
 
-> -static int __init crc_vx_mod_init(void)
-> -{
-> -	return crypto_register_shashes(crc32_vx_algs,
-> -				       ARRAY_SIZE(crc32_vx_algs));
-> -}
-> -
-> -static void __exit crc_vx_mod_exit(void)
-> -{
-> -	crypto_unregister_shashes(crc32_vx_algs, ARRAY_SIZE(crc32_vx_algs));
-> -}
-> -
-> -module_cpu_feature_match(S390_CPU_FEATURE_VXRS, crc_vx_mod_init);
+While the examples of applications that want to use high VA bits and get
+bitten by future upgrades is not very persuasive. It's worth pointing
+out that there are a variety of somewhat horrid hacks out there to work
+around this feature not existing.
 
-What makes sure that all of the code is available automatically if the
-CPU supports the instructions like before? I can see that all CRC32
-related config options support also module build options.
+E.g. from my brief research into other code:
 
-Before this patch, this module and hence the fast crc32 variants were
-loaded automatically when required CPU features were present.
-Right now I don't how this is happening with this series.
+  * Box64 seems to have a custom allocator based on reading 
+    /proc/self/maps to allocate a block of VA space with a low enough 
+    address [1]
 
-> -MODULE_ALIAS_CRYPTO("crc32");
-> -MODULE_ALIAS_CRYPTO("crc32-vx");
-> -MODULE_ALIAS_CRYPTO("crc32c");
-> -MODULE_ALIAS_CRYPTO("crc32c-vx");
+  * PHP has code reading /proc/self/maps - I think this is to find a 
+    segment which is close enough to the text segment [2]
 
-...
+  * FEX-Emu mmap()s the upper 128TB of VA on Arm to avoid full 48 bit
+    addresses [3][4]
 
-> +static int __init crc32_s390_init(void)
-> +{
-> +	if (cpu_have_feature(S390_CPU_FEATURE_VXRS))
-> +		static_branch_enable(&have_vxrs);
-> +	return 0;
-> +}
-> +arch_initcall(crc32_s390_init);
+  * pmdk has some funky code to find the lowest address that meets 
+    certain requirements - this does look like an ALSR alternative and 
+    probably couldn't directly use MAP_BELOW_HINT, although maybe this 
+    suggests we need a mechanism to map without a VA-range? [5]
 
-I guess this should be changed to:
+  * MIT-Scheme parses /proc/self/maps to find the lowest mapping within 
+    a range [6]
 
-module_cpu_feature_match(S390_CPU_FEATURE_VXRS, ...);
+  * LuaJIT uses an approach to 'probe' to find a suitable low address 
+    for allocation [7]
 
-Which would make at least the library functions available if cpu
-features are present. But this looks only like a partial solution of
-the above described problem.
+The biggest benefit I see of MAP_BELOW_HINT is that it would allow a
+library to get low addresses without causing any problems for the rest
+of the application. The use case I'm looking at is in a library and 
+therefore a personality mode wouldn't be appropriate (because I don't 
+want to affect the rest of the application). Reading /proc/self/maps
+is also problematic because other threads could be allocating/freeing
+at the same time.
 
-But maybe I'm missing something.
+Thanks,
+Steve
+
+
+[1] https://sources.debian.org/src/box64/0.3.0+dfsg-1/src/custommem.c/
+[2] https://sources.debian.org/src/php8.2/8.2.24-1/ext/opcache/shared_alloc_mmap.c/#L62
+[3] https://github.com/FEX-Emu/FEX/blob/main/FEXCore/Source/Utils/Allocator.cpp
+[4] https://github.com/FEX-Emu/FEX/commit/df2f1ad074e5cdfb19a0bd4639b7604f777fb05c
+[5] https://sources.debian.org/src/pmdk/1.13.1-1.1/src/common/mmap_posix.c/?hl=29#L29
+[6] https://sources.debian.org/src/mit-scheme/12.1-3/src/microcode/ux.c/#L826
+[7] https://sources.debian.org/src/luajit/2.1.0+openresty20240815-1/src/lj_alloc.c/
+
+> With full address space by default, this small class of applications is
+> going to *broken* unless they would handle RISC-V case specifically.
+> 
+> On other hand, if you limit VA to 128TiB by default (like many
+> architectures do[1]) everything would work without intervention.
+> And if an app needs wider address space it would get it with hint opt-in,
+> because it is required on x86-64 anyway. Again, no RISC-V-specific code.
+> 
+> I see no upside with your approach. Just worse user experience.
+> 
+> [1] See va_high_addr_switch test case in https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/testing/selftests/mm/Makefile#n115
+> 
+
