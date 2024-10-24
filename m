@@ -1,212 +1,297 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11EAC1C1753;
-	Thu, 24 Oct 2024 08:17:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 74DCA1B85E2;
+	Thu, 24 Oct 2024 10:52:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729757850; cv=none; b=iVCPWxqAnsujoZZVTrLA9XoEh8jY+P+Y4FRKL9RwSHCfJzhElR55hGw18j4QhIkvySr6DIWKmPB2o74qxyrolG4YFRbMGUmrpqf+wISDiAJ5R0OKuROFoer5YB0zmA8xk6/2f1HyajhCrr/7tAb/UxKlHoQtpnv1lhooIgUGhBc=
+	t=1729767175; cv=none; b=gOfo3Wfoca++OGmgNWwnFY9LOeolu56VpUWmGSQPuVxJUtBpqbC0z7rstA5O5Y4g4xNTG/EW9KbShKmCv1z6fm0WVTCv5BcjtTg16VI9WUkpWnFbEwHPNEDCKuYPk8eo0Xj1zK7U0lNb3CRkgI6s8tBhR+DzFCpGzcWAUOMmyXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729757850; c=relaxed/simple;
-	bh=Ox/ZYsBrrmbPK3A2QSUcQ8QfXoa69FGJYXDNNRcdBnE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FYHTSMJeMw6+i3oRT/+mzh6oStFV+NEaxc1JpjnyaoZ3xql9AaiFDVtmjVyf93aKXxocZPK10yYFpy5TDBs4jJDoeW953iR2cCJvQYXPNdoDZ1en6MvWbqkbgV4WIA2ROdQ7WO7c8hLjoUqjonmemb32zkAgyV1WMYSuQyqipBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kUYTT8Tx; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kUYTT8Tx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 612D5C4CEC7;
-	Thu, 24 Oct 2024 08:16:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1729757849;
-	bh=Ox/ZYsBrrmbPK3A2QSUcQ8QfXoa69FGJYXDNNRcdBnE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kUYTT8Tx/x5v0ueXFlaIbTgM/tC1LFzcQH/Bk/9E/G27ofyIbDJ7VnB94NYJst0cv
-	 rwM3dJS8U0ddWOUUXyYJ5U2DbjwqikH39DsU8Z9vNeIPIaGV5iltmAX+1Y07CtyHuu
-	 qjH8xAIYsTm3k2jYsPE3Yg78rgh4kjznfSO7VPR6GqKUwnNvv6GGqa5UsKhK6x1lWv
-	 w5QasDDvCUMmBgmW/lX8F5rn9hH0iBupLlusSquog8hp4ocLfovmnzNHmy5eiFqmmK
-	 d1E2Of3Az/DoYE4MNq3gGFDCWEofW+6fRLAOpgssfQgrtruzoRtxJno9OxgV2pJlkI
-	 Cl6tQ0r75+5yg==
-Date: Thu, 24 Oct 2024 11:13:11 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Nathan Chancellor <nathan@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@quicinc.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>, Oleg Nesterov <oleg@redhat.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
-	Stafford Horne <shorne@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Uladzislau Rezki <urezki@gmail.com>,
-	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-mm@kvack.org,
-	linux-modules@vger.kernel.org, linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-trace-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v6 6/8] x86/module: prepare module loading for ROX
- allocations of text
-Message-ID: <ZxoBlwkh528r-vef@kernel.org>
-References: <20241016122424.1655560-1-rppt@kernel.org>
- <20241016122424.1655560-7-rppt@kernel.org>
- <20241021221519.GA3567210@thelio-3990X>
+	s=arc-20240116; t=1729767175; c=relaxed/simple;
+	bh=gPlA1+J0NJzLZMqSBN3DdFrWVxb4cP6uwM/TMB44Xh0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=Y2odxkdl13w70K1QbFujqkSUxRsrfHonhmrMTjh7bvNymP+5nA+36n+q0rdIY26Dq917WBfHbIcA5pbbzEgYHDGrFaMt0w+sXmFwcKXiLTWNaX1CZIUzeeoKHaGjDAeG+rPjC7KCWeTWfB7W41U8cTW/kJ2XUSeI5+q6Qh66y64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8DEFD497;
+	Thu, 24 Oct 2024 03:53:21 -0700 (PDT)
+Received: from [10.1.30.45] (e122027.cambridge.arm.com [10.1.30.45])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 67C983F71E;
+	Thu, 24 Oct 2024 03:52:42 -0700 (PDT)
+Message-ID: <b11631ba-224f-41fb-b82e-59f1b258aea1@arm.com>
+Date: Thu, 24 Oct 2024 11:52:40 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241021221519.GA3567210@thelio-3990X>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC v2 0/4] mm: Introduce MAP_BELOW_HINT
+To: "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ "Kirill A. Shutemov" <kirill@shutemov.name>,
+ Charlie Jenkins <charlie@rivosinc.com>, Arnd Bergmann <arnd@arndb.de>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner
+ <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>,
+ Russell King <linux@armlinux.org.uk>, Guo Ren <guoren@kernel.org>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+ Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
+ Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Naveen N Rao <naveen@kernel.org>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner <tglx@linutronix.de>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
+ Peter Zijlstra <peterz@infradead.org>, Muchun Song <muchun.song@linux.dev>,
+ Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Shuah Khan <shuah@kernel.org>,
+ linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-mm@kvack.org,
+ linux-kselftest@vger.kernel.org
+References: <20240829-patches-below_hint_mmap-v2-0-638a28d9eae0@rivosinc.com>
+ <yu7um2tcxg2apoz372rmzpkrfgbb42ndvabvrsp4usb2e3bkrf@huaucjsp5vlj>
+ <Ztnp3OAIRz/daj7s@ghost>
+ <pbotlphw77fkfacldtpxfjcs2w5nhb2uvxszv5rmlrhjm42akd@4pvcqb7ojq4v>
+ <b6ca55b7-4de2-4085-97bd-619f91d9fcb8@arm.com>
+ <5u7xntjdye5ejjmkgpp7m3ogpzblxcztrwngulejdft63fzuwf@xcxfcbaccqtw>
+ <07c5e292-5218-43ee-a167-da09d108a663@arm.com>
+ <gcyxymiqvxgkkhn76a6ksvevzcq36rridwakgyjsa24obcab3t@leqlqjcx3va3>
+From: Steven Price <steven.price@arm.com>
+Content-Language: en-GB
+In-Reply-To: <gcyxymiqvxgkkhn76a6ksvevzcq36rridwakgyjsa24obcab3t@leqlqjcx3va3>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi Nathan,
+On 23/10/2024 19:10, Liam R. Howlett wrote:
+> * Steven Price <steven.price@arm.com> [241023 05:31]:
+>>>>   * Box64 seems to have a custom allocator based on reading 
+>>>>     /proc/self/maps to allocate a block of VA space with a low enough 
+>>>>     address [1]
+>>>>
+>>>>   * PHP has code reading /proc/self/maps - I think this is to find a 
+>>>>     segment which is close enough to the text segment [2]
+>>>>
+>>>>   * FEX-Emu mmap()s the upper 128TB of VA on Arm to avoid full 48 bit
+>>>>     addresses [3][4]
+>>>
+>>> Can't the limited number of applications that need to restrict the upper
+>>> bound use an LD_PRELOAD compatible library to do this?
+>>
+>> I'm not entirely sure what point you are making here. Yes an LD_PRELOAD
+>> approach could be used instead of a personality type as a 'hack' to
+>> preallocate the upper address space. The obvious disadvantage is that
+>> you can't (easily) layer LD_PRELOAD so it won't work in the general case.
+> 
+> My point is that riscv could work around the limited number of
+> applications that requires this.  It's not really viable for you.
 
-On Mon, Oct 21, 2024 at 03:15:19PM -0700, Nathan Chancellor wrote:
-> Hi Mike,
-> 
-> On Wed, Oct 16, 2024 at 03:24:22PM +0300, Mike Rapoport wrote:
-> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> > 
-> > When module text memory will be allocated with ROX permissions, the
-> > memory at the actual address where the module will live will contain
-> > invalid instructions and there will be a writable copy that contains the
-> > actual module code.
-> > 
-> > Update relocations and alternatives patching to deal with it.
-> > 
-> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> 
-> Sorry that you have to hear from me again :) It seems that module
-> loading is still broken with this version of the patch, which is
-> something that I missed in my earlier testing since I only test a
-> monolithic kernel with my regular virtual machine testing. If I build
-> and install the kernel and modules in the VM via a distribution package,
-> I get the following splat at boot:
->
->   Starting systemd-udevd version 256.7-1-arch
->   [    0.882312] SMP alternatives: Something went horribly wrong trying to rewrite the CFI implementation.
->   [    0.883526] CFI failure at do_one_initcall+0x128/0x380 (target: init_module+0x0/0xff0 [crc32c_intel]; expected type: 0x0c7a3a22)
->   [    0.884802] Oops: invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
->   [    0.885434] CPU: 3 UID: 0 PID: 157 Comm: modprobe Tainted: G        W          6.12.0-rc3-debug-next-20241021-06324-g63b3ff03d91a #1 291f0fd70f293827edec681d3c5304f5807a3c7b
->   [    0.887084] Tainted: [W]=WARN
->   [    0.887409] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS unknown 2/2/2022
->   [    0.888241] RIP: 0010:do_one_initcall+0x128/0x380
->   [    0.888720] Code: f3 0f 1e fa 41 be ff ff ff ff e9 0f 01 00 00 0f 1f 44 00 00 41 81 e7 ff ff ff 7f 49 89 db 41 ba de c5 85 f3 45 03 53 f1 74 02 <0f> 0b 41 ff d3 0f 1f 00 41 89 c6 0f 1f 44 00 00 c6 04 24 00 65 8b
->   [    0.890598] RSP: 0018:ff3f93e5c052f970 EFLAGS: 00010217
->   [    0.891129] RAX: ffffffffb4c105b8 RBX: ffffffffc0602010 RCX: 0000000000000000
->   [    0.891850] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffffc0602010
->   [    0.892588] RBP: ff3f93e5c052fc88 R08: 0000000000000020 R09: 0000000000000000
->   [    0.893305] R10: 000000002a378b84 R11: ffffffffc0602010 R12: 00000000000069c6
->   [    0.894003] R13: ff1f0090c5596900 R14: ff1f0090c15a55c0 R15: 0000000000000000
->   [    0.894693] FS:  00007ffb712c0740(0000) GS:ff1f00942fb80000(0000) knlGS:0000000000000000
->   [    0.895453] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->   [    0.896020] CR2: 00007ffffc4424c8 CR3: 0000000100af4002 CR4: 0000000000771ef0
->   [    0.896698] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->   [    0.897391] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
->   [    0.898077] PKRU: 55555554
->   [    0.898337] Call Trace:
->   [    0.898577]  <TASK>
->   [    0.898784]  ? __die_body+0x6a/0xb0
->   [    0.899132]  ? die+0xa4/0xd0
->   [    0.899413]  ? do_trap+0xa6/0x180
->   [    0.899740]  ? do_one_initcall+0x128/0x380
->   [    0.900130]  ? do_one_initcall+0x128/0x380
->   [    0.900523]  ? handle_invalid_op+0x6a/0x90
->   [    0.900917]  ? do_one_initcall+0x128/0x380
->   [    0.901311]  ? exc_invalid_op+0x38/0x60
->   [    0.901679]  ? asm_exc_invalid_op+0x1a/0x20
->   [    0.902081]  ? __cfi_init_module+0x10/0x10 [crc32c_intel 5331566c5540f82df397056699bc4ddac8be1306]
->   [    0.902933]  ? __cfi_init_module+0x10/0x10 [crc32c_intel 5331566c5540f82df397056699bc4ddac8be1306]
->   [    0.903781]  ? __cfi_init_module+0x10/0x10 [crc32c_intel 5331566c5540f82df397056699bc4ddac8be1306]
->   [    0.904634]  ? do_one_initcall+0x128/0x380
->   [    0.905028]  ? idr_alloc_cyclic+0x139/0x1d0
->   [    0.905437]  ? security_kernfs_init_security+0x54/0x190
->   [    0.905958]  ? __kernfs_new_node+0x1ba/0x240
->   [    0.906377]  ? sysfs_create_dir_ns+0x8f/0x140
->   [    0.906795]  ? kernfs_link_sibling+0xf2/0x110
->   [    0.907211]  ? kernfs_activate+0x2c/0x110
->   [    0.907599]  ? kernfs_add_one+0x108/0x150
->   [    0.907981]  ? __kernfs_create_file+0x75/0xa0
->   [    0.908407]  ? sysfs_create_bin_file+0xc6/0x120
->   [    0.908853]  ? __vunmap_range_noflush+0x347/0x420
->   [    0.909313]  ? _raw_spin_unlock+0xe/0x30
->   [    0.909692]  ? free_unref_page+0x22c/0x4c0
->   [    0.910097]  ? __kmalloc_cache_noprof+0x1a8/0x360
->   [    0.910546]  do_init_module+0x60/0x250
->   [    0.910910]  __se_sys_finit_module+0x316/0x420
->   [    0.911351]  do_syscall_64+0x88/0x170
->   [    0.911699]  ? __x64_sys_lseek+0x68/0xb0
->   [    0.912077]  ? syscall_exit_to_user_mode+0x97/0xc0
->   [    0.912538]  ? do_syscall_64+0x94/0x170
->   [    0.912902]  ? syscall_exit_to_user_mode+0x97/0xc0
->   [    0.913353]  ? do_syscall_64+0x94/0x170
->   [    0.913709]  ? clear_bhb_loop+0x45/0xa0
->   [    0.914071]  ? clear_bhb_loop+0x45/0xa0
->   [    0.914428]  ? clear_bhb_loop+0x45/0xa0
->   [    0.914767]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
->   [    0.915089] RIP: 0033:0x7ffb713dc1fd
->   [    0.915316] Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d e3 fa 0c 00 f7 d8 64 89 01 48
->   [    0.916491] RSP: 002b:00007ffffc4454a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
->   [    0.916964] RAX: ffffffffffffffda RBX: 000055f28c6a5420 RCX: 00007ffb713dc1fd
->   [    0.917413] RDX: 0000000000000000 RSI: 000055f26c40cc03 RDI: 0000000000000003
->   [    0.917858] RBP: 00007ffffc445560 R08: 0000000000000001 R09: 00007ffffc4454f0
->   [    0.918302] R10: 0000000000000040 R11: 0000000000000246 R12: 000055f26c40cc03
->   [    0.918748] R13: 0000000000060000 R14: 000055f28c6a4b50 R15: 000055f28c6ac5b0
->   [    0.919211]  </TASK>
->   [    0.919356] Modules linked in: crc32c_intel(+)
->   [    0.919661] ---[ end trace 0000000000000000 ]---
-> 
-> I also see some other WARNs interleaved along the lines of
-> 
->   [    0.982759] no CFI hash found at: 0xffffffffc0608000 ffffffffc0608000 cc cc cc cc cc
->   [    0.982767] WARNING: CPU: 5 PID: 170 at arch/x86/kernel/alternative.c:1204 __apply_fineibt+0xa6d/0xab0
-> 
-> The console appears to be a bit of a mess after that initial message.
-> 
-> If there is any more information I can provide or patches I can test, I
-> am more than happy to do so.
- 
-I've got similar report from kbuild bot a few days ago:
-https://lore.kernel.org/all/202410202257.b7edc376-lkp@intel.com
+Ah ok - thanks for the clarification.
 
-I fixed fineibt handling in v7:
-https://lore.kernel.org/linux-mm/20241023162711.2579610-1-rppt@kernel.org
+>>
+>>>>
+>>>>   * pmdk has some funky code to find the lowest address that meets 
+>>>>     certain requirements - this does look like an ALSR alternative and 
+>>>>     probably couldn't directly use MAP_BELOW_HINT, although maybe this 
+>>>>     suggests we need a mechanism to map without a VA-range? [5]
+>>>>
+>>>>   * MIT-Scheme parses /proc/self/maps to find the lowest mapping within 
+>>>>     a range [6]
+>>>>
+>>>>   * LuaJIT uses an approach to 'probe' to find a suitable low address 
+>>>>     for allocation [7]
+>>>>
+>>>
+>>> Although I did not take a deep dive into each example above, there are
+>>> some very odd things being done, we will never cover all the use cases
+>>> with an exact API match.  What we have today can be made to work for
+>>> these users as they have figured ways to do it.
+>>>
+>>> Are they pretty? no.  Are they common? no.  I'm not sure it's worth
+>>> plumbing in new MM code in for these users.
+>>
+>> My issue with the existing 'solutions' is that they all seem to be fragile:
+>>
+>>  * Using /proc/self/maps is inherently racy if there could be any other
+>> code running in the process at the same time.
+> 
+> Yes, it is not thread safe.  Parsing text is also undesirable.
+> 
+>>
+>>  * Attempting to map the upper part of the address space only works if
+>> done early enough - once an allocation arrives there, there's very
+>> little you can robustly do (because the stray allocation might be freed).
+>>
+>>  * LuaJIT's probing mechanism is probably robust, but it's inefficient -
+>> LuaJIT has a fallback of linear probing, following by no hint (ASLR),
+>> followed by pseudo-random probing. I don't know the history of the code
+>> but it looks like it's probably been tweaked to try to avoid performance
+>> issues.
+>>
+>>>> The biggest benefit I see of MAP_BELOW_HINT is that it would allow a
+>>>> library to get low addresses without causing any problems for the rest
+>>>> of the application. The use case I'm looking at is in a library and 
+>>>> therefore a personality mode wouldn't be appropriate (because I don't 
+>>>> want to affect the rest of the application). Reading /proc/self/maps
+>>>> is also problematic because other threads could be allocating/freeing
+>>>> at the same time.
+>>>
+>>> As long as you don't exhaust the lower limit you are trying to allocate
+>>> within - which is exactly the issue riscv is hitting.
+>>
+>> Obviously if you actually exhaust the lower limit then any
+>> MAP_BELOW_HINT API would also fail - there's really not much that can be
+>> done in that case.
+> 
+> Today we reverse the search, so you end up in the higher address
+> (bottom-up vs top-down) - although the direction is arch dependent.
+> 
+> If the allocation is too high/low then you could detect, free, and
+> handle the failure.
 
-> Cheers,
-> Nathan
+Agreed, that's fine.
+
+>>
+>>> I understand that you are providing examples to prove that this is
+>>> needed, but I feel like you are better demonstrating the flexibility
+>>> exists to implement solutions in different ways using todays API.
+>>
+>> My intention is to show that today's API doesn't provide a robust way of
+>> doing this. Although I'm quite happy if you can point me at a robust way
+>> with the current API. As I mentioned my goal is to be able to map memory
+>> in a (multithreaded) library with a (ideally configurable) number of VA
+>> bits. I don't particularly want to restrict the whole process, just
+>> specific allocations.
+> 
+> If you don't need to restrict everything, won't the hint work for your
+> usecase?  I must be missing something from your requirements.
+
+The hint only works if the hint address is actually free. Otherwise
+mmap() falls back to as if the hint address wasn't specified.
+
+E.g.
+
+> 	for(int i = 0; i < 2; i++) {
+> 		void *addr = mmap((void*)(1UL << 32), PAGE_SIZE, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+> 		printf("%p\n", addr);
+> 	}
+
+Prints something like:
+
+0x100000000
+0x7f20d21e0000
+
+The hint is ignored for the second mmap() because there's already a VMA
+at the hint address.
+
+So the question is how to generate a hint value that is (or has a high
+likelihood of being) empty? This AFAICT is the LuaJIT approach, but
+their approach is to pick random values in the hope of getting a free
+address (and then working linearly up for subsequent allocations). Which
+doesn't meet my idea of "robust".
+
+>>
+>> I had typed up a series similar to this one as a MAP_BELOW flag would
+>> fit my use-case well.
+>>
+>>> I think it would be best to use the existing methods and work around the
+>>> issue that was created in riscv while future changes could mirror amd64
+>>> and arm64.
+>>
+>> The riscv issue is a different issue to the one I'm trying to solve. I
+>> agree MAP_BELOW_HINT isn't a great fix for that because we already have
+>> differences between amd64 and arm64 and obviously no software currently
+>> out there uses this new flag.
+>>
+>> However, if we had introduced this flag in the past (e.g. if MAP_32BIT
+>> had been implemented more generically, across architectures and with a
+>> hint value, like this new flag) then we probably wouldn't be in this
+>> situation. Applications that want to restrict the VA space would be able
+>> to opt-in and be portable across architectures.
+> 
+> I don't think that's true.  Some of the applications want all of the
+> allocations below a certain threshold and by the time they are adding
+> flags to allocations, it's too late.  What you are looking for is a
+> counterpart to mmap_min_addr, but for higher addresses?  This would have
+> to be set before any of the allocations occur for a specific binary (ie:
+> existing libraries need to be below that threshold too), I think?
+
+Well that's not what *I* am looking for. A mmap_max_addr might be useful
+for others for the purpose of restricting all allocations.
+
+I think there are roughly three classes of application:
+
+ 1. Applications which do nothing special with pointers. This is most
+applications and they could benefit from any future expansions to the VA
+size without any modification. E.g. if 64 bit VA addresses were somehow
+available they could deal with them today (without recompilation).
+
+ 2. Applications which need VA addresses to meet certain requirements.
+They might be emulating another architecture (e.g. FEX) and want
+pointers that can be exposed to the emulation. They might be aware of
+restrictions in JIT code (e.g. PHP). Or they might want to store
+pointers in 'weird' ways which involve fewer bits - AFAICT that's the
+LuaJIT situation. These applications are usually well aware that they
+are doing something "unusual" and would likely use a Linux API if it
+existed.
+
+ 3. Applications which abuse the top bits of a VA because they've read
+the architecture documentation and they "know" that the VA space is limited.
+
+Class 3 would benefit from mmap_max_addr - either because the
+architecture has been extended (although that's been worked around by
+requiring the hint value to allocate into the top address space) or
+because they get ported to another architecture (which I believe is the
+RiscV issue). There is some argument these applications are buggy but
+"we don't break userspace" so we deal with them in kernel until they get
+ported and then ideally the bugs are fixed.
+
+Class 1 is the applications we know and love, they don't need anything
+special.
+
+Class 2 is the case I care about. The application knows it wants special
+addresses, and in the cases I've detailed there has been significant
+code written to try to achieve this. But the kernel isn't currently
+providing a good mechanism to do this.
+
+>>
+>> Another potential option is a mmap3() which actually allows the caller
+>> to place constraints on the VA space (e.g. minimum, maximum and
+>> alignment). There's plenty of code out there that has to over-allocate
+>> and munmap() the unneeded part for alignment reasons. But I don't have a
+>> specific need for that, and I'm guessing you wouldn't be in favour.
+> 
+> You'd probably want control of the direction of the search too.
+
+Very true, and one of the reasons I don't want to do a mmap3() is that
+I'm pretty I'd miss something.
+
+> I think mmap3() would be difficult to have accepted as well.
+
+And that's the other major reason ;)
+
+Thanks,
+
+Steve
+
+> ...
+> 
+> Thanks,
+> Liam
 > 
 
--- 
-Sincerely yours,
-Mike.
