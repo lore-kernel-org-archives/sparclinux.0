@@ -1,54 +1,71 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C0E874059;
-	Sun, 27 Oct 2024 18:34:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42E19188A15;
+	Sun, 27 Oct 2024 22:17:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730054083; cv=none; b=VV+PPSoP71iOAvUPSnycCVJ4fgHdZ0KkAfl/5bUi4jGUKALI2bSsteqZIdMtWfs9SQS1NcJMmu4EAnYhIIeNTtO+/ZWu5ZzEfMZRjYfMyw6vTeGzlGEJVBhlTmGxptVSCs4SfsHhNfxoW1wk7zXkzysdFBRAlXpbrqZYhoVZQTc=
+	t=1730067427; cv=none; b=LdSDgvfP9DDFF8N22A3PHlJGGtyncHeSJYfXD8L2VHQI3N4a/s15BwLtMu8FMBbYOxYfudl0MWlnb6NVTmg48osQxQDlAbAWxO3JJi7OvtNFf8Fg4H85Atdnqglw8b1bB5+mOS9nRoexaoDd261uDb6BADrMwM9iD7tjVmAyj8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730054083; c=relaxed/simple;
-	bh=Ab1LD0YPRiCsaMpw6QmeIUY4TM1fzamI5B5sMH/HSGw=;
+	s=arc-20240116; t=1730067427; c=relaxed/simple;
+	bh=An0q1B1Vy5t3+lo7yESq7Pk4FRbEi09xmS9o/s3wurI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fy2nRwBSpElHaklIAuH8sF8dilzJsD1KkROaKkBwn4LEnWBlEb5pjvfC10sKSIfQa1gPs/o2PGKo9n/SyajeodUPffg4O7HXaHoCOIceUlP0SkiPID+1qdq79yTRMWnRrv8v1UdWf3mD3ckVx7349q54VXpbQcwVyi0ARo/UZx0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IwIh+t+N; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=VPt0UPGVZhzCsNUTSM/JIgHV268whJbJGQzrtEAnWpdV4YxAVVGsdiEQZL88s8LeICbGCejv26oq+YuzUcQmqwbMF0h9FbFt/TELd3+RJ6L7AtJ1yVpmGR5dO46rC1fYj1oJp4Kj6uwdUb5pzzS9757fFSOX5X0Hwjuk6/iRzMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eyjPVR9h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IwIh+t+N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DD3C4CEC3;
-	Sun, 27 Oct 2024 18:34:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eyjPVR9h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AE3CC4CEC3;
+	Sun, 27 Oct 2024 22:17:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730054082;
-	bh=Ab1LD0YPRiCsaMpw6QmeIUY4TM1fzamI5B5sMH/HSGw=;
+	s=k20201202; t=1730067426;
+	bh=An0q1B1Vy5t3+lo7yESq7Pk4FRbEi09xmS9o/s3wurI=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IwIh+t+NmDWdzDo9uy+/UuRmYcIx6PygiXzpCNabpiNcsultp+7hqhXDxOLYFwPY3
-	 8LHcfYKNzx6EjyWPHp6mo2LQy57BSv85SwP1Y/pqzbOEJ1/WZ6chL88GjThxZJaWLi
-	 R2sqFZH1qHkuS3eHjSYJ9Efj4kSNY3q+vFww2BHTzw4JY0t7L4P8qIXXA3xC+ZrAyh
-	 DSfc1DOe50EvHstnoL5VU6AqZd0Lfn2ss7yMteMLrdWwbuTL7/FnfajNnmXM6GXgx8
-	 NpJSsDPbzlY8RvydVNLNwww3pYOOuEw1/pJQIGffaKrLub4zqp6vsQNBJELX89plf8
-	 n+GbgE3XGrWvA==
-Date: Sun, 27 Oct 2024 11:34:40 -0700
+	b=eyjPVR9hc8nObYdbxO+giY8LhlLmm6nS5/JBgfEyBXJeMrmd3+KWtt7qfaBKjwJDK
+	 8xQiNB+6BkkGNszcAE8j2FGtOjh9U2zUtZGpmsrKG7gzl4WqNGihjYMBTUHctf7oAA
+	 NL9fg2+fHaGRsFTOHvtChlFzqLSDjJ22GfcLq1hzoeif9lEjpMpdaBx5qdl0fK/6e9
+	 3JZJMU8xH2cTIo0siIc1qGm6CuT673DC9ooimzgNk2O3nyjaDCypmC4i8zfWJ9/CXU
+	 yk636+8ykOsPj4NFOL12SkfxOu8r1yPUEKFnGTqiPbbz3V+KZjq5TbwbLX8NkOr8kj
+	 ObFeWm4T+TNRg==
+Date: Sun, 27 Oct 2024 15:17:02 -0700
 From: Nathan Chancellor <nathan@kernel.org>
-To: Koakuma <koachan@protonmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>,
-	Andreas Larsson <andreas@gaisler.com>,
+To: Rong Xu <xur@google.com>
+Cc: Alice Ryhl <aliceryhl@google.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
+	Arnd Bergmann <arnd@arndb.de>, Bill Wendling <morbo@google.com>,
+	Borislav Petkov <bp@alien8.de>, Breno Leitao <leitao@debian.org>,
+	Brian Gerst <brgerst@gmail.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Li <davidxl@google.com>, Han Shen <shenhan@google.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+	Jann Horn <jannh@google.com>, Jonathan Corbet <corbet@lwn.net>,
+	Josh Poimboeuf <jpoimboe@kernel.org>,
+	Juergen Gross <jgross@suse.com>,
+	Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	"Mike Rapoport (IBM)" <rppt@kernel.org>,
 	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
-	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
-	linux-kbuild@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] sparc/build: Rework CFLAGS for clang compatibility
-Message-ID: <20241027183440.GA2755311@thelio-3990X>
-References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
- <20241021201657.GA898643@thelio-3990X>
- <CAK7LNASTkUTK8JZCzySNh3BVKxauusVKRhjnchy6iZz4qLbq8w@mail.gmail.com>
- <20241022200732.GA487584@thelio-3990X>
- <etezvjy_HnDpgOTBrzap29if1ChFBhl1RawcNJK3UAsFk6i_g_cyHoz7hlqfYqASgJZ97W4HxnGA-nbCXL73pIRN9tUKUttAp1JefMRp8rs=@protonmail.com>
- <CAK7LNASbFeJc9Y=BFY85SwESUKNNDTRDunyLGveDusC--NVkCw@mail.gmail.com>
- <20241023164535.GB4081497@thelio-3990X>
- <InqlMfqWWeNw8Mh6y1y5oNb3EotVpA26gkX70xcVxt9ygCtb7DYfTB3Amg3SzZfs78q3osSW2BIEpgyhmOjSqBW7neH0Se2sQEpmdClVV3M=@protonmail.com>
+	Nicolas Schier <nicolas@fjasle.eu>,
+	"Paul E. McKenney" <paulmck@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Sami Tolvanen <samitolvanen@google.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Wei Yang <richard.weiyang@gmail.com>, workflows@vger.kernel.org,
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
+	Maksim Panchenko <max4bolt@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Yabin Cui <yabinc@google.com>,
+	Krzysztof Pszeniczny <kpszeniczny@google.com>,
+	Sriraman Tallam <tmsriram@google.com>,
+	Stephane Eranian <eranian@google.com>, x86@kernel.org,
+	linux-arch@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kbuild@vger.kernel.org,
+	linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH v6 0/7] Add AutoFDO and Propeller support for Clang build
+Message-ID: <20241027221702.GD2755311@thelio-3990X>
+References: <20241026051410.2819338-1-xur@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -57,30 +74,29 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <InqlMfqWWeNw8Mh6y1y5oNb3EotVpA26gkX70xcVxt9ygCtb7DYfTB3Amg3SzZfs78q3osSW2BIEpgyhmOjSqBW7neH0Se2sQEpmdClVV3M=@protonmail.com>
+In-Reply-To: <20241026051410.2819338-1-xur@google.com>
 
-On Sat, Oct 26, 2024 at 02:52:52PM +0000, Koakuma wrote:
-> Masahiro Yamada <masahiroy@kernel.org> wrote:
-> > I think this should be documented (required LLVM version and
-> > the supported build command),
-> > otherwise people cannot test this patch.
-> 
-> Nathan Chancellor <nathan@kernel.org> wrote:
-> > I am not sure that there is a super concise way to describe for
-> > Documentation/kbuild/llvm.rst that sparc currently requires 'CC=clang
-> > LLVM_IAS=0' along with a build of clang from the main branch of
-> > llvm-project to work properly.
-> 
-> So about this, as a middle ground, would it be okay if I put
-> 
-> ``CC=clang LLVM_IAS=0`` (LLVM >= 20)
-> 
-> In the documentation, in a similar manner to the s390x entry?
-> I know that LLVM 20 is still a couple months away but those commits will
-> likely be released with that version, and since it also tells people
-> to not use a version that is too old, I think it should be okay (?)
+Hi Rong,
 
-Yes, I think that would be reasonable.
+I tested this series by following the documentation added in the series
+using Clang 19 and my standard distribution configuration on an Intel
+platform with the combinations of
+
+  * AutoFDO
+  * AutoFDO + ThinLTO
+  * AutoFDO + Propeller
+  * AutoFDO + ThinLTO + Propeller
+
+and I noticed no issues (it would be great to see create_llvm_prof
+somewhere in LLVM upstream for ease of access but that's a small
+complaint).
+
+I did not do any real benchmarking to see if those combinations were
+actually quicker but I think it is pretty clear from the cover letter
+that any sort of gains are going to depend on the profiling and test
+case so for time's sake, I did not bother.
+
+Tested-by: Nathan Chancellor <nathan@kernel.org>
 
 Cheers,
 Nathan
