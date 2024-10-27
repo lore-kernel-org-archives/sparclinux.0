@@ -1,100 +1,86 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 776262C182;
-	Sun, 27 Oct 2024 11:01:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C0E874059;
+	Sun, 27 Oct 2024 18:34:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730026878; cv=none; b=Z/h6OqKfzcnLBctP+1eqLIhBqQvA2ynK2DN3uyRw6rUMsnhqMwBbJ51/Yegcu/MgAm9B4IpphylTVKuGdBuEP8oSpTeKvJ/pyHLD+czPktxyyDOUGz6FYprKefVusQPLX7qCooDu7zMa2VVdABXp2A1Zb7KsXmno13i9dE4/ZEs=
+	t=1730054083; cv=none; b=VV+PPSoP71iOAvUPSnycCVJ4fgHdZ0KkAfl/5bUi4jGUKALI2bSsteqZIdMtWfs9SQS1NcJMmu4EAnYhIIeNTtO+/ZWu5ZzEfMZRjYfMyw6vTeGzlGEJVBhlTmGxptVSCs4SfsHhNfxoW1wk7zXkzysdFBRAlXpbrqZYhoVZQTc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730026878; c=relaxed/simple;
-	bh=3quH9xYFiuttFZOs4ydoaTvF3jIBQchB3SK5V/gWpLc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FdMHc/zdjmqmsac6X1FuG5TyL7Lc9Ie4iyFtjxbdNYSFWhzSJguXhimimciYv7D7dp/iuUT94E30+y6TpwZbpkjHS7kIbQfQ82DU86Vla1L2lPOgAUe1b4P5UaeSmT/MlGH3e1I1Yr9YT3qh5vjDnjxNVSrm/7edEgvoapv1LHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dJU57+HW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730054083; c=relaxed/simple;
+	bh=Ab1LD0YPRiCsaMpw6QmeIUY4TM1fzamI5B5sMH/HSGw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fy2nRwBSpElHaklIAuH8sF8dilzJsD1KkROaKkBwn4LEnWBlEb5pjvfC10sKSIfQa1gPs/o2PGKo9n/SyajeodUPffg4O7HXaHoCOIceUlP0SkiPID+1qdq79yTRMWnRrv8v1UdWf3mD3ckVx7349q54VXpbQcwVyi0ARo/UZx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IwIh+t+N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dJU57+HW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09121C4CEE4;
-	Sun, 27 Oct 2024 11:01:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IwIh+t+N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DD3C4CEC3;
+	Sun, 27 Oct 2024 18:34:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730026878;
-	bh=3quH9xYFiuttFZOs4ydoaTvF3jIBQchB3SK5V/gWpLc=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=dJU57+HWLoo/xHKQWSyEHFA9AbQNGSOiahO8sx4O1X7IqWwg68FFL/Qi0NLXh0iY9
-	 dYoKwKJBB+/6DZ0Z5ty8pfF8+IhQs8vtc+hVEYkIjH+vqLOtCKHoo7YZkocCnjlpqQ
-	 y7EagpoQFVSbAdYs868A/VyTiuMz5wfIi3rfAflAghEhaxs5yca8XWE6k7xzD0kDkJ
-	 izYZ31OQfIIKtN1cWX9qaOm9salyxjKEWmlxk4oOkfelZ6hPDqpPeV7e114q3pEwqh
-	 UQ6x+AEQxL5arkHkM/EAQW2V4QfsKdns3ga++3+Nc0njQLGy5rwO686F+CZPNMwkhr
-	 61M6Qul7zrIVQ==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-2fb5638dd57so30687531fa.0;
-        Sun, 27 Oct 2024 04:01:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUpdJ0gTpRw7auvQFzPRhOD0QdytO0IHzl5QJPoIW/qQEhZjyAguwpk3R3+gijdDd94OagJzxm+wRcurw==@vger.kernel.org, AJvYcCUrHdOVYju/RDw6jBGQt1J4+FAqGjB5gDEfX95b4bNqoSyzotQYfM6F/f1MOIcbrJ8CzPOf43mP763/mVlS@vger.kernel.org, AJvYcCVNMk/FpwKzm83vXSdZxHF1x41cZ+qdxTDnzzL1GI6nHUvyUvM34K9yTt4ZexSk3qj4eudcXWdGCh41EmY=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxhl3n9Y8B8iRuPOtWrhfiKQH1EYtyGCqEPht55wVmZ/HkugjNv
-	o2vdAQTr9mqGOn7SSzaQMrhRK5qRmrjf2ptAemgExSpD0w3O4ToARsYllNVKL3n3lxDycuNSQ4L
-	8T1UmaWFS1WgIqwEhOvqnsctZytE=
-X-Google-Smtp-Source: AGHT+IHUiu1/2RDrCFQjE08nvbf0pFjgub83W2LWpUswHIlLPbwuLbY8emFcknGoqBH2i1i47pTbngVhgD5dL/oCDdk=
-X-Received: by 2002:a2e:be84:0:b0:2fb:4f2e:5be7 with SMTP id
- 38308e7fff4ca-2fcbdfe4a77mr17515121fa.24.1730026876753; Sun, 27 Oct 2024
- 04:01:16 -0700 (PDT)
+	s=k20201202; t=1730054082;
+	bh=Ab1LD0YPRiCsaMpw6QmeIUY4TM1fzamI5B5sMH/HSGw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IwIh+t+NmDWdzDo9uy+/UuRmYcIx6PygiXzpCNabpiNcsultp+7hqhXDxOLYFwPY3
+	 8LHcfYKNzx6EjyWPHp6mo2LQy57BSv85SwP1Y/pqzbOEJ1/WZ6chL88GjThxZJaWLi
+	 R2sqFZH1qHkuS3eHjSYJ9Efj4kSNY3q+vFww2BHTzw4JY0t7L4P8qIXXA3xC+ZrAyh
+	 DSfc1DOe50EvHstnoL5VU6AqZd0Lfn2ss7yMteMLrdWwbuTL7/FnfajNnmXM6GXgx8
+	 NpJSsDPbzlY8RvydVNLNwww3pYOOuEw1/pJQIGffaKrLub4zqp6vsQNBJELX89plf8
+	 n+GbgE3XGrWvA==
+Date: Sun, 27 Oct 2024 11:34:40 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+To: Koakuma <koachan@protonmail.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
+	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+	linux-kbuild@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] sparc/build: Rework CFLAGS for clang compatibility
+Message-ID: <20241027183440.GA2755311@thelio-3990X>
+References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
+ <20241021201657.GA898643@thelio-3990X>
+ <CAK7LNASTkUTK8JZCzySNh3BVKxauusVKRhjnchy6iZz4qLbq8w@mail.gmail.com>
+ <20241022200732.GA487584@thelio-3990X>
+ <etezvjy_HnDpgOTBrzap29if1ChFBhl1RawcNJK3UAsFk6i_g_cyHoz7hlqfYqASgJZ97W4HxnGA-nbCXL73pIRN9tUKUttAp1JefMRp8rs=@protonmail.com>
+ <CAK7LNASbFeJc9Y=BFY85SwESUKNNDTRDunyLGveDusC--NVkCw@mail.gmail.com>
+ <20241023164535.GB4081497@thelio-3990X>
+ <InqlMfqWWeNw8Mh6y1y5oNb3EotVpA26gkX70xcVxt9ygCtb7DYfTB3Amg3SzZfs78q3osSW2BIEpgyhmOjSqBW7neH0Se2sQEpmdClVV3M=@protonmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com>
- <20241021201657.GA898643@thelio-3990X> <CAK7LNASTkUTK8JZCzySNh3BVKxauusVKRhjnchy6iZz4qLbq8w@mail.gmail.com>
- <20241022200732.GA487584@thelio-3990X> <etezvjy_HnDpgOTBrzap29if1ChFBhl1RawcNJK3UAsFk6i_g_cyHoz7hlqfYqASgJZ97W4HxnGA-nbCXL73pIRN9tUKUttAp1JefMRp8rs=@protonmail.com>
- <CAK7LNASbFeJc9Y=BFY85SwESUKNNDTRDunyLGveDusC--NVkCw@mail.gmail.com>
- <20241023164535.GB4081497@thelio-3990X> <InqlMfqWWeNw8Mh6y1y5oNb3EotVpA26gkX70xcVxt9ygCtb7DYfTB3Amg3SzZfs78q3osSW2BIEpgyhmOjSqBW7neH0Se2sQEpmdClVV3M=@protonmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <InqlMfqWWeNw8Mh6y1y5oNb3EotVpA26gkX70xcVxt9ygCtb7DYfTB3Amg3SzZfs78q3osSW2BIEpgyhmOjSqBW7neH0Se2sQEpmdClVV3M=@protonmail.com>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sun, 27 Oct 2024 12:00:39 +0100
-X-Gmail-Original-Message-ID: <CAK7LNATswFdLRO5YWvtogV+sVJ=SOPrP9frrYq_QNzgmugg8dA@mail.gmail.com>
-Message-ID: <CAK7LNATswFdLRO5YWvtogV+sVJ=SOPrP9frrYq_QNzgmugg8dA@mail.gmail.com>
-Subject: Re: [PATCH v2 0/2] sparc/build: Rework CFLAGS for clang compatibility
-To: Koakuma <koachan@protonmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>, Andreas Larsson <andreas@gaisler.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, 
-	Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>, 
-	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, 
-	Nicolas Schier <nicolas@fjasle.eu>, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev, 
-	linux-kbuild@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 26, 2024 at 4:53=E2=80=AFPM Koakuma <koachan@protonmail.com> wr=
-ote:
->
+On Sat, Oct 26, 2024 at 02:52:52PM +0000, Koakuma wrote:
 > Masahiro Yamada <masahiroy@kernel.org> wrote:
 > > I think this should be documented (required LLVM version and
 > > the supported build command),
 > > otherwise people cannot test this patch.
->
+> 
 > Nathan Chancellor <nathan@kernel.org> wrote:
 > > I am not sure that there is a super concise way to describe for
-> > Documentation/kbuild/llvm.rst that sparc currently requires 'CC=3Dclang
-> > LLVM_IAS=3D0' along with a build of clang from the main branch of
+> > Documentation/kbuild/llvm.rst that sparc currently requires 'CC=clang
+> > LLVM_IAS=0' along with a build of clang from the main branch of
 > > llvm-project to work properly.
->
+> 
 > So about this, as a middle ground, would it be okay if I put
->
-> ``CC=3Dclang LLVM_IAS=3D0`` (LLVM >=3D 20)
-
-I am OK with this.
-
-Having this info is more helpful than nothing.
-
-
-
+> 
+> ``CC=clang LLVM_IAS=0`` (LLVM >= 20)
+> 
 > In the documentation, in a similar manner to the s390x entry?
 > I know that LLVM 20 is still a couple months away but those commits will
 > likely be released with that version, and since it also tells people
 > to not use a version that is too old, I think it should be okay (?)
->
 
+Yes, I think that would be reasonable.
 
---=20
-Best Regards
-Masahiro Yamada
+Cheers,
+Nathan
