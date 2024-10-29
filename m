@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DC2A13AA3F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DCA018C939;
 	Tue, 29 Oct 2024 14:49:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730213395; cv=none; b=G4WelEg2+5dk4/vNPyCA5MA4/KtfDeenNcqwSPVC5bnUipD6XxIMga51F99lTeg9xNRgxyyoMiZmBivnXjvEf065tXe80x3oA52MFUxsSs9kKE/SHw4YnA6bsIsxAez9xhGaUy2O9ualqlOZ87PtrVkSowXrOe5UjqsHtsRXsu0=
+	t=1730213395; cv=none; b=Tu838YPZBsgor0Q3yJI4uAayquZ6eIgYW3m74CVCx+OfJCy1UKx9DqzFPuYhJKId9efdmeAEJqZGpFb3QfL09lFC9s1iDS4qsCiSKL6Hhd7Dp7VK9Q/Xd1/7afFoU/ZteVStUped0rZWsKKpBBNFhH7MqKXBHQpt9WhCx6ixZG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730213395; c=relaxed/simple;
-	bh=BlzYljgtvc2MTIkLFj7ZU1rt1YFd3eqaeSD+vg+1nfw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=TDTxJl749S2PtdtODM662t4C7qw5FvZmd1fXMerTi53qURl3G9eXEe+YiGEN+VMq+Q3CECcu4rnFdF2gGG+4JmAwrgJuvlk4sfa0DT4BZWG0p/CBLgxVlYVks3JecEBJV3zKhiWJ/KUyaswy0uLOx8d+Mt72LUCIW3dODnR9eSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IKv+FT8H; arc=none smtp.client-ip=10.30.226.201
+	bh=dxu8NGLbbkNXI+3HmhHSQPHx4jpdDIhPx1liJ8XwGUY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=HiSdPVl7tv3/3TrsXawKvx74dhH9x/tWSaha1ughQ6WKBHQZZfVpkXTWgz87zi9cQ37J9b44U9JT48jCf5R89DHK5maQ2xFHFFEvxpBiFJOdDejRmbQcK8UBOCSbkxyvxMF4YSDXayJ4btqg1qSqsNu+KRMKK/54jZRrseYocH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f8RUtOX9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IKv+FT8H"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 530DCC4CEE7;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f8RUtOX9"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 26807C4CEE5;
 	Tue, 29 Oct 2024 14:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1730213395;
-	bh=BlzYljgtvc2MTIkLFj7ZU1rt1YFd3eqaeSD+vg+1nfw=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=IKv+FT8Hd5+iBUKXN49pcWen80JNLhSG1r69vthGvit7CTWE8PJ2gu/StNc4ViVnJ
-	 zBmFkKiE9k7HlUD2nn8acuqYVBXKqg/SXDt6ASR6ehDi6kuQFIpEjmJwpYCJDR5sVy
-	 SmGmHNXLT8bSTVuTq9Q4SInncT2pOiYDf5qfuy0B8FliWln26csgXPigh/s1v5WRbv
-	 wJz8IzHPLsRILvfMA61V6gMezbC+Jb+qEV1Lonx8adE88Ysl/xF4RcEYqGjfO1P03o
-	 iOB6DClvRQxJRUudeIyk11ho0l2Llp1wuzYITTbzqlv9eWivvQEd36iWg2wOf5wYBb
-	 Rb6KAZyKYkbJw==
+	bh=dxu8NGLbbkNXI+3HmhHSQPHx4jpdDIhPx1liJ8XwGUY=;
+	h=From:Subject:Date:To:Cc:Reply-To:From;
+	b=f8RUtOX9v/yr7teb2eTHS7GMgsyArQl3bsBlQfUT/GLqeOwtYLawn2oqrIQ5YNx/w
+	 WH0xWqPx0aGpisGHk0uFNIuxzS77BGexeZFrNaqf4ZnSMK882MAi0j4vtLPS0/8vQ+
+	 BDEozqc8eZjZxKEtOOeHQhvElKmxjZwzG0aJmmfSx+Lof8BbuNhgPOdB7uYS+BWo0O
+	 ugMvSwpXBPtowayW0eWv0Ci6aNqUV5VD2htifb1EiTNabRS7YOnY75xYZn+R0FFGav
+	 3vQw4Mk4DEkYa3qpphoVhK4T/RqBse54YsTJeEQU5nBIOf/rQmLepYNKXgZeXE7zmP
+	 Z/y17BRY6NS/w==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E83D3A661;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 105C7D3A665;
 	Tue, 29 Oct 2024 14:49:55 +0000 (UTC)
 From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
-Date: Tue, 29 Oct 2024 21:49:08 +0700
-Subject: [PATCH v3 2/2] sparc/build: Add SPARC target flags for compiling
- with clang
+Subject: [PATCH v3 0/2] sparc/build: Rework CFLAGS for clang compatibility
+Date: Tue, 29 Oct 2024 21:49:06 +0700
+Message-Id: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -41,9 +40,11 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241029-sparc-cflags-v3-2-b28745a6bd71@protonmail.com>
-References: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
-In-Reply-To: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
+X-B4-Tracking: v=1; b=H4sIAOL1IGcC/3XMTQqDMBCG4atI1p0Sp2qwq96jdJGfiQbUSCKhR
+ bx7o5tCS5fvDN+zskjBUWTXYmWBkovOTzkup4LpXk4dgTO5GXKseIMc4iyDBm0H2UUgYdEoZSr
+ VGpYncyDrngd3f+TuXVx8eB16KvfrHyiVUIJSUhhurTAV3ubgFz+N0g1n7Ue2awk/gijFl4DAA
+ es2v6ghVdsfYdu2NzvMEAbvAAAA
+X-Change-ID: 20240620-sparc-cflags-e7f2dbbd4b9d
 To: "David S. Miller" <davem@davemloft.net>, 
  Andreas Larsson <andreas@gaisler.com>, 
  Nathan Chancellor <nathan@kernel.org>, 
@@ -55,11 +56,11 @@ Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
  llvm@lists.linux.dev, linux-kbuild@vger.kernel.org, 
  linux-doc@vger.kernel.org, Koakuma <koachan@protonmail.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730213393; l=1720;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730213393; l=2365;
  i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
- bh=qC+xpLMUpGByab1qovPWQQ3aHiMZ1dz7yem8GqVZgaw=;
- b=j3CG9BnJ7FWIRbyhXXEAVLB8dkBqluDHfp9prkX2enPrqN3tWd26RoXX/dgFs1O0iNkgciARn
- sw7SoBukKcCDoNEFREPzB0cpBbb11mSllQ7KnMz+fTX23bhUK2DgdHV
+ bh=dxu8NGLbbkNXI+3HmhHSQPHx4jpdDIhPx1liJ8XwGUY=;
+ b=Cpa9Kjmy4yNXmh+4u4E9dL73GLbapjGZbMr1QhlAkTR5avAlOpIVo6RdEvVF63/G1AVuMrly0
+ e8KpgKglyqaCUC2fR+c3tAIi+W+ay3g6BJ/7zN7p/pVdNLBcz8GMcJ5
 X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
  pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
 X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
@@ -67,47 +68,62 @@ X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
 X-Original-From: Koakuma <koachan@protonmail.com>
 Reply-To: koachan@protonmail.com
 
-From: Koakuma <koachan@protonmail.com>
+Hello~
 
-clang only supports building 64-bit kernel, so we use the
-sparc64-linux-gnu target.
+This changes the CFLAGS for building the SPARC kernel so that it can be
+built with clang, as a follow up from the discussion in this thread:
 
-See also: https://lore.kernel.org/lkml/e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFwdB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=@protonmail.com/T/#m068e010dcf8b99d3510a90d7532bcdb70e2e2c6b
+https://lore.kernel.org/lkml/JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com/T/#u
+
+The changes are removal of various `-fcall-used-*` flags, and adding
+clang target flags for SPARC:
+
+- `-fcall-used-*` flags is gated behind cc-option as it is
+  not supported in clang. It should be safe; clang won't use the registers
+  specified as temporaries, but it is a safe change wrt. the ABI.
+  Assembly code can still use those registers as needed.
+  A cursory look at the assembly generated by GCC 13.2 shows that
+  the compiler was able to reallocate uses of those registers into
+  other temporary registers without adding extra spills, so there
+  should be no change in performance.
+
+- More trivial is to add CLANG_TARGET_FLAGS for SPARC target.
+
+Building with these changes still result in a working kernel,
+at least for Sun T5120, Oracle T4-1, and qemu virtual machines.
+
+On the LLVM side, the effort for building Linux/SPARC is tracked here:
+https://github.com/llvm/llvm-project/issues/40792
 
 Signed-off-by: Koakuma <koachan@protonmail.com>
 ---
+Changes in v3:
+- Use cc-option to allow GCC to still use -fcall-used-* flags.
+- Add documentation on building on SPARC, along with required LLVM version.
+- Link to v2: https://lore.kernel.org/r/20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com
+
+Changes in v2:
+- Remove the -mv8plus change; it will be handled on clang side:
+  https://github.com/llvm/llvm-project/pull/98713
+- Add CLANG_TARGET_FLAGS as suggested in v1 review.
+- Link to v1: https://lore.kernel.org/r/20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com
+
+---
+Koakuma (2):
+      sparc/build: Put usage of -fcall-used* flags behind cc-option
+      sparc/build: Add SPARC target flags for compiling with clang
+
  Documentation/kbuild/llvm.rst | 3 +++
+ arch/sparc/Makefile           | 4 ++--
+ arch/sparc/vdso/Makefile      | 2 +-
  scripts/Makefile.clang        | 1 +
- 2 files changed, 4 insertions(+)
+ 4 files changed, 7 insertions(+), 3 deletions(-)
+---
+base-commit: c2ee9f594da826bea183ed14f2cc029c719bf4da
+change-id: 20240620-sparc-cflags-e7f2dbbd4b9d
 
-diff --git a/Documentation/kbuild/llvm.rst b/Documentation/kbuild/llvm.rst
-index 6dc66b4f31a7bb62ba5bb6174730dc0a69ee0bba..bc8a283bc44bbfa9948ad3c9fe8031269ce10be4 100644
---- a/Documentation/kbuild/llvm.rst
-+++ b/Documentation/kbuild/llvm.rst
-@@ -179,6 +179,9 @@ yet. Bug reports are always welcome at the issue tracker below!
-    * - s390
-      - Maintained
-      - ``LLVM=1`` (LLVM >= 18.1.0), ``CC=clang`` (LLVM < 18.1.0)
-+   * - sparc (sparc64 only)
-+     - Maintained
-+     - ``CC=clang LLVM_IAS=0`` (LLVM >= 20)
-    * - um (User Mode)
-      - Maintained
-      - ``LLVM=1``
-diff --git a/scripts/Makefile.clang b/scripts/Makefile.clang
-index 6c23c6af797fb016232914589c948208345417ad..2435efae67f53a26d55a1c0f1bf254a49d9fc731 100644
---- a/scripts/Makefile.clang
-+++ b/scripts/Makefile.clang
-@@ -10,6 +10,7 @@ CLANG_TARGET_FLAGS_mips		:= mipsel-linux-gnu
- CLANG_TARGET_FLAGS_powerpc	:= powerpc64le-linux-gnu
- CLANG_TARGET_FLAGS_riscv	:= riscv64-linux-gnu
- CLANG_TARGET_FLAGS_s390		:= s390x-linux-gnu
-+CLANG_TARGET_FLAGS_sparc	:= sparc64-linux-gnu
- CLANG_TARGET_FLAGS_x86		:= x86_64-linux-gnu
- CLANG_TARGET_FLAGS_um		:= $(CLANG_TARGET_FLAGS_$(SUBARCH))
- CLANG_TARGET_FLAGS		:= $(CLANG_TARGET_FLAGS_$(SRCARCH))
-
+Best regards,
 -- 
-2.47.0
+Koakuma <koachan@protonmail.com>
 
 
