@@ -1,57 +1,41 @@
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8352E1CDFBD
-	for <sparclinux@vger.kernel.org>; Fri,  1 Nov 2024 18:37:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACE6B1CEE91;
+	Fri,  1 Nov 2024 22:04:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730486250; cv=none; b=ATvNiwt72uq6VFSoGly8sPH/uF2d/mchKkZ5TycawfQrvzpc2+T+K6gbjrBxvjslE6/43vnlsVH02Dtu6ULZgPH7alDg8t5+Y7P4JLEz9beiS57250SdfMhhqSm5r6K5WFmw9yPow2foZz5IVZSIX72WjRbwqcOpQbvc1gT4D24=
+	t=1730498672; cv=none; b=KUOJV8QBOn1JjxzPO3ScWIcepHceBks5NIyAep639mGwf/3gTEsiJGO6hFRjjMvmF3ge9QAV62zlaiXUWSQHv/0pFBOi1tUkcv3QqQvMqjfrNI9OhBzvipDP+Sw2sSf7DMOoZohkjTPgdZArhi4oIuT++nBhyZcDtYAURO1rMVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730486250; c=relaxed/simple;
-	bh=jKoboGztv7bSsKkIlP79WvPeyrvZcZXc4ISTP2ydXJc=;
+	s=arc-20240116; t=1730498672; c=relaxed/simple;
+	bh=rcoTiHAzGNigzhjuUOf3w29Wr+BpteeHJQCW1ztY21k=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=stFVJulqBsIeaT0IqGTaA309nm8lsucr1fLm4nHRHXCs058V3VrsK+vtMzr2Tgx6r5v6rOMytW7yGkX12Hfm3Bc9MgYH/+vv3xc1OV2s7HEJKMDpFPiopgBIPlTOuuv+1+yHhaDvEuhycTrIbI2h8eRdBmGHyKTsd1lB7rAfLP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=oltBx3FM; arc=none smtp.client-ip=209.85.160.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	 To:Cc:Content-Type; b=aQkIH/Rg4erlEP/V8/8Uwzx/jveCaTNyI8KIsxa89Z7ltaBvYv7x2Xs6eWR/psQysDnn645XxWyIbMcyhrXPmpirpIW5d67mc3fA7ij04FziBvKJ4vzL0RAy0ae2AmQ/zrYoTltvXXwE5CYaefqtIVmCPQ1Y2c0wUs8uj3JWo4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zcuv7wXS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="oltBx3FM"
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-460969c49f2so48911cf.0
-        for <sparclinux@vger.kernel.org>; Fri, 01 Nov 2024 11:37:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1730486247; x=1731091047; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ra0xT/SkPUuyvhZ+lS69adyS93PRUWclgK8p/jLJodM=;
-        b=oltBx3FM9RjUFhJ3FKiKhEBsEHo5X60UjnD7Ejme7FJqLN2lxXoMUGvE2LGNYkqoU1
-         GlP8V9+o45STfQwHcQv/EuPMorA9lXVxAIpluQK4mQwfFdlB2xUkUrsM4KEe2sHuxnqF
-         pwe36gOFfaXeaQlYGxKrul0OnGpndwpcEYykqrFlmeCQzmT/cIO8xByYYf0o7RBOAVAQ
-         agx77Vwr18pr8bt9osuYzixhgZzFLNZUQ/vTQzKbyTkXVJHFkNRheozCJw12f9m8yzuK
-         nLDB5FxyOjrbp1awvbrbITv6EvkMqb4OPSUaNb8DI1yHEzBm1vCFWyhOOZ6WqOzQ0yX4
-         rjbQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730486247; x=1731091047;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Ra0xT/SkPUuyvhZ+lS69adyS93PRUWclgK8p/jLJodM=;
-        b=NQDFpVBmIOFT5H5NIdC60st9mtFO6hQsA6V6BFwGqVd0grhBtB9gx5Ui5qMpP4R8B9
-         /2DjlneynkNgEfEeILJWye6jY1jP5uSNfKXhokWbpgS3sX9hRCfsoe0UeBBcTYaK/uCi
-         lJQfmW5ON+dK1MF6QD9KTpFD/x6DwFCPAiibOwtVoqyPL88rb1ALtEza8qTngqbeWgZu
-         aOgWKZ4agDkWkQjbWh3YB3zTQLVB4oUIm5RRsI0U2P7Bx6UcfYMf5d7ltXwe8tmT0jtg
-         TD3SamuU2uoAoLDL9pc/gxoZXAa6xoSZWh3UbVYEQhiweY4Fw+QcA6m8Ts2/cFXH8uAB
-         4xuA==
-X-Forwarded-Encrypted: i=1; AJvYcCXJFAa051XL1UI/aWCjfaoDmw1E/3Biba/kijATECa1PIEz1NF07p2CqyxDey2L/WSU3/W+dqFn7RxS@vger.kernel.org
-X-Gm-Message-State: AOJu0YxzTNcrRgriKfumpiGA6l14I2nKm7UGJJ4vGrBFmyp7PZSdvlOy
-	85GSYyCLBQPWBwgL5E22iLn8QgiQqdt1x1sUjYJLarleyj/6VuRtYX9oHzIp90kdrQmDfs847P6
-	WTWEi4AXtZj7mE0KmyHdlMgvR658wWsiQ7xDy
-X-Gm-Gg: ASbGnctDDaibzV17aav/EzT8Qt5Re3sRkDA2Al1zgSKUWaKFo5wZLZPOo2SoKHsEr8Z
-	z2ZT26nnt5Wn3hqwlntg/ueJHCkCukpaDN4tg9VJDgKfNAJdVMXzDaCACILt/
-X-Google-Smtp-Source: AGHT+IFXHlNZolCtvQqrkR9hwhUI8RViuIj2smBYH8pafbRsbRshQf8L/zWcjJGkwIIhtoJd28KJvaEPAg+jH8b1gU0=
-X-Received: by 2002:a05:622a:1350:b0:462:b6c6:8246 with SMTP id
- d75a77b69052e-462c5f02ebamr346081cf.14.1730486247209; Fri, 01 Nov 2024
- 11:37:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zcuv7wXS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F3C6C4CED5;
+	Fri,  1 Nov 2024 22:04:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730498672;
+	bh=rcoTiHAzGNigzhjuUOf3w29Wr+BpteeHJQCW1ztY21k=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Zcuv7wXSl6E/pJLqvocrlSymBS4scHtLKXTcP+fMrvmrGXVIea9jn0+QGHOGLUeAb
+	 wlAl5cSK7kQC9XO8ADw2A6KRBq4llF28tgj0eOWKf0AbKSqTsAi4pGwWTWGQQ9yRCX
+	 O0i1Zhd3DSnnFl7TqKgTIu5Nz14o2T20gXExsyDXPxZkN2V+iTczHy9eJ3q9Knn2bz
+	 WkzDhS5SjZvKetf7D8DVj7pjXqP96hzR+TZVEnuQVe2etQrYXdwc8PxPFCvFHylNPK
+	 atzuVdx0OpfYKNyGWoorkpwN1u3F27QjDoKhTeiXkNHapW3YeVKj0ysavnK+ZEDD1Y
+	 Csd9H4hjVaQ8g==
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-2fb49510250so25464591fa.0;
+        Fri, 01 Nov 2024 15:04:32 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUt7r25aXE0RlR6kuDg2q/jpjvNEs9wYthkWo7tv8bGaEF36nIqF9BYsqnWzVQ4EjdhSCgtaBX+xfOihA==@vger.kernel.org, AJvYcCWmIrlQ64vhwgCuIZjqExy2uG4AjpLyVGsmprek2wxy3H2NdC2gsm8Zv7tptJRgzkCu8VJBs9smB+ba@vger.kernel.org, AJvYcCX9j1dWeHWEQIQjvFRs96i/WnjhVpinb4Bj30VRdmeznAeA6F13tG2SG6+4Kzh06Myi12lG57EBVI3h@vger.kernel.org, AJvYcCXj5St3YfGTbCEeurz/eC8fBcrtrGRw/TemRp/HX0V1RaNH7lGtqXjsNOb2nj08BVnd8PluGeFbA2zT+Je/@vger.kernel.org, AJvYcCXwSv2bokXYuWwA4V6JcCIDJoAY97KhWsn7Wz+A6khRGnXnTFs4ynMSORbgOeR60STXTpYMnMxSi1Ij@vger.kernel.org, AJvYcCXzCCeLaMl6xLFtlzOuLF65Bm/b3+o3YYEB9px9xzflSuKoFrLy+1lP5GukAOcF3k449xqsfL70/PkFJ2/E@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz2gFSX+EDLJd9wraZhrKwtRzSkrT5T06CH5/HQpKfbEQiCZSSH
+	1YPHXxp25cm9IcwsCJZpzAwUSFWg4rf6qB93EvD7NwX5lLgkX4WY71QL5nP8KbidFf/jF2QaFkV
+	lDXrPjNYDwswuPPnXx3E5nTiexYM=
+X-Google-Smtp-Source: AGHT+IGVMAgeS0V2k3gbBjmJnFp43Rbmnq4wT0SbRNO4NZeNLFW4f4vONEJ7HO2aD/gqiSPW9yN22T197mAQWhrZFyU=
+X-Received: by 2002:a2e:819:0:b0:2f7:a5fe:adbe with SMTP id
+ 38308e7fff4ca-2fdec72f2bemr34602561fa.18.1730498670823; Fri, 01 Nov 2024
+ 15:04:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -59,13 +43,14 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20241026051410.2819338-1-xur@google.com> <20241026051410.2819338-4-xur@google.com>
- <CAK7LNAR6Ni5FZJBK_FZXWZpMZG2ppvZFCtwjx9Z=o8L1e-CyjA@mail.gmail.com>
-In-Reply-To: <CAK7LNAR6Ni5FZJBK_FZXWZpMZG2ppvZFCtwjx9Z=o8L1e-CyjA@mail.gmail.com>
-From: Rong Xu <xur@google.com>
-Date: Fri, 1 Nov 2024 11:37:13 -0700
-Message-ID: <CAF1bQ=TjpUrEgiqepyaGAiDoFM8jzozzxW=0YvTXpFY64YoTzw@mail.gmail.com>
+ <CAK7LNAR6Ni5FZJBK_FZXWZpMZG2ppvZFCtwjx9Z=o8L1e-CyjA@mail.gmail.com> <CAF1bQ=TjpUrEgiqepyaGAiDoFM8jzozzxW=0YvTXpFY64YoTzw@mail.gmail.com>
+In-Reply-To: <CAF1bQ=TjpUrEgiqepyaGAiDoFM8jzozzxW=0YvTXpFY64YoTzw@mail.gmail.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Sat, 2 Nov 2024 07:03:54 +0900
+X-Gmail-Original-Message-ID: <CAK7LNARZ3Hw-OuMe39eOHR=H1BSpyaGQf4xUFW9tuOWFnEzXqw@mail.gmail.com>
+Message-ID: <CAK7LNARZ3Hw-OuMe39eOHR=H1BSpyaGQf4xUFW9tuOWFnEzXqw@mail.gmail.com>
 Subject: Re: [PATCH v6 3/7] Adjust symbol ordering in text output section
-To: Masahiro Yamada <masahiroy@kernel.org>
+To: Rong Xu <xur@google.com>
 Cc: Alice Ryhl <aliceryhl@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
 	Arnd Bergmann <arnd@arndb.de>, Bill Wendling <morbo@google.com>, Borislav Petkov <bp@alien8.de>, 
 	Breno Leitao <leitao@debian.org>, Brian Gerst <brgerst@gmail.com>, 
@@ -90,85 +75,54 @@ Cc: Alice Ryhl <aliceryhl@google.com>, Andrew Morton <akpm@linux-foundation.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Current order is:
-.text.hot, .text, .text_unlikely, .text.unknown, .text.asan
+On Sat, Nov 2, 2024 at 3:37=E2=80=AFAM Rong Xu <xur@google.com> wrote:
+>
+> Current order is:
+> .text.hot, .text, .text_unlikely, .text.unknown, .text.asan
+>
+> The patch reorders them to:
+> .text.asan, .text.unknown, .text_unlikely, .text.hot, .text
+>
+> The majority of the code resides in three sections: .text.hot, .text, and
+>  .text.unlikely, with .text.unknown containing a negligible amount.
+> .text.asan is only generated in ASAN builds.
+>
+> Our primary goal is to group code segments based on their execution
+> frequency (hotness).
+>
+> First, we want to place .text.hot adjacent to .text. Since we cannot put
+> .text.hot after .text (Due to constraints with -ffunction-sections,
+> placing .text.hot after .text is problematic), we need to put
+> .text.hot before .text.
+>
+> Then it comes to .text.unlikely, we cannot put it after .text
+> (same -ffunction-sections issue) . Therefore, we'll position .text.unlike=
+ly
+> before .text.hot.
+>
+> .text.unknown and .tex.asan follow the same logic.
+>
+> This revised ordering effectively reverses the original arrangement (for
+> .text.unlikely, .text.unknown, and .tex.asan), maintaining a similar leve=
+l of
+> affinity between sections.
+>
+> I hope this explains the reason for the new ordering.
 
-The patch reorders them to:
-.text.asan, .text.unknown, .text_unlikely, .text.hot, .text
 
-The majority of the code resides in three sections: .text.hot, .text, and
- .text.unlikely, with .text.unknown containing a negligible amount.
-.text.asan is only generated in ASAN builds.
+Make sense.
 
-Our primary goal is to group code segments based on their execution
-frequency (hotness).
+Please describe the above in the commit description.
 
-First, we want to place .text.hot adjacent to .text. Since we cannot put
-.text.hot after .text (Due to constraints with -ffunction-sections,
-placing .text.hot after .text is problematic), we need to put
-.text.hot before .text.
+Then, it will be clearer why you not only moved up fixed patterns
+but also reversed the order.
 
-Then it comes to .text.unlikely, we cannot put it after .text
-(same -ffunction-sections issue) . Therefore, we'll position .text.unlikely
-before .text.hot.
 
-.text.unknown and .tex.asan follow the same logic.
 
-This revised ordering effectively reverses the original arrangement (for
-.text.unlikely, .text.unknown, and .tex.asan), maintaining a similar level =
-of
-affinity between sections.
 
-I hope this explains the reason for the new ordering.
 
--Rong
 
-On Fri, Nov 1, 2024 at 11:06=E2=80=AFAM Masahiro Yamada <masahiroy@kernel.o=
-rg> wrote:
->
-> On Sat, Oct 26, 2024 at 7:14=E2=80=AFAM Rong Xu <xur@google.com> wrote:
-> >
-> > When the -ffunction-sections compiler option is enabled, each function
-> > is placed in a separate section named .text.function_name rather than
-> > putting all functions in a single .text section.
-> >
-> > However, using -function-sections can cause problems with the
-> > linker script. The comments included in include/asm-generic/vmlinux.lds=
-.h
-> > note these issues.:
-> >   =E2=80=9CTEXT_MAIN here will match .text.fixup and .text.unlikely if =
-dead
-> >    code elimination is enabled, so these sections should be converted
-> >    to use ".." first.=E2=80=9D
-> >
-> > It is unclear whether there is a straightforward method for converting
-> > a suffix to "..".
-> >
-> > This patch modifies the order of subsections within the text output
-> > section. Specifically, it repositions sections with certain fixed patte=
-rns
-> > (for example .text.unlikely) before TEXT_MAIN, ensuring that they are
-> > grouped and matched together. It also places .text.hot section at the
-> > beginning of a page to help the TLB performance.
->
->
-> The fixed patterns are currently listed in this order:
->
->   .text.hot, .text_unlikely, .text.unknown, .text.asan.
->
-> You reorder them to:
->
->   .text.asan, .text.unknown, .text.unlikely, .text.hot
->
->
-> I believe it is better to describe your thoughts
-> about the reshuffling among the fixed pattern sections.
->
-> Otherwise, It is unclear to me.
->
->
->
->
-> --
-> Best Regards
-> Masahiro Yamada
+
+--=20
+Best Regards
+Masahiro Yamada
