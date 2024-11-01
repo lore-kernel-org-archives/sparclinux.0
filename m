@@ -1,137 +1,121 @@
-Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com [209.85.167.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B29219D080
-	for <sparclinux@vger.kernel.org>; Thu, 31 Oct 2024 12:42:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE2B31CDA27;
+	Fri,  1 Nov 2024 18:06:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730378551; cv=none; b=DWauEfVV+xm/klyKZSIIrLezYdjOPH2Mj1XJDhO5OQXFhbh66+ziHLjJ0uKHOfl5/oFORVpV2vYE3Qn4yHgjQiGN23e1K4h2gd7iKIxUlA5xS0Iz0vC5HlRfb2/D43XWlbftxHmh1/lPDkrKnFkL73OuFIw7Nz83tbUwjYe7WI0=
+	t=1730484385; cv=none; b=SaENCSdwvsHTbr19+CnDuPi9wceaXBWfW0PyVW9HPIU5dpAmoCBLvyQwdDhkKfZYylIGAPZhvl2JdVbQrRC+cIEi246KWZBkh3i2cWTBoHT1jO+ete62NRQYLtMcw6wCxIQvgJPgz+6klTniwZuc9xeAKwOcfwB4qhruDy/Z/PY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730378551; c=relaxed/simple;
-	bh=d3l+JXTXn/d0gN9635I2vxj7QUG3pzswYvim2u3FDG8=;
+	s=arc-20240116; t=1730484385; c=relaxed/simple;
+	bh=JJjwqh39fcCVx0ubjs5+WcMycs+cNM3heEyzFIYdiEE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fJZDBMpolmmE31WAZXBslqPR4fztcSwlHNvthKyNtxj1W2BCxOaY5j/lS62yhVcoFU/21BUUTYQfiOR+NVfjrjDyb1d3xQJGE0aP9tydB7dN1zNlGu7ssx301V94bMR/RcGS9j40n2CLDY5R1sWH5Nfcdl9Mzf/LtIaHM1rJeWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=LVV8lWY9; arc=none smtp.client-ip=209.85.167.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
+	 To:Cc:Content-Type; b=dPgV1Rt/ymYCdQK5j9hFiOYEXhcpcUbAmewzuyVt1omEIggwSWhKGkgi4d1VLuvN2rRLXzpABIAMRju/TvHepLWE1ZOQ/phq122+Cdss0HQm+Ax4rtYMdzANi/0VR+vAStec/9rxlZE7/L6Xm8PkYx20I2qzZ0PT/iGxMfjdcgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oGFyzzrY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="LVV8lWY9"
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-539f72c8fc1so1445184e87.1
-        for <sparclinux@vger.kernel.org>; Thu, 31 Oct 2024 05:42:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1730378546; x=1730983346; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lTC2PsMAJfMn76auApCUvfCYGG80eZPc8JkIbfU4S3I=;
-        b=LVV8lWY9SlAR+ykeyWB69P/yLuGwNOxOFqodsWki28Z6pRwlLRDBRw1MLL3GAJ/bsa
-         uleh0teLLhX9O20TH71NPQLTv/xw8YxeVprGgVH7Rs6B1/z+wmUyJlKOyrNqBJteWExj
-         TBpZw1oqWKwEGHpwT1KwtxD2RgPeZyWSo10kg9VHzTa7kNiEFua46vMGKAIF3nUYPJ+K
-         dSDdBt1x5FO6/SMU5BN+5iL+4UBU9gk4ZPS6xVWSHyWdpWy4G8utqWKnnx46JRI3eghl
-         +dMtyAsoGY+SO2X5aIidFhEeas8hTiGQTdRg1EfqoUQtPEJh6I95U1+aXUSRw3c9BeCm
-         6Miw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730378546; x=1730983346;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lTC2PsMAJfMn76auApCUvfCYGG80eZPc8JkIbfU4S3I=;
-        b=J3AWIwNbWN7mSD8KTkKLaWAqCxbZUovDhxAR+G4XspJVZZBaT2tqwq7bv88IubLpjj
-         NY5+S3Ji5d8HMWZCtBpcWAiFnDhqSJL2DAi4PoGMH0b85lV1ivuPuEWFOOEfqBuGs8e9
-         LaCz4xqpXZeT5Fw3xQbWQHFbN2739tX8LGJN5oe0j6mAuxUhwZm6h9DeHPOFbj7BUyYn
-         zRio/ii05qYTOjjb7MgGaEmH/aGeysyvC9TMsruDI0c/XR3tHCAV210btUU1nqFrILoB
-         gLbeJhw3Tm+E9YQ9v6qLN0++0BNHgsFNQiiQorhOhfJDSn3gIduWKjPgGcx5jkg+9A3m
-         Ya+Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUKpv+R4iQlo02hSczDQO7mVcMBJh7tUCnlN8fNkkOtmIUJjd1uoEl9rpfxL4L8CPTIyMMrRleJpFfE@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx+cfkxs55pBpF5tnZ5X88gOA6PaOjnLbpyRUl6S59sJfXDcBQV
-	4U+LxQwIJQ4ELULx9yyqO2Imnh4dvwpF6lnonUWe173aba8BKGNmyeAzZkZIFoKQRBqtyUY3l81
-	ukhtUKeNfSX7wKaIYnKquNVDxEhfQ3JZmuFUFlw==
-X-Google-Smtp-Source: AGHT+IENgdCym3aCfQQffIdnAcnQ7jVQiujpNsdy/1kYvXN1HMbcw+ZNCVnTHviivQmDH59BdbpwnL5ScACnRVI2Res=
-X-Received: by 2002:a05:6512:3b95:b0:539:f7de:df6a with SMTP id
- 2adb3069b0e04-53b86b029efmr4048108e87.52.1730378546384; Thu, 31 Oct 2024
- 05:42:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oGFyzzrY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6537CC4CED4;
+	Fri,  1 Nov 2024 18:06:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730484384;
+	bh=JJjwqh39fcCVx0ubjs5+WcMycs+cNM3heEyzFIYdiEE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=oGFyzzrYctRAw0+vSdKszYhCr6MZakc+bum0xBkNuoIQjBDZeALsgpY3fpU/YiVy/
+	 MTo8d1l8hu7PYeFzes6xmZUeJlbgCq1oLePpHv7X8KJZrPe/rIJW++V7LCiA7rgJcP
+	 uj9LI2Ws1OEVr3ma5YoOorGlgj6guMZNslSYXTDI/NOdAMqv48y7Mt2wttESaTHS0u
+	 c/vIqc0rPjpRCPr2f5R3l61Nn72sFushIGqPjLdP04vQioG+OOaOw00Wy01otQRN5V
+	 M/kSKhMjN7Ag2IktDM6GgLS/YZhl8ESusMWDp+OCz0BSSZrn4EuS4GL/gxC3NHIhR0
+	 xY0abIZFZxuTw==
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-2fb599aac99so20217991fa.1;
+        Fri, 01 Nov 2024 11:06:24 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCU6QYIwF9S7TltX5Anb20RpjNuKPpQ2VAGUEX16B7mB3jx+xlTuEvb+vi4CNP2nVzwpRIqKmDoSe16I@vger.kernel.org, AJvYcCUMPyr0QisaZiEZPxmWe8Fs9Hz8WxILKajW0IsUJqo3ccEOkHvEQ/dorbtRhAyuQLBOzJ/RMmPnMt5K@vger.kernel.org, AJvYcCV4kAcYaJCfmFRLJdCsQ1PGD67s7KY+A9yd0JdAvohhByeIOEaukY12LRwBdzTqc55+vhVGXHdSq8WkzQ==@vger.kernel.org, AJvYcCWJW+wt5Mfm6zfMpAofnf6ORKbcpYjuVAfjz0Taiy8AOYiaGV8Ng6r7hHfpKioY+UOwo0BlH2JfA/wPezgF@vger.kernel.org, AJvYcCX6FbLujOVTVKakOxhqYBtUkkBe6Aq3UNZkQr6JbN+BhA8ArF8SCl3q2xvcmjfq6gnXwhGuxNQ2LFxv@vger.kernel.org, AJvYcCXJzVdTyqKqngWg5uDO9KbU8PYNPZGY5Yec6svZ30t19dy063NrlLjMb6jpUJRGEQ0fmLOtMlm3gBY4w69g@vger.kernel.org
+X-Gm-Message-State: AOJu0YwjFHqTF3dXW5NWnusKaSLsmtJitKLhAhb4axX+tzA/vd00pJFU
+	7QebvtBcNrTQ20jAFevfN1HFXQYoltvJbO+ZHrP8VYodAv1D4il53TT5Jjh+d2q2bDQZwAnh4Op
+	uWc87t9NxSxpnSV+eZyHxpR3ZrZY=
+X-Google-Smtp-Source: AGHT+IENQ8plh56/KCN7UexCPK7YNwOgQocP3X0UjZV+vdI494pX+xUTRKzwl4gLjC+Afni5PbyZK3sjbjZQziO76Fo=
+X-Received: by 2002:a2e:b88a:0:b0:2fb:5bf1:ca5e with SMTP id
+ 38308e7fff4ca-2fedb831b8emr26176271fa.42.1730484383031; Fri, 01 Nov 2024
+ 11:06:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <140b0f7522ff2f86a7fad0be88c19111fa6cb5b1.1730282507.git.geert+renesas@glider.be>
- <04040095-27c2-49a1-b956-ac7bbd5f919a@gaisler.com> <CAMRc=MdAq3t7P_+SSCcZC3J02B5RuDQvUZjFXQbi4KViiK=-Pg@mail.gmail.com>
- <CAMuHMdX_OzLc5YzqxObHQrAdZAYrCa8E5Qz4zHR_cqX370KSAw@mail.gmail.com>
-In-Reply-To: <CAMuHMdX_OzLc5YzqxObHQrAdZAYrCa8E5Qz4zHR_cqX370KSAw@mail.gmail.com>
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Date: Thu, 31 Oct 2024 13:42:15 +0100
-Message-ID: <CAMRc=MeZ8Anyiid-drOm2B373mh1yfwNzx_6ot-tHr=zHqoMWg@mail.gmail.com>
-Subject: Re: [PATCH] gpio: GPIO_GRGPIO should depend on OF_GPIO
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, Linus Walleij <linus.walleij@linaro.org>, 
-	linux-gpio@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20241026051410.2819338-1-xur@google.com> <20241026051410.2819338-4-xur@google.com>
+In-Reply-To: <20241026051410.2819338-4-xur@google.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Sat, 2 Nov 2024 03:05:46 +0900
+X-Gmail-Original-Message-ID: <CAK7LNAR6Ni5FZJBK_FZXWZpMZG2ppvZFCtwjx9Z=o8L1e-CyjA@mail.gmail.com>
+Message-ID: <CAK7LNAR6Ni5FZJBK_FZXWZpMZG2ppvZFCtwjx9Z=o8L1e-CyjA@mail.gmail.com>
+Subject: Re: [PATCH v6 3/7] Adjust symbol ordering in text output section
+To: Rong Xu <xur@google.com>
+Cc: Alice Ryhl <aliceryhl@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Arnd Bergmann <arnd@arndb.de>, Bill Wendling <morbo@google.com>, Borislav Petkov <bp@alien8.de>, 
+	Breno Leitao <leitao@debian.org>, Brian Gerst <brgerst@gmail.com>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, David Li <davidxl@google.com>, 
+	Han Shen <shenhan@google.com>, Heiko Carstens <hca@linux.ibm.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Josh Poimboeuf <jpoimboe@kernel.org>, Juergen Gross <jgross@suse.com>, 
+	Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>, 
+	"Mike Rapoport (IBM)" <rppt@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+	Nick Desaulniers <ndesaulniers@google.com>, Nicolas Schier <nicolas@fjasle.eu>, 
+	"Paul E. McKenney" <paulmck@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Sami Tolvanen <samitolvanen@google.com>, Thomas Gleixner <tglx@linutronix.de>, 
+	Wei Yang <richard.weiyang@gmail.com>, workflows@vger.kernel.org, 
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, Maksim Panchenko <max4bolt@gmail.com>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Yonghong Song <yonghong.song@linux.dev>, Yabin Cui <yabinc@google.com>, 
+	Krzysztof Pszeniczny <kpszeniczny@google.com>, Sriraman Tallam <tmsriram@google.com>, 
+	Stephane Eranian <eranian@google.com>, x86@kernel.org, linux-arch@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	llvm@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 31, 2024 at 10:07=E2=80=AFAM Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
+On Sat, Oct 26, 2024 at 7:14=E2=80=AFAM Rong Xu <xur@google.com> wrote:
 >
-> Hi Bartosz,
+> When the -ffunction-sections compiler option is enabled, each function
+> is placed in a separate section named .text.function_name rather than
+> putting all functions in a single .text section.
 >
-> On Wed, Oct 30, 2024 at 5:44=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.p=
-l> wrote:
-> > On Wed, Oct 30, 2024 at 4:45=E2=80=AFPM Andreas Larsson <andreas@gaisle=
-r.com> wrote:
-> > > On 2024-10-30 11:03, Geert Uytterhoeven wrote:
-> > > > While the Aeroflex Gaisler GRGPIO driver has no build-time dependen=
-cy on
-> > > > gpiolib-of, it supports only DT-based configuration, and is used on=
-ly on
-> > > > DT systems.  Hence re-add the dependency on OF_GPIO, to prevent ask=
-ing
-> > > > the user about this driver when configuring a kernel without DT sup=
-port.
-> > > >
-> > > > Fixes: bc40668def384256 ("gpio: grgpio: drop Kconfig dependency on =
-OF_GPIO")
-> > > > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> However, using -function-sections can cause problems with the
+> linker script. The comments included in include/asm-generic/vmlinux.lds.h
+> note these issues.:
+>   =E2=80=9CTEXT_MAIN here will match .text.fixup and .text.unlikely if de=
+ad
+>    code elimination is enabled, so these sections should be converted
+>    to use ".." first.=E2=80=9D
 >
-> > > > --- a/drivers/gpio/Kconfig
-> > > > +++ b/drivers/gpio/Kconfig
-> > > > @@ -341,6 +341,7 @@ config GPIO_GRANITERAPIDS
-> > > >
-> > > >  config GPIO_GRGPIO
-> > > >       tristate "Aeroflex Gaisler GRGPIO support"
-> > > > +     depends on OF_GPIO || COMPILE_TEST
-> > > >       select GPIO_GENERIC
-> > > >       select IRQ_DOMAIN
-> > > >       help
-> > >
-> > > Or alternatively:
-> > >
-> > >         depends on OF || COMPILE_TEST
-> > >
-> > > Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+> It is unclear whether there is a straightforward method for converting
+> a suffix to "..".
 >
-> > Yes, if anything it should depend on CONFIG_OF but is this really an
-> > issue if this shows up as an option in Kconfig? It's not a hard no
-> > from my side and I have heard a similar comment from Torvalds already
-> > but I really don't get it: do people go through all the make config
-> > prompts on a daily basis instead of using some base config and doing
-> > make olddefconfig or menuconfig at worst?
->
-> I never use "make olddefconfig" or "make menuconfig".
-> I always use "make oldconfig".  How else do you find out about new
-> driver support for the hardware you are interested in?
-> I also compare the resulting config to what I had before, to catch new
-> dependencies that suddenly make an option unavailable.
->
-> The kernel has 20K Kconfig options. It's nearly impossible to configure
-> a kernel from scratch. Being able to filter out the thousands of
-> questions that cannot possibly apply to the hardware you are configuring
-> your kernel for is a big win. Times the number of people doing this...
->
-> Thanks for applying ;-)
->
+> This patch modifies the order of subsections within the text output
+> section. Specifically, it repositions sections with certain fixed pattern=
+s
+> (for example .text.unlikely) before TEXT_MAIN, ensuring that they are
+> grouped and matched together. It also places .text.hot section at the
+> beginning of a page to help the TLB performance.
 
-Well I didn't. Not yet anyway. Please make it depend on CONFIG_OF if
-you really want it.
 
-Bartosz
+The fixed patterns are currently listed in this order:
+
+  .text.hot, .text_unlikely, .text.unknown, .text.asan.
+
+You reorder them to:
+
+  .text.asan, .text.unknown, .text.unlikely, .text.hot
+
+
+I believe it is better to describe your thoughts
+about the reshuffling among the fixed pattern sections.
+
+Otherwise, It is unclear to me.
+
+
+
+
+--
+Best Regards
+Masahiro Yamada
