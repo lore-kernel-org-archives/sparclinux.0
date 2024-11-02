@@ -1,83 +1,74 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E3E32B9A4;
-	Sat,  2 Nov 2024 08:06:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46D9680034;
+	Sat,  2 Nov 2024 09:45:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.6.53.87
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730534819; cv=none; b=WJYmS5D/GHWYSl0AbN7FxdkrSz8klUCIM9aS75lKyAev7cbkwdKxX30IGcvJ56Y2CXBbrwmdsKLvqxRnfJeLj4HAk44ECXqyGH00duE17DGkCksweQu3D09Liv8Nz5uOwmTmU/Ev1FEP/oR2YTgAkJcttKOKrnGSzcyDR7JJnSo=
+	t=1730540757; cv=none; b=okC31q/qda2lwYMJkf2AX75kdALb4fucbPWjmizzis1z2rOB0ce7qcwpxncvpO+ET18KmJdoK+8MqM4jRGlkM9Xz1e4ta02XKqUShSlqi40/yRJmsRsOmC6Cy4Vh4LrXyiGvwhSjL1PxzMz36n0aW5/BGaHBB7hUx+zEfBYWwO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730534819; c=relaxed/simple;
-	bh=EQSWD7lvEpQpbs2qoliMb65fhqZz0rznKwHKh5bu/aI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FYh/Jk+gkjrKGFRuZ0yS40KVo8pRrgk46XMM6CyZ8m8bhLHQTHGkNyrCgCjal7ykEf4DD/YZQOqmEz9leKrOH2RvcOXwvmVxn5oJC5gAuS35vLjfN989CX5OCm+VSb1JFWTBPtUiFlfAHIOdoEeKTuejZJdyV5vOjy3O1QAZOkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S1E6LhoQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730540757; c=relaxed/simple;
+	bh=3/AKilervyPC21hMELAU0HNgnAeGr1Qn3UgiDLal+ac=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=SRpNAtKgVK+fyDfzK0qP1uWNzw8GJADX5N3e0Fecv13b3OiUgKXXrkDlt9XaVu5M1CpL8P417uGeEKtTa/3BDvCauRsxfpIhHjEMAKkAU/s+PrLiJY6xAolsRL3dgajqLFLcao7MVo9Bp40aQRYB8oHUcQ+/hkqYIvydoFEFRjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b=Q5Mjntzp; arc=none smtp.client-ip=144.6.53.87
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S1E6LhoQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33BCC4CED5;
-	Sat,  2 Nov 2024 08:06:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730534818;
-	bh=EQSWD7lvEpQpbs2qoliMb65fhqZz0rznKwHKh5bu/aI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=S1E6LhoQHzSJTvuGfNN9Rl7g23H8Jt1+uPqd1Gkogk4EBSBgPV0u2DV9s4tfWTPa9
-	 J2EE3r1wpvSJf+ydKtE70T9Me2hfgZZymWhegDo+u5L+rCm7HCWNaE3fC2VsZbc3UJ
-	 5DqsjMB55lzmyvuZeFHHYGj4o35bAXKtn8PUnsUobGTFXke4Jj1nM5YrQnTk9/dO1v
-	 DuVZwje6rOdt6R10i3VujReOIt/HeU4jPaPppIFWHJjwjX4opMAEn7nkNeiz47kafQ
-	 pnH46cIahM3SFu489pu49KAPkGbQh0zMkNLGTmFfuq+aErxoXidQ6g2pFQQzY+/gaa
-	 S3tJCTVl/TwDw==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-2fb50e84ec7so18618361fa.1;
-        Sat, 02 Nov 2024 01:06:58 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVI9278pMZaGP3/K6XzM0I3rc7aGH8Ty7c3KR47vj5HFGUFdbBDHhWf52TOem07bBpGeCB3ULhF23bPGQ==@vger.kernel.org, AJvYcCWcVxXSHQtFbRbQH9e+uyvD+qaYqscWBlOTlK1GA1ULcttd4fRDDxeZpTUiEXJHjmnFkNvjWv0A00hNBpXR@vger.kernel.org, AJvYcCWpexsS650yT81H1xTQ3N7zThuT2FkIQWdAtmsXn0kPsgJzV91pcf/B5SB0OyTHHR/FSqZrLpfybzJot86C@vger.kernel.org, AJvYcCX1CPxSz8go+ILh3kiaz0q/mW7TMIhBNM8Zr/MxAQwC8lYXPadcoUDTHq6Gsm9vS5MLpeoak91LJfU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxqF6gFQXeqpgKWElb9riAZrpUFZk8ot0lWVnbMTNE57Y7sUPUS
-	lMqQIFz6Kn3y6et10TY+h7sA8gaMbPMtlP331TZCq8vfbVRVwky7a5TO8dZNbUjkRVqyViAzoik
-	z9pTzgvlMoOnMJijrRZAyBus1POM=
-X-Google-Smtp-Source: AGHT+IH6q5K9/EJNsgxEJPWWk35nqde3J7zA5O8Ap/dpF8tEbWkRkE9xz+WKM92SMTQn+tvXWer2w/ywIL/kTxAvlR8=
-X-Received: by 2002:a05:651c:210f:b0:2fb:5038:3eb4 with SMTP id
- 38308e7fff4ca-2fcbe078dbcmr130312911fa.29.1730534817303; Sat, 02 Nov 2024
- 01:06:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b="Q5Mjntzp"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hmeau.com;
+	s=formenos; h=In-Reply-To:Content-Type:MIME-Version:Message-ID:Subject:Cc:To:
+	From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=jpcaovD1uzHZkdDMg5tZvb0Z9OfX74OLNrLMh/vslrg=; b=Q5MjntzpHzBvczROcNsYoj+25t
+	CTplAOz4OXNjmKbeHRPSkC2PF8/2CQ+S9+BpzdDOraNgbvJHl1b2XbDV1IX3zldrAMVgbCnIPBjj6
+	0IWTAu3B1HtaRzbcItOeEI76Vhr65Zdrv6Hj7PnTJ9akLQTMtM7LE6EHbcKkj/xmU2QzOxWp4th0u
+	J1y5NQ3M1+7fbEZEPyWTXBC1K0HGtCKB8/SuT1fdvssCL8+XduxOZjD+6GgoigCaoEwTAJWXor6+8
+	4zJNFOI8kfLHoCcjY0lPk4C6G5wnEcy3WATqplhANsESpNXFLLJLZUN4OEO8S1bcBapdvZR08K4kj
+	Lwh8InsQ==;
+Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
+	by formenos.hmeau.com with smtp (Exim 4.96 #2 (Debian))
+	id 1t7AhE-00Dxdz-0Y;
+	Sat, 02 Nov 2024 17:45:29 +0800
+Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Sat, 02 Nov 2024 17:45:28 +0800
+Date: Sat, 2 Nov 2024 17:45:28 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: ardb@kernel.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-crypto@vger.kernel.org, linux-ext4@vger.kernel.org,
+	linux-f2fs-devel@lists.sourceforge.net, linux-mips@vger.kernel.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
+	x86@kernel.org
+Subject: Re: [PATCH v2 04/18] crypto: crc32 - don't unnecessarily register
+ arch algorithms
+Message-ID: <ZyX0uGHg4Cmsk2oz@gondor.apana.org.au>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com> <20241029-sparc-cflags-v3-2-b28745a6bd71@protonmail.com>
-In-Reply-To: <20241029-sparc-cflags-v3-2-b28745a6bd71@protonmail.com>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sat, 2 Nov 2024 17:06:19 +0900
-X-Gmail-Original-Message-ID: <CAK7LNARrn8xQnCYX7aRqGqh+yVvyg4FLS0qJU07k5qjYHbSCFA@mail.gmail.com>
-Message-ID: <CAK7LNARrn8xQnCYX7aRqGqh+yVvyg4FLS0qJU07k5qjYHbSCFA@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] sparc/build: Add SPARC target flags for compiling
- with clang
-To: koachan@protonmail.com
-Cc: "David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
-	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de, 
-	Nicolas Schier <nicolas@fjasle.eu>, Jonathan Corbet <corbet@lwn.net>, sparclinux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev, 
-	linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241026040958.GA34351@sol.localdomain>
+X-Newsgroups: apana.lists.os.linux.cryptoapi,apana.lists.os.linux.kernel,apana.lists.os.linux.scsi
 
-On Tue, Oct 29, 2024 at 11:49=E2=80=AFPM Koakuma via B4 Relay
-<devnull+koachan.protonmail.com@kernel.org> wrote:
+Eric Biggers <ebiggers@kernel.org> wrote:
 >
-> From: Koakuma <koachan@protonmail.com>
->
-> clang only supports building 64-bit kernel, so we use the
-> sparc64-linux-gnu target.
->
-> See also: https://lore.kernel.org/lkml/e26PTXUXEz8OYXmaeKn4Mpuejr4IOlFfFw=
-dB5vpsluXlYiqDdlyQTYcDtdAny_o4gO4SfPeQCCN2qpyT6e0nog5EaP3xk2SeUPTrF54p1gM=
-=3D@protonmail.com/T/#m068e010dcf8b99d3510a90d7532bcdb70e2e2c6b
->
-> Signed-off-by: Koakuma <koachan@protonmail.com>
+> While testing this patchset I notice that none of the crypto API drivers for
+> crc32 or crc32c even need to be loaded on my system anymore, as everything on my
+> system that uses those algorithms (such as ext4) just uses the library APIs now.
+> That makes the "check /proc/crypto" trick stop working anyway.
 
+What's stopping us from removing them altogether?
 
-Acked-by: Masahiro Yamada <masahiroy@kernel.org>
-
-
---=20
-Best Regards
-Masahiro Yamada
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
