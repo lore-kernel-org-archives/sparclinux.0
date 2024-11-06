@@ -1,224 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sonic314-13.consmr.mail.bf2.yahoo.com (sonic314-13.consmr.mail.bf2.yahoo.com [74.6.132.123])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D301DE8BA;
-	Wed,  6 Nov 2024 16:09:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB52913A88A
+	for <sparclinux@vger.kernel.org>; Wed,  6 Nov 2024 16:30:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.6.132.123
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730909360; cv=none; b=nLbNslz1fu0ijBQ2KS7GuzTWsBcpLoZ18BUl18wPAC04H4nJQJdqOCthVA6w1qhlMrtuq91bHCl9x10NCaMstkDvGusdhPmwG7E6sTbydeXhwoubydAWR5Pjf8mnPv2RvL+zgzzEkkEhRY3ErrNyelAJjHlgm3/zlPAWM6YyHAg=
+	t=1730910618; cv=none; b=dE8GWglKz0/KRGZ17U1j01Jz3kb2rF60XyikpPaJhCMCEWGXcQapUB91ziy/FUSzCYoBxRxoz/n/6DJAxWY7KuK0GJwFXVxNOPiTswYzc8HtNjR7p4eO23QZViTfemVfbO7NoXVYSqez0ubOVTS41K6OEFrMGqGJOSt/YgLJVro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730909360; c=relaxed/simple;
-	bh=VOUAaO8tbrP/wOcy0Hm9JSPbINDxNuLU/AYW8Ip0Zd4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oKKWfdqOmTWt8Movls78gWN3d5s/5DhsgghLU08uypOt6MhtyRPcPfAxnz7QdvSy8pT7trpiVk5/rBWVLOgUN8VhTzoFICtDVDNcM1u5Rrlo6V+i3zqerOyuQU6v+cGh+ZIAXT2TJAQB6qpy0FRkJWii2gn9P4AT7d0J5rorkTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JuQqFPlp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730910618; c=relaxed/simple;
+	bh=fvAFf0JaFeBYm+F2wvaYY1CZI8BimVIWOliOUZ1LMAE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=I/nD72WI+Cn/biHvyvqXeKKrONnoWAMK8DkG5yx3FlLv2eKtfDftkDhS4+4pJDtxu7YZCX4XuB5XEmJy4gNRnklbaY1uq2N0n2wrNICHmG9VymlU/6znVei7fMbcI8OitGoh9WvllVI1dicN25CMMCMm7Zf6HZaNFWQ0D1kYWIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com; spf=pass smtp.mailfrom=yahoo.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=RaZGVFe5; arc=none smtp.client-ip=74.6.132.123
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yahoo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JuQqFPlp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B361C4CEDA;
-	Wed,  6 Nov 2024 16:09:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730909358;
-	bh=VOUAaO8tbrP/wOcy0Hm9JSPbINDxNuLU/AYW8Ip0Zd4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=JuQqFPlpGiZAw7TILRMopCknbSMhoSbKx2jz2KR/Z4136chHTIJzi6bsn3gL0+hTS
-	 e2biPgPhKCa3qDTsZK3oGU9ag6yFsmSdHsyCuRlh6zqidBZaOF+DTVoqAZfMX++Uhv
-	 PSkA3uMU8U3BudOhRigGRcWHfPrAIWwmjbH+UwbaDidkQNTNe1X6FpdHr87lQu6nJF
-	 6F4qszR0GXujuSL0Hx1jvOjHS+69UHa30u7ijx0wDL2pGIVmwGiwsXm+6V/I/57AnB
-	 jSruAnH3iySsmiY0+fL2x/BG6YQI65Ewzv8CjSgnBAtbJSqhdPyawhvOWKnlvy+KFf
-	 YpFJa2r1JhqOA==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-539e5c15fd3so6742744e87.3;
-        Wed, 06 Nov 2024 08:09:18 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUzjS5C2DmQinBTuGovT/ELyDAhpKA8Nq/xAsTgy3JJqaJ3JMbBhHLkLeGA6n5qXlgU/nmZsyJtu2+YQUT3@vger.kernel.org, AJvYcCVSeVafwucFK+nDjqW5Xe7r4xdrg1q4FjvyoFhbx5E85n8QhsLK3L5IY3cJgSGi1u1fCnG+h5xOFjfbH8Vo@vger.kernel.org, AJvYcCWFFEHQbbUcML/CGWhF9usw/ZSIXZRTa+XeAKa8GfKQEfkEC3GUd3LnAj80e6j4i2NePc7GSe0IwZSG@vger.kernel.org, AJvYcCWJ40qd+jfgSryCLd0KdEerEkp7FGyR/qdHZD5ZwMQe+D5qiUIcSidXToIcJKLq0oUT5U6U9OfFHxxg@vger.kernel.org, AJvYcCWLMcuZndJtEa7Gicvc83B+BtimMw4tWsWc3e5oUytgnDaM30V650VvrhEJkmjiv9nwe6aIMbrsn80/@vger.kernel.org, AJvYcCXWi4AYx9ocvpN1dIfBN2PcmtkruccbLd84+RYWsdwFnSpwCPBQ7xAjcPd8e3/XXC++IbDkeMKd/AN2Lg==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzX6Q4XJmxYzh7/4uNSxHziSpjXx23K/H1UmrlMXi89IMOpLLhj
-	JSy6/V15L+ujJKUTEpXUWXpGt3zcBnwRxe9LsE8elnetsApxsUbK1qK+gU2tYLlzaLBLMEDKCkn
-	G0/nwAy1L0e69+o02h/Vw3Fp+7i8=
-X-Google-Smtp-Source: AGHT+IFe3LtQOU5rlt2uGICpXWpl9dXGIsyeiu98XXxTi7W/MgXwXeHBmA5AmnRcRDJ/VkMxQJyWrHuX629kG1Abv5I=
-X-Received: by 2002:a05:6512:398d:b0:533:711:35be with SMTP id
- 2adb3069b0e04-53b348e154fmr20852753e87.26.1730909356944; Wed, 06 Nov 2024
- 08:09:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="RaZGVFe5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730910609; bh=W0ieKc3ap2ATG+t73oWiPacelFjiXkyZM757F906zV8=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=RaZGVFe5QGta3h9qs80DqR42kbDiabkMl9CRH+h/WChFQkOZAT0iTrc/7cT6UPAEc/ef+OcKtJmbuYc6rxL+4q4GxnujHLhWgT6vi2Y/AhzF2UZOnMqcey6aDemb7WxVsn75Y4eLTcM497E/gjBb1EjhfMFLqxBzEdz8v0ySlmxAsP3kkuhtPdt1eEJdsWI6ApxsvJinNqgOjyV2PzDT39uLWmprrV8dl0ky8iSU7TGGJEcm6FMJJ1kLkO6J2R3vWMC70f0UIm+qTIvEtuNeAhxShoVJIPeNHb+6wTqATgca4UIvQ/ZkXlU+jQ5ogmp8iiLsXEndvOn5p/MVH9QZBQ==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1730910609; bh=v8duAYhLnT2wSO9/g7ki6EuZVnevhsEEQiVAvkG7FIu=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=MgiaX1vZfU5d0+KksxoEawg4bqhao6AYgPhG36lQOAnGWc5s4VvChUxzM0GHsQD3DNQxiYKPTOoyORbQpZBd/fLoLP4/cMofZkcT23WhXAaaqxSR7/AHcorLVwj+hG/bwSoQ9b1kR4ueAwRaL7YFZCYF0oHVRwya1e3vQs912O9hOaEyr9xKpOgW/7arAmWdw+AIFLTgbgj8Q5JTzIdayv7zUmvMYLlrL/+NVFCpdaNc2LidGKETviJNhEid/tkntdDAHr+Mm7VarZBSyMk3j5PBZ3Qls4H1M5aqlXwTr1HguAY64bzHv1XzKUdRMTpFQfTAil6UEk+TC5ntSiwKJQ==
+X-YMail-OSG: Itp9kHgVM1mb1p7LBBg2BiXephJb3Ielz00JP7e28KGT05Kw.7.hRs6rEqV26Hq
+ L3vssA6zBOOcHeAicnDpij40x3Uned20II46HK_mmbROrW2sgjnKtQjX9mxMOIEXfgOZNxXu5JoI
+ JJsmuVnqORUUp465NbzIgTmS0P78De7YgJLM8MOh49HZ0ZhWx.kNjgUbkRLMBnblhfEAHtQJGRGl
+ k4Q7YjuN.0Sw88eMMXNcXG70XGw53D.ctV42bDC6_bi5U8RAZRBiLWSlrCuiDGcCbIaxLtZ4gA.7
+ llRQdKlij70oOUdOTem1YYC6.iubp.6uSmwhxHavxPXSGtnlYmb7CoDd_lWC7O9ulYI3l1b8170m
+ Et8S8WNymmeA9_8aSv5MFVUdAWo9jMztPlf89Een6o_YscuwtiObSMeNIZZG.FscoMe_Jsxd6Rkh
+ 55QT6nLIgkDRKhgb76wLwpX29hGyNojlfFBIAyQavEw3xgMq0L6p7EpflsAtP14CECDZ0fiprxGo
+ hKLEIPL51aJKEy0i6zXQXboWLBRkqzyV0s.dFLXld4CI8hxysVxB7myK6TDpoEjTrPaDCgz5NkwH
+ 8z2SuxW2kDDm9f_ZFvMAXrj893YvoXQlay9NxfFuVhUgGYibE8icLJPigqM0SGLA70mg2aPrBtsw
+ .QiPBdIMdavndblI6aLZvkdqQHNPnZqWTfJba8KCEPeiCpOZADH6C5JGyg6EByDE3W9_KIwSMPg0
+ DaxAZ0fSn4pDSasgqAce3nMPMfeBVAmKBJJWCwM.XoRRiS0JzhDxl9m4SH332Hk8aleGJe.IE8Be
+ _nMsw_Ttmhzyho8IPPOmQSdK8EdfGxamepHAA95rovcjoGMn1Jy08ljjTIoYugWIvBLhTDVin2Eh
+ fiAcj0uRrSkp2.CoIB6GsQUogCj1qpwKamf0a3XhK1uHGM5msH1I8xchOElubos1iSfp.eNycOTs
+ EL8nxn7rwxou0ft_chooUAhmtQX.aC8c5CV5FsvU1OkP9eiJQv6aCvfX9tvAnTZ5rVlqnCQcDSWy
+ iSIKZ4VFhlMfz_U0fcZgLjG3.BB1huYkxpm3AcfP8xfuMHxCYyu9iwI.xGQKCVbEeM7TE6yPJsHy
+ F3D7VfqdiESlDe9Q98vNYzRHcCNhIuXCB5uBQvHmC3E9HRtUd0bOjQYq3NR5RWQQfSe5ZpOxpKR5
+ WUe0j4WT01X3BZwtnUOdlxL16p619iPB7No.mC7FGJJNii8lwcUTlYXF1wOna7yOqgGomR1JbNwv
+ oSRUGbaG_jDDsXbdwn2DR9X7d1vpWs1.OE6V95_DOu.SyD8rqG20mbJ59EtKOq.QCpKFCcVEIU.B
+ ti3GaZ.YxqFQVym52Y9_hQd4Gu4XM_EtCl8sCQLUKfEO_.waGTYKHk_1SutQrksXquAuflquVrUZ
+ AGgLLjqDv5aSQsMtELkPmKFETm1YWuBmqktilY4jwOfMF82bHZwaIxUNh4S8HdJlZVT65E_v4D23
+ izxFxagQyPR95zZXAZs8toVfFb0gD5rU.JOYivWuxTGYkpqL_w2_7VUsz0JnsrZG5fREvb9QNeOV
+ oOad9CEWNfZ_Rq4jcwv_3ENYj4oxFnau7wDZ3dECZPnGoo3GTVMaQm35h2h3ICIRBTeorlZ6K176
+ fnn4pKiYD7EBGLNngkFE.4JVJF.g.pMPpxHgHvYeZfJoe3DWPtuEal2uDWple6ztCKq0zciMOuzX
+ 9xYTqozvI9yb5M9prbRtRaggntygIul5_jVLqv9x63UjOkikXsNHJvc591CIjTaDMJMdhMN111ey
+ fBcaNaDDUqyDD6la5yIcDdLYehCH5BbmCVLek0jw21sEcSaaSfgUiRJsBp58aUuB4uRmdjpPYo4s
+ IS8FsQHoUVCJIhNjFpbCb5HRGdY3baMOK0VYF98c8ALjhrZqEpBAPjHczBLJ1M.ZYLtBheq_L7Ul
+ Et2LL8SEuItwXW0XTbM9b6r2ViW77pkA4CSdK0vKCie0OApbF1_qF6RbxS3zKiLeGd6dd3K.6V5g
+ YaPg8NkJdeK_2H._GVf53BsaWzDfFXh6Rr3MRbPxKKdEfhFMJPhFUFqKupCtdVYP1HRVg9uZ0YlQ
+ JxmxvXprBK4uGfzo_pffDZFm__j3.XYGaViZZ7Q8q1Ge1PmGR4L2wenbTEfmwocUse4sYTUU0DLJ
+ W2AHLIkuiDKkAIhmHN1z3xZsMhMX4jG5aUI2i7N_qrKW9rww2UjCv3LkZQVdsJ4XAGiTEpc467xw
+ SFhQr4ZYir_N2R_4GWlWTldhL5eRTM.Z187WeWpOoWX_UDqkC30n14jDyBiZ3
+X-Sonic-MF: <dullfire@yahoo.com>
+X-Sonic-ID: b8509b16-6bc8-4ea9-8dc9-b2f922c1dad1
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic314.consmr.mail.bf2.yahoo.com with HTTP; Wed, 6 Nov 2024 16:30:09 +0000
+Received: by hermes--production-ne1-bfc75c9cd-rq64s (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 9ac2812bfb1d027bbae0833a8fb18759;
+          Wed, 06 Nov 2024 16:19:58 +0000 (UTC)
+Message-ID: <973e2e20-51d9-4fe4-a361-0e07bcf95bab@yahoo.com>
+Date: Wed, 6 Nov 2024 10:04:40 -0600
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241102175115.1769468-1-xur@google.com>
-In-Reply-To: <20241102175115.1769468-1-xur@google.com>
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 7 Nov 2024 01:08:40 +0900
-X-Gmail-Original-Message-ID: <CAK7LNASdBPtq4vaK0XZQvxicOY15qJFsnqkO2_us4AU4ppHw6A@mail.gmail.com>
-Message-ID: <CAK7LNASdBPtq4vaK0XZQvxicOY15qJFsnqkO2_us4AU4ppHw6A@mail.gmail.com>
-Subject: Re: [PATCH v7 0/7] Add AutoFDO and Propeller support for Clang build
-To: Rong Xu <xur@google.com>
-Cc: Alice Ryhl <aliceryhl@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Arnd Bergmann <arnd@arndb.de>, Bill Wendling <morbo@google.com>, Borislav Petkov <bp@alien8.de>, 
-	Breno Leitao <leitao@debian.org>, Brian Gerst <brgerst@gmail.com>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, David Li <davidxl@google.com>, 
-	Han Shen <shenhan@google.com>, Heiko Carstens <hca@linux.ibm.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Josh Poimboeuf <jpoimboe@kernel.org>, Juergen Gross <jgross@suse.com>, 
-	Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>, 
-	"Mike Rapoport (IBM)" <rppt@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nick Desaulniers <ndesaulniers@google.com>, Nicolas Schier <nicolas@fjasle.eu>, 
-	"Paul E. McKenney" <paulmck@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
-	Sami Tolvanen <samitolvanen@google.com>, Thomas Gleixner <tglx@linutronix.de>, 
-	Wei Yang <richard.weiyang@gmail.com>, workflows@vger.kernel.org, 
-	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, Maksim Panchenko <max4bolt@gmail.com>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Yonghong Song <yonghong.song@linux.dev>, Yabin Cui <yabinc@google.com>, 
-	Krzysztof Pszeniczny <kpszeniczny@google.com>, Sriraman Tallam <tmsriram@google.com>, 
-	Stephane Eranian <eranian@google.com>, x86@kernel.org, linux-arch@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	llvm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: Kernel panic with niu module
+Content-Language: en-US
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20241104234412.GA1446170@bhelgaas> <87fro4pe6i.ffs@tglx>
+From: Dullfire <dullfire@yahoo.com>
+In-Reply-To: <87fro4pe6i.ffs@tglx>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Mailer: WebService/1.1.22806 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-On Sun, Nov 3, 2024 at 2:51=E2=80=AFAM Rong Xu <xur@google.com> wrote:
+> 7d5ec3d36123 had the mask_all() invocation _before_ setting up the the
+> entries and reading back the descriptors. So that commit cannot break
+> the niu device when your problem analysis is correct.
+
+In 7d5ec3d36123 (and later) msix_mask_all() only writes to
+PCI_MSIX_ENTRY_VECTOR_CTRL. I have tried all the MSIX registers, and only 
+writes to PCI_MSIX_ENTRY_DATA were able to prevent a fatal trap on a read.
+However the only write to PCI_MSIX_ENTRY_DATA I see is in
+__pci_write_msi_msg() for 7d5ec3d36123, or pci_write_msg_msix(), in 6.11.5.
+
+> 83dbf898a2d4 moved the mask_all() invocation after setting up MSI-X into
+> the success path to handle a bonkers Marvell NVME device. That then
+> matches your problem desription as the read proceeds the write.
 >
-> Hi,
->
-> This patch series is to integrate AutoFDO and Propeller support into
-> the Linux kernel. AutoFDO is a profile-guided optimization technique
-> that leverages hardware sampling to enhance binary performance.
-> Unlike Instrumentation-based FDO (iFDO), AutoFDO offers a user-friendly
-> and straightforward application process. While iFDO generally yields
-> superior profile quality and performance, our findings reveal that
-> AutoFDO achieves remarkable effectiveness, bringing performance close
-> to iFDO for benchmark applications.
->
-> Propeller is a profile-guided, post-link optimizer that improves
-> the performance of large-scale applications compiled with LLVM. It
-> operates by relinking the binary based on an additional round of runtime
-> profiles, enabling precise optimizations that are not possible at
-> compile time.  Similar to AutoFDO, Propeller too utilizes hardware
-> sampling to collect profiles and apply post-link optimizations to improve
-> the benchmark=E2=80=99s performance over and above AutoFDO.
->
-> Our empirical data demonstrates significant performance improvements
-> with AutoFDO and Propeller, up to 10% on microbenchmarks and up to 5%
-> on large warehouse-scale benchmarks. This makes a strong case for their
-> inclusion as supported features in the upstream kernel.
->
-> Background
->
-> A significant fraction of fleet processing cycles (excluding idle time)
-> from data center workloads are attributable to the kernel. Ware-house
-> scale workloads maximize performance by optimizing the production kernel
-> using iFDO (a.k.a instrumented PGO, Profile Guided Optimization).
->
-> iFDO can significantly enhance application performance but its use
-> within the kernel has raised concerns. AutoFDO is a variant of FDO that
-> uses the hardware=E2=80=99s Performance Monitoring Unit (PMU) to collect
-> profiling data. While AutoFDO typically yields smaller performance
-> gains than iFDO, it presents unique benefits for optimizing kernels.
->
-> AutoFDO eliminates the need for instrumented kernels, allowing a single
-> optimized kernel to serve both execution and profile collection. It also
-> minimizes slowdown during profile collection, potentially yielding
-> higher-fidelity profiling, especially for time-sensitive code, compared
-> to iFDO. Additionally, AutoFDO profiles can be obtained from production
-> environments via the hardware=E2=80=99s PMU whereas iFDO profiles require
-> carefully curated load tests that are representative of real-world
-> traffic.
->
-> AutoFDO facilitates profile collection across diverse targets.
-> Preliminary studies indicate significant variation in kernel hot spots
-> within Google=E2=80=99s infrastructure, suggesting potential performance =
-gains
-> through target-specific kernel customization.
->
-> Furthermore, other advanced compiler optimization techniques, including
-> ThinLTO and Propeller can be stacked on top of AutoFDO, similar to iFDO.
-> ThinLTO achieves better runtime performance through whole-program
-> analysis and cross module optimizations. The main difference between
-> traditional LTO and ThinLTO is that the latter is scalable in time and
-> memory.
->
-> This patch series adds AutoFDO and Propeller support to the kernel. The
-> actual solution comes in six parts:
->
-> [P 1] Add the build support for using AutoFDO in Clang
->
->       Add the basic support for AutoFDO build and provide the
->       instructions for using AutoFDO.
->
-> [P 2] Fix objtool for bogus warnings when -ffunction-sections is enabled
->
-> [P 3] Adjust symbol ordering in text output sections
->
-> [P 4] Add markers for text_unlikely and text_hot sections
->
-> [P 5] Enable =E2=80=93ffunction-sections for the AutoFDO build
->
-> [P 6] Enable Machine Function Split (MFS) optimization for AutoFDO
->
-> [P 7] Add Propeller configuration to the kernel build
->
-> Patch 1 provides basic AutoFDO build support. Patches 2 to 6 further
-> enhance the performance of AutoFDO builds and are functionally dependent
-> on Patch 1. Patch 7 enables support for Propeller and is dependent on
-> patch 2 to patch 4.
->
-> Caveats
->
-> AutoFDO is compatible with both GCC and Clang, but the patches in this
-> series are exclusively applicable to LLVM 17 or newer for AutoFDO and
-> LLVM 19 or newer for Propeller. For profile conversion, two different
-> tools could be used, llvm_profgen or create_llvm_prof. llvm_profgen
-> needs to be the LLVM 19 or newer, or just the LLVM trunk. Alternatively,
-> create_llvm_prof v0.30.1 or newer can be used instead of llvm-profgen.
->
-> Additionally, the build is only supported on x86 platforms equipped
-> with PMU capabilities, such as LBR on Intel machines. More
-> specifically:
->  * Intel platforms: works on every platform that supports LBR;
->    we have tested on Skylake.
->  * AMD platforms: tested on AMD Zen3 with the BRS feature. The kernel
->    needs to be configured with =E2=80=9CCONFIG_PERF_EVENTS_AMD_BRS=3Dy", =
-To
->    check, use
->    $ cat /proc/cpuinfo | grep =E2=80=9C brs=E2=80=9D
->    For the AMD Zen4, AMD LBRV2 is supported, but we suspect a bug with
->    AMD LBRv2 implementation in Genoa which blocks the usage.
->
-> For ARM, we plan to send patches for SPE-based Propeller when
-> AutoFDO for Arm is ready.
->
-> Experiments and Results
->
-> Experiments were conducted to compare the performance of AutoFDO-optimize=
-d
-> kernel images (version 6.9.x) against default builds.. The evaluation
-> encompassed both open source microbenchmarks and real-world production
-> services from Google and Meta. The selected microbenchmarks included Nepe=
-r,
-> a network subsystem benchmark, and UnixBench which is a comprehensive sui=
-te
-> for assessing various kernel operations.
->
-> For Neper, AutoFDO optimization resulted in a 6.1% increase in throughput
-> and a 10.6% reduction in latency. UnixBench saw a 2.2% improvement in its
-> index score under low system load and a 2.6% improvement under high syste=
-m
-> load.
->
-> For further details on the improvements observed in Google and Meta's
-> production services, please refer to the LLVM discourse post:
-> https://discourse.llvm.org/t/optimizing-the-linux-kernel-with-autofdo-inc=
-luding-thinlto-and-propeller/79108
+> I've never heard of a similiar problem, so I'm pretty sure that's truly
+> niu specific.
 >
 > Thanks,
 >
-> Rong Xu and Han Shen
+>         tglx
 
 
-I applied this series to linux-kbuild.
-
-As I mentioned before, I do not like #ifdef because
-it hides (not fixes) issues only for default cases.
-
-
---=20
-Best Regards
-Masahiro Yamada
+Regards,
+Jonathan Currier
