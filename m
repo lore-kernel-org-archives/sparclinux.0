@@ -1,117 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fout-b4-smtp.messagingengine.com (fout-b4-smtp.messagingengine.com [202.12.124.147])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D775A1714B3;
-	Tue,  5 Nov 2024 19:04:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E421646;
+	Wed,  6 Nov 2024 00:03:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.147
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730833473; cv=none; b=u/Z/dDTm+O0vTv/fJJQYJBau0/Y1uBrdhZ5M6JgGqAIw2jn76xCCSdJuAIeZg8bIZXbPp60ARfEC8T87lEw1PYnL3gqfS36D9qGoFBA6Aave62nBJjeWtMl1Kip2kZr5Uz6JCVbFdmjLNAglkWtwSHA/2eUMCzX2UDKP8M1G+ls=
+	t=1730851407; cv=none; b=S2C+pSq0E40Em0KLyTBpCpvlLPk/ubDbYIxvbiTvjPQk0IN1/8mdDo1IRwGsNkCZut8Zwq/tLydM+4Xw9PJ2mkTI7UoYtkftfh9ncG1GTYN/JbmhR8TQaNbXGazkri40cPJAPiWOOCofomujfZX214+lpjEHRz+VI/ujL7dXPkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730833473; c=relaxed/simple;
-	bh=uoF4ZbISUkj3LBJVbm7mjK2pNt272UgYSEG9wAikNJE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qTVCpA/MsSM6wb7HDUNMjT5x8n3MYqO0MtF0nnI5zLkrRQVMyFYUbQNWjb0sv28srMgW5MwsGF/kODia9MQqFdyGoJnI5qwGKbFARum0JE6F6hzobyl/dq2boUlSIkSCtD7v2waf7gQ4ObMfEk63uJ70JTzmLAbYXqGs8mdnAmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ndFUDxiZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730851407; c=relaxed/simple;
+	bh=eAjcKNJGuGYhCN33fl+cRNOSxAAiOyExXZxDkoLD8TU=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=llTsOd+VASOx839+JE0h8naz54gQrFOGO5/+vL1HD6c/2rbu6CLbnoT/U5mvFNrY60xjjRB1dVoxg688gsrXBuFbo4X7iPs/y9SDiEbYI4fAapR4BUBhP5supW9ucQsAkMe8UeZ1+W9wf+m2WWkvLb12uvtBYKgnT+J131bvoq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=kXuC5YVE; arc=none smtp.client-ip=202.12.124.147
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ndFUDxiZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14183C4CECF;
-	Tue,  5 Nov 2024 19:04:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730833472;
-	bh=uoF4ZbISUkj3LBJVbm7mjK2pNt272UgYSEG9wAikNJE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ndFUDxiZpHd3P71EA4Dtdpamj3S+pD0a2NSCYEIkT703any4R0lrK0H/JhQd4Hv2S
-	 hAfH0p9N7ObDyDDis1fM3KZKbcT6xDBcyV1iwhCKpgr5eJTjsn996Jr680vAO44Otj
-	 drCVf6YoRKOceIQN9knu/aAssyHKuocecyBZr/vNKZiP9PdCl8g8D3PbpLRYGfT7S3
-	 8Jxa1hlnrGJeQdCliPqKl36JEkEIgDaJdtPl3tXojvE85kFpWmMnDAcr4PjH7oX62l
-	 V8Za49Z9doiMVqhjlWd7GWzNdgnAXYy87njYhKhjV/rXdMfHzibVSbsFtDSY64+oSA
-	 zKXctAOfMY/4A==
-Date: Tue, 5 Nov 2024 12:04:27 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@quicinc.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>, Oleg Nesterov <oleg@redhat.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
-	Stafford Horne <shorne@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Uladzislau Rezki <urezki@gmail.com>,
-	Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
-	bpf@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-mm@kvack.org,
-	linux-modules@vger.kernel.org, linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-trace-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v7 6/8] x86/module: prepare module loading for ROX
- allocations of text
-Message-ID: <20241105190427.GA2903209@thelio-3990X>
-References: <20241023162711.2579610-1-rppt@kernel.org>
- <20241023162711.2579610-7-rppt@kernel.org>
- <20241104232741.GA3843610@thelio-3990X>
- <ZynDAhW0lKCfOqZl@kernel.org>
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="kXuC5YVE"
+Received: from phl-compute-10.internal (phl-compute-10.phl.internal [10.202.2.50])
+	by mailfout.stl.internal (Postfix) with ESMTP id 4C759114012E;
+	Tue,  5 Nov 2024 19:03:24 -0500 (EST)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-10.internal (MEProxy); Tue, 05 Nov 2024 19:03:24 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1730851404; x=1730937804; bh=I4aE014BRSWlaQQuqnoEIRlCe+KYuLBoJLE
+	FrJEzW6M=; b=kXuC5YVExg/qK7qQu94xZO3cvAlqtLcvUQQObdSrwWfLAFMpHt3
+	El8olj3LHeulEGLdk4HmeTmKLSBXXQ4Nll/dtp84Sp5dOxkGXjx2LGi2RRD4nsli
+	cA5fbM+WxhpsYGpmBh0kv36XLYlOqmS5GLwdjdfN1/RciA32Ywh5wFtdQTn8eT/2
+	z5n2uc5Hrh0/oRWUYPjvL4lB3wFfwgbhftkbdK0NzSKEKTvK2NURBFLuh3JtrMAb
+	Y5aYhoLNykHu2UMLgnNt24Sqm4W7jBGRJsa41y9jNVjL4+NDhPgWmH2CWG5NUK+7
+	NfNOI2UpNtsqUDQ0hw8Y4Zx8BzajfSTsuOQ==
+X-ME-Sender: <xms:S7IqZzcVwkTxj92ZU-DRV3QUwTeG2A8UiWou06rG5k6MZYw1QRLEsA>
+    <xme:S7IqZ5OOXC6vrM5Yw99Ghnzz9YCC4lx2sR1x2xnV3f-9QYAheS757tMGWur3c_YVw
+    lG6pmiM3RLpc0DbVYw>
+X-ME-Received: <xmr:S7IqZ8geZcbnG4LvJSKgPWas7UqBw01mkZPCimC56clVzuhyFGAKSDo_Xjtn5ZjJnPWu165VdEpPMqEJ4158jVm643N5-TGBI_I>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddrtddugddukecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdpuffr
+    tefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnth
+    hsucdlqddutddtmdenucfjughrpeffhffvvefujgfkfhggtgesthdtredttddtvdenucfh
+    rhhomhephfhinhhnucfvhhgrihhnuceofhhthhgrihhnsehlihhnuhigqdhmieekkhdroh
+    hrgheqnecuggftrfgrthhtvghrnhepleeuheelheekgfeuvedtveetjeekhfffkeefffff
+    tdfgjeevkeegfedvueehueelnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpe
+    hmrghilhhfrhhomhepfhhthhgrihhnsehlihhnuhigqdhmieekkhdrohhrghdpnhgspghr
+    tghpthhtohepuddtpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopegrnhgurhgvrg
+    hssehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhf
+    thdrnhgvthdprhgtphhtthhopehgvggvrhhtsehlihhnuhigqdhmieekkhdrohhrghdprh
+    gtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohhothhlihhnrdgtohhm
+    pdhrtghpthhtohepuggrnhhivghlsedtgidtfhdrtghomhdprhgtphhtthhopehprghvoh
+    hnvgesrhgvthhrohguvghvrdgtohhmpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghl
+    sehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqmheikehkse
+    hlihhsthhsrdhlihhnuhigqdhmieekkhdrohhrghdprhgtphhtthhopehlihhnuhigqdhr
+    thgtsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:S7IqZ083-Wf7QlnJCbsnsJv5VrsuQzmre5PSEy63TO7bPd6REsbEmA>
+    <xmx:S7IqZ_tK5ecQLbYA_6wW7GDQDJj2F8meQN0CrfUICLHqti6e-pqfdg>
+    <xmx:S7IqZzELSQhpnyyctPwv6qplXo69jp5u11Fc_Lyy4EIAleZkx-x4MQ>
+    <xmx:S7IqZ2Nb8WixViU23CSkkDpeE474WbvsYL6-U6fAA5hD_l1_XvA97Q>
+    <xmx:TLIqZ9LJliW3WNm4cwVxgpSBydDhC2xAU9pQDqApNIeLjJ2cTHRpmH36>
+Feedback-ID: i58a146ae:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 5 Nov 2024 19:03:22 -0500 (EST)
+Date: Wed, 6 Nov 2024 11:03:33 +1100 (AEDT)
+From: Finn Thain <fthain@linux-m68k.org>
+To: Andreas Larsson <andreas@gaisler.com>, 
+    "David S. Miller" <davem@davemloft.net>
+cc: Geert Uytterhoeven <geert@linux-m68k.org>, 
+    Alexandre Belloni <alexandre.belloni@bootlin.com>, 
+    Daniel Palmer <daniel@0x0f.com>, Michael Pavone <pavone@retrodev.com>, 
+    linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+    linux-rtc@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 0/2] MVME: Adopt standard RTC driver
+In-Reply-To: <cover.1728377511.git.fthain@linux-m68k.org>
+Message-ID: <c1e24cba-69f9-796e-51d7-5c04ad96b75e@linux-m68k.org>
+References: <cover.1728377511.git.fthain@linux-m68k.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZynDAhW0lKCfOqZl@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
 
-On Tue, Nov 05, 2024 at 09:02:26AM +0200, Mike Rapoport wrote:
-> There's a silly mistake in cfi_rewrite_endbr() in that commit, the patch
-> below should fix it. Can you please test?
 
-Yup, that was it! All my machines boot with this diff applied on top of
-next-20241105, so with that fixed, I think we are all good here.
+Hi sparc maintainers
 
-Tested-by: Nathan Chancellor <nathan@kernel.org>
+These two patches have now been reviewed by Geert. If you would be so kind 
+as to review the sparc changes, I will ask the RTC maintainer to consider 
+merging this series.
 
-> diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
-> index 3407efc26528..243843e44e89 100644
-> --- a/arch/x86/kernel/alternative.c
-> +++ b/arch/x86/kernel/alternative.c
-> @@ -1241,7 +1241,7 @@ static void cfi_rewrite_endbr(s32 *start, s32 *end, struct module *mod)
->  		void *addr = (void *)s + *s;
->  		void *wr_addr = module_writable_address(mod, addr);
->  
-> -		poison_endbr(addr+16, wr_addr, false);
-> +		poison_endbr(addr + 16, wr_addr + 16, false);
->  	}
->  }
+Regards
+Finn
 
-Cheers,
-Nathan
+On Tue, 8 Oct 2024, Finn Thain wrote:
+
+> This series removes some duplicated RTC driver code.
+> First rtc-m48t59 is tweaked to bring it into equivalence with the RTC
+> drivers in arch/m68k/mvme*. Then platform devices are added for the
+> former driver and the latter drivers are removed.
+> 
+> ---
+> Changed since v1:
+>  - Instead of adding ifdefs to the portable driver, store the year offset
+>    in struct m48t59_plat_data.
+> 
+> Changed since v2:
+>  - Use an int for the year offset in struct m48t59_plat_data.
+> 
+> 
+> Finn Thain (2):
+>   rtc: m48t59: Use platform_data struct for year offset value
+>   m68k: mvme147, mvme16x: Adopt rtc-m48t59 platform driver
+> 
+>  arch/m68k/configs/multi_defconfig   |   1 +
+>  arch/m68k/configs/mvme147_defconfig |   1 +
+>  arch/m68k/configs/mvme16x_defconfig |   1 +
+>  arch/m68k/include/asm/mvme147hw.h   |  19 +---
+>  arch/m68k/include/asm/mvme16xhw.h   |  18 +--
+>  arch/m68k/mvme147/config.c          |  55 ++++------
+>  arch/m68k/mvme16x/Makefile          |   2 +-
+>  arch/m68k/mvme16x/config.c          |  57 ++++------
+>  arch/m68k/mvme16x/rtc.c             | 165 ----------------------------
+>  arch/sparc/kernel/time_32.c         |   1 +
+>  arch/sparc/kernel/time_64.c         |   1 +
+>  drivers/rtc/rtc-m48t59.c            |  26 +----
+>  include/linux/rtc/m48t59.h          |   3 +
+>  13 files changed, 63 insertions(+), 287 deletions(-)
+>  delete mode 100644 arch/m68k/mvme16x/rtc.c
+> 
+> 
