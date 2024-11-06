@@ -1,132 +1,76 @@
-Received: from fout-b4-smtp.messagingengine.com (fout-b4-smtp.messagingengine.com [202.12.124.147])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E421646;
-	Wed,  6 Nov 2024 00:03:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781D616CD29;
+	Wed,  6 Nov 2024 15:36:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730851407; cv=none; b=S2C+pSq0E40Em0KLyTBpCpvlLPk/ubDbYIxvbiTvjPQk0IN1/8mdDo1IRwGsNkCZut8Zwq/tLydM+4Xw9PJ2mkTI7UoYtkftfh9ncG1GTYN/JbmhR8TQaNbXGazkri40cPJAPiWOOCofomujfZX214+lpjEHRz+VI/ujL7dXPkg=
+	t=1730907384; cv=none; b=Vv3v+QbiVvs470EYWBpnmLF+YHol6crY/I6WebHkVcEBKtkoatP4E3kxtXOErtxbYUZ19uMIgdGhx/eJwUhWt2d/G+qUICutpvqMXQotMDimwF9hIxOC/8leYZMl07lipDubUKrUxGds3Di9Cmf2b781gE8IRAEP3CoHtOEFSjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730851407; c=relaxed/simple;
-	bh=eAjcKNJGuGYhCN33fl+cRNOSxAAiOyExXZxDkoLD8TU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=llTsOd+VASOx839+JE0h8naz54gQrFOGO5/+vL1HD6c/2rbu6CLbnoT/U5mvFNrY60xjjRB1dVoxg688gsrXBuFbo4X7iPs/y9SDiEbYI4fAapR4BUBhP5supW9ucQsAkMe8UeZ1+W9wf+m2WWkvLb12uvtBYKgnT+J131bvoq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=kXuC5YVE; arc=none smtp.client-ip=202.12.124.147
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+	s=arc-20240116; t=1730907384; c=relaxed/simple;
+	bh=gvu+DlrdaTyOJiJCe5bkq6Jd1DrS0DApb5B0qy8AEYY=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=JuP80dLKztwxvzpIG9jrlh/JD5TNeycBjWcP5hExPLKQlOJ7aC1Ni6GQWYzAwfUDUrI2CHcJbuf52luTO+YE2E08Sj4UaiilhhE7I5l/KZ7QZMqQJ0ggU1Hj097/vFJrWYAXKy4ykGgfJ2A/oUiHQoBBLxd8UOfTIV2Dz6rAK8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=X4ikZ4wn; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=6rqua4yb; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="kXuC5YVE"
-Received: from phl-compute-10.internal (phl-compute-10.phl.internal [10.202.2.50])
-	by mailfout.stl.internal (Postfix) with ESMTP id 4C759114012E;
-	Tue,  5 Nov 2024 19:03:24 -0500 (EST)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-10.internal (MEProxy); Tue, 05 Nov 2024 19:03:24 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-	1730851404; x=1730937804; bh=I4aE014BRSWlaQQuqnoEIRlCe+KYuLBoJLE
-	FrJEzW6M=; b=kXuC5YVExg/qK7qQu94xZO3cvAlqtLcvUQQObdSrwWfLAFMpHt3
-	El8olj3LHeulEGLdk4HmeTmKLSBXXQ4Nll/dtp84Sp5dOxkGXjx2LGi2RRD4nsli
-	cA5fbM+WxhpsYGpmBh0kv36XLYlOqmS5GLwdjdfN1/RciA32Ywh5wFtdQTn8eT/2
-	z5n2uc5Hrh0/oRWUYPjvL4lB3wFfwgbhftkbdK0NzSKEKTvK2NURBFLuh3JtrMAb
-	Y5aYhoLNykHu2UMLgnNt24Sqm4W7jBGRJsa41y9jNVjL4+NDhPgWmH2CWG5NUK+7
-	NfNOI2UpNtsqUDQ0hw8Y4Zx8BzajfSTsuOQ==
-X-ME-Sender: <xms:S7IqZzcVwkTxj92ZU-DRV3QUwTeG2A8UiWou06rG5k6MZYw1QRLEsA>
-    <xme:S7IqZ5OOXC6vrM5Yw99Ghnzz9YCC4lx2sR1x2xnV3f-9QYAheS757tMGWur3c_YVw
-    lG6pmiM3RLpc0DbVYw>
-X-ME-Received: <xmr:S7IqZ8geZcbnG4LvJSKgPWas7UqBw01mkZPCimC56clVzuhyFGAKSDo_Xjtn5ZjJnPWu165VdEpPMqEJ4158jVm643N5-TGBI_I>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddrtddugddukecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdpuffr
-    tefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnth
-    hsucdlqddutddtmdenucfjughrpeffhffvvefujgfkfhggtgesthdtredttddtvdenucfh
-    rhhomhephfhinhhnucfvhhgrihhnuceofhhthhgrihhnsehlihhnuhigqdhmieekkhdroh
-    hrgheqnecuggftrfgrthhtvghrnhepleeuheelheekgfeuvedtveetjeekhfffkeefffff
-    tdfgjeevkeegfedvueehueelnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpe
-    hmrghilhhfrhhomhepfhhthhgrihhnsehlihhnuhigqdhmieekkhdrohhrghdpnhgspghr
-    tghpthhtohepuddtpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopegrnhgurhgvrg
-    hssehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhf
-    thdrnhgvthdprhgtphhtthhopehgvggvrhhtsehlihhnuhigqdhmieekkhdrohhrghdprh
-    gtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohhothhlihhnrdgtohhm
-    pdhrtghpthhtohepuggrnhhivghlsedtgidtfhdrtghomhdprhgtphhtthhopehprghvoh
-    hnvgesrhgvthhrohguvghvrdgtohhmpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghl
-    sehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqmheikehkse
-    hlihhsthhsrdhlihhnuhigqdhmieekkhdrohhrghdprhgtphhtthhopehlihhnuhigqdhr
-    thgtsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:S7IqZ083-Wf7QlnJCbsnsJv5VrsuQzmre5PSEy63TO7bPd6REsbEmA>
-    <xmx:S7IqZ_tK5ecQLbYA_6wW7GDQDJj2F8meQN0CrfUICLHqti6e-pqfdg>
-    <xmx:S7IqZzELSQhpnyyctPwv6qplXo69jp5u11Fc_Lyy4EIAleZkx-x4MQ>
-    <xmx:S7IqZ2Nb8WixViU23CSkkDpeE474WbvsYL6-U6fAA5hD_l1_XvA97Q>
-    <xmx:TLIqZ9LJliW3WNm4cwVxgpSBydDhC2xAU9pQDqApNIeLjJ2cTHRpmH36>
-Feedback-ID: i58a146ae:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 5 Nov 2024 19:03:22 -0500 (EST)
-Date: Wed, 6 Nov 2024 11:03:33 +1100 (AEDT)
-From: Finn Thain <fthain@linux-m68k.org>
-To: Andreas Larsson <andreas@gaisler.com>, 
-    "David S. Miller" <davem@davemloft.net>
-cc: Geert Uytterhoeven <geert@linux-m68k.org>, 
-    Alexandre Belloni <alexandre.belloni@bootlin.com>, 
-    Daniel Palmer <daniel@0x0f.com>, Michael Pavone <pavone@retrodev.com>, 
-    linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
-    linux-rtc@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 0/2] MVME: Adopt standard RTC driver
-In-Reply-To: <cover.1728377511.git.fthain@linux-m68k.org>
-Message-ID: <c1e24cba-69f9-796e-51d7-5c04ad96b75e@linux-m68k.org>
-References: <cover.1728377511.git.fthain@linux-m68k.org>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="X4ikZ4wn";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="6rqua4yb"
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1730907380;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qtdYKdKwHTXJuMaHWRfAi9GzxWa0wjVTqWwZaJ837uI=;
+	b=X4ikZ4wn2utxMTie23bvYGlg/xa0WdyyiHLaQeu0RA5/ZE2PJ2Pmto2uWM/BmYRfM5cusZ
+	xGTTysJime1Tkq5H2zlByQlAxZZRB0IqCY5mwZro6nvyFuxSCXdl4ZYRqj11G3jtRqxo7P
+	g8OtrQlB0yZtIoDFHlDilnswkZeVM8ytnG6jdCXYqVO3fbHoiurw4xnv0xgVLDaw3fHYE1
+	lPXtpLFY4ozMVHQfw2mipLlYOXRvRW0kaGrQhh4GWAL7id5+gghzzgRfLcPNqmslPM09Ki
+	5Q9mOU7CTuI6MKtYrhIjCuTf/y9HIurBX35AsZdJm/s/cVyJLKFf7fZEeKm4hQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1730907380;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qtdYKdKwHTXJuMaHWRfAi9GzxWa0wjVTqWwZaJ837uI=;
+	b=6rqua4ybQt6quGmOvgnPokZHhH0+yX7iB4GXIw64WWkV3ihPpTiq4XKmJYyvYtAt8xZQY0
+	JxxvskTwBqSwlUCw==
+To: Bjorn Helgaas <helgaas@kernel.org>, Dullfire <dullfire@yahoo.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, netdev@vger.kernel.org,
+ linux-pci@vger.kernel.org
+Subject: Re: Kernel panic with niu module
+In-Reply-To: <20241104234412.GA1446170@bhelgaas>
+References: <20241104234412.GA1446170@bhelgaas>
+Date: Wed, 06 Nov 2024 16:36:21 +0100
+Message-ID: <87fro4pe6i.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 
+On Mon, Nov 04 2024 at 17:44, Bjorn Helgaas wrote:
+> On Mon, Nov 04, 2024 at 05:34:42AM -0600, Dullfire wrote:
+>> I have also bisected the kernel, and determined that  upstream commit
+>> 7d5ec3d3612396dc6d4b76366d20ab9fc06f399f revealed this issue. This commit
+>> adds read to the mask status before any write to PCI_MSIX_ENTRY_DATA, thus
+>> provoking the issue.
 
-Hi sparc maintainers
+7d5ec3d36123 had the mask_all() invocation _before_ setting up the the
+entries and reading back the descriptors. So that commit cannot break
+the niu device when your problem analysis is correct.
 
-These two patches have now been reviewed by Geert. If you would be so kind 
-as to review the sparc changes, I will ask the RTC maintainer to consider 
-merging this series.
+83dbf898a2d4 moved the mask_all() invocation after setting up MSI-X into
+the success path to handle a bonkers Marvell NVME device. That then
+matches your problem desription as the read proceeds the write.
 
-Regards
-Finn
+I've never heard of a similiar problem, so I'm pretty sure that's truly
+niu specific.
 
-On Tue, 8 Oct 2024, Finn Thain wrote:
+Thanks,
 
-> This series removes some duplicated RTC driver code.
-> First rtc-m48t59 is tweaked to bring it into equivalence with the RTC
-> drivers in arch/m68k/mvme*. Then platform devices are added for the
-> former driver and the latter drivers are removed.
-> 
-> ---
-> Changed since v1:
->  - Instead of adding ifdefs to the portable driver, store the year offset
->    in struct m48t59_plat_data.
-> 
-> Changed since v2:
->  - Use an int for the year offset in struct m48t59_plat_data.
-> 
-> 
-> Finn Thain (2):
->   rtc: m48t59: Use platform_data struct for year offset value
->   m68k: mvme147, mvme16x: Adopt rtc-m48t59 platform driver
-> 
->  arch/m68k/configs/multi_defconfig   |   1 +
->  arch/m68k/configs/mvme147_defconfig |   1 +
->  arch/m68k/configs/mvme16x_defconfig |   1 +
->  arch/m68k/include/asm/mvme147hw.h   |  19 +---
->  arch/m68k/include/asm/mvme16xhw.h   |  18 +--
->  arch/m68k/mvme147/config.c          |  55 ++++------
->  arch/m68k/mvme16x/Makefile          |   2 +-
->  arch/m68k/mvme16x/config.c          |  57 ++++------
->  arch/m68k/mvme16x/rtc.c             | 165 ----------------------------
->  arch/sparc/kernel/time_32.c         |   1 +
->  arch/sparc/kernel/time_64.c         |   1 +
->  drivers/rtc/rtc-m48t59.c            |  26 +----
->  include/linux/rtc/m48t59.h          |   3 +
->  13 files changed, 63 insertions(+), 287 deletions(-)
->  delete mode 100644 arch/m68k/mvme16x/rtc.c
-> 
-> 
+        tglx
