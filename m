@@ -1,114 +1,375 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6BDD185B56;
-	Thu,  7 Nov 2024 16:01:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9666C18F2C3
+	for <sparclinux@vger.kernel.org>; Thu,  7 Nov 2024 18:44:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730995306; cv=none; b=kDr04ihUAIQB+G8qceL71sASy26fCXNWAwgi5Bkq5TdFkWIdLnvuUpJ8wMlh6ky5y/6lEVN3eRK5TnKDsgModL1qMytqhTpYbhUtVkuQN8CRk3AVXwKVCfWdo2mbQysERIJmnczpfEynZY4ZmcucTyEqUawpGrj5bQfjydTJfSg=
+	t=1731005076; cv=none; b=XBAoAJ6I7fLpPROYJD+SB1+j4n3J4U9jtt/dQEciY4c2Lo3xjEtQ8N8BejPKBwLcIb4rJFr7AgrszPs0fit1jDCzZecRkSzrQn2nGKiR5zL7rL3tpUmW/XJ8fwF/uhzxGvNzLBusrKfSeLRPCOOESKEaSsOGBxJEt0+uqVj5olo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730995306; c=relaxed/simple;
-	bh=hMklc/6WmXMZ09yE5NJe+P85xdMeI48PhxKfCNy5kXc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nSRUqGUAJ1uPtKVcII81AZ7nNJxHK+G2bIIcRSLAy9fKlAeYnyZgywjcZa5uYbO1v7KPP3PJoorhr/fsukwXIVzRUYrJqMJyeI+8ZVmpmmH7zfClYp36BoSFvCtLCbQNjyFQhxgOm/+tAIxWdbMuonBDQLQyj87is9jP2VG59+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hxRpCXWW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731005076; c=relaxed/simple;
+	bh=Tam3C3FSWBIBa879uPr6lOw08wkgu4jeV8XEi7er5NA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=u8tejYDj4Y1bepTFNftsv5e/Jo2P85h7vIPKf/4JwaiSyV+7LyV0D7dkhWnQF4QlTk8ykaR9UA24r93K9Es1naYXwHFv/2aWisLfFDdEaqZN0TMiPGBV/o07Nzqf3Nh3/rxhQlitZOaflR8GMzC4uuJyyQHmgOL7IGABlsyeXpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=i0yziqJR; arc=none smtp.client-ip=209.85.160.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hxRpCXWW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E48AC4CECC;
-	Thu,  7 Nov 2024 16:01:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730995306;
-	bh=hMklc/6WmXMZ09yE5NJe+P85xdMeI48PhxKfCNy5kXc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=hxRpCXWWnuqesbDNX7V0sh5CLPpZrsc2X058EnX9uOD2aoCCp3jbaGCnHl0biBuTU
-	 1kGpxAnG7rsNmbdlwXq1HdGkDYni+E6g35oKUfovtBtYaQyM4rLKvm6mXfD0BpegqX
-	 MULRkO5xotXaEUDb+VBx9nluqS3CFP01Cq56ARCHu8J7Yna9hkW3bps/sUkVHp15hU
-	 KG6NkSQRPzOnd/BX0AA6BBcixahnv1BiI7QE0yGIVZ9SMtK7NnPwTzQATjDly4qEwt
-	 o3QupO2W1COCQ+iwXYOnoKJJVGCWErJyatlq8OtSi3xoYgbwRWhGfjDYRZf62moAN/
-	 yuBqSBzkMtULA==
-Date: Thu, 7 Nov 2024 09:01:43 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, glaubitz@physik.fu-berlin.de,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	Nicolas Schier <nicolas@fjasle.eu>,
-	Jonathan Corbet <corbet@lwn.net>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
-	linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] sparc/build: Put usage of -fcall-used* flags
- behind cc-option
-Message-ID: <20241107160143.GA1328360@thelio-3990X>
-References: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
- <20241029-sparc-cflags-v3-1-b28745a6bd71@protonmail.com>
- <20241029222421.GA2632697@thelio-3990X>
- <rYw6ZTCE58uNrfyK1pJXSaAnn3kXRYBiLf-TYQI8tnJSU3ECWG01RkUahjZC_rkJomCiROTUUvg6Jf1u5VfyBfIalrSF2jHtGqI94MGK8zg=@protonmail.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="i0yziqJR"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-460a8d1a9b7so21131cf.1
+        for <sparclinux@vger.kernel.org>; Thu, 07 Nov 2024 10:44:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1731005073; x=1731609873; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=J4nPpYXP0vVd6qbOkqNtUFVqt4H36QKYv9JFjcka9R4=;
+        b=i0yziqJRI0ILnBAjYvAjt4vLzPR+UFA6Ww7FdJYeIE3gPS0Vtn+dT3CmfvFdlnaAC+
+         2fNSDAkA9MwKUYhyh6CTqP1zDvl2DQq44OdVRpm+pmayYzTrJTztaO5fZ30Jgfw0qg1B
+         fSLEkaeZuLLCLyUUCgpdFzSj196jVKWEzMvFfEfviYnc2RnxBMaD6JenbvwqMAzGE7Y6
+         1tGMldevX4HH0VAspk48woA+B7QI59I7OeewGTsJcEqrM1sGv61VEkTIgYZWcOCLv2gN
+         v4VSh53JVXdPiKb/W9BOfBZgBO/ZF2cGg0DtvEo1TaYTe6EoRFsSwJlxLEeKPsV7VOEf
+         Ec9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731005073; x=1731609873;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=J4nPpYXP0vVd6qbOkqNtUFVqt4H36QKYv9JFjcka9R4=;
+        b=fPOjTSmzpyIg0vgGmizRMmSCUgbvPqCu6oJdO+4UmQUualfkBwF5EIe1V7HvsdpQ0G
+         p6roZTvywLtgurWwVU4hwKQZnoqFR4J3LxAqrZsu4YxSk6d3wTEnYl9xPfQdMrAsqwFx
+         jhJ7A7woo2RWLx3n6l8LKIKG2IURaRa9T1CTkSJPfq5vqyUeI9iBtg4tMfIlPYCyKPSP
+         V6wiCGjCiIxd1uqur2JhGiTcCJ0jw5x5HnsBA79C8207olW+tT0ba6h/TRycw48Cz6un
+         6Ron1xDHpSLAPgiOdVQlfXenaiFzOQWFyXqTFjD2ztuKjdcBxc5hxd+wIoNGDogVY3j1
+         Duug==
+X-Forwarded-Encrypted: i=1; AJvYcCUqQKlR8ozkIYfonTe03jpsLNP5NYJxDyJQ2iEj4uKXhQPuZfAn0R3dwLIsWGb/uzx6eB+rnSBmWplu@vger.kernel.org
+X-Gm-Message-State: AOJu0YzwLm5JhvdX2zSUkcwF61CjEDqk9xpb9r9smhtC94yBn8LNknDO
+	TAISbNRmnOwkolQLdzxHz5F4DsekDH1lYyn9/SVTHqgN63z8mjAqR8Q/LowWn4l7fam36XRQG3P
+	ZdLIv6FEwQvxGdtB1TYiE7x7DpheQ2W97foOo
+X-Gm-Gg: ASbGncsCZefiw/UWs35/sC7TD0dlPmmWUMFIU6Ki27igvYZldUz0ztjhcN/dmvnnhA+
+	9u3ZTQRH5uZmA28fcuin5yB50er9RiEGK11scYCyKN884sj7yh4snyMWRRmBd
+X-Google-Smtp-Source: AGHT+IHrq73eKO0bY8+FfuWfYvfEG6yvw63fkpfi5hna41D9nyt3oGP9CfN+ewePinNTBwT8SH0tAPXgnDQz/bQ4nhs=
+X-Received: by 2002:a05:622a:4b0a:b0:462:c158:9f5b with SMTP id
+ d75a77b69052e-462fa610ffbmr4822701cf.19.1731005073310; Thu, 07 Nov 2024
+ 10:44:33 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <rYw6ZTCE58uNrfyK1pJXSaAnn3kXRYBiLf-TYQI8tnJSU3ECWG01RkUahjZC_rkJomCiROTUUvg6Jf1u5VfyBfIalrSF2jHtGqI94MGK8zg=@protonmail.com>
+References: <20241102175115.1769468-1-xur@google.com> <CAK7LNASdBPtq4vaK0XZQvxicOY15qJFsnqkO2_us4AU4ppHw6A@mail.gmail.com>
+ <CAF1bQ=R-7z9+57fji4Mn=ZVUgwSniGQ-8H4=42tFunxyp69Wzw@mail.gmail.com> <CAK7LNARpXOm1R_BVsH-fSC4ZzQqstHj0amzX8fu6=USwTD91Tw@mail.gmail.com>
+In-Reply-To: <CAK7LNARpXOm1R_BVsH-fSC4ZzQqstHj0amzX8fu6=USwTD91Tw@mail.gmail.com>
+From: Rong Xu <xur@google.com>
+Date: Thu, 7 Nov 2024 10:44:21 -0800
+Message-ID: <CAF1bQ=SRnSP9mgnyRw+Hg=0-CX-uOwKmsiwHf6b2bFXKnWxPHw@mail.gmail.com>
+Subject: Re: [PATCH v7 0/7] Add AutoFDO and Propeller support for Clang build
+To: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Alice Ryhl <aliceryhl@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Arnd Bergmann <arnd@arndb.de>, Bill Wendling <morbo@google.com>, Borislav Petkov <bp@alien8.de>, 
+	Breno Leitao <leitao@debian.org>, Brian Gerst <brgerst@gmail.com>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, David Li <davidxl@google.com>, 
+	Han Shen <shenhan@google.com>, Heiko Carstens <hca@linux.ibm.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Josh Poimboeuf <jpoimboe@kernel.org>, Juergen Gross <jgross@suse.com>, 
+	Justin Stitt <justinstitt@google.com>, Kees Cook <kees@kernel.org>, 
+	"Mike Rapoport (IBM)" <rppt@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+	Nick Desaulniers <ndesaulniers@google.com>, Nicolas Schier <nicolas@fjasle.eu>, 
+	"Paul E. McKenney" <paulmck@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Sami Tolvanen <samitolvanen@google.com>, Thomas Gleixner <tglx@linutronix.de>, 
+	Wei Yang <richard.weiyang@gmail.com>, workflows@vger.kernel.org, 
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, Maksim Panchenko <max4bolt@gmail.com>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Yonghong Song <yonghong.song@linux.dev>, Yabin Cui <yabinc@google.com>, 
+	Krzysztof Pszeniczny <kpszeniczny@google.com>, Sriraman Tallam <tmsriram@google.com>, 
+	Stephane Eranian <eranian@google.com>, x86@kernel.org, linux-arch@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	llvm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 07, 2024 at 04:59:14AM +0000, Koakuma wrote:
-> Nathan Chancellor <nathan@kernel.org> wrote:
-> > 
-> > Clang builds now succeed with this series and builds with GCC 14.2.0
-> > continue to pass and boot successfully.
-> > 
-> > Reviewed-by: Nathan Chancellor nathan@kernel.org
-> > 
-> > Tested-by: Nathan Chancellor nathan@kernel.org
-> > 
-> > One comment below, please carry these tags forward if there are future
-> > revisions without substantial technical changes.
-> 
-> Forgive me for still being unfamiliar with the term, but does this mean that
+Thanks for the explanation.
 
-No worries, it is definitely a customary thing.
+On Thu, Nov 7, 2024 at 6:58=E2=80=AFAM Masahiro Yamada <masahiroy@kernel.or=
+g> wrote:
+>
+> On Thu, Nov 7, 2024 at 4:00=E2=80=AFAM Rong Xu <xur@google.com> wrote:
+> >
+> > On Wed, Nov 6, 2024 at 8:09=E2=80=AFAM Masahiro Yamada <masahiroy@kerne=
+l.org> wrote:
+> > >
+> > > On Sun, Nov 3, 2024 at 2:51=E2=80=AFAM Rong Xu <xur@google.com> wrote=
+:
+> > > >
+> > > > Hi,
+> > > >
+> > > > This patch series is to integrate AutoFDO and Propeller support int=
+o
+> > > > the Linux kernel. AutoFDO is a profile-guided optimization techniqu=
+e
+> > > > that leverages hardware sampling to enhance binary performance.
+> > > > Unlike Instrumentation-based FDO (iFDO), AutoFDO offers a user-frie=
+ndly
+> > > > and straightforward application process. While iFDO generally yield=
+s
+> > > > superior profile quality and performance, our findings reveal that
+> > > > AutoFDO achieves remarkable effectiveness, bringing performance clo=
+se
+> > > > to iFDO for benchmark applications.
+> > > >
+> > > > Propeller is a profile-guided, post-link optimizer that improves
+> > > > the performance of large-scale applications compiled with LLVM. It
+> > > > operates by relinking the binary based on an additional round of ru=
+ntime
+> > > > profiles, enabling precise optimizations that are not possible at
+> > > > compile time.  Similar to AutoFDO, Propeller too utilizes hardware
+> > > > sampling to collect profiles and apply post-link optimizations to i=
+mprove
+> > > > the benchmark=E2=80=99s performance over and above AutoFDO.
+> > > >
+> > > > Our empirical data demonstrates significant performance improvement=
+s
+> > > > with AutoFDO and Propeller, up to 10% on microbenchmarks and up to =
+5%
+> > > > on large warehouse-scale benchmarks. This makes a strong case for t=
+heir
+> > > > inclusion as supported features in the upstream kernel.
+> > > >
+> > > > Background
+> > > >
+> > > > A significant fraction of fleet processing cycles (excluding idle t=
+ime)
+> > > > from data center workloads are attributable to the kernel. Ware-hou=
+se
+> > > > scale workloads maximize performance by optimizing the production k=
+ernel
+> > > > using iFDO (a.k.a instrumented PGO, Profile Guided Optimization).
+> > > >
+> > > > iFDO can significantly enhance application performance but its use
+> > > > within the kernel has raised concerns. AutoFDO is a variant of FDO =
+that
+> > > > uses the hardware=E2=80=99s Performance Monitoring Unit (PMU) to co=
+llect
+> > > > profiling data. While AutoFDO typically yields smaller performance
+> > > > gains than iFDO, it presents unique benefits for optimizing kernels=
+.
+> > > >
+> > > > AutoFDO eliminates the need for instrumented kernels, allowing a si=
+ngle
+> > > > optimized kernel to serve both execution and profile collection. It=
+ also
+> > > > minimizes slowdown during profile collection, potentially yielding
+> > > > higher-fidelity profiling, especially for time-sensitive code, comp=
+ared
+> > > > to iFDO. Additionally, AutoFDO profiles can be obtained from produc=
+tion
+> > > > environments via the hardware=E2=80=99s PMU whereas iFDO profiles r=
+equire
+> > > > carefully curated load tests that are representative of real-world
+> > > > traffic.
+> > > >
+> > > > AutoFDO facilitates profile collection across diverse targets.
+> > > > Preliminary studies indicate significant variation in kernel hot sp=
+ots
+> > > > within Google=E2=80=99s infrastructure, suggesting potential perfor=
+mance gains
+> > > > through target-specific kernel customization.
+> > > >
+> > > > Furthermore, other advanced compiler optimization techniques, inclu=
+ding
+> > > > ThinLTO and Propeller can be stacked on top of AutoFDO, similar to =
+iFDO.
+> > > > ThinLTO achieves better runtime performance through whole-program
+> > > > analysis and cross module optimizations. The main difference betwee=
+n
+> > > > traditional LTO and ThinLTO is that the latter is scalable in time =
+and
+> > > > memory.
+> > > >
+> > > > This patch series adds AutoFDO and Propeller support to the kernel.=
+ The
+> > > > actual solution comes in six parts:
+> > > >
+> > > > [P 1] Add the build support for using AutoFDO in Clang
+> > > >
+> > > >       Add the basic support for AutoFDO build and provide the
+> > > >       instructions for using AutoFDO.
+> > > >
+> > > > [P 2] Fix objtool for bogus warnings when -ffunction-sections is en=
+abled
+> > > >
+> > > > [P 3] Adjust symbol ordering in text output sections
+> > > >
+> > > > [P 4] Add markers for text_unlikely and text_hot sections
+> > > >
+> > > > [P 5] Enable =E2=80=93ffunction-sections for the AutoFDO build
+> > > >
+> > > > [P 6] Enable Machine Function Split (MFS) optimization for AutoFDO
+> > > >
+> > > > [P 7] Add Propeller configuration to the kernel build
+> > > >
+> > > > Patch 1 provides basic AutoFDO build support. Patches 2 to 6 furthe=
+r
+> > > > enhance the performance of AutoFDO builds and are functionally depe=
+ndent
+> > > > on Patch 1. Patch 7 enables support for Propeller and is dependent =
+on
+> > > > patch 2 to patch 4.
+> > > >
+> > > > Caveats
+> > > >
+> > > > AutoFDO is compatible with both GCC and Clang, but the patches in t=
+his
+> > > > series are exclusively applicable to LLVM 17 or newer for AutoFDO a=
+nd
+> > > > LLVM 19 or newer for Propeller. For profile conversion, two differe=
+nt
+> > > > tools could be used, llvm_profgen or create_llvm_prof. llvm_profgen
+> > > > needs to be the LLVM 19 or newer, or just the LLVM trunk. Alternati=
+vely,
+> > > > create_llvm_prof v0.30.1 or newer can be used instead of llvm-profg=
+en.
+> > > >
+> > > > Additionally, the build is only supported on x86 platforms equipped
+> > > > with PMU capabilities, such as LBR on Intel machines. More
+> > > > specifically:
+> > > >  * Intel platforms: works on every platform that supports LBR;
+> > > >    we have tested on Skylake.
+> > > >  * AMD platforms: tested on AMD Zen3 with the BRS feature. The kern=
+el
+> > > >    needs to be configured with =E2=80=9CCONFIG_PERF_EVENTS_AMD_BRS=
+=3Dy", To
+> > > >    check, use
+> > > >    $ cat /proc/cpuinfo | grep =E2=80=9C brs=E2=80=9D
+> > > >    For the AMD Zen4, AMD LBRV2 is supported, but we suspect a bug w=
+ith
+> > > >    AMD LBRv2 implementation in Genoa which blocks the usage.
+> > > >
+> > > > For ARM, we plan to send patches for SPE-based Propeller when
+> > > > AutoFDO for Arm is ready.
+> > > >
+> > > > Experiments and Results
+> > > >
+> > > > Experiments were conducted to compare the performance of AutoFDO-op=
+timized
+> > > > kernel images (version 6.9.x) against default builds.. The evaluati=
+on
+> > > > encompassed both open source microbenchmarks and real-world product=
+ion
+> > > > services from Google and Meta. The selected microbenchmarks include=
+d Neper,
+> > > > a network subsystem benchmark, and UnixBench which is a comprehensi=
+ve suite
+> > > > for assessing various kernel operations.
+> > > >
+> > > > For Neper, AutoFDO optimization resulted in a 6.1% increase in thro=
+ughput
+> > > > and a 10.6% reduction in latency. UnixBench saw a 2.2% improvement =
+in its
+> > > > index score under low system load and a 2.6% improvement under high=
+ system
+> > > > load.
+> > > >
+> > > > For further details on the improvements observed in Google and Meta=
+'s
+> > > > production services, please refer to the LLVM discourse post:
+> > > > https://discourse.llvm.org/t/optimizing-the-linux-kernel-with-autof=
+do-including-thinlto-and-propeller/79108
+> > > >
+> > > > Thanks,
+> > > >
+> > > > Rong Xu and Han Shen
+> > >
+> > >
+> > > I applied this series to linux-kbuild.
+> > >
+> >
+> > Thanks for taking the patch!
+> >
+> > > As I mentioned before, I do not like #ifdef because
+> > > it hides (not fixes) issues only for default cases.
+> >
+> > We followed the suggestion and removed most of the #if (or #ifdef) in
+> > the linker script.
+> > I just checked: there are two #ifdef remaining:
+> > (1) in the propeller patch for .llvm_bb_addr_map
+> > (2) in linker script patch for arch/sparc/kernel/vmlinux.lds.S.
+> >
+> > I think it's likely safe to remove the checks for head_64.o in
+> > non-SPARC64 builds and .llvm_bb_addr_map symbols in non-propeller build=
+s.
+> >
+> > SPARC64 builds should always produce head_64.o, and non-SPARC64
+> > builds shouldn't.
+> >
+> > Propeller builds always generate .llvm_bb_addr_map symbols, and the
+> > linker will omit the section if it's empty in non-propeller builds.
+> >
+> > Keeping the checks is harmless and might slightly reduce linker
+> > workload for matching.
+> > But If you'd prefer to remove them, I'm happy to provide a patch.
+>
+>
+> I am talking about the #ifdef in include/asm-generic/vmlinux.lds.h
+>
+>
+> Yeah, it is me who (reluctantly) accepted cb87481ee89d.
+>
+> Now, the #ifdef has become a little more complicated.
+> The default case is safe, but there are hidden issues.
+>
+> Some issues are easy to fix, so I sent some patches.
+> https://lore.kernel.org/linux-kbuild/20241106161445.189399-1-masahiroy@ke=
+rnel.org/T/#t
+> https://lore.kernel.org/linux-kbuild/20241106161445.189399-1-masahiroy@ke=
+rnel.org/T/#m4e4fa70386696e903b68d3fe1d7277e9a63fbefe
+> https://lore.kernel.org/linux-kbuild/20241107111519.GA15424@willie-the-tr=
+uck/T/#mccf6d49ddd11c90dcc583d7a68934bb3311da880
 
-> when I send a v4 I should paste the Reviewed-by and Tested-by lines into the
-> commit message of the patch?
+I did notice the issues for .data.* -- that is one of the reasons we
+separated text from data in our patch.
 
-Yes, you should add them either right above or right below your signoff.
-It is up to the submitter to add tags that have been sent on prior
-revisions when sending an updated version, assuming that there has not
-been a reason to drop them, such as substantial changes from a prior
-version that might require a new review or testing. In that case, I
-typically add a note in the changelog as to why I did not carry them
-forward.
+>
+> For example, see e41f501d3912.
+>
+> When CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=3Dy or
+> CONFIG_LTO_CLANG=3Dy or CONFIG_AUTOFDO_CLANG=3Dy or
+> CONFIG_PROPELLER_CLANG=3Dy, the .text.startup sections
+> will go to TEXT_MAIN instead of INIT_TEXT.
+> This is not a fatal issue, but we cannot reuse memory for .text.startup
+> sections.
+>
+> Removing the #ifdef (i.e. reverting cb87481ee89d) is more difficult
+> because we need to take a closer look at potential impacts for all
+> architectures.
 
-The tip documentation 4.2.3 through 4.2.6 has some good information
-about some other Linux kernel commit message expectations if you find
-yourself submitting more patches in the future:
+I'm not sure if there is a naming convention for section names in the kerne=
+l.
+For special sections, we should avoid using .text.* or .data.*,
+instead, using "..', or use
+other prefixes.
 
-https://docs.kernel.org/process/maintainer-tip.html#changelog
+The compiler can generate sections names like .text.hot.*", ".text.unknown.=
+*",
+  ".text.unlikely.*", ".text.split.*", ".text.startup." or
+".text.exit. It seems we've
+addressed most of them except .text.startup and .text.exit.
 
-> > > -KBUILD_CFLAGS += -m32 -mcpu=v8 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
-> > > +KBUILD_CFLAGS += -m32 -mcpu=v8 -pipe -mno-fpu $(call cc-option,-fcall-used-g5) $(call cc-option,-fcall-used-g7)
-> > 
-> > 
-> > Small nit, this (and the one in the vdso) could probably be one
-> > cc-option call? Is it likely that one flag would be implemented in the
-> > compiler without the other?
-> > 
-> > $(call cc-option,-fcall-used-g5 -fcall-used-g7)
-> 
-> Ah, didn't know it's possible to do that, the other uses of it I see seem
-> to use one flag per call. I'll test and send a new revision, thanks.
+For text.startup and .text.exit, have you considered renaming the
+sections within
+the linker script -- they are fixed strings and should be able to be rename=
+d.
 
-Yeah, I would agree that it is typical to use cc-option for one flag at
-a time but the entire string just gets passed to $(CC), so there is
-technically no limitation for how many flags can be tested. This happens
-to be a rare instance where the flags share a common internal compiler
-implementation so we know that one cannot be implemented without the
-other.
+>
+> I understood you did not want to take a risk to break random architecture=
+s,
+> so I decided to postpone the #ifdef issue and accept your patch set.
 
-Cheers,
-Nathan
+Thanks for the understanding!
+
+>
+> --
+> Best Regards
+> Masahiro Yamada
