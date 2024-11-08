@@ -1,105 +1,90 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3C6A1401C;
-	Fri,  8 Nov 2024 14:25:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 42FCC1F4295;
+	Fri,  8 Nov 2024 15:30:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731075915; cv=none; b=E9lHgV/eEvNY9kAllBjnXWq1G0KH5DfJ7mRsIvzGxAJRKFTNcsgiXftQPQiQcr3nvNUbfZurRFpNPhUDXbuuvRD1blE1NSQ+u0Ex7vb8m7TP8BGQ+nncglIYP4v+BGr00WZJQDgOqNSQ7xBNTHfQZnnpr6eObytgRj+DrWBszuc=
+	t=1731079834; cv=none; b=DCWsry9uIw6l0+CRGwm0c41CRBfSaCdpNa+dRgCWHbjHoQ2RGrxVuomZmg10OrY0zyQWoMKTLIYLxBRDetv6ZRXcahTj57QsPJ5ebG7P/T0HR92j1sZg3XGONHp10W8ne1IdDXWNMiTk9k88ojH8NlL3OzzwUCbRwlv2I4iHs0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731075915; c=relaxed/simple;
-	bh=xPGTJfqchSlQ6jueLrU84/Ezt2oTBGmaVYC2TJWstuU=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=glGEgzNaXoU+W9PQDQuOEYeZwihgeYEbbFpug5swGOqhVs1HngNuKd1nnuvvgzFipqEct6drXl6SEeaIE5dMs4NChcw6q/Lp1bJJ5FQeehAwM49zRYxfUL/b/cshs4kfmvvHrqQ4ybomqwPEzeXoIOPE+hbke9+JhfdhxXrJGsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=TAmLIgJp; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=jj/8EwA6; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1731079834; c=relaxed/simple;
+	bh=YBes01HIGxCY9uAMUwOSqshjVdaMRIIeY82NB1cajGY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 MIME-Version:Message-ID; b=vFjeymaqXBr2CrJAXe6rIeWUV5BOq6QzUh0BRlH4MNZWrrOo0f7DUV4weQA/Rb1Iavsq2265VslXxBES7yO7oX73z3nwpdwUN/86gG5HV4JP6NMXWilg5EZUGC+cEwOfru+DzLeeQD8yuzJEpElZ3f9t8ScxNN1IldXan7ZJ4Lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=fail (1024-bit key) header.d=163.com header.i=@163.com header.b=HaUjtcWH reason="signature verification failed"; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="TAmLIgJp";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="jj/8EwA6"
-From: Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1731075911;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=v+f+g8yyOKXMQlbG8MpvRrvh4tIxLok0rEAYYuf18pU=;
-	b=TAmLIgJpFi3WYWagfHvvZLAAirgZXLul++2EA0xNzLlguNFCXkuNJTpfHNo69/tyI8iOQg
-	u4vLFaU7ceFS/iJcWPNqKOQUlm2pysPD3aoU/TClqt+39Nz5Y0kWGOGhLQeX2ZKEaluvX7
-	JrFFbixe2hezzdMtdwmRw+Mm/Mg0eoiw8AdWn8T0VHbVO2fBuftlG4I5TkyBjYHjxurTBW
-	WPvm4i8miTfv9X6bPrBoFZRtSiKtjorssIDWzxQ/wC7gTIqCeMwplVMFDMlGu3C6JC0MYz
-	3ECnyr7+hH5tijyg0p6vRJtVJ1V7xWwN+rOmq60anQwvSzqzIVmDRCYZPzF3KQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1731075911;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=v+f+g8yyOKXMQlbG8MpvRrvh4tIxLok0rEAYYuf18pU=;
-	b=jj/8EwA6cJ5MUQOonh7MRj4YYMI1ZD0f2sju/5TUx8FC8GyPnd68uaGGplLfknboD/bc7G
-	2i/uKKIRBVnxttBA==
-To: David Wang <00107082@163.com>, richard.henderson@linaro.org,
- linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org,
- guoren@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
- James.Bottomley@HansenPartnership.com, deller@gmx.de, mpe@ellerman.id.au,
- paul.walmsley@sifive.com, ysato@users.sourceforge.jp, dalias@libc.org,
- glaubitz@physik.fu-berlin.de, davem@davemloft.net, andreas@gaisler.com,
- mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com,
- x86@kernel.org, chris@zankel.net, jcmvbkbc@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- loongarch@lists.linux.dev, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, David Wang
- <00107082@163.com>
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=163.com header.i=@163.com header.b="HaUjtcWH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=iQMcJa4BmFPVqKmXobn4cIhRx4UhLAzJDxklpcxlLI8=; b=H
+	aUjtcWHDFt1bKqSXkqJGs1dRc5kfURcXD/snEVL02VfzHVmJDJvgfdNFSH25sFJS
+	e/QmXTeDXcuNeFVAyRIvkZptmIV0qg/a2iU0Q4ogCM+qEHNRN03W89MpCkKtr4sE
+	EYlKvW6V2O6HdedRW0CAf+PWbdmw0x1Jl4G7mFEXQs=
+Received: from 00107082$163.com ( [111.35.191.191] ) by
+ ajax-webmail-wmsvr-40-148 (Coremail) ; Fri, 8 Nov 2024 23:28:00 +0800 (CST)
+Date: Fri, 8 Nov 2024 23:28:00 +0800 (CST)
+From: "David Wang" <00107082@163.com>
+To: "Thomas Gleixner" <tglx@linutronix.de>
+Cc: richard.henderson@linaro.org, linux@armlinux.org.uk, catalin.marinas@arm.com, 
+	will@kernel.org, guoren@kernel.org, chenhuacai@kernel.org, 
+	kernel@xen0n.name, James.Bottomley@HansenPartnership.com, 
+	deller@gmx.de, mpe@ellerman.id.au, paul.walmsley@sifive.com, 
+	ysato@users.sourceforge.jp, dalias@libc.org, 
+	glaubitz@physik.fu-berlin.de, davem@davemloft.net, 
+	andreas@gaisler.com, mingo@redhat.com, bp@alien8.de, 
+	dave.hansen@linux.intel.com, x86@kernel.org, chris@zankel.net, 
+	jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, loongarch@lists.linux.dev, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org
 Subject: Re: [PATCH] kernel/irq/proc: performance: replace seq_printf with
  seq_put_decimal_ull_width
-In-Reply-To: <20241103080552.4787-1-00107082@163.com>
-References: <20241103080552.4787-1-00107082@163.com>
-Date: Fri, 08 Nov 2024 15:25:13 +0100
-Message-ID: <87r07lol9y.ffs@tglx>
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20240801(9da12a7b)
+ Copyright (c) 2002-2024 www.mailtech.cn 163com
+In-Reply-To: <87r07lol9y.ffs@tglx>
+References: <20241103080552.4787-1-00107082@163.com> <87r07lol9y.ffs@tglx>
+X-NTES-SC: AL_Qu2YA/yctk4j5iSfbOkZnEYQheY4XMKyuPkg1YJXOp80uSbP/wc5cnBJEkHY4sOvLTmSvxeqUTR3+8t1RrNYQqbBTxgILkv4stMHL//JBWTB
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Message-ID: <3319cd6e.b980.1930c63b1e5.Coremail.00107082@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:lCgvCgD3fwoBLi5nnLAiAA--.7283W
+X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiqQKRqmcuF0eQdwACss
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-David!
-
-On Sun, Nov 03 2024 at 16:05, David Wang wrote:
-
-$Subject: [PATCH] kernel/irq/proc: performance: ...
-
-That's not a valid subsystem prefix.
-
-> seq_printf is costy, when stress reading /proc/interrupts, profiling indicates
-> seq_printf takes about ~47% of show_interrupts samples:
-
-Also please follow the documentation for denoting functions in change
-logs:
-
-https://www.kernel.org/doc/html/latest/process/maintainer-tip.html#function-references-in-changelogs
-
->  arch/alpha/kernel/irq.c     |   8 +--
->  arch/arm/kernel/smp.c       |   4 +-
->  arch/arm64/kernel/smp.c     |   3 +-
->  arch/csky/kernel/smp.c      |   4 +-
->  arch/loongarch/kernel/smp.c |   2 +-
->  arch/parisc/kernel/irq.c    |  34 ++++++------
->  arch/powerpc/kernel/irq.c   |  44 ++++++++--------
->  arch/riscv/kernel/smp.c     |   3 +-
->  arch/sh/kernel/irq.c        |   4 +-
->  arch/sparc/kernel/irq_32.c  |  12 ++---
->  arch/sparc/kernel/irq_64.c  |   4 +-
->  arch/x86/kernel/irq.c       | 100 ++++++++++++++++++------------------
->  arch/xtensa/kernel/irq.c    |   2 +-
->  arch/xtensa/kernel/smp.c    |   4 +-
->  kernel/irq/proc.c           |   6 ++-
-
-There is no dependency on these changes. So please split them up into
-seperate patches for core and the individual architectures.
-
-Thanks,
-
-        tglx
+SGksICAKCkF0IDIwMjQtMTEtMDggMjI6MjU6MTMsICJUaG9tYXMgR2xlaXhuZXIiIDx0Z2x4QGxp
+bnV0cm9uaXguZGU+IHdyb3RlOgo+RGF2aWQhCj4KPk9uIFN1biwgTm92IDAzIDIwMjQgYXQgMTY6
+MDUsIERhdmlkIFdhbmcgd3JvdGU6Cj4KPiRTdWJqZWN0OiBbUEFUQ0hdIGtlcm5lbC9pcnEvcHJv
+YzogcGVyZm9ybWFuY2U6IC4uLgo+Cj5UaGF0J3Mgbm90IGEgdmFsaWQgc3Vic3lzdGVtIHByZWZp
+eC4KCmNvcHkgdGhhdH4KCj4KPj4gc2VxX3ByaW50ZiBpcyBjb3N0eSwgd2hlbiBzdHJlc3MgcmVh
+ZGluZyAvcHJvYy9pbnRlcnJ1cHRzLCBwcm9maWxpbmcgaW5kaWNhdGVzCj4+IHNlcV9wcmludGYg
+dGFrZXMgYWJvdXQgfjQ3JSBvZiBzaG93X2ludGVycnVwdHMgc2FtcGxlczoKPgo+QWxzbyBwbGVh
+c2UgZm9sbG93IHRoZSBkb2N1bWVudGF0aW9uIGZvciBkZW5vdGluZyBmdW5jdGlvbnMgaW4gY2hh
+bmdlCj5sb2dzOgo+Cj5odHRwczovL3d3dy5rZXJuZWwub3JnL2RvYy9odG1sL2xhdGVzdC9wcm9j
+ZXNzL21haW50YWluZXItdGlwLmh0bWwjZnVuY3Rpb24tcmVmZXJlbmNlcy1pbi1jaGFuZ2Vsb2dz
+Cj4KCmNvcHkgdGhhdH4KCj4+ICBhcmNoL2FscGhhL2tlcm5lbC9pcnEuYyAgICAgfCAgIDggKy0t
+Cj4+ICBhcmNoL2FybS9rZXJuZWwvc21wLmMgICAgICAgfCAgIDQgKy0KPj4gIGFyY2gvYXJtNjQv
+a2VybmVsL3NtcC5jICAgICB8ICAgMyArLQo+PiAgYXJjaC9jc2t5L2tlcm5lbC9zbXAuYyAgICAg
+IHwgICA0ICstCj4+ICBhcmNoL2xvb25nYXJjaC9rZXJuZWwvc21wLmMgfCAgIDIgKy0KPj4gIGFy
+Y2gvcGFyaXNjL2tlcm5lbC9pcnEuYyAgICB8ICAzNCArKysrKystLS0tLS0KPj4gIGFyY2gvcG93
+ZXJwYy9rZXJuZWwvaXJxLmMgICB8ICA0NCArKysrKysrKy0tLS0tLS0tCj4+ICBhcmNoL3Jpc2N2
+L2tlcm5lbC9zbXAuYyAgICAgfCAgIDMgKy0KPj4gIGFyY2gvc2gva2VybmVsL2lycS5jICAgICAg
+ICB8ICAgNCArLQo+PiAgYXJjaC9zcGFyYy9rZXJuZWwvaXJxXzMyLmMgIHwgIDEyICsrLS0tCj4+
+ICBhcmNoL3NwYXJjL2tlcm5lbC9pcnFfNjQuYyAgfCAgIDQgKy0KPj4gIGFyY2gveDg2L2tlcm5l
+bC9pcnEuYyAgICAgICB8IDEwMCArKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0K
+Pj4gIGFyY2gveHRlbnNhL2tlcm5lbC9pcnEuYyAgICB8ICAgMiArLQo+PiAgYXJjaC94dGVuc2Ev
+a2VybmVsL3NtcC5jICAgIHwgICA0ICstCj4+ICBrZXJuZWwvaXJxL3Byb2MuYyAgICAgICAgICAg
+fCAgIDYgKystCj4KPlRoZXJlIGlzIG5vIGRlcGVuZGVuY3kgb24gdGhlc2UgY2hhbmdlcy4gU28g
+cGxlYXNlIHNwbGl0IHRoZW0gdXAgaW50bwo+c2VwZXJhdGUgcGF0Y2hlcyBmb3IgY29yZSBhbmQg
+dGhlIGluZGl2aWR1YWwgYXJjaGl0ZWN0dXJlcy5hbgoKVGhhbmtzIGZvciBhbGwgdGhlIHJldmll
+dywgSSB3aWxsIG1ha2UgYSBwYXRjaHNldCBmb3IgdGhpcy4KPgo+VGhhbmtzLAo+Cj4gICAgICAg
+IHRnbHgKCgpEYXZpZA==
