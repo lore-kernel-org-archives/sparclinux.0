@@ -1,39 +1,39 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE71663C;
-	Sat, 16 Nov 2024 08:31:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481B9191473;
+	Sat, 16 Nov 2024 08:50:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731745883; cv=none; b=rXykVP13oHdX5TGRLr8ntB6XEbzinmc74wuoGgSKzo+QAa0MwCh6Qlql6cXvmsUvHtj3baNoedFuIChHvesEQ2/N8rBwJBqGnwJ7Tv/fJTLHC+z3Bs01EMw8ZOiIysCkEP7hSzX0G+W7GGnIUb47djqf3LiAyuqMsl9ecqpRA0s=
+	t=1731747021; cv=none; b=TkM7vgS30MY21cOVaw9Qv6JN9FUxXx/WxXJUULa60AsPukry2ONUfrJZREohZi63beal1WXmN2ofEMOkkcq+cQ4EKzOB4sbPYOMGF/qXSA3ST+4/ShRgxtdyvd6EtcWkPbKg/xVehLndZT4+DNKYZTBzgXCJc2skl5HbouTmmrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731745883; c=relaxed/simple;
-	bh=Iyuhl/jr6P9w67XtFsNYU6bXtOQwPW74TNT609bIAtc=;
+	s=arc-20240116; t=1731747021; c=relaxed/simple;
+	bh=/AqZjsfLHbwWLhWnF2fxEidplvG+eTjqPL8M7lql9Wk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NOCf0M0zjEkiCHZGd0cRgMkVyiYwN1M0m+JRg61zF4CAfRpeyoBywZsuCgG0QEc4Ql9EdWAGMG7xfFAybQXucvZM1HwDzMUnVKjmxjTje5VGHM9zCsLIO8hbfFa+TmkfIqT/Zrf342Z/Owm8pBjXzeUtS2mIvyNz1oN54wGn0Lc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=h6bntngO; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=rIrRqYEAgpSUMV+GS9aDfCzm/ly4DhF+cuH4Hqq/DyVfJwMjg41l8O/XYHcShzSQVzGmbJ73UWL4fT8aj6kemrt6oX+CJn18xz+8D9b3J3+sTkFKfey3+MCCYZARaQc7ge5h+vwjMsoIfQj9agAyy4AVZ2TSiKs+3ELE8VGmWH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Rqr/4dSD; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="h6bntngO"
+	dkim=pass (1024-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Rqr/4dSD"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4Xr6YK3TmBz1DHcg;
-	Sat, 16 Nov 2024 09:31:17 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4Xr6zF4bYFz1DHVj;
+	Sat, 16 Nov 2024 09:50:17 +0100 (CET)
 Received: from [10.10.15.6] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4Xr6YJ6SB1z1DDrT;
-	Sat, 16 Nov 2024 09:31:16 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4Xr6zF10RTz1DHnj;
+	Sat, 16 Nov 2024 09:50:17 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=unoeuro; t=1731745877;
-	bh=6ZbV4+IoJk8L+0GgX4YxbWtM3elPBL8i/qWEAd1wwdk=;
+	s=unoeuro; t=1731747017;
+	bh=Jw2FGYGLsXubsQKc2ACIJgB3hzH9w9bWmRLoh9D2NJU=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=h6bntngONbblphvXdMJKIwxW0vSHrrQe1DWKjc+cmiB+YDDpyk7QfIgoKFwYR+myg
-	 Nysfk+LUFefGh5TcrVY0SoX5HMocliC6/hilK/RFyaYE2vE94+/JPNhyOQNDXrZNQh
-	 SMfTzeqwuT4hB2sn1BnauSe9X4KMSveLro46JTxQ=
-Message-ID: <cfc033a8-a7de-469b-8afa-0069593c5c6f@gaisler.com>
-Date: Sat, 16 Nov 2024 09:31:16 +0100
+	b=Rqr/4dSD52oLIpbqwEtjWZxm4PzOSY9nN5U5M9ZexVQsADBtFJYdTneiH+dUxIMBo
+	 ndfUrT7Vqdtd+FgeKHRFdKeWdMOeu50H/FSdVVue7pgmVRzAv5f/cjI2oKJPUqysaX
+	 A75gH6dbKHKJRViWcfACIj30nVvZ6zEvumlC5xjA=
+Message-ID: <1b2e776e-0ae3-4f48-a2b9-99b486d49368@gaisler.com>
+Date: Sat, 16 Nov 2024 09:50:16 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -41,79 +41,125 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 0/2] sparc/build: Rework CFLAGS for clang compatibility
+Subject: Re: [PATCH v2] sparc/vdso: Add helper function for 64-bit right shift
+ on 32-bit target
 To: koachan@protonmail.com, "David S. Miller" <davem@davemloft.net>,
+ Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
+ Vincenzo Frascino <vincenzo.frascino@arm.com>,
  Nathan Chancellor <nathan@kernel.org>,
  Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling
- <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
- glaubitz@physik.fu-berlin.de, Masahiro Yamada <masahiroy@kernel.org>,
- Nicolas Schier <nicolas@fjasle.eu>, Jonathan Corbet <corbet@lwn.net>
+ <morbo@google.com>, Justin Stitt <justinstitt@google.com>
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- llvm@lists.linux.dev, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org
-References: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
+ llvm@lists.linux.dev
+References: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20241029-sparc-cflags-v3-0-b28745a6bd71@protonmail.com>
+In-Reply-To: <20240808-sparc-shr64-v2-1-fd18f1b2cea9@protonmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2024-10-29 15:49, Koakuma via B4 Relay wrote:
-> Hello~
+On 2024-08-08 04:05, Koakuma via B4 Relay wrote:
+> From: Koakuma <koachan@protonmail.com>
 > 
-> This changes the CFLAGS for building the SPARC kernel so that it can be
-> built with clang, as a follow up from the discussion in this thread:
-> 
-> https://lore.kernel.org/lkml/JAYB7uS-EdLABTR4iWZdtFOVa5MvlKosIrD_cKTzgeozCOGRM7lhxeLigFB1g3exX445I_W5VKB-tAzl2_G1zCVJRQjp67ODfsSqiZWOZ9o=@protonmail.com/T/#u
-> 
-> The changes are removal of various `-fcall-used-*` flags, and adding
-> clang target flags for SPARC:
-> 
-> - `-fcall-used-*` flags is gated behind cc-option as it is
->   not supported in clang. It should be safe; clang won't use the registers
->   specified as temporaries, but it is a safe change wrt. the ABI.
->   Assembly code can still use those registers as needed.
->   A cursory look at the assembly generated by GCC 13.2 shows that
->   the compiler was able to reallocate uses of those registers into
->   other temporary registers without adding extra spills, so there
->   should be no change in performance.
-> 
-> - More trivial is to add CLANG_TARGET_FLAGS for SPARC target.
-> 
-> Building with these changes still result in a working kernel,
-> at least for Sun T5120, Oracle T4-1, and qemu virtual machines.
-> 
-> On the LLVM side, the effort for building Linux/SPARC is tracked here:
-> https://github.com/llvm/llvm-project/issues/40792
+> Add helper function for 64-bit right shift on 32-bit target so that
+> clang does not emit a runtime library call.
 > 
 > Signed-off-by: Koakuma <koachan@protonmail.com>
 > ---
-> Changes in v3:
-> - Use cc-option to allow GCC to still use -fcall-used-* flags.
-> - Add documentation on building on SPARC, along with required LLVM version.
-> - Link to v2: https://lore.kernel.org/r/20240717-sparc-cflags-v2-0-259407e6eb5f@protonmail.com
+> Hi~
 > 
+> This adds a small function to do 64-bit right shifts for use in vDSO
+> code, needed so that clang does not emit a call to runtime library.
+> ---
 > Changes in v2:
-> - Remove the -mv8plus change; it will be handled on clang side:
->   https://github.com/llvm/llvm-project/pull/98713
-> - Add CLANG_TARGET_FLAGS as suggested in v1 review.
-> - Link to v1: https://lore.kernel.org/r/20240620-sparc-cflags-v1-1-bba7d0ff7d42@protonmail.com
+> - Move __shr64 to sparc code since there are no other users of it.
+> - Now that __shr64 is not in portable code, redo it in inline asm for simpler implementation & better performance.
+> - Link to v1: https://lore.kernel.org/r/20240804-sparc-shr64-v1-1-25050968339a@protonmail.com
+> ---
+>  arch/sparc/vdso/vclock_gettime.c | 28 ++++++++++++++++++++++++----
+>  1 file changed, 24 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
+> index e794edde6755..79607804ea1b 100644
+> --- a/arch/sparc/vdso/vclock_gettime.c
+> +++ b/arch/sparc/vdso/vclock_gettime.c
+> @@ -86,6 +86,11 @@ notrace static long vdso_fallback_gettimeofday(struct __kernel_old_timeval *tv,
+>  }
+>  
+>  #ifdef	CONFIG_SPARC64
+> +notrace static __always_inline u64 __shr64(u64 val, int amt)
+> +{
+> +	return val >> amt;
+> +}
+> +
+>  notrace static __always_inline u64 vread_tick(void)
+>  {
+>  	u64	ret;
+> @@ -102,6 +107,21 @@ notrace static __always_inline u64 vread_tick_stick(void)
+>  	return ret;
+>  }
+>  #else
+> +notrace static __always_inline u64 __shr64(u64 val, int amt)
+> +{
+> +	u64 ret;
+> +
+> +	__asm__ __volatile__("sllx %H1, 32, %%g1\n\t"
+> +			     "srl %L1, 0, %L1\n\t"
+> +			     "or %%g1, %L1, %%g1\n\t"
+> +			     "srlx %%g1, %2, %L0\n\t"
+> +			     "srlx %L0, 32, %H0"
+> +			     : "=r" (ret)
+> +			     : "r" (val), "r" (amt)
+> +			     : "g1");
+> +	return ret;
+> +}
+
+Can not residual in bits 63:32 of %L0 potentially pose a problem?
+
+
+> +
+>  notrace static __always_inline u64 vread_tick(void)
+>  {
+>  	register unsigned long long ret asm("o4");
+> @@ -154,7 +174,7 @@ notrace static __always_inline int do_realtime(struct vvar_data *vvar,
+>  		ts->tv_sec = vvar->wall_time_sec;
+>  		ns = vvar->wall_time_snsec;
+>  		ns += vgetsns(vvar);
+> -		ns >>= vvar->clock.shift;
+> +		ns = __shr64(ns, vvar->clock.shift);
+>  	} while (unlikely(vvar_read_retry(vvar, seq)));
+>  
+>  	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+> @@ -174,7 +194,7 @@ notrace static __always_inline int do_realtime_stick(struct vvar_data *vvar,
+>  		ts->tv_sec = vvar->wall_time_sec;
+>  		ns = vvar->wall_time_snsec;
+>  		ns += vgetsns_stick(vvar);
+> -		ns >>= vvar->clock.shift;
+> +		ns = __shr64(ns, vvar->clock.shift);
+>  	} while (unlikely(vvar_read_retry(vvar, seq)));
+>  
+>  	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+> @@ -194,7 +214,7 @@ notrace static __always_inline int do_monotonic(struct vvar_data *vvar,
+>  		ts->tv_sec = vvar->monotonic_time_sec;
+>  		ns = vvar->monotonic_time_snsec;
+>  		ns += vgetsns(vvar);
+> -		ns >>= vvar->clock.shift;
+> +		ns = __shr64(ns, vvar->clock.shift);
+>  	} while (unlikely(vvar_read_retry(vvar, seq)));
+>  
+>  	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
+> @@ -214,7 +234,7 @@ notrace static __always_inline int do_monotonic_stick(struct vvar_data *vvar,
+>  		ts->tv_sec = vvar->monotonic_time_sec;
+>  		ns = vvar->monotonic_time_snsec;
+>  		ns += vgetsns_stick(vvar);
+> -		ns >>= vvar->clock.shift;
+> +		ns = __shr64(ns, vvar->clock.shift);
+>  	} while (unlikely(vvar_read_retry(vvar, seq)));
+>  
+>  	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
 > 
 > ---
-> Koakuma (2):
->       sparc/build: Put usage of -fcall-used* flags behind cc-option
->       sparc/build: Add SPARC target flags for compiling with clang
+> base-commit: defaf1a2113a22b00dfa1abc0fd2014820eaf065
+> change-id: 20240717-sparc-shr64-2f00a7884770
 > 
->  Documentation/kbuild/llvm.rst | 3 +++
->  arch/sparc/Makefile           | 4 ++--
->  arch/sparc/vdso/Makefile      | 2 +-
->  scripts/Makefile.clang        | 1 +
->  4 files changed, 7 insertions(+), 3 deletions(-)
-> ---
-> base-commit: c2ee9f594da826bea183ed14f2cc029c719bf4da
-> change-id: 20240620-sparc-cflags-e7f2dbbd4b9d
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-
-I see no pressing need for a v4. Picking the series up to my for-next.
-
-Thanks,
-Andreas
+> Best regards,
