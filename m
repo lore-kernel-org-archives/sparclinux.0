@@ -1,119 +1,99 @@
-Received: from fout-b8-smtp.messagingengine.com (fout-b8-smtp.messagingengine.com [202.12.124.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C642C1ABEB0;
-	Thu, 21 Nov 2024 22:24:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63DE04204B;
+	Sat, 23 Nov 2024 11:31:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732227855; cv=none; b=t+IgFd96xTuG+Fl8EN9oWfxRxjpmLM5qFM/6SqB5TcJUpG3NTT7Wued23gKXQhVXH1R/T99eFg+BOzV5P2Jj5tWcNGs6w1e+d/4/BuphS0syBsP6wQzaQgW6f63U+1vMiS/gmLzaWFoaTHXsAQzPXYPkmqTkGFXvUCS7Q+d3Q1c=
+	t=1732361509; cv=none; b=Xx3qrbfrxumE5/LyeMGMWxbJdbvCjzc0MZBahdOFiI9MMr0r9y2iB8NHfrfcgS4a+MzairsJuiuOwdr2V8XO21qzez18j218xza5HkOIb0mCbLw70iNpU0+JngTy9bV3kZfsb1PiomuGiVEzOdeFOEOk/d95WCHMkWqAEDmPiSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732227855; c=relaxed/simple;
-	bh=LbRgVvQZxj7aaCo9OJqHQ/d5TAe2/ZIQDNFZtvSaUYw=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=h8elCvETyQNOHC9BdvdTb1waTT/XshyMOciBS8kwDH0PW97N40vxFsGfvovi0idt4jr2C4MhtJMlxwvuKSsk4LsDmym2NOzwpf63/IP88V+MOpfT3l7XWM6wyUCOz3FkcRptIU/64+q65Ff+turoCpHaFETCmXosSsj38eCAnnU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=none smtp.mailfrom=linux-m68k.org; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=WrrsqeW7; arc=none smtp.client-ip=202.12.124.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+	s=arc-20240116; t=1732361509; c=relaxed/simple;
+	bh=7l53ff7oBSbondRTNi7K/Blxj+8PK+VAW7cT64gbz7g=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=BL3HUXHwh5MwmRARMwAVmhfTIrEtjJ32wwXMeFnVAgqcVyVlkJVI1d0NHKBF5iCiFeDIqEWubHGMYeldZb9wKncw8vld3+7UIlRrqF6Jw4DYxLVfMOM5w3XfzmhgHhfH1BJtcG1ZNJYuTC0GWiYaqmCALEB2C55yBpee4hJ4aoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Nu5aczPb; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="WrrsqeW7"
-Received: from phl-compute-11.internal (phl-compute-11.phl.internal [10.202.2.51])
-	by mailfout.stl.internal (Postfix) with ESMTP id 9FF6511401BA;
-	Thu, 21 Nov 2024 17:24:11 -0500 (EST)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-11.internal (MEProxy); Thu, 21 Nov 2024 17:24:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
-	1732227851; x=1732314251; bh=MCnFKlB3Mx4i+GXy8Rv7vHneTCChY5/z+QA
-	XzxW/ABY=; b=WrrsqeW7OWsHAoyf2UXMusNTBhrmKPtFCxTW+5HrJr+hljCj0qj
-	n+Dk5yDtBgzrkwtRx0Lqb0XBT8TcNGRF+sNB1fWqZhjbfA/eCXhW4ZoXvwYsPX39
-	lBpfdaRrOaunp/JwpUAWnU8ohZ4FHa6Vt5obsL+hThfCjIVYkAgBnrBwD7RS+FQ1
-	wZOL0smneA1AgubhBWmKOdQd0F3gWwxc58VPVh8dLDmXgFwKxD+J6gbAEDL3QlE3
-	zAJyZsg/SfwneZU5pzR5EJJmzNU2Z7W1X/l3LNU2etP0/SSDLgnTlTaV6bCwsQng
-	t8DP45ioC4DEqXxAvsQIJ5TP0sohPqKVf1A==
-X-ME-Sender: <xms:CbM_Z1dJchh0Jm26t8yK9bfDLcbItsqVnK5ItKXrn90wZpn2rOGY_A>
-    <xme:CbM_ZzOAt2y9CXYORirjhzT9FIYXVATpRb49nGFL-XPcQcPHygvbjWkMBIwnF-6uo
-    P0QjBsr1IRitnKnqyA>
-X-ME-Received: <xmr:CbM_Z-i_s4eDrggCfVub5KWzPkbGlaIuN4WGf_htexFCdN96q_3FmGAXf39d0fYM7BAFPHD-CWQOmEvHZget1Evbbyu2OBRNxmI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefuddrfeeigdduheekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepfffhvfevufgjkfhfgggtsehttdertddttddvnecu
-    hfhrohhmpefhihhnnhcuvfhhrghinhcuoehfthhhrghinheslhhinhhugidqmheikehkrd
-    horhhgqeenucggtffrrghtthgvrhhnpeefieehjedvtefgiedtudethfekieelhfevhefg
-    vddtkeekvdekhefftdekvedvueenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuve
-    hluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepfhhthhgrihhn
-    sehlihhnuhigqdhmieekkhdrohhrghdpnhgspghrtghpthhtohepuddtpdhmohguvgepsh
-    hmthhpohhuthdprhgtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohho
-    thhlihhnrdgtohhmpdhrtghpthhtohepghgvvghrtheslhhinhhugidqmheikehkrdhorh
-    hgpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhfthdrnhgvthdprhgtphhtthho
-    pegrnhgurhgvrghssehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggrnhhivghlse
-    dtgidtfhdrtghomhdprhgtphhtthhopehprghvohhnvgesrhgvthhrohguvghvrdgtohhm
-    pdhrtghpthhtoheplhhinhhugidqmheikehksehlihhsthhsrdhlihhnuhigqdhmieekkh
-    drohhrghdprhgtphhtthhopehlihhnuhigqdhrthgtsehvghgvrhdrkhgvrhhnvghlrdho
-    rhhgpdhrtghpthhtohepshhprghrtghlihhnuhigsehvghgvrhdrkhgvrhhnvghlrdhorh
-    hg
-X-ME-Proxy: <xmx:CbM_Z--RtqQ1Y4Uj7-OYeVidoaJ8EnZwYBEoJTTe27Bzfpl9L_ARTA>
-    <xmx:CbM_ZxuhcC9y9rO-XjiY3EfJldGI6Em_uXpgXyakzMpH-l5VK69Kwg>
-    <xmx:CbM_Z9F2fdMJtSosO7BxLX6tIzwtlSP7jb-Rgu7lT6B3Pi8sS7ScFg>
-    <xmx:CbM_Z4PudP6kHaJ2TCC8f7ZmWNJsMWDbInLA6qd6BSJJeF5uu3OxJg>
-    <xmx:C7M_Z3IM4BwQDYJakFmKQCQBUVNYyi8P3uMVyeMa1mjfvOX10unwvr8X>
-Feedback-ID: i58a146ae:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 21 Nov 2024 17:24:06 -0500 (EST)
-Date: Fri, 22 Nov 2024 09:24:36 +1100 (AEDT)
-From: Finn Thain <fthain@linux-m68k.org>
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>
-cc: Geert Uytterhoeven <geert@linux-m68k.org>, 
-    "David S. Miller" <davem@davemloft.net>, 
-    Andreas Larsson <andreas@gaisler.com>, Daniel Palmer <daniel@0x0f.com>, 
-    Michael Pavone <pavone@retrodev.com>, linux-m68k@lists.linux-m68k.org, 
-    linux-rtc@vger.kernel.org, sparclinux@vger.kernel.org, 
-    linux-kernel@vger.kernel.org
-Subject: Re: (subset) [PATCH v4 1/2] rtc: m48t59: Use platform_data struct
- for year offset value
-In-Reply-To: <20241121174630cbc6cfa6@mail.local>
-Message-ID: <e6dbc3e6-5305-7c00-90e7-3d06b1b5e459@linux-m68k.org>
-References: <cover.1731450735.git.fthain@linux-m68k.org> <665c3526184a8d0c4a6373297d8e7d9a12591d8b.1731450735.git.fthain@linux-m68k.org> <173193673970.37302.12055966881506116157.b4-ty@bootlin.com> <8140c873-3456-1469-8bc5-2e94d409cf8a@linux-m68k.org>
- <20241121174630cbc6cfa6@mail.local>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nu5aczPb"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2124ccf03edso29380135ad.2;
+        Sat, 23 Nov 2024 03:31:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1732361508; x=1732966308; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=U8nb5xhW2sO139VthmTPAswqENky3wnHBx6HMmEx694=;
+        b=Nu5aczPbkM7GY6OmEqle9LQmZgmAq6N7fTKa+7JqrYPjty0C5/V4ZbSg5Q+dXa3NzC
+         ivChGbr4onI7oMFsatzKx8ysnf/0+DPSoynDAWFfKd7Hx6nfHFXPfB5uimvW2Tq19+1a
+         xmFZJMpG6p9XXCk9cXIaWW8d2z+PESK8zz0eZ2q/81uzAcHVOG9pQ1MN4hTyVFzhFpX4
+         haSWOpGT0OsbXDfR5jJf8WXJHKWAYq01jaAtUUqMCeJVbdPAQYHZBSd801sZqyv9Jjm3
+         +3XAbilOmmL/HRV6H3yD+elPVPdA29nWB89NuadbnPCE3HbL0khHzGnVS2naWy5/g4/B
+         rRPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732361508; x=1732966308;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=U8nb5xhW2sO139VthmTPAswqENky3wnHBx6HMmEx694=;
+        b=rpraVvY0OX8HfnpSouPXi2uGdiXvVE4DYc0YifPsv6bku9qDatSxYC3A+wIYkNbUDu
+         Hi4j2CRFkqSyJsa4oQYAimuyClZy5YqjL/b+0CyJOFLTSu1/i0YwQxXvA6RM/yiPeHMP
+         F/7V703mCXN5pXcoVvXWLNbLwCGs5Prl8ZhBDE9uRynf+363RkNaYe01CH0dHBaOPMWA
+         d0spp/Jd2oDpBGHkS3Cbeq+aeDSCA5as9a2/g4NJYUAWnRIrEtNtTGXNoDu/5SGKji19
+         feMPqUTS2v3SDPPAaF4Jxdb1sbO9MALmIEuzKTQhT5p1lGbo8Kh0Tm41UE0NWTHcU0wN
+         kLfA==
+X-Forwarded-Encrypted: i=1; AJvYcCVaGxIZWBjbNSoz99jjvVS2NL2ysu+S4mkk4yzk/bypj6DfLJb3h0zUnaUUEsIR5Uxg68YEM0mgvOssJq8=@vger.kernel.org, AJvYcCXTl7FlxcKtTs8hM+nENMo98RUY5uHILhI4HAePeVj30OwrPb5YW80wG18SJBoVYJTDiKn2e3zvjifLGA==@vger.kernel.org
+X-Gm-Message-State: AOJu0YwQuwqRLDiCjcP6PbA/Y/t9FaBMUJtPJkgeHhe9gLcrHtfKXOpY
+	Smbv1LpPh+pfaUOXIGgHTa8h2FF59on5pHSaZEWc35qOBY42lDpE
+X-Gm-Gg: ASbGncvai36YrLcqk2NiAtoCFjVkbadlYptBiLX9/Vl+NZtsw23lmF9rCsY3uoMcxZl
+	SeSNZfKOmgl8rsdPc+MFOJHBIClTLso4O0PRtjOaQeTTPjkFR+nFqh+a5JWTPH9vXNnh5Z3YQA3
+	iz0vEtiZvqjUP79Uno5maJWe50c8LHXVmWwUfNpaaiQQj5OwbyzaB1GZOgpwvW4nTvIeb06Pozl
+	hmiZ/kiCK01zZM0QQRbNWaYQTh0Rsw3/0Kk5z8DdO7VuUyYJKcO7/RxF3xUM/oBwWmrv0prlo9v
+	M32Llr1OpXwp+kjSSj2ca6vKo/09pyn++w==
+X-Google-Smtp-Source: AGHT+IG3PzaM8Bw+R0W394CBKZEv9djrxBQmV3JOp7Wd20s/KiyA5JnyhBFunBImiThgsNSsPn2G/A==
+X-Received: by 2002:a17:902:e5c3:b0:20d:cb6:11e with SMTP id d9443c01a7336-2129f797c7amr70270315ad.26.1732361507576;
+        Sat, 23 Nov 2024 03:31:47 -0800 (PST)
+Received: from localhost.localdomain ([121.241.130.50])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7fbcc218925sm3187487a12.43.2024.11.23.03.31.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 23 Nov 2024 03:31:47 -0800 (PST)
+From: Ayush Satyam <ayushsatyam146@gmail.com>
+To: ast@kernel.org,
+	daniel@iogearbox.net,
+	andrii@kernel.org,
+	martin.lau@linux.dev
+Cc: bpf@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Ayush Satyam <ayushsatyam146@gmail.com>
+Subject: [PATCH] bpf: sparc64: fix typo dont->don't
+Date: Sat, 23 Nov 2024 03:31:16 -0800
+Message-Id: <20241123113116.1983-1-ayushsatyam146@gmail.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Ayush Satyam <ayushsatyam146@gmail.com>
+---
+ arch/sparc/net/bpf_jit_comp_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Thu, 21 Nov 2024, Alexandre Belloni wrote:
+diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
+index 73bf0aea8..0f850bbe7 100644
+--- a/arch/sparc/net/bpf_jit_comp_64.c
++++ b/arch/sparc/net/bpf_jit_comp_64.c
+@@ -732,7 +732,7 @@ static int emit_compare_and_branch(const u8 code, const u8 dst, u8 src,
+ 			br_opcode = BLE;
+ 			break;
+ 		default:
+-			/* Make sure we dont leak kernel information to the
++			/* Make sure we don't leak kernel information to the
+ 			 * user.
+ 			 */
+ 			return -EFAULT;
+-- 
+2.20.1
 
-> On 21/11/2024 09:13:32+1100, Finn Thain wrote:
-> > 
-> > On Mon, 18 Nov 2024, Alexandre Belloni wrote:
-> > 
-> > > On Wed, 13 Nov 2024 09:32:15 +1100, Finn Thain wrote:
-> > > > Instead of hard-coded values and ifdefs, store the year offset in the
-> > > > platform_data struct.
-> > > > 
-> > > > 
-> > > 
-> > > Applied, thanks!
-> > > 
-> > > [1/2] rtc: m48t59: Use platform_data struct for year offset value
-> > >       https://git.kernel.org/abelloni/c/a06e4a93067c
-> > > 
-> > 
-> > Thanks, Alexandre. Would you also take patch 2/2, please? Geert has sent a 
-> > reviewed-by tag for that one too.
-> 
-> I thought Geert would take it as this only touches arch/m68k
-> 
-
-That's quite understandable -- I accidentally addressed it "To: Geert". 
-Sorry for any confusion caused.
-
-Anyway, would you please pick up patch 2/2 also? After all, patch 2/2 is 
-the reason why patch 1/2 exists. Indeed, 1/2 was written several years 
-after 2/2, in response to your recent review of 2/2.
