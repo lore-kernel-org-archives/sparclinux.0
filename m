@@ -1,63 +1,57 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from linkrubis.com (unknown [185.167.12.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A27156F2B;
-	Fri, 29 Nov 2024 18:54:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0402915530F
+	for <sparclinux@vger.kernel.org>; Fri, 29 Nov 2024 23:46:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.167.12.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732906450; cv=none; b=Zj/9Oj7CfpxkK3tkMujj0JfQhr2alSbYMRJm+yDgvPcx7eSGz+dI4k2ceOR0wYNOnFDRh1hL0IToo8GK3y8LrRCEXx0d5edIeDketBLFhdQkG8ZX80y/b2g2b8YnfiIm9l+WQQXmXMPq3UiZHEF997gnpCKvrxmSzGph6uA8xMk=
+	t=1732924019; cv=none; b=FwU26lJ7ON+wgq9WmgfC5Uo8fVcU2CqKzizpzNj+mg60wdnGyZCUoLA1UbZGyL2j8cNM3whwYa3O779Rc2AYZpQBHmPLRAhL9dlDExmjrFpsB8DQyT5RUJiD0XYdHdlxI8TYHzTJ1yTAv5GxGms10T+ykkkXR5ICyOJHu4h4MDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732906450; c=relaxed/simple;
-	bh=9OJg33u/vFp0Ed9MMcQ3OD9SWOI2Dprq1EV0TkFYBKU=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=N+yp1VEfB/FYmhbQHMygrqX/FPQEO4wcMJnvro8TlklfednibqwZXSDSZgP4D6NBkk5lIKLr6QuYBOQClxkdq3l2+cjlc6wEsZCuhAvNDNpWUyghU3XkkJxx2dLX1Qtia9P6F2AXrNfIkN572ona3R0HLLK/JbnZz3HMRH4o7Iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I8RI/1Z9; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I8RI/1Z9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31A94C4CECF;
-	Fri, 29 Nov 2024 18:54:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1732906450;
-	bh=9OJg33u/vFp0Ed9MMcQ3OD9SWOI2Dprq1EV0TkFYBKU=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=I8RI/1Z9r6donh+LndouZG/mDDRYBEJ+8z8muJzkerJOgFM8HJkvLZyrhHPQT0xpG
-	 LLBNnMT3Gv6Hfg18FsMtirjms3dWK0RClv2+q5y7SbKrJpk52YM/g8wx81osC8qUOw
-	 eJ12vfwiX3zo7uFvkyU4fMvBTUpFBAeBz5MGqoL34y0sWVvZyZ9j6DRx7d8heBeNkm
-	 CYrCjnltIx6l3k9aL0nCrZLfuljfjgs8ht3TNL+BD4r76iHL0QREYq3kqnd6XQ/+yW
-	 DGBeyyhsYyL3ZWlHl2+hT2NSO7sF43LaqX0IgFpUb17+BWZ2dVPKDVb2IUQDcmP6VO
-	 IBXGM8cyEosCw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EB02F380A944;
-	Fri, 29 Nov 2024 18:54:24 +0000 (UTC)
-Subject: Re: [GIT PULL] sparc updates for v6.13
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <a124b567-d9a1-48f5-beec-de1bacac2140@gaisler.com>
-References: <a124b567-d9a1-48f5-beec-de1bacac2140@gaisler.com>
-X-PR-Tracked-List-Id: <sparclinux.vger.kernel.org>
-X-PR-Tracked-Message-Id: <a124b567-d9a1-48f5-beec-de1bacac2140@gaisler.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/alarsson/linux-sparc.git tags/sparc-for-6.13-tag1
-X-PR-Tracked-Commit-Id: b6370b338e71cf24c61e33880b8f1a0dd5ad0a44
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: fbb3c22f908accfd6fd34b1dbdd304fc2609c78a
-Message-Id: <173290646362.2148737.1892858841954174102.pr-tracker-bot@kernel.org>
-Date: Fri, 29 Nov 2024 18:54:23 +0000
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+	s=arc-20240116; t=1732924019; c=relaxed/simple;
+	bh=TP2xi5MLwzeF2gd5PLUHTPcrg5s39So5WnEbKwlrxCA=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=o+WKIOK2wgHAWx8QxIp3AIUmR+ULJgg/2XLaJJ35NAL+Tn8vnjI/jO8uL4BxtF0J+3eCc+L9P078GxxcC7DjpHMcxc5Rxyz2TQGBMf2rr103cwOC3ltOa9X5AXdY3Q/oYkEdCnd9lX8/D6BX2umwndzX1hsuI0xAdgfZGNNj5iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=barterhomes.com; spf=none smtp.mailfrom=barterhomes.com; arc=none smtp.client-ip=185.167.12.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=barterhomes.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=barterhomes.com
+Received: from localhost (localhost [127.0.0.1])
+	by linkrubis.com (Postfix) with ESMTP id 3B5D6EA1CE61
+	for <sparclinux@vger.kernel.org>; Sat, 30 Nov 2024 07:39:10 +0800 (CST)
+Received: from linkrubis.com ([127.0.0.1])
+ by localhost (linkrubis.com [127.0.0.1]) (amavis, port 10032) with ESMTP
+ id 34Svj9y3EgGv for <sparclinux@vger.kernel.org>;
+ Sat, 30 Nov 2024 07:39:10 +0800 (CST)
+Received: from localhost (localhost [127.0.0.1])
+	by linkrubis.com (Postfix) with ESMTP id D742810CB55B
+	for <sparclinux@vger.kernel.org>; Sat, 30 Nov 2024 07:39:07 +0800 (CST)
+X-Virus-Scanned: amavis at linkrubis.com
+Received: from linkrubis.com ([127.0.0.1])
+ by localhost (linkrubis.com [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id 0_gXZ3LknmSc for <sparclinux@vger.kernel.org>;
+ Sat, 30 Nov 2024 07:39:07 +0800 (CST)
+Received: from GUDLUCKRDP.aeza.network (unknown [62.60.156.158])
+	by linkrubis.com (Postfix) with ESMTPSA id 799F910E7262
+	for <sparclinux@vger.kernel.org>; Sat, 30 Nov 2024 07:39:06 +0800 (CST)
+Reply-To: info@boawealthmanagement.com
+From: Jim Bertles <info@barterhomes.com>
+To: sparclinux@vger.kernel.org
+Subject: I am checking if you;ve gotten my email
+Date: 30 Nov 2024 00:39:05 +0100
+Message-ID: <20241130003905.2A32C16003606CBD@barterhomes.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-The pull request you sent on Thu, 28 Nov 2024 13:33:03 +0100:
+Hi
+Hope you are doing well.
+Did you get a chance to see my previous email?? If you are=20
+interested, Please reply so that I can provide details in=20
+accordance.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/alarsson/linux-sparc.git tags/sparc-for-6.13-tag1
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/fbb3c22f908accfd6fd34b1dbdd304fc2609c78a
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Best regards
+Jim Bertles
