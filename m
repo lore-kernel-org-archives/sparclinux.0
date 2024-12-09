@@ -1,148 +1,87 @@
-Received: from pv50p00im-zteg10021301.me.com (pv50p00im-zteg10021301.me.com [17.58.6.46])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 460B114A624
-	for <sparclinux@vger.kernel.org>; Sun,  8 Dec 2024 13:19:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB0814F12D;
+	Mon,  9 Dec 2024 10:22:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733663955; cv=none; b=QKXq4+BGqJSDttMI6gbA1c2xhbvWtNDt3YnmuTXLUg/98CvY1Xso2EzHTKXCfsWvNDlif8ukXgH10Vcg4A7L4YV/hCpgEkk6P0XsUzPIgifDOzIDlBfKDyocgIQWflA6zLcJXopqrHY7FC1Z5duKsNmykJI7bWlT3Vojg3UFR04=
+	t=1733739750; cv=none; b=JRqoLbfyf25yEXNJbs9b85cpQG625WOkrrMU2KlMFQiTlPWco5zPs7/EQP8g5IgAvjQB0ZayqcjALjBCO7pSFU00Kr2/ZKEbtZ7Ty3/Kds8h1PrjkjNTlNCwWk7zLLpzxrgepIzCgt+AQwiOM2esD3GDEejjxswO14qAftluZh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733663955; c=relaxed/simple;
-	bh=v6DuWZtu4YUnrBhocodbi8f07v2ZhN1ZLmNgHMutPlg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=jiZHc8uq6VD9+vdGwWRB8IRuJqz+652H18cZJAjtjcMu0bMfmq27Gm1nUd5DG/47HEhz8UldZ2pGxMjSwHNXJWVU4sZYL/FdHB/5EAUaVb1Vr367/8yX21xXqaV2rshFOgM+weCTOo95defZGor4SX0vYtCw/TA0rWV0K71L5hs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=nsAlKyTz; arc=none smtp.client-ip=17.58.6.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
+	s=arc-20240116; t=1733739750; c=relaxed/simple;
+	bh=22nxoMKIS4nBsQAMbnBfE7/P29io2si+j1rmNgZHQZA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pYUc3VXdq6tZgu8LTKBZcd8DjpyhubhxClKbZNc+fHWsVcWFaYg0JDs57Nhu5DufoQDimULNp85739Uv8Rxl4d2blcQo7nD0cFW4Kfh+ZBiSsL6+M4CTvK8DoxsU4kiSclnc8Dowd4sVtxl8PT//qe9wBoMJ7XKRXCwkET0guZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CC/VpXkL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="nsAlKyTz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; t=1733663951;
-	bh=B9Z7dZW7Hi3Js1z/RCEjU+3M/IjEGHpjDFHWBOHmqc4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:
-	 x-icloud-hme;
-	b=nsAlKyTzBjgFKiKK875IKrpeQ6Hv0IpX0ZWERQ6ck5xVT3yTVHF/ma0+sMayke7RA
-	 Mgepn7kdGl4f4KMgfy/ymh+QBWxBeS7/1xqjrAX4SI9iGKKSkpp5xcz5oH/1zd68so
-	 q8B21ej8wfHvQSmqknU2Qp3DQusSq/gzOdhHF5FFhfSN5Qste9Sq1vNahO5iwGakAp
-	 tKQIdEZWB3krUn4WgU7lFUNJY/OoKRT0xs0HLsHhvA1M3HxUyLGgZ/BUmsWP7OKH1i
-	 bCryHNz+PA1BYV/NsVSs5yT/qG6oSWCs9oJcX6JOBLUE0hNVJ8Fz0YBe04unhhDqh2
-	 KUvRd6BwJWVxw==
-Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
-	by pv50p00im-zteg10021301.me.com (Postfix) with ESMTPSA id B0625500490;
-	Sun,  8 Dec 2024 13:18:59 +0000 (UTC)
-Message-ID: <7780942a-93cd-4508-be97-fc5e5267c389@icloud.com>
-Date: Sun, 8 Dec 2024 21:18:54 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CC/VpXkL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48502C4CED1;
+	Mon,  9 Dec 2024 10:22:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1733739750;
+	bh=22nxoMKIS4nBsQAMbnBfE7/P29io2si+j1rmNgZHQZA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=CC/VpXkLAbwk+hbgEsMt2944Dv7YIgoIHLCDr29oGcj6oUelUg781rDQKoZZQJHRu
+	 JxL+H1rruNSrLz7iG26GPN+xOtjuBrzcufUdCno+7idQNgWqiqgwYRguKSaIftoaB/
+	 2zEsYk6JBnkVQmllPmtThfuxKG0nfoWmct+qdDoWlCkcLNbUpiuYTQglWRHlawIaDn
+	 II1SvPOKrenPPueseMmN3UtupVK6F67BmJnos+OF7oVUiI08TiFH7UwZtR/4lOO+NJ
+	 DRa9Xeg/yrMgfOcBH00Ncti07Ozj1+SzJzjif8qWEHsLyEaPXj2Z2A3idHSoNrjtYp
+	 ZpTafz05GAj6Q==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-540215984f0so434596e87.1;
+        Mon, 09 Dec 2024 02:22:30 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCWphI+ed47LFTXC9JgCRDZampeovGEVwy9J3Y1FkrN52D18WAH7R6EpuyZOgz3cuwOBtruyti2fblDwYHc=@vger.kernel.org, AJvYcCXRK/Oqb9VvLWFEnKm8i47otUb98hxVo76JvcIhIih20mtiFhA3mgSfRWhh2zLYJVMAIhU/IJK0jLJ27A==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyuHm4Xd8bDDNAwkLE9IhFC89obzcpzjrUFLdFLfEI7hx6Mzl1H
+	fwckrn9VrQbUMbblG3zXMOjYtn1di1lOgvVlOgB4oLyo250o14pDsjJiZDZnFei9dbacJU4Pvec
+	qdAoYckYcw5CY6UYlsHeoREeRvmA=
+X-Google-Smtp-Source: AGHT+IGFssUIpp1+A41u1YqFPwvNyIYFStMPw58ruyP0rtnXTDWH0dwiUB/fKF6HcwS0f3nXCgmnFxMLELm2+C/9rm0=
+X-Received: by 2002:a05:6512:1381:b0:540:1ea7:44db with SMTP id
+ 2adb3069b0e04-5401ea7459dmr1337671e87.4.1733739748677; Mon, 09 Dec 2024
+ 02:22:28 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 04/11] driver core: Constify API device_find_child()
- then adapt for various usages
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
- James Bottomley <James.Bottomley@hansenpartnership.com>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-sound@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-block@vger.kernel.org, linux-cxl@vger.kernel.org,
- linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org,
- linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org,
- linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org,
- linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
- linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
- linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
- netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
-References: <20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com>
- <20241205-const_dfc_done-v3-4-1611f1486b5a@quicinc.com>
- <20241206135209.GA133715@workstation.local>
-Content-Language: en-US
-From: Zijun Hu <zijun_hu@icloud.com>
-In-Reply-To: <20241206135209.GA133715@workstation.local>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: zq6ALpvY8lzOJgSSQvNtYt-PHDnk_XXq
-X-Proofpoint-GUID: zq6ALpvY8lzOJgSSQvNtYt-PHDnk_XXq
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2024-12-08_04,2024-12-06_01,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0 mlxscore=0
- clxscore=1011 adultscore=0 phishscore=0 malwarescore=0 spamscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2308100000 definitions=main-2412080111
+References: <20241207190503.53440-1-ebiggers@kernel.org>
+In-Reply-To: <20241207190503.53440-1-ebiggers@kernel.org>
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Mon, 9 Dec 2024 11:22:17 +0100
+X-Gmail-Original-Message-ID: <CAMj1kXEd2Qz=rqcjqCCQhRP3dn2y+irnLXpj1uNwed167PewUg@mail.gmail.com>
+Message-ID: <CAMj1kXEd2Qz=rqcjqCCQhRP3dn2y+irnLXpj1uNwed167PewUg@mail.gmail.com>
+Subject: Re: [PATCH 0/2] crypto: remove physical address support in skcipher_walk
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: linux-crypto@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>, 
+	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On 2024/12/6 21:52, Takashi Sakamoto wrote:
-> Hi,
-> 
-> On Thu, Dec 05, 2024 at 08:10:13AM +0800, Zijun Hu wrote:
->> From: Zijun Hu <quic_zijuhu@quicinc.com>
->>
->> Constify the following API:
->> struct device *device_find_child(struct device *dev, void *data,
->> 		int (*match)(struct device *dev, void *data));
->> To :
->> struct device *device_find_child(struct device *dev, const void *data,
->>                                  device_match_t match);
->> typedef int (*device_match_t)(struct device *dev, const void *data);
->> with the following reasons:
->>
->> - Protect caller's match data @*data which is for comparison and lookup
->>   and the API does not actually need to modify @*data.
->>
->> - Make the API's parameters (@match)() and @data have the same type as
->>   all of other device finding APIs (bus|class|driver)_find_device().
->>
->> - All kinds of existing device match functions can be directly taken
->>   as the API's argument, they were exported by driver core.
->>
->> Constify the API and adapt for various existing usages by simply making
->> various match functions take 'const void *' as type of match data @data.
->>
->> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
->> ---
->>  arch/sparc/kernel/vio.c                |  6 +++---
->>  drivers/base/core.c                    |  6 +++---
->>  drivers/block/sunvdc.c                 |  6 +++---
->>  drivers/bus/fsl-mc/dprc-driver.c       |  4 ++--
->>  drivers/cxl/core/pci.c                 |  4 ++--
->>  drivers/cxl/core/pmem.c                |  2 +-
->>  drivers/cxl/core/region.c              | 21 ++++++++++++---------
->>  drivers/firewire/core-device.c         |  4 ++--
->>  drivers/firmware/arm_scmi/bus.c        |  4 ++--
->>  drivers/firmware/efi/dev-path-parser.c |  4 ++--
->>  drivers/gpio/gpio-sim.c                |  2 +-
->>  drivers/gpu/drm/mediatek/mtk_drm_drv.c |  2 +-
->>  drivers/hwmon/hwmon.c                  |  2 +-
->>  drivers/media/pci/mgb4/mgb4_core.c     |  4 ++--
->>  drivers/nvdimm/bus.c                   |  2 +-
->>  drivers/pwm/core.c                     |  2 +-
->>  drivers/rpmsg/rpmsg_core.c             |  4 ++--
->>  drivers/scsi/qla4xxx/ql4_os.c          |  3 ++-
->>  drivers/scsi/scsi_transport_iscsi.c    | 10 +++++-----
->>  drivers/slimbus/core.c                 |  8 ++++----
->>  drivers/thunderbolt/retimer.c          |  2 +-
->>  drivers/thunderbolt/xdomain.c          |  2 +-
->>  drivers/tty/serial/serial_core.c       |  4 ++--
->>  drivers/usb/typec/class.c              |  8 ++++----
->>  include/linux/device.h                 |  4 ++--
->>  include/scsi/scsi_transport_iscsi.h    |  4 ++--
->>  net/dsa/dsa.c                          |  2 +-
->>  tools/testing/cxl/test/cxl.c           |  2 +-
->>  28 files changed, 66 insertions(+), 62 deletions(-)
-> 
-> For the changes in FireWire subsystem:
-> 
-> Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-> 
+On Sat, 7 Dec 2024 at 20:05, Eric Biggers <ebiggers@kernel.org> wrote:
+>
+> This series removes the unnecessary physical address support in
+> skcipher_walk and the single obsolete driver that was using it.
+>
+> Eric Biggers (2):
+>   crypto: drivers - remove Niagara2 SPU driver
+>   crypto: skcipher - remove support for physical address walks
+>
 
-thank you for code review and previous cooperation to achieve
-this goal (^^).
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 
-> 
-> Thanks
-> 
-> Takashi Sakamoto
-
+>  crypto/skcipher.c                  |  187 +--
+>  drivers/crypto/Kconfig             |   17 -
+>  drivers/crypto/Makefile            |    2 -
+>  drivers/crypto/n2_asm.S            |   96 --
+>  drivers/crypto/n2_core.c           | 2168 ----------------------------
+>  drivers/crypto/n2_core.h           |  232 ---
+>  include/crypto/internal/skcipher.h |   12 -
+>  7 files changed, 26 insertions(+), 2688 deletions(-)
+>  delete mode 100644 drivers/crypto/n2_asm.S
+>  delete mode 100644 drivers/crypto/n2_core.c
+>  delete mode 100644 drivers/crypto/n2_core.h
+>
+>
+> base-commit: b5f217084ab3ddd4bdd03cd437f8e3b7e2d1f5b6
+> --
+> 2.47.1
+>
+>
