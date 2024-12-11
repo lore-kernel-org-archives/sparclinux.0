@@ -1,92 +1,159 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f201.google.com (mail-pg1-f201.google.com [209.85.215.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A52E01F2393;
-	Wed, 11 Dec 2024 22:32:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B6DF1F2C37
+	for <sparclinux@vger.kernel.org>; Wed, 11 Dec 2024 23:27:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733956350; cv=none; b=RIfDmc5ocYpWKC5ywhrYJobpruTeez7PrNOxo4QmWzNNJ/Zp2S2y+8U6XzY2ygH3kMv3jdhLZjlGTXVnjK8XPHrkli952q3doGaYO/zpN3dOTxv00jHlgYtoGyJ/uwello2BztJyutQuKTf9MCL/UwdR55YE2TPc5w1VUwOad6E=
+	t=1733959681; cv=none; b=FYZqJqgtt2EOVQLqIMbIK2lk4FyPLnitw5lJiTbLRbfD5gtYl0aF4YBGrhorRjCapLwWepWVhtzg7NZwY/uZhQ1+6PALBVhxLwnxa36U74/FtZWfrZCtvXJoIKpmXPxWq58GiECB2hmjc8fHpb2zTM9oelh7Tni/CCOdwYH1+ak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733956350; c=relaxed/simple;
-	bh=Lj6m1KGdu6A9P37ePkeHmGhpEOYrC07Re+9IHx97taY=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=aHsABgRV+o3XqCesclcHGcKoz8TCYHm7Zpvti/bFtfTiNiPrKV5CkTbDja0AAzugz7Hy5IaEI0IBiXF5wmvFmxfYUA/FNdUlIrfeSHGO9iSH8lX6E5BRFizN1NzjzT6NjF3pabD8Jzn5Ff3Tqo1GjzGQFTpSD8IA36ci1+A6p0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q+h6JdhY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733959681; c=relaxed/simple;
+	bh=tkYUgsJNBXav1rnN7mRsWNxCkvx1+/sVfFghfRuojcE=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=tWMUjWioRd1BPKLfCjVYLa60E5vgzoAedjrjtPBnMrgwin1ViGfr5t/flMKrpO2drtq0vvZn6TiGKqfUi89D7K9eX1WK3UkEyRluR8u2RfizuOJhbep1UsPWP6tOk0XM4f/korIVhLOHJTjXtBz7owHj6ltyshLPel71ySy44os=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--kaleshsingh.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=iU7GxywT; arc=none smtp.client-ip=209.85.215.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--kaleshsingh.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q+h6JdhY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ABF1C4CED2;
-	Wed, 11 Dec 2024 22:32:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733956350;
-	bh=Lj6m1KGdu6A9P37ePkeHmGhpEOYrC07Re+9IHx97taY=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Q+h6JdhYbgWkkJZKxxBpvzzMrsNxkGoEdza4YFJyky6PGRqvTppB4WWSHpF2XbZEp
-	 3RmwDTIJ+IWZiPF6URzM7AFAUrovMRw7D8NbXB+92TG9vVWaXrcU/MsgUuSOZ3vPex
-	 o0MaFjihetIadNNvJTpEn+nlZctZbXnS0fVYRMWoku2hOngBPg/UbRT+WKkxpgNf2d
-	 SwvyT1mNlDgHbiMNbtlfPoLzmzqTgNvTIuq+Jo3m/NabxJ757iMFljbIUWU4KxUn8N
-	 5ID5hDIVQ1/ODfWBnJSI9qXoWm4SM9dKAfh3gfNA/Y4dMt1mVhzEjFLVbDxspwHNRS
-	 2u3nMpWh8Eo9Q==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70C81380A965;
-	Wed, 11 Dec 2024 22:32:47 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="iU7GxywT"
+Received: by mail-pg1-f201.google.com with SMTP id 41be03b00d2f7-7fd3c241975so1025653a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 11 Dec 2024 15:27:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1733959678; x=1734564478; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=5Y13tezS9osfEyeZZhDu0hB4QwVrkWFM3vdAGWXDL0s=;
+        b=iU7GxywTPRhv00BP/fgEg0NmrmdoZvsb18J0qNknuA9FMsK90V2SUmf3EHvcZEMqxJ
+         2K0leJKkuL/h0g5LyguBhaAzdCwf/ixV35hU2N28UlRo3iDCexPyZJlZ8ADVsUbzQdSu
+         36f6fBihpDkgrvms7FyRKG90XrZdvglESUBx38od50WwLvZKwzAq1mdoFtMhJK5InUC2
+         2maZR+72rUQpReNpLsRqs44RtGvHjZvqOxXIt3BomWgB01Pu7FsM0OeM7kooK/j+MkHg
+         7sUfGhlRaKTjZr3YSiu0HnafSMsqeck/TWmmYHeBvKSEXWEpIpYD65lm/dCdHhJMAwbD
+         3fsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733959678; x=1734564478;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=5Y13tezS9osfEyeZZhDu0hB4QwVrkWFM3vdAGWXDL0s=;
+        b=FLppO0BKJoG1Dq77M4Tc4peRWgRjo7ra8rIenddCT5oJjC0q5huc+fCBuh0dRxBSqB
+         JEBy98qcLByUsBPPMuqN81vgVDkiEwHl0sEpGNNr+MCDZd1F1g71fGdg7Z7MlwYf4UYH
+         RCykHQ+FvQCutQEqn1VFrbc1V3g8lGFdhXhPpGm4H4+0OKIE+lfxzX/+Q9ui02cRNQg+
+         emfNEAdCyQwX+vvdYZtRiu9K0FCFC2Sqi1M2DlqQWF9YUc0IleA8GOxH5nk0iQPXFaRI
+         NiO1QVF5sVDA4E+P54p5dE3GSWuHrLy2rZY2sTHhkSv3BrwK2Juk62UwfpTg3chiYfOy
+         uXHA==
+X-Forwarded-Encrypted: i=1; AJvYcCUuenzLw95hW8tyrsWxsZFKd0y5EtXu6qKWdZqn1Y5r6XhMdpSiqFBrz/o63Lqtg8X1upgLdNi37Cvf@vger.kernel.org
+X-Gm-Message-State: AOJu0YxKJgHehH4iUp4J0MVlRReOgpAbOu0bhQDVrVLY5Vj5CXQib7wt
+	0lco/j+xnmwAuN9tKGYmeYzqwb8lakWpcM5Jm6MTJi4lGUiTFMnj5IMGmYzBFRd3QTUQ6/5AhAx
+	n9QDXoBOYqn5+iNoHfuGdMg==
+X-Google-Smtp-Source: AGHT+IH+hxwnbTejsd5rMe6ZdiiLsQVYXh76CpSNZ1O0EO7ZME4Z+uiov/c6u6U8sBeYTnWqfHb7LFZNMZjeMUedcw==
+X-Received: from pjj11.prod.google.com ([2002:a17:90b:554b:b0:2ef:9866:6155])
+ (user=kaleshsingh job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a17:90b:1f81:b0:2e2:c2b0:d03e with SMTP id 98e67ed59e1d1-2f13abc6e43mr1624666a91.5.1733959677870;
+ Wed, 11 Dec 2024 15:27:57 -0800 (PST)
+Date: Wed, 11 Dec 2024 15:27:38 -0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] kernel/irq/proc: performance: replace seq_printf with
- seq_put_decimal_ull_width
-From: patchwork-bot+linux-riscv@kernel.org
-Message-Id: 
- <173395636600.1729195.17930169527159894833.git-patchwork-notify@kernel.org>
-Date: Wed, 11 Dec 2024 22:32:46 +0000
-References: <20241103080552.4787-1-00107082@163.com>
-In-Reply-To: <20241103080552.4787-1-00107082@163.com>
-To: David Wang <00107082@163.com>
-Cc: linux-riscv@lists.infradead.org, tglx@linutronix.de,
- richard.henderson@linaro.org, linux@armlinux.org.uk, catalin.marinas@arm.com,
- will@kernel.org, guoren@kernel.org, chenhuacai@kernel.org, kernel@xen0n.name,
- James.Bottomley@HansenPartnership.com, deller@gmx.de, mpe@ellerman.id.au,
- paul.walmsley@sifive.com, ysato@users.sourceforge.jp, dalias@libc.org,
- glaubitz@physik.fu-berlin.de, davem@davemloft.net, andreas@gaisler.com,
- mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
- chris@zankel.net, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.47.0.338.g60cca15819-goog
+Message-ID: <20241211232754.1583023-1-kaleshsingh@google.com>
+Subject: [PATCH mm-unstable v2 00/16] mm: Introduce arch_mmap_hint()
+From: Kalesh Singh <kaleshsingh@google.com>
+To: akpm@linux-foundation.org, vbabka@suse.cz, yang@os.amperecomputing.com, 
+	riel@surriel.com, david@redhat.com, minchan@kernel.org, jyescas@google.com
+Cc: linux@armlinux.org.uk, tsbogend@alpha.franken.de, 
+	James.Bottomley@HansenPartnership.com, ysato@users.sourceforge.jp, 
+	dalias@libc.org, glaubitz@physik.fu-berlin.de, davem@davemloft.net, 
+	andreas@gaisler.com, tglx@linutronix.de, bp@alien8.de, 
+	dave.hansen@linux.intel.com, x86@kernel.org, chris@zankel.net, 
+	jcmvbkbc@gmail.com, bhelgaas@google.com, jason.andryuk@amd.com, 
+	leitao@debian.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, loongarch@lists.linux.dev, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, 
+	kernel-team@android.com, android-mm@google.com, 
+	Kalesh Singh <kaleshsingh@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hello:
+Hi all,
 
-This patch was applied to riscv/linux.git (fixes)
-by Michael Ellerman <mpe@ellerman.id.au>:
+This is v2 othe the arch_mmap_hint() series.
 
-On Sun,  3 Nov 2024 16:05:52 +0800 you wrote:
-> seq_printf is costy, when stress reading /proc/interrupts, profiling indicates
-> seq_printf takes about ~47% of show_interrupts samples:
-> 
->     show_interrupts(94.495% 5166019/5466991)
-> 	seq_printf(47.429% 2450210/5166019)
-> 	    vsnprintf(89.232% 2186366/2450210)
-> 		format_decode(24.005% 524831/2186366)
-> 		number(19.488% 426084/2186366)
-> 		memcpy_orig(3.739% 81753/2186366)
-> 		...
-> 	_raw_spin_unlock_irqrestore(26.643% 1376379/5166019)
-> 	mtree_load(8.059% 416304/5166019)
-> 
-> [...]
+Changes in v2:
+  - MAP_FIXED case is also handled in arch_mmap_hint() since this is just a
+    special case of the hint addr being "enforced", per Yang Shi.
+  - Consolidate most of the error handling in arch_mmap_hint().
+  - Patch 16 ("mm: Fallback to generic_mmap_hint()") was folded into
+    Patch 2 ("mm: x86: Introduce arch_mmap_hint()")
 
-Here is the summary with links:
-  - kernel/irq/proc: performance: replace seq_printf with seq_put_decimal_ull_width
-    https://git.kernel.org/riscv/c/5b881c1f8379
+v1: https://lore.kernel.org/r/20241210024119.2488608-1-kaleshsingh@google.com/
 
-You are awesome, thank you!
+=======
+
+This series introduces arch_mmap_hint() to handle allocating VA space
+for the hint address.
+
+Patches 1-16 introduce this new helper and Patch 17 uses it to fix the
+issue of mmap hint being ignored in some cases due to THP alignment [1]
+
+[1] https://lore.kernel.org/r/20241118214650.3667577-1-kaleshsingh@google.com/
+
+Thanks,
+Kalesh
+
+
+Kalesh Singh (16):
+  mm: Introduce generic_mmap_hint()
+  mm: x86: Introduce arch_mmap_hint()
+  mm: arm: Introduce arch_mmap_hint()
+  mm: alpha: Introduce arch_mmap_hint()
+  mm: arc: Use generic_mmap_hint()
+  mm: csky: Introduce arch_mmap_hint()
+  mm: loongarch: Introduce arch_mmap_hint()
+  mm: mips: Introduce arch_align_mmap_hint()
+  mm: parisc: Introduce arch_align_mmap_hint()
+  mm: s390: Use generic_mmap_hint()
+  mm: sh: Introduce arch_mmap_hint()
+  mm: sparc32: Introduce arch_mmap_hint()
+  mm: sparc64: Introduce arch_mmap_hint()
+  mm: xtensa: Introduce arch_mmap_hint()
+  mm: powerpc: Introduce arch_mmap_hint()
+  mm: Respect mmap hint before THP alignment if allocation is possible
+
+ arch/alpha/include/asm/pgtable.h           |   1 +
+ arch/alpha/kernel/osf_sys.c                |  31 +++---
+ arch/arc/include/asm/pgtable.h             |   1 +
+ arch/arc/mm/mmap.c                         |  43 +++++----
+ arch/arm/include/asm/pgtable.h             |   1 +
+ arch/arm/mm/mmap.c                         | 107 +++++++++------------
+ arch/csky/abiv1/inc/abi/pgtable-bits.h     |   1 +
+ arch/csky/abiv1/mmap.c                     |  68 +++++++------
+ arch/loongarch/include/asm/pgtable.h       |   1 +
+ arch/loongarch/mm/mmap.c                   |  49 +++++-----
+ arch/mips/include/asm/pgtable.h            |   1 +
+ arch/mips/mm/mmap.c                        |  50 +++++-----
+ arch/parisc/include/asm/pgtable.h          |   1 +
+ arch/parisc/kernel/sys_parisc.c            |  53 +++++-----
+ arch/powerpc/include/asm/book3s/64/slice.h |   1 +
+ arch/powerpc/mm/book3s64/slice.c           |  31 ++++++
+ arch/s390/include/asm/pgtable.h            |   1 +
+ arch/s390/mm/mmap.c                        |  51 +++++-----
+ arch/sh/include/asm/pgtable.h              |   1 +
+ arch/sh/mm/mmap.c                          |  83 ++++++----------
+ arch/sparc/include/asm/pgtable_32.h        |   1 +
+ arch/sparc/include/asm/pgtable_64.h        |   1 +
+ arch/sparc/kernel/sys_sparc_32.c           |  33 ++++---
+ arch/sparc/kernel/sys_sparc_64.c           |  96 +++++++-----------
+ arch/x86/include/asm/pgtable_64.h          |   1 +
+ arch/x86/kernel/sys_x86_64.c               |  64 ++++++------
+ arch/xtensa/kernel/syscall.c               |  31 ++++--
+ include/linux/sched/mm.h                   |   9 ++
+ mm/huge_memory.c                           |  17 ++--
+ mm/mmap.c                                  |  86 +++++++++++------
+ 30 files changed, 491 insertions(+), 424 deletions(-)
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.47.0.338.g60cca15819-goog
 
