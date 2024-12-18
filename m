@@ -1,35 +1,37 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE57F13DB9F;
-	Tue, 17 Dec 2024 02:30:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7A32156861;
+	Wed, 18 Dec 2024 07:53:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734402623; cv=none; b=Ez7o9HlYEAFOCbwHLieDIjPtsT5NVGm3hisQDrbG4POl42ifdvPaqCJXMKy4G7RE0aazLJ93vIsXICJJ/WPyV08yS0XPA3ircI+V63Krm3eBX27wlNSs6+2M3oWtlsREEW0jBQkvyx4vXzp5wEYh+K412IQ5k8AQ+2VJ5cABlPg=
+	t=1734508402; cv=none; b=mudg8LZhKeh7cHDWF2Y0fPWkY9iPwcZLUMGHXWMPzYCDWnQ/mPHRHY5IZosOTqFa2qMLMDHZLX3YX12BNoScYlPzLl1J3FT9rUdcwC/F0KzVaEF3W+lVsBjfmBMc37CBHyhoS4J1PkpRLXF1QzBfu6ehRGA9dVIJH9EvNg0L2zY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734402623; c=relaxed/simple;
-	bh=PJJItmUBMA7watWzhd31oZepc6C+4jp0xsBFYdvlSKI=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=ZRw6vD705b64/1n53zuH6WYe0slJdyRM657AGMplvrIk7hXKoNPFxOEHVTU1ADNlnqe0GHd+SO7XEzv65jJnFi1hh+f1i5OXwWzX+1jfns7U+OZy1HVTJQwwEEPyZ3WLfS2vRcxjL9IwZVW988jtPxjCXmHfA48hoZcx2Y5Fhbo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lBjYj8M2; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lBjYj8M2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23687C4CED0;
-	Tue, 17 Dec 2024 02:30:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1734402623;
-	bh=PJJItmUBMA7watWzhd31oZepc6C+4jp0xsBFYdvlSKI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=lBjYj8M2mLYK02Qtw2F33S/WNM7xaIQVHPLAzpGW4Ti5wbI9JG+FkgkNXYQuwD2lJ
-	 9hnOr1IL2PMeAPGpomjkg7pJSLWLh/avU9ZP7M4qjR767EBFABvWK8WPLVhRyDukOL
-	 isv3EwwwUtJjZgf5ALdN45sA7np4dNTNdkUXvK1bfSgE2CZ5nSmPqqd1fIUFqyHEDl
-	 y1f0O1p4f8qOhDgitS4Jy7dOwt5wQuyJJZnwb4eWkXe4dVi3hbTj80KGoJ/U+71RRP
-	 y7aHvlKoLbH3XVWhbV+yWteAg1900Rge3Om2WMwI9/oy869Sf70qhd4NfHgFQ8XnDc
-	 7hHblJft6wfCg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70C9C3806656;
-	Tue, 17 Dec 2024 02:30:41 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1734508402; c=relaxed/simple;
+	bh=IXqf6FsGwTidhRHKmnRBoVE5TYiqlc76PRtEg9eaKG8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=lGu2o+H4nT25snaMawheD1ejjxFOjpy/E5HeAkkJMLmokq9FyMoUeoRadwFiM5D7O+WVSeWbm1MJjXOOHDlQ0r4aL/7+ZuZEEMcJGJUs2++GIwsCnG/HA01j33Lj5JwlB2bHKo8eC28qXoUZ28keazwUxC0DZlDVPsA8IG1Hqts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YCm8R48hWz21nZB;
+	Wed, 18 Dec 2024 15:51:19 +0800 (CST)
+Received: from kwepemh100007.china.huawei.com (unknown [7.202.181.92])
+	by mail.maildlp.com (Postfix) with ESMTPS id D6045180041;
+	Wed, 18 Dec 2024 15:53:11 +0800 (CST)
+Received: from huawei.com (10.67.175.69) by kwepemh100007.china.huawei.com
+ (7.202.181.92) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 18 Dec
+ 2024 15:53:11 +0800
+From: Zhang Kunbo <zhangkunbo@huawei.com>
+To: <davem@davemloft.net>, <andreas@gaisler.com>, <rdunlap@infradead.org>,
+	<zhangkunbo@huawei.com>, <bhelgaas@google.com>
+CC: <sparclinux@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<chris.zjh@huawei.com>, <liaochang1@huawei.com>
+Subject: [PATCH -next] sparc: replace zero-length array with flexible-array member
+Date: Wed, 18 Dec 2024 07:44:39 +0000
+Message-ID: <20241218074439.3271397-1-zhangkunbo@huawei.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -37,55 +39,47 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v7 0/4] Add support for SO_PRIORITY cmsg
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <173440263998.420431.1463337451862804620.git-patchwork-notify@kernel.org>
-Date: Tue, 17 Dec 2024 02:30:39 +0000
-References: <20241213084457.45120-1-annaemesenyiri@gmail.com>
-In-Reply-To: <20241213084457.45120-1-annaemesenyiri@gmail.com>
-To: Anna Emese Nyiri <annaemesenyiri@gmail.com>
-Cc: netdev@vger.kernel.org, fejes@inf.elte.hu, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, willemb@google.com, idosch@idosch.org,
- horms@kernel.org, dsahern@kernel.org, linux-can@vger.kernel.org,
- socketcan@hartkopp.net, mkl@pengutronix.de, linux-kselftest@vger.kernel.org,
- shuah@kernel.org, tsbogend@alpha.franken.de, kaiyuanz@google.com,
- James.Bottomley@HansenPartnership.com, richard.henderson@linaro.org,
- arnd@arndb.de, almasrymina@google.com, asml.silence@gmail.com,
- linux-mips@vger.kernel.org, andreas@gaisler.com, mattst88@gmail.com,
- kerneljasonxing@gmail.com, sparclinux@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, deller@gmx.de,
- vadim.fedorenko@linux.dev, linux-parisc@vger.kernel.org
+Content-Type: text/plain
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ kwepemh100007.china.huawei.com (7.202.181.92)
 
-Hello:
+The current codebase makes use of the zero-length array language
+extension to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1],
+introduced in C99:
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+struct foo {
+	int stuff;
+	struct boo array[];
+};
 
-On Fri, 13 Dec 2024 09:44:53 +0100 you wrote:
-> Introduce a new helper function, `sk_set_prio_allowed`,
-> to centralize the logic for validating priority settings.
-> Add support for the `SO_PRIORITY` control message,
-> enabling user-space applications to set socket priority
-> via control messages (cmsg).
-> 
-> Patch Overview:
-> 
-> [...]
+By making use of the mechanism above, we will get a compiler warning
+in case the flexible array does not occur last, which is beneficial
+to cultivate a high-quality code.[2]
 
-Here is the summary with links:
-  - [net-next,v7,1/4] sock: Introduce sk_set_prio_allowed helper function
-    https://git.kernel.org/netdev/net-next/c/77ec16be758e
-  - [net-next,v7,2/4] sock: support SO_PRIORITY cmsg
-    https://git.kernel.org/netdev/net-next/c/a32f3e9d1ed1
-  - [net-next,v7,3/4] selftests: net: test SO_PRIORITY ancillary data with cmsg_sender
-    https://git.kernel.org/netdev/net-next/c/cda7d5abe089
-  - [net-next,v7,4/4] sock: Introduce SO_RCVPRIORITY socket option
-    (no matching commit)
+This issue was found with the help of Coccinelle.
 
-You are awesome, thank you!
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Signed-off-by: Zhang Kunbo <zhangkunbo@huawei.com>
+---
+ arch/sparc/kernel/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 50a0927a84a6..ddac216a2aff 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -932,7 +932,7 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ {
+ 	const struct pci_slot_names {
+ 		u32	slot_mask;
+-		char	names[0];
++		char	names[];
+ 	} *prop;
+ 	const char *sp;
+ 	int len, i;
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
