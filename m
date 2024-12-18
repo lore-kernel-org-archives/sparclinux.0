@@ -1,85 +1,98 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f175.google.com (mail-il1-f175.google.com [209.85.166.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7A32156861;
-	Wed, 18 Dec 2024 07:53:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD19819CC24;
+	Wed, 18 Dec 2024 11:58:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734508402; cv=none; b=mudg8LZhKeh7cHDWF2Y0fPWkY9iPwcZLUMGHXWMPzYCDWnQ/mPHRHY5IZosOTqFa2qMLMDHZLX3YX12BNoScYlPzLl1J3FT9rUdcwC/F0KzVaEF3W+lVsBjfmBMc37CBHyhoS4J1PkpRLXF1QzBfu6ehRGA9dVIJH9EvNg0L2zY=
+	t=1734523082; cv=none; b=fDvSQxlxleRUN8M0zGeE5GodINO80LrpGEYmYBGnhpgsG9GbOGxj3Qo7TGr3w70dfMNKkGiksqAKIjZAp/E/68YgJkg1b4j0qV9PPYydcemVWijTBn7IxyCe4DXW1TSFgFPPwS3zJ4v5Mo2lTe60VmjeAF+Y6m2adbTF/UXKD00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734508402; c=relaxed/simple;
-	bh=IXqf6FsGwTidhRHKmnRBoVE5TYiqlc76PRtEg9eaKG8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=lGu2o+H4nT25snaMawheD1ejjxFOjpy/E5HeAkkJMLmokq9FyMoUeoRadwFiM5D7O+WVSeWbm1MJjXOOHDlQ0r4aL/7+ZuZEEMcJGJUs2++GIwsCnG/HA01j33Lj5JwlB2bHKo8eC28qXoUZ28keazwUxC0DZlDVPsA8IG1Hqts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.163])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YCm8R48hWz21nZB;
-	Wed, 18 Dec 2024 15:51:19 +0800 (CST)
-Received: from kwepemh100007.china.huawei.com (unknown [7.202.181.92])
-	by mail.maildlp.com (Postfix) with ESMTPS id D6045180041;
-	Wed, 18 Dec 2024 15:53:11 +0800 (CST)
-Received: from huawei.com (10.67.175.69) by kwepemh100007.china.huawei.com
- (7.202.181.92) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 18 Dec
- 2024 15:53:11 +0800
-From: Zhang Kunbo <zhangkunbo@huawei.com>
-To: <davem@davemloft.net>, <andreas@gaisler.com>, <rdunlap@infradead.org>,
-	<zhangkunbo@huawei.com>, <bhelgaas@google.com>
-CC: <sparclinux@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<chris.zjh@huawei.com>, <liaochang1@huawei.com>
-Subject: [PATCH -next] sparc: replace zero-length array with flexible-array member
-Date: Wed, 18 Dec 2024 07:44:39 +0000
-Message-ID: <20241218074439.3271397-1-zhangkunbo@huawei.com>
-X-Mailer: git-send-email 2.34.1
+	s=arc-20240116; t=1734523082; c=relaxed/simple;
+	bh=oDanH9KbcyqaAgrkfJgfC45F72HSRGgPBJUOe3njE2M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=F/fBTJExOEeRWcohHqqTtg/KFM/qvQBvMCP+2+cg/eAlm7ccESwv2WVsmvz1x8gmLCds0M6O9H2tFjCLQ0mL2oE0z5UKn2XdbjAWLob6yTHXfHKv+PMHrxUzLhJ4Or0JbUaVFTKu66xR7i/tq7YNa3rtx1VF69VTfPDQ9dq4yA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aZdD5dzo; arc=none smtp.client-ip=209.85.166.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aZdD5dzo"
+Received: by mail-il1-f175.google.com with SMTP id e9e14a558f8ab-3a7d7db4d89so18301755ab.1;
+        Wed, 18 Dec 2024 03:58:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1734523080; x=1735127880; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oDanH9KbcyqaAgrkfJgfC45F72HSRGgPBJUOe3njE2M=;
+        b=aZdD5dzoKsp4l74jP/zOEEKWca3RRWi1ccYAWIjMC9+4pf4tKThgkO4Pua+8RYaA3c
+         icoR8gTCSY0KAXXK7g5xRPAH/fiEG7MhEIBh8tF0MF/grY4aD6TykN096IM7VAeMh/h0
+         wQonvnb85qM3NT8+aOtCnoPWoctqVz2CfERLHr3a4cZdNdPJshRGEWPNDdPw1bcgma9w
+         mFplRaMt1688yscCalOu50+nLeIUt0f4bPUmKsiG9Y6rgbjRlZVFg9RijQtGkBhQ+PjN
+         AfJQlUFjkxophLqHGT+HUGR0WlfjAMGD54peyQXMJhCxbcJnUYYEBjknrT0vARBoW4rv
+         qQOQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734523080; x=1735127880;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=oDanH9KbcyqaAgrkfJgfC45F72HSRGgPBJUOe3njE2M=;
+        b=qEvotuc9nIUb9sM09Xia83Juv8GtteihtxAN+LFtZLul/TXPlGsGbeOrExC7KjCcGj
+         Zanv62WTI6x9P7zBn4+Jrrqiii998bEhe+1SlSztnc1CDBqieVAzUdqvdXu+HHZ1tlRn
+         Id2+gr/5MEvm2Cwk6mUa6F0QvwfWi8H30Vmb7U4rXImVV0QkRifT23wyjmbaIKVURfzH
+         tjfw7A4wCbTR1lmQUtG2BqJhRTvMKXsPdycmUUf0ultcIcQdrIHT+9kvZQsrOOkfKfvg
+         EHyTcmNuXuSDxF804G3g8bkQ8dfUECJvGTH/d4HdoiKePulRfsrq0KEDeWn/lOkAucbT
+         GORg==
+X-Forwarded-Encrypted: i=1; AJvYcCUuIB/lqbYWQaRHksfMAE4zzV8y8K13hvRNT/bvunJQilbpmn/poLwkhOE4/ae9Oe16aMX7el6qsg86OQ==@vger.kernel.org, AJvYcCVjR5WOuB6eUVEPyQ5Hm8mUu02GjUs1NnAicxCbkDz4r4BeTbiKJVna0l5JLCY2WsIJMLc3xUVBBy+NcQ==@vger.kernel.org, AJvYcCW5sJQBwl8oHKk11LMgUSHSjCR6EkgDCOxBhZ4BHqxWwnPp2EjZ3A956eqcIopM5yW2119EPAVdPAVDqG/SRBld@vger.kernel.org, AJvYcCWPgpPiGie1AROjORv2kfXvxGu0OQe5vuG2p28jnbbqEWnIIB4rnhbzrtO8FTcqGILDUttymNUmlY5uWM29@vger.kernel.org, AJvYcCWRmemiWENLHQQiCECQvIepDJGW7zuWVnDwYNtLQ6lioq4/o9ZUoxlBbKkaVsar5zuVQkoed2hIwpZ/Og==@vger.kernel.org, AJvYcCXv1T2SXyLdwq/dgH+H199j7rP4TvT3hQiPIA0iW3pvlcsY9NS1PldRtPId2r0QGPEmcBb/I5NON0QA@vger.kernel.org, AJvYcCXzlI0aigyxLCkgE/XXesHPK+XGHEcG5z+JYi6GztF7h3+7ukLtWX8GjZSNsdqX3XNbqS2u7WDrS2G8rg==@vger.kernel.org
+X-Gm-Message-State: AOJu0YycX/t3HNg2icVnYeVQuTZIvOWkePGPh/WcNBb1OMlmSN3IrUcv
+	ZbXvPUL2eJ0TaHsYJwfFzhC/SwMwDDVJye++TlkfUCLjRdbD9lxfDRQYc7TjChbH1UT+At+nMlz
+	R6nAzwYfLtzbMW+53DS3bV1rNeTs=
+X-Gm-Gg: ASbGnculHUIHafJDWNpbWTmd9B2SwdArswVdgRCIUJEa+B4HkDXXm9yyM8t9TdXtEbx
+	aK6OW/u3W7UARieyTYsCbi+dSdhikBxM3szkMvbfFQIvjJlD88KanxNYRb2+rgwfOnO/luKc=
+X-Google-Smtp-Source: AGHT+IE9XVHYAxxlYi/lIqkTbCEk29pY3s/JbrTHqng5uSXtp2yGtDmOz0gqvTFlowYDieODZLuKDePCSd4DCR7eu4U=
+X-Received: by 2002:a05:6e02:1565:b0:3a7:8720:9deb with SMTP id
+ e9e14a558f8ab-3bdc1b288c8mr17567595ab.11.1734523079863; Wed, 18 Dec 2024
+ 03:57:59 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- kwepemh100007.china.huawei.com (7.202.181.92)
+References: <20241213084457.45120-1-annaemesenyiri@gmail.com>
+ <20241213084457.45120-5-annaemesenyiri@gmail.com> <20241216182001.557e2c19@kernel.org>
+In-Reply-To: <20241216182001.557e2c19@kernel.org>
+From: Anna Nyiri <annaemesenyiri@gmail.com>
+Date: Wed, 18 Dec 2024 12:57:49 +0100
+Message-ID: <CAKm6_RsVpJjA2uHMJQO=5X-GJthkNnHJS=qHbiM2wy0AdADRhg@mail.gmail.com>
+Subject: Re: [PATCH net-next v7 4/4] sock: Introduce SO_RCVPRIORITY socket option
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, fejes@inf.elte.hu, edumazet@google.com, 
+	pabeni@redhat.com, willemb@google.com, idosch@idosch.org, horms@kernel.org, 
+	dsahern@kernel.org, linux-can@vger.kernel.org, socketcan@hartkopp.net, 
+	mkl@pengutronix.de, linux-kselftest@vger.kernel.org, shuah@kernel.org, 
+	tsbogend@alpha.franken.de, kaiyuanz@google.com, 
+	James.Bottomley@hansenpartnership.com, richard.henderson@linaro.org, 
+	arnd@arndb.de, almasrymina@google.com, asml.silence@gmail.com, 
+	linux-mips@vger.kernel.org, andreas@gaisler.com, mattst88@gmail.com, 
+	kerneljasonxing@gmail.com, sparclinux@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, deller@gmx.de, 
+	vadim.fedorenko@linux.dev, linux-parisc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The current codebase makes use of the zero-length array language
-extension to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1],
-introduced in C99:
+Jakub Kicinski <kuba@kernel.org> ezt =C3=ADrta (id=C5=91pont: 2024. dec. 17=
+., K, 3:20):
+>
+> On Fri, 13 Dec 2024 09:44:57 +0100 Anna Emese Nyiri wrote:
+> > Add new socket option, SO_RCVPRIORITY, to include SO_PRIORITY in the
+> > ancillary data returned by recvmsg().
+> > This is analogous to the existing support for SO_RCVMARK,
+> > as implemented in commit <6fd1d51cfa253>
+> > ("net: SO_RCVMARK socket option for SO_MARK with recvmsg()").
+>
+> Could you follow up with a test? The functionality is pretty
+> straightforward but it'd nonetheless be good to exercise it,
+> even if it's a trivial C program which sends a UDP packet to
+> itself over loopback?
 
-struct foo {
-	int stuff;
-	struct boo array[];
-};
-
-By making use of the mechanism above, we will get a compiler warning
-in case the flexible array does not occur last, which is beneficial
-to cultivate a high-quality code.[2]
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Signed-off-by: Zhang Kunbo <zhangkunbo@huawei.com>
----
- arch/sparc/kernel/pci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 50a0927a84a6..ddac216a2aff 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -932,7 +932,7 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
- {
- 	const struct pci_slot_names {
- 		u32	slot_mask;
--		char	names[0];
-+		char	names[];
- 	} *prop;
- 	const char *sp;
- 	int len, i;
--- 
-2.34.1
-
+Sure, I will send the test after the Christmas holidays.
