@@ -1,94 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B24C327735;
-	Mon, 23 Dec 2024 07:31:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D5017E473;
+	Mon, 23 Dec 2024 07:32:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734939061; cv=none; b=Q+aVccCRnfyQwoF1jwyurHa17OdnZ9NjvXJDNOy9YQyV77h4DxEah9c8lmEhz/XqveXoTop3EepqvHB/0GlWwtlhtdLGD+INRygN9gafC1EslQPbiJ9e9FW96866ach+HZ+xbbGoJJt2rXwR4zL7oL+MpH0BnF3QGE/+i8BDzT8=
+	t=1734939134; cv=none; b=C3V1k0A54CTuiXsy3u8WkQrmNkb1ykfYjGXJtl+HDn2/GdrE5A30fgDwWe7CGhUspIvIBFIQedte4VFH/k13RW6gDIWo6rGuiPCZSd3wOQ8ycGJbH6bTN+4ArldYqnpwFch7WREEz2wh8u1L9FI3M1KikugwuR9ksQiGEsg/Myo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734939061; c=relaxed/simple;
-	bh=Ygk6uUQxjvnjtMIv4tWwERicS++4MRefCsHhXVHUsRo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VZOjLR8mFzjAThfHaAqh3fQIrKm7MFq92wGYLUcAkHb6NtzZkzl+1sLUF64jab/tGfrMrwdmxtFfv+idAPmOoYpG+r2V7+jYKHyHxLWwJo/aercL/2bci/cZJcbPqrSOdmj8gEft9rpfC37NNpP2M5T381lFVYwET0MjB34MviE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UwUNEdpV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734939134; c=relaxed/simple;
+	bh=OHoKVoEfq+gvl63nyXxm0Fs3Th2pjhxHONc5vMgjP0s=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KeWFbkF6OBjvE4Wwm5drn7OEGmbID8CvsmVYPOa9LKe/TCGqDN5ACEqAVhyNhO72LPHVgW7fQiwpRRf8xcF7ouu7iF3AymDaplextW3pVbIi3yjKR9pFhXPdownxC0/MBWtFwFjiEuELvLONl+2xLc/5b0mkr0tNz8WaLKFz0WU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BP22g1SQ; arc=none smtp.client-ip=209.85.128.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UwUNEdpV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BFCC4CED4;
-	Mon, 23 Dec 2024 07:30:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1734939060;
-	bh=Ygk6uUQxjvnjtMIv4tWwERicS++4MRefCsHhXVHUsRo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UwUNEdpVksa3VeJ8fBbfU5ZM7cveMPPtJwrh5dBwK0gEoqVYDdF0NbABXvUPIJWBw
-	 xCqUqJSqJL6xtKZr6qQ7jAhuhWd71QCPd5TxS1HecY9J/hvR45WyJpacDQHEAg8Nxb
-	 2n3UaUf++ISc2NX01EI862mzeWJQXkc5aNu91d3n3AsdRCNSN+HKnHjEJRyLACr5nh
-	 BOO26q4g07K6IBNRx5aV7gSAqtRZNsSUNg+1F39wB4XcAaYzRqeyumIAvWSZFAj19D
-	 3ux6IHIQ91x+ZZx51WabplqJyaEEdtdtBHP6L6K1CKNx6HfC+4KG2P1qz8+vVZVY4x
-	 5cGLrZr9Tq1ag==
-Date: Mon, 23 Dec 2024 08:30:57 +0100
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
-To: Zijun Hu <zijun_hu@icloud.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, 
-	James Bottomley <James.Bottomley@hansenpartnership.com>, Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas@t-8ch.de>, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-sound@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-cxl@vger.kernel.org, 
-	linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org, linux-efi@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linux-mediatek@lists.infradead.org, linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org, 
-	linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-usb@vger.kernel.org, linux-serial@vger.kernel.org, netdev@vger.kernel.org, 
-	Zijun Hu <quic_zijuhu@quicinc.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Subject: Re: [PATCH v4 04/11] driver core: Constify API device_find_child()
- then adapt for various usages
-Message-ID: <mrix3q75mawxszrp25yzpsrvenlxx7bihfzyfdcnp7egubvxpf@lzp7fcaxwquc>
-References: <20241211-const_dfc_done-v4-0-583cc60329df@quicinc.com>
- <20241211-const_dfc_done-v4-4-583cc60329df@quicinc.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BP22g1SQ"
+Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-6eff4f0d627so33673057b3.1;
+        Sun, 22 Dec 2024 23:32:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1734939132; x=1735543932; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=0v6aG1YFkKVxPZgrKFkppCnD7setaclMAdKcShBz7Ms=;
+        b=BP22g1SQZbY9i1od9T1kbvclOQnH3UsBl9Mka2uHPJPhZs7CGx7onXRvo88+2mgqNW
+         g3K3qwzYPZKbVJaDCQOjTCeD5ldUP+p+eAknIbqtARokWH6vsYF1vX/C8s922zGNViBO
+         py1wDEqnHzNuHxuuTcyCCGscnoLR1ZwpoiWbfUdTTWt2Tw2x/06i9iWDoNqpEZ6qnfrT
+         DmRyhhJr89bPZKMhIfLRJwrtDJ2pFmMbJCIWov4OK0emlTuDCOlt4MycWH47ICOHLNKX
+         Ps/Bra3ALoIPlLWex5UzdG5yBMZ/4aJ7Rz7A+VehvZtjfa++2zUjc6f42eab+eMeumIk
+         hJQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734939132; x=1735543932;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=0v6aG1YFkKVxPZgrKFkppCnD7setaclMAdKcShBz7Ms=;
+        b=X9Y1Z9Qi2cTcN2++HNHF0ZNFZRFV+qiM2xtBgqJxSr/ARtq9PkzqjCaYWsGlUJvtJx
+         2uhLwMyGxP/Wb3eVZuE+CZsh1u4YLudAQ5wiQDRVSS7mOGHZ0NEdOr3AQtzcRoeNQ1qG
+         +SGqWT/gSyUOEUhH8JxF+dZiaEA9e33pcmujqjJhCYVjfr8N/lF1f6BF+MUua/iiskYA
+         RGSitURlTZAZ2GNVxrEke+ddBzw9DpBxdsrcODimznDOlBtTkW13+awkOG6C34oVblF9
+         33GvZpu8A2Y+N+MQkUfe7uWnuxR/fwkUCpE0Pox0iVePxiQ1E5AHhS8fWMVFniCxoXQi
+         vjhg==
+X-Forwarded-Encrypted: i=1; AJvYcCU0gUzov8039tC6llGwkPckrSz06aWG4/zzZw86VUQfcVuv1pqCcq9hD7nVq/p3HfJM48ykseCBzbs=@vger.kernel.org, AJvYcCU9tax9EQ4iLlAr9lKPq1cP+yOz/KyCuERxxC95zQSTgIipdCsXuLVExUN5gNHviutdNScQnOqFO9yjnA==@vger.kernel.org, AJvYcCUMG8ACjtWY4lA5mmFuoMm4VQT2qeBPkAEg3wzqrISO7WcUiY0bH70fyg493Ctt81n+19oKNVlE/wBA30Y=@vger.kernel.org, AJvYcCUcxdMRlqWc2gWBG3WEnuCPsccHiIM9DV6NsanKb14I8uiBOr6p51PBjSibpAigPquhjy3/XgAwq4N2@vger.kernel.org, AJvYcCUvBZYEufWrncCeJuGQfXDFluLbMWLHn+RL5hsy8QZ++W4q4smrcsSCYtVJLTGuEUEpVaSILZ4WEhS4Deam@vger.kernel.org, AJvYcCV/S3DFRNc1G+aRSYwLd+PAkGMyjFFTzleUHRIL+iBBHakVQkajRXWdR6+Hg+KZw7/QbiP32QIFeafq/ufS@vger.kernel.org, AJvYcCVEDGcRO4DcpIBIEx3SmHK85Ba6wEPx3qZ9GOA/wLAGW//feGj/8+HCjS/fw2Zn07LBt9AahsDA9mPs/A==@vger.kernel.org, AJvYcCVaUsfHj5FAAtSoQBJn9a1xHrHIJQHI3+nIf81n8cd8bfkI3hJHGZEsjtBMMdIrRIR6OolgtQwwhSaPvg==@vger.kernel.org, AJvYcCW+R5duvAk+mkTVcOrqZpUb3Uige0W6XK1JP7QCZCcCfAaBma/wNrFAPzB6w1OSpXiTg4AXKoep9N+ARanUK5I=@vger.kernel.org, AJvYcCWAwlzq3LM0ioytEJvWoPV6vjsTUq7z7Veu2ljWFluOvVB3++Zz0tl+RLTpCWLUX+VbK3zl5QOx4AgiUg==@vger.kernel.org, AJvYcCWWci2QX4PvBsf06e9b3Ye5s51Ag352ZAzWVjQDBE9/mxeHRY6eabit0/zt/wVDZLyjT4hJW2my6MIcqw==@vger.kernel.org, AJvYcCWbpyJGeKVUulH5t6cRXti41VJ9KoFhzPhpC5Q9E0Z9+w0UlSC/GAqdDsxy72zrtVtnHKRyzRZsCfY7@vger.kernel.org, AJvYcCX9EbXXRiQiS/vjgsdbFXU4yFWqtugccQr+YIuZyYMX14H+aCkouFTyvKt4j6fsWaCcIwBRe0qbVsU=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyEY7S8Xm9nhlPmnKYmk1GVw/obRqTr8r/eKAcFAURue957d6kE
+	yltRt9EEOWedqFFY03TnSBC5gLGogI/Lho60KN0V4uWTj58O2biA+uVj0phlDIEhk6I/OondMDk
+	vp7gze5RB7Q7oTaFipK+noaMTx3A=
+X-Gm-Gg: ASbGncsRWRfUa+x3zY+Iez1jWv6JqvDfSlFJA+xH+ux2OmITjlrNwiMb23B6ZPrVH9b
+	z+DCfU8Tuou3JiZPQS5g9jfpkS6E6tpYAqes4NHM=
+X-Google-Smtp-Source: AGHT+IE9Zx6rrSxmo/TfVMJEMfCSEvv5kTOAJj2WU/ZWv6yREWR2EgA4NDWJv08ZAUMMHtBOTiCxaj5H+lZ0CIJRFqw=
+X-Received: by 2002:a05:690c:6e0c:b0:6ef:6b56:fb46 with SMTP id
+ 00721157ae682-6f3f824cb08mr87351047b3.40.1734939131915; Sun, 22 Dec 2024
+ 23:32:11 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2ziq55rb3fq2bwkl"
-Content-Disposition: inline
-In-Reply-To: <20241211-const_dfc_done-v4-4-583cc60329df@quicinc.com>
+References: <20241222111537.2720303-1-guoweikang.kernel@gmail.com> <Z2kNTjO8hXzN66bX@kernel.org>
+In-Reply-To: <Z2kNTjO8hXzN66bX@kernel.org>
+From: Weikang Guo <guoweikang.kernel@gmail.com>
+Date: Mon, 23 Dec 2024 15:32:01 +0800
+Message-ID: <CAOm6qnkRUMnVGj7tnem822nRpJ8R6kFVf6B4W9MhMSBQY8X7Kg@mail.gmail.com>
+Subject: Re: [PATCH v7] mm/memblock: Add memblock_alloc_or_panic interface
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Dennis Zhou <dennis@kernel.org>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux.com>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Sam Creasey <sammy@sammy.net>, 
+	Huacai Chen <chenhuacai@kernel.org>, Will Deacon <will@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Oreoluwa Babatunde <quic_obabatun@quicinc.com>, 
+	rafael.j.wysocki@intel.com, Palmer Dabbelt <palmer@rivosinc.com>, 
+	Hanjun Guo <guohanjun@huawei.com>, Easwar Hariharan <eahariha@linux.microsoft.com>, 
+	Johannes Berg <johannes.berg@intel.com>, Ingo Molnar <mingo@kernel.org>, 
+	Dave Hansen <dave.hansen@intel.com>, Christian Brauner <brauner@kernel.org>, 
+	KP Singh <kpsingh@kernel.org>, Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
+	WANG Xuerui <kernel@xen0n.name>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
+	Helge Deller <deller@gmx.de>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Geoff Levand <geoff@infradead.org>, 
+	Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Andrey Ryabinin <ryabinin.a.a@gmail.com>, 
+	Alexander Potapenko <glider@google.com>, Andrey Konovalov <andreyknvl@gmail.com>, 
+	Dmitry Vyukov <dvyukov@google.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, 
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, linux-alpha@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, kasan-dev@googlegroups.com, 
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org, 
+	linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, 
+	linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mm@kvack.org, linux-pm@vger.kernel.org, 
+	Xi Ruoyao <xry111@xry111.site>
+Content-Type: text/plain; charset="UTF-8"
+
+Mike Rapoport <rppt@kernel.org> wrote on Monday 23 December 2024 at 15:12
+>
+> On Sun, Dec 22, 2024 at 07:15:37PM +0800, Guo Weikang wrote:
+> > Before SLUB initialization, various subsystems used memblock_alloc to
+> > allocate memory. In most cases, when memory allocation fails, an immediate
+> > panic is required. To simplify this behavior and reduce repetitive checks,
+> > introduce `memblock_alloc_or_panic`. This function ensures that memory
+> > allocation failures result in a panic automatically, improving code
+> > readability and consistency across subsystems that require this behavior.
+> >
+> > Changelog:
+> > ----------
+> > v1: initial version
+> > v2: add __memblock_alloc_or_panic support panic output caller
+> > v3: panic output phys_addr_t use printk's %pap
+> > v4: make __memblock_alloc_or_panic out-of-line, move to memblock.c
+> > v6: Fix CI compile error
+> > Links to CI: https://lore.kernel.org/oe-kbuild-all/202412221000.r1NzXJUO-lkp@intel.com/
+> > v6: Fix CI compile warinigs
+> > Links to CI: https://lore.kernel.org/oe-kbuild-all/202412221259.JuGNAUCq-lkp@intel.com/
+> > v7: add chagelog and adjust function declaration alignment format
+> > ----------
+> >
+> > Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
+> > Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+> > Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> > Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> > Acked-by: Xi Ruoyao <xry111@xry111.site>
+>
+> If people commented on your patch it does not mean you should add
+> Reviewed-by or Acked-by tags for them. Wait for explicit tags from the
+> reviewers.
+
+First of all, thank you for your reminder and patience. In fact, this
+is the first time I received a patch discussion when submitting a
+patch.
+About Reviewed-by or Acked-by tags, I will not add it myself in the
+future. Regarding this patch, do I need to provide a new patch to
+update it? Or will you modify it?  Looking forward to your reply
+
+>
+> And don't respin that often, "Reviewers are busy people and may not get to
+> your patch right away" [1].
+>
+
+OK, I will be more patient and update after confirming that there are
+no more comments.
+
+> [1] https://docs.kernel.org/process/submitting-patches.html
+>
+>
+> --
+> Sincerely yours,
+> Mike.
 
 
---2ziq55rb3fq2bwkl
-Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v4 04/11] driver core: Constify API device_find_child()
- then adapt for various usages
-MIME-Version: 1.0
-
-Hello,
-
-On Wed, Dec 11, 2024 at 08:08:06AM +0800, Zijun Hu wrote:
->  drivers/pwm/core.c                     |  2 +-
-
-Acked-by: Uwe Kleine-K=F6nig <ukleinek@kernel.org> # for drivers/pwm
-
-Best regards
-Uwe
-
---2ziq55rb3fq2bwkl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmdpEa8ACgkQj4D7WH0S
-/k4bUAgAh9LrZmd2eRZtQQDD7RKfHIeOmRCpwZcKO4VAM76QCcEzfVerUpZH2Emh
-tkSaCY38C9pM9hE0HsXsYV6zg/MBAVCwiVGbn+rgTAVtuiDiI8ygmP7cdzKnk7Ke
-+l0xcXunQPwe3UHEzAvvPiu57dMcQ6h8732mqwqWrRh43gPAWdpAgktFqFLPCRQf
-1sOslGEFNX866KAUqB1jjxQSZjq0v0dXyd20GSu7yjzm7s1JzRG+msGCSSxv0vRT
-SWDRWVHepQ1AT5THBbY6xaXnaiwoTbnv6NCw4WFz8OHbBtIb6Fm7UUE1PNTnZM0t
-qDtxzk9rG0eZFX23d+rXwSg2JlM3VQ==
-=zwtk
------END PGP SIGNATURE-----
-
---2ziq55rb3fq2bwkl--
+--
+Best regards,
+Guo
