@@ -1,151 +1,70 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0158F1E0087;
-	Fri,  3 Jan 2025 13:27:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 802641C1F13;
+	Fri,  3 Jan 2025 21:31:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735910835; cv=none; b=oL/lGoh2ruLuwVpZptocCsZgMuONA2u6pjUb+TeT0rOryGnCqXEDguEc4fLsXwKE44vKGCLiM3ykI8bAVepMgaaYSjQgNxncsAqF33W4rf/tLRi2yWBI3JlvbT78HzWutkjSKESPB+X+C1cL/PJ8A5McAx19AkGluwlsbiUqNK8=
+	t=1735939897; cv=none; b=cc79j3GXVe+L0PPfdw8UjQwV+wOZ+Dfww/lOPHsjPEkJMYqD3i4DRDduSDkTh2PWdVjIjzjrNeGWP3WFNhxiCBoKdopCzoDF6GtCsw8RWJdVcC0Lm4HGJ2jZj0Qnf7vCnV1oB4cfIpCLEUWt3dxb546cxJmQexN/FsONnT0gBiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735910835; c=relaxed/simple;
-	bh=+8G2mn5XjC+6BvOgDwIaLzTXtQekFe6X8F8stkKVxBA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=LG7CGOIXbrUqsTszv/QcpZXN9OTjXmXBOHS7d+GJKPIZ+E0ge2vUR/IBlizey18lsG4/Vr/OH7YCGKOUjlfmmafDjIAoHfRmRYv6CtD6JWKgOxzf0qSK6Op0Nwbel3HJS2y2Z/eEsa7H4nCd98NHOgYl+4C5oii9YttFLyrqgdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 330911480;
-	Fri,  3 Jan 2025 05:27:39 -0800 (PST)
-Received: from [10.44.160.93] (e126510-lin.lund.arm.com [10.44.160.93])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CB2C23F673;
-	Fri,  3 Jan 2025 05:27:02 -0800 (PST)
-Message-ID: <d9a14211-4bbd-4fb6-ba87-a555a40bb67a@arm.com>
-Date: Fri, 3 Jan 2025 14:27:00 +0100
+	s=arc-20240116; t=1735939897; c=relaxed/simple;
+	bh=nRKRLieoD4MJzJcW6U24tBShsNyJKPnuSiQ2LZElBUc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qVaIv1O+rK9fdVhNqT7Qe6UyP4k6JYhk8ikMCkpcKfLIPHHgM0nPCbizdahu18AA/CXO9VbMn3yxkt6x3zo8dzVEGUKRVKRkyxQ6mhuqWfwE3x2g8qQ2G6DhZffSQ79Mey+EFMePLxzWeiCKEdESJ4JD+2y83YchUvNkkb3XrNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qn3C9Y4n; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qn3C9Y4n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 769EFC4CECE;
+	Fri,  3 Jan 2025 21:31:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1735939896;
+	bh=nRKRLieoD4MJzJcW6U24tBShsNyJKPnuSiQ2LZElBUc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Qn3C9Y4nUaekskAFuIWZXKs03f8Y6LMsi2cLlcWw4gErvh1XbC9UVK2IkSMzpF5sy
+	 KYncJ4QYHrVFGTu/WjvDlrS3AR+4CMDtv1+tizd0KV7hg4df0t+4NZjJSQbdinuNA1
+	 RfXP1Heplc4rd+ipHrZe1+RPvC13KTsaPKPd9rybPcX9Nt9S4gfNglF/xLh92CCTza
+	 Ws0+KTXMry1M3Zsa4C5+TRmstRHl767r16YXo9OZKxobmVAZM+ontmXAfKhzUzBj2j
+	 e2dJX3DgUBPVZlwjgCHRRVMYtalo4pS4P3eLp8W9tqjwg1msM+4iG/+fmJHlqvEZO+
+	 0UFhhdqDhFOoQ==
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 0/3] PCI: Simplify bus range parsing
+Date: Fri,  3 Jan 2025 15:31:26 -0600
+Message-Id: <20250103213129.5182-1-helgaas@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 10/15] riscv: pgtable: move pagetable_dtor() to
- __tlb_remove_table()
-To: Qi Zheng <zhengqi.arch@bytedance.com>, peterz@infradead.org
-Cc: agordeev@linux.ibm.com, palmer@dabbelt.com, tglx@linutronix.de,
- david@redhat.com, jannh@google.com, hughd@google.com, yuzhao@google.com,
- willy@infradead.org, muchun.song@linux.dev, vbabka@kernel.org,
- lorenzo.stoakes@oracle.com, akpm@linux-foundation.org, rientjes@google.com,
- vishal.moola@gmail.com, arnd@arndb.de, will@kernel.org,
- aneesh.kumar@kernel.org, npiggin@gmail.com, dave.hansen@linux.intel.com,
- rppt@kernel.org, ryan.roberts@arm.com, linux-mm@kvack.org,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org,
- linux-arch@vger.kernel.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
- linux-um@lists.infradead.org
-References: <cover.1735549103.git.zhengqi.arch@bytedance.com>
- <0e8f0b3835c15e99145e0006ac1020ae45a2b166.1735549103.git.zhengqi.arch@bytedance.com>
- <1b09335c-f0b6-4ccb-9800-5fb22f7e8083@arm.com>
- <ebce5e05-5e46-4c6e-94a0-bcf3655a862b@bytedance.com>
- <7e2c26c8-f5df-4833-a93f-3409b00b58fd@arm.com>
- <e9fe97d4-99d5-443e-b722-43903655a76e@bytedance.com>
- <31e1a033-00a7-4953-81e7-0caedd0227a9@bytedance.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <31e1a033-00a7-4953-81e7-0caedd0227a9@bytedance.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On 03/01/2025 10:35, Qi Zheng wrote:
-> On 2025/1/3 17:13, Qi Zheng wrote:
->> On 2025/1/3 16:02, Kevin Brodsky wrote:
->>> On 03/01/2025 04:48, Qi Zheng wrote:
->>>> [...]
->>>>
->>>> In __tlb_batch_free_encoded_pages(), we can indeed detect PageTable()
->>>> and call pagetable_dtor() to dtor the page table pages.
->>>> But __tlb_batch_free_encoded_pages() is also used to free normal pages
->>>> (not page table pages), so I don't want to add overhead there.
->>>
->>> Interesting, can a tlb batch refer to pages than are not PTPs then?
->>
->> Yes, you can see the caller of __tlb_remove_folio_pages() or
->> tlb_remove_page_size().
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-I had a brief look but clearly not a good enough one! I hadn't realised
-that "table" in tlb_remove_table() means PTP, while "page" in
-tlb_remove_page() can mean any page, and it's making more sense now.
+Unexport of_pci_parse_bus_range() since it's only used in drivers/pci/of.c.
 
-[...]
+Drop bus range parameters from devm_of_pci_get_host_bridge_resources()
+since they're always the same values.
 
->>
->> For arm, the call to pagetable_dtor() is indeed missed in the
->> non-MMU_GATHER_RCU_TABLE_FREE case. This needs to be fixed. But we
->> can't fix this by adding pagetable_dtor() to tlb_remove_table(),
->> because some architectures call tlb_remove_table() but don't support
->> page table statistics, like sparc.
+Update a sparc comment that referred to of_pci_get_host_bridge_resources(),
+which no longer exists.
 
-When I investigated this for my own series, I found that the only case
-where ctor/dtor are not called for page-sized page tables is 32-bit
-sparc (see table at the end of [1]). However only 64-bit sparc makes use
-of tlb_remove_table() (at PTE level, where ctor/dtor are already called).
+Bjorn Helgaas (3):
+  PCI: Unexport of_pci_parse_bus_range()
+  PCI: of: Simplify bus range parsing
+  sparc/PCI: Update reference to devm_of_pci_get_host_bridge_resources()
 
-So really calling pagetable_dtor() from tlb_remove_table() in the
-non-MMU_GATHER_TABLE_FREE case seems to be the obvious thing to do.
+ arch/sparc/kernel/pci_common.c |  2 +-
+ drivers/pci/of.c               | 13 +++++--------
+ drivers/pci/pci.h              |  7 -------
+ 3 files changed, 6 insertions(+), 16 deletions(-)
 
-Once this is done, we should be able to replace all those confusing
-calls to tlb_remove_page() on PTPs with tlb_remove_table() and remove
-the explicit call to pagetable_dtor(). AIUI this is essentially what
-Peter suggested on v3 [2].
+-- 
+2.34.1
 
-[1]
-https://lore.kernel.org/linux-mm/20241219164425.2277022-1-kevin.brodsky@arm.com/
-[2]
-https://lore.kernel.org/linux-mm/20250103111457.GC22934@noisy.programming.kicks-ass.net/
-
-[...]
-
-> Or can we just not let tlb_remove_table() fall back to
-> tlb_remove_page()? Like the following:
->
-> diff --git a/include/asm-generic/tlb.h b/include/asm-generic/tlb.h
-> index a59205863f431..354ffaa4bd120 100644
-> --- a/include/asm-generic/tlb.h
-> +++ b/include/asm-generic/tlb.h
-> @@ -195,8 +195,6 @@
->   *  various ptep_get_and_clear() functions.
->   */
->
-> -#ifdef CONFIG_MMU_GATHER_TABLE_FREE
-> -
->  struct mmu_table_batch {
->  #ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE
->         struct rcu_head         rcu;
-> @@ -219,16 +217,6 @@ static inline void __tlb_remove_table(void *table)
->
->  extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
->
-> -#else /* !CONFIG_MMU_GATHER_HAVE_TABLE_FREE */
-> -
-> -/*
-> - * Without MMU_GATHER_TABLE_FREE the architecture is assumed to have
-> page based
-> - * page directories and we can use the normal page batching to free
-> them.
-> - */
-> -#define tlb_remove_table(tlb, page) tlb_remove_page((tlb), (page))
-
-We still need a different implementation of tlb_remove_table() in this
-case. We could define it inline here:
-
-static inline void tlb_remove_table(struct mmu_gather *tlb, void *table)
-{
-    struct page *page = table;
-
-    pagetable_dtor(page_ptdesc(page));
-    tlb_remove_page(page);
-}
-
-- Kevin
