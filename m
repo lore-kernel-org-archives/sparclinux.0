@@ -1,62 +1,61 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C11025757;
-	Sat,  4 Jan 2025 07:24:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 646FC178395;
+	Sat,  4 Jan 2025 08:39:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735975459; cv=none; b=EwttfOfonWqMXrXkjjnYBzgY3+H6RqtqDTSpmIN0USARGvPrEQpxo3cEpba3WGO9FKuj5xSTlL3DCne21h5epF8s1S7LtjaOgAxxv55iZVlnDD81CP9abFfYGnoqiB9zgR2bDb9K8yHWP+LrXrmnOnWlDe3dB7IROzYyvSC6WW0=
+	t=1735979970; cv=none; b=WRgIUbMRHbeb9J+Vl2+E3ihk9gj2OwQqCd1YlZDX6/W2a9S/Vp8LekD/sbjt9nMV4Z/1MLpTFcr9lAGVBuElCnkyihqw1RNY2kS48Ex9qhYFxs1soxuHH+x3dYMiQj+RdJsUkD5+LBY3xlbwcGd1K2Mja22b+DMcKgC9dmA/eFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735975459; c=relaxed/simple;
-	bh=1UjT/iRKOzXq0r0UbmTO4uorivqpm4Sr7r+1Xk+4lEY=;
+	s=arc-20240116; t=1735979970; c=relaxed/simple;
+	bh=KFiKINE36jaH0nS+AwFQTTrmBUsbOfqChk+/Y6EK+4Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V406HHaraQHsnPsLwvOQjULutSHRgdP2gaRHerCsrN4kIReIEIfmjGTia/Ahwxp5eY4tBPrLjHBxpZ5m1k3HGp1y+5V9/UrArPQLCVcKjKoVVvGC9YOZBMyyrZUILXVCQYa4zdSzCxgq8AafVtCLdkQknXNT5Iz8odX3kYmKAg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QroF9Y96; arc=none smtp.client-ip=192.198.163.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=M4JVCOBWTOEci0y/fUqKqIJ3BNED/AAsG15C6eg8v5MW1L9L8fEIb8I37ivbLW4DaE6BPlpEpmGouerwWJ3HyxTN+fn4mpmcPmKqID5XUrete9IZW7r7VZ9CNRCUQ9MPD3RcYZWLsagmxfL7UV/C0l2UBZLIZm06G1jotivPRIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UxUPzxND; arc=none smtp.client-ip=192.198.163.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QroF9Y96"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UxUPzxND"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1735975457; x=1767511457;
+  t=1735979969; x=1767515969;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=1UjT/iRKOzXq0r0UbmTO4uorivqpm4Sr7r+1Xk+4lEY=;
-  b=QroF9Y969Vtu/fDwVu/P8+p21C528+Du2W25dy7FsOVHePUorWt4Ikel
-   T93T8C30kRqV1cDQ3hir5QWBkoBLe01y8IajLhg3psleE/occDmMkGbwP
-   y5raPZ+jkCdoN/J5H8TAz/drvxJx4wyC+hHc/XdLj0+oPg3oIuORk3X8p
-   qgi171c0RCrCDqiNul8aJ18Zp7i3YVEGnxE0Kwbdc7WrNOAep3cCYABep
-   j/96PdyaB4222NJwNkLMFjRyRIeqzMbijielFYq3HfNBa5AiH04YZGQyu
-   fxxke8NOnKcLaWR3gIY8acmUh/dujSdg6nXyaSbCaLQhcs2FoqB0E5pD8
+  bh=KFiKINE36jaH0nS+AwFQTTrmBUsbOfqChk+/Y6EK+4Q=;
+  b=UxUPzxNDOXANERJlPxQ60Pnanlpd39/oft4eP1GVDQy3qkEROKt7tVTO
+   ONYLHmWX1L1CvO/l332ZNiuxohzu5DWN3TfLpa3uqfsqk3fGAMVf+KfvC
+   5nV+z3IlKEfrcULoRQCxA+Kf6Xvzp5ff7/AbVJDsmQdqSiVRYC1c16MNS
+   IpMKbvm8CahIVFolZybXAoutL/s+q1QR8ewlCUfueR+OaTkRiVSvCZxy2
+   bXNu20Ovbxuy6CUSTsFCf/8+fwEUHpbniFRV1M0qXlQi4MjVwpJ0Yp+GF
+   V2UQkxO7Ob2f4GCWZewpThukS0sMRasH2GX6aF6uPi0fONFwh6a98KHvy
    w==;
-X-CSE-ConnectionGUID: Fi/SC7K7Shuf7URewiFlhA==
-X-CSE-MsgGUID: X4BP4l2uRIKq2r0/pNbTsw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11304"; a="39030211"
+X-CSE-ConnectionGUID: 3HDmsdR1THCv15nu3l/pDw==
+X-CSE-MsgGUID: 4OqwcJmCTk+Uwf/FXfQPVA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11304"; a="47622214"
 X-IronPort-AV: E=Sophos;i="6.12,288,1728975600"; 
-   d="scan'208";a="39030211"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2025 23:24:14 -0800
-X-CSE-ConnectionGUID: haX6Fa4WRHmxCE6l0dJ51w==
-X-CSE-MsgGUID: m85yKfO3TMK5fXLTfQK52w==
+   d="scan'208";a="47622214"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2025 00:39:20 -0800
+X-CSE-ConnectionGUID: 3DfRyqxySrm1H+h8VrGFOg==
+X-CSE-MsgGUID: aczqzdmBSsC5MSiQ2BNrXw==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="102466775"
+X-IronPort-AV: E=Sophos;i="6.12,288,1728975600"; 
+   d="scan'208";a="102452128"
 Received: from lkp-server01.sh.intel.com (HELO d63d4d77d921) ([10.239.97.150])
-  by orviesa007.jf.intel.com with ESMTP; 03 Jan 2025 23:24:12 -0800
+  by fmviesa010.fm.intel.com with ESMTP; 04 Jan 2025 00:39:18 -0800
 Received: from kbuild by d63d4d77d921 with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1tTyW1-000Ajb-2o;
-	Sat, 04 Jan 2025 07:24:09 +0000
-Date: Sat, 4 Jan 2025 15:23:14 +0800
+	id 1tTzgi-000Alv-0g;
+	Sat, 04 Jan 2025 08:39:16 +0000
+Date: Sat, 4 Jan 2025 16:39:11 +0800
 From: kernel test robot <lkp@intel.com>
 To: Bjorn Helgaas <helgaas@kernel.org>, Rob Herring <robh@kernel.org>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	"David S . Miller" <davem@davemloft.net>,
+Cc: oe-kbuild-all@lists.linux.dev, "David S . Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
 	Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH 2/3] PCI: of: Simplify bus range parsing
-Message-ID: <202501041529.CV5Doc8D-lkp@intel.com>
+Message-ID: <202501041649.cjMwvH2B-lkp@intel.com>
 References: <20250103213129.5182-3-helgaas@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -82,43 +81,25 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Bjorn-Helgaas/PCI-Unexpor
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git next
 patch link:    https://lore.kernel.org/r/20250103213129.5182-3-helgaas%40kernel.org
 patch subject: [PATCH 2/3] PCI: of: Simplify bus range parsing
-config: i386-buildonly-randconfig-001-20250104 (https://download.01.org/0day-ci/archive/20250104/202501041529.CV5Doc8D-lkp@intel.com/config)
-compiler: clang version 19.1.3 (https://github.com/llvm/llvm-project ab51eccf88f5321e7c60591c5546b254b6afab99)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250104/202501041529.CV5Doc8D-lkp@intel.com/reproduce)
+config: i386-buildonly-randconfig-006-20250104 (https://download.01.org/0day-ci/archive/20250104/202501041649.cjMwvH2B-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250104/202501041649.cjMwvH2B-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202501041529.CV5Doc8D-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202501041649.cjMwvH2B-lkp@intel.com/
 
 All errors (new ones prefixed by >>):
 
-   In file included from drivers/pci/of.c:12:
-   In file included from include/linux/pci.h:1645:
-   In file included from include/linux/dmapool.h:14:
-   In file included from include/linux/scatterlist.h:8:
-   In file included from include/linux/mm.h:2223:
-   include/linux/vmstat.h:518:36: warning: arithmetic between different enumeration types ('enum node_stat_item' and 'enum lru_list') [-Wenum-enum-conversion]
-     518 |         return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
-         |                               ~~~~~~~~~~~ ^ ~~~
->> drivers/pci/of.c:349:43: error: use of undeclared identifier 'bus_max'; did you mean 'pid_max'?
+   drivers/pci/of.c: In function 'devm_of_pci_get_host_bridge_resources':
+>> drivers/pci/of.c:349:57: error: 'bus_max' undeclared (first use in this function)
      349 |                 if (bus_range->end > bus_range->start + bus_max)
          |                                                         ^~~~~~~
-         |                                                         pid_max
-   include/linux/pid.h:109:12: note: 'pid_max' declared here
-     109 | extern int pid_max;
-         |            ^
-   drivers/pci/of.c:350:40: error: use of undeclared identifier 'bus_max'; did you mean 'pid_max'?
-     350 |                         bus_range->end = bus_range->start + bus_max;
-         |                                                             ^~~~~~~
-         |                                                             pid_max
-   include/linux/pid.h:109:12: note: 'pid_max' declared here
-     109 | extern int pid_max;
-         |            ^
-   1 warning and 2 errors generated.
+   drivers/pci/of.c:349:57: note: each undeclared identifier is reported only once for each function it appears in
 
 
-vim +349 drivers/pci/of.c
+vim +/bus_max +349 drivers/pci/of.c
 
 4670d610d59233 Rob Herring         2018-01-17  300  
 4670d610d59233 Rob Herring         2018-01-17  301  /**
