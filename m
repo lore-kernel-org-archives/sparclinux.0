@@ -1,64 +1,64 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95311DE4C2
-	for <sparclinux@vger.kernel.org>; Mon,  6 Jan 2025 13:23:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 394341DC04A
+	for <sparclinux@vger.kernel.org>; Mon,  6 Jan 2025 13:35:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736169807; cv=none; b=rbAKrB3VR7rcujWztegnRX5uAvTQj4by+b5YILReDDr+e7RkQKFJZsVX36MMawJ/aKoAz5/XFYJpmvfLHZ/tonYOm7+b63QjxaomcPBATHrML+F9hQe91+nKbI9XhEtCEORH289NdttFl8BEaFNYI1Xg90EGT6FdbnlOLrbh68c=
+	t=1736170510; cv=none; b=UVh4O1KdovyYcuCzd7fFFwkclBEJLy5SuyrgvgNMSC7uRTWTRJyxVV93x4TJZpBlRjM9i/XaRUn3vBqjnnsRhia39TI26u/98f/nRD3vMECqndARvwFwfvFEk2fOb7Zn8c+P8c7kUrBmT6QtrjCz4OgYUneAcEae7oDcvwwZQTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736169807; c=relaxed/simple;
-	bh=AslleoXTRiRbWr13FtvX0Ckl/9sdreGxSQ4NH4wFg4A=;
+	s=arc-20240116; t=1736170510; c=relaxed/simple;
+	bh=rzubnT0gas16PzeOBWAv24OQZ7te5xw5qxzCAysoAMo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=b8Vr4Ycb28SnfdqfjvyTF1s8DeAPKhNVxApwNnEk39Dvqf+RtXQpN8VGm1n7KT4VVO+YQ7DyANxmxPW45jy/sUzADPNkU9bNmvwE7qtwXKKHMICfllJB6/3vTBP0kQLBJIQQS6vXTC7NpaI6hc9SPMCY/fzoo4i0HCjX0jFwuZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=iI74JgsW; arc=none smtp.client-ip=209.85.214.173
+	 In-Reply-To:Content-Type; b=A6G9PZ3xRfeaMExvuuDInSlkm/KAyFvrT2v4p2R3DSTs4rnJQdtGZXnGze0XLX6mzMBimrfeHN5RtwJzDqd2iRoarKr7A+TVp8xR5gxBrstGdHYXa83kefcD1545t4V1dfPNkfZRm9HJoTQNNB5SSroJ9ZJWo5EbPqYcTl4IWPA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=F8yWxxpn; arc=none smtp.client-ip=209.85.214.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="iI74JgsW"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-216728b1836so186444715ad.0
-        for <sparclinux@vger.kernel.org>; Mon, 06 Jan 2025 05:23:23 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="F8yWxxpn"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-21644aca3a0so23020835ad.3
+        for <sparclinux@vger.kernel.org>; Mon, 06 Jan 2025 05:35:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1736169803; x=1736774603; darn=vger.kernel.org;
+        d=bytedance.com; s=google; t=1736170508; x=1736775308; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=af8Jbj+kqP+p1W8uyVyt9V0YBDVs6Wu8XxDGXWv1rDo=;
-        b=iI74JgsWTKG37DnW1YB/IMki+ScFHLvhEOk3vxDv9FgI6CI9jtlHtVi79I2xbSTyM0
-         VdBztaV4PlDix6fx6Q3JW9PtPijrK1Ant99fgmA3is03DXu6hHX041PZwIdTpkeOjtKN
-         LoDu7u38zHH64G1Ap/bFiO2Ul4iVjxZgRJ22LavyqnEuA4hlfThhKkPpKvqpm+Yl4HWd
-         0Y10N6CsIor4KJg9gJ0tR5ljeF+yarKareNh75UOnmdOXB3oHayFxKL/nV0iYlWUDX2N
-         n0o/oAxFwFOpZhIRnap5aLfCm/HwMLi3b9miICri0ljBKer+MO7weBR7HlkCSFvoh1c+
-         NJrA==
+        bh=dSl9CiTNSQwE0RKlCdBtogvBaV/TE9/iFGVUzDM7I3Y=;
+        b=F8yWxxpn99xl6RSYcERdON6gNNnB5asuoZxu9+IiKhnbHtzVBKmaMwFOzzQbvYhySj
+         nh6VUUrLeDq6AAXMXq/jAJ2VQolB9McY5VZE0rbL5jcDDdnEFC46jw/4AhXX7aen6Ty0
+         UNa2mEJlz1X9sq5S+X9LBViB3JGYE2nlUvFICMDM6UWb6v2sF4soUCtUVwnWBF5Z/TWe
+         Cd1G0zka+EO70usIOt9JQR75ipBZxl2Uz8loGmmPvNgXkiKeYK4/PpzvaxxzLEOLJcUj
+         Z41cGVJP9D2tjsC373FIWLE0htTiClZQVQ6GqdjjSBFlJ3uLdhUpZgLJYNc+e0KD9w7m
+         97mA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736169803; x=1736774603;
+        d=1e100.net; s=20230601; t=1736170508; x=1736775308;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=af8Jbj+kqP+p1W8uyVyt9V0YBDVs6Wu8XxDGXWv1rDo=;
-        b=MXp3lY2ItW6zL7Cdfr5zfX69LYIHVqi4rpwkUCkLfs/8hIiO6j7hV93j2LZ/SdIC5L
-         3a1THK2CdORL/px1AnAFG3VRbbSeGAZwH5Nlq1S9sLLC2/0oCd8SJ5ACEzMoYnkU4Ur4
-         Kih5GPCIjNm4LrgqMHZ9W/8wjOCyM0yb0D8td2+2fwIniSRMUEBdpI9Apmo4jbxc+6iN
-         bAb80Un7PgqhszAKYZWZBIGpXVha5H7xA3B6AqJoGe+61xzUv6R1vgKuzhlq0eKLmKQa
-         Arw4Wn80QRlownNtJ000YY0lHdNPo864oy5NOXdEjOuuNGZOSJT/Vag0O8fIupqK9dAc
-         uJUQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU73ylbJ4zRB7voanwde/GK0AloDsvNMnnEGqtwCDsvz0z3G/vNT9mACVEp4kccOud/tG8GC8SODbQ/@vger.kernel.org
-X-Gm-Message-State: AOJu0YySPiF5qMf6wO6qXEiv51+CWhRRO+DJAGyuz+zzcuX9AVm9BSu9
-	ftmsseQ3M4EdlhbXMByKVKpt2cR2ihy1eQm156alT0E1wOrpfg1KHlmFvzcg+o4=
-X-Gm-Gg: ASbGncsFHv8i7OORemlkRajRoGizYu8IiCCujA3YIsR19pQspgvLOGtYdib7CGAfxdK
-	sVEdCpx6UL3KRIBebcD+Nn1iwzZvwO/CNGTH3mjLhjkTrgwp6o94R1JWvhdKkN6j8KmG7KRpFkF
-	wzExV70FubH1OKndurRNYCOXUAy3DDoXrIEDUxNGIFV2w7mVFRhKVfMw77r1+rTO7vCazHdYFbb
-	552R3mO+0XgOLy+S2OQxDXGV12moY+hQGZL+vvi1/4JJfT6EKY7p6r8PzQzpvK9L84ug70Tp2VP
-	2xNXpzYyS09axVSsY2y6d3iwxB4uDB8eJ1/1SKbohhkzODRweb5r
-X-Google-Smtp-Source: AGHT+IE/ZrXmD5LZyqp5+IF7XucHWltqSucrfnZMLD6UEt/qaBj6OXgwMq9je0lWMbXPRWlni+TKWA==
-X-Received: by 2002:a05:6a20:2d07:b0:1e1:b44f:cff1 with SMTP id adf61e73a8af0-1e5e07f9c06mr81291446637.33.1736169803320;
-        Mon, 06 Jan 2025 05:23:23 -0800 (PST)
+        bh=dSl9CiTNSQwE0RKlCdBtogvBaV/TE9/iFGVUzDM7I3Y=;
+        b=w886pGW+XR8Bown5pA8zvVYSYmmmOhcFz5ozkkjD4F3xxqx8nfIBJYTXPceddaU+kk
+         e6Bq3N3Y9JseXBGp2UlTialVRIiGdCGiKFf574A8HmxqrnQunB94/DormR5gG6ch7ng2
+         FwFM3KU52G598wik9SUTRKl6n3KcSxBYHlG7eyZyEgAb16S+FU91g6Yj/ARWfQ9IAs9f
+         Wba7tQZYHUZz/iwDFtESDMb5ZXdnN0W7GGMCGE8Ss70Y+HRYdRWOOX+gDuj98YZxsoHY
+         LBxpmWawQIlEuHQhPwOhZH67zJ+R70C7eAWRRl47/cbvZX3JPK7g8cWsQBImbkLRgDUt
+         St1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCWckcUPeUFMgAwA3tUhoQDBtHpG/6CoUhz5+RwU5rf4iHy6A3LhyMSim1uWG8CX1pEPJqCI4yzluSlw@vger.kernel.org
+X-Gm-Message-State: AOJu0YynjDdtBHprokQo2IPyF55blUHvICOrn9epO8pvV4lUu02458SF
+	anYcBx06z5vBB2R94Gz/tn5WekhG5KPDZDZe1o2eFaxl5SYZIMNgPqMJvUr0bGE=
+X-Gm-Gg: ASbGncsZ3JDa6IVDiMyt1K5bTSQRCXyq0vZG7FdG1EXHt3sMgjkQtXcZ7AHJkbo72qC
+	7s+KLxnI6Hn2ddNzl4bs6G0OH0tCzZRpJ/fBnUgZ842F6JzHGO7k5OHRz+ALg4JlCV4B6cTNfhP
+	RL1Fzk0T4+JBNBycJAeBvzYVCEczioDFL8XYLqdp35dv+1E04EGokpB2cmyljq4WzHSuywt89uM
+	QQ9X9CDKrsSxHeoKR3KqyLGBmRMVzeb02/v+q1Bp7vdLAB8/J8Tj33eYYEo7SFpRYD8E439JfCo
+	Qn4y2tuZUBEbM+S+4Jb1Udl1BZoeRDQmpWgDi9fRjOO1iE7/tzNz
+X-Google-Smtp-Source: AGHT+IFuxfmftFbdw6fO4bIMnZYJ/q+si7Sq93AxF4PGQarIeYtLJTB7gRBGy3tWc8bUzZwj1LueBQ==
+X-Received: by 2002:a17:902:e844:b0:216:3083:d03d with SMTP id d9443c01a7336-219e6f13c50mr852868805ad.44.1736170508636;
+        Mon, 06 Jan 2025 05:35:08 -0800 (PST)
 Received: from ?IPV6:2409:8a28:f44:d64:296c:a8f3:f81e:f88b? ([2409:8a28:f44:d64:296c:a8f3:f81e:f88b])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-72aad90c149sm31371677b3a.191.2025.01.06.05.23.12
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-219dc9cdf02sm292469725ad.151.2025.01.06.05.34.58
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 06 Jan 2025 05:23:22 -0800 (PST)
-Message-ID: <bce4bb4e-459a-44c8-945b-8889149377fd@bytedance.com>
-Date: Mon, 6 Jan 2025 21:23:10 +0800
+        Mon, 06 Jan 2025 05:35:08 -0800 (PST)
+Message-ID: <57ea8193-2fd9-41a9-85b4-7af924f900f4@bytedance.com>
+Date: Mon, 6 Jan 2025 21:34:55 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -66,7 +66,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 07/15] mm: pgtable: introduce pagetable_dtor()
+Subject: Re: [PATCH v4 12/15] s390: pgtable: also move pagetable_dtor() of PxD
+ to __tlb_remove_table()
 Content-Language: en-US
 To: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: peterz@infradead.org, kevin.brodsky@arm.com, palmer@dabbelt.com,
@@ -85,58 +86,50 @@ Cc: peterz@infradead.org, kevin.brodsky@arm.com, palmer@dabbelt.com,
  linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
  linux-um@lists.infradead.org
 References: <cover.1735549103.git.zhengqi.arch@bytedance.com>
- <8ada95453180c71b7fca92b9a9f11fa0f92d45a6.1735549103.git.zhengqi.arch@bytedance.com>
- <Z3uxwiEhYHDqdTh3@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
- <e1de887c-6193-48ee-a9b3-04c8a0cdda45@bytedance.com>
- <Z3vOZ18jcCpHIcPD@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+ <ad21b9392096336cf15aee46f68f9989a9cf877e.1735549103.git.zhengqi.arch@bytedance.com>
+ <Z3uyJ2BjslzsjkZI@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+ <2d16f0fe-9c7f-4229-b7b5-ffa3ab1b1143@bytedance.com>
+ <Z3vQHplZqtHf6Td8@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-In-Reply-To: <Z3vOZ18jcCpHIcPD@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+In-Reply-To: <Z3vQHplZqtHf6Td8@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
-On 2025/1/6 20:36, Alexander Gordeev wrote:
-> On Mon, Jan 06, 2025 at 06:55:58PM +0800, Qi Zheng wrote:
->>>> +static inline void pagetable_dtor(struct ptdesc *ptdesc)
->>>> +{
->>>> +	struct folio *folio = ptdesc_folio(ptdesc);
->>>> +
->>>> +	ptlock_free(ptdesc);
->>>> +	__folio_clear_pgtable(folio);
->>>> +	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
->>>> +}
->>>> +
+On 2025/1/6 20:44, Alexander Gordeev wrote:
+> On Mon, Jan 06, 2025 at 07:02:17PM +0800, Qi Zheng wrote:
+>>> On Mon, Dec 30, 2024 at 05:07:47PM +0800, Qi Zheng wrote:
+>>>> To unify the PxD and PTE TLB free path, also move the pagetable_dtor() of
+>>>> PMD|PUD|P4D to __tlb_remove_table().
 >>>
->>> If I am not mistaken, it is just pagetable_pte_dtor() rename.
->>> What is the point in moving the code around?
+>>> The above and Subject are still incorrect: pagetable_dtor() is
+>>> called from pagetable_dtor_free(), not from __tlb_remove_table().
 >>
->> No, this is to unify pagetable_p*_dtor() into pagetable_dtor(), so
->> that we can move pagetable_dtor() to __tlb_remove_table(), and then
->> ptlock and PTE page can be freed together through RCU, which is
->> also the main purpose of this patch series.
+>> Hmm, __tlb_remove_table() calls pagetable_dtor_free(), so moving to
+>> pagetable_dtor_free() means moving to __tlb_remove_table(). Right?
 > 
-> I am only talking about this patch. pagetable_dtor() code above is
-> the same pagetable_pte_dtor() below - it is only the function name
-> that changed. So why to move the function body? Anyway, that is
+> Right. But you Subject and description claim "... also move the
+> pagetable_dtor()" not to pagetable_dtor_free() - which is another
+> function.
 
-Ah, I just don't want to put pagetable_dtor() in between
-pagetable_pte_ctor() and ___pte_offset_map(), so I moved it above
-pagetable_pte_ctor(). No other special reason. ;)
+OK, will change the subject and description to:
+
+s390: pgtable: also move pagetable_dtor() of PxD to pagetable_dtor_free()
+
+To unify the PxD and PTE TLB free path, also move the pagetable_dtor() of
+PMD|PUD|P4D to pagetable_dtor_free().
+
+But pagetable_dtor_free() is newly introduced in this patch, should it
+be changed to 'move ... to pagetable_pte_dtor_free()'? But this seems
+strange. :(
+
+> 
+>> And the main purpose of this patch is also to move pagetable_dtor()
+>> to __tlb_remove_table(). So I think this description makes sense?
+> 
+> The patch makes sense, but the description it is incorrect ;)
+> 
+> Thanks!
 
 Thanks!
-
-> just a nit.
-> 
->> Thanks!
-> 
->>>> -static inline void pagetable_pte_dtor(struct ptdesc *ptdesc)
->>>> -{
->>>> -	struct folio *folio = ptdesc_folio(ptdesc);
->>>> -
->>>> -	ptlock_free(ptdesc);
->>>> -	__folio_clear_pgtable(folio);
->>>> -	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
->>>> -}
-> 
-> Thank you!
