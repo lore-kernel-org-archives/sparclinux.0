@@ -1,221 +1,85 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6731EE00F;
-	Tue,  7 Jan 2025 14:23:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD151E491C;
+	Tue,  7 Jan 2025 14:46:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736259792; cv=none; b=Mb6aqjWfFXIOPZERN16gerDdSOBgJmuRZREq0FlzRBDuvMt2vQfVhkmIu/yrnM14ytFpovlVnEUsrIiyy/m/gsR4ILJOqXCx/+6BeJ7tEgLk3Z6HjxRCcKocnDUzzFh+3D3OJD+rOTmf83tVlu4sKPd3X+tBT2UenQOOlU0SAbA=
+	t=1736261184; cv=none; b=Sfub65FgNabY72qIi/HIBhGU9EtsWBa/Qn9guFNy8W+2+4fS+Ow3cRF6wnvFu6oi0krLBqcElz4FqMYlyzd51t29ulSzQs3KbxvTqEoQ66pxTLyY9ExJSYkoZeffNyXSjtLqSLGEYjz9hItxESjtN+DpIp+B0VxAL5PSbu07vYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736259792; c=relaxed/simple;
-	bh=1FHo89Bbmiz8B+vplkDqARvVIUtw1mUu7EiPasdA4XA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rUyJ2KcEd9zmmh279b5mgJZOP7bzvLONJw4a95q3KrXHV1eDy7VOsK/M9g4MEXWaLl56XOLkQKEpeR41KOjcNbPK8mh0aa54LEkCqR4LGW7E87LThiBz5Hchlgd+g0Kop/Vb0o3BPq7fQqMMPzKCLNfzaRXB/RfE54txVfE4LsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=m0f+8NRk; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1736261184; c=relaxed/simple;
+	bh=SCPRluSpt1qsGmWs0v+16rP68QASchnoXbBrVm2LWWs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VKmgxmp88hw4Eh+6z43Os33vMRYoZHE8/ZStLQoz2ba7M6PFSA0TgLQUHiLxCXLTi2DBxdkpqRDTKYypTYa+MN5NztHO5zoKesXoDX0XrEWt9+clt+j9oHg6GazQcCu8hgqVx5Gr6nhLYhGyVwsyKHL+VyFmBThP31kJwK1SXEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AV/NC3sq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="m0f+8NRk"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 50785ZGY017710;
-	Tue, 7 Jan 2025 14:22:21 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=2B7QsXhwZNID9hkdJMhXhhx17J8OxX
-	Wuj8JjzDXzWQA=; b=m0f+8NRkRQ5k6iEjZnjbuEmNBycrqf76ItjYHFoPDUTOdH
-	tsDcx5zUcXHTnSo13TQHIktaMW3Ad5Lgiteov3XI7UyYvcHfs7tupMQKv7w+lpWi
-	4YLFjjrj3XJCNnlUHzBTj+CqV5Wfk1Tu9P3NK58XARBZIsYIoNvUqA/O4coLLn3B
-	ZSyQoHvvvyoIu5c9lj7lHuDq6Jy7QSdEt4aDTyu6zAC3xDyVGqw+EC8rnEQUvB4M
-	qTx/kRHnKTqWC1L1KpzOVhfnwVqqgCP8PkyNrpobTfKho0LfDQVBy1vGN7qwBYGb
-	bQQ9LoXaqcbGbf/ddlkC1nG1T6m79jZRlMxk0gng==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4410f39jwh-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 07 Jan 2025 14:22:20 +0000 (GMT)
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 507E7cHb024539;
-	Tue, 7 Jan 2025 14:22:20 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4410f39jwe-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 07 Jan 2025 14:22:20 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 507AEgaT027976;
-	Tue, 7 Jan 2025 14:22:19 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 43yhhk2m6g-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 07 Jan 2025 14:22:19 +0000
-Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 507EMHnJ39453010
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 7 Jan 2025 14:22:17 GMT
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3E19420043;
-	Tue,  7 Jan 2025 14:22:17 +0000 (GMT)
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 584C920040;
-	Tue,  7 Jan 2025 14:22:16 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
-	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Tue,  7 Jan 2025 14:22:16 +0000 (GMT)
-Date: Tue, 7 Jan 2025 15:22:15 +0100
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-To: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: peterz@infradead.org, kevin.brodsky@arm.com, palmer@dabbelt.com,
-        tglx@linutronix.de, david@redhat.com, jannh@google.com,
-        hughd@google.com, yuzhao@google.com, willy@infradead.org,
-        muchun.song@linux.dev, vbabka@kernel.org, lorenzo.stoakes@oracle.com,
-        akpm@linux-foundation.org, rientjes@google.com, vishal.moola@gmail.com,
-        arnd@arndb.de, will@kernel.org, aneesh.kumar@kernel.org,
-        npiggin@gmail.com, dave.hansen@linux.intel.com, rppt@kernel.org,
-        ryan.roberts@arm.com, linux-mm@kvack.org,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        x86@kernel.org, linux-arch@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-um@lists.infradead.org
-Subject: Re: [PATCH v4 15/15] mm: pgtable: introduce generic
- pagetable_dtor_free()
-Message-ID: <Z304l1Y6DHosXlBh@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
-References: <cover.1735549103.git.zhengqi.arch@bytedance.com>
- <cb5700c21d0eed9eb50bac385be1fb6cdef7e530.1735549103.git.zhengqi.arch@bytedance.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AV/NC3sq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 068F3C4CED6;
+	Tue,  7 Jan 2025 14:46:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736261184;
+	bh=SCPRluSpt1qsGmWs0v+16rP68QASchnoXbBrVm2LWWs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=AV/NC3sq+Z9GYsJSR0NRFgYXG/T/ExU+tJoGJpC3D2JSIQtPZ45HCZZ0G/jM08+D4
+	 gkEreMEvVXEFCBjxS0KvJ39hE/weXWwnW1K0dsGA09TRe5qTAm37AN8WhWJhlRUDPr
+	 ZjlT7HjUswAjz9JJZVK2uS4b+d8mxdIzhuQ551xlD2SdPxVeZOFJOdrbJ2abYwEDPQ
+	 +4ne0EvViCBFU9E3V/svDm35NMnDc6hPvinLqybyS7FXo5vw/EPoXEimh2WH2CvNbY
+	 wr/UJrLJvxPrUX19bNM9MX4qUj6KdWPcDgNyjGQDdczGmv6dcF3eCIsGv7SOLV2LDR
+	 qfreVsNNLT0Iw==
+Received: by mail-yb1-f181.google.com with SMTP id 3f1490d57ef6-e46ebe19489so20285382276.2;
+        Tue, 07 Jan 2025 06:46:23 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVgKZGDymHO9ZgLXbj3KzZ81g/D6tf95/P7swIgk8fgsXwq0fEtJeULE62GV+TG8CEMO95qhofTieVEurU=@vger.kernel.org, AJvYcCWKl3D1Y2IpgRvoq/KoF0XSG8SB0uj8ajY7kZ/0oqB2PonjMZjUvyqfCTN5hVDhtzFDtCKsrcW0qXXR8w==@vger.kernel.org, AJvYcCWfKDhsR8v628dZHXVgBBipe3hHMjcxno6aLv+QZWraEKtPMWxmBgUn/yU5NMmACaR1Q2uYHLT5B5yf@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywso/qGlpri7KXz31uukhbXpZmAMthGuP7XBDp7NcPEeHYxCJhy
+	9NZQbvaIW9eoGiAk/1GQAd2kHIcZ1iO5DCcUOpwVnQv0nuRNRVUM+uclM+iirkXRgY5clneRl5S
+	j3/jJ+pmZgSwn+TjN8q4DW5Ch6w==
+X-Google-Smtp-Source: AGHT+IFyV9lVUw16Rv8iHzwmUnZSkHsA5PPxxrnmceolsNmDmlhg4nana1IEH6m/uPeTPy+gpBY7jSdc1ZLsVgZS2Rw=
+X-Received: by 2002:a05:690c:620c:b0:6ee:4209:731 with SMTP id
+ 00721157ae682-6f3f8239192mr443182597b3.39.1736261183298; Tue, 07 Jan 2025
+ 06:46:23 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cb5700c21d0eed9eb50bac385be1fb6cdef7e530.1735549103.git.zhengqi.arch@bytedance.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: yROkuy-wyK9H6Q7dEn2Q7Ir9AUmTd7MT
-X-Proofpoint-ORIG-GUID: J54oxTq0KOpExrJ-UIH_1SyWDONwdbzM
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
- definitions=2024-10-15_01,2024-10-11_01,2024-09-30_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 mlxlogscore=578
- spamscore=0 lowpriorityscore=0 adultscore=0 malwarescore=0 impostorscore=0
- bulkscore=0 phishscore=0 suspectscore=0 priorityscore=1501 clxscore=1015
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.19.0-2411120000
- definitions=main-2501070118
+References: <20250103213129.5182-3-helgaas@kernel.org> <20250103213846.GA6313@bhelgaas>
+In-Reply-To: <20250103213846.GA6313@bhelgaas>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 7 Jan 2025 08:46:12 -0600
+X-Gmail-Original-Message-ID: <CAL_JsqJjUyV8vr7HkcV4yneo6KNw2QRzxYmTXiNCk524KudCvw@mail.gmail.com>
+Message-ID: <CAL_JsqJjUyV8vr7HkcV4yneo6KNw2QRzxYmTXiNCk524KudCvw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] PCI: of: Simplify bus range parsing
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, 
+	Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 30, 2024 at 05:07:50PM +0800, Qi Zheng wrote:
-> The pte_free(), pmd_free(), __pud_free() and __p4d_free() in
-> asm-generic/pgalloc.h and the generic __tlb_remove_table() are basically
-> the same, so let's introduce pagetable_dtor_free() to deduplicate them.
-> 
-> In addition, the pagetable_dtor_free() in s390 does the same thing, so
-> let's s390 also calls generic pagetable_dtor_free().
-> 
-> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-> Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> ---
->  arch/s390/mm/pgalloc.c        |  6 ------
->  include/asm-generic/pgalloc.h | 12 ++++--------
->  include/asm-generic/tlb.h     |  3 +--
->  include/linux/mm.h            |  6 ++++++
->  4 files changed, 11 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/s390/mm/pgalloc.c b/arch/s390/mm/pgalloc.c
-> index 3e002dea6278f..a4e7619020931 100644
-> --- a/arch/s390/mm/pgalloc.c
-> +++ b/arch/s390/mm/pgalloc.c
-> @@ -180,12 +180,6 @@ unsigned long *page_table_alloc(struct mm_struct *mm)
->  	return table;
->  }
->  
-> -static void pagetable_dtor_free(struct ptdesc *ptdesc)
-> -{
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> -}
-> -
->  void page_table_free(struct mm_struct *mm, unsigned long *table)
->  {
->  	struct ptdesc *ptdesc = virt_to_ptdesc(table);
-> diff --git a/include/asm-generic/pgalloc.h b/include/asm-generic/pgalloc.h
-> index 4afb346eae255..e3977ddca15e4 100644
-> --- a/include/asm-generic/pgalloc.h
-> +++ b/include/asm-generic/pgalloc.h
-> @@ -109,8 +109,7 @@ static inline void pte_free(struct mm_struct *mm, struct page *pte_page)
->  {
->  	struct ptdesc *ptdesc = page_ptdesc(pte_page);
->  
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> +	pagetable_dtor_free(ptdesc);
->  }
->  
->  
-> @@ -153,8 +152,7 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
->  	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
->  
->  	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> +	pagetable_dtor_free(ptdesc);
->  }
->  #endif
->  
-> @@ -202,8 +200,7 @@ static inline void __pud_free(struct mm_struct *mm, pud_t *pud)
->  	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
->  
->  	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> +	pagetable_dtor_free(ptdesc);
->  }
->  
->  #ifndef __HAVE_ARCH_PUD_FREE
-> @@ -248,8 +245,7 @@ static inline void __p4d_free(struct mm_struct *mm, p4d_t *p4d)
->  	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
->  
->  	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> +	pagetable_dtor_free(ptdesc);
->  }
->  
->  #ifndef __HAVE_ARCH_P4D_FREE
-> diff --git a/include/asm-generic/tlb.h b/include/asm-generic/tlb.h
-> index 69de47c7ef3c5..a96d4b440f3da 100644
-> --- a/include/asm-generic/tlb.h
-> +++ b/include/asm-generic/tlb.h
-> @@ -213,8 +213,7 @@ static inline void __tlb_remove_table(void *table)
->  {
->  	struct ptdesc *ptdesc = (struct ptdesc *)table;
->  
-> -	pagetable_dtor(ptdesc);
-> -	pagetable_free(ptdesc);
-> +	pagetable_dtor_free(ptdesc);
->  }
->  #endif
->  
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index cad11fa10c192..94078c488e904 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3001,6 +3001,12 @@ static inline void pagetable_dtor(struct ptdesc *ptdesc)
->  	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
->  }
->  
-> +static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
-> +{
-> +	pagetable_dtor(ptdesc);
-> +	pagetable_free(ptdesc);
-> +}
-> +
->  static inline bool pagetable_pte_ctor(struct ptdesc *ptdesc)
->  {
->  	struct folio *folio = ptdesc_folio(ptdesc);
+On Fri, Jan 3, 2025 at 3:38=E2=80=AFPM Bjorn Helgaas <helgaas@kernel.org> w=
+rote:
+>
+> On Fri, Jan 03, 2025 at 03:31:28PM -0600, Bjorn Helgaas wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> >
+> > of_pci_parse_bus_range() looks for a DT "bus-range" property.  If none
+> > exists, devm_of_pci_get_host_bridge_resources() defaults to the [bus 00=
+-ff]
+> > range supplied by its caller, pci_parse_request_of_pci_ranges().
+> >
+> > devm_of_pci_get_host_bridge_resources() is static and has no other call=
+ers,
+> > so there's no reason to complicate its interface by passing the default=
+ bus
+> > range.
+> >
+> > Drop the busno and bus_max parameters and use 0x0 and 0xff directly in
+> > devm_of_pci_get_host_bridge_resources().
+>
+> Since we default this if the DT lacks "bus-range", is there any point
+> in repeating "bus-range =3D <0x00 0xff>;" in all the host bridge
+> descriptions?
 
-For s390:
+No. And I tell people to drop it if that's what they have.
 
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
-
-Thanks!
+Rob
