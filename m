@@ -1,62 +1,62 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0F31ABEA1
-	for <sparclinux@vger.kernel.org>; Wed,  8 Jan 2025 07:01:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23211AA781
+	for <sparclinux@vger.kernel.org>; Wed,  8 Jan 2025 07:01:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736319682; cv=none; b=hk1o2662zfdv76esn6SnJcp6KvI4SqJZ26YIp2x+2/ZEd6dJhgrHBgazLAD88fq1zAF3qaS0zHO+ijz50isn5OOzxU05fhFR4IxLbAdMHNrNHBgAMasZmdp9M9ICmCxoDXCBuoMCyAvwzuQh/ukYj/l5olzH9xlIXw5IJHaGWl0=
+	t=1736319699; cv=none; b=V81ZtjjDZNhtiNwUJ3Q2DptLhoXrAky81SSbNBn4SkOdQh6C/u65+zD6kUpSrf6w5FSPV7Njh1NJyh2CSvmj1EthSyo8cjXkhSwwia/BnNwdHMnz29dm1devQ+CBYsx7wu2d5wKcjm5qUv52ISVkKtDLzpolZXGbrOepsHuoIl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736319682; c=relaxed/simple;
-	bh=wfTgGSVhXTkiP60cV7XgYAcbBAoscYS/kqOY2RPeVxA=;
+	s=arc-20240116; t=1736319699; c=relaxed/simple;
+	bh=kKEIUjlBJNltvHAujR36Eou/m03YkuA8sY1cVhwRw1I=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=JUF6ENS0LTAB74MAi9Y43fdyDr5fA57Qls56HTGn5yY8aduN8QOO2FgicZGUwoqRKtApYrxn5AHvW3qwc2MePb9ZrnX7rRqx7o2bdgzXX7px+R1AKBrxWiQWgYoISqJPosSQaqb/AFmwkB3gpA9wqfyDp6vvEE2PRASV3AemvVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=jzhuXRQy; arc=none smtp.client-ip=209.85.214.179
+	 MIME-Version; b=DE1tDJa2Fk7axvgv+omA1TqCNHQUnXqZfIy2tXu28vuS+gyNGApXEIKJYwMy+YE9VyQvWtb+hQ42+MtovAgIvzuGSNqglczH3riL5b0JaYlzUkoz/ZD6JRr1tk9LaHBPwQcEfBaVCIVpQhP7qvv7JeMEdRfzCKNe5oxkfgwU4tk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=L8ZxJxdm; arc=none smtp.client-ip=209.85.214.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="jzhuXRQy"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2164b1f05caso238227795ad.3
-        for <sparclinux@vger.kernel.org>; Tue, 07 Jan 2025 23:01:20 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="L8ZxJxdm"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-219f8263ae0so193730935ad.0
+        for <sparclinux@vger.kernel.org>; Tue, 07 Jan 2025 23:01:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1736319680; x=1736924480; darn=vger.kernel.org;
+        d=bytedance.com; s=google; t=1736319695; x=1736924495; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xRYydr57EpvJJkVepk/VS3bq1fMuYMijkZdKL5zejaA=;
-        b=jzhuXRQygiP56bBOGwYPpbPtA5GEJz1GaN11tiBhJYnUV114ySJcMCAR4Vl+T6q7iB
-         iO9qveGtmAH/WLYpOnkh6/dQ4fWRdvMBfQkgqPlto4qRGfb24KnxiIpSTcAjkUG5xJsW
-         6vcIMFe9+GK1j0KNvpwYHFkFKfOIdYXc7cJOcNkjfpRMruUxLep7SGgaYlmoaWVVHOLz
-         pL7s9qE7xJ9WxO4pGKdd71605tq/4DHIUMhLXggZULfR7eGOU/yxQ09VIcxeQyYh3b10
-         KrZxsMr40DPAULhPtjk37jYc3p6WqftsSh5wCMycWAPG2NO7InOzihDWbXycUDdm0j4K
-         TlCg==
+        bh=HOmYFC5rDCHPndkDeYhMazAtFRSG5eQpr+EJP/iMn+M=;
+        b=L8ZxJxdmY6LNQI27QQGrNiHhtgxy/3FYuT66k5rt7mBuNf3HimMV/K2x3UjXSqzB1F
+         priRkl2qgbkp0jS1msuRSsPs81zcmwZH2DNPzltbq78j5MJfhGtInl7UEZn26SVu72KG
+         oh8dvuGze25QJXFrKmhuxnH8zLIUvHVxDl0RZy2lrl3Qlv5eM2HoQTfxXi1UmVUiAbS9
+         hUieP8dEztNcCY2yCtCRlyvQz+m9HOxLvv9EkZkKAEsX7VOZ5ebMF1bNf8sCPrc6xjmS
+         5j6wPMG5cftqmF1FC1uCahcnrkx5dLyY7TpJdJhVqUBCJ4vsQNbZsmaC5S+YDYz8XfqT
+         RE7Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736319680; x=1736924480;
+        d=1e100.net; s=20230601; t=1736319695; x=1736924495;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=xRYydr57EpvJJkVepk/VS3bq1fMuYMijkZdKL5zejaA=;
-        b=ibf4P8OuGN1giqMEngSQ8tRQfsv6fIXFWQ7P3wqa63roIYXdy95HVqJjBsPDJtSEiI
-         x6z/wgTn6tykGaJRxqW5d5fC+waxM7U1TnoZD7Qpde1RlwIPF/MZ3pmy0lGacLTYmWdg
-         +FYfccDEYFfQfuwcPL3TBRAxKC6mbER9vI61lKGb8MUn/Hz2TVfB4pSdB4c/CD6LqfqR
-         V5q7DEBuBH4GBBCInxdVw5cA7IeK0pba2kVZGdF9SRVP7wrytCe8j34pzbsCI2gJPJdW
-         pjTlYx7WYmwXG5fNTuItyHhABnkj5SdsP45dRtxn/TN83l0i8Bi9KjVOJEaz+uN4dLgl
-         2iZQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVcKFDYN5he/Eu3IuksgW0kAkOi20xPpE8MAF59SGbnErjkflZPsGYubO15kzC6incb/t71Xjn6ZAy4@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJAG3Hv6/PZHC1+O2UOrcRYlqLoAcYh1SzHBcMxXtNAKSmh3bM
-	eUPSXFYVbGyX2gBga6lNcJiM25ATPuEhLwFfHFlBQjuIZfYpmOuZCphXSH2qVNg=
-X-Gm-Gg: ASbGncvT7rSiagwmFARf4vEbVZBG32kfULQsA9UIgHHEi+uKrpPlCambdPllvpnT4e5
-	9fsV1eKnBq47CGwrn0+cKUu0Dujt4qk86iZ6VogX+g9vCvqLid8jqOayXTug9qGYKXKJPpTfYv9
-	0B1eX1S62+Ny43RRGiKQuaKrsiBCJWsgJnK+pFscYIu3x3RYh295713rw2OcFj98VuHjZrz5Th5
-	E6mtEWPnftDkxNc94pDqjy9JahwJQ2w07cywvghmlu2IRFmqmPGzUAlw/SWRGzDp1tuUku78RyP
-	c8T1KtBCybGfl8NkeBHJZf1dRrg=
-X-Google-Smtp-Source: AGHT+IGA+MEO+KKVHOehVcxKdAaP4kVFc+4x/MGW5FidU7ZYZhG+ejtfRbHdQiRj7WdzfqmV0LUjgQ==
-X-Received: by 2002:a17:902:d352:b0:215:8847:435c with SMTP id d9443c01a7336-21a83f4b133mr25527805ad.12.1736319679689;
-        Tue, 07 Jan 2025 23:01:19 -0800 (PST)
+        bh=HOmYFC5rDCHPndkDeYhMazAtFRSG5eQpr+EJP/iMn+M=;
+        b=T0NfjQ0Vmp2FwaPSq4IJPmCBsJ2a+y3gGcX+OTxalCb50ZbasgxogAhids+5+Gp43a
+         uu0cNUCJPqgKkMzcjaUhrBOlC3qKgtFA57w6HLo2f1z8JqBgdRUKm5PsX/PrTfeYfiS9
+         k3rFN/braevYe39zcm/HlOkKjKUIP9+F1CX0sH88O2YXoiMBIZzf4iuDgR6fypMavQcJ
+         wBl3QFDUla+XcKF3bOjpHre7ZePfjzFTavfym1HuF+QymqaQ3SebnkJxfJrn7FANfkiB
+         XsDlZmjgeRxjqeXFI7ybfAm0fHa2hrLRviIkeHhpU+MLLOjxkF+eZRnLMfjhZ1Ga47L5
+         Y2gQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV8YTa5XwbiF2shhCIMePf6O89x+yuI3Qb6Mu0cFmJ5Uy6ReQdKVAK7660d4cK5DsR/q7vkwuXVArft@vger.kernel.org
+X-Gm-Message-State: AOJu0YykLHStj+hx4seHoD5Z5qRe+ZVDETFUpnPYuJWLRMnVbuxrNziO
+	9U+s8e+GkWOTJpNsVDZLw+YrHxsHJdy5XebvoL6jSjXf+n6MtXOlH47pxIw6zLM=
+X-Gm-Gg: ASbGncuCCqjkJOocV12I8mZwtizF0txY8Igd3zSHM/1PnPfOEwwyH0JFDic24XooFUf
+	GxmGbklrHwsXpcJI+do9c1rrJmrSFb12grK4JaWk2xt4bal9U6Nq/mgdOCm35nND2oAIM3g6Dv3
+	55sVecix/oci7PyqJvZYzAU7VADvEyjZiVQJMD8maWwoXmKjoo+z/mDSdDk21L/QgW5e8i7Xo2Z
+	R7TJYENjxeruQp4gKENHUWbCNH9myKtXuhqmOovqtiS/1hsSrjEe5rRMGkFsJm+J86x/mvM0ZkA
+	X13fYiWxiqqThwfW/Ij2q+7WSHE=
+X-Google-Smtp-Source: AGHT+IG2O0LK8ylHfVSG3OwO7HgAN7h4l7Hu7AhiZODZJ2StNi5+XwyqKLd4EhZPQDdK0Gl46ps1VQ==
+X-Received: by 2002:a17:902:d50d:b0:215:7421:27c with SMTP id d9443c01a7336-21a83f696a9mr29561025ad.29.1736319695027;
+        Tue, 07 Jan 2025 23:01:35 -0800 (PST)
 Received: from C02DW0BEMD6R.bytedance.net ([139.177.225.244])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-219dca023a3sm320067275ad.250.2025.01.07.23.01.05
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-219dca023a3sm320067275ad.250.2025.01.07.23.01.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Jan 2025 23:01:19 -0800 (PST)
+        Tue, 07 Jan 2025 23:01:34 -0800 (PST)
 From: Qi Zheng <zhengqi.arch@bytedance.com>
 To: peterz@infradead.org,
 	agordeev@linux.ibm.com,
@@ -101,9 +101,9 @@ Cc: linux-mm@kvack.org,
 	linux-sh@vger.kernel.org,
 	linux-um@lists.infradead.org,
 	Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: [PATCH v5 08/17] arm: pgtable: move pagetable_dtor() to __tlb_remove_table()
-Date: Wed,  8 Jan 2025 14:57:24 +0800
-Message-Id: <327b4b8990729edd4ce97d9d5acbdaff2d9fa1d1.1736317725.git.zhengqi.arch@bytedance.com>
+Subject: [PATCH v5 09/17] arm64: pgtable: move pagetable_dtor() to __tlb_remove_table()
+Date: Wed,  8 Jan 2025 14:57:25 +0800
+Message-Id: <cf4b847caf390f96a3e3d534dacb2c174e16c154.1736317725.git.zhengqi.arch@bytedance.com>
 X-Mailer: git-send-email 2.24.3 (Apple Git-128)
 In-Reply-To: <cover.1736317725.git.zhengqi.arch@bytedance.com>
 References: <cover.1736317725.git.zhengqi.arch@bytedance.com>
@@ -128,19 +128,18 @@ Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org
 ---
- arch/arm/include/asm/tlb.h | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/tlb.h | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/include/asm/tlb.h b/arch/arm/include/asm/tlb.h
-index ef79bf1e8563f..59854c6b97bc5 100644
---- a/arch/arm/include/asm/tlb.h
-+++ b/arch/arm/include/asm/tlb.h
-@@ -26,12 +26,14 @@
+diff --git a/arch/arm64/include/asm/tlb.h b/arch/arm64/include/asm/tlb.h
+index 408d0f36a8a8f..93591a80b5bfb 100644
+--- a/arch/arm64/include/asm/tlb.h
++++ b/arch/arm64/include/asm/tlb.h
+@@ -9,11 +9,13 @@
+ #define __ASM_TLB_H
  
- #else /* !CONFIG_MMU */
- 
+ #include <linux/pagemap.h>
 -#include <linux/swap.h>
- #include <asm/tlbflush.h>
  
  static inline void __tlb_remove_table(void *_table)
  {
@@ -151,25 +150,39 @@ index ef79bf1e8563f..59854c6b97bc5 100644
 +	pagetable_free(ptdesc);
  }
  
- #include <asm-generic/tlb.h>
-@@ -41,7 +43,9 @@ __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte, unsigned long addr)
+ #define tlb_flush tlb_flush
+@@ -82,7 +84,6 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
  {
  	struct ptdesc *ptdesc = page_ptdesc(pte);
  
-+#ifndef CONFIG_MMU_GATHER_TABLE_FREE
- 	pagetable_dtor(ptdesc);
-+#endif
+-	pagetable_dtor(ptdesc);
+ 	tlb_remove_ptdesc(tlb, ptdesc);
+ }
  
- #ifndef CONFIG_ARM_LPAE
- 	/*
-@@ -61,7 +65,6 @@ __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp, unsigned long addr)
- #ifdef CONFIG_ARM_LPAE
+@@ -92,7 +93,6 @@ static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
+ {
  	struct ptdesc *ptdesc = virt_to_ptdesc(pmdp);
  
 -	pagetable_dtor(ptdesc);
  	tlb_remove_ptdesc(tlb, ptdesc);
- #endif
  }
+ #endif
+@@ -106,7 +106,6 @@ static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
+ 	if (!pgtable_l4_enabled())
+ 		return;
+ 
+-	pagetable_dtor(ptdesc);
+ 	tlb_remove_ptdesc(tlb, ptdesc);
+ }
+ #endif
+@@ -120,7 +119,6 @@ static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4dp,
+ 	if (!pgtable_l5_enabled())
+ 		return;
+ 
+-	pagetable_dtor(ptdesc);
+ 	tlb_remove_ptdesc(tlb, ptdesc);
+ }
+ #endif
 -- 
 2.20.1
 
