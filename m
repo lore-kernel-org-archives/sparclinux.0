@@ -1,55 +1,55 @@
-Received: from mail-lj1-f202.google.com (mail-lj1-f202.google.com [209.85.208.202])
+Received: from mail-lj1-f201.google.com (mail-lj1-f201.google.com [209.85.208.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B30A324B220
-	for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 18:48:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7888824B22E
+	for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 18:49:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736534904; cv=none; b=QsEPA2ElPwlnTPdxKBqhORWkXwEpWxTN0PLPOg/TMmGQmFkmTmn/ZfyZK4d6McM1sSBX5+IZWvuGLRT3rzEnR5k/TatOUFMtb7vG3I7oUVaoBwkPgJv5gffZbXW8x27Ij0hi+cl+FQGQTGHW5KpWCbYHLl3SFwKgrWOLa1mcK9o=
+	t=1736534988; cv=none; b=YNGEcrdWVnfysEzRxFFOI9e/qE9B8uU6NbZqGQjiCt0jq2YVV8EjLu6ZKjKKt24AezCrRvBez8g5WIMln5DKcDAKVkFLWRJqO/m43dOGSjmyAhBQyJDaQMKVkOOx2krJYpVU4T9JeMT80S9LifqOvIFboIBgZHowbzpwZhKp/bs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736534904; c=relaxed/simple;
-	bh=Ua0Eznh6vBIqJokkBKNt1xiE4aA9cS4fZDm05XjqWbo=;
+	s=arc-20240116; t=1736534988; c=relaxed/simple;
+	bh=8oJWV2blYGjdlDquSZFlq/fzMSlPhCK7jJm0Q6N72yc=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=r/WccC9icfeRjG+Dbh6uVnyMiMtzoL+Ewbi5eUBabWllPU8KnPSXQDE4DUnXIa0Xvc7uI+seezHRt7VVnY5CDeSm8Gicw+xTKlKNsMMDfpM4UB5LuNDAAy3FyTHSoIQ62Je4yJ/+697eqHu8pC9HZb78XexkusQ+/TpJ4J/+HTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=VWgrr3+M; arc=none smtp.client-ip=209.85.208.202
+	 To:Cc:Content-Type; b=ADfzh0+6D7ljVuCwNeJzH1wH278yvJByAwcrE+eYTMJWFWRUs5AZ4tdSqpqwYgXeVTu5UQ1yFAJARVWsC/P3VM1Jbb94QZpqgo4YMLUwuSr6V+2ywkv5qFWsPTqssEmQcFkw3/Hs6rn5lcV3VarecGhBBYN6biXfYDtERswIyO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=cY+cbC+r; arc=none smtp.client-ip=209.85.208.201
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="VWgrr3+M"
-Received: by mail-lj1-f202.google.com with SMTP id 38308e7fff4ca-301e3d7adceso12189941fa.3
-        for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 10:48:22 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cY+cbC+r"
+Received: by mail-lj1-f201.google.com with SMTP id 38308e7fff4ca-30218346140so12830271fa.0
+        for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 10:49:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1736534901; x=1737139701; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1736534985; x=1737139785; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=YGrdWVEeU4Ptbj/O5LlMCmxq+nbCGI8+4U1HKBQ0dew=;
-        b=VWgrr3+MRMDITcl+zW7GKskhNQ0mtTHE1z14j2XnvlXD5DcbQAYt2SWhNGGALlI7++
-         yqauszd+Ec+J33FuWm3Wraoo+oOYsVzfdxKzOO7zjlKt2C2WcjxWcG/qKZd3NzhuQIZK
-         bGxhpdfBKyx+Nkdq4AMZpM89IPT3SUc0/yRyu9ziL1P9a8NiovhGOZVuhhsDzmIpDkik
-         ClA/e/1d6k0EYPtJEfjgWc2v9BkAfM+JfOGlLV5gKZqIZF3RMgUWZFZbsHijUger7fSB
-         nk1c2sAinEa/Y+pNaYoYrStEXYRhDQTEwuOQt31KhkSshhA37qrzPvw1kZzKIfs7c2F/
-         EYJw==
+        bh=P63tWziIl5MLfOevD/STQnofaJPDmGipUyDaNTwON8A=;
+        b=cY+cbC+rkfA1XMQ5OoiUlK1tUWFj2BE0cTPiHv57ak2qIURlitJgPyGdOmBvtsipgk
+         r7OZFG7LQOfsiJxYXB7MxJ8sH/iEh8D7Md0LjovPYF5ry5G7hO4Hzp5y8l/s7Wu6qhFX
+         duRwEZxUQzStdWbk2U6fN7wyYsfg6qLwLDYowHBOAcpsDb4AUgzlEmcFDbfPVV1591EY
+         x5dOzUgfg6apCBoORykqNAXLGoz3CwdjCQ0CA6wUdVHuAiJVKiVmG7yZaDe4XMVS58Wb
+         Ml0VaG4U1ZZ0/VAYxSXWN9Xba1aW1+MGsJ4cKfCGfrBj4kaoHRJZcSKaORWQF9dB2wi/
+         HLWg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736534901; x=1737139701;
+        d=1e100.net; s=20230601; t=1736534985; x=1737139785;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YGrdWVEeU4Ptbj/O5LlMCmxq+nbCGI8+4U1HKBQ0dew=;
-        b=s+Qve3EOcI8JzWnyv3nr7h7jxN4lyYNxmE1CEAfmKnz5i4aOVRWqb9K0nk4t01UsYl
-         ddatzHuDcb72sknkOb3UlpH+h9WQbCLI/Oz7kgmV91gHcGlYCeKn/6lkH2KmM04o/L/8
-         QABfPz1JsE3Jd703wjKQpkklRZHI4GK0EvNnM7QEProBwkFXCkafedIM1dayGgMq6Tmw
-         DW8L+VyTCNUy1m0jT+MTU6F6Spxnj5iSMZxnQPh2M8zdmt/kj6nPDrir7DUIGps2gm+v
-         q0U5jcWy/gv8FnfzI29MStSBKcs3mQ6TX5wvHeFFLPadMVuPKwM3xae9ajro9q5OvFZB
-         9WYA==
-X-Forwarded-Encrypted: i=1; AJvYcCUOSI8sIT7VKBwooaJYDKPkDl9p85r0e7ikqoNrRKh/41o1X0l+5+rDSxT9o/m1yc59nANo2QrZ6XHm@vger.kernel.org
-X-Gm-Message-State: AOJu0YyEIN6gpuVYOxTahZq8yXfI4Y4vqDrz4WD2G9c/3I/7J8Rv7NYM
-	9nmHegQRjDGVSxE1x6LQ/g6F8YSaUqsYu1cMnnRHPBRyraN8l6y0lpKom4FsAXk9cdvTkS34iuV
-	q3NF/wDhaLA==
-X-Google-Smtp-Source: AGHT+IEgsXbDoolH8oLFMalWBy0djT9uJM60zMy+Lo0ErgHawFZLEGOSZUiE5P0d6bxzOZZfpK4Vh92Jd6K16A==
-X-Received: from wmrn43.prod.google.com ([2002:a05:600c:502b:b0:434:a9bd:e68c])
+        bh=P63tWziIl5MLfOevD/STQnofaJPDmGipUyDaNTwON8A=;
+        b=QxxtdOkym4XDf6CQB0oSADYzaJpK8HR4nNcfvlhyo2o4jDV3lSJvA3FbbfHA9TzIck
+         +o9JMt4C/F1Wft8d3PMrQY2fjPirMwAGVxJQf8MR8R02/gI7WWTx3hwwoTZGO5QNS9Xx
+         EdXB5ptZufgC6d7XX6j7BGQlUnrTqgyaZilObn/SggKwnjgJaQiWNylvmnM6E6eXs3zd
+         vjVkXVMsEsKPMqhMY8Fc5e1sXV79JcitRBDJSfMigddvaNJRNWDHTGXKfqv9OzMsWqEC
+         9Zo9hLD1RVQccOb3iBpGQ108Hhr5sQNS1WsKUWgVBiiGWCScIl9F9aOs3uuQoyH27MCV
+         qZ/A==
+X-Forwarded-Encrypted: i=1; AJvYcCU2Uib69xo+znJHlI5g9qTju7/Aw+CnopDYbZZATeQPzXpHqvQNpIOjQz4Ye8KwJJgFnfmoT8xU5496@vger.kernel.org
+X-Gm-Message-State: AOJu0YydQv4H5OMeijTGuxauJJyc+yDeu46zOWGcmaGK9P5FB/nVTz2O
+	onwqwCNSa+toMOym6ZWAFEPcobXROrXx2euzSzmseAbKoGXaiQpzT0wcGSq1Cn7QU+0Ih+0fm/6
+	rZxzk3zhMnQ==
+X-Google-Smtp-Source: AGHT+IFpLRoJ7ZhWq6f6CfOMCmb66msRmVLu03/rxTgeCGcpzkKTsEslMdO3oeVqCUER7+YbrfuCetVYZstiXQ==
+X-Received: from wmbew14.prod.google.com ([2002:a05:600c:808e:b0:436:16c6:831])
  (user=jackmanb job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:600c:4f81:b0:434:f1d5:1453 with SMTP id 5b1f17b1804b1-436e2531ec8mr120237105e9.0.1736534506703;
- Fri, 10 Jan 2025 10:41:46 -0800 (PST)
-Date: Fri, 10 Jan 2025 18:40:53 +0000
+ 2002:a05:6000:156c:b0:385:e3c5:61ae with SMTP id ffacd0b85a97d-38a873125c3mr11343217f8f.31.1736534499784;
+ Fri, 10 Jan 2025 10:41:39 -0800 (PST)
+Date: Fri, 10 Jan 2025 18:40:50 +0000
 In-Reply-To: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -59,8 +59,9 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com>
 X-Mailer: b4 0.15-dev
-Message-ID: <20250110-asi-rfc-v2-v2-27-8419288bc805@google.com>
-Subject: [PATCH RFC v2 27/29] mm: asi: Add some mitigations on address space transitions
+Message-ID: <20250110-asi-rfc-v2-v2-24-8419288bc805@google.com>
+Subject: [PATCH RFC v2 24/29] mm: asi: Add infrastructure for mapping
+ userspace addresses
 From: Brendan Jackman <jackmanb@google.com>
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
 	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
@@ -111,156 +112,300 @@ Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
 	linux-um@lists.infradead.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
 	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
 	kvm@vger.kernel.org, linux-efi@vger.kernel.org, 
-	Brendan Jackman <jackmanb@google.com>
+	Brendan Jackman <jackmanb@google.com>, Junaid Shahid <junaids@google.com>, 
+	Reiji Watanabe <reijiw@google.com>
 Content-Type: text/plain; charset="utf-8"
 
-Here we ASI actually starts becoming a real exploit mitigation,
+In preparation for sandboxing bare-metal processes, teach ASI to map
+userspace addresses into the restricted address space.
 
-On CPUs with L1TF, flush L1D when the ASI data taints say so.
+Add a new policy helper to determine based on the class whether to do
+this. If the helper returns true, mirror userspace mappings into the ASI
+pagetables.
 
-On all CPUs, do some general branch predictor clearing
-whenever the control taints say so.
+Later, it will be possible for users who do not have a significant
+security boundary between KVM guests and their VMM process, to take
+advantage of this to reduce mitigation costs when switching between
+those two domains - to illustrate this idea, it's now reflected in the
+KVM taint policy, although the KVM class is still hard-coded not to map
+userspace addresses.
 
-This policy is very much just a starting point for discussion.
-Primarily it's a vague gesture at the fact that there is leeway
-in how ASI is used: it can be used to target CPU-specific issues (as
-is the case for L1TF here), or it can be used as a fairly broad
-mitigation (asi_maybe_flush_control() mitigates several known
-Spectre-style attacks and very likely also some unknown ones).
-
+Co-developed-by: Junaid Shahid <junaids@google.com>
+Signed-off-by: Junaid Shahid <junaids@google.com>
+Co-developed-by: Reiji Watanabe <reijiw@google.com>
+Signed-off-by: Reiji Watanabe <reijiw@google.com>
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 ---
- arch/x86/include/asm/nospec-branch.h |  2 ++
- arch/x86/kvm/vmx/vmx.c               |  1 +
- arch/x86/lib/l1tf.c                  |  2 ++
- arch/x86/lib/retpoline.S             | 10 ++++++++++
- arch/x86/mm/asi.c                    | 29 +++++++++++++++++++++--------
- 5 files changed, 36 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/asi.h        | 11 +++++
+ arch/x86/include/asm/pgalloc.h    |  6 +++
+ arch/x86/include/asm/pgtable_64.h |  4 ++
+ arch/x86/kvm/x86.c                | 12 +++--
+ arch/x86/mm/asi.c                 | 92 +++++++++++++++++++++++++++++++++++++++
+ include/asm-generic/asi.h         |  4 ++
+ 6 files changed, 125 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/include/asm/nospec-branch.h b/arch/x86/include/asm/nospec-branch.h
-index 96b410b1d4e841eb02f53a4691ee794ceee4ad2c..4582fb1fb42f6fd226534012d969ed13085e943a 100644
---- a/arch/x86/include/asm/nospec-branch.h
-+++ b/arch/x86/include/asm/nospec-branch.h
-@@ -614,6 +614,8 @@ static __always_inline void mds_idle_clear_cpu_buffers(void)
- 		mds_clear_cpu_buffers();
- }
- 
-+extern void fill_return_buffer(void);
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_X86_NOSPEC_BRANCH_H_ */
-diff --git a/arch/x86/kvm/vmx/vmx.c b/arch/x86/kvm/vmx/vmx.c
-index b1a02f27b3abce0ef6ac448b66bef2c653a52eef..a532783caaea97291cd92a2e2cac617f74f76c7e 100644
---- a/arch/x86/kvm/vmx/vmx.c
-+++ b/arch/x86/kvm/vmx/vmx.c
-@@ -6635,6 +6635,7 @@ int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
- 	return ret;
- }
- 
-+/* Must be reentrant, for use by vmx_post_asi_enter. */
- static noinstr void vmx_l1d_flush(struct kvm_vcpu *vcpu)
- {
- 	/*
-diff --git a/arch/x86/lib/l1tf.c b/arch/x86/lib/l1tf.c
-index c474f18ae331c8dfa7a029c457dd3cf75bebf808..ffe1c3d0ef43ff8f1781f2e446aed041f4ce3179 100644
---- a/arch/x86/lib/l1tf.c
-+++ b/arch/x86/lib/l1tf.c
-@@ -46,6 +46,8 @@ EXPORT_SYMBOL(l1tf_flush_setup);
-  *  - may or may not work on other CPUs.
-  *
-  * Don't call unless l1tf_flush_setup() has returned successfully.
-+ *
-+ * Must be reentrant, for use by ASI.
-  */
- noinstr void l1tf_flush(void)
- {
-diff --git a/arch/x86/lib/retpoline.S b/arch/x86/lib/retpoline.S
-index 391059b2c6fbc4a571f0582c7c4654147a930cef..6d126fff6bf839889086fe21464d8af07316d7e5 100644
---- a/arch/x86/lib/retpoline.S
-+++ b/arch/x86/lib/retpoline.S
-@@ -396,3 +396,13 @@ SYM_CODE_END(__x86_return_thunk)
- EXPORT_SYMBOL(__x86_return_thunk)
- 
- #endif /* CONFIG_MITIGATION_RETHUNK */
-+
-+.pushsection .noinstr.text, "ax"
-+SYM_CODE_START(fill_return_buffer)
-+	UNWIND_HINT_FUNC
-+	ENDBR
-+	__FILL_RETURN_BUFFER(%_ASM_AX,RSB_CLEAR_LOOPS)
-+	RET
-+SYM_CODE_END(fill_return_buffer)
-+__EXPORT_THUNK(fill_return_buffer)
-+.popsection
-diff --git a/arch/x86/mm/asi.c b/arch/x86/mm/asi.c
-index 1e9dc568e79e8686a4dbf47f765f2c2535d025ec..f10f6614b26148e5ba423d8a44f640674573ee40 100644
---- a/arch/x86/mm/asi.c
-+++ b/arch/x86/mm/asi.c
-@@ -10,6 +10,7 @@
- 
- #include <asm/cmdline.h>
- #include <asm/cpufeature.h>
-+#include <asm/l1tf.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
- #include <asm/mmu_context.h>
-@@ -38,6 +39,8 @@ struct asi __asi_global_nonsensitive = {
- 	.mm = &init_mm,
+diff --git a/arch/x86/include/asm/asi.h b/arch/x86/include/asm/asi.h
+index 555edb5f292e4d6baba782f51d014aa48dc850b6..e925d7d2cfc85bca8480c837548654e7a5a7009e 100644
+--- a/arch/x86/include/asm/asi.h
++++ b/arch/x86/include/asm/asi.h
+@@ -133,6 +133,7 @@ struct asi {
+ 	struct mm_struct *mm;
+ 	int64_t ref_count;
+ 	enum asi_class_id class_id;
++	spinlock_t pgd_lock;
  };
  
-+static bool do_l1tf_flush __ro_after_init;
-+
- static inline bool asi_class_id_valid(enum asi_class_id class_id)
- {
- 	return class_id >= 0 && class_id < ASI_MAX_NUM_CLASSES;
-@@ -361,6 +364,15 @@ static int __init asi_global_init(void)
- 	asi_clone_pgd(asi_global_nonsensitive_pgd, init_mm.pgd,
- 		      VMEMMAP_START + (1UL << PGDIR_SHIFT));
+ DECLARE_PER_CPU_ALIGNED(struct asi *, curr_asi);
+@@ -147,6 +148,7 @@ const char *asi_class_name(enum asi_class_id class_id);
  
-+	if (boot_cpu_has_bug(X86_BUG_L1TF)) {
-+		int err = l1tf_flush_setup();
+ int asi_init(struct mm_struct *mm, enum asi_class_id class_id, struct asi **out_asi);
+ void asi_destroy(struct asi *asi);
++void asi_clone_user_pgtbl(struct mm_struct *mm, pgd_t *pgdp);
+ 
+ /* Enter an ASI domain (restricted address space) and begin the critical section. */
+ void asi_enter(struct asi *asi);
+@@ -286,6 +288,15 @@ static __always_inline bool asi_in_critical_section(void)
+ 
+ void asi_handle_switch_mm(void);
+ 
++/*
++ * This function returns true when we would like to map userspace addresses
++ * in the restricted address space.
++ */
++static inline bool asi_maps_user_addr(enum asi_class_id class_id)
++{
++	return false;
++}
 +
-+		if (err)
-+			pr_warn("Failed to setup L1TF flushing for ASI (%pe)", ERR_PTR(err));
-+		else
-+			do_l1tf_flush = true;
+ #endif /* CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION */
+ 
+ #endif
+diff --git a/arch/x86/include/asm/pgalloc.h b/arch/x86/include/asm/pgalloc.h
+index dcd836b59bebd329c3d265b98e48ef6eb4c9e6fc..edf9fe76c53369eefcd5bf14a09cbf802cf1ea21 100644
+--- a/arch/x86/include/asm/pgalloc.h
++++ b/arch/x86/include/asm/pgalloc.h
+@@ -114,12 +114,16 @@ static inline void p4d_populate(struct mm_struct *mm, p4d_t *p4d, pud_t *pud)
+ {
+ 	paravirt_alloc_pud(mm, __pa(pud) >> PAGE_SHIFT);
+ 	set_p4d(p4d, __p4d(_PAGE_TABLE | __pa(pud)));
++	if (!pgtable_l5_enabled())
++		asi_clone_user_pgtbl(mm, (pgd_t *)p4d);
+ }
+ 
+ static inline void p4d_populate_safe(struct mm_struct *mm, p4d_t *p4d, pud_t *pud)
+ {
+ 	paravirt_alloc_pud(mm, __pa(pud) >> PAGE_SHIFT);
+ 	set_p4d_safe(p4d, __p4d(_PAGE_TABLE | __pa(pud)));
++	if (!pgtable_l5_enabled())
++		asi_clone_user_pgtbl(mm, (pgd_t *)p4d);
+ }
+ 
+ extern void ___pud_free_tlb(struct mmu_gather *tlb, pud_t *pud);
+@@ -137,6 +141,7 @@ static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgd, p4d_t *p4d)
+ 		return;
+ 	paravirt_alloc_p4d(mm, __pa(p4d) >> PAGE_SHIFT);
+ 	set_pgd(pgd, __pgd(_PAGE_TABLE | __pa(p4d)));
++	asi_clone_user_pgtbl(mm, pgd);
+ }
+ 
+ static inline void pgd_populate_safe(struct mm_struct *mm, pgd_t *pgd, p4d_t *p4d)
+@@ -145,6 +150,7 @@ static inline void pgd_populate_safe(struct mm_struct *mm, pgd_t *pgd, p4d_t *p4
+ 		return;
+ 	paravirt_alloc_p4d(mm, __pa(p4d) >> PAGE_SHIFT);
+ 	set_pgd_safe(pgd, __pgd(_PAGE_TABLE | __pa(p4d)));
++	asi_clone_user_pgtbl(mm, pgd);
+ }
+ 
+ static inline p4d_t *p4d_alloc_one(struct mm_struct *mm, unsigned long addr)
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index d1426b64c1b9715cd9e4d1d7451ae4feadd8b2f5..fe6d83ec632a6894527784f2ebdbd013161c6f09 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -157,6 +157,8 @@ static inline void native_set_p4d(p4d_t *p4dp, p4d_t p4d)
+ static inline void native_p4d_clear(p4d_t *p4d)
+ {
+ 	native_set_p4d(p4d, native_make_p4d(0));
++	if (!pgtable_l5_enabled())
++		asi_clone_user_pgtbl(NULL, (pgd_t *)p4d);
+ }
+ 
+ static inline void native_set_pgd(pgd_t *pgdp, pgd_t pgd)
+@@ -167,6 +169,8 @@ static inline void native_set_pgd(pgd_t *pgdp, pgd_t pgd)
+ static inline void native_pgd_clear(pgd_t *pgd)
+ {
+ 	native_set_pgd(pgd, native_make_pgd(0));
++	if (pgtable_l5_enabled())
++		asi_clone_user_pgtbl(NULL, pgd);
+ }
+ 
+ /*
+diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
+index 3e0811eb510650abc601e4adce1ce4189835a730..920475fe014f6503dd88c7bbdb6b2707c084a689 100644
+--- a/arch/x86/kvm/x86.c
++++ b/arch/x86/kvm/x86.c
+@@ -9712,11 +9712,15 @@ static inline int kvm_x86_init_asi_class(void)
+ 	/*
+ 	 * And the same for data left behind by code in the userspace domain
+ 	 * (i.e. the VMM itself, plus kernel code serving its syscalls etc).
+-	 * This should eventually be configurable: users whose VMMs contain
+-	 * no secrets can disable it to avoid paying a mitigation cost on
+-	 * transition between their guest and userspace.
++	 *
++	 *
++	 * If we decided to map userspace into the guest's restricted address
++	 * space then we don't bother with this since we assume either no bugs
++	 * allow the guest to leak that data, or the user doesn't care about
++	 * that security boundary.
+ 	 */
+-	policy.protect_data |= ASI_TAINT_USER_DATA;
++	if (!asi_maps_user_addr(ASI_CLASS_KVM))
++		policy.protect_data |= ASI_TAINT_USER_DATA;
+ 
+ 	return asi_init_class(ASI_CLASS_KVM, &policy);
+ }
+diff --git a/arch/x86/mm/asi.c b/arch/x86/mm/asi.c
+index c5073af1a82ded1c6fc467cd7a5d29a39d676bb4..093103c1bc2677c81d68008aca064fab53b73a62 100644
+--- a/arch/x86/mm/asi.c
++++ b/arch/x86/mm/asi.c
+@@ -14,6 +14,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/mmu_context.h>
+ #include <asm/traps.h>
++#include <asm/pgtable.h>
+ 
+ #include "mm_internal.h"
+ #include "../../../mm/internal.h"
+@@ -351,6 +352,33 @@ static void __asi_destroy(struct asi *asi)
+ 	memset(asi, 0, sizeof(struct asi));
+ }
+ 
++static void __asi_init_user_pgds(struct mm_struct *mm, struct asi *asi)
++{
++	int i;
++
++	if (!asi_maps_user_addr(asi->class_id))
++		return;
++
++	/*
++	 * The code below must be executed only after the given asi is
++	 * available in mm->asi[index] to ensure at least either this
++	 * function or __asi_clone_user_pgd() will copy entries in the
++	 * unrestricted pgd to the restricted pgd.
++	 */
++	if (WARN_ON_ONCE(&mm->asi[asi->class_id] != asi))
++		return;
++
++	/*
++	 * See the comment for __asi_clone_user_pgd() why we hold the lock here.
++	 */
++	spin_lock(&asi->pgd_lock);
++
++	for (i = 0; i < KERNEL_PGD_BOUNDARY; i++)
++		set_pgd(asi->pgd + i, READ_ONCE(*(mm->pgd + i)));
++
++	spin_unlock(&asi->pgd_lock);
++}
++
+ int asi_init(struct mm_struct *mm, enum asi_class_id class_id, struct asi **out_asi)
+ {
+ 	struct asi *asi;
+@@ -388,6 +416,7 @@ int asi_init(struct mm_struct *mm, enum asi_class_id class_id, struct asi **out_
+ 
+ 	asi->mm = mm;
+ 	asi->class_id = class_id;
++	spin_lock_init(&asi->pgd_lock);
+ 
+ 	for (i = KERNEL_PGD_BOUNDARY; i < PTRS_PER_PGD; i++)
+ 		set_pgd(asi->pgd + i, asi_global_nonsensitive_pgd[i]);
+@@ -398,6 +427,7 @@ int asi_init(struct mm_struct *mm, enum asi_class_id class_id, struct asi **out_
+ 	else
+ 		*out_asi = asi;
+ 
++	__asi_init_user_pgds(mm, asi);
+ 	mutex_unlock(&mm->asi_init_lock);
+ 
+ 	return err;
+@@ -891,3 +921,65 @@ void asi_unmap(struct asi *asi, void *addr, size_t len)
+ 
+ 	asi_flush_tlb_range(asi, addr, len);
+ }
++
++/*
++ * This function is to copy the given unrestricted pgd entry for
++ * userspace addresses to the corresponding restricted pgd entries.
++ * It means that the unrestricted pgd entry must be updated before
++ * this function is called.
++ * We map entire userspace addresses to the restricted address spaces
++ * by copying unrestricted pgd entries to the restricted page tables
++ * so that we don't need to maintain consistency of lower level PTEs
++ * between the unrestricted page table and the restricted page tables.
++ */
++void asi_clone_user_pgtbl(struct mm_struct *mm, pgd_t *pgdp)
++{
++	unsigned long pgd_idx;
++	struct asi *asi;
++	int i;
++
++	if (!static_asi_enabled())
++		return;
++
++	/* We shouldn't need to take care non-userspace mapping. */
++	if (!pgdp_maps_userspace(pgdp))
++		return;
++
++	/*
++	 * The mm will be NULL for p{4,g}d_clear(). We need to get
++	 * the owner mm for this pgd in this case. The pgd page has
++	 * a valid pt_mm only when SHARED_KERNEL_PMD == 0.
++	 */
++	BUILD_BUG_ON(SHARED_KERNEL_PMD);
++	if (!mm) {
++		mm = pgd_page_get_mm(virt_to_page(pgdp));
++		if (WARN_ON_ONCE(!mm))
++			return;
 +	}
 +
- #ifdef CONFIG_PM_SLEEP
- 	register_syscore_ops(&asi_syscore_ops);
- #endif
-@@ -512,10 +524,12 @@ static __always_inline void maybe_flush_control(struct asi *next_asi)
- 	if (!taints)
- 		return;
- 
--	/*
--	 * This is where we'll do the actual dirty work of clearing uarch state.
--	 * For now we just pretend, clear the taints.
--	 */
-+	/* Clear normal indirect branch predictions, if we haven't */
-+	if (cpu_feature_enabled(X86_FEATURE_IBPB))
-+		__wrmsr(MSR_IA32_PRED_CMD, PRED_CMD_IBPB, 0);
++	/*
++	 * Compute a PGD index of the given pgd entry. This will be the
++	 * index of the ASI PGD entry to be updated.
++	 */
++	pgd_idx = pgdp - PTR_ALIGN_DOWN(pgdp, PAGE_SIZE);
 +
-+	fill_return_buffer();
++	for (i = 0; i < ARRAY_SIZE(mm->asi); i++) {
++		asi = mm->asi + i;
 +
- 	this_cpu_and(asi_taints, ~ASI_TAINTS_CONTROL_MASK);
- }
- 
-@@ -536,10 +550,9 @@ static __always_inline void maybe_flush_data(struct asi *next_asi)
- 	if (!taints)
- 		return;
- 
--	/*
--	 * This is where we'll do the actual dirty work of clearing uarch state.
--	 * For now we just pretend, clear the taints.
--	 */
-+	if (do_l1tf_flush)
-+		l1tf_flush();
++		if (!asi_pgd(asi) || !asi_maps_user_addr(asi->class_id))
++			continue;
 +
- 	this_cpu_and(asi_taints, ~ASI_TAINTS_DATA_MASK);
- }
++		/*
++		 * We need to synchronize concurrent callers of
++		 * __asi_clone_user_pgd() among themselves, as well as
++		 * __asi_init_user_pgds(). The lock makes sure that reading
++		 * the unrestricted pgd and updating the corresponding
++		 * ASI pgd are not interleaved by concurrent calls.
++		 * We cannot rely on mm->page_table_lock here because it
++		 * is not always held when pgd/p4d_clear_bad() is called.
++		 */
++		spin_lock(&asi->pgd_lock);
++		set_pgd(asi_pgd(asi) + pgd_idx, READ_ONCE(*pgdp));
++		spin_unlock(&asi->pgd_lock);
++	}
++}
+diff --git a/include/asm-generic/asi.h b/include/asm-generic/asi.h
+index 4f033d3ef5929707fd280f74fc800193e45143c1..d103343292fad567dcd73e45e986fb3974e59898 100644
+--- a/include/asm-generic/asi.h
++++ b/include/asm-generic/asi.h
+@@ -95,6 +95,10 @@ void asi_flush_tlb_range(struct asi *asi, void *addr, size_t len) { }
  
+ static inline void asi_check_boottime_disable(void) { }
+ 
++static inline void asi_clone_user_pgtbl(struct mm_struct *mm, pgd_t *pgdp) { };
++
++static inline bool asi_maps_user_addr(enum asi_class_id class_id) { return false; }
++
+ #endif /* !CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION */
+ 
+ #endif  /* !_ASSEMBLY_ */
 
 -- 
 2.47.1.613.gc27f4b7a9f-goog
