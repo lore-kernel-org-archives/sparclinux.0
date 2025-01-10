@@ -1,55 +1,55 @@
-Received: from mail-wr1-f74.google.com (mail-wr1-f74.google.com [209.85.221.74])
+Received: from mail-wm1-f74.google.com (mail-wm1-f74.google.com [209.85.128.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D940D218599
-	for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 18:41:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E3F5225A3C
+	for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 18:41:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736534525; cv=none; b=GOj363zcOs+P3O1RMpFGEe5YN1NPAXZYA++JsS99trj9jnHp/8TLCYFrGQjM3/ta0NseXRo/arKbaItofosYu7bLViaxS6nY+IJBrpth8eyxLxSWxnJZXpD+7txzbVjBgHBljnQr9SAKt50lbluNU8dkQwBNPIzyGNdPOYUH3OI=
+	t=1736534528; cv=none; b=Hmu5ElE69rHPHvL3pymV2hGofP2rR2aGngugyocWC5VWq5HX8mZnWk8v/9oMTVyPwWpvT++GIG6KD+8Kkbr7INI6jVo1tlYmTL9eJLT3XkJXc+bC+WjGta9yXuM27QzmLaZWKbVk2lPbRT7tmIUKCjrNi40Ez8bbkVdayv2Bbrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736534525; c=relaxed/simple;
-	bh=kGzuSX53lHwpbQyPS7sz1yo/F9Y/VcabtEWf2Y1h4vY=;
+	s=arc-20240116; t=1736534528; c=relaxed/simple;
+	bh=32Fq3qjx4GlhpQdGQFZHoMDpyKy3qYAHjbWT86t6fjI=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=QrhjZhE1SC5AdUYYHVCxV3sDOLEZc5RD4W/xNXJ59EDkO/9n7DCwZvJ7mjj5PS6WV+407tRnGId4sditAfK7WhitPgIsinusqy0mEIJoDrhmzHX4CzGvTt/cy/tsB30VpmOtgVCnH3APnzhB6bUL6A6mKweqDz+KZKYiXWHEaI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=CYy/My5o; arc=none smtp.client-ip=209.85.221.74
+	 To:Cc:Content-Type; b=uzB3EqCZQooactr8AC13dg54C2VQTj4c7I7nV7VoOkZ3jYbv+FbaR8QnO4BeeSJ5z4aniDyFM7TmfVbkjGib4EStDCJLfLEFMcXH4GVOBde8xtPRxszJ3M0K4danPFUG7p0z9ykjm/05OsrE6ZluOxA2Tbuz5GwgSyQJMisueIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=WQmwgC0I; arc=none smtp.client-ip=209.85.128.74
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="CYy/My5o"
-Received: by mail-wr1-f74.google.com with SMTP id ffacd0b85a97d-385d7611ad3so1373001f8f.2
-        for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 10:41:37 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="WQmwgC0I"
+Received: by mail-wm1-f74.google.com with SMTP id 5b1f17b1804b1-4361a8fc3bdso12056755e9.2
+        for <sparclinux@vger.kernel.org>; Fri, 10 Jan 2025 10:41:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1736534491; x=1737139291; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1736534497; x=1737139297; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=z5b6fu2IPJ4vMWdeJyvKaXZwCsIFdjwPZGonrVH8VuY=;
-        b=CYy/My5odBGanUx9mJU448Z1FppXeL+BCJYcZBer9Hi3Ylw9Y3F31R6YtnmO/CvnJr
-         YIlR3o2jdCU2FFCKXcJlsCKlT+NH163A8E1XnR6zQsRSAsWcYQHXgnD+oCR5pbrhH2FL
-         uwolnqS5smZbHt4uLtRCyHgCjVnljI8Oo85sv/Kn+g0Zkm31xTSV4ajxMqZvPgRORD3+
-         mxzHiZjq8FUBv71L72jBXhJ1CQt+r9iLMpFUP0Sw/Mo+Ic2VxYNLanMom0NlPpHQf4su
-         luM10YHPmsYXcGhc4e3RKmpY7tpw/RKXVqZkS80gOOVVaS4eqbviVv96Wf7/ybSyeTQe
-         bZQQ==
+        bh=aGIlyFkOxdGIUAlLSc7B7HeTqLb/6yPSKg6NF5x4oeg=;
+        b=WQmwgC0Io+GpDG2E4vj5CIvHbxFF17Tq5R1TT+Y4X5J9xU7RAuv+Ao6tDgGJeTbPgf
+         7dSe18jRIlWtKwEQUP7LtgJLE85xR74zKtn6qVFDgsyjw/DpTmlI4H/12pyzl2sdWsQh
+         d+mQQY0JVx3+EwhuTFDlHsQnpBZn+vRPPN8i5jVDI7nNY7mFe7yqS0GygwJpk7xFxYUF
+         cXp35tRL8fKWFpQkYFzV6zG+clMjPqto/6pHzu8kldcuahCB+SxaW3ZQVzkXObTpfycE
+         zT5zjp0nS60ldmHB+FBxp4GeDa4RmsEu4J6gndhjXiF0fcnG3JINgu9SC0k4Gf8iUJyZ
+         9CTQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736534491; x=1737139291;
+        d=1e100.net; s=20230601; t=1736534497; x=1737139297;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=z5b6fu2IPJ4vMWdeJyvKaXZwCsIFdjwPZGonrVH8VuY=;
-        b=M1CnLKJLOVQ27DsIldWE+pnGJ9Zvn0uieSz1pTS2mdpOzQAPJKAbZFGmymMIqwMcl3
-         sSSdAIGSPEBQElxOEsXzDfbZk4UjWgTjUhCxYd+Lj46FPGpk9k1JJugJmz6lL0LhpAQF
-         NbumvNnXCuoSuqNR63pjapK7g9E4JP4/De3ZDnYUh4PdlZQ6kESQp7V2X+d6BrYFwaRf
-         1NK81Nk25XGIiBIbn4maR1L6vBoa2Pvhq3x18v7/Zw9xnf7Xpo628N/wSXjbVzvvIlsX
-         wJkhcNuzj0hHTzC5xDhRkuNfOa02euzLeg0n24TruLkhLrECN6mYntK5vvJX74Ofo4Jf
-         40XQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWEPnj0Zfd0W4ZT9Dbf/8HhCBYxRqSodswUJHLlxZ6dni6jQYZCN3hQ9Lqg1oEDmJoobdS9/41zPYKG@vger.kernel.org
-X-Gm-Message-State: AOJu0YxK29Dsxf/mWKi9rVKdPVRvvfCdL5wsLWpVyzMbiketLbzraY2u
-	oTxlFMyE9PUsgVf0Teaj3c4xQNjRq43NIU78lyU8X2Ri2541XvUmYZmmDqRc5xjLvL0v5M0yIh7
-	GYfxt30Dt/w==
-X-Google-Smtp-Source: AGHT+IEE74PFwgraC6zRNOcME3rOW4swKtJd/bKE4AIl8MRowFtdpWNq19ZBTTKPz5sLGPxmEc1GHABVlwipiQ==
-X-Received: from wmjv9.prod.google.com ([2002:a7b:cb49:0:b0:434:f173:a51])
+        bh=aGIlyFkOxdGIUAlLSc7B7HeTqLb/6yPSKg6NF5x4oeg=;
+        b=Kb//AdtPd9smg0CkvHOc9hFMXNkCahfy8pBa0MRqMnxucR/W9ONwC71fJ02eW8RNxJ
+         Oa+NJ0JN3nTdTTK/XnxZa4O4AUSmyYH4LWE68uhralhcmc2oJrB9krWEpXO8ai9A49Sk
+         uJq+sKG3iM+os5NOoQ18NVCck4HQPg5QrNDnku1ParuiUVMPmsLxhiEOPqO+yl1eBL+E
+         iAgnw7NTTRDGvshRHopSZChf0z3M+NEYcKUi2umlUNbVkCvHCzG1dDMKmfegEw7GeLwr
+         alxIf4Kdxeuw4py1vCcPo77N8YSe+RP+rYGApYKlRhpX5AeW8FlBb9rMcgevGaufXQwc
+         ENTg==
+X-Forwarded-Encrypted: i=1; AJvYcCVofjZK2iIIWPDfYZ70jf77R1k1tmQeSHinY45g3GCxVGy9t/1SRag+smZR6xi+ZgpwRvJD1BTx29TZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxODOAWh4Hdu2dPrjgyuCJhvQGfSKWXz9drH97LyXCR/ce15BHR
+	NlxEj11bzaF/0DTuRW7CYlH3K9IjUHM/gsdrhSznPTSiFqKePJSPLrpSEa7GixBPBQlygZxGXCy
+	VajGmVwkSDA==
+X-Google-Smtp-Source: AGHT+IFRy9/+C5CnBm/ma6a3ETfEwH3prKyhyhclEMfLJAYKbacCY4ZfacRZW3At4TIIMxUaqY38zEy/zVSAnQ==
+X-Received: from wmdn10.prod.google.com ([2002:a05:600c:294a:b0:436:d819:e4eb])
  (user=jackmanb job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6000:1a85:b0:38a:4184:1520 with SMTP id ffacd0b85a97d-38a872eb1eamr9947778f8f.27.1736534490587;
- Fri, 10 Jan 2025 10:41:30 -0800 (PST)
-Date: Fri, 10 Jan 2025 18:40:46 +0000
+ 2002:a05:600c:5848:b0:436:f3f6:9582 with SMTP id 5b1f17b1804b1-436f3f695dfmr6272215e9.8.1736534497408;
+ Fri, 10 Jan 2025 10:41:37 -0800 (PST)
+Date: Fri, 10 Jan 2025 18:40:49 +0000
 In-Reply-To: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -59,8 +59,8 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com>
 X-Mailer: b4 0.15-dev
-Message-ID: <20250110-asi-rfc-v2-v2-20-8419288bc805@google.com>
-Subject: [PATCH RFC v2 20/29] mm: asi: Make TLB flushing correct under ASI
+Message-ID: <20250110-asi-rfc-v2-v2-23-8419288bc805@google.com>
+Subject: [PATCH RFC v2 23/29] mm: asi: exit ASI before suspend-like operations
 From: Brendan Jackman <jackmanb@google.com>
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
 	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
@@ -111,110 +111,112 @@ Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
 	linux-um@lists.infradead.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
 	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
 	kvm@vger.kernel.org, linux-efi@vger.kernel.org, 
-	Brendan Jackman <jackmanb@google.com>
+	Brendan Jackman <jackmanb@google.com>, Yosry Ahmed <yosryahmed@google.com>
 Content-Type: text/plain; charset="utf-8"
 
-This is the absolute minimum change for TLB flushing to be correct under
-ASI. There are two arguably orthogonal changes in here but they feel
-small enough for a single commit.
+From: Yosry Ahmed <yosryahmed@google.com>
 
-.:: CR3 stabilization
+During suspend-like operations (suspend, hibernate, kexec w/
+preserve_context), the processor state (including CR3) is usually saved
+and restored later.
 
-As noted in the comment ASI can destabilize CR3, but we can stabilize it
-again by calling asi_exit, this makes it safe to read CR3 and write it
-back.
+In the kexec case, this only happens when KEXEC_PRESERVE_CONTEXT is
+used to jump back to the original kernel. In relocate_kernel(), some
+registers including CR3 are stored in VA_CONTROL_PAGE. If
+preserve_context is set (passed into relocate_kernel() in RCX), after
+running the new kernel the code under 'virtual_mapped' restores these
+registers. This is similar to what happens in suspend and hibernate.
 
-This is enough to be correct - we don't have to worry about invalidating
-the other ASI address space (i.e. we don't need to invalidate the
-restricted address space if we are currently unrestricted / vice versa)
-because we currently never set the noflush bit in CR3 for ASI
-transitions.
+Note that even when KEXEC_PRESERVE_CONTEXT is not set, relocate_kernel()
+still accesses CR3. It mainly reads and writes it to flush the TLB. This
+could be problematic and cause improper ASI enters (see below), but it
+is assumed to be safe because the kernel will essentially reboot in this
+case anyway.
 
-Even without using CR3's noflush bit there are trivial optimizations
-still on the table here: on where invpcid_flush_single_context is
-available (i.e. with the INVPCID_SINGLE feature) we can use that in lieu
-of the CR3 read/write, and avoid the extremely costly asi_exit.
+Saving and restoring CR3 in this fashion can cause a problem if the
+suspend/hibernate/kexec is performed within an ASI domain. A restricted
+CR3 will be saved, and later restored after ASI had potentially already
+exited (e.g. from an NMI after CR3 is stored). This will cause an
+_improper_ ASI enter, where code starts executing in a restricted
+address space, yet ASI metadata (especially curr_asi) says otherwise.
 
-.:: Invalidating kernel mappings
+Exit ASI early in all these paths by registering a syscore_suspend()
+callback. syscore_suspend() is called in all the above paths (for kexec,
+only with KEXEC_PRESERVE_CONTEXT) after IRQs are finally disabled before
+the operation. This is not currently strictly required but is convenient
+because when ASI gains the ability to persist across context switching,
+there will be additional synchronization requirements simplified by
+this.
 
-Before ASI, with KPTI off we always either disable PCID or use global
-mappings for kernel memory. However ASI disables global kernel mappings
-regardless of factors. So we need to invalidate other address spaces to
-trigger a flush when we switch into them.
+Note: If the CR3 accesses in relocate_kernel() when
+KEXEC_PRESERVE_CONTEXT is not set are concerning, they could be handled
+by registering a syscore_shutdown() callback to exit ASI.
+syscore_shutdown() is called in the kexec path where
+KEXEC_PRESERVE_CONTEXT is not set starting commit 7bb943806ff6 ("kexec:
+do syscore_shutdown() in kernel_kexec").
 
-Note that there is currently a pointless write of
-cpu_tlbstate.invalidate_other in the case of KPTI and !PCID. We've added
-another case of that (ASI, !KPTI and !PCID). I think that's preferable
-to expanding the conditional in flush_tlb_one_kernel.
-
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 ---
- arch/x86/mm/tlb.c | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ arch/x86/mm/asi.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/arch/x86/mm/tlb.c b/arch/x86/mm/tlb.c
-index ce5598f96ea7a84dc0e8623022ab5bfbba401b48..07b1657bee8e4cf17452ea57c838823e76f482c0 100644
---- a/arch/x86/mm/tlb.c
-+++ b/arch/x86/mm/tlb.c
-@@ -231,7 +231,7 @@ static void clear_asid_other(void)
- 	 * This is only expected to be set if we have disabled
- 	 * kernel _PAGE_GLOBAL pages.
- 	 */
--	if (!static_cpu_has(X86_FEATURE_PTI)) {
-+	if (!static_cpu_has(X86_FEATURE_PTI) && !static_asi_enabled()) {
- 		WARN_ON_ONCE(1);
- 		return;
- 	}
-@@ -1040,7 +1040,6 @@ static void put_flush_tlb_info(void)
- noinstr u16 asi_pcid(struct asi *asi, u16 asid)
- {
- 	return kern_pcid(asid) | ((asi->class_id + 1) << X86_CR3_ASI_PCID_BITS_SHIFT);
--	// return kern_pcid(asid) | ((asi->index + 1) << X86_CR3_ASI_PCID_BITS_SHIFT);
+diff --git a/arch/x86/mm/asi.c b/arch/x86/mm/asi.c
+index a9f9bfbf85eb47d16ef8d0bfbc7713f07052d3ed..c5073af1a82ded1c6fc467cd7a5d29a39d676bb4 100644
+--- a/arch/x86/mm/asi.c
++++ b/arch/x86/mm/asi.c
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/pgtable.h>
++#include <linux/syscore_ops.h>
+ 
+ #include <asm/cmdline.h>
+ #include <asm/cpufeature.h>
+@@ -243,6 +244,32 @@ static int asi_map_percpu(struct asi *asi, void *percpu_addr, size_t len)
+ 	return 0;
  }
  
- void asi_flush_tlb_range(struct asi *asi, void *addr, size_t len)
-@@ -1192,15 +1191,19 @@ void flush_tlb_one_kernel(unsigned long addr)
- 	 * use PCID if we also use global PTEs for the kernel mapping, and
- 	 * INVLPG flushes global translations across all address spaces.
- 	 *
--	 * If PTI is on, then the kernel is mapped with non-global PTEs, and
--	 * __flush_tlb_one_user() will flush the given address for the current
--	 * kernel address space and for its usermode counterpart, but it does
--	 * not flush it for other address spaces.
-+	 * If PTI or ASI is on, then the kernel is mapped with non-global PTEs,
-+	 * and __flush_tlb_one_user() will flush the given address for the
-+	 * current kernel address space and, if PTI is on, for its usermode
-+	 * counterpart, but it does not flush it for other address spaces.
- 	 */
- 	flush_tlb_one_user(addr);
- 
--	if (!static_cpu_has(X86_FEATURE_PTI))
-+	/* Nothing more to do if PTI and ASI are completely off. */
-+	if (!static_cpu_has(X86_FEATURE_PTI) && !static_asi_enabled()) {
-+		VM_WARN_ON_ONCE(static_cpu_has(X86_FEATURE_PCID) &&
-+				!(__default_kernel_pte_mask & _PAGE_GLOBAL));
- 		return;
-+	}
- 
- 	/*
- 	 * See above.  We need to propagate the flush to all other address
-@@ -1289,6 +1292,16 @@ STATIC_NOPV void native_flush_tlb_local(void)
- 
- 	invalidate_user_asid(this_cpu_read(cpu_tlbstate.loaded_mm_asid));
- 
++#ifdef CONFIG_PM_SLEEP
++static int asi_suspend(void)
++{
 +	/*
-+	 * Restricted ASI CR3 is unstable outside of critical section, so we
-+	 * couldn't flush via a CR3 read/write. asi_exit() stabilizes it.
-+	 * We don't expect any flushes in a critical section.
++	 * Must be called after IRQs are disabled and rescheduling is no longer
++	 * possible (so that we cannot re-enter ASI before suspending.
 +	 */
-+	if (WARN_ON(asi_in_critical_section()))
-+		native_flush_tlb_global();
-+	else
-+		asi_exit();
++	lockdep_assert_irqs_disabled();
 +
- 	/* If current->mm == NULL then the read_cr3() "borrows" an mm */
- 	native_write_cr3(__native_read_cr3());
++	/*
++	 * Suspend operations sometimes save CR3 as part of the saved state,
++	 * which is restored later (e.g. do_suspend_lowlevel() in the suspend
++	 * path, swsusp_arch_suspend() in the hibernate path, relocate_kernel()
++	 * in the kexec path). Saving a restricted CR3 and restoring it later
++	 * could leave to improperly entering ASI. Exit ASI before such
++	 * operations.
++	 */
++	asi_exit();
++	return 0;
++}
++
++static struct syscore_ops asi_syscore_ops = {
++	.suspend = asi_suspend,
++};
++#endif /* CONFIG_PM_SLEEP */
++
+ static int __init asi_global_init(void)
+ {
+ 	int err;
+@@ -306,6 +333,10 @@ static int __init asi_global_init(void)
+ 	asi_clone_pgd(asi_global_nonsensitive_pgd, init_mm.pgd,
+ 		      VMEMMAP_START + (1UL << PGDIR_SHIFT));
+ 
++#ifdef CONFIG_PM_SLEEP
++	register_syscore_ops(&asi_syscore_ops);
++#endif
++
+ 	return 0;
  }
+ subsys_initcall(asi_global_init)
 
 -- 
 2.47.1.613.gc27f4b7a9f-goog
