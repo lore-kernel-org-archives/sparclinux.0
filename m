@@ -1,84 +1,57 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AE2D240245
-	for <sparclinux@vger.kernel.org>; Mon, 13 Jan 2025 15:31:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 239AC22DFBB;
+	Mon, 13 Jan 2025 16:26:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736782319; cv=none; b=uJbxwRN/2MhbSQbf5smLQXfH3q2UExlRvr9KYlbfo3ZvB8yk3lya/7UwiGURLieyYF24MjU8kDrlrSyNwRo3521Yvj3Dyr5lG1GpgrIh5Gkyuv4iycJ80WTJDX0xWQjo1QaDjMYbbbzAl15BalxgaL6ieQt7dytYa1lPMGv5pqE=
+	t=1736785573; cv=none; b=VSHQEYUu+5Y/4rbE0lYEMdmDhKGYitOGVgC1MBc6NtYKL90nfPOxxvkJMZ9HN4m0nqv5PXC1UrNzm3KRbK4IkbjlVhm2uUt8kxMNg1KQdc5R7hiVjYqmEYIVww6GzD2csB7whC60/zqYWYQkWWyP+RYOuAsnNu/VESxU6kwstX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736782319; c=relaxed/simple;
-	bh=mvpUKblQy8XIPdlWHCLH8X7FWaiWEVy9c2RgcGTYsnY=;
+	s=arc-20240116; t=1736785573; c=relaxed/simple;
+	bh=aIErGEJQ93Edr09sqGtwbrisP+GLeiu0+v58Z3b4+wg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SM6koGS18K+x+XfUmlCoGE1FaikMhM22q4QIffCTMC1KZM03vCARO3MR6A7SRxAxxEg82TgO3r9x87Lar+7vGIV7RvkNoMaIkz7kL73TEItXfGJ5HnSW3a51GHl0C4L6k8GT1Oape541I/W9xjTPx3JWwH0Gv7R24IFZJGDTEPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LVtRCE42; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=m97huq+XW9hx1xWPfFMQsIgyUU6dkaAEMF7a8Ww/5Rntndp3n/CZRajQHv4Tuhe9UDOGeo+38/miGX7sTeww+A85U+rYgIjcaxGEroUMladSC155QsyYeY/6Xsbd6CV4ypfo8UTv9i3Rxo+o7BI7v7whh9XHYSng6hoAEgenA5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f9OxD2cj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LVtRCE42"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1736782316;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SZj62Px2ZKn8iOzamvEwo+3QljL+SdLMxOZ/y0XMPLY=;
-	b=LVtRCE42cYTXtul0GJf5msuYGuay5DSwXJp5Rz8KQn5Umj2AKdWt5OnDcmB2WlrSnLIf1p
-	u6sQgmgZclG42XmMzyOcaCME+5V0Cpksi74rJtXfyv4HrjEBYKxlT4bIBrXen+kAUYiH/k
-	SI6MSYfmXBXirqd2oaqw3wCoAPWkW14=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-618-G3rQIhEIOCiMSbadUk6p4Q-1; Mon, 13 Jan 2025 10:31:55 -0500
-X-MC-Unique: G3rQIhEIOCiMSbadUk6p4Q-1
-X-Mimecast-MFC-AGG-ID: G3rQIhEIOCiMSbadUk6p4Q
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-aab954d1116so438390466b.3
-        for <sparclinux@vger.kernel.org>; Mon, 13 Jan 2025 07:31:54 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736782314; x=1737387114;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SZj62Px2ZKn8iOzamvEwo+3QljL+SdLMxOZ/y0XMPLY=;
-        b=HTwBtsK4tMkWrlHwlYyG4LYqwj7nTd5pPOLvWCJWuM57DjkMk13E5hHFAD7/zTHn/D
-         UPP5oI/CeM2WGaNpuF1W1UiX2Z6xdKgkdGmGJYulk+aITWegvI5i05v0Y+xyMCPqvLhn
-         DdlYC/Gxp7i0T9X4xfAz/WQe2wUcxBQqOeHZ64wmid1CbTwE/VN2kvimnhYC7MweY4c4
-         9y83rovB+4Q2YtMhiN9+j/fzEGFUasBfxLSfr0SrP7aCGFw2yGYK//20yS3xaTd4Z7uc
-         gv56TKUpG+IYK51ZMZFD149ZwXNb0MPwsLdYzj/rKPVc+mJ2odkOft+1RvbtbRshmJtM
-         s3Eg==
-X-Forwarded-Encrypted: i=1; AJvYcCVIgDkoCLnhcQRXlIZoH2mnDra0JdLHvCOuuVklVRRGz3fnhe3rYxEmkwNfEG+Q4CwA7fayKJpLxK7U@vger.kernel.org
-X-Gm-Message-State: AOJu0YwbL1oyiVtMnuagWiyKqn+EN3+eCe0eOITFO5ZBybpjDSM2Tnnc
-	RoIzQKbVnG/M+ZWAPtcBG4euwxKlQuKR3X9h8U9bBFTM1xnASvHAkqOYaa0oG1fGW67uiqjSipa
-	0OFQTjGy39V1T7RjJ+CnO9LjmkQbGPvP8ZSUwwmHDrvO7W1PdiUjD+QIYOA==
-X-Gm-Gg: ASbGncuuA0KXB+I1IJl+aoIcnmM7MErMYcuAo8A+ecwRgU7Qbcqic6HNVN62sBGMfWk
-	wWLl6910bpgoKgWowDVC12OsgQmDCxhzvgdZIgyOjF/LxKTmwYMAkUox2Fv3kz974In48PnkJl8
-	sYjsMc4scOVf8BNO4lxDJsIJG0tjaTnxK0SlYIOoVfEMq5h5MMcHwNN1MVgsFm8YldEPuPZSFt+
-	b+f9AfoNX4ysivJ/6vu45XHKN/oXDV1xX/SUNWOKvYFFwdcc1P7nd8fUJ5myi+JaBzEw5oLcTTN
-X-Received: by 2002:a17:907:6d0e:b0:aaf:5c9:19f9 with SMTP id a640c23a62f3a-ab2ab6f3455mr1962695066b.27.1736782313741;
-        Mon, 13 Jan 2025 07:31:53 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFN9M8ywOrQBK6gF/5ntK43MmcNBbwRSFgySYURvnN/eomPTMHRMQ8vdhj//eDu8N4Cy9JGfg==
-X-Received: by 2002:a17:907:6d0e:b0:aaf:5c9:19f9 with SMTP id a640c23a62f3a-ab2ab6f3455mr1962689566b.27.1736782313218;
-        Mon, 13 Jan 2025 07:31:53 -0800 (PST)
-Received: from thinky (ip-217-030-074-039.aim-net.cz. [217.30.74.39])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab2c9060b9dsm516473166b.4.2025.01.13.07.31.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jan 2025 07:31:52 -0800 (PST)
-Date: Mon, 13 Jan 2025 16:31:50 +0100
-From: Andrey Albershteyn <aalbersh@redhat.com>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org, 
-	monstr@monstr.eu, mpe@ellerman.id.au, npiggin@gmail.com, 
-	christophe.leroy@csgroup.eu, naveen@kernel.org, maddy@linux.ibm.com, luto@kernel.org, 
-	tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com, 
-	x86@kernel.org, hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com, 
-	viro@zeniv.linux.org.uk, brauner@kernel.org, arnd@arndb.de, linux-alpha@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-parisc@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	linux-arch@vger.kernel.org
-Subject: Re: [PATCH] fs: introduce getfsxattrat and setfsxattrat syscalls
-Message-ID: <cwz2kun2mm55um3hycrd4mkxrgm43zorty5kdxacksmseo34n3@dc3bd4x6cibd>
-References: <20250109174540.893098-1-aalbersh@kernel.org>
- <doha6zamxgmqapwx4r6ehzbatzar4dcep33zehunonqforjzf5@lxpidn37tdjh>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f9OxD2cj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB06FC4CEE3;
+	Mon, 13 Jan 2025 16:26:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736785571;
+	bh=aIErGEJQ93Edr09sqGtwbrisP+GLeiu0+v58Z3b4+wg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=f9OxD2cjCU02a1TFHaQkRJkHTJaf800j2ThaRkmaDO8PnvHYcKvQAfMic1HE/Vgu4
+	 bhoThTemMYdDsEruG0k1HE1twIt5p+okmQ1Fme2xsmkJ1BQLD8H+Zp7QUSFbDk27Gn
+	 B5ufSBakDorBmKAc7MajbPl5qEyM8Cvsp7UlPF7Qlqy8u3xJW5fG1y1vkiwGoluiPG
+	 TaVdI6SpQBvsCUt754VDxKLXg9xhYJFxRfy3Q35WM4nn1s+LKSVLKt3udttwPvQ+n7
+	 7RdzermO/y9ghDR77Ho+plqpTXITbyFwEjDbIrmeX2kZUFwI7wLBL/ndLmvBoivzIj
+	 msVg4+kWAVaUA==
+Date: Mon, 13 Jan 2025 16:26:01 +0000
+From: Will Deacon <will@kernel.org>
+To: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: peterz@infradead.org, agordeev@linux.ibm.com, kevin.brodsky@arm.com,
+	alex@ghiti.fr, andreas@gaisler.com, palmer@dabbelt.com,
+	tglx@linutronix.de, david@redhat.com, jannh@google.com,
+	hughd@google.com, yuzhao@google.com, willy@infradead.org,
+	muchun.song@linux.dev, vbabka@kernel.org,
+	lorenzo.stoakes@oracle.com, akpm@linux-foundation.org,
+	rientjes@google.com, vishal.moola@gmail.com, arnd@arndb.de,
+	aneesh.kumar@kernel.org, npiggin@gmail.com,
+	dave.hansen@linux.intel.com, rppt@kernel.org, ryan.roberts@arm.com,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, x86@kernel.org,
+	linux-arch@vger.kernel.org, linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-um@lists.infradead.org
+Subject: Re: [PATCH v5 05/17] arm64: pgtable: use mmu gather to free p4d
+ level page table
+Message-ID: <20250113162600.GA14101@willie-the-truck>
+References: <cover.1736317725.git.zhengqi.arch@bytedance.com>
+ <3fd48525397b34a64f7c0eb76746da30814dc941.1736317725.git.zhengqi.arch@bytedance.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -87,157 +60,56 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <doha6zamxgmqapwx4r6ehzbatzar4dcep33zehunonqforjzf5@lxpidn37tdjh>
+In-Reply-To: <3fd48525397b34a64f7c0eb76746da30814dc941.1736317725.git.zhengqi.arch@bytedance.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On 2025-01-13 12:19:36, Jan Kara wrote:
-> On Thu 09-01-25 18:45:40, Andrey Albershteyn wrote:
-> > From: Andrey Albershteyn <aalbersh@redhat.com>
-> > 
-> > Introduce getfsxattrat and setfsxattrat syscalls to manipulate inode
-> > extended attributes/flags. The syscalls take parent directory FD and
-> > path to the child together with struct fsxattr.
-> > 
-> > This is an alternative to FS_IOC_FSSETXATTR ioctl with a difference
-> > that file don't need to be open. By having this we can manipulated
-> > inode extended attributes not only on normal files but also on
-> > special ones. This is not possible with FS_IOC_FSSETXATTR ioctl as
-> > opening special files returns VFS special inode instead of
-> > underlying filesystem one.
-> > 
-> > This patch adds two new syscalls which allows userspace to set
-> > extended inode attributes on special files by using parent directory
-> > to open FS inode.
-> > 
-> > Also, as vfs_fileattr_set() is now will be called on special files
-> > too, let's forbid any other attributes except projid and nextents
-> > (symlink can have an extent).
-> > 
-> > CC: linux-api@vger.kernel.org
-> > Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+On Wed, Jan 08, 2025 at 02:57:21PM +0800, Qi Zheng wrote:
+> Like other levels of page tables, also use mmu gather mechanism to free
+> p4d level page table.
 > 
-> Couple of comments below:
+> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+> Originally-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> ---
+>  arch/arm64/include/asm/pgalloc.h |  1 -
+>  arch/arm64/include/asm/tlb.h     | 14 ++++++++++++++
+>  2 files changed, 14 insertions(+), 1 deletion(-)
 > 
-> > @@ -2953,3 +2956,105 @@ umode_t mode_strip_sgid(struct mnt_idmap *idmap,
-> >  	return mode & ~S_ISGID;
-> >  }
-> >  EXPORT_SYMBOL(mode_strip_sgid);
-> > +
-> > +SYSCALL_DEFINE4(getfsxattrat, int, dfd, const char __user *, filename,
-> > +		struct fsxattr *, fsx, int, at_flags)
-> 				       ^^^ at_flags should be probably
-> unsigned - at least they seem to be for other syscalls.
+> diff --git a/arch/arm64/include/asm/pgalloc.h b/arch/arm64/include/asm/pgalloc.h
+> index 2965f5a7e39e3..1b4509d3382c6 100644
+> --- a/arch/arm64/include/asm/pgalloc.h
+> +++ b/arch/arm64/include/asm/pgalloc.h
+> @@ -85,7 +85,6 @@ static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgdp, p4d_t *p4dp)
+>  	__pgd_populate(pgdp, __pa(p4dp), pgdval);
+>  }
+>  
+> -#define __p4d_free_tlb(tlb, p4d, addr)  p4d_free((tlb)->mm, p4d)
+>  #else
+>  static inline void __pgd_populate(pgd_t *pgdp, phys_addr_t p4dp, pgdval_t prot)
+>  {
+> diff --git a/arch/arm64/include/asm/tlb.h b/arch/arm64/include/asm/tlb.h
+> index a947c6e784ed2..445282cde9afb 100644
+> --- a/arch/arm64/include/asm/tlb.h
+> +++ b/arch/arm64/include/asm/tlb.h
+> @@ -111,4 +111,18 @@ static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
+>  }
+>  #endif
+>  
+> +#if CONFIG_PGTABLE_LEVELS > 4
+> +static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4dp,
+> +				  unsigned long addr)
+> +{
+> +	struct ptdesc *ptdesc = virt_to_ptdesc(p4dp);
+> +
+> +	if (!pgtable_l5_enabled())
+> +		return;
+> +
+> +	pagetable_p4d_dtor(ptdesc);
+> +	tlb_remove_ptdesc(tlb, ptdesc);
+> +}
 
-sure
+Should we update p4d_free() to call the destructor, too? It looks like
+it just does free_page() atm.
 
-> 
-> > +{
-> > +	struct fd dir;
-> > +	struct fileattr fa;
-> > +	struct path filepath;
-> > +	struct inode *inode;
-> > +	int error;
-> > +
-> > +	if (at_flags)
-> > +		return -EINVAL;
-> 
-> Shouldn't we support basic path resolve flags like AT_SYMLINK_NOFOLLOW or
-> AT_EMPTY_PATH? I didn't put too much thought to this but intuitively I'd say
-> we should follow what path_setxattrat() does.
-
-Hmm, yeah, you are right these two can be passed. I thought about
-setting AT_SYMLINK_NOFOLLOW by default (which is also missing here),
-but adding allowing passing these seems to be fine.
-
-> 
-> > +
-> > +	if (!capable(CAP_FOWNER))
-> > +		return -EPERM;
-> 
-> Why? Firstly this does not handle user namespaces at all, secondly it
-> doesn't match the check done during ioctl, and thirdly vfs_fileattr_get()
-> should do all the needed checks?
-
-Sorry, miss-understood how this works, I will remove this from both
-get/set. get*() doesn't need it and set*() checks capabilities in
-vfs_fileattr_set(). Thanks!
-
-> 
-> > +
-> > +	dir = fdget(dfd);
-> > +	if (!fd_file(dir))
-> > +		return -EBADF;
-> > +
-> > +	if (!S_ISDIR(file_inode(fd_file(dir))->i_mode)) {
-> > +		error = -EBADF;
-> > +		goto out;
-> > +	}
-> > +
-> > +	error = user_path_at(dfd, filename, at_flags, &filepath);
-> > +	if (error)
-> > +		goto out;
-> 
-> I guess this is OK for now but allowing full flexibility of the "_at"
-> syscall (e.g. like setxattrat() does) would be preferred. Mostly so that
-> userspace programmer doesn't have to read manpage in detail and think
-> whether the particular combination of path arguments is supported by a
-> particular syscall. Admittedly VFS could make this a bit simpler. Currently
-> the boilerplate code that's needed in path_setxattrat() &
-> filename_setxattr() / file_setxattr() is offputting.
-> 
-> > +
-> > +	inode = filepath.dentry->d_inode;
-> > +	if (file_inode(fd_file(dir))->i_sb->s_magic != inode->i_sb->s_magic) {
-> > +		error = -EBADF;
-> > +		goto out_path;
-> > +	}
-> 
-> What's the motivation for this check?
-
-This was one of the comments on the ioctl() patch, that it doesn't
-make much sense to allow ioctl() to be called over different
-filesystems. But for syscall this is probably make less sense to
-restrict it like that. I will drop it.
-
-> 
-> > +
-> > +	error = vfs_fileattr_get(filepath.dentry, &fa);
-> > +	if (error)
-> > +		goto out_path;
-> > +
-> > +	if (copy_fsxattr_to_user(&fa, fsx))
-> > +		error = -EFAULT;
-> > +
-> > +out_path:
-> > +	path_put(&filepath);
-> > +out:
-> > +	fdput(dir);
-> > +	return error;
-> > +}
-> > +
-> > +SYSCALL_DEFINE4(setfsxattrat, int, dfd, const char __user *, filename,
-> > +		struct fsxattr *, fsx, int, at_flags)
-> > +{
-> 
-> Same comments as for getfsxattrat() apply here as well.
-> 
-> > -static int copy_fsxattr_from_user(struct fileattr *fa,
-> > -				  struct fsxattr __user *ufa)
-> > +int copy_fsxattr_from_user(struct fileattr *fa, struct fsxattr __user *ufa)
-> >  {
-> >  	struct fsxattr xfa;
-> >  
-> > @@ -574,6 +573,7 @@ static int copy_fsxattr_from_user(struct fileattr *fa,
-> >  
-> >  	return 0;
-> >  }
-> > +EXPORT_SYMBOL(copy_fsxattr_from_user);
-> 
-> I guess no need to export this function? The code you call it from cannot
-> be compiled as a module.
-
-Yes, that's true, I added this because copy_fsxattr_to_user() also
-is exported (same as many other functions). I will drop this.
-
--- 
-- Andrey
-
+Will
