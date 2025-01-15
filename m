@@ -1,94 +1,75 @@
-Received: from out-175.mta1.migadu.com (out-175.mta1.migadu.com [95.215.58.175])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D3CB1D63DF
-	for <sparclinux@vger.kernel.org>; Wed, 15 Jan 2025 16:11:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CC01DB36B;
+	Wed, 15 Jan 2025 21:28:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736957485; cv=none; b=rmXf7jA1nZW7ARANzKgAdnSILaplM/RbCgknfNKnoXZIDi6D9ACmbXv+ALMlBgFhBuAJYQkJwGXXSFpgaG+q+OaqSg6Z2LlyP20JpfhOcbtmbBcW1V7iLPeH6KaPvtfDUtCIzmA48slcziOAeQpkzwsHN2xyV83FWC+rmCJhOm0=
+	t=1736976503; cv=none; b=HRtKx+WhvPZW/hc92N5MgNKuOynPwSidIhOmI09or9mZjF4VZnM4W7NS5bC2TT4w15sLbf4oTLf1JWuT9ukLqT8o5M/wXYlsy8AC4dq7HscGuRbCAPfip8CZ/WyUQCeH+OFheuLhw72f/cOXdvOxMxMuA7GJ+kNKpiKEDSwNCRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736957485; c=relaxed/simple;
-	bh=PvA7OTMECEHWjOVyFMSYKm3vXqZf/4yVfZLnh6Mas0c=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=VVlwsJ2DKOyCgbvlJM7tqhCjsuRtcx+RacfZ8TlnaEAMQzdtwDhCP5I4VUHKg76rFhkcO1KT/Fhe94ls4CwXSe8roKoH22ki4rRRCcE5cHhSqCm4w8w/qrU5U+5krfKsSrFWje4Yal7yzE5qxclTCyHRkuEpO+35De688mAznI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=c8qo6gAO; arc=none smtp.client-ip=95.215.58.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1736976503; c=relaxed/simple;
+	bh=22RyPLAABDkaQ8iAW6+AARNuCYhOIeSUs5QM9SRroco=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=AR3vqz26qUBEhJwMnfp5oJ1Ycw2lnFuxb7Dc5FdqTwZHHT2Qd6rLCAvXtu0scbFw5DgHsLYaC45JvFH42I51iP/7odr3zHDgV9ICwVPUfUZOYKx9f4mzyBCd52dt0IV3xz6NIiFFwqe+pE1iP49rezzTMQ9Zm91AbDVGku6gkcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=blB/0psP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="c8qo6gAO"
-Content-Type: text/plain;
-	charset=us-ascii
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1736957478;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=S+Z2mtbj7h+hR78gmDkOwHXa/8k3phQommNBk2WUCh0=;
-	b=c8qo6gAOfFCnpVw0hGaCS7AMGWpHMhiRxlV48WReEBlOqcRXZy0Ws5ZAjWzaXcWKsywKPl
-	B0RB6f1wjWJ1IWQubWebGIOqVwolCDlUloWTK/QY/3gd2ftygRY+nvq3fiNQT8j3os0ToV
-	cEHUnWriI9wGsa851TEn7OITSgGT64A=
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="blB/0psP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B604C4CEE1;
+	Wed, 15 Jan 2025 21:28:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736976503;
+	bh=22RyPLAABDkaQ8iAW6+AARNuCYhOIeSUs5QM9SRroco=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=blB/0psPD4UKqG8ceyhxet/soxDMbNY/3xdHd5BT9CvK1AWGAvxg4AZda8tLypc9f
+	 hKdopbMVHtUjioh6u/4HRLG5I6cySKuJXmE3RhRxWQlvQ8zsvqDi+bf0k4DQ06sPHa
+	 5+z1ZDoOLfT6oGzKAM9OXhHH2d+iMfno0BgIJD9JcAyrjKHx3qf/I4RYS4L0IbI+ma
+	 mAMDjDWo28jgpXO9vc8xeI7TUgV2iMpVE0Bbdjy+ToRtNleO7fYdUaU+4B7zuJW2sB
+	 jZtSjzctD0mT89LU4U58AS8e3x303zNzaF4iXm5kMWeJ0YfPVGs3+FXbmNTqWnYn4W
+	 ct4Ixiz0VLh7g==
+Date: Wed, 15 Jan 2025 15:28:21 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Sathyanarayanan Kuppuswamy <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Rob Herring <robh@kernel.org>, "David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+	Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 3/4] PCI: of: Simplify
+ devm_of_pci_get_host_bridge_resources() interface
+Message-ID: <20250115212821.GA555572@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3776.700.51.11.1\))
-Subject: Re: [PATCH] sparc/irq: Remove unneeded if check in
- sun4v_cookie_only_virqs()
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Thorsten Blum <thorsten.blum@linux.dev>
-In-Reply-To: <2b249bb11b3c08b21929b46f14bee808c9bbefe6.camel@physik.fu-berlin.de>
-Date: Wed, 15 Jan 2025 17:11:05 +0100
-Cc: "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>,
- Randy Dunlap <rdunlap@infradead.org>,
- Bjorn Helgaas <bhelgaas@google.com>,
- Sam Ravnborg <sam@ravnborg.org>,
- Dawei Li <dawei.li@shingroup.cn>,
- sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: 7bit
-Message-Id: <D58E47DF-ADED-4FD0-9710-62FBA284093E@linux.dev>
-References: <20250114202502.912690-1-thorsten.blum@linux.dev>
- <2b249bb11b3c08b21929b46f14bee808c9bbefe6.camel@physik.fu-berlin.de>
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-X-Migadu-Flow: FLOW_OUT
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2ebc17a9-9065-4488-be3b-7534ab442c22@linux.intel.com>
 
-Hi Adrian,
+On Tue, Jan 14, 2025 at 04:21:15PM -0800, Sathyanarayanan Kuppuswamy wrote:
+> On 1/13/25 3:15 PM, Bjorn Helgaas wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> > 
+> > Previously pci_parse_request_of_pci_ranges() supplied the default bus range
+> > to devm_of_pci_get_host_bridge_resources(), but that function is static and
+> > has no other callers, so there's no reason to complicate its interface by
+> > passing the default bus range.
+> > 
+> > Drop the busno and bus_max parameters and use 0x0 and 0xff directly in
+> > devm_of_pci_get_host_bridge_resources().
 
-On 14. Jan 2025, at 21:29, John Paul Adrian Glaubitz wrote:
-> On Tue, 2025-01-14 at 21:25 +0100, Thorsten Blum wrote:
->> Remove the unnecessary if check and return the result directly.
->> 
->> Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
->> ---
->> arch/sparc/kernel/irq_64.c | 4 +---
->> 1 file changed, 1 insertion(+), 3 deletions(-)
->> 
->> diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
->> index aff0d24f8c6f..81fb49b089a8 100644
->> --- a/arch/sparc/kernel/irq_64.c
->> +++ b/arch/sparc/kernel/irq_64.c
->> @@ -146,9 +146,7 @@ static int hv_irq_version;
->>  */
->> static bool sun4v_cookie_only_virqs(void)
->> {
->> - if (hv_irq_version >= 3)
->> - return true;
->> - return false;
->> + return hv_irq_version >= 3;
->> }
->> 
->> static void __init irq_init_hv(void)
+> >   	} else {
+> > -		if (bus_range->end > bus_range->start + bus_max)
+> > -			bus_range->end = bus_range->start + bus_max;
+> > +		if (bus_range->end > 0xff) {
+> > +			dev_info(dev, "  Invalid end bus number in %pR, defaulting to 0xff\n",
+> > +				 bus_range);
 > 
-> I'm not sure whether this change is really necessary nor will it improve
-> the readability of the code. I think the compiler will optimize the code
-> the same way, for both variants.
+> Use dev_warn() ? I noticed that dev_info() is used in place of
+> warning/errors in this file.
 
-It's not strictly necessary, but it's shorter, less verbose, and imo
-improves the code's readability. Personally, I'd even consider the
-current version a code smell, but feel free to ignore the patch.
+Good point, changed.
 
-Thanks,
-Thorsten
+> Probably it needs to be cleaned?
+> 
+> > +			bus_range->end = 0xff;
