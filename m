@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BFE622075;
-	Wed, 15 Jan 2025 00:21:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D099411CBA;
+	Wed, 15 Jan 2025 00:31:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736900477; cv=none; b=BcHHAGm9Iq2QNckfrbwLqd3LoET+Y+S/dpKC16dAGXkkICIddFWe85Qd50eVwLBExd6S4IrG02XsKj/1diw35PoXjaQugQXBPgwxcvKUqS4ccwi1Dt6ScrqfdsF8O/JXKv+CuwwwWqzzHmrTPTAgfwbilA1XTwMDa0okXX5DX/c=
+	t=1736901080; cv=none; b=jMRVrfQHrp162ASBG4OSMaikwM8i7Gm3y1r1aThfRVM16WD3IpTibVU6Xa1o8AHNV6k1KlvAi2tVoaHnVmH+vuEC1TqHYIXeHv56GGlhWZTA9PX2zzbjiFkAM7kGOSKLFVHtLdKf68IKDncLnHT0pqD4J2oZbEF0J6SZEyVxKGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736900477; c=relaxed/simple;
-	bh=nx9s9kTrMVL67EOK+4RC5UR46YOLoRV67W386l/iKoo=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=CK2SF9Ce24PQ+cVNC3fB8zWpf1eOcy8H7iIQsyllJfPUkcj/01PWMZWHcXzUb7gKyGl+lLW4Qrr1dChcl7QCoHg3vGiAWePbSiRSP+qj4YAJCADPHca5YqSktwowbNsj18rHwFlNqOuME89VEA79hHjCNfEGFWDi1d1fg5J49ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NNU9K6XY; arc=none smtp.client-ip=192.198.163.7
+	s=arc-20240116; t=1736901080; c=relaxed/simple;
+	bh=+ko4bm44RDOwrmj8OrLd3yWUVhiO7SM3/wnAyVU5a00=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TWl4JOSv+4ZpanabQfeQmxUzSxhQBh/Z0MB6TltMOl+hG86BxhZfdE5/Yicq9ek1yaXDYytgtjkLbJop/86TLLSypdCxyG6cpmNQKfgGkIG6wlCdwkoO1bviBh9cLEPf3EX1PIqoQFiq21xecNNG8kA3NVmHwUDb4WmKMDjLbSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d4D/uIIO; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NNU9K6XY"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d4D/uIIO"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1736900476; x=1768436476;
-  h=message-id:date:mime-version:from:subject:to:cc:
-   references:in-reply-to:content-transfer-encoding;
-  bh=nx9s9kTrMVL67EOK+4RC5UR46YOLoRV67W386l/iKoo=;
-  b=NNU9K6XYasGNHRvuGUPnWZwXGLMNPmvPKWBGWyjqTeCXK2EKhI5VsqoF
-   hz5Z/xULhXzo0YUg9ugEnQcFAdRPt1wOccBotajriEMaoZBkE0ZDOdCDb
-   2WXXWiPIcdcq9mKU/jSOROJrX1bbL6Pk8eee2uoIU0GbDuvKNFEme2Xr2
-   dVDbREHS7O4iKgOjee/nPvxxjvSOPHQPUk/MKwR+kN5jcIvDVffIjUS59
-   C2amQx/+I0strFF2p1rOpDrx958XYQJqFpqVYUxNnYRhfnVVNOIz0apVc
-   lKeQ77czb6EnCkGTE/U08GBpEjy9WaaDlfuO3QG7vdDu1ZYC2VyMAjnU2
+  t=1736901079; x=1768437079;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=+ko4bm44RDOwrmj8OrLd3yWUVhiO7SM3/wnAyVU5a00=;
+  b=d4D/uIIOOtVZHOCPL4h5NQrQjXYSjUEpKiaL7FFGhMY9lQpg0/axf36m
+   aewXeg7MxSjxsGysASljBW5Avs4ySadEG5fjXUmupLQVEWdw+IzGQg7uz
+   PShcgWjWr84F5/3oAr9I/MNhDjHgKXQwAnNXkE9Bdsvo1l8gxB+QswUZU
+   OIItYPqQ/HRDTHbZ4rd3cxY1pjEAhTiP3RXMkMqj7Fq84rtHSZL+dJRTf
+   kooahkxDPCka1OY3yMzBiBtV+K/YgjyGooqCEk5smQL8Q2gV0omcwRvL4
+   WAoUHKN/8ntSVVPJNbhnrBiHcorNy0ki6jeVB1AZEeI98EKyBkzrAEvcG
    w==;
-X-CSE-ConnectionGUID: P3n+dCeETUqq8DXix6t2jQ==
-X-CSE-MsgGUID: doP0L6lkR2SbKmO+Vef2ug==
-X-IronPort-AV: E=McAfee;i="6700,10204,11315"; a="62591004"
+X-CSE-ConnectionGUID: K7DkNB/eT527hlEDjbnwQA==
+X-CSE-MsgGUID: fumYRuvwRJK+IXC0ufctzg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11315"; a="37099758"
 X-IronPort-AV: E=Sophos;i="6.12,315,1728975600"; 
-   d="scan'208";a="62591004"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2025 16:21:15 -0800
-X-CSE-ConnectionGUID: krtHf1x3Ql255B4rZ8sHpQ==
-X-CSE-MsgGUID: BgQl6/J9T16DlQulJGFXdA==
+   d="scan'208";a="37099758"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2025 16:31:18 -0800
+X-CSE-ConnectionGUID: l/5neenfScGge9k6WtSoyA==
+X-CSE-MsgGUID: nLQn2w+OTy+rT0Aovwajfw==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="110104210"
+X-IronPort-AV: E=Sophos;i="6.12,315,1728975600"; 
+   d="scan'208";a="135806784"
 Received: from tfalcon-desk.amr.corp.intel.com (HELO [10.124.220.21]) ([10.124.220.21])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2025 16:21:14 -0800
-Message-ID: <2ebc17a9-9065-4488-be3b-7534ab442c22@linux.intel.com>
-Date: Tue, 14 Jan 2025 16:21:15 -0800
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2025 16:31:18 -0800
+Message-ID: <575dc28b-e406-4d1f-b493-aed1b086a696@linux.intel.com>
+Date: Tue, 14 Jan 2025 16:31:18 -0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -52,94 +52,87 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-From: Sathyanarayanan Kuppuswamy <sathyanarayanan.kuppuswamy@linux.intel.com>
-Subject: Re: [PATCH v2 3/4] PCI: of: Simplify
- devm_of_pci_get_host_bridge_resources() interface
+Subject: Re: [PATCH v2 1/4] PCI: Unexport of_pci_parse_bus_range()
 To: Bjorn Helgaas <helgaas@kernel.org>, Rob Herring <robh@kernel.org>
 Cc: "David S . Miller" <davem@davemloft.net>,
  Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
  Bjorn Helgaas <bhelgaas@google.com>
 References: <20250113231557.441289-1-helgaas@kernel.org>
- <20250113231557.441289-4-helgaas@kernel.org>
+ <20250113231557.441289-2-helgaas@kernel.org>
 Content-Language: en-US
-In-Reply-To: <20250113231557.441289-4-helgaas@kernel.org>
+From: Sathyanarayanan Kuppuswamy <sathyanarayanan.kuppuswamy@linux.intel.com>
+In-Reply-To: <20250113231557.441289-2-helgaas@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Bjorn,
+Hi,
 
 On 1/13/25 3:15 PM, Bjorn Helgaas wrote:
 > From: Bjorn Helgaas <bhelgaas@google.com>
 >
-> Previously pci_parse_request_of_pci_ranges() supplied the default bus range
-> to devm_of_pci_get_host_bridge_resources(), but that function is static and
-> has no other callers, so there's no reason to complicate its interface by
-> passing the default bus range.
->
-> Drop the busno and bus_max parameters and use 0x0 and 0xff directly in
-> devm_of_pci_get_host_bridge_resources().
+> of_pci_parse_bus_range() is only used in drivers/pci/of.c, so make it
+> static and unexport it.
 >
 > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
 > ---
->   drivers/pci/of.c | 16 ++++++++--------
->   1 file changed, 8 insertions(+), 8 deletions(-)
+Looks good
+
+Reviewed-by: Kuppuswamy Sathyanarayanan 
+<sathyanarayanan.kuppuswamy@linux.intel.com>
+
+>   drivers/pci/of.c  | 4 ++--
+>   drivers/pci/pci.h | 7 -------
+>   2 files changed, 2 insertions(+), 9 deletions(-)
 >
 > diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-> index 48b9274b846e..a2acfc52caf4 100644
+> index 52f770bcc481..2f579b691f8e 100644
 > --- a/drivers/pci/of.c
 > +++ b/drivers/pci/of.c
-> @@ -302,8 +302,6 @@ EXPORT_SYMBOL_GPL(of_pci_check_probe_only);
->    * devm_of_pci_get_host_bridge_resources() - Resource-managed parsing of PCI
->    *                                           host bridge resources from DT
->    * @dev: host bridge device
-> - * @busno: bus number associated with the bridge root bus
-> - * @bus_max: maximum number of buses for this bridge
->    * @resources: list where the range of resources will be added after DT parsing
->    * @ib_resources: list where the range of inbound resources (with addresses
->    *                from 'dma-ranges') will be added after DT parsing
-> @@ -319,7 +317,6 @@ EXPORT_SYMBOL_GPL(of_pci_check_probe_only);
->    * value if it failed.
+> @@ -190,7 +190,8 @@ EXPORT_SYMBOL_GPL(of_pci_get_devfn);
+>    *
+>    * Returns 0 on success or a negative error-code on failure.
 >    */
->   static int devm_of_pci_get_host_bridge_resources(struct device *dev,
-> -			unsigned char busno, unsigned char bus_max,
->   			struct list_head *resources,
->   			struct list_head *ib_resources,
->   			resource_size_t *io_base)
-> @@ -343,12 +340,15 @@ static int devm_of_pci_get_host_bridge_resources(struct device *dev,
+> -int of_pci_parse_bus_range(struct device_node *node, struct resource *res)
+> +static int of_pci_parse_bus_range(struct device_node *node,
+> +				  struct resource *res)
+>   {
+>   	u32 bus_range[2];
+>   	int error;
+> @@ -207,7 +208,6 @@ int of_pci_parse_bus_range(struct device_node *node, struct resource *res)
 >   
->   	err = of_pci_parse_bus_range(dev_node, bus_range);
->   	if (err) {
-> -		bus_range->start = busno;
-> -		bus_range->end = bus_max;
-> +		bus_range->start = 0;
-> +		bus_range->end = 0xff;
->   		bus_range->flags = IORESOURCE_BUS;
->   	} else {
-> -		if (bus_range->end > bus_range->start + bus_max)
-> -			bus_range->end = bus_range->start + bus_max;
-> +		if (bus_range->end > 0xff) {
-> +			dev_info(dev, "  Invalid end bus number in %pR, defaulting to 0xff\n",
-> +				 bus_range);
-
-Use dev_warn() ? I noticed that dev_info() is used in place of 
-warning/errors in this file.
-Probably it needs to be cleaned?
-
-> +			bus_range->end = 0xff;
-> +		}
->   	}
->   	pci_add_resource(resources, bus_range);
+>   	return 0;
+>   }
+> -EXPORT_SYMBOL_GPL(of_pci_parse_bus_range);
 >   
-> @@ -595,7 +595,7 @@ static int pci_parse_request_of_pci_ranges(struct device *dev,
->   	INIT_LIST_HEAD(&bridge->windows);
->   	INIT_LIST_HEAD(&bridge->dma_ranges);
+>   /**
+>    * of_get_pci_domain_nr - Find the host bridge domain number
+> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> index 2e40fc63ba31..35faf4770a14 100644
+> --- a/drivers/pci/pci.h
+> +++ b/drivers/pci/pci.h
+> @@ -797,7 +797,6 @@ static inline u64 pci_rebar_size_to_bytes(int size)
+>   struct device_node;
 >   
-> -	err = devm_of_pci_get_host_bridge_resources(dev, 0, 0xff, &bridge->windows,
-> +	err = devm_of_pci_get_host_bridge_resources(dev, &bridge->windows,
->   						    &bridge->dma_ranges, &iobase);
->   	if (err)
->   		return err;
+>   #ifdef CONFIG_OF
+> -int of_pci_parse_bus_range(struct device_node *node, struct resource *res);
+>   int of_get_pci_domain_nr(struct device_node *node);
+>   int of_pci_get_max_link_speed(struct device_node *node);
+>   u32 of_pci_get_slot_power_limit(struct device_node *node,
+> @@ -813,12 +812,6 @@ int devm_of_pci_bridge_init(struct device *dev, struct pci_host_bridge *bridge);
+>   bool of_pci_supply_present(struct device_node *np);
+>   
+>   #else
+> -static inline int
+> -of_pci_parse_bus_range(struct device_node *node, struct resource *res)
+> -{
+> -	return -EINVAL;
+> -}
+> -
+>   static inline int
+>   of_get_pci_domain_nr(struct device_node *node)
+>   {
 
 -- 
 Sathyanarayanan Kuppuswamy
