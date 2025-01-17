@@ -1,134 +1,127 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FB2C1FE479
-	for <sparclinux@vger.kernel.org>; Fri, 17 Jan 2025 11:23:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECADE1FF609;
+	Fri, 17 Jan 2025 13:25:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737113024; cv=none; b=ThpTw3RNBodMe+9hd5IvBmX287gpkKFyyoOqVhjgnksiMNy5N4qtxW/Tu8m5USFrJyq0jnaCkLaYKrku2DUQgb1id5d/eW7jZ0NPA2WWLAfD3mviVIgZHSpwdTaPrEAGElarC5aj86CH36ej8A6esCeBq+uUJWPVM6L9iJmg7x8=
+	t=1737120339; cv=none; b=bkmePTx4/SxrARAOio/0gqSLXcSTWs34TYSWrNNZM2I3oPAcX4iPwzD6HcLhi4KxXNU//ACpWHdqph2gJar5i+Zsuz2ne6nghcY4r/IqsHI2ZGgKcBuEe1VWqL4bZKrbfX9/lUYJWLb4EjGeCba8NUqwr1hI1wlgDdiQmCuvMrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737113024; c=relaxed/simple;
-	bh=0MfAagGyPmBC90JAAVPekQyRC26SLFPBltnUGhYKIEU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fe3nxHqtS4EKD5tKTKgQFFfRw6X4wnede25cxP7I0Ibtwl22XgbCwynYKa+Pfwuxa+gfirSAEmb6ANDRDNIO+JVfU9DrjN5PBS0i1qM9Y73fTqijC14BElJvmJFR4/V+OG/LRcmLqhi1qoecqAK6Nz3pn8X9FzGQkLw6Iv4re68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=PPorRLND; arc=none smtp.client-ip=209.85.160.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1737120339; c=relaxed/simple;
+	bh=i5g2DbcJlsukG3CuQeCOvnrmGoI0+t7RerfHcE2ITE8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ucdu0Os/gLhJRTQzLQuhS12caSJ1cmaga+uuBWqYmQadtDVdt3+LwH3iVzAOowAQdRBD71n1zbG/BlNUic/9ZhzLn0FqQNxUQhKhdPF5vYrs9oi3X/uqYuVq700AkviUM+DClMUABbX5bbkZAqwqR/6E1v3hLNCxpmggUA3OPrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nCvHMpF2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="PPorRLND"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4678c9310afso165361cf.1
-        for <sparclinux@vger.kernel.org>; Fri, 17 Jan 2025 03:23:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1737113021; x=1737717821; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=FIGX2U5Y620ytLuHZv9C2YKRXU6LkFVVh5lOzeeXil4=;
-        b=PPorRLNDV4AQ8MwiqGru7nqq+V+H31WOvwoUgITsCd2kWqUJXQ0yhvhLdOXY3jfgdF
-         kETx2BTwW1SrvyNs7aMKDcPh46hEYuh5pnW244DN+cgalqppCtqW9PT0LC1W+QxhOxKx
-         wxdp9Wrw9hFlF2qqvRkZd+n+iIcj1M7gaV74qABa+iFHX6R0UklI/TNVU/cfq9IfCDgw
-         R10IA7qqGnPlp7ySFSWytN+wNZX1iv50lOGLAQrK/1DZGVuVUOGRbSwrtFAH2dAer5jT
-         h71ju9UbgO4pg4KHLkbvEdA1Br7PcZVKcBZSvZyJs1f8UMptW8QFmgjCjegxSvlO9U/r
-         Tc1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737113021; x=1737717821;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FIGX2U5Y620ytLuHZv9C2YKRXU6LkFVVh5lOzeeXil4=;
-        b=mjSIVpnMkNufxJx5cziu0vxTwy+PlaLir7HqKf7qcnOMGx9LdrYnZ7bDkwFtUK/gN3
-         7vqXPdmilMYcR7Fk4XfmoMDLZn8/wvPTAmRJLes7upaXOoZISOJjoJsuvLTq+6tmdOE4
-         bmOAwjsIgGVODAqMRKAqydI4KBAvBWlTge9GcppoKlqICxuUk6Al+ro4+YVxy44HZ0xt
-         owgMDENxUtG4hmh7dKmz5NM+DPwZGZBxe0A7oKueJQKCc+1nr3T3SMDloawPxpHIeRyu
-         yA1yUZ+JhboO4VlTtpMa952dxTTu7QB93+YK8UX6QkiFKVYMbf+43lSqxIMe7tyR2Qli
-         esWg==
-X-Forwarded-Encrypted: i=1; AJvYcCUCjSEj5yUEf93G7QyANYpYeYplX/GqnCMeG7rwaMh/UmhWb5YGMGcZQeAp7H7sD8AA2Du6pSosxETH@vger.kernel.org
-X-Gm-Message-State: AOJu0YwCHzXus037/jNYQFPuy0egGx9U5M8t6pt1/CFqza+1N7volaOy
-	vA5aB7hYw6BKdkhdxlFXS0men45S9U7vKWKeMkK9rZtqvI/epvBvPLvvgO8QB7A56zCGNK1RmX/
-	UVPkLydclGb2g1TzUsBpaDrJE/S6dT95EEowN
-X-Gm-Gg: ASbGncvxtPVjeAjs99LKyxJQjkT9Jc9BbC36UUdfz3t/sqiH4MBYlWfnccYHJZxG5jE
-	jOLh/B21EJ6/Tqsh7fVrccBwx65na5bhw2ZE7bH3hSm6ChfQ1kvDNJjX58xzOu6wXriy1
-X-Google-Smtp-Source: AGHT+IGncYyjy1GhHnzrsXOo74WzCLmIKZegqTWM730ikUDOlazbTaQH35QB0zgmvzL1yJ283cNPWINqKuKsZStNP0A=
-X-Received: by 2002:a05:622a:1997:b0:466:923f:a749 with SMTP id
- d75a77b69052e-46e130af265mr2539121cf.15.1737113021050; Fri, 17 Jan 2025
- 03:23:41 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nCvHMpF2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84C43C4CEDD;
+	Fri, 17 Jan 2025 13:25:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737120338;
+	bh=i5g2DbcJlsukG3CuQeCOvnrmGoI0+t7RerfHcE2ITE8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nCvHMpF21/84VoMzTIfTmODZawDxjude8tCR6JJtkJECU6I5I9whWXy05LWEyoVNW
+	 KSzrpuQi7EY7p8WZMS465l3rzsHJ8EnYeKCSayrYuWoVdpTDqvziBmoejLV5qSMBK6
+	 f5E+BQjEiCRh0u6SKqq//93pPU+X4JoeMx70R+9aHhWo8pxelv+5LYbQpozArWbl4N
+	 fjahkxBv/te1ioiDTpeoXYuLizhvr0ePIgbB6YsYdqX4IS/429ehvwWhMUBrLB8HOx
+	 2ER9LwPKInXFc4sc8Z5xZ0s6RECYLRZli7PrwB954w5tTFqDoUfRjjNblQvSNEU4sb
+	 Uskxi7/yiLEew==
+Date: Fri, 17 Jan 2025 13:25:28 +0000
+From: Will Deacon <will@kernel.org>
+To: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: peterz@infradead.org, agordeev@linux.ibm.com, kevin.brodsky@arm.com,
+	alex@ghiti.fr, andreas@gaisler.com, palmer@dabbelt.com,
+	tglx@linutronix.de, david@redhat.com, jannh@google.com,
+	hughd@google.com, yuzhao@google.com, willy@infradead.org,
+	muchun.song@linux.dev, vbabka@kernel.org,
+	lorenzo.stoakes@oracle.com, akpm@linux-foundation.org,
+	rientjes@google.com, vishal.moola@gmail.com, arnd@arndb.de,
+	aneesh.kumar@kernel.org, npiggin@gmail.com,
+	dave.hansen@linux.intel.com, rppt@kernel.org, ryan.roberts@arm.com,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, x86@kernel.org,
+	linux-arch@vger.kernel.org, linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-um@lists.infradead.org
+Subject: Re: [PATCH v5 05/17] arm64: pgtable: use mmu gather to free p4d
+ level page table
+Message-ID: <20250117132527.GA17058@willie-the-truck>
+References: <cover.1736317725.git.zhengqi.arch@bytedance.com>
+ <3fd48525397b34a64f7c0eb76746da30814dc941.1736317725.git.zhengqi.arch@bytedance.com>
+ <20250113162600.GA14101@willie-the-truck>
+ <a017d072-943f-4008-bb1d-7be438804a44@bytedance.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com> <20250110-asi-rfc-v2-v2-16-8419288bc805@google.com>
-In-Reply-To: <20250110-asi-rfc-v2-v2-16-8419288bc805@google.com>
-From: Brendan Jackman <jackmanb@google.com>
-Date: Fri, 17 Jan 2025 12:23:30 +0100
-X-Gm-Features: AbW1kvZ_KaymUoc5jGYX-groCnX_p-Tg9PrSiJ2rBOnB_iSLYbhJZulsHf6-rd0
-Message-ID: <CA+i-1C1JKEd43vtyGO6RLCQQA8qVCvALjm+q1oVTGMLtjo64iw@mail.gmail.com>
-Subject: Re: [PATCH RFC v2 16/29] mm: asi: Map kernel text and static data as nonsensitive
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
-	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
-	Vineet Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>, 
-	Brian Cain <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, 
-	WANG Xuerui <kernel@xen0n.name>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Dinh Nguyen <dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, 
-	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
-	Johannes Berg <johannes@sipsolutions.net>, Chris Zankel <chris@zankel.net>, 
-	Max Filippov <jcmvbkbc@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Andrew Morton <akpm@linux-foundation.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, 
-	Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, 
-	Valentin Schneider <vschneid@redhat.com>, Uladzislau Rezki <urezki@gmail.com>, 
-	Christoph Hellwig <hch@infradead.org>, Masami Hiramatsu <mhiramat@kernel.org>, 
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Mike Rapoport <rppt@kernel.org>, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, 
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
-	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
-	Dennis Zhou <dennis@kernel.org>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux.com>, 
-	Sean Christopherson <seanjc@google.com>, Paolo Bonzini <pbonzini@redhat.com>, 
-	Ard Biesheuvel <ardb@kernel.org>, Josh Poimboeuf <jpoimboe@kernel.org>, 
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
-	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
-	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
-	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-	kvm@vger.kernel.org, linux-efi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a017d072-943f-4008-bb1d-7be438804a44@bytedance.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Fri, 10 Jan 2025 at 19:41, Brendan Jackman <jackmanb@google.com> wrote:
-> +       asi_clone_pgd(asi_global_nonsensitive_pgd, init_mm.pgd, VMEMMAP_START);
-> +       asi_clone_pgd(asi_global_nonsensitive_pgd, init_mm.pgd,
-> +                     VMEMMAP_START + (1UL << PGDIR_SHIFT));
+On Tue, Jan 14, 2025 at 10:26:54AM +0800, Qi Zheng wrote:
+> Hi Will,
+> 
+> On 2025/1/14 00:26, Will Deacon wrote:
+> > On Wed, Jan 08, 2025 at 02:57:21PM +0800, Qi Zheng wrote:
+> > > Like other levels of page tables, also use mmu gather mechanism to free
+> > > p4d level page table.
+> > > 
+> > > Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+> > > Originally-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> > > Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+> > > Cc: linux-arm-kernel@lists.infradead.org
+> > > ---
+> > >   arch/arm64/include/asm/pgalloc.h |  1 -
+> > >   arch/arm64/include/asm/tlb.h     | 14 ++++++++++++++
+> > >   2 files changed, 14 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/arch/arm64/include/asm/pgalloc.h b/arch/arm64/include/asm/pgalloc.h
+> > > index 2965f5a7e39e3..1b4509d3382c6 100644
+> > > --- a/arch/arm64/include/asm/pgalloc.h
+> > > +++ b/arch/arm64/include/asm/pgalloc.h
+> > > @@ -85,7 +85,6 @@ static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgdp, p4d_t *p4dp)
+> > >   	__pgd_populate(pgdp, __pa(p4dp), pgdval);
+> > >   }
+> > > -#define __p4d_free_tlb(tlb, p4d, addr)  p4d_free((tlb)->mm, p4d)
+> > >   #else
+> > >   static inline void __pgd_populate(pgd_t *pgdp, phys_addr_t p4dp, pgdval_t prot)
+> > >   {
+> > > diff --git a/arch/arm64/include/asm/tlb.h b/arch/arm64/include/asm/tlb.h
+> > > index a947c6e784ed2..445282cde9afb 100644
+> > > --- a/arch/arm64/include/asm/tlb.h
+> > > +++ b/arch/arm64/include/asm/tlb.h
+> > > @@ -111,4 +111,18 @@ static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
+> > >   }
+> > >   #endif
+> > > +#if CONFIG_PGTABLE_LEVELS > 4
+> > > +static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4dp,
+> > > +				  unsigned long addr)
+> > > +{
+> > > +	struct ptdesc *ptdesc = virt_to_ptdesc(p4dp);
+> > > +
+> > > +	if (!pgtable_l5_enabled())
+> > > +		return;
+> > > +
+> > > +	pagetable_p4d_dtor(ptdesc);
+> > > +	tlb_remove_ptdesc(tlb, ptdesc);
+> > > +}
+> > 
+> > Should we update p4d_free() to call the destructor, too? It looks like
+> > it just does free_page() atm.
+> 
+> The patch #3 introduces the generic p4d_free() and lets arm64 to use it.
+> The patch #4 adds the destructor to generic p4d_free(). So IIUC, there
+> is no problem here.
 
-There's a bug here that Yosry has fixed in our internal version, I
-neglected to incorporate that here.
+Sorry, I missed that. In which case:
 
-Under KASLR, vmemmap is not necessarily exactly 2 PGDs like this is
-assuming. In fact it can share a PGD entry with the vmalloc area. So
-to be correct this cloning logic needs to actually look at the
-alignment and then navigate the page table hierarchy appropriately.
+Acked-by: Will Deacon <will@kernel.org>
 
-To be fixed for the next version.
-
-As Yosry noted internally we also need to think about vmmemap getting
-updated under memory hotplug.
+Will
