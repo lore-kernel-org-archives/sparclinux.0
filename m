@@ -1,114 +1,82 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895B27DA93;
-	Sat, 25 Jan 2025 17:55:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83020282F1;
+	Sun, 26 Jan 2025 18:07:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737827709; cv=none; b=Kwo15p2/ch5ftK/p1DHha9QE6h2WZU9YglOvg2rqHX9TJYjQAPVBXF5kHjDsFNycM8fpXmVwlJwU0uZ639rFgFYPylnq6Fz63gYE2J5GGvx5429r9EhgHkIiI+TUV93HQEZ1OOaLxxLwYk2vMPo0cUVmZr1IbkfuvueDreOkqMw=
+	t=1737914837; cv=none; b=rxOOEdK7HxVCOFr9jKjzOWFASB0BVgxoNNCYv9elCLI9i7ofwk+6mRjQh9qaI1rfHC32b80vOt8Jyl1txEZ2SWT4SVfTvEh+EAg8PYjLutXBVpnCuGY6aQvwPRVxVbSSTRgvEymFqohMlnNIfH8qewNqsE+gpsGkR2o0fAcDtUQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737827709; c=relaxed/simple;
-	bh=FKOtGkC3Mn3W3eZpHUygkv9D/3wxgqPgfVCM4l7orxI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=u5mksLf5V3s4itW02h0cxiDSBoQuRvtXnNOH+lwVdHYcZfMCpgD0HoxJMA+jkSEaEVORSNJdqof511BlcdtFF9CQBZJ7Ev8AdCZ38NUTg/tLZMD9BT3ocWLHbj+rRfI62U+iANGJ2JfMdrBh9XV21JEfRKxph/xhIzx8t5qjsqw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=mNczObCo; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1737914837; c=relaxed/simple;
+	bh=4o9P+R2HyJ+dAiTklrmuRER/4DoOz8qk68XOoumYvPg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Cv821x3ELPYvLoOz8DOJHcwNE/Sn3Bg6pEWiXyx7YU+eKHqLr1dPXlsgGEEqvCKGZDl4figwubK9lLv5dMo8Bgb5/hXI5/D/s7Y4rLD7HSkW8WPX+N0EUB+6Kg9VRNC0HZcjVtupcraIdyPN8XHOPHLjyzCrUfthycSucvYjO00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LeIMRC6e; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="mNczObCo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=HyulpAZXyyjqEmzfX4x/M01Tzctwcyfopbc7hJ0P3Qw=; t=1737827705; x=1738432505; 
-	b=mNczObCogfj+jF4jmR6TUY3UZJqJ5ZLlhX4ZvSCUAmC4GBUy3zzOJrtDz1zu5oTIKlcGTPLF0Qd
-	VWwJvdUZIWE7gxYFdlnUImRmSmPde9vUYm07D3Wjle2WcxzmWEJyZKa/Zn6aOEmKFg2RNdhGqzVpL
-	ONRrJiJzS9d35IqTooQanrMvF8k6RoVBJifUTvSYyKj+Q6oKekqw2qWtdbCvmguj/MQBAUvV/7YXS
-	pBfuKLcL+isO5RH4W0XywBq+x8l9nfOE0muHMgmqSqeY2UpzVIeNf/EvFpzNzR1AfM3/nKjc+tBCV
-	BwD2Dj4ufBJ2jon2owLAJ7hhPQa3D6InGy8w==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1tbkMt-00000000qCm-41Gu; Sat, 25 Jan 2025 18:54:51 +0100
-Received: from p5dc55cec.dip0.t-ipconnect.de ([93.197.92.236] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1tbkMt-00000001wI9-2vIi; Sat, 25 Jan 2025 18:54:51 +0100
-Message-ID: <a4e33e0da39e0644dd2579ba0ef3c1482f14ae68.camel@physik.fu-berlin.de>
-Subject: Re: sched/debug: Dump end of stack when detected corrupted
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Feng Tang <feng.tang@intel.com>
-Cc: akpm@linux-foundation.org, bristot@redhat.com, bsegall@google.com, 
-	dietmar.eggemann@arm.com, juri.lelli@redhat.com,
- linux-kernel@vger.kernel.org, 	mgorman@suse.de, mingo@redhat.com,
- peterz@infradead.org, rostedt@goodmis.org, 	vbabka@suse.cz,
- vincent.guittot@linaro.org, vschneid@redhat.com, 	sparclinux@vger.kernel.org
-Date: Sat, 25 Jan 2025 18:54:50 +0100
-In-Reply-To: <Ztrr10sxYvQQGonC@feng-clx.sh.intel.com>
-References: <20231219032254.96685-1-feng.tang@intel.com>
-	 <20240906084546.3304-1-glaubitz@physik.fu-berlin.de>
-	 <Ztrr10sxYvQQGonC@feng-clx.sh.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.54.3 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LeIMRC6e"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-438a39e659cso23482855e9.2;
+        Sun, 26 Jan 2025 10:07:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1737914834; x=1738519634; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=4o9P+R2HyJ+dAiTklrmuRER/4DoOz8qk68XOoumYvPg=;
+        b=LeIMRC6ewuw1TYt+tL2eRGr6kaw750rTdKVk7owK8uVBgWTa/vvs/idRwyjMChgjz3
+         ijMDdnKkr3bIEquUkZbH2fm7IQvdaWZKUMyn11eAanINN+qLctlk4cNthFXf0HkqcU/8
+         zq0xvVx1S3R+VxJQe9zi4Q5e2KpIGHpBUmT5RhpKL4VzxFILERQ2LLR2M35+Es8EY0LZ
+         VIRxk/6Sc/ZJasg4tdf08Nrgh7SNHiGp3FyjfRj59bMf5JLo9eRoQg9Lm/+tyIui1KiK
+         j35xYcOLzPGhHm1oWbW0fMxOOby8iR47Ar4X+5LiVAmIlknJE0ZTINf1y3WXCp919HdU
+         N9Xg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1737914834; x=1738519634;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4o9P+R2HyJ+dAiTklrmuRER/4DoOz8qk68XOoumYvPg=;
+        b=cTC7u0Fp6D6oL3MP0xGdqNehmXD7Ku8VkZHIue1KiYZcZ1tImA+ilWh9r93kcjwaEU
+         zZy/EW2leA4iAx92QIZ9JFL+2ljYN271ntWn1xv3SsYXNZKDIwjiEi4rXEMzYHk0lUQi
+         YxpV+VAVwCu5VHBAPkXAq2F0FYADr65ZL0Ziqczfk/YCUxraD7UMFnEWhOrTx+HZNjos
+         5jdxgDNjxvp77T5qVrb6cTv9g/+Tjp5NMGAidVjjazQ+rUWW+bB/Wtr61mOC1hDN+jti
+         XKzIwfYwC/Rr9vBvd+jIupK5nk0DVWM7uOc48b4aEfUc8XMWlj4HJIUGDaqmfp23BF7C
+         f2Nw==
+X-Forwarded-Encrypted: i=1; AJvYcCU2hkwwgHa+4e7Y+UOtqCMQ9vvPxgdLL+zi9e0VkLsAhc6/0Qg42Yp+TXYzinFcao/TuAJIpqcEN7th5g8SBlI=@vger.kernel.org, AJvYcCUhdDhoY/2HTeFQ3ahZBbiDOC6EhOxoonJfUb4VoJUjlEC1SbQvs1X2EKK53woHDUw3mg3hw+10K0fMqQ==@vger.kernel.org, AJvYcCXBeN2l68EwOMm/xM8NB44XF/UgpX4GNCRh4tQ8TiBE9+bFydliq+ZSxuljQF3qlbENj8/F3UohLkb2BbXp@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1xxZHMOUvE5GYOG0P8v/QNiGCuc56MHCGIT1ZYPvLYFpZ9CtB
+	YX8pdAOBa7W/O75C3hEhGC+NCfE1i6UKfiWeqn7RSN/Wqnkb5xx+
+X-Gm-Gg: ASbGncvQeL6QlgnddgRyETXX1Ta6eLVc5FAZqakSc84dV3F5sMckTzB/0ptwhf6mWVT
+	4capVEnGVrMxwWT0eUhiDmyw5OBWOmFUrm7cccLWtEsIaGL1R9EfzeINgqMNWy/qj9BflLVqql3
+	lLs/R414JrG2+BDEzQTaGvDI0hhdrQmmeyq+W0MtHVDkyqGJAeKlS1KoASuCTs7CUG+QqLDjkMy
+	/3F3F0wyotQ+oyKiTCHpkpLnVUw4d+CusAqu1SGltdXUdru4uEoqWd8CPLLPLCI0XStyadXV/ho
+X-Google-Smtp-Source: AGHT+IEwVMkqZp8eqbPtZFH/iiNLo+m5WpJ1yf8zzb6MR2WdJAjTwUTz1XI3YyknfBU5Y+2qz1+f3w==
+X-Received: by 2002:a5d:584d:0:b0:385:f7a3:fed1 with SMTP id ffacd0b85a97d-38bf57b6717mr37257735f8f.44.1737914833513;
+        Sun, 26 Jan 2025 10:07:13 -0800 (PST)
+Received: from void.void ([31.210.177.244])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38c2a1c35e1sm8665018f8f.82.2025.01.26.10.07.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Jan 2025 10:07:13 -0800 (PST)
+Date: Sun, 26 Jan 2025 20:07:10 +0200
+From: Andrew Kreimer <algonell@gmail.com>
+To: Rob Gardner <rob.gardner@oracle.com>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] oradax: fix typo in dax_dbg message
+Message-ID: <Z5Z5zry4zE28e2PF@void.void>
+References: <20250123201909.15469-1-algonell@gmail.com>
+ <cbabbe58-8b11-4bf8-bacb-5d4154b8a571@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cbabbe58-8b11-4bf8-bacb-5d4154b8a571@oracle.com>
 
-Hi Feng,
+On Thu, Jan 23, 2025 at 01:23:20PM -0700, Rob Gardner wrote:
+> That is not a typo. "Copyin" is correct as it refers to copying data in from
+> user space.
 
-On Fri, 2024-09-06 at 19:47 +0800, Feng Tang wrote:
-> Hi Andrian,
->=20
-> On Fri, Sep 06, 2024 at 10:45:46AM +0200, John Paul Adrian Glaubitz wrote=
-:
-> > Hi Feng,
-> >=20
-> > > -	if (task_stack_end_corrupted(prev))
-> > > +	if (task_stack_end_corrupted(prev)) {
-> > > +		unsigned long *ptr =3D end_of_stack(prev);
-> > > +
-> > > +		/* Dump 16 ulong words around the corruption point */
-> > > +#ifdef CONFIG_STACK_GROWSUP
-> > > +		ptr -=3D 15;
-> > > +#endif
-> > > +		print_hex_dump(KERN_ERR, "Corrupted Stack: ",
-> > > +			DUMP_PREFIX_ADDRESS, 16, 1, ptr, 16 * sizeof(*ptr), 1);
-> > > +
-> >=20
-> > I would recommend determining the buffer element size with sizeof(unsig=
-ned long) for
-> > better readability and using "true" instead of "1" to set the value of =
-the ascii
-> > parameter to print_hex_dump(), see [1]. Otherwise looks good to me.
->=20
-> Thanks for the review! Yes, I can make that change.
->=20
-> > Reviewed-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> >=20
-> > PS: Please CC me for a potential v3.
->=20
-> Sure.
-
-I was just remembering this patch. Any chance you can put out a V3, so
-I can review it and someone can hopefully pick it up in the right tree?
-
-Thanks,
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+My bad!
