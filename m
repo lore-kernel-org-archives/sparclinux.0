@@ -1,135 +1,147 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185A51E0E0B
-	for <sparclinux@vger.kernel.org>; Wed, 29 Jan 2025 18:52:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23C0522619
+	for <sparclinux@vger.kernel.org>; Wed, 29 Jan 2025 21:42:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738176781; cv=none; b=eSk4YZphwigoslJhy5Nitf8huDDR4YPcPTTq1XenGOkMseHMt3dr8N7LKbf9zgcbS0MzPgIM+fNx5xSPurTXZprnkfs559j/IVBaDKhQjO5FZ/gTXEV54qcZZaOEQrexOgPQexdsO9EpmMpYfZRKk473Wfp4JhkG72o0iSpjo3I=
+	t=1738186945; cv=none; b=P5s7wvXuK6fhyrSHn0CiB+tqhL7ay2eisuNvyJ4D/zFfQcsr8uRledgNnjMcYGeaAdXGtvT2O6PajVqyLEkJvhsiEaA/f31H3Q/vXDNIcuyw59rBf2em0+U9QiWiBYiaFnjoFli13/e1lHVKISXwQJBJW3wkU1GATfDKfM2zdAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738176781; c=relaxed/simple;
-	bh=kXUWf4bzCULNMipXU787lKMp83ROSa9zL6s2oSKQfIo=;
+	s=arc-20240116; t=1738186945; c=relaxed/simple;
+	bh=ZVIlfcSLYzO5e5J/0eG1Zi62cbOOTShSOaImw5O/0A8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sky82ke/arlGopsGxtJpMxmklihheHZkNUmFp0FQpS6bXl7Tc7eFP8VUJrifkZ1AWB+1xvpT2K1Lmm1kbEHlfqfpi1mT6cxgEobJqP52VR0ryGRP2nWBHpgKA11UDgaVyjVYVNoxjX00YMNveUFrYvsQnmWNKe/6RfbNn12PJAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=i1GnxfX3; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=kHhrj8PoshBFz/p8aRacECv4NLSVH90KFt6asIrjTKqtiha3mOl7X0RkayPc3xU9uh3DRwmeve9WdF6xRn8n70s+d46Ihaz+flsjqscFY5p84DQ3sn2l57wFBoQYBZDyhxptytkIbZRf5CYEdIWlTKx7MQy4MzuB1ycnThzUogE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aaHT/GI7; arc=none smtp.client-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="i1GnxfX3"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1738176778;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vlOChQEKTp5JX+pbfAOT77vMe8ez+6+Y0ab8kJl+7mw=;
-	b=i1GnxfX33RMHMLJWjfvPFSzqciDM5jSyA22ePs3xIDw0MRUk0vxu3yQAq556MQApOFg2s6
-	LKjXosAfqOv7YjsJamyXKVgs5bLwMSFMsjehSARUfeunsnvt6pb8zoSwuA9WQNc4KIPk58
-	EOKdOU0q1PHsvOQDgbpImfcMk5Rvt7g=
-Received: from mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-47--D-VqdZWMCuKFM53jcF7wQ-1; Wed,
- 29 Jan 2025 13:52:52 -0500
-X-MC-Unique: -D-VqdZWMCuKFM53jcF7wQ-1
-X-Mimecast-MFC-AGG-ID: -D-VqdZWMCuKFM53jcF7wQ
-Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 396CC19560BA;
-	Wed, 29 Jan 2025 18:52:48 +0000 (UTC)
-Received: from dhcp-27-174.brq.redhat.com (unknown [10.45.226.29])
-	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 3326919560AA;
-	Wed, 29 Jan 2025 18:52:16 +0000 (UTC)
-Received: by dhcp-27-174.brq.redhat.com (nbSMTP-1.00) for uid 1000
-	oleg@redhat.com; Wed, 29 Jan 2025 19:52:21 +0100 (CET)
-Date: Wed, 29 Jan 2025 19:51:49 +0100
-From: Oleg Nesterov <oleg@redhat.com>
-To: "Dmitry V. Levin" <ldv@strace.io>
-Cc: Alexey Gladkov <legion@kernel.org>,
-	Charlie Jenkins <charlie@rivosinc.com>,
-	Eugene Syromyatnikov <evgsyr@gmail.com>,
-	Mike Frysinger <vapier@gentoo.org>,
-	Renzo Davoli <renzo@cs.unibo.it>,
-	Davide Berardi <berardi.dav@gmail.com>,
-	strace-devel@lists.strace.io, Vineet Gupta <vgupta@kernel.org>,
-	Russell King <linux@armlinux.org.uk>, Will Deacon <will@kernel.org>,
-	Guo Ren <guoren@kernel.org>, Brian Cain <bcain@quicinc.com>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Michal Simek <monstr@monstr.eu>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Dinh Nguyen <dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>,
-	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-	Stafford Horne <shorne@gmail.com>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	Helge Deller <deller@gmx.de>, Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Naveen N Rao <naveen@kernel.org>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Paul Walmsley <paul.walmsley@sifive.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S. Miller" <davem@davemloft.net>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aaHT/GI7"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-385e06af753so58854f8f.2
+        for <sparclinux@vger.kernel.org>; Wed, 29 Jan 2025 13:42:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1738186942; x=1738791742; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:reply-to:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=rr8sxsKiF/lU9vsbhVl5SmziNEiI8NAifs0lNyPeKH4=;
+        b=aaHT/GI7tQi/EXtUGU6gD4Q9xv6bc9+8SBn3ZOCYA2DdxSsxhK6Y0oXFMaAi64oxzb
+         VSvviC/K+NMUXz8YCtcw0RDQXMAefhUOHLHN42lvKO0UcUvurO38LW3P3MQZBtNuy2KM
+         LJ9Z3bhODDnhy9phjdrMTCByKSC0GtCtB7PRRaLI8iPWm1VY64XEJ2xI3oUFik6zRNhD
+         BQqPmswH9l2WShcPPxr8/z6tY7EbHZSn1qaxXmNmy+XOmmP0UjQLz6NhF/+Zem5s6wqA
+         miO/RZvQweZDdZ61jB6DsMaX/DYGaTV5QnOymra2StiEgq4ib+c/fZeV0L7+AkO1bju9
+         0Sag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738186942; x=1738791742;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:reply-to:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=rr8sxsKiF/lU9vsbhVl5SmziNEiI8NAifs0lNyPeKH4=;
+        b=aBnVw5Z9kAOTD7Y7ASJu57MSO7rLYL/17+bN3EGbwd2qnAtq2hyZxz6ZvjEtRXergK
+         7kZko36NAHHaaFN5he4c91Ke4j3GAbDPZOSd+ZVpgAepJdKPk66xYozuPar6inGoB6xi
+         7ok/rocvgY/kz5GD/PDr1w5smNpyW4EejJs7wKwiXrJg8XQBdxYLBm4obP1pfuU5aM67
+         9JrvgFLJyY5nigTemjfmCqEK0d6eT6yzSzhYujePito/e+eNFSTv1uEshxxjza8kzUQN
+         GHREXtJIE3oqDx7vKilsM8sTvQ1WHjnIVyYN3JlMl2TfE914bz6ka2nVsIIv+FAMG4tO
+         yujQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUKcqwX1/XDbvViwJsXcJloXLlZmk5eYm3hHv+lYWiCfJ8T4kfxoUIp491H+QD/vWE02VC/gX/Qity5@vger.kernel.org
+X-Gm-Message-State: AOJu0YykY0+wdbljBMUPFlKU2uOBXk0H2UgXd9WZkMWwMAThhTBK/Eq9
+	kYQp9HoIG2xX+jV2IkVf74ZfxeuPsCbNQ/EhvkzEmjj28bxzS5ng
+X-Gm-Gg: ASbGncsqhIk0r8A4SfxuqEjJy2d/H6bi7QBfO8/Jcy/LcvcS36g3pqpbGaQg4eeN3+x
+	UTTfnl6StAPyZPa6kZnNiPLu6fRfPOsC8JVvRpc51KomQweLZVKfr3kal3HjCjKGFCd5NlAssxG
+	i+6Vn4mCQ0of54oqETmC6GHxY1UYgvpUhCsil8tq9QjNKpHeKaLR+niEWQplGRcE/+ZZK06jq88
+	bEJOlNI1QD0fhszyVnCK314YYP0X6YBW7rTc4DyTtQREa0W4VdF6KE0w4Sr7rEHh3QdubVGV+U5
+	VW8U5ogNzUVhElNrFvnd
+X-Google-Smtp-Source: AGHT+IFoSi4pQyWa540ZMOoVaZElt7UULsPNO8T5++ktbSr6E6fWptQOWZVXTTTpG3iQKBnwCrQDqw==
+X-Received: by 2002:a5d:6489:0:b0:38c:246f:b0b3 with SMTP id ffacd0b85a97d-38c52097871mr4094679f8f.51.1738186941922;
+        Wed, 29 Jan 2025 13:42:21 -0800 (PST)
+Received: from pevik (gw1.ms-free.net. [185.243.124.10])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38c5c0eccc3sm3189f8f.18.2025.01.29.13.42.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Jan 2025 13:42:21 -0800 (PST)
+Date: Wed, 29 Jan 2025 22:42:19 +0100
+From: Petr Vorel <petr.vorel@gmail.com>
+To: buildroot@buildroot.org
+Cc: ltp@lists.linux.it, Cyril Hrubis <chrubis@suse.cz>,
+	Martin Doucha <martin.doucha@suse.com>, sparclinux@vger.kernel.org,
+	Mike Gilbert <floppym@gentoo.org>,
 	Andreas Larsson <andreas@gaisler.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-	Max Filippov <jcmvbkbc@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
-	Shuah Khan <shuah@kernel.org>, linux-snps-arc@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-um@lists.infradead.org, linux-arch@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH v3 0/6] ptrace: introduce PTRACE_SET_SYSCALL_INFO API
-Message-ID: <20250129185149.GA25901@redhat.com>
-References: <20250128091445.GA8257@strace.io>
+	James Hilliard <james.hilliard1@gmail.com>
+Subject: Re: [LTP] [PATCH] ioctl02: Use correct termios structure
+Message-ID: <20250129214219.GA447474@pevik>
+Reply-To: Petr Vorel <petr.vorel@gmail.com>
+References: <20240226155137.25523-1-mdoucha@suse.cz>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250128091445.GA8257@strace.io>
-User-Agent: Mutt/1.5.24 (2015-08-30)
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20240226155137.25523-1-mdoucha@suse.cz>
 
-On 01/28, Dmitry V. Levin wrote:
->
->     * ptrace: Add explicit padding to the end of struct ptrace_syscall_info,
->       simplify obtaining of user ptrace_syscall_info,
->       do not introduce PTRACE_SYSCALL_INFO_SIZE_VER0
->     * ptrace: Change the return type of ptrace_set_syscall_info_* functions
->       from "unsigned long" to "int"
->     * ptrace: Add -ERANGE check to ptrace_set_syscall_info_exit,
->       add comments to -ERANGE checks
->     * ptrace: Update comments about supported syscall stops
->     * selftests: Extend set_syscall_info test, fix for mips n32
+Hi all,
 
-Again, I can't review 1-3, I know nothing about the non-x86 architectures.
+FYI this LTP commit merged as 697a06a827 [1] which is needed to fix ioctl02.c
+test on ppc64le on all kernel versions breaks compilation on Buildroot
+bootlin-sparc64-glibc toolchain (gcc: 13.3.0, kernel headers: 4.19.255, glibc: 2.39):
 
-As for 4-6, feel free to add
+	In file included from br-test-pkg/bootlin-sparc64-glibc/host/sparc64-buildroot-linux-gnu/sysroot/usr/include/sys/ioctl.h:29,
+					 from ../../../../include/lapi/ioctl.h:11,
+					 from ioctl02.c:31:
+	br-test-pkg/bootlin-sparc64-glibc/host/sparc64-buildroot-linux-gnu/sysroot/usr/include/bits/ioctl-types.h:36:8: error: redefinition of ‘struct termio’
+	   36 | struct termio
+		  |        ^~~~~~
+	In file included from ioctl02.c:29:
+	br-test-pkg/bootlin-sparc64-glibc/host/sparc64-buildroot-linux-gnu/sysroot/usr/include/asm/termbits.h:17:8: note: originally defined here
+	   17 | struct termio {
 
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+The problem is with kernel <asm/termbits.h> incompatibility with glibc
+<bits/ioctl-types.h> included via <sys/ioctl.h> which is needed by ioctl02.c
+and also by LTP library include/safe_macros_fn.h.
+
+This problem was fixed a year ago in kernel v6.10-rc1 in commit c32d18e7942d
+("sparc: move struct termio to asm/termios.h") [2].
+
+Because nobody noticed this change I suppose nobody uses LTP on sparc64
+or people compile LTP on sparc64 with new kernel headers.
+
+@Cyril @Martin FYI another example of conflicting glibc and kernel headers (not
+listed in [3]). IMHO nothing to be done on LTP side unless we can magically put
+back <termios.h> and have ppc64le working with it.
+
+@Buildroot As I wrote, because LTP needs this fix for ppc64le (arch actually
+tested by LTP developers), the only solution for Buildroot is to require
+toolchain based on v6.10 kernel headers for sparc64 (quite a big limitation for
+several cross compilation toolchain, some are based on 4.19 kernel headers,
+5.11 requirement for musl effectively disables LTP on Buildroot on musl).
+
+Kind regards,
+Petr
+
+[1] https://github.com/linux-test-project/ltp/commit/697a06a827978887e4c88710dc7d31d6f3ee816a
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c32d18e7942d7589b62e301eb426b32623366565
+[3] https://sourceware.org/glibc/wiki/Synchronizing_Headers
+
+> The termios structure definition in <termios.h> is incompatible
+> with direct ioctl() calls. The correct definition is in <asm/termbits.h>
+
+> Signed-off-by: Martin Doucha <mdoucha@suse.cz>
+> ---
+>  testcases/kernel/syscalls/ioctl/ioctl02.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+
+> diff --git a/testcases/kernel/syscalls/ioctl/ioctl02.c b/testcases/kernel/syscalls/ioctl/ioctl02.c
+> index aab80b251..f3bfb239a 100644
+> --- a/testcases/kernel/syscalls/ioctl/ioctl02.c
+> +++ b/testcases/kernel/syscalls/ioctl/ioctl02.c
+> @@ -26,7 +26,7 @@
+
+>  #include <stdio.h>
+>  #include <stdlib.h>
+> -#include <termios.h>
+> +#include <asm/termbits.h>
+
+>  #include "lapi/ioctl.h"
+>  #include "tst_test.h"
 
