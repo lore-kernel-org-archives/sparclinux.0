@@ -1,102 +1,88 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from server-598995.kolorio.com (server-598995.kolorio.com [162.241.152.247])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC06135A63
-	for <sparclinux@vger.kernel.org>; Wed,  5 Feb 2025 13:40:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3198824394A
+	for <sparclinux@vger.kernel.org>; Sat,  8 Feb 2025 22:09:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.241.152.247
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738762805; cv=none; b=DL+bLtruCEQEuHW4zh6M0a3WMpcmpYR2V0x2kmm4AKf47T3GXWBSxWC5Rzmt1bWjIfnMqFQYBHiU/jypGKxHuB/qoTA5SMcORMrOtU4DWAQd47+KURyeqgJu4+EDMvgZxOoeBfD5SQKaDjqwNcL4q0r+5wnanaouKFLnYC9Wz/w=
+	t=1739052589; cv=none; b=mGcvEF2B3ZO1Vg2p4KC2HF9FHJdR7az/vXykGl9C+Wzdi4qTaVJ2Ke0hVqs6U/e1S+IBf79D6sVYZzAm03DsEnhDdGfeTm3QpiuZK1kSdSGXQt/gt/inC3SFE1cLTC8zH5FkzgAOxGIub8XT3cUc6U/lucLyrfnnEEUrnz6IDDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738762805; c=relaxed/simple;
-	bh=to0rndXbutpCdbidwW+dqd9uyYlNfoEbmkQvSdSVRow=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dX9KWpIm8bl4EHRirmXfoPi/tmPdKnzIdkwE+oiShCOoijMl3UzNW2Iul7Vxjeoix85lygQ8Nl8JDCkiDb9RCbHcEvXGm7vd2QHTiJnFuC81zKxqBP1vdluVcdkov8Moq4Cxy1gTaaR3ItrFr3nKGn+gLF3tkGOy7p3zXabmFFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=0kEnSMJ2; arc=none smtp.client-ip=209.85.128.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
+	s=arc-20240116; t=1739052589; c=relaxed/simple;
+	bh=gl4+7vNxgV9+JzZtw7EthQ6aGDgi0WVn3wQV/lnKiyo=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MB9mnz1GTk3ErIVAH+xqf/IRdpyLIGxIoLwqrFHz3Cx+iseZH95pI2AivMpoIAt2RtBJgKWDZksZ+FQ23EkalySk/Ke2oOAkyJCzwLxGO4qYtytSj3ZcoSe7CeZ/pZd9LCeGsiNOK/1zHs1I16kYDMQhyB9kIUvzAxPnkKRqUg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=truemaisha.co.tz; spf=pass smtp.mailfrom=truemaisha.co.tz; dkim=pass (2048-bit key) header.d=truemaisha.co.tz header.i=@truemaisha.co.tz header.b=QA+ebUSp; arc=none smtp.client-ip=162.241.152.247
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=truemaisha.co.tz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=truemaisha.co.tz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="0kEnSMJ2"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-43621d27adeso46769445e9.2
-        for <sparclinux@vger.kernel.org>; Wed, 05 Feb 2025 05:40:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1738762802; x=1739367602; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0jiGn42kvvsu9ocdoHUA3wGODMdKmSTejfdkpV2G8qU=;
-        b=0kEnSMJ2JO66/e13CHlOrYuYu1BhaVtKYh5bJbuJDWZ1slzOAeYNj+cgNKyM40a2Dm
-         YdPXX3C6lyu99rReB8abYCBWhPkqvrJz/5FriaQz6ItkI8YKdLzroO8Jgiwkosehf6Sd
-         +Ki9a4UZugLjgOFwUhYakE7RpBrJYF9dv7xcNDrOlhDWEEesE1NDdQJ3p5Q3hGWW+OKZ
-         xbIlUugV3UBnEfco+BSZ7xML/yCPLC5WR8xwTca/9JuwTe0lEOUaKzkPE0gg3ysyBdO8
-         JdLKJuwIQoSxrVOr0pEFACRS7pUPbdPpRCu5Kf+rkqYyTgLws1TCt9KezsI1+fQMgwha
-         Xrsw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738762802; x=1739367602;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0jiGn42kvvsu9ocdoHUA3wGODMdKmSTejfdkpV2G8qU=;
-        b=DX3XltZi7hvdEM1hMeAeLbqv78nHEMkExqwtQsGW6MKICFPYast7z9qlVBf/bMf0IB
-         nusWUcEhZs6Yhxd9Qf6zOSmvJO2cVQjecYueJdMuh/zL6aa2iceHPkTWX+53az1kA8OJ
-         qePTusRfcx+jCql0vSUt7hvgy1SLmNgo2ScamzaZ+fkLmE6cIPmno7N9vYiHk73mRSZ+
-         5KyzRfczTt3+t91kHvJHzK7xY9iKMy2N/Fcr2ty7mK0VpSXSnrf5cJXsKOaNjU/fFMJ9
-         MzdAlilbdH/h3Ch5wfR+/8ybDfLbtBinMBSXIfYxgCraUMI9AEgAJm1ox4iivocbFTuD
-         PRuQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV97DGmyCeUgR4zxQyqA5Tz62d0LkKZbw6CpmHQMRG8VmUMtReKNLmx8/k2FdfF7p+qU4jNOwUkxYrL@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMQXNT+4D8puw4yeJ2pH5BuZ/siEDx7ix+CZZorOAz4ubQR+Pr
-	uakGDwhzdZEYAu99sAWVGBx+avxmKupmJOKiOXCLSOItnFHULIkxIgU93Psm8t8=
-X-Gm-Gg: ASbGncsZIHZvXghQUTv2th4ZFaeVeBwBSY30MLqAth0bWM/Wu8cyKIOGMo0JT4wkc2A
-	Fi9juWaxPiYwNmkUNJ5X7ntiwnd+V4lUSl/qzxSG/R8aLu3wwYFAtQ2GqPNUJ2GuVO+EMBHVtq9
-	mkX50QG1rjR5Hq6zHV73ugtzAbIQyvHxVACtgqtz/LXSM9YT4+Kdkv3P/587u925Oji5p6i75Vb
-	y8hEKqa4pjCppxWZApGfGyQIRtxCiWE29iRiEdeed1dQjMsuMhfm8B+oHBMBFD7P4RyLU60o9mn
-	2TmxktMvbD59e0E=
-X-Google-Smtp-Source: AGHT+IEo9hIviDYhb31r2hIrMu00KPJNKRFNZRRwmU6V/iBqIa6axOmyAKUSv1JNDBSNjuzq7Fi29g==
-X-Received: by 2002:a05:600c:3b9a:b0:434:feb1:adae with SMTP id 5b1f17b1804b1-4390d42cf2bmr22533925e9.3.1738762801531;
-        Wed, 05 Feb 2025 05:40:01 -0800 (PST)
-Received: from brgl-uxlite.home ([2a01:cb1d:dc:7e00:3239:b668:f15e:fed8])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4390d93369fsm21974185e9.3.2025.02.05.05.40.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Feb 2025 05:40:01 -0800 (PST)
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-To: Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-	linux-gpio@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 resend] gpio: GPIO_GRGPIO should depend on OF
-Date: Wed,  5 Feb 2025 14:39:57 +0100
-Message-ID: <173876277707.18360.8561413925372301898.b4-ty@linaro.org>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <db6da3d11bf850d89f199e5c740d8f133e38078d.1738760539.git.geert+renesas@glider.be>
-References: <db6da3d11bf850d89f199e5c740d8f133e38078d.1738760539.git.geert+renesas@glider.be>
+	dkim=pass (2048-bit key) header.d=truemaisha.co.tz header.i=@truemaisha.co.tz header.b="QA+ebUSp"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=truemaisha.co.tz; s=default; h=Content-Transfer-Encoding:Content-Type:
+	MIME-Version:Message-ID:Date:Subject:To:From:Reply-To:Sender:Cc:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=gl4+7vNxgV9+JzZtw7EthQ6aGDgi0WVn3wQV/lnKiyo=; b=QA+ebUSpu1GYGUBkq44hx+NHxU
+	bO/EErj7aqfzYLyXX5faMs8W7lgSleqfkJdpcI+EjMwFF0hDT6s6maL6ITiDfjF1Bs2XEAO6DOz5h
+	bMlmLV07ZdhLm26422L48LAaVGpXcEYYEHMyp571srRmO+Ai1/RjSC/lqglWBc87bem+iivRHqJh6
+	gq1iDs704ZkiUkHT6IQr4tId0b2G3yJVBrAazZNfA/LOyHGfapeDxkgEd6uESsLtxRxelijkTdf9o
+	jxIPsMt+JJyA7jppA3bzP+HchySfMStWGJ4rz/F+7r4Cjd5/nh63fvyGUoKCGzP0m0p91qoPhn0vL
+	xUXV9jyQ==;
+Received: from [74.208.124.33] (port=59629 helo=truemaisha.co.tz)
+	by server-598995.kolorio.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96.2)
+	(envelope-from <chrispinerick@truemaisha.co.tz>)
+	id 1tgt1E-0004S8-1m
+	for sparclinux@vger.kernel.org;
+	Sat, 08 Feb 2025 16:09:45 -0600
+Reply-To: dsong@aa4financialservice.com
+From: David Song <chrispinerick@truemaisha.co.tz>
+To: sparclinux@vger.kernel.org
+Subject: Re: The business loan- 
+Date: 08 Feb 2025 22:09:46 +0000
+Message-ID: <20250208210542.9CF202B5345003DA@truemaisha.co.tz>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - server-598995.kolorio.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - truemaisha.co.tz
+X-Get-Message-Sender-Via: server-598995.kolorio.com: authenticated_id: chrispinerick@truemaisha.co.tz
+X-Authenticated-Sender: server-598995.kolorio.com: chrispinerick@truemaisha.co.tz
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 
-From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Hello,
 
+My name is David Song, at AA4 FS, we are a consultancy and
+brokerage Firm specializing in Growth Financial Loan and joint
+partnership venture. We specialize in investments in all Private
+and public sectors in a broad range of areas within our Financial
+Investment Services.
 
-On Wed, 05 Feb 2025 14:05:03 +0100, Geert Uytterhoeven wrote:
-> While the Aeroflex Gaisler GRGPIO driver has no build-time dependency on
-> gpiolib-of, it supports only DT-based configuration, and is used only on
-> DT systems.  Hence add a dependency on OF, to prevent asking the user
-> about this driver when configuring a kernel without DT support.
-> 
-> 
+ We are experts in financial and operational management, due
+diligence and capital planning in all markets and industries. Our
+Investors wish to invest in any viable Project presented by your
+Management after reviews on your Business Project Presentation
+Plan.
 
-Applied, thanks!
+ We look forward to your Swift response. We also offer commission
+to consultants and brokers for any partnership referrals.
 
-[1/1] gpio: GPIO_GRGPIO should depend on OF
-      commit: 5393f40a640b8c4f716bf87e7b0d4328bf1f22b2
+ Regards,
+David Song
+Senior Broker
 
-Best regards,
--- 
-Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+AA4 Financial Services
+13 Wonersh Way, Cheam,
+Sutton, Surrey, SM2 7LX
+Email: dsong@aa4financialservice.com
+
