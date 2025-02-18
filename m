@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9CB236A74
-	for <sparclinux@vger.kernel.org>; Tue, 18 Feb 2025 10:32:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B801F236A8B
+	for <sparclinux@vger.kernel.org>; Tue, 18 Feb 2025 10:33:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739874772; cv=none; b=Yieb8S9zeGyd3YvZDeDVUMausmLflV8F6WBdqmjsydr06YCTcgoNiFr1yvCK3kKQFTnD1NM/mQGNFCwK3XdCu2QUwGRo7vN920ntgwKmK8TyfXRewQrTgjMoKXLP3zBcc1EzFF421LcEB9lB6XTJkMod61+zqNpsqi2BWEyiOFw=
+	t=1739874820; cv=none; b=jgrMYO+AXbGyboGwgnNCIA2fdL0RPwkiEfk6+Y5lHGGf2mC8PIGbczpklEWeudZw9mzN96tDQ9Nj2kx96os0w9Yn5qpydCrJgdvfNY1SvhUwLiL3fIL18W7dNCgTakDQwnOMsJuVYoo5QWBMuJL7cjOhpHxo4FzYgNAFi4HDQRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739874772; c=relaxed/simple;
-	bh=+uJBJa3r0XtKsYWPNH5y8q3bsTHuktgUgmTyXtel/ZE=;
+	s=arc-20240116; t=1739874820; c=relaxed/simple;
+	bh=db+mSdmfnMb8TI+b5scWjVaKxjg5A2SjdYzRDQFZkAU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=f71AiiJd8N/lEWlZb4/IgWn9mebKBh1cQMvvulKkI1U88UvcW1bta2OSqGC/BzaCiPLcHPISMa/j/xx3iaQ7spyW4z0tDHWPxmIwLSSmRmlBt1rLVxjhFWasBRzuKns7LT0k9RgLCverlti8kZCo7rkbaCqUhe27qV7cwhkeBhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Ha+WLSHf; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=BL/FmDkeNMRmXA7Cb6xRSy3fW5De/HqsUofdM1jIbDJVh3ThEb+9Xojx8G2FPtSTvyIzBqlr+1Ns/jHSkiLF8e+jLOAkl6zQ+Qt7wsG43Q4qPVkj/5ugURZyTDjldRtlsZqsihLWoIizfvxBDreK1q1lC91YC5quvzf44BJFUUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=F2+E68Ro; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ha+WLSHf"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F2+E68Ro"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1739874768;
+	s=mimecast20190719; t=1739874817;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=zl+t4KaKTs9+cWw6JHoz3j9vod1OhAsIgp3kjHQDp0E=;
-	b=Ha+WLSHf2eQqouT3KBJjcgr2YoG7foL/f/jnHRr/h2FHd2a6y3zmqRucTFSr7QlrIlIjL/
-	3J98COoFyQnju3PVO13EOelIe27Y/nM+uh0P6BRcS+Jcgp3SgAlHy3ECDhJpU0z8/aKkMA
-	3dEbrPAuChIHkAT85KIHX1QWT7oDErE=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=T1LOQMZfXNCEDy18+82jAtJj33pWYHUPkHE+taTmaK4=;
+	b=F2+E68RoWVKTot8Irv//gjhhs4/hUrAHuUB6bijdAmfDFUf9uL09rsJgy7SqKDvDr+YeNk
+	cx6TzaIf0vybn0az1wn1QNEmQk3cqO7K+nXGwWuuTpWt9KShbWgwOPp2t40ZlKt1Mf4sfQ
+	BpWw4bkfQFOW1+w/Zjem4EnLM8SIu+M=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-151-D-0HYtXUN4Sg3MKkuUmf6A-1; Tue, 18 Feb 2025 05:32:46 -0500
-X-MC-Unique: D-0HYtXUN4Sg3MKkuUmf6A-1
-X-Mimecast-MFC-AGG-ID: D-0HYtXUN4Sg3MKkuUmf6A_1739874765
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-38f27bddeeeso4192460f8f.3
-        for <sparclinux@vger.kernel.org>; Tue, 18 Feb 2025 02:32:46 -0800 (PST)
+ us-mta-199-7x2rFDnKN_OAGOAS6ml1LQ-1; Tue, 18 Feb 2025 05:33:34 -0500
+X-MC-Unique: 7x2rFDnKN_OAGOAS6ml1LQ-1
+X-Mimecast-MFC-AGG-ID: 7x2rFDnKN_OAGOAS6ml1LQ_1739874813
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-43941ad86d4so31717775e9.2
+        for <sparclinux@vger.kernel.org>; Tue, 18 Feb 2025 02:33:34 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1739874765; x=1740479565;
+        d=1e100.net; s=20230601; t=1739874813; x=1740479613;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=zl+t4KaKTs9+cWw6JHoz3j9vod1OhAsIgp3kjHQDp0E=;
-        b=c2v7dFr+XM+8IzjfRXOaQRprXegE7boRT8qJwhMnU62NvcktayBbGaLgx0cCVhk1yo
-         1Ib9Nur0bzVN82xuhotzrB7Jep4asmRWC5H1sL/XrGQ/+i1N8/w0Aqxojj81LW7aKA5h
-         Zzm+E3j34Gck660VwpDWHvaPA2ut2t4OjBKtvOXEX4aB7ZeHzZNIkjwjeg6nAgpos++V
-         dd+dsnPwv4K2GDmh19ITZ6sisHMw9pbuesKFNxHFz2YaY/vMCeRapJ+ujBr3Sy1c2eMM
-         /AWmDqk1OLVUAa1WuG02O17zH4Wj2AqjI1BXZMgwlebNURxpp6WszmKO3AXK25n5+6FK
-         Ln8A==
-X-Forwarded-Encrypted: i=1; AJvYcCX4IXdMA2lAJGTb77owDjF53NQkSE6j4ug+SwjWnTa2KtFyywfWBjyK0lVLRi+qpemkKHOKi1p8xIrb@vger.kernel.org
-X-Gm-Message-State: AOJu0YznVV5hac2rmbYSy9KOdqZwIPjdGbyNtKXB5jbP/K+BTKuTlcvH
-	O05L47UifZb7ei6AqVV+nN07H7cjALpgxH7zgO+x+kVFElcFZmbisxDrWRcQNt4MMhZipMrQ55N
-	yNe8qADcRbyuT0q0CuahMonMCOfMYb24ZqXu4zKzkykCJtuQD3HmpYMZx384=
-X-Gm-Gg: ASbGncvR5UrYTU2XZfxWWengg1aPg3L0M+jN97zOZQ6f9HxbwEDsPd1MWVm9muYavRn
-	M/hzKH7F6x06MbTDoreV7j9wxORaOIjr9U2lwlC4SRZHYFo/PgrWLPrB1lcQzK819ziGSVzjaDU
-	GYDf0NeJSwDl/SK7w4KBtAtXL2RH4ojlRT/nwI1VwT15lj2XbNsSaKz0dHvGTsuhG0NCgBEEkTq
-	4yl+d/QWXUDuA99gCIMI1VBek8NhXwx2aje26oRzbuAXuzo0yzn+SranlzzC3Gx8gbwaqwRt/Lm
-	1xaeW2AsQFLQc+z/vDECQIPcMihOTvet3U+jKfSCX2AQ4XOTwyh3X/9vzTMbbcTcuRluL+Kt3Er
-	zUq/1PMM79TD4NLLMChA5XDO/Db4xsO6C
-X-Received: by 2002:a5d:444e:0:b0:385:d7f9:f157 with SMTP id ffacd0b85a97d-38f33f50c03mr11146142f8f.36.1739874765508;
-        Tue, 18 Feb 2025 02:32:45 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IHFoZP2GHZ6yD/enVlIVfGFoZuVzgKIlrmVpkt2wTKjnhpYW41AK3ZcwVNJXA3ZnS3Vw67J9A==
-X-Received: by 2002:a5d:444e:0:b0:385:d7f9:f157 with SMTP id ffacd0b85a97d-38f33f50c03mr11146116f8f.36.1739874765191;
-        Tue, 18 Feb 2025 02:32:45 -0800 (PST)
+        bh=T1LOQMZfXNCEDy18+82jAtJj33pWYHUPkHE+taTmaK4=;
+        b=MNpZsu2WUNRWf5BQaAxsR1o8zNs0lZpNfpZ6AJW7AzHgXrnlW/Ou6lgCZ4GdwSdHrA
+         fDVNHHSITOh2oIT85KZj18BWmJv8vYixJWu31wPa+IwIR40RxclRnGAW8v4msXa03nO7
+         Y2E7fhHZvoN0DCW3Dj7P9heL6Us/tUxJgPPzvoTJ9tU2y2aZtp075jqgYJkSbFHB502+
+         InfUNwAnlwdZ1G0AGwdYSLL58yOBJ3SRKuR64+rQy3tXr9T/Il6dZC7rLU+ZShNW2z1z
+         7qciBTABQbP4H3NmHu6V1tZzvsPIGiJiNB3sIFOrM7mY1tD58Df1x0mE9NvJKGA1l8ES
+         b/NQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXeIri0Q1PK+rfG6NzG7RmwbBhpRF2POxH+C4rsGYkqkcs0Rf1SaXaQDOXhdSvRMjC2xFeX5MGT2s9v@vger.kernel.org
+X-Gm-Message-State: AOJu0YxxKOBfZfI1Hv7XzJ7FODZr6Em5tDW66JEPqLZ0K1YEAg6WrYDL
+	pCPEBrIq0PsC9OpDafgZLkLwPal1d5JIQWpfnFZxvSrxzfP8xR+jHizkbFaAX+CAKEfwUNQL4yG
+	EOApvC+j89dqpRINVtVAdjoMzhN0VjeTDi47YMZHXYX5AYxUP96AMo2zozxo=
+X-Gm-Gg: ASbGnctRVD83qnQl9ItFxeMrbvtMo4YYLPk2oBzfY9hwXqvgpfXxdskOJUg2tsCifXi
+	0R1f6Rnv1PipQ6MDSnTaaD9H6NG1MjxWu6AcDgMAv0e76YcdeNY9Yw/mtghet92k7S5dBfY3WuA
+	GhkXOnAYl87dcqJ7B/poFrhsMt90N+L1adnX1QifvJ0jOy6ILS7ssWlYSAuuFq7+Da8lYgNX2K1
+	RupnMN0k1NNg4PGGGrz4sCYrVEgb6+TCHd7MyWAx7JwvyQdQhH906T/Hp0lxBxpeXvt61wUZjh0
+	VDz++Wmc+AOpTTCYqEKle5NjROdK95i80O4xIcp8IfgE3LkurX85KZ31P+phHtl48uCae3WIx9T
+	6if/XZjTW9g0JGtKDE2bu1lWWnMiMgckf
+X-Received: by 2002:a05:600c:354f:b0:439:6b57:c6b with SMTP id 5b1f17b1804b1-4396e700738mr113218015e9.17.1739874813355;
+        Tue, 18 Feb 2025 02:33:33 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IG10HbiKwPJC3eaXgh0cFDz3lLRmRUxioOtL7qoeXgGZWfhvAtzEULY5k9Shgn7deaLtJSxFg==
+X-Received: by 2002:a05:600c:354f:b0:439:6b57:c6b with SMTP id 5b1f17b1804b1-4396e700738mr113217795e9.17.1739874813029;
+        Tue, 18 Feb 2025 02:33:33 -0800 (PST)
 Received: from ?IPV6:2003:cb:c70d:fb00:d3ed:5f44:1b2d:12af? (p200300cbc70dfb00d3ed5f441b2d12af.dip0.t-ipconnect.de. [2003:cb:c70d:fb00:d3ed:5f44:1b2d:12af])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38f259f7df2sm14623376f8f.84.2025.02.18.02.32.40
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43987d1865asm46839995e9.3.2025.02.18.02.33.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 18 Feb 2025 02:32:44 -0800 (PST)
-Message-ID: <4d38ad6a-a7ee-486b-a189-aca575eaa654@redhat.com>
-Date: Tue, 18 Feb 2025 11:32:40 +0100
+        Tue, 18 Feb 2025 02:33:31 -0800 (PST)
+Message-ID: <fcf41c06-ca68-4b26-9462-d96f7cda999c@redhat.com>
+Date: Tue, 18 Feb 2025 11:33:30 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,12 +75,12 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 6/7] mm: Make mk_pte() definition unconditional
+Subject: Re: [PATCH 7/7] mm: Add folio_mk_pte()
 To: "Matthew Wilcox (Oracle)" <willy@infradead.org>, linux-mm@kvack.org
 Cc: linux-arch@vger.kernel.org, x86@kernel.org, linux-s390@vger.kernel.org,
  sparclinux@vger.kernel.org, linux-um@lists.infradead.org
 References: <20250217190836.435039-1-willy@infradead.org>
- <20250217190836.435039-7-willy@infradead.org>
+ <20250217190836.435039-8-willy@infradead.org>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -128,38 +128,17 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20250217190836.435039-7-willy@infradead.org>
+In-Reply-To: <20250217190836.435039-8-willy@infradead.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 17.02.25 20:08, Matthew Wilcox (Oracle) wrote:
-> All architectures now use the common mk_pte() definition, so we
-> can remove the condition.
+> Removes a cast from folio to page in four callers of mk_pte().
 > 
 > Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 > ---
->   include/linux/mm.h | 2 --
->   1 file changed, 2 deletions(-)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 3ef11ff3922f..62dccde9c561 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -1916,14 +1916,12 @@ static inline struct folio *pfn_folio(unsigned long pfn)
->   	return page_folio(pfn_to_page(pfn));
->   }
->   
-> -#ifndef mk_pte
->   #ifdef CONFIG_MMU
->   static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
->   {
->   	return pfn_pte(page_to_pfn(page), pgprot);
->   }
->   #endif
-> -#endif
->   
->   /**
->    * folio_maybe_dma_pinned - Report if a folio may be pinned for DMA.
+
+Yes, that looks good
 
 Acked-by: David Hildenbrand <david@redhat.com>
 
