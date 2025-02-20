@@ -1,44 +1,70 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEA5A212B1F;
-	Thu, 20 Feb 2025 11:16:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66E011B4247;
+	Thu, 20 Feb 2025 21:16:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740050211; cv=none; b=BibDw9QCkduzOiVajUUhtcFSj3gIQKR0sIwxaDN23iZiCSXDeJCwRuImo1JTL2ALfGl7NFf/B+rLI8WMk6cvKayXhvOewQ+oLVcSskfJhhd8Ws401RYkqMJPkeTycN6kE92aWPq9qpMXwGPSJ8WgFSiDIFTvjX8AZWQU14TXsV0=
+	t=1740086189; cv=none; b=bMmg9yLPdq0XZ+BqN7zCBQqFFqQWW3zQ0fT96CTNZPQLmGjPRc0lupVCzlZW3qy/40IWoe7CcyGVa5e1N2B+0zaIUgMRnr5XSDzRj7jgvJnDCxx3ikbfqTzCHuBeSjhjykSYENWECjq9kuFi7BwlS3UrJfw6yO1qwM4ZF/CEG/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740050211; c=relaxed/simple;
-	bh=nZIkuJjMtnyrI9ew1aqrnJpKE9/wdKdxSn4kFieyw2c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y1UhE7kDcYQLTnm+7gbPU/qY6FsrfTdQOLgz8/FypPopHv6jMmOozkj5XaogzDqi2JTaaMJGK86/pT705BMWfd57PL1O7XQMTh/5GSHgimmv5pXICZm6k6YB4PTV/tb6DPCLe7PHwVsyO0XuhROMX1H6LSqlaRD9J+ZgmJNsVto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VgQ/lWkG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740086189; c=relaxed/simple;
+	bh=7GGLIIkYslbO8zRGVnXkb3WYURsjoiGi39cJNZNjmYI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=VZVAsXJizqpNb7TxIwfhTXhSXSSFBETLOKoEOKhW3KLMz6gfQEUWmT3L0IAHjH5Bl8F2aegqDWaf8HEjaIqGW8I8+03FxvEq+j4ignqI7cnq0bVi+cEkLkSVv3GjqyLzRC3gXUqwIiCdh8u3bHnQCkAlpQDdd8f1d/cwAYjlKx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hCpHWCUG; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VgQ/lWkG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 356C3C4CEE3;
-	Thu, 20 Feb 2025 11:16:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740050211;
-	bh=nZIkuJjMtnyrI9ew1aqrnJpKE9/wdKdxSn4kFieyw2c=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VgQ/lWkG9sGpiuSDUa3pXetNFATsu9YPLjw/2n3/XmGguMe6CLUr3L/fKDTvWvGMY
-	 yO4ltLQy5OeltFDudR9z3wmQI+fPCEGqJyieyFm1YhjjGS9taegzyDoDe/4t3BJvYZ
-	 qLN4GEuYAuqYFb937mMt7q/OopIQvZVYIXB+RJ30fKctMoFVt7xGY/QVihU/6OR4Qt
-	 pvGS/LgNl2Cq6bPOYKtByz6n0Fpr9P8mwjnB7zbDIxHNYw+gq3w84f6y4sL8NAZw8P
-	 921l+qaPrJNn7o95ABm09dSpOCU525WMx4IPd0icHMEkVbtT18JdngoEcC2ZoGzPUI
-	 Ey4EnaV1VRkQQ==
-From: "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
-To: gregkh@linuxfoundation.org
-Cc: linux-serial@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Jiri Slaby (SUSE)" <jirislaby@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	sparclinux@vger.kernel.org
-Subject: [PATCH 23/29] tty: sunsu: remove unused serial_icr_read()
-Date: Thu, 20 Feb 2025 12:16:00 +0100
-Message-ID: <20250220111606.138045-24-jirislaby@kernel.org>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <20250220111606.138045-1-jirislaby@kernel.org>
-References: <20250220111606.138045-1-jirislaby@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hCpHWCUG"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-abb9709b5b5so272204666b.2;
+        Thu, 20 Feb 2025 13:16:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1740086186; x=1740690986; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=srsd8MylrS8GZUhwfYa6y0G3qneboWaJc/Tcu8jhTJ8=;
+        b=hCpHWCUGSbf/5FjWqfrHGJJ9nRvI4dpHFdJZaCcCe6K80ZhthuxzGtFbE1TIvglQCJ
+         KFIH/neEC49lcWP8pvUJh1AZtQ8fS8I+AKwaUr5HQKG2UVVTgAhJ/TAuGYkv9CbzLO0Y
+         ogGkIWbBrdYx8vOmrUCvdeNaRJ+d6Q2IJLSEDlXYYE5lnvaLz06G7hBX0baH+BWJImhA
+         jCPkvpEYc114xLAqCYXoDhD97SNaVzY8GflQvpTFpAVopsKeEVlRb6mPzEUbmYulgwIC
+         bQdf6wd5q/KtlAQce6wEpPq10ZX5EM5lcmS9H3die4+UALpzJs1vEUbXP7mMzwhhTf19
+         iyKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1740086186; x=1740690986;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=srsd8MylrS8GZUhwfYa6y0G3qneboWaJc/Tcu8jhTJ8=;
+        b=MJMzLdunrPdUfV7vJThoipQvoJf4C2EO0suDv5+wG9YKFHzJB9SVZfvjELJnY7zArF
+         4xnkMlQBcqXhri7q76WPu+R/Lb6ISrQ89rg4z+ZQ+WgpQ3Sn1/ku/ZczoCi7rzAQW4Ix
+         xT+8LGqdg8ckwMwImPWJXaHV60X9EPRf0pLkoHN3mLK+vVutAzQw1IwD6WBnKCek7+nY
+         vXsWflbd+6AB2325My0G4nmfmHCOx4UbnzbJeDx4ddwfzWzFUJuZ6Cgxd9bSJHDEKlX2
+         6RpS2ptDdbIX87JZA2CzT7U3WwDClb2pUGW99E41lbeutMC47QN6tcn54AYWdjKzorXn
+         pytQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWN/LrWD4tXj6/S27lVkIV2AL1fTbseo72W5OAoKa0Y1gYIuTiYpjHsfqYKANClq6hAscjjwtVCyb/9UX4=@vger.kernel.org, AJvYcCWlwHvLwFmod9r9JlbpytmrBAZCEngqaNi0NWhZzA64byDPNJYjaue2hqKc3L2p2YGVFSmurgSz8p1aKg==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzXFq5l+8uTi+KVx1AFnexKrmhbOgOI1vkNczzYxwYDUERqxQoR
+	JyyapK35z64DzI04Me/lXJiRpD/UqogrK5p2d5x4XqIZ4Qi09tV3
+X-Gm-Gg: ASbGncvlEKdQRlgJ/f6UD89ejWMHzkYd4X05jIU0iZtUvFPeMBtXtcIH9tCi3nZur2z
+	ZcxrAvm3jBWF8mDwvFT15ZMwboyolv4bm7vES6ig1z1YlSo0I5s97noFtBArdYMqiHMakKJzyx6
+	kZe0XOHnASxHnJw5OIxMuzQapXOBZbvGkhR6I+U6PqX1es7U/ydjFmGr202ILKKdf2DNTgCwwV1
+	klNxhARXZuJdStNsg0WIg13ZZrjgvKCPsMOFl8WfErABNe86Nsd8RbeK1XWL1PF/bsreiGdspcn
+	h2FVf3CAToc3scLXDAUNyznTEw5Qyl5X
+X-Google-Smtp-Source: AGHT+IEUj/CgiGoiOl99Nkn1c8Zgw6wRPk7lBZ22xdnEjPyHKJGvYm7Scg5HRoMZw+0zfk1k1QFBHg==
+X-Received: by 2002:a17:907:6e8b:b0:abb:cbc8:81fa with SMTP id a640c23a62f3a-abc09c11056mr97957566b.42.1740086185413;
+        Thu, 20 Feb 2025 13:16:25 -0800 (PST)
+Received: from localhost.localdomain ([196.235.105.135])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abb9acb9acdsm855914466b.66.2025.02.20.13.16.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Feb 2025 13:16:24 -0800 (PST)
+From: Salah Triki <salah.triki@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Salah Triki <salah.triki@gmail.com>
+Subject: [PATCH] sparc: pci: Fix memory leak in pci_bus_slot_names()
+Date: Thu, 20 Feb 2025 22:00:19 +0100
+Message-Id: <20250220210019.138218-1-salah.triki@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -47,40 +73,28 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-It is commented and never used.
+prop is a local pointer in pci_bus_slot_names(). It is initialized
+by calling of_get_property() so the caller must free prop when done
+using it.
 
-Signed-off-by: Jiri Slaby (SUSE) <jirislaby@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Salah Triki <salah.triki@gmail.com>
 ---
- drivers/tty/serial/sunsu.c | 14 --------------
- 1 file changed, 14 deletions(-)
+ arch/sparc/kernel/pci.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 2dc68b3201a4..383141fe7ba0 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -159,20 +159,6 @@ static void serial_icr_write(struct uart_sunsu_port *up, int offset, int value)
- 	serial_out(up, UART_ICR, value);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index ddac216a2aff..fa0da8f45723 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -971,6 +971,8 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ 		mask &= ~this_bit;
+ 		i++;
+ 	}
++
++	kfree(prop);
  }
  
--#if 0 /* Unused currently */
--static unsigned int serial_icr_read(struct uart_sunsu_port *up, int offset)
--{
--	unsigned int value;
--
--	serial_icr_write(up, UART_ACR, up->acr | UART_ACR_ICRRD);
--	serial_out(up, UART_SCR, offset);
--	value = serial_in(up, UART_ICR);
--	serial_icr_write(up, UART_ACR, up->acr);
--
--	return value;
--}
--#endif
--
- #ifdef CONFIG_SERIAL_8250_RSA
- /*
-  * Attempts to turn on the RSA FIFO.  Returns zero on failure.
+ static int __init of_pci_slot_init(void)
 -- 
-2.48.1
+2.34.1
 
