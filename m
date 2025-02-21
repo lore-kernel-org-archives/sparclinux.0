@@ -1,64 +1,79 @@
-Received: from smtp-42ae.mail.infomaniak.ch (smtp-42ae.mail.infomaniak.ch [84.16.66.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E354F20FAAC;
-	Fri, 21 Feb 2025 15:08:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=84.16.66.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0FB2500B1;
+	Fri, 21 Feb 2025 18:11:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740150530; cv=none; b=UzNtTowlYFrg7j5bd5eEh2Dof3mvl7XIWv8F5Fg5l/zeblegWnCpSe6BAxYiXTdzEad5qqUoBtMY1YylnlVlouXO6SLjNGdkpju1bnl0SX2xXZP88g4AFk2O5sXLYVZCkzOuhif+5XtPgqxXNRM5Q7FMIb/PTcqZkOIlRBNYSak=
+	t=1740161496; cv=none; b=MXe6sclauTiz0DhBvYDN/aL5wgR4V5PG0enLXO9CDM1u9Z2uQcJmocdK1EA8Tbrg4lZ7H3R3pHLB0PYcRVoe9GvnerdLMUqKO9cPvqTRkZyEOrdd5qOXAudzV+Qj9krpOxXwMhYjdxlnfQuYaO1VfqrnMW5r8N48b5rp+tx6FDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740150530; c=relaxed/simple;
-	bh=wOUwuoMFBlbf4VclPsw4Y8bvqcLAlISZ+OpN2COxUT0=;
+	s=arc-20240116; t=1740161496; c=relaxed/simple;
+	bh=Q5rq+xEARHuJUUCQ4+qMB09sJq9Ogw0gx0NFBabFv8Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qDflNaQYslBTf/S5t87P45aIk6t1km+tlqxbRToItcpjZVcAfBE7XlkjOoZasiVemGMLcHwaarlxoLMyyzTC00cyQpMZoJhKp2HqtUIk76artTFvFNMDII84ZDsg861A5bSxzFCmRPKCm5bZNKC9fY01dSWc9t3shOdaYz4UxNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=gNAhgefJ; arc=none smtp.client-ip=84.16.66.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=RLPvbKtdaiTXDuWDwHt4p4eT98Z+Evn/PWOY7aHqeTDDB+tZQCHq94wqKQl+LbXYgFkYz1xlaNes1oUA5TPZcgBEGWjwSXod+uc9HsuzuntbSkiFcGf81jH5LHQt81lU2RAJTTHb+CUI3+SYxyvgvk9Kqj/vvk0UR5VB5aCZneo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=twbwQNrI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="gNAhgefJ"
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [IPv6:2001:1600:4:17::246c])
-	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Yztn21Cpxzl0M;
-	Fri, 21 Feb 2025 16:08:38 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1740150518;
-	bh=HAdXvLK8vfW//A0RH2Z8Vgvri1ljkOe8we8oEw/BRJo=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="twbwQNrI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C591C4CED6;
+	Fri, 21 Feb 2025 18:11:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1740161496;
+	bh=Q5rq+xEARHuJUUCQ4+qMB09sJq9Ogw0gx0NFBabFv8Q=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gNAhgefJNSQqmpn1R7GjmCDcL8sBVj9Jy8ELxGlJDuSkOcQnFPususm4DJtyM7z3K
-	 N5uOW38hzFreoU0UXhfBHpXriYHLasoIWkBI7w0rFt5bmnCxNP0I8oGntObZgmF0Jy
-	 3Dxnzo71DVTvLCBMWTvR36ekCTxZrE3oQm+YSPuM=
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4Yztmx6Tb2zB0s;
-	Fri, 21 Feb 2025 16:08:33 +0100 (CET)
-Date: Fri, 21 Feb 2025 16:08:33 +0100
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Andrey Albershteyn <aalbersh@redhat.com>, 
-	Paul Moore <paul@paul-moore.com>
-Cc: Richard Henderson <richard.henderson@linaro.org>, 
-	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
-	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, Arnd Bergmann <arnd@arndb.de>, linux-alpha@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-xfs@vger.kernel.org
+	b=twbwQNrI8NBky7gxEQz1Sp9afJgdr6HMvf9vBHDGlKfl2W61C+ajw5DQvd0yARdzx
+	 6IqK6Dta/AzKAOg+oZCOuzfhqfYJNoM1PU06w/jz41Vt+iBFPeOZsr7WDKfEcVHOd+
+	 wRMx0kuj0pmY5GVmHB8Ln/wHSn266MnENVFcYyj0SE7LpvoYjMypvZIjvBoa2Y2F1d
+	 Z2mJvJVKolFfz0xIV4hpOeFKvnRi0A/C5cUbEnjCP6XeNE5iQtLrSknKeA8Tv16I4/
+	 DoBR2WPKBAsUg1Z5A45KC7jb6AS2qE8O2CvXsjhXKHa8ui8jr+NLK37hsdDvyP+y5Q
+	 ajxDXXxKA16RQ==
+Date: Fri, 21 Feb 2025 10:11:35 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Andrey Albershteyn <aalbersh@redhat.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>,
+	Matt Turner <mattst88@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Michal Simek <monstr@monstr.eu>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	Helge Deller <deller@gmx.de>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Naveen N Rao <naveen@kernel.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	=?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+	=?iso-8859-1?Q?G=FCnther?= Noack <gnoack@google.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-xfs@vger.kernel.org
 Subject: Re: [PATCH v3] fs: introduce getfsxattrat and setfsxattrat syscalls
-Message-ID: <20250221.ahB8jei2Chie@digikod.net>
+Message-ID: <20250221181135.GW21808@frogsfrogsfrogs>
 References: <20250211-xattrat-syscall-v3-1-a07d15f898b2@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -66,15 +81,9 @@ List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20250211-xattrat-syscall-v3-1-a07d15f898b2@kernel.org>
-X-Infomaniak-Routing: alpha
-
-It looks security checks are missing.  With IOCTL commands, file
-permissions are checked at open time, but with these syscalls the path
-is only resolved but no specific access seems to be checked (except
-inode_owner_or_capable via vfs_fileattr_set).
 
 On Tue, Feb 11, 2025 at 06:22:47PM +0100, Andrey Albershteyn wrote:
 > From: Andrey Albershteyn <aalbersh@redhat.com>
@@ -154,7 +163,7 @@ On Tue, Feb 11, 2025 at 06:22:47PM +0100, Andrey Albershteyn wrote:
 >  21 files changed, 133 insertions(+), 3 deletions(-)
 > 
 
-[...]
+<cut to the syscall definitions>
 
 > diff --git a/fs/inode.c b/fs/inode.c
 > index 6b4c77268fc0ecace4ac78a9ca777fbffc277f4a..b2dddd9db4fabaf67a6cbf541a86978b290411ec 100644
@@ -177,6 +186,13 @@ On Tue, Feb 11, 2025 at 06:22:47PM +0100, Andrey Albershteyn wrote:
 > +
 > +SYSCALL_DEFINE4(getfsxattrat, int, dfd, const char __user *, filename,
 > +		struct fsxattr __user *, fsx, unsigned int, at_flags)
+
+Should the kernel require userspace to pass the size of the fsx buffer?
+That way we avoid needing to rev the interface when we decide to grow
+the structure.
+
+--D
+
 > +{
 > +	CLASS(fd, dir)(dfd);
 > +	struct fileattr fa;
@@ -199,9 +215,6 @@ On Tue, Feb 11, 2025 at 06:22:47PM +0100, Andrey Albershteyn wrote:
 > +	error = user_path_at(dfd, filename, lookup_flags, &filepath);
 > +	if (error)
 > +		return error;
-
-security_inode_getattr() should probably be called here.
-
 > +
 > +	error = vfs_fileattr_get(filepath.dentry, &fa);
 > +	if (!error)
@@ -241,9 +254,6 @@ security_inode_getattr() should probably be called here.
 > +
 > +	error = mnt_want_write(filepath.mnt);
 > +	if (!error) {
-
-security_inode_setattr() should probably be called too.
-
 > +		error = vfs_fileattr_set(file_mnt_idmap(fd_file(dir)),
 > +					 filepath.dentry, &fa);
 > +		mnt_drop_write(filepath.mnt);
@@ -287,5 +297,59 @@ security_inode_setattr() should probably be called too.
 >  }
 >  
 > diff --git a/include/linux/fileattr.h b/include/linux/fileattr.h
-
-[...]
+> index 47c05a9851d0600964b644c9c7218faacfd865f8..8598e94b530b8b280a2697eaf918dd60f573d6ee 100644
+> --- a/include/linux/fileattr.h
+> +++ b/include/linux/fileattr.h
+> @@ -34,6 +34,7 @@ struct fileattr {
+>  };
+>  
+>  int copy_fsxattr_to_user(const struct fileattr *fa, struct fsxattr __user *ufa);
+> +int copy_fsxattr_from_user(struct fileattr *fa, struct fsxattr __user *ufa);
+>  
+>  void fileattr_fill_xflags(struct fileattr *fa, u32 xflags);
+>  void fileattr_fill_flags(struct fileattr *fa, u32 flags);
+> diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+> index c6333204d45130eb022f6db460eea34a1f6e91db..3134d463d9af64c6e78adb37bff4b91f77b5305f 100644
+> --- a/include/linux/syscalls.h
+> +++ b/include/linux/syscalls.h
+> @@ -371,6 +371,10 @@ asmlinkage long sys_removexattrat(int dfd, const char __user *path,
+>  asmlinkage long sys_lremovexattr(const char __user *path,
+>  				 const char __user *name);
+>  asmlinkage long sys_fremovexattr(int fd, const char __user *name);
+> +asmlinkage long sys_getfsxattrat(int dfd, const char __user *filename,
+> +				 struct fsxattr *fsx, unsigned int at_flags);
+> +asmlinkage long sys_setfsxattrat(int dfd, const char __user *filename,
+> +				 struct fsxattr *fsx, unsigned int at_flags);
+>  asmlinkage long sys_getcwd(char __user *buf, unsigned long size);
+>  asmlinkage long sys_eventfd2(unsigned int count, int flags);
+>  asmlinkage long sys_epoll_create1(int flags);
+> diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
+> index 88dc393c2bca38c0fa1b3fae579f7cfe4931223c..50be2e1007bc2779120d05c6e9512a689f86779c 100644
+> --- a/include/uapi/asm-generic/unistd.h
+> +++ b/include/uapi/asm-generic/unistd.h
+> @@ -850,8 +850,14 @@ __SYSCALL(__NR_listxattrat, sys_listxattrat)
+>  #define __NR_removexattrat 466
+>  __SYSCALL(__NR_removexattrat, sys_removexattrat)
+>  
+> +/* fs/inode.c */
+> +#define __NR_getfsxattrat 467
+> +__SYSCALL(__NR_getfsxattrat, sys_getfsxattrat)
+> +#define __NR_setfsxattrat 468
+> +__SYSCALL(__NR_setfsxattrat, sys_setfsxattrat)
+> +
+>  #undef __NR_syscalls
+> -#define __NR_syscalls 467
+> +#define __NR_syscalls 469
+>  
+>  /*
+>   * 32 bit systems traditionally used different
+> 
+> ---
+> base-commit: ffd294d346d185b70e28b1a28abe367bbfe53c04
+> change-id: 20250114-xattrat-syscall-6a1136d2db59
+> 
+> Best regards,
+> -- 
+> Andrey Albershteyn <aalbersh@kernel.org>
+> 
+> 
