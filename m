@@ -1,182 +1,176 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 308E319E7F8;
-	Tue, 25 Feb 2025 20:34:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1A10A225761;
+	Thu, 27 Feb 2025 11:13:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740515686; cv=none; b=F2p5tOjySuBqv/hN/G4l2YDNnrmnI0WymtaqX2Mt/TW4K+E/ad/4hWPECJ26fN/mE06jPlqCirBU6IHiEK4nMBcd2XqIQU+wdwKmhyFiC1djM8i6sFOXE8mp0ifMZsGHF6yh4ZLS73uvxzxI8vwL8LyVei3uwqp8W03Z0P1oUjo=
+	t=1740654823; cv=none; b=AnDijjdMNsGDHSBR7eaegBrfJDLgQLmZ4yqFke+JgfMubzW1UYXGLf2tKUMnE2P63dPIvKw9Ze0NW2hnuIdV2gwh+QP07K5Jj8rZEtiR+VzdpFNuc3IE386qpTgvC5NxsvDBEuRKxRJcGAG9DqYlKzdsfeoYt6FtBH4LeFwZJdo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740515686; c=relaxed/simple;
-	bh=BRDE49GDK1WZQtOVWzMxOTVjKgnZs4mLJeGOsJR4KcY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ni1RrSHaKfp711JMMLwThXNesiPTzabJSRHR7R29m4FMdHRgAl5MnZB+9sJZL2r04gvYvRzXMXbqJAggNm0ms7qeJEW2PLEFquQJPTCCE9U8gS8knwIkZhz0+X+9uPQoKemH+L1FU9XTWw6sm9QuSkApA+2eXJrJ3B7/NL4QJ40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GCTyihQ/; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GCTyihQ/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F3CC4CEE2;
-	Tue, 25 Feb 2025 20:34:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740515685;
-	bh=BRDE49GDK1WZQtOVWzMxOTVjKgnZs4mLJeGOsJR4KcY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GCTyihQ/b2fTjWjL/w3eMUhECoP7pQUVh6qE6TXIEJ1BjHjigwTdvaXZ8aa1oOZW9
-	 oKgOEDdFkHlCFZJGO4qmPSlQfmqTMdR4q6AaRRkwLGJ3tn5IsA6CVTfZngMu04uwvU
-	 USQQvX2Ui2Py5GmeTon0UPIp4jb3Kllog7qTR84ZVlGPWnNhBglvmgANXSDfz/nF8C
-	 fe6Ei8S+wY4QXqwkmTNtltifZ28vYDexOBzcB6Jx/JDAMQqYWr6bIziStGJLhdUGBs
-	 KFr35I0nEjHgGeGnYKE+sCz27ig69d53549TBv6xK6RZKoaFrkcXukrE4yB0TGFtgY
-	 hJMWUKlbR87Lg==
-Received: by pali.im (Postfix)
-	id 5A20189B; Tue, 25 Feb 2025 21:34:32 +0100 (CET)
-Date: Tue, 25 Feb 2025 21:34:32 +0100
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Andrey Albershteyn <aalbersh@redhat.com>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Michal Simek <monstr@monstr.eu>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Naveen N Rao <naveen@kernel.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	"David S . Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
-	=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>,
-	linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
-	Linux-Arch <linux-arch@vger.kernel.org>, linux-xfs@vger.kernel.org,
-	Theodore Ts'o <tytso@mit.edu>
-Subject: Re: [PATCH v3] fs: introduce getfsxattrat and setfsxattrat syscalls
-Message-ID: <20250225203432.o2lxjbimka4jldrx@pali>
-References: <20250211-xattrat-syscall-v3-1-a07d15f898b2@kernel.org>
- <20250221181135.GW21808@frogsfrogsfrogs>
- <CAOQ4uxgyYBFqkq6cQsso4LxJsPJ4uECOdskXmz-nmGhhV5BQWg@mail.gmail.com>
- <20250224-klinke-hochdekoriert-3f6be89005a8@brauner>
- <6b51ffa2-9d67-4466-865e-e703c1243352@app.fastmail.com>
- <20250225-strom-kopflos-32062347cd13@brauner>
- <3c860dc0-ba8d-4324-b286-c160b7d8d2c4@app.fastmail.com>
- <20250225-testfahrt-seilwinde-64e6f44c01ce@brauner>
- <20250225155926.GD6265@frogsfrogsfrogs>
+	s=arc-20240116; t=1740654823; c=relaxed/simple;
+	bh=SAqzx+hkCBMFjSaW75HdRmriaQmgXA3UpjpZK1/xZLI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=SeHQ5FVkyKlUEOoG0+OgI2s6aF1YsAAza166Wjfgo3SVWD4hH+WT0gpYgV86UORlwiUJPZ3eB369gWCX7qjZEF5gfzoS9K+NPYuLcurXf3CbO9tC0ye5E+0UkIU4IFc8jLPu8jd7DOhnP6EneZIjRPz+yD5DR4oct2TRYAjVzgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B40CD2C23;
+	Thu, 27 Feb 2025 03:13:56 -0800 (PST)
+Received: from [10.57.85.134] (unknown [10.57.85.134])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6FF103F6A8;
+	Thu, 27 Feb 2025 03:13:31 -0800 (PST)
+Message-ID: <16863478-2195-435e-a899-559df097bc59@arm.com>
+Date: Thu, 27 Feb 2025 11:13:29 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250225155926.GD6265@frogsfrogsfrogs>
-User-Agent: NeoMutt/20180716
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 7/8] execmem: add support for cache of large ROX pages
+Content-Language: en-GB
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton
+ <akpm@linux-foundation.org>, Luis Chamberlain <mcgrof@kernel.org>,
+ Dev Jain <dev.jain@arm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>,
+ Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Christoph Hellwig <hch@infradead.org>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Dinh Nguyen
+ <dinguyen@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>,
+ Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
+ Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Kent Overstreet <kent.overstreet@linux.dev>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Mark Rutland <mark.rutland@arm.com>, Masami Hiramatsu <mhiramat@kernel.org>,
+ Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>,
+ Oleg Nesterov <oleg@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Peter Zijlstra <peterz@infradead.org>, Richard Weinberger <richard@nod.at>,
+ Russell King <linux@armlinux.org.uk>, Song Liu <song@kernel.org>,
+ Stafford Horne <shorne@gmail.com>, Steven Rostedt <rostedt@goodmis.org>,
+ Suren Baghdasaryan <surenb@google.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Uladzislau Rezki <urezki@gmail.com>,
+ Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
+ bpf@vger.kernel.org, linux-alpha@vger.kernel.org,
+ linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-mm@kvack.org,
+ linux-modules@vger.kernel.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+ linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-trace-kernel@vger.kernel.org, linux-um@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+ sparclinux@vger.kernel.org, x86@kernel.org
+References: <20241023162711.2579610-1-rppt@kernel.org>
+ <20241023162711.2579610-8-rppt@kernel.org>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <20241023162711.2579610-8-rppt@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tuesday 25 February 2025 07:59:26 Darrick J. Wong wrote:
-> On Tue, Feb 25, 2025 at 12:24:08PM +0100, Christian Brauner wrote:
-> > On Tue, Feb 25, 2025 at 11:40:51AM +0100, Arnd Bergmann wrote:
-> > > On Tue, Feb 25, 2025, at 11:22, Christian Brauner wrote:
-> > > > On Tue, Feb 25, 2025 at 09:02:04AM +0100, Arnd Bergmann wrote:
-> > > >> On Mon, Feb 24, 2025, at 12:32, Christian Brauner wrote:
-> > > >> 
-> > > >> The ioctl interface relies on the existing behavior, see
-> > > >> 0a6eab8bd4e0 ("vfs: support FS_XFLAG_COWEXTSIZE and get/set of
-> > > >> CoW extent size hint") for how it was previously extended
-> > > >> with an optional flag/word. I think that is fine for the syscall
-> > > >> as well, but should be properly documented since it is different
-> > > >> from how most syscalls work.
-> > > >
-> > > > If we're doing a new system call I see no reason to limit us to a
-> > > > pre-existing structure or structure layout.
-> > > 
-> > > Obviously we could create a new structure, but I also see no
-> > > reason to do so. The existing ioctl interface was added in
-> > > in 2002 as part of linux-2.5.35 with 16 bytes of padding, half
-> > > of which have been used so far.
-> > > 
-> > > If this structure works for another 23 years before we run out
-> > > of spare bytes, I think that's good enough. Building in an
-> > > incompatible way to handle potential future contents would
-> > > just make it harder to use for any userspace that wants to
-> > > use the new syscalls but still needs a fallback to the
-> > > ioctl version.
-> > 
-> > The fact that this structure has existed since the dawn of time doesn't
-> > mean it needs to be retained when adding a completely new system call.
-> > 
-> > People won't mix both. They either switch to the new interface because
-> > they want to get around the limitations of the old interface or they
-> > keep using the old interface and the associated workarounds.
-> > 
-> > In another thread they keep arguing about new extensions for Windows
-> > that are going to be added to the ioctl interface and how to make it fit
-> > into this. That just shows that it's very hard to predict from the
-> > amount of past changes how many future changes are going to happen. And
-> > if an interface is easy to extend it might well invite new changes that
-> > people didn't want to or couldn't make using the old interface.
+Hi Mike,
+
+Drive by review comments below...
+
+
+On 23/10/2024 17:27, Mike Rapoport wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Agreed, I don't think it's hard to enlarge struct fsxattr in the
-> existing ioctl interface; either we figure out how to make the kernel
-> fill out the "missing" bytes with an internal getfsxattr call, or we
-> make it return some errno if we would be truncating real output due to
-> struct size limits and leave a note in the manpage that "EL3HLT means
-> use a bigger structure definition"
+> Using large pages to map text areas reduces iTLB pressure and improves
+> performance.
 > 
-> Then both interfaces can plod along for another 30 years. :)
+> Extend execmem_alloc() with an ability to use huge pages with ROX
+> permissions as a cache for smaller allocations.
 > 
-> --D
+> To populate the cache, a writable large page is allocated from vmalloc with
+> VM_ALLOW_HUGE_VMAP, filled with invalid instructions and then remapped as
+> ROX.
+> 
+> The direct map alias of that large page is exculded from the direct map.
+> 
+> Portions of that large page are handed out to execmem_alloc() callers
+> without any changes to the permissions.
+> 
+> When the memory is freed with execmem_free() it is invalidated again so
+> that it won't contain stale instructions.
+> 
+> An architecture has to implement execmem_fill_trapping_insns() callback
+> and select ARCH_HAS_EXECMEM_ROX configuration option to be able to use
+> the ROX cache.
+> 
+> The cache is enabled on per-range basis when an architecture sets
+> EXECMEM_ROX_CACHE flag in definition of an execmem_range.
+> 
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+> Tested-by: kdevops <kdevops@lists.linux.dev>
+> ---
 
-For Windows attributes, there are for sure needed new 11 bits for
-attributes which can be both get and set, additional 4 bits for get-only
-attributes, and plus there are 9 reserved bits (which Windows can start
-using it and exporting over NTFS or SMB). And it is possible that
-Windows can reuse some bits which were previously assigned for things
-which today does not appear on NTFS.
+[...]
 
-I think that fsx_xflags does not have enough free bits for all these
-attributes. So it would be really nice to design API/ABI in away which
-can be extended for new fields.
+> +
+> +static int execmem_cache_populate(struct execmem_range *range, size_t size)
+> +{
+> +	unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> +	unsigned long start, end;
+> +	struct vm_struct *vm;
+> +	size_t alloc_size;
+> +	int err = -ENOMEM;
+> +	void *p;
+> +
+> +	alloc_size = round_up(size, PMD_SIZE);
+> +	p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
 
-Also another two points, for this new syscalls. I have not looked at the
-current changes (I was added to CC just recently), but it would be nice:
+Shouldn't this be passing PAGE_KERNEL_ROX? Otherwise I don't see how the
+allocated memory is ROX? I don't see any call below where you change the permission.
 
-1) If syscall API allows to operate on the symlink itself. This is
-   because NTFS and also SMB symlink also contains attributes. ioctl
-   interface currently does not support to get/set these symlink
-   attributes.
+Given the range has the pgprot in it, you could just drop passing the pgprot
+explicitly here and have execmem_vmalloc() use range->pgprot directly?
 
-2) If syscall API contains ability to just change subset of attributes.
-   And provide an error reporting to userspace if userspace application
-   is trying to set attribute which is not supported by the filesystem.
-   This error reporting is needed for possible "cp -a" or possible
-   "rsync" implementation which informs when some metadata cannot be
-   backup/restored. There are more filesystems which supports only
-   subset of attributes, this applies also for windows attributes.
-   For example UDF fs supports only "hidden" attribute.
+Thanks,
+Ryan
+
+> +	if (!p)
+> +		return err;
+> +
+> +	vm = find_vm_area(p);
+> +	if (!vm)
+> +		goto err_free_mem;
+> +
+> +	/* fill memory with instructions that will trap */
+> +	execmem_fill_trapping_insns(p, alloc_size, /* writable = */ true);
+> +
+> +	start = (unsigned long)p;
+> +	end = start + alloc_size;
+> +
+> +	vunmap_range(start, end);
+> +
+> +	err = execmem_set_direct_map_valid(vm, false);
+> +	if (err)
+> +		goto err_free_mem;
+> +
+> +	err = vmap_pages_range_noflush(start, end, range->pgprot, vm->pages,
+> +				       PMD_SHIFT);
+> +	if (err)
+> +		goto err_free_mem;
+> +
+> +	err = execmem_cache_add(p, alloc_size);
+> +	if (err)
+> +		goto err_free_mem;
+> +
+> +	return 0;
+> +
+> +err_free_mem:
+> +	vfree(p);
+> +	return err;
+> +}
+
+[...]
+
