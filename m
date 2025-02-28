@@ -1,267 +1,59 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from mail.profitiq.pl (mail.profitiq.pl [217.61.97.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BF3C2500DE
-	for <sparclinux@vger.kernel.org>; Fri, 28 Feb 2025 08:30:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740731448; cv=none; b=Zp3kIGGP3xfUYl2Ch4WWmduXXLyQeIHr8bnxH04KEnZ5+u7qCuZqMnUgHGd7lEDDZjCozxi6+T3DM/L7jBICudAe5tzjJqw53s++KkpTzPenpH1IUXfa+QI+k+NaXP5t0O7ZRip1WzLqJgznA33rLlu2Dk6p/ZSvMDa0pIjmAYQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740731448; c=relaxed/simple;
-	bh=9JRh0vQu00gcGDgHvqANg3ZiBZ1ZNLJx8nUj+BWm9B0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pUdy80sMQgQ+bsAxtbcuu2QBPMSPGRnCTpJGHR3h/slVgvpqZ8pps8cnE9OugMADQZ00knKEuUmsOk6iU6NtVcldj4pm5masd5udTRkgaDjwmOiIbd+9uHmDk1cg8EBD/Qobcz6T5gDa0a0PqhS9xF0BgePDy5fI5ov2ekIGrWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Dui1sz6N; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Dui1sz6N"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1740731445;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=IAk7T/agbjQFnKEBQSUNnzMrHpjZ/FADtSxLOMcXTqc=;
-	b=Dui1sz6NBA52u2gWpD/Jv+g8u440V4PvsD6EoEGuq/Ll7p0AYhpNTwHGVZ96KDS+MCI+BG
-	nmnAyQoBXTSDiRxAIUUEvXikd9FOA3L2GXJvbWFiKg9SGqjwySmg1KmYFUCquaqftV+Poi
-	qhHzNfOdmnFIGCJUrXcO88GNm+YxEdg=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-548-MNB0asv6MXGM8_oBa8_Tww-1; Fri, 28 Feb 2025 03:30:43 -0500
-X-MC-Unique: MNB0asv6MXGM8_oBa8_Tww-1
-X-Mimecast-MFC-AGG-ID: MNB0asv6MXGM8_oBa8_Tww_1740731442
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-ab39f65dc10so189116066b.1
-        for <sparclinux@vger.kernel.org>; Fri, 28 Feb 2025 00:30:43 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740731442; x=1741336242;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=IAk7T/agbjQFnKEBQSUNnzMrHpjZ/FADtSxLOMcXTqc=;
-        b=KutufyYRb3opIV3zTJsK7vMDvWWTn3PmXsG3KqbOVVSqwyakdmH/b1899ezcqtli+t
-         CuWcm5qrn039rbfyblkqjmU4STKVSVFf5XKzEnrDLH/gopiniufDAwrV7634YuG1HkNw
-         PJfj3qSxxMwCG4Sjb1pLTa1DaGLKY9lziPuUln5gXF39Dg09Z3y1iJ5u3LV9pCnI2OH/
-         t1kQCzZhJUsQxvMvHqhOCQn6xtt0WreRoiqIBSlD7qUxtgdnyUcrcJEhgJmpAqK6NaM2
-         2wKuhc+g2Mp+XFL6alkmvZZl/S3/iynPOybs2P3MAPx1OXebWr1DcjV7hhELi6UTbHMQ
-         q0Bw==
-X-Forwarded-Encrypted: i=1; AJvYcCUy2FHACr780EXZ8afSagD6Q5BKwIsHptxGcvAwzGcI+Alo5lB4ZvzrgOYAR32EezkrQ1zqZWElcgQs@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy0LcvDj8bi3ZBTesE6TvvKZ7wm3GkmdICg7nInusUZ51HrIqKZ
-	UyFVFMYkB1G2ihwY+4L9mHeD5h/SQrxNJbqYtBfyhBn2UgtKP6P1E5WV5QjimEupQKY3uWirnA5
-	kg6F3Wl/cpez4t7M4qQ7aGYwWHc4NRXhDu/vo+yX0RPbgF5Yv2ajPL3iEyQ==
-X-Gm-Gg: ASbGncuOfkBJv795p6GEiOi+8VIoQYYUT8xGo6X8U6jJsQ9PuIEz0WQr4lw7rkCK5SB
-	jjzNr/+u4qsEEdJ9oyrZNqduKujXTDeSBlCVgBod7SoNKE88JmZpBbErmwl8oQW3hKQ+ASArdwR
-	+WO5XRrqU70Y++afaxVQgNqfQ3OAsRxcUyKQ6ThAQ2nZ+akPHwT5G4FLEmaMNx0shwhs6gveDMi
-	k8HXXP2LySezSjGrS++A4CWaFbLuG+CeCbBD93S7qmMBbsmVqrtajsshxMxmZlNCUujQRnxrWA8
-	dPT7MMv6UXFN0KynEZQfFzqKqbP02BmD1yQ=
-X-Received: by 2002:a17:907:2d08:b0:abf:22cd:9a7e with SMTP id a640c23a62f3a-abf261f5471mr234893666b.30.1740731441927;
-        Fri, 28 Feb 2025 00:30:41 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IGZIWf4Mi/ez8uccBE3ejxNf0ox83n9Aynget7e7VbyIxs4sY20lz/2ANqi9H9OCRURVdUpFw==
-X-Received: by 2002:a17:907:2d08:b0:abf:22cd:9a7e with SMTP id a640c23a62f3a-abf261f5471mr234884766b.30.1740731441289;
-        Fri, 28 Feb 2025 00:30:41 -0800 (PST)
-Received: from thinky (ip-217-030-074-039.aim-net.cz. [217.30.74.39])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abf0c74c714sm254400566b.124.2025.02.28.00.30.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 Feb 2025 00:30:40 -0800 (PST)
-Date: Fri, 28 Feb 2025 09:30:38 +0100
-From: Andrey Albershteyn <aalbersh@redhat.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, 
-	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
-	Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
-	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
-	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
-	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	Arnd Bergmann <arnd@arndb.de>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
-	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>, 
-	Theodore Tso <tytso@mit.edu>
-Subject: Re: [PATCH v3] fs: introduce getfsxattrat and setfsxattrat syscalls
-Message-ID: <ihkez5xfcuocis7cmipvts2vxnfan2ub5kcpvsrnzm37glwnax@nxp72byvetye>
-References: <20250211-xattrat-syscall-v3-1-a07d15f898b2@kernel.org>
- <20250221181135.GW21808@frogsfrogsfrogs>
- <CAOQ4uxgyYBFqkq6cQsso4LxJsPJ4uECOdskXmz-nmGhhV5BQWg@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 415A11A3158
+	for <sparclinux@vger.kernel.org>; Fri, 28 Feb 2025 09:18:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=217.61.97.181
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1740734328; cv=pass; b=HWbEmQlc8XZjAYKymeELMclHbB51QcIgYUCGGlPkuwqDjRblYf5tY0TkfSnjgJ/Avwu1qZ6gHI+BmM06x6lTK/QIvoeUwCN1g9sK7oLhylJXygllPaPZC9LRP2FyrQSKh4ax/PM0ULJQpULBfk5cy4KSzZV4jaimoQf30ou3YFE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1740734328; c=relaxed/simple;
+	bh=e8QY90WF0s922aqFGIlQWUD16N2CFUeuI5eM65Ao030=;
+	h=Message-ID:Date:From:To:Subject:MIME-Version:Content-Type; b=pcn7aP3U/8tPWDBnLiqtHZK99fBfRKYWSuZLMrC2SzVpN/nP+66PSjKwAif9q1bhtpisOUl/L8PDVIzChQ86rBIHFbEsREKlW1oxXf5FTS3jr8iWUPLIcMSfX/yM2ZI4vZ5yYgiaMaXr6f1O6A9KTX0xbsRc05NU7OSLsclug9o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=profitiq.pl; spf=pass smtp.mailfrom=profitiq.pl; arc=pass smtp.client-ip=217.61.97.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=profitiq.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=profitiq.pl
+Authentication-Results: profitiq.pl; arc=none smtp.remote-ip=127.0.0.1
+ARC-Seal: i=1; d=profitiq.pl; s=default; a=rsa-sha256; cv=none; t=1740733775;
+	b=BBJbTUx8z7wOa7z/049NvHF459iy/XIEQpJyqUOA7ICv/+zLgxxxYBsQ0PkRYtTKO5qP
+	 XkYxt4xUgqNoOSYCPnf27iUDToIheAlsxfCD9ciBVKZmQEMlD9URVMpbyMUGYQxWFnVfz
+	 PL/khtnt2APhClKg7B/O7MiLz7ds7X96ouYRebHexud5ITtU1W9tn1M2rUxEPUSYYZgeq
+	 cOwZOTqYGIzo0tVfB3xnSTG+uiOkKfnTU3FAPnw3HR46Fe4IyvW64LlHhXInmJzNhWtBx
+	 4N6e6IddyiIjKo1wJHCskpPCc2buUhbgeB06HN86oCrDlOnXbcieXvEZPj6xhPZJc6w==
+ARC-Message-Signature: i=1; d=profitiq.pl; s=default; a=rsa-sha256;
+	c=relaxed/simple; t=1740733775;
+	h=Message-ID:Date:From:Subject:From;
+	bh=e8QY90WF0s922aqFGIlQWUD16N2CFUeuI5eM65Ao030=;
+	b=RHd6JHJAR1REfOa+n7lo1zEc2aS/DnFqZ938j317Gwm2foZRzng/dW9VwztsInhd/hcL
+	 O14VwEwhGOFJ2mQAInbu081mQvYG3DjrZ/cLSZI9l3dveDhj/xxFfxuyuxrGLBAd4phoB
+	 L6GnJqHJqAeu6i3UAoUDErY+C6sMFpKxsNTuOXq01e0wcn+OFOYmiP4xCB1iSqBINYmxU
+	 OKMBfoX9Ps8MnF0Eb9WJdD/xohSjyVt1BMHcSa0e2c31eqj7NWQjhDa3Gx3UkVX5ZZxfd
+	 Sm8t9tSKZHdgcAEV3y4Yu0GBu5gviWCf1Ieg+0qA0NJdRvF8nCiiOwhYkS9FQFoPXoA==
+ARC-Authentication-Results: i=1; profitiq.pl; arc=none smtp.remote-ip=127.0.0.1
+Received: by mail.profitiq.pl (Postfix, from userid 1002)
+	id CFBB982F59; Fri, 28 Feb 2025 10:08:48 +0100 (CET)
+Received: by mail.profitiq.pl for <sparclinux@vger.kernel.org>; Fri, 28 Feb 2025 09:08:04 GMT
+Message-ID: <20250228094540-0.1.6.554.0.g6r75gc9cv@profitiq.pl>
+Date: Fri, 28 Feb 2025 09:08:04 GMT
+From: "Damian Czarnecki" <damian.czarnecki@profitiq.pl>
+To: <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Pytanie_o_samoch=C3=B3d_?=
+X-Mailer: mail.profitiq.pl
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxgyYBFqkq6cQsso4LxJsPJ4uECOdskXmz-nmGhhV5BQWg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2025-02-21 20:15:24, Amir Goldstein wrote:
-> On Fri, Feb 21, 2025 at 7:13 PM Darrick J. Wong <djwong@kernel.org> wrote:
-> >
-> > On Tue, Feb 11, 2025 at 06:22:47PM +0100, Andrey Albershteyn wrote:
-> > > From: Andrey Albershteyn <aalbersh@redhat.com>
-> > >
-> > > Introduce getfsxattrat and setfsxattrat syscalls to manipulate inode
-> > > extended attributes/flags. The syscalls take parent directory fd and
-> > > path to the child together with struct fsxattr.
-> > >
-> > > This is an alternative to FS_IOC_FSSETXATTR ioctl with a difference
-> > > that file don't need to be open as we can reference it with a path
-> > > instead of fd. By having this we can manipulated inode extended
-> > > attributes not only on regular files but also on special ones. This
-> > > is not possible with FS_IOC_FSSETXATTR ioctl as with special files
-> > > we can not call ioctl() directly on the filesystem inode using fd.
-> > >
-> > > This patch adds two new syscalls which allows userspace to get/set
-> > > extended inode attributes on special files by using parent directory
-> > > and a path - *at() like syscall.
-> > >
-> > > Also, as vfs_fileattr_set() is now will be called on special files
-> > > too, let's forbid any other attributes except projid and nextents
-> > > (symlink can have an extent).
-> > >
-> > > CC: linux-api@vger.kernel.org
-> > > CC: linux-fsdevel@vger.kernel.org
-> > > CC: linux-xfs@vger.kernel.org
-> > > Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
-> > > ---
-> > > v1:
-> > > https://lore.kernel.org/linuxppc-dev/20250109174540.893098-1-aalbersh@kernel.org/
-> > >
-> > > Previous discussion:
-> > > https://lore.kernel.org/linux-xfs/20240520164624.665269-2-aalbersh@redhat.com/
-> > >
-> > > XFS has project quotas which could be attached to a directory. All
-> > > new inodes in these directories inherit project ID set on parent
-> > > directory.
-> > >
-> > > The project is created from userspace by opening and calling
-> > > FS_IOC_FSSETXATTR on each inode. This is not possible for special
-> > > files such as FIFO, SOCK, BLK etc. Therefore, some inodes are left
-> > > with empty project ID. Those inodes then are not shown in the quota
-> > > accounting but still exist in the directory. Moreover, in the case
-> > > when special files are created in the directory with already
-> > > existing project quota, these inode inherit extended attributes.
-> > > This than leaves them with these attributes without the possibility
-> > > to clear them out. This, in turn, prevents userspace from
-> > > re-creating quota project on these existing files.
-> > > ---
-> > > Changes in v3:
-> > > - Remove unnecessary "dfd is dir" check as it checked in user_path_at()
-> > > - Remove unnecessary "same filesystem" check
-> > > - Use CLASS() instead of directly calling fdget/fdput
-> > > - Link to v2: https://lore.kernel.org/r/20250122-xattrat-syscall-v2-1-5b360d4fbcb2@kernel.org
-> > > ---
-> > >  arch/alpha/kernel/syscalls/syscall.tbl      |  2 +
-> > >  arch/arm/tools/syscall.tbl                  |  2 +
-> > >  arch/arm64/tools/syscall_32.tbl             |  2 +
-> > >  arch/m68k/kernel/syscalls/syscall.tbl       |  2 +
-> > >  arch/microblaze/kernel/syscalls/syscall.tbl |  2 +
-> > >  arch/mips/kernel/syscalls/syscall_n32.tbl   |  2 +
-> > >  arch/mips/kernel/syscalls/syscall_n64.tbl   |  2 +
-> > >  arch/mips/kernel/syscalls/syscall_o32.tbl   |  2 +
-> > >  arch/parisc/kernel/syscalls/syscall.tbl     |  2 +
-> > >  arch/powerpc/kernel/syscalls/syscall.tbl    |  2 +
-> > >  arch/s390/kernel/syscalls/syscall.tbl       |  2 +
-> > >  arch/sh/kernel/syscalls/syscall.tbl         |  2 +
-> > >  arch/sparc/kernel/syscalls/syscall.tbl      |  2 +
-> > >  arch/x86/entry/syscalls/syscall_32.tbl      |  2 +
-> > >  arch/x86/entry/syscalls/syscall_64.tbl      |  2 +
-> > >  arch/xtensa/kernel/syscalls/syscall.tbl     |  2 +
-> > >  fs/inode.c                                  | 75 +++++++++++++++++++++++++++++
-> > >  fs/ioctl.c                                  | 16 +++++-
-> > >  include/linux/fileattr.h                    |  1 +
-> > >  include/linux/syscalls.h                    |  4 ++
-> > >  include/uapi/asm-generic/unistd.h           |  8 ++-
-> > >  21 files changed, 133 insertions(+), 3 deletions(-)
-> > >
-> >
-> > <cut to the syscall definitions>
-> >
-> > > diff --git a/fs/inode.c b/fs/inode.c
-> > > index 6b4c77268fc0ecace4ac78a9ca777fbffc277f4a..b2dddd9db4fabaf67a6cbf541a86978b290411ec 100644
-> > > --- a/fs/inode.c
-> > > +++ b/fs/inode.c
-> > > @@ -23,6 +23,9 @@
-> > >  #include <linux/rw_hint.h>
-> > >  #include <linux/seq_file.h>
-> > >  #include <linux/debugfs.h>
-> > > +#include <linux/syscalls.h>
-> > > +#include <linux/fileattr.h>
-> > > +#include <linux/namei.h>
-> > >  #include <trace/events/writeback.h>
-> > >  #define CREATE_TRACE_POINTS
-> > >  #include <trace/events/timestamp.h>
-> > > @@ -2953,3 +2956,75 @@ umode_t mode_strip_sgid(struct mnt_idmap *idmap,
-> > >       return mode & ~S_ISGID;
-> > >  }
-> > >  EXPORT_SYMBOL(mode_strip_sgid);
-> > > +
-> > > +SYSCALL_DEFINE4(getfsxattrat, int, dfd, const char __user *, filename,
-> > > +             struct fsxattr __user *, fsx, unsigned int, at_flags)
-> >
-> > Should the kernel require userspace to pass the size of the fsx buffer?
-> > That way we avoid needing to rev the interface when we decide to grow
-> > the structure.
-> >
-> 
-> This makes sense to me, but I see that Andreas proposed other ways,
-> as long as we have a plan on how to extend the struct if we need more space.
-> 
-> Andrey, I am sorry to bring this up in v3, but I would like to request
-> two small changes before merging this API.
-> 
-> This patch by Pali [1] adds fsx_xflags_mask for the filesystem to
-> report the supported set of xflags.
-> 
-> It was argued that we can make this change with the existing ioctl,
-> because it is not going to break xfs_io -c lsattr/chattr, which is fine,
-> but I think that we should merge the fsx_xflags_mask change along
-> with getfsxattrat() which is a new UAPI.
-> 
-> The second request is related to setfsxattrat().
-> With current FS_IOC_FSSETXATTR, IIUC, xfs ignores unsupported
-> fsx_xflags. I think this needs to be fixed before merging setfsxattrat().
-> It's ok that a program calling FS_IOC_FSSETXATTR will not know
-> if unsupported flags will be ignored, because that's the way it is,
-> but I think that setfsxattrat() must return -EINVAL for trying to
-> set unsupported xflags.
-> 
-> As I explained in [2] I think it is fine if FS_IOC_FSSETXATTR
-> will also start returning -EINVAL for unsupported flags, but I would
-> like setfsxattrat() to make that a guarantee.
-> 
-> There was an open question, what does fsx_xflags_mask mean
-> for setfsxattrat() - it is a mask like in inode_set_flags() as Andreas
-> suggested? I think that would be a good idea.
-> 
-> Thanks,
-> Amir.
-> 
-> [1] https://lore.kernel.org/linux-fsdevel/20250216164029.20673-4-pali@kernel.org/
-> [2] https://lore.kernel.org/linux-fsdevel/CAOQ4uxjwQJiKAqyjEmKUnq-VihyeSsxyEy2F+J38NXwrAXurFQ@mail.gmail.com/
-> 
+Dzie=C5=84 dobry,
 
-I'm fine with making Pali's patchset a dependency for this syscall,
-as if vfs_fileattr_set() will start returning EINVAL on unsupported
-flags this syscall will pass it through (ioctls will need to ignore
-it). And as these syscalls use fsxattr anyway the fsx_xflags_mask
-field will be here.
+Czy interesuje Pa=C5=84stwa rozwi=C4=85zanie umo=C5=BCliwiaj=C4=85ce moni=
+torowanie samochod=C3=B3w firmowych oraz optymalizacj=C4=99 koszt=C3=B3w =
+ich utrzymania?=20
 
--- 
-- Andrey
 
+Pozdrawiam
+Damian Czarnecki
