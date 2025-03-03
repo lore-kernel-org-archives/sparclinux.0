@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BEDD221324F;
-	Mon,  3 Mar 2025 14:15:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1D61A213E6D;
+	Mon,  3 Mar 2025 14:16:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741011361; cv=none; b=YPoG/m64t40sYN2GxiOskMi0H0SPrrJLJTavl3OQxZQA+Enatmz2p71B+ppL0TVnqp4cr2ubvBgmnQsGxg5pu6vTHLGcuyOzWP6mds0FSUS7xXDxT14vqhZ6KskR/2VVzQHclrpyvkOc5jKOqORjXg8yqCqxUu2xgPAiF48Znq4=
+	t=1741011363; cv=none; b=gHBAKENZOB5yg0+f1e1LXfwM8TVPmcBhHFgmsLW//JL/69Pk3fvmZvE/tu/dLLtzli5LRYS4hQvsd/CdnKpF79x7YivCT7YG9uE3aORmWiZs3Pu4gzwV3BYZyZWTYECOuBbKoceRKoPs84vHKPWSVe4SrgGm/4AykUy4DvYxkzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741011361; c=relaxed/simple;
-	bh=n7QaXbzZBzjDb7zEaetrjA+0DEIV2YJ6OgKGAXYlBcI=;
+	s=arc-20240116; t=1741011363; c=relaxed/simple;
+	bh=O1B5GF7HpAL9qkxPKYum4yHYGnfftCWSle9YRrd7K/4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lTOm/CzQ03c01ON6sQ1qOw0dnKswe3wWdsG/gzMo6mFpCDFJjPzBB5ERWZhllswJ8GrMp75yivZae9w/kCcUgz5znvaBenygEKsZ3Ca89yfTV5bMlFJGjTjuiWtAOmdFN/btpTTFYFBM2d7HGA8ZC7RckVgfF/f4NfUW2kRI14U=
+	 MIME-Version; b=kz1/HghxvDbj5NnOj1r0a9L8vNpdcslaIOt9ec6xLgSzJ4n6+r8nabXHsYm+Sj8F1bTY3zwZc5iJwUotrUKBgpsIivuxCIUHbA5KBCIGJ07tPtm68ncqRoSNmMCP+t/J9LNhNyM2mEXG5/4W8vdDAXEpzt229EyNoKku1dlDMk0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1ABF8175A;
-	Mon,  3 Mar 2025 06:16:13 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 865D01BCA;
+	Mon,  3 Mar 2025 06:16:15 -0800 (PST)
 Received: from e125769.cambridge.arm.com (e125769.cambridge.arm.com [10.1.196.27])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id EB6783F66E;
-	Mon,  3 Mar 2025 06:15:56 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 48FF23F66E;
+	Mon,  3 Mar 2025 06:15:59 -0800 (PST)
 From: Ryan Roberts <ryan.roberts@arm.com>
 To: Andrew Morton <akpm@linux-foundation.org>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -36,10 +36,11 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
 	David Hildenbrand <david@redhat.com>
-Subject: [PATCH v2 2/5] fs/proc/task_mmu: Reduce scope of lazy mmu region
-Date: Mon,  3 Mar 2025 14:15:36 +0000
-Message-ID: <20250303141542.3371656-3-ryan.roberts@arm.com>
+Subject: [PATCH v2 3/5] sparc/mm: Disable preemption in lazy mmu mode
+Date: Mon,  3 Mar 2025 14:15:37 +0000
+Message-ID: <20250303141542.3371656-4-ryan.roberts@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250303141542.3371656-1-ryan.roberts@arm.com>
 References: <20250303141542.3371656-1-ryan.roberts@arm.com>
@@ -51,62 +52,55 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Update the way arch_[enter|leave]_lazy_mmu_mode() is called in
-pagemap_scan_pmd_entry() to follow the normal pattern of holding the ptl
-for user space mappings. As a result the scope is reduced to only the
-pte table, but that's where most of the performance win is.
+Since commit 38e0edb15bd0 ("mm/apply_to_range: call pte function with
+lazy updates") it's been possible for arch_[enter|leave]_lazy_mmu_mode()
+to be called without holding a page table lock (for the kernel mappings
+case), and therefore it is possible that preemption may occur while in
+the lazy mmu mode. The Sparc lazy mmu implementation is not robust to
+preemption since it stores the lazy mode state in a per-cpu structure
+and does not attempt to manage that state on task switch.
 
-While I believe there wasn't technically a bug here, the original scope
-made it easier to accidentally nest or, worse, accidentally call
-something like kmap() which would expect an immediate mode pte
-modification but it would end up deferred.
+Powerpc had the same issue and fixed it by explicitly disabling
+preemption in arch_enter_lazy_mmu_mode() and re-enabling in
+arch_leave_lazy_mmu_mode(). See commit b9ef323ea168 ("powerpc/64s:
+Disable preemption in hash lazy mmu mode").
 
+Given Sparc's lazy mmu mode is based on powerpc's, let's fix it in the
+same way here.
+
+Cc: <stable@vger.kernel.org>
+Fixes: 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy updates")
 Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Andreas Larsson <andreas@gaisler.com>
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 ---
- fs/proc/task_mmu.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ arch/sparc/mm/tlb.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-index c17615e21a5d..b0f189815512 100644
---- a/fs/proc/task_mmu.c
-+++ b/fs/proc/task_mmu.c
-@@ -2459,22 +2459,19 @@ static int pagemap_scan_pmd_entry(pmd_t *pmd, unsigned long start,
- 	spinlock_t *ptl;
- 	int ret;
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index 8648a50afe88..a35ddcca5e76 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -52,8 +52,10 @@ void flush_tlb_pending(void)
  
--	arch_enter_lazy_mmu_mode();
--
- 	ret = pagemap_scan_thp_entry(pmd, start, end, walk);
--	if (ret != -ENOENT) {
--		arch_leave_lazy_mmu_mode();
-+	if (ret != -ENOENT)
- 		return ret;
--	}
+ void arch_enter_lazy_mmu_mode(void)
+ {
+-	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
++	struct tlb_batch *tb;
  
- 	ret = 0;
- 	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, start, &ptl);
- 	if (!pte) {
--		arch_leave_lazy_mmu_mode();
- 		walk->action = ACTION_AGAIN;
- 		return 0;
- 	}
++	preempt_disable();
++	tb = this_cpu_ptr(&tlb_batch);
+ 	tb->active = 1;
+ }
  
-+	arch_enter_lazy_mmu_mode();
-+
- 	if ((p->arg.flags & PM_SCAN_WP_MATCHING) && !p->vec_out) {
- 		/* Fast path for performing exclusive WP */
- 		for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -2543,8 +2540,8 @@ static int pagemap_scan_pmd_entry(pmd_t *pmd, unsigned long start,
- 	if (flush_end)
- 		flush_tlb_range(vma, start, addr);
+@@ -64,6 +66,7 @@ void arch_leave_lazy_mmu_mode(void)
+ 	if (tb->tlb_nr)
+ 		flush_tlb_pending();
+ 	tb->active = 0;
++	preempt_enable();
+ }
  
--	pte_unmap_unlock(start_pte, ptl);
- 	arch_leave_lazy_mmu_mode();
-+	pte_unmap_unlock(start_pte, ptl);
- 
- 	cond_resched();
- 	return ret;
+ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
 -- 
 2.43.0
 
