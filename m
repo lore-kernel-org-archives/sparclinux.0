@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 705A01EFF9D
-	for <sparclinux@vger.kernel.org>; Mon,  3 Mar 2025 08:52:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B852A1F4170
+	for <sparclinux@vger.kernel.org>; Mon,  3 Mar 2025 08:53:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740991931; cv=none; b=Mco6X2Bvm7Ha6RhSjnKVHogw43j9k/xgqdmJrvqZ9+xLyUBUyDHadEx45UyMDJTFz0wotkCy4ajSUFqFbOTAsJNxVGSVK/+ICE2tf7uGX+L7NIaAZbdxdHoEjPZVZdd+2AO++A5nArSDCahGJfJUiGSpjQNoDgtlkbkx2wbDea0=
+	t=1740991986; cv=none; b=WG0gGJSxCqFnVUyheEgygc13QlqzDt0x+f/aLi2G3PsEVLzwCMD5SL3ElKM8B3+z/gZmCW21X1N+l6qMHjgtsneaSDid7Xc7cQAoKiIdEEizETc/7ZrV49TS6bk5NoV+yCn+GqelyQtawECc5bPlh2ku+ey4fWGLpr3T11OEEzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740991931; c=relaxed/simple;
-	bh=ADaSFdz0OaQQDH4JkFJQ/We+kOUWVf10zyDiFzjjGag=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=J3+44pHkDT8KJjdQrUFaMDNOJEei9bJT2xJSZVgmJoTfX5VD+9D0E2V3lAQ3G/fAHr5uUTH3uUgq3U0P5L6v7WdpDAH5bNB/F9UUG/6GEVHeATGQRXhhxZzzrmUd79FSWdHqB/FMA+2gnhNzynP6IOICCMdOiCB0Wh08NjUyIVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Ch0B7EVn; arc=none smtp.client-ip=170.10.129.124
+	s=arc-20240116; t=1740991986; c=relaxed/simple;
+	bh=QRmrnj+++rGjqFLqafrF9yanPhwbwa3cHIpxW9YQp/Y=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=pBERt9U0PFQvMRCBKg3m1rhiu7KctU0R14f2Dqybm5wPNF+mqsakfTrKtbzgFpsOyEGPrxdYL64jS5+7p4JpnNmMdlt3o1uecTuyIwcrG7uMV9UUNiSCIlhVXDYyfg8cEwGPOyPAj61l9CvqUW024GeTx/16Ak8vQLm+jsocdro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aGPyDBje; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ch0B7EVn"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aGPyDBje"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1740991928;
+	s=mimecast20190719; t=1740991983;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=AD0BhRUSKUKI9Ce/AzRts0lu/YIF74G3wU8/3/wY5qk=;
-	b=Ch0B7EVnNUwmpgbaRRTpYgublMZMDGr8ZDFmF1QKmSXDi9SIp9sUE1RjziV7tMJh5uYhen
-	ep43hwGpv3M6T3Yq3DWB8cF/s2ku7AK8BZDoYEyCdzbqOX94suLjAy4Ur8tGbipVzqudQG
-	GdZIgbpotgmsy0/Qjoyu0MhG6gPo88Q=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=L2Teo9Rbchbz42+Q6lAs3ttlkWMO9/zXQmWUHGDFFeQ=;
+	b=aGPyDBjePHpyCEGUMRP1dmMZDtvuYz1JQDNHG0cLKrkjsJynIXKkbe2UFY/HNg1YwqVYtU
+	jY/jEkU3cM4LPNre6GovSbS/uexo+WatPaK68F2U/Yeo1fN8hFbYHCfpYRMhAZNQGp8utw
+	te3cTXIyBUspx35Nb9UwqXGEuciOwCo=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-37-50Yh5DugPmeWpu3MJ8ov_g-1; Mon, 03 Mar 2025 03:52:06 -0500
-X-MC-Unique: 50Yh5DugPmeWpu3MJ8ov_g-1
-X-Mimecast-MFC-AGG-ID: 50Yh5DugPmeWpu3MJ8ov_g_1740991926
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-390d73c20b6so2773558f8f.2
-        for <sparclinux@vger.kernel.org>; Mon, 03 Mar 2025 00:52:06 -0800 (PST)
+ us-mta-83-0GqvlZQAO9enBoHPikXw0Q-1; Mon, 03 Mar 2025 03:52:52 -0500
+X-MC-Unique: 0GqvlZQAO9enBoHPikXw0Q-1
+X-Mimecast-MFC-AGG-ID: 0GqvlZQAO9enBoHPikXw0Q_1740991971
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4399c32efb4so21769915e9.1
+        for <sparclinux@vger.kernel.org>; Mon, 03 Mar 2025 00:52:52 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740991925; x=1741596725;
+        d=1e100.net; s=20230601; t=1740991971; x=1741596771;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
+         :content-language:references:cc:to:from:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=AD0BhRUSKUKI9Ce/AzRts0lu/YIF74G3wU8/3/wY5qk=;
-        b=r/chsqDP4MiU0lUBacBx22iPo0qAizmWHMvY1nYq4+bqfqobcuDk/+M4TtPNpOxAsL
-         aFg1oJ+9rc6UQ5oCax1gpktrMV7/03vPZ94cEPgSYPyzbBk283yXhW+mplAUq0akTZGe
-         NGdS7X0/mvsFOBZHNajkQ+G9armLm2QdEMYg5Q8zAy/+PaYQNyLlN+u7E/jeccdsS33+
-         ag8+UMH+2OZPg2rgDASCcCjXLO+Ri16TZMRrzjRdM3s/duvM+Bqauneawtlzd/xBukVC
-         gFmkbhM77BuY3MThCAHj7ezXi7nBuu8LYa3d/PCrSYNHi8PSJ+oDw4ozDvdCs8GragT6
-         P0IA==
-X-Forwarded-Encrypted: i=1; AJvYcCUGqCF6wQpD3xJ7vQyLUABFHIGxGeMYZEmnpbtm0nyLgYqPfRMqUV0jKOT8iSYNcgURCST+JimDlL5f@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxci8cgsTfbUvEPsQK0n9qwPfiSnOrw9RbveDshjVaeAZQhFFxA
-	ZCfnjCRuv5pUjEumqVg5MrKHaoiG4NNPZXtUgNjs95yij27VAv/zF1DaJfK9HvAAwJauF8XjVKm
-	Yy1FMkfJQgKkz3c7SSybqohPyPvGzd5d7J3M2RS5hovm+t2knEXdavaDaUwM=
-X-Gm-Gg: ASbGncsk7rcfesZCDnG/bHcbeFvfSGAQ18dXpg7Adz4+FHHc2QfaZG4rB0/SdyRni+3
-	oKmfeQIIOaAadj6P9U874JlExwq8pqyAkXePXAeoyeKZ9ThJ+fAnJ8y86+inasqShydXLpKCaUF
-	n86uIXn4BWXzx9+yHK+Ux0wRh4q8KY8+S//TXlfUUzbJjVeBgNAL5KWfoAN0/Sb935KRmaBro6F
-	SPjlTMxJqbORR4FkhFRQW2qJPtluONwMUMSQJ4i5hfepl5451H2cXAgj/d8E91T0qx+xUNHUpkI
-	2V+fDg2bQ2nBUKMpbsJVU+7Mn/sf0YVHMIZDj1ZUkgFxGUWLRmkh7NG2ERTjwQP6MLaGhgxVeyL
-	cQFeJkPsPcA8QUMAPx0bUBMDhr5czsP4yraeBnOWKb/M=
-X-Received: by 2002:a5d:6d89:0:b0:390:f88c:a689 with SMTP id ffacd0b85a97d-390f88cadabmr5755542f8f.47.1740991925673;
-        Mon, 03 Mar 2025 00:52:05 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IF3sqppN55tl5C45qFk6psMYLYRvi/O7tktf2gORA/1QEyfox9eLasRdl1uBOhQIOjNr4hTpA==
-X-Received: by 2002:a5d:6d89:0:b0:390:f88c:a689 with SMTP id ffacd0b85a97d-390f88cadabmr5755517f8f.47.1740991925267;
-        Mon, 03 Mar 2025 00:52:05 -0800 (PST)
+        bh=L2Teo9Rbchbz42+Q6lAs3ttlkWMO9/zXQmWUHGDFFeQ=;
+        b=xNoGV7og6D+lMzcDG86kChm54E4rNl74EQxqG2i0zWdxXaTLpZHsmD5ZltqK4eduxr
+         niq6O836H6KOSrAkO2+kA44DcuTQmR8nfmaJBnqxAnnwugwIhBKmjq1y/XyF6gtoce2g
+         SHf++mwh1G4FOrhk5GPjfWF9pjGKoVLd/xlVH6VrVI7SQbwyk7o9eQUUrDaS3Ka7vPV6
+         cA3us1RMFrEMtIW/l2W0zzHwWnOG3G8XRxI341y9dL+E47eWz0woUGV1b15w+FU9VUXf
+         +vLym16jM9l7epGtirhBe43zusSof1G2kCrbhigld3xoULCBjnbyecGhzPdp7iA+NNeE
+         C0kg==
+X-Forwarded-Encrypted: i=1; AJvYcCVWUyATFENqTFh5teyMYN7vodtQqLX7NFayVFUAKIo8qCQJInoOsPd7vH9VqsIoK3bh5P8fWxIZIZFX@vger.kernel.org
+X-Gm-Message-State: AOJu0YwDzv1+2gsuwPwM29qEiBw+sAVRumbt7p5eY84Yd6XEXQ/bxLvL
+	06mfM3D8QxJP5DaYr5SWAVzm/tthfXvNrR12fUtQBEI8HYogwtiCl5BP4+PdHYzcEZEJLjs6jT7
+	tC8cBW5Ty3ViD6eHakFcB61Ae3yM4g8pVr2UBk81tmtFWqmA5Klxp2gKpMUo=
+X-Gm-Gg: ASbGncvh8HbuRCPkpuyH+B+4IvoMoLEwqtTI9DTbRWdRZlW57+z8cgnANNTBZ8NsfMg
+	1Y0TM7PaUwHjSlcqNMk+To7tsFOvcIq+jfDJXlnPbFKQyJkJajwvZr9u4kGejLdcIhuhef63ZBG
+	hCSK6mSrkKSQWPPE5l9NXJ1DMQkWOPXyysrUyOLoAR+3C7ygKdNlRfUEydesleRbNQrHBut1d6U
+	T6HPbQsvMXI/kTA5pCIufIGOcwg9BNCxoOQZaayXHd4CXbC+D6uyakeoYj1h0l20vYf/uV849ai
+	jsWeWC6+ygtO8xVNAj5ZXttqsWSE8MSLdHc/lxVXOTasv6oAJ7FhoHiXo4OzSw6ZEFjwQic8hAk
+	6Nkix1lsL43hqDu+leNhuorlLfVZb5q0yi5lp6aj6bf4=
+X-Received: by 2002:a05:600c:1c9f:b0:434:9e17:190c with SMTP id 5b1f17b1804b1-43ba6188e94mr94869035e9.0.1740991971265;
+        Mon, 03 Mar 2025 00:52:51 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHlTwiOKza9n0r0V0jJ5URyFDI8eh36wv7IjAnT7iFLb3kZ3OtN1WSRH/ph1nyV3LFOLXmlUQ==
+X-Received: by 2002:a05:600c:1c9f:b0:434:9e17:190c with SMTP id 5b1f17b1804b1-43ba6188e94mr94868805e9.0.1740991970936;
+        Mon, 03 Mar 2025 00:52:50 -0800 (PST)
 Received: from ?IPV6:2003:cb:c734:9600:af27:4326:a216:2bfb? (p200300cbc7349600af274326a2162bfb.dip0.t-ipconnect.de. [2003:cb:c734:9600:af27:4326:a216:2bfb])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-390e485e13fsm13623429f8f.100.2025.03.03.00.52.04
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43b8d6bc3fcsm122643735e9.0.2025.03.03.00.52.49
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Mar 2025 00:52:04 -0800 (PST)
-Message-ID: <0db13472-d056-4e41-a42c-f4ca60483176@redhat.com>
-Date: Mon, 3 Mar 2025 09:52:03 +0100
+        Mon, 03 Mar 2025 00:52:50 -0800 (PST)
+Message-ID: <a9e21c14-d390-4119-ad93-b23e6ccbac15@redhat.com>
+Date: Mon, 3 Mar 2025 09:52:49 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,8 +75,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 3/4] sparc/mm: Avoid calling
- arch_enter/leave_lazy_mmu() in set_ptes
+Subject: Re: [PATCH v1 1/4] mm: Fix lazy mmu docs and usage
+From: David Hildenbrand <david@redhat.com>
 To: Ryan Roberts <ryan.roberts@arm.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  "David S. Miller" <davem@davemloft.net>,
@@ -90,8 +90,8 @@ To: Ryan Roberts <ryan.roberts@arm.com>,
 Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org
 References: <20250302145555.3236789-1-ryan.roberts@arm.com>
- <20250302145555.3236789-4-ryan.roberts@arm.com>
-From: David Hildenbrand <david@redhat.com>
+ <20250302145555.3236789-2-ryan.roberts@arm.com>
+ <5418a661-dbd0-46e9-8ef7-b1c5a34acce3@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -138,59 +138,90 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20250302145555.3236789-4-ryan.roberts@arm.com>
+In-Reply-To: <5418a661-dbd0-46e9-8ef7-b1c5a34acce3@redhat.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 02.03.25 15:55, Ryan Roberts wrote:
-> With commit 1a10a44dfc1d ("sparc64: implement the new page table range
-> API") set_ptes was added to the sparc architecture. The implementation
-> included calling arch_enter/leave_lazy_mmu() calls.
+On 03.03.25 09:49, David Hildenbrand wrote:
+> On 02.03.25 15:55, Ryan Roberts wrote:
+>> The docs, implementations and use of arch_[enter|leave]_lazy_mmu_mode()
+>> is a bit of a mess (to put it politely). There are a number of issues
+>> related to nesting of lazy mmu regions and confusion over whether the
+>> task, when in a lazy mmu region, is preemptible or not. Fix all the
+>> issues relating to the core-mm. Follow up commits will fix the
+>> arch-specific implementations. 3 arches implement lazy mmu; powerpc,
+>> sparc and x86.
+>>
+>> When arch_[enter|leave]_lazy_mmu_mode() was first introduced by commit
+>> 6606c3e0da53 ("[PATCH] paravirt: lazy mmu mode hooks.patch"), it was
+>> expected that lazy mmu regions would never nest and that the appropriate
+>> page table lock(s) would be held while in the region, thus ensuring the
+>> region is non-preemptible. Additionally lazy mmu regions were only used
+>> during manipulation of user mappings.
+>>
+>> Commit 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy
+>> updates") started invoking the lazy mmu mode in apply_to_pte_range(),
+>> which is used for both user and kernel mappings. For kernel mappings the
+>> region is no longer protected by any lock so there is no longer any
+>> guarantee about non-preemptibility. Additionally, for RT configs, the
+>> holding the PTL only implies no CPU migration, it doesn't prevent
+>> preemption.
+>>
+>> Commit bcc6cc832573 ("mm: add default definition of set_ptes()") added
+>> arch_[enter|leave]_lazy_mmu_mode() to the default implementation of
+>> set_ptes(), used by x86. So after this commit, lazy mmu regions can be
+>> nested. Additionally commit 1a10a44dfc1d ("sparc64: implement the new
+>> page table range API") and commit 9fee28baa601 ("powerpc: implement the
+>> new page table range API") did the same for the sparc and powerpc
+>> set_ptes() overrides.
+>>
+>> powerpc couldn't deal with preemption so avoids it in commit
+>> b9ef323ea168 ("powerpc/64s: Disable preemption in hash lazy mmu mode"),
+>> which explicitly disables preemption for the whole region in its
+>> implementation. x86 can support preemption (or at least it could until
+>> it tried to add support nesting; more on this below). Sparc looks to be
+>> totally broken in the face of preemption, as far as I can tell.
+>>
+>> powewrpc can't deal with nesting, so avoids it in commit 47b8def9358c
+>> ("powerpc/mm: Avoid calling arch_enter/leave_lazy_mmu() in set_ptes"),
+>> which removes the lazy mmu calls from its implementation of set_ptes().
+>> x86 attempted to support nesting in commit 49147beb0ccb ("x86/xen: allow
+>> nesting of same lazy mode") but as far as I can tell, this breaks its
+>> support for preemption.
+>>
+>> In short, it's all a mess; the semantics for
+>> arch_[enter|leave]_lazy_mmu_mode() are not clearly defined and as a
+>> result the implementations all have different expectations, sticking
+>> plasters and bugs.
+>>
+>> arm64 is aiming to start using these hooks, so let's clean everything up
+>> before adding an arm64 implementation. Update the documentation to state
+>> that lazy mmu regions can never be nested, must not be called in
+>> interrupt context and preemption may or may not be enabled for the
+>> duration of the region.
+>>
+>> Additionally, update the way arch_[enter|leave]_lazy_mmu_mode() is
+>> called in pagemap_scan_pmd_entry() to follow the normal pattern of
+>> holding the ptl for user space mappings. As a result the scope is
+>> reduced to only the pte table, but that's where most of the performance
+>> win is. While I believe there wasn't technically a bug here, the
+>> original scope made it easier to accidentally nest or, worse,
+>> accidentally call something like kmap() which would expect an immediate
+>> mode pte modification but it would end up deferred.
+>>
+>> arch-specific fixes to conform to the new spec will proceed this one.
+>>
+>> These issues were spotted by code review and I have no evidence of
+>> issues being reported in the wild.
+>>
 > 
-> The patch removes the usage of arch_enter/leave_lazy_mmu() since this
-> implies nesting of lazy mmu regions which is not supported. Without this
-> fix, lazy mmu mode is effectively disabled because we exit the mode
-> after the first set_ptes:
+> All looking good to me!
 > 
-> remap_pte_range()
->    -> arch_enter_lazy_mmu()
->    -> set_ptes()
->        -> arch_enter_lazy_mmu()
->        -> arch_leave_lazy_mmu()
->    -> arch_leave_lazy_mmu()
+> Acked-by: David Hildenbrand <david@redhat.com>
 > 
-> Powerpc suffered the same problem and fixed it in a corresponding way
-> with commit 47b8def9358c ("powerpc/mm: Avoid calling
-> arch_enter/leave_lazy_mmu() in set_ptes").
-> 
-> Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
-> Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-> ---
->   arch/sparc/include/asm/pgtable_64.h | 2 --
->   1 file changed, 2 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-> index 2b7f358762c1..dc28f2c4eee3 100644
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -936,7 +936,6 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
->   static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
->   		pte_t *ptep, pte_t pte, unsigned int nr)
->   {
-> -	arch_enter_lazy_mmu_mode();
->   	for (;;) {
->   		__set_pte_at(mm, addr, ptep, pte, 0);
->   		if (--nr == 0)
-> @@ -945,7 +944,6 @@ static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
->   		pte_val(pte) += PAGE_SIZE;
->   		addr += PAGE_SIZE;
->   	}
-> -	arch_leave_lazy_mmu_mode();
->   }
->   #define set_ptes set_ptes
->   
 
-Acked-by: David Hildenbrand <david@redhat.com>
+... but I do wonder if the set_ptes change should be split from the 
+pagemap change.
 
 -- 
 Cheers,
