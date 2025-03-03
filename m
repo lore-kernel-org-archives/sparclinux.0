@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B7A1F1521
-	for <sparclinux@vger.kernel.org>; Mon,  3 Mar 2025 08:51:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 705A01EFF9D
+	for <sparclinux@vger.kernel.org>; Mon,  3 Mar 2025 08:52:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740991906; cv=none; b=IP6CymDSVtzELcb9YSmx8TDL1S0MBB8UpTPHz72EqC6gNTzQpW08oDZ35UtbhgUyrvpgoKxsRIJ1hnWK4Ur7wz0kggv/W9Jj5i4Gy2lnn3XgEuba8VE7fVnd8gMb+PtuiDouPomzGE2fycjSIfO4B3REXcS6mWNHTzEN4X7ZLKQ=
+	t=1740991931; cv=none; b=Mco6X2Bvm7Ha6RhSjnKVHogw43j9k/xgqdmJrvqZ9+xLyUBUyDHadEx45UyMDJTFz0wotkCy4ajSUFqFbOTAsJNxVGSVK/+ICE2tf7uGX+L7NIaAZbdxdHoEjPZVZdd+2AO++A5nArSDCahGJfJUiGSpjQNoDgtlkbkx2wbDea0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740991906; c=relaxed/simple;
-	bh=K2F9EW+qiAEiFc0wnbOIq8DzI+iuGYeb0zxsjfA4rl0=;
+	s=arc-20240116; t=1740991931; c=relaxed/simple;
+	bh=ADaSFdz0OaQQDH4JkFJQ/We+kOUWVf10zyDiFzjjGag=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=SCU0l8f8VynTQYafzZxTJCZW7awDnwqZ0f+Ryjad9JGpyxAxp0PAcQJ1N7ve1SR5iEXAUO8HKZArIQl/MUv0C9K2vY8ettY+pEyqsUaGlHFRQmH+87loAhpey0V+UJdnDklz4JNKMyYjl3pjqlA0Xx1qE1Trn7lRyiFaEaEUALo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=QUoiugZ0; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=J3+44pHkDT8KJjdQrUFaMDNOJEei9bJT2xJSZVgmJoTfX5VD+9D0E2V3lAQ3G/fAHr5uUTH3uUgq3U0P5L6v7WdpDAH5bNB/F9UUG/6GEVHeATGQRXhhxZzzrmUd79FSWdHqB/FMA+2gnhNzynP6IOICCMdOiCB0Wh08NjUyIVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Ch0B7EVn; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QUoiugZ0"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ch0B7EVn"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1740991903;
+	s=mimecast20190719; t=1740991928;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=PqwL+v3kSKyO1WWdOm3Dn4wn0YpaEHuXEacsy1CmEn4=;
-	b=QUoiugZ0fGJhoerEjgAilebXVtRUAy2dvaXL7kZo462V08akpR54iOxPyrW3EUTHXqeOL4
-	luaBP/NwIDuMe94C/rjsC2+CbSChQo5bi2TPwGf/cd3YoMZUkZ61h5PSh/QDkDVsKL2y0z
-	smRKIFSX3035uXgxEM8u9yaK8Y0aXeI=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=AD0BhRUSKUKI9Ce/AzRts0lu/YIF74G3wU8/3/wY5qk=;
+	b=Ch0B7EVnNUwmpgbaRRTpYgublMZMDGr8ZDFmF1QKmSXDi9SIp9sUE1RjziV7tMJh5uYhen
+	ep43hwGpv3M6T3Yq3DWB8cF/s2ku7AK8BZDoYEyCdzbqOX94suLjAy4Ur8tGbipVzqudQG
+	GdZIgbpotgmsy0/Qjoyu0MhG6gPo88Q=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-606-yVkHXVMiPdK2EFj2os5cbQ-1; Mon, 03 Mar 2025 03:51:37 -0500
-X-MC-Unique: yVkHXVMiPdK2EFj2os5cbQ-1
-X-Mimecast-MFC-AGG-ID: yVkHXVMiPdK2EFj2os5cbQ_1740991896
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3910cd78330so163395f8f.1
-        for <sparclinux@vger.kernel.org>; Mon, 03 Mar 2025 00:51:37 -0800 (PST)
+ us-mta-37-50Yh5DugPmeWpu3MJ8ov_g-1; Mon, 03 Mar 2025 03:52:06 -0500
+X-MC-Unique: 50Yh5DugPmeWpu3MJ8ov_g-1
+X-Mimecast-MFC-AGG-ID: 50Yh5DugPmeWpu3MJ8ov_g_1740991926
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-390d73c20b6so2773558f8f.2
+        for <sparclinux@vger.kernel.org>; Mon, 03 Mar 2025 00:52:06 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740991896; x=1741596696;
+        d=1e100.net; s=20230601; t=1740991925; x=1741596725;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=PqwL+v3kSKyO1WWdOm3Dn4wn0YpaEHuXEacsy1CmEn4=;
-        b=N4pjl4EHYtGyzbCKRSTk1Q0cG6ClucZWvLkoH6liCkw0wjYWy7MbE22URjEOdM6ojU
-         FMMr/1OW/RTVqG6/IkMhxar1nH4lqJw7WqJ2nVImohwb+XxEJYIK/k36MOMunC8/rVcm
-         /t/oGyk3QPrsDs7e9kqOAH9t26ze+9UBEAdzkyCuCcsk9pz3BF0EXx45+UEKGD1qejKV
-         q1E+6SLfboxmMXjJwdSFxN3aNSS7Ry9fCdZR4kv03spJFBwWFIJG30VoTDqC43zzwW0g
-         1jZX5blzVb1NTHViSHjZWyDTU2XaQgdFAc7AFwjxQGv1KUVJpK2Bx2ZdczipTNFbrrl+
-         X9Kg==
-X-Forwarded-Encrypted: i=1; AJvYcCUyUDdtAxFaL9irp6vxj/X0Mwz0miilSrpQel5p69JWpAdCVP46k0Ezz0fs0FwtwDTBAGfjJsmAuKvO@vger.kernel.org
-X-Gm-Message-State: AOJu0YzOQRG8Aapslys+togEcesAu5zjG3KVMvnVvwzXD+uhPrxGkfUF
-	E0CbqxxuVqpVDF3hromzl250Ddd7cEeWtdxDo914uFMdiuCqNFTQDR//tg6pYwZBkYXL8p5auzz
-	Mv2h1vhlQ0m85lp7R1j+g/bVSroo7BoAWUPuXqf9cpBLsFKZfCSlv0ovpvm0=
-X-Gm-Gg: ASbGncsSsoW1jJVssZO/wBxun7KMlcy7NszPoOLnslDzi5LqSg/wWPx2dO8gqBXcq+h
-	IDUKt/lk+O9SYZXPyorhC4r3JiKLKrfIq2q8zOd2abIgqHbORvgikcPBCZPqH5FSh8Rw5buFGDb
-	uiM/chaw4W3PoC6jYRdfHZG8uxWquUcxo7A4mZ2NAiUl3k0VtQ5BqJDpozLG3l0m34f7/lGjUJb
-	Wplyq6zoRWV3i67n/QY0txCmWSqPobisId+4tqfuMzotKB2SUJe6yNi8r5tpa1XzEwiLvQCc2hT
-	tqXNWwJiV8YOLZwnUJL7fsXuEwnbHi8pNDrpOctgvOemvQ3x9/0qUsrs4ohsTK691AYT+UxPZ/2
-	4UwjhGArt76qHceGaeg+HTrWB0H3gQD/5w4uIC47AtIQ=
-X-Received: by 2002:a05:6000:1565:b0:391:9b2:f48d with SMTP id ffacd0b85a97d-39109b2f8ebmr2190201f8f.33.1740991896370;
-        Mon, 03 Mar 2025 00:51:36 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEiqrTykXg+NUm0kAtziKqLGECEKRMnAI63MS2I3V/WDMW5AEnsAxTN6b4wA0iNetJkZ/Gt5g==
-X-Received: by 2002:a05:6000:1565:b0:391:9b2:f48d with SMTP id ffacd0b85a97d-39109b2f8ebmr2190184f8f.33.1740991895948;
-        Mon, 03 Mar 2025 00:51:35 -0800 (PST)
+        bh=AD0BhRUSKUKI9Ce/AzRts0lu/YIF74G3wU8/3/wY5qk=;
+        b=r/chsqDP4MiU0lUBacBx22iPo0qAizmWHMvY1nYq4+bqfqobcuDk/+M4TtPNpOxAsL
+         aFg1oJ+9rc6UQ5oCax1gpktrMV7/03vPZ94cEPgSYPyzbBk283yXhW+mplAUq0akTZGe
+         NGdS7X0/mvsFOBZHNajkQ+G9armLm2QdEMYg5Q8zAy/+PaYQNyLlN+u7E/jeccdsS33+
+         ag8+UMH+2OZPg2rgDASCcCjXLO+Ri16TZMRrzjRdM3s/duvM+Bqauneawtlzd/xBukVC
+         gFmkbhM77BuY3MThCAHj7ezXi7nBuu8LYa3d/PCrSYNHi8PSJ+oDw4ozDvdCs8GragT6
+         P0IA==
+X-Forwarded-Encrypted: i=1; AJvYcCUGqCF6wQpD3xJ7vQyLUABFHIGxGeMYZEmnpbtm0nyLgYqPfRMqUV0jKOT8iSYNcgURCST+JimDlL5f@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxci8cgsTfbUvEPsQK0n9qwPfiSnOrw9RbveDshjVaeAZQhFFxA
+	ZCfnjCRuv5pUjEumqVg5MrKHaoiG4NNPZXtUgNjs95yij27VAv/zF1DaJfK9HvAAwJauF8XjVKm
+	Yy1FMkfJQgKkz3c7SSybqohPyPvGzd5d7J3M2RS5hovm+t2knEXdavaDaUwM=
+X-Gm-Gg: ASbGncsk7rcfesZCDnG/bHcbeFvfSGAQ18dXpg7Adz4+FHHc2QfaZG4rB0/SdyRni+3
+	oKmfeQIIOaAadj6P9U874JlExwq8pqyAkXePXAeoyeKZ9ThJ+fAnJ8y86+inasqShydXLpKCaUF
+	n86uIXn4BWXzx9+yHK+Ux0wRh4q8KY8+S//TXlfUUzbJjVeBgNAL5KWfoAN0/Sb935KRmaBro6F
+	SPjlTMxJqbORR4FkhFRQW2qJPtluONwMUMSQJ4i5hfepl5451H2cXAgj/d8E91T0qx+xUNHUpkI
+	2V+fDg2bQ2nBUKMpbsJVU+7Mn/sf0YVHMIZDj1ZUkgFxGUWLRmkh7NG2ERTjwQP6MLaGhgxVeyL
+	cQFeJkPsPcA8QUMAPx0bUBMDhr5czsP4yraeBnOWKb/M=
+X-Received: by 2002:a5d:6d89:0:b0:390:f88c:a689 with SMTP id ffacd0b85a97d-390f88cadabmr5755542f8f.47.1740991925673;
+        Mon, 03 Mar 2025 00:52:05 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IF3sqppN55tl5C45qFk6psMYLYRvi/O7tktf2gORA/1QEyfox9eLasRdl1uBOhQIOjNr4hTpA==
+X-Received: by 2002:a5d:6d89:0:b0:390:f88c:a689 with SMTP id ffacd0b85a97d-390f88cadabmr5755517f8f.47.1740991925267;
+        Mon, 03 Mar 2025 00:52:05 -0800 (PST)
 Received: from ?IPV6:2003:cb:c734:9600:af27:4326:a216:2bfb? (p200300cbc7349600af274326a2162bfb.dip0.t-ipconnect.de. [2003:cb:c734:9600:af27:4326:a216:2bfb])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-390e4844a22sm13875701f8f.74.2025.03.03.00.51.34
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-390e485e13fsm13623429f8f.100.2025.03.03.00.52.04
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Mar 2025 00:51:35 -0800 (PST)
-Message-ID: <4af46304-cf25-4c4a-8e4a-3a566193ca62@redhat.com>
-Date: Mon, 3 Mar 2025 09:51:34 +0100
+        Mon, 03 Mar 2025 00:52:04 -0800 (PST)
+Message-ID: <0db13472-d056-4e41-a42c-f4ca60483176@redhat.com>
+Date: Mon, 3 Mar 2025 09:52:03 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,7 +75,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 2/4] sparc/mm: Disable preemption in lazy mmu mode
+Subject: Re: [PATCH v1 3/4] sparc/mm: Avoid calling
+ arch_enter/leave_lazy_mmu() in set_ptes
 To: Ryan Roberts <ryan.roberts@arm.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  "David S. Miller" <davem@davemloft.net>,
@@ -89,7 +90,7 @@ To: Ryan Roberts <ryan.roberts@arm.com>,
 Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org
 References: <20250302145555.3236789-1-ryan.roberts@arm.com>
- <20250302145555.3236789-3-ryan.roberts@arm.com>
+ <20250302145555.3236789-4-ryan.roberts@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -137,57 +138,57 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20250302145555.3236789-3-ryan.roberts@arm.com>
+In-Reply-To: <20250302145555.3236789-4-ryan.roberts@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 02.03.25 15:55, Ryan Roberts wrote:
-> Since commit 38e0edb15bd0 ("mm/apply_to_range: call pte function with
-> lazy updates") it's been possible for arch_[enter|leave]_lazy_mmu_mode()
-> to be called without holding a page table lock (for the kernel mappings
-> case), and therefore it is possible that preemption may occur while in
-> the lazy mmu mode. The Sparc lazy mmu implementation is not robust to
-> preemption since it stores the lazy mode state in a per-cpu structure
-> and does not attempt to manage that state on task switch.
+> With commit 1a10a44dfc1d ("sparc64: implement the new page table range
+> API") set_ptes was added to the sparc architecture. The implementation
+> included calling arch_enter/leave_lazy_mmu() calls.
 > 
-> Powerpc had the same issue and fixed it by explicitly disabling
-> preemption in arch_enter_lazy_mmu_mode() and re-enabling in
-> arch_leave_lazy_mmu_mode(). See commit b9ef323ea168 ("powerpc/64s:
-> Disable preemption in hash lazy mmu mode").
+> The patch removes the usage of arch_enter/leave_lazy_mmu() since this
+> implies nesting of lazy mmu regions which is not supported. Without this
+> fix, lazy mmu mode is effectively disabled because we exit the mode
+> after the first set_ptes:
 > 
-> Given Sparc's lazy mmu mode is based on powerpc's, let's fix it in the
-> same way here.
+> remap_pte_range()
+>    -> arch_enter_lazy_mmu()
+>    -> set_ptes()
+>        -> arch_enter_lazy_mmu()
+>        -> arch_leave_lazy_mmu()
+>    -> arch_leave_lazy_mmu()
 > 
-> Fixes: 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy updates")
+> Powerpc suffered the same problem and fixed it in a corresponding way
+> with commit 47b8def9358c ("powerpc/mm: Avoid calling
+> arch_enter/leave_lazy_mmu() in set_ptes").
+> 
+> Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
 > Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 > ---
->   arch/sparc/mm/tlb.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
+>   arch/sparc/include/asm/pgtable_64.h | 2 --
+>   1 file changed, 2 deletions(-)
 > 
-> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-> index 8648a50afe88..a35ddcca5e76 100644
-> --- a/arch/sparc/mm/tlb.c
-> +++ b/arch/sparc/mm/tlb.c
-> @@ -52,8 +52,10 @@ void flush_tlb_pending(void)
->   
->   void arch_enter_lazy_mmu_mode(void)
+> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+> index 2b7f358762c1..dc28f2c4eee3 100644
+> --- a/arch/sparc/include/asm/pgtable_64.h
+> +++ b/arch/sparc/include/asm/pgtable_64.h
+> @@ -936,7 +936,6 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+>   static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
+>   		pte_t *ptep, pte_t pte, unsigned int nr)
 >   {
-> -	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
-> +	struct tlb_batch *tb;
->   
-> +	preempt_disable();
-> +	tb = this_cpu_ptr(&tlb_batch);
->   	tb->active = 1;
+> -	arch_enter_lazy_mmu_mode();
+>   	for (;;) {
+>   		__set_pte_at(mm, addr, ptep, pte, 0);
+>   		if (--nr == 0)
+> @@ -945,7 +944,6 @@ static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
+>   		pte_val(pte) += PAGE_SIZE;
+>   		addr += PAGE_SIZE;
+>   	}
+> -	arch_leave_lazy_mmu_mode();
 >   }
+>   #define set_ptes set_ptes
 >   
-> @@ -64,6 +66,7 @@ void arch_leave_lazy_mmu_mode(void)
->   	if (tb->tlb_nr)
->   		flush_tlb_pending();
->   	tb->active = 0;
-> +	preempt_enable();
->   }
->   
->   static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
 
 Acked-by: David Hildenbrand <david@redhat.com>
 
