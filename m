@@ -1,162 +1,198 @@
-Received: from mout.web.de (mout.web.de [212.227.17.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8225C2620EC;
-	Tue,  4 Mar 2025 19:50:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F08D924BBF4
+	for <sparclinux@vger.kernel.org>; Wed,  5 Mar 2025 13:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741117819; cv=none; b=L0HErzCwekEYxfB398xhV/iRZv8SsAfDwUdtliVFJN+42IX6f85hxqsOqLL/SAtfqlLxJL3li7X74PGmZvWjwI/setl1WETzj/+n34dQ/iFTWFPXaRhnAsIzluY9qs9GODUVif4BS9VlbHUnadkns8OqV5By2vFeZRoGxTZS//k=
+	t=1741180361; cv=none; b=db2zNvBArTjwGuJccx2Wc8sqTHR/VrIiXFg7hO977xNuN8DDPN/uM6dxZdD1Ssp9WrcFGhehhQUGjQLk10Ei8+T2rivB1qaBsQO95CmW16EAUvfTHiI2FHeAM6MeoFn+YtIxfcaiCyeZGacLG3sjAf/dWyMZiU2jEtwQO72VEec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741117819; c=relaxed/simple;
-	bh=TGI/H3hK5ajdkkVDdKQRezZi/m186Hn9w32Ho0mio2o=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=L5YkqjuYQ9UBaf6zelX6YmVrpHCrD2Vg4LD03Skq3gdeDd+l6k6Q4rERkqD6KUpOgU8MZm4kt4xtALUF5gr6EFtysxJAub8zNmGWpng2EXcjMhA8v5r8vFLKDX+tsHmYw914U8MikplJnE4I7SwOg3UFYgikSO7LzSjqHbNSoVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=IfLlcfo4; arc=none smtp.client-ip=212.227.17.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1741180361; c=relaxed/simple;
+	bh=niOkZ3yknjy6O15SgZEu1bTRkBCDN86QkzY45J5nUU4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LPY9N4XtNzh7UgsHN/NLgFG0EVRX8ZG6KaSUCdpkLLL8D/eiGUmvFm5gl6jUblTuEyxOxGqqPA+TgvyndugQRX9e6/PV1FboC4O8gBYeoAwwizyZ4Tw+6+xzC5WHwXeu6Rm9p3tLmUXnTyaQDNi+aXO8XhPdLDCGgAj80nfXrvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bQnGzWp1; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="IfLlcfo4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
-	s=s29768273; t=1741117809; x=1741722609; i=markus.elfring@web.de;
-	bh=NAqioDBnaCR/fX3O979gDdxkodeOLW6s/eR0SCVTizo=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
-	 Cc:References:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 cc:content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=IfLlcfo42J6gUsPkkOw3qJ+P+aVUjMY8LFIo+hLRmyVLiYH7E3HdddzmsNr7rVFT
-	 6FhfK3ifb+4POy3hwuBOohSZb/+e5oMcg4ySc6XCKVMgKvCkWZRMGhxu5jS5Zm1wl
-	 fUizJdnxNoUXnaZNko6/mtILCHpgb5CYTphcYFvTgMHDA6Hz3sstnp4UZ9LvyiWgC
-	 AnKNcWTRyvCxZaCrKZW86ivZZnEFrR8I+GuvZLC0TPTkrjR+btE2lsnZ2yEyzyhRA
-	 QHD/AsCw0gpaqOu1YxiwWsK19XjYblydIMUjrU2tbVUTn7nlVbCPjteJ/aEUe0+r6
-	 qpb4yqUXxsELWdNq4g==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.29] ([94.31.70.64]) by smtp.web.de (mrweb105
- [213.165.67.124]) with ESMTPSA (Nemesis) id 1M9qhD-1tsYwn4A0D-004pJK; Tue, 04
- Mar 2025 20:50:09 +0100
-Message-ID: <f7d11fd7-6b41-4dbd-b7dc-518fe6e6426f@web.de>
-Date: Tue, 4 Mar 2025 20:50:06 +0100
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bQnGzWp1"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-4750a85a0ddso210821cf.1
+        for <sparclinux@vger.kernel.org>; Wed, 05 Mar 2025 05:12:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1741180358; x=1741785158; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=iOdrgfnKDo0adnIeWCzGbGdt+czcdG3OGWY151PLQj4=;
+        b=bQnGzWp1S5Lnz9b7S+X9iWyT1enphmYxyeyJwj5VVMYJnObuLGzhvMkG9uBL3XQ78b
+         Zo3JrmBI4ko2x+OO+iOQpQBqfBgjcS472wlJfVY900sBa3almRwnfbIdcWBcdXKwsieo
+         7k0oWhWF732whbIyH4GNsIMNo9o7b80aqltg+jU0O65LkiOSm3+oSVpH3YoRptaQnRij
+         NWBaZfEqos2npnT6v52bnbTpKCy19r6KPYKzleLdok7ZrEkR9SnnqDT5T6ABVfKQ+2Iz
+         NKN7Fajx9PPEYnKJdu5XQV9dDUNkJGUpIwD5ACAowRHjrTqUH64V59DpzL+Y1S7JzlY8
+         4rYw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741180358; x=1741785158;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=iOdrgfnKDo0adnIeWCzGbGdt+czcdG3OGWY151PLQj4=;
+        b=CztNN0A+DTIgdus8BioXCIiFjAsfzLUHBKRB+MaQ3GD705IWQ3By66Bat4GzhQ5I+Y
+         P9U4v4qJSbvRdpXAt2Ed3Cua7xpbrgO1QIGpXIbo0qRzUrW4pvAJTrN2Mxxi2Vd6iIU9
+         nKnoxfKtMkhL+08TsJzdpURSiIvcoKDgHKuRekOKEUCiorqCgHw/b0ZEV1xQYB9E68BQ
+         JOzPlywNMvyqPgU3nGCAJco7/ySL9kzdNGbiby+rySAC54QOXqcqaDEQp6k+XjnspGkI
+         nDiuSAhqE5t7ujPeYU//aR+hf9iJ0ftElMndtBoGHPAtBY64bKvPPxnaq/c6FBW+FNmZ
+         bA/Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUhTEcA71aAlG6wl9kvgb+ZsDKUH8HSJSu+9COKeCCWZnXKf15KnQXVWJqV0tQIMivxrGmrdOvkM8jL@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzdf77LXPLN1cD6nSVUM+JpWX1pVakmdymdWQbWApRhTlVwNuc8
+	wKGKStvqYy3tuy/T4SqF/xCgMHGG4bhxAD3nETwWt2BFt0fzvB+edqzqAi0nHF/oVcXElbaRbcM
+	B+VYfyVlORCLJzGyg/UBR8mS5Ddv+LvTkItcQ
+X-Gm-Gg: ASbGncvs3RlvRnsuZYgUWgndl0hVsXaCysRvnlNphSbHPMf0yoECX9Kp2m1HsXzwiEw
+	pS7C0H/RRlQbEcFSqqmRu0rMfkv5wc288AK18AiDmu1gZxTANvAlafF/pRNwjEEcCHrKjMHxP1z
+	XWKxmgEFiOyVFxjs8KgR/1tdxmZEa4mkaUktcbFFzEa7lFmA2arEZqwtRU
+X-Google-Smtp-Source: AGHT+IFIn6b7M1PNu9NZZ9KBzOuRO4deZPOixhL9M73rMvQkDHUtfUtYPha+8DdwHlmaLHcT+urAybKKpNAnQK1YFdU=
+X-Received: by 2002:a05:622a:110b:b0:471:f560:27dc with SMTP id
+ d75a77b69052e-4750cae2127mr2406081cf.27.1741180357471; Wed, 05 Mar 2025
+ 05:12:37 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: [PATCH RESEND] bbc_i2c: Fix exception handling in attach_one_i2c()
-From: Markus Elfring <Markus.Elfring@web.de>
-To: kernel-janitors@vger.kernel.org, sparclinux@vger.kernel.org,
- Andreas Larsson <andreas@gaisler.com>,
- Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>,
- "David S. Miller" <davem@davemloft.net>
-Cc: cocci@inria.fr, LKML <linux-kernel@vger.kernel.org>,
- Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
- =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
-References: <f9303bdc-b1a7-be5e-56c6-dfa8232b8b55@web.de>
- <21e58abb-f215-b9b7-ffe8-236dd40c6bd2@web.de>
-Content-Language: en-GB
-In-Reply-To: <21e58abb-f215-b9b7-ffe8-236dd40c6bd2@web.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:WpWmttFFn8Qub64QBVtRj6aRk7IDFd3+w6lJR6TrfK8BSH156Ot
- hu6UopotRXDpps5+KITM05hQRO91neMEUKBl4E/Pw6c6uVCiQ284/JDE3tl1f+wn3w6lmEe
- d3QuaT3UgtFYU3zm9I+FuqJLOxJY2XWMQ5sHa/OHspiTepFl0WmgNdmPd13G5yEd2wu1kJP
- hGq6cT++PrBjIxK4z51fA==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:yKktvz9VDmM=;6q/3gbhSNL/sHrPhjt7U2GB+w7U
- vSfEZeDYNAzI8t/grqY9Q3Ww8qIwQBLwtwOuN7hKhmoEJyNI3eqXvMrhlW6Neiq5pcfL0irOe
- zBqEe2HkcqbQ6dt7s8iTxt6tup12+QeN8PoOdvZBIzfxsmPb6F40AOiwe8WBWe+IY/jp4nk30
- Z8RTadRfn6MuP3i1g9DHm5pMpwdAeEScZuIFFvS2MGBdwtKroUUH3PrJpcpc3gElkBFeEXmCf
- F3eSOGTIteRBfTYeO1I4QcCl8HSxLpmsTqzOgUuj8MBVL/qiFL47Lk9y3jF7N1yLMVQasQUaJ
- z0DP7w/Pi77yCZaXf1DsEADgeRjgoGausGvzwrtTE66o8SHwEJ2q9IRjxxF9tuVQJjuBGJSUj
- X4PnTOJ7oK4yrU0JuPmoNZq6PQ3NZeCuhyi8Kuk9GdZk142+2aVpf5821PrfKm+um6yWr3RvF
- +MXFdtN53AEMuHbZD+JPROskKiDQHADgvjTdwV+MIzNUbP0AZvVu6uX8EAZwRVDjnord6cUnp
- NAmFxnwvpXwk6Gmz2d7X5R0KWOhLkYlny1vjVlwq8Hb/NV7AZqjscqf5pnBIAzPfjOioHKVec
- qFAMNKCOSlqgVbBZ+4Qxhbk4jkfGe6ifMDScFxMmo0tCV0WKIasYpPOGeuZ+JsrFvIcCOFzZE
- 0FbdCG3DkMzMaOP79kJUrLG7qs4bepuXUURm1oOIeBy9M1CVJb9cT3Vs6akKKpO2oEm2x2E24
- MJJDNGpRWuVXXm8jWRlNEP+utm15nN1j3frwEKvISCfGyxXrmKix2UULVhHU6siPNXsQaSI9H
- VD/u/Z4WThkuTMvD5NjcqexBdHoohH292FJL4rFO2wNH8BOayV2tPLuUKiJ2uqhlVV3Ir3DJv
- d+R9xigG1mM0SaVBVRcSoqNYnFpi45uAVQeQLjKCwlEIn7RWOLNeDMTCWcOMd398u51QCgyyU
- YttK1vWd/boZVkEUe5+3NZSk/d0GQl5rAw9U4E5Q73hhKsiuvGX03nX8+oI/He0hST+65CEtA
- 5iaXQhmH44nmqLdUH9RPeWdSXu/pHe1g4TXOJu6HbuSZGel9yhIfaPk0AkqcwM4bwgb85IwEC
- 2AdDPkLdixNKpgJS4Q7iYNwErjqjbsv2ep+w/jmTwXffxX3rAzeTca8BEoZWd91ipdDME+9nC
- xWecGi4mXqzfDW8p98GS/Lzml+RcABxEF/ZIIdhKJWrdRFXWnXIhcgDLQIIAeYx1mCsNo/Ddd
- tNDtrvjHQanztPSDcQS1RzBkALmMp/dEZmZFfmkduuE45f4vany5Efx9jKnNC5diFmd/zIYql
- T2mfgaQoo86yPWyO+WmUy06/0Bq/f9tiscQdpnKRgakcDKmq5crk4Q5+70G7QLU11E/QpJx6M
- qQ1pRcB9m/j2+ICHeExgEUmN8wwvjIZOkCWQzYwsnrrZItL0VSB9f2sO1mxMugWhDqZNV+j/v
- t3nSEg19mZvhlcpKG9vmlkol28fM=
+References: <20250110-asi-rfc-v2-v2-0-8419288bc805@google.com>
+ <20250110-asi-rfc-v2-v2-2-8419288bc805@google.com> <Z8K2B3WJoICVbDj3@kernel.org>
+In-Reply-To: <Z8K2B3WJoICVbDj3@kernel.org>
+From: Brendan Jackman <jackmanb@google.com>
+Date: Wed, 5 Mar 2025 14:12:25 +0100
+X-Gm-Features: AQ5f1JrEWoe__i5J-gwzMxiuWZ9pJYk4XLPMWAQuPYUSu5vOhjZQNejm22RSyYE
+Message-ID: <CA+i-1C06Sunj0BmFON=MbWBK6ZDt_=K4P3BHChRBYyxXqEkQ2g@mail.gmail.com>
+Subject: Re: [PATCH RFC v2 02/29] x86: Create CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
+	Vineet Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>, 
+	Brian Cain <bcain@quicinc.com>, Huacai Chen <chenhuacai@kernel.org>, 
+	WANG Xuerui <kernel@xen0n.name>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Jonas Bonn <jonas@southpole.se>, 
+	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Chris Zankel <chris@zankel.net>, 
+	Max Filippov <jcmvbkbc@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Andrew Morton <akpm@linux-foundation.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, 
+	Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, 
+	Valentin Schneider <vschneid@redhat.com>, Uladzislau Rezki <urezki@gmail.com>, 
+	Christoph Hellwig <hch@infradead.org>, Masami Hiramatsu <mhiramat@kernel.org>, 
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
+	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
+	Dennis Zhou <dennis@kernel.org>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux.com>, 
+	Sean Christopherson <seanjc@google.com>, Paolo Bonzini <pbonzini@redhat.com>, 
+	Ard Biesheuvel <ardb@kernel.org>, Josh Poimboeuf <jpoimboe@kernel.org>, 
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, x86@kernel.org, 
+	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
+	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
+	kvm@vger.kernel.org, linux-efi@vger.kernel.org, 
+	Junaid Shahid <junaids@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 21 Mar 2023 21:12:29 +0100
+On Sat, Mar 01, 2025 at 09:23:51AM +0200, Mike Rapoport wrote:
+> Hi Brendan,
+>
+> On Fri, Jan 10, 2025 at 06:40:28PM +0000, Brendan Jackman wrote:
+> > Currently a nop config. Keeping as a separate commit for easy review of
+> > the boring bits. Later commits will use and enable this new config.
+> >
+> > This config is only added for non-UML x86_64 as other architectures do
+> > not yet have pending implementations. It also has somewhat artificial
+> > dependencies on !PARAVIRT and !KASAN which are explained in the Kconfig
+> > file.
+> >
+> > Co-developed-by: Junaid Shahid <junaids@google.com>
+> > Signed-off-by: Junaid Shahid <junaids@google.com>
+> > Signed-off-by: Brendan Jackman <jackmanb@google.com>
+> > ---
+> >  arch/alpha/include/asm/Kbuild      |  1 +
+> >  arch/arc/include/asm/Kbuild        |  1 +
+> >  arch/arm/include/asm/Kbuild        |  1 +
+> >  arch/arm64/include/asm/Kbuild      |  1 +
+> >  arch/csky/include/asm/Kbuild       |  1 +
+> >  arch/hexagon/include/asm/Kbuild    |  1 +
+> >  arch/loongarch/include/asm/Kbuild  |  3 +++
+> >  arch/m68k/include/asm/Kbuild       |  1 +
+> >  arch/microblaze/include/asm/Kbuild |  1 +
+> >  arch/mips/include/asm/Kbuild       |  1 +
+> >  arch/nios2/include/asm/Kbuild      |  1 +
+> >  arch/openrisc/include/asm/Kbuild   |  1 +
+> >  arch/parisc/include/asm/Kbuild     |  1 +
+> >  arch/powerpc/include/asm/Kbuild    |  1 +
+> >  arch/riscv/include/asm/Kbuild      |  1 +
+> >  arch/s390/include/asm/Kbuild       |  1 +
+> >  arch/sh/include/asm/Kbuild         |  1 +
+> >  arch/sparc/include/asm/Kbuild      |  1 +
+> >  arch/um/include/asm/Kbuild         |  2 +-
+> >  arch/x86/Kconfig                   | 14 ++++++++++++++
+> >  arch/xtensa/include/asm/Kbuild     |  1 +
+> >  include/asm-generic/asi.h          |  5 +++++
+> >  22 files changed, 41 insertions(+), 1 deletion(-)
+>
+> I don't think this all is needed. You can put asi.h with stubs used outside
+> of arch/x86 in include/linux and save you the hassle of updating every
+> architecture.
 
-The label =E2=80=9Cfail=E2=80=9D was used to jump to another pointer check=
- despite of
-the detail in the implementation of the function =E2=80=9Cattach_one_i2c=
-=E2=80=9D
-that it was determined already that a corresponding variable contained
-a null pointer because of a failed call of the function =E2=80=9Cof_iorema=
-p=E2=80=9D.
+...
 
-* Thus use more appropriate labels instead.
+> If you expect other architectures might implement ASI the config would better
+> fit into init/Kconfig or mm/Kconfig and in arch/x86/Kconfig will define
+> ARCH_HAS_MITIGATION_ADDRESS_SPACE_ISOLATION.
 
-* Delete a redundant check.
+...
 
+> > +++ b/include/asm-generic/asi.h
+> > @@ -0,0 +1,5 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 */
+> > +#ifndef __ASM_GENERIC_ASI_H
+> > +#define __ASM_GENERIC_ASI_H
+> > +
+> > +#endif
+>
+> IMHO it should be include/linux/asi.h, with something like
+>
+> #infdef __LINUX_ASI_H
+> #define __LINUX_ASI_H
+>
+> #ifdef CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION
+>
+> #include <asm/asi.h>
+>
+> #else /* CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION */
+>
+> /* stubs for functions used outside arch/ */
+>
+> #endif /* CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION */
+>
+> #endif /* __LINUX_ASI_H */
 
-This issue was detected by using the Coccinelle software.
-
-Fixes: 5cdceab3d5e0 ("bbc-i2c: Fix BBC I2C envctrl on SunBlade 2000")
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-=2D--
- drivers/sbus/char/bbc_i2c.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
-index 537e55cd038d..03e29f2760b2 100644
-=2D-- a/drivers/sbus/char/bbc_i2c.c
-+++ b/drivers/sbus/char/bbc_i2c.c
-@@ -306,19 +306,19 @@ static struct bbc_i2c_bus * attach_one_i2c(struct pl=
-atform_device *op, int index
-
- 	bp->i2c_control_regs =3D of_ioremap(&op->resource[0], 0, 0x2, "bbc_i2c_r=
-egs");
- 	if (!bp->i2c_control_regs)
--		goto fail;
-+		goto free_bus;
-
- 	if (op->num_resources =3D=3D 2) {
- 		bp->i2c_bussel_reg =3D of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2c_bu=
-ssel");
- 		if (!bp->i2c_bussel_reg)
--			goto fail;
-+			goto unmap_io_control_regs;
- 	}
-
- 	bp->waiting =3D 0;
- 	init_waitqueue_head(&bp->wq);
- 	if (request_irq(op->archdata.irqs[0], bbc_i2c_interrupt,
- 			IRQF_SHARED, "bbc_i2c", bp))
--		goto fail;
-+		goto recheck_bussel_reg;
-
- 	bp->index =3D index;
- 	bp->op =3D op;
-@@ -348,11 +348,12 @@ static struct bbc_i2c_bus * attach_one_i2c(struct pl=
-atform_device *op, int index
-
- 	return bp;
-
--fail:
-+recheck_bussel_reg:
- 	if (bp->i2c_bussel_reg)
- 		of_iounmap(&op->resource[1], bp->i2c_bussel_reg, 1);
--	if (bp->i2c_control_regs)
--		of_iounmap(&op->resource[0], bp->i2c_control_regs, 2);
-+unmap_io_control_regs:
-+	of_iounmap(&op->resource[0], bp->i2c_control_regs, 2);
-+free_bus:
- 	kfree(bp);
- 	return NULL;
- }
-=2D-
-2.40.0
-
+Thanks Mike! That does indeed look way tidier. I'll try to adopt it.
