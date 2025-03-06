@@ -1,121 +1,187 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAB720E71F;
-	Thu,  6 Mar 2025 15:31:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4EE3B667;
+	Thu,  6 Mar 2025 18:51:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741275100; cv=none; b=IbFj/h3e+h0Wi0L1yxqLCdloQy7xPfg0zR20Xc5iE4WLsIXDkV0xFiKauVjt3y2psHtP9SZh4gt2exvBpxq73PWFvyN1zi65ItZEP/rnI2RHqIUk8RljB1IbW/Z9kd9Isen7XFYd1I3ZQsUk9aerw0mfvQvr5tOZlZA/uFSd4rg=
+	t=1741287106; cv=none; b=dftyZyyPMzxbw5dldh0XC5tWRPkNPmM+4Vvy78h91J/BzfdcOo2BJHLinsAsooANfU2p2t1jJMfcDRrCin/QRNEtch/xSR5eh6HRKSC2L/Ec3rKuSZsnD8Ojnddm1hTl/a0S0EbVelBNLsFPYY7oB0zF4KMEhdU/nZU7TXLvic8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741275100; c=relaxed/simple;
-	bh=SQ4miVnhmPAoOA/6WTcJSGaPc/CNU83guyGxo0OGbvY=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UwuhCBDV47wPMx4E5OlxGd9tBSzWPoNQ+wN4SCzkkdF/Z+cSNkQgOy33popx0pJmciuFW6yR9x/V45aMGDET1gESRnCixJhnFo6/7rfUBnxZd1OfcEwRH4KSBOiOVanAqw/uggeteDuD26h+6AOln3nPaJYR0CjVVEyQ7oKRb6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A15C4CEE4;
-	Thu,  6 Mar 2025 15:31:38 +0000 (UTC)
-Date: Thu, 6 Mar 2025 10:31:38 -0500
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Joel Granados <joel.granados@kernel.org>
-Cc: Kees Cook <kees@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>, Mathieu Desnoyers
- <mathieu.desnoyers@efficios.com>, "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Heiko Carstens <hca@linux.ibm.com>,
- Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
- <agordeev@linux.ibm.com>, Christian Borntraeger
- <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Gerald
- Schaefer <gerald.schaefer@linux.ibm.com>, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-s390@vger.kernel.org
-Subject: Re: [PATCH v2 4/6] stack_tracer: move sysctl registration to
- kernel/trace/trace_stack.c
-Message-ID: <20250306103138.3cfc2955@gandalf.local.home>
-In-Reply-To: <20250306-jag-mv_ctltables-v2-4-71b243c8d3f8@kernel.org>
-References: <20250306-jag-mv_ctltables-v2-0-71b243c8d3f8@kernel.org>
-	<20250306-jag-mv_ctltables-v2-4-71b243c8d3f8@kernel.org>
-X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	s=arc-20240116; t=1741287106; c=relaxed/simple;
+	bh=/wpX+rodiPgNkc2E/+2EOJ8vtAUtpxXz9ICTWI7pMKs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KJUglPnL5NkRRBWfkmpaH7UW4q7JK9fkTbPPDCpQNDM0QYAGmluz7hRAKOUGJ4iBh/goODIK68Ifv3XGaRMZ25RJBpUEUvTS1dsXc4/02PwCftSPK7Jltxnx5AOMVsBTQBBLwknT90TPQpuD8j7IkOkFUKKrdpCiBDu03buNORo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P80r7Rsa; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P80r7Rsa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73E1BC4CEE0;
+	Thu,  6 Mar 2025 18:51:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741287105;
+	bh=/wpX+rodiPgNkc2E/+2EOJ8vtAUtpxXz9ICTWI7pMKs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=P80r7Rsa2pkCu11363Fa/SyYTsTL5K11aoIfGVkUhXZXMZF9ghtejyVAEAn/9gYin
+	 1wjIQSDGLefP2aOn0lF4nfOFQWYeL481ld2xteJKdOm4N0DyD3FCaFsp8v0/3LF+Zj
+	 A1q//tTu1zIkAikd8Mvn+6NSXoOT1YkxG40QhglljaBoNvOzWHiF8i1U7IHFop/QuY
+	 5qG0votPJ3w9ptEMTqOjG9ejudqVaGGqjAr6pLD9gnSTU97J4z2wTm+bpnENlPeeCa
+	 JlGFrkz4pFB5qBl+yf6kzfEB+qI0NhdVqEy7aOxbZiiRw30qg1qYZpVJ1ch4THxRCE
+	 TD35zfcbQZ4wA==
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Borislav Petkov <bp@alien8.de>,
+	Brian Cain <bcain@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Guo Ren <guoren@kernel.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Matt Turner <mattst88@gmail.com>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Simek <monstr@monstr.eu>,
+	Mike Rapoport <rppt@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Richard Weinberger <richard@nod.at>,
+	Russell King <linux@armlinux.org.uk>,
+	Stafford Horne <shorne@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Vineet Gupta <vgupta@kernel.org>,
+	Will Deacon <will@kernel.org>,
+	linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-arch@vger.kernel.org,
+	linux-mm@kvack.org,
+	x86@kernel.org
+Subject: [PATCH 00/13] arch, mm: reduce code duplication in mem_init()
+Date: Thu,  6 Mar 2025 20:51:10 +0200
+Message-ID: <20250306185124.3147510-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, 06 Mar 2025 12:29:44 +0100
-Joel Granados <joel.granados@kernel.org> wrote:
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 
-> Move stack_tracer_enabled into trace_stack_sysctl_table. This is part of
-> a greater effort to move ctl tables into their respective subsystems
-> which will reduce the merge conflicts in kerenel/sysctl.c.
-> 
-> Signed-off-by: Joel Granados <joel.granados@kernel.org>
-> ---
->  kernel/sysctl.c            | 10 ----------
->  kernel/trace/trace_stack.c | 20 ++++++++++++++++++++
->  2 files changed, 20 insertions(+), 10 deletions(-)
-> 
-> diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-> index baa250e223a26bafc39cb7a7d7635b4f7f5dcf56..dc3747cc72d470662879e4f2b7f2651505b7ca90 100644
-> --- a/kernel/sysctl.c
-> +++ b/kernel/sysctl.c
-> @@ -68,7 +68,6 @@
->  
->  #ifdef CONFIG_X86
->  #include <asm/nmi.h>
-> -#include <asm/stacktrace.h>
->  #include <asm/io.h>
->  #endif
->  #ifdef CONFIG_SPARC
-> @@ -1674,15 +1673,6 @@ static const struct ctl_table kern_table[] = {
->  		.proc_handler	= proc_dointvec,
->  	},
->  #endif
-> -#ifdef CONFIG_STACK_TRACER
-> -	{
-> -		.procname	= "stack_tracer_enabled",
-> -		.data		= &stack_tracer_enabled,
-> -		.maxlen		= sizeof(int),
-> -		.mode		= 0644,
-> -		.proc_handler	= stack_trace_sysctl,
-> -	},
-> -#endif
->  #ifdef CONFIG_MODULES
->  	{
->  		.procname	= "modprobe",
-> diff --git a/kernel/trace/trace_stack.c b/kernel/trace/trace_stack.c
-> index 14c6f272c4d8a382070d45e1cf0ee97db38831c9..b7ffbc1da8357f9c252cb8936c8f789daa97eb9a 100644
-> --- a/kernel/trace/trace_stack.c
-> +++ b/kernel/trace/trace_stack.c
-> @@ -578,3 +578,23 @@ static __init int stack_trace_init(void)
->  }
->  
->  device_initcall(stack_trace_init);
-> +
-> +
-> +static const struct ctl_table trace_stack_sysctl_table[] = {
-> +	{
-> +		.procname	= "stack_tracer_enabled",
-> +		.data		= &stack_tracer_enabled,
-> +		.maxlen		= sizeof(int),
-> +		.mode		= 0644,
-> +		.proc_handler	= stack_trace_sysctl,
-> +	},
-> +};
-> +
-> +static int __init init_trace_stack_sysctls(void)
-> +{
-> +	register_sysctl_init("kernel", trace_stack_sysctl_table);
-> +	return 0;
-> +}
-> +subsys_initcall(init_trace_stack_sysctls);
-> +
-> +
-> 
+Hi,
 
-This should also make the variable "stack_tracer_enabled" static and
-removed from the ftrace.h header.
+Every architecture has implementation of mem_init() function and some
+even more than one. All these release free memory to the buddy
+allocator, most of them set high_memory to the end of directly
+addressable memory and many of them set max_mapnr for FLATMEM case.
 
--- Steve
+These patches pull the commonalities into the generic code and refactor
+some of the mem_init() implementations so that many of them can be just
+dropped.
+
+Mike Rapoport (Microsoft) (13):
+  arm: mem_init: use memblock_phys_free() to free DMA memory on SA1111
+  csky: move setup_initrd() to setup.c
+  hexagon: move initialization of init_mm.context init to paging_init()
+  MIPS: consolidate mem_init() for NUMA machines
+  MIPS: make setup_zero_pages() use memblock
+  nios2: move pr_debug() about memory start and end to setup_arch()
+  s390: make setup_zero_pages() use memblock
+  xtensa: split out printing of virtual memory layout to a function
+  arch, mm: set max_mapnr when allocating memory map for FLATMEM
+  arch, mm: set high_memory in free_area_init()
+  arch, mm: streamline HIGHMEM freeing
+  arch, mm: introduce arch_mm_preinit
+  arch, mm: make releasing of memory to page allocator more explicit
+
+ arch/alpha/mm/init.c               |  8 ----
+ arch/arc/mm/init.c                 | 25 +----------
+ arch/arm/mm/init.c                 | 43 +------------------
+ arch/arm/mm/mmu.c                  |  2 -
+ arch/arm/mm/nommu.c                |  1 -
+ arch/arm64/mm/init.c               | 12 +-----
+ arch/csky/kernel/setup.c           | 43 +++++++++++++++++++
+ arch/csky/mm/init.c                | 67 ------------------------------
+ arch/hexagon/mm/init.c             | 32 ++------------
+ arch/loongarch/kernel/numa.c       |  6 ---
+ arch/loongarch/mm/init.c           |  8 ----
+ arch/m68k/mm/init.c                |  4 --
+ arch/m68k/mm/mcfmmu.c              |  1 -
+ arch/m68k/mm/motorola.c            |  2 -
+ arch/m68k/sun3/config.c            |  1 -
+ arch/microblaze/mm/init.c          | 25 -----------
+ arch/mips/include/asm/mmzone.h     |  2 -
+ arch/mips/loongson64/numa.c        |  7 ----
+ arch/mips/mm/init.c                | 49 ++++------------------
+ arch/mips/sgi-ip27/ip27-memory.c   |  9 ----
+ arch/nios2/kernel/setup.c          |  3 +-
+ arch/nios2/mm/init.c               | 16 +------
+ arch/openrisc/mm/init.c            |  6 ---
+ arch/parisc/mm/init.c              |  4 --
+ arch/powerpc/kernel/setup-common.c |  3 --
+ arch/powerpc/mm/mem.c              | 18 +-------
+ arch/riscv/mm/init.c               |  5 +--
+ arch/s390/mm/init.c                | 18 +-------
+ arch/sh/mm/init.c                  | 10 -----
+ arch/sparc/mm/init_32.c            | 31 +-------------
+ arch/sparc/mm/init_64.c            |  4 --
+ arch/um/include/shared/mem_user.h  |  1 -
+ arch/um/kernel/mem.c               |  9 ++--
+ arch/um/kernel/physmem.c           | 12 ------
+ arch/um/kernel/um_arch.c           |  2 -
+ arch/x86/include/asm/highmem.h     |  3 --
+ arch/x86/include/asm/numa.h        |  4 --
+ arch/x86/include/asm/numa_32.h     | 13 ------
+ arch/x86/kernel/setup.c            |  2 -
+ arch/x86/mm/Makefile               |  2 -
+ arch/x86/mm/highmem_32.c           | 34 ---------------
+ arch/x86/mm/init_32.c              | 41 ++----------------
+ arch/x86/mm/init_64.c              |  7 ++--
+ arch/x86/mm/numa_32.c              |  3 --
+ arch/xtensa/mm/init.c              | 66 +++++++----------------------
+ include/asm-generic/memory_model.h |  5 ++-
+ include/linux/memblock.h           |  1 -
+ include/linux/mm.h                 | 13 +-----
+ mm/internal.h                      |  3 +-
+ mm/memblock.c                      |  3 +-
+ mm/memory.c                        | 16 -------
+ mm/mm_init.c                       | 58 ++++++++++++++++++++++----
+ mm/nommu.c                         |  6 ---
+ 53 files changed, 151 insertions(+), 618 deletions(-)
+ delete mode 100644 arch/x86/include/asm/numa_32.h
+ delete mode 100644 arch/x86/mm/highmem_32.c
+
+
+base-commit: d082ecbc71e9e0bf49883ee4afd435a77a5101b6
+-- 
+2.47.2
 
