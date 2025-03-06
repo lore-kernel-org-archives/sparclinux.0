@@ -1,124 +1,121 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC0C0823DE;
-	Thu,  6 Mar 2025 14:07:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAB720E71F;
+	Thu,  6 Mar 2025 15:31:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741270057; cv=none; b=WO58b6efvy5R+9Ks4dqPrUzhXY09kPrsWhIgTNzoOthx4ef239AOmyQFSd0oBpv9VBzkvcxdATy3GWw6bZtiZ9Fn0qehpO2KouA8gToCAwwtkJHHABURJHLcH+QGxYGd40YXf0VTdQ4GD6lWwAEXjNbfMcqM2wk2WfBUe2CI3jM=
+	t=1741275100; cv=none; b=IbFj/h3e+h0Wi0L1yxqLCdloQy7xPfg0zR20Xc5iE4WLsIXDkV0xFiKauVjt3y2psHtP9SZh4gt2exvBpxq73PWFvyN1zi65ItZEP/rnI2RHqIUk8RljB1IbW/Z9kd9Isen7XFYd1I3ZQsUk9aerw0mfvQvr5tOZlZA/uFSd4rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741270057; c=relaxed/simple;
-	bh=ACBl2Fq/Y+AeDxVyAuPw9jDrfJIgt71CLxWbfrKoGm4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=P2+xLJZQ34quS5vYT3eZeOFGxL+XKVULM071x5zdiB1YgVE3ejhmIIe0i/lty75SsKI3b9sncV9Z+nXEJ3NJQj0yt1Tb1S49qh7/JuxhPLKGMbbtC7QNgL4OXkZxl6MHxtfhCSWh8jM7JHDs1caQqo5K06pfHWgNWLGaAJa1lSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Quig70Xo; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=e3b4mAdk; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Quig70Xo";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="e3b4mAdk"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1741270053;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2crXcGvedM/l/P9SdD7SNW7ifDpTDKg+mtvUD2PYjsM=;
-	b=Quig70XohAnNH332230EP8SIZNq+5lokc88kZRdKaR74Iq7Jb5Av6vEtdEXjslyBtDrRke
-	gV55lCqAOOdIePJAALaLSiokDiCpVb4CTe+NFfSKrgqc0mSi4bhWOcPjHULDC+rS6BRAPF
-	TqkaxxL7btm+O/qhJgi3KjGUe6zBG+nJKughRzoTSeIPjJm4JnuJ7c3SwobhAUi/43mXin
-	ZtcN+PddciItSACrjL3yk2X+8BpixdXWzUbHtc126iLkrDXICcsGANmpEOvf2rdZbEHlf+
-	ZNYIYd4Xi/nGVvP4Hz1ig8xueWbZAKiFmZx2BwpDGbONqZDQYgnSxJ0sAnvnOA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1741270053;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2crXcGvedM/l/P9SdD7SNW7ifDpTDKg+mtvUD2PYjsM=;
-	b=e3b4mAdkyWPAKE5CDWiWdjOx0TIl9bm+abod421qjbK1Us+ybqyoIFW8CBJUoJqEFmH9ud
-	yne7yCCthEdsxkBA==
-Date: Thu, 06 Mar 2025 15:07:21 +0100
-Subject: [PATCH v2 2/2] sparc: vdso: Always reject undefined references
- during linking
+	s=arc-20240116; t=1741275100; c=relaxed/simple;
+	bh=SQ4miVnhmPAoOA/6WTcJSGaPc/CNU83guyGxo0OGbvY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=UwuhCBDV47wPMx4E5OlxGd9tBSzWPoNQ+wN4SCzkkdF/Z+cSNkQgOy33popx0pJmciuFW6yR9x/V45aMGDET1gESRnCixJhnFo6/7rfUBnxZd1OfcEwRH4KSBOiOVanAqw/uggeteDuD26h+6AOln3nPaJYR0CjVVEyQ7oKRb6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A15C4CEE4;
+	Thu,  6 Mar 2025 15:31:38 +0000 (UTC)
+Date: Thu, 6 Mar 2025 10:31:38 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+To: Joel Granados <joel.granados@kernel.org>
+Cc: Kees Cook <kees@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>,
+ Mark Rutland <mark.rutland@arm.com>, Mathieu Desnoyers
+ <mathieu.desnoyers@efficios.com>, "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Christian Borntraeger
+ <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Gerald
+ Schaefer <gerald.schaefer@linux.ibm.com>, linux-kernel@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-s390@vger.kernel.org
+Subject: Re: [PATCH v2 4/6] stack_tracer: move sysctl registration to
+ kernel/trace/trace_stack.c
+Message-ID: <20250306103138.3cfc2955@gandalf.local.home>
+In-Reply-To: <20250306-jag-mv_ctltables-v2-4-71b243c8d3f8@kernel.org>
+References: <20250306-jag-mv_ctltables-v2-0-71b243c8d3f8@kernel.org>
+	<20250306-jag-mv_ctltables-v2-4-71b243c8d3f8@kernel.org>
+X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20250306-vdso-checkundef-v2-2-a26cc315fd73@linutronix.de>
-References: <20250306-vdso-checkundef-v2-0-a26cc315fd73@linutronix.de>
-In-Reply-To: <20250306-vdso-checkundef-v2-0-a26cc315fd73@linutronix.de>
-To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
- Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
- "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1741270050; l=1993;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=ACBl2Fq/Y+AeDxVyAuPw9jDrfJIgt71CLxWbfrKoGm4=;
- b=UuaTRkXYjiIVxjUdQQMpfDmQC4YBDeYk6fa+gs14FSvUDvzMsPh0HIlcGVWDoQEtKJqZ5fQMd
- QecvT4zWUjQAxoJa5AXsLFgb2hu7KYO3I/RvjFhkmLnFCKpJin4t1ro
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Instead of using a custom script to detect and fail on undefined
-references, use --no-undefined for all VDSO linker invocations.
+On Thu, 06 Mar 2025 12:29:44 +0100
+Joel Granados <joel.granados@kernel.org> wrote:
 
-Drop the now unused checkundef.sh script.
+> Move stack_tracer_enabled into trace_stack_sysctl_table. This is part of
+> a greater effort to move ctl tables into their respective subsystems
+> which will reduce the merge conflicts in kerenel/sysctl.c.
+> 
+> Signed-off-by: Joel Granados <joel.granados@kernel.org>
+> ---
+>  kernel/sysctl.c            | 10 ----------
+>  kernel/trace/trace_stack.c | 20 ++++++++++++++++++++
+>  2 files changed, 20 insertions(+), 10 deletions(-)
+> 
+> diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+> index baa250e223a26bafc39cb7a7d7635b4f7f5dcf56..dc3747cc72d470662879e4f2b7f2651505b7ca90 100644
+> --- a/kernel/sysctl.c
+> +++ b/kernel/sysctl.c
+> @@ -68,7 +68,6 @@
+>  
+>  #ifdef CONFIG_X86
+>  #include <asm/nmi.h>
+> -#include <asm/stacktrace.h>
+>  #include <asm/io.h>
+>  #endif
+>  #ifdef CONFIG_SPARC
+> @@ -1674,15 +1673,6 @@ static const struct ctl_table kern_table[] = {
+>  		.proc_handler	= proc_dointvec,
+>  	},
+>  #endif
+> -#ifdef CONFIG_STACK_TRACER
+> -	{
+> -		.procname	= "stack_tracer_enabled",
+> -		.data		= &stack_tracer_enabled,
+> -		.maxlen		= sizeof(int),
+> -		.mode		= 0644,
+> -		.proc_handler	= stack_trace_sysctl,
+> -	},
+> -#endif
+>  #ifdef CONFIG_MODULES
+>  	{
+>  		.procname	= "modprobe",
+> diff --git a/kernel/trace/trace_stack.c b/kernel/trace/trace_stack.c
+> index 14c6f272c4d8a382070d45e1cf0ee97db38831c9..b7ffbc1da8357f9c252cb8936c8f789daa97eb9a 100644
+> --- a/kernel/trace/trace_stack.c
+> +++ b/kernel/trace/trace_stack.c
+> @@ -578,3 +578,23 @@ static __init int stack_trace_init(void)
+>  }
+>  
+>  device_initcall(stack_trace_init);
+> +
+> +
+> +static const struct ctl_table trace_stack_sysctl_table[] = {
+> +	{
+> +		.procname	= "stack_tracer_enabled",
+> +		.data		= &stack_tracer_enabled,
+> +		.maxlen		= sizeof(int),
+> +		.mode		= 0644,
+> +		.proc_handler	= stack_trace_sysctl,
+> +	},
+> +};
+> +
+> +static int __init init_trace_stack_sysctls(void)
+> +{
+> +	register_sysctl_init("kernel", trace_stack_sysctl_table);
+> +	return 0;
+> +}
+> +subsys_initcall(init_trace_stack_sysctls);
+> +
+> +
+> 
 
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
----
- arch/sparc/vdso/Makefile      |  7 +++----
- arch/sparc/vdso/checkundef.sh | 10 ----------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+This should also make the variable "stack_tracer_enabled" static and
+removed from the ftrace.h header.
 
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 50ec2978cda5397841daad6ffdc9682811b9b38e..fdc4a8f5a49c5b27fbaee861b24e8b31cfe64477 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -22,7 +22,7 @@ targets += $(foreach x, 32 64, vdso-image-$(x).c vdso$(x).so vdso$(x).so.dbg)
- 
- CPPFLAGS_vdso.lds += -P -C
- 
--VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 --no-undefined \
-+VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 \
- 			-z max-page-size=8192
- 
- $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs) FORCE
-@@ -101,7 +101,6 @@ $(obj)/vdso32.so.dbg: FORCE \
- quiet_cmd_vdso = VDSO    $@
-       cmd_vdso = $(LD) -nostdlib -o $@ \
- 		       $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
--		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
--		sh $(src)/checkundef.sh '$(OBJDUMP)' '$@'
-+		       -T $(filter %.lds,$^) $(filter %.o,$^)
- 
--VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic
-+VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic --no-undefined
-diff --git a/arch/sparc/vdso/checkundef.sh b/arch/sparc/vdso/checkundef.sh
-deleted file mode 100644
-index 2d85876ffc32519ab8a0702917fedd31293cd9da..0000000000000000000000000000000000000000
---- a/arch/sparc/vdso/checkundef.sh
-+++ /dev/null
-@@ -1,10 +0,0 @@
--#!/bin/sh
--objdump="$1"
--file="$2"
--$objdump -t "$file" | grep '*UUND*' | grep -v '#scratch' > /dev/null 2>&1
--if [ $? -eq 1 ]; then
--    exit 0
--else
--    echo "$file: undefined symbols found" >&2
--    exit 1
--fi
-
--- 
-2.48.1
+-- Steve
 
