@@ -1,83 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003022063EB;
-	Thu,  6 Mar 2025 21:20:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0027621A92F;
+	Fri,  7 Mar 2025 15:27:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741296006; cv=none; b=EuxXbGLJ9FgpP3J0IRXVfcGo7Nnp++oqL2NIDA2Uh70rm9x4W5N4EteKgygGcSsag4p8UmgVKDepFPZu/JpM/lk4kZQrJ7uqtRTVpBPLthcDsx3VskZTb75jMkIR6b0HshB1uOpj5pl/DgNYlIBMNX+39/xvprf/z0zylDhfDu8=
+	t=1741361230; cv=none; b=sbM0NvBuKRNAWuV5yTTq595tIKQc9BAdD33pzSn5WrdWdPtsSlTDfqh3954wSVcxVmlqbfhbG/05k2o4V5lPS5xmpAt+w4D12ys4i1UA0l52nCjyHyEYFtecbpQEB018hb90atYVC/QMS1oN8wWttXQpNKUpF9vTkcd+si5DuS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741296006; c=relaxed/simple;
-	bh=cZDw6Poc4BDrQ+UyFQkoa8sDIiciZub+M7TYHo89aq4=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=MokhWgxpVZ9lNICHfLGEAvGyP7SpKn7Dsc9kWXlFukm3zs766/ex/scBvNXAy0VkUP3e/L1O6sXwW6MYJ+Wb4SdDFJLTMPJfDxV7qh09bv93JdkpTgaTQviYZzOrSPjmCkhUlQcnT2TgFUZM6AHVJ6VexRPdHosYHI6gJ3AnOmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fCD2eitP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741361230; c=relaxed/simple;
+	bh=d14TcBCq8tNskRbNOhfQ4KQb7u5Ht3zbufS2FqRKCYs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uQ25Gd76JxzPHxTvCrC/C4xfCkVttIQjwEkFoRhaZWD4w8SvG7HpIyqn18K6PHdL4ZulJPT2GvWJwXm3pMQUl4T/+zIJeux6WAA5vU+Hm/LouVkIDxlOYNAh47duIEwbRvjt1cwcQhTZqMWwuqGlhLRV5NNVaPPxDeWcNwMwMnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=B7XQCfn1; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fCD2eitP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9335C4CEE0;
-	Thu,  6 Mar 2025 21:20:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741296005;
-	bh=cZDw6Poc4BDrQ+UyFQkoa8sDIiciZub+M7TYHo89aq4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=fCD2eitPTHFzv+QGanXjZD4bENnmRFCyuGnOvEmFo3oZUyxfGbz0e9/waUKJcay/B
-	 ulqAAqZ8fT7ST4z1YZd+B5XSm85iLoKo7BN7tD3KTLECZ4zAMHYgvB+TmrABW752ri
-	 sqVT0tKHdBGtciAetPrknw/7LiV2aVP98DL5X7zA=
-Date: Thu, 6 Mar 2025 13:20:03 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>, Andreas Larsson
- <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann
- <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Brian Cain
- <bcain@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen
- <dave.hansen@linux.intel.com>, "David S. Miller" <davem@davemloft.net>,
- Dinh Nguyen <dinguyen@kernel.org>, Geert Uytterhoeven
- <geert@linux-m68k.org>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
- Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, Helge
- Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar
- <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>, Johannes Berg
- <johannes@sipsolutions.net>, John Paul Adrian Glaubitz
- <glaubitz@physik.fu-berlin.de>, Madhavan Srinivasan <maddy@linux.ibm.com>,
- Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>,
- Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
- Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>,
- Stafford Horne <shorne@gmail.com>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, Thomas Gleixner <tglx@linutronix.de>, Vasily
- Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>, Will Deacon
- <will@kernel.org>, linux-alpha@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
- linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
-Subject: Re: [PATCH 00/13] arch, mm: reduce code duplication in mem_init()
-Message-Id: <20250306132003.0066f109dae75f74711f9432@linux-foundation.org>
-In-Reply-To: <20250306185124.3147510-1-rppt@kernel.org>
-References: <20250306185124.3147510-1-rppt@kernel.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="B7XQCfn1"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5279O6GO011752;
+	Fri, 7 Mar 2025 15:26:27 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=6l1/6flwEbafhd438qBLncqgyqXINz
+	D2I0nhn9LVcRs=; b=B7XQCfn1B56XyQ7LV9aQk7AlSHBaQAX26Kkef0jwV3Io3+
+	7O4BCwGbLOBTk7fQ6QoXGOGxXFsnkLPB3N1LXRN+aXkP6maBrzZ6GxhxWnedQ9Oo
+	wb0a4iZTQ2g7ATo8dtTXYc2r2sOjUd9pskzU9gbVuaHEd4nF/xFp800+JEVOPWhQ
+	GKjt5kJ1JPDJ72EXv4zqi6PNOFl4dq8BSV4HYb7v8OudjPsxC1x2JjAMpqgWN+io
+	pnF/i80BgO5P9FHPQ1ngXhQbOKSmoenJmyqPMQPM3TSekIiVgy4mvsEnTJrpTgLX
+	UdnMP6AKZL+jh07ZxCrl8/tTF/vT/81mfmT/7h7w==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 457k45cm2c-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 07 Mar 2025 15:26:27 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 527E0kgY020873;
+	Fri, 7 Mar 2025 15:26:26 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 454eskf5yk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 07 Mar 2025 15:26:26 +0000
+Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 527FQNxn56426840
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 7 Mar 2025 15:26:23 GMT
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id EA59820043;
+	Fri,  7 Mar 2025 15:26:22 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0EBFE20040;
+	Fri,  7 Mar 2025 15:26:22 +0000 (GMT)
+Received: from osiris (unknown [9.171.2.237])
+	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Fri,  7 Mar 2025 15:26:21 +0000 (GMT)
+Date: Fri, 7 Mar 2025 16:26:20 +0100
+From: Heiko Carstens <hca@linux.ibm.com>
+To: joel granados <joel.granados@kernel.org>
+Cc: Kees Cook <kees@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-trace-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-s390@vger.kernel.org
+Subject: Re: [PATCH v2 6/6] s390: mv s390 sysctls into their own file under
+ arch/s390 dir
+Message-ID: <20250307152620.9880F75-hca@linux.ibm.com>
+References: <20250306-jag-mv_ctltables-v2-0-71b243c8d3f8@kernel.org>
+ <20250306-jag-mv_ctltables-v2-6-71b243c8d3f8@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250306-jag-mv_ctltables-v2-6-71b243c8d3f8@kernel.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: CHnHREwPD5LzuGyc-xIZcJW8tFFRpzdB
+X-Proofpoint-GUID: CHnHREwPD5LzuGyc-xIZcJW8tFFRpzdB
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1093,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-03-07_06,2025-03-06_04,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 malwarescore=0
+ mlxlogscore=686 mlxscore=0 adultscore=0 clxscore=1015 impostorscore=0
+ priorityscore=1501 suspectscore=0 bulkscore=0 lowpriorityscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2502100000 definitions=main-2503070111
 
-On Thu,  6 Mar 2025 20:51:10 +0200 Mike Rapoport <rppt@kernel.org> wrote:
-
-> Every architecture has implementation of mem_init() function and some
-> even more than one. All these release free memory to the buddy
-> allocator, most of them set high_memory to the end of directly
-> addressable memory and many of them set max_mapnr for FLATMEM case.
+On Thu, Mar 06, 2025 at 12:29:46PM +0100, joel granados wrote:
+> Move s390 sysctls (spin_retry and userprocess_debug) into their own
+> files under arch/s390. We create two new sysctl tables
+> (2390_{fault,spin}_sysctl_table) which will be initialized with
+> arch_initcall placing them after their original place in proc_root_init.
 > 
-> These patches pull the commonalities into the generic code and refactor
-> some of the mem_init() implementations so that many of them can be just
-> dropped.
+> This is part of a greater effort to move ctl tables into their
+> respective subsystems which will reduce the merge conflicts in
+> kernel/sysctl.c.
+> 
+> Signed-off-by: joel granados <joel.granados@kernel.org>
+> ---
+>  arch/s390/lib/spinlock.c | 18 ++++++++++++++++++
+>  arch/s390/mm/fault.c     | 17 +++++++++++++++++
+>  kernel/sysctl.c          | 18 ------------------
+>  3 files changed, 35 insertions(+), 18 deletions(-)
 
-Thanks, I added this series to mm.git.
+Acked-by: Heiko Carstens <hca@linux.ibm.com>
+
+How should this go upstream? Will you take care of this, or should
+this go via the s390 tree?
