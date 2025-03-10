@@ -1,149 +1,237 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A4C101F2;
-	Fri,  7 Mar 2025 15:29:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17532F28;
+	Mon, 10 Mar 2025 00:44:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741361371; cv=none; b=prTrNJs4Nb9kJI/9e8Am5iyvlF9bM1BsNjlO0AIhY90DYZhEBqj8qLCeZLOvLvXfn+2c99t61LZmPitymVYH2osuEe4I1jCsShk89hLjYP65Dr3iMdozymYw9O9LbKkXg5B6rjpqLjAz3fwtnoRUOtDOVKmqUZlom3IYjiXr314=
+	t=1741567453; cv=none; b=SrZ/SQuwTpOUI48+8BKYcpoNvAx91qtoYKDIkbS+1126OpyhPidKh6ZbM0x+wpDDKAZB7Pthl5obIwIBW1hBO/BeGd8E3bGq+bQcSP8a2xZR3Y+VblKu3wnILGB64TSwjdIFO8vUEVGnJxeKdR8YUt9tdU2+wISdiJhzeByrQ9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741361371; c=relaxed/simple;
-	bh=IQGBIqRB4GzYAQ/tDFR+0LkWEAzC++ZVR1ooYLXKi7w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oswP1zt/tvvfvx2OTk18YH+EQN+g2AO65nyU7GAlGI+kHHuFK+l48z7OTQHin7SY7qM6MIG/qsflFG+lEvN3ghgGljBJ7+dIXzxuLntbWKE/De836ZzQ3+ehjFaH/nPYqzg7tORHuwdpeloWXJjexs4BPCbBC8mkK+7IEQZnwCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=qKQQC8sC; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1741567453; c=relaxed/simple;
+	bh=tXY/sDLcuj92SaFYz0hFOsAFXofDkFw5jSfwl2CB2dY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WwMAKGVNzCbhH5Ti3Qw9yajV7sSiyZFgEBkWpygyYK73w/3QdOXWHiRxUmUd6M1+inqUWLROterY4XRU7d0/5JVtqbuD2tqqkH3YByonKw3tVqKg6D6eVRrjCtP1g3wL/bJbgdJKQtNBNw0rRKH6M6ORIFdyrb8JsWfJRqaXDkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BVSocaYZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="qKQQC8sC"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 527E3AWH028905;
-	Fri, 7 Mar 2025 15:28:27 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=Y0KvhWxi6k4smjT1a6uHtK0WLe6VaK
-	HOV2hSoWFI5bI=; b=qKQQC8sCg9pR0Rgf2U4SjNR+davwX5FjEufMomgRsB00fg
-	zyRoTfxYxXh4Y8vuiZOJjrJtRUBqHxyVXsqcdfStADiDsVoEhvGXke2IzKBOI/hb
-	WiESqINaMWZlctFARnqnvnWiPTNBO/qTgrLVOx+veNXvwWI6SMXfFRzUxY07Dh9Y
-	p4E9rDCnukHT+Y6EVG26BlOZ16mHO3x7KhgMU6qM64BlKcUlVNv2REetqaorOfxE
-	Hv9tuR0tLZlF0MsbPIllc5+326ZsUeYtZPM3HYRousN2gYIQuhJdn4OFhBw8Ldam
-	BqYL6oneEKifef2Z24hvK1SLIU1JVnxU0/X7HqUg==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 45827p8e9e-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Mar 2025 15:28:26 +0000 (GMT)
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 527FOGZe009112;
-	Fri, 7 Mar 2025 15:28:26 GMT
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 45827p8e9b-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Mar 2025 15:28:25 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 527CW0hk013724;
-	Fri, 7 Mar 2025 15:28:24 GMT
-Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 454e2m7eh2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Mar 2025 15:28:24 +0000
-Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
-	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 527FSKc034669078
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 7 Mar 2025 15:28:20 GMT
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4BC592004D;
-	Fri,  7 Mar 2025 15:28:20 +0000 (GMT)
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6CBC420040;
-	Fri,  7 Mar 2025 15:28:17 +0000 (GMT)
-Received: from osiris (unknown [9.171.2.237])
-	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Fri,  7 Mar 2025 15:28:17 +0000 (GMT)
-Date: Fri, 7 Mar 2025 16:28:15 +0100
-From: Heiko Carstens <hca@linux.ibm.com>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Andreas Larsson <andreas@gaisler.com>,
-        Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Stafford Horne <shorne@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
-        Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
-Subject: Re: [PATCH 07/13] s390: make setup_zero_pages() use memblock
-Message-ID: <20250307152815.9880Gbd-hca@linux.ibm.com>
-References: <20250306185124.3147510-1-rppt@kernel.org>
- <20250306185124.3147510-8-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BVSocaYZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE6E2C4CEFB;
+	Mon, 10 Mar 2025 00:44:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741567451;
+	bh=tXY/sDLcuj92SaFYz0hFOsAFXofDkFw5jSfwl2CB2dY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=BVSocaYZc2rAS9DmzOR25Py/nYQDKd36w67O/0f9ylpFUIWrKw00/eEyMdMxUmEnT
+	 NCXedm8BdKAPb2DDHW/gVC70TSdEV2tqTRDbyeVdnS0x5i7l3qBINrQb5+yrFjV2nL
+	 yJlPfiMabW5EhD/hEm2DYm0W3dPpC5LvZoTr7ApvT8Ju7gY1RegDx5zL1A0z9PwyXG
+	 3yRjPZw573XVubRbjFOXqpAoQhLdKtK714p3+ESSV5Xi9sNjr5uTPAsxaHljEkBrNR
+	 8s92NP6QLtWXH4QXEwGK53QDFSH2XRVYuup0zGWIcKuguSpfx56dz9btSD3K/PGaKw
+	 AQmLlaIjyhUCw==
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3914aba1ce4so170133f8f.2;
+        Sun, 09 Mar 2025 17:44:11 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCV1eM344Xsla3w/aRO4wmSrjJu39Lgg1JPZITtYbkVX7t5KKdA0SJRTdkl/xRc9MZKgGKwk3cWfXkevk7xx@vger.kernel.org, AJvYcCV2R/Q7tn05RpUis0/RbjX57VkjXh5YNu71RSBoFsqEyw3ge+DqPmi4qunELr7UrdfIx5L3su816/hnxg==@vger.kernel.org, AJvYcCVbXm6XPydNaJgIB2vgHZRl55ysxP/eS9kZOnXD4vCAH445LI9063iLnp0gSn4lCTyHoN4N63Gpl9vwegKq96w=@vger.kernel.org, AJvYcCViTAmbxje8MnFWTeArMDHz4tsCJ8Ux6CSSe3YICmGsDpT1tZuvs/BLFLDm+lwrQp25EGEZe8NqmGg=@vger.kernel.org, AJvYcCWM4yH2NO4f88rc5SwUr3OXIDzWPsFa5FRWocgOIY9jBsLniVrRpxYfdqL40umQFTUSSs2TfBhskhNUZw==@vger.kernel.org, AJvYcCWNUKBgsBTqCkPFfVWVqAiRGeb3h2gb7Ea69ztQZjbfRAjPF/bNGqFzyulBCwfQwIQzmQI4ZVeBiWkrYesX@vger.kernel.org, AJvYcCWqhru8eA9e1MWcaKgZ9LO2iz0SZWyeXVF2LBmPxbuxSjdlgwSckGiHmSQ7dGoVySGmvbVCNGlz0gyTCA==@vger.kernel.org, AJvYcCX+r+aIfzNhbnHx5J/v2pAwEzNeXo2e/1dBnm86Qyw+XpKpjR/mP/RwpIOn/V52eehLB0c3eKBDIwUvVA==@vger.kernel.org, AJvYcCXEejc/yyH+wBDCBXRtD5ebNqubECssx3jhAriQqiFqQkTWd/zrj1u50N0xJGjuVjB015QDygH31bHY1VowbA==@vger.kernel.org, AJvYcCXSXM8CO7YsTBmpeTX3FSaSCzsmiNk5KPEmSVWaJ1kM/CbLf/TMkHaZ0Y9r3sl3so3BN+FTHy6aVY3wKw==@vger.kernel.org, AJvYcCXWqqg/DcCK5NfDp4ysoVOJKOWvQS9/OU3FxIj9Q1voLm1ZIazmzSW6G00kpHCxIKURatMWVu6jTHusIw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YxT1IlKGBmfxXAflYSf3fpgCaxYYGap4BUA7ZLaBfk8KOIR0197
+	74s9FsYXgdi/9aFVIjlV9ntS4AUXSQwkpvm5EoPNMo7vbbpIDbQflaZsTaQqdpn5VhwAjXzV4bb
+	HadlW79k4S9PV29GXWa3q7Bj1Wwc=
+X-Google-Smtp-Source: AGHT+IHp0xTG1Ng23HFO+vDoVdsoufkarKG1pMLa2Hgf32UrExuCoU7QvtsFi3JnHOAx4U/X+f6ME+7JOCYs321ZM0M=
+X-Received: by 2002:a5d:6d8a:0:b0:391:1218:d5f7 with SMTP id
+ ffacd0b85a97d-39132dacbd3mr7997015f8f.40.1741567450112; Sun, 09 Mar 2025
+ 17:44:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250306185124.3147510-8-rppt@kernel.org>
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: A6EZhWyKm6a7TATSJL5pnfOrX3P29DY0
-X-Proofpoint-GUID: Cc95RTw9axkwgZElLQM4IM54NfQR-ck-
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1093,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2025-03-07_06,2025-03-06_04,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- impostorscore=0 bulkscore=0 clxscore=1011 spamscore=0 mlxlogscore=334
- malwarescore=0 lowpriorityscore=0 phishscore=0 adultscore=0 suspectscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2502100000 definitions=main-2503070115
+References: <20250306185124.3147510-1-rppt@kernel.org> <20250306185124.3147510-3-rppt@kernel.org>
+In-Reply-To: <20250306185124.3147510-3-rppt@kernel.org>
+From: Guo Ren <guoren@kernel.org>
+Date: Mon, 10 Mar 2025 08:43:58 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTQBLMt01QjnhX1tCgHs6HJm1hZXQXgVjNkNS5Yt5t4UCQ@mail.gmail.com>
+X-Gm-Features: AQ5f1JpCBLojM2w9P1ED3pCe1VmP9TPz-dzItajSIbNDMlmKYLEeMGoNaHpCAZk
+Message-ID: <CAJF2gTQBLMt01QjnhX1tCgHs6HJm1hZXQXgVjNkNS5Yt5t4UCQ@mail.gmail.com>
+Subject: Re: [PATCH 02/13] csky: move setup_initrd() to setup.c
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
+	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	"David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>, 
+	Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, 
+	Stafford Horne <shorne@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>, 
+	Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, 
+	x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 06, 2025 at 08:51:17PM +0200, Mike Rapoport wrote:
+Move setup_initrd from mem_init into memblock_init, that LGTM.
+
+Acked by: Guo Ren (csky) <guoren@kernel.org>
+
+On Fri, Mar 7, 2025 at 2:52=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wrot=
+e:
+>
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> 
-> Allocating the zero pages from memblock is simpler because the memory is
-> already reserved.
-> 
+>
+> Memory used by initrd should be reserved as soon as possible before
+> there any memblock allocations that might overwrite that memory.
+>
 > This will also help with pulling out memblock_free_all() to the generic
 > code and reducing code duplication in arch::mem_init().
-> 
+>
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
->  arch/s390/mm/init.c | 14 +++-----------
->  1 file changed, 3 insertions(+), 11 deletions(-)
+>  arch/csky/kernel/setup.c | 43 ++++++++++++++++++++++++++++++++++++++++
+>  arch/csky/mm/init.c      | 43 ----------------------------------------
+>  2 files changed, 43 insertions(+), 43 deletions(-)
+>
+> diff --git a/arch/csky/kernel/setup.c b/arch/csky/kernel/setup.c
+> index fe715b707fd0..e0d6ca86ea8c 100644
+> --- a/arch/csky/kernel/setup.c
+> +++ b/arch/csky/kernel/setup.c
+> @@ -12,6 +12,45 @@
+>  #include <asm/mmu_context.h>
+>  #include <asm/pgalloc.h>
+>
+> +#ifdef CONFIG_BLK_DEV_INITRD
+> +static void __init setup_initrd(void)
+> +{
+> +       unsigned long size;
+> +
+> +       if (initrd_start >=3D initrd_end) {
+> +               pr_err("initrd not found or empty");
+> +               goto disable;
+> +       }
+> +
+> +       if (__pa(initrd_end) > PFN_PHYS(max_low_pfn)) {
+> +               pr_err("initrd extends beyond end of memory");
+> +               goto disable;
+> +       }
+> +
+> +       size =3D initrd_end - initrd_start;
+> +
+> +       if (memblock_is_region_reserved(__pa(initrd_start), size)) {
+> +               pr_err("INITRD: 0x%08lx+0x%08lx overlaps in-use memory re=
+gion",
+> +                      __pa(initrd_start), size);
+> +               goto disable;
+> +       }
+> +
+> +       memblock_reserve(__pa(initrd_start), size);
+> +
+> +       pr_info("Initial ramdisk at: 0x%p (%lu bytes)\n",
+> +               (void *)(initrd_start), size);
+> +
+> +       initrd_below_start_ok =3D 1;
+> +
+> +       return;
+> +
+> +disable:
+> +       initrd_start =3D initrd_end =3D 0;
+> +
+> +       pr_err(" - disabling initrd\n");
+> +}
+> +#endif
+> +
+>  static void __init csky_memblock_init(void)
+>  {
+>         unsigned long lowmem_size =3D PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET=
+_OFFSET);
+> @@ -40,6 +79,10 @@ static void __init csky_memblock_init(void)
+>                 max_low_pfn =3D min_low_pfn + sseg_size;
+>         }
+>
+> +#ifdef CONFIG_BLK_DEV_INITRD
+> +       setup_initrd();
+> +#endif
+> +
+>         max_zone_pfn[ZONE_NORMAL] =3D max_low_pfn;
+>
+>         mmu_init(min_low_pfn, max_low_pfn);
+> diff --git a/arch/csky/mm/init.c b/arch/csky/mm/init.c
+> index bde7cabd23df..ab51acbc19b2 100644
+> --- a/arch/csky/mm/init.c
+> +++ b/arch/csky/mm/init.c
+> @@ -42,45 +42,6 @@ unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsig=
+ned long)]
+>                                                 __page_aligned_bss;
+>  EXPORT_SYMBOL(empty_zero_page);
+>
+> -#ifdef CONFIG_BLK_DEV_INITRD
+> -static void __init setup_initrd(void)
+> -{
+> -       unsigned long size;
+> -
+> -       if (initrd_start >=3D initrd_end) {
+> -               pr_err("initrd not found or empty");
+> -               goto disable;
+> -       }
+> -
+> -       if (__pa(initrd_end) > PFN_PHYS(max_low_pfn)) {
+> -               pr_err("initrd extends beyond end of memory");
+> -               goto disable;
+> -       }
+> -
+> -       size =3D initrd_end - initrd_start;
+> -
+> -       if (memblock_is_region_reserved(__pa(initrd_start), size)) {
+> -               pr_err("INITRD: 0x%08lx+0x%08lx overlaps in-use memory re=
+gion",
+> -                      __pa(initrd_start), size);
+> -               goto disable;
+> -       }
+> -
+> -       memblock_reserve(__pa(initrd_start), size);
+> -
+> -       pr_info("Initial ramdisk at: 0x%p (%lu bytes)\n",
+> -               (void *)(initrd_start), size);
+> -
+> -       initrd_below_start_ok =3D 1;
+> -
+> -       return;
+> -
+> -disable:
+> -       initrd_start =3D initrd_end =3D 0;
+> -
+> -       pr_err(" - disabling initrd\n");
+> -}
+> -#endif
+> -
+>  void __init mem_init(void)
+>  {
+>  #ifdef CONFIG_HIGHMEM
+> @@ -92,10 +53,6 @@ void __init mem_init(void)
+>  #endif
+>         high_memory =3D (void *) __va(max_low_pfn << PAGE_SHIFT);
+>
+> -#ifdef CONFIG_BLK_DEV_INITRD
+> -       setup_initrd();
+> -#endif
+> -
+>         memblock_free_all();
+>
+>  #ifdef CONFIG_HIGHMEM
+> --
+> 2.47.2
+>
 
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
 
-> -	empty_zero_page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
-> +	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE << order, order);
->  	if (!empty_zero_page)
->  		panic("Out of memory in setup_zero_pages");
-
-This could have been converted to memblock_alloc_or_panic(), but I
-guess this can also be done at a later point in time.
+--=20
+Best Regards
+ Guo Ren
