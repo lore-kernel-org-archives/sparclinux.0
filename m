@@ -1,131 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFEC81E7C2F;
-	Tue, 11 Mar 2025 05:57:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E65F12505AC;
+	Tue, 11 Mar 2025 11:03:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741672666; cv=none; b=kdC0VLOm6T49XH4TMxoYAZchwl4zN0HmEjOP7RIQpp6pYsPfwxrHL/Jg9bAuQnIJ8yMXHE1WMOQMJ9kAtjdbbbdQqCjbROSB77m3Vy0FQIha5amzSf1XI2JnuKFbTGuGk1JnmQ6aCXO4VzL5CjE4L+WiXZCb5VtvNustkejzcBA=
+	t=1741690992; cv=none; b=XPRnXFGoNpYFnW5+tx9/ZBVSek/HAdBO3sYdRP5+UhY7FJTeFmKRC3eIC7J3zOqjX3SfxtziqB/ZMv1Ayz3fkWBNV21wVBNidXfNStUzXaMkAnHxyr7oqkAAorxYfibhu6xUH1o5HrHWskW5gU8WeIQj/oiTYTx2onxMxcpYOdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741672666; c=relaxed/simple;
-	bh=BYwU/E93/QHnTs75zXL/K5KaaL59dt5dqcEKsspSbzo=;
+	s=arc-20240116; t=1741690992; c=relaxed/simple;
+	bh=qAoAEAm5amauGeRnu7bSr3vPpdizHeYfV+q57O0m6pI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t6dpsoZ0VxKAuWORjIO9mpfXc0gdRGAi9S5JNsG2g3jXhohwF4Yp/vrR7td22L8hutpf9LHTrZtfYLGSlJleL96yUhPuljyeLLe+21NbjtX2F4mZDN88MIfNhfHUygaU3mdaWrvYoGLiSJzqpOtq18t4E2gbHcxIWhViUxQeAbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dmTErZmr; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=nwYL/8R7q+7/LmKzu/R+KVxFDH/k9BuX8EPSOz9zngw4H+DPSI9QisLbyD/voKIvzvKdugX/AXpS4QBpdHLDzZfEq7+8cszjgppcc10eU2xDqq5CP5LXMDVeI/ED6JhSZnbbPxKnbLEmuhlMXwJwLkIOAIaOfVCJa3tNnbT5BoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Ct8X7uw8; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dmTErZmr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B78FCC4CEE9;
-	Tue, 11 Mar 2025 05:57:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741672666;
-	bh=BYwU/E93/QHnTs75zXL/K5KaaL59dt5dqcEKsspSbzo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dmTErZmrStaJuWPq1Y2KiGUlkJyWnCTthhB4B91JAVbdcH9I2nMKyf/7Fd4sug/pB
-	 N7nEu2kNBk1O0Ul+w/IBo19oXH5glyY2bbtD6tCtn0BJHbkHTd1iWoNnx2w3T9m+7H
-	 IxxQVA4Y4Lv0jGi6PXT0q9QqF5s7ZqRI2g89QBdwAFMPmOQwhOa9TxU3xtlxsqpRqF
-	 lYy7nKRBTlEc1vamVRBquPAmfL9PiTgEWIBb6xcf97y28M06V5hY0PpqPM3HaTZw4K
-	 HfU+XsvU0VemNSiwuoybyIXmF+A+kWMDABoLN29HvFjqUrPbxMBmNFc1zs7FVelcPG
-	 fJ1v7DiVKuKeg==
-Date: Tue, 11 Mar 2025 07:57:23 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
-	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>,
-	Stafford Horne <shorne@gmail.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
-	Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
-Subject: Re: [PATCH 05/13] MIPS: make setup_zero_pages() use memblock
-Message-ID: <Z8_Qw9Soe5bzWJ44@kernel.org>
-References: <20250306185124.3147510-1-rppt@kernel.org>
- <20250306185124.3147510-6-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Ct8X7uw8"
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 52B93ZVX004497;
+	Tue, 11 Mar 2025 11:02:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=xIPaMqGrsjATDI3COz82wtEWPVXld8
+	ipZrTVOIdtc+s=; b=Ct8X7uw8PWloUFD0MWoLtbch0x8v7ZBHf4sghnsOPUgWIL
+	4laCm8tkNral1P/z9pa2nZgA47oQRfKv0WakeNyyB8R9+Vh6Guw5jpCe+lYkjc9E
+	bj1tlXHKycXEbwA92MaXqkgcxxxOUUrD+0SLU9/Js2h7D+seIhAt3DVxnnK2+m+M
+	SnyXc8vAJyFHNNDHeTCQD7oaSV4hC/oLJUqp7OlFlDHv5ZRbtLJD4z9Jc5AwgRoc
+	/tM4WLkcBDQSA5Xdjf0/2qKWFBR96zHjriFf3YMAmrtmTXRoQMHGolmkB2ovcko5
+	8nhdu6grKgQd2Owr1x8xMpERkdmzu36UAYVwDP6Q==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 45a78qudaa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 11 Mar 2025 11:02:54 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 52B9qE2P027631;
+	Tue, 11 Mar 2025 11:02:53 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4591qkkqct-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 11 Mar 2025 11:02:53 +0000
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 52BB2nWY50266594
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 11 Mar 2025 11:02:49 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CABD520040;
+	Tue, 11 Mar 2025 11:02:49 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B658C20043;
+	Tue, 11 Mar 2025 11:02:48 +0000 (GMT)
+Received: from localhost (unknown [9.171.9.82])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Tue, 11 Mar 2025 11:02:48 +0000 (GMT)
+Date: Tue, 11 Mar 2025 12:02:47 +0100
+From: Vasily Gorbik <gor@linux.ibm.com>
+To: Joel Granados <joel.granados@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>, Kees Cook <kees@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-trace-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-s390@vger.kernel.org
+Subject: Re: [PATCH v2 6/6] s390: mv s390 sysctls into their own file under
+ arch/s390 dir
+Message-ID: <your-ad-here.call-01741690967-ext-1293@work.hours>
+References: <20250306-jag-mv_ctltables-v2-0-71b243c8d3f8@kernel.org>
+ <20250306-jag-mv_ctltables-v2-6-71b243c8d3f8@kernel.org>
+ <20250307152620.9880F75-hca@linux.ibm.com>
+ <r73ph4ht5ejeeuj65nxocmqp7pury2mekz2lz3r6fs264s24c4@ransymcrzk2h>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250306185124.3147510-6-rppt@kernel.org>
+In-Reply-To: <r73ph4ht5ejeeuj65nxocmqp7pury2mekz2lz3r6fs264s24c4@ransymcrzk2h>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: h9Mg2owPiLRPVj7MJrH8lEXpq9BsvLC-
+X-Proofpoint-ORIG-GUID: h9Mg2owPiLRPVj7MJrH8lEXpq9BsvLC-
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1093,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-03-11_01,2025-03-11_02,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 impostorscore=0
+ spamscore=0 adultscore=0 mlxlogscore=856 phishscore=0 priorityscore=1501
+ lowpriorityscore=0 malwarescore=0 bulkscore=0 suspectscore=0 mlxscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.19.0-2502100000
+ definitions=main-2503110072
 
-On Thu, Mar 06, 2025 at 08:51:15PM +0200, Mike Rapoport wrote:
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On Mon, Mar 10, 2025 at 02:41:59PM +0100, Joel Granados wrote:
+> On Fri, Mar 07, 2025 at 04:26:20PM +0100, Heiko Carstens wrote:
+> > On Thu, Mar 06, 2025 at 12:29:46PM +0100, joel granados wrote:
+> > > Move s390 sysctls (spin_retry and userprocess_debug) into their own
+> > > files under arch/s390. We create two new sysctl tables
+> > > (2390_{fault,spin}_sysctl_table) which will be initialized with
+> > > arch_initcall placing them after their original place in proc_root_init.
+> > > 
+> > > This is part of a greater effort to move ctl tables into their
+> > > respective subsystems which will reduce the merge conflicts in
+> > > kernel/sysctl.c.
+> > > 
+> > > Signed-off-by: joel granados <joel.granados@kernel.org>
+> > > ---
+> > >  arch/s390/lib/spinlock.c | 18 ++++++++++++++++++
+> > >  arch/s390/mm/fault.c     | 17 +++++++++++++++++
+> > >  kernel/sysctl.c          | 18 ------------------
+> > >  3 files changed, 35 insertions(+), 18 deletions(-)
+> > 
+> > Acked-by: Heiko Carstens <hca@linux.ibm.com>
+> > 
+> > How should this go upstream? Will you take care of this, or should
+> > this go via the s390 tree?
 > 
-> Allocating the zero pages from memblock is simpler because the memory is
-> already reserved.
+> thx for the review
 > 
-> This will also help with pulling out memblock_free_all() to the generic
-> code and reducing code duplication in arch::mem_init().
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> ---
->  arch/mips/include/asm/mmzone.h |  2 --
->  arch/mips/mm/init.c            | 16 +++++-----------
->  2 files changed, 5 insertions(+), 13 deletions(-)
- 
-Andrew can you please pick this as a fixup?
+> It would be great if you can push it through the s390 tree. However, if
+> it is not possible to do so, please let me know and I'll add it to the
+> sysctl-next changes.
 
-From 148713d17cbdf7a3ad08f18ba203185b70c0e7c2 Mon Sep 17 00:00:00 2001
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Tue, 11 Mar 2025 07:51:27 +0200
-Subject: [PATCH] MIPS: use memblock_alloc_or_panic() in setup_zero_page()
+I've slightly changed the commit message
+s390: Move s390 sysctls into their own file under arch/s390
 
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
----
- arch/mips/mm/init.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/arch/mips/mm/init.c b/arch/mips/mm/init.c
-index 6ea27bbd387e..a673d3d68254 100644
---- a/arch/mips/mm/init.c
-+++ b/arch/mips/mm/init.c
-@@ -68,9 +68,7 @@ static void __init setup_zero_pages(void)
- 	else
- 		order = 0;
- 
--	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE << order, PAGE_SIZE);
--	if (!empty_zero_page)
--		panic("Oh boy, that early out of memory?");
-+	empty_zero_page = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE << order, PAGE_SIZE);
- 
- 	zero_page_mask = ((PAGE_SIZE << order) - 1) & PAGE_MASK;
- }
--- 
-2.47.2
-
--- 
-Sincerely yours,
-Mike.
+And applied, thank you!
