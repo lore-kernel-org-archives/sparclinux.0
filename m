@@ -1,88 +1,164 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F8802E3371;
-	Thu, 13 Mar 2025 16:34:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C12AF26138E;
+	Thu, 13 Mar 2025 16:39:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741883691; cv=none; b=oT3cEZHWIM60V5bWB3vcPi4555N3wtAaFukQMk2ijuJZjtI6lwnHfjMsTFMM0b7aiZ9RngPeRihmgWUxRVHqK8HWeN3RpWBN8Ymfhd53+vB7THi7asiCywZQAoKkeg9iLRVhvDDushHPYhZ9lQSGNks/ztbJQIA3iJk4sJa1syw=
+	t=1741883991; cv=none; b=KhwbwWqMWRm0fTT47asWkw6iFJA0taVVZjmIxa5hdKi+F0wu6gYp0k2LyF07N7WGbPVfPNihF0tWaGcLcFvddtBNBCbpRWsN805B3ToRGYw7X/9a8qUlQAiA3OC6sOChcMBfco8BennWNfHFI3VpFT6pRfFY7EQh24OSAoC8E08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741883691; c=relaxed/simple;
-	bh=5OKmSnvCdr1VFgeIsGzSe7XOU1tHtPNOb533sHEAdEA=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=X/VjJ0dcbj4crhs4imRDKGVo5fGDgrnuJUGxmzYtq6d87dbZPsI1YXQNQ4yXF8OdMPoFhkSxgjJai027+I4D6l9cz2A36eJuVpg9za6k/b+6HaEBNoSCh6cKs/x4TcijyeB3BVC+Ydm2gjZsO3WCOjzM6Qb/rvgCz6Zvcd5/O24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=INiw/BY3; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1741883991; c=relaxed/simple;
+	bh=SJIh4TOyAnLQgRaND+z2LtBYQ5hvnSYhcxMltVARNHg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y+1b24Se3NuAf3wUSTzIYAGpvk7IeLMCrMrce5qqLvr3ixHgtMkHf9caXcuLpeqcDC4MLAgVLwl3m+8gQTmeGZgk3PxtbjngM1cHZHcYIWjxN2uq6C1qJKtP+R6R2XRadtwxi27rjm3YZlNgaOO9HquW01ojwDpxQzD9ltrS7Cc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jXsvsd/l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="INiw/BY3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=t3tspSjPWzUbZJ39HBMWBiuBDmQruoqd/+DIkFO7DU8=; t=1741883687; x=1742488487; 
-	b=INiw/BY3EmpQ+tFbto5KJqYzmXRysM5GThjAhYsbCynEznpLPDo4LhdzdFBTwL58+EdxgvBmbuM
-	028eFSc0XRN70eRuGNl4Y2n3tb+aKMPUE9fasaiQklBDFXoTAtx9Ivce3cjB6GFD/97A0/6jwFUIi
-	l/pIQXAyGtXecH7fIk5k5+/QcTrpW78si4zwBrnWAlfyF8cJnxUqCdv8G+iOc7XeQTpPIgZ93+y4N
-	2rkc9UKNnWUtUhihlBpWpcMvsN88bgThoKynEPt7g26UsXqe7K/GSSTglFEG0jRiH4HrvS+7n/L11
-	isBuLiQ0KzfVqfA2EKk4XM26Qk5t+Dar76Dw==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1tslW3-00000002dFt-2bY1; Thu, 13 Mar 2025 17:34:39 +0100
-Received: from dynamic-078-054-179-053.78.54.pool.telefonica.de ([78.54.179.53] helo=[192.168.178.50])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1tslW3-00000000cJH-1fzt; Thu, 13 Mar 2025 17:34:39 +0100
-Message-ID: <a25daa5d094cf613e2f52fe716a17edf9fb26448.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v3 3/5] tracing: Move trace sysctls into trace.c
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, 
- Steven Rostedt <rostedt@goodmis.org>, Masami Hiramatsu
- <mhiramat@kernel.org>, Mark Rutland <mark.rutland@arm.com>,  Mathieu
- Desnoyers <mathieu.desnoyers@efficios.com>, "David S. Miller"
- <davem@davemloft.net>, Andreas Larsson	 <andreas@gaisler.com>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Date: Thu, 13 Mar 2025 17:34:38 +0100
-In-Reply-To: <20250313-jag-mv_ctltables-v3-3-91f3bb434d27@kernel.org>
-References: <20250313-jag-mv_ctltables-v3-0-91f3bb434d27@kernel.org>
-	 <20250313-jag-mv_ctltables-v3-3-91f3bb434d27@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.54.3 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jXsvsd/l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 112F0C4CEDD;
+	Thu, 13 Mar 2025 16:39:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741883990;
+	bh=SJIh4TOyAnLQgRaND+z2LtBYQ5hvnSYhcxMltVARNHg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jXsvsd/lxGJNEoAX6HtYBN5kSEz6YHB6jkvfmSGlAYkaC6zejLPn/jhjOGbnxowV9
+	 G4ObNvl3IBz4OwYO2TlZ/bLh8DZduHi5CkgzYMn1CVOppgH6xx0HzA9IMhHkCryYCY
+	 ZnelQtcYuqYVLCo8RDAfcA5wrN0rilAxNY4bxJB3K1CqJlX1tG+a3qgJkkTCsPFO7h
+	 mIMi9CWIvAGiys0Idmh6XXVvAFEOzxC+aoae1uw6WzZghXN98gnejmZ33szJK51KlP
+	 WWbGYBsBTpQxs6TW4o+VUbqyqW8YHpq93CdsecoGwYUTU6EUH46GDnnPb9iVFpOFP+
+	 OQMV0Bj8JCyMQ==
+Date: Thu, 13 Mar 2025 16:39:37 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+	Brian Cain <bcain@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Simek <monstr@monstr.eu>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Richard Weinberger <richard@nod.at>,
+	Russell King <linux@armlinux.org.uk>,
+	Stafford Horne <shorne@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
+	Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+	linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
+Subject: Re: [PATCH v2 00/13] arch, mm: reduce code duplication in mem_init()
+Message-ID: <5de71a98-d87f-4bfd-83a1-3f6e11c84d7d@sirena.org.uk>
+Mail-Followup-To: Mike Rapoport <rppt@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+	Brian Cain <bcain@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jiaxun Yang <jiaxun.yang@flygoat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Simek <monstr@monstr.eu>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Richard Weinberger <richard@nod.at>,
+	Russell King <linux@armlinux.org.uk>,
+	Stafford Horne <shorne@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
+	Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+	linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
+References: <20250313135003.836600-1-rppt@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="2QbfUHTxTDOlgUSw"
+Content-Disposition: inline
+In-Reply-To: <20250313135003.836600-1-rppt@kernel.org>
+X-Cookie: A beer delayed is a beer denied.
 
-Hi Joel,
 
-On Thu, 2025-03-13 at 17:22 +0100, Joel Granados wrote:
-> Move trace ctl tables into their own const array in
-> kernel/trace/trace.c. The sysctl table register is called with
-> subsys_initcall placing if after its original place in proc_root_init.
-> This is part of a greater effort to move ctl tables into their
-> respective subsystems which will reduce the merge conflicts in
-> kerenel/sysctl.c.
-  ^^^^^^^
+--2QbfUHTxTDOlgUSw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Typo, exists in patches 4 and 5 of this series.
+On Thu, Mar 13, 2025 at 03:49:50PM +0200, Mike Rapoport wrote:
 
-Adrian
+> v2 changes:
+> * don't use generic version for setting high_memory on architectures
+>   that use that varialble earlier than free_area_init()
+> * use memblock_alloc_or_panig() to allocate zero pages on MIPS and s390
+> * fix alignment in allocation of zero pages on s390
+> * add Acked-by
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+This resolves the issues for 32 bit arm, at least the v7 boards:
+
+Tested-by: Mark Brown <broonie@kernel.org>
+
+My v5 and v6 boards are having issues but I think that's unrelated
+infrastructure (in one case definitely so).
+
+--2QbfUHTxTDOlgUSw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmfTCkgACgkQJNaLcl1U
+h9BPbAf/SDBWCt481g26uw69KoHpeH2cGq0Z5NH3zUIIBiu3gpRrex/BeLXVuY79
+d57+lsymFEsgnNbhXNvzjAzmaRTSMBu9C1S5o4Jo3+sz8kEnBS/myycnCrbU+lVy
+9R4LmwA4hhMZw2+UhgRPVFMTjd7fsFFLAsxmHyCheEOGfLGKMTKleusqFbK2phbu
+IrDc/IU6mCxqGrgZ3lO0fV7w2SfpkBANi9bXJz7aeAbqsOBeVyLCKgAL/gsbZxDZ
+g6Y0lOdm1gfigEHb8d5DiireqslCdgHnoH90rRI+3YBQiT8QOJLd/3W3G7YrKPNy
+/ufJa9n1CuXbfkYbynfJxmTOHNUPHw==
+=M7tK
+-----END PGP SIGNATURE-----
+
+--2QbfUHTxTDOlgUSw--
