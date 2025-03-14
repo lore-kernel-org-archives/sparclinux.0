@@ -1,1819 +1,569 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0B41FBC8B
-	for <sparclinux@vger.kernel.org>; Fri, 14 Mar 2025 07:13:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 931081F2B90;
+	Fri, 14 Mar 2025 09:50:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.235.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741936385; cv=none; b=JX6sOyhxnzPwC7dwkxw7/bhcNYaBTi2vECWedsrKCxvtCllBASgOp1tj5ZduzlBmzeUGjxym4HQecwMwnZlhmKODSsUR+dhxQ+7Q69KssKwr0jHDOORHibtxL/pyruoultIGBZWiN0/Mj9S4lpqHvJ8rdaF8Xcf6yTeq9HVQfF4=
+	t=1741945807; cv=none; b=QpG7yCWHhm3ilTljkPN3hOeysQeCxE0m0r1t++CYWl7XK8MkWo+zRUA4+EUr/MgSwNkam92OInt0Cw/4JFu1MevMfQFE7UH8vigAZ1ATLacHwSO5FljbSSTUvGFxcR6/GQJaZjjysfz7+Ft+c+G4HX+b3xvrv6SryYHJWsF/ApY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741936385; c=relaxed/simple;
-	bh=OPOjQTfpZ3ujcmG1uLhWtMtzgrUyt+Uod5TuCQnsO6I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=my6K7PVTynQe/cbXVEcBMnstADBw5NboAceAb6nQ6uNejCR90opKZlDgcy0u+YnWU8LNQox5UoylzGzpKxA0NS/7xoncbcB/h+Ih5ujZiMBcX8fOqbdUBoO3rPzfXFeqfmTEgogPHnBbBe2dh3NClq+TShHuDKzt5T2I2e5eIfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=bSJ5RWTe; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bSJ5RWTe"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1741936381;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=aYe6KtynEjr1AmiMV2IYsNMwvKDMtE6kJOTb1cm4JEA=;
-	b=bSJ5RWTe7VQlOWT5pUrq6gDLCfHzQIVsHFy+7C98pEA3IuWDVsqPM85cEvKqZ/mLCU9oTk
-	IJMTwj9vnB5BLqFHAgW23GJXDdrDlBTNkePu8wc3xCj0oku3iRfOmWqqNoQome59hG3VxN
-	sbD3gUjHtW6bImoC1hzh0FfToY/r+A8=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-307-344Vej5oMviTsxBxSxyQ9w-1; Fri,
- 14 Mar 2025 03:12:56 -0400
-X-MC-Unique: 344Vej5oMviTsxBxSxyQ9w-1
-X-Mimecast-MFC-AGG-ID: 344Vej5oMviTsxBxSxyQ9w_1741936374
-Received: from mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.111])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id E53C31801A12;
-	Fri, 14 Mar 2025 07:12:53 +0000 (UTC)
-Received: from thuth-p1g4.redhat.com (unknown [10.44.32.82])
-	by mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 822C418001DE;
-	Fri, 14 Mar 2025 07:12:50 +0000 (UTC)
-From: Thomas Huth <thuth@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	linux-arch@vger.kernel.org,
-	Thomas Huth <thuth@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	sparclinux@vger.kernel.org
-Subject: [PATCH 34/41] sparc: Replace __ASSEMBLY__ with __ASSEMBLER__ in non-uapi headers
-Date: Fri, 14 Mar 2025 08:10:05 +0100
-Message-ID: <20250314071013.1575167-35-thuth@redhat.com>
-In-Reply-To: <20250314071013.1575167-1-thuth@redhat.com>
-References: <20250314071013.1575167-1-thuth@redhat.com>
+	s=arc-20240116; t=1741945807; c=relaxed/simple;
+	bh=ItygPhVOMyAP9b92OVwMZceKD88YUZs2rOSEhpxC3OY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Y8crR/kCot3MG/Ing7kgzl3Ll059NvZZHfiXWqUvkL1HKSC8UYsKGsLtzq+BLaskP+lcjnMa4n+1ygnlYk0gCt9bRet+PzalBrkUjl/+/r0ZZplhyFKNYf5nhgA/YpO0vKXj2pPC4mJ94PtlIvrt2qAiRljiiNELXbFeLeHveH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.235.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+	by localhost (Postfix) with ESMTP id 4ZDf9F5TBfz9sSL;
+	Fri, 14 Mar 2025 10:25:21 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+	by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id CLp-Gj1__Flt; Fri, 14 Mar 2025 10:25:21 +0100 (CET)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase2.c-s.fr (Postfix) with ESMTP id 4ZDf9F434bz9sS8;
+	Fri, 14 Mar 2025 10:25:21 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 76F258B779;
+	Fri, 14 Mar 2025 10:25:21 +0100 (CET)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id mkS0oYzCmrz6; Fri, 14 Mar 2025 10:25:21 +0100 (CET)
+Received: from [192.168.235.99] (unknown [192.168.235.99])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id EF57F8B770;
+	Fri, 14 Mar 2025 10:25:18 +0100 (CET)
+Message-ID: <4b9627f2-65ff-4baf-931f-4e23b5732e6b@csgroup.eu>
+Date: Fri, 14 Mar 2025 10:25:18 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 09/13] arch, mm: set max_mapnr when allocating memory
+ map for FLATMEM
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>,
+ Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Guo Ren
+ <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+ Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Mark Brown <broonie@kernel.org>,
+ Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>,
+ Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
+ Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>,
+ Stafford Horne <shorne@gmail.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
+ linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-um@lists.infradead.org, linux-arch@vger.kernel.org,
+ linux-mm@kvack.org, x86@kernel.org
+References: <20250313135003.836600-1-rppt@kernel.org>
+ <20250313135003.836600-10-rppt@kernel.org>
+Content-Language: fr-FR
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+In-Reply-To: <20250313135003.836600-10-rppt@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.111
 
-While the GCC and Clang compilers already define __ASSEMBLER__
-automatically when compiling assembly code, __ASSEMBLY__ is a
-macro that only gets defined by the Makefiles in the kernel.
-This can be very confusing when switching between userspace
-and kernelspace coding, or when dealing with uapi headers that
-rather should use __ASSEMBLER__ instead. So let's standardize on
-the __ASSEMBLER__ macro that is provided by the compilers now.
 
-This is a completely mechanical patch (done with a simple "sed -i"
-statement).
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Thomas Huth <thuth@redhat.com>
----
- arch/sparc/include/asm/adi_64.h         |  4 +-
- arch/sparc/include/asm/auxio.h          |  4 +-
- arch/sparc/include/asm/auxio_32.h       |  4 +-
- arch/sparc/include/asm/auxio_64.h       |  4 +-
- arch/sparc/include/asm/cacheflush_64.h  |  4 +-
- arch/sparc/include/asm/cpudata.h        |  4 +-
- arch/sparc/include/asm/cpudata_64.h     |  4 +-
- arch/sparc/include/asm/delay_64.h       |  4 +-
- arch/sparc/include/asm/ftrace.h         |  2 +-
- arch/sparc/include/asm/hvtramp.h        |  2 +-
- arch/sparc/include/asm/hypervisor.h     | 92 ++++++++++++-------------
- arch/sparc/include/asm/irqflags_32.h    |  4 +-
- arch/sparc/include/asm/irqflags_64.h    |  4 +-
- arch/sparc/include/asm/jump_label.h     |  4 +-
- arch/sparc/include/asm/kdebug_32.h      |  4 +-
- arch/sparc/include/asm/leon.h           |  8 +--
- arch/sparc/include/asm/leon_amba.h      |  6 +-
- arch/sparc/include/asm/mman.h           |  4 +-
- arch/sparc/include/asm/mmu_64.h         |  4 +-
- arch/sparc/include/asm/mmu_context_32.h |  4 +-
- arch/sparc/include/asm/mmu_context_64.h |  4 +-
- arch/sparc/include/asm/mxcc.h           |  4 +-
- arch/sparc/include/asm/obio.h           |  4 +-
- arch/sparc/include/asm/openprom.h       |  4 +-
- arch/sparc/include/asm/page_32.h        |  8 +--
- arch/sparc/include/asm/page_64.h        |  8 +--
- arch/sparc/include/asm/pcic.h           |  2 +-
- arch/sparc/include/asm/pgtable_32.h     |  4 +-
- arch/sparc/include/asm/pgtable_64.h     |  8 +--
- arch/sparc/include/asm/pgtsrmmu.h       |  6 +-
- arch/sparc/include/asm/processor_64.h   | 10 +--
- arch/sparc/include/asm/psr.h            |  4 +-
- arch/sparc/include/asm/ptrace.h         | 12 ++--
- arch/sparc/include/asm/ross.h           |  4 +-
- arch/sparc/include/asm/sbi.h            |  4 +-
- arch/sparc/include/asm/sigcontext.h     |  4 +-
- arch/sparc/include/asm/signal.h         |  6 +-
- arch/sparc/include/asm/smp_32.h         |  8 +--
- arch/sparc/include/asm/smp_64.h         |  8 +--
- arch/sparc/include/asm/spinlock_32.h    |  4 +-
- arch/sparc/include/asm/spinlock_64.h    |  4 +-
- arch/sparc/include/asm/spitfire.h       |  4 +-
- arch/sparc/include/asm/starfire.h       |  2 +-
- arch/sparc/include/asm/thread_info_32.h |  4 +-
- arch/sparc/include/asm/thread_info_64.h | 12 ++--
- arch/sparc/include/asm/trap_block.h     |  4 +-
- arch/sparc/include/asm/traps.h          |  4 +-
- arch/sparc/include/asm/tsb.h            |  2 +-
- arch/sparc/include/asm/ttable.h         |  2 +-
- arch/sparc/include/asm/turbosparc.h     |  4 +-
- arch/sparc/include/asm/upa.h            |  4 +-
- arch/sparc/include/asm/vaddrs.h         |  2 +-
- arch/sparc/include/asm/viking.h         |  4 +-
- arch/sparc/include/asm/visasm.h         |  2 +-
- drivers/char/hw_random/n2rng.h          |  4 +-
- 55 files changed, 172 insertions(+), 172 deletions(-)
+Le 13/03/2025 à 14:49, Mike Rapoport a écrit :
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> 
+> max_mapnr is essentially the size of the memory map for systems that use
+> FLATMEM. There is no reason to calculate it in each and every architecture
+> when it's anyway calculated in alloc_node_mem_map().
+> 
+> Drop setting of max_mapnr from architecture code and set it once in
+> alloc_node_mem_map().
 
-diff --git a/arch/sparc/include/asm/adi_64.h b/arch/sparc/include/asm/adi_64.h
-index 4301c6fd87f7a..0c066fdab6963 100644
---- a/arch/sparc/include/asm/adi_64.h
-+++ b/arch/sparc/include/asm/adi_64.h
-@@ -9,7 +9,7 @@
- 
- #include <linux/types.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- struct adi_caps {
- 	__u64 blksz;
-@@ -41,6 +41,6 @@ static inline unsigned long adi_nbits(void)
- 	return adi_state.caps.nbits;
- }
- 
--#endif	/* __ASSEMBLY__ */
-+#endif	/* __ASSEMBLER__ */
- 
- #endif	/* !(__ASM_SPARC64_ADI_H) */
-diff --git a/arch/sparc/include/asm/auxio.h b/arch/sparc/include/asm/auxio.h
-index a2681052e9000..d0a933ed0d04b 100644
---- a/arch/sparc/include/asm/auxio.h
-+++ b/arch/sparc/include/asm/auxio.h
-@@ -2,11 +2,11 @@
- #ifndef ___ASM_SPARC_AUXIO_H
- #define ___ASM_SPARC_AUXIO_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- extern void __iomem *auxio_register;
- 
--#endif /* ifndef __ASSEMBLY__ */
-+#endif /* ifndef __ASSEMBLER__ */
- 
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/auxio_64.h>
-diff --git a/arch/sparc/include/asm/auxio_32.h b/arch/sparc/include/asm/auxio_32.h
-index 852457c7a265a..db58fa28de9ec 100644
---- a/arch/sparc/include/asm/auxio_32.h
-+++ b/arch/sparc/include/asm/auxio_32.h
-@@ -29,7 +29,7 @@
- #define AUXIO_FLPY_EJCT   0x02    /* Eject floppy disk.  Write only. */
- #define AUXIO_LED         0x01    /* On if set, off if unset. Read/Write */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /*
-  * NOTE: these routines are implementation dependent--
-@@ -75,7 +75,7 @@ do { \
- 	} \
- } while (0)
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- 
- /* AUXIO2 (Power Off Control) */
-diff --git a/arch/sparc/include/asm/auxio_64.h b/arch/sparc/include/asm/auxio_64.h
-index ae1ed41987db7..8a4ae07daf168 100644
---- a/arch/sparc/include/asm/auxio_64.h
-+++ b/arch/sparc/include/asm/auxio_64.h
-@@ -74,7 +74,7 @@
- #define AUXIO_PCIO_CPWR_OFF	0x02 /* Courtesy Power Off	*/
- #define AUXIO_PCIO_SPWR_OFF	0x01 /* System Power Off	*/
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define AUXIO_LTE_ON	1
- #define AUXIO_LTE_OFF	0
-@@ -94,6 +94,6 @@ void auxio_set_lte(int on);
-  */
- void auxio_set_led(int on);
- 
--#endif /* ifndef __ASSEMBLY__ */
-+#endif /* ifndef __ASSEMBLER__ */
- 
- #endif /* !(_SPARC64_AUXIO_H) */
-diff --git a/arch/sparc/include/asm/cacheflush_64.h b/arch/sparc/include/asm/cacheflush_64.h
-index 2b1261b77ecd1..06092572c0455 100644
---- a/arch/sparc/include/asm/cacheflush_64.h
-+++ b/arch/sparc/include/asm/cacheflush_64.h
-@@ -4,7 +4,7 @@
- 
- #include <asm/page.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/mm.h>
- 
-@@ -78,6 +78,6 @@ void flush_ptrace_access(struct vm_area_struct *, struct page *,
- #define flush_cache_vmap_early(start, end)	do { } while (0)
- #define flush_cache_vunmap(start, end)		do { } while (0)
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* _SPARC64_CACHEFLUSH_H */
-diff --git a/arch/sparc/include/asm/cpudata.h b/arch/sparc/include/asm/cpudata.h
-index d213165ee713b..67022a153023f 100644
---- a/arch/sparc/include/asm/cpudata.h
-+++ b/arch/sparc/include/asm/cpudata.h
-@@ -2,14 +2,14 @@
- #ifndef ___ASM_SPARC_CPUDATA_H
- #define ___ASM_SPARC_CPUDATA_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/threads.h>
- #include <linux/percpu.h>
- 
- extern const struct seq_operations cpuinfo_op;
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/cpudata_64.h>
-diff --git a/arch/sparc/include/asm/cpudata_64.h b/arch/sparc/include/asm/cpudata_64.h
-index 9c3fc03abe9ae..056b3c0e7ef94 100644
---- a/arch/sparc/include/asm/cpudata_64.h
-+++ b/arch/sparc/include/asm/cpudata_64.h
-@@ -7,7 +7,7 @@
- #ifndef _SPARC64_CPUDATA_H
- #define _SPARC64_CPUDATA_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- typedef struct {
- 	/* Dcache line 1 */
-@@ -35,7 +35,7 @@ DECLARE_PER_CPU(cpuinfo_sparc, __cpu_data);
- #define cpu_data(__cpu)		per_cpu(__cpu_data, (__cpu))
- #define local_cpu_data()	(*this_cpu_ptr(&__cpu_data))
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #include <asm/trap_block.h>
- 
-diff --git a/arch/sparc/include/asm/delay_64.h b/arch/sparc/include/asm/delay_64.h
-index 22213b1c119d2..5de5b5f23188c 100644
---- a/arch/sparc/include/asm/delay_64.h
-+++ b/arch/sparc/include/asm/delay_64.h
-@@ -7,12 +7,12 @@
- #ifndef _SPARC64_DELAY_H
- #define _SPARC64_DELAY_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- void __delay(unsigned long loops);
- void udelay(unsigned long usecs);
- #define mdelay(n)	udelay((n) * 1000)
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* _SPARC64_DELAY_H */
-diff --git a/arch/sparc/include/asm/ftrace.h b/arch/sparc/include/asm/ftrace.h
-index e284394cb3aa2..f7c9036199c5e 100644
---- a/arch/sparc/include/asm/ftrace.h
-+++ b/arch/sparc/include/asm/ftrace.h
-@@ -6,7 +6,7 @@
- #define MCOUNT_ADDR		((unsigned long)(_mcount))
- #define MCOUNT_INSN_SIZE	4 /* sizeof mcount call */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- void _mcount(void);
- #endif
- 
-diff --git a/arch/sparc/include/asm/hvtramp.h b/arch/sparc/include/asm/hvtramp.h
-index ce2453ea4f2be..8cf7a54fa528a 100644
---- a/arch/sparc/include/asm/hvtramp.h
-+++ b/arch/sparc/include/asm/hvtramp.h
-@@ -2,7 +2,7 @@
- #ifndef _SPARC64_HVTRAP_H
- #define _SPARC64_HVTRAP_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/types.h>
- 
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index f220edcf17c7c..94ac56d43746b 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -102,7 +102,7 @@
-  */
- #define HV_FAST_MACH_EXIT		0x00
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- void sun4v_mach_exit(unsigned long exit_code);
- #endif
- 
-@@ -131,7 +131,7 @@ void sun4v_mach_exit(unsigned long exit_code);
-  */
- #define HV_FAST_MACH_DESC		0x01
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mach_desc(unsigned long buffer_pa,
- 			      unsigned long buf_len,
- 			      unsigned long *real_buf_len);
-@@ -152,7 +152,7 @@ unsigned long sun4v_mach_desc(unsigned long buffer_pa,
-  */
- #define HV_FAST_MACH_SIR		0x02
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- void sun4v_mach_sir(void);
- #endif
- 
-@@ -208,7 +208,7 @@ void sun4v_mach_sir(void);
-  */
- #define HV_FAST_MACH_SET_WATCHDOG	0x05
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mach_set_watchdog(unsigned long timeout,
- 				      unsigned long *orig_timeout);
- #endif
-@@ -254,7 +254,7 @@ unsigned long sun4v_mach_set_watchdog(unsigned long timeout,
-  */
- #define HV_FAST_CPU_START		0x10
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_start(unsigned long cpuid,
- 			      unsigned long pc,
- 			      unsigned long rtba,
-@@ -282,7 +282,7 @@ unsigned long sun4v_cpu_start(unsigned long cpuid,
-  */
- #define HV_FAST_CPU_STOP		0x11
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_stop(unsigned long cpuid);
- #endif
- 
-@@ -299,7 +299,7 @@ unsigned long sun4v_cpu_stop(unsigned long cpuid);
-  */
- #define HV_FAST_CPU_YIELD		0x12
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_yield(void);
- #endif
- 
-@@ -317,7 +317,7 @@ unsigned long sun4v_cpu_yield(void);
-  */
- #define HV_FAST_CPU_POKE                0x13
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_poke(unsigned long cpuid);
- #endif
- 
-@@ -363,7 +363,7 @@ unsigned long sun4v_cpu_poke(unsigned long cpuid);
- #define  HV_CPU_QUEUE_RES_ERROR		 0x3e
- #define  HV_CPU_QUEUE_NONRES_ERROR	 0x3f
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_qconf(unsigned long type,
- 			      unsigned long queue_paddr,
- 			      unsigned long num_queue_entries);
-@@ -416,7 +416,7 @@ unsigned long sun4v_cpu_qconf(unsigned long type,
-  */
- #define HV_FAST_CPU_MONDO_SEND		0x42
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_cpu_mondo_send(unsigned long cpu_count,
- 				   unsigned long cpu_list_pa,
- 				   unsigned long mondo_block_pa);
-@@ -449,7 +449,7 @@ unsigned long sun4v_cpu_mondo_send(unsigned long cpu_count,
- #define  HV_CPU_STATE_RUNNING		 0x02
- #define  HV_CPU_STATE_ERROR		 0x03
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- long sun4v_cpu_state(unsigned long cpuid);
- #endif
- 
-@@ -485,7 +485,7 @@ long sun4v_cpu_state(unsigned long cpuid);
-  *
-  * Layout of a TSB description for mmu_tsb_ctx{,non}0() calls.
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_tsb_descr {
- 	unsigned short		pgsz_idx;
- 	unsigned short		assoc;
-@@ -536,7 +536,7 @@ struct hv_tsb_descr {
-  * The fault status block is a multiple of 64-bytes and must be aligned
-  * on a 64-byte boundary.
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_fault_status {
- 	unsigned long		i_fault_type;
- 	unsigned long		i_fault_addr;
-@@ -651,7 +651,7 @@ struct hv_fault_status {
-  */
- #define HV_FAST_MMU_TSB_CTX0		0x20
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mmu_tsb_ctx0(unsigned long num_descriptions,
- 				 unsigned long tsb_desc_ra);
- #endif
-@@ -736,7 +736,7 @@ unsigned long sun4v_mmu_tsb_ctx0(unsigned long num_descriptions,
-  */
- #define HV_FAST_MMU_DEMAP_ALL		0x24
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- void sun4v_mmu_demap_all(void);
- #endif
- 
-@@ -766,7 +766,7 @@ void sun4v_mmu_demap_all(void);
-  */
- #define HV_FAST_MMU_MAP_PERM_ADDR	0x25
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mmu_map_perm_addr(unsigned long vaddr,
- 				      unsigned long set_to_zero,
- 				      unsigned long tte,
-@@ -990,7 +990,7 @@ unsigned long sun4v_mmu_map_perm_addr(unsigned long vaddr,
-  */
- 
- #define HV_CCB_SUBMIT               0x34
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_ccb_submit(unsigned long ccb_buf,
- 			       unsigned long len,
- 			       unsigned long flags,
-@@ -1035,7 +1035,7 @@ unsigned long sun4v_ccb_submit(unsigned long ccb_buf,
-  */
- 
- #define HV_CCB_INFO                 0x35
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_ccb_info(unsigned long ca,
- 			     void *info_arr);
- #endif
-@@ -1069,7 +1069,7 @@ unsigned long sun4v_ccb_info(unsigned long ca,
-  */
- 
- #define HV_CCB_KILL                 0x36
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_ccb_kill(unsigned long ca,
- 			     void *kill_status);
- #endif
-@@ -1104,7 +1104,7 @@ unsigned long sun4v_ccb_kill(unsigned long ca,
-  */
- #define HV_FAST_TOD_GET			0x50
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_tod_get(unsigned long *time);
- #endif
- 
-@@ -1121,7 +1121,7 @@ unsigned long sun4v_tod_get(unsigned long *time);
-  */
- #define HV_FAST_TOD_SET			0x51
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_tod_set(unsigned long time);
- #endif
- 
-@@ -1197,7 +1197,7 @@ unsigned long sun4v_tod_set(unsigned long time);
-  */
- #define HV_FAST_CONS_WRITE		0x63
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- long sun4v_con_getchar(long *status);
- long sun4v_con_putchar(long c);
- long sun4v_con_read(unsigned long buffer,
-@@ -1239,7 +1239,7 @@ unsigned long sun4v_con_write(unsigned long buffer,
- #define  HV_SOFT_STATE_NORMAL		 0x01
- #define  HV_SOFT_STATE_TRANSITION	 0x02
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mach_set_soft_state(unsigned long soft_state,
- 				        unsigned long msg_string_ra);
- #endif
-@@ -1318,7 +1318,7 @@ unsigned long sun4v_mach_set_soft_state(unsigned long soft_state,
-  */
- #define HV_FAST_SVC_CLRSTATUS		0x84
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_svc_send(unsigned long svc_id,
- 			     unsigned long buffer,
- 			     unsigned long buffer_size,
-@@ -1348,7 +1348,7 @@ unsigned long sun4v_svc_clrstatus(unsigned long svc_id,
-  * start (offset 0) of the trap trace buffer, and is described as
-  * follows:
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_trap_trace_control {
- 	unsigned long		head_offset;
- 	unsigned long		tail_offset;
-@@ -1367,7 +1367,7 @@ struct hv_trap_trace_control {
-  *
-  * Each trap trace buffer entry is laid out as follows:
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_trap_trace_entry {
- 	unsigned char	type;		/* Hypervisor or guest entry?	*/
- 	unsigned char	hpstate;	/* Hyper-privileged state	*/
-@@ -1617,7 +1617,7 @@ struct hv_trap_trace_entry {
-  */
- #define HV_FAST_INTR_DEVINO2SYSINO	0xa0
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_devino_to_sysino(unsigned long devhandle,
- 				     unsigned long devino);
- #endif
-@@ -1635,7 +1635,7 @@ unsigned long sun4v_devino_to_sysino(unsigned long devhandle,
-  */
- #define HV_FAST_INTR_GETENABLED		0xa1
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_getenabled(unsigned long sysino);
- #endif
- 
-@@ -1651,7 +1651,7 @@ unsigned long sun4v_intr_getenabled(unsigned long sysino);
-  */
- #define HV_FAST_INTR_SETENABLED		0xa2
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_setenabled(unsigned long sysino,
- 				    unsigned long intr_enabled);
- #endif
-@@ -1668,7 +1668,7 @@ unsigned long sun4v_intr_setenabled(unsigned long sysino,
-  */
- #define HV_FAST_INTR_GETSTATE		0xa3
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_getstate(unsigned long sysino);
- #endif
- 
-@@ -1688,7 +1688,7 @@ unsigned long sun4v_intr_getstate(unsigned long sysino);
-  */
- #define HV_FAST_INTR_SETSTATE		0xa4
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_setstate(unsigned long sysino, unsigned long intr_state);
- #endif
- 
-@@ -1706,7 +1706,7 @@ unsigned long sun4v_intr_setstate(unsigned long sysino, unsigned long intr_state
-  */
- #define HV_FAST_INTR_GETTARGET		0xa5
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_gettarget(unsigned long sysino);
- #endif
- 
-@@ -1723,7 +1723,7 @@ unsigned long sun4v_intr_gettarget(unsigned long sysino);
-  */
- #define HV_FAST_INTR_SETTARGET		0xa6
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_intr_settarget(unsigned long sysino, unsigned long cpuid);
- #endif
- 
-@@ -1807,7 +1807,7 @@ unsigned long sun4v_intr_settarget(unsigned long sysino, unsigned long cpuid);
-  */
- #define HV_FAST_VINTR_SET_TARGET	0xae
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_vintr_get_cookie(unsigned long dev_handle,
- 				     unsigned long dev_ino,
- 				     unsigned long *cookie);
-@@ -3047,7 +3047,7 @@ unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
- #define LDC_MTE_SZ64K	0x0000000000000001 /* 64K page           */
- #define LDC_MTE_SZ8K	0x0000000000000000 /* 8K page            */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct ldc_mtable_entry {
- 	unsigned long	mte;
- 	unsigned long	cookie;
-@@ -3130,7 +3130,7 @@ struct ldc_mtable_entry {
-  */
- #define HV_FAST_LDC_REVOKE		0xef
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_ldc_tx_qconf(unsigned long channel,
- 				 unsigned long ra,
- 				 unsigned long num_entries);
-@@ -3230,7 +3230,7 @@ unsigned long sun4v_ldc_revoke(unsigned long channel,
- #define HV_FAST_N2_GET_PERFREG		0x104
- #define HV_FAST_N2_SET_PERFREG		0x105
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_niagara_getperf(unsigned long reg,
- 				    unsigned long *val);
- unsigned long sun4v_niagara_setperf(unsigned long reg,
-@@ -3247,7 +3247,7 @@ unsigned long sun4v_niagara2_setperf(unsigned long reg,
-  * a buffer where these statistics can be collected.  It is continually
-  * updated once configured.  The layout is as follows:
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_mmu_statistics {
- 	unsigned long immu_tsb_hits_ctx0_8k_tte;
- 	unsigned long immu_tsb_ticks_ctx0_8k_tte;
-@@ -3332,7 +3332,7 @@ struct hv_mmu_statistics {
-  */
- #define HV_FAST_MMUSTAT_INFO		0x103
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_mmustat_conf(unsigned long ra, unsigned long *orig_ra);
- unsigned long sun4v_mmustat_info(unsigned long *ra);
- #endif
-@@ -3343,7 +3343,7 @@ unsigned long sun4v_mmustat_info(unsigned long *ra);
- #define HV_NCS_QCONF			0x01
- #define HV_NCS_QTAIL_UPDATE		0x02
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct hv_ncs_queue_entry {
- 	/* MAU Control Register */
- 	unsigned long	mau_control;
-@@ -3422,7 +3422,7 @@ struct hv_ncs_qtail_update_arg {
-  */
- #define HV_FAST_NCS_REQUEST		0x110
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_ncs_request(unsigned long request,
- 			        unsigned long arg_ra,
- 			        unsigned long arg_size);
-@@ -3433,7 +3433,7 @@ unsigned long sun4v_ncs_request(unsigned long request,
- 
- #define HV_FAST_REBOOT_DATA_SET		0x172
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_reboot_data_set(unsigned long ra,
- 				    unsigned long len);
- #endif
-@@ -3441,7 +3441,7 @@ unsigned long sun4v_reboot_data_set(unsigned long ra,
- #define HV_FAST_VT_GET_PERFREG		0x184
- #define HV_FAST_VT_SET_PERFREG		0x185
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_vt_get_perfreg(unsigned long reg_num,
- 				   unsigned long *reg_val);
- unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
-@@ -3451,7 +3451,7 @@ unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
- #define	HV_FAST_T5_GET_PERFREG		0x1a8
- #define	HV_FAST_T5_SET_PERFREG		0x1a9
- 
--#ifndef	__ASSEMBLY__
-+#ifndef	__ASSEMBLER__
- unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
- 				   unsigned long *reg_val);
- unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-@@ -3462,7 +3462,7 @@ unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
- #define HV_FAST_M7_GET_PERFREG	0x43
- #define HV_FAST_M7_SET_PERFREG	0x44
- 
--#ifndef	__ASSEMBLY__
-+#ifndef	__ASSEMBLER__
- unsigned long sun4v_m7_get_perfreg(unsigned long reg_num,
- 				      unsigned long *reg_val);
- unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
-@@ -3506,7 +3506,7 @@ unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
- #define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- unsigned long sun4v_get_version(unsigned long group,
- 			        unsigned long *major,
- 			        unsigned long *minor);
-diff --git a/arch/sparc/include/asm/irqflags_32.h b/arch/sparc/include/asm/irqflags_32.h
-index 7ca3eaf3dace9..f5f20774faac1 100644
---- a/arch/sparc/include/asm/irqflags_32.h
-+++ b/arch/sparc/include/asm/irqflags_32.h
-@@ -11,7 +11,7 @@
- #ifndef _ASM_IRQFLAGS_H
- #define _ASM_IRQFLAGS_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/types.h>
- #include <asm/psr.h>
-@@ -43,6 +43,6 @@ static inline notrace bool arch_irqs_disabled(void)
- 	return arch_irqs_disabled_flags(arch_local_save_flags());
- }
- 
--#endif /* (__ASSEMBLY__) */
-+#endif /* (__ASSEMBLER__) */
- 
- #endif /* !(_ASM_IRQFLAGS_H) */
-diff --git a/arch/sparc/include/asm/irqflags_64.h b/arch/sparc/include/asm/irqflags_64.h
-index c29ed571ae49e..0071566c2c223 100644
---- a/arch/sparc/include/asm/irqflags_64.h
-+++ b/arch/sparc/include/asm/irqflags_64.h
-@@ -13,7 +13,7 @@
- 
- #include <asm/pil.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline notrace unsigned long arch_local_save_flags(void)
- {
-@@ -93,6 +93,6 @@ static inline notrace unsigned long arch_local_irq_save(void)
- 	return flags;
- }
- 
--#endif /* (__ASSEMBLY__) */
-+#endif /* (__ASSEMBLER__) */
- 
- #endif /* !(_ASM_IRQFLAGS_H) */
-diff --git a/arch/sparc/include/asm/jump_label.h b/arch/sparc/include/asm/jump_label.h
-index 2718cbea826a7..f49d1e6104e11 100644
---- a/arch/sparc/include/asm/jump_label.h
-+++ b/arch/sparc/include/asm/jump_label.h
-@@ -2,7 +2,7 @@
- #ifndef _ASM_SPARC_JUMP_LABEL_H
- #define _ASM_SPARC_JUMP_LABEL_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/types.h>
- 
-@@ -48,5 +48,5 @@ struct jump_entry {
- 	jump_label_t key;
- };
- 
--#endif  /* __ASSEMBLY__ */
-+#endif  /* __ASSEMBLER__ */
- #endif
-diff --git a/arch/sparc/include/asm/kdebug_32.h b/arch/sparc/include/asm/kdebug_32.h
-index 763d423823bdd..7627701a032cf 100644
---- a/arch/sparc/include/asm/kdebug_32.h
-+++ b/arch/sparc/include/asm/kdebug_32.h
-@@ -19,7 +19,7 @@
- 
- #define DEBUG_BP_TRAP     126
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- /* The debug vector is passed in %o1 at boot time.  It is a pointer to
-  * a structure in the debuggers address space.  Here is its format.
-  */
-@@ -64,7 +64,7 @@ enum die_val {
- 	DIE_OOPS,
- };
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /* Some nice offset defines for assembler code. */
- #define KDEBUG_ENTRY_OFF    0x0
-diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-index c1e05e4ab9e35..053a24b67aeda 100644
---- a/arch/sparc/include/asm/leon.h
-+++ b/arch/sparc/include/asm/leon.h
-@@ -59,7 +59,7 @@
- #define ASI_LEON3_SYSCTRL_CFG_SNOOPING (1 << 27)
- #define ASI_LEON3_SYSCTRL_CFG_SSIZE(c) (1 << ((c >> 20) & 0xf))
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /* do a physical address bypass write, i.e. for 0x80000000 */
- static inline void leon_store_reg(unsigned long paddr, unsigned long value)
-@@ -132,7 +132,7 @@ static inline int sparc_leon3_cpuid(void)
- 	return sparc_leon3_asr17() >> 28;
- }
- 
--#endif /*!__ASSEMBLY__*/
-+#endif /*!__ASSEMBLER__*/
- 
- #ifdef CONFIG_SMP
- # define LEON3_IRQ_IPI_DEFAULT		13
-@@ -194,7 +194,7 @@ static inline int sparc_leon3_cpuid(void)
- #define LEON2_CCR_DSETS_MASK 0x03000000UL
- #define LEON2_CFG_SSIZE_MASK 0x00007000UL
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct vm_area_struct;
- 
- unsigned long leon_swprobe(unsigned long vaddr, unsigned long *paddr);
-@@ -247,7 +247,7 @@ extern int leon_ipi_irq;
- 
- #endif /* CONFIG_SMP */
- 
--#endif /* __ASSEMBLY__ */
-+#endif /* __ASSEMBLER__ */
- 
- /* macros used in leon_mm.c */
- #define PFN(x)           ((x) >> PAGE_SHIFT)
-diff --git a/arch/sparc/include/asm/leon_amba.h b/arch/sparc/include/asm/leon_amba.h
-index 6433a93f51264..2ff5714d7a63a 100644
---- a/arch/sparc/include/asm/leon_amba.h
-+++ b/arch/sparc/include/asm/leon_amba.h
-@@ -8,7 +8,7 @@
- #ifndef LEON_AMBA_H_INCLUDE
- #define LEON_AMBA_H_INCLUDE
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- struct amba_prom_registers {
- 	unsigned int phys_addr;	/* The physical address of this register */
-@@ -89,7 +89,7 @@ struct amba_prom_registers {
- #define LEON3_GPTIMER_CONFIG_NRTIMERS(c) ((c)->config & 0x7)
- #define LEON3_GPTIMER_CTRL_ISPENDING(r)  (((r)&LEON3_GPTIMER_CTRL_PENDING) ? 1 : 0)
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- struct leon3_irqctrl_regs_map {
- 	u32 ilevel;
-@@ -189,7 +189,7 @@ extern int leon_debug_irqout;
- extern unsigned long leon3_gptimer_irq;
- extern unsigned int sparc_leon_eirq;
- 
--#endif /* __ASSEMBLY__ */
-+#endif /* __ASSEMBLER__ */
- 
- #define LEON3_IO_AREA 0xfff00000
- #define LEON3_CONF_AREA 0xff000
-diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-index af9c10c83dc58..0ae05fbdc023e 100644
---- a/arch/sparc/include/asm/mman.h
-+++ b/arch/sparc/include/asm/mman.h
-@@ -4,7 +4,7 @@
- 
- #include <uapi/asm/mman.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
- int sparc_mmap_check(unsigned long addr, unsigned long len);
- 
-@@ -87,5 +87,5 @@ static inline bool arch_validate_flags(unsigned long vm_flags)
- }
- #endif /* CONFIG_SPARC64 */
- 
--#endif /* __ASSEMBLY__ */
-+#endif /* __ASSEMBLER__ */
- #endif /* __SPARC_MMAN_H__ */
-diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-index 7e2704c770e9f..4eeb938f3e61c 100644
---- a/arch/sparc/include/asm/mmu_64.h
-+++ b/arch/sparc/include/asm/mmu_64.h
-@@ -59,7 +59,7 @@
- #define CTX_HWBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_HW_MASK)
- #define CTX_NRBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_NR_MASK)
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define TSB_ENTRY_ALIGNMENT	16
- 
-@@ -117,7 +117,7 @@ typedef struct {
- 	spinlock_t		tag_lock;
- } mm_context_t;
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #define TSB_CONFIG_TSB		0x00
- #define TSB_CONFIG_RSS_LIMIT	0x08
-diff --git a/arch/sparc/include/asm/mmu_context_32.h b/arch/sparc/include/asm/mmu_context_32.h
-index 509043f815602..d9ff73f776f93 100644
---- a/arch/sparc/include/asm/mmu_context_32.h
-+++ b/arch/sparc/include/asm/mmu_context_32.h
-@@ -2,7 +2,7 @@
- #ifndef __SPARC_MMU_CONTEXT_H
- #define __SPARC_MMU_CONTEXT_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm-generic/mm_hooks.h>
- 
-@@ -29,6 +29,6 @@ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
- 
- #include <asm-generic/mmu_context.h>
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__SPARC_MMU_CONTEXT_H) */
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 08160bf9a0f41..78bbacc14d2d9 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -4,7 +4,7 @@
- 
- /* Derived heavily from Linus's Alpha/AXP ASN code... */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/spinlock.h>
- #include <linux/mm_types.h>
-@@ -193,6 +193,6 @@ static inline unsigned long mm_untag_mask(struct mm_struct *mm)
- 
- #include <asm-generic/mmu_context.h>
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__SPARC64_MMU_CONTEXT_H) */
-diff --git a/arch/sparc/include/asm/mxcc.h b/arch/sparc/include/asm/mxcc.h
-index 3a2561bea4dd4..bd6339dcf693d 100644
---- a/arch/sparc/include/asm/mxcc.h
-+++ b/arch/sparc/include/asm/mxcc.h
-@@ -84,7 +84,7 @@
-  * MID: The moduleID of the cpu your read this from.
-  */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline void mxcc_set_stream_src(unsigned long *paddr)
- {
-@@ -133,6 +133,6 @@ static inline void mxcc_set_creg(unsigned long mxcc_control)
- 			     "i" (ASI_M_MXCC));
- }
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC_MXCC_H) */
-diff --git a/arch/sparc/include/asm/obio.h b/arch/sparc/include/asm/obio.h
-index 1b151f738b00e..f1ad7f7bcac23 100644
---- a/arch/sparc/include/asm/obio.h
-+++ b/arch/sparc/include/asm/obio.h
-@@ -97,7 +97,7 @@
- #define CC_EREG		0x1F00E00  /* Error code register */
- #define CC_CID		0x1F00F04  /* Component ID */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline int bw_get_intr_mask(int sbus_level)
- {
-@@ -221,6 +221,6 @@ static inline void cc_set_igen(unsigned int gen)
- 			      "i" (ASI_M_MXCC));
- }
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC_OBIO_H) */
-diff --git a/arch/sparc/include/asm/openprom.h b/arch/sparc/include/asm/openprom.h
-index 69545b3e54547..ce68000dffac3 100644
---- a/arch/sparc/include/asm/openprom.h
-+++ b/arch/sparc/include/asm/openprom.h
-@@ -11,7 +11,7 @@
- /* Empirical constants... */
- #define LINUX_OPPROM_MAGIC      0x10010407
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #include <linux/of.h>
- 
- /* V0 prom device operations. */
-@@ -275,6 +275,6 @@ struct linux_prom_pci_intmask {
- 	unsigned int interrupt;
- };
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__SPARC_OPENPROM_H) */
-diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
-index 9954254ea5698..c1bccbedf567e 100644
---- a/arch/sparc/include/asm/page_32.h
-+++ b/arch/sparc/include/asm/page_32.h
-@@ -13,7 +13,7 @@
- 
- #include <vdso/page.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define clear_page(page)	 memset((void *)(page), 0, PAGE_SIZE)
- #define copy_page(to,from) 	memcpy((void *)(to), (void *)(from), PAGE_SIZE)
-@@ -108,14 +108,14 @@ typedef pte_t *pgtable_t;
- 
- #define TASK_UNMAPPED_BASE	0x50000000
- 
--#else /* !(__ASSEMBLY__) */
-+#else /* !(__ASSEMBLER__) */
- 
- #define __pgprot(x)	(x)
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #define PAGE_OFFSET	0xf0000000
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- extern unsigned long phys_base;
- extern unsigned long pfn_base;
- #endif
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 2a68ff5b6eabd..d764d8a8586bd 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -30,7 +30,7 @@
- #define HUGE_MAX_HSTATE		5
- #endif
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
- struct pt_regs;
-@@ -128,7 +128,7 @@ extern unsigned long sparc64_va_hole_bottom;
- 
- extern unsigned long PAGE_OFFSET;
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /* The maximum number of physical memory address bits we support.  The
-  * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
-@@ -139,7 +139,7 @@ extern unsigned long PAGE_OFFSET;
- #define ILOG2_4MB		22
- #define ILOG2_256MB		28
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define __pa(x)			((unsigned long)(x) - PAGE_OFFSET)
- #define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
-@@ -153,7 +153,7 @@ extern unsigned long PAGE_OFFSET;
- #define virt_to_phys __pa
- #define phys_to_virt __va
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #include <asm-generic/getorder.h>
- 
-diff --git a/arch/sparc/include/asm/pcic.h b/arch/sparc/include/asm/pcic.h
-index 238376b1ffcc4..fb5ed6a59535a 100644
---- a/arch/sparc/include/asm/pcic.h
-+++ b/arch/sparc/include/asm/pcic.h
-@@ -8,7 +8,7 @@
- #ifndef __SPARC_PCIC_H
- #define __SPARC_PCIC_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/types.h>
- #include <linux/smp.h>
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 62bcafe38b1f6..ff11ee1831786 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -21,7 +21,7 @@
- #define PGDIR_MASK      	(~(PGDIR_SIZE-1))
- #define PGDIR_ALIGN(__addr) 	(((__addr) + ~PGDIR_MASK) & PGDIR_MASK)
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #include <asm-generic/pgtable-nopud.h>
- 
- #include <linux/spinlock.h>
-@@ -428,7 +428,7 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
- 	__changed;							  \
- })
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #define VMALLOC_START           _AC(0xfe600000,UL)
- #define VMALLOC_END             _AC(0xffc00000,UL)
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 2b7f358762c18..f1ce04744df8c 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -79,7 +79,7 @@
- #error PMD_SHIFT must equal HPAGE_SHIFT for transparent huge pages.
- #endif
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- extern unsigned long VMALLOC_END;
- 
-@@ -106,7 +106,7 @@ bool kern_addr_valid(unsigned long addr);
- 	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
- 	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /* PTE bits which are the same in SUN4U and SUN4V format.  */
- #define _PAGE_VALID	  _AC(0x8000000000000000,UL) /* Valid TTE            */
-@@ -191,7 +191,7 @@ bool kern_addr_valid(unsigned long addr);
- /* We borrow bit 20 to store the exclusive marker in swap PTEs. */
- #define _PAGE_SWP_EXCLUSIVE	_AC(0x0000000000100000, UL)
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- pte_t mk_pte_io(unsigned long, pgprot_t, int, unsigned long);
- 
-@@ -1181,6 +1181,6 @@ extern unsigned long pte_leaf_size(pte_t pte);
- 
- #endif /* CONFIG_HUGETLB_PAGE */
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(_SPARC64_PGTABLE_H) */
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 18e68d43f0367..a265822a475ee 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -10,7 +10,7 @@
- 
- #include <asm/page.h>
- 
--#ifdef __ASSEMBLY__
-+#ifdef __ASSEMBLER__
- #include <asm/thread_info.h>	/* TI_UWINMASK for WINDOW_FLUSH */
- #endif
- 
-@@ -97,7 +97,7 @@
- 	bne	99b;							\
- 	 restore %g0, %g0, %g0;
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- extern unsigned long last_valid_pfn;
- 
- /* This makes sense. Honest it does - Anton */
-@@ -136,6 +136,6 @@ srmmu_get_pte (unsigned long addr)
- 	return entry;
- }
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(_SPARC_PGTSRMMU_H) */
-diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
-index 0a0d5c3d184c7..321859454ca4c 100644
---- a/arch/sparc/include/asm/processor_64.h
-+++ b/arch/sparc/include/asm/processor_64.h
-@@ -21,7 +21,7 @@
-  * XXX No longer using virtual page tables, kill this upper limit...
-  */
- #define VA_BITS		44
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #define VPTE_SIZE	(1UL << (VA_BITS - PAGE_SHIFT + 3))
- #else
- #define VPTE_SIZE	(1 << (VA_BITS - PAGE_SHIFT + 3))
-@@ -45,7 +45,7 @@
- 
- #endif
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /* The Sparc processor specific thread struct. */
- /* XXX This should die, everything can go into thread_info now. */
-@@ -62,7 +62,7 @@ struct thread_struct {
- #endif
- };
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #ifndef CONFIG_DEBUG_SPINLOCK
- #define INIT_THREAD  {			\
-@@ -75,7 +75,7 @@ struct thread_struct {
- }
- #endif /* !(CONFIG_DEBUG_SPINLOCK) */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/types.h>
- #include <asm/fpumacro.h>
-@@ -242,6 +242,6 @@ static inline void prefetchw(const void *x)
- 
- int do_mathemu(struct pt_regs *regs, struct fpustate *f, bool illegal_insn_trap);
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__ASM_SPARC64_PROCESSOR_H) */
-diff --git a/arch/sparc/include/asm/psr.h b/arch/sparc/include/asm/psr.h
-index 65127ce565abc..5af50ccda0233 100644
---- a/arch/sparc/include/asm/psr.h
-+++ b/arch/sparc/include/asm/psr.h
-@@ -14,7 +14,7 @@
- #include <uapi/asm/psr.h>
- 
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- /* Get the %psr register. */
- static inline unsigned int get_psr(void)
- {
-@@ -63,6 +63,6 @@ static inline unsigned int get_fsr(void)
- 	return fsr;
- }
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__LINUX_SPARC_PSR_H) */
-diff --git a/arch/sparc/include/asm/ptrace.h b/arch/sparc/include/asm/ptrace.h
-index d1419e6690274..8adf3fd2f00fe 100644
---- a/arch/sparc/include/asm/ptrace.h
-+++ b/arch/sparc/include/asm/ptrace.h
-@@ -5,7 +5,7 @@
- #include <uapi/asm/ptrace.h>
- 
- #if defined(__sparc__) && defined(__arch64__)
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/compiler.h>
- #include <linux/threads.h>
-@@ -113,10 +113,10 @@ static inline unsigned long kernel_stack_pointer(struct pt_regs *regs)
- {
- 	return regs->u_regs[UREG_I6];
- }
--#else /* __ASSEMBLY__ */
--#endif /* __ASSEMBLY__ */
-+#else /* __ASSEMBLER__ */
-+#endif /* __ASSEMBLER__ */
- #else /* (defined(__sparc__) && defined(__arch64__)) */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #include <asm/switch_to.h>
- 
- static inline bool pt_regs_is_syscall(struct pt_regs *regs)
-@@ -144,8 +144,8 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
- #define instruction_pointer(regs) ((regs)->pc)
- #define user_stack_pointer(regs) ((regs)->u_regs[UREG_FP])
- unsigned long profile_pc(struct pt_regs *);
--#else /* (!__ASSEMBLY__) */
--#endif /* (!__ASSEMBLY__) */
-+#else /* (!__ASSEMBLER__) */
-+#endif /* (!__ASSEMBLER__) */
- #endif /* (defined(__sparc__) && defined(__arch64__)) */
- #define STACK_BIAS		2047
- 
-diff --git a/arch/sparc/include/asm/ross.h b/arch/sparc/include/asm/ross.h
-index 79a54d66a2c0b..53a42b37495d0 100644
---- a/arch/sparc/include/asm/ross.h
-+++ b/arch/sparc/include/asm/ross.h
-@@ -95,7 +95,7 @@
- #define HYPERSPARC_ICCR_FTD     0x00000002
- #define HYPERSPARC_ICCR_ICE     0x00000001
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline unsigned int get_ross_icr(void)
- {
-@@ -187,6 +187,6 @@ static inline void hyper_flush_cache_page(unsigned long page)
- 	}
- }
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(_SPARC_ROSS_H) */
-diff --git a/arch/sparc/include/asm/sbi.h b/arch/sparc/include/asm/sbi.h
-index 4d6026c1e446f..861f85b5bf9bb 100644
---- a/arch/sparc/include/asm/sbi.h
-+++ b/arch/sparc/include/asm/sbi.h
-@@ -64,7 +64,7 @@ struct sbi_regs {
-  */
- 
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline int acquire_sbi(int devid, int mask)
- {
-@@ -111,6 +111,6 @@ static inline void set_sbi_ctl(int devid, int cfgno, int cfg)
- 			      "i" (ASI_M_CTL));
- }
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC_SBI_H) */
-diff --git a/arch/sparc/include/asm/sigcontext.h b/arch/sparc/include/asm/sigcontext.h
-index ee05f9d2bcf2c..200f95144fd29 100644
---- a/arch/sparc/include/asm/sigcontext.h
-+++ b/arch/sparc/include/asm/sigcontext.h
-@@ -5,7 +5,7 @@
- #include <asm/ptrace.h>
- #include <uapi/asm/sigcontext.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define __SUNOS_MAXWIN   31
- 
-@@ -104,6 +104,6 @@ typedef struct {
- #endif /* (CONFIG_SPARC64) */
- 
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__SPARC_SIGCONTEXT_H) */
-diff --git a/arch/sparc/include/asm/signal.h b/arch/sparc/include/asm/signal.h
-index 28f81081e37da..d93fe93544ec6 100644
---- a/arch/sparc/include/asm/signal.h
-+++ b/arch/sparc/include/asm/signal.h
-@@ -2,16 +2,16 @@
- #ifndef __SPARC_SIGNAL_H
- #define __SPARC_SIGNAL_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #include <linux/personality.h>
- #include <linux/types.h>
- #endif
- #include <uapi/asm/signal.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define __ARCH_HAS_KA_RESTORER
- #define __ARCH_HAS_SA_RESTORER
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- #endif /* !(__SPARC_SIGNAL_H) */
-diff --git a/arch/sparc/include/asm/smp_32.h b/arch/sparc/include/asm/smp_32.h
-index 2cf7971d7f6c9..9c6ed98fbaf12 100644
---- a/arch/sparc/include/asm/smp_32.h
-+++ b/arch/sparc/include/asm/smp_32.h
-@@ -10,15 +10,15 @@
- #include <linux/threads.h>
- #include <asm/head.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/cpumask.h>
- 
--#endif /* __ASSEMBLY__ */
-+#endif /* __ASSEMBLER__ */
- 
- #ifdef CONFIG_SMP
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm/ptrace.h>
- #include <asm/asi.h>
-@@ -105,7 +105,7 @@ int hard_smp_processor_id(void);
- 
- void smp_setup_cpu_possible_map(void);
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /* Sparc specific messages. */
- #define MSG_CROSS_CALL         0x0005       /* run func on cpus */
-diff --git a/arch/sparc/include/asm/smp_64.h b/arch/sparc/include/asm/smp_64.h
-index 0964fede0b2cc..759fb4a9530ed 100644
---- a/arch/sparc/include/asm/smp_64.h
-+++ b/arch/sparc/include/asm/smp_64.h
-@@ -12,16 +12,16 @@
- #include <asm/starfire.h>
- #include <asm/spitfire.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <linux/cpumask.h>
- #include <linux/cache.h>
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #ifdef CONFIG_SMP
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /*
-  *	Private routines/data
-@@ -68,7 +68,7 @@ int __cpu_disable(void);
- void __cpu_die(unsigned int cpu);
- #endif
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #else
- 
-diff --git a/arch/sparc/include/asm/spinlock_32.h b/arch/sparc/include/asm/spinlock_32.h
-index bc5aa6f616764..6d6d261bf8d2f 100644
---- a/arch/sparc/include/asm/spinlock_32.h
-+++ b/arch/sparc/include/asm/spinlock_32.h
-@@ -7,7 +7,7 @@
- #ifndef __SPARC_SPINLOCK_H
- #define __SPARC_SPINLOCK_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm/psr.h>
- #include <asm/barrier.h>
-@@ -183,6 +183,6 @@ static inline int __arch_read_trylock(arch_rwlock_t *rw)
- 	res; \
- })
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* __SPARC_SPINLOCK_H */
-diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
-index 3a9a0b0c74654..13cd15d346be4 100644
---- a/arch/sparc/include/asm/spinlock_64.h
-+++ b/arch/sparc/include/asm/spinlock_64.h
-@@ -7,13 +7,13 @@
- #ifndef __SPARC64_SPINLOCK_H
- #define __SPARC64_SPINLOCK_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm/processor.h>
- #include <asm/barrier.h>
- #include <asm/qspinlock.h>
- #include <asm/qrwlock.h>
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* !(__SPARC64_SPINLOCK_H) */
-diff --git a/arch/sparc/include/asm/spitfire.h b/arch/sparc/include/asm/spitfire.h
-index e9b7d25b29fae..79b9dd5e9ac68 100644
---- a/arch/sparc/include/asm/spitfire.h
-+++ b/arch/sparc/include/asm/spitfire.h
-@@ -68,7 +68,7 @@
- #define CPU_ID_M8		('8')
- #define CPU_ID_SONOMA1		('N')
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- enum ultra_tlb_layout {
- 	spitfire = 0,
-@@ -363,6 +363,6 @@ static inline void cheetah_put_itlb_data(int entry, unsigned long data)
- 			       "i" (ASI_ITLB_DATA_ACCESS));
- }
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- #endif /* CONFIG_SPARC64 */
- #endif /* !(_SPARC64_SPITFIRE_H) */
-diff --git a/arch/sparc/include/asm/starfire.h b/arch/sparc/include/asm/starfire.h
-index fb1a8c499cb03..8e511ed787755 100644
---- a/arch/sparc/include/asm/starfire.h
-+++ b/arch/sparc/include/asm/starfire.h
-@@ -8,7 +8,7 @@
- #ifndef _SPARC64_STARFIRE_H
- #define _SPARC64_STARFIRE_H
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- extern int this_is_starfire;
- 
-diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
-index 45b4955b253f2..fdaf7b171e0ac 100644
---- a/arch/sparc/include/asm/thread_info_32.h
-+++ b/arch/sparc/include/asm/thread_info_32.h
-@@ -14,7 +14,7 @@
- 
- #ifdef __KERNEL__
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm/ptrace.h>
- #include <asm/page.h>
-@@ -72,7 +72,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
-  */
- #define THREAD_SIZE_ORDER  1
- 
--#endif /* __ASSEMBLY__ */
-+#endif /* __ASSEMBLER__ */
- 
- /* Size of kernel stack for each process */
- #define THREAD_SIZE		(2 * PAGE_SIZE)
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index 1a44372e2bc07..c8a73dff27f80 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -26,7 +26,7 @@
- 
- #include <asm/page.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #include <asm/ptrace.h>
- #include <asm/types.h>
-@@ -64,7 +64,7 @@ struct thread_info {
- 		__attribute__ ((aligned(64)));
- };
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /* offsets into the thread_info struct for assembly code access */
- #define TI_TASK		0x00000000
-@@ -110,7 +110,7 @@ struct thread_info {
- /*
-  * macros/functions for gaining access to the thread information structure
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define INIT_THREAD_INFO(tsk)				\
- {							\
-@@ -150,7 +150,7 @@ extern struct thread_info *current_thread_info(void);
- #define set_thread_fpdepth(val)		(__cur_thread_flag_byte_ptr[TI_FLAG_BYTE_FPDEPTH] = (val))
- #define get_thread_wsaved()		(__cur_thread_flag_byte_ptr[TI_FLAG_BYTE_WSAVED])
- #define set_thread_wsaved(val)		(__cur_thread_flag_byte_ptr[TI_FLAG_BYTE_WSAVED] = (val))
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- /*
-  * Thread information flags, only 16 bits are available as we encode
-@@ -228,14 +228,14 @@ extern struct thread_info *current_thread_info(void);
-  * Note that there are only 8 bits available.
-  */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- #define thread32_stack_is_64bit(__SP) (((__SP) & 0x1) != 0)
- #define test_thread_64bit_stack(__SP) \
- 	((test_thread_flag(TIF_32BIT) && !thread32_stack_is_64bit(__SP)) ? \
- 	 false : true)
- 
--#endif	/* !__ASSEMBLY__ */
-+#endif	/* !__ASSEMBLER__ */
- 
- #endif /* __KERNEL__ */
- 
-diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
-index ace0d48e837e5..6cf2a60a0156d 100644
---- a/arch/sparc/include/asm/trap_block.h
-+++ b/arch/sparc/include/asm/trap_block.h
-@@ -7,7 +7,7 @@
- #include <asm/hypervisor.h>
- #include <asm/asi.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /* Trap handling code needs to get at a few critical values upon
-  * trap entry and to process TSB misses.  These cannot be in the
-@@ -91,7 +91,7 @@ extern struct sun4v_2insn_patch_entry __sun_m7_2insn_patch,
- 	__sun_m7_2insn_patch_end;
- 
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #define TRAP_PER_CPU_THREAD		0x00
- #define TRAP_PER_CPU_PGD_PADDR		0x08
-diff --git a/arch/sparc/include/asm/traps.h b/arch/sparc/include/asm/traps.h
-index 2fba2602ba69c..e4e10b0e7887d 100644
---- a/arch/sparc/include/asm/traps.h
-+++ b/arch/sparc/include/asm/traps.h
-@@ -9,7 +9,7 @@
- 
- #include <uapi/asm/traps.h>
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- /* This is for V8 compliant Sparc CPUS */
- struct tt_entry {
- 	unsigned long inst_one;
-@@ -21,5 +21,5 @@ struct tt_entry {
- /* We set this to _start in system setup. */
- extern struct tt_entry *sparc_ttable;
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- #endif /* !(_SPARC_TRAPS_H) */
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index 522a677e050d7..239be259e1669 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -59,7 +59,7 @@
-  * The kernel TSB is locked into the TLB by virtue of being in the
-  * kernel image, so we don't play these games for swapper_tsb access.
-  */
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- struct tsb_ldquad_phys_patch_entry {
- 	unsigned int	addr;
- 	unsigned int	sun4u_insn;
-diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
-index 8f64694080198..b32d3068cce12 100644
---- a/arch/sparc/include/asm/ttable.h
-+++ b/arch/sparc/include/asm/ttable.h
-@@ -5,7 +5,7 @@
- #include <asm/utrap.h>
- #include <asm/pil.h>
- 
--#ifdef __ASSEMBLY__
-+#ifdef __ASSEMBLER__
- #include <asm/thread_info.h>
- #endif
- 
-diff --git a/arch/sparc/include/asm/turbosparc.h b/arch/sparc/include/asm/turbosparc.h
-index 23df777f9cea5..5f73263b6ded8 100644
---- a/arch/sparc/include/asm/turbosparc.h
-+++ b/arch/sparc/include/asm/turbosparc.h
-@@ -57,7 +57,7 @@
- #define TURBOSPARC_WTENABLE 0x00000020	 /* Write thru for dcache */
- #define TURBOSPARC_SNENABLE 0x40000000	 /* DVMA snoop enable */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- /* Bits [13:5] select one of 512 instruction cache tags */
- static inline void turbosparc_inv_insn_tag(unsigned long addr)
-@@ -121,6 +121,6 @@ static inline unsigned long turbosparc_get_ccreg(void)
- 	return regval;
- }
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC_TURBOSPARC_H) */
-diff --git a/arch/sparc/include/asm/upa.h b/arch/sparc/include/asm/upa.h
-index 782691b30f545..b1df3a7f40ed0 100644
---- a/arch/sparc/include/asm/upa.h
-+++ b/arch/sparc/include/asm/upa.h
-@@ -24,7 +24,7 @@
- #define UPA_PORTID_ID           0x000000000000ffff /* Module Identification bits  */
- 
- /* UPA I/O space accessors */
--#if defined(__KERNEL__) && !defined(__ASSEMBLY__)
-+#if defined(__KERNEL__) && !defined(__ASSEMBLER__)
- static inline unsigned char _upa_readb(unsigned long addr)
- {
- 	unsigned char ret;
-@@ -105,6 +105,6 @@ static inline void _upa_writeq(unsigned long q, unsigned long addr)
- #define upa_writew(__w, __addr)		(_upa_writew((__w), (unsigned long)(__addr)))
- #define upa_writel(__l, __addr)		(_upa_writel((__l), (unsigned long)(__addr)))
- #define upa_writeq(__q, __addr)		(_upa_writeq((__q), (unsigned long)(__addr)))
--#endif /* __KERNEL__ && !__ASSEMBLY__ */
-+#endif /* __KERNEL__ && !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC64_UPA_H) */
-diff --git a/arch/sparc/include/asm/vaddrs.h b/arch/sparc/include/asm/vaddrs.h
-index 4fec0341e2a81..da567600c8974 100644
---- a/arch/sparc/include/asm/vaddrs.h
-+++ b/arch/sparc/include/asm/vaddrs.h
-@@ -31,7 +31,7 @@
-  */
- #define SRMMU_NOCACHE_ALCRATIO	64	/* 256 pages per 64MB of system RAM */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- #include <asm/kmap_size.h>
- 
- enum fixed_addresses {
-diff --git a/arch/sparc/include/asm/viking.h b/arch/sparc/include/asm/viking.h
-index 08ffc605035f3..bbb714de43c42 100644
---- a/arch/sparc/include/asm/viking.h
-+++ b/arch/sparc/include/asm/viking.h
-@@ -110,7 +110,7 @@
- #define VIKING_PTAG_DIRTY   0x00010000   /* Block has been modified */
- #define VIKING_PTAG_SHARED  0x00000100   /* Shared with some other cache */
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- 
- static inline void viking_flush_icache(void)
- {
-@@ -250,6 +250,6 @@ static inline unsigned long viking_hwprobe(unsigned long vaddr)
- 	return val;
- }
- 
--#endif /* !__ASSEMBLY__ */
-+#endif /* !__ASSEMBLER__ */
- 
- #endif /* !(_SPARC_VIKING_H) */
-diff --git a/arch/sparc/include/asm/visasm.h b/arch/sparc/include/asm/visasm.h
-index 7903e84e09e05..71eb4e9afb3e0 100644
---- a/arch/sparc/include/asm/visasm.h
-+++ b/arch/sparc/include/asm/visasm.h
-@@ -45,7 +45,7 @@
- #define VISExitHalfFast					\
- 	wr		%o5, 0, %fprs;
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- static inline void save_and_clear_fpu(void) {
- 	__asm__ __volatile__ (
- "		rd %%fprs, %%o5\n"
-diff --git a/drivers/char/hw_random/n2rng.h b/drivers/char/hw_random/n2rng.h
-index 9a870f5dc3712..7612f15a261fe 100644
---- a/drivers/char/hw_random/n2rng.h
-+++ b/drivers/char/hw_random/n2rng.h
-@@ -48,7 +48,7 @@
- 
- #define HV_RNG_NUM_CONTROL		4
- 
--#ifndef __ASSEMBLY__
-+#ifndef __ASSEMBLER__
- extern unsigned long sun4v_rng_get_diag_ctl(void);
- extern unsigned long sun4v_rng_ctl_read_v1(unsigned long ctl_regs_ra,
- 					   unsigned long *state,
-@@ -147,6 +147,6 @@ struct n2rng {
- #define N2RNG_BUSY_LIMIT	100
- #define N2RNG_HCHECK_LIMIT	100
- 
--#endif /* !(__ASSEMBLY__) */
-+#endif /* !(__ASSEMBLER__) */
- 
- #endif /* _N2RNG_H */
--- 
-2.48.1
+As far as I can see alloc_node_mem_map() is called quite late.
+
+I fear that it will regress commit daa9ada2093e ("powerpc/mm: Fix boot 
+crash with FLATMEM")
+
+Can you check ?
+
+Christophe
+
+> 
+> While on it, move definition of mem_map and max_mapnr to mm/mm_init.c so
+> there won't be two copies for MMU and !MMU variants.
+> 
+> Acked-by: Dave Hansen <dave.hansen@linux.intel.com>	# x86
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> ---
+>   arch/alpha/mm/init.c               |  1 -
+>   arch/arc/mm/init.c                 |  5 -----
+>   arch/arm/mm/init.c                 |  2 --
+>   arch/csky/mm/init.c                |  4 ----
+>   arch/loongarch/mm/init.c           |  1 -
+>   arch/microblaze/mm/init.c          |  4 ----
+>   arch/mips/mm/init.c                |  8 --------
+>   arch/nios2/kernel/setup.c          |  1 -
+>   arch/nios2/mm/init.c               |  2 +-
+>   arch/openrisc/mm/init.c            |  1 -
+>   arch/parisc/mm/init.c              |  1 -
+>   arch/powerpc/kernel/setup-common.c |  2 --
+>   arch/riscv/mm/init.c               |  1 -
+>   arch/s390/mm/init.c                |  1 -
+>   arch/sh/mm/init.c                  |  1 -
+>   arch/sparc/mm/init_32.c            |  1 -
+>   arch/um/include/shared/mem_user.h  |  1 -
+>   arch/um/kernel/physmem.c           | 12 ------------
+>   arch/um/kernel/um_arch.c           |  1 -
+>   arch/x86/mm/init_32.c              |  3 ---
+>   arch/xtensa/mm/init.c              |  1 -
+>   include/asm-generic/memory_model.h |  5 +++--
+>   include/linux/mm.h                 | 11 -----------
+>   mm/memory.c                        |  8 --------
+>   mm/mm_init.c                       | 25 +++++++++++++++++--------
+>   mm/nommu.c                         |  4 ----
+>   26 files changed, 21 insertions(+), 86 deletions(-)
+> 
+> diff --git a/arch/alpha/mm/init.c b/arch/alpha/mm/init.c
+> index 61c2198b1359..ec0eeae9c653 100644
+> --- a/arch/alpha/mm/init.c
+> +++ b/arch/alpha/mm/init.c
+> @@ -276,7 +276,6 @@ srm_paging_stop (void)
+>   void __init
+>   mem_init(void)
+>   {
+> -	set_max_mapnr(max_low_pfn);
+>   	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+>   	memblock_free_all();
+>   }
+> diff --git a/arch/arc/mm/init.c b/arch/arc/mm/init.c
+> index 6a71b23f1383..7ef883d58dc1 100644
+> --- a/arch/arc/mm/init.c
+> +++ b/arch/arc/mm/init.c
+> @@ -154,11 +154,6 @@ void __init setup_arch_memory(void)
+>   
+>   	arch_pfn_offset = min(min_low_pfn, min_high_pfn);
+>   	kmap_init();
+> -
+> -#else /* CONFIG_HIGHMEM */
+> -	/* pfn_valid() uses this when FLATMEM=y and HIGHMEM=n */
+> -	max_mapnr = max_low_pfn - min_low_pfn;
+> -
+>   #endif /* CONFIG_HIGHMEM */
+>   
+>   	free_area_init(max_zone_pfn);
+> diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+> index 9aec1cb2386f..d4bcc745a044 100644
+> --- a/arch/arm/mm/init.c
+> +++ b/arch/arm/mm/init.c
+> @@ -275,8 +275,6 @@ void __init mem_init(void)
+>   	swiotlb_init(max_pfn > arm_dma_pfn_limit, SWIOTLB_VERBOSE);
+>   #endif
+>   
+> -	set_max_mapnr(pfn_to_page(max_pfn) - mem_map);
+> -
+>   #ifdef CONFIG_SA1111
+>   	/* now that our DMA memory is actually so designated, we can free it */
+>   	memblock_phys_free(PHYS_OFFSET, __pa(swapper_pg_dir) - PHYS_OFFSET);
+> diff --git a/arch/csky/mm/init.c b/arch/csky/mm/init.c
+> index ab51acbc19b2..ba6694d6170a 100644
+> --- a/arch/csky/mm/init.c
+> +++ b/arch/csky/mm/init.c
+> @@ -46,10 +46,6 @@ void __init mem_init(void)
+>   {
+>   #ifdef CONFIG_HIGHMEM
+>   	unsigned long tmp;
+> -
+> -	set_max_mapnr(highend_pfn - ARCH_PFN_OFFSET);
+> -#else
+> -	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
+>   #endif
+>   	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+>   
+> diff --git a/arch/loongarch/mm/init.c b/arch/loongarch/mm/init.c
+> index ca5aa5f46a9f..00449df50db1 100644
+> --- a/arch/loongarch/mm/init.c
+> +++ b/arch/loongarch/mm/init.c
+> @@ -78,7 +78,6 @@ void __init paging_init(void)
+>   
+>   void __init mem_init(void)
+>   {
+> -	max_mapnr = max_low_pfn;
+>   	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+>   
+>   	memblock_free_all();
+> diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
+> index 4520c5741579..857cd2b44bcf 100644
+> --- a/arch/microblaze/mm/init.c
+> +++ b/arch/microblaze/mm/init.c
+> @@ -104,17 +104,13 @@ void __init setup_memory(void)
+>   	 *
+>   	 * min_low_pfn - the first page (mm/bootmem.c - node_boot_start)
+>   	 * max_low_pfn
+> -	 * max_mapnr - the first unused page (mm/bootmem.c - node_low_pfn)
+>   	 */
+>   
+>   	/* memory start is from the kernel end (aligned) to higher addr */
+>   	min_low_pfn = memory_start >> PAGE_SHIFT; /* minimum for allocation */
+> -	/* RAM is assumed contiguous */
+> -	max_mapnr = memory_size >> PAGE_SHIFT;
+>   	max_low_pfn = ((u64)memory_start + (u64)lowmem_size) >> PAGE_SHIFT;
+>   	max_pfn = ((u64)memory_start + (u64)memory_size) >> PAGE_SHIFT;
+>   
+> -	pr_info("%s: max_mapnr: %#lx\n", __func__, max_mapnr);
+>   	pr_info("%s: min_low_pfn: %#lx\n", __func__, min_low_pfn);
+>   	pr_info("%s: max_low_pfn: %#lx\n", __func__, max_low_pfn);
+>   	pr_info("%s: max_pfn: %#lx\n", __func__, max_pfn);
+> diff --git a/arch/mips/mm/init.c b/arch/mips/mm/init.c
+> index 820e35a59d4d..eb61a73520a0 100644
+> --- a/arch/mips/mm/init.c
+> +++ b/arch/mips/mm/init.c
+> @@ -415,15 +415,7 @@ void __init paging_init(void)
+>   		       " %ldk highmem ignored\n",
+>   		       (highend_pfn - max_low_pfn) << (PAGE_SHIFT - 10));
+>   		max_zone_pfns[ZONE_HIGHMEM] = max_low_pfn;
+> -
+> -		max_mapnr = max_low_pfn;
+> -	} else if (highend_pfn) {
+> -		max_mapnr = highend_pfn;
+> -	} else {
+> -		max_mapnr = max_low_pfn;
+>   	}
+> -#else
+> -	max_mapnr = max_low_pfn;
+>   #endif
+>   	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+>   
+> diff --git a/arch/nios2/kernel/setup.c b/arch/nios2/kernel/setup.c
+> index a4cffbfc1399..2a40150142c3 100644
+> --- a/arch/nios2/kernel/setup.c
+> +++ b/arch/nios2/kernel/setup.c
+> @@ -158,7 +158,6 @@ void __init setup_arch(char **cmdline_p)
+>   	*cmdline_p = boot_command_line;
+>   
+>   	find_limits(&min_low_pfn, &max_low_pfn, &max_pfn);
+> -	max_mapnr = max_low_pfn;
+>   
+>   	memblock_reserve(__pa_symbol(_stext), _end - _stext);
+>   #ifdef CONFIG_BLK_DEV_INITRD
+> diff --git a/arch/nios2/mm/init.c b/arch/nios2/mm/init.c
+> index aa692ad30044..3cafa87ead9e 100644
+> --- a/arch/nios2/mm/init.c
+> +++ b/arch/nios2/mm/init.c
+> @@ -51,7 +51,7 @@ void __init paging_init(void)
+>   	pagetable_init();
+>   	pgd_current = swapper_pg_dir;
+>   
+> -	max_zone_pfn[ZONE_NORMAL] = max_mapnr;
+> +	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+>   
+>   	/* pass the memory from the bootmem allocator to the main allocator */
+>   	free_area_init(max_zone_pfn);
+> diff --git a/arch/openrisc/mm/init.c b/arch/openrisc/mm/init.c
+> index d0cb1a0126f9..9093c336e158 100644
+> --- a/arch/openrisc/mm/init.c
+> +++ b/arch/openrisc/mm/init.c
+> @@ -193,7 +193,6 @@ void __init mem_init(void)
+>   {
+>   	BUG_ON(!mem_map);
+>   
+> -	max_mapnr = max_low_pfn;
+>   	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
+>   
+>   	/* clear the zero-page */
+> diff --git a/arch/parisc/mm/init.c b/arch/parisc/mm/init.c
+> index 61c0a2477072..2cdfc0b1195c 100644
+> --- a/arch/parisc/mm/init.c
+> +++ b/arch/parisc/mm/init.c
+> @@ -563,7 +563,6 @@ void __init mem_init(void)
+>   #endif
+>   
+>   	high_memory = __va((max_pfn << PAGE_SHIFT));
+> -	set_max_mapnr(max_low_pfn);
+>   	memblock_free_all();
+>   
+>   #ifdef CONFIG_PA11
+> diff --git a/arch/powerpc/kernel/setup-common.c b/arch/powerpc/kernel/setup-common.c
+> index a08b0ede4e64..68d47c53876c 100644
+> --- a/arch/powerpc/kernel/setup-common.c
+> +++ b/arch/powerpc/kernel/setup-common.c
+> @@ -957,8 +957,6 @@ void __init setup_arch(char **cmdline_p)
+>   
+>   	/* Parse memory topology */
+>   	mem_topology_setup();
+> -	/* Set max_mapnr before paging_init() */
+> -	set_max_mapnr(max_pfn);
+>   	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
+>   
+>   	/*
+> diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
+> index 15b2eda4c364..157c9ca51541 100644
+> --- a/arch/riscv/mm/init.c
+> +++ b/arch/riscv/mm/init.c
+> @@ -298,7 +298,6 @@ static void __init setup_bootmem(void)
+>   	high_memory = (void *)(__va(PFN_PHYS(max_low_pfn)));
+>   
+>   	dma32_phys_limit = min(4UL * SZ_1G, (unsigned long)PFN_PHYS(max_low_pfn));
+> -	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
+>   
+>   	reserve_initrd_mem();
+>   
+> diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
+> index f8333feb6a7e..36fed6dffb38 100644
+> --- a/arch/s390/mm/init.c
+> +++ b/arch/s390/mm/init.c
+> @@ -159,7 +159,6 @@ void __init mem_init(void)
+>   	cpumask_set_cpu(0, &init_mm.context.cpu_attach_mask);
+>   	cpumask_set_cpu(0, mm_cpumask(&init_mm));
+>   
+> -	set_max_mapnr(max_low_pfn);
+>           high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+>   
+>   	pv_init();
+> diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+> index 289a2fecebef..72aea5cd1b85 100644
+> --- a/arch/sh/mm/init.c
+> +++ b/arch/sh/mm/init.c
+> @@ -290,7 +290,6 @@ void __init paging_init(void)
+>   	 */
+>   	max_low_pfn = max_pfn = memblock_end_of_DRAM() >> PAGE_SHIFT;
+>   	min_low_pfn = __MEMORY_START >> PAGE_SHIFT;
+> -	set_max_mapnr(max_low_pfn - min_low_pfn);
+>   
+>   	nodes_clear(node_online_map);
+>   
+> diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+> index d96a14ffceeb..6b58da14edc6 100644
+> --- a/arch/sparc/mm/init_32.c
+> +++ b/arch/sparc/mm/init_32.c
+> @@ -275,7 +275,6 @@ void __init mem_init(void)
+>   
+>   	taint_real_pages();
+>   
+> -	max_mapnr = last_valid_pfn - pfn_base;
+>   	high_memory = __va(max_low_pfn << PAGE_SHIFT);
+>   	memblock_free_all();
+>   
+> diff --git a/arch/um/include/shared/mem_user.h b/arch/um/include/shared/mem_user.h
+> index adfa08062f88..d4727efcf23d 100644
+> --- a/arch/um/include/shared/mem_user.h
+> +++ b/arch/um/include/shared/mem_user.h
+> @@ -47,7 +47,6 @@ extern int iomem_size;
+>   #define ROUND_4M(n) ((((unsigned long) (n)) + (1 << 22)) & ~((1 << 22) - 1))
+>   
+>   extern unsigned long find_iomem(char *driver, unsigned long *len_out);
+> -extern void mem_total_pages(unsigned long physmem, unsigned long iomem);
+>   extern void setup_physmem(unsigned long start, unsigned long usable,
+>   			  unsigned long len);
+>   extern void map_memory(unsigned long virt, unsigned long phys,
+> diff --git a/arch/um/kernel/physmem.c b/arch/um/kernel/physmem.c
+> index a74f17b033c4..af02b5f9911d 100644
+> --- a/arch/um/kernel/physmem.c
+> +++ b/arch/um/kernel/physmem.c
+> @@ -22,18 +22,6 @@ static int physmem_fd = -1;
+>   unsigned long high_physmem;
+>   EXPORT_SYMBOL(high_physmem);
+>   
+> -void __init mem_total_pages(unsigned long physmem, unsigned long iomem)
+> -{
+> -	unsigned long phys_pages, iomem_pages, total_pages;
+> -
+> -	phys_pages  = physmem >> PAGE_SHIFT;
+> -	iomem_pages = iomem   >> PAGE_SHIFT;
+> -
+> -	total_pages = phys_pages + iomem_pages;
+> -
+> -	max_mapnr = total_pages;
+> -}
+> -
+>   void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
+>   		int r, int w, int x)
+>   {
+> diff --git a/arch/um/kernel/um_arch.c b/arch/um/kernel/um_arch.c
+> index 79ea97d4797e..6414cbf00572 100644
+> --- a/arch/um/kernel/um_arch.c
+> +++ b/arch/um/kernel/um_arch.c
+> @@ -419,7 +419,6 @@ void __init setup_arch(char **cmdline_p)
+>   
+>   	stack_protections((unsigned long) init_task.stack);
+>   	setup_physmem(uml_physmem, uml_reserved, physmem_size);
+> -	mem_total_pages(physmem_size, iomem_size);
+>   	uml_dtb_init();
+>   	read_initrd();
+>   
+> diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
+> index ac41b1e0940d..6d2f8cb9451e 100644
+> --- a/arch/x86/mm/init_32.c
+> +++ b/arch/x86/mm/init_32.c
+> @@ -650,9 +650,6 @@ void __init initmem_init(void)
+>   
+>   	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
+>   
+> -#ifdef CONFIG_FLATMEM
+> -	max_mapnr = IS_ENABLED(CONFIG_HIGHMEM) ? highend_pfn : max_low_pfn;
+> -#endif
+>   	__vmalloc_start_set = true;
+>   
+>   	printk(KERN_NOTICE "%ldMB LOWMEM available.\n",
+> diff --git a/arch/xtensa/mm/init.c b/arch/xtensa/mm/init.c
+> index 01577d33e602..9f1b0d5fccc7 100644
+> --- a/arch/xtensa/mm/init.c
+> +++ b/arch/xtensa/mm/init.c
+> @@ -164,7 +164,6 @@ void __init mem_init(void)
+>   {
+>   	free_highpages();
+>   
+> -	max_mapnr = max_pfn - ARCH_PFN_OFFSET;
+>   	high_memory = (void *)__va(max_low_pfn << PAGE_SHIFT);
+>   
+>   	memblock_free_all();
+> diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
+> index 6d1fb6162ac1..a3b5029aebbd 100644
+> --- a/include/asm-generic/memory_model.h
+> +++ b/include/asm-generic/memory_model.h
+> @@ -19,11 +19,12 @@
+>   #define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
+>   				 ARCH_PFN_OFFSET)
+>   
+> +/* avoid <linux/mm.h> include hell */
+> +extern unsigned long max_mapnr;
+> +
+>   #ifndef pfn_valid
+>   static inline int pfn_valid(unsigned long pfn)
+>   {
+> -	/* avoid <linux/mm.h> include hell */
+> -	extern unsigned long max_mapnr;
+>   	unsigned long pfn_offset = ARCH_PFN_OFFSET;
+>   
+>   	return pfn >= pfn_offset && (pfn - pfn_offset) < max_mapnr;
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 7b1068ddcbb7..fdf20503850e 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -45,17 +45,6 @@ extern int sysctl_page_lock_unfairness;
+>   void mm_core_init(void);
+>   void init_mm_internals(void);
+>   
+> -#ifndef CONFIG_NUMA		/* Don't use mapnrs, do it properly */
+> -extern unsigned long max_mapnr;
+> -
+> -static inline void set_max_mapnr(unsigned long limit)
+> -{
+> -	max_mapnr = limit;
+> -}
+> -#else
+> -static inline void set_max_mapnr(unsigned long limit) { }
+> -#endif
+> -
+>   extern atomic_long_t _totalram_pages;
+>   static inline unsigned long totalram_pages(void)
+>   {
+> diff --git a/mm/memory.c b/mm/memory.c
+> index b4d3d4893267..126fdd3001e3 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -95,14 +95,6 @@
+>   #warning Unfortunate NUMA and NUMA Balancing config, growing page-frame for last_cpupid.
+>   #endif
+>   
+> -#ifndef CONFIG_NUMA
+> -unsigned long max_mapnr;
+> -EXPORT_SYMBOL(max_mapnr);
+> -
+> -struct page *mem_map;
+> -EXPORT_SYMBOL(mem_map);
+> -#endif
+> -
+>   static vm_fault_t do_fault(struct vm_fault *vmf);
+>   static vm_fault_t do_anonymous_page(struct vm_fault *vmf);
+>   static bool vmf_pte_changed(struct vm_fault *vmf);
+> diff --git a/mm/mm_init.c b/mm/mm_init.c
+> index 2630cc30147e..50a93714e1c6 100644
+> --- a/mm/mm_init.c
+> +++ b/mm/mm_init.c
+> @@ -36,6 +36,14 @@
+>   
+>   #include <asm/setup.h>
+>   
+> +#ifndef CONFIG_NUMA
+> +unsigned long max_mapnr;
+> +EXPORT_SYMBOL(max_mapnr);
+> +
+> +struct page *mem_map;
+> +EXPORT_SYMBOL(mem_map);
+> +#endif
+> +
+>   #ifdef CONFIG_DEBUG_MEMORY_INIT
+>   int __meminitdata mminit_loglevel;
+>   
+> @@ -1617,7 +1625,7 @@ static void __init alloc_node_mem_map(struct pglist_data *pgdat)
+>   	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+>   	offset = pgdat->node_start_pfn - start;
+>   	/*
+> -		 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
+> +	 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
+>   	 * aligned but the node_mem_map endpoints must be in order
+>   	 * for the buddy allocator to function correctly.
+>   	 */
+> @@ -1633,14 +1641,15 @@ static void __init alloc_node_mem_map(struct pglist_data *pgdat)
+>   	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+>   		 __func__, pgdat->node_id, (unsigned long)pgdat,
+>   		 (unsigned long)pgdat->node_mem_map);
+> -#ifndef CONFIG_NUMA
+> +
+>   	/* the global mem_map is just set as node 0's */
+> -	if (pgdat == NODE_DATA(0)) {
+> -		mem_map = NODE_DATA(0)->node_mem_map;
+> -		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+> -			mem_map -= offset;
+> -	}
+> -#endif
+> +	WARN_ON(pgdat != NODE_DATA(0));
+> +
+> +	mem_map = pgdat->node_mem_map;
+> +	if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+> +		mem_map -= offset;
+> +
+> +	max_mapnr = end - start;
+>   }
+>   #else
+>   static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
+> diff --git a/mm/nommu.c b/mm/nommu.c
+> index baa79abdaf03..f0209dd26dfa 100644
+> --- a/mm/nommu.c
+> +++ b/mm/nommu.c
+> @@ -44,16 +44,12 @@
+>   
+>   void *high_memory;
+>   EXPORT_SYMBOL(high_memory);
+> -struct page *mem_map;
+> -unsigned long max_mapnr;
+> -EXPORT_SYMBOL(max_mapnr);
+>   unsigned long highest_memmap_pfn;
+>   int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
+>   int heap_stack_gap = 0;
+>   
+>   atomic_long_t mmap_pages_allocated;
+>   
+> -EXPORT_SYMBOL(mem_map);
+>   
+>   /* list of mapped, potentially shareable regions */
+>   static struct kmem_cache *vm_region_jar;
 
