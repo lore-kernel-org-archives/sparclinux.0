@@ -1,152 +1,120 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8B41AD403;
-	Mon, 17 Mar 2025 17:52:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 824DA1A83FB;
+	Mon, 17 Mar 2025 18:14:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=163.172.96.212
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742233982; cv=none; b=JAcTvAxct8SXp8PErAA3lJRxtkXHw4ueFvn282BeIHK58QphXd879l6Dxbn+QRow5fDHYfSFCbxLkZQqy3ohKnK2BwVl7ulMgc2n+GCqUcRDkntpoA/8g+DTToiW0Dy9qwufWKMHUQI6AusNjZRD+f8csiedA7+W3vyJN76pnZo=
+	t=1742235254; cv=none; b=DsanGjejqqsFWgf0Ybo0t3UY6SwU49qHApYwGQQCZQRfhnFg69e8ljvhfYxo8RH7Nv8S3sPuO4zPHdw292baPvMu32w3FK0W4u6uHbIrewvCmVKiA+RUN/nPuqH9L/yh5naoKEXAf3cIGtM/dFebSWSiPEbKvftDqp0LgCho7uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742233982; c=relaxed/simple;
-	bh=4dJ0fmNkACSMmu1twEj7eQKRG9KtvltlsmMTAr0hcBI=;
+	s=arc-20240116; t=1742235254; c=relaxed/simple;
+	bh=zR7F1wCaZgFJ5vBc/vilMOpQNA8DV6k2v1fnEC7BpMc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gVmNG+RTKw1pwJOo6a26BnGgAXWadQjClNyXiSGIGxo3r5ty/1wB9UYclpp7GHG2Lg3a2z3wZ8/qZJXa3Om9hI9M2k9XDYZgGT+zPrtbfxiwJkE6jmguKIvqceBjmNJyLbwUJl8VZXcnLGDnp4gL6PYI702tOwUPmA0B1tgimEM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=o9nDdNqV; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="o9nDdNqV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1742233977;
-	bh=4dJ0fmNkACSMmu1twEj7eQKRG9KtvltlsmMTAr0hcBI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=o9nDdNqV6djaM1zcFVz93LKIG/jE02ihIqCduJuPMAAj1mixVNXP5ZPHXRH/BZW9d
-	 DziCv6hmi+FoNOmwZozWDFQWsRFW4egp0R6suLNmYePSRZoSXVwPg2Gkndx6YAWYjI
-	 Fjl42Fx2ovN93XoMZo4K5+y6kYr6aWTLgyhVkZnM=
-Date: Mon, 17 Mar 2025 18:52:57 +0100
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
-To: Willy Tarreau <w@1wt.eu>
-Cc: Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	sparclinux@vger.kernel.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=mova/PKZX7xrBhY/JZmkRfvT3v1E+WWorJTOQ7yM/lo8TVFSLmrFy93kzA50b+mIbk3UCSqFCDkIH9Z5aJ7r5XHI6XbarxFkr7vp9McgWPhV9KuVWyGN81OA/OpnK9+EkKZJtjTJ1/sxSjT8LvEoJy4G8W+XQy8FKEbYsTa0pLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; arc=none smtp.client-ip=163.172.96.212
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
+Received: (from willy@localhost)
+	by pcw.home.local (8.15.2/8.15.2/Submit) id 52HIE2eh008577;
+	Mon, 17 Mar 2025 19:14:02 +0100
+Date: Mon, 17 Mar 2025 19:14:02 +0100
+From: Willy Tarreau <w@1wt.eu>
+To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
+Cc: Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org
 Subject: Re: [PATCH] tools/nolibc: Add support for SPARC
-Message-ID: <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
+Message-ID: <20250317181402.GB8377@1wt.eu>
 References: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
  <20250317073746.GB5114@1wt.eu>
+ <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250317073746.GB5114@1wt.eu>
+In-Reply-To: <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On 2025-03-17 08:37:46+0100, Willy Tarreau wrote:
-> On Sun, Mar 16, 2025 at 02:55:02PM +0100, Thomas Wei√üschuh wrote:
-> > Add support for 32bit and 64bit SPARC to nolibc.
+On Mon, Mar 17, 2025 at 06:52:57PM +0100, Thomas Weiﬂschuh wrote:
+> On 2025-03-17 08:37:46+0100, Willy Tarreau wrote:
+> > On Sun, Mar 16, 2025 at 02:55:02PM +0100, Thomas Weiﬂschuh wrote:
+> > > Add support for 32bit and 64bit SPARC to nolibc.
+> > 
+> > Oh nice!
+> > 
+> > > Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
+> > > ---
+> > > This is only tested on QEMU.
+> > > Any tests on real hardware would be very welcome.
+> > 
+> > I still have a working U60 here, but under solaris. Such machines are
+> > not trivial to boot on alternate OSes (and when you find a working
+> > image usually it's based on an old kernel).
 > 
-> Oh nice!
-> 
-> > Signed-off-by: Thomas Wei√üschuh <linux@weissschuh.net>
-> > ---
-> > This is only tested on QEMU.
-> > Any tests on real hardware would be very welcome.
-> 
-> I still have a working U60 here, but under solaris. Such machines are
-> not trivial to boot on alternate OSes (and when you find a working
-> image usually it's based on an old kernel).
+> An old kernel should be perfectly fine, no?
 
-An old kernel should be perfectly fine, no?
+I don't think so (it depends how old in fact), keep in mind that
+we've removed support for a number of legacy syscalls.
 
-> But I've run it under
-> Linux 20 years ago, so I know it was supported. I may give it a try
-> when I find a moment, but let's not wait for this!
+> > > +/* startup code */
+> > > +void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
+> > > +{
+> > > +	__asm__ volatile (
+> > > +		/*
+> > > +		 * Save stack pointer to o0, as arg1 of _start_c.
+> > > +		 * Account for window save area and stack bias.
+> > > +		 */
+> > > +#ifdef __arch64__
+> > > +		"add %sp, 128 + 2047, %o0\n"
+> > 
+> > It's really unclear where this magical 2047 comes from, I think it must
+> > be explained in the comment above so that someone disagreeing with it
+> > later can figure whether it's right or wrong.
+> 
+> 128 is the context window and 2047 is the stack bias.
+> I'll try to make it clearer.
+
+OK thanks, but that remains quite strange to me. How can we end up
+here with such an unaligned stack ? At the very minimum I'd expect
+all offsets to be multiple of 8.
+
+> > Also, I could be wrong, but from my old memories of playing with the
+> > stack on SPARC long ago, I seem to remember that the stack is growing
+> > down. Thus I find these "add" suspicious or at least confusing. You
+> > mention "window save area and stack bias" above, I'm not sure what it
+> > refers to, but if we can safely erase parts of the stack because too
+> > much was preserved, maybe some more explanation about the initial and
+> > target layouts is deserved here.
+> 
+> There is a graphic in the psABI [0] under "Process Stack and Registers".
+
+Thanks for the link! Are you sure you can get rid of the window save
+area ? I'm seeing that apparently it's used with save / restore, which
+*if I remember well (30 years ago)* were used along with register bank
+switches. In 3-12 it's written:
+
+  Some registers have assigned roles.
+    %sp or %o6 The stack pointer holds the limit of the current stack frame,
+    %which is the address of the stacks bottommost, valid word. Stack contents
+    %below the stack pointer are undened. At all times the stack pointer must
+    %point to a doubleword aligned, 16- word window save area.
+
+> I'll write something based on that.
 
 Thanks!
 
-> A few comments below:
+> > > +		"b,a _start_c\n"     /* transfer to c runtime */
+> > 
+> > OK great, the delayed slot is covered! (that type of thing can work
+> > by pure luck in one test and fail in another one depending on what
+> > bytes follow the jump).
 > 
-> > diff --git a/tools/include/nolibc/arch-sparc.h b/tools/include/nolibc/arch-sparc.h
-> > new file mode 100644
-> > index 0000000000000000000000000000000000000000..cb5543eca87bb4d52cfba4c0668e35cbbf6dd124
-> > --- /dev/null
-> > +++ b/tools/include/nolibc/arch-sparc.h
-> > @@ -0,0 +1,191 @@
-> > +/* SPDX-License-Identifier: LGPL-2.1 OR MIT */
-> > +/*
-> > + * SPARC (32bit and 64bit) specific definitions for NOLIBC
-> > + * Copyright (C) 2025 Thomas Wei√üschuh <linux@weissschuh.net>
-> > + */
-> > +
-> > +#ifndef _NOLIBC_ARCH_SPARC_H
-> > +#define _NOLIBC_ARCH_SPARC_H
-> > +
-> > +#include <linux/unistd.h>
-> > +
-> > +#include "compiler.h"
-> > +#include "crt.h"
-> > +
-> > +/*
-> > + * Syscalls for SPARC:
-> > + *   - registers are native word size
-> > + *   - syscall number is passed in g1
-> > + *   - arguments are in o0-o5
-> > + *   - the system call is performed by calling a trap instruction
-> > + *   - syscall return value is in 0a
->                                      ^^
-> What is "0a" here ? I suspect a typo and you meant "o0".
+> Yeah, it brings memories to the work on MIPS support.
 
-Correct, will fix.
+absolutely!
 
-> > +/* startup code */
-> > +void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
-> > +{
-> > +	__asm__ volatile (
-> > +		/*
-> > +		 * Save stack pointer to o0, as arg1 of _start_c.
-> > +		 * Account for window save area and stack bias.
-> > +		 */
-> > +#ifdef __arch64__
-> > +		"add %sp, 128 + 2047, %o0\n"
-> 
-> It's really unclear where this magical 2047 comes from, I think it must
-> be explained in the comment above so that someone disagreeing with it
-> later can figure whether it's right or wrong.
-
-128 is the context window and 2047 is the stack bias.
-I'll try to make it clearer.
-
-> 
-> > +#else
-> > +		"add %sp, 64, %o0\n"
-> > +#endif
-> 
-> Also, I could be wrong, but from my old memories of playing with the
-> stack on SPARC long ago, I seem to remember that the stack is growing
-> down. Thus I find these "add" suspicious or at least confusing. You
-> mention "window save area and stack bias" above, I'm not sure what it
-> refers to, but if we can safely erase parts of the stack because too
-> much was preserved, maybe some more explanation about the initial and
-> target layouts is deserved here.
-
-There is a graphic in the psABI [0] under "Process Stack and Registers".
-I'll write something based on that.
-
-> > +		"b,a _start_c\n"     /* transfer to c runtime */
-> 
-> OK great, the delayed slot is covered! (that type of thing can work
-> by pure luck in one test and fail in another one depending on what
-> bytes follow the jump).
-
-Yeah, it brings memories to the work on MIPS support.
-
-> Thanks!
-> 
-> Acked-by: Willy Tarreau <w@1wt.eu>
-
-Thanks!
-
-[0] https://uclibc.org/docs/psABI-sparc.pdf
+Thanks,
+Willy
