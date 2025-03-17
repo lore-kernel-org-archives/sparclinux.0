@@ -1,76 +1,152 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4453D248891;
-	Mon, 17 Mar 2025 15:30:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8B41AD403;
+	Mon, 17 Mar 2025 17:52:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742225457; cv=none; b=RSluNHWAN5B3ldHr9fs7Yia75knZS+HgT3mJT6WoqqNAnFmiAe2Bfv3/TZz1awk4+p08T+A1QAhY+N7kMoQ+QUOYRNIfV2aqmg3DzyOoBPUOUuUPc4xxP94lILMB0Uie2dhq9IAHRB0BeeH6R09qvRbbBIkW4V1+ovnOAiAXI+I=
+	t=1742233982; cv=none; b=JAcTvAxct8SXp8PErAA3lJRxtkXHw4ueFvn282BeIHK58QphXd879l6Dxbn+QRow5fDHYfSFCbxLkZQqy3ohKnK2BwVl7ulMgc2n+GCqUcRDkntpoA/8g+DTToiW0Dy9qwufWKMHUQI6AusNjZRD+f8csiedA7+W3vyJN76pnZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742225457; c=relaxed/simple;
-	bh=E28zglszNSgNs5nxBqGH9ihoTQywx6FCChBvwXjU3Lc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=nOwm+cxmKHCETxq0o2YSE43fAPGwjQ+vMU6UQi9hWTbol23Vc1Svr+EfzC3qW7IdmbjyccELFbScEbXjTNPJvgL6vzU/cPNxCLxJTfeS4s3L8H3HT8S4xf4+aiHPYSQzKAvNYkcTLidb8ODpZClS4/hJISQOHnZHjdlRFr9gF0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3164013D5;
-	Mon, 17 Mar 2025 08:31:03 -0700 (PDT)
-Received: from [10.57.84.137] (unknown [10.57.84.137])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 421503F694;
-	Mon, 17 Mar 2025 08:30:49 -0700 (PDT)
-Message-ID: <70349335-84ee-4bca-a3d6-d7cf3c05b92b@arm.com>
-Date: Mon, 17 Mar 2025 15:30:47 +0000
+	s=arc-20240116; t=1742233982; c=relaxed/simple;
+	bh=4dJ0fmNkACSMmu1twEj7eQKRG9KtvltlsmMTAr0hcBI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gVmNG+RTKw1pwJOo6a26BnGgAXWadQjClNyXiSGIGxo3r5ty/1wB9UYclpp7GHG2Lg3a2z3wZ8/qZJXa3Om9hI9M2k9XDYZgGT+zPrtbfxiwJkE6jmguKIvqceBjmNJyLbwUJl8VZXcnLGDnp4gL6PYI702tOwUPmA0B1tgimEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=o9nDdNqV; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="o9nDdNqV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1742233977;
+	bh=4dJ0fmNkACSMmu1twEj7eQKRG9KtvltlsmMTAr0hcBI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=o9nDdNqV6djaM1zcFVz93LKIG/jE02ihIqCduJuPMAAj1mixVNXP5ZPHXRH/BZW9d
+	 DziCv6hmi+FoNOmwZozWDFQWsRFW4egp0R6suLNmYePSRZoSXVwPg2Gkndx6YAWYjI
+	 Fjl42Fx2ovN93XoMZo4K5+y6kYr6aWTLgyhVkZnM=
+Date: Mon, 17 Mar 2025 18:52:57 +0100
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
+To: Willy Tarreau <w@1wt.eu>
+Cc: Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH] tools/nolibc: Add support for SPARC
+Message-ID: <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
+References: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
+ <20250317073746.GB5114@1wt.eu>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/11] Always call constructor for kernel page tables
-Content-Language: en-GB
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Albert Ou <aou@eecs.berkeley.edu>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Catalin Marinas <catalin.marinas@arm.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- Geert Uytterhoeven <geert@linux-m68k.org>,
- Linus Walleij <linus.walleij@linaro.org>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Mark Rutland <mark.rutland@arm.com>, Matthew Wilcox <willy@infradead.org>,
- Michael Ellerman <mpe@ellerman.id.au>, "Mike Rapoport (IBM)"
- <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
- Paul Walmsley <paul.walmsley@sifive.com>,
- Peter Zijlstra <peterz@infradead.org>, Qi Zheng
- <zhengqi.arch@bytedance.com>, Will Deacon <will@kernel.org>,
- Yang Shi <yang@os.amperecomputing.com>, linux-arch@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
-References: <20250317141700.3701581-1-kevin.brodsky@arm.com>
-From: Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <20250317141700.3701581-1-kevin.brodsky@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250317073746.GB5114@1wt.eu>
 
-On 17/03/2025 14:16, Kevin Brodsky wrote:
-> The complications in those special pgtable allocators beg the question:
-> does it really make sense to treat efi_mm and init_mm differently in
-> e.g. apply_to_pte_range()? Maybe what we really need is a way to tell if
-> an mm corresponds to user memory or not, and never use split locks for
-> non-user mm's. Feedback and suggestions welcome!
+On 2025-03-17 08:37:46+0100, Willy Tarreau wrote:
+> On Sun, Mar 16, 2025 at 02:55:02PM +0100, Thomas Weißschuh wrote:
+> > Add support for 32bit and 64bit SPARC to nolibc.
+> 
+> Oh nice!
+> 
+> > Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+> > ---
+> > This is only tested on QEMU.
+> > Any tests on real hardware would be very welcome.
+> 
+> I still have a working U60 here, but under solaris. Such machines are
+> not trivial to boot on alternate OSes (and when you find a working
+> image usually it's based on an old kernel).
 
-The difference in treatment is whether or not the ptl is taken, right? So the
-real question is when calling apply_to_pte_range() for efi_mm, is there already
-a higher level serialization mechanism that prevents racy accesses? For init_mm,
-I think this is handled implicitly because there is no way for user space to
-cause apply_to_pte_range() for an arbitrary piece of kernel memory. Although I
-can't even see where apply_to_page_range() is called for efi_mm.
+An old kernel should be perfectly fine, no?
 
-FWIW, contpte.c has mm_is_user() which is used by arm64.
+> But I've run it under
+> Linux 20 years ago, so I know it was supported. I may give it a try
+> when I find a moment, but let's not wait for this!
 
-Thanks,
-Ryan
+Thanks!
+
+> A few comments below:
+> 
+> > diff --git a/tools/include/nolibc/arch-sparc.h b/tools/include/nolibc/arch-sparc.h
+> > new file mode 100644
+> > index 0000000000000000000000000000000000000000..cb5543eca87bb4d52cfba4c0668e35cbbf6dd124
+> > --- /dev/null
+> > +++ b/tools/include/nolibc/arch-sparc.h
+> > @@ -0,0 +1,191 @@
+> > +/* SPDX-License-Identifier: LGPL-2.1 OR MIT */
+> > +/*
+> > + * SPARC (32bit and 64bit) specific definitions for NOLIBC
+> > + * Copyright (C) 2025 Thomas Weißschuh <linux@weissschuh.net>
+> > + */
+> > +
+> > +#ifndef _NOLIBC_ARCH_SPARC_H
+> > +#define _NOLIBC_ARCH_SPARC_H
+> > +
+> > +#include <linux/unistd.h>
+> > +
+> > +#include "compiler.h"
+> > +#include "crt.h"
+> > +
+> > +/*
+> > + * Syscalls for SPARC:
+> > + *   - registers are native word size
+> > + *   - syscall number is passed in g1
+> > + *   - arguments are in o0-o5
+> > + *   - the system call is performed by calling a trap instruction
+> > + *   - syscall return value is in 0a
+>                                      ^^
+> What is "0a" here ? I suspect a typo and you meant "o0".
+
+Correct, will fix.
+
+> > +/* startup code */
+> > +void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
+> > +{
+> > +	__asm__ volatile (
+> > +		/*
+> > +		 * Save stack pointer to o0, as arg1 of _start_c.
+> > +		 * Account for window save area and stack bias.
+> > +		 */
+> > +#ifdef __arch64__
+> > +		"add %sp, 128 + 2047, %o0\n"
+> 
+> It's really unclear where this magical 2047 comes from, I think it must
+> be explained in the comment above so that someone disagreeing with it
+> later can figure whether it's right or wrong.
+
+128 is the context window and 2047 is the stack bias.
+I'll try to make it clearer.
+
+> 
+> > +#else
+> > +		"add %sp, 64, %o0\n"
+> > +#endif
+> 
+> Also, I could be wrong, but from my old memories of playing with the
+> stack on SPARC long ago, I seem to remember that the stack is growing
+> down. Thus I find these "add" suspicious or at least confusing. You
+> mention "window save area and stack bias" above, I'm not sure what it
+> refers to, but if we can safely erase parts of the stack because too
+> much was preserved, maybe some more explanation about the initial and
+> target layouts is deserved here.
+
+There is a graphic in the psABI [0] under "Process Stack and Registers".
+I'll write something based on that.
+
+> > +		"b,a _start_c\n"     /* transfer to c runtime */
+> 
+> OK great, the delayed slot is covered! (that type of thing can work
+> by pure luck in one test and fail in another one depending on what
+> bytes follow the jump).
+
+Yeah, it brings memories to the work on MIPS support.
+
+> Thanks!
+> 
+> Acked-by: Willy Tarreau <w@1wt.eu>
+
+Thanks!
+
+[0] https://uclibc.org/docs/psABI-sparc.pdf
