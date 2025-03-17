@@ -1,120 +1,70 @@
-Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 824DA1A83FB;
-	Mon, 17 Mar 2025 18:14:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=163.172.96.212
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3DC1A01D4;
+	Mon, 17 Mar 2025 19:52:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742235254; cv=none; b=DsanGjejqqsFWgf0Ybo0t3UY6SwU49qHApYwGQQCZQRfhnFg69e8ljvhfYxo8RH7Nv8S3sPuO4zPHdw292baPvMu32w3FK0W4u6uHbIrewvCmVKiA+RUN/nPuqH9L/yh5naoKEXAf3cIGtM/dFebSWSiPEbKvftDqp0LgCho7uk=
+	t=1742241129; cv=none; b=PQfEj/pDqHuXPKi3rxvm9FYsZ9owjGV/Y23tp7B9gMQ7H2+L6YvXh7h5zPZKNEJZWuCavb0s4FBBE1Z8TvyW4kscgfbtPBvZikFD1Wn9Csaf/bgtGDJAx4+jYSqkzRW3oIZ2gTPs5Scvd1uK3v1f5jGFO+YPPS2Psj6f0rWqcoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742235254; c=relaxed/simple;
-	bh=zR7F1wCaZgFJ5vBc/vilMOpQNA8DV6k2v1fnEC7BpMc=;
+	s=arc-20240116; t=1742241129; c=relaxed/simple;
+	bh=mK1/sze64QSgg0NQN+WjWcDMklW7x/9lpZesWAfQdGw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mova/PKZX7xrBhY/JZmkRfvT3v1E+WWorJTOQ7yM/lo8TVFSLmrFy93kzA50b+mIbk3UCSqFCDkIH9Z5aJ7r5XHI6XbarxFkr7vp9McgWPhV9KuVWyGN81OA/OpnK9+EkKZJtjTJ1/sxSjT8LvEoJy4G8W+XQy8FKEbYsTa0pLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; arc=none smtp.client-ip=163.172.96.212
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
-Received: (from willy@localhost)
-	by pcw.home.local (8.15.2/8.15.2/Submit) id 52HIE2eh008577;
-	Mon, 17 Mar 2025 19:14:02 +0100
-Date: Mon, 17 Mar 2025 19:14:02 +0100
-From: Willy Tarreau <w@1wt.eu>
-To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH] tools/nolibc: Add support for SPARC
-Message-ID: <20250317181402.GB8377@1wt.eu>
-References: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
- <20250317073746.GB5114@1wt.eu>
- <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=Bp5xWVJJNvAuv0zhK7DzZUNcJ+umaP6hVazQy0HYnYLQv8egud/BwMh7Ip3hCr9jRPHLmOVkZaofKMD6BgzBw2iLNV+FmPGxJ9l5dQq5BbQhtG/V9OjGBozrvH9vB9Yp07Fvag1Vr6vMhjoHSR2a2lWSq8+edjtCopYr+rzwvpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rA5nUqXy; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rA5nUqXy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F314C4CEE3;
+	Mon, 17 Mar 2025 19:52:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1742241128;
+	bh=mK1/sze64QSgg0NQN+WjWcDMklW7x/9lpZesWAfQdGw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rA5nUqXybLg41f5gOmXlFkmHkEyHC6qQ7d7J7UQrcm5J45xxEumebjdsGEq7BVtN6
+	 aPqQfToqhlfcbqe408psHclVvhdEzr4nsNPLRX+sr5zUDXWHMBLG8EIHdigtBAVF/Q
+	 9iwHPC4n89PWZcypEsVjrCBNZfgbz+LFyNU0IIBmRtYUNdy6LFALCNQcSed+9ioQKP
+	 cqBCb2ATkOwQw9ehlu9OhHwfg0MGThbXbjNN8farhKOS26cqL1yFOrSlU7yIEVKh6D
+	 QPgAlT1uhazShTSI5O6VHeBj3lwD7mCBhBRKoIPNFLGIErfss6IOMGzw+49b6HCBKB
+	 0KaZJhZr5RJPw==
+Date: Mon, 17 Mar 2025 20:52:02 +0100
+From: Joel Granados <joel.granados@kernel.org>
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Kees Cook <kees@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-trace-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 3/5] tracing: Move trace sysctls into trace.c
+Message-ID: <hymr4ao557bzcovr4xs4d47t35bjfasydh2poed35wf4ad5xyx@vke56gyq3ntg>
+References: <20250313-jag-mv_ctltables-v3-0-91f3bb434d27@kernel.org>
+ <20250313-jag-mv_ctltables-v3-3-91f3bb434d27@kernel.org>
+ <a25daa5d094cf613e2f52fe716a17edf9fb26448.camel@physik.fu-berlin.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <a25daa5d094cf613e2f52fe716a17edf9fb26448.camel@physik.fu-berlin.de>
 
-On Mon, Mar 17, 2025 at 06:52:57PM +0100, Thomas Weiﬂschuh wrote:
-> On 2025-03-17 08:37:46+0100, Willy Tarreau wrote:
-> > On Sun, Mar 16, 2025 at 02:55:02PM +0100, Thomas Weiﬂschuh wrote:
-> > > Add support for 32bit and 64bit SPARC to nolibc.
-> > 
-> > Oh nice!
-> > 
-> > > Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
-> > > ---
-> > > This is only tested on QEMU.
-> > > Any tests on real hardware would be very welcome.
-> > 
-> > I still have a working U60 here, but under solaris. Such machines are
-> > not trivial to boot on alternate OSes (and when you find a working
-> > image usually it's based on an old kernel).
+On Thu, Mar 13, 2025 at 05:34:38PM +0100, John Paul Adrian Glaubitz wrote:
+> Hi Joel,
 > 
-> An old kernel should be perfectly fine, no?
+> On Thu, 2025-03-13 at 17:22 +0100, Joel Granados wrote:
+> > Move trace ctl tables into their own const array in
+> > kernel/trace/trace.c. The sysctl table register is called with
+> > subsys_initcall placing if after its original place in proc_root_init.
+> > This is part of a greater effort to move ctl tables into their
+> > respective subsystems which will reduce the merge conflicts in
+> > kerenel/sysctl.c.
+>   ^^^^^^^
+fixed. thx. Will not send a V4 unless there is a bigger change to
+review.
 
-I don't think so (it depends how old in fact), keep in mind that
-we've removed support for a number of legacy syscalls.
+Best
 
-> > > +/* startup code */
-> > > +void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
-> > > +{
-> > > +	__asm__ volatile (
-> > > +		/*
-> > > +		 * Save stack pointer to o0, as arg1 of _start_c.
-> > > +		 * Account for window save area and stack bias.
-> > > +		 */
-> > > +#ifdef __arch64__
-> > > +		"add %sp, 128 + 2047, %o0\n"
-> > 
-> > It's really unclear where this magical 2047 comes from, I think it must
-> > be explained in the comment above so that someone disagreeing with it
-> > later can figure whether it's right or wrong.
-> 
-> 128 is the context window and 2047 is the stack bias.
-> I'll try to make it clearer.
+-- 
 
-OK thanks, but that remains quite strange to me. How can we end up
-here with such an unaligned stack ? At the very minimum I'd expect
-all offsets to be multiple of 8.
-
-> > Also, I could be wrong, but from my old memories of playing with the
-> > stack on SPARC long ago, I seem to remember that the stack is growing
-> > down. Thus I find these "add" suspicious or at least confusing. You
-> > mention "window save area and stack bias" above, I'm not sure what it
-> > refers to, but if we can safely erase parts of the stack because too
-> > much was preserved, maybe some more explanation about the initial and
-> > target layouts is deserved here.
-> 
-> There is a graphic in the psABI [0] under "Process Stack and Registers".
-
-Thanks for the link! Are you sure you can get rid of the window save
-area ? I'm seeing that apparently it's used with save / restore, which
-*if I remember well (30 years ago)* were used along with register bank
-switches. In 3-12 it's written:
-
-  Some registers have assigned roles.
-    %sp or %o6 The stack pointer holds the limit of the current stack frame,
-    %which is the address of the stacks bottommost, valid word. Stack contents
-    %below the stack pointer are undened. At all times the stack pointer must
-    %point to a doubleword aligned, 16- word window save area.
-
-> I'll write something based on that.
-
-Thanks!
-
-> > > +		"b,a _start_c\n"     /* transfer to c runtime */
-> > 
-> > OK great, the delayed slot is covered! (that type of thing can work
-> > by pure luck in one test and fail in another one depending on what
-> > bytes follow the jump).
-> 
-> Yeah, it brings memories to the work on MIPS support.
-
-absolutely!
-
-Thanks,
-Willy
+Joel Granados
