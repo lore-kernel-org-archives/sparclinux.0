@@ -1,124 +1,75 @@
-Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E7C7C21B1A3;
-	Mon, 17 Mar 2025 07:38:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=163.172.96.212
+Received: from mxct.zte.com.cn (mxct.zte.com.cn [183.62.165.209])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88C121B19E;
+	Mon, 17 Mar 2025 07:59:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=183.62.165.209
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742197084; cv=none; b=bUNGtnsyIApM4q7nkTehkksEtsZuorcnlc91vPzy16TdXDm/r4E5TDgvSPNgpMh/RvKeO3Fd69jkm/s7jmVlXx9dgCc34JyHwZ0olYIjKplt7nX2zSZvk2ZjQL/C3JeCDYiM3jpXSC3nxhz2f89l+/qEYBVmTINMg46T/pg+Dxo=
+	t=1742198345; cv=none; b=GRWZt4jW1crP4Uns2VPHr/jgezIZnNi4uEF2gR/fDcxa12E0omDXS2K5/ZHJ2ItZck5HVL7PgNX22y70YSkHVF1jCSXXo0LhYX8KgLgQg5TJgCnzdaJPJE46bkaSinKKai5mDrjKl1IMygdTZQFfrH3+Oe52UwocCa25poI3RmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742197084; c=relaxed/simple;
-	bh=t2aL2htvGvAMDKnCszETOnstB9mx4YkHpmnbiw6gEEw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sgdnshn1Y7LhXwoZj6+v4vXbDWPiaSMsZ/BmcF5f4LIi0+7WNaGrexx+aNIjio2t6oC/QV72LR5FdcB1aI1T6kZaoDe21V3Ir6MmK0jIys4J7jdpxnPvRFhK2aN15cTK8QY/U6VPAU+E8MKb5rrDFq0M/HTPx9kiUfZOFd9wiMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; arc=none smtp.client-ip=163.172.96.212
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
-Received: (from willy@localhost)
-	by pcw.home.local (8.15.2/8.15.2/Submit) id 52H7bkNM005227;
-	Mon, 17 Mar 2025 08:37:46 +0100
-Date: Mon, 17 Mar 2025 08:37:46 +0100
-From: Willy Tarreau <w@1wt.eu>
-To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>
-Cc: Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH] tools/nolibc: Add support for SPARC
-Message-ID: <20250317073746.GB5114@1wt.eu>
-References: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
+	s=arc-20240116; t=1742198345; c=relaxed/simple;
+	bh=uqXlMhmLB9R3Z+lGdy71/yzhmji7GGi92P8qqFpGnGk=;
+	h=Date:Message-ID:Mime-Version:From:To:Cc:Subject:Content-Type; b=e2xiboWW/7EN3OwZp3g4bLDcFIz6aNovIKDeiyYrPlBMz4ndK7PUtj3qMUWB+dtO1f85qRzDFdwiT9yhvmKb3JE9f1+gSq+XS0byPsPjB2NuQwqBdTQGtaUKIPJqFXg+qvjrVjWJZXZCBD89gKGsGRxekeflit3hE2YdCrCo9+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=183.62.165.209
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mxct.zte.com.cn (FangMail) with ESMTPS id 4ZGS6B4Zqtz501gJ;
+	Mon, 17 Mar 2025 15:58:58 +0800 (CST)
+Received: from xaxapp05.zte.com.cn ([10.99.98.109])
+	by mse-fl1.zte.com.cn with SMTP id 52H7wbQ2044474;
+	Mon, 17 Mar 2025 15:58:37 +0800 (+08)
+	(envelope-from xie.ludan@zte.com.cn)
+Received: from mapi (xaxapp02[null])
+	by mapi (Zmail) with MAPI id mid32;
+	Mon, 17 Mar 2025 15:58:39 +0800 (CST)
+Date: Mon, 17 Mar 2025 15:58:39 +0800 (CST)
+X-Zmail-TransId: 2afa67d7d62fffffffffb17-33f49
+X-Mailer: Zmail v1.0
+Message-ID: <20250317155839844Il-ucxcy_UAEF0tTd7FX6@zte.com.cn>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Mime-Version: 1.0
+From: <xie.ludan@zte.com.cn>
+To: <andreas@gaisler.com>
+Cc: <davem@davemloft.net>, <zhangkunbo@huawei.com>, <xie.ludan@zte.com.cn>,
+        <sparclinux@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <xu.xin16@zte.com.cn>, <yang.yang29@zte.com.cn>
+Subject: =?UTF-8?B?W1BBVENIIGxpbnV4LW5leHRdIHNwYXJjOiB1c2Ugc3lzZnNfZW1pdCgpIGluc3RlYWQgb2Ygc2NucHJpbnRmKCku?=
+Content-Type: text/plain;
+	charset="UTF-8"
+X-MAIL:mse-fl1.zte.com.cn 52H7wbQ2044474
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 67D7D642.000/4ZGS6B4Zqtz501gJ
 
-On Sun, Mar 16, 2025 at 02:55:02PM +0100, Thomas Weiﬂschuh wrote:
-> Add support for 32bit and 64bit SPARC to nolibc.
+From: XieLudan <xie.ludan@zte.com.cn>
 
-Oh nice!
+Follow the advice in Documentation/filesystems/sysfs.rst:
+show() should only use sysfs_emit() or sysfs_emit_at() when formatting
+the value to be returned to user space.
 
-> Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
-> ---
-> This is only tested on QEMU.
-> Any tests on real hardware would be very welcome.
+Signed-off-by: XieLudan <xie.ludan@zte.com.cn>
+---
+ arch/sparc/kernel/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I still have a working U60 here, but under solaris. Such machines are
-not trivial to boot on alternate OSes (and when you find a working
-image usually it's based on an old kernel). But I've run it under
-Linux 20 years ago, so I know it was supported. I may give it a try
-when I find a moment, but let's not wait for this!
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index ddac216a2aff..917e1db3164e 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -593,7 +593,7 @@ show_pciobppath_attr(struct device * dev, struct device_attribute * attr, char *
+ 	pdev = to_pci_dev(dev);
+ 	dp = pdev->dev.of_node;
 
-A few comments below:
+-	return scnprintf(buf, PAGE_SIZE, "%pOF\n", dp);
++	return sysfs_emit(buf, "%pOF\n", dp);
+ }
 
-> diff --git a/tools/include/nolibc/arch-sparc.h b/tools/include/nolibc/arch-sparc.h
-> new file mode 100644
-> index 0000000000000000000000000000000000000000..cb5543eca87bb4d52cfba4c0668e35cbbf6dd124
-> --- /dev/null
-> +++ b/tools/include/nolibc/arch-sparc.h
-> @@ -0,0 +1,191 @@
-> +/* SPDX-License-Identifier: LGPL-2.1 OR MIT */
-> +/*
-> + * SPARC (32bit and 64bit) specific definitions for NOLIBC
-> + * Copyright (C) 2025 Thomas Weiﬂschuh <linux@weissschuh.net>
-> + */
-> +
-> +#ifndef _NOLIBC_ARCH_SPARC_H
-> +#define _NOLIBC_ARCH_SPARC_H
-> +
-> +#include <linux/unistd.h>
-> +
-> +#include "compiler.h"
-> +#include "crt.h"
-> +
-> +/*
-> + * Syscalls for SPARC:
-> + *   - registers are native word size
-> + *   - syscall number is passed in g1
-> + *   - arguments are in o0-o5
-> + *   - the system call is performed by calling a trap instruction
-> + *   - syscall return value is in 0a
-                                     ^^
-What is "0a" here ? I suspect a typo and you meant "o0".
-
-> +/* startup code */
-> +void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
-> +{
-> +	__asm__ volatile (
-> +		/*
-> +		 * Save stack pointer to o0, as arg1 of _start_c.
-> +		 * Account for window save area and stack bias.
-> +		 */
-> +#ifdef __arch64__
-> +		"add %sp, 128 + 2047, %o0\n"
-
-It's really unclear where this magical 2047 comes from, I think it must
-be explained in the comment above so that someone disagreeing with it
-later can figure whether it's right or wrong.
-
-> +#else
-> +		"add %sp, 64, %o0\n"
-> +#endif
-
-Also, I could be wrong, but from my old memories of playing with the
-stack on SPARC long ago, I seem to remember that the stack is growing
-down. Thus I find these "add" suspicious or at least confusing. You
-mention "window save area and stack bias" above, I'm not sure what it
-refers to, but if we can safely erase parts of the stack because too
-much was preserved, maybe some more explanation about the initial and
-target layouts is deserved here.
-
-> +		"b,a _start_c\n"     /* transfer to c runtime */
-
-OK great, the delayed slot is covered! (that type of thing can work
-by pure luck in one test and fail in another one depending on what
-bytes follow the jump).
-
-Thanks!
-
-Acked-by: Willy Tarreau <w@1wt.eu>
-
-Willy
+ static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH, show_pciobppath_attr, NULL);
+-- 
+2.25.1
