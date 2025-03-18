@@ -1,94 +1,91 @@
-Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F19864A07;
-	Tue, 18 Mar 2025 04:11:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=163.172.96.212
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4ACF9207A2A;
+	Tue, 18 Mar 2025 12:14:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742271064; cv=none; b=QVOlJT/n3wtmE33vIFe6TM/DafJvav0IXQS7a0LeGNlGu1ry3EoUCtnzqvK/D76+IgIt9r6uRFCvUgW38sm6dxnu/2HJpAcMYFJpxqRzq21dKOXkcf9O8Hk4XApIyPikdjcUwIAd4TUqcyaLe1HMoj6E+bQd/WTBk7uuI9NJe2o=
+	t=1742300073; cv=none; b=kBpIEWGjSdIkvYRQZ46U/b//DpKHXPUPr6sY11l6+2tARXnpnOKpj2OQDItps4RnkMceiGLfi8XV71E2Y2L5JeZCMFTeCGNrXMc9r7km3J4gsAlAlOHsGULaK7L/p+SUcoaxUJtF6HtLNeR9Ubw+pJ26YpjYhPthrZwsFvJzekI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742271064; c=relaxed/simple;
-	bh=6KRbAsPOhlMIgfs+E2bEO69NL+WDT2EK46o7XLtLGrE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=howVGJhbFMpGB26ExZr3tdzIsmTehn0KPTGj6iwznIPLzm9uqEi09S8TpFR9n6KChaquOE0ISZZ1bp3qrlgxQoI64xl2vUTTW+iNSXBFZ+0S+mSa7s/8+hA1dNqV3Yuli3mk6MsOGcbkeX5z2BAAvWL/2qJAKv7g4DreeN0pDE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; arc=none smtp.client-ip=163.172.96.212
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
-Received: (from willy@localhost)
-	by pcw.home.local (8.15.2/8.15.2/Submit) id 52I4AmfF011310;
-	Tue, 18 Mar 2025 05:10:48 +0100
-Date: Tue, 18 Mar 2025 05:10:48 +0100
-From: Willy Tarreau <w@1wt.eu>
-To: Chris Torek <chris.torek@gmail.com>
-Cc: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>,
-        Shuah Khan <shuah@kernel.org>, "David S. Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH] tools/nolibc: Add support for SPARC
-Message-ID: <20250318041048.GA11294@1wt.eu>
-References: <20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net>
- <20250317073746.GB5114@1wt.eu>
- <dacaa712-08a8-4fd6-ad47-2226040f02aa@t-8ch.de>
- <20250317181402.GB8377@1wt.eu>
- <CAPx1Gvd5JHE6c_de+ZGY4BLPw25Rn1jTd-G9XMhK9xn+cAfbJA@mail.gmail.com>
+	s=arc-20240116; t=1742300073; c=relaxed/simple;
+	bh=64IIiCxSmb90ZQ6fmueb4xJ3WQaFIC2OATzJjR0a98k=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Lb4bg8Lxm72ZgZtTw1mAFX4wKq72MKdllVCyRi7AmvchSybPt4cmKJ4nOWyn0aLFzFfxwcrQzSsPrTI6/8fBSUVVrgeNDoBAWEaLupA7aaqf8QJMFRhzFoQujRU1VRtJLTdfwIRriEl4n/7+r9g5pcWt7HAzIaVdrq550gRlJCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E278013D5;
+	Tue, 18 Mar 2025 05:14:38 -0700 (PDT)
+Received: from [10.57.85.104] (unknown [10.57.85.104])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7AF4D3F673;
+	Tue, 18 Mar 2025 05:14:22 -0700 (PDT)
+Message-ID: <e79f9aa9-ce1b-4d42-8a61-aebaae1744fc@arm.com>
+Date: Tue, 18 Mar 2025 13:14:18 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPx1Gvd5JHE6c_de+ZGY4BLPw25Rn1jTd-G9XMhK9xn+cAfbJA@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 00/11] Always call constructor for kernel page tables
+To: Ryan Roberts <ryan.roberts@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Albert Ou <aou@eecs.berkeley.edu>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
+ Linus Walleij <linus.walleij@linaro.org>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Mark Rutland <mark.rutland@arm.com>, Matthew Wilcox <willy@infradead.org>,
+ Michael Ellerman <mpe@ellerman.id.au>, "Mike Rapoport (IBM)"
+ <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Paul Walmsley <paul.walmsley@sifive.com>,
+ Peter Zijlstra <peterz@infradead.org>, Qi Zheng
+ <zhengqi.arch@bytedance.com>, Will Deacon <will@kernel.org>,
+ Yang Shi <yang@os.amperecomputing.com>, linux-arch@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+References: <20250317141700.3701581-1-kevin.brodsky@arm.com>
+ <70349335-84ee-4bca-a3d6-d7cf3c05b92b@arm.com>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <70349335-84ee-4bca-a3d6-d7cf3c05b92b@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 17, 2025 at 06:57:01PM -0700, Chris Torek wrote:
-> On Mon, Mar 17, 2025 at 11:38 AM Willy Tarreau <w@1wt.eu> wrote:
-> > OK thanks, but that remains quite strange to me. How can we end up
-> > here with such an unaligned stack ? At the very minimum I'd expect
-> > all offsets to be multiple of 8.
-> 
-> It's a peculiar feature of the version 9 SPARC architecture and runtime.
-> This also ties into your window save area question.  Let's start with these:
-> 
->  * There are 16 save-able registers in a window.
->  * Before V9, registers were 32 bits wide.
->  * V9 and later, registers are 64 bits wide.
->  * Each stack frame must provide an area for register data.
-> 
-> Now 32 bits = 4 bytes, times 16 regs = 64 bytes. So for V8 and lower, the
-> register save area is  [%sp+0] through [%sp+63] inclusive.
-> 
-> Now V9 comes along and we need 128 bytes. But we're going to
-> run old V8 code in compatibility mode! How will we tell that some
-> function f() is running in V8 mode instead of V9 mode? [footnote]
-> 
-> Someone decided that the way to tell would be to use a deliberate
-> weird alignment of the stack pointer. If the stack pointer was 7 mod 8,
-> then we're in 64 bit V9 mode and [%sp+2047+0] through
-> [%sp+2047+127] inclusive are the register save area. If not, it
-> must be 0 mod 8 and we're in V8 mode and things are as before.
-> 
-> Why 2047? Well, by observation, it's more common to need negative
-> offsets from the stack pointer (for a large stack-area array for instance)
-> than it is to need positive ones (register window save area and
-> overflow function argument area beyond that). But the instruction
-> set is more or less symmetric, with a 13-bit immediate constant
-> offset of -4096 to +4095.  Solution: add some offset to the stack
-> pointer so that function-stack memory is [%sp-4096] through [%sp+2046],
-> a 6 kilobyte range instead of a 4k one.
-> 
-> The stack offset therefore helps solve both problems: the offset
-> indicates whether to use V8 or V9 register dump conventions
-> and, at the same time, increases the amount of easily-accessed
-> stack memory.
-> 
-> [footnote] This provides the ability to dynamically link V8 and V9
-> code together.  As far as I know this was never used, so that a per
-> process mode bit suffices just as well. Still, the offset went in.
+On 17/03/2025 16:30, Ryan Roberts wrote:
+> On 17/03/2025 14:16, Kevin Brodsky wrote:
+>> The complications in those special pgtable allocators beg the question:
+>> does it really make sense to treat efi_mm and init_mm differently in
+>> e.g. apply_to_pte_range()? Maybe what we really need is a way to tell if
+>> an mm corresponds to user memory or not, and never use split locks for
+>> non-user mm's. Feedback and suggestions welcome!
+> The difference in treatment is whether or not the ptl is taken, right? So the
+> real question is when calling apply_to_pte_range() for efi_mm, is there already
+> a higher level serialization mechanism that prevents racy accesses? For init_mm,
+> I think this is handled implicitly because there is no way for user space to
+> cause apply_to_pte_range() for an arbitrary piece of kernel memory. Although I
+> can't even see where apply_to_page_range() is called for efi_mm.
 
-Super clear, thank you Chris! I think a short comment saying
-"2047: 7 mod 8 = v9 mode" or so would then help and remind that
-it's not a mistake.
+The commit I mentioned above, 61444cde9170 ("ARM: 8591/1: mm: use fully
+constructed struct pages for EFI pgd allocations"), shows that
+apply_to_page_range() is called from efi_set_mapping_permissions(), and
+this indeed hasn't changed. It is itself called from efi_virtmap_init().
+I would expect that no locking at all is necessary here, since the
+mapping has just been created and surely isn't used yet. Now the
+question is where exactly init_mm is special-cased in this manner. I can
+see that walk_page_range() does something similar, there may be more
+cases. And the other question is whether those functions are ever used
+on special mm's, aside from efi_set_mapping_permissions().
+> FWIW, contpte.c has mm_is_user() which is used by arm64.
 
-Cheers,
-Willy
+Interesting! But not pretty, that's basically checking that the mm is
+not &init_mm or &efi_mm... which wouldn't work for a generic
+implementation. It feels like adding some attribute to mm_struct
+wouldn't hurt. It looks like we've run out of MMF_* flags though :/
+
+- Kevin
