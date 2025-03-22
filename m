@@ -1,154 +1,374 @@
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B885230D08
-	for <sparclinux@vger.kernel.org>; Fri, 21 Mar 2025 21:32:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6610542052;
+	Sat, 22 Mar 2025 08:11:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742592750; cv=none; b=PpB2FS2pa+wLcUPbT+YbPJlvD569QQyrCeJXbAAQb6jP4QhaFxnmjNgbpCfG/dYzlB83FAMG15ILprDR4VbIjLFAMJqLXJUF6rqonHcmPUjg41YVn+WizBcIu3u8U//GMay7YM6SClNemnxOZeIGDY9u/lPypCG2d0lKaRW4jw0=
+	t=1742631075; cv=none; b=EibdhtZTE3ONahVoFsBz7U42VcbeKOkCzOhTG2VI1Y/OkUPDbEUKk6N9qKzQ8TF4xdRn8PlYddQegAQ5MwVP2QM1eUTizdr0L53ZlXCEKjQUBU1RCW93mwXqLSF1k68b6rWHkfHZ2fWnhNQYqMfxe5s6mcatdIBNUHfwmOwPrXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742592750; c=relaxed/simple;
-	bh=yG1Qzi6F+aGsBMpdWaT175/M25TWqxBfzW0aBc2Mby8=;
-	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
-	 References:In-Reply-To; b=GKUO6Yce7eec4EALQ7LkJfBU5YiucK0MzVvQLeSLISdHFIf1ludixa6bVjRrBA94t5V3TRWaF5H2fDVdI6uY6Up8BiqIWjU/UF4b57Aq2VxXSY2QNHBE1kgOaco4PNCdHEAplu/deXtnCMjBiVn0/XH4pPncmxAxaGQ9sXIygXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=fIRjMm4y; arc=none smtp.client-ip=209.85.160.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1742631075; c=relaxed/simple;
+	bh=3mJRJDHMlrPaF9fpdmO1kBL5+Ko/Wd4L7orgR9YZccw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=LDnXhIqmAB44QfASmaOMVvIphMOoUdwoguGSj5MH3lm6V4VLXDs31O5mROAfdaMGGi/YIxQx9A5LXqtDzKyxePzoGP1H8oGwqNMw/K87bxNjsmSisKrKfrVOiH/ZzeLp6Xbkxz95KNLqwHA6FUva4QLF+SLPnNhs2gT7k4jK2hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=eEz0AwM5; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="fIRjMm4y"
-Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-47664364628so26085181cf.1
-        for <sparclinux@vger.kernel.org>; Fri, 21 Mar 2025 14:32:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1742592747; x=1743197547; darn=vger.kernel.org;
-        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
-         :mime-version:message-id:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=WkEW7se4kA9gakYYehbVu1ZGmOR39c99GGBG3Q74ESA=;
-        b=fIRjMm4y38rt6rR4EiVKrVqg8BgTJNJQzyxdGM3k4y0k9FWSEYB11GkLVZzJlOJC6P
-         LYoP8Lc8BN7MqvRpg1M6uwz5/HCvBNBnnUPff9qC9ZraQOsQ5GUQEawk8nwSJ2R7w19Z
-         Sk01Pvd8sjpeKYJJxvykAYmwnre5DsbtRyrfPhzlWJPMAhta6i64rgRDiNja4KVmxnVP
-         rzhGnDTCiEHE+V04jIUKueIyxF6Gr30GDSoRcl/LOSRTXDBhiSsLptTCSi6lTO7cgJdu
-         3HHzCXJxe7cd89ONE4gDisu7v9DNNUwILVxBToovN+8GcAfKKh+8f8rSbRrLTA/ycUPn
-         SCzQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742592747; x=1743197547;
-        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
-         :mime-version:message-id:date:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=WkEW7se4kA9gakYYehbVu1ZGmOR39c99GGBG3Q74ESA=;
-        b=KePtkMhRrbaunQOqZVfFbfS/OEVEaGyIKbgCpEpes+HpQIeLG2sPhz/kUaOog0byWj
-         1KDIvnmGMpu34BY9UT0kCAdeXP8ugkRfmUHM/YgYGNQY0xQ+d7Mf4Nby0fYRHLeP7CTZ
-         93N/bJX+0KORdXs8k7rDa5vt4Rf4iwx+3G/wSqVciU+ZxyOuWwLxgfZhDH9dcBLMgq/F
-         FpkqQPVg4alyIWPF/nl8tcjnL3P4VmUW+Lgb6eZbI0uz6n08TVKlbf+5KeE0WSmj9KyH
-         8BlIBGYf4vL61MNdYraBPMq7CPJz2LniO0JCVaIstWrQdAgGzck1PKdKeOpqETp5bPv8
-         funw==
-X-Forwarded-Encrypted: i=1; AJvYcCUdVkaszGK9/JNNf2Y16meKP1kQMlbq1+fRuwShL5sTNJC7lJAPxJY8rOwGvVoVlp7tEnjD+W45mQ+d@vger.kernel.org
-X-Gm-Message-State: AOJu0YyAmpX4rTMXvyyuMRESB54XZ0tZv48XGiigiazeQEMkxQ4jMtID
-	lXanVPNO2JXdhLbbv49hTODt//UflBRfpGadyQa0M5tQ7zWs0wsvxoRFjRVrdw==
-X-Gm-Gg: ASbGncuhJWdyEcR8eb8leRnAd9am7oBLi/6cymwldNB7elD+vSPItPt0/xYYuzKU8cV
-	9PtJU5YJAL7Msd63UAM8Ct8JdyLoc6gFy8zdZr1Ogw+V7YLuB7SuFzlrNDop+R5ML1/2A2XzoSw
-	YcbJhjnH+J/iyTAH3WD7wcMvYHsboU0sNSbW1fwfwQkqvGPI+WZ+uT7ANGWE066Rkr7MIxaYsBR
-	/SocXQoRpZwN1faF2U3lFfdE2of+EXGfxSEsqTHfYbdmp19QtPZG0DI26sxnNZBh21Vtj3dPjKj
-	Y+D9cDNctPQWMH4hTJvdV8Lq/2yejM8eIyvfBiS7sC4iI4SR1NGj/5KJkipeRmbAki7mEXvXWe4
-	iExuMITZ5hXflKQ==
-X-Google-Smtp-Source: AGHT+IEqvMs9f3zdHkqatEuHHMLq+Pp1CGQwo1N+6m68HBYAt0XjQifVPk3cXxCHJ8EdFG+VR82ouA==
-X-Received: by 2002:a05:622a:1f98:b0:471:fef5:ee84 with SMTP id d75a77b69052e-4771d924e1emr70292591cf.7.1742592746683;
-        Fri, 21 Mar 2025 14:32:26 -0700 (PDT)
-Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
-        by smtp.gmail.com with UTF8SMTPSA id d75a77b69052e-4771d64d5f6sm16343541cf.81.2025.03.21.14.32.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Mar 2025 14:32:26 -0700 (PDT)
-Date: Fri, 21 Mar 2025 17:32:25 -0400
-Message-ID: <e2d5b27847fde03e0b4b9fc7a464fd87@paul-moore.com>
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="eEz0AwM5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1742631061;
+	bh=3mJRJDHMlrPaF9fpdmO1kBL5+Ko/Wd4L7orgR9YZccw=;
+	h=From:Date:Subject:To:Cc:From;
+	b=eEz0AwM50djTkRrmR5FEWelcF3YI/orDa6XvFqllfqyL1ylJd5J4plpJIVFid2YrF
+	 ozOgFwCs2GTWERpetuLjPbtENxYK2ZOIDTkeY3eCnTZwE7EhNhN7iAryUVDx+ervzX
+	 0nXQ68WOtNLRdJ9A2jdGAZRcehcj3q/YGmytWDBM=
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Date: Sat, 22 Mar 2025 09:10:51 +0100
+Subject: [PATCH v2] tools/nolibc: Add support for SPARC
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 
-Content-Type: text/plain; charset=UTF-8 
-Content-Transfer-Encoding: 8bit 
-X-Mailer: pstg-pwork:20250320_1749/pstg-lib:20250320_2248/pstg-pwork:20250320_1749
-From: Paul Moore <paul@paul-moore.com>
-To: Andrey Albershteyn <aalbersh@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
-	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	=?UTF-8?B?TWlja2HDq2wgU2FsYcO8bg==?= <mic@digikod.net>, 
-	=?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>, 
-	Arnd Bergmann <arnd@arndb.de>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>, 
-	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>
-Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, selinux@vger.kernel.org, Andrey Albershteyn <aalbersh@kernel.org>
-Subject: Re: [PATCH v4 1/3] lsm: introduce new hooks for setting/getting inode  fsxattr
-References: <20250321-xattrat-syscall-v4-1-3e82e6fb3264@kernel.org>
-In-Reply-To: <20250321-xattrat-syscall-v4-1-3e82e6fb3264@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20250322-nolibc-sparc-v2-1-89af018c6296@weissschuh.net>
+X-B4-Tracking: v=1; b=H4sIAIpw3mcC/13NwQ6CMAzG8VchPTvDiohy8j0MhzGKa2I2siJqy
+ N7diTeP/y/prysIRSaBtlgh0sLCwefAXQHWGX8jxUNuwBLrEvGofLhzb5VMJlpl+vHQNPVgT7q
+ CfDJFGvm1cdcut2OZQ3xv+qK/6w+q9B+0aKUV0rnJP4aa0F6exCJi3cPtPc3QpZQ+v+sQla0AA
+ AA=
+X-Change-ID: 20250226-nolibc-sparc-abf4775dc813
+To: Willy Tarreau <w@1wt.eu>, Shuah Khan <shuah@kernel.org>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>
+Cc: linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+ sparclinux@vger.kernel.org, Chris Torek <chris.torek@gmail.com>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>, 
+ Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1742631061; l=14265;
+ i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
+ bh=3mJRJDHMlrPaF9fpdmO1kBL5+Ko/Wd4L7orgR9YZccw=;
+ b=msqva+7I3IzpEBW/Xw49b7MmcH72i58+ObkVc/OstVs9m7IlSeyauXcXgvmsw7j4aCWLSY/PS
+ Agvh8qCze6hA9reQhHNCH7zVmCc0vjG943Rs7oa5f2tww4Tku7eTI5g
+X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
+ pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-On Mar 21, 2025 Andrey Albershteyn <aalbersh@redhat.com> wrote:
-> 
-> Introduce new hooks for setting and getting filesystem extended
-> attributes on inode (FS_IOC_FSGETXATTR).
-> 
-> Cc: selinux@vger.kernel.org
-> Cc: Paul Moore <paul@paul-moore.com>
-> 
-> Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
-> ---
->  fs/ioctl.c                    |  7 ++++++-
->  include/linux/lsm_hook_defs.h |  4 ++++
->  include/linux/security.h      | 16 ++++++++++++++++
->  security/security.c           | 32 ++++++++++++++++++++++++++++++++
->  4 files changed, 58 insertions(+), 1 deletion(-)
+Add support for 32bit and 64bit SPARC to nolibc.
 
-Thanks Andrey, one small change below, but otherwise this looks pretty
-good.  If you feel like trying to work up the SELinux implementation but
-need some assitance please let me know, I'll be happy to help :)
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Acked-by: Willy Tarreau <w@1wt.eu>
+Tested-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc> # UltraSparc T4 (Niagara4)
+---
+This is only tested on QEMU.
+Any tests on real hardware would be very welcome.
+---
+Changes in v2:
+- Pick up tags
+- Fix comment about syscall return register
+- Reword comment about stackpointer offsets
+- Link to v1: https://lore.kernel.org/r/20250316-nolibc-sparc-v1-1-2e97022d5e2c@weissschuh.net
+---
+ tools/include/nolibc/arch-sparc.h           | 191 ++++++++++++++++++++++++++++
+ tools/include/nolibc/arch.h                 |   2 +
+ tools/testing/selftests/nolibc/Makefile     |  11 ++
+ tools/testing/selftests/nolibc/run-tests.sh |   2 +
+ 4 files changed, 206 insertions(+)
 
-> diff --git a/fs/ioctl.c b/fs/ioctl.c
-> index 638a36be31c14afc66a7fd6eb237d9545e8ad997..4434c97bc5dff5a3e8635e28745cd99404ff353e 100644
-> --- a/fs/ioctl.c
-> +++ b/fs/ioctl.c
-> @@ -525,10 +525,15 @@ EXPORT_SYMBOL(fileattr_fill_flags);
->  int vfs_fileattr_get(struct dentry *dentry, struct fileattr *fa)
->  {
->  	struct inode *inode = d_inode(dentry);
-> +	int error;
->  
->  	if (!inode->i_op->fileattr_get)
->  		return -ENOIOCTLCMD;
->  
-> +	error = security_inode_getfsxattr(inode, fa);
-> +	if (error)
-> +		return error;
-> +
->  	return inode->i_op->fileattr_get(dentry, fa);
->  }
->  EXPORT_SYMBOL(vfs_fileattr_get);
-> @@ -692,7 +697,7 @@ int vfs_fileattr_set(struct mnt_idmap *idmap, struct dentry *dentry,
->  			fa->flags |= old_ma.flags & ~FS_COMMON_FL;
->  		}
->  		err = fileattr_set_prepare(inode, &old_ma, fa);
-> -		if (!err)
-> +		if (!err && !security_inode_setfsxattr(inode, fa))
->  			err = inode->i_op->fileattr_set(idmap, dentry, fa);
->  	}
->  	inode_unlock(inode);
+diff --git a/tools/include/nolibc/arch-sparc.h b/tools/include/nolibc/arch-sparc.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..1435172f3dfe33566cd8c61d726455702c804f6a
+--- /dev/null
++++ b/tools/include/nolibc/arch-sparc.h
+@@ -0,0 +1,191 @@
++/* SPDX-License-Identifier: LGPL-2.1 OR MIT */
++/*
++ * SPARC (32bit and 64bit) specific definitions for NOLIBC
++ * Copyright (C) 2025 Thomas Weißschuh <linux@weissschuh.net>
++ */
++
++#ifndef _NOLIBC_ARCH_SPARC_H
++#define _NOLIBC_ARCH_SPARC_H
++
++#include <linux/unistd.h>
++
++#include "compiler.h"
++#include "crt.h"
++
++/*
++ * Syscalls for SPARC:
++ *   - registers are native word size
++ *   - syscall number is passed in g1
++ *   - arguments are in o0-o5
++ *   - the system call is performed by calling a trap instruction
++ *   - syscall return value is in o0
++ *   - syscall error flag is in the carry bit of the processor status register
++ */
++
++#ifdef __arch64__
++
++#define _NOLIBC_SYSCALL "t	0x6d\n"                                       \
++			"bcs,a	%%xcc, 1f\n"                                  \
++			"sub	%%g0, %%o0, %%o0\n"                           \
++			"1:\n"
++
++#else
++
++#define _NOLIBC_SYSCALL "t	0x10\n"                                       \
++			"bcs,a	1f\n"                                         \
++			"sub	%%g0, %%o0, %%o0\n"                           \
++			"1:\n"
++
++#endif /* __arch64__ */
++
++#define my_syscall0(num)                                                      \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0");                                   \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_num)                                                   \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall1(num, arg1)                                                \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_num)                                                   \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall2(num, arg1, arg2)                                          \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++	register long _arg2 __asm__ ("o1") = (long)(arg2);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_arg2), "r"(_num)                                       \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall3(num, arg1, arg2, arg3)                                    \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++	register long _arg2 __asm__ ("o1") = (long)(arg2);                    \
++	register long _arg3 __asm__ ("o2") = (long)(arg3);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_arg2), "r"(_arg3), "r"(_num)                           \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall4(num, arg1, arg2, arg3, arg4)                              \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++	register long _arg2 __asm__ ("o1") = (long)(arg2);                    \
++	register long _arg3 __asm__ ("o2") = (long)(arg3);                    \
++	register long _arg4 __asm__ ("o3") = (long)(arg4);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_arg2), "r"(_arg3), "r"(_arg4), "r"(_num)               \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall5(num, arg1, arg2, arg3, arg4, arg5)                        \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++	register long _arg2 __asm__ ("o1") = (long)(arg2);                    \
++	register long _arg3 __asm__ ("o2") = (long)(arg3);                    \
++	register long _arg4 __asm__ ("o3") = (long)(arg4);                    \
++	register long _arg5 __asm__ ("o4") = (long)(arg5);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_arg2), "r"(_arg3), "r"(_arg4), "r"(_arg5), "r"(_num)   \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++#define my_syscall6(num, arg1, arg2, arg3, arg4, arg5, arg6)                  \
++({                                                                            \
++	register long _num  __asm__ ("g1") = (num);                           \
++	register long _arg1 __asm__ ("o0") = (long)(arg1);                    \
++	register long _arg2 __asm__ ("o1") = (long)(arg2);                    \
++	register long _arg3 __asm__ ("o2") = (long)(arg3);                    \
++	register long _arg4 __asm__ ("o3") = (long)(arg4);                    \
++	register long _arg5 __asm__ ("o4") = (long)(arg5);                    \
++	register long _arg6 __asm__ ("o5") = (long)(arg6);                    \
++									      \
++	__asm__ volatile (                                                    \
++		_NOLIBC_SYSCALL                                               \
++		: "+r"(_arg1)                                                 \
++		: "r"(_arg2), "r"(_arg3), "r"(_arg4), "r"(_arg5), "r"(_arg6), \
++		  "r"(_num)                                                   \
++		: "memory", "cc"                                              \
++	);                                                                    \
++	_arg1;                                                                \
++})
++
++/* startup code */
++void __attribute__((weak, noreturn)) __nolibc_entrypoint __no_stack_protector _start(void)
++{
++	__asm__ volatile (
++		/*
++		 * Save argc pointer to o0, as arg1 of _start_c.
++		 * Account for the window save area, which is 16 registers wide.
++		 */
++#ifdef __arch64__
++		"add %sp, 128 + 2047, %o0\n" /* on sparc64 / v9 the stack is offset by 2047 */
++#else
++		"add %sp, 64, %o0\n"
++#endif
++		"b,a _start_c\n"     /* transfer to c runtime */
++	);
++	__nolibc_entrypoint_epilogue();
++}
++
++static pid_t getpid(void);
++
++static __attribute__((unused))
++pid_t sys_fork(void)
++{
++	pid_t parent, ret;
++
++	parent = getpid();
++	ret = my_syscall0(__NR_fork);
++
++	/* The syscall returns the parent pid in the child instead of 0 */
++	if (ret == parent)
++		return 0;
++	else
++		return ret;
++}
++#define sys_fork sys_fork
++
++#endif /* _NOLIBC_ARCH_SPARC_H */
+diff --git a/tools/include/nolibc/arch.h b/tools/include/nolibc/arch.h
+index 8a2c143c0fba288147e5a7bf9db38ffb08367616..b8c1da9a88d1593d5a97f60909ede5d0c17699eb 100644
+--- a/tools/include/nolibc/arch.h
++++ b/tools/include/nolibc/arch.h
+@@ -33,6 +33,8 @@
+ #include "arch-s390.h"
+ #elif defined(__loongarch__)
+ #include "arch-loongarch.h"
++#elif defined(__sparc__)
++#include "arch-sparc.h"
+ #else
+ #error Unsupported Architecture
+ #endif
+diff --git a/tools/testing/selftests/nolibc/Makefile b/tools/testing/selftests/nolibc/Makefile
+index 58bcbbd029bc3ad9ccac968191b703ccf5df0717..5060e189dc842d761dd13d70b8afdb2ff3390bc5 100644
+--- a/tools/testing/selftests/nolibc/Makefile
++++ b/tools/testing/selftests/nolibc/Makefile
+@@ -56,6 +56,8 @@ ARCH_mips32be    = mips
+ ARCH_riscv32     = riscv
+ ARCH_riscv64     = riscv
+ ARCH_s390x       = s390
++ARCH_sparc32     = sparc
++ARCH_sparc64     = sparc
+ ARCH            := $(or $(ARCH_$(XARCH)),$(XARCH))
+ 
+ # kernel image names by architecture
+@@ -76,6 +78,8 @@ IMAGE_riscv64    = arch/riscv/boot/Image
+ IMAGE_s390x      = arch/s390/boot/bzImage
+ IMAGE_s390       = arch/s390/boot/bzImage
+ IMAGE_loongarch  = arch/loongarch/boot/vmlinuz.efi
++IMAGE_sparc32    = arch/sparc/boot/image
++IMAGE_sparc64    = arch/sparc/boot/image
+ IMAGE            = $(objtree)/$(IMAGE_$(XARCH))
+ IMAGE_NAME       = $(notdir $(IMAGE))
+ 
+@@ -97,6 +101,8 @@ DEFCONFIG_riscv64    = defconfig
+ DEFCONFIG_s390x      = defconfig
+ DEFCONFIG_s390       = defconfig compat.config
+ DEFCONFIG_loongarch  = defconfig
++DEFCONFIG_sparc32    = sparc32_defconfig
++DEFCONFIG_sparc64    = sparc64_defconfig
+ DEFCONFIG            = $(DEFCONFIG_$(XARCH))
+ 
+ EXTRACONFIG           = $(EXTRACONFIG_$(XARCH))
+@@ -122,6 +128,8 @@ QEMU_ARCH_riscv64    = riscv64
+ QEMU_ARCH_s390x      = s390x
+ QEMU_ARCH_s390       = s390x
+ QEMU_ARCH_loongarch  = loongarch64
++QEMU_ARCH_sparc32    = sparc
++QEMU_ARCH_sparc64    = sparc64
+ QEMU_ARCH            = $(QEMU_ARCH_$(XARCH))
+ 
+ QEMU_ARCH_USER_ppc64le = ppc64le
+@@ -152,6 +160,8 @@ QEMU_ARGS_riscv64    = -M virt -append "console=ttyS0 panic=-1 $(TEST:%=NOLIBC_T
+ QEMU_ARGS_s390x      = -M s390-ccw-virtio -append "console=ttyS0 panic=-1 $(TEST:%=NOLIBC_TEST=%)"
+ QEMU_ARGS_s390       = -M s390-ccw-virtio -append "console=ttyS0 panic=-1 $(TEST:%=NOLIBC_TEST=%)"
+ QEMU_ARGS_loongarch  = -M virt -append "console=ttyS0,115200 panic=-1 $(TEST:%=NOLIBC_TEST=%)"
++QEMU_ARGS_sparc32    = -M SS-5 -m 256M -append "console=ttyS0,115200 panic=-1 $(TEST:%=NOLIBC_TEST=%)"
++QEMU_ARGS_sparc64    = -M sun4u -append "console=ttyS0,115200 panic=-1 $(TEST:%=NOLIBC_TEST=%)"
+ QEMU_ARGS            = -m 1G $(QEMU_ARGS_$(XARCH)) $(QEMU_ARGS_BIOS) $(QEMU_ARGS_EXTRA)
+ 
+ # OUTPUT is only set when run from the main makefile, otherwise
+@@ -174,6 +184,7 @@ CFLAGS_s390x = -m64
+ CFLAGS_s390 = -m31
+ CFLAGS_mips32le = -EL -mabi=32 -fPIC
+ CFLAGS_mips32be = -EB -mabi=32
++CFLAGS_sparc32 = $(call cc-option,-m32)
+ CFLAGS_STACKPROTECTOR ?= $(call cc-option,-mstack-protector-guard=global $(call cc-option,-fstack-protector-all))
+ CFLAGS  ?= -Os -fno-ident -fno-asynchronous-unwind-tables -std=c89 -W -Wall -Wextra \
+ 		$(call cc-option,-fno-stack-protector) $(call cc-option,-Wmissing-prototypes) \
+diff --git a/tools/testing/selftests/nolibc/run-tests.sh b/tools/testing/selftests/nolibc/run-tests.sh
+index 0299a0912d4049dd12217f9835b81d231e1d2bfd..040956a9f5b8dda3e78abc0d4b6073f4fcd9e3ee 100755
+--- a/tools/testing/selftests/nolibc/run-tests.sh
++++ b/tools/testing/selftests/nolibc/run-tests.sh
+@@ -25,6 +25,7 @@ all_archs=(
+ 	riscv32 riscv64
+ 	s390x s390
+ 	loongarch
++	sparc32 sparc64
+ )
+ archs="${all_archs[@]}"
+ 
+@@ -111,6 +112,7 @@ crosstool_arch() {
+ 	loongarch) echo loongarch64;;
+ 	mips*) echo mips;;
+ 	s390*) echo s390;;
++	sparc*) echo sparc64;;
+ 	*) echo "$1";;
+ 	esac
+ }
 
-I don't believe we want to hide or otherwise drop the LSM return code as
-that could lead to odd behavior, e.g. returning 0/success despite not
-having executed the fileattr_set operation.
+---
+base-commit: bceb73904c855c78402dca94c82915f078f259dd
+change-id: 20250226-nolibc-sparc-abf4775dc813
 
---
-paul-moore.com
+Best regards,
+-- 
+Thomas Weißschuh <linux@weissschuh.net>
+
