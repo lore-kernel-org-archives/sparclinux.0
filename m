@@ -1,155 +1,99 @@
-Received: from mail-ua1-f53.google.com (mail-ua1-f53.google.com [209.85.222.53])
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0A15221F1A;
-	Mon,  7 Apr 2025 08:06:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EF2323AE8B;
+	Mon,  7 Apr 2025 11:07:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744013182; cv=none; b=aNHD3UJokIoso43TGiGaHZ6K9JdXNbw7S5uspIT4gdL45DetQhFiXvRxc/srHyOSmhWGornAWUnLRbH+ufSQ/gx9ettaJZVEOASuJBKXYVkO91E0Gky20lq0TWvKGJAOSqaV+40JMfliawKoEA5JiuwH2JUWaz3gHWNEt6LUJco=
+	t=1744024029; cv=none; b=QscDnI/WS+Vawhik1kbUWJ1XRcf0mbtI0aoVsH6Bg/28eHAQS+iR+S9m3l9NF/4PNV6/3OOu6TFBtIVXivLyYWzu5B4I50HvAaZHnvA+x1H0Qh8TACtJnHBQdJfDdpHoKFSKjyy0PSdhenuwZgDo4QcA1Eo2Wo7TkFRSZ4ah6C8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744013182; c=relaxed/simple;
-	bh=Jv1axMlTH1d7Bc5hi8tVqQgcr6gs+9TX6BEWYeJwdVQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CKQ957o1MSkafX5pwI7Gf9clj6PbObqcZLcQY1jcfJNOJzNpwIDpAxt1QdNKrNj/R3+XmyblYmIphZlmKkyxHL6zGP32AsswlkQglnUGDjIvB0RazXGFp36Ie39qgdJyu1oZFXS/v42rZ8J86fhpmgqfN1qi5G/gSU+BgIlDHns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.222.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+	s=arc-20240116; t=1744024029; c=relaxed/simple;
+	bh=0IbVJLPXQykXsMAb/F7X9M2oU1sB9av0JzqfG+Rxc5A=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=bFCu7v8OqkRqwdVRZYVruhPSG63izT9RAv8ShgnuCufPlejjjFTR5ZyPfE9Q9u5ndh1bDOUoqwgECPx4792TfKQjja8vxXcg2dn3PgV2CTbE/xKMKLuhkI1Mkv5SaE+jWmR1MNEwpN6lKMtFlX61x5olkHSDzJQ9rU09hugvzWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hDKNp6ic; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ua1-f53.google.com with SMTP id a1e0cc1a2514c-86d5a786c7cso1786399241.2;
-        Mon, 07 Apr 2025 01:06:20 -0700 (PDT)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hDKNp6ic"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-43cfebc343dso27082285e9.2;
+        Mon, 07 Apr 2025 04:07:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1744024025; x=1744628825; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=f4MosKBAgMVjw4i+o5gPRutczhd3YTCBKI2mgNnWVI4=;
+        b=hDKNp6icUkhYWR8ImVNrf1t3sIvVCGO3Ul//Fz3NOjaGNYK7tw4i0Cwlsiv8bRVL9w
+         XunodMywgbjSWLjlRKZF90CekUpvdrjueqcmqg17m12PvfoNkXykJr3yRLbk3KB/+7iL
+         i57ZdLemvajl897p1sL2+WOfX90gf4oOSX18G7uSNnw0TQHdjKq8IeGCKkscrPIMj28M
+         oCdlDUGhJOWMQfOrh+1j3BE5lia2yQuh5/BLv8KdiOoqeOb8fybhOzUXZqsxNbdryyql
+         3SdfSRm7sDyEC0aBiF4AciGZWPj6L04l0SC8NSZHqZFqz9dXtpg0KTjoHjbgCma3JPVc
+         X0sA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744013177; x=1744617977;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=em0yD0kIpDtyZFKdGXKgNdHuMfrDjAXLZIWfYU3VNv0=;
-        b=QqoqyMgVdul9RvY6jWkaX+jVeFG76VW6QPGh9oP/Iza/B1h1x+BgbxTkGM7Q/eE+q7
-         5BwkCjbkHtbMKod6l9tjUG9KHq6axf7oMKSBZ3IC52z8xHO1fqnBd4+q9v7WaSiE1Rjb
-         JPDOc3Qz+MzX9HqTlgEZQM/rwv7jZzbCn+P9PDa1okiVTTTnbsiXWYH1W5wKqdtAtDdq
-         4o58/QyGJRO/wJgJ9allz2XZPt/tVius/SXM2hRhGDFC49P11kUcp5VBTHFZeka+svO4
-         i+kvNrz1IH6Imfy5uxY4fzhXuKVkYkpCezWqvr4gBs6SMPHw6coYsDpdnzpZGFSPai1a
-         yAEA==
-X-Forwarded-Encrypted: i=1; AJvYcCUhJUhMIX7ey7JIMIpmNo2dbjX2zmwRnj+ooITqnjTm4nFlK+B+4O9uM/UuseVZ+20r6EvT+1zUh65zdg==@vger.kernel.org, AJvYcCV1GxUjWZkZHaOulzHDZEhLqTr21DQsvIYxmfSJ95U6oYKwynb5qgqXUWUbw5VNT0x/vCtd/WtkCWQ+Kyjj@vger.kernel.org, AJvYcCVIWaGcPTyTrUg30ALAlFceyKRNwrcBOOCp2emu3/kirpFq45hvgkrx9Z3XJ12MFJp3NwX1m5ScCWs5WQ==@vger.kernel.org, AJvYcCW83VGOcxjmus0QhbAe56vQdQJ5+eg63zAy6tJdY/4oYJ82Gk6P55x4hvkCaQw+eH3YOn4uAB58j9POHfBE@vger.kernel.org, AJvYcCWKcEfSYGfD5TUxfKiur0V2N+ThBM4zrWmq1johOhk+6da8cuUcr062Xqm/ap6rIjU5fvnufYjuUo2tVTenM9c=@vger.kernel.org, AJvYcCWptsgVifqzSzqF3ja0eHZI03VnCO2o7/J257cFfErHr233QRaP5zWDNX00CNHR77W+mNzxrDAlA8YoWw==@vger.kernel.org, AJvYcCWqjPIMJGsHx4iAWsEbMjRij7lJN2r3cFM9ekiRdT/7/DuLKQHBSsT7t3NhzFoZ+xwsRQ3cXi1ib49PSw==@vger.kernel.org, AJvYcCXLbXVPJkbmRjXH4bDbuUOAWOU051RqtdimhWebNQQ9hCyRnYG+w0Eql/0VhjEb4zqgLtfYqs/KeDtErf1R3A==@vger.kernel.org, AJvYcCXWe3RzKKIpomRwaTimB0zjhNeFAp31+AcECETHtt+iEm9wE+OvbBtRZ9eUt50+cKCFJIrEcGNJSBY=@vger.kernel.org, AJvYcCXePFHWhGFPP6+i+dx+6ELcWQYbu+h1OyuNk6P3STWvHDLMhxmRZCw5clqJtcMALxDH0ei1OYzgiuEh2A==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzwCfCdnnCdQ0DD6VegW7o/cJ5iZ3I8e2TsFo8lM4F6xeTAkk9D
-	l7+/DNWCua279LMzRjkTBHpk0Unq+yvHnx4xXkjjX93y1WGKffCEv+Q49aJc
-X-Gm-Gg: ASbGncu0i1j82qY3DHnDejG9M0T89T7kKhPF/bYGtt5KEfAO0GFr1Wd975p99ZI9c1y
-	yBJe+tnABeKZEf8BXYa0R4KLI/hxf77/CnAdhkiKWy7oZwB64BTWlANeLsZdKg9BZuqaOI6B6bO
-	78xgeZpUi8Oe0DGTNgGAql1lryboJEgyVo/3TDv6+wnCtG9jVwRBs8vDhbgP5mcYGAS7eWOiMQh
-	gykBYvihKfJYIZbyMCOLzRxG+dKQwyluiJF30nGGRDuw//4RAsaFuXt1Y8/MU00fPL1OSXAXyme
-	5T9wH+7SCqldNVb2Sm3vCvb8v3RjekbU8W/38jRrDOLCn+T4TLuqjgbw7Le+6orgX0rhhIexsir
-	PK2SNlI0RVlbkiGgWFrxnDw==
-X-Google-Smtp-Source: AGHT+IEIypkAlw58qGBac2+Hu5A+Jxul5pRODKDJKvH5QRRf02oHU/YDN4T+WxofIAG1Nz+RXRMAuA==
-X-Received: by 2002:a05:6102:1481:b0:4c4:df5b:330f with SMTP id ada2fe7eead31-4c8554696f1mr9046623137.17.1744013177543;
-        Mon, 07 Apr 2025 01:06:17 -0700 (PDT)
-Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com. [209.85.221.179])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-8738b2b1020sm1647791241.33.2025.04.07.01.06.16
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 07 Apr 2025 01:06:17 -0700 (PDT)
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-51eb1823a8eso2185853e0c.3;
-        Mon, 07 Apr 2025 01:06:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUb7UJxdnHYbhM6Vw7DNrjQnSTGYH89rT5cEBXWd4aozJ+uBaGyPZSLtNiu+09oIvooXhmJmuf9nYgoVA==@vger.kernel.org,
- AJvYcCUhot8uSdvgO/oSoh3al83nNayK21jFzPGK5Dl3MIB8dIMiNTFwZ4P7PLSZ8Ls7U6QlDTSojpp8GFf3Hw==@vger.kernel.org,
- AJvYcCV2Lhk9GsyFHtPx7NCFVOcR1kSam/FtMao+qKM6aX2X9w7+B/77ZXm3neVSC77JpoQznVhTTgoDP+4hzOEvKg==@vger.kernel.org,
- AJvYcCVfU9VvwKGc1e1aAylr8ZhYqSK8QYN0bIK2mjRyWy9dqv5DA+E3KtbP20XjS9O3X4N3L1caUid/yzhPww==@vger.kernel.org,
- AJvYcCVjd6dtfu5ML6XO+C/HJu1zRJxBx6CHPkDNe7EjWTYDpRkE0C6MpjLVj9W/Bwsth4RywdSYtvFteZYSwvrQcZE=@vger.kernel.org,
- AJvYcCWAuR79s9UK9QCMMIeg1JxoiTqBVblIs1FWXWigmehgZoTbMw5iV2uWy97lsHaPJdnBGZ8XojfI9sbCrZ7G@vger.kernel.org,
- AJvYcCWqORCKpls2JuoRtXlhj5DQ3ZtoEr2mt+m7i+ymy5qef0PCSi6lRv0PE+64Ab2PU2EpJt3Dd+PuvdVjXA==@vger.kernel.org,
- AJvYcCX4PHiREUhBv8dPJzFaHjRN1uii9gufCMhavgTwfDo6UXnRz8eGj2mRS2bwGgSotKznjM5LdxqlNuk=@vger.kernel.org,
- AJvYcCXaHQHsx+LGm68LDBhVRqKM7QBwdSiKIvMwp8Fr2UX2KfX8crfAZ7R9CE/dvaWU8EXYenDodot26/9VRS7u@vger.kernel.org,
- AJvYcCXanLK+LH2pLYgUqXNBqxRZQoGk4/W+bGdFSl0DpVT4aE3kJ4/l1w5E9EH0XBzZpCr0Y9Eij5BJhl60vg==@vger.kernel.org
-X-Received: by 2002:a05:6102:1622:b0:4c3:221:8f47 with SMTP id
- ada2fe7eead31-4c8553d0fafmr8533368137.13.1744013176401; Mon, 07 Apr 2025
- 01:06:16 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744024025; x=1744628825;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=f4MosKBAgMVjw4i+o5gPRutczhd3YTCBKI2mgNnWVI4=;
+        b=TV1fzCH145Kuyj9FwSa/gdyaxGoQVKDFNH5sqPUnpivyA7p8CX5mbITKBfJJ/NLYPz
+         db4IkIJM+1wKEfJkQo/Uh6EtFWtRky6XK6uQg+w/o7Tut+Z7HO7WL1DbTrWwH8G7ZysX
+         qF/jO1GNLsuRsug1liHTc7qgOiKkAF9Of40VaTHZSFDV61ODscZPwIo0vZKtVVf75n1d
+         XscN0RGmWHRXgJ8L31VdCBkzf8s5X9EwoAEnP7nku2FW1fTlXibgEVsGT4UhhMX5GDwC
+         CgR8tOyeYEFnHePfaFpChsFx49oLV641brjnUMd3TEqVBGkYHSHnAaQ16H1Q76m4he4C
+         zUXQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWCU+p4PBA5IF26eSM+X88V8H4gQ72nspyQBQIgSvIxJHbUv4fCEUzya/5yfUKIHDmq3FiRUK2mLlY5cA==@vger.kernel.org, AJvYcCXx8KW4WRRE9E8SE0zn5C5gW3aBNqffWgVwuvfyHpMLePnoBZWnVX5+5o1j/pp1PVgMNrWTbuNkg4KZHjE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwoJJv37HKsquXR/bo16c9O9/WhvC7hvMG85aV9M6TVoTSPngwO
+	PNm51Ign4vjZ0By6UMjqcwBriJGk3JTgxeJhHpZCNkGgOQhoP2bf
+X-Gm-Gg: ASbGncvQaTYZu0CzBobkSxtZGFIegsKRT5HZC9EAi9NaU79D2jZGY9pR0VSU4c+qVMN
+	f1x4ChiBaKaDEiV3lBM76K43Wh1UCyqY2cE9+tIKU8SHM1FXBXRxi7vJkSXSh6+ZNpS4pVdIq7s
+	BX4GR8b3ZBe6+Q734ed2hvmYK5pSzXWFwCdmHTPztqqUT+utOGsX1Mcw3gUGyvZcC8mo+bkDu8x
+	y00m8BicexOqEtcqimSW9gLsUt41cDFjPOjkiJSV310tFqVHFfh4fHu5s+qdHXnQ7Ae9UU3YbcF
+	LPOa7VWviYPaQwQ19ke2W+3xYO2EQ3MGKn4=
+X-Google-Smtp-Source: AGHT+IGEbHaqbV08bWBP//htgYXkx2K6J03KYFBtUcURgvs+cygHYiQIWyajimgzViJ/ES0hAbNR7A==
+X-Received: by 2002:a05:600c:1e23:b0:43b:c95f:fd9 with SMTP id 5b1f17b1804b1-43ecf81c304mr109645795e9.5.1744024024356;
+        Mon, 07 Apr 2025 04:07:04 -0700 (PDT)
+Received: from pc ([196.235.56.129])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43ec16f1a73sm129843215e9.24.2025.04.07.04.07.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Apr 2025 04:07:03 -0700 (PDT)
+Date: Mon, 7 Apr 2025 12:06:58 +0100
+From: Salah Triki <salah.triki@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: salah.triki@gmail.com
+Subject: [PATCH] sparc: pci: Fix memory leak in pci_bus_slot_names()
+Message-ID: <Z_Ox0qp7uuKNUo2U@pc>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250218175735.19882-1-linmag7@gmail.com> <20250218175735.19882-2-linmag7@gmail.com>
- <4209b9816551367f8e5670cc5a08e139f0f2c215.camel@physik.fu-berlin.de>
-In-Reply-To: <4209b9816551367f8e5670cc5a08e139f0f2c215.camel@physik.fu-berlin.de>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 7 Apr 2025 10:06:03 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdWLVw8aUY8aCowgOz+puxjrDqcbUXUAoVXGi8=FpTHwrA@mail.gmail.com>
-X-Gm-Features: ATxdqUEtUaFZruSQ19joR0gbmVyVokHgxasQdxoPHK2-UPmtdbKL5noyYxpgMcc
-Message-ID: <CAMuHMdWLVw8aUY8aCowgOz+puxjrDqcbUXUAoVXGi8=FpTHwrA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/1] mm: pgtable: fix pte_swp_exclusive
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Magnus Lindholm <linmag7@gmail.com>, richard.henderson@linaro.org, mattst88@gmail.com, 
-	ink@unseen.parts, kees@kernel.org, arnd@arndb.de, 
-	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, chris@zankel.net, 
-	dinguyen@kernel.org, jcmvbkbc@gmail.com, linux-arm-kernel@lists.infradead.org, 
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
-	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, 
-	loongarch@lists.linux.dev, monstr@monstr.eu, sparclinux@vger.kernel.org, 
-	x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hi Adrian,
+prop is a local pointer in pci_bus_slot_names(). It is initialized
+by calling of_get_property() so the caller must free prop when done
+using it.
 
-On Sat, 5 Apr 2025 at 19:22, John Paul Adrian Glaubitz
-<glaubitz@physik.fu-berlin.de> wrote:
-> On Tue, 2025-02-18 at 18:55 +0100, Magnus Lindholm wrote:
-> > Make pte_swp_exclusive return bool instead of int. This will better reflect
-> > how pte_swp_exclusive is actually used in the code. This fixes swap/swapoff
-> > problems on Alpha due pte_swp_exclusive not returning correct values when
-> > _PAGE_SWP_EXCLUSIVE bit resides in upper 32-bits of PTE (like on alpha).
->
-> Minor nitpick:
->
-> "when _PAGE_SWP_EXCLUSIVE" => "when the _PAGE_SWP_EXCLUSIVE"
->
-> >
-> > Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+Signed-off-by: Salah Triki <salah.triki@gmail.com>
+---
+ arch/sparc/kernel/pci.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> > --- a/arch/alpha/include/asm/pgtable.h
-> > +++ b/arch/alpha/include/asm/pgtable.h
-> > @@ -334,7 +334,7 @@ extern inline pte_t mk_swap_pte(unsigned long type, unsigned long offset)
-> >  #define __pte_to_swp_entry(pte)      ((swp_entry_t) { pte_val(pte) })
-> >  #define __swp_entry_to_pte(x)        ((pte_t) { (x).val })
-> >
-> > -static inline int pte_swp_exclusive(pte_t pte)
-> > +static inline bool pte_swp_exclusive(pte_t pte)
-> >  {
-> >       return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-> >  }
-
-> > --- a/arch/xtensa/include/asm/pgtable.h
-> > +++ b/arch/xtensa/include/asm/pgtable.h
-> > @@ -355,7 +355,7 @@ ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
-> >  #define __pte_to_swp_entry(pte)      ((swp_entry_t) { pte_val(pte) })
-> >  #define __swp_entry_to_pte(x)        ((pte_t) { (x).val })
-> >
-> > -static inline int pte_swp_exclusive(pte_t pte)
-> > +static inline bool pte_swp_exclusive(pte_t pte)
-> >  {
-> >       return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-> >  }
->
-> I'm not so sure about this implicit cast from unsigned long to bool though.
->
-> Is this verified to work correctly on all architectures? I wonder why this
-
-Should work fine: any non-zero value is mapped to one.
-
-> bug was not caught earlier on alpha on the other hand.
-
-On Alpha, "pte_val(pte) & _PAGE_SWP_EXCLUSIVE" is either
-_PAGE_SWP_EXCLUSIVE == 0x8000000000UL or zero.  Due to the return
-type being int, the return value was truncated, and the function always
-returned zero.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index ddac216a2aff..fa0da8f45723 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -971,6 +971,8 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ 		mask &= ~this_bit;
+ 		i++;
+ 	}
++
++	kfree(prop);
+ }
+ 
+ static int __init of_pci_slot_init(void)
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+2.43.0
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
