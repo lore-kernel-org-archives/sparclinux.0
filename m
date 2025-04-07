@@ -1,71 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp.smtpout.orange.fr (smtp-25.smtpout.orange.fr [80.12.242.25])
+	(using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B37C223322;
-	Mon,  7 Apr 2025 18:35:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43A3219306;
+	Mon,  7 Apr 2025 19:50:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.12.242.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744050945; cv=none; b=GvoevEdMmjr3l0ZRyWyBtEUwks8UbJ8YNohGRCjzqnBspVulv7MkvI91OxpHwtAkqKeZdNRzRxwoLr6+4V8/V8uppYumCxrCyVaorIhqb/yQp4whGUuJtt359+VWIC1s9GH/1DxCG7U0kDBq1JnxAO71l4W2b7FWpK+62wIeljU=
+	t=1744055426; cv=none; b=GPjh1Pk9VjAOGDId99yHi02ulXFax37zX6DS6sAkMJmDI8w71pm9D2IZROZ9S9Jtl4bkWjnqxwb+yo5rlzkgTz3Xof5gKVINbKAPWIENZT7ilaxVqiU6bJxytnw+xD5MXqdufYCwHzykAJ7JYhPmwfd4Hjf6+Ojn3pJ6FLzTL5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744050945; c=relaxed/simple;
-	bh=QiTncCnd55Ia4eac1kyaB9blDFvntz5XPVt6W64q1n0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=iRTjNeJuWEMHVawEY7Ir88oz8GPWgumxUD0EX0hOiKOPagtuGg5zyJUFxYGs3K/pFtJ1ZvgoJDU0BkMol5Ko/rZ/iopf2PGjOYkCv2qSY8apT8GfLre+XOVThwGL4YA8PcyjvHq5r13K57jzaPltNnAQB/REREdN7lLKy1SI3OM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kwvaeD/a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744055426; c=relaxed/simple;
+	bh=9jrbRtN+zrxPHA1QfQVu0OEc14LJJvK82peW+CJpq7E=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=PRYfWXrvoE6u/+1mTWG2uXVFOKP+nfdjVocECKuuopcUaEctR2g5VNzsrBd+piz3xBisIGzI3X45bKvcc7V6394qZlV//ZrE5N9c9slvgopOan50dzLeytGBtPtoUlBL/OXEMCNy2/Mv4ArVFSTx0Q1Y5QZ0XTxLW0qfb/odg60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr; spf=pass smtp.mailfrom=wanadoo.fr; dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b=EVH2gCKC; arc=none smtp.client-ip=80.12.242.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kwvaeD/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B551C4CEDD;
-	Mon,  7 Apr 2025 18:35:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744050944;
-	bh=QiTncCnd55Ia4eac1kyaB9blDFvntz5XPVt6W64q1n0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=kwvaeD/akigjGI7ZXDY52hZRNE3FRFEN6Uc6iHtJlTKxoE0UMkjLxBOD/fgvDHGq1
-	 W4Ni/q9ZjLctOHi6rmPtAnUuHHHe57o4rpfiv0IL8Pp6Z02ulY8lFGXBs6yBBc7eYu
-	 XifDovhU5NidAqljsBlmq7svSzYrmQnQBYrtwkdo=
-Date: Mon, 7 Apr 2025 11:35:43 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>, Hugh Dickins
- <hughd@google.com>, Nicholas Piggin <npiggin@gmail.com>, Guenter Roeck
- <linux@roeck-us.net>, Juergen Gross <jgross@suse.com>, Jeremy Fitzhardinge
- <jeremy@goop.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- kasan-dev@googlegroups.com, sparclinux@vger.kernel.org,
- xen-devel@lists.xenproject.org, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org
-Subject: Re: [PATCH v1 0/4] mm: Fix apply_to_pte_range() vs lazy MMU mode
-Message-Id: <20250407113543.6a43461e397d58471e407323@linux-foundation.org>
-In-Reply-To: <cover.1744037648.git.agordeev@linux.ibm.com>
-References: <cover.1744037648.git.agordeev@linux.ibm.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="EVH2gCKC"
+Received: from [192.168.1.37] ([90.11.132.44])
+	by smtp.orange.fr with ESMTPA
+	id 1sT0uwjplbbeQ1sT3uSxf9; Mon, 07 Apr 2025 21:49:14 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+	s=t20230301; t=1744055354;
+	bh=gxsDMgpqSArQXJDXFZiVdjvJKyf3EBPu3MAt6VIqpVM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:From;
+	b=EVH2gCKCPmH+GFNkr0570pMHkFmP+Al6ZVLv/1OqjkDrfWBo+VHKDdauCoVHMiEpM
+	 X+mQ2Ov51Hz3TOLUOGvZzLkGL+ImCV3U0MOqN3ENvzI3afhI4APFH6xyhPvd439UEq
+	 GV3b0gxUQIikV3DwMyeV3tHdGhtVAVlZoDi6mzp+Yyv3/FxAcNmrljSxDuNXPxVyrz
+	 D14SGNTrign0BcB0t3CZ+dwwmtMpPQSskecW9ha1g8MSfp8u6Sxrv3oNd2K5U3JQoS
+	 5JBQAFln3TD901ywT1zFt6R2Agw4nRxh+U+wwcRsy3WpjCbfLdW9G7r9IIoUmcYShs
+	 XgC8BAS9Oxtvg==
+X-ME-Helo: [192.168.1.37]
+X-ME-Auth: bWFyaW9uLmphaWxsZXRAd2FuYWRvby5mcg==
+X-ME-Date: Mon, 07 Apr 2025 21:49:14 +0200
+X-ME-IP: 90.11.132.44
+Message-ID: <e2a4e693-46db-4b1f-87c2-2867a4cb196d@wanadoo.fr>
+Date: Mon, 7 Apr 2025 21:49:08 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc: pci: Fix memory leak in pci_bus_slot_names()
+To: Salah Triki <salah.triki@gmail.com>, "David S. Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <Z_Ox0qp7uuKNUo2U@pc>
+Content-Language: en-US, fr-FR
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+In-Reply-To: <Z_Ox0qp7uuKNUo2U@pc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon,  7 Apr 2025 17:11:26 +0200 Alexander Gordeev <agordeev@linux.ibm.com> wrote:
+Le 07/04/2025 à 13:06, Salah Triki a écrit :
+> prop is a local pointer in pci_bus_slot_names(). It is initialized
+> by calling of_get_property() so the caller must free prop when done
+> using it.
 
-> This series is an attempt to fix the violation of lazy MMU mode context
-> requirement as described for arch_enter_lazy_mmu_mode():
+Hi,
+
+can you elaborate why?
+
+It does not look needed to me, and the places using of_get_property() 
+that I've checked don't have such a kfree().
+
+CJ
+
 > 
->     This mode can only be entered and left under the protection of
->     the page table locks for all page tables which may be modified.
+> Signed-off-by: Salah Triki <salah.triki@gmail.com>
+> ---
+>   arch/sparc/kernel/pci.c | 2 ++
+>   1 file changed, 2 insertions(+)
 > 
-> On s390 if I make arch_enter_lazy_mmu_mode() -> preempt_enable() and
-> arch_leave_lazy_mmu_mode() -> preempt_disable() I am getting this:
->
-> ...
->
+> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+> index ddac216a2aff..fa0da8f45723 100644
+> --- a/arch/sparc/kernel/pci.c
+> +++ b/arch/sparc/kernel/pci.c
+> @@ -971,6 +971,8 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+>   		mask &= ~this_bit;
+>   		i++;
+>   	}
+> +
+> +	kfree(prop);
+>   }
+>   
+>   static int __init of_pci_slot_init(void)
 
-Could you please reorganize this into two series?  One series which
-should be fast-tracked into 6.15-rcX and one series for 6.16-rc1?
-
-And in the first series, please suggest whether its patches should be
-backported into -stable and see if we can come up with suitable Fixes:
-targets?
-
-Thanks.
