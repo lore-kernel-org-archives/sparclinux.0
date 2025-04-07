@@ -1,99 +1,127 @@
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EF2323AE8B;
-	Mon,  7 Apr 2025 11:07:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E0DB1F63F9;
+	Mon,  7 Apr 2025 15:12:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744024029; cv=none; b=QscDnI/WS+Vawhik1kbUWJ1XRcf0mbtI0aoVsH6Bg/28eHAQS+iR+S9m3l9NF/4PNV6/3OOu6TFBtIVXivLyYWzu5B4I50HvAaZHnvA+x1H0Qh8TACtJnHBQdJfDdpHoKFSKjyy0PSdhenuwZgDo4QcA1Eo2Wo7TkFRSZ4ah6C8=
+	t=1744038724; cv=none; b=KEHavxyrO/TVZ43H5EFKTQ8WJ6jC5qmeKZYH/9HxOxmB8WLNjDEUHIQArANUUisBh8sFT5ZgJZkd8fuc1XpWJNTsOZ2Ibnl5DeSVzSfI+2JGndaq1eKq+4HeZiqdhyHEpMHP1wJueiKoiH+8pQyOHWc5ZYZaE5tyOUKcv5enruM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744024029; c=relaxed/simple;
-	bh=0IbVJLPXQykXsMAb/F7X9M2oU1sB9av0JzqfG+Rxc5A=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=bFCu7v8OqkRqwdVRZYVruhPSG63izT9RAv8ShgnuCufPlejjjFTR5ZyPfE9Q9u5ndh1bDOUoqwgECPx4792TfKQjja8vxXcg2dn3PgV2CTbE/xKMKLuhkI1Mkv5SaE+jWmR1MNEwpN6lKMtFlX61x5olkHSDzJQ9rU09hugvzWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hDKNp6ic; arc=none smtp.client-ip=209.85.128.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744038724; c=relaxed/simple;
+	bh=hj/TDsisJCnOvRQax5hfaCc22qUCiJgMR2YNMLLyCWQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=qtaoU0BWLF/D+t3p/TIiVcgtdnjKx40Pnsz1DWRhBPtF1Q/2ym49r4JypNYDGW6shNTqsNIxTUCbd3fNvNhdQ6EpNVpDdKbA32c26eNKABAOdNTUYtp4+vNZmk6V10I/+UxS3pImX8Avy7ojtHGVQvRoaGwrc5+zNBdue8A4Bs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=IKe6NKPK; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hDKNp6ic"
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-43cfebc343dso27082285e9.2;
-        Mon, 07 Apr 2025 04:07:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744024025; x=1744628825; darn=vger.kernel.org;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=f4MosKBAgMVjw4i+o5gPRutczhd3YTCBKI2mgNnWVI4=;
-        b=hDKNp6icUkhYWR8ImVNrf1t3sIvVCGO3Ul//Fz3NOjaGNYK7tw4i0Cwlsiv8bRVL9w
-         XunodMywgbjSWLjlRKZF90CekUpvdrjueqcmqg17m12PvfoNkXykJr3yRLbk3KB/+7iL
-         i57ZdLemvajl897p1sL2+WOfX90gf4oOSX18G7uSNnw0TQHdjKq8IeGCKkscrPIMj28M
-         oCdlDUGhJOWMQfOrh+1j3BE5lia2yQuh5/BLv8KdiOoqeOb8fybhOzUXZqsxNbdryyql
-         3SdfSRm7sDyEC0aBiF4AciGZWPj6L04l0SC8NSZHqZFqz9dXtpg0KTjoHjbgCma3JPVc
-         X0sA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744024025; x=1744628825;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=f4MosKBAgMVjw4i+o5gPRutczhd3YTCBKI2mgNnWVI4=;
-        b=TV1fzCH145Kuyj9FwSa/gdyaxGoQVKDFNH5sqPUnpivyA7p8CX5mbITKBfJJ/NLYPz
-         db4IkIJM+1wKEfJkQo/Uh6EtFWtRky6XK6uQg+w/o7Tut+Z7HO7WL1DbTrWwH8G7ZysX
-         qF/jO1GNLsuRsug1liHTc7qgOiKkAF9Of40VaTHZSFDV61ODscZPwIo0vZKtVVf75n1d
-         XscN0RGmWHRXgJ8L31VdCBkzf8s5X9EwoAEnP7nku2FW1fTlXibgEVsGT4UhhMX5GDwC
-         CgR8tOyeYEFnHePfaFpChsFx49oLV641brjnUMd3TEqVBGkYHSHnAaQ16H1Q76m4he4C
-         zUXQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWCU+p4PBA5IF26eSM+X88V8H4gQ72nspyQBQIgSvIxJHbUv4fCEUzya/5yfUKIHDmq3FiRUK2mLlY5cA==@vger.kernel.org, AJvYcCXx8KW4WRRE9E8SE0zn5C5gW3aBNqffWgVwuvfyHpMLePnoBZWnVX5+5o1j/pp1PVgMNrWTbuNkg4KZHjE=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwoJJv37HKsquXR/bo16c9O9/WhvC7hvMG85aV9M6TVoTSPngwO
-	PNm51Ign4vjZ0By6UMjqcwBriJGk3JTgxeJhHpZCNkGgOQhoP2bf
-X-Gm-Gg: ASbGncvQaTYZu0CzBobkSxtZGFIegsKRT5HZC9EAi9NaU79D2jZGY9pR0VSU4c+qVMN
-	f1x4ChiBaKaDEiV3lBM76K43Wh1UCyqY2cE9+tIKU8SHM1FXBXRxi7vJkSXSh6+ZNpS4pVdIq7s
-	BX4GR8b3ZBe6+Q734ed2hvmYK5pSzXWFwCdmHTPztqqUT+utOGsX1Mcw3gUGyvZcC8mo+bkDu8x
-	y00m8BicexOqEtcqimSW9gLsUt41cDFjPOjkiJSV310tFqVHFfh4fHu5s+qdHXnQ7Ae9UU3YbcF
-	LPOa7VWviYPaQwQ19ke2W+3xYO2EQ3MGKn4=
-X-Google-Smtp-Source: AGHT+IGEbHaqbV08bWBP//htgYXkx2K6J03KYFBtUcURgvs+cygHYiQIWyajimgzViJ/ES0hAbNR7A==
-X-Received: by 2002:a05:600c:1e23:b0:43b:c95f:fd9 with SMTP id 5b1f17b1804b1-43ecf81c304mr109645795e9.5.1744024024356;
-        Mon, 07 Apr 2025 04:07:04 -0700 (PDT)
-Received: from pc ([196.235.56.129])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43ec16f1a73sm129843215e9.24.2025.04.07.04.07.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Apr 2025 04:07:03 -0700 (PDT)
-Date: Mon, 7 Apr 2025 12:06:58 +0100
-From: Salah Triki <salah.triki@gmail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: salah.triki@gmail.com
-Subject: [PATCH] sparc: pci: Fix memory leak in pci_bus_slot_names()
-Message-ID: <Z_Ox0qp7uuKNUo2U@pc>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="IKe6NKPK"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 537En0ZD029644;
+	Mon, 7 Apr 2025 15:11:34 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=pp1; bh=JAdRtQpYpJ83Wan/q
+	ay54BErF461aFj9Lbn233V6/Vo=; b=IKe6NKPK0RQuaHMhk18ftPiOYYmCBCWNo
+	B9AMFWR/OSyAEWP+S886dEpJeibdEmZl36pABv5K+wup8TiyL8NG8ViK9od6oBRM
+	3hfWr3Nzyj+cpTRWraAtGGyrEizF/IwgeyvpxnuqLvo0iHgyxm7f3x2y4rrF4BuZ
+	8DVbuOci3sgrMA9QHMuCtrLrrnIMC0eF9Lq4xmJACPC8mwWkrruApDLDO3y+TF6K
+	EKoPhfmZsym89+7c65PcFL6w5iov3VKT/uGxaF9PJzGWmz4HwXohtM7m83O2AHTx
+	G4AzXPBlc8+L56yqeI1A9XrdpDtpRX+WW/G2StWfINFf09T/NbHTA==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 45uwswvt33-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Apr 2025 15:11:34 +0000 (GMT)
+Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 537FBXTb013844;
+	Mon, 7 Apr 2025 15:11:33 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 45uwswvt2v-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Apr 2025 15:11:33 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 537F2iM6018432;
+	Mon, 7 Apr 2025 15:11:32 GMT
+Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 45uh2ke5ug-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Apr 2025 15:11:32 +0000
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 537FBVQW33751652
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 7 Apr 2025 15:11:31 GMT
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E82452004B;
+	Mon,  7 Apr 2025 15:11:30 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D3F6E20049;
+	Mon,  7 Apr 2025 15:11:30 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+	by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Mon,  7 Apr 2025 15:11:30 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55669)
+	id 7F795E10FC; Mon, 07 Apr 2025 17:11:30 +0200 (CEST)
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>, Nicholas Piggin <npiggin@gmail.com>,
+        Guenter Roeck <linux@roeck-us.net>, Juergen Gross <jgross@suse.com>,
+        Jeremy Fitzhardinge <jeremy@goop.org>, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, kasan-dev@googlegroups.com,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org
+Subject: [PATCH v1 1/4] kasan: Avoid sleepable page allocation from atomic context
+Date: Mon,  7 Apr 2025 17:11:27 +0200
+Message-ID: <ad1b313b6e3e1a84d2df6f686680ad78ae99710c.1744037648.git.agordeev@linux.ibm.com>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <cover.1744037648.git.agordeev@linux.ibm.com>
+References: <cover.1744037648.git.agordeev@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: noh5DKX9Jwz7KQQbR0xgtrf0Cnrok7JA
+X-Proofpoint-ORIG-GUID: B9e39pOuvk43sXxp1B5Vd8FFaIlzYizr
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1095,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-04-07_04,2025-04-03_03,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501 mlxscore=0
+ bulkscore=0 mlxlogscore=999 spamscore=0 adultscore=0 clxscore=1011
+ phishscore=0 lowpriorityscore=0 impostorscore=0 suspectscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2502280000 definitions=main-2504070104
 
-prop is a local pointer in pci_bus_slot_names(). It is initialized
-by calling of_get_property() so the caller must free prop when done
-using it.
+apply_to_page_range() enters lazy MMU mode and then invokes
+kasan_populate_vmalloc_pte() callback on each page table walk
+iteration. The lazy MMU mode may only be entered only under
+protection of the page table lock. However, the callback can
+go into sleep when trying to allocate a single page.
 
-Signed-off-by: Salah Triki <salah.triki@gmail.com>
+Change __get_free_page() allocation mode from GFP_KERNEL to
+GFP_ATOMIC to avoid scheduling out while in atomic context.
+
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
 ---
- arch/sparc/kernel/pci.c | 2 ++
- 1 file changed, 2 insertions(+)
+ mm/kasan/shadow.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index ddac216a2aff..fa0da8f45723 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -971,6 +971,8 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
- 		mask &= ~this_bit;
- 		i++;
- 	}
-+
-+	kfree(prop);
- }
+diff --git a/mm/kasan/shadow.c b/mm/kasan/shadow.c
+index 88d1c9dcb507..edfa77959474 100644
+--- a/mm/kasan/shadow.c
++++ b/mm/kasan/shadow.c
+@@ -301,7 +301,7 @@ static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+ 	if (likely(!pte_none(ptep_get(ptep))))
+ 		return 0;
  
- static int __init of_pci_slot_init(void)
+-	page = __get_free_page(GFP_KERNEL);
++	page = __get_free_page(GFP_ATOMIC);
+ 	if (!page)
+ 		return -ENOMEM;
+ 
 -- 
-2.43.0
+2.45.2
 
