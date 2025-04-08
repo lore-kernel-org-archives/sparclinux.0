@@ -1,40 +1,39 @@
-Received: from smtp.smtpout.orange.fr (smtp-25.smtpout.orange.fr [80.12.242.25])
-	(using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43A3219306;
-	Mon,  7 Apr 2025 19:50:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.12.242.25
+Received: from pegase1.c-s.fr (pegase1.c-s.fr [93.17.236.30])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E623726158B;
+	Tue,  8 Apr 2025 07:20:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.236.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744055426; cv=none; b=GPjh1Pk9VjAOGDId99yHi02ulXFax37zX6DS6sAkMJmDI8w71pm9D2IZROZ9S9Jtl4bkWjnqxwb+yo5rlzkgTz3Xof5gKVINbKAPWIENZT7ilaxVqiU6bJxytnw+xD5MXqdufYCwHzykAJ7JYhPmwfd4Hjf6+Ojn3pJ6FLzTL5E=
+	t=1744096838; cv=none; b=pr4U1pln6V8f5ZnM+8AnVDA7A832OYJaX5hdUCKzFfi2csSrhJlfii47BYqo7g9ltM1+r1jMgS1f3fOWUZC+m/xQ71G24ytIOLLUP0A1JpIhr7pYgyu/uQpFagfqLO6k7CRTNoit1AooW/mScwlK1As7f1ZtuCd0TXKk9FSlMNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744055426; c=relaxed/simple;
-	bh=9jrbRtN+zrxPHA1QfQVu0OEc14LJJvK82peW+CJpq7E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=PRYfWXrvoE6u/+1mTWG2uXVFOKP+nfdjVocECKuuopcUaEctR2g5VNzsrBd+piz3xBisIGzI3X45bKvcc7V6394qZlV//ZrE5N9c9slvgopOan50dzLeytGBtPtoUlBL/OXEMCNy2/Mv4ArVFSTx0Q1Y5QZ0XTxLW0qfb/odg60=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr; spf=pass smtp.mailfrom=wanadoo.fr; dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b=EVH2gCKC; arc=none smtp.client-ip=80.12.242.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="EVH2gCKC"
-Received: from [192.168.1.37] ([90.11.132.44])
-	by smtp.orange.fr with ESMTPA
-	id 1sT0uwjplbbeQ1sT3uSxf9; Mon, 07 Apr 2025 21:49:14 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
-	s=t20230301; t=1744055354;
-	bh=gxsDMgpqSArQXJDXFZiVdjvJKyf3EBPu3MAt6VIqpVM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From;
-	b=EVH2gCKCPmH+GFNkr0570pMHkFmP+Al6ZVLv/1OqjkDrfWBo+VHKDdauCoVHMiEpM
-	 X+mQ2Ov51Hz3TOLUOGvZzLkGL+ImCV3U0MOqN3ENvzI3afhI4APFH6xyhPvd439UEq
-	 GV3b0gxUQIikV3DwMyeV3tHdGhtVAVlZoDi6mzp+Yyv3/FxAcNmrljSxDuNXPxVyrz
-	 D14SGNTrign0BcB0t3CZ+dwwmtMpPQSskecW9ha1g8MSfp8u6Sxrv3oNd2K5U3JQoS
-	 5JBQAFln3TD901ywT1zFt6R2Agw4nRxh+U+wwcRsy3WpjCbfLdW9G7r9IIoUmcYShs
-	 XgC8BAS9Oxtvg==
-X-ME-Helo: [192.168.1.37]
-X-ME-Auth: bWFyaW9uLmphaWxsZXRAd2FuYWRvby5mcg==
-X-ME-Date: Mon, 07 Apr 2025 21:49:14 +0200
-X-ME-IP: 90.11.132.44
-Message-ID: <e2a4e693-46db-4b1f-87c2-2867a4cb196d@wanadoo.fr>
-Date: Mon, 7 Apr 2025 21:49:08 +0200
+	s=arc-20240116; t=1744096838; c=relaxed/simple;
+	bh=leAZBUvTDieNUCTCUQ6Z093axNVZ+MVhp4DKPjyWQPA=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=Q43beue9AVbejRT1Xp7biP/ZfZsIpDEVWoTOrkB6MIGhTraCCk64yyo5fQisocNpjPjyJbv3OzUjzd5pfjeB519RWpeXKMEN5v0fG9aWzPkZMhVrNMNC2jPHEiCpJxwNAEG9lfnfRl0J2x/HpGL0bQePQEcNZQOBespijRndrEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.236.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub3.si.c-s.fr [192.168.12.233])
+	by localhost (Postfix) with ESMTP id 4ZWw9N4Zhgz9vkq;
+	Tue,  8 Apr 2025 07:48:24 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+	by localhost (pegase1.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id N6upf-zRu5gv; Tue,  8 Apr 2025 07:48:24 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase1.c-s.fr (Postfix) with ESMTP id 4ZWw9N26zXz9vkm;
+	Tue,  8 Apr 2025 07:48:24 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id 320D88B768;
+	Tue,  8 Apr 2025 07:48:24 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id NWUepSYaoFfZ; Tue,  8 Apr 2025 07:48:24 +0200 (CEST)
+Received: from [192.168.235.99] (unknown [192.168.235.99])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id DC9078B767;
+	Tue,  8 Apr 2025 07:48:21 +0200 (CEST)
+Message-ID: <ff31c2ff-55be-452e-b94a-6a84c4583258@csgroup.eu>
+Date: Tue, 8 Apr 2025 07:48:22 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -42,48 +41,78 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc: pci: Fix memory leak in pci_bus_slot_names()
-To: Salah Triki <salah.triki@gmail.com>, "David S. Miller"
- <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <Z_Ox0qp7uuKNUo2U@pc>
-Content-Language: en-US, fr-FR
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-In-Reply-To: <Z_Ox0qp7uuKNUo2U@pc>
+Subject: Re: [PATCH v2 09/13] arch, mm: set max_mapnr when allocating memory
+ map for FLATMEM
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>,
+ Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>, Dinh Nguyen <dinguyen@kernel.org>,
+ Geert Uytterhoeven <geert@linux-m68k.org>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Guo Ren
+ <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+ Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Mark Brown <broonie@kernel.org>,
+ Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>,
+ Palmer Dabbelt <palmer@dabbelt.com>, Peter Zijlstra <peterz@infradead.org>,
+ Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>,
+ Stafford Horne <shorne@gmail.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Vineet Gupta <vgupta@kernel.org>, Will Deacon <will@kernel.org>,
+ linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
+ linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+ linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-um@lists.infradead.org, linux-arch@vger.kernel.org,
+ linux-mm@kvack.org, x86@kernel.org
+References: <20250313135003.836600-1-rppt@kernel.org>
+ <20250313135003.836600-10-rppt@kernel.org>
+ <4b9627f2-65ff-4baf-931f-4e23b5732e6b@csgroup.eu>
+Content-Language: fr-FR
+In-Reply-To: <4b9627f2-65ff-4baf-931f-4e23b5732e6b@csgroup.eu>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Le 07/04/2025 à 13:06, Salah Triki a écrit :
-> prop is a local pointer in pci_bus_slot_names(). It is initialized
-> by calling of_get_property() so the caller must free prop when done
-> using it.
+Hi Mike,
 
-Hi,
-
-can you elaborate why?
-
-It does not look needed to me, and the places using of_get_property() 
-that I've checked don't have such a kfree().
-
-CJ
-
+Le 14/03/2025 à 10:25, Christophe Leroy a écrit :
 > 
-> Signed-off-by: Salah Triki <salah.triki@gmail.com>
-> ---
->   arch/sparc/kernel/pci.c | 2 ++
->   1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-> index ddac216a2aff..fa0da8f45723 100644
-> --- a/arch/sparc/kernel/pci.c
-> +++ b/arch/sparc/kernel/pci.c
-> @@ -971,6 +971,8 @@ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
->   		mask &= ~this_bit;
->   		i++;
->   	}
-> +
-> +	kfree(prop);
->   }
->   
->   static int __init of_pci_slot_init(void)
+> Le 13/03/2025 à 14:49, Mike Rapoport a écrit :
+>> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+>>
+>> max_mapnr is essentially the size of the memory map for systems that use
+>> FLATMEM. There is no reason to calculate it in each and every 
+>> architecture
+>> when it's anyway calculated in alloc_node_mem_map().
+>>
+>> Drop setting of max_mapnr from architecture code and set it once in
+>> alloc_node_mem_map().
+> 
+> As far as I can see alloc_node_mem_map() is called quite late.
+> 
+> I fear that it will regress commit daa9ada2093e ("powerpc/mm: Fix boot 
+> crash with FLATMEM")
+> 
+> Can you check ?
+
+I see this patch is now merged into mainline (v6.15-rc1). Have you been 
+able to check and/or analyse whether it doesn't regress the fix in 
+commit daa9ada2093e ("powerpc/mm: Fix boot crash with FLATMEM") ?
+
+Thanks
+Christophe
 
