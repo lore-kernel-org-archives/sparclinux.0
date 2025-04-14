@@ -1,131 +1,144 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AD49D279912;
-	Mon, 14 Apr 2025 14:11:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154272741C1;
+	Mon, 14 Apr 2025 14:18:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744639900; cv=none; b=l/LhBdueeOAsxN8+vVMLJClVGcgQDWOqHPjCYWnoIWrJhcyuGyHfS1ojok5NKuiJEDtnQLNSBrsGyzrYD4ehNBgnt1nhY23LI73RD/zFnOoF8gqa+WYe0sH5MtZwmIIMz9+8YVy+y7KYjAu6oOjejGmdhMmnszCMDfbjX3hJL9o=
+	t=1744640303; cv=none; b=ihijau53FoHYN26I+k26OObY9hXZTbsrSmdd0YtjPj72mRaFEMPcloEF1OYOBLJ6FqjG3RwLYlaStDFE+5KmpLudtp8zA5YmjgjCYegG9VghlxKid2f0c8V85cBX/1ZqGZ/TC/Bns+aqjQNro12ph/2i2j7RJpDxM+HPyhvAhhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744639900; c=relaxed/simple;
-	bh=Cf5lK5BRgjbJRCQvlHCeqyNYQtSPSbNwZ3QSvV5OKyQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=sucjjjiyc4TKs7s7nyFlzhQBJDaWU6fBUEsVlCt49ybsO+29+P/KsVi0/p+6GzBEEx3iCOj2AlSwHSLK/nE8ENW7oai/8My9VpvlbkqP0wLmmt7z18kf0ZLpGjd1LDZP2NGoOQaIqJtmfeIUz1J740VKmKNaRTi7iIGp19jD0Xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 13DDB1007;
-	Mon, 14 Apr 2025 07:11:35 -0700 (PDT)
-Received: from [10.57.86.225] (unknown [10.57.86.225])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5B3583F59E;
-	Mon, 14 Apr 2025 07:11:32 -0700 (PDT)
-Message-ID: <0eae5a1a-70fe-49ab-bd3e-565dcd4e97cf@arm.com>
-Date: Mon, 14 Apr 2025 15:11:30 +0100
+	s=arc-20240116; t=1744640303; c=relaxed/simple;
+	bh=mTn3FMzsj26kIxnkZNAmti2WDoD3F3JMt47fLl0UKcQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IxTfvsTvY9q96xvFYGxTg+2/SYwH+qnQtjmlU57hF5SWyw5VqmwanLB5NIWtzMpEDifNVOU9Tac42U7Cecd5nOqKEb4jgHDCIB1mRyTsmtS0VPNypJqePMwWQBpLkxuusf/fAUUeShgYrUq9XUjpmGpUr1dShp8u6Xcz4GtIlas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ah561Kin; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ah561Kin"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 53EAKA71029133;
+	Mon, 14 Apr 2025 14:17:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=J1d9DTJcE/z+4d1uC+sEutnQDyUt9v
+	5FZ9je4Eup1Ko=; b=ah561KinZjNqF6zq76DxnVBTSvamBRxYEhr7Z+gu/wYeYJ
+	j7dAB+GRAIBgfgcT4RReFRSB7Mggil+evOZs4y5hwzSYaWE4QeQ1gjZ+HGRkUdNu
+	pwXrRfEYgphoKE29KKWj5DPPBxTAdadEXNR3p1tOzlSCoHUJ64LwlntS5prWHWM/
+	ypBEt8HygnTXrT6MFoIK9aXcP6Apa1XfK3rhxUyJOl2bhpNUByVTq6q6beBiPmV1
+	wjohaUUBJj7eE9ivNowExDlwR07lfFYP7j7RrqeB2X+koXmdx0GpvTziQRFy8s24
+	0VxXFpeXm2aqdcwNxTwNhj/bC9jcAny5HST8QorQ==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 460nc4bs6s-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 14 Apr 2025 14:17:54 +0000 (GMT)
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 53EEDPx6027591;
+	Mon, 14 Apr 2025 14:17:53 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 460nc4bs6k-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 14 Apr 2025 14:17:53 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 53ECwxMl017183;
+	Mon, 14 Apr 2025 14:17:52 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 46040kpeha-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 14 Apr 2025 14:17:52 +0000
+Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 53EEHorV51577248
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 14 Apr 2025 14:17:50 GMT
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2CE2320043;
+	Mon, 14 Apr 2025 14:17:50 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2BFC320040;
+	Mon, 14 Apr 2025 14:17:49 +0000 (GMT)
+Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.171.13.82])
+	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Mon, 14 Apr 2025 14:17:49 +0000 (GMT)
+Date: Mon, 14 Apr 2025 16:17:47 +0200
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+To: Nicholas Piggin <npiggin@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Ryabinin <ryabinin.a.a@gmail.com>,
+        Hugh Dickins <hughd@google.com>, Guenter Roeck <linux@roeck-us.net>,
+        Juergen Gross <jgross@suse.com>, Jeremy Fitzhardinge <jeremy@goop.org>,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        kasan-dev@googlegroups.com, sparclinux@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org
+Subject: Re: [PATCH v1 2/4] mm: Cleanup apply_to_pte_range() routine
+Message-ID: <Z/0ZC7HcSmoOEglw@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+References: <cover.1744037648.git.agordeev@linux.ibm.com>
+ <93102722541b1daf541fce9fb316a1a2614d8c86.1744037648.git.agordeev@linux.ibm.com>
+ <D93LW58FLXOS.2U8X0CO2H9H5S@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/5] Fix lazy mmu mode
-Content-Language: en-GB
-To: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Juergen Gross <jgross@suse.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>,
- Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>,
- "Matthew Wilcox (Oracle)" <willy@infradead.org>,
- Catalin Marinas <catalin.marinas@arm.com>, linux-mm@kvack.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
- linux-kernel@vger.kernel.org
-References: <20250303141542.3371656-1-ryan.roberts@arm.com>
- <912c7a32-b39c-494f-a29c-4865cd92aeba@agordeev.local>
- <5b0609c9-95ee-4e48-bb6d-98f57c5d2c31@arm.com>
- <Z/0V9r6rjEjSH3fh@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
-From: Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <Z/0V9r6rjEjSH3fh@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <D93LW58FLXOS.2U8X0CO2H9H5S@gmail.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: u44-EjcfNgIEy_4sPtFf7SZelDSyFVJd
+X-Proofpoint-ORIG-GUID: DiJ-rrsNSTwxXUpWJqT680rFpek1uPzj
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1095,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-04-14_04,2025-04-10_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 bulkscore=0
+ priorityscore=1501 mlxscore=0 spamscore=0 adultscore=0 mlxlogscore=844
+ phishscore=0 clxscore=1015 lowpriorityscore=0 suspectscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2502280000 definitions=main-2504140102
 
-On 14/04/2025 15:04, Alexander Gordeev wrote:
-> On Mon, Apr 14, 2025 at 02:22:53PM +0100, Ryan Roberts wrote:
->> On 10/04/2025 17:07, Alexander Gordeev wrote:
->>>> I'm planning to implement lazy mmu mode for arm64 to optimize vmalloc. As part
->>>> of that, I will extend lazy mmu mode to cover kernel mappings in vmalloc table
->>>> walkers. While lazy mmu mode is already used for kernel mappings in a few
->>>> places, this will extend it's use significantly.
->>>>
->>>> Having reviewed the existing lazy mmu implementations in powerpc, sparc and x86,
->>>> it looks like there are a bunch of bugs, some of which may be more likely to
->>>> trigger once I extend the use of lazy mmu.
->>>
->>> Do you have any idea about generic code issues as result of not adhering to
->>> the originally stated requirement:
->>>
->>>   /*
->>>    ...
->>>    * the PTE updates which happen during this window.  Note that using this
->>>    * interface requires that read hazards be removed from the code.  A read
->>>    * hazard could result in the direct mode hypervisor case, since the actual
->>>    * write to the page tables may not yet have taken place, so reads though
->>>    * a raw PTE pointer after it has been modified are not guaranteed to be
->>>    * up to date.
->>>    ...
->>>    */
->>>
->>> I tried to follow few code paths and at least this one does not look so good:
->>>
->>> copy_pte_range(..., src_pte, ...)
->>> 	ret = copy_nonpresent_pte(..., src_pte, ...)
->>> 		try_restore_exclusive_pte(..., src_pte, ...)	// is_device_exclusive_entry(entry)
->>> 			restore_exclusive_pte(..., ptep, ...)
->>> 				set_pte_at(..., ptep, ...)
->>> 					set_pte(ptep, pte);	// save in lazy mmu mode
->>>
->>> 	// ret == -ENOENT
->>>
->>> 	ptent = ptep_get(src_pte);				// lazy mmu save is not observed
->>> 	ret = copy_present_ptes(..., ptent, ...);		// wrong ptent used
->>>
->>> I am not aware whether the effort to "read hazards be removed from the code"
->>> has ever been made and the generic code is safe in this regard.
->>>
->>> What is your take on this?
->>
->> Hmm, that looks like a bug to me, at least based on the stated requirements.
->> Although this is not a "read through a raw PTE *pointer*", it is a ptep_get().
->> The arch code can override that so I guess it has an opportunity to flush. But I
->> don't think any arches are currently doing that.
->>
->> Probably the simplest fix is to add arch_flush_lazy_mmu_mode() before the
->> ptep_get()?
+On Fri, Apr 11, 2025 at 04:46:58PM +1000, Nicholas Piggin wrote:
+> On Tue Apr 8, 2025 at 1:11 AM AEST, Alexander Gordeev wrote:
+> > Reverse 'create' vs 'mm == &init_mm' conditions and move
+> > page table mask modification out of the atomic context.
+> >
+> > Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+> > ---
+> >  mm/memory.c | 28 +++++++++++++++++-----------
+> >  1 file changed, 17 insertions(+), 11 deletions(-)
+> >
+> > diff --git a/mm/memory.c b/mm/memory.c
+> > index 2d8c265fc7d6..f0201c8ec1ce 100644
+> > --- a/mm/memory.c
+> > +++ b/mm/memory.c
+> > @@ -2915,24 +2915,28 @@ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+> >  				     pte_fn_t fn, void *data, bool create,
+> >  				     pgtbl_mod_mask *mask)
+> >  {
+> > +	int err = create ? -ENOMEM : -EINVAL;
 > 
-> Which would completely revert the very idea of the lazy mmu mode?
-> (As one would flush on every PTE page table iteration).
+> Could you make this a new variable instead of reusing
+> existing err? 'const int pte_err' or something?
 
-Well yes, but this is a pretty rare path, I'm guessing?
+Will do, when/if repost.
 
-> 
->> It won't be a problem in practice for arm64, since the pgtables are always
->> updated immediately. I just want to use these hooks to defer/batch barriers in
->> certain cases.
->>
->> And this is a pre-existing issue for the arches that use lazy mmu with
->> device-exclusive mappings, which my extending lazy mmu into vmalloc won't
->> exacerbate.
->>
->> Would you be willing/able to submit a fix?
-> 
-> Well, we have a dozen of lazy mmu cases and I would guess it is not the
-> only piece of code that seems affected. I was thinking about debug feature
-> that could help spotting all troubled locations.
-> 
-> Then we could assess and decide if it is feasible to fix. Just turning the
-> code above into the PTE read-modify-update pattern is quite an exercise...
-> 
->> Thanks,
->> Ryan
+...
 
+> > @@ -2944,12 +2948,14 @@ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+> >  			}
+> >  		} while (addr += PAGE_SIZE, addr != end);
+> >  	}
+> > -	*mask |= PGTBL_PTE_MODIFIED;
+> >  
+> >  	arch_leave_lazy_mmu_mode();
+> >  
+> >  	if (mm != &init_mm)
+> >  		pte_unmap_unlock(mapped_pte, ptl);
+> > +
+> > +	*mask |= PGTBL_PTE_MODIFIED;
+> 
+> This is done just because we might as well? Less work in critical
+> section?
+
+Yes.
+
+Thanks!
