@@ -1,92 +1,122 @@
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3661A18DB18;
-	Mon, 14 Apr 2025 11:19:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 743B323D289;
+	Mon, 14 Apr 2025 13:22:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744629559; cv=none; b=nxPKLf31lsC3XfVy3bgxYY8ZbyG5iV1zwgu1sS/JsaaDfwuP0OavDETW8c9MypOWI+oZ/PiitdZ7sSSWuALNyvmssSl7Nm+9DjJ9a8BKsLFSwS5RYWBOeY1b7yLpX/Yza8X3K8THrTBKaOIBTkutiObqbSn1s/W7QQyj+m7J7I4=
+	t=1744636981; cv=none; b=aMP3pMC8RkzBu3mmYup57qr/A1lhb2pW2SkZKl1X/dEBJcV/dw0TQ4JaLnITQDRsu5uGDstxS0jvTrl5KX3beHIaVPUFWzXU6C+UZa3QmeEtwzTwGkJdhKSJWguzMwo6a3NXp9LudocvWn643ujHHP5qDhbIDM6M4sTAa0Xea1Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744629559; c=relaxed/simple;
-	bh=4sYWNtAc4YF7YZg03HO0SzkfYuVw4goAQfDHPc5y0l0=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=mUWkGrKRt7bSS7lINPJgQXJUhcCtTMUCMcncowfXpKPZdK1hrd7ViRyt6s8up4vkWNSznN54vvgbR7WHQ93lrCI3lkvcAzsSAW3EKQWvNPrqUtrcPjirMyL1tHYjtmKIiyWEJRm+2N6DcjEcgxoBdz3ciI/EKStQV7MajDHsX5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from icess-ProLiant-DL380-Gen10.. (unknown [183.174.60.14])
-	by APP-03 (Coremail) with SMTP id rQCowABH9EAX7_xnqxTUCA--.8348S2;
-	Mon, 14 Apr 2025 19:18:59 +0800 (CST)
-From: Ma Ke <make24@iscas.ac.cn>
-To: davem@davemloft.net,
-	andreas@gaisler.com,
-	make24@iscas.ac.cn,
-	sam@ravnborg.org,
-	dawei.li@shingroup.cn
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	akpm@linux-foundation.org,
-	stable@vger.kernel.org
-Subject: [PATCH RESEND] sparc: fix error handling in scan_one_device()
-Date: Mon, 14 Apr 2025 19:18:45 +0800
-Message-Id: <20250414111845.3084334-1-make24@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1744636981; c=relaxed/simple;
+	bh=iHBajgRQ/g0p3qwCjlhcDaR+5+wzf8+g3EzD9RVfVP4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FrYKlsdIJW2RIu+UkUxDAngKUnh18OeT9I9hAnBiodhLLFoxWtVQUexfREfRj3MoXDf3en4qcYmrbENieXCdRR4Wu5Kqn7QNsYHOC22sw4gE9zVzDUgrW6AIcjsKHEryMooOsqUFyrqwgCfjCzhuxGjIuQ+UL7k/zjKXj0IKbqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3AE831007;
+	Mon, 14 Apr 2025 06:22:56 -0700 (PDT)
+Received: from [10.57.86.225] (unknown [10.57.86.225])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 093363F66E;
+	Mon, 14 Apr 2025 06:22:54 -0700 (PDT)
+Message-ID: <5b0609c9-95ee-4e48-bb6d-98f57c5d2c31@arm.com>
+Date: Mon, 14 Apr 2025 14:22:53 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowABH9EAX7_xnqxTUCA--.8348S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7GF13GrWUGF4kuFW8WF43GFg_yoWktwbEga
-	12v34UWr1fAwsagw43Ar4a9r1xtrnFyFWrK34Iyr1kJayrXrZrWrs5Gw4vvr9rWa17Cr1D
-	Za4qqrsFkr1SgjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbVkFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
-	64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8Jw
-	Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAG
-	YxC7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r
-	1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CE
-	b7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0x
-	vE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAI
-	cVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2Kf
-	nxnUUI43ZEXa7VUbQVy7UUUUU==
-X-CM-SenderInfo: ppdnvj2u6l2u1dvotugofq/
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 0/5] Fix lazy mmu mode
+Content-Language: en-GB
+To: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Juergen Gross <jgross@suse.com>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ "H. Peter Anvin" <hpa@zytor.com>,
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, linux-mm@kvack.org,
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+ linux-kernel@vger.kernel.org
+References: <20250303141542.3371656-1-ryan.roberts@arm.com>
+ <912c7a32-b39c-494f-a29c-4865cd92aeba@agordeev.local>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <912c7a32-b39c-494f-a29c-4865cd92aeba@agordeev.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Once of_device_register() failed, we should call put_device() to
-decrement reference count for cleanup. Or it could cause memory leak.
-So fix this by calling put_device(), then the name can be freed in
-kobject_cleanup().
+On 10/04/2025 17:07, Alexander Gordeev wrote:
+> On Mon, Mar 03, 2025 at 02:15:34PM +0000, Ryan Roberts wrote:
+> 
+> Hi Ryan,
+> 
+>> I'm planning to implement lazy mmu mode for arm64 to optimize vmalloc. As part
+>> of that, I will extend lazy mmu mode to cover kernel mappings in vmalloc table
+>> walkers. While lazy mmu mode is already used for kernel mappings in a few
+>> places, this will extend it's use significantly.
+>>
+>> Having reviewed the existing lazy mmu implementations in powerpc, sparc and x86,
+>> it looks like there are a bunch of bugs, some of which may be more likely to
+>> trigger once I extend the use of lazy mmu.
+> 
+> Do you have any idea about generic code issues as result of not adhering to
+> the originally stated requirement:
+> 
+>   /*
+>    ...
+>    * the PTE updates which happen during this window.  Note that using this
+>    * interface requires that read hazards be removed from the code.  A read
+>    * hazard could result in the direct mode hypervisor case, since the actual
+>    * write to the page tables may not yet have taken place, so reads though
+>    * a raw PTE pointer after it has been modified are not guaranteed to be
+>    * up to date.
+>    ...
+>    */
+> 
+> I tried to follow few code paths and at least this one does not look so good:
+> 
+> copy_pte_range(..., src_pte, ...)
+> 	ret = copy_nonpresent_pte(..., src_pte, ...)
+> 		try_restore_exclusive_pte(..., src_pte, ...)	// is_device_exclusive_entry(entry)
+> 			restore_exclusive_pte(..., ptep, ...)
+> 				set_pte_at(..., ptep, ...)
+> 					set_pte(ptep, pte);	// save in lazy mmu mode
+> 
+> 	// ret == -ENOENT
+> 
+> 	ptent = ptep_get(src_pte);				// lazy mmu save is not observed
+> 	ret = copy_present_ptes(..., ptent, ...);		// wrong ptent used
+> 
+> I am not aware whether the effort to "read hazards be removed from the code"
+> has ever been made and the generic code is safe in this regard.
+> 
+> What is your take on this?
 
-As comment of device_add() says, 'if device_add() succeeds, you should
-call device_del() when you want to get rid of it. If device_add() has
-not succeeded, use only put_device() to drop the reference count'.
+Hmm, that looks like a bug to me, at least based on the stated requirements.
+Although this is not a "read through a raw PTE *pointer*", it is a ptep_get().
+The arch code can override that so I guess it has an opportunity to flush. But I
+don't think any arches are currently doing that.
 
-Found by code review.
+Probably the simplest fix is to add arch_flush_lazy_mmu_mode() before the
+ptep_get()?
 
-Cc: stable@vger.kernel.org
-Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
-Signed-off-by: Ma Ke <make24@iscas.ac.cn>
----
- arch/sparc/kernel/of_device_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It won't be a problem in practice for arm64, since the pgtables are always
+updated immediately. I just want to use these hooks to defer/batch barriers in
+certain cases.
 
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index f98c2901f335..4272746d7166 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -677,7 +677,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
- 
- 	if (of_device_register(op)) {
- 		printk("%pOF: Could not register of device.\n", dp);
--		kfree(op);
-+		put_device(&op->dev);
- 		op = NULL;
- 	}
- 
--- 
-2.25.1
+And this is a pre-existing issue for the arches that use lazy mmu with
+device-exclusive mappings, which my extending lazy mmu into vmalloc won't
+exacerbate.
+
+Would you be willing/able to submit a fix?
+
+Thanks,
+Ryan
+
+
+> 
+> Thanks!
 
