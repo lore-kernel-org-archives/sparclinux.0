@@ -1,96 +1,108 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B5F1B0412;
-	Tue, 15 Apr 2025 02:18:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A08902DFA49;
+	Wed, 16 Apr 2025 12:44:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744683519; cv=none; b=qrUsHlee/qs0HgBBS4b+5WFPyXoDtqOkcjh0FzaueMB7pq3LzHhk2Zn9BcYkC4Qo2/NZY5s/gPULFCD/OMyVnEoowrMCY3X5DSWXtE0lQCWHI4WsI6dNS3isZ3cskCUZPX1pApuHl6JEn6n9HizGdr6UnvDghaU4+mq36Z1SGFM=
+	t=1744807495; cv=none; b=QRhhOQOuP+cGsqEc94gqNbsJ8prV82exRpdjsEmIj8KTtBCDhYME1VYQRChmp0NgVS01OIA9K75iqTm+oLG12cIcWyJAiDMAfw/wBPgWn4r2OB9NNmhCwHJSajV9JkK1CbZQEKBGNDHz5MNZNnWnj9YXCB2t7ax0YESomuZ95h8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744683519; c=relaxed/simple;
-	bh=nGVvF6nK59wes4T4bei2C9AddEL7aiF3cGhmMHQLGzQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OQ8LMuAOY6E6NrLbpx2znNaTdQdV2eSMRbFVeHc6Vux2QRdHshnAQpyqWbsGxmYa7uQKBB9p0t9ahYwXXwbr0FgdLAH4FFk+QllTebZxDhRODYCHdWBy56xM6NhjDS2LqhGVgX8qxhvi6tqKYVw+2X0DHeoDDO5GbadIIRNV7BE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from icess-ProLiant-DL380-Gen10.. (unknown [183.174.60.14])
-	by APP-01 (Coremail) with SMTP id qwCowAD3oQLqwf1n5O3rCA--.14844S2;
-	Tue, 15 Apr 2025 10:18:21 +0800 (CST)
-From: Ma Ke <make24@iscas.ac.cn>
-To: davem@davemloft.net,
-	andreas@gaisler.com,
-	sam@ravnborg.org,
-	dawei.li@shingroup.cn,
-	make24@iscas.ac.cn,
-	rob.gardner@oracle.com
-Cc: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	akpm@linux-foundation.org,
-	stable@vger.kernel.org
-Subject: [PATCH v2] sparc: fix error handling in scan_one_device()
-Date: Tue, 15 Apr 2025 10:18:12 +0800
-Message-Id: <20250415021812.3106169-1-make24@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1744807495; c=relaxed/simple;
+	bh=PnVxcRWARIPdy3zD0wzUXGo7haIXrfNVtzFl9rL6PHg=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=b4E/D5Pc8rhoHJIt/jg0I3OTolSfZJDhwf+ciWALsDbsp3/5pxZrMF/efpet6TroQwEOB40PSB2X137Ptr1aFp6atYv0nFPrT7aYjwhE50pwh95zs2dol/EGDjofPazmGmHIHU+Ys4AFlvnbCS/+BxBmMCzToSWYYUsmHTJJcHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=fn6Gr3YR; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=CqpTkjC6; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fn6Gr3YR";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="CqpTkjC6"
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1744807491;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=0V2tltp7rLoJJI5D+sEpJCOe8NF2uU3qehp4Rd/tkvk=;
+	b=fn6Gr3YRcGoz4EadUMjr/47qOVtQEYivNqqxhqBlXsnaMbjGvF6EaWU3+ERmBxYszL4jKB
+	EKLnrMbML277hS9oAoxAC1cRjwagexrsC0kPlXUAA/D687UZ6mAse+OF/8iAg6EHbc9KCY
+	s5Z56NLYJXzWs1hWBzVtoF2pwyxjy8KIi7c+mx8je1K9bvtTSLTFBwXTWFVvT6ws1kbks/
+	rOiYO5tNj5M1scDOR/nnZqtIMuHOvioynRlRDVA7vSIdS7smyD4tgrnylgEux5OyuhCJAh
+	yJ7s4X9OtHjQsl0atCAdEDuFprtVHwcpgNCH8EHlZ7w5JuQ0HFwfPIHdPv8wUQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1744807491;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=0V2tltp7rLoJJI5D+sEpJCOe8NF2uU3qehp4Rd/tkvk=;
+	b=CqpTkjC6WVXhzuAWgRFEURp/8zZINmmLZL3aIpG2BT79CPP5H0UMuRoVl+gMRNaCsQCVDA
+	+wd1TuktMTgq8HCQ==
+Date: Wed, 16 Apr 2025 14:44:19 +0200
+Subject: [PATCH] kunit/usercopy: Disable u64 test on 32-bit SPARC
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAD3oQLqwf1n5O3rCA--.14844S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7WryrKw45JFyrCr15ZF1DWrg_yoW8Gr4xp3
-	s7Aas8JrWUur1vkws7XF18ZF1UCw4jy3Wruw45C3W0krn3WryrJ3yv9r4kK3W5trZrAF40
-	qrZrtw10yF4Uu3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUBI14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gr
-	1j6F4UJwAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40E
-	FcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr
-	0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8v
-	x2IErcIFxwACI402YVCY1x02628vn2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20x
-	vY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I
-	3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIx
-	AIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAI
-	cVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2js
-	IEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUbQVy7UUUUU==
-X-CM-SenderInfo: ppdnvj2u6l2u1dvotugofq/
+Message-Id: <20250416-kunit-sparc-usercopy-v1-1-a772054db3af@linutronix.de>
+X-B4-Tracking: v=1; b=H4sIACKm/2cC/x3MTQqAIBBA4avErBvoxyK6SrSQaawhMNGKQrx70
+ vItvhchsBcOMBYRPN8S5LA56rIA2rRdGWXJDU3VdJWqe9wvKycGpz3hlTEd7kVq+4Vb0orNAJk
+ 6z0aefzvNKX1FB4EYZgAAAA==
+X-Change-ID: 20250416-kunit-sparc-usercopy-c36de3ca4ef8
+To: Kees Cook <kees@kernel.org>, 
+ "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc: linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ David Gow <davidgow@google.com>, "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744807489; l=1347;
+ i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
+ bh=PnVxcRWARIPdy3zD0wzUXGo7haIXrfNVtzFl9rL6PHg=;
+ b=hbTu3XkiauW7qvM9lT33V8rEaBO+LzJYP9U7fAzLZdtF5l/eJzGOIxeyVWfPzEsKlRoKvnqYG
+ MnTeF7MuDpIBXgPEiKMGbz7Wv7vhv0Bo2Fryrz7yoEsq2oOpP11Noie
+X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
+ pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-Once of_device_register() failed, we should call put_device() to
-decrement reference count for cleanup. Or it could cause memory leak.
-So fix this by calling put_device(), then the name can be freed in
-kobject_cleanup().
+usercopy of 64 bit values does not work on 32-bit SPARC:
 
-Calling path: of_device_register() -> of_device_add() -> device_add().
-As comment of device_add() says, 'if device_add() succeeds, you should
-call device_del() when you want to get rid of it. If device_add() has
-not succeeded, use only put_device() to drop the reference count'.
+    # usercopy_test_valid: EXPECTATION FAILED at lib/tests/usercopy_kunit.c:209
+    Expected val_u64 == 0x5a5b5c5d6a6b6c6d, but
+        val_u64 == 1515936861 (0x5a5b5c5d)
+        0x5a5b5c5d6a6b6c6d == 6510899242581322861 (0x5a5b5c5d6a6b6c6d)
 
-Found by code review.
+Disable the test.
 
-Cc: stable@vger.kernel.org
-Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
-Signed-off-by: Ma Ke <make24@iscas.ac.cn>
+Fixes: 4c5d7bc63775 ("usercopy: Add tests for all get_user() sizes")
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
-Changes in v2:
-- retained kfree() manually due to the lack of a release callback function.
+To be honest I think sparc32 wants to support usercopy of 64 bit values.
+But it does seem to be broken.
+
+(+Cc SPARC maintainers)
 ---
- arch/sparc/kernel/of_device_64.c | 1 +
+ lib/tests/usercopy_kunit.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index f98c2901f335..f53092b07b9e 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -677,6 +677,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
- 
- 	if (of_device_register(op)) {
- 		printk("%pOF: Could not register of device.\n", dp);
-+		put_device(&op->dev);
- 		kfree(op);
- 		op = NULL;
- 	}
+diff --git a/lib/tests/usercopy_kunit.c b/lib/tests/usercopy_kunit.c
+index 77fa00a13df775074a19772bfbc9120ef33634bb..80f8abe10968c1d91c61006f1eaa63858c633872 100644
+--- a/lib/tests/usercopy_kunit.c
++++ b/lib/tests/usercopy_kunit.c
+@@ -27,6 +27,7 @@
+ 			    !defined(CONFIG_MICROBLAZE) &&	\
+ 			    !defined(CONFIG_NIOS2) &&		\
+ 			    !defined(CONFIG_PPC32) &&		\
++			    !defined(CONFIG_SPARC32) &&		\
+ 			    !defined(CONFIG_SUPERH))
+ # define TEST_U64
+ #endif
+
+---
+base-commit: 1a1d569a75f3ab2923cb62daf356d102e4df2b86
+change-id: 20250416-kunit-sparc-usercopy-c36de3ca4ef8
+
+Best regards,
 -- 
-2.25.1
+Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 
