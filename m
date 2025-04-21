@@ -1,75 +1,99 @@
-Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
+Received: from out-179.mta1.migadu.com (out-179.mta1.migadu.com [95.215.58.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87A2E5CB8;
-	Sat, 19 Apr 2025 02:41:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.6.53.87
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C39525D8EE
+	for <sparclinux@vger.kernel.org>; Mon, 21 Apr 2025 12:17:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745030466; cv=none; b=V8SSRkrIFrOCw7E0jmJc0cd9RVGGjzj7Icw5pEm3AB16B+N4ASncYWY0spz+wpiT7eUEEN24b8o+WNVqIRMnz1nqwCsSLXwL/5Rgnp+Jm3sMJKvsJTW7wGxEHEuPf/bR9Q5CdcPat3b2quGfP9WuLDC6QtC/xS7u/i6Ssb31/1w=
+	t=1745237862; cv=none; b=d0SEJhLKI/0uAB/AQ3kCL0B9rjC0INjrAK35IC0JkBusUl+TdmvgB6Tb8k8tT0nOwv7K4HrXCb/16dj2mg3tYOCARL9w3zguvjDNzNs0VC4LpkV0IBEz0DnQkNFlytZGx1H6KPXcX22UASuxGpjyKgGMsYerXXF/cyED86Ij000=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745030466; c=relaxed/simple;
-	bh=zJ1i0szTujFfqZn7VlvO1q7cBVSlvqSyecXXOuogdHk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s9wakLmMMijnCydMuQKD7MjIfhyZ2AdQ8XOYRv9AUvxf//h9K6caETYHA1MKpbfUzFlNH/ehMvxudd/rod4vaK2j++rA1tYhuZ73tzebft3PS0jClgqBFL+nc5cmI7XJB7hUocJPGZEvbsiPGUjniCOOslQooWwgltSc9bBqRH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b=rmQd0n5F; arc=none smtp.client-ip=144.6.53.87
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
+	s=arc-20240116; t=1745237862; c=relaxed/simple;
+	bh=8NP9WnnAZwCWX5tKw+ExLTEaZQ3Kg5gbZX0q9rYXmxQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PO1hfTtMZ2xx472zm6xOEdQdAnMSNMQTV1grlzFuXgzUsRKiy3rDnsI6By1H8HJIN1xub1N1eoV7uYBSA1LCp8Gn8XjWr/0HEQ6wexgq/xdo6211nKAo9KUndBaqpMLB6QDX36MPcq7kTle7n29FwQdpouwfF95l6q421SWxqPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=XSuErmA3; arc=none smtp.client-ip=95.215.58.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b="rmQd0n5F"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hmeau.com;
-	s=formenos; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=N71ulJFC7EzRy4IJC7JSkf+9aBSGBV5BXmKIuPUJx7U=; b=rmQd0n5Ffd7wgXc5CRfMsYvfej
-	vy0M0uiUROHxK3PxU1ELCUZ55bqRS7IKOzdkIx2x/h3kf6i7ueq2uF2iXk+esRyER676Vn8nn6HPl
-	/EUIRrt1qKRpgU7dPHA+0/rAdhZq8SqQqgwdPs18fXqmj5Vc6DfqBTMqCH2VeKeOqjtpsk1uVQdTB
-	7C97E7AWZ+VRMuouNeTm66I/v/5mhb++Kjp8acKAz23ZX1T1sTBZddTZjuWyEHiOyEpxbSEZiqzYd
-	8FLG2KSwbrYBgiH88lXTv2vFiWUXkF2HqN7hW+YAXzbLMgU3rYK+eiYH+SBvpg8M1ru6r24TM8ix6
-	GC1QefCQ==;
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-	by formenos.hmeau.com with smtp (Exim 4.96 #2 (Debian))
-	id 1u5y8W-00Gtuw-1E;
-	Sat, 19 Apr 2025 10:40:57 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Sat, 19 Apr 2025 10:40:56 +0800
-Date: Sat, 19 Apr 2025 10:40:56 +0800
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-crypto@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-	x86@kernel.org, Jason@zx2c4.com, ardb@kernel.org
-Subject: Re: [PATCH 01/15] crypto: arm - remove CRYPTO dependency of library
- functions
-Message-ID: <aAMNOJa-xcxLrmgX@gondor.apana.org.au>
-References: <20250417182623.67808-2-ebiggers@kernel.org>
- <aAHDIRlSNLsYYZmW@gondor.apana.org.au>
- <20250418033236.GB38960@quark.localdomain>
- <aAHJRszwcQ4UyQ2e@gondor.apana.org.au>
- <20250418040931.GD38960@quark.localdomain>
- <aAIMhLD3UMM41JkT@gondor.apana.org.au>
- <20250418150149.GB1890@quark.localdomain>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="XSuErmA3"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1745237848;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=nwUktnr64z5zMlLNBQ2cFN7az3BChCdsSCKSVZjBexg=;
+	b=XSuErmA33/xKzulCpVZO7KHGtMhbNIyNGOCP/UMSjhOdwpaiXLDGgW6mbFZRmM9Db8CeKZ
+	z8r2iqUiDO2lfjJpHiPqz0TW1Xq84gkkscOWZBRdqU1IrMvJ+9LbshLTa5mQrKoLed1Ney
+	qOab8wBpY7sz2tY3Xf3J1/4B78bA5yo=
+From: Thorsten Blum <thorsten.blum@linux.dev>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	linux-hardening@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc: PCI: Replace deprecated strcpy() with strscpy()
+Date: Mon, 21 Apr 2025 14:16:23 +0200
+Message-ID: <20250421121624.363034-3-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250418150149.GB1890@quark.localdomain>
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Fri, Apr 18, 2025 at 08:01:49AM -0700, Eric Biggers wrote:
->
-> Doing it as a follow-up when this series hasn't been merged yet would be kind of
-> silly, since it would undo a lot of this series.  I'll just send out a v2 of
-> this series.
+strcpy() is deprecated; use strscpy() instead.
 
-OK that's fine too of course.
+No functional changes intended.
+
+Link: https://github.com/KSPP/linux/issues/88
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+---
+ arch/sparc/kernel/pcic.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index 25fe0a061732..f894ae79e78a 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/jiffies.h>
+ 
+ #include <asm/swift.h> /* for cache flushing. */
+@@ -352,7 +353,7 @@ int __init pcic_probe(void)
+ 	pbm = &pcic->pbm;
+ 	pbm->prom_node = node;
+ 	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
+-	strcpy(pbm->prom_name, namebuf);
++	strscpy(pbm->prom_name, namebuf);
+ 
+ 	{
+ 		extern int pcic_nmi_trap_patch[4];
+@@ -477,7 +478,7 @@ static void pcic_map_pci_device(struct linux_pcic *pcic,
+ 	int j;
+ 
+ 	if (node == 0 || node == -1) {
+-		strcpy(namebuf, "???");
++		strscpy(namebuf, "???");
+ 	} else {
+ 		prom_getstring(node, "name", namebuf, 63); namebuf[63] = 0;
+ 	}
+@@ -536,7 +537,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
+ 	char namebuf[64];
+ 
+ 	if (node == 0 || node == -1) {
+-		strcpy(namebuf, "???");
++		strscpy(namebuf, "???");
+ 	} else {
+ 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
+ 	}
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.49.0
+
