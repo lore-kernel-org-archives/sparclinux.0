@@ -1,117 +1,148 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E0292163B9;
-	Thu, 24 Apr 2025 06:22:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FED1210F5A;
+	Thu, 24 Apr 2025 09:06:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745475762; cv=none; b=MP0dfVWRcS8AxqU3Lr2rEehwismCVz1ZSb2yJ+rW/8a0jnGA6sBtufgIeVigvCfNVMD36bJTRPJ1p3iiPFkxqZnmAzOZLq6Td68jmeQDMU3sZkPgcrCRD1bSs9FDdQau4HsWxraf8prIkFL1Bfhn7E/8kf4nj6sCOX1/EnhiIuQ=
+	t=1745485582; cv=none; b=DVkg+p5KTiuu7hbo0J270jYBlHaaA5sQLXR2MSAqbbf+iPojEN1KXE5nz2m0KdlloqR3Az+1k9+n50cVr/PwRqHvIRZ1RbYGsAH3fm04jJxyDspoNijz+7xs78TCwjS2U1CfuvyqGHDmGgHf0RGHKchBbReRSXp1ioPk0m54Q/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745475762; c=relaxed/simple;
-	bh=MnbDTkDjx7fGLQrr6aq33qeElS5aQV1V02HztW2z4QI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=frsu2ERYpofBEYhXTR6UIHDkztKUYqCzPwRGLvbfv0wCvs+0BfzAT6S6qbfWgBRCTchBt/okiWIljFDkTsUzho7twq783500eu1FPYJWFMV1im2l9GpGhMICxtbRKoKyowqCnpis+3PpZ1Zzu+SRQBAZbfrOO/gXbeVTVgZ+pQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WtboPodA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745485582; c=relaxed/simple;
+	bh=g6bxeBGFz+ZfAiISf78nYF5d6OuqVi+zKYMYmkzuYww=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HK3T3zdIGDpGO/TCXAxWRf0iQ/zar0OLW4YFttAblOUqXirChYvfmI8uemjkoQnmB6Vb3JnpDDLRlHt/MQVAv4OdHrWLF9sIeVyQmLcJCpCAkh54AH3oLhumaQtjEc8H20yVMyUPIJyfy3E+2mYHzKTMOazaBeYbpRqxd4/g8Mo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qPzQ2EtO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WtboPodA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E13DBC4CEE3;
-	Thu, 24 Apr 2025 06:22:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qPzQ2EtO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF029C4CEEB;
+	Thu, 24 Apr 2025 09:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745475760;
-	bh=MnbDTkDjx7fGLQrr6aq33qeElS5aQV1V02HztW2z4QI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=WtboPodAb4If3nkaa2PXy6oXsf0a3bXZctQ2wvPcXSI0l79MWAm4Z2gSZuz96IF9H
-	 0qLlIMYtp2SHP6GDqfM8ztwqvVgTZY6FXR9F5f0adrLGLlrBdyf5RWCE1I7N7CrTTj
-	 DAPkO1+pZGzixh+Urbuscma6hbYr7IX/6giX9wVWMj2r92tTCqm0d1+78+g71USLbJ
-	 THF5D9zsliGl+VvssarcSIxgX6vlpU47E9eZMJKjYTEQ8nflTSxlLh63IVcKVnlFdc
-	 SWV4SxmWIXzI3lSv6htjlMKoZppQdBmQJNjRQ4JTvSh2Z3t/BH9C3LOESeyqGxlX14
-	 DIG6sr68pN51A==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5498d2a8b89so561949e87.1;
-        Wed, 23 Apr 2025 23:22:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCU+dwKdWGi/oXXv/11j017luD/6cSyRvbeiNO3r0QjubiBFfSFte6T0kd7axjJ2Hkj9+eleYdNWmT5lIA==@vger.kernel.org, AJvYcCXuh/6bjRJbOR9/eUAoB1aRDIp4OaoH5N1Ii2aif0sF/5MIqsjCpy7/Kyqzmf4gZkrFDGp1g2pKa3cBN/8=@vger.kernel.org, AJvYcCXwuHIeTBenxQd66PzjaQxJ3UZ6Qg9Vot5On3gbNx4yiWDuBmgFx9Tx4/OR0LcJ+frPOHm27OJxKI1ZlQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxOnWQp20667775jSdTbz7exANcqKgpyGzGXxaYuagK8Wredye9
-	PbhCpy9LlZ/tQQoi/iEmVB/3GOMCil8YpRbr3hLpJgJ80V4VrOigR85OiFGJ1eVLilRR2lWaYaM
-	esm4N8/ZIN1j1yaXIXSUOTK+71Lw=
-X-Google-Smtp-Source: AGHT+IEBg0GksqRUxYbq10WiBQxT674qV08e5XaXakQ/0Ux/wZi1/Em/Ff29tbRd93xidxYNQXuF7ob7W4sz3W9cDJE=
-X-Received: by 2002:a2e:b8c9:0:b0:30c:3099:13db with SMTP id
- 38308e7fff4ca-3179e5ea6f5mr4171351fa.14.1745475759305; Wed, 23 Apr 2025
- 23:22:39 -0700 (PDT)
+	s=k20201202; t=1745485581;
+	bh=g6bxeBGFz+ZfAiISf78nYF5d6OuqVi+zKYMYmkzuYww=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=qPzQ2EtOhRHjvqeIqmfEs41n41+fPOpo5wVb0WXRA0Y64JK63Z0piOH/6q1TuKDwD
+	 WTI9c9BorspnKyVAu3DQkYsACDPHLJTqVVPTN6kTMVKEScUaCBv3GdtHESuUO5NqC6
+	 pqjqzGFZkOK5FpMLm1+UNv77/mYGep1Zag5d47x0b6vZpoHTEkoNH1VrlBp4U0AaKU
+	 qsF/Vn2vnRvvp1Kn7/YXcOkrtYa0w4Ynlqq5gkE0B8hjxnGwh/iyaywzNfxrIZA9z+
+	 2pzSBGKxX+TFKn8wOJih4WXcFzFXNu3Sjb1AkS/krSZea9kudjKkOe+16Pk7titbWK
+	 ch3/3zyDdzWnA==
+Date: Thu, 24 Apr 2025 11:06:07 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Jan Kara <jack@suse.cz>
+Cc: Andrey Albershteyn <aalbersh@redhat.com>, 
+	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>, 
+	Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, 
+	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
+	linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-xfs@vger.kernel.org
+Subject: Re: [PATCH v4 3/3] fs: introduce getfsxattrat and setfsxattrat
+ syscalls
+Message-ID: <20250424-zuspielen-luxus-3d49b600c3bf@brauner>
+References: <20250321-xattrat-syscall-v4-0-3e82e6fb3264@kernel.org>
+ <20250321-xattrat-syscall-v4-3-3e82e6fb3264@kernel.org>
+ <20250422-abbekommen-begierde-bcf48dd74a2e@brauner>
+ <rbzlwvecvrp4xawwp5nywdq6wp5hgjhrtrabpszv74xmfqbj4f@x7v6eqfc5gcd>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250424002038.179114-1-ebiggers@kernel.org>
-In-Reply-To: <20250424002038.179114-1-ebiggers@kernel.org>
-From: Ard Biesheuvel <ardb@kernel.org>
-Date: Thu, 24 Apr 2025 08:22:28 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXFZ-Wy9Z5Rqe-o6fnKtgm+=JQeFnVMvG=jmKz36=02w6A@mail.gmail.com>
-X-Gm-Features: ATxdqUEf-FfEO6d9z_202RUFsmqfhy6LhKcEQhVv3O5CQR6i6602IFM1v6-7V-w
-Message-ID: <CAMj1kXFZ-Wy9Z5Rqe-o6fnKtgm+=JQeFnVMvG=jmKz36=02w6A@mail.gmail.com>
-Subject: Re: [PATCH 0/7] lib/crc: drop "glue" from filenames
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <rbzlwvecvrp4xawwp5nywdq6wp5hgjhrtrabpszv74xmfqbj4f@x7v6eqfc5gcd>
 
-On Thu, 24 Apr 2025 at 02:22, Eric Biggers <ebiggers@kernel.org> wrote:
->
-> This series fixes an odd naming convention that was unnecessarily
-> carried over from the original Crypto API code.
->
-> I'm planning to take this via the crc tree.
->
-> Eric Biggers (7):
->   arm/crc: drop "glue" from filenames
->   arm64/crc: drop "glue" from filenames
->   powerpc/crc: drop "glue" from filenames
->   powerpc/crc: rename crc32-vpmsum_core.S to crc-vpmsum-template.S
->   s390/crc: drop "glue" from filenames
->   sparc/crc: drop "glue" from filenames
->   x86/crc: drop "glue" from filenames
->
+On Wed, Apr 23, 2025 at 11:53:25AM +0200, Jan Kara wrote:
+> On Tue 22-04-25 16:59:02, Christian Brauner wrote:
+> > On Fri, Mar 21, 2025 at 08:48:42PM +0100, Andrey Albershteyn wrote:
+> > > From: Andrey Albershteyn <aalbersh@redhat.com>
+> > > 
+> > > Introduce getfsxattrat and setfsxattrat syscalls to manipulate inode
+> > > extended attributes/flags. The syscalls take parent directory fd and
+> > > path to the child together with struct fsxattr.
+> > > 
+> > > This is an alternative to FS_IOC_FSSETXATTR ioctl with a difference
+> > > that file don't need to be open as we can reference it with a path
+> > > instead of fd. By having this we can manipulated inode extended
+> > > attributes not only on regular files but also on special ones. This
+> > > is not possible with FS_IOC_FSSETXATTR ioctl as with special files
+> > > we can not call ioctl() directly on the filesystem inode using fd.
+> > > 
+> > > This patch adds two new syscalls which allows userspace to get/set
+> > > extended inode attributes on special files by using parent directory
+> > > and a path - *at() like syscall.
+> > > 
+> > > CC: linux-api@vger.kernel.org
+> > > CC: linux-fsdevel@vger.kernel.org
+> > > CC: linux-xfs@vger.kernel.org
+> > > Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+> > > Acked-by: Arnd Bergmann <arnd@arndb.de>
+> ...
+> > > +		struct fsxattr __user *, ufsx, size_t, usize,
+> > > +		unsigned int, at_flags)
+> > > +{
+> > > +	struct fileattr fa = {};
+> > > +	struct path filepath;
+> > > +	int error;
+> > > +	unsigned int lookup_flags = 0;
+> > > +	struct filename *name;
+> > > +	struct fsxattr fsx = {};
+> > > +
+> > > +	BUILD_BUG_ON(sizeof(struct fsxattr) < FSXATTR_SIZE_VER0);
+> > > +	BUILD_BUG_ON(sizeof(struct fsxattr) != FSXATTR_SIZE_LATEST);
+> > > +
+> > > +	if ((at_flags & ~(AT_SYMLINK_NOFOLLOW | AT_EMPTY_PATH)) != 0)
+> > > +		return -EINVAL;
+> > > +
+> > > +	if (!(at_flags & AT_SYMLINK_NOFOLLOW))
+> > > +		lookup_flags |= LOOKUP_FOLLOW;
+> > > +
+> > > +	if (at_flags & AT_EMPTY_PATH)
+> > > +		lookup_flags |= LOOKUP_EMPTY;
+> > > +
+> > > +	if (usize > PAGE_SIZE)
+> > > +		return -E2BIG;
+> > > +
+> > > +	if (usize < FSXATTR_SIZE_VER0)
+> > > +		return -EINVAL;
+> > > +
+> > > +	name = getname_maybe_null(filename, at_flags);
+> > > +	if (!name) {
+> > 
+> > This is broken as it doesn't handle AT_FDCWD correctly. You need:
+> > 
+> >         name = getname_maybe_null(filename, at_flags);
+> >         if (IS_ERR(name))
+> >                 return PTR_ERR(name);
+> > 
+> >         if (!name && dfd >= 0) {
+> > 		CLASS(fd, f)(dfd);
+> 
+> Ah, you're indeed right that if dfd == AT_FDCWD and filename == NULL, the
+> we should operate on cwd but we'd bail with error here. I've missed that
+> during my review. But as far as I've checked the same bug is there in
+> path_setxattrat() and path_getxattrat() so we should fix this there as
+> well?
 
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
-
->  arch/arm/lib/Makefile                                       | 4 ++--
->  arch/arm/lib/{crc-t10dif-glue.c => crc-t10dif.c}            | 0
->  arch/arm/lib/{crc32-glue.c => crc32.c}                      | 0
->  arch/arm64/lib/Makefile                                     | 4 ++--
->  arch/arm64/lib/{crc-t10dif-glue.c => crc-t10dif.c}          | 0
->  arch/arm64/lib/{crc32.S => crc32-core.S}                    | 0
->  arch/arm64/lib/{crc32-glue.c => crc32.c}                    | 0
->  arch/powerpc/lib/Makefile                                   | 4 ++--
->  arch/powerpc/lib/{crc-t10dif-glue.c => crc-t10dif.c}        | 0
->  .../lib/{crc32-vpmsum_core.S => crc-vpmsum-template.S}      | 0
->  arch/powerpc/lib/{crc32-glue.c => crc32.c}                  | 0
->  arch/powerpc/lib/crc32c-vpmsum_asm.S                        | 2 +-
->  arch/powerpc/lib/crct10dif-vpmsum_asm.S                     | 2 +-
->  arch/s390/lib/Makefile                                      | 2 +-
->  arch/s390/lib/{crc32-glue.c => crc32.c}                     | 0
->  arch/sparc/lib/Makefile                                     | 2 +-
->  arch/sparc/lib/{crc32_glue.c => crc32.c}                    | 2 +-
->  arch/x86/lib/Makefile                                       | 6 +++---
->  arch/x86/lib/{crc-t10dif-glue.c => crc-t10dif.c}            | 0
->  arch/x86/lib/{crc32-glue.c => crc32.c}                      | 0
->  arch/x86/lib/{crc64-glue.c => crc64.c}                      | 0
->  21 files changed, 14 insertions(+), 14 deletions(-)
->  rename arch/arm/lib/{crc-t10dif-glue.c => crc-t10dif.c} (100%)
->  rename arch/arm/lib/{crc32-glue.c => crc32.c} (100%)
->  rename arch/arm64/lib/{crc-t10dif-glue.c => crc-t10dif.c} (100%)
->  rename arch/arm64/lib/{crc32.S => crc32-core.S} (100%)
->  rename arch/arm64/lib/{crc32-glue.c => crc32.c} (100%)
->  rename arch/powerpc/lib/{crc-t10dif-glue.c => crc-t10dif.c} (100%)
->  rename arch/powerpc/lib/{crc32-vpmsum_core.S => crc-vpmsum-template.S} (100%)
->  rename arch/powerpc/lib/{crc32-glue.c => crc32.c} (100%)
->  rename arch/s390/lib/{crc32-glue.c => crc32.c} (100%)
->  rename arch/sparc/lib/{crc32_glue.c => crc32.c} (97%)
->  rename arch/x86/lib/{crc-t10dif-glue.c => crc-t10dif.c} (100%)
->  rename arch/x86/lib/{crc32-glue.c => crc32.c} (100%)
->  rename arch/x86/lib/{crc64-glue.c => crc64.c} (100%)
->
-> base-commit: 1ec3d4ff5c77422927896c1f7d0ed01267ec1213
-> --
-> 2.49.0
->
+Yes, please!
