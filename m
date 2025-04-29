@@ -1,145 +1,111 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D35212951C0;
-	Mon, 28 Apr 2025 17:02:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D67D924A047;
+	Tue, 29 Apr 2025 16:57:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745859727; cv=none; b=pLnpc70ZEOuQWPTCbp6ewj/p6TvfiMMCljVLpxDqm3Vd5julu4z48iPL/C2FlGoz63AcOZa/zRBRvWzk0pFt8ermlCuaqPrhMdrXhbxHx/2z4+DgG6TumpryGnRmwdvUMZF1x+ZdjZv5N6lY49WyIKtJSsGW9PM3WIRTDufmWPg=
+	t=1745945872; cv=none; b=u2/6ifII56JyZg3an4doJxwaOEBC5vAwYnzwEC/E2qQ00n7bivfCxkAY+IAzzFYwcF0MM9XPghG+S0KFA0UukzEz0IVCHYvFvGD1w3mBRItIIBKN1XgWN7kWPe18rIiGxiviheB8WGOaRMt8UvvM9F91bB4dTyqKJ4PBrvMg9W4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745859727; c=relaxed/simple;
-	bh=E4ZzeBfk2GgJquy2SDIZkSeNX8NfXIoZAmTNK3XNeXw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qk3uQOAuSB2+8kCiaeHMBAGvIrWYoOlAEirWS/shkcET1oyiCZfDu5CmNkLwFpIRIht9nHzNgnDuc3LaJfAHf+CdkZXuFSCpFdi94Au5//lLovV+FoKUP4n/CfUn14b5n6Mp6oeZhxEF1/AHYZRI2fqoaAIx8W2VzoRYQ5sAMpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nag0WVQ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745945872; c=relaxed/simple;
+	bh=Tg1ctzwo0ak0Lwu1YWKgH+RS3fovIZ1X+v294BjOsH8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=E5eCeW9G/DNrxqMjMeS6kxib+gjQYz9CyZqnoldd0kEhlNgvIhtYcLWjQJq+9WiISZJbe+qFCxeGivQqm99xdgA6mmTEx18ceZLowYpXXm2ntArkAC2GRkoklRfWlzPeOGa9RSqWdP8nVRMQN68t7TLdLn0sT9rNvF8YC8jIK+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VfHRE0Zf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nag0WVQ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F35C4CEEE;
-	Mon, 28 Apr 2025 17:02:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VfHRE0Zf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA3CC4CEEA;
+	Tue, 29 Apr 2025 16:57:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745859726;
-	bh=E4ZzeBfk2GgJquy2SDIZkSeNX8NfXIoZAmTNK3XNeXw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Nag0WVQ8E1TihrQTSEoFR0DZgEIeqxXwyV4+iqc41yTiRiDzs5/2T7qkhTZmHaBIe
-	 3NpNYnemnWcQOCXagA5m6zVEi7yUaK7qNITYrJvmQFRS87Igf4LlFVCkGoqoGOGCVG
-	 rsFgw3ex79z6SbNqm4v8+b5mBZMqZ9O4OXQBeaDADtRT7kk2/LXqD81qq3/EBLuNs4
-	 Xf+BQasDscoPMcUxBho7bRSlGZgBqQCEuwezVvdvBqukAt516lxDSngixk8QEtC60Q
-	 hSwIdPcr5osF5Xfc1HTMgM8PDAUDpsO71gwKURmbiK0loWyPcYwTVOaYNJujt2ACtq
-	 ABI2T4XgqEKSw==
+	s=k20201202; t=1745945871;
+	bh=Tg1ctzwo0ak0Lwu1YWKgH+RS3fovIZ1X+v294BjOsH8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VfHRE0ZfOmDAVECATIVhnIIEDv8InpF/NVtbUFhMnpUd0U4Y+5b0Ww4zgRVL1MNmR
+	 u8gCoUF2f9BknbD6Z34UXG4o4jeie06f9l37yhBS9hg7PyyZPh0t76hiNmFRLKGGi5
+	 iEyi9z3gFBB3tX3cQpD1giyD3J3AvQz31/yIHy3BsfSa938ZSffUIHVakH6CrbbrdF
+	 VDAjwRavumw/UONhO/E9zhOSkKcu9AG/KUZggezyKAUSbacO11GC7UHvJUwjFrcjyu
+	 f0RJmP3EuGwQ5b0kiClDl4KQSZySaB5MQps8Q90qLLDnvzKrTossosvNsmID5DJOBH
+	 TIWeglu12AohQ==
+Date: Tue, 29 Apr 2025 09:57:49 -0700
 From: Eric Biggers <ebiggers@kernel.org>
-To: linux-crypto@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org,
-	sparclinux@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	x86@kernel.org,
-	Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>,
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+	sparclinux@vger.kernel.org, linux-s390@vger.kernel.org,
+	x86@kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+	"Jason A . Donenfeld " <Jason@zx2c4.com>,
 	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: [PATCH v4 13/13] crypto: lib/sha256 - improve function prototypes
-Date: Mon, 28 Apr 2025 10:00:38 -0700
-Message-ID: <20250428170040.423825-14-ebiggers@kernel.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250428170040.423825-1-ebiggers@kernel.org>
-References: <20250428170040.423825-1-ebiggers@kernel.org>
+Subject: Re: [v3 PATCH 00/13] Architecture-optimized SHA-256 library API
+Message-ID: <20250429165749.GC1743@sol.localdomain>
+References: <cover.1745816372.git.herbert@gondor.apana.org.au>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1745816372.git.herbert@gondor.apana.org.au>
 
-From: Eric Biggers <ebiggers@google.com>
+On Mon, Apr 28, 2025 at 01:17:02PM +0800, Herbert Xu wrote:
+> Changes in v3:
+> - Add shash sha256-lib/sha224-lib to provide test coverage for libsha256.
+> 
+> This is based on
+> 
+> 	https://patchwork.kernel.org/project/linux-crypto/list/?series=957558
+> 
+> Original description:
+> 
+> Following the example of several other algorithms (e.g. CRC32, ChaCha,
+> Poly1305, BLAKE2s), this series refactors the kernel's existing
+> architecture-optimized SHA-256 code to be available via the library API,
+> instead of just via the crypto_shash API as it was before.  It also
+> reimplements the SHA-256 crypto_shash API on top of the library API.
+> 
+> This makes it possible to use the SHA-256 library in
+> performance-critical cases.  The new design is also much simpler, with a
+> negative diffstat of over 1200 lines.  Finally, this also fixes the
+> longstanding issue where the arch-optimized SHA-256 was disabled by
+> default, so people often forgot to enable it.
+> 
+> For now the SHA-256 library is well-covered by the crypto_shash
+> self-tests, but I plan to add a test for the library directly later.
+> I've fully tested this series on arm, arm64, riscv, and x86.  On mips,
+> powerpc, s390, and sparc I've only been able to partially test it, since
+> QEMU does not support the SHA-256 instructions on those platforms.  If
+> anyone with access to a mips, powerpc, s390, or sparc system that has
+> SHA-256 instructions can verify that the crypto self-tests still pass,
+> that would be appreciated.  But I don't expect any issues, especially
+> since the new code is more straightforward than the old code.
+> 
+> Eric Biggers (13):
+>   crypto: sha256 - support arch-optimized lib and expose through shash
+>   crypto: arm/sha256 - implement library instead of shash
+>   crypto: arm64/sha256 - remove obsolete chunking logic
+>   crypto: arm64/sha256 - implement library instead of shash
+>   crypto: mips/sha256 - implement library instead of shash
+>   crypto: powerpc/sha256 - implement library instead of shash
+>   crypto: riscv/sha256 - implement library instead of shash
+>   crypto: s390/sha256 - implement library instead of shash
+>   crypto: sparc - move opcodes.h into asm directory
+>   crypto: sparc/sha256 - implement library instead of shash
+>   crypto: x86/sha256 - implement library instead of shash
+>   crypto: sha256 - remove sha256_base.h
+>   crypto: lib/sha256 - improve function prototypes
 
-Follow best practices by changing the length parameters to size_t and
-explicitly specifying the length of the output digest arrays.
+To be clear, the objections I have on your v2 patchset still hold.  Your
+unsolicited changes to my patches add unnecessary complexity and redundancy,
+make the crypto_shash API even harder to use correctly, and also break the build
+for several architectures.  If you're going to again use your maintainer
+privileges to push these out anyway over my objections, I'd appreciate it if you
+at least made your dubious changes as incremental patches using your own
+authorship so that they can be properly reviewed/blamed.
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
----
- include/crypto/sha2.h | 8 ++++----
- lib/crypto/sha256.c   | 8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+Please also note that I've sent a v4 which fixes the one real issue that my v1
+patchset had: https://lore.kernel.org/r/20250428170040.423825-1-ebiggers@kernel.org
 
-diff --git a/include/crypto/sha2.h b/include/crypto/sha2.h
-index 444484d1b1cfa..7dfc560daa2c7 100644
---- a/include/crypto/sha2.h
-+++ b/include/crypto/sha2.h
-@@ -93,13 +93,13 @@ static inline void sha256_init(struct sha256_state *sctx)
- 	sctx->state[5] = SHA256_H5;
- 	sctx->state[6] = SHA256_H6;
- 	sctx->state[7] = SHA256_H7;
- 	sctx->count = 0;
- }
--void sha256_update(struct sha256_state *sctx, const u8 *data, unsigned int len);
--void sha256_final(struct sha256_state *sctx, u8 *out);
--void sha256(const u8 *data, unsigned int len, u8 *out);
-+void sha256_update(struct sha256_state *sctx, const u8 *data, size_t len);
-+void sha256_final(struct sha256_state *sctx, u8 out[SHA256_DIGEST_SIZE]);
-+void sha256(const u8 *data, size_t len, u8 out[SHA256_DIGEST_SIZE]);
- 
- static inline void sha224_init(struct sha256_state *sctx)
- {
- 	sctx->state[0] = SHA224_H0;
- 	sctx->state[1] = SHA224_H1;
-@@ -110,8 +110,8 @@ static inline void sha224_init(struct sha256_state *sctx)
- 	sctx->state[6] = SHA224_H6;
- 	sctx->state[7] = SHA224_H7;
- 	sctx->count = 0;
- }
- /* Simply use sha256_update as it is equivalent to sha224_update. */
--void sha224_final(struct sha256_state *sctx, u8 *out);
-+void sha224_final(struct sha256_state *sctx, u8 out[SHA224_DIGEST_SIZE]);
- 
- #endif /* _CRYPTO_SHA2_H */
-diff --git a/lib/crypto/sha256.c b/lib/crypto/sha256.c
-index 4b19cf977ef1b..563f09c9f3815 100644
---- a/lib/crypto/sha256.c
-+++ b/lib/crypto/sha256.c
-@@ -68,11 +68,11 @@ static inline void __sha256_update(struct sha256_state *sctx, const u8 *data,
- 	}
- 	if (len)
- 		memcpy(&sctx->buf[partial], data, len);
- }
- 
--void sha256_update(struct sha256_state *sctx, const u8 *data, unsigned int len)
-+void sha256_update(struct sha256_state *sctx, const u8 *data, size_t len)
- {
- 	__sha256_update(sctx, data, len, false);
- }
- EXPORT_SYMBOL(sha256_update);
- 
-@@ -99,23 +99,23 @@ static inline void __sha256_final(struct sha256_state *sctx, u8 *out,
- 		put_unaligned_be32(sctx->state[i / 4], out + i);
- 
- 	memzero_explicit(sctx, sizeof(*sctx));
- }
- 
--void sha256_final(struct sha256_state *sctx, u8 *out)
-+void sha256_final(struct sha256_state *sctx, u8 out[SHA256_DIGEST_SIZE])
- {
- 	__sha256_final(sctx, out, SHA256_DIGEST_SIZE, false);
- }
- EXPORT_SYMBOL(sha256_final);
- 
--void sha224_final(struct sha256_state *sctx, u8 *out)
-+void sha224_final(struct sha256_state *sctx, u8 out[SHA224_DIGEST_SIZE])
- {
- 	__sha256_final(sctx, out, SHA224_DIGEST_SIZE, false);
- }
- EXPORT_SYMBOL(sha224_final);
- 
--void sha256(const u8 *data, unsigned int len, u8 *out)
-+void sha256(const u8 *data, size_t len, u8 out[SHA256_DIGEST_SIZE])
- {
- 	struct sha256_state sctx;
- 
- 	sha256_init(&sctx);
- 	sha256_update(&sctx, data, len);
--- 
-2.49.0
-
+- Eric
