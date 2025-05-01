@@ -1,34 +1,41 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8058B1AA1FF;
-	Wed, 30 Apr 2025 17:45:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522DB1CD0C;
+	Thu,  1 May 2025 01:21:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.6.53.87
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746035146; cv=none; b=NI6FDDAfskkObhrABAJt6VStnT6u7oc01dSlckbR8/KKgsoV1NIoaInjcV89VdGvSoIVqwRA9QaO+5nawW66CtYQnDDYKIM7UrKexFcJRWRId+MVj+wJHwh520O/gAbnxNwOZkG9WLsd0vC1NzDMBZ7IPMaDwywyCg685ioXpHs=
+	t=1746062490; cv=none; b=S/c7VM3iGaHWonvmqkXKtUhGTs6rGNdwKBlbgZB9RpXBTUh4wyJHBcsQUR5NhrhqZZgmQI/i9H3HeR60DOUgINT1lT+etwNQTXmJmloTkIKYClfwa7ycqKLpU00kCpLISrtLK53WxQezDlPvLY3w+79Za9iqoP2z1a6Q+uQrJz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746035146; c=relaxed/simple;
-	bh=KRq3ObS+7bPSh5npZvFvh2C1vvjoanHB8ALoJ0Lw5oY=;
+	s=arc-20240116; t=1746062490; c=relaxed/simple;
+	bh=syWciCY1H3uMC0/UNA+XmiFwV9p5kn8EPe643q+zrnE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Du3c3FSuKyvh5v1i/hqNTxLmgiXx5XNJofJh3p/+eBOfoF803zZcf+ngoQo4f9r+m+wIDc06uX6FjXKDiEXXWVa6OM077xH0qHm+rc1Ohk61RgHzjpf/trk6U6Rq7wGopJDC8rwuqTgOMoS26CkWzz/zKB1su5fLdsENKWsXA04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b5Ki7Zeo; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=Lvdd1KxQWo9UKDH41R3TU8hytOD8Y5qXYdqMeAEpHgLTzYixBZsWzy8fRD5i4FbNGSaW+kOnMpUN0RJvPQ+USF3/0saqwokfRgfJxTxTsNI3fpYkzvkAyjvZucyUiOYArNyXz4e/Dzqd6lsZXHBw6Yqd1N1gKoxbTzQNp4tbmoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b=a/NlvQqO; arc=none smtp.client-ip=144.6.53.87
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b5Ki7Zeo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7027EC4CEE7;
-	Wed, 30 Apr 2025 17:45:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746035146;
-	bh=KRq3ObS+7bPSh5npZvFvh2C1vvjoanHB8ALoJ0Lw5oY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=b5Ki7ZeoUb9ZN4LPaDEoM1o1bvfVz7fD1oztts7rOpVhwqg4oS5OvcmfJCGu3gxUH
-	 fT26UoXeSWagXlFQb3TkXpFnlFx9pI6CdXses/373TH68nkQ5m1XnkeCZyjTB3pjL8
-	 hB2unDN1O+ZToSdOpBH6aVt6DnPXIiit23u0m97zhbqweH/oPbGvmEvxIZXP3/PGuI
-	 fXfOoMh+QT2xdYboklbx8EcmahcftGMdK+N5ysjtRDWRo5qH2CA9yak25NsdYdhKlS
-	 5Unk+mvpoO/hy1QMjlUYCjybEmTkDQ2xbgxYdXD5WmCQ7eiojk/2fQ1VOdLNWLhrd4
-	 FfCKW0EMC7VFg==
-Date: Wed, 30 Apr 2025 10:45:43 -0700
-From: Eric Biggers <ebiggers@kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
+	dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b="a/NlvQqO"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hmeau.com;
+	s=formenos; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=NW5f/6zfXSJgSFBDpq9nG7FU/uxSqKRQHQ8TMd0Poy8=; b=a/NlvQqOeoRlesedjZn7kxOnFw
+	uv4a9xzHl7D1VZeIL93rjMMAkhe5hxqE4x0m2n/FWDvbWRvtAX99hxnOhhW6vCIjzXO0BHZ3lqJM5
+	RB9c0EnDFbkQGKZre/Y99u6FTj0aU0AbJGl20o5hnmiDJvj7wFkXsXvZtugU3t3vxsaSBA7xX9NFz
+	wK8MiCgvwE6zOyaFZ4PnOSV/LXOZB/7xN/Nq+7ZCdajE/MnuryS2PJCBO8luW8qV3BFecbN+Fs9Ot
+	Cw+tw3zJmJw9KzUB2KECxEtcp23uuxyS5Q/PBLXt9Z81aTgSodFT60Fy0hM+6eWtxA0rVUI0j3R7q
+	BRzxY+2w==;
+Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
+	by formenos.hmeau.com with smtp (Exim 4.96 #2 (Debian))
+	id 1uAIbz-002Qsc-2M;
+	Thu, 01 May 2025 09:21:16 +0800
+Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Thu, 01 May 2025 09:21:15 +0800
+Date: Thu, 1 May 2025 09:21:15 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: Eric Biggers <ebiggers@kernel.org>
 Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
 	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
@@ -38,95 +45,36 @@ Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
 	"Jason A . Donenfeld" <Jason@zx2c4.com>,
 	Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH 00/12] crypto: sha256 - Use partial block API
-Message-ID: <20250430174543.GB1958@sol.localdomain>
+Message-ID: <aBLMi5XOQKJyJGu-@gondor.apana.org.au>
 References: <cover.1745992998.git.herbert@gondor.apana.org.au>
+ <20250430174543.GB1958@sol.localdomain>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <cover.1745992998.git.herbert@gondor.apana.org.au>
+In-Reply-To: <20250430174543.GB1958@sol.localdomain>
 
-[Added back Cc's that were dropped]
-
-On Wed, Apr 30, 2025 at 02:06:15PM +0800, Herbert Xu wrote:
-> This is based on
-> 
-> 	https://patchwork.kernel.org/project/linux-crypto/list/?series=957785
-
-I'm assuming that you mean that with your diff
-https://lore.kernel.org/r/aBGdiv17ztQnhAps@gondor.apana.org.au folded into my
-first patch, since otherwise your patch series doesn't apply.  But even with
-that done, your patch series doesn't build:
-
-    In file included from ./include/crypto/hash_info.h:12,
-                     from crypto/hash_info.c:9:
-    ./include/crypto/sha2.h: In function ‘sha256_init’:
-    ./include/crypto/sha2.h:101:32: error: ‘struct sha256_state’ has no member named ‘ctx’
-      101 |         sha256_block_init(&sctx->ctx);
-          |                                ^~
-
-> Rather than going through the lib/sha256 partial block handling,
-> use the native shash partial block API.  Add two extra shash
-> algorithms to provide testing coverage for lib/sha256.
-> 
-> Herbert Xu (12):
->   crypto: lib/sha256 - Restore lib_sha256 finup code
->   crypto: sha256 - Use the partial block API for generic
->   crypto: arm/sha256 - Add simd block function
->   crypto: arm64/sha256 - Add simd block function
->   crypto: mips/sha256 - Export block functions as GPL only
->   crypto: powerpc/sha256 - Export block functions as GPL only
->   crypto: riscv/sha256 - Add simd block function
->   crypto: s390/sha256 - Export block functions as GPL only
->   crypto: sparc/sha256 - Export block functions as GPL only
->   crypto: x86/sha256 - Add simd block function
->   crypto: lib/sha256 - Use generic block helper
->   crypto: sha256 - Use the partial block API
+On Wed, Apr 30, 2025 at 10:45:43AM -0700, Eric Biggers wrote:
 >
->  arch/arm/lib/crypto/Kconfig                   |   1 +
->  arch/arm/lib/crypto/sha256-armv4.pl           |  20 +--
->  arch/arm/lib/crypto/sha256.c                  |  16 +--
->  arch/arm64/crypto/sha512-glue.c               |   6 +-
->  arch/arm64/lib/crypto/Kconfig                 |   1 +
->  arch/arm64/lib/crypto/sha2-armv8.pl           |   2 +-
->  arch/arm64/lib/crypto/sha256.c                |  16 +--
->  .../mips/cavium-octeon/crypto/octeon-sha256.c |   4 +-
->  arch/powerpc/lib/crypto/sha256.c              |   4 +-
->  arch/riscv/lib/crypto/Kconfig                 |   1 +
->  arch/riscv/lib/crypto/sha256.c                |  17 ++-
->  arch/s390/lib/crypto/sha256.c                 |   4 +-
->  arch/sparc/lib/crypto/sha256.c                |   4 +-
->  arch/x86/lib/crypto/Kconfig                   |   1 +
->  arch/x86/lib/crypto/sha256.c                  |  16 ++-
->  crypto/sha256.c                               | 134 +++++++++++-------
->  include/crypto/internal/sha2.h                |  46 ++++++
->  include/crypto/sha2.h                         |  14 +-
->  lib/crypto/Kconfig                            |   8 ++
->  lib/crypto/sha256.c                           | 100 +++----------
->  20 files changed, 232 insertions(+), 183 deletions(-)
+> As for your sha256_finup "optimization", it's an interesting idea, but
+> unfortunately it slightly slows down the common case which is count % 64 < 56,
+> due to the unnecessary copy to the stack and the following zeroization.  In the
+> uncommon case where count % 64 >= 56 you do get to pass nblocks=2 to
+> sha256_blocks_*(), but ultimately SHA-256 is serialized block-by-block anyway,
+> so it ends up being only slightly faster in that case, which again is the
+> uncommon case.  So while it's an interesting idea, it doesn't seem to actually
+> be better.  And the fact that that patch is also being used to submit unrelated,
+> more dubious changes isn't very helpful, of course.
 
-The EXPORT_SYMBOL => EXPORT_SYMBOL_GPL changes are fine and should just be one
-patch.  I was just trying to be consistent with lib/crypto/sha256.c which uses
-EXPORT_SYMBOL, but EXPORT_SYMBOL_GPL is fine too.
+I'm more than willing to change sha256_finup if you can prove it
+with real numbers that it is worse than the single-block version.
 
-Everything else in this series is harmful, IMO.
-
-I already covered why crypto_shash should simply use the library and not do
-anything special.
-
-As for your sha256_finup "optimization", it's an interesting idea, but
-unfortunately it slightly slows down the common case which is count % 64 < 56,
-due to the unnecessary copy to the stack and the following zeroization.  In the
-uncommon case where count % 64 >= 56 you do get to pass nblocks=2 to
-sha256_blocks_*(), but ultimately SHA-256 is serialized block-by-block anyway,
-so it ends up being only slightly faster in that case, which again is the
-uncommon case.  So while it's an interesting idea, it doesn't seem to actually
-be better.  And the fact that that patch is also being used to submit unrelated,
-more dubious changes isn't very helpful, of course.
-
-- Eric
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
