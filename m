@@ -1,77 +1,112 @@
-Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51FEE2609F5;
-	Thu,  1 May 2025 05:19:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.6.53.87
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 132321EF372;
+	Fri,  2 May 2025 19:01:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746076760; cv=none; b=pidi2MtsVe2cL5d4bjJc5MLXnZ3D7bDTOtOzPeLt9neG53yW8lzxiEdL/nkdGwgMBlZXHExMBRckl65a2G+ZPZPqbMZqyWVGhe/tzMuwSm1Ffh5G0s7LSQXVUTAwrKS1VxacTrq4t5/WsqwmsrUcB7y1XqTrsoXDLmuTYkGkEqs=
+	t=1746212493; cv=none; b=g/x0zV04ZPzyDHz7RiV9SJ60uHgAGdsc1hYFbbCsz6zt6pp1ZGt4TPOfjHZ/RB35AGjQuFDebxRcN77scZHlteWOq1xo4MrWuKnJEyfVKkDtL9Unmnsi4e2NHgvWGbHTNotn2oQU2sq8msMdjKlOetm47PuB0OEQRJy1pkjELa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746076760; c=relaxed/simple;
-	bh=kB2nu9oQJWAumIVhwpNu9VX/9t+OVZ610msYAY5hvK4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aSu7cagTTZdJAFXavms4C1cqt3I3PVYZvjKjl90Jripw2Nf+fvUkqOIQLP8hOIwKQ6MOlKBbVE6RjY9Ib3JJF0eJnMyNrOSHE14OFfK2Gz3Ntk3W8ww8WhdsSBQz5e0KmkTp4DcHbBkUAegPJ0l3nu0pj7PJz/yTa0XFegvC6CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b=ORsTUm+3; arc=none smtp.client-ip=144.6.53.87
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
+	s=arc-20240116; t=1746212493; c=relaxed/simple;
+	bh=1wZOixwKxeQr1a/J8UDK8Pi43lF4NiEy/AG7Bfq7Re4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jvLPWy+5MRVkRMf43EBNNz33qYg75iBoGIJz8vN6R5HBiR3hJjMV45vFE3LUxjGZvnNbigH0mMLHeuLIUTmIvAp0rGTlEhS7lD3uKQEarJHmxDX37swFinxTRYDg8VTQLB+rnEcNME4jt3ejsZlq52KSCuLd+sEvd+1dFV135zg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ad1pf0qY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hmeau.com header.i=@hmeau.com header.b="ORsTUm+3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=hmeau.com;
-	s=formenos; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=9t5+R7MBB1CitzsoU7qrOUojn4639+WchyM4zx0d4j4=; b=ORsTUm+3tDs7MqOLXniwLbTENu
-	6p8Ijou3tB4FtepjWe3F1A6W8IvySh95cZdbo6AzTOgys1fAFOnLjgZl/ixeJAU3uP78oydLi8D//
-	yAax6cWpNxoAHYpOezO8beaYeuGHP68V4qdyQTdAirltbeZ3K5W1HWRLRdTu1DRHvIhqGACuMLtsD
-	L4/ELm9xRzxjZE9uSzRBsLPKu384XEncFgdp8RWbWcWOQIo8DOJNbz9+cCdkKdgpDc51jJ2r9y5VI
-	V7Wcl+IDdkPoN5XAqV8kKx2r8DlOwoCrwVYtmf6WPYNYB7nm6jKdpr5Y35dDNgam3PekRDwUujufp
-	tuz3w6FQ==;
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-	by formenos.hmeau.com with smtp (Exim 4.96 #2 (Debian))
-	id 1uAMK4-002SVz-1M;
-	Thu, 01 May 2025 13:19:01 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Thu, 01 May 2025 13:19:00 +0800
-Date: Thu, 1 May 2025 13:19:00 +0800
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	sparclinux@vger.kernel.org, linux-s390@vger.kernel.org,
-	x86@kernel.org, Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 00/12] crypto: sha256 - Use partial block API
-Message-ID: <aBMERARvCQsl-5iN@gondor.apana.org.au>
-References: <cover.1745992998.git.herbert@gondor.apana.org.au>
- <20250430174543.GB1958@sol.localdomain>
- <aBLMi5XOQKJyJGu-@gondor.apana.org.au>
- <20250501022617.GA65059@sol.localdomain>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ad1pf0qY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E94C4AF0B;
+	Fri,  2 May 2025 19:01:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1746212492;
+	bh=1wZOixwKxeQr1a/J8UDK8Pi43lF4NiEy/AG7Bfq7Re4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ad1pf0qYzwltvdPY6h8Js7Wl0DIi8myWiHDbcB1cSBFmzC9mSMZIPVR3BzKgM172m
+	 iNbS2PosMuTAbtnfjwddEk4KPhjyGSUg++66mDTKZrsIB5l5jfSyawi9NoRtv+9Ugr
+	 9yW2VrOWsvi5+c9H0fxkfqM66iJospU3LRQ+8ichWKhhRhKOJp+Dv1OWNINvU9Ezyg
+	 5sIx2RJl+l0vTrSnRFv+OwqUskys08h2ypCepqgKWFG3x7vv8krLXDTq2yxXgyHLtx
+	 MK9Twz/c6du9hpjl974CokWewDDKj+Ip54dDwHTqq0tZrmsXUL9WYr1nKApR5jGYep
+	 EYLuC24pH8Llg==
+From: Kees Cook <kees@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <kees@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	x86@kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-efi@vger.kernel.org,
+	linux-hardening@vger.kernel.org,
+	linux-kbuild@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	kasan-dev@googlegroups.com,
+	llvm@lists.linux.dev
+Subject: [PATCH RFC 0/4] stackleak: Support Clang stack depth tracking
+Date: Fri,  2 May 2025 12:01:23 -0700
+Message-Id: <20250502185834.work.560-kees@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250501022617.GA65059@sol.localdomain>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2385; i=kees@kernel.org; h=from:subject:message-id; bh=1wZOixwKxeQr1a/J8UDK8Pi43lF4NiEy/AG7Bfq7Re4=; b=owGbwMvMwCVmps19z/KJym7G02pJDBmiYq0zXwVaP2MzO3LzSIm1wIuVjpVbzNOfXP638PIW1 evsBc8fd5SyMIhxMciKKbIE2bnHuXi8bQ93n6sIM4eVCWQIAxenAEwk6QfDb9YtkgtfuS4K4mA/ bzvl+EbWn7wiUjFvVCN5Q1IPTbA6XMjI8Fxv72puDZ2kv5tVLwqtW5KzIaDc7Xzr9HCGstmZxw5 6MwEA
+X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 
-On Wed, Apr 30, 2025 at 07:26:17PM -0700, Eric Biggers wrote:
->
-> Interesting approach -- pushing out misguided optimizations without data, then
-> demanding data for them to be reverted.  It's obviously worse for
-> len % 64 < 56 for the reason I gave, so this is a waste of time IMO.  But since
-> you're insisting on data anyway, here are some quick benchmarks on AMD Zen 5
-> (not going to bother formatting into a table):
-> 
-> Before your finup "optimization":
+Hi,
 
-Thanks, I'll revert to the single-block version.
+As part of looking at what GCC plugins could be replaced with Clang
+implementations, this series uses the recently proposed stack depth
+tracking callback in Clang[1] to implement the stackleak feature.
+
+-Kees
+
+[1] https://github.com/llvm/llvm-project/pull/138323
+
+Kees Cook (4):
+  stackleak: Rename CONFIG_GCC_PLUGIN_STACKLEAK to CONFIG_STACKLEAK
+  stackleak: Rename stackleak_track_stack to __sanitizer_cov_stack_depth
+  stackleak: Split STACKLEAK_CFLAGS from GCC_PLUGINS_CFLAGS
+  stackleak: Support Clang stack depth tracking
+
+ Documentation/admin-guide/sysctl/kernel.rst |  2 +-
+ Documentation/security/self-protection.rst  |  2 +-
+ arch/arm/boot/compressed/Makefile           |  2 +-
+ arch/arm/kernel/entry-common.S              |  2 +-
+ arch/arm/vdso/Makefile                      |  2 +-
+ arch/arm64/kernel/entry.S                   |  2 +-
+ arch/arm64/kernel/pi/Makefile               |  2 +-
+ arch/arm64/kernel/vdso/Makefile             |  1 +
+ arch/arm64/kvm/hyp/nvhe/Makefile            |  2 +-
+ arch/riscv/kernel/entry.S                   |  2 +-
+ arch/riscv/kernel/pi/Makefile               |  2 +-
+ arch/riscv/purgatory/Makefile               |  2 +-
+ arch/s390/kernel/entry.S                    |  2 +-
+ arch/sparc/vdso/Makefile                    |  3 +-
+ arch/x86/entry/calling.h                    |  4 +-
+ arch/x86/entry/vdso/Makefile                |  3 +-
+ arch/x86/include/asm/init.h                 |  2 +-
+ arch/x86/purgatory/Makefile                 |  2 +-
+ drivers/firmware/efi/libstub/Makefile       |  6 +--
+ drivers/misc/lkdtm/stackleak.c              |  8 ++--
+ include/linux/init.h                        |  4 +-
+ include/linux/sched.h                       |  4 +-
+ include/linux/stackleak.h                   |  6 +--
+ kernel/Makefile                             |  4 +-
+ kernel/stackleak.c                          |  4 +-
+ lib/Makefile                                |  2 +-
+ scripts/Makefile.gcc-plugins                | 13 +++---
+ scripts/Makefile.ubsan                      | 12 +++++
+ scripts/gcc-plugins/stackleak_plugin.c      | 52 ++++++++++-----------
+ security/Kconfig.hardening                  | 25 ++++++----
+ tools/objtool/check.c                       |  2 +-
+ tools/testing/selftests/lkdtm/config        |  2 +-
+ 32 files changed, 105 insertions(+), 78 deletions(-)
+
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.34.1
+
