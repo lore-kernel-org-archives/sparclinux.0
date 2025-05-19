@@ -1,107 +1,187 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B1E280CC9;
-	Fri, 16 May 2025 18:29:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EDB835957;
+	Mon, 19 May 2025 10:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747420172; cv=none; b=AVNN1bNt9eqTX3u3hehYpXTt49iwpxsc1T+OdEqlTJfpR87GSxPaJswSUORBMgogWSLg1zCn53Pd4z9PGlNTk547voTNFw/S8GOWRbNnKH85Drgr747yuia4je676rrhkjhK2zmqr9baqST1oclC7tirJXbHcNu0h4+sxBecW0A=
+	t=1747649558; cv=none; b=HjaupA7uqE9u7r9kVscyw3aO2IHY2vT3k68kHNj8xi1w1JVaTBeHXQ8K28t32XExNnE6Bj9AMcWVeqQglgwGOHZVctOBKZyUdazQtTY0WbwuJ0W91qeFUxWQw9PaRNUabF7VsCt9Ra1oyvsK7Uvdrx2o08LcGb9rB/KxM/vwBLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747420172; c=relaxed/simple;
-	bh=+LerS4ypY2xtEwvIwpQb+1sereJGijuBSIcL0NVDkSQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pSqHs8W5zZXEf7XWexfu/3aT6ob56O/E9cLaZYsPouxA88ZHJJqHhx1YXTnjAbMnrzHUjn8zf7dfEcG7hlQNkmdl1PuTW5+Yhp4ux9tfWFbKE64zsNhyemqRb8aBZ741ROMnmtuXSsBngSWdBhye00SgB7rh0672a7XYHmiAq+E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Bkx4cxBv; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1747649558; c=relaxed/simple;
+	bh=36bTK+sJWp8PopkJbOlgwt9Ctf7FBzVSvSeBcSMc0sE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=b4QI6M4hH612+ZUsQlN8JivqYO8abq96p7lGWrLJpFxuVdVE6tbdD6HxUcwU8yqkxCVu9Yom2GoMPnzHdY0p1+olg8S508PndUiSpOwoCaju+o/gDRjVHf9mCE8j+96MymOcnuxyr+/wUznGVyJxxpRs/ISElAhKECQKNYFG/8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nscdB7qP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Bkx4cxBv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747420170; x=1778956170;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=+LerS4ypY2xtEwvIwpQb+1sereJGijuBSIcL0NVDkSQ=;
-  b=Bkx4cxBvhzsiV7eeXNQoDcycvGoagaR/N+PTLZIrb8vlFTfOATUyxdeN
-   rgbSfRohCPCMXOspwwhxR818FWVSOgNIgza0SNu6e1ib1gvrTrSOBQlfN
-   oFIRfs/mdH4GQ6TpYVmMv4Op/p51OytoVIQdgowQK5E1VV8iw3qvoCK1M
-   ntZTsPsbZj43y9nqmrE2KwfGm+IGQfHq4Xunp1xerfE2PktAXbnOw4eYJ
-   pQoAkTleEHs0V+Iw6ib1STBM8pRi+dHK3W7Gpkwp0TXtBxjqFp4+Z4slf
-   ixlEyts7DFUEf5CjOA+IloIMMd/yOS8yVSaKq9HpesdXzJrsPnZivBL61
-   Q==;
-X-CSE-ConnectionGUID: hLumWh4FQAalSkvXHv4Rmg==
-X-CSE-MsgGUID: nic3fV/1R+qsvEId3Mz1kw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11435"; a="49328903"
-X-IronPort-AV: E=Sophos;i="6.15,294,1739865600"; 
-   d="scan'208";a="49328903"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2025 11:29:25 -0700
-X-CSE-ConnectionGUID: 8iG35NzeRb+9isGxoDwI7w==
-X-CSE-MsgGUID: y2Qoh7c9QyK8MUp/LBJhww==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,294,1739865600"; 
-   d="scan'208";a="169802625"
-Received: from kanliang-dev.jf.intel.com ([10.165.154.102])
-  by fmviesa001.fm.intel.com with ESMTP; 16 May 2025 11:29:25 -0700
-From: kan.liang@linux.intel.com
-To: peterz@infradead.org,
-	mingo@redhat.com,
-	namhyung@kernel.org,
-	irogers@google.com,
-	mark.rutland@arm.com,
-	linux-kernel@vger.kernel.org,
-	linux-perf-users@vger.kernel.org
-Cc: eranian@google.com,
-	ctshao@google.com,
-	tmricht@linux.ibm.com,
-	leo.yan@arm.com,
-	Kan Liang <kan.liang@linux.intel.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	sparclinux@vger.kernel.org
-Subject: [PATCH V3 14/16] sparc/perf: Remove driver-specific throttle support
-Date: Fri, 16 May 2025 11:28:51 -0700
-Message-Id: <20250516182853.2610284-15-kan.liang@linux.intel.com>
-X-Mailer: git-send-email 2.38.1
-In-Reply-To: <20250516182853.2610284-1-kan.liang@linux.intel.com>
-References: <20250516182853.2610284-1-kan.liang@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nscdB7qP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1230AC4CEE4;
+	Mon, 19 May 2025 10:12:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747649557;
+	bh=36bTK+sJWp8PopkJbOlgwt9Ctf7FBzVSvSeBcSMc0sE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nscdB7qPs2zNee5BR3hmpAZQZCQBcXkdlF7Y6HsbM6UzPRdA3dF1BnWAVcJTPuKIv
+	 O3FYecQBdB24pQIIhnt57UfVPAxV9LgWpjYqCVizpPuKxRzp3e1tGtoxdxzCiww3pg
+	 KrBMVyUKbWn6bQi5E33gX2v1WUEStGoaCf1YS4m8mdcMbsKi6bgaKULPdgFE1O08w4
+	 NTbvxawzw3RhqwBP/2mlOvuL311cjPZ4d3W4fwM+V1XeLsP7wD/Giz/f3N3kZmH93H
+	 7tJGZQKhVupyasLyUF8vXgTKkesU5dptYyyOeOnTmIGAbpjsR1fJD00I4DSLdkVhBQ
+	 vnhqqJsWmqhWw==
+Date: Mon, 19 May 2025 12:12:21 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, 
+	Andrey Albershteyn <aalbersh@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S . Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
+	=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
+	Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, 
+	Tyler Hicks <code@tyhicks.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-alpha@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, 
+	Linux-Arch <linux-arch@vger.kernel.org>, selinux@vger.kernel.org, ecryptfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
+	Andrey Albershteyn <aalbersh@kernel.org>
+Subject: Re: [PATCH v5 0/7] fs: introduce file_getattr and file_setattr
+ syscalls
+Message-ID: <20250519-reklamieren-unsolidarisch-7cd73317561d@brauner>
+References: <20250513-xattrat-syscall-v5-0-22bb9c6c767f@kernel.org>
+ <399fdabb-74d3-4dd6-9eee-7884a986dab1@app.fastmail.com>
+ <20250515-bedarf-absagen-464773be3e72@brauner>
+ <CAOQ4uxicuEkOas2UR4mqfus9Q2RAeKKYTwbE2XrkcE_zp8oScQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxicuEkOas2UR4mqfus9Q2RAeKKYTwbE2XrkcE_zp8oScQ@mail.gmail.com>
 
-From: Kan Liang <kan.liang@linux.intel.com>
+On Thu, May 15, 2025 at 12:33:31PM +0200, Amir Goldstein wrote:
+> On Thu, May 15, 2025 at 11:02 AM Christian Brauner <brauner@kernel.org> wrote:
+> >
+> > On Tue, May 13, 2025 at 11:53:23AM +0200, Arnd Bergmann wrote:
+> > > On Tue, May 13, 2025, at 11:17, Andrey Albershteyn wrote:
+> > >
+> > > >
+> > > >     long syscall(SYS_file_getattr, int dirfd, const char *pathname,
+> > > >             struct fsxattr *fsx, size_t size, unsigned int at_flags);
+> > > >     long syscall(SYS_file_setattr, int dirfd, const char *pathname,
+> > > >             struct fsxattr *fsx, size_t size, unsigned int at_flags);
+> > >
+> > > I don't think we can have both the "struct fsxattr" from the uapi
+> > > headers, and a variable size as an additional argument. I would
+> > > still prefer not having the extensible structure at all and just
+> >
+> > We're not going to add new interfaces that are fixed size unless for the
+> > very basic cases. I don't care if we're doing that somewhere else in the
+> > kernel but we're not doing that for vfs apis.
+> >
+> > > use fsxattr, but if you want to make it extensible in this way,
+> > > it should use a different structure (name). Otherwise adding
+> > > fields after fsx_pad[] would break the ioctl interface.
+> >
+> > Would that really be a problem? Just along the syscall simply add
+> > something like:
+> >
+> > diff --git a/fs/ioctl.c b/fs/ioctl.c
+> > index c91fd2b46a77..d3943805c4be 100644
+> > --- a/fs/ioctl.c
+> > +++ b/fs/ioctl.c
+> > @@ -868,12 +868,6 @@ static int do_vfs_ioctl(struct file *filp, unsigned int fd,
+> >         case FS_IOC_SETFLAGS:
+> >                 return ioctl_setflags(filp, argp);
+> >
+> > -       case FS_IOC_FSGETXATTR:
+> > -               return ioctl_fsgetxattr(filp, argp);
+> > -
+> > -       case FS_IOC_FSSETXATTR:
+> > -               return ioctl_fssetxattr(filp, argp);
+> > -
+> >         case FS_IOC_GETFSUUID:
+> >                 return ioctl_getfsuuid(filp, argp);
+> >
+> > @@ -886,6 +880,20 @@ static int do_vfs_ioctl(struct file *filp, unsigned int fd,
+> >                 break;
+> >         }
+> >
+> > +       switch (_IOC_NR(cmd)) {
+> > +       case _IOC_NR(FS_IOC_FSGETXATTR):
+> > +               if (WARN_ON_ONCE(_IOC_TYPE(cmd) != _IOC_TYPE(FS_IOC_FSGETXATTR)))
+> > +                       return SOMETHING_SOMETHING;
+> > +               /* Only handle original size. */
+> > +               return ioctl_fsgetxattr(filp, argp);
+> > +
+> > +       case _IOC_NR(FFS_IOC_FSSETXATTR):
+> > +               if (WARN_ON_ONCE(_IOC_TYPE(cmd) != _IOC_TYPE(FFS_IOC_FSSETXATTR)))
+> > +                       return SOMETHING_SOMETHING;
+> > +               /* Only handle original size. */
+> > +               return ioctl_fssetxattr(filp, argp);
+> > +       }
+> > +
+> 
+> I think what Arnd means is that we will not be able to change struct
+> sfxattr in uapi
+> going forward, because we are not going to deprecate the ioctls and
+> certainly not
+> the XFS specific ioctl XFS_IOC_FSGETXATTRA.
 
-The throttle support has been added in the generic code. Remove
-the driver-specific throttle support.
+Sure, I'm just saying this could very likely be handled without the
+kernel or userspace having to care about the changed structure provided
+we teach the kernel to use the ioctl number, not the command and only
+ever copy v1 of the struct for the ioctls in new kernels. But anyway...
 
-Besides the throttle, perf_event_overflow may return true because of
-event_limit. It already does an inatomic event disable. The pmu->stop
-is not required either.
+> 
+> This struct is part of XFS uapi:
+> https://man7.org/linux/man-pages/man2/ioctl_xfs_fsgetxattr.2.html
+> 
+> Should we will need to depart from this struct definition and we might
+> as well do it for the initial release of the syscall rather than later on, e.g.:
+> 
+> --- a/include/uapi/linux/fs.h
+> +++ b/include/uapi/linux/fs.h
+> @@ -148,6 +148,17 @@ struct fsxattr {
+>         unsigned char   fsx_pad[8];
+>  };
+> 
+> +/*
+> + * Variable size structure for file_[sg]et_attr().
+> + */
+> +struct fsx_fileattr {
+> +       __u32           fsx_xflags;     /* xflags field value (get/set) */
+> +       __u32           fsx_extsize;    /* extsize field value (get/set)*/
+> +       __u32           fsx_nextents;   /* nextents field value (get)   */
+> +       __u32           fsx_projid;     /* project identifier (get/set) */
+> +       __u32           fsx_cowextsize; /* CoW extsize field value (get/set)*/
+> +};
+> +
+> +#define FSXATTR_SIZE_VER0 20
+> +#define FSXATTR_SIZE_LATEST FSXATTR_SIZE_VER0
+> +
+> 
+> Right?
 
-Signed-off-by: Kan Liang <kan.liang@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/perf_event.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index f02a283a8e8f..cae4d33002a5 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1668,8 +1668,7 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
- 		if (!sparc_perf_event_set_period(event, hwc, idx))
- 			continue;
- 
--		if (perf_event_overflow(event, &data, regs))
--			sparc_pmu_stop(event, 0);
-+		perf_event_overflow(event, &data, regs);
- 	}
- 
- 	finish_clock = sched_clock();
--- 
-2.38.1
-
+Sure, I don't have a problem with that since I find the current name
+with "fsxattr" quite problematic anyway.
