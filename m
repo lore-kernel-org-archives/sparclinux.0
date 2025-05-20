@@ -1,113 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03DEF1DE2DF;
-	Mon, 19 May 2025 17:20:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAB7D28751A;
+	Tue, 20 May 2025 18:17:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747675209; cv=none; b=nzmdV7pdP3ZqRQcDjNmd+hDZ+c0HQu+Up+tVHBWPoO+LiuRJa8SiZWy65vZdNOQpA/iK0XVIPMbbt5zybdhNoHiHI/cNqmAHE2L0X10m6O27s6EwmX92eOfOyZ1XaRo2oE8IIvGXgBXOxFrgOBXu6dUEFFbRnIEa6XQQd/i9CjQ=
+	t=1747765044; cv=none; b=kcFSIgFXAZcp6CHdcGt7x7Tvxk2o0DVTpyjjvSfR9ZEW4Se2GHq/xNW12YRFo1n7yQTkom3cPte3iYWgN+wGRYeIfCqBzj1cnG16yZuoSmgWnUQJPn5Hi0Q8mDXRGkWDPWY3f7vCg5O7t75KmZjvyA+tirf2NFgZfQH12mQKOcg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747675209; c=relaxed/simple;
-	bh=/qDPGAJe6QWZQRFh5mkIaN3rUECBPrvhVDophOu0STQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kDsIzr/h8OwM3S8fzRfwd/auHPBxqnubkI86JW5C5n+qO8fxXY5mlWvOtqDpvlRZDXRuruys3PudRSuSyVdMzsxV2dbG8SV+IMsIBBXrXa9mUJS9Pc9iw0+26i0+8KWprzLHPZ+w8UYWg7E2isrgyp0sG13GsICfwfaIIe7W2fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nv6a6o/9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747765044; c=relaxed/simple;
+	bh=+LerS4ypY2xtEwvIwpQb+1sereJGijuBSIcL0NVDkSQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=VQZF3p5LjHg2ZN2VWjwUNxc90ttZjbe/OOJfrFCzuh0AI7+2PSlVgOiQl8mPaThHI1xvY+yhpqYYeJ6kKWVL8ZcJKbG2mGUqKDdpTIaL8IzMGsSY5EjZuPeTuCe1R+IzqexFy0AKMVDMZp8s6mDfUznnXU59c4SArNo1kEXI1VQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VgOncb3F; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nv6a6o/9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0486C4CEE4;
-	Mon, 19 May 2025 17:19:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747675208;
-	bh=/qDPGAJe6QWZQRFh5mkIaN3rUECBPrvhVDophOu0STQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nv6a6o/9GXqFce+WdqziKMZrgOnXd14Xk3g4S1nNlUHZltfdV2rEB9RDQCOmCeSgK
-	 ebQsjcpfmgR6sWVWBw5dta/I6m1xLYkae6rTJ4OSb859vEywgddyloj50eaFEjRTPe
-	 8FJ2qDU6rfYPGiDk1ORLqVzTGk/lQ8qlSrYclPnaRHuqKyuUafe4DFZ6lMgRdY6Wt1
-	 dRptEgZtQ8qGZDrQUwGD8JbkbioWwAY9aSpa8iIJWxNVsecoqluy1Xci9uIALX28U6
-	 ObnLi7IgFlid4DAXOMe7kw3cQbAB55J7ruXkv/fKErQRWuv0MXWPHfuo3pZS732DBZ
-	 yyZPReh2t/BVw==
-Date: Mon, 19 May 2025 20:19:48 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Pratyush Yadav <ptyadav@amazon.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andy Lutomirski <luto@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
-	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Mark Brown <broonie@kernel.org>, Matt Turner <mattst88@gmail.com>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Simek <monstr@monstr.eu>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>,
-	Stafford Horne <shorne@gmail.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
-	Will Deacon <will@kernel.org>, Praveen Kumar <pravkmr@amazon.de>,
-	linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-arch@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
-Subject: Re: [PATCH v2 10/13] arch, mm: set high_memory in free_area_init()
-Message-ID: <aCtoNLf1FbtqijGr@kernel.org>
-References: <20250313135003.836600-1-rppt@kernel.org>
- <20250313135003.836600-11-rppt@kernel.org>
- <mafs05xi0o9ri.fsf@amazon.de>
- <aCdveN2w9ThjVhae@kernel.org>
- <dc4e60dc-9b78-473a-9c18-3a2f128a02d2@ghiti.fr>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VgOncb3F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747765043; x=1779301043;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=+LerS4ypY2xtEwvIwpQb+1sereJGijuBSIcL0NVDkSQ=;
+  b=VgOncb3FBudyiHqvWGxGYRlEbYeZLxoh7VxBOyDoQEW/h4C3hA6zRqDR
+   VANtZKUh3jSHjWYXHS6Hq++06L1FOpa6vwZR1kb9cH99W1YWUzEsE4Zea
+   cz7C8360i5wCOShHm12pGbFn/xoiS1SVp+GSnFijlWdXeqgiaYHWJvgqq
+   1uSt3pKtblmRphbZlb8ZtIsKOkr7RNEs5o8/4+HqTlYJKDZdbMDOGlsec
+   d4l0EhlU7EQCOr0LdwrcsDkZUpkZLOr2Id5R3s/cdFEWXiid9AfJCDJu9
+   K33Aqs7w7AIFqIkTg2XZKvPVsWoZCJiXLtN8YZW3S+1h0prt/3izLpcdE
+   w==;
+X-CSE-ConnectionGUID: w7zYMWFjSU2rcY4OrqfO5w==
+X-CSE-MsgGUID: 6KjH8gFkQpeF8f26Lneljw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11439"; a="49848046"
+X-IronPort-AV: E=Sophos;i="6.15,302,1739865600"; 
+   d="scan'208";a="49848046"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 11:17:14 -0700
+X-CSE-ConnectionGUID: cr8XOTUAT+SPa6g60OZ7lw==
+X-CSE-MsgGUID: a4ZuTZ0RQCuFnKnQZwo38A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,302,1739865600"; 
+   d="scan'208";a="144514722"
+Received: from kanliang-dev.jf.intel.com ([10.165.154.102])
+  by orviesa003.jf.intel.com with ESMTP; 20 May 2025 11:17:14 -0700
+From: kan.liang@linux.intel.com
+To: peterz@infradead.org,
+	mingo@redhat.com,
+	namhyung@kernel.org,
+	irogers@google.com,
+	mark.rutland@arm.com,
+	linux-kernel@vger.kernel.org,
+	linux-perf-users@vger.kernel.org
+Cc: eranian@google.com,
+	ctshao@google.com,
+	tmricht@linux.ibm.com,
+	leo.yan@arm.com,
+	Kan Liang <kan.liang@linux.intel.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	sparclinux@vger.kernel.org
+Subject: [PATCH V4 14/16] sparc/perf: Remove driver-specific throttle support
+Date: Tue, 20 May 2025 11:16:42 -0700
+Message-Id: <20250520181644.2673067-15-kan.liang@linux.intel.com>
+X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20250520181644.2673067-1-kan.liang@linux.intel.com>
+References: <20250520181644.2673067-1-kan.liang@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dc4e60dc-9b78-473a-9c18-3a2f128a02d2@ghiti.fr>
+Content-Transfer-Encoding: 8bit
 
-Hi Alexandre,
+From: Kan Liang <kan.liang@linux.intel.com>
 
-On Mon, May 19, 2025 at 05:54:23PM +0200, Alexandre Ghiti wrote:
-> Hi Mike,
-> 
-> I encountered the same error as Pratyush and the above diff fixes it: do you
-> plan on sending this fix for 6.15?
-> 
-> If so, you can add:
-> 
-> Tested-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+The throttle support has been added in the generic code. Remove
+the driver-specific throttle support.
 
-Thanks!
-Here's the patch:
-https://lore.kernel.org/linux-mm/20250519171805.1288393-1-rppt@kernel.org
+Besides the throttle, perf_event_overflow may return true because of
+event_limit. It already does an inatomic event disable. The pmu->stop
+is not required either.
 
-> Thanks,
-> Alex
+Signed-off-by: Kan Liang <kan.liang@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/perf_event.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index f02a283a8e8f..cae4d33002a5 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1668,8 +1668,7 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
+ 		if (!sparc_perf_event_set_period(event, hwc, idx))
+ 			continue;
+ 
+-		if (perf_event_overflow(event, &data, regs))
+-			sparc_pmu_stop(event, 0);
++		perf_event_overflow(event, &data, regs);
+ 	}
+ 
+ 	finish_clock = sched_clock();
 -- 
-Sincerely yours,
-Mike.
+2.38.1
+
