@@ -1,167 +1,139 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164C020C469;
-	Thu, 29 May 2025 21:16:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6C1B230BFF
+	for <sparclinux@vger.kernel.org>; Thu, 29 May 2025 23:54:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748553418; cv=none; b=uVjK1ilo1hlViR3XEbg698u5MPs/s3MGXyQtSY05YPa58eqPBJk0r/esdZ5Uf4hSEGu+1N0YFN7V2w0qS4yyDQec0X4tdJl8A/5JTy9uTd+fEHDSAJ0IRnW4Bh4VDYL6n9tuiN44v9K15XQtEjLZd4QXeiK7QzNyvE7m1PuH16A=
+	t=1748562897; cv=none; b=DQhzPltxZVWklVjCaVHO29h5qmIQe26iYCN6D/tKa2XWMnRQZuppPSgjPGIM/6kVOV1JHgqAFy4jIsVePdYbr4DDgTBJz/CgRooexlXrv6XoaLEidDc+NVjHdKPvhe2YaHzUXhqB3cSuupjIxdAMtFNwT8H3J/W9llVyS28nM9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748553418; c=relaxed/simple;
-	bh=XwSNpCLmOFYgZlT+vqB/zkYXZoNvF9LKBVo7R5SnQvU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BKzyoZxXP13Kv9lVMHX4rafLlUBf+c1feBxn0HrVF0Pr15kH/ZtPZCRhFQzIx3OqGwancjwnwqGg3KH1KBhWX0WUN89G5AePD8MmDqCrwKAfRWnhvQ3JqZpqF7JdZ2xs1rR5cFobK2Qip3UFqbJOx95gKBcgnP1xUIIZMS9LhxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QE8FafhO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748562897; c=relaxed/simple;
+	bh=mQ2X3C83MrQ+ifFd0cXmKRdvIysb8KwRrZHJnS3dFHw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=klOxVdle7GIRLGXn24G2QWTtfB5YRKU88st5ErBhMeLYwlZq9pUOv6LQNDukT2yIlBhe8ZnP5LKFBbUmgy2xl0Oa1UrtD41mklwgnDEJg3kOdKWylndv0rHXrUVgK6D1Oee7UxyeYbIhVkElEh3FEhEM7Xei6BtU5yNoa5osORk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6I+Plfv; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QE8FafhO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1369DC4CEE7;
-	Thu, 29 May 2025 21:16:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748553416;
-	bh=XwSNpCLmOFYgZlT+vqB/zkYXZoNvF9LKBVo7R5SnQvU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QE8FafhOJkbO0j8ajuGRE3oOAuSmqOSe7+1Bbv1xaRWE+GEqFHoQqKjHSPvlNvh8X
-	 xaUXj42tdidF41Kr/O4VBBHdBcT46ME5JSAvysORACebdBaYt/za2ZLB9918zp+HG/
-	 MnTpyOhxty75uU+RXJ/hyhZ6ZnSbvFM0C/SEeS/SzucQNcldj5qInocL0jscgQrZRV
-	 HhOFx1gcMCLB7GCwEsyACsRzhuz4ZFAVektyXrTVvZu3lyC0ag9CwrjioZ4ERbFnpv
-	 2HihaHdw1NUs7EO0PJ+YiMAi46LzXEFvynTHxRPB6/YcS/xwivV8yxQqvqZb39Kokc
-	 VTl+yzDZkdWRA==
-Date: Thu, 29 May 2025 14:16:39 -0700
-From: Eric Biggers <ebiggers@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alex Williamson <alex.williamson@redhat.com>,
-	linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-	linux-s390@vger.kernel.org, x86@kernel.org,
-	Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>
-Subject: Re: [PATCH v4 08/13] crypto: s390/sha256 - implement library instead
- of shash
-Message-ID: <20250529211639.GD23614@sol>
-References: <20250428170040.423825-1-ebiggers@kernel.org>
- <20250428170040.423825-9-ebiggers@kernel.org>
- <20250529110526.6d2959a9.alex.williamson@redhat.com>
- <20250529173702.GA3840196@google.com>
- <CAHk-=whCp-nMWyLxAot4e6yVMCGANTUCWErGfvmwqNkEfTQ=Sw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6I+Plfv"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-ad8a8da2376so245849666b.3
+        for <sparclinux@vger.kernel.org>; Thu, 29 May 2025 16:54:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1748562894; x=1749167694; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=VCpgeKXbWpRtz3XeS2MBk7nO0oA3f7brSdzLdQTvzhc=;
+        b=F6I+Plfvh1QbPuCTmn+Q/sPKw6zn0Ihak9o4GfylVNU9GwSJSbZsXBMOgrnWimPR/u
+         oNEv9lH1uAn0McKTBYelp/UFFf1FQX9Mpr8h47/FIAk/eiqIlJbAYPlW4/zY4lZT1JvC
+         ni8yMu0AB2cmpsDDu+PsSVJ8MXWSgIjl9fP6c=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1748562894; x=1749167694;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VCpgeKXbWpRtz3XeS2MBk7nO0oA3f7brSdzLdQTvzhc=;
+        b=PueRl9qYldVgXCwjMHTmvTEGdRkXW3CEzeFOaFwzb9v+FcKJ7uuyXrWZdl0ZAxyKLg
+         0FNCZnE8AEcdGPMZLp8HmTBIzJEdCu0vL7ilQOc3Y74QF9pk+5nIxqpYp6hApJCrw9MB
+         Y15UtVuevZFjjTEqWzGHV2zmGR6wi8O2B9jx5G48Ghn4JA7gtKPPsH9PVpaWs629obyu
+         6T+ix5N0A0BydWNvOk2eoVC9E97ujJZNE7/TsUXpzuHnqqW8N6BweocbRW1OBYvSKxTI
+         CiA947NJl6ic/rJkTJ2MrNChtZ1zsoiwWPq8ZTQqsZqgS3PdfQWUp3qT5gC1V+hVHwR8
+         Q+3w==
+X-Forwarded-Encrypted: i=1; AJvYcCW18Fyw8xyY6TPIaawlWqewCB25Xr1Bz6V46XCLgHXvs6/BIzBK/Tt+KVZIsY3Zl/SfCoOAbCb3xYTy@vger.kernel.org
+X-Gm-Message-State: AOJu0YyElI1pvcfrCGYgmYQDBXX87XE2xv9iPh8r4k2aoSEU0suUd4Z7
+	PUCJQfUL9uwkHHypcpcS3Sn+5LRfyta6PZKE0VaIg68mHfrdaZKF2gsYpLftbOziXd3Qc0UvyJq
+	QTNs3HjE=
+X-Gm-Gg: ASbGncv/JyC01IsZ8986YC6XUbx/4aLTKE2ScpPaSUkQuGEav43Gd0GhT6hCllC39FX
+	+hfGodh6iq3YLR5Jp3rECtvy7MtsjYUJMlCrAbrO4D1wtd2Nw01U15QeCn56GdKJ4WdlKjUwdIb
+	iWRW/4RAWMbFxW+sURF9T3eb3BjuMqKKKco67Xiu0wuiaT+H9bzBJiiLpVDNc1IC8LjLc1p9PEA
+	rcQiAx+YFFYf4WIVs/qiFAi5TqDe/hJgvMGfFrcZQWnWr1PGoL1QTzmRbxua8+Z7aHv6orh0UNK
+	0s19qRRkFk4SBDbEufbwetk3CxU4pQpl1qIBTX0FZp/fyQQ8/pVzBuTbYpo5nQhGbZ2EP9tvW9E
+	JUOzMzyPcTD21eqyjIP5pnJVWZQ==
+X-Google-Smtp-Source: AGHT+IHKAupyQvkjzmF1x39AdXYADxqu8uecTeRV1d2peiGs6xIwxyfOt8hN4iuIyhz4ZuU7Y76lAQ==
+X-Received: by 2002:a17:907:9282:b0:ad8:959c:c55d with SMTP id a640c23a62f3a-adb322457f2mr112344866b.2.1748562893806;
+        Thu, 29 May 2025 16:54:53 -0700 (PDT)
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ada5e878178sm225753466b.91.2025.05.29.16.54.51
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 29 May 2025 16:54:51 -0700 (PDT)
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-6020ff8d54bso2443877a12.2
+        for <sparclinux@vger.kernel.org>; Thu, 29 May 2025 16:54:51 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVP1frsELmb+TPtqA1BzUMYYKDVZisz88jRbbKy6ghRA1MPSwDVlBSwos/O71GkdviFtyUHsHIBPCGJ@vger.kernel.org
+X-Received: by 2002:a05:6402:35c6:b0:5f8:357e:bb1 with SMTP id
+ 4fb4d7f45d1cf-6056e1597eamr926476a12.22.1748562890813; Thu, 29 May 2025
+ 16:54:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=whCp-nMWyLxAot4e6yVMCGANTUCWErGfvmwqNkEfTQ=Sw@mail.gmail.com>
+References: <20250428170040.423825-1-ebiggers@kernel.org> <20250428170040.423825-9-ebiggers@kernel.org>
+ <20250529110526.6d2959a9.alex.williamson@redhat.com> <20250529173702.GA3840196@google.com>
+ <CAHk-=whCp-nMWyLxAot4e6yVMCGANTUCWErGfvmwqNkEfTQ=Sw@mail.gmail.com> <20250529211639.GD23614@sol>
+In-Reply-To: <20250529211639.GD23614@sol>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 29 May 2025 16:54:34 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wh+H-9649NHK5cayNKn0pmReH41rvG6hWee+oposb3EUg@mail.gmail.com>
+X-Gm-Features: AX0GCFuuQZJkBnHy-mtAufGSUKbxBrKrMtOhVAT8ZxGCHwWeq3lbFPW0g13cPtE
+Message-ID: <CAHk-=wh+H-9649NHK5cayNKn0pmReH41rvG6hWee+oposb3EUg@mail.gmail.com>
+Subject: Re: [PATCH v4 08/13] crypto: s390/sha256 - implement library instead
+ of shash
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: Alex Williamson <alex.williamson@redhat.com>, linux-crypto@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
+	sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, 
+	Ard Biesheuvel <ardb@kernel.org>, "Jason A . Donenfeld" <Jason@zx2c4.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, May 29, 2025 at 01:14:31PM -0700, Linus Torvalds wrote:
-> On Thu, 29 May 2025 at 10:37, Eric Biggers <ebiggers@kernel.org> wrote:
-> >
-> > Long-term, I'd like to find a clean way to consolidate the library code for each
-> > algorithm into a single module.
-> 
-> No, while I think the current situation isn't great, I think the "make
-> it one single module" is even worse.
-> 
-> For most architectures - including s390 - you end up being in the
-> situation that these kinds of hw accelerated crypto things depend on
-> some CPU capability, and aren't necessarily statically always
-> available.
-> 
-> So these things end up having stupid extra overhead due to having some
-> conditional.
-> 
-> That extra overhead is then in turn minimized with tricks like static
-> branches, but that's all just just piling more ugly hacks on top
-> because it picked a bad choice to begin with.
-> 
-> So what's the *right* thing to do?
-> 
-> The right thing to do is to just link the right routine in the first
-> place, and *not* have static branch hackery at all. Because you didn't
-> need it.
-> 
-> And we already do runtime linking at module loading time. So if it's a
-> module, if the hardware acceleration doesn't exist, the module load
-> should just fail, and the loader should go on to load the next option.
+On Thu, 29 May 2025 at 14:16, Eric Biggers <ebiggers@kernel.org> wrote:
+>
+> So using crc32c() + ext4 + x86 as an example (but SHA-256 would be very
+> similar), the current behavior is that ext4.ko depends on the crc32c_arch()
+> symbol.
 
-So using crc32c() + ext4 + x86 as an example (but SHA-256 would be very
-similar), the current behavior is that ext4.ko depends on the crc32c_arch()
-symbol.  That causes crc32-x86.ko to be loaded, which then depends on the
-crc32c_base() symbol as a fallback, which causes crc32.ko to be loaded too.  My
-idea is to consolidate the two crc32 modules into one (they always go together,
-after all), keeping the same symbols.  The main challenge is just the current
-directory structure.
+Yes, I think that's a good example.
 
-Your suggestion sounds like: ext4.ko would depend on the crc32c() symbol, which
-would be defined in *both* crc32-x86.ko and crc32.ko.  The module loader would
-try to load crc32-x86.ko first.  If the CPU does not support any of the x86
-accelerated CRC32 code, then loading that module would fail.  The module loader
-would then load crc32.ko instead.
+I think it's an example of something that "works", but it certainly is
+a bit hacky.
 
-Does any of the infrastructure to handle "this symbol is in multiple modules and
-they must be loaded in this particular order" actually exist, though?
+Wouldn't it be nicer if just plain "crc32c()" did the right thing,
+instead of users having to do strange hacks just to get the optimized
+version that they are looking for?
 
-And how do we avoid the issues the crypto API often has where the accelerated
-modules don't get loaded, causing slow generic code to unnecessarily be used?
+> Does any of the infrastructure to handle "this symbol is in multiple modules and
+> they must be loaded in this particular order" actually exist, though?
 
-IMO this sounds questionable compared to just using static keys and/or branches,
-which we'd need anyway to support the non-modular case.
+Hmm. I was sure we already did that for other things, but looking
+around, I'm not finding any cases.
 
-> Not any silly "one module to rule them all" hackery that only results
-> in worse code. Just a simple "if this module loads successfully,
-> you'll link the optimal hw acceleration".
-> 
-> Now, the problem with this all is the *non*modular case.
-> 
-> For modules, we already have the optimal solution in the form of
-> init-module error handling and runtime linking.
-> 
-> So I think the module case is "solved" (except the solution is not
-> what we actually do).
-> 
-> For the non-module case, the problem is that "I linked this
-> unconditionally, and now it turns out I run on hardware that doesn't
-> have the capability to run this".
-> 
-> And that's when you need to do things like static_call_update() to
-> basically do runtime re-linking of a static decision.
-> 
-> And currently we very much do this wrong. See how s390 and x86-64 (and
-> presumably others) basically have the *exact* same problems, but they
-> then mix static branches and static calls (in the case of x86-64) and
-> just have non-optimal code in general.
-> 
-> What I think the generic code should do (for the built-in case) is just have
-> 
->         DEFINE_STATIC_CALL(sha256_blocks_fn, sha256_blocks_generic);
-> 
-> and do
-> 
->         static_call(sha256_blocks_fn)(args..);
-> 
-> and then architecture code can do the static_call_update() to set
-> their optimal version.
-> 
-> And yeah, we'd presumably need multiple versions, since there's the
-> whole "is simd usable" thing. Although maybe that's going away?
+Or rather, I _am_ finding cases where we export the same symbol from
+different code, but all the ones I found were being careful to not be
+active at the same time.
 
-Moving the static_call into the generic code might make sense.  I don't think
-it's a win in all cases currently, though.  Only x86 and PPC32 actually have a
-real static_call implementation; everywhere else it's an indirect call which is
-slower than a static branch.  Also, some arch code is just usable
-unconditionally without any CPU feature check, e.g. the MIPS ChaCha code.  That
-doesn't use (or need to use) a static call or branch at all.
+I really thought we had cases where depending on which module you
+loaded you got different implementations, but it looks like it either
+was some historical thing that no longer exists - or that I need to go
+take my meds.
 
-Also, while the centralized static_call would *allow* for the generic code to be
-loaded while the arch code is not, in the vast majority of cases that would be a
-bug, not a feature.  The generic crypto infrastructure has that bug, and this
-has caused a huge amount of pain over the years.  People have to go out of the
-way to ensure that the arch-optimized crypto code gets loaded.  And they often
-forget, resulting in the slow generic code being used unnecessarily...
+> IMO this sounds questionable compared to just using static keys and/or branches,
+> which we'd need anyway to support the non-modular case.
 
-Making the arch-optimized code be loaded through a direct symbol dependency
-solves that problem.
+I really wish the non-modular case used static calls, not static keys
+like it does now.
 
-- Eric
+In fact, that should work even for modular users.
+
+Of course, not all architectures actually do the optimized thing, and
+the generic fallback uses indirect calls through a function pointer,
+but hey, if an architecture didn't bother with the rewriting code that
+is fixable - if the architecture maintainer cares.
+
+(On some architectures, indirect calls are not noticeably slower than
+direct calls - because you have to load the address from some global
+pointer area anyway - so not having the rewriting can be a "we don't
+need it" thing)
+
+               Linus
