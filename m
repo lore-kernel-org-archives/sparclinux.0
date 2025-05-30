@@ -1,85 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C888E632;
-	Fri, 30 May 2025 00:19:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 279712222C0;
+	Fri, 30 May 2025 14:05:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748564340; cv=none; b=M3n9WKcZM/jouy45uvOUx1o1IuD9GsNBUicwPvdHtsR3ErEAe85ffJRPviqWfNL1fnw4KEJ7d1Plper7QJ456WmPYMLZ3vj1l/gJP/NNeut0f1vtRsy5II5YHbo1l8MLEJdFtlBkhULjVFK+dOHDZR6HRtsCeumBFByLhHN5XOY=
+	t=1748613909; cv=none; b=NOBYcB0IC9KIOcw5H0gymzWbuQ42+0BCkR7PlzoIpu3ZDYU9dC+RlKsa+2yCItsBNB4z+QRXvm8JnrPW5pgUOi93xyI0zt6CP9SLFRDxD6XkWatKuCBf+gXbSPwFxXghr/L7sdt1et9NjCq3cKIvjyfjKUFUIYVTO1mqUFnFaYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748564340; c=relaxed/simple;
-	bh=fzOvslZ2yd+4RFEep1dbc5ORhnJiU65cwMbwzfxOuJk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FQxp6A9RY1nrq88AxmE7wiBVZX7blhSHevBzx+sojjrN0DUiFH5kI1VIOO147QRejlMXG46zd6yytpkout9LQjxGe1k0NSssh4/eqdEE84uyNF6oiE4BbTSwvBiVAYMKKQTSg9MgQEfhE1FNKvKZvQm6V6R/GLVDLuJY53UPxOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=orABEw9G; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="orABEw9G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1318DC4CEE7;
-	Fri, 30 May 2025 00:19:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748564340;
-	bh=fzOvslZ2yd+4RFEep1dbc5ORhnJiU65cwMbwzfxOuJk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=orABEw9GW8hha5WEfX4nOeo6UClo8SCkt06HiIxuvuXY7GIfYcPzgNE32XTnhzdfX
-	 kKMuYGPwMqs+WLu0Qj8v4D5q6qNBKBDogc8zbaCiVXEQrnWp9+f4G6a49QkyH5AQMF
-	 dDx8VrJ3wVC7iECbcZX0SpWm8aiThHGfvOpkVjVWpDL+74WBH03Q2Ykt1cb+GFASa2
-	 NU60WR7MaU4No+If0hsqwvEwuY0P3bfo2S5jzwxo83RXY/5/tgfmwQm04dF8NWmBDR
-	 v1DbNr/Hjp64FvFbXKbCNsalVpnA3MSbZXY5ojWWQl9zts6A8OtUTG4mPMeo4MMzkm
-	 Ln6fC4JypHUAQ==
-Date: Fri, 30 May 2025 00:18:58 +0000
-From: Eric Biggers <ebiggers@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alex Williamson <alex.williamson@redhat.com>,
-	linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-	linux-s390@vger.kernel.org, x86@kernel.org,
-	Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>
-Subject: Re: [PATCH v4 08/13] crypto: s390/sha256 - implement library instead
- of shash
-Message-ID: <20250530001858.GD3840196@google.com>
-References: <20250428170040.423825-1-ebiggers@kernel.org>
- <20250428170040.423825-9-ebiggers@kernel.org>
- <20250529110526.6d2959a9.alex.williamson@redhat.com>
- <20250529173702.GA3840196@google.com>
- <CAHk-=whCp-nMWyLxAot4e6yVMCGANTUCWErGfvmwqNkEfTQ=Sw@mail.gmail.com>
- <20250529211639.GD23614@sol>
- <CAHk-=wh+H-9649NHK5cayNKn0pmReH41rvG6hWee+oposb3EUg@mail.gmail.com>
+	s=arc-20240116; t=1748613909; c=relaxed/simple;
+	bh=UnYawQEc4ntVkFd8amM1h4wvrs4XjeBDcqt08SIo1n8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pEJpS1p7an9oX4AmgJuh3CX+3Wbg8djFirSa48GwLYxzJIs3VNSW6vFxDN2DWLJmdPqvvzOO/70Kj+kS0tlNq2C6d8axcasPzX/I9kP5dQeA/NomHt81552DmT/81HFQe5TRudI8+T28rZYYiBoRaGM/Gxom9phbDiAZEC1Hz9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 82C55169C;
+	Fri, 30 May 2025 07:04:48 -0700 (PDT)
+Received: from e125769.cambridge.arm.com (e125769.cambridge.arm.com [10.1.196.27])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D6E5D3F673;
+	Fri, 30 May 2025 07:04:59 -0700 (PDT)
+From: Ryan Roberts <ryan.roberts@arm.com>
+To: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Juergen Gross <jgross@suse.com>,
+	Ajay Kaher <ajay.kaher@broadcom.com>,
+	Alexey Makhalov <alexey.makhalov@broadcom.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	David Hildenbrand <david@redhat.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	sparclinux@vger.kernel.org,
+	virtualization@lists.linux.dev,
+	xen-devel@lists.xenproject.org,
+	linux-mm@kvack.org
+Subject: [RFC PATCH v1 0/6] Lazy mmu mode fixes and improvements
+Date: Fri, 30 May 2025 15:04:38 +0100
+Message-ID: <20250530140446.2387131-1-ryan.roberts@arm.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wh+H-9649NHK5cayNKn0pmReH41rvG6hWee+oposb3EUg@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, May 29, 2025 at 04:54:34PM -0700, Linus Torvalds wrote:
-> On Thu, 29 May 2025 at 14:16, Eric Biggers <ebiggers@kernel.org> wrote:
-> >
-> > So using crc32c() + ext4 + x86 as an example (but SHA-256 would be very
-> > similar), the current behavior is that ext4.ko depends on the crc32c_arch()
-> > symbol.
-> 
-> Yes, I think that's a good example.
-> 
-> I think it's an example of something that "works", but it certainly is
-> a bit hacky.
-> 
-> Wouldn't it be nicer if just plain "crc32c()" did the right thing,
-> instead of users having to do strange hacks just to get the optimized
-> version that they are looking for?
+Hi All,
 
-For crc32c() that's exactly how it works (since v6.14, when I implemented it).
-The users call crc32c() which is an inline function, which then calls
-crc32c_arch() or crc32c_base() depending on the kconfig.  So that's why I said
-the symbol dependency is currently on crc32c_arch.  Sorry if I wasn't clear.
-The SHA-256, ChaCha, and Poly1305 library code now has a similar design too.
+I recently added support for lazy mmu mode on arm64. The series is now in
+Linus's tree so should be in v6.16-rc1. But during testing in linux-next we
+found some ugly corners (unexpected nesting). I was able to fix those issues by
+making the arm64 implementation more permissive (like the other arches). But
+this is quite fragile IMHO. So I'd rather fix the root cause and ensure that
+lazy mmu mode never nests, and more importantly, that code never makes pgtable
+modifications expecting them to be immediate, not knowing that it's actually in
+lazy mmu mode so the changes get deferred.
 
-If we merged the arch and generic modules together, then the symbol would become
-crc32c.  But in either case crc32c() is the API that all the users call.
+The first 2 patches are unrelated, very obvious bug fixes. They don't affect
+arm64 because arm64 only uses lazy mmu for kernel mappings. But I noticed them
+during code review and think they should be fixed.
 
-- Eric
+The next 3 patches are aimed at solving the nesting issue.
+
+And the final patch is reverting the "permissive" fix I did for arm64, which is
+no longer needed after the previous 3 patches.
+
+I've labelled this RFC for now because it depends on the arm64 lazy mmu patches
+in Linus's master, so it won't apply to mm-unstable. But I'm keen to get review
+and siince I'm touching various arches and modifying some core mm stuff, I
+thought that might take a while so thought I'd beat the rush and get a first
+version out early.
+
+I've build-tested all the affected arches. And I've run mm selftests for the
+arm64 build, with no issues (with DEBUG_PAGEALLOC and KFENCE enabled).
+
+Applies against Linus's master branch (f66bc387efbe).
+
+Thanks,
+Ryan
+
+
+Ryan Roberts (6):
+  fs/proc/task_mmu: Fix pte update and tlb maintenance ordering in
+    pagemap_scan_pmd_entry()
+  mm: Fix pte update and tlb maintenance ordering in
+    migrate_vma_collect_pmd()
+  mm: Avoid calling page allocator from apply_to_page_range()
+  mm: Introduce arch_in_lazy_mmu_mode()
+  mm: Avoid calling page allocator while in lazy mmu mode
+  Revert "arm64/mm: Permit lazy_mmu_mode to be nested"
+
+ arch/arm64/include/asm/pgtable.h              | 22 ++++----
+ .../include/asm/book3s/64/tlbflush-hash.h     | 15 ++++++
+ arch/sparc/include/asm/tlbflush_64.h          |  1 +
+ arch/sparc/mm/tlb.c                           | 12 +++++
+ arch/x86/include/asm/paravirt.h               |  5 ++
+ arch/x86/include/asm/paravirt_types.h         |  1 +
+ arch/x86/kernel/paravirt.c                    |  6 +++
+ arch/x86/xen/mmu_pv.c                         |  6 +++
+ fs/proc/task_mmu.c                            |  3 +-
+ include/asm-generic/tlb.h                     |  2 +
+ include/linux/mm.h                            |  6 +++
+ include/linux/pgtable.h                       |  1 +
+ kernel/bpf/arena.c                            |  6 +--
+ mm/kasan/shadow.c                             |  2 +-
+ mm/memory.c                                   | 54 ++++++++++++++-----
+ mm/migrate_device.c                           |  3 +-
+ mm/mmu_gather.c                               | 15 ++++++
+ 17 files changed, 128 insertions(+), 32 deletions(-)
+
+--
+2.43.0
+
