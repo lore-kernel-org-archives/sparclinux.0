@@ -1,179 +1,99 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 87BE329D05;
-	Mon,  2 Jun 2025 10:31:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9349622ACF3
+	for <sparclinux@vger.kernel.org>; Mon,  2 Jun 2025 14:46:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748860277; cv=none; b=oX0vYHhie/5BJAn425e/4ItoeQSfNkldVsgQSISAzLi3D/sWvE8y18RmqYMvc/xSvPkoFG1nbOnHD1wU96QXuYNiDyUvEWU5+00TOZyJCAZuVMxFkwpFcnyCeeYSf0JHbvAIE07XdGp/nd4k1hvN7CeLXirT5XWPNjSgSJ2Dr5A=
+	t=1748875579; cv=none; b=aKSp8KjgjRU6rG0D/uqrxElqQB0wi5I97lq25OdP74lIqFDm73Qi/zW8IsKRECvHZmivLsiL8D7JzD60cah9MPbyt2n2aZ717oHCjCfPQElz9jrHA0/mRZzHfksglrry4meMjUnWdNQFJ79d/4CSb0ohOiSsJyhteR3bzVHrkG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748860277; c=relaxed/simple;
-	bh=kqbUhb5Zchq/vlMwXSHaCKyrIla1pHFbpq0GzNSUQKk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ijdmu59ZgGPRkc/fBJi+uRngtC3LywQdT/w/ehAci9NTND01O+k1ljk6hjUcz0tR2Us6pHPTJYuLAOmJgnr+BckBcwYqCEg8Jaw6F0qKeVeQisJUnvJcKkjLf/dDl4tbAbhAuCKYMPdx72nAwE7XDGpZH7FC6tX5DFHLe6tODWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D6EAD12FC;
-	Mon,  2 Jun 2025 03:30:56 -0700 (PDT)
-Received: from [10.57.95.206] (unknown [10.57.95.206])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7C8B93F673;
-	Mon,  2 Jun 2025 03:31:07 -0700 (PDT)
-Message-ID: <23bd2cdf-768f-4053-9839-a0613a25de51@arm.com>
-Date: Mon, 2 Jun 2025 11:31:05 +0100
+	s=arc-20240116; t=1748875579; c=relaxed/simple;
+	bh=BMdmqxyCVbd7fEc++ql37zNwaBo1D8/TV+gOsCFIGWs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=u6tNEtfDnzBn+P1VcntpGpA5H8O2OI24AJPCenokET0h/NayLUsT4CAkRQkbRieR6fnUnQlzGRpY1wcCMdjRseTFnuVVgf3AXGBJ/OrD7OSLwATBafJxIxDIxEE/O+6XSFmdLFdEB730e9XCTBSfvzKGAEchd2DJiOhPKX7Xt40=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iCTZiqW3; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iCTZiqW3"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ad88105874aso701572866b.1
+        for <sparclinux@vger.kernel.org>; Mon, 02 Jun 2025 07:46:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1748875574; x=1749480374; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Cg0dwJvYfbYUNtSY86lpjPZ26U71B5eHF51TBSSqPe4=;
+        b=iCTZiqW3SJ/t+gdVt4ga6XGES01PXlH3Pq9wsq25SikMyzqQGVB1A4voeRnuBnYXtl
+         Lv1Vcb+Yh2amgvfjPEnC8KOu7W3T73s6Nqbz63LNbLoXUqmX+e0bzBT0cfm4bq/WWMrk
+         kRyq12vg8k4Sek8Cr88188sUtM9vIJ5gDkLrQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1748875574; x=1749480374;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Cg0dwJvYfbYUNtSY86lpjPZ26U71B5eHF51TBSSqPe4=;
+        b=KEWu8FwtDxWs95usXWEgmijPc2ZwsEEUdnautiCqQtn5mbJCw0en8h0okOFOVFzQK5
+         u1AwZLbvjPv28o7VOnnQS1byRbCoEfi95YzyYMx6eKVmf0IXz4rusuOvoOV33v0H6OQC
+         pcAHcGRgYvQxAm+u1Z6WJ926790fjeIuMpFhsUn3/w/3gUizrLCA/sG04OnEiZQN2z1V
+         UcW/9hZYFNZ8LBKVHARrePR9Zmu5tPCziL9+W+3UcEZ2hUbOeska8ZV+Ra88Z253SW/s
+         BvbeWX4+QoiKf9X92eNZv9qc6Y2uI2Zxrysc7irfHkr3bjtOh4VXvqGg3p1HbmFaMaCr
+         ad+Q==
+X-Forwarded-Encrypted: i=1; AJvYcCVC4ldCQXw83vcgB1H3Y94oEJqEo0z7bF7i+NVU0nIp2nUPq3J4EUVj1Mjb4fteojGMnEsnV7g5ZKJ7@vger.kernel.org
+X-Gm-Message-State: AOJu0YxsJHC4vSqnqdhSlN17nxYtltB3GAQHT6atka19LvTW6ftnpoee
+	9+0mXnuQqo9WqJDoWrCrHVoIOoTyVWKLSByMLiSunSOO6g2iILvFcz2D7R9wJu8494VEvgvDT+f
+	aywORUj4=
+X-Gm-Gg: ASbGncupTaA9ksqbwToTsDxosGvB30Upx7bp4Bj96KpW0QQRgqVNgQzA+vv+7txbv9c
+	i2H0b7elksti180D+YXDBLNmGGPhMsoV/VOv3s8/+Q3sD/6x3pkN9UZdjjFBdeFOdOtgtzsBiil
+	KA+3cR1k+nIdeA52zCqUgGZefRc9Mbzd9qTNsNJtDqdRYSmGCZ4CguTFCJdSq2K2aU1YyWs3YAT
+	oFiFvITkkIjUP/2D1qj0XYcnS5eO5vHjHmUvCkUaM+QV5EVXccIMVm61j7J/dvxBDVL8QiV0O/I
+	UPmViiViMH6D0f2gpZQrUIwkKSg8tpw9xk4z/eT2GGS+yjA7cyhVr4waOgScpcpUoqmz9IwZUJA
+	M0eaJoSWBoXUAIo8K6ETvTi+Qi02Ka7q4AmKU
+X-Google-Smtp-Source: AGHT+IH5MvQ8hHqGqa6vt9EV/c1fB/W3tV3gbNvFomSLktFkZAcFSTmsWotiY/OoCwOYQKQ7Dn9+RQ==
+X-Received: by 2002:a17:907:3f12:b0:ad8:9d41:371e with SMTP id a640c23a62f3a-adb322fe389mr1477525966b.36.1748875573856;
+        Mon, 02 Jun 2025 07:46:13 -0700 (PDT)
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com. [209.85.208.51])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ada5dd043d5sm803001266b.121.2025.06.02.07.46.13
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Jun 2025 07:46:13 -0700 (PDT)
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-604f5691bceso8080436a12.0
+        for <sparclinux@vger.kernel.org>; Mon, 02 Jun 2025 07:46:13 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWxMicI6iXYyspCzL49slS9WdwNkixqt0zxIKbOmCTeVTSXuIyWefggQFe6ixCAYUOq7VscqcgKUg13@vger.kernel.org
+X-Received: by 2002:a05:6402:5205:b0:606:3146:4e85 with SMTP id
+ 4fb4d7f45d1cf-60631464feemr3563572a12.4.1748875572780; Mon, 02 Jun 2025
+ 07:46:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 0/6] Lazy mmu mode fixes and improvements
-Content-Language: en-GB
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Juergen Gross <jgross@suse.com>,
- Ajay Kaher <ajay.kaher@broadcom.com>,
- Alexey Makhalov <alexey.makhalov@broadcom.com>,
- Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>,
- "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>,
- David Hildenbrand <david@redhat.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
- <vbabka@suse.cz>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, Alexei Starovoitov <ast@kernel.org>,
- Andrey Ryabinin <ryabinin.a.a@gmail.com>,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
- virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
- linux-mm@kvack.org, Jann Horn <jannh@google.com>
-References: <20250530140446.2387131-1-ryan.roberts@arm.com>
- <5b5d6352-9018-4658-b8fe-6eadaad46881@lucifer.local>
- <af9a96e1-064b-4627-bd34-e7e7e8a05452@arm.com> <aDqz7H-oBo35FRXe@kernel.org>
-From: Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <aDqz7H-oBo35FRXe@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20250428170040.423825-1-ebiggers@kernel.org> <20250428170040.423825-9-ebiggers@kernel.org>
+ <20250529110526.6d2959a9.alex.williamson@redhat.com> <20250529173702.GA3840196@google.com>
+ <CAHk-=whCp-nMWyLxAot4e6yVMCGANTUCWErGfvmwqNkEfTQ=Sw@mail.gmail.com>
+ <20250529211639.GD23614@sol> <CAHk-=wh+H-9649NHK5cayNKn0pmReH41rvG6hWee+oposb3EUg@mail.gmail.com>
+ <20250530001858.GD3840196@google.com> <20250601230014.GB1228@sol>
+In-Reply-To: <20250601230014.GB1228@sol>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 2 Jun 2025 07:45:56 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjO+t0FBrg=bHkbnXVsZ_U0TPgT9ZWUzu12-5NurCaWCA@mail.gmail.com>
+X-Gm-Features: AX0GCFuodXM8SKmhJCuuDQhW2iq8pjrSnsjy_QXiBCm4TA9D0azfhocKT2KWhmk
+Message-ID: <CAHk-=wjO+t0FBrg=bHkbnXVsZ_U0TPgT9ZWUzu12-5NurCaWCA@mail.gmail.com>
+Subject: Re: [PATCH v4 08/13] crypto: s390/sha256 - implement library instead
+ of shash
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: Alex Williamson <alex.williamson@redhat.com>, linux-crypto@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
+	sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, 
+	Ard Biesheuvel <ardb@kernel.org>, "Jason A . Donenfeld" <Jason@zx2c4.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On 31/05/2025 08:46, Mike Rapoport wrote:
-> Hi Ryan,
-> 
-> On Fri, May 30, 2025 at 04:55:36PM +0100, Ryan Roberts wrote:
->> On 30/05/2025 15:47, Lorenzo Stoakes wrote:
->>> +cc Jann who is a specialist in all things page table-y and especially scary
->>> edge cases :)
->>>
->>> On Fri, May 30, 2025 at 03:04:38PM +0100, Ryan Roberts wrote:
->>>> Hi All,
->>>>
->>>> I recently added support for lazy mmu mode on arm64. The series is now in
->>>> Linus's tree so should be in v6.16-rc1. But during testing in linux-next we
->>>> found some ugly corners (unexpected nesting). I was able to fix those issues by
->>>> making the arm64 implementation more permissive (like the other arches). But
->>>> this is quite fragile IMHO. So I'd rather fix the root cause and ensure that
->>>> lazy mmu mode never nests, and more importantly, that code never makes pgtable
->>>> modifications expecting them to be immediate, not knowing that it's actually in
->>>> lazy mmu mode so the changes get deferred.
->>>
->>> When you say fragile, are you confident it _works_ but perhaps not quite as well
->>> as you want? Or are you concerned this might be broken upstream in any way?
->>
->> I'm confident that it _works_ for arm64 as it is, upstream. But if Dev's series
->> were to go in _without_ the lazy_mmu bracketting in some manner, then it would
->> be broken if the config includes CONFIG_DEBUG_PAGEALLOC.
->>
->> There's a lot more explanation in the later patches as to how it can be broken,
->> but for arm64, the situation is currently like this, because our implementation
->> of __change_memory_common() uses apply_to_page_range() which implicitly starts
->> an inner lazy_mmu_mode. We enter multiple times, but we exit one the first call
->> to exit. Everything works correctly but it's not optimal because C is no longer
->> deferred:
->>
->> arch_enter_lazy_mmu_mode()                        << outer lazy mmu region
->>   <do some pte changes (A)>
->>   alloc_pages()
->>     debug_pagealloc_map_pages()
->>       __kernel_map_pages()
->>         __change_memory_common()
->>           arch_enter_lazy_mmu_mode()              << inner lazy mmu region
->>             <change kernel pte to make valid (B)>
->>           arch_leave_lazy_mmu_mode()              << exit; complete A + B
->>     clear_page()
->>   <do some more pte changes (C)>                  << no longer in lazy mode
->> arch_leave_lazy_mmu_mode()                        << nop
->>
->> An alternative implementation would not add the nested lazy mmu mode, so we end
->> up with this:
->>
->> arch_enter_lazy_mmu_mode()                        << outer lazy mmu region
->>   <do some pte changes (A)>
->>   alloc_pages()
->>     debug_pagealloc_map_pages()
->>       __kernel_map_pages()
->>         __change_memory_common()
->>             <change kernel pte to make valid (B)> << deferred due to lazy mmu
->>     clear_page()                                  << BANG! B has not be actioned
->>   <do some more pte changes (C)>
->> arch_leave_lazy_mmu_mode()
->>
->> This is clearly a much worse outcome. It's not happening today but it could in
->> future. That's why I'm claiming it's fragile. It's much better (IMHO) to
->> disallow calling the page allocator when in lazy mmu mode.
-> 
-> First, I think it should be handled completely inside arch/arm64. Page
-> allocation worked on lazy mmu mode on other architectures, no reason it
-> should be changed because of the way arm64 implements lazy mmu.
-> 
-> Second, DEBUG_PAGEALLOC already implies that performance is bad, for it to
-> be useful the kernel should be mapped with base pages and there's map/unmap
-> for every page allocation so optimizing a few pte changes (C in your
-> example) won't matter much.
-> 
-> If there's a potential correctness issue with Dev's patches, it should be
-> dealt with as a part of those patches with the necessary updates of how
-> lazy mmu is implemented on arm64 and used in pageattr.c.
-> 
-> And it seems to me that adding something along the lines below to
-> __kernel_map_pages() would solve DEBUG_PAGEALLOC issue:
-> 
-> void __kernel_map_pages(struct page *page, int numpages, int enable)
-> {
-> 	unsigned long flags;
-> 	bool lazy_mmu = false;
-> 
-> 	if (!can_set_direct_map())
-> 		return;
-> 
-> 	flags = read_thread_flags();
-> 	if (flags & BIT(TIF_LAZY_MMU))
-> 		lazy_mmu = true;
-> 
-> 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
-> 
-> 	if (lazy_mmu)
-> 		set_thread_flag(TIF_LAZY_MMU);
-> }
+On Sun, 1 Jun 2025 at 16:00, Eric Biggers <ebiggers@kernel.org> wrote:
+>
+> I implemented my proposal, for lib/crc first,
 
-Hi Mike,
+Ok, I scanned through that series, and it looks good to me. A clear improvement.
 
-I've thought about this for a bit, and concluded that you are totally right.
-This is a much smaller, arm64-contained patch. Sorry for the noise here, and
-thanks for the suggestion.
-
-Thanks,
-Ryan
-
-
-> 
->> Thanks,
->> Ryan
-> 
-
+         Linus
