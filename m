@@ -1,122 +1,179 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99ABA182B7;
-	Mon,  2 Jun 2025 04:11:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 87BE329D05;
+	Mon,  2 Jun 2025 10:31:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748837490; cv=none; b=L37878dKjSGJWh6H7C3iiwwRaTn7cNAskkzzx0xVd5wP9g7N1gdxGryTUhSeC/VmEjqvS8Z7Jg47T8k9NMQrDArdt28wRSDapEJsr/MVSgXdsxL97gxjuja1UmieWoLtQSw4D8KXi6hR2h4MmBlCzPTYVABM4OaPlFlbQGD5RQ4=
+	t=1748860277; cv=none; b=oX0vYHhie/5BJAn425e/4ItoeQSfNkldVsgQSISAzLi3D/sWvE8y18RmqYMvc/xSvPkoFG1nbOnHD1wU96QXuYNiDyUvEWU5+00TOZyJCAZuVMxFkwpFcnyCeeYSf0JHbvAIE07XdGp/nd4k1hvN7CeLXirT5XWPNjSgSJ2Dr5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748837490; c=relaxed/simple;
-	bh=VNUqtAL1SHKb0pozQoeZywC6qZxi9oGNe5rRKbOsy4Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=biseBkn2Y23CItRRBVvCR4j8+4WkWsZP3wcAcZ9CKxU1Jm0DyzouZiMdZoEb1AEwAOybmqXY4GdbCBndC9f2dDedKD1tuNYeQpfbSaUxfgnhHHqtyrjHUuA9trfjY0Pwa6BD4jC6CZr4AJHmY2XDsriuUY2PzQ8aG5jYMHkp9H8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=cDLc7AG1; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="cDLc7AG1"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=iuH08HhCzFKCMOC8/O0swKDH+rpWOadfk7Rm4fI946Q=; b=cDLc7AG1xVeGrDIh1peeN0IWEk
-	zSPl9poJhEGT0YoB/3XnvH6rSM6bY3xjL0IUqjUntiObN7RMhtlCPHuD3A62GgdK0UEACC5R8vd1k
-	nGJkZRQS6J7IpGD5Cac8ckt2eGuQw0ldn0T1SIMMph5HBpFztRTyZBhVmy8+xkbQoA7OwVtDKj3OZ
-	76BRcTLzVJZLqbCzOHiBTXoFLI5gsn+T2zZ4MU1RCovTNxA1K7wQ4w3A4hqY1qW3qspeqQLRXJ12A
-	qO/+nks1w4qOwDF7mdiodEdOvdFTMW5W0MgrK6eRVtCQ084Z11K100prR+Fy/v0Uyq+f2T84t8Tki
-	2y66Yf/A==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uLwW6-0000000BUl8-1UDJ;
-	Mon, 02 Jun 2025 04:11:18 +0000
-Date: Mon, 2 Jun 2025 05:11:18 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linmag7@gmail.com, Al Viro <viro@ftp.linux.org.uk>, arnd@arndb.de,
-	chris@zankel.net, dinguyen@kernel.org, glaubitz@physik.fu-berlin.de,
-	ink@unseen.parts, jcmvbkbc@gmail.com, kees@kernel.org,
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	mattst88@gmail.com, monstr@monstr.eu, richard.henderson@linaro.org,
-	sparclinux@vger.kernel.org, x86@kernel.org,
-	Sam James <sam@gentoo.org>
-Subject: Re: [PATCH v2 1/1] mm: pgtable: fix pte_swp_exclusive
-Message-ID: <20250602041118.GA2675383@ZenIV>
-References: <87cyfejafj.fsf@gentoo.org>
- <87v7rik020.fsf@gentoo.org>
+	s=arc-20240116; t=1748860277; c=relaxed/simple;
+	bh=kqbUhb5Zchq/vlMwXSHaCKyrIla1pHFbpq0GzNSUQKk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ijdmu59ZgGPRkc/fBJi+uRngtC3LywQdT/w/ehAci9NTND01O+k1ljk6hjUcz0tR2Us6pHPTJYuLAOmJgnr+BckBcwYqCEg8Jaw6F0qKeVeQisJUnvJcKkjLf/dDl4tbAbhAuCKYMPdx72nAwE7XDGpZH7FC6tX5DFHLe6tODWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D6EAD12FC;
+	Mon,  2 Jun 2025 03:30:56 -0700 (PDT)
+Received: from [10.57.95.206] (unknown [10.57.95.206])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7C8B93F673;
+	Mon,  2 Jun 2025 03:31:07 -0700 (PDT)
+Message-ID: <23bd2cdf-768f-4053-9839-a0613a25de51@arm.com>
+Date: Mon, 2 Jun 2025 11:31:05 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87v7rik020.fsf@gentoo.org>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v1 0/6] Lazy mmu mode fixes and improvements
+Content-Language: en-GB
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Juergen Gross <jgross@suse.com>,
+ Ajay Kaher <ajay.kaher@broadcom.com>,
+ Alexey Makhalov <alexey.makhalov@broadcom.com>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ "H. Peter Anvin" <hpa@zytor.com>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>,
+ David Hildenbrand <david@redhat.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
+ <vbabka@suse.cz>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Alexei Starovoitov <ast@kernel.org>,
+ Andrey Ryabinin <ryabinin.a.a@gmail.com>,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
+ linux-mm@kvack.org, Jann Horn <jannh@google.com>
+References: <20250530140446.2387131-1-ryan.roberts@arm.com>
+ <5b5d6352-9018-4658-b8fe-6eadaad46881@lucifer.local>
+ <af9a96e1-064b-4627-bd34-e7e7e8a05452@arm.com> <aDqz7H-oBo35FRXe@kernel.org>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <aDqz7H-oBo35FRXe@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Sat, Apr 05, 2025 at 06:09:11PM +0100, Sam James wrote:
-> Sam James <sam@gentoo.org> writes:
+On 31/05/2025 08:46, Mike Rapoport wrote:
+> Hi Ryan,
 > 
-> > Lovely cleanup and a great suggestion from Al.
-> >
-> > Reviewed-by: Sam James <sam@gentoo.org>
-> >
-> > I'd suggest adding a:
-> > Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+> On Fri, May 30, 2025 at 04:55:36PM +0100, Ryan Roberts wrote:
+>> On 30/05/2025 15:47, Lorenzo Stoakes wrote:
+>>> +cc Jann who is a specialist in all things page table-y and especially scary
+>>> edge cases :)
+>>>
+>>> On Fri, May 30, 2025 at 03:04:38PM +0100, Ryan Roberts wrote:
+>>>> Hi All,
+>>>>
+>>>> I recently added support for lazy mmu mode on arm64. The series is now in
+>>>> Linus's tree so should be in v6.16-rc1. But during testing in linux-next we
+>>>> found some ugly corners (unexpected nesting). I was able to fix those issues by
+>>>> making the arm64 implementation more permissive (like the other arches). But
+>>>> this is quite fragile IMHO. So I'd rather fix the root cause and ensure that
+>>>> lazy mmu mode never nests, and more importantly, that code never makes pgtable
+>>>> modifications expecting them to be immediate, not knowing that it's actually in
+>>>> lazy mmu mode so the changes get deferred.
+>>>
+>>> When you say fragile, are you confident it _works_ but perhaps not quite as well
+>>> as you want? Or are you concerned this might be broken upstream in any way?
+>>
+>> I'm confident that it _works_ for arm64 as it is, upstream. But if Dev's series
+>> were to go in _without_ the lazy_mmu bracketting in some manner, then it would
+>> be broken if the config includes CONFIG_DEBUG_PAGEALLOC.
+>>
+>> There's a lot more explanation in the later patches as to how it can be broken,
+>> but for arm64, the situation is currently like this, because our implementation
+>> of __change_memory_common() uses apply_to_page_range() which implicitly starts
+>> an inner lazy_mmu_mode. We enter multiple times, but we exit one the first call
+>> to exit. Everything works correctly but it's not optimal because C is no longer
+>> deferred:
+>>
+>> arch_enter_lazy_mmu_mode()                        << outer lazy mmu region
+>>   <do some pte changes (A)>
+>>   alloc_pages()
+>>     debug_pagealloc_map_pages()
+>>       __kernel_map_pages()
+>>         __change_memory_common()
+>>           arch_enter_lazy_mmu_mode()              << inner lazy mmu region
+>>             <change kernel pte to make valid (B)>
+>>           arch_leave_lazy_mmu_mode()              << exit; complete A + B
+>>     clear_page()
+>>   <do some more pte changes (C)>                  << no longer in lazy mode
+>> arch_leave_lazy_mmu_mode()                        << nop
+>>
+>> An alternative implementation would not add the nested lazy mmu mode, so we end
+>> up with this:
+>>
+>> arch_enter_lazy_mmu_mode()                        << outer lazy mmu region
+>>   <do some pte changes (A)>
+>>   alloc_pages()
+>>     debug_pagealloc_map_pages()
+>>       __kernel_map_pages()
+>>         __change_memory_common()
+>>             <change kernel pte to make valid (B)> << deferred due to lazy mmu
+>>     clear_page()                                  << BANG! B has not be actioned
+>>   <do some more pte changes (C)>
+>> arch_leave_lazy_mmu_mode()
+>>
+>> This is clearly a much worse outcome. It's not happening today but it could in
+>> future. That's why I'm claiming it's fragile. It's much better (IMHO) to
+>> disallow calling the page allocator when in lazy mmu mode.
 > 
-> Al, were you planning on taking this through your tree?
+> First, I think it should be handled completely inside arch/arm64. Page
+> allocation worked on lazy mmu mode on other architectures, no reason it
+> should be changed because of the way arm64 implements lazy mmu.
+> 
+> Second, DEBUG_PAGEALLOC already implies that performance is bad, for it to
+> be useful the kernel should be mapped with base pages and there's map/unmap
+> for every page allocation so optimizing a few pte changes (C in your
+> example) won't matter much.
+> 
+> If there's a potential correctness issue with Dev's patches, it should be
+> dealt with as a part of those patches with the necessary updates of how
+> lazy mmu is implemented on arm64 and used in pageattr.c.
+> 
+> And it seems to me that adding something along the lines below to
+> __kernel_map_pages() would solve DEBUG_PAGEALLOC issue:
+> 
+> void __kernel_map_pages(struct page *page, int numpages, int enable)
+> {
+> 	unsigned long flags;
+> 	bool lazy_mmu = false;
+> 
+> 	if (!can_set_direct_map())
+> 		return;
+> 
+> 	flags = read_thread_flags();
+> 	if (flags & BIT(TIF_LAZY_MMU))
+> 		lazy_mmu = true;
+> 
+> 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
+> 
+> 	if (lazy_mmu)
+> 		set_thread_flag(TIF_LAZY_MMU);
+> }
 
-FWIW, I expected it to get sent to Linus as "please, run this
-sed script before -rc1" kind of thing, script being something
-like
+Hi Mike,
 
-sed -i -e 's/int pte_swp_exclusive/bool pte_swp_exclusive/' \
-	`git grep -l 'int pte_swp_exclusive'`
+I've thought about this for a bit, and concluded that you are totally right.
+This is a much smaller, arm64-contained patch. Sorry for the noise here, and
+thanks for the suggestion.
 
-with suggested commit message...  It's absolutely regular and
-that kind of tree-wide change is easier handled that way.
+Thanks,
+Ryan
 
-	Oh, well...  To restore the context: Magnus had spotted a fun
-bug on Alpha back in February - pte_swp_exclusive() there returned
-pte_val(pte) & _PAGE_SWP_EXCLUSIVE as int.  The problem is that
-_PAGE_SWP_EXCLUSIVE is 1UL<<39 there, with obvious results...
 
-	I looked at the originally posted patch and suggested to
-make pte_swp_exclusive() return bool instead of int.  All users
-are in explicitly boolean contexts:
-
-include/linux/swapops.h:        if (pte_swp_exclusive(pte))
-mm/debug_vm_pgtable.c:  WARN_ON(pte_swp_exclusive(pte));
-mm/debug_vm_pgtable.c:  WARN_ON(!pte_swp_exclusive(pte));
-mm/debug_vm_pgtable.c:  WARN_ON(pte_swp_exclusive(pte));
-mm/internal.h:  if (pte_swp_exclusive(pte))
-mm/memory.c:            if (pte_swp_exclusive(orig_pte)) {
-mm/memory.c:            exclusive = pte_swp_exclusive(vmf->orig_pte);
-mm/swapfile.c:          if (pte_swp_exclusive(old_pte))
-mm/userfaultfd.c:               if (!pte_swp_exclusive(orig_src_pte)) {
-
-	Magnus posted patch of that form (see
-https://lore.kernel.org/all/20250218175735.19882-2-linmag7@gmail.com/),
-got no serious objections and then it went nowhere.
-
-	Bug is real and fairly obvious, fix is entirely mechanical and
-affects one line in each asm/pgtable.h out there.  Linus, could you
-run that sed script just before -rc1?  Commit message from the patch refered
-above looks sane:
-
-mm: pgtable: fix pte_swp_exclusive
-
-Make pte_swp_exclusive return bool instead of int. This will better reflect
-how pte_swp_exclusive is actually used in the code. This fixes swap/swapoff
-problems on Alpha due pte_swp_exclusive not returning correct values when
-_PAGE_SWP_EXCLUSIVE bit resides in upper 32-bits of PTE (like on alpha).
-
-Signed-off-by: Magnus Lindholm <linmag7@gmail.com>
+> 
+>> Thanks,
+>> Ryan
+> 
 
