@@ -1,105 +1,143 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73269258CF5;
-	Mon,  9 Jun 2025 13:53:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F2521FF2C;
+	Mon,  9 Jun 2025 18:55:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749477209; cv=none; b=gaP/xdsVKSoVc2aEUF4cWc8eVEJzJlDIhuW9ExcgKKU2mS/HvzfWHLYmD3va25CxGFFEa8+uERri8za/eZvD95Ms3oMZQ2V52xYHF2n/fUUWd+aH7TEkUTlFW6+iKQeRnU8DW/o1Wv4faiq7YjkLqBRljeAMa1opyUqvbmQ6HJY=
+	t=1749495302; cv=none; b=TYSBvpaRkeZvfaLDlifvyZPrXWvlCdLCR0COJaJwOebG3wWMlFM7UPPDrainYfQJWYWOIUSnVFC76SQAcA1vbC9P4LD5KyZoluOz73NavNztY01qvmR+Izo0j8HAMAX1A0TKrTBXnO+y18x1iWvd2buP8x7zjUtWQgY76t9BKJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749477209; c=relaxed/simple;
-	bh=9pd6b+hFtdXp1Xik64bJuC7kG63/UbMRrc+/YUilNC4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=UHG1j4Mm11qnarObDuPJSYSJVrQ+px8ubBO2WAWIfY0lieotrmfQ9WrTGOj6jKL7U67fYOdZwrabv/KcxJwydt25elKFdo4Xer2WJlrzDHW7iWOYUoVMxU/RpBxqr4Gm4yvFDx1wMXhfg7VWc4cMvquXyvmZ751J2kPi4a1G7qU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GJKAAvi0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749495302; c=relaxed/simple;
+	bh=i03d00nCfUWfOdFAfB3hz6pL/gDpm+GCWlrY8GYnNSU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VN5y8XXwDjhllHSlqqyHftpN63TvX77qFjKEm5u2cauGQEloYnwdDkidQNPRu2W+434hvIIs5Zj6yUU1OpRyLZnwWFeV52Oj6v6vokQFK59lTYXXnMu7MH4bgcNqsurt2M6N47WAbkCdpMFPrXtyeRsTTlElS+gsUiN3YPDSdDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cOGXtZ0b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GJKAAvi0"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 06EF9C4CEED;
-	Mon,  9 Jun 2025 13:53:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cOGXtZ0b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DDEAC4CEEF;
+	Mon,  9 Jun 2025 18:55:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749477209;
-	bh=9pd6b+hFtdXp1Xik64bJuC7kG63/UbMRrc+/YUilNC4=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=GJKAAvi0B7wDKDFdXgVgQclZskH6mFXHAVYwjmC6r/xNSJTsVt6Hw+t++rbLrBo5P
-	 rxUq3Xnj5/ff3a4Mtx2Wt0XS82GBohs/3oPDd2Mj01xl/ox0TlyTMrdHuCWemmcXL+
-	 +r7OlOs/2w/7Z2/d4BHcyIlSwWACbXEapUh/IKaCR8OkA6DXqDaNdeNAzj26+lW8Sa
-	 I896t8gh4Bd5/vy5VZzpVeFKdbJb9EsQqDYI+DjvPZlWqE05MgIb7lV61ftcEfX8jO
-	 lUj5eYacMriUZ6CX0P0nJ39TI3aj1LISfY1FXbcER5F4WBOYnSNCo/uaRYpjxcK7L+
-	 ZhMyVwCC7QdxQ==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF2E3C61CE8;
-	Mon,  9 Jun 2025 13:53:28 +0000 (UTC)
-From: Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org>
-Date: Mon, 09 Jun 2025 20:53:11 +0700
-Subject: [PATCH 1/2] sparc/module: Add R_SPARC_UA64 relocation handling
+	s=k20201202; t=1749495302;
+	bh=i03d00nCfUWfOdFAfB3hz6pL/gDpm+GCWlrY8GYnNSU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cOGXtZ0bxE5c/cKVjIahkTcrKCRAsE2Gfxn3UIhlFlFiZLaC+zKdF7VWxfKm8/ETS
+	 6AhGs0umiRMCJ5JgdBhNOOkRxSsFWAtxF3SJIcO4BKZGFJs1ZQtGYfS9ZJ9KjnFtXu
+	 CoUuDzdDeoQNA3IJviIlNiJi7ydg2ehdcQ5OXBzI0xl+XsUGv/gmofveqW1cZVJlxj
+	 7S5NNv/e7xF0C/H29trUyZ+4svuZFkbjIOhn5nXwrlL711gYmP+gm6Ewk+tz2CReoY
+	 NFWzzRmLR5sYfJufJHFK1j4djDnBCF+UiHFg8rnM/mFlrhQ4MNaEJcQxnaEuTEhFf3
+	 PK9kqt1NEZKGw==
+Date: Mon, 9 Jun 2025 11:54:39 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, x86@kernel.org,
+	linux-arch@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+	"Jason A . Donenfeld" <Jason@zx2c4.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH v2 00/12] lib/crc: improve how arch-optimized code is
+ integrated
+Message-ID: <20250609185439.GB1255@sol>
+References: <20250607200454.73587-1-ebiggers@kernel.org>
+ <aEaP-A21IB4ufbZT@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250609-b4-sparc-relocs-v1-1-aa52631735af@protonmail.com>
-References: <20250609-b4-sparc-relocs-v1-0-aa52631735af@protonmail.com>
-In-Reply-To: <20250609-b4-sparc-relocs-v1-0-aa52631735af@protonmail.com>
-To: "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, 
- Nathan Chancellor <nathan@kernel.org>, 
- Nick Desaulniers <nick.desaulniers+lkml@gmail.com>, 
- Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
- llvm@lists.linux.dev, Koakuma <koachan@protonmail.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1749477207; l=1232;
- i=koachan@protonmail.com; s=20240620; h=from:subject:message-id;
- bh=zZw7JuY1ThhmEZ0ymDbJ7RVlj2O2wrZSNN0ELhatlwE=;
- b=pHlzGFwzlR+zbyyljMmoJCIWTRSZ1KYty5KLvm70wsrv8QhaNHteqxP6kWlGWfp2pGhYWm5bF
- YgNEPBUbhgXBD3RU8jEfojmrWWyKjf72glTLmx/evMhRBhF2V5aqBCf
-X-Developer-Key: i=koachan@protonmail.com; a=ed25519;
- pk=UA59FS3yiAA1cnAAUZ1rehTmr6skh95PgkNRBLcoKCg=
-X-Endpoint-Received: by B4 Relay for koachan@protonmail.com/20240620 with
- auth_id=174
-X-Original-From: Koakuma <koachan@protonmail.com>
-Reply-To: koachan@protonmail.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aEaP-A21IB4ufbZT@gmail.com>
 
-From: Koakuma <koachan@protonmail.com>
+On Mon, Jun 09, 2025 at 09:40:40AM +0200, Ingo Molnar wrote:
+> 
+> * Eric Biggers <ebiggers@kernel.org> wrote:
+> 
+> > This series is also available at:
+> > 
+> >     git fetch https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git lib-crc-arch-v2
+> > 
+> > This series improves how lib/crc supports arch-optimized code.  First,
+> > instead of the arch-optimized CRC code being in arch/$(SRCARCH)/lib/, it
+> > will now be in lib/crc/$(SRCARCH)/.  Second, the API functions (e.g.
+> > crc32c()), arch-optimized functions (e.g. crc32c_arch()), and generic
+> > functions (e.g. crc32c_base()) will now be part of a single module for
+> > each CRC type, allowing better inlining and dead code elimination.  The
+> > second change is made possible by the first.
+> > 
+> > As an example, consider CONFIG_CRC32=m on x86.  We'll now have just
+> > crc32.ko instead of both crc32-x86.ko and crc32.ko.  The two modules
+> > were already coupled together and always both got loaded together via
+> > direct symbol dependency, so the separation provided no benefit.
+> > 
+> > Note: later I'd like to apply the same design to lib/crypto/ too, where
+> > often the API functions are out-of-line so this will work even better.
+> > In those cases, for each algorithm we currently have 3 modules all
+> > coupled together, e.g. libsha256.ko, libsha256-generic.ko, and
+> > sha256-x86.ko.  We should have just one, inline things properly, and
+> > rely on the compiler's dead code elimination to decide the inclusion of
+> > the generic code instead of manually setting it via kconfig.
+> > 
+> > Having arch-specific code outside arch/ was somewhat controversial when
+> > Zinc proposed it back in 2018.  But I don't think the concerns are
+> > warranted.  It's better from a technical perspective, as it enables the
+> > improvements mentioned above.  This model is already successfully used
+> > in other places in the kernel such as lib/raid6/.  The community of each
+> > architecture still remains free to work on the code, even if it's not in
+> > arch/.  At the time there was also a desire to put the library code in
+> > the same files as the old-school crypto API, but that was a mistake; now
+> > that the library is separate, that's no longer a constraint either.
+> > 
+> > Changed in v2:
+> >    - Fixed build warning on architectures without any optimized CRC code
+> >    - Fixed build warning in sparc/crc32.h by removing pr_fmt
+> >    - Moved fallback definitions of crc32*_arch back into arch files
+> >    - Remove ARCH_HAS_CRC* symbols at end of series instead of beginning,
+> >      so that they're not removed until they're no longer being selected
+> >    - Slightly improved some commit messages
+> >    - Rebased onto other pending lib/crc changes
+> > 
+> > Eric Biggers (12):
+> >   lib/crc: move files into lib/crc/
+> >   lib/crc: prepare for arch-optimized code in subdirs of lib/crc/
+> >   lib/crc/arm: migrate arm-optimized CRC code into lib/crc/
+> >   lib/crc/arm64: migrate arm64-optimized CRC code into lib/crc/
+> >   lib/crc/loongarch: migrate loongarch-optimized CRC code into lib/crc/
+> >   lib/crc/mips: migrate mips-optimized CRC code into lib/crc/
+> >   lib/crc/powerpc: migrate powerpc-optimized CRC code into lib/crc/
+> >   lib/crc/riscv: migrate riscv-optimized CRC code into lib/crc/
+> >   lib/crc/s390: migrate s390-optimized CRC code into lib/crc/
+> >   lib/crc/sparc: migrate sparc-optimized CRC code into lib/crc/
+> >   lib/crc/x86: migrate x86-optimized CRC code into lib/crc/
+> >   lib/crc: remove ARCH_HAS_* kconfig symbols
+> 
+> For the movement of the x86 bits:
+> 
+>   Acked-by: Ingo Molnar <mingo@kernel.org>
+> 
+> >  rename {arch/s390/lib => lib/crc/s390}/crc32be-vx.c (100%)
+> >  rename {arch/s390/lib => lib/crc/s390}/crc32le-vx.c (100%)
+> >  rename arch/sparc/lib/crc32.c => lib/crc/sparc/crc32.h (60%)
+> >  rename {arch/sparc/lib => lib/crc/sparc}/crc32c_asm.S (100%)
+> >  create mode 100644 lib/crc/tests/Makefile
+> >  rename lib/{ => crc}/tests/crc_kunit.c (100%)
+> >  rename {arch/x86/lib => lib/crc/x86}/crc-pclmul-consts.h (100%)
+> >  rename {arch/x86/lib => lib/crc/x86}/crc-pclmul-template.S (100%)
+> >  rename {arch/x86/lib => lib/crc/x86}/crc-pclmul-template.h (100%)
+> >  rename arch/x86/lib/crc-t10dif.c => lib/crc/x86/crc-t10dif.h (56%)
+> >  rename {arch/x86/lib => lib/crc/x86}/crc16-msb-pclmul.S (100%)
+> >  rename {arch/x86/lib => lib/crc/x86}/crc32-pclmul.S (100%)
+> 
+> One small namespace suggestion: wouldn't it be better to move the arch 
+> support code to lib/crc/arch/, instead of lib/crc/? That way any 
+> generic code will stand out better and architecture directories don't 
+> crowd out what is supposed to be generic code.
 
-This is needed so that the kernel can handle R_SPARC_UA64 relocations,
-which is emitted by LLVM's IAS.
+I don't think that yet another level of directories would provide much value
+here.  The only non-arch subdirectory of lib/crc/ is "tests", so it's not like
+there are a lot of subdirectories that could be confused with arch names.
 
-Signed-off-by: Koakuma <koachan@protonmail.com>
----
- arch/sparc/include/asm/elf_64.h | 1 +
- arch/sparc/kernel/module.c      | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
-index 8fb09eec8c3e796a9a79aa0a7877842ceb7ea6d3..694ed081cf8d99adf70be25e5dc0e30a45f70398 100644
---- a/arch/sparc/include/asm/elf_64.h
-+++ b/arch/sparc/include/asm/elf_64.h
-@@ -58,6 +58,7 @@
- #define R_SPARC_7		43
- #define R_SPARC_5		44
- #define R_SPARC_6		45
-+#define R_SPARC_UA64		54
- 
- /* Bits present in AT_HWCAP, primarily for Sparc32.  */
- #define HWCAP_SPARC_FLUSH       0x00000001
-diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
-index b8c51cc23d96944037494f13d2d65a43bb187729..6e3d4dde4f9ab33040b300c40d5fd5d0584e166d 100644
---- a/arch/sparc/kernel/module.c
-+++ b/arch/sparc/kernel/module.c
-@@ -87,6 +87,7 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
- 			break;
- #ifdef CONFIG_SPARC64
- 		case R_SPARC_64:
-+		case R_SPARC_UA64:
- 			location[0] = v >> 56;
- 			location[1] = v >> 48;
- 			location[2] = v >> 40;
-
--- 
-2.49.0
-
-
+- Eric
