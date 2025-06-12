@@ -1,86 +1,153 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E64EAF9;
-	Wed, 11 Jun 2025 03:59:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52EE629B8D8;
+	Thu, 12 Jun 2025 17:36:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749614347; cv=none; b=Ts3JD+ZAwCUjXF0MZ9uZw7eKSgLRGK3Fqzd7q5ylA2J6WRwoPNvM2IqXDCJ47oGQb3cYtVQFajOe+HVpq/8UGgXDo/f/3fx39oFqMGCx1h8tX2iIBNvjLS6C9CxYMlO4IRQhMI6r0/TLpBXiI+saP6UJvEaZgkq9kmFkiarFVxw=
+	t=1749749809; cv=none; b=tDUDDnMF969hoN+5g1+bYHSiiyhoJ5cLA3PvwUHuWALiSL7qUdX+RgNoREAYi9rpcnVBqyrT5cE9Ai3sG9o6NgLSaub0VQSa6Sixrb2NnFZbfdY6MhBWrJCIu2NDPEVZ8K5MXuL7crSrIiqc2fbNrvm+4OUOuup+L4g7M9rBro0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749614347; c=relaxed/simple;
-	bh=szt+yu2QyA/QhUjatSBOr43sMK30sECLXWC5HWNvAj0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GQcD2msF3gO+1V7uQv4b4STuLWSR2qmXqFMLY5SebuM159R5ves8hmgsHWCPlXwMB/Lgwws4DpRMsgChyaqLRUWVNFbw/SdmgPOkBbh1FDBUv9YBRorAYLkRPjrqHBl3XfumE6dmGMg0v6HasOLLzlb4rsXcz7y76oC5FlsJ4Vo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oCI/NgO6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749749809; c=relaxed/simple;
+	bh=Se1kv5v15PXSnxvpQY8zYf3zFp+uZCAbnl5JZqIlXQ8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LmFarj0uo9vRsfCh6yEsljIvaWCmN+IvVLWTIz8JdlSI6qkY/SvzBoIM7zcVMqQQIejbHKl3ie6Qpb6ByM7y2T8DzxwB0RWnF+5bRup7jffvsty9nGRwB4NsWTE0NT/X+wje2X0qQ2A2gs/AWmX7j1f1pp5ezf0QULRegg38ntI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=gPjOJz2D; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oCI/NgO6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A1EC4CEEE;
-	Wed, 11 Jun 2025 03:59:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749614346;
-	bh=szt+yu2QyA/QhUjatSBOr43sMK30sECLXWC5HWNvAj0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oCI/NgO6t82+0dt4rZ58DB+IkwRvjcNZ8pj5AEN6fKZSLEVlNEcF2b+DBphS2gu8/
-	 soA6FLw7oMdHnpjUO+8dOJvlRr1p33bXZWdRSPljd2QvQe3FkrsUr+3IlRuy+lY705
-	 8OIZGNq6+RStoCDw3miB+z/Emh3WsYmaW7T5NQTVBV/iG//6cY5agrJleSTHWSbuGH
-	 eFd8ehhhWiUy0B2yIimmqk8TwvGDygZZ14r7jQYOb7GPEXoSNehfYGl1FkahLvK4x5
-	 IGbF4jVwt+BqNJ8PquUrLFiUbiNyU8mcnJGot5yfNv+gOb2msM+oiMu2P4k9vYt2YW
-	 nReNvxvHkbt1w==
-Date: Tue, 10 Jun 2025 20:58:42 -0700
-From: Eric Biggers <ebiggers@kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, x86@kernel.org, ardb@kernel.org,
-	Jason@zx2c4.com, torvalds@linux-foundation.org
-Subject: Re: [PATCH 07/16] crypto: sha512 - replace sha512_generic with
- wrapper around SHA-512 library
-Message-ID: <20250611035842.GB1484147@sol>
-References: <20250611020923.1482701-8-ebiggers@kernel.org>
- <aEjo6YZn59m5FnZ_@gondor.apana.org.au>
- <20250611033957.GA1484147@sol>
- <aEj8J3ZIYEFp_XT4@gondor.apana.org.au>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="gPjOJz2D"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 55C9xpHh005022;
+	Thu, 12 Jun 2025 17:36:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=ANjAB/i+3wqbtm/fqKC9pjVNNGYd+LvuX5UmSeokV
+	jQ=; b=gPjOJz2DlLLAahuxLsMvga8P96e5QtjjssuX3WnL7wfNwU9S7odZ1iF9n
+	AHXZaL0QgY2Yvv6+PISmVU8AGURt3TkfFKWYn1x50taMSKAa7h1Py0L08hzBockn
+	sQx28XfA83iutCkSgewhPkGk2hg9n0qPC6L8fNJUmDuqW9yEPkMry4L+GC9tTYO0
+	SD4Ldvr2NfjhdTYVv7Rn944LtNQhipOioR+F7fsnJ9kdle/XbEcv+ONZ2kYaVUYJ
+	/VTaRAakSqlZ1oK9rnq/4HmKpkaucRMwQY60+eLDS+xgc8bSOsXNrs+da1Mm5Jx9
+	DxiiZIL4w7ZQHN8ei7UjgxYir2X1w==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 474x4mhdbs-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 12 Jun 2025 17:36:16 +0000 (GMT)
+Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 55CHaGIg029272;
+	Thu, 12 Jun 2025 17:36:16 GMT
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 474x4mhdbp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 12 Jun 2025 17:36:16 +0000 (GMT)
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 55CGbdNq015205;
+	Thu, 12 Jun 2025 17:36:15 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 474yrtp6b1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 12 Jun 2025 17:36:15 +0000
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 55CHaE2S46072192
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 12 Jun 2025 17:36:14 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id F201B20043;
+	Thu, 12 Jun 2025 17:36:13 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DE45420040;
+	Thu, 12 Jun 2025 17:36:13 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Thu, 12 Jun 2025 17:36:13 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55669)
+	id 9B577E0157; Thu, 12 Jun 2025 19:36:13 +0200 (CEST)
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        Hugh Dickins <hughd@google.com>, Nicholas Piggin <npiggin@gmail.com>,
+        Guenter Roeck <linux@roeck-us.net>, Juergen Gross <jgross@suse.com>,
+        Jeremy Fitzhardinge <jeremy@goop.org>,
+        Ryan Roberts <ryan.roberts@arm.com>
+Subject: [PATCH 0/6] mm: Consolidate lazy MMU mode context
+Date: Thu, 12 Jun 2025 19:36:07 +0200
+Message-ID: <cover.1749747752.git.agordeev@linux.ibm.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aEj8J3ZIYEFp_XT4@gondor.apana.org.au>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Authority-Analysis: v=2.4 cv=Y4X4sgeN c=1 sm=1 tr=0 ts=684b1011 cx=c_pps a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17 a=6IFa9wvqVegA:10 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8 a=_adeEUt4WAeD9YfioJwA:9
+X-Proofpoint-GUID: qr5W2YIzc2A8ZYU2dsRpP1AphHqeKos2
+X-Proofpoint-ORIG-GUID: y6xW9IJSAE1JE6kcXuiy_mrCImk2ZWSK
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNjEyMDEzMiBTYWx0ZWRfXwOXjIkbbpepd OoV77Zxzv1DOdGZHdC1rjgNBCs+WzETf7mIinKv8drROUhS3PC4S3Ul3Eq1Rd7PKATmFyM+TDvL kAnBooerznbgDsNZ+/ZPaU+KOsEBXC93w8q9w6KmW11m/vgE/aUeMTSFQFutpSKrQJxT61mMBuv
+ KSDxU4i8iMDqRaETa8beoNjTewS286bfktL7BQreW7c9kRIZcei0lJ9aqGyaWPDFPjwcafICCtq M+2fDqSlBJ149EKa1BJjaYXJjRiLvX/CmWd9wRa81Sdbs49mWKwGJKFbJ7AczMoR5fjZJzIohlx h7ggGzYUtbK6qCOXcSYaA1viUBK2oMNNt7ackAbJO+mupvs+X1Tc6Jccl69/IVghIosL27dXHPA
+ isXNAQ9475tlf5eWUprb3n3jaqwe+zULK27nDf9N0r4ezafy+XnKcezzdAsVHSGEj7SQHlPp
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.0.736,FMLib:17.12.80.40
+ definitions=2025-06-12_10,2025-06-12_02,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=994 spamscore=0
+ clxscore=1011 lowpriorityscore=0 malwarescore=0 bulkscore=0 adultscore=0
+ impostorscore=0 suspectscore=0 phishscore=0 mlxscore=0 priorityscore=1501
+ classifier=spam authscore=0 authtc=n/a authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2505280000
+ definitions=main-2506120132
 
-On Wed, Jun 11, 2025 at 11:46:47AM +0800, Herbert Xu wrote:
-> On Tue, Jun 10, 2025 at 08:39:57PM -0700, Eric Biggers wrote:
-> >
-> > Do you have a concrete example (meaning, a specific driver) where this actually
-> > matters?  Historically, export and import have always had to be paired for the
-> > same transformation object, i.e. import was called only with the output of
-> > export.  There is, and has never been, any test that tests otherwise.  This
-> > seems like a brand new "requirement" that you've made up unnecessarily.
-> 
-> It's not just drivers that may be using fallbacks, the ahash API
-> code itself now relies on this to provide fallbacks for cases that
-> drivers can't handle, such as linear addresses.
-> 
-> I did add the testing for it, which revealed a few problems with
-> s390 so it was reverted for 6.16.  But I will be adding it back
-> after the s390 issues have been resolved.
+Hi All,
 
-Okay, so it sounds like in practice this is specific to ahash_do_req_chain()
-which you recently added.  I'm not sure what it's meant to be doing.
+Consolidate arch_enter|leave|flush_lazy_mmu_mode() context and protect
+with a lock not only user, but also kernel mappings before entering
+the lazy MMU mode.
 
-> > I'll add export and import functions if you insist, but it seems pointless.
-> >
-> > Could you at least provide proper definitions for the legacy structs so that I
-> > don't have to do pointer arithmetic to generate them?
-> 
-> Just expose the sha512 block functions and use them as is.  There
-> is no need to do the export/import dance.
+For not fully preemptible (Real-Time) kernels that simplifies semantics -
+while the mode is active the code should assume it is executing in atomic
+context. That paves the way for cleanups, such as suggested for sparc and
+powerpc and hopefully brings a bit more clarity in what labeled in commit
+691ee97e1a9d ("mm: fix lazy mmu docs and usage") as "a bit of a mess (to
+put it politely)".
 
-We're not going to support direct access to the SHA-512 compression function as
-part of the library API.  It's just unnecessary and error-prone.  crypto/ will
-just use the same well-documented and well-tested public API as everyone else.
+The fully preemptible (Real-Time) kernels could probably also be brought
+into the fold, but I am not sure about implications (to say at least).
 
-- Eric
+This series is continuation of [1] and [2], with commit b6ea95a34cbd
+("kasan: avoid sleepable page allocation from atomic context") already
+upstream.
+
+I dared to keep Nicholas Piggin R-b on patch 3, but dropped it from
+patch 2 due to new bits.
+
+Except the optional sparc (untested) and powerpc (complile-tested)
+updates this series is a prerequisite for implementation of lazy MMU
+mode on s390.
+
+1. https://lore.kernel.org/linux-mm/cover.1744037648.git.agordeev@linux.ibm.com/#r
+2. https://lore.kernel.org/linux-mm/cover.1744128123.git.agordeev@linux.ibm.com/#r
+
+Thanks!
+
+Alexander Gordeev (6):
+  mm: Cleanup apply_to_pte_range() routine
+  mm: Lock kernel page tables before entering lazy MMU mode
+  mm/debug: Detect wrong arch_enter_lazy_mmu_mode() contexts
+  sparc/mm: Do not disable preemption in lazy MMU mode
+  powerpc/64s: Do not disable preemption in lazy MMU mode
+  powerpc/64s: Do not re-activate batched TLB flush
+
+ .../include/asm/book3s/64/tlbflush-hash.h     | 13 ++++----
+ arch/powerpc/include/asm/thread_info.h        |  2 --
+ arch/powerpc/kernel/process.c                 | 25 --------------
+ arch/sparc/include/asm/tlbflush_64.h          |  2 +-
+ arch/sparc/mm/tlb.c                           | 12 ++++---
+ include/linux/pgtable.h                       | 32 +++++++++++++-----
+ mm/kasan/shadow.c                             |  5 ---
+ mm/memory.c                                   | 33 ++++++++++++-------
+ mm/vmalloc.c                                  |  6 ++++
+ 9 files changed, 65 insertions(+), 65 deletions(-)
+
+-- 
+2.48.1
+
