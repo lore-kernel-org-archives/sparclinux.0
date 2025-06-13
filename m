@@ -1,83 +1,226 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76AFA2DA75D;
-	Fri, 13 Jun 2025 07:38:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EDF86279DBD;
+	Fri, 13 Jun 2025 08:26:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749800306; cv=none; b=jBRlthqHM8HfPOqSVIR6Xkv+rR89UGuZba+B8DIBztF6GcqiuLGFa7LmN10SDVwpYV7hgczpGIzGCkVkK4N3YfS1aDC2rgEvdQTeyLGTcDdC/Qcq/F8m/kQ7eFIQvwjKV0Jgbw/yWY0q1Nq/tIuK2/E7zUt18NQtCZt3lzjVWHg=
+	t=1749803204; cv=none; b=FUqP8gch54mjErhkVi86gfuBJZS86gNj5uDTt91ky9Am2ZZ60wmE0ydK6CNefWigH+WixjK6qmiAm09YuJVlBUoz6bWqKBwjVJ799hNaWqDf+ELp5t2n0/qLnN8u1wbrAVlnavFJ5QdDUMD0mgAfMNXhVieODQUCRyO+aLG3gNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749800306; c=relaxed/simple;
-	bh=Zk9E7B0cLEq92YUYEu39PlPpaS6WCK5qgzp4ebsQ2B0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iqOZZp9+7e8OYsyLjKas/o0eiKuoQlt+JOn/Y2GbRcVRP2a5gWa1vcgt3ziOwjCajDixd4dyVS+dD/PK3s7GQn983zYo/vxQyFCqzgtkbn7DZUJijhNF1qFPWhD+YaSIFbbQxetX+p3I03TfcNZSw8Ek+xUFZNjPKO9xr85GA8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WtfSBnNC; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WtfSBnNC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA6E6C4CEE3;
-	Fri, 13 Jun 2025 07:38:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749800306;
-	bh=Zk9E7B0cLEq92YUYEu39PlPpaS6WCK5qgzp4ebsQ2B0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=WtfSBnNCUmuYf5NcrAgqVTt96tHIUKFJjXr7PvpldJPScV0tuOvGnajWm1O3tZXkO
-	 nUOYkh9/7JmQb8F0mP1BcS18U37CM95+rlMGvYqivLv3nUq73wkPXM9Px3rBBvzljy
-	 Frwe/AcLm5NwMOuO43bPX8iKA2Z/g8Xiyo7A4AEaRFzzia45NqUH2jwPOhxX9zH3rE
-	 BDWaV8f5tyEjPv0Gvfeep2/ETr4Y5PgqniqLy3mbJnHbhzjoE8R8+XgJO8Bav5IvGl
-	 atQUCp6R4L243D9DJeMrDkwWUS0sZVeix0Zke6AclHXAJWjg3ZH0+q+gNdIlQVoc4M
-	 PgnnFOti0q+Tg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-54afb5fcebaso1859816e87.3;
-        Fri, 13 Jun 2025 00:38:25 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCV2yzUBCA/fHxiOBgS+4vXDQhgZxrv8BHMuaeCC5t+fcySygFibJD8eJNEiCeNhlT4ZMLJGUQAXbNgchw==@vger.kernel.org, AJvYcCVhnlTYaztUgP5gBBy96DVeIfzMxN0QIwKzbKBssk5EskcgzSVhZXqR/SQH1bf0Xmj7o4QZ6oJM1xC1Ljo=@vger.kernel.org, AJvYcCW9N+i20JBbQjTQG5w7hTxwWQ03pM555iCDnCqVU0XSeRJS0L61M1uZAeLJlyXdn3ngzatETz/GnS3JODRs@vger.kernel.org, AJvYcCWCc25JUqNY/tZBTb4arH0UzZD0vXoJO1zOh4Rz5A8sNxv+0QtySN3+92RGUtORibNa/EHZ/bN94biGyA==@vger.kernel.org, AJvYcCXXtL8umL8YUZaa8/qlrgCzZ7FRFIZj7Q1wOwFD+Evy+LjLtJKFMe4DtXmxzr+TOPcxhWjy1Ed2s5JN0w==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxDS1q+aj8N7fCbzauCm9HgFC+jwLqRwir8v918oaYgvyG5bV6P
-	G3YJyKnmymQCQkpw2XtfbK4iUhICpu6f4GFbd/rhP6+06SoMECLMQN6VYBN9e07waXrGmV7+nD9
-	GWgC6XmMmGyFqQnzTbdrA8EU1kocwIn4=
-X-Google-Smtp-Source: AGHT+IHlO4hZ7n7uTJh4T8Gyrwm4r7eJzxuJkITnqDB9Kgj30CFlF7REbfDIhM5d+j/NBrv+1KJlS3nHK1VNyHiQv00=
-X-Received: by 2002:a05:6512:138b:b0:553:2190:fef9 with SMTP id
- 2adb3069b0e04-553af97a5c9mr527698e87.34.1749800304328; Fri, 13 Jun 2025
- 00:38:24 -0700 (PDT)
+	s=arc-20240116; t=1749803204; c=relaxed/simple;
+	bh=dQLXWr36qkCWVvdoVAPdCoVdhFpM8XiZAKcaOSDzWV8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=kbffMYS23sZcgOmbv5s2P9lvNrlwWulKfLoodnPtcqfmYg/BpPgvW3qN0SFiX4E4B6hMKRKKyIkX7jvif0HNd1DXQG+6HXCmEX/wK3+nQ8Vv2rKlskZ9+NzzIt6hTyJwrSGqGXOM1REqjXdYrI3nMKjwImS9MpW3t6AQpReWq0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 338E114BF;
+	Fri, 13 Jun 2025 01:26:21 -0700 (PDT)
+Received: from [10.57.84.117] (unknown [10.57.84.117])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 243333F66E;
+	Fri, 13 Jun 2025 01:26:38 -0700 (PDT)
+Message-ID: <bf59680e-c523-4af8-b81f-ea0b4d0e12f2@arm.com>
+Date: Fri, 13 Jun 2025 09:26:37 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250611020923.1482701-8-ebiggers@kernel.org> <aEjo6YZn59m5FnZ_@gondor.apana.org.au>
- <20250611033957.GA1484147@sol> <aEj8J3ZIYEFp_XT4@gondor.apana.org.au>
- <20250611035842.GB1484147@sol> <20250613053624.GA163131@sol>
- <aEu5cyDOMcKteW_b@gondor.apana.org.au> <20250613055439.GB163131@sol>
-In-Reply-To: <20250613055439.GB163131@sol>
-From: Ard Biesheuvel <ardb@kernel.org>
-Date: Fri, 13 Jun 2025 09:38:11 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXEDCRfCgvtuhRc+a=m1kVt-zkcCqi_=_WOFTmt4Hz2gGg@mail.gmail.com>
-X-Gm-Features: AX0GCFs24ZatfLP--3A0HdZVLkk0PxiYFRdOEZErG1-T31ygmhYk5yo9nxe3t44
-Message-ID: <CAMj1kXEDCRfCgvtuhRc+a=m1kVt-zkcCqi_=_WOFTmt4Hz2gGg@mail.gmail.com>
-Subject: Re: [PATCH 07/16] crypto: sha512 - replace sha512_generic with
- wrapper around SHA-512 library
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, 
-	Jason@zx2c4.com, torvalds@linux-foundation.org
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/6] mm: Lock kernel page tables before entering lazy MMU
+ mode
+Content-Language: en-GB
+To: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+ linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+ Hugh Dickins <hughd@google.com>, Nicholas Piggin <npiggin@gmail.com>,
+ Guenter Roeck <linux@roeck-us.net>, Juergen Gross <jgross@suse.com>,
+ Jeremy Fitzhardinge <jeremy@goop.org>
+References: <cover.1749747752.git.agordeev@linux.ibm.com>
+ <7bd3a45dbc375dc2c15cebae09cb2bb972d6039f.1749747752.git.agordeev@linux.ibm.com>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <7bd3a45dbc375dc2c15cebae09cb2bb972d6039f.1749747752.git.agordeev@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, 13 Jun 2025 at 07:55, Eric Biggers <ebiggers@kernel.org> wrote:
->
-> On Fri, Jun 13, 2025 at 01:38:59PM +0800, Herbert Xu wrote:
-> > On Thu, Jun 12, 2025 at 10:36:24PM -0700, Eric Biggers wrote:
-> > >
-> > > You do know that most of the sha512 asynchronous hash drivers use custom state
-> > > formats and not your new one, right?  So your code in ahash_do_req_chain() is
-> > > broken for most asynchronous hash drivers anyway.
-> >
-> > Every driver needs to be converted by hand.  Once a driver has
-> > been converted it'll be marked as block-only which activates
-> > the fallback path in ahash.
->
+On 12/06/2025 18:36, Alexander Gordeev wrote:
+> As a follow-up to commit 691ee97e1a9d ("mm: fix lazy mmu docs and
+> usage") take a step forward and protect with a lock not only user,
+> but also kernel mappings before entering the lazy MMU mode. With
+> that the semantics of arch_enter|leave_lazy_mmu_mode() callbacks
+> is consolidated, which allows further simplifications.
+> 
+> The effect of this consolidation is not fully preemptible (Real-Time)
+> kernels can not enter the context switch while the lazy MMU mode is
+> active - which is easier to comprehend.
+> 
+> Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+> ---
+>  include/linux/pgtable.h | 12 ++++++------
+>  mm/kasan/shadow.c       |  5 -----
+>  mm/memory.c             |  5 ++++-
+>  mm/vmalloc.c            |  6 ++++++
+>  4 files changed, 16 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+> index 0b6e1f781d86..33bf2b13c219 100644
+> --- a/include/linux/pgtable.h
+> +++ b/include/linux/pgtable.h
+> @@ -224,12 +224,12 @@ static inline int pmd_dirty(pmd_t pmd)
+>   * a raw PTE pointer after it has been modified are not guaranteed to be
+>   * up to date.
+>   *
+> - * In the general case, no lock is guaranteed to be held between entry and exit
+> - * of the lazy mode. So the implementation must assume preemption may be enabled
+> - * and cpu migration is possible; it must take steps to be robust against this.
+> - * (In practice, for user PTE updates, the appropriate page table lock(s) are
+> - * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
+> - * and the mode cannot be used in interrupt context.
+> + * For PREEMPT_RT kernels implementation must assume that preemption may
+> + * be enabled and cpu migration is possible between entry and exit of the
+> + * lazy MMU mode; it must take steps to be robust against this. There is
+> + * no such assumption for non-PREEMPT_RT kernels, since both kernel and
+> + * user page tables are protected with a spinlock while in lazy MMU mode.
+> + * Nesting is not permitted and the mode cannot be used in interrupt context.
 
-Perhaps I am just slow, but could you please explain again what the
-point is of all these changes?
+While I agree that spec for lazy mmu mode is not well defined, and welcome
+changes to clarify and unify the implementations across arches, I think this is
+a step in the wrong direction.
 
-Where is h/w accelerated ahash being used to the extent that it
-justifies changing all this existing code to accommodate it?
+First the major one: you are serializing kernel pgtable operations that don't
+need to be serialized. This, surely, can only lead to performance loss? vmalloc
+could previously (mostly) run in parallel; The only part that was serialized was
+the allocation of the VA space. Once that's done, operations on the VA space can
+be done in parallel because each is only operating on the area it allocated.
+With your change I think all pte operations are serialised with the single
+init_mm.page_table_lock.
+
+Additionally, some arches (inc arm64) use apply_to_page_range() to modify the
+permissions of regions of kernel VA space. Again, we used to be able to modify
+multiple regions in parallel, but you are now serializing this for no good reason.
+
+Secondly, the lazy mmu handler still needs to handle the
+preemption-while-in-lazy-mmu case because, as you mention, it can still be
+preempted for PREEMPT_RT kernels where the spin lock is converted to a sleepable
+lock.
+
+So I think the handler needs to either explicitly disable preemption (as powerpc
+and sparc do) or handle it by plugging into the arch-specific context switch
+code (as x86 does) or only maintain per-task state in the first place (as arm64
+does).
+
+Thanks,
+Ryan
+
+>   */
+>  #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+>  #define arch_enter_lazy_mmu_mode()	do {} while (0)
+> diff --git a/mm/kasan/shadow.c b/mm/kasan/shadow.c
+> index d2c70cd2afb1..45115bd770a9 100644
+> --- a/mm/kasan/shadow.c
+> +++ b/mm/kasan/shadow.c
+> @@ -313,12 +313,10 @@ static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+>  	__memset(page_to_virt(page), KASAN_VMALLOC_INVALID, PAGE_SIZE);
+>  	pte = pfn_pte(page_to_pfn(page), PAGE_KERNEL);
+>  
+> -	spin_lock(&init_mm.page_table_lock);
+>  	if (likely(pte_none(ptep_get(ptep)))) {
+>  		set_pte_at(&init_mm, addr, ptep, pte);
+>  		data->pages[index] = NULL;
+>  	}
+> -	spin_unlock(&init_mm.page_table_lock);
+>  
+>  	return 0;
+>  }
+> @@ -465,13 +463,10 @@ static int kasan_depopulate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+>  
+>  	page = (unsigned long)__va(pte_pfn(ptep_get(ptep)) << PAGE_SHIFT);
+>  
+> -	spin_lock(&init_mm.page_table_lock);
+> -
+>  	if (likely(!pte_none(ptep_get(ptep)))) {
+>  		pte_clear(&init_mm, addr, ptep);
+>  		free_page(page);
+>  	}
+> -	spin_unlock(&init_mm.page_table_lock);
+>  
+>  	return 0;
+>  }
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 71b3d3f98999..1ddc532b1f13 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -3017,6 +3017,7 @@ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+>  			pte = pte_offset_kernel(pmd, addr);
+>  		if (!pte)
+>  			return err;
+> +		spin_lock(&init_mm.page_table_lock);
+>  	} else {
+>  		if (create)
+>  			pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+> @@ -3042,7 +3043,9 @@ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+>  
+>  	arch_leave_lazy_mmu_mode();
+>  
+> -	if (mm != &init_mm)
+> +	if (mm == &init_mm)
+> +		spin_unlock(&init_mm.page_table_lock);
+> +	else
+>  		pte_unmap_unlock(mapped_pte, ptl);
+>  
+>  	*mask |= PGTBL_PTE_MODIFIED;
+> diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+> index ab986dd09b6a..57b11000ae36 100644
+> --- a/mm/vmalloc.c
+> +++ b/mm/vmalloc.c
+> @@ -105,6 +105,7 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+>  	if (!pte)
+>  		return -ENOMEM;
+>  
+> +	spin_lock(&init_mm.page_table_lock);
+>  	arch_enter_lazy_mmu_mode();
+>  
+>  	do {
+> @@ -132,6 +133,7 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+>  	} while (pte += PFN_DOWN(size), addr += size, addr != end);
+>  
+>  	arch_leave_lazy_mmu_mode();
+> +	spin_unlock(&init_mm.page_table_lock);
+>  	*mask |= PGTBL_PTE_MODIFIED;
+>  	return 0;
+>  }
+> @@ -359,6 +361,7 @@ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+>  	unsigned long size = PAGE_SIZE;
+>  
+>  	pte = pte_offset_kernel(pmd, addr);
+> +	spin_lock(&init_mm.page_table_lock);
+>  	arch_enter_lazy_mmu_mode();
+>  
+>  	do {
+> @@ -379,6 +382,7 @@ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+>  	} while (pte += (size >> PAGE_SHIFT), addr += size, addr != end);
+>  
+>  	arch_leave_lazy_mmu_mode();
+> +	spin_unlock(&init_mm.page_table_lock);
+>  	*mask |= PGTBL_PTE_MODIFIED;
+>  }
+>  
+> @@ -525,6 +529,7 @@ static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
+>  	if (!pte)
+>  		return -ENOMEM;
+>  
+> +	spin_lock(&init_mm.page_table_lock);
+>  	arch_enter_lazy_mmu_mode();
+>  
+>  	do {
+> @@ -542,6 +547,7 @@ static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
+>  	} while (pte++, addr += PAGE_SIZE, addr != end);
+>  
+>  	arch_leave_lazy_mmu_mode();
+> +	spin_unlock(&init_mm.page_table_lock);
+>  	*mask |= PGTBL_PTE_MODIFIED;
+>  	return 0;
+>  }
+
