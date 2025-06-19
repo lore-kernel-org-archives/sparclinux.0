@@ -1,212 +1,182 @@
-Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com [209.85.167.48])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1237220F55;
-	Thu, 19 Jun 2025 09:53:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C8E24DCFF
+	for <sparclinux@vger.kernel.org>; Thu, 19 Jun 2025 11:31:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750326825; cv=none; b=Bkp8ZFyeyllvvSvruSIbMs84hf7P/o8Xprbu7RWJBWXk1/v+EMJvJJ0Qit28Gc7GQt9u1Og5oVBwsEmQTsgRhgYd3zpFeLMTUfIajheM3h5r2DnF/+2PgY/n6x7V0OdcMPEGhU0sHIpHSFCaHc3EzrF0p05ezQLPWvVvfZ8UpKs=
+	t=1750332720; cv=none; b=Tp8mfBCc1s+1BscIz1WpuElbkmdSFGxccDrmndzAwXcXhJNGaUfGifh1F2bklypX7zu54Yzyvy0a7jiowQMkPdCu1HmIZlFfXtAVshRNVTBiPL8WMxehX2fANj16b1bGcEJzMsQQcgUhSLUqbGWqyW2vfdonVoUrWCTn01V8dEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750326825; c=relaxed/simple;
-	bh=aoabY3uN68FF/AqK9E73rIZP0Jr9EBrc7Uh6DHc60hk=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=W+aTwNOM2OYF4hva4/R06uhGVGr59rcfUx2v1aJZRv7Te/gaqXz7ytNA/IMrFPX0742/C7ZR0eBm7bpEpcxeYnyRY5NOoRjreYJ7E5FnX/vljFHeMf2C0mPEHr/igHYDfzRrx3huKJ6rDyfPmkza77te+L80pwe99mGrLxvDmpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zk3pzHla; arc=none smtp.client-ip=209.85.167.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zk3pzHla"
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-553b82f3767so509248e87.3;
-        Thu, 19 Jun 2025 02:53:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1750326822; x=1750931622; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=8lxye2GX1z6QI+SRVMkfZEngbWK9B27pd3eBJcWGrlg=;
-        b=Zk3pzHlaRLH5IoKNbeMJ5Zn9Te3qy0PdSP9NsfBOwuZ01ivJ7t1ehT16xDBRyalq2J
-         uVk/7lTowQxO4L07rh94RL5k6XZ+kL0FwCzyDru1lk/CsCB3UsSesx7VKCtUoUYpNP54
-         Ojq1tlHb5QMaZ5aCO8/G+V3DxCGss8SsboVurcD1CEqvMTcngOkAWcdtOstwoTH3ACVf
-         xoTJdPi9724J7Fs+LAPfe22CSSpAimUKWoKfgerREpuKy/yAeFPc1fMW7ft0BhOkdLrw
-         H/AbhLELPDKFy46nIGihhAxCVIbW1fniOynRiByM30j5lKfqX6I3y/zgkCYvn9isqQla
-         IDqw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750326822; x=1750931622;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8lxye2GX1z6QI+SRVMkfZEngbWK9B27pd3eBJcWGrlg=;
-        b=bkPoxd9sP/ofipb3d44FmrJsmR4iD6mPnzGrkRdXWYp3sdyCAfDTd9+kmvf7OKqOjh
-         5QThC8Af8sZNb2mIctjSjWfAuj09lBFJqNFDNPRIrYG+hB+ejNaNoOxG+UepV8kRIlRG
-         QVMFCqc2yUeq6u/Y9GoX+xzUfhfLE3I941H5mb722C8+jUxqSc8RmCZVoXubfpFNJFvr
-         +5pqoCagiCfjPMgn1IBiHaGWiROnYr/9B5z28z2td+3Jj8K6VEc7CcPDb4aL4bPtT1I1
-         nXrCBRE993vo4Q1KJkq+h4yyCpEh2XF/dB2nXQPwF3JTT9LgQfa10iIA23IRkoGbConp
-         Rc0Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVKrnKdv7XZiSyHSKmpy35dQ2espf1Lu0mUvkRsxpRodWz5ANEnAlSwjmINWlZAcZ0dMDl8Dbd2a1Ulx2E=@vger.kernel.org, AJvYcCW5FSDS8B2IRnstf2uI+ZUIfb1vgCYJUADl41ErF4lKpJUpRwtU6fNVMD4IUSqjLVto0n6AZNx2KUMV8w==@vger.kernel.org, AJvYcCWmevpONIsr2FYBLiI7RmXB+YUMPyOIErN4JZS5u2GIt0R+Zktwrmjt8RknYXozjpkQ5MFkZ8OE/mnUAQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzhmMWOrs+KCb+DqJFIehXACUkYUQRp81HJC0jcjLxwX8TmAijU
-	OsoKsXH++5simM6YY8jqbx5gs3v0U2sQIma45xIsOCoU+CdkSoRJ/0Ti
-X-Gm-Gg: ASbGnct15wNR1SPSXAjBGgpHoTGCq4zCpKju5/JShPTYRgoZrMo0uhD90PrwO5ZsfkR
-	XZ3ht0qQSrNC3JC9PyVItm2Zmo2dKY5dDcw9aJOpNGoeEvfloIOj0Jhqt7AevWhTkhfR/DTOtYr
-	2kFHA7liwa97YHgxX1f1Ype3SeQ9RLk/BZQ9sW2yFOJBseK0QF4URUEhfYh6ZY+UnQmFVmaeDkC
-	06o+jATAEhkR7o3IeNLxVIX/GV6beNdKsLsrzos3Xy992P9dV85V5np8wQRjsD/v8B/+ro8Nvtw
-	JJzZ2gxYQgCbgnjK8DNdmQVBJ1zyC5PrQ6Fuozp6lYWSN5hDDD5yxOXAGkaNrJKJjr5zAu/uk7u
-	VuFR/SVsrxXM=
-X-Google-Smtp-Source: AGHT+IEJV7RqZa9E1nD948cD6oSgemriE8btKJowGkw8tp48NbrB1jrcDoGclBvee7YrwcLZgS368g==
-X-Received: by 2002:a05:6512:1049:b0:553:1f90:cca4 with SMTP id 2adb3069b0e04-553b6e74ae6mr5656846e87.13.1750326821436;
-        Thu, 19 Jun 2025 02:53:41 -0700 (PDT)
-Received: from pc636 (host-95-203-1-180.mobileonline.telia.com. [95.203.1.180])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-553ac1367e9sm2541889e87.79.2025.06.19.02.53.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Jun 2025 02:53:41 -0700 (PDT)
-From: Uladzislau Rezki <urezki@gmail.com>
-X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
-Date: Thu, 19 Jun 2025 11:53:38 +0200
-To: Dan Carpenter <dan.carpenter@linaro.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Cc: oe-kbuild@lists.linux.dev, Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>, lkp@intel.com,
-	oe-kbuild-all@lists.linux.dev,
-	Linux Memory Management List <linux-mm@kvack.org>,
-	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-	xen-devel@lists.xenproject.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, Hugh Dickins <hughd@google.com>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Guenter Roeck <linux@roeck-us.net>, Juergen Gross <jgross@suse.com>,
-	Jeremy Fitzhardinge <jeremy@goop.org>,
-	Ryan Roberts <ryan.roberts@arm.com>
-Subject: Re: [PATCH 2/6] mm: Lock kernel page tables before entering lazy MMU
- mode
-Message-ID: <aFPeIisE3ufUGEUq@pc636>
-References: <7bd3a45dbc375dc2c15cebae09cb2bb972d6039f.1749747752.git.agordeev@linux.ibm.com>
- <0be7d42e-5898-4b94-829b-59c661c2f07b@suswa.mountain>
+	s=arc-20240116; t=1750332720; c=relaxed/simple;
+	bh=3MPrInjo3388gIKmhUGr9uGPORntDZqz8a3nFubP/rA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=B0iydBKVf7Bm90rESnkpcb0eqvJJGvQ8xte3Vqwug8evLxlkKY0e8zeXR9G6LRVuFSDQ9z/aWuWExchp3Gbh/JTeksKcwC2ZsaRSDLwV6+mO4EbfQxx7BupDReqplIgu6dloDeiNNa/Gs2r7iu21wU6VisQvL3JAObWLwlFtkcU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 0C0761F38D;
+	Thu, 19 Jun 2025 11:31:51 +0000 (UTC)
+Authentication-Results: smtp-out2.suse.de;
+	none
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8F9E913721;
+	Thu, 19 Jun 2025 11:31:50 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id SfepIib1U2htbAAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Thu, 19 Jun 2025 11:31:50 +0000
+Message-ID: <fad65354-804e-447f-9779-2c69a87f3e4d@suse.cz>
+Date: Thu, 19 Jun 2025 13:31:50 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0be7d42e-5898-4b94-829b-59c661c2f07b@suswa.mountain>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
+ argument
+Content-Language: en-US
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Russell King <linux@armlinux.org.uk>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "David S . Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Jarkko Sakkinen <jarkko@kernel.org>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+ Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+ David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>, Nico Pache
+ <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Hugh Dickins <hughd@google.com>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry.yoo@oracle.com>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Steven Rostedt <rostedt@goodmis.org>,
+ Masami Hiramatsu <mhiramat@kernel.org>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <zhengqi.arch@bytedance.com>,
+ Shakeel Butt <shakeel.butt@linux.dev>, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ kvm@vger.kernel.org, sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ linux-trace-kernel@vger.kernel.org
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+From: Vlastimil Babka <vbabka@suse.cz>
+Autocrypt: addr=vbabka@suse.cz; keydata=
+ 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
+ m6M14QORSWTLRg==
+In-Reply-To: <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	REPLY(-4.00)[]
+X-Rspamd-Queue-Id: 0C0761F38D
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Rspamd-Action: no action
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Score: -4.00
 
-On Wed, Jun 18, 2025 at 08:32:28PM +0300, Dan Carpenter wrote:
-> Hi Alexander,
+On 6/18/25 21:42, Lorenzo Stoakes wrote:
+> We abstract the type of the VMA flags to vm_flags_t, however in may places
+> it is simply assumed this is unsigned long, which is simply incorrect.
 > 
-> kernel test robot noticed the following build warnings:
+> At the moment this is simply an incongruity, however in future we plan to
+> change this type and therefore this change is a critical requirement for
+> doing so.
 > 
-> url:    https://github.com/intel-lab-lkp/linux/commits/Alexander-Gordeev/mm-Cleanup-apply_to_pte_range-routine/20250613-013835
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-everything
-> patch link:    https://lore.kernel.org/r/7bd3a45dbc375dc2c15cebae09cb2bb972d6039f.1749747752.git.agordeev%40linux.ibm.com
-> patch subject: [PATCH 2/6] mm: Lock kernel page tables before entering lazy MMU mode
-> config: x86_64-randconfig-161-20250613 (https://download.01.org/0day-ci/archive/20250613/202506132017.T1l1l6ME-lkp@intel.com/config)
-> compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+> Overall, this patch does not introduce any functional change.
 > 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-> | Closes: https://lore.kernel.org/r/202506132017.T1l1l6ME-lkp@intel.com/
-> 
-> smatch warnings:
-> mm/vmalloc.c:552 vmap_pages_pte_range() warn: inconsistent returns 'global &init_mm.page_table_lock'.
-> 
-> vim +552 mm/vmalloc.c
-> 
-> 0a264884046f1ab Nicholas Piggin   2021-04-29  517  static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
-> 2ba3e6947aed9bb Joerg Roedel      2020-06-01  518  		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
-> 2ba3e6947aed9bb Joerg Roedel      2020-06-01  519  		pgtbl_mod_mask *mask)
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  520  {
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  521  	pte_t *pte;
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  522  
-> db64fe02258f150 Nicholas Piggin   2008-10-18  523  	/*
-> db64fe02258f150 Nicholas Piggin   2008-10-18  524  	 * nr is a running index into the array which helps higher level
-> db64fe02258f150 Nicholas Piggin   2008-10-18  525  	 * callers keep track of where we're up to.
-> db64fe02258f150 Nicholas Piggin   2008-10-18  526  	 */
-> db64fe02258f150 Nicholas Piggin   2008-10-18  527  
-> 2ba3e6947aed9bb Joerg Roedel      2020-06-01  528  	pte = pte_alloc_kernel_track(pmd, addr, mask);
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  529  	if (!pte)
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  530  		return -ENOMEM;
-> 44562c71e2cfc9e Ryan Roberts      2025-04-22  531  
-> dac0cc793368851 Alexander Gordeev 2025-06-12  532  	spin_lock(&init_mm.page_table_lock);
-> 44562c71e2cfc9e Ryan Roberts      2025-04-22  533  	arch_enter_lazy_mmu_mode();
-> 44562c71e2cfc9e Ryan Roberts      2025-04-22  534  
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  535  	do {
-> db64fe02258f150 Nicholas Piggin   2008-10-18  536  		struct page *page = pages[*nr];
-> db64fe02258f150 Nicholas Piggin   2008-10-18  537  
-> c33c794828f2121 Ryan Roberts      2023-06-12  538  		if (WARN_ON(!pte_none(ptep_get(pte))))
-> db64fe02258f150 Nicholas Piggin   2008-10-18  539  			return -EBUSY;
-> db64fe02258f150 Nicholas Piggin   2008-10-18  540  		if (WARN_ON(!page))
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  541  			return -ENOMEM;
-> 4fcdcc12915c707 Yury Norov        2022-04-28  542  		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
-> 4fcdcc12915c707 Yury Norov        2022-04-28  543  			return -EINVAL;
-> 
-> These error paths don't unlock &init_mm.page_table_lock?
-> 
-> 4fcdcc12915c707 Yury Norov        2022-04-28  544  
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  545  		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
-> db64fe02258f150 Nicholas Piggin   2008-10-18  546  		(*nr)++;
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  547  	} while (pte++, addr += PAGE_SIZE, addr != end);
-> 44562c71e2cfc9e Ryan Roberts      2025-04-22  548  
-> 44562c71e2cfc9e Ryan Roberts      2025-04-22  549  	arch_leave_lazy_mmu_mode();
-> dac0cc793368851 Alexander Gordeev 2025-06-12  550  	spin_unlock(&init_mm.page_table_lock);
-> 2ba3e6947aed9bb Joerg Roedel      2020-06-01  551  	*mask |= PGTBL_PTE_MODIFIED;
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16 @552  	return 0;
-> ^1da177e4c3f415 Linus Torvalds    2005-04-16  553  }
-> 
-> -- 
-> 0-DAY CI Kernel Test Service
-> https://github.com/intel/lkp-tests/wiki
-> 
-> 
-This patch introduce a huge performance degrade when testing this by
-the test_vmalloc.sh performance tool. We return back to a single, not
-serialized global spilock where we spend 90% of cycles:
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-<snip>
-+   91.01%     1.67%  [kernel]          [k] _raw_spin_lock
--   89.29%    89.25%  [kernel]          [k] native_queued_spin_lock_slowpath
-     69.82% ret_from_fork_asm
-      - ret_from_fork
-         - 69.81% kthread
-            - 69.66% test_func
-               - 26.31% full_fit_alloc_test
-                  - 19.11% __vmalloc_node_noprof
-                     - __vmalloc_node_range_noprof
-                        - 13.73% vmap_small_pages_range_noflush
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-                        - 5.38% __get_vm_area_node
-                             alloc_vmap_area
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-                  - 13.32% vfree.part.0
-                     - 13.31% remove_vm_area
-                        - 13.27% __vunmap_range_noflush
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-               - 25.57% fix_size_alloc_test
-                  - 22.59% __vmalloc_node_noprof
-                     - __vmalloc_node_range_noprof
-                        - 17.34% vmap_small_pages_range_noflush
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-                        - 5.25% __get_vm_area_node
-                             alloc_vmap_area
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-                  - 11.59% vfree.part.0
-                     - remove_vm_area
-                        - 11.55% __vunmap_range_noflush
-                             _raw_spin_lock
-                             native_queued_spin_lock_slowpath
-               - 17.78% long_busy_list_alloc_test
-                  - 13.90% __vmalloc_node_noprof
-                     - __vmalloc_node_range_noprof
-                        - 9.95% vmap_small_pages_range_noflush
-                             _raw_spin_lock
-<snip>
+> diff --git a/arch/powerpc/include/asm/book3s/64/pkeys.h b/arch/powerpc/include/asm/book3s/64/pkeys.h
+> index 5b178139f3c0..6f2075636591 100644
+> --- a/arch/powerpc/include/asm/book3s/64/pkeys.h
+> +++ b/arch/powerpc/include/asm/book3s/64/pkeys.h
+> @@ -4,8 +4,9 @@
+>  #define _ASM_POWERPC_BOOK3S_64_PKEYS_H
+>  
+>  #include <asm/book3s/64/hash-pkey.h>
+> +#include <linux/mm_types.h>
 
-No, we can not take this patch.
+Hopefully not causing a circular header include.
 
---
-Uladzislau Rezki
+> -static inline u64 vmflag_to_pte_pkey_bits(u64 vm_flags)
+> +static inline u64 vmflag_to_pte_pkey_bits(vm_flags_t vm_flags)
+
+Is this change rather for patch 3? It's not changing vm_get_page_prot().
+OTOH git grep shows me you missed:
+
+arch/powerpc/mm/book3s64/pgtable.c:pgprot_t vm_get_page_prot(unsigned long
+vm_flags)
+
+With that sorted out, feel free to add:
+
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+
+Thanks!
