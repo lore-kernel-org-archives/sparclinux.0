@@ -1,83 +1,159 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D533B28E572;
-	Thu, 19 Jun 2025 19:22:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B97A2E3B10
+	for <sparclinux@vger.kernel.org>; Fri, 20 Jun 2025 18:31:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750360931; cv=none; b=pQspgrUG3RLq/xukBMNSfU7rN2BOGBErv6hEn1BPmRE3X8UXi0lvHDXorkKYfqYHMvLyPyNBQLu3E6X7wwONINRWJYH6s0ptB1X9RePswvnpXT3qA6cZM1GFHINRWwFP2QwhJ9eRomEIvU+y3iVxVKiAynGmKrKxx4YaS7OOPJw=
+	t=1750444277; cv=none; b=QTa7M/63+u/eTTloCqEDLF7825Ayl+3Xo3idvEi7TdEn4UykqDxJgZnwxrG7KW2/Ni8wuF8p67wVnAoP+rCBOGSl7NVbY7eYrxx7fcTyjWTv9VQ4Iutkp71geumKAr7Ol/tgFb1ycMBWSks9ie2tvX39+BTm+X+uxM96gS0ps0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750360931; c=relaxed/simple;
-	bh=TvyRRr0Q9p57RHCbNRzLmr80cK6DSzs3Te1JHJiic8A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bfnEuOn0kGYIxyjs27J1SJiHzuKekYSMUCy5dhndePPRUGHgIQrW5n8F5XGpmM5MT18pVzN6TIr3dBghhG8XlXZDEnGYQ+cPBmDyQrlPdis1+taLwNF8kT3K7x3ljNBkCqSbFCybp9SzWAcggkpvu+Pk6fw48nJBGgkDdGb9qTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gsWHI6uC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750444277; c=relaxed/simple;
+	bh=ad8vsSAm+A1358ro5HG+HW/KxeIAxNbEZgK7hOb00Nw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y1cWAyKt0ZaVzjErDnbaF6f6N0aE8u8Vep3FFkpGHxA+JTER4yq3QFYHOlAdhR9hKsQSx7xUH5CPWeeK1WRt9KXzjI4mofCpaoMomnnyNiWigxF5zqF2d8+VNRnSikij4iaf3sbm4miRXsdRptHZkOvDhO/7RCgIuzDieNqFHEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FeUhZIrL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=UpOOBQAm; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FeUhZIrL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=UpOOBQAm; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gsWHI6uC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A7F8C4CEEA;
-	Thu, 19 Jun 2025 19:22:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750360930;
-	bh=TvyRRr0Q9p57RHCbNRzLmr80cK6DSzs3Te1JHJiic8A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gsWHI6uCzGtgTFS0+9VVGWSKxIlVRoAXr7ncQjaX5JwXgHpNeTiXfuOdhYkgBgHlJ
-	 YQL+IwHGvkSc1iwP/qogzJwScgBGmtDDqgVmXHbv1uR/qUAz+wTmjf+9RfsQ9xDMXt
-	 cx09P6ml5LT5uoXwPMu9X1MNzCP//2MHKBcUUMASgM0/fV4ggydLqclno7rm2SDVnv
-	 ONIUBY64Njs+//9An/TZjwOxs648bB/vuUO+DLFNNZV/7HJSplry+6xHCOjC37RY1I
-	 BLeB2leI6kKtRZ0xNTVxiSLCJo6HP4VbBMk/fOsC2kXM/UVnKAzfqEAO22jUF5/WYU
-	 gM0TVdi6sVQnQ==
-From: Eric Biggers <ebiggers@kernel.org>
-To: linux-crypto@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	"Jason A . Donenfeld " <Jason@zx2c4.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org
-Subject: [PATCH v2 9/9] MAINTAINERS: drop arch/*/lib/crypto/ pattern
-Date: Thu, 19 Jun 2025 12:19:08 -0700
-Message-ID: <20250619191908.134235-10-ebiggers@kernel.org>
-X-Mailer: git-send-email 2.50.0
-In-Reply-To: <20250619191908.134235-1-ebiggers@kernel.org>
-References: <20250619191908.134235-1-ebiggers@kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FeUhZIrL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="UpOOBQAm";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FeUhZIrL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="UpOOBQAm"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id A1D172122A;
+	Fri, 20 Jun 2025 18:31:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1750444272; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qmVG12TKwc2QVW0G8ian8AtN9mnqlZh4WCEqhc8pLTY=;
+	b=FeUhZIrLYm4/o8S8eNa53r7vMhoRAGFZLex3j4P4J6P9AZkL45f+IeQQIeeaiug+ZzRNFG
+	hARXJHANDh34/IjopPPX5I/xdKap8H63G8FhHa/3gDH6eeKztqNporF0VCesY+e0CanTA5
+	51aYl4AdOBArxDE3UjQRoagrNSvGRVg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1750444272;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qmVG12TKwc2QVW0G8ian8AtN9mnqlZh4WCEqhc8pLTY=;
+	b=UpOOBQAmFBCtjEINkxipWx6NT/FVaqv9UBV56UH2PdyRFK1+D8Q4qnl2CvuUL/i+Ynj3b+
+	2x9kYcDlaPYsWpDw==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1750444272; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qmVG12TKwc2QVW0G8ian8AtN9mnqlZh4WCEqhc8pLTY=;
+	b=FeUhZIrLYm4/o8S8eNa53r7vMhoRAGFZLex3j4P4J6P9AZkL45f+IeQQIeeaiug+ZzRNFG
+	hARXJHANDh34/IjopPPX5I/xdKap8H63G8FhHa/3gDH6eeKztqNporF0VCesY+e0CanTA5
+	51aYl4AdOBArxDE3UjQRoagrNSvGRVg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1750444272;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qmVG12TKwc2QVW0G8ian8AtN9mnqlZh4WCEqhc8pLTY=;
+	b=UpOOBQAmFBCtjEINkxipWx6NT/FVaqv9UBV56UH2PdyRFK1+D8Q4qnl2CvuUL/i+Ynj3b+
+	2x9kYcDlaPYsWpDw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1B93313736;
+	Fri, 20 Jun 2025 18:31:09 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id c8qtA+2oVWgNEwAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Fri, 20 Jun 2025 18:31:09 +0000
+Date: Fri, 20 Jun 2025 19:31:07 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, "David S . Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Jarkko Sakkinen <jarkko@kernel.org>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	"H . Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, 
+	Peter Zijlstra <peterz@infradead.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Kees Cook <kees@kernel.org>, 
+	Peter Xu <peterx@redhat.com>, David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R . Howlett" <Liam.Howlett@oracle.com>, 
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Xu Xin <xu.xin16@zte.com.cn>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Hugh Dickins <hughd@google.com>, 
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>, 
+	Harry Yoo <harry.yoo@oracle.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>, 
+	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <zhengqi.arch@bytedance.com>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
+ argument
+Message-ID: <drycqgdeh73cfghcovl3ujiaxcbmgrat73sf3aqtyanvoahrij@umib45jrz5qa>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	RCPT_COUNT_GT_50(0.00)[64];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,arm.com,kernel.org,linux.ibm.com,ellerman.id.au,gmail.com,csgroup.eu,davemloft.net,gaisler.com,linux.intel.com,linutronix.de,redhat.com,alien8.de,zytor.com,infradead.org,zeniv.linux.org.uk,suse.cz,nvidia.com,linux.alibaba.com,oracle.com,zte.com.cn,linux.dev,google.com,suse.com,surriel.com,intel.com,goodmis.org,efficios.com,ziepe.ca,suse.de,cmpxchg.org,bytedance.com,lists.infradead.org,vger.kernel.org,lists.ozlabs.org,kvack.org,lists.linux.dev];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[oracle.com:email,suse.de:email]
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: -3.80
 
-From: Eric Biggers <ebiggers@google.com>
+On Wed, Jun 18, 2025 at 08:42:52PM +0100, Lorenzo Stoakes wrote:
+> We abstract the type of the VMA flags to vm_flags_t, however in may places
+> it is simply assumed this is unsigned long, which is simply incorrect.
+> 
+> At the moment this is simply an incongruity, however in future we plan to
+> change this type and therefore this change is a critical requirement for
+> doing so.
+> 
+> Overall, this patch does not introduce any functional change.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-Since all files arch/*/lib/crypto/* have been moved into lib/crypto/,
-remove the arch/*/lib/crypto/ file pattern from MAINTAINERS.
+Nice little cleanup, thanks!
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
----
- MAINTAINERS | 1 -
- 1 file changed, 1 deletion(-)
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a92290fffa163..8ca374b24a806 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6408,11 +6408,10 @@ M:	Jason A. Donenfeld <Jason@zx2c4.com>
- M:	Ard Biesheuvel <ardb@kernel.org>
- L:	linux-crypto@vger.kernel.org
- S:	Maintained
- T:	git https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git libcrypto-next
- T:	git https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git libcrypto-fixes
--F:	arch/*/lib/crypto/
- F:	lib/crypto/
- 
- CRYPTO SPEED TEST COMPARE
- M:	Wang Jinchao <wangjinchao@xfusion.com>
- L:	linux-crypto@vger.kernel.org
 -- 
-2.50.0
-
+Pedro
