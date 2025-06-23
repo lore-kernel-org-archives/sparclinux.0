@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7891D2550D3
-	for <sparclinux@vger.kernel.org>; Mon, 23 Jun 2025 14:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66F478F20
+	for <sparclinux@vger.kernel.org>; Mon, 23 Jun 2025 14:17:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750688227; cv=none; b=b5r+SaTe9alDbGfEYKCf6iwo3cR0sXfOF5oShCr7y3lb0O+sbIQMz7krGdKkuGnoDQkkdLXbJOKeiT9LoTgl0HEYC9lzKztIYkN5yWYkHATKnMWBz5GddPnSHi73r1LF1s/VaJ9LQaS9jn+4dzfzj6G2iiWIRsVLPcXvp+ef2S0=
+	t=1750688276; cv=none; b=lxNPuzJv0k5HQhjQUH3IuecEU7mL4nSUot4fE3l7MCYx2hbK9EWT7EQ9vpVWS72l/6Ds/qpgO3fh6atJdJ2uYg90Y6jvsvFGik44N7ITGcfUoyiULGxAv/nvVtCp68fa1mSNhLwpcjN2FWNSenJXDBpHCNYgwm0znxQ/yBmxFZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750688227; c=relaxed/simple;
-	bh=cFKZeL+hYNuWQhIXij5F912cJ1wz6SXdUpucQjuTNnA=;
+	s=arc-20240116; t=1750688276; c=relaxed/simple;
+	bh=y9FLq6e7Df41x768C3DaE7ioc295ESzZDb/ud7F+0J8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ZMubcpN96jiAOIWBpD05pYNZaRRx3EzJIil4mXSf4/NVYeer4CKD70dF9k+HUuy0n8luEWVPCuzdUCVTqDEIQBvHf5rOi7r0ZDPUJfb4OBPOvZ7hm4Qmdb0TuEBizQWVueeoL0FaGGETYlHLMpxQzseiWXaBBSpVGlCeDsh5FzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AN3RbZAY; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=lF9pc/bVyq7CU1KOBFoGUVrURe8XZHivyMCjwaCqicHK52DnEN9UWUlisVAPp6TPvRkTXD7YswdhCa3Q6kRamSB1EVoUmeWpTXYm4terr/gBrMWTHWE3E/EiS5rLFT/bf4jMjfIXfE1xL5Nea2o06FeZHlUrm+S2Ms4WiI8prvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=gz2WrE8Z; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AN3RbZAY"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gz2WrE8Z"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750688224;
+	s=mimecast20190719; t=1750688273;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=h8Olqgg5wM7szEFmj8uTM5sjPX8xuFrJrmZyG5BlKBM=;
-	b=AN3RbZAYYyClVirg6fVYBRUu1j/4xGKIOYXAwAQovliShcGmEEotEOCT0/IqA+RU9r8KG+
-	R0Nhv3/iJFZPdVk8wbC8pjKdYZypThgCvJrDJFI58ajXNpS13VRIyIxf+1hdtLFJDJiM0L
-	EvTWj3rFBA6sp0/mabR2rVgetVzTeX8=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=AT6z0J+Z7BRb7a4a/ZOwq8sPn4rNW6on998iWVe3KsU=;
+	b=gz2WrE8ZQlyWY9i0qziyrr5pihC8kPY32CtYWuW03wSWbVnrf9H/nPpbgcGbZtDKxCpzcn
+	gjNbIJ/Q+lVbuapcf3sZB6v6eOM4Qu3z6OgzfA+hJ08xqBTfRc3g+L52BLzCMdY8cItMfY
+	puNCBnZjszVQJqJf60q4av/4cvuGvq0=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-677-hPGFgo00Ole56czi4hB_rg-1; Mon, 23 Jun 2025 10:17:03 -0400
-X-MC-Unique: hPGFgo00Ole56czi4hB_rg-1
-X-Mimecast-MFC-AGG-ID: hPGFgo00Ole56czi4hB_rg_1750688222
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3a5058f9ef4so1598807f8f.2
-        for <sparclinux@vger.kernel.org>; Mon, 23 Jun 2025 07:17:02 -0700 (PDT)
+ us-mta-279-Ke-i2dTmMv67DgVo3gJC4g-1; Mon, 23 Jun 2025 10:17:52 -0400
+X-MC-Unique: Ke-i2dTmMv67DgVo3gJC4g-1
+X-Mimecast-MFC-AGG-ID: Ke-i2dTmMv67DgVo3gJC4g_1750688271
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-450de98b28eso23595905e9.0
+        for <sparclinux@vger.kernel.org>; Mon, 23 Jun 2025 07:17:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750688222; x=1751293022;
+        d=1e100.net; s=20230601; t=1750688271; x=1751293071;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=h8Olqgg5wM7szEFmj8uTM5sjPX8xuFrJrmZyG5BlKBM=;
-        b=O/HYD8LsbUR07eCwYguETcHrk3zndD5Uf5mGMjEVLDNV2x66MAGd3p6K1BsunEmU34
-         4qYPiwWycCRVVA7xsaPgE+Amfn0XGXsl7C3b7+9iYpJKBHSmyuYvUK3ZiK627Xh3ZK4g
-         JYcU3InmMfddDqEFx3pKrnmz4ZnvuXJwCprCgEjKlfVv2z65JEYCxUzH2UCWtK9y3fu3
-         +DP8rSknEpNdc7efiojSNM4pJFZl4E/REuLskiQsrfsz+WCZYM98rI/XZia1/YB8fy5P
-         9ZO6uhEB5CKRv+zLrL+gSLh/VACJQuwc7zoO0bLQKKG3mNNd6KQpNoZ3uRoRMAvh3jr7
-         7RVw==
-X-Forwarded-Encrypted: i=1; AJvYcCUf3Ox8Oe1eyLE6smTZV2tOo3ETK+vgDCxhdu4hIzy3Z0sxswFufLy5rHXdhhgxFXDpjgCMTuWLNKh5@vger.kernel.org
-X-Gm-Message-State: AOJu0YzTdHjJVfAb2l3n9IDi+qJ29k6oGAVBNHp/kz75BELbONxzsqR6
-	ukeGxF7Au/jZpaAyL5fIwqxK5i7TRvWolqv5eiLQ9hWVHM23FW4XYed1q7t1MPUOEo9h0F+8sIZ
-	3zYKne7VYGQM+1NC2qOxKcF7Gg1zcNagq3jgiR18yl8C9npj0sMskG5hnpUyW588=
-X-Gm-Gg: ASbGnctqAef/FZagdXioeso93RNOq7j0r67NjtDt/r/wdB/PqVFMGLrkPCKEH9P+VSx
-	U/d6yck0Uumwu0h6hYhGeBoOkgrP7ZzFMLKxqP4ex6jr4xj5wyj9jZ/ImEjjTntRbgXqZLYNlFs
-	JlYLNnQHs6HBNf8OjaBXEjSV3ALD8Kn8gR/yAC1Ml9BZ4xTQkPdty5VAZOo+ZjI9Kw/GmUfsvET
-	cdqMgDHkXCrZ+I0YSnPQYOr+tPEhI2DwD70Iw9LXBfBGKGtsquQRDuBd+Ft4pBpgkF45hCGDafu
-	Is2qkyaG3fJZp8fztvENPzAlSyD2dbVeJqVtb9GaMYEvEwI2WFlOONo89xQLRd2ORzFZrEQ+WLw
-	E18WP0o+lye6N86RKtMkkpjN/ec8m1KURlKpGkVxnOjWfxrnIxA==
-X-Received: by 2002:a5d:5f87:0:b0:3a3:67bb:8f3f with SMTP id ffacd0b85a97d-3a6d12eb182mr10399937f8f.53.1750688221711;
-        Mon, 23 Jun 2025 07:17:01 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE8dR6X7fHQaI9fQSh9DO1Tx6U+p+mGsBYH7hTQ0+BF5CKnFOIsqhzs0NiVKWgUUywR+JX//A==
-X-Received: by 2002:a5d:5f87:0:b0:3a3:67bb:8f3f with SMTP id ffacd0b85a97d-3a6d12eb182mr10399861f8f.53.1750688221154;
-        Mon, 23 Jun 2025 07:17:01 -0700 (PDT)
+        bh=AT6z0J+Z7BRb7a4a/ZOwq8sPn4rNW6on998iWVe3KsU=;
+        b=RZsVoBEST/y3T09D8eOYHQMImT8yLrLp59T7NiJx9ye1rP9yt1fuquh+6eXf8JM9Zm
+         5JbioMZd4Q2Xj1XLdVhV1VA14qO+c5D0vSqm/RhOQ+8PiGOuDmwOqB6kr5yd2/wQ9Quu
+         /GeTycsi/FGQNVhiD+OvP0fvWyY1B9ixQz4YF64zLc23whWvjywfXQwUSVMUHTvw6KEJ
+         Nsb9RqQ+IEOgoBo2wiNjcaHBJuYJkD1XRrgGpwRAFXLbdv/1jQZe3waBTvIwY74FCxcV
+         3c1/bqdC6xNGtAw7t2a0UeEouju1bkfNFweT4vXgXHJ6QYhzWWgPyCFxdYvI06/c7hua
+         D63Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUxeZc2bipYzRphSNL5rvunnYA6vKvuIqVXP9PJ1n9Bbn6R1riyIzv+1PvJ74wmR0LrHylkfTQOcGBG@vger.kernel.org
+X-Gm-Message-State: AOJu0Yydx4NURY0uBRikQy0d/epLCC2In2Th73fbWqeWVLmNrhKeKFhP
+	CGX0snmx9DDTbX99YfsBwlDZUHUrdhNEnorxg6Z8qCN3Oo5ODPhv/usC9o//kmp3UNUgYAsOhcA
+	P4/bSdmuAcWIcl4zzLPTm8lSaaiSOtDFDW0UASeIqS8X3t0AJTaAhuLjVK3JduRY=
+X-Gm-Gg: ASbGncurJifSnW98LpAZShLXve36fq5gJ+1+2LgwyAXRH6VGc+QiwFKJjQ4sto9TU4E
+	YaBV+4RM+ziTBPTLZj3c9WwbaDrACnLZQ0JlVdkHvSuXEszgh7cgVZ3TP7jgUY3oAuIbfYYa3OI
+	vb80ZAbZL+HlNBcu/5HM5Ci4nqT8ktToExv9oVMblVVDPTA7l869uwL6SZvPIaKJeC4WD+zJ/TP
+	HgjR5dtCo9leaSIFogzf+p1zP8hIbnpB4M/EA8MoaFef/K0cOBC7f4I1CyK/IObCRyCn77uMPix
+	0mlGCizfCFVqPEvbErBOWayuKPWPi2oGlENVVGaFF+RcBvo1GUsSaCPPlp3ZJIskrtZgb5bBew4
+	d9hWp8F+4ZlnAuZwEmQvgPHmcK4zgXFn//kOfd0LeOKBnSbfRlg==
+X-Received: by 2002:a05:6000:2913:b0:3a4:d685:3de7 with SMTP id ffacd0b85a97d-3a6d2799e03mr8524067f8f.8.1750688270974;
+        Mon, 23 Jun 2025 07:17:50 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGVEYbdHympic4C845xjbGIaDAfJ4O6TUpDQzaRepXXtAy+1Ld3k5fQBQt9u4TU2HYvxvW5QQ==
+X-Received: by 2002:a05:6000:2913:b0:3a4:d685:3de7 with SMTP id ffacd0b85a97d-3a6d2799e03mr8524018f8f.8.1750688270392;
+        Mon, 23 Jun 2025 07:17:50 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159? (p200300d82f4efd008e13e3b590c81159.dip0.t-ipconnect.de. [2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4535e97a908sm145737335e9.4.2025.06.23.07.16.57
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4535eac8bb6sm147000545e9.25.2025.06.23.07.17.46
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Jun 2025 07:17:00 -0700 (PDT)
-Message-ID: <702c58b1-7b07-4cc9-a5b3-8d3f33aba02b@redhat.com>
-Date: Mon, 23 Jun 2025 16:16:56 +0200
+        Mon, 23 Jun 2025 07:17:49 -0700 (PDT)
+Message-ID: <18ef9a51-c029-40a8-b9e4-60c46c83ccef@redhat.com>
+Date: Mon, 23 Jun 2025 16:17:46 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,8 +75,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
- argument
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Andrew Morton <akpm@linux-foundation.org>
 Cc: Russell King <linux@armlinux.org.uk>,
@@ -115,8 +115,7 @@ Cc: Russell King <linux@armlinux.org.uk>,
  linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
  linux-trace-kernel@vger.kernel.org
 References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
- <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
- <552f88e1-2df8-4e95-92b8-812f7c8db829@lucifer.local>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -164,31 +163,34 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <552f88e1-2df8-4e95-92b8-812f7c8db829@lucifer.local>
+In-Reply-To: <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 19.06.25 14:25, Lorenzo Stoakes wrote:
-> Hi Andrew,
+On 18.06.25 21:42, Lorenzo Stoakes wrote:
+> The core kernel code is currently very inconsistent in its use of
+> vm_flags_t vs. unsigned long. This prevents us from changing the type of
+> vm_flags_t in the future and is simply not correct, so correct this.
 > 
-> I enclose a quick fix-patch to address a case I missed and to avoid any risk of
-> circular dependency in a header include.
+> While this results in rather a lot of churn, it is a critical pre-requisite
+> for a future planned change to VMA flag type.
 > 
-> Thanks to Vlastimil and Oscar for spotting this! :)
+> Additionally, update VMA userland tests to account for the changes.
 > 
-> Cheers, Lorenzo
+> To make review easier and to break things into smaller parts, driver and
+> architecture-specific changes is left for a subsequent commit.
 > 
-> ----8<----
->  From d66fe0b934098ccc2ba45f739277fffe86c91442 Mon Sep 17 00:00:00 2001
-> From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> Date: Thu, 19 Jun 2025 13:21:15 +0100
-> Subject: [PATCH] mm: add missing vm_get_page_prot() instance, remove include
+> The code has been adjusted to cascade the changes across all calling code
+> as far as is needed.
 > 
-> I missed a case for powerpc, also remove #include (that is not in practice
-> necessary) to avoid any risk of circular dependency.
+> We will adjust architecture-specific and driver code in a subsequent patch.
+> 
+> Overall, this patch does not introduce any functional change.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 > ---
+
+Probably some cases might sneak in in the meantime :)
 
 Acked-by: David Hildenbrand <david@redhat.com>
 
