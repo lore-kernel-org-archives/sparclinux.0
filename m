@@ -1,135 +1,100 @@
-Received: from fhigh-b3-smtp.messagingengine.com (fhigh-b3-smtp.messagingengine.com [202.12.124.154])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14BD91E2858;
-	Mon, 30 Jun 2025 10:03:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.154
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D4BA84A2B;
+	Mon, 30 Jun 2025 10:45:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751277783; cv=none; b=mLIZycZ6mWDwBvg7xMMYdTqW5YjwGI4JDfqSOxuwHna9DB6Un2fJUCaJ5Pq3BgwzKXKTKmBPkAnKjCKzByN/SiwvMMV/y+OcrQinQo0Fpd5TES//5RheP50xq12HdOSM+flHX//wKAuEHpAnXYC6a4bI5qgyjUalBPAe7nvPW5Q=
+	t=1751280350; cv=none; b=HV2Mu6/KZGtLMBMxef13KnhjaYQQhR2juKSzfZtly3C+gbaeAlufR2ZU0jSFu3WFjkWcNR+p+VIjEXr5lKpTsAWMpekisNPbGkMMhzaoynx59zXMRorCqe+0pZFieHFqAW37XnBp9c7Gl6G7hgbMXBitvHdhlN+ZclvN8QoEr5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751277783; c=relaxed/simple;
-	bh=C19Ng+YvJns31vZggHyOTH4tG4WskcJBUUNS/x4N/rU=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=dHBwsFxeGjbpyHxl6lmPTr27u57GV9mcaDjp7uE2jwIKkD/kdqZyvduCHiy00bQUgoppaYgckFN4csxLVmkS4lU6J5B1QHGTvQQZR0sklJ2jZwDeD1u2LU+yqbmmQC+ghx1EVjogXmduZh8LcZxFbw8uwgfKt6k3yiNQKdonit4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=cd4CeJnW; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=CJ5o5zH2; arc=none smtp.client-ip=202.12.124.154
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1751280350; c=relaxed/simple;
+	bh=1qYyqEbzXKw1kYwIHnancyXtFBiFkWq5bCUGJRFKZSs=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=ttk2h/F+/vBYSI4JkDLwtKFI1Y2mhFPRjjpmW9LkUjS/2ZSSXJoX9yXkV1gGr9LqfiQ/Iov/lMExxttH6gti2BXujih77Ug4fdGI1WLsGQ3s4jP/E04xvKsccfE305TlfxCRoy2mGiFvDMqzd1wc+IBz3HXWwhQxk+VKH0ShudI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=c7zuP1pY; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="cd4CeJnW";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="CJ5o5zH2"
-Received: from phl-compute-05.internal (phl-compute-05.phl.internal [10.202.2.45])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id EC69D7A0228;
-	Mon, 30 Jun 2025 06:02:59 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-05.internal (MEProxy); Mon, 30 Jun 2025 06:03:00 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1751277779;
-	 x=1751364179; bh=5/NwZS0sObcR73yPXLZ9doO8bP3vohgc9CV9/MRQ08g=; b=
-	cd4CeJnWskomZ2ZPauSEAgYdKBFadxFOHbbcPFRTTalbEC3kxMsiy3mT5fM9+CRT
-	6HTnsiCRQaIcJPJy1OSbhXq9QtvSumLK7jj3vYa/w3t0s3GA+rp3KIEwXpHg3+7k
-	UpR4KT9xQHHkcqTKN+AC3gMyzikt+HKHsWAvfUoE9rWizGLOFpYa5V7qF3X7WSLb
-	VfXRZFCs3gBpPugzallqWwKHikD6cQdMfbV4NkaSw1QrwoL+2/5eX6EuhShVSN3N
-	EN1H+Civz9Jl2ofDRCe+nE5mhi3CuqF6O2RX4ZZ/rAnAJCCS/hj4/j2uDSVRLJUS
-	DwvqIoXijCGom6+2eNV9GA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1751277779; x=
-	1751364179; bh=5/NwZS0sObcR73yPXLZ9doO8bP3vohgc9CV9/MRQ08g=; b=C
-	J5o5zH2jLV15mLK+KiKG4KrIRDNiSdm059Eh19Qh8CF2uD+5hOBOgOMaa/LNNuaH
-	UbUlNTbJfTJ3HoUmWSMsCnHCtMbhG+bGCwjjNxpGZx7mb1JaUewK7B2RjEw9J8jo
-	mWvFAMSYiDIxs4Czg6cT6JQizvMrAan2GQNh6COzE9kQZ+vS+wZLPg+thccqTqCH
-	To8WASijOYZ38+ht6/pyv2GdVV+e7dR+r+LVWqSWwVwCDYgRXD3+joozxxCDMeWP
-	DIU40MZdWhEQ2vh53p2H4dNDDOa5p7KH0je3Je609MKgSoJQIu/uUFgDinAX2vEs
-	SF+FTT6ahH1ZPQ3/RpLRQ==
-X-ME-Sender: <xms:02BiaIRVmGM47HK4-xQ4sK1UVN2FJkKLp2dCdbS_FPrdtWUerI_XhA>
-    <xme:02BiaFwdV9ovuDeMnE1gtoYatHzfP-ziRkGlinL2_gocXc4CytSHxlqtwLVFtQwoo
-    1H60SjRmu_-VOZ3Edo>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduudegudcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhhnugcu
-    uegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrh
-    hnpeefhfehteffuddvgfeigefhjeetvdekteekjeefkeekleffjeetvedvgefhhfeihfen
-    ucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenuc
-    frrghrrghmpehmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvgdpnhgspghrtghp
-    thhtohepuddvpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehlkhhpsehinhhtvg
-    hlrdgtohhmpdhrtghpthhtohepsghrrghunhgvrheskhgvrhhnvghlrdhorhhgpdhrtghp
-    thhtohepughinhhguhihvghnsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehllhhvmh
-    eslhhishhtshdrlhhinhhugidruggvvhdprhgtphhtthhopehovgdqkhgsuhhilhguqdgr
-    lhhlsehlihhsthhsrdhlihhnuhigrdguvghvpdhrtghpthhtohepghhlrghusghithiise
-    hphhihshhikhdrfhhuqdgsvghrlhhinhdruggvpdhrtghpthhtohepshgthhhushhtvghr
-    rdhsihhmohhnodgsihhnuhhtihhlshesshhivghmvghnshdqvghnvghrghihrdgtohhmpd
-    hrtghpthhtoheplhhinhhugidqrghrtghhsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhr
-    tghpthhtoheplhhinhhugidqhhgvgigrghhonhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:02BiaF2AqAuEt3X4uWHFbyqPo5ESQdjWnDsn8JqYvs4BtAo6QiqPBg>
-    <xmx:02BiaMChsZpwfEDl04aNZhLioKZG1QBYM-Em-wznYLmp_K4beoBhpA>
-    <xmx:02BiaBgjOE6_m_xZ4LpDwxDLLBtr0htDhku4RE5WQcX4y83CI-OTMw>
-    <xmx:02BiaIoddWiji4HxGBPX18gZHnJ7QLMJgaPCowYM7yR17UrviqChDw>
-    <xmx:02BiaER9MROjnuqlHtynfmqE-nla73GkZHq8805QBlFsNX1msf2EKNdz>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 5BDA4700068; Mon, 30 Jun 2025 06:02:59 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="c7zuP1pY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=RG0EfRjcxYEAjzaFRWe/5+PpKyJWNxUyLp33WTrxNYY=; t=1751280347; x=1751885147; 
+	b=c7zuP1pYpl/7jClrcP5vmlVuvuwAvu3bMz6IDSGKlYuz3IKZnnR+MFxJy0kR++jxaHNhf9PVGER
+	izaLXvEVjPjTgb9k32l9fqx111sjz0mBEM7lqohKVShLm5+4UAzcArVuF+7SvY5tJMusW5sxM3s62
+	V/DYAs8qhBb5KUrbPNiL4MH54pr0DBGNsiTBCF2ChtSCmBjYVVpqoY14KbXdXZINix8g85aCsoqEf
+	VzIr9IfsHPeCrc/yXFk/BRt7XSbwfTrjcS5Hmeo8ccwLuF2Qhaqm+TZ1k0bPRS+fE/XUr+vPJV8tm
+	o3HqJGQf8lTqCh4rAEe1KKrGNFuRIAamHrNw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1uWC1A-0000000499Z-2hFo; Mon, 30 Jun 2025 12:45:44 +0200
+Received: from p57bd96d0.dip0.t-ipconnect.de ([87.189.150.208] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1uWC1A-00000001qO8-1tjy; Mon, 30 Jun 2025 12:45:44 +0200
+Message-ID: <5375b5bb7221cf878d1f93e60e72807f66e26154.camel@physik.fu-berlin.de>
+Subject: Re: kernel/fork.c:3088:2: warning: clone3() entry point is missing,
+ please fix
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-sh@vger.kernel.org, Dinh Nguyen
+	 <dinguyen@kernel.org>, Simon Schuster
+	 <schuster.simon+binutils@siemens-energy.com>, Linux-Arch
+	 <linux-arch@vger.kernel.org>, Christian Brauner <brauner@kernel.org>
+Date: Mon, 30 Jun 2025 12:45:43 +0200
+In-Reply-To: <46c6b0f6-6155-4366-9cbf-9fbbfb95ce30@app.fastmail.com>
+References: <202506282120.6vRwodm3-lkp@intel.com>
+	 <2ef5bc91-f56d-4c76-b12e-2797999cba72@app.fastmail.com>
+	 <57101e901013a8e6ff44e10c93d1689490c714bf.camel@physik.fu-berlin.de>
+	 <46c6b0f6-6155-4366-9cbf-9fbbfb95ce30@app.fastmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: T9274589f850a4c5d
-Date: Mon, 30 Jun 2025 12:02:39 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "kernel test robot" <lkp@intel.com>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-hexagon@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-sh@vger.kernel.org,
- "Dinh Nguyen" <dinguyen@kernel.org>,
- "Simon Schuster" <schuster.simon+binutils@siemens-energy.com>,
- Linux-Arch <linux-arch@vger.kernel.org>,
- "Christian Brauner" <brauner@kernel.org>
-Message-Id: <46c6b0f6-6155-4366-9cbf-9fbbfb95ce30@app.fastmail.com>
-In-Reply-To: 
- <57101e901013a8e6ff44e10c93d1689490c714bf.camel@physik.fu-berlin.de>
-References: <202506282120.6vRwodm3-lkp@intel.com>
- <2ef5bc91-f56d-4c76-b12e-2797999cba72@app.fastmail.com>
- <57101e901013a8e6ff44e10c93d1689490c714bf.camel@physik.fu-berlin.de>
-Subject: Re: kernel/fork.c:3088:2: warning: clone3() entry point is missing, please fix
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Mon, Jun 30, 2025, at 08:30, John Paul Adrian Glaubitz wrote:
-> On Mon, 2025-06-30 at 08:14 +0200, Arnd Bergmann wrote:
->> On Sat, Jun 28, 2025, at 21:59, kernel test robot wrote:
->> 
->> I don't think any of those architecture maintainers are paying
->> attention to the build warnings or the lkp reports, and they are
->> clearly not trying to fix them any more, so maybe it's better to
->> just stop testing them in lkp.
->
-> I have seen that warning about clone3() missing but I was not aware that it's
-> an urgent issue to address. Do you have any suggestion on how to implement
-> that syscall?
+Hi Arnd,
 
-Some architectures have custom calling conventions for the
-fork/vfork/clone/clone3 syscalls, e.g. to handle copying all the
-registers correctly when the normal syscall entry doesn't do that,
-or to handle the changing stack correctly.
+On Mon, 2025-06-30 at 12:02 +0200, Arnd Bergmann wrote:
+> Some architectures have custom calling conventions for the
+> fork/vfork/clone/clone3 syscalls, e.g. to handle copying all the
+> registers correctly when the normal syscall entry doesn't do that,
+> or to handle the changing stack correctly.
+>=20
+> I see that both sparc and hexagon have a custom clone() syscall,
+> so they likely need a custom clone3() as well, while sh and
+> nios2 probably don't.
+>=20
+> All four would need a custom assembler implementation in userspace
+> for each libc, in order to test the userspace calling the clone3()
+> function. For testing the kernel entry point itself, see Christian's
+> original test case[1].
 
-I see that both sparc and hexagon have a custom clone() syscall,
-so they likely need a custom clone3() as well, while sh and
-nios2 probably don't.
+Thanks for the explanation. So, I guess as long as a proposed implementatio=
+n
+of clone3() on sh would pass Arnd's test program, it should be good for mer=
+ging?
 
-All four would need a custom assembler implementation in userspace
-for each libc, in order to test the userspace calling the clone3()
-function. For testing the kernel entry point itself, see Christian's
-original test case[1].
+Adrian
 
-     Arnd
-
-[1] https://lore.kernel.org/lkml/20190716130631.tohj4ub54md25dys@brauner.io/
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
