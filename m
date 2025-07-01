@@ -1,182 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D01D2900AD;
-	Mon, 30 Jun 2025 16:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54F8825E822;
+	Tue,  1 Jul 2025 08:49:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751299768; cv=none; b=LVoVWk9JZKSI4moBeJ9jm/vrSRlW6tS6fviY8vPgv6/zrXBlvRxyzk7Qf7edoa8aycL4b7GwObuhuR6PQUEMlKJOu1XjG4Q3G9QxViLlcRfvNuVeP6gpDoUPknwPNjKqNtUIGEXq4yUwsHDRCbOc0CLN0McE7fGR5S9hCm8aqtI=
+	t=1751359773; cv=none; b=YuHpZ5A3U3F8VE1WBtx1HdZ1eH/bpV8wzD0qtKE1HPNUoKP9yHtpzIc9uxYI1Zk+SspIXExnnuXdt8ZshvIAv/rSo8cYtwnm7aWDkveiirZDKTB2tPFmnIIy+89lAz8KZHjSw9O7zKvcYWz1LFcv3ECJ6XZzV6X+EGSm4RR4fOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751299768; c=relaxed/simple;
-	bh=pkoFPfsdz5mUfc5I4FK+MnyFLsCjGsnnD9jc5ME9fN4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Na8mjWQpbhI8bPB3kwceZxUUFP+pIR20reE4hxS3/rD3ByQCjpKOHc5Cwv9quMBhYwqPD4VHLfobEZh5tFmQwfc3igIT/di0iWSlvIUntBPenfD74Ep6gIGPW7S/YMqZ5fSjYbynoaLAUoAijI81qOLL9PzHA0w3nyNt3YyFlXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jnBxR32k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751359773; c=relaxed/simple;
+	bh=DTtwMeNSk7OR8vbqD2nzw+mY8T/ya1c5lm8S+YPkjKo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=d+LgFCKQ4yet0SUYwDPEZ/KMCSM4gUQlADZfa5WthwT2PVxEmcAFfcfYiG/jL7SYek52Bj4zZhdcFdUwjhuOD75AYd+ArmVXEtnRJa8cYK8cR9/hZVRhaRh+RtNo9Th3ubpgcxPlNdjsMFUga358/ORaxgxe8rGDzpqVOxg/md4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H8GrpRus; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jnBxR32k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EC2DC4CEF3;
-	Mon, 30 Jun 2025 16:09:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H8GrpRus"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2174BC4CEEE;
+	Tue,  1 Jul 2025 08:49:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751299767;
-	bh=pkoFPfsdz5mUfc5I4FK+MnyFLsCjGsnnD9jc5ME9fN4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jnBxR32keuveFDD/erORneyVQFZMExFVwQ2m1PRHBM8e09zhVEcpdxXezXwhIRIep
-	 1b/hAsrsEPE4GO34uoemDkgD6DfhLn2c+0We3yqTqkDW1Zdqk+usXyKw0ahpO/QyDk
-	 kq8OJiVNVNYv+79sZjwcLRLPE8u+AXxrFrb5rUo1EG4MgLQWKf4VRjl6PqF6ZW6RvL
-	 tO/4ewF4TqSoMw0NJ2cWpzPbScaI6j0B3laWfK7QYlGoz9vuy6ps6Y8wwL6bttBzRT
-	 i6YDWFUv5OhMZDpFhfE2wkKZC04+niDSZ+wBsXg2HLi3z3ji0M2HuML4L/kX6ufOLl
-	 sxIXnWBzurdOw==
-From: Eric Biggers <ebiggers@kernel.org>
-To: linux-crypto@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mips@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	x86@kernel.org,
-	Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>,
-	Eric Biggers <ebiggers@kernel.org>
-Subject: [PATCH v2 14/14] lib/crypto: sha256: Document the SHA-224 and SHA-256 API
-Date: Mon, 30 Jun 2025 09:06:45 -0700
-Message-ID: <20250630160645.3198-15-ebiggers@kernel.org>
-X-Mailer: git-send-email 2.50.0
-In-Reply-To: <20250630160645.3198-1-ebiggers@kernel.org>
-References: <20250630160645.3198-1-ebiggers@kernel.org>
+	s=k20201202; t=1751359773;
+	bh=DTtwMeNSk7OR8vbqD2nzw+mY8T/ya1c5lm8S+YPkjKo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=H8GrpRushY1OUKMgqTnLNTmT4RQ56pC9/ESJuqTHilLlFReoQzDzLcYiZotEOWx2p
+	 nZuM81/AbA4802SnyFb6dgt7wn7goa7z3Lv6faHrIN23/g6CCQ/9t2PWO1awd/Lb8p
+	 QQY1Q2hxI/XKIPgMXVWl8rnmoq0f9/TyNWEb1+zf+ACL3X4TM/9Qf2NrsmHQfOLOQ/
+	 qPgvtnid+rOnITv0umSFn2FxE4+vDOstmuouUUNoLd3UwQoxuIDQ9RFbrDYZii1zr0
+	 x+qbWJL4evGlCddzO2n2Xdfa1OVedhAQRaez0iadUajIpn5cDdn65TNLX3WJFABCTd
+	 /nQgQVBfCWMfQ==
+Date: Tue, 1 Jul 2025 10:49:27 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	kernel test robot <lkp@intel.com>, llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-hexagon@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-sh@vger.kernel.org, Dinh Nguyen <dinguyen@kernel.org>, 
+	Simon Schuster <schuster.simon+binutils@siemens-energy.com>, Linux-Arch <linux-arch@vger.kernel.org>
+Subject: Re: kernel/fork.c:3088:2: warning: clone3() entry point is missing,
+ please fix
+Message-ID: <20250701-packung-zweifach-49a0189a1dea@brauner>
+References: <202506282120.6vRwodm3-lkp@intel.com>
+ <2ef5bc91-f56d-4c76-b12e-2797999cba72@app.fastmail.com>
+ <57101e901013a8e6ff44e10c93d1689490c714bf.camel@physik.fu-berlin.de>
+ <46c6b0f6-6155-4366-9cbf-9fbbfb95ce30@app.fastmail.com>
+ <5375b5bb7221cf878d1f93e60e72807f66e26154.camel@physik.fu-berlin.de>
+ <ccf937cb-a139-4a07-aa47-4006b880b025@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ccf937cb-a139-4a07-aa47-4006b880b025@app.fastmail.com>
 
-Add kerneldoc comments, consistent with the kerneldoc comments of the
-SHA-384 and SHA-512 API.
+On Mon, Jun 30, 2025 at 02:07:58PM +0200, Arnd Bergmann wrote:
+> On Mon, Jun 30, 2025, at 12:45, John Paul Adrian Glaubitz wrote:
+> > On Mon, 2025-06-30 at 12:02 +0200, Arnd Bergmann wrote:
+> >> Some architectures have custom calling conventions for the
+> >> fork/vfork/clone/clone3 syscalls, e.g. to handle copying all the
+> >> registers correctly when the normal syscall entry doesn't do that,
+> >> or to handle the changing stack correctly.
+> >> 
+> >> I see that both sparc and hexagon have a custom clone() syscall,
+> >> so they likely need a custom clone3() as well, while sh and
+> >> nios2 probably don't.
+> >> 
+> >> All four would need a custom assembler implementation in userspace
+> >> for each libc, in order to test the userspace calling the clone3()
+> >> function. For testing the kernel entry point itself, see Christian's
+> >> original test case[1].
+> >
+> > Thanks for the explanation. So, I guess as long as a proposed implementation
+> > of clone3() on sh would pass Arnd's test program, it should be good for merging?
+> 
+> Yes, Christian's test program should be enough for merging into
+> the kernel, though I would recommend also coming up with the matching
+> glibc patch, in order to ensure it can actually be regression tested
+> automatically, and to use the new features provided by glibc clone3().
 
-Signed-off-by: Eric Biggers <ebiggers@kernel.org>
----
- include/crypto/sha2.h | 76 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
+Note that we do have clone3() selftests in the kernel:
 
-diff --git a/include/crypto/sha2.h b/include/crypto/sha2.h
-index 2e3fc2cf4aa0d..e0a08f6addd00 100644
---- a/include/crypto/sha2.h
-+++ b/include/crypto/sha2.h
-@@ -153,17 +153,55 @@ void __hmac_sha256_init(struct __hmac_sha256_ctx *ctx,
-  */
- struct sha224_ctx {
- 	struct __sha256_ctx ctx;
- };
- 
-+/**
-+ * sha224_init() - Initialize a SHA-224 context for a new message
-+ * @ctx: the context to initialize
-+ *
-+ * If you don't need incremental computation, consider sha224() instead.
-+ *
-+ * Context: Any context.
-+ */
- void sha224_init(struct sha224_ctx *ctx);
-+
-+/**
-+ * sha224_update() - Update a SHA-224 context with message data
-+ * @ctx: the context to update; must have been initialized
-+ * @data: the message data
-+ * @len: the data length in bytes
-+ *
-+ * This can be called any number of times.
-+ *
-+ * Context: Any context.
-+ */
- static inline void sha224_update(struct sha224_ctx *ctx,
- 				 const u8 *data, size_t len)
- {
- 	__sha256_update(&ctx->ctx, data, len);
- }
-+
-+/**
-+ * sha224_final() - Finish computing a SHA-224 message digest
-+ * @ctx: the context to finalize; must have been initialized
-+ * @out: (output) the resulting SHA-224 message digest
-+ *
-+ * After finishing, this zeroizes @ctx.  So the caller does not need to do it.
-+ *
-+ * Context: Any context.
-+ */
- void sha224_final(struct sha224_ctx *ctx, u8 out[SHA224_DIGEST_SIZE]);
-+
-+/**
-+ * sha224() - Compute SHA-224 message digest in one shot
-+ * @data: the message data
-+ * @len: the data length in bytes
-+ * @out: (output) the resulting SHA-224 message digest
-+ *
-+ * Context: Any context.
-+ */
- void sha224(const u8 *data, size_t len, u8 out[SHA224_DIGEST_SIZE]);
- 
- /**
-  * struct hmac_sha224_key - Prepared key for HMAC-SHA224
-  * @key: private
-@@ -273,17 +311,55 @@ void hmac_sha224_usingrawkey(const u8 *raw_key, size_t raw_key_len,
-  */
- struct sha256_ctx {
- 	struct __sha256_ctx ctx;
- };
- 
-+/**
-+ * sha256_init() - Initialize a SHA-256 context for a new message
-+ * @ctx: the context to initialize
-+ *
-+ * If you don't need incremental computation, consider sha256() instead.
-+ *
-+ * Context: Any context.
-+ */
- void sha256_init(struct sha256_ctx *ctx);
-+
-+/**
-+ * sha256_update() - Update a SHA-256 context with message data
-+ * @ctx: the context to update; must have been initialized
-+ * @data: the message data
-+ * @len: the data length in bytes
-+ *
-+ * This can be called any number of times.
-+ *
-+ * Context: Any context.
-+ */
- static inline void sha256_update(struct sha256_ctx *ctx,
- 				 const u8 *data, size_t len)
- {
- 	__sha256_update(&ctx->ctx, data, len);
- }
-+
-+/**
-+ * sha256_final() - Finish computing a SHA-256 message digest
-+ * @ctx: the context to finalize; must have been initialized
-+ * @out: (output) the resulting SHA-256 message digest
-+ *
-+ * After finishing, this zeroizes @ctx.  So the caller does not need to do it.
-+ *
-+ * Context: Any context.
-+ */
- void sha256_final(struct sha256_ctx *ctx, u8 out[SHA256_DIGEST_SIZE]);
-+
-+/**
-+ * sha256() - Compute SHA-256 message digest in one shot
-+ * @data: the message data
-+ * @len: the data length in bytes
-+ * @out: (output) the resulting SHA-256 message digest
-+ *
-+ * Context: Any context.
-+ */
- void sha256(const u8 *data, size_t len, u8 out[SHA256_DIGEST_SIZE]);
- 
- /**
-  * struct hmac_sha256_key - Prepared key for HMAC-SHA256
-  * @key: private
--- 
-2.50.0
-
+> ls -al tools/testing/selftests/clone3/
+total 48
+drwxrwxr-x   2 brauner brauner   175 Jun  4 22:45 .
+drwxrwxr-x 118 brauner brauner  4096 Jun 16 10:10 ..
+-rw-rw-r--   1 brauner brauner  7377 Apr 15 10:47 clone3.c
+-rw-rw-r--   1 brauner brauner  3939 May 13 12:23 clone3_cap_checkpoint_restore.c
+-rw-rw-r--   1 brauner brauner  2512 Apr 15 10:47 clone3_clear_sighand.c
+-rw-rw-r--   1 brauner brauner  1437 Jun  4 22:45 clone3_selftests.h
+-rw-rw-r--   1 brauner brauner 10738 Apr 15 10:47 clone3_set_tid.c
+-rw-rw-r--   1 brauner brauner   113 Apr 11 15:36 .gitignore
+-rw-rw-r--   1 brauner brauner   206 Apr 15 10:47 Makefile
