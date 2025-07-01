@@ -1,40 +1,40 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster5-host10-snip4-1.eps.apple.com [57.103.66.202])
+Received: from outbound.pv.icloud.com (p-west1-cluster2-host10-snip4-8.eps.apple.com [57.103.64.149])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AC3F27F756
-	for <sparclinux@vger.kernel.org>; Tue,  1 Jul 2025 15:26:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.66.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 958AC27FD59
+	for <sparclinux@vger.kernel.org>; Tue,  1 Jul 2025 15:26:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.64.149
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751383569; cv=none; b=H+hi+loODRFjRO/5c0yU1MUu/4/6QLQizZYshjNeaRCJb2At4PJX2EayRoYUkxYV3EA2mHKDskXZicxHHCj9OqBrtNa4nFYP7nhL7lDlLFXXhYJabch1FRQIvJgAdxkC35RmipixKYqIT4cNZYL91FGCNzHlrdjZYs93F7xcmaY=
+	t=1751383572; cv=none; b=N6LRMVuTawuHu+kohvIlCOmonjVcilFI4jj5ZpG7Z7TgZv1IMWhStQPZcKNO2Zh0SUZwnCprh8tcu3dEZPbmlI/CeVNVbPxsydV2mgBnBcScYVgZ0lmSR00vziJ9UpcqMX9wJyBJLylq6gT/e8RFqG2hENV/iFgC41Cf58vem9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751383569; c=relaxed/simple;
-	bh=hm08xCVJpifK1YGvN6kpdjEx3Zi2cHVqnSWYXayo0H8=;
+	s=arc-20240116; t=1751383572; c=relaxed/simple;
+	bh=62XEhsy5uPCNQwMRXCl5rGVlHkddr4eSr34tMBzBo4w=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=D3N2MllacA5vRJ2tjLYF9pVUL2a6GgzMTDB8Iu9BuxxvOhK/WkKNDXr2sNknx0bft+33pC+cRmukpdZFzKjYHidqCrbYy14npS2Ge6nVwT9vNsQpTYd08N2NEY7nEX5B7lJKfKoKflAGrhIMp2+XTnt3MVHqjOqR/rJkz1SdZGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=0qWDiqUx; arc=none smtp.client-ip=57.103.66.202
+	 In-Reply-To:To:Cc; b=fFYebq8PNmgAkJ6J/JIACdUhmLoC3nkG5ODqt3AhVoONdupuLsxwZ64LYqz54mpnQTsIp+V6mxnmN6R5mWktC1uRRy1wTA5veafkYh75EG3i+0DH50exlvMVROMtAcCWuZBig4U4j06PND6TtnxPqNLahQ4IeA3NoMopwp3blnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=nriFppWQ; arc=none smtp.client-ip=57.103.64.149
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="0qWDiqUx"
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="nriFppWQ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; bh=UKT3gxNRl5YzBh1j6iMSlGrirc7wdEcjwd4FP2M5g20=;
+	s=1a1hai; bh=72KEeLvk6Vfw5F8f1KBloI4BaJ3XA9Td2M8KicUsaV4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme;
-	b=0qWDiqUxSnHKSByqeX2WrUgUNexAH9BabYUSnuQRFiYl7Dwy2V5X4bsb8brAFlVJL
-	 4MaaytGECwCFQEvTliyVZl9UrbfZ+g4gIL3MqbeRK3dru/kOb+6f9+gterUmN2oJ14
-	 WsEEE9NOW81NYfAZch7I1StNnOvzk1DQc5ji4o8N2SEP30rGXUyHy9YsVUdJcO/Ptw
-	 MVLdJMDWy8eiLlG48F+9IjxCsg6h6P2FMAfkBKnNdXud/mTowru8APuHOLLHEkyoQb
-	 UnuCr2Et9QQ13DMCjGmWqjic3uMYku/sAb3a/f1JWyVfMUyk9Yhvx4GqiW2wATpWPE
-	 xe9txV19nHgwg==
+	b=nriFppWQjHblssNXkUQngl072g8k1KlDsSYPU73ygp2QbOyvjQRCW2xA0sZg897LO
+	 7zTnU95Xj6q4uZc2k9zzV6ZSIwXy1mBhv99jJIkgXf0FzpXVEeaG18zhZuWw8CeXbQ
+	 0UKcPasVtVNAg+1Lq2/5+iCSv1EKOWIjw4jVnzLw9K4mepWsq4B8hb2fRKVIp1Xdda
+	 8rPw7F5cAuJ814nsbC+FV7A66hXxxBI+EgnWA4je2nLqbT0aoquKw6OfdAWzuXIMG2
+	 wXV3lGC1gfGONhOpVVPvA2jSdhKT+rMQTfM++WvSiGlJZFaXKxXlT/Xq/vqo/ju6LI
+	 i7vHkSWs7hinQ==
 Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id D96B7180017A;
-	Tue,  1 Jul 2025 15:25:59 +0000 (UTC)
+	by outbound.pv.icloud.com (Postfix) with ESMTPS id 030E61800151;
+	Tue,  1 Jul 2025 15:26:08 +0000 (UTC)
 Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 2ECD51800158;
-	Tue,  1 Jul 2025 15:25:53 +0000 (UTC)
+	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 91239180018A;
+	Tue,  1 Jul 2025 15:26:04 +0000 (UTC)
 From: Zijun Hu <zijun_hu@icloud.com>
-Date: Tue, 01 Jul 2025 23:24:45 +0800
-Subject: [PATCH v2 7/9] char: misc: Allocate 4 more fixed minors for
- watchdog
+Date: Tue, 01 Jul 2025 23:24:47 +0800
+Subject: [PATCH v2 9/9] sparc: kernel: apc: Remove macro APC_MINOR
+ defination
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -43,7 +43,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250701-rfc_miscdev-v2-7-3eb22bf533be@oss.qualcomm.com>
+Message-Id: <20250701-rfc_miscdev-v2-9-3eb22bf533be@oss.qualcomm.com>
 References: <20250701-rfc_miscdev-v2-0-3eb22bf533be@oss.qualcomm.com>
 In-Reply-To: <20250701-rfc_miscdev-v2-0-3eb22bf533be@oss.qualcomm.com>
 To: Arnd Bergmann <arnd@arndb.de>, 
@@ -60,95 +60,54 @@ Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>,
  linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
  Zijun Hu <zijun.hu@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Proofpoint-ORIG-GUID: 55bD6wZGHtVnRw82wihzjhfWwCxW8amE
-X-Proofpoint-GUID: 55bD6wZGHtVnRw82wihzjhfWwCxW8amE
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzAxMDEwMyBTYWx0ZWRfXyUgjBjbjo1he
- rt59MqEt3fUk7SOuIJ5RMrZEwvu5DOA4B4/R8uMx+FdmRLjePBAplhvd5lWdT4bNP04E7Fcoj9p
- PWqSmPH4OSZ3IoVxCYy4myMsJdK6lJFtZ56P5GRnu9qWQx84yyuauhcEaXtBFbDEFg6J1RQWwxw
- U2208GsXxxgeC+8dAg3tny0nLvb98iACqTvNSFkO7oxGFHfjHW7q0w7M8T4ArjHioTuHtHbUm/Z
- FiaUdKu9EsyUfie9951gwbYMWErlcXoOkejbfE3toT/TB+Cz8bAlsNeBpZOHnTUTNK9Enh710=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzAxMDEwMyBTYWx0ZWRfXxOn/YC0PGwtx
+ yjKRNtxFyLKCrCSjmwrTpeZ75KsvDBsiSUnoLjG71aX1aEvhjgwdfemzn24HhM7wqCEjRn/srrn
+ g2kgl1ownmz6hD38MWyslgo9a9T+/L6YaIUlRAdaCY2YWrxI1QDWdgn1qkTwJRx7eav9T+CYbO7
+ ngL9sQ/Hegwyjd7hWfkXmVuMnAadYqW0aLcZTfPEoD+8X8UzbH7NHlAQqFxqT+aYhVq5JxN0hWO
+ jhoe2wsk9tOXdAs+eHd6oA9O8D9gVd9qHXjNCAJISxDYZWgYgIgIYF9FFibHobY5wFQJNzT7g=
+X-Proofpoint-GUID: DFL0JiX4eCNleGno7AR2_y_aHPBisCd4
+X-Proofpoint-ORIG-GUID: DFL0JiX4eCNleGno7AR2_y_aHPBisCd4
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
  definitions=2025-07-01_02,2025-06-27_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
- suspectscore=0 adultscore=0 mlxscore=0 clxscore=1015 mlxlogscore=999
- malwarescore=0 spamscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2506060001 definitions=main-2507010103
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0
+ malwarescore=0 adultscore=0 spamscore=0 clxscore=1015 phishscore=0
+ bulkscore=0 mlxlogscore=999 suspectscore=0 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2506060001 definitions=main-2507010103
 
 From: Zijun Hu <zijun.hu@oss.qualcomm.com>
 
-There are drivers which needs more fixed minors for watchdog, but
-watchdog only has one fixed minor currently, it causes hardcoded and
-unregistered fixed minors are used by these drivers.
+Macro APC_MINOR is defined as MISC_DYNAMIC_MINOR to request dynamic
+minor, but its name 'APC_MINOR' looks like fixed minor.
 
-Allocate 4 more fixed minors and apply for these drivers.
+Remove the macro defination and directly use MISC_DYNAMIC_MINOR instead.
+
+Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
 ---
- drivers/hwmon/fschmd.c     | 3 ++-
- drivers/hwmon/w83793.c     | 3 ++-
- drivers/watchdog/cpwd.c    | 6 +++---
- include/linux/miscdevice.h | 4 ++++
- 4 files changed, 11 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/apc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/fschmd.c b/drivers/hwmon/fschmd.c
-index a303959879efddd9bfc02e8c25766e67b1a4af8e..7ffaec12eea8473a7dd17d7477db9157230e7f31 100644
---- a/drivers/hwmon/fschmd.c
-+++ b/drivers/hwmon/fschmd.c
-@@ -1084,7 +1084,8 @@ static int fschmd_probe(struct i2c_client *client)
- 	struct fschmd_data *data;
- 	static const char * const names[7] = { "Poseidon", "Hermes", "Scylla",
- 				"Heracles", "Heimdall", "Hades", "Syleus" };
--	static const int watchdog_minors[] = { WATCHDOG_MINOR, 212, 213, 214, 215 };
-+	static const int watchdog_minors[] = { WATCHDOG_MINOR, WATCHDOG_MINOR_1,
-+		WATCHDOG_MINOR_2, WATCHDOG_MINOR_3, WATCHDOG_MINOR_4 };
- 	int i, err;
- 	enum chips kind = (uintptr_t)i2c_get_match_data(client);
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index d44725d37e30f388bf8cf19d72baf720f94da084..849db20e7165cdf48d4d36cf770dd6aaaa191b41 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -28,7 +28,6 @@
+  * #define APC_DEBUG_LED
+  */
  
-diff --git a/drivers/hwmon/w83793.c b/drivers/hwmon/w83793.c
-index 67728f60333fe351715ccc03097f9aa2e135f384..fb4d76c87ea26366586f6f6bc2bee4f76a430880 100644
---- a/drivers/hwmon/w83793.c
-+++ b/drivers/hwmon/w83793.c
-@@ -1642,7 +1642,8 @@ static int w83793_probe(struct i2c_client *client)
+-#define APC_MINOR	MISC_DYNAMIC_MINOR
+ #define APC_OBPNAME	"power-management"
+ #define APC_DEVNAME "apc"
+ 
+@@ -138,7 +137,7 @@ static const struct file_operations apc_fops = {
+ 	.llseek =		noop_llseek,
+ };
+ 
+-static struct miscdevice apc_miscdev = { APC_MINOR, APC_DEVNAME, &apc_fops };
++static struct miscdevice apc_miscdev = { MISC_DYNAMIC_MINOR, APC_DEVNAME, &apc_fops };
+ 
+ static int apc_probe(struct platform_device *op)
  {
- 	struct device *dev = &client->dev;
- 	static const int watchdog_minors[] = {
--		WATCHDOG_MINOR, 212, 213, 214, 215
-+		WATCHDOG_MINOR, WATCHDOG_MINOR_1, WATCHDOG_MINOR_2,
-+		WATCHDOG_MINOR_3, WATCHDOG_MINOR_4
- 	};
- 	struct w83793_data *data;
- 	int i, tmp, val, err;
-diff --git a/drivers/watchdog/cpwd.c b/drivers/watchdog/cpwd.c
-index 13a4d47e68cd82572f103c37ec066384cc5f7cd7..7891ea8f87451ddfb377e90706310a73324fb0ce 100644
---- a/drivers/watchdog/cpwd.c
-+++ b/drivers/watchdog/cpwd.c
-@@ -44,9 +44,9 @@
- #define WD_BTIMEOUT	(jiffies + (HZ * 1000))
- #define WD_BLIMIT	0xFFFF
- 
--#define WD0_MINOR	212
--#define WD1_MINOR	213
--#define WD2_MINOR	214
-+#define WD0_MINOR	WATCHDOG_MINOR_1
-+#define WD1_MINOR	WATCHDOG_MINOR_2
-+#define WD2_MINOR	WATCHDOG_MINOR_3
- 
- /* Internal driver definitions.  */
- #define WD0_ID			0
-diff --git a/include/linux/miscdevice.h b/include/linux/miscdevice.h
-index 565b88efeb23d02b7d91df1cd7df4bdcf2898224..c33839df8bd261bf1ab841b7e50afe3f8b0b007e 100644
---- a/include/linux/miscdevice.h
-+++ b/include/linux/miscdevice.h
-@@ -52,6 +52,10 @@
- #define PXA3XX_GCU_MINOR	197
- #define TUN_MINOR		200
- #define CUSE_MINOR		203
-+#define WATCHDOG_MINOR_1	212
-+#define WATCHDOG_MINOR_2	213
-+#define WATCHDOG_MINOR_3	214
-+#define WATCHDOG_MINOR_4	215
- #define MWAVE_MINOR		219	/* ACP/Mwave Modem */
- #define MPT_MINOR		220
- #define MPT2SAS_MINOR		221
 
 -- 
 2.34.1
