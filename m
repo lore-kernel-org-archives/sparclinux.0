@@ -1,136 +1,127 @@
-Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
+Received: from outbound.pv.icloud.com (p-west1-cluster6-host8-snip4-9.eps.apple.com [57.103.67.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1716A3596B;
-	Tue,  1 Jul 2025 18:46:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.144
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B4E26F46C
+	for <sparclinux@vger.kernel.org>; Wed,  2 Jul 2025 12:13:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.67.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751395566; cv=none; b=fWSnN560gxdKoPf7ZCSI1sPsHwrZX/4TfskjsRPm22jxnv0aOIfUPGAi+jBZSl+WJiAuoykfzXb1D5OqUTIMPuXcdWjMEglM/OvnmKKtDZy2W7n0+UgTVtc0tq4SZC7LmZwSPSA92kQpiDnjvf0RH4X5XNGI3YIZFw0ymnADPZ4=
+	t=1751458437; cv=none; b=mNfdS/nprL0rPuOpvdPgok+hKXMDDMupjnh2BSMlLIKTO8dVWdcfyYQABl4fmPLhWkjSAfWWYlB23vtkHJ8EJoQrm5SUVyvQUH3yveskMU8fUDc8yi0OzA/eUrNtzI9CxWCNrK0AL/fft0NuurSnBVPMBeOJT1RaS9RitPlZoL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751395566; c=relaxed/simple;
-	bh=Up8UX9H+7ZUNNfLzmgCkSVCiNokRtIVixpAx52BVJbs=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=Cl6jYQWHzYlONmmZ9eWxWjtPycYTb2RSJ+4Pk9k8KC3TFX0pRZdqOQQUTkIHEDTt2EwYvGPiVPNTO/A4Uy3rCbAdmMkWapfEQJUDbYJGaJaw+a9z7jKXPWDtK/GriZpS2WqOf4wjBDnhy7UG031F+RzlVQ9tvWC8/anilPZMeW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=D1Uf3taY; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ZIvdQSLt; arc=none smtp.client-ip=202.12.124.144
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1751458437; c=relaxed/simple;
+	bh=z5r5omQDIB75IOb6AfWP+DA0/YsBNTo3kExon87ZnIA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XzGlBOMXnnBI0rJyvWEfQIU3VJiNntFSyCnmHtacW8sC73+KTsA+OlcedSf+n77TSUC9l1/MMEj+LuOkYb5PRGPuYO89zDRQzpVAqLbTTuPGpUnniWWej9Ux20meB62iGhOAiIH/wcygOkTHEDzZVGNkIJhFzQzzia7O9b797pw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=y6w8RrXR; arc=none smtp.client-ip=57.103.67.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="D1Uf3taY";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ZIvdQSLt"
-Received: from phl-compute-05.internal (phl-compute-05.phl.internal [10.202.2.45])
-	by mailfout.stl.internal (Postfix) with ESMTP id 9F1A71D00173;
-	Tue,  1 Jul 2025 14:46:00 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-05.internal (MEProxy); Tue, 01 Jul 2025 14:46:01 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1751395560;
-	 x=1751481960; bh=Xr0RFbgZjw3WqPK6EkRfzHhNY8eU/QZTAElNC/U09to=; b=
-	D1Uf3taYrE5w0UnL6DcoEa7HwVFgpUTDGrzCxPGFaKNHtdGYR1F97wy93u8XIoPt
-	mNJBW4+/DtKHzbMSjEdi0OfGxtfM6RiEjKHPSSzKJ05w68+o5VR6y7twzdTja+3E
-	t5Peml3llHhbh7YF0hIF5wHxz/rodSLiFBspyf8sZSaA9A0VZQdXcslALDiF3q34
-	04gLPJ+vvqcTRgzj8XM8QtpjoQSSMuCmlTjx6CC7J4lkfUe0FRSlJtk3YIXQsW42
-	Kqsit5SxnPbInu8xfuRdLa7Yko8r+eNBK0vGWG/9zCSeto33mhepVMvE5yMtBrXi
-	1Tp5D8Cnbw0H2eQG9XbAXA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1751395560; x=
-	1751481960; bh=Xr0RFbgZjw3WqPK6EkRfzHhNY8eU/QZTAElNC/U09to=; b=Z
-	IvdQSLt59/Zx0zQNJkNAsZdPsDu+v7Q73LSOfim4Gwgb5tXctxUl5gKidJ7FR1mZ
-	kvrX6bhd2yJyXNOd009Oo4ZnHNOwGZd6acX0u+bkY5PJuVPEnsbXPuw+fWms+OSy
-	0A7kRNSKylEnDErVfCPUo/AJD3yL0IKpWGe9yoGl7ZVq1n/J9DZV4AOSS8Jebarm
-	iLBUWHRxds2ryRm6mwu0ZCL4da0j51OfWCcrEFGsvdR76tSNZLKwoIupfLN2IfJJ
-	4in6JoBQ+6arKYMRdOVQgobACfxrhXnWlAj8xNCyjWtIzR0Dpzco2vFjZ+D+NMQl
-	JbmV/487+Yc+9eNx+2aog==
-X-ME-Sender: <xms:5ixkaGYpeVbjrrhnc5zoVB_3wLv0mONBIlHrLqP41QNaWfz0MK2OLQ>
-    <xme:5ixkaJZgxpK8fWWl29KH40EOX-MmDFZNTKGgViPP2nb0xkDmsE3fHWJyF-Q6o8NOb
-    NSpeAed5qNkH7rOvLk>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduhedvjecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhhnugcu
-    uegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrh
-    hnpefhtdfhvddtfeehudekteeggffghfejgeegteefgffgvedugeduveelvdekhfdvieen
-    ucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnug
-    esrghrnhgusgdruggvpdhnsggprhgtphhtthhopedujedpmhhouggvpehsmhhtphhouhht
-    pdhrtghpthhtoheprhdrmhgrrhgvkhesrghsshgvmhgslhgvrhdrtgiipdhrtghpthhtoh
-    epuggrvhgvmhesuggrvhgvmhhlohhfthdrnhgvthdprhgtphhtthhopegrnhgurhgvrghs
-    sehgrghishhlvghrrdgtohhmpdhrtghpthhtohepuggvlhhlvghrsehgmhigrdguvgdprh
-    gtphhtthhopehjrghmvghsrdgsohhtthhomhhlvgihsehhrghnshgvnhhprghrthhnvghr
-    shhhihhprdgtohhmpdhrtghpthhtohepiihijhhunhgphhhusehitghlohhuugdrtghomh
-    dprhgtphhtthhopegtrghstggrrhguohesihhgrghlihgrrdgtohhmpdhrtghpthhtohep
-    fihimheslhhinhhugidqfigrthgthhguohhgrdhorhhgpdhrtghpthhtohepghhrvghgkh
-    hhsehlihhnuhigfhhouhhnuggrthhiohhnrdhorhhg
-X-ME-Proxy: <xmx:5ixkaA885s52W79Hch3_FsaKKkYuCwCxYa_PtrpS2dVsBDEnyOacbQ>
-    <xmx:5ixkaIp4tJa7_5udgLIsoEQ4PLK88TLX9JHpYicsWCb4wecrTXK5xg>
-    <xmx:5ixkaBoTn1Yr9PN6E_LE1tPeZBSEi8D__0SE6eDlzFPQpRZlIcWiqg>
-    <xmx:5ixkaGQaw3X9gLjRwo-XuNrzgtkZ_m8wdzoKYSH_6ISHbW0MT1OvNQ>
-    <xmx:6CxkaG8Fpv1MWbPVQ-pQazPgaQc4udQhnrHm3ZhUP5_gXySaAPmXccaD>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 27BD8700065; Tue,  1 Jul 2025 14:45:58 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="y6w8RrXR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
+	s=1a1hai; bh=nx1rqPjRDWMcBL6mO8RCi2ZS4yd6jmTSXbCncrmU2H0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:x-icloud-hme;
+	b=y6w8RrXReeMtQhrhFjNfW05uzIPf2utTIyzOEOH3R3cO6WY5zD6Hh3FvuqXRIN+JI
+	 exVO6nLmJVunBKlZTZA+j377t6Q6/9g8FOH5ac2USnCUCCJ4R2boAGvsVaN3rd3gOV
+	 xhkYWzHfTQCe5PYq6tEW5NG7oEhHEpnInw/A35x/bCBqYEuoFCRt7veNYN2OfsEJ3r
+	 BkomBIwUJ1k3SnGgnsdUOttTISOifp494zHLolInjHzqs9rG6DC4++1Lf9uZpuQSHr
+	 uXyponpA5KV6XFDX9zShshyzGEzGcv2aBYOoKZvUWZzCFeSs4lIZP7Sdq3gmb2K9zN
+	 YbziWUTXr3OkA==
+Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
+	by outbound.pv.icloud.com (Postfix) with ESMTPS id 9CC7418000A5;
+	Wed,  2 Jul 2025 12:13:50 +0000 (UTC)
+Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
+	by outbound.pv.icloud.com (Postfix) with ESMTPSA id A9F4618006CA;
+	Wed,  2 Jul 2025 12:13:46 +0000 (UTC)
+Message-ID: <684f00b4-9161-4bca-a94c-8c44577bafca@icloud.com>
+Date: Wed, 2 Jul 2025 20:13:43 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: T7fb883a34eda41ad
-Date: Tue, 01 Jul 2025 20:45:27 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Zijun Hu" <zijun_hu@icloud.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Jean Delvare" <jdelvare@suse.com>, "Guenter Roeck" <linux@roeck-us.net>,
- "Rudolf Marek" <r.marek@assembler.cz>,
- "Wim Van Sebroeck" <wim@linux-watchdog.org>,
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 7/9] char: misc: Allocate 4 more fixed minors for
+ watchdog
+To: Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>,
+ Rudolf Marek <r.marek@assembler.cz>,
+ Wim Van Sebroeck <wim@linux-watchdog.org>,
  "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Helge Deller" <deller@gmx.de>, "David S . Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>
-Cc: "Thadeu Lima de Souza Cascardo" <cascardo@igalia.com>,
+ Helge Deller <deller@gmx.de>, "David S . Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>,
  linux-kernel@vger.kernel.org, linux-hwmon@vger.kernel.org,
  linux-watchdog@vger.kernel.org, linux-parisc@vger.kernel.org,
- sparclinux@vger.kernel.org, "Zijun Hu" <zijun.hu@oss.qualcomm.com>
-Message-Id: <ad90af20-33f4-40e3-b08a-ce34437174db@app.fastmail.com>
-In-Reply-To: <20250701-rfc_miscdev-v2-7-3eb22bf533be@oss.qualcomm.com>
+ sparclinux@vger.kernel.org, Zijun Hu <zijun.hu@oss.qualcomm.com>
 References: <20250701-rfc_miscdev-v2-0-3eb22bf533be@oss.qualcomm.com>
  <20250701-rfc_miscdev-v2-7-3eb22bf533be@oss.qualcomm.com>
-Subject: Re: [PATCH v2 7/9] char: misc: Allocate 4 more fixed minors for watchdog
-Content-Type: text/plain
+ <ad90af20-33f4-40e3-b08a-ce34437174db@app.fastmail.com>
+Content-Language: en-US
+From: Zijun Hu <zijun_hu@icloud.com>
+In-Reply-To: <ad90af20-33f4-40e3-b08a-ce34437174db@app.fastmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzAyMDA5OSBTYWx0ZWRfX1kiPS+dNVdGx
+ 3C3DRPeKtRehbDIou2UVMmBzxTBjC0iBR43rQMQkeMK0d15Zmnc77Nr61h9JkRCTu99D8bcRslW
+ GJmv4GAVisICrObsAbk0StQs0vpzTgDOlYdaYBHhVj0G1mCyvHmKBvYHD8ZMsurhzYNMmiJCYB2
+ jgQagR7dW3XsmnUpi+2/fpP9RSPjDc6D1Qdu/MpGHpVAoWt/rmFhVOLpM/JWNH9HoUbjnuly/ov
+ QHb4lUN92FcJv/Pv9Z1NlEbDQjwO82OzwgzrL36Rs/sstgCRjIO85OPIHt/1mJ/3beUxZKt4E=
+X-Proofpoint-GUID: p6hyq69xJcvGXaISkohW_VeIJaHzQU0r
+X-Proofpoint-ORIG-GUID: p6hyq69xJcvGXaISkohW_VeIJaHzQU0r
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
+ definitions=2025-07-02_01,2025-06-27_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
+ spamscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0 mlxscore=0
+ adultscore=0 phishscore=0 clxscore=1015 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.22.0-2506060001 definitions=main-2507020099
 
-On Tue, Jul 1, 2025, at 17:24, Zijun Hu wrote:
-> From: Zijun Hu <zijun.hu@oss.qualcomm.com>
->
-> There are drivers which needs more fixed minors for watchdog, but
-> watchdog only has one fixed minor currently, it causes hardcoded and
-> unregistered fixed minors are used by these drivers.
->
-> Allocate 4 more fixed minors and apply for these drivers.
+On 2025/7/2 02:45, Arnd Bergmann wrote:
+> On Tue, Jul 1, 2025, at 17:24, Zijun Hu wrote:
+>> From: Zijun Hu <zijun.hu@oss.qualcomm.com>
+>>
+>> There are drivers which needs more fixed minors for watchdog, but
+>> watchdog only has one fixed minor currently, it causes hardcoded and
+>> unregistered fixed minors are used by these drivers.
+>>
+>> Allocate 4 more fixed minors and apply for these drivers.
+> 
+> Missing signoff?
 
-Missing signoff?
+my mistake. thank you for pointing out.
 
+> 
+> 
+> I don't think this is the right fix here, these drivers implement
+> the normal watchdog API, so they should not even call misc_register
+> but should instead call watchdog_dev_register().
+> 
 
-I don't think this is the right fix here, these drivers implement
-the normal watchdog API, so they should not even call misc_register
-but should instead call watchdog_dev_register().
+agree
 
-Obviously doing this right is a bigger change, so maybe the simpler
-answer is to use dynamic minors instead of the nonstandard ones.
+Documentation/watchdog/convert_drivers_to_kernel_api.rst indeed suggests
+convert old watchdog implementation to new one using watchdog framework.
 
-FWIW, I double-checked to see whether there are any in-tree
-references to these two drivers, and there is one each:
+> Obviously doing this right is a bigger change, so maybe the simpler
+> answer is to use dynamic minors instead of the nonstandard ones.
+> 
+yes. it is feasible.
 
-drivers/i2c/busses/i2c-i801.c:	{ "Hermes", DMI_DEV_TYPE_OTHER, 0x73, "fscher" },
-drivers/i2c/busses/i2c-i801.c:	{ "Hades",  DMI_DEV_TYPE_OTHER, 0x73, "fschds" },
-drivers/i2c/busses/i2c-i801.c:	{ "Syleus", DMI_DEV_TYPE_OTHER, 0x73, "fscsyl" },
-arch/powerpc/boot/dts/fsl/t4240rdb.dts:                         compatible = "winbond,w83793";
+> FWIW, I double-checked to see whether there are any in-tree
+> references to these two drivers, and there is one each:
+> 
+> drivers/i2c/busses/i2c-i801.c:	{ "Hermes", DMI_DEV_TYPE_OTHER, 0x73, "fscher" },
+> drivers/i2c/busses/i2c-i801.c:	{ "Hades",  DMI_DEV_TYPE_OTHER, 0x73, "fschds" },
+> drivers/i2c/busses/i2c-i801.c:	{ "Syleus", DMI_DEV_TYPE_OTHER, 0x73, "fscsyl" },
+> arch/powerpc/boot/dts/fsl/t4240rdb.dts:                         compatible = "winbond,w83793";
+> 
+> These were added in 2009 and 2016, respectively, so the hardware
+> is probably around somewhere but quite hard to find.
+> 
 
-These were added in 2009 and 2016, respectively, so the hardware
-is probably around somewhere but quite hard to find.
+let me drop this change in next revision.
+may try to convert them by following the guidance at my spare time.
 
-    Arnd
+>     Arnd
+
