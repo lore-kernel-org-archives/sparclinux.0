@@ -1,110 +1,119 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster5-host12-snip4-10.eps.apple.com [57.103.66.231])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 960C1279DDE
-	for <sparclinux@vger.kernel.org>; Wed,  2 Jul 2025 12:16:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.66.231
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB2C22CBD8;
+	Thu,  3 Jul 2025 17:39:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751458595; cv=none; b=ajnqXXAyaw/FZWzColOmIEvmZ4N+BkmDVtR4AXuu8wCG4xWYojlILHX4bnBfXq+J9GceW/I8MBgnthcpRCiv0Wy1Bj1r6klxjIi2Y/9ytP8o5jvi/SXe/1Dh4eXXk1JTZ/MBNL7HeTr0cHdRIHoFBudmXv7tOuJYQYI4fbYrFag=
+	t=1751564369; cv=none; b=ClysAL9BKORFBjnP0qvLaNPLxTzhBr2A/S+27VlqTJo8RcxidZ/in/ImhQYXh+jwbBEK7ARhhpglFr5OYLiVLJ301kvGn0vIR7xKARMhvhmqUyiq+kOBZr/APUi1922AP6GVQrL1v/Y7HFAzwRGdTwvc1bBWGXpvJtjgmEOxoCs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751458595; c=relaxed/simple;
-	bh=rUPc6HarIFgYCi5PCcb/6kreZya/jVbJye2++gX7mpw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=LXETsWsGZeDc2UugrmAGa1JfcDcVslMpi55zV8MjhXRNlgX863SL0Clx947FIWgu5QpItalV0gAmvDkYqZlnWALYBTPcX7+3xXVIeNBcs9ztXKcJ6ImsmJGiK4SvMWkZ/LeeKwjYEN4ZVdXrBUWLWgA1V03urcRllCjbqfzujJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=ygTm1hMl; arc=none smtp.client-ip=57.103.66.231
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
+	s=arc-20240116; t=1751564369; c=relaxed/simple;
+	bh=CjXapFJRn6jr02iNiY/fdYyplTrLIb9R/H97pjZWheY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f+ilpelmdOm7rtKw4U7Hns7LGJeL/L5zpOg9XWZDWRhu9agFCKBwh0Lkp6VhQV/wIIfOidSJpQYPr4pkDYjXth/jUSVkcK774X/8PbT07K4moI63zkJdHmVRrzcL/cpPa/Dy8cXf548+t8pODEse8DeHIhsx59HyZcqkPpzYOxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O0dZv+fn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="ygTm1hMl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; bh=MxR3vmUTXOypUpeb+mW6WO9zX6HevJTvOmfA6oc0iJM=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme;
-	b=ygTm1hMlAgK3bOAbflYvbUoUF2HQHzhCEjMeszabytsCrEmSfEmfziaOzro5ljQql
-	 uzDm5mcmcHKZ2fTc6+2z7+qa1WIaNr5P78GZJ199ULDOjE1zeH6wK2zBQGcdbOkohI
-	 9CAtBvxUyp3nE1zjeo12EHEPodyHXYhnN0PaUNBFYmBOggHzzyD0mqGht5x6c03h2L
-	 VYvOj/xdR/XZaHs/rp3tl+pONK5M9e9NOi6Laxg3Q0SeKyVAyttB6bt+9tqjpaJn5s
-	 gkfWnnmBcxm5o+WygaZeiexTp//rCNU57ZKM4PLXC5qhFlklu9amr6g+RT7sfSy7dy
-	 Z+UvPYZ9AAyOw==
-Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id 83A96180030C;
-	Wed,  2 Jul 2025 12:16:29 +0000 (UTC)
-Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 5B86B18001DF;
-	Wed,  2 Jul 2025 12:16:25 +0000 (UTC)
-From: Zijun Hu <zijun_hu@icloud.com>
-Date: Wed, 02 Jul 2025 20:15:36 +0800
-Subject: [PATCH v3 8/8] sparc: kernel: apc: Remove macro APC_MINOR
- definition
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O0dZv+fn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A728FC4CEEE;
+	Thu,  3 Jul 2025 17:39:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1751564369;
+	bh=CjXapFJRn6jr02iNiY/fdYyplTrLIb9R/H97pjZWheY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=O0dZv+fn7ZOGn/n+ubYI9NUTtwxmvb9diBgsUdEhHae7Zutp0YZ/+WA2QVDvdceiE
+	 O7nTHh2055ZVNVomkVuKLY51txoTK4sQYkxGKJLuNGWjgzMCqLrTSI5Zrmre6E3N9d
+	 fCqJIJIrxGQVxECwKzwOsl0MmJKaXvuoOJBu7JvuajS+a7E5T7s6Jw4u0HPzn2fuBc
+	 54A/tyxdEBU9TN8TDN+tWrXb6uTuzTklHPasl0pvtNY3Cpy1Z6/shg/mObJA41LApq
+	 X+dBhsWzfe+qFZKn+tPjo/AztvrCYwi/805NTK1OeGQuHpPC0XEgAeQNLWLO7L2VOg
+	 LRPocxpDJ4F5w==
+Date: Thu, 3 Jul 2025 10:38:47 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: linux-crypto@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, x86@kernel.org,
+	Ard Biesheuvel <ardb@kernel.org>,
+	"Jason A . Donenfeld" <Jason@zx2c4.com>
+Subject: Re: [PATCH v2 00/14] SHA-256 library improvements
+Message-ID: <20250703173847.GB2284@sol>
+References: <20250630160645.3198-1-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250702-rfc_miscdev-v3-8-d8925de7893d@oss.qualcomm.com>
-References: <20250702-rfc_miscdev-v3-0-d8925de7893d@oss.qualcomm.com>
-In-Reply-To: <20250702-rfc_miscdev-v3-0-d8925de7893d@oss.qualcomm.com>
-To: Arnd Bergmann <arnd@arndb.de>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>, 
- Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org, 
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
- Zijun Hu <zijun.hu@oss.qualcomm.com>
-X-Mailer: b4 0.14.2
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzAyMDA5OSBTYWx0ZWRfX7jPqGiP88Bvt
- Mrf1fBR0qVNhm09VK837cmQ4sdZUtGUMbl7z2TGTkB7cD60w3wvDQAT+wEGHIU93q8Y/LvtZ74T
- STWYXmjeCBLQBEc/KORCrdGkRxzZbpXMq5h+vDTEKUW9MSdAgW7IDWz0FhH4LEfP05a48Kah6ZS
- k7LB7SwLis2pH6s/Aa+1SXiFpornkcpKetRdbq8i5UDiX6ZEIjF4P/yICUcW5tnx6TfsBWmoOvo
- MInE3+vN5yM4z/fATQUbKCPvcCt5AaEA918+QilAkz4b9j8se7Bz1HnIhoEU1XtIqj1hJALBg=
-X-Proofpoint-GUID: peyGdAL9Mvibq29xXykg2jRsJePrf_mP
-X-Proofpoint-ORIG-GUID: peyGdAL9Mvibq29xXykg2jRsJePrf_mP
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
- definitions=2025-07-02_01,2025-06-27_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
- mlxscore=0 clxscore=1015 suspectscore=0 bulkscore=0 phishscore=0
- mlxlogscore=999 spamscore=0 malwarescore=0 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.22.0-2506060001 definitions=main-2507020099
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250630160645.3198-1-ebiggers@kernel.org>
 
-From: Zijun Hu <zijun.hu@oss.qualcomm.com>
+On Mon, Jun 30, 2025 at 09:06:31AM -0700, Eric Biggers wrote:
+> This series is also available at:
+> 
+>     git fetch https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git sha256-lib-cleanup-v2
+> 
+> This series improves the SHA-224 and SHA-256 library code to be
+> consistent with what I did for SHA-384 and SHA-512.  This includes:
+> 
+> - Use stronger typing in the SHA-224 and SHA-256 functions.
+> 
+> - Add support for HMAC-SHA224 and HMAC-SHA256.  (I'll send a separate
+>   patch with KUnit test cases for this.)
+> 
+> - Make the old-school crypto API's support for sha224 and sha256 just
+>   use the actual library API, instead of unsafe low-level functions.
+> 
+> - Consolidate the CPU-based SHA-224 and SHA-256 code into a single
+>   module, with better inlining and dead code elimination.
+> 
+> - Properly document the SHA-224 and SHA-256 functions.
+> 
+> - Other changes to synchronize the code with SHA-384 and SHA-512.
+> 
+> Changed in v2:
+> - Dropped sha224_kunit.c changes; it will be added later in the history
+> - Dropped some patches that I folded into the SHA-512 series
+> - Removed redundant checks of IS_ENABLED(CONFIG_KERNEL_MODE_NEON)
+> - Removed obsolete setting of -DARCH for sha256.o
+> - Fixed a commit title to mention sha256 instead of sha512
+> - Excluded HMAC-SHA{224,256} code from purgatory, where it isn't needed
+> 
+> Eric Biggers (14):
+>   libceph: Rename hmac_sha256() to ceph_hmac_sha256()
+>   cxl/test: Simplify fw_buf_checksum_show()
+>   lib/crypto: sha256: Reorder some code
+>   lib/crypto: sha256: Remove sha256_blocks_simd()
+>   lib/crypto: sha256: Add sha224() and sha224_update()
+>   lib/crypto: sha256: Make library API use strongly-typed contexts
+>   lib/crypto: sha256: Propagate sha256_block_state type to
+>     implementations
+>   lib/crypto: sha256: Add HMAC-SHA224 and HMAC-SHA256 support
+>   crypto: sha256 - Wrap library and add HMAC support
+>   crypto: sha256 - Use same state format as legacy drivers
+>   lib/crypto: sha256: Remove sha256_is_arch_optimized()
+>   lib/crypto: sha256: Consolidate into single module
+>   lib/crypto: sha256: Sync sha256_update() with sha512_update()
+>   lib/crypto: sha256: Document the SHA-224 and SHA-256 API
 
-Macro APC_MINOR is defined as MISC_DYNAMIC_MINOR to request dynamic
-minor, but its name 'APC_MINOR' looks like fixed minor.
+FYI, applied to libcrypto-next.  Reviews and acks would be greatly appreciated,
+though!
 
-Remove the macro definition and directly use MISC_DYNAMIC_MINOR instead.
+To fix https://lore.kernel.org/r/202507010837.ERX7aWw7-lkp@intel.com/
+I applied the following fixup to
+"lib/crypto: sha256: Propagate sha256_block_state type to implementations".
 
-Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
----
- arch/sparc/kernel/apc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
-index d44725d37e30f388bf8cf19d72baf720f94da084..849db20e7165cdf48d4d36cf770dd6aaaa191b41 100644
---- a/arch/sparc/kernel/apc.c
-+++ b/arch/sparc/kernel/apc.c
-@@ -28,7 +28,6 @@
-  * #define APC_DEBUG_LED
+diff --git a/lib/crypto/powerpc/sha256.c b/lib/crypto/powerpc/sha256.c
+index c3f844ae0aceb..55f42403d572a 100644
+--- a/lib/crypto/powerpc/sha256.c
++++ b/lib/crypto/powerpc/sha256.c
+@@ -26,7 +26,8 @@
   */
+ #define MAX_BYTES 1024
  
--#define APC_MINOR	MISC_DYNAMIC_MINOR
- #define APC_OBPNAME	"power-management"
- #define APC_DEVNAME "apc"
+-extern void ppc_spe_sha256_transform(u32 *state, const u8 *src, u32 blocks);
++extern void ppc_spe_sha256_transform(struct sha256_block_state *state,
++				     const u8 *src, u32 blocks);
  
-@@ -138,7 +137,7 @@ static const struct file_operations apc_fops = {
- 	.llseek =		noop_llseek,
- };
- 
--static struct miscdevice apc_miscdev = { APC_MINOR, APC_DEVNAME, &apc_fops };
-+static struct miscdevice apc_miscdev = { MISC_DYNAMIC_MINOR, APC_DEVNAME, &apc_fops };
- 
- static int apc_probe(struct platform_device *op)
+ static void spe_begin(void)
  {
-
--- 
-2.34.1
-
