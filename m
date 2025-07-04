@@ -1,40 +1,40 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster3-host11-snip4-4.eps.apple.com [57.103.66.27])
+Received: from outbound.pv.icloud.com (p-west1-cluster1-host7-snip4-5.eps.apple.com [57.103.64.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFFB4302CB6
-	for <sparclinux@vger.kernel.org>; Fri,  4 Jul 2025 13:28:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.66.27
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82236303DD0
+	for <sparclinux@vger.kernel.org>; Fri,  4 Jul 2025 13:28:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.64.28
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751635723; cv=none; b=pxUTmTZcwFvq5X0Px7+W1eHRfdED2OrHw95a2Spj671HW8WWaXiXeljq8Q+iEAOHKGJQir9rQb5dC5DJxkGfOHvvo88D9FOZRLjlThAtfeH1em1E032Qf7boU+QcmCUQSmjN2etw1dZRCbCIBIUzYguGyqeL4JeSqYSNr3tSPJ4=
+	t=1751635724; cv=none; b=QH3vv1rGcymmGn4wi1STRKHD3pH8rbV88+sN6O75U29udTJGjIMto7KRpXvJH4vr2jV6wpK+N5jAvtFJ1dYsUvh1SGgsMhvINr2Q37WugVFuBPoBBBj4fgh4Q5zk2iNO1pxUgnFjL7U4XwJZ2BBB//TD2jfn5BnNwEQY2zlEI3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751635723; c=relaxed/simple;
-	bh=u82rCBgKlEQYqhu1p86SsS2QRJmrpOTRiKIMamiJcNk=;
+	s=arc-20240116; t=1751635724; c=relaxed/simple;
+	bh=wFGpDXTdZuxmwa4jC4AUegIxrdfaKn8pxUX8kuIpn9E=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ZipSokOGgGw28Q8M6IyPLpmk/lbAao8H0nDGUo9XW+HqAgTNcZi8T8FU54tPjsBC02C5YUi2DKiO7Xv8RqELq0zthFxguSGqYOivRve0qMJX/y3Nlfp8l6ZOdd22cxVgMO/qi0gKr/6u9WzOdE9q8KlO6SfwaWHyadgrWxl1ynI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=lFbX1O8y; arc=none smtp.client-ip=57.103.66.27
+	 In-Reply-To:To:Cc; b=oonEcb63gRlGS5+sW0ckfIuoXCMyjvn1JyDNjnLgAfBS8VGmUehNlr9ze94d1JB/sIV2+TjpRGPN/QPtAo5qIBs4cEchayQHFPqoDjVI7hAmD9QMuEhI5Xo94xXp7bVqFOl5AKD8hEguSHx+Xcl8438QRy2PECgqOnRfT1jmQCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=HnaJ8NMF; arc=none smtp.client-ip=57.103.64.28
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="lFbX1O8y"
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="HnaJ8NMF"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; bh=VYM2nGliAAA138H4u5xVRviCZPDvG3NS2VBKVhrf82U=;
+	s=1a1hai; bh=cbt7c0HlAVhmp4PCZp8Pa4hR5RztlzTvRA5ww/nditw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme;
-	b=lFbX1O8ycZJUVmg5cYxfFS3pMHZO8mSO3bN1rHA62VFOah1h0Olvski/Wszv2QwCN
-	 yI6q5KKksZSxLkqxSQ5XRzzRiYelr69hQObBYOpjqKBPwCNuwZKKUPCppUfTU5TZzX
-	 3eLOMz9cp45VlEuJTACvSc20T96wQl6IIRGUOKCaxRF4mjcphCVemAXNFIjqvji+Rc
-	 +uN2fBRloVGFNikvphMWreMW9jERi5NtWF+8j13iYOJMaJW9cbMLprbiCljUzsjSAJ
-	 aPF1EWybu5i8xuj8+ASmMY36D429oSoH7QWzNiFWGh6Rs7jqGZQZtrHgSvFAqruiDB
-	 +ME6kB/2GsJWw==
+	b=HnaJ8NMFc+VYP8r8T45TLZ26zDaZABJAjuodrG76GA7NI2k+1Td7z3TTS/C3YDwbu
+	 pu7snHzh1TAdUEN4ng1o9X4mQrU6zoL0F1gupisz56KkIgC6o/St5ZvvpePSHQD5Mt
+	 AdbqjhvEl0JaNxOUT8qhcLpi7U7efSSWxDfsMqYHd1sgmBVyk549UiP2mwqzPsjGwe
+	 ZYCJcOl3RMnZpfe0M3K9uzJlw3a5cJyL0Dcnx+LG5yj9HSCcZEZiLXKkj/pdpQdurL
+	 ou9hPFaW2Slmia2ODgmpseQZA5H3YcAPjtbV3qEY6qujdj5smm6x3X/MFy/+4F0hzu
+	 sCHvI7p1R/2zg==
 Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id A9FEA18028EF;
-	Fri,  4 Jul 2025 13:28:36 +0000 (UTC)
+	by outbound.pv.icloud.com (Postfix) with ESMTPS id 4E0231800F94;
+	Fri,  4 Jul 2025 13:28:40 +0000 (UTC)
 Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 80BF018009A9;
-	Fri,  4 Jul 2025 13:26:25 +0000 (UTC)
+	by outbound.pv.icloud.com (Postfix) with ESMTPSA id E90831803C44;
+	Fri,  4 Jul 2025 13:26:30 +0000 (UTC)
 From: Zijun Hu <zijun_hu@icloud.com>
-Date: Fri, 04 Jul 2025 21:26:01 +0800
-Subject: [PATCH v4 3/8] char: misc: Disallow registering miscdevice whose
- minor > MISC_DYNAMIC_MINOR
+Date: Fri, 04 Jul 2025 21:26:03 +0800
+Subject: [PATCH v4 5/8] char: misc: Make registering miscdevice reentry who
+ wants dynamic minor
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -43,7 +43,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250704-rfc_miscdev-v4-3-b48986112d6a@oss.qualcomm.com>
+Message-Id: <20250704-rfc_miscdev-v4-5-b48986112d6a@oss.qualcomm.com>
 References: <20250704-rfc_miscdev-v4-0-b48986112d6a@oss.qualcomm.com>
 In-Reply-To: <20250704-rfc_miscdev-v4-0-b48986112d6a@oss.qualcomm.com>
 To: Arnd Bergmann <arnd@arndb.de>, 
@@ -56,81 +56,56 @@ Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>,
  linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
  Zijun Hu <zijun.hu@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzA0MDEwMiBTYWx0ZWRfX6tLq5hXGlmUh
- 5Uyab4RYm/1IeWDctYM354HL4eu8nMLJasddRSeLMb/pAnApsNLd1pAthp/18obTwycWwH4RQXh
- jNrcYBZ8/oKz+7BE7kHWYoijkDml/wB/oEcAw8l/FCK273JHilpL8jkZ2VgiKRyR2h3JveG9LP/
- V6nvTgKY85ElnsfN1NzJ61hu2Trb43QeGb5dydyqum1ZgVR9H2MXxBvI7eJPkgx3sGyKxS76/9s
- Y8YNrvhNE4tkBeVC64Kd38BBZGXxqHrIlqVzpU2nHorwzLx67H2CSZMaK4y1Qxyi8i18IQuJo=
-X-Proofpoint-GUID: BD9PdP3dEwO_fti-tuoPSQGC3sWam4-5
-X-Proofpoint-ORIG-GUID: BD9PdP3dEwO_fti-tuoPSQGC3sWam4-5
+X-Proofpoint-GUID: a-iVs9U9UV9OuytPZirYj8aUJKBqtP1R
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzA0MDEwMiBTYWx0ZWRfXz5X44wgqsz15
+ kXv3nVARY7F98D+c79RT7+0/U6ZbuI8msh/lqisV0bgxrSJTCz5BpaoLueYw1pEolUEhMok4UN2
+ NVS3CdvhH+fFB2C/mBD5oXJZi2OQumXN9T48SvueUKVKNAlV5xzDKdl11HqOH2OwX/2SZJMWj3Q
+ iyPWsqtu7IefFk4nh8QhxZzpucOUjP4P/Zqykwe197whrhjRbcO/VJQ8BxQs/IX95/AHX0Cn/oO
+ D8Gw/zNEYGoEuzFYiHCVLDvUJN9iODgxDvfJdZOTC4rB7509VrFiS0CM2vs42l6k+dn7woPLY=
+X-Proofpoint-ORIG-GUID: a-iVs9U9UV9OuytPZirYj8aUJKBqtP1R
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
  definitions=2025-07-04_05,2025-07-04_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
- malwarescore=0 clxscore=1015 spamscore=0 suspectscore=0 mlxscore=0
- mlxlogscore=999 bulkscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999
+ adultscore=0 suspectscore=0 malwarescore=0 clxscore=1015 phishscore=0
+ bulkscore=0 spamscore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx
  scancount=1 engine=8.22.0-2506060001 definitions=main-2507040102
 
 From: Zijun Hu <zijun.hu@oss.qualcomm.com>
 
-Currently, It is allowed to register miscdevice with minor > 255
-which is defined by macro MISC_DYNAMIC_MINOR, and cause:
+misc_deregister() frees dynamic minor @misc->minor but does not reset it
+and cause kunit test case miscdev_test_dynamic_reentry() failure:
 
-- Chaos regarding division and management of minor codes.
-- Registering failure if the minor was allocated to other dynamic request.
+| Invalid fixed minor 257 for miscdevice 'miscdyn_a'
+| #miscdev_test_dynamic_reentry: ASSERTION FAILED at misc_minor_kunit.c:639
+| Expected ret == 0, but
+| ret == -22 (0xffffffffffffffea)
+| [FAILED] miscdev_test_dynamic_reentry
 
-Fortunately, in-kernel users have not had such usage yet.
-Fix by refusing to register miscdevice whose minor > 255.
+misc_register()/misc_deregister() are sometimes invoked by driver's
+probe()/remove() separately, which has reentry requirement.
 
-Also bring in a very simple minor code space division and management:
-
-|<  255 : Fixed minor code
-|== 255 : Indicator to request dynamic minor code
-|>  255 : Dynamic minor code requested, 1048320 minor codes totally
-And all fixed minors allocated should be registered in 'linux/miscdevice.h'
+Fix by resetting @misc->minor to MISC_DYNAMIC_MINOR in misc_deregister()
+as error handling of misc_register() does.
 
 Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
 ---
- drivers/char/misc.c        | 6 ++++++
- include/linux/miscdevice.h | 8 ++++++++
- 2 files changed, 14 insertions(+)
+ drivers/char/misc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/char/misc.c b/drivers/char/misc.c
-index 558302a64dd908aee30341547a5413df1af71459..b8e66466184fa21fb66d968db7950e0b5669ac43 100644
+index b8e66466184fa21fb66d968db7950e0b5669ac43..96ed343cf5c8509a09855020049a9af82a3ede95 100644
 --- a/drivers/char/misc.c
 +++ b/drivers/char/misc.c
-@@ -210,6 +210,12 @@ int misc_register(struct miscdevice *misc)
- 	int err = 0;
- 	bool is_dynamic = (misc->minor == MISC_DYNAMIC_MINOR);
- 
-+	if (misc->minor > MISC_DYNAMIC_MINOR) {
-+		pr_err("Invalid fixed minor %d for miscdevice '%s'\n",
-+		       misc->minor, misc->name);
-+		return -EINVAL;
-+	}
-+
- 	INIT_LIST_HEAD(&misc->list);
- 
- 	mutex_lock(&misc_mtx);
-diff --git a/include/linux/miscdevice.h b/include/linux/miscdevice.h
-index 3e6deb00fc8535a7571f85489c74979e18385bad..565b88efeb23d02b7d91df1cd7df4bdcf2898224 100644
---- a/include/linux/miscdevice.h
-+++ b/include/linux/miscdevice.h
-@@ -71,6 +71,14 @@
- #define USERIO_MINOR		240
- #define VHOST_VSOCK_MINOR	241
- #define RFKILL_MINOR		242
-+
-+/*
-+ * Misc char device minor code space division related to below macro:
-+ *
-+ * <  255  : Fixed minor code
-+ * == 255  : Indicator to request dynamic minor code
-+ * >  255  : Dynamic minor code requested, 1048320 minor codes totally.
-+ */
- #define MISC_DYNAMIC_MINOR	255
- 
- struct miscdevice {
+@@ -288,6 +288,8 @@ void misc_deregister(struct miscdevice *misc)
+ 	list_del(&misc->list);
+ 	device_destroy(&misc_class, MKDEV(MISC_MAJOR, misc->minor));
+ 	misc_minor_free(misc->minor);
++	if (misc->minor > MISC_DYNAMIC_MINOR)
++		misc->minor = MISC_DYNAMIC_MINOR;
+ 	mutex_unlock(&misc_mtx);
+ }
+ EXPORT_SYMBOL(misc_deregister);
 
 -- 
 2.34.1
