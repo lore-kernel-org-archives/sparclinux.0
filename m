@@ -1,32 +1,32 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster5-host2-snip4-10.eps.apple.com [57.103.66.191])
+Received: from outbound.pv.icloud.com (p-west1-cluster1-host11-snip4-5.eps.apple.com [57.103.64.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E49B258CE2
-	for <sparclinux@vger.kernel.org>; Thu, 10 Jul 2025 11:57:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.66.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F7624A046
+	for <sparclinux@vger.kernel.org>; Thu, 10 Jul 2025 11:57:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.64.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752148650; cv=none; b=KyMKkfA4pZQ8EEsH26sQCItQavQ1idqqMfAjndYcOrlYH5lrOsHC4E3UEdmm79UApHHp1jt68HriX6vKEHVEZisW+0o/LzzG/BftoNrp1wOcXYcBHFbGv5Zj0sIwmUqZ5Htw/MdVfMUu8i1j775HB8sWyvuYsyvAiq6zZ67fh7M=
+	t=1752148656; cv=none; b=qBP5j4CTX13apfK1d6K26PZoWAhvrJiTU+6iH3D3ikmDIg17P6jYdE7WkRPF54xRTqvFf/sUAov+SueuGddCK/y4gQtPesmdtK7m/2V80BARY06KuHVRhhb/Hro7+0MQDtuEifTxZtMjFcYtMD2Ky9V6IWcf4n5kMzADS7zV2KI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752148650; c=relaxed/simple;
-	bh=wKm5Ok1D3zI9n6oV/H9sgCnwtCpc6AvdeR7Tt6S9+jU=;
+	s=arc-20240116; t=1752148656; c=relaxed/simple;
+	bh=X9OQrTfMazN+NOC8O7iQbD+k8RA1ANyXx8NHfXOifaw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=kDrQRLSFyIqbOMYJgPEynMGnKNeU2YHX3+HHgBI1MjfQJ3Cn8SzL2cyWhqAxybidEYaBjYZvjpduXiZNp8fRaBtd2Yug8rhuFXhPUJ5fKBhrkpu1tMGQfYOOdxphRRQoKoOgYNBkJtF1/frL573upB8WMGgKcmO+NDgriswuyHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=B+SuO5bh; arc=none smtp.client-ip=57.103.66.191
+	 In-Reply-To:To:Cc; b=OjgjsGflv+ZufR7o1xZWo9ftYJ94c81x/r5VpD0M6HdtynFTXO0mN/YT3f7zCVwuqJ2IOmT1f6vqzy3j+or0ltvFaqtPn4EDjRiCvcpdmlqJ8npKsAVP5Nb6Po45zmlA1a4R/w/nteKQT0IcAbnbqIkQHvVc1c9xLwjBYv17iig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=0l+MYjq/; arc=none smtp.client-ip=57.103.64.8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="B+SuO5bh"
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="0l+MYjq/"
 Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id EA7D31800199;
-	Thu, 10 Jul 2025 11:57:25 +0000 (UTC)
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com; s=1a1hai; bh=J5y+0r7klm10pX3hlor2G5tej0Jv9rOx8255KUf0j6Y=; h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme; b=B+SuO5bheY405MnVzSaQPNBye54Z8YLjomj7mWIW7GS9LTksoq7orq2bdEOsqw27smZ5NsfNDVaZdvxPAuyfPUUVE97tIEADQiQznsFzBT/SUfXFG/7gLvbYqgaRhdvjXVdYg9/DjdcCxlUbdW6GTIW0QBv1y6aLW+Frh5Pxbpj9mNnxMxc++H1PD54RmiMzUJHyv7JWj9J9LJumdk0/AYtGAzMJrPSr4CHm4YNCe4pP9vDhqSJdv+8kXgT14a8XWnirLN6+XeEvaLHZmyr7/GtOpge8YfKpdXZn3srsJbVNzfzTDty6eMQWtqy7zUVcXd2212u4xHUsgSYnrqvRdA==
+	by outbound.pv.icloud.com (Postfix) with ESMTPS id 2CCBD18001A1;
+	Thu, 10 Jul 2025 11:57:29 +0000 (UTC)
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com; s=1a1hai; bh=h01q+I9/z1aXWESorcEyCaV2BwxffHtiLprEGYJaan4=; h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme; b=0l+MYjq/fXTKLzpSht1IJwY+sUarQiEVExWDtEAli7OPiwpI5dCArSDuFyiKkC8jjlacqvZp8J0rsw0CICWnWuSjUQ3TMNlI4mgvGyu9HSltjQOdT+tdW1ciOdHWOpRMjPZcn7EFxBx0ExsxnU/6DAP9yppUZzD2Pa3YacbjqCTvHdqesYKYzH0sTTdkOSxhpQreS1TzwHXstvrZi7Hka3na7ZlKPq5lL0+zhcq+vr54HjL22ixksXTkYbiek0GeBWcdVVAFksP2OmUggkgYaHFoBLe1GbEzXrh5oSwPK5arj4CvT8SL7GocbaMkvqFkNeWXMl4XKg3FM0/U0+tj2A==
 Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 3CA1118000B8;
-	Thu, 10 Jul 2025 11:57:22 +0000 (UTC)
+	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 902051800225;
+	Thu, 10 Jul 2025 11:57:25 +0000 (UTC)
 From: Zijun Hu <zijun_hu@icloud.com>
-Date: Thu, 10 Jul 2025 19:56:47 +0800
-Subject: [PATCH v5 4/8] char: misc: Add a case to test registering
- miscdevice again without reinitialization
+Date: Thu, 10 Jul 2025 19:56:48 +0800
+Subject: [PATCH v5 5/8] char: misc: Fix kunit test case
+ miscdev_test_dynamic_reentry() failure
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250710-rfc_miscdev-v5-4-b3940297db16@oss.qualcomm.com>
+Message-Id: <20250710-rfc_miscdev-v5-5-b3940297db16@oss.qualcomm.com>
 References: <20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com>
 In-Reply-To: <20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com>
 To: Arnd Bergmann <arnd@arndb.de>, 
@@ -48,104 +48,54 @@ Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>,
  linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
  Zijun Hu <zijun.hu@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Proofpoint-GUID: Rv-wiHaEWA-6rhr_aT8ESYmcOD0-UsqM
-X-Proofpoint-ORIG-GUID: Rv-wiHaEWA-6rhr_aT8ESYmcOD0-UsqM
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzEwMDEwMiBTYWx0ZWRfXxLTChYuUuuiN
- ykC/HUUr5OpT29x6zS6WN5jW2ctw9Izc0ENYjDi7YFBG5R6PK5uibAH80F+lQ3VDf5PeoTUtu6W
- OsoOdVhDIIBc00KolMHp06krGNgxxM33VWZF9m4CLAZ62EUn8ct2lvRipiu2viFK8POpytTQR0F
- e1hxFIlcyHvI8Od+dGjzYAuxg4/6kkm+WINohGqDVXYApvxfHjnf8L1bnhPOJgQ/qee6/t/k0WE
- xNHBqHUkIrWGWjItJNAypdC8htdwlrqsiOwOkLm016PSZVQ2ZY3u21RLAupq5gHBIAJl6pWas=
+X-Proofpoint-ORIG-GUID: wrDy-7ftnUx8c1COvO3x4XWVCotc2zQG
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzEwMDEwMiBTYWx0ZWRfX0Wba0P9Tydb5
+ SXM3XG3rhKk7dbovulu3sG51VcjUcFMJovMlcsCHapLR5SLKyHanVj3V4+T2nfbbY4+d5b9C54e
+ OmZIzg6IF45G/+vEadUUv3/iBsEiMzM864/JXQ5ITHNTV8m8qQrSgEYWsEtSIPHBXcIODyaXdRp
+ GrhYWRoRIwzmofJgnjVFuFOdvpJBXgyedBbp/K17rvcD/Z21IJSdDR8mTf1bdtLUEZN8nq/KHwY
+ /6qsEf1Oy4+cQlM6Gsnm7GRuUhhiPy1vWbwn64kfODzjqrRQewf4tP0jGeAgu2Hf7hdu60d3U=
+X-Proofpoint-GUID: wrDy-7ftnUx8c1COvO3x4XWVCotc2zQG
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
  definitions=2025-07-10_02,2025-07-09_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0
- bulkscore=0 phishscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0
- clxscore=1015 adultscore=0 spamscore=0 classifier=spam adjust=0 reason=mlx
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
+ clxscore=1015 mlxlogscore=999 adultscore=0 malwarescore=0 phishscore=0
+ suspectscore=0 spamscore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx
  scancount=1 engine=8.22.0-2506270000 definitions=main-2507100102
 
 From: Zijun Hu <zijun.hu@oss.qualcomm.com>
 
-For miscdevice who wants dynamic minor, add a cast to test if it can be
-successfully registered again without reinitialization:
+misc_deregister() frees dynamic minor @misc->minor but does not
+reset it to macro MISC_DYNAMIC_MINOR, so cause kunit test case
+miscdev_test_dynamic_reentry() failure:
 
-1) Provide Both miscdevice @dev_A and @dev_B want to request dynamic
-   minor by initializing their minor to MISC_DYNAMIC_MINOR.
+Invalid fixed minor 257 for miscdevice 'miscdyn_a'
+\#miscdev_test_dynamic_reentry: ASSERTION FAILED at misc_minor_kunit.c:639
+Expected ret == 0, but
+ret == -22 (0xffffffffffffffea)
+[FAILED] miscdev_test_dynamic_reentry
 
-2) Register then de-register @dev_A.
-
-3) Register @dev_B.
-
-4) Register @dev_A again without reinitialization.
-
-5) Check if @dev_A can be successfully registered.
+Fix by resetting @misc->minor to MISC_DYNAMIC_MINOR in misc_deregister()
+as error handling of misc_register() does.
 
 Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
 ---
- drivers/char/misc_minor_kunit.c | 44 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/char/misc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/char/misc_minor_kunit.c b/drivers/char/misc_minor_kunit.c
-index 3184f383bea8c77cbca69ff5e315ea5de2d5512e..6fc8b05169c5754b96588088471a844a2e2ee29b 100644
---- a/drivers/char/misc_minor_kunit.c
-+++ b/drivers/char/misc_minor_kunit.c
-@@ -602,6 +602,49 @@ static void miscdev_test_invalid_input(struct kunit *test)
- 		misc_deregister(&misc_test);
+diff --git a/drivers/char/misc.c b/drivers/char/misc.c
+index b8e66466184fa21fb66d968db7950e0b5669ac43..96ed343cf5c8509a09855020049a9af82a3ede95 100644
+--- a/drivers/char/misc.c
++++ b/drivers/char/misc.c
+@@ -288,6 +288,8 @@ void misc_deregister(struct miscdevice *misc)
+ 	list_del(&misc->list);
+ 	device_destroy(&misc_class, MKDEV(MISC_MAJOR, misc->minor));
+ 	misc_minor_free(misc->minor);
++	if (misc->minor > MISC_DYNAMIC_MINOR)
++		misc->minor = MISC_DYNAMIC_MINOR;
+ 	mutex_unlock(&misc_mtx);
  }
- 
-+/*
-+ * Verify if @miscdyn_a can still be registered successfully without
-+ * reinitialization even if its minor ever owned was requested by
-+ * another miscdevice such as @miscdyn_b.
-+ */
-+static void miscdev_test_dynamic_reentry(struct kunit *test)
-+{
-+	struct miscdevice miscdyn_a = {
-+		.name = "miscdyn_a",
-+		.minor = MISC_DYNAMIC_MINOR,
-+		.fops = &miscdev_test_fops,
-+	};
-+	struct miscdevice miscdyn_b = {
-+		.name = "miscdyn_b",
-+		.minor = MISC_DYNAMIC_MINOR,
-+		.fops = &miscdev_test_fops,
-+	};
-+	int ret, minor_a;
-+
-+	ret = misc_register(&miscdyn_a);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_TRUE(test, is_valid_dynamic_minor(miscdyn_a.minor));
-+	minor_a = miscdyn_a.minor;
-+	if (ret != 0)
-+		return;
-+	misc_deregister(&miscdyn_a);
-+
-+	ret = misc_register(&miscdyn_b);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_EQ(test, miscdyn_b.minor, minor_a);
-+	if (ret != 0)
-+		return;
-+
-+	ret = misc_register(&miscdyn_a);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_TRUE(test, is_valid_dynamic_minor(miscdyn_a.minor));
-+	KUNIT_EXPECT_NE(test, miscdyn_a.minor, miscdyn_b.minor);
-+	if (ret == 0)
-+		misc_deregister(&miscdyn_a);
-+
-+	misc_deregister(&miscdyn_b);
-+}
-+
- static struct kunit_case test_cases[] = {
- 	KUNIT_CASE(kunit_static_minor),
- 	KUNIT_CASE(kunit_misc_dynamic_minor),
-@@ -611,6 +654,7 @@ static struct kunit_case test_cases[] = {
- 	KUNIT_CASE(miscdev_test_duplicate_name),
- 	KUNIT_CASE(miscdev_test_duplicate_name_leak),
- 	KUNIT_CASE_PARAM(miscdev_test_duplicate_error, miscdev_gen_params),
-+	KUNIT_CASE(miscdev_test_dynamic_reentry),
- 	{}
- };
- 
+ EXPORT_SYMBOL(misc_deregister);
 
 -- 
 2.34.1
