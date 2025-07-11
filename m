@@ -1,114 +1,102 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 517FD2F2C6E;
-	Thu, 10 Jul 2025 18:22:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A92481C84D9;
+	Fri, 11 Jul 2025 10:29:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752171759; cv=none; b=Kjb4fkgrAYJHOU4v0/Mz2mPFQ2uLORFdjWBP35pMFdz6lMgTYOjniXWf13TFQmZMZJpbFg5p7Bm7dTzfGB1oozTF8sz7yHDdcDBM/0EHX5QTc9y8jTOIlhTFFWMU5XttB+NotEndYc65V1sXuPY9zrV4YLbeKJIcrULAZe/+lFk=
+	t=1752229785; cv=none; b=NgjVVvsTXreOPF68R0oovFEYFU6dFZ03z5Kv80sGowtFRTg3hTk6mVsxV9F9DKJR1Ejr3pU5DQ7Pdff4W9pB1ll16CWIPlN6458WGPDq6JvKUNKujiwDhTmULesK+H22cLM3Tc83+vpwjBEetKp7cF0wkN61+7Q7QtHIlCHzDww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752171759; c=relaxed/simple;
-	bh=h0qKLmDhXIaFsgvlOIN3susDzu/+PPSRV6kLudOs6sE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aLlHw20pU5ZteOAY+OtxVIcbKl63qtaX0pcxmW290pD+b0rznFIwyvmwGi+b8Ll2nq3ZQUvXq632OhD15UYOcLgGS5hzWnSmZRvkIRRJsgwKNl5mupVa8uxoeM64Gjx2DZ9Szodmj5iiYzTHP/MFKZs6avLRseB8Cz4VaxRO1hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=QfykkzUo; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="QfykkzUo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=C2bN5FstwQ/sSqjlVirDz35vgjcAjpul7lMG1TygQe0=; b=QfykkzUoR8knNdGlhwRx6HeWW3
-	K0qL4smMy35ewHdsgN+4H+m4pEXkfVAzn7oBcKcmBIC1SoXqkTM3yR36unT5ar3y/bUlsMZ1/V7Vv
-	kTgKtdt8h8qEyT+4CPzK+iXG/p+hVrh/PXFm+muJ8iT7mBKKSiWQp7GISlgJTWNxoZNIRBF3BXpVk
-	mB2BfeSIBOolti5k/swn7TAZRtZWW6Ja9xuvOCjc9vdNGqBGjfrXMrRu9tpLK8c562oW3PRdN3LhB
-	FqcAHctqff5tMSlxSglat2AictAChrPYT1KPUo/HPW7BKQU/XP8t+iyasiBIC+YAbJ3iOenxwmOHX
-	LjMYvgig==;
-Received: from 179-125-86-110-dinamico.pombonet.net.br ([179.125.86.110] helo=quatroqueijos.cascardo.eti.br)
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1uZvuX-00F3Dn-L7; Thu, 10 Jul 2025 20:22:22 +0200
-Date: Thu, 10 Jul 2025 15:22:15 -0300
-From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-To: Zijun Hu <zijun_hu@icloud.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>,
+	s=arc-20240116; t=1752229785; c=relaxed/simple;
+	bh=nzBByqRPRCsMsrvtXex+8bHjnmxE6PYCfebpjrSUVg0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=EG3xly/D6UmGiB1C1HR2t02/pQ5NrHcYhjmiFBOeL26Sa5EPVF45cK5P2FDVuEuuNep11bQv8qH52n3PCAP2xYf3a97BK96zCnO4zbOY5J9LsCsTcbPRE5+ULmKvjDBevfkLCpRJFxRX4H8q5i9X7k18Yao44kxUrXKzhlbpHNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4ED8616F2;
+	Fri, 11 Jul 2025 03:29:32 -0700 (PDT)
+Received: from a076716.blr.arm.com (a076716.blr.arm.com [10.164.21.47])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id E8BD73F738;
+	Fri, 11 Jul 2025 03:29:39 -0700 (PDT)
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+To: linux-mm@kvack.org,
+	akpm@linux-foundation.org
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>,
 	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-	linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
-	Zijun Hu <zijun.hu@oss.qualcomm.com>
-Subject: Re: [PATCH v5 6/8] char: misc: Does not request module for
- miscdevice with dynamic minor
-Message-ID: <aHAE103XZl8yqDuo@quatroqueijos.cascardo.eti.br>
-References: <20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com>
- <20250710-rfc_miscdev-v5-6-b3940297db16@oss.qualcomm.com>
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	x86@kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH] fs/Kconfig: Enable HUGETLBFS only if ARCH_SUPPORTS_HUGETLBFS
+Date: Fri, 11 Jul 2025 15:59:34 +0530
+Message-Id: <20250711102934.2399533-1-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250710-rfc_miscdev-v5-6-b3940297db16@oss.qualcomm.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 10, 2025 at 07:56:49PM +0800, Zijun Hu wrote:
-> From: Zijun Hu <zijun.hu@oss.qualcomm.com>
-> 
-> misc_open() may request module for miscdevice with dynamic minor, which
-> is meaningless since:
-> 
-> - The dynamic minor allocated is unknown in advance without registering
->   miscdevice firstly.
-> - Macro MODULE_ALIAS_MISCDEV() is not applicable for dynamic minor.
-> 
-> Fix by only requesting module for miscdevice with fixed minor.
-> 
-> Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
-> ---
->  drivers/char/misc.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/char/misc.c b/drivers/char/misc.c
-> index 96ed343cf5c8509a09855020049a9af82a3ede95..a0aae0fc792666a7bdc0ba00da9dc02ff9cead42 100644
-> --- a/drivers/char/misc.c
-> +++ b/drivers/char/misc.c
-> @@ -132,7 +132,8 @@ static int misc_open(struct inode *inode, struct file *file)
->  		break;
->  	}
->  
-> -	if (!new_fops) {
-> +	/* Only request module for fixed minor code */
-> +	if (!new_fops && minor < MISC_DYNAMIC_MINOR) {
->  		mutex_unlock(&misc_mtx);
->  		request_module("char-major-%d-%d", MISC_MAJOR, minor);
->  		mutex_lock(&misc_mtx);
-> @@ -144,10 +145,11 @@ static int misc_open(struct inode *inode, struct file *file)
->  			new_fops = fops_get(iter->fops);
->  			break;
->  		}
-> -		if (!new_fops)
-> -			goto fail;
->  	}
->  
-> +	if (!new_fops)
-> +		goto fail;
-> +
->  	/*
->  	 * Place the miscdevice in the file's
->  	 * private_data so it can be used by the
-> 
-> -- 
-> 2.34.1
-> 
+Enable HUGETLBFS only when platform subscrbes via ARCH_SUPPORTS_HUGETLBFS.
+Hence select ARCH_SUPPORTS_HUGETLBFS on existing x86 and sparc for their
+continuing HUGETLBFS support. While here also just drop existing 'BROKEN'
+dependency.
 
-Given this should not break any code, as there should be no legit drivers
-requesting a minor >= 255,
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: x86@kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+---
+ arch/sparc/Kconfig | 1 +
+ arch/x86/Kconfig   | 1 +
+ fs/Kconfig         | 2 +-
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-Acked-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 0f88123925a4..68549eedfe6d 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -97,6 +97,7 @@ config SPARC64
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	select ARCH_SUPPORTS_HUGETLBFS
+ 	select HAVE_NMI
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select ARCH_USE_QUEUED_RWLOCKS
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 71019b3b54ea..9630e5e1336b 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -126,6 +126,7 @@ config X86
+ 	select ARCH_SUPPORTS_ACPI
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 44b6cdd36dc1..86a00a972442 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -256,7 +256,7 @@ config ARCH_SUPPORTS_HUGETLBFS
+ 
+ menuconfig HUGETLBFS
+ 	bool "HugeTLB file system support"
+-	depends on X86 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
++	depends on ARCH_SUPPORTS_HUGETLBFS
+ 	depends on (SYSFS || SYSCTL)
+ 	select MEMFD_CREATE
+ 	select PADATA if SMP
+-- 
+2.25.1
+
