@@ -1,146 +1,124 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from outbound.pv.icloud.com (p-west1-cluster5-host12-snip4-10.eps.apple.com [57.103.66.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81CD72AE6A;
-	Mon, 14 Jul 2025 11:26:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A425E262FFC
+	for <sparclinux@vger.kernel.org>; Mon, 14 Jul 2025 15:34:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.66.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752492419; cv=none; b=p5hOJtFr2/b8UvnAg61J/LBiC3hEVvtQN2eSbXeSoguDTDQqm3DC2y/1sv15ijbid8EfZPK9JyYL6VVYLLUFJlaCqqT1hJkPhgT3EBajV0yK6xYElOiQyjmlvXbE8yUOBXcs1ORPiPr9klHPt21+qFCpWOjkPXGiHs/+T5Ksl6E=
+	t=1752507285; cv=none; b=ShyUL7NfEyqOFjN11NUYxQdfqvtOzPhbP7EJ/M5Xx7I+3hl5iOd6xmCva4z4NCdwPY3/chdZnpQDY74dWoxTgazH4iFWvXKQOH6f6hu4pUPZXQiJR2EIWmL6tJv3sj/Kwk27WbM8qQom0BEda5kZADnVhPOO3ppRV5oMSvmqVnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752492419; c=relaxed/simple;
-	bh=/4V95CRtfbd/3O7RgqJEB1XdYsfeImRWko5hB5hEltE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HFlwiwRopSsVoZvVlRHg2sb4GS3r4N78Qc8w/FrxgFPAqJQ2qhtyTFl1psPehuWRxNPKUvlYgCDC3o+MkwGTAHcd+4X8y142Ky7Ts5jyNyMDEyogA8WnXc7rsIgDPcT1y+qycwFk4+PrHLruv1AYiPcTcJvFYZLXZBAstTg6dHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=g2ZtJ112; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1752507285; c=relaxed/simple;
+	bh=OMJ960bvppJHmuxurYcPegcppYFhep1C7c8Zh6iOOpk=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=HtbPAaUNoaUp6lP/2QuNeZiqIckYJSuFlpk9Dvj1UsLYiYKDaGhExbcVJX0CfpKhc+6Hlx6XFNNHNKvvkyRwIJKrkLxk5rvz0u1TLzCrWmHtKaO1rp5lkwfahkbwoibZLoR7kpdmrmfwX+GeUxxb/PJVHDA8W+stoD9uv2o2mS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=KVqwbiAp; arc=none smtp.client-ip=57.103.66.231
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="g2ZtJ112"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=d604JCr+fm0Ij6WyXxetKyt8k0KrVJKxNemJmU49p14=; b=g2ZtJ1124DPZBAOM3nJiLASX+m
-	p/KqTe/dMJJLYMrQP/UyVoi7kSO0HgPDjLRXeh4oDx/M/z7mlPyfVwSEW6bN85ZUttQWWDkzFvlUt
-	q94yGdSt5zLYu7aayK4uvHr2/JsoyS+1d+CbTxrkWHgWGAEs+HPuD9lUJ25M+pWDr+RtQ+ameJS6c
-	Nmq8DYaThGAv4GJ+fSkkZL7y35Bs89OTSZfW1BOH5W0F83aUtQb7I/gSSRfWJ85fSxZ1S3q4oMPyd
-	9EevVZgMOJsQu7XjFycIBzs5c5gF+bJvR21FQTQ3OkNWndl/Nai95sUqZspGzSmw9YOc0yysj2kA0
-	szIxmIEw==;
-Received: from 179-125-75-212-dinamico.pombonet.net.br ([179.125.75.212] helo=quatroqueijos.cascardo.eti.br)
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1ubHKS-00GOGq-M3; Mon, 14 Jul 2025 13:26:41 +0200
-Date: Mon, 14 Jul 2025 08:26:34 -0300
-From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-To: Zijun Hu <zijun_hu@icloud.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
-	linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
-	Zijun Hu <zijun.hu@oss.qualcomm.com>
-Subject: Re: [PATCH v5 5/8] char: misc: Fix kunit test case
- miscdev_test_dynamic_reentry() failure
-Message-ID: <aHTpaoI8IfkSKm3O@quatroqueijos.cascardo.eti.br>
-References: <20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com>
- <20250710-rfc_miscdev-v5-5-b3940297db16@oss.qualcomm.com>
- <aHADQWaYsjK5EYsN@quatroqueijos.cascardo.eti.br>
- <8a0bfdc6-5edb-4ca0-b142-067eb94ef57f@icloud.com>
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="KVqwbiAp"
+Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
+	by outbound.pv.icloud.com (Postfix) with ESMTPS id C87BB18001EB;
+	Mon, 14 Jul 2025 15:34:39 +0000 (UTC)
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com; s=1a1hai; bh=hBBSdHG6C4hu+CJ0dF0ErxXT1O8dBj60X44ZNFpkvdo=; h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:x-icloud-hme; b=KVqwbiApcPAQCJj9QyL6mRLGeGQaBiABFBLeJtIcGEdVUiKNT2gMBQPhzyj0B1kTIRvlmg0Ml/2mpkVFPnVBCYfyYlrtqRvCzQm1KICH7hcJHVgeltXidlte/K0eZk4zFpZIxKKMJHosODxHCsWPIRTJbBsjywtUXOKk2lkRDyqR+/zttePEeglphv+pF3zzNNkeNAow03HgBdFLNKQMpTlC08I9ak+a7rhm3xJtHIMo/EeAiQHAIOZSgzlemlAP60cjKnDSFBlCfgDx2SRRzsZpLSH7ObzN3C2O8XTr8kLMdYGZB8rKeQ75btD6F7nPfOFwrG5bO9sHczqagEWl9g==
+Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
+	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 7631F180048B;
+	Mon, 14 Jul 2025 15:34:35 +0000 (UTC)
+From: Zijun Hu <zijun_hu@icloud.com>
+Subject: [PATCH v6 0/8] char: misc: Various cleanup for miscdevice
+Date: Mon, 14 Jul 2025 23:34:11 +0800
+Message-Id: <20250714-rfc_miscdev-v6-0-2ed949665bde@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8a0bfdc6-5edb-4ca0-b142-067eb94ef57f@icloud.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAHMjdWgC/3XQQW7DIBCF4atErEsEM4DtrHKPqKowg2ukOrSQo
+ laR716cTe022SC9xXz6xZVln4LP7LC7suRLyCGe6zBPO+ZGe371PFDdDARo0QjJ0+BeppAd+cJ
+ REyFK4RonWL14T34IXzft9Fz3kOLEL2Py9tcwIDZGkVzygSxo0gIsNseY8/7j0765OE37+izyG
+ PIlpu9bZoHFv19UgAuOvgfoB43Y+//aElZwTcCWwEpQ29Ug37Qd0gNCrQm1JVQletV2rZESyNg
+ HhF4R8s+36IXATgnoGuqluUPM8/wDsHq32sABAAA=
+X-Change-ID: 20250701-rfc_miscdev-35dd3310c7c0
+To: Arnd Bergmann <arnd@arndb.de>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>, 
+ Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org, 
+ linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
+ Zijun Hu <zijun.hu@oss.qualcomm.com>
+X-Mailer: b4 0.14.2
+X-Proofpoint-GUID: -GNrbL7e7Wx9NMW9jXIRRYp_WPn0eSG4
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzE0MDA5MyBTYWx0ZWRfX82GmQmd4G3zA
+ ig8cvQTRiThq6IXW9eJMY8LXqW3VJU3TCPEc5Ry+U5RuYOYSt7AKIIG2Wt2nl8X0/pOjUb8MPnD
+ RSPMYITh6hHSwUB9EWCiUELicKyFvoki/ygDn/gToIpXBwbbizuz3AXs/W1pNaXNNNLg+KoVPFa
+ 90n6yEDzyRangKn7SZtXGX+g23BkIgRARJ+uaAxY8EZow2j7vbM5sfcsEieNg1TDi2kj+zHRLmn
+ kaYyeEa75xlgml2Cl5h4JQcay9JEyowVsR3gnCTWmjciEFPRa2bhLvhz6Buf81m1J7mrEfNO8=
+X-Proofpoint-ORIG-GUID: -GNrbL7e7Wx9NMW9jXIRRYp_WPn0eSG4
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
+ definitions=2025-07-14_01,2025-07-14_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0
+ clxscore=1015 suspectscore=0 malwarescore=0 mlxscore=0 mlxlogscore=968
+ spamscore=0 adultscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.22.0-2506060001 definitions=main-2507140093
 
-On Mon, Jul 14, 2025 at 09:02:09AM +0800, Zijun Hu wrote:
-> On 2025/7/11 02:15, Thadeu Lima de Souza Cascardo wrote:
-> > Adding a failing test and then fixing the code does not seem the best way
-> > to justify this change. I would rather add the fix with a proper
-> > justification and then add the test.
-> >
-> may need to only correct commit message. the order about unit test and
-> fix may be right as last reply.
-> 
-> > On the other hand, I have found real cases where this might happen, some by
-> > code inspection only, but I also managed to reproduce the issue here,
-> > where:
-> > 
-> > 1) wmi/dell-smbios registered minor 122, acpi_thermal_rel registered minor
-> > 123.
-> > 2) unbind "int3400 thermal" driver from its device, this will unregister
-> > acpi_thermal_rel
-> > 3) remove dell_smbios module
-> > 4) reinstall dell_smbios module, now wmi/dell-smbios is using misc 123
-> > 5) bind the device to "int3400 thermal" driver again, acpi_thermal_rel
-> > fails to register
-> > 
-> 
-> above issue should not happen with current char-misc tree since fixed
-> minor have no such reentry issue:
-> 
-> for any fixed minor fixed_A in range [0, 255): ".minor = fixed_A" ->
-> registered -> ".minor = fixed_A" -> de-registered -> ".minor = fixed_A"
-> , namely, for fixed minor, it is always un-changed about registering
-> and de-registering.
-> 
+This patch series is to do cleanup for:
 
-I am running an older tree, where the misc range is still below 128, but
-notice those numbers are in the dynamic range. Those two drivers are using
-the dynamic misc. I am just showing that what you are trying to fix here is
-a real issue. And, below, I suggested a paragraph in the commit message
-mentioning it.
+- Miscdevice APIs
+- Miscdevice kunit test cases
+- Drivers which use miscdevice APIs
 
-Cascardo.
+Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
+---
+Previous discussion link:
+https://lore.kernel.org/all/20250620-rfc_miscdev-v1-1-fda25d502a37@oss.qualcomm.com
 
-> 
-> > I think we have a few options to fix these bugs:
-> > 
-> > 1) Apply your suggested fix.
-> > 2) Fix all the buggy drivers.
-> > 3) Change API and have the minor be a misc_register parameter.
-> > 
-> > The advantage of your option is that it is simple and contained and easy to
-> > backport.
-> > 
-> > Changing API would require changing a lot of code and hard to backport, but
-> > I find it less error-prone than requiring the minor member to be reset, if
-> > we end up deciding about fixing the drivers.
-> > 
-> > As for fixing individual drivers, one helpful feature is applying your
-> > previous patch [1], but perhaps with stronger message, maybe a WARN_ON.
-> > 
-> > [1] char: misc: Disallow registering miscdevice whose minor > MISC_DYNAMIC_MINOR
-> > 
-> > I am leaning towards your suggested fix, but with different wording, and
-> > before adding the test case.
-> > 
-> > Something like:
-> > 
-> > Some drivers may reuse the miscdevice structure after they are
-> > deregistered. If the intention is to allocate a dynamic minor, if the minor
-> > number is not reset to MISC_DYNAMIC_MINOR before calling misc_register, it
-> > will try to register a previously dynamically allocated minor number, which
-> > may have been registered by a different driver.
-> > 
-> 
-> let me correct commit message based on this suggestions.
-> thank you.
-> 
-> > One such case is the acpi_thermal_rel misc device, registered by the
-> > int3400 thermal driver. If the device is unbound from the driver and later
-> > bound, if there was another dynamic misc device registered in between, it
-> > would fail to register the acpi_thermal_rel misc device. Other drivers
-> > behave similarly.
-> > 
-> > Instead of fixing all the drivers, just reset the minor member to
-> > MISC_DYNAMIC_MINOR when calling misc_deregister in case it was a
-> > dynamically allocated minor number.
-> 
+---
+Changes in v6:
+- Correct title and commit message as cascardo's suggestion for [PATCH 5/8]
+- Link to v5: https://lore.kernel.org/r/20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com
+
+Changes in v5:
+- Replace space with table in fist patch's Makefile
+- Correct title and commit messages
+- Link to v4: https://lore.kernel.org/r/20250704-rfc_miscdev-v4-0-b48986112d6a@oss.qualcomm.com
+
+Changes in v4:
+- Fix WARNINGs reported by "kernel test robot <lkp@intel.com>"
+- Link to v3: https://lore.kernel.org/r/20250702-rfc_miscdev-v3-0-d8925de7893d@oss.qualcomm.com
+
+Changes in v3:
+- Drop the change which allocates 4 fixed minors for watchdog
+- Correct tile and commit message
+- Link to v2: https://lore.kernel.org/r/20250701-rfc_miscdev-v2-0-3eb22bf533be@oss.qualcomm.com
+
+---
+Zijun Hu (8):
+      char: misc: Move drivers/misc/misc_minor_kunit.c to drivers/char/
+      char: misc: Adapt and add test cases for simple minor space division
+      char: misc: Disallow registering miscdevice whose minor > MISC_DYNAMIC_MINOR
+      char: misc: Add a case to test registering miscdevice again without reinitialization
+      char: misc: Make misc_register() reentry for miscdevice who wants dynamic minor
+      char: misc: Does not request module for miscdevice with dynamic minor
+      char: misc: Register fixed minor EISA_EEPROM_MINOR in linux/miscdevice.h
+      sparc: kernel: apc: Remove macro APC_MINOR definition
+
+ arch/sparc/kernel/apc.c                   |  3 +-
+ drivers/char/Makefile                     |  1 +
+ drivers/char/misc.c                       | 16 +++++-
+ drivers/{misc => char}/misc_minor_kunit.c | 95 +++++++++++++++++++++----------
+ drivers/misc/Makefile                     |  1 -
+ drivers/parisc/eisa_eeprom.c              |  2 -
+ include/linux/miscdevice.h                |  9 +++
+ 7 files changed, 89 insertions(+), 38 deletions(-)
+---
+base-commit: db15ec7abd33ce245120f36be91f56f0ba0b247e
+change-id: 20250701-rfc_miscdev-35dd3310c7c0
+
+Best regards,
+-- 
+Zijun Hu <zijun.hu@oss.qualcomm.com>
+
