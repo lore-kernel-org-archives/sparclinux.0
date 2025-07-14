@@ -1,132 +1,138 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E669EAE7;
-	Mon, 14 Jul 2025 02:35:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB4A51F541E;
+	Mon, 14 Jul 2025 05:22:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752460546; cv=none; b=kFCDa7FYVnbRZlkLLRU7Kjy9j8ZxOBdz0nRed8p1231H8x0j4/iQgsW3J2WD4OjEVKPRSUit7ysrlpMTonDgqvvzWYDoZxpZ4S574otIo32GvxvUcH8yNhOguMkIjsV5mmAEyCG6FPmbloWV0hqkP86FmiWRN5zMBhl222agYBU=
+	t=1752470546; cv=none; b=D3fZ66kp241uTZrOcE8Kpfu12qfSzwq8kyPDJy4emR+Bw+80A/VTFSEH7kCntZfNWJYnoobp5j7kY7oALIHlIXDrrnbPmV58oL5gbZUpxf1V+YL3Zsj7TqfcXhwppGVv+xuMsuwixIgKyXbcBhSn1Vcr+x4QHzArM1lBljIkXw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752460546; c=relaxed/simple;
-	bh=KQAzMGUQ+c04oHNp9H4UZyGi84UC9o6J3V2jj3rwhp4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Y2HSyR33cUUvDmXnRjQbEW+vBMi6t+QncGbjC9dUMsoRSrImc/hMFiq7iHmdxxujQbkwGjUhdNyLaCpGVL7p+csifvRq6jOVOy1USgGf9iBDE9Mv5M0GJGbqR2yDOE4JZE1jJrNg9fHtcdfbu2lCi7QCyBUh6D3T8XY49WgjI8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 476A912FC;
-	Sun, 13 Jul 2025 19:35:28 -0700 (PDT)
-Received: from [10.164.146.15] (J09HK2D2RT.blr.arm.com [10.164.146.15])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9A1303F6A8;
-	Sun, 13 Jul 2025 19:35:34 -0700 (PDT)
-Message-ID: <f86c9ec6-d82d-4d0c-80b2-504f7c6da22e@arm.com>
-Date: Mon, 14 Jul 2025 08:05:31 +0530
+	s=arc-20240116; t=1752470546; c=relaxed/simple;
+	bh=pAb5wRbhQET+kmUSyBJ7QX6Te7INTWO7qdGK9VkXql0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=p9DIj59t/0BOu+OmHBr8Tds+DPOnaKja7sSr2cjDS0fHRZ2+B/506MSURdvTwJPYNlc9w4uWn2/6n89ikvFMuPmPa/oFoBav2H2sUfvD8PRcJyjeLIKXFx1KJ4zZm15to0X2M3aIyoGumRLe3F4g8E4ij7oX7ML/3KaUY5ec6L4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lzd55PdU; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lzd55PdU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68EE0C4CEF0;
+	Mon, 14 Jul 2025 05:22:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1752470545;
+	bh=pAb5wRbhQET+kmUSyBJ7QX6Te7INTWO7qdGK9VkXql0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Lzd55PdUdq+c+mAd5uySwMSoUH+kaA4A1+lO4Bp2rWjPOuURmtFTKJqiu8+7oHe/2
+	 IWd04Cz6zEMUQGxVCULy4y7Pt258a8kqHbqQ9KRbbYTL89XmaCBSNKFzrQ4lSDmxz6
+	 Tn1fhnyzKHfp0lVx3oVYAYX0CFijcSHtacycMNx1oM1cSeYl06AGSSe68K4TL24j/q
+	 SndjW3Hf+al+rTdChZ/5v3b+HTWeEzWXggdgAGknnrTSFiaHT1uky0a6o1NuEQsFmJ
+	 hO719WuReX0D1U/zm/1TrSO2KoWdJXzHoRvgs2M7wj2fT/zaF4pcbrq0ecVLli1GES
+	 XIeDW4bt8QHAg==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-32b7f41d3e6so48453551fa.1;
+        Sun, 13 Jul 2025 22:22:25 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVlXWO/lkTxZMENufNd7XnbDdLuTOSoEcj+3HM4fKrBaod9C+Sz4K2qPjupVphR0srYoNP9TeEE1iSzxV4=@vger.kernel.org, AJvYcCW+PVyHLgLyinnft1PaZuEwSGT4e5XuF4/sKKTzV1JYnCz48k61H+f+wYjreHlxD17a6FCnc+BtG0K/jg==@vger.kernel.org, AJvYcCWrnhbw68hBNmq77pCaun+lUYkhvVnh34wZwQL6m6Nh1+I2KWc1rGo9y3m+Q/rax+zWJ0BHhtbgV/R9AA==@vger.kernel.org, AJvYcCX2CRINcat4lJJH+yaIIpD6K1VfpmftiS7lUqwWPiMM9GoXxNBgTuyUcQYFf+xyIR67nZ1MogcEQ3O6bA==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyozEcLBuVrJ4CewM920lv1DncONOAUgSR+VolhXOoaPpDHiMXo
+	68I1ujX+WgAXKVXxUIQBQKYGPlrR/oLgSSTFAiPsgZz7oTryEMpFeKuywW85HWkGCI1Y+wdL5eL
+	SKWiBU8DqM0YVgDELJpQs2Q7a9K8+iek=
+X-Google-Smtp-Source: AGHT+IF8eKcSow8wXiBWe1ZtHXBbfzA+mJh/QYc9UT+26PKpYbp48jE/SYcyCuO5sRz/aNI8XoUCHiEWvfP2lMj1cew=
+X-Received: by 2002:a2e:b894:0:b0:30d:c4c3:eafa with SMTP id
+ 38308e7fff4ca-330520af931mr41229641fa.7.1752470543799; Sun, 13 Jul 2025
+ 22:22:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fs/Kconfig: Enable HUGETLBFS only if
- ARCH_SUPPORTS_HUGETLBFS
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, "David S. Miller" <davem@davemloft.net>,
- Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- x86@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org
-References: <20250711102934.2399533-1-anshuman.khandual@arm.com>
- <20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
-Content-Language: en-US
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-In-Reply-To: <20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20250712232329.818226-1-ebiggers@kernel.org>
+In-Reply-To: <20250712232329.818226-1-ebiggers@kernel.org>
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Mon, 14 Jul 2025 15:22:12 +1000
+X-Gmail-Original-Message-ID: <CAMj1kXHUY_1nF8_Yiqn9K-G7nkOPQgH5rkmhcHem2pPsxKaQVQ@mail.gmail.com>
+X-Gm-Features: Ac12FXyawDsE4qmZuudtL0JGLEW7eYqwCyaWBTQgeIZfWtrJNQHxtUbS816vJ3g
+Message-ID: <CAMj1kXHUY_1nF8_Yiqn9K-G7nkOPQgH5rkmhcHem2pPsxKaQVQ@mail.gmail.com>
+Subject: Re: [PATCH 00/26] SHA-1 library functions
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	"Jason A . Donenfeld" <Jason@zx2c4.com>, linux-arm-kernel@lists.infradead.org, 
+	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Sun, 13 Jul 2025 at 09:26, Eric Biggers <ebiggers@kernel.org> wrote:
+>
+> This series is also available at:
+>
+>     git fetch https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git sha1-lib-v1
+>
+> Patches 1-14 reorganize the kernel's SHA-1 code to be consistent with
+> the way the SHA-2 code is now organized:
+>
+> - Add SHA-1 and HMAC-SHA1 library functions.
+> - Make the SHA-1 (and HMAC-SHA1) library functions use the existing
+>   architecture-optimized SHA-1 code, which is moved into lib/crypto/.
+> - Reimplement the old-school crypto API's "sha1" and "hmac(sha1)"
+>   algorithms on top of the SHA-1 and HMAC-SHA1 library functions.
+>
+> The diffstat for that part is:
+>
+>     65 files changed, 1052 insertions(+), 1582 deletions(-)
+>
+> This hopefully should look quite boring and familiar by now, as
+> essentially the same cleanup was already applied to SHA-2.
+>
+> Patch 15 adds sha1_kunit.
+>
+> Note that while SHA-1 is a legacy algorithm, it still has many in-kernel
+> users for legacy protocols.  So it's not like we'll be able to remove
+> the SHA-1 code from the kernel anytime soon.  And some of these users
+> are currently having to jump through some *major* hoops to work around
+> the limitations of the old-school crypto API.  The library API greatly
+> simplifies things, and it makes the SHA-1 code consistent with the SHA-2
+> code.  So, IMO it's well worth doing this reorganization of the SHA-1
+> code, even though SHA-1 is a legacy algorithm.
+>
+> To show this even more clearly, patches 16-26 convert various users to
+> use the SHA-1 library API (or both SHA-1 and SHA-2, in the case of some
+> users that use both algorithms).  The diffstat for that part is:
+>
+>     27 files changed, 169 insertions(+), 903 deletions(-)
+>
+> For 6.17, I'd like to take patches 1-15 at the most.  Patches 16-26
+> would be for later, and I'll probably resend them individually later for
+> subsystem maintainers to take.
+>
+> Eric Biggers (26):
+>   crypto: x86/sha1 - Rename conflicting symbol
+>   lib/crypto: sha1: Rename sha1_init() to sha1_init_raw()
+>   lib/crypto: sha1: Add SHA-1 library functions
+>   lib/crypto: sha1: Add HMAC support
+>   crypto: sha1 - Wrap library and add HMAC support
+>   crypto: sha1 - Use same state format as legacy drivers
+>   lib/crypto: arm/sha1: Migrate optimized code into library
+>   lib/crypto: arm64/sha1: Migrate optimized code into library
+>   lib/crypto: mips/sha1: Migrate optimized code into library
+>   lib/crypto: powerpc/sha1: Migrate optimized code into library
+>   lib/crypto: s390/sha1: Migrate optimized code into library
+>   lib/crypto: sparc/sha1: Migrate optimized code into library
+>   lib/crypto: x86/sha1: Migrate optimized code into library
+>   crypto: sha1 - Remove sha1_base.h
+>   lib/crypto: tests: Add KUnit tests for SHA-1 and HMAC-SHA1
+>   bpf: Use sha1() instead of sha1_transform() in bpf_prog_calc_tag()
+>   sctp: Use HMAC-SHA1 and HMAC-SHA256 library functions
+>   ipv6: sr: Use HMAC-SHA1 and HMAC-SHA256 library functions
+>   tee: Use SHA-1 library instead of crypto_shash
+>   lib/digsig: Use SHA-1 library instead of crypto_shash
+>   drm/bridge: it6505: Use SHA-1 library instead of crypto_shash
+>   nfc: s3fwrn5: Use SHA-1 library instead of crypto_shash
+>   ppp: mppe: Use SHA-1 library instead of crypto_shash
+>   KEYS: trusted_tpm1: Use SHA-1 library instead of crypto_shash
+>   ipv6: Switch to higher-level SHA-1 functions
+>   lib/crypto: sha1: Remove low-level functions from API
+>
+...
+>  92 files changed, 1472 insertions(+), 2474 deletions(-)
 
+Again, the diffstat speaks for itself.
 
-On 13/07/25 4:45 AM, Andrew Morton wrote:
-> On Fri, 11 Jul 2025 15:59:34 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
-> 
->> Enable HUGETLBFS only when platform subscrbes via ARCH_SUPPORTS_HUGETLBFS.
->> Hence select ARCH_SUPPORTS_HUGETLBFS on existing x86 and sparc for their
->> continuing HUGETLBFS support.
-> 
-> Looks nice.
-> 
->> While here also just drop existing 'BROKEN' dependency.
-> 
-> Why?
-> 
-> What is BROKEN for, anyway?  I don't recall having dealt with it
-> before.  It predates kernel git and we forgot to document it.
+For the series,
 
-The original first commit had added 'BROKEN', although currently there
-are no explanations about it in the tree. But looks like this might be
-used for feature gating (selectively disabling features) etc. But I am
-not much aware about it.
-
-commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2 (tag: v2.6.12-rc2)
-Author: Linus Torvalds <torvalds@ppc970.osdl.org>
-Date:   Sat Apr 16 15:20:36 2005 -0700
-
-    Linux-2.6.12-rc2
-
-    Initial git repository build. I'm not bothering with the full history,
-    even though we have it. We can create a separate "historical" git
-    archive of that later if we want to, and in the meantime it's about
-    3.2GB when imported into git - space that would just make the early
-    git days unnecessarily complicated, when we don't have a lot of good
-    infrastructure for it.
-
-    Let it rip!
-
-BROKEN still gets used for multiple config options.
-
-git grep "depends on BROKEN"
-
-arch/m68k/Kconfig.devices:      depends on BROKEN && (Q40 || SUN3X)
-arch/mips/loongson64/Kconfig:   depends on BROKEN
-arch/parisc/Kconfig:    depends on BROKEN
-arch/powerpc/lib/crypto/Kconfig:        depends on BROKEN # Needs to be fixed to work in softirq context
-drivers/edac/Kconfig:   depends on BROKEN
-drivers/edac/Kconfig:   depends on BROKEN
-drivers/gpu/drm/Kconfig.debug:  depends on BROKEN
-drivers/gpu/drm/amd/display/Kconfig:    depends on BROKEN || !CC_IS_CLANG || ARM64 || LOONGARCH || RISCV || SPARC64 || X86_64
-drivers/gpu/drm/i915/Kconfig.debug:     depends on BROKEN
-drivers/net/wireless/intel/iwlwifi/Kconfig:     depends on BROKEN
-drivers/s390/block/Kconfig:     depends on BROKEN
-drivers/staging/gpib/TODO:- fix device drivers that are broken ("depends on BROKEN" in Kconfig)
-drivers/tty/Kconfig:    depends on BROKEN
-drivers/virtio/Kconfig:        depends on BROKEN
-init/Kconfig:   depends on BROKEN || !SMP
-init/Kconfig:   depends on BROKEN
-lib/Kconfig.ubsan:      depends on BROKEN
-
-git grep "&& BROKEN"
-
-arch/parisc/Kconfig:    depends on PA8X00 && BROKEN && !KFENCE
-arch/parisc/Kconfig:    depends on PA8X00 && BROKEN && !KFENCE
-arch/powerpc/platforms/amigaone/Kconfig:        depends on PPC_BOOK3S_32 && BROKEN_ON_SMP
-arch/powerpc/platforms/embedded6xx/Kconfig:     depends on PPC_BOOK3S_32 && BROKEN_ON_SMP
-arch/sh/Kconfig.debug:  depends on DEBUG_KERNEL && BROKEN
-drivers/gpu/drm/Kconfig.debug:  depends on DRM && EXPERT && BROKEN
-drivers/i2c/busses/Kconfig:     depends on ISA && HAS_IOPORT_MAP && BROKEN_ON_SMP
-drivers/leds/Kconfig:   depends on LEDS_CLASS && BROKEN
-drivers/net/wireless/broadcom/b43/Kconfig:      depends on B43 && BROKEN
-drivers/net/wireless/broadcom/b43/Kconfig:      depends on B43 && B43_BCMA && BROKEN
-drivers/pps/generators/Kconfig: depends on PARPORT && BROKEN
-drivers/staging/greybus/Kconfig:        depends on MEDIA_SUPPORT && LEDS_CLASS_FLASH && BROKEN
-drivers/video/fbdev/Kconfig:    depends on FB && ((AMIGA && BROKEN) || PCI)
-fs/quota/Kconfig:       depends on QUOTA && BROKEN
-fs/smb/client/Kconfig:  depends on CIFS && BROKEN
-net/ax25/Kconfig:       depends on AX25_DAMA_SLAVE && BROKEN
-
-git grep "|| BROKEN"
-
-arch/sh/Kconfig.debug:  depends on DEBUG_KERNEL && (MMU || BROKEN) && !PAGE_SIZE_64KB
-drivers/misc/Kconfig:   depends on X86_64 || BROKEN
-drivers/net/ethernet/faraday/Kconfig:   depends on !64BIT || BROKEN
-drivers/net/ethernet/faraday/Kconfig:   depends on !64BIT || BROKEN
-drivers/net/ethernet/intel/Kconfig:     depends on PCI && (!SPARC32 || BROKEN)
-drivers/usb/gadget/udc/Kconfig: depends on !64BIT || BROKEN
-kernel/power/Kconfig:           if ARCH_WANTS_FREEZER_CONTROL || BROKEN
+Reviewed-by: Ard Biesheuvel <ardb@kernel.org>
