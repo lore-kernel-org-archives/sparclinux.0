@@ -1,30 +1,25 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster4-host1-snip4-5.eps.apple.com [57.103.65.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C922AD32
-	for <sparclinux@vger.kernel.org>; Mon, 14 Jul 2025 01:02:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.65.136
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E669EAE7;
+	Mon, 14 Jul 2025 02:35:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752454939; cv=none; b=smiBtxoCk50vnzFSzi9QNf3xANAS4uHVP2tO2y0BKfVqmvJOcWI9vBNUftDgXg3hKlRR8Ov9wTVkru6l49TtBrXcm22Xl+r7AAOC8Zv71xJkprCZt4bcY6qqs86GPI+BxR5ysahhVaOs99Iju5TMETQVEO9u0Bj0LJxro5bQAtQ=
+	t=1752460546; cv=none; b=kFCDa7FYVnbRZlkLLRU7Kjy9j8ZxOBdz0nRed8p1231H8x0j4/iQgsW3J2WD4OjEVKPRSUit7ysrlpMTonDgqvvzWYDoZxpZ4S574otIo32GvxvUcH8yNhOguMkIjsV5mmAEyCG6FPmbloWV0hqkP86FmiWRN5zMBhl222agYBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752454939; c=relaxed/simple;
-	bh=LAqW6Xz/aenhHrNc03i1d+2r/dZeUUxScJCa+rxwOw8=;
+	s=arc-20240116; t=1752460546; c=relaxed/simple;
+	bh=KQAzMGUQ+c04oHNp9H4UZyGi84UC9o6J3V2jj3rwhp4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TLDLshKVfF+lP6FNMBlchVDySaVCSV+1/xq148g3qeff6IKdaj7kG0OH3LFNP3D7DF0ApudeW6gtHwFCOuaAWc/a/JnYsfr7PyddHed8JQYMZHCCDkSU9HYbDvCucB4tOHBvHBpA5FW3WL8M4Z03ehgZSa61wb8p2l9gmJxhCaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=GS7lfgbV; arc=none smtp.client-ip=57.103.65.136
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="GS7lfgbV"
-Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id 18C6418002BB;
-	Mon, 14 Jul 2025 01:02:14 +0000 (UTC)
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com; s=1a1hai; bh=JSa9SdVcVOj5jZYORBeS6/ykjag1Gc6PWlM78AoxMg8=; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:x-icloud-hme; b=GS7lfgbVyLlhz5jnb6RbTEfKlI+AYXx9gflz9nyyji/5jkad0DkUm4ZHoXRLe6J/w85uGFFG5L6W3ehSMkJoNfXu1Jl8+X45SqHyPlDmvtMjwXTarqe9kCSVN1JePOsmfOFECjs22dd1op0WU2/105ITVX6aGIEd0AdF75tw9xlCVF+V7Sb25DwWYacLvEx16vZ83JXOTYjsIyd39HYUs73p7/FdTvQVdsGux2SoWw1/v0HyO89tjqSbywwvdztOyE2i6L7f7++LbhfCtRjbLEUaug3Gn5DjFTmObPJvz+McHfItSqIQTK0O0/qh8GpA+iDo3feE/x5xu+xYV+mqQg==
-Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 3E8EF18002AF;
-	Mon, 14 Jul 2025 01:02:12 +0000 (UTC)
-Message-ID: <8a0bfdc6-5edb-4ca0-b142-067eb94ef57f@icloud.com>
-Date: Mon, 14 Jul 2025 09:02:09 +0800
+	 In-Reply-To:Content-Type; b=Y2HSyR33cUUvDmXnRjQbEW+vBMi6t+QncGbjC9dUMsoRSrImc/hMFiq7iHmdxxujQbkwGjUhdNyLaCpGVL7p+csifvRq6jOVOy1USgGf9iBDE9Mv5M0GJGbqR2yDOE4JZE1jJrNg9fHtcdfbu2lCi7QCyBUh6D3T8XY49WgjI8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 476A912FC;
+	Sun, 13 Jul 2025 19:35:28 -0700 (PDT)
+Received: from [10.164.146.15] (J09HK2D2RT.blr.arm.com [10.164.146.15])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9A1303F6A8;
+	Sun, 13 Jul 2025 19:35:34 -0700 (PDT)
+Message-ID: <f86c9ec6-d82d-4d0c-80b2-504f7c6da22e@arm.com>
+Date: Mon, 14 Jul 2025 08:05:31 +0530
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -32,110 +27,106 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 5/8] char: misc: Fix kunit test case
- miscdev_test_dynamic_reentry() failure
-To: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
- Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, linux-kernel@vger.kernel.org,
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
- Zijun Hu <zijun.hu@oss.qualcomm.com>
-References: <20250710-rfc_miscdev-v5-0-b3940297db16@oss.qualcomm.com>
- <20250710-rfc_miscdev-v5-5-b3940297db16@oss.qualcomm.com>
- <aHADQWaYsjK5EYsN@quatroqueijos.cascardo.eti.br>
+Subject: Re: [PATCH] fs/Kconfig: Enable HUGETLBFS only if
+ ARCH_SUPPORTS_HUGETLBFS
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, "David S. Miller" <davem@davemloft.net>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ x86@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org
+References: <20250711102934.2399533-1-anshuman.khandual@arm.com>
+ <20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
 Content-Language: en-US
-From: Zijun Hu <zijun_hu@icloud.com>
-In-Reply-To: <aHADQWaYsjK5EYsN@quatroqueijos.cascardo.eti.br>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+In-Reply-To: <20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: uPq-G_qOM5bY1m-tzO4y1Uosnb98Rir3
-X-Proofpoint-GUID: uPq-G_qOM5bY1m-tzO4y1Uosnb98Rir3
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzE0MDAwMiBTYWx0ZWRfX2mhJykUiyQTV
- cxWuzr948aPPgODkxLoXsQqPzIx0pb3ZuN+dyUcfF5NLKBPdREWl0la49y8+0TBfDaNc1MTPZEy
- uB04hvHFdIhh0UkFUKYgoZ9ENlLXnAbgQ+loP4/7QKcOlg6cAbI5iFLyFflSChcMMpi5rrlaSiL
- JqinaOmdEnIgpcmbHYlmeNRU6/H21NaGM5cw36MGASzgK80VUMt5ttriKSTIsx/m70Rfi37MSCm
- zeL5J8DAGPd3OR2bbxi6sCPt7A1AjqWyjxFmGSl+2q8cjCo1FhVxZLp26MqamPRajLBl92PVo=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
- definitions=2025-07-13_03,2025-07-09_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0
- mlxlogscore=999 malwarescore=0 adultscore=0 spamscore=0 suspectscore=0
- phishscore=0 bulkscore=0 clxscore=1015 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2506060001 definitions=main-2507140002
-
-On 2025/7/11 02:15, Thadeu Lima de Souza Cascardo wrote:
-> Adding a failing test and then fixing the code does not seem the best way
-> to justify this change. I would rather add the fix with a proper
-> justification and then add the test.
->
-may need to only correct commit message. the order about unit test and
-fix may be right as last reply.
-
-> On the other hand, I have found real cases where this might happen, some by
-> code inspection only, but I also managed to reproduce the issue here,
-> where:
-> 
-> 1) wmi/dell-smbios registered minor 122, acpi_thermal_rel registered minor
-> 123.
-> 2) unbind "int3400 thermal" driver from its device, this will unregister
-> acpi_thermal_rel
-> 3) remove dell_smbios module
-> 4) reinstall dell_smbios module, now wmi/dell-smbios is using misc 123
-> 5) bind the device to "int3400 thermal" driver again, acpi_thermal_rel
-> fails to register
-> 
-
-above issue should not happen with current char-misc tree since fixed
-minor have no such reentry issue:
-
-for any fixed minor fixed_A in range [0, 255): ".minor = fixed_A" ->
-registered -> ".minor = fixed_A" -> de-registered -> ".minor = fixed_A"
-, namely, for fixed minor, it is always un-changed about registering
-and de-registering.
 
 
-> I think we have a few options to fix these bugs:
-> 
-> 1) Apply your suggested fix.
-> 2) Fix all the buggy drivers.
-> 3) Change API and have the minor be a misc_register parameter.
-> 
-> The advantage of your option is that it is simple and contained and easy to
-> backport.
-> 
-> Changing API would require changing a lot of code and hard to backport, but
-> I find it less error-prone than requiring the minor member to be reset, if
-> we end up deciding about fixing the drivers.
-> 
-> As for fixing individual drivers, one helpful feature is applying your
-> previous patch [1], but perhaps with stronger message, maybe a WARN_ON.
-> 
-> [1] char: misc: Disallow registering miscdevice whose minor > MISC_DYNAMIC_MINOR
-> 
-> I am leaning towards your suggested fix, but with different wording, and
-> before adding the test case.
-> 
-> Something like:
-> 
-> Some drivers may reuse the miscdevice structure after they are
-> deregistered. If the intention is to allocate a dynamic minor, if the minor
-> number is not reset to MISC_DYNAMIC_MINOR before calling misc_register, it
-> will try to register a previously dynamically allocated minor number, which
-> may have been registered by a different driver.
-> 
 
-let me correct commit message based on this suggestions.
-thank you.
-
-> One such case is the acpi_thermal_rel misc device, registered by the
-> int3400 thermal driver. If the device is unbound from the driver and later
-> bound, if there was another dynamic misc device registered in between, it
-> would fail to register the acpi_thermal_rel misc device. Other drivers
-> behave similarly.
+On 13/07/25 4:45 AM, Andrew Morton wrote:
+> On Fri, 11 Jul 2025 15:59:34 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
 > 
-> Instead of fixing all the drivers, just reset the minor member to
-> MISC_DYNAMIC_MINOR when calling misc_deregister in case it was a
-> dynamically allocated minor number.
+>> Enable HUGETLBFS only when platform subscrbes via ARCH_SUPPORTS_HUGETLBFS.
+>> Hence select ARCH_SUPPORTS_HUGETLBFS on existing x86 and sparc for their
+>> continuing HUGETLBFS support.
+> 
+> Looks nice.
+> 
+>> While here also just drop existing 'BROKEN' dependency.
+> 
+> Why?
+> 
+> What is BROKEN for, anyway?  I don't recall having dealt with it
+> before.  It predates kernel git and we forgot to document it.
 
+The original first commit had added 'BROKEN', although currently there
+are no explanations about it in the tree. But looks like this might be
+used for feature gating (selectively disabling features) etc. But I am
+not much aware about it.
+
+commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2 (tag: v2.6.12-rc2)
+Author: Linus Torvalds <torvalds@ppc970.osdl.org>
+Date:   Sat Apr 16 15:20:36 2005 -0700
+
+    Linux-2.6.12-rc2
+
+    Initial git repository build. I'm not bothering with the full history,
+    even though we have it. We can create a separate "historical" git
+    archive of that later if we want to, and in the meantime it's about
+    3.2GB when imported into git - space that would just make the early
+    git days unnecessarily complicated, when we don't have a lot of good
+    infrastructure for it.
+
+    Let it rip!
+
+BROKEN still gets used for multiple config options.
+
+git grep "depends on BROKEN"
+
+arch/m68k/Kconfig.devices:      depends on BROKEN && (Q40 || SUN3X)
+arch/mips/loongson64/Kconfig:   depends on BROKEN
+arch/parisc/Kconfig:    depends on BROKEN
+arch/powerpc/lib/crypto/Kconfig:        depends on BROKEN # Needs to be fixed to work in softirq context
+drivers/edac/Kconfig:   depends on BROKEN
+drivers/edac/Kconfig:   depends on BROKEN
+drivers/gpu/drm/Kconfig.debug:  depends on BROKEN
+drivers/gpu/drm/amd/display/Kconfig:    depends on BROKEN || !CC_IS_CLANG || ARM64 || LOONGARCH || RISCV || SPARC64 || X86_64
+drivers/gpu/drm/i915/Kconfig.debug:     depends on BROKEN
+drivers/net/wireless/intel/iwlwifi/Kconfig:     depends on BROKEN
+drivers/s390/block/Kconfig:     depends on BROKEN
+drivers/staging/gpib/TODO:- fix device drivers that are broken ("depends on BROKEN" in Kconfig)
+drivers/tty/Kconfig:    depends on BROKEN
+drivers/virtio/Kconfig:        depends on BROKEN
+init/Kconfig:   depends on BROKEN || !SMP
+init/Kconfig:   depends on BROKEN
+lib/Kconfig.ubsan:      depends on BROKEN
+
+git grep "&& BROKEN"
+
+arch/parisc/Kconfig:    depends on PA8X00 && BROKEN && !KFENCE
+arch/parisc/Kconfig:    depends on PA8X00 && BROKEN && !KFENCE
+arch/powerpc/platforms/amigaone/Kconfig:        depends on PPC_BOOK3S_32 && BROKEN_ON_SMP
+arch/powerpc/platforms/embedded6xx/Kconfig:     depends on PPC_BOOK3S_32 && BROKEN_ON_SMP
+arch/sh/Kconfig.debug:  depends on DEBUG_KERNEL && BROKEN
+drivers/gpu/drm/Kconfig.debug:  depends on DRM && EXPERT && BROKEN
+drivers/i2c/busses/Kconfig:     depends on ISA && HAS_IOPORT_MAP && BROKEN_ON_SMP
+drivers/leds/Kconfig:   depends on LEDS_CLASS && BROKEN
+drivers/net/wireless/broadcom/b43/Kconfig:      depends on B43 && BROKEN
+drivers/net/wireless/broadcom/b43/Kconfig:      depends on B43 && B43_BCMA && BROKEN
+drivers/pps/generators/Kconfig: depends on PARPORT && BROKEN
+drivers/staging/greybus/Kconfig:        depends on MEDIA_SUPPORT && LEDS_CLASS_FLASH && BROKEN
+drivers/video/fbdev/Kconfig:    depends on FB && ((AMIGA && BROKEN) || PCI)
+fs/quota/Kconfig:       depends on QUOTA && BROKEN
+fs/smb/client/Kconfig:  depends on CIFS && BROKEN
+net/ax25/Kconfig:       depends on AX25_DAMA_SLAVE && BROKEN
+
+git grep "|| BROKEN"
+
+arch/sh/Kconfig.debug:  depends on DEBUG_KERNEL && (MMU || BROKEN) && !PAGE_SIZE_64KB
+drivers/misc/Kconfig:   depends on X86_64 || BROKEN
+drivers/net/ethernet/faraday/Kconfig:   depends on !64BIT || BROKEN
+drivers/net/ethernet/faraday/Kconfig:   depends on !64BIT || BROKEN
+drivers/net/ethernet/intel/Kconfig:     depends on PCI && (!SPARC32 || BROKEN)
+drivers/usb/gadget/udc/Kconfig: depends on !64BIT || BROKEN
+kernel/power/Kconfig:           if ARCH_WANTS_FREEZER_CONTROL || BROKEN
