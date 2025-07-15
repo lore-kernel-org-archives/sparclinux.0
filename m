@@ -1,102 +1,98 @@
-Received: from outbound.pv.icloud.com (p-west1-cluster6-host5-snip4-10.eps.apple.com [57.103.67.73])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76795265284
-	for <sparclinux@vger.kernel.org>; Mon, 14 Jul 2025 15:35:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.67.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED6019343B;
+	Tue, 15 Jul 2025 00:31:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752507320; cv=none; b=J6d6c16/f+NvK2d7XCc9EFhZB6BBwkZ/w8VDyaVfGUlscjPveTBt+2jCLPgHBW6ULjthBuUanqYLC5iAK2jJQ4GmFQmCHP0TK9TJ1T/cNzw5KES84xGVUzKhykK3r4b6T6273WJ/Ycr9vjXnIYMTAnH1XZCSgOk/mmQKndgs/p8=
+	t=1752539472; cv=none; b=gTxzr+2uHNgyPG+KPzggivulUZNKt9H8h7f9z9rDIdpYU1J1MZhT6kZZhh4pfgm6c+NhbiyXy7bR6hRPki4z6Em/QYsJi2288fP19MJS93YfU1+taOWbcMztr70hwsER4Cq0sPf1A1q0bTG7kajTGJKBmCd9WLqln5yJphMgACY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752507320; c=relaxed/simple;
-	bh=rUPc6HarIFgYCi5PCcb/6kreZya/jVbJye2++gX7mpw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=MWu3obL2WAUmCOgpXOtvTiXPco8BZY0JjR70I7Axql95nVi8vN77iORetxDONffRsIDS8eqBgAw0ZBVw5WzMFYh520Cql5eEsMz2viEsimg4v01gVSA67GA6c4r/InBinNsGNoOyOzBxEsKxHxnfV2ahDAFv05n1vMA4hlZR6Gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=xbD9u5Fj; arc=none smtp.client-ip=57.103.67.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
+	s=arc-20240116; t=1752539472; c=relaxed/simple;
+	bh=AmsDUkdWp+D2t1MNpQN905rUeQWgnBNIiuKOAQBsbnY=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=QQEje4D5eBZMKujgo7MXZwaitfvBbEhcKpcdK8AXNeVEITdZhUA+fNvYIUh4C2xp2bRu3Nn905w4wpaD0pY83uHap6e/+8ife7BZENAYVIBpb1nAltNw+VMM9DSmcAL232Gt8+IHohN4X5M7u5XZz6Npbid+YydOkBvHH+X1UMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BiyNIZbI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="xbD9u5Fj"
-Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by outbound.pv.icloud.com (Postfix) with ESMTPS id 5240B18004BC;
-	Mon, 14 Jul 2025 15:35:13 +0000 (UTC)
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com; s=1a1hai; bh=MxR3vmUTXOypUpeb+mW6WO9zX6HevJTvOmfA6oc0iJM=; h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:x-icloud-hme; b=xbD9u5FjnQyANUrmKm4jq+QkelC03JFjr828Ui2YO4h85h+vm22GwNY3Kea6aC6Q+Exrxksz+eIZeWEiLcG6zyim/IOjeUmrKjiLPV1otAPR6k1R1LdNdnyvf//l74cmbectrQmZ8L/aSHEIP8R++U26F1CzWb6NOCr/lID/LfSU0JgEJDf6eIM9STaC74bjuJS6ZBZXSU4Tf3Vl/oJ3hbboqMiFKMHxFPE7wlpALBplewQGHRA7BTgiMvR+swWTL1Y8suDaWE+Z7+8CPH6kfJXTUfSeofjPqhwJfkZWwpjBUSorivA2vQM8jZmSBamh9RiDcmQpg1bIa2wdiGY4dg==
-Received: from [192.168.1.26] (pv-asmtp-me-k8s.p00.prod.me.com [17.56.9.36])
-	by outbound.pv.icloud.com (Postfix) with ESMTPSA id 2DBFB18004AF;
-	Mon, 14 Jul 2025 15:35:09 +0000 (UTC)
-From: Zijun Hu <zijun_hu@icloud.com>
-Date: Mon, 14 Jul 2025 23:34:19 +0800
-Subject: [PATCH v6 8/8] sparc: kernel: apc: Remove macro APC_MINOR
- definition
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BiyNIZbI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC19C4CEF0;
+	Tue, 15 Jul 2025 00:31:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1752539470;
+	bh=AmsDUkdWp+D2t1MNpQN905rUeQWgnBNIiuKOAQBsbnY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=BiyNIZbIhI81BH5kvc3pxIN4vczjERj5q7uQi3I+U4ljGTnuTerwVbUVigGrpSFpC
+	 MoCTw9QY8OtZzzVMkMmhnQ2bJiG1tfOatf+XrDVBsdemRGr6j3KuR/xhvu9dbzUkm0
+	 QSq7uz3kVbgkEwgjl2V2NCquwQcLtqQa6kM4E7oM=
+Date: Mon, 14 Jul 2025 17:31:09 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
+ "David S. Miller" <davem@davemloft.net>, Thomas Gleixner
+ <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
+ sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH] fs/Kconfig: Enable HUGETLBFS only if
+ ARCH_SUPPORTS_HUGETLBFS
+Message-Id: <20250714173109.265d1fbfa9884cd22c3a6975@linux-foundation.org>
+In-Reply-To: <20250714094909.GBaHTSlW8nkuINON9p@fat_crate.local>
+References: <20250711102934.2399533-1-anshuman.khandual@arm.com>
+	<20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
+	<f86c9ec6-d82d-4d0c-80b2-504f7c6da22e@arm.com>
+	<20250714094909.GBaHTSlW8nkuINON9p@fat_crate.local>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250714-rfc_miscdev-v6-8-2ed949665bde@oss.qualcomm.com>
-References: <20250714-rfc_miscdev-v6-0-2ed949665bde@oss.qualcomm.com>
-In-Reply-To: <20250714-rfc_miscdev-v6-0-2ed949665bde@oss.qualcomm.com>
-To: Arnd Bergmann <arnd@arndb.de>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>, 
- Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org, 
- linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, 
- Zijun Hu <zijun.hu@oss.qualcomm.com>
-X-Mailer: b4 0.14.2
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNzE0MDA5MyBTYWx0ZWRfX151xmLBW09/b
- K6SHkvSFhVdFlcP1XXLoCRvCCPNoIyN/0q/Cs7GGvom4FL+32RH2LKxuUf9LplGAGxGwmLlNV5R
- 5UPkQrBSDYtQM5TqbMYBtUHGKIM39bgLS07h9EZsYZEfAh820uyVThm+tqB5XjofiECAOCYsIOb
- XihCJcAwPrYWa/5zSpFwSm6e51fkSrjiiyO31iAiGuv0ucA1T8LF334p5Yq7Y5Qlg3LMgpUrB8U
- PypG1/xMlf1QNxxN8RJIWEoU/EX6C6bjva90eV/Wa8KtZ3bv00pksSZtnFxwgsvjexwv13RTw=
-X-Proofpoint-ORIG-GUID: CZIDtwtu-DxiERIJsUoSJz_qQvAo2zwW
-X-Proofpoint-GUID: CZIDtwtu-DxiERIJsUoSJz_qQvAo2zwW
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
- definitions=2025-07-14_01,2025-07-14_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015
- mlxscore=0 phishscore=0 bulkscore=0 suspectscore=0 spamscore=0 malwarescore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.22.0-2506060001 definitions=main-2507140093
 
-From: Zijun Hu <zijun.hu@oss.qualcomm.com>
+On Mon, 14 Jul 2025 11:49:09 +0200 Borislav Petkov <bp@alien8.de> wrote:
 
-Macro APC_MINOR is defined as MISC_DYNAMIC_MINOR to request dynamic
-minor, but its name 'APC_MINOR' looks like fixed minor.
+> On Mon, Jul 14, 2025 at 08:05:31AM +0530, Anshuman Khandual wrote:
+> > The original first commit had added 'BROKEN', although currently there
+> > are no explanations about it in the tree.
+> 
+> commit c0dde7404aff064bff46ae1d5f1584d38e30c3bf
+> Author: Linus Torvalds <torvalds@home.osdl.org>
+> Date:   Sun Aug 17 21:23:57 2003 -0700
+> 
+>     Add CONFIG_BROKEN (default 'n') to hide known-broken drivers.
 
-Remove the macro definition and directly use MISC_DYNAMIC_MINOR instead.
+Thanks.  That was unkind of someone.  How's this?
 
-Signed-off-by: Zijun Hu <zijun.hu@oss.qualcomm.com>
+
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init/Kconfig: restore CONFIG_BROKEN help text
+Date: Mon Jul 14 05:20:02 PM PDT 2025
+
+Linus added it in 2003, it later was removed.  Put it back.
+
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- arch/sparc/kernel/apc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
-index d44725d37e30f388bf8cf19d72baf720f94da084..849db20e7165cdf48d4d36cf770dd6aaaa191b41 100644
---- a/arch/sparc/kernel/apc.c
-+++ b/arch/sparc/kernel/apc.c
-@@ -28,7 +28,6 @@
-  * #define APC_DEBUG_LED
-  */
- 
--#define APC_MINOR	MISC_DYNAMIC_MINOR
- #define APC_OBPNAME	"power-management"
- #define APC_DEVNAME "apc"
- 
-@@ -138,7 +137,7 @@ static const struct file_operations apc_fops = {
- 	.llseek =		noop_llseek,
- };
- 
--static struct miscdevice apc_miscdev = { APC_MINOR, APC_DEVNAME, &apc_fops };
-+static struct miscdevice apc_miscdev = { MISC_DYNAMIC_MINOR, APC_DEVNAME, &apc_fops };
- 
- static int apc_probe(struct platform_device *op)
- {
+ init/Kconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
 
--- 
-2.34.1
+--- a/init/Kconfig~a
++++ a/init/Kconfig
+@@ -169,6 +169,10 @@ menu "General setup"
+ 
+ config BROKEN
+ 	bool
++	help
++	  This option allows you to choose whether you want to try to
++	  compile (and fix) old drivers that haven't been updated to
++	  new infrastructure.
+ 
+ config BROKEN_ON_SMP
+ 	bool
+_
 
