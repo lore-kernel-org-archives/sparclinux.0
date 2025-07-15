@@ -1,46 +1,36 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9526D9460;
-	Tue, 15 Jul 2025 05:37:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2742825E816;
+	Tue, 15 Jul 2025 10:33:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752557840; cv=none; b=BkjkvlFmc7ipMRdreq/sefIL+nfspa10FQRKJubaWeQN0irHvJFtLGMuhXvx3S68KnzmMQYLqzE+jEud7mGZFcQAKfrRDPQ9SwQzmEuUd8acTAPul035h45Q1tT5BfslTeedT8K6Wr9lrTy6PGmRAvMvtCRdx/HQ57/hCkxk5eY=
+	t=1752575584; cv=none; b=JkvQMgLOfae0Qa4uCatnpZ5xSdQIAd0hjLWQNjM6wsVRKJYCeCsrMEBeV8feFv7IvcSAksF2UDvuNYbSTACKpNraNhzh3FPO6rVs3rSeYcF/xGabV/v8TnSNkhQKf5YLAK+l1jLaXQcxoix18KdhJ/4xAr+z1OBTGXUk+eYuG+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752557840; c=relaxed/simple;
-	bh=6J3hCrPuy++HUhp2ZStrBO9vMI6jCI0BvgNUFtgBHOI=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=V2aReAtwNHQlYSU87Y84psucLvrdkSN1qRLdXnddAuZVm28YmtzffoiSKJ6qgj2rjs5bvXnVmgCgHkyPuELj6L4PHfUErH3Pd0FjCFiQ6538zZMPOQj3YfxcVkOUhmqFxdvUmtnJ/tOzwSkca3a1WROOH6WDgwkMtC1DCWTaXuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OD3WsebZ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OD3WsebZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FCD8C4CEE3;
-	Tue, 15 Jul 2025 05:37:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752557840;
-	bh=6J3hCrPuy++HUhp2ZStrBO9vMI6jCI0BvgNUFtgBHOI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=OD3WsebZ74BNCweLXWK6ZDpiy1GYCnmXu2xh27/ENvLdsLSkrLFQ6mR5l1mP+HUMG
-	 MShniYJqNM1s31wMmQw8FxDkHjit4SvfyoI6wUc1GOv+6z5AyvmnmyD6drAojuQ7np
-	 fOs0Zsj44GMv/NBf25ahV1vQZSouQi2ASuXroB6TqmINioyqTPuLu3wfF4V0KxSSjK
-	 0PR45/X7hWdpadu6p9W0SgtO5vmgSyqWPe258S/Buu2TrZcJGDDU9K/fmM8I4Uoql0
-	 Hu69E3heOIAt/PsIe2m0WLAzWWr5PZ0Gr/ihpETockVthBQZ9NoB8xkXw0f93zawy2
-	 SFMRROjblWu6w==
-From: Kees Cook <kees@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	Dave Martin <Dave.Martin@arm.com>
-Cc: Kees Cook <kees@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
+	s=arc-20240116; t=1752575584; c=relaxed/simple;
+	bh=xwq2Wx5SphMaUmADLHLqoOqRQ+nHABl3M0HNZKp0p0M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AXcfHtB6GrNvS/CQFcIpiuFm1jy5yvVuPNcqBjXGxmFkxQ/yT+AdgLElHVnTBYrdkRuTl4BPVkNFGIFx132zC//xfGP/zwX5VBY3cWvIStardIqphdpn1ArzWFIkWDLHupSWsWMhcg+somrRjcBLohKNzDO93BkFpxhSpy6REL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 83C4A1515;
+	Tue, 15 Jul 2025 03:32:52 -0700 (PDT)
+Received: from e133380.arm.com (e133380.arm.com [10.1.197.59])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C689E3F694;
+	Tue, 15 Jul 2025 03:32:52 -0700 (PDT)
+Date: Tue, 15 Jul 2025 11:32:47 +0100
+From: Dave Martin <Dave.Martin@arm.com>
+To: Kees Cook <kees@kernel.org>
+Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
 	"H. Peter Anvin" <hpa@zytor.com>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
 	Akihiko Odaki <akihiko.odaki@daynix.com>,
 	Albert Ou <aou@eecs.berkeley.edu>,
 	Alexander Gordeev <agordeev@linux.ibm.com>,
 	Alexandre Ghiti <alex@ghiti.fr>,
 	Andreas Larsson <andreas@gaisler.com>,
 	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@kernel.org>,
+	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Chris Zankel <chris@zankel.net>,
 	Christian Borntraeger <borntraeger@linux.ibm.com>,
@@ -48,10 +38,8 @@ Cc: Kees Cook <kees@kernel.org>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
 	Dinh Nguyen <dinguyen@kernel.org>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
+	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
 	Ingo Molnar <mingo@redhat.com>,
 	Johannes Berg <johannes@sipsolutions.net>,
 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
@@ -63,116 +51,77 @@ Cc: Kees Cook <kees@kernel.org>,
 	Oleg Nesterov <oleg@redhat.com>,
 	Palmer Dabbelt <palmer@dabbelt.com>,
 	Paul Walmsley <paul.walmsley@sifive.com>,
-	Rich Felker <dalias@libc.org>,
-	Richard Weinberger <richard@nod.at>,
+	Rich Felker <dalias@libc.org>, Richard Weinberger <richard@nod.at>,
 	Russell King <linux@armlinux.org.uk>,
 	Stafford Horne <shorne@gmail.com>,
 	Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
 	Sven Schnelle <svens@linux.ibm.com>,
 	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
 	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Vineet Gupta <vgupta@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Will Deacon <will@kernel.org>,
+	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>,
 	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org,
-	linux-hexagon@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org,
-	linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-um@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	loongarch@lists.linux.dev, sparclinux@vger.kernel.org,
 	x86@kernel.org
-Subject: Re: [PATCH 00/23] binfmt_elf,arch/*: Use elf.h for coredump note names
-Date: Mon, 14 Jul 2025 22:37:11 -0700
-Message-Id: <175255782864.3413694.2008555655056311560.b4-ty@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250701135616.29630-1-Dave.Martin@arm.com>
+Subject: Re: [PATCH 00/23] binfmt_elf,arch/*: Use elf.h for coredump note
+ names
+Message-ID: <aHYuT0SxX65tAEp3@e133380.arm.com>
 References: <20250701135616.29630-1-Dave.Martin@arm.com>
+ <175255782864.3413694.2008555655056311560.b4-ty@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <175255782864.3413694.2008555655056311560.b4-ty@kernel.org>
 
-On Tue, 01 Jul 2025 14:55:53 +0100, Dave Martin wrote:
-> This series aims to clean up an aspect of coredump generation:
+On Mon, Jul 14, 2025 at 10:37:11PM -0700, Kees Cook wrote:
+> On Tue, 01 Jul 2025 14:55:53 +0100, Dave Martin wrote:
+> > This series aims to clean up an aspect of coredump generation:
+> > 
+> > ELF coredumps contain a set of notes describing the state of machine
+> > registers and other information about the dumped process.
+> > 
+> > Notes are identified by a numeric identifier n_type and a "name"
+> > string, although this terminology is somewhat misleading.  Officially,
+> > the "name" of a note is really an "originator" or namespace identifier
+> > that indicates how to interpret n_type [1], although in practice it is
+> > often used more loosely.
+> > 
+> > [...]
 > 
-> ELF coredumps contain a set of notes describing the state of machine
-> registers and other information about the dumped process.
+> Applied to for-next/execve, thanks!
 > 
-> Notes are identified by a numeric identifier n_type and a "name"
-> string, although this terminology is somewhat misleading.  Officially,
-> the "name" of a note is really an "originator" or namespace identifier
-> that indicates how to interpret n_type [1], although in practice it is
-> often used more loosely.
+> [01/23] regset: Fix kerneldoc for struct regset_get() in user_regset
+>         https://git.kernel.org/kees/c/6fd9e1aa0784
+
+[...]
+
+> [23/23] binfmt_elf: Warn on missing or suspicious regset note names
+>         https://git.kernel.org/kees/c/a55128d392e8
 > 
-> [...]
+> Take care,
+> 
+> -- 
+> Kees Cook
 
-Applied to for-next/execve, thanks!
+Thanks!
 
-[01/23] regset: Fix kerneldoc for struct regset_get() in user_regset
-        https://git.kernel.org/kees/c/6fd9e1aa0784
-[02/23] regset: Add explicit core note name in struct user_regset
-        https://git.kernel.org/kees/c/85a7f9cbf8a8
-[03/23] binfmt_elf: Dump non-arch notes with strictly matching name and type
-        https://git.kernel.org/kees/c/9674a1be4dd5
-[04/23] ARC: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/237dc8d79627
-[05/23] ARM: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/49b849d11cd1
-[06/23] arm64: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/87b0d081dc98
-[07/23] csky: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/2c2fb861fc59
-[08/23] hexagon: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/55821111b1b3
-[09/23] LoongArch: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/1260e3b13584
-[10/23] m68k: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/e572168e8d2a
-[11/23] MIPS: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/18bd88faa246
-[12/23] nios2: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/8368cd0e4636
-[13/23] openrisc: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/10cd957a895f
-[14/23] parisc: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/92acdd819b5d
-[15/23] powerpc/ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/307035acefbd
-[16/23] riscv: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/c9502cc7bef5
-[17/23] s390/ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/d6a883cb40fc
-[18/23] sh: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/afe74eecd88f
-[19/23] sparc: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/c9d4cb25e94e
-[20/23] x86/ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/3de0414dec7b
-[21/23] um: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/40d3a88594b5
-[22/23] xtensa: ptrace: Use USER_REGSET_NOTE_TYPE() to specify regset note names
-        https://git.kernel.org/kees/c/cb32fb722f4b
-[23/23] binfmt_elf: Warn on missing or suspicious regset note names
-        https://git.kernel.org/kees/c/a55128d392e8
+Assuming nobody screams about things going wrong in next, I'll plan to
+water down the paranoid check in binfmt_elf.c:fill_thread_core_info().
 
-Take care,
+Anyone copy-pasting a new arch after this is in mainline shouldn't fall
+foul of this.
 
--- 
-Kees Cook
-
+Cheers
+---Dave
