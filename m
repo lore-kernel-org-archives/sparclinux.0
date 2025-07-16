@@ -1,45 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E0028688E;
-	Wed, 16 Jul 2025 06:36:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AAF26E6F9
+	for <sparclinux@vger.kernel.org>; Wed, 16 Jul 2025 08:06:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752647788; cv=none; b=W4uwgSXZFtG1VxiKns8KVn1tRLZZ1bDu7OUU7xv2ulSzb5yDlQREF3TRwBgwjPbdI+c9AV3gIRGjZVsDjNuqA8oMc67cfw4/11zKFd2X9qXiyUPcodxRKgWP/iDcj62hro7c+6z492gm+SZ1zvpVgsJgSCMMqLyywoEQEX/U1yU=
+	t=1752653165; cv=none; b=dI2IsSvfAcZx3nsGNH9YwhVM7ocIDku24zhnrhvNZR38lmcANXP2fBQmUpBzVWpef1VOtqL8HX1dv7KCWQ/NX70NyDf+Y2hTaZg0fmR5dAdC0NQnZa6e458b/B75eZsriN0LcPuQtQDjXmfO3vSXjGA4oshFwqgNzbwIuH88Rd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752647788; c=relaxed/simple;
-	bh=IIT1xDly5XiLWWy6yF/5OPem42SSOoCdInssOEVkt+s=;
+	s=arc-20240116; t=1752653165; c=relaxed/simple;
+	bh=M+i5cbdz/1oVhelnqNqzdcOfJ4QSB/HoFpyFa+NaWzg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RfNamAEXnaJXQdLQuDs8XhrFVwPzoI46tZmmHA6mHyZo1fl8253VRo2Sz9w9mHnyp48C1QAgJloxyG2NFC7RWEBJkxQPT3+WKaZMRhqVBjMx0z55EZwvGy4+5hA7VzaZxylb1mm1TDN1fPmbovgcuZjcdx54KAuQMcPGOnvs2uE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=s+jkV3Mw; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=OjT5YovdNDqGDX/lFbpusuLA7J2QCSi+95B1fSStMU//9qT7Czvk77tY7CDKo6gzzr8xqIy8jJRhZ/ShkixI3m2TMYbtvo7J6drJFZmKP2YKTMwDwkoq4WVCIUGQk7/qvaqdL08uj3NPnxOR+FF2Nxay9hzJ70LT+QzN4eowaG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=qBIf+0md; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Jf2j+9VG; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=qBIf+0md; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Jf2j+9VG; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="s+jkV3Mw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF115C4CEF0;
-	Wed, 16 Jul 2025 06:36:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752647788;
-	bh=IIT1xDly5XiLWWy6yF/5OPem42SSOoCdInssOEVkt+s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=s+jkV3Mw2Ejpjw+53TaC+3JmhqsqPvOBAx9qubzRyUGzLUW5JcTpEPYXbu2QuLSOc
-	 IUpmUYv6ID5a/Y+/m6fGCtP/yfvsvbvr6ipJLJJNwvmfgTridqLSaWnIIExVccTKop
-	 1vP/5W24fER1YG0HAqVGKCULOSCJ+XZs7cgXU55BkPgOv6jm6JhUdsfZSrDAsAtoqp
-	 h0pgwgV3hqvQ1OrkTpq6pPSC6DkuWrb0CrkPUz1ElQ92TFCscQ+Y43i7tWcncVvxCs
-	 UWRPkfJomk+fhqpe+1rk5ro1SEpw/SNft9nQEFrJqjIi0Lb7EzDcPF6N+WnGKBcikt
-	 3pQIuvUiQ0U6g==
-Date: Wed, 16 Jul 2025 09:36:17 +0300
-From: Mike Rapoport <rppt@kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="qBIf+0md";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Jf2j+9VG";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="qBIf+0md";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Jf2j+9VG"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 7330F2120A;
+	Wed, 16 Jul 2025 08:05:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1752653156; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LU5GjAxuKZfey15OAKeI3kWYXnzC+vjIGf0oQkMQwa4=;
+	b=qBIf+0mdpRNrkhn6xlr/6EVoYPSqmZK0ckbxmPEuL1evJnN5P9L41W/6vh1/cqMo9qRIw8
+	twpSZ6kXe4TEBjxCL5qraDFziJKEpPwbR8RHwnkBQqm5RYwylgyC1rGXvRYodpvkx1uQA4
+	7D1tLZX5GklgbI6qTxHLFo5ZOPoaUoc=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1752653156;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LU5GjAxuKZfey15OAKeI3kWYXnzC+vjIGf0oQkMQwa4=;
+	b=Jf2j+9VGv8UQulVMiJoTnxXTDiNl8h0DK/cKBp5ouDFaPqt8d5pX8i788UB6aL6ax1dDu0
+	+t30HrMQVh2pNlDQ==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1752653156; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LU5GjAxuKZfey15OAKeI3kWYXnzC+vjIGf0oQkMQwa4=;
+	b=qBIf+0mdpRNrkhn6xlr/6EVoYPSqmZK0ckbxmPEuL1evJnN5P9L41W/6vh1/cqMo9qRIw8
+	twpSZ6kXe4TEBjxCL5qraDFziJKEpPwbR8RHwnkBQqm5RYwylgyC1rGXvRYodpvkx1uQA4
+	7D1tLZX5GklgbI6qTxHLFo5ZOPoaUoc=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1752653156;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LU5GjAxuKZfey15OAKeI3kWYXnzC+vjIGf0oQkMQwa4=;
+	b=Jf2j+9VGv8UQulVMiJoTnxXTDiNl8h0DK/cKBp5ouDFaPqt8d5pX8i788UB6aL6ax1dDu0
+	+t30HrMQVh2pNlDQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 464D9138D2;
+	Wed, 16 Jul 2025 08:05:55 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id WQB1DmNdd2jzDAAAD6G6ig
+	(envelope-from <osalvador@suse.de>); Wed, 16 Jul 2025 08:05:55 +0000
+Date: Wed, 16 Jul 2025 10:05:53 +0200
+From: Oscar Salvador <osalvador@suse.de>
 To: Anthony Yznaga <anthony.yznaga@oracle.com>
 Cc: davem@davemloft.net, andreas@gaisler.com, arnd@arndb.de,
-	muchun.song@linux.dev, osalvador@suse.de, akpm@linux-foundation.org,
-	david@redhat.com, lorenzo.stoakes@oracle.com,
-	Liam.Howlett@oracle.com, vbabka@suse.cz, surenb@google.com,
-	mhocko@suse.com, linux-mm@kvack.org, sparclinux@vger.kernel.org,
+	muchun.song@linux.dev, akpm@linux-foundation.org, david@redhat.com,
+	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	linux-mm@kvack.org, sparclinux@vger.kernel.org,
 	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
 	alexghiti@rivosinc.com, agordeev@linux.ibm.com,
 	anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
 	ryan.roberts@arm.com, will@kernel.org
 Subject: Re: [PATCH 0/3] drop hugetlb_free_pgd_range()
-Message-ID: <aHdIYXvppA6RKxic@kernel.org>
+Message-ID: <aHddYU8elWhddpoP@localhost.localdomain>
 References: <20250716012611.10369-1-anthony.yznaga@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -50,6 +93,28 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20250716012611.10369-1-anthony.yznaga@oracle.com>
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	MISSING_XM_UA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[23];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,localhost.localdomain:mid,sude.de:email]
+X-Spam-Flag: NO
+X-Spam-Level: 
+X-Spam-Score: -4.30
 
 On Tue, Jul 15, 2025 at 06:26:08PM -0700, Anthony Yznaga wrote:
 > For all architectures that support hugetlb except for sparc,
@@ -63,19 +128,12 @@ On Tue, Jul 15, 2025 at 06:26:08PM -0700, Anthony Yznaga wrote:
 >   mm: remove call to hugetlb_free_pgd_range()
 >   mm: drop hugetlb_free_pgd_range()
 
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador <osalvador@sude.de>
 
->  arch/sparc/include/asm/hugetlb.h |   5 --
->  arch/sparc/mm/hugetlbpage.c      | 119 -------------------------------
->  include/asm-generic/hugetlb.h    |   9 ---
->  include/linux/hugetlb.h          |   7 --
->  mm/memory.c                      |  42 +++++------
->  5 files changed, 18 insertions(+), 164 deletions(-)
-> 
-> -- 
-> 2.47.1
-> 
+Thanks!
+
+ 
 
 -- 
-Sincerely yours,
-Mike.
+Oscar Salvador
+SUSE Labs
