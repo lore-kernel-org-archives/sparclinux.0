@@ -1,130 +1,119 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E79E293B42
-	for <sparclinux@vger.kernel.org>; Wed, 16 Jul 2025 08:16:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE77886337
+	for <sparclinux@vger.kernel.org>; Wed, 16 Jul 2025 08:20:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752653788; cv=none; b=d20KjqM7ndNGsBmeMnQLrvfY9AhZ1o+XgX0nQEQtnMNv1UbZnc/ZQdv4quRTl9SJM7WbOAVyTpoHttzZVv4+je846mpU6jBknJ7zf2NRqyucsSp1BjnyVw1wf3XRUMqLAqvH88PeJQy2W0kdXcyuGIWBXskWzgrotPMs0CuqSZM=
+	t=1752654034; cv=none; b=UnCXV4S/3QrevXV5QDyzAOyyBgdonBlgd/EgC8+fwsXzEN5Gw+G0obzGIR67DqH6W5miS/7vhSA6C9OVX9RTSePxbNchkqb+L0GkhadxjTE0hd8ZgXC3jyZaidMabBUx2L3rAkSkcfrwESGURf1oiUEtT7U1ZLhAiU8rfuezgwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752653788; c=relaxed/simple;
-	bh=C9qCjan2DrC5SZdq14Ww+urBXIR3AMmzAmQwUK+lhsA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AhLi+U6vPGoi/xRJ7QfCsxyX4Bz0SbxxBXFyCBUyuOQnz9BX+A5ThtQgJr/rBax7Ez4hY65NETLXw8AniqvWWSX9/2xRYfJSXhzmlzjzQcKzUTVboKTrAT0C0y2c3ZWIXwVH9QIiuQy0Uym8PZbu4TtfM6VOFTVEmVCH3vx3gUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=utfEywL7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9zXm1v7n; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=utfEywL7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9zXm1v7n; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1752654034; c=relaxed/simple;
+	bh=ZG7MYqbm/JPxUEcAWF86YJxPO27FFTjouJJOkXlQHXY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FvwWFBNFcCeVuflO8DrPjsRPhU31b08/1NJ5+v5xA19r60XtN0HvQVCbsgSnwYSRLqBAnuFlqGWFoapIUPRXKlPbqbWeuc4H8J4aMLZMldpBFQhf+7QSqhaRQt4Ei27pdsChiMHOxloQxA7AiKlA3eywHUaqHbXgA813haY/yys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RCZVmql2; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="utfEywL7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9zXm1v7n";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="utfEywL7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9zXm1v7n"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 2F2CB1F38E;
-	Wed, 16 Jul 2025 08:16:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1752653783; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RCZVmql2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1752654031;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=HLorJymyea+lD0Bkzjb3XBtsNd5E1+PeexO0r+gae5s=;
-	b=utfEywL7KtxdGml46nHAdkZOXfQOUMplDCvbAglz1UhjwJWlK6nRvpkB6iYWPLPKbKLfkU
-	T6gPYrB8XD0OUUJ54BM7w5fdw8TWDsk8uNbP6Jt/81988mivTO8utir43njOq8n2cqLgLH
-	KUGfDMjybkNukSwafnY1cWgOttbGZJU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1752653783;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HLorJymyea+lD0Bkzjb3XBtsNd5E1+PeexO0r+gae5s=;
-	b=9zXm1v7nYPqKXP4S3U3YsWzotz44Nxrdl/MyKlWn14tkoN1ku3OPe5DcqY1s/pWX3sz7A+
-	Ekhqq/JFKcpo8ICg==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1752653783; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HLorJymyea+lD0Bkzjb3XBtsNd5E1+PeexO0r+gae5s=;
-	b=utfEywL7KtxdGml46nHAdkZOXfQOUMplDCvbAglz1UhjwJWlK6nRvpkB6iYWPLPKbKLfkU
-	T6gPYrB8XD0OUUJ54BM7w5fdw8TWDsk8uNbP6Jt/81988mivTO8utir43njOq8n2cqLgLH
-	KUGfDMjybkNukSwafnY1cWgOttbGZJU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1752653783;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HLorJymyea+lD0Bkzjb3XBtsNd5E1+PeexO0r+gae5s=;
-	b=9zXm1v7nYPqKXP4S3U3YsWzotz44Nxrdl/MyKlWn14tkoN1ku3OPe5DcqY1s/pWX3sz7A+
-	Ekhqq/JFKcpo8ICg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EB515138D2;
-	Wed, 16 Jul 2025 08:16:21 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id YfDeNtVfd2hQEAAAD6G6ig
-	(envelope-from <osalvador@suse.de>); Wed, 16 Jul 2025 08:16:21 +0000
-Date: Wed, 16 Jul 2025 10:16:16 +0200
-From: Oscar Salvador <osalvador@suse.de>
-To: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: davem@davemloft.net, andreas@gaisler.com, arnd@arndb.de,
-	muchun.song@linux.dev, akpm@linux-foundation.org, david@redhat.com,
-	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	linux-mm@kvack.org, sparclinux@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alexghiti@rivosinc.com, agordeev@linux.ibm.com,
-	anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
-	ryan.roberts@arm.com, will@kernel.org
-Subject: Re: [PATCH 0/3] drop hugetlb_free_pgd_range()
-Message-ID: <aHdf0IUl_i0SI6h6@localhost.localdomain>
-References: <20250716012611.10369-1-anthony.yznaga@oracle.com>
- <aHddYU8elWhddpoP@localhost.localdomain>
+	bh=hKPb3FYVzFfrjo/nSEr903PTnJ+H6/4JdqXYfPo/qsQ=;
+	b=RCZVmql2VSbCJKJmB+5GM5gRK2nlYjhZWaChQb/kvsUwEoP5nD6jFojNCTmoODsAuZUwBQ
+	+B/XMQP3pw+BQi+TM0ah62IcdIpFaLgtUOUSZfOYRXn4IE6qw5mMAuSTgYOBCr/3lDAxes
+	shZZZk3lvYdPTT53wbOgTuko/jhJy8I=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-531-FrAJWhUaNq-XRfUl56nlmw-1; Wed, 16 Jul 2025 04:20:30 -0400
+X-MC-Unique: FrAJWhUaNq-XRfUl56nlmw-1
+X-Mimecast-MFC-AGG-ID: FrAJWhUaNq-XRfUl56nlmw_1752654029
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4562985ac6aso14053025e9.3
+        for <sparclinux@vger.kernel.org>; Wed, 16 Jul 2025 01:20:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752654029; x=1753258829;
+        h=content-transfer-encoding:in-reply-to:organization:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=hKPb3FYVzFfrjo/nSEr903PTnJ+H6/4JdqXYfPo/qsQ=;
+        b=ghsoLFdt/O0Dq/jqSE+xTnkuEPDYSqlsLBjrtNCpiRd1A9TuHmlgiyjGKURdX8JWBQ
+         9zn3Z3zNrKILH1jEcbKutYq3+cXkcssZ5P2+Rk5pNgQUKiqBRrxoTBYSFuUuJyGIuMRc
+         Igq5W4s8qbfTYOWeGCLr1AInfFXbF2v1T42C/vJwd0vGdpMEW/m9zE38M8QjzQKsOd76
+         LsYcodi4EFRv4vcJCe38hkusb+SQeTbSZHV3cYv6b//QoS9HE+AoGMNhYG7Jlwy3T9yA
+         zGK0etnPWJ5Ls9y0ImxXhT1t0qGVXU62+9cHzzJkpyvwuPCOphZ5lI+EfNZcDppdmCIp
+         JR6w==
+X-Forwarded-Encrypted: i=1; AJvYcCU5eaXKkc1ZG3decG7yj46HoJvHoRJBRSo9B7TUqjz+x2BFy2R/7GvbEe/u3SUoVWaUlK06MPh3yQ/L@vger.kernel.org
+X-Gm-Message-State: AOJu0YzfbZpx+yv+Eze7cHXP5RL0xUyVumTXQg6BuUNbvSA285ZnIlzm
+	Sc9kXxVYMMO0cSaSEpZ8NMP0YV2fmhQNAA53TvwTKlcM+WmzwlQZoRIdUsPVYYSrXUI6W7/dOX8
+	eEwQaXiM39hPhgLW9n/2l2pzpcbM4KJYrsKXJ57HcyfyODvVQlFEdI+AVw1SQ24M=
+X-Gm-Gg: ASbGncshBn/qdJpaf6Z4y9ZNNVBOtBpbIXYF8EZw4UpQDobSb8ApNxqPraR6wbQxTRM
+	Kizozheeeu/pDjmK2rkRQGbaukjR9jfoFX7s3N/pQXEYWbdDYqzk/63TIO5h6m/ePkkJmSxm9gt
+	W8QKoNScYT3dc1HEqAJNSUYST6EjQTkQG37ujD5UWLWjrsarYjoyMFaj1pdwX2yFw/bVxBJ9wOR
+	z5z4DJEhbxl9VtIOiCQ6v8Z78b8tm3UBsDLb/lqzbvo21ZnwqsFj9/MpaJ/FhAwZEh2YzIos46O
+	EBEOpXfYZVIrjOlvNYkE66Ib1vq4TIqz9leaS6YQp1lg+WtOdUkXxwmu67m4DKL0ec6LkMvhVF5
+	zt7oY5Bl4I4jsFqFw8CtN6rlD7zb8KJwGnPGkWqx2R7OQb2e0aBnOxxzIEQNZxNj6R3o=
+X-Received: by 2002:a05:600c:5025:b0:441:b698:3431 with SMTP id 5b1f17b1804b1-4562ee4428amr8903725e9.28.1752654029184;
+        Wed, 16 Jul 2025 01:20:29 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFPfO/crUSbh/p7Bf2c82O3FOkImgy2tCspzCYogys8HSUj89hQEyYWP4/UInuKY3Ru8/ZdfA==
+X-Received: by 2002:a05:600c:5025:b0:441:b698:3431 with SMTP id 5b1f17b1804b1-4562ee4428amr8903515e9.28.1752654028755;
+        Wed, 16 Jul 2025 01:20:28 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f1d:ed00:1769:dd7c:7208:eb33? (p200300d82f1ded001769dd7c7208eb33.dip0.t-ipconnect.de. [2003:d8:2f1d:ed00:1769:dd7c:7208:eb33])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4562e886113sm13312585e9.23.2025.07.16.01.20.27
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Jul 2025 01:20:28 -0700 (PDT)
+Message-ID: <13d1fe66-9f34-47d3-b174-516ffb706aa1@redhat.com>
+Date: Wed, 16 Jul 2025 10:20:26 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aHddYU8elWhddpoP@localhost.localdomain>
-X-Spam-Level: 
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MISSING_XM_UA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[23];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[localhost.localdomain:mid,sude.de:email,imap1.dmz-prg2.suse.org:helo,suse.de:email]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/3] sparc64: remove hugetlb_free_pgd_range()
+To: Anthony Yznaga <anthony.yznaga@oracle.com>, davem@davemloft.net,
+ andreas@gaisler.com, arnd@arndb.de, muchun.song@linux.dev,
+ osalvador@suse.de, akpm@linux-foundation.org, lorenzo.stoakes@oracle.com,
+ Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org, surenb@google.com,
+ mhocko@suse.com
+Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+ alexghiti@rivosinc.com, agordeev@linux.ibm.com, anshuman.khandual@arm.com,
+ christophe.leroy@csgroup.eu, ryan.roberts@arm.com, will@kernel.org
+References: <20250716012611.10369-1-anthony.yznaga@oracle.com>
+ <20250716012611.10369-2-anthony.yznaga@oracle.com>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Organization: Red Hat
+In-Reply-To: <20250716012611.10369-2-anthony.yznaga@oracle.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 16, 2025 at 10:05:53AM +0200, Oscar Salvador wrote:
-> Acked-by: Oscar Salvador <osalvador@sude.de>
+On 16.07.25 03:26, Anthony Yznaga wrote:
+> The sparc implementation of hugetlb_free_pgd_range() is identical
+> to free_pgd_range() with the exception of checking for and skipping
+> possible leaf entries at the PUD and PMD levels.
 
-Fat fingers, sorry:
+And the pgd loop was optimized out, because probably not applicable.
 
-Acked-by: Oscar Salvador <osalvador@suse.de>
+> These checks are
+> unnecessary because any huge pages have been freed and their PTEs
+> cleared by the time page tables needed to map them are freed.
 
- 
+Do we know why that handling was added in the first place, and why it no 
+longer applies?
+
+These is_hugetlb_pmd/is_hugetlb_pud are rather weird on the code path.
+
+Looks like a very nice cleanup.
 
 -- 
-Oscar Salvador
-SUSE Labs
+Cheers,
+
+David / dhildenb
+
