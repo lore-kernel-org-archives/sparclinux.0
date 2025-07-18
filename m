@@ -1,106 +1,110 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out162-62-57-210.mail.qq.com (out162-62-57-210.mail.qq.com [162.62.57.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A111E5B78;
-	Fri, 18 Jul 2025 09:18:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F4F298993;
+	Fri, 18 Jul 2025 09:27:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752830296; cv=none; b=ueIBKhxETet13/O0JaXx4rHoN6bhxSBHQeuE1fVw2qkgikiwlL7Zp3UQHUdjnHzgSaGDaXmWDBQ+N9p9EAEnDKE4/ikJS/sekO3Iybw2GnNJjnch8DEE5fvCCuId1nbxhv8mIja29JFJ4s1q+NkBDHLxjrLEeG2IZ72W+3AdZ3Y=
+	t=1752830854; cv=none; b=sI1oinsJSpO28EXaTWljMtREG0w7zQZUIdvgJVV6p0XxGc0EVl/WtERGMMVmpW8ihLO/oqkNzp6USa5/Sfr8KW7IxWsW8iLP2Mx8DKk1+ajCWTMdaSm8ibxMfr/6QOr/N3DYSlp7AHjjCx1KsqNRhfW4EzngzcKwJ5Nl209yQts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752830296; c=relaxed/simple;
-	bh=iN0MjV8lG6vlPY6QKWEDWqXP3y58juMGr+peNv9I/+Y=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AYWM+8wuerHdH4uclnn1P1V5B4lZzQfsfVzWPL2PAAUp0bevycDJ0BfbUxPdhLOH2vsQY9xeX3tR5m4Fu9z+H+Lv+GF9K3uWkRaULer50Q9VxA97mpxISj78zZsqA1VxBaZJlx+hY5d9f9Z/2Lgbw+1REBz49VboqjwgiFtneMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=upUCLIdr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752830854; c=relaxed/simple;
+	bh=SBEJ5AN9yIAktlQ5TYSoFsfOz4ynEextl94SNkFwv40=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=cV7mZSDlHDFYl2o4JosaS/ZWocDKgnA/NeLV+DKCQwS5qRuh05YAjy+oK2y+Dktx344h4Qsosc8DGSDjY85DGhxg05Lm6n14K6Xos8xs/D5khtfYan7unKTLy/uNDc8/jIYYZvWAyZx9vX2DF4cLWjfPHg1TLoLRfoHr2ZZggY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=v26ZVjRc; arc=none smtp.client-ip=162.62.57.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="upUCLIdr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191D5C4CEF0;
-	Fri, 18 Jul 2025 09:18:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752830296;
-	bh=iN0MjV8lG6vlPY6QKWEDWqXP3y58juMGr+peNv9I/+Y=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=upUCLIdrbbvEbKjUsZgTdUEGyRbXXPVKgUMJXI8oVEu7IuCo+NlAr8pZ3hP/3OpCS
-	 z+m8WoLkMvYdx42mseDFgent82TIUAOPaXDuO0MHrSBPWaortApspXcggf+7lhNmY8
-	 tOaGg0j7eaXiZqMy8OhhL3BAvuI4qqptGCOW5qdmQyljlx4c3DuNukqLAdC4airAsq
-	 nJKi0Be3SrrR2xHh9RGmjhMqPl6sRDW75QEF/7Lu21+PwIinNh5ZPzzmyUHWJMe6cp
-	 dzghcLYsnfaa3tVtbk0VeArOxbSMW6EX7TzfWbBD0ifZlVbF7q2+xGG6ugEJd7zFXx
-	 5DD1NmgbOVSgg==
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-60c4521ae2cso3330368a12.0;
-        Fri, 18 Jul 2025 02:18:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCV0AKoUIuonJeWHXWR2Cf7jQZCRjErGiIBNVCjuW0tpqJD3VWWQANTownXAYV244/9x+GvGSnXz7RM=@vger.kernel.org, AJvYcCV1TzUiHaDkQFdVridp0GhxD2QtBGx6xg0Lr3SAHadBj8NveE8r0J+4KYw8N9NpbhNp0K9s8iPNyi/xFTtJ@vger.kernel.org, AJvYcCV2RECSTJAxpYbYkY1rF1Lmt4kB3iosuDgXE19K1ASc8SE6fNRcv92tm/AHUzPKsA8+5FB65qL3NxnsoeKoZUx8@vger.kernel.org, AJvYcCV2fhkW998v5WZH4nLwEFwnzJO9W7r645GdDIgGB3cHzpXmDvZBGe03Upj0r4vlUbk44Oh0fDx97PlMAQ==@vger.kernel.org, AJvYcCVHdEZ8u7svwgKUodrkLtM/yJIIvU6xWOJc2TZJBZxyOX9PxZcyAJ0FmM5nCiAGOa7F1nRqPsmDjedv@vger.kernel.org, AJvYcCW4IDaSJazeWSwFFgACWN7b69epSroBWv2UjtCV4FoSmmVDdLNrz0ZML2pgVp0fPyOFulXTEhsYGbk7yA==@vger.kernel.org, AJvYcCX54pACOS+AT+fpvWNPmgl03ntroAgVDVSeFEZLJCxJoA7bevDnRDhIiCiI4qh+bhZoOHbq223hNnGkOq8KPjz3@vger.kernel.org, AJvYcCXI1xdPeZEbwcZTymERqI5WYVZVnRug5O0uQP3+54Ly+XPRoFapANuj6cb7nMIR75kkF9JyOiLz3rlpclN5@vger.kernel.org, AJvYcCXWHCcRsafKEhSZun1fPA+F8bDs0z7gysLDMQj5i4bfYF4K6fFmjSEG068g/vYSBMUDDLQC77HKfITkIj956HRV8Rob5ZLW@vger.kernel.org, AJvYcCXqNg6XyAk9/D4vsEBX1q7rzepaXITLUvpATBsxMYuqEQPgjantjzmPcNjOZr6xYNATsfGYAM5TpRD2rQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YyKJwdOXXj+QpoI1AL07zJBq6cn8RioZhFakuWRHcCYSS299SHg
-	B6dE6nWhyVZBwFGCBr4SkKevZyzO9uT19Cf5S5TC1wdpfbrwO03biextpt0qsRIGo2Dz+QevQ2k
-	y2LtfM2znofuQa60xHNXrOK5iQYEJz44=
-X-Google-Smtp-Source: AGHT+IH+CR6kK9khsoUi4kQxVa0vWTn3qqM4Z4G6WAw+0g0YyuRvDHP3ooIXGfMWBaXJUiPtMEtFUptkHeWtXN/zID4=
-X-Received: by 2002:a05:6402:26d5:b0:60c:6a48:8047 with SMTP id
- 4fb4d7f45d1cf-612d456bb15mr803449a12.11.1752830294637; Fri, 18 Jul 2025
- 02:18:14 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="v26ZVjRc"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1752830543; bh=tLg5rpkVt1EnatvspzAi7dGN6Es58cpkXsX9othXW3w=;
+	h=From:To:Cc:Subject:Date;
+	b=v26ZVjRccDWOC8uao3KZu49yJyNa4cHOoQUiuiBlQhZV5w/TixpPqUesWPyPnwpcp
+	 0xoSJ/WVlDhMrtQX6S+M9vpcZa/c3+cOzNe/ReT0/EZ8BU0LIxG962HrL/12jvUvQo
+	 DeZ4OT2m5+TaTiaLhxY+OzdUaD+Lqj2PljXItRqk=
+Received: from VM-222-126-tencentos.localdomain ([14.116.239.35])
+	by newxmesmtplogicsvrszb16-1.qq.com (NewEsmtp) with SMTP
+	id 59639C8E; Fri, 18 Jul 2025 17:22:22 +0800
+X-QQ-mid: xmsmtpt1752830542trk0pn2rb
+Message-ID: <tencent_C3DEC6F98F25C1BF6F35F3A1B0A629E0EA0A@qq.com>
+X-QQ-XMAILINFO: MDbayGdXPuoe08Xdcad3KRazsZsRNMM8TaodY2Q+cHcQ54aNO1ouL5IP2KT1T1
+	 f+3SCFyr8o88wfxfLknU55vi8ZHbB4MpeE1/VC6+9q0rG6rf4JrX3FFs+T0c31IlxiLn3n1WwCpI
+	 33NWAeXn52fCryP1RDrgmwx710edCElsX0vnkKbjGU4DulXh/D33wwrROqE6ow7Ug4lgdj1sHPTw
+	 4PDyk4HsYALRXC6L22QHeOXsFZYaKx/pB1Cb/a8m3b9e1Dq7DCQJJ4SthwgbfEE5RPKJyuAlDc9y
+	 CdidvsvBMMbbr2cvVMRDid0Auftb5XZykeZnxvRR5p6lS2eI/8LY2knL/zyOMbdgPmducqZ8whR8
+	 u5cr4BEdHckL9Qh/MFxQa8zwttww/SlS+a51A/DtC7s4wBR1hG9gDvXTk8tDB4aopBUqe4JE24mx
+	 4Tg9bdTBZUu8XJyQJzh6YkX4CV+EhJ9Fohqp6sZ/pwnBm1UGtlxPO6DSFQC+gK4n4IjeQRYKSRtr
+	 K6gaf/E0NnLNvH28Uf506+1VkPckcHDeLHRiNCMaUCTXtT6p6CWa4rwHMgCBzlt9l5JyJx5UvO1V
+	 F4wiB4liHRjb2rk1JnI4z3bEauU+HwPm+y2iqFqPdSq7m3EWU63vbKKusCAhBULQ2UE2rwbVE+J+
+	 3eBWiWaZyP9aSq5CtMJMOD7mCa1hVGxHqwzbOwrhf5nbuAWPaNi7hSyParJQL9x+ydfb661/EO6R
+	 XXb0diD3YV7CtGiHlIn3t3ELzwsJwQMQalW2rsjhYltHVDQDSZtwE9t4NQjD4iBGt+rZ8SiSr4p0
+	 fOIdXHqcBUNEJxyNQA2GOLWJFuJZKiPHy6fbZFBBgFIjLx0/4E2pWmv/qkf9eZUypwjIIGEyN1Zk
+	 KlddKpogZbG2eqE6X+Rdege3kTSdoXYeRIh4peh9leXfKCldkNrcUqsX2A+K617u07CLWX9DbQzM
+	 gFhokcaSCHQI7e27aagmGj/EGPGqp1zJc7RrNE6gGgBLLejr5Sdj+Y0UtpQ6n2qdfpv8EgzjixDe
+	 U/i6aP7G5k+h+rMtw3VvnIjKIxKyRwLoFg32CXmVDshQAMkgtPXk3kceb6u/Q=
+X-QQ-XMRINFO: OWPUhxQsoeAVDbp3OJHYyFg=
+From: Jacky Liu <1972843537@qq.com>
+To: davem@davemloft.net
+Cc: andreas@gaisler.com,
+	1972843537@qq.com,
+	sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] arch: fix resource leak in chmc.c
+Date: Fri, 18 Jul 2025 17:22:15 +0800
+X-OQ-MSGID: <20250718092215.1892911-1-1972843537@qq.com>
+X-Mailer: git-send-email 2.43.5
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250717231756.make.423-kees@kernel.org> <20250717232519.2984886-9-kees@kernel.org>
-In-Reply-To: <20250717232519.2984886-9-kees@kernel.org>
-From: Huacai Chen <chenhuacai@kernel.org>
-Date: Fri, 18 Jul 2025 17:18:03 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H4RyZQTak5AgYj6TaXHyEefgw+wmXs9Gi8jUJWrUV5HQw@mail.gmail.com>
-X-Gm-Features: Ac12FXyrA9A9-rpLV3MB79YH2kXhj6f2Fk9F6HAlk-0emUPTHthuyPP3lR9zQXg
-Message-ID: <CAAhV-H4RyZQTak5AgYj6TaXHyEefgw+wmXs9Gi8jUJWrUV5HQw@mail.gmail.com>
-Subject: Re: [PATCH v3 09/13] mips: Handle KCOV __init vs inline mismatch
-To: Kees Cook <kees@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, 
-	Ingo Molnar <mingo@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>, Christoph Hellwig <hch@lst.de>, 
-	Andrey Konovalov <andreyknvl@gmail.com>, Andrey Ryabinin <ryabinin.a.a@gmail.com>, 
-	Ard Biesheuvel <ardb@kernel.org>, Masahiro Yamada <masahiroy@kernel.org>, 
-	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>, Bill Wendling <morbo@google.com>, 
-	Justin Stitt <justinstitt@google.com>, linux-kernel@vger.kernel.org, x86@kernel.org, 
-	kasan-dev@googlegroups.com, linux-doc@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, 
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
-	linux-efi@vger.kernel.org, linux-hardening@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org, 
-	llvm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Reviewed-by: Huacai Chen <chenhuacai@loongson.cn>
+From: Siyang Liu <1972843537@qq.com>
 
-On Fri, Jul 18, 2025 at 7:26=E2=80=AFAM Kees Cook <kees@kernel.org> wrote:
->
-> When KCOV is enabled all functions get instrumented, unless
-> the __no_sanitize_coverage attribute is used. To prepare for
-> __no_sanitize_coverage being applied to __init functions, we
-> have to handle differences in how GCC's inline optimizations get
-> resolved. For mips this requires adding the __init annotation on
-> init_mips_clocksource().
->
-> Signed-off-by: Kees Cook <kees@kernel.org>
-> ---
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: <linux-mips@vger.kernel.org>
-> ---
->  arch/mips/include/asm/time.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/mips/include/asm/time.h b/arch/mips/include/asm/time.h
-> index e855a3611d92..5e7193b759f3 100644
-> --- a/arch/mips/include/asm/time.h
-> +++ b/arch/mips/include/asm/time.h
-> @@ -55,7 +55,7 @@ static inline int mips_clockevent_init(void)
->   */
->  extern int init_r4k_clocksource(void);
->
-> -static inline int init_mips_clocksource(void)
-> +static inline __init int init_mips_clocksource(void)
->  {
->  #ifdef CONFIG_CSRC_R4K
->         return init_r4k_clocksource();
-> --
-> 2.34.1
->
->
+In the jbusmc_probe function, the device node mem_node fetched 
+via of_find_node_by_path("/memory") is not properly freed 
+on all code paths. 
+This can lead to leakage of device node reference counts, 
+which may result in kernel resources not being released.
+
+This issue was detected by rule based static tools 
+developed by Tencent.
+
+Signed-off-by: Siyang Liu <1972843537@qq.com>
+---
+ arch/sparc/kernel/chmc.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
+index d4c74d6b2e1b..a7040ee7e5bc 100644
+--- a/arch/sparc/kernel/chmc.c
++++ b/arch/sparc/kernel/chmc.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2001, 2007, 2008 David S. Miller (davem@davemloft.net)
+  */
+ 
++#include <linux/cleanup.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+@@ -397,14 +398,14 @@ static void jbusmc_construct_dimm_groups(struct jbusmc *p,
+ static int jbusmc_probe(struct platform_device *op)
+ {
+ 	const struct linux_prom64_registers *mem_regs;
+-	struct device_node *mem_node;
++	struct device_node *mem_node __free(device_node) =
++			of_find_node_by_path("/memory");
+ 	int err, len, num_mem_regs;
+ 	struct jbusmc *p;
+ 	const u32 *prop;
+ 	const void *ml;
+ 
+ 	err = -ENODEV;
+-	mem_node = of_find_node_by_path("/memory");
+ 	if (!mem_node) {
+ 		printk(KERN_ERR PFX "Cannot find /memory node.\n");
+ 		goto out;
+-- 
+2.43.5
+
