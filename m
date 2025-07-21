@@ -1,168 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6BD423B600;
-	Mon, 21 Jul 2025 20:49:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7DAA1DFE1;
+	Mon, 21 Jul 2025 21:12:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753130994; cv=none; b=XcF5tWe03lfzSPFwvh9DS8+1MX74O3iRvJOvF9EbsgSwioqcLgmaPwHtiunOnwHPf16v10FsTUXRoTD+1pCFNZu1G5gAOm4VPlddyagvA2gxIWOWN4II1j2v1s+JpKiHsiE3FnOPOHhSLJE/K4aV6DxWgLYdQkN3FSS6UMnB7Es=
+	t=1753132374; cv=none; b=Qv4IcpgEvttw9qtRHpelCHFCMAuDnO1i/GeGxQIWnPsDiMHsVni7A3EPICU4Ll2fGooSBxJkz6Bchs36zSulnRCYjt3gTXOY31+0UvwMMVMJKjo/zOMgcHwEMjke60LFbW56TDo5PREc1BJFMiiwpvs+Kvvqw4PLfRns3mRbTr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753130994; c=relaxed/simple;
-	bh=RGpMFousrm9JXr2aga1XoiQZq81gXpkDZQCrU7p8kG4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J+n0C7+8nLAWgOnQW0vsAOF+FaLhTTplzKC54xFgeQ6Gu6Yfxn82pTzBXT7OIcicQDss77m0fR5TKg4i6AgdpM5k8LR3a1Qvi/HMsV6fjtQoClC2B2Nh+HMcxqviyz4ogdjjtSdxhmiUaMIn2yEw5re21gJzMp9WCXi7VWIa34g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=USwBlGGy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753132374; c=relaxed/simple;
+	bh=mB3A8zxmfQ6nbYNX8RUpetQUhDPO/McLXCRtiQvkdWM=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=b/poGKRKFhXawabNGAYdpSCJYlnXbHwZbUVq13LBU01pnS9XXeLPqwDl9xH2myOOQY5xQUFascvqdP4+kBg9cZvHMqeLfgLCgAeo19gXdWUvdpzJGYByr1HeHfVhvaZ+maVMEPZspNUzSO8ADFq82iBABFVWQ8iHTzy/qvD1CvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=bsH+h4le; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=xHbVLuJ5; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="USwBlGGy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EA0DC4CEF7;
-	Mon, 21 Jul 2025 20:49:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1753130994;
-	bh=RGpMFousrm9JXr2aga1XoiQZq81gXpkDZQCrU7p8kG4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=USwBlGGycUbYKwRlz8H1PUciShFkTuZXfVpLM5MtEpyQ2A97ZmBOIYa0cGOwBplAM
-	 P/UloDehuLPGSIqgqNRVeLye3ZQJwvjrIvND/8XbCEE/heb6TuWjlHXRTmnHic7i+/
-	 ufyzJfA+Tj1dnxW4WNlS2ijwfnLETqFwratBaRXG4lRw2vboY071pv4Rgj4gG0uneL
-	 vJADYIT6M2Sug0BnFp+wdbmKStgy/2g++iMRLOa45PAedgg8EJByYxkT5u6rz9xzId
-	 7//OhF3fMircm2SYJfkHca/mWkXbMTQEr5KB9GUZB1xfjt2aV3YLzdWsmNabD0jVLY
-	 gzg6qfQMQz07w==
-Date: Mon, 21 Jul 2025 13:49:53 -0700
-From: Kees Cook <kees@kernel.org>
-To: Will Deacon <will@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>, Mike Rapoport <rppt@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Vitaly Kuznetsov <vkuznets@redhat.com>,
-	Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>,
-	Michal Wilczynski <michal.wilczynski@intel.com>,
-	Juergen Gross <jgross@suse.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-	Roger Pau Monne <roger.pau@citrix.com>,
-	David Woodhouse <dwmw@amazon.co.uk>,
-	Usama Arif <usama.arif@bytedance.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Thomas Huth <thuth@redhat.com>, Brian Gerst <brgerst@gmail.com>,
-	kvm@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net,
-	platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org, linux-efi@vger.kernel.org,
-	linux-mm@kvack.org, Ingo Molnar <mingo@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Andrey Konovalov <andreyknvl@gmail.com>,
-	Andrey Ryabinin <ryabinin.a.a@gmail.com>,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nicolas Schier <nicolas.schier@linux.dev>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, linux-kernel@vger.kernel.org,
-	kasan-dev@googlegroups.com, linux-doc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-hardening@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	linux-security-module@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org,
-	llvm@lists.linux.dev
-Subject: Re: [PATCH v3 04/13] x86: Handle KCOV __init vs inline mismatches
-Message-ID: <202507211349.D93679FB25@keescook>
-References: <20250717231756.make.423-kees@kernel.org>
- <20250717232519.2984886-4-kees@kernel.org>
- <aHoHkDvvp4AHIzU1@kernel.org>
- <202507181541.B8CFAC7E@keescook>
- <CAMj1kXGAwjChyFvjQcTbL8dFXkFWnn9n47bkN7FP=+EsLNsJdg@mail.gmail.com>
- <aH42--h-ARsvX5Wk@willie-the-truck>
- <202507211311.8DAC4C7@keescook>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="bsH+h4le";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="xHbVLuJ5"
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1753132364;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wxDTRjjVG+zW1HjAB9iJ8nK4LzuVootVYZCMMUt7C1k=;
+	b=bsH+h4le8dbrz55+h9zbrstebDj3oBOswfF6gQ0c4ZaaDRsdOPpGAEIwh3H0wQZI8dTFyx
+	9VVoGfIFFRrpt3QJDSD73nIeojQ+2bcZ4h4SR4UkpZe+nT7GWzjmGRjXA7guJAaTzZkXh8
+	ldeJ5wUS2NVwl8CYGJt5QdtBXvdnu1BPCbtb1DAZ5xe01pZjpEB7vC1iR/azZUIZp+Ac7H
+	71GtaF5PVY83CgjHsI+Wfbac/xqcFTGWaXow9CjuFbZrjTNSVFvG/VoSXGxmDdnak1so8i
+	9Vz1j6tdeYyN5KVS/bn45mzTJIYTBpjAIO+UJF4cO4ABaY2KWoep+TC+FMfZ+Q==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1753132364;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wxDTRjjVG+zW1HjAB9iJ8nK4LzuVootVYZCMMUt7C1k=;
+	b=xHbVLuJ5iknaQIkujfGqAzBoMwGktwmDz1/Ur64dzaxH692Iaf7h3sEqo41Ly/BpRs1FIT
+	WfHeygiEeejH2BDg==
+To: Arnd Bergmann <arnd@arndb.de>, Andreas Larsson <andreas@gaisler.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Arnd Bergmann
+ <arnd@kernel.org>, Thomas =?utf-8?Q?Wei=C3=9Fschuh?=
+ <thomas.weissschuh@linutronix.de>,
+ "David S . Miller" <davem@davemloft.net>
+Cc: Andy Lutomirski <luto@kernel.org>, Vincenzo Frascino
+ <vincenzo.frascino@arm.com>, shuah <shuah@kernel.org>, Anna-Maria Gleixner
+ <anna-maria@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>,
+ John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, Catalin
+ Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Eric
+ Biggers <ebiggers@google.com>, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] vdso: sparc: stub out custom vdso implementation
+In-Reply-To: <ba62bc7b-fa3e-4f34-a966-cc734468b8ef@app.fastmail.com>
+References: <20250707144726.4008707-1-arnd@kernel.org>
+ <a2cfee1a725f24f90937f070eacdedd2716ef307.camel@physik.fu-berlin.de>
+ <5c479b4d-65f1-466e-a79e-43f6dfc9345c@app.fastmail.com>
+ <6b77e7da8c0bd6f211685bda9f624f8db971bbe1.camel@physik.fu-berlin.de>
+ <7e29bcc1-3dc7-40f8-84f0-fbe497fb01bf@gaisler.com>
+ <ba62bc7b-fa3e-4f34-a966-cc734468b8ef@app.fastmail.com>
+Date: Mon, 21 Jul 2025 23:12:43 +0200
+Message-ID: <87ecu9tfhw.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <202507211311.8DAC4C7@keescook>
+Content-Type: text/plain
 
-On Mon, Jul 21, 2025 at 01:14:36PM -0700, Kees Cook wrote:
-> On Mon, Jul 21, 2025 at 01:47:55PM +0100, Will Deacon wrote:
-> > On Sun, Jul 20, 2025 at 04:10:01PM +1000, Ard Biesheuvel wrote:
-> > > On Sat, 19 Jul 2025 at 08:51, Kees Cook <kees@kernel.org> wrote:
-> > > > On Fri, Jul 18, 2025 at 11:36:32AM +0300, Mike Rapoport wrote:
-> > > > > On Thu, Jul 17, 2025 at 04:25:09PM -0700, Kees Cook wrote:
-> > > > > > When KCOV is enabled all functions get instrumented, unless the
-> > > > > > __no_sanitize_coverage attribute is used. To prepare for
-> > > > > > __no_sanitize_coverage being applied to __init functions, we have to
-> > > > > > handle differences in how GCC's inline optimizations get resolved. For
-> > > > > > x86 this means forcing several functions to be inline with
-> > > > > > __always_inline.
-> > > > > >
-> > > > > > Signed-off-by: Kees Cook <kees@kernel.org>
-> > > > >
-> > > > > ...
-> > > > >
-> > > > > > diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> > > > > > index bb19a2534224..b96746376e17 100644
-> > > > > > --- a/include/linux/memblock.h
-> > > > > > +++ b/include/linux/memblock.h
-> > > > > > @@ -463,7 +463,7 @@ static inline void *memblock_alloc_raw(phys_addr_t size,
-> > > > > >                                       NUMA_NO_NODE);
-> > > > > >  }
-> > > > > >
-> > > > > > -static inline void *memblock_alloc_from(phys_addr_t size,
-> > > > > > +static __always_inline void *memblock_alloc_from(phys_addr_t size,
-> > > > > >                                             phys_addr_t align,
-> > > > > >                                             phys_addr_t min_addr)
-> > > > >
-> > > > > I'm curious why from all memblock_alloc* wrappers this is the only one that
-> > > > > needs to be __always_inline?
-> > > >
-> > > > Thread-merge[1], adding Will Deacon, who was kind of asking the same
-> > > > question.
-> > > >
-> > > > Based on what I can tell, GCC has kind of fragile inlining logic, in the
-> > > > sense that it can change whether or not it inlines something based on
-> > > > optimizations. It looks like the kcov instrumentation being added (or in
-> > > > this case, removed) from a function changes the optimization results,
-> > > > and some functions marked "inline" are _not_ inlined. In that case, we end up
-> > > > with __init code calling a function not marked __init, and we get the
-> > > > build warnings I'm trying to eliminate.
-> > 
-> > Got it, thanks for the explanation!
-> > 
-> > > > So, to Will's comment, yes, the problem is somewhat fragile (though
-> > > > using either __always_inline or __init will deterministically solve it).
-> > > > We've tripped over this before with GCC and the solution has usually
-> > > > been to just use __always_inline and move on.
-> > > >
-> > > 
-> > > Given that 'inline' is already a macro in the kernel, could we just
-> > > add __attribute__((__always_inline__)) to it when KCOV is enabled?
-> > 
-> > That sounds like a more robust approach and, by the sounds of it, we
-> > could predicate it on GCC too. That would also provide a neat place for
-> > a comment describing the problem.
-> > 
-> > Kees, would that work for you?
-> 
-> That seems like an extremely large hammer for this problem, IMO. It
-> feels like it could cause new strange corner cases. I'd much prefer the
-> small fixes I've currently got since it keeps it focused. KCOV is
-> already enabled for "allmodconfig", so any new instances would be found
-> very quickly, etc. (And GCC's fragility in this regard has already been
-> exposed to these cases -- it's just that I changed one of the
-> combinations of __init vs inline vs instrumentation.
-> 
-> I could give it a try, if you really prefer the big hammer approach...
+On Fri, Jul 11 2025 at 12:31, Arnd Bergmann wrote:
+> It is probably not all that hard to convert the VDSO to use the
+> generic implementation if you remove the runtime patching between
+> TICK and STICK mode. From the code and the documentation, it
+> seems that any JPS1 compatible CPU (or newer) uses STICK,
+> this would be UltraSPARC III (Cheetah), SPARC64 V (Zeus)
+> and all UltraSPARC T. If you want to give it a try to do the
+> conversion to the generic VDSO, I could respin my patch to only
+> remove the older TICK version and the runtime patching but leave
+> the STICK one. I don't think it's worth my time trying to convert
+> STICK myself since I have no way of testing it.
 
-I gave it a try -- it fails spectacularly. ;) Let's stick to my small
-fixes instead?
+Getting rid of the run-time patching is really trivial. The clocksource
+setup initializes clocksource::archdata::vdso_clockmode already
+correctly with VCLOCK_NONE, VCLOCK_TICK and VCLOCK_STICK.
 
--- 
-Kees Cook
+So all you need is:
+
+static inline u64 __arch_get_hw_counter(s32 clock_mode,	const struct vdso_time_data *vd)
+{
+	if (likely(clock_mode == VDSO_CLOCKMODE_STICK))
+		return vread_stick();
+
+        if (clock_mode == VDSO_CLOCKMODE_TICK))
+		return vread_tick();
+
+	return U64_MAX;
+}
+
+Plus a 32-bit specific version of vdso_shift_ns(), which means just
+renaming the 32-bit variant of __shr64() and removing the then pointless
+notrace annotation.
+
+This should just work out of the box and the performance regression will
+be minimal if even measurable.
+
+Thanks,
+
+        tglx
+
