@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B2D1FE455;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B9121504E;
 	Thu, 24 Jul 2025 06:27:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753338439; cv=none; b=XBf2xIde4ezfGyBREyrmHBfeO59Kmnnw5sdp6AJ4sX+Fiq3XQdeWVjnm2d+2k4YPEsBAY+h52C4CKvxnGpU4PQ1mzIwwQiHPsyY+ZpqP5Y0XUpTWyOEh8SNb1Wi1bhcOK2gdX8p3pCuyONuijitJkhkFpUPs5mAci5EpjT9rtso=
+	t=1753338439; cv=none; b=Q1khXouN4gVHh8ujDc4GilYZIJDc7STCx4135+yWoOTMR6/er+afWPs6RX87jpG3+CfkqcMdYv91u9yp1qnHfNQm9m30nKc5PXykpVIzFgyGkm4W4i7aDC7SVGRPDOrGLkjObT+4KpJhH3+A/YVY1Cy3CEIshQN/2Pqmgr0iiN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1753338439; c=relaxed/simple;
-	bh=OF0zs863T2ln/hf9t9vv6cwCgjqYJUskdPhzQ1YPMKg=;
+	bh=koyIeZfuhbvrzWK2wsblmJg2PU9c5PYkmwnbRsFnRPI=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=PauWpv22odr8OOlVP9XmAZc2gYj45pQUjXYSN3RTSc9lTJIo860P9KhCsrNURn9SFTphn75xi7AvGMrt1w5E8lqLyNY4dmkBxLpXJUpUjIY/lcxXfmt40TUzGxREFx/B4Q+xFPbN6rxPq+Q0FoEEAv8yiVXY9oVcJdjpMWDk3/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=NyJSOk6v; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=4+HHiGxU; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=n85JRBBcTdqxqtsQ7sQ3A7EO+lYQv6kUI0tS5Gq0rk52RMwSHCEwzdjmgMS32f/NlP7Nn3M07SSxnij17E/wNeq29Vf7LlHw8AJavqQFmOw0BcRgFx1GP04NvrOSKa5jnTkOEh9bKh20Ko9KKjKdXIpYjkRYqTdUfMWWLW5hgQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=RkTYOUs9; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=54etbo06; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="NyJSOk6v";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="4+HHiGxU"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="RkTYOUs9";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="54etbo06"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1753338436;
+	s=2020; t=1753338435;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=fTyVW1AyH2uYz1KpZUjxr56LsdGe11sv/GpweXPS2O0=;
-	b=NyJSOk6vmdU2uR614yz7FfBgf3go2QgYZQAlrtpMoJuSLCDNl2I0mcYAY3a7+bunmXY74q
-	6rEa8evverZGj0Ky1l5ehcFjfbW8whLbW8MBvtBgXLIeFLAfKkQ0WiJEtiCdPU8jiETe3M
-	EFrsiwZrr+ph7hAz9Vujnmg/WDReqSw7GAMbnCuptfKXpJpNdYQPfxmS9J3+IKOK+zGCJl
-	mJ3dm+hYcFaa+42uFsyUs4XnwAWFUiTEWsfwlLWNsnUK9ZO8V0yrZX0jhssOgg7W7f9B8e
-	JTJuToJwq6nhShVj6fq9GGc6V3IQkV9Uji+ooafE7UCdxYhP9iItVg/dgABL0w==
+	bh=yG0avGJtBE/XALYu4LOkcH56INWLCuN3/17FOrM97YQ=;
+	b=RkTYOUs9gAxn5OdGA3i8vBcbafRI70Yz07+LjXNo+nhUsNafKycD+7T3VLFdSdJXWOAyML
+	VC+qiPvKbgrsnPRM+fgLa8LlRUz4mgNdt/d51VvjzH0mHT0FphdlhFdJSIpsMKylekHJdU
+	olDbEoOhsEhdMMbl+Neic/6jGbRWG51HdPbcZCTdwWvb3/1oy9T+s2xtaeI5hKpiRIhxUg
+	TPwLFvk4xBEPlZ/A9PwAnTCbwIOTm8DEv33RtGgcvcCicVM1x0BYBJMqVJlmxtPGnXTsMf
+	ARJNlvaoJONQdGCAO1F+AUcg4Odt5cWWhyfDxV8K8Svuq0h1DyRUqEqKdcZO9w==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1753338436;
+	s=2020e; t=1753338435;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=fTyVW1AyH2uYz1KpZUjxr56LsdGe11sv/GpweXPS2O0=;
-	b=4+HHiGxUHuRmwwcmfh5CxrgGvE8R+R40NMGmb0L3JXm/z+0gPWS6w/ZyTFCAwTAaXxV81g
-	PBKlSKlLsbD454BQ==
-Date: Thu, 24 Jul 2025 08:26:54 +0200
-Subject: [PATCH RFC 04/14] sparc64: vdso: Link with -z noexecstack
+	bh=yG0avGJtBE/XALYu4LOkcH56INWLCuN3/17FOrM97YQ=;
+	b=54etbo06eGj5k9NSeaHjwQ9xD+fzBnXqjehsGsdo6k62vatyAU71gBneRRy8wjdEDc1KGR
+	pw53IdQttxmPMiDA==
+Date: Thu, 24 Jul 2025 08:26:53 +0200
+Subject: [PATCH RFC 03/14] clocksource: remove ARCH_CLOCKSOURCE_DATA
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250724-vdso-sparc64-generic-2-v1-4-e376a3bd24d1@linutronix.de>
+Message-Id: <20250724-vdso-sparc64-generic-2-v1-3-e376a3bd24d1@linutronix.de>
 References: <20250724-vdso-sparc64-generic-2-v1-0-e376a3bd24d1@linutronix.de>
 In-Reply-To: <20250724-vdso-sparc64-generic-2-v1-0-e376a3bd24d1@linutronix.de>
 To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
@@ -64,42 +64,68 @@ To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
  John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, 
  sparclinux@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
- Arnd Bergmann <arnd@kernel.org>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1753338429; l=1408;
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1753338429; l=1684;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=OF0zs863T2ln/hf9t9vv6cwCgjqYJUskdPhzQ1YPMKg=;
- b=R+X3+xK2CwadfNOR4CPiR5eAEEabRClKLgOhBCa55Ojln/l7oDGiRfTteLyH6slfTaiyw+N+m
- OWtlAE+CvjaDJt3ejfEkRbfA4r5MxsvHgSQpjZn0YKl83D0uiI3xN8f
+ bh=WmxKokfq5txCP+WEVDEJYUDojXWBwhmOqD/hoAeQczk=;
+ b=IB8R+UA250pFZzMQJRgXtxKdqC1vmAtAoqg2Iu3uzCHnpoj082MKqPZoiP3ubMo47ZeyGSGR3
+ 2mhsdq7AGZsBrgowJm/veuD3uwsNpMD43lhS4LDnUMSplaDM4NJaVcs
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-The vDSO stack does not need to be executable. Prevent the linker from
-creating executable. For more background see commit ffcf9c5700e4 ("x86:
-link vdso and boot with -z noexecstack --no-warn-rwx-segments").
+From: Arnd Bergmann <arnd@arndb.de>
 
-Also prevent the following warning from the linker:
-sparc64-linux-ld: warning: arch/sparc/vdso/vdso-note.o: missing .note.GNU-stack section implies executable stack
-sparc64-linux-ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+After sparc64, there are no remaining users of ARCH_CLOCKSOURCE_DATA
+and it can just be removed.
 
-Suggested-by: Arnd Bergmann <arnd@kernel.org>
-Link: https://lore.kernel.org/lkml/20250707144726.4008707-1-arnd@kernel.org/
-Fixes: 9a08862a5d2e ("vDSO for sparc")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: John Stultz <jstultz@google.com>
+[Thomas: drop sparc64 bits from the patch]
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- arch/sparc/vdso/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/clocksource.h | 6 +-----
+ kernel/time/Kconfig         | 4 ----
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index fdc4a8f5a49c5b27fbaee861b24e8b31cfe64477..e8315c6acb743137089d8e77d3539db63979e959 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -103,4 +103,4 @@ quiet_cmd_vdso = VDSO    $@
- 		       $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
- 		       -T $(filter %.lds,$^) $(filter %.o,$^)
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index 65b7c41471c390463770c2da13694e58e83b84ea..12d853b1883265cb47d93e33d8370e3957e7e695 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -25,8 +25,7 @@ struct clocksource_base;
+ struct clocksource;
+ struct module;
  
--VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic --no-undefined
-+VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic --no-undefined -z noexecstack
+-#if defined(CONFIG_ARCH_CLOCKSOURCE_DATA) || \
+-    defined(CONFIG_GENERIC_GETTIMEOFDAY)
++#if defined(CONFIG_GENERIC_GETTIMEOFDAY)
+ #include <asm/clocksource.h>
+ #endif
+ 
+@@ -106,9 +105,6 @@ struct clocksource {
+ 	u64			max_idle_ns;
+ 	u32			maxadj;
+ 	u32			uncertainty_margin;
+-#ifdef CONFIG_ARCH_CLOCKSOURCE_DATA
+-	struct arch_clocksource_data archdata;
+-#endif
+ 	u64			max_cycles;
+ 	u64			max_raw_delta;
+ 	const char		*name;
+diff --git a/kernel/time/Kconfig b/kernel/time/Kconfig
+index 5b47f9247d52023901b44eba4327a4b5f524b031..c950a8c832c172be36cc9943c4191c08cb121f56 100644
+--- a/kernel/time/Kconfig
++++ b/kernel/time/Kconfig
+@@ -9,10 +9,6 @@
+ config CLOCKSOURCE_WATCHDOG
+ 	bool
+ 
+-# Architecture has extra clocksource data
+-config ARCH_CLOCKSOURCE_DATA
+-	bool
+-
+ # Architecture has extra clocksource init called from registration
+ config ARCH_CLOCKSOURCE_INIT
+ 	bool
 
 -- 
 2.50.1
