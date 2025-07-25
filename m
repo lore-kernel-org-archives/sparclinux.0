@@ -1,55 +1,60 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAC226CE1E;
-	Fri, 25 Jul 2025 05:59:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F14241A8F;
+	Fri, 25 Jul 2025 07:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753423200; cv=none; b=oSqpOmbI0Ba+ZiU9Lz/jbz6GvugYzE1ZgJ4TbZl/arJX8QyUzq1UmU1yIhCY9PZxfGMSSWQGtN3HL/Hi9+GMnMtF/OVnBaDNm7gEgHILMsZt2AnadGi9EysJf9os4mmZ5ykf1CG2BQ+iyn4aYDK/rTlB6+EeUQfg2CYm7iUPWhA=
+	t=1753429867; cv=none; b=WqKzIUw6RIwfxljh824MQkiQEd0ostVoab1rbKUak/GYqk2khORcwM/piq5AsjUJZ0Bp0dLvq2lrONN1YdmqbTVvoNgY1xrr0mgm2nhiaVSO9xT8RfbIRDFw8/XBRr+46GyqINPvuffvaM1OS+iRTTKMVH+t2kuuidU8BesTikA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753423200; c=relaxed/simple;
-	bh=HkxuMbm28Jmp5Dp1zZTr9hUxxe5YJ0CjJVZGZTKJzys=;
+	s=arc-20240116; t=1753429867; c=relaxed/simple;
+	bh=4/vvHs77kd8pAzYMmzOAcmSimOtvxQbc08tEuGA2bl8=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=NiJinAuB5awfLPjkVeJI4H8XHmyJR1fd/zcGME8WKplyqFVZUlpYXiRfCs3AROVPWgLDeAGKn6t9sqxsMUhg+hs3X3IBXla4TbB7QArhTYLRSLiyk5W2JyQIilFLPauLHhfbBrxVmfZlLRLNH40rfp0pzqeA/UtVXPr2Znmd0EQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=jFQ2Bl1i; arc=none smtp.client-ip=130.133.4.66
+	 Content-Type:MIME-Version; b=LDg3psr+3FOnIe4Y1jps4HOvebsL4A4ksjzpLj0zRsMKKAzlRqOjnHRvrIBwY0uzLEPoWYDqA2Dz6/ysJQI0p5rA5Q2CJhe8iuDrJ8AIT6Wpx+y/ap2ACBwcWJJrQMNUbY2aWR5g6vB90YkdZ4Se6RVjxiYFzloQ6mfZGdu6UbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=cEo5gAAh; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="jFQ2Bl1i"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="cEo5gAAh"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
 	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
 	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
 	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=7wbvCCPynBwB7VQAUk7nBjreu/8tSqi4n5kNLYtBBSc=; t=1753423196; x=1754027996; 
-	b=jFQ2Bl1iyg/FezGXZDnS8asGoJ1BD2MadBfHoWWc2muEfPIlBn3DiLqNneeL+/FmFJT/tqQurL/
-	15GTNseDCjfIs6uHgZPaK35U4ZmFuOehLKt5FKdv2WiQuPLHiQZVB7ytb5nLFrWS/y1ySGDCcpTUM
-	t2cfyef7FkCWpWq2GASphYWxpY5BsFSoSVQw5buNZr8vWbU1dwRcWrGzFeddd1/JpEK+Tu4bXad6p
-	euxS/CWB9tHNV/+xzO47iN3t2DVQwo9zmAevNRJxg5Hh1m3EP24ubQxLsIQC75uV+EFh0nul+gxsK
-	AMMtSuPKCLb2UBvaH5B+W3G5WpsAF1OANVsQ==;
+	bh=sOVFlvbl9upVlLlSJ+gKg+QG/EzUMWB+gqdb/rBhNqg=; t=1753429862; x=1754034662; 
+	b=cEo5gAAhm02lDxNtVpWZ0CftSZDWo2bUI5Q5DNzW+abLNXO2fy2fGQequSy31xZ42ghfhFgd78v
+	3n1YafGd3WyJJ6BC55Ny84eQodDx3gcrzZSa/0Q614y5e8R77iVbCE/2R0B6Ps+nhYN0hH/yIAH5z
+	3tDdnUw141c5fHBfsjpIxGRBpY51eXyTvEIEzTOJkOxKcNfxxjsgMIkYnviJ2VqywJ0l3Zdtwk8Yw
+	1ZgMLAnApVpWFCmJCSyeM3NG25iAtcf2UYEfdt7uGI3UCM/TBiFkgKgjdJrM4lAHHv6FmsxBXorcc
+	5DBoP/HYaxgGPJD3PXXEBWDF8WDi2d1eAwhA==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.98)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1ufBT9-00000001SwZ-0VHj; Fri, 25 Jul 2025 07:59:47 +0200
-Received: from dynamic-002-245-058-127.2.245.pool.telefonica.de ([2.245.58.127] helo=suse-laptop.fritz.box)
+          id 1ufDCd-000000026hp-3NTx; Fri, 25 Jul 2025 09:50:51 +0200
+Received: from dynamic-002-245-058-127.2.245.pool.telefonica.de ([2.245.58.127] helo=[192.168.178.50])
           by inpost2.zedat.fu-berlin.de (Exim 4.98)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1ufBT8-00000000Jbc-3jmO; Fri, 25 Jul 2025 07:59:47 +0200
-Message-ID: <026dc0f797082edf59d9c08f500baac6a1daf5c9.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH] sparc64: fix hugetlb for sun4u
+          id 1ufDCd-00000000chc-2Fcp; Fri, 25 Jul 2025 09:50:51 +0200
+Message-ID: <ac3a117c91d27dc7eff8c22ad6bd261dd2557451.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH 0/3] drop hugetlb_free_pgd_range()
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Anthony Yznaga <anthony.yznaga@oracle.com>, sparclinux@vger.kernel.org, 
-	davem@davemloft.net, andreas@gaisler.com
-Cc: linux-kernel@vger.kernel.org, agordeev@linux.ibm.com, will@kernel.org, 
-	ryan.roberts@arm.com, david@redhat.com, osalvador@suse.de
-Date: Fri, 25 Jul 2025 07:59:46 +0200
-In-Reply-To: <20250716012446.10357-1-anthony.yznaga@oracle.com>
-References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
+To: Anthony Yznaga <anthony.yznaga@oracle.com>, davem@davemloft.net, 
+	andreas@gaisler.com, arnd@arndb.de, muchun.song@linux.dev,
+ osalvador@suse.de, 	akpm@linux-foundation.org, david@redhat.com,
+ lorenzo.stoakes@oracle.com, 	Liam.Howlett@oracle.com, vbabka@suse.cz,
+ rppt@kernel.org, surenb@google.com, 	mhocko@suse.com
+Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, 	linux-kernel@vger.kernel.org,
+ alexghiti@rivosinc.com, agordeev@linux.ibm.com, 	anshuman.khandual@arm.com,
+ christophe.leroy@csgroup.eu, ryan.roberts@arm.com, 	will@kernel.org
+Date: Fri, 25 Jul 2025 09:50:50 +0200
+In-Reply-To: <20250716012611.10369-1-anthony.yznaga@oracle.com>
+References: <20250716012611.10369-1-anthony.yznaga@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.56.2 
@@ -64,63 +69,30 @@ X-ZEDAT-Hint: PO
 
 Hi Anthony,
 
-On Tue, 2025-07-15 at 18:24 -0700, Anthony Yznaga wrote:
-> An attempt to exercise sparc hugetlb code in a sun4u-based guest
-> running under qemu results in the guest hanging due to being stuck
-> in a trap loop. This is due to invalid hugetlb TTEs being installed
-> that do not have the expected _PAGE_PMD_HUGE and page size bits set.
-> Although the breakage has gone apparently unnoticed for several years,
-> fix it now so there is the option to exercise sparc hugetlb code under
-> qemu. This can be useful because sun4v support in qemu does not support
-> linux guests currently and sun4v-based hardware resources may not be
-> readily available.
+On Tue, 2025-07-15 at 18:26 -0700, Anthony Yznaga wrote:
+> For all architectures that support hugetlb except for sparc,
+> hugetlb_free_pgd_range() just calls free_pgd_range(). It turns out
+> the sparc implementation is essentially identical to free_pgd_range()
+> and can be removed. Remove it and update free_pgtables() to treat
+> hugetlb VMAs the same as others.
 >=20
-> Fix tested with a 6.15.2 and 6.16-rc6 kernels by running libhugetlbfs
-> tests on a qemu guest running Debian 13.
+> Anthony Yznaga (3):
+>   sparc64: remove hugetlb_free_pgd_range()
+>   mm: remove call to hugetlb_free_pgd_range()
+>   mm: drop hugetlb_free_pgd_range()
 >=20
-> Fixes: c7d9f77d33a7 ("sparc64: Multi-page size support")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-> ---
->  arch/sparc/mm/hugetlbpage.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
->=20
-> diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
-> index 80504148d8a5..2048b5c42ca8 100644
-> --- a/arch/sparc/mm/hugetlbpage.c
-> +++ b/arch/sparc/mm/hugetlbpage.c
-> @@ -22,6 +22,26 @@
-> =20
->  static pte_t sun4u_hugepage_shift_to_tte(pte_t entry, unsigned int shift=
-)
->  {
-> +	unsigned long hugepage_size =3D _PAGE_SZ4MB_4U;
-> +
-> +	pte_val(entry) =3D pte_val(entry) & ~_PAGE_SZALL_4U;
-> +
-> +	switch (shift) {
-> +	case HPAGE_256MB_SHIFT:
-> +		hugepage_size =3D _PAGE_SZ256MB_4U;
-> +		pte_val(entry) |=3D _PAGE_PMD_HUGE;
-> +		break;
-> +	case HPAGE_SHIFT:
-> +		pte_val(entry) |=3D _PAGE_PMD_HUGE;
-> +		break;
-> +	case HPAGE_64K_SHIFT:
-> +		hugepage_size =3D _PAGE_SZ64K_4U;
-> +		break;
-> +	default:
-> +		WARN_ONCE(1, "unsupported hugepage shift=3D%u\n", shift);
-> +	}
-> +
-> +	pte_val(entry) =3D pte_val(entry) | hugepage_size;
->  	return entry;
->  }
-> =20
+>  arch/sparc/include/asm/hugetlb.h |   5 --
+>  arch/sparc/mm/hugetlbpage.c      | 119 -------------------------------
+>  include/asm-generic/hugetlb.h    |   9 ---
+>  include/linux/hugetlb.h          |   7 --
+>  mm/memory.c                      |  42 +++++------
+>  5 files changed, 18 insertions(+), 164 deletions(-)
 
-Reviewed-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+I have applied this series against v6.16-rc7 and booted the kernel inside a
+SPARC LDOM on Solaris 11.4 without any problems.
 
-Thanks,
+Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+
 Adrian
 
 --=20
