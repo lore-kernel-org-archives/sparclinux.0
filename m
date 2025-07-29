@@ -1,145 +1,183 @@
-Received: from pegase1.c-s.fr (pegase1.c-s.fr [93.17.236.30])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B7AF24F5E0;
-	Tue, 29 Jul 2025 16:50:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.236.30
+Received: from mail-lj1-f175.google.com (mail-lj1-f175.google.com [209.85.208.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A098F2512FC;
+	Tue, 29 Jul 2025 18:39:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753807840; cv=none; b=IhzbUzNNoBM2e9yywyAyq76i8VOQUbAOmAsprkDDS+Ifb+ux1Nh5Hq/AL5CcJ8oEi53ik0PiitAz/F3xBHsPyA9IorX91AVQpsWxRKDRFf0V35Xs1lCEjS+rDUdliOYDI2BOebCS7VKlvPlJAn9as4OnmFpbIiARgxaWDe7tv7s=
+	t=1753814350; cv=none; b=Ed+BaaqKX354sS7GTKESdpb6+Pew3IgXMlPhfTQEybQe78HzMGDiA0yy+Ck2v8pjPDmZeaC+1e09TfzF6m78NmWH96GeFSyw7OzdyHtN6c8kxAoohvdZGKQr06zX1w8ruhUIIGRMoJkrmFWVOzNx1jqiAhOC0rM1lmwJEoEpJcg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753807840; c=relaxed/simple;
-	bh=YhCu13q3EaOM9+19rgoO9TQAPpoXFGMXcSNVdaJcCwM=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=oIWE4n//l7hePMaJXicxay8IY/MSw1Mu4TBXESrH/+Dq4Vo1eFBhA2pQyAJ6Ht2D7G6HfG1vU/gy1NEnSov61IIPvFN4/UyQ8JnPis+OJ7AtIehpfNeRsM35cqptcxk7fi0xWdq2O2TAJNtvsBHNzTbkTcocc7fkqXwMMJrAUso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.236.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
-Received: from localhost (mailhub3.si.c-s.fr [192.168.12.233])
-	by localhost (Postfix) with ESMTP id 4bs0H82Rfxz9s2l;
-	Tue, 29 Jul 2025 17:52:52 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-	by localhost (pegase1.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id foIBeN0qtQ-W; Tue, 29 Jul 2025 17:52:52 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-	by pegase1.c-s.fr (Postfix) with ESMTP id 4bs0H81KxLz9s28;
-	Tue, 29 Jul 2025 17:52:52 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id 27C058B76C;
-	Tue, 29 Jul 2025 17:52:52 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-	with ESMTP id AvByEn6-Kv3I; Tue, 29 Jul 2025 17:52:52 +0200 (CEST)
-Received: from [192.168.235.99] (unknown [192.168.235.99])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id 95C748B763;
-	Tue, 29 Jul 2025 17:52:51 +0200 (CEST)
-Message-ID: <1c37a89e-cfc7-4d4c-89e1-1b3f1217b11e@csgroup.eu>
-Date: Tue, 29 Jul 2025 17:52:51 +0200
+	s=arc-20240116; t=1753814350; c=relaxed/simple;
+	bh=K0MGb4ayzYxYJZKg1HWu8KpfAsEMhfWFw3xLTjemhe4=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=O0wxXbYPDf4qe3QnA7aZ37GmQ0TQy8ZitdH0gW2zxPt5KhR7kD/WqyGm59PRG68l89NixYmiWEzEjNldezOal7IR0+R1X2l590IabEksIYD+zmGX6PgG/fIay31CmHNAC1Gkjxd3vF8oEDfhw7jhq7kr4L+WdAxaBIr3fUBxq8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NKD71RjS; arc=none smtp.client-ip=209.85.208.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NKD71RjS"
+Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-3321296ad03so14875391fa.3;
+        Tue, 29 Jul 2025 11:39:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1753814347; x=1754419147; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=GYRfCV3hbQi5DsgzlDild2w/1OeWF4e+oM87WSvfwwM=;
+        b=NKD71RjSND1rXmAnXQfIgEf/HiGuyRbmfQkAATxvz+XDc3wuAS4PYMTAnFTc+hOFBB
+         jFfTAut7lO3fvht+3On5gRaIfl+2JUu+C2CyqgxTS8W35LGqMXdhSUjejCV9hA/o8SY3
+         0PSeXZbieKdSiw5El+lB3jlElLjLihmZthWvrMhStg80B4X/+WwjaahcIn6GBi4Qcplc
+         7DOUDEExmM8rm8f+iQ5+1OL4gAnBtqzmlfM/R2yn2i3XNKsLWCbKBBoyp47IhnsZEusl
+         BN9pcQGornc7ZtX5pT62Tk+O+efm5f0pzlCljOdXohw3AYM1UNB3P3sLQR1I5+qIVlUx
+         Ejdg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753814347; x=1754419147;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GYRfCV3hbQi5DsgzlDild2w/1OeWF4e+oM87WSvfwwM=;
+        b=ETVj2lztD/LuqAtTkiKADtNHw4Q05ZsmQHRw2PfE8PioK+rCQtRMNWSFrrfbJvYg7z
+         yXRmJVzVlryxeBfl9Wjy6LiSSBP2n1Y4jvtotrvRwkZBK/LmnuxPBfGYYgI1QzV3qSxO
+         uiw8sjGT7Wa/JBqentDjhBYcLWLHaY1zwuuh5Pzrropba0vzam+jLwaA3lRhEm71xBuu
+         /fyKJdilhXPNZFR4MG5sOuqa+BU19MuE737r5wI+vU5aezSKSJQ7Qwidf3KZcjZTAYhY
+         oXVtAZktdJmFMFdgqby9ZMTjlIs9tv5xAVBDXvKkutoouH/niCvCDm9s0opY2KOEYe5z
+         nUVA==
+X-Forwarded-Encrypted: i=1; AJvYcCUEeTIxbUN2CE4tUJnrmqEQFxQHf1uZauPv8SXH8X0ghrgmrLGHIla6QoShg0pXfvPfPgSFiNMD/c+fZadKdiRIMrr1@vger.kernel.org, AJvYcCUyamA+dDJFs+Gt5I97dmtdIlstFucMr54YDE5QByl7ACLKp0oBVJ19+nIrkXHiFQS5HbJEi5jd7xfE3w==@vger.kernel.org, AJvYcCWkT1IgC3VG91RjSdJMFzqqK4E8v4wvNmAROFhZrUxPH3v2UkelvSmGI4t9w342WTybEKnHTV8F/BxW@vger.kernel.org, AJvYcCWz/Wm1TtJzQejTERj4aS627Iv40fp656dSi4LyMJoYBbnv8bVVXTAB1OKQzsGzFl2/elUtClpXLwf6lthY@vger.kernel.org, AJvYcCX3uv/CC6AuisHfr0+afv3eMKAK3LKvGKei7ZJJLWYQTu6S9/zFG4MD8w2DWAaaZX8IN9I=@vger.kernel.org, AJvYcCXKzSDjDDuvTo97HgVYICke64JFan/hUVRZPFof1kgZ1jCIT4Wgz6+JqNHrz5wY3qR8mWmxzer23nM7QcRocA==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyuTdNZwefZStZbNrgd3WMdamCOz2MJV+yvWB6mBvx6R0qaMmp6
+	9SqSXYLpmSA5xQ7xhuN1Ay4Qi3dRJU9Fw0OtWE/gMSugHzYXHIjbZ7AU
+X-Gm-Gg: ASbGncvgm47JZ0K/0uVnx0Ig1KIcA6t2OJx8xHF5d5Q5y34tQMfUUZ0+FxMDYKNZtzX
+	/JT1Z5/lfU0l0j1VePujvsEBkS+sNjTFsmqvAB5x7bvAYwQ+D2GQG5URpzdP3vv4jScz0DYmx6f
+	h650+jK1UQC3xPzgX7swzmOMB18Ssdbq+xu2Wc19pbWPJ31eFTIwrgo71iUOo0YlXWFQH939At1
+	8tuFtLoi4kVGhMJ7iGpHq4sa6frFdcWm3jKThEOoEWiCcfKS+QTOn75Komw4uGe157VIWOgbgMA
+	Y53AB8IqlGKk5cdwyYeHiVMV0soCfNfoXfP0r3gX/Crj8d3D2Hm18+LloVlJaaGw
+X-Google-Smtp-Source: AGHT+IF9yvJyPiTzwXfrNX8PT/G9myfdCCK3lbY+TklU3bxii0UFYjkiLDeONxAItTuHZBzIFqK+RA==
+X-Received: by 2002:a05:6512:3414:b0:553:241d:4e77 with SMTP id 2adb3069b0e04-55b7c011afdmr184040e87.22.1753814346295;
+        Tue, 29 Jul 2025 11:39:06 -0700 (PDT)
+Received: from pc636 ([2001:9b1:d5a0:a500::800])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-332219ce7aesm832441fa.34.2025.07.29.11.39.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Jul 2025 11:39:04 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Tue, 29 Jul 2025 20:39:01 +0200
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+	David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Uladzislau Rezki <urezki@gmail.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <aIkVRTouPqhcxOes@pc636>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <aIgSpAnU8EaIcqd9@hyeyoo>
+ <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fs/Kconfig: Enable HUGETLBFS only if
- ARCH_SUPPORTS_HUGETLBFS
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-To: Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@alien8.de>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
- "David S. Miller" <davem@davemloft.net>, Thomas Gleixner
- <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
- sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org
-References: <20250711102934.2399533-1-anshuman.khandual@arm.com>
- <20250712161549.499ec62de664904bd86ffa90@linux-foundation.org>
- <f86c9ec6-d82d-4d0c-80b2-504f7c6da22e@arm.com>
- <20250714094909.GBaHTSlW8nkuINON9p@fat_crate.local>
- <20250714173109.265d1fbfa9884cd22c3a6975@linux-foundation.org>
- <9e4e4a84-d929-4317-b920-d11f4bee60df@csgroup.eu>
-Content-Language: fr-FR
-In-Reply-To: <9e4e4a84-d929-4317-b920-d11f4bee60df@csgroup.eu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
 
-
-
-Le 29/07/2025 à 17:50, Christophe Leroy a écrit :
+On Tue, Jul 29, 2025 at 06:25:39AM +0100, Lorenzo Stoakes wrote:
+> Andrew - FYI there's nothing to worry about here, the type remains
+> precisely the same, and I'll send a patch to fix this trivial issue so when
+> later this type changes vmalloc will be uaffected.
 > 
+> On Tue, Jul 29, 2025 at 09:15:51AM +0900, Harry Yoo wrote:
+> > [Adding Uladzislau to Cc]
 > 
-> Le 15/07/2025 à 02:31, Andrew Morton a écrit :
->> On Mon, 14 Jul 2025 11:49:09 +0200 Borislav Petkov <bp@alien8.de> wrote:
->>
->>> On Mon, Jul 14, 2025 at 08:05:31AM +0530, Anshuman Khandual wrote:
->>>> The original first commit had added 'BROKEN', although currently there
->>>> are no explanations about it in the tree.
->>>
->>> commit c0dde7404aff064bff46ae1d5f1584d38e30c3bf
->>> Author: Linus Torvalds <torvalds@home.osdl.org>
->>> Date:   Sun Aug 17 21:23:57 2003 -0700
->>>
->>>      Add CONFIG_BROKEN (default 'n') to hide known-broken drivers.
->>
->> Thanks.  That was unkind of someone.  How's this?
->>
->>
->> From: Andrew Morton <akpm@linux-foundation.org>
->> Subject: init/Kconfig: restore CONFIG_BROKEN help text
->> Date: Mon Jul 14 05:20:02 PM PDT 2025
->>
->> Linus added it in 2003, it later was removed.  Put it back.
+> Ulad - could we PLEASE get rid of 'vm_flags' in vmalloc? It's the precise
+> same name and (currently) type as vma->vm_flags and is already the source
+> of confusion.
 > 
-> Was removed by:
-> 
-> commit 3be71ba84f17f39131900f44e8ef513c696a5b11
-> Author: Linus Torvalds <torvalds@home.osdl.org>
-> Date:   Mon Sep 1 21:30:14 2003 -0700
-> 
->      Instead of asking for "broken drivers", ask for a "clean compile".
-> 
->      This makes "allyesconfig" do a better job.
+You mean all "vm_flags" variable names? "vm_struct" has flags as a
+member. So you want:
 
-Which was then later removed by:
+urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+29:                          pgprot_t pgprot, unsigned long vm_flags)
+39:             vm_flags |= VM_DEFER_KMEMLEAK;
+41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+45:                              pgprot, vm_flags, NUMA_NO_NODE,
+51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+85:                          pgprot_t pgprot, unsigned long vm_flags)
+259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/vmalloc.c
+3853: * @vm_flags:                additional vm area flags (e.g. %VM_NO_GUARD)
+3875:                   pgprot_t prot, unsigned long vm_flags, int node,
+3894:   if (vmap_allow_huge && (vm_flags & VM_ALLOW_HUGE_VMAP)) {
+3912:                             VM_UNINITIALIZED | vm_flags, start, end, node,
+3977:   if (!(vm_flags & VM_DEFER_KMEMLEAK))
+4621:   vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+29:                          pgprot_t pgprot, unsigned long vm_flags)
+39:             vm_flags |= VM_DEFER_KMEMLEAK;
+41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+45:                              pgprot, vm_flags, NUMA_NO_NODE,
+51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+85:                          pgprot_t pgprot, unsigned long vm_flags)
+259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags ./include/linux/vmalloc.h
+172:                    pgprot_t prot, unsigned long vm_flags, int node,
+urezki@pc638:~/data/backup/coding/linux-not-broken.git$
 
-commit 3636641bb2c7a806c1099ca092ec8cd180063f9b
-Author: Adrian Bunk <bunk@stusta.de>
-Date:   Fri Feb 3 03:04:00 2006 -0800
+to rename all those "vm_flags" to something, for example, like "flags"?
 
-     [PATCH] don't allow users to set CONFIG_BROKEN=y
+Thanks!
 
-     Do not allow people to create configurations with CONFIG_BROKEN=y.
-
-     The sole reason for CONFIG_BROKEN=y would be if you are working on 
-fixing a
-     broken driver, but in this case editing the Kconfig file is trivial.
-
-     Never ever should a user enable CONFIG_BROKEN.
-
-     Signed-off-by: Adrian Bunk <bunk@stusta.de>
-     Signed-off-by: Andrew Morton <akpm@osdl.org>
-     Signed-off-by: Linus Torvalds <torvalds@osdl.org>
-
-diff --git a/init/Kconfig b/init/Kconfig
-index b9923b1434a2f..8b7abae87bf9c 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -31,19 +31,8 @@ config EXPERIMENTAL
-  	  you say Y here, you will be offered the choice of using features or
-  	  drivers that are currently considered to be in the alpha-test phase.
-
--config CLEAN_COMPILE
--	bool "Select only drivers expected to compile cleanly" if EXPERIMENTAL
--	default y
--	help
--	  Select this option if you don't even want to see the option
--	  to configure known-broken drivers.
--
--	  If unsure, say Y
--
-  config BROKEN
-  	bool
--	depends on !CLEAN_COMPILE
--	default y
-
-  config BROKEN_ON_SMP
-  	bool
-
+--
+Uladzislau Rezki
