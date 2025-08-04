@@ -1,220 +1,101 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B0E10942
-	for <sparclinux@vger.kernel.org>; Mon,  4 Aug 2025 06:02:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCA72E36F4;
+	Mon,  4 Aug 2025 06:08:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754287327; cv=none; b=Ra2lR/lBriujyyexdJnLOi/Q6UCUHMj/1rfOqiRLeoOGhnhyEAU36u9V1E8eFpU1lq1GXo3A0w7tb2lVHncRgJ+aKq29xCuyxgkr1eLD4bgvl3L6kaDCzA3Th1MBB4/3H2p1W3gxb53x3dF2nW/54hphT53fn5VvWeUWZtUkpAo=
+	t=1754287735; cv=none; b=G4RNQv2jXKfx4DT+kZvKfpTtM45YkK0NNtTvasemcsEyqtF0u0xJtQYLJVddB1YevEXPX9lxeYz/sHIgYp/FnTYfAoTeNzqysKyi6ZZkH/mSWwmM9xpa6uz11XseNTAvhnNNFqZdA6e6libqSH52xdmrxsXst+p9OVCMGJxlrSI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754287327; c=relaxed/simple;
-	bh=KMBl5cETYacFC2LqqdLO4JBKck38P6h1v/keks1Lous=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rDqUdKMTkuHNM2REiCvvsGtQPZyoymSO9AEZZtfDmyFYvdPPuvWbSwGllG+JnihcBRO1aY3IkTVPXp88TbCQhtDbrlpGxSVJshPyIR48vTIrnWODn2VRlvX3+jYVLnw3g8cd7zSufTl74uW8TWv3lR6TWhTv8G4rqCqmS0bHixM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GRpUhCLQ; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1754287735; c=relaxed/simple;
+	bh=ipRZKPKGvZYye+NbUN1kZp7BEdItabd5U7NljxzHgfU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F0Hi5BuYN2toJLIzGd6t3p+614XozpVMlPU+4uKB93NGOrG52oBAx/tWSBl34sVgruWb1VM7FvFAS+mRk+Cqel6MeLb698S+dFWZfxJTJJ8iBg/RdUc5R+iWcGiieMGyIoxW5ruwi4vnLEaAbVlB96NTlRVohTRmRXwOTVnybrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WB5Ojvzz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GRpUhCLQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1754287324;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=vLIrdWw8oN7dfx3cTZ5HSnDeQakkB5ZepQhkEnhTNlA=;
-	b=GRpUhCLQD0K5ROPCF5JPSiuxGhW8C9t7yic0TUO/Ml22MhgkrMeZbz7LfrIYwa0Fl49GX5
-	5GwLf1Pnp9ud3ZMrHAXP7DBKIW0CE9p6Yc0hD3brnT6OhY1DEF8PvzTHxMu/0XsaipAz61
-	DdhDHj+fD5ddtNWkpcJqOFpH3KluCBU=
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
- [209.85.222.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-296-Zo0f7OM_NEa8Vp8QtsOppg-1; Mon, 04 Aug 2025 02:02:01 -0400
-X-MC-Unique: Zo0f7OM_NEa8Vp8QtsOppg-1
-X-Mimecast-MFC-AGG-ID: Zo0f7OM_NEa8Vp8QtsOppg_1754287321
-Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-7e7807af588so302474785a.1
-        for <sparclinux@vger.kernel.org>; Sun, 03 Aug 2025 23:02:01 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754287321; x=1754892121;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vLIrdWw8oN7dfx3cTZ5HSnDeQakkB5ZepQhkEnhTNlA=;
-        b=XdmUajHACFPFM9PUgnekHIT4rmmVbVIMzAxPo9qxu2ff+O4SVyiIGsIeed6Cmd7Mbw
-         11l2sM/t5PuqbWTyy6/okIixLvAslwwLkMCM5wa8PmGlPf3BBuEsMxbXClh3eXyU1QzT
-         kqYall9okpj/zbOAaRNurLbs2q+6dpw3kH113vSRsdNHbGn5LQNhEeNiBmsbtgb4mz+k
-         wuN+WVs+j49ZMjTPLFmtEoFyiOj6ocH4aubdmFaSr9hZGyfDpkXQ3shCelYMzbK5DCay
-         sP61EKVcOqxLydWIaEbSTyVK7jfPpv07p0v/vxQxPZowTaE3VKH0wqCklDtle7nsCk31
-         wyog==
-X-Forwarded-Encrypted: i=1; AJvYcCW6PDa6KfhnhtSfLVCutXtweYZnT/cHfN/5QvvjY7XL1b0z1tqxUWsHLr5KMl31chUDQyqkBzXd9rec@vger.kernel.org
-X-Gm-Message-State: AOJu0YzSVWC4ABXF2OAghye4PUdjvNtqudQl0BdhFjdk0v/tVuyb6+jz
-	It9oiW5wHRVkfqgDfYQWfcWNorjKd1GZ2xKUNihTO7Lan2NyCNkI6AezO+Hn2/2noZRT1EjmZ/6
-	5SLsVAfklpz0UfhtSVK3/UP2enoSUXK3oXhuMuwddziy/fjUsnPSdwWMyXi0hN1k=
-X-Gm-Gg: ASbGncs+mszJgv24JUOT7aPD28iZsyvh4oQGAhBhrY3dgZdGcWVNhNeLFcLKMJkmSjD
-	K7qrsyWyE7fKIIetqcBzhgmk6wcvlj6Q0uR1f2ao/OEJn6xYMJ4FDft+qTiOrkl76fmreZdoH+n
-	Ly4lVidI+fuILx7S7gO+V1ybfH2zL2Q4DikJQkacjswSrGyNoviI+ojshKDztjds72t12mhJnRW
-	Dr6f0LOaxKxC1nidzfofrP8IoSa76n7Gtz3+sLHRZQPZO8xqCCrOUehfUyYMJwUT9mLscXb7yfc
-	hmKHd9CvOOBZ8eRZ2U1SO6KfimotFTUwKQ0U9bwNXe45Q8zpjiDXy7IuMR228qWk7FKHCbNkZoU
-	ig18=
-X-Received: by 2002:a05:620a:170f:b0:7e6:98be:ee33 with SMTP id af79cd13be357-7e698beef16mr1090099285a.14.1754287320742;
-        Sun, 03 Aug 2025 23:02:00 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHCpcZa4mW7/9f/KvcAzgEBAsyfJP76Jklr8rh6ncLExIaCZlOHzu5wcDmMOLVFqz7NKYlH2A==
-X-Received: by 2002:a05:620a:170f:b0:7e6:98be:ee33 with SMTP id af79cd13be357-7e698beef16mr1090094585a.14.1754287320202;
-        Sun, 03 Aug 2025 23:02:00 -0700 (PDT)
-Received: from [192.168.0.6] (ltea-047-064-114-086.pools.arcor-ip.net. [47.64.114.86])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7e67f5943f5sm507610085a.3.2025.08.03.23.01.57
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 03 Aug 2025 23:01:59 -0700 (PDT)
-Message-ID: <810a8ec4-e416-42b6-97bf-8a56f41deea1@redhat.com>
-Date: Mon, 4 Aug 2025 08:01:56 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WB5Ojvzz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F8CC4CEE7;
+	Mon,  4 Aug 2025 06:08:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1754287734;
+	bh=ipRZKPKGvZYye+NbUN1kZp7BEdItabd5U7NljxzHgfU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WB5OjvzzZ9vAddGUmIgd58d+GXAOhK71sgg1sPjKZ2V4EdqoOJbqAVclrdZTG/XGi
+	 Rv4OLHjfwhr7v2ooiI/Y5m0mdTZlLU2yegwzf+bUDcd7s6iwcEdBh06+6nVz8/Wa/O
+	 +nBnfaXt4XJKLaoT1RHqMmETX8rjF2Kmy/dnJIcDEMFfT32WMoSpIh/T72/QhtzayO
+	 wodMKqYXABzuIYri2XMu2dcy12w6CtEODa+LxF9rvgQZnWzVvzu9RJJN6NHZ3iDIfB
+	 stPKSSjzPiUTU8EaLaIBQafQgp2iiOYNb0jxbpJZIqI9VBJDNEZXHdhqUN4pmoXW8a
+	 x2CW/8wn0ESAQ==
+Date: Sun, 3 Aug 2025 23:07:58 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: Simon Richter <Simon.Richter@hogyros.de>
+Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Ard Biesheuvel <ardb@kernel.org>,
+	"Jason A . Donenfeld" <Jason@zx2c4.com>, linux-mips@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH 4/7] crypto: sparc/md5 - Remove SPARC64 optimized MD5 code
+Message-ID: <20250804060758.GA108924@sol>
+References: <20250803204433.75703-1-ebiggers@kernel.org>
+ <20250803204433.75703-5-ebiggers@kernel.org>
+ <3de7cc4d-cb88-4107-9265-066cbedd4561@hogyros.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 34/41] sparc: Replace __ASSEMBLY__ with __ASSEMBLER__ in
- non-uapi headers
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
-References: <20250314071013.1575167-1-thuth@redhat.com>
- <20250314071013.1575167-35-thuth@redhat.com>
- <5d9ab8b51a3281f249f514598c949d2c9ca6d194.camel@physik.fu-berlin.de>
-From: Thomas Huth <thuth@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=thuth@redhat.com; keydata=
- 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
-In-Reply-To: <5d9ab8b51a3281f249f514598c949d2c9ca6d194.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3de7cc4d-cb88-4107-9265-066cbedd4561@hogyros.de>
 
-On 03/08/2025 15.33, John Paul Adrian Glaubitz wrote:
-> Hi Thomas,
+On Mon, Aug 04, 2025 at 01:44:21PM +0900, Simon Richter wrote:
+> Hi,
 > 
-> On Fri, 2025-03-14 at 08:10 +0100, Thomas Huth wrote:
->> While the GCC and Clang compilers already define __ASSEMBLER__
->> automatically when compiling assembly code, __ASSEMBLY__ is a
->> macro that only gets defined by the Makefiles in the kernel.
->> This can be very confusing when switching between userspace
->> and kernelspace coding, or when dealing with uapi headers that
->> rather should use __ASSEMBLER__ instead. So let's standardize on
->> the __ASSEMBLER__ macro that is provided by the compilers now.
->>
->> This is a completely mechanical patch (done with a simple "sed -i"
->> statement).
-...
-> This causes the kernel build to fail:
+> On 8/4/25 05:44, Eric Biggers wrote:
 > 
->    CC [M]  drivers/gpu/drm/nouveau/nv04_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv10_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv17_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv50_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv84_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nvc0_fence.o
->    LD [M]  drivers/gpu/drm/nouveau/nouveau.o
->    AR      drivers/gpu/built-in.a
->    AR      drivers/built-in.a
-> make: *** [Makefile:2026: .] Error 2
-> glaubitz@node54:/data/home/glaubitz/linux> make
->    CALL    scripts/checksyscalls.sh
-> <stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
->    AS      arch/sparc/kernel/head_64.o
-> ./arch/sparc/include/uapi/asm/ptrace.h: Assembler messages:
-> ./arch/sparc/include/uapi/asm/ptrace.h:22: Error: Unknown opcode: `struct'
-> ./arch/sparc/include/uapi/asm/ptrace.h:23: Error: Unknown opcode: `unsigned'
-[...]
+> > Taken together, it's clear that it's time to retire these additional MD5
+> > implementations, and focus maintenance on the MD5 generic C code.
+> 
+> [...]
+> 
+> > -	ldd	[%o1 + 0x00], %f8
+> > -	ldd	[%o1 + 0x08], %f10
+> > -	ldd	[%o1 + 0x10], %f12
+> > -	ldd	[%o1 + 0x18], %f14
+> > -	ldd	[%o1 + 0x20], %f16
+> > -	ldd	[%o1 + 0x28], %f18
+> > -	ldd	[%o1 + 0x30], %f20
+> > -	ldd	[%o1 + 0x38], %f22
+> > -
+> > -	MD5
+> 
+> This is a literal CPU instruction that ingests sixteen registers (f8 to f23)
+> and updates the hash state in f0 to f3.
 
-D'oh! I guess it's because sparc is using "asflags-y := -ansi" in it's 
-Makefiles ? -ansi seems to change the behavior of the compiler so that 
-__ASSEMBLER__ does not get defined anymore :-(
+Note that QEMU doesn't support this instruction.  I don't actually know
+whether the SPARC64 MD5 code even works, especially after (presumably
+untested) refactoring like commit cc1f5bbe428c91.  I don't think anyone
+does, TBH.  No one seems to be running the crypto tests on SPARC64.
 
-Do you know why sparc uses "-ansi" for the assembler files? I just tried to 
-install the latest sparc64-linux-gnu-gcc on Fedora 42, and when I try to 
-compile the kernel with that one, I even get earlier errors related to that 
-flag:
+> I can see the point of removing hand-optimized assembler code when a
+> compiler can generate something that runs just as well from generic code,
+> but this here is using CPU extensions that were made for this specific
+> purpose.
 
-   AS      arch/sparc/kernel/head_64.o
-In file included from ./include/linux/atomic.h:80,
-                  from ./include/asm-generic/bitops/lock.h:5,
-                  from ./arch/sparc/include/asm/bitops_64.h:52,
-                  from ./arch/sparc/include/asm/bitops.h:5,
-                  from ./include/linux/bitops.h:67,
-                  from ./include/linux/log2.h:12,
-                  from ./include/asm-generic/getorder.h:8,
-                  from ./arch/sparc/include/asm/page_64.h:158,
-                  from ./arch/sparc/include/asm/page.h:6,
-                  from ./arch/sparc/include/asm/pgtable_64.h:23,
-                  from ./arch/sparc/include/asm/pgtable.h:5,
-                  from ./include/linux/pgtable.h:6,
-                  from arch/sparc/kernel/head_64.S:16:
-./include/linux/atomic/atomic-arch-fallback.h:1:1: error: C++ style comments 
-are not allowed in ISO C90
-     1 | // SPDX-License-Identifier: GPL-2.0
-       | ^
-./include/linux/atomic/atomic-arch-fallback.h:1:1: note: (this will be 
-reported only once per input file)
-In file included from ./include/linux/atomic.h:81:
-./include/linux/atomic/atomic-long.h:1:1: error: C++ style comments are not 
-allowed in ISO C90
-     1 | // SPDX-License-Identifier: GPL-2.0
-       | ^
-./include/linux/atomic/atomic-long.h:1:1: note: (this will be reported only 
-once per input file)
-In file included from ./include/linux/atomic.h:82:
-./include/linux/atomic/atomic-instrumented.h:1:1: error: C++ style comments 
-are not allowed in ISO C90
-     1 | // SPDX-License-Identifier: GPL-2.0
-       | ^
+You do realize this is MD5, right?  And also SPARC64?
 
-etc.
+I'm confused why people are so attached to still having MD5 assembly
+code in 2025, and *only for rare platforms*.  It's illogical.
 
-So using -ansi in the kernel sources nowadays sounds wrong to me ... could 
-it be removed?
+We should just treat MD5 like the other legacy algorithms MD4 and RC4,
+for which the kernel just has generic C code.  That works perfectly fine
+for the few users that still need those algorithms for compatibility
+reasons.
 
-  Thomas
+> This is exactly the kind of thing you would point to as an argument why
+> asynchronous hardware offload support is unnecessary.
 
+For an algorithm that is actually worthwhile to accelerate, sure.  For
+MD5, it's not worthwhile anyway.
+
+- Eric
