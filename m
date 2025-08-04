@@ -1,149 +1,206 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1BBAD5A;
-	Mon,  4 Aug 2025 09:38:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA4681D5CF2;
+	Mon,  4 Aug 2025 10:54:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754300323; cv=none; b=igOl0RGK6p6BKCYGPrEvbaGeRpIevVnUDaKf5VohY86E31VuIxzRF1Y1CAyVB4hBhONiy3gYGxGObizzhne6nW/M+SVr3fo06neuBJuyr/vo/P9sBMH1V45CAkVVjdLwaflm7n/s+I5gMGFcMV61oTGMvNv3t3LFuoqD2evc2k4=
+	t=1754304871; cv=none; b=b5VphjqpHvKTXGlnKOp68hfAGc+NPVccUyln8omoPCg3CzYpj8kAtrCASjhxsG+nIlLFYr+crIjZiTgzb4iZGWSWitu2RHlsba3CQUEcJ+RrFJKUlHe3+PZIdnRcV6+TUQPNhtlBd2FcKmF5Qfw6Pg6we2198TP7BbilWgeyp5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754300323; c=relaxed/simple;
-	bh=Tf4hqiJ5K7TfYX23vl6kVK/ysmb6Mp+P1nBXj8EHwM4=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Gs2YA+kphDWmSI/eInN8R9mGIZWw7auTEZUZUxlumpAIMqG88GTwoYeRa4GqH3gBlpBmMHgq1IAKIqiR7eJ9Wiw+0tcZvT77lQcJcv8t/PVokA8hDrACoxBVo/X9Jt8yGxU1ZCx25IWEZcLXWP5s8uFJMxEf/MzbquEYEyPkWpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=ZjM+meP4; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1754304871; c=relaxed/simple;
+	bh=LLYmh07tODzNKrSqXaL0z3ysxtPy/JmLxTic6NiwVjE=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ov2B4Z+1XE7OwKefx/80lvOVxzdoz0RgshwJgXxU4+HcVH4yh+C9ZFPjK9ar1tJloWMBdZIsbuMEAqg+30p0cI8d8KsEN1ejUQztOX+wxsmXhDyoBbNI7qI79QdZGwA+FwK7Radx7o/FK/VQQHy2AYpDR2UXsuztWAmGuyh7iwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Uh2Gn0q0; arc=none smtp.client-ip=209.85.208.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="ZjM+meP4"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=3YTCl/zW/Wo/tkqi5mo+Efw9tJOY+FJ3ba2nykfa53A=; t=1754300319; x=1754905119; 
-	b=ZjM+meP4MAtcpcZG9Lu529MJvQ7EnfpzDLskccToFvuM97mihIGa9pn5KdU6jzqbamYYSkQiW2J
-	M/bEG2MGL4j6VPM2wbRHl6CKIcUJ8GMImdbHdyaf1c3CBRQyntyY9GfZLUgjFpTals/dgrKS09Jap
-	eSCsxySU/zYk2jTOzV/N3kwM3wYQzJGHpqRvqTcM8AC8nkpGCbfgkOc1Gisghjj/WvjRGNRebXZXP
-	aWuatajzciTCNHBvFzpPWWxmPeBuaE5N+nCWSDWMKgYbGxIHREE83rYTVlV0CF7ALMbEoAolYBQZ0
-	FajOWTdHtVPPZ5SJra2JyKdU+BByEq9VQ4eQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1uireN-00000002kpa-1lOP; Mon, 04 Aug 2025 11:38:35 +0200
-Received: from p57bd96d0.dip0.t-ipconnect.de ([87.189.150.208] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1uireN-00000000oqi-0mSZ; Mon, 04 Aug 2025 11:38:35 +0200
-Message-ID: <ab2138b468994050a817426f8ce4fd784108c210.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v4 25/36] sparc64: Implement the new page table range API
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Anthony Yznaga <anthony.yznaga@oracle.com>, "Matthew Wilcox (Oracle)"
-	 <willy@infradead.org>, linux-arch@vger.kernel.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, "David S. Miller"	
- <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson	
- <andreas@gaisler.com>, Rod Schnell <rods@mw-radio.com>, Sam James
- <sam@gentoo.org>
-Date: Mon, 04 Aug 2025 11:38:34 +0200
-In-Reply-To: <d424e109e6f1a00b8cf22ec1b40d6dedff38ce52.camel@physik.fu-berlin.de>
-References: <20230315051444.3229621-1-willy@infradead.org>
-				 <20230315051444.3229621-26-willy@infradead.org>
-				 <ce6337237169f179c75fe4a1ba1ce98843577360.camel@physik.fu-berlin.de>
-				 <83931f05-a613-4972-be76-80bc695915e4@oracle.com>
-			 <75cbab0cdab084795422335c0e0d69c6f57b468c.camel@physik.fu-berlin.de>
-		 <76c45021481cfe1aaa9fe2cfcd2287ac6c8d4504.camel@physik.fu-berlin.de>
-	 <d424e109e6f1a00b8cf22ec1b40d6dedff38ce52.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Uh2Gn0q0"
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-33211f7f06eso35695241fa.2;
+        Mon, 04 Aug 2025 03:54:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1754304868; x=1754909668; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=X4RxvHMamXD48DKrjLVxOGxx8Xo0bomZZqlvqy6+mMo=;
+        b=Uh2Gn0q05+FYkWk0VZulC4Q/x7+Yq8YKAgFG8Zgy0lXIKYjRxrUY01lGBijYFcWzI9
+         czAGM84crafWTALrr2y7nFIqOB8c/KLZRLDMPxzE9Ip8JouprTpkzDfmvytNaKwhNlSy
+         8rmfj5d279xMnRcDO/8XvjeC72IWIRxrE3JqhezxFdnPlBcu4zDWuwQ9xtFKMVnlHzdw
+         CtdPeXs63CMRXYKQfIeAjPhZswnmsSzE7czti+pHuGuvVkbxKHH2oL08cYUy4yPjfP/+
+         DFoXeUr7wWjwGgNAsY0zInJFA0o+0yXia5SKyKub2ckNpNc+L/aSH6fDntuTS+AOZ9zc
+         xt8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754304868; x=1754909668;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=X4RxvHMamXD48DKrjLVxOGxx8Xo0bomZZqlvqy6+mMo=;
+        b=L2k0w2eopkCw+wo7lSvRcthu+P6ngN0GBh3oE8S99h7ARNfuNwcJ3sqaTSyvTBj8Ob
+         RTSXMzCFRRW2CIgn4FDiu3z2jxl8WNnd0fQc0LFxy5UoxCq7EvsihPil25VUu0CRtASJ
+         62jUrqE+AJYaIkd6EQ+QqwhBHUI+mYL59VhAMFuiBFvPp+k6fxDA5i7RHGObo59NHIUs
+         SC0liQsrwFN2jfN8OlF9NAehnRMRtktr0GMMkok+yymTk5Xh8WlKlMf+PnrLYfQRFy9s
+         Au/+ijwa3sXmZQtHcB9r0K94mTtQlI9y0fXRkO0DrRVQR+ijX+dMq4/fDNqPg6q42BUW
+         xLDw==
+X-Forwarded-Encrypted: i=1; AJvYcCUNfsY32aenR5TTYjLopQxJcJW0YI1xBB15q1f/KgaN0jxS+wet7xInMsnHq3fJNe2g0zRHDb9pHNzyXGHDLg==@vger.kernel.org, AJvYcCV/LudbpFr3ZPYbKPc3NK9XAPQg0rMwtpxN0Xty5Ekj2F1hmmn76FzkZq7PEUxB1C97ixU=@vger.kernel.org, AJvYcCVnN3c06z5ESZ1w1IyzYUF3altTy9tMBWdDjhgwvwHEYFYEeSxVI3DxnZVmWdG4ScY6m3ok3flBauiIrBMf@vger.kernel.org, AJvYcCWpsnTL3WvYW42tMrSExp3+NyfUBc6M0ldR1s7ZPBt74xruaoSI55CEUpkcyk5YF61O5Cw73UnMfoPOOw==@vger.kernel.org, AJvYcCXGCNjxKLGpTSlJtKBHuDRqI6JhZ66Ka9+FjLr4fpklNr9f+Www1vShUoVavwQWGB+SgtwBuUc2/JzksrmzBfsvV/4n@vger.kernel.org, AJvYcCXin6r0nuOsGKAL5x+yojTjbWF1YZjXeAY0ylQCgisn9tOqxyGbdNobIuDq93XJM8/l7uN90yKk/yYs@vger.kernel.org
+X-Gm-Message-State: AOJu0YxR2En5uTOoAn20N13788kkpolieOSeTRTfBgVEGUewKM2qeSwM
+	8uxeiVJ4+KMxNhIvlvpil10gu80jPi1Hvwm9tx55Pu/2bk0w0iptlU0A
+X-Gm-Gg: ASbGnctajp32N59rDl1u87AMGHhdS7VjKpeOfg6gYAkEHPsB6sAmXkESHOoaYNuibS0
+	lozIQfUJel+4HJA3JC/ruIT2LLwF1EyvefBW1TVVPGNC4dv9v2MdeagVhSCbZ2kxi6TF3WwbFMe
+	YBMTdGTBMGK3SzgfzwA4W4fiYQDRi3c/Uk4cCya9Ep4Z2vK8IlMVHbysYVH6qHwLrCG16t3N63M
+	EwlT8h0QoxNEsFfn9/RmFWrzjANfWwyV7uaeJysIG2VHjmf5g7oCIywY8Ao3GKWP19r4dVBV+8t
+	9iMLuARGEXs+h2EgkrgUrFhzVMAfweC5fXHNn8H79DEjQs/QtRm7IDFgpzFzRzML5qm6O6/H4Uo
+	2CEb5YbUZSHOAjx8FhaGn/4bhEc365o3b3Ouz9X58xwgVk7bDUW84ha/tfCy4
+X-Google-Smtp-Source: AGHT+IGJZZFcFy8qBb/9BVJvSpxogtzfM17wxVB5B1bfSxKSrolhCiqzChAu468YcmIMkpSbHFvpbA==
+X-Received: by 2002:a05:651c:20ce:20b0:332:4a77:ad9f with SMTP id 38308e7fff4ca-3325677af91mr12521651fa.24.1754304867614;
+        Mon, 04 Aug 2025 03:54:27 -0700 (PDT)
+Received: from pc636 (host-95-203-22-207.mobileonline.telia.com. [95.203.22.207])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-33238271bdfsm16396311fa.6.2025.08.04.03.54.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 Aug 2025 03:54:26 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Mon, 4 Aug 2025 12:54:21 +0200
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Harry Yoo <harry.yoo@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+	David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <aJCRXVP-ZFEPtl1Y@pc636>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <aIgSpAnU8EaIcqd9@hyeyoo>
+ <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
+ <aIkVRTouPqhcxOes@pc636>
+ <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
 
-Hi,
+Hello, Lorenzo!
 
+> So sorry Ulad, I meant to get back to you on this sooner!
+> 
+> On Tue, Jul 29, 2025 at 08:39:01PM +0200, Uladzislau Rezki wrote:
+> > On Tue, Jul 29, 2025 at 06:25:39AM +0100, Lorenzo Stoakes wrote:
+> > > Andrew - FYI there's nothing to worry about here, the type remains
+> > > precisely the same, and I'll send a patch to fix this trivial issue so when
+> > > later this type changes vmalloc will be uaffected.
+> > >
+> > > On Tue, Jul 29, 2025 at 09:15:51AM +0900, Harry Yoo wrote:
+> > > > [Adding Uladzislau to Cc]
+> > >
+> > > Ulad - could we PLEASE get rid of 'vm_flags' in vmalloc? It's the precise
+> > > same name and (currently) type as vma->vm_flags and is already the source
+> > > of confusion.
+> > >
+> > You mean all "vm_flags" variable names? "vm_struct" has flags as a
+> > member. So you want:
+> >
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/vmalloc.c
+> > 3853: * @vm_flags:                additional vm area flags (e.g. %VM_NO_GUARD)
+> > 3875:                   pgprot_t prot, unsigned long vm_flags, int node,
+> > 3894:   if (vmap_allow_huge && (vm_flags & VM_ALLOW_HUGE_VMAP)) {
+> > 3912:                             VM_UNINITIALIZED | vm_flags, start, end, node,
+> > 3977:   if (!(vm_flags & VM_DEFER_KMEMLEAK))
+> > 4621:   vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags ./include/linux/vmalloc.h
+> > 172:                    pgprot_t prot, unsigned long vm_flags, int node,
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$
+> >
+> > to rename all those "vm_flags" to something, for example, like "flags"?
+> 
+> Yeah, sorry I know it's a churny pain, but I think it's such a silly source
+> of confusion _in general_, not only this series where I made a mistake (of
+> course entirely my fault but certainly more understandable given the
+> naming), but in the past I've certainly sat there thinking 'hmmm wait' :)
+> 
+> Really I think we should rename 'vm_struct' too, but if that causes _too
+> much_ churn fair enough.
+> 
+> I think even though it's long-winded, 'vmalloc_flags' would be good, both
+> in fields and local params as it makes things very very clear.
+>
+> 
+> Equally 'vm_struct' -> 'vmalloc_struct' would be a good change.
+> 
+Uh.. This could be a pain :) I will have a look and see what we can do.
 
-On Mon, 2025-08-04 at 08:58 +0200, John Paul Adrian Glaubitz wrote:
-> OK, so v6.8 is fine while v6.9 crashes:
->=20
-> [   39.788224] Unable to handle kernel NULL pointer dereference
-> [   39.862657] tsk->{mm,active_mm}->context =3D 000000000000004b
-> [   39.935941] tsk->{mm,active_mm}->pgd =3D fff000000aa98000
-> [   40.004566]               \|/ ____ \|/
-> [   40.004566]               "@'/ .. \`@"
-> [   40.004566]               /_| \__/ |_\
-> [   40.004566]                  \__U_/
-> [   40.197871] (udev-worker)(88): Oops [#1]
-> [   40.249329] CPU: 0 PID: 88 Comm: (udev-worker) Tainted: P           O =
-      6.9.0+ #28
-> [   40.353415] TSTATE: 0000004411001605 TPC: 0000000000df092c TNPC: 00000=
-00000df0930 Y: 00000000    Tainted: P           O     =20
-> [   40.502105] TPC: <strlen+0x60/0xd4>
-> [   40.547844] g0: fff000000a3171a1 g1: 0000000000000000 g2: 000000000000=
-0000 g3: 0000000000000001
-> [   40.662224] g4: fff000000aa4dac0 g5: 0000000010000233 g6: fff000000a31=
-4000 g7: 0000000000000000
-> [   40.776599] o0: 0000000000000010 o1: 0000000000000010 o2: 000000000101=
-0101 o3: 0000000080808080
-> [   40.890974] o4: 0000000001010000 o5: 0000000000000000 sp: fff000000a31=
-7201 ret_pc: 00000000004d4b08
-> [   41.009924] RPC: <module_patient_check_exists.constprop.0+0x48/0x1e0>
-> [   41.094557] l0: fff0000100032f40 l1: 0000000000000000 l2: 000000000000=
-0000 l3: 0000000000000000
-> [   41.208936] l4: 0000000000000000 l5: 0000000000000000 l6: 000000000000=
-0000 l7: 0000000000000000
-> [   41.323311] i0: 00000001000256d8 i1: 0000000001143000 i2: 000000000114=
-3300 i3: 000000000000000b
-> [   41.437686] i4: 0000000000000010 i5: fffffffffffffff8 i6: fff000000a31=
-72e1 i7: 00000000004d63f0
-> [   41.552062] I7: <load_module+0x550/0x1f00>
-> [   41.605811] Call Trace:
-> [   41.637838] [<00000000004d63f0>] load_module+0x550/0x1f00
-> [   41.708752] [<00000000004d7fac>] init_module_from_file+0x6c/0xa0
-> [   41.787670] [<00000000004d81c8>] sys_finit_module+0x188/0x280
-> [   41.863158] [<0000000000406174>] linux_sparc_syscall+0x34/0x44
-> [   41.939790] Caller[00000000004d63f0]: load_module+0x550/0x1f00
-> [   42.016423] Caller[00000000004d7fac]: init_module_from_file+0x6c/0xa0
-> [   42.101059] Caller[00000000004d81c8]: sys_finit_module+0x188/0x280
-> [   42.182266] Caller[0000000000406174]: linux_sparc_syscall+0x34/0x44
-> [   42.264614] Caller[fff000010480e2fc]: 0xfff000010480e2fc
-> [   42.334384] Instruction DUMP:
-> [   42.334387]  96132080=20
-> [   42.373269]  19004040=20
-> [   42.404151]  94132101=20
-> [   42.435030] <da020000>
-> [   42.465914]  9823400a=20
-> [   42.496793]  808b000b=20
-> [   42.527674]  024ffffd=20
-> [   42.558556]  90022004=20
-> [   42.589437]  8f336018=20
-> [   42.620318]
->=20
-> So, the regression was introduced with v6.9. Will bisect this later this =
-week.
+Thanks!
 
-Looking closer it seems that the original issue seems to be filesystem corr=
-uption and the
-consecutive crashes with older kernels might be a result of some corrupted =
-binaries.
-
-Will first try to figure out what commit exactly introduced the ext4 issues=
- on sun4u.
-
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+--
+Uladzislau Rezki
