@@ -1,174 +1,250 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93C2326B755
-	for <sparclinux@vger.kernel.org>; Tue,  5 Aug 2025 09:50:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A01F61C8603;
+	Tue,  5 Aug 2025 16:14:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754387408; cv=none; b=b4S7v4n6TqcgL/LqDUaQAa4ZLROf0M6K4iTG9DsJEq+uMrur8OtQJ08vIpgMZ3bpt1IiCxHhzG022h2PACzRiDlkfhmJrqzUx2sqFWk9VyK6Fvu/5bOWFljCOkP17OykXB4Qe/Epf65gIrbt/IzjhJ7XFOOvSDESD8l3Q7RttCI=
+	t=1754410445; cv=none; b=sG45V+GdoMCFbtHP7VEmUL6bBUdZbUd8hiDEKg74MKdZBpnjaKs4yu4uwGYiR6Oki7jRfXlLmomHtb53k3HabVuLHE1n1g+c/f9M0z2AziGhIYzH45Q1x7ze7HXsQ/AQg/4CbepgcYz9E6DuE71W0sZqtyuzHlZTzFq8/phv8Dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754387408; c=relaxed/simple;
-	bh=nCfaEyH7MqXv+EacNelojLk+r3n+1Ey4CWEaurdGut4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=VqrIDpMSlyJOeilMvJqnNpjPOgsNlnteG8LCjJ+GsoVxK/4CqMjjNwrQJ4SidrsY5vjhvpLmfw3vbqCPcFGemxkN1K75oOoCscAxvurpkNBEJuLULLK2KXLdtjAK7E5iCUaLWX/spL0vqukWjFyRH/hmJ38I5nvVB8mUnsuqioE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Rd6eV/wD; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1754410445; c=relaxed/simple;
+	bh=BglbfbCfxjDdNAl+FJxNAK3U0aRdh/ewx/iXRTko+dM=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bCmNbeoNjxCiJOkQpA5AgctmWxrwYxOk64myWn6QfJKVFwLD9eZPsterRDrBgUAlXvak5oXqwn8pjfSS4/PZlT0jFZsr7WcS4ipaxi4Gn6RXxmjPGjbdu8tB+CBF96xZJ8joZ+Q+aRtuJWOa+31mDqWadGk6qdXVOy0PucI5B+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zu+U3pL5; arc=none smtp.client-ip=209.85.208.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Rd6eV/wD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1754387405;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=R3Nw7N9ZXr94BBw5pnV0yLMbnOotSy69DH7y+0p/p9Y=;
-	b=Rd6eV/wDyiSnN19k3ygT6QmMoqkIgYBhTtaY9XY3o+//2eSIkzBpEFe2G9xVNjsFDeQbI+
-	zuNCf6wPK71AyjESHSyHVz7FYdNCglb7w+a3+STBfNbWpqUN+1Rh7Ad+H29d0uRiKyaWJf
-	cXJBCBwPbMNm33zB+eLYY4lF7rUMtG4=
-Received: from mail-qv1-f72.google.com (mail-qv1-f72.google.com
- [209.85.219.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-257-NLqoxFihO4afUbzYAqftlw-1; Tue, 05 Aug 2025 05:50:04 -0400
-X-MC-Unique: NLqoxFihO4afUbzYAqftlw-1
-X-Mimecast-MFC-AGG-ID: NLqoxFihO4afUbzYAqftlw_1754387404
-Received: by mail-qv1-f72.google.com with SMTP id 6a1803df08f44-7074bad0561so125353806d6.1
-        for <sparclinux@vger.kernel.org>; Tue, 05 Aug 2025 02:50:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zu+U3pL5"
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-332631e47afso714441fa.0;
+        Tue, 05 Aug 2025 09:14:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1754410442; x=1755015242; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ut5lsjSSswYnbLzk6rrdmu5+CeAKFhijQRi1rB1wfMg=;
+        b=Zu+U3pL5o4ZPJwIdkXISpU2dyfPB0+TNZSjkYcKaYSD+SRRfTxkyiY1CToGY5wFqXg
+         d8melksPoN+JtITTK/3buDk8xEYbfYAarJDpRVujvYiOcWyWF7oQh2Bih2TJHc50/B2G
+         9ZSAO+oT9l+ky/3GyCE1N/l6yabchtlYwVZ+jVHSjdVj6iebKyEv27RnIb7aN9pPx0JD
+         m4TSkoDO2Yc6tLTV92FnvVCzzvf4ITl6fFll+GlPKPIj/SaRddi5H5EkcddCdZcWoTAi
+         RwT2OhbFiB8+sd9j9pLdRESRxpfojA4PvSkmWNZIRK9A5+KcBdYgxbVvRXdnnlCEuZB6
+         7ptw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754387404; x=1754992204;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=R3Nw7N9ZXr94BBw5pnV0yLMbnOotSy69DH7y+0p/p9Y=;
-        b=mb+t7WGRvOaRSOX+30XvbdyXv6KAAVrCCd0XP75U1uP3WtEdUKq3Kpjwnr3ZwPGZSo
-         L6xpqFDHRby/MgzTg4DhJ1Qm5SxHes+XConkqllXN7qCnf0bGUadY1OuIIrTN0a6MI5w
-         E7oH1FrRQnQ3XPK2CjiH3ODJIbntIXkFDRm82gmvcHJXHPWGS+xA3sIXrNkBMOMGz3Dc
-         GKUkwmqDgCU/zrR/7OsbRY2wnewOCTBiD9rtT6nyu1uSkTt5G3E3Y3uW5klNzvqweViZ
-         beJexwDULY8KTXv4Z+9Kp2ZsoPNdlON7xV199QRWu4MY2n5XIAdBW9Y84Fy4wFs6dTsp
-         puFw==
-X-Forwarded-Encrypted: i=1; AJvYcCWV5tM6+jnsmeu35r06Xc5ARvIy57Z3ckb/W3me0Rl+INySw3R19YRC12SepZ/IxRg5O8lGvGGIBkBQ@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzi5TP7w9aeq73h++NaHmYrbSG6bnyXWJGgmpXCbdnksfq1Evzs
-	FkAIfZIX9fHr23owpHD8z8k5JsVM1BYwKBj9/gJUc3baku2TCrYydE/H3YGPtPmABUnBJE8Y30R
-	oyrdHRNPT4gK01wrydr1px3GiWbTA1BEKivrvCFJ2WQrz2Z3BD19oATedhukmxO4=
-X-Gm-Gg: ASbGncueMbjdocROb61qlyaKoVQ4874p6HQRrj++utslW2XwMLLuIZOHZCR2EUauSfh
-	e+vy3haMQyEHKCtBWJxYSEBuGmsyCvjSmFYwdBee5yFyd/6scaQg+XLaQBEcPOBTAX/wO5svMX7
-	YOQXx1GPmorx1yfrNshKT2CzSegWRcL89ZFG9pJaQTxIu/s3GGVRE95EmCoEoTqhw0CGUcjb8lj
-	XyZ7f6raf77aPr2ixyKP4cbeBpB7yF32uFY0pAUiQuaVoioIQPNOwgaVfT/q1/5F5SDiyX8oSAg
-	aNIKfbxtp9pGiQ5ale6ug3MPKpZeSVjXOgnk0zc3J5INJpcwqoi1ByE8nxLzJhfK
-X-Received: by 2002:ad4:5d47:0:b0:707:5c4f:f0c9 with SMTP id 6a1803df08f44-709365356c5mr196605606d6.16.1754387403709;
-        Tue, 05 Aug 2025 02:50:03 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHyx5UikJMmenj3I+DsKP/39+YkgKQdeXVza/ikYs70+jG1oaF8F4CiNJdzGsonQmcA7J7Qkg==
-X-Received: by 2002:ad4:5d47:0:b0:707:5c4f:f0c9 with SMTP id 6a1803df08f44-709365356c5mr196605396d6.16.1754387403253;
-        Tue, 05 Aug 2025 02:50:03 -0700 (PDT)
-Received: from [10.33.192.176] (nat-pool-str-t.redhat.com. [149.14.88.106])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-7077cea1782sm67866596d6.93.2025.08.05.02.50.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 05 Aug 2025 02:50:02 -0700 (PDT)
-Message-ID: <bfb22382-c513-4135-9e24-dbf7595dbd72@redhat.com>
-Date: Tue, 5 Aug 2025 11:50:00 +0200
+        d=1e100.net; s=20230601; t=1754410442; x=1755015242;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ut5lsjSSswYnbLzk6rrdmu5+CeAKFhijQRi1rB1wfMg=;
+        b=wx79USt3Ijrv7F9dJ5zPWyZw9psisLB0mYeorSbrDyQjqfUBf8xXKgZWmCy9+bpmEI
+         NsOQSPKcZhmj5okJHTHaeXJrCjt0+0kEDXMSSCqFF4ypECrAjg9Mqa+uoy6XQW8jMA6Z
+         HhOYGAXrHy+bCSq0JJESfwr/muam04OZYoZLFL4Mw3/dUD+hzWy5Mz70SPM/lGsPlqGR
+         FW9wV55/f5JWjawM1SacamRoVoYwv7sX5bhAWUq4WGl1su2Q/HM2Ix5r+roprpqF1sPH
+         XBRQgUBk5WMsQ6kaxNXK1ylwKYXYSl5+uX46312Actj1UgIG67sg/BcVmq97aabj5nnW
+         Y96Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUBXXl7Ln8ePOt/LelC/47AUjsVXvr3aPHOVL7QwGqVc5pFYT1j1Z2e1MNh3RiYjrnwUBQzS243SljyeA==@vger.kernel.org, AJvYcCUYCQuoHFFsYcLtOpmBwSDPF0KAghyxY5nF8FAvFG4Q+VvV2lijReZePpr67eT/bw/AFL/CTrEMmFo/KilbGE0D5wSK@vger.kernel.org, AJvYcCUa0UAeg0sZyqKo/pYjy0MGDl3e7b/NsFK1EKVj+A2xR4u5QXE9yYMF+ogf3tuqwRaXeCyw8igidhx7IYy3@vger.kernel.org, AJvYcCVRzqnQEWpS4yisO12QA03J8rA0KSLDSkQO9l6MXGLXU1kz2EuLKVXQjReyetwSbyw+eB1rw3Mmqi4WJIUyPg==@vger.kernel.org, AJvYcCVjEelcX7AjVqrAjOGe/iWWj+BaB4QwssPJxvQQRTSUxlrifa0jfXjaHVmeoKISzeZMxgcGPS4E2Om8@vger.kernel.org, AJvYcCWKdVjmu7PtpdRJn0EnQxgGH/0ush9kKfGE1O6tpN/2LAPHeGQ6MMxHWmCHE7vu6cioOgk=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxgVvFVN1d7cyE2qfbqHEjKPXhjt7TIYRSMIjSxMUH+zl6P/8El
+	PC34RCwbFvWQEtOmGfQZuUUdqoV9xsgEsXPydgi5zNJ0+eAJ45Zjc7N8
+X-Gm-Gg: ASbGncv2m1NdzzRQhE1BgT7wneFjtgaQUh42bE1MXtBKurH6VPUQM3n7S/FFB7eujIL
+	80Sejdzh4+vE5PRMl3xJVPUWnfk8vKDcXphHC3zUk0g4FtZIcnpYCB9Hzz5XfaiLWosaEnV0fIn
+	/s/gDY+7JkzAQXU6scowMADMhEJPRb+9ZGRGtnETnNmwW5nyQOoNCDCap9+RBTO1KT90DejATDa
+	RZBXMxPEA2BqPI+TTnAEY6w8WiF7ngq+154gH+UZncedd4YGQnFPS796Fl/g3sJX5rLsaOLlBBw
+	JB9VsbWJQaM9wjqYVQ0l62+8xq1jV0UK5JDGiJcmslAc5GtEReC9yiDUOGbJep4F20AZKrEDbyg
+	lrlIOfVOliLyfdhnOD8yMSnqzpAQU0YP0g+rLanYoASb9qPS1XQ==
+X-Google-Smtp-Source: AGHT+IH0xPAx9h/e+86wx2UChAIDs8RS46jNjVMEpxxiiDlgZAALsSVVnEbgPp+pN/RR7dfa5MNCmA==
+X-Received: by 2002:a05:651c:b0f:b0:332:341d:9531 with SMTP id 38308e7fff4ca-3327b9157d5mr10915411fa.12.1754410441379;
+        Tue, 05 Aug 2025 09:14:01 -0700 (PDT)
+Received: from pc636 (host-95-203-18-142.mobileonline.telia.com. [95.203.18.142])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-33238272ff7sm20616811fa.7.2025.08.05.09.13.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Aug 2025 09:14:00 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Tue, 5 Aug 2025 18:13:56 +0200
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Uladzislau Rezki <urezki@gmail.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Harry Yoo <harry.yoo@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+	David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <aJItxJNfn8B2JBbn@pc636>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <aIgSpAnU8EaIcqd9@hyeyoo>
+ <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
+ <aIkVRTouPqhcxOes@pc636>
+ <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
+ <aJCRXVP-ZFEPtl1Y@pc636>
+ <aJHQ9XCLtibFjt93@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 34/41] sparc: Replace __ASSEMBLY__ with __ASSEMBLER__ in
- non-uapi headers
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
-References: <20250314071013.1575167-1-thuth@redhat.com>
- <20250314071013.1575167-35-thuth@redhat.com>
- <5d9ab8b51a3281f249f514598c949d2c9ca6d194.camel@physik.fu-berlin.de>
-From: Thomas Huth <thuth@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=thuth@redhat.com; keydata=
- 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
-In-Reply-To: <5d9ab8b51a3281f249f514598c949d2c9ca6d194.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aJHQ9XCLtibFjt93@kernel.org>
 
-On 03/08/2025 15.33, John Paul Adrian Glaubitz wrote:
-> Hi Thomas,
+On Tue, Aug 05, 2025 at 12:37:57PM +0300, Mike Rapoport wrote:
+> On Mon, Aug 04, 2025 at 12:54:21PM +0200, Uladzislau Rezki wrote:
+> > Hello, Lorenzo!
+> > 
+> > > So sorry Ulad, I meant to get back to you on this sooner!
+> > > 
+> > > On Tue, Jul 29, 2025 at 08:39:01PM +0200, Uladzislau Rezki wrote:
+> > > > On Tue, Jul 29, 2025 at 06:25:39AM +0100, Lorenzo Stoakes wrote:
+> > > > > Andrew - FYI there's nothing to worry about here, the type remains
+> > > > > precisely the same, and I'll send a patch to fix this trivial issue so when
+> > > > > later this type changes vmalloc will be uaffected.
+> > > > >
+> > > > > On Tue, Jul 29, 2025 at 09:15:51AM +0900, Harry Yoo wrote:
+> > > > > > [Adding Uladzislau to Cc]
+> > > > >
+> > > > > Ulad - could we PLEASE get rid of 'vm_flags' in vmalloc? It's the precise
+> > > > > same name and (currently) type as vma->vm_flags and is already the source
+> > > > > of confusion.
+> > > > >
+> > > > You mean all "vm_flags" variable names? "vm_struct" has flags as a
+> > > > member. So you want:
+> > > >
+> > > > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > > > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > > > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > > > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > > > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > > > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > > > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > > > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > > > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > > > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > > > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > > > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/vmalloc.c
+> > > > 3853: * @vm_flags:                additional vm area flags (e.g. %VM_NO_GUARD)
+> > > > 3875:                   pgprot_t prot, unsigned long vm_flags, int node,
+> > > > 3894:   if (vmap_allow_huge && (vm_flags & VM_ALLOW_HUGE_VMAP)) {
+> > > > 3912:                             VM_UNINITIALIZED | vm_flags, start, end, node,
+> > > > 3977:   if (!(vm_flags & VM_DEFER_KMEMLEAK))
+> > > > 4621:   vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+> > > > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > > > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > > > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > > > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > > > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > > > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > > > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > > > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > > > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > > > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > > > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > > > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags ./include/linux/vmalloc.h
+> > > > 172:                    pgprot_t prot, unsigned long vm_flags, int node,
+> > > > urezki@pc638:~/data/backup/coding/linux-not-broken.git$
+> > > >
+> > > > to rename all those "vm_flags" to something, for example, like "flags"?
+> > > 
+> > > Yeah, sorry I know it's a churny pain, but I think it's such a silly source
+> > > of confusion _in general_, not only this series where I made a mistake (of
+> > > course entirely my fault but certainly more understandable given the
+> > > naming), but in the past I've certainly sat there thinking 'hmmm wait' :)
+> > > 
+> > > Really I think we should rename 'vm_struct' too, but if that causes _too
+> > > much_ churn fair enough.
 > 
-> On Fri, 2025-03-14 at 08:10 +0100, Thomas Huth wrote:
->> While the GCC and Clang compilers already define __ASSEMBLER__
->> automatically when compiling assembly code, __ASSEMBLY__ is a
->> macro that only gets defined by the Makefiles in the kernel.
->> This can be very confusing when switching between userspace
->> and kernelspace coding, or when dealing with uapi headers that
->> rather should use __ASSEMBLER__ instead. So let's standardize on
->> the __ASSEMBLER__ macro that is provided by the compilers now.
-...
-> This causes the kernel build to fail:
+> Well, it's not that terrible :)
 > 
->    CC [M]  drivers/gpu/drm/nouveau/nv04_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv10_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv17_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv50_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nv84_fence.o
->    CC [M]  drivers/gpu/drm/nouveau/nvc0_fence.o
->    LD [M]  drivers/gpu/drm/nouveau/nouveau.o
->    AR      drivers/gpu/built-in.a
->    AR      drivers/built-in.a
-> make: *** [Makefile:2026: .] Error 2
-> glaubitz@node54:/data/home/glaubitz/linux> make
->    CALL    scripts/checksyscalls.sh
-> <stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
->    AS      arch/sparc/kernel/head_64.o
-> ./arch/sparc/include/uapi/asm/ptrace.h: Assembler messages:
-> ./arch/sparc/include/uapi/asm/ptrace.h:22: Error: Unknown opcode: `struct'
+> ~/git/linux$ git grep -w vm_struct | wc -l
+> 173
+> 
+Indeed :)
 
-  Hi Adrian,
 
-could you please give it another try, after applying this patch first:
+> > > I think even though it's long-winded, 'vmalloc_flags' would be good, both
+> > > in fields and local params as it makes things very very clear.
+> > > 
+> > > Equally 'vm_struct' -> 'vmalloc_struct' would be a good change.
+> 
+> Do we really need the _struct suffix?
+> How about vmalloc_area?
+> 
+I think, we should not use vmalloc_ prefix here, because vmalloc
+operates within its own range: VMALLOC_START:VMALLOC_END, therefore
+it might be confusing also.
 
-  https://lore.kernel.org/lkml/20250805092540.48334-1-thuth@redhat.com/
+others can use another regions. vmap_mapping?
 
-  Thanks,
-   Thomas
+>
+> It also seems that struct vmap_area can be made private to mm/.
+> 
+I agree. Also it can be even moved under vmalloc.c. There is only one
+user which needs it globally, it is usercopy.c. It uses find_vmap_area()
+which is wrong. See:
 
+<snip>
+	if (is_vmalloc_addr(ptr) && !pagefault_disabled()) {
+		struct vmap_area *area = find_vmap_area(addr);
+
+		if (!area)
+			usercopy_abort("vmalloc", "no area", to_user, 0, n);
+
+		if (n > area->va_end - addr) {
+			offset = addr - area->va_start;
+			usercopy_abort("vmalloc", NULL, to_user, offset, n);
+		}
+		return;
+	}
+<snip>
+
+we can add a function which just assign va_start, va_end as input
+parameters and use them in the usercopy.c. 
+
+Thanks!
+
+--
+Uladzislau Rezki
