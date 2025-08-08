@@ -1,117 +1,133 @@
-Received: from relay1-d.mail.gandi.net (relay1-d.mail.gandi.net [217.70.183.193])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f53.google.com (mail-vs1-f53.google.com [209.85.217.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCE8262FF8;
-	Thu,  7 Aug 2025 14:43:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.193
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C5A26A1A8;
+	Fri,  8 Aug 2025 09:43:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754577803; cv=none; b=dEED8LkZu/EpkzJXBhwRQ8b99IAGOmNEfhBW5EY7xE8EO6oxmaS62Dwu7UdMjSvtHW00HVRRjWRVV81REiNj9KzpzLx4JdPV5uXIsPl54a0Lk4/VV38uk9b9mopdXJqb3j2bet5qeU1x5WbmigJTdaqrUxnySV60J3AwB6tKAKo=
+	t=1754646211; cv=none; b=hBj91xEtxb8eqB+SHgIvodCmfl93tg4LoBuU7aYAKHrqF7ZfYg0qTayKOsvh0FkzFbMZ4yLBarTBFfREkZIa8L0lkLcznqaZ1ROYBc9uzUpQR/XdmGz8rvo7wap1FcJliN008ZdReap5ff86OwqOnM29LRVTD+PoAUFMHaHFUd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754577803; c=relaxed/simple;
-	bh=y//IMsBANN67YjgRvFs1TqJNvAqanY/RR7wYOqvwarQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=j072cA7J2Xq6pyO2GSQS4o81rGlMfPRyEpUD/o+fZ6v5th8youJk50D4N1/pqeXoYf2GRFgN6dyqDKS8k5gGp2ioh2Mp1N7PBMFwkTpZ9l1wP37Cn1gt7Q1Wo7I33uBjniH3qTRT63NDXNymUAvGo3QqPjH5D/tIrUgmxkph27k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ghiti.fr; spf=pass smtp.mailfrom=ghiti.fr; arc=none smtp.client-ip=217.70.183.193
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ghiti.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ghiti.fr
-Received: by mail.gandi.net (Postfix) with ESMTPSA id D90BA4432A;
-	Thu,  7 Aug 2025 14:43:12 +0000 (UTC)
-Message-ID: <53b98e1e-4f7e-4320-8d04-d84dd2c4092d@ghiti.fr>
-Date: Thu, 7 Aug 2025 16:43:09 +0200
+	s=arc-20240116; t=1754646211; c=relaxed/simple;
+	bh=oeEwC4ZDaAQgoo6SqMA1EuL7WIKD8dRERWoDKgxJRt4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DNIaRLI/qK9fRCKYwrzuhJPObNwXThG/Vqmtyv0lNw2g0K1mFj3tL+DzIHQSr0y6kRvIc1fhyudtzlSlsOzrK65Glj1CMfTKceodZzKdEwblZPteBR//JFzg/kI+qQxIyFV3tVRro+1Sw+aN6cHdtv5MJBJ0J9lpljBg12Ze8hs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-vs1-f53.google.com with SMTP id ada2fe7eead31-504dd871d70so614612137.0;
+        Fri, 08 Aug 2025 02:43:29 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754646208; x=1755251008;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FHWNDK3s9P7e7V2iAmBr/rqn1vtS3VyQHGTysnO++tw=;
+        b=Lx1UC0CGh5vAePtsi31gTnOozo/nuOOtb9HfyyuE1do1XT3UlHLftJtRyE1cTJQVqm
+         IpsWxvksj8xqg4Klc8tX7CWXeh5HRQ/Y8HcUa3Vbued6A33ZVjyDqgAOCKidCgMsEWct
+         if8UzIDunuJvz+yQYQQcybHcrF7z9hcPv41XT5rzosh7NRr+AdUT4qHPPuMvgDzGInPM
+         +nL7kWy0kbflwLd36J9g4jo/ITEofyIR+Fy08q/JH8eO7gDdSwRyZ4v015A9Q8lSfggu
+         ilOEqVJ/22dWlKa0zkAl26Y+vGV4uJ7dNK0en3m8sCyFYXMBSK04eQBaF6B5wxJmmM9M
+         JKoA==
+X-Forwarded-Encrypted: i=1; AJvYcCUWo46jdc1upAKUWSN24OB6GicdOVRQ3HVQx0JLbd7ibCZrExyr47zKBNTKEmQENcdS1vy3Hn9xtNkStyU=@vger.kernel.org, AJvYcCWd6Sn2tbKmNe1gXm0UUaCdoiM/IfiMHl5PFqCop3/tndrjwcLs2qO8XQoXS3mqLcJTG9bn9uUCMGJoPw==@vger.kernel.org, AJvYcCXY0lYeL+o8UEqFb08TUgvMcy80KXniwS3gcezGvUSOArLTP8GmnqUCFJC2j9NlzEgFtf1owOi73ykn/WequqZqGJw=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxloX//3CdVK9x5sOAWYOTzncf2Y9C4ZMjhqarrXYDI0/0lP37n
+	egMqr/SDi5xgWpGsnUmBR/UMyq3kg6Ujtj41AOC0v57rfMQgZu8SVk/+mNcvUiop
+X-Gm-Gg: ASbGncvOEJtwQqIG/UvuVH72ztAV4/M7KXLdpwS+UjycWpWZJ5GJoiC7vYmx5DBVOu/
+	fFqFtCQWOaKNuYbBxuFD3ZsFGhseMvxSPAefC0ML4VKo3uDjXUHuo+IC+15D5qADDptAzNVEY7x
+	/fm7ZrPLKuFCJv6GsyYiy7Fjd9n4PRanYDrgy8y8juaMQ0CzVWfzrlakwOlTuuWdXlAgMT8dR4T
+	ADugCJ+p7z5gXWoQH/+ZZw91aWz24O36bzY6qmAfT4HHi8qOaslPew1/7UWeDVbOkUNC2/nxy53
+	0onEQ5dNLclCtEDiItLt0cUVJtyNS1VaaRBQGyoX621h115V0/BAd5fLL2eykpzfU7NATvUSl7k
+	9V9kOnSXx8iAoylA4nm4zGChDyUIIXXRDWzlHbE4cuaCXhjTgFbvXLE3sSVU/
+X-Google-Smtp-Source: AGHT+IH3kknl0Ndhe1PRTZCDkJS4dC15IakYyDFKi5Ct400Do5t2d7MQkFk9aFG8jmjIc3p9CnwUig==
+X-Received: by 2002:a05:6102:dc6:b0:4fc:1484:5500 with SMTP id ada2fe7eead31-5060f0cccf0mr743441137.21.1754646208038;
+        Fri, 08 Aug 2025 02:43:28 -0700 (PDT)
+Received: from mail-vs1-f44.google.com (mail-vs1-f44.google.com. [209.85.217.44])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-5062bd4c2f1sm296320137.18.2025.08.08.02.43.27
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 08 Aug 2025 02:43:27 -0700 (PDT)
+Received: by mail-vs1-f44.google.com with SMTP id ada2fe7eead31-4fbfbda957fso650368137.2;
+        Fri, 08 Aug 2025 02:43:27 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUN4f+cr39mbe39epuGS4r6038dBHxJNzsVmuQMH3LUX5mQQ0udnyh5qH2pA7W1dA7nbHVKgzTBzspTHB4mfddig8A=@vger.kernel.org, AJvYcCUaYW66pPiwEEtPXaaJSoqVeoCMhFp8FJIWpGytcyMe+nWRR+ZvgeQA5Oiwk9XtBBJTaNiHOkP6WtsdpFE=@vger.kernel.org, AJvYcCWuvoq5Xl89gRBkefb6gkt3IRHCjgFtjD2QsysNgMSfoR3aIpjwiW+VCAY9ujUj9Q7oyuzpV50Rn8A3Cg==@vger.kernel.org
+X-Received: by 2002:a05:6102:32cb:b0:4e5:8b76:44c5 with SMTP id
+ ada2fe7eead31-5060f0cc794mr693639137.22.1754646207387; Fri, 08 Aug 2025
+ 02:43:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 09/17] riscv: Add __attribute_const__ to ffs()-family
- implementations
-To: Kees Cook <kees@kernel.org>, linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org,
- linux-alpha@vger.kernel.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
- linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, llvm@lists.linux.dev,
- linux-hardening@vger.kernel.org
-References: <20250804163910.work.929-kees@kernel.org>
- <20250804164417.1612371-9-kees@kernel.org>
-Content-Language: en-US
-From: Alexandre Ghiti <alex@ghiti.fr>
-In-Reply-To: <20250804164417.1612371-9-kees@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-GND-State: clean
-X-GND-Score: -100
-X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduvdduudelucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuifetpfffkfdpucggtfgfnhhsuhgsshgtrhhisggvnecuuegrihhlohhuthemuceftddunecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefkffggfgfuvfevfhfhjggtgfesthejredttddvjeenucfhrhhomheptehlvgigrghnughrvgcuifhhihhtihcuoegrlhgvgiesghhhihhtihdrfhhrqeenucggtffrrghtthgvrhhnpeehiefhuddtuddukeetkeehhedtffduhfevfeeftdefveffgfeuffejjeejfeekueenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppedvtddtudemkeeiudemfeefkedvmegvfheltdemlehftghfmeeksghfleemleeludgumeekrggrfhenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvtddtudemkeeiudemfeefkedvmegvfheltdemlehftghfmeeksghfleemleeludgumeekrggrfhdphhgvlhhopeglkffrggeimedvtddtudemkeeiudemfeefkedvmegvfheltdemlehftghfmeeksghfleemleeludgumeekrggrfhgnpdhmrghilhhfrhhomheprghlvgigsehghhhithhirdhfrhdpnhgspghrtghpthhtohepudekpdhrtghpthhtohepkhgvvghssehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrrhgthhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehli
- hhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopeigkeeisehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrlhhphhgrsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqtghskhihsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqhhgvgigrghhonhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhmieekkheslhhishhtshdrlhhinhhugidqmheikehkrdhorhhg
-X-GND-Sasl: alex@ghiti.fr
+References: <20250807043456.1624-2-wsa+renesas@sang-engineering.com> <2025080720214218750df5@mail.local>
+In-Reply-To: <2025080720214218750df5@mail.local>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 8 Aug 2025 11:43:15 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdUwC=TNvvwf0_sgSSYTBGeq8UX5kRFN5kg3mFJ7wVA3kw@mail.gmail.com>
+X-Gm-Features: Ac12FXzrLiEtwQSwABN_PovuC7CdyhBuG0HPwAa8_g9H9GakHs5gEOATJhO9jEM
+Message-ID: <CAMuHMdUwC=TNvvwf0_sgSSYTBGeq8UX5kRFN5kg3mFJ7wVA3kw@mail.gmail.com>
+Subject: Re: [PATCH] i3c: remove 'const' from FIFO helpers
+To: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, linux-renesas-soc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, kernel test robot <lkp@intel.com>, Frank Li <Frank.Li@nxp.com>, 
+	Jorge Marques <jorge.marques@analog.com>, linux-i3c@lists.infradead.org, 
+	sparclinux <sparclinux@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Kees,
+CC sparclinux, arnd
 
-On 8/4/25 18:44, Kees Cook wrote:
-> While tracking down a problem where constant expressions used by
-> BUILD_BUG_ON() suddenly stopped working[1], we found that an added static
-> initializer was convincing the compiler that it couldn't track the state
-> of the prior statically initialized value. Tracing this down found that
-> ffs() was used in the initializer macro, but since it wasn't marked with
-> __attribute__const__, the compiler had to assume the function might
-> change variable states as a side-effect (which is not true for ffs(),
-> which provides deterministic math results).
+On Fri, 8 Aug 2025 at 01:09, Alexandre Belloni
+<alexandre.belloni@bootlin.com> wrote:
+> On 07/08/2025 06:31:24+0200, Wolfram Sang wrote:
+> > As buildbot reports, some architectures do not want const pointers.
+> >
+> > Fixes: 733b439375b4 ("i3c: master: Add inline i3c_readl_fifo() and i3c_writel_fifo()")
+> > Reported-by: kernel test robot <lkp@intel.com>
+> > Closes: https://lore.kernel.org/oe-kbuild-all/202508070438.TZZA3f2S-lkp@intel.com/
+> > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> > ---
+> >
+> > I still wonder why SPARC discards the const but since nobody seems to be
+> > commenting on that, I guess the fastest way to get the build error out
+> > of Linus' tree is to adapt the usage in I3C.
 >
-> Add missing __attribute_const__ annotations to RISC-V's implementations of
-> variable__ffs(), variable__fls(), and variable_ffs() functions. These are pure
-> mathematical functions that always return the same result for the same
-> input with no side effects, making them eligible for compiler optimization.
->
-> Build tested ARCH=riscv defconfig with GCC riscv64-linux-gnu 14.2.0.
->
-> Link: https://github.com/KSPP/linux/issues/364 [1]
-> Signed-off-by: Kees Cook <kees@kernel.org>
-> ---
->   arch/riscv/include/asm/bitops.h | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/riscv/include/asm/bitops.h b/arch/riscv/include/asm/bitops.h
-> index d59310f74c2b..77880677b06e 100644
-> --- a/arch/riscv/include/asm/bitops.h
-> +++ b/arch/riscv/include/asm/bitops.h
-> @@ -45,7 +45,7 @@
->   #error "Unexpected BITS_PER_LONG"
->   #endif
->   
-> -static __always_inline unsigned long variable__ffs(unsigned long word)
-> +static __always_inline __attribute_const__ unsigned long variable__ffs(unsigned long word)
->   {
->   	asm goto(ALTERNATIVE("j %l[legacy]", "nop", 0,
->   				      RISCV_ISA_EXT_ZBB, 1)
-> @@ -74,7 +74,7 @@ static __always_inline unsigned long variable__ffs(unsigned long word)
->   	 (unsigned long)__builtin_ctzl(word) :	\
->   	 variable__ffs(word))
->   
-> -static __always_inline unsigned long variable__fls(unsigned long word)
-> +static __always_inline __attribute_const__ unsigned long variable__fls(unsigned long word)
->   {
->   	asm goto(ALTERNATIVE("j %l[legacy]", "nop", 0,
->   				      RISCV_ISA_EXT_ZBB, 1)
-> @@ -103,7 +103,7 @@ static __always_inline unsigned long variable__fls(unsigned long word)
->   	 (unsigned long)(BITS_PER_LONG - 1 - __builtin_clzl(word)) :	\
->   	 variable__fls(word))
->   
-> -static __always_inline int variable_ffs(int x)
-> +static __always_inline __attribute_const__ int variable_ffs(int x)
->   {
->   	asm goto(ALTERNATIVE("j %l[legacy]", "nop", 0,
->   				      RISCV_ISA_EXT_ZBB, 1)
+> My plan was to let sparc people handle their mess, there is no reason
+> const should be discarded.
 
+Fully agreed.
 
-Tested-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-Acked-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Note that it is not just the const keyword that is missing from the
+SPARC implementation, but also the volatile keyword.
 
-Thanks,
+> > --- a/drivers/i3c/internals.h
+> > +++ b/drivers/i3c/internals.h
+> > @@ -30,8 +30,7 @@ void i3c_dev_free_ibi_locked(struct i3c_dev_desc *dev);
+> >   * @buf: Pointer to the data bytes to write
+> >   * @nbytes: Number of bytes to write
+> >   */
+> > -static inline void i3c_writel_fifo(void __iomem *addr, const void *buf,
+> > -                                int nbytes)
+> > +static inline void i3c_writel_fifo(void __iomem *addr, void *buf, int nbytes)
+> >  {
+> >       writesl(addr, buf, nbytes / 4);
+> >       if (nbytes & 3) {
+> > @@ -48,8 +47,7 @@ static inline void i3c_writel_fifo(void __iomem *addr, const void *buf,
+> >   * @buf: Pointer to the buffer to store read bytes
+> >   * @nbytes: Number of bytes to read
+> >   */
+> > -static inline void i3c_readl_fifo(const void __iomem *addr, void *buf,
+> > -                               int nbytes)
+> > +static inline void i3c_readl_fifo(void __iomem *addr, void *buf, int nbytes)
+> >  {
+> >       readsl(addr, buf, nbytes / 4);
+> >       if (nbytes & 3) {
+> > --
+> > 2.47.2
 
-Alex
+Gr{oetje,eeting}s,
 
+                        Geert
 
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
