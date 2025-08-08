@@ -1,145 +1,386 @@
-Received: from fhigh-a6-smtp.messagingengine.com (fhigh-a6-smtp.messagingengine.com [103.168.172.157])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 486D94430;
-	Fri,  8 Aug 2025 11:19:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C94216E23;
+	Fri,  8 Aug 2025 21:35:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754651963; cv=none; b=QMqHADRGtjQaBzP6L4U4je1zrGm4MOYgjLcUUEJCQ6yE74HKlAWZGofTb1puwocOK/Q+AIBgCP872u39lvyVh/GPEpiCksSSNTVVpKkFoHE/GyLf8Wy2DU3g5DpPh2t/WEDlioWKkGdbXPwcb24WltS1VFruQbxnTAddaOsAe4E=
+	t=1754688941; cv=none; b=rj7po+ywaSBrKRmMd7i1Yq36odkgPj6plHvwBJlacjuwHNOM2DBuG73TjGcuHEab9NrkHawnTzrcD6J22pJIQiN+QD357nDICyxuCqgsdhVx/+O81Cczsi8i0reu3v3qR9Fc6V8A2opslZe9ZJZ5kC/Tz30MdwE0BEBwtFL1uX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754651963; c=relaxed/simple;
-	bh=MDBPQc8k1HLpzLIRsReq/HTSulDYSclhSiyijZTD3bA=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=pzt6N4YciONuXqzxvzdRBAnrf+UWk1T7wpntMGwoT2sK03f9WZuXgcvtFeLo43a+VlLbp4PDBnPWhQ+JA2XKsrES0s4bWT/pUI/XgGqzlv1l4N+yGX905i4ptye1DZOxf/2MaimH/jYg6dpCtUjxiKfRBxvs3KIEYScaPHg3BAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=LNYvvmMB; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=AfRLLUeP; arc=none smtp.client-ip=103.168.172.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1754688941; c=relaxed/simple;
+	bh=oSg6VPsuwUl+yeLMtlH5kxFR1nk3r+eKHuWxPruF/tA=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=S2RZlzS+F56tgnqVa6Ue1WNpcy9EPzIkC1uXdxgtQCVJjxwFdg2i2CWyMF8bijgcqgg7A4dSKp3EXrIo35mJqLlc0AUqq+dBxzEnYrt74B/+2WYwVZW3ztt3+eAPkSq8at9D3KudLJK8b/fWqRmYDL0BlXL8clIai7HTZesRxz8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=gS7x/RoD; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="LNYvvmMB";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="AfRLLUeP"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 4509214000B9;
-	Fri,  8 Aug 2025 07:19:17 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-05.internal (MEProxy); Fri, 08 Aug 2025 07:19:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1754651957;
-	 x=1754738357; bh=kXnaAaU+jsKKyacddE7SAVJoi6NjE3zSqJlFeFvTb4k=; b=
-	LNYvvmMBTbBeWybL2Kw3FSzKsPy4pv7dV+0OPrALMLQ5L6iMSA3+lRgwslnixhax
-	g5eKgbkpqRrXO+Zj14F7Mlp8Q/oHT1a74HIQO6LUuowcyoNKYb6KjCj3r/NDO7qT
-	e7lZKYFPFzVoengOrfm2pba3TmMQtu62iJTN/e3i+iA5L5fwK+SafzQPKrV1OacK
-	z0w8NSN7F2x1V1GtVc/nKvslXjbFneYrItx9oH39GrBoE3hfB5fOZb9z4uE30q/4
-	zyFgzoEzkA4pyBRONSkSocWarJeAcd7xAL1WunzeiJuMYGALSq4TpFPtIWBshVED
-	Mv0kXNuSusgbGPxPJGdRoA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1754651957; x=
-	1754738357; bh=kXnaAaU+jsKKyacddE7SAVJoi6NjE3zSqJlFeFvTb4k=; b=A
-	fRLLUePzBr/jPMssVbEwp0dBTQYQ1tculYdxIbN6YKZ36tPwK09We8z+SB9zrKLU
-	wTRJHVKNG3iH9ZNR0fm2Dk7h+qrd+0eYpPffK6JczCxpXDGu9q2g2xkqG1TrW0/n
-	kw5/P5E5QCp5RpNRuoRsFBB/n/fSa0xpTO+cphBiwMow3oZ35vZ48mszXkiFsC4b
-	2Zxnml0aVz8oA58gcrEbfShtV67vntn7bFkpl6Jv12k7COGJI0nDtjj32TMGWaMF
-	GWVOlSjN4zdCR8jT+pedsZfNL+jv85LCv3b+uvNkVaUtqJsePruRpedtuEESIuX/
-	KJEZG3c8u458aY0Lp6wOA==
-X-ME-Sender: <xms:NN2VaAkTOPtl1Duy_rFCVmo8eWnDDMUMAJEHjslptaCxo0AjRvgptQ>
-    <xme:NN2VaP1MPPpfhGosr1JQYolixELj161s6ssdj41Ld3uM-0ThcYPXaSupNBGZFQfHA
-    bJBXc_9MGuBsDyeDTI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduvdefieejucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhgu
-    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
-    hrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefhvdei
-    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnh
-    gusegrrhhnuggsrdguvgdpnhgspghrtghpthhtohepuddtpdhmohguvgepshhmthhpohhu
-    thdprhgtphhtthhopehjohhrghgvrdhmrghrqhhuvghssegrnhgrlhhoghdrtghomhdprh
-    gtphhtthhopegrlhgvgigrnhgurhgvrdgsvghllhhonhhisegsohhothhlihhnrdgtohhm
-    pdhrtghpthhtoheplhhkphesihhnthgvlhdrtghomhdprhgtphhtthhopehgvggvrhhtse
-    hlihhnuhigqdhmieekkhdrohhrghdprhgtphhtthhopehlihhnuhigqdhifegtsehlihhs
-    thhsrdhinhhfrhgruggvrggurdhorhhgpdhrtghpthhtohepfhhrrghnkhdrlhhisehngi
-    hprdgtohhmpdhrtghpthhtohepfihsrgdorhgvnhgvshgrshesshgrnhhgqdgvnhhgihhn
-    vggvrhhinhhgrdgtohhmpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrh
-    drkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqrhgvnhgvshgrshdqshho
-    tgesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:NN2VaPfKzLey5jIWnTY5EzywwVvpYHHqb1F_6ar5MG7mOcrkgHoVCw>
-    <xmx:NN2VaN2YjoUMs2-cilwrnn7HNjvsBmddt6wl30xOzVchbWImC9DGkg>
-    <xmx:NN2VaP92roOkzkNrIDCWAj-jtFgv8XnBeuKYthWiHezMZr1uSRem5g>
-    <xmx:NN2VaK7fEHW_m1sP-CL54WPfy6aS3HhRVzEG4ki90w88LkHXPN-9vw>
-    <xmx:Nd2VaOjkbVEo_yK3_kGPZZVhO_tpqTL1y8bh4a51LdkjOzE6SpJmbaef>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 6D27E700065; Fri,  8 Aug 2025 07:19:16 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="gS7x/RoD"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=9EdT68oNudmwl4DbD8mtnPOtn6x/XuZdndE/JMuL7GI=; t=1754688937;
+	x=1755293737; b=gS7x/RoDcubJb75DYw4IqTOch3+ZpMSrXsFnZOIop4nXLyu23DstfSQJd9+oj
+	cLr3Jbk9UJNgD/eZEr0XyPDX8oWTKTaf3Pp5+f5emoh32qOTyP7BMZl/RloC4CLJN/3kRXj7H3sDU
+	pLsCaoOAICP29S5PMBTjR/43O/XSw16cxmsBz8/CdjyFrL/yMralreCS2xlN36mkQVJPqI3sqLtAG
+	XLOFy9VhPA33+GP3BCa0geLkI9kLeJrUX+ZhfR6b1YxpMGKpnFq6IwkcgZjl63/G7luxJY/8Ftq4s
+	JHX2LPnb4/QulXrPkj5n1WTSRSROe49U7zSjouwLebZkJK7uvw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1ukUgf-00000003SbC-1ZDa; Fri, 08 Aug 2025 23:31:41 +0200
+Received: from dynamic-002-242-002-090.2.242.pool.telefonica.de ([2.242.2.90] helo=[192.168.178.50])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1ukUgf-00000001Cbu-0VJo; Fri, 08 Aug 2025 23:31:41 +0200
+Message-ID: <35f5ec4eda8a7dbeeb7df9ec0be5c0b062c509f7.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH] sparc64: fix hugetlb for sun4u
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Anthony Yznaga <anthony.yznaga@oracle.com>, sparclinux@vger.kernel.org, 
+	davem@davemloft.net, andreas@gaisler.com
+Cc: linux-kernel@vger.kernel.org, agordeev@linux.ibm.com, will@kernel.org, 
+	ryan.roberts@arm.com, david@redhat.com, osalvador@suse.de
+Date: Fri, 08 Aug 2025 23:31:40 +0200
+In-Reply-To: <20250716012446.10357-1-anthony.yznaga@oracle.com>
+References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: T0d336f21a661302d
-Date: Fri, 08 Aug 2025 13:18:46 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Geert Uytterhoeven" <geert@linux-m68k.org>,
- "Alexandre Belloni" <alexandre.belloni@bootlin.com>
-Cc: "Wolfram Sang" <wsa+renesas@sang-engineering.com>,
- Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
- linux-kernel@vger.kernel.org, "kernel test robot" <lkp@intel.com>,
- "Frank Li" <Frank.Li@nxp.com>, "Jorge Marques" <jorge.marques@analog.com>,
- "linux-i3c@lists.infradead.org" <linux-i3c@lists.infradead.org>,
- sparclinux <sparclinux@vger.kernel.org>
-Message-Id: <b7cf1db6-317a-453b-a605-adec7e126fc6@app.fastmail.com>
-In-Reply-To: 
- <CAMuHMdUwC=TNvvwf0_sgSSYTBGeq8UX5kRFN5kg3mFJ7wVA3kw@mail.gmail.com>
-References: <20250807043456.1624-2-wsa+renesas@sang-engineering.com>
- <2025080720214218750df5@mail.local>
- <CAMuHMdUwC=TNvvwf0_sgSSYTBGeq8UX5kRFN5kg3mFJ7wVA3kw@mail.gmail.com>
-Subject: Re: [PATCH] i3c: remove 'const' from FIFO helpers
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Fri, Aug 8, 2025, at 11:43, Geert Uytterhoeven wrote:
-> On Fri, 8 Aug 2025 at 01:09, Alexandre Belloni <alexandre.belloni@bootlin.com> wrote:
->> On 07/08/2025 06:31:24+0200, Wolfram Sang wrote:
->> >
->> > I still wonder why SPARC discards the const but since nobody seems to be
->> > commenting on that, I guess the fastest way to get the build error out
->> > of Linus' tree is to adapt the usage in I3C.
->>
->> My plan was to let sparc people handle their mess, there is no reason
->> const should be discarded.
->
-> Fully agreed.
->
-> Note that it is not just the const keyword that is missing from the
-> SPARC implementation, but also the volatile keyword.
+Hi Anthony,
 
-The last time this came up, I actually tried doing a patch to
-remove the 'volatile' keywords from all asm/io.h on all
-architectures, and from all drivers that currently pass it,
-as I don't think it has any effect other than avoid build
-warnings for some prehistoric drivers.
+On Tue, 2025-07-15 at 18:24 -0700, Anthony Yznaga wrote:
+> An attempt to exercise sparc hugetlb code in a sun4u-based guest
+> running under qemu results in the guest hanging due to being stuck
+> in a trap loop. This is due to invalid hugetlb TTEs being installed
+> that do not have the expected _PAGE_PMD_HUGE and page size bits set.
+> Although the breakage has gone apparently unnoticed for several years,
+> fix it now so there is the option to exercise sparc hugetlb code under
+> qemu. This can be useful because sun4v support in qemu does not support
+> linux guests currently and sun4v-based hardware resources may not be
+> readily available.
+>=20
+> Fix tested with a 6.15.2 and 6.16-rc6 kernels by running libhugetlbfs
+> tests on a qemu guest running Debian 13.
+>=20
+> Fixes: c7d9f77d33a7 ("sparc64: Multi-page size support")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+> ---
+>  arch/sparc/mm/hugetlbpage.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>=20
+> diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+> index 80504148d8a5..2048b5c42ca8 100644
+> --- a/arch/sparc/mm/hugetlbpage.c
+> +++ b/arch/sparc/mm/hugetlbpage.c
+> @@ -22,6 +22,26 @@
+> =20
+>  static pte_t sun4u_hugepage_shift_to_tte(pte_t entry, unsigned int shift=
+)
+>  {
+> +	unsigned long hugepage_size =3D _PAGE_SZ4MB_4U;
+> +
+> +	pte_val(entry) =3D pte_val(entry) & ~_PAGE_SZALL_4U;
+> +
+> +	switch (shift) {
+> +	case HPAGE_256MB_SHIFT:
+> +		hugepage_size =3D _PAGE_SZ256MB_4U;
+> +		pte_val(entry) |=3D _PAGE_PMD_HUGE;
+> +		break;
+> +	case HPAGE_SHIFT:
+> +		pte_val(entry) |=3D _PAGE_PMD_HUGE;
+> +		break;
+> +	case HPAGE_64K_SHIFT:
+> +		hugepage_size =3D _PAGE_SZ64K_4U;
+> +		break;
+> +	default:
+> +		WARN_ONCE(1, "unsupported hugepage shift=3D%u\n", shift);
+> +	}
+> +
+> +	pte_val(entry) =3D pte_val(entry) | hugepage_size;
+>  	return entry;
+>  }
+> =20
 
-On a related note, I'm fairly sure the i3c_readl_fifo() function
-is not portable and breaks on most big-endian platforms: The 
-readsl() implementation on big-endian targets usually skips the
-implied byteswap from readl() since it is writing a bytestream,
-but then the final readl() is defined as reading a four-byte
-little-endian word, which tends to require an explicit swap
-on big-endian targets. (there are some exceptions where the
-PCI host bridge adds an extra byteswap, or where the CPU swaps
-everything on 32-bit boundaries, rather than the unit of the
-access).
+So, I have to admit that I'm not an expert on Linux kernel memory managemen=
+t and
+don't exactly know what the difference between HugeTLB and Transparent Huge=
+ Pages
+is. Could someone enlighten me?
 
-I think using 
+The reason I am asking is because while this patch seems to fix HugeTLB sup=
+port,
+we're still seeing TLB-related crashes on sun4u which are triggered when bo=
+th
+CONFIG_TRANSPARENT_HUGEPAGE and CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS are set.
 
-    readsl(addr, &tmp, 1);
+I previously thought that HugeTLB and THP are the same, but it seems like t=
+hat's
+not the case.
 
-instead of the final readl() should be portable here.
-Same for the writel() of course.
+Enabling both these options leads to the following backtrace during boot:
 
-     Arnd
+[   29.858572] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[   29.858580] rcu:     (detected by 0, t=3D2109 jiffies, g=3D-1155, q=3D3 =
+ncpus=3D1)
+[   29.858586] rcu: All QSes seen, last rcu_sched kthread activity 2109 (42=
+94939474-4294937365), jiffies_till_next_fqs=3D1, root ->qsmask 0x0
+[   29.858595] rcu: rcu_sched kthread starved for 2109 jiffies! g-1155 f0x2=
+ RCU_GP_WAIT_FQS(5) ->state=3D0x0 ->cpu=3D0
+[   29.858603] rcu:     Unless rcu_sched kthread gets sufficient CPU time, =
+OOM is now expected behavior.
+[   29.858606] rcu: RCU grace-period kthread stack dump:
+[   29.858609] task:rcu_sched       state:R  running task     stack:0     p=
+id:15    tgid:15    ppid:2      task_flags:0x208040 flags:0x07000000
+[   29.858626] Call Trace:
+[   29.858629] [<0000000000c0a234>] schedule+0x14/0x160
+[   29.858646] [<0000000000c11194>] schedule_timeout+0x54/0xe0
+[   29.858657] [<00000000004fbd40>] rcu_gp_fqs_loop+0x140/0x6c0
+[   29.858669] [<000000000050003c>] rcu_gp_kthread+0x23c/0x2a0
+[   29.858678] [<000000000049b788>] kthread+0xe8/0x120
+[   29.858688] [<00000000004060c8>] ret_from_fork+0x1c/0x2c
+[   29.858700] [<0000000000000000>] 0x0
+[   29.858705] rcu: Stack dump where RCU GP kthread last ran:
+[   29.858710] CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Not tainted 6.16.0+ #32=
+ VOLUNTARY
+[   29.858719] TSTATE: 0000004411001603 TPC: 00000000004db400 TNPC: 0000000=
+0004db404 Y: 0000137d    Not tainted
+[   29.858725] TPC: <console_flush_all+0x360/0x4c0>
+[   29.858738] g0: 00000000004db400 g1: 0000000000000000 g2: 00000000000000=
+00 g3: 00000000017fd000
+[   29.858743] g4: fff0000000180000 g5: fff000023d194000 g6: fff00000001580=
+00 g7: 000000000000000e
+[   29.858748] o0: 00000000017fd1e0 o1: 0000000000000000 o2: 00000000000000=
+00 o3: 00000000017fc5d0
+[   29.858752] o4: 0000000000000000 o5: 000000000185d7e8 sp: fff000000015a9=
+01 ret_pc: 00000000004db3f0
+[   29.858757] RPC: <console_flush_all+0x350/0x4c0>
+[   29.858764] l0: 00000000017fc5d0 l1: 0000000000000000 l2: 00000000000000=
+00 l3: 000000000143b538
+[   29.858769] l4: 0000000000000000 l5: 0000000000000001 l6: 00000000015c20=
+b0 l7: 0000000001536308
+[   29.858773] i0: 0000000000000000 i1: fff000000015b2b8 i2: fff000000015b2=
+b3 i3: 0000000000000000
+[   29.858778] i4: 00000000017fd1e0 i5: 0000000000000001 i6: fff000000015aa=
+01 i7: 00000000004db5e8
+[   29.858782] I7: <console_unlock+0x88/0x120>
+[   29.858790] Call Trace:
+[   29.858793] [<00000000004db5e8>] console_unlock+0x88/0x120
+[   29.858801] [<00000000004dc128>] vprintk_emit+0x1e8/0x280
+[   29.858809] [<000000000042a34c>] _printk+0x20/0x30
+[   29.858819] [<00000000004dc66c>] register_console+0x34c/0x580
+[   29.858828] [<0000000000920358>] serial_core_register_port+0x898/0x8c0
+[   29.858835] [<000000000092555c>] su_probe+0x15c/0x3e0
+[   29.858844] [<0000000000936d88>] platform_probe+0x28/0x80
+[   29.858851] [<0000000000934338>] really_probe+0xb8/0x340
+[   29.858863] [<0000000000934764>] driver_probe_device+0x24/0x120
+[   29.858872] [<0000000000934a0c>] __driver_attach+0x8c/0x1a0
+[   29.858879] [<000000000093232c>] bus_for_each_dev+0x4c/0xa0
+[   29.858887] [<0000000000933668>] bus_add_driver+0x148/0x220
+[   29.858894] [<0000000000935634>] driver_register+0x74/0x120
+[   29.858903] [<0000000001635e3c>] sunsu_init+0x180/0x1dc
+[   29.858915] [<00000000004347b0>] do_one_initcall+0x30/0x240
+[   29.858924] [<000000000160d014>] kernel_init_freeable+0x244/0x2b8
+
+Running the apt package manager results in a minute-long hang and this back=
+trace:
+
+[  112.800879] systemd-journald[154]: Time jumped backwards, rotating.
+[  123.148552] kernel BUG at fs/ext4/inode.c:1174!
+[  123.208162]               \|/ ____ \|/
+[  123.208162]               "@'/ .. \`@"
+[  123.208162]               /_| \__/ |_\
+[  123.208162]                  \__U_/
+[  123.401513] apt(881): Kernel bad sw trap 5 [#1]
+[  123.461051] CPU: 0 UID: 0 PID: 881 Comm: apt Not tainted 6.16.0+ #32 VOL=
+UNTARY
+[  123.557129] TSTATE: 0000004411001603 TPC: 000000000075eda8 TNPC: 0000000=
+00075edac Y: 00000000    Not tainted
+[  123.686379] TPC: <ext4_block_write_begin+0x408/0x480>
+[  123.752813] g0: 0000000000000000 g1: 0000000000000001 g2: 00000000000000=
+00 g3: 0000000000000000
+[  123.867186] g4: fff0000007eb8140 g5: fff000023d194000 g6: fff000000a1300=
+00 g7: 0000000000000001
+[  123.981565] o0: 0000000000000023 o1: 0000000000d74b28 o2: 00000000000004=
+96 o3: 0000000000101cca
+[  124.095948] o4: 0000000001568800 o5: 0000000000000000 sp: fff000000a1331=
+61 ret_pc: 000000000075eda0
+[  124.214890] RPC: <ext4_block_write_begin+0x400/0x480>
+[  124.281219] l0: fff00000029ce828 l1: 0000000000113cca l2: fff00000029ce6=
+c0 l3: 0000000000001000
+[  124.395608] l4: 0000000000000002 l5: 0000000000080000 l6: 00000000000120=
+00 l7: 0000000000000001
+[  124.509978] i0: 0000000000000000 i1: 000c0000003bfa00 i2: 0000000000001f=
+c0 i3: 0000000000680000
+[  124.624351] i4: 0000000000000000 i5: 0000000000000000 i6: fff000000a1332=
+51 i7: 0000000000762518
+[  124.738729] I7: <ext4_da_write_begin+0x158/0x300>
+[  124.800487] Call Trace:
+[  124.832506] [<0000000000762518>] ext4_da_write_begin+0x158/0x300
+[  124.911429] [<00000000005b84ac>] generic_perform_write+0x8c/0x240
+[  124.991491] [<000000000074ae30>] ext4_buffered_write_iter+0x50/0x120
+[  125.074997] [<0000000000695420>] vfs_write+0x2a0/0x400
+[  125.142468] [<00000000006956c4>] ksys_write+0x44/0xe0
+[  125.208805] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
+[  125.285437] Disabling lock debugging due to kernel taint
+[  125.355205] Caller[0000000000762518]: ext4_da_write_begin+0x158/0x300
+[  125.439843] Caller[00000000005b84ac]: generic_perform_write+0x8c/0x240
+[  125.525624] Caller[000000000074ae30]: ext4_buffered_write_iter+0x50/0x12=
+0
+[  125.614836] Caller[0000000000695420]: vfs_write+0x2a0/0x400
+[  125.688035] Caller[00000000006956c4]: ksys_write+0x44/0xe0
+[  125.760093] Caller[0000000000406274]: linux_sparc_syscall+0x34/0x44
+[  125.842442] Caller[0000000000000000]: 0x0
+[  125.895052] Instruction DUMP:
+[  125.895055]  110035d2
+[  125.933938]  7ff35910
+[  125.964823]  90122328
+[  125.995700] <91d02005>
+[  126.026582]  80a06000
+[  126.057466]  02480010
+[  126.088347]  d45fa7cf
+[  126.119224]  d85fa7cf
+[  126.150125]  9736a000
+[  126.181088]
+
+After applying this patch to fix HugeTLB support on sun4u, the backtrace du=
+ring boot changes to:
+
+[   29.860234] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[   29.860241] rcu:     (detected by 0, t=3D2109 jiffies, g=3D-1151, q=3D3 =
+ncpus=3D1)
+[   29.860247] rcu: All QSes seen, last rcu_sched kthread activity 2109 (42=
+94939474-4294937365), jiffies_till_next_fqs=3D1, root ->qsmask 0x0
+[   29.860256] rcu: rcu_sched kthread starved for 2109 jiffies! g-1151 f0x2=
+ RCU_GP_WAIT_FQS(5) ->state=3D0x0 ->cpu=3D0
+[   29.860263] rcu:     Unless rcu_sched kthread gets sufficient CPU time, =
+OOM is now expected behavior.
+[   29.860266] rcu: RCU grace-period kthread stack dump:
+[   29.860269] task:rcu_sched       state:R  running task     stack:0     p=
+id:15    tgid:15    ppid:2      task_flags:0x208040 flags:0x07000000
+[   29.860285] Call Trace:
+[   29.860288] [<0000000000c0a2f4>] schedule+0x14/0x160
+[   29.860305] [<0000000000c11254>] schedule_timeout+0x54/0xe0
+[   29.860317] [<00000000004fbe00>] rcu_gp_fqs_loop+0x140/0x6c0
+[   29.860329] [<00000000005000fc>] rcu_gp_kthread+0x23c/0x2a0
+[   29.860338] [<000000000049b848>] kthread+0xe8/0x120
+[   29.860347] [<00000000004060c8>] ret_from_fork+0x1c/0x2c
+[   29.860359] [<0000000000000000>] 0x0
+[   29.860364] rcu: Stack dump where RCU GP kthread last ran:
+[   29.860368] CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Not tainted 6.16.0+ #33=
+ VOLUNTARY
+[   29.860378] TSTATE: 0000004411001603 TPC: 00000000004db4c0 TNPC: 0000000=
+0004db4c4 Y: 00001390    Not tainted
+[   29.860383] TPC: <console_flush_all+0x360/0x4c0>
+[   29.860397] g0: 00000000004db4c0 g1: 0000000000000000 g2: 00000000000000=
+00 g3: 00000000017fd000
+[   29.860401] g4: fff0000000180000 g5: fff000023d194000 g6: fff00000001580=
+00 g7: 000000000000000e
+[   29.860406] o0: 00000000017fd1e0 o1: 0000000000000000 o2: 00000000000000=
+00 o3: 00000000017fc5d0
+[   29.860411] o4: 0000000000000000 o5: 000000000185d7e8 sp: fff000000015a9=
+01 ret_pc: 00000000004db4b0
+[   29.860415] RPC: <console_flush_all+0x350/0x4c0>
+[   29.860423] l0: 00000000017fc5d0 l1: 0000000000000000 l2: 00000000000000=
+00 l3: 000000000143b538
+[   29.860427] l4: 0000000000000000 l5: 0000000000000001 l6: 00000000015c20=
+b0 l7: 0000000001536308
+[   29.860432] i0: 0000000000000000 i1: fff000000015b2b8 i2: fff000000015b2=
+b3 i3: 0000000000000000
+[   29.860436] i4: 00000000017fd1e0 i5: 0000000000000001 i6: fff000000015aa=
+01 i7: 00000000004db6a8
+[   29.860441] I7: <console_unlock+0x88/0x120>
+[   29.860449] Call Trace:
+[   29.860451] [<00000000004db6a8>] console_unlock+0x88/0x120
+[   29.860459] [<00000000004dc1e8>] vprintk_emit+0x1e8/0x280
+[   29.860467] [<000000000042a34c>] _printk+0x20/0x30
+[   29.860477] [<00000000004dc72c>] register_console+0x34c/0x580
+[   29.860485] [<0000000000920418>] serial_core_register_port+0x898/0x8c0
+[   29.860493] [<000000000092561c>] su_probe+0x15c/0x3e0
+[   29.860502] [<0000000000936e48>] platform_probe+0x28/0x80
+[   29.860509] [<00000000009343f8>] really_probe+0xb8/0x340
+[   29.860521] [<0000000000934824>] driver_probe_device+0x24/0x120
+[   29.860529] [<0000000000934acc>] __driver_attach+0x8c/0x1a0
+[   29.860537] [<00000000009323ec>] bus_for_each_dev+0x4c/0xa0
+[   29.860544] [<0000000000933728>] bus_add_driver+0x148/0x220
+[   29.860552] [<00000000009356f4>] driver_register+0x74/0x120
+[   29.860560] [<0000000001635e3c>] sunsu_init+0x180/0x1dc
+[   29.860572] [<00000000004347b0>] do_one_initcall+0x30/0x240
+[   29.860581] [<000000000160d014>] kernel_init_freeable+0x244/0x2b
+
+while the backtrace produced when apt hangs is:
+    =20
+[  337.599490] ------------[ cut here ]------------
+[  337.660412] WARNING: CPU: 0 PID: 895 at fs/ext4/extents_status.c:298 __e=
+s_find_extent_range+0x128/0x140
+[  337.784523] Modules linked in: sg sr_mod cdrom sym53c8xx tg3 libphy mdio=
+_bus
+[  337.877302] CPU: 0 UID: 0 PID: 895 Comm: apt Not tainted 6.16.0+ #33 VOL=
+UNTARY
+[  337.877314] Call Trace:
+[  337.877316] [<000000000047286c>] __warn+0x10c/0x120
+[  337.877326] [<0000000000472910>] warn_slowpath_fmt+0x90/0x120
+[  337.877332] [<0000000000748988>] __es_find_extent_range+0x128/0x140
+[  337.877341] [<00000000007490f0>] ext4_es_find_extent_range+0x50/0x100
+[  337.877348] [<0000000000742a1c>] ext4_ext_map_blocks+0x7fc/0x22a0
+[  337.877355] [<00000000007578d0>] ext4_map_query_blocks+0x30/0x2a0
+[  337.877366] [<00000000007596a0>] ext4_da_get_block_prep+0x380/0x640
+[  337.877375] [<000000000075ecf4>] ext4_block_write_begin+0x294/0x480
+[  337.877382] [<00000000007625d8>] ext4_da_write_begin+0x158/0x300
+[  337.877389] [<00000000005b856c>] generic_perform_write+0x8c/0x240
+[  337.877399] [<000000000074aef0>] ext4_buffered_write_iter+0x50/0x120
+[  337.877406] [<00000000006954e0>] vfs_write+0x2a0/0x400
+[  337.877415] [<0000000000695784>] ksys_write+0x44/0xe0
+[  337.877421] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
+[  337.877433] ---[ end trace 0000000000000000 ]---
+[  339.153555] ------------[ cut here ]------------
+[  339.214459] WARNING: CPU: 0 PID: 895 at fs/ext4/extents_status.c:298 __e=
+s_find_extent_range+0x128/0x140
+[  339.338108] Modules linked in: sg sr_mod cdrom sym53c8xx tg3 libphy mdio=
+_bus
+[  339.430869] CPU: 0 UID: 0 PID: 895 Comm: apt Tainted: G        W        =
+   6.16.0+ #33 VOLUNTARY
+[  339.430880] Tainted: [W]=3DWARN
+[  339.430883] Call Trace:
+[  339.430886] [<000000000047286c>] __warn+0x10c/0x120
+[  339.430894] [<0000000000472910>] warn_slowpath_fmt+0x90/0x120
+[  339.430900] [<0000000000748988>] __es_find_extent_range+0x128/0x140
+[  339.430907] [<00000000007490f0>] ext4_es_find_extent_range+0x50/0x100
+[  339.430915] [<0000000000742a1c>] ext4_ext_map_blocks+0x7fc/0x22a0
+[  339.430921] [<00000000007578d0>] ext4_map_query_blocks+0x30/0x2a0
+[  339.430931] [<00000000007597d4>] ext4_da_get_block_prep+0x4b4/0x640
+[  339.430940] [<000000000075ecf4>] ext4_block_write_begin+0x294/0x480
+[  339.430948] [<00000000007625d8>] ext4_da_write_begin+0x158/0x300
+[  339.430954] [<00000000005b856c>] generic_perform_write+0x8c/0x240
+[  339.430964] [<000000000074aef0>] ext4_buffered_write_iter+0x50/0x120
+[  339.430971] [<00000000006954e0>] vfs_write+0x2a0/0x400
+[  339.430979] [<0000000000695784>] ksys_write+0x44/0xe0
+[  339.430985] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
+[  339.430996] ---[ end trace 0000000000000000 ]---
+
+So, I guess while your patch may fix HugeTLB support, there is still a bug =
+on sun4u with THP
+which needs to be addressed.
+
+Adrian
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
