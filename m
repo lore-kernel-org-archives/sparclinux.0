@@ -1,193 +1,183 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 439C22C3745;
-	Sun, 10 Aug 2025 22:20:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E00CF2E403
+	for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 08:20:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754864427; cv=none; b=Q7GafIwdxu8hYaW4dbhYjlsFl6WsNqsAJIoM4xfNo+Us47KsdiYPflr9Az5BlJ/4fi6f4DW60ZhjHon1ZHQShHDnLvQUzfRCJmZ2z/W9tmMYIAXZU458gj00TL/onc7lgkd7UDGSzPiptz0J3R5aNR5SVBPU/CPJUoNpxM85xSw=
+	t=1754900418; cv=none; b=rwaMpAcxGy+A7SZDZYtIc7y/iG/9FK6208QXPdQ/VixliI2yDz/tU8gOTOzOSDYRKIegWy+nTGnjDBHqJjUa0VRPlt6OHCKwHTlSYkmzx7+B4dHdQHt/2PCPOy7aC6yq+tJn80zKJp2wIigvnpvbejhRAIjPeJYHfbGR2KfuAIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754864427; c=relaxed/simple;
-	bh=Npiszttg3MxdsmYdIUoXlbDZtJa6G6tHOGzIGAbEFKE=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ECtu78dZz5ZPPT7hKC2QB+Ckmd86n+pQmEY7tavwUR0mDfFoar31ICCh+m1NeONnPKOPXyYRkspU7BX/kw4S7HHLL4NjmH8UMj2M9icpKIS0ZbPsaoiTHtT8Rwd+JL16OFFNUkVP3lFMv47ncwahzWIeYObTxDhA6vueXeZlixU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=c+k33BbH; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1754900418; c=relaxed/simple;
+	bh=ShksK8LFzoYLyrebpTx4xYUWaFAc0Qhb+cPc6re2V4M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CREiP3llHNmV3lvRnTi1+JIiMf6ENGcOdMgLRxFeyTIUJ1STQhq62dB4hQhQp/zYgGsIWI2yAqL2cnQldC+6T730jsUuynjiNK4bkmEM5XPrjUF8KPeI7vavdVkpEHcEf/SEnjgoHEHAWASLApl95VI9Tl4eIgr92LrBKgTbVd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aw+yhrjd; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="c+k33BbH"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=5kwrvvdUBPlIjzHfmvkp9awYUk38GQQrwActREjbtBk=; t=1754864424;
-	x=1755469224; b=c+k33BbHAmUmhLJX3tYbE6WliBl+0t0FCYvmcaY4oOhL1PqI0eLQd7MnQMKUV
-	azFydn4DZJyhimhDXcMcrH55ulQSODXOzg8PiKCqv9n90WGv+upHe1TcGkl2opSWKmlx80MXMKl4U
-	a2x+tkXiMtdoAcsuo+rHOVC+5nPMW9TE/3ffN+QZlfzc2h6xFov9ZMUhSEg/G5Hl4G98qBUhVhXNu
-	vyRkqtQeECHBq8O/mBQVUgR0IwO2QsuuuwjAjnMfgTmzpQk3HvrONcW1YVN1Dsxkf3+IlkPsFfzsH
-	0sPrwHPYHuXp4oJsZyveQ+CH5+blC13G5scqnRvrRYEa/V1qsw==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1ulEOq-00000003Uhn-1Exc; Mon, 11 Aug 2025 00:20:20 +0200
-Received: from p57bd96d0.dip0.t-ipconnect.de ([87.189.150.208] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1ulEOq-00000000QWm-0Ftm; Mon, 11 Aug 2025 00:20:20 +0200
-Message-ID: <2bcb018c8b237f7ab2356f4459e14ae81a6fec8b.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH] sparc64: fix hugetlb for sun4u
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Anthony Yznaga <anthony.yznaga@oracle.com>, sparclinux@vger.kernel.org, 
-	davem@davemloft.net, andreas@gaisler.com
-Cc: linux-kernel@vger.kernel.org, agordeev@linux.ibm.com, will@kernel.org, 
-	ryan.roberts@arm.com, david@redhat.com, osalvador@suse.de
-Date: Mon, 11 Aug 2025 00:20:18 +0200
-In-Reply-To: <b5b75976c94b7b46f86a5af4675a1a570aaf20cc.camel@physik.fu-berlin.de>
-References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
-						 <35f5ec4eda8a7dbeeb7df9ec0be5c0b062c509f7.camel@physik.fu-berlin.de>
-						 <7e1e9aa5-0529-4fb5-84fb-557b5cc1cd50@oracle.com>
-					 <38f4469f48e6d36fa92b445c8ecef7a440be43e6.camel@physik.fu-berlin.de>
-				 <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
-			 <fc1555550f7a9b3c9aa5fb651769cf41ed859c77.camel@physik.fu-berlin.de>
-		 <ff3d87634aedec28e7103f16a35031bfe86ca501.camel@physik.fu-berlin.de>
-	 <b5b75976c94b7b46f86a5af4675a1a570aaf20cc.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aw+yhrjd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1754900415;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=MO0GOEnqsUi00/HJp4tcv3myQ4l9wSODIZAoAGm0jMk=;
+	b=aw+yhrjdISxg3TR7hseRE3oT6Y6+Ov+Ktrzh/u7EcLwc8bcHUKoJ/D6FPz1dD6JTlOVigP
+	eb8iFaTl/+S/TeVhzD6nhM/IIw8M7oZ+QJmXLGo0fMMpYN6WCZnK+Z+zCnxY9hIsTzGxLq
+	nP6vz4+XDmiBa9zxLrndTUx/M6yJlNc=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-299-NPv-KHZnMVGbOHNTmCpPCw-1; Mon, 11 Aug 2025 04:20:14 -0400
+X-MC-Unique: NPv-KHZnMVGbOHNTmCpPCw-1
+X-Mimecast-MFC-AGG-ID: NPv-KHZnMVGbOHNTmCpPCw_1754900413
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-459d5f50a07so23596115e9.3
+        for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 01:20:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754900413; x=1755505213;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=MO0GOEnqsUi00/HJp4tcv3myQ4l9wSODIZAoAGm0jMk=;
+        b=DXwLgXZrF2s7S+pDDvghgItA9gEw8zUiJxEACTFTFjvaZU3swIbQFhsj7tMFUv27Bm
+         t4mcCeGJhjBOpN8kySCgwv8oYQJVS+RrNUxIfX5c/TA8gVsJvWBU8N3jGHcCMZlKgTut
+         LuFXXyyZAkb0zmbruJC510aY54kp1PxOBFiGLd1eatbL/Mq9/V5ZfPkLxWhyED8a0WZT
+         thDPn2qGDTlxfaPNjeOrknPA3Eu6xpN0ccsKygFFw/1BEKMElA913fQN8BOeeVt6jQG9
+         XfjEr+ojRKkyfOB90kjK5Cg3ZV1/lSP0SR8evtAZ2L/4CKSP+USuf3z3Qa/1K8ctEnMX
+         GqhA==
+X-Forwarded-Encrypted: i=1; AJvYcCU/0x+//h/O4ouscm6xEuYqi2sFVL5ckmBMRaDJq+EScdp13h2vaf3O2Gs/tR0HvXaqgijrM4qzbTwc@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz1eZ7JfjVR9a9EEIb26KAxkzJLiKSlnEMJqAshbDLSjmT4sOtq
+	R8O3WVofGmxEfMHrNoSI7pcjU7RtBjp1kZPxZOksbKOFVWtrk4aNW/ZNrJVavzJ4PN1LFAXGaAP
+	+898M0uL0vUmaq85OoVgEs9Y+yBrWaDEDrHRJxth64X9soo+MouGjdGjr9oCBFGY=
+X-Gm-Gg: ASbGncsnZN9QoLgjpnksv1cMuB7viH1WaMk1Xj3K82gDs7i9rM2xY6L3zpQq3b+AJdx
+	ykDl818irumrew6FVeCxH55k6qmmgrNWjafKYsBZz9WZQoFtraSshzRjq/QP3Uyy48KC2XZvg85
+	PRgrR6h5Q69yMuV+tEbg1Fui/0sxIht/z/do1uDgIZVh5/4iMtWYpanuQ2NR0T39wmQVk67Lnho
+	eDTe9/TIJQNq+fII0F5fkkUl+v8zs0pmQ+IU/8htXrEb0MlKVNp4dGDT2NIRp4EHWlSAuikOW7x
+	I7z8Ehf8bRTUUDNYXVinUpAgbtpuyoZb407Nr7SR4p2U577ePvIG0wsbWjwvlrs3s/x11TrTkqG
+	z+FyV5nK+/ZlQDczX7YYRQwGqrBiQcwfWCDAGFbhq6VeNkfd7b1wUWl9OfucwdGDdZiI=
+X-Received: by 2002:a05:600c:3589:b0:456:24aa:958e with SMTP id 5b1f17b1804b1-459f4e9e4c9mr108728055e9.0.1754900412907;
+        Mon, 11 Aug 2025 01:20:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFhap84eMeBm3c9wHG7W04/VJ3z05W3bAuXpSTfnt7XXnx2D6Q+1WZFV+rDMQrb7QHIlbcnsg==
+X-Received: by 2002:a05:600c:3589:b0:456:24aa:958e with SMTP id 5b1f17b1804b1-459f4e9e4c9mr108727745e9.0.1754900412473;
+        Mon, 11 Aug 2025 01:20:12 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f06:a600:a397:de1d:2f8b:b66f? (p200300d82f06a600a397de1d2f8bb66f.dip0.t-ipconnect.de. [2003:d8:2f06:a600:a397:de1d:2f8b:b66f])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-459e5869cccsm266006715e9.17.2025.08.11.01.20.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 11 Aug 2025 01:20:11 -0700 (PDT)
+Message-ID: <96992842-f576-4e19-afcb-7455452fe506@redhat.com>
+Date: Mon, 11 Aug 2025 10:20:10 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc64: fix hugetlb for sun4u
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Anthony Yznaga <anthony.yznaga@oracle.com>, sparclinux@vger.kernel.org,
+ davem@davemloft.net, andreas@gaisler.com
+Cc: linux-kernel@vger.kernel.org, agordeev@linux.ibm.com, will@kernel.org,
+ ryan.roberts@arm.com, osalvador@suse.de
+References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
+ <35f5ec4eda8a7dbeeb7df9ec0be5c0b062c509f7.camel@physik.fu-berlin.de>
+ <7e1e9aa5-0529-4fb5-84fb-557b5cc1cd50@oracle.com>
+ <38f4469f48e6d36fa92b445c8ecef7a440be43e6.camel@physik.fu-berlin.de>
+ <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
+ dBrn+lhhOYjjNefFQou6478faXE6o2AhmebqT4KiQoUQFV4R7y1KMEKoSyy8hQaK1umALTdL
+ QZLQMzNE74ap+GDK0wnacPQFpcG1AE9RMq3aeErY5tujekBS32jfC/7AnH7I0v1v1TbbK3Gp
+ XNeiN4QroO+5qaSr0ID2sz5jtBLRb15RMre27E1ImpaIv2Jw8NJgW0k/D1RyKCwaTsgRdwuK
+ Kx/Y91XuSBdz0uOyU/S8kM1+ag0wvsGlpBVxRR/xw/E8M7TEwuCZQArqqTCmkG6HGcXFT0V9
+ PXFNNgV5jXMQRwU0O/ztJIQqsE5LsUomE//bLwzj9IVsaQpKDqW6TAPjcdBDPLHvriq7kGjt
+ WhVhdl0qEYB8lkBEU7V2Yb+SYhmhpDrti9Fq1EsmhiHSkxJcGREoMK/63r9WLZYI3+4W2rAc
+ UucZa4OT27U5ZISjNg3Ev0rxU5UH2/pT4wJCfxwocmqaRr6UYmrtZmND89X0KigoFD/XSeVv
+ jwBRNjPAubK9/k5NoRrYqztM9W6sJqrH8+UWZ1Idd/DdmogJh0gNC0+N42Za9yBRURfIdKSb
+ B3JfpUqcWwE7vUaYrHG1nw54pLUoPG6sAA7Mehl3nd4pZUALHwARAQABzSREYXZpZCBIaWxk
+ ZW5icmFuZCA8ZGF2aWRAcmVkaGF0LmNvbT7CwZgEEwEIAEICGwMGCwkIBwMCBhUIAgkKCwQW
+ AgMBAh4BAheAAhkBFiEEG9nKrXNcTDpGDfzKTd4Q9wD/g1oFAmgsLPQFCRvGjuMACgkQTd4Q
+ 9wD/g1o0bxAAqYC7gTyGj5rZwvy1VesF6YoQncH0yI79lvXUYOX+Nngko4v4dTlOQvrd/vhb
+ 02e9FtpA1CxgwdgIPFKIuXvdSyXAp0xXuIuRPQYbgNriQFkaBlHe9mSf8O09J3SCVa/5ezKM
+ OLW/OONSV/Fr2VI1wxAYj3/Rb+U6rpzqIQ3Uh/5Rjmla6pTl7Z9/o1zKlVOX1SxVGSrlXhqt
+ kwdbjdj/csSzoAbUF/duDuhyEl11/xStm/lBMzVuf3ZhV5SSgLAflLBo4l6mR5RolpPv5wad
+ GpYS/hm7HsmEA0PBAPNb5DvZQ7vNaX23FlgylSXyv72UVsObHsu6pT4sfoxvJ5nJxvzGi69U
+ s1uryvlAfS6E+D5ULrV35taTwSpcBAh0/RqRbV0mTc57vvAoXofBDcs3Z30IReFS34QSpjvl
+ Hxbe7itHGuuhEVM1qmq2U72ezOQ7MzADbwCtn+yGeISQqeFn9QMAZVAkXsc9Wp0SW/WQKb76
+ FkSRalBZcc2vXM0VqhFVzTb6iNqYXqVKyuPKwhBunhTt6XnIfhpRgqveCPNIasSX05VQR6/a
+ OBHZX3seTikp7A1z9iZIsdtJxB88dGkpeMj6qJ5RLzUsPUVPodEcz1B5aTEbYK6428H8MeLq
+ NFPwmknOlDzQNC6RND8Ez7YEhzqvw7263MojcmmPcLelYbfOwU0EVcufkQEQAOfX3n0g0fZz
+ Bgm/S2zF/kxQKCEKP8ID+Vz8sy2GpDvveBq4H2Y34XWsT1zLJdvqPI4af4ZSMxuerWjXbVWb
+ T6d4odQIG0fKx4F8NccDqbgHeZRNajXeeJ3R7gAzvWvQNLz4piHrO/B4tf8svmRBL0ZB5P5A
+ 2uhdwLU3NZuK22zpNn4is87BPWF8HhY0L5fafgDMOqnf4guJVJPYNPhUFzXUbPqOKOkL8ojk
+ CXxkOFHAbjstSK5Ca3fKquY3rdX3DNo+EL7FvAiw1mUtS+5GeYE+RMnDCsVFm/C7kY8c2d0G
+ NWkB9pJM5+mnIoFNxy7YBcldYATVeOHoY4LyaUWNnAvFYWp08dHWfZo9WCiJMuTfgtH9tc75
+ 7QanMVdPt6fDK8UUXIBLQ2TWr/sQKE9xtFuEmoQGlE1l6bGaDnnMLcYu+Asp3kDT0w4zYGsx
+ 5r6XQVRH4+5N6eHZiaeYtFOujp5n+pjBaQK7wUUjDilPQ5QMzIuCL4YjVoylWiBNknvQWBXS
+ lQCWmavOT9sttGQXdPCC5ynI+1ymZC1ORZKANLnRAb0NH/UCzcsstw2TAkFnMEbo9Zu9w7Kv
+ AxBQXWeXhJI9XQssfrf4Gusdqx8nPEpfOqCtbbwJMATbHyqLt7/oz/5deGuwxgb65pWIzufa
+ N7eop7uh+6bezi+rugUI+w6DABEBAAHCwXwEGAEIACYCGwwWIQQb2cqtc1xMOkYN/MpN3hD3
+ AP+DWgUCaCwtJQUJG8aPFAAKCRBN3hD3AP+DWlDnD/4k2TW+HyOOOePVm23F5HOhNNd7nNv3
+ Vq2cLcW1DteHUdxMO0X+zqrKDHI5hgnE/E2QH9jyV8mB8l/ndElobciaJcbl1cM43vVzPIWn
+ 01vW62oxUNtEvzLLxGLPTrnMxWdZgxr7ACCWKUnMGE2E8eca0cT2pnIJoQRz242xqe/nYxBB
+ /BAK+dsxHIfcQzl88G83oaO7vb7s/cWMYRKOg+WIgp0MJ8DO2IU5JmUtyJB+V3YzzM4cMic3
+ bNn8nHjTWw/9+QQ5vg3TXHZ5XMu9mtfw2La3bHJ6AybL0DvEkdGxk6YHqJVEukciLMWDWqQQ
+ RtbBhqcprgUxipNvdn9KwNpGciM+hNtM9kf9gt0fjv79l/FiSw6KbCPX9b636GzgNy0Ev2UV
+ m00EtcpRXXMlEpbP4V947ufWVK2Mz7RFUfU4+ETDd1scMQDHzrXItryHLZWhopPI4Z+ps0rB
+ CQHfSpl+wG4XbJJu1D8/Ww3FsO42TMFrNr2/cmqwuUZ0a0uxrpkNYrsGjkEu7a+9MheyTzcm
+ vyU2knz5/stkTN2LKz5REqOe24oRnypjpAfaoxRYXs+F8wml519InWlwCra49IUSxD1hXPxO
+ WBe5lqcozu9LpNDH/brVSzHCSb7vjNGvvSVESDuoiHK8gNlf0v+epy5WYd7CGAgODPvDShGN
+ g3eXuA==
+Organization: Red Hat
+In-Reply-To: <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi,
+On 09.08.25 08:23, John Paul Adrian Glaubitz wrote:
+> Hi Anthony,
+> 
+> On Sat, 2025-08-09 at 00:37 +0200, John Paul Adrian Glaubitz wrote:
+>>> Maybe try enabling CONFIG_DEBUG_VM_IRQSOFF, CONFIG_DEBUG_VM, and perhaps
+>>> CONFIG_DEBUG_VM_PGFLAGS. That might help detect a problem closer to the
+>>> source. You can also try adding transparent_hugepage=never to the kernel
+>>> boot line to see if compiling in THP support but not using it is okay.
+>>
+>> OK, I will try that. But not today anymore. It's half past midnight now here in Germany
+>> and I was debugging this issue almost all day long. I'm glad to have finally been able
+>> to track this down to THP support being enabled.
+>>
+>> Maybe you can try whether you can reproduce this in QEMU as well.
+> 
+> OK, first data point: Setting CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y causes the backtrace during
+> boot to disappear with CONFIG_TRANSPARENT_HUGEPAGE=y. However, it still disappears later when
+> running "apt update && apt -y upgrade" again:
 
-On Sun, 2025-08-10 at 11:52 +0200, John Paul Adrian Glaubitz wrote:
-> On Sat, 2025-08-09 at 08:42 +0200, John Paul Adrian Glaubitz wrote:
-> > Let me know if you have more suggestions to test. I can also provide yo=
-u with full
-> > access to this Netra 240 if you send me your public SSH key in a privat=
-e mail.
->=20
-> I have narrowed it down to a regression between v6.3 and v6.4 now.
->=20
-> The bug can be reproduced with the sparc64_defconfig on a Sun Netra 240 b=
-y setting
-> CONFIG_TRANSPARENT_HUGEPAGE=3Dy and CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=3D=
-y. When testing
-> on a modern systemd-based distribution, it's also necessary to enable CGr=
-oup support
-> as well as enable support for Sun partition tables with CONFIG_SUN_PARTIT=
-ION=3Dy.
->=20
-> Then it should be a matter of bisecting the commits between v6.3 and v6.4=
-.
->=20
-> I will do that within the next days as I'm currently a bit busy with othe=
-r stuff.
+Just to give some context: (m)THPs in file systems will get used 
+independently of CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y.
 
-OK, it turns out it's reproducible on older kernels (but not as old as 4.19=
-) as well.
-It's just much harder to trigger. I found a reproducer though and will try =
-to find
-the problematic commit next.
+So CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y primarily only controls usage of 
+(m)THPs for anonymous memory, but not in the pagecache.
 
-[50686.808389] BUG: Bad page map in process sshd-session  pte:00000002 pmd:=
-01448000
-[50686.905701] addr:00000100000a0000 vm_flags:00000075 anon_vma:00000000000=
-00000 mapping:fff000003c8ca4f8 index:50
-[50687.038425] file:sshd-session fault:filemap_fault mmap:ext4_file_mmap [e=
-xt4] read_folio:ext4_read_folio [ext4]
-[50687.170246] CPU: 0 PID: 37883 Comm: sshd-session Not tainted 6.3.0-2-spa=
-rc64 #1  Debian 6.3.11-1
-[50687.285751] Call Trace:
-[50687.317771] [<0000000000d660b0>] dump_stack+0x8/0x18
-[50687.382976] [<000000000064fd1c>] print_bad_pte+0x15c/0x200
-[50687.455024] [<0000000000650f84>] unmap_page_range+0x3e4/0xbe0
-[50687.530513] [<0000000000651cd8>] unmap_vmas+0xf8/0x1a0
-[50687.597993] [<000000000065e674>] exit_mmap+0xb4/0x360
-[50687.664331] [<00000000004647dc>] __mmput+0x3c/0x120
-[50687.728380] [<00000000004648f4>] mmput+0x34/0x60
-[50687.788999] [<000000000046b510>] do_exit+0x250/0xa00
-[50687.854194] [<000000000046bea4>] do_group_exit+0x24/0xa0
-[50687.923962] [<000000000046bf3c>] sys_exit_group+0x1c/0x40
-[50687.994875] [<0000000000406174>] linux_sparc_syscall+0x34/0x44
-[50688.071518] Disabling lock debugging due to kernel taint
-[50689.484196] Unable to handle kernel paging request at virtual address 00=
-0c000002400000
-[50689.588368] tsk->{mm,active_mm}->context =3D 00000000001815a6
-[50689.661677] tsk->{mm,active_mm}->pgd =3D fff000000ae60000
-[50689.730374]               \|/ ____ \|/
-                             "@'/ .. \`@"
-                             /_| \__/ |_\
-                                \__U_/
-[50689.923679] sshd-session(37883): Oops [#1]
-[50689.977420] CPU: 0 PID: 37883 Comm: sshd-session Tainted: G    B        =
-      6.3.0-2-sparc64 #1  Debian 6.3.11-1
-[50690.112384] TSTATE: 0000008811001607 TPC: 00000000006510cc TNPC: 0000000=
-0006510d0 Y: 00000000    Tainted: G    B            =20
-[50690.261089] TPC: <unmap_page_range+0x52c/0xbe0>
-[50690.320650] g0: 00000000000004a8 g1: 000c000000000000 g2: 00000000000088=
-00 g3: ffffffffffffffff
-[50690.435029] g4: fff0000001ef1280 g5: 0000000031200000 g6: fff0000001f040=
-00 g7: ffffffffffffffff
-[50690.549403] o0: 000c000002400a20 o1: 00000100000a4000 o2: 00000001000482=
-90 o3: 0000000000000000
-[50690.663779] o4: 0000000000000001 o5: 000000000000000d sp: fff0000001f06f=
-61 ret_pc: 0000010000000000
-[50690.782728] RPC: <0x10000000000>
-[50690.825039] l0: 0000000100048290 l1: 000c000002400a20 l2: 00000100000a60=
-00 l3: fff0000000950000
-[50690.939419] l4: 00000100000fc000 l5: fff000000196dc20 l6: fff0000001f079=
-38 l7: 00000000010f6fd0
-[50691.053798] i0: fff0000001f07aa8 i1: 0000000000002000 i2: 00000100000a40=
-00 i3: fff0000008311b00
-[50691.168170] i4: 0000000000100000 i5: fff0000001448290 i6: fff0000001f070=
-81 i7: 0000000000651cd8
-[50691.282546] I7: <unmap_vmas+0xf8/0x1a0>
-[50691.332867] Call Trace:
-[50691.364891] [<0000000000651cd8>] unmap_vmas+0xf8/0x1a0
-[50691.432371] [<000000000065e674>] exit_mmap+0xb4/0x360
-[50691.498708] [<00000000004647dc>] __mmput+0x3c/0x120
-[50691.562759] [<00000000004648f4>] mmput+0x34/0x60
-[50691.623376] [<000000000046b510>] do_exit+0x250/0xa00
-[50691.688573] [<000000000046bea4>] do_group_exit+0x24/0xa0
-[50691.758340] [<000000000046bf3c>] sys_exit_group+0x1c/0x40
-[50691.829256] [<0000000000406174>] linux_sparc_syscall+0x34/0x44
-[50691.905886] Caller[0000000000651cd8]: unmap_vmas+0xf8/0x1a0
-[50691.979085] Caller[000000000065e674]: exit_mmap+0xb4/0x360
-[50692.051141] Caller[00000000004647dc]: __mmput+0x3c/0x120
-[50692.120911] Caller[00000000004648f4]: mmput+0x34/0x60
-[50692.187246] Caller[000000000046b510]: do_exit+0x250/0xa00
-[50692.258160] Caller[000000000046bea4]: do_group_exit+0x24/0xa0
-[50692.333645] Caller[000000000046bf3c]: sys_exit_group+0x1c/0x40
-[50692.410280] Caller[0000000000406174]: linux_sparc_syscall+0x34/0x44
-[50692.492629] Caller[fff0000102ad4a74]: 0xfff0000102ad4a74
-[50692.562397] Instruction DUMP:
-[50692.562399]  ce762010=20
-[50692.601281]  02f47fa8=20
-[50692.632163]  c4362018=20
-[50692.663044] <c45c6008>
-[50692.693926]  86100011=20
-[50692.724808]  8e08a001=20
-[50692.755689]  8400bfff=20
-[50692.786569]  8779d402=20
-[50692.817451]  c458e018=20
 
-[50692.898656] Fixing recursive fault but reboot is needed!
+> 
+> [  170.472743] kernel BUG at fs/ext4/inode.c:1174!
+> [  170.532313]               \|/ ____ \|/
+>                               "@'/ .. \`@"
+>                               /_| \__/ |_\
+>                                  \__U_/
 
-Adrian
+Is this the
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+BUG_ON(to > folio_size(folio));
+
+?
+
+-- 
+Cheers,
+
+David / dhildenb
+
