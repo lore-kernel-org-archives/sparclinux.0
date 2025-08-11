@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E00CF2E403
-	for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 08:20:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC2B1F03D9
+	for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 08:25:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754900418; cv=none; b=rwaMpAcxGy+A7SZDZYtIc7y/iG/9FK6208QXPdQ/VixliI2yDz/tU8gOTOzOSDYRKIegWy+nTGnjDBHqJjUa0VRPlt6OHCKwHTlSYkmzx7+B4dHdQHt/2PCPOy7aC6yq+tJn80zKJp2wIigvnpvbejhRAIjPeJYHfbGR2KfuAIc=
+	t=1754900713; cv=none; b=ey1VrE78LR62EjioWUUEHHJgZOVWPztkr5yRduDYbdDjxzFFNaAwPm54KZ5Mpqpl7dbHrDP28iDdEX2suqf2gz8NQ6VU+zpq3kaOcyb8+g5W2G+BRlojSJ2LSi5LzQaRcvF5rqm1lPZkMx7h4g0e6qrzzb8HgV12EDZZvTpkXyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754900418; c=relaxed/simple;
-	bh=ShksK8LFzoYLyrebpTx4xYUWaFAc0Qhb+cPc6re2V4M=;
+	s=arc-20240116; t=1754900713; c=relaxed/simple;
+	bh=J6zF7y75O/oD8aPIloTQuFggdm3885HLRZTTt5DlRmk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CREiP3llHNmV3lvRnTi1+JIiMf6ENGcOdMgLRxFeyTIUJ1STQhq62dB4hQhQp/zYgGsIWI2yAqL2cnQldC+6T730jsUuynjiNK4bkmEM5XPrjUF8KPeI7vavdVkpEHcEf/SEnjgoHEHAWASLApl95VI9Tl4eIgr92LrBKgTbVd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aw+yhrjd; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=hcaqOcoe+AYl/XS1OlfwnSaEH6Pp626R2xObos2fltZ2DlnOrIf2cT9pvayjdH43a/XY0Mu83RnfYAjyOG271ettlQAnjOhKqBK2YQipBwy8MtR3i0WsEvlS4LpBiN04lbBuuRd+eAtFa1fNTaZAnLIepcKihP6oKSdjIzoFYPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=D+5H7uUE; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aw+yhrjd"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="D+5H7uUE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1754900415;
+	s=mimecast20190719; t=1754900710;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=MO0GOEnqsUi00/HJp4tcv3myQ4l9wSODIZAoAGm0jMk=;
-	b=aw+yhrjdISxg3TR7hseRE3oT6Y6+Ov+Ktrzh/u7EcLwc8bcHUKoJ/D6FPz1dD6JTlOVigP
-	eb8iFaTl/+S/TeVhzD6nhM/IIw8M7oZ+QJmXLGo0fMMpYN6WCZnK+Z+zCnxY9hIsTzGxLq
-	nP6vz4+XDmiBa9zxLrndTUx/M6yJlNc=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=n6C9X31/Hy+tBgbHhW3cXx2Ui62iF3UNJy/wooh4xnM=;
+	b=D+5H7uUEuJez3RKqCqhDBEPxW3nK2L1g4aMXyxaLTGFfx7svXyDmsu9w/ftxLZN+tqkEGw
+	Pf086EYUo7p7MM+DX1TxYSTjuNkiENXgchEMQDYd21zGPxnaHpx9G8w5+QVpFxDUXNNhtJ
+	wY/UVnjRSSqHWsxUXX8r+5K5eXKYMsU=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-299-NPv-KHZnMVGbOHNTmCpPCw-1; Mon, 11 Aug 2025 04:20:14 -0400
-X-MC-Unique: NPv-KHZnMVGbOHNTmCpPCw-1
-X-Mimecast-MFC-AGG-ID: NPv-KHZnMVGbOHNTmCpPCw_1754900413
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-459d5f50a07so23596115e9.3
-        for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 01:20:13 -0700 (PDT)
+ us-mta-222-3-EQHaaWMfOzKKNE7qN1xw-1; Mon, 11 Aug 2025 04:25:06 -0400
+X-MC-Unique: 3-EQHaaWMfOzKKNE7qN1xw-1
+X-Mimecast-MFC-AGG-ID: 3-EQHaaWMfOzKKNE7qN1xw_1754900705
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-459d5f50a07so23621605e9.3
+        for <sparclinux@vger.kernel.org>; Mon, 11 Aug 2025 01:25:06 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754900413; x=1755505213;
+        d=1e100.net; s=20230601; t=1754900705; x=1755505505;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=MO0GOEnqsUi00/HJp4tcv3myQ4l9wSODIZAoAGm0jMk=;
-        b=DXwLgXZrF2s7S+pDDvghgItA9gEw8zUiJxEACTFTFjvaZU3swIbQFhsj7tMFUv27Bm
-         t4mcCeGJhjBOpN8kySCgwv8oYQJVS+RrNUxIfX5c/TA8gVsJvWBU8N3jGHcCMZlKgTut
-         LuFXXyyZAkb0zmbruJC510aY54kp1PxOBFiGLd1eatbL/Mq9/V5ZfPkLxWhyED8a0WZT
-         thDPn2qGDTlxfaPNjeOrknPA3Eu6xpN0ccsKygFFw/1BEKMElA913fQN8BOeeVt6jQG9
-         XfjEr+ojRKkyfOB90kjK5Cg3ZV1/lSP0SR8evtAZ2L/4CKSP+USuf3z3Qa/1K8ctEnMX
-         GqhA==
-X-Forwarded-Encrypted: i=1; AJvYcCU/0x+//h/O4ouscm6xEuYqi2sFVL5ckmBMRaDJq+EScdp13h2vaf3O2Gs/tR0HvXaqgijrM4qzbTwc@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz1eZ7JfjVR9a9EEIb26KAxkzJLiKSlnEMJqAshbDLSjmT4sOtq
-	R8O3WVofGmxEfMHrNoSI7pcjU7RtBjp1kZPxZOksbKOFVWtrk4aNW/ZNrJVavzJ4PN1LFAXGaAP
-	+898M0uL0vUmaq85OoVgEs9Y+yBrWaDEDrHRJxth64X9soo+MouGjdGjr9oCBFGY=
-X-Gm-Gg: ASbGncsnZN9QoLgjpnksv1cMuB7viH1WaMk1Xj3K82gDs7i9rM2xY6L3zpQq3b+AJdx
-	ykDl818irumrew6FVeCxH55k6qmmgrNWjafKYsBZz9WZQoFtraSshzRjq/QP3Uyy48KC2XZvg85
-	PRgrR6h5Q69yMuV+tEbg1Fui/0sxIht/z/do1uDgIZVh5/4iMtWYpanuQ2NR0T39wmQVk67Lnho
-	eDTe9/TIJQNq+fII0F5fkkUl+v8zs0pmQ+IU/8htXrEb0MlKVNp4dGDT2NIRp4EHWlSAuikOW7x
-	I7z8Ehf8bRTUUDNYXVinUpAgbtpuyoZb407Nr7SR4p2U577ePvIG0wsbWjwvlrs3s/x11TrTkqG
-	z+FyV5nK+/ZlQDczX7YYRQwGqrBiQcwfWCDAGFbhq6VeNkfd7b1wUWl9OfucwdGDdZiI=
-X-Received: by 2002:a05:600c:3589:b0:456:24aa:958e with SMTP id 5b1f17b1804b1-459f4e9e4c9mr108728055e9.0.1754900412907;
-        Mon, 11 Aug 2025 01:20:12 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFhap84eMeBm3c9wHG7W04/VJ3z05W3bAuXpSTfnt7XXnx2D6Q+1WZFV+rDMQrb7QHIlbcnsg==
-X-Received: by 2002:a05:600c:3589:b0:456:24aa:958e with SMTP id 5b1f17b1804b1-459f4e9e4c9mr108727745e9.0.1754900412473;
-        Mon, 11 Aug 2025 01:20:12 -0700 (PDT)
+        bh=n6C9X31/Hy+tBgbHhW3cXx2Ui62iF3UNJy/wooh4xnM=;
+        b=UP7acUSHnNU870IpaeW5qEXjUs/cL4jIr4cCtpzs1DCWgtA87cEdWpA0Rcq8zwPkB/
+         Ie/DrhCFAPrmD3TBDOROxztkubTKvKoJs+bJU0/TanvQFJ6nqXSqP1ZY35kB7oC7Jq/i
+         C9p4kKFGzdP9KKYIria5dMEex7pqrXL21VeyjzytffkaIzqALCgLZYH/MjWDUmOZBXDD
+         iNEzrljboWsPexvvtmovu/KiTPBb/JVDK3lf40s8vPbr9F1xT0OqtLipiBxvqzHm1+Aj
+         JKMru22JR1gV455AITWnvVbGRetB5cqPcHPUWevD0KyKPdI+JozheBU/mg2idG3LnZoK
+         y/Fw==
+X-Forwarded-Encrypted: i=1; AJvYcCWfoxJKtmZN41C8hRVnKXTPfO02o0NafI9Yez5VAOD91PmDHSyu/kyNhCm1cBfpvN0fBPLQf+wCpve1@vger.kernel.org
+X-Gm-Message-State: AOJu0YwUqmjk+dBPlcjCKQ4jUzf8y0JPX+hrW4Ku0Z1DxNzW88yfBLNt
+	he5R1RN6y2ruf7YzhP5jWxttk20bN2Lly8u5QR3yuFK9uqw/uATbP3BXoCPOCrYlNF9VOnWADD0
+	OWihbFs5ispJ54LZwjrFy5IxN922WU+AENoPm2Si0eZqA+sfClxLcfioiZpg+tuQ=
+X-Gm-Gg: ASbGnct6yHPedeFOjMVB+TYdSrEUABxKgdzYy8LmdvBcxzXZIKJmxi3tvIMC8q8ZuLC
+	8oGg91tkhhGdHLi75FUM5ByKZjtJcgxEQUZkZDWWITZtlUnpFIbOtS+M75UbhmX8l+BOTUAg3CT
+	/sRA0jQVoPNPluNQXVLqlDbG5W9V/qahnPaN7D8sgOuiKtCQ0MgXIYjHykREyLv9za93XrBKSxc
+	0P9ynR5khaZ6+pGGsh88JQbCUHbudrOg8fnFkSGqLPD7t/cypUWeM9PqNfyOnQaZWkgYwv1sEN+
+	yQJGTpJTX3VPgsY/LS0pl5x1OKAAENaAFTLpl9U+v3uKcnEeR1wKRvDDjN49xpmgdkh8LssD74l
+	8v/H9/NJLrt1p4ccVuUsV6VxFS5+i2+mOwE+Ibfzw25Nw5jeVCZCZ5/lAOE0HGvz2v4U=
+X-Received: by 2002:a05:600c:4fc5:b0:458:bd31:2c35 with SMTP id 5b1f17b1804b1-459f4fafcccmr94005735e9.25.1754900705404;
+        Mon, 11 Aug 2025 01:25:05 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFydH1lC76H3QE18kdorihcpkKlLneA+rnw3oe62dpzyYtfZUXDgVzMZXii96GyI35IFYH2Vw==
+X-Received: by 2002:a05:600c:4fc5:b0:458:bd31:2c35 with SMTP id 5b1f17b1804b1-459f4fafcccmr94005435e9.25.1754900705010;
+        Mon, 11 Aug 2025 01:25:05 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f06:a600:a397:de1d:2f8b:b66f? (p200300d82f06a600a397de1d2f8bb66f.dip0.t-ipconnect.de. [2003:d8:2f06:a600:a397:de1d:2f8b:b66f])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-459e5869cccsm266006715e9.17.2025.08.11.01.20.11
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b79c3ac574sm39685760f8f.5.2025.08.11.01.25.04
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 11 Aug 2025 01:20:11 -0700 (PDT)
-Message-ID: <96992842-f576-4e19-afcb-7455452fe506@redhat.com>
-Date: Mon, 11 Aug 2025 10:20:10 +0200
+        Mon, 11 Aug 2025 01:25:04 -0700 (PDT)
+Message-ID: <f358f3ce-1140-4dd1-a1b8-379563c5f050@redhat.com>
+Date: Mon, 11 Aug 2025 10:25:03 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -86,6 +86,10 @@ References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
  <7e1e9aa5-0529-4fb5-84fb-557b5cc1cd50@oracle.com>
  <38f4469f48e6d36fa92b445c8ecef7a440be43e6.camel@physik.fu-berlin.de>
  <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
+ <fc1555550f7a9b3c9aa5fb651769cf41ed859c77.camel@physik.fu-berlin.de>
+ <ff3d87634aedec28e7103f16a35031bfe86ca501.camel@physik.fu-berlin.de>
+ <b5b75976c94b7b46f86a5af4675a1a570aaf20cc.camel@physik.fu-berlin.de>
+ <2bcb018c8b237f7ab2356f4459e14ae81a6fec8b.camel@physik.fu-berlin.de>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -133,48 +137,37 @@ Autocrypt: addr=david@redhat.com; keydata=
  WBe5lqcozu9LpNDH/brVSzHCSb7vjNGvvSVESDuoiHK8gNlf0v+epy5WYd7CGAgODPvDShGN
  g3eXuA==
 Organization: Red Hat
-In-Reply-To: <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
+In-Reply-To: <2bcb018c8b237f7ab2356f4459e14ae81a6fec8b.camel@physik.fu-berlin.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 09.08.25 08:23, John Paul Adrian Glaubitz wrote:
-> Hi Anthony,
+On 11.08.25 00:20, John Paul Adrian Glaubitz wrote:
+> Hi,
 > 
-> On Sat, 2025-08-09 at 00:37 +0200, John Paul Adrian Glaubitz wrote:
->>> Maybe try enabling CONFIG_DEBUG_VM_IRQSOFF, CONFIG_DEBUG_VM, and perhaps
->>> CONFIG_DEBUG_VM_PGFLAGS. That might help detect a problem closer to the
->>> source. You can also try adding transparent_hugepage=never to the kernel
->>> boot line to see if compiling in THP support but not using it is okay.
+> On Sun, 2025-08-10 at 11:52 +0200, John Paul Adrian Glaubitz wrote:
+>> On Sat, 2025-08-09 at 08:42 +0200, John Paul Adrian Glaubitz wrote:
+>>> Let me know if you have more suggestions to test. I can also provide you with full
+>>> access to this Netra 240 if you send me your public SSH key in a private mail.
 >>
->> OK, I will try that. But not today anymore. It's half past midnight now here in Germany
->> and I was debugging this issue almost all day long. I'm glad to have finally been able
->> to track this down to THP support being enabled.
+>> I have narrowed it down to a regression between v6.3 and v6.4 now.
 >>
->> Maybe you can try whether you can reproduce this in QEMU as well.
+>> The bug can be reproduced with the sparc64_defconfig on a Sun Netra 240 by setting
+>> CONFIG_TRANSPARENT_HUGEPAGE=y and CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y. When testing
+>> on a modern systemd-based distribution, it's also necessary to enable CGroup support
+>> as well as enable support for Sun partition tables with CONFIG_SUN_PARTITION=y.
+>>
+>> Then it should be a matter of bisecting the commits between v6.3 and v6.4.
+>>
+>> I will do that within the next days as I'm currently a bit busy with other stuff.
 > 
-> OK, first data point: Setting CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y causes the backtrace during
-> boot to disappear with CONFIG_TRANSPARENT_HUGEPAGE=y. However, it still disappears later when
-> running "apt update && apt -y upgrade" again:
+> OK, it turns out it's reproducible on older kernels (but not as old as 4.19) as well.
+> It's just much harder to trigger. I found a reproducer though and will try to find
+> the problematic commit next.
 
-Just to give some context: (m)THPs in file systems will get used 
-independently of CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y.
+ext4 support for large folios was added recently (6.16? not 100% sure).
 
-So CONFIG_TRANSPARENT_HUGEPAGE_NEVER=y primarily only controls usage of 
-(m)THPs for anonymous memory, but not in the pagecache.
-
-
-> 
-> [  170.472743] kernel BUG at fs/ext4/inode.c:1174!
-> [  170.532313]               \|/ ____ \|/
->                               "@'/ .. \`@"
->                               /_| \__/ |_\
->                                  \__U_/
-
-Is this the
-
-BUG_ON(to > folio_size(folio));
-
-?
+But below can indicate some ext4 issue with large folios. 
+(fault:filemap_fault mmap:ext4_file_mmap)
 
 -- 
 Cheers,
