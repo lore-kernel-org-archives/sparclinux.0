@@ -1,473 +1,398 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CA381E520B;
-	Tue, 12 Aug 2025 12:34:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755002100; cv=none; b=O/bmdBspubjtGNQVy0AYNK/OVmyVpEsfIiNojcg6rEezg/lWBMiiEYTLago8yWOrZqSRXJkkMjAHQgTwbtpvb8SnYrAOpjY6DQJmVKfGVbYqiEFCKDuvg/6qVxNgc3ir+aVmVYXKxrAjmZB1y7lY0cSVsBFw2JMqNZP5frQZR/s=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755002100; c=relaxed/simple;
-	bh=p6aPkAG0KYMqaebLsqPtRl9u+7KIFxJrlPHRMDfyeS4=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=VAlPKhlrjMrIleU8XJiP/B8VmhCJJIc5ikxlJ7o0swiikllePzyATH6kCatKkHErtJT5wTOckHhtGP7dQEdiS6hCUtuk41YGSvkBIZrzAvPGuw3MMSoCx0vCTm5Kk02VEuTAe4Ii4yjfbZq9uhEO4F9yq8qVWRbui/FBdPsn7/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=HIh/9xa0; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66CF92F5304;
+	Tue, 12 Aug 2025 15:48:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1755013694; cv=fail; b=IwDRMwRXGcoZttBTXEJqBx+W4WvHES+0TKBlYLIAwzju6cOIjDVOpU1RF7zCs69BTkoUa7E/I9tkv8jhW+P0ja0fKfrEraZfeA+k2pMhDpvBIWGw9O+3RPAfN0hxqaZBefWc8tJBTHWXQ/TrG5gaepDzcoYSKzl9uCPET45uY0I=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1755013694; c=relaxed/simple;
+	bh=/kcuBel8AfZ9uWg+I8mDEBGOWP1P87sR4rCymJDU5dU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Xspyocpssx8HaKCujJPsvxH0S3TvzoAKrXzR9YqrW56EE4RUFWapWvDRxxJm+vSRePDchNaGnFuGRAC6Yw2+qwkvwF2qzDcbgehAEJ5TpQ4oaIdM7rc12taHAjPZiIZuYyX8Yc6hfUaSnBMbDLSysupkhedSsIkBwcftydCt9oA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=RA4RA8Xz; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=zW/Ue0YC; arc=fail smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="HIh/9xa0"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=iFbwK0q5RrrcR1jQYMv8x+D/1rRiSdBorl789PCWyZE=; t=1755002096;
-	x=1755606896; b=HIh/9xa0NQvFmhX0Qr3dJglUpn436/6ToHrSMrdTlph1kNPHcfUrXTFTa4DwV
-	dquMCuI83Zg5O1n55CidLVEcMhR5ktYRtCy/dmrOnaHLrc4R0xZNOVcmMUwdxe/WWeHR9JUfmL1iN
-	1356P8cZzAUrI2zq12UIPyxhnNhL2klvPdgXFyGHeM5A/ndVSZTDO55eIWwNGw0sj9gxk7Rf8zvBF
-	g6XWimAVvxlc9bscifBit4cnWJekWrh8C/9Wl58cFzD7LtL3IfRf2vQJj6M8z/LM3z8mxEn1QBBC4
-	Is5CJPoHAzxqiFzuJ729Bw5G8BafqmoJrCKegHowNZpChRAHGQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1uloDO-00000000BiF-1GcP; Tue, 12 Aug 2025 14:34:54 +0200
-Received: from p57bd96d0.dip0.t-ipconnect.de ([87.189.150.208] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1uloDO-00000002pDN-08gD; Tue, 12 Aug 2025 14:34:54 +0200
-Message-ID: <e7a95bc7328b60cca385fb241bc4a7c68c4e2c9b.camel@physik.fu-berlin.de>
-Subject: Re: Found it - was: Re: [PATCH] sparc64: fix hugetlb for sun4u
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Anthony Yznaga <anthony.yznaga@oracle.com>, sparclinux@vger.kernel.org, 
-	davem@davemloft.net, andreas@gaisler.com
-Cc: linux-kernel@vger.kernel.org, agordeev@linux.ibm.com, will@kernel.org, 
-	ryan.roberts@arm.com, david@redhat.com, Oscar Salvador <osalvador@suse.de>
-Date: Tue, 12 Aug 2025 14:34:53 +0200
-In-Reply-To: <c50091bdbb0556ee74ec501381f1efc14a4e5929.camel@physik.fu-berlin.de>
-References: <20250716012446.10357-1-anthony.yznaga@oracle.com>
-									 <35f5ec4eda8a7dbeeb7df9ec0be5c0b062c509f7.camel@physik.fu-berlin.de>
-									 <7e1e9aa5-0529-4fb5-84fb-557b5cc1cd50@oracle.com>
-								 <38f4469f48e6d36fa92b445c8ecef7a440be43e6.camel@physik.fu-berlin.de>
-							 <b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de>
-						 <fc1555550f7a9b3c9aa5fb651769cf41ed859c77.camel@physik.fu-berlin.de>
-					 <ff3d87634aedec28e7103f16a35031bfe86ca501.camel@physik.fu-berlin.de>
-				 <b5b75976c94b7b46f86a5af4675a1a570aaf20cc.camel@physik.fu-berlin.de>
-			 <2bcb018c8b237f7ab2356f4459e14ae81a6fec8b.camel@physik.fu-berlin.de>
-		 <2daaa0648e9bcca42bf7a76d90580725f44fb4bc.camel@physik.fu-berlin.de>
-	 <c50091bdbb0556ee74ec501381f1efc14a4e5929.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="RA4RA8Xz";
+	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="zW/Ue0YC"
+Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 57CDC09Y015993;
+	Tue, 12 Aug 2025 15:47:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=
+	corp-2025-04-25; bh=RBhLiraoB2T2DKQeMEXAqouspW3wBSInMRRtPVdA47o=; b=
+	RA4RA8Xz1DPmDro2SbUpz5hbfJS03bDfzLvi0tcszzvrpGEhsc1Kv9S/QyyNYyRC
+	CM9M0Zk/sp2PpC/EttF+KUqU1yLkKmPTVaN7CDHfkmUT4z7G3pSokLAWsrvIG2id
+	RiBTWQvybJYfAAQNAqr9iOOsWksbUjNVotXXwr/5oX7qYFERmj/aWIODVEdko/Hf
+	bKsgpShwpkbD/6TBdsmWgtIpoQJHYpE6hrHgIAihsBv7YQpYQMEVlmy/BAD6rNjd
+	sAnejYGU5ZRYn8ZUIvruLT7uhfUksLa+Rws2TF2xIsy2ZRKwI4escgk4U8uZPk9i
+	Vtm9/OZDCiUNyLnXGV4Uzg==
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 48dxcf53kt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 12 Aug 2025 15:47:33 +0000 (GMT)
+Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 57CEfKQF032734;
+	Tue, 12 Aug 2025 15:47:32 GMT
+Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12on2042.outbound.protection.outlook.com [40.107.244.42])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 48dvsa54g9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 12 Aug 2025 15:47:32 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=vGWrssWz9zJZjOlgb2cNWSXdiaVl6XpyN58QvQd+FkSRiStnv/X1qlxwsTA2o2DszBZTHgXbTRfhKjLrswzsg8tg5x5+i5kRX1SbaMyzqrB+doxQhm9Rot0VRl1JZ6SNbhB8KrmRaQM6QnVOvaDIcZlbvzSeENOOjCmRX/5Wa4ZW4a3m0630G8bmb0yEYUYlN3q529dAqb688fPQ9iF2XioujlBaaCnuFPtAKdxPJQC9eNAnnSckEPnjlPFfNH/Xk0QoAnpGNzYAlvGXmFuX7VIcvYv5O5mAC6qnNCwRhifaODoBQjNZmgI8eTwRuaXP6EEhyG2igDrM1UC3OY7xHQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=RBhLiraoB2T2DKQeMEXAqouspW3wBSInMRRtPVdA47o=;
+ b=cc2JmCX82IOH0qfjHu+u4vgJb7/DyQFyCui21eBWD8SGI1K07MEDXNEUIv5gPguGn375bmBQ7iAylqdo/L/Rzn/cXE/KjeVU3MD7yPm3evfj/U1BwqHhh4XLYF3Y6mf0in+M4rldFCMdHokWziqE5ZU+VmWifDb/DmUQQkPsVY9unSbBFT5miObCa8AXkHjsi6Q7MNnDzgWz39AQSEdPIjF1SRAFusJSwZDecWEFP5JW5VxDp5Yh5z9/YwfamkbEovWSNoZYn60rME/jUih6h8lhEkBZk16EJhruhuBOJ0v8iEqEb+IP4C11SkNeG+LVrhCpPgL95YRLFh5R+pcwlg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=RBhLiraoB2T2DKQeMEXAqouspW3wBSInMRRtPVdA47o=;
+ b=zW/Ue0YCSFZ/idbXnp6sFYe9J1b0BGwEjJbqVya9P5rIpznp780hXYXF+xyPdjD2rEv/kpnJpN0Ob0+0eq/onPzr5XjlwKEGMK4dOk9dCPqudfqxDg0xh+jCHlkHwGwzHl6Gi0lGhcF2Bj0eDGKltPHhfJsu080L/8lCtmk51sU=
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
+ by SN7PR10MB6329.namprd10.prod.outlook.com (2603:10b6:806:273::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9009.21; Tue, 12 Aug
+ 2025 15:47:28 +0000
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::2650:55cf:2816:5f2]) by DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::2650:55cf:2816:5f2%5]) with mapi id 15.20.9031.012; Tue, 12 Aug 2025
+ 15:47:28 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+        Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        Kees Cook <kees@kernel.org>, David Hildenbrand <david@redhat.com>,
+        Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+        Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+        Xu Xin <xu.xin16@zte.com.cn>,
+        Chengming Zhou <chengming.zhou@linux.dev>,
+        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        David Rientjes <rientjes@google.com>,
+        Shakeel Butt <shakeel.butt@linux.dev>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+        Adrian Hunter <adrian.hunter@intel.com>,
+        Kan Liang <kan.liang@linux.intel.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Oleg Nesterov <oleg@redhat.com>, Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>,
+        Mel Gorman <mgorman@suse.de>, Valentin Schneider <vschneid@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+        Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>,
+        Pedro Falcato <pfalcato@suse.de>, Matthew Wilcox <willy@infradead.org>,
+        Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org
+Subject: [PATCH 01/10] mm: add bitmap mm->flags field
+Date: Tue, 12 Aug 2025 16:44:10 +0100
+Message-ID: <9de8dfd9de8c95cd31622d6e52051ba0d1848f5a.1755012943.git.lorenzo.stoakes@oracle.com>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: GV2PEPF00003827.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:144:1:0:5:0:6) To DM4PR10MB8218.namprd10.prod.outlook.com
+ (2603:10b6:8:1cc::16)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|SN7PR10MB6329:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4c2eac0d-42e1-4809-6e7e-08ddd9b78a7a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|7416014|366016;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?6QIgemlIVx1AG6WbCyOTXd5FNiyqhSSpuGFE8+evn8LKeV6D1ICnrzVkSdwk?=
+ =?us-ascii?Q?WkmC4ByS2c26rlJMtFTxkwICSai2fWz0gT1uuSsvmBg2NXq0oRcy5gg6xiO9?=
+ =?us-ascii?Q?lRRcsxTy1JqWPBGBOAyVbWTLlylzIxaGbC3iUEpPPMIH0Z+tPmyjmHTHFaHF?=
+ =?us-ascii?Q?2LO0Ev4BWAGcGOd9mLmr9LtAeN26ugappBF4BhMBwADJ0pCdXA6zWUXvGKQ/?=
+ =?us-ascii?Q?Cfl9TKyoUhN8Yu7M8+QDyZLTm33TGCuzMd1JCX1TVtr0kDru/acX0sjdZPtb?=
+ =?us-ascii?Q?zRumoB2fML2CWS1J7dbtPO2E9DxkAdg5rHUjyRIIfqa2o+ZI+SV3acVH6hfm?=
+ =?us-ascii?Q?LDBSe1WMSKUJn0VERiDlYnYYi3RV7R58bfhIYU9vRrF2nrGFih8u90hStfsr?=
+ =?us-ascii?Q?Plxm5HZ8mVVeBIAiUGAdd7uMNxD1WZWdOXe0mX5XGqFAObxs8PjcCF3lcPua?=
+ =?us-ascii?Q?AgMYbA7KleRE+M0Jmw2lDDffY6apyjs3hgva/wHVZkkRUaio7Hr6mnDDhMCR?=
+ =?us-ascii?Q?uWySTcq7jkm8/Jer0dz8l8/KIAEyj/9ozqZHbAA+Yt0uiQeOX3Q/IS47niZS?=
+ =?us-ascii?Q?mdgy4D5TtYObNHy73+MzmU2LbrISeYHcdxZs35UEkQFGjM0dQgQXEZYZp0r9?=
+ =?us-ascii?Q?IkrA2GX8Vm/+vcpQmaOyDGS6ujOiJbVQZnflOhE/0cQ3x/L1Dgdnn3Z/w+AT?=
+ =?us-ascii?Q?Ngtw+NMzGLHNy4449K0gXZnIoDUA6T30B+7JmxAIpPsRWE0S/wAJq7BLxkgv?=
+ =?us-ascii?Q?/Fv2PZgGr1CCUtbb3BP7Dg/xdsqYNs5CNKatIgGZ1VXz2r5HVHK23aadPiGs?=
+ =?us-ascii?Q?P0fgmMHQsWWt1pn7JbuwScn8YuRzl/mhiqqZENXE9MGLPaaf18xKGQQRBrap?=
+ =?us-ascii?Q?2Yg75UG870DllGJz/3LsTEr6+2Ii8yIeATmLL3ZPT7zaYcZA2Rtozoy7PZRh?=
+ =?us-ascii?Q?SEUgEuo8knGXHaoqNUl2+mS8JMsN3/WVX0ayg47SyQ9anr6mmXZ0sEyL8fPx?=
+ =?us-ascii?Q?o/clM/d5vJToeaxa/cNJUDoSMaH7m+SNdLugRu9MVYovdtPq+t9CuML8XLd5?=
+ =?us-ascii?Q?j5x0racxVTnJzjsgYvinsX2jEWLoo3hSD3QIn8ObAVoCy4cF0yQ8P8TThHn8?=
+ =?us-ascii?Q?jEzFagAgr6YUVLEbeB3JxoZe7W0tIxw6Uqm8nK95Z5GqLaeBuT3pzlq6fDDV?=
+ =?us-ascii?Q?yjlY8HPwqOJMhmexDOxuCJMcWqBNnAGrhvCW5d49kroX/SuwDKPyWWh4vg8P?=
+ =?us-ascii?Q?WnuXicH7hKMFjKHJICy/B3Q+n2fBlKqdehN3CsTq+6R4w/cOEUuXWG3dV9dI?=
+ =?us-ascii?Q?9DFjmE8qoQeaQZv+PqMCmJSQQEcw4GGaS9sczf9kG0k+BcplCdZZsabvc/RJ?=
+ =?us-ascii?Q?KzVs3h6kGkT20ZCvXIX7QzGZA2N1hU0eGqhk0bd65mqb3CpockMoq0M/8HzV?=
+ =?us-ascii?Q?8F58ekLbWko=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?D5qn/y64FjlL1umbiXCu12RGMJJuj/ZzHtBFyJnfRcOSTcvKYNrUITOUkTub?=
+ =?us-ascii?Q?Dx9kcDsLQmUd7TchbrM11DSloEiezYLOYQtIOgbxpgE0a8GqPtWYi7uf4rqF?=
+ =?us-ascii?Q?XxYKRs8jy88FIDV2361GVhG9EZvo0e6STNt+eWEyagTCc0C8e07Q7ty6+RgJ?=
+ =?us-ascii?Q?V8sdBUPguwmVPLDPRS3Sf1LewjMdOjPU5Ig1Pe4P4nVlla2abvTqwAJJaPim?=
+ =?us-ascii?Q?UDl9rpq2JDEAWTDOtMHrjAkwUo76hNzT8Zg2stfUby3J1AZKUf3IDwBchQEX?=
+ =?us-ascii?Q?xfQCXppEUrEPlHTrYuux2FYtM/k2kXj02QllWUcAv62i+5Gqje+70E4z8tp0?=
+ =?us-ascii?Q?PAnIhK8gcPi7D/Q7sJoKhoDBkM31UTUn15F4r9vQ2pLH0vw9jtxZfjNHbUbe?=
+ =?us-ascii?Q?Q3+aDkToeJfdhqIyKHH93O/eO/VeEUlmu59s5z5QJ1wNUGexkuoqc123Dq2F?=
+ =?us-ascii?Q?PvNVodZu13Igdj5+LR149dRO30XkeCYyQZ8hg1zweAnMqi5s22cYLivTUKOF?=
+ =?us-ascii?Q?YGSOQJhTYaTQeM7FbLxKn62oGqvVaq6ujIe7te7hOcesZHknsaUsmXEY4Lo/?=
+ =?us-ascii?Q?bUA3QRSZDYFGTxR5MAcc6Bm5sgeDMsjqyorC6dHEIqu79AfQr0MKMq18s7A5?=
+ =?us-ascii?Q?Hc3omX/a4nUQ1Zuj0HqoijCvs3TIuCl4taHSnsrkBbW/VGue6bZZ4tgz6935?=
+ =?us-ascii?Q?ck0QcEhhEi8e5fcx7VGzTXZgDAfT7lG2edNCwmiv8WnFMUw8yPglGGfzv4iG?=
+ =?us-ascii?Q?dGfTM/F1g3+v2KC04/QAEdbLeR8Mcyw9jWe8NKzOXYHxiPyhds3J+XahJCTk?=
+ =?us-ascii?Q?x3Kjc6euxcEqcI9gdPM8/slNY2csf6a0S5/xt4Cg1Z5WPX4BPifkUWS7NlKJ?=
+ =?us-ascii?Q?lNJkgN0mo7XhKj7xCdiONwJSCm6H/1UqrvIeu6aqTQ8VMofq2bxN3NWQYmUW?=
+ =?us-ascii?Q?GXe5mjzwqA8T4AazKdrdGUMGhzBSb2207j80ifz2TmyMx8r4Qv07qYuQmNi9?=
+ =?us-ascii?Q?Gct3QeSG2c8zN6X3kmZXLNEtPQ8GjytLS2EB0SFV1KrrG2QT1lWmkmQ/ft4i?=
+ =?us-ascii?Q?o3/mNIsuv+jXfNi/zjNlpiTkilc5bqVSfI3WJ4ZoW8zTn8pavXySblxePybx?=
+ =?us-ascii?Q?DGGWYkbqC9DDtynCs4eYMYySNQTDQYSh7BlgK65L4O/7hyL1IwAPC8M2dtJG?=
+ =?us-ascii?Q?+AjNo9DVTJ02m8ZhoTXy+Rxq4TJ9OHaxmgWQJfSEa75kbp94VsPEAav0tyS1?=
+ =?us-ascii?Q?d6JB5JUXfO6E2qP6uBy/VbwgP1IwzPzRkwk2wo6Lg5m2bhh6y7c3334hs0zc?=
+ =?us-ascii?Q?M4YI//Rbjkon8TAg3Hn9nxHkwp1O8ICE1dEoby/CYmHC0cC2zYV9RxXB9aLh?=
+ =?us-ascii?Q?7kQLdNnvcB3YDqODfoJDGGTt3oGcNHfufgtE8EzuJsGKBdmQ1lSt3H5jFE7b?=
+ =?us-ascii?Q?xVfe8XKs9/HJlO19wdCOUDcLzznzd+ev3Isr5360NR6X6isHKJCrDNSqVAgJ?=
+ =?us-ascii?Q?aDgRPRHbuzihD1ilZ3dgj687wOivjUk74br9lvh3X54UqKQJmk2SUKIwErAX?=
+ =?us-ascii?Q?ESCFdZoaqBV/2afxTW8OmclnErl0FjwYlEVUULqwnND7Eju/jQsAnrQeWniS?=
+ =?us-ascii?Q?AA=3D=3D?=
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	ChogXepa6O/W5wuGIjmdTUQQ5hTPhTGTEqDTmrmYRcMcOXgbjgN1VbJ7wUz98GQq/DOdUpVaQ3q6rdVNThCOsMF0kTcu3hlQEra633bahUQtJKTt45ng5SE/+tNsmONdDsXOlmmCq3UBIPzucf6ysLcoZgf9n44tekGT8nySP6sQkwe87CCSOTqo49IO2eK/u3dLjoegHbckJ8j0ogE1TkBRSYRpxjZXOQTjJhzI3AECHnvU/Kp4hH+VtUvTusyfob0S3magU7f/lobsN+Yv6LR10O7YhEaJOWhtqWSBcM46TroZ0VdVcC8ACT2FIFKoGEQ0voJAQASyTHApgovc674yeKqkgqqtXWwUKwCAkpmnVwzk/7sgKTnzjOU9msRlLc5OMpeoFKhX97iBA9dc3qs0TYZ2FLUpwH6r/yIEeuwgCdX9a3YPkX/9LTRGCe+J6X7rquey3aUoeFMojfEmTHT0Q+52VTHobrtVEMEfUJKtD/6ILyPpHFuC4fnljUXxP/mJV82lBRLZV3SI8rL3gUw4KsZ0TwafGzuT+2TOId6nj4MOHYYGvRI7NNviYiEm25Dnxm7tWpZAWWyWPZCPaN7YNhxOiomwTItTocc3zSM=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4c2eac0d-42e1-4809-6e7e-08ddd9b78a7a
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2025 15:47:28.3022
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ZX/UzCyytmcCiUNwlQsuUZsthRiL3wey7PVZCLuIfDbOCuGWanK183Qr1QY7Fvws91WL3cotbiQt8QzavAdpy9fQEnkZZgp08IAt0JCdFSo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR10MB6329
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-08-12_07,2025-08-11_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 adultscore=0
+ malwarescore=0 spamscore=0 bulkscore=0 mlxlogscore=629 mlxscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2507300000 definitions=main-2508120152
+X-Proofpoint-GUID: wPfyRZnAJroBCTKWL7YxEcON6-WBtGNS
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODEyMDE1MiBTYWx0ZWRfX+dIsU7pEqjrL
+ g8A02t+kPVAb9pz5XbzrIY6YijW9XfnFGFdFNa6+/tsPywgEnhGhKJxAyZB4tbgIWUrNznh7V6z
+ 5G7AZ4iNitzRRHu/r77fI3eAITuL/YruJsJ/AVOsu+tu6m55hr6pSsvuZmK9Wdou21tGdP2tdXD
+ 9k2C90sXuCGC7brzbD3J4zunDHlGTkpjJvNQmxBSpDeruJWtmT3uRJqSUXL9JNe2diny9rBfu4/
+ y+D0KfSd3Zamndhf3C1vFMcpt1BOsTlJHlZaTl6wPLDGjmAFMUQWHFYLEPbJq9tVtV/NwEgTB1o
+ zpAE7laYvtjXMs64xk+678dFKFkO8OWeKmeSXi+KoH7XsxzxATRTru8r6XeBHI+muI4g3DH6hgc
+ o3gFdrEGPREU939RVrRvI9bSjR6E25Z5GrHehAe3WWJDrD3LWU1OJV2dUElsepS4S7SksIT1
+X-Authority-Analysis: v=2.4 cv=W8M4VQWk c=1 sm=1 tr=0 ts=689b6215 cx=c_pps
+ a=XiAAW1AwiKB2Y8Wsi+sD2Q==:117 a=XiAAW1AwiKB2Y8Wsi+sD2Q==:17
+ a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
+ a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
+ a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=2OwXVqhp2XgA:10
+ a=GoEa3M9JfhUA:10 a=yPCof4ZbAAAA:8 a=mgqRkMkFT7LrGRq-0ZgA:9
+X-Proofpoint-ORIG-GUID: wPfyRZnAJroBCTKWL7YxEcON6-WBtGNS
 
-I accidentally re-added Meelis. Dropping again.
+We are currently in the bizarre situation where we are constrained on the
+number of flags we can set in an mm_struct based on whether this is a
+32-bit or 64-bit kernel.
 
-Adrian
+This is because mm->flags is an unsigned long field, which is 32-bits on a
+32-bit system and 64-bits on a 64-bit system.
 
-On Tue, 2025-08-12 at 14:32 +0200, John Paul Adrian Glaubitz wrote:
-> Hi Anthony,
->=20
-> On Mon, 2025-08-11 at 12:44 +0200, John Paul Adrian Glaubitz wrote:
-> > Hi,
-> >=20
-> > On Mon, 2025-08-11 at 00:20 +0200, John Paul Adrian Glaubitz wrote:
-> > > Hi,
-> > >=20
-> > > On Sun, 2025-08-10 at 11:52 +0200, John Paul Adrian Glaubitz wrote:
-> > > > On Sat, 2025-08-09 at 08:42 +0200, John Paul Adrian Glaubitz wrote:
-> > > > > Let me know if you have more suggestions to test. I can also prov=
-ide you with full
-> > > > > access to this Netra 240 if you send me your public SSH key in a =
-private mail.
-> > > >=20
-> > > > I have narrowed it down to a regression between v6.3 and v6.4 now.
-> > > >=20
-> > > > The bug can be reproduced with the sparc64_defconfig on a Sun Netra=
- 240 by setting
-> > > > CONFIG_TRANSPARENT_HUGEPAGE=3Dy and CONFIG_TRANSPARENT_HUGEPAGE_ALW=
-AYS=3Dy. When testing
-> > > > on a modern systemd-based distribution, it's also necessary to enab=
-le CGroup support
-> > > > as well as enable support for Sun partition tables with CONFIG_SUN_=
-PARTITION=3Dy.
-> > > >=20
-> > > > Then it should be a matter of bisecting the commits between v6.3 an=
-d v6.4.
-> > > >=20
-> > > > I will do that within the next days as I'm currently a bit busy wit=
-h other stuff.
-> > >=20
-> > > OK, it turns out it's reproducible on older kernels (but not as old a=
-s 4.19) as well.
-> > > It's just much harder to trigger. I found a reproducer though and wil=
-l try to find
-> > > the problematic commit next.
-> > >=20
-> > > [50686.808389] BUG: Bad page map in process sshd-session  pte:0000000=
-2 pmd:01448000
-> > > [50686.905701] addr:00000100000a0000 vm_flags:00000075 anon_vma:00000=
-00000000000 mapping:fff000003c8ca4f8 index:50
-> > > [50687.038425] file:sshd-session fault:filemap_fault mmap:ext4_file_m=
-map [ext4] read_folio:ext4_read_folio [ext4]
-> > > [50687.170246] CPU: 0 PID: 37883 Comm: sshd-session Not tainted 6.3.0=
--2-sparc64 #1  Debian 6.3.11-1
-> > > [50687.285751] Call Trace:
-> > > [50687.317771] [<0000000000d660b0>] dump_stack+0x8/0x18
-> > > [50687.382976] [<000000000064fd1c>] print_bad_pte+0x15c/0x200
-> > > [50687.455024] [<0000000000650f84>] unmap_page_range+0x3e4/0xbe0
-> > > [50687.530513] [<0000000000651cd8>] unmap_vmas+0xf8/0x1a0
-> > > [50687.597993] [<000000000065e674>] exit_mmap+0xb4/0x360
-> > > [50687.664331] [<00000000004647dc>] __mmput+0x3c/0x120
-> > > [50687.728380] [<00000000004648f4>] mmput+0x34/0x60
-> > > [50687.788999] [<000000000046b510>] do_exit+0x250/0xa00
-> > > [50687.854194] [<000000000046bea4>] do_group_exit+0x24/0xa0
-> > > [50687.923962] [<000000000046bf3c>] sys_exit_group+0x1c/0x40
-> > > [50687.994875] [<0000000000406174>] linux_sparc_syscall+0x34/0x44
-> > > [50688.071518] Disabling lock debugging due to kernel taint
-> > > [50689.484196] Unable to handle kernel paging request at virtual addr=
-ess 000c000002400000
-> > > [50689.588368] tsk->{mm,active_mm}->context =3D 00000000001815a6
-> > > [50689.661677] tsk->{mm,active_mm}->pgd =3D fff000000ae60000
-> > > [50689.730374]               \|/ ____ \|/
-> > >                              "@'/ .. \`@"
-> > >                              /_| \__/ |_\
-> > >                                 \__U_/
-> > > [50689.923679] sshd-session(37883): Oops [#1]
-> > > [50689.977420] CPU: 0 PID: 37883 Comm: sshd-session Tainted: G    B  =
-            6.3.0-2-sparc64 #1  Debian 6.3.11-1
-> > > [50690.112384] TSTATE: 0000008811001607 TPC: 00000000006510cc TNPC: 0=
-0000000006510d0 Y: 00000000    Tainted: G    B            =20
-> > > [50690.261089] TPC: <unmap_page_range+0x52c/0xbe0>
-> > > [50690.320650] g0: 00000000000004a8 g1: 000c000000000000 g2: 00000000=
-00008800 g3: ffffffffffffffff
-> > > [50690.435029] g4: fff0000001ef1280 g5: 0000000031200000 g6: fff00000=
-01f04000 g7: ffffffffffffffff
-> > > [50690.549403] o0: 000c000002400a20 o1: 00000100000a4000 o2: 00000001=
-00048290 o3: 0000000000000000
-> > > [50690.663779] o4: 0000000000000001 o5: 000000000000000d sp: fff00000=
-01f06f61 ret_pc: 0000010000000000
-> > > [50690.782728] RPC: <0x10000000000>
-> > > [50690.825039] l0: 0000000100048290 l1: 000c000002400a20 l2: 00000100=
-000a6000 l3: fff0000000950000
-> > > [50690.939419] l4: 00000100000fc000 l5: fff000000196dc20 l6: fff00000=
-01f07938 l7: 00000000010f6fd0
-> > > [50691.053798] i0: fff0000001f07aa8 i1: 0000000000002000 i2: 00000100=
-000a4000 i3: fff0000008311b00
-> > > [50691.168170] i4: 0000000000100000 i5: fff0000001448290 i6: fff00000=
-01f07081 i7: 0000000000651cd8
-> > > [50691.282546] I7: <unmap_vmas+0xf8/0x1a0>
-> > > [50691.332867] Call Trace:
-> > > [50691.364891] [<0000000000651cd8>] unmap_vmas+0xf8/0x1a0
-> > > [50691.432371] [<000000000065e674>] exit_mmap+0xb4/0x360
-> > > [50691.498708] [<00000000004647dc>] __mmput+0x3c/0x120
-> > > [50691.562759] [<00000000004648f4>] mmput+0x34/0x60
-> > > [50691.623376] [<000000000046b510>] do_exit+0x250/0xa00
-> > > [50691.688573] [<000000000046bea4>] do_group_exit+0x24/0xa0
-> > > [50691.758340] [<000000000046bf3c>] sys_exit_group+0x1c/0x40
-> > > [50691.829256] [<0000000000406174>] linux_sparc_syscall+0x34/0x44
-> > > [50691.905886] Caller[0000000000651cd8]: unmap_vmas+0xf8/0x1a0
-> > > [50691.979085] Caller[000000000065e674]: exit_mmap+0xb4/0x360
-> > > [50692.051141] Caller[00000000004647dc]: __mmput+0x3c/0x120
-> > > [50692.120911] Caller[00000000004648f4]: mmput+0x34/0x60
-> > > [50692.187246] Caller[000000000046b510]: do_exit+0x250/0xa00
-> > > [50692.258160] Caller[000000000046bea4]: do_group_exit+0x24/0xa0
-> > > [50692.333645] Caller[000000000046bf3c]: sys_exit_group+0x1c/0x40
-> > > [50692.410280] Caller[0000000000406174]: linux_sparc_syscall+0x34/0x4=
-4
-> > > [50692.492629] Caller[fff0000102ad4a74]: 0xfff0000102ad4a74
-> > > [50692.562397] Instruction DUMP:
-> > > [50692.562399]  ce762010=20
-> > > [50692.601281]  02f47fa8=20
-> > > [50692.632163]  c4362018=20
-> > > [50692.663044] <c45c6008>
-> > > [50692.693926]  86100011=20
-> > > [50692.724808]  8e08a001=20
-> > > [50692.755689]  8400bfff=20
-> > > [50692.786569]  8779d402=20
-> > > [50692.817451]  c458e018=20
-> > >=20
-> > > [50692.898656] Fixing recursive fault but reboot is needed!
-> >=20
-> > So, I was able now to even reproduce it in kernel versions as early as =
-5.2:
-> >=20
-> > [  122.085803] Unable to handle kernel NULL pointer dereference
-> > [  122.160227] tsk->{mm,active_mm}->context =3D 000000000000009d
-> > [  122.233502] tsk->{mm,active_mm}->pgd =3D fff0000231d14000
-> > [  122.302118]               \|/ ____ \|/
-> > [  122.302118]               "@'/ .. \`@"
-> > [  122.302118]               /_| \__/ |_\
-> > [  122.302118]                  \__U_/
-> > [  122.495420] systemd(1): Oops [#1]
-> > [  122.538874] CPU: 0 PID: 1 Comm: systemd Not tainted 5.2.0-3-sparc64 =
-#1 Debian 5.2.17-1
-> > [  122.642957] TSTATE: 0000004411001601 TPC: 000000000061cd94 TNPC: 000=
-000000061cd98 Y: 00000000    Not tainted
-> > [  122.772207] TPC: <vfs_getattr_nosec+0x34/0xc0>
-> > [  122.830529] g0: 0000000000000000 g1: 00000000000007ff g2: 0000000000=
-000000 g3: 00000000000007df
-> > [  122.944902] g4: fff00002381771c0 g5: 0000000000000003 g6: fff0000238=
-178000 g7: 0000000000000000
-> > [  123.059275] o0: fff000023817be18 o1: 0000000000000000 o2: 0000000000=
-000000 o3: fff000023817be18
-> > [  123.173658] o4: 0000000000000000 o5: 0000000000000000 sp: fff0000238=
-17b341 ret_pc: 000000000061cd7c
-> > [  123.292611] RPC: <vfs_getattr_nosec+0x1c/0xc0>
-> > [  123.350933] l0: 0000010000204010 l1: fff0000101600e28 l2: e4e45b5b8a=
-e44628 l3: 0000000000000000
-> > [  123.465311] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000=
-000000 l7: fff0000100bff140
-> > [  123.579692] i0: fff000023817bd50 i1: fff000023817be18 i2: 0000000000=
-000001 i3: 0000000000000900
-> > [  123.694060] i4: 0000000000000000 i5: fff00002320c1210 i6: fff0000238=
-17b3f1 i7: 000000000061ce48
-> > [  123.808439] I7: <vfs_getattr+0x28/0x40>
-> > [  123.858759] Call Trace:
-> > [  123.890785]  [000000000061ce48] vfs_getattr+0x28/0x40
-> > [  123.957123]  [000000000061cf64] vfs_statx+0x84/0xc0
-> > [  124.021173]  [000000000061d918] sys_statx+0x38/0x60
-> > [  124.085226]  [0000000000406154] linux_sparc_syscall+0x34/0x44
-> > [  124.160708] Disabling lock debugging due to kernel taint
-> > [  124.230481] Caller[000000000061ce48]: vfs_getattr+0x28/0x40
-> > [  124.303680] Caller[000000000061cf64]: vfs_statx+0x84/0xc0
-> > [  124.374593] Caller[000000000061d918]: sys_statx+0x38/0x60
-> > [  124.445503] Caller[0000000000406154]: linux_sparc_syscall+0x34/0x44
-> > [  124.527857] Caller[fff00001013fde40]: 0xfff00001013fde40
-> > [  124.597621] Instruction DUMP:
-> > [  124.597623]  c2264000=20
-> > [  124.636505]  861027df=20
-> > [  124.667386]  c45f6028=20
-> > [  124.698267] <c458a050>
-> > [  124.729148]  8408a401=20
-> > [  124.760031]  83789403=20
-> > [  124.790910]  c2264000=20
-> > [  124.821801]  c207600c=20
-> > [  124.852675]  80886800=20
-> > [  124.883556]=20
-> > [  124.954015] Kernel panic - not syncing: Attempted to kill init! exit=
-code=3D0x00000009
-> > [  125.054721] Press Stop-A (L1-A) from sun keyboard or send break
-> > [  125.054721] twice on console to return to the boot prom
-> > [  125.201103] ---[ end Kernel panic - not syncing: Attempted to kill i=
-nit! exitcode=3D0x00000009 ]---
-> >=20
-> > On v5.6, I'm getting an interesting error mentioning D-cache parity err=
-ors:
-> >=20
-> > [  125.743109] CPU[0]: Cheetah+ D-cache parity error at TPC[00000000005=
-6bacc]
-> > [  125.833511] TPC<bpf_check+0x18ec/0x3060>
-> > [  127.909612] systemd-sysv-generator[1677]: SysV service '/etc/init.d/=
-buildd' lacks a native systemd unit file, automatically generating a unit f=
-ile for compatibility.
-> > [  128.104239] systemd-sysv-generator[1677]: Please update package to i=
-nclude a native systemd unit file.
-> > [  128.227312] systemd-sysv-generator[1677]: =E2=9A=A0 This compatibili=
-ty logic is deprecated, expect removal soon. =E2=9A=A0
-> > [  129.638144] Unable to handle kernel NULL pointer dereference
-> > [  129.712528] tsk->{mm,active_mm}->context =3D 000000000000009e
-> > [  129.785808] tsk->{mm,active_mm}->pgd =3D fff0000233d38000
-> > [  129.854522]               \|/ ____ \|/
-> > [  129.854522]               "@'/ .. \`@"
-> > [  129.854522]               /_| \__/ |_\
-> > [  129.854522]                  \__U_/
-> > [  130.047827] systemd(1): Oops [#1]
-> > [  130.091278] CPU: 0 PID: 1 Comm: systemd Tainted: G            E     =
-5.6.0-2-sparc64 #1 Debian 5.6.14-2
-> > [  130.213664] TSTATE: 0000009911001604 TPC: 00000000005506d8 TNPC: 000=
-00000005506dc Y: 00000000    Tainted: G            E   =20
-> > [  130.361222] TPC: <bpf_prog_realloc+0x38/0xe0>
-> > [  130.418486] g0: 0000000002000000 g1: 0000000000000000 g2: 0000000000=
-000000 g3: 0000000000000002
-> > [  130.532867] g4: fff000023c178000 g5: 0000000000657300 g6: fff000023c=
-180000 g7: fff000023423e684
-> > [  130.647245] o0: ffffffff00002000 o1: 0000000000000001 o2: fff0000234=
-168fa0 o3: 0000000000000000
-> > [  130.761617] o4: fff0000237761f80 o5: 0000000000000001 sp: fff000023c=
-182fd1 ret_pc: 00000000005f2c84
-> > [  130.880576] RPC: <__vfree+0x24/0x80>
-> > [  130.927456] l0: ffffffffffffffff l1: 0000000000000001 l2: 0000000000=
-000400 l3: 0000000002000000
-> > [  131.041836] l4: 0000000000debc00 l5: 0000000000000100 l6: 0000000000=
-000001 l7: fff000023c005e40
-> > [  131.156213] i0: 000000010004e000 i1: 0000000000002000 i2: 0000000000=
-100cc0 i3: fff0000237761300
-> > [  131.270589] i4: 0000000000000001 i5: 0000000000000001 i6: fff000023c=
-183081 i7: 0000000000550a70
-> > [  131.384963] I7: <bpf_patch_insn_single+0x70/0x1e0>
-> > [  131.447862] Call Trace:
-> > [  131.479889]  [0000000000550a70] bpf_patch_insn_single+0x70/0x1e0
-> > [  131.558814]  [000000000055fe58] bpf_patch_insn_data+0x18/0x1c0
-> > [  131.635442]  [000000000056bed8] bpf_check+0x1cf8/0x3060
-> > [  131.704064]  [0000000000559778] bpf_prog_load+0x498/0x8e0
-> > [  131.774975]  [0000000000559d10] __do_sys_bpf+0x150/0x1880
-> > [  131.845890]  [000000000055b534] sys_bpf+0x14/0x560
-> > [  131.908807]  [0000000000406154] linux_sparc_syscall+0x34/0x44
-> > [  131.984281] Disabling lock debugging due to kernel taint
-> > [  132.054051] Caller[0000000000550a70]: bpf_patch_insn_single+0x70/0x1=
-e0
-> > [  132.139832] Caller[000000000055fe58]: bpf_patch_insn_data+0x18/0x1c0
-> > [  132.223325] Caller[000000000056bed8]: bpf_check+0x1cf8/0x3060
-> > [  132.298811] Caller[0000000000559778]: bpf_prog_load+0x498/0x8e0
-> > [  132.376588] Caller[0000000000559d10]: __do_sys_bpf+0x150/0x1880
-> > [  132.454361] Caller[000000000055b534]: sys_bpf+0x14/0x560
-> > [  132.524132] Caller[0000000000406154]: linux_sparc_syscall+0x34/0x44
-> > [  132.606483] Caller[fff0000100995b38]: 0xfff0000100995b38
-> > [  132.676247] Instruction DUMP:
-> > [  132.676249]  c25e2020=20
-> > [  132.715134]  92270009=20
-> > [  132.746014]  bb326000=20
-> > [  132.776895] <d05860e0>
-> > [  132.807776]  400021a1=20
-> > [  132.838657]  9210001d=20
-> > [  132.869540]  80a22000=20
-> > [  132.900422]  12400016=20
-> > [  132.931303]  03003480=20
-> > [  132.962184]=20
-> > [  133.020246] systemd-journald[205]: Time jumped backwards, rotating. =
-(Dropped 1 similar message(s))
-> > [  133.138938] Kernel panic - not syncing: Attempted to kill init! exit=
-code=3D0x00000009
-> > [  133.239608] Press Stop-A (L1-A) from sun keyboard or send break
-> > [  133.239608] twice on console to return to the boot prom
-> > [  133.385997] ---[ end Kernel panic - not syncing: Attempted to kill i=
-nit! exitcode=3D0x00000009 ]---
-> >=20
-> > Searching for that error in the archives, yielded this report from 2018=
- [1] which seems to have never
-> > been addressed by David Miller.
-> >=20
-> > @Anthony: Can you see any suspicious in the disassembled code that Meel=
-is (CC'ed) posted?
->=20
-> OK, bisecting has lead me to the following commit:
->=20
-> d53d2f78ceadba081fc7785570798c3c8d50a718 is the first bad commit
-> commit d53d2f78ceadba081fc7785570798c3c8d50a718 (HEAD)
-> Author: Rick Edgecombe <rick.p.edgecombe@intel.com>
-> Date:   Thu Apr 25 17:11:38 2019 -0700
->=20
->     bpf: Use vmalloc special flag
->    =20
->     Use new flag VM_FLUSH_RESET_PERMS for handling freeing of special
->     permissioned memory in vmalloc and remove places where memory was set=
- RW
->     before freeing which is no longer needed. Don't track if the memory i=
-s RO
->     anymore because it is now tracked in vmalloc.
->    =20
->     Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
->     Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
->     Cc: <akpm@linux-foundation.org>
->     Cc: <ard.biesheuvel@linaro.org>
->     Cc: <deneen.t.dock@intel.com>
->     Cc: <kernel-hardening@lists.openwall.com>
->     Cc: <kristen@linux.intel.com>
->     Cc: <linux_dti@icloud.com>
->     Cc: <will.deacon@arm.com>
->     Cc: Alexei Starovoitov <ast@kernel.org>
->     Cc: Andy Lutomirski <luto@kernel.org>
->     Cc: Borislav Petkov <bp@alien8.de>
->     Cc: Daniel Borkmann <daniel@iogearbox.net>
->     Cc: Dave Hansen <dave.hansen@linux.intel.com>
->     Cc: H. Peter Anvin <hpa@zytor.com>
->     Cc: Linus Torvalds <torvalds@linux-foundation.org>
->     Cc: Nadav Amit <nadav.amit@gmail.com>
->     Cc: Rik van Riel <riel@surriel.com>
->     Cc: Thomas Gleixner <tglx@linutronix.de>
->     Link: https://lkml.kernel.org/r/20190426001143.4983-19-namit@vmware.c=
-om
->     Signed-off-by: Ingo Molnar <mingo@kernel.org>
->=20
->  include/linux/filter.h | 17 +++--------------
->  kernel/bpf/core.c      |  1 -
->  2 files changed, 3 insertions(+), 15 deletions(-)
->=20
-> I assume it's also related to this change:
->=20
-> commit 868b104d7379e28013e9d48bdd2db25e0bdcf751
-> Author: Rick Edgecombe <rick.p.edgecombe@intel.com>
-> Date:   Thu Apr 25 17:11:36 2019 -0700
->=20
->     mm/vmalloc: Add flag for freeing of special permsissions
->    =20
->     Add a new flag VM_FLUSH_RESET_PERMS, for enabling vfree operations to
->     immediately clear executable TLB entries before freeing pages, and ha=
-ndle
->     resetting permissions on the directmap. This flag is useful for any k=
-ind
->     of memory with elevated permissions, or where there can be related
->     permissions changes on the directmap. Today this is RO+X and RO memor=
-y.
->    =20
->     Although this enables directly vfreeing non-writeable memory now,
->     non-writable memory cannot be freed in an interrupt because the alloc=
-ation
->     itself is used as a node on deferred free list. So when RO memory nee=
-ds to
->     be freed in an interrupt the code doing the vfree needs to have its o=
-wn
->     work queue, as was the case before the deferred vfree list was added =
-to
->     vmalloc.
->    =20
->     For architectures with set_direct_map_ implementations this whole ope=
-ration
->     can be done with one TLB flush when centralized like this. For others=
- with
->     directmap permissions, currently only arm64, a backup method using
->     set_memory functions is used to reset the directmap. When arm64 adds
->     set_direct_map_ functions, this backup can be removed.
->    =20
->     When the TLB is flushed to both remove TLB entries for the vmalloc ra=
-nge
->     mapping and the direct map permissions, the lazy purge operation coul=
-d be
->     done to try to save a TLB flush later. However today vm_unmap_aliases
->     could flush a TLB range that does not include the directmap. So a hel=
-per
->     is added with extra parameters that can allow both the vmalloc addres=
-s and
->     the direct mapping to be flushed during this operation. The behavior =
-of the
->     normal vm_unmap_aliases function is unchanged.
->    =20
->     Suggested-by: Dave Hansen <dave.hansen@intel.com>
->     Suggested-by: Andy Lutomirski <luto@kernel.org>
->     Suggested-by: Will Deacon <will.deacon@arm.com>
->     Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
->     Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
->     Cc: <akpm@linux-foundation.org>
->     Cc: <ard.biesheuvel@linaro.org>
->     Cc: <deneen.t.dock@intel.com>
->     Cc: <kernel-hardening@lists.openwall.com>
->     Cc: <kristen@linux.intel.com>
->     Cc: <linux_dti@icloud.com>
->     Cc: Borislav Petkov <bp@alien8.de>
->     Cc: H. Peter Anvin <hpa@zytor.com>
->     Cc: Linus Torvalds <torvalds@linux-foundation.org>
->     Cc: Nadav Amit <nadav.amit@gmail.com>
->     Cc: Rik van Riel <riel@surriel.com>
->     Cc: Thomas Gleixner <tglx@linutronix.de>
->     Link: https://lkml.kernel.org/r/20190426001143.4983-17-namit@vmware.c=
-om
->     Signed-off-by: Ingo Molnar <mingo@kernel.org>
->=20
-> Adrian
+In order to keep things functional across both architectures, we do not
+permit mm flag bits to be set above flag 31 (i.e. the 32nd bit).
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+This is a silly situation, especially given how profligate we are in
+storing metadata in mm_struct, so let's convert mm->flags into a bitmap and
+allow ourselves as many bits as we like.
+
+To keep things manageable, firstly we introduce the bitmap at a system word
+system as a new field mm->_flags, in union.
+
+This means the new bitmap mm->_flags is bitwise exactly identical to the
+existing mm->flags field.
+
+We have an opportunity to also introduce some type safety here, so let's
+wrap the mm flags field as a struct and declare it as an mm_flags_t typedef
+to keep it consistent with vm_flags_t for VMAs.
+
+We make the internal field privately accessible, in order to force the use
+of helper functions so we can enforce that accesses are bitwise as
+required.
+
+We therefore introduce accessors prefixed with mm_flags_*() for callers to
+use. We place the bit parameter first so as to match the parameter ordering
+of the *_bit() functions.
+
+Having this temporary union arrangement allows us to incrementally swap
+over users of mm->flags patch-by-patch rather than having to do everything
+in one fell swoop.
+
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+---
+ include/linux/mm.h       | 32 ++++++++++++++++++++++++++++++++
+ include/linux/mm_types.h | 39 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 70 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 3868ca1a25f9..4ed4a0b9dad6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -34,6 +34,8 @@
+ #include <linux/slab.h>
+ #include <linux/cacheinfo.h>
+ #include <linux/rcuwait.h>
++#include <linux/bitmap.h>
++#include <linux/bitops.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -720,6 +722,36 @@ static inline void assert_fault_locked(struct vm_fault *vmf)
+ }
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
++static inline bool mm_flags_test(int flag, const struct mm_struct *mm)
++{
++	return test_bit(flag, ACCESS_PRIVATE(&mm->_flags, __mm_flags));
++}
++
++static inline bool mm_flags_test_and_set(int flag, struct mm_struct *mm)
++{
++	return test_and_set_bit(flag, ACCESS_PRIVATE(&mm->_flags, __mm_flags));
++}
++
++static inline bool mm_flags_test_and_clear(int flag, struct mm_struct *mm)
++{
++	return test_and_clear_bit(flag, ACCESS_PRIVATE(&mm->_flags, __mm_flags));
++}
++
++static inline void mm_flags_set(int flag, struct mm_struct *mm)
++{
++	set_bit(flag, ACCESS_PRIVATE(&mm->_flags, __mm_flags));
++}
++
++static inline void mm_flags_clear(int flag, struct mm_struct *mm)
++{
++	clear_bit(flag, ACCESS_PRIVATE(&mm->_flags, __mm_flags));
++}
++
++static inline void mm_flags_clear_all(struct mm_struct *mm)
++{
++	bitmap_zero(ACCESS_PRIVATE(&mm->_flags, __mm_flags), NUM_MM_FLAG_BITS);
++}
++
+ extern const struct vm_operations_struct vma_dummy_vm_ops;
+ 
+ static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index cf94df4955c7..46d3fb8935c7 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -20,6 +20,7 @@
+ #include <linux/seqlock.h>
+ #include <linux/percpu_counter.h>
+ #include <linux/types.h>
++#include <linux/bitmap.h>
+ 
+ #include <asm/mmu.h>
+ 
+@@ -927,6 +928,15 @@ struct mm_cid {
+ };
+ #endif
+ 
++/*
++ * Opaque type representing current mm_struct flag state. Must be accessed via
++ * mm_flags_xxx() helper functions.
++ */
++#define NUM_MM_FLAG_BITS BITS_PER_LONG
++typedef struct {
++	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
++} mm_flags_t;
++
+ struct kioctx_table;
+ struct iommu_mm_data;
+ struct mm_struct {
+@@ -1109,7 +1119,11 @@ struct mm_struct {
+ 		/* Architecture-specific MM context */
+ 		mm_context_t context;
+ 
+-		unsigned long flags; /* Must use atomic bitops to access */
++		/* Temporary union while we convert users to mm_flags_t. */
++		union {
++			unsigned long flags; /* Must use atomic bitops to access */
++			mm_flags_t _flags;   /* Must use mm_flags_* helpers to access */
++		};
+ 
+ #ifdef CONFIG_AIO
+ 		spinlock_t			ioctx_lock;
+@@ -1219,6 +1233,29 @@ struct mm_struct {
+ 	unsigned long cpu_bitmap[];
+ };
+ 
++/* Read the first system word of mm flags, non-atomically. */
++static inline unsigned long __mm_flags_get_word(struct mm_struct *mm)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
++
++	return bitmap_read(bitmap, 0, BITS_PER_LONG);
++}
++
++/* Set the first system word of mm flags, non-atomically. */
++static inline void __mm_flags_set_word(struct mm_struct *mm,
++				       unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
++
++	bitmap_copy(bitmap, &value, BITS_PER_LONG);
++}
++
++/* Obtain a read-only view of the bitmap. */
++static inline const unsigned long *__mm_flags_get_bitmap(const struct mm_struct *mm)
++{
++	return (const unsigned long *)ACCESS_PRIVATE(&mm->_flags, __mm_flags);
++}
++
+ #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
+ 			 MT_FLAGS_USE_RCU)
+ extern struct mm_struct init_mm;
+-- 
+2.50.1
+
