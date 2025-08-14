@@ -1,314 +1,217 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 803681DF75B;
-	Wed, 13 Aug 2025 19:54:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755114894; cv=fail; b=QK4JN9aVwexwna5VrWCaC0aIGlxn3DSy6mpguKUrucYFPET8htjBPfv8xjunKOtG91QoIqosZ/bmaDVprpiMGcR+u7VlP2Wdawg5JsALy2uul9YAZ6Xe+bJxiT7FsLnJfcaklgkOKWFbGEEegjP7aDCcEstEKOYZIKdp9GSTbmQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755114894; c=relaxed/simple;
-	bh=7IrqOIYFrpvbVXHOitaVYiX+xNsslLwr5Vxg24up77c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=oEzLOqZW83EzurhiEzyRWUekdEe0FjmNvtuu3tuFO6O4V/Rjy5qzTCBf5ZZbdTwQpXS3K40LYpWxzsq/sTbiNn2WgkZvHxpyhMb0LAtAKryeeSuFGTsVwMG9ZxblQpQQn1gFCHr5sVZa9SyWM8hgNDhSH0aIr0I2MY0DoYB2NX8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=Yp3/SxfH; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=tbllYNzv; arc=fail smtp.client-ip=205.220.177.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B0D221FB2;
+	Thu, 14 Aug 2025 05:44:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1755150263; cv=none; b=n3z8KWLfOLoyxhO4iWJuC3mw6fNwG/uSXHuQGHUXCB5iE7ov473CMz+RvRcaqLrbBwDcPHz0ouOvDmJg+Qiuhas/PBl2O3fe711+tnNyJXAvMoCAvD/E930vY4AkQ7Ctxl1NvIpobHgjAOAbRP2dGqWvU4h0ntpWnLgVEHSjs9Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1755150263; c=relaxed/simple;
+	bh=g6R08dRtzi78aEFReCyHEuWUNRmsPZO1Bp8+EA825f0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PUJwmNvgoDMObxaF4sdiMOmI1e7xAV5AhyJkDRqbiXXlaz22xb+Wgl94FLkxGTIEFNNtdfuT5uw45adZ8C3O0csijiy+J8FbFzPmvLj0XEla9Bvb1/4LfRuG2SsvrfbTYQiKI8iW8zUjFeoeMyslTk+Fg26Hfz+73mRn4gzElfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bj/7PF46; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Yp3/SxfH";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="tbllYNzv"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 57DIN5uv018386;
-	Wed, 13 Aug 2025 19:53:46 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=corp-2025-04-25; bh=9/AE+vhS5Rm37i8iOw
-	c7FMLD+ZwIig023T6GSPxvAfM=; b=Yp3/SxfHLiymgBg/Wt+n6VZOGpMCBHXrnr
-	Slwy+2BR58Bd9XrI+E+pUMzAQfs2h3K0OAg23eXGuSaCFJIVfrZFt3K7IZc99Qh6
-	IAUJDMHZUh/KYaU5+lfal//RTOlqmvuVGEpgffkr7jCmaYOoEBSfBj74ciKUnqTU
-	Xb4OuXdCxFXoBHhgnxVh6ecUeTS9mM38V5VqlnGFIiU2ppB2lg6uL7Y889145CN4
-	UB6drkiSpigcssfokAq/nxP3oIpvJT7mlVlOK/IsjmrG8P+AgTRTpmuRtv3RVSM2
-	qjww0PsH8byVNVwgDviXSZBSOxpfM65BNzJZHyeRLZQ4rFK3qd+w==
-Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 48dxcf8f44-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 13 Aug 2025 19:53:45 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 57DJe1te030190;
-	Wed, 13 Aug 2025 19:53:44 GMT
-Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11on2049.outbound.protection.outlook.com [40.107.236.49])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 48dvsbue4y-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 13 Aug 2025 19:53:44 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sFaBZxIxfF9aYBhtKCXbqKfZhuVnP5ftqjvmFg0Ae2JNXTW4isRpGpMe17uSEEuojbKTOB70Pd6ry5v+Si3obQNPWjzvbpRzRTPUwS01iXMTQePkLrTqli2zcP8sU68F+9FyjMl0L95y7lcn5VFUMF7byh33PsTLPCVeY1GAmLtFegvbLeGURq7m2DpvW84h+Lg5haaI87sINZN4diWxUC0feeTAOQwQsaOl3hSg4ZuX1w00AqVCWoAxU+IXt7UFgea7Nw6R3UgEz+YocGsFGilChid2FucudIsQDNVy1pJiLFgl5LcAi4UssvXFSX1oLusa9rhV1y2z+aKmpg6m+Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9/AE+vhS5Rm37i8iOwc7FMLD+ZwIig023T6GSPxvAfM=;
- b=zPLCXuyrVL5qKa15EFambr4dn9xGu2VxtCj6Lsq4gxOl9VLVJznj7Xn2rg0TLDrOeX8QWoo8rH96lpEkrICgd+4+cX3So8rNza00ZcYoqs6bGqLx0pG14s4rHKuJy8JA6Iz6Tji0jWtcHoKLOoaLb5qC3u26BYFz5T4R2Pi6PEahCFDRfMBSDuazF1mylKVESLGQNXCm8/3KOmSunHDvf4bmjc3rnRRjBlLkYDHC4NW2B4LbvB1OrOJh3PAVUBrn84ucnCeU3UFDdBoAzIsLfoEJnZwUBWClFHtQHBj+pgcTdgHLtYEA+4oVDyiXm7MBqyupIaItejRBPtb4oqR6oQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9/AE+vhS5Rm37i8iOwc7FMLD+ZwIig023T6GSPxvAfM=;
- b=tbllYNzvGlSttVZrF1n+NvI6Di5UypOqkUkM7s6QMu4UPnee+vvEGA9qYG//y7PPWx3yJTsu5Q/5EOqtkJSvMHxyWaQlNV6Wgm5as6t9d6bnNP0Dp9PhCbxmaLeA6C8Gy7bHBiZVssCVGDg64TzX4gJXOqXbYYDUoSLjuSUfxa4=
-Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
- by IA3PR10MB8591.namprd10.prod.outlook.com (2603:10b6:208:57a::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9031.16; Wed, 13 Aug
- 2025 19:53:18 +0000
-Received: from DM4PR10MB8218.namprd10.prod.outlook.com
- ([fe80::2650:55cf:2816:5f2]) by DM4PR10MB8218.namprd10.prod.outlook.com
- ([fe80::2650:55cf:2816:5f2%5]) with mapi id 15.20.9031.012; Wed, 13 Aug 2025
- 19:53:18 +0000
-Date: Wed, 13 Aug 2025 20:53:14 +0100
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andreas Larsson <andreas@gaisler.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Andy Lutomirski <luto@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
-        Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-        Kees Cook <kees@kernel.org>, David Hildenbrand <david@redhat.com>,
-        Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
-        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
-        Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-        Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
-        Xu Xin <xu.xin16@zte.com.cn>,
-        Chengming Zhou <chengming.zhou@linux.dev>,
-        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
-        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
-        David Rientjes <rientjes@google.com>,
-        Shakeel Butt <shakeel.butt@linux.dev>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Kan Liang <kan.liang@linux.intel.com>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Oleg Nesterov <oleg@redhat.com>, Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>,
-        Mel Gorman <mgorman@suse.de>, Valentin Schneider <vschneid@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-        Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>,
-        Pedro Falcato <pfalcato@suse.de>, Matthew Wilcox <willy@infradead.org>,
-        Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH 01/10] mm: add bitmap mm->flags field
-Message-ID: <d4ba117d-6234-4069-b871-254d152d7d21@lucifer.local>
-References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
- <9de8dfd9de8c95cd31622d6e52051ba0d1848f5a.1755012943.git.lorenzo.stoakes@oracle.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9de8dfd9de8c95cd31622d6e52051ba0d1848f5a.1755012943.git.lorenzo.stoakes@oracle.com>
-X-ClientProxiedBy: GV2PEPF00003828.SWEP280.PROD.OUTLOOK.COM
- (2603:10a6:144:1:0:5:0:7) To DM4PR10MB8218.namprd10.prod.outlook.com
- (2603:10b6:8:1cc::16)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bj/7PF46"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1755150261; x=1786686261;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=g6R08dRtzi78aEFReCyHEuWUNRmsPZO1Bp8+EA825f0=;
+  b=bj/7PF46qkqGFI2KHEYh9Vt4m6DO4DdzFk2Lh5UTOyRUa2UwN68xtlNv
+   WIX/xANyC1jezTA16WeMnUZ94LWhLlm7MugMS93kWC+mwIgnxWIbN4Yi6
+   Nqu7B2GZiTXrpi7PugVr/qbL4OrZFnmhjr3i17Mj7woUQxe2VCZduF7mL
+   /GRzgX9aaZLVwCK63MGBMhaSrwKt0ucDwaF/H9jPrpHyK13Dg0KcYPUH1
+   OV3PaRY+qTJZN3kfSM7Iww09tdoxzz9hh7YkPKPBe4wtvO6auOt1oIfbc
+   UBp6suryItGrauMrE7hk4TQkfjCdTegvrp8TJ/gc8TN9jOK2SKKNCpgpa
+   g==;
+X-CSE-ConnectionGUID: bYNAXm5mQRCSrOmzTZbXrg==
+X-CSE-MsgGUID: oGfn6ROORgGDq97NY5DFeA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11520"; a="68063294"
+X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
+   d="scan'208";a="68063294"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2025 22:44:20 -0700
+X-CSE-ConnectionGUID: EW+xK8OMTcegzO0PV9/IwQ==
+X-CSE-MsgGUID: DyMXdD5CQGikV6ws5RD5Og==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
+   d="scan'208";a="170876883"
+Received: from lkp-server02.sh.intel.com (HELO 4ea60e6ab079) ([10.239.97.151])
+  by fmviesa005.fm.intel.com with ESMTP; 13 Aug 2025 22:44:14 -0700
+Received: from kbuild by 4ea60e6ab079 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1umQkr-000AcW-2Z;
+	Thu, 14 Aug 2025 05:44:08 +0000
+Date: Thu, 14 Aug 2025 13:43:14 +0800
+From: kernel test robot <lkp@intel.com>
+To: Robin Murphy <robin.murphy@arm.com>, mingo@redhat.com, will@kernel.org,
+	mark.rutland@arm.com, acme@kernel.org, namhyung@kernel.org,
+	alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+	irogers@google.com, adrian.hunter@intel.com,
+	kan.liang@linux.intel.com
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	linux-perf-users@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
+	linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-rockchip@lists.infradead.org, dmaengine@vger.kernel.org,
+	linux-fpga@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 13/19] perf: Add helper for checking grouped events
+Message-ID: <202508141353.JZWHsrYP-lkp@intel.com>
+References: <b05607c3ce0d3ce52de1784823ef9f6de324283c.1755096883.git.robin.murphy@arm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|IA3PR10MB8591:EE_
-X-MS-Office365-Filtering-Correlation-Id: ab83ea47-cd76-4203-7cfb-08dddaa30c97
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|376014|1800799024|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?BjYb+tdD5bwUmE5Tmd9hRcAyWj8WQkdqI0DNs4M5RBxMy6gUe9grjcCbCE/8?=
- =?us-ascii?Q?CfsFD54YWy4kzJXnvrnXXtWe6Ot9JC0FI8WsQ1jjqJdWJy1ZTx5CZlbc1D4J?=
- =?us-ascii?Q?p8b01kqXSE1WrJKCIq9KygJa7UNReINRDHBL5HVnA7oRH+gL3MsW1uCEieZc?=
- =?us-ascii?Q?BCabC+0hTd8NXy6cc5qQ+GguC+xkWKZrKmepKP3HJObuKv7kAand9lnIApPn?=
- =?us-ascii?Q?QicLnS4v0auAeqXKgEfxYPBgTWvtOJrZpWYa/+dtdwnasQnremcXwW7hRmmk?=
- =?us-ascii?Q?zicjd6DlRAn+70a748evwoyZEhykWN0IO5C/94ZiQGDYmncEwIgUtdxnSLno?=
- =?us-ascii?Q?6j+uCcNXqCl5bc7Vdo+OCsUTofdqauzPINFYk6almMTTanZiiebRkN5duXfQ?=
- =?us-ascii?Q?NwEmWpEwXnPuayu3RN6y5CnTAVTdIhqqWgiMFisaG8dBtAFo+/HrZDot7XBa?=
- =?us-ascii?Q?DS2YQgcDwau7egQLIJLhbDfB1NpyHSPUjuneEtMIHe1XhP/KDQsSEvujBCtA?=
- =?us-ascii?Q?pcuUGzFoQ8mNNB32+IVJrzTCrsJ06Fy3RAiTkSGEqvbHo7y64lIgRPLVmGvh?=
- =?us-ascii?Q?1yGKy8DCxMkJT0MzDRAglEkTIMRW8z05MsmYQscTmOsZmgff+TWY/xhjFXHy?=
- =?us-ascii?Q?Zw4qsiKneXee3OR4d+M95L/rLf6d+oTZZF1/3rnl0lvhvV0uD2mLsj6vqG5g?=
- =?us-ascii?Q?PSWKLYmkQZ4QzYHQrWduPixmzY4dSvpqOZhgZxiYlXXsFAeODPZ88UyP3got?=
- =?us-ascii?Q?TCFmpn88potoBDqtaOmePyrpQxpmhs7w9X+q5nmKw4lNTENjGnVdNJBy2xte?=
- =?us-ascii?Q?04TDYFLNzhJNLfkSLutoHrL0IAwy/eKyJcFRuM5/6Yl00NmhJdAY2E7ubFuU?=
- =?us-ascii?Q?947ss1T6MQXngXemDrsSzR45jDTl5xSz0Q5SOwmBNJy0D1BGmWcMlCozGjFV?=
- =?us-ascii?Q?Kt8ZukJb8Tbl2zSfqps7bklj+qfmA2SFyzNU/RCPLHJFc5xUeR3mUuMLL7VZ?=
- =?us-ascii?Q?y+Vc10SR+mCGH3o2pt1ArOHRUk/oXiDxlm5VVOj+BS3umQDTDKoQdUpU8DzB?=
- =?us-ascii?Q?FrOmfaG2Yvq1t4+Wa7vMBHKkv86z0zrgKvjMLTpPk/lUFIidRsYKGUmKRlJQ?=
- =?us-ascii?Q?1wkLwkpcSCHx9uv7SIvjtnqWD3C307OXOpc4ccrd5pADoUDAvImVxk0cX3PI?=
- =?us-ascii?Q?KGRHR7Exltha3Bbqdv+LXdwl1tzugEc8P1HuI6Wzo9hSb6Vkb1MthzEnKF/3?=
- =?us-ascii?Q?yy7hvaH68qn0ASttLlEIN4p0uzGf1OjJK76uzmqn4EcZH/FbylGLmAHgBAht?=
- =?us-ascii?Q?usXgY9MSZihIhJFa31WsIDXsaSJJF3gelm/cqJsW29JfFw+02meurttO4ab8?=
- =?us-ascii?Q?+8JvgeqTQEojNkcL3bfaTxjKXiUPIp/LGDqeHaR1WHVs514ikOwgsXXSuWaJ?=
- =?us-ascii?Q?6Mf6RoAbRZs=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?SOcF+GJ6GiECOZbw+rLnLbnQOmaAK0AaENc2DiOQKSI5rx+2UaOCku+dChCJ?=
- =?us-ascii?Q?4wRr0LDXAse7U/U8gT7CKG7w+XgGmTXAHOgyJdLXAMwfG84PHHqkIpxJCbSe?=
- =?us-ascii?Q?+WM+DapqjN0RvV+4s1tkYyt02r7wEnpL6ffUC5+6Pl1LgVaCES+mdYH6r1Q6?=
- =?us-ascii?Q?6T9Hx2gUJsEZWsVosgpTfS6q2pWiZXA703NZ80Ety94tD9gxB1Hii6jUYTaw?=
- =?us-ascii?Q?AzBGexaqo1pFmsAhfUYPEQ0YlbukQwrD0xEkyMn47zVvqzrSHgaAuso21I4H?=
- =?us-ascii?Q?wGwm7cMtVq+OVQg1Ef4R1cshhfprf4IOqrlz9n5BZDUPWdty/bg/7lmoM7kA?=
- =?us-ascii?Q?Up3+r7+wcoPjGc7sWDhonIIS8AQmzAY6AEdB5eGYd3fLAPN3jVb/1FoZMap/?=
- =?us-ascii?Q?x+g4rLSA2p30BuoaOc6Eq1wLlGTPBcfyGP+lISHbedaO3JN48UpzZitDkqDi?=
- =?us-ascii?Q?r4ttWwJOP5Y8m4G6y5ISXcztGszCiWm6ZX6d9As6RPhYxFf31i0BfpYsXYGN?=
- =?us-ascii?Q?ntOLI9OuSS98q6rAOG8XxW4SD4ssVQxbgaHS3EH9JXZ82Mozna66lY4W4IVC?=
- =?us-ascii?Q?LSeDysKP2/iSdmdZndajw5iV7wNJH8pNkB9/EHvHu0Cb++wdax4yHPSfegXU?=
- =?us-ascii?Q?vulpJGdEhEzQK5DHxQuaq4GZeSyBxrPoGjNI/ptTtRmXZVTjw8JknPkB5uZB?=
- =?us-ascii?Q?TWvQIssGdgc31T0rdsdCna3QJ2Nu/HBqPwRewRqotm1GwOkyd4kZEir0iapg?=
- =?us-ascii?Q?N4aXbEPrtIPvQZsEsTPaiEAAOobavr9H7bO13NWWz7tAJnFgHNfUClxx/C4x?=
- =?us-ascii?Q?mm7EzAK37DQshiRR7Cgpnwemkbb9avR4NIe+p5JE7Qpu8zE3o1Pyr5sCbh0g?=
- =?us-ascii?Q?tOSp4Em5HlgdQSKbiRZqp2gdiMEZwOU3DXXexhLzQHrmTcZ7iW07rj+Sbici?=
- =?us-ascii?Q?/P73hWvLxYSqL6o18/xiKpO216ZRO2KQTCE4z5fU3u38zvliaoT6ZUrBNsRB?=
- =?us-ascii?Q?ndZvO0ey9shjkvLdac+VHi9Y6tWyY/yIKGCty+drs7w5fN/y1b1A5/I8Ltva?=
- =?us-ascii?Q?VCylGWUtpM8vxI5IO+89+GTbwZ26JmMY2Id60EGEXu5f0IxiEa+bBwZ3AylB?=
- =?us-ascii?Q?xSdRDuQnGBiaMSmBKG39QtMnIh4zLwMBgeD/kfdhT9BNTBvdjCePHOFZ3T/M?=
- =?us-ascii?Q?CA8V3ido2x7OPY1kYdw16bf5dAScxflJ9mwFxB66jCNRHDrh4ckIdRC/IEFM?=
- =?us-ascii?Q?2zSGELh9jrBobE+fYgN4xLw4b3nNZCBX3+n/kA3rsn50+fgORyHVgvzi/Nef?=
- =?us-ascii?Q?caRs9YRrpzIHyy7TMsn3/gznmYITW8ZkLZFexbkdTWFgQtOdzATRp4H8k4ur?=
- =?us-ascii?Q?hJa/dGvsHCmMIg2xZ5MLy+YVwCs1A9SpTQ1Plei9Wh6jwuJ0FQ17/pPH7iJF?=
- =?us-ascii?Q?tRZ3jGV7gfv16CmI75UMxKJDwLfQRJ+EeUsuh+dyqNL4zZPMw/EFRwmX240Q?=
- =?us-ascii?Q?cPizcdnU7f9Rf+HtXpb3bu2xOaM0tXiiqnvbsMUOzgHM9tb8CxVVIXJj9zRz?=
- =?us-ascii?Q?MZAyZ53WLxdSPOPCsLT1YmOnME9asA+67A7Lgrm048TWyJPQCX4kjwhIxPuP?=
- =?us-ascii?Q?aQ=3D=3D?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	agt/qQABnXBYrHfhOLtQe2cK49VBzgGJbxy2BOGrowQsz2laVXse33lfrZ9y+oxrtmuJk6gdYlsCWJrSdV8lXryr9qolZuGiNeznI8Fe7Zv/mVYgLzAPWSMAZkENWaWsdggyAjre5CXOMHWLgPubU84ilZmHxkQJo3hM1jxb1CEiJPgc5pti2ISGW8tE1NFQo7m+4EI9kreVvVOfxuVyDrduzVK8OaglUsmrhV7HtIeFLR7/h+y6Fv9E68ietW3wt8N4/Wq4YZcfao390oulZ5zXcwZzG9kAA107+j2h5JCbM5L8Cqw6HFROkau6rt5bUYKor6p2qgcCuOF7jKU9tA2fIpMDFyO0JrwiFLCeNlQcjqXDkS82a92y4cn+rPD2knbJYZPIZzntqdpzTz1Bb0bZlnJrfVxp4qLsMvmPlITKsS8ju2ixAOllToIQOHXg//yo/gq2gnM2Ohaio8dVQQVJHfuTf8U3Vr4a9JInTEGmXji7kRxrBu++gCMbl4irscLfBO+N+JAOES3zZYGGGRhEm3y59qUUArKCtf4yMAqB8yvreWlJHMjn9pbzV3Idbesny8Yn1FZAXnrrb9B4XBreQy076vYibfRRrcOULcQ=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ab83ea47-cd76-4203-7cfb-08dddaa30c97
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Aug 2025 19:53:18.3244
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: DwBTJKlJg5qAM83s0dnAFEvVQRWG7omDZl1uWg8uG/h2mVXHem325L5m/dmVv1YJfs9bvGwtX4jfDHwgZSKoIE6hT5gxwCJheAAMSjVkyu8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA3PR10MB8591
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-08-13_01,2025-08-11_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 phishscore=0
- adultscore=0 mlxscore=0 bulkscore=0 spamscore=0 mlxlogscore=999
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2507300000 definitions=main-2508130185
-X-Proofpoint-GUID: dllCVF8UlnIvz2ED6ggPDp520rIXxGqr
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODEzMDE4NCBTYWx0ZWRfX3T51GYgJcFys
- EElhKJE43ITbY5yLIBiHkeHKkYszLAMB5GKwKlLAMkL/5qRnf0TAk4Rq5Ye9O681fGGxuifwRE2
- baDBw5AnApp1y2WkTfxwQkpzxvrZlFocJFbrnQshG5opwkgXum4G3h4trZJxvv24szeaK94bjVT
- 70HAGpM0HC1a7AK9LgGUUxFZJq4RsksY2SpRUk1nR8q98W8y4RfuLNOkf+yE/PaK+nSkT+B1FIc
- MFmOQNA3QJbWNlXuU/c+jit7/J7DFw89YwgratvW/jnk/oXfT0Tqsg8gXkIegnP3O3nCoFTjcMQ
- XPYPzWB4ujiJ0ADj2YhG2oTEgR9+9catiN7D7MfgqlNPCX0VIuD8EKFtbBhM0s7DTJc/esCi7v9
- 3p4jXHM6NTU/NuY6Ixwwy3rLL3lXvxRIS+PDwajirpjzdWYoW2fk6fzb5Hrx8kpWzgWcUU/N
-X-Authority-Analysis: v=2.4 cv=W8M4VQWk c=1 sm=1 tr=0 ts=689ced49 cx=c_pps
- a=OOZaFjgC48PWsiFpTAqLcw==:117 a=OOZaFjgC48PWsiFpTAqLcw==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
- a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
- a=2OwXVqhp2XgA:10 a=GoEa3M9JfhUA:10 a=yPCof4ZbAAAA:8 a=CwLAwcwTAefBDsDzhiMA:9
- a=CjuIK1q_8ugA:10
-X-Proofpoint-ORIG-GUID: dllCVF8UlnIvz2ED6ggPDp520rIXxGqr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b05607c3ce0d3ce52de1784823ef9f6de324283c.1755096883.git.robin.murphy@arm.com>
 
-Hi Andrew,
+Hi Robin,
 
-Apologies, it turns out I put the __private sparse decorator in the wrong
-place :)
+kernel test robot noticed the following build warnings:
 
-I enclose a fix-patch that fixes this (now *ahem* tested with sparse...) as
-well as fixing some trivial whitespace/code reuse/const stuff in a couple
-accessors.
+[auto build test WARNING on linus/master]
+[also build test WARNING on v6.17-rc1 next-20250814]
+[cannot apply to perf-tools-next/perf-tools-next tip/perf/core perf-tools/perf-tools acme/perf/core]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Cheers, Lorenzo
+url:    https://github.com/intel-lab-lkp/linux/commits/Robin-Murphy/perf-arm-cmn-Fix-event-validation/20250814-010626
+base:   linus/master
+patch link:    https://lore.kernel.org/r/b05607c3ce0d3ce52de1784823ef9f6de324283c.1755096883.git.robin.murphy%40arm.com
+patch subject: [PATCH 13/19] perf: Add helper for checking grouped events
+config: i386-randconfig-003-20250814 (https://download.01.org/0day-ci/archive/20250814/202508141353.JZWHsrYP-lkp@intel.com/config)
+compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250814/202508141353.JZWHsrYP-lkp@intel.com/reproduce)
 
-----8<----
-From cbe60f2c5e35bf1fcffb00c51f79f700edc17e06 Mon Sep 17 00:00:00 2001
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Date: Wed, 13 Aug 2025 20:40:10 +0100
-Subject: [PATCH] mm: place __private in correct place, const-ify
- __mm_flags_get_word
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202508141353.JZWHsrYP-lkp@intel.com/
 
-The __private sparse indicator was placed in the wrong location, resulting
-in sparse errors, correct this by placing it where it ought to be.
+All warnings (new ones prefixed by >>):
 
-Also, share some code for __mm_flags_get_word() and const-ify it to be
-consistent.
+>> arch/x86/events/amd/ibs.c:264:6: warning: unused variable 'ret' [-Wunused-variable]
+     264 |         int ret;
+         |             ^~~
+   1 warning generated.
 
-Finally, fixup inconsistency in __mm_flags_set_word() param alignment.
 
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
----
- include/linux/mm_types.h | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+vim +/ret +264 arch/x86/events/amd/ibs.c
 
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 46d3fb8935c7..0e001dbad455 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -934,8 +934,8 @@ struct mm_cid {
-  */
- #define NUM_MM_FLAG_BITS BITS_PER_LONG
- typedef struct {
--	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
--} mm_flags_t;
-+	DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
-+} __private mm_flags_t;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  258  
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  259  static int perf_ibs_init(struct perf_event *event)
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  260  {
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  261  	struct hw_perf_event *hwc = &event->hw;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  262  	struct perf_ibs *perf_ibs;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  263  	u64 config;
+7c2128235eff99 arch/x86/events/amd/ibs.c                Ravi Bangoria  2023-06-20 @264  	int ret;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  265  
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  266  	perf_ibs = get_ibs_pmu(event->attr.type);
+2fad201fe38ff9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2023-05-04  267  	if (!perf_ibs)
+2fad201fe38ff9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2023-05-04  268  		return -ENOENT;
+2fad201fe38ff9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2023-05-04  269  
+450bbd493d436f arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-03-12  270  	config = event->attr.config;
+450bbd493d436f arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-03-12  271  
+450bbd493d436f arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-03-12  272  	if (event->pmu != &perf_ibs->pmu)
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  273  		return -ENOENT;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  274  
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  275  	if (config & ~perf_ibs->config_mask)
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  276  		return -EINVAL;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  277  
+0f9e0d7928d8e8 arch/x86/events/amd/ibs.c                Namhyung Kim   2023-11-30  278  	if (has_branch_stack(event))
+0f9e0d7928d8e8 arch/x86/events/amd/ibs.c                Namhyung Kim   2023-11-30  279  		return -EOPNOTSUPP;
+0f9e0d7928d8e8 arch/x86/events/amd/ibs.c                Namhyung Kim   2023-11-30  280  
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  281  	/* handle exclude_{user,kernel} in the IRQ handler */
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  282  	if (event->attr.exclude_host || event->attr.exclude_guest ||
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  283  	    event->attr.exclude_idle)
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  284  		return -EINVAL;
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  285  
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  286  	if (!(event->attr.config2 & IBS_SW_FILTER_MASK) &&
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  287  	    (event->attr.exclude_kernel || event->attr.exclude_user ||
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  288  	     event->attr.exclude_hv))
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  289  		return -EINVAL;
+d29e744c71673a arch/x86/events/amd/ibs.c                Namhyung Kim   2024-12-03  290  
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  291  	/*
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  292  	 * Grouping of IBS events is not possible since IBS can have only
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  293  	 * one event active at any point in time.
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  294  	 */
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  295  	if (in_hardware_group(event))
+ccec93f5de464b arch/x86/events/amd/ibs.c                Robin Murphy   2025-08-13  296  		return -EINVAL;
+7c2128235eff99 arch/x86/events/amd/ibs.c                Ravi Bangoria  2023-06-20  297  
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  298  	if (hwc->sample_period) {
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  299  		if (config & perf_ibs->cnt_mask)
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  300  			/* raw max_cnt may not be set */
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  301  			return -EINVAL;
+88c7bcad71c83f arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  302  
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  303  		if (event->attr.freq) {
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  304  			hwc->sample_period = perf_ibs->min_period;
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  305  		} else {
+88c7bcad71c83f arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  306  			/* Silently mask off lower nibble. IBS hw mandates it. */
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  307  			hwc->sample_period &= ~0x0FULL;
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  308  			if (hwc->sample_period < perf_ibs->min_period)
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  309  				return -EINVAL;
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  310  		}
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  311  	} else {
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  312  		u64 period = 0;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  313  
+e1e7844ced88f9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  314  		if (event->attr.freq)
+e1e7844ced88f9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  315  			return -EINVAL;
+e1e7844ced88f9 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  316  
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  317  		if (perf_ibs == &perf_ibs_op) {
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  318  			period = (config & IBS_OP_MAX_CNT) << 4;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  319  			if (ibs_caps & IBS_CAPS_OPCNTEXT)
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  320  				period |= config & IBS_OP_MAX_CNT_EXT_MASK;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  321  		} else {
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  322  			period = (config & IBS_FETCH_MAX_CNT) << 4;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  323  		}
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  324  
+db98c5faf8cb35 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  325  		config &= ~perf_ibs->cnt_mask;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  326  		event->attr.sample_period = period;
+598bdf4fefff5a arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  327  		hwc->sample_period = period;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  328  
+b2fc7b282bf7c1 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-01-15  329  		if (hwc->sample_period < perf_ibs->min_period)
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  330  			return -EINVAL;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  331  	}
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  332  
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  333  	if (perf_ibs_ldlat_event(perf_ibs, event)) {
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  334  		u64 ldlat = event->attr.config1 & 0xFFF;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  335  
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  336  		if (ldlat < 128 || ldlat > 2048)
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  337  			return -EINVAL;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  338  		ldlat >>= 7;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  339  
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  340  		config |= (ldlat - 1) << 59;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  341  		config |= IBS_OP_L3MISSONLY | IBS_OP_LDLAT_EN;
+d20610c19b4a22 arch/x86/events/amd/ibs.c                Ravi Bangoria  2025-02-05  342  	}
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  343  
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  344  	/*
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  345  	 * If we modify hwc->sample_period, we also need to update
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  346  	 * hwc->last_period and hwc->period_left.
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  347  	 */
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  348  	hwc->last_period = hwc->sample_period;
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  349  	local64_set(&hwc->period_left, hwc->sample_period);
+6accb9cf760804 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2012-04-02  350  
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  351  	hwc->config_base = perf_ibs->msr;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  352  	hwc->config = config;
+510419435c6948 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-12-15  353  
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  354  	return 0;
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  355  }
+b716916679e720 arch/x86/kernel/cpu/perf_event_amd_ibs.c Robert Richter 2011-09-21  356  
 
- struct kioctx_table;
- struct iommu_mm_data;
-@@ -1233,17 +1233,8 @@ struct mm_struct {
- 	unsigned long cpu_bitmap[];
- };
-
--/* Read the first system word of mm flags, non-atomically. */
--static inline unsigned long __mm_flags_get_word(struct mm_struct *mm)
--{
--	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
--
--	return bitmap_read(bitmap, 0, BITS_PER_LONG);
--}
--
- /* Set the first system word of mm flags, non-atomically. */
--static inline void __mm_flags_set_word(struct mm_struct *mm,
--				       unsigned long value)
-+static inline void __mm_flags_set_word(struct mm_struct *mm, unsigned long value)
- {
- 	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
-
-@@ -1256,6 +1247,14 @@ static inline const unsigned long *__mm_flags_get_bitmap(const struct mm_struct
- 	return (const unsigned long *)ACCESS_PRIVATE(&mm->_flags, __mm_flags);
- }
-
-+/* Read the first system word of mm flags, non-atomically. */
-+static inline unsigned long __mm_flags_get_word(const struct mm_struct *mm)
-+{
-+	const unsigned long *bitmap = __mm_flags_get_bitmap(mm);
-+
-+	return bitmap_read(bitmap, 0, BITS_PER_LONG);
-+}
-+
- #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
- 			 MT_FLAGS_USE_RCU)
- extern struct mm_struct init_mm;
---
-2.50.1
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
