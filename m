@@ -1,73 +1,91 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682B12D46CE;
-	Thu, 14 Aug 2025 08:05:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C5BE2E7BBB;
+	Thu, 14 Aug 2025 08:27:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755158729; cv=none; b=Q1Qr9u4U/MuV8RvugXjp3LJOmyC93NFL0Cdccz+Pq2Upr2EoMFqus++gbe64YUNmaVwrs/c84mhiuVsN2WmQcjyAyI3n1fp2Ls3Meb6mtQdsy/BTDQiUj7ACajarP4Jx79LyK9zOKM0ZO0P4yNbK6vNlJI+3yxOVxdYgpF8Y39M=
+	t=1755160060; cv=none; b=Tbys6mrQ2lEQxaIquoSWFoK5ldAjtRdUNRC5GIJOUP74AKE51V6HYSqp2M97JtkM+P68dY6k4IUN26SdlKG7BG+YjknJNOHI5b/s2MT1c/v4PnElrWINkT4//pcwyRwLsLSNXY03HaHAIU/buz3Pv6HXjglAKnsjmqB/4+NrVPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755158729; c=relaxed/simple;
-	bh=5cPIVXM0nkCET4mfTMJk5eQOYlHUtDVZOyK2tRL3s7U=;
+	s=arc-20240116; t=1755160060; c=relaxed/simple;
+	bh=+g86Qmw3P3PJ1AG+gPw3MtOk3EbK2uZf8gwDidq2cAI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fFnPMWb5uL6XTWddiJVcJxbRYHVcg9NFE0PleUq92yYApTQF9SZ+wiQnNGqXN6tYWJk+utLNBc8acJ1UZ53p9UMmqtqk4/vWghs1ySCZXRQ8b587wstrVNL1vnM5yfPZISxGaTpxJX/SK5ueB3z6ukpi8fpz4MBdk/pCYgsnNk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=e5qOrdUD; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=cl3zNCVPzCi1+V5j4kBcQ355exCR89qX+qTcRCZ4Hv76Qt6YgqIcdBAefx68msYk+2tLgUF2pKsg4S5VfT3AQjTJCRvX2oB7DOPRMjCMr/yZip9RHpuvj9Onfwv1Kl/dDf9rflfHBcPhldSfQF0zev4KO6f62bmA6taE9NXX4CI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cSWJOQUE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="e5qOrdUD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1755158727; x=1786694727;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=5cPIVXM0nkCET4mfTMJk5eQOYlHUtDVZOyK2tRL3s7U=;
-  b=e5qOrdUDMGWQjBVcJtO5/WJMlsR5hKTDEvmqF/KhovkZnQKO+loX5EUD
-   MINL4FMrXmLIMwj5xsFhLwS+B66oGs0kO3aga7gYHFN17yyCX82rEebr2
-   KGTabiyNmPvQ8sQy9pqM9FkEWx2DjLoBstTjQNINlG13PlASYdjFGHoeU
-   MaqfuZxGZu68kvfG9woiPK4gZI+TiZZfRH4bCPtfiWNEWF2Q64PynQ77N
-   DP6Igjmfsr/Goi/EcEBIhJEbGU5KNPY+zqidmLo8CiKcD6f8M+rbNDflG
-   k/bejF9GhcmDiWbf9xF7oqKOtOXkFLgXDfp7sHjW+Avpb5tze197I/Pbi
-   w==;
-X-CSE-ConnectionGUID: zwqgy/UqReGT/DiY5P5DhQ==
-X-CSE-MsgGUID: fEN7T7KmRK6lPUp1N+LGnw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11520"; a="57372648"
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="57372648"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2025 01:05:26 -0700
-X-CSE-ConnectionGUID: DDCZwDm7QaSoaweUXg1M6A==
-X-CSE-MsgGUID: uMzmV2T2TFe/bu5sz1uy2A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="190399976"
-Received: from lkp-server02.sh.intel.com (HELO 4ea60e6ab079) ([10.239.97.151])
-  by fmviesa002.fm.intel.com with ESMTP; 14 Aug 2025 01:05:19 -0700
-Received: from kbuild by 4ea60e6ab079 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1umSxZ-000Ajc-1M;
-	Thu, 14 Aug 2025 08:05:17 +0000
-Date: Thu, 14 Aug 2025 16:04:59 +0800
-From: kernel test robot <lkp@intel.com>
-To: Robin Murphy <robin.murphy@arm.com>, mingo@redhat.com, will@kernel.org,
-	mark.rutland@arm.com, acme@kernel.org, namhyung@kernel.org,
-	alexander.shishkin@linux.intel.com, jolsa@kernel.org,
-	irogers@google.com, adrian.hunter@intel.com,
-	kan.liang@linux.intel.com
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	linux-perf-users@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
-	linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-rockchip@lists.infradead.org, dmaengine@vger.kernel.org,
-	linux-fpga@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH 19/19] perf: Garbage-collect event_init checks
-Message-ID: <202508141524.QVgoOKMD-lkp@intel.com>
-References: <ace3532a8a438a96338bf349a27636d8294c7111.1755096883.git.robin.murphy@arm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cSWJOQUE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F5DEC4CEF4;
+	Thu, 14 Aug 2025 08:27:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755160058;
+	bh=+g86Qmw3P3PJ1AG+gPw3MtOk3EbK2uZf8gwDidq2cAI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cSWJOQUEjXVFkQuLaLSb2GZTQV42DBKhjom9hLlp6cgwyLHr/55l7aXyPclUXWGis
+	 o8pDfmcFi1wf8KgwgDlQVITxnSQDDZYfEMdMbxusrQFYy8hc0s6uiy7Fj3svNy2Y82
+	 f+zPAUPB8R6fGV79yj7qVMB97Ros2mn4exQsTKBlmnIMWT4BdsjGeHaxSZyGCpOqPw
+	 kaOtS8C9RyUhdhyYQS26T9XV6N0FXAjwfM0FEOQhrX/otTrMCAv0lGe8/4LW+1C3IN
+	 gCfrjjyrRvJsH0MycZRtHf9bqqdwMEDKvgmlMyR1URpxz6ISltaIXA0bnklNrJR7Dc
+	 SuK6AFs6EBSow==
+Date: Thu, 14 Aug 2025 11:27:15 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Kees Cook <kees@kernel.org>, David Hildenbrand <david@redhat.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	David Rientjes <rientjes@google.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Kan Liang <kan.liang@linux.intel.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Oleg Nesterov <oleg@redhat.com>, Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+	Valentin Schneider <vschneid@redhat.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Matthew Wilcox <willy@infradead.org>,
+	Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org,
+	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	linux-trace-kernel@vger.kernel.org,
+	linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH 02/10] mm: convert core mm to mm_flags_*() accessors
+Message-ID: <aJ2d41cF5dFhZ3qs@kernel.org>
+References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+ <1eb2266f4408798a55bda00cb04545a3203aa572.1755012943.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,118 +94,598 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ace3532a8a438a96338bf349a27636d8294c7111.1755096883.git.robin.murphy@arm.com>
+In-Reply-To: <1eb2266f4408798a55bda00cb04545a3203aa572.1755012943.git.lorenzo.stoakes@oracle.com>
 
-Hi Robin,
+On Tue, Aug 12, 2025 at 04:44:11PM +0100, Lorenzo Stoakes wrote:
+> As part of the effort to move to mm->flags becoming a bitmap field, convert
+> existing users to making use of the mm_flags_*() accessors which will, when
+> the conversion is complete, be the only means of accessing mm_struct flags.
+> 
+> This will result in the debug output being that of a bitmap output, which
+> will result in a minor change here, but since this is for debug only, this
+> should have no bearing.
+> 
+> Otherwise, no functional changes intended.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-kernel test robot noticed the following build warnings:
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v6.17-rc1 next-20250814]
-[cannot apply to perf-tools-next/perf-tools-next tip/perf/core perf-tools/perf-tools acme/perf/core]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Robin-Murphy/perf-arm-cmn-Fix-event-validation/20250814-010626
-base:   linus/master
-patch link:    https://lore.kernel.org/r/ace3532a8a438a96338bf349a27636d8294c7111.1755096883.git.robin.murphy%40arm.com
-patch subject: [PATCH 19/19] perf: Garbage-collect event_init checks
-config: i386-randconfig-003-20250814 (https://download.01.org/0day-ci/archive/20250814/202508141524.QVgoOKMD-lkp@intel.com/config)
-compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250814/202508141524.QVgoOKMD-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202508141524.QVgoOKMD-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> arch/x86/events/intel/uncore_snb.c:905:24: warning: unused variable 'hwc' [-Wunused-variable]
-     905 |         struct hw_perf_event *hwc = &event->hw;
-         |                               ^~~
-   1 warning generated.
-
-
-vim +/hwc +905 arch/x86/events/intel/uncore_snb.c
-
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  896  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  897  /*
-9aae1780e7e81e arch/x86/events/intel/uncore_snb.c                Kan Liang               2018-05-03  898   * Keep the custom event_init() function compatible with old event
-9aae1780e7e81e arch/x86/events/intel/uncore_snb.c                Kan Liang               2018-05-03  899   * encoding for free running counters.
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  900   */
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  901  static int snb_uncore_imc_event_init(struct perf_event *event)
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  902  {
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  903  	struct intel_uncore_pmu *pmu;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  904  	struct intel_uncore_box *box;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30 @905  	struct hw_perf_event *hwc = &event->hw;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  906  	u64 cfg = event->attr.config & SNB_UNCORE_PCI_IMC_EVENT_MASK;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  907  	int idx, base;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  908  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  909  	pmu = uncore_event_to_pmu(event);
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  910  	/* no device found for this pmu */
-3f710be02ea648 arch/x86/events/intel/uncore_snb.c                Kan Liang               2025-01-08  911  	if (!pmu->registered)
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  912  		return -ENOENT;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  913  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  914  	/* check only supported bits are set */
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  915  	if (event->attr.config & ~SNB_UNCORE_PCI_IMC_EVENT_MASK)
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  916  		return -EINVAL;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  917  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  918  	box = uncore_pmu_to_box(pmu, event->cpu);
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  919  	if (!box || box->cpu < 0)
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  920  		return -EINVAL;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  921  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  922  	event->cpu = box->cpu;
-1f2569fac6c6dd arch/x86/events/intel/uncore_snb.c                Thomas Gleixner         2016-02-22  923  	event->pmu_private = box;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  924  
-e64cd6f73ff5a7 arch/x86/events/intel/uncore_snb.c                David Carrillo-Cisneros 2016-08-17  925  	event->event_caps |= PERF_EV_CAP_READ_ACTIVE_PKG;
-e64cd6f73ff5a7 arch/x86/events/intel/uncore_snb.c                David Carrillo-Cisneros 2016-08-17  926  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  927  	event->hw.idx = -1;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  928  	event->hw.last_tag = ~0ULL;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  929  	event->hw.extra_reg.idx = EXTRA_REG_NONE;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  930  	event->hw.branch_reg.idx = EXTRA_REG_NONE;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  931  	/*
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  932  	 * check event is known (whitelist, determines counter)
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  933  	 */
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  934  	switch (cfg) {
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  935  	case SNB_UNCORE_PCI_IMC_DATA_READS:
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  936  		base = SNB_UNCORE_PCI_IMC_DATA_READS_BASE;
-9aae1780e7e81e arch/x86/events/intel/uncore_snb.c                Kan Liang               2018-05-03  937  		idx = UNCORE_PMC_IDX_FREERUNNING;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  938  		break;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  939  	case SNB_UNCORE_PCI_IMC_DATA_WRITES:
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  940  		base = SNB_UNCORE_PCI_IMC_DATA_WRITES_BASE;
-9aae1780e7e81e arch/x86/events/intel/uncore_snb.c                Kan Liang               2018-05-03  941  		idx = UNCORE_PMC_IDX_FREERUNNING;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  942  		break;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  943  	case SNB_UNCORE_PCI_IMC_GT_REQUESTS:
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  944  		base = SNB_UNCORE_PCI_IMC_GT_REQUESTS_BASE;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  945  		idx = UNCORE_PMC_IDX_FREERUNNING;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  946  		break;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  947  	case SNB_UNCORE_PCI_IMC_IA_REQUESTS:
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  948  		base = SNB_UNCORE_PCI_IMC_IA_REQUESTS_BASE;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  949  		idx = UNCORE_PMC_IDX_FREERUNNING;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  950  		break;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  951  	case SNB_UNCORE_PCI_IMC_IO_REQUESTS:
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  952  		base = SNB_UNCORE_PCI_IMC_IO_REQUESTS_BASE;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  953  		idx = UNCORE_PMC_IDX_FREERUNNING;
-24633d901ea44f arch/x86/events/intel/uncore_snb.c                Vaibhav Shankar         2020-08-13  954  		break;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  955  	default:
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  956  		return -EINVAL;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  957  	}
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  958  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  959  	/* must be done before validate_group */
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  960  	event->hw.event_base = base;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  961  	event->hw.idx = idx;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  962  
-8041ffd36f42d8 arch/x86/events/intel/uncore_snb.c                Kan Liang               2019-02-27  963  	/* Convert to standard encoding format for freerunning counters */
-8041ffd36f42d8 arch/x86/events/intel/uncore_snb.c                Kan Liang               2019-02-27  964  	event->hw.config = ((cfg - 1) << 8) | 0x10ff;
-8041ffd36f42d8 arch/x86/events/intel/uncore_snb.c                Kan Liang               2019-02-27  965  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  966  	/* no group validation needed, we have free running counters */
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  967  
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  968  	return 0;
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  969  }
-92807ffdf32c38 arch/x86/kernel/cpu/perf_event_intel_uncore_snb.c Yan, Zheng              2014-07-30  970  
+> ---
+>  include/linux/huge_mm.h    |  2 +-
+>  include/linux/khugepaged.h |  6 ++++--
+>  include/linux/ksm.h        |  6 +++---
+>  include/linux/mm.h         |  2 +-
+>  include/linux/mman.h       |  2 +-
+>  include/linux/oom.h        |  2 +-
+>  mm/debug.c                 |  4 ++--
+>  mm/gup.c                   | 10 +++++-----
+>  mm/huge_memory.c           |  8 ++++----
+>  mm/khugepaged.c            | 10 +++++-----
+>  mm/ksm.c                   | 32 ++++++++++++++++----------------
+>  mm/mmap.c                  |  8 ++++----
+>  mm/oom_kill.c              | 26 +++++++++++++-------------
+>  mm/util.c                  |  6 +++---
+>  14 files changed, 63 insertions(+), 61 deletions(-)
+> 
+> diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+> index 14d424830fa8..84b7eebe0d68 100644
+> --- a/include/linux/huge_mm.h
+> +++ b/include/linux/huge_mm.h
+> @@ -327,7 +327,7 @@ static inline bool vma_thp_disabled(struct vm_area_struct *vma,
+>  	 * example, s390 kvm.
+>  	 */
+>  	return (vm_flags & VM_NOHUGEPAGE) ||
+> -	       test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags);
+> +	       mm_flags_test(MMF_DISABLE_THP, vma->vm_mm);
+>  }
+>  
+>  static inline bool thp_disabled_by_hw(void)
+> diff --git a/include/linux/khugepaged.h b/include/linux/khugepaged.h
+> index ff6120463745..eb1946a70cff 100644
+> --- a/include/linux/khugepaged.h
+> +++ b/include/linux/khugepaged.h
+> @@ -2,6 +2,8 @@
+>  #ifndef _LINUX_KHUGEPAGED_H
+>  #define _LINUX_KHUGEPAGED_H
+>  
+> +#include <linux/mm.h>
+> +
+>  extern unsigned int khugepaged_max_ptes_none __read_mostly;
+>  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+>  extern struct attribute_group khugepaged_attr_group;
+> @@ -20,13 +22,13 @@ extern int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+>  
+>  static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+>  {
+> -	if (test_bit(MMF_VM_HUGEPAGE, &oldmm->flags))
+> +	if (mm_flags_test(MMF_VM_HUGEPAGE, oldmm))
+>  		__khugepaged_enter(mm);
+>  }
+>  
+>  static inline void khugepaged_exit(struct mm_struct *mm)
+>  {
+> -	if (test_bit(MMF_VM_HUGEPAGE, &mm->flags))
+> +	if (mm_flags_test(MMF_VM_HUGEPAGE, mm))
+>  		__khugepaged_exit(mm);
+>  }
+>  #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+> diff --git a/include/linux/ksm.h b/include/linux/ksm.h
+> index c17b955e7b0b..22e67ca7cba3 100644
+> --- a/include/linux/ksm.h
+> +++ b/include/linux/ksm.h
+> @@ -56,13 +56,13 @@ static inline long mm_ksm_zero_pages(struct mm_struct *mm)
+>  static inline void ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+>  {
+>  	/* Adding mm to ksm is best effort on fork. */
+> -	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
+> +	if (mm_flags_test(MMF_VM_MERGEABLE, oldmm))
+>  		__ksm_enter(mm);
+>  }
+>  
+>  static inline int ksm_execve(struct mm_struct *mm)
+>  {
+> -	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
+> +	if (mm_flags_test(MMF_VM_MERGE_ANY, mm))
+>  		return __ksm_enter(mm);
+>  
+>  	return 0;
+> @@ -70,7 +70,7 @@ static inline int ksm_execve(struct mm_struct *mm)
+>  
+>  static inline void ksm_exit(struct mm_struct *mm)
+>  {
+> -	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+> +	if (mm_flags_test(MMF_VM_MERGEABLE, mm))
+>  		__ksm_exit(mm);
+>  }
+>  
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 4ed4a0b9dad6..34311ebe62cc 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1949,7 +1949,7 @@ static inline bool folio_needs_cow_for_dma(struct vm_area_struct *vma,
+>  {
+>  	VM_BUG_ON(!(raw_read_seqcount(&vma->vm_mm->write_protect_seq) & 1));
+>  
+> -	if (!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags))
+> +	if (!mm_flags_test(MMF_HAS_PINNED, vma->vm_mm))
+>  		return false;
+>  
+>  	return folio_maybe_dma_pinned(folio);
+> diff --git a/include/linux/mman.h b/include/linux/mman.h
+> index de9e8e6229a4..0ba8a7e8b90a 100644
+> --- a/include/linux/mman.h
+> +++ b/include/linux/mman.h
+> @@ -201,7 +201,7 @@ static inline bool arch_memory_deny_write_exec_supported(void)
+>  static inline bool map_deny_write_exec(unsigned long old, unsigned long new)
+>  {
+>  	/* If MDWE is disabled, we have nothing to deny. */
+> -	if (!test_bit(MMF_HAS_MDWE, &current->mm->flags))
+> +	if (!mm_flags_test(MMF_HAS_MDWE, current->mm))
+>  		return false;
+>  
+>  	/* If the new VMA is not executable, we have nothing to deny. */
+> diff --git a/include/linux/oom.h b/include/linux/oom.h
+> index 1e0fc6931ce9..7b02bc1d0a7e 100644
+> --- a/include/linux/oom.h
+> +++ b/include/linux/oom.h
+> @@ -91,7 +91,7 @@ static inline bool tsk_is_oom_victim(struct task_struct * tsk)
+>   */
+>  static inline vm_fault_t check_stable_address_space(struct mm_struct *mm)
+>  {
+> -	if (unlikely(test_bit(MMF_UNSTABLE, &mm->flags)))
+> +	if (unlikely(mm_flags_test(MMF_UNSTABLE, mm)))
+>  		return VM_FAULT_SIGBUS;
+>  	return 0;
+>  }
+> diff --git a/mm/debug.c b/mm/debug.c
+> index b4388f4dcd4d..64ddb0c4b4be 100644
+> --- a/mm/debug.c
+> +++ b/mm/debug.c
+> @@ -182,7 +182,7 @@ void dump_mm(const struct mm_struct *mm)
+>  		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
+>  		"start_brk %lx brk %lx start_stack %lx\n"
+>  		"arg_start %lx arg_end %lx env_start %lx env_end %lx\n"
+> -		"binfmt %px flags %lx\n"
+> +		"binfmt %px flags %*pb\n"
+>  #ifdef CONFIG_AIO
+>  		"ioctx_table %px\n"
+>  #endif
+> @@ -211,7 +211,7 @@ void dump_mm(const struct mm_struct *mm)
+>  		mm->start_code, mm->end_code, mm->start_data, mm->end_data,
+>  		mm->start_brk, mm->brk, mm->start_stack,
+>  		mm->arg_start, mm->arg_end, mm->env_start, mm->env_end,
+> -		mm->binfmt, mm->flags,
+> +		mm->binfmt, NUM_MM_FLAG_BITS, __mm_flags_get_bitmap(mm),
+>  #ifdef CONFIG_AIO
+>  		mm->ioctx_table,
+>  #endif
+> diff --git a/mm/gup.c b/mm/gup.c
+> index adffe663594d..331d22bf7b2d 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -475,10 +475,10 @@ EXPORT_SYMBOL_GPL(unpin_folios);
+>   * lifecycle.  Avoid setting the bit unless necessary, or it might cause write
+>   * cache bouncing on large SMP machines for concurrent pinned gups.
+>   */
+> -static inline void mm_set_has_pinned_flag(unsigned long *mm_flags)
+> +static inline void mm_set_has_pinned_flag(struct mm_struct *mm)
+>  {
+> -	if (!test_bit(MMF_HAS_PINNED, mm_flags))
+> -		set_bit(MMF_HAS_PINNED, mm_flags);
+> +	if (!mm_flags_test(MMF_HAS_PINNED, mm))
+> +		mm_flags_set(MMF_HAS_PINNED, mm);
+>  }
+>  
+>  #ifdef CONFIG_MMU
+> @@ -1693,7 +1693,7 @@ static __always_inline long __get_user_pages_locked(struct mm_struct *mm,
+>  		mmap_assert_locked(mm);
+>  
+>  	if (flags & FOLL_PIN)
+> -		mm_set_has_pinned_flag(&mm->flags);
+> +		mm_set_has_pinned_flag(mm);
+>  
+>  	/*
+>  	 * FOLL_PIN and FOLL_GET are mutually exclusive. Traditional behavior
+> @@ -3210,7 +3210,7 @@ static int gup_fast_fallback(unsigned long start, unsigned long nr_pages,
+>  		return -EINVAL;
+>  
+>  	if (gup_flags & FOLL_PIN)
+> -		mm_set_has_pinned_flag(&current->mm->flags);
+> +		mm_set_has_pinned_flag(current->mm);
+>  
+>  	if (!(gup_flags & FOLL_FAST_ONLY))
+>  		might_lock_read(&current->mm->mmap_lock);
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index b8bb078a1a34..a2f476e7419a 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -251,13 +251,13 @@ struct folio *mm_get_huge_zero_folio(struct mm_struct *mm)
+>  	if (IS_ENABLED(CONFIG_PERSISTENT_HUGE_ZERO_FOLIO))
+>  		return huge_zero_folio;
+>  
+> -	if (test_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
+> +	if (mm_flags_test(MMF_HUGE_ZERO_FOLIO, mm))
+>  		return READ_ONCE(huge_zero_folio);
+>  
+>  	if (!get_huge_zero_folio())
+>  		return NULL;
+>  
+> -	if (test_and_set_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
+> +	if (mm_flags_test_and_set(MMF_HUGE_ZERO_FOLIO, mm))
+>  		put_huge_zero_folio();
+>  
+>  	return READ_ONCE(huge_zero_folio);
+> @@ -268,7 +268,7 @@ void mm_put_huge_zero_folio(struct mm_struct *mm)
+>  	if (IS_ENABLED(CONFIG_PERSISTENT_HUGE_ZERO_FOLIO))
+>  		return;
+>  
+> -	if (test_bit(MMF_HUGE_ZERO_FOLIO, &mm->flags))
+> +	if (mm_flags_test(MMF_HUGE_ZERO_FOLIO, mm))
+>  		put_huge_zero_folio();
+>  }
+>  
+> @@ -1145,7 +1145,7 @@ static unsigned long __thp_get_unmapped_area(struct file *filp,
+>  
+>  	off_sub = (off - ret) & (size - 1);
+>  
+> -	if (test_bit(MMF_TOPDOWN, &current->mm->flags) && !off_sub)
+> +	if (mm_flags_test(MMF_TOPDOWN, current->mm) && !off_sub)
+>  		return ret + size;
+>  
+>  	ret += off_sub;
+> diff --git a/mm/khugepaged.c b/mm/khugepaged.c
+> index 6b40bdfd224c..6470e7e26c8d 100644
+> --- a/mm/khugepaged.c
+> +++ b/mm/khugepaged.c
+> @@ -410,7 +410,7 @@ static inline int hpage_collapse_test_exit(struct mm_struct *mm)
+>  static inline int hpage_collapse_test_exit_or_disable(struct mm_struct *mm)
+>  {
+>  	return hpage_collapse_test_exit(mm) ||
+> -	       test_bit(MMF_DISABLE_THP, &mm->flags);
+> +		mm_flags_test(MMF_DISABLE_THP, mm);
+>  }
+>  
+>  static bool hugepage_pmd_enabled(void)
+> @@ -445,7 +445,7 @@ void __khugepaged_enter(struct mm_struct *mm)
+>  
+>  	/* __khugepaged_exit() must not run from under us */
+>  	VM_BUG_ON_MM(hpage_collapse_test_exit(mm), mm);
+> -	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags)))
+> +	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
+>  		return;
+>  
+>  	mm_slot = mm_slot_alloc(mm_slot_cache);
+> @@ -472,7 +472,7 @@ void __khugepaged_enter(struct mm_struct *mm)
+>  void khugepaged_enter_vma(struct vm_area_struct *vma,
+>  			  vm_flags_t vm_flags)
+>  {
+> -	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
+> +	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) &&
+>  	    hugepage_pmd_enabled()) {
+>  		if (thp_vma_allowable_order(vma, vm_flags, TVA_ENFORCE_SYSFS,
+>  					    PMD_ORDER))
+> @@ -497,7 +497,7 @@ void __khugepaged_exit(struct mm_struct *mm)
+>  	spin_unlock(&khugepaged_mm_lock);
+>  
+>  	if (free) {
+> -		clear_bit(MMF_VM_HUGEPAGE, &mm->flags);
+> +		mm_flags_clear(MMF_VM_HUGEPAGE, mm);
+>  		mm_slot_free(mm_slot_cache, mm_slot);
+>  		mmdrop(mm);
+>  	} else if (mm_slot) {
+> @@ -1459,7 +1459,7 @@ static void collect_mm_slot(struct khugepaged_mm_slot *mm_slot)
+>  		/*
+>  		 * Not strictly needed because the mm exited already.
+>  		 *
+> -		 * clear_bit(MMF_VM_HUGEPAGE, &mm->flags);
+> +		 * mm_clear(mm, MMF_VM_HUGEPAGE);
+>  		 */
+>  
+>  		/* khugepaged_mm_lock actually not necessary for the below */
+> diff --git a/mm/ksm.c b/mm/ksm.c
+> index 160787bb121c..2ef29802a49b 100644
+> --- a/mm/ksm.c
+> +++ b/mm/ksm.c
+> @@ -1217,8 +1217,8 @@ static int unmerge_and_remove_all_rmap_items(void)
+>  			spin_unlock(&ksm_mmlist_lock);
+>  
+>  			mm_slot_free(mm_slot_cache, mm_slot);
+> -			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
+> -			clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+> +			mm_flags_clear(MMF_VM_MERGEABLE, mm);
+> +			mm_flags_clear(MMF_VM_MERGE_ANY, mm);
+>  			mmdrop(mm);
+>  		} else
+>  			spin_unlock(&ksm_mmlist_lock);
+> @@ -2620,8 +2620,8 @@ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+>  		spin_unlock(&ksm_mmlist_lock);
+>  
+>  		mm_slot_free(mm_slot_cache, mm_slot);
+> -		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
+> -		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+> +		mm_flags_clear(MMF_VM_MERGEABLE, mm);
+> +		mm_flags_clear(MMF_VM_MERGE_ANY, mm);
+>  		mmap_read_unlock(mm);
+>  		mmdrop(mm);
+>  	} else {
+> @@ -2742,7 +2742,7 @@ static int __ksm_del_vma(struct vm_area_struct *vma)
+>  vm_flags_t ksm_vma_flags(const struct mm_struct *mm, const struct file *file,
+>  			 vm_flags_t vm_flags)
+>  {
+> -	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags) &&
+> +	if (mm_flags_test(MMF_VM_MERGE_ANY, mm) &&
+>  	    __ksm_should_add_vma(file, vm_flags))
+>  		vm_flags |= VM_MERGEABLE;
+>  
+> @@ -2784,16 +2784,16 @@ int ksm_enable_merge_any(struct mm_struct *mm)
+>  {
+>  	int err;
+>  
+> -	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
+> +	if (mm_flags_test(MMF_VM_MERGE_ANY, mm))
+>  		return 0;
+>  
+> -	if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
+> +	if (!mm_flags_test(MMF_VM_MERGEABLE, mm)) {
+>  		err = __ksm_enter(mm);
+>  		if (err)
+>  			return err;
+>  	}
+>  
+> -	set_bit(MMF_VM_MERGE_ANY, &mm->flags);
+> +	mm_flags_set(MMF_VM_MERGE_ANY, mm);
+>  	ksm_add_vmas(mm);
+>  
+>  	return 0;
+> @@ -2815,7 +2815,7 @@ int ksm_disable_merge_any(struct mm_struct *mm)
+>  {
+>  	int err;
+>  
+> -	if (!test_bit(MMF_VM_MERGE_ANY, &mm->flags))
+> +	if (!mm_flags_test(MMF_VM_MERGE_ANY, mm))
+>  		return 0;
+>  
+>  	err = ksm_del_vmas(mm);
+> @@ -2824,7 +2824,7 @@ int ksm_disable_merge_any(struct mm_struct *mm)
+>  		return err;
+>  	}
+>  
+> -	clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+> +	mm_flags_clear(MMF_VM_MERGE_ANY, mm);
+>  	return 0;
+>  }
+>  
+> @@ -2832,9 +2832,9 @@ int ksm_disable(struct mm_struct *mm)
+>  {
+>  	mmap_assert_write_locked(mm);
+>  
+> -	if (!test_bit(MMF_VM_MERGEABLE, &mm->flags))
+> +	if (!mm_flags_test(MMF_VM_MERGEABLE, mm))
+>  		return 0;
+> -	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
+> +	if (mm_flags_test(MMF_VM_MERGE_ANY, mm))
+>  		return ksm_disable_merge_any(mm);
+>  	return ksm_del_vmas(mm);
+>  }
+> @@ -2852,7 +2852,7 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+>  		if (!vma_ksm_compatible(vma))
+>  			return 0;
+>  
+> -		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
+> +		if (!mm_flags_test(MMF_VM_MERGEABLE, mm)) {
+>  			err = __ksm_enter(mm);
+>  			if (err)
+>  				return err;
+> @@ -2912,7 +2912,7 @@ int __ksm_enter(struct mm_struct *mm)
+>  		list_add_tail(&slot->mm_node, &ksm_scan.mm_slot->slot.mm_node);
+>  	spin_unlock(&ksm_mmlist_lock);
+>  
+> -	set_bit(MMF_VM_MERGEABLE, &mm->flags);
+> +	mm_flags_set(MMF_VM_MERGEABLE, mm);
+>  	mmgrab(mm);
+>  
+>  	if (needs_wakeup)
+> @@ -2954,8 +2954,8 @@ void __ksm_exit(struct mm_struct *mm)
+>  
+>  	if (easy_to_free) {
+>  		mm_slot_free(mm_slot_cache, mm_slot);
+> -		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+> -		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
+> +		mm_flags_clear(MMF_VM_MERGE_ANY, mm);
+> +		mm_flags_clear(MMF_VM_MERGEABLE, mm);
+>  		mmdrop(mm);
+>  	} else if (mm_slot) {
+>  		mmap_write_lock(mm);
+> diff --git a/mm/mmap.c b/mm/mmap.c
+> index 7306253cc3b5..7a057e0e8da9 100644
+> --- a/mm/mmap.c
+> +++ b/mm/mmap.c
+> @@ -802,7 +802,7 @@ unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm, struct file *fi
+>  					   unsigned long pgoff, unsigned long flags,
+>  					   vm_flags_t vm_flags)
+>  {
+> -	if (test_bit(MMF_TOPDOWN, &mm->flags))
+> +	if (mm_flags_test(MMF_TOPDOWN, mm))
+>  		return arch_get_unmapped_area_topdown(filp, addr, len, pgoff,
+>  						      flags, vm_flags);
+>  	return arch_get_unmapped_area(filp, addr, len, pgoff, flags, vm_flags);
+> @@ -1284,7 +1284,7 @@ void exit_mmap(struct mm_struct *mm)
+>  	 * Set MMF_OOM_SKIP to hide this task from the oom killer/reaper
+>  	 * because the memory has been already freed.
+>  	 */
+> -	set_bit(MMF_OOM_SKIP, &mm->flags);
+> +	mm_flags_set(MMF_OOM_SKIP, mm);
+>  	mmap_write_lock(mm);
+>  	mt_clear_in_rcu(&mm->mm_mt);
+>  	vma_iter_set(&vmi, vma->vm_end);
+> @@ -1859,14 +1859,14 @@ __latent_entropy int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+>  			mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
+>  			mas_store(&vmi.mas, XA_ZERO_ENTRY);
+>  			/* Avoid OOM iterating a broken tree */
+> -			set_bit(MMF_OOM_SKIP, &mm->flags);
+> +			mm_flags_set(MMF_OOM_SKIP, mm);
+>  		}
+>  		/*
+>  		 * The mm_struct is going to exit, but the locks will be dropped
+>  		 * first.  Set the mm_struct as unstable is advisable as it is
+>  		 * not fully initialised.
+>  		 */
+> -		set_bit(MMF_UNSTABLE, &mm->flags);
+> +		mm_flags_set(MMF_UNSTABLE, mm);
+>  	}
+>  out:
+>  	mmap_write_unlock(mm);
+> diff --git a/mm/oom_kill.c b/mm/oom_kill.c
+> index 25923cfec9c6..17650f0b516e 100644
+> --- a/mm/oom_kill.c
+> +++ b/mm/oom_kill.c
+> @@ -1,7 +1,7 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  /*
+>   *  linux/mm/oom_kill.c
+> - * 
+> + *
+>   *  Copyright (C)  1998,2000  Rik van Riel
+>   *	Thanks go out to Claus Fischer for some serious inspiration and
+>   *	for goading me into coding this file...
+> @@ -218,7 +218,7 @@ long oom_badness(struct task_struct *p, unsigned long totalpages)
+>  	 */
+>  	adj = (long)p->signal->oom_score_adj;
+>  	if (adj == OOM_SCORE_ADJ_MIN ||
+> -			test_bit(MMF_OOM_SKIP, &p->mm->flags) ||
+> +			mm_flags_test(MMF_OOM_SKIP, p->mm) ||
+>  			in_vfork(p)) {
+>  		task_unlock(p);
+>  		return LONG_MIN;
+> @@ -325,7 +325,7 @@ static int oom_evaluate_task(struct task_struct *task, void *arg)
+>  	 * any memory is quite low.
+>  	 */
+>  	if (!is_sysrq_oom(oc) && tsk_is_oom_victim(task)) {
+> -		if (test_bit(MMF_OOM_SKIP, &task->signal->oom_mm->flags))
+> +		if (mm_flags_test(MMF_OOM_SKIP, task->signal->oom_mm))
+>  			goto next;
+>  		goto abort;
+>  	}
+> @@ -524,7 +524,7 @@ static bool __oom_reap_task_mm(struct mm_struct *mm)
+>  	 * should imply barriers already and the reader would hit a page fault
+>  	 * if it stumbled over a reaped memory.
+>  	 */
+> -	set_bit(MMF_UNSTABLE, &mm->flags);
+> +	mm_flags_set(MMF_UNSTABLE, mm);
+>  
+>  	for_each_vma(vmi, vma) {
+>  		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
+> @@ -583,7 +583,7 @@ static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
+>  	 * under mmap_lock for reading because it serializes against the
+>  	 * mmap_write_lock();mmap_write_unlock() cycle in exit_mmap().
+>  	 */
+> -	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
+> +	if (mm_flags_test(MMF_OOM_SKIP, mm)) {
+>  		trace_skip_task_reaping(tsk->pid);
+>  		goto out_unlock;
+>  	}
+> @@ -619,7 +619,7 @@ static void oom_reap_task(struct task_struct *tsk)
+>  		schedule_timeout_idle(HZ/10);
+>  
+>  	if (attempts <= MAX_OOM_REAP_RETRIES ||
+> -	    test_bit(MMF_OOM_SKIP, &mm->flags))
+> +	    mm_flags_test(MMF_OOM_SKIP, mm))
+>  		goto done;
+>  
+>  	pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
+> @@ -634,7 +634,7 @@ static void oom_reap_task(struct task_struct *tsk)
+>  	 * Hide this mm from OOM killer because it has been either reaped or
+>  	 * somebody can't call mmap_write_unlock(mm).
+>  	 */
+> -	set_bit(MMF_OOM_SKIP, &mm->flags);
+> +	mm_flags_set(MMF_OOM_SKIP, mm);
+>  
+>  	/* Drop a reference taken by queue_oom_reaper */
+>  	put_task_struct(tsk);
+> @@ -670,7 +670,7 @@ static void wake_oom_reaper(struct timer_list *timer)
+>  	unsigned long flags;
+>  
+>  	/* The victim managed to terminate on its own - see exit_mmap */
+> -	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
+> +	if (mm_flags_test(MMF_OOM_SKIP, mm)) {
+>  		put_task_struct(tsk);
+>  		return;
+>  	}
+> @@ -695,7 +695,7 @@ static void wake_oom_reaper(struct timer_list *timer)
+>  static void queue_oom_reaper(struct task_struct *tsk)
+>  {
+>  	/* mm is already queued? */
+> -	if (test_and_set_bit(MMF_OOM_REAP_QUEUED, &tsk->signal->oom_mm->flags))
+> +	if (mm_flags_test_and_set(MMF_OOM_REAP_QUEUED, tsk->signal->oom_mm))
+>  		return;
+>  
+>  	get_task_struct(tsk);
+> @@ -892,7 +892,7 @@ static bool task_will_free_mem(struct task_struct *task)
+>  	 * This task has already been drained by the oom reaper so there are
+>  	 * only small chances it will free some more
+>  	 */
+> -	if (test_bit(MMF_OOM_SKIP, &mm->flags))
+> +	if (mm_flags_test(MMF_OOM_SKIP, mm))
+>  		return false;
+>  
+>  	if (atomic_read(&mm->mm_users) <= 1)
+> @@ -977,7 +977,7 @@ static void __oom_kill_process(struct task_struct *victim, const char *message)
+>  			continue;
+>  		if (is_global_init(p)) {
+>  			can_oom_reap = false;
+> -			set_bit(MMF_OOM_SKIP, &mm->flags);
+> +			mm_flags_set(MMF_OOM_SKIP, mm);
+>  			pr_info("oom killer %d (%s) has mm pinned by %d (%s)\n",
+>  					task_pid_nr(victim), victim->comm,
+>  					task_pid_nr(p), p->comm);
+> @@ -1235,7 +1235,7 @@ SYSCALL_DEFINE2(process_mrelease, int, pidfd, unsigned int, flags)
+>  		reap = true;
+>  	else {
+>  		/* Error only if the work has not been done already */
+> -		if (!test_bit(MMF_OOM_SKIP, &mm->flags))
+> +		if (!mm_flags_test(MMF_OOM_SKIP, mm))
+>  			ret = -EINVAL;
+>  	}
+>  	task_unlock(p);
+> @@ -1251,7 +1251,7 @@ SYSCALL_DEFINE2(process_mrelease, int, pidfd, unsigned int, flags)
+>  	 * Check MMF_OOM_SKIP again under mmap_read_lock protection to ensure
+>  	 * possible change in exit_mmap is seen
+>  	 */
+> -	if (!test_bit(MMF_OOM_SKIP, &mm->flags) && !__oom_reap_task_mm(mm))
+> +	if (mm_flags_test(MMF_OOM_SKIP, mm) && !__oom_reap_task_mm(mm))
+>  		ret = -EAGAIN;
+>  	mmap_read_unlock(mm);
+>  
+> diff --git a/mm/util.c b/mm/util.c
+> index f814e6a59ab1..d235b74f7aff 100644
+> --- a/mm/util.c
+> +++ b/mm/util.c
+> @@ -471,17 +471,17 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+>  
+>  	if (mmap_is_legacy(rlim_stack)) {
+>  		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+> -		clear_bit(MMF_TOPDOWN, &mm->flags);
+> +		mm_flags_clear(MMF_TOPDOWN, mm);
+>  	} else {
+>  		mm->mmap_base = mmap_base(random_factor, rlim_stack);
+> -		set_bit(MMF_TOPDOWN, &mm->flags);
+> +		mm_flags_set(MMF_TOPDOWN, mm);
+>  	}
+>  }
+>  #elif defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
+>  void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+>  {
+>  	mm->mmap_base = TASK_UNMAPPED_BASE;
+> -	clear_bit(MMF_TOPDOWN, &mm->flags);
+> +	mm_flags_clear(MMF_TOPDOWN, mm);
+>  }
+>  #endif
+>  #ifdef CONFIG_MMU
+> -- 
+> 2.50.1
+> 
 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Sincerely yours,
+Mike.
