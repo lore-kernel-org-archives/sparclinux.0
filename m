@@ -1,110 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E779628506C;
-	Thu, 14 Aug 2025 22:40:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3863F2192F9;
+	Fri, 15 Aug 2025 06:08:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755211216; cv=none; b=uDoC2Ou8AeCqRyYd9aJddHR2UEBNA4LNUmWIbJYrx8hq7DNEbNVLfRZd9r6x/L75B3X+HzUbuAo986uV2DsLhuptggdnFV/rLKWX5ewEQkx1FDuBM8o+N6/QGRueyuSdVbz3OFT3Hgl2fT1cO4fdSeR/ihQQxvZ/Mae3zmsKG3c=
+	t=1755238095; cv=none; b=WW6Ry5Im25Uq4K5L1Dc/sYPObCMliQWFuo6nCihtzr//EevLTWoBFZqeFRqMJ3JhEpBwMFBsRy+Uz/6VE9Z+F99+DXxREJdap7hAd6BusF0nCrp+jynQg8Me+bla96Y77IPCC5v98c1JIM3eDCb9GSIZ+KC2BVK20ZsnG/wkpQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755211216; c=relaxed/simple;
-	bh=pTLMkLB6wXhhCVQ7joRQHX/DusPVi5mmr45iiA3nAKM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Fx1TTBy7uHXyjWho6fRL5PqPbZXr3nA9eOtR9CgTMU2eW20rjUc4zuJGS68SpBjIBUJes1l3lIBvJx4HBwbZMhBPixCnYsYuJu1csg4Zg9n5yDBrORne1+Ptj7J6gCYEGQrid+p3j1zUWp8ELmmt3bKehedWDrbyVCbDQ8Ukn2Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=op5tjY+0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755238095; c=relaxed/simple;
+	bh=tbJHKmM4HLfO48fOXVQkSO6aTHrBMsni/C0VTIkbqSg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Jw9McsKRbpsoybHDC3v9Eht9hccY4mDEaEWfhZwvViww0+V3d21RHpR2eUblR+y4nBext1IpzMljP2jHDOmht9KY3ZDT3NlmPryOJVL6RphzM7CYcNfNvD6n6fTq9mKB2k/X7oihL+2gUmV/iyB1KdOr370o83rPQo2+XIyfF54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=E6SWROy/; arc=none smtp.client-ip=115.124.30.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="op5tjY+0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91533C4CEF1;
-	Thu, 14 Aug 2025 22:40:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755211214;
-	bh=pTLMkLB6wXhhCVQ7joRQHX/DusPVi5mmr45iiA3nAKM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=op5tjY+0coe42xZgSn92vSu4DWmxRe2EW19/jIEcpM3SHJsBeYKlvD3o15LLjjJRj
-	 mSVHNMt8fwx3qWYWv7hHHyZH3KQxkfffk7SkIPsU0UefSZBkQDX/+iEexNYUv0p8fV
-	 6zDTmh2m1RRSxCHk7wFrg8gu9u3ww8F93U1LfHPMuhppSsVwovAxyCkE1CjHDEjd6y
-	 L27IJlSY5y38SpfmZxKJo928EwrFlBhRhxNgKn4m9u6HP6JDyuI5079dxGPb4QpqQH
-	 zM33yH7IupG/ILxbKJuYAnF0r5se3Sy0DVqIj9jf+yEZ8Ukqyu7ZgTM/qDMg8PLQ6B
-	 OPIXTUzHlvaFg==
-Date: Thu, 14 Aug 2025 15:40:09 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Koakuma <koachan@protonmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH 1/2] sparc/module: Add R_SPARC_UA64 relocation handling
-Message-ID: <20250814224009.GA2217114@ax162>
-References: <20250609-b4-sparc-relocs-v1-0-aa52631735af@protonmail.com>
- <20250609-b4-sparc-relocs-v1-1-aa52631735af@protonmail.com>
- <L-bOu33R0ouNodufTRVlvyqOoz0SGuskQ_bqQ4X_xBkw91w4XmezvmkG0p6Ith-rsFIKYSkQWHUdMJ_G0lyYJhtg18c-mfWWjPKiI_Or6cE=@protonmail.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="E6SWROy/"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1755238083; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=c6Xki8soLW+vw63qx0n+Ld6/faF33zlxnTUtiZxzosw=;
+	b=E6SWROy/yb8tUTn5zKyYzwVtC358UkDJZGtD9bSklYxUIbfbvAfaL4KDYTrZWdRP0BlGeYuGXpB6hWPBRwxIv5l8NQOsuXuhQ0xRaJEGKA5tqB44PMu2fvsTShPFbHNwhyTdvKW2G4mICD1CThc+MmBU/wXK3O6Q/UOOuMRzfJA=
+Received: from 30.74.144.112(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0Wlnr11M_1755238078 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 15 Aug 2025 14:07:59 +0800
+Message-ID: <0e26b400-e477-4722-a524-8a3c520f5429@linux.alibaba.com>
+Date: Fri, 15 Aug 2025 14:07:57 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <L-bOu33R0ouNodufTRVlvyqOoz0SGuskQ_bqQ4X_xBkw91w4XmezvmkG0p6Ith-rsFIKYSkQWHUdMJ_G0lyYJhtg18c-mfWWjPKiI_Or6cE=@protonmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 02/10] mm: convert core mm to mm_flags_*() accessors
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski
+ <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Kees Cook <kees@kernel.org>, David Hildenbrand <david@redhat.com>,
+ Zi Yan <ziy@nvidia.com>, "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ David Rientjes <rientjes@google.com>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>,
+ Kan Liang <kan.liang@linux.intel.com>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ Juri Lelli <juri.lelli@redhat.com>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Dietmar Eggemann <dietmar.eggemann@arm.com>,
+ Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>,
+ Mel Gorman <mgorman@suse.de>, Valentin Schneider <vschneid@redhat.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+ Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, Matthew Wilcox <willy@infradead.org>,
+ Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org,
+ linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+ linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org
+References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+ <1eb2266f4408798a55bda00cb04545a3203aa572.1755012943.git.lorenzo.stoakes@oracle.com>
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+In-Reply-To: <1eb2266f4408798a55bda00cb04545a3203aa572.1755012943.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sun, Aug 03, 2025 at 01:15:02AM +0000, Koakuma wrote:
-> Koakuma via B4 Relay <devnull+koachan.protonmail.com@kernel.org> wrote:
-> 
-> > From: Koakuma koachan@protonmail.com
-> > 
-> > 
-> > This is needed so that the kernel can handle R_SPARC_UA64 relocations,
-> > which is emitted by LLVM's IAS.
-> > 
-> > Signed-off-by: Koakuma koachan@protonmail.com
-> > 
-> > ---
-> > arch/sparc/include/asm/elf_64.h | 1 +
-> > arch/sparc/kernel/module.c | 1 +
-> > 2 files changed, 2 insertions(+)
-> > 
-> > diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
-> > index 8fb09eec8c3e796a9a79aa0a7877842ceb7ea6d3..694ed081cf8d99adf70be25e5dc0e30a45f70398 100644
-> > --- a/arch/sparc/include/asm/elf_64.h
-> > +++ b/arch/sparc/include/asm/elf_64.h
-> > @@ -58,6 +58,7 @@
-> > #define R_SPARC_7 43
-> > #define R_SPARC_5 44
-> > #define R_SPARC_6 45
-> > +#define R_SPARC_UA64 54
-> > 
-> > /* Bits present in AT_HWCAP, primarily for Sparc32. */
-> > #define HWCAP_SPARC_FLUSH 0x00000001
-> > diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
-> > index b8c51cc23d96944037494f13d2d65a43bb187729..6e3d4dde4f9ab33040b300c40d5fd5d0584e166d 100644
-> > --- a/arch/sparc/kernel/module.c
-> > +++ b/arch/sparc/kernel/module.c
-> > @@ -87,6 +87,7 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
-> > break;
-> > #ifdef CONFIG_SPARC64
-> > case R_SPARC_64:
-> > + case R_SPARC_UA64:
-> > location[0] = v >> 56;
-> > 
-> > location[1] = v >> 48;
-> > 
-> > location[2] = v >> 40;
-> > 
-> > 
-> > --
-> > 2.49.0
-> 
-> Ping. Is there anything else I should do for this?
-> 
 
-This seems reasonable to me, sorry for the delay in commenting. I would
-expect this to go via the SPARC tree but if they are too busy or
-unavailable to pick this up, we would try to route it via Andrew Morton.
-Is there more work needed for the integrated assembler other than this
-series?
 
-Cheers,
-Nathan
+On 2025/8/12 23:44, Lorenzo Stoakes wrote:
+> As part of the effort to move to mm->flags becoming a bitmap field, convert
+> existing users to making use of the mm_flags_*() accessors which will, when
+> the conversion is complete, be the only means of accessing mm_struct flags.
+> 
+> This will result in the debug output being that of a bitmap output, which
+> will result in a minor change here, but since this is for debug only, this
+> should have no bearing.
+> 
+> Otherwise, no functional changes intended.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+
+LGTM.
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+
