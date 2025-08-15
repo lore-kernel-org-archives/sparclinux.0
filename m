@@ -1,110 +1,93 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D03132D5C8A;
-	Fri, 15 Aug 2025 12:34:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FA4F302CCC;
+	Fri, 15 Aug 2025 13:52:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755261296; cv=none; b=ABrqmPcM2CWD7JHVop2RUtw1ifTuYibwqPQrp91lTm6jR49kDG2kLBOfs+HH67tF7f2VwbCBALyFvpV9Ti6HulkcIb/hZEzBesogVQuGcqdnE3shNSzsklXJtfAzxUhFzaSR4wRq3zEkB3iUBfMn8YxzlVnp/2pw8P2sQorNirw=
+	t=1755265975; cv=none; b=UBK5P2qdFbUTHty8421H2kFgPzZC5m99+hsmFd2mwNxNt+5evYV5qH8Bf/nhW31mthPdcbBNeHpNtfIlNuHoWjf9eB16PY+z8Qr1304+tC0JHoL31/uHvS9RvbuqgIkvHikE/uwEC6kG/9o5ISXhlr2L41TXbkNlMpjnqekuZos=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755261296; c=relaxed/simple;
-	bh=yVQTdqKKIXh8OV5KCTRUj6jILEAA31BIL3kkxRCUl+0=;
+	s=arc-20240116; t=1755265975; c=relaxed/simple;
+	bh=YyAwX9d0yrQxt1AtdEKMS1xfPyYGo9E0HQVrmo6HFio=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h7ZMgekLsWia1mEkS9aHUogJtDZgFnrrEo+tZ+h+zfwOvqxeaWSYcdo1Ju4UjUcQ6Dyi/8y0P/0LRhtrsFStlR/tUjbINhwC0N3z+B9Zeq/3rtc7mTHa3L1xnSC73BANLLxcdtUU/rgyk3/FycB0ihezkWQ+q7O6GW9QXO5yY8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=tMxwJ3cX; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=7pkqyim2; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	 Content-Type:Content-Disposition:In-Reply-To; b=HZap3y4w+c8lM7HBMn7fjznP1B8hbg1sZuzNO2/JMK0xf/DCbPUqv6Kp85fQExXHCPi6/Dtwoq1Xnwp1gxkPgA0dY72z5nPrke2egGs6NuFfmXr5bccBlGJ6OjnQpATVR5Sr94B2GiGwdS3/IGBJ+o75uG1HUgAY98fzoRp7Pr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ay1VIO4M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="tMxwJ3cX";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="7pkqyim2"
-Date: Fri, 15 Aug 2025 14:34:49 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1755261292;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GskG3YtXcFp4rQz6v2Q+5esnkZZ0DNCNna2yVWBr4Wg=;
-	b=tMxwJ3cXIXJM0e8Tprgd4zUJ9p7/loV9zXri12FoyvXGg9so3K9etgsJWsz/JBo+daaKHZ
-	zSkj09yCtL6QkKwPihZLVkRzAbcWiOlmkisY/xB5Qr1DD1ffwc6eUnlGD9uSjKmN437Ycc
-	GO659X26KQW0XhuSzi6eMcY+5f8qJqI/XLwhQiSMNs9h6VFa+cq1bLVmO8n2gca870nIvh
-	zejX54NeVnygwwbQb7kYjaEuWqALh8VNupluHB1i2Gght6RwLjp/PsuE7IgMv7nspUnVO8
-	uSFese0SUjDGCCNwbD1lm+KX4NzL6xvFuEaXN4WMDdfdSxAzyjveL0gHhFd0EA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1755261292;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GskG3YtXcFp4rQz6v2Q+5esnkZZ0DNCNna2yVWBr4Wg=;
-	b=7pkqyim2ytt3rdqiNyFfWbMA9UILVEU2w0Vksf0SgwjHyP9Zd48b/cjZ6ZC/qcqkNCx57n
-	31QdpDu/EvBlo7Ag==
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Lutomirski <luto@kernel.org>, 
-	Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ay1VIO4M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78F1DC4CEEB;
+	Fri, 15 Aug 2025 13:52:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755265974;
+	bh=YyAwX9d0yrQxt1AtdEKMS1xfPyYGo9E0HQVrmo6HFio=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ay1VIO4MZKIssq2DXmkvb9Y5xzxbYbHSJCMx9Q+b7drYxS0RvJmoAhIX4KjmakUQD
+	 QzyQueMvVtMnt4CD8QUWt1ncIY7GzX+bMM6KNhI3V+tcPnmJvtFwLtp46R9R3gxiZF
+	 3xIe+KY2D47BPbZ50ZN0iAnaesGtehgttZhCq/iPJutrQcQvt9m83DGGPzu/OZTCrR
+	 DZlc3Alk6BOGyuxr0/JijZf3WjBiZfjGF0RPKBZUjw+TxNH0tUFogTt9YLewsZJ8ll
+	 kEZOkiaQqQTz6JEEKBs+xEe0l4CwHvOCfp+vLj4AXKkBdI/lKEVhCBfwoOR44gZC/E
+	 dRwzDtGpoOXqw==
+Date: Fri, 15 Aug 2025 15:52:38 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
 	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, Nick Alcock <nick.alcock@oracle.com>, 
-	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v2 12/13] sparc64: vdso: Implement clock_getres()
-Message-ID: <20250815142418-d28c6551-bec1-4a65-9c52-f1afd7b630ed@linutronix.de>
-References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
- <20250815-vdso-sparc64-generic-2-v2-12-b5ff80672347@linutronix.de>
- <bf9ec82b-af1b-4684-ada5-8529b7ceb06a@app.fastmail.com>
+	Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	"H . Peter Anvin" <hpa@zytor.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Jan Kara <jack@suse.cz>, Kees Cook <kees@kernel.org>, 
+	David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R . Howlett" <Liam.Howlett@oracle.com>, 
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Xu Xin <xu.xin16@zte.com.cn>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Vlastimil Babka <vbabka@suse.cz>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, David Rientjes <rientjes@google.com>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, 
+	Adrian Hunter <adrian.hunter@intel.com>, Kan Liang <kan.liang@linux.intel.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, 
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, 
+	Valentin Schneider <vschneid@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>, 
+	Pedro Falcato <pfalcato@suse.de>, Matthew Wilcox <willy@infradead.org>, 
+	Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, 
+	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH 06/10] mm: update coredump logic to correctly use bitmap
+ mm flags
+Message-ID: <20250815-neuzugang-gegessen-ff4c08a08ec0@brauner>
+References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+ <2a5075f7e3c5b367d988178c79a3063d12ee53a9.1755012943.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <bf9ec82b-af1b-4684-ada5-8529b7ceb06a@app.fastmail.com>
+In-Reply-To: <2a5075f7e3c5b367d988178c79a3063d12ee53a9.1755012943.git.lorenzo.stoakes@oracle.com>
 
-On Fri, Aug 15, 2025 at 02:13:46PM +0200, Arnd Bergmann wrote:
-> On Fri, Aug 15, 2025, at 12:41, Thomas Weißschuh wrote:
-> > 
-> > +#define VDSO_HAS_CLOCK_GETRES		1
-> > +
-> >  #ifdef	CONFIG_SPARC64
+On Tue, Aug 12, 2025 at 04:44:15PM +0100, Lorenzo Stoakes wrote:
+> The coredump logic is slightly different from other users in that it both
+> stores mm flags and additionally sets and gets using masks.
 > 
-> > +static __always_inline
-> > +long clock_getres_fallback(clockid_t clock, struct __kernel_timespec 
-> > *ts)
+> Since the MMF_DUMPABLE_* flags must remain as they are for uABI reasons,
+> and of course these are within the first 32-bits of the flags, it is
+> reasonable to provide access to these in the same fashion so this logic can
+> all still keep working as it has been.
 > 
-> > +
-> > +static __always_inline
-> > +long clock_getres32_fallback(clockid_t clock, struct old_timespec32 
-> > *ts)
-> > +{
-> 
-> > +}
-> > +#else /* !CONFIG_SPARC64 */
-> > +
-> > +static __always_inline
-> > +long clock_getres_fallback(clockid_t clock, struct __kernel_timespec 
-> > *ts)
-> 
-> > +
-> > +#endif /* CONFIG_SPARC64 */
-> > 
-> 
-> Something doesn't quite line up here: I think the check for
-> CONFIG_SPARC64 needs to be for "#ifndef BUILD_VDSO32", since
-> sparc32 kernels don't have a vdso at all yet.
+> Therefore, introduce coredump-specific helpers __mm_flags_get_dumpable()
+> and __mm_flags_set_mask_dumpable() for this purpose, and update all core
 
-arch/sparc/vdso/vdso32/vclock_gettime.c translates BUILD_VDSO32 into more
-"standard" defines, CONFIG_SPARC64 in this case. I have a follow-up series
-to get rid of this pattern in all architectures.
+Why the double underscore here? Just looks a bit ugly so if we can avoid
+it I would but if not:
 
-> On sparc64 kernels, I think you only need the
-> clock_getres_fallback() for 64-bit userspace, while
-> the compat path probably doesn't care about getres, neither
-> the time32 nor time64 variant.
-
-Why?
-
-
-Thomas
+Reviewed-by: Christian Brauner <brauner@kernel.org>
