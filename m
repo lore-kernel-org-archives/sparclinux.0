@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52580301023;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A5B301031;
 	Fri, 15 Aug 2025 10:41:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755254519; cv=none; b=CDFPMMTyrb7JIX+b2azy82Jkw0aqS3xigu3SH02WFoqIyZTNOZ5bqRK3H9EdViBssiO7rCV/XHVg2K+EzLJliq2kArLgAXw7QDyqbaiqKkdEYLNV2O6qAvwjKJZg4Arv/CDgUFAe3zs5RRnBTj/FYfhwyEg2U0olpk2gcwIFDYY=
+	t=1755254519; cv=none; b=clh20uSxMZVIfp/ozsys2tiL6jTK4Nvy4e3O67IhGvntffZ4DUQuun9J3Cw8J06Gp9624crPBnDndYVhfSx6058M1xcsXYToxq2tggsPtsSiLiTYb5ALdQP38yvPRUjW9ZllsKlSwi7YjEuwoCiN0b7GjVuX4Xyv4U1vgOb3GKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1755254519; c=relaxed/simple;
-	bh=Y6M/Dc0FZBj80nG5zGFZobavKx7lhX9RB9UpQJ8f6Io=;
+	bh=Ngyyb+Tb2Eq2g4xCY2ap8PjPAMUoe2Wil/Ab9l88uDQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=jg0xsjtUYZlgcDbR/ITNRjCZt7Jd3C/oOOyr70yYX0pTOvWoGjfsKmBbHwv8w/5Rb+kyBwXSc0LDfcOzOu1yqBHLdW0VjIHl6tDwEAQvNgQ9TiHP1Lg/YZ0MHBu/03gzQw75irwIk19sQpwlo5Ju8y56oSwPYoTD36P28hGBDlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=AG6/qdUe; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=TDPNY6w5; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=FEk0Ajsz/V81NsCgK76gs1g7dza3dJx6zJTABHtCWgrHgpygOZPz3Y7xQxsjY1Ae2JSgJJBuNx8hgHjWT4cHkvJ20pWKzjHyTPGeOae7i3lPTmqRyXQagVX6hP1KaIrfzCRAPMHHESUR0TO40BqMmptcIN56UAlSl577ajPqsOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=srwTCiqh; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=NdXnOEW9; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="AG6/qdUe";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="TDPNY6w5"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="srwTCiqh";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="NdXnOEW9"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1755254515;
+	s=2020; t=1755254516;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=LXeyczDo9DH2kvMYh8pqbFFU0887oaxfqSrotCzP+To=;
-	b=AG6/qdUeHbPRpiOhJhB3pF9+uCGdlLxTp3o3gRwGo9e6cdhKRcRWLx+ugL6Y54SjUDOkef
-	tethOxGWSWgZjF2JDTCLCeMb31TLzs8c+/npbWrtLl6BqNASnHv2aXVJjBDCCsHxRYujn5
-	HOisFsuO5OVRR0XWJvW586ntzX9VnVeq/cL4/fUXAIZLOTLoJuU4ECYxz6vWqd7nXWsb9d
-	JTi3wxM+3H7RighHPBa7pj0mqKiVy6FLPF9GrZvws4+jLYOTWOQ0UdIMaAVh0cHnKzMG/c
-	qpIhJhSLNW4f4PSIq8ttDQldQzYlDGeTmvZz5EoyaCFgva/OZJhu3zFnAG+GoA==
+	bh=MDoH1wg/PXmaaRjwmjbwG1Ox0g1S4AGQYYgSu/bm36Q=;
+	b=srwTCiqhy2js5exRe7LeLCcdYss9U3z6/DyxiVfmvLmIe2Pz8heXuFeWGqFuW0jkSIPQ4+
+	gaduylLBJmTzTsvembDuVrEhwWgr34jGzcTnqzgS8pViBD41Rx6/9EaIYwLc2wmlECBUFd
+	z34f+qAtDo8sEcyn7uJ8L95J4NuiEji5RXrc/8rvmN/yDjgXpb1WQHggmsdef+rWgggFY0
+	/KWuLtBdwW1MxLeCxlCoeLis03tFnD09281lRNUIOcqr0/XCQY3769FbnM3ottuFSDFtn2
+	7q6LHx6V18lVuhi+uZ0Z97LK+JITTAhqxX9f89jxVjj1Cgj3XH+Ac/POSh0VvA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1755254515;
+	s=2020e; t=1755254516;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=LXeyczDo9DH2kvMYh8pqbFFU0887oaxfqSrotCzP+To=;
-	b=TDPNY6w5eBaxwA7pMzjYMYY+pgxTihW9WBv+aEIN+kXLqJKLtLM+omxvJ+qbEFGpdx8Wc3
-	Mw/b2jcccJboqxCg==
-Date: Fri, 15 Aug 2025 12:41:20 +0200
-Subject: [PATCH v2 11/13] sparc64: vdso: Implement clock_gettime64()
+	bh=MDoH1wg/PXmaaRjwmjbwG1Ox0g1S4AGQYYgSu/bm36Q=;
+	b=NdXnOEW9mLnXJNdBQnJZkohhilbLDwmWs4xZ0asWmsCn4iAmVQWvZpn0WE2MYLffBup6TJ
+	NjCMxE7vGnCachBw==
+Date: Fri, 15 Aug 2025 12:41:21 +0200
+Subject: [PATCH v2 12/13] sparc64: vdso: Implement clock_getres()
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250815-vdso-sparc64-generic-2-v2-11-b5ff80672347@linutronix.de>
+Message-Id: <20250815-vdso-sparc64-generic-2-v2-12-b5ff80672347@linutronix.de>
 References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
 In-Reply-To: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
 To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
@@ -62,55 +62,142 @@ To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
  John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1755254507; l=1520;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1755254507; l=4460;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=Y6M/Dc0FZBj80nG5zGFZobavKx7lhX9RB9UpQJ8f6Io=;
- b=h00SjD4sg252eVHb0naX+rH8K0ZoJ5Hnrzd8a7b/c3Sgj9c5w56Ar5mp1S1uxTPopdN/e5XWv
- r4Y8s+r7HjWBCu3it90USdykoKyag1YCSb8BHYdk8tkYrb6dT+IL1Y/
+ bh=Ngyyb+Tb2Eq2g4xCY2ap8PjPAMUoe2Wil/Ab9l88uDQ=;
+ b=HdfQWWGnq8Yziooivb0IMMoSlqXmE7pUHH9zen2Q6AjqygKPsqZn0JMjJOjAoyw0CvnMqzmAk
+ BxV3bi9ouSBBcpPLGgCUc80y013FtfoxX9Zj6dEUAVsAuIqdb5um3WR
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-To be y2038-safe, 32-bit userspace needs to explicitly call the 64-bit safe
-time APIs.
-
-Implement clock_gettime64() in the 32-bit vDSO.
+Add a vDSO fastpath for clock_getres().
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- arch/sparc/vdso/vclock_gettime.c    | 8 ++++++++
- arch/sparc/vdso/vdso32/vdso32.lds.S | 2 ++
- 2 files changed, 10 insertions(+)
+ arch/sparc/include/asm/vdso/gettimeofday.h | 42 +++++++++++++++++++++++++++++-
+ arch/sparc/vdso/vclock_gettime.c           | 16 ++++++++++++
+ arch/sparc/vdso/vdso.lds.S                 |  2 ++
+ arch/sparc/vdso/vdso32/vdso32.lds.S        |  2 ++
+ 4 files changed, 61 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
-index 093a7ff4dafce1cf0af5af4c303bef86e159858a..1d9859392e4cfd285349cf9155ca1fc25d3a7b41 100644
---- a/arch/sparc/vdso/vclock_gettime.c
-+++ b/arch/sparc/vdso/vclock_gettime.c
-@@ -48,4 +48,12 @@ int __vdso_clock_gettime(clockid_t clock, struct old_timespec32 *ts)
- int clock_gettime(clockid_t, struct old_timespec32 *)
- 	__weak __alias(__vdso_clock_gettime);
+diff --git a/arch/sparc/include/asm/vdso/gettimeofday.h b/arch/sparc/include/asm/vdso/gettimeofday.h
+index a35875fba45470ba961a7df3ae52bc17d2a4a4a0..ccd2bda0a0c42ec826eb0464b7a41f98b4cea993 100644
+--- a/arch/sparc/include/asm/vdso/gettimeofday.h
++++ b/arch/sparc/include/asm/vdso/gettimeofday.h
+@@ -16,6 +16,8 @@
  
-+int __vdso_clock_gettime64(clockid_t clock, struct __kernel_timespec *ts)
+ #include <linux/types.h>
+ 
++#define VDSO_HAS_CLOCK_GETRES		1
++
+ #ifdef	CONFIG_SPARC64
+ static __always_inline u64 vread_tick(void)
+ {
+@@ -125,7 +127,45 @@ long clock_gettime32_fallback(clockid_t clock, struct old_timespec32 *ts)
+ 			     "0" (o0), "r" (o1) : SYSCALL_CLOBBERS);
+ 	return o0;
+ }
+-#endif
++
++static __always_inline
++long clock_getres_fallback(clockid_t clock, struct __kernel_timespec *ts)
 +{
-+	return __cvdso_clock_gettime(clock, ts);
++	register long num __asm__("g1") = __NR_clock_getres_time64;
++	register long o0 __asm__("o0") = clock;
++	register long o1 __asm__("o1") = (long) ts;
++
++	__asm__ __volatile__(SYSCALL_STRING : "=r" (o0) : "r" (num),
++			     "0" (o0), "r" (o1) : SYSCALL_CLOBBERS);
++	return o0;
 +}
 +
-+int clock_gettime64(clockid_t, struct __kernel_timespec *)
-+	__weak __alias(__vdso_clock_gettime64);
++static __always_inline
++long clock_getres32_fallback(clockid_t clock, struct old_timespec32 *ts)
++{
++	register long num __asm__("g1") = __NR_clock_getres;
++	register long o0 __asm__("o0") = clock;
++	register long o1 __asm__("o1") = (long) ts;
++
++	__asm__ __volatile__(SYSCALL_STRING : "=r" (o0) : "r" (num),
++			     "0" (o0), "r" (o1) : SYSCALL_CLOBBERS);
++	return o0;
++}
++#else /* !CONFIG_SPARC64 */
++
++static __always_inline
++long clock_getres_fallback(clockid_t clock, struct __kernel_timespec *ts)
++{
++	register long num __asm__("g1") = __NR_clock_getres;
++	register long o0 __asm__("o0") = clock;
++	register long o1 __asm__("o1") = (long) ts;
++
++	__asm__ __volatile__(SYSCALL_STRING : "=r" (o0) : "r" (num),
++			     "0" (o0), "r" (o1) : SYSCALL_CLOBBERS);
++	return o0;
++}
++
++#endif /* CONFIG_SPARC64 */
+ 
+ static __always_inline
+ long gettimeofday_fallback(struct __kernel_old_timeval *tv, struct timezone *tz)
+diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
+index 1d9859392e4cfd285349cf9155ca1fc25d3a7b41..3cadf94e6cee5392586755e97f629092d4bcab1e 100644
+--- a/arch/sparc/vdso/vclock_gettime.c
++++ b/arch/sparc/vdso/vclock_gettime.c
+@@ -38,6 +38,14 @@ int __vdso_clock_gettime(clockid_t clock, struct __kernel_timespec *ts)
+ int clock_gettime(clockid_t, struct __kernel_timespec *)
+ 	__weak __alias(__vdso_clock_gettime);
+ 
++int __vdso_clock_getres(clockid_t clock, struct __kernel_timespec *res)
++{
++	return __cvdso_clock_getres(clock, res);
++}
++
++int clock_getres(clockid_t, struct __kernel_timespec *)
++	__weak __alias(__vdso_clock_getres);
++
+ #else
+ 
+ int __vdso_clock_gettime(clockid_t clock, struct old_timespec32 *ts)
+@@ -56,4 +64,12 @@ int __vdso_clock_gettime64(clockid_t clock, struct __kernel_timespec *ts)
+ int clock_gettime64(clockid_t, struct __kernel_timespec *)
+ 	__weak __alias(__vdso_clock_gettime64);
+ 
++int __vdso_clock_getres(clockid_t clock, struct old_timespec32 *res)
++{
++	return __cvdso_clock_getres_time32(clock, res);
++}
++
++int clock_getres(clockid_t, struct old_timespec32 *)
++	__weak __alias(__vdso_clock_getres);
 +
  #endif
-diff --git a/arch/sparc/vdso/vdso32/vdso32.lds.S b/arch/sparc/vdso/vdso32/vdso32.lds.S
-index 53575ee154c492f9503efdd8f995ac2a035203c7..a14e4f77e6f2222b855df27cc7a0d0a4f98bd4ac 100644
---- a/arch/sparc/vdso/vdso32/vdso32.lds.S
-+++ b/arch/sparc/vdso/vdso32/vdso32.lds.S
-@@ -17,6 +17,8 @@ VERSION {
- 	global:
- 		clock_gettime;
+diff --git a/arch/sparc/vdso/vdso.lds.S b/arch/sparc/vdso/vdso.lds.S
+index f3caa29a331c58175b67ea60d7ac15cd467fe5ff..67c64a3adfa94f61356ce11081df442c18d6d8d5 100644
+--- a/arch/sparc/vdso/vdso.lds.S
++++ b/arch/sparc/vdso/vdso.lds.S
+@@ -20,6 +20,8 @@ VERSION {
  		__vdso_clock_gettime;
-+		clock_gettime64;
-+		__vdso_clock_gettime64;
  		gettimeofday;
  		__vdso_gettimeofday;
++		clock_getres;
++		__vdso_clock_getres;
  	local: *;
+ 	};
+ }
+diff --git a/arch/sparc/vdso/vdso32/vdso32.lds.S b/arch/sparc/vdso/vdso32/vdso32.lds.S
+index a14e4f77e6f2222b855df27cc7a0d0a4f98bd4ac..d09b1893ee1411f450df935335e6fe8d8c8b2632 100644
+--- a/arch/sparc/vdso/vdso32/vdso32.lds.S
++++ b/arch/sparc/vdso/vdso32/vdso32.lds.S
+@@ -21,6 +21,8 @@ VERSION {
+ 		__vdso_clock_gettime64;
+ 		gettimeofday;
+ 		__vdso_gettimeofday;
++		clock_getres;
++		__vdso_clock_getres;
+ 	local: *;
+ 	};
+ }
 
 -- 
 2.50.1
