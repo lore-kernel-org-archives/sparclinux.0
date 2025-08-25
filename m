@@ -1,103 +1,123 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 187AA2FCBF4;
-	Mon, 25 Aug 2025 16:02:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30FB02367B5;
+	Mon, 25 Aug 2025 16:35:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756137773; cv=none; b=I02l8Y2CGsgkhHjZCBtMEmq8A2/ymLGnbeGSq+g8+gTwqo1v7nyIibDfPmBkNr2QQ0R2fFpr87PwaQ9JtlXplVkVi4/T8jC0uoUhmHxZcUWud5nBy3IbkAxxYincn135GgwEo7U47xfLlIA86xyaBakAKTQkOXl77P+YSnfNQYo=
+	t=1756139757; cv=none; b=J5pwUrLHqUxUdfLv4+Gjafiq5Q/S47gao4DQn0dfdF3dsuhPWO5IGGZWAg5Vlb396QyV45PFVtuwiQESWuWQqJzAXtlP6OsvIcfquTHTKiFbcJnKggEWq1ZguB3Scb5mIS+b5DFq2jL+19w37xlM4DmFyHSEn2UZRphlOAyk29U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756137773; c=relaxed/simple;
-	bh=V5M7Uz8Gq9kOsjqDC2LZcLvwZ5f7W0zPaN3CQziwQ4I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=i8GCysKG8PvyQXCJNLhV+NQfw4vv1llfhnTfWr1OrXRwNFgmMOU1JWmDFTJ4+COMRI+jM9GhhX1TjiKM29IpvAze18pwvqZJYBch7zPPp+dWqnCGA/tgYPzOvtsesjQi9shLjhYM4YohfnFXlTvgj+cXV6GiAMQf5taeYT3fBpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=DGYZWQ6w reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1756139757; c=relaxed/simple;
+	bh=L2un3Tp24kq84D49bPeqtKFgx0ttvdt2Oi+LfIRW2Jk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=u+wT30xuGlRhD1VS9y4xnkmQWjuE0zeIVyTWWGRObzs+IjVYfCwmSer/69gWp3DRILELdbDdL8utUK0MA9DoswtUH1GJGSCImXcu47PZmBQUhfrVUHJQzyIB9Yj/1WdCF5n+sQzgittFyN70QyQkX+8GtMYGFUfFox/CAUA2CrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aQ4JtXe6; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="DGYZWQ6w"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4c9b3Y4vMXz1FbZH;
-	Mon, 25 Aug 2025 17:55:21 +0200 (CEST)
-Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4c9b3Y1DGJz1DDXf;
-	Mon, 25 Aug 2025 17:55:21 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1756137321;
-	bh=0aXwnh60FryoKY16vZa9A72ClzBSpD9XFHsMTXX24vs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=DGYZWQ6wbTL5qBh9rPu3AK81zl60k9DJ2aRqgR914G7wXh2Zw3Ido+qVU0TrJvbf6
-	 zo4cKyTGAkkhjRm3vACE/Q72ZjO8mMANLBNPAxNpT0Tiuhp+87uliUC1VB0CM+YN9o
-	 ZMf0oLNKHUhM7HxHzT/zNEI2gcHDZiDzdsEamZddhMPTeIC2pwBkQ2+9EpFj+OL8FP
-	 E2/uT9p0qx5aXUFAHfjbGnJdZt5wwfCb8dUheFMh22BOO94XGWBZayqOVi5Cpiau63
-	 lEtu8IxnlSZ/XcVVaWTko7tBonfIZnVpl2ty/rPgDVZhuQ19fMY3JZBHf8i8ZaKl3r
-	 dHff2v7ufh2Kg==
-Message-ID: <0b223e3d-25af-4897-b513-699dfeedfa04@gaisler.com>
-Date: Mon, 25 Aug 2025 17:55:20 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aQ4JtXe6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1756139756; x=1787675756;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=L2un3Tp24kq84D49bPeqtKFgx0ttvdt2Oi+LfIRW2Jk=;
+  b=aQ4JtXe64l+megZLLTslxyNO3mJqjxdtJ26XSa/vg7Ok0/CPcoWHylNS
+   sy7pZklbtxpurn/BksnbsqCcROHvDk6acKNemmeoCLgviZMx9To+ysikz
+   EdWm7ujPGtjUyp8MohOgTFCufJzi5KQ0cMNvOl+AzGO5N52dsnVC/dpTp
+   JP2GkFp+B4U7cXsOqor3Jq6ku+sW4EGsBmdVrX1dLtNXZFulX9PA0+ZxU
+   TCqaefv5XJmYMQdXjFqGC7ZsHjmSKJQCskjGAauLG/aMOV77ejuZpgaHC
+   daCGL962vrAplIU/KS0uGjxyp1jnq+tEWKEflG7ocsis59TMXvx69grQ2
+   g==;
+X-CSE-ConnectionGUID: TonUE+BYSi2EtIOi3kn5rw==
+X-CSE-MsgGUID: Lj7NOPs8TAKPfDvF5eODHQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11533"; a="69459506"
+X-IronPort-AV: E=Sophos;i="6.18,213,1751266800"; 
+   d="scan'208";a="69459506"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2025 09:35:55 -0700
+X-CSE-ConnectionGUID: orFQ8jjkTR+a1kLWJels8Q==
+X-CSE-MsgGUID: l5OrMqmGT8icT6nXAJqR8A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.18,213,1751266800"; 
+   d="scan'208";a="169241087"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa007.jf.intel.com with ESMTP; 25 Aug 2025 09:35:48 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1003)
+	id D581B94; Mon, 25 Aug 2025 18:35:46 +0200 (CEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Helge Deller <deller@gmx.de>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Thomas Fourier <fourier.thomas@gmail.com>,
+	linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	sparclinux@vger.kernel.org,
+	linux-block@vger.kernel.org
+Cc: Richard Henderson <richard.henderson@linaro.org>,
+	Matt Turner <mattst88@gmail.com>,
+	Ian Molton <spyro@f2s.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Denis Efremov <efremov@linux.com>,
+	Jens Axboe <axboe@kernel.dk>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v2 0/3] floppy: A couple of cleanups
+Date: Mon, 25 Aug 2025 18:32:54 +0200
+Message-ID: <20250825163545.39303-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 08/13] sparc64: vdso: Switch to the generic vDSO
- library
-To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
- Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
- Vincenzo Frascino <vincenzo.frascino@arm.com>, Arnd Bergmann
- <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>,
- Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>,
- Nick Alcock <nick.alcock@oracle.com>, John Stultz <jstultz@google.com>,
- Stephen Boyd <sboyd@kernel.org>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
- <20250815-vdso-sparc64-generic-2-v2-8-b5ff80672347@linutronix.de>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20250815-vdso-sparc64-generic-2-v2-8-b5ff80672347@linutronix.de>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On 2025-08-15 12:41, Thomas Weißschuh wrote:
-> The generic vDSO provides a lot common functionality shared between
-> different architectures. SPARC is the last architecture not using it,
-> preventing some necessary code cleanup.
-> 
-> Make use of the generic infrastructure.
-> 
-> Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-> ---
->  arch/sparc/Kconfig                         |   4 +-
->  arch/sparc/include/asm/clocksource.h       |   9 --
->  arch/sparc/include/asm/vdso/clocksource.h  |  10 ++
->  arch/sparc/include/asm/vdso/gettimeofday.h |  58 ++++++++--
->  arch/sparc/include/asm/vdso/vsyscall.h     |  10 ++
->  arch/sparc/include/asm/vvar.h              |  75 -------------
->  arch/sparc/kernel/Makefile                 |   1 -
->  arch/sparc/kernel/time_64.c                |   6 +-
->  arch/sparc/kernel/vdso.c                   |  69 ------------
->  arch/sparc/vdso/Makefile                   |   6 +-
->  arch/sparc/vdso/vclock_gettime.c           | 169 ++++-------------------------
->  arch/sparc/vdso/vdso-layout.lds.S          |   7 +-
->  arch/sparc/vdso/vma.c                      |  70 +++---------
->  13 files changed, 119 insertions(+), 375 deletions(-)
+There are a few places in architecture code for the floppy driver
+that may be cleaned up. Do it so.
 
-Hi,
+Assumed to route via Andrew Morton's tree as floppy is basically orphaned.
 
-With the first seven patches (applied on v6.17-rc1) I don't run into any
-problems, but from this patch (and onwards) things do not work properly.
-With patches 1-8 applied, Debian running on a sun4v (in a Solaris LDOM)
-stops being able to mount the root filesystem with the patches applied
-up to and including this patch.
+Changelog v2:
+- combined separate patches sent earlier into a series
+- added tags (Helge, Geert)
+- fixed typo in the commit message (Geert)
 
-As an aside, with all patches applied, it panics when the kernel
-attempts to kill init.
+Andy Shevchenko (3):
+  floppy: Remove unused CROSS_64KB() macro from arch/ code
+  floppy: Replace custom SZ_64K constant
+  floppy: Sort headers alphabetically
 
-Cheers,
-Andreas
+ arch/alpha/include/asm/floppy.h    | 19 ----------
+ arch/arm/include/asm/floppy.h      |  2 --
+ arch/m68k/include/asm/floppy.h     |  4 ---
+ arch/mips/include/asm/floppy.h     | 15 --------
+ arch/parisc/include/asm/floppy.h   | 11 +++---
+ arch/powerpc/include/asm/floppy.h  |  5 ---
+ arch/sparc/include/asm/floppy_32.h |  3 --
+ arch/sparc/include/asm/floppy_64.h |  3 --
+ arch/x86/include/asm/floppy.h      |  8 ++---
+ drivers/block/floppy.c             | 56 ++++++++++++++----------------
+ 10 files changed, 34 insertions(+), 92 deletions(-)
+
+-- 
+2.50.1
 
