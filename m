@@ -1,298 +1,126 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f52.google.com (mail-io1-f52.google.com [209.85.166.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0146301461;
-	Mon, 25 Aug 2025 16:35:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2316285C80
+	for <sparclinux@vger.kernel.org>; Mon, 25 Aug 2025 20:48:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756139761; cv=none; b=BqHL0Uf7ALCm0k8JViYfzHRaIsdnKAKuKODYeHtMkNgWiMrPrkvkXbLHdhQ2YXs87IQM0U9q5YNhYM3udIfib5b1D3Tv/l5ZjG0x+/FfmCNjVtlkLsxHFD2AA0WBUfbs9lTRSfWZPegy0aeY9PjuDqTLiNnIoXgPQH/s17iFgEU=
+	t=1756154905; cv=none; b=jaZIHDFoVC5pK82y9DkNXesVeAFJmHgWCtSTsQ7sb5+YCl+YgyMQ/h+ryLV5oH13ZvXK5aIHomVGcz7RL8a9Znmap46JDWBDH9AZu9BmSRS9pUcPK3SfblosF7wXYk/xapwszBwKj9C5CUxpajryRL9fPUGLEdeUcTvs06sNKqU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756139761; c=relaxed/simple;
-	bh=PS/OiIArs4RSteWG5A2HsYSRM0QB2lTSwsrYC9cKG4M=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FTOzDyAgpOFshMygZmxL+4z04w0HGyLmxxyM8QwXsI+9FhdfgkDW6VqB8YQgL68WOJDEtPc6Or8D97IxG5kEg65CFb+oJXtS7TRw3h1+k8+8QKgTYUiEBehkPFodExxLmYIJr27GBfhzq408WiZvHL44sgdO0RD9ez2ePcJBbU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=g2kev6gA; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1756154905; c=relaxed/simple;
+	bh=ws0OH/LPbfD0uWhZ3//ck7/pwntfVUXedOFJRthyTE0=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=fBYHY5k1T3kp8yZmaWFXjONiuhdqrGtyfMwyY1r6Jvvjx2VQABzhGA69bdc4xwJOwDReUWGElNjF/bJf5JbUJ3c5mQ8sBwLPYdmBCdPsVvNN98yvY36Zzp8fOIcqkRzlJV181N/wuh9l9GgY1vP69BJCUTuY4ZyE9GvyDzBjoyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b=jZH9/6ae; arc=none smtp.client-ip=209.85.166.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="g2kev6gA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1756139760; x=1787675760;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=PS/OiIArs4RSteWG5A2HsYSRM0QB2lTSwsrYC9cKG4M=;
-  b=g2kev6gAEHNbQoJTdQTGMm+6bSwpxoVIO2E+SGIgKtXK0sdM25zSfmWh
-   KmxM7nrOMRiWgFNgEqb2HXxmWYUswvLnIyWrr5HQ+WI/hVYof1OXUMiqM
-   px28Gba/EWaVxSMnGI67DulqmQEvcmL8WWPQw79nsduU0Sx42ufu7Httn
-   53yqEwiahCqkhfroHIynSBCYNALU9wgdM5tv9UHAuW6yUDSDoV3rvN9Gh
-   S9TdapikX++9vIdBBcFP6To6LMTSUiaJx2azvVrwp6UHxkfUUaNI1Kv+3
-   ca5ZTgYUg5rQsVxDJtWp6CyAovdN95TyEpW4iAWb3ptt6cCFKl8J4ApFW
-   Q==;
-X-CSE-ConnectionGUID: izZtqX+kToa9y+cqaaxSdw==
-X-CSE-MsgGUID: UHkXIsxlQXO2E6GblNAaag==
-X-IronPort-AV: E=McAfee;i="6800,10657,11533"; a="58288851"
-X-IronPort-AV: E=Sophos;i="6.18,213,1751266800"; 
-   d="scan'208";a="58288851"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2025 09:35:56 -0700
-X-CSE-ConnectionGUID: nO/0WE7KShWApODQpA5OPg==
-X-CSE-MsgGUID: LHnzXcOgSQiFreIo9l4a7g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.18,213,1751266800"; 
-   d="scan'208";a="168588222"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa010.jf.intel.com with ESMTP; 25 Aug 2025 09:35:48 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1003)
-	id D944395; Mon, 25 Aug 2025 18:35:46 +0200 (CEST)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Helge Deller <deller@gmx.de>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Thomas Fourier <fourier.thomas@gmail.com>,
-	linux-alpha@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	linux-block@vger.kernel.org
-Cc: Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Ian Molton <spyro@f2s.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Denis Efremov <efremov@linux.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH v2 1/3] floppy: Remove unused CROSS_64KB() macro from arch/ code
-Date: Mon, 25 Aug 2025 18:32:55 +0200
-Message-ID: <20250825163545.39303-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b="jZH9/6ae"
+Received: by mail-io1-f52.google.com with SMTP id ca18e2360f4ac-88432d932d6so59213039f.1
+        for <sparclinux@vger.kernel.org>; Mon, 25 Aug 2025 13:48:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1756154903; x=1756759703; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=N/dnllQLN8cDpaKVqJzQZtSLrZ7j3LLHfYLifC1ogCM=;
+        b=jZH9/6aeiq6scjXh74JMeDRknBu0YK1nVmdvthVMAlC1uKD6/6YiXbcN0d9uOFhQ8y
+         n5VOI0KFRdom7vcCh2mFTkp2sEjBeLtvrpwmjhGTwmMURUIf+hINw3wtrwFg0VAZvVFJ
+         DnogJpcDUJSSM4JQ5eeutJ85KJnu2jhLgUnKiMuACh3rtdaPxU6Hb5AmPv7aHB4l8mNu
+         IvEzWzVGgskyavxiDt7E+Sqw275JD1aC7EtvEnGuIrA5LEDxWYauZo36SBhv+aKCCKmh
+         qp7eK8YXq5krcHBKgokh3yv5r2zCwcezlUnx5OFFgipygHxemWQ6ZEwnTtwt5qxHNkMl
+         BZXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756154903; x=1756759703;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=N/dnllQLN8cDpaKVqJzQZtSLrZ7j3LLHfYLifC1ogCM=;
+        b=asH2CjFhTZ7TII40JiofYMgeY4UaqKW37TGQG9MzZoi9dYpcpGAy4KwqtibyFn01UN
+         yQZGM8+PF9U12zvV94pp38Qb/yOspzu98H7e4DNiNfPUNDteZFckGXelzfx18I4CiNAC
+         66N0hndDRyuvbwF5EDPyr+YFlTraxoFfxvgTiaBJaWeyz4lcHgVWPZDaeu8tKIKvBL5i
+         Li5W1YzwCsFoji14/sn6yPyjKUk0UbnDE7/Cl8GEg0nwf8cjnn+fqXYUXtzaLAsZqo8e
+         CcZz50kTNynvCdBqPwgICyFhGG8mLckAYphZq+TT3enRnu9nk0s94lrUoXPwNke6WjM9
+         G00w==
+X-Forwarded-Encrypted: i=1; AJvYcCVpu33rGjk1tHIsRbtrKuxTX+ku+5JB2evnHMFgkNzW3Qxq+6Z+gLC1IXjIg0YPmE3QmC+EV22AzdEs@vger.kernel.org
+X-Gm-Message-State: AOJu0YxlAHhoZjHFa8G0+B+7pgL1NJXhM1HuJkaBGiaVzmmUnNz+fEyT
+	vbYpa56Ul5Rk4i9zfTBs2ZkoT0T/lWoXg2wPzYmvGzZDc9K/2ZrC/w1ZNspV7HLZJ+o=
+X-Gm-Gg: ASbGnctL/jobVvmyJaTJDu3tQqlnGAxzsEipZZQJhM+isE2w5wGj/THd7MYQi+4vq44
+	KnNYRdDWucF33n/pPbDDItHuceGXqUXqM+Az4tXzASBtVHowtnG/qz5rmPY58nlvaYw/9lG62ep
+	L1ORrbhXVMxu9nYOO5xEsExMeBXxHEuDVhA2TvJfLieYS3EWAEogUuLu9em28KIEWREZIdvvEpK
+	owrUPEM7xNWfo/6z4xUJz+J6OxChfuZ90m7R7BuZd7Xk8cRz9pz5aP5sskbC47eho4iHCtksrF9
+	F2aPGl6VGQDXygRyN1UvFZ3fabdW4DOaY3zHJEo9L7sG5Y45cYyJTPLD7pBnue/N5hYvUp5Ks/6
+	x6DcS3ol9iVvdPA==
+X-Google-Smtp-Source: AGHT+IGz/OLusjKqnvYuytsepj0QasUaFhQNGeebbI4cWxx4cpCIdsaTdG9b8SEzhdQW1utDLqTgxw==
+X-Received: by 2002:a05:6e02:1582:b0:3eb:cca5:5586 with SMTP id e9e14a558f8ab-3ebcca5874cmr83676445ab.17.1756154902655;
+        Mon, 25 Aug 2025 13:48:22 -0700 (PDT)
+Received: from [127.0.0.1] ([96.43.243.2])
+        by smtp.gmail.com with ESMTPSA id e9e14a558f8ab-3ea4effe70csm53084775ab.51.2025.08.25.13.48.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Aug 2025 13:48:22 -0700 (PDT)
+From: Jens Axboe <axboe@kernel.dk>
+To: Helge Deller <deller@gmx.de>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+ Thomas Fourier <fourier.thomas@gmail.com>, linux-alpha@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+ linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+ sparclinux@vger.kernel.org, linux-block@vger.kernel.org, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>, 
+ Matt Turner <mattst88@gmail.com>, Ian Molton <spyro@f2s.com>, 
+ Russell King <linux@armlinux.org.uk>, 
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, 
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+ Christophe Leroy <christophe.leroy@csgroup.eu>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, Thomas Gleixner <tglx@linutronix.de>, 
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+ "H. Peter Anvin" <hpa@zytor.com>, Denis Efremov <efremov@linux.com>, 
+ Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20250825163545.39303-1-andriy.shevchenko@linux.intel.com>
 References: <20250825163545.39303-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 0/3] floppy: A couple of cleanups
+Message-Id: <175615490112.25116.3742797696959119744.b4-ty@kernel.dk>
+Date: Mon, 25 Aug 2025 14:48:21 -0600
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.14.3-dev-2ce6c
 
-Since the commit 3d86739c6343 ("floppy: always use the track buffer")
-the CROSS_64KB() is not used by the driver, remove the leftovers.
 
-Acked-by: Helge Deller <deller@gmx.de> #parisc
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- arch/alpha/include/asm/floppy.h    | 19 -------------------
- arch/arm/include/asm/floppy.h      |  2 --
- arch/m68k/include/asm/floppy.h     |  4 ----
- arch/mips/include/asm/floppy.h     | 15 ---------------
- arch/parisc/include/asm/floppy.h   |  6 +-----
- arch/powerpc/include/asm/floppy.h  |  5 -----
- arch/sparc/include/asm/floppy_32.h |  3 ---
- arch/sparc/include/asm/floppy_64.h |  3 ---
- arch/x86/include/asm/floppy.h      |  5 +----
- 9 files changed, 2 insertions(+), 60 deletions(-)
+On Mon, 25 Aug 2025 18:32:54 +0200, Andy Shevchenko wrote:
+> There are a few places in architecture code for the floppy driver
+> that may be cleaned up. Do it so.
+> 
+> Assumed to route via Andrew Morton's tree as floppy is basically orphaned.
+> 
+> Changelog v2:
+> - combined separate patches sent earlier into a series
+> - added tags (Helge, Geert)
+> - fixed typo in the commit message (Geert)
+> 
+> [...]
 
-diff --git a/arch/alpha/include/asm/floppy.h b/arch/alpha/include/asm/floppy.h
-index 64b42d9591fc..5a6239e65097 100644
---- a/arch/alpha/include/asm/floppy.h
-+++ b/arch/alpha/include/asm/floppy.h
-@@ -90,25 +90,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--/*
-- * Most Alphas have no problems with floppy DMA crossing 64k borders,
-- * except for certain ones, like XL and RUFFIAN.
-- *
-- * However, the test is simple and fast, and this *is* floppy, after all,
-- * so we do it for all platforms, just to make sure.
-- *
-- * This is advantageous in other circumstances as well, as in moving
-- * about the PCI DMA windows and forcing the floppy to start doing
-- * scatter-gather when it never had before, and there *is* a problem
-- * on that platform... ;-}
-- */
--
--static inline unsigned long CROSS_64KB(void *a, unsigned long s)
--{
--	unsigned long p = (unsigned long)a;
--	return ((p + s - 1) ^ p) & ~0xffffUL;
--}
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_ALPHA_FLOPPY_H */
-diff --git a/arch/arm/include/asm/floppy.h b/arch/arm/include/asm/floppy.h
-index e1cb04ed5008..e579f77162e9 100644
---- a/arch/arm/include/asm/floppy.h
-+++ b/arch/arm/include/asm/floppy.h
-@@ -65,8 +65,6 @@ static unsigned char floppy_selects[4] = { 0x10, 0x21, 0x23, 0x33 };
- #define N_FDC 1
- #define N_DRIVE 4
- 
--#define CROSS_64KB(a,s) (0)
--
- /*
-  * This allows people to reverse the order of
-  * fd0 and fd1, in case their hardware is
-diff --git a/arch/m68k/include/asm/floppy.h b/arch/m68k/include/asm/floppy.h
-index a4d0fea47c6b..dea98bbc0932 100644
---- a/arch/m68k/include/asm/floppy.h
-+++ b/arch/m68k/include/asm/floppy.h
-@@ -107,13 +107,9 @@ static void fd_free_irq(void)
- 
- #define fd_free_dma()             /* nothing */
- 
--/* No 64k boundary crossing problems on Q40 - no DMA at all */
--#define CROSS_64KB(a,s) (0)
--
- #define DMA_MODE_READ  0x44    /* i386 look-alike */
- #define DMA_MODE_WRITE 0x48
- 
--
- static int m68k_floppy_init(void)
- {
-   use_virtual_dma =1;
-diff --git a/arch/mips/include/asm/floppy.h b/arch/mips/include/asm/floppy.h
-index 021d09ae5670..44da2ff91f65 100644
---- a/arch/mips/include/asm/floppy.h
-+++ b/arch/mips/include/asm/floppy.h
-@@ -34,21 +34,6 @@ static inline void fd_cacheflush(char * addr, long size)
- #define N_FDC 1			/* do you *really* want a second controller? */
- #define N_DRIVE 8
- 
--/*
-- * The DMA channel used by the floppy controller cannot access data at
-- * addresses >= 16MB
-- *
-- * Went back to the 1MB limit, as some people had problems with the floppy
-- * driver otherwise. It doesn't matter much for performance anyway, as most
-- * floppy accesses go through the track buffer.
-- *
-- * On MIPSes using vdma, this actually means that *all* transfers go thru
-- * the * track buffer since 0x1000000 is always smaller than KSEG0/1.
-- * Actually this needs to be a bit more complicated since the so much different
-- * hardware available with MIPS CPUs ...
-- */
--#define CROSS_64KB(a, s) ((unsigned long)(a)/K_64 != ((unsigned long)(a) + (s) - 1) / K_64)
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #include <floppy.h>
-diff --git a/arch/parisc/include/asm/floppy.h b/arch/parisc/include/asm/floppy.h
-index b318a7df52f6..df20dbef3ada 100644
---- a/arch/parisc/include/asm/floppy.h
-+++ b/arch/parisc/include/asm/floppy.h
-@@ -22,13 +22,9 @@
- #define _CROSS_64KB(a,s,vdma) \
- (!(vdma) && ((unsigned long)(a)/K_64 != ((unsigned long)(a) + (s) - 1) / K_64))
- 
--#define CROSS_64KB(a,s) _CROSS_64KB(a,s,use_virtual_dma & 1)
--
--
- #define SW fd_routine[use_virtual_dma&1]
- #define CSW fd_routine[can_use_virtual_dma & 1]
- 
--
- #define fd_inb(base, reg)		readb((base) + (reg))
- #define fd_outb(value, base, reg)	writeb(value, (base) + (reg))
- 
-@@ -206,7 +202,7 @@ static int vdma_dma_setup(char *addr, unsigned long size, int mode, int io)
- static int hard_dma_setup(char *addr, unsigned long size, int mode, int io)
- {
- #ifdef FLOPPY_SANITY_CHECK
--	if (CROSS_64KB(addr, size)) {
-+	if (_CROSS_64KB(addr, size, use_virtual_dma & 1)) {
- 		printk("DMA crossing 64-K boundary %p-%p\n", addr, addr+size);
- 		return -1;
- 	}
-diff --git a/arch/powerpc/include/asm/floppy.h b/arch/powerpc/include/asm/floppy.h
-index 34abf8bea2cc..f4dc657638b3 100644
---- a/arch/powerpc/include/asm/floppy.h
-+++ b/arch/powerpc/include/asm/floppy.h
-@@ -206,11 +206,6 @@ static int FDC2 = -1;
- #define N_FDC 2			/* Don't change this! */
- #define N_DRIVE 8
- 
--/*
-- * The PowerPC has no problems with floppy DMA crossing 64k borders.
-- */
--#define CROSS_64KB(a,s)	(0)
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __KERNEL__ */
-diff --git a/arch/sparc/include/asm/floppy_32.h b/arch/sparc/include/asm/floppy_32.h
-index 836f6575aa1d..7251d1fed7a4 100644
---- a/arch/sparc/include/asm/floppy_32.h
-+++ b/arch/sparc/include/asm/floppy_32.h
-@@ -96,9 +96,6 @@ static struct sun_floppy_ops sun_fdops;
- #define N_FDC    1
- #define N_DRIVE  8
- 
--/* No 64k boundary crossing problems on the Sparc. */
--#define CROSS_64KB(a,s) (0)
--
- /* Routines unique to each controller type on a Sun. */
- static void sun_set_dor(unsigned char value, int fdc_82077)
- {
-diff --git a/arch/sparc/include/asm/floppy_64.h b/arch/sparc/include/asm/floppy_64.h
-index b0f633ce3518..135f9a49b6ba 100644
---- a/arch/sparc/include/asm/floppy_64.h
-+++ b/arch/sparc/include/asm/floppy_64.h
-@@ -95,9 +95,6 @@ static int sun_floppy_types[2] = { 0, 0 };
- #define N_FDC    1
- #define N_DRIVE  8
- 
--/* No 64k boundary crossing problems on the Sparc. */
--#define CROSS_64KB(a,s) (0)
--
- static unsigned char sun_82077_fd_inb(unsigned long base, unsigned int reg)
- {
- 	udelay(5);
-diff --git a/arch/x86/include/asm/floppy.h b/arch/x86/include/asm/floppy.h
-index 6ec3fc969ad5..e76cb74bbed2 100644
---- a/arch/x86/include/asm/floppy.h
-+++ b/arch/x86/include/asm/floppy.h
-@@ -24,9 +24,6 @@
- 	(!(vdma) &&							\
- 	 ((unsigned long)(a)/K_64 != ((unsigned long)(a) + (s) - 1) / K_64))
- 
--#define CROSS_64KB(a, s) _CROSS_64KB(a, s, use_virtual_dma & 1)
--
--
- #define SW fd_routine[use_virtual_dma & 1]
- #define CSW fd_routine[can_use_virtual_dma & 1]
- 
-@@ -206,7 +203,7 @@ static int vdma_dma_setup(char *addr, unsigned long size, int mode, int io)
- static int hard_dma_setup(char *addr, unsigned long size, int mode, int io)
- {
- #ifdef FLOPPY_SANITY_CHECK
--	if (CROSS_64KB(addr, size)) {
-+	if (_CROSS_64KB(addr, size, use_virtual_dma & 1)) {
- 		printk("DMA crossing 64-K boundary %p-%p\n", addr, addr+size);
- 		return -1;
- 	}
+Applied, thanks!
+
+[1/3] floppy: Remove unused CROSS_64KB() macro from arch/ code
+      commit: d74968780bf287958e2815be5f088dd6c7b7aa19
+[2/3] floppy: Replace custom SZ_64K constant
+      commit: 8e7ee0f6fa33934373c1c37e8cfb71cff2acea09
+[3/3] floppy: Sort headers alphabetically
+      commit: d4399e6eb27a803b73d17fe984448a823b4d3a30
+
+Best regards,
 -- 
-2.50.1
+Jens Axboe
+
+
 
