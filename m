@@ -1,115 +1,236 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D2BAB22AE5D;
-	Tue, 26 Aug 2025 13:11:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DF14340DAE
+	for <sparclinux@vger.kernel.org>; Tue, 26 Aug 2025 13:12:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756213890; cv=none; b=SuxAWCqyDgwAsvhJeg1X3E+kwFpoC+qOeHmnqlNxmICk9NAuT3lqWEl/Sr9lpRs5JQ7u7rIBoXkw9dJ4EnkHz3kVKQQ+b6qErJLF/xKF8cIVEMaEQwOhQYN+Z2HxhHJf6uCSliE8UexnsEVrTBCmbaxNjmhxuwUiWjtNEvUOuSA=
+	t=1756213938; cv=none; b=qm3STasc96+Bdiuh/uc00jvuGKJp+qZabROGfBi2guzR3sDfS+Q8B616+83GsicxR4s9t3HOUB0+yt7ig1qjk943abfMAcQKtUto6Jsp0HNB0u1tD4nz47A/b6tf9OFPngV5WaUxRJ9YRfL2rlXHheRCyhM7U7MbI0USVFsfKkA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756213890; c=relaxed/simple;
-	bh=9WinnXAhVSILO1wq4X8HnIIt/Uqh0eQcjcOS57aLDek=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hIr0Z9UhXHTtovkFj0x4yrtBhnK9WHzzBk6ZWDSa9mpMA6HN9MvsKiAqvkg/2d1Toj+0LbTz/yKXc0wlxfdi4/4earm9gw35EH/2P2d9s7GIBwE8jGXj50suG3V5tmlERUBRjyVzFrrsHMLJCo8WQ1fDX+I/rzjN8fWzT25/Ljs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D75BE1A25;
-	Tue, 26 Aug 2025 06:11:18 -0700 (PDT)
-Received: from localhost (e132581.arm.com [10.1.196.87])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B7A733F63F;
-	Tue, 26 Aug 2025 06:11:26 -0700 (PDT)
-Date: Tue, 26 Aug 2025 14:11:24 +0100
-From: Leo Yan <leo.yan@arm.com>
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: peterz@infradead.org, mingo@redhat.com, will@kernel.org,
-	mark.rutland@arm.com, acme@kernel.org, namhyung@kernel.org,
-	alexander.shishkin@linux.intel.com, jolsa@kernel.org,
-	irogers@google.com, adrian.hunter@intel.com,
-	kan.liang@linux.intel.com, linux-perf-users@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
-	linux-csky@vger.kernel.org, loongarch@lists.linux.dev,
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-rockchip@lists.infradead.org, dmaengine@vger.kernel.org,
-	linux-fpga@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-	intel-xe@lists.freedesktop.org, coresight@lists.linaro.org,
-	iommu@lists.linux.dev, linux-amlogic@lists.infradead.org,
-	linux-cxl@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-	linux-riscv@lists.infradead.org
-Subject: Re: [PATCH 16/19] perf: Introduce positive capability for sampling
-Message-ID: <20250826131124.GB745921@e132581.arm.com>
-References: <cover.1755096883.git.robin.murphy@arm.com>
- <ae81cb65b38555c628e395cce67ac6c7eaafdd23.1755096883.git.robin.murphy@arm.com>
+	s=arc-20240116; t=1756213938; c=relaxed/simple;
+	bh=40QzJLXcV+Rtp4PL9exLUl1txV+EBlDfzHIGkrzY5Ho=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HbFTemt9tEizDThDjFlwOa+U5INnqcbteHoT+zoG/icaeMEI6pMfD+puYXEidTTyUetGV05Rg/nH4VXTkx/rwiWHlRXXHYmBSERufnMqiR4qAh3c9RoQWtLLa65OG7jn2iJCyc7SZC7X1PYDKUvro2IPOuNYRmqqtAZMaKVavio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=bLFRut0E; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bLFRut0E"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1756213935;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=4rHjziWKPYkVa/nL99Zp8lslj9SamBEgj2hG79NTy7E=;
+	b=bLFRut0Eqp/A0q3G2eZjppuvY6t6w6coLkP82JP6hfCHhqzy08/N0dWx+EBilbVHowewAG
+	G9WyRN5RH44FYNEVWctbq942QhWz3djIgdRQYQ96Fi690G1pZVr20PKybV2Rqc5P6yt8Ll
+	0FApDaS8oxgGbGTtVz9wE9ygPlxYPYw=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-450-15A1BwGEOmaKc2HGEmC9AA-1; Tue, 26 Aug 2025 09:12:14 -0400
+X-MC-Unique: 15A1BwGEOmaKc2HGEmC9AA-1
+X-Mimecast-MFC-AGG-ID: 15A1BwGEOmaKc2HGEmC9AA_1756213933
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3cbd6cd78efso303091f8f.1
+        for <sparclinux@vger.kernel.org>; Tue, 26 Aug 2025 06:12:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756213933; x=1756818733;
+        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=4rHjziWKPYkVa/nL99Zp8lslj9SamBEgj2hG79NTy7E=;
+        b=hUSYi6ZqG4unIyHLwEy9R6UMs8CamNKZgSplQQtisZWp3W6Ryb2S61r3on/Obj17/d
+         Zr33hdmXgdU3NYyFcNZWL1VTeH8wSxVl2wX8eDe2U3vv+m8kyfC0NHuX3LCddiQstcS+
+         c9BOsk+EopADbpGf4MvnJ3W+kHe7jM6IHvBUWCid7BFHY9X6ksH7qwNlsWJl9Il8iHOc
+         3bZB527UhvBbEvNrtgM8sKpdrHiX3vkx3bvCrV8RnR5TuxD6imlRrQF6+UEE9Sg7aRpY
+         LLc8BlgCnX4EX9Oek2XR6i557UCHOLiZerpSsANWHUwnwxTTj28MIeZlBZ3JKhpluAFP
+         GJyg==
+X-Forwarded-Encrypted: i=1; AJvYcCXSFBe+orbPUQMo0c8Qb7hQoO6zeh3mO7nrymwW4GG6lGNzHPLUwLJh9Eco+PaSU2NFEq22/oZw3XYK@vger.kernel.org
+X-Gm-Message-State: AOJu0YxKttmeOq424AAQjf9GK/qNhDVo+VTEAfNPxBTenJUXOyjvS71r
+	bRyTJ+GJwESQ420CfFQ8CE+MtAH/pj0tHSZQ1Zn4REqNapJBvgPV9mJPrJxm0rlL/yPqgqxhIaa
+	mmszCvUJMSAvm7aaZVQMZsSbtD/CE3/N5z+ATeA64Qf7VqDrUe04jybv5hMB6mdQ=
+X-Gm-Gg: ASbGncuxntoMp3Og8DWNbfZhbQdNLxynVeBRMGKbad62ZPnn/5Gp92ttbkqO2Ov0Ift
+	AD/DkzDELJr+JfJKvpA88GeJ6ZiowpTghGwV/K0SzRyOrbYJkphCtrU0+QU1yCcmpSzBgcqmFeK
+	sUujFt/uC4laIXDirPv14B1Z+Hk4D3b12M7BsC9OHthhq+jpvAIdxeMaUqY+P2LqWsX8nWBPzb9
+	/JlXTh/sR4qCnwRG97O4MZTi66eof/xeDsZ9cpe4xOS8SBRznpXacJhj8og8NXIDO0zCgcgAzQq
+	Ezi4OlBKT2MWz7Cq5ZsgPflBkgxZQd9X0eWIPRWvzFj17yZAomQORDpaXy9NMR5FkwWsMGr2Yg=
+	=
+X-Received: by 2002:a05:6000:248a:b0:3c4:bc55:65e1 with SMTP id ffacd0b85a97d-3c5daefc4bcmr12578691f8f.24.1756213932560;
+        Tue, 26 Aug 2025 06:12:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEh8gAAYqvqZjTfr+OgLA4sqKw/Hb4eb8ARiS4jjSjxrCyW2eLFUtFZa5rL+EHMB8mMqDNPzA==
+X-Received: by 2002:a05:6000:248a:b0:3c4:bc55:65e1 with SMTP id ffacd0b85a97d-3c5daefc4bcmr12578596f8f.24.1756213931748;
+        Tue, 26 Aug 2025 06:12:11 -0700 (PDT)
+Received: from ?IPV6:2a09:80c0:192:0:5dac:bf3d:c41:c3e7? ([2a09:80c0:192:0:5dac:bf3d:c41:c3e7])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45b5753ac36sm157325205e9.6.2025.08.26.06.12.09
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 26 Aug 2025 06:12:11 -0700 (PDT)
+Message-ID: <73a39f45-e10c-42f8-819b-7289733eae03@redhat.com>
+Date: Tue, 26 Aug 2025 15:12:08 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ae81cb65b38555c628e395cce67ac6c7eaafdd23.1755096883.git.robin.murphy@arm.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 08/10] mm: update fork mm->flags initialisation to use
+ bitmap
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski
+ <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Kees Cook <kees@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>, Nico Pache
+ <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ David Rientjes <rientjes@google.com>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>,
+ Kan Liang <kan.liang@linux.intel.com>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ Juri Lelli <juri.lelli@redhat.com>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Dietmar Eggemann <dietmar.eggemann@arm.com>,
+ Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>,
+ Mel Gorman <mgorman@suse.de>, Valentin Schneider <vschneid@redhat.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+ Peter Xu <peterx@redhat.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, Matthew Wilcox <willy@infradead.org>,
+ Mateusz Guzik <mjguzik@gmail.com>, linux-s390@vger.kernel.org,
+ linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+ linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org
+References: <cover.1755012943.git.lorenzo.stoakes@oracle.com>
+ <9fb8954a7a0f0184f012a8e66f8565bcbab014ba.1755012943.git.lorenzo.stoakes@oracle.com>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <9fb8954a7a0f0184f012a8e66f8565bcbab014ba.1755012943.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 13, 2025 at 06:01:08PM +0100, Robin Murphy wrote:
-> Sampling is inherently a feature for CPU PMUs, given that the thing
-> to be sampled is a CPU context. These days, we have many more
-> uncore/system PMUs than CPU PMUs, so it no longer makes much sense to
-> assume sampling support by default and force the ever-growing majority
-> of drivers to opt out of it (or erroneously fail to). Instead, let's
-> introduce a positive opt-in capability that's more obvious and easier to
-> maintain.
+On 12.08.25 17:44, Lorenzo Stoakes wrote:
+> We now need to account for flag initialisation on fork. We retain the
+> existing logic as much as we can, but dub the existing flag mask legacy.
+> 
+> These flags are therefore required to fit in the first 32-bits of the flags
+> field.
+> 
+> However, further flag propagation upon fork can be implemented in mm_init()
+> on a per-flag basis.
+> 
+> We ensure we clear the entire bitmap prior to setting it, and use
+> __mm_flags_get_word() and __mm_flags_set_word() to manipulate these legacy
+> fields efficiently.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+>   include/linux/mm_types.h | 13 ++++++++++---
+>   kernel/fork.c            |  7 +++++--
+>   2 files changed, 15 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> index 38b3fa927997..25577ab39094 100644
+> --- a/include/linux/mm_types.h
+> +++ b/include/linux/mm_types.h
+> @@ -1820,16 +1820,23 @@ enum {
+>   #define MMF_TOPDOWN		31	/* mm searches top down by default */
+>   #define MMF_TOPDOWN_MASK	_BITUL(MMF_TOPDOWN)
+>   
+> -#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+> +#define MMF_INIT_LEGACY_MASK	(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+>   				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
+>   				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
+>   
+> -static inline unsigned long mmf_init_flags(unsigned long flags)
+> +/* Legacy flags must fit within 32 bits. */
+> +static_assert((u64)MMF_INIT_LEGACY_MASK <= (u64)UINT_MAX);
 
-[...]
+Why not use the magic number 32 you are mentioning in the comment? :)
 
-> diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
-> index 369e77ad5f13..dbd52851f5c6 100644
-> --- a/drivers/perf/arm_spe_pmu.c
-> +++ b/drivers/perf/arm_spe_pmu.c
-> @@ -955,7 +955,8 @@ static int arm_spe_pmu_perf_init(struct arm_spe_pmu *spe_pmu)
->  	spe_pmu->pmu = (struct pmu) {
->  		.module = THIS_MODULE,
->  		.parent		= &spe_pmu->pdev->dev,
-> -		.capabilities	= PERF_PMU_CAP_EXCLUSIVE | PERF_PMU_CAP_ITRACE,
-> +		.capabilities	= PERF_PMU_CAP_SAMPLING |
-> +				  PERF_PMU_CAP_EXCLUSIVE | PERF_PMU_CAP_ITRACE,
->  		.attr_groups	= arm_spe_pmu_attr_groups,
->  		/*
->  		 * We hitch a ride on the software context here, so that
+static_assert((u32)MMF_INIT_LEGACY_MASK != MMF_INIT_LEGACY_MASK);
 
-The change in Arm SPE driver looks good to me.
+> +
+> +/*
+> + * Initialise legacy flags according to masks, propagating selected flags on
+> + * fork. Further flag manipulation can be performed by the caller.
 
-I noticed you did not set the flag for other AUX events, like Arm
-CoreSight, Intel PT and bts. The drivers locate in:
+It's weird not reading "initialize", but I am afraid the kernel is 
+already tainted :P
 
-  drivers/hwtracing/coresight/coresight-etm-perf.c
-  arch/x86/events/intel/bts.c
-  arch/x86/events/intel/pt.c
+t14s: ~/git/linux nth_page $ git grep "initialise" | wc -l
+1778
+t14s: ~/git/linux nth_page $ git grep "initialize" | wc -l
+22043
 
-Genearlly, AUX events generate interrupts based on AUX ring buffer
-watermark but not the period. Seems to me, it is correct to set the
-PERF_PMU_CAP_SAMPLING flag for them.
+Besides the assert simplification
 
-A special case is Arm CoreSight legacy sinks (like ETR/ETB, etc)
-don't has interrupt. We might need set or clear the flag on the fly
-based on sink type:
+Acked-by: David Hildenbrand <david@redhat.com>
 
-diff --git a/drivers/hwtracing/coresight/coresight-etm-perf.c b/drivers/hwtracing/coresight/coresight-etm-perf.c
-index f1551c08ecb2..404edc94c198 100644
---- a/drivers/hwtracing/coresight/coresight-etm-perf.c
-+++ b/drivers/hwtracing/coresight/coresight-etm-perf.c
-@@ -433,6 +433,11 @@ static void *etm_setup_aux(struct perf_event *event, void **pages,
-        if (!sink)
-                goto err;
- 
-+       if (coresight_is_percpu_sink(sink))
-+               event->pmu.capabilities = PERF_PMU_CAP_SAMPLING;
-+       else
-+               event->pmu.capabilities &= ~PERF_PMU_CAP_SAMPLING;
-+
+-- 
+Cheers
 
-Thanks,
-Leo
+David / dhildenb
+
