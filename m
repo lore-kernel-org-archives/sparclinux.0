@@ -1,43 +1,44 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F406313E2B;
-	Tue, 26 Aug 2025 16:03:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4518A3148BC;
+	Tue, 26 Aug 2025 16:03:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756224215; cv=none; b=K6pENE3wP8EZPpHPrlrGhxl27SAIgIulJDCMn7ufNJwI8GDCe+9hN+4pDhjO+xlQwYgEYlT7xNUxY1ENnn9+nfcvrP3MsAbcYM5KRvWz6VCiQGPBHoPjUKmdcdJ7UlC4Vxg5FQyZLHJwr3+sU1fhgao4bTTONr7845nHL0qPZf8=
+	t=1756224215; cv=none; b=cLo3dMkn0GI8WGRRiHRrfvp2rKrjbCc7kfQqICIUMsxQbJoiwUr49TYXhcPU+cA93zfn6xTP5IJtPNIYl27QovMntPeXCa5NQozycG+jhpyLRtrrPscZlKQfGpK52oVTt0uATi0CyTmz8afGRSHdhAjVGko33Bt3rn6ibzgd1kU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1756224215; c=relaxed/simple;
-	bh=wcv7knq4PA1KSCMtNch0UJfW3K2AWGn8q0NFryhCUns=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=D2zayfaycgoXv325/416aoLxHG+M9rPzOlapA3//agvbk8Ll7v0XC0lva4LlL3g/65pT6YC4dP0nRaGx2p/7ByujQgim0XQGbmnPts42W3V7bqL65uvMzpCShu1zBm1HSMxkT0zQrPNVzkPW6TgpsnLnVOkb93RdGphn5WJ525Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=OJSmEXgJ; arc=none smtp.client-ip=130.133.4.66
+	bh=NiTFgKts+OzxyqckaQgevOdQhUBdNqFPc2x/Mxh6NfY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Nlqz0S+pEZG5fpO06QzhWhaediBiicgoKGcP1h3LJzQLGeCGu3sD0GtxD1GNzK+5Euh4g3paOtE4YQEh9737QPLtQlwHTDfd9wzJF3WOmGSmJWMzf7lrVgUsBCWkF3mBJDedpr84x7yPvvPd1y4yQiaeZ+/A9yL7rpFv6Wm7tVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=h2v20o3Y; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="OJSmEXgJ"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="h2v20o3Y"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=Content-Transfer-Encoding:MIME-Version:Message-ID:
-	Date:Subject:Cc:To:From:From:Reply-To:Subject:Date:Message-ID:To:Cc:
-	MIME-Version:Content-Type:Content-Transfer-Encoding:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=VyCZxsBbdNQ7yBiAHXgXD7zZcdaNhFfGu6xm7ym9Ph0=; t=1756224210; x=1756829010; 
-	b=OJSmEXgJ2jXh3KiAmBaWwtpieT6/tDuBteMMnnFRpFI5E5efpowAJCgRmkV5pz3XNxwJY+L8DmD
-	V9DF3OiZleoVBFMCoEKjb+iSagfZVNZQumnLPYTxz0WlME93rfc47WWojN5DnWS/V/o2S5oq4ExYR
-	WH4nxWRPu6kuZBQZ5sQFYC8O2s6a4sY2Q/qvJrnZql97E48pfpBRuqCoJDfuic1KAJ9fUt7pSFfaH
-	67rFxSl376+4UWJIyCYxiGmOk6Nvkd/wYPA3qzAZJ+2YYu2b2umtP3C0E1PtKmxE8K4ow3lNt3qS4
-	oG/PUUtUowG0bFNLNnMZ0G1pU9Ly+e9YbMeA==;
+	d=fu-berlin.de; s=fub01; h=Content-Transfer-Encoding:MIME-Version:References:
+	In-Reply-To:Message-ID:Date:Subject:Cc:To:From:From:Reply-To:Subject:Date:
+	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=WjMXoJ83htl5QSXDt1jQ7BqUofeuTW4zLLdLLR7BkOg=; t=1756224211; x=1756829011; 
+	b=h2v20o3YBqESsw8TxOCgTFcJOluPG+vMnGVOz/4WFLpqvqTK0XiWbEu8dme6766oWRWSvZJEAoV
+	VnO3PewCmsYvQ7mO36L/wjkeOh/jFgl8mgAlytEAqErWUTMfpcIyUAzPnHpFm/mEbqTfnTLd3aDIO
+	Lj0mzEievQdWbRdGgq8f+wUFM46ZN2ohzTafKZ3EH2rOvc+WyKW5PApn936/m2k63NRWgQW2SKH9v
+	GyOYUgUTyNhBJ/Wrrc5t1kh8wYLBaE672066STtttEl0v+hzjHfhIjGjLG38g3yKRwUvqEell4bXJ
+	ZAqkiHEMs6jPWBFB23eCoLHwPLmfr3uS/QSQ==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.98)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1uqw8o-00000000x4I-48UU; Tue, 26 Aug 2025 18:03:23 +0200
+          id 1uqw8q-00000000x6W-2Sd6; Tue, 26 Aug 2025 18:03:24 +0200
 Received: from [89.57.34.174] (helo=Geist14)
           by inpost2.zedat.fu-berlin.de (Exim 4.98)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1uqw8o-00000000c5y-38mo; Tue, 26 Aug 2025 18:03:22 +0200
+          id 1uqw8q-00000000c5y-1VnN; Tue, 26 Aug 2025 18:03:24 +0200
 From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
 To: linux-kernel@vger.kernel.org
 Cc: sparclinux@vger.kernel.org,
@@ -45,10 +46,12 @@ Cc: sparclinux@vger.kernel.org,
 	Andreas Larsson <andreas@gaisler.com>,
 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
 	Anthony Yznaga <anthony.yznaga@oracle.com>
-Subject: Fix accurate exception reporting in SPARC assembly
-Date: Tue, 26 Aug 2025 18:03:02 +0200
-Message-ID: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+Subject: [PATCH 4/4] sparc: fix accurate exception reporting in copy_{from_to}_user for Niagara 4
+Date: Tue, 26 Aug 2025 18:03:06 +0200
+Message-ID: <20250826160312.2070-5-kernel@mkarcher.dialup.fu-berlin.de>
 X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -59,28 +62,25 @@ Content-Transfer-Encoding: 8bit
 X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
 X-ZEDAT-Hint: PO
 
-In 2018, David Miller implemented accurate exception reporting in
-copy_from_user and copy_to_user by handling exceptions on each load
-or store instruction that accesses userspace memory and calculating
-the remaining bytes from the processor context. As issues with
-transparent huge page support and folio support in ext4 were due
-to a bogus return value from copy_from_user, I wrote a comprehensive
-testsuite for the generic variant, and the machine-specific variants
-for UltraSPARC I/II, UltraSPARC III, Niagara, Niagara 2/3 and
-Niagara 4, see
+Fixes: 957077048009 ("sparc64: Convert NG4copy_{from,to}_user to accurate exception reporting.")
+Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+---
+ arch/sparc/lib/NG4memcpy.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-https://github.com/karcherm/sparc-cfu-bug-reproducer
+diff --git a/arch/sparc/lib/NG4memcpy.S b/arch/sparc/lib/NG4memcpy.S
+index 7ad58ebe0d00..df0ec1bd1948 100644
+--- a/arch/sparc/lib/NG4memcpy.S
++++ b/arch/sparc/lib/NG4memcpy.S
+@@ -281,7 +281,7 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	subcc		%o5, 0x20, %o5
+ 	EX_ST(STORE(stx, %g1, %o0 + 0x00), memcpy_retl_o2_plus_o5_plus_32)
+ 	EX_ST(STORE(stx, %g2, %o0 + 0x08), memcpy_retl_o2_plus_o5_plus_24)
+-	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_24)
++	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_16)
+ 	EX_ST(STORE(stx, %o4, %o0 + 0x18), memcpy_retl_o2_plus_o5_plus_8)
+ 	bne,pt		%icc, 1b
+ 	 add		%o0, 0x20, %o0
+-- 
+2.50.1
 
-despite the name of the project, it does not only test copy_from_user,
-but also copy_to_user, and it also contains fixes to a very small amount
-of exception handler references that were calculating the result in
-a wrong way.
-
-For UltraSPARC III, I chose to adjust the memcpy code itself instead of
-adding complexity to multiple exception handlers. That fix has already
-been tested to fix stability issues observed by Adrian Glaubitz which
-kicked of the investigation. On all other architectures, the changes
-are just to the exception handlers.
-
-Kind regards,
-  Michael Karcher
