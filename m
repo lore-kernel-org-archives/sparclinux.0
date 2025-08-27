@@ -1,209 +1,167 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com [209.85.208.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17BF72765F0
-	for <sparclinux@vger.kernel.org>; Wed, 27 Aug 2025 15:15:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17ED22BE65E;
+	Wed, 27 Aug 2025 16:59:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756307747; cv=none; b=qbL1oo+cKZVxGv91+MsPG7AU2AkS1SA8v+NufcezjH8tV2opOI0Sc+v5NSnlh+x5Zh8P3KNY38dlMEcOYmrM2mhBVVOrTgpeliXBv20btaLBfbjdKG2n51GY4nicHCBNLkWQ6NLhSMbRUJWrmYzGiH5GV7HW0k9JaMDIlaq9DVU=
+	t=1756313965; cv=none; b=r2oi0gSI9irEGSQeWhPkpAZe9fVnp2ZnXRw0F4u9Ed6LQIjBnrTS0YypAMaFWjSHZiZ2si4qv1On5Gsm5cCaOs0ujI1QYztlJNYXJBMuzET6oCAQTJwNxicPCzjkNzwVs9sCJrmmozr5+k8N8/7N+a0CG0isJPmB6GIWbayVh8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756307747; c=relaxed/simple;
-	bh=PgEPxKHnOwEJrisDshuEuJU9SWQbfG1NSTYMYsAtWZE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qKeruX+Lv4TGirzv7RXxsCHI92rmn7Dz79kLDXhsJsinCV3c6V3w+Hc2Lcgl0b9W4JCX8dI1Sr3wDone9Oy7K/6PXu6cI+2DTRSd3rFK2qXTdX+IOlxlCoZjDlZ+9dWinwOufF/p0BgTthPz1/1uDfPQZ985oicVYOaE0QAodAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=SSFbhUaY; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1756313965; c=relaxed/simple;
+	bh=HP+oCFjbaV0ErYQHYOSOr3F3umYVDZHj90JBCgWCcms=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qIvMdXL2aP2v/bzQdVJIKI/Y9ZWXRdyNW560ii21ibwt2KTiGvfC1LcaCeEihbBDEjR120qEgvQ1n0utLobbOU2Kri7llQndnjbIM+WYRztLY+aPg9BlVUAxMeDseA9VAyr9dL5t6BqViJ9qlqWWsvcBHlHp59oUZM7WFmla+78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Pf7/0Js9; arc=none smtp.client-ip=209.85.208.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="SSFbhUaY"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-24611734e50so164725ad.1
-        for <sparclinux@vger.kernel.org>; Wed, 27 Aug 2025 08:15:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pf7/0Js9"
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3366f66a04cso424171fa.1;
+        Wed, 27 Aug 2025 09:59:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1756307744; x=1756912544; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aGPhYDWt388RttmicU0o24RVsxY/twdNMb4O/vzImCs=;
-        b=SSFbhUaYSdGFBbG5CfGErl8PBJrdJ0XQ6Ofi8i4VHffvxMFqpxvd+tBC70A4/nMPRf
-         ybU1ppZn3tbfrOKYfvpliGhWaHEjfd5gmSxVQ/LbuKHpjRkSVK/4QDjzT58X9EiCYNwA
-         VD20oxfdWFrKFhsWdsiCSaeb4dGSHE6WYM7wX1tKv/9tXSTFRPgl7S0bV6soxF8q1uLR
-         qxqz6E2uiRoLyV2iMsgCO9EDPozzvbWTmTIFD9Mqi0RfocbBhhawnxcyQPOk098SvjNw
-         4KYeQe65GchDlKYvnMaty9HoninLLGNTawIlgfvoFCkk4VwTfWXkTNirqjX14LEt8qKn
-         OHIg==
+        d=gmail.com; s=20230601; t=1756313962; x=1756918762; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=cSz+0Jdl3rsxgIMqjiE4eLITB/Ptqi8xoIkjq9Q3i9w=;
+        b=Pf7/0Js9wTzUbA2z9j1s0We4psrMER+tLAPobYT1Uzur7QQR2hxzkJL6SIZaCkRpyr
+         w0bEYYDQXU377H4/trsEniu3lKkDLdddYLuMkZrAeA9YNihsGnmSBHkZQr+e0qI/3JIK
+         n2NZUmbXNiwzYYqAFp8DCLW22VfdO7/lh+5TgG1hIpWVlwIL9jCaCGuzk4Og1P1cjWOc
+         yamlOUyOSAxDaF0N9w4lK3tya9CAmHFBFSB1aBS8c3JeZAt0EMbsPpWGgRmT73XDCkbU
+         JKOEPG98pX1Qd89EIVAVIFHuiDZCN8bPc6Oax7u02yUihzLtuTLAstJWLM8lvS9mBbOm
+         fjhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756307744; x=1756912544;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=aGPhYDWt388RttmicU0o24RVsxY/twdNMb4O/vzImCs=;
-        b=AAK1HM/5iOUZeO27UU//lzDxLtKBJjWDjeDqU/Z43bpMPt2pFPfhYRW3hHWnHb+Ul4
-         4NAjyIHAGIojEWg0lJy7pxANthoGe3hPGPFIk2qs5vgsgcijcln+1sVw9fO447pgz/au
-         bpxC+G/ErH7x8pXb+uWD5/RtuQFAC5lW2EDEQvSpSvFnzIAgUmZgItj/rUp29OSDx1N0
-         vFmgT0wu6GMlzPymAOX91kqTc5dUhDLOmmH/jtAK9QhO5bcgcGrMVbw7e9D1fNPNKjoL
-         SwlH1XSLBkz5TaPQi3+GAuyBmGqjMN0gK+QEtpIQrGib2QV6MsSqe0oVPRKCge3tfF1E
-         PoMw==
-X-Forwarded-Encrypted: i=1; AJvYcCUYbkPj5KXUhPqrPrjwkOr6FGwBSuasovFudbw8hciah9alwpq+PxtC+zvvKhwSkAtHv0b7N5/iYX4i@vger.kernel.org
-X-Gm-Message-State: AOJu0YwSUz+8gb+ohJ1BnHhcZ8SjZyVmyHsgjtP75BNksbTX0L4KBuHL
-	ZGPCRx1VgyiyxMqEHbQTqCoLTL6f/w7qVmfR+eVyGQnmwFZq8dXM7yevyR7R+eiSmUDOBWOk2to
-	YVnZVD5f/iKOLQ5o6hPRP8Mh60s75/+xAx9uNelkJ
-X-Gm-Gg: ASbGncsb3nrhsY11GxFr28JfMSULLmZGSmNm6iIJvNoL/n/AwNXvcniXOOc93Qn8bVO
-	oofYEWkHMH+narbXAXkAEjZUwxpBkPJlfPlAL3WE99/rJ6C0VpFU9XUm4szqUS2klYS+S819Prc
-	+XDgEheJnLsiUWvZGBfsT8rwVtJVaDELnP/mYcoFZE4qrZ5fIy5GqSCVzivErcrrUdyHPrEY7Um
-	Q/3UE4uJMopC18TxTk6w40N2PtqUOH03tN1UaQTZOI=
-X-Google-Smtp-Source: AGHT+IExi0QgPJP/5AblrVahQdACSVklatzIIhzDoM8PROF9H/mRXxhxpv9GhjknP28Wz6ljzGsei6gbP7f3oTXJLVM=
-X-Received: by 2002:a17:902:ec87:b0:246:a8ac:1a36 with SMTP id
- d9443c01a7336-2485ba5311amr9397575ad.2.1756307741849; Wed, 27 Aug 2025
- 08:15:41 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1756313962; x=1756918762;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cSz+0Jdl3rsxgIMqjiE4eLITB/Ptqi8xoIkjq9Q3i9w=;
+        b=Z2UHbZQQYFhnAjEFn+9q5xU36xXyqiRxvkk85DUNFY+N+mgdf/JU4I0pGM+4p33Rvs
+         jYN4MWYiNJxX5C+VPFfUSnu9YO6yPwruGXmRFSPtCldceTqV/OpMVX+Jkx3eCGqjBAUs
+         NuRUe5LK4/+KqDz8tLK1HKqpTv+ABxVAGvYPDgISsB7bC4sF/8jq3POJpi4PYqWbOn3c
+         qBbe8sIFvPggj4ioOb01nKICgkBSi+MENWiiyAJH/p7QPtMfgysGRJxX1GrmEf+qYJhJ
+         hqR/tGIV8HTjnN8zwXaXrU5FwK7ZE2Hfn9dTKvYjqovd+tlznLw79ANU6kHC7AANWKor
+         rQ6A==
+X-Forwarded-Encrypted: i=1; AJvYcCUdpn0dhMcBQ+tCH0oNc5b76ZJA5+QqZuYFhZwQxrJWtX/HMpVkJsAmt5bkwseehCwj5i2yCCe0NUWr@vger.kernel.org, AJvYcCUwg6yK+H5GckWR4Vx8Sw5pBzLPHhsab2sO3wROGMNnxUcN5o/BK+BwsedAyMr7aDkY1pg=@vger.kernel.org, AJvYcCVZR65+YMzi9fFsW/8VIKYkLYkuJGcBwwRz1zQ4JA0jniHn6TEcKJO1Mx3LTa2YiWci9yGlX0dJOS9bjpNwRgMmmtmT@vger.kernel.org, AJvYcCXTFe14OJKe/TxdFgwXZVfKeTqLo5lD9SMrN4Ivwr3zxF23re/5xuXLNUMgjVlel+BTvqgTcLCLkPYultSZZw==@vger.kernel.org, AJvYcCXUL+gLHCNVWJspvaxv1bEreKzmqGXQGhGRb4u2GtYQLPc0rtj6KKXbiXCT6a/4y+cFL6drwBS3TKpL1Wnw@vger.kernel.org, AJvYcCXfTETBDKEpCzfIDz2I51gCSDpsWLBkOzxTrP+TvAUI5jopTuZPLlBcRToOIiXNNqP/mqt546XNQLzUSQ==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy/lvOZ2PAfasnZtt5sk80EN915m+AF8QkdmUrzGu9jz+3LJ63R
+	Ev+Uk9fRoTSYQb7t7Wrc/Xn+vv+QZz27g0ceezp4H5ppuFZLbWYo/5D/
+X-Gm-Gg: ASbGncu1tgUGWeXBLTJEH0ZV3nJwZLfv2iKFlZsDuU42ZmkRLSZI2ojSWEG1T1AibKq
+	pPj5cmYzaZDKXd+Pu0PMtTKVxIB4lcues6uMBMvwJMUBE7YnSIfzSDxPlVPrgIwHzfhikbEvFZL
+	ZNGOTSzBLewkzWwBH/FhsON7SunEy3joyhNS2iXwruuizfMNK5+qIuOsnlXhODMxDbg1B/rajBl
+	w2MD6uiW7igXDagOws1AX9pxJnNle1+XAIbprKNsFNy35JU99r/wX/Fd7IPj+i6Sj1HxnAs8s/J
+	csEwSWQxAajHYy+mbYl2IRFi6BRNOZdEPE1/hWnjDfGtWrXK9h8erw9o1GcFVutIRfqohp52GQ9
+	xaWAE6hoXrvDl+SJ/wFsa7dhwMQ4+P+Kvfl/xe0hDlmv/cpBJvMiJ
+X-Google-Smtp-Source: AGHT+IG4BeCx/VIPO9rnbCc0YcRdZMlua4eVbdX3PpKt/fKDdzrBfr7yiiTFTWfK/4UfPVTpR7vpyQ==
+X-Received: by 2002:a2e:be03:0:b0:336:7eed:2f8f with SMTP id 38308e7fff4ca-3367eed3c67mr29987221fa.32.1756313961794;
+        Wed, 27 Aug 2025 09:59:21 -0700 (PDT)
+Received: from pc636 (host-90-233-205-219.mobileonline.telia.com. [90.233.205.219])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-3365e5da244sm27443611fa.58.2025.08.27.09.59.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Aug 2025 09:59:21 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Wed, 27 Aug 2025 18:59:16 +0200
+To: Kees Cook <kees@kernel.org>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Mike Rapoport <rppt@kernel.org>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Harry Yoo <harry.yoo@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Peter Xu <peterx@redhat.com>, David Hildenbrand <david@redhat.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <aK85ZPVwBIv-sH85@pc636>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <aIgSpAnU8EaIcqd9@hyeyoo>
+ <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
+ <aIkVRTouPqhcxOes@pc636>
+ <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
+ <aJCRXVP-ZFEPtl1Y@pc636>
+ <aJHQ9XCLtibFjt93@kernel.org>
+ <aJItxJNfn8B2JBbn@pc636>
+ <202508251436.762035B@keescook>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1755096883.git.robin.murphy@arm.com> <d6cda4e2999aba5794c8178f043c91068fa8080c.1755096883.git.robin.murphy@arm.com>
- <20250826130329.GX4067720@noisy.programming.kicks-ass.net>
- <6080e45d-032e-48c2-8efc-3d7e5734d705@arm.com> <CAP-5=fXF2x3hW4Sk+A362T-50cBbw6HVd7KY+QEUjFwT+JL37Q@mail.gmail.com>
- <aK6_XrA_OaLnoFkr@J2N7QTR9R3>
-In-Reply-To: <aK6_XrA_OaLnoFkr@J2N7QTR9R3>
-From: Ian Rogers <irogers@google.com>
-Date: Wed, 27 Aug 2025 08:15:29 -0700
-X-Gm-Features: Ac12FXwUZ4TrRSXyzgr8XTQRkesJ87wwMtoKHvx086ZRlV4GbvgOq2WSyedNfZ4
-Message-ID: <CAP-5=fU0-QDMP-VG3O1qBvJ8uzHHYCQ8j1Vrzy9a0YUk=UMvHw@mail.gmail.com>
-Subject: Re: [PATCH 12/19] perf: Ignore event state for group validation
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Peter Zijlstra <peterz@infradead.org>, mingo@redhat.com, 
-	will@kernel.org, acme@kernel.org, namhyung@kernel.org, 
-	alexander.shishkin@linux.intel.com, jolsa@kernel.org, adrian.hunter@intel.com, 
-	kan.liang@linux.intel.com, linux-perf-users@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
-	imx@lists.linux.dev, linux-csky@vger.kernel.org, loongarch@lists.linux.dev, 
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linux-rockchip@lists.infradead.org, dmaengine@vger.kernel.org, 
-	linux-fpga@vger.kernel.org, amd-gfx@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
-	intel-xe@lists.freedesktop.org, coresight@lists.linaro.org, 
-	iommu@lists.linux.dev, linux-amlogic@lists.infradead.org, 
-	linux-cxl@vger.kernel.org, linux-arm-msm@vger.kernel.org, 
-	linux-riscv@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <202508251436.762035B@keescook>
 
-On Wed, Aug 27, 2025 at 1:18=E2=80=AFAM Mark Rutland <mark.rutland@arm.com>=
- wrote:
->
-> On Tue, Aug 26, 2025 at 11:48:48AM -0700, Ian Rogers wrote:
-> > On Tue, Aug 26, 2025 at 8:32=E2=80=AFAM Robin Murphy <robin.murphy@arm.=
-com> wrote:
-> > >
-> > > On 2025-08-26 2:03 pm, Peter Zijlstra wrote:
-> > > > On Wed, Aug 13, 2025 at 06:01:04PM +0100, Robin Murphy wrote:
-> > > >> It may have been different long ago, but today it seems wrong for =
-these
-> > > >> drivers to skip counting disabled sibling events in group validati=
-on,
-> > > >> given that perf_event_enable() could make them schedulable again, =
-and
-> > > >> thus increase the effective size of the group later. Conversely, i=
-f a
-> > > >> sibling event is truly dead then it stands to reason that the whol=
-e
-> > > >> group is dead, so it's not worth going to any special effort to tr=
-y to
-> > > >> squeeze in a new event that's never going to run anyway. Thus, we =
-can
-> > > >> simply remove all these checks.
-> > > >
-> > > > So currently you can do sort of a manual event rotation inside an
-> > > > over-sized group and have it work.
-> > > >
-> > > > I'm not sure if anybody actually does this, but its possible.
-> > > >
-> > > > Eg. on a PMU that supports only 4 counters, create a group of 5 and
-> > > > periodically cycle which of the 5 events is off.
-> >
-> > I'm not sure this is true, I thought this would fail in the
-> > perf_event_open when adding the 5th event and there being insufficient
-> > counters for the group.
->
-> We're talking specifically about cases where the logic in a pmu's
-> pmu::event_init() callback doesn't count events in specific states, and
-> hence the 5th even doesn't get rejected when it is initialised.
->
-> For example, in arch/x86/events/core.c, validate_group() uses
-> collect_events(), which has:
->
->         for_each_sibling_event(event, leader) {
->                 if (!is_x86_event(event) || event->state <=3D PERF_EVENT_=
-STATE_OFF)
->                         continue;
->
->                 if (collect_event(cpuc, event, max_count, n))
->                         return -EINVAL;
->
->                 n++;
->         }
->
-> ... and so where an event's state is <=3D PERF_EVENT_STATE_OFF at init
-> time, that event is not counted to see if it fits into HW counters.
+On Mon, Aug 25, 2025 at 02:37:11PM -0700, Kees Cook wrote:
+> On Tue, Aug 05, 2025 at 06:13:56PM +0200, Uladzislau Rezki wrote:
+> > I agree. Also it can be even moved under vmalloc.c. There is only one
+> > user which needs it globally, it is usercopy.c. It uses find_vmap_area()
+> > which is wrong. See:
+> > 
+> > <snip>
+> > 	if (is_vmalloc_addr(ptr) && !pagefault_disabled()) {
+> > 		struct vmap_area *area = find_vmap_area(addr);
+> > 
+> > 		if (!area)
+> > 			usercopy_abort("vmalloc", "no area", to_user, 0, n);
+> > 
+> > 		if (n > area->va_end - addr) {
+> > 			offset = addr - area->va_start;
+> > 			usercopy_abort("vmalloc", NULL, to_user, offset, n);
+> > 		}
+> > 		return;
+> > 	}
+> > <snip>
+> > 
+> > we can add a function which just assign va_start, va_end as input
+> > parameters and use them in the usercopy.c. 
+> 
+> Yes please! I'd must rather use some exported validation routine than
+> having it hand-coded in usercopy.c. :)
+> 
+I will do it :)
 
-Hmm.. Thinking out loud. So it looked like perf with weak groups could
-be broken then:
-```
-$ sudo perf stat -vv -e '{instructions,cycles}:W' true
-...
-perf_event_attr:
- type                             0 (PERF_TYPE_HARDWARE)
- size                             136
- config                           0x400000001
-(cpu_core/PERF_COUNT_HW_INSTRUCTIONS/)
- sample_type                      IDENTIFIER
- read_format                      TOTAL_TIME_ENABLED|TOTAL_TIME_RUNNING|ID|=
-GROUP
- disabled                         1
- inherit                          1
- enable_on_exec                   1
-------------------------------------------------------------
-sys_perf_event_open: pid 3337764  cpu -1  group_fd -1  flags 0x8 =3D 5
-------------------------------------------------------------
-perf_event_attr:
- type                             0 (PERF_TYPE_HARDWARE)
- size                             136
- config                           0x400000000
-(cpu_core/PERF_COUNT_HW_CPU_CYCLES/)
- sample_type                      IDENTIFIER
- read_format                      TOTAL_TIME_ENABLED|TOTAL_TIME_RUNNING|ID|=
-GROUP
- inherit                          1
-------------------------------------------------------------
-sys_perf_event_open: pid 3337764  cpu -1  group_fd 5  flags 0x8 =3D 7
-...
-```
-Note, the group leader (instructions) is disabled because of:
-https://web.git.kernel.org/pub/scm/linux/kernel/git/perf/perf-tools-next.gi=
-t/tree/tools/perf/util/stat.c?h=3Dperf-tools-next#n761
-```
-/*
-* Disabling all counters initially, they will be enabled
-* either manually by us or by kernel via enable_on_exec
-* set later.
-*/
-if (evsel__is_group_leader(evsel)) {
-        attr->disabled =3D 1;
-```
-but the checking of being disabled (PERF_EVENT_STATE_OFF) is only done
-on siblings in the code you show above. So yes, you can disable the
-group events to allow the perf_event_open to succeed but not on the
-leader which is always checked (no PERF_EVENT_STATE_OFF check):
-https://web.git.kernel.org/pub/scm/linux/kernel/git/perf/perf-tools-next.gi=
-t/tree/arch/x86/events/core.c?h=3Dperf-tools-next#n1204
-```
-if (is_x86_event(leader)) {
-        if (collect_event(cpuc, leader, max_count, n))
-                return -EINVAL;
-```
-
-Thanks,
-Ian
+--
+Uladzislau Rezki
