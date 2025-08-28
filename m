@@ -1,114 +1,155 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B5F32512C8;
-	Thu, 28 Aug 2025 15:53:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875AF30CD95;
+	Thu, 28 Aug 2025 16:47:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756396406; cv=none; b=nNHczJ2HEzkTaaY8hddQUXWW8EWTEju+nMtGGO0cGCSS9KwGJ8N5Kyi84zFKFJ2122PdDEhwOe0vjolmo2T+MO3EvvGwHqPZnXwH9Bb7QsqiHgD7cdKewrGioTNdHMQVnpfQx/O7R8GkK0ln1dkJtU0jqymgGuuOrLDPicK7BV8=
+	t=1756399639; cv=none; b=E3RhUgJzeKSQokznGX+ZOJKUWO9LCqJKCBu1NZesMvQy7r6Isz/aJO7a9S9EyENd2sV6Q1qdkNisksr2zoikUBzUcbdIl4CimerWWYniOjnDEFNK/HxvztQGWcU053MFa0Fy/WScIUcwDZMpDzjWLR3x5hoYbNy4e3DOk/9XkJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756396406; c=relaxed/simple;
-	bh=tGQN0d7TRDLKBUICZx+jkra98Y/2WI8kLiTQsOqgsu4=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=lZD+7v48htnFDDNQDGOtxylcJaXWJEtlhJfgRgJP1drbJfHlr4qM9BdjxealDe7ydOQ2KY8BJ3ga7/mK1ybMPTDwYDHh+gaioNroKXWvKHeiSbtKJ3bOBUcOfhIPOZoCrQSvM9I5OC8PVsUHnvd9eOpaIHZmBf/LKqb3j3PbGGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=CGmAt9zn; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1756399639; c=relaxed/simple;
+	bh=aU91kSbFDXIVNuJ60vvVOrVduOxjp8fd95hLA1xmbMQ=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=QVpVTMGdt+mGXZSx2/GkYwRqa6XShHjz6cwDb1Bbkn8d5XmXJl9RczulFZsO4FuHhuI+nTS6Dm88cRG8aKkNykvbYqVflBw35spcns9BGVdZL2nnVTW+C+6mPWBH0YVPuN1zbTKYTK7AW0B3/nAn9gzjB4s3vQdvadmK0WGQvSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GxzqBMLl; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="CGmAt9zn"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=9a2LQ6bXTt0LZl1AGm/s/pdNZ/2kG6z/lkK6mMLP+fo=; t=1756396403;
-	x=1757001203; b=CGmAt9znDFICGjqN2pH6Wxsi/ll1YxDILOiOeYZ4/cLMwWRfSFz5Lc6TnUp9M
-	B3sOs0VmSHV39G0aLqd6w+Xp7E7WWLorvZapOqjDU4Xy2OjXHGhv1j3luBGBJaSsclb9gNmcp8zit
-	isOL3TYotTm05UiVd9AuYalu836+0We50/u7bm+ZsBERHnTloinB9PD0tEFX6lnUm9RhjzFL6X5dG
-	dDPto9WbPMyyF4n8S2BKSKcIdoR3e3kORBv9Ua3uNmTG2bbmbylbaEkzoKP4lUtiEQAw992Aru24t
-	HkF9rQZjUE3JbPc/UTAeC4Z4Slk66sQrnByXzcpJon1v2Wo5Ew==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1urewC-00000000ncs-0ZmA; Thu, 28 Aug 2025 17:53:20 +0200
-Received: from p57bd96d0.dip0.t-ipconnect.de ([87.189.150.208] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1urewB-00000000wiy-3pPK; Thu, 28 Aug 2025 17:53:20 +0200
-Message-ID: <dd35a213ce2f42a97d791415b594396466da5b14.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH 2/4] sparc: fix accurate exception reporting in
- copy_{from_to}_user for UltraSPARC III
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, 
-	linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, 
- Anthony Yznaga <anthony.yznaga@oracle.com>
-Date: Thu, 28 Aug 2025 17:53:19 +0200
-In-Reply-To: <20250826160312.2070-3-kernel@mkarcher.dialup.fu-berlin.de>
-References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
-	 <20250826160312.2070-3-kernel@mkarcher.dialup.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GxzqBMLl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1756399637; x=1787935637;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version:content-id;
+  bh=aU91kSbFDXIVNuJ60vvVOrVduOxjp8fd95hLA1xmbMQ=;
+  b=GxzqBMLlSJ7ayIDlYbPgK8JNOsXgBOjB4LvNtbo+GUEsOzLHV2FAKEjL
+   2OMbLda7FBwvLs+sSKMnyfWDhoINNK7tOZb+qCahd316JEjlQTyK5AuD/
+   WR/iNOGbsO+Cy4CNi80mr7bhBlfjYmH7UcGCmG669oCHc8tdQi8NC2c+E
+   TCt+Nfb8EFZYkF1RvOIx8dpw0zM7a1mrc1uQTEuMv7uaKA5RTLM283pLU
+   ePa9coiJ8ousxIEiNh4jraVaBHanL2F6vnCYZi3TBCwPXShOC6uop90u1
+   iCd2bePQe3idICd7EVyQI7dAIVWkwXYYX9WlorN2m9zjHju4rtYxCQ3DZ
+   w==;
+X-CSE-ConnectionGUID: JIUsepvYR8O8bemB4mP9ww==
+X-CSE-MsgGUID: q3FqIogeR5abXu1ncbHtZw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11531"; a="58621132"
+X-IronPort-AV: E=Sophos;i="6.17,312,1747724400"; 
+   d="scan'208";a="58621132"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2025 09:47:16 -0700
+X-CSE-ConnectionGUID: SjrdaJHHQdK4rDEfENOp0g==
+X-CSE-MsgGUID: vM+TeRjKRZ2iMMw4509i4w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.18,220,1751266800"; 
+   d="scan'208";a="207303211"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.99])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2025 09:47:09 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Thu, 28 Aug 2025 19:47:06 +0300 (EEST)
+To: Bjorn Helgaas <helgaas@kernel.org>
+cc: Andreas Larsson <andreas@gaisler.com>, Bjorn Helgaas <bhelgaas@google.com>, 
+    "David S. Miller" <davem@davemloft.net>, 
+    Geert Uytterhoeven <geert@linux-m68k.org>, linux-m68k@lists.linux-m68k.org, 
+    linux-mips@vger.kernel.org, linux-pci@vger.kernel.org, 
+    sparclinux@vger.kernel.org, 
+    Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+    =?ISO-8859-15?Q?Christian_K=F6nig?= <christian.koenig@amd.com>, 
+    Yinghai Lu <yinghai@kernel.org>, Igor Mammedov <imammedo@redhat.com>, 
+    "Rafael J . Wysocki" <rafael@kernel.org>, 
+    Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+    Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, 
+    =?ISO-8859-2?Q?Krzysztof_Wilczy=F1ski?= <kw@linux.com>, 
+    LKML <linux-kernel@vger.kernel.org>, 
+    =?ISO-8859-2?Q?Micha=B3_Winiarski?= <michal.winiarski@intel.com>, 
+    linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 00/24] PCI: Bridge window selection improvements
+In-Reply-To: <20250827223606.GA915856@bhelgaas>
+Message-ID: <d209c08a-56df-5aac-869d-7c6c548c0614@linux.intel.com>
+References: <20250827223606.GA915856@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: multipart/mixed; BOUNDARY="8323328-231680363-1756381945=:938"
+Content-ID: <11bc2533-54ae-273a-c46a-d271790c5a86@linux.intel.com>
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tue, 2025-08-26 at 18:03 +0200, Michael Karcher wrote:
-> Based on a finding by Anthony Yznaga that the UltraSPARC III copy_from_us=
-er
-> returns invalid values breaking other parts of the kernel in case of a
-> fault, while the generic implementation is correct.
+--8323328-231680363-1756381945=:938
+Content-Type: text/plain; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <f90962a0-95ab-8e0a-58b9-2afe95683ba6@linux.intel.com>
+
+On Wed, 27 Aug 2025, Bjorn Helgaas wrote:
+
+> On Fri, Aug 22, 2025 at 05:55:41PM +0300, Ilpo J=E4rvinen wrote:
+> > This series is based on top of the three resource fitting and
+> > assignment algorithm fixes (v3).
+> >=20
+> > PCI resource fitting and assignment code needs to find the bridge
+> > window a resource belongs to in multiple places, yet, no common
+> > function for that exists. Thus, each site has its own version of
+> > the decision, each with their own corner cases, misbehaviors, and
+> > some resulting in complex interfaces between internal functions.
+> > ...
 >=20
-> Fixes: ee841d0aff64 ("sparc64: Convert U3copy_{from,to}_user to accurate =
-exception reporting.")
-> Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-> ---
->  arch/sparc/lib/U3memcpy.S | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> > I've tried to look out for any trouble that code under arch/ could
+> > cause after the flags start to behave differently and therefore ended
+> > up consolidating arch/ code to use pci_enable_resources(). My
+> > impression is that strictly speaking only the MIPS code would break
+> > similar to PCI core's copy of pci_enable_resources(), the others were
+> > much more lax in checking so they'd likely keep working but
+> > consolidation seemed still the best approach there as the enable checks
+> > seemed diverging for no apparent reason.
+> > ...
 >=20
-> diff --git a/arch/sparc/lib/U3memcpy.S b/arch/sparc/lib/U3memcpy.S
-> index 9248d59c734c..bace3a18f836 100644
-> --- a/arch/sparc/lib/U3memcpy.S
-> +++ b/arch/sparc/lib/U3memcpy.S
-> @@ -267,6 +267,7 @@ FUNC_NAME:	/* %o0=3Ddst, %o1=3Dsrc, %o2=3Dlen */
->  	faligndata	%f10, %f12, %f26
->  	EX_LD_FP(LOAD(ldd, %o1 + 0x040, %f0), U3_retl_o2)
-> =20
-> +	and		%o2, 0x3f, %o2
->  	subcc		GLOBAL_SPARE, 0x80, GLOBAL_SPARE
->  	add		%o1, 0x40, %o1
->  	bgu,pt		%XCC, 1f
-> @@ -336,7 +337,6 @@ FUNC_NAME:	/* %o0=3Ddst, %o1=3Dsrc, %o2=3Dlen */
->  	 * Also notice how this code is careful not to perform a
->  	 * load past the end of the src buffer.
->  	 */
-> -	and		%o2, 0x3f, %o2
->  	andcc		%o2, 0x38, %g2
->  	be,pn		%XCC, 2f
->  	 subcc		%g2, 0x8, %g2
+> >   m68k/PCI: Use pci_enable_resources() in pcibios_enable_device()
+> >   sparc/PCI: Remove pcibios_enable_device() as they do nothing extra
+> >   MIPS: PCI: Use pci_enable_resources()
+> > ...
+>=20
+> >  arch/m68k/kernel/pcibios.c   |  39 +-
+> >  arch/mips/pci/pci-legacy.c   |  38 +-
+> >  arch/sparc/kernel/leon_pci.c |  27 --
+> >  arch/sparc/kernel/pci.c      |  27 --
+> >  arch/sparc/kernel/pcic.c     |  27 --
+> > ...
+>=20
+> I love the fact that you're doing so much cleanup.  Thanks for all the
+> work in this!
+>
+> Obviously all this code is quite sensitive, so I put it on
+> pci/resource to get more exposure in -next.
 
-After further testing, it turned out that the previously observed crash was
-related to my build environment. I can confirm that with the patch applied,
-the previously observed memory corruptions on UltraSPARC III are fixed.
+Thanks. I really appreciate the opportunity to have it in next for extra=20
+testing as my testing, while relatively extensive, still has its limits.
 
-Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+I'll need to do minor corrections into a few intermediate patches though=20
+to ensure bisectability, we really want to make this as bisectable as=20
+possible. In other words, I've found 2 relatively small issues in them=20
+which won't change the end result when the whole series is complete and=20
+fixed some small grammar errors in the changelogs.
 
-Adrian
+I see you made some corrections so I'm not sure what's the best course of=
+=20
+action here to update them. Should I just send v2 normally and you deal=20
+with your changes while replacing v1 with v2?
+
+> If it turns out that we
+> trip over things or just don't feel comfortable yet for v6.18, we can
+> always defer this part until the next cycle.
+
+I agree, and really please don't hesitate to postpone if it turns out=20
+necessary.
+
+> I will also watch for acks from the m68k, mips, and sparc maintainers
+> for those pieces.
+>=20
+> Bjorn
+>=20
 
 --=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+ i.
+--8323328-231680363-1756381945=:938--
