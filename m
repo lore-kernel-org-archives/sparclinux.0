@@ -1,46 +1,42 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED022E427C;
-	Fri, 29 Aug 2025 13:25:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F105331B11B;
+	Fri, 29 Aug 2025 13:41:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756473911; cv=none; b=iV5ELoMLG3olZipZYYmq3lkNREi6JlvG0AdzhEvHa1tSsPTZ/k7BrdkiWN+72lWgkAh1MLTiJItZ5P56g6N8GV5Ue5632EbEglJ4i1MEF5CWP3PVrOjhwT2WGf/ygoVHg9ji6/9Wx04DijvHwXaHzXgvnxtYQHLgSYcQdBdQ3vk=
+	t=1756474889; cv=none; b=bH7RQA6aRDGOff0hvJ3nhfMddm29xbFhV7uPL+GgI7UWU6vDzAjUp34DenZlXDZL+NYlvYNS9MkrSK6g9UybVR7NDP6hWMsq+knW9lMzUBQuZrbr7OqdCvf1QXMU+eS7b18M4EIOrQv5yORF1DLTZmGg0l0TRUtDBYsRwmjgny8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756473911; c=relaxed/simple;
-	bh=Oxk0K1gCXVvzsc1tNeTdmdf4m8zbmkxaUdpomdC6IEc=;
+	s=arc-20240116; t=1756474889; c=relaxed/simple;
+	bh=xOH5swkXMG4oVhf3wy0TtaxnLVmSKuiuHKFiiJUgQJ8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pTmbU+cHCtqjyz6KcJ9m1Y58A41uv8lao7PZd5Vbug4SYJTmmvLWxmfvvGUkmjQv9kHU06/RORZvdYK7l1gMiqn58t+forXDDH66od5b7dToJmhkrv5WF2/xUy6BfdPmhXIoiWoZ8c2YggJz+0Jal9FT3lv3eyHjstthJw8wtFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=IJ31p+s9; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	 In-Reply-To:Content-Type; b=RsrkgADe8qmVt7YIWZnah7oYdsO1ztXIAq4FfPZn/a5HxL/RM32miHaPAWAban0cYp+9+ixWbT/maI7ABZE4Ihg7aipTb7ejzOIWb8OoZnaBehPD7Lzj7WG4HIYi7wq3mqwYzKtdK4ABPyVeGIbUabU2WorgzkjhTnhLmOJPzXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=aCoNyRQe reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="IJ31p+s9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=Content-Transfer-Encoding:Content-Type:In-Reply-To
-	:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:From:Reply-To:
-	Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=gqQ9WFGEfYV5y3x3c0ilkKSEIBpjJDV/l10FbIt1tIo=; t=1756473908;
-	x=1757078708; b=IJ31p+s9bfRhIZDRs1hk9VUGEg8Q+Yxne4L2kHAyQtjqb8bBq6ZdMtox90PqE
-	G4apWF5EuOqs3OFcpcj/OSEVOGu795muB6UxCM/64jANseBYbAhmeO/3l9vFKOv/ubS4V6CjE3mhA
-	wRxrc1jUIbdIyh3mnQmNnCsdjSjD1xOkNp9iUJccowS8tkyU5PZEh7m+6gJYk5uRTMEJ+WgB5Uk7H
-	BftcNiYXBjaqHiTNp2rIyUEsmPoXUldrLknwghy9JNY4ryEAkA9L1dWTKK84BiIOUxgEgZV3kefqO
-	UVBV/NrEkD9mti+mlA6OEL4R9lAUR8NkJC6+lbPIMas/MfFLsQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1urz6B-00000001Xr0-0Fsj; Fri, 29 Aug 2025 15:24:59 +0200
-Received: from [89.57.34.174] (helo=[192.168.179.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_128_GCM_SHA256
-          (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1urz6A-00000001a80-3WXK; Fri, 29 Aug 2025 15:24:59 +0200
-Message-ID: <98cced9a-8bb2-4984-9db4-562bec9f462d@mkarcher.dialup.fu-berlin.de>
-Date: Fri, 29 Aug 2025 15:24:58 +0200
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="aCoNyRQe"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4cCzv75F21z1FbZj;
+	Fri, 29 Aug 2025 15:41:23 +0200 (CEST)
+Received: from [10.10.15.10] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4cCzv71pH6z1DQqY;
+	Fri, 29 Aug 2025 15:41:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=simplycom2; t=1756474883;
+	bh=fIFEKQbPdTMh3etZAT4QAh46FySYcbDnTI/Lzh3ryaQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=aCoNyRQezF2yHZQXkhEJtvc+VPf9O+ObEy5oPDP3/kmTkshaKYkGlyFRALKRlnBj1
+	 n34rw3S41VVCkY/gmozexvqzxTE8V+mJqQmpNN1HVlL0ED6cvcEfnytdyLoKGGrRJd
+	 NYTIuLqH9rOAw+O/munB7/ziwfIujYRzo0iN+izeSQ6bmVevdgbr/LBzo4865PdLZH
+	 t4O0fUtIQK3GYPftks8fNuzq1BQRhPRk36dKkkx5saSRdU+C587cmtLfrtHhiHFtLT
+	 RBDPBomJQqg3WXxwp0beugbeDeEk33g4ShIdIPriQ81yrzTFLc4kxgm/Fm1LLyssmF
+	 +1Qu3SJzYDhFQ==
+Message-ID: <7b699dde-2dde-4900-abd6-d902b4cff853@gaisler.com>
+Date: Fri, 29 Aug 2025 15:41:22 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -48,56 +44,149 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/4] sparc: fix accurate exception reporting in
- copy_{from_to}_user for Niagara 4
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
- Anthony Yznaga <anthony.yznaga@oracle.com>
-References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
- <20250826160312.2070-5-kernel@mkarcher.dialup.fu-berlin.de>
- <4c827eba2ce2c501cb4e0b820653ae582ae87daf.camel@physik.fu-berlin.de>
-From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-In-Reply-To: <4c827eba2ce2c501cb4e0b820653ae582ae87daf.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
-X-ZEDAT-Hint: PO
+Subject: Re: [PATCH v2 08/13] sparc64: vdso: Switch to the generic vDSO
+ library
+To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+Cc: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
+ Vincenzo Frascino <vincenzo.frascino@arm.com>, Arnd Bergmann
+ <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>,
+ Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>,
+ Nick Alcock <nick.alcock@oracle.com>, John Stultz <jstultz@google.com>,
+ Stephen Boyd <sboyd@kernel.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
+ <20250815-vdso-sparc64-generic-2-v2-8-b5ff80672347@linutronix.de>
+ <0b223e3d-25af-4897-b513-699dfeedfa04@gaisler.com>
+ <20250826074526-a1463084-366a-44d1-874b-b898f4747451@linutronix.de>
+ <271c108b-0fe4-4e7a-9bc7-325e75cf60ab@gaisler.com>
+ <8f31efde-0212-49b9-a0ea-64d5532c0071@gaisler.com>
+ <20250829122023-948f7969-b6b0-4ae2-9c12-71cc39abcf9e@linutronix.de>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20250829122023-948f7969-b6b0-4ae2-9c12-71cc39abcf9e@linutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Am 28.08.2025 um 22:21 schrieb John Paul Adrian Glaubitz:
-> On Tue, 2025-08-26 at 18:03 +0200, Michael Karcher wrote:
->>   	EX_ST(STORE(stx, %g1, %o0 + 0x00), memcpy_retl_o2_plus_o5_plus_32)
->>   	EX_ST(STORE(stx, %g2, %o0 + 0x08), memcpy_retl_o2_plus_o5_plus_24)
->> -	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_24)
->> +	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_16)
->>   	EX_ST(STORE(stx, %o4, %o0 + 0x18), memcpy_retl_o2_plus_o5_plus_8)
-> Verified to not cause any regressions on SPARC T4. Whether it improved anything is
-> hard to say. It might be that previously observed crashes after long uptimes are
-> gone now.
+On 2025-08-29 12:37, Thomas Weißschuh wrote:
+> On Fri, Aug 29, 2025 at 12:02:39PM +0200, Andreas Larsson wrote:
+>> On 2025-08-28 17:38, Andreas Larsson wrote:
+>>> and with all of them applied I got: 
+>>>
+>>> ----------------%<----------------
+>>> [    1.849344] Run /init as init process
+>>> [    1.851309] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+>>> [    1.851339] CPU: 4 UID: 0 PID: 1 Comm: init Not tainted 6.17.0-rc1+ #3 VOLUNTARY
+>>> [    1.851363] Call Trace:
+>>> [    1.851374] [<0000000000436524>] dump_stack+0x8/0x18
+>>> [    1.851400] [<00000000004291f4>] vpanic+0xdc/0x320
+>>> [    1.851420] [<000000000042945c>] panic+0x24/0x30
+>>> [    1.851437] [<00000000004844a4>] do_exit+0xac4/0xae0
+>>> [    1.851458] [<0000000000484684>] do_group_exit+0x24/0xa0
+>>> [    1.851476] [<0000000000494c60>] get_signal+0x900/0x940
+>>> [    1.851495] [<000000000043ecb8>] do_notify_resume+0xf8/0x600
+>>> [    1.851514] [<0000000000404b48>] __handle_signal+0xc/0x30
+>>> [    1.852291] Press Stop-A (L1-A) from sun keyboard or send break
+>>> [    1.852291] twice on console to return to the boot prom
+>>> [    1.852310] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
+>>> ----------------%<----------------
+>>>
+>>> but given that I don't have the kernel anymore I'm starting to
+>>> question myself if that run was really with the same base
+>>> commit. I'll do a rebuild and see.
+>>
+>> I found out that my previous kernel installation for the kernel with the first 8
+>> patches was a broken mess. Sorry about the confusion. With that sorted out and a
+>> rebuilt kernel with all patches, the failure above is the one I get for both 8
+>> and 13 patches, and it is repeatable.
+> 
+> This splat means that init got killed by SIGSEGV, so that makes some sense in
+> the context of the code being touched. Then let's focus on patch 8 for now.
+> 
+> In the meantime I installed a full Debian, but the bug is still not
+> reproducible in QEMU.
+> 
+> * Did you use the SMP or UP kernel config from Debian?
 
-I don't see how my patch will generate observable improvements. The patch is
-"obviously correct", as it fixes the arithmetic progression 32/24/16/8, which
-was originally interrupted, and also my test program agrees that the return
-value is what it is "supposed to be" after applying the patch.
+I based my config on the SMP config that was in use on the system.
+Produces an tremendous amount of modules unfortunately, so I'll have
+to cut down in the config. Right now the turnaround time for testing
+a new kernel with this setup for this system is quite bad.
 
-The old (likely unintended) code returns 8 more bytes left to copy than there
-actually are left. This means that all bytes that are not indicated as "left
-to copy" have actually been successfully copied, as well as 8 "hidden" bytes.
-So the return value is kind-of valid.
+> * Can the fixed up kernel now run on QEMU?
 
-Thus I think verifying that there are no regressions and reviewing the code
-are the only quality assurance measures we can apply to this patch. I'm afraid
-that this patch most likely will not fix the previously observed crashes, as
-in this case, the return value was never too low (which could cause the kernel
-to trust ouput bytes that have not been copied), and always less than the
-amount requested to copy. Returning more bytes left than actually requested
-can cause any kind of strange behaviour, as this is not expected by the callers
-of this function, and can generate invalid states (like we observed with
-negative file offsets in folio-enabled ext4 code with transparent huge pages
-enabled on UltraSparc III).
+No, there is something else going on with my QEMU setup, unrelated to
+these patches.
 
-Thanks for testing that there are indeed no regressions!
 
-Kind regards,
-   Michael Karcher
+> * Which toolchain are you using?
+
+A toolchain built in Buildroot with GCC 13.2.0. Old kernel headers, but
+I only use it to build kernels. Do you think the kernel headers of the
+toolchain would play a role for vDSO?
+
+
+> * This is a 64-bit userland?
+
+Yes.
+
+> 
+> What difference does the following change make:
+> 
+> diff --git a/arch/sparc/vdso/vma.c b/arch/sparc/vdso/vma.c
+> index 38a664d69782..efc3fef8f9bc 100644
+> --- a/arch/sparc/vdso/vma.c
+> +++ b/arch/sparc/vdso/vma.c
+> @@ -25,7 +25,7 @@
+>  #include <vdso/datapage.h>
+>  #include <asm/vdso/vsyscall.h>
+>  
+> -unsigned int __read_mostly vdso_enabled = 1;
+> +unsigned int __read_mostly vdso_enabled = 0;
+>  
+>  #ifdef CONFIG_SPARC64
+>  static struct vm_special_mapping vdso_mapping64 = {
+> 
+> 
+> Or this one, independently from the one above:
+> 
+> 
+> diff --git a/arch/sparc/vdso/vdso.lds.S b/arch/sparc/vdso/vdso.lds.S
+> index f3caa29a331c..a4669f7feada 100644
+> --- a/arch/sparc/vdso/vdso.lds.S
+> +++ b/arch/sparc/vdso/vdso.lds.S
+> @@ -16,10 +16,7 @@
+>  VERSION {
+>         LINUX_2.6 {
+>         global:
+> -               clock_gettime;
+> -               __vdso_clock_gettime;
+> -               gettimeofday;
+> -               __vdso_gettimeofday;
+> +               __nothing;
+>         local: *;
+>         };
+>  }
+> 
+> 
+> Or this one, independently from the ones above:
+> 
+> diff --git a/lib/vdso/gettimeofday.c b/lib/vdso/gettimeofday.c
+> index 02ea19f67164..ae87888fef8a 100644
+> --- a/lib/vdso/gettimeofday.c
+> +++ b/lib/vdso/gettimeofday.c
+> @@ -318,6 +318,8 @@ __cvdso_clock_gettime_common(const struct vdso_time_data *vd, clockid_t clock,
+>         const struct vdso_clock *vc = vd->clock_data;
+>         u32 msk;
+>  
+> +       return false;
+> +
+>         if (!vdso_clockid_valid(clock))
+>                 return false;
+> 
+
+I will check.
+
+Cheers,
+Andreas
 
