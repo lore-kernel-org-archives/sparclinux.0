@@ -1,44 +1,44 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C391431B102;
-	Fri, 29 Aug 2025 13:51:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F14382701DC;
+	Fri, 29 Aug 2025 14:05:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756475485; cv=none; b=KUr50bhq1M9WkCTGWjIWGgbZ+wYPg72WA9JZgaE7GPyjVzfXkbop2ALkrXesx8LVWhxPQMev3cQg428Uj+VMTno2riibE2ZjBzFMB6AfgV2ctSnfg6iFknYQcJq7P0PlTC843Tastvhp7fu9uxAq4+RzZ+k/zLLy5QjLoCdEZ4E=
+	t=1756476316; cv=none; b=ABp8iti326V0ciYR4ycoko/oXdzQfbYCSf6P/XVcBbin4gSWBaUmDVh1TTFq/o0upomZriBAFVgGd6vn4liB0YBkt1+thLegnroAevLPoCURpUr815wCi/9VO+mWOFS7PIdwzlS1O+ZBCsld6AXYh0d1if2HNZ/0VKqa4UFNpWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756475485; c=relaxed/simple;
-	bh=z5HAKW/WuaBA6HoTNUzZGhB3Vxa+tJpINSGsbezPb9M=;
+	s=arc-20240116; t=1756476316; c=relaxed/simple;
+	bh=rzFd4j+Y98vTbTk4PaMe+JnMZbspF/b/jARo28rP0vg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UrRE0Q+ptE1tI7wCKXEeCgDGu/XjHoGWoleV1xGgy1wSDn8zZA0VOAXRyh2lFyB/qVvQSqQ2WFaRWqe9ASlficuhFsalOL5ltSX5lBE1VYgjS54o7r/p98Ub46KmQkFoXJBRB7vCp+5Bi8mLae51mE8t3oB9FeScwMKu27EipiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=rVjNC926; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=dTHyyD98; arc=none smtp.client-ip=193.142.43.55
+	 Content-Type:Content-Disposition:In-Reply-To; b=eRz9XZY0swSb46T5Upu5IE3SAvUYqtExvED0HY3iWxvj6Jx36SQcNdp1bH+oAi5jw+urrZ219BVTnvcTKaG0byhX0C7dvgXSFBKMYwt1lpuhivdCScQJ8/vW5JCh5Dt0HXDxSYC2sIHMdjug9hQ/kOjqIVmvqTVi+NJCfn1scNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=GYL4Wfvc; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=SaLBxMeO; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="rVjNC926";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="dTHyyD98"
-Date: Fri, 29 Aug 2025 15:51:15 +0200
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="GYL4Wfvc";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="SaLBxMeO"
+Date: Fri, 29 Aug 2025 16:05:08 +0200
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1756475477;
+	s=2020; t=1756476309;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=p3JOuK5ti/UvYKbKMwftT9sqSXkwop/LzA32FuAwASU=;
-	b=rVjNC926FEoqThOc8Y0M3Eey1nMIiNt/ebO1CfDst8Ko/27xL4Jk9MjjFbDSmrtLvWnZuY
-	Jg5+Y7LNRuIwmg0TExbeQOydzkFcKR0mW0gEkNk5ugThLk+zI0NSVgjDmpHWc/u9Az6m17
-	+/J3iClw1Id97UWtC/R4z3CieSJEJheIPOEyYM6kpVsP4p/N7sfrzZey1JG1aUiaTo96IR
-	l4vBCGmIN1PtFTXc8IDbKA5fRxxV1cNS3cVKhIDSapnK3Pe1sbxDSww8QA2XboJaw1YNBQ
-	4o/RWCXxymqVvJ3VqYfns4az2gBZ7dToHAGwYyksLd1jhddszvO2IsI8vkrKWA==
+	bh=Z9G3qg9RepmeEtzhCrGzDelrryA4jtFe/dra2lm7EVo=;
+	b=GYL4WfvcXOXUFp0ee1MwRQS73pjUQlDzmnkdw72t8RrLYsu4yVMtSOeixN74thvGLw9GyV
+	dmWlsWI4HVnKXxOH1Sz6EswWm6mbmSw5i70sugF9FmI8W2WXJg6JKVMyLRN3pc9tMl0ijX
+	x3rLeZBcNNZsmCDnzqne94FPc+z3jBQ9hjMB7w+VbSmazYZvxTJHg/0vVBFmIE7/mxWuA+
+	s0RaO7BXvQyUzbdK+e3QHlWLBMQRYoCeb/iCt+AeBLkfZoKCSUyNzmr67u2/shfqjzCNMb
+	x1VXO13MjWNoM5TULaj4f8c7GuaWXhewyK+Qy/uAPToJHFWC5mcKIfsz8MPvtg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1756475477;
+	s=2020e; t=1756476309;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=p3JOuK5ti/UvYKbKMwftT9sqSXkwop/LzA32FuAwASU=;
-	b=dTHyyD98i1LsbVoxOK+4zfCHwcWUXkN6R2GkPnTbozttUC9Iv69/ehkCJM2foCnIEDz0ov
-	HMHgxowEr9aiIcAw==
+	bh=Z9G3qg9RepmeEtzhCrGzDelrryA4jtFe/dra2lm7EVo=;
+	b=SaLBxMeOaH6p2YANcPGu97CwCGBccpyOpHIZBB1CB06EGUMChvMTh8REjAQZJtsDIodQf1
+	UZPMbJSntFwCYEAQ==
 From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 To: Andreas Larsson <andreas@gaisler.com>
 Cc: Andy Lutomirski <luto@kernel.org>, 
@@ -49,7 +49,7 @@ Cc: Andy Lutomirski <luto@kernel.org>,
 	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 Subject: Re: [PATCH v2 08/13] sparc64: vdso: Switch to the generic vDSO
  library
-Message-ID: <20250829154636-bed204b6-1014-427d-9615-ee79b24b57f9@linutronix.de>
+Message-ID: <20250829160020-5aeb38c3-2cb1-45b0-81fd-35e113417b65@linutronix.de>
 References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
  <20250815-vdso-sparc64-generic-2-v2-8-b5ff80672347@linutronix.de>
  <0b223e3d-25af-4897-b513-699dfeedfa04@gaisler.com>
@@ -115,35 +115,28 @@ On Fri, Aug 29, 2025 at 03:41:22PM +0200, Andreas Larsson wrote:
 > to cut down in the config. Right now the turnaround time for testing
 > a new kernel with this setup for this system is quite bad.
 
-Ack. I am aware :-(
+How are you currently building these kernels? Are you using the packaging
+from Debian and doing full rebuilds every time?
+You can also build Debian binary packages directly from a git checkout with
+'make bindeb-pkg'. This gives you nice incremental rebuilds.
 
-> > * Can the fixed up kernel now run on QEMU?
-> 
-> No, there is something else going on with my QEMU setup, unrelated to
-> these patches.
+Another hunk to test, to see from where the SIGSEGV comes from.
 
-Ack. FWIW for me it works (for sun4u) with my distro's QEMU 10.0.3.
+diff --git a/kernel/signal.c b/kernel/signal.c
+index e2c928de7d2c..0b2777e88f44 100644
+--- a/kernel/signal.c
++++ b/kernel/signal.c
+@@ -1299,6 +1299,9 @@ force_sig_info_to_task(struct kernel_siginfo *info, struct task_struct *t,
+        struct k_sigaction *action;
+        int sig = info->si_signo;
+ 
++       if (unlikely(is_global_init(t)) && sig == SIGSEGV)
++               panic("killing init");
++
+        spin_lock_irqsave(&t->sighand->siglock, flags);
+        action = &t->sighand->action[sig-1];
+        ignored = action->sa.sa_handler == SIG_IGN;
 
-> > * Which toolchain are you using?
-> 
-> A toolchain built in Buildroot with GCC 13.2.0. Old kernel headers, but
-> I only use it to build kernels. Do you think the kernel headers of the
-> toolchain would play a role for vDSO?
 
-No, the headers from the toolchain are not used. It could have been that you are
-using a wildly different compiler. But I am also using GCC 13.2.0, although from
-the kernel.org crosstools.
-
-> > * This is a 64-bit userland?
-> 
-> Yes.
-
-Ack.
-
-> > What difference does the following change make:
-
-(...)
-
-> I will check.
-
-Thanks!
+Sorry for the response spam...
+Thomas
