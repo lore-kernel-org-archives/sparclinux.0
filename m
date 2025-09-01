@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AA662E6CB3
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:25:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F4189320A24
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:31:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756740330; cv=none; b=ubAk23ARh4jfTuuyyxJ37OrXZfcme7/0OiS3sqJtDeNAkexWFuMp7YhxKmHnsMjOfy0GbLsy1828DCzI/TDPJe/YHjoDNrZVM0Dnt9UQjXnXo2oJUKgUeeO8y2AzUDQsFuHdF4dOrRSQxYMof+Ia2R2y00arnkJQKJIf604WDzM=
+	t=1756740671; cv=none; b=EW4l5mZsedY6ML+jvpPNHEtLeRJ+kusehUwmJAr1oQ6e8dT/SoyLZPd5peRvH3qGHSU3fa71LNCjxhmUvdvZ7qA/rDaaK+THSXmjQ8wUNUDwmqUo9BMXTMKzKn79cmj9j3TTpB06xKKDv6fXEv/aoyfQzh+L+UmaaYHgiO+i5kk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756740330; c=relaxed/simple;
-	bh=iLPg5/NsqE2fgJNlNze5wZTZC18RwFd3hiEqg2oxKz8=;
+	s=arc-20240116; t=1756740671; c=relaxed/simple;
+	bh=UmXs/mAAcGXTyBFx7dzdfPfbfWd50ZnzhhH6JngBXr8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BOvEQYdcSbGTr08nG5BL845jHTXUbBzpwC3tXO5FryFuz0krWzdyuJ9STryjJfQXnOGhtF773BF7HzpZSpSsq6fO4jSLignLNLvAvj14/Hce+ediSPJkzLNPsbVlXpMCtqvoukzqPjgmQOol16bbVNtNcjKLfL6IRolrjovBsmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=JajueSMK; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=Vl/MSoBAklEO7WAK80vC1beYebvF5GWHe1YiQdLs5U7FwsYVMVdTX93zfuNDe2vUB0cj4AA4gaHZnJCKWcmSNiOhpJFAUuxDQWV7do6eU0fzl1ZW4+a313PDjMUa7Q/1x6c8KABmjAFgTdtsgQdL+rwWEhWanMxO3E+lsw6qc1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AuH7Z+U/; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JajueSMK"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AuH7Z+U/"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1756740327;
+	s=mimecast20190719; t=1756740669;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=t7wTvc9eUbw7jtHlrnxQy+rN4qRUOO7ojXz7+PUk6M8=;
-	b=JajueSMKM0IjV39DBZ6nXqgNqJmzASMyInByClVwCfutfAFEEr0Kl5ZWFHBJ3mCOLJmKWv
-	iPYBCXfVcizcWGyeTIWqoBgm5gC/hyA59PIWTOOQM3SBS8/9FPtjk6+obGoNdPT6dYlOPX
-	K65Jz9MGigTWU44Xe8gSUvqZau9e9WY=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=8YTT8+1IeuyKjTNBNgyuW533+ZZMqmvm3Kt72V4BMjc=;
+	b=AuH7Z+U/yQl2C2xFC+m7kGs/hQar2jQaeFbb4wTV6D2u52wLDFrH0Junxvg+Q1iSAj251M
+	Mo2UVvlbF++jcNpgXQLPpySL4n+VuoTYz4pESWAKOtTvfieFjBcOCswwNrObzBxYEGrSAV
+	zGIMLHi+4OpV4NuIvGqiR/acyKhmo4U=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-451-uGyMyRerPf-UdOw03UHnmQ-1; Mon, 01 Sep 2025 11:25:26 -0400
-X-MC-Unique: uGyMyRerPf-UdOw03UHnmQ-1
-X-Mimecast-MFC-AGG-ID: uGyMyRerPf-UdOw03UHnmQ_1756740325
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3d3d2472b92so1008465f8f.1
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:25:26 -0700 (PDT)
+ us-mta-298-6NhLktizP2yoCJ08ty6zIA-1; Mon, 01 Sep 2025 11:31:07 -0400
+X-MC-Unique: 6NhLktizP2yoCJ08ty6zIA-1
+X-Mimecast-MFC-AGG-ID: 6NhLktizP2yoCJ08ty6zIA_1756740666
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3d17731acb6so2362034f8f.3
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:31:07 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756740325; x=1757345125;
+        d=1e100.net; s=20230601; t=1756740666; x=1757345466;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=t7wTvc9eUbw7jtHlrnxQy+rN4qRUOO7ojXz7+PUk6M8=;
-        b=BmAojQ9uI6ZSuuoLIq2Gsy8T0lLGwxzlb5lvZW/lvIzmIQyD8C031Usd27B528jpN3
-         U0vuKaM60mIrID5dxOdkGYYceCALmrsneSZ7ZMqtoUeWrb+jzU5xv2ED8vziwPsB70RZ
-         GFWvG+U8vD8Q4CcJ+eSTm/MLlquTtlK0rbTnJp/vSYduNoIB+eecLn7Bi04Hh/46hD63
-         /AseHGxtQmcFJEeNzj7g7MFGuOTlYo7b/vyBUruD3dAbQ3zzG/t9Uxn2+1+8KD5JwdX4
-         jbrrICsa9Qnqi5pIZWNskLj3818ilTLnj0uhPuV7GeFzDtLIcKeZwAOO/R4owmSBvnXG
-         mLCw==
-X-Forwarded-Encrypted: i=1; AJvYcCV3U1+v9YjlKWG0tWPyA3bSv+7w2EgYDlEUi9yYrMXWo6GEfaP/Bj/fbFXCVgtWXKP19ZcWufZtVag+@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz9BPQXTAAxmTLEK7J+Jc6qa5ADfntxNNWGtpFNBk/lxVaHVkLv
-	Fx/e3M28936SbtnXMIeyvtj4f91qbA//sGJAWRFfBpAHlOGTeGhFVohciPHf7l6wM2dNHbts+XZ
-	x+6FzAnDoXfeR7/lVGgIYNYsunQhY4y6H+SQ2Uov2aOcF2c1xjYzOpkOveznPf4k=
-X-Gm-Gg: ASbGncu152UabnQCsvQaJ4Z9nU6AK7vtcK2DIBhU6Y/zsmDHxkG1Ze8Y7kAG1ux5ssL
-	Mp5qrUo9MhpzcqzjPNC3SFbnKavwXRGlvImoX/OoJ7BGuOwircyL6e+IHhX+3EwFHST+THI+xs7
-	PNtfkE17KvxQLIzoPDZmchK8uIDupavld/T3+KlzM749X538weFGHRZ7q562tNzzXyZgKk6UzMV
-	HkSQN73WJtvUL2fbVfFdQ5vIjNbZ/FDmABy6chdgaLG7XQv1RLh0FYHHLSIZY0KHE1S2NuHWg9j
-	OI71Gag5m8yJP2hDftZRvDRwDZO+VhEUpx4FEIYUS/dfD9w7r3f9UF/TQb7FwAVpjk4veuVb4qO
-	T+9hPCyJc+XjQuPO77NlWk5f+tZaKIpe+Rrz8eF5sfwER1u3AV/PLiILm9+GonCRbqM8=
-X-Received: by 2002:a5d:5d09:0:b0:3b8:893f:a185 with SMTP id ffacd0b85a97d-3d1df34f216mr7377138f8f.53.1756740324968;
-        Mon, 01 Sep 2025 08:25:24 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHyQFfDTfcx6weYHYURNCUN2TyUMgP1+sDx60HW3E6IenOe07uG2Bl4c+GEZR2K3WNO1i1qFA==
-X-Received: by 2002:a5d:5d09:0:b0:3b8:893f:a185 with SMTP id ffacd0b85a97d-3d1df34f216mr7377103f8f.53.1756740324457;
-        Mon, 01 Sep 2025 08:25:24 -0700 (PDT)
+        bh=8YTT8+1IeuyKjTNBNgyuW533+ZZMqmvm3Kt72V4BMjc=;
+        b=q72hYpU/3Q3M29m/wrvpEoGZYUTycHSHsfNaGQ/zmYOHk0VHcU552gZZsmJYNVhfZU
+         E1p7KS0JBa2qMo4PZg4ZmqCpD1rrJeeSJ0EF10xcvRtkXMlDLCCyK0vyznPsUGK8wf0D
+         gw8AwS8ONswlkC/OoBz9g3gSKGEIdpBurTeeSY+RyfB0vDAV3aqcSDC3ViPMzuVMcK+F
+         513luZWYw4aUq8xloKYfkxlo2upbWfP8MxkuCvHw2XcoOx4FBe5X5ZzUYc5mmgLklDnV
+         oGZsIOUhWfaafzfazNNp47caIrDn36HZi709iGdkqzeduyAQDIMcEUArrpflnr97gCAa
+         PLog==
+X-Forwarded-Encrypted: i=1; AJvYcCXP+qjLTTK5SY3yQk/FMi8yVrFhRelEIwc1kRwHkX46LZvX9c064NMtgJ65lHiB4EBXjg5xKbMpvSUY@vger.kernel.org
+X-Gm-Message-State: AOJu0YyDPYIPqMNiYLk6MYjLn0AHAzYxBSkMSmGja+3O9xoR9vln2VaK
+	Spc+yWpZVCsxyD5KA8YOJPJWOcApM9g/EVnPv/N2mhS6kvNT5I0pFN3G+GkGYnxI8BmD/UOLzJI
+	pfn8MgCgVgQy54jFgKJSJzdTvMJ3BwQ6Ydk6ByDYZggFPe7MWtG8g09o0W7MYV9w=
+X-Gm-Gg: ASbGnctZOhy7NqA5OpEjcqSdTKwEO0hEcBisrFs2VD2sTWTIjoEn9zYzFzr5M0j4IhH
+	S/e4qZ/Kdgjc/bL7osA7nEF29Wx65U5k2wOjGLRlTFtJy8oMciYIFXtFB5L/w2gQ6dDIeJXb1ew
+	lYmau1L86lYBLm2i3y0jj/YZ6EM5rUgGMX2A1jBWZN/y4tszm4daOMO1dXhQSY20Fo3qDou60oY
+	YGyoRYIpYgKNiICtTAAn85iELY7oZI/EbZUzN8JxVn/yZhMdzTH25oieFEi1yYdBxex7TZG6mYE
+	bm3PrJAw2tUkvdGFlhTbzwKLpAeiRIUj5McovN7QfcktwMOiNgT2fgmmMCanU1mziKoTjrIwaMv
+	MdVBhWOv8NoGfu9BzbtPbLlNbLKav2W5x9Ky6fOlRrDOhXiwxzDoaBSR4WAd4oUV1k8c=
+X-Received: by 2002:a05:6000:26c6:b0:3c9:fc3c:3aa3 with SMTP id ffacd0b85a97d-3d1dfc07101mr7979340f8f.40.1756740666188;
+        Mon, 01 Sep 2025 08:31:06 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFKlIIY39+g2NinA80se2q6FMUup0twhlH6ge5YEtWwcm43BDQMJ3/bW/VElP4ZEtqi2ehfyw==
+X-Received: by 2002:a05:6000:26c6:b0:3c9:fc3c:3aa3 with SMTP id ffacd0b85a97d-3d1dfc07101mr7979248f8f.40.1756740665572;
+        Mon, 01 Sep 2025 08:31:05 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f37:2b00:948c:dd9f:29c8:73f4? (p200300d82f372b00948cdd9f29c873f4.dip0.t-ipconnect.de. [2003:d8:2f37:2b00:948c:dd9f:29c8:73f4])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3d21a80c723sm10724135f8f.9.2025.09.01.08.25.20
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3d690f2ebb9sm5229370f8f.20.2025.09.01.08.31.02
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 01 Sep 2025 08:25:23 -0700 (PDT)
-Message-ID: <4ce074b4-8f79-4e69-81c1-d6e28239ccf0@redhat.com>
-Date: Mon, 1 Sep 2025 17:25:20 +0200
+        Mon, 01 Sep 2025 08:31:04 -0700 (PDT)
+Message-ID: <4597944e-a8f5-44df-adf3-558940e88598@redhat.com>
+Date: Mon, 1 Sep 2025 17:31:01 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -75,7 +75,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 11/12] mm: constify assert/test functions in mm.h
+Subject: Re: [PATCH v5 06/12] mm, s390: constify mapping related test
+ functions for improved const-correctness
 To: Max Kellermann <max.kellermann@ionos.com>
 Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com,
  willy@infradead.org, hughd@google.com, mhocko@suse.com,
@@ -97,9 +98,11 @@ Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com,
  linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
  linux-fsdevel@vger.kernel.org
 References: <20250901123028.3383461-1-max.kellermann@ionos.com>
- <20250901123028.3383461-12-max.kellermann@ionos.com>
- <081a7335-ec84-4e26-9ea2-251e3fc42277@redhat.com>
- <CAKPOu+8xJJ91pOymWxJ0W3wum_mHPkn_nR7BegzmrjFwEMLrGg@mail.gmail.com>
+ <20250901123028.3383461-7-max.kellermann@ionos.com>
+ <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
+ <CAKPOu+-_E6qKmRo8UXg+5wy9fACX5JHwqjV6uou6aueA_Y7iRA@mail.gmail.com>
+ <0bcb2d4d-9fb5-40c0-ab61-e021277a6ba3@redhat.com>
+ <CAKPOu+8SdvDAcNS12TjHWq_QL6pXnw4Pnhrq2_4DgJg8ASc67A@mail.gmail.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -146,37 +149,52 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <CAKPOu+8xJJ91pOymWxJ0W3wum_mHPkn_nR7BegzmrjFwEMLrGg@mail.gmail.com>
+In-Reply-To: <CAKPOu+8SdvDAcNS12TjHWq_QL6pXnw4Pnhrq2_4DgJg8ASc67A@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-On 01.09.25 17:17, Max Kellermann wrote:
-> On Mon, Sep 1, 2025 at 4:07 PM David Hildenbrand <david@redhat.com> wrote:
->>> -static inline void assert_fault_locked(struct vm_fault *vmf)
->>> +static inline void assert_fault_locked(const struct vm_fault *vmf)
->>>    {
+On 01.09.25 17:22, Max Kellermann wrote:
+> On Mon, Sep 1, 2025 at 5:11 PM David Hildenbrand <david@redhat.com> wrote:
+>>>> Should this also be *const ?
+>>>
+>>> No. These are function protoypes. A "const" on a parameter value
+>>> (pointer address, not pointed-to memory) makes no sense on a
+>>> prototype.
 >>
->> This confused me a bit: in the upper variant it's "*const" and here it's
->> "const *".
+>> But couldn't you argue the same about variable names? In most (not all
+>> :) ) we keep declaration + definition in sync. So thus my confusion.
 > 
-> That was indeed a mistake. Both should be "const*const".
+> Variable names in the prototypes have no effect either, but they serve
+> as useful documentation.
 > 
->> There are multiple such cases here, which might imply that it is not
->> "relatively trivial to const-ify them". :)
+> Whereas the "const" on a parameter value documents nothing - it's an
+> implementation detail whether the function would like to modify
+> parameter values. That implementation detail has no effect for the
+> caller.
 > 
-> I double-checked this patch and couldn't find any other such mistake.
-> Or do you mean the function vs prototype thing on parameter values?
+> Of course, we could have "const" in the prototype as well. This boils
+> down to personal taste. It's not my taste (has no use, has no effect,
+> documents nothing, only adds noise for no gain), so I didn't add it.
+> If you prefer to have that, I'll leave my taste and home and add it,
+> but only after you guys make up your minds about whether you want to
+> have const parameters at all.
 
-If there is a simple rule (declaration/definition), then it's trivial. 
-Probably worth spelling out that rule somewhere (unless I missed it).
+Valid points. The problem is that it could very soon become inconsistent.
 
-As raised in the other reply, not sure if we should just keep them in sync.
+For example, when I write a new function I usually just copy what I have
+from the definition into the declaration.
 
-I'm, not the biggest fan of the *const in general here. I can see why 
-Andrew suggested it, but only doing that for pointers is a bit weird. 
-Anyhow, that discussion is likely happening elsewhere, and I don't think 
-there is real harm when doing it, as long as we are consistent with what 
-we're doing.
+For example, checkpatch complains about missing variable names and I 
+think it complains when "extern" is used for functions.
+
+If we were to decide to go that route (not keep them in perfect sync), I 
+guess it would be reasonable to extend checkpatch to warn if "*const" is 
+used in a declaration. (perl magic, no idea how hard that would be)
+
+I'm sure there are false positives in the following:
+
+$ git grep "\*const" *.h | grep -v inline | wc -l
+403
 
 -- 
 Cheers
