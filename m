@@ -1,64 +1,64 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F367B2737EB
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 20:50:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EBD273D9A
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 20:50:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756759838; cv=none; b=Nl2nyj6t2X5caiIIJEogpqC69WEo+MG/imWpg6nsifD/1b7/1b5TNcLJxhz6cl7ax/W8jVuv31yo17PIOFAaJqh++uhzyfHHr8+aIOzRe+MLmSsC/BcjP9HTlQgx2oaJVQvbWWVjw9GfPmmdNe5N+k8wmjRWzdjCrKHvQmzsGuw=
+	t=1756759840; cv=none; b=H1t5YJjaVLUfmNF06BR2LYsTlwD8g7Skt1scOsqr1u/431I3KU/qTN313KkvrtY+hKD4o+MvuLlW5QgRZaEVZHSz5sEFmkqyBlXZVHvimLX8jn5yzOgLx/BVrmDi8ts8JFFBN7GahbPaxgI1dP8oOrsZNR2uIyJqUVXWbPHX6eU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756759838; c=relaxed/simple;
-	bh=9ZBLOgc8o7e4sYGe9wP+1FqjAVbgCQ4ajZen8ILi1mU=;
+	s=arc-20240116; t=1756759840; c=relaxed/simple;
+	bh=pIfWjTspfVpzMSCvftG/V3B9Wm60B/72pG+k5Selb38=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Sv6hh+5EDx2/1xG5gWiFjPtWqaS06PrJL8+OwKGPWkbFU3THg2lQpd1bDpljU8eRDecGVRt6thO/hnlJBckf+y1MdGBH8L84r04zrhZHbc/fd1HyUOMG9YxE56sRk+gj/zQr/hsAEcK3U5oVjC28Yc111Ksw+KIMQpSuAi/MWDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=fd7uB6P5; arc=none smtp.client-ip=209.85.218.45
+	 MIME-Version; b=UNWjhpkOStiJbXliEIm3e71gdfM0jJXnQKzf/Ob31i6e2rAavsrAZoEPvdKDjhJwmTO9+IOeBOUfilgqg1PbUP5yM1Q4oSj+Lv2D40s3ZYBtyNy4sgKIigXC9tJLASBfEGsZSFtLqYLHFYo7rON9/y9U9kw6e8fDQDrZ1Q3ZWz8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=WgByGC6N; arc=none smtp.client-ip=209.85.218.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="fd7uB6P5"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-afcb732eee6so816276466b.0
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 13:50:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="WgByGC6N"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-affc2eb83c5so413222566b.2
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 13:50:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1756759835; x=1757364635; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1756759837; x=1757364637; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=DOUVRSUkKssTlOViJjAfm2Ry0I5gABWdPNOlGM2jpT8=;
-        b=fd7uB6P54iPwC2UabKzsiHRweWKdRQtn3DyA4wJAfMScLZN1S+Cup8/pYYTAplSMEb
-         oiBSDgN/cMndhVSnK3dy1F1xDzRmlHH4c+pwq64ndLkUHnyHTx8yv1/dfzMz3ypiPfn4
-         8UHqEA9DVSmFJ3D1GH+q+8zaqZoBGK01uE8ypp59GqicaNHlQRnIbnL3xuQLNvvPatap
-         hJ9P0AdKWfhJjWVQvuXfj3mCv1DMb9NxwlVnYUV9Vzq9E09vInVSwjrAf6Q9VRmB9P6s
-         RdfdiJFKP0QNJy+RQC9MFfF+tm0mX1+QjBw9kw0Ow79PUijkwu5E1KqjA6WhcmNf3ZG+
-         Tz7g==
+        bh=1NuH6wEtYyVWN8h/tjwWnU8YD95rrkeNOHDYWS/pAsg=;
+        b=WgByGC6NSlJR76DFMsCh3TbOuWDHYmmut9svV5zqWVLCNb2irhPSefTDsy3Fgt1xAe
+         /qZFWmgwyplyxGVhxeJBKnndKGspwrntEcGMqeGDtGCZiK19PtNEAkGkQKdvO7vKZCh2
+         UO9hew9rsRZXQ0fjM5K1UJDO/+PYrxysRjn8132+uVCHCJ0H7R37uyX9DlAEniWYoHAp
+         pdvbi0pcxU7/l9sV/Q6GcEh1iPXnejY6x/AQ8aHXUGQfKEFSKFk4wrGyyVj/VqetKIIj
+         prE+bb+OrNfy+D9+paZyG3U6vLfEfQbVbzKBUM2Jva+/Mmmy91D3nJOQQmemKZ02jknX
+         oYcg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756759835; x=1757364635;
+        d=1e100.net; s=20230601; t=1756759837; x=1757364637;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=DOUVRSUkKssTlOViJjAfm2Ry0I5gABWdPNOlGM2jpT8=;
-        b=dAghHdFiVV3T/jqeDNVV/G85LmDE+gXLQ4ZUV2clyoRGpeKJmRqmcy1G6B0NO92nVQ
-         WUzDjo7yunDi596tCesp7VtEazs7lvIupD6HRk6urdL2A6xIud5AFoRToHipSg3MGkca
-         IXJ1ekzsyKBdI3pVZ3Qb2Mff5/WDYPXejeqz/R5GQ8lCZSAwzGQ9qbdshAY+cAYtGFBE
-         N8F9KKNQ9qKPiSHNaqOKEO3fTIpCW4AtYOzl0oLOcACKPSPTMetDz4DX77Xglsd9mw0J
-         v9TWnKC3iQlIHLQbEkKW2cJqL6ubhPIcX6sIJ61XxTL10yc3AmeUGJQj2z2gGoh3a6qc
-         jEmg==
-X-Forwarded-Encrypted: i=1; AJvYcCVCVyLXDZ2PCBaBZ7hlPjtpaqCIkarTmpGbyWfybYD1ktqg119L7zXroNqC2hDuRzhXyBGVmMHtnkqs@vger.kernel.org
-X-Gm-Message-State: AOJu0YzNBnyCHfLv2obDLUE863q9DtpKLaEQ38uQ5YB3wQryanwcq/VW
-	PnDYKtUCBRDGLRtL2VCfdxdmQm6kTn2PBb2AVWsol2boPEFo/91jrmhCSTHDcrEMdo8=
-X-Gm-Gg: ASbGncuSVwV3UG//1fr9V1vEZNAe8xliu4ni3M8GsuAkljzfH2LacFoxVAQKgnZxISB
-	bxFlPqhRIw0ElsEQ866lPw/V/GXVHH3b1E525hRSfi00HA8KKqNMreWuACGqwT2pcgtI0MJJyzr
-	rv6Tii1JjgE/ty0g/0PScxWE0Urizok3bUYbTB/0IOkLhMYv4s511A2emfs6HLor5V/G6WuseR8
-	i2BKzJ6IauFB4Y+83VkmAvcbn6g5/U5m4E6yqwmh9pGks4wD9ZcnbXGgJMl/j8ChfyMvP3L2wj4
-	w7yWKuPvBDQbNrUqsNHUy2aumj6qpmbnvXMNrTgezFryI0HNb2zbpgJQr+SaHrWjTHjZK2X3pSq
-	B90wL9Lp8GRr/qDKFZQn0Me+oPhRR/h0S9HLxByYabzml5nwg8alT4RH6FZUuZAmlczqWc1qjcV
-	rZV/Wwr/Df+9bJiiJCp+KPsxduMvPXXgxj
-X-Google-Smtp-Source: AGHT+IGigtKDXFUmdSAlFGcDTy1NmHrauWomJBx5FIkz9t/2ArUf43T05qd7+gJYKJea9RCwhs03Aw==
-X-Received: by 2002:a17:907:e8f:b0:afe:8f28:fd5 with SMTP id a640c23a62f3a-b01d9719057mr990403866b.41.1756759835180;
-        Mon, 01 Sep 2025 13:50:35 -0700 (PDT)
+        bh=1NuH6wEtYyVWN8h/tjwWnU8YD95rrkeNOHDYWS/pAsg=;
+        b=DvNNIYsbVhNhAfQ9ezMkIald9jqHNFH+VtsugjmmUxkSXv7k11y4oJbrkoXfS/6XHO
+         uchqYMjlqGzHFkyw29XwWlFAr9AWYuWmuFL7PhZopN+GNsuOaShsOv+BNyRR3214e7rO
+         8a9xETnnj/NK96Ijx/E1eCT6ZE18N0ugGVmGmS8tuoj6G8cjv1mjOijFx9hDxdNjp50v
+         oDVGfq/MSl0UhYl8Wknx9hFq7WkW3iyOBpO3zODiz7Ful3ODr4xV9j49G5SCFzBksyvB
+         QhO/u8JI7fF97rcVCppbA0ViBnXz3JAVF+7hNp2GURa7WI+q8nKsFPq4Ob7PdN73ElD/
+         RInA==
+X-Forwarded-Encrypted: i=1; AJvYcCU2I/lKTqDgKau3M1NUj5qcPwT2tAWmSRCouDMZPgtq3VP3879uIQoX98mjsyxjD8mp+bOlvTVtVP4L@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzn49/5CO/Rj55JNagNW+oyBnARtxwBTBvsjSB5z0Q24lLtY8lI
+	qQ3Px6UnL22FQNUnx6E0GmAd/QbvmZc2LI0rDkLWa1QEEDnCtKGJhoY3JVqtg4jGPrs=
+X-Gm-Gg: ASbGncsF7kW6SGo4WymnAl8sp1NBoyIhRdrUmc5JuuiKZgTQOxLmqRIuJKbV6tcI6h/
+	9BeG4qciBVsFRWjKdJwLxZvgjbFFuXCq1ll62RGJX+B9s5Ic6eQQMsXYHcJgl6DHUy851JyWYnr
+	D0O3e0xUWfkReukxz47SQOCHYlphKygf9YVxVz2UkXK3r2aM7FyXqRf7oeReKI7zAGtksqxG7gl
+	1ANP7FFuL1atY+9Mz1ESuGpVOpZzv9jwiUMi1kV/x95vtm9IZsMdp/YnXR2gHuPy4pfxq+XZl8r
+	xXCdxHSXUePzFvbt4qfh2eofbP4e9/Kphyia0KT6rNh1caDUvx39S79PwCYuoqdihZ7dHr+F4/r
+	eupFiFQGn7VRyrlEBv7hJg7mehBrEzdlRfTBUMPpBr8aR75jCGjQ2BULAuQ393m+OXTRBzZa7Bz
+	qPew+pmMDNsWR3JaCEKExWYw==
+X-Google-Smtp-Source: AGHT+IFXutjj9GtlvsHvyB1kBP2ci7mQOIWVVvptrXf9bm8LYmlGCi75h3LAGpjp/G/Rnzqw/keEdA==
+X-Received: by 2002:a17:907:3e89:b0:af9:e1f0:cd30 with SMTP id a640c23a62f3a-b01df53b7c4mr910004866b.60.1756759837088;
+        Mon, 01 Sep 2025 13:50:37 -0700 (PDT)
 Received: from raven.intern.cm-ag (p200300dc6f1d0f00023064fffe740809.dip0.t-ipconnect.de. [2003:dc:6f1d:f00:230:64ff:fe74:809])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-afefcbd9090sm937339066b.69.2025.09.01.13.50.33
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-afefcbd9090sm937339066b.69.2025.09.01.13.50.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Sep 2025 13:50:34 -0700 (PDT)
+        Mon, 01 Sep 2025 13:50:36 -0700 (PDT)
 From: Max Kellermann <max.kellermann@ionos.com>
 To: akpm@linux-foundation.org,
 	david@redhat.com,
@@ -115,9 +115,9 @@ To: akpm@linux-foundation.org,
 	linux-s390@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v6 04/12] fs: constify mapping related test functions for improved const-correctness
-Date: Mon,  1 Sep 2025 22:50:13 +0200
-Message-ID: <20250901205021.3573313-5-max.kellermann@ionos.com>
+Subject: [PATCH v6 05/12] mm: constify process_shares_mm() for improved const-correctness
+Date: Mon,  1 Sep 2025 22:50:14 +0200
+Message-ID: <20250901205021.3573313-6-max.kellermann@ionos.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250901205021.3573313-1-max.kellermann@ionos.com>
 References: <20250901205021.3573313-1-max.kellermann@ionos.com>
@@ -129,52 +129,51 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-We select certain test functions which either invoke each other,
-functions that are already const-ified, or no further functions.
+This function only reads from the pointer arguments.
 
-It is therefore relatively trivial to const-ify them, which
-provides a basis for further const-ification further up the call
-stack.
+Local (loop) variables are also annotated with `const` to clarify that
+these will not be written to.
 
 Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 ---
- include/linux/fs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h | 2 +-
+ mm/oom_kill.c      | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 3b9f54446db0..0b43edb33be2 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -537,7 +537,7 @@ struct address_space {
- /*
-  * Returns true if any of the pages in the mapping are marked with the tag.
-  */
--static inline bool mapping_tagged(struct address_space *mapping, xa_mark_t tag)
-+static inline bool mapping_tagged(const struct address_space *mapping, xa_mark_t tag)
- {
- 	return xa_marked(&mapping->i_pages, tag);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 18deb14cb1f5..f70c6b4d5f80 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -3840,7 +3840,7 @@ static inline int in_gate_area(struct mm_struct *mm, unsigned long addr)
  }
-@@ -585,7 +585,7 @@ static inline void i_mmap_assert_write_locked(struct address_space *mapping)
- /*
-  * Might pages of this file be mapped into userspace?
+ #endif	/* __HAVE_ARCH_GATE_AREA */
+ 
+-extern bool process_shares_mm(struct task_struct *p, struct mm_struct *mm);
++bool process_shares_mm(const struct task_struct *p, const struct mm_struct *mm);
+ 
+ void drop_slab(void);
+ 
+diff --git a/mm/oom_kill.c b/mm/oom_kill.c
+index 17650f0b516e..58bd4cf71d52 100644
+--- a/mm/oom_kill.c
++++ b/mm/oom_kill.c
+@@ -490,12 +490,12 @@ static bool oom_killer_disabled __read_mostly;
+  * task's threads: if one of those is using this mm then this task was also
+  * using it.
   */
--static inline int mapping_mapped(struct address_space *mapping)
-+static inline int mapping_mapped(const struct address_space *mapping)
+-bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
++bool process_shares_mm(const struct task_struct *p, const struct mm_struct *mm)
  {
- 	return	!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root);
- }
-@@ -599,7 +599,7 @@ static inline int mapping_mapped(struct address_space *mapping)
-  * If i_mmap_writable is negative, no new writable mappings are allowed. You
-  * can only deny writable mappings, if none exists right now.
-  */
--static inline int mapping_writably_mapped(struct address_space *mapping)
-+static inline int mapping_writably_mapped(const struct address_space *mapping)
- {
- 	return atomic_read(&mapping->i_mmap_writable) > 0;
- }
+-	struct task_struct *t;
++	const struct task_struct *t;
+ 
+ 	for_each_thread(p, t) {
+-		struct mm_struct *t_mm = READ_ONCE(t->mm);
++		const struct mm_struct *t_mm = READ_ONCE(t->mm);
+ 		if (t_mm)
+ 			return t_mm == mm;
+ 	}
 -- 
 2.47.2
 
