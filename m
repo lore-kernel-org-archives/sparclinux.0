@@ -1,141 +1,102 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E14CC335BB7;
-	Mon,  1 Sep 2025 14:59:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C3B263C90
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:02:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756738799; cv=none; b=seUFy06KlfPU9M+7hgkIgoxv90T664jGaaecO8dcRr3ABx+OugGWeVoHzDKstinzLST22VKoHkMpE305U+TMrnPu7Z5GpgTZ89Nq2KFT6Eyo1YryWV5mmwXqmSbydXZwDGD8++kf+mKXujTyfn1q6HLqTcDs1ipYfOPQtWBJ9QE=
+	t=1756738975; cv=none; b=TCAoHFLKMsO/dr9UfJLJJuEQAtanULdWHGBQgqUDukVHgJ4CJcLEYrZhHarH8wEbLO2++lL9zVOO0MejrGuuvYw1m04qrJoFvH8CDAEZz4n9aPB7hnW6uHGSWyjXeUeCeWT9Gy7yVUDgbcKo/AZ/KUXTQ5XkTzbCKiS5S6JOatU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756738799; c=relaxed/simple;
-	bh=Srmgk0gw2+ryiP1RbMOgD7H4FArhN6lnVB/qDY6fTMw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L09/FuTeecOoVww6RASzJV4TzXPAK9EdwcgHYPI6mabTWVeYZbQn6XSGbIU9beE6GRJwEY6rOgMlxRmHK+902FifrtKoanln+arYgDJ9DjZvcufLrJI8906IQJ6MUtOkZobdxKGVGY8K7pUrl2m3I3IkVhyzcyDUB0FaqHpvYcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=t+ESQXZo; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=RMnykGK3; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1756738975; c=relaxed/simple;
+	bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=kqH3inlJoFHgH+UELLcpwRjr8WrCChdjsuaJ82uy3PpNVHy++5EfcUxjfwi6qCjfkpGBnDb/Fr3d4T0AveL+OJ0MTR+/jjniHUf879UYxnVoTlSNiARfK4uzj8XumuZc4EzWfKYjFD0XF29P9OKjPN9RSMlTkbsnJ4nZkExCgf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=Stosj4/A; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="t+ESQXZo";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="RMnykGK3"
-Date: Mon, 1 Sep 2025 16:59:53 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1756738795;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PB8zuML1kiuAkBAHseJ49M0Krsa/c4iv5wrswU+E5c8=;
-	b=t+ESQXZozxJaupiaqOxSINQt2HSCGw6UfjgRQVgeAw/kBrfqz88WoroCL/eda+d8orM6SQ
-	wMJCI7zQxDtvSB4mhi3W9lIQyI53jJVfv4v+L80h/AqTs4Dw8Dk/qMzI1N61s+MyfiS468
-	ywFTNFMzIpP/2ta/gIKwkfP0O7tICQC5f7WiIsf+nUWBKVXGw1BjgoFPlu+iEIgcn7zUIC
-	N0miNoJUX5XIcjIWdLkZbrxdmkek3cy4Asi8S0+rd1O519DKZ79vgBsuUVMRE5YtW+w0Bp
-	z8kl/WUxUcK8MsR42PNHED2cncIx+K/4yzTMs4Rw7GlJ+P/tkHE84DARvX39RA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1756738795;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PB8zuML1kiuAkBAHseJ49M0Krsa/c4iv5wrswU+E5c8=;
-	b=RMnykGK3PAwaMRv7doIdlWV2iQdNcho7lEl07xSeopX5rMxmmKYV9DkU5ije1Iktuyigf6
-	w2XeAUmqPEZwMcAA==
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: Andy Lutomirski <luto@kernel.org>, 
-	Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
-	Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, 
-	Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, Nick Alcock <nick.alcock@oracle.com>, 
-	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v2 08/13] sparc64: vdso: Switch to the generic vDSO
- library
-Message-ID: <20250901164203-efc4e1ca-d83c-4776-bc20-13e1088ac548@linutronix.de>
-References: <0b223e3d-25af-4897-b513-699dfeedfa04@gaisler.com>
- <20250826074526-a1463084-366a-44d1-874b-b898f4747451@linutronix.de>
- <271c108b-0fe4-4e7a-9bc7-325e75cf60ab@gaisler.com>
- <8f31efde-0212-49b9-a0ea-64d5532c0071@gaisler.com>
- <20250829122023-948f7969-b6b0-4ae2-9c12-71cc39abcf9e@linutronix.de>
- <7b699dde-2dde-4900-abd6-d902b4cff853@gaisler.com>
- <20250829160020-5aeb38c3-2cb1-45b0-81fd-35e113417b65@linutronix.de>
- <f1204327-9d67-4ca2-9f55-6777453173f6@gaisler.com>
- <20250829185830-be502aa8-0f00-46b7-90fe-2d3cf3f1e7af@linutronix.de>
- <18d9e41c-f05f-4b3e-8217-4b8deb7afabd@gaisler.com>
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="Stosj4/A"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b042ec947e4so164420966b.0
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:02:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google; t=1756738973; x=1757343773; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
+        b=Stosj4/Aq8oxFTo/ihuTjbA+4h14ygVQT2Vf3seTTjcfK1EGSTxLiJycvkGy4ZyMoU
+         UuJxeAYE9u8W27b33iGd/Bdg8cFCGz/B5skbr9E/lH5WCRebN+rF243H9EE7OUDgc56j
+         0o0z/j9f/kqJVKgLaDDaDw9jlvsUczS6Ncjk9alHAju3nvtIU8LVmgCDxE8jjs6jD/2x
+         zXolOkwsMN1k5Mb3l0poWo2hHZxLaVzVU8biozCFy9xcOIfHMwbbep6S5ZTEdxSlUELX
+         xpE9+65K/5q3c/ZK8xnWhTROPQoG39E189LT9qFoCkqjF0INIDFTs2Ec/R4UEa0NXk15
+         C/Iw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756738973; x=1757343773;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
+        b=Z7qe36uanVKnRQTprfLRcGD5EWZg0SEj4isncyxn7b7Fmrn3/qtzpf9AbCgTFzBUYs
+         yB3tvgtdMqVRwrrgc3fG8hPhjx6jEsCLUWogi27kz/2Xc+LXfqBGGF3KtmnvPAgYxrAY
+         1ZQKHk8EbqABRxEUZVGg74WrCDgN98DtIhdHy163Ovr0uUvZELh/3k1CRJSqVkQl4B5/
+         J95Lre1/IDf+bjvcoEeIUHPr8SP5RGuX4ivhhxJ6P6yazpTX7pVHPtpAbHdavlPXMRoY
+         nc51pPdzifOk+CipO93/jt+fzpEO0u6OT2FNRNsSFHEEoc9byiYCI4K5OKkPu1730AzZ
+         w3Gg==
+X-Forwarded-Encrypted: i=1; AJvYcCXc9zoAAK3DQxWO3kdWO3Oj2CnJFdUtlXIczy8TphPUc2XytxQaFz+FIEnx13wlThdJVe1/j60TO4yo@vger.kernel.org
+X-Gm-Message-State: AOJu0YzCaNGJPlQ5wqWNKFvXO5dzQ+opFNTwCM6eJOWNwTf0TNnCWl6r
+	qTSimF5lY6mECNSGTKtnfRaiEbo1caAZVLjQF50cnbaUqdodpYZOxbJKVf2GazKBfEGOizrEhkg
+	KzIjvWRsBn2SvNhFxyIciakE8sm8VFP8kYtOocJ4yYQ==
+X-Gm-Gg: ASbGnctUOZ7H4/0Fz/2+57v6vHfVHBAIyYhsKVO+QQZfvmfXYn6qJSgZEDcgYpG8UHN
+	ugTdTKIW1jKDAkX5FXveFtDt0GbxQwIyERsSPswnxshPrO2JXw+i0kedV7raxr1WHFp1nW8gYAV
+	DOzEiEsYRFPvEt8opDfbwHyinELqLde7+DHHaZZ/i8aGpeXfNZbjq4IIQVXCiAFebhCZraWrylG
+	R1/HUKxc4D/ZM3iJ14iofIKAiXGzXMO9dQ=
+X-Google-Smtp-Source: AGHT+IFezK1h8zD4ulbO+LoYFx9UJvceg5e5MjfORD1cX6aK9EX6zhmOpTUVOQiq+Ui4qjbP7WefWWIq7O/4+eTMSZU=
+X-Received: by 2002:a17:907:3d42:b0:aff:d39:e350 with SMTP id
+ a640c23a62f3a-b01d8a25c91mr803197066b.3.1756738972529; Mon, 01 Sep 2025
+ 08:02:52 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <18d9e41c-f05f-4b3e-8217-4b8deb7afabd@gaisler.com>
+References: <20250901123028.3383461-1-max.kellermann@ionos.com>
+ <20250901123028.3383461-7-max.kellermann@ionos.com> <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
+In-Reply-To: <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
+From: Max Kellermann <max.kellermann@ionos.com>
+Date: Mon, 1 Sep 2025 17:02:41 +0200
+X-Gm-Features: Ac12FXwscizWLWhMN1KX5yHTr-lGd0ZaL5gCF07LzPcgk8nWDqkiCbWTaVe_QQY
+Message-ID: <CAKPOu+-_E6qKmRo8UXg+5wy9fACX5JHwqjV6uou6aueA_Y7iRA@mail.gmail.com>
+Subject: Re: [PATCH v5 06/12] mm, s390: constify mapping related test
+ functions for improved const-correctness
+To: David Hildenbrand <david@redhat.com>
+Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com, 
+	willy@infradead.org, hughd@google.com, mhocko@suse.com, 
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org, lorenzo.stoakes@oracle.com, 
+	Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org, surenb@google.com, 
+	vishal.moola@gmail.com, linux@armlinux.org.uk, 
+	James.Bottomley@hansenpartnership.com, deller@gmx.de, agordeev@linux.ibm.com, 
+	gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, 
+	borntraeger@linux.ibm.com, svens@linux.ibm.com, davem@davemloft.net, 
+	andreas@gaisler.com, dave.hansen@linux.intel.com, luto@kernel.org, 
+	peterz@infradead.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, 
+	x86@kernel.org, hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com, 
+	viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz, weixugc@google.com, 
+	baolin.wang@linux.alibaba.com, rientjes@google.com, shakeel.butt@linux.dev, 
+	thuth@redhat.com, broonie@kernel.org, osalvador@suse.de, jfalempe@redhat.com, 
+	mpe@ellerman.id.au, nysal@linux.ibm.com, linux-arm-kernel@lists.infradead.org, 
+	linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Andreas,
+On Mon, Sep 1, 2025 at 3:54=E2=80=AFPM David Hildenbrand <david@redhat.com>=
+ wrote:
+> > -int vma_is_stack_for_current(struct vm_area_struct *vma);
+> > +int vma_is_stack_for_current(const struct vm_area_struct *vma);
+>
+> Should this also be *const ?
 
-thanks!
-
-On Mon, Sep 01, 2025 at 04:28:52PM +0200, Andreas Larsson wrote:
-> On 2025-08-29 19:07, Thomas Weißschuh wrote:
-> > What does this do?
-> > 
-> > diff --git a/kernel/signal.c b/kernel/signal.c
-> > index e2c928de7d2c..6ae7afae948c 100644
-> > --- a/kernel/signal.c
-> > +++ b/kernel/signal.c
-> > @@ -1299,6 +1299,11 @@ force_sig_info_to_task(struct kernel_siginfo *info, struct task_struct *t,
-> >         struct k_sigaction *action;
-> >         int sig = info->si_signo;
-> >  
-> > +       if (unlikely(is_global_init(t)) && sig == SIGSEGV)
-> > +               panic("killing init, sig=%d errno=%d code=%d addr=%d vdso=%px",
-> > +                     info->si_signo, info->si_errno, info->si_code, info->si_addr,
-> > +                     t->mm->context.vdso);
-> > +
-> >         spin_lock_irqsave(&t->sighand->siglock, flags);
-> >         action = &t->sighand->action[sig-1];
-> >         ignored = action->sa.sa_handler == SIG_IGN;
-> 
-> This (with addr=%px) results in:
-> 
-> [    2.073506] Run /init as init process
-> [    2.076547] Kernel panic - not syncing: killing init, sig=11 errno=0 code=1 addr=0000000000000000 vdso=fff8000100384000
-> [    2.076594] CPU: 7 UID: 0 PID: 1 Comm: init Not tainted 6.17.0-rc1-00010-gf63e40394cec #11 VOLUNTARY 
-> [    2.076620] Call Trace:
-> [    2.076632] [<0000000000436524>] dump_stack+0x8/0x18
-> [    2.076660] [<00000000004291f4>] vpanic+0xdc/0x320
-> [    2.076682] [<000000000042945c>] panic+0x24/0x30
-> [    2.076700] [<0000000000493240>] force_sig_info_to_task+0x200/0x220
-> [    2.076726] [<0000000000493720>] force_sig_fault+0x40/0x60
-> [    2.076747] [<0000000000439e28>] sun4v_data_access_exception+0xa8/0x140
-> [    2.076770] [<00000000004066d4>] sun4v_dacc+0x28/0x34
-> [    2.077940] Press Stop-A (L1-A) from sun keyboard or send break
-> [    2.077940] twice on console to return to the boot prom
-> [    2.077981] ---[ end Kernel panic - not syncing: killing init, sig=11 errno=0 code=1 addr=0000000000000000 vdso=fff8000100384000 ]---
-
-So a NULL-pointer deref. Please also try the following, to get the trapping code.
-
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -1299,6 +1299,14 @@ force_sig_info_to_task(struct kernel_siginfo *info, struct task_struct *t,
-        struct k_sigaction *action;
-        int sig = info->si_signo;
- 
-+       if (unlikely(is_global_init(t)) && sig == SIGSEGV) {
-+               struct pt_regs *regs = task_pt_regs(t);
-+
-+               panic("killing init, sig=%d errno=%d code=%d addr=%px vdso=%px pc=0x%lx vdsopc=0x%lx",
-+                     info->si_signo, info->si_errno, info->si_code, info->si_addr,
-+                     t->mm->context.vdso, regs->tpc, regs->tpc - (unsigned long)t->mm->context.vdso);
-+       }
-+
-        spin_lock_irqsave(&t->sighand->siglock, flags);
-        action = &t->sighand->action[sig-1];
-        ignored = action->sa.sa_handler == SIG_IGN;
-
-
-Please give me the disassembly for the address printed as "vdsopc" from
-arch/sparc/vdso/vdso64.so.dbg starting from its function entrypoint.
-
-
-Thomas
+No. These are function protoypes. A "const" on a parameter value
+(pointer address, not pointed-to memory) makes no sense on a
+prototype.
