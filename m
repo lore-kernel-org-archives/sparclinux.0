@@ -1,59 +1,59 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C3B263C90
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:02:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F083451B2
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:06:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756738975; cv=none; b=TCAoHFLKMsO/dr9UfJLJJuEQAtanULdWHGBQgqUDukVHgJ4CJcLEYrZhHarH8wEbLO2++lL9zVOO0MejrGuuvYw1m04qrJoFvH8CDAEZz4n9aPB7hnW6uHGSWyjXeUeCeWT9Gy7yVUDgbcKo/AZ/KUXTQ5XkTzbCKiS5S6JOatU=
+	t=1756739193; cv=none; b=a2kPVZ/sSuIZnbBdFSt9zgvucm0xdoS5+eMlqGzGqR8BAb/gtx9yer9huucl8X8JX9Grq+eknA6PDg23qoY3SET121bLf7BSPJD3NsyZNbzDtsJlyFVIqfEJvbP573viIUito1nuVqx95kpzCDt8H9SAAZSfAnEagFup7oB3hSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756738975; c=relaxed/simple;
-	bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
+	s=arc-20240116; t=1756739193; c=relaxed/simple;
+	bh=RTksJ8/0/nMOSHK1v6hFgH7Xl8rur3P7qYdlo1+hL9M=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kqH3inlJoFHgH+UELLcpwRjr8WrCChdjsuaJ82uy3PpNVHy++5EfcUxjfwi6qCjfkpGBnDb/Fr3d4T0AveL+OJ0MTR+/jjniHUf879UYxnVoTlSNiARfK4uzj8XumuZc4EzWfKYjFD0XF29P9OKjPN9RSMlTkbsnJ4nZkExCgf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=Stosj4/A; arc=none smtp.client-ip=209.85.218.41
+	 To:Cc:Content-Type; b=D1+arlffir18A5JxRJTdLqFJZkmmlgmcCBGJLlR5l8KS31jkeQjYLR5h1ZOSZ+iaIxtD0sfid+KXPtDeRhmxIDIpZd3igVlO/RqPSJOSYFhBPtIVgxf9LokEGpgofxk5e/1vZBsZFR0ru000mYY0SuSk1/xcdwzgYueHAmCYKfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=IyVq172b; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="Stosj4/A"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b042ec947e4so164420966b.0
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:02:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="IyVq172b"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-afcb78ead12so724123766b.1
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:06:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1756738973; x=1757343773; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1756739189; x=1757343989; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
-        b=Stosj4/Aq8oxFTo/ihuTjbA+4h14ygVQT2Vf3seTTjcfK1EGSTxLiJycvkGy4ZyMoU
-         UuJxeAYE9u8W27b33iGd/Bdg8cFCGz/B5skbr9E/lH5WCRebN+rF243H9EE7OUDgc56j
-         0o0z/j9f/kqJVKgLaDDaDw9jlvsUczS6Ncjk9alHAju3nvtIU8LVmgCDxE8jjs6jD/2x
-         zXolOkwsMN1k5Mb3l0poWo2hHZxLaVzVU8biozCFy9xcOIfHMwbbep6S5ZTEdxSlUELX
-         xpE9+65K/5q3c/ZK8xnWhTROPQoG39E189LT9qFoCkqjF0INIDFTs2Ec/R4UEa0NXk15
-         C/Iw==
+        bh=/bwNSdY68Wls82Q0k25WMNjJlHUk0r0pQNA4NzN+C5M=;
+        b=IyVq172bBaLcYBrl9lLB+7k/X6SfaztrXkqA6O0iqHoUsJ4lzBzbgcL9gvPUNB90wF
+         V98plQRUO8aCDpp1TxjvHB4sNQbfgVaU1r6A/qMFGeOAwt3007eIRCKb6cX8QhW3JTl3
+         /FMlQvPXhq074a/+q2pHf4fx0DL++gG4yrr5GeNqQvOsdLHbO21enQjAtsjibvnznilV
+         r3fSbXiowoecUTw+tHR9UJ8TSH88rZurYZBrNKjX5xezi1TPDwQbmPIWhgi3iYkqLkHz
+         iS/KNmAY4cfbOl7YDy7grDQCm8X9R8g9PgMFiSlE285UcKhVXiLstSkvjyjuTitCT+7f
+         7b2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756738973; x=1757343773;
+        d=1e100.net; s=20230601; t=1756739189; x=1757343989;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=VGz5s3CgG5oZbwfB15yu/ysF7dSGyM9kka20nq6+kjg=;
-        b=Z7qe36uanVKnRQTprfLRcGD5EWZg0SEj4isncyxn7b7Fmrn3/qtzpf9AbCgTFzBUYs
-         yB3tvgtdMqVRwrrgc3fG8hPhjx6jEsCLUWogi27kz/2Xc+LXfqBGGF3KtmnvPAgYxrAY
-         1ZQKHk8EbqABRxEUZVGg74WrCDgN98DtIhdHy163Ovr0uUvZELh/3k1CRJSqVkQl4B5/
-         J95Lre1/IDf+bjvcoEeIUHPr8SP5RGuX4ivhhxJ6P6yazpTX7pVHPtpAbHdavlPXMRoY
-         nc51pPdzifOk+CipO93/jt+fzpEO0u6OT2FNRNsSFHEEoc9byiYCI4K5OKkPu1730AzZ
-         w3Gg==
-X-Forwarded-Encrypted: i=1; AJvYcCXc9zoAAK3DQxWO3kdWO3Oj2CnJFdUtlXIczy8TphPUc2XytxQaFz+FIEnx13wlThdJVe1/j60TO4yo@vger.kernel.org
-X-Gm-Message-State: AOJu0YzCaNGJPlQ5wqWNKFvXO5dzQ+opFNTwCM6eJOWNwTf0TNnCWl6r
-	qTSimF5lY6mECNSGTKtnfRaiEbo1caAZVLjQF50cnbaUqdodpYZOxbJKVf2GazKBfEGOizrEhkg
-	KzIjvWRsBn2SvNhFxyIciakE8sm8VFP8kYtOocJ4yYQ==
-X-Gm-Gg: ASbGnctUOZ7H4/0Fz/2+57v6vHfVHBAIyYhsKVO+QQZfvmfXYn6qJSgZEDcgYpG8UHN
-	ugTdTKIW1jKDAkX5FXveFtDt0GbxQwIyERsSPswnxshPrO2JXw+i0kedV7raxr1WHFp1nW8gYAV
-	DOzEiEsYRFPvEt8opDfbwHyinELqLde7+DHHaZZ/i8aGpeXfNZbjq4IIQVXCiAFebhCZraWrylG
-	R1/HUKxc4D/ZM3iJ14iofIKAiXGzXMO9dQ=
-X-Google-Smtp-Source: AGHT+IFezK1h8zD4ulbO+LoYFx9UJvceg5e5MjfORD1cX6aK9EX6zhmOpTUVOQiq+Ui4qjbP7WefWWIq7O/4+eTMSZU=
-X-Received: by 2002:a17:907:3d42:b0:aff:d39:e350 with SMTP id
- a640c23a62f3a-b01d8a25c91mr803197066b.3.1756738972529; Mon, 01 Sep 2025
- 08:02:52 -0700 (PDT)
+        bh=/bwNSdY68Wls82Q0k25WMNjJlHUk0r0pQNA4NzN+C5M=;
+        b=Ls1ZSQoCQDvSBxEg3E7Zk1caf8NX+fDxfv0OjxfHwn/dTa+AcJ4SPRcE2CIJc775Jy
+         BX2Pwsx423G6WesP9VeRsp8q9QnbkD9dJvYcoZIUhChICodhw8mcX8zj+E5qC86G+XEW
+         39/91JofAcH2IdC9spLoCG5Agj5admAdbO+MNGsY0nMchhoKECmgPvAVq88MC9Xeml80
+         vcFgX14ZakT72E5jsp20anFTr85wmhIpRToWBqviMpRnptCJd/mlPenCwuTjEA9GebPR
+         RPV1KHRTxIGxwbyx5SQxVnSibmuLqP1qBgz7VTwvAoY530F2E1M+O9hw5Snzkhg5r8aV
+         nDfA==
+X-Forwarded-Encrypted: i=1; AJvYcCX+TYsc4mNY+C0KdhKoQ2VY5gP/XyJey/W57w7SCPY28WN6n36SVPwo0ZFH+l6QM+WP90ipKs3fwF/n@vger.kernel.org
+X-Gm-Message-State: AOJu0YwfZCirkKQFo6swmeil1n+Krw//0uO3Q+vY+IbBHMnqqjUYCjhT
+	AtvqFDIPQJNiJfP981wkzwqwTEKCTJIi7ubSAt8TDRQggWlHXclW2JBSF3sgI4jyC7+xDH5E6k4
+	oF/XwGgA2+aaiMX3waEJ//qas5Y4GKYwd0CoOkP2JzA==
+X-Gm-Gg: ASbGnculE1RSR9pZV/Gw+sCrk/Yad2neYSDfUu5tkGU3TjbTKW7E+d3B9aOIGAL4ZLN
+	wtsnx+32ve0aq5Prj79JwJ+SPcixpnP+UR/ML0T6mZkNsqs4Cv0lboNuy9D6p1mkHOcAjM6vw+d
+	LCLlKF7CiCbvaCI9K21I5NsnMwvOuY5IIhYu66K/suMnXsbAqOIvNmfKXjeToyFjAPEw8wdeexl
+	tR3FRWVdxIU5XQiCDVScIgirBwMUZRcN0XT1/oqg/UVEA==
+X-Google-Smtp-Source: AGHT+IG0FxeUic5SFzE3UNYIN3B9+gaajPRoU8Y0dXCHXgh8kVRRqajKZHy7y0TqbZFDzgzomSvfHMhYlurHNOihACs=
+X-Received: by 2002:a17:907:1b10:b0:afe:85d5:a318 with SMTP id
+ a640c23a62f3a-b01d9755f83mr810176666b.36.1756739188996; Mon, 01 Sep 2025
+ 08:06:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -61,14 +61,14 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20250901123028.3383461-1-max.kellermann@ionos.com>
- <20250901123028.3383461-7-max.kellermann@ionos.com> <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
-In-Reply-To: <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
+ <20250901123028.3383461-9-max.kellermann@ionos.com> <2ad655ca-7003-4030-bb2d-1c4bcfda30cc@redhat.com>
+In-Reply-To: <2ad655ca-7003-4030-bb2d-1c4bcfda30cc@redhat.com>
 From: Max Kellermann <max.kellermann@ionos.com>
-Date: Mon, 1 Sep 2025 17:02:41 +0200
-X-Gm-Features: Ac12FXwscizWLWhMN1KX5yHTr-lGd0ZaL5gCF07LzPcgk8nWDqkiCbWTaVe_QQY
-Message-ID: <CAKPOu+-_E6qKmRo8UXg+5wy9fACX5JHwqjV6uou6aueA_Y7iRA@mail.gmail.com>
-Subject: Re: [PATCH v5 06/12] mm, s390: constify mapping related test
- functions for improved const-correctness
+Date: Mon, 1 Sep 2025 17:06:18 +0200
+X-Gm-Features: Ac12FXwds-_H2NdWifPwev4VbqOwXfa3OcMVFnDeIo9bGQG09tjqsarnzZrb6S4
+Message-ID: <CAKPOu+-_bPwE4sCcb6n-nfi3nWy6L0gBAoHgRz3qwdUHByE_Lg@mail.gmail.com>
+Subject: Re: [PATCH v5 08/12] mm: constify arch_pick_mmap_layout() for
+ improved const-correctness
 To: David Hildenbrand <david@redhat.com>
 Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com, 
 	willy@infradead.org, hughd@google.com, mhocko@suse.com, 
@@ -90,13 +90,36 @@ Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 1, 2025 at 3:54=E2=80=AFPM David Hildenbrand <david@redhat.com>=
+On Mon, Sep 1, 2025 at 3:58=E2=80=AFPM David Hildenbrand <david@redhat.com>=
  wrote:
-> > -int vma_is_stack_for_current(struct vm_area_struct *vma);
-> > +int vma_is_stack_for_current(const struct vm_area_struct *vma);
+> > index 2201da0afecc..0232d983b715 100644
+> > --- a/include/linux/sched/mm.h
+> > +++ b/include/linux/sched/mm.h
+> > @@ -178,7 +178,7 @@ static inline void mm_update_next_owner(struct mm_s=
+truct *mm)
+> >   #endif
+> >
+> >   extern void arch_pick_mmap_layout(struct mm_struct *mm,
+> > -                               struct rlimit *rlim_stack);
+> > +                               const struct rlimit *rlim_stack);
+> >
+> >   unsigned long
+> >   arch_get_unmapped_area(struct file *filp, unsigned long addr,
+> > @@ -211,7 +211,7 @@ generic_get_unmapped_area_topdown(struct file *filp=
+, unsigned long addr,
+> >                                 unsigned long flags, vm_flags_t vm_flag=
+s);
+> >   #else
+> >   static inline void arch_pick_mmap_layout(struct mm_struct *mm,
+> > -                                      struct rlimit *rlim_stack) {}
+> > +                                      const struct rlimit *rlim_stack)=
+ {}
+> >   #endif
 >
-> Should this also be *const ?
+> Should both these cases also use *const?
+>
+> (for the latter we probably don't care either, but maybe just to be
+> consistent)
 
-No. These are function protoypes. A "const" on a parameter value
-(pointer address, not pointed-to memory) makes no sense on a
-prototype.
+Actually, it would *only* make sense on the latter, because the former
+is a prototype...
