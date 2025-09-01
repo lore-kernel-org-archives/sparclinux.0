@@ -1,125 +1,172 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F083451B2
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:06:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE20343D99
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 15:11:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756739193; cv=none; b=a2kPVZ/sSuIZnbBdFSt9zgvucm0xdoS5+eMlqGzGqR8BAb/gtx9yer9huucl8X8JX9Grq+eknA6PDg23qoY3SET121bLf7BSPJD3NsyZNbzDtsJlyFVIqfEJvbP573viIUito1nuVqx95kpzCDt8H9SAAZSfAnEagFup7oB3hSk=
+	t=1756739468; cv=none; b=nBn6Hgx8nUC4WN6oiQ9rdwBUgpyNPSftjECFz3AVlxp74SYFLTi1ErshNPxbHxkXyeVK8xNQFXmUe6PqujO2FhAjpTd8fF8gFQu6w6TrtPGQMR9vjFEE1BlWUVwhB6kiaJoIz0F5BrCICLyUbFfEnUOx932aVIJFgLkmDepoXj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756739193; c=relaxed/simple;
-	bh=RTksJ8/0/nMOSHK1v6hFgH7Xl8rur3P7qYdlo1+hL9M=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=D1+arlffir18A5JxRJTdLqFJZkmmlgmcCBGJLlR5l8KS31jkeQjYLR5h1ZOSZ+iaIxtD0sfid+KXPtDeRhmxIDIpZd3igVlO/RqPSJOSYFhBPtIVgxf9LokEGpgofxk5e/1vZBsZFR0ru000mYY0SuSk1/xcdwzgYueHAmCYKfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=IyVq172b; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
+	s=arc-20240116; t=1756739468; c=relaxed/simple;
+	bh=Ma/UP1lSiVqJNi8TyJQVaTJF/dk/rmw8jKKc9OcTuvQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nmYY9c8X6ctZubqUGWzmBku8oATf+isKCuJ21UML3dCncc2sTJ2kmu28tD4FeJwYWBiwPyktWpaEZNMT6NQFsjnkB5z92SJYPGlRmxLzQcEbU4lNWXIOEFz6mUt5U+j8xsM0uisv2Jd/osntLfm1HpNFtyGwl4ydDHovbUHoe60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=hHBYzpJh; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="IyVq172b"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-afcb78ead12so724123766b.1
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:06:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1756739189; x=1757343989; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/bwNSdY68Wls82Q0k25WMNjJlHUk0r0pQNA4NzN+C5M=;
-        b=IyVq172bBaLcYBrl9lLB+7k/X6SfaztrXkqA6O0iqHoUsJ4lzBzbgcL9gvPUNB90wF
-         V98plQRUO8aCDpp1TxjvHB4sNQbfgVaU1r6A/qMFGeOAwt3007eIRCKb6cX8QhW3JTl3
-         /FMlQvPXhq074a/+q2pHf4fx0DL++gG4yrr5GeNqQvOsdLHbO21enQjAtsjibvnznilV
-         r3fSbXiowoecUTw+tHR9UJ8TSH88rZurYZBrNKjX5xezi1TPDwQbmPIWhgi3iYkqLkHz
-         iS/KNmAY4cfbOl7YDy7grDQCm8X9R8g9PgMFiSlE285UcKhVXiLstSkvjyjuTitCT+7f
-         7b2A==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hHBYzpJh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1756739465;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=VMxdRy5rmNFmudF6fK3kGDCxNJBEq1WURzElFRewt34=;
+	b=hHBYzpJhe/5Fy5xlEm2qhQyaFY7U7LZZsL8wzV7k7F7FplZEbBfCXEzf//RX+jzRug9IGz
+	46PvB8XQmGmfNd/2ZdsszYrK9vqwrdgzsELR4Ak7kFVAreCcWfkGziiA/JQPYOZspIuggE
+	hzmEuNGsd9BE9ub5+j27Im5TZmUmJeQ=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-649-JBRGyZzmPhanKp7H0tli3w-1; Mon, 01 Sep 2025 11:11:04 -0400
+X-MC-Unique: JBRGyZzmPhanKp7H0tli3w-1
+X-Mimecast-MFC-AGG-ID: JBRGyZzmPhanKp7H0tli3w_1756739464
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-45b8dde54c1so6147005e9.1
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 08:11:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756739189; x=1757343989;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/bwNSdY68Wls82Q0k25WMNjJlHUk0r0pQNA4NzN+C5M=;
-        b=Ls1ZSQoCQDvSBxEg3E7Zk1caf8NX+fDxfv0OjxfHwn/dTa+AcJ4SPRcE2CIJc775Jy
-         BX2Pwsx423G6WesP9VeRsp8q9QnbkD9dJvYcoZIUhChICodhw8mcX8zj+E5qC86G+XEW
-         39/91JofAcH2IdC9spLoCG5Agj5admAdbO+MNGsY0nMchhoKECmgPvAVq88MC9Xeml80
-         vcFgX14ZakT72E5jsp20anFTr85wmhIpRToWBqviMpRnptCJd/mlPenCwuTjEA9GebPR
-         RPV1KHRTxIGxwbyx5SQxVnSibmuLqP1qBgz7VTwvAoY530F2E1M+O9hw5Snzkhg5r8aV
-         nDfA==
-X-Forwarded-Encrypted: i=1; AJvYcCX+TYsc4mNY+C0KdhKoQ2VY5gP/XyJey/W57w7SCPY28WN6n36SVPwo0ZFH+l6QM+WP90ipKs3fwF/n@vger.kernel.org
-X-Gm-Message-State: AOJu0YwfZCirkKQFo6swmeil1n+Krw//0uO3Q+vY+IbBHMnqqjUYCjhT
-	AtvqFDIPQJNiJfP981wkzwqwTEKCTJIi7ubSAt8TDRQggWlHXclW2JBSF3sgI4jyC7+xDH5E6k4
-	oF/XwGgA2+aaiMX3waEJ//qas5Y4GKYwd0CoOkP2JzA==
-X-Gm-Gg: ASbGnculE1RSR9pZV/Gw+sCrk/Yad2neYSDfUu5tkGU3TjbTKW7E+d3B9aOIGAL4ZLN
-	wtsnx+32ve0aq5Prj79JwJ+SPcixpnP+UR/ML0T6mZkNsqs4Cv0lboNuy9D6p1mkHOcAjM6vw+d
-	LCLlKF7CiCbvaCI9K21I5NsnMwvOuY5IIhYu66K/suMnXsbAqOIvNmfKXjeToyFjAPEw8wdeexl
-	tR3FRWVdxIU5XQiCDVScIgirBwMUZRcN0XT1/oqg/UVEA==
-X-Google-Smtp-Source: AGHT+IG0FxeUic5SFzE3UNYIN3B9+gaajPRoU8Y0dXCHXgh8kVRRqajKZHy7y0TqbZFDzgzomSvfHMhYlurHNOihACs=
-X-Received: by 2002:a17:907:1b10:b0:afe:85d5:a318 with SMTP id
- a640c23a62f3a-b01d9755f83mr810176666b.36.1756739188996; Mon, 01 Sep 2025
- 08:06:28 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1756739464; x=1757344264;
+        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VMxdRy5rmNFmudF6fK3kGDCxNJBEq1WURzElFRewt34=;
+        b=sVwiUPzuFVDN6QvhZz2qFrHB2fMl+XpoOOfZLoarZj5YbqS20vPHE7ztIsmqIPdJ1U
+         1tQ3/PsGkL+irQQKGBFa1LCcW2gXLPVE5x/LfASPX1jO4M570WiZVIPFLBOV6GAtIIqA
+         gd4zM5X2TLcfJDnDJP84kmakyZixvPTM+dwLPGZCuEUO303vO0GJ4wdk1IGf9wnwxoVT
+         B3vWNVCFJ0fYP1GY2beS7C5EmtBM62Brpf9J8+UBdUrEtwI9b89Gy3upUbhUoSIUlkBX
+         KvXEcPbnCXLwgBhPzX8IW9JoQsxZ58Esel56Ph4tII1n36wj0SCEYwNIG9DtUfvsPr+7
+         FxBA==
+X-Forwarded-Encrypted: i=1; AJvYcCWfxoul7WDCLB6UDDcHyFjz36bk+0ENkgiJmGXft+FL23NNERr+cMGhsjubRSmzAOS1BZV+ieDH5Dnb@vger.kernel.org
+X-Gm-Message-State: AOJu0YwnNkfMAYkOawJ+fgY89r86wmjtrqzw28ptrxxey1tsAymLh46s
+	9JltRIEBADw25gdtkhpwKOfmJNzSGIHJyejPvFcLN+++Pp9wtoMIKlvfUGu0Wrd6me5UD+Mz1+X
+	Qlgz6t4nVdMhZ7W9xXJzMeUmm5cimck1VO4te7+m7huPer7Je2/BkZNCzbEIZ7Bw=
+X-Gm-Gg: ASbGnctTqUXP5bOAy4IXSMPUP/hJAOZfXkiSS6G3NBXzmgENqhqXAyxOMo47LjgdHBB
+	zBN5z51lPUeOdvxfWcFdJL/XFlVXfLkDnZzBnOSr6spsjqd4yEVkxQeRUkUzoYDm4tAxymZ/PxP
+	WWBdSRSEVUuQ2NYuzpUmUUBWsS0s6wqwLaeeBAt3TXx1Wi0hHa+X2e5DfIVSo/x3+nCwCg776gr
+	nYKzk+ULdiRvfRC8jrAAPVRE15qNt9VYl7JV36BoeV1E9VMQybuW7GXNgRM5NrYAQTbzkakVTzx
+	K41ZYOq1s0ENRYa+XFuKKSFDNRHGVfjUgE7soaF7XfIvXM61xg05gvuIFO9+ejKlki0IwKtNPfS
+	DfVL7qAuLvkMNPBYUvvIndBsoKmuscQom3nB8tbvd2aN8Q1FJ8CW5P0dyVfJoYgiG+k0=
+X-Received: by 2002:a05:600c:3b99:b0:45b:88b1:373f with SMTP id 5b1f17b1804b1-45b88b138cfmr49843635e9.19.1756739463521;
+        Mon, 01 Sep 2025 08:11:03 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGf6Rd6PfORW/LyvT41zVzRuA2itBBI/jcr5+K/tI5o0lZ645Xd5UGGPJrfen/4NaJ0FQpwRw==
+X-Received: by 2002:a05:600c:3b99:b0:45b:88b1:373f with SMTP id 5b1f17b1804b1-45b88b138cfmr49842935e9.19.1756739462931;
+        Mon, 01 Sep 2025 08:11:02 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f37:2b00:948c:dd9f:29c8:73f4? (p200300d82f372b00948cdd9f29c873f4.dip0.t-ipconnect.de. [2003:d8:2f37:2b00:948c:dd9f:29c8:73f4])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45b7e8ab832sm159807805e9.23.2025.09.01.08.11.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 01 Sep 2025 08:11:02 -0700 (PDT)
+Message-ID: <0bcb2d4d-9fb5-40c0-ab61-e021277a6ba3@redhat.com>
+Date: Mon, 1 Sep 2025 17:11:00 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 06/12] mm, s390: constify mapping related test
+ functions for improved const-correctness
+To: Max Kellermann <max.kellermann@ionos.com>
+Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com,
+ willy@infradead.org, hughd@google.com, mhocko@suse.com,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+ rppt@kernel.org, surenb@google.com, vishal.moola@gmail.com,
+ linux@armlinux.org.uk, James.Bottomley@hansenpartnership.com, deller@gmx.de,
+ agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com,
+ gor@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
+ davem@davemloft.net, andreas@gaisler.com, dave.hansen@linux.intel.com,
+ luto@kernel.org, peterz@infradead.org, tglx@linutronix.de, mingo@redhat.com,
+ bp@alien8.de, x86@kernel.org, hpa@zytor.com, chris@zankel.net,
+ jcmvbkbc@gmail.com, viro@zeniv.linux.org.uk, brauner@kernel.org,
+ jack@suse.cz, weixugc@google.com, baolin.wang@linux.alibaba.com,
+ rientjes@google.com, shakeel.butt@linux.dev, thuth@redhat.com,
+ broonie@kernel.org, osalvador@suse.de, jfalempe@redhat.com,
+ mpe@ellerman.id.au, nysal@linux.ibm.com,
+ linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org
 References: <20250901123028.3383461-1-max.kellermann@ionos.com>
- <20250901123028.3383461-9-max.kellermann@ionos.com> <2ad655ca-7003-4030-bb2d-1c4bcfda30cc@redhat.com>
-In-Reply-To: <2ad655ca-7003-4030-bb2d-1c4bcfda30cc@redhat.com>
-From: Max Kellermann <max.kellermann@ionos.com>
-Date: Mon, 1 Sep 2025 17:06:18 +0200
-X-Gm-Features: Ac12FXwds-_H2NdWifPwev4VbqOwXfa3OcMVFnDeIo9bGQG09tjqsarnzZrb6S4
-Message-ID: <CAKPOu+-_bPwE4sCcb6n-nfi3nWy6L0gBAoHgRz3qwdUHByE_Lg@mail.gmail.com>
-Subject: Re: [PATCH v5 08/12] mm: constify arch_pick_mmap_layout() for
- improved const-correctness
-To: David Hildenbrand <david@redhat.com>
-Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com, 
-	willy@infradead.org, hughd@google.com, mhocko@suse.com, 
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org, lorenzo.stoakes@oracle.com, 
-	Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org, surenb@google.com, 
-	vishal.moola@gmail.com, linux@armlinux.org.uk, 
-	James.Bottomley@hansenpartnership.com, deller@gmx.de, agordeev@linux.ibm.com, 
-	gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, 
-	borntraeger@linux.ibm.com, svens@linux.ibm.com, davem@davemloft.net, 
-	andreas@gaisler.com, dave.hansen@linux.intel.com, luto@kernel.org, 
-	peterz@infradead.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, 
-	x86@kernel.org, hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com, 
-	viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz, weixugc@google.com, 
-	baolin.wang@linux.alibaba.com, rientjes@google.com, shakeel.butt@linux.dev, 
-	thuth@redhat.com, broonie@kernel.org, osalvador@suse.de, jfalempe@redhat.com, 
-	mpe@ellerman.id.au, nysal@linux.ibm.com, linux-arm-kernel@lists.infradead.org, 
-	linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+ <20250901123028.3383461-7-max.kellermann@ionos.com>
+ <ce720df8-cdf2-492a-9eeb-e7b643bffa91@redhat.com>
+ <CAKPOu+-_E6qKmRo8UXg+5wy9fACX5JHwqjV6uou6aueA_Y7iRA@mail.gmail.com>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <CAKPOu+-_E6qKmRo8UXg+5wy9fACX5JHwqjV6uou6aueA_Y7iRA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 1, 2025 at 3:58=E2=80=AFPM David Hildenbrand <david@redhat.com>=
- wrote:
-> > index 2201da0afecc..0232d983b715 100644
-> > --- a/include/linux/sched/mm.h
-> > +++ b/include/linux/sched/mm.h
-> > @@ -178,7 +178,7 @@ static inline void mm_update_next_owner(struct mm_s=
-truct *mm)
-> >   #endif
-> >
-> >   extern void arch_pick_mmap_layout(struct mm_struct *mm,
-> > -                               struct rlimit *rlim_stack);
-> > +                               const struct rlimit *rlim_stack);
-> >
-> >   unsigned long
-> >   arch_get_unmapped_area(struct file *filp, unsigned long addr,
-> > @@ -211,7 +211,7 @@ generic_get_unmapped_area_topdown(struct file *filp=
-, unsigned long addr,
-> >                                 unsigned long flags, vm_flags_t vm_flag=
-s);
-> >   #else
-> >   static inline void arch_pick_mmap_layout(struct mm_struct *mm,
-> > -                                      struct rlimit *rlim_stack) {}
-> > +                                      const struct rlimit *rlim_stack)=
- {}
-> >   #endif
->
-> Should both these cases also use *const?
->
-> (for the latter we probably don't care either, but maybe just to be
-> consistent)
+On 01.09.25 17:02, Max Kellermann wrote:
+> On Mon, Sep 1, 2025 at 3:54 PM David Hildenbrand <david@redhat.com> wrote:
+>>> -int vma_is_stack_for_current(struct vm_area_struct *vma);
+>>> +int vma_is_stack_for_current(const struct vm_area_struct *vma);
+>>
+>> Should this also be *const ?
+> 
+> No. These are function protoypes. A "const" on a parameter value
+> (pointer address, not pointed-to memory) makes no sense on a
+> prototype.
 
-Actually, it would *only* make sense on the latter, because the former
-is a prototype...
+But couldn't you argue the same about variable names? In most (not all 
+:) ) we keep declaration + definition in sync. So thus my confusion.
+
+-- 
+Cheers
+
+David / dhildenb
+
