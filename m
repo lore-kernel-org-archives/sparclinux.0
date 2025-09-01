@@ -1,206 +1,254 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660263148C9
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 11:15:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ECE4263F43
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 12:30:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756725311; cv=none; b=RcM4bucawA1hGnbnbakd8xpuiIukk4ifNheERBNSZbUlK7vzvoCtCJc/FBQbXnQuyKd89JJtJ/J3mbBuDCvlrYVK6aoNGvrZKpYTtmDfQ4BNFQcJg3r1xRIZqHQCioEDxZbPIxxhcTEn7UawDlT1RGLKZ45GIt5cu4M4iTiSdaA=
+	t=1756729837; cv=none; b=U6pybYZw5tHyqdH2IVwmHr9YQJvlJIqeiDVom26VFmuQXi+gkQtCNhjBW54ZnEjRt9SDJgXWkqzeigjAh4dsAqeBCfhTv74P6F6ScA34d1kVz+eaqZHQx2TlLg9vEZpnCxDknlqVDwVrKyfDZvEY84VhBkdVeoBuV5jtnzwW3RU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756725311; c=relaxed/simple;
-	bh=SVO7Rx9aB1ZSZGzRvAg21U8fU2LXsUFJ4ZFhCg/yDrI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=D0MaSyMjP2ulj6Et27Z7z/8+qgXv/AOJWJej67iCKPZSck2+OxqQLdfbr3mk4w72cnLm0Z5nYHg75yXjfcRhuIg0oMobH8MTm7JL26+zX9yB4t3WNCfaHYpsRUrolpAGaP+UO3aEXlv0dK27Mgger3LgBN5BtxlNfmugwxA27dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Ysd3KHm8; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1756729837; c=relaxed/simple;
+	bh=ymeIcfO5siUE2sOCLzmRutxlU15if7PhiIG2QigIMEY=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=L+rsBsSixqcwmPB5qkSHA+zdqQHKEfyT31LQrJAGFf7vqv+An+GHgiGN3HmugByVU96boB97aro/eTmYjFFdYUj055uqe6PC3XlzYnH8qC9XzT1Am8VgnZ1Uu09x1M77KNd1TBV/8lLP6IW+mNq4sBdr5ww90HgAIBGr/9kzCd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=Uvm/pHRi; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ysd3KHm8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1756725309;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Yi7Fwi/+6Xe6GmqjrFqnM9yl5saNfH6dnB6Y6Wd5wdM=;
-	b=Ysd3KHm8flpoWP8ZN4HMiMaasUCFVz+9RkZzC144PMdcwV9VIxKQPxdvUWznpueCEHr0QJ
-	51fdS1xtVlqNICeeyX3ZuQrp6bAZd4SfFYkxw7BzwIQHv/YQ3xX1E/7hD5isbSkTSiDcpF
-	0b1xe2rFQw+chDUt6+ZOVBNR1y+OQ+0=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-629-VuLbuw8dOf63d0CXBHGQdQ-1; Mon, 01 Sep 2025 07:15:08 -0400
-X-MC-Unique: VuLbuw8dOf63d0CXBHGQdQ-1
-X-Mimecast-MFC-AGG-ID: VuLbuw8dOf63d0CXBHGQdQ_1756725307
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-45b8f4c2f7cso4538465e9.1
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 04:15:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="Uvm/pHRi"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-61cb4370e7bso6395331a12.3
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 05:30:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google; t=1756729833; x=1757334633; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=HrNbT6choDi3GgMhWeWNgFFS/EdlWGopjyFWK6pahow=;
+        b=Uvm/pHRiQSJl/jP+0X7QpAySNr+dlAkQfnqCmB021oq7hHk9wXJqWrVuHIO5KiE7H+
+         wUULFlcXhHykTl7USZRn/+nyYtqk/+46INuoyBUx1zKzFdKMgrM/j0o0XwTW9acn0/Uw
+         psPYYs4L6vaXlq/lOY59mUAE/v7fJPuMTbMIXYRTP74KGMMDTT5L09Ho4ZF+lh+o7jCl
+         qFNPlZNfArFdwcUBeCP2hWmc/F1eZkWmuCIy9I7RikcjibtlRehNeT1PXinJt+r3ZHmo
+         we8fL89ssznlDkEuwJSrGcaoukvVP1KYHwUk1cUwXmM1Wgp+FqUMbkztyqyJrSEAXEH/
+         lrrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756725307; x=1757330107;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Yi7Fwi/+6Xe6GmqjrFqnM9yl5saNfH6dnB6Y6Wd5wdM=;
-        b=wTUHurUgARBTaHtMLNgi9Kyv1ZbRl7EkUZxbRaP8oErlQOMWw757O+u++ENwkoRB8g
-         ydSSylpNIzuRzBNGWOIO/iLyNLC/DOZ7xIVcV/6PSg0IE0kDIdPpHpT34TDJNELTJmLk
-         PtVvkejie06cV1FfKZ1qXqTWZmLfbmbI2/t23aL+nyoyMyqYwUtgZ/5HE3PgGt2PIhG4
-         iWCbiEOVv66Ef7HiShnV3/2gghE1W31+1oqvqm/z0AxbefTg7dGcTpt49rbPfiS3EnCy
-         wwP5MKvevqkMk7z2N56wfCXAG0cbT+B20FiEARqlRFPsmI+6WtdPiSQ/wP6Uv2kCqiS4
-         lymQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWAnMQUySFkyLTJ4+6xhUcRTq4GEvRiLBLL67W8gCXSWzGebkC9WZoyKd+jNYpjC/uRgGsy8B+W41A+@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz8b2IMJhKRYaVBt/SwsmCjT8Ls9Xi7VPTgwx0oNi9HJ7g5ZGVd
-	w1/3EfopkHxHQxXwvzsqZjFPYQTZosu5IeDQqZaXy318iFcM4zc/pNoMJ8VtX/4JWB9gYcz0zv7
-	AoZ67T6vkX0G21/sVQVObraNAR88W95Z/e+71GbG2Iikk4PQ9FX77HhT659CfKrw=
-X-Gm-Gg: ASbGncuvN2VSD6Zn75G0xmel/zn5bjj0fIrkVfpTs0k4/nwCPhItjGEJY+Cn5dXKiLU
-	h3HqoLMLKCAvgwZUFivL/qMnhendf6hOz7q6gUqmmM1xiWmXMA4q1zmo0aSdk/OmObHsc2UroBl
-	CN6IHecBB0czeRBB2wiSrw89AKXIcjD7ZAYvnWCHJuKlZV9P83nZe5xy6/TEPj6BeWZkw2LAOfR
-	4m7aAdZI4jQuFMFKs8ote3GPfJccWCyvaScBFOkwozFaUqvDkdyP4VaD23FxIfWEsXYMFk/Omzq
-	2JiGDYTGHQONXu4+F3eXvy6CeGizxfh+mSRB+mmWiySZGPBZ15ITl69v5rF7jXJUhJqGXc5IniA
-	3v6SbFfYq/LFqf+AWRAEj4O0YLmYyMLelE37Ah8/enVQq+udVwNlwfMIi1AJ725qyfVE=
-X-Received: by 2002:a05:6000:2302:b0:3ca:6584:be1e with SMTP id ffacd0b85a97d-3d1df731ca0mr6960306f8f.63.1756725306896;
-        Mon, 01 Sep 2025 04:15:06 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFmpXAOfkbo/7ucu8U3sPdowTv1nqSV9h2Hc/DFrooZf0d2o9cUthDbRMo3GY3Vcoa9zmXMdQ==
-X-Received: by 2002:a05:6000:2302:b0:3ca:6584:be1e with SMTP id ffacd0b85a97d-3d1df731ca0mr6960216f8f.63.1756725306264;
-        Mon, 01 Sep 2025 04:15:06 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f37:2b00:948c:dd9f:29c8:73f4? (p200300d82f372b00948cdd9f29c873f4.dip0.t-ipconnect.de. [2003:d8:2f37:2b00:948c:dd9f:29c8:73f4])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3cf270fbd01sm15189382f8f.13.2025.09.01.04.15.02
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 01 Sep 2025 04:15:05 -0700 (PDT)
-Message-ID: <e42641a8-0f93-4441-9a96-7ed99f4d498d@redhat.com>
-Date: Mon, 1 Sep 2025 13:15:01 +0200
+        d=1e100.net; s=20230601; t=1756729833; x=1757334633;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=HrNbT6choDi3GgMhWeWNgFFS/EdlWGopjyFWK6pahow=;
+        b=pKZBhF33SiCogjbe5hmYA1h4XXXsbpG1yXRPl00AZy6qB0eaR/0aep/2rt9yyxWcz9
+         b7YXoJOao1eL5rEPPAn5Y9+gmfUBkiWv9ZFc6vkVKvl3+DDt01IRphHzKFP08NIy97Y+
+         7CqRHmUbi0W1EBz6/g03AxQTIM07e6hR2mF5BoEeMBHwJWKWKM9mPoOdqMRrItVI7vZA
+         j4SCoa2YM9aweCYkmM6YycQk2QiD3wrsP9yyTnrOESqedd9PfxM8FBLHomzZ3a+ECk9c
+         xxVquoGGMAlf7s2F0ZEnuyJPN9/I1bcT0yrOcfHRP4QjsuWKnP/aPLue9AL08/AMP/+F
+         u/tQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUwW6njXmGbhfAnUbKhZUWPD5WmGwto/7y8EeG30JzdHyONZNCei/rrkpVMlsQQf+XWb1jPAQc8pDzQ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy0P6PSbiKss5hrGaMCj6ral5vq5tgWx6Cd0mMZs6A1/TrCbXLR
+	taJrWZISah3lG2YSmFAC2iz6phnVdR8TRaBCB1X9/rVlMy4m1gp7KPP6RaHXgDfAlpU=
+X-Gm-Gg: ASbGncsYZlGKEyFtuboLnxRIMD7movBhXg1hNqDYBLa57lGVFCUynoDpVDkRoAEAI7O
+	E5AFwtx0sKM/w8FBVmuozb3GwcLOtXoD4apHEOlGXlxbzwS6atcIg2KEv13D372cq+a9A4TU/g1
+	Q+i3xnHuDaLGQlwpepq8RFgJbkQnQKiV7snYx0DJf2Wc4h5DB2pvCNgAPdtrQ+xhufRZBepX+3i
+	X/OHX3y5Oy0J/wV2sWBaGPEp2gFUgN25R8HdPdJR+C/JH84ntflJ1gIwg9/bRp/KoHhkNBg7XFg
+	AIUTqvszvy/9wzQGdIi8DUogoBAJz9bOFvHj8b1zJemBjiinQzCSg3+U6KjEIdPIzx5XMZVurcO
+	cLsIe96od9x2yIVPBUTst2BvF0RG65yY9mXjfszTHhCAG8FcVFmNEtRehxGtyorFOv/DZj3X7WL
+	Xg5ci+ShtRrkhH3UrFaow3K5z0HrvXqdvQ
+X-Google-Smtp-Source: AGHT+IEIvcwSPmSxXCSKH0hPzJ7k/4E5ApIsDuAgvra/l5zTme80rYXYzWHYoZRuIErlfCsG0v7L6A==
+X-Received: by 2002:a05:6402:270e:b0:617:b28c:e134 with SMTP id 4fb4d7f45d1cf-61d260cc308mr7198111a12.0.1756729833131;
+        Mon, 01 Sep 2025 05:30:33 -0700 (PDT)
+Received: from raven.intern.cm-ag (p200300dc6f1d0f00023064fffe740809.dip0.t-ipconnect.de. [2003:dc:6f1d:f00:230:64ff:fe74:809])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-61eaf5883b6sm255566a12.20.2025.09.01.05.30.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Sep 2025 05:30:32 -0700 (PDT)
+From: Max Kellermann <max.kellermann@ionos.com>
+To: akpm@linux-foundation.org,
+	david@redhat.com,
+	axelrasmussen@google.com,
+	yuanchu@google.com,
+	willy@infradead.org,
+	hughd@google.com,
+	mhocko@suse.com,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	vishal.moola@gmail.com,
+	linux@armlinux.org.uk,
+	James.Bottomley@HansenPartnership.com,
+	deller@gmx.de,
+	agordeev@linux.ibm.com,
+	gerald.schaefer@linux.ibm.com,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	dave.hansen@linux.intel.com,
+	luto@kernel.org,
+	peterz@infradead.org,
+	tglx@linutronix.de,
+	mingo@redhat.com,
+	bp@alien8.de,
+	x86@kernel.org,
+	hpa@zytor.com,
+	chris@zankel.net,
+	jcmvbkbc@gmail.com,
+	viro@zeniv.linux.org.uk,
+	brauner@kernel.org,
+	jack@suse.cz,
+	weixugc@google.com,
+	baolin.wang@linux.alibaba.com,
+	rientjes@google.com,
+	shakeel.butt@linux.dev,
+	max.kellermann@ionos.com,
+	thuth@redhat.com,
+	broonie@kernel.org,
+	osalvador@suse.de,
+	jfalempe@redhat.com,
+	mpe@ellerman.id.au,
+	nysal@linux.ibm.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-parisc@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH v5 00/12] mm: establish const-correctness for pointer parameters
+Date: Mon,  1 Sep 2025 14:30:16 +0200
+Message-ID: <20250901123028.3383461-1-max.kellermann@ionos.com>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 00/12] mm: establish const-correctness for pointer
- parameters
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Max Kellermann <max.kellermann@ionos.com>
-Cc: akpm@linux-foundation.org, axelrasmussen@google.com, yuanchu@google.com,
- willy@infradead.org, hughd@google.com, mhocko@suse.com,
- linux-kernel@vger.kernel.org, linux-mm@kvack.org, Liam.Howlett@oracle.com,
- vbabka@suse.cz, rppt@kernel.org, surenb@google.com, vishal.moola@gmail.com,
- linux@armlinux.org.uk, James.Bottomley@hansenpartnership.com, deller@gmx.de,
- agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com,
- gor@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
- davem@davemloft.net, andreas@gaisler.com, dave.hansen@linux.intel.com,
- luto@kernel.org, peterz@infradead.org, tglx@linutronix.de, mingo@redhat.com,
- bp@alien8.de, x86@kernel.org, hpa@zytor.com, chris@zankel.net,
- jcmvbkbc@gmail.com, viro@zeniv.linux.org.uk, brauner@kernel.org,
- jack@suse.cz, weixugc@google.com, baolin.wang@linux.alibaba.com,
- rientjes@google.com, shakeel.butt@linux.dev, thuth@redhat.com,
- broonie@kernel.org, osalvador@suse.de, jfalempe@redhat.com,
- mpe@ellerman.id.au, nysal@linux.ibm.com,
- linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, conduct@kernel.org
-References: <20250901091916.3002082-1-max.kellermann@ionos.com>
- <f065d6ae-c7a7-4b43-9a7d-47b35adf944e@lucifer.local>
- <CAKPOu+9smVnEyiRo=gibtpq7opF80s5XiX=B8+fxEBV7v3-Gyw@mail.gmail.com>
- <76348dd5-3edf-46fc-a531-b577aad1c850@lucifer.local>
- <CAKPOu+-cWED5_KF0BecqxVGKJFWZciJFENxxBSOA+-Ki_4i9zQ@mail.gmail.com>
- <bfe1ae86-981a-4bd5-a96d-2879ef1b3af2@redhat.com>
- <CAKPOu+_jpCE3MuRwKQ7bOhvtNW8XBgV-ZZVd3Qv6J+ULg4GJkw@mail.gmail.com>
- <801c5eb7-33dc-448f-8742-256ac40f357e@lucifer.local>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- qIws/H2t
-In-Reply-To: <801c5eb7-33dc-448f-8742-256ac40f357e@lucifer.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-On 01.09.25 13:05, Lorenzo Stoakes wrote:
-> On Mon, Sep 01, 2025 at 12:54:40PM +0200, Max Kellermann wrote:
->> On Mon, Sep 1, 2025 at 12:43 PM David Hildenbrand <david@redhat.com> wrote:
->>> Max, I think this series here is valuable, and you can see that from the
->>> engagement from reviewers (this is a *good* thing, I sometimes wish I
->>> would get feedback that would help me improve my submissions).
->>>
->>> So if you don't want to follow-up on this series to polish the patch
->>> descriptions etc,, let me now and I (or someone else around here) can
->>> drag it over the finishing line.
->>
->> Thanks David - I do want to finish this, if there is a constructive
->> path ahead. I know what you want, but I'm not so sure about the
->> others.
->>
->> I can swap all verbose patch messages with the one you suggested.
->> Would everybody agree that David's suggestion was enough text?
-> 
-> I'm fine with:
-> 
-> "constify shmem related test functions for improved const-correctness."
-> 
-> In the summary line, but, as I said on review, with a little more detail as
-> to what you're doing in that specific file underneath.
-> 
-> You don't necessarily have to list every function, but just to give a sense of
-> _why_ you chose those.
-> 
-> For instance:
-> 
-> 	mm: constify shmem related test functions for improved const-correctness
-> 
-> 	We select certain test functions which either invoke each other,
-> 	functions that are already const-ified, or no further functions.
-> 
-> 	It is therefore relatively trivial to const-ify them, which
-> 	provides a basis for further const-ification further up the call
-> 	stack.
+For improved const-correctness.
 
-Yes, that covers the what/why/why okay. For me something shorter would 
-be acceptable as well in this case (as explained, due to "test 
-functions" semantics), but as long as we're not in the AI-slop range of 
-text, all good with me.
+This patch series systematically adds const qualifiers to pointer
+parameters throughout the memory management subsystem, establishing a
+foundation for improved const-correctness across the entire Linux
+kernel.
+
+Const-correctness provides multiple benefits:
+
+1. Type Safety: The compiler enforces that functions marked as taking
+   const parameters cannot accidentally modify the data, catching
+   potential bugs at compile time rather than runtime.
+
+2. Compiler Optimizations: When the compiler knows data won't be
+   modified, it can generate more efficient code through better
+   register allocation, code motion, and aliasing analysis.
+
+3. API Documentation: Const qualifiers serve as self-documenting code,
+   making it immediately clear to developers which functions are
+   read-only operations versus those that modify state.
+
+4. Maintenance Safety: Future modifications to const-correct code are
+   less likely to introduce subtle bugs, as the compiler will reject
+   attempts to modify data that should remain unchanged.
+
+The memory management subsystem is a fundamental building block of the
+kernel.  Most higher-level kernel subsystems (filesystems, drivers,
+networking) depend on mm interfaces.  By establishing
+const-correctness at this foundational level:
+
+1. Enables Propagation: Higher-level subsystems can adopt
+   const-correctness in their own interfaces.  Without const-correct
+   mm functions, filesystems cannot mark their own parameters const
+   when they need to call mm functions.
+
+2. Maximum Impact: Changes to core mm APIs benefit the entire kernel, as
+   these functions are called from virtually every subsystem.
+
+3. Prevents Impedance Mismatch: Without const-correctness in mm, other
+   subsystems must either cast away const (dangerous) or avoid using
+   const altogether (missing optimization opportunities).
+
+Each patch focuses on a specific header or subsystem component to ease review
+and bisection.
+
+This work was initially posted as a single large patch:
+ https://lore.kernel.org/lkml/20250827192233.447920-1-max.kellermann@ionos.com/
+
+Following feedback from Lorenzo Stoakes and David Hildenbrand, it has been
+split into focused, reviewable chunks. The approach was validated with a
+smaller patch that received agreement:
+ https://lore.kernel.org/lkml/20250828130311.772993-1-max.kellermann@ionos.com/
+
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+---
+v1 -> v2:
+- made several parameter values const (i.e. the pointer address, not
+  just the pointed-to memory), as suggested by Andrew Morton and
+  Yuanchu Xie
+- drop existing+obsolete "extern" keywords on lines modified by these
+  patches (suggested by Vishal Moola)
+- add missing parameter names on lines modified by these patches
+  (suggested by Vishal Moola)
+- more "const" pointers (e.g. the task_struct passed to
+  process_shares_mm())
+- add missing "const" to s390, fixing s390 build failure
+- moved the mmap_is_legacy() change in arch/s390/mm/mmap.c from 08/12
+  to 06/12 (suggested by Vishal Moola)
+
+v2 -> v3:
+- remove garbage from 06/12
+- changed tags on subject line (suggested by Matthew Wilcox)
+
+v3 -> v4:
+- more verbose commit messages including a listing of function names
+  (suggested by David Hildenbrand and Lorenzo Stoakes)
+
+v4 -> v5:
+- back to shorter commit messages after an agreement between David
+  Hildenbrand and Lorenzo Stoakes was found
+
+Max Kellermann (12):
+  mm: constify shmem related test functions for improved
+    const-correctness
+  mm: constify pagemap related test functions for improved
+    const-correctness
+  mm: constify zone related test functions for improved
+    const-correctness
+  fs: constify mapping related test functions for improved
+    const-correctness
+  mm: constify process_shares_mm() for improved const-correctness
+  mm, s390: constify mapping related test functions for improved
+    const-correctness
+  parisc: constify mmap_upper_limit() parameter for improved
+    const-correctness
+  mm: constify arch_pick_mmap_layout() for improved const-correctness
+  mm: constify ptdesc_pmd_pts_count() and folio_get_private()
+  mm: constify various inline test functions for improved
+    const-correctness
+  mm: constify assert/test functions in mm.h
+  mm: constify highmem related functions for improved const-correctness
+
+ arch/arm/include/asm/highmem.h      |  6 +--
+ arch/parisc/include/asm/processor.h |  2 +-
+ arch/parisc/kernel/sys_parisc.c     |  2 +-
+ arch/s390/mm/mmap.c                 |  7 ++--
+ arch/sparc/kernel/sys_sparc_64.c    |  3 +-
+ arch/x86/mm/mmap.c                  |  7 ++--
+ arch/xtensa/include/asm/highmem.h   |  2 +-
+ include/linux/fs.h                  |  7 ++--
+ include/linux/highmem-internal.h    | 44 +++++++++++----------
+ include/linux/highmem.h             |  8 ++--
+ include/linux/mm.h                  | 56 +++++++++++++--------------
+ include/linux/mm_inline.h           | 26 +++++++------
+ include/linux/mm_types.h            |  4 +-
+ include/linux/mmzone.h              | 42 ++++++++++----------
+ include/linux/pagemap.h             | 59 +++++++++++++++--------------
+ include/linux/sched/mm.h            |  4 +-
+ include/linux/shmem_fs.h            |  4 +-
+ mm/highmem.c                        | 10 ++---
+ mm/oom_kill.c                       |  7 ++--
+ mm/shmem.c                          |  6 +--
+ mm/util.c                           | 20 ++++++----
+ 21 files changed, 171 insertions(+), 155 deletions(-)
 
 -- 
-Cheers
-
-David / dhildenb
+2.47.2
 
