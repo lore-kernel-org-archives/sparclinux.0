@@ -1,64 +1,64 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78088346A17
-	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 12:30:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20AEA34AB07
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 12:30:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756729852; cv=none; b=djc7lyY8RYTCQDl/85d+e9hlPOx/fv7zfwadZBUusXjGvtKqkr9mT9du+qQrMLYq9Zz9es2EYo3qJn2YvrKaQrpy+Oz4MNSbhjUkAwCQTOzNfW2F9BZ5RaihLBa7Dg+XacBSOiNxoxsv6B/XMQmji3j821p064yESxtg7MrY+ik=
+	t=1756729859; cv=none; b=jIaegPlMPi2VUekE0D4lwzbDK4/FWhNGCT8eB6v3nzvF6Ek5ktfrBTlp0PCZbCCXOOE+clhwFM9CkV3gcsfbQU6TrBl1fY3aZcS5r3rVfODoctWBBdBno2QcXZLC1RKC61dOVU7ibCa3MTQIuweTh7nzTy0lxRTi7AT8elyGXGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756729852; c=relaxed/simple;
-	bh=EPJbyRWxHnT9AgTmdS6KO9CuajUKQ+wmYGiqrI3ZBAk=;
+	s=arc-20240116; t=1756729859; c=relaxed/simple;
+	bh=31+JNbBxEbgRy394xiEY0SqE+foE7WaLBkkkvVJFhXI=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QhYxov95/NGVfG7Oh5Nq2yteMvhgUfxK98Qhd8x2i8Yy6YWDlvns2ZDBtWSHmHGJGzua0c7jDrWfe9JH+EcciPCoeFMjYHc2eoDIJvGbH0bSHd5Bim/dSxTVeJylIjmXKubj6rhWBTNr10oQwkPhmj/VjbAXJhBArdJx5ivCLaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=aHgTrVy+; arc=none smtp.client-ip=209.85.208.52
+	 MIME-Version; b=SoHLgLMpb89UDKDFpKktsJB+h3ipGWE0IXip/TahC56oLrXJh7YUd+ah2G0QzDmROAZAHUvTcvFG6FEGcIqT6yLdoGb95xV7wxwes0sjVgKcgzXupfT99GWSoZTBM4REAvSfzQwmMG15Rb8w0n+CziGuquEnIEvqZ9VII4KwrCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=HTecopPj; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="aHgTrVy+"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-61e4254271dso1917654a12.2
-        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 05:30:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="HTecopPj"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-61a8c134609so5461772a12.3
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 05:30:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1756729849; x=1757334649; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1756729854; x=1757334654; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=wDGNHui84WsHVpXgfTg7/ZQpp3R8ARaLofrymMcz4P4=;
-        b=aHgTrVy+UXwL9vMATMLTBzYygvkvl1PXOOkgjbsIQG3AtnAibegqVurFbnCgst5vw3
-         Tdn6BM6pdncPEzEN9ifHpCA8P6Pi4hRjnYSm2XHIsHhjBoa2yZ23NHuGkS26Mta2ynDG
-         hHyJrdulDtB0BpZ5BnpS002ShEm4bThnIuHBA36CXsVQXZQl8TLN9ouFxkOu79st1Lun
-         n/4mA3ksechY3UCwBukK3jOeMXCtdgFo4nnd+QD7ghAwOcthXOafw9+qg7Ty7/sIIJGA
-         Xon6LXD5Nx/5nBd1kfpFV4EZRE0nIo8tJwVUDxwZbsqTwpnlVC8IN3f1JRwVMOGUYrZL
-         3tqQ==
+        bh=719Ia0lSRQecbD5eusFA1tVcXf6dgvDvzBCqCYcJwqw=;
+        b=HTecopPjrD6O6KseQfBkDG2HF0HXMdtaPLkAcOX6N17X/H8SSj08ozVOo6VICD8tJT
+         SM3yElEPB5BaDOZKwCX+jKOCy5TdVAHnMj3KUcHdGTo2ZNvhB9ATKfj8aDhR0EzZ99mP
+         5mlPHdWYRm1qYMG7YJPxZbx9X1yrA+bX1C0QRpjpLmdxCVJreADV3BbviOU6BP+lXjMQ
+         XxLV91GA7QwoNavmE6sCiGEtJk0l4X37hGtM0r5nfrphswI/4j2uii4DukJuc/jziMui
+         xnwwbEtMXMTpDxQrKTKJSEpdNL8k32HKyDF1iSJNzuS9QvwU9pKVe14g1ANmpEgQsjC1
+         5ICQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756729849; x=1757334649;
+        d=1e100.net; s=20230601; t=1756729854; x=1757334654;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=wDGNHui84WsHVpXgfTg7/ZQpp3R8ARaLofrymMcz4P4=;
-        b=tP4I5llh7WlMU5RjhGZFbBzSnhu/M1qobQ658zRTulhWF4Q0Dbfpv3zGAaghRXVf25
-         GNJEepjNcD6xzfWnFhLwG7lmK5iofMJHWSNg9hMr5jN4xL4+L5ADspO653//FSS3CttZ
-         HxkObQfoeCs5LKHxmH5Oygw7QkUV+tTSnUhJT8cf75mdAyB9IcoQOXhAEsoyUHD/QSh6
-         q1ZxY84Ae5GpK/k/U32VsfSjvHUQ1UKP830iVz5K1rpSJgmeaKZV1N4ZC97tR4cXsLBO
-         BBIiePy750axUzbK2RpqfZojU3OOPaI2OrpwARUfBmSSOh2OpNEKfSCraTxuYGWi9sW/
-         ohFw==
-X-Forwarded-Encrypted: i=1; AJvYcCVBH4O+eNvNwpp/c/rvMdpqc8zwUEuAsW/A4svJTkVPZpxu02DvciAkCNG6YLKnxXyGyLKXG3CpHHks@vger.kernel.org
-X-Gm-Message-State: AOJu0YytdorwHckzHIx4jQ4XxoYeeAplU7nzMAmdG1lanvAD562V5cub
-	ZcfoL/6yugB3fuH8slB0m74MR1ZX9u7faafMHn35tcpOyfnP6m97D/ANAQKW+uB0DDQ=
-X-Gm-Gg: ASbGncuDUrrophU7fDb6PYK0kGpp455JeyXjj3EWS7xJ+Cw78mxYnaiOQW/KDHNdRcq
-	qEjIVBsFNowLg3WAUesdyL8+WIJSebXhw7DKX50H+1VuNWvsfhZYGQY7cddmIJqdrDaBFH1evb3
-	j8TDFDPH0h+SSinrk9mPmzGdrr6YkAnxFFGMCfMvmylHregaqPMFVOci65ewW6jfSCYiH2IYzIO
-	mC7+88bBAwUyY5ryWA0PxbgUO2j+KAyX+bYecnXYOBbWucDBcVja7BJq4dPkr3NBLwfleFigmDd
-	1SmSMZYoyhcZjP0QkfUcCxqfwQhvb/A93zlhiLTnGphn6mrRLLRQ7kTjZ78UJ9iIhEjc9H1KTax
-	y7OMUYeLWmdp9LJ+pMdnV9AxVp8BXjjm1FZG4NCaxUZVZK7QbMgO2ubKJ1XItUignNB7+JZNTvI
-	iE24gmOHWk8ksFlRIjh5NfSqMrl8spgAzD
-X-Google-Smtp-Source: AGHT+IFKdIH/XV8PMBLWofBOVQFCiNzD1MryqiWSI9A5CR0R39RCWddVIJNZ79UXnDKy/e8yeVnjDw==
-X-Received: by 2002:a05:6402:2549:b0:618:afa:70b1 with SMTP id 4fb4d7f45d1cf-61d26c32e70mr6177153a12.20.1756729848021;
-        Mon, 01 Sep 2025 05:30:48 -0700 (PDT)
+        bh=719Ia0lSRQecbD5eusFA1tVcXf6dgvDvzBCqCYcJwqw=;
+        b=SDyjHR5/HGSfOtUXgTuK49EnG4HSDG02pHBOsDAI4YyDVdoFErdMz3KODGwPKKEspY
+         2P7DWkhbYce3vCl8kzNBpZTCWEUUtwMQktQiq7GIz2u+YAQz9owzsAkvUOehMM4rr1FL
+         rI8vyahcNPgDOFI43gloefud67yQHXTUcVFDemDWh3rTSysfkt/31EAJJYIEAvkFtXR2
+         dBT84yxwQqco9h0D4JnkkPwKIdERAye7/uY0OaZIp6IC+8ZWzI6aZgIDhKeYHs2C/pGo
+         fSkcKzvr+HBS0IxINuDL0nJkjdgQUMNKQfdePVVs4Wms+nn6kEjoQ4mHlfDHspdaTdOy
+         0NIA==
+X-Forwarded-Encrypted: i=1; AJvYcCX8+FQwUrl9BjIDf2z8Qd6B2wpiZbdtZBhYwYBPTCBy1YFENWdfSKiRTBe4VyiOQsMBHzAZCRIdxvjm@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLy6zicLZadkgqOKQiqFr7CblvtJto6NUchUiIWzbB2Ui+85Y2
+	1RPuk4pMtfvZG+xKHgkVEXgftzQt0oMpsr4LAfSVJmsKoAUPy6nE+im/f36tevfy/A0=
+X-Gm-Gg: ASbGnct2VWJOjrtWGOTQiuWpo6V39nw5zZnC6G2qe0Cwl7mtUAVeu7vtboOpljdk6hp
+	99TSGdejvrfh2gXefx6Yf/dKH8BV6R3NejRUfgDMIZvELGN4wkuZ9JAhkuMfthYjCgW4U89QM6e
+	2aAyAuXWFRaxDik5hlNCMyTBPX2xP0+fe3YpWVMwHi8East7tgLE+unUk+9+iLyeF0hUi36CFyb
+	/u5ym8H2fbK3jDx/dYLIcXlj8Mka+8SzAwcgpAfkdyPo/Iwda5SIvwOpWGee1hH0rEONZV09WG1
+	HxYHGOs4jL6A5t26cYSSCThaFe00mfsjhU5AspivMSuu1dVY90Pi3Ulv3iVRoLVltv4jJhHKMVi
+	+At2yqbe+vXMONQphbchPJNz7xDLasgzymgP8xGzd3QsrFsY193W0yJ/Ws75yvouGEp4wEg0vuw
+	vlTKa0kDMO0QeBg92Mzi552an9a4RL0RmtuDBmYCcsI10=
+X-Google-Smtp-Source: AGHT+IFXpOqRLV7jtUuVW63S0urvzzT2Ybqzsy1IuQBF5NxQ7SlgahydrdjD1p/lIEKi/iaMHlbMCA==
+X-Received: by 2002:a05:6402:3510:b0:61c:5cac:2961 with SMTP id 4fb4d7f45d1cf-61d2699455emr6335145a12.14.1756729854314;
+        Mon, 01 Sep 2025 05:30:54 -0700 (PDT)
 Received: from raven.intern.cm-ag (p200300dc6f1d0f00023064fffe740809.dip0.t-ipconnect.de. [2003:dc:6f1d:f00:230:64ff:fe74:809])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-61eaf5883b6sm255566a12.20.2025.09.01.05.30.46
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-61eaf5883b6sm255566a12.20.2025.09.01.05.30.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Sep 2025 05:30:47 -0700 (PDT)
+        Mon, 01 Sep 2025 05:30:54 -0700 (PDT)
 From: Max Kellermann <max.kellermann@ionos.com>
 To: akpm@linux-foundation.org,
 	david@redhat.com,
@@ -115,9 +115,9 @@ To: akpm@linux-foundation.org,
 	linux-s390@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v5 08/12] mm: constify arch_pick_mmap_layout() for improved const-correctness
-Date: Mon,  1 Sep 2025 14:30:24 +0200
-Message-ID: <20250901123028.3383461-9-max.kellermann@ionos.com>
+Subject: [PATCH v5 10/12] mm: constify various inline test functions for improved const-correctness
+Date: Mon,  1 Sep 2025 14:30:26 +0200
+Message-ID: <20250901123028.3383461-11-max.kellermann@ionos.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250901123028.3383461-1-max.kellermann@ionos.com>
 References: <20250901123028.3383461-1-max.kellermann@ionos.com>
@@ -129,147 +129,134 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This function only reads from the rlimit pointer (but writes to the
-mm_struct pointer which is kept without `const`).
+We select certain test functions from mm_inline.h which either invoke
+each other, functions that are already const-ified, or no further
+functions.
 
-All callees are already const-ified or (internal functions) are being
-constified by this patch.
+It is therefore relatively trivial to const-ify them, which
+provides a basis for further const-ification further up the call
+stack.
+
+One exception is the function folio_migrate_refs() which does write to
+the "new" folio pointer; there, only the "old" folio pointer is being
+constified; only its "flags" field is read, but nothing written.
 
 Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 ---
- arch/s390/mm/mmap.c              | 5 +++--
- arch/sparc/kernel/sys_sparc_64.c | 3 ++-
- arch/x86/mm/mmap.c               | 7 ++++---
- include/linux/sched/mm.h         | 4 ++--
- mm/util.c                        | 9 ++++++---
- 5 files changed, 17 insertions(+), 11 deletions(-)
+ include/linux/mm_inline.h | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/arch/s390/mm/mmap.c b/arch/s390/mm/mmap.c
-index c0f619fb9ab3..a47c7133d82a 100644
---- a/arch/s390/mm/mmap.c
-+++ b/arch/s390/mm/mmap.c
-@@ -47,7 +47,7 @@ static unsigned long mmap_base_legacy(unsigned long rnd)
- }
- 
- static inline unsigned long mmap_base(unsigned long rnd,
--				      struct rlimit *rlim_stack)
-+				      const struct rlimit *const rlim_stack)
- {
- 	unsigned long gap = rlim_stack->rlim_cur;
- 	unsigned long pad = stack_maxrandom_size() + stack_guard_gap;
-@@ -169,7 +169,8 @@ unsigned long arch_get_unmapped_area_topdown(struct file *filp, unsigned long ad
-  * This function, called very early during the creation of a new
-  * process VM image, sets up which VM layout function to use:
+diff --git a/include/linux/mm_inline.h b/include/linux/mm_inline.h
+index 150302b4a905..8c4f6f95ba9f 100644
+--- a/include/linux/mm_inline.h
++++ b/include/linux/mm_inline.h
+@@ -25,7 +25,7 @@
+  * 0 if @folio is a normal anonymous folio, a tmpfs folio or otherwise
+  * ram or swap backed folio.
   */
--void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
-+void arch_pick_mmap_layout(struct mm_struct *const mm,
-+			   const struct rlimit *const rlim_stack)
+-static inline int folio_is_file_lru(struct folio *folio)
++static inline int folio_is_file_lru(const struct folio *const folio)
  {
- 	unsigned long random_factor = 0UL;
- 
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index 785e9909340f..1c243bb461b2 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -294,7 +294,8 @@ static unsigned long mmap_rnd(void)
- 	return rnd << PAGE_SHIFT;
+ 	return !folio_test_swapbacked(folio);
  }
- 
--void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
-+void arch_pick_mmap_layout(struct mm_struct *const mm,
-+			   const struct rlimit *const rlim_stack)
- {
- 	unsigned long random_factor = mmap_rnd();
- 	unsigned long gap;
-diff --git a/arch/x86/mm/mmap.c b/arch/x86/mm/mmap.c
-index 708f85dc9380..13bde4ba2f24 100644
---- a/arch/x86/mm/mmap.c
-+++ b/arch/x86/mm/mmap.c
-@@ -80,7 +80,7 @@ unsigned long arch_mmap_rnd(void)
- }
- 
- static unsigned long mmap_base(unsigned long rnd, unsigned long task_size,
--			       struct rlimit *rlim_stack)
-+			       const struct rlimit *const rlim_stack)
- {
- 	unsigned long gap = rlim_stack->rlim_cur;
- 	unsigned long pad = stack_maxrandom_size(task_size) + stack_guard_gap;
-@@ -110,7 +110,7 @@ static unsigned long mmap_legacy_base(unsigned long rnd,
+@@ -84,7 +84,7 @@ static __always_inline void __folio_clear_lru_flags(struct folio *folio)
+  * Return: The LRU list a folio should be on, as an index
+  * into the array of LRU lists.
   */
- static void arch_pick_mmap_base(unsigned long *base, unsigned long *legacy_base,
- 		unsigned long random_factor, unsigned long task_size,
--		struct rlimit *rlim_stack)
-+		const struct rlimit *const rlim_stack)
+-static __always_inline enum lru_list folio_lru_list(struct folio *folio)
++static __always_inline enum lru_list folio_lru_list(const struct folio *const folio)
  {
- 	*legacy_base = mmap_legacy_base(random_factor, task_size);
- 	if (mmap_is_legacy())
-@@ -119,7 +119,8 @@ static void arch_pick_mmap_base(unsigned long *base, unsigned long *legacy_base,
- 		*base = mmap_base(random_factor, task_size, rlim_stack);
+ 	enum lru_list lru;
+ 
+@@ -141,7 +141,7 @@ static inline int lru_tier_from_refs(int refs, bool workingset)
+ 	return workingset ? MAX_NR_TIERS - 1 : order_base_2(refs);
  }
  
--void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
-+void arch_pick_mmap_layout(struct mm_struct *const mm,
-+			   const struct rlimit *const rlim_stack)
+-static inline int folio_lru_refs(struct folio *folio)
++static inline int folio_lru_refs(const struct folio *const folio)
  {
- 	if (mmap_is_legacy())
- 		mm_flags_clear(MMF_TOPDOWN, mm);
-diff --git a/include/linux/sched/mm.h b/include/linux/sched/mm.h
-index 2201da0afecc..0232d983b715 100644
---- a/include/linux/sched/mm.h
-+++ b/include/linux/sched/mm.h
-@@ -178,7 +178,7 @@ static inline void mm_update_next_owner(struct mm_struct *mm)
- #endif
+ 	unsigned long flags = READ_ONCE(folio->flags.f);
  
- extern void arch_pick_mmap_layout(struct mm_struct *mm,
--				  struct rlimit *rlim_stack);
-+				  const struct rlimit *rlim_stack);
+@@ -154,14 +154,14 @@ static inline int folio_lru_refs(struct folio *folio)
+ 	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + 1;
+ }
  
- unsigned long
- arch_get_unmapped_area(struct file *filp, unsigned long addr,
-@@ -211,7 +211,7 @@ generic_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
- 				  unsigned long flags, vm_flags_t vm_flags);
- #else
- static inline void arch_pick_mmap_layout(struct mm_struct *mm,
--					 struct rlimit *rlim_stack) {}
-+					 const struct rlimit *rlim_stack) {}
- #endif
- 
- static inline bool in_vfork(struct task_struct *tsk)
-diff --git a/mm/util.c b/mm/util.c
-index f5a35efba7bf..24f08217cd95 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -431,7 +431,8 @@ static int mmap_is_legacy(const struct rlimit *const rlim_stack)
- #define MIN_GAP		(SZ_128M)
- #define MAX_GAP		(STACK_TOP / 6 * 5)
- 
--static unsigned long mmap_base(unsigned long rnd, struct rlimit *rlim_stack)
-+static unsigned long mmap_base(const unsigned long rnd,
-+			       const struct rlimit *const rlim_stack)
+-static inline int folio_lru_gen(struct folio *folio)
++static inline int folio_lru_gen(const struct folio *folio)
  {
- #ifdef CONFIG_STACK_GROWSUP
+ 	unsigned long flags = READ_ONCE(folio->flags.f);
+ 
+ 	return ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
+ }
+ 
+-static inline bool lru_gen_is_active(struct lruvec *lruvec, int gen)
++static inline bool lru_gen_is_active(const struct lruvec *const lruvec, const int gen)
+ {
+ 	unsigned long max_seq = lruvec->lrugen.max_seq;
+ 
+@@ -217,12 +217,13 @@ static inline void lru_gen_update_size(struct lruvec *lruvec, struct folio *foli
+ 	VM_WARN_ON_ONCE(lru_gen_is_active(lruvec, old_gen) && !lru_gen_is_active(lruvec, new_gen));
+ }
+ 
+-static inline unsigned long lru_gen_folio_seq(struct lruvec *lruvec, struct folio *folio,
++static inline unsigned long lru_gen_folio_seq(const struct lruvec *const lruvec,
++					      const struct folio *const folio,
+ 					      bool reclaiming)
+ {
+ 	int gen;
+ 	int type = folio_is_file_lru(folio);
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	const struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
  	/*
-@@ -462,7 +463,8 @@ static unsigned long mmap_base(unsigned long rnd, struct rlimit *rlim_stack)
- #endif
+ 	 * +-----------------------------------+-----------------------------------+
+@@ -302,7 +303,8 @@ static inline bool lru_gen_del_folio(struct lruvec *lruvec, struct folio *folio,
+ 	return true;
  }
  
--void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
-+void arch_pick_mmap_layout(struct mm_struct *const mm,
-+			   const struct rlimit *const rlim_stack)
+-static inline void folio_migrate_refs(struct folio *new, struct folio *old)
++static inline void folio_migrate_refs(struct folio *const new,
++				      const struct folio *const old)
  {
- 	unsigned long random_factor = 0UL;
+ 	unsigned long refs = READ_ONCE(old->flags.f) & LRU_REFS_MASK;
  
-@@ -478,7 +480,8 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
- 	}
+@@ -330,7 +332,7 @@ static inline bool lru_gen_del_folio(struct lruvec *lruvec, struct folio *folio,
+ 	return false;
  }
- #elif defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
--void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
-+void arch_pick_mmap_layout(struct mm_struct *const mm,
-+			   const struct rlimit *const rlim_stack)
+ 
+-static inline void folio_migrate_refs(struct folio *new, struct folio *old)
++static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
  {
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
- 	mm_flags_clear(MMF_TOPDOWN, mm);
+ 
+ }
+@@ -508,7 +510,7 @@ static inline void dec_tlb_flush_pending(struct mm_struct *mm)
+ 	atomic_dec(&mm->tlb_flush_pending);
+ }
+ 
+-static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
++static inline bool mm_tlb_flush_pending(const struct mm_struct *const mm)
+ {
+ 	/*
+ 	 * Must be called after having acquired the PTL; orders against that
+@@ -521,7 +523,7 @@ static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
+ 	return atomic_read(&mm->tlb_flush_pending);
+ }
+ 
+-static inline bool mm_tlb_flush_nested(struct mm_struct *mm)
++static inline bool mm_tlb_flush_nested(const struct mm_struct *const mm)
+ {
+ 	/*
+ 	 * Similar to mm_tlb_flush_pending(), we must have acquired the PTL
+@@ -605,7 +607,7 @@ pte_install_uffd_wp_if_needed(struct vm_area_struct *vma, unsigned long addr,
+ 	return false;
+ }
+ 
+-static inline bool vma_has_recency(struct vm_area_struct *vma)
++static inline bool vma_has_recency(const struct vm_area_struct *const vma)
+ {
+ 	if (vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))
+ 		return false;
 -- 
 2.47.2
 
