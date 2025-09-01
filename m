@@ -1,208 +1,216 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7212361FFE;
-	Mon,  1 Sep 2025 19:15:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431E6EEC0
+	for <sparclinux@vger.kernel.org>; Mon,  1 Sep 2025 20:50:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756754154; cv=none; b=eYIftXpEsBOweuExo+AEDICh7k9Vv/kC2iGHHjgKvIuudMxyfNiHg5crkxWRcaCwiyVC1SUVmR9uMQLEuQ52L0YrSYtdFrXy1dg5V+FBlZRNTe8J/9NUduEadY/lqCMaaWjScrl7FuxZwvAF2RWqRx2BGmAiTtZEEPOms260HZ0=
+	t=1756759832; cv=none; b=c3NISANF3oy8rJJTrYes0V/wFmtFRDBCwiulsSOfPrKHlTysWLZv5wiV2wQ13CgmEIxEPr8k0pv911UYgccsFVZlnRTH4N8EvKLrk0fTzl6dzazIBzFszrvn7K4VCwDKKjmOoRL7F39JKBYTY+LN+FQxameOWRU0VPoUKD2QMaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756754154; c=relaxed/simple;
-	bh=OADMjKVbGZfBk51AbgGnVNr30EslqXh3LG8I+WsA9So=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=VBTuhqLUJ8UL04vumhNMso7J1Z96QTUQCiwjQtKj0inGQ8fLOXksAWpDNQxxWphv1J00YrcgVbaUKgxNY8bxe+h1t6bjWlJJNfE0hE+OJ1azJWgS9jzh5QLXDEF8WCpHS4XS6x3s1sH/RTpRWzqKDHlYcpzqz9NMTfrc1KUMSMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=BnRKBzEb; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1756759832; c=relaxed/simple;
+	bh=r3gId/u5LD1LKIELYHoNIdIwUxYyWCHrBFDvgyaA1xM=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=KbJJZI+9cTfJPJ2SIIbnqUCtFq4cbsp8pbTaG5iAUduE2IZU47iPpnXbw2/9PRzZ4I/kJaIWE9JNNWlJhWv953Y0plSepJbfNCdDvLRPxxQWGcHhsKBQvQgtPUt4Eu+Sj5oQoyR8GrFOyjpMUj4toSGLjdpydTWg/yfaTxn86Lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=SuoDHvXQ; arc=none smtp.client-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="BnRKBzEb"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=iZPEGen8QTpPxF7VLTtnf0+MPAzM/HXhQaSGFhICRNk=; t=1756754150;
-	x=1757358950; b=BnRKBzEbRD/stOEI3LKBqFw0ZwIfjnLF5dPFBP+jKTOmshIBioZ8qM2xfIsNG
-	I/WJDsgztDrMQTla/8YvvinGah8zeamob3IAMWuhrI5541ZoTqIKDxZi1O9+3wDjssWACx6WkDB3G
-	5wllQlGvLpCnY4670nAqAYra0v8XXKPb9ye5wW9yzcgKQqZTCUsVhGp+q7wkTJnmBHpViCj5g8oUs
-	ZuQp/oV01hVbs2BFeTNiXreZ/ZYi8WHMAWZec2uhp8bg/kc7Rb00meUCp0j5JbmzAbLG6AkLG2Hn1
-	THdgRxCCcgW0dfmfukKzCq8SFj8mvaVHoCkpApBuWgf1D+1c0Q==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1utA0K-00000001ran-03dp; Mon, 01 Sep 2025 21:15:48 +0200
-Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1utA0J-000000018Ib-3Juh; Mon, 01 Sep 2025 21:15:47 +0200
-Message-ID: <98564e2e68df2dda0e00c67a75c7f7dfedb33c7e.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v2 1/1] sparc: fix accurate exception reporting in
- copy_{from,to}_user for M7
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, 
-	linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, 
- Anthony Yznaga <anthony.yznaga@oracle.com>, Tony Rodriguez
- <unixpro1970@gmail.com>
-Date: Mon, 01 Sep 2025 21:15:47 +0200
-In-Reply-To: <20250828130456.2335-1-kernel@mkarcher.dialup.fu-berlin.de>
-References: 
-	<aecb14d84b1af658a87a2b1ba3a49ac13d39560e.camel@physik.fu-berlin.de>
-	 <20250828130456.2335-1-kernel@mkarcher.dialup.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="SuoDHvXQ"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-affc2eb83c5so413210066b.2
+        for <sparclinux@vger.kernel.org>; Mon, 01 Sep 2025 13:50:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google; t=1756759827; x=1757364627; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=h+HtzMm8aCoEYebuXFm6wKGd65XfE1qqAFatqE2tqt0=;
+        b=SuoDHvXQuuOwIyBl5RNvbKGcaWwA73psQR7EXfOGEPyVGn3IujNkAi9Azcu8IdGDEE
+         6sUn6DtNskwmB+3UlUVYmwuv/Et0atj65nTbVVlS1TcUGfOrEGuv37r9EdLNYwDE0cfM
+         QKU5O/pL8VCqG0D/KU9T0+aSctYkLtMhYfR8Pqvk3ru8pWzNbjS0VpKHfRjMtc5ss9p6
+         mD88P2026OOvHKRX8xNtuPQlzw2X3l3dJkert1jQMpkKAkbZJYYVz+pklvexBuziXHgO
+         VggIX36FAFYj+G/nBX6075A0n1JBGmeFiHrIVf/X4K4/MgWlNyqmtB2GafXHsr2jCGBN
+         9+8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756759827; x=1757364627;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=h+HtzMm8aCoEYebuXFm6wKGd65XfE1qqAFatqE2tqt0=;
+        b=Mae/rqswILm3pzOdiEaB/D2GbDeZN0YxcP5/sJHYulxVCx9GqTUS6ZKBzd32zFy8zz
+         ALNNL7kHLN5CezqlRGKDdhQD6W466tRX1F2pOg9SKR9P71FvFxR5rn8yi+P6Rs5/mrST
+         yMeTzgJ0jPk7FyUF6lF9HgekoNlvN7iO8v+psm2hqF0Ww1FHxMgWBn/4wUJZ1PD1zh5h
+         Kxi1fqAuVXxY/HD36AjdgwACytf+e9zLe7H3nwREGoOOi+5UJtEPqqrQpdlEq7jRp5r/
+         JEhDOm82VPSP6wf0bebKSeB9y97LMe4J+fBVDy/ibERFy4X0W6P/lw+DTRegA70FmGvS
+         5WnQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXsUQUXS772bmQzOqwbyXGYTzJ+q7fnAHFv2f3n9QuJzi7gT0MUpSkcWJTnBIWnIpTUZQr8o3MX0YCY@vger.kernel.org
+X-Gm-Message-State: AOJu0YxMSq6sP/1KGHnlJHnoPIzLHc7iDWp26twUboSRgJYBfOZ71Kaj
+	3ouAHkf6nafhesN8iqPcN5gnvdgKdoKBIxrK64SjMn+jdw1QvbuAQ9fkJqm4X6XeYHc=
+X-Gm-Gg: ASbGnctNytT/Bi185FKPg7mv1n9o2bLHXTqG/EWY1/2iqrTt/r9cTm8EvQTnVjSlwn2
+	I9CEi3skcsyN+vV9uQbEpJkZgmwYjrpNO+s16IKh0MJR73AK69p03ZUYEqeIr8xdLW5zkW3cmCF
+	oril07P8S+4ojB7OzVt2jMspLptPkVYoLukog4tNJLHDdy06QX0l2htaqkKcl9tMcdX4uJxk/v3
+	D2kpZB1KUF9CeA937y6T5gie57MUzh3i/HpbzQ8stEn+LgkRoY6tU+kLXGeLNTGjNKZ2LTH8ptC
+	RbNrh1IX9Fuyg7p6/D/614EaVUsSEgrtBuz1gCTU1i2n8vrl4rkV+LaGfGU3sO/in8X93sXPz0i
+	x+9ZRWa++eFGpvE9AG4mmPKhUXyx7t8c2iSC4dFK0k64nXrud/BQOTJFbGvGcDrw5rhhsV2NPt9
+	Dtyhej6WolqvPn4WPv9lhIDA==
+X-Google-Smtp-Source: AGHT+IFm8ymM2lVjoF6wSC8TwGE2I+pinvEWrAbXATzLNjz68TsRuYVhbwX52a8lzV2r8vSv8pkRWA==
+X-Received: by 2002:a17:907:cd07:b0:b04:37b2:c1a5 with SMTP id a640c23a62f3a-b0437b2eb32mr399274666b.34.1756759827409;
+        Mon, 01 Sep 2025 13:50:27 -0700 (PDT)
+Received: from raven.intern.cm-ag (p200300dc6f1d0f00023064fffe740809.dip0.t-ipconnect.de. [2003:dc:6f1d:f00:230:64ff:fe74:809])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-afefcbd9090sm937339066b.69.2025.09.01.13.50.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Sep 2025 13:50:27 -0700 (PDT)
+From: Max Kellermann <max.kellermann@ionos.com>
+To: akpm@linux-foundation.org,
+	david@redhat.com,
+	axelrasmussen@google.com,
+	yuanchu@google.com,
+	willy@infradead.org,
+	hughd@google.com,
+	mhocko@suse.com,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	vishal.moola@gmail.com,
+	linux@armlinux.org.uk,
+	James.Bottomley@HansenPartnership.com,
+	deller@gmx.de,
+	agordeev@linux.ibm.com,
+	gerald.schaefer@linux.ibm.com,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	dave.hansen@linux.intel.com,
+	luto@kernel.org,
+	peterz@infradead.org,
+	tglx@linutronix.de,
+	mingo@redhat.com,
+	bp@alien8.de,
+	x86@kernel.org,
+	hpa@zytor.com,
+	chris@zankel.net,
+	jcmvbkbc@gmail.com,
+	viro@zeniv.linux.org.uk,
+	brauner@kernel.org,
+	jack@suse.cz,
+	weixugc@google.com,
+	baolin.wang@linux.alibaba.com,
+	rientjes@google.com,
+	shakeel.butt@linux.dev,
+	max.kellermann@ionos.com,
+	thuth@redhat.com,
+	broonie@kernel.org,
+	osalvador@suse.de,
+	jfalempe@redhat.com,
+	mpe@ellerman.id.au,
+	nysal@linux.ibm.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-parisc@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH v6 00/12] mm: establish const-correctness for pointer parameters
+Date: Mon,  1 Sep 2025 22:50:09 +0200
+Message-ID: <20250901205021.3573313-1-max.kellermann@ionos.com>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Transfer-Encoding: 8bit
 
-Hello,
+For improved const-correctness in the low-level memory-management
+subsystem, which provides a basis for further const-ification further
+up the call stack (e.g. filesystems).
 
-On Thu, 2025-08-28 at 15:04 +0200, Michael Karcher wrote:
-> Fixes 34060b8fffa7 ("arch/sparc: Add accurate exception reporting in M7me=
-mcpy")
-> Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-> ---
->  arch/sparc/lib/M7memcpy.S     | 20 ++++++++++----------
->  arch/sparc/lib/Memcpy_utils.S |  9 +++++++++
->  2 files changed, 19 insertions(+), 10 deletions(-)
->=20
-> diff --git a/arch/sparc/lib/M7memcpy.S b/arch/sparc/lib/M7memcpy.S
-> index cbd42ea7c3f7..99357bfa8e82 100644
-> --- a/arch/sparc/lib/M7memcpy.S
-> +++ b/arch/sparc/lib/M7memcpy.S
-> @@ -696,16 +696,16 @@ FUNC_NAME:
->  	EX_LD_FP(LOAD(ldd, %o4+40, %f26), memcpy_retl_o2_plus_o5_plus_40)
->  	faligndata %f24, %f26, %f10
->  	EX_ST_FP(STORE(std, %f6, %o0+24), memcpy_retl_o2_plus_o5_plus_40)
-> -	EX_LD_FP(LOAD(ldd, %o4+48, %f28), memcpy_retl_o2_plus_o5_plus_40)
-> +	EX_LD_FP(LOAD(ldd, %o4+48, %f28), memcpy_retl_o2_plus_o5_plus_32)
->  	faligndata %f26, %f28, %f12
-> -	EX_ST_FP(STORE(std, %f8, %o0+32), memcpy_retl_o2_plus_o5_plus_40)
-> +	EX_ST_FP(STORE(std, %f8, %o0+32), memcpy_retl_o2_plus_o5_plus_32)
->  	add	%o4, 64, %o4
-> -	EX_LD_FP(LOAD(ldd, %o4-8, %f30), memcpy_retl_o2_plus_o5_plus_40)
-> +	EX_LD_FP(LOAD(ldd, %o4-8, %f30), memcpy_retl_o2_plus_o5_plus_24)
->  	faligndata %f28, %f30, %f14
-> -	EX_ST_FP(STORE(std, %f10, %o0+40), memcpy_retl_o2_plus_o5_plus_40)
-> -	EX_ST_FP(STORE(std, %f12, %o0+48), memcpy_retl_o2_plus_o5_plus_40)
-> +	EX_ST_FP(STORE(std, %f10, %o0+40), memcpy_retl_o2_plus_o5_plus_24)
-> +	EX_ST_FP(STORE(std, %f12, %o0+48), memcpy_retl_o2_plus_o5_plus_16)
->  	add	%o0, 64, %o0
-> -	EX_ST_FP(STORE(std, %f14, %o0-8), memcpy_retl_o2_plus_o5_plus_40)
-> +	EX_ST_FP(STORE(std, %f14, %o0-8), memcpy_retl_o2_plus_o5_plus_8)
->  	fsrc2	%f30, %f14
->  	bgu,pt	%xcc, .Lunalign_sloop
->  	 prefetch [%o4 + (8 * BLOCK_SIZE)], 20
-> @@ -728,7 +728,7 @@ FUNC_NAME:
->  	add	%o4, 8, %o4
->  	faligndata %f0, %f2, %f16
->  	subcc	%o5, 8, %o5
-> -	EX_ST_FP(STORE(std, %f16, %o0), memcpy_retl_o2_plus_o5)
-> +	EX_ST_FP(STORE(std, %f16, %o0), memcpy_retl_o2_plus_o5_plus_8)
->  	fsrc2	%f2, %f0
->  	bgu,pt	%xcc, .Lunalign_by8
->  	 add	%o0, 8, %o0
-> @@ -772,7 +772,7 @@ FUNC_NAME:
->  	subcc	%o5, 0x20, %o5
->  	EX_ST(STORE(stx, %o3, %o0 + 0x00), memcpy_retl_o2_plus_o5_plus_32)
->  	EX_ST(STORE(stx, %g2, %o0 + 0x08), memcpy_retl_o2_plus_o5_plus_24)
-> -	EX_ST(STORE(stx, %g7, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_24)
-> +	EX_ST(STORE(stx, %g7, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_16)
->  	EX_ST(STORE(stx, %o4, %o0 + 0x18), memcpy_retl_o2_plus_o5_plus_8)
->  	bne,pt	%xcc, 1b
->  	 add	%o0, 0x20, %o0
-> @@ -804,12 +804,12 @@ FUNC_NAME:
->  	brz,pt	%o3, 2f
->  	 sub	%o2, %o3, %o2
-> =20
-> -1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), memcpy_retl_o2_plus_g1)
-> +1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), memcpy_retl_o2_plus_o3)
->  	add	%o1, 1, %o1
->  	subcc	%o3, 1, %o3
->  	add	%o0, 1, %o0
->  	bne,pt	%xcc, 1b
-> -	 EX_ST(STORE(stb, %g2, %o0 - 0x01), memcpy_retl_o2_plus_g1_plus_1)
-> +	 EX_ST(STORE(stb, %g2, %o0 - 0x01), memcpy_retl_o2_plus_o3_plus_1)
->  2:
->  	and	%o1, 0x7, %o3
->  	brz,pn	%o3, .Lmedium_noprefetch_cp
-> diff --git a/arch/sparc/lib/Memcpy_utils.S b/arch/sparc/lib/Memcpy_utils.=
-S
-> index 64fbac28b3db..207343367bb2 100644
-> --- a/arch/sparc/lib/Memcpy_utils.S
-> +++ b/arch/sparc/lib/Memcpy_utils.S
-> @@ -137,6 +137,15 @@ ENTRY(memcpy_retl_o2_plus_63_8)
->  	ba,pt	%xcc, __restore_asi
->  	 add	%o2, 8, %o0
->  ENDPROC(memcpy_retl_o2_plus_63_8)
-> +ENTRY(memcpy_retl_o2_plus_o3)
-> +	ba,pt	%xcc, __restore_asi
-> +	 add	%o2, %o3, %o0
-> +ENDPROC(memcpy_retl_o2_plus_o3)
-> +ENTRY(memcpy_retl_o2_plus_o3_plus_1)
-> +	add	%o3, 1, %o3
-> +	ba,pt	%xcc, __restore_asi
-> +	 add	%o2, %o3, %o0
-> +ENDPROC(memcpy_retl_o2_plus_o3_plus_1)
->  ENTRY(memcpy_retl_o2_plus_o5)
->  	ba,pt	%xcc, __restore_asi
->  	 add	%o2, %o5, %o0
+This patch series splitted into smaller patches was initially posted
+as a single large patch:
 
-I have had the chance to test this patch on a SPARC S7 machine. After addin=
-g the
-CPU detection fixes from Oracle's UEK kernel [1][2][3] and making sure that
-sparc_m7_patch was invoked for SPARC S7 to enable the M7-specific copy_{fro=
-m,to}_user
-code, I can confirm that the machine runs stable with the patch above.
+ https://lore.kernel.org/lkml/20250827192233.447920-1-max.kellermann@ionos.com/
 
-I even verified that the CPU detection works properly and calls sparc_m7_pa=
-tch by
-using the following hack which made the SPARC S7 indeed hang at boot:
+I started this work when I tried to constify the Ceph filesystem code,
+but found that to be impossible because many "mm" functions accept
+non-const pointer, even though they modify nothing.
 
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index c305486501dc..2de3d5139e1f 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -613,8 +613,9 @@ niagara_tlb_fixup:
-        cmp     %g1, SUN4V_CHIP_SPARC_M8
-        be,pt   %xcc, sparc_m7_patch
-         nop
-+sparc_s7_loop:
-        cmp     %g1, SUN4V_CHIP_SPARC_S7
--       be,pt   %xcc, sparc_m7_patch
-+       be,pt   %xcc, sparc_s7_loop
-         nop
-=20
-        call    generic_patch_copyops
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+---
+v1 -> v2:
+- made several parameter values const (i.e. the pointer address, not
+  just the pointed-to memory), as suggested by Andrew Morton and
+  Yuanchu Xie
+- drop existing+obsolete "extern" keywords on lines modified by these
+  patches (suggested by Vishal Moola)
+- add missing parameter names on lines modified by these patches
+  (suggested by Vishal Moola)
+- more "const" pointers (e.g. the task_struct passed to
+  process_shares_mm())
+- add missing "const" to s390, fixing s390 build failure
+- moved the mmap_is_legacy() change in arch/s390/mm/mmap.c from 08/12
+  to 06/12 (suggested by Vishal Moola)
 
+v2 -> v3:
+- remove garbage from 06/12
+- changed tags on subject line (suggested by Matthew Wilcox)
 
-Additionally, the owner of this machine, Tony Rodriguez stress-ng and hardi=
-nfo2
-tests without any problems. Both passed.
+v3 -> v4:
+- more verbose commit messages including a listing of function names
+  (suggested by David Hildenbrand and Lorenzo Stoakes)
 
-Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+v4 -> v5:
+- back to shorter commit messages after an agreement between David
+  Hildenbrand and Lorenzo Stoakes was found
 
-Adrian
+v5 -> v6:
+- fix inconsistent constness of assert_fault_locked()
+- revert the const parameter value change from v2 (requested by
+  Lorenzo Stoakes)
+- revert the long cover letter, removing long explanations again
+  (requested by Lorenzo Stoakes)
 
-> [1] https://github.com/oracle/linux-uek/commit/71051596a59897d6fe577d9218=
-4081fbccada7af
-> [2] https://github.com/oracle/linux-uek/commit/01bd59051e17dc04785211350a=
-05fd337460b86b
-> [3] https://github.com/oracle/linux-uek/commit/e3125b871798dcd831daaf70bb=
-05ff3f005277fb
+Max Kellermann (12):
+  mm: constify shmem related test functions for improved
+    const-correctness
+  mm: constify pagemap related test/getter functions
+  mm: constify zone related test/getter functions
+  fs: constify mapping related test functions for improved
+    const-correctness
+  mm: constify process_shares_mm() for improved const-correctness
+  mm, s390: constify mapping related test/getter functions
+  parisc: constify mmap_upper_limit() parameter
+  mm: constify arch_pick_mmap_layout() for improved const-correctness
+  mm: constify ptdesc_pmd_pts_count() and folio_get_private()
+  mm: constify various inline functions for improved const-correctness
+  mm: constify assert/test functions in mm.h
+  mm: constify highmem related functions for improved const-correctness
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+ arch/arm/include/asm/highmem.h      |  6 +--
+ arch/parisc/include/asm/processor.h |  2 +-
+ arch/parisc/kernel/sys_parisc.c     |  2 +-
+ arch/s390/mm/mmap.c                 |  6 +--
+ arch/sparc/kernel/sys_sparc_64.c    |  2 +-
+ arch/x86/mm/mmap.c                  |  6 +--
+ arch/xtensa/include/asm/highmem.h   |  2 +-
+ include/linux/fs.h                  |  6 +--
+ include/linux/highmem-internal.h    | 36 +++++++++---------
+ include/linux/highmem.h             |  8 ++--
+ include/linux/mm.h                  | 56 +++++++++++++--------------
+ include/linux/mm_inline.h           | 25 ++++++------
+ include/linux/mm_types.h            |  4 +-
+ include/linux/mmzone.h              | 42 ++++++++++----------
+ include/linux/pagemap.h             | 59 +++++++++++++++--------------
+ include/linux/sched/mm.h            |  4 +-
+ include/linux/shmem_fs.h            |  4 +-
+ mm/highmem.c                        | 10 ++---
+ mm/oom_kill.c                       |  6 +--
+ mm/shmem.c                          |  6 +--
+ mm/util.c                           | 16 ++++----
+ 21 files changed, 155 insertions(+), 153 deletions(-)
+
+-- 
+2.47.2
+
