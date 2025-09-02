@@ -1,72 +1,72 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE085261593
-	for <sparclinux@vger.kernel.org>; Tue,  2 Sep 2025 08:04:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA582BF016
+	for <sparclinux@vger.kernel.org>; Tue,  2 Sep 2025 08:04:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756800268; cv=none; b=ZKSpPfXcEIHTt8y7C2YtgmAn9Vi+l4cSOhsZDfHDwLfXaPjzkIKZrlb+KGOagpfLFzmi5jwBI3DwtZE0fu4fFzHMQeXjCk4FBB8CGBxnyXof9+LgjCX94LjUGwSdpbG4ZxjW6OitTQejFV9lYe8rnLh6g9KOYN8VY3bXe1jDdHk=
+	t=1756800283; cv=none; b=g3K+d62Pye6+5R+sUQhiPjzyCusVF3SSxUgYCIxYhEi7QXzAA3mXFTlQ+Vak+Bzu8Ap1u6VXtt2fiRIgWF2cNnw1/OXcGRTAOfBoidAS9lRHElUbCIYMVrSvEO5B3ZuQD5QIAfmHCHymWg1C2pawnjSVak6CLqVLZmkEIkrTxPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756800268; c=relaxed/simple;
-	bh=aLBnQ/sWixUeSnRYjB6DD4TPTFZwygIV4Ca20uOgcLY=;
+	s=arc-20240116; t=1756800283; c=relaxed/simple;
+	bh=TixXyMucQg9+dePO0Ne+94/MuOkd/h8327/+KdJ5y3s=;
 	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=SO6b7zO2LB2yqpHwwJmEEO/9IxlBINLW+Oy0X523kmnrrE1xXL5PwwS+nDZSmUFLDqSAxhd4YOM1SxyXJ4KfHy1Jjasvs3RI/u4b0Rk48B+etKOKtwfIQa4XqfBivXI7X/8jZ5UD2fXEcMvGQk2iYiJIwmP+pIRsnA/RA3J3vl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LrgYzwFi; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=CJxj103Si6XB/aNae+oPe2JSkxqxFKobWWWmlGE8XynKWcaRKYsxjZ3aMI50srf/zgOg6zktTJ1sYuNuI661p5fdgvAi02+DwYfTfLuS7CJlLgANFaWcPHNZ896ikfE1MEs4/HOU66W3eaTZEN+hxhdi/12sSAzZmFR3ILAb1H0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=MureTfam; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LrgYzwFi"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MureTfam"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1756800266;
+	s=mimecast20190719; t=1756800280;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=iWRs8dmxjkSLC3xxQFUr/zOxuf3XJeRB+0HV6i1wagU=;
-	b=LrgYzwFiwQC2MTeOwYdhmiTFRgTWxN0hDnmOB7Mi4MLD4VgJSh++DLB8XA6Ib5nexYhUi8
-	r3/doSZtMpukcnuvzHpAHD+WNyhlZCaUV7wza0d2JLb4zIwOb3aaNzTAl8Sox9Pk0HBEed
-	LTQxuF9OPnpAR2bAif1TdXyc3CfMuR8=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=EalNFtN+chVt1kWXz+7zLRnU4M2yFGPucN423JGrZeY=;
+	b=MureTfamOKk2vF4ZEYMNZHKRtSK3SInOpYzwrQgjxDiEnOReem8TqxwLSsuoStIDP8d019
+	+it04sg4cFrwEa60fwTGSwyv/P7B1eZwVFhwC3luX7H3ecoryYhA/sLPCCbFNwSNPEYb1e
+	Tm+GnpltEuKJpGaRom8P4xqDcDYFwwI=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-347-9IS3HlEfPfKNuOMhb1NsxA-1; Tue, 02 Sep 2025 04:04:24 -0400
-X-MC-Unique: 9IS3HlEfPfKNuOMhb1NsxA-1
-X-Mimecast-MFC-AGG-ID: 9IS3HlEfPfKNuOMhb1NsxA_1756800264
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3cbd6cd78efso2285656f8f.1
-        for <sparclinux@vger.kernel.org>; Tue, 02 Sep 2025 01:04:24 -0700 (PDT)
+ us-mta-198-vYhq1WJ7O5WpFumbSxoAUg-1; Tue, 02 Sep 2025 04:04:38 -0400
+X-MC-Unique: vYhq1WJ7O5WpFumbSxoAUg-1
+X-Mimecast-MFC-AGG-ID: vYhq1WJ7O5WpFumbSxoAUg_1756800277
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-45b7f0d1449so18991945e9.0
+        for <sparclinux@vger.kernel.org>; Tue, 02 Sep 2025 01:04:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756800263; x=1757405063;
+        d=1e100.net; s=20230601; t=1756800277; x=1757405077;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=iWRs8dmxjkSLC3xxQFUr/zOxuf3XJeRB+0HV6i1wagU=;
-        b=smTwaG1ubl7m6qsbVa/fYFyL4onHE2XeYY5R24Ap97EMYU+ulrGYuedBAX0JEXO0oc
-         xd48j/KbIM6OZ6/HTOjcBM/ybTn8yfMv1rIagkIFFdNhZ5U4uzn8TZg9Am4TkkyKdGbm
-         W7twBLCQp9QTqN4Xxc/ZL0GN9ofJSvczHv+aJ3BO3uzx6RcheIK7KgKG5xxPAeChca7p
-         M5TYBONtKEnWfhmHgdSQjpc0OvuFBDOYzpm/iWnwaNXZiISRcp5wPsd98msVCeH4QcAM
-         TXStco5FQKUogGDJ/wwGRTgTfAc2/n7UMUBw0wl/pWUaQi6CoGRDDEvh8fMKsKzeUbo7
-         MDVg==
-X-Forwarded-Encrypted: i=1; AJvYcCWkLUlDnE3TI79MSReT42S4TJqnZigdrKKqjMnR/UfxmC8+pURHAUGwWo7PFOFfjncPZrQHXBth7vXf@vger.kernel.org
-X-Gm-Message-State: AOJu0YwRadb/cbZFvaPNf8aPZl+0lj727OvUF5Bqg1zqvKxsqgc5BJMc
-	613AkXbuZTw3uCM7WjqLq+lxRMfgnKznURsJY+anp28SOTznktqjL+cqIqWCR3TtYR2XV84QBFB
-	78KpiRCw8PpmM1Ns/Yk/+HWnmIqiFnQtmWFJpnbajtwsUOZmxaclPWD4u+Rk+9Vc=
-X-Gm-Gg: ASbGncvgHhyuiecVE2N4ClZ21RUqqtaWAGUIbyKr2WB9QAGmevmYN6VruIEUPbP9NRq
-	BO3McxNIIbuAzni04Wi4Y2mFOb1Scrw0YaM3mr5vPsXHtmVB4k2RaTgMX0wUNB5CP5NiiWifLFw
-	66f/+57rT0O5cCBfTEKSs/jP1ykYhtAP5eqbuckQEEijwEy25tbRayCPdg3pU2BT8Jkh7vUMev9
-	9gmlPMP9UqK1GsUq9p6+F5oVL6P0FicmNb1SwGgk452l90j6FoBOOF9zo8MIIZj9MFMZqjlldF5
-	etYoa4ajpsy09CQCD4hMQuSMA1aHS7LnJpBWyGF3nr16YjcH8BPe0uW55fHT9DDcO9j4lIbIwR7
-	H5qSzASL6Dx7+o3b0T5u89/vKrupBU9SlxKObu7TpGUJP+/7OgNWwKz6r+AZs4uFxqys=
-X-Received: by 2002:a05:6000:1ace:b0:3c4:bc55:65e1 with SMTP id ffacd0b85a97d-3d1dd434397mr8245316f8f.24.1756800263185;
-        Tue, 02 Sep 2025 01:04:23 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE7tZ84tBomOiZJ2viM4EfuscitGcpK97LthdnhgXpe3SACLWjKyv/xkWV2kN4g7adtuOE+bw==
-X-Received: by 2002:a05:6000:1ace:b0:3c4:bc55:65e1 with SMTP id ffacd0b85a97d-3d1dd434397mr8245260f8f.24.1756800262587;
-        Tue, 02 Sep 2025 01:04:22 -0700 (PDT)
+        bh=EalNFtN+chVt1kWXz+7zLRnU4M2yFGPucN423JGrZeY=;
+        b=kRRSnEKqPFZgncrQZj/2Adx2+GsMkI/YGeb/0hVTsuFqDlrXagtwtH0YdPvidE9Skx
+         RzIqYAlT7tR3Pu8PnyudBbzTjtjky0LXYS2tImYOsEQuG/ezZP+8O3+ZWUmn7SFyISqO
+         GDN+I/cnaBnil9Ed3nM1J6gok39AW5MlD3mSkGDum0D0+dT9da6oq4rRj8Xq3trNJKMK
+         9UCbqyiRwPVj+mfEVotv1HzA3v2Ng+LLJrOHgljlllwPl3VaaGmDZ+DJKeaF7QnRBlM8
+         h8BoeU5q8tRk0QybfLhSbdjqoxMzsqtsS6jrdEsc3tCsx2zvHgCrX9ik0dikeJQWRyEl
+         RYBQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUE7bsX3GVUo9pghb21aLBLmJj9nYhtK/HkB+jREqxUga9TM5Icy8Ib8/GDXr19oF4Xv2z7PTzBfrg5@vger.kernel.org
+X-Gm-Message-State: AOJu0YwuEIrtpgcwsmMgxF+rvROnC1HTe7prlyTACsGK1MBKnLRARKYy
+	ulYQvNJsSiJyKhk0k3NYXoHzs4lB0pMcz9DgFTkinszidKkjZm3mByKp64ipmRAEN2j2unGDZY+
+	bnmJrVDkRaSPdflskgiOYub9vgZw3qtSnIUAEvMY4Fq6XzgCd5t05Gp2kMW27+IQ=
+X-Gm-Gg: ASbGncsdd2xOx5ytZPiKRZ7qmaVbC4KS7wNK3or1jIjs6BIvq5Arky1WzcSVXQldWQN
+	CpUk9UwcZ1CbZJfRpKAe9mbsFQJpbo0x5GkP1MfCYJEJuMyjSZqED2ngtuoKEV5idzDD2iez/oq
+	Z8UUuKEEhwD+yy7KHPXvu/62Z8Kn99Qhc+a5Ha58Y7PikALiPLU256jlFRlUNGSc0dUzDy37+ya
+	dbj0e8Z0j20sAYEvGxkjhZDxTrLVDeG+s1yUWim2Pyla4uwc+lvi4PLq+/UNss3kKUr27PCA10f
+	+O9YHjHH/q+nXbFp8sQB6hz5VaUUQBXyeCoc+JYyY6cALlTkzxZmRDxpLfRAlysma5aVe2CJG7y
+	reDofRAW9YV3Fww26LJSWky6JQI53NmigyBL89/4iHmYB3TVpEaA5AKtDSmdOHeJyCD4=
+X-Received: by 2002:a05:600c:8b23:b0:459:d5d1:d602 with SMTP id 5b1f17b1804b1-45b8553f3ffmr76826925e9.3.1756800277287;
+        Tue, 02 Sep 2025 01:04:37 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHUEZtP95ugs646PGz4UIdMjajX1YQHCtEc6TeS6pl/GiZHBNAyUJLa/Gk3WYfSoVppsVojEw==
+X-Received: by 2002:a05:600c:8b23:b0:459:d5d1:d602 with SMTP id 5b1f17b1804b1-45b8553f3ffmr76826165e9.3.1756800276684;
+        Tue, 02 Sep 2025 01:04:36 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f1f:3f00:731a:f5e5:774e:d40c? (p200300d82f1f3f00731af5e5774ed40c.dip0.t-ipconnect.de. [2003:d8:2f1f:3f00:731a:f5e5:774e:d40c])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45b7e8ab14esm200784145e9.21.2025.09.02.01.04.19
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45b8d0d106esm41976555e9.2.2025.09.02.01.04.34
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Sep 2025 01:04:21 -0700 (PDT)
-Message-ID: <5529a696-4f6f-4bb9-9bc2-ba5f9f72ec8d@redhat.com>
-Date: Tue, 2 Sep 2025 10:04:19 +0200
+        Tue, 02 Sep 2025 01:04:35 -0700 (PDT)
+Message-ID: <dfd5a1e5-b655-484f-8a6c-31bbce6fc79a@redhat.com>
+Date: Tue, 2 Sep 2025 10:04:33 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -74,8 +74,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 06/12] mm, s390: constify mapping related test/getter
- functions
+Subject: Re: [PATCH v6 07/12] parisc: constify mmap_upper_limit() parameter
 To: Max Kellermann <max.kellermann@ionos.com>, akpm@linux-foundation.org,
  axelrasmussen@google.com, yuanchu@google.com, willy@infradead.org,
  hughd@google.com, mhocko@suse.com, linux-kernel@vger.kernel.org,
@@ -96,7 +95,7 @@ To: Max Kellermann <max.kellermann@ionos.com>, akpm@linux-foundation.org,
  linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
  linux-fsdevel@vger.kernel.org
 References: <20250901205021.3573313-1-max.kellermann@ionos.com>
- <20250901205021.3573313-7-max.kellermann@ionos.com>
+ <20250901205021.3573313-8-max.kellermann@ionos.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -143,23 +142,15 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20250901205021.3573313-7-max.kellermann@ionos.com>
+In-Reply-To: <20250901205021.3573313-8-max.kellermann@ionos.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 01.09.25 22:50, Max Kellermann wrote:
 > For improved const-correctness.
 > 
-> We select certain test functions which either invoke each other,
-> functions that are already const-ified, or no further functions.
-> 
-> It is therefore relatively trivial to const-ify them, which
-> provides a basis for further const-ification further up the call
-> stack.
-> 
-> (Even though seemingly unrelated, this also constifies the pointer
-> parameter of mmap_is_legacy() in arch/s390/mm/mmap.c because a copy of
-> the function exists in mm/util.c.)
+> This piece is necessary to make the `rlim_stack` parameter to
+> mmap_base() const.
 > 
 > Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
 > Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
