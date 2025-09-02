@@ -1,86 +1,107 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from exactco.de (exactco.de [176.9.10.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20302FF159;
-	Tue,  2 Sep 2025 11:44:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 567C72DCF70;
+	Tue,  2 Sep 2025 16:38:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=176.9.10.151
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756813502; cv=none; b=GqVCtkGags45mKFqBAVTH1SuSl8cOdxReSIHiVDZK4PtJwXMZrWkUUW28i+ltsja/j2PSQdc2bVpZEZ9kdzKilKaqVolRm1feS6udwLb/ia3eNfhP7ZAxnr9pzelqUOxSW6SoGqv95zxrDD+uUTVA7SDeodfkyMSG+m++krA4BE=
+	t=1756831107; cv=none; b=m2cpFuqCdlMXcnygL7dbQ8ThorO16sbOg9jW8jxTb0M129T1BWljWd9K6SznFlCsxDqPmfqfRHeEldIqXqZ/NJOImdfltkRIA8/ZaxUg7e8cNk7pLFZjNUuJPos+GCo8FVLdLuQhkiTpgsZd7EUb+acZ9QIR1KBIh9JQ6xncTXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756813502; c=relaxed/simple;
-	bh=0o5C5Ly/rHsnoowmYx3m8IcTZ1cPVbKim17lOjF7UUg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Yr99fq3LKd2sOGPqzXWTUgrntYafMafyWYpftc7jDAzWfecr0WG1Ub7D8gMijEC4SwxcBl6NFyyJsXN1ld62UMoKvIvLOlitEsQhmblHnR6Fq6O/AY91Lt7Nxv02Mz5VrJhsVI6HlMjwvwjOaRYaMnspm/e0NWPvOj1le/Ik8WI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=jXmzEnXa reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1756831107; c=relaxed/simple;
+	bh=wRWMbZzwaiWrUO3MKkMmjAkflQVO4DecV9CwCrcPJqM=;
+	h=Date:Message-Id:To:Cc:Subject:From:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=Rrjd3VQQ2XEfwBx+u5dgPaqFvJEaAWzp30yoaLBPQPvYhNXXRfrGEeJ8jn8zR+5MqqCy0sRQVxVd4AM923iG0jpb1tlFmUZzAV37pdMKqFp5GvgZ/JeaO6Ij5BnPn42+/d3D1Z0CuWMPB2As4Tu4YjDEDbodOg42bjS0bfjh1y0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=exactcode.com; spf=pass smtp.mailfrom=exactco.de; dkim=pass (2048-bit key) header.d=exactco.de header.i=@exactco.de header.b=QtYwl8Dg; arc=none smtp.client-ip=176.9.10.151
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=exactcode.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=exactco.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="jXmzEnXa"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4cGP6x6Rpwz1FZPJ;
-	Tue,  2 Sep 2025 13:44:57 +0200 (CEST)
-Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4cGP6w5mgsz1FXjD;
-	Tue,  2 Sep 2025 13:44:56 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1756813497;
-	bh=voGobjfJ+JDIyxPuu8fGQb2u9QP7Z513vboXRHjWrpI=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=jXmzEnXapdgWj3k2C76LGG7k/5mt1kwvMqAYSfMFYlJ0dMOQ80Oj2YE0pnZAtNJ4t
-	 tXQk/LzaZA57Nv160y42KGcSc12HLtx5zDkXLTwO001yujBIUCUp0jXWbSqOup1wEK
-	 caelEQWo/j1aiLxV7BPWjSbstlue7ClkuM93YSG2cSzlCJSLWryT6cSw2EEQcr+aVF
-	 FTt0lGn6fnMuHg7U0U6sd3U2Ku9tEiPKwlVMzDHUsOHxPUryMAOV1qAvelOgjen0aR
-	 RoDQinmHdiIG1eCVLztKOXDNMYphrSPAPE4G8u5ceaF4FDq1DzCH6UTTJUx5w29cc0
-	 vZYTj+Lq2QLjQ==
-Message-ID: <92bace9a-b5c4-4ea1-a1f7-4742c15a64a0@gaisler.com>
-Date: Tue, 2 Sep 2025 13:44:56 +0200
+	dkim=pass (2048-bit key) header.d=exactco.de header.i=@exactco.de header.b="QtYwl8Dg"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=exactco.de;
+	s=x; h=Sender:Content-Transfer-Encoding:Content-Type:Mime-Version:References:
+	In-Reply-To:From:Subject:Cc:To:Message-Id:Date:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ZZz2JrcLiYuRx1hqGWQ3qNBjxiTxlP+uNOjhbIQMHJw=; b=QtYwl8Dg3qtTjOAxqkQFcPr7Ur
+	CC6s74tgk9Z5wUcqo9xDOL+IaVfCvgG5vP84vxMsYrAut+Atn4ljlzQVqR+IlRLGqkCR044NLXntO
+	wBdPHt8x2aS97vp6UJd1U0iuMju7Tnqhotg0RKWih+8DjrMEg0dbHjOt8XXyxruDVLZzTEo5dLaS8
+	cewN1LizISQI1eIBB32fJv64NDoxFhLhriJv/2s9tmeHHRYX3JVjXA/WcQsP5rdRrc8NGS0+EdLqc
+	A5wP/vQlbqwRmEQ/X1A2jZq8cF/1vo4GfZfuK51a0g4BrmOMYGXiM0u3+Z98Utk1u/BdK1dilBbaL
+	Qi5z6mng==;
+Date: Tue, 02 Sep 2025 18:38:22 +0200 (CEST)
+Message-Id: <20250902.183822.721197619957773341.rene@exactcode.com>
+To: kernel@mkarcher.dialup.fu-berlin.de
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+ andreas@gaisler.com, glaubitz@physik.fu-berlin.de,
+ anthony.yznaga@oracle.com
+Subject: Re: [PATCH 2/4] sparc: fix accurate exception reporting in
+ copy_{from_to}_user for UltraSPARC III
+From: Rene Rebe <rene@exactcode.com>
+In-Reply-To: <20250826160312.2070-3-kernel@mkarcher.dialup.fu-berlin.de>
+References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+	<20250826160312.2070-3-kernel@mkarcher.dialup.fu-berlin.de>
+X-Mailer: Mew version 6.10 on Emacs 30.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 3/4] arch: copy_thread: pass clone_flags as u64
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Arnd Bergmann <arnd@arndb.de>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- linux-riscv@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- cgroups@vger.kernel.org, linux-security-module@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, netdev@vger.kernel.org,
- linux-perf-users@vger.kernel.org, apparmor@lists.ubuntu.com,
- selinux@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-um@lists.infradead.org
-References: <20250901-nios2-implement-clone3-v2-0-53fcf5577d57@siemens-energy.com>
- <20250901-nios2-implement-clone3-v2-3-53fcf5577d57@siemens-energy.com>
- <f2371539-cd4e-4d70-9576-4bb1c677104c@gaisler.com>
- <11a4d0a953e3a9405177d67f287c69379a2b2f8f.camel@physik.fu-berlin.de>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <11a4d0a953e3a9405177d67f287c69379a2b2f8f.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Sender: rene@exactco.de
 
-On 2025-09-02 09:15, John Paul Adrian Glaubitz wrote:
->> Thanks for this and for the whole series! Needed foundation for a
->> sparc32 clone3 implementation as well.
-> 
-> Can you implement clone3 for sparc64 as well?
+Hi,
 
-(heavily pairing down the to list)
+From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
 
-We'll take a look at that as well.
+> Based on a finding by Anthony Yznaga that the UltraSPARC III copy_fro=
+m_user
+> returns invalid values breaking other parts of the kernel in case of =
+a
+> fault, while the generic implementation is correct.
 
-Cheers,
-Andreas
+Tested-by: Ren=E9 Rebe <rene@exactcode.com> # UltraSparc III+ and Ultra=
+Sparc IIIi
 
+> Fixes: ee841d0aff64 ("sparc64: Convert U3copy_{from,to}_user to accur=
+ate exception reporting.")
+> Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+> ---
+>  arch/sparc/lib/U3memcpy.S | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> =
+
+> diff --git a/arch/sparc/lib/U3memcpy.S b/arch/sparc/lib/U3memcpy.S
+> index 9248d59c734c..bace3a18f836 100644
+> --- a/arch/sparc/lib/U3memcpy.S
+> +++ b/arch/sparc/lib/U3memcpy.S
+> @@ -267,6 +267,7 @@ FUNC_NAME:	/* %o0=3Ddst, %o1=3Dsrc, %o2=3Dlen */
+>  	faligndata	%f10, %f12, %f26
+>  	EX_LD_FP(LOAD(ldd, %o1 + 0x040, %f0), U3_retl_o2)
+>  =
+
+> +	and		%o2, 0x3f, %o2
+>  	subcc		GLOBAL_SPARE, 0x80, GLOBAL_SPARE
+>  	add		%o1, 0x40, %o1
+>  	bgu,pt		%XCC, 1f
+> @@ -336,7 +337,6 @@ FUNC_NAME:	/* %o0=3Ddst, %o1=3Dsrc, %o2=3Dlen */
+>  	 * Also notice how this code is careful not to perform a
+>  	 * load past the end of the src buffer.
+>  	 */
+> -	and		%o2, 0x3f, %o2
+>  	andcc		%o2, 0x38, %g2
+>  	be,pn		%XCC, 2f
+>  	 subcc		%g2, 0x8, %g2
+> -- =
+
+> 2.50.1
+> =
+
+> =
+
+
+-- =
+
+  Ren=E9 Rebe, ExactCODE GmbH, Berlin, Germany
+  https://exactcode.com | https://t2linux.com | https://rene.rebe.de
