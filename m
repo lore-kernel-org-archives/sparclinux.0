@@ -1,315 +1,234 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BA012DF120;
-	Tue,  2 Sep 2025 06:20:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756794059; cv=fail; b=lyrsd1GNF4fPLKgYKxB/VjAaz6c8+RsO5tIgiUkm1yuD3H7Bz25FYiTCrhT0XeYJ3xqY9V5mqO0c6eeZd6Ncf9lSB666Xg+wejeqvzibwjtcDVWT1Uv0om4s8Wz7JWrzZfqljVyaPD9xEO6+w7/qHeJk4RGUoHbgpBbfi8aKhhU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756794059; c=relaxed/simple;
-	bh=QPH3BSjyJYYsrRZ/Ek91uvkPzdBjzHO2duRajNlMfMg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=ksSRoUlzW/twhjuIigAV6XsJXxIiDv4KLa1fSMrDBbH9op935AaSzBiDUBO4o9BnQnkdnPrQeMgpzMmZpDHi8HOjkHKZK91f960IO2MjmmrAAx9/mE0+Hp06uzZdd9W+OgB3L/DphMXNsNQUwdZHHgk45FNiqC/y2T5xU3R3XTU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=hDmAkNEH; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=T/xKAXsU; arc=fail smtp.client-ip=205.220.177.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A0292E3AEA;
+	Tue,  2 Sep 2025 06:22:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1756794133; cv=none; b=b7jT4RHRHHa9QnNSm0l+7Ys3E9ddfF1AGdlOfEtsFI+1wA6ntM498KFYTtSZgZhNHxFsgtsBgK7M7Ku8RfJCPIVx0ooQIHG7Jk+pRBbW+bHBN6UuCLRYipvbE42UAd6YYAKBuHpaOnaJ8h4glMbH19NpYqKCW2NDWrNDJEsJdOk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1756794133; c=relaxed/simple;
+	bh=/JzarLfnO10vwcVCjWPLp9g0mslhv6ZlQ4oNdQEkKrw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MRL/ChvZyYF41vd8BPNv4AgmlYUBeH0WIF3XIJK5gT0kESpOcXWBQ3ts4iNxi9cJh+vaLmOYY+B9Wu02sfmgwt5Tk4IKAFz/JqjACjlKXjPD8tpnEQBFGG4/1UtwduQOUP/Xe30lib29p2zVptP0x5G6qBK8TL+E+hQifh15urQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=t/mnyW06; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=FvUyXBp+; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="hDmAkNEH";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="T/xKAXsU"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5824g0Gm024792;
-	Tue, 2 Sep 2025 06:20:07 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=corp-2025-04-25; bh=VcmTPfbBh25aWGd8r5
-	qS+r+uNAffq0URSjDSUJRGm4s=; b=hDmAkNEHWgCBsGzVYJtAAKbX9CRZCHiSFs
-	+sKBhmscyWgLMAOmLCIiKakAYfxvG4W3jS/+SF+vZbW+BNom9MWMoLgPxJVSpE2C
-	jiKZ/hofGtqtfdZQICXV1w3f9bEhLHmP/wgyP4r9AQBGQ5/yhWS+/ufKhMVq01b4
-	uBgRVnubtiOPwLlCiH6EYGYi9sGZgGk1jkUw1gjD3549z6h4KHjUmvn1ZLde+LP7
-	vwme5egBeGl5En8sw/b1t1MItA2qoDx49Vb6pFNT7RfR/GSyPTJP+jNv5z+mE2dy
-	PEv/ZYKrPr+sa+H53KM7gaDyeCWuKudIiyXHbWTbE7PibzMCKGAw==
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 48usm9kc0n-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 02 Sep 2025 06:20:07 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 5824XZaS026755;
-	Tue, 2 Sep 2025 06:20:06 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10on2083.outbound.protection.outlook.com [40.107.92.83])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 48v01mygr2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 02 Sep 2025 06:20:06 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Gikb3rP1qol96jVs9Z/weDkAIXjzso28mWfhvOSDWY5tpEKyTPR+yf15+KuEtq+QXeyfeSJyIes7qTSVgisWVS1DAI/rgBKAK0xprBOicQ3Via1lrcCNvpvRIXs6SfDnqsETwjJQ8owAben0m5w3qpOqPBcExEEy27K9T9/cXV7QTH0/dOnYZJiEhAFHfE8jyrOQWxkWtxBNDXkoTJs97gC7ZHCa35tnClNTZeOOFhGidEkyVw85GjE7Vh057RllNO0TYJow9h+RsidW/4sxiOV6J1Vk8MIL5j+Yw++N5nuAoKMpD+oTXQgEdJMqFiaN4jbhQjOL5SLb5weWL1pD8w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=VcmTPfbBh25aWGd8r5qS+r+uNAffq0URSjDSUJRGm4s=;
- b=mY86PlOqPT0d4Tew6nPgp9DimUV9kjTEmMCJ7tVs05SFzmt960bAMaGKwS9/Slhou2ZmvPF3mNZ7FGLIsfqoQEB2Op4dLtYomipB6sFdb9ED4ZnejpdCYK3IdkhHVr037njTUPWWDLUIF4s8RzB7W8FuWt/ulVxV+e6aFnRxzc2oPof4xlfbFKmfcFwoviTVs3EVs+JlHiyxkG4EAc7Q400JW87qlxa+kpkmTo53SpCJ6kLgf71lmwFlzKFyMbUmjS65aKsMjnlI2WoUGDu8MhlBhcNhNFhA6K2BQqnJl9iNWzSKUZErjLpgAEbftcxMeRrornEhf5jKTyFpwewWpw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=VcmTPfbBh25aWGd8r5qS+r+uNAffq0URSjDSUJRGm4s=;
- b=T/xKAXsUkUcFbkPUVC1BS06fP3Ty+iYsrzgAsbiCK4d3uQrCYfYvF2andRELwQgpuzmArCoMaI9P2t9hf8ugjmMibLl62PCNKz1ugS3rj83XnKeoqC+xZ5MQPB5CpBzeHAaHnGRby4pLa7Txzsbm9x+SvrIqFP7qO84PSwwcRWY=
-Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
- by DS7PR10MB5928.namprd10.prod.outlook.com (2603:10b6:8:84::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9094.16; Tue, 2 Sep
- 2025 06:20:01 +0000
-Received: from DM4PR10MB8218.namprd10.prod.outlook.com
- ([fe80::2650:55cf:2816:5f2]) by DM4PR10MB8218.namprd10.prod.outlook.com
- ([fe80::2650:55cf:2816:5f2%5]) with mapi id 15.20.9073.026; Tue, 2 Sep 2025
- 06:20:01 +0000
-Date: Tue, 2 Sep 2025 07:19:58 +0100
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-To: Max Kellermann <max.kellermann@ionos.com>
-Cc: akpm@linux-foundation.org, david@redhat.com, axelrasmussen@google.com,
-        yuanchu@google.com, willy@infradead.org, hughd@google.com,
-        mhocko@suse.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org,
-        surenb@google.com, vishal.moola@gmail.com, linux@armlinux.org.uk,
-        James.Bottomley@hansenpartnership.com, deller@gmx.de,
-        agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com,
-        hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@linux.ibm.com,
-        svens@linux.ibm.com, davem@davemloft.net, andreas@gaisler.com,
-        dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org,
-        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org,
-        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz,
-        weixugc@google.com, baolin.wang@linux.alibaba.com, rientjes@google.com,
-        shakeel.butt@linux.dev, thuth@redhat.com, broonie@kernel.org,
-        osalvador@suse.de, jfalempe@redhat.com, mpe@ellerman.id.au,
-        nysal@linux.ibm.com, linux-arm-kernel@lists.infradead.org,
-        linux-parisc@vger.kernel.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH v6 00/12] mm: establish const-correctness for pointer
- parameters
-Message-ID: <76ec40af-d234-400a-af0f-faeb001c9182@lucifer.local>
-References: <20250901205021.3573313-1-max.kellermann@ionos.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250901205021.3573313-1-max.kellermann@ionos.com>
-X-ClientProxiedBy: LO4P265CA0098.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:2bc::15) To DM4PR10MB8218.namprd10.prod.outlook.com
- (2603:10b6:8:1cc::16)
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="t/mnyW06";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="FvUyXBp+"
+Date: Tue, 2 Sep 2025 08:21:58 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1756794120;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=OXZ4NFZST9k9eCqT7GnCjhCmIr6XUYHHjmpA9MGgNoA=;
+	b=t/mnyW069WDZdYSg1nT6BNAUY4fXh3FNfp/XAK3xQwLYLYj6HoeGPfCNzmZMZ7oReEoBEp
+	DZDoEhPdYML98ymWgf54Z8iJIvtiZU6Bdt5SpGoajpqnnnyVjphOcDCDeKoXyty8ZNjaTO
+	F19lrSSyf2xWFL5Lvgz0STFNTIKUiAaYW3fBKC9zPz5eiX+o9BeAXHXHNKenGYYvWaRd8c
+	SQ+vTCmAJfiYPNujN0Gt58LHVV+X4uEibbFSzSWUXf+/OzTXjjUdZ18oavIjhigKnp5ukZ
+	z1ZKEBrwe7Z1R+q0a+HJeRahyLeT37Y/5rsV/wwvHJPaFHD7IzpGXjcIyAtL4A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1756794120;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=OXZ4NFZST9k9eCqT7GnCjhCmIr6XUYHHjmpA9MGgNoA=;
+	b=FvUyXBp+pWllf4tyaqMG7VZrEVqzZLT81k8wrvlKRbd8zvo2jnAgChYNIaEpLHVH0yGIr9
+	kVK3Ac8hgxflnnDw==
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+	"David S . Miller" <davem@davemloft.net>, Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, 
+	Nick Alcock <nick.alcock@oracle.com>, John Stultz <jstultz@google.com>, 
+	Stephen Boyd <sboyd@kernel.org>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v2 08/13] sparc64: vdso: Switch to the generic vDSO
+ library
+Message-ID: <20250902074631-2f608b5c-ae1d-46a1-9849-15c4543855af@linutronix.de>
+References: <20250815-vdso-sparc64-generic-2-v2-0-b5ff80672347@linutronix.de>
+ <20250815-vdso-sparc64-generic-2-v2-8-b5ff80672347@linutronix.de>
+ <0b223e3d-25af-4897-b513-699dfeedfa04@gaisler.com>
+ <20250826074526-a1463084-366a-44d1-874b-b898f4747451@linutronix.de>
+ <271c108b-0fe4-4e7a-9bc7-325e75cf60ab@gaisler.com>
+ <8f31efde-0212-49b9-a0ea-64d5532c0071@gaisler.com>
+ <20250829122023-948f7969-b6b0-4ae2-9c12-71cc39abcf9e@linutronix.de>
+ <b7ab1bdca349208532804d0d5e5af56817cd25c6.camel@physik.fu-berlin.de>
+ <20250829124314-288d0445-a744-4022-93bf-7da255182411@linutronix.de>
+ <6390486f-ccc7-4f77-8126-1e0b3b67bc75@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|DS7PR10MB5928:EE_
-X-MS-Office365-Filtering-Correlation-Id: 55b659b6-27da-488d-732d-08dde9e8bfb9
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|7053199007;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?UlMLdaRALYxuF49fM+PxJvwsdR9QEgH2PLjm0Yy2XMVnliBTkqEibfdsDhMc?=
- =?us-ascii?Q?rUSTVT+SFGr0dIA4K0vzyPPvKcwOp2bgezreXIMKjsLnp54av36UwZkELpLa?=
- =?us-ascii?Q?+NXqW2rlTuOpBTO/P/mxpbxNIE4O2AANL07Aak1nMGN9pDjmA1XSXq+p33OB?=
- =?us-ascii?Q?CflhavIJk1gtSWNgiZu7ZA3Hg6J6rbcXVCbQkJWupw08outbfJdBb/pQKaOl?=
- =?us-ascii?Q?UgXt/XLDB3hV4RLehQ0nkZv0TSnQU0tlkRM89sfyWuRyPkk2x/px2aMHPUDI?=
- =?us-ascii?Q?l+1dki9VwnDQseJIt7wFGf8nkCiQ/QVSH2NQgCQi9RCwr8mlQ/b+QdK6SKJy?=
- =?us-ascii?Q?cuP1S8WyE7Up0l1U62OR3mt15OYc3MTOtB/hEKx1laFwokIN+qAmpoRGIPOA?=
- =?us-ascii?Q?gdls1jLW1tAcxsCn4SmMcDZNJCp8UBrrIpkRFoVk9yqscctxyJ/pQgv7IS6f?=
- =?us-ascii?Q?enH3i9Vwbmf7h0un9JZCPceYunobwJRL1HGmNT2k3DVTAb8ah1HC9lO8Wp5X?=
- =?us-ascii?Q?KxnihON9uC80KVkZtNXi1rQCsRRKRbxSCoa3V+hpdt2G2Kh1T2r5CDUzxrho?=
- =?us-ascii?Q?OTB0eGqat5zZwJl4TQN6EdJJqvXd9aaaz3RmZPWih9Wui3RCqGEU3/rJvyUR?=
- =?us-ascii?Q?y1J6I5GS5BITnrtgMj0G9Aar7Lvvr7dkO4I1/45CjNwJWieNKlBanZSQd/bT?=
- =?us-ascii?Q?em2PmG+sHNTG0t8AdoNBd9uN+EZpb4VDdqTck+Iqc7i2Dsbf6ZZAkRnhzqb0?=
- =?us-ascii?Q?UbV2xK4zGJrZnJAxJ0ISh6TH9Og+cwLLoerEu8DqAknVr+FjGjE4ckpfXDgY?=
- =?us-ascii?Q?SE45Ze87mZG3vXrVLtT3NZfDqp6UrU2/L7gJCd7g4deKFmUNI7/XBbLoY1o6?=
- =?us-ascii?Q?8BNkCFoKA6Ts1HkMRsBTXlZFBf8GCOh9eBa8UKjTaL/W425jFF5RuErgyPh/?=
- =?us-ascii?Q?gHny7/IjAykeSVsn3ldzvfEzPhpVGcRXvzL0V74ONd4Tx7rczn93ikxDqxp2?=
- =?us-ascii?Q?at9wPdxzle7891LFGgVvhUgzwvFqQ/3gcJ0gglZ2BaI9x5ZLTupMuLB0B3nL?=
- =?us-ascii?Q?ux1driWfn/3FvCrqLsGtfcENv3iINTFI2LD2NFICxLcj6xMy2zI9lPWl4gvz?=
- =?us-ascii?Q?cVM5Lbh85MHw8RkFEHo2V/UlgxdvNns9KxOBsSxJHh9gX/vpSzPyz2yvqSZ2?=
- =?us-ascii?Q?CCRxHE+H8coE6WqlbXlPXjh1puD7Q6dRbMqifsAylSDd/dexL2TcAC+pFUqz?=
- =?us-ascii?Q?ewnij5mLh8K1Q50HKw6KA4MDxPnMsdKY1l+pHkEeBauqbirmz/nTrnIzf+8t?=
- =?us-ascii?Q?dkm1GeCLFO7N6eCqYEAvfMcLqFHWrj3ouhX3fCh99ZLN7D/T5VPuTTVs9GEK?=
- =?us-ascii?Q?Er5jYA8ajbsYLrAm0evJuOdaclMoS7oB4p3Cw+yEICFFanakyfnWDGhY4jW4?=
- =?us-ascii?Q?YFil93G7C+Y=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?ABLb45KiOxrrQQdWsHeXHXuTbUdQ7iqttV1vlHLdhvfS8YSxRgSKG7ehlPTg?=
- =?us-ascii?Q?13HOQ1qPELCw934tA38heKsjV7hUjnAJbsykQtLy59TzJxAhTVuIPkv0tvQX?=
- =?us-ascii?Q?kWjcWw2xaBgvumdcKXhhpifL4flKPiL5b9UvCj5gNLOnXvEV6o0oHqsuHXZZ?=
- =?us-ascii?Q?Z4ha9KeiZRVo49eUQvpzIIUHzjn80ao3mG+6SMpYZirQ9/zYW0IwMmIB2zk2?=
- =?us-ascii?Q?rpOlVuZapb93ztRBC6fjHbJGXm3H7hteGQs23poxAlZiVCzXsiDuatUA/P19?=
- =?us-ascii?Q?5X5UOM3ygAz8gl1SXuOWmjH8jQjet4BkuUpuv3UaM/Nq4fqu193lCZbFk/A1?=
- =?us-ascii?Q?cMgFVyLmJ5ESn24H2Z/Ew+R4hF0PftBlVoEAsq3lwjDHhMNHveAi2aelEmjc?=
- =?us-ascii?Q?odqIndSglNB9cY+DluiezfFY2I6tEoI64d0QMp/YcMvg/T72qEfK24bhpF67?=
- =?us-ascii?Q?Rq8OBNJYoihK1wSpVnzQ+AaQ088hQHIWvV8hccan/wKNbeHdmECjeG7f0blc?=
- =?us-ascii?Q?Wsa8zHMglBL8565rJky2SBeu1u3uueEkko/KxjDBRRYboB23Tb3OMXn8Q0qe?=
- =?us-ascii?Q?xIeRbHmeIv5h6Fgzg+kYz7QbrbLL6J6CMk17vFLIH2WqmcQwD0Q8erW5TsJT?=
- =?us-ascii?Q?OJcqNl27vQg0IBRkDYjFZd9VimYBzbbYeRXr1dTVLm27OSneOXcPPDk9RvrH?=
- =?us-ascii?Q?kBvh6p2jLS9KAKrmsGwlsiRJmfqqpK+RX4wXFKOICV2U4mHIf60Gaslcvn8y?=
- =?us-ascii?Q?x5FWksdBtyjRhT/VEeXUHVVDXjb1kpk28EjFWpIPoHJBTa9QlWiVKjkzx1M+?=
- =?us-ascii?Q?LQjhPlD77nknkrTb/4lRxcyRVYCemckZQ0TIy/x63RWdlS1C89Lz0pN4otJi?=
- =?us-ascii?Q?qsbIDYUpsvAGmW69OvtQDZxOaYC2MfJ5BS6bZF6vnErE6PTrdQto1Bs8s9eU?=
- =?us-ascii?Q?R8yGp1XP18dbj1VXUzoCeGRIlt7g3LycG3dV6slidFS76dk6n48e5sFX2MTe?=
- =?us-ascii?Q?QiBrg1b6kuPj1CoMHs5XqNQ4MUvmm2xU1RvlthMmtGWusB8QIVvG/JIMfmLu?=
- =?us-ascii?Q?Ch8rB4+tR8mz2+N/v1xZb2IMnICJgH6jm0hVkNyxDb2flgAvjatB0nU4YlVv?=
- =?us-ascii?Q?CkGRYJBSEPq8UAOHolINR95yFOjkZtKhQkQalufhEUfJCcLvqBoclVy73Qve?=
- =?us-ascii?Q?g+3wfpvlwiSfJe/2ZxhoJ3DgBy11pfqH1qANHF+aduaoZbvk9ibbYlF5PbOl?=
- =?us-ascii?Q?Rp3Si79OOLpW+VqnZvBbeMFy8b8x5stdsL1wrBaMdhLAA925aQujog89qKmm?=
- =?us-ascii?Q?pDEupr7cnvjKlQ3n6qBvVHwrQpseeEug8YTnHwUoNyPL2LrCJgogwQE8OoID?=
- =?us-ascii?Q?Z8aLF6B8TsAfjEd8rcOqeslNwVTLZbqTmvhrW3nP9fSzGbBf1BAwLGd5QZ8d?=
- =?us-ascii?Q?6EnkrVGR9NmTNm0k45J/ugGakMjAK7Dh12eQ5JOB95VWljxe73pX/5HobJe3?=
- =?us-ascii?Q?HrzR4ILetXIa7EF6GPZGQZaSJhKB2At8F0NdGD0dBbMUjTScm5rOusmz9Jqh?=
- =?us-ascii?Q?rzKGZXrOCBojeHVyVm5ujYAsKLH291NOuMq5joSXSkCjzAKlYj9yKGfOBy69?=
- =?us-ascii?Q?Ig=3D=3D?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	tKqloIeJ+3JTUEUBHwC7cL0jDGndcZ2zMh8s9ogacvnPn1A3mzTXHlnDGcQENccrDciDHrLyvV/6xGQmkiu3nN/5QIDKhAPlYoPi3CYAEPzqwU83QXwlNLWnEr7awRUBgv2iBt14PMrS0wA7zBKy+hX0yrXCyzG9c1noYLxWKh8Rg0G1oFVXmDuUwSbp87p0fVgGUtOEokKKtjzu/v0Q2YTbfhE+wX8aDDs9RWg3G6VLexpAV4JZIKZ69125ZcDTFFvs9PUK1DdK81ozdenoJlX+alzK9wHKXSiTWgthVlKt/EU9q5H2CvcmI5p4RgV5ADzk7q1PEE/STSuD4X6fY7Ofg/aP/1g2XKXFzywTw2ZDQ+0CM19C1mc0qUAjIWt5xZIIbGmDWz9QvZ5E9Z0j5za9KX8dB2bX23O3vJERwFo+BPiVC5hYlZ0x4zk27FQSWKjAIGT2HA1CZy58OZc7M6EY5bGF3Qb9S7rggm46KD6Q+UTtLY9NATkNn2h0+2h2pXCMx5uGOPUDfzbEAjgulIY2UnvyfbAVn2NSS/gIcMs8YVUadhqMeSMeNr+5SNVRmzfr7bE3FJlMDvISt/0kc3Sj+2kz6f3mXjYU9ebG38Y=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 55b659b6-27da-488d-732d-08dde9e8bfb9
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2025 06:20:01.5505
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: CIMBfVWxTiIdSL019bIs7WB7NczJy7Y5gwx9+nxBpkGpjDzVDDnwU7fNldFUfJdqtykOYJalEHaEIDOOlBqM6XkhsmBeknsIN6t/6JTjtuA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR10MB5928
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-09-02_01,2025-08-28_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 spamscore=0 bulkscore=0
- suspectscore=0 adultscore=0 mlxlogscore=999 malwarescore=0 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2508110000
- definitions=main-2509020061
-X-Proofpoint-GUID: QPSwk3BsPzbjMy2l_8gNS9i5P-KprX7g
-X-Authority-Analysis: v=2.4 cv=I7xlRMgg c=1 sm=1 tr=0 ts=68b68c97 cx=c_pps
- a=XiAAW1AwiKB2Y8Wsi+sD2Q==:117 a=XiAAW1AwiKB2Y8Wsi+sD2Q==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
- a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
- a=yJojWOMRYYMA:10 a=GoEa3M9JfhUA:10 a=VwQbUJbxAAAA:8 a=UgJECxHJAAAA:8
- a=lHmRfTpA4gC-4aNflXMA:9 a=CjuIK1q_8ugA:10 a=-El7cUbtino8hM1DCn8D:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODMwMDAzMSBTYWx0ZWRfX0fF6XsViOtuM
- vZFTTirD1yNvPru6uw+9OFnjUm6QyPq1yYLXGjk6QSdYRgXD5FKf8KlsU3hNJRzcDuif9/xdAX4
- Btcn7/7wXC+lzptCDNUPJ0/7BCfwgXHLMxYLtbHqF3D0E10HsGxtiEb/aC81iqHkMiEBZd6L0xm
- QOcIfgTQx1Il85DsnrH7yZRPGetUBcHeKXY4H1QOrYvAvjxDOvvpq8gIBa1nAkweea2mbW4NDjU
- sTuGtJ4Ek71wqKEqbdB6gavQJqR+lFW20AEbEFND+zOG48MKeuvs9CWkNVVKLB32C4yij6IwRVO
- KmNmw/vSkURSUC4eNLTtj/uZuQ0y3UznuEv62Nlk4Q5+UmLuJLTDrt1GMhSnuVlmMWEgQTGR+pz
- fgFJvRV6
-X-Proofpoint-ORIG-GUID: QPSwk3BsPzbjMy2l_8gNS9i5P-KprX7g
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <6390486f-ccc7-4f77-8126-1e0b3b67bc75@app.fastmail.com>
 
-On Mon, Sep 01, 2025 at 10:50:09PM +0200, Max Kellermann wrote:
-> For improved const-correctness in the low-level memory-management
-> subsystem, which provides a basis for further const-ification further
-> up the call stack (e.g. filesystems).
+On Mon, Sep 01, 2025 at 05:17:13PM +0200, Arnd Bergmann wrote:
+> On Fri, Aug 29, 2025, at 12:52, Thomas Weißschuh wrote:
+> > On Fri, Aug 29, 2025 at 12:40:59PM +0200, John Paul Adrian Glaubitz wrote:
+> >> On Fri, 2025-08-29 at 12:37 +0200, Thomas Weißschuh wrote:
+> >> > In the meantime I installed a full Debian, but the bug is still not
+> >> > reproducible in QEMU.
+> >> 
+> >> Please keep in mind that QEMU emulates sun4u (on UltraSPARC II) while
+> >> Andreas was testing on sun4v (on Niagara 4). There might be differences.
+> >
+> > I am aware. Unfortuntely I don't have anything else available.
+> > If anybody could test this on real sun4u that would be great.
+> > Or teach me how to use sun4v QEMU without it crashing on me.
+> > In the past you offered access to a physical machine.
+> > Does this offer still stand? Does it also run into the bug?
+> 
+> It should be enough to set the cpu to a different type. As far
+> as I can tell, the three different cases are all determined by the
+> MMU/CPU ID, not the platform type (sun4u/sun4v).
+> 
+> As far as I can tell, the options are:
+> 
+> - JPS1 (UltraSPARCIII, SPARC64 V) and later use modern 'stick' operations
+> - UltraSparc IIe (Hummingbird) uses 'hbtick' without VDSO
+> - All other plain V9 implementations use 'tick'
+> 
+> To test all three cases, it should be enough to run qemu with e.g.
+> "-cpu Sun-UltraSparc-IV", "-cpu TI-UltraSparc-IIe", and
+> "-cpu TI-UltraSparc-II", respectively.
 
-Great, this succinctly expresses what you want!
+Sun-UltraSparc-IV and TI-UltraSparc-IIe don't boot for me with either my
+Debian-derived config nor sparc64_defconfig, for details see below.
+But looking at Andreas' reports, the issue is not in the tick reading but my
+asm implementation of __arch_get_vdso_u_time_data().
 
->
-> This patch series splitted into smaller patches was initially posted
-> as a single large patch:
->
->  https://lore.kernel.org/lkml/20250827192233.447920-1-max.kellermann@ionos.com/
->
-> I started this work when I tried to constify the Ceph filesystem code,
-> but found that to be impossible because many "mm" functions accept
-> non-const pointer, even though they modify nothing.
 
-And as Vlasta said, this is great context.
+Sun-UltraSparc-IV dies in the second instruction of cheetah_generic_boot:
 
->
-> Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+	OpenBIOS for Sparc64
+	Configuration device id QEMU version 1 machine id 0
+	kernel phys 404000 virt 40004000 size 0x1358650
+	initrd phys 175a000 virt 40c00000 size 0x1727675
+	kernel cmdline root=UUID=ac350b43-e843-40ad-bd55-ec4c2eaeb468
+	CPUs: 1 x SUNW,UltraSPARC-IV
+	UUID: 00000000-0000-0000-0000-000000000000
+	Welcome to OpenBIOS v1.1 built on Sep 24 2024 19:56
+	  Type 'help' for detailed information
+	[sparc64] Kernel already loaded
+	Unhandled Exception 0x0000000000000032
+	PC = 0x0000000040004654 NPC = 0x0000000040004658
+	Stopping execution
 
-Glad we got there in the end :) hopefully having more const-ification will have
-a knock-on effect anyway for future development both by:
+QEMU debugging:
 
-a. People needing to ensure it downstream of this stuff &.
-b. Seeing the pattern and adopting it.
+	   533: Data Access Error (v=0032)
+	pc: 0000000040004654  npc: 0000000040004658
+	%g0-3: 0000000000000000 0018310005070000 0000000000000076 0000000000000048
+	%g4-7: 0000000000000075 00000000ffe81000 0000000000000000 0000000000000018
+	%o0-3: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+	%o4-7: 00000000ffd0d904 00000000ffecb5e0 00000000ffecafc1 0000000040004398 
+	%l0-3: 0000000040004190 0000000000000036 0000000000000000 0000000000400000 
+	%l4-7: 00000000003fffff 00000000fef84930 0000000000000000 00000000ffd0d904 
+	%i0-3: 0000000000000000 0000000000000000 0000000000000000 00000000ffeb5400 
+	%i4-7: 00000000ffd85800 0000000000000000 00000000ffecb071 00000000ffd0e8c8 
+	pstate: 00000016 ccr: 00 (icc: ---- xcc: ----) asi: 00 tl: 0 pil: 0 gl: 2
+	tbr: 00000000ffd00000 hpstate: 0000000000000000 htba: 0000000000000000
+	cansave: 6 canrestore: 0 otherwin: 0 wstate: 0 cleanwin: 7 cwp: 5
+	fsr: 0000000000000000 y: 0000000000000000 fprs: 0000000000000000
 
-So this should have a positive impact I think :)
+Disassembly:
 
-Cheers, Lorenzo
+	0000000000404650 <cheetah_generic_boot>:
+	;       mov     TSB_EXTENSION_P, %g3
+	  404650: 86 10 20 48   mov     72, %g3
+	;       stxa    %g0, [%g3] ASI_DMMU
+	  404654: c0 f0 cb 00   stxa %g0, [%g3] 88
+	;       stxa    %g0, [%g3] ASI_IMMU
+	  404658: c0 f0 ca 00   stxa %g0, [%g3] 80
+	;       membar  #Sync
+	  40465c: 81 43 e0 40   membar #Sync
+	;       mov     TSB_EXTENSION_S, %g3
+	  404660: 86 10 20 50   mov     80, %g3
+	;       stxa    %g0, [%g3] ASI_DMMU
+	  404664: c0 f0 cb 00   stxa %g0, [%g3] 88
+	;       membar  #Sync
+	  404668: 81 43 e0 40   membar #Sync
+	;       mov     TSB_EXTENSION_N, %g3
+	  40466c: 86 10 20 58   mov     88, %g3
+	;       stxa    %g0, [%g3] ASI_DMMU
+	  404670: c0 f0 cb 00   stxa %g0, [%g3] 88
+	;       stxa    %g0, [%g3] ASI_IMMU
+	  404674: c0 f0 ca 00   stxa %g0, [%g3] 80
+	;       membar  #Sync
+	  404678: 81 43 e0 40   membar #Sync
+	;       ba,a,pt %xcc, jump_to_sun4u_init
+	  40467c: 30 68 00 04   ba,a %xcc, 4
 
-> ---
-> v1 -> v2:
-> - made several parameter values const (i.e. the pointer address, not
->   just the pointed-to memory), as suggested by Andrew Morton and
->   Yuanchu Xie
-> - drop existing+obsolete "extern" keywords on lines modified by these
->   patches (suggested by Vishal Moola)
-> - add missing parameter names on lines modified by these patches
->   (suggested by Vishal Moola)
-> - more "const" pointers (e.g. the task_struct passed to
->   process_shares_mm())
-> - add missing "const" to s390, fixing s390 build failure
-> - moved the mmap_is_legacy() change in arch/s390/mm/mmap.c from 08/12
->   to 06/12 (suggested by Vishal Moola)
->
-> v2 -> v3:
-> - remove garbage from 06/12
-> - changed tags on subject line (suggested by Matthew Wilcox)
->
-> v3 -> v4:
-> - more verbose commit messages including a listing of function names
->   (suggested by David Hildenbrand and Lorenzo Stoakes)
->
-> v4 -> v5:
-> - back to shorter commit messages after an agreement between David
->   Hildenbrand and Lorenzo Stoakes was found
->
-> v5 -> v6:
-> - fix inconsistent constness of assert_fault_locked()
-> - revert the const parameter value change from v2 (requested by
->   Lorenzo Stoakes)
-> - revert the long cover letter, removing long explanations again
->   (requested by Lorenzo Stoakes)
->
-> Max Kellermann (12):
->   mm: constify shmem related test functions for improved
->     const-correctness
->   mm: constify pagemap related test/getter functions
->   mm: constify zone related test/getter functions
->   fs: constify mapping related test functions for improved
->     const-correctness
->   mm: constify process_shares_mm() for improved const-correctness
->   mm, s390: constify mapping related test/getter functions
->   parisc: constify mmap_upper_limit() parameter
->   mm: constify arch_pick_mmap_layout() for improved const-correctness
->   mm: constify ptdesc_pmd_pts_count() and folio_get_private()
->   mm: constify various inline functions for improved const-correctness
->   mm: constify assert/test functions in mm.h
->   mm: constify highmem related functions for improved const-correctness
->
->  arch/arm/include/asm/highmem.h      |  6 +--
->  arch/parisc/include/asm/processor.h |  2 +-
->  arch/parisc/kernel/sys_parisc.c     |  2 +-
->  arch/s390/mm/mmap.c                 |  6 +--
->  arch/sparc/kernel/sys_sparc_64.c    |  2 +-
->  arch/x86/mm/mmap.c                  |  6 +--
->  arch/xtensa/include/asm/highmem.h   |  2 +-
->  include/linux/fs.h                  |  6 +--
->  include/linux/highmem-internal.h    | 36 +++++++++---------
->  include/linux/highmem.h             |  8 ++--
->  include/linux/mm.h                  | 56 +++++++++++++--------------
->  include/linux/mm_inline.h           | 25 ++++++------
->  include/linux/mm_types.h            |  4 +-
->  include/linux/mmzone.h              | 42 ++++++++++----------
->  include/linux/pagemap.h             | 59 +++++++++++++++--------------
->  include/linux/sched/mm.h            |  4 +-
->  include/linux/shmem_fs.h            |  4 +-
->  mm/highmem.c                        | 10 ++---
->  mm/oom_kill.c                       |  6 +--
->  mm/shmem.c                          |  6 +--
->  mm/util.c                           | 16 ++++----
->  21 files changed, 155 insertions(+), 153 deletions(-)
->
-> --
-> 2.47.2
->
+
+TI-UltraSparc-IIe dies in a division by zero in init_tick_ops:
+
+	OpenBIOS for Sparc64
+	Configuration device id QEMU version 1 machine id 0
+	kernel phys 404000 virt 40004000 size 0x1358650
+	initrd phys 175a000 virt 40c00000 size 0x1727675
+	kernel cmdline root=UUID=ac350b43-e843-40ad-bd55-ec4c2eaeb468
+	CPUs: 1 x SUNW,UltraSPARC-IIe
+	UUID: 00000000-0000-0000-0000-000000000000
+	Welcome to OpenBIOS v1.1 built on Sep 24 2024 19:56
+	  Type 'help' for detailed information
+	[sparc64] Kernel already loaded
+
+	Unhandled Exception 0x0000000000000028
+	PC = 0x00000000015f4444 NPC = 0x00000000015f4448
+	Stopping execution
+
+QEMU debugging:
+
+	   892: Division By Zero (v=0028)
+	pc: 00000000015f4444  npc: 00000000015f4448
+	%g0-3: 0000000000000000 00000000ffffffff 000000ee6b280000 0000000000441400
+	%g4-7: 0000000001456280 0000000000000000 0000000001434000 0000000000000000
+	%o0-3: 0000000000000000 0000000000000000 ffffffffffffffff 00000000012c2d08 
+	%o4-7: 0000000000000000 0000000001757c00 0000000001437491 00000000015f4418 
+	%l0-3: 0000000001757c00 00000000ffe80dc8 00000000ffd84c00 00000000ffecb7bb 
+	%l4-7: 0000000000000000 00000000ffeb5400 000000000000ffff 0000000000000000 
+	%i0-3: 0000000001444c98 000000000000000d 0000000001757c00 0000000000000000 
+	%i4-7: 0000000000000000 000000ee6b280000 0000000001437541 00000000015f4610 
+	pstate: 00000016 ccr: 44 (icc: -Z-- xcc: -Z--) asi: 80 tl: 0 pil: 0 gl: 2
+	tbr: 00000000ffd00000 hpstate: 0000000000000000 htba: 0000000000000000
+	cansave: 6 canrestore: 0 otherwin: 0 wstate: 0 cleanwin: 7 cwp: 0
+	fsr: 0000000000000000 y: 0000000000000000 fprs: 0000000000000000
+
+Disassembly:
+
+	00000000015f4410 <init_tick_ops>:
+	; {
+	 15f4410: 9d e3 bf 50   save %sp, -176, %sp
+	;       freq = ops->get_frequency();
+	 15f4414: c2 5e 20 40   ldx [%i0+64], %g1
+	 15f4418: 9f c0 40 00   call %g1
+	 15f441c: 01 00 00 00   nop
+	;       do_div(tmp, freq);
+	 15f4420: 82 10 3f ff   mov     -1, %g1
+	;       tmp += freq/2; /* round for do_div */
+	 15f4424: 05 1d cd 65   sethi 1953125, %g2
+	;       tick = ops->get_tick();
+	 15f4428: c6 5e 20 10   ldx [%i0+16], %g3
+	;       do_div(tmp, freq);
+	 15f442c: 83 30 70 20   srlx %g1, 32, %g1
+	;       tmp += freq/2; /* round for do_div */
+	 15f4430: 85 28 b0 09   sllx %g2, 9, %g2
+	 15f4434: bb 32 20 01   srl %o0, 1, %i5
+	;       do_div(tmp, freq);
+	 15f4438: 8e 0a 00 01   and %o0, %g1, %g7
+	;       tmp += freq/2; /* round for do_div */
+	 15f443c: ba 07 40 02   add %i5, %g2, %i5
+	;       freq = ops->get_frequency();
+	 15f4440: b8 10 00 08   mov     %o0, %i4
+	;       do_div(tmp, freq);
+	 15f4444: ba 6f 40 07   udivx %i5, %g7, %i5
+	...
