@@ -1,42 +1,42 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE3623B616;
-	Thu,  4 Sep 2025 13:49:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2B2303C9D;
+	Thu,  4 Sep 2025 14:05:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756993780; cv=none; b=Y5hBSGbXg5dnSkMR191ohPPXm9DTjOBAbSVkyX0d0xci/bhD2zxjbdGaav0rFqYKOS/m1/z3bcOugwL1T41KV1CbLxfzkezLmPPLdJkxHf+ZXnyJQwgSzTSMz1b1aXa9jOx4XXPXNY6C6kDo7oACJz47LUSAilc+4SFkaiIJQ4k=
+	t=1756994711; cv=none; b=Fk1sOOZJgKHFQrHMwAtyQjcWEq08B9jbu5kvUM1aTcxed2XGw964ArWhRVQR8DW/0CYENtU/FadwuZA+epLfXJx5PI9AyUfxGHD9uva8MbSpYWd1uLBCxoksUa/L5TgdNdbt4Q1T+uGUVDWCX8x4rvtKNVEoA2Fg7A7ZuGDdtzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756993780; c=relaxed/simple;
-	bh=1+RmBjkLJxr3tjr4SwWahsm6T9z+16UTmNktO1t0Y1U=;
+	s=arc-20240116; t=1756994711; c=relaxed/simple;
+	bh=9UGYpN5Lego2P4czss4c+ufIK4ScIbTQMOH52X2qv+Y=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Fw9/n01sVtF6WmJQi/+NtpOM5GDz2B+kzNmtTlab9g3mdIMvzTO8lQ6RAJ/9xXNs/kY3vkMpEBLmzI2ZLkQgqsFbcnBwmNefV0IYm+3sP4ELGujTlvSEAfmztAPIVzQHcagyUkhsg3FdV3vpJoPqjRnnYADMzZMJNbwjDtK3EL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=m503c1kt reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+	 In-Reply-To:Content-Type; b=SYzy5+WvbOORVgvTa7znn5gYNmVXhNxJ445CnI+sysin4g4HcVAatZlXwNz/IIbnEP87agk3UsLbnDPbWR74V7rlazaWhJ7sezAVISe3Osm1CIXrSJ8CeBWQoMjw5yGji4OUuSan/8KYnhmuyl03rn38EqK+oVh7kzS9hu3XraI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=LAlcubKS reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="m503c1kt"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="LAlcubKS"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4cHgnh1KMzz1FXZv;
-	Thu,  4 Sep 2025 15:49:28 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTP id 4cHh7j05L9z1FXhv;
+	Thu,  4 Sep 2025 16:05:05 +0200 (CEST)
 Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4cHgng7305z1FXhW;
-	Thu,  4 Sep 2025 15:49:27 +0200 (CEST)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4cHh7h5kSYz1FXSw;
+	Thu,  4 Sep 2025 16:05:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1756993768;
-	bh=kKissGMh75GslfHEsQZRmULySpZwoZ7dxQ49rEQapCA=;
+	s=simplycom2; t=1756994704;
+	bh=J4tJiqKaK/wPgbe9np5CLuawS4hkf0a+JOKMhBWenco=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=m503c1ktfDPE8biqkrY1Qdu1aHpNNHvECXN3OsfhpzzjDz3XXQXltrRKBM/nhJ8kZ
-	 ilNYta4tr0LD9PAZ5QVtgtanfLrjivNUqtmLjA3viXUoF/vWwUX8ZeQBc8jVPrkY3l
-	 u4iZl3IRoIU3qu9rYwKOeZnEhwqEhyNX07hCXv9kWzxl40vBcWN5pCXd23hjgVcd5q
-	 ZdAoOzd/7ri/yggI0zRLh7YlZrBzf5NeonuU81dZLsqnSyZeXsfn/VTUZgwgs9WqNJ
-	 8tnh/wtjIyX8HnPnHHjeCENlcGsmUbtci/U0iRzqUKl/ihVCM3R0sqGbKnfd2RFJfS
-	 B3ChWlQ/jzHug==
-Message-ID: <0253d6fe-dafe-492f-b7ad-12f98ba3c507@gaisler.com>
-Date: Thu, 4 Sep 2025 15:49:27 +0200
+	b=LAlcubKSl7KTkISuJ1TFhgZvOgUKn5EaOG46fo1kJg0v6Uk+igNjGK8oEcK7lUU7p
+	 OQZTEM/NXLhZxOj4Iu9nF7t6dGoduFIX/qTAehBpa4Nm1xNsEk/aB8poAzpiJGSrta
+	 tDGpNMneBggVvxdANWsW9lkZJb4MKoNWSGkdyuk2V3dKLiUali6kSLv/nPabubGiH2
+	 ESHbWMQR5WIgg8Kh8sfKxPqEpFvraGYa1GIDUgI1d3ywS8ykoi20tS2VY3HQnvTYch
+	 zYAjMn0wjG8RFSWvop3gVCObWS++V/DBBTmnUuueBTmkAoIwMde0HOvT6q623mrzKf
+	 AnH3SiBlLsx1Q==
+Message-ID: <8403ac15-bb3a-4e88-97ef-6eaff26cc8db@gaisler.com>
+Date: Thu, 4 Sep 2025 16:05:04 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -44,53 +44,37 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: Fix accurate exception reporting in SPARC assembly
+Subject: Re: [PATCH 2/4] sparc: fix accurate exception reporting in
+ copy_{from_to}_user for UltraSPARC III
 To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>,
- linux-kernel@vger.kernel.org
+ Anthony Yznaga <anthony.yznaga@oracle.com>, linux-kernel@vger.kernel.org
 Cc: sparclinux@vger.kernel.org,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Anthony Yznaga <anthony.yznaga@oracle.com>
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+ <20250826160312.2070-3-kernel@mkarcher.dialup.fu-berlin.de>
+ <528a5d4b-1e07-4379-afd6-7e58d423e713@oracle.com>
+ <C90C7694-C913-499B-8426-8DEC42137066@mkarcher.dialup.fu-berlin.de>
 Content-Language: en-US
 From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+In-Reply-To: <C90C7694-C913-499B-8426-8DEC42137066@mkarcher.dialup.fu-berlin.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 2025-08-26 18:03, Michael Karcher wrote:
-> In 2018, David Miller implemented accurate exception reporting in
-> copy_from_user and copy_to_user by handling exceptions on each load
-> or store instruction that accesses userspace memory and calculating
-> the remaining bytes from the processor context. As issues with
-> transparent huge page support and folio support in ext4 were due
-> to a bogus return value from copy_from_user, I wrote a comprehensive
-> testsuite for the generic variant, and the machine-specific variants
-> for UltraSPARC I/II, UltraSPARC III, Niagara, Niagara 2/3 and
-> Niagara 4, see
+On 2025-08-30 10:35, Michael Karcher wrote:
 > 
-> https://github.com/karcherm/sparc-cfu-bug-reproducer
+>> I think there should be a little more text about the nature of the failure. Maybe:
 > 
-> despite the name of the project, it does not only test copy_from_user,
-> but also copy_to_user, and it also contains fixes to a very small amount
-> of exception handler references that were calculating the result in
-> a wrong way.
-> 
-> For UltraSPARC III, I chose to adjust the memcpy code itself instead of
-> adding complexity to multiple exception handlers. That fix has already
-> been tested to fix stability issues observed by Adrian Glaubitz which
-> kicked of the investigation. On all other architectures, the changes
-> are just to the exception handlers.
+> I will add something like that in v2 of the series.
+> Do you think it is useful to add the message ID
+> b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de
+> as well, or an abbreviated backtrace from that message?
+> I suppose, that is the BUG_ON you are referring to.
 
-Hi Michael,
+If that is the message referred to, I think it is a good idea to refer
+to it, in addition to a description. If so, please do it on the form of
+a lore link, like this:
 
-Thank you very much for this series as well as the followup patch for M7!
-
-This cover letter for this series gives good contextual information for
-the series, but when looking at the commit message for a single patch in
-isolation it is not clear at a glance what is being fixed. Do you think
-you could put in a short description in each patch in this series, and
-also in the followup M7 patch, on what it is doing and what it is
-solving?
+https://lore.kernel.org/r/<message-id>
 
 Cheers,
 Andreas
