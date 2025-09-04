@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 33F7630496A;
-	Thu,  4 Sep 2025 12:58:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F24B52FF649;
+	Thu,  4 Sep 2025 12:58:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756990722; cv=none; b=ia2P3LQakfZ04CPf2SaDS+ouIXOfKeHYq+s9keRcJpHvJMm8Mxcahtp7SiwfI2CpQhZUgK6ChsRQnDEFWFsOf5t3vI1RkAJJS8gKYrpwhg8gJAnk/lmnVSZDvQWb0/XygRa63E5hMsI0/9sEUgKxZdt7I5WHOknyYuNfT+5aiuM=
+	t=1756990727; cv=none; b=qzyxxzqRVj5G8ZMg0QqTvesLVfCMkYA+Ql2b+SEdERtSpOqL7x0YT1oCqmiLuE53FoBg8wfGK8HIYFGhrPSP7KK08XFB89ZU+1rz9DMTVaj3C/hH+ZBoEpgq4kAVQRP4tdfpOX5MS54KlLdTYUGFeaHK6qMSWTUVh0s6lnWJX4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756990722; c=relaxed/simple;
-	bh=J1/wcjUx9MmIGYpRK2XuavFky8ZRhqkYg87SLB42Ixk=;
+	s=arc-20240116; t=1756990727; c=relaxed/simple;
+	bh=Wcg92DRZXcNqlymrmFUfKEEAeGMaOYSIPVR12E7Jvgo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=S4XWKupdMvj6Lavb7j92LuVPrH4MeERn0Pmq3/sCTqEzcMe8IyUHXbtrHcm8VgCaboythKwz8KlSk3ngABfcNskIgM4kTyq5pOyZJxEDEnYxUYwwfwRjZ1+/TzNwYJUrJjr0tg6kFe6nAGRCMoU0hu2DAWtciex/n8WeUd/O1z8=
+	 MIME-Version; b=YqkJFeDN8Jm+nF1OjjTN3wG5p5KN1lxkaGrhkSpizbVKDhhgwoU/DUuq+irsBzMAbxIDcISvV3x+z4jCS36p/1Uqs+dy4j+uzn1e9awCI+Azv9g8Bc/ppXQplRiFVuqBvTswG3Jm7VDrJLmlrpGfMlXAv+5faOLx3gRZOLtJL6g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2267F2ECB;
-	Thu,  4 Sep 2025 05:58:32 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 00A6F2ED2;
+	Thu,  4 Sep 2025 05:58:37 -0700 (PDT)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E64E73F6A8;
-	Thu,  4 Sep 2025 05:58:35 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C0CAA3F6A8;
+	Thu,  4 Sep 2025 05:58:40 -0700 (PDT)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -53,9 +53,9 @@ Cc: linux-kernel@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org
-Subject: [PATCH 4/7] x86/xen: support nested lazy_mmu sections (again)
-Date: Thu,  4 Sep 2025 13:57:33 +0100
-Message-ID: <20250904125736.3918646-5-kevin.brodsky@arm.com>
+Subject: [PATCH 5/7] powerpc/mm: support nested lazy_mmu sections
+Date: Thu,  4 Sep 2025 13:57:34 +0100
+Message-ID: <20250904125736.3918646-6-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <20250904125736.3918646-1-kevin.brodsky@arm.com>
 References: <20250904125736.3918646-1-kevin.brodsky@arm.com>
@@ -67,98 +67,63 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit 49147beb0ccb ("x86/xen: allow nesting of same lazy mode")
-originally introduced support for nested lazy sections (LAZY_MMU and
-LAZY_CPU). It later got reverted by commit c36549ff8d84 as its
-implementation turned out to be intolerant to preemption.
+The lazy_mmu API now allows nested sections to be handled by arch
+code: enter() can return a flag if called inside another lazy_mmu
+section, so that the matching call to leave() leaves any
+optimisation enabled.
 
-Now that the lazy_mmu API allows enter() to pass through a state to
-the matching leave() call, we can support nesting again for the
-LAZY_MMU mode in a preemption-safe manner. If xen_enter_lazy_mmu() is
-called inside an active lazy_mmu section, xen_lazy_mode will already
-be set to XEN_LAZY_MMU and we can then return LAZY_MMU_NESTED to
-instruct the matching xen_leave_lazy_mmu() call to leave
-xen_lazy_mode unchanged.
+This patch implements that new logic for powerpc: if there is an
+active batch, then enter() returns LAZY_MMU_NESTED and the matching
+leave() leaves batch->active set. The preempt_{enable,disable} calls
+are left untouched as they already handle nesting themselves.
 
-The only effect of this patch is to ensure that xen_lazy_mode
-remains set to XEN_LAZY_MMU until the outermost lazy_mmu section
-ends. xen_leave_lazy_mmu() still calls xen_mc_flush()
-unconditionally.
+TLB flushing is still done in leave() regardless of the nesting
+level, as the caller may rely on it whether nesting is occurring or
+not.
 
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/x86/include/asm/paravirt.h       |  6 ++----
- arch/x86/include/asm/paravirt_types.h |  4 ++--
- arch/x86/xen/mmu_pv.c                 | 11 ++++++++---
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
-index 65a0d394fba1..4ecd3a6b1dea 100644
---- a/arch/x86/include/asm/paravirt.h
-+++ b/arch/x86/include/asm/paravirt.h
-@@ -529,14 +529,12 @@ static inline void arch_end_context_switch(struct task_struct *next)
- #define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+index c9f1e819e567..001c474da1fe 100644
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
++++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+@@ -30,6 +30,7 @@ typedef int lazy_mmu_state_t;
  static inline lazy_mmu_state_t arch_enter_lazy_mmu_mode(void)
  {
--	PVOP_VCALL0(mmu.lazy_mode.enter);
--
+ 	struct ppc64_tlb_batch *batch;
++	int lazy_mmu_nested;
+ 
+ 	if (radix_enabled())
+ 		return LAZY_MMU_DEFAULT;
+@@ -39,9 +40,14 @@ static inline lazy_mmu_state_t arch_enter_lazy_mmu_mode(void)
+ 	 */
+ 	preempt_disable();
+ 	batch = this_cpu_ptr(&ppc64_tlb_batch);
+-	batch->active = 1;
++	lazy_mmu_nested = batch->active;
+ 
 -	return LAZY_MMU_DEFAULT;
-+	return PVOP_CALL0(lazy_mmu_state_t, mmu.lazy_mode.enter);
++	if (!lazy_mmu_nested) {
++		batch->active = 1;
++		return LAZY_MMU_DEFAULT;
++	} else {
++		return LAZY_MMU_NESTED;
++	}
  }
  
  static inline void arch_leave_lazy_mmu_mode(lazy_mmu_state_t state)
- {
--	PVOP_VCALL0(mmu.lazy_mode.leave);
-+	PVOP_VCALL1(mmu.lazy_mode.leave, state);
- }
+@@ -54,7 +60,10 @@ static inline void arch_leave_lazy_mmu_mode(lazy_mmu_state_t state)
  
- static inline void arch_flush_lazy_mmu_mode(void)
-diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
-index bc1af86868a3..b7c567ccbf32 100644
---- a/arch/x86/include/asm/paravirt_types.h
-+++ b/arch/x86/include/asm/paravirt_types.h
-@@ -45,8 +45,8 @@ typedef int lazy_mmu_state_t;
- 
- struct pv_lazy_ops {
- 	/* Set deferred update mode, used for batching operations. */
--	void (*enter)(void);
--	void (*leave)(void);
-+	lazy_mmu_state_t (*enter)(void);
-+	void (*leave)(lazy_mmu_state_t);
- 	void (*flush)(void);
- } __no_randomize_layout;
- #endif
-diff --git a/arch/x86/xen/mmu_pv.c b/arch/x86/xen/mmu_pv.c
-index 2039d5132ca3..6e5390ff06a5 100644
---- a/arch/x86/xen/mmu_pv.c
-+++ b/arch/x86/xen/mmu_pv.c
-@@ -2130,9 +2130,13 @@ static void xen_set_fixmap(unsigned idx, phys_addr_t phys, pgprot_t prot)
- #endif
- }
- 
--static void xen_enter_lazy_mmu(void)
-+static lazy_mmu_state_t xen_enter_lazy_mmu(void)
- {
-+	if (this_cpu_read(xen_lazy_mode) == XEN_LAZY_MMU)
-+		return LAZY_MMU_NESTED;
+ 	if (batch->index)
+ 		__flush_tlb_pending(batch);
+-	batch->active = 0;
 +
- 	enter_lazy(XEN_LAZY_MMU);
-+	return LAZY_MMU_DEFAULT;
- }
- 
- static void xen_flush_lazy_mmu(void)
-@@ -2167,11 +2171,12 @@ static void __init xen_post_allocator_init(void)
- 	pv_ops.mmu.write_cr3 = &xen_write_cr3;
- }
- 
--static void xen_leave_lazy_mmu(void)
-+static void xen_leave_lazy_mmu(lazy_mmu_state_t state)
- {
- 	preempt_disable();
- 	xen_mc_flush();
--	leave_lazy(XEN_LAZY_MMU);
 +	if (state != LAZY_MMU_NESTED)
-+		leave_lazy(XEN_LAZY_MMU);
++		batch->active = 0;
++
  	preempt_enable();
  }
  
