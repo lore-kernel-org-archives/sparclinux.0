@@ -1,47 +1,48 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA8B2EBDD9;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF302DCC01;
 	Thu,  4 Sep 2025 22:03:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757023430; cv=none; b=RZ5yW8tlw2vPnlRiWKOAm4Q8dhU0AqAhTnBWToBlZeo7B+Ie07RYjGbbuKJqnDNQPvsr3rP/oa4umEdl5SIHiIOaD0xQQAX6n0yyo/j1w+YImoRUOpU4jjgTxq6m4AFTM/Q5yUO/b50+TKC7nk5180C9Bq6vU+seuj4XN4WfaE4=
+	t=1757023431; cv=none; b=COg6Km0AsyEDtUy2S2aNiJWmcL4S089ZGAJO6LnNK+sjzPQn1LBfGYuxZ8OZyoA8mxNRSgKU4vgcsLCGH43h0kG5cl8XGgiynrZkpoh0zzG5vHnmrPG7PIiUPd1PYciBCaMc9t857dBTtMrlO7dKAoBBFVAu6yDei27/N4rNcFM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757023430; c=relaxed/simple;
-	bh=jI2mWtV3yaeSMgzwztwArK6FrK7ypmUX8e5XQckB240=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=spbVofqLURMQaoReD3ztNBMocwvBP+M9iRlDTvCl4NPcE8jvv0kAlibrDhhjecdWb/jCQ6QNHx1FnbGaHvGcC1wOhQUKVkVYEQLs+03YZyyl/sjlPVCkx5h7tMc8wEMWePAD0IrFNwn9agxQOSGNpKzChKbzEFODN6NO56XSi5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=W1uobHGU; arc=none smtp.client-ip=130.133.4.66
+	s=arc-20240116; t=1757023431; c=relaxed/simple;
+	bh=QtVN/GMHSSb9w9VpTzrkw/gk9ca/xQOgBwqNNorvZ0w=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=uD1xeVo4h2uxvFa/qtCplt/1BgjR37rkEv7yQojqwjWwXCrBZfFjKmcY70Hlc5w3PZC6ft2fFBCvGfrp08Swh9wx+ucx17wehNq7LU95WLAdZ1EJIdwMwRt2F/gvGwyYSA2Y5d7l1iNsd7En/hCoG2XMHUo4ZEfREqcdeKJOPK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=UrXcY0nq; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="W1uobHGU"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="UrXcY0nq"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=Cc:To:Content-Transfer-Encoding:Content-Type:
-	MIME-Version:Message-Id:Date:Subject:From:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=6kA3N7C7f6y80cfri0depDfE/jvR3uHumGY5Mi6x39I=; t=1757023427; x=1757628227; 
-	b=W1uobHGUFtvy4TfyIPM3w0tOLN4T3XVLfuV5C62kW4BZtf367fCnw+XoWUTNzOkE4ggUPO5mH5k
-	tr1yRVX6tkPNyJxZxO+im8AOu8guZEdlgaV7gj+ZpoIiT26XdwthZ1eNJESKeuvxCksFjkaV5O1dN
-	acHkbFKUWumNPYkS+UTgREtn6DLJGWb+IjJE4oLg87SyxR1QtUlnKoOGfbu27Wm5OO9THbD/RVU0W
-	E+GWQ0/748wguoBZbcmFy0F6HaKy509eGhAYXlHlCg0ckZSGHak2uREvgoMhMZPLrgZGnh1gC2us2
-	hUi3dBe2HFiMs6f7mvXch9EWmBGwxMt1O4yQ==;
+	d=fu-berlin.de; s=fub01; h=Cc:To:In-Reply-To:References:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=IYiVxWwna+8Kvhv7FawMeNPbAEbRP/5KT0vIiVIVjnA=; t=1757023427;
+	x=1757628227; b=UrXcY0nqu68UlGwE4/DJ4GlkE7eT7l/lPHfmIK74EWUCCEIkk9uAMiZpo/wZc
+	dpPWZFUJq5SVY++YOR7oqj7AM0SrSv0rfRYfUZr4GyVTVmzZRbKme0Lr2M0gxsAZPc2pdgvWmvJ51
+	KePXQGoqKe4wFPktvnMjI80LvzYScPdutjvuCFHIR6hHCIpcEaJeD+IotpUo+gSx71EMhuMLwAPV+
+	sp4L3Kkt/Pel0jgNh8VeJSFA2mlOojc1/QFF1ZqCmPJDIZGXp/FLdAvB2/07FjagIBva1GosTJxj8
+	ag74QU8nJZAdsjK0PrWxf0ZAyaCkh8dbg3lsFRNR3p+XIbvCdw==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.98)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1uuI3U-00000000z7B-2Y5q; Fri, 05 Sep 2025 00:03:44 +0200
+          id 1uuI3V-00000000z7m-3B7t; Fri, 05 Sep 2025 00:03:45 +0200
 Received: from 89-103-142-46.pool.kielnet.net ([46.142.103.89] helo=Geist14.)
           by inpost2.zedat.fu-berlin.de (Exim 4.98)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1uuI3U-00000002DJL-1aPM; Fri, 05 Sep 2025 00:03:44 +0200
+          id 1uuI3V-00000002DJL-2WbV; Fri, 05 Sep 2025 00:03:45 +0200
 From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-Subject: [PATCH v4 0/5] Fix accurate exception reporting in SPARC assembly
-Date: Fri, 05 Sep 2025 00:03:29 +0200
-Message-Id: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+Date: Fri, 05 Sep 2025 00:03:32 +0200
+Subject: [PATCH v4 3/5] sparc: fix accurate exception reporting in
+ copy_{from_to}_user for Niagara
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -50,88 +51,112 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIALEMumgC/62P2wrCMBBEf0XybMpm2yTVJ/9DRNJmtcHeSLUop
- f9uL4IgoiA+zsAcznSsIe+oYetFxzy1rnFVOYRouWBpZsojcWeHzBBQwgqQF1Sk9W0/z3gSJtZ
- KGWFqNBs2taeDu0687W7ImWvOlb9N+BbHdibFqISCUGCAoIELfiJfUr4pTsanGfnAOpNf6uBw4
- Qn53JWBpZH/0IheNFrkwFcxKGuFjiPSn0GjWSv+ZPPTeDIInwZvLoXjJVBKSiONNvYLsO/7Oyb
- A7SPNAQAA
-X-Change-ID: 20250902-memcpy_series-b3bdd5542ca7
+Message-Id: <20250905-memcpy_series-v4-3-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+References: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+In-Reply-To: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
 To: Andreas Larsson <andreas@gaisler.com>
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, 
  John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
  Anthony Yznaga <anthony.yznaga@oracle.com>, 
- =?utf-8?q?Ren=C3=A9_Rebe?= <rene@exactcode.com>, 
- Jonathan 'theJPster' Pallant <kernel@thejpster.org.uk>, 
- Magnus Lindholm <linmag7@gmail.com>, Tony Rodriguez <unixpro1970@gmail.com>
+ Magnus Lindholm <linmag7@gmail.com>
 X-Mailer: b4 0.14.2
 X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
 X-ZEDAT-Hint: PO
 
-In 2018, David Miller implemented accurate exception reporting in
-copy_from_user and copy_to_user by handling exceptions on each load
-or store instruction that accesses userspace memory and calculating
-the remaining bytes from the processor context. As issues with
-transparent huge page support and folio support in ext4 were due
-to a bogus return value from copy_from_user, I wrote a comprehensive
-testsuite for the generic variant, and the machine-specific variants
-for UltraSPARC I/II, UltraSPARC III, Niagara, Niagara 2/3,
-Niagara 4 and M7, see
+The referenced commit introduced exception handlers on user-space memory
+references in copy_from_user and copy_to_user. These handlers return from
+the respective function and calculate the remaining bytes left to copy
+using the current register contents. This commit fixes a couple of bad
+calculations and a broken epilogue in the exception handlers. This will
+prevent crashes and ensure correct return values of copy_from_user and
+copy_to_user in the faulting case. The behaviour of memcpy stays unchanged.
 
-https://github.com/karcherm/sparc-cfu-bug-reproducer
-
-despite the name of the project, it does not only test copy_from_user,
-but also copy_to_user, and it also contains fixes to a very small amount
-of exception handler references that were calculating the result in
-a wrong way.
-
-For UltraSPARC III, I chose to adjust the memcpy code itself instead of
-adding complexity to multiple exception handlers. That fix has already
-been tested to fix stability issues observed by Adrian Glaubitz which
-kicked off the investigation. On all other architectures, the changes
-are just to the exception handlers.
-
-Kind regards,
-  Michael Karcher
-
+Fixes: 7ae3aaf53f16 ("sparc64: Convert NGcopy_{from,to}_user to accurate exception reporting.")
+Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> # on SPARC T4 with modified kernel to use Niagara 1 code
+Tested-by: Magnus Lindholm <linmag7@gmail.com> # on Sun Fire T2000
 Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
 ---
-Changes in v4:
-- Add further credit for running tests on machines with this patch applied
-- Link to v3: https://lore.kernel.org/r/20250904-memcpy_series-v3-0-906655a5a7ad@mkarcher.dialup.fu-berlin.de
+ arch/sparc/lib/NGmemcpy.S | 29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-Changes in v3:
-- Fix bad formatting in commit messages (missing line wrap,
-  extra empty line after Fixes:)
-- Consistently add hardware to Tested-By lines
-- Link to v2: https://lore.kernel.org/r/20250904-memcpy_series-v2-0-9806dd1784e7@mkarcher.dialup.fu-berlin.de
+diff --git a/arch/sparc/lib/NGmemcpy.S b/arch/sparc/lib/NGmemcpy.S
+index ee51c12306894eee4195887d2b28b2619f63c2b1..bbd3ea0a64822c7410278fcc3d101ce9cef96c89 100644
+--- a/arch/sparc/lib/NGmemcpy.S
++++ b/arch/sparc/lib/NGmemcpy.S
+@@ -79,8 +79,8 @@
+ #ifndef EX_RETVAL
+ #define EX_RETVAL(x)	x
+ __restore_asi:
+-	ret
+ 	wr	%g0, ASI_AIUS, %asi
++	ret
+ 	 restore
+ ENTRY(NG_ret_i2_plus_i4_plus_1)
+ 	ba,pt	%xcc, __restore_asi
+@@ -125,15 +125,16 @@ ENTRY(NG_ret_i2_plus_g1_minus_56)
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%i2, %g1, %i0
+ ENDPROC(NG_ret_i2_plus_g1_minus_56)
+-ENTRY(NG_ret_i2_plus_i4)
++ENTRY(NG_ret_i2_plus_i4_plus_16)
++        add     %i4, 16, %i4
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%i2, %i4, %i0
+-ENDPROC(NG_ret_i2_plus_i4)
+-ENTRY(NG_ret_i2_plus_i4_minus_8)
+-	sub	%i4, 8, %i4
++ENDPROC(NG_ret_i2_plus_i4_plus_16)
++ENTRY(NG_ret_i2_plus_i4_plus_8)
++	add	%i4, 8, %i4
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%i2, %i4, %i0
+-ENDPROC(NG_ret_i2_plus_i4_minus_8)
++ENDPROC(NG_ret_i2_plus_i4_plus_8)
+ ENTRY(NG_ret_i2_plus_8)
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%i2, 8, %i0
+@@ -160,6 +161,12 @@ ENTRY(NG_ret_i2_and_7_plus_i4)
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%i2, %i4, %i0
+ ENDPROC(NG_ret_i2_and_7_plus_i4)
++ENTRY(NG_ret_i2_and_7_plus_i4_plus_8)
++	and	%i2, 7, %i2
++	add	%i4, 8, %i4
++	ba,pt	%xcc, __restore_asi
++	 add	%i2, %i4, %i0
++ENDPROC(NG_ret_i2_and_7_plus_i4)
+ #endif
+ 
+ 	.align		64
+@@ -405,13 +412,13 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
+ 	andn		%i2, 0xf, %i4
+ 	and		%i2, 0xf, %i2
+ 1:	subcc		%i4, 0x10, %i4
+-	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4)
++	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4_plus_16)
+ 	add		%i1, 0x08, %i1
+-	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4)
++	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4_plus_16)
+ 	sub		%i1, 0x08, %i1
+-	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4)
++	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4_plus_16)
+ 	add		%i1, 0x8, %i1
+-	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_minus_8)
++	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_plus_8)
+ 	bgu,pt		%XCC, 1b
+ 	 add		%i1, 0x8, %i1
+ 73:	andcc		%i2, 0x8, %g0
+@@ -468,7 +475,7 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
+ 	subcc		%i4, 0x8, %i4
+ 	srlx		%g3, %i3, %i5
+ 	or		%i5, %g2, %i5
+-	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4)
++	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4_plus_8)
+ 	add		%o0, 0x8, %o0
+ 	bgu,pt		%icc, 1b
+ 	 sllx		%g3, %g1, %g2
 
-Changes in v2:
-- More verbose description on how these issues were found
-- Add M7 change, previously separate in
-  https://lore.kernel.org/r/20250828121844.2250-1-kernel@mkarcher.dialup.fu-berlin.de
-- Link to v1: https://lore.kernel.org/r/20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de
-
----
-Michael Karcher (5):
-      sparc: fix accurate exception reporting in copy_{from_to}_user for UltraSPARC
-      sparc: fix accurate exception reporting in copy_{from_to}_user for UltraSPARC III
-      sparc: fix accurate exception reporting in copy_{from_to}_user for Niagara
-      sparc: fix accurate exception reporting in copy_to_user for Niagara 4
-      sparc: fix accurate exception reporting in copy_{from,to}_user for M7
-
- arch/sparc/lib/M7memcpy.S     | 20 ++++++++++----------
- arch/sparc/lib/Memcpy_utils.S |  9 +++++++++
- arch/sparc/lib/NG4memcpy.S    |  2 +-
- arch/sparc/lib/NGmemcpy.S     | 29 ++++++++++++++++++-----------
- arch/sparc/lib/U1memcpy.S     | 19 ++++++++++---------
- arch/sparc/lib/U3memcpy.S     |  2 +-
- 6 files changed, 49 insertions(+), 32 deletions(-)
----
-base-commit: b320789d6883cc00ac78ce83bccbfe7ed58afcf0
-change-id: 20250902-memcpy_series-b3bdd5542ca7
-
-Best regards,
 -- 
-Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+2.50.1
 
