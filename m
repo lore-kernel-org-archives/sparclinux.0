@@ -1,162 +1,93 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF302DCC01;
-	Thu,  4 Sep 2025 22:03:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB9D12D46C8;
+	Thu,  4 Sep 2025 22:14:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757023431; cv=none; b=COg6Km0AsyEDtUy2S2aNiJWmcL4S089ZGAJO6LnNK+sjzPQn1LBfGYuxZ8OZyoA8mxNRSgKU4vgcsLCGH43h0kG5cl8XGgiynrZkpoh0zzG5vHnmrPG7PIiUPd1PYciBCaMc9t857dBTtMrlO7dKAoBBFVAu6yDei27/N4rNcFM=
+	t=1757024094; cv=none; b=ghXQGv3eXC+XSd4YqT+xWiBoSGBmEuC8fWvITCCjXi2x1YF2Ds7Xqh7P1v9Zkgz34NB7BphYV5iem2WAWE0QjdaPS+Sx3Q9dt39WdFdYSPqeGKm8xIFpsfMrUk9DDk9xd4LI637Mnwnxtz8XYlYs1T2NG0GThGnFvJsM9GkdYmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757023431; c=relaxed/simple;
-	bh=QtVN/GMHSSb9w9VpTzrkw/gk9ca/xQOgBwqNNorvZ0w=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=uD1xeVo4h2uxvFa/qtCplt/1BgjR37rkEv7yQojqwjWwXCrBZfFjKmcY70Hlc5w3PZC6ft2fFBCvGfrp08Swh9wx+ucx17wehNq7LU95WLAdZ1EJIdwMwRt2F/gvGwyYSA2Y5d7l1iNsd7En/hCoG2XMHUo4ZEfREqcdeKJOPK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=UrXcY0nq; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="UrXcY0nq"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=Cc:To:In-Reply-To:References:Message-Id:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=IYiVxWwna+8Kvhv7FawMeNPbAEbRP/5KT0vIiVIVjnA=; t=1757023427;
-	x=1757628227; b=UrXcY0nqu68UlGwE4/DJ4GlkE7eT7l/lPHfmIK74EWUCCEIkk9uAMiZpo/wZc
-	dpPWZFUJq5SVY++YOR7oqj7AM0SrSv0rfRYfUZr4GyVTVmzZRbKme0Lr2M0gxsAZPc2pdgvWmvJ51
-	KePXQGoqKe4wFPktvnMjI80LvzYScPdutjvuCFHIR6hHCIpcEaJeD+IotpUo+gSx71EMhuMLwAPV+
-	sp4L3Kkt/Pel0jgNh8VeJSFA2mlOojc1/QFF1ZqCmPJDIZGXp/FLdAvB2/07FjagIBva1GosTJxj8
-	ag74QU8nJZAdsjK0PrWxf0ZAyaCkh8dbg3lsFRNR3p+XIbvCdw==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1uuI3V-00000000z7m-3B7t; Fri, 05 Sep 2025 00:03:45 +0200
-Received: from 89-103-142-46.pool.kielnet.net ([46.142.103.89] helo=Geist14.)
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1uuI3V-00000002DJL-2WbV; Fri, 05 Sep 2025 00:03:45 +0200
-From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-Date: Fri, 05 Sep 2025 00:03:32 +0200
-Subject: [PATCH v4 3/5] sparc: fix accurate exception reporting in
- copy_{from_to}_user for Niagara
+	s=arc-20240116; t=1757024094; c=relaxed/simple;
+	bh=tR8bRPKrAsiMDrBi4Jc86OCZCYcgzukXnSpHEWnXymg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Fbx94RoQ8gLO3tmXwpAUgZk2ZqJw9NnulK3rYry9MTXi86qA9zgSGPJjxeOMAZl0mAWSN0JhrwnT0c3V3DNIsjYel+zADKRAnayZRgG70QpGw0EjUMP3bYsJek5S9kbcwAl+FT/P+KuHjFCP6FwZI+OHkmdr4+uDXvjHA7GwRjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2977D1596;
+	Thu,  4 Sep 2025 15:14:43 -0700 (PDT)
+Received: from [10.57.58.14] (unknown [10.57.58.14])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 46B793F63F;
+	Thu,  4 Sep 2025 15:14:44 -0700 (PDT)
+Message-ID: <75db1f58-98b3-463c-af4f-2ce9878cba9f@arm.com>
+Date: Fri, 5 Sep 2025 00:14:39 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250905-memcpy_series-v4-3-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
-References: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
-In-Reply-To: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
-To: Andreas Larsson <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, 
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
- Anthony Yznaga <anthony.yznaga@oracle.com>, 
- Magnus Lindholm <linmag7@gmail.com>
-X-Mailer: b4 0.14.2
-X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
-X-ZEDAT-Hint: PO
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/7] mm: introduce local state for lazy_mmu sections
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
+ Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
+ Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
+ <Liam.Howlett@oracle.com>, Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
+ <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org
+References: <20250904125736.3918646-1-kevin.brodsky@arm.com>
+ <20250904125736.3918646-3-kevin.brodsky@arm.com>
+ <22131943-3f92-4f5a-be28-7b668c07a25c@lucifer.local>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <22131943-3f92-4f5a-be28-7b668c07a25c@lucifer.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-The referenced commit introduced exception handlers on user-space memory
-references in copy_from_user and copy_to_user. These handlers return from
-the respective function and calculate the remaining bytes left to copy
-using the current register contents. This commit fixes a couple of bad
-calculations and a broken epilogue in the exception handlers. This will
-prevent crashes and ensure correct return values of copy_from_user and
-copy_to_user in the faulting case. The behaviour of memcpy stays unchanged.
+On 04/09/2025 19:28, Lorenzo Stoakes wrote:
+> Hi Kevin,
+>
+> This is causing a build failure:
+>
+> In file included from ./include/linux/mm.h:31,
+>                  from mm/userfaultfd.c:8:
+> mm/userfaultfd.c: In function ‘move_present_ptes’:
+> ./include/linux/pgtable.h:247:41: error: statement with no effect [-Werror=unused-value]
+>   247 | #define arch_enter_lazy_mmu_mode()      (LAZY_MMU_DEFAULT)
+>       |                                         ^
+> mm/userfaultfd.c:1103:9: note: in expansion of macro ‘arch_enter_lazy_mmu_mode’
+>  1103 |         arch_enter_lazy_mmu_mode();
+>       |         ^~~~~~~~~~~~~~~~~~~~~~~~
+> ./include/linux/pgtable.h:248:54: error: expected expression before ‘)’ token
+>   248 | #define arch_leave_lazy_mmu_mode(state) ((void)(state))
+>       |                                                      ^
+> mm/userfaultfd.c:1141:9: note: in expansion of macro ‘arch_leave_lazy_mmu_mode’
+>  1141 |         arch_leave_lazy_mmu_mode();
+>       |         ^~~~~~~~~~~~~~~~~~~~~~~~
+>
+> It seems you haven't carefully checked call sites here, please do very
+> carefully recheck these - I see Yeoreum reported a mising kasan case, so I
+> suggest you just aggressively grep this + make sure you've covered all
+> bases :)
 
-Fixes: 7ae3aaf53f16 ("sparc64: Convert NGcopy_{from,to}_user to accurate exception reporting.")
-Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> # on SPARC T4 with modified kernel to use Niagara 1 code
-Tested-by: Magnus Lindholm <linmag7@gmail.com> # on Sun Fire T2000
-Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
----
- arch/sparc/lib/NGmemcpy.S | 29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+I did check all call sites pretty carefully and of course build-tested,
+but my series is based on v6.17-rc4 - just like the calls Yeoreum
+mentioned, the issue is that those calls are in mm-stable but not in
+mainline :/ I suppose I should post a v2 rebased on mm-stable ASAP then?
 
-diff --git a/arch/sparc/lib/NGmemcpy.S b/arch/sparc/lib/NGmemcpy.S
-index ee51c12306894eee4195887d2b28b2619f63c2b1..bbd3ea0a64822c7410278fcc3d101ce9cef96c89 100644
---- a/arch/sparc/lib/NGmemcpy.S
-+++ b/arch/sparc/lib/NGmemcpy.S
-@@ -79,8 +79,8 @@
- #ifndef EX_RETVAL
- #define EX_RETVAL(x)	x
- __restore_asi:
--	ret
- 	wr	%g0, ASI_AIUS, %asi
-+	ret
- 	 restore
- ENTRY(NG_ret_i2_plus_i4_plus_1)
- 	ba,pt	%xcc, __restore_asi
-@@ -125,15 +125,16 @@ ENTRY(NG_ret_i2_plus_g1_minus_56)
- 	ba,pt	%xcc, __restore_asi
- 	 add	%i2, %g1, %i0
- ENDPROC(NG_ret_i2_plus_g1_minus_56)
--ENTRY(NG_ret_i2_plus_i4)
-+ENTRY(NG_ret_i2_plus_i4_plus_16)
-+        add     %i4, 16, %i4
- 	ba,pt	%xcc, __restore_asi
- 	 add	%i2, %i4, %i0
--ENDPROC(NG_ret_i2_plus_i4)
--ENTRY(NG_ret_i2_plus_i4_minus_8)
--	sub	%i4, 8, %i4
-+ENDPROC(NG_ret_i2_plus_i4_plus_16)
-+ENTRY(NG_ret_i2_plus_i4_plus_8)
-+	add	%i4, 8, %i4
- 	ba,pt	%xcc, __restore_asi
- 	 add	%i2, %i4, %i0
--ENDPROC(NG_ret_i2_plus_i4_minus_8)
-+ENDPROC(NG_ret_i2_plus_i4_plus_8)
- ENTRY(NG_ret_i2_plus_8)
- 	ba,pt	%xcc, __restore_asi
- 	 add	%i2, 8, %i0
-@@ -160,6 +161,12 @@ ENTRY(NG_ret_i2_and_7_plus_i4)
- 	ba,pt	%xcc, __restore_asi
- 	 add	%i2, %i4, %i0
- ENDPROC(NG_ret_i2_and_7_plus_i4)
-+ENTRY(NG_ret_i2_and_7_plus_i4_plus_8)
-+	and	%i2, 7, %i2
-+	add	%i4, 8, %i4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%i2, %i4, %i0
-+ENDPROC(NG_ret_i2_and_7_plus_i4)
- #endif
- 
- 	.align		64
-@@ -405,13 +412,13 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
- 	andn		%i2, 0xf, %i4
- 	and		%i2, 0xf, %i2
- 1:	subcc		%i4, 0x10, %i4
--	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4)
-+	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4_plus_16)
- 	add		%i1, 0x08, %i1
--	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4)
-+	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4_plus_16)
- 	sub		%i1, 0x08, %i1
--	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4)
-+	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4_plus_16)
- 	add		%i1, 0x8, %i1
--	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_minus_8)
-+	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_plus_8)
- 	bgu,pt		%XCC, 1b
- 	 add		%i1, 0x8, %i1
- 73:	andcc		%i2, 0x8, %g0
-@@ -468,7 +475,7 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
- 	subcc		%i4, 0x8, %i4
- 	srlx		%g3, %i3, %i5
- 	or		%i5, %g2, %i5
--	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4)
-+	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4_plus_8)
- 	add		%o0, 0x8, %o0
- 	bgu,pt		%icc, 1b
- 	 sllx		%g3, %g1, %g2
-
--- 
-2.50.1
-
+- Kevin
