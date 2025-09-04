@@ -1,81 +1,106 @@
-Received: from outbound.qs.icloud.com (p-east3-cluster2-host9-snip4-10.eps.apple.com [57.103.87.221])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B85B2ECD39
-	for <sparclinux@vger.kernel.org>; Wed,  3 Sep 2025 22:05:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.87.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB36A288C36
+	for <sparclinux@vger.kernel.org>; Thu,  4 Sep 2025 07:30:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756937134; cv=none; b=eiGoW2fPLCjLAMQNvZp+9JITp0qxcbOMlUwY4sjtpbSIwHoCmlXM8rrY9q+hKAncv+R39q/3oEKbedxUKJT3521nVUsJj5vBL6F4yA3t7sFaxsh9FkWwdcMGh4+qWe27bakrTFm5/EHpugY636FNTxhAK3vUF9QyvOV1dG+f4DQ=
+	t=1756971032; cv=none; b=LCfK9J49HhpWJTfGotzNPRMkyuaWTlMxd/63sBp6u43plfG3/glMaTm/JKxns8c785PteCTTnSz3/FQ3dz3T2fZvjPKhx9dBZso1tfFczCNW5oeggcUMpJEWc7gvy8ivv807jsLfXOJPhKlPl79uNYYkgFDNabDAtn9xEAgpARk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756937134; c=relaxed/simple;
-	bh=2E/5JEVhFZR3/+WLzz2blRAhy7RX6tr6Ohn3x6/Kmfk=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
-	 In-Reply-To:Content-Type; b=UcAG0ZbOcFAi3R3aeLL1thEDjz/BVMotTTE2CDh+qXjhK4b7rIxnGugxj00Nj6kxq/sd/MkqqhzQYDOGD6+KZM2xUzyOgXR3tXRuFtp/pNjuAhIJf+8R7haNFbZyeLurLFJyshu35DBZnxUUEwk2FOAnZWb1J92rUMEQce9HcNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thejpster.org.uk; spf=pass smtp.mailfrom=thejpster.org.uk; dkim=pass (2048-bit key) header.d=thejpster.org.uk header.i=@thejpster.org.uk header.b=nVCbtHOf; arc=none smtp.client-ip=57.103.87.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thejpster.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=thejpster.org.uk
+	s=arc-20240116; t=1756971032; c=relaxed/simple;
+	bh=SHRixf4AjJ3X5iq9PdcG4C2Rf5BqmTruSdbDbTLWggk=;
+	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=D8NM1jn7KMqAIcm4kKQK2hMwbtBtyKJ5iqf9dsNKbu93HE5iumxcmW/sS6Tx/TnWqpDIjNQWPR+tBKvFHqY9PI6yboeIal1fmMq0T1Rv4skk/p2nxB9GlkxBesh2NS3AevlAMDUlYmfVRHoG8KzLC2d4ofd/nxPGSUHeqQLWIRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=Mx4T+ZFq; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=thejpster.org.uk header.i=@thejpster.org.uk header.b="nVCbtHOf"
-Received: from outbound.qs.icloud.com (unknown [127.0.0.2])
-	by p00-icloudmta-asmtp-us-east-2d-60-percent-0 (Postfix) with ESMTPS id 6E0511800885;
-	Wed,  3 Sep 2025 22:05:28 +0000 (UTC)
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=thejpster.org.uk; s=sig1; bh=BQbEpJDpXkVpL/d8jHcTCe0lFwB6CEZ2QFaQu3KuxQc=; h=Message-ID:Date:MIME-Version:To:Subject:From:Content-Type:x-icloud-hme; b=nVCbtHOfsesf3FuegByKBQckpIvTn6DpZfU45WGS2l2/9XjNNCUp5IeFfyp/84OZC/SOleVoJNBJX1fc9uY8TzFzj2k55nS4wTa3uog0hfTdSZigTU+4q56kZCHQsF2IYDbAVL7ax8roUpmR9EqfWff90airLGSDxcy8j1vVePF7xGvZeze0ZizdfSBODUtqpSRRcuY9EKfjjlppwqRbmzgSqOicXXYlWcyfOjEGAsEg2Df1n3/6WAZWu8wU5ZnRmxbrpPx0uuXLlcuUJUjx0OzZpYvKF5CAmQ5NyC0VOoVxar9aTxuOSuRidXHUC1U4kTeqPJrP4O4J/SsfDR1TxA==
-mail-alias-created-date: 1648742848683
-Received: from [192.168.50.27] (qs-asmtp-me-k8s.p00.prod.me.com [17.57.155.37])
-	by p00-icloudmta-asmtp-us-east-2d-60-percent-0 (Postfix) with ESMTPSA id 262A61800886;
-	Wed,  3 Sep 2025 22:05:27 +0000 (UTC)
-Message-ID: <89b55629-da5e-41a0-967d-12f6e0a90854@thejpster.org.uk>
-Date: Wed, 3 Sep 2025 23:05:25 +0100
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="Mx4T+ZFq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
+	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=SntRt8TdzPP0A5FGWAsV+uMvpZcov+1KapfkzQmJIVI=; t=1756971028; x=1757575828; 
+	b=Mx4T+ZFqJBCWQMlzPLPocYccN2ngAs2yR3hhnVHvEwhsMZmQwnJ51m5Kn+bQQ0+NDzu6FbWlTfW
+	vyUS8Oq+QQTx4on+Jquy6wMdzVosLeNCVzZe4XbO2yrD/T1z36fC3lS8bqJ0FB+YuaTj90pu4wp+w
+	KEjesVGEjp2fAY5eWYU8l7B2xtVqf/+RPTm66IYpczmxfXU+cNgR3MKV+2aUNT/GGqEkoV+5Zkxyk
+	pLfiHv2SxZ2Kp2CglAJvVsy65emzOSMk8YNQhJhxLNy3E5oS+PuKjA0AgwXrtG8cqc27+NyNPvDmR
+	szaNypUdVJjF6JIsLjbFyBySos341Rhj+Ivg==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1uu4QG-00000000YUx-1hgs; Thu, 04 Sep 2025 09:30:20 +0200
+Received: from p5dd48348.dip0.t-ipconnect.de ([93.212.131.72] helo=[192.168.46.214])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1uu4QG-000000033oj-0oXG; Thu, 04 Sep 2025 09:30:20 +0200
+Message-ID: <cac3f07a57c4d620f05a8aacc4fa7ca92727c92e.camel@physik.fu-berlin.de>
+Subject: Testers with a SPARC T1 (T1000 or T2000) needed
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: sparclinux <sparclinux@vger.kernel.org>
+Cc: gentoo-sparc@lists.gentoo.org, "<debian-sparc@lists.debian.org>"
+	 <debian-sparc@lists.debian.org>, port-sparc64@netbsd.org
+Date: Thu, 04 Sep 2025 09:30:19 +0200
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: kernel@mkarcher.dialup.fu-berlin.de
-Cc: andreas@gaisler.com, anthony.yznaga@oracle.com,
- glaubitz@physik.fu-berlin.de, linux-kernel@vger.kernel.org,
- sparclinux@vger.kernel.org
-References: <20250826160312.2070-2-kernel@mkarcher.dialup.fu-berlin.de>
-Subject: Re: [PATCH 1/4] sparc: fix accurate exception reporting in
- copy_{from_to}_user for UltraSPARC
-Content-Language: en-US
-From: Jonathan Pallant <jp@thejpster.org.uk>
-In-Reply-To: <20250826160312.2070-2-kernel@mkarcher.dialup.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTAzMDIyMiBTYWx0ZWRfX0HPLCNf9gtVS
- YsPzKWJ7aMD8dFgW4sQ7tw8WuN/h2PkLsxYLo6MJR4kxxF7ONzvU1AUOb8iNp3LfMrteHhzlOMg
- YC0+EHpykkQ2SW4OBW95Qs7as61Ba42O9LVETcI1Cr8hGdqEVUOM2xRKKWoUCTcAFs3jBvj9SN5
- JPl+sacXMApDKTv/o32mwkrpja9P4HmlriL/2nJfEpSWQ/6GIny6vcLLG3MmPsCpYlPQZlFv+lw
- vIoQz/p53xAEieEuSe933l2r5/Hwv8vqsG43TV26GoyqeOuE5duJt6WhHveOQAJYntsOENsnA=
-X-Proofpoint-ORIG-GUID: Ko1z_yd-ktEjKv28ecF7feEI2eFl_t1G
-X-Proofpoint-GUID: Ko1z_yd-ktEjKv28ecF7feEI2eFl_t1G
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-09-03_10,2025-08-28_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0
- suspectscore=0 adultscore=0 mlxlogscore=534 spamscore=0 malwarescore=0
- bulkscore=0 mlxscore=0 clxscore=1030 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2506270000 definitions=main-2509030222
-X-JNJ: AAAAAAAB6wmTerPm9zUOnI5L584fG8O/swGXNVBk/G+9hht+8uNuAS1dwWvBaWbjD2SNXtfjQNDElZrOze1cI2nYC8ic6ebcJOSDygjOjAbsMVsmGPOccGbcODFJsFRzIACQn8AdWo2EO78hIfgmat2KvDOH+1KBy4oM7xXCS/QGMBkwW4TBPNINz0BaDuHAtM/iM+UKg96qJR+pJzOJHAXhNqoKO0RioKMMJ2pSR4dWPrGPgIpBHQiweaj+hq0O+8dGBufojs9ad+4yYyKMAGz0p4Aur8qZQSQI6nVF5J98pF7Sn3RzCCehCeDxnF+O/wn1n55BHf6Y91xyq2nQ81tjnUFWL1+J58xBm/0fJyqHajzGztaQiJUKtjYDGiKtdwPJdFfbKg/Osv0D7Wu9o7VCbp9nP/KUCtWsatOX1HQEf5CpfMWcxwchxMY4PV5DunqVsJZ9x1yZ/xerE8CmGWITlQF/rM8QcozTA+V1cE+THlTIo3awSeanJiCD7mUaj1JKMB4m8bISLJdQxIvUS4FNoAkmq7JWVzWpm+Lpy9TLlPmzdUJqB04GSo4pztIl/rWKBq/pc7Y6JnPQA9whCtS1O1pliaEtnU4DWMcrDq9jDV2SJfzwsitdjmMHPpFd+ZH605wfCDHOzOdvCDY+Qx4quYb2Fsvxp21A+SMRE2QkjvJHas/aoXI9C22PdQFxLKOuN49IMLBSyGiq/XI=
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
- > Fixes: cb736fdbb208 ("sparc64: Convert U1copy_{from,to}_user to 
-accurate exception reporting.")
- > Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+Hello,
 
-Hi all,
+we're looking for someone who owns a SPARC machine with a SPARC T1 CPU who
+can test a kernel patch fixing memory corruption issues on these machines.
 
-I have a Sun Netra t1 (UltraSPARC-IIi at 440 MHz) which crashed a
-lot running Linux 6.1.0-9-sparc64 from Debian sid. It couldn't even
-complete an `apt-get upgrade` without locking up.
+For Debian users, the patched can be tested with the help of this Debian
+kernel package which already contains the patch in question:
 
-With glaubitz's assistance, I've now installed kernel
-6.12.3-sparc64 with this patch and the machine is working much
-better. I was able to install openssh-server and run a bunch of
-tools that simply didn't work on the previous kernel.
+https://people.debian.org/~glaubitz/sparc64/linux-image-6.12.3-sparc64-smp_=
+6.12.3-1+sparc64_sparc64.deb
 
-Tested-by: Jonathan 'theJPster' Pallant <kernel@thejpster.org.uk> # on 
-Sun Netra t1 (UltraSPARC-IIi)
+If the machine has not a running Linux installation, a test ISO with T2DE
+Linux can be found here:
 
+https://dl.t2sde.org/binary/2025/incoming/t2-25.9-sparc64-base-wayland-glib=
+c-gcc-ultrasparc3.iso
+
+For anyone building their own kernel, the patch can be found here:
+
+https://lore.kernel.org/all/20250826160312.2070-4-kernel@mkarcher.dialup.fu=
+-berlin.de/
+
+In case of a successful test, please reply to the patch mail titled:
+
+"[PATCH 3/4] sparc: fix accurate exception reporting in copy_{from_to}_user=
+ for Niagara"
+
+with a "Tested-by: Your Name <your.mail@domain.com>" (filling in your detai=
+ls, of course ;)).
+
+If you're not subscribed to the the sparclinux Linux kernel mailing list, y=
+ou can reply
+to the message by downloading the mbox file following this link:
+
+https://lore.kernel.org/all/20250826160312.2070-2-kernel@mkarcher.dialup.fu=
+-berlin.de/
+
+Import this file into Thunderbird or any email client of choice, then reply=
+ from there.
+
+Adrian
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
