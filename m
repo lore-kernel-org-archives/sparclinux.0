@@ -1,48 +1,48 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9D82EB5B3;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE8E2DC344;
 	Thu,  4 Sep 2025 22:03:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757023430; cv=none; b=eky7l5ybuexiTwcxGXOGJkleDakt8yW+7aW6B2A5KfpgPhiPwwllVKC/MFBaapMziAZIFasVKcZ3iqfiWvaos6iekhYV+IL7vZ1I6ZWF/Ugqwm88L9mehy8OB+b471kIMNR3uoyZc71n6/6YpVsmTAuKy5v5LUD93rvrdzwIngo=
+	t=1757023430; cv=none; b=a4Ouv1A/vSvqLsdVMmzym7vEamphCc8OqsPMtqXRjYmpacI/e/9NAgG3ci+8e7lQNMryjBZqK/Wghvpa/N1Ndhg4vMzOqrDL3md0c0cgqWKas1t9uTVkj+CSCuwpI/aOIpzS2mbQF/wvSW2HSix+YwzGm+04Tq9k7MMYHee7dnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757023430; c=relaxed/simple;
-	bh=ef/KmXAU5twJnvrbNwO81lp483y8IFKk+ht1SJzwdcs=;
+	bh=yckpfoj4npEN+YtfiZVyat6SWElVSjCHN+wFaEGmz3E=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Z2Oe2RiW0KHHJqFV0OlqrX4yYehJy1wzYZy4K7GBzEss64z4EOfR+K4nKoa5Fo0+hpoutQUdOF0mfFLbUiZVLFCL3qyr0Ul+YaocXDv/L/WSeDB1ZLYfeSdUqItMPWyt0TF7ed9S3oPh1rCciiKhDRB2wGb0Ve7DsysxiPvROYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=NaQVCVG7; arc=none smtp.client-ip=130.133.4.66
+	 In-Reply-To:To:Cc; b=q/mvxqeXsRQrAmDhSzGKELHIK9XE4qoYzm90aBJcevz9xwQ2eS0eMInk71YE0Dtrmmz68iI6xaWsV4UW2QCB6uL9PxB1XSjwgkeXxyBiDYL23XttUMGMuoNZUoD2uwrDdkXGDmoW3QMyC8pjLCNohdvdgTqoaAx8eGezClGgZmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=dBTUuHE7; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mkarcher.dialup.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="NaQVCVG7"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="dBTUuHE7"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=fu-berlin.de; s=fub01; h=Cc:To:In-Reply-To:References:Message-Id:
 	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:From:
 	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
 	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=oS6pbq8B7+OURvadlkC+ImR86L0693Iz+IdGLSCm81E=; t=1757023427;
-	x=1757628227; b=NaQVCVG7p6WcnfR2CTkH5bhZZZeohtrR/JHXnCnGtg0qTi7lEREPU9Rs0r4ED
-	99ixHzYrRiZGBj3PizRSaD/4qtE7qnRcVCyNFYqvpaORaim065mkFU76vclk3ZGV+Bm4FWeZAMbLC
-	0yM7s9ZpetQ1pyqAnR4HzH+63pIhBjLHM4pjzru2GqKsVasoqrPegXz8KQuNHiarMY3nO2UBHy+Zd
-	rcg/7+LxDLPIIsh7/NWDGvps1owfx2L9jP7TpxeoDRNRuQptkGzGaEbrYitNwpFP8ipWUuMCC4L1P
-	89TAZUQxXX7ZoKbJvydGES4Q/XCmHvOn3Bk8Bauz3VEs/eMK1w==;
+	References; bh=ynhD031oOOhISCeOF4gi9TxV/Tn9AXmI3UK6Fm/q0Wg=; t=1757023428;
+	x=1757628228; b=dBTUuHE7ucgrz1NpBct1ETYDrN10dA7n1CZR8zLl7TLRWdGKxOkPK3H8OOJ+E
+	Z1I3kkq6jze3Lxr7xABc4sGWI303PJlBikPKYcd5JBj3ANHRGIZKBD50pn0j7ZS/gg0y5a4bfOfFF
+	x1eQNPLHkUME3m0PPP62sRjcEnExkZDcNOUfH0/J8QwEF6elBhhycvT5A1yVzUjMHgpPukIq0Zhug
+	vtnDnOUyrG/YbYCpS3iGYEd1qAMjaSzrD82xhz07IqICJYefIv4Mm4E7gbQgFH7ghQ1Zzkb5I+H2R
+	4gPBXC5yDQG+aCph5bkIvH+kMWYHe6b5i43u+TsChuJWt2xexA==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.98)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <mkarcher@zedat.fu-berlin.de>)
-          id 1uuI3V-00000000z7J-1bAx; Fri, 05 Sep 2025 00:03:45 +0200
+          id 1uuI3W-00000000z8I-1nyk; Fri, 05 Sep 2025 00:03:46 +0200
 Received: from 89-103-142-46.pool.kielnet.net ([46.142.103.89] helo=Geist14.)
           by inpost2.zedat.fu-berlin.de (Exim 4.98)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <kernel@mkarcher.dialup.fu-berlin.de>)
-          id 1uuI3V-00000002DJL-0nAc; Fri, 05 Sep 2025 00:03:45 +0200
+          id 1uuI3W-00000002DJL-0tSn; Fri, 05 Sep 2025 00:03:46 +0200
 From: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
-Date: Fri, 05 Sep 2025 00:03:31 +0200
-Subject: [PATCH v4 2/5] sparc: fix accurate exception reporting in
- copy_{from_to}_user for UltraSPARC III
+Date: Fri, 05 Sep 2025 00:03:34 +0200
+Subject: [PATCH v4 5/5] sparc: fix accurate exception reporting in
+ copy_{from,to}_user for M7
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -50,8 +50,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20250905-memcpy_series-v4-2-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250905-memcpy_series-v4-5-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
 References: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
 In-Reply-To: <20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
 To: Andreas Larsson <andreas@gaisler.com>
@@ -59,58 +59,107 @@ Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
  Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, 
  John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
  Anthony Yznaga <anthony.yznaga@oracle.com>, 
- =?utf-8?q?Ren=C3=A9_Rebe?= <rene@exactcode.com>
+ Tony Rodriguez <unixpro1970@gmail.com>
 X-Mailer: b4 0.14.2
 X-Original-Sender: kernel@mkarcher.dialup.fu-berlin.de
 X-ZEDAT-Hint: PO
 
-Anthony Yznaga tracked down that a BUG_ON in ext4 code with large folios
-enabled resulted from copy_from_user() returning impossibly large values
-greater than the size to be copied. This lead to __copy_from_iter()
-returning impossible values instead of the actual number of bytes it was
-able to copy.
-
-The BUG_ON has been reported in
-https://lore.kernel.org/r/b14f55642207e63e907965e209f6323a0df6dcee.camel@physik.fu-berlin.de
-
 The referenced commit introduced exception handlers on user-space memory
 references in copy_from_user and copy_to_user. These handlers return from
 the respective function and calculate the remaining bytes left to copy
-using the current register contents. The exception handlers expect that
-%o2 has already been masked during the bulk copy loop, but the masking was
-performed after that loop. This will fix the return value of copy_from_user
-and copy_to_user in the faulting case. The behaviour of memcpy stays
-unchanged.
+using the current register contents. This commit fixes a couple of bad
+calculations. This will fix the return value of copy_from_user and
+copy_to_user in the faulting case. The behaviour of memcpy stays unchanged.
 
-Fixes: ee841d0aff64 ("sparc64: Convert U3copy_{from,to}_user to accurate exception reporting.")
-Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> # on Sun Netra 240
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Tested-by: René Rebe <rene@exactcode.com> # on UltraSparc III+ and UltraSparc IIIi
+Fixes: 34060b8fffa7 ("arch/sparc: Add accurate exception reporting in M7memcpy")
+Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> # on Oracle SPARC S7
+Tested-by: Tony Rodriguez <unixpro1970@gmail.com> # S7, see https://lore.kernel.org/r/98564e2e68df2dda0e00c67a75c7f7dfedb33c7e.camel@physik.fu-berlin.de
 Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
 ---
- arch/sparc/lib/U3memcpy.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/lib/M7memcpy.S     | 20 ++++++++++----------
+ arch/sparc/lib/Memcpy_utils.S |  9 +++++++++
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/lib/U3memcpy.S b/arch/sparc/lib/U3memcpy.S
-index 9248d59c734ce200f1f55e6d9913277f18715a87..bace3a18f836f1428ae0ed72b27aa1e00374089e 100644
---- a/arch/sparc/lib/U3memcpy.S
-+++ b/arch/sparc/lib/U3memcpy.S
-@@ -267,6 +267,7 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	faligndata	%f10, %f12, %f26
- 	EX_LD_FP(LOAD(ldd, %o1 + 0x040, %f0), U3_retl_o2)
+diff --git a/arch/sparc/lib/M7memcpy.S b/arch/sparc/lib/M7memcpy.S
+index cbd42ea7c3f7c25a369536eaf8d0b28a808ae5ba..99357bfa8e82ad7cf15dfd04117c89b905082f5b 100644
+--- a/arch/sparc/lib/M7memcpy.S
++++ b/arch/sparc/lib/M7memcpy.S
+@@ -696,16 +696,16 @@ FUNC_NAME:
+ 	EX_LD_FP(LOAD(ldd, %o4+40, %f26), memcpy_retl_o2_plus_o5_plus_40)
+ 	faligndata %f24, %f26, %f10
+ 	EX_ST_FP(STORE(std, %f6, %o0+24), memcpy_retl_o2_plus_o5_plus_40)
+-	EX_LD_FP(LOAD(ldd, %o4+48, %f28), memcpy_retl_o2_plus_o5_plus_40)
++	EX_LD_FP(LOAD(ldd, %o4+48, %f28), memcpy_retl_o2_plus_o5_plus_32)
+ 	faligndata %f26, %f28, %f12
+-	EX_ST_FP(STORE(std, %f8, %o0+32), memcpy_retl_o2_plus_o5_plus_40)
++	EX_ST_FP(STORE(std, %f8, %o0+32), memcpy_retl_o2_plus_o5_plus_32)
+ 	add	%o4, 64, %o4
+-	EX_LD_FP(LOAD(ldd, %o4-8, %f30), memcpy_retl_o2_plus_o5_plus_40)
++	EX_LD_FP(LOAD(ldd, %o4-8, %f30), memcpy_retl_o2_plus_o5_plus_24)
+ 	faligndata %f28, %f30, %f14
+-	EX_ST_FP(STORE(std, %f10, %o0+40), memcpy_retl_o2_plus_o5_plus_40)
+-	EX_ST_FP(STORE(std, %f12, %o0+48), memcpy_retl_o2_plus_o5_plus_40)
++	EX_ST_FP(STORE(std, %f10, %o0+40), memcpy_retl_o2_plus_o5_plus_24)
++	EX_ST_FP(STORE(std, %f12, %o0+48), memcpy_retl_o2_plus_o5_plus_16)
+ 	add	%o0, 64, %o0
+-	EX_ST_FP(STORE(std, %f14, %o0-8), memcpy_retl_o2_plus_o5_plus_40)
++	EX_ST_FP(STORE(std, %f14, %o0-8), memcpy_retl_o2_plus_o5_plus_8)
+ 	fsrc2	%f30, %f14
+ 	bgu,pt	%xcc, .Lunalign_sloop
+ 	 prefetch [%o4 + (8 * BLOCK_SIZE)], 20
+@@ -728,7 +728,7 @@ FUNC_NAME:
+ 	add	%o4, 8, %o4
+ 	faligndata %f0, %f2, %f16
+ 	subcc	%o5, 8, %o5
+-	EX_ST_FP(STORE(std, %f16, %o0), memcpy_retl_o2_plus_o5)
++	EX_ST_FP(STORE(std, %f16, %o0), memcpy_retl_o2_plus_o5_plus_8)
+ 	fsrc2	%f2, %f0
+ 	bgu,pt	%xcc, .Lunalign_by8
+ 	 add	%o0, 8, %o0
+@@ -772,7 +772,7 @@ FUNC_NAME:
+ 	subcc	%o5, 0x20, %o5
+ 	EX_ST(STORE(stx, %o3, %o0 + 0x00), memcpy_retl_o2_plus_o5_plus_32)
+ 	EX_ST(STORE(stx, %g2, %o0 + 0x08), memcpy_retl_o2_plus_o5_plus_24)
+-	EX_ST(STORE(stx, %g7, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_24)
++	EX_ST(STORE(stx, %g7, %o0 + 0x10), memcpy_retl_o2_plus_o5_plus_16)
+ 	EX_ST(STORE(stx, %o4, %o0 + 0x18), memcpy_retl_o2_plus_o5_plus_8)
+ 	bne,pt	%xcc, 1b
+ 	 add	%o0, 0x20, %o0
+@@ -804,12 +804,12 @@ FUNC_NAME:
+ 	brz,pt	%o3, 2f
+ 	 sub	%o2, %o3, %o2
  
-+	and		%o2, 0x3f, %o2
- 	subcc		GLOBAL_SPARE, 0x80, GLOBAL_SPARE
- 	add		%o1, 0x40, %o1
- 	bgu,pt		%XCC, 1f
-@@ -336,7 +337,6 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	 * Also notice how this code is careful not to perform a
- 	 * load past the end of the src buffer.
- 	 */
--	and		%o2, 0x3f, %o2
- 	andcc		%o2, 0x38, %g2
- 	be,pn		%XCC, 2f
- 	 subcc		%g2, 0x8, %g2
+-1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), memcpy_retl_o2_plus_g1)
++1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), memcpy_retl_o2_plus_o3)
+ 	add	%o1, 1, %o1
+ 	subcc	%o3, 1, %o3
+ 	add	%o0, 1, %o0
+ 	bne,pt	%xcc, 1b
+-	 EX_ST(STORE(stb, %g2, %o0 - 0x01), memcpy_retl_o2_plus_g1_plus_1)
++	 EX_ST(STORE(stb, %g2, %o0 - 0x01), memcpy_retl_o2_plus_o3_plus_1)
+ 2:
+ 	and	%o1, 0x7, %o3
+ 	brz,pn	%o3, .Lmedium_noprefetch_cp
+diff --git a/arch/sparc/lib/Memcpy_utils.S b/arch/sparc/lib/Memcpy_utils.S
+index 64fbac28b3db18864b0d067acaee0d7898feec7a..207343367bb2daa41a70398e20ef271116423b38 100644
+--- a/arch/sparc/lib/Memcpy_utils.S
++++ b/arch/sparc/lib/Memcpy_utils.S
+@@ -137,6 +137,15 @@ ENTRY(memcpy_retl_o2_plus_63_8)
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%o2, 8, %o0
+ ENDPROC(memcpy_retl_o2_plus_63_8)
++ENTRY(memcpy_retl_o2_plus_o3)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o3, %o0
++ENDPROC(memcpy_retl_o2_plus_o3)
++ENTRY(memcpy_retl_o2_plus_o3_plus_1)
++	add	%o3, 1, %o3
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o3, %o0
++ENDPROC(memcpy_retl_o2_plus_o3_plus_1)
+ ENTRY(memcpy_retl_o2_plus_o5)
+ 	ba,pt	%xcc, __restore_asi
+ 	 add	%o2, %o5, %o0
 
 -- 
 2.50.1
