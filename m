@@ -1,105 +1,97 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B1EEE3002BC;
-	Thu,  4 Sep 2025 12:58:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE3623B616;
+	Thu,  4 Sep 2025 13:49:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756990737; cv=none; b=LEKBXysrX9Y7H7x5wROdcnsLYyk7oNJ1RiIDNUf8DoFxJaXEnatvcvVnRc0DCTpIGJLmz2v94KxnegP5FVamsYEm0SDiNWwEPPTGW8gRTnesv7ofEaGU67f045dPGS1B8W5JhBHJeH6s79OzSFN2UyKV/rJwFLc6hhhj4MpKpao=
+	t=1756993780; cv=none; b=Y5hBSGbXg5dnSkMR191ohPPXm9DTjOBAbSVkyX0d0xci/bhD2zxjbdGaav0rFqYKOS/m1/z3bcOugwL1T41KV1CbLxfzkezLmPPLdJkxHf+ZXnyJQwgSzTSMz1b1aXa9jOx4XXPXNY6C6kDo7oACJz47LUSAilc+4SFkaiIJQ4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756990737; c=relaxed/simple;
-	bh=eUDKAdZqgvs0HKckrnQ5CW9DnGDWJQkBfjxqaWum9qM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FoIwUqByaIYQI7asjWB4RD3wXWKo2ujTlxRYImRIDrxIW5Hz0gKX7HpXdfxU9ZCtKEXaxSwy37s34RYAGQ7GGFqYYnRrWHmJIJ9IRUvTSvWcLvW3WRdX/VN+B3+AjUjz0LE6ANYF4/NpKNCCNN5awyDBzlfjqfe92rJkKFE8RvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A725E2F28;
-	Thu,  4 Sep 2025 05:58:46 -0700 (PDT)
-Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 757883F6A8;
-	Thu,  4 Sep 2025 05:58:50 -0700 (PDT)
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jann Horn <jannh@google.com>,
-	Juergen Gross <jgross@suse.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>,
-	Mike Rapoport <rppt@kernel.org>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Will Deacon <will@kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	xen-devel@lists.xenproject.org
-Subject: [PATCH 7/7] mm: update lazy_mmu documentation
-Date: Thu,  4 Sep 2025 13:57:36 +0100
-Message-ID: <20250904125736.3918646-8-kevin.brodsky@arm.com>
-X-Mailer: git-send-email 2.47.0
-In-Reply-To: <20250904125736.3918646-1-kevin.brodsky@arm.com>
-References: <20250904125736.3918646-1-kevin.brodsky@arm.com>
+	s=arc-20240116; t=1756993780; c=relaxed/simple;
+	bh=1+RmBjkLJxr3tjr4SwWahsm6T9z+16UTmNktO1t0Y1U=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Fw9/n01sVtF6WmJQi/+NtpOM5GDz2B+kzNmtTlab9g3mdIMvzTO8lQ6RAJ/9xXNs/kY3vkMpEBLmzI2ZLkQgqsFbcnBwmNefV0IYm+3sP4ELGujTlvSEAfmztAPIVzQHcagyUkhsg3FdV3vpJoPqjRnnYADMzZMJNbwjDtK3EL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=m503c1kt reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="m503c1kt"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4cHgnh1KMzz1FXZv;
+	Thu,  4 Sep 2025 15:49:28 +0200 (CEST)
+Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4cHgng7305z1FXhW;
+	Thu,  4 Sep 2025 15:49:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=simplycom2; t=1756993768;
+	bh=kKissGMh75GslfHEsQZRmULySpZwoZ7dxQ49rEQapCA=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=m503c1ktfDPE8biqkrY1Qdu1aHpNNHvECXN3OsfhpzzjDz3XXQXltrRKBM/nhJ8kZ
+	 ilNYta4tr0LD9PAZ5QVtgtanfLrjivNUqtmLjA3viXUoF/vWwUX8ZeQBc8jVPrkY3l
+	 u4iZl3IRoIU3qu9rYwKOeZnEhwqEhyNX07hCXv9kWzxl40vBcWN5pCXd23hjgVcd5q
+	 ZdAoOzd/7ri/yggI0zRLh7YlZrBzf5NeonuU81dZLsqnSyZeXsfn/VTUZgwgs9WqNJ
+	 8tnh/wtjIyX8HnPnHHjeCENlcGsmUbtci/U0iRzqUKl/ihVCM3R0sqGbKnfd2RFJfS
+	 B3ChWlQ/jzHug==
+Message-ID: <0253d6fe-dafe-492f-b7ad-12f98ba3c507@gaisler.com>
+Date: Thu, 4 Sep 2025 15:49:27 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: Fix accurate exception reporting in SPARC assembly
+To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>,
+ linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Anthony Yznaga <anthony.yznaga@oracle.com>
+References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-We now support nested lazy_mmu sections on all architectures
-implementing the API. Update the API comment accordingly.
+On 2025-08-26 18:03, Michael Karcher wrote:
+> In 2018, David Miller implemented accurate exception reporting in
+> copy_from_user and copy_to_user by handling exceptions on each load
+> or store instruction that accesses userspace memory and calculating
+> the remaining bytes from the processor context. As issues with
+> transparent huge page support and folio support in ext4 were due
+> to a bogus return value from copy_from_user, I wrote a comprehensive
+> testsuite for the generic variant, and the machine-specific variants
+> for UltraSPARC I/II, UltraSPARC III, Niagara, Niagara 2/3 and
+> Niagara 4, see
+> 
+> https://github.com/karcherm/sparc-cfu-bug-reproducer
+> 
+> despite the name of the project, it does not only test copy_from_user,
+> but also copy_to_user, and it also contains fixes to a very small amount
+> of exception handler references that were calculating the result in
+> a wrong way.
+> 
+> For UltraSPARC III, I chose to adjust the memcpy code itself instead of
+> adding complexity to multiple exception handlers. That fix has already
+> been tested to fix stability issues observed by Adrian Glaubitz which
+> kicked of the investigation. On all other architectures, the changes
+> are just to the exception handlers.
 
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
----
- include/linux/pgtable.h | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Hi Michael,
 
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 6932c8e344ab..be0f059beb4d 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -228,8 +228,18 @@ static inline int pmd_dirty(pmd_t pmd)
-  * of the lazy mode. So the implementation must assume preemption may be enabled
-  * and cpu migration is possible; it must take steps to be robust against this.
-  * (In practice, for user PTE updates, the appropriate page table lock(s) are
-- * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
-- * and the mode cannot be used in interrupt context.
-+ * held, but for kernel PTE updates, no lock is held). The mode cannot be used
-+ * in interrupt context.
-+ *
-+ * Calls may be nested: an arch_{enter,leave}_lazy_mmu_mode() pair may be called
-+ * while the lazy MMU mode has already been enabled. An implementation should
-+ * handle this using the state returned by enter() and taken by the matching
-+ * leave() call; the LAZY_MMU_{DEFAULT,NESTED} flags can be used to indicate
-+ * whether this enter/leave pair is nested inside another or not. (It is up to
-+ * the implementation to track whether the lazy MMU mode is enabled at any point
-+ * in time.) The expectation is that leave() will flush any batched state
-+ * unconditionally, but only leave the lazy MMU mode if the passed state is not
-+ * LAZY_MMU_NESTED.
-  */
- #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- typedef int lazy_mmu_state_t;
--- 
-2.47.0
+Thank you very much for this series as well as the followup patch for M7!
+
+This cover letter for this series gives good contextual information for
+the series, but when looking at the commit message for a single patch in
+isolation it is not clear at a glance what is being fixed. Do you think
+you could put in a short description in each patch in this series, and
+also in the followup M7 patch, on what it is doing and what it is
+solving?
+
+Cheers,
+Andreas
 
