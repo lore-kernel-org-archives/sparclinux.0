@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4EB2334F498;
-	Fri,  5 Sep 2025 12:11:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5311034DCE1;
+	Fri,  5 Sep 2025 12:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757074315; cv=none; b=D0ToZP8AJFylC/NnEFh16VjdY88HG5DiuX0Mlzej+OC+n/4fUsEdeez1jZotNWbeWO32hVqDKDNacFDwcZjP1x4MUdZWd8LbJUuS1DWLuW+R6tyqCk/LggA9nrgV12LYSiXu4cO316kn7b3Kv4kT6rYLfh1wwwvGL3qeI6y2iQ4=
+	t=1757074977; cv=none; b=jTsiry5uR3u07SCeFmgKfM0pdqGhtRiJkSJLjjhn63676RubiF21ks9FNC8sbtzoVyn5siQNocD2IMm32oYW2egJTVEQlj3IsYlhEGRfie67cUdq2ChnGXtn1/AXIo/AAIVJ6g9w/5YIcnhP5BdQAecfvNuN6L7k/hUGBEkaiVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757074315; c=relaxed/simple;
-	bh=VvyIHkUv5RRxBs59x2FA9ZxJ1T5Ll9H13cK44Xc+SPo=;
+	s=arc-20240116; t=1757074977; c=relaxed/simple;
+	bh=ywmDAG7PE2fj1+B2GkU5RbYTyU3sAGy8lTlonC3Qgos=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dHMcaetZma5D0touVYT+892F+gdCzpHgVnva8H8LCWYCbWkcgNHcakSvRgjmmoRSvk/IHvSpnZ/VLD+nnwKj0+EsSNPbQ+yu2YI7cnY9Z3IU1Jzv9jefv87qwk5SwYzEXqrv8BMRYl/QctbveKU1UHnnnriLatbnwUUrEAXbbeM=
+	 In-Reply-To:Content-Type; b=N/Ub+Cbrfh1YWRAkpLLrWo8uBfeEfeyhGM6piFcZ3Nd6WJ7C3Lk+t/uz4NyeGPB6uyG3IxdHujVRO/z8U4oMfQe6Rqufg8Wxwo3hEmbA32wUYJKd+4Hu/4L6yb4vp45dvAA72EW1SCnoZo7f5cf8Hz80j1AZH1GJ/nUL9jSPYHo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F0A1B153B;
-	Fri,  5 Sep 2025 05:11:42 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2012D153B;
+	Fri,  5 Sep 2025 05:22:46 -0700 (PDT)
 Received: from [10.57.60.42] (unknown [10.57.60.42])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 65F093F63F;
-	Fri,  5 Sep 2025 05:11:45 -0700 (PDT)
-Message-ID: <66335cf3-d49d-4b27-a37b-0a8a5e2c5d78@arm.com>
-Date: Fri, 5 Sep 2025 14:11:43 +0200
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D7BF93F63F;
+	Fri,  5 Sep 2025 05:22:48 -0700 (PDT)
+Message-ID: <a18f9cbd-490d-4270-8707-4ed6d730cfcd@arm.com>
+Date: Fri, 5 Sep 2025 14:22:46 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,9 +27,10 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/7] Nesting support for lazy MMU mode
-To: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: Re: [PATCH 2/7] mm: introduce local state for lazy_mmu sections
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
@@ -40,8 +41,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
  Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
  Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
+ <Liam.Howlett@oracle.com>, Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
  Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
  Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
@@ -51,66 +51,30 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org
 References: <20250904125736.3918646-1-kevin.brodsky@arm.com>
- <9fd076c7-f163-4b92-8201-d8a259a338c1-agordeev@linux.ibm.com>
+ <20250904125736.3918646-3-kevin.brodsky@arm.com>
+ <22131943-3f92-4f5a-be28-7b668c07a25c@lucifer.local>
+ <75db1f58-98b3-463c-af4f-2ce9878cba9f@arm.com>
+ <2aed0b3b-1a70-4c89-9177-8de4fabb2237@lucifer.local>
+ <e6072568-1b98-4a7f-8d30-65417a440bb7@lucifer.local>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <9fd076c7-f163-4b92-8201-d8a259a338c1-agordeev@linux.ibm.com>
+In-Reply-To: <e6072568-1b98-4a7f-8d30-65417a440bb7@lucifer.local>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 05/09/2025 11:46, Alexander Gordeev wrote:
-> On Thu, Sep 04, 2025 at 01:57:29PM +0100, Kevin Brodsky wrote:
->
-> Hi Kevin,
->
->> When the lazy MMU mode was introduced eons ago, it wasn't made clear
->> whether such a sequence was legal:
+On 05/09/2025 13:37, Lorenzo Stoakes wrote:
+> On Fri, Sep 05, 2025 at 12:21:40PM +0100, Lorenzo Stoakes wrote:
+>> You should really base on mm-new.
 >>
->> 	arch_enter_lazy_mmu_mode()
->> 	...
->> 		arch_enter_lazy_mmu_mode()
->> 		...
->> 		arch_leave_lazy_mmu_mode()
->> 	...
->> 	arch_leave_lazy_mmu_mode()
-> I did not take too deep - sorry if you already answered this.
-> Quick question - whether a concern Ryan expressed is addressed
-> in general case?
+>> You need to account for everything that is potentially going to go
+>> upstream. mm-stable is generally not actually populated all too well until
+>> shortly before merge window anyway.
+> Just to note that mm-unstable is also fine. Despite its name, it's substantially
+> more stable than mm-new, which can even break the build and appears to have no
+> checks performed on it at all.
 
-The short answer is yes - it's good that you're asking because I failed
-to clarify this in the cover letter!
-
-> https://lore.kernel.org/all/3cad01ea-b704-4156-807e-7a83643917a8@arm.com/
->
-> 	enter_lazy_mmu
-> 		for_each_pte {
-> 			read/modify-write pte
->
-> 			alloc_page
-> 				enter_lazy_mmu
-> 					make page valid
-> 				exit_lazy_mmu
->
-> 			write_to_page
-> 		}
-> 	exit_lazy_mmu
->
-> <quote>
-> This example only works because lazy_mmu doesn't support nesting. The "make page
-> valid" operation is completed by the time of the inner exit_lazy_mmu so that the
-> page can be accessed in write_to_page. If nesting was supported, the inner
-> exit_lazy_mmu would become a nop and write_to_page would explode.
-> </quote>
-
-Further down in the cover letter I refer to the approach Catalin
-suggested [4]. This was in fact in response to this concern from Ryan.
-The key point is: leave() keeps the lazy MMU mode enabled if it is
-nested, but it flushes any batched state *unconditionally*, regardless
-of nesting level. See patch 3-6 on the practical implementation of this;
-patch 7 also spells it out in the documentation.
-
-Hope that clarifies the situation!
+Thanks for the overview - I had a general idea about those branches but
+I wasn't sure what the standard practice was. I'll rebase on mm-unstable
+to start with.
 
 - Kevin
-
-[4] https://lore.kernel.org/all/aEhKSq0zVaUJkomX@arm.com/
