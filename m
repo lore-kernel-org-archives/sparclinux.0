@@ -1,99 +1,139 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from dev2.ember.systems (dev2.ember.systems [221.121.142.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E71354315A;
-	Sun,  7 Sep 2025 21:31:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD2C189F5C;
+	Mon,  8 Sep 2025 04:39:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=221.121.142.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757280708; cv=none; b=Mo+GWUME4pV8g5gjWO0G8PofUy92qSD0feSA0fGN0T9Hu7PGaF5OFm3oWExaWixC6j37ZOoPEd97eRLHGYqF/+a61T1J6Mr2waVDtqyyyI1XNEmfjFHLTr1upf2mlOknek9SCZirlFxSzTphW61euymt+2CcqyXEQgehDdBu0V0=
+	t=1757306366; cv=none; b=KonxbEvuSkHhceMglLK7WTZqCpVyW/KugGBshb7MGziTxZnIvAeNc9fLWYzRkxEFicvU9GKSzrn+8h9ubvhNryZ541UleU20+dzbai3mhdi6y3nwJ96xeW0MztDoxTML5UfiXiDetMNZAeKcPvy91X+BERqNKDGo0mXmXJ+luEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757280708; c=relaxed/simple;
-	bh=e7ID+j9at7heoLiVoP6Gvy/Zu4m9t7Xr9DSTbMDwKas=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=jAKT6GzZACBTTyKSwggnEhVqrjS1YEDbP1YZY2q+j3DzmfUmmF3OfDHB9Zx68+vzYYWrKDby1n7Ng8mt3XDELvFB4lQ/ZcbOkV82ADoNjnG71YQ0di0jkPthS3r4rOJXPzweIN1jYKytldMUWUsa/YrRcUDfscs6C08c+5BV+CY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=antCOnEt; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1757306366; c=relaxed/simple;
+	bh=4xYBjJdM4NDur808FlxnDYkG6BSSHAGlwleL6tIRjec=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XM7gUrM8L7julzFekTfA6BcRRJNmDIlhDbfmv5I7xPQzfF76RgqZTWZzR+7qumdFRaADbVcI9cR/FrsYXBj+Usma+d/80XuD0rj2C1e0qo8SbLBi26lilWkmGLhK4OCxTBqOLn/8aakAarIFhz5ypXPmG8Jvb8i9FvE1pVcMcYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ember.systems; spf=pass smtp.mailfrom=ember.systems; dkim=pass (2048-bit key) header.d=ember.systems header.i=@ember.systems header.b=DFihtIPt; arc=none smtp.client-ip=221.121.142.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ember.systems
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ember.systems
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="antCOnEt"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=Dpvq0/dIiPcHnZ2VR0QXijoUGUgIX3GdzhJAKHK2nUU=; t=1757280705;
-	x=1757885505; b=antCOnEti/W9aNu00AxPsJq4jtf0uXnVh0JL50LNMwNrcqwaMlMC5HdiIicEw
-	TGj6VIvTj/nIU+28V+UAZl3KSzxf11ZulnQELY1I7351lXzAspjjgHWpCk4zBBUmhrDNxhETb0Ld0
-	t9DlP2iBlhcLq7qEmpxv7YRys7r9Hho8oCHdXzbZaTDrA4uEJd0/DAb/5dfj+1YV77+6IgyvAxgCr
-	fHsTPcpr6V37py4Q63a+V9tFTfIW6ginZ+Ve1Rv3+gsbQvm2GfCsueJL8QfXG45SGsaW4GZomtsY7
-	1xBi6gBMEVwbVDWT8gga32L0flePRpseqJgv71dlEY37VxL7tQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1uvMz8-00000002qWw-1zt3; Sun, 07 Sep 2025 23:31:42 +0200
-Received: from dynamic-089-012-071-066.89.12.pool.telefonica.de ([89.12.71.66] helo=[192.168.178.50])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1uvMz8-00000003b04-153m; Sun, 07 Sep 2025 23:31:42 +0200
-Message-ID: <c3e1173f99e6222ab09093e1a197d6366bcf2b95.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v4 2/5] sparc: fix accurate exception reporting in
- copy_{from_to}_user for UltraSPARC III
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>, Andreas Larsson
-	 <andreas@gaisler.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Anthony Yznaga
-	 <anthony.yznaga@oracle.com>, =?ISO-8859-1?Q?Ren=E9?= Rebe
- <rene@exactcode.com>
-Date: Sun, 07 Sep 2025 23:31:41 +0200
-In-Reply-To: <e791dbb534aac79805389a4b754901c24991de89.camel@physik.fu-berlin.de>
-References: 
-	<20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
-				 <20250905-memcpy_series-v4-2-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
-			 <326c98bf3adf52da64bc606741770c638409b938.camel@physik.fu-berlin.de>
-		 <2fe65b101b36304369866e30f64a921591ecdd8b.camel@physik.fu-berlin.de>
-	 <e791dbb534aac79805389a4b754901c24991de89.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=ember.systems header.i=@ember.systems header.b="DFihtIPt"
+Received: from [192.168.1.10] (gw.ehawk.au [119.17.157.5])
+	by dev2.ember.systems (Postfix) with ESMTPSA id B914A103DE8B;
+	Mon,  8 Sep 2025 14:32:29 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ember.systems; s=dkim;
+	t=1757305950; bh=4xYBjJdM4NDur808FlxnDYkG6BSSHAGlwleL6tIRjec=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=DFihtIPt2yveFgr9F+T+cXiwOcr2g0Gwjr3Xd+KmNytnVEHisKn4uIHDik5YYzeqz
+	 DuH01xt1n5CVoQmD+SRSVumSpetLOLOWrqvd65PHhiyajC7uQJ4uBkrYenIvY3X/1/
+	 8WZMJDfXPgBa+Lrvq2ETcKQc5q5caGp7r6poYV4H0HOiVZtzRyv/jYTHXxoVWcHTXi
+	 N1188sGH5GVdmVeUf8VfCP4A+pq9SpgQZ1wS1lgh81pGD57tLAXx+/Yps3MZOgWuNj
+	 +FVrg0ngin29lr7yvHfGbFdzarZcYpkYiUpVhD89SMRcBADnxDoy7J/mrUIoTkIA0U
+	 zEC5HBbVRtfiA==
+Message-ID: <fe3faf18-460c-404c-aebb-d57cded6b8b8@ember.systems>
+Date: Mon, 8 Sep 2025 14:32:24 +1000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/4] sparc: fix accurate exception reporting in
+ copy_{from_to}_user for Niagara
+To: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>,
+ linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Anthony Yznaga <anthony.yznaga@oracle.com>
+References: <20250826160312.2070-1-kernel@mkarcher.dialup.fu-berlin.de>
+ <20250826160312.2070-4-kernel@mkarcher.dialup.fu-berlin.de>
+Content-Language: en-US
+From: Ethan Hawke <ehawk@ember.systems>
+In-Reply-To: <20250826160312.2070-4-kernel@mkarcher.dialup.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi,
+Tested-By: Ethan Hawke <ehawk@ember.systems> # Sun Fire T2000
 
-On Sun, 2025-09-07 at 20:33 +0200, John Paul Adrian Glaubitz wrote:
-> I assume that cheetah_patch_cachetlbops has to be invoked on UltraSPARC I=
-II
-> since there is other code depending on it. On the other hand, the TLB cod=
-e
-> on UltraSPARC III was heavily overhauled in 2016 [1] which was also follo=
-wed
-> by a bug fix [2].
->=20
-> Chances are there are still bugs in the code introduced in [1].
->=20
-> > [1] https://github.com/torvalds/linux/commit/a74ad5e660a9ee1d071665e7e8=
-ad822784a2dc7f
-> > [2] https://github.com/torvalds/linux/commit/d3c976c14ad8af421134c428b0=
-a89ff8dd3bd8f8
-
-I have reverted both commits. The machine boots until it tries to start
-systemd when it locks up. So, I guess if there is a bug in the TLB code
-it needs to be diagnosed differently.
-
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+On 8/27/25 02:03, Michael Karcher wrote:
+> Fixes: 7ae3aaf53f16 ("sparc64: Convert NGcopy_{from,to}_user to accurate exception reporting.")
+> Signed-off-by: Michael Karcher <kernel@mkarcher.dialup.fu-berlin.de>
+> ---
+>   arch/sparc/lib/NGmemcpy.S | 29 ++++++++++++++++++-----------
+>   1 file changed, 18 insertions(+), 11 deletions(-)
+>
+> diff --git a/arch/sparc/lib/NGmemcpy.S b/arch/sparc/lib/NGmemcpy.S
+> index ee51c1230689..bbd3ea0a6482 100644
+> --- a/arch/sparc/lib/NGmemcpy.S
+> +++ b/arch/sparc/lib/NGmemcpy.S
+> @@ -79,8 +79,8 @@
+>   #ifndef EX_RETVAL
+>   #define EX_RETVAL(x)	x
+>   __restore_asi:
+> -	ret
+>   	wr	%g0, ASI_AIUS, %asi
+> +	ret
+>   	 restore
+>   ENTRY(NG_ret_i2_plus_i4_plus_1)
+>   	ba,pt	%xcc, __restore_asi
+> @@ -125,15 +125,16 @@ ENTRY(NG_ret_i2_plus_g1_minus_56)
+>   	ba,pt	%xcc, __restore_asi
+>   	 add	%i2, %g1, %i0
+>   ENDPROC(NG_ret_i2_plus_g1_minus_56)
+> -ENTRY(NG_ret_i2_plus_i4)
+> +ENTRY(NG_ret_i2_plus_i4_plus_16)
+> +        add     %i4, 16, %i4
+>   	ba,pt	%xcc, __restore_asi
+>   	 add	%i2, %i4, %i0
+> -ENDPROC(NG_ret_i2_plus_i4)
+> -ENTRY(NG_ret_i2_plus_i4_minus_8)
+> -	sub	%i4, 8, %i4
+> +ENDPROC(NG_ret_i2_plus_i4_plus_16)
+> +ENTRY(NG_ret_i2_plus_i4_plus_8)
+> +	add	%i4, 8, %i4
+>   	ba,pt	%xcc, __restore_asi
+>   	 add	%i2, %i4, %i0
+> -ENDPROC(NG_ret_i2_plus_i4_minus_8)
+> +ENDPROC(NG_ret_i2_plus_i4_plus_8)
+>   ENTRY(NG_ret_i2_plus_8)
+>   	ba,pt	%xcc, __restore_asi
+>   	 add	%i2, 8, %i0
+> @@ -160,6 +161,12 @@ ENTRY(NG_ret_i2_and_7_plus_i4)
+>   	ba,pt	%xcc, __restore_asi
+>   	 add	%i2, %i4, %i0
+>   ENDPROC(NG_ret_i2_and_7_plus_i4)
+> +ENTRY(NG_ret_i2_and_7_plus_i4_plus_8)
+> +	and	%i2, 7, %i2
+> +	add	%i4, 8, %i4
+> +	ba,pt	%xcc, __restore_asi
+> +	 add	%i2, %i4, %i0
+> +ENDPROC(NG_ret_i2_and_7_plus_i4)
+>   #endif
+>   
+>   	.align		64
+> @@ -405,13 +412,13 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
+>   	andn		%i2, 0xf, %i4
+>   	and		%i2, 0xf, %i2
+>   1:	subcc		%i4, 0x10, %i4
+> -	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4)
+> +	EX_LD(LOAD(ldx, %i1, %o4), NG_ret_i2_plus_i4_plus_16)
+>   	add		%i1, 0x08, %i1
+> -	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4)
+> +	EX_LD(LOAD(ldx, %i1, %g1), NG_ret_i2_plus_i4_plus_16)
+>   	sub		%i1, 0x08, %i1
+> -	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4)
+> +	EX_ST(STORE(stx, %o4, %i1 + %i3), NG_ret_i2_plus_i4_plus_16)
+>   	add		%i1, 0x8, %i1
+> -	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_minus_8)
+> +	EX_ST(STORE(stx, %g1, %i1 + %i3), NG_ret_i2_plus_i4_plus_8)
+>   	bgu,pt		%XCC, 1b
+>   	 add		%i1, 0x8, %i1
+>   73:	andcc		%i2, 0x8, %g0
+> @@ -468,7 +475,7 @@ FUNC_NAME:	/* %i0=dst, %i1=src, %i2=len */
+>   	subcc		%i4, 0x8, %i4
+>   	srlx		%g3, %i3, %i5
+>   	or		%i5, %g2, %i5
+> -	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4)
+> +	EX_ST(STORE(stx, %i5, %o0), NG_ret_i2_and_7_plus_i4_plus_8)
+>   	add		%o0, 0x8, %o0
+>   	bgu,pt		%icc, 1b
+>   	 sllx		%g3, %g1, %g2
