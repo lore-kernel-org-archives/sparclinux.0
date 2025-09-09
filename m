@@ -1,248 +1,80 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from libero.it (smtp-36.italiaonline.it [213.209.10.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97446307AF8;
-	Tue,  9 Sep 2025 14:39:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E3F2273803
+	for <sparclinux@vger.kernel.org>; Tue,  9 Sep 2025 15:50:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.209.10.36
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757428797; cv=none; b=sJTGTdCIEeDNg2cRmsh2M+ShB5dcJGNQjmllTLweCfSmckXw/FEPWyORGr5PfZojYu2zbOB0atS0IkzoLEkQn8/GiaLjnRAEV8p0XsiYJFSMdGqtih06nK2qK3BSHhQYk3icpvLqM4sPi92KPIIaFQonn2+auI1svk7MacFVE/o=
+	t=1757433020; cv=none; b=jtWlf9NUF/1VzcDUV/hxh9rl2mFRMC9T1Lm/qJY7Xv9GIrd7lnORvd6gqwSEuKjKlWqWMO80YFVGR8szf7BWaxJWTz3nQLH7F7tptuoCcvrJ2t4WLNkDm6MrTU+f3tJJzbk7WWErJfeCjZhUCuebLTu+NONLUXlZ2VLvxQMNt2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757428797; c=relaxed/simple;
-	bh=oGJP9x4DvMwUl/5J/C6Cmoy/i6qG4GydrCvbXeLGr4c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GD5w6Nq45eEULRhhfCSEbqPm3K8ECEyIosXehq2ptge98yVxBRjc4+wIMP363ez7VcBI3s3vuKItwFuy2ndCOw0QgujJv6fCX75vNeELkbHWGctJpqfcIJcP8VWWjMqUPLM2CCLXWwDDui1jvsKOKAR4QVHynrsAAf7ETW97b7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=eAw85XMT; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1757433020; c=relaxed/simple;
+	bh=RDcXHv+IHgFgES58Kp4tOGSQBkMIBIoLvKHTlN7BvTs=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=dPm5pi/Lp4xmolMMpeJm+cZlzoQIO9wvHZxSRokhzAomtaa6oYeKLFjTHiuOMwwrm4K+bbqG6tem/rF3Ult1WCJJzyF0aw8qi3wnniH8U2H0Mz+swmrkM92ewlpZtnTZJe+v68eE/B1T5oULnimGSg3bwtgBcqQ7mzAzc5TPpbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it; spf=pass smtp.mailfrom=libero.it; dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b=nPeTwEdR; arc=none smtp.client-ip=213.209.10.36
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=libero.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="eAw85XMT"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 589BBEbn028671;
-	Tue, 9 Sep 2025 14:38:53 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=PZxnEl
-	gXfWNXHVRkPVUlwCfE0YEzKBATAK/iNRyCHno=; b=eAw85XMTzWR9vGa1/hE9vj
-	mydHz5ZGmT77GHt0U64/1YAtQ+lSFTmIp9CIEXj9AqCB1xpfIW94Ks0mq2SdgDpJ
-	0FPArRwybEixPfZaOslsDAe44oIe3Tm1gRsGZY/RLa+8mT3lM30D87vp64U0OPcE
-	AyEhpKjxohjXf8zMTSl45uNLe+xdcC+WMRvNiK8F4OVX4+mUboi1o5W9xWOJyuG4
-	YBGbdgCpU8wPxsq98ebD9TZKO89s1xp8D5BcFUSvtxMjUPUOH9oIgZBJ+OTTT7hW
-	3ZKsxlOOkqxL4/35WGGIhaGdo6h3UOz5oPnEPsFraOl5KI9HlFyrZTNClQjrf38A
-	==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490xycw9r8-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 09 Sep 2025 14:38:52 +0000 (GMT)
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 589EUjFv007959;
-	Tue, 9 Sep 2025 14:38:52 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490xycw9r3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 09 Sep 2025 14:38:51 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 589AvumM017218;
-	Tue, 9 Sep 2025 14:38:50 GMT
-Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4911gmbdxs-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 09 Sep 2025 14:38:50 +0000
-Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
-	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 589EcnS049545616
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 9 Sep 2025 14:38:49 GMT
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0279320043;
-	Tue,  9 Sep 2025 14:38:49 +0000 (GMT)
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2791F2004B;
-	Tue,  9 Sep 2025 14:38:48 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
-	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Tue,  9 Sep 2025 14:38:48 +0000 (GMT)
-Date: Tue, 9 Sep 2025 16:38:46 +0200
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-To: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
-        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
-        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ryan Roberts <ryan.roberts@arm.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
-        Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org
-Subject: Re: [PATCH v2 2/7] mm: introduce local state for lazy_mmu sections
-Message-ID: <b2e52967-7ca1-411e-9c66-8d3483624ca7-agordeev@linux.ibm.com>
-References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
- <20250908073931.4159362-3-kevin.brodsky@arm.com>
- <d23ea683-cca4-4973-88b1-4f6fd9b22314@redhat.com>
- <ca2054ad-b163-4e61-8ec4-6f2e36461628-agordeev@linux.ibm.com>
- <e7acb889-1fe9-4db3-acf4-39f4960e8ccd@redhat.com>
- <2fecfae7-1140-4a23-a352-9fd339fcbae5-agordeev@linux.ibm.com>
- <e521b1f4-3f2b-48cd-9568-b9a4cf4c4830@redhat.com>
- <47ee1df7-1602-4200-af94-475f84ca8d80@arm.com>
+	dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b="nPeTwEdR"
+Received: from [192.168.1.36] ([151.55.182.102])
+	by smtp-36.iol.local with ESMTPA
+	id w0ZFuCZgSLyOXw0ZFuAFR6; Tue, 09 Sep 2025 17:47:38 +0200
+x-libjamoibt: 1601
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
+	t=1757432858; bh=9NxrW/YgU/8CzQBhlsUJAUkqy9PbRa45pV3qWfLJFyE=;
+	h=From;
+	b=nPeTwEdRo4+5LTytP3vwn4XSLGvnyy9wV+xi9/zvFG6OvGj2hOrcGtruk3b9Rclgl
+	 OqvaY5rsFy66zSOohbL/Ryjgr1vQGoPSbo5fZXHcw6FX0/Pjn0GdMW80/1HNi12h12
+	 jZVFahOzoSbd5u/d4BCD/9XKyee3EsacR9C9J/XnwjGvOkDzG/diCgZIz52zpzpOf2
+	 NJcgbIkehFqoPCXHhot/z79Y3UWuszC8HzZhrFFyA2VWTyiR0fljwGVjkSJaEPeftT
+	 JiV0Zl8Urf0weTYrmkQBssIxMIWDsqxsQy+xi74vmplEdYq1uZ8SPOcCCZHU1kfX04
+	 9BEt71MMS8/uQ==
+X-CNFS-Analysis: v=2.4 cv=HvF2G1TS c=1 sm=1 tr=0 ts=68c04c1a cx=a_exe
+ a=iX6ltAOv7qHpQETtHTMf+g==:117 a=iX6ltAOv7qHpQETtHTMf+g==:17
+ a=IkcTkHD0fZMA:10 a=xNf9USuDAAAA:8 a=VQduBw7ONl7x0KOnPU0A:9 a=QEXdDO2ut3YA:10
+Subject: Re: New test kernel available - please verify
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>
+References: <46bbf1d2dc87a8f1cee11e835f931a2db7752044.camel@physik.fu-berlin.de>
+From: Riccardo Mottola <riccardo.mottola@libero.it>
+Message-ID: <674871bb-857e-e9c9-18ce-9a1d68120888@libero.it>
+Date: Tue, 9 Sep 2025 17:50:49 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101
+ Firefox/128.0 SeaMonkey/2.53.21
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <47ee1df7-1602-4200-af94-475f84ca8d80@arm.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: w3un9YJFAnj-nx4lP2drAL9l1yJOP1En
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA2MDIzNSBTYWx0ZWRfX5AD3L9SkswSm
- yrVgoGtIISKP604rm8z2wlBI+9ePIXNFYQAYLSzjXIjHlXrJz/N5CyEoKiLBFH0S6cAaacNg8MI
- /uqSqt+AyIfCoA2W1PycTsyoA9dnPphhk2M6Dy7RNUKN5o43iFF9IXyIGVBQKdc5LYc5Tqn/OPM
- HPGZJ2R+BrI/nWN/OrWkeMYz3esjc3UK9kdBknkAwa1vw44DfXe2kcF7OMH8RK37Zmyzfk8ftAT
- Mah9tj2mXv8ZZFGcLXNuNYIctcCpzvNgMf9Y+RDBJM2AEQkCBcXflTuYScwL6Aa0Fdpz3OLg/9L
- oof/OuMSKGRkSalY70FlPW8UQK4wZ6ys9K9DbelwH72mhkNMfgbwQ1G8LikJGVg3ZsfCHBBKKvz
- o+6LVfHA
-X-Proofpoint-GUID: kEu557zaNP3aZma9JIWXWvvSIckTRd-u
-X-Authority-Analysis: v=2.4 cv=F59XdrhN c=1 sm=1 tr=0 ts=68c03bfc cx=c_pps
- a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
- a=8nJEP1OIZ-IA:10 a=yJojWOMRYYMA:10 a=0nQrape7h3WL6H1kZSkA:9
- a=3ZKOabzyN94A:10 a=wPNLvfGTeEIA:10
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-09-09_02,2025-09-08_02,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 malwarescore=0 suspectscore=0 phishscore=0 clxscore=1015
- impostorscore=0 bulkscore=0 adultscore=0 spamscore=0 classifier=typeunknown
- authscore=0 authtc= authcc= route=outbound adjust=0 reason=mlx scancount=1
- engine=8.19.0-2507300000 definitions=main-2509060235
+In-Reply-To: <46bbf1d2dc87a8f1cee11e835f931a2db7752044.camel@physik.fu-berlin.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4xfM9A8ZsUpPBQjNnRfvyrSGvsXvmWPtmtZhkEeBxsFC/y/SamTh7cxb9P/oRtH0wppgKNwKF4ZrFVCefQbFyI+nwP8JLX7YTcGvbPTBKdOb1ITokpBAev
+ 8AGhKLZoIhB7qEoawGQUcJA5GVo4Ae8MBeN8s6T2opcZiY3oJ5GHc75i8xE35MlayL3quScl5FviMxKAHzBA4TPXZ0yGiedl9E5vo3e/TDMCR9kKsIxR+xX3
+ FpcTNdd6LsmvFwDd+NSR9iQPWHJCkimjVUVKn4tWyFiuKrW9y4kH+nQ5PoT/3O4f
 
-On Tue, Sep 09, 2025 at 03:49:46PM +0200, Kevin Brodsky wrote:
-> On 09/09/2025 13:54, David Hildenbrand wrote:
-> > On 09.09.25 13:45, Alexander Gordeev wrote:
-> >> On Tue, Sep 09, 2025 at 12:09:48PM +0200, David Hildenbrand wrote:
-> >>> On 09.09.25 11:40, Alexander Gordeev wrote:
-> >>>> On Tue, Sep 09, 2025 at 11:07:36AM +0200, David Hildenbrand wrote:
-> >>>>> On 08.09.25 09:39, Kevin Brodsky wrote:
-> >>>>>> arch_{enter,leave}_lazy_mmu_mode() currently have a stateless API
-> >>>>>> (taking and returning no value). This is proving problematic in
-> >>>>>> situations where leave() needs to restore some context back to its
-> >>>>>> original state (before enter() was called). In particular, this
-> >>>>>> makes it difficult to support the nesting of lazy_mmu sections -
-> >>>>>> leave() does not know whether the matching enter() call occurred
-> >>>>>> while lazy_mmu was already enabled, and whether to disable it or
-> >>>>>> not.
-> >>>>>>
-> >>>>>> This patch gives all architectures the chance to store local state
-> >>>>>> while inside a lazy_mmu section by making enter() return some value,
-> >>>>>> storing it in a local variable, and having leave() take that value.
-> >>>>>> That value is typed lazy_mmu_state_t - each architecture defining
-> >>>>>> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is free to define it as it sees fit.
-> >>>>>> For now we define it as int everywhere, which is sufficient to
-> >>>>>> support nesting.
-> >>>> ...
-> >>>>>> {
-> >>>>>> + lazy_mmu_state_t lazy_mmu_state;
-> >>>>>> ...
-> >>>>>> - arch_enter_lazy_mmu_mode();
-> >>>>>> + lazy_mmu_state = arch_enter_lazy_mmu_mode();
-> >>>>>> ...
-> >>>>>> - arch_leave_lazy_mmu_mode();
-> >>>>>> + arch_leave_lazy_mmu_mode(lazy_mmu_state);
-> >>>>>> ...
-> >>>>>> }
-> >>>>>>
-> >>>>>> * In a few cases (e.g. xen_flush_lazy_mmu()), a function knows that
-> >>>>>>      lazy_mmu is already enabled, and it temporarily disables it by
-> >>>>>>      calling leave() and then enter() again. Here we want to ensure
-> >>>>>>      that any operation between the leave() and enter() calls is
-> >>>>>>      completed immediately; for that reason we pass
-> >>>>>> LAZY_MMU_DEFAULT to
-> >>>>>>      leave() to fully disable lazy_mmu. enter() will then
-> >>>>>> re-enable it
-> >>>>>>      - this achieves the expected behaviour, whether nesting
-> >>>>>> occurred
-> >>>>>>      before that function was called or not.
-> >>>>>>
-> >>>>>> Note: it is difficult to provide a default definition of
-> >>>>>> lazy_mmu_state_t for architectures implementing lazy_mmu, because
-> >>>>>> that definition would need to be available in
-> >>>>>> arch/x86/include/asm/paravirt_types.h and adding a new generic
-> >>>>>>     #include there is very tricky due to the existing header soup.
-> >>>>>
-> >>>>> Yeah, I was wondering about exactly that.
-> >>>>>
-> >>>>> In particular because LAZY_MMU_DEFAULT etc resides somewehere
-> >>>>> compeltely
-> >>>>> different.
-> >>>>>
-> >>>>> Which raises the question: is using a new type really of any
-> >>>>> benefit here?
-> >>>>>
-> >>>>> Can't we just use an "enum lazy_mmu_state" and call it a day?
-> >>>>
-> >>>> I could envision something completely different for this type on s390,
-> >>>> e.g. a pointer to a per-cpu structure. So I would really ask to stick
-> >>>> with the current approach.
-> 
-> This is indeed the motivation - let every arch do whatever it sees fit.
-> lazy_mmu_state_t is basically an opaque type as far as generic code is
-> concerned, which also means that this API change is the first and last
-> one we need (famous last words, I know). 
-> 
-> I mentioned in the cover letter that the pkeys-based page table
-> protection series [1] would have an immediate use for lazy_mmu_state_t.
-> In that proposal, any helper writing to pgtables needs to modify the
-> pkey register and then restore it. To reduce the overhead, lazy_mmu is
-> used to set the pkey register only once in enter(), and then restore it
-> in leave() [2]. This currently relies on storing the original pkey
-> register value in thread_struct, which is suboptimal and most
-> importantly doesn't work if lazy_mmu sections nest. With this series, we
-> could instead store the pkey register value in lazy_mmu_state_t
-> (enlarging it to 64 bits or more).
-> 
-> I also considered going further and making lazy_mmu_state_t a pointer as
-> Alexander suggested - more complex to manage, but also a lot more flexible.
-> 
-> >>> Would that integrate well with LAZY_MMU_DEFAULT etc?
-> >>
-> >> Hmm... I though the idea is to use LAZY_MMU_* by architectures that
-> >> want to use it - at least that is how I read the description above.
-> >>
-> >> It is only kasan_populate|depopulate_vmalloc_pte() in generic code
-> >> that do not follow this pattern, and it looks as a problem to me.
-> 
-> This discussion also made me realise that this is problematic, as the
-> LAZY_MMU_{DEFAULT,NESTED} macros were meant only for architectures'
-> convenience, not for generic code (where lazy_mmu_state_t should ideally
-> be an opaque type as mentioned above). It almost feels like the kasan
-> case deserves a different API, because this is not how enter() and
-> leave() are meant to be used. This would mean quite a bit of churn
-> though, so maybe just introduce another arch-defined value to pass to
-> leave() for such a situation - for instance,
-> arch_leave_lazy_mmu_mode(LAZY_MMU_FLUSH)?
+Hi Adrian,
 
-What about to adjust the semantics of apply_to_page_range() instead?
+John Paul Adrian Glaubitz wrote:
+> I just uploaded a 6.16.3 Debian kernel package with:
+>
+> - all patches by Michael Karcher to fix copy_{to,from}_user
+> - the patch by Anthony Yznaga to fix HugeTLB support on sun4u
+> - support for transparent huge pages disabled
+>
+> Packages are available here:https://people.debian.org/~glaubitz/sparc64/
+>
+> Please test and report back!
 
-It currently assumes any caller is fine with apply_to_pte_range() to
-enter the lazy mode. By contrast, kasan_(de)populate_vmalloc_pte() are
-not fine at all and must leave the lazy mode. That literally suggests
-the original assumption is incorrect.
+a bit old news now, but yesterday I tested this kernel (I saw there is a 
+new one... will test that too) and it installs and boots fine for me on 
+a Fire T2000
+It works with a "warm reboot" too.
 
-We could change int apply_to_pte_range(..., bool create, ...) to e.g.
-apply_to_pte_range(..., unsigned int flags, ...) and introduce a flag
-that simply skips entering the lazy mmu mode.
+I was able to compile on all 32 core, use git, do some apt-get upgrades. 
+I surely stressed CPU, Disk and Ethernet decently. No evident issues found.
+Of course, not testing of multi-day long running stability.
 
-Thanks!
+Riccardo
