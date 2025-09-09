@@ -1,100 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA092FFDC4;
-	Tue,  9 Sep 2025 05:40:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 412A718A93F;
+	Tue,  9 Sep 2025 05:55:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757396456; cv=none; b=tzmY8raIUR2wSvdMekSExXclOPLKjHBRiFEFuAaAoT8W4e/pZBifdmr5foVitrR3AQeJQfDtXS2fsKrupBTNdkprsBnvJHvPEMt+6BdoBbKAN2dWNsFKOFrk5W4StqGSz2JjJi06ihDu8wQxrOubuTNSOk0HYrY1lB4GUodguIk=
+	t=1757397308; cv=none; b=JpIcA8ASI8qNgbOgZ7gME9A6fg3f5qFjUbZScp2dWr3nrE6GBZI3j9nz5fgmwjiioxcu+J41NICPskyfPkAIILXjwhwM8iyp7Vy1tC5V06bCAEfK0HAmC4UAEKASuRHIzfm93N+1jp5GoRUdVWqfMbGGMf9mUp8I8MSL74NhUiA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757396456; c=relaxed/simple;
-	bh=fLT6sZq3hOuocdqB+Er3MIxGIa7A226lDCyWybWeKb0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=fiZs4K3uKTibOqCIaYCvlpK3BAXdRcalUf3VshhVZb96C2UfrvNLcO/m5m4eAaPLZC9LW2rEocqKgTE+YorIpSiTblQi2bJpd+0PzU6Kn4Ya81xnKXHnn0qJSLbsYsZDXzr1AASFOSSKKXqy7QXe51qeile8pHwGxqyLc/ylf9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ac3AtU0M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757397308; c=relaxed/simple;
+	bh=Df96yvf2Xh6xrEIUgiicm19yjU2AICaVs86nIWkCN0E=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=UBlQ3kZeeetW3y9z7CXPYH9K9l/T+dJ7l0c+aeBnO+cNWm5/Jmz44cvp0d4La3lzELACGNDiAtfWXWnoVm/ix4QooUBDvHzcj2jkLatUzCt4vZbOhIO13fgKySu5tDkp1Xzzw2thctQlcElY9rz1WxZOJrzoUXKMqBmr/mCakbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=CB28A2ac; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ac3AtU0M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA0D0C4CEF4;
-	Tue,  9 Sep 2025 05:40:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757396455;
-	bh=fLT6sZq3hOuocdqB+Er3MIxGIa7A226lDCyWybWeKb0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=ac3AtU0MqGUoC9Eky+9KyLtx9biLH0jbhomUAhOb9ruR7c2j0fSSNnyF7J5pqgv3k
-	 foKu3tqX/cVrmmALEDgQok2HJxXlYlCuqYu52g6qJkaq/U2HxlfxN2JIs/wIPe9xj/
-	 lJgOpn+VQzJMFZkYputFzcFbXsTrbwF4GLqtj+KE=
-Date: Mon, 8 Sep 2025 22:40:54 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Alexander Gordeev
- <agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, Boris
- Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov <bp@alien8.de>,
- Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy
- <christophe.leroy@csgroup.eu>, Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar
- <mingo@redhat.com>, Jann Horn <jannh@google.com>, Juergen Gross
- <jgross@suse.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, Lorenzo
- Stoakes <lorenzo.stoakes@oracle.com>, Madhavan Srinivasan
- <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko
- <mhocko@suse.com>, Mike Rapoport <rppt@kernel.org>, Nicholas Piggin
- <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ryan Roberts
- <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>, Thomas
- Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, Will
- Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org
-Subject: Re: [PATCH v2 2/7] mm: introduce local state for lazy_mmu sections
-Message-Id: <20250908224054.0a1969b493d8a837addd782e@linux-foundation.org>
-In-Reply-To: <20250908073931.4159362-3-kevin.brodsky@arm.com>
-References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
-	<20250908073931.4159362-3-kevin.brodsky@arm.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="CB28A2ac"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=5hXliLQHucvQWNmJ5HAB5OK/4ev/m3qsVijclDYkrFI=; t=1757397305;
+	x=1758002105; b=CB28A2act5gvhCU6OCtMeRcaZIZ7D9wYEAzIg2qQkcA3d0AFtSYH9UlzRiHYD
+	4tHQM915SH3Z4FIdQcTFM3Ryuy8mPSCcdjTV7HlFptiszinSd+e46feocE5/eS6R7Rfn5+7dut1lT
+	mnMx+yO0ypEGg17vhkDygIZD1qlWyRPG+Gj0TWsSAD6lQKDzOiUz7g2J+M6xGNccWHbQH6w/jwUOs
+	yGvlab0boBcxwWBtbtd3TzZxVjL9EF2ieA1Y0s82Xz+nXaQmom8lv7rT58cMaMFsZG7/qVXbyXfWf
+	odC3CK369uU+U+70AZId9cQhCzeleZsfzyrnPFw7wdoxXKvxpw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1uvrJk-000000022PG-11tt; Tue, 09 Sep 2025 07:55:00 +0200
+Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1uvrJj-00000001eRs-42WM; Tue, 09 Sep 2025 07:55:00 +0200
+Message-ID: <a12114a3e8c48e88a5ae9e0b49577b93bbf30d2d.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH v4 2/5] sparc: fix accurate exception reporting in
+ copy_{from_to}_user for UltraSPARC III
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Anthony Yznaga <anthony.yznaga@oracle.com>, Michael Karcher	
+ <kernel@mkarcher.dialup.fu-berlin.de>, Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ =?ISO-8859-1?Q?Ren=E9?= Rebe
+	 <rene@exactcode.com>
+Date: Tue, 09 Sep 2025 07:54:58 +0200
+In-Reply-To: <fec617e3-8955-42c6-9cca-588e86833998@oracle.com>
+References: 
+	<20250905-memcpy_series-v4-0-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+	 <20250905-memcpy_series-v4-2-1ca72dda195b@mkarcher.dialup.fu-berlin.de>
+	 <326c98bf3adf52da64bc606741770c638409b938.camel@physik.fu-berlin.de>
+	 <2fe65b101b36304369866e30f64a921591ecdd8b.camel@physik.fu-berlin.de>
+	 <e791dbb534aac79805389a4b754901c24991de89.camel@physik.fu-berlin.de>
+	 <c3e1173f99e6222ab09093e1a197d6366bcf2b95.camel@physik.fu-berlin.de>
+	 <03957ee5ee562b70f7e3278d0ce95b2f52cbc721.camel@physik.fu-berlin.de>
+	 <603f6661d99fc6c936f5a75e29f30d50650b9da8.camel@physik.fu-berlin.de>
+	 <a9eec6f5a51c82cd2a20a96d614cfd3095ddce88.camel@physik.fu-berlin.de>
+	 <fec617e3-8955-42c6-9cca-588e86833998@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Mon,  8 Sep 2025 08:39:26 +0100 Kevin Brodsky <kevin.brodsky@arm.com> wrote:
+Hi Anthony,
 
-> arch_{enter,leave}_lazy_mmu_mode() currently have a stateless API
-> (taking and returning no value). This is proving problematic in
-> situations where leave() needs to restore some context back to its
-> original state (before enter() was called). In particular, this
-> makes it difficult to support the nesting of lazy_mmu sections -
-> leave() does not know whether the matching enter() call occurred
-> while lazy_mmu was already enabled, and whether to disable it or
-> not.
-> 
-> This patch gives all architectures the chance to store local state
-> while inside a lazy_mmu section by making enter() return some value,
-> storing it in a local variable, and having leave() take that value.
-> That value is typed lazy_mmu_state_t - each architecture defining
-> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is free to define it as it sees fit.
-> For now we define it as int everywhere, which is sufficient to
-> support nesting.
-> 
-> The diff is unfortunately rather large as all the API changes need
-> to be done atomically. Main parts:
+On Mon, 2025-09-08 at 15:47 -0700, Anthony Yznaga wrote:
+> > Could it be that we need to enable the code guarded by DCACHE_ALIASING_=
+POSSIBLE
+> > unconditionally?
+>=20
+> It's already essentially enabled unconditionally. PAGE_SHIFT will always=
+=20
+> be 13 on sparc64 systems.
 
-This has a build error:
+I see.
 
-  CC      arch/x86/kernel/asm-offsets.s
-In file included from ./arch/x86/include/asm/irqflags.h:102,
-                 from ./include/linux/irqflags.h:18,
-                 from ./include/linux/spinlock.h:59,
-                 from ./include/linux/swait.h:7,
-                 from ./include/linux/completion.h:12,
-                 from ./include/linux/crypto.h:15,
-                 from arch/x86/kernel/asm-offsets.c:9:
-./arch/x86/include/asm/paravirt.h: In function 'arch_enter_lazy_mmu_mode':
-./arch/x86/include/asm/paravirt.h:534:16: error: 'LAZY_MMU_DEFAULT' undeclared (first use in this function)
-  534 |         return LAZY_MMU_DEFAULT;
-      |                ^~~~~~~~~~~~~~~~
-./arch/x86/include/asm/paravirt.h:534:16: note: each undeclared identifier is re
+I was confused by this comment:
 
-which gets fixed up later in the series.
+
+/* Flushing for D-cache alias handling is only needed if
+ * the page size is smaller than 16K.
+ */
+#if PAGE_SHIFT < 14
+#define DCACHE_ALIASING_POSSIBLE
+#endif
+
+My thinking was that there might be a flush skipped when using transparent
+huge pages which causes these crashes.
+
+> The flushing should be happening for folios of any size. See=20
+> flush_dcache_folio(()/flush_dcache_folio_all().
+
+OK, I'll have a look and maybe add a printk() there.
+
+> You could try setting page_poison=3D1 on the kernel command line to see i=
+f=20
+> the kernel detects any freed pages being used.
+
+Ah, good to know. Thanks.
+
+> Is this a different Cheetah+-based system than the one I borrowed?=20
+> Definitely some sort of memory corruption happening, but the system I=20
+> used seemed much more stable than this.
+
+Yes, it's the same Sun Netra 240. It has been running stable for days, but
+upgrading to the latest systemd version caused these new reproducible crash=
+es
+which started my new investigation.
+
+Replacing "call cheetah_patch_copyops" with "call generic_patch_copyops" di=
+d
+not help in this situation which indicates that the bug is not in Michael's
+patch set which is a good sign at least for Michael's work.
+
+Adrian
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
