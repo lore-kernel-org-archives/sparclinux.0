@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 725381DBB3A;
-	Thu, 11 Sep 2025 16:20:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BE4A619D88F;
+	Thu, 11 Sep 2025 16:20:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757607603; cv=none; b=SMMZ1tAqhjlbqehYrmGEKXqAZVxZrmFSuwBM/FrrU6fJMcQKWErjuggjUA+l4jRnyA3ITB8/3FZoCHy2jz0NBeAcerbtK27PhCbPUs4/RbEOkIzZZ+PKHWInKv8YTnWptw1zkmiXytC3EM2n2FGfmZZhXfitlQUkaPHzT1aaE/k=
+	t=1757607623; cv=none; b=THvRF4n+Sb2N6Yrjw1/SUYS7tVSKdUFj8TmnAjsmDkNkEWb0KMutE7r/MA70KOwO7EbWTO83K1hhbNmrdZ4naoTAUsN4zNIVy3YGL8C5Yy0Ft58j48s1PknD96VlIWAwhTjnSgGgiHIT8FXJCb7pTsX4VeXyBNjv8Hcajx2k/Z0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757607603; c=relaxed/simple;
-	bh=6qqjTYTrD/QqdRv64e17c4F7ZvmzcQ8jL1KviIELsb0=;
+	s=arc-20240116; t=1757607623; c=relaxed/simple;
+	bh=MUCy2q9vMw8ioDr48jZmAFItWaAOEsqUD4pLsZQbVHo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lI0PL8E2faG9BjcDQbDl/qNuyFD+m09stdodJzJuNBQrU8MLt3N4m9/0eE4cfhY0ANoOGKpZUOtuNTSwH2iOeWToXqFVxuSMiAkmVw61OUr/xPrv8mGifWEO65gE+QkGezHm5YQ6+R3kylD2aseGt40oO9VmCsiCkRvYVmu+9gs=
+	 In-Reply-To:Content-Type; b=SlRsic5ZjppT3DAqstveAlmQgiU6Y7q/0f2QC1y2cdMdxF9NyvvO0RAaSOMuI9kV5l8560V571R/EkDlnt0oL6kYyk6Wqf5ADxLWaQmfMTmXdiiD7fHRJwqqSTL6y31GmhAsabVvD8rAoAZGRzNA7cy4FaiHSgCFaSPkZVLyEv8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6DC0B153B;
-	Thu, 11 Sep 2025 09:19:52 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D43CB1756;
+	Thu, 11 Sep 2025 09:20:12 -0700 (PDT)
 Received: from [10.57.70.14] (unknown [10.57.70.14])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9403F3F694;
-	Thu, 11 Sep 2025 09:19:53 -0700 (PDT)
-Message-ID: <4b4971fd-0445-4d86-8f3a-6ba3d68d15b7@arm.com>
-Date: Thu, 11 Sep 2025 18:19:51 +0200
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 462913F694;
+	Thu, 11 Sep 2025 09:20:14 -0700 (PDT)
+Message-ID: <076c7f16-fe56-49a8-910e-7d71d3f8f0b4@arm.com>
+Date: Thu, 11 Sep 2025 18:20:11 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -28,10 +28,9 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v2 2/7] mm: introduce local state for lazy_mmu sections
-To: David Hildenbrand <david@redhat.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- Andreas Larsson <andreas@gaisler.com>,
+To: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
  <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
@@ -59,183 +58,88 @@ References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
  <2fecfae7-1140-4a23-a352-9fd339fcbae5-agordeev@linux.ibm.com>
  <e521b1f4-3f2b-48cd-9568-b9a4cf4c4830@redhat.com>
  <47ee1df7-1602-4200-af94-475f84ca8d80@arm.com>
- <29383ee2-d6d6-4435-9052-d75a263a5c45@redhat.com>
- <9de08024-adfc-421b-8799-62653468cf63@arm.com>
- <ef343405-c394-4763-a79f-21381f217b6c@redhat.com>
+ <b2e52967-7ca1-411e-9c66-8d3483624ca7-agordeev@linux.ibm.com>
+ <250835cd-f07a-4b8a-bc01-ace24b407efc@arm.com>
+ <80be36e5-d6e1-4b37-a1ca-47e92ac21b02-agordeev@linux.ibm.com>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <ef343405-c394-4763-a79f-21381f217b6c@redhat.com>
+In-Reply-To: <80be36e5-d6e1-4b37-a1ca-47e92ac21b02-agordeev@linux.ibm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-On 10/09/2025 17:37, David Hildenbrand wrote:
->>
->> Somewhat, but in the regular case where enter() is called followed by
->> leave() there is really no complexity for the caller, just an extra
->> local variable.
->>
->> There are complications where we want to exit lazy_mmu temporarily, as
->> in mm/kasan/shadow.c [1k], but this is in fact unavoidable. Chatting
->> with Mark Rutland, I realised that to truly support nested sections,
->> this must be handled in a special way in any case. To be clear, I am
->> referring to this situation:
->>
->> __kasan_populate_vmalloc:
->>      apply_to_page_range:
->>          arch_enter_lazy_mmu_mode() {1}
->>
->>          kasan_populate_vmalloc_pte:
->>              arch_leave_lazy_mmu_mode() {2}
->>              arch_enter_lazy_mmu_mode() {3}
->>
->>          arch_leave_lazy_mmu_mode() {4}
->>
->> With the approach this series takes, call {2} is made safe by passing a
->> special parameter (say LAZY_MMU_FLUSH) that forces lazy_mmu to be fully
->> exited - and call {3} will then re-enter lazy_mmu. This works regardless
->> of whether __kasan_populate_vmalloc() has been called with lazy_mmu
->> already enabled (i.e. calls {1} and {4} can be nested).
->>
->> On the other hand, with a pagefault_disabled-like approach, there is no
->> way to instruct call {3} to fully exit lazy_mmu regardless of the
->> nesting level.
+On 11/09/2025 14:06, Alexander Gordeev wrote:
+> On Wed, Sep 10, 2025 at 06:11:54PM +0200, Kevin Brodsky wrote:
 >
-> Sure there is, with a better API. See below. :) 
-
-I meant while keeping the existing shape of the API but yes fair enough!
-
+> Hi Kevin,
 >
->>
->> It would be possible to make both approaches work by introducing a new
->> API, along the lines of:
->> - int arch_disable_save_lazy_mmu_mode() (the return value indicates the
->> nesting level)
->> - void arch_restore_lazy_mmu_mode(int state) (re-enter lazy_mmu at the
->> given nesting level)
->
-> Yes, I think we really need a proper API.
->
->>
->> This is arguably more self-documenting than passing LAZY_MMU_FLUSH in
->> call {2}. This API is however no simpler when using a
->> pagefault_disabled-like approach (and less consistent than when always
->> saving state on the stack).
->
-> Yes, a proper API is warranted. In particular, thinking about the
-> following:
->
-> arch_enter_lazy_mmu_mode() {1}
->     arch_enter_lazy_mmu_mode() {2}
->
->     kasan_populate_vmalloc_pte:
->         arch_leave_lazy_mmu_mode() {3}
->         arch_enter_lazy_mmu_mode() {4}
->
->     arch_leave_lazy_mmu_mode() {5}
-> arch_leave_lazy_mmu_mode() {6}
->
->
-> Imagine if we have the following API instead:
->
-> lazy_mmu_enable() {1}
->     lazy_mmu_enable() {2}
->
->     kasan_populate_vmalloc_pte:
->         lazy_mmu_pause() {3}
->         lazy_mmu_continue() {4}
->
->     lazy_mmu_disable() {5}
-> lazy_mmu_disable() {6}
->
->
-> I think it is crucial that after lazy_mmu_save/lazy_mmu_restore, no
-> more nesting must happen.
-
-That makes sense to me - lazy_mmu should only be paused in very specific
-situations and I don't see a justification for supporting nesting while
-paused.
-
->
-> Assume we store in the task_struct
->
-> uint8_t lazy_mmu_enabled_count;
-> bool lazy_mmu_paused;
-
-I didn't think of that approach! I can't immediately see any problem
-with it, assuming we're fine with storing arch-specific context in
-thread_struct (which seems to be the case as things stand).
-
->
-> We can do things like
->
-> a) Sanity check that while we are paused that we get no more
-> enable/disable requests
-> b) Sanity check that while we are paused that we get no more pause
-> requests.
-
-These are good points - and this is only possible with such global
-state. (Similarly we can check that the counter never underflows.)
-
->
-> [...]
->
+>> On 09/09/2025 16:38, Alexander Gordeev wrote:
+>>>>>>> Would that integrate well with LAZY_MMU_DEFAULT etc?
+>>>>>> Hmm... I though the idea is to use LAZY_MMU_* by architectures that
+>>>>>> want to use it - at least that is how I read the description above.
+>>>>>>
+>>>>>> It is only kasan_populate|depopulate_vmalloc_pte() in generic code
+>>>>>> that do not follow this pattern, and it looks as a problem to me.
+>>>> This discussion also made me realise that this is problematic, as the
+>>>> LAZY_MMU_{DEFAULT,NESTED} macros were meant only for architectures'
+>>>> convenience, not for generic code (where lazy_mmu_state_t should ideally
+>>>> be an opaque type as mentioned above). It almost feels like the kasan
+>>>> case deserves a different API, because this is not how enter() and
+>>>> leave() are meant to be used. This would mean quite a bit of churn
+>>>> though, so maybe just introduce another arch-defined value to pass to
+>>>> leave() for such a situation - for instance,
+>>>> arch_leave_lazy_mmu_mode(LAZY_MMU_FLUSH)?
+>>> What about to adjust the semantics of apply_to_page_range() instead?
 >>>
->>> If LAZY_MMU_DEFAULT etc. are not for common code, then please
->>> maintain them for the individual archs as well, just like you do
->>> with the
->>> opaque type.
->>
->> I see your point - having them defined in <linux/mm_types.h> could be
->> misleading. I just wanted to avoid all 4 architectures defining the same
->> macros. Maybe call them __LAZY_MMU_* to suggest they're not supposed to
->> be used in generic code?
->
-> Maybe look into avoiding them completely :) Let's agree on the API
-> first and then figure out how to pass the information we need to pass.
->
-> [...]
->
->>> Worse, it does not
->>>> truly enable states to be nested: it allows the outermost section to
->>>> store some state, but nested sections cannot allocate extra space.
->>>> This
->>>> is really what the stack is for.
+>>> It currently assumes any caller is fine with apply_to_pte_range() to
+>>> enter the lazy mode. By contrast, kasan_(de)populate_vmalloc_pte() are
+>>> not fine at all and must leave the lazy mode. That literally suggests
+>>> the original assumption is incorrect.
 >>>
->>> If it's really just 8 bytes I don't really see the problem. So likely
->>> there is
->>> more to it?
+>>> We could change int apply_to_pte_range(..., bool create, ...) to e.g.
+>>> apply_to_pte_range(..., unsigned int flags, ...) and introduce a flag
+>>> that simply skips entering the lazy mmu mode.
+>> This is pretty much what Ryan proposed [1r] some time ago, although for
+>> a different purpose (avoiding nesting). There wasn't much appetite for
+>> it then, but I agree that this would be a more logical way to go about it.
 >>
->> I suppose 8 extra bytes per task is acceptable, but some architectures
->> may want to add more state there.
->
-> Just for reference: we currently perform an order-2 allocation,
-> effectively leaving ~4KiB "unused".
->
-> If there are any real such case on the horizon where we need to store
-> significantly more (in which case storing it on the stack might
-> probably also bad), please let me know.
->
+>> - Kevin
 >>
->> The one case that is truly problematic (though not required at this
->> point) is where each (nested) section needs to store its own state. With
->> this series it works just fine as there is a lazy_mmu_state_t for each
->> section, however if we use task_struct/thread_struct there can be only
->> one member shared by all nested sections.
+>> [1r]
+>> https://lore.kernel.org/all/20250530140446.2387131-4-ryan.roberts@arm.com/
+> May be I missing the point, but I read it as an opposition to the whole
+> series in general and to the way apply_to_pte_range() would be altered
+> in particular:
 >
-> Do we have a use case for that on the horizon? If so, I fully agree,
-> we have to store information per level. How/what information we have
-> to store would be another question.
+>  static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+>  				     unsigned long addr, unsigned long end,
+>  				     pte_fn_t fn, void *data, bool create,
+> -				     pgtbl_mod_mask *mask)
+> +				     pgtbl_mod_mask *mask, bool lazy_mmu)
+>
+> The idea of instructing apply_to_page_range() to skip the lazy mmu mode
+> was not countered. Quite opposite, Liam suggested exactly the same:
 
-Not that I'm aware of, and all things considered it may not be so
-likely: once lazy_mmu is enabled, entering nested sections isn't really
-supposed to change any state.
-
-
-Overall what you're proposing seems sensible to me, the additional
-fields in task_struct don't take much space and we can keep the API
-unchanged in most cases. It is also good to have the option to check
-that the API is used correctly. I'll reply to the cover letter to let
-anyone who didn't follow this thread chip in, before I go ahead and try
-out that new approach.
+Yes that's a fair point. It would be sensible to post a new series
+trying to eliminate the leave()/enter() calls in mm/kasan as you
+suggested. Still I think that it makes sense to define an API to handle
+that situation ("pausing" lazy_mmu), as discussed with David H.
 
 - Kevin
+
+>
+> <quote>
+> Could we do something like the pgtbl_mod_mask or zap_details and pass
+> through a struct or one unsigned int for create and lazy_mmu?
+>
+> These wrappers are terrible for readability and annoying for argument
+> lists too.
+>
+> Could we do something like the pgtbl_mod_mask or zap_details and pass
+> through a struct or one unsigned int for create and lazy_mmu?
+>
+> At least we'd have better self-documenting code in the wrappers.. and if
+> we ever need a third boolean, we could avoid multiplying the wrappers
+> again.
+> <quote>
+>
+> Thanks!
