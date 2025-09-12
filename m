@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DB5BA1F8724;
-	Fri, 12 Sep 2025 15:02:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ABFD7155A4E;
+	Fri, 12 Sep 2025 15:25:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757689365; cv=none; b=JNch66NasGaYcRlUgfZAUz7JETd0YYmtFE6kASmV7AFvb/43dF6jSgiisYrsuz/PoOgjQBzErHe51F2WTzmg8qtttjniJAF3qwspD89++WvzCXlgielpjKeJPnt7NtV4L4XiJolnNkJU9dtoNTHjEe5HJiIvck0tkrklew3BstI=
+	t=1757690740; cv=none; b=nzfz9xyNSIfsDDLtOiKW8v88oublcxK4kWuoo9gF9JuxRlj7IfaUqwLxf2f+d9mBfFBcab4WZ/Et3KAtdSO0BhM8gtu3c2AuDp2Ppgw6+q4dS7QHc89Rw0rNzykEsEY3Pqx4IJhj70rb/jabPrqX20r6m1OuTklgMABVrt7XMUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757689365; c=relaxed/simple;
-	bh=pjxju66cdgbuLH84lLr1f0aB2LRRyXTtvk+w4J2qi2Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kI+hFmO3Czr1ChKSXuwYCe6nntA0FxF481ToIsNnDh19Fp/uykeezViqrKEoMmw7xpxoYf77rKIa/JrECUn9F49iB9RIZ+Q0A6FPr9PoR/pws9FktBM4ulcsXmvM6GlVoPYIJTQxjnT4bMVP/cj0zmH+GpUvPFtvA32CEdhFZhs=
+	s=arc-20240116; t=1757690740; c=relaxed/simple;
+	bh=YaVFVuWtyKgp7Y3tlzPDyRgfcQER5D3c+vZ1/BrwHVY=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=tjbOxhZ9I+5woBsROqXYTByaZ6TdK1zC3gzxQ3qLtxF2H9ySknDfOVG2TRlOSXWjwSE5EDDCrZKPOGpnMqJLcX4YimGYVEcZAZlVNBP9ufz3MzaIMZvCndef66+ExYsrURiY4a/AMyUo+bd45BxjsnlRUaTpB/o+x0h1q6Aeyz4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DCD5812FC;
-	Fri, 12 Sep 2025 08:02:34 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6E94328AC;
+	Fri, 12 Sep 2025 08:25:28 -0700 (PDT)
 Received: from [10.57.66.147] (unknown [10.57.66.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 558333F694;
-	Fri, 12 Sep 2025 08:02:36 -0700 (PDT)
-Message-ID: <f9b0bf10-a531-484e-9679-08ec25ceb444@arm.com>
-Date: Fri, 12 Sep 2025 17:02:34 +0200
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 301DA3F694;
+	Fri, 12 Sep 2025 08:25:29 -0700 (PDT)
+Message-ID: <338ef811-1dab-4c4e-bc5f-8ebd8cb68435@arm.com>
+Date: Fri, 12 Sep 2025 17:25:27 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,12 +27,13 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/7] mm: introduce local state for lazy_mmu sections
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: Re: [PATCH v2 0/7] Nesting support for lazy MMU mode
 To: David Hildenbrand <david@redhat.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>
+ Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
  <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
  Christophe Leroy <christophe.leroy@csgroup.eu>,
@@ -51,65 +52,112 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
  Mark Rutland <Mark.Rutland@arm.com>
-References: <4b4971fd-0445-4d86-8f3a-6ba3d68d15b7@arm.com>
- <4aa28016-5678-4c66-8104-8dcc3fa2f5ce@redhat.com>
- <15d01c8b-5475-442e-9df5-ca37b0d5dc04@arm.com>
- <7953a735-6129-4d22-be65-ce736630d539@redhat.com>
- <781a6450-1c0b-4603-91cf-49f16cd78c28@arm.com>
- <a17ab4e3-627a-4989-a5a5-d430eadabb86@redhat.com>
- <9ed5441f-cc03-472a-adc6-b9d3ad525664-agordeev@linux.ibm.com>
- <74d1f275-23c3-4fd8-b665-503c7fc87df0@redhat.com>
- <248b4623-8755-4323-8a44-be4af30e4856-agordeev@linux.ibm.com>
- <b46d3430-fb84-464b-b053-490c6ea083da@redhat.com>
- <cdd9bc60-96d4-4f19-86c3-dcf598ccbd92-agordeev@linux.ibm.com>
- <852d6f8c-e167-4527-9dc9-98549124f6b1@redhat.com>
+References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
+ <20250908191602.61160a7990b9ea418de758c7@linux-foundation.org>
+ <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
 Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <852d6f8c-e167-4527-9dc9-98549124f6b1@redhat.com>
+In-Reply-To: <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On 12/09/2025 16:25, David Hildenbrand wrote:
->
+On 09/09/2025 11:21, David Hildenbrand wrote:
+> On 09.09.25 04:16, Andrew Morton wrote:
+>> On Mon,  8 Sep 2025 08:39:24 +0100 Kevin Brodsky
+>> <kevin.brodsky@arm.com> wrote:
 >>
->> But I do not really expect it ever, since arch_enter_lazy_mmu_mode_pte()
->> is only to be called in PTE walkers that never span more than one page
->> table and follow the pattern:
+>>> The main change enabling nesting is patch 2, following the approach
+>>> suggested by Catalin Marinas [4]: have enter() return some state and
+>>> the matching leave() take that state.
+>>
+>> This is so totally the correct way.  Thanks.
 >
-> Well, the cover letter here states:
+> Staring at this, I wonder if we could alternatively handle it like
+> pagefault_disable()/pagefault_enable(), having something like
+> current->lazy_mmu_enabled.
 >
-> "Unfortunately, a corner case (DEBUG_PAGEALLOC) may still cause
-> nesting to occur on arm64. Ryan proposed [2] to address that corner
-> case at the generic level but this approach received pushback; [3]
-> then attempted to solve the issue on arm64 only, but it was deemed too
-> fragile."
+> We wouldn't have to worry about preemption in that case I guess
+> (unless the arch has special requirements).
 >
-> So I guess we should support nesting cleanly, at least on the core-mm
-> side.
+> Not sure if that was already discussed, just a thought. 
 
-Nesting remains a rare occurrence though. I think it would be plausible
-to require this new interface to be used in a region where no nesting
-can occur, just like pause()/resume().
+Based on the outcome of the discussion with David on patch 2 [1p], there
+is indeed an alternative approach that we should seriously consider. In
+summary:
 
-In fact, I think this is a requirement if we go for the approach we have
-been discussing, because nested enter()/leave() calls are not meant to
-call arch_enter()/arch_leave(), and I really wouldn't want to use a
-different logic for this variant.
+* Keep the API stateless, handle nesting with a counter in task_struct
+* Introduce new functions to temporarily disable lazy_mmu without
+impacting nesting, track that with a bool in task_struct (addresses the
+situation in mm/kasan/shadow.c and possibly some x86 cases too)
+* Move as much handling from arch_* to generic functions
 
->
-> I guess we could start with saying "well, s390x doesn't fully support
-> nesting yet but doing so just requires changing the way we manage this
-> per-nesting-level state internally".
->
-> s390 is trying to do something different than the other archs here, so
-> that naturally concerns me :)
->
-> But if it's really just about forwarding that data and having s390
-> store it somewhere (task_struct, percpu variable, etc), fine with me. 
+What the new generic infrastructure would look like:
 
-Yes I think this is fine, with the restriction above. The extra
-arguments are directly forwarded to arch code and otherwise ignored by
-core code, and unless the arch defines some __HAVE_ARCH... or CONFIG,
-the extended interface falls back to regular enter()/leave().
+struct task_struct {
+    ...
+#ifdef CONFIG_ARCH_LAZY_MMU
+    struct {
+        uint8_t count;
+        bool enabled; /* or paused, see below */
+    } lazy_mmu_state;
+#endif
+}
+
+* lazy_mmu_mode_enable():
+    if (!lazy_mmu_state.count) {
+        arch_enter_lazy_mmu_mode();
+        lazy_mmu_state.enabled = true;
+    }
+    lazy_mmu_state.count++;
+
+* lazy_mmu_mode_disable():
+    lazy_mmu_count--;
+    if (!lazy_mmu_state.count) {
+        lazy_mmu_state.enabled = false;
+        arch_leave_lazy_mmu_mode();
+    } else {
+        arch_flush_lazy_mmu_mode();
+    }
+
+* lazy_mmu_mode_pause():
+    lazy_mmu_state.enabled = false;
+    arch_leave_lazy_mmu_mode();
+
+* lazy_mmu_mode_resume();
+    arch_enter_lazy_mmu_mode();
+    lazy_mmu_state.enabled = true;
+
+The generic enable()/disable() helpers are able to handle most of the
+logic, leaving only truly arch-specific code to the arch callbacks:
+* Updating lazy_mmu_state
+* Sanity checks on lazy_mmu_state (e.g. count underflow/overflow,
+pause()/resume() only called when count > 0, etc.)
+* Bailing out if in_interrupt() (not done consistently across arch's at
+the moment)
+
+A further improvement is to make arch code check lazy_mmu_state.enabled
+to determine whether lazy_mmu is enabled at any given point. At the
+moment every arch uses a different mechanism, and this is an occasion to
+make them converge.
+
+The arch callback interface remains unchanged, and we are resurrecting
+arch_flush_lazy_mmu_mode() to handle the nested disable() case (flushing
+must happen when exiting a section regardless of nesting):
+
+enable() -> arch_enter()
+    enable() -> [nothing]
+    disable() -> arch_flush()
+disable() -> arch_leave()
+
+Note: lazy_mmu_state.enabled (set whenever lazy_mmu is actually enabled)
+could be replaced with lazy_mmu_state.paused (set inside a
+pause()/resume() section). I believe this is equivalent but the former
+is slightly more convenient for arch code - to be confirmed in practice.
+
+Any thoughts on this? Unless there are concerns, I will move towards
+that approach in v3.
 
 - Kevin
+
+[1p]
+https://lore.kernel.org/all/4aa28016-5678-4c66-8104-8dcc3fa2f5ce@redhat.com/t/#u
+
