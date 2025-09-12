@@ -1,182 +1,124 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC79E32A83F
-	for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 17:57:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B793F26E17D;
+	Fri, 12 Sep 2025 20:21:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757699850; cv=none; b=D4xpELHIhOCjAEcj29x3QsagxQbmDoMh/C393oKwEB4bmEKuUWg4Yz9wK9AAeLJTztd9SZQzJhI7xFOPNgKNBU5D+Fd4aV1DVLiQ4gFJBFMM52AqKfImoaV8SmuKLFUCx/CkaJ3pq+aO86nYrWjgmj/+TUjglZsMLGAvb1AOjaI=
+	t=1757708514; cv=none; b=T+btKuWCde/bcwl6vGGXFGHAZNQb55Z8nbj/lqM3Po6XPxvRx/Q68LLj1ueeTf6xUfIZhFZiObKQmd3V/vM1GqtiXfyg59b6NW6QwFqIgXC8t5foJTTDwfSrRKGg8f12Lhmiw7SfZN0IHyGofCtJyywg2CkT+UP9kkFYIP2uXTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757699850; c=relaxed/simple;
-	bh=b6zuSi2CeWR0tG0/iMO4uFd9tSIOIKkQfo2IUZxiRN4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KxbqKlMcHD4DtOhT2cgpLzt2VDwoVWzpx3RlJQWXDyJwPWLnEQ4N3U1RgpKP4j1VUc0dxtkFObpo4YA2od/yMldIeUeEIiCITPPBmsnrOBV5lDJfCVOqTEoSumfV/uJbJVHJMr4m+m/oABlSiRziKWgU0fRYF7fPRaK7jJ4bijA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GSeYHRFo; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1757708514; c=relaxed/simple;
+	bh=1XR56SR+z2CBR5E5TriztVfhwFNUArCinFwYBUwkU40=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Yg7XIo+/LELilXq//jQznZEMQYAGshzrB9w3NFgdmuaUQgyuoGvDKNcqHZeqZqRPh6DhM7vOd6aJ9LbIgTXlYh0YLH+5yFM9lJj/aJAkaww1m/rlOazMRnl1v8ktIn//7A0ogrCg4Xhenwelws/lXbrqZt+3oyb60HM1TKTTVq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=FSYzCyYN; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GSeYHRFo"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1757699846;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=vWibyIDQ5IpFu2wsAavMRvUdSscXCQdcm/6IEQcQG6k=;
-	b=GSeYHRFoBRcM9wKLh+M3CEU2FYEB4vtjOdFla0xkG16EeVK6kO0UJ0F+VoDtRU5RuYKX3S
-	YXXTfGVntW585Clot+i75rJvcOkLbTrrYIK7BnTEAp6tZIdjWc6wxayiXcCnBoAuIXNz/E
-	86k7Q/PwNHsNKrqwKRhbFFFjNoEKQNM=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-218---oJEG-tPv6OtBPy3ZAghw-1; Fri, 12 Sep 2025 13:57:25 -0400
-X-MC-Unique: --oJEG-tPv6OtBPy3ZAghw-1
-X-Mimecast-MFC-AGG-ID: --oJEG-tPv6OtBPy3ZAghw_1757699844
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-45de5fdda1aso11908995e9.1
-        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 10:57:25 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757699844; x=1758304644;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vWibyIDQ5IpFu2wsAavMRvUdSscXCQdcm/6IEQcQG6k=;
-        b=NSkzkNCyEWxQiARKsC6v3onwj0LGqvO3HN0CzUX/+GTPgwRP6P83YdmIgwCH7QNJw/
-         Rj+zs/VhgizWxahPOMob0RCUEUiP3SKA0y3QQ/OxipXCXr2/QTmYZm/NRdzyOalpe9YO
-         TEb2V3XgffktTqXH0F3ghJyyFwhxEJO7pK5pS/6OoSp7fm440pttVoapR5DV5u2lT/xj
-         jmnFQYKAX18lKBUSgnzVH3hbABMhKhTZ337V1vJ2RFzHh9qyWnmmcdJ5Gp8qiqiiNgTY
-         MpTPW+VOlvX/bI4dNRZQDRDAsrmH3hiRsYGQr1APQ/DMk7li/ErvwTimZlvr95XYYs0e
-         7L0Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXEwHrX5A1UV10zA6YZtDvslyT8cjbDjA42IUF5yt7LBw71pWBCTY2v6zSSNUNSE/f02Ci2sjophnTw@vger.kernel.org
-X-Gm-Message-State: AOJu0YzXwhLDw0+t36NRFuHnLKQCAXmP8NuQ+3OKEA9AhD56nuU7jkBa
-	PAfocV9i2Eipur8PJu9/hkSGq0N8aabblfYjVpuCX2hzA1iXYRTvwzTSbsutN2h6XRv4L4jgWgQ
-	g6avKZZTw/Exrbiz1o2m4mH5nRhR02ebDLzbwe7NKEhUd3Bb6b1yzD00jQeHyk9s=
-X-Gm-Gg: ASbGncvbCLBmghn1SzQKb6sVhjyonoDJayMj/cqE1AMy+G23rBdS1OV6fOjq6tler4O
-	A5OXwU7Y6CUQwRA3oxIyMc0y1nRgl8kbGIoX9JHNSgd3aPAxkyXh2GSdSBYDEnmLStiutWru+wj
-	E35WjHfxwlKL7pUFkJR9IGvKnWa8SpTr+OU+QPkDFqHpUnzmZi137Bkx7heEK1i1bHHtnAB3T+s
-	JhipK6ZMRLn4DkpgjYrY0VRE1P0l4vvOfx8zoWBGiyr0PZ4P8gcQ3WCQWqe3NW+wlMf6K0Y0EBi
-	8CoIwfL1tS4OOkVOWRSXxQZ4Q1pkZLUPHLGxE74/Jy6ySLBSpQ4WpSSZEx+63i/9d6CInKwG8op
-	NqdAfSpski57FFK/aG/o1zsxMqUw0/08J4+d11LJUnAv2155gKUztt8WCUQN8Hmr2VQo=
-X-Received: by 2002:a05:6000:26c6:b0:3dc:3b91:6231 with SMTP id ffacd0b85a97d-3e7658bcb7cmr3820072f8f.12.1757699844132;
-        Fri, 12 Sep 2025 10:57:24 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGAJ3BMi02cBWJuMziTY5RdO0f0DkPd3wf8o1VrSv24bbQm1ywYm/YJSelHvVNfN205viam1A==
-X-Received: by 2002:a05:6000:26c6:b0:3dc:3b91:6231 with SMTP id ffacd0b85a97d-3e7658bcb7cmr3819999f8f.12.1757699843578;
-        Fri, 12 Sep 2025 10:57:23 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f20:da00:b70a:d502:3b51:1f2d? (p200300d82f20da00b70ad5023b511f2d.dip0.t-ipconnect.de. [2003:d8:2f20:da00:b70a:d502:3b51:1f2d])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3e7607d7bb1sm7362076f8f.50.2025.09.12.10.57.20
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 12 Sep 2025 10:57:23 -0700 (PDT)
-Message-ID: <97117b3a-1d92-418d-a01e-539c77872ff2@redhat.com>
-Date: Fri, 12 Sep 2025 19:57:20 +0200
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="FSYzCyYN"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=CrZcAOEzjLjX1gZCVLM20v02GJXBX5Y+1e/kkg2NnnM=; t=1757708511;
+	x=1758313311; b=FSYzCyYNFgOIpB5mYUcGKRNo96Ezc+f11YiWr76QeGdYDRw9VP1KWLy7FVrEB
+	vvxuLOHDIB0l+sMyB5FUGqgAEd0EUFGZFBIvACmVrQwN3mwKSbEy7aQRrVDvHGSK5X24fkk9bRz40
+	hPCbG6Uga3m6+Aceo234EIE7AkesyJR1DxNUfOy2vQs079tznXHBHeyg/KVUPGSD6G6TrKZKKhjDU
+	8whBzMQWdNruP22rxJJj5FqiaysgSCwNPkG0DVVc4BvF+MtwyX41GHKTR3jBs1+7RIU+QfIT1tCi+
+	NK+7ETYu2AHOcin0tFy0MzHpQ9Je0SjvzOcd3w7LvGelDAsWPQ==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1uxAH8-00000002lZ0-3oso; Fri, 12 Sep 2025 22:21:42 +0200
+Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1uxAH8-000000045T8-2tlU; Fri, 12 Sep 2025 22:21:42 +0200
+Message-ID: <471f32d77e201bc54e23842b69ce87e36929d8a2.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH] sunvdc: Do not spin in an infinite loop when
+ vio_ldc_send() returns EAGAIN
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Jens Axboe <axboe@kernel.dk>, Yang Xiao <YangX92@hotmail.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Anthony
+ Yznaga <anthony.yznaga@oracle.com>, Sam James <sam@gentoo.org>, sparclinux
+	 <sparclinux@vger.kernel.org>
+Date: Fri, 12 Sep 2025 22:21:41 +0200
+In-Reply-To: <4c693ebe-dfc4-b5fb-f8d5-28f93b05b77a@kernel.dk>
+References: 
+	<HK0PR01MB21634739CFCEA8CB1AC08E45ADD10@HK0PR01MB2163.apcprd01.prod.exchangelabs.com>
+	 <4c693ebe-dfc4-b5fb-f8d5-28f93b05b77a@kernel.dk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 05/16] mm/vma: rename __mmap_prepare() function to
- avoid confusion
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Andrew Morton <akpm@linux-foundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
- Guo Ren <guoren@kernel.org>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>,
- Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
- <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>,
- Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
- <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
- Arnd Bergmann <arnd@arndb.de>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Nicolas Pitre <nico@fluxnic.net>, Muchun Song <muchun.song@linux.dev>,
- Oscar Salvador <osalvador@suse.de>,
- Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
- Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
- Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>,
- Reinette Chatre <reinette.chatre@intel.com>,
- Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- "Liam R . Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Hugh Dickins <hughd@google.com>, Baolin Wang
- <baolin.wang@linux.alibaba.com>, Uladzislau Rezki <urezki@gmail.com>,
- Dmitry Vyukov <dvyukov@google.com>, Andrey Konovalov <andreyknvl@gmail.com>,
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-csky@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-s390@vger.kernel.org,
- sparclinux@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev,
- kexec@lists.infradead.org, kasan-dev@googlegroups.com,
- Jason Gunthorpe <jgg@nvidia.com>
-References: <cover.1757534913.git.lorenzo.stoakes@oracle.com>
- <9c9f9f9eaa7ae48cc585e4789117747d90f15c74.1757534913.git.lorenzo.stoakes@oracle.com>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- qIws/H2t
-In-Reply-To: <9c9f9f9eaa7ae48cc585e4789117747d90f15c74.1757534913.git.lorenzo.stoakes@oracle.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On 10.09.25 22:22, Lorenzo Stoakes wrote:
-> Now we have the f_op->mmap_prepare() hook, having a static function called
-> __mmap_prepare() that has nothing to do with it is confusing, so rename the
-> function to __mmap_setup().
-> 
-> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> ---
+Hello Jens and Yang,
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
+On Wed, 2018-11-28 at 06:23 -0700, Jens Axboe wrote:
+> On 11/28/18 5:36 AM, Yang Xiao wrote:
+> > From: Young Xiao <YangX92@hotmail.com>
+> >=20
+> > __vdc_tx_trigger should only loop on EAGAIN a finite
+> > number of times.
+> >=20
+> > See commit adddc32d6fde ("sunvnet: Do not spin in an
+> > infinite loop when vio_ldc_send() returns EAGAIN") for detail.
+>=20
+> Looks good to me, applied.
 
--- 
-Cheers
+I am seeing a lot of I/O errors as a result of this change of Linux running
+inside a SPARC T5-2 LDOM running on Solaris 11.4.81 and I'm wondering wheth=
+er
+this change was justified by the commit in adddc32d6fde ("sunvnet: Do not s=
+pin
+in an infinite loop when vio_ldc_send() returns EAGAIN") only or whether th=
+ere
+were actual bug reports.
 
-David / dhildenb
+See the output below:
 
+[19095.192532] sunvdc: vdc_tx_trigger() failure, err=3D-11
+[19095.192605] I/O error, dev vdiskc, sector 368208928 op 0x1:(WRITE) flags=
+ 0x1000 phys_seg 2 prio class 2
+[19095.205681] XFS (vdiskc1): metadata I/O error in "xfs_buf_ioend+0x28c/0x=
+600 [xfs]" at daddr 0x15f26420 len 32 error 5
+[19432.043471] sunvdc: vdc_tx_trigger() failure, err=3D-11
+[19432.043529] I/O error, dev vdiskc, sector 3732568 op 0x1:(WRITE) flags 0=
+x1000 phys_seg 1 prio class 2
+[19432.058821] sunvdc: vdc_tx_trigger() failure, err=3D-11
+[19432.058843] I/O error, dev vdiskc, sector 3736256 op 0x1:(WRITE) flags 0=
+x1000 phys_seg 4 prio class 2
+[19432.074109] sunvdc: vdc_tx_trigger() failure, err=3D-11
+[19432.074128] I/O error, dev vdiskc, sector 3736512 op 0x1:(WRITE) flags 0=
+x1000 phys_seg 4 prio class 2
+[19432.089425] sunvdc: vdc_tx_trigger() failure, err=3D-11
+[19432.089443] I/O error, dev vdiskc, sector 3737024 op 0x1:(WRITE) flags 0=
+x1000 phys_seg 1 prio class 2
+[19432.100964] XFS (vdiskc1): metadata I/O error in "xfs_buf_ioend+0x28c/0x=
+600 [xfs]" at daddr 0x38ec58 len 8 error 5
+
+At least Oracle's UEK kernel for SPARC [1] does not contain this change whi=
+ch
+is why I'm a bit reluctant to believe that the change is correct.
+
+Adrian
+
+> [1] https://github.com/oracle/linux-uek/tree/uek4/qu7/
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
