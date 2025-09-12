@@ -1,25 +1,73 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ABFD7155A4E;
-	Fri, 12 Sep 2025 15:25:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A54D32A806
+	for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 17:56:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757690740; cv=none; b=nzfz9xyNSIfsDDLtOiKW8v88oublcxK4kWuoo9gF9JuxRlj7IfaUqwLxf2f+d9mBfFBcab4WZ/Et3KAtdSO0BhM8gtu3c2AuDp2Ppgw6+q4dS7QHc89Rw0rNzykEsEY3Pqx4IJhj70rb/jabPrqX20r6m1OuTklgMABVrt7XMUI=
+	t=1757699818; cv=none; b=WdKTUJlStlJxADJDaJAiGQUN8dyyms9MsI/ItQDflC4BUmE8wirT21YfytKPGXaB9CcpJ4gQAGhbgoIZKIicOlJ4ZgsKzyVK4WwL/oNZEscEgV/uDEH7OFYf457QoYg9rhbjU3p+ZwNZP/c+pXm6GlWt6sQ/Du6/cYa/Vwu2wl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757690740; c=relaxed/simple;
-	bh=YaVFVuWtyKgp7Y3tlzPDyRgfcQER5D3c+vZ1/BrwHVY=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=tjbOxhZ9I+5woBsROqXYTByaZ6TdK1zC3gzxQ3qLtxF2H9ySknDfOVG2TRlOSXWjwSE5EDDCrZKPOGpnMqJLcX4YimGYVEcZAZlVNBP9ufz3MzaIMZvCndef66+ExYsrURiY4a/AMyUo+bd45BxjsnlRUaTpB/o+x0h1q6Aeyz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6E94328AC;
-	Fri, 12 Sep 2025 08:25:28 -0700 (PDT)
-Received: from [10.57.66.147] (unknown [10.57.66.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 301DA3F694;
-	Fri, 12 Sep 2025 08:25:29 -0700 (PDT)
-Message-ID: <338ef811-1dab-4c4e-bc5f-8ebd8cb68435@arm.com>
-Date: Fri, 12 Sep 2025 17:25:27 +0200
+	s=arc-20240116; t=1757699818; c=relaxed/simple;
+	bh=t6JYHFn6xtQi0eO3tcMpphFu+Moxe/d2WklRNG+P690=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Y7YpWZwCUE3FG323aFomUst9B0cfS9WAETng9tJyvJHKKiBHCcKUi+OfyXreDiEZ1Kr5hcLCbhzWJueqd/qCPU4OM8Lt/yeXEBF9ck5rH9WDSWyZLTF9FrY6lGrE5dg+Hcr6jqVmk0AIYk+A+QFRtcXQ2whuSA2/DeJdr/wpiRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=PNOn1qrK; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PNOn1qrK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1757699815;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=1WFUlnErlcGz3KGoSgWtaZOcBftKtTBkFfUxb/98m8k=;
+	b=PNOn1qrKHHAFhp9WLs0QPWGNS53CZkwlejr/b+TdYqhiwJSw4qiLJe12qGGJNOX4WUlwII
+	Fwbr0kkLzkup8F0mnUNDCTCwkf+kTSufa86ezu0roTRzjMCtJlJvy4g81NOpCAHv/MAdOv
+	57iwByLJplevj+0vhghsjdUmEll47iY=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-25-05oNsDDmMwG4fO820Ajp5Q-1; Fri, 12 Sep 2025 13:56:52 -0400
+X-MC-Unique: 05oNsDDmMwG4fO820Ajp5Q-1
+X-Mimecast-MFC-AGG-ID: 05oNsDDmMwG4fO820Ajp5Q_1757699811
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3df07c967e9so1378923f8f.2
+        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 10:56:52 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1757699811; x=1758304611;
+        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1WFUlnErlcGz3KGoSgWtaZOcBftKtTBkFfUxb/98m8k=;
+        b=eXQN895nYn54iLzEDgnMvBW7HvNzFCTjRNB7n7sgfxCyjap1cnOZu/Mv6EG9FCGdWv
+         95erdhHrQpRS7kse94VvpuAInuLCoM4DcuyzTW0CDuyhU/PRst9un9kcaZVC2FUBQj5q
+         tlgtnSNy7XNonf4BlcEQrmWeDnxSM2jNk9KTI49MdQk/wMgNeyPVKR6TVotAAJKz+adV
+         bFvG6e9+PhdONtHSb7is40vnu9uyLhDAgaw223EZ5V871Xp0Fshu1QoCoqZWwFa9zSn7
+         TaAxo+IOVq9A4H/KaWNa1/H4JNI00HPDWsveDzTUkyeq/uCNGGGAr3aYWMHx1bBz9Av2
+         r/Rw==
+X-Forwarded-Encrypted: i=1; AJvYcCVdhNj9PriwJyVCvCe6JjlMd2Wal74vVZ+ZeeH+nKSxCNZGTMBP+4BFW2ZOS5Zrsks3boTPYnz2mEFY@vger.kernel.org
+X-Gm-Message-State: AOJu0YzxllD5YHjM45YtakhX+Li4/RtF8vPzHrFkSgudMqS4jYKzL/1Q
+	0BTKiq/rMvWHh4sP2iJKiwbDGVXiPQdU3eRTTAxhvNKZJAJiR19kk0q7Ackv/Xjjc3C82yf5tT5
+	STJWQHhDxtbA/bREvl+qJ0xqTeedcLnNt2EzLY4rfxPbXlVMuwyUUR4P3nKqtccI=
+X-Gm-Gg: ASbGncvs/CB46XFTrIQkKlKV1zC1y+RQWERYUxgVQd35zCS0rVgG4+qgSZZ3gJuRdVH
+	nrHQbDS3kanK2sesfNDdtVxrLQw3EDPYyN54z2lz8In8U3QxlnmhY1PTYTLHmeWy7j3qWojaIuj
+	uCkQEUHz6LcsUOg26Y5wKlEcqxqTRBr5YKRDumsNC1aew28ZGIIls8RG1ybJ/lE1C11lXRRkoM9
+	NpZkAzaq7jzTuYUZm+OTOjlMAvCtI+OUL1rGvFPvfxTnpVciWeHNy8RGdBIYutQw8zm3WX74xk5
+	lRwYVUljnN0K4AmCJ3Zy383ampg4Lz9bas5Kcho3tPo2fzk8a6xskQpxsGhOARbR+u3powXoq93
+	QOgIUtGEf7qtrJcHp1G9Daak7guptwhBOu6Fmgf/8w5WXGP+4mVFjHpF0crVTHb9oR3s=
+X-Received: by 2002:a5d:64e6:0:b0:3cd:6cd:8c2 with SMTP id ffacd0b85a97d-3e765a22c28mr4163096f8f.60.1757699811068;
+        Fri, 12 Sep 2025 10:56:51 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFbQWWosXseBmiCDWHjZ+i8QCGCkijiPXS7J5DPAO7lPWNkZhPahOhzNwRV6nh+EFTyxM8bbQ==
+X-Received: by 2002:a5d:64e6:0:b0:3cd:6cd:8c2 with SMTP id ffacd0b85a97d-3e765a22c28mr4163028f8f.60.1757699810512;
+        Fri, 12 Sep 2025 10:56:50 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f20:da00:b70a:d502:3b51:1f2d? (p200300d82f20da00b70ad5023b511f2d.dip0.t-ipconnect.de. [2003:d8:2f20:da00:b70a:d502:3b51:1f2d])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3e7c778f764sm1719041f8f.57.2025.09.12.10.56.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 12 Sep 2025 10:56:49 -0700 (PDT)
+Message-ID: <3f11cb3a-7f48-4fb8-a700-228fee3e4627@redhat.com>
+Date: Fri, 12 Sep 2025 19:56:46 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,137 +75,163 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: Re: [PATCH v2 0/7] Nesting support for lazy MMU mode
-To: David Hildenbrand <david@redhat.com>,
+Subject: Re: [PATCH v2 03/16] mm: add vma_desc_size(), vma_desc_pages()
+ helpers
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
- Mark Rutland <Mark.Rutland@arm.com>
-References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
- <20250908191602.61160a7990b9ea418de758c7@linux-foundation.org>
- <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
-Content-Language: en-GB
-In-Reply-To: <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
+ Guo Ren <guoren@kernel.org>, Thomas Bogendoerfer
+ <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
+ <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Nicolas Pitre <nico@fluxnic.net>, Muchun Song <muchun.song@linux.dev>,
+ Oscar Salvador <osalvador@suse.de>,
+ Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+ Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
+ Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>,
+ Reinette Chatre <reinette.chatre@intel.com>,
+ Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Hugh Dickins <hughd@google.com>, Baolin Wang
+ <baolin.wang@linux.alibaba.com>, Uladzislau Rezki <urezki@gmail.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Andrey Konovalov <andreyknvl@gmail.com>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-csky@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-s390@vger.kernel.org,
+ sparclinux@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev,
+ kexec@lists.infradead.org, kasan-dev@googlegroups.com,
+ Jason Gunthorpe <jgg@nvidia.com>
+References: <cover.1757534913.git.lorenzo.stoakes@oracle.com>
+ <5ac75e5ac627c06e62401dfda8c908eadac8dfec.1757534913.git.lorenzo.stoakes@oracle.com>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <5ac75e5ac627c06e62401dfda8c908eadac8dfec.1757534913.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 09/09/2025 11:21, David Hildenbrand wrote:
-> On 09.09.25 04:16, Andrew Morton wrote:
->> On Mon,  8 Sep 2025 08:39:24 +0100 Kevin Brodsky
->> <kevin.brodsky@arm.com> wrote:
->>
->>> The main change enabling nesting is patch 2, following the approach
->>> suggested by Catalin Marinas [4]: have enter() return some state and
->>> the matching leave() take that state.
->>
->> This is so totally the correct way.  Thanks.
->
-> Staring at this, I wonder if we could alternatively handle it like
-> pagefault_disable()/pagefault_enable(), having something like
-> current->lazy_mmu_enabled.
->
-> We wouldn't have to worry about preemption in that case I guess
-> (unless the arch has special requirements).
->
-> Not sure if that was already discussed, just a thought. 
+On 10.09.25 22:21, Lorenzo Stoakes wrote:
+> It's useful to be able to determine the size of a VMA descriptor range used
+> on f_op->mmap_prepare, expressed both in bytes and pages, so add helpers
+> for both and update code that could make use of it to do so.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+>   fs/ntfs3/file.c    |  2 +-
+>   include/linux/mm.h | 10 ++++++++++
+>   mm/secretmem.c     |  2 +-
+>   3 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/ntfs3/file.c b/fs/ntfs3/file.c
+> index c1ece707b195..86eb88f62714 100644
+> --- a/fs/ntfs3/file.c
+> +++ b/fs/ntfs3/file.c
+> @@ -304,7 +304,7 @@ static int ntfs_file_mmap_prepare(struct vm_area_desc *desc)
+>   
+>   	if (rw) {
+>   		u64 to = min_t(loff_t, i_size_read(inode),
+> -			       from + desc->end - desc->start);
+> +			       from + vma_desc_size(desc));
+>   
+>   		if (is_sparsed(ni)) {
+>   			/* Allocate clusters for rw map. */
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 892fe5dbf9de..0b97589aec6d 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3572,6 +3572,16 @@ static inline unsigned long vma_pages(const struct vm_area_struct *vma)
+>   	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+>   }
+>   
+> +static inline unsigned long vma_desc_size(struct vm_area_desc *desc)
+> +{
+> +	return desc->end - desc->start;
+> +}
+> +
+> +static inline unsigned long vma_desc_pages(struct vm_area_desc *desc)
+> +{
+> +	return vma_desc_size(desc) >> PAGE_SHIFT;
+> +}
 
-Based on the outcome of the discussion with David on patch 2 [1p], there
-is indeed an alternative approach that we should seriously consider. In
-summary:
+Should parameters in both functions be const * ?
 
-* Keep the API stateless, handle nesting with a counter in task_struct
-* Introduce new functions to temporarily disable lazy_mmu without
-impacting nesting, track that with a bool in task_struct (addresses the
-situation in mm/kasan/shadow.c and possibly some x86 cases too)
-* Move as much handling from arch_* to generic functions
+> +
+>   /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
+>   static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
+>   				unsigned long vm_start, unsigned long vm_end)
+> diff --git a/mm/secretmem.c b/mm/secretmem.c
+> index 60137305bc20..62066ddb1e9c 100644
+> --- a/mm/secretmem.c
+> +++ b/mm/secretmem.c
+> @@ -120,7 +120,7 @@ static int secretmem_release(struct inode *inode, struct file *file)
+>   
+>   static int secretmem_mmap_prepare(struct vm_area_desc *desc)
+>   {
+> -	const unsigned long len = desc->end - desc->start;
+> +	const unsigned long len = vma_desc_size(desc);
+>   
+>   	if ((desc->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+>   		return -EINVAL;
 
-What the new generic infrastructure would look like:
+Acked-by: David Hildenbrand <david@redhat.com>
 
-struct task_struct {
-    ...
-#ifdef CONFIG_ARCH_LAZY_MMU
-    struct {
-        uint8_t count;
-        bool enabled; /* or paused, see below */
-    } lazy_mmu_state;
-#endif
-}
+-- 
+Cheers
 
-* lazy_mmu_mode_enable():
-    if (!lazy_mmu_state.count) {
-        arch_enter_lazy_mmu_mode();
-        lazy_mmu_state.enabled = true;
-    }
-    lazy_mmu_state.count++;
-
-* lazy_mmu_mode_disable():
-    lazy_mmu_count--;
-    if (!lazy_mmu_state.count) {
-        lazy_mmu_state.enabled = false;
-        arch_leave_lazy_mmu_mode();
-    } else {
-        arch_flush_lazy_mmu_mode();
-    }
-
-* lazy_mmu_mode_pause():
-    lazy_mmu_state.enabled = false;
-    arch_leave_lazy_mmu_mode();
-
-* lazy_mmu_mode_resume();
-    arch_enter_lazy_mmu_mode();
-    lazy_mmu_state.enabled = true;
-
-The generic enable()/disable() helpers are able to handle most of the
-logic, leaving only truly arch-specific code to the arch callbacks:
-* Updating lazy_mmu_state
-* Sanity checks on lazy_mmu_state (e.g. count underflow/overflow,
-pause()/resume() only called when count > 0, etc.)
-* Bailing out if in_interrupt() (not done consistently across arch's at
-the moment)
-
-A further improvement is to make arch code check lazy_mmu_state.enabled
-to determine whether lazy_mmu is enabled at any given point. At the
-moment every arch uses a different mechanism, and this is an occasion to
-make them converge.
-
-The arch callback interface remains unchanged, and we are resurrecting
-arch_flush_lazy_mmu_mode() to handle the nested disable() case (flushing
-must happen when exiting a section regardless of nesting):
-
-enable() -> arch_enter()
-    enable() -> [nothing]
-    disable() -> arch_flush()
-disable() -> arch_leave()
-
-Note: lazy_mmu_state.enabled (set whenever lazy_mmu is actually enabled)
-could be replaced with lazy_mmu_state.paused (set inside a
-pause()/resume() section). I believe this is equivalent but the former
-is slightly more convenient for arch code - to be confirmed in practice.
-
-Any thoughts on this? Unless there are concerns, I will move towards
-that approach in v3.
-
-- Kevin
-
-[1p]
-https://lore.kernel.org/all/4aa28016-5678-4c66-8104-8dcc3fa2f5ce@redhat.com/t/#u
+David / dhildenb
 
