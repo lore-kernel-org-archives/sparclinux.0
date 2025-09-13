@@ -1,63 +1,63 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EF515E5D4
-	for <sparclinux@vger.kernel.org>; Sat, 13 Sep 2025 01:11:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61ECD15687D
+	for <sparclinux@vger.kernel.org>; Sat, 13 Sep 2025 01:12:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757725908; cv=none; b=tcD9PASkOUa9NO5OwdrNpYrNSH7Ia1MYe79ravfCvYI9BixFCJeRg0KjkveSJmSWfrS5zyIbfsnDHUwHP/EomBYmWa6bmeVnu/NZqgI9FMM0+9bav4PAtWLwdAZoYtTiSpUqAAIlOJPnnSNDM1nZnM8Omo6K8QV6yw1I6gj4dRk=
+	t=1757725973; cv=none; b=FcVHCx6hfvgKC5k/r/TkWvwqThIDn7pxh2quSKyEwoTWozeL4VC7+Usc0KZyp1HpKFg7ohvYlbBvmxIhSxoNUZVamJGbl7qmh4WKi1bNWK1Sv6l7DzHJ8oiSaoNovUsQ98LbN5iR4z6fndzl7+W/mg9w1+xlqIkXwaGAW4aLyMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757725908; c=relaxed/simple;
-	bh=KpML4fn90471dg944P+9+9FByq3Xjb/jBBYn5xTeENA=;
+	s=arc-20240116; t=1757725973; c=relaxed/simple;
+	bh=5w1rh0L6NznGkqOB1ptiKwAFOGZfY5CoA2D4m8g2/Jc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bCEM+yw66UQTJfGinwr4cc66vV3WxboWIs0O99wywELXK7LX38+RGRvQWcs/dKZUwPLkYPCGmaw36OWsYtGEDp3qEx5PMfytYexnelM4sj2gDgFKaGbmUhB4Al+kPjM2rk/bq1XspqDmdqbSGbOOvqOrGs8Z2nbre4EfSkCUTRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aUORZv5M; arc=none smtp.client-ip=209.85.208.50
+	 MIME-Version; b=dHLw6zG7ZrDYh1asROaPTKKb9WM1uaCSJGoqb8jtdbW2VulhBYksyomiOrXEcJ0JokqYtgC4tfzdwEiFYk2qgqSfbKeC1l+lMzzHTvVxSHPO0P1Cvf7AUWf01HXjD7IK5/4cT1PX7NIQgw9Z/Vgva3BGwZ87gW/gtTStwuuSVtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jm9piSCy; arc=none smtp.client-ip=209.85.218.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aUORZv5M"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-61cb4374d2fso3680348a12.2
-        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 18:11:45 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jm9piSCy"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-afcb7a16441so374603166b.2
+        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 18:12:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1757725904; x=1758330704; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1757725970; x=1758330770; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=h6O+lfSZLBCLtFpNKL/1anVub0eApVizJE0pmHD2kMo=;
-        b=aUORZv5MCUdwsV0MU7oCzj3ZTm7w3ESOPYBigQlqMxPsAavMDyHGJgEYQWATfs3+b/
-         biPBcBrCE9URVMoH0rqHehw0T1BRhiZjlA9durZSP0yEkzERpopJvyeRh9qFGG5oSCsQ
-         OuIa430sEthMDEkIZDIQQAO65i2svbWCQtUDobiF+pJzf/eh+f2Qg9BVDr0XDXs5AJy7
-         S+eE8Bk/nYgSsoMihCGJb0SQb6wVy+gefAADkk7B44V5PV1ioyXUHisNSxZuDoeNZtpw
-         pk7wtMp9HCPO+M4hoY912LuHIIjWkZVXjLrL7AKM6klm1vtlLotKzYFANlld9p+SFPzp
-         US6A==
+        bh=CPS175BLdkdbkMvPyh09bMwfY79gXnuJYPms+9/x8xc=;
+        b=jm9piSCyAtXZ4sW7o/h3SGpliQHevBkrhxl1tQii9mgHqdG87o74LcSjtY0avpY0iX
+         RdeiQDrUqQ5C5qyGy2HNHbhjeW1tyThLcjGIFDuhifBp9ZAahZRe/JcjT78TZLjYxr6O
+         clz08Pl2eYNgCRP3z65VvP8bCDfsGkCIvdvYFwno6M8/UvygM+KRsZjpRUrxOekYWGnI
+         j0/O25Qolp3eD7BmcFGNh8/jP3xJV+WM11QZFpJ3kUVpHKMxijbTHMgjsau/ncgLiR1/
+         GlkR/1ri7/XijIi7U6mEk94bP2JEKshCIzyPHHSsIIuiNpAyZbMwdpQELhiCIBLbGIjK
+         LxNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757725904; x=1758330704;
+        d=1e100.net; s=20230601; t=1757725970; x=1758330770;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=h6O+lfSZLBCLtFpNKL/1anVub0eApVizJE0pmHD2kMo=;
-        b=HGq6lL5x6nmxBDo+hZcVzgrgZH3FYQ43mCyigI5kUZqFOiRMhNYmmImdeL5fhJFkNT
-         YDXYiVCmflIVm0fj5FovEfx5DS3uSQ0NVPm6RanvdAHIUvnEWkgPL2l3DGUD/7WDkNbA
-         WhpXwQb39MD2sLPma5/6WpoCUSAuu8n9ovisRVckjC3Fj/3m61ZkjjZbdxJPUe6C0rlo
-         1coOAMZAV11TxHBBA7Bxf2Iv7hEtXtOdbgEaeaGQ0TI4JNRRm5E2oHSEBr1OfCDd4cIa
-         hSecIBQfxbV0tpr1c7woMuoE/2uV+8GqJsbtM954zN/YvBe50c9EYGG5ws6RMDzbRomg
-         DoPg==
-X-Forwarded-Encrypted: i=1; AJvYcCU0BE1h9Hi74qqf758vlYKhRjK6Zd9kuN+Az7AYu2iF5kvrXOCYpZ6/Vamu48li5oXHPu09d52gpWa0@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx1hmvMaweBrLzg9ttD/h7rbO5dNNdWNsXsctJLgjntMTK/ToQ5
-	Ws+NQdl1vibAjisooQ6nNdOC6V5RXoyAXurTsg6BzE4e/4w7wCek9krd
-X-Gm-Gg: ASbGnctRDUdfayXk4y3mSv7+rtXfCIOK3DdWYd+QbdBk3m/ghgvdXLKtsDYz/z/F+ns
-	vW/hrLDeqUXTfQy5RVklbeF7hcxPON9NRJXQDQleEvIDTmls85Py9kmISW0uDjbRnSJijcMo8NN
-	Ls/ERzh3/iHynK3zmY6v1eL6REOadS5rQv7rVsuJFMDYcPaOw6EBg7NyGb1ROEtgB3Wc3Yt6Ic6
-	uU2CdghJV5C94kcUzBxQh0/u1mJBaQKxipVhzzvz+RYnldDa0JBSDA+Ks5h7oAjramywx3ECGmX
-	qBAZVvDhAFRgXXMLzejiohYG1/N2MQ4kfzlCPatT+qNyPqeuVuEfKXpNxQFQKDcyIBZLwhVhRLL
-	HvuWXjnghE4tVjsPKo/I=
-X-Google-Smtp-Source: AGHT+IEEs4w0VYWOrTZ2mf5mPdRdgIBBMsi5zMJEle+Jt2EK6Q+4TbCNWtdbvmdxcJfUUMXxxDwLfQ==
-X-Received: by 2002:a05:6402:5242:b0:628:a4fb:3b44 with SMTP id 4fb4d7f45d1cf-62ed825998fmr4990182a12.1.1757725904210;
-        Fri, 12 Sep 2025 18:11:44 -0700 (PDT)
+        bh=CPS175BLdkdbkMvPyh09bMwfY79gXnuJYPms+9/x8xc=;
+        b=GaDjB0Fpe6rTpMQqOIh6+xLcE0ZxgqUjD2W3CuGwBAWrWNN1SDuxXCEbjP1L1fQkxi
+         8s8MN8oislEOPmF3cOtqEDHxKlnItuUJIlkAcCFeaQXU+1GjoesW6CCfonzxMgW9Pncy
+         Zd2JwqWivNwHva4Ia4fJmlTH6CDzbz7+3zo/S5SMx7/FEiO6jRJ9TZgeNuEZMbdQoNDG
+         yBnr4n3R/GCTbuxmBiWUfleHvYKwni7vQBBB39BSq61+9OCeiPs8zo9g+sN5EXpgjaUP
+         l0dnuOokYGMDRShr5+nN5QRY33vIWetvg8StotZjz8TyGOv5UvauCKort2BYwDL99bJd
+         a4Sw==
+X-Forwarded-Encrypted: i=1; AJvYcCWjDjL8pSVHYaPVv1NBbFPhArrTNPZUZk+A6K3GgBTj6+Xbm9kqfQFKUmr/MefnWjvkD/EudkHsLm4X@vger.kernel.org
+X-Gm-Message-State: AOJu0YxKnvv1/7JCV5Jj8nSqaIYA1vhXZXFvzPpgWFV03rvfzBgLrzVs
+	B0mPpk64LyTTOjZig2KNHT/FlX+VAJC9WtsGNaTmvj6oLxQHoKLrKc62
+X-Gm-Gg: ASbGncsrTu4p53tsdOLwJAafokZlY2gILuf7Sn8K5HKEGPyB1qvBi1x6/JFbmIVLeIv
+	6i4706NLtyAosBq8WPmz9OYF4ohoRc8vY0jeC1+ga2oQ0XsJagM7FlYS1T0p4UyaRwkQInXDOOn
+	iaEwf83ERFssaNOgnnQV6qiH/RltuRqLhI/+Xv7rrj1bhuo+CA91RcSc9m6PTfJEwGIJpiygR85
+	y9bcy2PlIaprBm4I7yxgrSq6+pygRIPpLrQ9YoCcKLcKHF/QgdG3RxhmG4NfAurHwcx3p/4Wak1
+	Z4kZrLawC/rXlqpnsp0rdIMxE2TTqwvjpltIDUpJoQbrU62svPZlPjy6+5oP8KEuBuBZiHlRD3b
+	ASVsrnSEtLIrf9XfgSJo5wOyuu2PI5sK7Va513wrF
+X-Google-Smtp-Source: AGHT+IExCbHobezsJZBylPatDCb3rXiTmvHjuHynF55nxxCc14bpP2oPLB71sx+Li40Hkl4GjqRelQ==
+X-Received: by 2002:a17:907:97d2:b0:b04:31c6:a434 with SMTP id a640c23a62f3a-b07c324cf12mr467235966b.0.1757725969783;
+        Fri, 12 Sep 2025 18:12:49 -0700 (PDT)
 Received: from localhost ([212.73.77.104])
-        by smtp.gmail.com with UTF8SMTPSA id 4fb4d7f45d1cf-62efb5b8b0asm913566a12.20.2025.09.12.18.11.38
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-b07b30da327sm479612566b.11.2025.09.12.18.12.45
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 12 Sep 2025 18:11:43 -0700 (PDT)
+        Fri, 12 Sep 2025 18:12:49 -0700 (PDT)
 From: Askar Safin <safinaskar@gmail.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org
@@ -113,9 +113,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	Thorsten Blum <thorsten.blum@linux.dev>,
 	Heiko Carstens <hca@linux.ibm.com>,
 	patches@lists.linux.dev
-Subject: [PATCH RESEND 29/62] init: move virt_external_initramfs_{start,end} to init/initramfs.c
-Date: Sat, 13 Sep 2025 00:38:08 +0000
-Message-ID: <20250913003842.41944-30-safinaskar@gmail.com>
+Subject: [PATCH RESEND 30/62] doc: remove documentation for block device 4 0
+Date: Sat, 13 Sep 2025 00:38:09 +0000
+Message-ID: <20250913003842.41944-31-safinaskar@gmail.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250913003842.41944-1-safinaskar@gmail.com>
 References: <20250913003842.41944-1-safinaskar@gmail.com>
@@ -127,40 +127,32 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Move definitions of virt_external_initramfs_start and
-virt_external_initramfs_end to init/initramfs.c
+It doesn't work. I tested this both in system booted
+using initramfs and in system booted from real root
+device directly
 
 Signed-off-by: Askar Safin <safinaskar@gmail.com>
 ---
- init/do_mounts_initrd.c | 1 -
- init/initramfs.c        | 2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/devices.txt | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/init/do_mounts_initrd.c b/init/do_mounts_initrd.c
-index 8bdeb205a0cd..535ce459ab94 100644
---- a/init/do_mounts_initrd.c
-+++ b/init/do_mounts_initrd.c
-@@ -12,7 +12,6 @@
+diff --git a/Documentation/admin-guide/devices.txt b/Documentation/admin-guide/devices.txt
+index 27835389ca49..6ce0940233a8 100644
+--- a/Documentation/admin-guide/devices.txt
++++ b/Documentation/admin-guide/devices.txt
+@@ -138,12 +138,6 @@
+ 		number for BSD PTY devices.  As of Linux 2.1.115, this
+ 		is no longer supported.	 Use major numbers 2 and 3.
  
- #include "do_mounts.h"
- 
--unsigned long virt_external_initramfs_start, virt_external_initramfs_end;
- int initrd_below_start_ok;
- 
- static int __init early_initrdmem(char *p)
-diff --git a/init/initramfs.c b/init/initramfs.c
-index 9a221c713c60..d2301cc6c470 100644
---- a/init/initramfs.c
-+++ b/init/initramfs.c
-@@ -600,6 +600,8 @@ __setup("initramfs_async=", initramfs_async_setup);
- #include <linux/initrd.h>
- #include <linux/kexec.h>
- 
-+unsigned long virt_external_initramfs_start, virt_external_initramfs_end;
-+
- phys_addr_t phys_external_initramfs_start __initdata;
- unsigned long phys_external_initramfs_size __initdata;
- 
+-   4 block	Aliases for dynamically allocated major devices to be used
+-		when its not possible to create the real device nodes
+-		because the root filesystem is mounted read-only.
+-
+-		   0 = /dev/root
+-
+    5 char	Alternate TTY devices
+ 		  0 = /dev/tty		Current TTY device
+ 		  1 = /dev/console	System console
 -- 
 2.47.2
 
