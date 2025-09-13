@@ -1,63 +1,63 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2541A239A
-	for <sparclinux@vger.kernel.org>; Sat, 13 Sep 2025 01:18:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1F1B199949
+	for <sparclinux@vger.kernel.org>; Sat, 13 Sep 2025 01:19:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757726308; cv=none; b=lXxQVk9hdDy8CawHjPhxe3aeSLvV+V96cO7StJKIB1iQnXSmlPiSkb2ihYIT8sNeEF72mDzZHbDo4DZmyTHCLzrPNsYpdGGeuDhw+N4/4zgGCdzCWSLpgnKbM+TJsaop/lqLUETMGmzAF9am/jRgCClUADEdlL2QJXz52EEoOrk=
+	t=1757726374; cv=none; b=RIQzIxPHCANlmqtaRU10LnDf9VLsk2ZErcfOgM2XLOH/PjW8w0UY412dKw79LqtNxDPDATvSfOvALXe5c06mALuYxyXJ/LdY/DB3sPd20BmhjWmcMW+lkh2u7OQAeryRkZX3AqxSOG6QPz9Nfg9dbww+Gf8pmC21QaDQMbmW2vQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757726308; c=relaxed/simple;
-	bh=gqqGfNEIy1h395KAAal0EqVTqfHBZvgS53UXMAzAIg4=;
+	s=arc-20240116; t=1757726374; c=relaxed/simple;
+	bh=0dZBfgRsarIoSXxUVt0yhSx8VT0ilXZcRzH3UEVxVxY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hgtbgRHxLn7rzVoi1txsoF8eqf2FjcBGmRP7Fnc2RwlKjTNbmQpg5NTlAf8lEMUTRl0IHLSBjVy3Mww9aq3yOBdnVYs37oj6oH8900CQnJ2s2PzrChQAqdSBbCwuoN8iJqAEpeIZcon7sGcDgZn1Y5lMIdZwFUadAIxsaQhGzGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S3MR3wRG; arc=none smtp.client-ip=209.85.218.41
+	 MIME-Version; b=V9WaSFN64xoXB3+h7i162fVaSlbYrqQXZBNlrGg0SiSObubZ71wprNEkfKao7khenYxcUO1021FRmGeje09T3uMXs+/p2bymp0ITYAmgEA9g+SebsBPBehoX0CR9CJEGzkjB1nyxzQWF+M37X4EtdjaCCoHfc76VRaZlA5iSa7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JdasfyAT; arc=none smtp.client-ip=209.85.218.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S3MR3wRG"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b03fa5c5a89so369261966b.2
-        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 18:18:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JdasfyAT"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-b07c38680b3so228178666b.1
+        for <sparclinux@vger.kernel.org>; Fri, 12 Sep 2025 18:19:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1757726305; x=1758331105; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1757726370; x=1758331170; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=azZv/jvf6IRhG0wveCq5ECQcNHAHnPNLNif/IfsLlkA=;
-        b=S3MR3wRGhC/kXLFi7tEzWsnegJT9EOlT9m/C/MFzc4mLffsb1zPxwJp1ys/R7WkKtu
-         lGH2qDNYyTs5AoU//E0brWD5vIAIWB1n3FQosPRaK+QRoGA0DZdmhSh/3U5iRy8W4DJp
-         Fenld0TY4Z6v7xbzE43yOvUjTFLByOJ5B4tAPAr4+lqeApOt2QlD3yf3593AS0fFkyGD
-         QIRxGEpNIvRn18hyuD6Dfkz7pZwRQAb4wq9+5bZobdNclLuXePQzPiQWeZfPixQk4bNj
-         mQU+cnszndYycrVnwj9dFqcHiTNWiRrAaiY+Wgi8p28YIcrLfiIHcIobM8FFJ7GF7SK9
-         5mww==
+        bh=01GQX+A5wcxVOfa45EtHUSgPI4YB4B2sFvA+zw7J76I=;
+        b=JdasfyATZKgVuDGioUqz8M95vHmUjDA0X+pQzxpf/9WU/t+U6Kr5Hnn8A/pwyQbEEj
+         tG9d5C4koMLr9jbbHvOg3kmOIpnqmXdSH9FzLhmDOw7FKaw9Ew5j+I2E2DqtaAF0kBLZ
+         78wviOrJLl+vWbv0yCaEb7FNWVwdYcrEt3ieIj7Euu12bhdJuyE+iXc5Pb1FYjgjb8hF
+         cX5p4CCG19iBqFwJotgYe++od9U/7qY0/+Gz7PK70bhGuzPjXacGCU6LuDPtHZleKndu
+         uaVp9WGOG3lboi/Y241AWiDrohHR47mki0UFwavjwS1g6Qe4yDpW5hurcQZvXGxBtRDc
+         ssdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757726305; x=1758331105;
+        d=1e100.net; s=20230601; t=1757726370; x=1758331170;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=azZv/jvf6IRhG0wveCq5ECQcNHAHnPNLNif/IfsLlkA=;
-        b=dVDBLYnd8ose4wnbIbZPZxgGPe55lg8+73dDLwcqTWXJqjQUQZOX8mI0UsQCRRkKkM
-         kObRRwyX1cv2PjKSYV63XtJBuN/I7R0cE//N4jijERQD5m/9qIgIxcBtfiV5MTovvpVu
-         cdkVD11ro2KoI+oJJGy03YFpIKwjQ3JkQtO55+dmdlcg67AX9Yl5vphn2rZDNwECwQl0
-         cayR7DeNuiZ8bQ3EFdHZF3QDcjPGKpU0B5OJ9I18rhkuFoBDXCZsMtfHQUJ9I4vY63V6
-         zQD+2Shs1tvRQLH6un1B4AU/mnjGbPgg0Q0xb9LBjC5IoMVHHb+diJI0GT/IaNcXPn1k
-         /T8g==
-X-Forwarded-Encrypted: i=1; AJvYcCWwmunyMx2Mu/oAy60QFMQjhR6pMpPUYU5sxy7zTU+Wn3DZISmww6XjNWidNiT1cTFpPg52OX9/QCZf@vger.kernel.org
-X-Gm-Message-State: AOJu0YwcH991GtBQpN7sXxeMA9+m6ae34J77GDU2IZ+8m7xdEL8ZsaFn
-	cwV1kWzxe1zYtFJ1Qt/5yqlGqqdkDwQvVsRVeB3qBK0/L0PVHvheDsWX
-X-Gm-Gg: ASbGncvU69DSH0LgombOthHRMd9mOUd2+xaa4sTBTxFRD9HRnravSH5TJyb13Te64W+
-	Df3+k8z1ltF/gFweWhnKM3ksPdNpfQgDdG78IdkSS1UBbMhjVMmhzHtD9eJpwiWFJzp6LAz8LjW
-	X2WLpJZOWZx3qvNULaHZMrgVMXZemuX8kvRm9zGnAg2FlXIOWZRykgCCeQVm/430DBjIVecrnKr
-	ns2twzUZbgEGfwhGgeWq4wKltigTmveRXhuIlUDx/Dj+3MhvvyRXiizuxSQbGAiJlV6UNbBfEue
-	hhDTxT9O6acKqLGNpKobvFkevA5QXmk/nPlSdK9Nt7BLrXIHu4PFsNjWcjNNxymLsboxYUUEdJE
-	u+rONyuh84Ev3RMs4mqg=
-X-Google-Smtp-Source: AGHT+IExQyu+Z7m4GD3MP2gVTN78xlktku98kUsQddou1aWuxY/hOtzAat6yYKAto7vnFggGkvcCIA==
-X-Received: by 2002:a17:907:3f18:b0:b04:45e1:5929 with SMTP id a640c23a62f3a-b07c35cd746mr507554266b.28.1757726304508;
-        Fri, 12 Sep 2025 18:18:24 -0700 (PDT)
+        bh=01GQX+A5wcxVOfa45EtHUSgPI4YB4B2sFvA+zw7J76I=;
+        b=d1D1PrZ/lyI9NfreBsz4t+JDu5uLEYrroLIdnAVjEjBELDsAZo0usZovz/B8TRLuNP
+         MkHuleW+4n6Q4U5KG7ZdVj8e+hYtBdIvdQ6hYjB4C6R3+LJGmz/3qBuo5E4yknio0U0C
+         Bw6eVuZnbljNhwpBRoOtEv+BDpciX46s8p6VC2lwA156RH2bOhhbJG+BvkKhR5EOhP7Q
+         eOj5Bzuzh4d2YlFdxwnUDbsaIk3eH8DnwqsARK2fcNAKzw+fN3pjFGLz6Dq+XUQY161+
+         qIBlFiHMqZawSI562lU2obziLbf7OhxeUpdbpRcQtkvOrxFgNCroSWGPsWaDCWjxPPTf
+         lgTQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV8PZj2d2cvP+/FJA/Hrlc1Dfl55gmx27TpP/UB5lR037ZQAoMPWD8lzoW6JpkiLp0wtVnpzZmDEfYN@vger.kernel.org
+X-Gm-Message-State: AOJu0YyuKunqp9oTZG6hmloPlybepGGSrBCvmv0pHoj/y5MwZOJxy3x3
+	Hv4xGpXY7mD0z53y9otxjseGAvteP7YdS6Anq5dabfSIyuWdzQZ4SOk3
+X-Gm-Gg: ASbGncvm857ewmdHVLE7efdcn39v6xxp6McqLgD+aE01EPJAP/KmDPY6Q7RzKClMo/L
+	rL2wbVi+tl4CJ3mdA/0CNydqzvcK0pVkM8T2xWSC63O5bcIladFQIDCcr5SYTEBwWnZmtQLorxh
+	VjSwp7jhdm7J3hZCcQCYB4D1XEeTk5QWPDn8fiCIX3uo/HXzgIlLJ2pir6RJL/e8QTSQY4rVcCm
+	lL6TM3Oo254Q7Ynk1TOlFpniq63oiuePvw1nxzyQla+2HCXX3sXmXNXTel09g+VQ0q4f1Ec8weF
+	H1oIE8rsslGKjbjkrwYkNx0Gr3lJpt928/jUwALRhsuAn65fDMUNN41bRpRYSQaeFy6m3YV9uNp
+	2Z63+QuXf+K2qteaYX78gen2PNdw7tw==
+X-Google-Smtp-Source: AGHT+IEzeVwYKpSq5hVwsza+AqQmwMGGceGxnApLyMFPwDCsoulMW4PoMJQ37ACnH/5BZ1euJLookQ==
+X-Received: by 2002:a17:906:2493:b0:b04:9822:1ab4 with SMTP id a640c23a62f3a-b07c35fb2e4mr458597866b.27.1757726369974;
+        Fri, 12 Sep 2025 18:19:29 -0700 (PDT)
 Received: from localhost ([212.73.77.104])
-        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-b07b32dd309sm475244766b.53.2025.09.12.18.18.19
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-b07b32dd5bfsm465661666b.63.2025.09.12.18.19.25
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 12 Sep 2025 18:18:24 -0700 (PDT)
+        Fri, 12 Sep 2025 18:19:29 -0700 (PDT)
 From: Askar Safin <safinaskar@gmail.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org
@@ -113,9 +113,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	Thorsten Blum <thorsten.blum@linux.dev>,
 	Heiko Carstens <hca@linux.ibm.com>,
 	patches@lists.linux.dev
-Subject: [PATCH RESEND 35/62] init: make mount_root_generic static
-Date: Sat, 13 Sep 2025 00:38:14 +0000
-Message-ID: <20250913003842.41944-36-safinaskar@gmail.com>
+Subject: [PATCH RESEND 36/62] init: make mount_root static
+Date: Sat, 13 Sep 2025 00:38:15 +0000
+Message-ID: <20250913003842.41944-37-safinaskar@gmail.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250913003842.41944-1-safinaskar@gmail.com>
 References: <20250913003842.41944-1-safinaskar@gmail.com>
@@ -136,30 +136,30 @@ Signed-off-by: Askar Safin <safinaskar@gmail.com>
  2 files changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/init/do_mounts.c b/init/do_mounts.c
-index 60ba8a633d32..c722351c991f 100644
+index c722351c991f..7ec5ee5a5c19 100644
 --- a/init/do_mounts.c
 +++ b/init/do_mounts.c
-@@ -174,7 +174,7 @@ static int __init do_mount_root(const char *name, const char *fs,
- 	return ret;
+@@ -381,7 +381,7 @@ static inline void mount_block_root(char *root_device_name)
  }
+ #endif /* CONFIG_BLOCK */
  
--void __init mount_root_generic(char *name, char *pretty_name, int flags)
-+static void __init mount_root_generic(char *name, char *pretty_name, int flags)
+-void __init mount_root(char *root_device_name)
++static void __init mount_root(char *root_device_name)
  {
- 	struct page *page = alloc_page(GFP_KERNEL);
- 	char *fs_names = page_address(page);
+ 	switch (ROOT_DEV) {
+ 	case Root_NFS:
 diff --git a/init/do_mounts.h b/init/do_mounts.h
-index f3df9d697304..f291c30f7407 100644
+index f291c30f7407..90422fb07c02 100644
 --- a/init/do_mounts.h
 +++ b/init/do_mounts.h
 @@ -12,7 +12,6 @@
  #include <linux/task_work.h>
  #include <linux/file.h>
  
--void  mount_root_generic(char *name, char *pretty_name, int flags);
- void  mount_root(char *root_device_name);
+-void  mount_root(char *root_device_name);
  extern int root_mountflags;
  
+ /* Ensure that async file closing finished to prevent spurious errors. */
 -- 
 2.47.2
 
