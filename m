@@ -1,158 +1,197 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 128C714F121;
-	Mon, 15 Sep 2025 04:41:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3220F26D4E8;
+	Mon, 15 Sep 2025 06:30:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757911319; cv=none; b=Q/WyXhuCSwKS7zk3hIQXfH8/3mKviloSSl7cnu/kZHZUgp38YWQv5wyqJmv1GYrd0ukFild5w2G1w8sz1K8LuJBFjVY3Bwq9KgtdBu8XeJmfeSnxnpdB/qf+SvxKohYgLd0PuOVN/j322vQCa+87WrP2xQ3AKPZVhu+sHDXRdLc=
+	t=1757917803; cv=none; b=TzHUlXQbeDFJJSGEuWWYdCemIphPb8AVbtCXDg8COo1sxYbnSrdbO5vVZLVSdcugaDXhecd3MLpGO05M8h97FKArfWWOWpSTHZgKlFbpQASgBHNx4KP9GglWnOWTZda6VgdKIjV7jMHQx//W0QVocQn8ID2m/+lzGDLveQ+jaAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757911319; c=relaxed/simple;
-	bh=b/qNKcp4cR4Py7I6Jmk+kD30432fdQwu0TjuOKJbeyo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=B/27kH7tlhdwa+zLOA23+1NbUQxPvP1sQ+VzwbbRXIrgo60nb9eOvvPStXzQ3hW+kNgjXpTTj57d5FD7YgxkJ+DAmCBY2MJgXNNrAM0yPicts2zKkflyw6Le+b7fPXJ5LoN/VafhgDWh7v7hgWQbTjkggUFWCn2hbFg5Bq3OZsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BKGQ7ztD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757917803; c=relaxed/simple;
+	bh=1IsHY3Fj70FT8OvdAJ+DV6fvOppSwHHCjoP+tSGD4/A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bzKj3Yk5tiB1MnsG2HAC9cMHjXIBOWqVMqtO4mLyY/dpdgxFaGwVL73/3wyNHYDsBD1Mivm3UPFmrhQ739cddx1itbb4F8xODbmEXD8hgMUPYcSjC8D3jObDA/9jvkp1BKj/NI4QZil/CQkChevLJ0lNnCdoszaAi2yzyEb3WMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=jaZLS26l; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BKGQ7ztD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3122BC4CEF1;
-	Mon, 15 Sep 2025 04:41:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757911318;
-	bh=b/qNKcp4cR4Py7I6Jmk+kD30432fdQwu0TjuOKJbeyo=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=BKGQ7ztDCnDjfZJ0cK4jdzXAQlg5ER9a5S6mlLN1o2ImSD31RSh7Lwze8SuHF0TkX
-	 rfYJllK7y5wqOF93+DWlDBGMbmuup4Xlc3cqmEwbBku+pHZv5LLLt4z0G5b/4h1Jmq
-	 tOvtOzEZGHAKZql6rfhAGE8Hlr5P+fKpGYuacg5DmAiwH+/6KnsntmV30MxFoQF/e6
-	 7KB/uFRVxkdhQVFx+hr+PdjvWpl5gYmxr/jt7jldbt6xV9avUOPDdv8XdP7TlPbQEh
-	 w1yrB6rfYNAO6IjSoEt1bL+fK4LlE/db6uK0ux8c5Sfz62bLPnEdXBc1TD6rAq6wQE
-	 8k9Zh2ZA8ao3g==
-Message-ID: <1b39712b-86c1-4eff-83ea-eb8b180db48c@kernel.org>
-Date: Mon, 15 Sep 2025 06:41:45 +0200
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="jaZLS26l"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58EH2k6T008844;
+	Mon, 15 Sep 2025 06:29:01 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=M/xuln
+	62q5zfY1XqnOkzluoH/jhmqhYNwkmp3WpUxjM=; b=jaZLS26lBDtzg2fecSZHqg
+	vv5wXs+Q/QWPzoKutrrQc6JlTQgh9S++0kG1xYTEEhhACxrSaEwrVcmFNUrm5aqi
+	OtK0MYRXJHIvOwUxdJDVmGllntU+dWQ/n1X9T0qND7U13HpIsA/bx3E95xS6zSiA
+	G61SjiM2ehKgCwcxj/d9UyDG2/tPRNmRQ1Hbt9E+RCa/4Ymom5k7ti/+qmaBBf+f
+	VEyzVGOhzGaTidXPVx4X8SSv3dIj5Oxjs0qsGj5K8mF92mOvsSCfHnnElObmQvvm
+	y7XvEJjXSIurhHceuMaFZFx9Txg7BTX7q6CqqSlAH22dER7OpbB+bhODUu/v3N6w
+	==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 49509y0tk9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 15 Sep 2025 06:29:00 +0000 (GMT)
+Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58F6NRje019684;
+	Mon, 15 Sep 2025 06:29:00 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 49509y0tk4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 15 Sep 2025 06:29:00 +0000 (GMT)
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58F2ZLlc029484;
+	Mon, 15 Sep 2025 06:28:58 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 495kb0n5uq-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 15 Sep 2025 06:28:58 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58F6SuNA58458606
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 15 Sep 2025 06:28:56 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8B80F20043;
+	Mon, 15 Sep 2025 06:28:56 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5171820040;
+	Mon, 15 Sep 2025 06:28:54 +0000 (GMT)
+Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.87.136.34])
+	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Mon, 15 Sep 2025 06:28:54 +0000 (GMT)
+Date: Mon, 15 Sep 2025 08:28:52 +0200
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+To: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: David Hildenbrand <david@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+        Madhavan Srinivasan <maddy@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ryan Roberts <ryan.roberts@arm.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+        Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        Mark Rutland <Mark.Rutland@arm.com>
+Subject: Re: [PATCH v2 0/7] Nesting support for lazy MMU mode
+Message-ID: <5a0818bb-75d4-47df-925c-0102f7d598f4-agordeev@linux.ibm.com>
+References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
+ <20250908191602.61160a7990b9ea418de758c7@linux-foundation.org>
+ <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
+ <338ef811-1dab-4c4e-bc5f-8ebd8cb68435@arm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND 21/62] init: remove all mentions of root=/dev/ram*
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Askar Safin <safinaskar@gmail.com>, linux-fsdevel@vger.kernel.org,
- linux-kernel@vger.kernel.org, Linus Torvalds
- <torvalds@linux-foundation.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
- Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>,
- Jens Axboe <axboe@kernel.dk>, Andy Shevchenko <andy.shevchenko@gmail.com>,
- Aleksa Sarai <cyphar@cyphar.com>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
- Julian Stecklina <julian.stecklina@cyberus-technology.de>,
- Gao Xiang <hsiangkao@linux.alibaba.com>, Art Nikpal <email2tema@gmail.com>,
- Eric Curtin <ecurtin@redhat.com>, Alexander Graf <graf@amazon.com>,
- Rob Landley <rob@landley.net>, Lennart Poettering <mzxreary@0pointer.de>,
- linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org,
- linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
- loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
- linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-um@lists.infradead.org, x86@kernel.org, Ingo Molnar
- <mingo@redhat.com>, linux-block@vger.kernel.org, initramfs@vger.kernel.org,
- linux-api@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org,
- "Theodore Y . Ts'o" <tytso@mit.edu>, linux-acpi@vger.kernel.org,
- Michal Simek <monstr@monstr.eu>, devicetree@vger.kernel.org,
- Luis Chamberlain <mcgrof@kernel.org>, Kees Cook <kees@kernel.org>,
- Thorsten Blum <thorsten.blum@linux.dev>, Heiko Carstens <hca@linux.ibm.com>,
- patches@lists.linux.dev
-References: <20250913003842.41944-1-safinaskar@gmail.com>
- <20250913003842.41944-22-safinaskar@gmail.com>
- <a079375f-38c2-4f38-b2be-57737084fde8@kernel.org>
- <20250914131321.df00dfc835be48c10f4cce4b@linux-foundation.org>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20250914131321.df00dfc835be48c10f4cce4b@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <338ef811-1dab-4c4e-bc5f-8ebd8cb68435@arm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTEzMDAyMCBTYWx0ZWRfX4Cx2ngBEYL5c
+ roZzmS41YuVlUSpSRef2KxL4WggODwY/soRMJpx2gg7kNLdYMyZvXNoqxYULYholGjNDiAVT4t6
+ ukIUbG+OX0a4imqOK2lAsyx5041sIs8EVQMQ06NsJGnBzkaxygCee6tTvsutuzI9wnG+eg3PA/v
+ F5e7gPnCVAvuDEchpnbMPDdE4TzdeZAArCZTLOmkY9Xd7mYwn00cbVETqAT3ckHgDdrWLphTxSN
+ y5ALHiTawyw3ojSiUQHSaHqzU+geaiqg5gb2LGGBqmnxp5igHqNKf3fjoaJ0BgJ2I38Ya10WbMS
+ bYUlmQ5btypMVlGwBcuKVUODKwIOxTQn2bBDW8olvvXBnB4V+w9kPSd+TVwMJmnqFMZo71QBQkH
+ T1vGkEV/
+X-Authority-Analysis: v=2.4 cv=OPYn3TaB c=1 sm=1 tr=0 ts=68c7b22c cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=8nJEP1OIZ-IA:10 a=yJojWOMRYYMA:10 a=nkFB8puKy1KDrdvMtSoA:9
+ a=3ZKOabzyN94A:10 a=wPNLvfGTeEIA:10
+X-Proofpoint-GUID: dbH_inTMwHRH6BHBdGMtY8_aObQAr3rR
+X-Proofpoint-ORIG-GUID: XMRhk7th-c6XacqgLmk45pWkcqEsR17O
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-09-15_02,2025-09-12_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 clxscore=1015 phishscore=0 suspectscore=0 spamscore=0
+ bulkscore=0 malwarescore=0 impostorscore=0 priorityscore=1501
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2509130020
 
-On 14/09/2025 22:13, Andrew Morton wrote:
-> On Sun, 14 Sep 2025 12:06:24 +0200 Krzysztof Kozlowski <krzk@kernel.org> wrote:
+On Fri, Sep 12, 2025 at 05:25:27PM +0200, Kevin Brodsky wrote:
+
+Hi Kevin,
+
+> Based on the outcome of the discussion with David on patch 2 [1p], there
+> is indeed an alternative approach that we should seriously consider. In
+> summary:
 > 
->>>  Documentation/admin-guide/kernel-parameters.txt          | 3 +--
->>>  Documentation/arch/m68k/kernel-options.rst               | 9 ++-------
->>>  arch/arm/boot/dts/arm/integratorap.dts                   | 2 +-
->>>  arch/arm/boot/dts/arm/integratorcp.dts                   | 2 +-
->>>  arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-cmm.dts     | 2 +-
->>>  .../boot/dts/aspeed/aspeed-bmc-facebook-galaxy100.dts    | 2 +-
->>>  .../arm/boot/dts/aspeed/aspeed-bmc-facebook-minipack.dts | 2 +-
->>>  .../arm/boot/dts/aspeed/aspeed-bmc-facebook-wedge100.dts | 2 +-
->>>  arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-wedge40.dts | 2 +-
->>>  arch/arm/boot/dts/aspeed/aspeed-bmc-facebook-yamp.dts    | 2 +-
->>>  .../boot/dts/aspeed/ast2600-facebook-netbmc-common.dtsi  | 2 +-
->>
->> No, don't do that. DTS is always separate.
+> * Keep the API stateless, handle nesting with a counter in task_struct
+> * Introduce new functions to temporarily disable lazy_mmu without
+> impacting nesting, track that with a bool in task_struct (addresses the
+> situation in mm/kasan/shadow.c and possibly some x86 cases too)
+> * Move as much handling from arch_* to generic functions
 > 
-> Why can't DTS changes be carried in a different tree?
+> What the new generic infrastructure would look like:
+> 
+> struct task_struct {
+>     ...
+> #ifdef CONFIG_ARCH_LAZY_MMU
+>     struct {
+>         uint8_t count;
+>         bool enabled; /* or paused, see below */
+>     } lazy_mmu_state;
+> #endif
+> }
+> 
+> * lazy_mmu_mode_enable():
 
+This helper is parameter-free, assuming the MMU unit does not need any
+configuration other than turning it on/off. That is currently true, but
+(as I noted in my other mail) I am going to introduce a friend enable
+function that accepts parameters, creates an arch-specific state and
+uses it while the lazy mmu mode is active.
 
-It must be carried in a different kernel tree and it must be ALWAYS a
-separate commit. Embedding it in the middle of this patchset and in the
-middle of some other commit breaks these two rules.
+That does not impact your design (AFAICT), except one change below.
 
-If you asked why it cannot be carried by VFS (or by any non-SoC tree in
-general), it is because DTS is completely independent hardware
-description, so by keeping it on separate tree we enforce that rule of
-lack of dependency between DTS and any driver or core code.
+>     if (!lazy_mmu_state.count) {
+>         arch_enter_lazy_mmu_mode();
+>         lazy_mmu_state.enabled = true;
+>     }
+>     lazy_mmu_state.count++;
+> 
+> * lazy_mmu_mode_disable():
+>     lazy_mmu_count--;
+>     if (!lazy_mmu_state.count) {
+>         lazy_mmu_state.enabled = false;
+>         arch_leave_lazy_mmu_mode();
+>     } else {
+>         arch_flush_lazy_mmu_mode();
+>     }
+> 
+> * lazy_mmu_mode_pause():
+>     lazy_mmu_state.enabled = false;
+>     arch_leave_lazy_mmu_mode();
 
-If there is a dependency here, then it would be a NAK, because there
-cannot be such - it would be a breach of contract for outside users (DTS
-is shared with other, non-Linux projects).
+This needs to be arch_pause_lazy_mmu_mode(), otherwise the arch-specific
+state will be lost.
 
+> * lazy_mmu_mode_resume();
+>     arch_enter_lazy_mmu_mode();
 
-Best regards,
-Krzysztof
+Conversely, this needs to be arch_resume_lazy_mmu_mode(). And it can not
+be arch_enter_lazy_mmu_mode(), since a lazy_mmu_mode_resume() caller does
+not know the parameters passed to the lazy_mmu_mode_enable(...)-friend.
+
+>     lazy_mmu_state.enabled = true;
+...
+
+Thanks!
