@@ -1,25 +1,39 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E8DDEAF9;
-	Mon, 15 Sep 2025 11:19:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C8E62301035;
+	Mon, 15 Sep 2025 11:50:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.235.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757935182; cv=none; b=Y27gFch6St9Bi2HX3LLfPb2OUCQwIo682NS2zDo9FL2c2tTz1FZbneUMnJuvaxXZu6+j/Wh9SVnUVz5abT0xsg5ITB0BsmefGpAOS5Oc5ODy9VNmTYphpCkH1RTQhac7yU4TTs3wNKE5MxuHHqrAKTxXGk8ln/nL7+s1ppknbtg=
+	t=1757937047; cv=none; b=B3gkPiRb+6FifvAjAbfPxdY0ukApyoJMbrFbsvztxjD4p+Zp86qY1mbRfVlOFl+Cd6WIMJ6TV9ADJkf2+0N/9fyoFmiMuFyfx9ce6vVHts9FajgkpqG17jzhHYHNDAXCLOiPmUGot0qKcDofi4rBnW4yDjYmu8B6FYufdtf2/84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757935182; c=relaxed/simple;
-	bh=ezmIh4yAIIyC5Ofx9OYfMJK6a3eTs8fzX06OGshPKFg=;
+	s=arc-20240116; t=1757937047; c=relaxed/simple;
+	bh=X5HY0Wbrex5Ut2NzBhql+1NJ3xP8s+GYl6qMTFC+JS8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KJqa2OGm8VoRw0nlJUYq8N0MV2cKjrXBWBlL2jZI8vVKUCkCxJvOKOq8dg0R7LctRUQWeKLPG/MZA9euQCeAIe5CbaCzMk/ysEsHPcRsdMKpm5DMCs/9haFZAtNixQd9tuz3rt4rVxlIto5iE5ENp85yFGk+HnSFsGB+RdUWSeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4D6971424;
-	Mon, 15 Sep 2025 04:19:31 -0700 (PDT)
-Received: from [10.57.70.220] (unknown [10.57.70.220])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6C7D73F694;
-	Mon, 15 Sep 2025 04:19:34 -0700 (PDT)
-Message-ID: <d407a381-099b-4ec6-a20e-aeff4f3d750f@arm.com>
-Date: Mon, 15 Sep 2025 13:19:32 +0200
+	 In-Reply-To:Content-Type; b=D0R0zP0xHZwl16l/tfJClvIXPwCVjGKvmwJOi7HGLUmBg/wlBBhn8Y4hVI3WwQFdVkjKQxcHyVRFZ7vxMOPAs2HYdhkU4/NvyluymA/1ze/sT43z8wtCXtaGq8zN3Q5wRHtMNsUZKMmPhCIKTKPV2tpKGRbVDvWUgUJSLVd+ddc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.235.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub4.si.c-s.fr [172.26.127.67])
+	by localhost (Postfix) with ESMTP id 4cQMtx1KFnz9sxh;
+	Mon, 15 Sep 2025 13:17:13 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+	by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id U73vxke8aZSB; Mon, 15 Sep 2025 13:17:13 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase2.c-s.fr (Postfix) with ESMTP id 4cQMtw6mfQz9sxf;
+	Mon, 15 Sep 2025 13:17:12 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id BB2798B765;
+	Mon, 15 Sep 2025 13:17:12 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id KP2-4z1a4SId; Mon, 15 Sep 2025 13:17:12 +0200 (CEST)
+Received: from [10.25.207.160] (unknown [10.25.207.160])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id F017B8B763;
+	Mon, 15 Sep 2025 13:17:11 +0200 (CEST)
+Message-ID: <8b56da8e-42d1-4548-8e39-286010c5d84a@csgroup.eu>
+Date: Mon, 15 Sep 2025 13:17:11 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,110 +41,116 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/7] Nesting support for lazy MMU mode
-To: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>,
- Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
- Mark Rutland <Mark.Rutland@arm.com>
-References: <20250908073931.4159362-1-kevin.brodsky@arm.com>
- <20250908191602.61160a7990b9ea418de758c7@linux-foundation.org>
- <d1b4ff2a-052f-4556-91ae-273962edbed0@redhat.com>
- <338ef811-1dab-4c4e-bc5f-8ebd8cb68435@arm.com>
- <5a0818bb-75d4-47df-925c-0102f7d598f4-agordeev@linux.ibm.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <5a0818bb-75d4-47df-925c-0102f7d598f4-agordeev@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH RESEND 01/62] init: remove deprecated "load_ramdisk"
+ command line parameter, which does nothing
+To: Askar Safin <safinaskar@gmail.com>, linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
+ Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>,
+ Jens Axboe <axboe@kernel.dk>, Andy Shevchenko <andy.shevchenko@gmail.com>,
+ Aleksa Sarai <cyphar@cyphar.com>,
+ =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
+ Julian Stecklina <julian.stecklina@cyberus-technology.de>,
+ Gao Xiang <hsiangkao@linux.alibaba.com>, Art Nikpal <email2tema@gmail.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Eric Curtin <ecurtin@redhat.com>,
+ Alexander Graf <graf@amazon.com>, Rob Landley <rob@landley.net>,
+ Lennart Poettering <mzxreary@0pointer.de>, linux-arch@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+ linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-um@lists.infradead.org, x86@kernel.org,
+ Ingo Molnar <mingo@redhat.com>, linux-block@vger.kernel.org,
+ initramfs@vger.kernel.org, linux-api@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-efi@vger.kernel.org,
+ linux-ext4@vger.kernel.org, "Theodore Y . Ts'o" <tytso@mit.edu>,
+ linux-acpi@vger.kernel.org, Michal Simek <monstr@monstr.eu>,
+ devicetree@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>,
+ Kees Cook <kees@kernel.org>, Thorsten Blum <thorsten.blum@linux.dev>,
+ Heiko Carstens <hca@linux.ibm.com>, patches@lists.linux.dev
+References: <20250913003842.41944-1-safinaskar@gmail.com>
+ <20250913003842.41944-2-safinaskar@gmail.com>
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Content-Language: fr-FR
+In-Reply-To: <20250913003842.41944-2-safinaskar@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-On 15/09/2025 08:28, Alexander Gordeev wrote:
-> On Fri, Sep 12, 2025 at 05:25:27PM +0200, Kevin Brodsky wrote:
->
-> Hi Kevin,
->
->> Based on the outcome of the discussion with David on patch 2 [1p], there
->> is indeed an alternative approach that we should seriously consider. In
->> summary:
->>
->> * Keep the API stateless, handle nesting with a counter in task_struct
->> * Introduce new functions to temporarily disable lazy_mmu without
->> impacting nesting, track that with a bool in task_struct (addresses the
->> situation in mm/kasan/shadow.c and possibly some x86 cases too)
->> * Move as much handling from arch_* to generic functions
->>
->> What the new generic infrastructure would look like:
->>
->> struct task_struct {
->>     ...
->> #ifdef CONFIG_ARCH_LAZY_MMU
->>     struct {
->>         uint8_t count;
->>         bool enabled; /* or paused, see below */
->>     } lazy_mmu_state;
->> #endif
->> }
->>
->> * lazy_mmu_mode_enable():
-> This helper is parameter-free, assuming the MMU unit does not need any
-> configuration other than turning it on/off. That is currently true, but
-> (as I noted in my other mail) I am going to introduce a friend enable
-> function that accepts parameters, creates an arch-specific state and
-> uses it while the lazy mmu mode is active.
 
-Yes I think that's fine.
 
-> That does not impact your design (AFAICT), except one change below.
->
->>     if (!lazy_mmu_state.count) {
->>         arch_enter_lazy_mmu_mode();
->>         lazy_mmu_state.enabled = true;
->>     }
->>     lazy_mmu_state.count++;
->>
->> * lazy_mmu_mode_disable():
->>     lazy_mmu_count--;
->>     if (!lazy_mmu_state.count) {
->>         lazy_mmu_state.enabled = false;
->>         arch_leave_lazy_mmu_mode();
->>     } else {
->>         arch_flush_lazy_mmu_mode();
->>     }
->>
->> * lazy_mmu_mode_pause():
->>     lazy_mmu_state.enabled = false;
->>     arch_leave_lazy_mmu_mode();
-> This needs to be arch_pause_lazy_mmu_mode(), otherwise the arch-specific
-> state will be lost.
->
->> * lazy_mmu_mode_resume();
->>     arch_enter_lazy_mmu_mode();
-> Conversely, this needs to be arch_resume_lazy_mmu_mode(). And it can not
-> be arch_enter_lazy_mmu_mode(), since a lazy_mmu_mode_resume() caller does
-> not know the parameters passed to the lazy_mmu_mode_enable(...)-friend.
+Le 13/09/2025 à 02:37, Askar Safin a écrit :
+> [Vous ne recevez pas souvent de courriers de safinaskar@gmail.com. Découvrez pourquoi ceci est important à https://aka.ms/LearnAboutSenderIdentification ]
+> 
+> This is preparation for initrd removal
 
-Got it, that makes sense. Even without your proposal, it is probably a
-good idea to allow arch's to behave differently on pause/resume.
 
-I hope we can avoid forcing all arch's to define arch_pause/arch_resume
-though, since only s390 will use it for the foreseeable future. Using
-optional macros should do the trick.
+Squash patch 1 and patch 2 together and say this is cleanup of two 
+options deprecated by commit c8376994c86c ("initrd: remove support for 
+multiple floppies") with the documentation by commit 6b99e6e6aa62 
+("Documentation/admin-guide: blockdev/ramdisk: remove use of "rdev"")
 
-- Kevin
+Christophe
+
+
+> 
+> Signed-off-by: Askar Safin <safinaskar@gmail.com>
+> ---
+>   Documentation/admin-guide/kernel-parameters.txt | 2 --
+>   arch/arm/configs/neponset_defconfig             | 2 +-
+>   init/do_mounts.c                                | 7 -------
+>   3 files changed, 1 insertion(+), 10 deletions(-)
+> 
+> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+> index 747a55abf494..d3b05ce249ff 100644
+> --- a/Documentation/admin-guide/kernel-parameters.txt
+> +++ b/Documentation/admin-guide/kernel-parameters.txt
+> @@ -3275,8 +3275,6 @@
+>                          If there are multiple matching configurations changing
+>                          the same attribute, the last one is used.
+> 
+> -       load_ramdisk=   [RAM] [Deprecated]
+> -
+>          lockd.nlm_grace_period=P  [NFS] Assign grace period.
+>                          Format: <integer>
+> 
+> diff --git a/arch/arm/configs/neponset_defconfig b/arch/arm/configs/neponset_defconfig
+> index 2227f86100ad..16f7300239da 100644
+> --- a/arch/arm/configs/neponset_defconfig
+> +++ b/arch/arm/configs/neponset_defconfig
+> @@ -9,7 +9,7 @@ CONFIG_ASSABET_NEPONSET=y
+>   CONFIG_ZBOOT_ROM_TEXT=0x80000
+>   CONFIG_ZBOOT_ROM_BSS=0xc1000000
+>   CONFIG_ZBOOT_ROM=y
+> -CONFIG_CMDLINE="console=ttySA0,38400n8 cpufreq=221200 rw root=/dev/mtdblock2 mtdparts=sa1100:512K(boot),1M(kernel),2560K(initrd),4M(root) load_ramdisk=1 prompt_ramdisk=0 mem=32M noinitrd initrd=0xc0800000,3M"
+> +CONFIG_CMDLINE="console=ttySA0,38400n8 cpufreq=221200 rw root=/dev/mtdblock2 mtdparts=sa1100:512K(boot),1M(kernel),2560K(initrd),4M(root) prompt_ramdisk=0 mem=32M noinitrd initrd=0xc0800000,3M"
+>   CONFIG_FPE_NWFPE=y
+>   CONFIG_PM=y
+>   CONFIG_MODULES=y
+> diff --git a/init/do_mounts.c b/init/do_mounts.c
+> index 6af29da8889e..0f2f44e6250c 100644
+> --- a/init/do_mounts.c
+> +++ b/init/do_mounts.c
+> @@ -34,13 +34,6 @@ static int root_wait;
+> 
+>   dev_t ROOT_DEV;
+> 
+> -static int __init load_ramdisk(char *str)
+> -{
+> -       pr_warn("ignoring the deprecated load_ramdisk= option\n");
+> -       return 1;
+> -}
+> -__setup("load_ramdisk=", load_ramdisk);
+> -
+>   static int __init readonly(char *str)
+>   {
+>          if (*str)
+> --
+> 2.47.2
+> 
+> 
+
