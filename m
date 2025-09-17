@@ -1,110 +1,127 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com [209.85.167.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 603442F069F;
-	Wed, 17 Sep 2025 15:50:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD713002A7
+	for <sparclinux@vger.kernel.org>; Wed, 17 Sep 2025 18:00:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758124240; cv=none; b=PmNi1j4I0x9lHur6er5YMBGGykehlgjHE86tLQEqfFMgmFEIhOl6pLh7qNYPpFmtye04GzgxUiFVMUmJVturjiJyS0v5xC0ORx0474TfTY4qOz5TDD6/cGnhTwkqHoUsL2mzAv+dL4q4Y/l7ldbpKl5Wot9+bu94uIUFtZLIOWE=
+	t=1758132048; cv=none; b=CKbCBpNita8R38/twvfHuUxzVofTKzXN0/r1ZyJAG5Xtf4tm2RAVeC9RZzGu5qhK5hM4usuRH5M94JAtJXxTJdJT/hxLGxZZENaQwaZFHjcDcYmYrSK41ePLiI7zsz0yG1ysDVSmuCjpoUP/w9I7/sHaAdsnMkc6jklXz+gCVm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758124240; c=relaxed/simple;
-	bh=p0cL9e+1CI1l0mivxGy3X/fL5f/YaaMWCMYYpGS9RQA=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=TYQi6VxIfdkdx0GCIqRWEG3WXbZttORD0ib5KVBmwwDnCjUVwfmRASgVNyAgTcvxIzWwycX2NYohMbbDFiu50pxzFYoAA1RxTQDA361hFA19VVaTnnq1lbi996lodIt6OtVZvMtzaM5NIqAWBaYgrLQrFqKmvQD+CBp5c21FtFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nQdcFHoL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758132048; c=relaxed/simple;
+	bh=DLDcGQ3mu3T/MPVKq0NF9V2I5Jn6ILZwFaw9KVQfhOo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rbHaR1aCxlXRYIv5IeIA8GWTXmABF61UiJ16qD5JgLW6tY/Gcn+nFqQOl4ojVuRp+VHsFRYMJ5Y8V21eKnFmYssYi47NRnU3JeieC8QIxqPFw1bYHFDz9RtN7W7njoNCZPwURuNZPTUBMT+dX0MaET7iANbw18eouN/ErJj9mhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net; spf=pass smtp.mailfrom=amacapital.net; dkim=pass (2048-bit key) header.d=amacapital-net.20230601.gappssmtp.com header.i=@amacapital-net.20230601.gappssmtp.com header.b=g1LtUuBN; arc=none smtp.client-ip=209.85.167.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amacapital.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nQdcFHoL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DF64C4CEE7;
-	Wed, 17 Sep 2025 15:50:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758124240;
-	bh=p0cL9e+1CI1l0mivxGy3X/fL5f/YaaMWCMYYpGS9RQA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=nQdcFHoLRmrUmJeqTIw9u71kfyLBLDTV88iiwbJIejAW/3C+AXRXYfoXuKfcEpWvg
-	 RCBaiINhdDeEOt9UZ3DT2tvhN2zkFjdeaWFJEA1cBpX7em1q1DW4YKSf2tlC1i5UYr
-	 8wd0hFN0asAluYAmbcx9jw534P8l/5RCXpApyU1qTE/nA4BkKOhibjlDWg5+Mngt5n
-	 QGZGgjY3MUmUP1ClDZgHpoAqmETMpfFmHZwnm1Jx/cgmATVsimNYSp8pEswczaSO2E
-	 v4qzOzxkwuNTZJEllijXWZzAVZGHHDj++4xU8cCFkmX8iZ97dejGhgfq1qgtIC08b9
-	 G5Unw66MdVZRQ==
-Date: Wed, 17 Sep 2025 10:50:38 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	linux-hardening@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RESEND] sparc: PCI: Replace deprecated strcpy() with
- strscpy()
-Message-ID: <20250917155038.GA1852582@bhelgaas>
+	dkim=pass (2048-bit key) header.d=amacapital-net.20230601.gappssmtp.com header.i=@amacapital-net.20230601.gappssmtp.com header.b="g1LtUuBN"
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-577232b26a6so101906e87.2
+        for <sparclinux@vger.kernel.org>; Wed, 17 Sep 2025 11:00:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=amacapital-net.20230601.gappssmtp.com; s=20230601; t=1758132044; x=1758736844; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=0Pv4dFUExNQfPloEDat7jfEF9BkjeLOy7zrinjdnc80=;
+        b=g1LtUuBN2lj4qvyQzWAdLKTewMPpvB0BMgAm3EhYmOSEcT379TNMgVSmJk7DCmgjc/
+         T0eHokwlFMY3Yd+mXYCz+ekytPn0ndF69T0GJJIC1YMQr15FXnETUToESn8hAOjjN4TJ
+         wc+dE3joK8Hj6X0qrUlvmHpmCBRx7/hVESh3NV1/RSPbebawN77L/JxPYbAY8rno5NPR
+         h45BlMuQrVS79kOiLhszZHO32mHd/xwXNvhKNiRJJPEEOxGanxAq7D4RvCoxMPnsrP0o
+         gtEy+UX8pbw1CA/Tbhp0++SKDmI4SgqYBJ/2EKyXEOwvuyrgRQgYTYLI+VQny1h7rWhV
+         /NkA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758132044; x=1758736844;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=0Pv4dFUExNQfPloEDat7jfEF9BkjeLOy7zrinjdnc80=;
+        b=e5FjvA/rsVYRkpNSELRN/e+pMoVgM+mVTzYA2G2l9F6cydxH+Lj4uXTz3SlNeJneMo
+         rbXZc2npks4bf1sPEy8cesGwKJNw24LNiSyjJRD2SSmCfc+oB307yPmeqhAKf1UhT/lm
+         BVJaEQSt5GuzWnn6RisbplANrEnaorVpFoVtlD9FBnkHxHdXWb+AkxqahKulA0x7ELQN
+         fv3MqwDV4d3uLqQweL6zATF2YdYPOGT9x4rrqjpaWcGAGhH5f10DMsegpnM+q4hPDW46
+         Dmw+uzDYf3Ovu+PPxy7A30Jpc1oLqUdQoukfXUi3iPx2KTe258fnfvc5icYN5yEeXMNT
+         1MmA==
+X-Forwarded-Encrypted: i=1; AJvYcCWbtwh+hPKsjjaErxesoRHAA9DmHHIiHJJcRtKKszGT5QLhaJkyApdMfRVC9RBYa9NdMm+uzf86b9fP@vger.kernel.org
+X-Gm-Message-State: AOJu0YymtlBH3VDbsm+AQ16MFX/A+wnldaUjSyATEp9RKgv+vYV6MmLs
+	GWqwMS0NhcHrzgbO0KtVWVijerlPi/6dZpPAkbWAxfFMMWFhWgqmBorvRM2RxLbIeUiUfdf99Jy
+	zNxn58z7EO324NBhPkyS8aprZGVD2CepdLXjguXmp
+X-Gm-Gg: ASbGncvQp3rTlEmgBmq5SzTWzJTxMAT6e9Ns6ET56ac3IYr+0mRpm2SA8UixKrMSlqx
+	afpEhGWKgP/GRB4CvWsocMwtXxhApK2wASd9FQkh74YM5LxojhD0O4fxcauuFrFS4s9tAucODBB
+	U0BIn3Gf+OlB/8NWitoAidG5qvStKTt4d+FrTxIU91siiObF/wTVBXE4dncvLBDYArEnZqRIcQV
+	J2nxg==
+X-Google-Smtp-Source: AGHT+IGI+xF2OSgRbI6+fabXiqu9Xwuf5bxWYwnja/rNGOUuSmNzhH42MNUAKuR34Ox7ov8nmiujA9clDhMS84oRbmU=
+X-Received: by 2002:ac2:4e09:0:b0:576:d217:3f2f with SMTP id
+ 2adb3069b0e04-57796b5e819mr1028160e87.3.1758132043747; Wed, 17 Sep 2025
+ 11:00:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250917144733.118553-1-thorsten.blum@linux.dev>
+References: <20250912223937.3735076-1-safinaskar@zohomail.com> <0342fbda-9901-4293-afa7-ba6085eb1688@landley.net>
+In-Reply-To: <0342fbda-9901-4293-afa7-ba6085eb1688@landley.net>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Wed, 17 Sep 2025 11:00:32 -0700
+X-Gm-Features: AS18NWAGwakGZ9zjxjq7MnfN8O7ZgOJb6fmKIJ0JIML7P3j0NnlDZ27eNb5S7Es
+Message-ID: <CALCETrXHxOkHoS+0zhvc4cfpZqJ0wpfQUDnXW-A-qyQkqur-DQ@mail.gmail.com>
+Subject: Re: [PATCH 00/62] initrd: remove classic initrd support
+To: Rob Landley <rob@landley.net>
+Cc: Askar Safin <safinaskar@zohomail.com>, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Christian Brauner <brauner@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, 
+	Jens Axboe <axboe@kernel.dk>, Andy Shevchenko <andy.shevchenko@gmail.com>, 
+	Aleksa Sarai <cyphar@cyphar.com>, =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
+	Julian Stecklina <julian.stecklina@cyberus-technology.de>, 
+	Gao Xiang <hsiangkao@linux.alibaba.com>, Art Nikpal <email2tema@gmail.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Eric Curtin <ecurtin@redhat.com>, 
+	Alexander Graf <graf@amazon.com>, Lennart Poettering <mzxreary@0pointer.de>, linux-arch@vger.kernel.org, 
+	linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, 
+	linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-um@lists.infradead.org, x86@kernel.org, 
+	Ingo Molnar <mingo@redhat.com>, linux-block@vger.kernel.org, initramfs@vger.kernel.org, 
+	linux-api@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	"Theodore Y . Ts'o" <tytso@mit.edu>, linux-acpi@vger.kernel.org, Michal Simek <monstr@monstr.eu>, 
+	devicetree@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Thorsten Blum <thorsten.blum@linux.dev>, Heiko Carstens <hca@linux.ibm.com>, patches@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 17, 2025 at 04:47:30PM +0200, Thorsten Blum wrote:
-> strcpy() is deprecated; use strscpy() instead.
-> 
-> No functional changes intended.
-> 
-> Link: https://github.com/KSPP/linux/issues/88
-> Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+On Mon, Sep 15, 2025 at 10:09=E2=80=AFAM Rob Landley <rob@landley.net> wrot=
+e:
 
-No objection from me, but no particular PCI core issue and I don't
-maintain this file, so up to the sparc folks if they want it.
+> While you're at it, could you fix static/builtin initramfs so PID 1 has
+> a valid stdin/stdout/stderr?
+>
+> A static initramfs won't create /dev/console if the embedded initramfs
+> image doesn't contain it, which a non-root build can't mknod, so the
+> kernel plumbing won't see it dev in the directory we point it at unless
+> we build with root access.
 
-I would consider making a single patch to address this issue
-everywhere in arch/sparc so it can all be reviewed together.
+I have no current insight as to whether there's a kernel issue here,
+but why are you trying to put actual device nodes in an actual
+filesystem as part of a build process?  It's extremely straightforward
+to emit devices nodes in cpio format, and IMO it's far *more*
+straightforward to do that than to make a whole directory, try to get
+all the modes right, and cpio it up.
 
-> ---
->  arch/sparc/kernel/pcic.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-> index 25fe0a061732..f894ae79e78a 100644
-> --- a/arch/sparc/kernel/pcic.c
-> +++ b/arch/sparc/kernel/pcic.c
-> @@ -16,6 +16,7 @@
->  #include <linux/init.h>
->  #include <linux/mm.h>
->  #include <linux/slab.h>
-> +#include <linux/string.h>
->  #include <linux/jiffies.h>
->  
->  #include <asm/swift.h> /* for cache flushing. */
-> @@ -352,7 +353,7 @@ int __init pcic_probe(void)
->  	pbm = &pcic->pbm;
->  	pbm->prom_node = node;
->  	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
-> -	strcpy(pbm->prom_name, namebuf);
-> +	strscpy(pbm->prom_name, namebuf);
->  
->  	{
->  		extern int pcic_nmi_trap_patch[4];
-> @@ -477,7 +478,7 @@ static void pcic_map_pci_device(struct linux_pcic *pcic,
->  	int j;
->  
->  	if (node == 0 || node == -1) {
-> -		strcpy(namebuf, "???");
-> +		strscpy(namebuf, "???");
->  	} else {
->  		prom_getstring(node, "name", namebuf, 63); namebuf[63] = 0;
->  	}
-> @@ -536,7 +537,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
->  	char namebuf[64];
->  
->  	if (node == 0 || node == -1) {
-> -		strcpy(namebuf, "???");
-> +		strscpy(namebuf, "???");
->  	} else {
->  		prom_getstring(node, "name", namebuf, sizeof(namebuf));
->  	}
-> -- 
-> 2.51.0
-> 
+I wrote an absolutely trivial tool for this several years ago:
+
+https://github.com/amluto/virtme/blob/master/virtme/cpiowriter.py
+
+it would be barely more complicated to strip the trailer off an cpio
+file from some other source, add some device nodes, and stick the
+trailer back on.  But it's also really, really, really easy to emit an
+entire, functioning cpio-formatted initramfs from plain user code with
+no filesystem manipulation at all.  This also makes that portion of
+the build reproducible, which is worth quite a bit IMO.
+
+--Andy
