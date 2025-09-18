@@ -1,150 +1,122 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841B3314D13;
-	Thu, 18 Sep 2025 15:51:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C940F27B357;
+	Thu, 18 Sep 2025 18:45:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758210677; cv=none; b=NWhNupRl+9BBIZ+pdOOUQOTqUjiMUoq+mQ+HbPJgntjPA069sf9lMnIOiOUpgJohdB6CvolhyJusNnqMu9A5ryQmEXPLX/vQTx9QZg8KK2gx0BOtm+TAVSVq9cMgdXNaFpZ61CeLDhwjCzY/sTXftmj52d85q7sk+9GRI4v7XHk=
+	t=1758221130; cv=none; b=rt2z92a7FR73gB9UCJmFdSmmKU710duc/Po5rhpDJf000f4bJ/uyNWVz4LiSf0myhO7AQ3mgIqZ7VIm3EAfVMFcbvD7GzmyVKmmaxwkebgSdfu0t8+zWhsde2+CYARniQszET78+ZcQTX7om2Ae0kjCgrj5trxt5YaWA9NvAfsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758210677; c=relaxed/simple;
-	bh=e6XJbeklgFNXwruDywAZe7vowNbZUbwBKpZS63m54og=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=YSXPJ3tti4lzkiCYhxc0Ef9l4a45T2AaiS3YIu3rV2l6gSZjk2hbT3NWkxesZyTWif7TcAG9xmzoUmtbJY53E1lshvud4Q0H5VZlWgUqqa5VJuzutYgXiLZoWAhu6axDN3LmWCi8F76DOdapIAdSeYxB/bLyd+PxM6opRJaE4GQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lAxccBgH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758221130; c=relaxed/simple;
+	bh=u6NaIt2RygsBlCtYn4hZiQqQdifJG8iCHYQXwiLX65E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XPsnxUwc9vl3m5vYay5W8a/2POm+r3LgogskIB18XakLi7/6O/ZLH1sSgOzEXZQ178CCKvGnCcv/fAp3DhZak01e8usR29X1+aznNDLKhF0nFC28nsGoeJNRDrBPvnp2cXxMCCU8sperSXXdgZ3uPgta4q8oJQe3aTRvO9UBj7A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z28vS7zX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lAxccBgH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77DBC4CEE7;
-	Thu, 18 Sep 2025 15:51:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z28vS7zX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 340C7C4CEE7;
+	Thu, 18 Sep 2025 18:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758210677;
-	bh=e6XJbeklgFNXwruDywAZe7vowNbZUbwBKpZS63m54og=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References:From;
-	b=lAxccBgHQJMGKL6W5XO/kIBHMi2AladIz8qPWx4MBG7gpBrzHZckIimBwgkALGSoK
-	 RTpLe7661eFC5B/7BhfypSLu8ciNLbjbhnW0/Uiw7F9qtuf/K/hOn+NGzmTK4Elius
-	 Puw/h1XtP570vHRTCm/o6CmMUjRekyChiJ42E7YZlGDJw6uFwLqKV4izLQfNVxc+1W
-	 3GgwOdBMEpO6bPhXxyYgbuGAlwFII7VeYUA20OL3bsW1JzfLATB4CEE7Um16odYOB9
-	 O8FOQqOy+9iE5VgV50GipK6qrDd5viCwdSnAqnhpyMVlV7VT8suWp23kcrZWa2l0BA
-	 qFbk69uCk7f8g==
-Date: Thu, 18 Sep 2025 09:51:07 -0600 (MDT)
-From: Paul Walmsley <pjw@kernel.org>
-To: Simon Schuster <schuster.simon@siemens-energy.com>
-cc: Dinh Nguyen <dinguyen@kernel.org>, Christian Brauner <brauner@kernel.org>, 
-    Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, 
-    David Hildenbrand <david@redhat.com>, 
-    Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
-    "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-    Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
-    Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-    Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, 
-    Juri Lelli <juri.lelli@redhat.com>, 
-    Vincent Guittot <vincent.guittot@linaro.org>, 
-    Dietmar Eggemann <dietmar.eggemann@arm.com>, 
-    Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, 
-    Mel Gorman <mgorman@suse.de>, Valentin Schneider <vschneid@redhat.com>, 
-    Kees Cook <kees@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, 
-    Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-    Alexandre Ghiti <alex@ghiti.fr>, Guo Ren <guoren@kernel.org>, 
-    Oleg Nesterov <oleg@redhat.com>, Jens Axboe <axboe@kernel.dk>, 
-    Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
-    Tejun Heo <tj@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, 
-    =?ISO-8859-15?Q?Michal_Koutn=FD?= <mkoutny@suse.com>, 
-    Paul Moore <paul@paul-moore.com>, Serge Hallyn <sergeh@kernel.org>, 
-    James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
-    Anna-Maria Behnsen <anna-maria@linutronix.de>, 
-    Frederic Weisbecker <frederic@kernel.org>, 
-    Thomas Gleixner <tglx@linutronix.de>, 
-    Masami Hiramatsu <mhiramat@kernel.org>, 
-    "David S. Miller" <davem@davemloft.net>, 
-    Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-    Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-    Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-    Arnaldo Carvalho de Melo <acme@kernel.org>, 
-    Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-    Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
-    Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, 
-    Adrian Hunter <adrian.hunter@intel.com>, 
-    John Johansen <john.johansen@canonical.com>, 
-    Stephen Smalley <stephen.smalley.work@gmail.com>, 
-    Ondrej Mosnacek <omosnace@redhat.com>, 
-    Kentaro Takeda <takedakn@nttdata.co.jp>, 
-    Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, 
-    Richard Henderson <richard.henderson@linaro.org>, 
-    Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@kernel.org>, 
-    Russell King <linux@armlinux.org.uk>, 
-    Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-    Brian Cain <bcain@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
-    WANG Xuerui <kernel@xen0n.name>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-    Michal Simek <monstr@monstr.eu>, 
-    Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-    Jonas Bonn <jonas@southpole.se>, 
-    Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, 
-    Stafford Horne <shorne@gmail.com>, 
-    "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
-    Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-    Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-    Christophe Leroy <christophe.leroy@csgroup.eu>, 
-    Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-    Alexander Gordeev <agordeev@linux.ibm.com>, 
-    Christian Borntraeger <borntraeger@linux.ibm.com>, 
-    Sven Schnelle <svens@linux.ibm.com>, 
-    Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
-    John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-    Andreas Larsson <andreas@gaisler.com>, Richard Weinberger <richard@nod.at>, 
-    Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
-    Johannes Berg <johannes@sipsolutions.net>, Borislav Petkov <bp@alien8.de>, 
-    Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-    "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>, 
-    Max Filippov <jcmvbkbc@gmail.com>, linux-mm@kvack.org, 
-    linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
-    linux-csky@vger.kernel.org, linux-block@vger.kernel.org, 
-    linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org, 
-    linux-security-module@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-    netdev@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-    apparmor@lists.ubuntu.com, selinux@vger.kernel.org, 
-    linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
-    linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, 
-    loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
-    linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
-    linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-    linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-    sparclinux@vger.kernel.org, linux-um@lists.infradead.org
-Subject: Re: [PATCH v2 3/4] arch: copy_thread: pass clone_flags as u64
-In-Reply-To: <20250901-nios2-implement-clone3-v2-3-53fcf5577d57@siemens-energy.com>
-Message-ID: <ffb22e54-6b7d-5b88-4217-e67870051c6e@kernel.org>
-References: <20250901-nios2-implement-clone3-v2-0-53fcf5577d57@siemens-energy.com> <20250901-nios2-implement-clone3-v2-3-53fcf5577d57@siemens-energy.com>
+	s=k20201202; t=1758221129;
+	bh=u6NaIt2RygsBlCtYn4hZiQqQdifJG8iCHYQXwiLX65E=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Z28vS7zXihUdX9isz4tKX5bJfG+N6wgA49ZsUL9MzWkxVOZIaB9CEoaGCeOdF5Wlc
+	 irtxfrEkcx12CNmXSpOaxnrWSE3uyQ9BLUGMgdMwz3ZkzTrB7vIU5S+RDvQ6dKM5ki
+	 RxUJdVCwUhpNByj1sxF0SK4ASPa55TnwfCGcGHPBq14Ogh8/QuEEAY6ulYXQRiCrc/
+	 gKhn/kbZmmAWPpdmUgqtKeJS0PBEgSw0hZoyR9kwDh1THqWJDw1i1JuxwJQDO1Fvaa
+	 tjs8Xsk56/6qq7xSDRAZoHUF6JGB7I+NLrajHOGD2OUILv6g7xC1NJVMJM9wXp6cE/
+	 8ldLVQITFO98w==
+From: Leon Romanovsky <leon@kernel.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Geoff Levand <geoff@infradead.org>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	iommu@lists.linux.dev,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Jason Wang <jasowang@redhat.com>,
+	Juergen Gross <jgross@suse.com>,
+	linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Matt Turner <mattst88@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	sparclinux@vger.kernel.org,
+	Stefano Stabellini <sstabellini@kernel.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	virtualization@lists.linux.dev,
+	x86@kernel.org,
+	xen-devel@lists.xenproject.org
+Subject: [PATCH 0/9] Remove DMA .map_page and .unmap_page callbacks
+Date: Thu, 18 Sep 2025 21:45:00 +0300
+Message-ID: <cover.1758219786.git.leon@kernel.org>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
-On Mon, 1 Sep 2025, Simon Schuster via B4 Relay wrote:
+Hi,
 
-> From: Simon Schuster <schuster.simon@siemens-energy.com>
-> 
-> With the introduction of clone3 in commit 7f192e3cd316 ("fork: add
-> clone3") the effective bit width of clone_flags on all architectures was
-> increased from 32-bit to 64-bit, with a new type of u64 for the flags.
-> However, for most consumers of clone_flags the interface was not
-> changed from the previous type of unsigned long.
-> 
-> While this works fine as long as none of the new 64-bit flag bits
-> (CLONE_CLEAR_SIGHAND and CLONE_INTO_CGROUP) are evaluated, this is still
-> undesirable in terms of the principle of least surprise.
-> 
-> Thus, this commit fixes all relevant interfaces of the copy_thread
-> function that is called from copy_process to consistently pass
-> clone_flags as u64, so that no truncation to 32-bit integers occurs on
-> 32-bit architectures.
-> 
-> Signed-off-by: Simon Schuster <schuster.simon@siemens-energy.com>
+This series continues following two series:
+1. "dma-mapping: migrate to physical address-based API" 
+https://lore.kernel.org/all/cover.1757423202.git.leonro@nvidia.com
+2. "Preparation to .map_page and .unmap_page removal"
+Preparation to .map_page and .unmap_page removal
 
-Acked-by: Paul Walmsley <pjw@kernel.org> # for RISC-V
+In this series, the DMA .map_page/.unmap_page callbacks are converted to newly
+introduced .map_phys/.unmap_phys interfaces. This conversion allows us to reduce
+or eliminate (for certain ARCHs) use of struct pages in DMA path.
 
-Thanks!
+Thanks
 
+Leon Romanovsky (9):
+  alpha: Convert mapping routine to rely on physical address
+  MIPS/jazzdma: Provide physical address directly
+  parisc: Convert DMA map_page to map_phys interface
+  powerpc: Convert to physical address DMA mapping
+  sparc64: Use physical address DMA mapping
+  x86: Use physical address for DMA mapping
+  vdpa: Convert to physical address DMA mapping
+  xen: swiotlb: Convert mapping routine to rely on physical address
+  dma-mapping: remove unused map_page callback
 
-- Paul
+ arch/alpha/kernel/pci_iommu.c            | 47 ++++++++++--------------
+ arch/mips/jazz/jazzdma.c                 | 20 ++++++----
+ arch/powerpc/include/asm/iommu.h         |  8 ++--
+ arch/powerpc/kernel/dma-iommu.c          | 22 +++++------
+ arch/powerpc/kernel/iommu.c              | 14 +++----
+ arch/powerpc/platforms/ps3/system-bus.c  | 33 ++++++++++-------
+ arch/powerpc/platforms/pseries/ibmebus.c | 15 ++++----
+ arch/powerpc/platforms/pseries/vio.c     | 21 ++++++-----
+ arch/sparc/kernel/iommu.c                | 16 ++++----
+ arch/sparc/kernel/pci_sun4v.c            | 16 ++++----
+ arch/sparc/mm/io-unit.c                  | 13 +++----
+ arch/sparc/mm/iommu.c                    | 46 ++++++++++++-----------
+ arch/x86/kernel/amd_gart_64.c            | 19 +++++-----
+ drivers/parisc/ccio-dma.c                | 25 +++++++------
+ drivers/parisc/sba_iommu.c               | 23 ++++++------
+ drivers/vdpa/vdpa_user/iova_domain.c     | 11 +++---
+ drivers/vdpa/vdpa_user/iova_domain.h     |  8 ++--
+ drivers/vdpa/vdpa_user/vduse_dev.c       | 18 +++++----
+ drivers/xen/grant-dma-ops.c              | 20 ++++++----
+ include/linux/dma-map-ops.h              |  7 ----
+ kernel/dma/mapping.c                     | 12 ------
+ kernel/dma/ops_helpers.c                 |  8 +---
+ 22 files changed, 208 insertions(+), 214 deletions(-)
+
+-- 
+2.51.0
+
