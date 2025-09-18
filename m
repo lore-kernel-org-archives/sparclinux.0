@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDB52D2397;
-	Thu, 18 Sep 2025 18:45:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F02A62D2397;
+	Thu, 18 Sep 2025 18:45:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758221135; cv=none; b=YFnjoAxjkry49ChjInvKV/i+HgwiH5OkpNDcMmJB/k8qiTtXxkIuvi9an9c2EbhyEHzTKG85U696/Z6t9HYh/xbA8zuMFJI6/E4XfVG9ts7Z46il/Za4g3HKPKS86leDjDKEoy0EcmJ3ccxXcIna9q3/oAag+oAYGucsEXaYbCQ=
+	t=1758221140; cv=none; b=Xwy0OGKDAQe+aFjAyYRRCDzrWGHafPhDeRtKAh29Yw2truAux9B0COumQDQjTHhHIcTQBszFJP66UyHUQ+msApX/SYo5F35zWXfalVeGouSsycs0XU4HrvpGiL10Dla3kjAcWJpdDIMjBfX/kd5El/2oMw/jdKQHCvfGgyo3cYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758221135; c=relaxed/simple;
-	bh=mRrCuK2cRKam5wDdOYPzkMc4IzLVg72Ycd5tZAIZOwA=;
+	s=arc-20240116; t=1758221140; c=relaxed/simple;
+	bh=lYina26sWVeUcMXQiYVzGEsG3s2F3WRjYogRL1Hc1Kg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=E+b01tLaVLXWOqghx5pS0GWXWZnlwBoNAoV8/siV/dt7jVMeQe1SCKtm2KTiPcCP3y6LHjyc5qOyZB3s4P5KuePJpGeTHelA/HqE9niOBFyTfLpUECQWeL+ZLL0FvSjMT0hfbhVr70Kvo+LXqXZdeW0136bX2eUsMcWP+z3PDnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BrezbUs7; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=fu4cDBMw5Kk9y9vF4fOi32gF5cS6FjHAxR7Pnfveoe3xMvd0kBXmdRarpWtTAnNmSfrZP42H0Sj7TG88f9gVLqFGvK5omQbftA/8PRcsw1A8hl5+OrAmb9NKtK7MOSbT4ZAGrIeQM4VwYJN7tsHckIJvIj5tx0dSTolyQ8MKjqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nmeOm+sq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BrezbUs7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76C21C4CEF0;
-	Thu, 18 Sep 2025 18:45:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nmeOm+sq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E3E1C4CEE7;
+	Thu, 18 Sep 2025 18:45:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758221134;
-	bh=mRrCuK2cRKam5wDdOYPzkMc4IzLVg72Ycd5tZAIZOwA=;
+	s=k20201202; t=1758221139;
+	bh=lYina26sWVeUcMXQiYVzGEsG3s2F3WRjYogRL1Hc1Kg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BrezbUs7YQQoFiEnq4O37fij9yQqGwhFFKxGtk7W85Qc/47lo4WDrX08x8pBhOMBl
-	 x3C+EqTXn/J9a/3WVpKBvLTRlkB+do/ZfwaAE2Mb7IopCTXi7LrOLKMJkkNTJfvDUp
-	 YqF2kAB3MxM4nlAlg21f/GeFvZw8zg11jBWISdL9T8Q0n5qtbkyadIU6XtD1/orTr1
-	 7w2ouYNTNdHOHzAOrJP4usoDUr3cv4AUvmi2rODsSOE2yxEfZKK0CI1huASdVmWoDj
-	 bBSTZ3whPx0z/NsNtq26Y7bbhfgNlmo/ggZU7pwAyS1i89RmTF6XqFtx+J2G8mxe/e
-	 /R99gASdkRTZg==
+	b=nmeOm+sqpgOPQj79lggvc1K6wpDOki3X4yJuxCb2vpWB7Yrit2zqRh0RiDIvOfhbE
+	 evc12i0uWXAtIGkWhu78jwz295HLWPOAaZO6IZ/cviymzjBAJS/z9YITfLbhvXtCFj
+	 ky8D8HIF4+CT3b196kV7uzpo4mZHe5HQ3Dm4EG7bvT2H0SCDQYzaGQ0o23uNJgkbi+
+	 6aZi+d9itiPvwVg22aSegOmezzgMa5H8zXDrUjIenHJYjuH2xplO3ZAhthDLRLlTV2
+	 U0DeJS9SxdDkBapfGs1dH8YVifrYc3iq4bbDeAIVs7BBOR9OCRgcGcxYPk4A43PYIU
+	 SJ9lnFSV8Evzw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Leon Romanovsky <leonro@nvidia.com>,
@@ -58,9 +58,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	virtualization@lists.linux.dev,
 	x86@kernel.org,
 	xen-devel@lists.xenproject.org
-Subject: [PATCH 1/9] alpha: Convert mapping routine to rely on  physical address
-Date: Thu, 18 Sep 2025 21:45:01 +0300
-Message-ID: <0c64474985af55b1aa934b857808068a0e609c6e.1758219787.git.leon@kernel.org>
+Subject: [PATCH 3/9] parisc: Convert DMA map_page to map_phys  interface
+Date: Thu, 18 Sep 2025 21:45:03 +0300
+Message-ID: <56c4c3b14f46c0a785f196315b673b0b1bcfb3b1.1758219787.git.leon@kernel.org>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <cover.1758219786.git.leon@kernel.org>
 References: <cover.1758219786.git.leon@kernel.org>
@@ -74,154 +74,157 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Alpha doesn't need struct *page and can perform mapping based on
-physical addresses. So convert it to implement new .map_phys callback.
-
-As part of this change, remove useless BUG_ON() as DMA mapping layer
-ensures that right direction is provided.
+Perform mechanical conversion from .map_page to .map_phys callback.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- arch/alpha/kernel/pci_iommu.c | 47 +++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+ drivers/parisc/ccio-dma.c  | 25 +++++++++++++------------
+ drivers/parisc/sba_iommu.c | 23 ++++++++++++-----------
+ 2 files changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/arch/alpha/kernel/pci_iommu.c b/arch/alpha/kernel/pci_iommu.c
-index dc91de50f906d..b62d9937d1d3a 100644
---- a/arch/alpha/kernel/pci_iommu.c
-+++ b/arch/alpha/kernel/pci_iommu.c
-@@ -224,28 +224,25 @@ static int pci_dac_dma_supported(struct pci_dev *dev, u64 mask)
-    until either pci_unmap_single or pci_dma_sync_single is performed.  */
+diff --git a/drivers/parisc/ccio-dma.c b/drivers/parisc/ccio-dma.c
+index feef537257d05..d45f3634f8270 100644
+--- a/drivers/parisc/ccio-dma.c
++++ b/drivers/parisc/ccio-dma.c
+@@ -773,17 +773,18 @@ ccio_map_single(struct device *dev, void *addr, size_t size,
+ 
  
  static dma_addr_t
--pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
-+pci_map_single_1(struct pci_dev *pdev, phys_addr_t paddr, size_t size,
- 		 int dac_allowed)
+-ccio_map_page(struct device *dev, struct page *page, unsigned long offset,
+-		size_t size, enum dma_data_direction direction,
+-		unsigned long attrs)
++ccio_map_phys(struct device *dev, phys_addr_t phys, size_t size,
++	      enum dma_data_direction direction, unsigned long attrs)
  {
- 	struct pci_controller *hose = pdev ? pdev->sysdata : pci_isa_hose;
- 	dma_addr_t max_dma = pdev ? pdev->dma_mask : ISA_DMA_MASK;
- 	struct pci_iommu_arena *arena;
- 	long npages, dma_ofs, i;
--	unsigned long paddr;
- 	dma_addr_t ret;
- 	unsigned int align = 0;
- 	struct device *dev = pdev ? &pdev->dev : NULL;
- 
--	paddr = __pa(cpu_addr);
--
- #if !DEBUG_NODIRECT
- 	/* First check to see if we can use the direct map window.  */
- 	if (paddr + size + __direct_map_base - 1 <= max_dma
- 	    && paddr + size <= __direct_map_size) {
- 		ret = paddr + __direct_map_base;
- 
--		DBGA2("pci_map_single: [%p,%zx] -> direct %llx from %ps\n",
--		      cpu_addr, size, ret, __builtin_return_address(0));
-+		DBGA2("pci_map_single: [%pa,%zx] -> direct %llx from %ps\n",
-+		      &paddr, size, ret, __builtin_return_address(0));
- 
- 		return ret;
- 	}
-@@ -255,8 +252,8 @@ pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
- 	if (dac_allowed) {
- 		ret = paddr + alpha_mv.pci_dac_offset;
- 
--		DBGA2("pci_map_single: [%p,%zx] -> DAC %llx from %ps\n",
--		      cpu_addr, size, ret, __builtin_return_address(0));
-+		DBGA2("pci_map_single: [%pa,%zx] -> DAC %llx from %ps\n",
-+		      &paddr, size, ret, __builtin_return_address(0));
- 
- 		return ret;
- 	}
-@@ -290,10 +287,10 @@ pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
- 		arena->ptes[i + dma_ofs] = mk_iommu_pte(paddr);
- 
- 	ret = arena->dma_base + dma_ofs * PAGE_SIZE;
--	ret += (unsigned long)cpu_addr & ~PAGE_MASK;
-+	ret += offset_in_page(paddr);
- 
--	DBGA2("pci_map_single: [%p,%zx] np %ld -> sg %llx from %ps\n",
--	      cpu_addr, size, npages, ret, __builtin_return_address(0));
-+	DBGA2("pci_map_single: [%pa,%zx] np %ld -> sg %llx from %ps\n",
-+	      &paddr, size, npages, ret, __builtin_return_address(0));
- 
- 	return ret;
- }
-@@ -322,19 +319,18 @@ static struct pci_dev *alpha_gendev_to_pci(struct device *dev)
- 	return NULL;
- }
- 
--static dma_addr_t alpha_pci_map_page(struct device *dev, struct page *page,
--				     unsigned long offset, size_t size,
--				     enum dma_data_direction dir,
-+static dma_addr_t alpha_pci_map_phys(struct device *dev, phys_addr_t phys,
-+				     size_t size, enum dma_data_direction dir,
- 				     unsigned long attrs)
- {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	int dac_allowed;
- 
--	BUG_ON(dir == DMA_NONE);
+-	return ccio_map_single(dev, page_address(page) + offset, size,
+-			direction);
 +	if (attrs & DMA_ATTR_MMIO)
 +		return DMA_MAPPING_ERROR;
- 
--	dac_allowed = pdev ? pci_dac_dma_supported(pdev, pdev->dma_mask) : 0; 
--	return pci_map_single_1(pdev, (char *)page_address(page) + offset, 
--				size, dac_allowed);
-+	dac_allowed = pdev ? pci_dac_dma_supported(pdev, pdev->dma_mask) : 0;
-+	return pci_map_single_1(pdev, phys, size, dac_allowed);
++
++	return ccio_map_single(dev, phys_to_virt(phys), size, direction);
  }
  
- /* Unmap a single streaming mode DMA translation.  The DMA_ADDR and
-@@ -343,7 +339,7 @@ static dma_addr_t alpha_pci_map_page(struct device *dev, struct page *page,
-    the cpu to the buffer are guaranteed to see whatever the device
-    wrote there.  */
  
--static void alpha_pci_unmap_page(struct device *dev, dma_addr_t dma_addr,
-+static void alpha_pci_unmap_phys(struct device *dev, dma_addr_t dma_addr,
- 				 size_t size, enum dma_data_direction dir,
- 				 unsigned long attrs)
+ /**
+- * ccio_unmap_page - Unmap an address range from the IOMMU.
++ * ccio_unmap_phys - Unmap an address range from the IOMMU.
+  * @dev: The PCI device.
+  * @iova: The start address of the DMA region.
+  * @size: The length of the DMA region.
+@@ -791,7 +792,7 @@ ccio_map_page(struct device *dev, struct page *page, unsigned long offset,
+  * @attrs: attributes
+  */
+ static void 
+-ccio_unmap_page(struct device *dev, dma_addr_t iova, size_t size,
++ccio_unmap_phys(struct device *dev, dma_addr_t iova, size_t size,
+ 		enum dma_data_direction direction, unsigned long attrs)
  {
-@@ -353,8 +349,6 @@ static void alpha_pci_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 	struct pci_iommu_arena *arena;
- 	long dma_ofs, npages;
+ 	struct ioc *ioc;
+@@ -873,7 +874,7 @@ static void
+ ccio_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_handle, unsigned long attrs)
+ {
+-	ccio_unmap_page(dev, dma_handle, size, 0, 0);
++	ccio_unmap_phys(dev, dma_handle, size, 0, 0);
+ 	free_pages((unsigned long)cpu_addr, get_order(size));
+ }
  
--	BUG_ON(dir == DMA_NONE);
--
- 	if (dma_addr >= __direct_map_base
- 	    && dma_addr < __direct_map_base + __direct_map_size) {
- 		/* Nothing to do.  */
-@@ -429,7 +423,7 @@ static void *alpha_pci_alloc_coherent(struct device *dev, size_t size,
- 	}
- 	memset(cpu_addr, 0, size);
+@@ -1004,7 +1005,7 @@ ccio_unmap_sg(struct device *dev, struct scatterlist *sglist, int nents,
+ #ifdef CCIO_COLLECT_STATS
+ 		ioc->usg_pages += sg_dma_len(sglist) >> PAGE_SHIFT;
+ #endif
+-		ccio_unmap_page(dev, sg_dma_address(sglist),
++		ccio_unmap_phys(dev, sg_dma_address(sglist),
+ 				  sg_dma_len(sglist), direction, 0);
+ 		++sglist;
+ 		nents--;
+@@ -1017,8 +1018,8 @@ static const struct dma_map_ops ccio_ops = {
+ 	.dma_supported =	ccio_dma_supported,
+ 	.alloc =		ccio_alloc,
+ 	.free =			ccio_free,
+-	.map_page =		ccio_map_page,
+-	.unmap_page =		ccio_unmap_page,
++	.map_phys =		ccio_map_phys,
++	.unmap_phys =		ccio_unmap_phys,
+ 	.map_sg =		ccio_map_sg,
+ 	.unmap_sg =		ccio_unmap_sg,
+ 	.get_sgtable =		dma_common_get_sgtable,
+@@ -1072,7 +1073,7 @@ static int ccio_proc_info(struct seq_file *m, void *p)
+ 			   ioc->msingle_calls, ioc->msingle_pages,
+ 			   (int)((ioc->msingle_pages * 1000)/ioc->msingle_calls));
  
--	*dma_addrp = pci_map_single_1(pdev, cpu_addr, size, 0);
-+	*dma_addrp = pci_map_single_1(pdev, virt_to_phys(cpu_addr), size, 0);
- 	if (*dma_addrp == DMA_MAPPING_ERROR) {
- 		free_pages((unsigned long)cpu_addr, order);
- 		if (alpha_mv.mv_pci_tbi || (gfp & GFP_DMA))
-@@ -643,9 +637,8 @@ static int alpha_pci_map_sg(struct device *dev, struct scatterlist *sg,
- 	/* Fast path single entry scatterlists.  */
- 	if (nents == 1) {
- 		sg->dma_length = sg->length;
--		sg->dma_address
--		  = pci_map_single_1(pdev, SG_ENT_VIRT_ADDRESS(sg),
--				     sg->length, dac_allowed);
-+		sg->dma_address = pci_map_single_1(pdev, sg_phys(sg),
-+						   sg->length, dac_allowed);
- 		if (sg->dma_address == DMA_MAPPING_ERROR)
- 			return -EIO;
- 		return 1;
-@@ -917,8 +910,8 @@ iommu_unbind(struct pci_iommu_arena *arena, long pg_start, long pg_count)
- const struct dma_map_ops alpha_pci_ops = {
- 	.alloc			= alpha_pci_alloc_coherent,
- 	.free			= alpha_pci_free_coherent,
--	.map_page		= alpha_pci_map_page,
--	.unmap_page		= alpha_pci_unmap_page,
-+	.map_phys		= alpha_pci_map_phys,
-+	.unmap_phys		= alpha_pci_unmap_phys,
- 	.map_sg			= alpha_pci_map_sg,
- 	.unmap_sg		= alpha_pci_unmap_sg,
- 	.dma_supported		= alpha_pci_supported,
+-		/* KLUGE - unmap_sg calls unmap_page for each mapped page */
++		/* KLUGE - unmap_sg calls unmap_phys for each mapped page */
+ 		min = ioc->usingle_calls - ioc->usg_calls;
+ 		max = ioc->usingle_pages - ioc->usg_pages;
+ 		seq_printf(m, "pci_unmap_single: %8ld calls  %8ld pages (avg %d/1000)\n",
+diff --git a/drivers/parisc/sba_iommu.c b/drivers/parisc/sba_iommu.c
+index fc3863c09f83d..8040aa4e6ff42 100644
+--- a/drivers/parisc/sba_iommu.c
++++ b/drivers/parisc/sba_iommu.c
+@@ -778,17 +778,18 @@ sba_map_single(struct device *dev, void *addr, size_t size,
+ 
+ 
+ static dma_addr_t
+-sba_map_page(struct device *dev, struct page *page, unsigned long offset,
+-		size_t size, enum dma_data_direction direction,
+-		unsigned long attrs)
++sba_map_phys(struct device *dev, phys_addr_t phys, size_t size,
++		enum dma_data_direction direction, unsigned long attrs)
+ {
+-	return sba_map_single(dev, page_address(page) + offset, size,
+-			direction);
++	if (attrs & DMA_ATTR_MMIO)
++		return DMA_MAPPING_ERROR;
++
++	return sba_map_single(dev, phys_to_virt(phys), size, direction);
+ }
+ 
+ 
+ /**
+- * sba_unmap_page - unmap one IOVA and free resources
++ * sba_unmap_phys - unmap one IOVA and free resources
+  * @dev: instance of PCI owned by the driver that's asking.
+  * @iova:  IOVA of driver buffer previously mapped.
+  * @size:  number of bytes mapped in driver buffer.
+@@ -798,7 +799,7 @@ sba_map_page(struct device *dev, struct page *page, unsigned long offset,
+  * See Documentation/core-api/dma-api-howto.rst
+  */
+ static void
+-sba_unmap_page(struct device *dev, dma_addr_t iova, size_t size,
++sba_unmap_phys(struct device *dev, dma_addr_t iova, size_t size,
+ 		enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	struct ioc *ioc;
+@@ -914,7 +915,7 @@ static void
+ sba_free(struct device *hwdev, size_t size, void *vaddr,
+ 		    dma_addr_t dma_handle, unsigned long attrs)
+ {
+-	sba_unmap_page(hwdev, dma_handle, size, 0, 0);
++	sba_unmap_phys(hwdev, dma_handle, size, 0, 0);
+ 	free_pages((unsigned long) vaddr, get_order(size));
+ }
+ 
+@@ -1061,7 +1062,7 @@ sba_unmap_sg(struct device *dev, struct scatterlist *sglist, int nents,
+ 
+ 	while (nents && sg_dma_len(sglist)) {
+ 
+-		sba_unmap_page(dev, sg_dma_address(sglist), sg_dma_len(sglist),
++		sba_unmap_phys(dev, sg_dma_address(sglist), sg_dma_len(sglist),
+ 				direction, 0);
+ #ifdef SBA_COLLECT_STATS
+ 		ioc->usg_pages += ((sg_dma_address(sglist) & ~IOVP_MASK) + sg_dma_len(sglist) + IOVP_SIZE - 1) >> PAGE_SHIFT;
+@@ -1085,8 +1086,8 @@ static const struct dma_map_ops sba_ops = {
+ 	.dma_supported =	sba_dma_supported,
+ 	.alloc =		sba_alloc,
+ 	.free =			sba_free,
+-	.map_page =		sba_map_page,
+-	.unmap_page =		sba_unmap_page,
++	.map_phys =		sba_map_phys,
++	.unmap_phys =		sba_unmap_phys,
+ 	.map_sg =		sba_map_sg,
+ 	.unmap_sg =		sba_unmap_sg,
+ 	.get_sgtable =		dma_common_get_sgtable,
 -- 
 2.51.0
 
