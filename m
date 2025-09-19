@@ -1,202 +1,90 @@
-Received: from ashtaroth.medicem.de (rtr-188.mnet.medicem.de [93.104.230.188])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7D730CD88
-	for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 12:28:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.104.230.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093031A3029
+	for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 12:32:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758284928; cv=none; b=PjzjgM5Ykoyw7X4a+2w2yzG66CCygcUZuuuuPEI6dBzxmTR9ElDXCBsVxGQfUAgtXFYaZeoUw231fbxT5Ny5l9qviGvypBWra9sc6a9+yOL0a4dzXNxzpNmVN9kdclFs5BePBTIQo009kCdFhagwNBH02PVo/4vTBqhbGxDmMRE=
+	t=1758285156; cv=none; b=A0PEsAxkS+vM0TKktJlja9ymi9xzmxtz5QbvsBbcR5pHvgMAzPvT5BJMkqBKLIHzprVjD88TW11t91/DlhENKMvJZghQzRmaBzDT+P9VbQGcWbyTFqQ6kkk700p0E0OtuZ2j13chRPsLz+zmNMrPDwsXHM16ippC13shMi9SL34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758284928; c=relaxed/simple;
-	bh=WNVkZb9oZU1gfJCg3sNuYXcZU9YkR6iosEBC/U+u+T8=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=DrslEyKm4M5mNH4M1KSVKgftykuSaxphrwiZTlYmuK0Mi+meLqpsJa9k6PYE4dmsiFnhpjEbTtVjnuVhx4JKHEbFvRyG1caJ0aBsuF3q7IInR00Nx/Bhpo95asJGplH6CEsQFbGXkjgCzxy3S3/eQV0bB7zTASTx6saXnqM5HJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=medicem.de; spf=pass smtp.mailfrom=medicem.de; dkim=pass (2048-bit key) header.d=medicem.de header.i=@medicem.de header.b=oU9pxuGY; arc=none smtp.client-ip=93.104.230.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=medicem.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=medicem.de
+	s=arc-20240116; t=1758285156; c=relaxed/simple;
+	bh=WsSvsNHHW+vhnBeVkPkKjDs225JFzm3ybFAXRlFFGSg=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=odKhAvrqktvW95bF3e4CQRO+V+NNitb4dk+mTzMZ0KjoX2dvAGV1zE6UpXF5J0EY8TheDduhbloyvYAfelezIfYCGbUI82Li/4GMRA883RGJtz1507mUhiwWnLmQvuFbXJG5FAphn+tsgTbDdkJcwmjSjEQXXKazZ7C0DaXadeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=SMDONf4T; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=medicem.de header.i=@medicem.de header.b="oU9pxuGY"
-Date: Fri, 19 Sep 2025 14:23:00 +0200 (GMT+02:00)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=medicem.de; s=ashtaroth;
-	t=1758284584;
-	h=from:from:reply-to:subject:subject:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=WNVkZb9oZU1gfJCg3sNuYXcZU9YkR6iosEBC/U+u+T8=;
-	b=oU9pxuGYs/jOpi0Z+2AbIE+ev3/BCKeDXPeT2+iAaYeDRUGXsIwDXq3w3mEt/MEMBj4ru+
-	CVtJcVqqJu+ZAJOWQxNDkV0y3iWvmKbo9JON6vajhA1i8tzx1lSxgKzkRLpEOMeHBxGW+2
-	dlIO+NiKcdcKqixO/uBT9cKNJL7GBKiAQM14tM/wtaIMKzN4ID1LeOT1D1F6tnG0Dxzfv7
-	z4rY9c/3SAFBotHVvh2djg62Zgd6Y70teRdtoK9ORldeg2kkK73sG8tZMUAzeJCxxe76pJ
-	ci6bdGmjnfrIwJbGh6PVFwgBUpvbNj3Ay7I3LjSfy2V7kN7eGTmh6qiEgJlVBw==
-Authentication-Results: ORIGINATING;
-	auth=pass smtp.auth=robin.cremer@medicem.de smtp.mailfrom=robin.cremer@medicem.de
-From: Robin Cremer <robin.cremer@medicem.de>
-To: Riccardo Mottola <riccardo.mottola@libero.it>
-Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>,
-	sparclinux <sparclinux@vger.kernel.org>
-Message-ID: <f12d40b7-9dd8-49c1-b65d-b725c154d7c8@medicem.de>
-In-Reply-To: <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
-References: <9b8530550078b5e89b19e987981d25fee8e18500.camel@physik.fu-berlin.de> <7515a193-5ae2-69d6-9c6e-c3b6c7459f50@libero.it> <73e81a8280b345ee09df0dfa9f0e21148144722f.camel@physik.fu-berlin.de> <74380961-4a1b-95a7-96f5-448737356082@libero.it> <4207162c8254a2b8f423db485f974ca00ae355a3.camel@physik.fu-berlin.de> <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="SMDONf4T"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=D1cYk/a6J6SsbVBnQRhih5S4U7oSPExFWVDvVtMcs6U=; t=1758285154;
+	x=1758889954; b=SMDONf4TrIxRmufHsA2qLX0Db1foc6PUqQtK1P50x208hM1SUs2X1zY4ZOAgo
+	RjAUDTGyEnLxGtqJefo3ek3SujJzwTG+83/ICJnAmWJpaGCbTd1iRj46g2tpGQH4EQcPw+ogcZkMn
+	Yhv/8w03iXLXJAQMdHKYX9+obUIQFPxwUlDSWEpvmSjqPEMDml6y1oUmfAZ+9f2eL/sBGvSoOszAQ
+	Qt5R0Bl1ucUUwb+BUQQ9dE5z0PUJG/PyZqPl7wQ/Ii4uLJPaNv1xSetFTs+korvghE6DkoTxVvpkz
+	cgLGB7mO16rovK7uaVmaKHpfbAoGjjk8MVqLwql5v88yV9FWtg==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1uzaHv-00000001TyE-3rfa; Fri, 19 Sep 2025 14:32:31 +0200
+Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=[192.168.178.61])
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1uzaHv-00000002Fue-2u8Q; Fri, 19 Sep 2025 14:32:31 +0200
+Message-ID: <1fa3006823b14ca10aa6c42474300e00630479ac.camel@physik.fu-berlin.de>
 Subject: Re: New test kernel - second attempt
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Robin Cremer <robin.cremer@medicem.de>, Riccardo Mottola
+	 <riccardo.mottola@libero.it>
+Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
+ sparclinux <sparclinux@vger.kernel.org>
+Date: Fri, 19 Sep 2025 14:32:30 +0200
+In-Reply-To: <f12d40b7-9dd8-49c1-b65d-b725c154d7c8@medicem.de>
+References: 
+	<9b8530550078b5e89b19e987981d25fee8e18500.camel@physik.fu-berlin.de>
+	 <7515a193-5ae2-69d6-9c6e-c3b6c7459f50@libero.it>
+	 <73e81a8280b345ee09df0dfa9f0e21148144722f.camel@physik.fu-berlin.de>
+	 <74380961-4a1b-95a7-96f5-448737356082@libero.it>
+	 <4207162c8254a2b8f423db485f974ca00ae355a3.camel@physik.fu-berlin.de>
+	 <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
+	 <f12d40b7-9dd8-49c1-b65d-b725c154d7c8@medicem.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=sha-256; 
-	protocol="application/pkcs7-signature"; smime-type=signed-data; 
-	boundary="----=_Part_4_52459762.1758284580237"
-X-Correlation-ID: <f12d40b7-9dd8-49c1-b65d-b725c154d7c8@medicem.de>
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-------=_Part_4_52459762.1758284580237
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Hi Robin
 
-SGkgUmljY2FyZG8sCgpBcmUgeW91IHN1cmUgaXQgaGFuZ3M/IE9yIG1heWJlIGNvbnNvbGUgaXMg
-Z29pbmcgdG8gYSBkaWZmZXJlbnQgb3V0cHV0PyBEbyB0aGVzZSBzeXN0ZW1zIGhhdmUgYSBmcmFt
-ZWJ1ZmZlciBpbnN0YWxsZWQ/IExpbnV4IG1pZ2h0IGZhdm9yIG91dHB1dCB0aGVyZS4gV2hhdCBj
-bWRsaW5lIGFyZSB5b3UgdXNpbmcgZm9yIHRoZSBrZXJuZWxzIGluIGdydWI/CgpHcmVldGluZ3Ms
-ClJvYmluCgoxOSBTZXB0IDIwMjUgMTM6MDc6NDkgUmljY2FyZG8gTW90dG9sYSA8cmljY2FyZG8u
-bW90dG9sYUBsaWJlcm8uaXQ+OgoKPiBIaSBBZHJpYW4uCj4gCj4gInN0cm9uZyIgb2YgbXkgbmV3
-IHNldHVwIEkgd2VudCBib2xkIHRlc3RpbmcgYW5kIGFsc28gZXhwbG9pdGVkIG9uZSBtb3JlIHRp
-bWUgdGhlIFN1biBGaXJlIHdoaWNoIHdhcyAiaW5zdGFsbCBkb25vciIgZm9yIHRoaXMgaW5zdGFs
-bGF0aW9uIGJlZm9yZSBwdXR0aW5nIGJhY2sgaXRzIHNvbGFyaXMgZGlza3MgYW5kIGJhY2sgaW4g
-b3JpZ2luYWwgc3RhdGUuCj4gCj4gSm9obiBQYXVsIEFkcmlhbiBHbGF1Yml0eiB3cm90ZToKPj4g
-Q2FuIHlvdSB0cnkgdGhpcyB1cHN0cmVhbSBrZXJuZWw6Cj4+IAo+PiBodHRwczovL3Blb3BsZS5k
-ZWJpYW4ub3JnL35nbGF1Yml0ei9zcGFyYzY0Lwo+PiAKPj4gQ29weSB2bWxpbnV4LTYuMTcuMC1y
-YzUrLCBjb25maWctNi4xNy4wLXJjNSsgYW5kIFN5c3RlbS5tYXAtNi4xNy4wLXJjNSsgaW50byAv
-Ym9vdC4KPj4gCj4+IEV4dHJhY3QgbW9kcy02LjE3LjAtcmM1Ky50Z3ogc29tZXdoZXJlIGFuZCBt
-b3ZlIHRoZSAiNi4xNy4wLXJjNSsiIGZvbGRlciBpbiB0aGUKPj4gbW9kcy9saWIvbW9kdWxlcyBk
-aXJlY3RvcnkgaW50byAvbGliL21vZHVsZXMsIHRoZW4gcnVuOgo+PiAKPj4gJCB1cGRhdGUtaW5p
-dHJhbWZzIC1jIC1rIDYuMTcuMC1yYzUrIC12Cj4+ICQgdXBkYXRlLWdydWIKPj4gCj4+IFRoZW4g
-cmVib290IGludG8gdGhpcyBrZXJuZWwgYW5kIHJlcG9ydCBiYWNrLgo+IAo+IEkgc2VlIHRoaXMg
-b24gdGhlIFYxMjAKPiBbwqDCoMKgIDIuMjAwNDQwXSBydGMtbTQ4dDU5IHJ0Yy1tNDh0NTkuMDog
-aGN0b3N5czogdW5hYmxlIHRvIHJlYWQgdGhlIGhhcmR3YXJlIGNsb2NrCj4gCj4gdGhlbiB0aGUg
-c2VyaWFsIGNvbnNvbGUgbG9va3MgYSBiaXQgZ2FyYmFnZSwgc2VlbXMgdGVybWluYWwgdHlwZXMg
-ZG9uJ3Qgd29yayB3ZWxsIGFmdGVyIGFwdCB1cGRhdGVzISB5ZXQgaXQgaXMgc3RhbmRhcmQgdnQx
-MDIgb3IgQU5TSSB0aHJvdWdoIG1pbmljb20gYXMgSSBhbHdheXMgdXNlZCA6KAo+IEkgYW0gYWJs
-ZSB0byBsdWNraWx5IGxvZ2luIHZpYSBzc2guIFNvIG1hY2hpbmUgaXMgImFsaXZlIi4gSnVzdCBm
-b3IgZG91YmxlLWNoZWNrIEkgcmVib290ZWQgdGhlIDYuMTYga2VybmVsIGFuZCBpdCBzdGlsbCBz
-cGl0cyBvdXQgY3JhcC4gSSB0aGluayBpdCBpcyBjb2xvciBjb2RlcyB0aGF0IGNvcnJ1cHQgc29t
-ZXRoaW5nLgo+IAo+IAo+IAo+IFRvIFN1bSBVcDoKPiAKPiBTdW4gRmlyZSBWMTIwICgxeCBVbHRy
-YVNwYXJjIElJZSApCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gCj4gZGViaWFuLXNwYXJjNjQgNi4xNi43K2RlYjE0LXNw
-YXJjNjQgIzEgRGViaWFuIDYuMTYuNy0xICgyMDI1LTA5LTExKSBzcGFyYzY0IEdOVS9MaW51eCA6
-IGJvb3RzIGZpbmUKPiBkZWJpYW4tc3BhcmM2NCA2LjE3LjAtcmM1KyAjMSBTTVAgRnJpIFNlcCAx
-MiAyMDozNzozMiBVVEMgMjAyNSBzcGFyYzY0IEdOVS9MaW51eCA6IGJvb3RzIGZpbmUKPiAKPiBB
-ZnRlciBzZXZlcmFsIGJvb3RzIGFuZCByZXN0YXJ0cywgZXZlbnR1YWxseSBJIGdvdCBhIGNyYXNo
-IG9uIGEgIndhcm0gcmVzdGFydCIuLi4KPiAKPiAKPiBvbiBVbHRyYSAyOgo+IEdSVUIgTG9hZGlu
-ZyBrZXJuZWwuLi4uIGFuZCBoYW5ncyB0aGVyZS4KPiBJIHRyaWVkIGEgc2V0LWRlZmF1bHRzIHNp
-bmNlIHRoZSBudnJhbSBjaGlwIGlzIGZsYWtleSB1bnRpbCBpIGZpeCBpdCBvciBhIHJlcGxhY2Vt
-ZW50IGNvbWVzLCBidXQgbm90aGluZy4KPiBDb2hlcmVudCB3aXRoIENEUk9NIGJvb3Q/Cj4gCj4g
-aGFuZ3MgaGVyZS4uLi4KPiAKPiAKPiBvbiBVbHRyYSAxOgo+IEdSVUIgTG9hZGluZyBrZXJuZWwu
-Li4uIGFuZCBoYW5ncyB0aGVyZS4KPiBUaGlzIG9uZSBoYXMgYSBnb29kIG52cmFtIGNoaXAuIFNv
-IGl0IGFwcGVhcnMgdGhhdCB0aGUgb2xkIFVsdHJhcyBkb24ndCBsaWtlIEdSVUI/IG5vciBmcm9t
-IENEIG5vciBmcm9tIHRoZSBpbnN0YWxsZWQgc3lzdGVtCj4gCj4gQ291bGQgdGhlIEdSVUIgdmVy
-c2lvbiBiZSAidGFpbG9yZWQiIHRvIHRoZSBGaXJlIDEyMCBhbmQgbm90IHdvcmsgb24gcHJldmlv
-dXMgc3lzdGVtcz8KPiAKPiAKPiBBcyBhIDEwMCUgcmUtY2hlY2sgSSBwdXQgaW4gdGhlIHNvbGFy
-aXMgaGFyZCBkaXNrIGFuZCBpdCBib290cy4uIHVudGlsIGl0IGZhaWxzIHRvIGZzY2sgZXh0cmEg
-cGFydGl0aW9uLi4uIEkgbG9zdCBhIGRpc2suIFN0aWxsIGVub3VnaCB0byBwcm92ZSB0aGUgc3lz
-dGVtIGlzIGZ1bmN0aW9uYWwhCj4gCj4gU28uLi4gbm90IGEgc2hpbnkgZnV0dXJlIHJpZ2h0IG5v
-dyBmb3IgTGludXggb24gdGhlIG9sZCBVbHRyYXMKPiAKPiBSaWNjYXJkbwo=
-------=_Part_4_52459762.1758284580237
-Content-Type: application/pkcs7-signature; name=smime.p7s
-Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename=smime.p7s
+On Fri, 2025-09-19 at 14:23 +0200, Robin Cremer wrote:
+> Are you sure it hangs? Or maybe console is going to a different output?
+> Do these systems have a framebuffer installed? Linux might favor output
+> there. What cmdline are you using for the kernels in grub?
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExDTALBglghkgBZQMEAgEwCwYJKoZIhvcNAQcBoIAwggXgMIID
-yKADAgECAhBoHRmJyyM33KjvBoOSxSt+MA0GCSqGSIb3DQEBCwUAME4xCzAJBgNVBAYTAlBMMSEw
-HwYDVQQKDBhBc3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xHDAaBgNVBAMME0NlcnR1bSBTTUlNRSBS
-U0EgQ0EwHhcNMjQwNzA4MTI0NTIyWhcNMjYwNzA4MTI0NTIxWjBKMSAwHgYDVQQDDBdyb2Jpbi5j
-cmVtZXJAbWVkaWNlbS5kZTEmMCQGCSqGSIb3DQEJARYXcm9iaW4uY3JlbWVyQG1lZGljZW0uZGUw
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDB2jPgPs5DSljvJ09yfoVWRUZcj6bvwat6
-1ljQucZAPG/S/DbmZWebRd19Lo+PTv7WChfVhaIFH/AbZIAwZZA3XnKcJqDmm1m5M2Xkn0cO/oqp
-wyr/er+bJK2n94t++Ax4TUgsKCH1Rgsy55ONoukEp0+fHc0qfI1f6c7y8QCeLxzwgboaqml3mBML
-hWzqmrajtnV4sE9eZ1+JDRaSdNvDfvjZUGKKXVz2fLpPqCLLRlgbr3veJcEfi21PHs2lWpbIwF+7
-SDBmUX/XiBjYXDCaBgrYh+k40sv1v8u16+SRPccAVwNh4B20dIfPOnBzgDOPKOQbVXiVBvP7PDOp
-5WqXAgMBAAGjggG8MIIBuDAMBgNVHRMBAf8EAjAAMEEGA1UdHwQ6MDgwNqA0oDKGMGh0dHA6Ly9j
-c21pbWVyc2FjYS5jcmwuY2VydHVtLnBsL2NzbWltZXJzYWNhLmNybDCBgwYIKwYBBQUHAQEEdzB1
-MC4GCCsGAQUFBzABhiJodHRwOi8vY3NtaW1lcnNhY2Eub2NzcC1jZXJ0dW0uY29tMEMGCCsGAQUF
-BzAChjdodHRwOi8vY3NtaW1lcnNhY2EucmVwb3NpdG9yeS5jZXJ0dW0ucGwvY3NtaW1lcnNhY2Eu
-Y2VyMB8GA1UdIwQYMBaAFGb7ww++9L/gnMmrTd5HGb3AyqZoMB0GA1UdDgQWBBTHbvWBzixjvlY1
-SOnfKY0OlQ+I8TBMBgNVHSAERTBDMAkGB2eBDAEFAQIwNgYLKoRoAYb2dwJkAgEwJzAlBggrBgEF
-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
-1tB0pbsAAAAAAAA=
-------=_Part_4_52459762.1758284580237--
+Very good point.
+
+It might be necessary to set up the serial console as described here:
+
+https://wiki.archlinux.org/title/Working_with_the_serial_console
+
+Adrian
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
