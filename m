@@ -1,183 +1,131 @@
-Received: from libero.it (smtp-31-wd.italiaonline.it [213.209.13.31])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0F48313E30
-	for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 15:03:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.209.13.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD69431691A
+	for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 15:25:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758294187; cv=none; b=F1yNyaqf2C4apKWc5zx0YdO6nPUgXwYajmo+gRcNs7ytD9Q3cwu7EFRXXDt7XZnqWbnBuX6hyuDFeZrytk7wP/dLkRhepMDRMcN59lzfWfp2RmQSc4qdZUDljbpR6lYs77IOfM/DQmtMHFeqlMm1jSgAG+cec1sRbgCHnr1vXK4=
+	t=1758295504; cv=none; b=XzxdoZlFqne7zKXqJBTf4EAEiXB+retvNvB6+aWIxscmM8eyWsU1+v9iqL6qy73nOUYpPpdPO7mK4LNGOoK7k2EZXIhRWcLY09yOg0+1qpCEwrvvXDbRLlThzsqZeFHo3zcj+CG2To7uEvctErQ+rcwVzi4l4QCy7OHP5Vt2QJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758294187; c=relaxed/simple;
-	bh=leZiR1zqk8T7piZTQPj/GD99PDLBxPgt45mfsozRJhU=;
-	h=Subject:From:To:Cc:References:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=DwTj09Oa/QmST/aez0BVLxdDh5RcsKLwrW3J7RVPqGl/79pMe9c+W91Op5DzeTJWvAQcPqzGh6I37cWRKARdirynTJeVk3LSSAP/mRlJXL93k82C7HSg0Msd7+YLHMt0GpCTCWs7FEZFk9spvYz1oL7i2ZFqfi1I8ZRtNXDDiT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it; spf=pass smtp.mailfrom=libero.it; dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b=Y2hRVONr; arc=none smtp.client-ip=213.209.13.31
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=libero.it
+	s=arc-20240116; t=1758295504; c=relaxed/simple;
+	bh=tIBWHHOOKfm2qL1G0oNEg1lQ/EY8RTTkm2B9w+25Bvk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pbMqiDluawR510nIjqOzUl+duz286VrRh/qg4d2NbGYTN7XoyAA/MH0s6wXQ83J6MqEYv0QRy65aIuH237PTH9h1yRRHH8TaWjFt2kvwMVUIAStfwcqwc3OCyVCZbp9xxqLrr3S4o7JqGZMUaShQleGOpXpBaGVznDSh48unku4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freebox.fr; spf=pass smtp.mailfrom=freebox.fr; dkim=pass (2048-bit key) header.d=freebox-fr.20230601.gappssmtp.com header.i=@freebox-fr.20230601.gappssmtp.com header.b=xbo3W1UF; arc=none smtp.client-ip=209.85.167.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freebox.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freebox.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b="Y2hRVONr"
-Received: from [192.168.1.36] ([151.65.2.228])
-	by smtp-31.iol.local with ESMTPA
-	id zcdaupr8N90dBzcdaul4Ek; Fri, 19 Sep 2025 17:03:02 +0200
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-	t=1758294182; bh=JSzH22Yk7u81ZRmAS4cOFmGa4VRP4HK1qhnfQefJkNw=;
-	h=From;
-	b=Y2hRVONrQl6MOKh75HYeYD+nSBpLDJ4oLuOYWZR10PF8b+wasR2BHy+mC/FRNqjh8
-	 u+dZKpdMnAqY/ABJrfeUph+X2eTMOOv88rm1346zu1bxtyNvYM/evUEEYbbdNSEnfM
-	 E7y9u1O/+CMmFEB08fSF8/aKpNzHMbq/neBP90yslc/wdXoug1HLTUoXltQLxP/e2v
-	 B55a8s7ZrOhjiSpf9YFPGJLm4WU0OSTK0mH6JblEippfPCYnOTR8qb2tS5GAImJyiY
-	 hw+Bl2YWGO2qNOPAsb/FF3yXiwlWdaJ6U2ZCO5a+/hagFTvTCrEhv1/APladIUqEOc
-	 J/bhebtU6v9yw==
-X-CNFS-Analysis: v=2.4 cv=bNoWIO+Z c=1 sm=1 tr=0 ts=68cd70a6 cx=a_exe
- a=fUUb/luldTa8vXwyIFcL2Q==:117 a=fUUb/luldTa8vXwyIFcL2Q==:17
- a=IkcTkHD0fZMA:10 a=qbuC6shXmeKGCeCeVG8A:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-Subject: Re: New test kernel - second attempt
-From: Riccardo Mottola <riccardo.mottola@libero.it>
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
-References: <9b8530550078b5e89b19e987981d25fee8e18500.camel@physik.fu-berlin.de>
- <7515a193-5ae2-69d6-9c6e-c3b6c7459f50@libero.it>
- <73e81a8280b345ee09df0dfa9f0e21148144722f.camel@physik.fu-berlin.de>
- <74380961-4a1b-95a7-96f5-448737356082@libero.it>
- <4207162c8254a2b8f423db485f974ca00ae355a3.camel@physik.fu-berlin.de>
- <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
-Message-ID: <c3c82ca3-5e6f-fb7d-3e93-60ed9bd37098@libero.it>
-Date: Fri, 19 Sep 2025 17:06:36 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101
- Firefox/128.0 SeaMonkey/2.53.21
+	dkim=pass (2048-bit key) header.d=freebox-fr.20230601.gappssmtp.com header.i=@freebox-fr.20230601.gappssmtp.com header.b="xbo3W1UF"
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-577dd4c1e84so2840539e87.0
+        for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 08:25:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=freebox-fr.20230601.gappssmtp.com; s=20230601; t=1758295500; x=1758900300; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=EztjVQ+y07YMfegmHOd0VyK62XkODMWu0LdNE29WAS0=;
+        b=xbo3W1UFpKFkZ1p3cmir9bHExoubmn+zN65uKZIOYM/VNr4k3So7pYfDI6mX/D9Xs7
+         tKrFxrKGsa1OUV4/BaJm81tBW61J4ZGYYxqxZFHL+2WJXFRTEp/mhXDIaLf+cQRcgUXe
+         AYqPNZvLbxLN1AyYo7ig5n8eVxO+iPi1huE+4hW6lV7MZkf7YHIdjHXfXdto2VLmATJZ
+         knqRg3MYiebrHRGL5TV4krfrv3EaVDwqo3YKPYYlEuRSeFOsywbR4G16hcwfzRVUvkmK
+         +8rrea1TuR59LvTS19HlGLqGt+kLHJ+F5+322OVOV6/84SIcgYqHnsi5cc3ulWFd4ja5
+         pnpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758295500; x=1758900300;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=EztjVQ+y07YMfegmHOd0VyK62XkODMWu0LdNE29WAS0=;
+        b=R7ezdeUyA5l4qa/bJcLyl26npFPxSJyF0WOGNnOEDszbV670pDScn6rqHSNRYH8rDs
+         rd/6GSR+eVr/ZSYNoZ6wsSEwCKrqKUO2H0OyaEb1rUtViLFb1j1hrzwtiADgqdrH4yAU
+         4l0jR4fxwFJMHiWLKfFdf5WYwxVxQhbArusNSNG0RzInmrBsjoJ2iMsLhP6Onu0vMpsN
+         MZL27jqz6AFYlFrjBJMy0ORMh6kg497bZxy3SKxTGUR1EXbM150SgFj96BE3JDtEcwGO
+         m9dmB4+o6Nd+ibI6+zXW15inG0HoMU1jx3hxY31+uCJvZiUXrPmR5rFGOjkvFMW4SvgX
+         z3Mg==
+X-Forwarded-Encrypted: i=1; AJvYcCU24PejYg8JT/IeNPTRPy/Za+mydHRwXPDDuiRe3T5IwcQTEojHzjex0bX3ykY7Q6xqsk95bz5ggA0n@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz0hLPTSqxVMfYD1ua1cce7Wc4V7XnTGWc3BlPazcIF2ToljbQW
+	64Fzl6fyMGlysjbnCx3ngylBeFIbEWzX9Ivj+8tTo28tSHTzDNV1b/JcOfrrVmpCWiqcFkdHw4x
+	EoBg1pTUAlPFfN1tdBuF919O1utM8YJrFQGHssErwOw==
+X-Gm-Gg: ASbGncvBzVN/ell65PVpK4fRx9DXBjJ44CfAIUuOP0oEeOEJHzUdi5sTurr3jUy98Bn
+	24Q92hSvNuX0mEuV3C/6tLVOIPxsuHYPgNrP7yiKz7LtuJ8cEfZP67p6V86h4CuAzF7Sx/mxssb
+	yN/OV17b6VJQheoC5vfnEMB2HFbIzWrauyUivrcY/4WVL9Pyrq6xiWDwQDoNAtj0Uw7hCMj/vE/
+	a5i64VybXtP8LU=
+X-Google-Smtp-Source: AGHT+IHin4gQus9SrkFEog2pTedfunr2Ers950l0f82oxrEtfjemfexmsAorW/Dsqdjvay/GpFMt6pfW/hwC+qBHF14=
+X-Received: by 2002:a05:6512:2c0b:b0:571:b70b:7dbf with SMTP id
+ 2adb3069b0e04-579e2507c81mr1455897e87.17.1758295499599; Fri, 19 Sep 2025
+ 08:24:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfOk/2WvTNIcrOIqi4HzSfMRPU12AyhtJ2A15MZCKtZ1Ia1SS84PxCR2BMtFQfiGVgxKXrvIF0WrIcHfCSlwi7xIavVeRsTD2Y1YLMqtmPAnNqzpmU1DG
- cbNosU5kujRWkPzIJcjWxUTjfG/21Z9SxvfzWcSCNXnRFyP1kNaFB8PCHlqUTy10XPqrDr9uMv1GhlMyeF082Ov1mv1ApkhGAhdwFA1282pI2vNb/LYZSdwy
- b1P32L6NkNRjpDMzYOIkuHZTLxQnsH+SGXFBrnfNtLCTRTAJfx7GN6oO/FOZ88Ud
+References: <20250918152830.438554-1-nschichan@freebox.fr> <20250918195806.6337-1-safinaskar@gmail.com>
+In-Reply-To: <20250918195806.6337-1-safinaskar@gmail.com>
+From: Nicolas Schichan <nschichan@freebox.fr>
+Date: Fri, 19 Sep 2025 17:24:48 +0200
+X-Gm-Features: AS18NWBwMqIXE_dMXDlT0ngUIReSbekPPTszWv5gIfg03bAEg3Id33JL3Yqjedw
+Message-ID: <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com>
+Subject: Re: [PATCH RESEND 00/62] initrd: remove classic initrd support
+To: Askar Safin <safinaskar@gmail.com>
+Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, axboe@kernel.dk, 
+	brauner@kernel.org, cyphar@cyphar.com, devicetree@vger.kernel.org, 
+	ecurtin@redhat.com, email2tema@gmail.com, graf@amazon.com, 
+	gregkh@linuxfoundation.org, hca@linux.ibm.com, hch@lst.de, 
+	hsiangkao@linux.alibaba.com, initramfs@vger.kernel.org, jack@suse.cz, 
+	julian.stecklina@cyberus-technology.de, kees@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, 
+	linux-csky@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, mcgrof@kernel.org, 
+	mingo@redhat.com, monstr@monstr.eu, mzxreary@0pointer.de, 
+	patches@lists.linux.dev, rob@landley.net, sparclinux@vger.kernel.org, 
+	thomas.weissschuh@linutronix.de, thorsten.blum@linux.dev, 
+	torvalds@linux-foundation.org, tytso@mit.edu, viro@zeniv.linux.org.uk, 
+	x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+Hello,
 
-further follow-up, last tests for today. The Netra T1 was still open for 
-the tests, the one which booted
+> > When booting with root=/dev/ram0 in the kernel commandline,
+> > handle_initrd() where the deprecation message resides is never called,
+> > which is rather unfortunate (init/do_mounts_initrd.c):
 
-Loading Linux 6.17.0-rc5+ ...
-Loading initial ramdisk ...
+> Yes, this is unfortunate.
+>
+> I personally still think that initrd should be removed.
 
-/dev/sda2: clean, 33785/1011840 files, 724818/4047104 blocks
-3008;start=0e6a730b368e44c897ac90aa211eb72a;user=root;hostname=debian-sparc64;machineid=8b9a152319f14cd59
-23fb8a80457b56a;bootid=63ef412630eb42fca7ad2d38d1539e29;pid=1;pidfdid=2;comm=systemd;type=boot[ 
-45.6843
-88] Fixing recursive fault but reboot is needed!
-[   45.929220] systemd[1]: segfault at 32 ip fffff80100a224ac (rpc 
-fffff80100458d3c) sp 000007fefff41cd1
-error 1 in libsystemd-shared-258.so[2224ac,fffff80100800000+3fa000]
-[   46.462211] systemd[1]: segfault at 28 ip fffff801011b08e8 (rpc 
-fffff801011881f0) sp 000007fefff2d591
-error 1 in libc.so.6[b08e8,fffff80101100000+194000]
-[   46.654294] systemd[1]: segfault at 1008034bdd0 ip fffff801011a53ec 
-(rpc fffff801011a5348) sp 000007fe
-fff2b931 error 1 in libc.so.6[a53ec,fffff80101100000+194000]
-000000000000001500000000004200000000000000000000ffffffff80300000000000000005ce18000000000000000e000000000
-01f20b3000000000058003b0000000000000877000500340000000000405ec80000000000405ecc000400340000000000405ec800
-00000000405ecc000300340000000000405ec80000000000405ecc000200340000000000404868000000000040486c0001004e000
-000000085845c0000000000858460
-Watchdog Reset
-Externally Initiated Reset
+Considering that the deprecation message didn't get displayed in some
+configurations, maybe it's a bit early at the very least.
 
+> I suggest using workaround I described in cover letter.
 
-the output is dirty since some color codes come out.
+I'm not too keen on having an initramfs just to loop-mount
+/sys/firmware/initrd, after all current kernels are able to handle the
+use case just fine.
 
-I did reboot as proposed... but it fails for I/O errors:
-/dev/sda2: recovering journal
-/dev/sda2: clean, 33795/1011840 files, 725650/4047104 blocks
-3008;start=49e9dcbbe6e8415ea64c096f811f6f61;user=root;hostname=debian-sparc64;machineid=8b9a152319f14cd59
-23fb8a80457b56a;bootid=ba10d5eaddab44f5bc7a3d6afd4f21b6;pid=1;pidfdid=2;comm=systemd;type=boot[ 
-228.4900
-60] sd 0:0:0:0: [sda] tag#297 timing out command, waited 180s
-[  228.574948] I/O error, dev sda, sector 13901518 op 0x1:(WRITE) flags 
-0x9800 phys_seg 8 prio class 2
-[  228.702627] Aborting journal on device sda2-8.
-[  253.583514] sd 0:0:0:0: [sda] tag#297 timing out command, waited 180s
-[  253.668339] I/O error, dev sda, sector 13992638 op 0x1:(WRITE) flags 
-0x103000 phys_seg 1 prio class 2
-[  253.789648] Buffer I/O error on dev sda2, logical block 1624066, lost 
-async page write
-[  253.894046] sd 0:0:0:0: [sda] tag#300 timing out command, waited 180s
-[  253.978800] I/O error, dev sda, sector 13583030 op 0x1:(WRITE) flags 
-0x103000 phys_seg 1 prio class 2
-[  254.100123] Buffer I/O error on dev sda2, logical block 1572865, lost 
-async page write
-[  254.207606] EXT4-fs error (device sda2): ext4_journal_check_start:87: 
-comm kworker/u4:4: Detected abor
-ted journal
-[  256.841511] EXT4-fs error (device sda2): ext4_journal_check_start:87: 
-comm kworker/u4:1: Detected abor
-ted journal
-[  256.994388] EXT4-fs (sda2): Remounting filesystem read-only
-[  257.067800] EXT4-fs (sda2): ext4_do_writepages: jbd2_start: 3067 
-pages, ino 393758; err -30
+It looks like there is a lot of code calling into specific filesystems
+so that the initrd code can guess the size of the file system before
+copying into /dev/ram0, and I believe this is what causes the main
+gripe against initrd today. What is wrong with just copying
+/initrd.image using its actual size into /dev/ram0 instead of guessing
+it with the help of filesystem specific code ?
 
+> Also, for unknown reasons I didn't get your letter in my inbox.
+> (Not even in spam folder.) I ocasionally found it on lore.kernel.org .
 
-it is, by definition, the same disk that worked & booted on the Fire 120.
+Sorry about that, When I used git-send-email yesterday to reply, the
+SMTP server I used wasn't authenticated to google, so all gmail
+recipients were dropped. Hopefully this work better today.
 
-I then attempted to boot the older 6.16:
+Regards,
 
-Loading Linux 6.16.7+deb14-sparc64 ...
-Loading initial ramdisk ...
-
-/dev/sda2: recovering journal
-/dev/sda2 contains a file system with errors, check forced.
-/dev/sda2: 33796/1011840 files (0.2% non-contiguous), 727699/4047104 blocks
-fsck exited with status code 1
-3008;start=ff9f4e8bd6514200ab7c4d915e3c4a75;user=root;hostname=debian-sparc64;machineid=8b9a152319f14cd59
-3008;start=9057abc423f1498d9018f5cd9643795e;user=root;hostname=debian-sparc64;machineid=8b9a152319f14cd59
-23fb8a80457b56a;bootid=1af80057945f45d6a4cea5ccffed75b5;pid=515;pidfdid=516;comm=(agetty);servicename=ser
-ial-getty@ttyS0.service;invocationid=0ee7aa1c7d74494fbc15f021438ab905;type=service
-Debian GNU/Linux forky/sid debian-sparc64 ttyS0
-
-debian-sparc64 login: root
-Password:
-
-Login incorrect
-p104 583.036741] systemd[1]: segfault at 67effd43fd9 ip fffff80101146618 
-(rpc fffff8010114663c) sp 000007
-feffd422c1 error 1 in libc.so.6[46618,fffff80101100000+194000]
-[1G
-
-
-
-so this one completes fsck / file recovery (no scsi read errors)
-I mistyped my password and got a segfault..... yay!
-
-If I reboot and do not get my password wrong....
-debian-sparc64 login: root
-Password:
-[  211.600247] systemd[1]: Caught <BUS>.
-
-L
-
-and now the lock is so bad I am unable to return to LOM with a break! argh!
-
-At this point I try the historic 6.1.0-9 kernel that came from the CD. 
-Boots, fsck/journal recover, login... and hangs! no errors displayed. No 
-break...
-
-At this point I am worried, but the NetBSD 10.1 Hard disk back in the 
-tray, perform a cold start... and get a login prompt: Console is smooth 
-and no funny chars.
-
-
-Interesting is that the Netra T1 and Fire 120 are quite similar in 
-hardware... the latter is a bit higher spec'd (e.g. accepts double 
-memory) but essentially differs  with the lower-spec'd embedded 
-UltraSparc IIe vs high-performance IIi.
-(the advantage is that the IIe just needs a simple CPU cooler with fan, 
-no air ducts and is so much quieter... almost like a workstaiton).
-
-Riccardo
-
+-- 
+Nicolas Schichan
