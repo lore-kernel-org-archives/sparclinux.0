@@ -1,119 +1,105 @@
-Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com [209.85.219.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 737D4217F55
-	for <sparclinux@vger.kernel.org>; Sat, 20 Sep 2025 03:55:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C71A5241664;
+	Sat, 20 Sep 2025 12:53:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758340538; cv=none; b=F53uhM9nGTXPvIrpiaq3PSC65d6Dvf96aJx4Qrg9rgfuDfA61aCEdsdzdXnIOJP3JN4abEQTNFtsgh+24cJ4LG9ppIoBBka5DMbAgWdzH2Fwort9Wfd7Fz+pEbSRsB8UPbmUlSY2jYyYCTE0Kwz3gbNRWWkSVNHKeYcV/D59OSk=
+	t=1758372816; cv=none; b=ocp3vISJrFNjIOkf+/xmrbQS/1YeLCFOcp/RCGyC+TbpU4sFqTwazmUhx6mo+VrcoRfrEQ88Hhc7T6GBB6G/W3bFbnyYeZUyTHGLxIKK+Dq5rWlid3sLRtuTJq0wf5L7IeRcvY3aiWYYqS2hXe0lMnmBZkH/49KRIrb+0Q5B7C8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758340538; c=relaxed/simple;
-	bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=R+ztk2LstOWH5b/Sj1xd6h3mVQ0E6e7f6FJs2YsDh/Cw9PBfaXrLglzFI9IZh+Wuga6Cri3LYu4tHwXGDOliVTAizg5hJvf+S4EveyEjun7832PSgfDsU+3Ku2eXBakF/wY5zk/6xeXc25nQle09wfV9AbX4/BIDk64M1+nOqZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZFPKZ+Oq; arc=none smtp.client-ip=209.85.219.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZFPKZ+Oq"
-Received: by mail-yb1-f182.google.com with SMTP id 3f1490d57ef6-e931c71a1baso3466780276.0
-        for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 20:55:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1758340534; x=1758945334; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
-        b=ZFPKZ+OqAAj1VhKugky3kjemp/VIqd75of38HGEmt1IOj91W4b7jLe+Myfu3ent1n8
-         I+OsNztO7baVS7SDNqQDhsKyRcudzp5fPl2dQ3EsKmIi5TGzzTSREF9BOYtdvwLtcCQ9
-         lX8BgfQDKyo0m2JfxIC+zD4CzDFgLzCucCTNnl0sqYXFOybMgodTGPU/RxeED3KpD6Ge
-         7yQG/mA18ZVwa9TAvZspdmtVMoFft3MmApalEp7/PJVnD7pAqdNfemDIdWOkktS1fK7N
-         5MIan1ZBYEJnEUm4lD9oNaRI/NjfTi3RIA4zVC5lAmPgo6eel/h/B86mXEMgdrCKJemE
-         DM2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758340534; x=1758945334;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
-        b=YLW9n1vEUmCE0TMpDuNFgwCp84uutMqt/OhtrxQa+u2cfVInqA8Vd/nNuAjXqIEoyd
-         FKzsC0UheoI2nx8MfjpqVNdvfQ09XXgw9cHGqOytFVC4b9UPfHa9Lj32RDkRr2dKWSnf
-         6L+Nlfa7Y9njOlYIOa0PKOLEHkDzty9244rkXG7rCOmmQz7LFz1+IrJLClqxTKsAE55p
-         NMgGQcgPK5IrnWGcIHzPGXm8CX7qNhsiZKgHvRMWh8n/vCo5BipYG+CnRhLztZDFDogH
-         wI5rgNIQQZBwNcZs/1533q1TkHCdh1ZCeVtbQP+h5VsycE8rDFE86AfYxzzOCtYQxJGV
-         MIXg==
-X-Forwarded-Encrypted: i=1; AJvYcCW9S2kfmMqKm9fXycS9fJOL+hfZ3TRscirN8sqA6pUfuS/GGjQRm4sVRvfBArBZVwpRuSk6gY3xCYAg@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy7ypv6EjT0qjHV/8tGl4R316no4J16Ivrmig/6Q7K/bVlpLi8P
-	2Lv6mAYnXtxr+ej7qzWcaPjV7oad8E0QIfownsT7jGSuzehx30BlMQOym38BKYDUc6Pkfz0Gduh
-	AaAGmo23CawlWllM2uFyZxUVEAvTfmvw=
-X-Gm-Gg: ASbGncscSEounHCTsPJNgBK0EBRARgZlGZBJ10AAZ65d+ifN79ZPE+fbjsU1AgEM/Hj
-	W++HZZ3iS1/rIaLeE0blB4M2j8lflSEY2t9oKLJhAko2WeBhA7xWdFKjL2uh0A8Tx0bmdlG8ND6
-	t6f8wxzF7/6zNCygosEs5k1jc01K99Wo9kLnaEMAUOsPIEhGPCaD/JLSaElyaQT1OnzFlmJkAa7
-	r0SeIA=
-X-Google-Smtp-Source: AGHT+IH7cxRQcDAWrx6iopGK0fgAvvotX/SwRt/T/KElvH4XQULrd96czgOrVv1CSvA0vDpbRNCMKcVlhfdowxEBryU=
-X-Received: by 2002:a53:b3c5:0:b0:622:4818:ce38 with SMTP id
- 956f58d0204a3-6347f610c7emr3546092d50.37.1758340534336; Fri, 19 Sep 2025
- 20:55:34 -0700 (PDT)
+	s=arc-20240116; t=1758372816; c=relaxed/simple;
+	bh=F3Y0jp+sMwL2t11HK+ju1qlPSDUMGQ0dShUlHwo49OM=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=HhUCcXvJI6x7c7UXIEDr9pFSw0QfpW2I81XHSgJ0ksKFTsuODHbkzSv69w6BuBPKZv/VevtmUfKE9ERXhipwAySNXli2C27EJzlx3DgLFB/LktlMZ99sc7Edk1sINBar+eK6JWkCEBlXgiPolpL/XJXr9kysRl1vWuWT8DsjJqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from localhost.localdomain (unknown [202.112.113.212])
+	by APP-03 (Coremail) with SMTP id rQCowAD3RH+5o85oKYTuAw--.32282S2;
+	Sat, 20 Sep 2025 20:53:17 +0800 (CST)
+From: Ma Ke <make24@iscas.ac.cn>
+To: davem@davemloft.net,
+	andreas@gaisler.com,
+	make24@iscas.ac.cn
+Cc: sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH v3] sparc: fix error handling in scan_one_device()
+Date: Sat, 20 Sep 2025 20:53:12 +0800
+Message-Id: <20250920125312.3588-1-make24@iscas.ac.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID:rQCowAD3RH+5o85oKYTuAw--.32282S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7WryrKw45JFyrCr15ZF1DWrg_yoW8Zryxp3
+	4kAF98JrWUuF1kCr47Xr1xZFyUCw1jy3WfWw15Cw1UKrn3WryrX3s29rZ5Kw15trZrCF40
+	gF9Iqa10ya1UWw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9l14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
+	Cq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
+	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr
+	1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IE
+	rcIFxwCY1x0262kKe7AKxVWUAVWUtwCY02Avz4vE14v_Xr1l42xK82IYc2Ij64vIr41l4I
+	8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AK
+	xVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcV
+	AFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8I
+	cIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r
+	4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUn6wZDUUUU
+X-CM-SenderInfo: ppdnvj2u6l2u1dvotugofq/
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250918152830.438554-1-nschichan@freebox.fr> <20250918195806.6337-1-safinaskar@gmail.com>
- <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com>
-In-Reply-To: <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com>
-From: Askar Safin <safinaskar@gmail.com>
-Date: Sat, 20 Sep 2025 06:54:58 +0300
-X-Gm-Features: AS18NWCqg0xtU5KiNe17DWjmiPCEbBI_FSj5NCOyDGZFj_7oFaRqSu7O_vUKCrA
-Message-ID: <CAPnZJGDwETQVVURezSRxZB8ZAwBETQ5fwbXyeMpfDLuLW4rVdg@mail.gmail.com>
-Subject: Re: [PATCH RESEND 00/62] initrd: remove classic initrd support
-To: Nicolas Schichan <nschichan@freebox.fr>
-Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, axboe@kernel.dk, 
-	brauner@kernel.org, cyphar@cyphar.com, devicetree@vger.kernel.org, 
-	ecurtin@redhat.com, email2tema@gmail.com, graf@amazon.com, 
-	gregkh@linuxfoundation.org, hca@linux.ibm.com, hch@lst.de, 
-	hsiangkao@linux.alibaba.com, initramfs@vger.kernel.org, jack@suse.cz, 
-	julian.stecklina@cyberus-technology.de, kees@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, 
-	linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, 
-	linux-csky@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-hexagon@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
-	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, 
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, mcgrof@kernel.org, 
-	mingo@redhat.com, monstr@monstr.eu, mzxreary@0pointer.de, 
-	patches@lists.linux.dev, rob@landley.net, sparclinux@vger.kernel.org, 
-	thomas.weissschuh@linutronix.de, thorsten.blum@linux.dev, 
-	torvalds@linux-foundation.org, tytso@mit.edu, viro@zeniv.linux.org.uk, 
-	x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 19, 2025 at 6:25=E2=80=AFPM Nicolas Schichan <nschichan@freebox=
-.fr> wrote:
-> Considering that the deprecation message didn't get displayed in some
-> configurations, maybe it's a bit early at the very least.
+Once of_device_register() failed, we should call put_device() to
+decrement reference count for cleanup. Or it could cause memory leak.
+So fix this by calling put_device(), then the name can be freed in
+kobject_cleanup().
 
-I changed my opinion.
-Breaking users, who did not see a deprecation message at all,
-is unfair.
-I will send a patchset soon, which will remove initrd codepath,
-which currently contains deprecation notice. And I will put
-deprecation notice to
-other codepath.
+Calling path: of_device_register() -> of_device_add() -> device_add().
+As comment of device_add() says, 'if device_add() succeeds, you should
+call device_del() when you want to get rid of it. If device_add() has
+not succeeded, use only put_device() to drop the reference count'.
 
-Then in September 2026 I will fully remove initrd.
+Found by code review.
 
-> SMTP server I used wasn't authenticated to google, so all gmail
-> recipients were dropped. Hopefully this work better today.
+Cc: stable@vger.kernel.org
+Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
+Signed-off-by: Ma Ke <make24@iscas.ac.cn>
+---
+Changes in v3:
+- also fixed the same problem in arch/sparc/kernel/of_device_32.c as suggestions.
+Changes in v2:
+- retained kfree() manually due to the lack of a release callback function.
+---
+ arch/sparc/kernel/of_device_32.c | 1 +
+ arch/sparc/kernel/of_device_64.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-Yes, this time I got your email
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 06012e68bdca..284a4cafa432 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -387,6 +387,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 
+ 	if (of_device_register(op)) {
+ 		printk("%pOF: Could not register of device.\n", dp);
++		put_device(&op->dev);
+ 		kfree(op);
+ 		op = NULL;
+ 	}
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index f98c2901f335..f53092b07b9e 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -677,6 +677,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 
+ 	if (of_device_register(op)) {
+ 		printk("%pOF: Could not register of device.\n", dp);
++		put_device(&op->dev);
+ 		kfree(op);
+ 		op = NULL;
+ 	}
+-- 
+2.17.1
 
---=20
-Askar Safin
