@@ -1,67 +1,119 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com [209.85.219.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5F61227BA4;
-	Fri, 19 Sep 2025 18:58:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 737D4217F55
+	for <sparclinux@vger.kernel.org>; Sat, 20 Sep 2025 03:55:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758308340; cv=none; b=n7xrk0nbljqD9EGgCGgN6CmS0SLWF4m1WgMzk+yoj+0Kt5YriSd27OVFin3yq7ZheN43Lt63lfSPqPaj9nGgtwgFf+WEWlWo0GlS21/e/uPmG81zFYh4r3zuMSWl1E6RfZ960KrHe0urCDL6eBB0k7YDYgHGLPO6Ip2n5LlMZ+M=
+	t=1758340538; cv=none; b=F53uhM9nGTXPvIrpiaq3PSC65d6Dvf96aJx4Qrg9rgfuDfA61aCEdsdzdXnIOJP3JN4abEQTNFtsgh+24cJ4LG9ppIoBBka5DMbAgWdzH2Fwort9Wfd7Fz+pEbSRsB8UPbmUlSY2jYyYCTE0Kwz3gbNRWWkSVNHKeYcV/D59OSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758308340; c=relaxed/simple;
-	bh=H37s73J/sTetUrZnOXtGK1AH3JN1H3RvY/KRiB7PfUE=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=uv29WTtsqVTn+I5bTSW2SXM7doEbePICrML6jf1NXhadxPVastraS9loUXBSFUSgN1p7cnfmkIFIPvmI48+YAmMztnsCVDKCNZ1x1VL7ttJwc51i8M/rt4Rh6Es2YWSj7/blTJVeaV1h4XS6ablU40ykmqgGjWJ99uPKe7u8uGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=l4aYYwKO reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1758340538; c=relaxed/simple;
+	bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=R+ztk2LstOWH5b/Sj1xd6h3mVQ0E6e7f6FJs2YsDh/Cw9PBfaXrLglzFI9IZh+Wuga6Cri3LYu4tHwXGDOliVTAizg5hJvf+S4EveyEjun7832PSgfDsU+3Ku2eXBakF/wY5zk/6xeXc25nQle09wfV9AbX4/BIDk64M1+nOqZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZFPKZ+Oq; arc=none smtp.client-ip=209.85.219.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="l4aYYwKO"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4cT1xr04h3z1DHYY;
-	Fri, 19 Sep 2025 20:58:56 +0200 (CEST)
-Received: from [10.10.15.9] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4cT1xq4l7Cz1DDB7;
-	Fri, 19 Sep 2025 20:58:55 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1758308335;
-	bh=H37s73J/sTetUrZnOXtGK1AH3JN1H3RvY/KRiB7PfUE=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To;
-	b=l4aYYwKOAvvAwuTK81mYNnQVjHX8smOvvLZwb1jvLjitM5DIvacvWmKbJaHUbi/9+
-	 IpUy4KUHM00XmacQwjBbRN7rjAg/pTKolOCertvdIFRNS7gPuR0lIHTGmbcFNPgZVL
-	 3RH80OAZlKZtHxS1N3JzMtHiZ5eiZ3EQHInyioB83PGM1K2c2MDE5xAXSSh49AdTef
-	 D6tgPSD0LuV3kdQB1/hmUyuEEUq8wuKrNXJKl2B6yH+kqr+uDg95YO8VoCUbF55ISs
-	 Ly33of9y431w2Ph+RTUeILkjHwWY3rA6pXaBB8fLgGmEsdsKP1I5Gmc2J62TWs2slE
-	 XIVPQ+60bGKEw==
-Message-ID: <aff441b7-984f-4dfe-b009-d208209fb045@gaisler.com>
-Date: Fri, 19 Sep 2025 20:58:54 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZFPKZ+Oq"
+Received: by mail-yb1-f182.google.com with SMTP id 3f1490d57ef6-e931c71a1baso3466780276.0
+        for <sparclinux@vger.kernel.org>; Fri, 19 Sep 2025 20:55:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1758340534; x=1758945334; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
+        b=ZFPKZ+OqAAj1VhKugky3kjemp/VIqd75of38HGEmt1IOj91W4b7jLe+Myfu3ent1n8
+         I+OsNztO7baVS7SDNqQDhsKyRcudzp5fPl2dQ3EsKmIi5TGzzTSREF9BOYtdvwLtcCQ9
+         lX8BgfQDKyo0m2JfxIC+zD4CzDFgLzCucCTNnl0sqYXFOybMgodTGPU/RxeED3KpD6Ge
+         7yQG/mA18ZVwa9TAvZspdmtVMoFft3MmApalEp7/PJVnD7pAqdNfemDIdWOkktS1fK7N
+         5MIan1ZBYEJnEUm4lD9oNaRI/NjfTi3RIA4zVC5lAmPgo6eel/h/B86mXEMgdrCKJemE
+         DM2g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758340534; x=1758945334;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=wLR5A4WVJygISPHG42IIvYb+LPD25B9I3WH7jC2e5xU=;
+        b=YLW9n1vEUmCE0TMpDuNFgwCp84uutMqt/OhtrxQa+u2cfVInqA8Vd/nNuAjXqIEoyd
+         FKzsC0UheoI2nx8MfjpqVNdvfQ09XXgw9cHGqOytFVC4b9UPfHa9Lj32RDkRr2dKWSnf
+         6L+Nlfa7Y9njOlYIOa0PKOLEHkDzty9244rkXG7rCOmmQz7LFz1+IrJLClqxTKsAE55p
+         NMgGQcgPK5IrnWGcIHzPGXm8CX7qNhsiZKgHvRMWh8n/vCo5BipYG+CnRhLztZDFDogH
+         wI5rgNIQQZBwNcZs/1533q1TkHCdh1ZCeVtbQP+h5VsycE8rDFE86AfYxzzOCtYQxJGV
+         MIXg==
+X-Forwarded-Encrypted: i=1; AJvYcCW9S2kfmMqKm9fXycS9fJOL+hfZ3TRscirN8sqA6pUfuS/GGjQRm4sVRvfBArBZVwpRuSk6gY3xCYAg@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy7ypv6EjT0qjHV/8tGl4R316no4J16Ivrmig/6Q7K/bVlpLi8P
+	2Lv6mAYnXtxr+ej7qzWcaPjV7oad8E0QIfownsT7jGSuzehx30BlMQOym38BKYDUc6Pkfz0Gduh
+	AaAGmo23CawlWllM2uFyZxUVEAvTfmvw=
+X-Gm-Gg: ASbGncscSEounHCTsPJNgBK0EBRARgZlGZBJ10AAZ65d+ifN79ZPE+fbjsU1AgEM/Hj
+	W++HZZ3iS1/rIaLeE0blB4M2j8lflSEY2t9oKLJhAko2WeBhA7xWdFKjL2uh0A8Tx0bmdlG8ND6
+	t6f8wxzF7/6zNCygosEs5k1jc01K99Wo9kLnaEMAUOsPIEhGPCaD/JLSaElyaQT1OnzFlmJkAa7
+	r0SeIA=
+X-Google-Smtp-Source: AGHT+IH7cxRQcDAWrx6iopGK0fgAvvotX/SwRt/T/KElvH4XQULrd96czgOrVv1CSvA0vDpbRNCMKcVlhfdowxEBryU=
+X-Received: by 2002:a53:b3c5:0:b0:622:4818:ce38 with SMTP id
+ 956f58d0204a3-6347f610c7emr3546092d50.37.1758340534336; Fri, 19 Sep 2025
+ 20:55:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fix prototypes of reads[bwl]() on sparc64
-From: Andreas Larsson <andreas@gaisler.com>
-To: Al Viro <viro@zeniv.linux.org.uk>, sparclinux@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-References: <20250810034208.GJ222315@ZenIV>
- <fbb1a96c-d913-4bdf-b40c-c8981601bbf9@gaisler.com>
-Content-Language: en-US
-In-Reply-To: <fbb1a96c-d913-4bdf-b40c-c8981601bbf9@gaisler.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20250918152830.438554-1-nschichan@freebox.fr> <20250918195806.6337-1-safinaskar@gmail.com>
+ <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com>
+In-Reply-To: <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com>
+From: Askar Safin <safinaskar@gmail.com>
+Date: Sat, 20 Sep 2025 06:54:58 +0300
+X-Gm-Features: AS18NWCqg0xtU5KiNe17DWjmiPCEbBI_FSj5NCOyDGZFj_7oFaRqSu7O_vUKCrA
+Message-ID: <CAPnZJGDwETQVVURezSRxZB8ZAwBETQ5fwbXyeMpfDLuLW4rVdg@mail.gmail.com>
+Subject: Re: [PATCH RESEND 00/62] initrd: remove classic initrd support
+To: Nicolas Schichan <nschichan@freebox.fr>
+Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, axboe@kernel.dk, 
+	brauner@kernel.org, cyphar@cyphar.com, devicetree@vger.kernel.org, 
+	ecurtin@redhat.com, email2tema@gmail.com, graf@amazon.com, 
+	gregkh@linuxfoundation.org, hca@linux.ibm.com, hch@lst.de, 
+	hsiangkao@linux.alibaba.com, initramfs@vger.kernel.org, jack@suse.cz, 
+	julian.stecklina@cyberus-technology.de, kees@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, 
+	linux-csky@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, mcgrof@kernel.org, 
+	mingo@redhat.com, monstr@monstr.eu, mzxreary@0pointer.de, 
+	patches@lists.linux.dev, rob@landley.net, sparclinux@vger.kernel.org, 
+	thomas.weissschuh@linutronix.de, thorsten.blum@linux.dev, 
+	torvalds@linux-foundation.org, tytso@mit.edu, viro@zeniv.linux.org.uk, 
+	x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2025-09-19 20:02, Andreas Larsson wrote:
-> Picking this up to my for-next.
+On Fri, Sep 19, 2025 at 6:25=E2=80=AFPM Nicolas Schichan <nschichan@freebox=
+.fr> wrote:
+> Considering that the deprecation message didn't get displayed in some
+> configurations, maybe it's a bit early at the very least.
 
-...and swapping sparc64 to subject be prefix:
+I changed my opinion.
+Breaking users, who did not see a deprecation message at all,
+is unfair.
+I will send a patchset soon, which will remove initrd codepath,
+which currently contains deprecation notice. And I will put
+deprecation notice to
+other codepath.
 
-sparc64: fix prototypes of reads[bwl]()
+Then in September 2026 I will fully remove initrd.
 
-Cheers,
-Andreas
+> SMTP server I used wasn't authenticated to google, so all gmail
+> recipients were dropped. Hopefully this work better today.
 
+Yes, this time I got your email
+
+--=20
+Askar Safin
