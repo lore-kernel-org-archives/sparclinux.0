@@ -1,116 +1,149 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D654627455;
-	Mon, 22 Sep 2025 05:49:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6619213E9C
+	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 14:29:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758520151; cv=none; b=uQxhfaXBbJ0AYQOVjPvdVE/lx6qQZ/e1BUoSgr696dPYRuP5TfOSQx3qvPi1apEv2CKYfU/3YW/IoEiAykHNQU9y+dkpae+fm+neIjgw6sO1WbIEpMi4QSbDvEFNcPfgPKOo60q5eCipFqHn8PQ9NsSRG+eztuR7MJj4sCGoScg=
+	t=1758551350; cv=none; b=GL/qrEI9OfmuZDQKsZEL17Mnln07X9Kv00860yPOnSxvUy/grwKc1SUFvZumYgM0S3WSMqW+O/x1xCUS2bGHfsqe8J28QWVDnjTCATclxGldcBUsCYFjp1OFceKpwBYSymWrPXzt72i3QgIIQlJDXGfVoK8n1q4GVJogf5rHUP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758520151; c=relaxed/simple;
-	bh=xLznKOPCZJxUINUg6ogY4rcZGSnCqCh6PHSXO/zoNl0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=m2WpOsTlFarF1LUswV35NCGAL93iKkuBEKCRfywDv2QmBftPYH4WjRmiUdYSPr7wCVQgCsMMgQZ0EjIgPGUkfYZRc5r4+SZlRrZWJuobLfsd9dLYRJntqijLS9AbDyApsElsjgctazFisro8ohvlRyH42uq+8kTf4etwHcAWv38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=C7CF/riN reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1758551350; c=relaxed/simple;
+	bh=zds9c11i5EPuC+LW5E2qVk5slu7nHVv1cCYASY1uK64=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dfLTtR1xAAgkOFTeGN2LzPESaKfpRbdZ3JxbyrLs2M7+fapA7GPHHjTomKv1HdyBpZMkmHzaF+ok7RAW4nC9G+VnJ/M3qWa8NKB/t8glZu6wCtn6FJjN8+Z5iel5uV7+XyySJvWp5hh3PaYy8151Ta+dQCD8TsgtSd9vXJbV5oQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freebox.fr; spf=pass smtp.mailfrom=freebox.fr; dkim=pass (2048-bit key) header.d=freebox-fr.20230601.gappssmtp.com header.i=@freebox-fr.20230601.gappssmtp.com header.b=T5tm19TQ; arc=none smtp.client-ip=209.85.167.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=freebox.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=freebox.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="C7CF/riN"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4cVXGz2Gfbz1FXSV;
-	Mon, 22 Sep 2025 07:48:59 +0200 (CEST)
-Received: from [10.10.15.9] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4cVXGz0Gx3z1FXSX;
-	Mon, 22 Sep 2025 07:48:59 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1758520139;
-	bh=OtRjZMliMamb/V4HMei//Y9bvbkSRWDtwSqjtwGbWTM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=C7CF/riNw5nkFMWvCk6RcdVD4xQcy5Q03qeD27YEPK2pxwJEmm2cJWOulwfd57C1q
-	 bLUMKTWcHAZZ7G9bF8wZougelLI7Xe0CZXKSGXKSpFR8R3zW5iQBFgW6aQ8RkiY/Kd
-	 QlXnEMn4epa4CliUeOcTeHPpI/pxJFnxfYrF1/5cMdbhzKhbQ6zHJldd/pYJTE+0dL
-	 ZkSJGNBLcM5wSTfGqdTnxWmKRNsWIQdGcBcivNFzaj5fTjQqKQMFBPbXZXBbUL5O8P
-	 6sFWcqBiiYpYUYo0gxTr2s2RJZzPn8Ft2NRfLLr4w8Rts+Q94ukPZClxJNcaZxsPPE
-	 eonlLD/dp9qKw==
-Message-ID: <93a6baf0-bafe-4855-8679-aec375debaa6@gaisler.com>
-Date: Mon, 22 Sep 2025 07:48:58 +0200
+	dkim=pass (2048-bit key) header.d=freebox-fr.20230601.gappssmtp.com header.i=@freebox-fr.20230601.gappssmtp.com header.b="T5tm19TQ"
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-57d8ff3944dso1580697e87.3
+        for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 07:29:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=freebox-fr.20230601.gappssmtp.com; s=20230601; t=1758551345; x=1759156145; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zds9c11i5EPuC+LW5E2qVk5slu7nHVv1cCYASY1uK64=;
+        b=T5tm19TQZikqjHqoMR54+Q7+U/JgAbrwxCDjAEr+j4BV3oKJ1vYACVblsq/0dgQB3O
+         xzcE44eyHkSt3+1/LwS8iG05NDQybwpGXmErJGsX7qf1JoHnxQE/QJKsAyQCq5BZ8yUL
+         fZfsv/oGGtZ7K0RaFe8fFXZtm3jS4C5jkLwGskUTTKy01oseY4elZgmJ1wcia/Nwx29N
+         /akdQTqyJ1yRSFcBAOKV1BSGnn1RLnJEPHIfsiagl3HTh7OEmakPzgo3DZkunVSmL2Xx
+         hH2z75SXfyBjFg0mXpIzvJjI6rXfLJCfOxCsk/r78caU8Q500JO1XsPO5Zy2dD22Jb+z
+         2rDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758551345; x=1759156145;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zds9c11i5EPuC+LW5E2qVk5slu7nHVv1cCYASY1uK64=;
+        b=gQ2zhElvkPNaMki0MKD6PEm6U80e6ALrenq524J9Msitg0cu+EowzvoFIOLn0QZKTE
+         n521yJ17jjlgdfL9hfP+lLHU6pTs1tBdaPs4Zv1aVBQ1qe0lSBgqFKnhAjrERit3tUNR
+         c5OiyYm8FyypfvaDEz8uM7p0dvqp+FQpWp0x23lQbJsxDaG3tH4yfGLbISKj5+OMJ2ZB
+         F5J1TXuNFiM5WFIsKwHtrLl67wn73big7A6aMdH4V2xpXczvMWGLtnZoYM2/KNbVX8d/
+         DvIuA0OXwjQ5qQxgOjCQ8R8rpq6JEz/x5WoRrs9tauqq4Ak4zD1f7VvocMVMc1ZeGAma
+         nXpQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVsUOcGAtbyK1mAsDG1Me9D2IXCD0ibefa0CPY6/5PQjIpChTRcDXRhjlKq2upkCAnTBTKwmv+Ot7HE@vger.kernel.org
+X-Gm-Message-State: AOJu0YzU97ahES02LM90ZQT4YEipMxmfiYRfBylJk7dmgL3rrfE7P7a7
+	3Sdwr5/hGxA6qiTlDZFTpleMLz8LbzJAQ4eppZoHB9zM8kn1x9vS6dGPS9My7Ygv9DefWDFOb1i
+	xpHGNu6Fd7+gTtkUfspGv1hP/tnCAtuF+wVlVDeGwPA==
+X-Gm-Gg: ASbGncsHlmVGqX4k722fRn8Kz7D4YBbDPSzwYeJ3gUF9bz/UKI+2036co0rfaFl4muE
+	Xfz6OOl9zC6h6P3+ouF83qbCg88R5euUrtzJwZCBgFBPINed5JI0Jsecqw/NXHdOvMiIKAkYCDz
+	N1i4k4XRvhAFK16WfPBtgMfIu5d06inOFhRLEqxqHRaxHBcC8CvKqr6RDciWp2PpeKP/041njev
+	zi9ibMNzWPzbN8=
+X-Google-Smtp-Source: AGHT+IF9Kx0YHTgWZximr8IphichwJGTQ/wmiFKfxBKU7xEPIwY53K1eZ5EsUZqb+vcW1xAllqgOcQU2VEEacURTmEE=
+X-Received: by 2002:a05:6512:4389:b0:57b:478b:d8a6 with SMTP id
+ 2adb3069b0e04-57b478be162mr3313173e87.35.1758551344116; Mon, 22 Sep 2025
+ 07:29:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] sparc: fix error handling in scan_one_device()
-To: Ma Ke <make24@iscas.ac.cn>, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20250920125312.3588-1-make24@iscas.ac.cn>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20250920125312.3588-1-make24@iscas.ac.cn>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20250918152830.438554-1-nschichan@freebox.fr> <20250918195806.6337-1-safinaskar@gmail.com>
+ <CAHNNwZAzecVcJXZmycX063-=p-M5jVkfStfgYVKJruOFo7y9zg@mail.gmail.com> <CAPnZJGDwETQVVURezSRxZB8ZAwBETQ5fwbXyeMpfDLuLW4rVdg@mail.gmail.com>
+In-Reply-To: <CAPnZJGDwETQVVURezSRxZB8ZAwBETQ5fwbXyeMpfDLuLW4rVdg@mail.gmail.com>
+From: Nicolas Schichan <nschichan@freebox.fr>
+Date: Mon, 22 Sep 2025 16:28:52 +0200
+X-Gm-Features: AS18NWBjmNA3KBj8cPrgwDAVm5OX9a5odWP7LbRlHvhoE96nP3yo2_PGoZ1JbG8
+Message-ID: <CAHNNwZC7gC7zaZGiSBhobSAb4m2O1BuoZ4r=SQBF-tCQyuAPvw@mail.gmail.com>
+Subject: Re: [PATCH RESEND 00/62] initrd: remove classic initrd support
+To: Askar Safin <safinaskar@gmail.com>
+Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, axboe@kernel.dk, 
+	brauner@kernel.org, cyphar@cyphar.com, devicetree@vger.kernel.org, 
+	ecurtin@redhat.com, email2tema@gmail.com, graf@amazon.com, 
+	gregkh@linuxfoundation.org, hca@linux.ibm.com, hch@lst.de, 
+	hsiangkao@linux.alibaba.com, initramfs@vger.kernel.org, jack@suse.cz, 
+	julian.stecklina@cyberus-technology.de, kees@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, 
+	linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, 
+	linux-csky@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-openrisc@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, mcgrof@kernel.org, 
+	mingo@redhat.com, monstr@monstr.eu, mzxreary@0pointer.de, 
+	patches@lists.linux.dev, rob@landley.net, sparclinux@vger.kernel.org, 
+	thomas.weissschuh@linutronix.de, thorsten.blum@linux.dev, 
+	torvalds@linux-foundation.org, tytso@mit.edu, viro@zeniv.linux.org.uk, 
+	x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2025-09-20 14:53, Ma Ke wrote:
-> Once of_device_register() failed, we should call put_device() to
-> decrement reference count for cleanup. Or it could cause memory leak.
-> So fix this by calling put_device(), then the name can be freed in
-> kobject_cleanup().
-> 
-> Calling path: of_device_register() -> of_device_add() -> device_add().
-> As comment of device_add() says, 'if device_add() succeeds, you should
-> call device_del() when you want to get rid of it. If device_add() has
-> not succeeded, use only put_device() to drop the reference count'.
-> 
-> Found by code review.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
-> Signed-off-by: Ma Ke <make24@iscas.ac.cn>
-> ---
-> Changes in v3:
-> - also fixed the same problem in arch/sparc/kernel/of_device_32.c as suggestions.
-> Changes in v2:
-> - retained kfree() manually due to the lack of a release callback function.
-> ---
->  arch/sparc/kernel/of_device_32.c | 1 +
->  arch/sparc/kernel/of_device_64.c | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-> index 06012e68bdca..284a4cafa432 100644
-> --- a/arch/sparc/kernel/of_device_32.c
-> +++ b/arch/sparc/kernel/of_device_32.c
-> @@ -387,6 +387,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
->  
->  	if (of_device_register(op)) {
->  		printk("%pOF: Could not register of device.\n", dp);
-> +		put_device(&op->dev);
->  		kfree(op);
->  		op = NULL;
->  	}
-> diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-> index f98c2901f335..f53092b07b9e 100644
-> --- a/arch/sparc/kernel/of_device_64.c
-> +++ b/arch/sparc/kernel/of_device_64.c
-> @@ -677,6 +677,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
->  
->  	if (of_device_register(op)) {
->  		printk("%pOF: Could not register of device.\n", dp);
-> +		put_device(&op->dev);
->  		kfree(op);
->  		op = NULL;
->  	}
+[resending to the lists and Cc, sorry I initially replied only to Askar]
 
+On Sat, Sep 20, 2025 at 5:55=E2=80=AFAM Askar Safin <safinaskar@gmail.com> =
+wrote:
+> On Fri, Sep 19, 2025 at 6:25=E2=80=AFPM Nicolas Schichan <nschichan@freeb=
+ox.fr> wrote:
+> > Considering that the deprecation message didn't get displayed in some
+> > configurations, maybe it's a bit early at the very least.
+>
+> I changed my opinion.
+> Breaking users, who did not see a deprecation message at all,
+> is unfair.
+> I will send a patchset soon, which will remove initrd codepath,
+> which currently contains deprecation notice. And I will put
+> deprecation notice to
+> other codepath.
 
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+Thanks
 
-Picking this up to my for-next.
+> Then in September 2026 I will fully remove initrd.
 
-Thanks,
-Andreas
+Is there a way to find some kind of middle ground here ?
 
+I'm lead to believe that the main issue with the current code is that
+it needs to parse the superblocks of the ramdisk image in order to get
+the amount to data to copy into /dev/ram0.
+
+It looks like it is partly because of the ramdisk_start=3D kernel
+command line parameter which looks to be a remnant of the time it was
+possible to boot on floppy disk on x86.
+
+This kernel command line allows to look for a rootfs image at an
+offset into the initrd data.
+
+If we assume now that the rootfs image data starts at the beginning of
+the initrd image and is the only part of the initrd image this would
+indeed remove a lot of complexity.
+
+Maybe it would be possible to remove the identify_ramdisk_image()
+function and just copy the actual size of /initrd.image into
+/dev/ram0. This would allow any file system to be used in an initrd
+image (no just romfs, cramfs, minixfs, ext2fs and squashfs), and this
+would simplify the code in init/do_mounts_rd.c greatly, with just the
+function rd_load_image() and nr_blocks() remaining in this file.
+
+I can send a patch for that but first I need to sort out my SMTP
+issues from the other day.
+
+Regards,
+
+--=20
+Nicolas Schichan
