@@ -1,92 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA4A31547CC;
-	Mon, 22 Sep 2025 02:44:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D654627455;
+	Mon, 22 Sep 2025 05:49:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758509062; cv=none; b=mWJrCsJOt6QXCtileceQF5DJDYMRj2OUFSmDFzTZU1sNuD8DeHAPLxMWuQpHpqlqJjuGz8JnrqUcYK8SXaQJwfiC69VA7vIMrndBcEe9Q4tzb7n2fnxEndZUXjXmjact64HY5ZZfTpdEcRUJGB2/PYV4HvXiqDjCGHmkgKuXfrU=
+	t=1758520151; cv=none; b=uQxhfaXBbJ0AYQOVjPvdVE/lx6qQZ/e1BUoSgr696dPYRuP5TfOSQx3qvPi1apEv2CKYfU/3YW/IoEiAykHNQU9y+dkpae+fm+neIjgw6sO1WbIEpMi4QSbDvEFNcPfgPKOo60q5eCipFqHn8PQ9NsSRG+eztuR7MJj4sCGoScg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758509062; c=relaxed/simple;
-	bh=i9vAa0AsWTqSQzz6uFyc7VXVf8ZJ7QlTL9Ja3Bg/hgg=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=CdIJ5aJruR1KvkHWp2rUC+G2S2acSkJxfzI4WMKFqw6vWPGXZJKlIiv62I51RV+RCJCEmS1ho++emt2wbeezj6q+Ic7frlAduMghisDFoBslumYZtqm9ZCMz2nzHm5pZkfNH83vCrBPjultrSFCN0z0yYYr3m5woCZtWY2s8FUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kgX4zQG9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758520151; c=relaxed/simple;
+	bh=xLznKOPCZJxUINUg6ogY4rcZGSnCqCh6PHSXO/zoNl0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=m2WpOsTlFarF1LUswV35NCGAL93iKkuBEKCRfywDv2QmBftPYH4WjRmiUdYSPr7wCVQgCsMMgQZ0EjIgPGUkfYZRc5r4+SZlRrZWJuobLfsd9dLYRJntqijLS9AbDyApsElsjgctazFisro8ohvlRyH42uq+8kTf4etwHcAWv38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=C7CF/riN reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kgX4zQG9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF8F6C4CEE7;
-	Mon, 22 Sep 2025 02:44:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758509061;
-	bh=i9vAa0AsWTqSQzz6uFyc7VXVf8ZJ7QlTL9Ja3Bg/hgg=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=kgX4zQG9Ggek7o49bHXrtRIo5kLI9byQA1VGrO0g2NhIfgF+O7g3DmNB4VQlWu1RU
-	 rvn5Ng1I/gwc6uqXQlAM/GSftBSoRv2cs1GgW98+sggq0LEaVHB/4xzRlQDOEBTq1V
-	 1JYbrUBIXkWzk+Fxrb0Sh9GHTmuk2EE+mV4Erfh9IKaJWfsdSPKF2RmfatCJ5ey+OJ
-	 pKeM2giE9tz2rFVxxjrnv7iaAggC9I9+OA/rkyeZeNdXzU1EZLtTCagulCOYZflJrI
-	 fxVswkLQWeowr2MiQl8Ix33L2RboXxqNbIRe1zX9vbj1iHayNHW05Rw5FrDBFRHP5w
-	 e32O7vOprApgQ==
-From: Michael Ellerman <mpe@kernel.org>
-To: Christophe Leroy <christophe.leroy@csgroup.eu>, Thomas =?utf-8?Q?Wei?=
- =?utf-8?Q?=C3=9Fschuh?=
- <thomas.weissschuh@linutronix.de>, Andy Lutomirski <luto@kernel.org>,
- Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino
- <vincenzo.frascino@arm.com>, Arnd Bergmann <arnd@arndb.de>, "David S.
- Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Nick
- Alcock <nick.alcock@oracle.com>, John Stultz <jstultz@google.com>, Stephen
- Boyd <sboyd@kernel.org>, John Paul Adrian Glaubitz
- <glaubitz@physik.fu-berlin.de>, Shuah Khan <shuah@kernel.org>, Catalin
- Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Theodore
- Ts'o <tytso@mit.edu>, "Jason A. Donenfeld" <Jason@zx2c4.com>, Russell King
- <linux@armlinux.org.uk>, Madhavan Srinivasan <maddy@linux.ibm.com>,
- Nicholas Piggin <npiggin@gmail.com>, Huacai Chen <chenhuacai@kernel.org>,
- WANG Xuerui <kernel@xen0n.name>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>, Vasily
- Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle
- <svens@linux.ibm.com>, Nagarathnam Muthusamy
- <nagarathnam.muthusamy@oracle.com>, Shannon Nelson <sln@onemain.com>,
- Nicholas Piggin <npiggin@gmail.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- linux-mips@vger.kernel.org, linux-s390@vger.kernel.org
-Subject: Re: [PATCH v3 07/36] powerpc/vdso: Explicitly include
- asm/cputable.h and asm/feature-fixups.h
-In-Reply-To: <41d100c5-4706-400e-a61a-46b068f1bc74@csgroup.eu>
-References: <20250917-vdso-sparc64-generic-2-v3-0-3679b1bc8ee8@linutronix.de>
- <20250917-vdso-sparc64-generic-2-v3-7-3679b1bc8ee8@linutronix.de>
- <41d100c5-4706-400e-a61a-46b068f1bc74@csgroup.eu>
-Date: Mon, 22 Sep 2025 12:44:18 +1000
-Message-ID: <m1348fmcjh.fsf@mpe.ellerman.id.au>
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="C7CF/riN"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4cVXGz2Gfbz1FXSV;
+	Mon, 22 Sep 2025 07:48:59 +0200 (CEST)
+Received: from [10.10.15.9] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4cVXGz0Gx3z1FXSX;
+	Mon, 22 Sep 2025 07:48:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=simplycom2; t=1758520139;
+	bh=OtRjZMliMamb/V4HMei//Y9bvbkSRWDtwSqjtwGbWTM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=C7CF/riNw5nkFMWvCk6RcdVD4xQcy5Q03qeD27YEPK2pxwJEmm2cJWOulwfd57C1q
+	 bLUMKTWcHAZZ7G9bF8wZougelLI7Xe0CZXKSGXKSpFR8R3zW5iQBFgW6aQ8RkiY/Kd
+	 QlXnEMn4epa4CliUeOcTeHPpI/pxJFnxfYrF1/5cMdbhzKhbQ6zHJldd/pYJTE+0dL
+	 ZkSJGNBLcM5wSTfGqdTnxWmKRNsWIQdGcBcivNFzaj5fTjQqKQMFBPbXZXBbUL5O8P
+	 6sFWcqBiiYpYUYo0gxTr2s2RJZzPn8Ft2NRfLLr4w8Rts+Q94ukPZClxJNcaZxsPPE
+	 eonlLD/dp9qKw==
+Message-ID: <93a6baf0-bafe-4855-8679-aec375debaa6@gaisler.com>
+Date: Mon, 22 Sep 2025 07:48:58 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3] sparc: fix error handling in scan_one_device()
+To: Ma Ke <make24@iscas.ac.cn>, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20250920125312.3588-1-make24@iscas.ac.cn>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20250920125312.3588-1-make24@iscas.ac.cn>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Christophe Leroy <christophe.leroy@csgroup.eu> writes:
-> Le 17/09/2025 =C3=A0 16:00, Thomas Wei=C3=9Fschuh a =C3=A9crit=C2=A0:
->> The usage of ASM_FTR_IFCLR(CPU_TR_ARCH_31) requires asm/cputable.h and
->> asm/feature-fixups.h. Currently these headers are included transitively,
->> but that transitive inclusion is about to go away.
->
-> Hum ...
->
-> That was unexpectedly added by commit 9c7bfc2dc21e ("powerpc/64s: Make=20
-> POWER10 and later use pause_short in cpu_relax loops")
->
-> In theory, vdso/ headers shouldn't include any headers outside of vdso/
+On 2025-09-20 14:53, Ma Ke wrote:
+> Once of_device_register() failed, we should call put_device() to
+> decrement reference count for cleanup. Or it could cause memory leak.
+> So fix this by calling put_device(), then the name can be freed in
+> kobject_cleanup().
+> 
+> Calling path: of_device_register() -> of_device_add() -> device_add().
+> As comment of device_add() says, 'if device_add() succeeds, you should
+> call device_del() when you want to get rid of it. If device_add() has
+> not succeeded, use only put_device() to drop the reference count'.
+> 
+> Found by code review.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
+> Signed-off-by: Ma Ke <make24@iscas.ac.cn>
+> ---
+> Changes in v3:
+> - also fixed the same problem in arch/sparc/kernel/of_device_32.c as suggestions.
+> Changes in v2:
+> - retained kfree() manually due to the lack of a release callback function.
+> ---
+>  arch/sparc/kernel/of_device_32.c | 1 +
+>  arch/sparc/kernel/of_device_64.c | 1 +
+>  2 files changed, 2 insertions(+)
+> 
+> diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+> index 06012e68bdca..284a4cafa432 100644
+> --- a/arch/sparc/kernel/of_device_32.c
+> +++ b/arch/sparc/kernel/of_device_32.c
+> @@ -387,6 +387,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+>  
+>  	if (of_device_register(op)) {
+>  		printk("%pOF: Could not register of device.\n", dp);
+> +		put_device(&op->dev);
+>  		kfree(op);
+>  		op = NULL;
+>  	}
+> diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+> index f98c2901f335..f53092b07b9e 100644
+> --- a/arch/sparc/kernel/of_device_64.c
+> +++ b/arch/sparc/kernel/of_device_64.c
+> @@ -677,6 +677,7 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+>  
+>  	if (of_device_register(op)) {
+>  		printk("%pOF: Could not register of device.\n", dp);
+> +		put_device(&op->dev);
+>  		kfree(op);
+>  		op = NULL;
+>  	}
 
-Oops, looks like that was my fault.
 
-It's expected that there can be feature fixups needed in the VDSO,
-vdso_feature_fixups() handles them, so that's OK. But the headers
-pulling from outside vdso is a pity.
+Reviewed-by: Andreas Larsson <andreas@gaisler.com>
 
-Still this patch is fine as-is.
+Picking this up to my for-next.
 
-cheers
+Thanks,
+Andreas
+
