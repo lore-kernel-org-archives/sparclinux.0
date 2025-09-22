@@ -1,42 +1,44 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+Received: from out-173.mta0.migadu.com (out-173.mta0.migadu.com [91.218.175.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAAE317712
-	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 21:05:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0BBA31A560
+	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 21:05:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758575147; cv=none; b=OZ75bXbKUk1ct99Ob823IR2QOCPP5LVkLeL2UIl2cMVOSZnGu0EhzkR9m0B7OAPMvJuxeNMWwUhRdB74gFHkpWAZsWdjr57k4mDJs835szoNunxCDqN+dk+w4rbv4C2q2M+++SbsDuzTl0BLhIBKrfDtShjjjR862bSCfg/m4ME=
+	t=1758575148; cv=none; b=tL2uEp3u0CGWRfj4Yf7+sWvgBRZal+lLGvs+5/J6qttZvpSIqlj17aUm81yMu71EMrdMLKnOihvZsAnUTxIwwmGGJXVXxLEvXPVe2AA6chT8HPb1s/9GkyJb1uhdUYJivbqEhgRcwnebq30RY2sEC3yfSZSzNrdOWfKRREAKrn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758575147; c=relaxed/simple;
-	bh=WAl5OuqroQdkdQI4Wd3qHEcTe93M5exvNPWBFvPsfw0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nf21j3JjRpfY81Y+IqfQRdG/i3xhWGqw8j0EnY0wXvRGtD2OohG3v/JmHQSpBGcPOy13LL0+UWZvUA9wNHc0zuPEoXqHIW1fb6SlcRdGOnNQbq+GjyZ9FeT/fs5aS1qSR5kIxpP57u99dkpEO+/8KEwV1WxGhxxurE0oM+PNv5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ZdxwylqD; arc=none smtp.client-ip=91.218.175.188
+	s=arc-20240116; t=1758575148; c=relaxed/simple;
+	bh=ym12jfxvpZrKqi1e8HBvx3s69F4LJyvx6W/A4E5u+Dk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Q371DtOuyzrKKLnYIiwv3B9H0Wy3zp9jvztdx6e1QXj5TPo2rQiN7RTfrmmA5oVTa2GyP6xAl9iFakFRf3G+HfMwVL0T5LXTDPjBbc3EIQ3KK0DKTVOSd3jmeKIZQyyQ1bhl3NVVv5fM6uH8QWzj2m3IyLjMWX5j1uUGDm2+KaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=jg1YGrDO; arc=none smtp.client-ip=91.218.175.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ZdxwylqD"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="jg1YGrDO"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1758575130;
+	t=1758575145;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=wz2Qh6CCUAyXy2y7KZplScVX0TJVeLEXcg6HqXMpxrE=;
-	b=ZdxwylqDL5SfLBTOIJTaseeeDKrVEUiJsZ7gFQ4VmBzQEEYewVGzQ0ZNiyDCrYMO5jKYBf
-	MmnqqQMPNM5G54o3nFWZDMFEFkm1eyGMDZ1pQPVyO2cZYNryl5RSsKBLWWEO/IoGWIUQLJ
-	0n2DXm/aHRIbJVJcUUUBRhveODw32bQ=
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=x39DcwDEOpUr4+fWk8Oeko+PXOBj+YgR+7cgbJSgLdQ=;
+	b=jg1YGrDO5dUE4H6HK/1oBTvIX9epmOVLYQ0Z87/VLnbOfFKIJYQNeRcMtKllHfdMlb0N8X
+	X5IJbco5DRJsDViV4FzX/NcfVAvUY8Xn0i8f7ksOq0wbGRaKHu7XMpFG3JPBqHYweHFM5/
+	92KelNPqJ/ZvrpKNY6s5QgFtZeo0opQ=
 From: Thorsten Blum <thorsten.blum@linux.dev>
 To: "David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+	Andreas Larsson <andreas@gaisler.com>
 Cc: linux-hardening@vger.kernel.org,
 	Thorsten Blum <thorsten.blum@linux.dev>,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/8] sparc: PCI: Replace deprecated strcpy with strscpy
-Date: Mon, 22 Sep 2025 23:03:50 +0200
-Message-ID: <20250922210408.1723452-1-thorsten.blum@linux.dev>
+Subject: [PATCH 8/8] sparc: Replace deprecated strcpy with strscpy in handle_nextprop_quirks
+Date: Mon, 22 Sep 2025 23:03:57 +0200
+Message-ID: <20250922210408.1723452-8-thorsten.blum@linux.dev>
+In-Reply-To: <20250922210408.1723452-1-thorsten.blum@linux.dev>
+References: <20250922210408.1723452-1-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -53,48 +55,30 @@ No functional changes intended.
 Link: https://github.com/KSPP/linux/issues/88
 Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 ---
- arch/sparc/kernel/pcic.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/prom_common.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 25fe0a061732..f894ae79e78a 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
-+#include <linux/string.h>
- #include <linux/jiffies.h>
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index c9ec70888a39..d258fd10db01 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -120,11 +120,14 @@ EXPORT_SYMBOL(of_find_in_proplist);
+  */
+ static int __init handle_nextprop_quirks(char *buf, const char *name)
+ {
+-	if (!name || strlen(name) == 0)
++	size_t name_len;
++
++	name_len = name ? strlen(name) : 0;
++	if (name_len == 0)
+ 		return -1;
  
- #include <asm/swift.h> /* for cache flushing. */
-@@ -352,7 +353,7 @@ int __init pcic_probe(void)
- 	pbm = &pcic->pbm;
- 	pbm->prom_node = node;
- 	prom_getstring(node, "name", namebuf, 63);  namebuf[63] = 0;
--	strcpy(pbm->prom_name, namebuf);
-+	strscpy(pbm->prom_name, namebuf);
- 
- 	{
- 		extern int pcic_nmi_trap_patch[4];
-@@ -477,7 +478,7 @@ static void pcic_map_pci_device(struct linux_pcic *pcic,
- 	int j;
- 
- 	if (node == 0 || node == -1) {
--		strcpy(namebuf, "???");
-+		strscpy(namebuf, "???");
- 	} else {
- 		prom_getstring(node, "name", namebuf, 63); namebuf[63] = 0;
- 	}
-@@ -536,7 +537,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
- 	char namebuf[64];
- 
- 	if (node == 0 || node == -1) {
--		strcpy(namebuf, "???");
-+		strscpy(namebuf, "???");
- 	} else {
- 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
- 	}
+ #ifdef CONFIG_SPARC32
+-	strcpy(buf, name);
++	strscpy(buf, name, name_len + 1);
+ #endif
+ 	return 0;
+ }
 -- 
 2.51.0
 
