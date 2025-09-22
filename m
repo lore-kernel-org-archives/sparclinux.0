@@ -1,32 +1,32 @@
-Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
+Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD59727B343
-	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 21:05:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7590286413
+	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 21:05:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758575140; cv=none; b=p9k+m2yFkUmzrOu2hdc4IJQJGScvda96VLM6HnQkFdALsGodBl/8apF9jy01c7R+7lTzv11Nt+Zqre9IMNDEe8Vv0s2pg0uQLr2sLbWudmSD2rVZWcbClvRrqTworI3rtbhxmblaNMnu+p7vK0PL7P92IeEkQrKkVZUxvqs8RA0=
+	t=1758575143; cv=none; b=XGBMlMf5GDl0fwk7eDz2Xdg0uzgCm6mQs18jlVzFIqTBMr6avqJIkRXlLcMG1Jpgi9tPXDj5CgGEEXcwhxcUxNPRYDIxKGm2eMXWsCeMOccqhlRYpzcEmY7UHWHGp3ERsH5qUyvYrLYpLjGn5aw9HOVEMa+eop7tWLeAJVeU7fQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758575140; c=relaxed/simple;
-	bh=rwLqPxmOBruycRjBQ9i1fCOtBWlJI0v0bWB3fUOU5/E=;
+	s=arc-20240116; t=1758575143; c=relaxed/simple;
+	bh=LtvaeOCXxLIS6jLl/VPm/pQI1+J5WDA6XMmRLUELPh0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mp+wnTu3ev7XceWkq1kQwyB20FDCOHemY2Yo1Tn4RYdtRl3R5Dr3JeC68vY+kQvXSyIiYPuVPYD2FArPhoMRAa8bu2S1TByiTkR0BneFthJ1DWWsm+KMhWAvvaCq6jO2kZvUt5OASKay/lvReb75W+FPV/d/Lptbd/ryVpw68ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=F89G2gDk; arc=none smtp.client-ip=91.218.175.170
+	 MIME-Version; b=VKcfX4vSOBkelmRHskpn5/Zu8NgUUqL4bUdJIP49k0biQyM3GpWA9cy0tbkJpcfSSyV7HLTUfItZz5Gn9oD4/206B2CMPAefUgxN4x/4aUQNQpqfObgKiz1AYWSPqWk5kRJmSPjqcn3sJb3sifjUfKKV81KDD4c0D8ErnM3mL/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Kgk1vISb; arc=none smtp.client-ip=91.218.175.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="F89G2gDk"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Kgk1vISb"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1758575136;
+	t=1758575138;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=8XwWsws5dYIHiCnlZKvcgGQqxLqmlp0j+/eNhlPV+68=;
-	b=F89G2gDkkFU+nV0Zb/z9LBP+wBy7w8chM8MC0DhNZWs7ejAoG5MV9VN4MOE9QYtYMBYYZN
-	9rh8DcBomKbE69EGDnKISTIWDy/la1/IJQ4OtuoMwZx1IU0o5wLsxPLSfOad69XuT1mKXy
-	8thCQADhukI0YK6S5lDwB8VP6S4iO3M=
+	bh=CS1nVcM/7Pabq7qkTGNA56dWIxSoVNkOYZkqb/PSQyA=;
+	b=Kgk1vISbxVCEiZigxUrtRwDozS2qxJgDw3l0HvZhq13iv0Ut+mHvWMDmF2jTYa0f1Rr+xz
+	RuUvLSCWY4R+clVK5meQGSX38ayq9DDMyY8Jab4Vpj1l5izuJ/SZXtLOF+vXeFticTnfgF
+	o4y4RWcV9fSE1EusqHQ/JDLRXpWiwDY=
 From: Thorsten Blum <thorsten.blum@linux.dev>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>
@@ -34,9 +34,9 @@ Cc: linux-hardening@vger.kernel.org,
 	Thorsten Blum <thorsten.blum@linux.dev>,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 4/8] sparc: Replace deprecated strcpy with strscpy in prom_nextprop
-Date: Mon, 22 Sep 2025 23:03:53 +0200
-Message-ID: <20250922210408.1723452-4-thorsten.blum@linux.dev>
+Subject: [PATCH 5/8] sparc: Replace deprecated strcpy with strscpy
+Date: Mon, 22 Sep 2025 23:03:54 +0200
+Message-ID: <20250922210408.1723452-5-thorsten.blum@linux.dev>
 In-Reply-To: <20250922210408.1723452-1-thorsten.blum@linux.dev>
 References: <20250922210408.1723452-1-thorsten.blum@linux.dev>
 Precedence: bulk
@@ -50,27 +50,70 @@ X-Migadu-Flow: FLOW_OUT
 
 strcpy() is deprecated; use strscpy() instead.
 
+In ldom_set_var(), use pr_err() instead of printk(KERN_ERR) to silence a
+checkpatch warning.
+
 No functional changes intended.
 
 Link: https://github.com/KSPP/linux/issues/88
 Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 ---
- arch/sparc/prom/tree_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/kernel/ds.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
-index 88793e5b0ab5..7388339bbd7e 100644
---- a/arch/sparc/prom/tree_64.c
-+++ b/arch/sparc/prom/tree_64.c
-@@ -272,7 +272,7 @@ char *prom_nextprop(phandle node, const char *oprop, char *buffer)
- 		return buffer;
- 	}
- 	if (oprop == buffer) {
--		strcpy (buf, oprop);
-+		strscpy(buf, oprop);
- 		oprop = buf;
- 	}
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index ffdc15588ac2..f7fc6f2af2f2 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -781,14 +781,17 @@ void ldom_set_var(const char *var, const char *value)
+ 		} pkt;
+ 		char  *base, *p;
+ 		int msg_len, loops;
++		size_t var_len, value_len;
  
+-		if (strlen(var) + strlen(value) + 2 >
+-		    sizeof(pkt) - sizeof(pkt.header)) {
+-			printk(KERN_ERR PFX
+-				"contents length: %zu, which more than max: %lu,"
+-				"so could not set (%s) variable to (%s).\n",
+-				strlen(var) + strlen(value) + 2,
+-				sizeof(pkt) - sizeof(pkt.header), var, value);
++		var_len = strlen(var) + 1;
++		value_len = strlen(value) + 1;
++
++		if (var_len + value_len > sizeof(pkt) - sizeof(pkt.header)) {
++			pr_err(PFX
++			       "contents length: %zu, which more than max: %lu,"
++			       "so could not set (%s) variable to (%s).\n",
++			       var_len + value_len,
++			       sizeof(pkt) - sizeof(pkt.header), var, value);
+ 			return;
+ 		}
+ 
+@@ -797,10 +800,10 @@ void ldom_set_var(const char *var, const char *value)
+ 		pkt.header.data.handle = cp->handle;
+ 		pkt.header.msg.hdr.type = DS_VAR_SET_REQ;
+ 		base = p = &pkt.header.msg.name_and_value[0];
+-		strcpy(p, var);
+-		p += strlen(var) + 1;
+-		strcpy(p, value);
+-		p += strlen(value) + 1;
++		strscpy(p, var, var_len);
++		p += var_len;
++		strscpy(p, value, value_len);
++		p += value_len;
+ 
+ 		msg_len = (sizeof(struct ds_data) +
+ 			   sizeof(struct ds_var_set_msg) +
+@@ -910,7 +913,7 @@ static int register_services(struct ds_info *dp)
+ 		pbuf.req.handle = cp->handle;
+ 		pbuf.req.major = 1;
+ 		pbuf.req.minor = 0;
+-		strcpy(pbuf.id_buf, cp->service_id);
++		strscpy(pbuf.id_buf, cp->service_id);
+ 
+ 		err = __ds_send(lp, &pbuf, msg_len);
+ 		if (err > 0)
 -- 
 2.51.0
 
