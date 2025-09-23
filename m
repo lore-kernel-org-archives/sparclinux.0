@@ -1,157 +1,230 @@
-Received: from libero.it (smtp-31-wd.italiaonline.it [213.209.13.31])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C085C235BE2
-	for <sparclinux@vger.kernel.org>; Mon, 22 Sep 2025 22:37:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.209.13.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA5782E8881;
+	Tue, 23 Sep 2025 11:53:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758580657; cv=none; b=iuidqToIIVr1w+ZDcd+GlN0JVauYz0LvY7Mi7rtRNb1mcOKGW7GtSYBYxYs6U4XMLflYLSBkOKwy1V4J7QQP/1JrR+s0jYdnXyeVB3426Z55Cr6j6JmZciX64j0iW5rkZ27hNsFZoO8XDdQRY0whmGEwGFGtiEYSx+BBcNsu1RI=
+	t=1758628385; cv=none; b=LXmK+HXY0ZgEN75GkRox8EDGaxy5MA65bmIE/5LxDFwRwpm14qSxsa2xGSdhmVkzAu/0t6eHAsUn9TU1H1zu4PrOcND+orEf/9Tct380YV/G/8YT37bXpLzk+pyvLbbbLSeWcbLFRqx/6xbJgKWSPObu/2rc01372dtaa2qhZIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758580657; c=relaxed/simple;
-	bh=2BSb/XMT5T/iz0kFCSq1TdTdKyGHqYhRePk8d83ycyM=;
-	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=FsSuaKZ5mgD8HkYAYOIsEDsDmE24HbUOurM732Y7OTn3osReEmIuo3ApuzNo274TJpTM6TvbSWWqwmBHQZTMLhlrDdLMdyDY+ZWBjDiJS1n21nMCjSS/cT2oWuXAlr1Yhng6la8xRj/ilt8LFBhdAysCMs5NKwjiwzwqvJAsGkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it; spf=pass smtp.mailfrom=libero.it; dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b=pPhErYEj; arc=none smtp.client-ip=213.209.13.31
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=libero.it
+	s=arc-20240116; t=1758628385; c=relaxed/simple;
+	bh=uC3KukjZxErvZyqVNyTZvCwwhubZja1S6u22ZrF2EwI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KDydQcy4398DaaLTE1shEEXK83C0oajYGMlHMFs3CZ+a04Ol9wrH0XUM7nUV8hMrvloQZ2Re1L8oyP91B9KzL0suQ4EzyEEi08jdSz3h560befX6/B9VWbG8Imphi+SXlRQ+9qwNfDwqAzx4HPjm658pqAcanFcVxB7P0hqf2DE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=EFGvr8Qy; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b="pPhErYEj"
-Received: from [192.168.1.36] ([151.65.2.228])
-	by smtp-31.iol.local with ESMTPA
-	id 0p9yvEtWb90dB0p9yvuPV4; Tue, 23 Sep 2025 00:37:27 +0200
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-	t=1758580647; bh=pxtcFaF2yAfCk0juuHbrrwUGFmfWb7WaZFzE+kNfTSY=;
-	h=From;
-	b=pPhErYEjrCf4Rh/BRyLtoq/r2yOfqShzk1I0z1zZyi2X4U200pTr8w1HpD673iW2D
-	 skrQEM5hPv0bJqjFXGWlbfYCYw474f+w7/zkjXh7oNs5U5KXLOhNSH0ZYUuP7GHXcT
-	 Gr/WI8aEiKd47UqfRmzC2RW2894vWiWQruAZCt6NN9GeLbheEdmxoPJcO8zBVQzkAi
-	 IU/1k0DD704aKOzdXJN+VrZjMa4AkgKXZ+3rwgyXtlZYy/EV87aQyI1k/Yvk2neuP2
-	 S8unxXKVAu/xv6n3hfJ+hy1Bq6ULASyQbBdA7BdV7UkT7Pf5DH8m8dbv1JgWm7BUju
-	 QJtFLPpcv91Mg==
-X-CNFS-Analysis: v=2.4 cv=bNoWIO+Z c=1 sm=1 tr=0 ts=68d1cfa7 cx=a_exe
- a=fUUb/luldTa8vXwyIFcL2Q==:117 a=fUUb/luldTa8vXwyIFcL2Q==:17
- a=IkcTkHD0fZMA:10 a=sGDgGPI5OTvwaNb7dgAA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-Subject: Re: New test kernel - second attempt
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
-References: <9b8530550078b5e89b19e987981d25fee8e18500.camel@physik.fu-berlin.de>
- <7515a193-5ae2-69d6-9c6e-c3b6c7459f50@libero.it>
- <73e81a8280b345ee09df0dfa9f0e21148144722f.camel@physik.fu-berlin.de>
- <74380961-4a1b-95a7-96f5-448737356082@libero.it>
- <4207162c8254a2b8f423db485f974ca00ae355a3.camel@physik.fu-berlin.de>
- <784cff9b-d09b-8f02-0f77-d48bcda6c921@libero.it>
- <c3c82ca3-5e6f-fb7d-3e93-60ed9bd37098@libero.it>
- <aafc9d1ea293ac095137d224849447082206a1c4.camel@physik.fu-berlin.de>
-From: Riccardo Mottola <riccardo.mottola@libero.it>
-Message-ID: <f39d1936-f5fd-0352-6207-95318baeb257@libero.it>
-Date: Tue, 23 Sep 2025 00:41:07 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101
- Firefox/128.0 SeaMonkey/2.53.21
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="EFGvr8Qy"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58N8Y12b008695;
+	Tue, 23 Sep 2025 11:52:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=FZaoT1QNSR93wIPtHts3CPzp0ctIk0
+	vYDNbzffEOi0c=; b=EFGvr8QyltIf32/aszOR/qJfepgW+UcWXreJDplTglupit
+	m+X7rmX3tdEzuL1hJj2o5XWwJ0r+pCJ4BjGEMOhGvQ5uA7F1CUxQtR7TqdF163bV
+	I3YXhbagNN2r+8NAvqFEHYkOG72rBgt1rm+ek1A/MwpmvyPZqT+huO4x+iKBFWTR
+	eo6ih9hfsFn2nHia9aCP+YLY6UeADcGZp/ivckC/FFUA6i0IL4LnbBeJbqc6eiAl
+	5jWsuCjMMTLD7wV7h8suNXD082oB3YYd9QtgvibDoicaRjRsG3bClbPAwbAw7H1U
+	VId+vHnlTcxFpVyEmlJvEr0+HDviZMbBrXxprVQA==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 499n0jgm9c-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:19 +0000 (GMT)
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58NBn9Dd005820;
+	Tue, 23 Sep 2025 11:52:18 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 499n0jgm96-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:18 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58N9Tk1U019675;
+	Tue, 23 Sep 2025 11:52:17 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 49a83k31qr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:17 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58NBqDIE43516160
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 23 Sep 2025 11:52:13 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id F401A20043;
+	Tue, 23 Sep 2025 11:52:12 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A61F420040;
+	Tue, 23 Sep 2025 11:52:10 +0000 (GMT)
+Received: from li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com (unknown [9.87.150.243])
+	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Tue, 23 Sep 2025 11:52:10 +0000 (GMT)
+Date: Tue, 23 Sep 2025 13:52:09 +0200
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
+        Guo Ren <guoren@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Nicolas Pitre <nico@fluxnic.net>,
+        Muchun Song <muchun.song@linux.dev>,
+        Oscar Salvador <osalvador@suse.de>,
+        David Hildenbrand <david@redhat.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
+        Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>,
+        Reinette Chatre <reinette.chatre@intel.com>,
+        Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        Hugh Dickins <hughd@google.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Uladzislau Rezki <urezki@gmail.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Andrey Konovalov <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>,
+        Pedro Falcato <pfalcato@suse.de>, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+        ntfs3@lists.linux.dev, kexec@lists.infradead.org,
+        kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>,
+        iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>,
+        Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v4 11/14] mm/hugetlbfs: update hugetlbfs to use
+ mmap_prepare
+Message-ID: <aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+References: <cover.1758135681.git.lorenzo.stoakes@oracle.com>
+ <e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <aafc9d1ea293ac095137d224849447082206a1c4.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfDUHKJVgbIgxW9FRM+TbVvOZLbH2FeqiIue8B9dKJGLk6vazfO+drUCrDL8Ufb0idasCyEPbDGaxP8X3U+ai5V/NQKLcR7UWszkhoryvip9GC0KqAEVN
- e+DtN11PFSCkjYOdzmk9KQG4z0fpOEF+qo1pqnE0kV5t6bXLfr6V/uHNymps5pSxxcNT78UNad03Yrl49lh7Y0E9uP8mVkQEZso9c8EYj4fY2+MLprMRSShP
- GTxahifsuvmlyaAD8hjnxLZUxOZyuy8g7T0WxQpW6zQkOm3vXNrUUSgvfaZZDLPb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTIwMDAzMyBTYWx0ZWRfX1/CT4ehdu5F7
+ 6VnJC5JZb/TGq0GTxXqzwutGBpnh5zvXhqXxihnE0ZIBeLxavZe5A1rzKbuxO1bDNyuFhUEM+Rk
+ 4I1KMXyeBzNEU/g4Tedu1h1rULa5Sn/p0/UqkELdAnxrKDhWjf96WssSMg0ltTS+aMBZqn2U8bf
+ Mm6V030K3rfmUmm6+2tKL/Lil9yhk2vaa1ilZs3936p1XOaPfvsu3tSuBabaOBW+S4p6UJCCS7o
+ UssKxq/W9pewKawoXgWRMXrenvRD0Q+OeFvs8GRRauXhjlsHet/L1r4+QnnsJQ0kVijCVo4qQhY
+ p/3nafFZQN3AWkhiFthvrI3hfInHVuTDSlQN3xLdzE/r0zMDPQuTX7WW9M8m8X+BWNkt+j6HOZU
+ bcmWMt/c
+X-Authority-Analysis: v=2.4 cv=TOlFS0la c=1 sm=1 tr=0 ts=68d289f3 cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=kj9zAlcOel0A:10 a=yJojWOMRYYMA:10 a=NEAV23lmAAAA:8 a=yPCof4ZbAAAA:8
+ a=Ikd4Dj_1AAAA:8 a=P7Dlay8f7KcL8MNlhToA:9 a=CjuIK1q_8ugA:10
+X-Proofpoint-ORIG-GUID: F6nP2Q8ol4BSxLNz15joz3bImrmTREZ1
+X-Proofpoint-GUID: 5HR21TLQQZuGh5ctB-qo8M6ErsQDpoDW
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-09-23_02,2025-09-22_05,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1011 priorityscore=1501 phishscore=0 impostorscore=0 adultscore=0
+ suspectscore=0 spamscore=0 bulkscore=0 malwarescore=0 classifier=typeunknown
+ authscore=0 authtc= authcc= route=outbound adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2507300000 definitions=main-2509200033
 
-Hi Adrian,
+On Wed, Sep 17, 2025 at 08:11:13PM +0100, Lorenzo Stoakes wrote:
+> Since we can now perform actions after the VMA is established via
+> mmap_prepare, use desc->action_success_hook to set up the hugetlb lock
+> once the VMA is setup.
+> 
+> We also make changes throughout hugetlbfs to make this possible.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+>  fs/hugetlbfs/inode.c           | 36 ++++++++++------
+>  include/linux/hugetlb.h        |  9 +++-
+>  include/linux/hugetlb_inline.h | 15 ++++---
+>  mm/hugetlb.c                   | 77 ++++++++++++++++++++--------------
+>  4 files changed, 85 insertions(+), 52 deletions(-)
+> 
+> diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+> index f42548ee9083..9e0625167517 100644
+> --- a/fs/hugetlbfs/inode.c
+> +++ b/fs/hugetlbfs/inode.c
+> @@ -96,8 +96,15 @@ static const struct fs_parameter_spec hugetlb_fs_parameters[] = {
+>  #define PGOFF_LOFFT_MAX \
+>  	(((1UL << (PAGE_SHIFT + 1)) - 1) <<  (BITS_PER_LONG - (PAGE_SHIFT + 1)))
+>  
+> -static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> +static int hugetlb_file_mmap_prepare_success(const struct vm_area_struct *vma)
+>  {
+> +	/* Unfortunate we have to reassign vma->vm_private_data. */
+> +	return hugetlb_vma_lock_alloc((struct vm_area_struct *)vma);
+> +}
+
+Hi Lorenzo,
+
+The following tests causes the kernel to enter a blocked state,
+suggesting an issue related to locking order. I was able to reproduce
+this behavior in certain test runs.
+
+Test case:
+git clone https://github.com/libhugetlbfs/libhugetlbfs.git
+cd libhugetlbfs ; ./configure
+make -j32
+cd tests
+echo 100 > /proc/sys/vm/nr_hugepages
+mkdir -p /test-hugepages && mount -t hugetlbfs nodev /test-hugepages
+./run_tests.py <in a loop>
+...
+shm-fork 10 100 (1024K: 64):    PASS
+set shmmax limit to 104857600
+shm-getraw 100 /dev/full (1024K: 32):
+shm-getraw 100 /dev/full (1024K: 64):   PASS
+fallocate_stress.sh (1024K: 64):  <blocked>
+
+Blocked task state below:
+
+task:fallocate_stres state:D stack:0     pid:5106  tgid:5106  ppid:5103
+task_flags:0x400000 flags:0x00000001
+Call Trace:
+ [<00000255adc646f0>] __schedule+0x370/0x7f0
+ [<00000255adc64bb0>] schedule+0x40/0xc0
+ [<00000255adc64d32>] schedule_preempt_disabled+0x22/0x30
+ [<00000255adc68492>] rwsem_down_write_slowpath+0x232/0x610
+ [<00000255adc68922>] down_write_killable+0x52/0x80
+ [<00000255ad12c980>] vm_mmap_pgoff+0xc0/0x1f0
+ [<00000255ad164bbe>] ksys_mmap_pgoff+0x17e/0x220
+ [<00000255ad164d3c>] __s390x_sys_old_mmap+0x7c/0xa0
+ [<00000255adc60e4e>] __do_syscall+0x12e/0x350
+ [<00000255adc6cfee>] system_call+0x6e/0x90
+task:fallocate_stres state:D stack:0     pid:5109  tgid:5106  ppid:5103
+task_flags:0x400040 flags:0x00000001
+Call Trace:
+ [<00000255adc646f0>] __schedule+0x370/0x7f0
+ [<00000255adc64bb0>] schedule+0x40/0xc0
+ [<00000255adc64d32>] schedule_preempt_disabled+0x22/0x30
+ [<00000255adc68492>] rwsem_down_write_slowpath+0x232/0x610
+ [<00000255adc688be>] down_write+0x4e/0x60
+ [<00000255ad1c11ec>] __hugetlb_zap_begin+0x3c/0x70
+ [<00000255ad158b9c>] unmap_vmas+0x10c/0x1a0
+ [<00000255ad180844>] vms_complete_munmap_vmas+0x134/0x2e0
+ [<00000255ad1811be>] do_vmi_align_munmap+0x13e/0x170
+ [<00000255ad1812ae>] do_vmi_munmap+0xbe/0x140
+ [<00000255ad183f86>] __vm_munmap+0xe6/0x190
+ [<00000255ad166832>] __s390x_sys_munmap+0x32/0x40
+ [<00000255adc60e4e>] __do_syscall+0x12e/0x350
+ [<00000255adc6cfee>] system_call+0x6e/0x90
 
 
-John Paul Adrian Glaubitz wrote:
-> I can therefore only recommend to verify your hardware first and address
-> any issues with empty NVRAM batteries which may lead to incorrect NVRAM
-> contents. We have had one user reporting stability issues resolved after
-> resetting the SP on his T5240, see [1].
->
-> So, it's really not too far fetched to think your problems may indicate
-> a problem with your hardware. That's why you have to make sure everything
-> is working properly, including the NVRAM.
-
-Actually, on heavy-stress NetBSD choked! it never did in the past years. 
-so time to look at it.
-
-Could be... one never knows. Today I spent time with the Netra T1 to get 
-it back on track. I got two new RAM sticks. The Battery hack I did 
-Friday seems to hold quite well, content remains stored, RTC worked over 
-the weekend.
-
-What I rembered is that I did not "set-defaults" before working on it... 
-content seemed good to boot,  for safety, I redid it.
-I discovered that Not all RAM DIMMS combinations were good and that a 
-NVRAM reset even improved things, very strange, but that it is.
-Things like two new DIMMS did not work as "upper" two slots, but left 
-alone in the first two slots were fine. But old DIMMs put in upper 
-resulted in a stable system with NetBSD. I stress tested it and for sure 
-enough I used enough RAM as well as I let diag run at boot. Good thing, 
-also, the reliable system I need as NFS server and lots of things is back.
-I ordered some new NVRAM chips though, we shall see how new ney will be 
-and if it is worth changing my hacked one. Also I want to improve my 
-hack with a battery holder in the future.
-
-> All variants of the UltraSPARC I and II CPUs use the same assembler
-> optimizations in the Linux kernel. There is no code optimized specifically
-> for UltraSPARC II or even variants of it.
-
-Sure, there are no specific compiler optimizations, but I wonder if they 
-are really the same and what could change in the machines.
-In theory, just cache sizes, CPU speed.. and possibly other minor things 
-(e.g. if one board accepts 1GB modules, the other only 512MB ones, sure 
-some details differ).
-
-Strong of an apparently goot Netra T1 with NetBSD 10.1, I tried the 
-linux disk again.
-
-I stressed the old kernel a bit:
-  6.1.0-9-sparc64 #1 Debian 6.1.27-1 (2023-05-08) sparc64 GNU/Linux
-
-And this time also on the Netra T1 it proves good: I recovered 
-filesystem journal, I can run apt-get upgrade, install things. 
-Regenerated ramdisk, etc Definitely "hold" this kernel version for 
-future safety.
-Minor new kernel to test plus your 6.17 kernel, which choked on fsck / 
-journal replay (but now fixed with 6.1 kernel).
-
-Newly installed mainline kernel:
-
-Loading Linux 6.16.8+deb14-sparc64 ...
-
-/dev/sda2: clean, 43801/1011840 files, 1131402/4047104 blocks
-[FAILED] Failed to mount boot.mount - /bo
-ot.
-[DEPEND] Dependency failed for local-fs.target - Local File Systems.
-You are in emergency mode. After logging in, type "journalctl -xb" to view
-system logs, "systemctl reboot" to reboot, or "exit"
-to continue bootup.
-Enter root password for system maintenance
-(or press Control-D to continue):
-
-
-reboot 6.1 - comes up clean!
-
-Loading Linux 6.17.0-rc5+ ...
-Loading initial ramdisk ...
-
-/dev/sda2: clean, 43801/1011840 files, 1131402/4047104 blocks
-[FAILED] Failed to mount boot.mount - /bo
-ot.
-[DEPEND] Dependency failed for local-fs.target - Local File Systems.
-You are in emergency mode. After logging in, type "journalctl -xb" to view
-system logs, "systemctl reboot" to reboot, or "exit"
-to continue boEnter root password for system maintenance
-(or press Control-D to continue):
-
-
-Another reboot into 6.1  - all fine!
-
-Now, a bit more confident about my hardware, I would say stock 6.16 and 
-your 6.17 do have issues on the T1 200 with IIe
-
-Riccardo
+Thanks,
+Sumanth
