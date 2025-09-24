@@ -1,84 +1,99 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 687601552FD
-	for <sparclinux@vger.kernel.org>; Wed, 24 Sep 2025 07:13:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBD3F27B34C
+	for <sparclinux@vger.kernel.org>; Wed, 24 Sep 2025 07:32:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758698027; cv=none; b=FA040t3ixIua/PP76umJB7d7pXQSLCMHbbujGv0IYA+4RGtWeE0D/r+hBqLWaR+CCEj6XBwjER6rynLI1a0Uj11v51UHJ9lKGGV2Ocn3LsPeBgpbwzLEYW7D6NhQNiHs1lk9FMCqv1MEG/ZuvJTroTBgSFqOT/0JJnqYTXt4C+c=
+	t=1758699141; cv=none; b=srm8P8p1/7SSt/JHLMzxY/0sOq0n0b3BiieaE2tCj8fwJgMkJDE09JqEiL3w7bX+UhFVlNjDzwNehosEoK9BD88fu5K5o8/IlavVqzAcP6SILMeu7P4xbwNGp9tCIsofAGIs9DoDR+EdRsrmyqtb8wbPE0UfYT8Xtrexay3jw6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758698027; c=relaxed/simple;
-	bh=i0+LGexTSt8NyKSVsQwe4MOHCcza5UWEWx27dfX/Dfs=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=uKmHxo5FJA6Du6Kkw3rqspuzwhJUJ8UXc1UKvKzKi5e2NtmurLzW6SvCiHsj91bPCyZdsvVzyNPkoVKTm3XPXXbLocgg25dgx2ENyL+uGu/taisq7VsWcAd4r4q609bv+mmhc1AjLUjfBuc//88kxQxjqbZFmaGixfcvFwn1w+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=lu33k0Xx; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1758699141; c=relaxed/simple;
+	bh=TX6kI82yO/RlICOevJbAdNu2g5LXBtW4mVT11ZayfNE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BwFj4jtNjb95JXZG/o9imm8fMkhSPlzRX7Z+OxJ3dagUpvHlBWkc3+1KcfprW7x21kVmYW9zH9ojQ0UPTB+dG0EKKrDk9AyMLG4E8lBWaOQGGxlbMnT7VsRdgMSNn7Jb/XG62jjoipjlWAiqmotNuCshdXXX4v8pUI9Uw04qEXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Apr75Ugi; arc=none smtp.client-ip=209.85.208.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="lu33k0Xx"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=oraJ+8+tHbRi/y7PH5ENBb3z3Jc9HlLHmMgP+3GFIz0=; t=1758698024; x=1759302824; 
-	b=lu33k0XxjpsDo1H245BnNjM+J1qF8m3N3+HowjtAdyy78dDsFTV3y4cjZuyeqDGpbZQ5YNQiVX2
-	ABJEuZdcPNriL8Rq0/gMAx3+zVF1qCUqPlassCgw22VTIbsN0XMTjFE6G9RxE4pJtJUG+BYmF4wm7
-	8bYSkPp52/A3xYxyAn0GHHn5H6/ZFdxupBY9lVYDNhMmURLzUPG8cJ1Arsl290g5w22d+JPAZkS5I
-	sM3ZP58hI+aJCJUKSq68wQKjWS5q6v/u8RMrDdflL50qkSf7IqJe3sO9Uq7zOnWfgXQNX7uz+P63y
-	D6aMYLKbmiYUOH+o/A23rq3yO/uVXCocwjFg==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1v1Jh2-00000003fmS-2CwU; Wed, 24 Sep 2025 09:13:36 +0200
-Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1v1Jh2-000000037mP-1AXT; Wed, 24 Sep 2025 09:13:36 +0200
-Message-ID: <f3bf42c671e1499f598055ea901a7b8f5c08cdc6.camel@physik.fu-berlin.de>
-Subject: Linux for SPARC issue tracker
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: gentoo-sparc <gentoo-sparc@lists.gentoo.org>, sparclinux
-	 <sparclinux@vger.kernel.org>
-Date: Wed, 24 Sep 2025 09:13:35 +0200
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Apr75Ugi"
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-62fa99bcfcdso9705327a12.0
+        for <sparclinux@vger.kernel.org>; Wed, 24 Sep 2025 00:32:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1758699138; x=1759303938; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=v9ogATJZj1jG8raAY2zUuQe4EmJHk/4W4xvGLcmqNCI=;
+        b=Apr75Ugi6SUfNBAH+kYzUGDTjoRx4+4tdqorCAQPRdi6ZhXxBv0peiMsD+V4puAl/L
+         VnxwZSNbl9FiKKvSAqE1eYwjqdZWh7FJCNF0dlJCMq2k1bWZYIlAjQgIervtcnAm3t8B
+         GN105YKAWQyS6/Cr/MiE0AtzMIVY2JD6Cl6oo5pZJOVanYffCW03eXtoB23UbA49jJ7r
+         M37tNlpRwrjn7OtFzfza/vp/LuwUFXCQHnS9le2rzn9s9XBPgWtVSKHOOn2Jak7mhDnY
+         wGqCR0eC89eG87mkj1IyXNs4+n6M1Xm2c52C76N990iZ2sIOpbDuxtQDSZpysCj2x7fQ
+         cVpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758699138; x=1759303938;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=v9ogATJZj1jG8raAY2zUuQe4EmJHk/4W4xvGLcmqNCI=;
+        b=ae4bQtsH4/iboCtm72h3dKYxNAlDHZJea2fBcsmAEBFgnHLvZWCFNdwy0CVC2K8aY8
+         faO9fcjSeTHAX9MbCM2Bgu2MORBajwGD3nkGkIU3DF3Zj9ljAKIjl2wAX2eD770+Jx3P
+         q6Nw1p7tYlx+mkUXPJNyWlXY7NCblGT2AWYDfyKwuquvH/dXHiQhNxIlzu1nF2MfY+mF
+         HJhFqAdMIaqs40y492cnvX/0pjboUv9B4HtSXLklY9U2xgVaH4bagYQCo9mOyGyRU0/3
+         Hnqb7DQvlrxK2U3w8N2uAXn6AnqxIau+ytZOZWA8yd0ngBw9UEpuInqnkJa3MCupRVAP
+         fQDw==
+X-Forwarded-Encrypted: i=1; AJvYcCW1POGXq3DDXnVvmLwd6YM8oF/eWfhd38M9P61JX8lh2iP9tJlwErCk51sxcWDiaAWCdZtDJxhXd060@vger.kernel.org
+X-Gm-Message-State: AOJu0YyOPPe8GG9t5yGQ1Py0AaKF08SBEnVldEpti4hVUr0FMViOZpbe
+	Ts5yUHlGjhy9wKWi07MnPxlL0AxxCwdG7g0hiVGGZ/Jsc72HslUp+PMey7mY1lwxAw2I9wONdZ4
+	pY2O7dVNlGWD9oxmDtL1MIlcISWPmRJo=
+X-Gm-Gg: ASbGncsRh+s8e2dUxgWMVLCuJNQqoiXZHHxGx7jsJ4P9IgRZMvZgwNyOczEMjEc226T
+	p54OJz23KstOKhVOa+qKgVGh7YfnDtpkZHGdLT/Iqrc7VfxV5mZNeOvIRBdMZsVcpdU2MN/Y9jA
+	OjKA+X0NFHkB5+nWPc9HniiOWXrJM9uzzmfaO7B3/tJtbmrk6vZquhdni20W75LfrINPVlhmbPe
+	yZvqd2W
+X-Google-Smtp-Source: AGHT+IEsD22J4a5V9bbdMWtQv1Ep8AmuRuA2KpP+ndq9VMyD7XFtjS94kSm5rlJirOSxMvazqqoNAsq4GX/ON5RyqyA=
+X-Received: by 2002:a05:6402:44dc:b0:633:4726:a077 with SMTP id
+ 4fb4d7f45d1cf-63467796df4mr4258422a12.15.1758699137992; Wed, 24 Sep 2025
+ 00:32:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+References: <cover.1758219786.git.leon@kernel.org> <0c64474985af55b1aa934b857808068a0e609c6e.1758219787.git.leon@kernel.org>
+ <CA+=Fv5Q8dVUFVBh82mAe=fy3mV6mWtQT_0pBPLQwLNBt3f8E1g@mail.gmail.com>
+ <20250923171819.GM10800@unreal> <CA+=Fv5SJcQ5C4UeX2+deV9mPAe5QxrocMG8EJ2eVcYjbLE5U+A@mail.gmail.com>
+ <20250923235318.GD2617119@nvidia.com>
+In-Reply-To: <20250923235318.GD2617119@nvidia.com>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Wed, 24 Sep 2025 09:32:06 +0200
+X-Gm-Features: AS18NWBrVH-9-wBlZ7ZFV3RxYYp-7iSL9DfIPq4jDzU8rxFLx7xmKKzveUA49as
+Message-ID: <CA+=Fv5Tg7sQACpeG8aMZF6_E6dbRnN5ifg0aiHityXadxiHoPA@mail.gmail.com>
+Subject: Re: [PATCH 1/9] alpha: Convert mapping routine to rely on physical address
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, 
+	Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, 
+	Geoff Levand <geoff@infradead.org>, Helge Deller <deller@gmx.de>, Ingo Molnar <mingo@redhat.com>, 
+	iommu@lists.linux.dev, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Jason Wang <jasowang@redhat.com>, 
+	Juergen Gross <jgross@suse.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	"Michael S. Tsirkin" <mst@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	sparclinux@vger.kernel.org, Stefano Stabellini <sstabellini@kernel.org>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Thomas Gleixner <tglx@linutronix.de>, 
+	virtualization@lists.linux.dev, x86@kernel.org, 
+	xen-devel@lists.xenproject.org
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+> Suggest testing the same branch with the alpha patch reverted just to
+> rule out any issue in the core code. If it reproduces suggest to
+> bisect Leon's branch.
+>
+I can try to revert just the patch containing the alpha-specific stuff and
+see what happens and then, as  you say, maybe do a bisect from there.
+First I'll just try the same kernel again a few times more just to make sure
+that this is really reproducible.
 
-I just wanted to remind everyone to the Linux for SPARC issue tracker I cre=
-ated:
-
-https://github.com/sparclinux/issues/issues
-
-If you know of any particular issue that needs to be fixed, please file an =
-issue
-there. Please look at the other issues and use them as a rough template.
-
-There might be some undiscovered patches in Oracle's UEK kernel that I'm as=
-king
-anyone to browse for interesting patches (on the uek4/qu7 branch):
-
-https://github.com/sparclinux/linux-uek
-
-Thanks,
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+/Magnus
