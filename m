@@ -1,80 +1,126 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 507D71E573F;
-	Fri, 26 Sep 2025 15:32:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60D60224B0D
+	for <sparclinux@vger.kernel.org>; Sat, 27 Sep 2025 19:20:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758900738; cv=none; b=Wz3YqG0Zqd2ENKbrrdeXmFU5TmaNUCNvplmgod3NhxsGZ+N7nAWXOBSElCYVm6xGW/JWHVW5GQ6P1Ot0dV1nl26rFxIs1SloTK9wW/np/Mi1gIPGuhj2JwltP5PS9feABHe+1VDiDaTaNWNrlQQRna7MPd1KoKfXgZcVTljLc88=
+	t=1759000830; cv=none; b=ivQ+q9clDz19lrv0yxuZE2ohTm+KdbM7zC+yZjmdRESGDQzFxFc5te3VZDkScS4yF+IB5rbD77uXZ859XLw/nZpr3pkvN7NrLUvLI/BVpAODnAlJOgdM2Qf0FQ2YkVaZJuJFYt12XiuU0SQzlTipnVSWPfumPrmefgZJBz7NgP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758900738; c=relaxed/simple;
-	bh=eO0B+v6M/eNh3DuU5RpKBdPh66sor4Xjm0Yg+ev6U/Q=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=VY7Y/WqjcPwCqFdMypb/gx4/LK5Gqw4VfRasMhCjg+3Ubl4CZTZW9gjdpfI1H1cD27S+LOy4YJrvPbcpXy5UrximgxB4cLc8EW8N/ziuvdGjfAR6gDHjgZ45Iu75APEdGGVk8qvaClRCiu+AXesCj6e0YPgP96yf1hNGWOiubwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=TRnxadul reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1759000830; c=relaxed/simple;
+	bh=yoeBWfsz0Rxzfbgk6BToAOC/vOnboIpPuqC1fyVrHZ8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=jWtWuK690bAWFh8DOIVPUcK8Gqs7Ysdv/Onm+ufl2QAVy+UkFGnQzSgqqWkwkfQ8DNbTxefKHjiShfkMxDmYkMsM3/xuxDM40kA5T+XqfMtt5XOjen0wDsxl2FyaamJb0hUPpDGdiPPtwosZ1SuJGMhFo9ADk+16aF0REhe7WOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LmXL504U; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="TRnxadul"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4cYF254LpXz1FbZP;
-	Fri, 26 Sep 2025 17:32:13 +0200 (CEST)
-Received: from [10.10.15.8] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4cYF2522V7z1FbZk;
-	Fri, 26 Sep 2025 17:32:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1758900733;
-	bh=kMAOghaSlf/haDulwk4dYNLPJhvXyLFotJUOiNAZa2Y=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To;
-	b=TRnxaduljc1Bj1P6Bvj0BD2v7c71W/qoKgdMebsAXx7fYUnmfUk2V+J+0MKObMgmw
-	 9F51cGRietoCVgnhuyslHENWSkyql2+B9zDlIFqAme1vLQU21ugPtrKQ2zq2uapmSr
-	 T5ouBkiYtkr79cYZL0noFN2DQSsLBiI/ekw/nMVSvqawsLTszHlBBi1VbpGfHbYuB+
-	 pKearusdURcf4LTQbLj+hOeeVM3IO/LCVkdPzvnMLy/SR2j4yHdHnZJTD9x4FYnLUZ
-	 gvAMtkG+42EYHmZNPwa9NVpRYtrK4DlP2iPmSb9tXsiCNo4JNjQ0K/RLRRvSZIOdTk
-	 oXam3BhFg+ckg==
-Message-ID: <00fedbfe-34ca-4ce3-8d7b-1ccfc86910b2@gaisler.com>
-Date: Fri, 26 Sep 2025 17:32:12 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LmXL504U"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-634cef434beso1579660a12.1
+        for <sparclinux@vger.kernel.org>; Sat, 27 Sep 2025 12:20:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1759000827; x=1759605627; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=BpNpqT8E7PV/s4bEDWlZ98/qvJvoxkZccIvsTmWeJBY=;
+        b=LmXL504U0c1QG2jy3KW+WIDtc8+FAs3E23849eS0e2Vkfl6p7fq4KCBQzcNYUmMMIn
+         bO0wPHikSYdv/aQEZohRb1KS8AH0g5iWXW18Pok5gfQIfrLPlXE8xgPLz0wMe6Et9dqY
+         1UF4yCh+HhhIWiJYUyYS+Rt26rLu5/8v+kDBoYFTm3wwiU3GCB42340BcFn7AfOte65Z
+         sSHHLLPoaIcQhBGE0YW7htO5AiI2qeQIqcYmyE67vPfGJi6ZVV23XOcsazphMjXG7MCS
+         HjtXRnd2nZGBgrVo6mX9eSs5xkZiwhHmhjUSkhNFCoZk4zaIwt9nZJcW+BgI1CKJcZzn
+         QWCg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759000827; x=1759605627;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=BpNpqT8E7PV/s4bEDWlZ98/qvJvoxkZccIvsTmWeJBY=;
+        b=MrSHJfZliy3Qq4xVkRr+gSIBV1eaYo4ZMe9ZgWtgh3YK/eYBBZyj6UnuoQzabrdMAv
+         SdoMkL/y/6N3qT2y047GmxMnOB2+oocbCaOdCkax5SVNfJgmabPqFZMd5M/b8iJcGLO9
+         U+unpCW1CkP0xWhR91qXwiBXmGRzpvo8gDdOAnQPAEVWOTDPX936yzJiC+qOGtmJ9dkn
+         oNiFSoh1QG4M7+ARRbA5jmhNO6AsFy4E9Sf7GRbJ+T8elP/SzZ03zI50YmK7lQKe9fUh
+         xhukgosWeIKjQIXx7PPhX43ktwW6fmbKkWtErm/cbUtMXFGkR31i/3urbBPh0Z/gLD/P
+         410w==
+X-Forwarded-Encrypted: i=1; AJvYcCX5pn/J1Yaiwk2LMsM6BnTwVYCv3QzDyWJTOmEpz6hOzEeKJmoR4tD05MIYV5P1TosNgrKyNCMGnh8R@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyvqz2MiTIYKoxCZ4zN5Aa9PFNYXhLerLyH4FGd+ypXw5MVdeEU
+	8gYc8sMaZ7TugLypwLr0TYMP4ll47Mv3Hy7yGJEFP8ZSPKlDqTivFa3wTtpHuYKwGbjVh/ZhrEe
+	j2QnxN/NOT3UivNvO4/JFJBrq0vqKPHQ=
+X-Gm-Gg: ASbGnctNjdwyZR7We3M86vDDjwSICLzkuZB8zcB5+Hh70rrMZcAZ8GlfXSEHKUW9TyE
+	n4JFyDOCJhPDrNt3HbzBKsX5D26RRRFAUvMRnz+5KMn/VYJApPec5vgnEEvG2Mkn1qp2VJB+uV1
+	eJAZQ2Y8Xp0N3qcK3/XyPVQ93O8FVVQohRFo1eIBX5nkcL7rLhqJr2us/+Y/TKl6Fub1XXSJsOW
+	hR2wqHrL0wCAF0V6I8=
+X-Google-Smtp-Source: AGHT+IE6MMpG/TRiFXxnrxz1Vvo3fuH5ytNgtdVEgpXL0NxXawEVfUDFtb+tMcdRPN344hi95Su67MTI32H6Ub9xTJM=
+X-Received: by 2002:a17:907:7b8b:b0:b3c:5f99:dac7 with SMTP id
+ a640c23a62f3a-b3c5fa9674amr74488566b.21.1759000826450; Sat, 27 Sep 2025
+ 12:20:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/8] sparc: PCI: Replace deprecated strcpy with strscpy
-From: Andreas Larsson <andreas@gaisler.com>
-To: Thorsten Blum <thorsten.blum@linux.dev>,
- "David S. Miller" <davem@davemloft.net>, Bjorn Helgaas
- <bhelgaas@google.com>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?=
- <ilpo.jarvinen@linux.intel.com>
-Cc: linux-hardening@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20250922210408.1723452-1-thorsten.blum@linux.dev>
- <bdef00f9-4e66-4984-9b39-85b485bdc2cb@gaisler.com>
-Content-Language: en-US
-In-Reply-To: <bdef00f9-4e66-4984-9b39-85b485bdc2cb@gaisler.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <cover.1758219786.git.leon@kernel.org> <0c64474985af55b1aa934b857808068a0e609c6e.1758219787.git.leon@kernel.org>
+ <CA+=Fv5Q8dVUFVBh82mAe=fy3mV6mWtQT_0pBPLQwLNBt3f8E1g@mail.gmail.com>
+ <20250923171819.GM10800@unreal> <CA+=Fv5SJcQ5C4UeX2+deV9mPAe5QxrocMG8EJ2eVcYjbLE5U+A@mail.gmail.com>
+ <20250923235318.GD2617119@nvidia.com> <CA+=Fv5Tg7sQACpeG8aMZF6_E6dbRnN5ifg0aiHityXadxiHoPA@mail.gmail.com>
+In-Reply-To: <CA+=Fv5Tg7sQACpeG8aMZF6_E6dbRnN5ifg0aiHityXadxiHoPA@mail.gmail.com>
+From: Magnus Lindholm <linmag7@gmail.com>
+Date: Sat, 27 Sep 2025 21:20:15 +0200
+X-Gm-Features: AS18NWCUkmopfgQP7FxvlAuimXjc1tmQlQb-89CTajXeb-5Nlye2dR2BnBQqzEg
+Message-ID: <CA+=Fv5Sze_BNmHqzypmCh8p2JO6gytXH4E6hXv3gZdfoSJsMUQ@mail.gmail.com>
+Subject: Re: [PATCH 1/9] alpha: Convert mapping routine to rely on physical address
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, 
+	Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, 
+	Geoff Levand <geoff@infradead.org>, Helge Deller <deller@gmx.de>, Ingo Molnar <mingo@redhat.com>, 
+	iommu@lists.linux.dev, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Jason Wang <jasowang@redhat.com>, 
+	Juergen Gross <jgross@suse.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	"Michael S. Tsirkin" <mst@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	sparclinux@vger.kernel.org, Stefano Stabellini <sstabellini@kernel.org>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Thomas Gleixner <tglx@linutronix.de>, 
+	virtualization@lists.linux.dev, x86@kernel.org, 
+	xen-devel@lists.xenproject.org
+Content-Type: text/plain; charset="UTF-8"
 
-On 2025-09-26 16:44, Andreas Larsson wrote:
-> On 2025-09-22 23:03, Thorsten Blum wrote:
->> strcpy() is deprecated; use strscpy() instead.
->>
->> No functional changes intended.
->>
->> Link: https://github.com/KSPP/linux/issues/88
->> Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-> 
-> For the series:
-> 
-> Reviewed-by: Andreas Larsson <andreas@gaisler.com>
-> 
-> Picking this up to my for-next.
+> > Suggest testing the same branch with the alpha patch reverted just to
+> > rule out any issue in the core code. If it reproduces suggest to
+> > bisect Leon's branch.
 
-...with some subject line clarifications.
+Hi again, I've booted up the ES40 again with the kernel build from Leons
+branch, it boots up but message log is full off messages like
+"EXT4-fs error (device sda4): ext4_find_extent:939: inode
+#16257327: comm init: pblk 65114257 bad header/extent:
+invalid magic"
 
-Cheers,
-Andreas
+The filesystem is broken after just booting with the kernel.
+This time fsck did not fix it, I needed to re-install gentoo stage3.
+So it's for sure reproducible as well as destructive.  It's not possible to
+revert all the commits individually, since this will leave the source tree
+in a state where the kernel doesn't build. I've started off by reverting
+the following commits:
+
+e78a9d72517a88faa6f16dab4d1c6f966ed378ae
+(dma-mapping: remove unused map_page callback)
+
+d459e3b80ad1c81bf596d63d2e3347cf8c7bb0d9
+(alpha: Convert mapping routine to rely on physical address)
+
+3cd47242d513050d7a81ac6e7020fd3ef5462ad4
+(block-dma: properly take MMIO path)
+
+7950995bef32aa7e5f74699c7d0fdac41d2dad14
+ (block-dma: migrate to dma_map_phys instead of map_page)
+
+
+After reverting the above commits, I'm able to build a working kernel,
+that is, no filesystem corruption occurs. I'll take a closer look at this
+after the weekend.
+
+Regards
+
+Magnus
