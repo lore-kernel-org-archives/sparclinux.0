@@ -1,33 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A35F034BA59;
-	Sun, 28 Sep 2025 15:02:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A917234BA59;
+	Sun, 28 Sep 2025 15:02:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759071759; cv=none; b=Q1oP2AbqcCrMz7lLpe40TX/lvgdVmowoz4yMaOajLJrVLlg2YE1ZR2ymSAPGUFGVa5DNikcWOhLLM41taBMROzWmTecLevH4EmJS0r/d8SaDJMh2oBv55CkulCDHt3VRUsAk0y42DBvO0Hv1joOUnV+32G2lsA0clrxqYgtCdwY=
+	t=1759071763; cv=none; b=Yg4N5gtEgAC/VnTAvbeRvrMXy/dHIInrAwMEPFUg/xh5QpN/011o4ks0SWXDlS8HM2DN7n7gE8ggvv0e+gZkkDOuF87DS60p3+vH/zGSuYMPcOQThBtvSt9bEJjXcYI/1zTbzOd99FC8VUU3Skvothas4uMijPAgF7EKIpBu4/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759071759; c=relaxed/simple;
-	bh=Akj3CON6IBsq+OP9A9OkC5SszLfqcLnpZRG8DGaLpwM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XbXlgBfizckGS/Mk1P+nEVZPi2mbcE19gq0TJapSlZds4HJfHffKulf/cHyeeRFxGAMKG/egVIlCZVsKq7lLwY9XyWJsRCIbxxV7wUtWA+xTQj6dDxyq9/FY/M7xAi+TNWeNCmACp0Ydm3tDVQXsEoALl5y8pcCOJdx+jO3BWxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TnkMQdRq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759071763; c=relaxed/simple;
+	bh=joV1RJXfMRWLzhpnIVMn+yDni/E+0b2XTKZNLoQGaO4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=oDJWZOA9w0ww3RphZWlgSNUPaiIvaK0PwXoHv7mL2G382GOR8KurQ9vVUxkXcx13RLuq1WQcGtUbHR1vRTrskXcuEzeJScYaKpfv9n2xRS0LlfqR9Xu6o6cjDkXo5g7lN2iCqMevaq976J8fbpTgxGjZrhstNpwMo3OSs5+oMzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DSOYpsgi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TnkMQdRq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48E12C4CEF0;
-	Sun, 28 Sep 2025 15:02:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DSOYpsgi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81470C116B1;
+	Sun, 28 Sep 2025 15:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1759071759;
-	bh=Akj3CON6IBsq+OP9A9OkC5SszLfqcLnpZRG8DGaLpwM=;
-	h=From:To:Cc:Subject:Date:From;
-	b=TnkMQdRqI3QZ3YV/GCpp5pqPe146ZT+yd8f0yZi5dqhffQqkLDkFNg275CdcBt57r
-	 P46/Q8MJggBoVrUATbN4yQz/1RNVzEr4qRwDBK1qefHMrZA7rRP2hz2qDSVWQ0iS7S
-	 DGy5cZpbTLZ4famPhxfNn0tm+T9zHJU/CGhwJumTvkSrrah3nVMcJlpks0e7mhTc4w
-	 j8HKF/6RRxHmpIgigj7NLyGRrG0vXEG8EvTBOOsy4JlJy5mBhEoqFp+dHa3/mFRG69
-	 4FazbdhYoc7M4C8CocEkOrWVODSNfM2PMKHWaItVyJziGeyDxLU2xd+NY5jkkGqhpC
-	 h/JiXqu+FTGaw==
+	s=k20201202; t=1759071763;
+	bh=joV1RJXfMRWLzhpnIVMn+yDni/E+0b2XTKZNLoQGaO4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DSOYpsgikSOy8MZ87jPu/KYUDc+l4cdaniO8RKKeI+Ogx+vIbjw3PFXybhxCGiVkL
+	 Svbf9LCD/OLSu1+BhYWYUN2NsbU1qvbAJmkVnyM+ehBPWXa1P8Dfsr10VqVfh+CJ3/
+	 fK0PydC9i55IUTpcrx/WEa8jZeqt059f7qwZBuoA4bLcGPLmEQkD0cguNeebMBEFKT
+	 3RrvQyQn8dehTNH48u0yl6WLA+Tz2ziEbgsKR0IERUfTbFnsVdNo8hdbmtk8QqvVxt
+	 7HSong2gEFWSxqgarqeXxYxR/Gye8uoIqVAF8qNmGQXTAkUC6S5UaNNMSjuWnuDC7u
+	 prcP+vXzgDPsQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Jason Gunthorpe <jgg@nvidia.com>,
 	Andreas Larsson <andreas@gaisler.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
@@ -57,10 +59,12 @@ Cc: Jason Gunthorpe <jgg@nvidia.com>,
 	x86@kernel.org,
 	xen-devel@lists.xenproject.org,
 	Magnus Lindholm <linmag7@gmail.com>
-Subject: [PATCH v1 0/9] Remove DMA .map_page and .unmap_page callbacks
-Date: Sun, 28 Sep 2025 18:02:20 +0300
-Message-ID: <cover.1759071169.git.leon@kernel.org>
+Subject: [PATCH v1 2/9] MIPS/jazzdma: Provide physical address directly
+Date: Sun, 28 Sep 2025 18:02:22 +0300
+Message-ID: <f64ece5bdf9dc4c7e9407a5089be68a8c5c011a5.1759071169.git.leon@kernel.org>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1759071169.git.leon@kernel.org>
+References: <cover.1759071169.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -69,60 +73,61 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Changelog:
-v1:
- * Fixed wrong offset in alpha conversion patch.
-v0: https://lore.kernel.org/all/cover.1758219786.git.leon@kernel.org
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Hi,
+MIPS jazz uses physical addresses for mapping pages, so convert
+it to get them directly from DMA mapping routine.
 
-This series continues following two series:
-1. "dma-mapping: migrate to physical address-based API"
-https://lore.kernel.org/all/cover.1757423202.git.leonro@nvidia.com
-2. "Preparation to .map_page and .unmap_page removal"
-Preparation to .map_page and .unmap_page removal
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ arch/mips/jazz/jazzdma.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-In this series, the DMA .map_page/.unmap_page callbacks are converted to newly
-introduced .map_phys/.unmap_phys interfaces. This conversion allows us to reduce
-or eliminate (for certain ARCHs) use of struct pages in DMA path.
-
-Thanks
-
-Leon Romanovsky (9):
-  alpha: Convert mapping routine to rely on physical address
-  MIPS/jazzdma: Provide physical address directly
-  parisc: Convert DMA map_page to map_phys interface
-  powerpc: Convert to physical address DMA mapping
-  sparc64: Use physical address DMA mapping
-  x86: Use physical address for DMA mapping
-  vdpa: Convert to physical address DMA mapping
-  xen: swiotlb: Convert mapping routine to rely on physical address
-  dma-mapping: remove unused map_page callback
-
- arch/alpha/kernel/pci_iommu.c            | 48 +++++++++++-------------
- arch/mips/jazz/jazzdma.c                 | 20 ++++++----
- arch/powerpc/include/asm/iommu.h         |  8 ++--
- arch/powerpc/kernel/dma-iommu.c          | 22 +++++------
- arch/powerpc/kernel/iommu.c              | 14 +++----
- arch/powerpc/platforms/ps3/system-bus.c  | 33 +++++++++-------
- arch/powerpc/platforms/pseries/ibmebus.c | 15 ++++----
- arch/powerpc/platforms/pseries/vio.c     | 21 ++++++-----
- arch/sparc/kernel/iommu.c                | 16 ++++----
- arch/sparc/kernel/pci_sun4v.c            | 16 ++++----
- arch/sparc/mm/io-unit.c                  | 13 +++----
- arch/sparc/mm/iommu.c                    | 46 ++++++++++++-----------
- arch/x86/kernel/amd_gart_64.c            | 19 +++++-----
- drivers/parisc/ccio-dma.c                | 25 ++++++------
- drivers/parisc/sba_iommu.c               | 23 ++++++------
- drivers/vdpa/vdpa_user/iova_domain.c     | 11 +++---
- drivers/vdpa/vdpa_user/iova_domain.h     |  8 ++--
- drivers/vdpa/vdpa_user/vduse_dev.c       | 18 +++++----
- drivers/xen/grant-dma-ops.c              | 20 ++++++----
- include/linux/dma-map-ops.h              |  7 ----
- kernel/dma/mapping.c                     | 12 ------
- kernel/dma/ops_helpers.c                 |  8 +---
- 22 files changed, 209 insertions(+), 214 deletions(-)
-
+diff --git a/arch/mips/jazz/jazzdma.c b/arch/mips/jazz/jazzdma.c
+index c97b089b9902..45fe71aa454b 100644
+--- a/arch/mips/jazz/jazzdma.c
++++ b/arch/mips/jazz/jazzdma.c
+@@ -521,18 +521,24 @@ static void jazz_dma_free(struct device *dev, size_t size, void *vaddr,
+ 	__free_pages(virt_to_page(vaddr), get_order(size));
+ }
+ 
+-static dma_addr_t jazz_dma_map_page(struct device *dev, struct page *page,
+-		unsigned long offset, size_t size, enum dma_data_direction dir,
+-		unsigned long attrs)
++static dma_addr_t jazz_dma_map_phys(struct device *dev, phys_addr_t phys,
++		size_t size, enum dma_data_direction dir, unsigned long attrs)
+ {
+-	phys_addr_t phys = page_to_phys(page) + offset;
++	if (attrs & DMA_ATTR_MMIO)
++		/*
++		 * This check is included because older versions of the code lacked
++		 * MMIO path support, and my ability to test this path is limited.
++		 * However, from a software technical standpoint, there is no restriction,
++		 * as the following code operates solely on physical addresses.
++		 */
++		return DMA_MAPPING_ERROR;
+ 
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		arch_sync_dma_for_device(phys, size, dir);
+ 	return vdma_alloc(phys, size);
+ }
+ 
+-static void jazz_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
++static void jazz_dma_unmap_phys(struct device *dev, dma_addr_t dma_addr,
+ 		size_t size, enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+@@ -607,8 +613,8 @@ static void jazz_dma_sync_sg_for_cpu(struct device *dev,
+ const struct dma_map_ops jazz_dma_ops = {
+ 	.alloc			= jazz_dma_alloc,
+ 	.free			= jazz_dma_free,
+-	.map_page		= jazz_dma_map_page,
+-	.unmap_page		= jazz_dma_unmap_page,
++	.map_phys		= jazz_dma_map_phys,
++	.unmap_phys		= jazz_dma_unmap_phys,
+ 	.map_sg			= jazz_dma_map_sg,
+ 	.unmap_sg		= jazz_dma_unmap_sg,
+ 	.sync_single_for_cpu	= jazz_dma_sync_single_for_cpu,
 -- 
 2.51.0
 
