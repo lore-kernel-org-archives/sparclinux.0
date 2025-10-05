@@ -1,53 +1,35 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011005.outbound.protection.outlook.com [52.101.62.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A29CD221723;
-	Sat,  4 Oct 2025 20:02:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.5
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759608135; cv=fail; b=Agz2HQgTemgEmrHot48BLXGfc6lDo2ZG0ftR65i8OuhH/FvMSpAvu2f1bhZTo16UQKyEqvRZk5jzyiGxPez9QGMsWYYmeN2Bcn5cXRuysDVRvOeWexUfq6BSlaTsWfy8NjIAc1PlzC92WgA/PxSlNpuDqns3MAcE9mu4E4pX2ss=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759608135; c=relaxed/simple;
-	bh=w5C4KnGrKTkOElpwz88RZmp1Zy1yhj7r1HZWLJ6BoKA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=ZJTIASSyzSY+Cl+kDByZfGv8hydaqjsqw54RiRv0jvgmL9s6OoY858PAjmzyIbDbdfKsf9V3qvDSxu6nKYPES6oFFqWCcZmFZerZSKbS3uwgyOUQfM4jv8EW1fhX6WGQWNAlfGywURVJYa74EuxpeoAwMmjHwPDGb5X43nFLzjg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DTJUp8zC; arc=fail smtp.client-ip=52.101.62.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A5E334BA35;
+	Sun,  5 Oct 2025 13:23:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1759670586; cv=none; b=hCep0FJiOfUjf2Ukt9Ah0BSpI8BF47eGXSudvYmsPTANQlXBSfxDnWDNLIDSXeSTpJw/RdQK1WRX97+QPZBZNfD2SZxRz61LB2bTnNz9wrs2n/u5m+U4MGSXiMcFxD8zc2X+jPiymH/jvEj/CizzNAufh+46mbPXUq5YJ+ke3Kk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1759670586; c=relaxed/simple;
+	bh=6+uRFKM+xw8rM4uHQwSSsX/I531L8PAvk6zEHoLHg8M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PjX2dePHUCn99j8Oj/MDEbLtrho8Xuic2IuQGey7wzzAyKi4nM40VoG6qz1NWYrRZur7/2M9lgeiVaA+bX53raNz3kG/6q/dBexmIMh0H5GZtAue1NE6K71OkViUj16yY39wKLsyUP/OPkUpJCBD+utD1s29Qbi+XW3GMTrVs3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eQI8MBWM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DTJUp8zC"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=LhyKacLjUMDthF3K2Mi/orOdbBLNqjB7CKeHsCsMDIvTu/PZnfNPEOGWzpwb8enzuV5YPVS5JGFEYjMn5/NXyjJtEMVyDoIU5LC0dbk7E25qiSFpe7xHlclMVHo2DFAdh+7W/l5v/SrrwtCCFNLoI+KBv3NT5ZmWrO8aE+j9/Wdw/qhERMN2QceSgCIuv9O78wyvoXKsngSTTHODGD6Vtexzpdi3DaUODw2oh2bHtXIRtYKx98BhV7IDttLOm2uqeFFF3RNM/0x6Vrir7PTHiPy8ERGwtRqr48pG/XylqaRCzPM38VMs5EYbVbUHs/lU7aYcGenrfDm7WzeZeBM/8A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=4ggoiRJiz2Tz/RE7CqNPZ9LXqpWAZN17aMszM2aHEb4=;
- b=MYVqB6xnUEl1ZpJbUO5LQX1ibif6TJEpOtxd536WJY2mn6+6tXJ9Wu7V8pxEXO+4GTDE5h/zbrGmyNpfgga6oBUEQHwllO+/0DN7Vjup/gTyvghv1cm8obDn0LiVL0bCzQ2n44xjx2vQOtP2fbCZyAX7+A2cyT7/kaaVZhNgkRK/AOtVqbDlvMT7Ah5uV9MvG61RFpSjlkgevHT4FI+yxrQML2CSJod+1rjI611QMq2MZMD5Qq0qx1rqaKmLANbpnyKsOiPWQmNnbPUFobM13IHYADGfGmLdt7yC/vdebP0nwK7TDT5aOSXOk2Lzp7h4ikOplFkqdADe62yfF7F1hA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=4ggoiRJiz2Tz/RE7CqNPZ9LXqpWAZN17aMszM2aHEb4=;
- b=DTJUp8zCi4kNEi0XzYC7PTJ67pqYffvYJyOE7e/GlAwlRERNWV4zBctem7JYDq0OcSGzA48GU0oKKYBW6luTq41Yub08qbnqvh/kC4BKTXbnw94iQKYbDbFqo0kwuCkKKoeuZgwjrzRQ6qU3ApPlJM8HhOVVGDrwlON0rNZNeo8+aKRGmg3xwsGrsGQeGbk3gOEJTHzjPoVkcfQvg6KKkT/OJ5GfbD4lLH1Oy0zwgHekzLBjLH2sEyprc+7ahV6Lzfbt19LOB8o8dWZ0LUaSt6SAn24UzNHW9b/h08ON7/Ggas+8kcZbjz30i8C48iBnWm9eara5sWOKsWdMO5gINw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from PH7PR12MB5757.namprd12.prod.outlook.com (2603:10b6:510:1d0::13)
- by PH8PR12MB6964.namprd12.prod.outlook.com (2603:10b6:510:1bf::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9182.20; Sat, 4 Oct
- 2025 20:02:06 +0000
-Received: from PH7PR12MB5757.namprd12.prod.outlook.com
- ([fe80::f012:300c:6bf4:7632]) by PH7PR12MB5757.namprd12.prod.outlook.com
- ([fe80::f012:300c:6bf4:7632%2]) with mapi id 15.20.9182.015; Sat, 4 Oct 2025
- 20:02:06 +0000
-Date: Sat, 4 Oct 2025 17:02:04 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Leon Romanovsky <leonro@nvidia.com>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eQI8MBWM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0842BC4CEF4;
+	Sun,  5 Oct 2025 13:23:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1759670585;
+	bh=6+uRFKM+xw8rM4uHQwSSsX/I531L8PAvk6zEHoLHg8M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=eQI8MBWMG4tLc46rpbyggEqPm4RA0GD3UaTk7eYqkbWnOP1BLMQA8Bd0FFRadaCjl
+	 rAIwUkukGk1MYrK6xzB125V9hLaAp82BATfNmpxYK900245SXx6HbOfKm5BRC0dbrv
+	 5QIWkPRwZti2En9ftBy6nIGiRtg+huCzDNWJ5bjY2f8oES07rhnV70hSDpOBxrTa9X
+	 YnSL7jBydSFF3hFNjyz3N+OAncXZLI72rMKNLj2nG6j611VESyMRDTNgD+W7pQflQI
+	 0zasEU6xrBWNYwhvzi4ZbeidMKDY3niw7/pdc6/NWMpg9zZU2H3pgYKg6oaItVMxpH
+	 /iMYZdttll/xg==
+Date: Sun, 5 Oct 2025 16:22:59 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Andreas Larsson <andreas@gaisler.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
@@ -70,146 +52,170 @@ Cc: Leon Romanovsky <leon@kernel.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	virtualization@lists.linux.dev, x86@kernel.org,
 	xen-devel@lists.xenproject.org, Magnus Lindholm <linmag7@gmail.com>
-Subject: Re: [PATCH v1 4/9] powerpc: Convert to physical address DMA mapping
-Message-ID: <20251004200204.GK3360665@nvidia.com>
+Subject: Re: [PATCH v1 3/9] parisc: Convert DMA map_page to map_phys interface
+Message-ID: <20251005132259.GA21221@unreal>
 References: <cover.1759071169.git.leon@kernel.org>
- <f2b69a0ac2308cc8fd8635dceac951670d41cea2.1759071169.git.leon@kernel.org>
- <20251003163505.GI3360665@nvidia.com>
- <909c5ab3-b3d3-4b5b-bc64-8b30c220ac92@csgroup.eu>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <909c5ab3-b3d3-4b5b-bc64-8b30c220ac92@csgroup.eu>
-X-ClientProxiedBy: BN9PR03CA0044.namprd03.prod.outlook.com
- (2603:10b6:408:fb::19) To PH7PR12MB5757.namprd12.prod.outlook.com
- (2603:10b6:510:1d0::13)
+ <333ec4dabec16d3d913a93780bc6e7ddb5240fcf.1759071169.git.leon@kernel.org>
+ <20251003150144.GC3360665@nvidia.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR12MB5757:EE_|PH8PR12MB6964:EE_
-X-MS-Office365-Filtering-Correlation-Id: f8ff58a9-652b-4bc7-f3fc-08de0380e4b2
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?SG5HdVlQalBObFJFMmlOV2cxbVZlVk5SNHFEWWp2QUlEQ3pUZUxzbmQvMXZ6?=
- =?utf-8?B?bVNnT2JuZkYwYnlVbERQMkxTSEMxVDdvb3pmVFdvbG1VN0ExWUp4cmFyVXBx?=
- =?utf-8?B?SjczL3VIUEREcXd2aHZPVGlDUVA5OHh2SlBNRkF5d2JPRXU3WVBPYkJ1WklF?=
- =?utf-8?B?Wm8rWTJSRzMrODZpck1qR3l3QjB2dVE1U3JTelFoa3kzd3ErZDcrZmNsWGFu?=
- =?utf-8?B?cmVzWTFZTVhMbjlHMFZCL0Z6WDNUU1dWdUhIa2FZRDA2KzdDZE1sZDIwZStr?=
- =?utf-8?B?dkozZ1Y4L0drWkp0T1Z2cTJ3eWFhenkvNjFIV0lGYmRCVVZwbjhzcUxycnFt?=
- =?utf-8?B?L0VNZDFVMlB1QmVVRWNNd2gxRk9wbkxUbytHUkpoQmZUVzIvbm5iczdsTEo3?=
- =?utf-8?B?SUtVc05IS3U0QVNkT3JYNnc4blFQR3Fyb3FWdHVSUmJrYWZQVEdXbUdsc3NJ?=
- =?utf-8?B?eWltMU8vRS9ncGtzNGdpM3k2VzJZZnptYXVFTENUSm44bStaSWg0OWZMVHlW?=
- =?utf-8?B?dDY0V3BJSUl0VjJOUHZrc013QlRpZlBJUGhhbzNIM3ZwOVNEaytHT1F1YnNG?=
- =?utf-8?B?OEUyN2lUbXRWbUU2WlBDQ2RMS1VieG9tNDFFNGM5QU9ld3lINXEwd2xwVEM3?=
- =?utf-8?B?TjdXRXRuYXQ1NnJYVWN5dFBUYkg2ZFlPUVIvM3RrYmFSS0RHallweW5ibjFY?=
- =?utf-8?B?QUNFQXVJakgvd3NIbFpJV3ZseEt1RmtyN29GZC83anhEVXdrL3A2M2ZWRXBp?=
- =?utf-8?B?ZWQzdUtzWHJZK0J4cHdGUitpWXNVVGd0ejNQeDRPSXNlOGN4aFR3S0VVSi9i?=
- =?utf-8?B?SFV4clY1eDBtU0o4Znc2cXk1Si9qNHpsRzhPRXE1akpPNUU3K1dqb0NiNWtY?=
- =?utf-8?B?SzVMekdYZEZYWEFXUzhtSHM0dDFMeUZjRlVLdzQzS0hLM0tJeWtjeUc3Y2ti?=
- =?utf-8?B?VjEzNTFtNEZSZU1zK2VkY01EUmVnam9wTnhYd3hvZ1BwTGN2MVhFcndBTi92?=
- =?utf-8?B?NWE5dzRMRUJMTHI4MkJ4MzFJcFBCM2NDWWo5bWg4NHJPQ2pja3ZvcFgyWG9s?=
- =?utf-8?B?UWFkcDVrd3JFMEZIL2NLM0tkeUZJT281RGNzRW5zVG9sbjZWRUNLUHcwY1g0?=
- =?utf-8?B?bC9IRmovNHpqcnBJUllHTnlOcHFSaFU3aDEraStWeEZuaDc5TjBQZVZlQXFY?=
- =?utf-8?B?SDlJdXFrK2ZURkQ5RFl1SXZpS2dKamVrazVGN00wc20yTno2SUFTTDJGT3ll?=
- =?utf-8?B?bERacnNKb1pxZGhDcXAzek1BY2lqQkoxWFRzY09HV1RFVnFCRENKVGkzQ0hx?=
- =?utf-8?B?dTN0ai9Xcmd3djFRVmptQ0NCTjJJUU9CSWJZUDJtaTJWNlkvdU5LNXcyd3VT?=
- =?utf-8?B?RWkvVGQxbWh1UUJTd0RwcWd5dFNENU9sSis4LzlhcXo0Vk1jS1RhU3kyWkVN?=
- =?utf-8?B?dUtkU2NKbzB4cktJWWlRc2lKTlhKbk9XZHZjd2tTczZVWWhPa25SN0VNT0Ux?=
- =?utf-8?B?RHlTYTF6ckhreUFOT2FiUGEzR2x3OGdDa2RlYWM1QVl3d0JtQmhQMERRaUJq?=
- =?utf-8?B?NndyYzJscXl0ZDBCYjZUTWhKWEtPUUFHSERKNTlkbGtKaWoybFlablg2OG04?=
- =?utf-8?B?WUhaRFEvb0tQWHpwK1hod043RWs2TlcwcEgwaVl2dGo3MzBYbzF6V2lmTkFM?=
- =?utf-8?B?WjUrN3V3M1d0QjRNUkJiay94OXNCWTdheEZ6dHpnaUg5bThCb1g0eHhGb1dN?=
- =?utf-8?B?bjFaSW4yb0UwQ1RhZFMxblFxVVMyQlQ3WFBkNmUvdE01K25JQnlQN1ZmeE9p?=
- =?utf-8?B?VnpwRVJJTml1RFlNZHY5TnptRHRDVWFOZDB5NlJuT1pqQzhOT3VuekRZVFRn?=
- =?utf-8?B?ODF6dFVXNzdhTkVyZGQzN1d6OFdMbHhUMkJrTlVrYnhyam9QYjJ0d1Bhdy9z?=
- =?utf-8?Q?axQ4JuA5qDTmgdw215ssRBzg/EhPp5Yx?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5757.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SFNtT3d1M3ZHa0JOK0VHYUY4ZGlYMDA5TFRxclZsQUozMGQxdmtGMk54L3Fk?=
- =?utf-8?B?RUZPTE1ZTDlKSjJrUG1kTUs5eTlXREZuNGFTd1k3V1FVTVAvM1BXdmR6Y0Q5?=
- =?utf-8?B?eWxLMVZtNVpWTUpDUC9oMk13YTN6bjhqOTFWV0JuWmNkU0V4MU9pdHYwZy9W?=
- =?utf-8?B?SDRTWUZZQ1RJUUY2aXJaZmxNS1dOTnJ3VTcxaWFZNWNkaVc2bUZROTM2NjRk?=
- =?utf-8?B?MDFITmJUWDE2MEhCL2lQRmkveUg5N3l6Y2x3MmNEd013cklBZ0Q4VzZvTDVm?=
- =?utf-8?B?U3dYMUorMFlMc21HYmxROVVHRk5UY2lac2lWWWM0ejN5R1Q1VHZjZWNnNGt6?=
- =?utf-8?B?YUVuR2NVWlBPM0pTZzQxN09SUGx3TEx0aEFHSjJndXRHRlBXTk1za3d4VlNZ?=
- =?utf-8?B?SENxOXlsR0lnd2Z3UnY0NXFmVGlPMVE0ekZoS1Z3MTJiNkNUNmUzWkpHSkxT?=
- =?utf-8?B?MTV0K3NoRnVhdytJK3hkRGRNZzRyd3RnNTJwejdWb3BwVDdwdGZiZ0htbm9F?=
- =?utf-8?B?TTUvanNYMDBtSGRST0JoZktvdG55VHFTZnJZaTQ2VkJTbkh3RUg5U0IyNzRI?=
- =?utf-8?B?TTIrVFdrMytkS0E2amcyRGdvcUhtTEc2NWlDMldoRzZjbTVvL1lQRjQvc2xK?=
- =?utf-8?B?cE5TNXlmbnY5VFJRRm8vYXZNY1E0U3VMTUdyaXZKNk9NWkxBQ1IwdWp4K1o0?=
- =?utf-8?B?UlArZ2Q2VCtkQ3RYVU82c1dERDAvMWhyZmY0MnpFVVRhcnpHTEFGRWVsN3NU?=
- =?utf-8?B?WHVnZEpjU3RVV0ZacHpoL25NLzMxbVgxUGV5R3h5T1BTWE0zRGdDclE4MWp0?=
- =?utf-8?B?a0lhWkNFb0FzbDNjVmNMRmhKZXpYdXp5eGRXRFQwcWFmZlYrTW1YbEY5TGJT?=
- =?utf-8?B?U0ExcDFEVERzZXdpdVVUVXRob1ZNTTF5aTFYU01rdXZZL0txMU9nVHVDSGtY?=
- =?utf-8?B?dkVOcjI1dXFEVzRVRkJ3SXgySVlUbVVRaWowQkNIdHNTRnpWbHJIZGpOYzlw?=
- =?utf-8?B?c1l3U1AxalNtNnVkSjVtRUhCZW83M0M4enl3VUw2TnZBWHMvdTRCQmZpYlAr?=
- =?utf-8?B?YW9seTVLazNKQm9HUCs0UGM3L3RVTlExTVpmWVMvUnVpdHJqcGFVdGxXR2lL?=
- =?utf-8?B?THY2SUJZekg3QUVwdDZZZzBaOXRtZUJoZTJXeFVFY2xsWE96UnZMU3ZkMndl?=
- =?utf-8?B?dERVUlRhMThMbTI5VE1iOHJVbktrODRaRkFkRFB2Z2N0dXdsdmVSKzJZeldF?=
- =?utf-8?B?TVhZbTBwZWYwa2FscW1XVGJicHJWL2krZStxdENYTzllMHdKVjdRcE9OV0Zz?=
- =?utf-8?B?bG8wNUhQOXZ4VDFoSllMaU4vV09icHZTN2kzN0Q5TlpxckJSdWlGUVhydXJH?=
- =?utf-8?B?MGMwWVJMNUtETFE5SkRQWG9NaVA3aGhuc0hqeGRoZmlLc1Mra2N5SEdrL0pO?=
- =?utf-8?B?YTh4ZG1HK01aYU5zaVZqREpoRlBqWnYycXYrQXp0SmtWbkZOTEtIakpnRkZZ?=
- =?utf-8?B?QW1WcGRCOFVIcktNTndBN2QwWWk4UC9ERDZQd1ZlTk5xMzVMZElyOEVvb3NF?=
- =?utf-8?B?SFNyZ0IyOWMxQkM5V25iVGs4YktXVnhCTU1SWlZGWksrdDlNSVdaSS92MGVW?=
- =?utf-8?B?RVN1Q2VpekhwR1l1WE5Wa0FxZGdjZzRlZUFSVlF5YTFDSEFZR3pmdUtabnIx?=
- =?utf-8?B?MlVFRkltSDBPTnIxNzU1Sm1YMG5qRHAzRERXTnJVV0xCaW43M2lDUStlMWhh?=
- =?utf-8?B?NjRKZlJ2REszaVVuK2lrSUh3Nkc1emlwdHdHNzBDa3ZzSHRDNFNPbE1tbWRx?=
- =?utf-8?B?Y2xVWlFncTFOWVNwNlNZeGw0SEdyNjhXUFVTMVlEa2xVM3lNaXd3cC84cmxp?=
- =?utf-8?B?SFJmcUQzS3d4Y2pvMWVjdEljcVJ1L1NWZ2pJR0IrZUJ0SlVGUmkwUmRlMVhl?=
- =?utf-8?B?MW8waHd6eDhpd3RkSnBNUmYyN1d2MmJBN1ErNmk0L2JOajZqeXZMRGdvcWgy?=
- =?utf-8?B?NTlpZ0Y2N0lHS0syOHc1SGdhOFVPeUlhL1BxUVJqSS9kUGpIWDVZSDlKNzVz?=
- =?utf-8?B?eklIUWw4ZmUxREJtNHMxa25QT2RQdG5INlFrL0lxUk1JbTI2VGtUNkwydzR2?=
- =?utf-8?Q?/aic=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f8ff58a9-652b-4bc7-f3fc-08de0380e4b2
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5757.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Oct 2025 20:02:06.2816
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: m4DvlEEQGlFkItrYRHh+eDfG5D1shdY/8IeIWNMDV7kkRWGSL+gF2kjnPJ6DwELC
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6964
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251003150144.GC3360665@nvidia.com>
 
-On Sat, Oct 04, 2025 at 08:19:40AM +0200, Christophe Leroy wrote:
+On Fri, Oct 03, 2025 at 12:01:44PM -0300, Jason Gunthorpe wrote:
+> On Sun, Sep 28, 2025 at 06:02:23PM +0300, Leon Romanovsky wrote:
+> > +ccio_map_phys(struct device *dev, phys_addr_t phys, size_t size,
+> > +	      enum dma_data_direction direction, unsigned long attrs)
+> >  {
+> > -	return ccio_map_single(dev, page_address(page) + offset, size,
+> > -			direction);
+> > +	if (attrs & DMA_ATTR_MMIO)
+> > +		return DMA_MAPPING_ERROR;
+> > +
+> > +	return ccio_map_single(dev, phys_to_virt(phys), size, direction);
 > 
+> This doesn't actually use the virt at all:
 > 
-> Le 03/10/2025 à 18:35, Jason Gunthorpe a écrit :
-> > On Sun, Sep 28, 2025 at 06:02:24PM +0300, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro@nvidia.com>
-> > > 
-> > > Adapt PowerPC DMA to use physical addresses in order to prepare code
-> > > to removal .map_page and .unmap_page.
-> > > 
-> > > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > > ---
-> > >   arch/powerpc/include/asm/iommu.h         |  8 +++---
-> > >   arch/powerpc/kernel/dma-iommu.c          | 22 +++++++---------
-> > >   arch/powerpc/kernel/iommu.c              | 14 +++++-----
-> > >   arch/powerpc/platforms/ps3/system-bus.c  | 33 ++++++++++++++----------
-> > >   arch/powerpc/platforms/pseries/ibmebus.c | 15 ++++++-----
-> > >   arch/powerpc/platforms/pseries/vio.c     | 21 ++++++++-------
-> > >   6 files changed, 60 insertions(+), 53 deletions(-)
-> > 
-> > I think this is good enough for PPC anything more looks quite hard
+> 	offset = ((unsigned long) addr) & ~IOVP_MASK;
+> 	if((size % L1_CACHE_BYTES) || ((unsigned long)addr % L1_CACHE_BYTES))
+> 		ccio_io_pdir_entry(pdir_start, KERNEL_SPACE, (unsigned long)addr, hint);
 > 
-> Can you tell what you have in mind ? What more would be interesting to do
-> but looks hard ? Maybe it can be a follow-up change ?
+> And ccio_io_pdir_entry():
+> 	pa = lpa(vba);
+> 
+> Is a special instruction that uses virt but AI tells me that special
+> LPA instruction is returning phys. Not sure if that is a different
+> value than virt_to_phys()..
+> 
+> IDK, I'm not feeling brave enough to drop the LPA but maybe include
+> this note in the commit message.
+> 
+It looks like I was chosen as a volunteer to do so. WDYT?
 
-The phys_addr_t should be pushed down through the ops function pointer
-and only the implementations that need the vaddr should call
-virt_to_phys()
+diff --git a/drivers/parisc/ccio-dma.c b/drivers/parisc/ccio-dma.c
+index b00f6fc49063..4d73e67fbd54 100644
+--- a/drivers/parisc/ccio-dma.c
++++ b/drivers/parisc/ccio-dma.c
+@@ -517,10 +517,10 @@ static u32 hint_lookup[] = {
+  * ccio_io_pdir_entry - Initialize an I/O Pdir.
+  * @pdir_ptr: A pointer into I/O Pdir.
+  * @sid: The Space Identifier.
+- * @vba: The virtual address.
++ * @pba: The physical address.
+  * @hints: The DMA Hint.
+  *
+- * Given a virtual address (vba, arg2) and space id, (sid, arg1),
++ * Given a physical address (pba, arg2) and space id, (sid, arg1),
+  * load the I/O PDIR entry pointed to by pdir_ptr (arg0). Each IO Pdir
+  * entry consists of 8 bytes as shown below (MSB == bit 0):
+  *
+@@ -543,7 +543,7 @@ static u32 hint_lookup[] = {
+  * index are bits 12:19 of the value returned by LCI.
+  */
+ static void
+-ccio_io_pdir_entry(__le64 *pdir_ptr, space_t sid, unsigned long vba,
++ccio_io_pdir_entry(__le64 *pdir_ptr, space_t sid, phys_addr_t pba,
+                   unsigned long hints)
+ {
+        register unsigned long pa;
+@@ -557,7 +557,7 @@ ccio_io_pdir_entry(__le64 *pdir_ptr, space_t sid, unsigned long vba,
+        ** "hints" parm includes the VALID bit!
+        ** "dep" clobbers the physical address offset bits as well.
+        */
+-       pa = lpa(vba);
++       pa = pba;
+        asm volatile("depw  %1,31,12,%0" : "+r" (pa) : "r" (hints));
+        ((u32 *)pdir_ptr)[1] = (u32) pa;
 
-Ie try to avoid doing phys -> virt -> phys as it is not efficient.
+@@ -582,7 +582,7 @@ ccio_io_pdir_entry(__le64 *pdir_ptr, space_t sid, unsigned long vba,
+        ** Grab virtual index [0:11]
+        ** Deposit virt_idx bits into I/O PDIR word
+        */
+-       asm volatile ("lci %%r0(%1), %0" : "=r" (ci) : "r" (vba));
++       asm volatile ("lci %%r0(%1), %0" : "=r" (ci) : "r" (pba));
+        asm volatile ("extru %1,19,12,%0" : "+r" (ci) : "r" (ci));
+        asm volatile ("depw  %1,15,12,%0" : "+r" (pa) : "r" (ci));
 
-Jason
+@@ -704,14 +704,14 @@ ccio_dma_supported(struct device *dev, u64 mask)
+ /**
+  * ccio_map_single - Map an address range into the IOMMU.
+  * @dev: The PCI device.
+- * @addr: The start address of the DMA region.
++ * @addr: The physical address of the DMA region.
+  * @size: The length of the DMA region.
+  * @direction: The direction of the DMA transaction (to/from device).
+  *
+  * This function implements the pci_map_single function.
+  */
+ static dma_addr_t 
+-ccio_map_single(struct device *dev, void *addr, size_t size,
++ccio_map_single(struct device *dev, phys_addr_t addr, size_t size,
+                enum dma_data_direction direction)
+ {
+        int idx;
+@@ -730,7 +730,7 @@ ccio_map_single(struct device *dev, void *addr, size_t size,
+        BUG_ON(size <= 0);
+ 
+        /* save offset bits */
+-       offset = ((unsigned long) addr) & ~IOVP_MASK;
++       offset = offset_in_page(addr);
+ 
+        /* round up to nearest IOVP_SIZE */
+        size = ALIGN(size + offset, IOVP_SIZE);
+@@ -746,15 +746,15 @@ ccio_map_single(struct device *dev, void *addr, size_t size,
+ 
+        pdir_start = &(ioc->pdir_base[idx]);
+ 
+-       DBG_RUN("%s() %px -> %#lx size: %zu\n",
+-               __func__, addr, (long)(iovp | offset), size);
++       DBG_RUN("%s() %pa -> %#lx size: %zu\n",
++               __func__, &addr, (long)(iovp | offset), size);
+ 
+        /* If not cacheline aligned, force SAFE_DMA on the whole mess */
+-       if((size % L1_CACHE_BYTES) || ((unsigned long)addr % L1_CACHE_BYTES))
++       if((size % L1_CACHE_BYTES) || (addr % L1_CACHE_BYTES))
+                hint |= HINT_SAFE_DMA;
+ 
+        while(size > 0) {
+-               ccio_io_pdir_entry(pdir_start, KERNEL_SPACE, (unsigned long)addr, hint);
++               ccio_io_pdir_entry(pdir_start, KERNEL_SPACE, addr, hint);
+ 
+                DBG_RUN(" pdir %p %08x%08x\n",
+                        pdir_start,
+@@ -779,7 +779,7 @@ ccio_map_phys(struct device *dev, phys_addr_t phys, size_t size,
+        if (unlikely(attrs & DMA_ATTR_MMIO))
+                return DMA_MAPPING_ERROR;
+ 
+-       return ccio_map_single(dev, phys_to_virt(phys), size, direction);
++       return ccio_map_single(dev, phys, size, direction);
+ }
+ 
+ 
+@@ -854,7 +854,8 @@ ccio_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle, gfp_t flag,
+ 
+        if (ret) {
+                memset(ret, 0, size);
+-               *dma_handle = ccio_map_single(dev, ret, size, DMA_BIDIRECTIONAL);
++               *dma_handle = ccio_map_single(dev, virt_to_phys(ret), size,
++                                             DMA_BIDIRECTIONAL);
+        }
+ 
+        return ret;
+@@ -921,7 +922,7 @@ ccio_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
+        /* Fast path single entry scatterlists. */
+        if (nents == 1) {
+                sg_dma_address(sglist) = ccio_map_single(dev,
+-                               sg_virt(sglist), sglist->length,
++                               sg_phys(sglist), sglist->length,
+                                direction);
+                sg_dma_len(sglist) = sglist->length;
+                return 1;
+
+> 
+> Jason
+> 
