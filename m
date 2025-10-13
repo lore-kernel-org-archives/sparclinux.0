@@ -1,65 +1,66 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8DF1DFF0;
-	Sat, 18 Oct 2025 09:53:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7660F261B75;
+	Sat, 18 Oct 2025 17:35:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760781191; cv=none; b=upzu3Upx4gxPbKVFCAPV4LPE7O6sTHXX9q/enz5VbXVYc+OZ8Dd4jXDSVtVghThqSRrTdODC7XUvZiCn4UB/aG2G6GBscGvDS2dxe/lvA4UbYJsvnjf8u1YzZZ6+PNm0UajLILkNgBQk7dleUJ7uZV+/RJpipxStOaHCHEqZjG0=
+	t=1760808953; cv=none; b=LjkG6didrAGpCticdew/eb6dsGm4eD1CA6exjwnjZbDNFC/5dH8+BLIhBIQM81Bm07h1ll6Yrv8odIXQ+ZWTGJdpzlseb5AeKSwxopi+hcH8wpl2Ykv9eLznb3RW/lQNvK54GgkmRiJEIFL5DcMMQW+O/lKRRy7x9hEnolAGsVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760781191; c=relaxed/simple;
-	bh=bOSmYzha9caq7PhodKTKcCoPiLt+2LlIcLfZyClR6tI=;
+	s=arc-20240116; t=1760808953; c=relaxed/simple;
+	bh=FH7kWsdToQ9dkDy3wa31Jvf5NV2Cp2hhNe4IzS9w3/M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ik1bGNWYUbHQW7Go/ew1g5GruNzVTSt3RM+pafF12dGkVDgZCgA7v+jFcobUfBAapEaPffXulzIPAzk0abbvCX45BUjFhMn41ZP+VfIktjSs0ghEr22EAueunjC3Y1OeF/PqLh1Y62o3SX91Z9E/qLSWOsGMWZpmChPWb2NN0Cw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PVM7dGcE; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=ulUDSLodVZtLmtjZqiycdzo6Uc5ydQENUhJXh9YhG3MPOI/t7b0CBv1utxBZYMLY/qHZUCk5TmGC4i2T0MZfLHEhWq/Mi/0O+I4IV9YLyVCyz0/Jj3Unr7rYtSRR/hcAZMexiL9rsK7dJFBYrjRcrHt5R35Qx7vd9KPyky7tl/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=R2Yr+rPg; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PVM7dGcE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A979DC113D0;
-	Sat, 18 Oct 2025 09:52:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760781190;
-	bh=bOSmYzha9caq7PhodKTKcCoPiLt+2LlIcLfZyClR6tI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PVM7dGcEYXCuz8kq+FQlif5GkokSxvCHTzAFAGwTnR8/6weD/vKEUQASmePsYFC3h
-	 +euqjGf0PMyAFk0ZJUt5YM7wZxnuKR0UvscN4IWjm71nso3T24TfhImRIqQfyI4ss6
-	 cv+7XmuLUObCGPTep6i88M7y6u+ifbhyfVbe1BHS4zD5ALzPNDk/kx15zhKRwL0t27
-	 dMmFhLM5KTioGdUJieNshqGCPzeMSFbHvJviFEJxzNeYiuG1A5BFkxDb8ilKL2vLrA
-	 8jv3n05kf1if0vj2NPnC/QhhCj3HuD1WtyN73Zhx+EyOOZxPqW3faoSHxWvYSohg6r
-	 KlyEFQZJR/qhA==
-Date: Sat, 18 Oct 2025 12:52:55 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="R2Yr+rPg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1760808951; x=1792344951;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=FH7kWsdToQ9dkDy3wa31Jvf5NV2Cp2hhNe4IzS9w3/M=;
+  b=R2Yr+rPgJ1E/ZA2Orxt9rYbBjwI4QMeOUp6ULIXrqrzXk2t7KTacTPox
+   6R0vxSy4JaXxKxyvnCyzBKm7wYkKolG7pKLmNFbyfyre4qV61s4gf4qIi
+   RPFFobivpnmJeGtEzKNLEkyU0f1jcNHktodUgayWVpo0BP91IDNhnlfUc
+   66Ohua7/ybodQ1wqPns7x5n7wE2hRxouZmN4f0wDZrqRms8xYF3rlqvpJ
+   ze201Z7Yw8v1R6QBOoZz6aXWbKaheVuboBG6YBqapPQajZxrZOheSvpBa
+   HBLQJ+XWOX9MUml4OS4cy6QCVW4G4VrlfnLLr0qTftpHr2AROr7tkltVy
+   w==;
+X-CSE-ConnectionGUID: 5XIDNclFQXC6oKHvoWZ9jA==
+X-CSE-MsgGUID: YsHSleeZQ5iqoRfA2M45yw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="62029445"
+X-IronPort-AV: E=Sophos;i="6.19,239,1754982000"; 
+   d="scan'208";a="62029445"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2025 10:35:51 -0700
+X-CSE-ConnectionGUID: YFbJk/fUSPu1cRR9Tql/CA==
+X-CSE-MsgGUID: 2rIfw+45QYOkc89a/JO41g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.19,239,1754982000"; 
+   d="scan'208";a="188073036"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO ashevche-desk.local) ([10.245.244.194])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2025 10:35:50 -0700
+Received: from andy by ashevche-desk with local (Exim 4.98.2)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1v8PbI-000000002vp-2A6B;
+	Mon, 13 Oct 2025 23:57:00 +0300
+Date: Mon, 13 Oct 2025 23:57:00 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: "David S. Miller" <davem@davemloft.net>,
 	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-	Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>, Nicholas Piggin <npiggin@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-	x86@kernel.org
-Subject: Re: [PATCH v3 05/13] mm: introduce CONFIG_ARCH_LAZY_MMU
-Message-ID: <aPNjd2dg3YN-TZKH@kernel.org>
-References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-6-kevin.brodsky@arm.com>
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Helge Deller <deller@gmx.de>, Jens Axboe <axboe@kernel.dk>,
+	linux-hardening@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/8] sparc: floppy: Replace deprecated strcpy with
+ strscpy in sun_floppy_init
+Message-ID: <aO1nnGiISsk9dNt2@smile.fi.intel.com>
+References: <20250922210408.1723452-1-thorsten.blum@linux.dev>
+ <20250922210408.1723452-3-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -68,65 +69,23 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251015082727.2395128-6-kevin.brodsky@arm.com>
+In-Reply-To: <20250922210408.1723452-3-thorsten.blum@linux.dev>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, Oct 15, 2025 at 09:27:19AM +0100, Kevin Brodsky wrote:
-> Architectures currently opt in for implementing lazy_mmu helpers by
-> defining __HAVE_ARCH_ENTER_LAZY_MMU_MODE.
+On Mon, Sep 22, 2025 at 11:03:52PM +0200, Thorsten Blum wrote:
+> strcpy() is deprecated; use strscpy() instead.
 > 
-> In preparation for introducing a generic lazy_mmu layer that will
-> require storage in task_struct, let's switch to a cleaner approach:
-> instead of defining a macro, select a CONFIG option.
-> 
-> This patch introduces CONFIG_ARCH_LAZY_MMU and has each arch select
-> it when it implements lazy_mmu helpers.
-> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is removed and <linux/pgtable.h>
-> relies on the new CONFIG instead.
-> 
-> On x86, lazy_mmu helpers are only implemented if PARAVIRT_XXL is
-> selected. This creates some complications in arch/x86/boot/, because
-> a few files manually undefine PARAVIRT* options. As a result
-> <asm/paravirt.h> does not define the lazy_mmu helpers, but this
-> breaks the build as <linux/pgtable.h> only defines them if
-> !CONFIG_ARCH_LAZY_MMU. There does not seem to be a clean way out of
-> this - let's just undefine that new CONFIG too.
-> 
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
+> No functional changes intended.
 
-...
+Is this the only one place in floppy (arch) code?
 
-> @@ -231,7 +231,7 @@ static inline int pmd_dirty(pmd_t pmd)
->   * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
->   * and the mode cannot be used in interrupt context.
->   */
-> -#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-> +#ifndef CONFIG_ARCH_LAZY_MMU
->  static inline void arch_enter_lazy_mmu_mode(void) {}
->  static inline void arch_leave_lazy_mmu_mode(void) {}
->  static inline void arch_flush_lazy_mmu_mode(void) {}
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index 0e26f4fc8717..2fdcb42ca1a1 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -1372,6 +1372,9 @@ config PT_RECLAIM
->  config FIND_NORMAL_PAGE
->  	def_bool n
->  
-> +config ARCH_LAZY_MMU
-> +	bool
-> +
+The change itself LGTM,
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-I think a better name would be ARCH_HAS_LAZY_MMU and the config option fits
-better to arch/Kconfig.
-
->  source "mm/damon/Kconfig"
->  
->  endmenu
-> -- 
-> 2.47.0
-> 
 
 -- 
-Sincerely yours,
-Mike.
+With Best Regards,
+Andy Shevchenko
+
+
