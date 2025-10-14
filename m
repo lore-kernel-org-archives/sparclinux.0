@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1656314A92;
-	Tue, 14 Oct 2025 13:05:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF9C314B78;
+	Tue, 14 Oct 2025 13:05:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760447156; cv=none; b=e6fUZXwEVc+/tVxhIRbVEcGKPIne95RRP5+4hnc11jzcU8YlxVO03oPtqD7lfMJDg/hS8FH/W1gR2PKN/DIovP5sodjwS6U6UAo85ZrHTNpP0D+4V96zsmzZpC7WhXhAS6mqkqT9DLanmB+4/597o5TRbkw5MCy12TtE5aywC3s=
+	t=1760447157; cv=none; b=Y4MbZ777514tP4V6869BOa+HlgzbG2T3xUslkq+M9IM30XzdKZA0uodYqcQT9uPZAaS3B6HjnR7DCitPcX3NFi4SpbQWjvvDVil1YLb2bW25lw7cvsV2Cu37t6LgdGxBOGacXFTfYmBVfY2fes98gjx4S9iwwC50/EKF71clvMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760447156; c=relaxed/simple;
-	bh=3lgCYGIMr6BqeDPz9pKFvSa3Tpv/XYmPh2f36Wz3/Vw=;
+	s=arc-20240116; t=1760447157; c=relaxed/simple;
+	bh=XzQW4/Bu5moeHZMAHvqFvXBlWcd696K9WDlakbG7iS8=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=eRey6rhZhc3FhwnniWBTiR0FzW4qlUg/3pG+1cNFB6q7pzVeCLoqsre7vQMlI3bsJ8R4cnmh+21uB1miiYCdwwXjLByATIS3PNnDFNk+VJpL6hRU/cq+NLADYtt/aLQrHrmYrJY/iQD0gC5TyXeu74woJ/W18Z+vtpdi6GAwIrM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=kDPkhNZF; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=zLHxkSgW; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=u/LkwrV+Yo5qqf86eJ5hVSk6GMmL6Xw8KOHQw+oQzjJk09iPENHzaDqykj5a4x4QRTDlh/WMdijucLwifr1DUmLlGUcofrJdURPPWRXIh28n0E9lYcUABnFcpNy5WUihQjeGM5KrpEe75y5DRHM1tuYeVUns8ZQI7ftM438jC8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=VKcGupTm; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=BPouXKjv; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="kDPkhNZF";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="zLHxkSgW"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="VKcGupTm";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="BPouXKjv"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1760447152;
+	s=2020; t=1760447153;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=PtEMzaRgOB8kquDpZ2oJC8rCzxEI2hYSKcXXX4oBQqw=;
-	b=kDPkhNZFnKiPIKn2BfUt5pn59Sg5Gn1PrDHdDcLkuN3BevIr2tumGBieAbhxD2f4hflub8
-	e8SRmhJs4vtIcfp9qgaSlijd6Ih1iAbrv0BJWxfaa2XZb15CS5jFUHKZ+yrK8Id2JM78x1
-	95G9tQO2AKOpfPjX/yMBkhWiLEe8Ehyul3lz9yUe15jV/Z/q+EI6Xgu6I5jGxMhWOi5JO+
-	GYy3ovjSpa7MZ++Prynre1P1J+cvYl12KJGCvDwZx2HN8axJYv6DZPE3VJqP8X0RusNIWY
-	fpQUWrS8hmvkUupggb1ITeEYpa/KHeYd5EqoYqt7zeSKYXCey/nDz2gPSKF7/g==
+	bh=2Jz/fSQ4w2Bn/x6vZR3CdwbYNIGEPKCgvqF2C3xKpfE=;
+	b=VKcGupTmWHcLI7Z0F1GJxSKy3HSwtCoEQeb3y3K5GW3tZ3MbEDvktdbAmdZTn+uH1bg0U2
+	8h4vhGrWqe38UOZfS2U0a3uu3vCKfGG8Q0PpdxY8IqXdPepPVyHpTeW2ODz2NhN4a47v5H
+	w2HA0YBUpXONsWbx/w0WyVCks2VkXQYUKS0zVJY9j53UV6RtdWVlwjecCk6jlGdvpnPXss
+	Fa7s1H3Kp/Fwosf+mJH1mNTuNYDtbUPvRrFCvp5xDIL6qiKsOdYirrovpEG8frLO3SSDcp
+	aNpv/Ts+hnVhhoqgkUPks10emA9sNZ1crjnWsJb8l+ee7LqwXgW9PEGY31oONg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1760447152;
+	s=2020e; t=1760447153;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=PtEMzaRgOB8kquDpZ2oJC8rCzxEI2hYSKcXXX4oBQqw=;
-	b=zLHxkSgWSjdbKEzJflQ9dcKDaS7KCBMSUJheUled3tqTF+w6qHzcAxxo3/aGtH3oj+wwIC
-	hNdsXlaXlufgbEBw==
-Date: Tue, 14 Oct 2025 15:05:19 +0200
-Subject: [PATCH v2 04/10] riscv: Implement custom CC_CAN_LINK
+	bh=2Jz/fSQ4w2Bn/x6vZR3CdwbYNIGEPKCgvqF2C3xKpfE=;
+	b=BPouXKjvuvb+fmaL4NwW0ji9XzPT4qC/zULrhT4erndSmssrS+FBVwoL8r5nMAE7LPOaHo
+	LwxtHqhKCr7Nk2DA==
+Date: Tue, 14 Oct 2025 15:05:21 +0200
+Subject: [PATCH v2 06/10] powerpc: Implement custom CC_CAN_LINK
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20251014-kbuild-userprogs-bits-v2-4-faeec46e887a@linutronix.de>
+Message-Id: <20251014-kbuild-userprogs-bits-v2-6-faeec46e887a@linutronix.de>
 References: <20251014-kbuild-userprogs-bits-v2-0-faeec46e887a@linutronix.de>
 In-Reply-To: <20251014-kbuild-userprogs-bits-v2-0-faeec46e887a@linutronix.de>
 To: Nathan Chancellor <nathan@kernel.org>, 
@@ -74,53 +74,58 @@ Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
  linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1760447149; l=1258;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1760447149; l=1653;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=3lgCYGIMr6BqeDPz9pKFvSa3Tpv/XYmPh2f36Wz3/Vw=;
- b=ljrpmNZOQUkLMN+En8m+6y2KVlfRnUR20ZZD26p+acX5QP7AVUU4yWipMMpv+SjAnIDnFb0Qx
- WUXs2N/Eo+MCXvns+nHls5Gg7cVspWXWzbvjHF5Wo72H4v/yRtTle/C
+ bh=XzQW4/Bu5moeHZMAHvqFvXBlWcd696K9WDlakbG7iS8=;
+ b=iMDR0xOl/X2IGC7IEBYdKs5yuoYP5wjW2LSP8Krtgl2eaP0yhU5aS9qhWhGPYYr0+eb0mEveO
+ gg/4WcsNrUBDV10e4SbmIWsMoaYJ+4oJo37KgaWlBCNQAPq/+4MetS8
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-The generic CC_CAN_LINK detection relies on -m32/-m64 compiler flags.
-These are not supported by riscv compilers.
+The generic CC_CAN_LINK detection does not handle different byte orders.
+This may lead to userprogs which are not actually runnable on the target
+kernel.
 
-Use architecture-specific logic using -mabi instead.
+Use architecture-specific logic supporting byte orders instead.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- arch/riscv/Kconfig | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/powerpc/Kconfig | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 0c6038dc5dfd529e1fe623f6bc2729a388b33fde..1faf6e6ec87d1417b4e3213ad54053439c87e331 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -25,6 +25,7 @@ config RISCV
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_BINFMT_FLAT
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index e24f4d88885ae52e77fcb523040e8d31f167571f..c6887a2b97530b9c5b8c34dd0baa3ef8548cb43d 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -127,6 +127,7 @@ config PPC
+ 	select ARCH_DMA_DEFAULT_COHERENT	if !NOT_COHERENT_CACHE
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE
 +	select ARCH_HAS_CC_CAN_LINK
+ 	select ARCH_HAS_COPY_MC			if PPC64
  	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
-@@ -1335,6 +1336,16 @@ config PORTABLE
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+@@ -1341,6 +1342,20 @@ endif
+ config PPC_LIB_RHEAP
+ 	bool
  
 +config ARCH_CC_CAN_LINK
 +	bool
-+	default $(cc_can_link_user,-mabi=lp64d) if 64BIT
-+	default $(cc_can_link_user,-mabi=ilp32d)
++	default $(cc_can_link_user,-m64 -mlittle-endian) if 64BIT && CPU_LITTLE_ENDIAN
++	default $(cc_can_link_user,-m64 -mbig-endian) if 64BIT && CPU_BIG_ENDIAN
++	default $(cc_can_link_user,-m32 -mlittle-endian) if CPU_LITTLE_ENDIAN
++	default $(cc_can_link_user,-m32 -mbig-endian) if CPU_BIG_ENDIAN
 +
 +config ARCH_USERFLAGS
 +	string
-+	default "-mabi=lp64d" if 64BIT
-+	default "-mabi=ilp32d"
++	default "-m64 -mlittle-endian" if 64BIT && CPU_LITTLE_ENDIAN
++	default "-m64 -mbig-endian" if 64BIT && CPU_BIG_ENDIAN
++	default "-m32 -mlittle-endian" if CPU_LITTLE_ENDIAN
++	default "-m32 -mbig-endian" if CPU_BIG_ENDIAN
 +
- menu "Power management options"
+ source "arch/powerpc/kvm/Kconfig"
  
- source "kernel/power/Kconfig"
+ source "kernel/livepatch/Kconfig"
 
 -- 
 2.51.0
