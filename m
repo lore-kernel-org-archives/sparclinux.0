@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 82445311955;
-	Wed, 15 Oct 2025 08:28:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B44903164BC;
+	Wed, 15 Oct 2025 08:28:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760516938; cv=none; b=bvVPsc6IqLO5s+xKQV4rVUwlYdnzixaHsF2LwGVuja4BBhvGQFoRGXBoK6B9VxQ3qpTnVNVbcqNZiPV4Hdw1h3Uo77BrarWpyKnqaYKr3vDP5mdZNr/6QjFa9+iwknBfCvZ4i9ft3Ab0KBy+je1GlL6p5HHVFQg1fe+avAFf9sE=
+	t=1760516939; cv=none; b=FgLZtAirfgjJJWXpcsfmFxBLZM1NQRW3Uz9jZIXvwfdwpVNLvmzsZim3+yZrtXEd4QG9+r42t4oUmd5kbEmv4kv5FNxY9SvgvPhIkCVH5XCrfDcLzUWgwAIwSffyWSZM0MnJOiwx9Tlh8CNjTN22tQ8EiZYs8U3igmjIvYA1vBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760516938; c=relaxed/simple;
-	bh=oLlaxR109vGTt1sx8L9OMCjO1xWHqhyGxAPPwTjyMpg=;
+	s=arc-20240116; t=1760516939; c=relaxed/simple;
+	bh=M77QWUN/jEy7GV0PX15SUQmE6yW+sHmw/oAAt9yFBko=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=B7CgBjDwUBiH6q6p+Kc5s2L/oC5w7JFzTALg2iIz122/IigOgQmxYPwLQi6S2Ryx3YHkTX3u9jtwBzs76AqUousfetbGZlMIOHypyefo8xPDtI+K2YM9ZfY30qJKsoRtsI/uGHG770yx8Cx3lUxa8PdhwG/OXax2gnYkSOpXLe8=
+	 MIME-Version; b=mk9shqH/VZ2qt0oICfx2JVjaDuZztNFIOMoXZ4998W/AGe3YIUTYDhO+IGT0EgNz1Axqp1D4ANl2OS+saUa4GYy3Nr3aVMJx0AQQcAJ6ZBNvqENRZqsZZQ3GNUGq8oLmJgrUz56/1Eaz2k39lBiUstUzEATQPnonp8ZbgLOx9i0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 78DF9236D;
-	Wed, 15 Oct 2025 01:28:39 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C3A1E2379;
+	Wed, 15 Oct 2025 01:28:44 -0700 (PDT)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 754613F66E;
-	Wed, 15 Oct 2025 01:28:42 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BF2653F66E;
+	Wed, 15 Oct 2025 01:28:47 -0700 (PDT)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -55,9 +55,9 @@ Cc: linux-kernel@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	x86@kernel.org
-Subject: [PATCH v3 12/13] mm: bail out of lazy_mmu_mode_* in interrupt context
-Date: Wed, 15 Oct 2025 09:27:26 +0100
-Message-ID: <20251015082727.2395128-13-kevin.brodsky@arm.com>
+Subject: [PATCH v3 13/13] mm: introduce arch_wants_lazy_mmu_mode()
+Date: Wed, 15 Oct 2025 09:27:27 +0100
+Message-ID: <20251015082727.2395128-14-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <20251015082727.2395128-1-kevin.brodsky@arm.com>
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
@@ -69,145 +69,110 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The lazy MMU mode cannot be used in interrupt context. This is
-documented in <linux/pgtable.h>, but isn't consistently handled
-across architectures.
+powerpc decides at runtime whether the lazy MMU mode should be used.
 
-arm64 ensures that calls to lazy_mmu_mode_* have no effect in
-interrupt context, because such calls do occur in certain
-configurations - see commit b81c688426a9 ("arm64/mm: Disable barrier
-batching in interrupt contexts"). Other architectures do not check
-this situation, most likely because it hasn't occurred so far.
-
-Both arm64 and x86/Xen also ensure that any lazy MMU optimisation is
-disabled while in interrupt mode (see queue_pte_barriers() and
-xen_get_lazy_mode() respectively).
-
-Let's handle this in the new generic lazy_mmu layer, in the same
-fashion as arm64: bail out of lazy_mmu_mode_* if in_interrupt(), and
-have in_lazy_mmu_mode() return false to disable any optimisation.
-Also remove the arm64 handling that is now redundant; x86/Xen has
-its own internal tracking so it is left unchanged.
+To avoid the overhead associated with managing
+task_struct::lazy_mmu_state if the mode isn't used, introduce
+arch_wants_lazy_mmu_mode() and bail out of lazy_mmu_mode_* if it
+returns false. Add a default definition returning true, and an
+appropriate implementation for powerpc.
 
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/arm64/include/asm/pgtable.h | 17 +----------------
- include/linux/pgtable.h          | 16 ++++++++++++++--
- include/linux/sched.h            |  3 +++
- 3 files changed, 18 insertions(+), 18 deletions(-)
+This patch seemed like a good idea to start with, but now I'm not so
+sure that the churn added to the generic layer is worth it.
 
-diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-index 944e512767db..a37f417c30be 100644
---- a/arch/arm64/include/asm/pgtable.h
-+++ b/arch/arm64/include/asm/pgtable.h
-@@ -62,37 +62,22 @@ static inline void emit_pte_barriers(void)
+It provides a minor optimisation for just powerpc. x86 with XEN_PV also
+chooses at runtime whether to implement lazy_mmu helpers or not, but
+it doesn't fit this API so neatly and isn't handled here.
+---
+ .../include/asm/book3s/64/tlbflush-hash.h        | 11 ++++++-----
+ include/linux/pgtable.h                          | 16 ++++++++++++----
+ 2 files changed, 18 insertions(+), 9 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+index bbc54690d374..a91b354cf87c 100644
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
++++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+@@ -23,10 +23,14 @@ DECLARE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
  
- static inline void queue_pte_barriers(void)
+ extern void __flush_tlb_pending(struct ppc64_tlb_batch *batch);
+ 
++#define arch_wants_lazy_mmu_mode arch_wants_lazy_mmu_mode
++static inline bool arch_wants_lazy_mmu_mode(void)
++{
++	return !radix_enabled();
++}
++
+ static inline void arch_enter_lazy_mmu_mode(void)
  {
--	if (in_interrupt()) {
--		emit_pte_barriers();
+-	if (radix_enabled())
 -		return;
--	}
--
- 	if (in_lazy_mmu_mode())
- 		test_and_set_thread_flag(TIF_LAZY_MMU_PENDING);
- 	else
- 		emit_pte_barriers();
- }
- 
--static inline void arch_enter_lazy_mmu_mode(void)
--{
--	if (in_interrupt())
--		return;
--}
-+static inline void arch_enter_lazy_mmu_mode(void) {}
- 
- static inline void arch_flush_lazy_mmu_mode(void)
- {
--	if (in_interrupt())
--		return;
--
- 	if (test_and_clear_thread_flag(TIF_LAZY_MMU_PENDING))
- 		emit_pte_barriers();
- }
+ 	/*
+ 	 * apply_to_page_range can call us this preempt enabled when
+ 	 * operating on kernel page tables.
+@@ -46,9 +50,6 @@ static inline void arch_flush_lazy_mmu_mode(void)
  
  static inline void arch_leave_lazy_mmu_mode(void)
  {
--	if (in_interrupt())
+-	if (radix_enabled())
 -		return;
 -
  	arch_flush_lazy_mmu_mode();
+ 	preempt_enable();
  }
- 
 diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 269225a733de..718c9c788114 100644
+index 718c9c788114..db4f388d2a16 100644
 --- a/include/linux/pgtable.h
 +++ b/include/linux/pgtable.h
-@@ -228,8 +228,8 @@ static inline int pmd_dirty(pmd_t pmd)
-  * of the lazy mode. So the implementation must assume preemption may be enabled
-  * and cpu migration is possible; it must take steps to be robust against this.
-  * (In practice, for user PTE updates, the appropriate page table lock(s) are
-- * held, but for kernel PTE updates, no lock is held). The mode cannot be used
-- * in interrupt context.
-+ * held, but for kernel PTE updates, no lock is held). The mode is disabled
-+ * in interrupt context and calls to the lazy_mmu API have no effect.
-  *
-  * The lazy MMU mode is enabled for a given block of code using:
-  *
-@@ -265,6 +265,9 @@ static inline void lazy_mmu_mode_enable(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
-+	if (in_interrupt())
-+		return;
-+
- 	VM_BUG_ON(state->count == U8_MAX);
- 	/* enable() must not be called while paused */
- 	VM_WARN_ON(state->count > 0 && !state->enabled);
-@@ -280,6 +283,9 @@ static inline void lazy_mmu_mode_disable(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
-+	if (in_interrupt())
-+		return;
-+
- 	VM_BUG_ON(state->count == 0);
- 	VM_WARN_ON(!state->enabled);
- 
-@@ -297,6 +303,9 @@ static inline void lazy_mmu_mode_pause(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
-+	if (in_interrupt())
-+		return;
-+
- 	VM_WARN_ON(state->count == 0 || !state->enabled);
- 
- 	state->enabled = false;
-@@ -307,6 +316,9 @@ static inline void lazy_mmu_mode_resume(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
-+	if (in_interrupt())
-+		return;
-+
- 	VM_WARN_ON(state->count == 0 || state->enabled);
- 
- 	arch_enter_lazy_mmu_mode();
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 2862d8bf2160..beb3e6cfddd9 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -1731,6 +1731,9 @@ static inline char task_state_to_char(struct task_struct *tsk)
+@@ -261,11 +261,19 @@ static inline int pmd_dirty(pmd_t pmd)
+  * currently enabled.
+  */
  #ifdef CONFIG_ARCH_LAZY_MMU
- static inline bool in_lazy_mmu_mode(void)
- {
-+	if (in_interrupt())
-+		return false;
 +
- 	return current->lazy_mmu_state.enabled;
- }
- #else
++#ifndef arch_wants_lazy_mmu_mode
++static inline bool arch_wants_lazy_mmu_mode(void)
++{
++	return true;
++}
++#endif
++
+ static inline void lazy_mmu_mode_enable(void)
+ {
+ 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+ 
+-	if (in_interrupt())
++	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
+ 		return;
+ 
+ 	VM_BUG_ON(state->count == U8_MAX);
+@@ -283,7 +291,7 @@ static inline void lazy_mmu_mode_disable(void)
+ {
+ 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+ 
+-	if (in_interrupt())
++	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
+ 		return;
+ 
+ 	VM_BUG_ON(state->count == 0);
+@@ -303,7 +311,7 @@ static inline void lazy_mmu_mode_pause(void)
+ {
+ 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+ 
+-	if (in_interrupt())
++	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
+ 		return;
+ 
+ 	VM_WARN_ON(state->count == 0 || !state->enabled);
+@@ -316,7 +324,7 @@ static inline void lazy_mmu_mode_resume(void)
+ {
+ 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+ 
+-	if (in_interrupt())
++	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
+ 		return;
+ 
+ 	VM_WARN_ON(state->count == 0 || state->enabled);
 -- 
 2.47.0
 
