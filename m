@@ -1,178 +1,138 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B44903164BC;
-	Wed, 15 Oct 2025 08:28:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39D6B298991;
+	Wed, 15 Oct 2025 09:13:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760516939; cv=none; b=FgLZtAirfgjJJWXpcsfmFxBLZM1NQRW3Uz9jZIXvwfdwpVNLvmzsZim3+yZrtXEd4QG9+r42t4oUmd5kbEmv4kv5FNxY9SvgvPhIkCVH5XCrfDcLzUWgwAIwSffyWSZM0MnJOiwx9Tlh8CNjTN22tQ8EiZYs8U3igmjIvYA1vBc=
+	t=1760519589; cv=none; b=HanzYuve6EgCSNIsvyhGO3QT2csxkcB5xNYy9bGwQGElpHlR+MjWjxalrne5SLbWsmi5EJ0nccBiibG9P4B8+La3Z6F+t+j2WW1J11XhFISTMxGxvzx8q17jd2AiF0cuR0/gT793vkn9BnuArsOAf1lHZ4omIA63k4WVezeFVNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760516939; c=relaxed/simple;
-	bh=M77QWUN/jEy7GV0PX15SUQmE6yW+sHmw/oAAt9yFBko=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mk9shqH/VZ2qt0oICfx2JVjaDuZztNFIOMoXZ4998W/AGe3YIUTYDhO+IGT0EgNz1Axqp1D4ANl2OS+saUa4GYy3Nr3aVMJx0AQQcAJ6ZBNvqENRZqsZZQ3GNUGq8oLmJgrUz56/1Eaz2k39lBiUstUzEATQPnonp8ZbgLOx9i0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C3A1E2379;
-	Wed, 15 Oct 2025 01:28:44 -0700 (PDT)
-Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BF2653F66E;
-	Wed, 15 Oct 2025 01:28:47 -0700 (PDT)
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jann Horn <jannh@google.com>,
+	s=arc-20240116; t=1760519589; c=relaxed/simple;
+	bh=ywR7wdHo9iJDPAMnOLxx2KSfcpdMYgaVYoeQgeEMVE0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZHyCeU7uvFcnjiWkFUPfmd2Chjd5/pSDqcrgc0b8qlE5fwCUb367tTeM3CfTc780AfX7ruNQXkiMLkJhxJ/KpTRLE1HLOoJUTGT5wiaeKuyIscXcFkLzqlTHARHrIQVFw71tR1meoRWn9iTP+/S99Eo92qJDLNLZzO28EAUVDKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T/fn/Q7E; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T/fn/Q7E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D5DDC4CEF8;
+	Wed, 15 Oct 2025 09:13:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760519588;
+	bh=ywR7wdHo9iJDPAMnOLxx2KSfcpdMYgaVYoeQgeEMVE0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=T/fn/Q7Et3W/XoUP2+BW/BncjyLdn9Q59dx4I+uKrVGVx83N3CoqpvJHFxWuqRsC+
+	 XdbXTMel6OirvBhxiFjPLifrL1qZ1WA1GV0CfnbnyJ0gLcqjgJlrUBUk085bytleC1
+	 Ps1/U8qadzNDPEXTFtbAw3rfhPCKp+JJvyNHVNWiVzxBuTqLX4e1h0uwpfnG6FXSGu
+	 ahv0t+DTPlJs6QFO33ojzLxd9DpyMUAoYg7u/ZEvqC360GdrnKWc4kvzqrKjjOzNyu
+	 sfpnfCdbcfzoWkUMqnORIpnF4VZ9xrYID8Bc3PCTstBRCa5sVe3z7x9f1ejmwsSTxY
+	 9ePteT4berpfg==
+From: Leon Romanovsky <leon@kernel.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Russell King <linux@armlinux.org.uk>,
 	Juergen Gross <jgross@suse.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Stefano Stabellini <sstabellini@kernel.org>,
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Matt Turner <mattst88@gmail.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Helge Deller <deller@gmx.de>,
 	Madhavan Srinivasan <maddy@linux.ibm.com>,
 	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>,
-	Mike Rapoport <rppt@kernel.org>,
 	Nicholas Piggin <npiggin@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Suren Baghdasaryan <surenb@google.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Geoff Levand <geoff@infradead.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Will Deacon <will@kernel.org>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>
+Cc: iommu@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
+	xen-devel@lists.xenproject.org,
+	linux-alpha@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	sparclinux@vger.kernel.org,
-	xen-devel@lists.xenproject.org,
-	x86@kernel.org
-Subject: [PATCH v3 13/13] mm: introduce arch_wants_lazy_mmu_mode()
-Date: Wed, 15 Oct 2025 09:27:27 +0100
-Message-ID: <20251015082727.2395128-14-kevin.brodsky@arm.com>
-X-Mailer: git-send-email 2.47.0
-In-Reply-To: <20251015082727.2395128-1-kevin.brodsky@arm.com>
-References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
+	Magnus Lindholm <linmag7@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [PATCH v5 00/14] Remove DMA map_page/map_resource and their unmap callbacks
+Date: Wed, 15 Oct 2025 12:12:46 +0300
+Message-ID: <20251015-remove-map-page-v5-0-3bbfe3a25cdf@kernel.org>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+X-Change-ID: 20251015-remove-map-page-a28302e6cc7d
+X-Mailer: b4 0.15-dev
 Content-Transfer-Encoding: 8bit
 
-powerpc decides at runtime whether the lazy MMU mode should be used.
+This series is a combination of previous two steps [1, 2] to reduce
+number of accesses to struct page in the code "below" DMA layer.
 
-To avoid the overhead associated with managing
-task_struct::lazy_mmu_state if the mode isn't used, introduce
-arch_wants_lazy_mmu_mode() and bail out of lazy_mmu_mode_* if it
-returns false. Add a default definition returning true, and an
-appropriate implementation for powerpc.
+In this series, the DMA .map_page/.map_resource/.unmap_page/.unmap_resource
+callbacks are converted to newly introduced .map_phys/.unmap_phys interfaces.
 
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Thanks
+
+[1] https://lore.kernel.org/all/cover.1758203802.git.leon@kernel.org
+[2] https://lore.kernel.org/all/cover.1759071169.git.leon@kernel.org
+
 ---
-This patch seemed like a good idea to start with, but now I'm not so
-sure that the churn added to the generic layer is worth it.
+Leon Romanovsky (14):
+      dma-mapping: prepare dma_map_ops to conversion to physical address
+      dma-mapping: convert dummy ops to physical address mapping
+      ARM: dma-mapping: Reduce struct page exposure in arch_sync_dma*()
+      ARM: dma-mapping: Switch to physical address mapping callbacks
+      xen: swiotlb: Switch to physical address mapping callbacks
+      dma-mapping: remove unused mapping resource callbacks
+      alpha: Convert mapping routine to rely on physical address
+      MIPS/jazzdma: Provide physical address directly
+      parisc: Convert DMA map_page to map_phys interface
+      powerpc: Convert to physical address DMA mapping
+      sparc: Use physical address DMA mapping
+      x86: Use physical address for DMA mapping
+      xen: swiotlb: Convert mapping routine to rely on physical address
+      dma-mapping: remove unused map_page callback
 
-It provides a minor optimisation for just powerpc. x86 with XEN_PV also
-chooses at runtime whether to implement lazy_mmu helpers or not, but
-it doesn't fit this API so neatly and isn't handled here.
+ arch/alpha/kernel/pci_iommu.c            |  48 ++++-----
+ arch/arm/mm/dma-mapping.c                | 180 +++++++++----------------------
+ arch/mips/jazz/jazzdma.c                 |  20 ++--
+ arch/powerpc/include/asm/iommu.h         |   8 +-
+ arch/powerpc/kernel/dma-iommu.c          |  22 ++--
+ arch/powerpc/kernel/iommu.c              |  14 +--
+ arch/powerpc/platforms/ps3/system-bus.c  |  33 +++---
+ arch/powerpc/platforms/pseries/ibmebus.c |  15 +--
+ arch/powerpc/platforms/pseries/vio.c     |  21 ++--
+ arch/sparc/kernel/iommu.c                |  30 ++++--
+ arch/sparc/kernel/pci_sun4v.c            |  31 +++---
+ arch/sparc/mm/io-unit.c                  |  38 +++----
+ arch/sparc/mm/iommu.c                    |  46 ++++----
+ arch/x86/kernel/amd_gart_64.c            |  19 ++--
+ drivers/parisc/ccio-dma.c                |  54 +++++-----
+ drivers/parisc/iommu-helpers.h           |  10 +-
+ drivers/parisc/sba_iommu.c               |  54 +++++-----
+ drivers/xen/grant-dma-ops.c              |  20 ++--
+ drivers/xen/swiotlb-xen.c                |  63 +++++------
+ include/linux/dma-map-ops.h              |  14 +--
+ kernel/dma/dummy.c                       |  13 ++-
+ kernel/dma/mapping.c                     |  26 +----
+ kernel/dma/ops_helpers.c                 |  12 ++-
+ 23 files changed, 361 insertions(+), 430 deletions(-)
 ---
- .../include/asm/book3s/64/tlbflush-hash.h        | 11 ++++++-----
- include/linux/pgtable.h                          | 16 ++++++++++++----
- 2 files changed, 18 insertions(+), 9 deletions(-)
+base-commit: 3a8660878839faadb4f1a6dd72c3179c1df56787
+change-id: 20251015-remove-map-page-a28302e6cc7d
 
-diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-index bbc54690d374..a91b354cf87c 100644
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-+++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-@@ -23,10 +23,14 @@ DECLARE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
- 
- extern void __flush_tlb_pending(struct ppc64_tlb_batch *batch);
- 
-+#define arch_wants_lazy_mmu_mode arch_wants_lazy_mmu_mode
-+static inline bool arch_wants_lazy_mmu_mode(void)
-+{
-+	return !radix_enabled();
-+}
-+
- static inline void arch_enter_lazy_mmu_mode(void)
- {
--	if (radix_enabled())
--		return;
- 	/*
- 	 * apply_to_page_range can call us this preempt enabled when
- 	 * operating on kernel page tables.
-@@ -46,9 +50,6 @@ static inline void arch_flush_lazy_mmu_mode(void)
- 
- static inline void arch_leave_lazy_mmu_mode(void)
- {
--	if (radix_enabled())
--		return;
--
- 	arch_flush_lazy_mmu_mode();
- 	preempt_enable();
- }
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 718c9c788114..db4f388d2a16 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -261,11 +261,19 @@ static inline int pmd_dirty(pmd_t pmd)
-  * currently enabled.
-  */
- #ifdef CONFIG_ARCH_LAZY_MMU
-+
-+#ifndef arch_wants_lazy_mmu_mode
-+static inline bool arch_wants_lazy_mmu_mode(void)
-+{
-+	return true;
-+}
-+#endif
-+
- static inline void lazy_mmu_mode_enable(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
--	if (in_interrupt())
-+	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
- 		return;
- 
- 	VM_BUG_ON(state->count == U8_MAX);
-@@ -283,7 +291,7 @@ static inline void lazy_mmu_mode_disable(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
--	if (in_interrupt())
-+	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
- 		return;
- 
- 	VM_BUG_ON(state->count == 0);
-@@ -303,7 +311,7 @@ static inline void lazy_mmu_mode_pause(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
--	if (in_interrupt())
-+	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
- 		return;
- 
- 	VM_WARN_ON(state->count == 0 || !state->enabled);
-@@ -316,7 +324,7 @@ static inline void lazy_mmu_mode_resume(void)
- {
- 	struct lazy_mmu_state *state = &current->lazy_mmu_state;
- 
--	if (in_interrupt())
-+	if (!arch_wants_lazy_mmu_mode() || in_interrupt())
- 		return;
- 
- 	VM_WARN_ON(state->count == 0 || state->enabled);
--- 
-2.47.0
+Best regards,
+--  
+Leon Romanovsky <leon@kernel.org>
 
