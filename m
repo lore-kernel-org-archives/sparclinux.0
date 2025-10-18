@@ -1,93 +1,72 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BDBB2036E9;
-	Fri, 17 Oct 2025 21:37:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72BAB1E492A;
+	Sat, 18 Oct 2025 03:59:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760737045; cv=none; b=QBEOw+lxd0phQdSYgpcjwzORj5sVJAnKLSsfC/7pmws2jYUff+l/qhwnux6NCqx828MuZQ/rTeRlbtDMebwv4dV48O2RlQZBzNGm8Z1J2xkbFlDJPzmDaaYNbbbIdmRFwuyuHJqDI0guOMt5524LKvHzZApbuARHSysWWsl9e70=
+	t=1760759948; cv=none; b=osqxNuvbcIfRFuc0Aver4DFgX39xpmzCnWKTeDByyZRaJqaWIuW4OmELMzFvSaJGT9PpW5ozpwxBTvWKvkH+fha/LBTSgHzulRkK0gQMCBse/EHH28DaeHgZYGoo0pQ2wyifIL9zj4JInaz+DTzhDP5KkSX8f8NvawGG2rorCH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760737045; c=relaxed/simple;
-	bh=nYpBafhW7YwCHT2Y3O7Vz/Cfc9k402BvH2+Wh0f/DtA=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=cd9pi7fG1cFjyUBuUA1T/KvVxayvLCNYinxzZkHNwWjUhC+wEPrsqY5nFy0FPpfaInFwhXASPu6m1jVDCLQTUayfplYuiHjIslNzlecVsYjfQe0r6lmQNS8Cm6yrAvC/W3mk+L54YHlZiMJTWC54Glq3d9zcJJ9Uxn+NWnfLmMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FE1dBvUV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760759948; c=relaxed/simple;
+	bh=EU6U5Z1y6eCiRh+fXNU8O/thPLmzUksR4n4H3faDx18=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=Vk9Yh0I64yw9NaYjh8qOfCU16Zxhzf5u5gZYChvgHohSahMz0nn2elYCvOPTB2wBmYdzpTQapIZZ3hHogXyzJHCddiRmmsF7xzT+oJtppgpUQQBYx3DL6DTFNJWk0WNJABiC8dUSMXAaf3KuFkrhzyNC8hae3WfTmqCCUModCvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=krIfENMf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FE1dBvUV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7221C4CEE7;
-	Fri, 17 Oct 2025 21:37:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760737044;
-	bh=nYpBafhW7YwCHT2Y3O7Vz/Cfc9k402BvH2+Wh0f/DtA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=FE1dBvUVul1ShFrtQ9a2yuuluVLEiX3PNARQaVwbXQaU+qoOwkoZFLo6b4wiRoAnn
-	 EAWR1VKBFA4zRtgkP4k2hogdZvMF/OsA2XiB7rwYq/IaAOtbxaSzMwRQdJIRLlTGrz
-	 ijhhPTnwyBb6OdZP8xn3qakbxsmeiLKTac97LR64=
-Date: Fri, 17 Oct 2025 14:37:22 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Sumanth Korikkar <sumanthk@linux.ibm.com>, Jonathan Corbet
- <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>, Guo Ren
- <guoren@kernel.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Heiko
- Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Alexander
- Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger
- <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>,
- "David S . Miller" <davem@davemloft.net>, Andreas Larsson
- <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Nicolas Pitre <nico@fluxnic.net>, Muchun Song <muchun.song@linux.dev>,
- Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@redhat.com>,
- Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Baoquan He
- <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>, Dave Young
- <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>, Reinette Chatre
- <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, James Morse
- <james.morse@arm.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Christian
- Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, "Liam R . Howlett"
- <Liam.Howlett@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport
- <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, Michal Hocko
- <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, Baolin Wang
- <baolin.wang@linux.alibaba.com>, Uladzislau Rezki <urezki@gmail.com>,
- Dmitry Vyukov <dvyukov@google.com>, Andrey Konovalov
- <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>, Pedro Falcato
- <pfalcato@suse.de>, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
- ntfs3@lists.linux.dev, kexec@lists.infradead.org,
- kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>,
- iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>, Will Deacon
- <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v4 11/14] mm/hugetlbfs: update hugetlbfs to use
- mmap_prepare
-Message-Id: <20251017143722.d045a2cd9d1839803da3f28a@linux-foundation.org>
-In-Reply-To: <c64e017a-5219-4382-bba9-d24310ad2c21@lucifer.local>
-References: <cover.1758135681.git.lorenzo.stoakes@oracle.com>
-	<e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
-	<aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
-	<20250923141704.90fba5bdf8c790e0496e6ac1@linux-foundation.org>
-	<aPI2SZ5rFgZVT-I8@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
-	<c64e017a-5219-4382-bba9-d24310ad2c21@lucifer.local>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="krIfENMf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E640C4CEF8;
+	Sat, 18 Oct 2025 03:59:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760759947;
+	bh=EU6U5Z1y6eCiRh+fXNU8O/thPLmzUksR4n4H3faDx18=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References:From;
+	b=krIfENMfuFjiHhOD9R6DJZJbEI9qyq58vTH4tVORoQRTS2pGY5lkJEIZDY6cO/JsF
+	 7rV4qf/QB3xJavBLHP0t1tOOd2ijiKeeH7r5PBJer2K+56mKaBeK4gxS6ShjW6W321
+	 VkvkNEiUhE+GJg+MsRokLA9CNBFgs7U0v7KF5BOur/qWmLZ7DKTce6BLHyqQ3UmI3d
+	 h3G0koy5DXW63vce1vAszW8CD0JUM4rwNfwwIrL7aT81malR9QIBv5/P/aZVWwdmzB
+	 yRQW1/nRqFaZ64tNvz5lQ6FqKOjnXl5DoM5YdsFKHtq3AqF25dzypI1i46AMW/sKZH
+	 62a7C0hJMLpqQ==
+Date: Fri, 17 Oct 2025 21:59:03 -0600 (MDT)
+From: Paul Walmsley <pjw@kernel.org>
+To: Trevor Woerner <twoerner@gmail.com>
+cc: linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+    linux-aspeed@lists.ozlabs.org, linux-arm-msm@vger.kernel.org, 
+    openbmc@lists.ozlabs.org, linux-hexagon@vger.kernel.org, 
+    loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org, 
+    linux-stm32@st-md-mailman.stormreply.com, linux-mips@vger.kernel.org, 
+    linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+    linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, 
+    sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] defconfig: cleanup orphaned CONFIG_SCHED_DEBUG
+In-Reply-To: <20250828103828.33255-1-twoerner@gmail.com>
+Message-ID: <e88ab2ff-dc16-dab7-0ff3-702f093563ce@kernel.org>
+References: <20250828103828.33255-1-twoerner@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Fri, 17 Oct 2025 13:46:20 +0100 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+On Thu, 28 Aug 2025, Trevor Woerner wrote:
 
-> > The issue is reproducible again in linux-next with the following commit:
-> > 5fdb155933fa ("mm/hugetlbfs: update hugetlbfs to use mmap_prepare")
+> In commit b52173065e0a ("sched/debug: Remove CONFIG_SCHED_DEBUG") this
+> Kconfig option was removed since CONFIG_SCHED_DEBUG was made unconditional
+> by patches preceding it.
 > 
-> Andrew - I see this series in mm-unstable, not sure what it's doing there
-> as I need to rework this (when I get a chance, back from a 2 week vacation
-> and this week has been - difficult :)
-> 
-> Can we please drop this until I have a chance to respin?
+> Signed-off-by: Trevor Woerner <twoerner@gmail.com>
+> ---
 
-No probs, gone.
+[ ... ]
+
+>  arch/riscv/configs/nommu_k210_defconfig        | 1 -
+>  arch/riscv/configs/nommu_k210_sdcard_defconfig | 1 -
+>  arch/riscv/configs/nommu_virt_defconfig        | 1 -
+
+[ ... ]
+
+Acked-by: Paul Walmsley <pjw@kernel.org>  # for arch/riscv
+
+
+- Paul
