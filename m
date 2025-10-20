@@ -1,86 +1,85 @@
-Received: from smtp.gentoo.org (woodpecker.gentoo.org [140.211.166.183])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CAA9354AE4;
-	Sun, 19 Oct 2025 19:18:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=140.211.166.183
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 95DD224167A;
+	Mon, 20 Oct 2025 10:32:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760901493; cv=none; b=IWkjgICD7EG3422bnCOKOtTb+K1068nz1THp17EpU1/9LBJ40GYxgn8vQxAHDObkTLfZFmCPBRtkuIShJaz1jjNFH668uol7sOhxPBmmj2Hkbg9psOcmt+Ov7KSrox8Fl/++L4n+q1JY4leRRxEc6KU+O7g5FGHf3gn0H2MmQZU=
+	t=1760956379; cv=none; b=tvTuXfwsER+78Ipx8B+wBNxRy5vNryPNCRU99DMFevd+Gdg0AhqeN5sO0whUjyX+gP3PcVxaMciBl6YuHV29DYy8BJyktk8LbMwT03fVRPiRLZTSuyxvPDTWq8HplWuCwmZdarD/q2fFPZYvPD4c7In88fSg7SjNOSiydSrR6PQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760901493; c=relaxed/simple;
-	bh=AbZFXn6kwETMJW8cChbyTo9aH5d5PaR1eTrbogoSfWs=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=C7W0rjfWPA0XTG40ZsnAryTRbeWO3joIOozceeMqOUiEDEvAcLy47fefquO/WYtrmlD/SBKgXSpqZFF58hFPCJw+OIObY7Wl0cetSd34tJ+c6NTcAtvciyeVTwH4Jg1s1avyfGkRCSb0T3mTCrBnoB52Pj4gdMbsu8/miZTsat8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org; spf=pass smtp.mailfrom=gentoo.org; arc=none smtp.client-ip=140.211.166.183
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gentoo.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gentoo.org
-Received: from mop.sam.mop (2.8.3.0.0.0.0.0.0.0.0.0.0.0.0.0.a.5.c.d.c.d.9.1.0.b.8.0.1.0.0.2.ip6.arpa [IPv6:2001:8b0:19dc:dc5a::382])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange secp256r1 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: sam)
-	by smtp.gentoo.org (Postfix) with ESMTPSA id B58B4340F14;
-	Sun, 19 Oct 2025 19:18:10 +0000 (UTC)
-From: Sam James <sam@gentoo.org>
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Andreas Larsson <andreas@gaisler.com>,  Stian Halseth <stian@itx.no>,
-  sparclinux@vger.kernel.org,  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] sparc: don't reference obsolete termio struct for TC*
- constants
-In-Reply-To: <e11ecaf723594bf01c66fc5c80c25bda0621f34f.1759359616.git.sam@gentoo.org>
-Organization: Gentoo
-References: <99f1a93cf8cd4f0ece8611be2860677084663aac.1759359610.git.sam@gentoo.org>
-	<e11ecaf723594bf01c66fc5c80c25bda0621f34f.1759359616.git.sam@gentoo.org>
-User-Agent: mu4e 1.12.13; emacs 31.0.50
-Date: Sun, 19 Oct 2025 20:18:06 +0100
-Message-ID: <87ecqyaefl.fsf@gentoo.org>
+	s=arc-20240116; t=1760956379; c=relaxed/simple;
+	bh=sKLQ2d58/dXav4cTRenoQbd/b+gVPHXCpdfcPSSetAI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ut+9ur99pEzdq7nvwonHuOaTKxWYo6l2a/Zm3mw8w78iC1V4IwBvc7/5BcG37ctgH9zGbIrTWAhhLo8wBKp3bxZ9Ay9SfYHdRaMXK+3GU62IiqORKs1Yknxk7UYG//rL26ouQUQGvwztVmCmHciLQh/DFU8WEQi2o3480rDiGlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C576E1063;
+	Mon, 20 Oct 2025 03:32:48 -0700 (PDT)
+Received: from [10.57.65.147] (unknown [10.57.65.147])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 924903F63F;
+	Mon, 20 Oct 2025 03:32:48 -0700 (PDT)
+Message-ID: <2338a99c-665c-4545-accb-c9ebffef45fa@arm.com>
+Date: Mon, 20 Oct 2025 12:32:44 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 06/13] mm: introduce generic lazy_mmu helpers
+To: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
+ Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
+ Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
+ <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
+ <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
+ linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
+References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
+ <20251015082727.2395128-7-kevin.brodsky@arm.com>
+ <55f8b155-5468-43fc-b6fc-f509f4becd5b-agordeev@linux.ibm.com>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <55f8b155-5468-43fc-b6fc-f509f4becd5b-agordeev@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Sam James <sam@gentoo.org> writes:
+On 17/10/2025 17:54, Alexander Gordeev wrote:
+> On Wed, Oct 15, 2025 at 09:27:20AM +0100, Kevin Brodsky wrote:
+>
+> Hi Kevin,
+>
+> ...
+>> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
+>>     This is for situations where the mode is temporarily disabled
+>>     by first calling pause() and then resume() (e.g. to prevent any
+>>     batching from occurring in a critical section).
+> ...
+>> +static inline void lazy_mmu_mode_pause(void)
+>> +{
+>> +	arch_leave_lazy_mmu_mode();
+> I think it should have been arch_pause_lazy_mmu_mode(), wich defaults
+> to  arch_leave_lazy_mmu_mode(), as we discussed in v2:
+>
+> https://lore.kernel.org/linux-mm/d407a381-099b-4ec6-a20e-aeff4f3d750f@arm.com/#t
 
-> Similar in nature to ab107276607af90b13a5994997e19b7b9731e251. glibc-2.42
-> drops the legacy termio struct, but the ioctls.h header still defines some
-> TC* constants in terms of termio (via sizeof). Hardcode the values instead.
->
-> This fixes building Python for example, which falls over like:
->   ./Modules/termios.c:1119:16: error: invalid application of 'sizeof' to incomplete type 'struct termio'
->
-> Link: https://bugs.gentoo.org/961769
-> Link: https://bugs.gentoo.org/962600
-> Co-authored-by: Stian Halseth <stian@itx.no>
-> Signed-off-by: Sam James <sam@gentoo.org>
-> ---
-> v3: Fix constants.
-> v2: Fix title.
->
->  arch/sparc/include/uapi/asm/ioctls.h | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+See my comment on patch 7 - these new arch callbacks can easily be
+introduced later, I don't see much point in introducing them now if they
+default to leave/enter on every architecture.
 
-Ping.
-
->
-> diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
-> index 7fd2f5873c9e7..f26befbf690fb 100644
-> --- a/arch/sparc/include/uapi/asm/ioctls.h
-> +++ b/arch/sparc/include/uapi/asm/ioctls.h
-> @@ -5,10 +5,10 @@
->  #include <asm/ioctl.h>
->  
->  /* Big T */
-> -#define TCGETA		_IOR('T', 1, struct termio)
-> -#define TCSETA		_IOW('T', 2, struct termio)
-> -#define TCSETAW		_IOW('T', 3, struct termio)
-> -#define TCSETAF		_IOW('T', 4, struct termio)
-> +#define TCGETA          0x40125401
-> +#define TCSETA          0x80125402
-> +#define TCSETAW         0x80125403
-> +#define TCSETAF         0x80125404
->  #define TCSBRK		_IO('T', 5)
->  #define TCXONC		_IO('T', 6)
->  #define TCFLSH		_IO('T', 7)
+- Kevin
