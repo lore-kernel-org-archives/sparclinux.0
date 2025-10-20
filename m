@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 95DD224167A;
-	Mon, 20 Oct 2025 10:32:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 03E0722A4D8;
+	Mon, 20 Oct 2025 10:37:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760956379; cv=none; b=tvTuXfwsER+78Ipx8B+wBNxRy5vNryPNCRU99DMFevd+Gdg0AhqeN5sO0whUjyX+gP3PcVxaMciBl6YuHV29DYy8BJyktk8LbMwT03fVRPiRLZTSuyxvPDTWq8HplWuCwmZdarD/q2fFPZYvPD4c7In88fSg7SjNOSiydSrR6PQ=
+	t=1760956672; cv=none; b=r16S94ihATuu/6E147GTZ+b4sge3pbLefGfJyvTdncM1uksTUU/nnd52acaHFsA7izBg1blS8vBPNRt/uF/+R25zXbhVSMBhl6xQ2PRtquFZkxgcu1b2KcVYWqaE/n97mP192V5Gdh9iGg90zSHYPQFPvdXPawkseC8twUB6pIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760956379; c=relaxed/simple;
-	bh=sKLQ2d58/dXav4cTRenoQbd/b+gVPHXCpdfcPSSetAI=;
+	s=arc-20240116; t=1760956672; c=relaxed/simple;
+	bh=paWt8mUs1WHd7QLJQI0i4s8rgFnun7wqgJxl3u+yWSY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ut+9ur99pEzdq7nvwonHuOaTKxWYo6l2a/Zm3mw8w78iC1V4IwBvc7/5BcG37ctgH9zGbIrTWAhhLo8wBKp3bxZ9Ay9SfYHdRaMXK+3GU62IiqORKs1Yknxk7UYG//rL26ouQUQGvwztVmCmHciLQh/DFU8WEQi2o3480rDiGlE=
+	 In-Reply-To:Content-Type; b=I5qsc/V5DH1eujd0N+Ekfg41GegxdRkoTYYhimltlYNbjd3BvoqIa5C07gmCfhwz9Eny6Qwuy5o6hgg5rYj3TdKCCa0qP365vQ98b9y6E9w74Djz4JqjIgeXfIZjgz9EgHhSPmzi8W5XaSVAoV1DFTSrAy7fpvyVYYqNFJAMV+c=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C576E1063;
-	Mon, 20 Oct 2025 03:32:48 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6116D1063;
+	Mon, 20 Oct 2025 03:37:42 -0700 (PDT)
 Received: from [10.57.65.147] (unknown [10.57.65.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 924903F63F;
-	Mon, 20 Oct 2025 03:32:48 -0700 (PDT)
-Message-ID: <2338a99c-665c-4545-accb-c9ebffef45fa@arm.com>
-Date: Mon, 20 Oct 2025 12:32:44 +0200
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id DB2C53F63F;
+	Mon, 20 Oct 2025 03:37:41 -0700 (PDT)
+Message-ID: <3836a43f-809e-419d-a85d-74606d9daa0f@arm.com>
+Date: Mon, 20 Oct 2025 12:37:38 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,9 +27,10 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 06/13] mm: introduce generic lazy_mmu helpers
-To: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: Re: [PATCH v3 05/13] mm: introduce CONFIG_ARCH_LAZY_MMU
+To: Mike Rapoport <rppt@kernel.org>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
@@ -43,43 +44,47 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Nicholas Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>,
+ Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
+ Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
  Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-7-kevin.brodsky@arm.com>
- <55f8b155-5468-43fc-b6fc-f509f4becd5b-agordeev@linux.ibm.com>
+ <20251015082727.2395128-6-kevin.brodsky@arm.com>
+ <aPNjd2dg3YN-TZKH@kernel.org>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <55f8b155-5468-43fc-b6fc-f509f4becd5b-agordeev@linux.ibm.com>
+In-Reply-To: <aPNjd2dg3YN-TZKH@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 17/10/2025 17:54, Alexander Gordeev wrote:
-> On Wed, Oct 15, 2025 at 09:27:20AM +0100, Kevin Brodsky wrote:
->
-> Hi Kevin,
->
-> ...
->> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
->>     This is for situations where the mode is temporarily disabled
->>     by first calling pause() and then resume() (e.g. to prevent any
->>     batching from occurring in a critical section).
-> ...
->> +static inline void lazy_mmu_mode_pause(void)
->> +{
->> +	arch_leave_lazy_mmu_mode();
-> I think it should have been arch_pause_lazy_mmu_mode(), wich defaults
-> to  arch_leave_lazy_mmu_mode(), as we discussed in v2:
->
-> https://lore.kernel.org/linux-mm/d407a381-099b-4ec6-a20e-aeff4f3d750f@arm.com/#t
+On 18/10/2025 11:52, Mike Rapoport wrote:
+>> @@ -231,7 +231,7 @@ static inline int pmd_dirty(pmd_t pmd)
+>>   * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
+>>   * and the mode cannot be used in interrupt context.
+>>   */
+>> -#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+>> +#ifndef CONFIG_ARCH_LAZY_MMU
+>>  static inline void arch_enter_lazy_mmu_mode(void) {}
+>>  static inline void arch_leave_lazy_mmu_mode(void) {}
+>>  static inline void arch_flush_lazy_mmu_mode(void) {}
+>> diff --git a/mm/Kconfig b/mm/Kconfig
+>> index 0e26f4fc8717..2fdcb42ca1a1 100644
+>> --- a/mm/Kconfig
+>> +++ b/mm/Kconfig
+>> @@ -1372,6 +1372,9 @@ config PT_RECLAIM
+>>  config FIND_NORMAL_PAGE
+>>  	def_bool n
+>>  
+>> +config ARCH_LAZY_MMU
+>> +	bool
+>> +
+> I think a better name would be ARCH_HAS_LAZY_MMU and the config option fits
+> better to arch/Kconfig.
 
-See my comment on patch 7 - these new arch callbacks can easily be
-introduced later, I don't see much point in introducing them now if they
-default to leave/enter on every architecture.
+Sounds fine by me - I'm inclined to make it slightly longer still,
+ARCH_HAS_LAZY_MMU_MODE, to avoid making "LAZY_MMU" sound like some HW
+feature.
 
 - Kevin
