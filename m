@@ -1,127 +1,107 @@
-Received: from libero.it (smtp-36.italiaonline.it [213.209.10.36])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD82330B27
-	for <sparclinux@vger.kernel.org>; Wed, 22 Oct 2025 13:58:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.209.10.36
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9B42580D7
+	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 04:45:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761141512; cv=none; b=pnqx/evZ2VaDjLrsU8ABJo/SYU7bxYOStdlY56h2S81Jmw9lfIZIR1jJrJwy/nG58VuwNKrEmi3xLQhdcPoBLKLG5v2g980eyHB+ijzBLQNpCr2S9KMN4h2NFwfz6Uq7UYS6GY+b1VMUqZRR2pfyhxQFR56mAGprDk8fLf2SSFo=
+	t=1761194718; cv=none; b=KXybzTSLZG6dSJMcD7sr/KMyYObD0V5E9X65tDNlEl6hPxnXxSBYYpygW/nOrIxQLz2LUV160rNKPPMJn+0hyzBQdPofyiD0R6pF0Y3j4r0qi5+rW80R7RbVSzEUReP0tGLNj2Bn0nQBZpVR4LnJqVSzBaR7gvSLFyOjhaBjxDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761141512; c=relaxed/simple;
-	bh=abmMcPMA3WiKWH2WP9x+5MaKIquTJnKfLtjW74p/2hg=;
-	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=VGASHVJbDRTJEWgf+6UIWYj6zqjQs10WSfkSsx4inVTfX/g2Obt/022GKXrI5jsTI2iCt/POpdUo3d2R2/3cdv91DcxhpdIx2gaDNHfoWR3K6ymsW3adN0rdMWW6gkGF/jE1WEC3mxiQBRUdgdR6EuSOHV4Ln09MOfk1OvefNGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it; spf=pass smtp.mailfrom=libero.it; dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b=UHKcfV77; arc=none smtp.client-ip=213.209.10.36
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=libero.it
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=libero.it
+	s=arc-20240116; t=1761194718; c=relaxed/simple;
+	bh=dDXZ4wlWh0zWE73CQei9SNb/wNKyNyNkdvTY21hhmRQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=KtC0MuUiOTdj8slxCb8519dULUr9Z+8DfD3kEO9xaEa8jvDA2Kx99psV++YakvunaRPpziHj3zIAP1Lf7fE5EAkSKX2Iq//EbL8vm8GnJ5hk/km7etslcyGPcbWyvjDHJrW32FMlf1H3990VKEuO4p43yOAoSqrxx7eA9KeCsa8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=Dyt2IWPg; arc=none smtp.client-ip=209.85.160.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=libero.it header.i=@libero.it header.b="UHKcfV77"
-Received: from [192.168.1.36] ([151.65.17.26])
-	by smtp-36.iol.local with ESMTPA
-	id BZMBvrZAho6RnBZMCvYJsG; Wed, 22 Oct 2025 15:58:28 +0200
-x-libjamoibt: 1601
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libero.it; s=s2021;
-	t=1761141508; bh=ZzMMPPAEv0b0RQpPKpHyMbrEGrqW1ywB4v8/5K8RfOk=;
-	h=From;
-	b=UHKcfV77a0Z41vmrYYRWnzDeTh+3m/loRASYOhljP/JJJfF6yjQYQXUN5MZQcJoOX
-	 epVAbu2RVepGFWfB2LfvSvZUFGN55p7/limwmDn2bECsVKVRGGZb7owB4rkXtxlYJr
-	 Dbjm1aVw9mwbGePWNTSHE1/oaNEDIBtnqRVKhy+ZAPn3zBcey6+AmHUpV9kW5iNciU
-	 0LPYK/ZZ0twnVKOgHABrmu2PKYYPl+XjHxq70K7bfzgFNsu6DFcKiPjgF58Heca8ie
-	 Xj7fMcLLOq3eAh02QwxQHRrecoH9amNBDMi3F4jZMul7wPWefNiP+AxaB9gBb9G7gI
-	 qLMoQe9minUJQ==
-X-CNFS-Analysis: v=2.4 cv=I6dlRMgg c=1 sm=1 tr=0 ts=68f8e304 cx=a_exe
- a=ST5ZiqFa3+sjRnzYuqUWMA==:117 a=ST5ZiqFa3+sjRnzYuqUWMA==:17
- a=IkcTkHD0fZMA:10 a=xNf9USuDAAAA:8 a=1syAZFpIVNY0p8oxoT4A:9 a=3ZKOabzyN94A:10
- a=QEXdDO2ut3YA:10
-Subject: Re: New Debian sparc64 test kernel for stack corruption issue
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
-References: <e61027c249c88484a77d2e1dd2a42d2bc1e2ac06.camel@physik.fu-berlin.de>
- <ed13b363-71b7-0467-00eb-c8dedea39eb8@libero.it>
- <82e4d4e7e4439ebf9b4ead403d5f94e482b416fd.camel@physik.fu-berlin.de>
-From: Riccardo Mottola <riccardo.mottola@libero.it>
-Message-ID: <63585287-3243-b961-209a-426a00651d48@libero.it>
-Date: Wed, 22 Oct 2025 16:03:12 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101
- Firefox/128.0 SeaMonkey/2.53.21
+	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="Dyt2IWPg"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4e8b334bff3so3685841cf.2
+        for <sparclinux@vger.kernel.org>; Wed, 22 Oct 2025 21:45:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1761194715; x=1761799515; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=SxAw5CcaNyJRUdL9g50f2nQhs9yBUN9LI3kQV7R+EXE=;
+        b=Dyt2IWPg0y/LKwDvPqfaV9Xtam35tvueaP+OP11DwK6jU/oWLjgKA4JStUxKiXWhXI
+         mN9R2jUP62evu/BI9IqnT3obgVXIYRL6wBx90qrdlZsM7HttlcRrfAKGhjyuj3jhJdDp
+         2uBL+XRCQ58eAExxWgdfjk3eoqSow2TEf01btZVuPqArM/gAVPnR6USX8wA5FNket3mb
+         rO4R3RTF7vA5AjJNeuNlBRhOpZcwahpKqcm5rdrMc1s8DWNw4SD5I0pEYtv8dtZomriV
+         4tr6QhNFo8cvAkvdtg7CcsCs7tncNRF0OZBMp+Q5emdB6euthCM9gqJlKJyaEB7hhpme
+         lqbw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761194715; x=1761799515;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=SxAw5CcaNyJRUdL9g50f2nQhs9yBUN9LI3kQV7R+EXE=;
+        b=xC8FTo1FYIDgo28cPOZ4YVlgGiT3Y2RHz8qjkaTEM5fnBu0rtRH4JxU/iC3vpJqEYB
+         UkOe8jZOFbe8d6gR1Ge9WKQtij+U+/pTsfS/K5GMt9p1w62l5hEco9qtqpFBUiNOG6xa
+         cVjSahNrr26LcRTX2p4xmYhBFhxQHV9bGnYQzi8IPJzNtjO0bac8SdGS5snRrQG0GVSm
+         OPEi1wnbLWc/ckMCg8uO46G8DmmUTW22NTD0UnzD/EKXuEV+DtH7rCydva2njkLUM1ay
+         oS8YXoOss7DMYlKOZflQs1EgMp8xKnw5bz5W3M+ETpKT/MzZy34vUSCfavLW39S4E0za
+         N+Ig==
+X-Forwarded-Encrypted: i=1; AJvYcCXoZhJdDgB/Y1qE0yT7vyzKzLJb37kBcAEIkNU3r8ptBBk+YcY1fWgMHW8nfcvPdN59eCk8DqBuIQLt@vger.kernel.org
+X-Gm-Message-State: AOJu0YyOSpd8uh1/BdiAHLe62oOdOHcYcR4xrLc9JJA6TilWzUskLjTW
+	GUjS30h/m9sNZ+Yr49NuVgyOOpxgRyyIJOTUCSOIVYU918LuwJUgRLdm5+5mPoHSRGk=
+X-Gm-Gg: ASbGncu7WlFlBMuWnz1mlkNXD9FW3j/juWOInXLDjAGRH7wkpG+Stlg20AQ6bGOSRqM
+	glXM2bfV5JjkrN5S/8I65Ls9V1CZ9+fA8jj6mTBuArDn4ScoZG3i9RR1rJR4/gHXhuSgMxNrFjr
+	BTjBIiStuHhs5LCo5V7s0X2ACMSSGETDuhqlfk2x6wEkKFel02qDhMkQzOVaURDEvu5xCWPUMtv
+	OTfFa+BwD8BxOUc8d9oVHLqrY98R2iG+p4v0/vcrjHjisuSAba7QJ4+pVjs2RJKehsaF4aqBEra
+	r7km9wso3VoOqlMpcpu4SjMJ7wFJzNSCvSkpJyR35a87tRHPN2P5ZC2rTAy8keb2u3lo1I9lsrG
+	REVgpGSYT2UVNqqKDrpp18jl2idjLiuRyhuyzV3XYL3yFaXB2ywKTIqY1a4CLNlzdYSEoFFfQi+
+	2spatdXxdsufcIvN2JMQ41eq2PyP+jyA==
+X-Google-Smtp-Source: AGHT+IHAxwX1q4xENozHdVwqKqZ7TDRt7Gbja+SgOkIQM2H6Yykm4zUm83IbTesCfNfk5IdGOKlPzg==
+X-Received: by 2002:a05:622a:138a:b0:4c3:a0ef:9060 with SMTP id d75a77b69052e-4e89d27666dmr281053671cf.26.1761194714911;
+        Wed, 22 Oct 2025 21:45:14 -0700 (PDT)
+Received: from localhost (ip-24-156-181-135.user.start.ca. [24.156.181.135])
+        by smtp.gmail.com with UTF8SMTPSA id af79cd13be357-89c0e688d64sm87480285a.21.2025.10.22.21.45.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Oct 2025 21:45:14 -0700 (PDT)
+Date: Thu, 23 Oct 2025 00:45:13 -0400
+From: Nick Bowler <nbowler@draconx.ca>
+To: linux-kernel@vger.kernel.org, regressions@lists.linux.dev, 
+	linux-rtc@vger.kernel.org
+Cc: Esben Haabendal <esben@geanix.com>, stable@vger.kernel.org, 
+	sparclinux@vger.kernel.org
+Subject: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
+Message-ID: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <82e4d4e7e4439ebf9b4ead403d5f94e482b416fd.camel@physik.fu-berlin.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4xfCTwB3qsMylKiwkUEGi0cF0zVIa5SJuE8+m3W+ObXhlg24qKeSqhn+S4zzH5ignr+B3zSXJ+c3O0oBRa+CJXr9Gg6Ikv/mY7b1GLyNJMX6XX5GDd1TSb
- IQrkgVhMSVh7TU7GfT9mS/BQl4di1ZQAr8oB5ezU3TcDMUWB5ZUjJgqEM5UEFds0pPTycKvY2jncXtV9dJ/wDTQYUa7vzly8h2Jtf8wDgusuG+y2dwYDFBXn
- FFhixldzNorD2TI2e5YK+4HlvVV8lZbZwBa+lWzDezAvA6nE0C0cT3V1HX8Xk2+a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 Hi,
 
-regarding T2000 Niagara T1 I did some tests using kernels from debian 
-snapshots. E.g.
+After a stable kernel update, the hwclock command seems no longer
+functional on my SPARC system with an ST M48T59Y-70PC1 RTC:
 
-https://snapshot.debian.org/archive/debian-ports/20250511T134440Z/pool-sparc64/main/l/linux/
+  # hwclock
+  [...long delay...]
+  hwclock: select() to /dev/rtc0 to wait for clock tick timed out
 
-I found that 6.13, 6.14, 6.15 were available and I tried most of them.
-I was prearing a report file with various boots attempt.
-Unfortunately doing lots of reboots, I ended up rebooting my running 
-workstation and not the SPARC server loosing everything. Ah! I was not 
-"connected" and xterms are look alike.
+On prior kernels, there is no problem:
 
+  # hwclock
+  2025-10-22 22:21:04.806992-04:00
 
-John Paul Adrian Glaubitz wrote:
->> Take in consideration that on this sytem my sweet spot for kernel is:
->> 6.12.38+deb13-sparc64-smp
-> Would you be able to bisect this?
->
+I reproduced the same failure on 6.18-rc2 and bisected to this commit:
 
-The boot breakage appears to be with 6.15. I am unsure of the various 
-versions.
-6.14 kernels do boot, although during usage I got VM issues (e.g. using 
-aptitude while running it)
+  commit 795cda8338eab036013314dbc0b04aae728880ab
+  Author: Esben Haabendal <esben@geanix.com>
+  Date:   Fri May 16 09:23:35 2025 +0200
+  
+      rtc: interface: Fix long-standing race when setting alarm
 
-Luckily I have the downloaded files so I coiuld reconstruct.
+This commit was backported to all current 6.x stable branches,
+as well as 5.15.x, so they all have the same regression.
 
--rw-r--r--  1 multix users 42142648 Aug 28 16:34 
-linux-image-6.12.3-sparc64-smp_6.12.3-1+sparc64_sparc64.deb
--rw-r--r--  1 multix users 48755288 Sep  8 23:53 
-linux-image-6.12+unreleased-sparc64-smp_6.12.43-1+nothp1_sparc64.deb
--rw-r--r--  1 multix users 49575964 Jan 26  2025 
-linux-image-6.13-rc7-sparc64-smp_6.13~rc7-1~exp1_sparc64.deb
--rw-r--r--  1 multix users 51283484 Feb 22  2025 
-linux-image-6.13-sparc64-smp_6.13.4-1~exp1_sparc64.deb
+Reverting this commit on top of 6.18-rc2 corrects the problem.
 
--> up to here all boot fine!
+Let me know if you need any more info!
 
--rw-r--r--  1 multix users 50302692 Apr 25 22:00 
-linux-image-6.14-sparc64-smp_6.14.3-1~exp1_sparc64.deb
--rw-r--r--  1 multix users 50316636 May 10 09:50 
-linux-image-6.14-sparc64-smp_6.14.6-1~exp1_sparc64.deb
-
--> these do boot, but running aptitude issued vm issues, although the 
-machine did not lock up and could reboot
-
-
-
--rw-r--r--  1 multix users 50688376 May 23 09:53 
-linux-image-6.15-rc7-sparc64-smp_6.15~rc7-1~exp1_sparc64.deb
--rw-r--r--  1 multix users 50664668 May 30 09:54 
-linux-image-6.15-sparc64-smp_6.15-1~exp1_sparc64.deb
--rw-r--r--  1 multix users 50935216 Jul 11 16:14 
-linux-image-6.15-sparc64-smp_6.15.6-1~exp1_sparc64.deb
--rw-r--r--  1 multix users 50422504 Oct 19 21:58 
-linux-image-6.16.12+3-sparc64-smp_6.16.12-2+sparc64.1_sparc64.deb
--rw-r--r--  1 multix users 50432892 Sep 28 03:52 
-linux-image-6.16.9+deb14-sparc64-smp_6.16.9-1_sparc64.deb
-
--> all of these fail to boot, even the rc7
-
-I don't know if there are later 6.14 kernels I can try or earlier 6.15, 
-but I would say that the issue is there.
-Could be kernel code, change in configuration...
-
-Riccardo
-
+Thanks,
+  Nick
