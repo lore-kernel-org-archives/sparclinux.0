@@ -1,74 +1,74 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E65534679D
-	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 20:08:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23BEB2FE045
+	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 20:10:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761250131; cv=none; b=dwgbKbKotOzOS9lQq+tbo9OfeZKZ74xU8O4n6TWkV2n6GJDNVopjdQv5/Eg6cgrFXISElMXHqovn8/lMrKpopRSj0Wyf6HZ7S7UPZin3KcIHLZlo3sriQ2c3oDW9lAHPZPmfkWWaj6kNX3XsebQaNkQUAhqilhCisERroB38xR0=
+	t=1761250248; cv=none; b=Ivehvu1ReMmGFtx2Gfemeo/dw+ZifNUaaEptcc5EUkqlLeMT1LKonN3C34gpNdnHYVO5R2E3nAOAnNhlH8SpPCDO7n3EKrWW/W1w4Fms1hp6e6+9ahBAKMkog+zSS3kJCxs6ugTFW5jLD+gOWYmZUf5A4zCY1Zqb0Pqo16e2Aq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761250131; c=relaxed/simple;
-	bh=jd0foNsVUx7vuW7hrJkNLuYHmDwu7znPWPNmcR7yp+0=;
+	s=arc-20240116; t=1761250248; c=relaxed/simple;
+	bh=ho4xjozFBlQsv6WUbw/2CElrlgJeMb1GsjDzweKmAvI=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Th39dldbftJ0wvlp+wZ7H4JlR2W6RsYAFIFjAPQP6iuvUR0Vx4n5T2jWaqmqBf98V1jV3rPFDRy0xfZWiCg0C/qLZJeS5s4y1IPU1Izc4e/dzJqCpcnzgaaIZQJGuw6KiAB0gXgnlJWsnSu5eS5lgWC1IGAb3eTjillTMScUofc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=bCF3xmyq; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=C4hSdWKxZCIeSSXMjCEXSSt1AFKSNjFUSgBPRsmkcHRNLpLYY7uaVSuGbYCXZq5tNeRPf/3NRLzFu8h2Zp900NbxTpgdpjtib2F1tF6hy1lDNMp4xGKwT7oEifGi2iKyIIUvF7JdE0zOIl0UjF6QKxS6jFTK4kScfhPdMyqK4m4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=h/LiE1VL; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bCF3xmyq"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="h/LiE1VL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761250129;
+	s=mimecast20190719; t=1761250246;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=3/xqA5Sno72zZ6iNEmFJ5mtAMbJynT1rhUprvMytuFY=;
-	b=bCF3xmyqGhAxt2D2zsQiWIznqj3FOVeCl8+sQxO6yKNFtnMpL135Jc/DC0DOkc1XLWUoc2
-	pXdCjS8oBzwVVJ+12YJR+8XrsXAnhVOMz+56GtAw8+/GYjuqBssaC6vW/Gpnz3v8BQlVns
-	H/8D9KEJKADshfRX0oPJFucs6QKMZ7g=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=vF8Hb3hnoXfLSdgr9uXEesJUum0OfpN/YlQIs62F7QU=;
+	b=h/LiE1VLs76LoKbFzr32dVFOaHAicbQTFrMx7VjHQvFzjSLnZZlN3mCT7kVMnKE+2Ji+6Q
+	Zk8ofKlt4iffiKUoeL8WbmY5j9rEe1mqHBeG5regsDPXCfT/Rs14xBgZMTCK7Ihlc7xOPE
+	E92aNOSvYX1DuHMegPx3Es8RSpikEQY=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-133-Y4l4y9l5Mw2VPQg2pqBB0w-1; Thu, 23 Oct 2025 16:08:47 -0400
-X-MC-Unique: Y4l4y9l5Mw2VPQg2pqBB0w-1
-X-Mimecast-MFC-AGG-ID: Y4l4y9l5Mw2VPQg2pqBB0w_1761250126
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4710c04a403so10668535e9.3
-        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 13:08:47 -0700 (PDT)
+ us-mta-284-G6ycicLXNS6YHLmae7Nz6A-1; Thu, 23 Oct 2025 16:10:44 -0400
+X-MC-Unique: G6ycicLXNS6YHLmae7Nz6A-1
+X-Mimecast-MFC-AGG-ID: G6ycicLXNS6YHLmae7Nz6A_1761250243
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-42700099ff5so766902f8f.2
+        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 13:10:44 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761250126; x=1761854926;
+        d=1e100.net; s=20230601; t=1761250243; x=1761855043;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=3/xqA5Sno72zZ6iNEmFJ5mtAMbJynT1rhUprvMytuFY=;
-        b=ci59+ZlmJrGTTmLK3YtfxoqCtRq29L+uPjaQfm+6An2Tu1nqUksjmkknt0TeJxTDoa
-         BsMZQlDQJY5VpQaXYxqwDKzeuiW396XSOk6fY40AJ7xI1IigMAt9VIBFs7C4P68kK95z
-         1tvwdgijLiN93+M1KMOMMF7tPdonqL2EGltBtpkevjvX4qJqDWL6ZpBeRgnmJ6YHwx5Y
-         O6mfaFmrCJKnk/1Huboj5+AWxHfTEIE8DyW8gub0fxC3s/4NmxQq0oCl0eO9DvZG0VIM
-         mhCJsxrceJ70zTrdk3SnX4wLecy3DaHclMBZculZXJX3GMWyF6nKjxBAf7YoDKRa4pdK
-         KYCg==
-X-Forwarded-Encrypted: i=1; AJvYcCW/btqauyO1W9Mc/QEOooICPxMHdCGDKMsoHrhsWPHVq38j3/CLfLgSB3XBebZEXcfhPdklSRjrf8Nj@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw0stgN9HH7PHeyuskFLhFCCia33aWKcQKqLWFXY9nA0gPS+t+B
-	fVNdKbj1arKHHa72Hkp5nPzbdgJ7NlqfKXOJp6uwkoVJPxAh3PF1y8inrKSyn1729j+pSGGJDO3
-	1JyGm8pT18mHkyOKqP+rT9nfgmv+ueo5p3yAwybBvTlOHxy/H8dIM4kEe+iqvQR0=
-X-Gm-Gg: ASbGncv8cQ6G5bmfRrtH/hp4ubFCNuZtwCon19kHlHhGwsBr1dMwmvH09qPK5zPJklw
-	4bhCIkoII+KKsLflZyyas5Kc/5kmnUJNbRaP8wz6WFeXw4wxB0zt3wsZxhbrOp2zpBIQKkluhu4
-	9frBMlI6cjqwttN+qp0mSw2LTBQhLLHfQfGEt4jDVZ6l5kVSEYpb6uXAFYwXsCJwR4s/68ojhST
-	h4ukAkROMkSrMzb4uuggyh7ypgRBF+nGOKucilXapojtJ9V2IjBt735tsA7GYevCiAkgTbGbO7V
-	6IMwge9iBvPYAebTv9jpjAUfnd/OMTIN1PT4DQ7nQO1W+jFM7fpgJiWM95lcjYwLiJX+PPWWMIH
-	VmQFDokOOZhxgchCDmdrwD+gOQRrxjY0TZ6g+ew+CvHosEzg0+jTSUYHhe3W39Qzd3D9zO08Ych
-	t4JxDVmF7D6RU0BwIWB3NT3+fnPsk=
-X-Received: by 2002:a05:600c:4fd4:b0:471:13dd:bae7 with SMTP id 5b1f17b1804b1-4711791c5dfmr213019375e9.30.1761250126432;
-        Thu, 23 Oct 2025 13:08:46 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFhLOfkc2goKkbSV/WelWxssM1PnfK27SOZ93tRWz4irrY4Van7GhpXF/QUV/ppkvRzGCYJqQ==
-X-Received: by 2002:a05:600c:4fd4:b0:471:13dd:bae7 with SMTP id 5b1f17b1804b1-4711791c5dfmr213018935e9.30.1761250125948;
-        Thu, 23 Oct 2025 13:08:45 -0700 (PDT)
+        bh=vF8Hb3hnoXfLSdgr9uXEesJUum0OfpN/YlQIs62F7QU=;
+        b=dk4B1/DcTZSG/HVfkHo/kuYJHpIQG63qo3R6M7AjE3pUZLxUDlG3sJ2P2DykWpLynj
+         WiRtc4LStjPPC7SvPr0ox47BrlXj/5npYv7iRwFev5r0yHFzVCga0LJJXHvfNVxeRs30
+         /MoEHCVRwzDj8Y7GK31Y7urrHRigANMo5yhwn85cUi4xaJmnuFm9P4KtB6Il+aKvybwS
+         73IjtO52maI87J8QxOTRyhqKnx/TsZ9g09YnEhWv89qj2Lq8kSncv9fSZkTd1Am5HRoh
+         0mUvqYEtUK7V9hdXxreJUFZvWlMEy6B70RkoegncuOoiDHLGE1jpkNXO1cqOZaUDQN/G
+         I8JQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX+7m6YyNfkrZFcu/MOKrMQOffeaP61dV/cRa+XMtwCiJXn5Jyuyj7ESlkuqbOmkWdP1/tmBODQnzaY@vger.kernel.org
+X-Gm-Message-State: AOJu0YzS+op+BUSC3VEIbFiou3d0qhGohPGG6fzimnCSaiMBRtJS5dhH
+	0au3iNOa7HH0NDRjOigwxQdX8EScU3POSLa2GFWLjjZDY2Tw4FfQKj6JGFVZpVaelcIUdKeGova
+	lrCZvlEAC4PaNoTuQhW0ax8giawvOsrZQwc411o4axgCbo8HU6108299k9HoXHN4=
+X-Gm-Gg: ASbGncvb6qjutG1FtaV3LC+X0QT6+7Pruul9q9u6qbVZssCA3Aivu9LFEofkpU0xSQJ
+	Zx/WNz9i9QtKfSj7gkQhjAGjrShh7x2grnVZIitDbu4xjbznDmsKBWJ4SLfA9kct9jlw33h+oLm
+	Lg4rmK/sOU3B63WZN4qLFDyPuaDKnDZDZVmLg+1ZOeF/PmXKTWzSW6cR5cpHY2wjOV4f2VIrJCN
+	DpBbK3BgQk19e8iNjIp99RX7LGiLCTR3PGdh1rZ1s6YIjKN+cpRbRn/dq+G2E0uIXPdcuqQP6Je
+	wCn8Fk5QcVFxvgABaSdwttT3wo6QesHNYOtxdYHAo5MfhPe+FDzYoOWSgwpNsU1OW4duv8propT
+	oSgL3KHpV1YDyv6rcybLrhG7Td9GLgWqdPcO/TV6GBXudFirXD+UGC5Tzzvg3siGHQHvct1OF8r
+	c8tDtNhIjMYPPo1twO4oHqnTNwp0o=
+X-Received: by 2002:a05:600c:6291:b0:471:a43:123f with SMTP id 5b1f17b1804b1-471178a6882mr200628445e9.9.1761250243298;
+        Thu, 23 Oct 2025 13:10:43 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEznsO/mZG7bXXGeVpf9lUsRK7DtoSEnI7rqyr8WVIAgGuBjLQ7Sb3p9c9Pj2m7/SEml5RHBQ==
+X-Received: by 2002:a05:600c:6291:b0:471:a43:123f with SMTP id 5b1f17b1804b1-471178a6882mr200628295e9.9.1761250242917;
+        Thu, 23 Oct 2025 13:10:42 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3? (p200300d82f4e3200c99da38b3f3ad4b3.dip0.t-ipconnect.de. [2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-475c4342373sm135497185e9.12.2025.10.23.13.08.43
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429898cceebsm5532934f8f.37.2025.10.23.13.10.40
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Oct 2025 13:08:45 -0700 (PDT)
-Message-ID: <28f2ebe9-cfed-41c3-803f-8756dca0e300@redhat.com>
-Date: Thu, 23 Oct 2025 22:08:43 +0200
+        Thu, 23 Oct 2025 13:10:42 -0700 (PDT)
+Message-ID: <3d6bba2d-9739-41d0-8f3a-f8b11620c33f@redhat.com>
+Date: Thu, 23 Oct 2025 22:10:39 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,8 +76,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 12/13] mm: bail out of lazy_mmu_mode_* in interrupt
- context
+Subject: Re: [PATCH v3 13/13] mm: introduce arch_wants_lazy_mmu_mode()
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -100,7 +99,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-13-kevin.brodsky@arm.com>
+ <20251015082727.2395128-14-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -147,55 +146,28 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20251015082727.2395128-13-kevin.brodsky@arm.com>
+In-Reply-To: <20251015082727.2395128-14-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 15.10.25 10:27, Kevin Brodsky wrote:
-> The lazy MMU mode cannot be used in interrupt context. This is
-> documented in <linux/pgtable.h>, but isn't consistently handled
-> across architectures.
+> powerpc decides at runtime whether the lazy MMU mode should be used.
 > 
-> arm64 ensures that calls to lazy_mmu_mode_* have no effect in
-> interrupt context, because such calls do occur in certain
-> configurations - see commit b81c688426a9 ("arm64/mm: Disable barrier
-> batching in interrupt contexts"). Other architectures do not check
-> this situation, most likely because it hasn't occurred so far.
-> 
-> Both arm64 and x86/Xen also ensure that any lazy MMU optimisation is
-> disabled while in interrupt mode (see queue_pte_barriers() and
-> xen_get_lazy_mode() respectively).
-> 
-> Let's handle this in the new generic lazy_mmu layer, in the same
-> fashion as arm64: bail out of lazy_mmu_mode_* if in_interrupt(), and
-> have in_lazy_mmu_mode() return false to disable any optimisation.
-> Also remove the arm64 handling that is now redundant; x86/Xen has
-> its own internal tracking so it is left unchanged.
+> To avoid the overhead associated with managing
+> task_struct::lazy_mmu_state if the mode isn't used, introduce
+> arch_wants_lazy_mmu_mode() and bail out of lazy_mmu_mode_* if it
+> returns false. Add a default definition returning true, and an
+> appropriate implementation for powerpc.
 > 
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
->   arch/arm64/include/asm/pgtable.h | 17 +----------------
->   include/linux/pgtable.h          | 16 ++++++++++++++--
->   include/linux/sched.h            |  3 +++
->   3 files changed, 18 insertions(+), 18 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-> index 944e512767db..a37f417c30be 100644
-> --- a/arch/arm64/include/asm/pgtable.h
-> +++ b/arch/arm64/include/asm/pgtable.h
-> @@ -62,37 +62,22 @@ static inline void emit_pte_barriers(void)
->   
->   static inline void queue_pte_barriers(void)
->   {
-> -	if (in_interrupt()) {
-> -		emit_pte_barriers();
-> -		return;
-> -	}
-> -
+> This patch seemed like a good idea to start with, but now I'm not so
+> sure that the churn added to the generic layer is worth it.
 
-That took me a while. I guess this works because in_lazy_mmu_mode() == 0 
-in interrupt context, so we keep calling emit_pte_barriers?
+Exactly my thoughts :)
 
+I think we need evidence that this is really worth it for optimizing out 
+basically a counter update on powerpc.
 
 -- 
 Cheers
