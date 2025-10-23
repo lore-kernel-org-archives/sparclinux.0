@@ -1,74 +1,74 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F31534B67C
-	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 19:36:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B7C2264A0
+	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 19:37:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761248220; cv=none; b=RTEk3rbVG0XipQ/t4bPa4H4uZHOgT+uhz3ijbwm6FcXKRW+3jBirGq5+iBOmup4kCobRm/3f8AbaUQES14QBG2HgWwrpsGkKV+ol1UT1lvzPWBsqZwJmUHZ7/lETlZ6uwbQeQ4xZ4+CV+q1bj+mSPPtsfcG37CnErJSnTytPewo=
+	t=1761248270; cv=none; b=WecFldyIZsWArggsCtmNABEVzJF8/wphpg81FklZmYI8+UxvBwNmemTIv1iaF0LyOVc7th43wauG89nCClNe8Wg5SRb7JdmZBi+cY9NqTJWSK9z08cIXs36G1jGoGtjBhXSmQBoIWChF2L5gFvkw7ooBdKVtuqys8SgDVs7CSMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761248220; c=relaxed/simple;
-	bh=WCrtMk7ccu4KPA4WXQ0be26agceET7TKw5s8/eMSokY=;
+	s=arc-20240116; t=1761248270; c=relaxed/simple;
+	bh=UFb5eBaca1W7nnSvUTjHGbvCgRW99J8DbLNt0suFnYk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TgmoQ8hyf5zjFSziEcKVn9E2Fdwk/APSHw4UEUaWLvw5HLLCJy+K0NBRFZyP3dCBOlqssMrSuZjr6K+7/aob0v+zjHxt2qXQGjl/VWFYkZ423/Hcdb6EU+eWx2Bu/MfX19LPyE4gpWh8H+is0cfZyyZWBH4IjROvKmjEg7tw3Ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YYr/t9f8; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=MPhpdcNBS3Gp+ty0ZKB3STTYfhVI9wBtLE+JAfLRuaaITAlrXldeipOfKQmLyNO9rf267NU5xknN7qbwMimeNVej9f5WEQg+w0BQMqiUNjDomkJbSLZsARPfgZQWOKevS3fiVUJID4af6+Um2DeD/819rv3OCmiNyMiCvHWpmi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=fB/vulMy; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YYr/t9f8"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fB/vulMy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761248217;
+	s=mimecast20190719; t=1761248267;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=GAR+zcyIiLP0EmlRcHQPsRsm2ZVMdnZLABW6LHegPGk=;
-	b=YYr/t9f88DnfRGtalD5RRA3EJOwyBFx2tqF4AsdZj2aulW97W4kocfQxs8R+UFqKUQFgxK
-	xOIwzVhEuE+Bs/SPO/21gWS4GzYciF1a9N/18FHLBpd0VNi+zxRtq0sYa/0dns5B4MWzaU
-	a7dh0ggzzpPG8UUbwMpNevka400Js0s=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=mPouUhrqRxgjcMBstonzlhFIxQsnreNI+UXdXwtR76k=;
+	b=fB/vulMybcS1QvpLuxNhE1RCX5M3nl9ysjs96MCObN/xoQbaYeLGQCY5Ld3Nqxbc+Ozq/Q
+	I3eclPd0loHQkMesuGaOLY+GLLHLKjg+zCE1brxZaAj6BkCHWRm39mNz9XtXEPDhd0Rn5M
+	J4t/i7rKdPNp23BcDNbzuPNFl6t9Gr0=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-664-_fTPvz6_P7emwDcDmUDHGw-1; Thu, 23 Oct 2025 15:36:56 -0400
-X-MC-Unique: _fTPvz6_P7emwDcDmUDHGw-1
-X-Mimecast-MFC-AGG-ID: _fTPvz6_P7emwDcDmUDHGw_1761248215
-Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-42814749a6fso619569f8f.2
-        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 12:36:55 -0700 (PDT)
+ us-mta-593-2y7hL_rBOXm0lusRT5zHPw-1; Thu, 23 Oct 2025 15:37:46 -0400
+X-MC-Unique: 2y7hL_rBOXm0lusRT5zHPw-1
+X-Mimecast-MFC-AGG-ID: 2y7hL_rBOXm0lusRT5zHPw_1761248265
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-471125c8bc1so16183645e9.3
+        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 12:37:46 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761248215; x=1761853015;
+        d=1e100.net; s=20230601; t=1761248265; x=1761853065;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=GAR+zcyIiLP0EmlRcHQPsRsm2ZVMdnZLABW6LHegPGk=;
-        b=sa1lkCw3Bp0wRWlxsj7aaXx8KgaBoAsT0iQig+bUApLOSHzvv8o3HBmR5BehTrVzdN
-         WR75hzh+MeF7tcKuoDjUto8vbpxm85Z05CA8xJ3+Qa7E92JQ0URkwu//A2Rdhq0jQGP3
-         Zff7pl7Chd1n3CNTQwFGdbPCz1cFLncQXFNvohydCrXvb243r0ryCL8zSMLbzPFF0K8I
-         S/4y5BcKQ2slyvzj7EU5dXTRfgyk02wA0uvy7M9KA5PG8IAHV2ilNuFhkLYuRaYHQliI
-         +qYaM13V/w1nWTBEsqZ9/4IaJjxW67hxC4QL8LxJnoX2SYOuIAxA3ktFNLIDU1I9IgJW
-         lqKQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXID+COKH+pqhs5w39rexHXld8+6yJQ4b2K+5NfdCff7sqUWQAkt0DGCuh7UE8SnBFq4ppQQOi5w230@vger.kernel.org
-X-Gm-Message-State: AOJu0YzUTRe343j2vGb4Jpz7yE98WNBxrQz1JGIM0lw/4lQW+tDlCgRi
-	PI5Cf5TS/rUlyBAnCsFnt76OBQljM1BypYiMU4elh2M+Veln8Vz5WB3udCsI+HhjSVyv24thRo3
-	MYVjs2ovgPVwz8RauEDzjVDilZ/HkUS2QBG0sjIJ7flN+hFR3UeisurtSlN9xxtc=
-X-Gm-Gg: ASbGncsuvWhvWEipG7XrzioWPg7onBWXszw2/3Og6E+GAYcHieHvC28sI33cbcth4Z5
-	vMNtJ54+2EKx788yhpHwvyzW4T+RLoQ57yFLh6L316ueZ8rH41oSYE/ikbGHNSiKlavnUR+/8ov
-	d09crx3avJ42FhRiGZJFNZ8RTGq8r9x8JhGRZrvKzZ7AuiV911MHGd5VZbt5nTiEaKq6K1ePGgY
-	6HgLDBR+o0ZJ+RBGqhXnk/8pM7PXjps0r4pCgN0Pxi75HTlhptfmtJGKNFi6F7TGwdArM8WK2L+
-	2z6HzWUX6hq+6ole7iyNyRKhKobl82JDWso1GOfHRCG4r5Zka3W2oJWdbFh+/+R+foq7lP11rCQ
-	lYxxd03SIkK9hd6XYZvZmK8wqy+PHk/4Qm1iv2B3nYbSzrM+Jm3r0cRh73DQgZmUrAoEZE7TFlJ
-	jMJNLJyWjaEwk4S1xZ+3VJOmXPt5A=
-X-Received: by 2002:a05:6000:2910:b0:426:d60f:746f with SMTP id ffacd0b85a97d-42704d94458mr15755863f8f.30.1761248214788;
-        Thu, 23 Oct 2025 12:36:54 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFLONoaoN3j9k7k2WPBjhOeKfFc12IEn3iCcAu7lFYqr51oTxzPTHNLcPx+/xVbrYtjrgs6YQ==
-X-Received: by 2002:a05:6000:2910:b0:426:d60f:746f with SMTP id ffacd0b85a97d-42704d94458mr15755849f8f.30.1761248214388;
-        Thu, 23 Oct 2025 12:36:54 -0700 (PDT)
+        bh=mPouUhrqRxgjcMBstonzlhFIxQsnreNI+UXdXwtR76k=;
+        b=jxf1goinPnwoE7CQDGoN0C5o8WGJRJXo6R8VHOtItOHBhm0L6UbxCCtZp5wO++iyK9
+         1fhfxhG2hFLfsrfCAjpwS+S+1TfO7YFsleB0oZ6c3x2wNQ+a+byCeC35x3jypWETnPSc
+         oLIRYPP2J8otvS40O7gRiJ5DcMA6WBpiXNv0lrdgWlK5iKbprY33+0b7NYUuFveEFLS5
+         oUSzyumZDlPA9VwpvwPkUVYH3sJYtmQzw522exDUcKjK6fhd8HtgyMyxufgMBX8PHLPF
+         z2qkIo3I/TQat2xDS9Ivt3ssZT6WtugtDaiChAeYQhxr7+QKCn3kQpktK/SnOSZNBZa0
+         E4lw==
+X-Forwarded-Encrypted: i=1; AJvYcCU5SeLuEAhusRW7Q2sHOHTgy2RA6v2EKGBhaliKpHDxg9fjHpdTfbOEmRZXYV1CDA/4rpnHgpFzygF2@vger.kernel.org
+X-Gm-Message-State: AOJu0YzpuezEd2ZSf+gniv217Y6/pprqeS9FSr3IDRQt0wqM63RR6CjF
+	8XcoiTBFdHjcTYIIvtEuQcJGjYBu2Ltjr7sFxzZs9ktkeL90hsKheD1UYYk+0m35aDgAb1P7GCj
+	f0YksYIpJUSM/0IWdx5f9gDJhVXhgovVWzHvHgbIsfbrEpJZYAfarm6wh7HkVoBc=
+X-Gm-Gg: ASbGncuwairTw7OOtw/eIc7JLAVlH89nHoBgL+nXrEHvkTPEmcVMZWpHx3Ly75P3Ree
+	gTJ0kItKlI91Ccyc7pJNl3+/OU1xuKRXi0hl87NcjQR72+TETyIKyRO7DL3mcnoMQtUJ6wRE1Z0
+	oSZmPHRTkhZFFIZXK1HmE/DpslRm2DmysFMLB3xV+5BN+TbLdO6cE78sVS+NDgICdYekrfUqmBl
+	S+XgfYGrAsfyAqT3cHo3aZso90oqa4fRMHq7tRBr/tE2hh14M/SrxxLT0CzqZ4gRUglOx9+j3un
+	PmrR2rKat43esAYX9ILxUulAVsFJAgYP1Fe325bp+l99+X5CF/uI2SCmFh4PLKKdL6Cz5PbQTel
+	I88lUZco/EqUbOMicgvy+bLZyzXhTKLP4WyB9nZiX2+tAPzgihU50OyQR1IPXAWoMQAfa31ApYQ
+	nLIhfdqMhyVOhGhbVzvklsuMaUIVE=
+X-Received: by 2002:a05:600c:3149:b0:46e:4b8b:75f2 with SMTP id 5b1f17b1804b1-471178a7ea5mr175792155e9.16.1761248265267;
+        Thu, 23 Oct 2025 12:37:45 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEZq8ETk/dxv6lw5okKbvprrCeAKa5W7ysoK9CYeQHAr2H0Pl+EqcgQ1cUF8EEIwcu7bpKOCw==
+X-Received: by 2002:a05:600c:3149:b0:46e:4b8b:75f2 with SMTP id 5b1f17b1804b1-471178a7ea5mr175791855e9.16.1761248264842;
+        Thu, 23 Oct 2025 12:37:44 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3? (p200300d82f4e3200c99da38b3f3ad4b3.dip0.t-ipconnect.de. [2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429898ecadbsm5715926f8f.45.2025.10.23.12.36.49
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-475c4369b5esm130845595e9.15.2025.10.23.12.37.43
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Oct 2025 12:36:52 -0700 (PDT)
-Message-ID: <60c55686-87dd-46d0-884e-80f7d423663b@redhat.com>
-Date: Thu, 23 Oct 2025 21:36:48 +0200
+        Thu, 23 Oct 2025 12:37:44 -0700 (PDT)
+Message-ID: <b0373792-a7fa-41c4-9bf8-979c10be49a0@redhat.com>
+Date: Thu, 23 Oct 2025 21:37:42 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,7 +76,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 03/13] powerpc/mm: implement arch_flush_lazy_mmu_mode()
+Subject: Re: [PATCH v3 04/13] sparc/mm: implement arch_flush_lazy_mmu_mode()
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -99,7 +99,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-4-kevin.brodsky@arm.com>
+ <20251015082727.2395128-5-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -146,7 +146,7 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20251015082727.2395128-4-kevin.brodsky@arm.com>
+In-Reply-To: <20251015082727.2395128-5-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -160,31 +160,54 @@ On 15.10.25 10:27, Kevin Brodsky wrote:
 > 
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
->   .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 +++++++++++----
->   1 file changed, 11 insertions(+), 4 deletions(-)
+>   arch/sparc/include/asm/tlbflush_64.h | 2 +-
+>   arch/sparc/mm/tlb.c                  | 9 ++++++++-
+>   2 files changed, 9 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> index 146287d9580f..7704dbe8e88d 100644
-> --- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> +++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> @@ -41,6 +41,16 @@ static inline void arch_enter_lazy_mmu_mode(void)
->   	batch->active = 1;
+> diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
+> index 8b8cdaa69272..925bb5d7a4e1 100644
+> --- a/arch/sparc/include/asm/tlbflush_64.h
+> +++ b/arch/sparc/include/asm/tlbflush_64.h
+> @@ -43,8 +43,8 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end);
+>   
+>   void flush_tlb_pending(void);
+>   void arch_enter_lazy_mmu_mode(void);
+> +void arch_flush_lazy_mmu_mode(void);
+>   void arch_leave_lazy_mmu_mode(void);
+> -#define arch_flush_lazy_mmu_mode()      do {} while (0)
+>   
+>   /* Local cpu only.  */
+>   void __flush_tlb_all(void);
+> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+> index a35ddcca5e76..7b5dfcdb1243 100644
+> --- a/arch/sparc/mm/tlb.c
+> +++ b/arch/sparc/mm/tlb.c
+> @@ -59,12 +59,19 @@ void arch_enter_lazy_mmu_mode(void)
+>   	tb->active = 1;
 >   }
 >   
-> +static inline void arch_flush_lazy_mmu_mode(void)
-> +{
-> +	struct ppc64_tlb_batch *batch;
+> -void arch_leave_lazy_mmu_mode(void)
+> +void arch_flush_lazy_mmu_mode(void)
+>   {
+>   	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
+>   
+>   	if (tb->tlb_nr)
+>   		flush_tlb_pending();
+> +}
 > +
-> +	batch = this_cpu_ptr(&ppc64_tlb_batch);
+> +void arch_leave_lazy_mmu_mode(void)
+> +{
+> +	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
+> +
 
-The downside is the double this_cpu_ptr() now on the 
-arch_leave_lazy_mmu_mode() path.
+Just like for ppc now a double this_cpu_ptr(). I'd similarly just 
+replicate the two statements.
 
-You could just have a helper function that is called by either or just 
-... leave arch_leave_lazy_mmu_mode() alone and just replicate the two 
-statements here in arch_flush_lazy_mmu_mode().
+> +	arch_flush_lazy_mmu_mode();
+>   	tb->active = 0;
+>   	preempt_enable();
+>   }
 
-I would do just that :)
 
 -- 
 Cheers
