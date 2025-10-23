@@ -1,74 +1,74 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A54C34C9B3
-	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 19:38:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5DD734DB7F
+	for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 19:52:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761248299; cv=none; b=buAUT140exyTNLTkWJB70eDzua3C67gjtrCyKcK8dpLvUlRTZfCsexjc+nKD6WI4RmRzspAYjDBdmEYVeEtl924tr6qv1uECX5x5G1TMO3gTnq7mWJN8JGWwMER8Tq+fYlsMBhT32MWpxf4xLbS3WRMMIezElH0sBQ7qWxVdy0Y=
+	t=1761249180; cv=none; b=WyTce2lCwbS05Pz4cy+5RDqrSpK3ToExbqT8M/FNAU7tBNBuLb0crmx/aF1GT2TsdiajRlVN/BT1mvEBpfyECGChf760xUHF7rRMdh7T9DO2zaCZcnIHabV1l3JCICO4MS9GNPn+1+DEEcMmVqPUMNKcJVWSr8A41VnjQJKeflU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761248299; c=relaxed/simple;
-	bh=sTUN+OOQ61RIqfM1uoiECgcH1Z+fsNbDFGTm9/X8/M8=;
+	s=arc-20240116; t=1761249180; c=relaxed/simple;
+	bh=0+MvlPoxAN1U1+vn/p62PDLkCn9a2D0s7BsJhmIos8A=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fDtw+tOHOifluucfGUjcRJkqC8C6txsz3BRmXomnl7jX8L1ScsaqtGqAQISDhMtjvjKN0104E9XlIznyKtgXSyp0n/clmfXAkBL+15LUz6cGxh8qwb/LTb/z9/nQdfyhgEJ5aXCT4/9oAmTML1okr+61uQY2TNwqzQF2ucw+h28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=WaUgJiS4; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=PpeoBZx2x68v811aJtiWCdFSgqumc4qxexC6TtGNr2l0UeHaYDPAYh9EdkDMYyjfofDuUzZId8/RgMa1wVWuab6BUYTXZBqzhuESnUpJvUM5FZNiFToK40ZkxHD7l+y4JPKI8jtLI7ktRocO7RNb8nyRlOkLhAWIu0S55wJtio4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=OrsR79zP; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WaUgJiS4"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OrsR79zP"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761248297;
+	s=mimecast20190719; t=1761249177;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=VQ7IyiPkbQDl/6FlpFFPP3SSIBn2cmNYnYEr3eJHlB0=;
-	b=WaUgJiS4lnTXdFuXbmtBc+ovBYRyZFk/GY87gSYhn6slSvAipbKaOrAXyF0pe0Lkq7PUqq
-	H5TQdOzI4ta62Os8GBuYgX46aCuaOW3mFGqw9qF10rfyaee8X/ZwwBOO1+Fwm5uKu5HNH/
-	NBND0Wh0hqI6OBLJWNdDn3ajtOJ7B/k=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=lu8DXyr9e+174zCCLKyjaz62dq3PQM0ss4FpqXHktAg=;
+	b=OrsR79zPxDTTcYjCpvym0L/LCuSjCZ19rXRX5x8xIg/IjiFD0Z+U1rgYVoQ52wuAFh3i5I
+	YkUuNoQ6KaveSHE0yExl6xi8FkrL/HMGvz6wRae/OZlTy3CdzMGbVEa5aAh/ukn/KOI3R2
+	71Fado/B76mpKrT7Vp34fQ9JgHCU1lQ=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-299-NW99SKv2P7ad8l_xIwYmTQ-1; Thu, 23 Oct 2025 15:38:14 -0400
-X-MC-Unique: NW99SKv2P7ad8l_xIwYmTQ-1
-X-Mimecast-MFC-AGG-ID: NW99SKv2P7ad8l_xIwYmTQ_1761248293
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-47111dc7c35so9582965e9.2
-        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 12:38:14 -0700 (PDT)
+ us-mta-529-X80QSYH_O_-B29RaYBA6GA-1; Thu, 23 Oct 2025 15:52:56 -0400
+X-MC-Unique: X80QSYH_O_-B29RaYBA6GA-1
+X-Mimecast-MFC-AGG-ID: X80QSYH_O_-B29RaYBA6GA_1761249175
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3ecdb10a612so710986f8f.2
+        for <sparclinux@vger.kernel.org>; Thu, 23 Oct 2025 12:52:56 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761248293; x=1761853093;
+        d=1e100.net; s=20230601; t=1761249175; x=1761853975;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=VQ7IyiPkbQDl/6FlpFFPP3SSIBn2cmNYnYEr3eJHlB0=;
-        b=dLHhGJULV2AjSd+l6BOuxEAZdWy/Bf9QiSj+xoqzfse8qqQ2N4N+/y/n3rDEB2SbgW
-         Tz/IWiYAZG6WE5/hHafrm+bSLI34GPjzxkk3wVVT+YJA2HPuRMWaJ6aVjV/d6W6hmDk2
-         MIlaasYyVbSog6yPr7x5vHKPbmW73cgsFYOHvsZniC4yYXMJq4iESmyHLRFsWDsFSuUN
-         YdjpH6S9WmGFI6WAWYo9azm7oItpS+pV17QNFN3Ir6un7VpBnoQDtKo3pBuICIs0fVKB
-         qcgRAiopktPGUIs/RDfB8+fADYPetDRpWpd6as4t6d9LyzRW0PpQcA2m9nvsKzCWDFr3
-         3X6w==
-X-Forwarded-Encrypted: i=1; AJvYcCW09HBNJvbWldyahkXYo+xXu9YtHIO0Y/Lbd6A4vcN6MjsYbxcJKB1z7B3xNbbiUj41bQM3unZItbbw@vger.kernel.org
-X-Gm-Message-State: AOJu0Yypt690CSzto2FwNEC2bZ//G0ceO7Q3FgjnQcKE6T1jmghInDjt
-	bPOz7Pr7rlV1hRnkz9+DK/HdtM5QcBLNDvd6pZqu4XBLdzoOnylSyRHxN/kLO3CfXlba82QVTvI
-	byCKDt7Oht3k4LplEwo8vXtkM+IlFJqZLvccR9wWu7yszu/nWNPfQU7BZcRr+W8Q=
-X-Gm-Gg: ASbGncsnlJoOwkKfY+1nocbg672mpKvT9w6BB6d/mso3Wttp4XUqr1LD0Mpyt0rgEeQ
-	/q8iAqBqU0kinC0DaCKXufktq45sVQv4HOHMt+/1YWDk2kGSXbtCRVsVt9M3uRppPN8+/KCxRPV
-	6eGouea+x8bQMwB2krhuMGrzs6/tmfZG3I/uGziBMPbp0gi6T3lsqr01unRySO4rXLPU99KSXaT
-	uZnzLqV98q6ubzFxg9ZpKA/uLK7TKgqF2K6HHdbsJ/XhZQhq2pRqmYXawyzMvm/aNZkIrmJACXu
-	rAh9oiA252HSgtEEfQxSj1k9wh4u6KOc47fShs0K3QI/sq5ZoR7Z1e6F/N4za4pn0RgF+3rfjDR
-	lrxHbiiN5BeYKect4jWUd3oLqE5ruC1khuBIyag49bdQqf8tX0/BuB/2Bfj4xdB7Wq8jMrLr/Ib
-	kieO+WIQ8Smuet9HIqR4RFPcc515E=
-X-Received: by 2002:a05:600c:3145:b0:45d:e6b6:55fe with SMTP id 5b1f17b1804b1-4711791e7a4mr225365545e9.34.1761248293302;
-        Thu, 23 Oct 2025 12:38:13 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFK4kvb9VXDfRke79DTEDXEtAKVHmaVqzR/ZxHwP2FSjJo/KXXf7lv5KID4JKHr2iZrwUPcWA==
-X-Received: by 2002:a05:600c:3145:b0:45d:e6b6:55fe with SMTP id 5b1f17b1804b1-4711791e7a4mr225365155e9.34.1761248292920;
-        Thu, 23 Oct 2025 12:38:12 -0700 (PDT)
+        bh=lu8DXyr9e+174zCCLKyjaz62dq3PQM0ss4FpqXHktAg=;
+        b=Linib9LkpwIFuv+7DO+z0it/DXg5N8IIjycIYoe6OK9/aKeaCa5v9rue7sRwCJIxfF
+         FppJST1s6vo2wQThqp7bO+JFoQuUMS0BGhAJJZO+F+YQJUWhcYv+WY9qyL+Xh4Dy8yqy
+         I7rp1IDeWXH4CFsbMuwVyO2edgWf02zC4Hvkn9xwKKXzLjVNgZpZ/DSihTfrWFSaJaS8
+         0f3VnK1nRSTSRDvmO5Wv1S2of4XWZo9OZV8TAv0dQkbPjDTJfgLTrHyEk/PYjjBsXzr/
+         taewJNl4dtOVE8nBerMoxDupuFaTANxfNE8KEuZP0IgAlq9/FEQZbrLSaDZOBv5O2lAk
+         OTFQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUUqaRJF3CKVdik/cqvDd+a8qXIgzx9h5tLuZ9CQ5f7JSNk7plPuS+bslzAWzcT/66nJUOo23D0ma2m@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywu0dE+EuA88RzPToZkN0IvE2bumNqmUmuDrZJAA7l1XP7DG5wF
+	AJEbW1mm9X0k1M/Mp8GEl2GDwxJGewTZxPMkKdnrVwK5wW/5VzOFbXq0TPoSXEJIz2PdE/88zkT
+	VIGaFBujKJfhZiOgE5UcYTvcalRnZDkhmSkGsCf8AufIDInXx0P7dVSbLLpr56OE=
+X-Gm-Gg: ASbGncs8L6OjPhdYRxBf/sFn0ABGXP+aHt5t92Qz/YlyEbbYWg6lwOG20xp/RtmMXiw
+	mF6mxR4SIMXps0I+EZGIaM44PxAWDEIbXRkKHEaky9KPn+MPzPSjH3ODVUhVgmqqf0RwheRhAh0
+	vEA0Ue8uyfLbDZ/q+dYAO62tXGQFAj6oAW0kn6f3z5QoG1mEMEPD/9LuMjU+JuxAZpFE8Dt/9Ks
+	yINmU/dzDxv4+d4e1I5jqTajPc66l/6ryFdA5sZU6TcB3tldDK2RWgIRgxk4KeQzFhI10i31JDU
+	tWzNKLzrWRvo6jDB9hRMggWyCwzbp43wVk6AfD6CntztLv6fGSDk7EU3K7CdAwB/N3UtmY7cS+b
+	fUhajifcJuZEufGqsb5mGt3fUDsSWGKo+Ihh6s0yofxu0eQ9HUcBkcQefgddX7mfJaB/BbC3v5U
+	LGIoEd998CEmwPTgKCM/lr4l0lJJY=
+X-Received: by 2002:a05:6000:2911:b0:3eb:df84:62e with SMTP id ffacd0b85a97d-42704d7e9f9mr18404405f8f.3.1761249174905;
+        Thu, 23 Oct 2025 12:52:54 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF7U9VemhLNzul4GpnpOHuDDlV+F0CKxszXYKlJ5dnYJh0XFPFjlnxCdm5Nc2+v3zIM+vRJGA==
+X-Received: by 2002:a05:6000:2911:b0:3eb:df84:62e with SMTP id ffacd0b85a97d-42704d7e9f9mr18404377f8f.3.1761249174285;
+        Thu, 23 Oct 2025 12:52:54 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3? (p200300d82f4e3200c99da38b3f3ad4b3.dip0.t-ipconnect.de. [2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429898eb549sm5405252f8f.41.2025.10.23.12.38.11
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429897ff3f5sm5656361f8f.22.2025.10.23.12.52.50
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Oct 2025 12:38:12 -0700 (PDT)
-Message-ID: <dd3011ec-23cc-4431-95a3-a0c2965e7062@redhat.com>
-Date: Thu, 23 Oct 2025 21:38:10 +0200
+        Thu, 23 Oct 2025 12:52:51 -0700 (PDT)
+Message-ID: <73b274b7-f419-4e2e-8620-d557bac30dc2@redhat.com>
+Date: Thu, 23 Oct 2025 21:52:49 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,10 +76,9 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 05/13] mm: introduce CONFIG_ARCH_LAZY_MMU
-To: Kevin Brodsky <kevin.brodsky@arm.com>, Mike Rapoport <rppt@kernel.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- Alexander Gordeev <agordeev@linux.ibm.com>,
+Subject: Re: [PATCH v3 06/13] mm: introduce generic lazy_mmu helpers
+To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
@@ -92,15 +91,15 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Nicholas Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>,
- Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
+ <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
  Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-6-kevin.brodsky@arm.com>
- <aPNjd2dg3YN-TZKH@kernel.org> <3836a43f-809e-419d-a85d-74606d9daa0f@arm.com>
+ <20251015082727.2395128-7-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -147,40 +146,110 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <3836a43f-809e-419d-a85d-74606d9daa0f@arm.com>
+In-Reply-To: <20251015082727.2395128-7-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 20.10.25 12:37, Kevin Brodsky wrote:
-> On 18/10/2025 11:52, Mike Rapoport wrote:
->>> @@ -231,7 +231,7 @@ static inline int pmd_dirty(pmd_t pmd)
->>>    * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
->>>    * and the mode cannot be used in interrupt context.
->>>    */
->>> -#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
->>> +#ifndef CONFIG_ARCH_LAZY_MMU
->>>   static inline void arch_enter_lazy_mmu_mode(void) {}
->>>   static inline void arch_leave_lazy_mmu_mode(void) {}
->>>   static inline void arch_flush_lazy_mmu_mode(void) {}
->>> diff --git a/mm/Kconfig b/mm/Kconfig
->>> index 0e26f4fc8717..2fdcb42ca1a1 100644
->>> --- a/mm/Kconfig
->>> +++ b/mm/Kconfig
->>> @@ -1372,6 +1372,9 @@ config PT_RECLAIM
->>>   config FIND_NORMAL_PAGE
->>>   	def_bool n
->>>   
->>> +config ARCH_LAZY_MMU
->>> +	bool
->>> +
->> I think a better name would be ARCH_HAS_LAZY_MMU and the config option fits
->> better to arch/Kconfig.
+On 15.10.25 10:27, Kevin Brodsky wrote:
+> The implementation of the lazy MMU mode is currently entirely
+> arch-specific; core code directly calls arch helpers:
+> arch_{enter,leave}_lazy_mmu_mode().
 > 
-> Sounds fine by me - I'm inclined to make it slightly longer still,
-> ARCH_HAS_LAZY_MMU_MODE, to avoid making "LAZY_MMU" sound like some HW
-> feature.
+> We are about to introduce support for nested lazy MMU sections.
+> As things stand we'd have to duplicate that logic in every arch
+> implementing lazy_mmu - adding to a fair amount of logic
+> already duplicated across lazy_mmu implementations.
+> 
+> This patch therefore introduces a new generic layer that calls the
+> existing arch_* helpers. Two pair of calls are introduced:
+> 
+> * lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
+>      This is the standard case where the mode is enabled for a given
+>      block of code by surrounding it with enable() and disable()
+>      calls.
+> 
+> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
+>      This is for situations where the mode is temporarily disabled
+>      by first calling pause() and then resume() (e.g. to prevent any
+>      batching from occurring in a critical section).
+> 
+> The documentation in <linux/pgtable.h> will be updated in a
+> subsequent patch.
+> 
+> No functional change should be introduced at this stage.
+> The implementation of enable()/resume() and disable()/pause() is
+> currently identical, but nesting support will change that.
+> 
+> Most of the call sites have been updated using the following
+> Coccinelle script:
+> 
+> @@
+> @@
+> {
+> ...
+> - arch_enter_lazy_mmu_mode();
+> + lazy_mmu_mode_enable();
+> ...
+> - arch_leave_lazy_mmu_mode();
+> + lazy_mmu_mode_disable();
+> ...
+> }
+> 
+> @@
+> @@
+> {
+> ...
+> - arch_leave_lazy_mmu_mode();
+> + lazy_mmu_mode_pause();
+> ...
+> - arch_enter_lazy_mmu_mode();
+> + lazy_mmu_mode_resume();
+> ...
+> }
+> 
+> A couple of cases are noteworthy:
+> 
+> * madvise_*_pte_range() call arch_leave() in multiple paths, some
+>    followed by an immediate exit/rescheduling and some followed by a
+>    conditional exit. These functions assume that they are called
+>    with lazy MMU disabled and we cannot simply use pause()/resume()
+>    to address that. This patch leaves the situation unchanged by
+>    calling enable()/disable() in all cases.
 
-LGTM.
+I'm confused, the function simply does
+
+(a) enables lazy mmu
+(b) does something on the page table
+(c) disables lazy mmu
+(d) does something expensive (split folio -> take sleepable locks,
+     flushes tlb)
+(e) go to (a)
+
+Why would we use enable/disable instead?
+
+> 
+> * x86/Xen is currently the only case where explicit handling is
+>    required for lazy MMU when context-switching. This is purely an
+>    implementation detail and using the generic lazy_mmu_mode_*
+>    functions would cause trouble when nesting support is introduced,
+>    because the generic functions must be called from the current task.
+>    For that reason we still use arch_leave() and arch_enter() there.
+
+How does this interact with patch #11?
+
+> 
+> Note: x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
+> places, but only defines it if PARAVIRT_XXL is selected, and we are
+> removing the fallback in <linux/pgtable.h>. Add a new fallback
+> definition to <asm/pgtable.h> to keep things building.
+
+I can see a call in __kernel_map_pages() and 
+arch_kmap_local_post_map()/arch_kmap_local_post_unmap().
+
+I guess that is ... harmless/irrelevant in the context of this series?
+
+[...]
+
 
 -- 
 Cheers
