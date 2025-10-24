@@ -1,74 +1,74 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D5A3148BD
-	for <sparclinux@vger.kernel.org>; Fri, 24 Oct 2025 13:23:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34DF42D3A75
+	for <sparclinux@vger.kernel.org>; Fri, 24 Oct 2025 13:27:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761312228; cv=none; b=B5pwXWeCnjQqIEeHYGf6d0D8/0A9mClnYXjRTQQ+A1nsP6EF3mebIIhyKO9EhdmPxJNZhsIjLymhBWFF8pYker8XUacfW/zs5vzXJYAXUNTH+g5edGOV8KObH8oFWwo58+vViDhulMBdIvkU9hJP1vcvxqRn5vgU26Ku2GzU9ZQ=
+	t=1761312460; cv=none; b=qdxfXoeTOeDFzxliJHmtw2VFAC+leIP5ReE6ZYntZ24eq7MVvCqVjDv8M0u15xESKr+/JzrwizLj985KV+3V861/byh8eMxZpA0yelSU4tELNDlO2nXBv9jNvpI5qQ1JhzohOcyreD7EOpUpySB7bxzfuTF+W1in8/5DlvMJW+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761312228; c=relaxed/simple;
-	bh=u5ZdO92I797sGerRYUrQbODv8LVQgH+CM8JGzauFsEg=;
+	s=arc-20240116; t=1761312460; c=relaxed/simple;
+	bh=2ZUHwXp2ysaRQs0zSD5QmaM8wmm4U6/OQbUL7/FYLSo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DNaIjlBHXhNsxqJ4TdbhPpMOIPymlJ5bQA/+yzpbQp7FHadmqMTb/MRhED9HUOuUxpIfRyH9dOdWe9hgy7YY1UwuFHKe7KGR55OaMwywtLtzzob5ZOe8ZNaIEhOhTR3/IHhVjwEwtk3IGEwdVo1dRPwRlz2rzjvnNQrWXltuyFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GBJupbqV; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=g8eWqe/PUqOsIT0tiQ0VM8+WChvcaOufeu5YL7LjgVccygkKvyDdXTfIwILtRQHuCpalI5YSymPYPyPFHyJv7ykkLZdQMcVvqTElhFJ5nVdKl06UcS5fKRFOv/2RbzuHaNZn2b/z7QAn9gIK7va9y93P6Nr2O1PDA3Y4PC2mik4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=EQ9cqlHY; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GBJupbqV"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EQ9cqlHY"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761312225;
+	s=mimecast20190719; t=1761312458;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=9pZe05cqV5Y1PIBh8vBXPAYdFpy0cqXi9nRKa9E+n1Q=;
-	b=GBJupbqVqUAUdDvfwoVXHEQvNxQNHPtqjlL0UvRrgEmCgrXPFUeEHJnCb/xs8Crcnw3FZk
-	gUtMYd+FtPyTRvLNjApCbsiuZVIHD5552ZcCMNN4rJjdlqu4BJo+i1M80DJlvgHqETkMYz
-	XsSVkcVh34thyORxxUUFDy0C03HtDs4=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=W95gCkBxowoa8sjYCMILYw6pqqluuwtxuEqICefNFQ8=;
+	b=EQ9cqlHYeA+Irl1jc/Y/4xpr8sngwljhpizjQoVhiCDNTXiGWBR82HclDrm/eRDudUjJAb
+	gZYQzvMaqbKKJf7PyubkSY//kEWLKKNnvErQzmDij9dZA54HZRmjZLa64DQHjp7pVxUcyd
+	4owDdD+OpfREioM3SYxjzw8mz+wJ7DM=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-617-NpnfhHQKMHuBbp8F-UEKag-1; Fri, 24 Oct 2025 09:23:44 -0400
-X-MC-Unique: NpnfhHQKMHuBbp8F-UEKag-1
-X-Mimecast-MFC-AGG-ID: NpnfhHQKMHuBbp8F-UEKag_1761312223
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-46fa88b5760so7234845e9.3
-        for <sparclinux@vger.kernel.org>; Fri, 24 Oct 2025 06:23:44 -0700 (PDT)
+ us-mta-50--Kb2tlN9MWaN7g8-0yUjmA-1; Fri, 24 Oct 2025 09:27:36 -0400
+X-MC-Unique: -Kb2tlN9MWaN7g8-0yUjmA-1
+X-Mimecast-MFC-AGG-ID: -Kb2tlN9MWaN7g8-0yUjmA_1761312456
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-42992cb2ee8so162518f8f.3
+        for <sparclinux@vger.kernel.org>; Fri, 24 Oct 2025 06:27:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761312223; x=1761917023;
+        d=1e100.net; s=20230601; t=1761312455; x=1761917255;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=9pZe05cqV5Y1PIBh8vBXPAYdFpy0cqXi9nRKa9E+n1Q=;
-        b=l/7JLQx4RlIH5W6FKFJgfxW+qOw3Z1oTxrqc66fg69TZTFNgIHXCZdqmrW9OvOy+10
-         cMeQA6Z1XzbB+p2EByMk5PNRbwQBvVVvMJ68HoK2BeBxhV/u3P1fw4lOdDXn9uOwa5h8
-         QavPp9WxSkllt5OCjRvTz4GiVS0wuvuX0E9lLVrG0Cemn6b8IOdxkNg64y8Gvc/HPHjo
-         0GgiC4YCW4BgBEEv5fuL7yZywgpwipz2ucRA6gcRtT1zYw4s1uIb21mJW0uP9RFiLy62
-         8vIk9bbMq+SUPVp2fUcwTQaVOIejjpD6m/i7aFEZDrm0chewDs7CHclZU14GUO12jRbX
-         XoEw==
-X-Forwarded-Encrypted: i=1; AJvYcCWw73MyVwFD2SQpmrS1VW0MLHBcqiMSj+GiXjoO7eu5zXYo/fEgqvCq8GCZmCBVw4JdoJrGOitVchnT@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz1yQkZAA/I7QawlcWAlkLqjkXdarsCHszKBKrIMgKfVmtZOZM0
-	bnarxQIokhbZo+uvmj5eIdUOO4mUwKvOv6JCAU8Khz7MXAluxVY8HnyFilNEnQDcmrEXvlHiipJ
-	jibcbXuvDv9Su74Y0d3tZHDZaVwD2ORqpWlXqHQaY4V/ywwnxEt6An0/bNLIKmnw=
-X-Gm-Gg: ASbGncsSTPymdmu5xlUT6OqKKFPyxnf+7h09iVKxRN4k38vFR/L2GUsKhqw2saxkZ7p
-	kd8VNmaTt4r33a6UdHlB8E3mTZmTdyiZGKPjXRxm0f5ROLDt0dC+j1lNP8I8sXRSN5bkX0Npxv5
-	o0h+QFuIC05jfa3oTKDPVOddMl5igQ9PYplSYyX5hkZKy+bcDZVpU/iDyjLsJ5+LOtXvH41LZTZ
-	M2dZVOprqwDd00R/XnLtkOY0ZfvCK7oMZdbIl8KuGPEkrFF85Efcb2kOZLnL7MpEYcee8nGnq++
-	4QJjfpX1D/OuyJMBaL9tvWZsw8Zy0UL9NWDM94VZbOLO3ivviaxlDrpV11A3zPeyIIUBnLXDlE9
-	yGfQgQRipOCA3GcNwEnR3EmoATFeUTa69YbmGNWS4NJ1jIWIZBtHqPZsIEoU/ECTBeNB5a9JRWi
-	wZNfJ65F5m19gragkApOu7+hHrXBw=
-X-Received: by 2002:a05:600c:1d9b:b0:46e:38f7:625f with SMTP id 5b1f17b1804b1-471178771b6mr180789545e9.10.1761312223050;
-        Fri, 24 Oct 2025 06:23:43 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEtGsLBVTNfj/FZoaJq9YDf0YbzbT70oZVwx4vja/yfyCx4XWjsWfYr2kPeTBeEcFsrMCFiZA==
-X-Received: by 2002:a05:600c:1d9b:b0:46e:38f7:625f with SMTP id 5b1f17b1804b1-471178771b6mr180789265e9.10.1761312222639;
-        Fri, 24 Oct 2025 06:23:42 -0700 (PDT)
+        bh=W95gCkBxowoa8sjYCMILYw6pqqluuwtxuEqICefNFQ8=;
+        b=TmxxEaNFlYW93x+6M0nRfz6x5pjTMT7mY2btxzB4prATXdL1e1pMa737JTmqlkexVG
+         Uzok5ScZ8ciZNkVKwy1PyWEOMEvzlw3nIKbHNeRYa3qI3yJDvEwviEKLNGD81TD1+bjg
+         Cp6stl55kiIO+1wqKtFaGsd3YMN9VKsY1VPZQWnr+a5LE88erJB2lCvsY3j+ec2kCcVH
+         30q7O7jOc8gHNiOXMIJfnxldmflDO83Ephp6TkornTcTkl26LDMNU3/7wvuUUBWKkQcP
+         wrGNM3YHNLqui9fcrmuM9hSV8rlW1NB/JW/jQA+h7mJCkcKq7D3DwyvlRgdfE9bMUom0
+         LteQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWQEQDF+fJERSHij6IqY6wNC2kepJgavd0Owvop8LvhBi/yLTiONBjXJ49BhlBl3arQYXuZ/+aBMNEF@vger.kernel.org
+X-Gm-Message-State: AOJu0YzgrZc0hWLIgcNh6P2Z+dDDEbmtS8nG0fjrcchN3S+dQiyDUWlY
+	OeFbgEiaoki7xf1M9/b4I3Nh1CV/WUj/SkG8noTVvU3D5oWUyqap17gK1p1vJMUZB6QjWmny5i+
+	gQ/0iW9+oFHuYfxIWcHM/Oq5OjRbBDXs1U9KPZzPvZzcTXj9bLpKWBDVKiU+b3zo=
+X-Gm-Gg: ASbGncu1V5WfykFB8Jk0KrryhqugaxjXjEaqD+30rJ5ma26Emxe043821dgITebytdE
+	vN8YJhatSPkA0VFDXjieQ+FB/42cdWVNL3W1eko10SIhbPY9NMBos+Hf8xN1HbZfWEFTs0DmRGp
+	fmHsC4aiH1ZWSlH8vFAjcy3W4f6GjOVFF60QTy/4Dny4HzRiz978fLDoUArRsEIq9oNbXBYlLrI
+	oiwnTE74o1oIHGVyuA/9Mn2/YMnq7QabUmULzJ1zttPrhT7YNXPXGr9eEVMxrMIieCV4EwwM7sl
+	hzfamd6BQjWyQm8k7XlFpvsX40xUX6qoqm9N+sNslP1w4Fhh/u+jn1ItMkIERnLXCLVtkGkBZUo
+	lCKQ9+JgVOLLiZZF7GBGPWlu2kSdkVuNrSecjSNMDp1C+UPsiYYgN16uGUXVbAXxcukWI5+jwoY
+	32g6Azqbem5Yc0IgglIcj2FTzzokI=
+X-Received: by 2002:a5d:5f82:0:b0:3fa:5925:4b07 with SMTP id ffacd0b85a97d-42704d74f9fmr17804288f8f.18.1761312455512;
+        Fri, 24 Oct 2025 06:27:35 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE6q4w15VA7XMPgV1osu1aNNaqJ9bER4GrjuNDgzSEl5cHuxzuUI4S5/OhMi/rPVse+Lx9Gyg==
+X-Received: by 2002:a5d:5f82:0:b0:3fa:5925:4b07 with SMTP id ffacd0b85a97d-42704d74f9fmr17804231f8f.18.1761312454926;
+        Fri, 24 Oct 2025 06:27:34 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3? (p200300d82f4e3200c99da38b3f3ad4b3.dip0.t-ipconnect.de. [2003:d8:2f4e:3200:c99d:a38b:3f3a:d4b3])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429898ec1dfsm9461004f8f.43.2025.10.24.06.23.39
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429898ccc60sm9453555f8f.34.2025.10.24.06.27.33
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 24 Oct 2025 06:23:42 -0700 (PDT)
-Message-ID: <af4414b6-617c-4dc8-bddc-3ea00d1f6f3b@redhat.com>
-Date: Fri, 24 Oct 2025 15:23:39 +0200
+        Fri, 24 Oct 2025 06:27:34 -0700 (PDT)
+Message-ID: <f8d22ae0-4e36-4537-903f-28164c850fdb@redhat.com>
+Date: Fri, 24 Oct 2025 15:27:32 +0200
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -76,7 +76,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 07/13] mm: enable lazy_mmu sections to nest
+Subject: Re: [PATCH v3 06/13] mm: introduce generic lazy_mmu helpers
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -99,9 +99,9 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-8-kevin.brodsky@arm.com>
- <2073294c-8003-451a-93e0-9aab81de4d22@redhat.com>
- <7a4e136b-66a5-4244-ab07-f0bcc3a26a83@arm.com>
+ <20251015082727.2395128-7-kevin.brodsky@arm.com>
+ <73b274b7-f419-4e2e-8620-d557bac30dc2@redhat.com>
+ <390e41ae-4b66-40c1-935f-7a1794ba0b71@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -148,81 +148,89 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <7a4e136b-66a5-4244-ab07-f0bcc3a26a83@arm.com>
+In-Reply-To: <390e41ae-4b66-40c1-935f-7a1794ba0b71@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
->>> + * currently enabled.
->>>     */
->>>    #ifdef CONFIG_ARCH_LAZY_MMU
->>>    static inline void lazy_mmu_mode_enable(void)
->>>    {
->>> -    arch_enter_lazy_mmu_mode();
->>> +    struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>> +
->>> +    VM_BUG_ON(state->count == U8_MAX);
+On 24.10.25 14:13, Kevin Brodsky wrote:
+> On 23/10/2025 21:52, David Hildenbrand wrote:
+>> On 15.10.25 10:27, Kevin Brodsky wrote:
+>>> [...]
+>>>
+>>> * madvise_*_pte_range() call arch_leave() in multiple paths, some
+>>>     followed by an immediate exit/rescheduling and some followed by a
+>>>     conditional exit. These functions assume that they are called
+>>>     with lazy MMU disabled and we cannot simply use pause()/resume()
+>>>     to address that. This patch leaves the situation unchanged by
+>>>     calling enable()/disable() in all cases.
 >>
->> No VM_BUG_ON() please.
+>> I'm confused, the function simply does
+>>
+>> (a) enables lazy mmu
+>> (b) does something on the page table
+>> (c) disables lazy mmu
+>> (d) does something expensive (split folio -> take sleepable locks,
+>>      flushes tlb)
+>> (e) go to (a)
 > 
-> I did wonder if this would be acceptable!
+> That step is conditional: we exit right away if pte_offset_map_lock()
+> fails. The fundamental issue is that pause() must always be matched with
+> resume(), but as those functions look today there is no situation where
+> a pause() would always be matched with a resume().
 
-Use VM_WARN_ON_ONCE() and let early testing find any such issues.
+We have matches enable/disable, so my question is rather "why" you are 
+even thinking about using pause/resume?
 
-VM_* is active in debug kernels only either way! :)
+What would be the benefit of that? If there is no benefit then just drop 
+this from the patch description as it's more confusing than just ... 
+doing what the existing code does :)
 
-If you'd want to handle this in production kernels you'd need
+>>
+>> Why would we use enable/disable instead?
+>>
+>>>
+>>> * x86/Xen is currently the only case where explicit handling is
+>>>     required for lazy MMU when context-switching. This is purely an
+>>>     implementation detail and using the generic lazy_mmu_mode_*
+>>>     functions would cause trouble when nesting support is introduced,
+>>>     because the generic functions must be called from the current task.
+>>>     For that reason we still use arch_leave() and arch_enter() there.
+>>
+>> How does this interact with patch #11?
+> 
+> It is a requirement for patch 11, in fact. If we called disable() when
+> switching out a task, then lazy_mmu_state.enabled would (most likely) be
+> false when scheduling it again.
+> 
+> By calling the arch_* helpers when context-switching, we ensure
+> lazy_mmu_state remains unchanged. This is consistent with what happens
+> on all other architectures (which don't do anything about lazy_mmu when
+> context-switching). lazy_mmu_state is the lazy MMU status *when the task
+> is scheduled*, and should be preserved on a context-switch.
 
-if (WARN_ON_ONCE()) {
-	/* Try to recover */
-}
-
-And that seems unnecessary/overly-complicated for something that should 
-never happen, and if it happens, can be found early during testing.
+Okay, thanks for clarifying. That whole XEN stuff here is rather horrible.
 
 > 
-> What should we do in case of underflow/overflow then? Saturate or just
-> let it wrap around? If an overflow occurs we're probably in some
-> infinite recursion and we'll crash anyway, but an underflow is likely
-> due to a double disable() and saturating would probably allow to recover.
+>>
+>>>
+>>> Note: x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
+>>> places, but only defines it if PARAVIRT_XXL is selected, and we are
+>>> removing the fallback in <linux/pgtable.h>. Add a new fallback
+>>> definition to <asm/pgtable.h> to keep things building.
+>>
+>> I can see a call in __kernel_map_pages() and
+>> arch_kmap_local_post_map()/arch_kmap_local_post_unmap().
+>>
+>> I guess that is ... harmless/irrelevant in the context of this series?
 > 
->>
->>> +    /* enable() must not be called while paused */
->>> +    VM_WARN_ON(state->count > 0 && !state->enabled);
->>> +
->>> +    if (state->count == 0) {
->>> +        arch_enter_lazy_mmu_mode();
->>> +        state->enabled = true;
->>> +    }
->>> +    ++state->count;
->>
->> Can do
->>
->> if (state->count++ == 0) {
-> 
-> My idea here was to have exactly the reverse order between enable() and
-> disable(), so that arch_enter() is called before lazy_mmu_state is
-> updated, and arch_leave() afterwards. arch_* probably shouldn't rely on
-> this (or care), but I liked the symmetry.
+> It should be. arch_flush_lazy_mmu_mode() was only used by x86 before
+> this series; we're adding new calls to it from the generic layer, but
+> existing x86 calls shouldn't be affected.
 
-I see, but really the arch callback should never have to care about that
-value -- unless something is messed up :)
+Okay, I'd like to understand the rules when arch_flush_lazy_mmu_mode() 
+would actually be required in such arch code, but that's outside of the 
+scope of your patch series.
 
-[...]
-
->>> +static inline bool in_lazy_mmu_mode(void)
->>
->> So these functions will reveal the actual arch state, not whether
->> _enabled() was called.
->>
->> As I can see in later patches, in interrupt context they are also
->> return "not in lazy mmu mode".
-> 
-> Yes - the idea is that a task is in lazy MMU mode if it enabled it and
-> is in process context. The mode is never enabled in interrupt context.
-> This has always been the intention, but it wasn't formalised until patch
-> 12 (except on arm64).
-
-Okay, thanks for clarifying.
 
 -- 
 Cheers
