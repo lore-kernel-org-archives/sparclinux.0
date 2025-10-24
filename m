@@ -1,41 +1,42 @@
 Received: from shelob.surriel.com (shelob.surriel.com [96.67.55.147])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E452D0C73;
-	Fri, 24 Oct 2025 20:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A941D61B7;
+	Fri, 24 Oct 2025 21:37:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=96.67.55.147
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761337695; cv=none; b=lN649rcmTYvXLqnBAzAriCs0ydpqz/B2sYyV9DCFOnbac/Gl1NL4cmzDI9557CrPS5bIVxC1QArcwVK4dNlfSaLWtgatdtjOrkTR230KCq67rAWNuVDQoJvWG82wurRaOlDUv49hRau0lxL54SqiSGtEu0ni2CE3rMPQuFJEJ+Y=
+	t=1761341883; cv=none; b=TSbJz2GYZcO5YKtnhmNdOBewaa7RenQjHtkW2FbYg8c3DSeqz1o4FlqJdzoOmu6Of/kKyaIzkB/CWLw1k633/AO0onR0iwPGXAovR7sfjrLiLTnRLPQfhhoHoNBIBZDltcvtw9D/bCu5cLOWB7JJ/KOT7BdwOHvLnUfE2ESfAZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761337695; c=relaxed/simple;
-	bh=tqPX8RIzyW6k8iQG5uq/xHVvyyym1A6Z+YPgBJAhrnw=;
+	s=arc-20240116; t=1761341883; c=relaxed/simple;
+	bh=AdZv2kUB1G+gRD8CSgpDBsJ60BPFkQUuJ8yYQs6IiPw=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=fSTDFJUhrA2u3VpsKMX2AjF8wh9lS0MGLJS7fsltda5EJFCeYXIWfV28PL0lQmcReSe0C5jytlwy9noR8rPIeO59cR4ynVnDChnAs1t+GRKFvqVLyatsv3I1Xa/Hc1rQOw66592+iKdA35FrNPwZll/mshjNEqDI/efHVl0vti4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=surriel.com; spf=pass smtp.mailfrom=surriel.com; dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b=DON9QBSd; arc=none smtp.client-ip=96.67.55.147
+	 Content-Type:MIME-Version; b=syWA1Iv6yR5+4vtKqjhBeXZUoLLDmYbxa/rXr78I4NekIN6HWFww2WdrnhU1HDCa5NihMKBVv2rCxfHjSLPKTQyr2WitCT9QjLXQNfiBixCANbIH6mzw+RQQESvwfxAAQeFp9ckaOHalJs+ilHDciirmNJ/nugx2ohdsxtLEB14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=surriel.com; spf=pass smtp.mailfrom=surriel.com; dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b=eirEBfxT; arc=none smtp.client-ip=96.67.55.147
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=surriel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=surriel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b="DON9QBSd"
+	dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b="eirEBfxT"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=surriel.com
 	; s=mail; h=MIME-Version:Content-Transfer-Encoding:Content-Type:References:
 	In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=tqPX8RIzyW6k8iQG5uq/xHVvyyym1A6Z+YPgBJAhrnw=; b=DON9QBSdIIC6MDwKtU7xmml3kR
-	eVyZ6cFpO1CT9m1WxZKrna65At7/mhta/jnDDgt57jLzYpoTBTBU3sl85GKdV1ZOJ6cJ5gsRBROa/
-	bYsZyWHyXxSndU1OMRt497qbN/d047EE8Nni/L+spuWg+98Ztapehhk8hUk96yGoBvy4eqELM68eL
-	mtTFduhuKIMKrTm0eoBmdXKsszBendnTiIYPct4VCgqyRF9xoldhyfsxn0vR84OcoQYrWDxS7WXDZ
-	aCozudIW+2R4u3NnccyR2QNiIFXFQiT0vBGjcyTaGuUvpx2wYB7Y13i2VhfTUGufhgLaOHEeZgSYr
-	VQGkWgEA==;
+	bh=AdZv2kUB1G+gRD8CSgpDBsJ60BPFkQUuJ8yYQs6IiPw=; b=eirEBfxTgpIotEWF93BmQLaU+K
+	mwc9CzZUmufZkl62CYBwLsTlYh23gSM9Lb7TY5qB5bijOgCihqmHNV0rueXZHAlxC3G9Iu2+kd/XK
+	/rZkHGvewhmdszfmoOhU+5KgctL5Ou7KT40r5HlMGeCRMY8VmC1qlZmb6PyVyHiNUGb8kz7V014L2
+	prijPRt4pCP92nDEoQFojDXD81rKR/7K5kAEYG5pOil+5+Z+p+uV7j2BJWouF0e7Ub9dM0pwLI2aJ
+	WuXyQoUZfCFqgFQDi4K9YaRJVodneDbAowg5mnDq2PbT2sH6XD21zwSkzT/+wujOlJ/IIs4w2oCV+
+	zWOle8WA==;
 Received: from fangorn.home.surriel.com ([10.0.13.7])
 	by shelob.surriel.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.97.1)
 	(envelope-from <riel@surriel.com>)
-	id 1vCOB4-000000000Om-3Ub7;
-	Fri, 24 Oct 2025 16:14:22 -0400
-Message-ID: <a461ddd3adc2a4c53cd44b34fc58cf3cf0fae41e.camel@surriel.com>
-Subject: Re: [PATCH 1/3] Change enter_lazy_tlb to inline on x86
+	id 1vCPSA-0000000013r-3I5H;
+	Fri, 24 Oct 2025 17:36:06 -0400
+Message-ID: <18734a4944e47952b7ad3e10a36c902392bdaa91.camel@surriel.com>
+Subject: Re: [PATCH 2/3] Provide and use an always inline version of
+ finish_task_switch
 From: Rik van Riel <riel@surriel.com>
 To: Xie Yuanbin <qq570070308@gmail.com>, linux@armlinux.org.uk, 
 	mathieu.desnoyers@efficios.com, paulmck@kernel.org, pjw@kernel.org, 
@@ -57,10 +58,10 @@ Cc: x86@kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
 	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
 	linux-perf-users@vger.kernel.org, will@kernel.org
-Date: Fri, 24 Oct 2025 16:14:22 -0400
-In-Reply-To: <20251024182628.68921-2-qq570070308@gmail.com>
+Date: Fri, 24 Oct 2025 17:36:06 -0400
+In-Reply-To: <20251024183541.68955-1-qq570070308@gmail.com>
 References: <20251024182628.68921-1-qq570070308@gmail.com>
-	 <20251024182628.68921-2-qq570070308@gmail.com>
+	 <20251024183541.68955-1-qq570070308@gmail.com>
 Autocrypt: addr=riel@surriel.com; prefer-encrypt=mutual;
  keydata=mQENBFIt3aUBCADCK0LicyCYyMa0E1lodCDUBf6G+6C5UXKG1jEYwQu49cc/gUBTTk33A
  eo2hjn4JinVaPF3zfZprnKMEGGv4dHvEOCPWiNhlz5RtqH3SKJllq2dpeMS9RqbMvDA36rlJIIo47
@@ -95,20 +96,22 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-On Sat, 2025-10-25 at 02:26 +0800, Xie Yuanbin wrote:
-> This function is very short, and is called in the context switching,
-> so it is called very frequently.
+On Sat, 2025-10-25 at 02:35 +0800, Xie Yuanbin wrote:
+> finish_task_switch is called during context switching,
+> inlining it can bring some performance benefits.
 >=20
-> Change it to inline function on x86 to improve performance, just like
-> its code in other architectures
->=20
-> Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
+> Add an always inline version `finish_task_switch_ainline` to be
+> called
+> during context switching, and keep the original version for being
+> called
+> elsewhere, so as to take into account the size impact.
 
-Might as well inline it into what I remember
-being its only caller.
+Does that actually work, or does the compiler
+still inline some of those "non-inlined" versions,
+anyway?
 
-Reviewed-by: Rik van Riel <riel@surriel.com>
-
+Also, what kind of performance improvement
+have you measured with these changes?
 
 --=20
 All Rights Reversed.
