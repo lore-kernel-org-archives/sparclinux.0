@@ -1,117 +1,103 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF4E22129B
-	for <sparclinux@vger.kernel.org>; Sat, 25 Oct 2025 08:56:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4AA22F83DB;
+	Sat, 25 Oct 2025 12:27:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761382608; cv=none; b=gf1vYUcxZSV5XocJpjMOCkd9PQb5bU5Q7665Kwh15ujpsh4MRNNg9G9LXjN+zinnqK+mVyctNgM888S1CIGMT8GNnNW0zeqj3EYt6Y35h249Xms6AsQt67AlEdX1gnXzrvdjSuQUao/u5KgdQphqVMWhYAfSjJiGIJRCj8E6cQ0=
+	t=1761395233; cv=none; b=FRmRqKLq/ALm5vaNA2gMjLES6XjCgkaqk8D7mRBq8sy9HHqKJhKkJSYbZ/uStyjemNSrJltPaBfYx3+EUh4t6pytoxwx5lDQSkAtY8/ampgEh/vr9cz95vKBFa3mQS/WNsnsqJV6kgN5zZwRs7ZIBZIddo7mcE5lxz8ggYswJ2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761382608; c=relaxed/simple;
-	bh=TbSJGWKTg0dx8dJyx1jq7gJ+igCnfbAtVGfctOnvqCk=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=ZRJnJ9tBrIDZjARajqIFiJfNJ7e112+dj78fA2SXU/pgE1s8+hnB6/lq2/idsT3zHJxY6Sqw+iyiXvfb8BYCZQTp/XL1DimjsEBlSS4wyJ0wSqH18P18V2kveYgysnNPwVWJjUITlQU8+kcK35IUB/b2HMBCMJ1COdTYlRdv2ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=fXeIUhQX; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1761395233; c=relaxed/simple;
+	bh=+xvzT8p7XaGwEOS/Dv2QmbA2zQYWwNXG5H1jWmjioEQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AQSWmMTy1TbQ6h94OTrcsgD3SEtWRdWf7e1ssi9GJbkxiwVxrJ0giw4gxmAgXczVslzqx3GCQa2AYcfQffnBPhd0MxXXWl8kPy4HIhihe3tZzsN3jPPxzLfRTEXN1xcT6GfE6jhYd6X0L9tcJ9Hqzj7q+I5tHwqhFfvjqi5h5Po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=DXW8S2qJ; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="fXeIUhQX"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="DXW8S2qJ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=FvAkmAVBCS/1rS4+zr0ynrzfT5a8pzkm7Fl8QoFlrD4=; t=1761382604; x=1761987404; 
-	b=fXeIUhQX4KUqoVYPKbyK4ULcs4Ez0RwMgDaWn1EEralfoE1Q/6ngZpRrJjknnFu2zfHgZ+jTMmb
-	fcoW0coEtX7nJnH8P0Sdh5brkVT4p7o0SkJ0FYzaFT0l6CP4vZxBloEyWi+KSyfQNYMjPC3/y5ZY9
-	e8R17FRBrcrUbKQYgykBUaoh+2hT0qDA8q2k95Un/n+7tf+D2L/Pmw+XbiWKeXqqqZCEFeVk+Jo2e
-	9XuCVTcgslRJNkwlafzSECGf0N38o6Impt7gf9K/5i8Ouq89SFKv25AGfKLhuz9XXSjL7q12a4T5O
-	ri1rQPIL5S0i6p98LWQc6A+jPSNJ8znLR1bA==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vCa4n-000000041WS-3J3K; Sat, 25 Oct 2025 10:56:41 +0200
-Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vCa4n-00000002hcQ-2MNC; Sat, 25 Oct 2025 10:56:41 +0200
-Message-ID: <cf8d79b35a3df1dd79fe3475b0e78ac50754b456.camel@physik.fu-berlin.de>
-Subject: Finding SPARC patches worth upstreaming in the UEK kernel
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: gentoo-sparc <gentoo-sparc@lists.gentoo.org>, sparclinux
-	 <sparclinux@vger.kernel.org>
-Date: Sat, 25 Oct 2025 10:56:40 +0200
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.1 
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=h4Hv3culHhtyyL1gbJRN5A5//DVcH55czATegss/m5o=; b=DXW8S2qJVowTkjTnDkxWNLSUmv
+	OdTQmloYte0xiWQej+bz2CsoZsHFFDLvrHoDWfo332fV4FvGY7l9PPsER/ftMaXELgoGvomf8rPxb
+	Az+TAIPncLhfcDzIzkUJD1AehAC/iy36eMbTsc/KDuoJ/yOAOeoOvvnwhPFrcERl9O+e4U+TZp0vb
+	YV498D0zV6J695u35cgUxrWIQDRNwl9grza29BeUAfdv5e+ea8FnnLEZNOq/dT17eE2DV0/ed2xQR
+	yo0ByPYblAstx7lo9QHU/rZ8Ekl3GquP/tZdxqoR4OoLAQTH3un+zr1leM16EAGMb4sHpyYtkUKn2
+	rdc8Uwyw==;
+Received: from 77-249-17-252.cable.dynamic.v4.ziggo.nl ([77.249.17.252] helo=noisy.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vCdMI-0000000C2tQ-2ODU;
+	Sat, 25 Oct 2025 12:26:59 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id 4A76230277A; Sat, 25 Oct 2025 14:26:59 +0200 (CEST)
+Date: Sat, 25 Oct 2025 14:26:59 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Xie Yuanbin <qq570070308@gmail.com>
+Cc: linux@armlinux.org.uk, mathieu.desnoyers@efficios.com,
+	paulmck@kernel.org, pjw@kernel.org, palmer@dabbelt.com,
+	aou@eecs.berkeley.edu, alex@ghiti.fr, hca@linux.ibm.com,
+	gor@linux.ibm.com, agordeev@linux.ibm.com,
+	borntraeger@linux.ibm.com, svens@linux.ibm.com, davem@davemloft.net,
+	andreas@gaisler.com, tglx@linutronix.de, mingo@redhat.com,
+	bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
+	luto@kernel.org, acme@kernel.org, namhyung@kernel.org,
+	mark.rutland@arm.com, alexander.shishkin@linux.intel.com,
+	jolsa@kernel.org, irogers@google.com, adrian.hunter@intel.com,
+	anna-maria@linutronix.de, frederic@kernel.org,
+	juri.lelli@redhat.com, vincent.guittot@linaro.org,
+	dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+	mgorman@suse.de, vschneid@redhat.com, thuth@redhat.com,
+	riel@surriel.com, akpm@linux-foundation.org, david@redhat.com,
+	lorenzo.stoakes@oracle.com, segher@kernel.crashing.org,
+	ryan.roberts@arm.com, max.kellermann@ionos.com, urezki@gmail.com,
+	nysal@linux.ibm.com, x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-perf-users@vger.kernel.org,
+	will@kernel.org
+Subject: Re: [PATCH 0/3] Optimize code generation during context switching
+Message-ID: <20251025122659.GA2352457@noisy.programming.kicks-ass.net>
+References: <20251024182628.68921-1-qq570070308@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251024182628.68921-1-qq570070308@gmail.com>
 
-Hi,
+On Sat, Oct 25, 2025 at 02:26:25AM +0800, Xie Yuanbin wrote:
+> The purpose of this series of patches is to optimize the performance of
+> context switching. It does not change the code logic, but only modifies
+> the inline attributes of some functions.
+> 
+> The original reason for writing this patch is that, when debugging a
+> schedule performance problem, I discovered that the finish_task_switch
+> function was not inlined, even in the O2 level optimization. This may
+> affect performance for the following reasons:
 
-as many of you may know, Oracle's UEK kernel for SPARC contains a number of=
- improvements
-that never made it upstream into the Linux kernel. Since it would be a wast=
-e to not pick
-those up, I have started creating issues in the sparclinux issue tracker on=
- GitHub [1]
-to collect these. Since I can't do this all on my own, I invite everyone in=
-terested to
-help with this effort.
+Not sure what compiler you're running, but it is on the one random
+compile I just checked.
 
-To do so, just take a look at the commit history of the arch/sparc director=
-y of the
-UEK kernel [2] and scroll through the commits. If you spot a commit that mi=
-ght be
-worth upstreaming such as [3] ("sparc64: Add missing hardware capabilities =
-for M7"),
-create a new issue like I have done for this commit in [4].
+> 1. It is in the context switching code, and is called frequently.
+> 2. Because of the modern CPU mitigations for vulnerabilities, inside
+> switch_mm, the instruction pipeline and cache may be cleared, and the
+> branch and cache miss may increase. finish_task_switch is right after
+> that, so this may cause greater performance degradation.
 
-Some notes:
+That patch really is one of the ugliest things I've seen in a while; and
+you have no performance numbers included or any other justification for
+any of this ugly.
 
-- Please include links with the commit title to the commits in the UEK sour=
-ces; this
-  can be achieved by selecting the text of the commit message in the commit=
- overview
-  in [2], then right-click and copy. This will automatically copy a URL wit=
-h the commit
-  title into the clipboard using the correct "[]()" template.
+> 3. The __schedule function has __sched attribute, which makes it be
+> placed in the ".sched.text" section, while finish_task_switch does not,
+> which causes their distance to be very far in binary, aggravating the
+> above performance degradation.
 
-- Before opening an issue, please make sure that the issue doesn't exist ye=
-t.
+How? If it doesn't get inlined it will be a direct call, in which case
+the prefetcher should have no trouble.
 
-- Use GitHub labels such as "patch", "kernel", "bug" and "enhancement" to t=
-ag the issue
-  similar to the existing issue.
-
-There might also be interesting commits in the drivers directory [5], so pl=
-ease look there
-as well. Oracle stopped working on SPARC support for Linux around 2017, so =
-you will most
-likely find the interesting commits starting at the end of 2017 going backw=
-ards.
-
-Adrian
-
-> [1] https://github.com/sparclinux/issues/issues
-> [2] https://github.com/sparclinux/linux-uek/commits/uek4/qu7/arch/sparc
-> [3] https://github.com/sparclinux/linux-uek/commit/efcafbab1b123d615c1f26=
-83c98fccc5ccee1527
-> [4] https://github.com/sparclinux/issues/issues/17
-> [5] https://github.com/sparclinux/linux-uek/commits/uek4/qu7/drivers
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
