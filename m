@@ -1,66 +1,67 @@
-Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4D62DCF71
-	for <sparclinux@vger.kernel.org>; Sat, 25 Oct 2025 18:51:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A0BA3009E4
+	for <sparclinux@vger.kernel.org>; Sat, 25 Oct 2025 19:18:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761418307; cv=none; b=Sh+94qdW6h4kwM+mVOhKx7BMuHsmOsf6MEcdBxURlL60p4W9zR+DomoFIn5BEYsOOSDbbJQ6U01vsJdbVOjKAQgrhcrsWV31+Xz+4GrEJa0vOcTon+yPixWlnutakFzNaJx835yKJFPJYxhINt4ICYRgvTZZG8Jk+2o8W5RgdA0=
+	t=1761419939; cv=none; b=PnDOtjiH9+akGUtekfLULYIlssy3DROj5g1tWf0cfc9nuNIPJnydF7DGb8X6kvSUYPIa6Wf0cIVrUighpLQmlq25V2XbovYZVtlcc94R1opwDZ/INQV6iTXsnZ519ww+THuQJzU8ZIDUd8pFZAXoKryZUxiIoWz9z+rtaN6ePcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761418307; c=relaxed/simple;
-	bh=bIE1dNWJNDWO8or3nwiGA7qbCcPQuWvlUWlsOjJvHas=;
+	s=arc-20240116; t=1761419939; c=relaxed/simple;
+	bh=b50a9arCrSL/MR93BKO9o7wTWQtm+XsywFPqsAesqkQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iXQ4sqmDlqqZH8essSMpIR0BhaLggVDFD/1JSsxZLYWNo4U8Nlir1dPCjG5Hpt1eKs61N2cKuxn6MhEWt5NZnkE+OHxlTE6yNBrYWY19SCwJl5pih4PiDwyvXYBNmUL1nnm3iQXzTfelCrZeke78fdqparNt9owl6XTTYWG5+vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OumiIAd5; arc=none smtp.client-ip=209.85.210.178
+	 MIME-Version; b=dXQr4PH/Odprz6VLPWCwRYo8Kq/skk6Hjfxq07UD7tyrCVfIy91q6jerx/g5WlTvheKgJWMUodEJmTuG207OKEsN+OkBFiwYLEx+W+8vq0X5sQ9P/3w+REPsOUs3VLsVqgC5aADHPViUYZWCNVUgBX9xP0zGYW+4yMe5zNBEEDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gAqx+o/z; arc=none smtp.client-ip=209.85.214.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OumiIAd5"
-Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-7a27ab05a2dso2700347b3a.2
-        for <sparclinux@vger.kernel.org>; Sat, 25 Oct 2025 11:51:45 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gAqx+o/z"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-27c369f898fso52294455ad.3
+        for <sparclinux@vger.kernel.org>; Sat, 25 Oct 2025 12:18:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1761418305; x=1762023105; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1761419938; x=1762024738; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bIE1dNWJNDWO8or3nwiGA7qbCcPQuWvlUWlsOjJvHas=;
-        b=OumiIAd52mCDIWxBvkc4sx/mY6AGD1qdzpMd8pl1TUTxhYEX5q84GEg6bGFuQuBRln
-         2F5uoUpsW4Dk2owigJC4esen5PDF20+UtY3w44OTaSxbR/ZW3ikNiRpYwgYaLYqxH9b0
-         0nXq4VbZkjlFeSVk9oSEu87qNaSnImr0drPZjptdrWhtKCNi7B7FtLg14CXHilZNypOJ
-         LR6Orvv4VaCltv+tlfryTjYRsJauLuFwvAtRmYuRlmPEhFs2y6eBHfCmq0/1bjcNm7iD
-         X+zqhWDc5Z06RSIzzS1HmotZKI9zHjn5Yy7fOo3lgGe9gG92JLDssTY9XZLdK2Ms6NwQ
-         sztQ==
+        bh=b50a9arCrSL/MR93BKO9o7wTWQtm+XsywFPqsAesqkQ=;
+        b=gAqx+o/zrW38qe8vTmotvOS8G1BK0a4PPbPHZ+5uhUNrTPl0NW2TqVA1EU6TpCrRGh
+         GzuApbZZFeg9EVYXfwWy7qYrWubTWy6BJ7kHjZkrF0kNtyxw+T/eakjNqr0cxpSkN/Qv
+         nAw6QtAgDQefdqru9VnlBqrFJHd3RCOH+8AnkHQjNJTOHe4M5aTuzcyKYQMDCvZAcI8Z
+         0jOS+mw4XTEKwmU/ll2iTsbuLIAvslDOMRR5zE9wIPbqSjzmFcEZqqDUXfK0LXuM48yD
+         ydHJcVDEhcOnxguGJa4DAIB8Iwmt9VspSbWk5Q1aXtDod5j0Rh/g1fQZaDF5Jon3nN92
+         7OJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761418305; x=1762023105;
+        d=1e100.net; s=20230601; t=1761419938; x=1762024738;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bIE1dNWJNDWO8or3nwiGA7qbCcPQuWvlUWlsOjJvHas=;
-        b=kee/uQzoqiEruXEG43rZYX/ul+x+fc8j3SGVsrFQR+yIo8rlf9awEoQ3pHXmcPXhcH
-         w+SualBWiiIFvHNXM4UkVDodYSZOQCV/NFXWo90ay8yjRXsBk+CrfOj1sFBUIVu9xJ+r
-         RoViC1PUGUnl/z/UdzqTYuWWUnysGVN9LJPTsFe30+TAYVvuvC0u7/mGBv61e9vfzz3y
-         mFdxezWVZqm3M0WfiY3Kp1GePMgdWhhh5PNjc4e3vfjYWDbbPEu/ifwhQvV+Pm8q5ZIE
-         7Ht/5hojLfP8vEBBed9kClvOlDBLaHKLQTWhgmDgq5BlIoj8j8P9S0XY/y2STyICVDzu
-         CYpg==
-X-Forwarded-Encrypted: i=1; AJvYcCW/U5+ZLQzvrKZRHRwdUT4ohUVSJum8NyJrofGVj2hCZWbemh9yjr6yc0giDKiGwkLNSaPUnB7YPk2H@vger.kernel.org
-X-Gm-Message-State: AOJu0YyaFdqC+ctQ2OLVWCBbUX8vDPVsAFG807/V/ZoRuMFYwRxwAub9
-	zg1ScWOf6aCfKKGQNyqAil9YOhKN6mN8pGkCpZ5XKfhIi+nK7D6OCQ36
-X-Gm-Gg: ASbGncvPu+0e69m9zjfOXPG+LGIfa3Bf5RhI2HLO27qR0C0Aolcx2N5FKGCRqDVZXOM
-	ZT/ZUHhALSDdW62if3eiR1wZ75feXBIQ+uZj3lijm25ZwX6dHzIhjyY6N+JW+1AOsQzSdIzlpim
-	3Bj7I5W63DRe4/gyaSVzQTU5MsZZHm89oiVUQAj1jBOePybRyc6D27SHxfybuxwbFkJst7b/v29
-	99ECv/+C4jyg+/EwTMN13qoBFsYAP21OkUe9+ag3uulrt5JMfuIpcUDm51QVuM+Od2f4IzpqRdS
-	lA2lAW+3aCfVNkIUlnSNjhWeNYkfigCw0tl95chC6epyB8tiPOk9tqeKSQ7AfrKOqN/36SS7hau
-	grDx7ri/g1GZUjCoiIF9/ND0DwQFBhUsXyhuaaaHstijkPxykHCPf6Zg/YWkgmg4+9MDT79GIZT
-	tryZNd4z4An6dabyj5kQm/
-X-Google-Smtp-Source: AGHT+IFA/PpMad08k18p5dz1XblACJuseYn3XTA1biqGFVkwzh9uXMt+aH7CWADiafyloVKa8I/K9Q==
-X-Received: by 2002:a05:6a00:94e3:b0:7a2:8343:1b1 with SMTP id d2e1a72fcca58-7a283430981mr9276736b3a.17.1761418304909;
-        Sat, 25 Oct 2025 11:51:44 -0700 (PDT)
+        bh=b50a9arCrSL/MR93BKO9o7wTWQtm+XsywFPqsAesqkQ=;
+        b=qhbIfoeeFDBTjY5U0y2p9nAUxQvrZXsutoln0KhVxvpimk+hJJtw2IBu9nshJ8p/Xq
+         C9UVu6VRuc9ML03yfFMGh999qai9nQJEl70G570xqqxFWn01hsCp3GZ8JZRs+nPQPuet
+         dSYgSclpjz+Go8DxzbE/1z8QaJdLJP7oDJysqHsUgvbX+WK1dAxYso4W38i5HcrEytqQ
+         El+fzskrm8SBaFxMfq2PfpKPEPMMjxVSWlSVLSHOR2wLOZiLbCG0oPXQd87+fCQuodRT
+         8iPcP1+IRZZqk20fy4GSqMKmVkRUFVJmtXAYAGrYNPyy3/WMs5tIi4du1WeNRFDpEl1e
+         sWZg==
+X-Forwarded-Encrypted: i=1; AJvYcCXJcWEsvDnLYgPSXGghGkT/QNRhDYv1eh9W7jjYs2yrWFFMNlwf+G7Cf6A2HvDroy2f3nQ9JE3MKfQZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YwfddCOvFgn+bpuLmNvzSe0oEyt3botjCf4kGpireg6nnMXnGWR
+	9ikGWjLAZoXmHnDDhsDiHcMsMWw5VtymzV6iS30Uf8eyEVa6M5ZXmP5F
+X-Gm-Gg: ASbGncvrVt69TOfJLGcViKON7jJ2LIrVnFWyTJ0j2Af5k781iJwOlDMNo/BftIFbKfM
+	QBEqOsD7fG2YmSkP4DED1d1RvCoz7NMPTlzY7yaG4N1+b7/YxATgyP3we97f2xKsOhRuVrrwncy
+	ZXfegg4WpffzMCca1mUMcV7JYg09chhMiHlQfF8M1Uv2atdRc78B0TsivoU1uLQSkS9fy87yq1Q
+	ruEc6KL6Zo/ITd0qBmbfWspI3zUmF5I35YwEprBHzG3VgRYDdy4vLlV88rb17pv5sQFNjL9/qf3
+	KKeOtjFbhHqeB4XYPqtU1kgorGs1ubUCJu0DdMBoFQAHtG5+bdWFcycowSpsj/5mraVP+g8tLux
+	6KcHJs1Cf45MGFcWV5JXUcXygDKT6kpVQqYqkrCM+t9hn9+GVGmYEeScdw29gSwp1ebCojiHvGM
+	z38AOV9egAadF+lZL5l3k8waBVchk5FI0=
+X-Google-Smtp-Source: AGHT+IGB2o/5lEiKd9cWH/x2UTjOp0RZ2ut0VtofYuc7VyGMeDPM/lJA9l37C37EEgCCcQfgsU8H7w==
+X-Received: by 2002:a17:902:e889:b0:27d:6f49:febc with SMTP id d9443c01a7336-290c9c93af5mr423757525ad.1.1761419937751;
+        Sat, 25 Oct 2025 12:18:57 -0700 (PDT)
 Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7a41402e554sm2897425b3a.18.2025.10.25.11.51.30
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29498e429d9sm30054435ad.100.2025.10.25.12.18.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 25 Oct 2025 11:51:44 -0700 (PDT)
+        Sat, 25 Oct 2025 12:18:57 -0700 (PDT)
 From: Xie Yuanbin <qq570070308@gmail.com>
-To: tglx@linutronix.de
+To: riel@surriel.com,
+	segher@kernel.crashing.org
 Cc: acme@kernel.org,
 	adrian.hunter@intel.com,
 	agordeev@linux.ibm.com,
@@ -104,24 +105,23 @@ Cc: acme@kernel.org,
 	peterz@infradead.org,
 	pjw@kernel.org,
 	qq570070308@gmail.com,
-	riel@surriel.com,
 	rostedt@goodmis.org,
 	ryan.roberts@arm.com,
-	segher@kernel.crashing.org,
 	sparclinux@vger.kernel.org,
 	svens@linux.ibm.com,
+	tglx@linutronix.de,
 	thuth@redhat.com,
 	urezki@gmail.com,
 	vincent.guittot@linaro.org,
 	vschneid@redhat.com,
 	will@kernel.org,
 	x86@kernel.org
-Subject: Re: [PATCH 3/3] Set the subfunctions called by finish_task_switch to be inline
-Date: Sun, 26 Oct 2025 02:51:20 +0800
-Message-ID: <20251025185120.6760-1-qq570070308@gmail.com>
+Subject: Re: [PATCH 2/3] Provide and use an always inline version of finish_task_switch
+Date: Sun, 26 Oct 2025 03:18:39 +0800
+Message-ID: <20251025191839.6907-1-qq570070308@gmail.com>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <87placw0dx.ffs@tglx>
-References: <87placw0dx.ffs@tglx>
+In-Reply-To: <18734a4944e47952b7ad3e10a36c902392bdaa91.camel@surriel.com>
+References: <18734a4944e47952b7ad3e10a36c902392bdaa91.camel@surriel.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -130,25 +130,22 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On Fri, 24 Oct 2025 21:44:10 +0200, Thomas Gleixner wrote:
-> What is exactly the point of this indirection. Why can't you just mark
-> finish_arch_post_lock_switch() __always_inline and be done with it?
+On Fri, 24 Oct 2025 17:36:06 -0400, Rik van Riel wrote:
+> Does that actually work, or does the compiler
+> still inline some of those "non-inlined" versions,
+> anyway?
 
-In this patch, I've added an always inline version of the function,
-finish_arch_post_lock_switch_ainline. The original function,
-finish_arch_post_lock_switch, retains its original inline attribute.
+For the current code, adding a new finish_task_switch_ainline function
+and calling it has the same effect as directly changing the
+finish_task_switch function attribute to __always_inline. This is because
+there are only two references to the finish_task_switch function in
+core.c. When one is inlined, the other becomes the only call point and it
+must be inlined (unless the no-inline option/attribute is added or the
+static attribute is removed). The uninlined finish_task_switch assembly
+code will not exist.
 
-The reason for this is that this function is called not only during
-context switches but also from other code, and I don't want to affect
-those parts. In fact, with Os/Oz-level optimizations, if this function
-is called multiple times within one .c file, it will most likely not be
-inlined, even if it's marked as inline.
-
-Context switching is a hot code, I hope it will be always inlined here to
-improve performance. In other places, if it is not a performance-critical
-function, then it can be not inlined to gain codesize benefits.
-
-Look at your opinions. I have no objection to setting
-finish_arch_post_lock_switch directly to __always_inline.
+However, if the call point of the finish_task_switch function in core.c is
+increased in the future, as long as one point is added, a non inline
+function will be generated and codesize revenue will be obtained.
 
 Xie Yuanbin
