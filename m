@@ -1,106 +1,307 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B0D7B2FC01A;
-	Mon, 27 Oct 2025 13:38:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 549C730ACE3
+	for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 15:21:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761572296; cv=none; b=G9SL6bu6QLWOz0TxGcXPKalqLNsaKtwhPgjmzEa8rSdIy1/IhjtaiEHvmuW2lqmdUhbHlFumeDmWPcxS3scLQifBWlDraOHIORC6JxerODTX9COIQ3SB6bp+B+I1puo6Cn49TOWSTwoK+BiWwZjDgP83eWKdJyEzi6jyMY6IEIM=
+	t=1761578491; cv=none; b=gUNstgx8K1ZhxMSXixTR+AKbc16IqP7QzASFovUA0RQFhw218CR2NNwXiWhWuyhce9qxirU94CJl1icLMiZc0vBXZ9Z7gDPPT5i47o214qQ0ptUkBZVa9Dr/UxBiUcFNiIBWHom73TRDgsrzo2V1KEYm3e5EhP0X4oiv2l7cKEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761572296; c=relaxed/simple;
-	bh=Yg4tHkrWB8iD6I0E177EhXaJTLbrmVH+67p7EVU8ik0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KEJtbprONvRvGYGXGGVZcRBNm/zToYCHQXxBVo/q17HEKsUHtbYVdFo2u4u9HERD+ypA2+2lhcJOrtUUYcD4POgHBTH4POgCqURi4/pxQuw/nBG3BQNyEUfd4IUemkEUZ+Ydav0wGYBMP9il+gr2vQnwXz0VHJqM7N6KwebceeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 593A4175D;
-	Mon, 27 Oct 2025 06:38:02 -0700 (PDT)
-Received: from [10.57.68.196] (unknown [10.57.68.196])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0FD233F673;
-	Mon, 27 Oct 2025 06:38:02 -0700 (PDT)
-Message-ID: <1db69026-199c-4cee-bb3b-1217f8a3afad@arm.com>
-Date: Mon, 27 Oct 2025 14:38:00 +0100
+	s=arc-20240116; t=1761578491; c=relaxed/simple;
+	bh=uzvdb9L2hEpKRhWkf7joC4v7ZGbAToUwxioRTGyJ/ow=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=nFSFKNgc5yEFP/BZh0750xfVVSn15tU0XhuxLBo3yv9HDFEwA3POph7Oa3imVw/Q5XFj3OeqPiX8IdjwydxGI5o+IOpfzigyrbHBc+ncZpjAxreK2tq4uyWXz3Uakrmmtu4DqQA2hJaRqKqreCAwN0oKu7oTU+sshwlohW8Fbfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=I7P/rMf+; arc=none smtp.client-ip=209.85.215.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="I7P/rMf+"
+Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-b6a73db16efso4558548a12.3
+        for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 08:21:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1761578490; x=1762183290; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=FAuDRjv5uAXTsOVI/eb5J4UAMhtSLGfuIUeu/cvlLSU=;
+        b=I7P/rMf+oAG/9fpEOTaASMHF4QHJYCE54kRTClC486Of14054wkiX7BSf0IYUIcwRT
+         pX7cgknBlJoQaz2wOcqQpZq+xmabtxZylY/AupVl9mKo3EYKygFrxCx/JgVwa0ORU9iH
+         lUPNPIxLADoqWX6vqMslQ7Z8nv1Rrx7xR9OR1qOfNp+i0PR6b/W8ivFzcVp1pHo2wvLf
+         k8Kfi90N0g8vMKGSElH5i+JN6nb0HCusoIP4gQYjOGknpxkygBE2XkWcsLnJuqUA4F3H
+         wh0HfFWvo3+gKNZtBoLd1FltYH6txU+vLdRx8EMwtRWvhLpPG9yX4PpHxP2OxBRw38T3
+         k4AQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761578490; x=1762183290;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=FAuDRjv5uAXTsOVI/eb5J4UAMhtSLGfuIUeu/cvlLSU=;
+        b=LHDG4T2HIWrc3wt4/J6zp/0l/WFjaKTh2bwQ6AUlX8+gjnB+MqG0/es2nT35PJrk2J
+         SvMj5Mx9aoFWoUZKkJibtkg/zylV5BJcolqqeoSAr3sJj53JLVznjQW9GdNsZeWG3IOv
+         0qWlXTGJdolQqjD7Pq8gGG9GaxjwDxOVFCRAQZj2SZz9cMzim1/i7u8qw9+KRImXsE/y
+         +DcSnkTGBymtnlrmet6wSrDpex3hMEKlqsE3h4qKg0CwaJ7YfzqJZs7TIY8LuD3qaJiE
+         s0wKaN16+BSJwUkBQKIlDH3pDD3TBhb1tWQvV5fns/3RxiuIABCIuR4hpm+YWE9aMxKP
+         GVfw==
+X-Forwarded-Encrypted: i=1; AJvYcCXTpRQ+57HIdQy9eOXD92J7TNdPbQ1KwdzxWf+Y0+tnDW6ow/Bz/rmDCdsFMMW1P8dgPJHJjBmRI5Ah@vger.kernel.org
+X-Gm-Message-State: AOJu0YyuPGHA0qBU1rjVRut8XXtt+8my040wwQZHXbcGNNBGnu55tTJT
+	FCidTaJQqQ9Bl0S2J0UKXvHq7deHpiTWPolOQ5Sd3FQbKnyuB4UYQaL9
+X-Gm-Gg: ASbGncv4joMrvYuOR69dyxl6keuIhwjH+1OS4ai4XESCWmeRSn4aIvNSoqGuPU4cDI/
+	8eKKVBdLA3uEMXqEfkd3WMOUzzrEt7YrnRgPmq7cmfuUqvaMInlg1Z1l9qmqkOWYSLcc2wOUYSj
+	RqDfzdKsoR6mYld1zgvqagA7p7bt1VCwMR+IwtsRWQg1x8K6tqXG2TGeRsaiUQJYWb89Jfjt2tW
+	M3AkqZLdktEB84ehFL37jL6il/RKqYX1ppPCcP7V1OzVQg/biBXa4qx/NBxMpYBhUKtV1mA2D4n
+	QZvh6cts/yOA1OGxmyJ3gzkrieRsUQat+EdbZHri0GECLwXj+TrEQb8RdmiR/i8gW+BB7zmareP
+	PcrYl6l5yvinarr6NxFQlh4JkhpT0RA4GZaHQdGWVFReYpkHnqgjmNxKTvim5HpyxR+cvgMwKlY
+	YzhexLq0Wk3L36cuNjTx+YQGI0N2ZZCyRGdo8=
+X-Google-Smtp-Source: AGHT+IE98kyCeEo6PTndR/a9uNVMw9TW4vCsYVgseUaymh3OJieDxpigWzsO7C6JngKgDnTsgFT3wA==
+X-Received: by 2002:a17:903:1d0:b0:290:dfab:ca91 with SMTP id d9443c01a7336-294cb68836emr3428795ad.54.1761578489223;
+        Mon, 27 Oct 2025 08:21:29 -0700 (PDT)
+Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29498cf3426sm87711215ad.7.2025.10.27.08.21.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Oct 2025 08:21:28 -0700 (PDT)
+From: Xie Yuanbin <qq570070308@gmail.com>
+To: peterz@infradead.org,
+	riel@surriel.com,
+	segher@kernel.crashing.org,
+	linux@armlinux.org.uk,
+	mathieu.desnoyers@efficios.com,
+	paulmck@kernel.org,
+	pjw@kernel.org,
+	palmer@dabbelt.com,
+	aou@eecs.berkeley.edu,
+	alex@ghiti.fr,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	agordeev@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	tglx@linutronix.de,
+	mingo@redhat.com,
+	bp@alien8.de,
+	dave.hansen@linux.intel.com,
+	hpa@zytor.com,
+	luto@kernel.org,
+	acme@kernel.org,
+	namhyung@kernel.org,
+	mark.rutland@arm.com,
+	alexander.shishkin@linux.intel.com,
+	jolsa@kernel.org,
+	irogers@google.com,
+	adrian.hunter@intel.com,
+	anna-maria@linutronix.de,
+	frederic@kernel.org,
+	juri.lelli@redhat.com,
+	vincent.guittot@linaro.org,
+	dietmar.eggemann@arm.com,
+	rostedt@goodmis.org,
+	bsegall@google.com,
+	mgorman@suse.de,
+	vschneid@redhat.com,
+	qq570070308@gmail.com,
+	thuth@redhat.com,
+	akpm@linux-foundation.org,
+	david@redhat.com,
+	lorenzo.stoakes@oracle.com,
+	ryan.roberts@arm.com,
+	max.kellermann@ionos.com,
+	urezki@gmail.com,
+	nysal@linux.ibm.com
+Cc: x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	will@kernel.org
+Subject: Re: [PATCH 0/3] Optimize code generation during context
+Date: Mon, 27 Oct 2025 23:21:00 +0800
+Message-ID: <20251027152100.62906-1-qq570070308@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251024182628.68921-1-qq570070308@gmail.com>
+References: <20251024182628.68921-1-qq570070308@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 11/13] x86/xen: use lazy_mmu_state when
- context-switching
-To: David Woodhouse <dwmw2@infradead.org>,
- David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
- <20251015082727.2395128-12-kevin.brodsky@arm.com>
- <f0067f35-1048-4788-8401-f71d297f56f3@redhat.com>
- <348e5f1c5a90e4ab0f14b4d997baf7169745bf04.camel@infradead.org>
- <6ed9f404-9939-4e9f-b5aa-4253bef46df1@arm.com>
- <7324616a8d2631aa8132f725f9f6551e3e6b21dd.camel@infradead.org>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <7324616a8d2631aa8132f725f9f6551e3e6b21dd.camel@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 24/10/2025 17:17, David Woodhouse wrote:
-> On Fri, 2025-10-24 at 17:05 +0200, Kevin Brodsky wrote:
->> On 24/10/2025 16:47, David Woodhouse wrote:
->>> On Thu, 2025-10-23 at 22:06 +0200, David Hildenbrand wrote:
->>>> On 15.10.25 10:27, Kevin Brodsky wrote:
->>>>> We currently set a TIF flag when scheduling out a task that is in
->>>>> lazy MMU mode, in order to restore it when the task is scheduled
->>>>> again.
->>>>>
->>>>> The generic lazy_mmu layer now tracks whether a task is in lazy MMU
->>>>> mode in task_struct::lazy_mmu_state. We can therefore check that
->>>>> state when switching to the new task, instead of using a separate
->>>>> TIF flag.
->>>>>
->>>>> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->>>>> ---
->>>> Looks ok to me, but I hope we get some confirmation from x86 / xen
->>>> folks.
->>> I know tglx has shouted at me in the past for precisely this reminder,
->>> but you know you can test Xen guests under QEMU/KVM now and don't need
->>> to actually run Xen? Has this been boot tested?
->> I considered boot-testing a Xen guest (considering the Xen-specific
->> changes in this series), but having no idea how to go about it I quickly
->> gave up... Happy to follow instructions :)
-> https://qemu-project.gitlab.io/qemu/system/i386/xen.html covers booting
-> Xen HVM guests, and near the bottom PV guests too (for which you do
-> need a copy of Xen to run in QEMU with '--kernel xen', and your
-> distro's build should suffice for that).
->
-> Let me know if you have any trouble. Here's a sample command line which
-> works here...
->
-> qemu-system-x86_64 -display none --accel kvm,xen-version=0x40011,kernel-irqchip=split -drive file=/var/lib/libvirt/images/fedora28.qcow2,if=xen -kernel ~/git/linux-2.6/arch/x86/boot/bzImage -append "root=/dev/xvda1 console=ttyS0" -serial mon:stdio
+I conducted a more detailed performance test on this series of patches.
+https://lore.kernel.org/lkml/20251024182628.68921-1-qq570070308@gmail.com/t/#u
 
-Thanks this is helpful! Unfortunately lazy_mmu is only used in the PV
-case, so I'd need to run a PV guest. And the distro I'm using (Arch
-Linux) does not have a Xen package :/ It can be built from source from
-the AUR but that looks rather involved. Are there some prebuilt binaries
-I could grab and just point QEMU to?
+The data is as follows:
+1. Time spent on calling finish_task_switch (unit: rdtsc):
+| compiler && appended cmdline | without patches | with patches  |
+| clang + NA                   | 14.11 - 14.16   | 12.73 - 12.74 |
+| clang + "spectre_v2_user=on" | 30.04 - 30.18   | 17.64 - 17.73 |
+| gcc + NA                     | 16.73 - 16.83   | 15.35 - 15.44 |
+| gcc + "spectre_v2_user=on"   | 40.91 - 40.96   | 30.61 - 30.66 |
 
-- Kevin
+Note: I use x86 for testing here. Different architectures have different
+cmdlines for configuring mitigations. For example, on arm64, spectre v2
+mitigation is enabled by default, and it should be disabled by adding
+"nospectre_v2" to the cmdline.
+
+2. bzImage size:
+| compiler | without patches | with patches  |
+| clang    | 13173760        | 13173760      |
+| gcc      | 12166144        | 12166144      |
+
+No size changes were found on bzImage.
+
+Test info:
+1. kernel source:
+latest linux-next branch:
+commit id 72fb0170ef1f45addf726319c52a0562b6913707
+2. test machine:
+cpu: intel i5-8300h@4Ghz
+mem: DDR4 2666MHz
+Bare-metal boot, non-virtualized environment
+3. compiler:
+gcc: gcc version 15.2.0 (Debian 15.2.0-7)
+clang: Debian clang version 22.0.0 (++20250731080150+be449d6b6587-1~exp1+b1)
+4. config:
+base on default x86_64_defconfig, and setting:
+CONFIG_PREEMPT=y
+CONFIG_PREEMPT_DYNAMIC=n
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_HZ=100
+CONFIG_DEBUG_ENTRY=n
+CONFIG_X86_DEBUG_FPU=n
+CONFIG_EXPERT=y
+CONFIG_MODIFY_LDT_SYSCALL=n
+CONFIG_CGROUPS=n
+CONFIG_BUG=n
+CONFIG_BLK_DEV_NVME=y
+5. test method:
+Use rdtsc (cntvct_el0 can be use on arm64/arm) to obtain timestamps
+before and after finish_task_switch calling point, and created multiple
+processes to trigger context switches, then calculated the average
+duration of the finish_task_switch call.
+Note that using multiple processes rather than threads is recommended for
+testing, because this will trigger switch_mm (where spectre v2 mitigations
+may be performed) during context switching.
+
+I put my test code here:
+kernel(just for testing, not a commit):
+```
+diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
+index ced2a1dee..9e72a4a1a 100644
+--- a/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -394,6 +394,7 @@
+ 467	common	open_tree_attr		sys_open_tree_attr
+ 468	common	file_getattr		sys_file_getattr
+ 469	common	file_setattr		sys_file_setattr
++470	common	mysyscall		sys_mysyscall
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 1842285ea..bcbfea69d 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -5191,6 +5191,40 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+ 	calculate_sigpending();
+ }
+ 
++static DEFINE_PER_CPU(uint64_t, mytime);
++static DEFINE_PER_CPU(uint64_t, total_time);
++static DEFINE_PER_CPU(uint64_t, last_total_time);
++static DEFINE_PER_CPU(uint64_t, total_count);
++
++static __always_inline uint64_t myrdtsc(void)
++{
++    register uint64_t rax __asm__("rax");
++    register uint64_t rdx __asm__("rdx");
++
++    __asm__ __volatile__ ("rdtsc" : "=a"(rax), "=d"(rdx));
++    return rax | (rdx << 32);
++}
++
++static __always_inline void start_time(void)
++{
++	raw_cpu_write(mytime, myrdtsc());
++}
++
++static __always_inline void end_time(void)
++{
++	const uint64_t end_time = myrdtsc();
++	const uint64_t cost_time = end_time - raw_cpu_read(mytime);
++
++	raw_cpu_add(total_time, cost_time);
++	if (raw_cpu_inc_return(total_count) % (1 << 20) == 0) {
++		const uint64_t t = raw_cpu_read(total_time);
++		const uint64_t lt = raw_cpu_read(last_total_time);
++
++		pr_emerg("cpu %d total_time %llu, last_total_time %llu, cha : %llu\n", raw_smp_processor_id(), t, lt, t - lt);
++		raw_cpu_write(last_total_time, t);
++	}
++}
++
+ /*
+  * context_switch - switch to the new MM and the new thread's register state.
+  */
+@@ -5254,7 +5288,10 @@ context_switch(struct rq *rq, struct task_struct *prev,
+ 	switch_to(prev, next, prev);
+ 	barrier();
+ 
+-	return finish_task_switch(prev);
++	start_time();
++	rq = finish_task_switch(prev);
++	end_time();
++	return rq;
+ }
+ 
+ /*
+@@ -10854,3 +10891,19 @@ void sched_change_end(struct sched_change_ctx *ctx)
+ 		p->sched_class->prio_changed(rq, p, ctx->prio);
+ 	}
+ }
++
++
++static struct task_struct *my_task;
++
++SYSCALL_DEFINE0(mysyscall)
++{
++	preempt_disable();
++	while (1) {
++		if (my_task)
++			wake_up_process(my_task);
++		my_task = current;
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		__schedule(0);
++	}
++	return 0;
++}
+```
+
+User program:
+```c
+int main()
+{
+	cpu_set_t mask;
+	if (fork())
+		sleep(1);
+
+	CPU_ZERO(&mask);
+	CPU_SET(5, &mask); // Assume that cpu5 exists
+	assert(sched_setaffinity(0, sizeof(mask), &mask) == 0);
+	syscall(470);
+	// unreachable
+	return 0;
+}
+```
+
+Usage:
+1. set core5 as isolated cpu: add "isolcpus=5" to cmdline
+2. run user programe
+3. wait for kernel print
+
+Everyone is welcome to test it.
+
+Xie Yuanbin
