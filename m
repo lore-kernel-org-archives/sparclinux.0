@@ -1,74 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7290C301484
-	for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 12:29:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FE9930FC17
+	for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 12:38:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761568171; cv=none; b=pG+tDybex+G8jgnfO4c4E5uy/xJ7dRFQm8mkDEtRs3rdX7ojkhFdMCxiPFc5RjkiyANx6+nNiHNrSSyRWrLb7l7uqXMOCHFAMqZEcscWxa9rOJurdE5PuCugUILaF30TB62gLdM+G9ikc07pzJAHVdNIPBOjdM9PZTBA2SArH1Q=
+	t=1761568725; cv=none; b=ZEoL6QPUqZTOZq7M837/j7Z6JLHVgIK36kYWWkRlIBzhYOTF3fQVXlp6SQuoM4ZqYMz/NuWrskUsFsQSfAEPhF8zyE5bYzaA1rgg0xdbLHVGVynJvNz/28diwEWrjIGr8Bm5ekLn4u3uRpGMrCplcPzDzOJF9BMxmtcI8eO8xfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761568171; c=relaxed/simple;
-	bh=2eZ1btl2CBfiYOG5G4mlQs9bkLnd3qOs11pVNrpDFs0=;
+	s=arc-20240116; t=1761568725; c=relaxed/simple;
+	bh=jkimlE3A59Sa174fi2PtZczhP/TbkMPiz9cHBMqY8UM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=reKdmnuP/BSxHKZhr4K8vqCRyc70bs0RwE8OvKul4qgjyRrNSEdVwki9O2lZtzzR/OZHRj3V+7bhv5szAod86SGXf/jyj8otnASOpMBkJcUiw6ZKmh54wX4C8f5IL9JvHUb8q6OjyRUukOrdC7deNYhwMBYrz59vTb4CsWv7Px4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GjzL7CDj; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=Cn7Qr8SAHgnNVfoq/k2gveQAXo+WdWwNr+cjmhuPKNGnB1xiDHjydYo2LSBp6tXMeEIeOdcFJxaWQzGnVpTTGHC/9pkptPTGsNA3TEWrkV+g9XTkk1Xfs+3qftAYcQ7L0d08YyRtZRHS5RBHdmwfFkiDm0kL4B6aiaJaDIFXGHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=c6eRaNEn; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GjzL7CDj"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="c6eRaNEn"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761568168;
+	s=mimecast20190719; t=1761568723;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=MxqhGs+kErj9QojSUYfqhMME1C+HzYz58U9mBz2oLoo=;
-	b=GjzL7CDj0S0BLc5W69u1/FuWZP+xXmM0qsQ+oWjgr07ChdsV2F/b3jTNxuBUL6QHHgCelZ
-	VLDaz/WWXZURQtMj2RN7LzIXgDso00pMrUat2qCbJ5oxy6Fs0IuzdP7yXHugMpLoCclouv
-	QKCKBey16vgVRZWgmpx9u/rIram8z1E=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=4cvIQRmqmBNV8P6YdgjJbon9LLe8l/9b6yM7q+yxHTQ=;
+	b=c6eRaNEn3DkmXxywCs1O2CdnP4uVd0uKWqn8MuLxzrLgdAQolpaobJhMWi8VS0JUkr8Qpt
+	UoFYqTVUzS8EijmomEI0MjvaTYvZTvy+27EVmx2ybQTMKgs7VXXc9dEDafQ6364giwt3kH
+	IA01NMC0f0p6dCq3j974ufLpu/lOgF4=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-286-xIc5wZNSNtiSV1DR0n624Q-1; Mon, 27 Oct 2025 08:29:26 -0400
-X-MC-Unique: xIc5wZNSNtiSV1DR0n624Q-1
-X-Mimecast-MFC-AGG-ID: xIc5wZNSNtiSV1DR0n624Q_1761568166
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-47106720618so31779765e9.1
-        for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 05:29:26 -0700 (PDT)
+ us-mta-562-nfrTlqJBPG61mdWMYofdgQ-1; Mon, 27 Oct 2025 08:38:42 -0400
+X-MC-Unique: nfrTlqJBPG61mdWMYofdgQ-1
+X-Mimecast-MFC-AGG-ID: nfrTlqJBPG61mdWMYofdgQ_1761568721
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-4711899ab0aso31755155e9.2
+        for <sparclinux@vger.kernel.org>; Mon, 27 Oct 2025 05:38:41 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761568165; x=1762172965;
+        d=1e100.net; s=20230601; t=1761568721; x=1762173521;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=MxqhGs+kErj9QojSUYfqhMME1C+HzYz58U9mBz2oLoo=;
-        b=QYkaHVf9dYm/48/DDU0geZGtGLxuS81EnQD60wxKBlsJLXgDi+SfHJC1ag18KV0vbe
-         kon+JRKOwmetbBYTofsMut5v+BRkA66FTh/KRas/eJ1wav7aUbwQnV9njvHUnlCF6AQ5
-         4sYmqIchrfzMte0I9O6eYRM/HH/HY7eJaQ6ZDVV5pK0lhmipjlObhAtWdWAcg31B0sVf
-         iQWltJzgur6ebhSLor9yBfb+xBwXvH7V2p0z82omRA2nr3sUlIEaMh91ipPfeToaeSzL
-         PtBW3GABFMDoxLJY2SL/J29ce6shqXgu+y/7Cm7tt/NnC0RlAgs9tJ7Oa0qpiEgNoc+J
-         d2Gw==
-X-Forwarded-Encrypted: i=1; AJvYcCU/4R98B5EbxNxdnHl8gQqWK4/ule5pu9+4s8jOUpOhYBUYuQ37d8LmyXrtH+Gn3UDUtbCp6xdStF8N@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz7/u4wyFF8KF5i7CdYP2B0AT7CUmQZM6EL+APyQFQFbFTxrnl8
-	LgdF90A90GQtQyk/gA0jgNuI/9HopbRTG4S5DUMfHdnp+OXHvfNuf9qmpzA5F2AjiQKriA70bU0
-	a3MzZ6UKT9XNRoa4Oerbiy9uXdE6/lJd04c5GGWLvXbHM7NagCfEiXvaIWK7v88o=
-X-Gm-Gg: ASbGnctR95ce3/DuYNYnL0cLT8e53TIb03b2w/DQtYctMUo57Lqj2bgchDI+7NXf8s3
-	tekvks8RH4iyo/LqhyU7I+BCyrlJr4hz5kK+/c+3hx3OloGo30pkdzLcIsbiDJIH13j5bYfmjCa
-	gMUuEVcEkm1Ekz3SHEtGUwnMmzneFR/RPD5ooBfLn6v2If3Uof/RHYi7nU8HVgnit677oWaslzH
-	C0SpR22ctTtCUsfXKWjsknivK2k48nFTFREycxoxqAqgkGWyfERg8RuzgCj3MDeFeTdFizXnNhy
-	rcJ4eeYEIlpaZNdcsqH+sdjMt+ujz3YLIHMpKpgc5rgfRiJYjIEnIZTKWFRXeOCARhEhSgEIluG
-	lBYbdQHO8DAnKwHe+xXEwFj1NZ0jRyAmzSj+lkb+twuJqERsio3pw7+giYjGmewYy9Yi3MjrkpL
-	WHqKG6u3O9t/Gi7yCTYy6L2bFjzkQ=
-X-Received: by 2002:a05:600c:6814:b0:46d:b665:1d95 with SMTP id 5b1f17b1804b1-475d2ed2703mr122459085e9.32.1761568165604;
-        Mon, 27 Oct 2025 05:29:25 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IERhDOSgpdu7IOhGUhd5vG2oGfH+FtLLHQ8h3X53cAF/bER/zOT53Nw9I8J5TYzsbcubMUbyA==
-X-Received: by 2002:a05:600c:6814:b0:46d:b665:1d95 with SMTP id 5b1f17b1804b1-475d2ed2703mr122458775e9.32.1761568165180;
-        Mon, 27 Oct 2025 05:29:25 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169? (p200300d82f3f4b00ee138c225cc5d169.dip0.t-ipconnect.de. [2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429952db99asm14109118f8f.32.2025.10.27.05.29.23
+        bh=4cvIQRmqmBNV8P6YdgjJbon9LLe8l/9b6yM7q+yxHTQ=;
+        b=WodY1xwTwNNjhI6Ov4Xpa6VMv6BKyMci3ukgEs+DLb9peLd3JXbEMnco5yRlDII5Zb
+         7R+bDFYrwK2x0PvOoVwAW1YzOlbbzgbJnz/WT7ihy3kz76EilHJHyXQ3lEAlEtOQNVZ8
+         8TR6lVxbM/+z3xW2HirSmJX0vqPfnsxY4a7lEjyGjFB7LRWP6loPQ6d1L99EfZ+EMSb8
+         I+5BfZBmWCQ2lXXlXe1Mrk+ZzMRSwoGMntrifHHsyO7QgKNDwF5xW+4zfVdZhDKhGmHy
+         67W0oYmA8R3QxEy+FXzRc6zgFKwiy6r6c5DQoOu7FqLmKt9AzN7mxWz95QikQUxMSgMb
+         mEpw==
+X-Forwarded-Encrypted: i=1; AJvYcCUmbuzvZtkR4J7IiziEL2sNVk4VYzTkDRQ7E/71yrK00guzzOkRdNKOjOUYGRQ8klOaZcoC9dMwKf2Q@vger.kernel.org
+X-Gm-Message-State: AOJu0YwZMraEt0sw2bJd4q/nZ43+AQU0alWNb/IOy3gUxOZ50HbG+CXU
+	S5ZuBxIe3puY9Nj1IZZMK3iECvU4MqAAD75ypkNb5i7+hRedSgrjRfHVg7OMjAqdgZzD8xFBHVa
+	57Du9XjsC1KInMxYQe3CVWP+15tPM2Cx3F6qERoahE+/WcRbb03uR9vvS8kPyZsc=
+X-Gm-Gg: ASbGnctljedZcqdhMtvT+DfTCBI8snvIKsajF5L+yc6+udDoTMO5xUy0VBW/yzFWZwO
+	d5+U6zdCv60oYt/4sKLHUzhDmfOgecBEnMqAvCdz/A111qq1fiRcIDynd7QXMvcJQbIf1y8jSTU
+	r4pW6WZ1d3HsaTkTW9mKP7fmtuxFIX5JFBP9gMol63s55TXv7D28PGQQHbzH5+yYS5Lqs9obw3H
+	bfEtHcxO6RZKFGf2gzJwWyZBF5s0Ji+/M7eBUTJSJCszhPiF5m808gDyv+gfCu3N+uEFwKD1Pm7
+	/mLGB8YE3gLL7pJFG4ndMtjz8bMNZogAQZyLuvlyWLVH4LvXP2D7uqSe0sSmNYDiTlfHczfILQ0
+	WDi7g3Al9k2Z2/7/hMmYo5rs3Jbw/PHQ=
+X-Received: by 2002:a05:600c:3b03:b0:46e:53cb:9e7f with SMTP id 5b1f17b1804b1-471178a3ff6mr279997775e9.18.1761568720552;
+        Mon, 27 Oct 2025 05:38:40 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IH9bbdh4PWkc2jU/rl4KkAQD2PqCSpwK7SfjvxDRuSE3bTT/1W5umiWwesFjMbMJkHNKlChlg==
+X-Received: by 2002:a05:600c:3b03:b0:46e:53cb:9e7f with SMTP id 5b1f17b1804b1-471178a3ff6mr279997395e9.18.1761568720112;
+        Mon, 27 Oct 2025 05:38:40 -0700 (PDT)
+Received: from [192.168.3.141] (p4ff1f1cf.dip0.t-ipconnect.de. [79.241.241.207])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-475dd489e6dsm133581265e9.6.2025.10.27.05.38.37
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 27 Oct 2025 05:29:24 -0700 (PDT)
-Message-ID: <6c9bd0c6-0968-41ac-b0b4-53c881748cfb@redhat.com>
-Date: Mon, 27 Oct 2025 13:29:22 +0100
+        Mon, 27 Oct 2025 05:38:39 -0700 (PDT)
+Message-ID: <7df81ee0-1161-49f4-a93f-4d9245d48e1d@redhat.com>
+Date: Mon, 27 Oct 2025 13:38:36 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -78,7 +77,7 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v3 11/13] x86/xen: use lazy_mmu_state when
  context-switching
-To: Demi Marie Obenour <demiobenour@gmail.com>,
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
  David Woodhouse <dwmw2@infradead.org>, Kevin Brodsky
  <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
@@ -106,7 +105,10 @@ References: <20251015082727.2395128-1-kevin.brodsky@arm.com>
  <f0067f35-1048-4788-8401-f71d297f56f3@redhat.com>
  <348e5f1c5a90e4ab0f14b4d997baf7169745bf04.camel@infradead.org>
  <70723f4a-f42b-4d94-9344-5824e48bfad1@redhat.com>
- <3ff4aaeb-61ce-4b72-ba90-1b66374b1b95@gmail.com>
+ <cbe0d305cce6d76e00b64e7209f15b4645c15033.camel@infradead.org>
+ <fcd7b731d38b256e59edd532e792a00efa4e144e.camel@physik.fu-berlin.de>
+ <9faf750e-2369-4fae-b58a-ed9052cfd6f6@redhat.com>
+ <1d9f416fd3665faf27841b6305b1e8d661427125.camel@physik.fu-berlin.de>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -153,51 +155,66 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <3ff4aaeb-61ce-4b72-ba90-1b66374b1b95@gmail.com>
+In-Reply-To: <1d9f416fd3665faf27841b6305b1e8d661427125.camel@physik.fu-berlin.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 25.10.25 00:52, Demi Marie Obenour wrote:
-> On 10/24/25 10:51, David Hildenbrand wrote:
->> On 24.10.25 16:47, David Woodhouse wrote:
->>> On Thu, 2025-10-23 at 22:06 +0200, David Hildenbrand wrote:
->>>> On 15.10.25 10:27, Kevin Brodsky wrote:
->>>>> We currently set a TIF flag when scheduling out a task that is in
->>>>> lazy MMU mode, in order to restore it when the task is scheduled
->>>>> again.
->>>>>
->>>>> The generic lazy_mmu layer now tracks whether a task is in lazy MMU
->>>>> mode in task_struct::lazy_mmu_state. We can therefore check that
->>>>> state when switching to the new task, instead of using a separate
->>>>> TIF flag.
->>>>>
->>>>> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->>>>> ---
->>>>
->>>>
->>>> Looks ok to me, but I hope we get some confirmation from x86 / xen
->>>> folks.
->>>
->>>
->>> I know tglx has shouted at me in the past for precisely this reminder,
->>> but you know you can test Xen guests under QEMU/KVM now and don't need
->>> to actually run Xen? Has this been boot tested?
->>
->> And after that, boot-testing sparc as well? :D
->>
->> If it's easy, why not. But other people should not suffer for all the
->> XEN hacks we keep dragging along.
+On 24.10.25 17:51, John Paul Adrian Glaubitz wrote:
+> Hi David,
+
+Hi,
+
 > 
-> Which hacks?  Serious question.  Is this just for Xen PV or is HVM
-> also affected?
+> On Fri, 2025-10-24 at 17:47 +0200, David Hildenbrand wrote:
+>>> Please have people test kernel changes on SPARC on real hardware. QEMU does not
+>>> emulate sun4v, for example, and therefore testing in QEMU does not cover all
+>>> of SPARC hardware.
+>>>
+>>> There are plenty of people on the debian-sparc, gentoo-sparc and sparclinux
+>>> LKML mailing lists that can test kernel patches for SPARC. If SPARC-relevant
+>>> changes need to be tested, please ask there and don't bury such things in a
+>>> deeply nested thread in a discussion which doesn't even have SPARC in the
+>>> mail subject.
+>>
+>> out of curiosity, do people monitor sparclinux@ for changes to actively
+>> offer testing when required -- like would it be sufficient to CC
+>> relevant maintainers+list (like done here) and raise in the cover letter
+>> that some testing help would be appreciated?
+> 
+> Yes, that's definitely the case. But it should be obvious that from the subject
+> of the mail that the change affects SPARC as not everyone can read every mail
+> they're receiving through mailing lists.
 
-In the context of this series, XEN_LAZY_MMU.
+Agreed. One would hope that people only CC the sparc mailing list + 
+maintainers when there is actually something relevant in there.
 
-Your question regarding PV/HVM emphasizes my point: how is a submitter 
-supposed to know which XEN combinations to test (and how to test them), 
-to not confidentially break something here.
+Also, it would be nice if someone (e.g., the maintainer or reviewers) 
+could monitor the list to spot that there is testing demand to CC the 
+right people.
 
-We really need guidance+help from the XEN folks here.
+I guess one problem might be that nobody is getting paid to work on 
+sparc I guess (I'm happy to be wrong on that one :) ).
+
+Regarding sparc, I'll keep in mind that we might have to write a 
+separate mail to the list to get some help with testing.
+
+> 
+> I'm trying to keep up, but since I'm on mailing lists for many different architectures,
+> mails can slip through the cracks.
+
+Yeah, that's understandable.
+
+> 
+> For people that want to test changes on SPARC regularly, I can also offer accounts
+> on SPARC test machines running on a Solaris LDOM (logical domain) on a SPARC T4.
+
+For example, I do have a s390x machine in an IBM cloud where I can test 
+stuff. But I worked on s390x before, so I know how to test and what to 
+test, and how to troubleshoot.
+
+On sparc I'd unfortunately have a hard time even understanding whether a 
+simple boot test on some machine will actually trigger what I wanted to 
+test :(
 
 -- 
 Cheers
