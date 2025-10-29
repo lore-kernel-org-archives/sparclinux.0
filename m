@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CFF602E7192;
-	Wed, 29 Oct 2025 10:09:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D3EA8319871;
+	Wed, 29 Oct 2025 10:10:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761732599; cv=none; b=O7acKFwBW5QJI9NHoQ0hIj156PQlhc2KY2fPmelDMgetKG1bVxjSUVlB7X1qn272f8qpM9RSKdM8omD0DUIfxJmEt/t1f1PNCRcxVnuqbU/FOTNvhAlVCB6HCrDiY5aq/VIk9ffMnR7oD1WzUvoSr9j4WjIAUS74TCIuPOKixG4=
+	t=1761732604; cv=none; b=Mx3I27/97Ekx24EDjGIw7hbHkTfsO2xijDVpdwn5oOnLOuKjeE8MZzH49ySuExApZaTUbWnxIYIpL+HI3onCNGU9M+W2b/4ZKAE/Y3aVBWhBtLM0xxsnzaCaQbJJZnzfX2JERsoRyQfPan30zmnoTFVLyFq7p0Ai1yV5TQZebuw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761732599; c=relaxed/simple;
-	bh=GIuIWnizkKAkG1Ut10R3Eqbm/b6ZI3Iuq51ApRuCCgk=;
+	s=arc-20240116; t=1761732604; c=relaxed/simple;
+	bh=BbIwMZT0K42ns5EQ6ewXODicTuwyHLwgaFB6QyjMT1c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lGM5ogvA4BbW9TU2V2bn5/CsM7GlSJuBukMIHael/g/7nmvITfmgIgxQmuY+GuQcUxNW5r0AA8kTI7th+kq8zAMibGtVWMPpZlfsus/tyIjbsH47vHKRjFoY1e7QLQh6yPbqxb4lh1n5iHqRxIaEPOixKNMYRo2fszCTNqsXuEM=
+	 MIME-Version; b=m7b7XrL1EfUhB4oNFZ8o5P6fNDy2rJOhabzlD7D3muG/5tlB/7idTJkOb8GZDHQGP0KxBQeRyFiwRhgNLkZIb599n45NIrzkcs+3ba+dZhSUJqbmsp5h0uVYOeLdMJIPpQTcGaMWaRF67YzZg/lpphenIb+E/ZB0vqrsDll9x60=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 12B101C2B;
-	Wed, 29 Oct 2025 03:09:49 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4895F2BCB;
+	Wed, 29 Oct 2025 03:09:54 -0700 (PDT)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 012083F66E;
-	Wed, 29 Oct 2025 03:09:51 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 369DF3F66E;
+	Wed, 29 Oct 2025 03:09:57 -0700 (PDT)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -56,9 +56,9 @@ Cc: linux-kernel@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	x86@kernel.org
-Subject: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB flush
-Date: Wed, 29 Oct 2025 10:08:58 +0000
-Message-ID: <20251029100909.3381140-2-kevin.brodsky@arm.com>
+Subject: [PATCH v4 02/12] x86/xen: simplify flush_lazy_mmu()
+Date: Wed, 29 Oct 2025 10:08:59 +0000
+Message-ID: <20251029100909.3381140-3-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <20251029100909.3381140-1-kevin.brodsky@arm.com>
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
@@ -70,86 +70,34 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Alexander Gordeev <agordeev@linux.ibm.com>
+arch_flush_lazy_mmu_mode() is called when outstanding batched
+pgtable operations must be completed immediately. There should
+however be no need to leave and re-enter lazy MMU completely. The
+only part of that sequence that we really need is xen_mc_flush();
+call it directly.
 
-Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
-lazy mmu mode") a task can not be preempted while in lazy MMU mode.
-Therefore, the batch re-activation code is never called, so remove it.
-
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/powerpc/include/asm/thread_info.h |  2 --
- arch/powerpc/kernel/process.c          | 25 -------------------------
- 2 files changed, 27 deletions(-)
+ arch/x86/xen/mmu_pv.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/thread_info.h b/arch/powerpc/include/asm/thread_info.h
-index b0f200aba2b3..97f35f9b1a96 100644
---- a/arch/powerpc/include/asm/thread_info.h
-+++ b/arch/powerpc/include/asm/thread_info.h
-@@ -154,12 +154,10 @@ void arch_setup_new_exec(void);
- /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
- #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
- #define TLF_SLEEPING		1	/* suspend code enabled SLEEP mode */
--#define TLF_LAZY_MMU		3	/* tlb_batch is active */
- #define TLF_RUNLATCH		4	/* Is the runlatch enabled? */
- 
- #define _TLF_NAPPING		(1 << TLF_NAPPING)
- #define _TLF_SLEEPING		(1 << TLF_SLEEPING)
--#define _TLF_LAZY_MMU		(1 << TLF_LAZY_MMU)
- #define _TLF_RUNLATCH		(1 << TLF_RUNLATCH)
- 
- #ifndef __ASSEMBLER__
-diff --git a/arch/powerpc/kernel/process.c b/arch/powerpc/kernel/process.c
-index eb23966ac0a9..9237dcbeee4a 100644
---- a/arch/powerpc/kernel/process.c
-+++ b/arch/powerpc/kernel/process.c
-@@ -1281,9 +1281,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
+diff --git a/arch/x86/xen/mmu_pv.c b/arch/x86/xen/mmu_pv.c
+index 2a4a8deaf612..7a35c3393df4 100644
+--- a/arch/x86/xen/mmu_pv.c
++++ b/arch/x86/xen/mmu_pv.c
+@@ -2139,10 +2139,8 @@ static void xen_flush_lazy_mmu(void)
  {
- 	struct thread_struct *new_thread, *old_thread;
- 	struct task_struct *last;
--#ifdef CONFIG_PPC_64S_HASH_MMU
--	struct ppc64_tlb_batch *batch;
--#endif
+ 	preempt_disable();
  
- 	new_thread = &new->thread;
- 	old_thread = &current->thread;
-@@ -1291,14 +1288,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
- 	WARN_ON(!irqs_disabled());
- 
- #ifdef CONFIG_PPC_64S_HASH_MMU
--	batch = this_cpu_ptr(&ppc64_tlb_batch);
--	if (batch->active) {
--		current_thread_info()->local_flags |= _TLF_LAZY_MMU;
--		if (batch->index)
--			__flush_tlb_pending(batch);
--		batch->active = 0;
+-	if (xen_get_lazy_mode() == XEN_LAZY_MMU) {
+-		arch_leave_lazy_mmu_mode();
+-		arch_enter_lazy_mmu_mode();
 -	}
--
- 	/*
- 	 * On POWER9 the copy-paste buffer can only paste into
- 	 * foreign real addresses, so unprivileged processes can not
-@@ -1369,20 +1358,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
- 	 */
++	if (xen_get_lazy_mode() == XEN_LAZY_MMU)
++		xen_mc_flush();
  
- #ifdef CONFIG_PPC_BOOK3S_64
--#ifdef CONFIG_PPC_64S_HASH_MMU
--	/*
--	 * This applies to a process that was context switched while inside
--	 * arch_enter_lazy_mmu_mode(), to re-activate the batch that was
--	 * deactivated above, before _switch(). This will never be the case
--	 * for new tasks.
--	 */
--	if (current_thread_info()->local_flags & _TLF_LAZY_MMU) {
--		current_thread_info()->local_flags &= ~_TLF_LAZY_MMU;
--		batch = this_cpu_ptr(&ppc64_tlb_batch);
--		batch->active = 1;
--	}
--#endif
--
- 	/*
- 	 * Math facilities are masked out of the child MSR in copy_thread.
- 	 * A new task does not need to restore_math because it will
+ 	preempt_enable();
+ }
 -- 
 2.47.0
 
