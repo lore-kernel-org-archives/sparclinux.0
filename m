@@ -1,194 +1,156 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B1482FFF98
-	for <sparclinux@vger.kernel.org>; Wed, 29 Oct 2025 10:26:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 319C933A03A;
+	Wed, 29 Oct 2025 16:42:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761733608; cv=none; b=HsdGLEUUJ/fzNfdSvJxCm6Za2o3mZP2rujiGINP3z6YXquHIT3N0jB8UkjP8OAepFCEUIrCfEAWQbXOo2VtvurCzJcDAfOAY86xK2ACPtRxNl25agmB7FLkpDEK6+d68y7+9iFms4Hlx5AzqdXxZgiMgsYqR13WTKlT5qejeAmY=
+	t=1761756149; cv=none; b=GszDvxC4cXvnv9dw8bKW5zJ4OWj560lWHkYvRTDpWUoMlMlvykNpiVe/GqeJruL0460ze+4+aZ8nkCgIZBQ1hln6equgaeX//3PdUePcNdb7sdSnv6ttvZspaekBPWNfNeJ04Jl8m3X/0wyyiMFzbfM/VS+y/CwFSEWsGQyL+/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761733608; c=relaxed/simple;
-	bh=zkE0vyis83Qnd4j3qFtBbD4uxT5fDgXxEKk32YXAR1I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KMP52+mkiVeYZ10804GuwZgaspPxZCWeOoljaSShoF2S8OHQoJy8r7alHB1TmD2ITzFkj37PdacvwfHQobtRQwHIgXPJWddVa3mg7vHO90L5P+Zci794MtGWVVx3BqiLTixxKtj1n3Ma6wHmYIZgPIkheKck91SwBBgGRg3xIQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=cnncW+AO; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1761756149; c=relaxed/simple;
+	bh=XG3qi3MEKFfmX59J3895pDuSWszmkp+pjPDbE8Ob2tk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pypKg4jN1fAHoOJR4dsJUpdvy4LmHDj9jzukwz4LvItVk1jNMvhSI3R1qA9nzjLQrSBu4NrtXw9ZUe7ULuU4a7Llpn6oKdL+Bt7t6/XOH1pea6mZNYbzWBb/Xms3lR8Ylam40JxTMtSizTykYkSCXPrC4bVQgJMJaJdY2Ui9RQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=dKse65N4; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cnncW+AO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761733606;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=/l/eBTg6PDk2gq24yxrQmlGvSlksP+1NRV8KnJwBP8E=;
-	b=cnncW+AON+djwLkCGRV01SWIpFPM/uefZqgxtKSyfKIdwhdN2cEMX5WYCgx9cWmbY//jV0
-	aPxQfs0D+r5sOG5glob+B5YMFQLOI6VfJZw/5nsCWh3cW2TILgfBEDWjLQrBC3S0cq1RoZ
-	2mDCh4qfsQy9PIfuMEbjTEw8m8Mq/hE=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-274-TclVCJzLMma1IFie1LZ5rg-1; Wed, 29 Oct 2025 06:26:45 -0400
-X-MC-Unique: TclVCJzLMma1IFie1LZ5rg-1
-X-Mimecast-MFC-AGG-ID: TclVCJzLMma1IFie1LZ5rg_1761733604
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4770e0910a1so19796555e9.2
-        for <sparclinux@vger.kernel.org>; Wed, 29 Oct 2025 03:26:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761733604; x=1762338404;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=/l/eBTg6PDk2gq24yxrQmlGvSlksP+1NRV8KnJwBP8E=;
-        b=Muj+TyuGFmPNBPHSQHblAQ/Sd5RMsRaF/BbEE3paHHb2Ij7zhenGkVu6nCS5xsZ2F+
-         qGnrgIFrKgz7wehq/w0JkpwRL+370aXRbMf9LcLzsCuDgTTgoVWshMNXLGKTmAg4Rc40
-         +ssdmuIyW1XMPTXjZ/1dk8hDddgHgv16QOYUgt/vbhZg5FzWvvh9Qp9YI5meLZhUVkfX
-         Ia/g3Oujqph4E+u+YMrAtj1fFCkJY6VB/u/DDRoosGnaOubYOlxIV8rbUwV5FjKX/eoK
-         gCodRScr3YMcqs8Lri0uu//Tyd5jEy5542PslNX7UeGF/emUaEoqxideoJAxCWkzj2rZ
-         P4kQ==
-X-Forwarded-Encrypted: i=1; AJvYcCURAdNG1q52Jzia3azH7l6GqN3OdUpmo2qum0/d8sNK3UEUkM2KJH6NWXLEGS6ioTL4Iw6/oA1N8s8d@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywr0Qf14Ec45kJJNgySgZOuVlyi/AvqAK49Q4jopsFdzOTkU5KO
-	xbyIHvQd6Wpc+vi6bkzgepOy7nIO0nLmZphtfkn4vHCQGj/ztLcpASrjqO9pqYh23QcWsQKCnxO
-	fikeMHs4tPlqBfMh7p/s4NkOkTa3yZaNOqw/5cSqVp/lFuK+bylLwZIQ3IOESl2k=
-X-Gm-Gg: ASbGncvQFOkGz0fKUW0O7SBknh7tolNh6fVsVLU/pPtaqMaAt7euuWufgP+ZbC0VhcK
-	GPXProBSdMv2KxeqSb1HlGt++S+jrNScIJ0oyUsvGR9NJYbRjsfRQLtm3hrq6fCjiIHydqw7GF9
-	2l/4wN7uky0C/RfAg+Mho4u0a71oZ+lPHSItprEOHKD5D8vU3QRWPBRNsad+QSkqHxsEcHob8SJ
-	mvSazkXtUeLk5JxaN9J9x+p8eyXTa0UaHkw4Nd2OaN6C3mThbeI0db4gICla8wwsBSqa2YedV/P
-	JUErh3S2JKAEjZJnLwSSMXeNoF3FhEmJeegyLFQ1TqEnO32G6ai2fpZrtgU3dMq3iAqZXnuiyBM
-	Ny2uvENshSLsPN3eK4CuXXg==
-X-Received: by 2002:a05:600c:4591:b0:471:115e:624b with SMTP id 5b1f17b1804b1-4771e18cc1fmr23358975e9.17.1761733603654;
-        Wed, 29 Oct 2025 03:26:43 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGtQTrCoapOr6bX5uVmtmRqcuUC4lYBRzIXvtaTPDducTLRlHN+f7pxZPgextJafstOMsxSuw==
-X-Received: by 2002:a05:600c:4591:b0:471:115e:624b with SMTP id 5b1f17b1804b1-4771e18cc1fmr23358735e9.17.1761733603198;
-        Wed, 29 Oct 2025 03:26:43 -0700 (PDT)
-Received: from [10.32.64.156] (nat-pool-muc-t.redhat.com. [149.14.88.26])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4771e202093sm43202745e9.11.2025.10.29.03.26.40
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 29 Oct 2025 03:26:41 -0700 (PDT)
-Message-ID: <c6f8871a-5118-4947-9801-43b2a7a42993@redhat.com>
-Date: Wed, 29 Oct 2025 11:26:39 +0100
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="dKse65N4"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 59TBiUmF019857;
+	Wed, 29 Oct 2025 16:41:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=O0GllQ+s4BepM53erysRngLqxSW7H1
+	UQovnCn/jD3ms=; b=dKse65N4TsbKhRm14Ls1x0hI3RnfKhBH1czot/BQLnftQ3
+	VSB7DZeS4jZB8eDykb6LAFo6VP4DPicUoS7xTm2aDbxvYElOMnLDwgTMbL6hRGL3
+	TYS5saRlJhejUglioVhTYllR68SkjXm950RJTiB1qR4EMnRLFxf1sZqcvRQZvodO
+	Yek9y3+dRvDajApzMXQySHxq9Yen+4lyhPV6/jqwLG52OoPGZzC1m3FxT2WVuVTr
+	VFxcExJgzOYhyJmGvwy6S/9Zn5AT7Ur2Bs5o9mFVN5/OIf5QxF96TusPuvcJ/N5y
+	26/Ut3TVD0wO2slyQX1cTgeUu10rBK1KrNFyU3Ng==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a34agmapu-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Oct 2025 16:41:20 +0000 (GMT)
+Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 59TGfJkJ017114;
+	Wed, 29 Oct 2025 16:41:19 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a34agmapp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Oct 2025 16:41:19 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 59TDufOl027440;
+	Wed, 29 Oct 2025 16:41:18 GMT
+Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4a33w2mcn5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Oct 2025 16:41:18 +0000
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 59TGfGon50594056
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 29 Oct 2025 16:41:16 GMT
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7782620049;
+	Wed, 29 Oct 2025 16:41:16 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5CF4F20040;
+	Wed, 29 Oct 2025 16:41:14 +0000 (GMT)
+Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.111.14.225])
+	by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Wed, 29 Oct 2025 16:41:14 +0000 (GMT)
+Date: Wed, 29 Oct 2025 17:41:12 +0100
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+To: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        Andreas Larsson <andreas@gaisler.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        David Woodhouse <dwmw2@infradead.org>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+        Madhavan Srinivasan <maddy@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ryan Roberts <ryan.roberts@arm.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+        Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        x86@kernel.org
+Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
+Message-ID: <ef0cd4bc-1a37-4755-8957-d8a7e5c4564e-agordeev@linux.ibm.com>
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
+ <20251029100909.3381140-8-kevin.brodsky@arm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/3] Optimize code generation during context
-To: Xie Yuanbin <qq570070308@gmail.com>, riel@surriel.com,
- linux@armlinux.org.uk, mathieu.desnoyers@efficios.com, paulmck@kernel.org,
- pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu, alex@ghiti.fr,
- hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
- borntraeger@linux.ibm.com, svens@linux.ibm.com, davem@davemloft.net,
- andreas@gaisler.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
- dave.hansen@linux.intel.com, hpa@zytor.com, luto@kernel.org,
- peterz@infradead.org, acme@kernel.org, namhyung@kernel.org,
- mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@kernel.org,
- irogers@google.com, adrian.hunter@intel.com, anna-maria@linutronix.de,
- frederic@kernel.org, juri.lelli@redhat.com, vincent.guittot@linaro.org,
- dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
- mgorman@suse.de, vschneid@redhat.com, thuth@redhat.com,
- akpm@linux-foundation.org, lorenzo.stoakes@oracle.com,
- segher@kernel.crashing.org, ryan.roberts@arm.com, max.kellermann@ionos.com,
- urezki@gmail.com, nysal@linux.ibm.com
-Cc: x86@kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-perf-users@vger.kernel.org, will@kernel.org
-References: <18734a4944e47952b7ad3e10a36c902392bdaa91.camel@surriel.com>
- <20251025173700.754-1-qq570070308@gmail.com>
-From: David Hildenbrand <david@redhat.com>
-Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- qIws/H2t
-In-Reply-To: <20251025173700.754-1-qq570070308@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251029100909.3381140-8-kevin.brodsky@arm.com>
+X-TM-AS-GCONF: 00
+X-Authority-Analysis: v=2.4 cv=K+gv3iWI c=1 sm=1 tr=0 ts=690243b0 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=kj9zAlcOel0A:10 a=x6icFKpwvdMA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=A7EgIBmc_bNo8zDYgroA:9 a=CjuIK1q_8ugA:10 a=zZCYzV9kfG8A:10
+ a=DXsff8QfwkrTrK3sU8N1:22 a=Z5ABNNGmrOfJ6cZ5bIyy:22 a=bWyr8ysk75zN3GCy5bjg:22
+X-Proofpoint-ORIG-GUID: 4s5OgOW5GqS8eVWCgDfypaa1QGghCrCr
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMDI4MDE2NiBTYWx0ZWRfXxhPJM2SCp9M3
+ JIxHzUs/CGPXr2j/HKIQSyzP/NPWYyBAsUaz21z4d+ni6Yh52/bKe6ciGNuCC/yvPIu873sf8eD
+ gUHIw+TkZjXiw5u5gLht6WE4fmO7hFP9NwF2MCouQJJ1JbmQRPIZ83a9wuBP/AITVNjmJ0xGGmG
+ qezpKkQxzyKV9sl1nHhwJfM6t+wdGPLGm2dgusnKzSs3rGhIdUuwvWs6rihxfKcmPaUdbPSNC2O
+ eRn1rutFYoUesHzwc84/+sqyzl9CY76RRz3bxV43lF1ZZZBVTvKGz/ggCG3uOGlSWeIVhUkfR5+
+ V0NM8GYqpxuXlg/ptkK3CqTUml5yz9fsasWNSY3QfT7gjFUhGJ7eXLt9sN5PD8nzr1T3dYuMu78
+ 3y4Xh9Rxn4COiXYCY3Cfr/IFgKK3Dg==
+X-Proofpoint-GUID: mFGA4Vr_KjknbicSy-pCCIOL2RNOgklo
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
+ definitions=2025-10-29_06,2025-10-29_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 priorityscore=1501 impostorscore=0 suspectscore=0
+ adultscore=0 clxscore=1011 malwarescore=0 phishscore=0 spamscore=0
+ bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.19.0-2510240000
+ definitions=main-2510280166
 
-On 25.10.25 19:37, Xie Yuanbin wrote:
-> On Fri, 24 Oct 2025 17:36:06 -0400, Rik van Riel wrote:
->> Also, what kind of performance improvement
->> have you measured with these changes?
-> 
-> When I debugged performance issues before, I used the company's equipment.
-> I could only observe the macro business performance data, but not the
-> specific scheduling time. Today I did some testing using my devices,
-> and the testing logic is as follows:
-> ```
-> -	return finish_task_switch(prev);
-> +	start_time = rdtsc();
-> +	barrier();
-> +	rq = finish_task_switch(prev);
-> +	barrier();
-> +	end_time = rdtsc;
-> +	return rq;
-> ```
-> 
-> The test data is as follows:
-> 1. mitigations Off, without patches: 13.5 - 13.7
-> 2. mitigations Off, with patches: 13.5 - 13.7
-> 3. mitigations On, without patches: 23.3 - 23.6
-> 4. mitigations On, with patches: 16.6 - 16.8
+On Wed, Oct 29, 2025 at 10:09:04AM +0000, Kevin Brodsky wrote:
 
-Such numbers absolutely have to be part of the relevant patches / cover 
-letter to show that the compiler is not actually smart enough to make a 
-good decision.
+Hi Kevin,
 
-Having that said, sometimes it helps to understand "why" the compiler 
-does a bad job, and try to tackle that instead.
+> +#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
+> +static inline bool in_lazy_mmu_mode(void)
+> +{
+> +	return current->lazy_mmu_state.active;
 
-For example, compilers will not inline functions that might be too big 
-(there is a compiler tunable), factoring out slow-paths etc could help 
-to convince the compiler to do the right thing.
+Whether (nesting_level > 0) is more correct check?
+Otherwise, it returns false while in paused mode.
 
-Of course, it's not always possible, and sometimes we just now that we 
-always want to inline.
+May be check both nesting_level and active and also introduce
+in_lazy_mmu_paused_mode() right away to avoid any confusion?
 
--- 
-Cheers
+> +}
+> +#else
+> +static inline bool in_lazy_mmu_mode(void)
+> +{
+> +	return false;
+> +}
+> +#endif
+> +
+>  extern struct pid *cad_pid;
+>  
+>  /*
 
-David / dhildenb
-
+Thanks!
