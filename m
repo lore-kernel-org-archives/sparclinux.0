@@ -1,161 +1,169 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mout.web.de (mout.web.de [212.227.17.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB5F2C1585;
-	Thu, 30 Oct 2025 16:34:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CBE7267B01;
+	Fri, 31 Oct 2025 07:46:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761842104; cv=none; b=ikbQRhpC5W8h51Hs4UW6zigIEOoJBWtN24OXVPiTHexLkpFxO4QhXG+g+FNm8JacCDcxsq6+5SsDHEn6ncrrFZ8DnUcPrj2Plh/laBw6Ut18e03HtVhSlSibQS320AI/wxf1jk/7J4guHZIHiafBllagZYxpaajqYUFXgy3qcyA=
+	t=1761896797; cv=none; b=R1XBRr9+e6yppquF6KCTQWBFj7vTgq/5evaAUVbYFcbZtEL6Y4mvmaOpe75bDATQMArLMsHQXToH5gzHDa2B201OJ+PzbTxmHJ/zqt7MVHCfFINXhOwN614QnDZbhPl6oUScGnOCwnC9QbKMz4IoA7C4FhBQYAqIOaE/yrx43no=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761842104; c=relaxed/simple;
-	bh=aT0C/ArsjjS8cKIMYeseAsIAoZEqCs++AFrEPyMwBJ4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cQX6dqJYPwM9Tag+RXVXGGt08aWcKfw63wX5rlgmsNRSf1BSN56aL2XymeIBselUbj3mh/P3c3Zt1MllwruGrijscgq/Qrpwg4PgmaCJQzx5Jm8MO+0dzcvp384YxMRrKNayeTu5gpZxqrv/j4yluVNXPyKRR0KqU+oCuNF0l2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Br1VD/7Y; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1761896797; c=relaxed/simple;
+	bh=lfq0dr1WBATG6evXfV0jmBhx7PA6JUYfS/CR4ff8HTA=;
+	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=schNXqnJlJW8Sbv6/Bxqk6XExyEhN1qEzTtVRWQ8KKrrIeqnP1JfqVqI1G1GqlTnzH273r11pZKyxwMxt7+IzpbuNU/tfrUqTXl+TrzJwwDaPZkTgCJhnhFKxFZXOrNHo+ssDwAvqlamvsXDASbWYxR3GyqpYzcjWxBa3aaZVlg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=t1lFqMz+; arc=none smtp.client-ip=212.227.17.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Br1VD/7Y"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 59UDJBKn025673;
-	Thu, 30 Oct 2025 16:34:06 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=q8xDSEzqv0eO+i7RNgUG5zHxJFTihD
-	qYuVwJgL1tFaw=; b=Br1VD/7YTed3oUT2iUZzltz2mPXnVAxgbDNLxlg7erZO0Q
-	ndcdnpWoXHoUFilySRRpGIi+3NdaYZvtdrCuNelAEGAtrGqT/WKWkRG0++hqoaLl
-	U3DO7TF4/SHlyudz6Ux33YMvs4FeaMwoobkrdswr1iH3NTBoydfGcStuaVfZdbDE
-	P4zDXX/kY8AqU9LgWKdjwtpl3Llgg9/j/U/Of4egne0bsg/u40oDkXOy3QPdZquQ
-	y0CFgu0n6tzgnJiezISNhw7bNixMWitpOdspE2bn/qlvp7I9fj9I5uAhF0vbAX/g
-	Yc4wda7lBmeChb4Nq2HY0X5WFh+YjgYS56JDSgYQ==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a34afhj8k-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 30 Oct 2025 16:34:06 +0000 (GMT)
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 59UGNfcW026454;
-	Thu, 30 Oct 2025 16:34:05 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a34afhj8g-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 30 Oct 2025 16:34:05 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 59UGGqRH023873;
-	Thu, 30 Oct 2025 16:34:04 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4a33vx9rqq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 30 Oct 2025 16:34:04 +0000
-Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
-	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 59UGY24U58196474
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 30 Oct 2025 16:34:02 GMT
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 510842004B;
-	Thu, 30 Oct 2025 16:34:02 +0000 (GMT)
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9ABBB20043;
-	Thu, 30 Oct 2025 16:34:01 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
-	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Thu, 30 Oct 2025 16:34:01 +0000 (GMT)
-Date: Thu, 30 Oct 2025 17:34:00 +0100
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-To: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        Andreas Larsson <andreas@gaisler.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Woodhouse <dwmw2@infradead.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
-        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
-        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ryan Roberts <ryan.roberts@arm.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
-        Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-        x86@kernel.org
-Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
-Message-ID: <46d9bb24-1603-4c75-8723-84a821b3c46c-agordeev@linux.ibm.com>
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-8-kevin.brodsky@arm.com>
- <ef0cd4bc-1a37-4755-8957-d8a7e5c4564e-agordeev@linux.ibm.com>
- <d0767b70-5686-4f6e-8ca4-10b3f3ff3991@arm.com>
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="t1lFqMz+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1761896791; x=1762501591; i=markus.elfring@web.de;
+	bh=5iyaCMe1EWH4JiA+syvzdW5hxQJGUTzYJOA439YhVhw=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:From:
+	 Subject:Content-Type:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=t1lFqMz+K/W4MT0oHk0sTtSJ/rB7PE39+GXQFNkBQDNbyGmopBr+E6DpzkvqqnXQ
+	 SLIdubD6DfiLszUJoKceEyun/44PpaOLkvlFsaNEneoW6h/oN9/prielbyqCiJHcO
+	 OuSqY75QD8Ttws+A/niU0XIRtz2IU0hRwZoFK+XxrVNt7nNJ0Qhox+cnmIGltPZNm
+	 HOQSzwKEHUVo8J/vcGvoiz8VN/jJf7lSr1gxtPFVhmu1LPXJnkCxtPv3YLTw/wqN2
+	 t7ffK02mECJ/EewE25ly+nj3AorFzNgs18Tg9NTdu2vLYQASlnJ9LwLwGpD/JsLUo
+	 O3YBE8U3/lydD3ZX2g==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from [192.168.178.29] ([94.31.69.206]) by smtp.web.de (mrweb106
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1MBjMM-1vObDH3QBo-0017NA; Fri, 31
+ Oct 2025 08:46:31 +0100
+Message-ID: <2fa899eb-60b6-4637-9035-aeff78e261fa@web.de>
+Date: Fri, 31 Oct 2025 08:46:28 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d0767b70-5686-4f6e-8ca4-10b3f3ff3991@arm.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 9WxMyXTitAyuhGu3vYNyzE5CUF2jkm71
-X-Authority-Analysis: v=2.4 cv=WPhyn3sR c=1 sm=1 tr=0 ts=6903937e cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=kj9zAlcOel0A:10 a=x6icFKpwvdMA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=I6XwYfBBfidvHYRsdD8A:9 a=CjuIK1q_8ugA:10 a=DXsff8QfwkrTrK3sU8N1:22
- a=Z5ABNNGmrOfJ6cZ5bIyy:22 a=bWyr8ysk75zN3GCy5bjg:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMDI4MDE2NiBTYWx0ZWRfX7zpOZgRsm3FF
- 8AnOBLOsvxptlWohzuosbbLPCFjAwF3xq2alPUZgZex8RCwqzG9eoZNV4NIOfsWBFJyYD+ygoAE
- rnoEx4aGNakZqeQ2SGwR0YJxSMuQm2OcteBULwoWnfyU/cMHNt88ZmCD4rU2jE3gxNJmWV7x33E
- oHSSsHXc4rB3cfyO0+d5kIH2YG18f2CCBQDyLSWgcAzaycIeZ5ROXf5OKaBsuvDDXGa4alxNW1z
- RdE+6Uxgxxzst1nDzVaufGD9/ZfHUthevkdMD9SntX+m955wZ+COJtAyQIs64arQ+vraDde5COT
- gqRLVlcqhoG5cbLpwOoCe3250RDdwFTHwZZLlnTZaB4WOK93liI9EHtPlX5NXI4lD6dhjalTaMQ
- w9GXLDeLcNNdyMoMeG4ROtBVzLwnYQ==
-X-Proofpoint-ORIG-GUID: 98PgicvhjO7U-L0VCM0jVX32GpXzOiLG
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
- definitions=2025-10-30_05,2025-10-29_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 adultscore=0 malwarescore=0 suspectscore=0 spamscore=0
- impostorscore=0 lowpriorityscore=0 clxscore=1015 bulkscore=0
- priorityscore=1501 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.19.0-2510240000
- definitions=main-2510280166
+User-Agent: Mozilla Thunderbird
+To: sparclinux@vger.kernel.org,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ Andreas Larsson <andreas@gaisler.com>, Christoph Lameter <cl@linux.com>,
+ "David S. Miller" <davem@davemloft.net>, Finn Thain <fthain@linux-m68k.org>,
+ Geert Uytterhoeven <geert@linux-m68k.org>, Tejun Heo <tj@kernel.org>
+Content-Language: en-GB, de-DE
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org,
+ Miaoqian Lin <linmq006@gmail.com>
+From: Markus Elfring <Markus.Elfring@web.de>
+Subject: [PATCH] sparc: time: Use pointer from memcpy() call for assignment in
+ setup_sparc64_timer()
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:xxvCEfJNW2iftFGhPsZz/mDUEwxNOxsz1QczOVe/lAWFyqY6NdD
+ HZaOj3z1olWHU60B4V7mMdp0H5zhhLgQZRVqC2qTGecOQ69/JO3gn6K+IBM4D/UOHiYBQEd
+ Vtv6iRlg0uUsz0kXr/BFKetPMjDr7o9glZajmN7SFIPa69yP20QiJ16vhRicqywrNBTwrTN
+ /Fd8IelIEd6+YtReRdokA==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:jgJaWNtHi14=;vSSu5axq/lkud8xL0Cz12rJMNBN
+ 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
 
-On Thu, Oct 30, 2025 at 11:28:53AM +0100, Kevin Brodsky wrote:
-> On 29/10/2025 17:41, Alexander Gordeev wrote:
-> > On Wed, Oct 29, 2025 at 10:09:04AM +0000, Kevin Brodsky wrote:
-> >
-> > Hi Kevin,
-> >
-> >> +#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
-> >> +static inline bool in_lazy_mmu_mode(void)
-> >> +{
-> >> +	return current->lazy_mmu_state.active;
-> > Whether (nesting_level > 0) is more correct check?
-> > Otherwise, it returns false while in paused mode.
-> 
-> That's exactly the intention. Lazy MMU is disabled while paused. The
-> users of that helper want to know if lazy MMU is currently enabled (to
-> decide whether to batch updates for instance); whether this is because
-> we are paused or not in any lazy_mmu section (nesting_level == 0) makes
-> no difference.
-> 
-> > May be check both nesting_level and active and also introduce
-> > in_lazy_mmu_paused_mode() right away to avoid any confusion?
-> 
-> Can you think of any situation where a caller would specifically want to
-> know that lazy MMU is paused?
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 31 Oct 2025 08:36:13 +0100
 
-I thought I do, but in_lazy_mmu_mode() alone works just fine,
-as you described (at least for now).
+A pointer was assigned to a variable. The same pointer was used for
+the destination parameter of a memcpy() call.
+This function is documented in the way that the same value is returned.
+Thus convert two separate statements into a direct variable assignment for
+the return value from a memory copy action.
 
-> - Kevin
+The source code was transformed by using the Coccinelle software.
 
-Thanks!
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+=2D--
+ arch/sparc/kernel/time_64.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index b32f27f929d1..e9c29574cd59 100644
+=2D-- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -760,9 +760,7 @@ void setup_sparc64_timer(void)
+ 			     : /* no outputs */
+ 			     : "r" (pstate));
+=20
+-	sevt =3D this_cpu_ptr(&sparc64_events);
+-
+-	memcpy(sevt, &sparc64_clockevent, sizeof(*sevt));
++	sevt =3D memcpy(this_cpu_ptr(&sparc64_events), &sparc64_clockevent, size=
+of(*sevt));
+ 	sevt->cpumask =3D cpumask_of(smp_processor_id());
+=20
+ 	clockevents_register_device(sevt);
+=2D-=20
+2.51.1
+
