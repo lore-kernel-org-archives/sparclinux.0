@@ -1,87 +1,87 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B3A25DCE0
-	for <sparclinux@vger.kernel.org>; Sat,  1 Nov 2025 12:16:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557592C3262
+	for <sparclinux@vger.kernel.org>; Sat,  1 Nov 2025 12:18:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761999418; cv=none; b=ku7vEQAf6iYguGk3QUZPrgrmyqzTTZ/bnoF+vbzUXLeY+6kB4o6LwWfENtZ49LblqQlFdiPjZLxo7n9rhoEDQSz7VOMJzpCYihifnMjqykKMVQSo5PAGOKar8kadYayTyu0MSf2ugzcH6LqCU+ASbJt5vZQxuGSS/605GmPK3Ic=
+	t=1761999494; cv=none; b=a5A/GZ4wLaBaxtEFEXr8hfCOuAcYYjnCk2DBqkiWzvfVPkfbk/tXj+5ypl4OMyjaA9njnXk1YToE1TdUDPlGkoysTjQNgQciA84mnzvxIli8jVar+Mu9lcdRm8AS6ZOheUnkL74C7LrPMuKpvuuujMHKSUyC8FMB+sB2Ij9GHho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761999418; c=relaxed/simple;
-	bh=b1AT2zcgFCPvE8GdHf8G5cCI082miZTOAZaPhWQKWHI=;
+	s=arc-20240116; t=1761999494; c=relaxed/simple;
+	bh=iALiYAM+OjoSTOjsw1z3TM71JjgKe88qXIqGpGDZqNA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=IvAg80bXUlkKzJZ711Si3Fv4DQuZ90I9CZ+cSdh3zE+uGAPrOhYh4/p4C3H5KBBQPKp8RzKNg2hYgYERiybveHQhZiasL9mUAXCD+WAbasPToRt4nHR75X0GnQ8tykYzVDhO4Fzq7Fg8lPcVIVTHaLOU6abjnEyDusxML1l8CGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=R+pvMkH1; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=UAdxZcaC; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=oX1PEn/EfqPmrfPbDcqM6FSjMCbaJBTxgFbtVBzDtU0Gkw3OzgtLx1WjyJMQ59dCfpL7qFyyDaUzc9RCzOIoJH80ZSjM1ejTZUzMUifIgFdNsIZDVvvjdfRlOZNrYMGwIIe0y0stgMfYKfVPnniFjBcBIS8jA9S2X+T4Wa1KQ6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Gmyek10j; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=i4b1DlOa; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="R+pvMkH1";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="UAdxZcaC"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Gmyek10j";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="i4b1DlOa"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761999415;
+	s=mimecast20190719; t=1761999491;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Ec0hJUsQTUWsdl6E8s6GRpczB51mwhz+FQUrv1x/BOM=;
-	b=R+pvMkH1HJx6jcVYDDjGzxmmI+Rzb0WGRQj1eYMVv/YnnC5LTIAziPzT52op1s8uSV9VSh
-	Oa4JsJWsRbBzIax9SizxsHyVDrfPqZBeXCb2Z9C39SmbpNfbF4AQKv4l3pcuBAx6eY5hlx
-	NVwYp4u/QKjunymin8YhjTgTSXveGHQ=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
+	b=Gmyek10jlrx6Q8ozH7KMs213EE5JBRMus7S8X2g+ghkEYrU0ujMTAD159e6Z8zlhsNonkz
+	8YTYOCfIeAw1hA408J+5U0p4HDjGoIcQPG5gxzMfGkOgzRm+oizsoT/N7opc599rxDo3mg
+	5wMO7VYIqMKDygfOLgFCpZSZrXd2LKs=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-654-bQm981u9N3-CkBujUxfp0Q-1; Sat, 01 Nov 2025 08:16:54 -0400
-X-MC-Unique: bQm981u9N3-CkBujUxfp0Q-1
-X-Mimecast-MFC-AGG-ID: bQm981u9N3-CkBujUxfp0Q_1761999413
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-4283bf540ceso1765810f8f.1
-        for <sparclinux@vger.kernel.org>; Sat, 01 Nov 2025 05:16:54 -0700 (PDT)
+ us-mta-653-60PnoF2uP66EYcTEwdy6pw-1; Sat, 01 Nov 2025 08:18:09 -0400
+X-MC-Unique: 60PnoF2uP66EYcTEwdy6pw-1
+X-Mimecast-MFC-AGG-ID: 60PnoF2uP66EYcTEwdy6pw_1761999488
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-477124f7c00so16378345e9.1
+        for <sparclinux@vger.kernel.org>; Sat, 01 Nov 2025 05:18:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1761999413; x=1762604213; darn=vger.kernel.org;
+        d=redhat.com; s=google; t=1761999488; x=1762604288; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=Ec0hJUsQTUWsdl6E8s6GRpczB51mwhz+FQUrv1x/BOM=;
-        b=UAdxZcaCsGrsUG2iphEGmSkLLPNXxJ1rIO+mmS2X3LOM5IhKVBlh/SH91WFYb6sSsw
-         nxY85UECHQPzzgR5MX8nkqqU87kGTLJcDAqgqttlL22IKjZmzFx0NH1RGEMlSXdTBhdc
-         7eZoo4aOTvJweiewPG758+6lCsTN6/QiCFxNQru9Co/S03Plvs8vWKZo0OziTZV2Ybks
-         uTcz/2kb716+n+6z2wTVRcs2reoKbheXXm9LK3GqXlBx3EvSD97wK2NhKzavPgav0WJR
-         HWAB9Fm8AFJifv43SrCS8IBiwI7+q2X+UTyF01f/Eglk06TaNDdlxr2NhfI/1MblC5oV
-         qn1g==
+        bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
+        b=i4b1DlOa3jtDesvX4CfqRaTlIOTJQ4TzmHF4fUVK2KI2Vf9z2mRsQwDwtd+v0eeX3n
+         S0Slk0AYr63iaT7BJvyblrIA9qvsHCCwXmhj/kCDqD+EMRfYh6tL1UttBhN7j/Dkp0Lb
+         CLL6qfHCo8feiFMf+ipJ/PrBqVplu6G6aGSajxVSBc+TH6eO+awwG4kr793/eoUOoo/s
+         BRpHTRdYnK+PYm3/O9RwBWLtF+RXcK0NIZE8EJTeyoyAUp9kCugsTsBPRjCPChjoPMiE
+         cROzahCx2tBUvqrq3CnDVLqNrX/3cL/HdYWsrZnRfoOwk+PA3DcUhdR6kTrsDU//FdiR
+         zahQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761999413; x=1762604213;
+        d=1e100.net; s=20230601; t=1761999488; x=1762604288;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Ec0hJUsQTUWsdl6E8s6GRpczB51mwhz+FQUrv1x/BOM=;
-        b=X3VyNWWrWvDkjahfjIGCbgeSRVzSK3hLfkpkbL8KxWIOZQUhx8ot4XTKyGxquE6fdv
-         sRBT6PLCY8qqU9mdwLsurghdYOWFugDIQvkgPHjoM/iNs62FKZQ+5w3S5vbkmEMyzbH0
-         AmLvAqo4OwqJK7E6u9POeqFA835Y17edlXOoO4hLm1WLfBjsK0zk7GHeZyM3XA4EE/E+
-         /xiR1gPoJGQuUSLAiaaQ8pvudLg9tQJQeEJnyCxsziqrUy2djMALWEFKWoAK2NP+cjSg
-         m0ZKmSzzrer+QQht+3xU8/2fF20TjLpquUgUELhMNvBVNsI8GV7ebAUbxbm7GVtPaphU
-         CoiA==
-X-Forwarded-Encrypted: i=1; AJvYcCWhNMU8JH7iQ4mq7PCtkKM7EvFGua3zhdk2nuNdj94y4GTDOcFTm+AOAJBFnwe+ilbox7kBopa0uc+M@vger.kernel.org
-X-Gm-Message-State: AOJu0YzrgSdIgx9HhVJuTY4xhstUBqFW5734qm0okMGQXLSG6Qp0+uwZ
-	wXKPNMAg1l0m2mNCkOCWwc4U3L2H4AG+ILZdlj7kud41YQz3i3VM2pQV+gmVHeifUEmPDi7Fwen
-	UBjpyd0GMGWKGVc9+muHtwoPL2bN11VfpD6/WlUA1k4lLVFslC8w8mJgj6/H3JrY=
-X-Gm-Gg: ASbGncs1VNp1EuAyQ/zLz3Uyt3ReDM+15oRE0VfboH6K6MNkUMtap2XbC4nQ0ZU/gaj
-	OymHLU02K9Ggp86jqHc7ehLAanbRct0s4WfuaS1K2Q0Swhf92u3SI/cxkwZHUyt5tBk17fBclUo
-	1rVtqtQPlhhedDnEEOF8O9QGby1vmQ3wkqHDNGGorN2mgUUKaSgRwwiEFQgp1oUdwP/88i3uwWy
-	dCPTJW+6kFbtTcRhHnFaot9Azpgrs/LJScS1K0gVVVHWqiH0NRcfqyzuyYpDMEn7GXT7Zn7R+Q9
-	+/FXmAi4ko06C2JZqqHfdE4u5YKGOdycfnh3KAFsBB4gzTRsAr07OGiSlxJ1R2XRpmtiJp4VXC1
-	cUQGnKY8AFemakuW7OJeGgUIenoxAmqSpyVU0yU8iJMe3NRHI5cMHnauWrSBJZcjG/fNSoCphxV
-	9fwkbN75JuchtwBnqvLCFwCMa0tPc=
-X-Received: by 2002:a05:6000:2f86:b0:3f0:2ab8:710f with SMTP id ffacd0b85a97d-429bd671cc6mr4920652f8f.8.1761999412962;
-        Sat, 01 Nov 2025 05:16:52 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHwyu8iCMznl2jxRh8YLUHJ3p228bh0SCAtFEkItp6biokKqMXHyqxQIX3SdYCS4w5abwUMoA==
-X-Received: by 2002:a05:6000:2f86:b0:3f0:2ab8:710f with SMTP id ffacd0b85a97d-429bd671cc6mr4920621f8f.8.1761999412492;
-        Sat, 01 Nov 2025 05:16:52 -0700 (PDT)
+        bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
+        b=LilARvZNd2czR2O1Viq03H5J4X35aJZXRVIwJsf8jrnHt7hplfRJnaM1aQsrJ5QzCm
+         ZRvRW2H0eGrxCWiPJGOTfj+hkz5OE6HBPhvrrMfaqkOn1ypqW+X3sMdmoGADsod0KmPD
+         laaQO6G6wgXTx8WUajDNkHlb3r2Z41kVwP/UMGB+TbeEyf85bm9zBJuze/NHTb/FYS9Z
+         Ps3adlV+zbJifzAWI+iKi0DKDP6PmyTx9HOSN+z1mE0FxI4+fmx4dmEv0h2DgRAJ9KdR
+         v9762662A4IlENzWyfWVlDMvzmHOtkiEUzocy2f93tq+FiQBdFsB7V8RoVumceJtZwHd
+         rs2w==
+X-Forwarded-Encrypted: i=1; AJvYcCW6vuujgAIBW8MpMktB1ttTdXYT4V64J3f8T5Xq9BT25jAY/mR5R6q1wOff5QaqG1zL8b1nvzlzCrCc@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw1UH14xJULQoMNFjrJxbyUb0aX2QpJdgzF/dVJlNmLPiNpQQpP
+	zq+73KZ1ZipnVXzPuurnytQrRwmnPrU3hKKA1JAjohGJ/ub4EzZmFtnAUsvxoonH0eZfH+uhFe8
+	TYkk92o9SJMTOyQl/rYlmngw2qXp2fZckGU5sgGI2RFI0PxkaD/iD12XdqJw1Zw8=
+X-Gm-Gg: ASbGncvPw1TDe4ml4D+ktpMZyAwe8jLsDMRr/tVy5Q4sFPv5jBw5Fmzy3WgYTWBWW+9
+	T/ctMAG0nXpR1m6yhAGT0xtLPYoFwyPVHFzezKm4mw1/lduR0Ch5twU1xcocFKob1LPPk+IVf4A
+	LbP9uBnRGqfmKWzgq++4hT4xipOLiSA6xK4wfQwMVoVzYrhBICJSrh57xGE2gxA+NaBU8+nNpYn
+	NHOVKYAidGZwRHxmqMRAdLvV9dtvsztq6pWaaVVxg1OZmRXnvQ8/g2l3+DbeESqLZ0WrrSijQXI
+	zoZTPILOT5/u8fyopVmx2huHdVZnXhnDMnqV57SbR+JGxymd3oGLuGb9KOoOdnAHBDU4ReEVgCk
+	8R9cv/Jwmi/G09yANL+AF9BRVpQkjhAkr089v8RRKzE92YjnN3XULYSZAQlHw44+GSG886ajyZn
+	l2jaLWOqgQY9z/EKTCNacHLmq2j80=
+X-Received: by 2002:a05:600c:1d9b:b0:46d:996b:826a with SMTP id 5b1f17b1804b1-477308c8b64mr64006455e9.36.1761999488372;
+        Sat, 01 Nov 2025 05:18:08 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEYuiv87iZ7G8foU4ArwULKDJw8Idy7HTvUTtsGo13HOjZ3TpQsscDerygyrVDH0/hBtY+XhQ==
+X-Received: by 2002:a05:600c:1d9b:b0:46d:996b:826a with SMTP id 5b1f17b1804b1-477308c8b64mr64006055e9.36.1761999487959;
+        Sat, 01 Nov 2025 05:18:07 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169? (p200300d82f3f4b00ee138c225cc5d169.dip0.t-ipconnect.de. [2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429c114ca0csm9986764f8f.21.2025.11.01.05.16.50
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4773c53ec2csm45855895e9.11.2025.11.01.05.18.06
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 01 Nov 2025 05:16:51 -0700 (PDT)
-Message-ID: <5368a371-10f5-40ce-9246-d8eeff52e654@redhat.com>
-Date: Sat, 1 Nov 2025 13:16:49 +0100
+        Sat, 01 Nov 2025 05:18:07 -0700 (PDT)
+Message-ID: <8f3596e9-fe40-4591-946d-65e849955a2f@redhat.com>
+Date: Sat, 1 Nov 2025 13:18:05 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -89,7 +89,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 05/12] mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
+Subject: Re: [PATCH v4 06/12] mm: introduce generic lazy_mmu helpers
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -113,7 +113,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-6-kevin.brodsky@arm.com>
+ <20251029100909.3381140-7-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -160,30 +160,80 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20251029100909.3381140-6-kevin.brodsky@arm.com>
+In-Reply-To: <20251029100909.3381140-7-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 29.10.25 11:09, Kevin Brodsky wrote:
-> Architectures currently opt in for implementing lazy_mmu helpers by
-> defining __HAVE_ARCH_ENTER_LAZY_MMU_MODE.
+> The implementation of the lazy MMU mode is currently entirely
+> arch-specific; core code directly calls arch helpers:
+> arch_{enter,leave}_lazy_mmu_mode().
 > 
-> In preparation for introducing a generic lazy_mmu layer that will
-> require storage in task_struct, let's switch to a cleaner approach:
-> instead of defining a macro, select a CONFIG option.
+> We are about to introduce support for nested lazy MMU sections.
+> As things stand we'd have to duplicate that logic in every arch
+> implementing lazy_mmu - adding to a fair amount of logic
+> already duplicated across lazy_mmu implementations.
 > 
-> This patch introduces CONFIG_ARCH_HAS_LAZY_MMU_MODE and has each
-> arch select it when it implements lazy_mmu helpers.
-> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is removed and <linux/pgtable.h>
-> relies on the new CONFIG instead.
+> This patch therefore introduces a new generic layer that calls the
+> existing arch_* helpers. Two pair of calls are introduced:
 > 
-> On x86, lazy_mmu helpers are only implemented if PARAVIRT_XXL is
-> selected. This creates some complications in arch/x86/boot/, because
-> a few files manually undefine PARAVIRT* options. As a result
-> <asm/paravirt.h> does not define the lazy_mmu helpers, but this
-> breaks the build as <linux/pgtable.h> only defines them if
-> !CONFIG_ARCH_HAS_LAZY_MMU_MODE. There does not seem to be a clean
-> way out of this - let's just undefine that new CONFIG too.
+> * lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
+>      This is the standard case where the mode is enabled for a given
+>      block of code by surrounding it with enable() and disable()
+>      calls.
+> 
+> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
+>      This is for situations where the mode is temporarily disabled
+>      by first calling pause() and then resume() (e.g. to prevent any
+>      batching from occurring in a critical section).
+> 
+> The documentation in <linux/pgtable.h> will be updated in a
+> subsequent patch.
+> 
+> No functional change should be introduced at this stage.
+> The implementation of enable()/resume() and disable()/pause() is
+> currently identical, but nesting support will change that.
+> 
+> Most of the call sites have been updated using the following
+> Coccinelle script:
+> 
+> @@
+> @@
+> {
+> ...
+> - arch_enter_lazy_mmu_mode();
+> + lazy_mmu_mode_enable();
+> ...
+> - arch_leave_lazy_mmu_mode();
+> + lazy_mmu_mode_disable();
+> ...
+> }
+> 
+> @@
+> @@
+> {
+> ...
+> - arch_leave_lazy_mmu_mode();
+> + lazy_mmu_mode_pause();
+> ...
+> - arch_enter_lazy_mmu_mode();
+> + lazy_mmu_mode_resume();
+> ...
+> }
+> 
+> A couple of notes regarding x86:
+> 
+> * Xen is currently the only case where explicit handling is required
+>    for lazy MMU when context-switching. This is purely an
+>    implementation detail and using the generic lazy_mmu_mode_*
+>    functions would cause trouble when nesting support is introduced,
+>    because the generic functions must be called from the current task.
+>    For that reason we still use arch_leave() and arch_enter() there.
+> 
+> * x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
+>    places, but only defines it if PARAVIRT_XXL is selected, and we
+>    are removing the fallback in <linux/pgtable.h>. Add a new fallback
+>    definition to <asm/pgtable.h> to keep things building.
 > 
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
