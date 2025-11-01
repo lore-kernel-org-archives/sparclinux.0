@@ -1,87 +1,87 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557592C3262
-	for <sparclinux@vger.kernel.org>; Sat,  1 Nov 2025 12:18:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07511EB9E3
+	for <sparclinux@vger.kernel.org>; Sat,  1 Nov 2025 12:22:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761999494; cv=none; b=a5A/GZ4wLaBaxtEFEXr8hfCOuAcYYjnCk2DBqkiWzvfVPkfbk/tXj+5ypl4OMyjaA9njnXk1YToE1TdUDPlGkoysTjQNgQciA84mnzvxIli8jVar+Mu9lcdRm8AS6ZOheUnkL74C7LrPMuKpvuuujMHKSUyC8FMB+sB2Ij9GHho=
+	t=1761999771; cv=none; b=ZX+xVSD/0upuuTIt9he0qW1HUlQ71v6DsFXnhKU4JidNt6VSQT1dv+MzZSNSRuNUJldZLErvqxhkPijfgMGSqbQXgM5lKSj9HfHMnkzwRVhsxYHTC/iWInAA04G4tx6mVuC7rPXHC4EIgGGc2VJFEJGNmkepOpfiLSorP8iOla4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761999494; c=relaxed/simple;
-	bh=iALiYAM+OjoSTOjsw1z3TM71JjgKe88qXIqGpGDZqNA=;
+	s=arc-20240116; t=1761999771; c=relaxed/simple;
+	bh=I8W8mLAe3KzDAv7PEhne9ji0gjawU8UAnWFhTg8FafQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oX1PEn/EfqPmrfPbDcqM6FSjMCbaJBTxgFbtVBzDtU0Gkw3OzgtLx1WjyJMQ59dCfpL7qFyyDaUzc9RCzOIoJH80ZSjM1ejTZUzMUifIgFdNsIZDVvvjdfRlOZNrYMGwIIe0y0stgMfYKfVPnniFjBcBIS8jA9S2X+T4Wa1KQ6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Gmyek10j; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=i4b1DlOa; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=snikcDWldX2jU1J4idg8Psgnytmd8jVzJP/UseB0emmyiAfW5PDgbOj5Z1IVqvbDQr22hmnh4Hg9lSeSocc4e971KfXcyJWH6PzTeOZIiKOFS5CL/CfwI6zoywiWHvGlkU945NW4k1RndfF+vugRia+s0AycTFn7waSy7qvh9jI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UQMSLWUr; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=hZwFJyPf; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Gmyek10j";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="i4b1DlOa"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UQMSLWUr";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="hZwFJyPf"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1761999491;
+	s=mimecast20190719; t=1761999768;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
-	b=Gmyek10jlrx6Q8ozH7KMs213EE5JBRMus7S8X2g+ghkEYrU0ujMTAD159e6Z8zlhsNonkz
-	8YTYOCfIeAw1hA408J+5U0p4HDjGoIcQPG5gxzMfGkOgzRm+oizsoT/N7opc599rxDo3mg
-	5wMO7VYIqMKDygfOLgFCpZSZrXd2LKs=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=iR1r/3xhU7MVcJwVYZUltUXo3c7eUSFIQ+pGKdoQg2M=;
+	b=UQMSLWUrkXO0pRNmu8worlMcsAfloA1RfS0gSaJ8hYaZrQeHS8G6qzI1H6FBWx3ObyL3cS
+	FP3g4/q9KDVDqqaiOBnF9y7k1pshb9IlvbnKxyuZPllG2xIEbguTmAy9IVadJDjBlPxbpB
+	5O1lVBWdk5ES8R5IQRu8hDJhyI54HmI=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-653-60PnoF2uP66EYcTEwdy6pw-1; Sat, 01 Nov 2025 08:18:09 -0400
-X-MC-Unique: 60PnoF2uP66EYcTEwdy6pw-1
-X-Mimecast-MFC-AGG-ID: 60PnoF2uP66EYcTEwdy6pw_1761999488
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-477124f7c00so16378345e9.1
-        for <sparclinux@vger.kernel.org>; Sat, 01 Nov 2025 05:18:09 -0700 (PDT)
+ us-mta-625-W-8Y0myuMbW9lUgGGp2R-g-1; Sat, 01 Nov 2025 08:22:47 -0400
+X-MC-Unique: W-8Y0myuMbW9lUgGGp2R-g-1
+X-Mimecast-MFC-AGG-ID: W-8Y0myuMbW9lUgGGp2R-g_1761999766
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-429c93a28ebso346188f8f.1
+        for <sparclinux@vger.kernel.org>; Sat, 01 Nov 2025 05:22:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1761999488; x=1762604288; darn=vger.kernel.org;
+        d=redhat.com; s=google; t=1761999766; x=1762604566; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
-        b=i4b1DlOa3jtDesvX4CfqRaTlIOTJQ4TzmHF4fUVK2KI2Vf9z2mRsQwDwtd+v0eeX3n
-         S0Slk0AYr63iaT7BJvyblrIA9qvsHCCwXmhj/kCDqD+EMRfYh6tL1UttBhN7j/Dkp0Lb
-         CLL6qfHCo8feiFMf+ipJ/PrBqVplu6G6aGSajxVSBc+TH6eO+awwG4kr793/eoUOoo/s
-         BRpHTRdYnK+PYm3/O9RwBWLtF+RXcK0NIZE8EJTeyoyAUp9kCugsTsBPRjCPChjoPMiE
-         cROzahCx2tBUvqrq3CnDVLqNrX/3cL/HdYWsrZnRfoOwk+PA3DcUhdR6kTrsDU//FdiR
-         zahQ==
+        bh=iR1r/3xhU7MVcJwVYZUltUXo3c7eUSFIQ+pGKdoQg2M=;
+        b=hZwFJyPf9NDxNdf0BCr4JBM2+Cie1X1M+REKpow2vSfKYtfNCTgLqlCHdsM0ijtzmA
+         rjX42vkTgxbzSV8tiO8eTKKCXvG1BuIT4nlI0XuF2BgWnzvojS0xBlU36COG6FnM7NMi
+         AlAxFqIBL0U0eSqenGPIweJ8Z4Nt+scwj3Ep6ylVcE0qaxCfsFOjgCKxNELUtBrzaPvS
+         Ry2Q1j6SoKo1Tywaoj6qQBdzem/WDbT6YXDc6YllZjqeMrXufkluWrFo9w0TMIy38DCx
+         urHKDN8xFwenW9ith8P/AwJxkBDD8BDIQ4+/aFCzp0/kHZgqE1SbllIsXtNUUrbt8gQj
+         IWaQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761999488; x=1762604288;
+        d=1e100.net; s=20230601; t=1761999766; x=1762604566;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=nakH/PvmVEC4FueXBEYiavMVStVvZPPhZqsGXFef+TU=;
-        b=LilARvZNd2czR2O1Viq03H5J4X35aJZXRVIwJsf8jrnHt7hplfRJnaM1aQsrJ5QzCm
-         ZRvRW2H0eGrxCWiPJGOTfj+hkz5OE6HBPhvrrMfaqkOn1ypqW+X3sMdmoGADsod0KmPD
-         laaQO6G6wgXTx8WUajDNkHlb3r2Z41kVwP/UMGB+TbeEyf85bm9zBJuze/NHTb/FYS9Z
-         Ps3adlV+zbJifzAWI+iKi0DKDP6PmyTx9HOSN+z1mE0FxI4+fmx4dmEv0h2DgRAJ9KdR
-         v9762662A4IlENzWyfWVlDMvzmHOtkiEUzocy2f93tq+FiQBdFsB7V8RoVumceJtZwHd
-         rs2w==
-X-Forwarded-Encrypted: i=1; AJvYcCW6vuujgAIBW8MpMktB1ttTdXYT4V64J3f8T5Xq9BT25jAY/mR5R6q1wOff5QaqG1zL8b1nvzlzCrCc@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw1UH14xJULQoMNFjrJxbyUb0aX2QpJdgzF/dVJlNmLPiNpQQpP
-	zq+73KZ1ZipnVXzPuurnytQrRwmnPrU3hKKA1JAjohGJ/ub4EzZmFtnAUsvxoonH0eZfH+uhFe8
-	TYkk92o9SJMTOyQl/rYlmngw2qXp2fZckGU5sgGI2RFI0PxkaD/iD12XdqJw1Zw8=
-X-Gm-Gg: ASbGncvPw1TDe4ml4D+ktpMZyAwe8jLsDMRr/tVy5Q4sFPv5jBw5Fmzy3WgYTWBWW+9
-	T/ctMAG0nXpR1m6yhAGT0xtLPYoFwyPVHFzezKm4mw1/lduR0Ch5twU1xcocFKob1LPPk+IVf4A
-	LbP9uBnRGqfmKWzgq++4hT4xipOLiSA6xK4wfQwMVoVzYrhBICJSrh57xGE2gxA+NaBU8+nNpYn
-	NHOVKYAidGZwRHxmqMRAdLvV9dtvsztq6pWaaVVxg1OZmRXnvQ8/g2l3+DbeESqLZ0WrrSijQXI
-	zoZTPILOT5/u8fyopVmx2huHdVZnXhnDMnqV57SbR+JGxymd3oGLuGb9KOoOdnAHBDU4ReEVgCk
-	8R9cv/Jwmi/G09yANL+AF9BRVpQkjhAkr089v8RRKzE92YjnN3XULYSZAQlHw44+GSG886ajyZn
-	l2jaLWOqgQY9z/EKTCNacHLmq2j80=
-X-Received: by 2002:a05:600c:1d9b:b0:46d:996b:826a with SMTP id 5b1f17b1804b1-477308c8b64mr64006455e9.36.1761999488372;
-        Sat, 01 Nov 2025 05:18:08 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEYuiv87iZ7G8foU4ArwULKDJw8Idy7HTvUTtsGo13HOjZ3TpQsscDerygyrVDH0/hBtY+XhQ==
-X-Received: by 2002:a05:600c:1d9b:b0:46d:996b:826a with SMTP id 5b1f17b1804b1-477308c8b64mr64006055e9.36.1761999487959;
-        Sat, 01 Nov 2025 05:18:07 -0700 (PDT)
+        bh=iR1r/3xhU7MVcJwVYZUltUXo3c7eUSFIQ+pGKdoQg2M=;
+        b=FaeyncvxtBK+drkBeONGyMYHtuW+guFcBA/6WbH3J/kc+8ptF67pDGjupVLE/460xO
+         MTlD5CLcGIZ5g3N2zQcZ3qeEQr/9extTkjeOHGnPrwn3VxVHkHQDmgcz2jvcPF3K2iW4
+         abAlFMQLfNWiJeHv+DWzpOfZvg94P0yEc8S0qX1/OS57QTsBtm2XAs9Nd61U2b/KwhKJ
+         /miITARmhCOJTe39QAla/YtKaqMItSDkWX8MpcQNZOKvCerlwxrL9XCvQmESJrCtHBoJ
+         2xJi9DBYRW7bgfh3KlNNeMXqP59U+/39Y66+3osIBfg1w3AJ0rAmb/S8qBwI+uoEmO8R
+         uicQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUdy8Or5Rtv63jQfP3IYbzYwg6c4zrxs0dmoJemmpursa3pDhjitrcaV0VsPUwtdZvk52i/PZCzs9w8@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzr5/8J0G1Wm9S51gjy85Xjru1N4yi/HzEJoK+skwye7oVn/YCj
+	XhGmNTAsbxUhCV6ZobKzlCWLJ2m4i3tVARBKo+pmM0Sgq02SwqB23LTh3b74ZA7GjORv20p08pw
+	HFe6RE0+SXWMRQmJzCjEiihorjbL58tvnXHUmqIJqvVT5/lXc6mZFdcxOYqHcC9Q=
+X-Gm-Gg: ASbGncuP5vt7B0pa+r9y/1Fu3mT/lqdXuxBYf/JUWNMxLHYav9UqKJwK1wGWc6HgEQc
+	6mBeINUZv720DVhE2qbHj5dJMWoiSDPJ1qYvgADnOiae4bjUjlLyjRE7pzzq3oztG3Pm1eOyiQ6
+	ALjRzEDg72A5nGIY9vGO/HQ412ZBOK12Oe902oJsRoJLfAkqPCaH0NnqSXj7FYLp1ewIqaeY4nd
+	mIAdYBKLzDEuHzCfJsTn5VJtfH2HSM4vIYqmGTAKGjPgRtDZBc1kO38P0BhU8TiKFTDmkyk5XOB
+	W1mALJBBrghLVTcLNK7PPEzfp+0ml0aaao/9xyEJGw7s+uoIHjRpU+sF635B0Zk2S8/06NaxHMA
+	wvZ5Epfmjygn+WbhRwN0UKYT9hlEcRdiiCj25+TxLtOcFJA7lsqrDcZNno7cdyi5QNd/bhAE86a
+	9iX/kZyGd5Nc6v4zQwwEj5SHRYrMc=
+X-Received: by 2002:a05:6000:2f86:b0:429:8daa:c6b4 with SMTP id ffacd0b85a97d-429bd6860d5mr4833015f8f.21.1761999765972;
+        Sat, 01 Nov 2025 05:22:45 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFJ+TTH/VeYpEYhd62jH/WbFLaTQZ/6xytSCDTH7QTl8AfN9d4nyTXPMxG2nY+bN2wOvpiPqw==
+X-Received: by 2002:a05:6000:2f86:b0:429:8daa:c6b4 with SMTP id ffacd0b85a97d-429bd6860d5mr4832980f8f.21.1761999765533;
+        Sat, 01 Nov 2025 05:22:45 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169? (p200300d82f3f4b00ee138c225cc5d169.dip0.t-ipconnect.de. [2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4773c53ec2csm45855895e9.11.2025.11.01.05.18.06
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429c110037asm9461926f8f.3.2025.11.01.05.22.43
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 01 Nov 2025 05:18:07 -0700 (PDT)
-Message-ID: <8f3596e9-fe40-4591-946d-65e849955a2f@redhat.com>
-Date: Sat, 1 Nov 2025 13:18:05 +0100
+        Sat, 01 Nov 2025 05:22:45 -0700 (PDT)
+Message-ID: <ae1236da-2647-4d53-bf4d-ff8fc32eb734@redhat.com>
+Date: Sat, 1 Nov 2025 13:22:42 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -89,7 +89,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 06/12] mm: introduce generic lazy_mmu helpers
+Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -113,7 +113,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-7-kevin.brodsky@arm.com>
+ <20251029100909.3381140-8-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -160,85 +160,33 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20251029100909.3381140-7-kevin.brodsky@arm.com>
+In-Reply-To: <20251029100909.3381140-8-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 29.10.25 11:09, Kevin Brodsky wrote:
-> The implementation of the lazy MMU mode is currently entirely
-> arch-specific; core code directly calls arch helpers:
-> arch_{enter,leave}_lazy_mmu_mode().
-> 
-> We are about to introduce support for nested lazy MMU sections.
-> As things stand we'd have to duplicate that logic in every arch
-> implementing lazy_mmu - adding to a fair amount of logic
-> already duplicated across lazy_mmu implementations.
-> 
-> This patch therefore introduces a new generic layer that calls the
-> existing arch_* helpers. Two pair of calls are introduced:
-> 
-> * lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
->      This is the standard case where the mode is enabled for a given
->      block of code by surrounding it with enable() and disable()
->      calls.
-> 
-> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
->      This is for situations where the mode is temporarily disabled
->      by first calling pause() and then resume() (e.g. to prevent any
->      batching from occurring in a critical section).
-> 
-> The documentation in <linux/pgtable.h> will be updated in a
-> subsequent patch.
-> 
-> No functional change should be introduced at this stage.
-> The implementation of enable()/resume() and disable()/pause() is
-> currently identical, but nesting support will change that.
-> 
-> Most of the call sites have been updated using the following
-> Coccinelle script:
-> 
-> @@
-> @@
-> {
-> ...
-> - arch_enter_lazy_mmu_mode();
-> + lazy_mmu_mode_enable();
-> ...
-> - arch_leave_lazy_mmu_mode();
-> + lazy_mmu_mode_disable();
-> ...
-> }
-> 
-> @@
-> @@
-> {
-> ...
-> - arch_leave_lazy_mmu_mode();
-> + lazy_mmu_mode_pause();
-> ...
-> - arch_enter_lazy_mmu_mode();
-> + lazy_mmu_mode_resume();
-> ...
-> }
-> 
-> A couple of notes regarding x86:
-> 
-> * Xen is currently the only case where explicit handling is required
->    for lazy MMU when context-switching. This is purely an
->    implementation detail and using the generic lazy_mmu_mode_*
->    functions would cause trouble when nesting support is introduced,
->    because the generic functions must be called from the current task.
->    For that reason we still use arch_leave() and arch_enter() there.
-> 
-> * x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
->    places, but only defines it if PARAVIRT_XXL is selected, and we
->    are removing the fallback in <linux/pgtable.h>. Add a new fallback
->    definition to <asm/pgtable.h> to keep things building.
-> 
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
 
-Acked-by: David Hildenbrand <david@redhat.com>
+>   static inline void lazy_mmu_mode_pause(void)
+>   {
+> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+> +
+> +	VM_WARN_ON(state->nesting_level == 0 || !state->active);
+> +
+> +	state->active = false;
+>   	arch_leave_lazy_mmu_mode();
+
+Just one question:
+
+Don't we want to allow for pause/resume when not enabled? Would seem 
+valid to me, because pause/resume code should actually not worry about 
+that, right?
+
+if (!state->nesting_level) {
+	VM_WARN_ON(state->active);
+	return;
+}
+VM_WARN_ON(!state->active);
+state->active = false;
+arch_leave_lazy_mmu_mode();
 
 -- 
 Cheers
