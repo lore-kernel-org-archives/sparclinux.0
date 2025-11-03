@@ -1,87 +1,87 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36F46314B90
-	for <sparclinux@vger.kernel.org>; Mon,  3 Nov 2025 16:03:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990412D5432
+	for <sparclinux@vger.kernel.org>; Mon,  3 Nov 2025 16:05:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762185831; cv=none; b=LsJi3AyGMrYTrTlrRTvoFGcnBA/+hKgagFM4s3HdOO1CU5mkkJgtqLT+1fPkffjnoeDRZxHqzxeqHUIvOxAiUjZdaRDE+ROADpN8XDIR2jpGUlHT9rgLLmCCBiSETmmKvFa/ESrxoR00rKPm+yyIwU5baX+Et7IK4SNQaonmLDA=
+	t=1762185955; cv=none; b=XQp451KEFGYl86pT30SCOmCzg+zAFPoAIRdmYCxCAKsqKJGQPHBGuIEKh8+7GC5T6Lf3/a9cLotG02W6utppvrDxzP3kvI1nWoT1dKI4f4sP3GDxd4AsGD2t1nExGWWIRPlHc5i/5NuQuQIHrYEpIE6DuMcxLL9V/m5qUwwQ2Nw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762185831; c=relaxed/simple;
-	bh=W3vMDeaXnHo1OZjfJ7ogXCVgomGfM6sVhl807GF4qFQ=;
+	s=arc-20240116; t=1762185955; c=relaxed/simple;
+	bh=JLZsTfOQxbmf1yQ6RbEFbJ/4JPPfHYrqTcg1BYiIM1Q=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dre9h6B5yVDwLsIo6qS3D5QkqV2Kx16IUkYOnAe4djxgr/KH71PyP0cxRVHuBYvgOWrL/foczkpA9cW+YjebBfAuTPlChm8bsMcjR7hRwuOVoBT7/GMunZLG9W05q/1Rne6/7BjGpow06OEkPxT0ALFSkaIuN1XLZzO7/4cflK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=CGOv8A+C; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=IdnGTy7O; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=Bay1EMD71fmChS1adDPZ/qXkXZwpeEgCed1CfE9rxnID+wsnjZmaf39CnXG2SjFGMBnMU8XnWFE/CeRuYxJL0EqZa9JcRBXTUkYedHuU1BjH+fmfRwfHw8zCo2OBNEdJLxBlkGC0F+b9Wv4HhTtdJPdwtxIcTT/iYEETaffzu9M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=I8WPIVXf; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Wk89wNlb; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CGOv8A+C";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="IdnGTy7O"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="I8WPIVXf";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Wk89wNlb"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1762185829;
+	s=mimecast20190719; t=1762185952;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=lAB1nRPhZgw2D2F/txfufevKSsNDcd09VLHZkiGFvSY=;
-	b=CGOv8A+C7rOGKqKlbbbSqZE9dX/Er5cOUdCLp2IRLzvRs5gu/aTRROl81ixake68mR5XUD
-	XJsjQqMoOtokTA78QmGnISqYuRCtcXuXRf6UGtUqDAAoIFEseVx5YNUxpdpdfRSwxPuOpo
-	Ho3FN1WCHM+/71K8vqR9W0iBH0frLAU=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=h7zqPFP4se4OIaFzLrGpOU2VTLQJoOSY+ZZS4O5etWY=;
+	b=I8WPIVXfQ8hstwRzvy+5Mg0KF7C8NqbZsAaxFu8pXwPEf+YQtKL2P41CzhhJSLWq+gg9Gz
+	f+goi73XTGqnZnVhEL0jhgOPpeNzSCshLIp0h3t1S5KsG1TSDlfZL939/3GvuJ7sHS676c
+	0CVT8U+Euf0gNc9xr87UdlMCvEb6Emc=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-392-FE07qSxsM-CGkKlpxtZzIw-1; Mon, 03 Nov 2025 11:03:46 -0500
-X-MC-Unique: FE07qSxsM-CGkKlpxtZzIw-1
-X-Mimecast-MFC-AGG-ID: FE07qSxsM-CGkKlpxtZzIw_1762185826
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-477171bbf51so24501505e9.3
-        for <sparclinux@vger.kernel.org>; Mon, 03 Nov 2025 08:03:46 -0800 (PST)
+ us-mta-323-VLpms7D6Mc-ITSllOiXVYw-1; Mon, 03 Nov 2025 11:05:49 -0500
+X-MC-Unique: VLpms7D6Mc-ITSllOiXVYw-1
+X-Mimecast-MFC-AGG-ID: VLpms7D6Mc-ITSllOiXVYw_1762185949
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-429be5aeea2so1881274f8f.2
+        for <sparclinux@vger.kernel.org>; Mon, 03 Nov 2025 08:05:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1762185825; x=1762790625; darn=vger.kernel.org;
+        d=redhat.com; s=google; t=1762185949; x=1762790749; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=lAB1nRPhZgw2D2F/txfufevKSsNDcd09VLHZkiGFvSY=;
-        b=IdnGTy7OsnE2zAqC4uRNSHDv2nnsKWaWwDEKfkd6rOuqLLrNTH4UtkLbWj9oBRMkA/
-         O90ZR+R9tBLL/gvJqe7FIVCHpjTLDhvZ8QHar5FAJiOn8xbkPSPXE5ZNH8naG87YzMDi
-         ztr+nHuHD2IjWUnKbBSnvSMiNEGN5KJQSf/kZOj4f3nF1aYc8MhbWubL95Vz6VkW4GEZ
-         iLTSHPeMsxctp5ksd3Czzpo5J1ytLcOO4oALhyJd3AueEKjjTQN0NCIc6+7x38CyW8me
-         z62pAVlWVlKWv7/dWiB2GzT+pE4YqAgYfbHtCi+ROh9zHhoC1L95gMX9dOHdAWYpyvuR
-         mKGA==
+        bh=h7zqPFP4se4OIaFzLrGpOU2VTLQJoOSY+ZZS4O5etWY=;
+        b=Wk89wNlbqK7prn4mWjXdjR+xD+VafA4v8zYM6/LtDPVChB+8aUitsvpns34EnGc4Rl
+         wfbrS+YegsVr/4YHq15OgDe3pCLJKtUaQLuGpiHtyg7S7IDmbNKw3ZHCq1d3xzDXPuQ+
+         q7cJz8tdlC1wvn9VB7/EzmX97bgUYQoJczHE/SuQzALOQ3cXySnCYbyLRdvPoq8p9rJe
+         KlruBUMZAVCTX2CLZ5bUNFDyjkm4P78o1Fadnga14mWYchwP34OL/yz6SpB8yV7A6MRb
+         GZJKGDvx5R4ekcCcXKP70W6PL2jCg0LB/OgUfF/l1+g0jmyNSxDWPdyiFah8j8u9D5Gx
+         v9dA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762185825; x=1762790625;
+        d=1e100.net; s=20230601; t=1762185949; x=1762790749;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
          :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=lAB1nRPhZgw2D2F/txfufevKSsNDcd09VLHZkiGFvSY=;
-        b=eRSYEfrfFQv7NjN3GQ9Xv+JvotM+iA/GFVtftwU15Z/FKQWnnWzdhb3OEEk/SIEudf
-         Dp5zdacd9m0w+zBYHNQYLiP1pmYHw7naROpb9WdRIroOyR4DHsOWQKNaz3olNdCvitGq
-         03xjR6wKAyEU//ggXj/EL5aGevwO8EyC2J8b/V9yapwD7VPKQ/+mIvCCoxP5woDWPxcI
-         16NLq08Su0Err3UMHrni+qql8iSveJ0EMy9BEleDOEuTcrwr1n/zfo84mBW2ZEDmL7kI
-         vQXyxv68VCe4rZES8kpo0W/TAx+Pr9Z31LzHIw7fXVtBdcmyZETD6YO1HZy4/7ndlUUF
-         WEfA==
-X-Forwarded-Encrypted: i=1; AJvYcCWZZy/tlKIDWHaNt2nl8Bq7iX5hL+LGEccmlriUmXh9XPcxUUA81i+QaQekI3opswkMIH92D4dgiOgb@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyw6u6j4RFdxQqDt9k5NV/uh9OYjereju1hf/tBiNQuofwQiyV4
-	aW91aZsO2KzoCbVopd1nCcBS6pr3SDeI2bKdultO5ZhQhlvE/BTzbr9E4YsKD7gBaNuzp21H7EW
-	T+3ZXGQs99QNtrO1jsABqnmL9A77PkbeL3qw77wx/z4epuuF4W1OjR92JIwHhkV8=
-X-Gm-Gg: ASbGncusueFf7u6MgHp1pI5Z7esIrf2RLBwxx7TuNeoME9E/dRKqNkkJgNv9pweNT9M
-	LQd0gM786FivOFex5fHYjn9G7s4fyMjOQR0ynxnq0w6RArvNj6pUPIxE8A6jumkQuoQD97l0CFw
-	9rke8ajJ3VbJ6ofkEXsoEHhiCAKTMX0oawXGX5CL7EUFmBGHJ+K+7upiEoKLAvwZ3NavHUMAAEd
-	qKP8YFcsarsuDUEQIk4KSR0o02Or1NWV2s2anNiYoiBEh8IdCuPqvphFB6TwR5CyyhKsTbdSRBC
-	EV010GKnscaq7amOdCrq83hKiHzxYRef9AMF169UNd8k3S8KPsdhEB++qO2nRTtMVXlN+Dmprc3
-	P57Fkt0XKETdZ3SHwC8SpQ2Nylodp1RjMVIHshyZSdxFc6v+rhCfXJDT8sVFA9minYpjBCGcJ5G
-	FQwrqXRel/HRfgYEXYTAW2eqQc2SY=
-X-Received: by 2002:a05:600d:831c:b0:477:542a:7ed1 with SMTP id 5b1f17b1804b1-477542a7ee4mr3985035e9.19.1762185825551;
-        Mon, 03 Nov 2025 08:03:45 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IE5tyJHb+sues0m+7ZNZilqyo2L9Cho1JQDhJMCuFOgAOZW6Lsc8SY3FhL38SgCM772181+5A==
-X-Received: by 2002:a05:600d:831c:b0:477:542a:7ed1 with SMTP id 5b1f17b1804b1-477542a7ee4mr3984625e9.19.1762185825048;
-        Mon, 03 Nov 2025 08:03:45 -0800 (PST)
+        bh=h7zqPFP4se4OIaFzLrGpOU2VTLQJoOSY+ZZS4O5etWY=;
+        b=mTiK/1/CxwGdaAOH1zxA47ikxJ+y/ZXxQWJlZblLwjeM01n1O+V2WgAmXCUdcy3fiF
+         OKPOUwY3fVo33l+r3UTexRJERrKK25uNkfOhQp+bI9RTTmm0G+er9UNlJDi1agz4R12O
+         TWcE96wl0LnxjXJvP78i/o0fI8KUopqlbqS+ZDYXkvCXtkATZ0AVpUav3CDuvYKyxBRm
+         dzxVdiJBRieYV2V5H8KFwaBdO/qsjataiVZxpLhjCAd8n9YCfg1WKZpVdBw3YT2v49mW
+         X39jCBlhexqi3EYxk6lrxglMwvOiVMw264BMPlz3XuuP/V6GlnFnlT2sUHgCkn8A6lXN
+         ShaA==
+X-Forwarded-Encrypted: i=1; AJvYcCU6axAJjokcs9tHMiTyJVCwJPctnxJanWcZidcvB7si/n28FVzvGtBx5NPklgVkqP2fcLuSAxFVk0Rl@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx1g1QJL/E2gjrcw4aJpiW4bqR2Ub1BAF7AgA+g7xU/T+TD8pqR
+	6T6R0GbyfKwC+tc6FUpqnXfStSILN57W6PWVVuQof4I2ehlhZobGl4O2sM/lhnDADLzfxTFbp2b
+	v5yawCIm+wQxLIoKU+kiYt6gA/1szVbyR6HsyQUg21tkTtrFxFI8F6lYyq+O2P6I=
+X-Gm-Gg: ASbGncs1wPqYYtLi/wkQlFCANR754tbEFL40T6heF0CTJ5IRJ2lsGRBi7oqqH1hoC0K
+	jgYptInng3m2X69Nf9+7GDg0z2VN++J0dBfqfXlUuaCPzVf5lIVJn5B0fbFFXx876W/T+W5t4+i
+	cGnRaib7cd82pzcJ2t1o/kynUBMOt4jsuPn7+C864PkCnUj/lzj4z3nNbI6vQGhC72Si4W+IWnF
+	aOKAzsB53cK2T1R61iivuGG6W+f+luN0Dk5QAI4Og8aIenJGFbUyb5DbsMdE10vOIJYGB+v2UIg
+	lhnoir2icBsm0WnwLdIkwAsMEjOPjnKrVXD/bNakYyPJwgTcStSXlqZZOuGuZAIqnFcr0q3IP4c
+	Fcf+lUfbhapu3l1+bOMhoi0Xwb4Y4p5cawH1chAwLy3bFpPHv8buRfNmjdm59aZP1mlH1eutG+E
+	1L2w+CwrlPgo6JT6SRF1cJSG+gW9Q=
+X-Received: by 2002:a05:6000:2411:b0:427:928:789e with SMTP id ffacd0b85a97d-429bd6d583dmr11477158f8f.61.1762185948307;
+        Mon, 03 Nov 2025 08:05:48 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFc7QNXPV2goDccZBoudQ7Gvk8PWg7e8ZaWNXwQcsQ4X2jdmxCnoJTtoWX7k3mSPaCwOvUqEA==
+X-Received: by 2002:a05:6000:2411:b0:427:928:789e with SMTP id ffacd0b85a97d-429bd6d583dmr11477100f8f.61.1762185947708;
+        Mon, 03 Nov 2025 08:05:47 -0800 (PST)
 Received: from ?IPV6:2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169? (p200300d82f3f4b00ee138c225cc5d169.dip0.t-ipconnect.de. [2003:d8:2f3f:4b00:ee13:8c22:5cc5:d169])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4773c48daa0sm167032215e9.3.2025.11.03.08.03.43
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429c102dfd2sm21748638f8f.0.2025.11.03.08.05.44
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Nov 2025 08:03:44 -0800 (PST)
-Message-ID: <b6f5b3cc-93a0-408a-b7e0-72462f3fd549@redhat.com>
-Date: Mon, 3 Nov 2025 17:03:42 +0100
+        Mon, 03 Nov 2025 08:05:46 -0800 (PST)
+Message-ID: <05e2062c-1689-44e7-9cc6-697646ca075d@redhat.com>
+Date: Mon, 3 Nov 2025 17:05:44 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -89,7 +89,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 08/12] arm64: mm: replace TIF_LAZY_MMU with
+Subject: Re: [PATCH v4 09/12] powerpc/mm: replace batch->active with
  in_lazy_mmu_mode()
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
@@ -114,7 +114,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-9-kevin.brodsky@arm.com>
+ <20251029100909.3381140-10-kevin.brodsky@arm.com>
 From: David Hildenbrand <david@redhat.com>
 Content-Language: en-US
 Autocrypt: addr=david@redhat.com; keydata=
@@ -161,56 +161,31 @@ Autocrypt: addr=david@redhat.com; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20251029100909.3381140-9-kevin.brodsky@arm.com>
+In-Reply-To: <20251029100909.3381140-10-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 29.10.25 11:09, Kevin Brodsky wrote:
+> A per-CPU batch struct is activated when entering lazy MMU mode; its
+> lifetime is the same as the lazy MMU section (it is deactivated when
+> leaving the mode). Preemption is disabled in that interval to ensure
+> that the per-CPU reference remains valid.
+> 
 > The generic lazy_mmu layer now tracks whether a task is in lazy MMU
-> mode. As a result we no longer need a TIF flag for that purpose -
-> let's use the new in_lazy_mmu_mode() helper instead.
+> mode. We can therefore use the generic helper in_lazy_mmu_mode()
+> to tell whether a batch struct is active instead of tracking it
+> explicitly.
 > 
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
->   arch/arm64/include/asm/pgtable.h     | 16 +++-------------
->   arch/arm64/include/asm/thread_info.h |  3 +--
->   2 files changed, 4 insertions(+), 15 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-> index 535435248923..61ca88f94551 100644
-> --- a/arch/arm64/include/asm/pgtable.h
-> +++ b/arch/arm64/include/asm/pgtable.h
-> @@ -62,30 +62,21 @@ static inline void emit_pte_barriers(void)
->   
->   static inline void queue_pte_barriers(void)
->   {
-> -	unsigned long flags;
-> -
->   	if (in_interrupt()) {
->   		emit_pte_barriers();
->   		return;
->   	}
->   
-> -	flags = read_thread_flags();
-> -
-> -	if (flags & BIT(TIF_LAZY_MMU)) {
-> -		/* Avoid the atomic op if already set. */
-> -		if (!(flags & BIT(TIF_LAZY_MMU_PENDING)))
-> -			set_thread_flag(TIF_LAZY_MMU_PENDING);
-> -	} else {
-> +	if (in_lazy_mmu_mode())
-> +		test_and_set_thread_flag(TIF_LAZY_MMU_PENDING);
 
-You likely don't want a test_and_set here, which would do a 
-test_and_set_bit() -- an atomic rmw.
+I suspect you were not able to test this on real HW. Some help from the 
+ppc folks would be appreciated.
 
-You only want to avoid the atomic write if already set.
+LGTM, but the interaction with pause/resume adds a bit of complication 
+on top.
 
-So keep the current
-
-	/* Avoid the atomic op if already set. */
-	if (!(flags & BIT(TIF_LAZY_MMU_PENDING)))
-		set_thread_flag(TIF_LAZY_MMU_PENDING);
+Acked-by: David Hildenbrand <david@redhat.com>
 
 -- 
 Cheers
