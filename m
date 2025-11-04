@@ -1,141 +1,171 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CA301B87C0;
-	Mon,  3 Nov 2025 19:23:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6F8D313524;
+	Tue,  4 Nov 2025 08:44:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762197821; cv=none; b=HrhShMqWM0ZhilHzzn6NoIFAo/Ku4VqiF67roXzVjUZv7t8a+PU/YtB+7fFSEHhWiFPOrdIVF3NXWwPR9f4ECkZ387syKFgKlw8q7nUKJMU/23/ZhD9cYWP/vUgZuOkOQWfx8vR5ETcEBfOqulTMqjEnZJCMpT0LhHd3g+EfFc8=
+	t=1762245887; cv=none; b=FVhpXDpjgEl3ncFWz67hVuLc170caS2QZHOhdMLoA11zOJ8vek153JqL9Js8ecopWrQzAebJGowYHl60YnIclpXjJIQZk3Ugwp0UzyTBbVQkQRNayFCxpxX7jNR+zHbe8iCzIPb4R7c2w+k7nV7k4Dus6gkjWHOGC0vVxCY/RpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762197821; c=relaxed/simple;
-	bh=YF+Dh7k5RXyD8ZknLWrr6zckBVz5y8Jk5LVnJjqJxoY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NoelRET7XDSnU1FeTYwyUgIlFlYaqbHkrVkKalrVg4AXz8X4HYOwkYgoahQfC6sg9CC0qi0O5Yn7EccmD6Wh7hOwGujkYavYryjh4FVRxG+jtYM7gpUf4OmEFYttAVRIKn+aAHDJRKmRmvwNBveXi9xyZCqkFaWnJ+uf55YK/5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c9UT0S1a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762245887; c=relaxed/simple;
+	bh=NToKopaiiCorKnog1Ua+Guz58w6YXipmGADFT5V1BS8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=t1xXNMMMUwqyl7FyunoSk9XmT3YULkeEiVeY/pYtYhAzzmTYN5s8qN3BoWT47vXE3vpmIg67zTD5zRSmIlfR20LRGfQf6IiEVzBBas6i6xWFe0DurgoHryoSv1deDddIGbhXl9U2FctGmOj9pAFfeUuiDGDOoul6ESVPSjkw6l0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=NIfzfLaK; arc=none smtp.client-ip=210.118.77.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c9UT0S1a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BEBEC4CEE7;
-	Mon,  3 Nov 2025 19:23:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1762197821;
-	bh=YF+Dh7k5RXyD8ZknLWrr6zckBVz5y8Jk5LVnJjqJxoY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=c9UT0S1aE+oyoVDfFS4tVvZUGvWl9HiC7/F+Cp66KCVA7C4GhH0PqNtoBTarCw3iW
-	 r2P630kamF4JSjUnf0EzY4gdgF4lREKNM2+yjmeoTw3nLHhjxYDny/gqAjP3iNUL7a
-	 JzIyQ1aRH3QyNtDz4IpxtL5MX/fDHZSJh77cPeKd7LS92GluG1GXIy1BpAiLFwvlox
-	 cRJrDCtLOcgMqEzgJxz44Oa9sLKyl40ixdJjaMo6LOW9qbHf4ryeTRFym1qVmpu9UH
-	 uIilWOADkYHyRHPzn2EvdQ0ZptspxmBomG3l6lNVoh9BMoIycP2QxAs9MQX9p7Fs9q
-	 9DzIobQXg5JOg==
-Message-ID: <a326d1eb-62f1-4add-8dc9-cea7d7e4ed3c@kernel.org>
-Date: Mon, 3 Nov 2025 20:23:30 +0100
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="NIfzfLaK"
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+	by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20251104084442euoutp0102088d40135302607f87347b0dc37851~0wUsqg9XY0417804178euoutp01G;
+	Tue,  4 Nov 2025 08:44:42 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20251104084442euoutp0102088d40135302607f87347b0dc37851~0wUsqg9XY0417804178euoutp01G
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1762245882;
+	bh=4Fu9AdCheOvxz3Im1FXmK3GvN5Xitn31VIJ6mONdECE=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=NIfzfLaKbrHZu0Gnes91/bNFpnUi+PCBujRxqfn1+x6PF4bWcGMTESoPuAVb8BCNe
+	 TtlBUOWDuOkNSnmVQ30DXStAE0ZC8Og/doIluRR7N6u64puk7uGLaCr147tEyKOLdV
+	 mk1n6uHGDW++q0sGM+SWQUfE/wNIAUBaBoIJ+ACU=
+Received: from eusmtip2.samsung.com (unknown [203.254.199.222]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTPA id
+	20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287~0wUr8pCub0922509225eucas1p2b;
+	Tue,  4 Nov 2025 08:44:42 +0000 (GMT)
+Received: from [106.210.134.192] (unknown [106.210.134.192]) by
+	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20251104084440eusmtip27dfa57d3ff654ed50f16a811242c3a65~0wUqFptgI2591225912eusmtip2U;
+	Tue,  4 Nov 2025 08:44:39 +0000 (GMT)
+Message-ID: <e7f05748-a11c-47eb-b1fa-cdc9dc6d05e0@samsung.com>
+Date: Tue, 4 Nov 2025 09:44:38 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 11/12] x86/xen: use lazy_mmu_state when
- context-switching
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-12-kevin.brodsky@arm.com>
- <c7c8a233-2103-4b48-b65e-ec81666d20e4@kernel.org>
- <285faae4-dab6-4819-847a-889bdf87d5d7@arm.com>
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+User-Agent: Betterbird (Windows)
+Subject: Re: [PATCH v4 23/35] vdso/datastore: Map pages through struct page
+To: Mark Brown <broonie@kernel.org>, =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?=
+	<thomas.weissschuh@linutronix.de>
+Cc: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>, Arnd Bergmann
+	<arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Andreas Larsson
+	<andreas@gaisler.com>, Nick Alcock <nick.alcock@oracle.com>, John Stultz
+	<jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, John Paul Adrian
+	Glaubitz <glaubitz@physik.fu-berlin.de>, Shuah Khan <shuah@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+	Theodore Ts'o <tytso@mit.edu>, "Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Russell King <linux@armlinux.org.uk>, Madhavan Srinivasan
+	<maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas
+	Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, Thomas
+	Bogendoerfer <tsbogend@alpha.franken.de>, Heiko Carstens
+	<hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev
+	<agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>, Nagarathnam Muthusamy
+	<nagarathnam.muthusamy@oracle.com>, Shannon Nelson <sln@onemain.com>,
+	linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+	linux-kselftest@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org, linux-s390@vger.kernel.org,
+	Aishwarya.TCV@arm.com
 Content-Language: en-US
-In-Reply-To: <285faae4-dab6-4819-847a-889bdf87d5d7@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <aQjJNmwniQwwjeBR@finisterre.sirena.org.uk>
 Content-Transfer-Encoding: 8bit
+X-CMS-MailID: 20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287
+X-EPHeader: CA
+X-CMS-RootMailID: 20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287
+References: <20251014-vdso-sparc64-generic-2-v4-0-e0607bf49dea@linutronix.de>
+	<20251014-vdso-sparc64-generic-2-v4-23-e0607bf49dea@linutronix.de>
+	<aQjJNmwniQwwjeBR@finisterre.sirena.org.uk>
+	<CGME20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287@eucas1p2.samsung.com>
 
-On 03.11.25 19:29, Kevin Brodsky wrote:
-> On 03/11/2025 16:15, David Hildenbrand (Red Hat) wrote:
->> On 29.10.25 11:09, Kevin Brodsky wrote:
->>> [...]
->>>
->>> @@ -437,7 +436,7 @@ static void xen_end_context_switch(struct
->>> task_struct *next)
->>>          xen_mc_flush();
->>>        leave_lazy(XEN_LAZY_CPU);
->>> -    if (test_and_clear_ti_thread_flag(task_thread_info(next),
->>> TIF_LAZY_MMU_UPDATES))
->>> +    if (next->lazy_mmu_state.active)
->>
->> This is nasty. If in_lazy_mmu_mode() is not sufficient, we will want
->> to have a separate helper that makes it clear what the difference
->> between both variants is.
-> 
-> in_lazy_mmu_mode() operates on current, but here we're operating on a
-> different task. The difference is more fundamental than just passing a
-> task_struct * or not: in_lazy_mmu_mode() is about whether we're
-> currently in lazy MMU mode, i.e. not paused and not in interrupt
-> context. A task that isn't scheduled is never in lazy MMU mode -
-> lazy_mmu_state.active is just the saved state to be restored when
-> scheduled again.
-> 
-> My point here is that we could have a helper for this use-case, but it
-> should not be used in other situations (at least not on current). Maybe
-> __task_lazy_mmu_active(task)? I do wonder if accessing lazy_mmu_state
-> directly isn't expressing the intention well enough though (checking the
-> saved state).
+On 03.11.2025 16:24, Mark Brown wrote:
+> On Tue, Oct 14, 2025 at 08:49:09AM +0200, Thomas Weißschuh wrote:
+>
+>> An upcoming change will allocate the datapages dynamically instead of as
+>> part of the kernel image. Such pages can only be mapped through
+>> 'struct page' and not through PFNs.
+> I'm seeing some boot failures on some arm64 platforms in -next which are
+> bisecting to this patch in -next.  Unfortunately the diagnostics aren't
+> super useful, we seem to just stop making progress in userspace with no
+> obvious output.  One sample log from the FVP is:
+>
+>     https://lava.sirena.org.uk/scheduler/job/2036229#L1268
+>
+> which isn't super instructive.  Not all platforms seem to be affected,
+> I've seen this on at least the Arm FVP, Orion O6 and Libretech Renegade
+> Elite.  The diagnostics aren't very clear here but given that I'm seeing
+> the same issue and bisect result on multiple platforms it seemed worth
+> mentioning.  Some platforms do seem fine.
+>
+> We do have some other serious breakage affecting arm64 in -next which
+> are making it hard to get a clear picture of which platforms are
+> affected, at least the FVP and O6 are unaffected by those other issues
+> (due to using MTE on platforms that don't have it, those platforms do
+> have MTE).
 
+I got almost the same result while bisecting on ARM 32bit Exynos-based 
+boards, so the issue with this patchset is not fully ARM64 specific. For 
+some reasons it also doesn't affect all systems though. It is even 
+worse, because it affected only a subset of boards, but different for 
+each tested commit. The observed failure looks exactly the same:
 
-Likely there should be a
+...
 
-/**
-  * task_lazy_mmu_active - test whether the lazy-mmu mode is active for a
-  *			  task
-  * @task: ...
-  *
-  * The lazy-mmu mode is active if a task has lazy-mmu mode enabled and
-  * currently not paused.
-  */
-static inline bool task_lazy_mmu_active(struct task_struct *task)
-{
-	return task->lazy_mmu_state.active;
-}
+[   10.199852] devtmpfs: mounted
+[   10.205013] Freeing unused kernel image (initmem) memory: 1024K
+[   10.210086] Run /sbin/init as init process
 
-/**
-  * in_lazy_mmu_mode() - test whether current is in lazy-mmu mode
-  *
-  * Test whether the current task is in lazy-mmu mode: whether the
-  * interrupts are enabled and the lazy-mmu mode is active for the
-  * current task.
-  */
-  static inline bool in_lazy_mmu_mode(void)
-  {
-+	if (in_interrupt())
-+		return false;
-+
-  	return task_lazy_mmu_active(current);
-  }
+INIT: version 2.88 booting
 
+(no more messages)
 
-Something like that. Maybe we can find better terminology.
+The only difference is that bisecting on ARM32bit lead me to the next 
+patch (10d91dac2ea5 ("vdso/datastore: Allocate data pages dynamically") 
+/ [PATCH v4 24/35]).
 
+Then I've tested it on ARM64bit (RaspberrryPi3b+ board) and got the 
+following panic on 6a011a228293 ("vdso/datastore: Map pages through 
+struct page") commit:
+
+VFS: Mounted root (ext4 filesystem) on device 179:3. Trying to move old 
+root to /initrd ... okay devtmpfs: mounted Freeing unused kernel memory: 
+12672K Run /sbin/init as init process Unable to handle kernel paging 
+request at virtual address ffffffffc20b5d48 Mem abort info: ESR = 
+0x0000000096000006 EC = 0x25: DABT (current EL), IL = 32 bits SET = 0, 
+FnV = 0 EA = 0, S1PTW = 0 FSC = 0x06: level 2 translation fault Data 
+abort info: ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000 CM = 0, WnR = 
+0, TnD = 0, TagAccess = 0 GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0 
+swapper pgtable: 4k pages, 48-bit VAs, pgdp=000000000230b000 
+[ffffffffc20b5d48] pgd=0000000000000000, p4d=0000000003618403, 
+pud=0000000003619403, pmd=0000000000000000 Internal error: Oops: 
+0000000096000006 [#1] SMP Modules linked in: CPU: 2 UID: 0 PID: 1 Comm: 
+init Tainted: G W 6.18.0-rc1+ #16136 PREEMPT Tainted: [W]=WARN Hardware 
+name: Raspberry Pi 3 Model B (DT) pstate: 80000005 (Nzcv daif -PAN -UAO 
+-TCO -DIT -SSBS BTYPE=--) pc : vvar_fault+0x7c/0x17c lr : 
+vvar_fault+0x24/0x17c ... Call trace: vvar_fault+0x7c/0x17c (P) 
+special_mapping_fault+0x24/0xd0 __do_fault+0x3c/0x238 
+__handle_mm_fault+0xaa0/0x19e0 handle_mm_fault+0xcc/0x384 
+do_page_fault+0x1a0/0x720 do_translation_fault+0x60/0x6c 
+do_mem_abort+0x44/0x94 el0_da+0x54/0x230 el0t_64_sync_handler+0xd0/0xe4 
+el0t_64_sync+0x198/0x19c Code: f2d83fe0 8b010063 d34cfc63 8b031803 
+(f9400461) ---[ end trace 0000000000000000 ]--- Kernel panic - not 
+syncing: Attempted to kill init! exitcode=0x0000000b SMP: stopping 
+secondary CPUs Kernel Offset: disabled CPU features: 
+0x000000,00180000,40004000,0400421b Memory Limit: none ---[ end Kernel 
+panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
+
+Reverting "clocksource: Remove ARCH_CLOCKSOURCE_DATA", "vdso/datastore: 
+Allocate data pages dynamically" and "vdso/datastore: Map pages through 
+struct page" on top of linux-next fixes booting on all tested boards.
+
+Best regards
 -- 
-Cheers
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
-David
