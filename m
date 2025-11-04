@@ -1,91 +1,151 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9E195286D4E;
-	Tue,  4 Nov 2025 11:33:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841812F6924;
+	Tue,  4 Nov 2025 13:14:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762255996; cv=none; b=GIkVxdimwCKkLTX3u0B6tjIa2+/CqTol/kPNyiHfoT3mY+557ikY57VGqScNWQ3j5+lwAdHsWM+xMxTUSVgQD2W3SFiH/hHCIQ2Sxuvz6A84FPjaH+mHBbwhZnfaVQP5RB8PAPQdy1zEcMORSVlHWm8Ux7AHufxXHqEbSmoWgqk=
+	t=1762262047; cv=none; b=XzAhEl8NehWxWhnXAIr/F3OhoEs1X6sPeNkuoC2/lIR85jeWsPSse/rnVfLwf6bzvf6ZPIZVghoH5rX5VFv+VMIICIjURjTNFNFm94Zxa6UgkbDhh7QIiF8Ss7bBl1vCe7nsfjw3XBohA3yQzfQp2VJvai98cYtYn5W9ZsXA4n8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762255996; c=relaxed/simple;
-	bh=6WOQeTavzPrauVi8MwJO524evgvZo3Tkv1ShmH0pjuo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mWBYxQYjVVe8e7+6Ot84II5ZI5SscEwikTldA7u50smpTDvgLr66eX1umS5/khcElV4YFlFzGf8p5RLUeGW+nv43E+O20HQ2BB3H5OSU+/vkZeCqzlBDX48XDH6bafgAzzPwFsQAj86n0z0kzJ6/rfJch8OtSqaLItOz+yaH+kU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D06201C2B;
-	Tue,  4 Nov 2025 03:33:05 -0800 (PST)
-Received: from [10.1.38.100] (e126510-lin.cambridge.arm.com [10.1.38.100])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C979F3F63F;
-	Tue,  4 Nov 2025 03:33:06 -0800 (PST)
-Message-ID: <e3326a9c-108a-4eb2-b12e-bff2b5edd1d3@arm.com>
-Date: Tue, 4 Nov 2025 11:33:03 +0000
+	s=arc-20240116; t=1762262047; c=relaxed/simple;
+	bh=TLHJRTKusGt1SWwlRj6IWh5YXbaorV2upXYBUOE5fxA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uU8cChe63s65rDFnOIVmxvXybOFMTh/5FhW+MQVZK8JD1RP0rf6DaGoAMHxKrsqAbgXEaZyCGpAKiJINwfxlMRMUGcYhzOqyvlm9S/+OMs0i4y7jS6dUZamxfSa7wCJbal3PMoxQ2cg+fo7qNRe3r0KEPIIqcYAFVuILnHTvSy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AUh2v7+A; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AUh2v7+A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC57C116C6;
+	Tue,  4 Nov 2025 13:14:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1762262046;
+	bh=TLHJRTKusGt1SWwlRj6IWh5YXbaorV2upXYBUOE5fxA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=AUh2v7+AGMG1M1KAwd9XVU0ZEEtc0idzYycFUQzUWn8Ne8ZLvkGSSY86BljMoFgdo
+	 s1x1F0zLMZZorAwGBDtwzXG008ekfB2o6bSkbmQN/YZNa0Yb3NX/0Spx1pK5LSCKJX
+	 tPsh/URzrvwZ4vKibGGiB2euAkENeKL+s3715RrKYE3esVh1YmYYRybpx7JSV58juE
+	 JQZeNQaexG/UFiAJgR03lFTyYNyYI4eUvWniKFIwObKCl+z9ty1e1jSGqNI/L/sUlC
+	 EWCrxCOXxDbQZzJGRUZPua9sRtBgCovGFpXYETDAkgeqp8F9+Y6erBbVv1roBV3Qhx
+	 7aVbMCZamwO6w==
+Date: Tue, 4 Nov 2025 13:14:03 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <thomas.weissschuh@linutronix.de>,
+	Andy Lutomirski <luto@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Nick Alcock <nick.alcock@oracle.com>,
+	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Shuah Khan <shuah@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>,
+	"Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>,
+	Shannon Nelson <sln@onemain.com>, linux-kernel@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+	linux-s390@vger.kernel.org, Aishwarya.TCV@arm.com
+Subject: Re: [PATCH v4 23/35] vdso/datastore: Map pages through struct page
+Message-ID: <aQn8G9r2OWv_yEQp@finisterre.sirena.org.uk>
+References: <20251014-vdso-sparc64-generic-2-v4-0-e0607bf49dea@linutronix.de>
+ <20251014-vdso-sparc64-generic-2-v4-23-e0607bf49dea@linutronix.de>
+ <aQjJNmwniQwwjeBR@finisterre.sirena.org.uk>
+ <CGME20251104084442eucas1p2af1bd88393f4d6a532df1cd41f32a287@eucas1p2.samsung.com>
+ <e7f05748-a11c-47eb-b1fa-cdc9dc6d05e0@samsung.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 09/12] powerpc/mm: replace batch->active with
- in_lazy_mmu_mode()
-To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-10-kevin.brodsky@arm.com>
- <05e2062c-1689-44e7-9cc6-697646ca075d@redhat.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <05e2062c-1689-44e7-9cc6-697646ca075d@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rRRcUhwA4JOwqNzp"
+Content-Disposition: inline
+In-Reply-To: <e7f05748-a11c-47eb-b1fa-cdc9dc6d05e0@samsung.com>
+X-Cookie: If in doubt, mumble.
 
-On 03/11/2025 16:05, David Hildenbrand wrote:
-> On 29.10.25 11:09, Kevin Brodsky wrote:
->> A per-CPU batch struct is activated when entering lazy MMU mode; its
->> lifetime is the same as the lazy MMU section (it is deactivated when
->> leaving the mode). Preemption is disabled in that interval to ensure
->> that the per-CPU reference remains valid.
->>
->> The generic lazy_mmu layer now tracks whether a task is in lazy MMU
->> mode. We can therefore use the generic helper in_lazy_mmu_mode()
->> to tell whether a batch struct is active instead of tracking it
->> explicitly.
->>
->> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->> ---
->
-> I suspect you were not able to test this on real HW. Some help from
-> the ppc folks would be appreciated.
 
-Indeed, it would be nice to get some testing on ppc HW that actually
-uses lazy MMU (!radix_enabled()).
+--rRRcUhwA4JOwqNzp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
-> LGTM, but the interaction with pause/resume adds a bit of complication
-> on top.
+On Tue, Nov 04, 2025 at 09:44:38AM +0100, Marek Szyprowski wrote:
+> On 03.11.2025 16:24, Mark Brown wrote:
 
-Does it? This series doesn't change when arch_enter() and arch_leave()
-are called, batch->active and in_lazy_mmu_mode() should coincide. 
+> > We do have some other serious breakage affecting arm64 in -next which
+> > are making it hard to get a clear picture of which platforms are
+> > affected, at least the FVP and O6 are unaffected by those other issues
+> > (due to using MTE on platforms that don't have it, those platforms do
+> > have MTE).
 
-- Kevin
+> I got almost the same result while bisecting on ARM 32bit Exynos-based=20
+> boards, so the issue with this patchset is not fully ARM64 specific. For=
+=20
+> some reasons it also doesn't affect all systems though. It is even=20
+> worse, because it affected only a subset of boards, but different for=20
+> each tested commit. The observed failure looks exactly the same:
+
+I've now got the results for this specific commit, it looks like every
+single arm64 system is failing.  I didn't test any other architectures.
+
+> Then I've tested it on ARM64bit (RaspberrryPi3b+ board) and got the=20
+> following panic on 6a011a228293 ("vdso/datastore: Map pages through=20
+> struct page") commit:
+
+I'm seeing the same thing on at least some of the systems - this is with
+arm64 defconfig (I suspect that's what Marek is doing too).  For
+example:
+
+   https://lava.sirena.org.uk/scheduler/job/2039543#L1109
+
+I didn't check every single failure.  Feeding one of the backtraces
+through addr2line says:
+
+/build/stage/linux/include/linux/page-flags.h:284 (discriminator 2)
+/build/stage/linux/mm/mmap.c:1438
+/build/stage/linux/mm/memory.c:5280
+/build/stage/linux/mm/memory.c:5698
+/build/stage/linux/mm/memory.c:6487
+/build/stage/linux/arch/arm64/mm/fault.c:696
+/build/stage/linux/arch/arm64/mm/fault.c:793
+/build/stage/linux/arch/arm64/mm/fault.c:929 (discriminator 1)
+/build/stage/linux/arch/arm64/include/asm/irqflags.h:55
+/build/stage/linux/arch/arm64/kernel/entry-common.c:767
+/build/stage/linux/arch/arm64/kernel/entry.S:596
+
+(this is for this specific commit.)
+
+--rRRcUhwA4JOwqNzp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmkJ/BcACgkQJNaLcl1U
+h9AuDwf/ZhCLlPLgluyDWUvdRnCQxJ2N1dGVAjMGRwZUyrTvO3LxFTQzkTL5nIcp
+s6gUEfOujaroyD4CcDlNOBBu2V8JtVuzh/NuC5m2O9SbHiLyR2qay111fo14LogV
+u/rKBgA0DjjCOsWmxyWcAB8abWnwgcTjN2YzIzoXh9RR+I/zmwjoOyUcTGGJpNzk
+zT1lZjL5mXvMULyQVTH8fadw8kjyEt0TVMBb/kyMaX0KFWNc2g69WuSH9k72bHhk
+CZp8Nzicv6Tna9Efz9IPio1+lVoEVK3up3fJJHRiorhknWDffaxf3D7VHLvZ5NmA
+hQFWctpg74kN8ORA8oS1+bS5Ni2d/A==
+=CgDl
+-----END PGP SIGNATURE-----
+
+--rRRcUhwA4JOwqNzp--
