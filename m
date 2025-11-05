@@ -1,220 +1,124 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C536C322DA8;
-	Wed,  5 Nov 2025 16:13:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FE86322DA8;
+	Wed,  5 Nov 2025 16:13:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762359207; cv=none; b=JWPcsHW81ljjoNGrt8RlYC6g0kL3VDAbcTh1aWuC+C9A/8l19e/o4nBeREsXZXWPVpcPy5hxwDApyAU5OGUGl+ipJqrt4W6bcinb5l3qhwsAaT6CkBOOWElwhGQyx/B1ZNjmUDN1OEO/apadIw6+sAkYByXUGJr7emArEQ8pqKY=
+	t=1762359235; cv=none; b=Dmhdi/D+Vh9l7M8FFqDS/6zbZukxIJmFg4V1MOU/s7tnOt/swMVj7c+iZY/ZPhJOOzm+PnktyzISkDvhkK0ALO9M+XtFEZVi2igAOrFJ3uTVWP51yapx9iHSg1reH/zzwnjbb+nnrqhQCPRoMsYgrjDyH6O0wmPNTAUDTrn3Cak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762359207; c=relaxed/simple;
-	bh=O1yqjkfjljuLMN5LCjdtF+Mf795IkxgCzpuVl/Ytqf8=;
+	s=arc-20240116; t=1762359235; c=relaxed/simple;
+	bh=Jji1FxMQE0nQwMRkGHd2vycQQBeWk2wadKdm4pviox8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oyfyQZhcuNLWdWiZdmYL6ShpTfLO3lqZnb76xyo2ZByRGKEHWl89dtkKFMhIJS7Rh9lMVq+38U8BBd4V1iYMFlcwWjiLqJep/DPYgZ6OUxc5Fuyn4svkwwadvb2I0UMXcYmwaxRN8P36J5kc5CxV7c3jWoKVxeKt6ymT6nT9sQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=SGkprtBR; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=ME+VpF4znpHJ+vMcPLhjCuhVsgmVTS3Gm5R5jqQhe5RH9qcb4fSQzperEsnpVzVIurTYkytSQgXzcgOYGsOzskjB85533TW9zBf3U2zK8llYT9ypnyPX6ONYRSpxh4PVv174H/Rlrx8YEMQLHdj5wO093Bi1lzXKsl49cLEUozg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=DXD+P7YT; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=uBx1FG07; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="SGkprtBR"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5A54HYRj019236;
-	Wed, 5 Nov 2025 16:12:28 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=hoOO0E96ahCdATo2vQq4UFuH8BQoyW
-	GvRJ67v+d6zmY=; b=SGkprtBRmnhHNGgfbF3sg7Go+c8inCeDqeC9AZjQfWNjqP
-	UlImdvXnB2eMzCk0pwDJKkF+IyFhEL/jEE8u1kZi8IReERwiQ1FVxGw+w2LhH+sy
-	2G0xn4JOOstfTzc1c06KaQNGCHeOXa9vK9rwN0ha3pMsSVpC2jcrtdLnZUA5XPvR
-	m+dXvo/F5oe8kUj+LdeKJtJbBvr0BqSaBvx8WxcuOGrxYtiM/WL6KzUAgfQRUPkh
-	RrK27EIk9Nv7KGFJk1CZtMDciaSlLsrEXmshoHrTVS3KKkC1OsBwg3P57glcc1m8
-	Yx7AzbSh81g2JkUW5G52BRvU1+355886S8zrCK3Q==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a57mra2tj-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Nov 2025 16:12:27 +0000 (GMT)
-Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 5A5FVr3J003755;
-	Wed, 5 Nov 2025 16:12:27 GMT
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4a57mra2tb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Nov 2025 16:12:27 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 5A5Fg5qS009863;
-	Wed, 5 Nov 2025 16:12:26 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4a5x1kgw7a-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Nov 2025 16:12:26 +0000
-Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 5A5GCOji52167096
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 5 Nov 2025 16:12:24 GMT
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3071320043;
-	Wed,  5 Nov 2025 16:12:24 +0000 (GMT)
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 136CC20040;
-	Wed,  5 Nov 2025 16:12:23 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
-	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Wed,  5 Nov 2025 16:12:23 +0000 (GMT)
-Date: Wed, 5 Nov 2025 17:12:21 +0100
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-To: Ritesh Harjani <ritesh.list@gmail.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Woodhouse <dwmw2@infradead.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
-        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
-        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ryan Roberts <ryan.roberts@arm.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
-        Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-        x86@kernel.org
-Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
-Message-ID: <50d1b63a-88d7-4484-82c0-3bde96e3207d-agordeev@linux.ibm.com>
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-8-kevin.brodsky@arm.com>
- <87ms5050g0.ritesh.list@gmail.com>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="DXD+P7YT";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="uBx1FG07"
+Date: Wed, 5 Nov 2025 17:13:49 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1762359231;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=g1kjwvsagYmMzNuZ/CDg1YQEqNnD94LL7vwY0lbT+zs=;
+	b=DXD+P7YTv6IEX026kjt1F8YVXgIehfvUAI2O1StYFCuCM36Ax/oj2ROl9Escj22TUSaV4K
+	XfImvsPVa/mQ0I7DEHuibSVfWzOlMz3M+KgDJSXVorRx5bGPSFHoqM9FycVPirDojnhUtq
+	CbfssrMGHETE2LY0v3CA6uyP4tl9UFs8OzAbl8KW55+3K2/fgA63xL1Sl97z/Vk28JOo6U
+	6Mgp/npslthxLyh+pFwUz6WNsceCFuwjKZjnO/eE/Z4H1ieVecgE0St4CC4+WoGo8HhH3T
+	8wcbegPnMEc80NKfWlyWW2w+PimxAYcJeifVJHoT6Gus/rczh64e5m+aNhrDRg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1762359231;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=g1kjwvsagYmMzNuZ/CDg1YQEqNnD94LL7vwY0lbT+zs=;
+	b=uBx1FG075ggbcRA5/Y07q3BLRHNQ+GDoQ7eqUFqWhPI3pyBOqf8No/MhlVY8xo1RqAIQA2
+	9qHdPiWxMev3tkDw==
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+To: Heiko Carstens <hca@linux.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+	Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Nick Alcock <nick.alcock@oracle.com>, 
+	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Shuah Khan <shuah@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>, 
+	"Jason A. Donenfeld" <Jason@zx2c4.com>, Russell King <linux@armlinux.org.uk>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, 
+	Shannon Nelson <sln@onemain.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
+	linux-s390@vger.kernel.org
+Subject: Re: [PATCH v4 24/35] vdso/datastore: Allocate data pages dynamically
+Message-ID: <20251105170813-070d53d9-aa2a-4cb6-bcda-3bce8c5be9c1@linutronix.de>
+References: <20251014-vdso-sparc64-generic-2-v4-0-e0607bf49dea@linutronix.de>
+ <20251014-vdso-sparc64-generic-2-v4-24-e0607bf49dea@linutronix.de>
+ <20251105153426.16228C13-hca@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <87ms5050g0.ritesh.list@gmail.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 0NFs_GrYa4zcH0BLNom4mOsajrCSPUxj
-X-Authority-Analysis: v=2.4 cv=MKhtWcZl c=1 sm=1 tr=0 ts=690b776c cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=kj9zAlcOel0A:10 a=6UeiqGixMTsA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=CPQ9TFRCZcvXz5jfQC4A:9 a=CjuIK1q_8ugA:10 a=DXsff8QfwkrTrK3sU8N1:22
- a=Z5ABNNGmrOfJ6cZ5bIyy:22 a=bWyr8ysk75zN3GCy5bjg:22
-X-Proofpoint-ORIG-GUID: NNqKmXG2tTtHuvXhjQOh-riRMNlVPLAT
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMTAxMDAwMSBTYWx0ZWRfX2KnrArcnBxcH
- TeGoejtsfYJDuRV3FbvjuDEBFMmDeOQEbaaSQExJ7765sDaLesq0lIorOycsEibo64TNmmHRSNz
- 6XIuQLSaO5SrKkE/QNnJd3smjWHr0HSQ+uA+bMkugv+Df6gPVeHmGXHRAMUP3/n0rbDuuZ3m9UR
- Vw/WmiOn8NrnsxKTvVsuwmGs5I8kM0QBGFJCMl0xuCoTJbnjBxb2U37aEnIf2iT73qQhw1Rsaku
- Qftv0wlHgsh4K3kTYYn5/INUGE4LK5ev6oQVqwHTw5VhjuNirNmgcqWMIXq1s/3gqUc/RmuAgWN
- rH1ZA/5Add3j27sIoKtigY6uE1hzOktXQSO9iyvuDIkbiOtgLSq15NhyhwbIusKnV/r5/eZHbpi
- xbMKu5ZjKQ3ntqUuRquH+Yb1K/SdzA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
- definitions=2025-11-05_06,2025-11-03_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 suspectscore=0 bulkscore=0 impostorscore=0 clxscore=1015
- lowpriorityscore=0 malwarescore=0 adultscore=0 phishscore=0 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.19.0-2510240000 definitions=main-2511010001
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251105153426.16228C13-hca@linux.ibm.com>
 
-On Wed, Nov 05, 2025 at 02:19:03PM +0530, Ritesh Harjani wrote:
-> > + * in_lazy_mmu_mode() can be used to check whether the lazy MMU mode is
-> > + * currently enabled.
-> >   */
-> >  #ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
-> >  static inline void lazy_mmu_mode_enable(void)
-> >  {
-> > -	arch_enter_lazy_mmu_mode();
-> > +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
-> > +
-> > +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
-> > +	/* enable() must not be called while paused */
-> > +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
-> > +
-> > +	if (state->nesting_level++ == 0) {
-> > +		state->active = true;
-> > +		arch_enter_lazy_mmu_mode();
-> > +	}
-> >  }
+On Wed, Nov 05, 2025 at 04:34:26PM +0100, Heiko Carstens wrote:
+> On Tue, Oct 14, 2025 at 08:49:10AM +0200, Thomas Weiﬂschuh wrote:
+> > Allocating the datapages as part of the kernel image does not work on
+> > SPARC. It is also problematic with regards to dcache aliasing as there is
+> > no guarantee that the virtual addresses used by the kernel are compatible
+> > with those used by userspace.
+> > 
+> > Allocate the data pages through the page allocator instead.
+> > Unused pages in the vDSO VMA are still allocated to keep the virtual
+> > addresses aligned.
+> > 
+> > These pages are used by both the timekeeping, random pool and architecture
+> > initialization code. Introduce a new early initialization step, to make
+> > sure they are available when needed.
+> > 
+> > Signed-off-by: Thomas Weiﬂschuh <thomas.weissschuh@linutronix.de>
+> > Tested-by: Andreas Larsson <andreas@gaisler.com>
+> > Reviewed-by: Andreas Larsson <andreas@gaisler.com>
+> > ---
+> >  include/linux/vdso_datastore.h |  6 ++++++
+> >  init/main.c                    |  2 ++
+> >  lib/vdso/datastore.c           | 44 ++++++++++++++++++++++--------------------
+> >  3 files changed, 31 insertions(+), 21 deletions(-)
 > 
-> Some architectures disables preemption in their
-> arch_enter_lazy_mmu_mode(). So shouldn't the state->active = true should
-> happen after arch_enter_lazy_mmu_mode() has disabled preemption()? i.e.
+> ...
+> 
+> > +void __init vdso_setup_data_pages(void)
+> > +{
+> > +	unsigned int order = get_order(VDSO_NR_PAGES * PAGE_SIZE);
+> > +	struct folio *folio = folio_alloc(GFP_KERNEL, order);
+> 
+> I'm seeing random hangs on s390 too with our CI, but unfortunately I cannot
+> reproduce it manually. But looking at one of the dumps it looks to me like the
+> vdso time page contains (more or less) random junk at the end. Or in other
+> words, shouldn't this be:
+> 
+> 	struct folio *folio = folio_alloc(GFP_KERNEL | __GFP_ZERO, order);
+> 
+> ? At least that is a difference to before as far as I can tell.
 
-Do you have some scenario in mind that could cause an issue?
-IOW, what could go wrong if the process is scheduled to another
-CPU before preempt_disable() is called?
+Thanks! This perfectly explains all the weird issues. It also does fix
+the issue on the affected hardware which Mark kindly let me use.
+I'll test it some more and send a fixed series tomorrow.
 
->   static inline void lazy_mmu_mode_enable(void)
->   {
->  -	arch_enter_lazy_mmu_mode();
->  +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->  +
->  +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
->  +	/* enable() must not be called while paused */
->  +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
->  +
->  +	if (state->nesting_level++ == 0) {
->  +		arch_enter_lazy_mmu_mode();
->  +		state->active = true;
->  +	}
->   }
-> 
-> ... I think it make more sense to enable the state after the arch_**
-> call right.
 
-But then in_lazy_mmu_mode() would return false if called from
-arch_enter_lazy_mmu_mode(). Not big problem, but still..
-
-> >  static inline void lazy_mmu_mode_disable(void)
-> >  {
-> > -	arch_leave_lazy_mmu_mode();
-> > +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
-> > +
-> > +	VM_WARN_ON_ONCE(state->nesting_level == 0);
-> > +	VM_WARN_ON(!state->active);
-> > +
-> > +	if (--state->nesting_level == 0) {
-> > +		state->active = false;
-> > +		arch_leave_lazy_mmu_mode();
-> > +	} else {
-> > +		/* Exiting a nested section */
-> > +		arch_flush_lazy_mmu_mode();
-> > +	}
-> >  }
-> 
-> This looks ok though.
-> 
-> >  
-> >  static inline void lazy_mmu_mode_pause(void)
-> >  {
-> > +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
-> > +
-> > +	VM_WARN_ON(state->nesting_level == 0 || !state->active);
-> > +
-> > +	state->active = false;
-> >  	arch_leave_lazy_mmu_mode();
-> >  }
-> >  
-> >  static inline void lazy_mmu_mode_resume(void)
-> >  {
-> > +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
-> > +
-> > +	VM_WARN_ON(state->nesting_level == 0 || state->active);
-> > +
-> > +	state->active = true;
-> >  	arch_enter_lazy_mmu_mode();
-> >  }
-> 
-> Ditto.
-> 
-> -ritesh
+Thanks again!
+Thomas
