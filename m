@@ -1,61 +1,61 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 394C82222CB
-	for <sparclinux@vger.kernel.org>; Wed,  5 Nov 2025 02:55:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72AC625DB1C
+	for <sparclinux@vger.kernel.org>; Wed,  5 Nov 2025 03:41:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762311319; cv=none; b=Ek79oFg2b11UA33FYZlV+SlnpOHDE1f2+2mGSgOPF1ViBYYjZ9YxpRGPA0OdnN//JikqmHZuCoI+xsICizVRid9iXWH8x+0nwA0gWyAvUHbV5QB+5I/ei1yw25Gu4xS9cHZCbHh+Zuhm/EnDrqFo1/kp+/SPeEHeZZT3R4OS3H8=
+	t=1762314119; cv=none; b=X4bp3CAKBvUsBn7TkwayHx+WR1o1F38zlx+j3lZurWXigWQsLo2H9WvmL8QdNdBUDtJQA52Zek/xgj0WN/fTRl8N68STMYVaSkNKhd/nISvVegm7R2Z7lMz9E1iGo5y/E2ekUVJoHWne6k8rfjKCYEUnQCw5Yia2rE9LZPG7y+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762311319; c=relaxed/simple;
-	bh=rkO2Yspx/oAGhWJycTuPZ1CZiQCqrc9YcX1q9+omYEA=;
+	s=arc-20240116; t=1762314119; c=relaxed/simple;
+	bh=A7T7h1LobUivdMEwPvmLCL0uHKn/vDln9L++QIr/1v8=;
 	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
-	 MIME-Version:Content-Type; b=YJAo7ovG5vdw8KfTgcC3Qur+t+8B/Nv6iYCEzMJ/bWYF5oLvNA9ZqwVa/baEjxz5EtTUg1eWj1C6OqSvsnqye1fgimGbC5Mx11oAWqwZR3EdCiaG8s2W/LzJMr7bF+keA8IS+CMk6cHDBLm4Ms/wxYWzAC5z+7zGN6EG8iBMTxk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ItAc5J/9; arc=none smtp.client-ip=209.85.214.169
+	 MIME-Version:Content-Type; b=owFGZNPr1MohVTPQN0EJr/eqe6EONKG7+sdPDHKKpqSI4mth76JlwthcVt+8dWwehvk80lSKJqV8wnn3ky4IWqS4cNCliRh+uJNC3kAECRZ7B7ZnJykqwrwHyw+Uw5aj8lmzqCuBGMsJtx9oqVgtFwXuF2i2SwJVQrmJSu3DFyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VZi7d2sU; arc=none smtp.client-ip=209.85.214.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ItAc5J/9"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-29570bcf220so44582875ad.3
-        for <sparclinux@vger.kernel.org>; Tue, 04 Nov 2025 18:55:17 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VZi7d2sU"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2951a817541so70502735ad.2
+        for <sparclinux@vger.kernel.org>; Tue, 04 Nov 2025 19:41:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1762311317; x=1762916117; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1762314117; x=1762918917; darn=vger.kernel.org;
         h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=RzRgxKaFFDli8ftuhQFfyH2ObKCMh7+2PDYIIzQvueg=;
-        b=ItAc5J/9oOOo4X6ReVED7moF5N+INunHILgjV8ulSa68FrFis7qvkGzK6TDhJPtWOA
-         8gcRVCo4bJR3m2EM2KeDYetxd72fdll5bDIozGuXjN1D3z0TaKw0Rc/ksaiIubQC00wV
-         nNZAUontGG+nZ985AGDCyvyK/yaBKkNcSqFVczLy2k7UcATBoKyeH+kmAAwJomhIj59g
-         BmKyTPI9EfGLoOEUPDOw9bPc6ThUtrpAviuAYZZ7ojVWCoYN6RAsk/iMpMHEwnw8afHK
-         1GEST6KdK8mdpoDlfEVaYan75StU3PXGg1DhJpsRJ7c1cpr6rCotxtF/MD7T/7+ewCQf
-         iemw==
+        bh=9PpcYW9rXkka09Jy11m9xJQRt/n8jdZMdqOTeKYVeZk=;
+        b=VZi7d2sUgMaFcZboFmJzXN6+BycKSs/it+WL0w1wuJbbtKEkYvFP1k6V/6dERNrJdp
+         TqmP/eRybHARHG1kDdqHRYKJmHV8TjTt49/FkRpt85rTK2+sSEiQWRXEJ6zo58dgNzqd
+         FwgwPtJV/BLJTl6aL2Psc2L1Te0M4nVyvoxJAttGB464xD3/5yQl3xouyCx4NrjcHIlq
+         X/LYJEREmMC2yZ5egAY0Ez964tCXaqRstPPkg7x4I/2B9EaofJCiXQvSvErS1q3fMlFa
+         1NKQSBdorRwBVVsU+aByxRbl4YsyTcG+fbuXOaWmoPRDKth1qsXVB41eU9ZI1FOYZOxa
+         zwCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762311317; x=1762916117;
+        d=1e100.net; s=20230601; t=1762314117; x=1762918917;
         h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=RzRgxKaFFDli8ftuhQFfyH2ObKCMh7+2PDYIIzQvueg=;
-        b=sPiz9onsL/74DOJeFoK/W7HxwfY9/gTgBLoB0k8BfY97LJo4lPrkUFgdlDA5xVa18r
-         0vD91ZCgA1JaNJd04NuK+ROHW9Hc4PFyCRhaRyXs5Nzd+jd4dVZyw5Z7ex7V8/eXAwXj
-         +8zxt+CgbYXlQ4xNm+duLcTlM0AKefrk72kkYxWX8M7lvhq8WCtbCLPq4zSinLC+ZCX4
-         YRiFZSgILOqQr26XxvMYLs01gVjMkGyfBXv+c+r0z7TLRozC50xQHFmuQcxr454XDRA6
-         8xmnjHywhrDZ+OSxMlHRj6hPnDIUMdfTYgbR/uXiqB1kuHV3FYWuftoYpwSGi8nU3n/T
-         WgyQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVMB/G+QWeefDCIJQUl4ZpfGutM0L1cuWqdUhS/BYG4hdtAVK1CHdw7zXKeTWpqz2Sjsy3lw8VdeYG3@vger.kernel.org
-X-Gm-Message-State: AOJu0YzF+rGCebGfpxd4aRDYPj9VSQOhJSd8HbmDd2iXtz822Nv5clXp
-	3P3SXF40kLOX8di0kSf2gcuJtUdRwAInpAEKwZ/cT/9pZ0vMEgCMoHSB
-X-Gm-Gg: ASbGnctv4qZ81K5Edcu+FK8bEWZ04HhWHXvTAZwg9xLNk09C+H6HqFb3PafYjhQkg82
-	ix9k7WpIYr0GXJeb6FJ1TTpAFnCmJgwUzThimecOZonaLxUUs6x7xukCQ+zOiSmyAZPLPb0N8d1
-	5oYMerNy4FSXYkX2NJpJ/E+GonNS4biiHg5lMXj64zsa/gsxcs5+88qARQv74w5AWQ6JqNZJLVO
-	6HVSX/c94Goe4ENnBS0vBpgCZ6Q3g7I2hAxpApqj+42zXwoVGlhSHnaUlvMXU+NVPV5yDj9KetU
-	/NDRhmPgV5vIEJoWcu1VzjWypTF0lgpCo9tGjwO4/E0D+j+llKny0PunFJ7McEf0QaHDJTzlwBG
-	L7ujNZ6T7ISV+W3CsRjyqCt5rY2UDrsxVMVHwyXcsiAtGGN6x19KTSVLaL2vciX5yFK259Q==
-X-Google-Smtp-Source: AGHT+IGwTm7URkxWPNS/uaQT82VrA80foZj+Jgsm9GWgCIbhw60EG5vfai2y+vo+uSLgfxHG3bwlGg==
-X-Received: by 2002:a17:903:3c4b:b0:293:33b:a9b0 with SMTP id d9443c01a7336-2962ae10998mr22075795ad.32.1762311317247;
-        Tue, 04 Nov 2025 18:55:17 -0800 (PST)
+        bh=9PpcYW9rXkka09Jy11m9xJQRt/n8jdZMdqOTeKYVeZk=;
+        b=gvWQrpBBTd1LaPXDGU+v/oL7fH0Mhe4KkBX2V1Mij0ipgk9g9hZow3vE6L9jeiadoD
+         YrE8JZo3QeoT2zI3vGp4srGP90ma9Waky066Ld75Tx7O4CuBh2iCFLbGMOmS4XaVHviU
+         fjWLkaKfSV6vrwgKu0bX1sHVIolB6s+/MB5CDkcTOn1CCDc53Af0y7ZzET/AIE/SPIXn
+         sPAwuZBEzv+oT32E4pqDgdOH2mDxsYucPAJLJDUHwd/gxJq367JjqqnWChwX15Z6GRvt
+         bpqzvCnsbtcndVj80yOxHx0w7TUDXhEW5AFsfnNnNByiAwkbJd7Vmek0LUxgXo3ij+Z/
+         BdpA==
+X-Forwarded-Encrypted: i=1; AJvYcCXu0HLfsz/oDmja+IJX+wPpdB+A1jubZBAYNs64ZMwChbwS6xxhzPOuO3xm2vCsD+p0ltd62QGBbrgU@vger.kernel.org
+X-Gm-Message-State: AOJu0YwPGO6l8QLWWunyYXZ4UfRjkav8m/9dWl6bcGa6e9UJidG44mW0
+	cYewUxToToYGz+ZmDMNGkzO9pX7Akhq1pBPwpuSBDfuOcHaVsHqW2AC0
+X-Gm-Gg: ASbGnctnke0xAW4LzhT2atIvI/qVmfAZ/fH6dBm619YaBJM7bF00xRehWqlO9d9DmeT
+	5d0gOSHLfvx4YuGJaGTxNw6rynn+FMl5/KeId0TJO3vNsycKF+7M7H90Ea3e5R7o38yCPt/EhTF
+	48zFcqhlgmK1vXH1bkxW8KFFd6dLWc0vFpuYOOmdxB6yPzqz9/bjmNgsfNHrhKOKrDK2trmwOnV
+	L/iYpcIsFZjzXxkV4/z9ZbQJta5FsmLZznSsN+28xqv/vM7wFYj+lolTFmaaIEsXZ5N4UKhOpSQ
+	jwlohwh37NqgGaeHFm0G9HEj+6fg6Rd/mgEtPpsFeVQLxuGsM6XCPI8GUhqzfpnRa3hfMP71xJr
+	hVIhsVWA4WyjKoIfD1Whv+opDE3IJ4a42Uq5VTEo6ObIpD1G8aN7E8HtLquvoQ4bFchq/Dg==
+X-Google-Smtp-Source: AGHT+IHU+u4c4m70sp/Km2qphWV2GETQaiqBJlBLQ9oH8KuDbSRxjLHzXNgoB+GOOUcEEs7QOw2HMQ==
+X-Received: by 2002:a17:903:944:b0:295:7f1d:b02d with SMTP id d9443c01a7336-2962ad3340fmr26429125ad.22.1762314116721;
+        Tue, 04 Nov 2025 19:41:56 -0800 (PST)
 Received: from dw-tp ([171.76.85.117])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29601b8f28esm43621645ad.5.2025.11.04.18.55.05
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29601a61418sm43663725ad.96.2025.11.04.19.41.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Nov 2025 18:55:16 -0800 (PST)
+        Tue, 04 Nov 2025 19:41:56 -0800 (PST)
 From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, 
@@ -73,13 +73,12 @@ Cc: linux-kernel@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>,
 	Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, 
 	Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>, 
 	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
-	sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, 
-	Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Subject: Re: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB flush
-In-Reply-To: <20251029100909.3381140-2-kevin.brodsky@arm.com>
-Date: Wed, 05 Nov 2025 08:16:58 +0530
-Message-ID: <87qzud42n1.ritesh.list@gmail.com>
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com> <20251029100909.3381140-2-kevin.brodsky@arm.com>
+	sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
+Subject: Re: [PATCH v4 03/12] powerpc/mm: implement arch_flush_lazy_mmu_mode()
+In-Reply-To: <20251029100909.3381140-4-kevin.brodsky@arm.com>
+Date: Wed, 05 Nov 2025 08:45:06 +0530
+Message-ID: <87pl9x41c5.ritesh.list@gmail.com>
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com> <20251029100909.3381140-4-kevin.brodsky@arm.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -90,104 +89,79 @@ Content-Type: text/plain
 
 Kevin Brodsky <kevin.brodsky@arm.com> writes:
 
-> From: Alexander Gordeev <agordeev@linux.ibm.com>
+> Upcoming changes to the lazy_mmu API will cause
+> arch_flush_lazy_mmu_mode() to be called when leaving a nested
+> lazy_mmu section.
 >
-> Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
-> lazy mmu mode") a task can not be preempted while in lazy MMU mode.
-> Therefore, the batch re-activation code is never called, so remove it.
+> Move the relevant logic from arch_leave_lazy_mmu_mode() to
+> arch_flush_lazy_mmu_mode() and have the former call the latter.
 >
-> Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+> Note: the additional this_cpu_ptr() on the
+> arch_leave_lazy_mmu_mode() path will be removed in a subsequent
+> patch.
+>
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
->  arch/powerpc/include/asm/thread_info.h |  2 --
->  arch/powerpc/kernel/process.c          | 25 -------------------------
->  2 files changed, 27 deletions(-)
+>  .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
 >
+> diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+> index 146287d9580f..7704dbe8e88d 100644
+> --- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+> +++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+> @@ -41,6 +41,16 @@ static inline void arch_enter_lazy_mmu_mode(void)
+>  	batch->active = 1;
+>  }
+>  
+> +static inline void arch_flush_lazy_mmu_mode(void)
+> +{
+> +	struct ppc64_tlb_batch *batch;
+> +
+> +	batch = this_cpu_ptr(&ppc64_tlb_batch);
+> +
+> +	if (batch->index)
+> +		__flush_tlb_pending(batch);
+> +}
+> +
 
-Since the commit referenced in above disables the preemption in
-arch_enter_lazy_mmu(), so the expectation is that we will never be
-context switched while in lazy_mmu, hence the code changes in
-switch_to() around __flush_tlb_pending() should ideally never be called.
+This looks a bit scary since arch_flush_lazy_mmu_mode() is getting
+called from several of the places in later patches(). 
 
-With this analysis - the patch looks good to me. I will give this entire
-patch series a try on Power HW with Hash mmu too (which uses lazy mmu and
-let you know the results of that)!
+Although I think arch_flush_lazy_mmu_mode() will only always be called
+in nested lazy mmu case right?
 
-For this patch please feel free to add:
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Do you think we can add a VM_BUG_ON(radix_enabled()); in above to make
+sure the above never gets called in radix_enabled() case. 
 
+I am still going over the patch series, but while reviewing this I
+wanted to take your opinion.
 
-CC: Venkat who also runs CI on linux Power HW for upstream testing :)
+Ohh wait.. There is no way of knowing the return value from
+arch_enter_lazy_mmu_mode().. I think you might need a similar check to
+return from arch_flush_lazy_mmu_mode() too, if radix_enabled() is true.
+
 
 -ritesh
 
 
-> diff --git a/arch/powerpc/include/asm/thread_info.h b/arch/powerpc/include/asm/thread_info.h
-> index b0f200aba2b3..97f35f9b1a96 100644
-> --- a/arch/powerpc/include/asm/thread_info.h
-> +++ b/arch/powerpc/include/asm/thread_info.h
-> @@ -154,12 +154,10 @@ void arch_setup_new_exec(void);
->  /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
->  #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
->  #define TLF_SLEEPING		1	/* suspend code enabled SLEEP mode */
-> -#define TLF_LAZY_MMU		3	/* tlb_batch is active */
->  #define TLF_RUNLATCH		4	/* Is the runlatch enabled? */
->  
->  #define _TLF_NAPPING		(1 << TLF_NAPPING)
->  #define _TLF_SLEEPING		(1 << TLF_SLEEPING)
-> -#define _TLF_LAZY_MMU		(1 << TLF_LAZY_MMU)
->  #define _TLF_RUNLATCH		(1 << TLF_RUNLATCH)
->  
->  #ifndef __ASSEMBLER__
-> diff --git a/arch/powerpc/kernel/process.c b/arch/powerpc/kernel/process.c
-> index eb23966ac0a9..9237dcbeee4a 100644
-> --- a/arch/powerpc/kernel/process.c
-> +++ b/arch/powerpc/kernel/process.c
-> @@ -1281,9 +1281,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
+>  static inline void arch_leave_lazy_mmu_mode(void)
 >  {
->  	struct thread_struct *new_thread, *old_thread;
->  	struct task_struct *last;
-> -#ifdef CONFIG_PPC_64S_HASH_MMU
-> -	struct ppc64_tlb_batch *batch;
-> -#endif
+>  	struct ppc64_tlb_batch *batch;
+> @@ -49,14 +59,11 @@ static inline void arch_leave_lazy_mmu_mode(void)
+>  		return;
+>  	batch = this_cpu_ptr(&ppc64_tlb_batch);
 >  
->  	new_thread = &new->thread;
->  	old_thread = &current->thread;
-> @@ -1291,14 +1288,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
->  	WARN_ON(!irqs_disabled());
+> -	if (batch->index)
+> -		__flush_tlb_pending(batch);
+> +	arch_flush_lazy_mmu_mode();
+>  	batch->active = 0;
+>  	preempt_enable();
+>  }
 >  
->  #ifdef CONFIG_PPC_64S_HASH_MMU
-> -	batch = this_cpu_ptr(&ppc64_tlb_batch);
-> -	if (batch->active) {
-> -		current_thread_info()->local_flags |= _TLF_LAZY_MMU;
-> -		if (batch->index)
-> -			__flush_tlb_pending(batch);
-> -		batch->active = 0;
-> -	}
+> -#define arch_flush_lazy_mmu_mode()      do {} while (0)
 > -
->  	/*
->  	 * On POWER9 the copy-paste buffer can only paste into
->  	 * foreign real addresses, so unprivileged processes can not
-> @@ -1369,20 +1358,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
->  	 */
+>  extern void hash__tlbiel_all(unsigned int action);
 >  
->  #ifdef CONFIG_PPC_BOOK3S_64
-> -#ifdef CONFIG_PPC_64S_HASH_MMU
-> -	/*
-> -	 * This applies to a process that was context switched while inside
-> -	 * arch_enter_lazy_mmu_mode(), to re-activate the batch that was
-> -	 * deactivated above, before _switch(). This will never be the case
-> -	 * for new tasks.
-> -	 */
-> -	if (current_thread_info()->local_flags & _TLF_LAZY_MMU) {
-> -		current_thread_info()->local_flags &= ~_TLF_LAZY_MMU;
-> -		batch = this_cpu_ptr(&ppc64_tlb_batch);
-> -		batch->active = 1;
-> -	}
-> -#endif
-> -
->  	/*
->  	 * Math facilities are masked out of the child MSR in copy_thread.
->  	 * A new task does not need to restore_math because it will
+>  extern void flush_hash_page(unsigned long vpn, real_pte_t pte, int psize,
 > -- 
 > 2.47.0
