@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9B9AA3208;
-	Thu,  6 Nov 2025 10:33:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C76CA30C356;
+	Thu,  6 Nov 2025 10:51:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762425216; cv=none; b=e75k1EX67KM0h7NWnG0Rl/kGWE1IVnKTIHLt/MqVIdAXmFmLP/1b0q7I8LTSKHIZqROLZajaKoKMqsrMiwOHKFGyEdJz4KIsVWcffNAWdVyVWyU10DcpYoPNGgE4p1Hq9KPS54l31Y1vRnNXus9WXHQ1J+2SulUxZR1OuE4m7jI=
+	t=1762426316; cv=none; b=majU8GvOJryZixUwIEYXB5qF2x66llBbWkavSdssXTQKz0Tlq+mk0u/Y3r2z92/WCLBjcmxAjwQcghTfLD60H7/zGc7qPuWwxfgti8Z4U+KD+9+5U4KQ8cSCccSs6txmaHtFT+ahQr/F13CwX6fqhtY1fUvrcF2QerFTrrc7Y6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762425216; c=relaxed/simple;
-	bh=x465xJXhcaYfTrJCzDhbC4TpI332FOXTOW8pxjVPNmg=;
+	s=arc-20240116; t=1762426316; c=relaxed/simple;
+	bh=7/yXcDBWrPx8eFpLNq2UyvRDFcii55Di7HjBeaVPjxY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UpzSYXTHqd0IvIyVDcyy8K0uRINOETdcNUSp10Nx7shbGxRrLZV/iewPZB2PE+wjc3O/TSsGsaYCXNJXTpmp5fHB7pfLKGw3b9OC6JZsguYSyGUVcb2uOIFy7Nzisyj9t/aYsDBmwdzZmQIRwmRzhwbFHsBJKTXpPe4dWoeoeYQ=
+	 In-Reply-To:Content-Type; b=m0xzybE/VHQsxNuXkbVaTvFFY8w4Oee6Csm8rq/K59FaSe7QB8AVaCoXBmy/pz96SffEpGM8Iv3YWjGwSxDoSs+W2HAz/IPo4NvEOW042SBq0MJ63UGCeQdWwn4G7DI5GXrvIeCJxHrTj1MCyLMzfxDWWIymmemjIkvtgjLl5Bk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 260141596;
-	Thu,  6 Nov 2025 02:33:26 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 20A081596;
+	Thu,  6 Nov 2025 02:51:45 -0800 (PST)
 Received: from [10.1.34.75] (unknown [10.1.34.75])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9451F3F66E;
-	Thu,  6 Nov 2025 02:33:26 -0800 (PST)
-Message-ID: <1ac5be9f-fc05-463f-9512-74922acf8980@arm.com>
-Date: Thu, 6 Nov 2025 10:33:24 +0000
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6866A3F63F;
+	Thu,  6 Nov 2025 02:51:46 -0800 (PST)
+Message-ID: <48a4ecb5-3412-4d3f-9e43-535f8bee505f@arm.com>
+Date: Thu, 6 Nov 2025 10:51:43 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,9 +27,10 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 05/12] mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
-To: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
+To: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Ritesh Harjani <ritesh.list@gmail.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
@@ -52,82 +53,74 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
  sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-6-kevin.brodsky@arm.com>
- <87o6ph3xdq.ritesh.list@gmail.com>
+ <20251029100909.3381140-8-kevin.brodsky@arm.com>
+ <87ms5050g0.ritesh.list@gmail.com>
+ <50d1b63a-88d7-4484-82c0-3bde96e3207d-agordeev@linux.ibm.com>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <87o6ph3xdq.ritesh.list@gmail.com>
+In-Reply-To: <50d1b63a-88d7-4484-82c0-3bde96e3207d-agordeev@linux.ibm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 05/11/2025 04:40, Ritesh Harjani (IBM) wrote:
-> Kevin Brodsky <kevin.brodsky@arm.com> writes:
->
->> Architectures currently opt in for implementing lazy_mmu helpers by
->> defining __HAVE_ARCH_ENTER_LAZY_MMU_MODE.
->>
->> In preparation for introducing a generic lazy_mmu layer that will
->> require storage in task_struct, let's switch to a cleaner approach:
->> instead of defining a macro, select a CONFIG option.
->>
->> This patch introduces CONFIG_ARCH_HAS_LAZY_MMU_MODE and has each
->> arch select it when it implements lazy_mmu helpers.
->> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is removed and <linux/pgtable.h>
->> relies on the new CONFIG instead.
->>
->> On x86, lazy_mmu helpers are only implemented if PARAVIRT_XXL is
->> selected. This creates some complications in arch/x86/boot/, because
->> a few files manually undefine PARAVIRT* options. As a result
->> <asm/paravirt.h> does not define the lazy_mmu helpers, but this
->> breaks the build as <linux/pgtable.h> only defines them if
->> !CONFIG_ARCH_HAS_LAZY_MMU_MODE. There does not seem to be a clean
->> way out of this - let's just undefine that new CONFIG too.
->>
->> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->> ---
->>  arch/arm64/Kconfig                                 | 1 +
->>  arch/arm64/include/asm/pgtable.h                   | 1 -
->>  arch/powerpc/include/asm/book3s/64/tlbflush-hash.h | 2 --
->>  arch/powerpc/platforms/Kconfig.cputype             | 1 +
->>  arch/sparc/Kconfig                                 | 1 +
->>  arch/sparc/include/asm/tlbflush_64.h               | 2 --
->>  arch/x86/Kconfig                                   | 1 +
->>  arch/x86/boot/compressed/misc.h                    | 1 +
->>  arch/x86/boot/startup/sme.c                        | 1 +
->>  arch/x86/include/asm/paravirt.h                    | 1 -
->>  include/linux/pgtable.h                            | 2 +-
->>  mm/Kconfig                                         | 3 +++
->>  12 files changed, 10 insertions(+), 7 deletions(-)
-> Maybe we can add this to ... ?
->
-> Documentation/features/vm/lazy_mmu/arch-support.txt
->
-> #
-> # Feature name:          lazy_mmu mode
-> #         Kconfig:       ARCH_HAS_LAZY_MMU_MODE
-> #         description:   arch supports arch_{enter|flush|leave}_lazy_mmu_mode()
-> #
->     -----------------------
->     |         arch |status|
->     -----------------------
->     |       arm64: |  ok  |
->     |     powerpc: |  ok  |
->     |       sparc: |  ok  |
->     |         x86: |  ok  |
->     -----------------------
+On 05/11/2025 16:12, Alexander Gordeev wrote:
+> On Wed, Nov 05, 2025 at 02:19:03PM +0530, Ritesh Harjani wrote:
+>>> + * in_lazy_mmu_mode() can be used to check whether the lazy MMU mode is
+>>> + * currently enabled.
+>>>   */
+>>>  #ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
+>>>  static inline void lazy_mmu_mode_enable(void)
+>>>  {
+>>> -	arch_enter_lazy_mmu_mode();
+>>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+>>> +
+>>> +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
+>>> +	/* enable() must not be called while paused */
+>>> +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
+>>> +
+>>> +	if (state->nesting_level++ == 0) {
+>>> +		state->active = true;
+>>> +		arch_enter_lazy_mmu_mode();
+>>> +	}
+>>>  }
+>> Some architectures disables preemption in their
+>> arch_enter_lazy_mmu_mode(). So shouldn't the state->active = true should
+>> happen after arch_enter_lazy_mmu_mode() has disabled preemption()? i.e.
+> Do you have some scenario in mind that could cause an issue?
+> IOW, what could go wrong if the process is scheduled to another
+> CPU before preempt_disable() is called?
 
-That's an interesting idea but I'm not sure it really makes sense for
-lazy MMU? AFAIU these arch-support.txt files are meant to help identify
-which generic features an arch has support for. Lazy MMU isn't really a
-feature though, in the sense that what it does is entirely defined by
-the arch. This patch does introduce a generic layer, but ultimately it
-remains a collection of arch hooks.
+I'm not sure I understand the issue either.
 
-> As for this patch, the changes are mostly straight forward around the
-> configs part. This looks good to me. Please feel free to add: 
->
-> Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+>>   static inline void lazy_mmu_mode_enable(void)
+>>   {
+>>  -	arch_enter_lazy_mmu_mode();
+>>  +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+>>  +
+>>  +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
+>>  +	/* enable() must not be called while paused */
+>>  +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
+>>  +
+>>  +	if (state->nesting_level++ == 0) {
+>>  +		arch_enter_lazy_mmu_mode();
+>>  +		state->active = true;
+>>  +	}
+>>   }
+>>
+>> ... I think it make more sense to enable the state after the arch_**
+>> call right.
+> But then in_lazy_mmu_mode() would return false if called from
+> arch_enter_lazy_mmu_mode(). Not big problem, but still..
 
-Thanks for the review!
+The ordering of nesting_level/active was the way you expected in v3, but
+the conclusion of the discussion with David H [1] is that it doesn't
+really matter so I simplified the ordering in v4 - the arch hooks
+shouldn't call in_lazy_mmu_mode() or inspect lazy_mmu_state.
+arch_enter()/arch_leave() shouldn't need it anyway since they're called
+once per outer section (not in nested sections). arch_flush() could
+potentially do something different when nested, but that seems unlikely.
 
 - Kevin
+
+[1]
+https://lore.kernel.org/all/af4414b6-617c-4dc8-bddc-3ea00d1f6f3b@redhat.com/
+
