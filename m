@@ -1,145 +1,138 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4643254A7;
-	Thu,  6 Nov 2025 10:02:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1562248B4;
+	Thu,  6 Nov 2025 10:25:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.237.130.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762423361; cv=none; b=OK5Pg1qOh0rWLl0wR/c8oz2L3xFD1NpfKvwdmaI5vdm+bQKYSl1FtAdnDLLYOSVHrnFDrT37QrnR2rj+KdktlmGZTBI7NZIWL5MPTsE0/XcoUY7yEpcoTXM8+tEBPp163KqklLttNt/QC5CwRHW4YN/j3MD8ER33L+zU9JgV/W8=
+	t=1762424760; cv=none; b=OH6sM+BzQHk0qRXWybbMiP64bQo7u5Fgl3wktGZtx7q7Oxx1ZYITYgtdng1yTdy/vPVn+qo37wYNgrAjDAhFUGJRpLMitSN4vZ4P3prwBU47CS/gmw7+ayBOeyF2Hnxa/nhcbtikOJ6APabOe7pHAgzd7Memmo1+/v58zmew9z0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762423361; c=relaxed/simple;
-	bh=R2dVhre2T8n2qzoofQAXu+jOBab42AUukdse5kq9VNI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=IYBL5OhfdJhtOe7/UAQt3qqIK0gwJZPaMH2ex+p5I16S3dc234wJTHNzoByOhjUqvKrqtdfTJc0ws3eJIRn26wnz+XDTYpsHYqMkLVzD0qeHii166TV8P38Pk1Boc0oXmnDdy1JPzV9wsUfX483gMgAgVN5c6W9vlQE46IUWAWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ukZ4xA6V; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=wdet2324; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1762424760; c=relaxed/simple;
+	bh=l6IJfTSubUl1j+bVYQvNukvCpqigIfS4TZId0nfTM9A=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=exhOKCFMjMoVAdFgVTh49oVAjXp8hfC8/zXnmlVExB1uSdKIw/vJ4MncEvLSx1avjOn3VagDgDRZU0OjHL+AInEAs+ZT0nXpxJKeE3J70wwjCU/e0ecCMNi7yVgpwWIZyuPRfrK16fxzlqGEHRmZN5shsSdVusuXQQ7kRfRguLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=sS2O1qPK; arc=none smtp.client-ip=80.237.130.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ukZ4xA6V";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="wdet2324"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1762423351;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Ctw6z2zVCPFpRDjjK/Bor9mxmqzsDUqKVIr3JUMCPTE=;
-	b=ukZ4xA6VMy8Kt0FQwFFNDx6HyFszi48OmTb6Cekc257aWBUoIh9WgBxsG9/zTw+vU9Pdtm
-	+fvMsScYYwWrK2zhQg8UJofVQzw6/PUjMti9i3Duw0pCgYUh0vblcn0ENE/aah4Gk4Z6Gw
-	H2bLt8zmr06JtpY9KYyfH1kYgaQJS1kFRybhmtJHU6WFIG3wlyuYNeaqN7Ce9fBdvJHDlb
-	88lniXb7W0obwS90lw3cTO5V5FceGY0YN3yoXEdRWfz5Plq5boQmmHs6OmzfdbthhEW33p
-	5/8Uy1TW+6kKiVxEygAP6EhTO3e9wi/Md7E2FL8Yzy1fwtLpTnwqQNxg+cC8oA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1762423351;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Ctw6z2zVCPFpRDjjK/Bor9mxmqzsDUqKVIr3JUMCPTE=;
-	b=wdet232463nNOwVZwYlaNoIvfOv/cO2eGPt/hDZAA+phi8f2WLHCMaofKd6ja5fSEFoxe9
-	mV9EP3mCPOxd6hCw==
-Date: Thu, 06 Nov 2025 11:02:27 +0100
-Subject: [PATCH v5 34/34] clocksource: remove ARCH_CLOCKSOURCE_DATA
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="sS2O1qPK"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=leemhuis.info; s=he214686; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:From:
+	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=2IClDRTOjvKr2LkZUS907ZmY/aBDdBWl2pRamxXXXKg=; t=1762424758;
+	x=1762856758; b=sS2O1qPKH4NJcG4nSyZGwY4M8Ue1/enu3lw58G19vP13Gx2RFN+cMlnq1Hh1z
+	GRhYu+CnKcLPTNiUY0Tg9SkYdMbEzKkcwGviLeYwfeH7v1Lx6CSxEy1XdkOfxYFPiw5YlOyNaRazN
+	+2spBnGAC2VujXgqs1YR3EzO8OfbDhn6r/jypRRs+mnbVH0KShSPCtJTQAXBMgmQmtkexIdGETDfL
+	RjeXewmAIcaqLrJcDXfl1IcaEtx5PyT6g0yWx8L+FzFWDVWTltmIgUDS1FkzRiuFYbip504Jny/7N
+	jMkMuo4IiazhKKg4L5G5t1C0ypZWdo3+bGLWS+pRFj0QRMWqrQ==;
+Received: from [2a02:8108:8984:1d00:a0cf:1912:4be:477f]; authenticated
+	by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128)
+	id 1vGxBk-005Y5i-1q;
+	Thu, 06 Nov 2025 11:25:56 +0100
+Message-ID: <35bd11bf-23fa-4ce9-96fb-d10ad6cd546e@leemhuis.info>
+Date: Thu, 6 Nov 2025 11:25:55 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20251106-vdso-sparc64-generic-2-v5-34-97ff2b6542f7@linutronix.de>
-References: <20251106-vdso-sparc64-generic-2-v5-0-97ff2b6542f7@linutronix.de>
-In-Reply-To: <20251106-vdso-sparc64-generic-2-v5-0-97ff2b6542f7@linutronix.de>
-To: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
- Vincenzo Frascino <vincenzo.frascino@arm.com>, 
- Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, Nick Alcock <nick.alcock@oracle.com>, 
- John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
- Shuah Khan <shuah@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
- Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>, 
- "Jason A. Donenfeld" <Jason@zx2c4.com>, 
- Russell King <linux@armlinux.org.uk>, 
- Madhavan Srinivasan <maddy@linux.ibm.com>, 
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
- Christophe Leroy <christophe.leroy@csgroup.eu>, 
- Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, 
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
- Alexander Gordeev <agordeev@linux.ibm.com>, 
- Christian Borntraeger <borntraeger@linux.ibm.com>, 
- Sven Schnelle <svens@linux.ibm.com>, Shannon Nelson <sln@onemain.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, 
- linux-kselftest@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
- linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1762423327; l=1786;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=dQYrfrH6p59kOQp8CklF/Vp09pCtZ6J6GVY/7odturY=;
- b=1Wi9mWGUpw4gouObAIh4SKslvazl7wdxf+u0FsihHL9CxGgJV9Kufo1aP1r6igMIsXWd8O+PB
- zw5j5PN1Fk0Bx4MhmZvwus8qCRYjKYfcFQLyL1yLLHUC/dfVVt3SccB
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+User-Agent: Mozilla Thunderbird
+Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
+To: Nick Bowler <nbowler@draconx.ca>, Esben Haabendal <esben@geanix.com>
+Cc: linux-kernel@vger.kernel.org, regressions@lists.linux.dev,
+ linux-rtc@vger.kernel.org, stable@vger.kernel.org, sparclinux@vger.kernel.org
+References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
+ <DmLaDrfp-izPBqLjB9SAGPy3WVKOPNgg9FInsykhNO3WPEWgltKF5GoDknld3l5xoJxovduV8xn8ygSupvyIFOCCZl0Q0aTXwKT2XhPM1n8=@geanix.com>
+ <ni6gdeax2itvzagwbqkw6oj5xsbx6vqsidop6cbj2oqneovjib@mrwzqakbla35>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: <ni6gdeax2itvzagwbqkw6oj5xsbx6vqsidop6cbj2oqneovjib@mrwzqakbla35>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1762424758;53ba1f3e;
+X-HE-SMSGID: 1vGxBk-005Y5i-1q
 
-From: Arnd Bergmann <arnd@arndb.de>
+Hi, Thorsten here, the Linux kernel's regression tracker. Top-posting
+for once, to make this easily accessible to everyone.
 
-After sparc64, there are no remaining users of ARCH_CLOCKSOURCE_DATA
-and it can just be removed.
+Just wondering: was this fixed in between? Just asking, as I noticed the
+culprit was backported to various stable/longterm series recently
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: John Stultz <jstultz@google.com>
-[Thomas: drop sparc64 bits from the patch]
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Tested-by: Andreas Larsson <andreas@gaisler.com>
-Reviewed-by: Andreas Larsson <andreas@gaisler.com>
----
- include/linux/clocksource.h | 6 +-----
- kernel/time/Kconfig         | 4 ----
- 2 files changed, 1 insertion(+), 9 deletions(-)
+Ciao, Thorsten
 
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index 65b7c41471c390463770c2da13694e58e83b84ea..12d853b1883265cb47d93e33d8370e3957e7e695 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -25,8 +25,7 @@ struct clocksource_base;
- struct clocksource;
- struct module;
- 
--#if defined(CONFIG_ARCH_CLOCKSOURCE_DATA) || \
--    defined(CONFIG_GENERIC_GETTIMEOFDAY)
-+#if defined(CONFIG_GENERIC_GETTIMEOFDAY)
- #include <asm/clocksource.h>
- #endif
- 
-@@ -106,9 +105,6 @@ struct clocksource {
- 	u64			max_idle_ns;
- 	u32			maxadj;
- 	u32			uncertainty_margin;
--#ifdef CONFIG_ARCH_CLOCKSOURCE_DATA
--	struct arch_clocksource_data archdata;
--#endif
- 	u64			max_cycles;
- 	u64			max_raw_delta;
- 	const char		*name;
-diff --git a/kernel/time/Kconfig b/kernel/time/Kconfig
-index 7c6a52f7836cef248e0949060b50baa293f446cf..fe33118770978682d0ff6c6e7990896f42703b50 100644
---- a/kernel/time/Kconfig
-+++ b/kernel/time/Kconfig
-@@ -9,10 +9,6 @@
- config CLOCKSOURCE_WATCHDOG
- 	bool
- 
--# Architecture has extra clocksource data
--config ARCH_CLOCKSOURCE_DATA
--	bool
--
- # Architecture has extra clocksource init called from registration
- config ARCH_CLOCKSOURCE_INIT
- 	bool
+On 10/23/25 15:39, Nick Bowler wrote:
+> On Thu, Oct 23, 2025 at 07:21:21AM +0000, Esben Haabendal wrote:
+>> On Thursday, 23 October 2025 at 06:45, Nick Bowler <nbowler@draconx.ca> wrote:
+>>
+>>> After a stable kernel update, the hwclock command seems no longer
+>>> functional on my SPARC system with an ST M48T59Y-70PC1 RTC:
+>>>
+>>> # hwclock
+>>> [...long delay...]
+>>
+>> I assume this is 10 seconds long.
+> 
+> Yeah, about that.
+> 
+>>> hwclock: select() to /dev/rtc0 to wait for clock tick timed out
+>>
+>> And this is 100% reproducible, or does it sometimes work and sometimes fail?
+> 
+> It fails every time.
+> 
+>> Are you using the util-linux hwclock command? Which version?
+> 
+> hwclock from util-linux 2.40.2
+> 
+>> Do you have CONFIG_RTC_INTF_DEV_UIE_EMUL enabled?
+> 
+> No, this option is not enabled.
+> 
+>> Can you run `hwclock --verbose`, both with and without the reverted commit,
+>> and send the output from that?
+> 
+> 6.18-rc2 (broken):
+> 
+>   # hwclock --verbose
+>   hwclock from util-linux 2.40.2
+>   System Time: 1761226454.799573
+>   Trying to open: /dev/rtc0
+>   Using the rtc interface to the clock.
+>   Last drift adjustment done at 1657523820 seconds after 1969
+>   Last calibration done at 1657523820 seconds after 1969
+>   Hardware clock is on UTC time
+>   Assuming hardware clock is kept in UTC time.
+>   Waiting for clock tick...
+>   hwclock: select() to /dev/rtc0 to wait for clock tick timed out
+>   ...synchronization failed
+> 
+> 6.18-rc2 w/ revert (working):
+> 
+>   # hwclock --verbose
+>   hwclock from util-linux 2.40.2
+>   System Time: 1761226685.238753
+>   Trying to open: /dev/rtc0
+>   Using the rtc interface to the clock.
+>   Last drift adjustment done at 1657523820 seconds after 1969
+>   Last calibration done at 1657523820 seconds after 1969
+>   Hardware clock is on UTC time
+>   Assuming hardware clock is kept in UTC time.
+>   Waiting for clock tick...
+>   ioctl(3, RTC_UIE_ON, 0): Input/output error
+>   Waiting in loop for time from /dev/rtc0 to change
+>   ...got clock tick
+>   Time read from Hardware Clock: 2025/10/23 13:38:06
+>   Hw clock time : 2025/10/23 13:38:06 = 1761226686 seconds since 1969
+>   Time since last adjustment is 103702866 seconds
+>   Calculated Hardware Clock drift is 0.000000 seconds
+>   2025-10-23 09:38:05.239100-04:00
+> 
+> Thanks,
+>   Nick
+> 
 
--- 
-2.51.0
 
+#regzbot poke
