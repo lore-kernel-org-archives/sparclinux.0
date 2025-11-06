@@ -1,38 +1,25 @@
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1562248B4;
-	Thu,  6 Nov 2025 10:25:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.237.130.52
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 309412D9EEF;
+	Thu,  6 Nov 2025 10:30:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762424760; cv=none; b=OH6sM+BzQHk0qRXWybbMiP64bQo7u5Fgl3wktGZtx7q7Oxx1ZYITYgtdng1yTdy/vPVn+qo37wYNgrAjDAhFUGJRpLMitSN4vZ4P3prwBU47CS/gmw7+ayBOeyF2Hnxa/nhcbtikOJ6APabOe7pHAgzd7Memmo1+/v58zmew9z0=
+	t=1762425002; cv=none; b=kcn1yuVETJ428mA2kGEGKuO1NAVfHgxYoUomr+CyxEInPzMat4txuUsrFSud4n16o+QwrAd71st9+E/Z2Dt3egQ/txvbGbJWP3QDXBvLSPDaWP4WTKAhm0WgASQWAGhYMxWTFXJjXCX5lVR3HS28DX/iQFo4/pndv4kEWyYTpM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762424760; c=relaxed/simple;
-	bh=l6IJfTSubUl1j+bVYQvNukvCpqigIfS4TZId0nfTM9A=;
+	s=arc-20240116; t=1762425002; c=relaxed/simple;
+	bh=P+p0lHMmcq6V8XYWa+TFNI2hi5Mi5ePNUn2/hRqUmeM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=exhOKCFMjMoVAdFgVTh49oVAjXp8hfC8/zXnmlVExB1uSdKIw/vJ4MncEvLSx1avjOn3VagDgDRZU0OjHL+AInEAs+ZT0nXpxJKeE3J70wwjCU/e0ecCMNi7yVgpwWIZyuPRfrK16fxzlqGEHRmZN5shsSdVusuXQQ7kRfRguLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=sS2O1qPK; arc=none smtp.client-ip=80.237.130.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="sS2O1qPK"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=leemhuis.info; s=he214686; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:From:
-	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=2IClDRTOjvKr2LkZUS907ZmY/aBDdBWl2pRamxXXXKg=; t=1762424758;
-	x=1762856758; b=sS2O1qPKH4NJcG4nSyZGwY4M8Ue1/enu3lw58G19vP13Gx2RFN+cMlnq1Hh1z
-	GRhYu+CnKcLPTNiUY0Tg9SkYdMbEzKkcwGviLeYwfeH7v1Lx6CSxEy1XdkOfxYFPiw5YlOyNaRazN
-	+2spBnGAC2VujXgqs1YR3EzO8OfbDhn6r/jypRRs+mnbVH0KShSPCtJTQAXBMgmQmtkexIdGETDfL
-	RjeXewmAIcaqLrJcDXfl1IcaEtx5PyT6g0yWx8L+FzFWDVWTltmIgUDS1FkzRiuFYbip504Jny/7N
-	jMkMuo4IiazhKKg4L5G5t1C0ypZWdo3+bGLWS+pRFj0QRMWqrQ==;
-Received: from [2a02:8108:8984:1d00:a0cf:1912:4be:477f]; authenticated
-	by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128)
-	id 1vGxBk-005Y5i-1q;
-	Thu, 06 Nov 2025 11:25:56 +0100
-Message-ID: <35bd11bf-23fa-4ce9-96fb-d10ad6cd546e@leemhuis.info>
-Date: Thu, 6 Nov 2025 11:25:55 +0100
+	 In-Reply-To:Content-Type; b=ObuatkyRTXYZELcc/zob1dlzx8BrRftJoOXl9xNi9Os7p/AVQe/36w8sK/ld1y5bqQqCgxCB0YkVgWz2EU2U5FVxC/8EhV1IF63CjKtqZu+Aly1q3l1BCdjJMPhwLHP1QiqcYb06tCT7yW8cslDP7bt3fhf0qa3Rwg/GNiGqB+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B85731596;
+	Thu,  6 Nov 2025 02:29:52 -0800 (PST)
+Received: from [10.1.34.75] (unknown [10.1.34.75])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CB9A53F66E;
+	Thu,  6 Nov 2025 02:29:53 -0800 (PST)
+Message-ID: <b3e4a92f-5b51-4eee-bfb8-c454add0f0d2@arm.com>
+Date: Thu, 6 Nov 2025 10:29:50 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -40,99 +27,76 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
-To: Nick Bowler <nbowler@draconx.ca>, Esben Haabendal <esben@geanix.com>
-Cc: linux-kernel@vger.kernel.org, regressions@lists.linux.dev,
- linux-rtc@vger.kernel.org, stable@vger.kernel.org, sparclinux@vger.kernel.org
-References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
- <DmLaDrfp-izPBqLjB9SAGPy3WVKOPNgg9FInsykhNO3WPEWgltKF5GoDknld3l5xoJxovduV8xn8ygSupvyIFOCCZl0Q0aTXwKT2XhPM1n8=@geanix.com>
- <ni6gdeax2itvzagwbqkw6oj5xsbx6vqsidop6cbj2oqneovjib@mrwzqakbla35>
-From: Thorsten Leemhuis <regressions@leemhuis.info>
-Content-Language: de-DE, en-US
-In-Reply-To: <ni6gdeax2itvzagwbqkw6oj5xsbx6vqsidop6cbj2oqneovjib@mrwzqakbla35>
+Subject: Re: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB
+ flush
+To: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
+ <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
+ linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org,
+ Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
+ <20251029100909.3381140-2-kevin.brodsky@arm.com>
+ <87qzud42n1.ritesh.list@gmail.com>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <87qzud42n1.ritesh.list@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1762424758;53ba1f3e;
-X-HE-SMSGID: 1vGxBk-005Y5i-1q
 
-Hi, Thorsten here, the Linux kernel's regression tracker. Top-posting
-for once, to make this easily accessible to everyone.
-
-Just wondering: was this fixed in between? Just asking, as I noticed the
-culprit was backported to various stable/longterm series recently
-
-Ciao, Thorsten
-
-On 10/23/25 15:39, Nick Bowler wrote:
-> On Thu, Oct 23, 2025 at 07:21:21AM +0000, Esben Haabendal wrote:
->> On Thursday, 23 October 2025 at 06:45, Nick Bowler <nbowler@draconx.ca> wrote:
+On 05/11/2025 02:46, Ritesh Harjani (IBM) wrote:
+> Kevin Brodsky <kevin.brodsky@arm.com> writes:
+>
+>> From: Alexander Gordeev <agordeev@linux.ibm.com>
 >>
->>> After a stable kernel update, the hwclock command seems no longer
->>> functional on my SPARC system with an ST M48T59Y-70PC1 RTC:
->>>
->>> # hwclock
->>> [...long delay...]
+>> Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
+>> lazy mmu mode") a task can not be preempted while in lazy MMU mode.
+>> Therefore, the batch re-activation code is never called, so remove it.
 >>
->> I assume this is 10 seconds long.
-> 
-> Yeah, about that.
-> 
->>> hwclock: select() to /dev/rtc0 to wait for clock tick timed out
+>> Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+>> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+>> ---
+>>  arch/powerpc/include/asm/thread_info.h |  2 --
+>>  arch/powerpc/kernel/process.c          | 25 -------------------------
+>>  2 files changed, 27 deletions(-)
 >>
->> And this is 100% reproducible, or does it sometimes work and sometimes fail?
-> 
-> It fails every time.
-> 
->> Are you using the util-linux hwclock command? Which version?
-> 
-> hwclock from util-linux 2.40.2
-> 
->> Do you have CONFIG_RTC_INTF_DEV_UIE_EMUL enabled?
-> 
-> No, this option is not enabled.
-> 
->> Can you run `hwclock --verbose`, both with and without the reverted commit,
->> and send the output from that?
-> 
-> 6.18-rc2 (broken):
-> 
->   # hwclock --verbose
->   hwclock from util-linux 2.40.2
->   System Time: 1761226454.799573
->   Trying to open: /dev/rtc0
->   Using the rtc interface to the clock.
->   Last drift adjustment done at 1657523820 seconds after 1969
->   Last calibration done at 1657523820 seconds after 1969
->   Hardware clock is on UTC time
->   Assuming hardware clock is kept in UTC time.
->   Waiting for clock tick...
->   hwclock: select() to /dev/rtc0 to wait for clock tick timed out
->   ...synchronization failed
-> 
-> 6.18-rc2 w/ revert (working):
-> 
->   # hwclock --verbose
->   hwclock from util-linux 2.40.2
->   System Time: 1761226685.238753
->   Trying to open: /dev/rtc0
->   Using the rtc interface to the clock.
->   Last drift adjustment done at 1657523820 seconds after 1969
->   Last calibration done at 1657523820 seconds after 1969
->   Hardware clock is on UTC time
->   Assuming hardware clock is kept in UTC time.
->   Waiting for clock tick...
->   ioctl(3, RTC_UIE_ON, 0): Input/output error
->   Waiting in loop for time from /dev/rtc0 to change
->   ...got clock tick
->   Time read from Hardware Clock: 2025/10/23 13:38:06
->   Hw clock time : 2025/10/23 13:38:06 = 1761226686 seconds since 1969
->   Time since last adjustment is 103702866 seconds
->   Calculated Hardware Clock drift is 0.000000 seconds
->   2025-10-23 09:38:05.239100-04:00
-> 
-> Thanks,
->   Nick
-> 
+> Since the commit referenced in above disables the preemption in
+> arch_enter_lazy_mmu(), so the expectation is that we will never be
+> context switched while in lazy_mmu, hence the code changes in
+> switch_to() around __flush_tlb_pending() should ideally never be called.
 
+Correct, that's the idea.
 
-#regzbot poke
+> With this analysis - the patch looks good to me. I will give this entire
+> patch series a try on Power HW with Hash mmu too (which uses lazy mmu and
+> let you know the results of that)!
+
+That'd be very appreciated, thanks a lot!
+
+> For this patch please feel free to add:
+> Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+>
+>
+> CC: Venkat who also runs CI on linux Power HW for upstream testing :)
+
+Ack, will Cc you both in the next version.
+
+- Kevin
