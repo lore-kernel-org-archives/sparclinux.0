@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 309412D9EEF;
-	Thu,  6 Nov 2025 10:30:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1925E1E5B78;
+	Thu,  6 Nov 2025 10:31:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762425002; cv=none; b=kcn1yuVETJ428mA2kGEGKuO1NAVfHgxYoUomr+CyxEInPzMat4txuUsrFSud4n16o+QwrAd71st9+E/Z2Dt3egQ/txvbGbJWP3QDXBvLSPDaWP4WTKAhm0WgASQWAGhYMxWTFXJjXCX5lVR3HS28DX/iQFo4/pndv4kEWyYTpM0=
+	t=1762425117; cv=none; b=Nt15PTJclJwtNpYBRE+by3h+4qanZYiG0pMDrGHQpPflncDYL/OQOiTSkcPTq+Jl263C7rXFgipjsrGTeWQFFNj8pfkZGmeuUAz3MBNXtWhdZjQGm4U0FBMEAlN5dC80luAmbXpSWMTLrbL1QfCeC/4TmAvTEtIHFFhct906MYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762425002; c=relaxed/simple;
-	bh=P+p0lHMmcq6V8XYWa+TFNI2hi5Mi5ePNUn2/hRqUmeM=;
+	s=arc-20240116; t=1762425117; c=relaxed/simple;
+	bh=MwOtJ+XDknjQvh1eKSlSlxJD9OqwTD5oV9YcUA4abG0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ObuatkyRTXYZELcc/zob1dlzx8BrRftJoOXl9xNi9Os7p/AVQe/36w8sK/ld1y5bqQqCgxCB0YkVgWz2EU2U5FVxC/8EhV1IF63CjKtqZu+Aly1q3l1BCdjJMPhwLHP1QiqcYb06tCT7yW8cslDP7bt3fhf0qa3Rwg/GNiGqB+A=
+	 In-Reply-To:Content-Type; b=fObA9RJCI4ES+z/29D4ldajPtavxzUetXerh3LhvrAT2c8kgkGCO9R3Nk+gC0kjUZGza/W7h3r+kn1WInjpsU1JYkM0OyU7MEOEUZ8thmES3LgKHA1GDZDL+8Z9ektgQ5D75nlgaLgY/BnU7SqgcqxkM5y2vXE2CtlWBYPFpxhQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B85731596;
-	Thu,  6 Nov 2025 02:29:52 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 87B131596;
+	Thu,  6 Nov 2025 02:31:47 -0800 (PST)
 Received: from [10.1.34.75] (unknown [10.1.34.75])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CB9A53F66E;
-	Thu,  6 Nov 2025 02:29:53 -0800 (PST)
-Message-ID: <b3e4a92f-5b51-4eee-bfb8-c454add0f0d2@arm.com>
-Date: Thu, 6 Nov 2025 10:29:50 +0000
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 32C3E3F66E;
+	Thu,  6 Nov 2025 02:31:49 -0800 (PST)
+Message-ID: <0276c749-9418-47ea-85f1-0b0ab93b0225@arm.com>
+Date: Thu, 6 Nov 2025 10:31:46 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,8 +27,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB
- flush
+Subject: Re: [PATCH v4 03/12] powerpc/mm: implement arch_flush_lazy_mmu_mode()
 To: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -51,52 +50,100 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
  Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
  linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-2-kevin.brodsky@arm.com>
- <87qzud42n1.ritesh.list@gmail.com>
+ <20251029100909.3381140-4-kevin.brodsky@arm.com>
+ <87pl9x41c5.ritesh.list@gmail.com> <87jz044xn4.ritesh.list@gmail.com>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <87qzud42n1.ritesh.list@gmail.com>
+In-Reply-To: <87jz044xn4.ritesh.list@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 05/11/2025 02:46, Ritesh Harjani (IBM) wrote:
-> Kevin Brodsky <kevin.brodsky@arm.com> writes:
+On 05/11/2025 09:49, Ritesh Harjani (IBM) wrote:
+> Ritesh Harjani (IBM) <ritesh.list@gmail.com> writes:
 >
->> From: Alexander Gordeev <agordeev@linux.ibm.com>
+>> Kevin Brodsky <kevin.brodsky@arm.com> writes:
 >>
->> Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
->> lazy mmu mode") a task can not be preempted while in lazy MMU mode.
->> Therefore, the batch re-activation code is never called, so remove it.
+>>> Upcoming changes to the lazy_mmu API will cause
+>>> arch_flush_lazy_mmu_mode() to be called when leaving a nested
+>>> lazy_mmu section.
+>>>
+>>> Move the relevant logic from arch_leave_lazy_mmu_mode() to
+>>> arch_flush_lazy_mmu_mode() and have the former call the latter.
+>>>
+>>> Note: the additional this_cpu_ptr() on the
+>>> arch_leave_lazy_mmu_mode() path will be removed in a subsequent
+>>> patch.
+>>>
+>>> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+>>> ---
+>>>  .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 +++++++++++----
+>>>  1 file changed, 11 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+>>> index 146287d9580f..7704dbe8e88d 100644
+>>> --- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+>>> +++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+>>> @@ -41,6 +41,16 @@ static inline void arch_enter_lazy_mmu_mode(void)
+>>>  	batch->active = 1;
+>>>  }
+>>>  
+>>> +static inline void arch_flush_lazy_mmu_mode(void)
+>>> +{
+>>> +	struct ppc64_tlb_batch *batch;
+>>> +
+>>> +	batch = this_cpu_ptr(&ppc64_tlb_batch);
+>>> +
+>>> +	if (batch->index)
+>>> +		__flush_tlb_pending(batch);
+>>> +}
+>>> +
+>> This looks a bit scary since arch_flush_lazy_mmu_mode() is getting
+>> called from several of the places in later patches(). 
 >>
->> Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
->> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->> ---
->>  arch/powerpc/include/asm/thread_info.h |  2 --
->>  arch/powerpc/kernel/process.c          | 25 -------------------------
->>  2 files changed, 27 deletions(-)
+>> Although I think arch_flush_lazy_mmu_mode() will only always be called
+>> in nested lazy mmu case right?
 >>
-> Since the commit referenced in above disables the preemption in
-> arch_enter_lazy_mmu(), so the expectation is that we will never be
-> context switched while in lazy_mmu, hence the code changes in
-> switch_to() around __flush_tlb_pending() should ideally never be called.
-
-Correct, that's the idea.
-
-> With this analysis - the patch looks good to me. I will give this entire
-> patch series a try on Power HW with Hash mmu too (which uses lazy mmu and
-> let you know the results of that)!
-
-That'd be very appreciated, thanks a lot!
-
-> For this patch please feel free to add:
-> Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+>> Do you think we can add a VM_BUG_ON(radix_enabled()); in above to make
+>> sure the above never gets called in radix_enabled() case. 
+>>
+>> I am still going over the patch series, but while reviewing this I
+>> wanted to take your opinion.
+>>
+>> Ohh wait.. There is no way of knowing the return value from
+>> arch_enter_lazy_mmu_mode().. I think you might need a similar check to
+>> return from arch_flush_lazy_mmu_mode() too, if radix_enabled() is true.
+>>
+> Now that I have gone through this series, it seems plaussible that since
+> lazy mmu mode supports nesting, arch_flush_lazy_mmu_mode() can get
+> called while the lazy mmu is active due to nesting.. 
 >
+> That means we should add the radix_enabled() check as I was talking in
+> above i.e. 
 >
-> CC: Venkat who also runs CI on linux Power HW for upstream testing :)
+> @@ -38,6 +38,9 @@ static inline void arch_flush_lazy_mmu_mode(void)
+>  {
+>         struct ppc64_tlb_batch *batch;
+>
+> +       if (radix_enabled())
+> +               return;
+> +
+>         batch = this_cpu_ptr(&ppc64_tlb_batch);
+>
+>         if (batch->index)
+>
+> Correct? Although otherwise also I don't think it should be a problem
+> because batch->index is only valid during hash, but I still think we can
+> add above check so that we don't have to call this_cpu_ptr() to check
+> for batch->index whenever flush is being called.
 
-Ack, will Cc you both in the next version.
+You're right! I missed this because v3 had an extra patch (13) that
+turned all the lazy_mmu_mode_* into no-ops if radix_enabled(). The
+optimisation didn't seem to be worth the noise so I dropped it, but it
+does mean that arch_flush() will now be called in the nested case
+regardless of radix_enabled().
+
+Will fix in v5, thanks!
 
 - Kevin
