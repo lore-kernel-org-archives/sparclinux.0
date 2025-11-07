@@ -1,91 +1,158 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD204227563
-	for <sparclinux@vger.kernel.org>; Fri,  7 Nov 2025 03:06:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2DE452AD22;
+	Fri,  7 Nov 2025 10:16:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762484777; cv=none; b=uHOe2NKJvIFl5mtO/26AQlTVY2ypzJIVNsoqh3oKmTXqzUvLFFVpSZBnwqloCYBUXYs+6meMtxLHS8spOF+PA/xhebKVCShoiy0TK50Okoo/vLO4s+bCN8QTNC/4TLWfqoQEkKerLnUS28J8+Deh3jBEvYKEnH+lKKsqeamd8kw=
+	t=1762510592; cv=none; b=Dord57c2pX+xBDu1CsLyVTKfKTWPN6yKTqUVpiiILq8L10yRngkwqOYM3XrcNkcjkQ17q1Vjt60AdvWRdH2dOpOWWur5sPvGjK7o9abq4ByUcKxHjOnrbU9MFPncfIr1xTYSOU2jtOOGkwWs1K7PEvzmsXoaI5OaPzeOGRlMWtc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762484777; c=relaxed/simple;
-	bh=SqF6cjAe5fIGfKljFwR84iVXlUipV5ARm6YRakF57pM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kQSL5ImdhcjrT1inkJTDXukg55qxTh0xo6QeBhewbbhDLiNjVi1pk45U2QKuIChSQbqoT5TwF1kTxGgMeEkhDYfDdHXFIYpqmha5DivicCJ4xaBKUHM/5mcUglCxJTgyXPNyc43xiAkt1kWqflHhO4FfPxoalDB0LTKKSDB7GJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=cn57xZ0o; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="cn57xZ0o"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-88051279e87so3348826d6.3
-        for <sparclinux@vger.kernel.org>; Thu, 06 Nov 2025 19:06:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1762484775; x=1763089575; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=E56miCz2ucyW7p5RTNikjLhgl4gC4pK61qcfT2Qpt0U=;
-        b=cn57xZ0oPlgAD+CBSKMswSkoX9xKQS1HixdXW5ECEdl1/YgEelftUJw1DUcEfh+duA
-         CqyX7f9UdS2NaP2m4VEwp/qSKjRqSQDW17RbaRWRXGTqnivMrDDO91IRo5di4cHofFo4
-         dDmQShLEs015pKEKpL5+2L1UsNOF0CCOCELwr7VtTZodwebonazUVnNh52D0rcis0esS
-         z9KV+2j1vbSwr3RhKOGq0fn9HINj478kHnk0DOEWVuwsrTs0VH637mEM4F+1mdG3XZr6
-         s+cYsLKU+BMUC+arbyjobnJQiPwtQZS8rT7DMBjEc8kNkXUA+YVqrxCLg6UDZ1dBhD6f
-         oIeQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762484775; x=1763089575;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=E56miCz2ucyW7p5RTNikjLhgl4gC4pK61qcfT2Qpt0U=;
-        b=YruoId7p+bKUsrswyp9LURh659k52NzY0GKtB8sxWj8OLBIjZAGetI3m7L3jgHqSZe
-         A8T0wepTSMDgWOtFmHG57vZvBqbVuYOHV+6vhuU1SadPMO9d6Bzz66R/x11ur2oXo6YC
-         mgOxhqUv+OFFRX0nXc9pJWGYUSArKGw8E2fYR0Pqq8T2VaTBlazlhnoRaMf0WJ9HuEON
-         VUPP7bCIT9HltTYugHqXw8DTUiLQEkMc6g9BKQ4iIh9/9UVNN66B6P++kPBvEozSsBbh
-         6O8MSJ2nGqrdy0OIrkSDDg3byEZ49lUB05fxIF/BKS36g6L0D/fc5sMMPgcZKHcrkrqx
-         grdw==
-X-Forwarded-Encrypted: i=1; AJvYcCVzhVJexzFttzA1ILm1M6fsnI6gJ0qoAGOrX9sxStwvnu+cfxkIFHlA8/5OsgNWEEm2ijwe4+VujXy7@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxe+wGeV8QD0+LWYyUAaQZpesU1AjbWicBwSClWtngbrHf/5eQf
-	ew3Kwf5Y8q4OsS+Y/Q219nJZt9+xzB8YJUGmDLl6uLqU7fflZ2z/v+xNhV5qnbQQQF8=
-X-Gm-Gg: ASbGncs92o1kXashcAHeGWJgYSYhecJHnIDJIv82gNq5/5OPvV2P2p0kIQ15+qK+cfX
-	ULs/WClJCArP6kVXUGn/EpbpiabNON2N74VNH5pqRIT8omG+CmybGrNv6v7j4gBlwvzS83ojR+r
-	1J7NojeeIW+zpAU2gEkvxfY7UqwYjwQXosEqR0d90ydFtXbcwuo8IZrqP2khW37Ar6cKYpz/DFg
-	aZRD4FMYnUqmUPP6jHxM+4L4VpK2SuAuAV4dfxWzinHxQBKsycwxTGIg5uDSUINhGfXYRxFAiX6
-	hWQOs9BRL2l39bKfSFlBVyC/yTeQrOxuIsdiQI+SRCB2x+7naFEqCOaHdNhe2ts1V8/mt8tU4h5
-	S7i+q4PxnAlMYV5yRV/OLfuOmc6zrdb3ICXmhu25rLO0mI1qULQRlY0v3kaPufgwGwp7vcEB9Ar
-	xElMaaLEszbodHAZdNyExloIyxZB7Y3VrROTGvcv1x
-X-Google-Smtp-Source: AGHT+IEwrtDh+N2RU8TdlIkL8MsNx2X7a1H9tD28kPSplx5JFVcsb0223J9Fj+vOzbjZ1jDImx6R0g==
-X-Received: by 2002:a05:6214:4004:b0:87c:108f:676c with SMTP id 6a1803df08f44-88167b17ed2mr26261796d6.25.1762484774711;
-        Thu, 06 Nov 2025 19:06:14 -0800 (PST)
-Received: from localhost (ip-24-156-181-135.user.start.ca. [24.156.181.135])
-        by smtp.gmail.com with UTF8SMTPSA id 6a1803df08f44-88082a38210sm30548476d6.55.2025.11.06.19.06.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Nov 2025 19:06:14 -0800 (PST)
-Date: Thu, 6 Nov 2025 22:06:12 -0500
-From: Nick Bowler <nbowler@draconx.ca>
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Esben Haabendal <esben@geanix.com>, linux-kernel@vger.kernel.org, 
-	regressions@lists.linux.dev, linux-rtc@vger.kernel.org, stable@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
-Message-ID: <e7ezfmqnbduq7jdc7osicqp4rnztu466gpbcxaoj54jfigsvvp@iroscsnamy3c>
-References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
- <DmLaDrfp-izPBqLjB9SAGPy3WVKOPNgg9FInsykhNO3WPEWgltKF5GoDknld3l5xoJxovduV8xn8ygSupvyIFOCCZl0Q0aTXwKT2XhPM1n8=@geanix.com>
- <ni6gdeax2itvzagwbqkw6oj5xsbx6vqsidop6cbj2oqneovjib@mrwzqakbla35>
- <35bd11bf-23fa-4ce9-96fb-d10ad6cd546e@leemhuis.info>
+	s=arc-20240116; t=1762510592; c=relaxed/simple;
+	bh=STNV/u7pnYCstoUuYboqRVtt9ZWaVOqJN0yPpY15LH4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=F/Lop1IWhgAgEluTzCA/Vgu0fy9wfGYXsnXpQAnapPLSOGlD6KM/jfk9QnhgdgnhSeMRYgF2RCf3PBXU2uhfmi5vSYQC4xovbHkwngSzSLkeKjjUlH11QaVLTNXRnSgm+U9xvL8Nnj4Di9e+yI/6GK6cdoveipuENI+ouZzxKHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B30531515;
+	Fri,  7 Nov 2025 02:16:22 -0800 (PST)
+Received: from [10.57.40.58] (unknown [10.57.40.58])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C9F5E3F66E;
+	Fri,  7 Nov 2025 02:16:17 -0800 (PST)
+Message-ID: <9f749c3e-4f93-40c1-b5c6-74d2ead92d00@arm.com>
+Date: Fri, 7 Nov 2025 10:16:12 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <35bd11bf-23fa-4ce9-96fb-d10ad6cd546e@leemhuis.info>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
+To: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Ritesh Harjani <ritesh.list@gmail.com>, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
+ Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
+ <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
+ Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
+ linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+ sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
+ <20251029100909.3381140-8-kevin.brodsky@arm.com>
+ <87ms5050g0.ritesh.list@gmail.com>
+ <50d1b63a-88d7-4484-82c0-3bde96e3207d-agordeev@linux.ibm.com>
+ <48a4ecb5-3412-4d3f-9e43-535f8bee505f@arm.com>
+ <d5435e75-036b-44a5-a989-722e13f94b3e-agordeev@linux.ibm.com>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <d5435e75-036b-44a5-a989-722e13f94b3e-agordeev@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 06, 2025 at 11:25:55AM +0100, Thorsten Leemhuis wrote:
-> Just wondering: was this fixed in between? Just asking, as I noticed the
-> culprit was backported to various stable/longterm series recently
+On 06/11/2025 15:33, Alexander Gordeev wrote:
+>> [...]
+>>>>   static inline void lazy_mmu_mode_enable(void)
+>>>>   {
+>>>>  -	arch_enter_lazy_mmu_mode();
+>>>>  +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
+>>>>  +
+>>>>  +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
+>>>>  +	/* enable() must not be called while paused */
+>>>>  +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
+>>>>  +
+>>>>  +	if (state->nesting_level++ == 0) {
+>>>>  +		arch_enter_lazy_mmu_mode();
+>>>>  +		state->active = true;
+>>>>  +	}
+>>>>   }
+>>>>
+>>>> ... I think it make more sense to enable the state after the arch_**
+>>>> call right.
+>>> But then in_lazy_mmu_mode() would return false if called from
+>>> arch_enter_lazy_mmu_mode(). Not big problem, but still..
+>> The ordering of nesting_level/active was the way you expected in v3, but
+>> the conclusion of the discussion with David H [1] is that it doesn't
+>> really matter so I simplified the ordering in v4 - the arch hooks
+>> shouldn't call in_lazy_mmu_mode() or inspect lazy_mmu_state.
+>> arch_enter()/arch_leave() shouldn't need it anyway since they're called
+>> once per outer section (not in nested sections). arch_flush() could
+>> potentially do something different when nested, but that seems unlikely.
+>>
+>> - Kevin
+>>
+>> [1]
+>> https://lore.kernel.org/all/af4414b6-617c-4dc8-bddc-3ea00d1f6f3b@redhat.com/
+> I might be misunderstand this conversation, but it looked to me as a discussion
+> about lazy_mmu_state::nesting_level value, not lazy_mmu_state::active.
+>
+> I do use in_lazy_mmu_mode() (lazy_mmu_state::active) check from the arch-
+> callbacks. Here is the example (and likely the only case so far) where it hits:
 
-I am not aware of any fix.  I just retested both 6.18-rc4 and 6.17.7 and
-there is no change in behaviour.
+Sorry I didn't mean arch callbacks in general, I meant the ones called
+from lazy_mmu_mode_*, that is arch_*_lazy_mmu_mode.
 
-Thanks,
-  Nick
+Patch 8 also makes use of in_lazy_mmu_mode() in set_pte() et al. on arm64.
+
+- Kevin
+
+> static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+> 				      void *_data)
+> {
+> 	lazy_mmu_mode_pause();
+> 	...
+> 	if (likely(pte_none(ptep_get(ptep)))) {
+>
+> 		/* Here set_pte() checks whether we are in lazy_mmu mode */
+> 		set_pte_at(&init_mm, addr, ptep, pte);	<--- calls set_pte()
+> 		data->pages[index] = NULL;
+> 	}
+> 	...
+> 	lazy_mmu_mode_resume();
+> 	...
+> }
+>
+> So without in_lazy_mmu_mode() check above the arch-specific set_pte()
+> implementation enters a wrong branch, which ends up in:
+>
+> [  394.503134] Call Trace:
+> [  394.503137]  [<00007fffe01333f4>] dump_stack_lvl+0xbc/0xf0 FWIW 
+> [  394.503143]  [<00007fffe010298c>] vpanic+0x1cc/0x418 
+> [  394.503149]  [<00007fffe0102c7a>] panic+0xa2/0xa8 
+> [  394.503154]  [<00007fffe01e7a8a>] check_panic_on_warn+0x8a/0xb0 
+> [  394.503160]  [<00007fffe082d122>] end_report+0x72/0x110 
+> [  394.503166]  [<00007fffe082d3e6>] kasan_report+0xc6/0x100 
+> [  394.503171]  [<00007fffe01b9556>] ipte_batch_ptep_get+0x146/0x150 
+> [  394.503176]  [<00007fffe0830096>] kasan_populate_vmalloc_pte+0xe6/0x1e0 
+> [  394.503183]  [<00007fffe0718050>] apply_to_pte_range+0x1a0/0x570 
+> [  394.503189]  [<00007fffe07260fa>] __apply_to_page_range+0x3ca/0x8f0 
+> [  394.503195]  [<00007fffe0726648>] apply_to_page_range+0x28/0x40 
+> [  394.503201]  [<00007fffe082fe34>] __kasan_populate_vmalloc+0x324/0x340 
+> [  394.503207]  [<00007fffe076954e>] alloc_vmap_area+0x31e/0xbf0 
+> [  394.503213]  [<00007fffe0770106>] __get_vm_area_node+0x1a6/0x2d0 
+> [  394.503218]  [<00007fffe07716fa>] __vmalloc_node_range_noprof+0xba/0x260 
+> [  394.503224]  [<00007fffe0771970>] __vmalloc_node_noprof+0xd0/0x110 
+> [  394.503229]  [<00007fffe0771a22>] vmalloc_noprof+0x32/0x40 
+> [  394.503234]  [<00007fff604eaa42>] full_fit_alloc_test+0xb2/0x3e0 [test_vmalloc] 
+> [  394.503241]  [<00007fff604eb478>] test_func+0x488/0x760 [test_vmalloc] 
+> [  394.503247]  [<00007fffe025ad68>] kthread+0x368/0x630 
+> [  394.503253]  [<00007fffe01391e0>] __ret_from_fork+0xd0/0x490 
+> [  394.503259]  [<00007fffe24e468a>] ret_from_fork+0xa/0x30 
+>
+> I could have cached lazy_mmu_state::active as arch-specific data
+> and check it, but then what is the point to have it generalized?
+>
+> Thanks!
