@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 026603207;
-	Fri,  7 Nov 2025 11:13:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 634C4194098;
+	Fri,  7 Nov 2025 12:25:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762514014; cv=none; b=QeaNeSrl51oTWojRv9EEd5GSBrcuRJLlXvd8Bv+5jHuwWyYtA3j9fLTjukrqR6hRelRXO2KB5l0y3cMxUjNQ2VKWeQjdLLLsXhpRxflM1zrBl4OZe3brucDmpNDY+C/uBDXEBokBo4h3wGSzX6DFQS3OEYwNouducuRaayZDLZM=
+	t=1762518311; cv=none; b=ObYbSB+OhHNMay785H7pPZjuRvD+eTfUhRNCIsPwe6moPrzwcJzUN+OhboPyESCWj5no0kfWbuw4llhRYeB0HDypgcrnLuZMDXxfOVW+RBSh8NxRRirvT+LSq4cD56f/ma40ZfRp24p4Oqa+QncNiw1j/RBq4gq1ipSYkK53lLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762514014; c=relaxed/simple;
-	bh=wcjIESsao+1zJZZHHAcwvWkQUWvBcOdgvfdZlvxEZ8M=;
+	s=arc-20240116; t=1762518311; c=relaxed/simple;
+	bh=3cilhgiSYCIrrJOiI2EwFQzJ+EH2KoTh4JRCuDCd1tg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=P75uo9VLgdWyRdC9jqzJY5+kYQHSgCY2FBg6S0+sCCfnuK/jC7YXY7YzTSCg/ngoSZ3h+sD2buPJ65daJUtn4e7FUGO0MUy9X26KVM2uQdKOpUiHHmgd73ktpynQMc51aCwKyZhbtLo7wd7QlavIv0q5+dMLl63/I2+UsYUqQfU=
+	 In-Reply-To:Content-Type; b=oJwMXggH1ix24W3NWAAc0FSsztjrwm0q0oZZLq0zX4Gog655YMx8kaquu4TfRCFUJMx0yG7G4XAvk1Uc/WqTWsUL0XViaT+S3bhTMls7x64RzYB0FphCx6dbQF+4uTbvKekZigbbVr1h2iUAfMP8NiDBaXhzHEhEOQ0/Kb+0aig=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 802C51477;
-	Fri,  7 Nov 2025 03:13:24 -0800 (PST)
-Received: from [10.1.36.52] (unknown [10.1.36.52])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 21B713F63F;
-	Fri,  7 Nov 2025 03:13:28 -0800 (PST)
-Message-ID: <84dab8b1-ea28-4dcc-9721-9aaa6fcd12ba@arm.com>
-Date: Fri, 7 Nov 2025 11:13:15 +0000
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B6E851515;
+	Fri,  7 Nov 2025 04:25:00 -0800 (PST)
+Received: from [10.57.86.134] (unknown [10.57.86.134])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id AF63F3F66E;
+	Fri,  7 Nov 2025 04:25:03 -0800 (PST)
+Message-ID: <daa2025c-43da-4c16-9393-a90574d74f64@arm.com>
+Date: Fri, 7 Nov 2025 12:25:02 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,10 +27,11 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
-To: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+Subject: Re: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB
+ flush
+Content-Language: en-GB
+To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
@@ -46,87 +47,101 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
  Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
+ Peter Zijlstra <peterz@infradead.org>, Suren Baghdasaryan
+ <surenb@google.com>, Thomas Gleixner <tglx@linutronix.de>,
+ Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+ Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-8-kevin.brodsky@arm.com>
- <87ms5050g0.ritesh.list@gmail.com>
- <50d1b63a-88d7-4484-82c0-3bde96e3207d-agordeev@linux.ibm.com>
- <87ikfn3yvs.ritesh.list@gmail.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <87ikfn3yvs.ritesh.list@gmail.com>
+ <20251029100909.3381140-2-kevin.brodsky@arm.com>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <20251029100909.3381140-2-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 06/11/2025 16:32, Ritesh Harjani (IBM) wrote:
-> Alexander Gordeev <agordeev@linux.ibm.com> writes:
->
->> On Wed, Nov 05, 2025 at 02:19:03PM +0530, Ritesh Harjani wrote:
->>>> + * in_lazy_mmu_mode() can be used to check whether the lazy MMU mode is
->>>> + * currently enabled.
->>>>   */
->>>>  #ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->>>>  static inline void lazy_mmu_mode_enable(void)
->>>>  {
->>>> -	arch_enter_lazy_mmu_mode();
->>>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>>> +
->>>> +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
->>>> +	/* enable() must not be called while paused */
->>>> +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
->>>> +
->>>> +	if (state->nesting_level++ == 0) {
->>>> +		state->active = true;
->>>> +		arch_enter_lazy_mmu_mode();
->>>> +	}
->>>>  }
->>> Some architectures disables preemption in their
->>> arch_enter_lazy_mmu_mode(). So shouldn't the state->active = true should
->>> happen after arch_enter_lazy_mmu_mode() has disabled preemption()? i.e.
->> Do you have some scenario in mind that could cause an issue?
->>
-> No not really. But that's a deviation from what previous arch hooks were
-> expecting. Although thinking this through - I don't have any usecase
-> where this can be a problem.
+On 29/10/2025 10:08, Kevin Brodsky wrote:
+> From: Alexander Gordeev <agordeev@linux.ibm.com>
+> 
+> Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
+> lazy mmu mode") a task can not be preempted while in lazy MMU mode.
+> Therefore, the batch re-activation code is never called, so remove it.
+> 
+> Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 
-Which arch hook expectations are you referring to?
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 
-> But let me re-visit some of the code paths on ppc64 lazy mmu... 
->
-> Looking at the arch specific usecase I see we always do get_cpu_var()
-> for accessing the per-cpu batch array which disables preemption before
-> accessing the per-cpu structure.. This per-cpu structure is where we
-> batch pte updates...
+> ---
+>  arch/powerpc/include/asm/thread_info.h |  2 --
+>  arch/powerpc/kernel/process.c          | 25 -------------------------
+>  2 files changed, 27 deletions(-)
+> 
+> diff --git a/arch/powerpc/include/asm/thread_info.h b/arch/powerpc/include/asm/thread_info.h
+> index b0f200aba2b3..97f35f9b1a96 100644
+> --- a/arch/powerpc/include/asm/thread_info.h
+> +++ b/arch/powerpc/include/asm/thread_info.h
+> @@ -154,12 +154,10 @@ void arch_setup_new_exec(void);
+>  /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
+>  #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
+>  #define TLF_SLEEPING		1	/* suspend code enabled SLEEP mode */
+> -#define TLF_LAZY_MMU		3	/* tlb_batch is active */
+>  #define TLF_RUNLATCH		4	/* Is the runlatch enabled? */
+>  
+>  #define _TLF_NAPPING		(1 << TLF_NAPPING)
+>  #define _TLF_SLEEPING		(1 << TLF_SLEEPING)
+> -#define _TLF_LAZY_MMU		(1 << TLF_LAZY_MMU)
+>  #define _TLF_RUNLATCH		(1 << TLF_RUNLATCH)
+>  
+>  #ifndef __ASSEMBLER__
+> diff --git a/arch/powerpc/kernel/process.c b/arch/powerpc/kernel/process.c
+> index eb23966ac0a9..9237dcbeee4a 100644
+> --- a/arch/powerpc/kernel/process.c
+> +++ b/arch/powerpc/kernel/process.c
+> @@ -1281,9 +1281,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
+>  {
+>  	struct thread_struct *new_thread, *old_thread;
+>  	struct task_struct *last;
+> -#ifdef CONFIG_PPC_64S_HASH_MMU
+> -	struct ppc64_tlb_batch *batch;
+> -#endif
+>  
+>  	new_thread = &new->thread;
+>  	old_thread = &current->thread;
+> @@ -1291,14 +1288,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
+>  	WARN_ON(!irqs_disabled());
+>  
+>  #ifdef CONFIG_PPC_64S_HASH_MMU
+> -	batch = this_cpu_ptr(&ppc64_tlb_batch);
+> -	if (batch->active) {
+> -		current_thread_info()->local_flags |= _TLF_LAZY_MMU;
+> -		if (batch->index)
+> -			__flush_tlb_pending(batch);
+> -		batch->active = 0;
+> -	}
+> -
+>  	/*
+>  	 * On POWER9 the copy-paste buffer can only paste into
+>  	 * foreign real addresses, so unprivileged processes can not
+> @@ -1369,20 +1358,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
+>  	 */
+>  
+>  #ifdef CONFIG_PPC_BOOK3S_64
+> -#ifdef CONFIG_PPC_64S_HASH_MMU
+> -	/*
+> -	 * This applies to a process that was context switched while inside
+> -	 * arch_enter_lazy_mmu_mode(), to re-activate the batch that was
+> -	 * deactivated above, before _switch(). This will never be the case
+> -	 * for new tasks.
+> -	 */
+> -	if (current_thread_info()->local_flags & _TLF_LAZY_MMU) {
+> -		current_thread_info()->local_flags &= ~_TLF_LAZY_MMU;
+> -		batch = this_cpu_ptr(&ppc64_tlb_batch);
+> -		batch->active = 1;
+> -	}
+> -#endif
+> -
+>  	/*
+>  	 * Math facilities are masked out of the child MSR in copy_thread.
+>  	 * A new task does not need to restore_math because it will
 
-arch_enter() disables preemption so accesses to per-CPU variables
-anywhere in the section shouldn't be an issue either way.
-
-The bigger picture (regarding patch 9) is that what in_lazy_mmu_state()
-returns is based on the current task's state (not a per-CPU variable),
-and always false while in interrupt. As a result whether preemption is
-disabled or not should make no difference, only program order matters.
-
-- Kevin
-
-> For e.g... 
->   
->     arch_enter_lazy_mmu_mode()
->         hpte_need_flush()
->             get_cpu_var()   // this takes care of preempt_disable() 
->             adds vpns to per-cpu batch[i]
->             put_cpu_var()   // 
->     arch_leave_lazy_mmu_mode()
->
->> IOW, what could go wrong if the process is scheduled to another
->> CPU before preempt_disable() is called?
-> So from above - I don't think your sequence to update
->    state->active = true 
-> before calling arch_enter hook should be a problem.
-> Based on above this looks mostly ok to me.
->
-> -ritesh
