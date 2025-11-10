@@ -1,145 +1,187 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D35FC211A14;
-	Mon, 10 Nov 2025 10:48:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C2530CD8E;
+	Mon, 10 Nov 2025 11:24:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762771717; cv=none; b=tpHvj1gYCRoyggmrOJAVLrgCUijRcPgmvrOy6pcyqsgwhztC4sy33THns+7+bTxvbUnVnc8BsA6hAIJTZRE/pweEWCIpPUtRjwQYeV9912Gc9s4U6Q8TSs9aZk5HmW6iIs2pAz9F0a0OThcrgDHM+ssLqQDfJoo8VapBOILFM6Y=
+	t=1762773857; cv=none; b=Ml18Jx3OJG+//QhG750oH4FY2rM2EYLk0FcVp3wBdqO50m4ErobJQcw/mYbco7hiTb6xnsWzT+sz1NvLAeVnok3zIHBVY4UAS0zNi+KFY4hVgUEEu96VZLd8iBScoSmzlqpS1VOrgzOH74GhaC3Y+4+UofskvbZxjDHRngQDQhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762771717; c=relaxed/simple;
-	bh=ZIfJgcsUGcQAHsjVRdxt6Yur9mIBlLhyH/RPJPjkf4Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TqhthClNREIuvQHJSvA4HWRFn7CEil0CdU2Bf8AKwZB4hnOnAntmXSQUlCbsuGJbLIN8DXKsJHre4LeshMarVARTi2Ark5BzDILgtWTrub+5eCDHso3LLG6YUovGYBdzF62NrxbRgb3uVi+A4SSZCKTF41kPMSvio8N/z2KDepE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9BB20497;
-	Mon, 10 Nov 2025 02:48:27 -0800 (PST)
-Received: from [10.57.39.147] (unknown [10.57.39.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A51E03F66E;
-	Mon, 10 Nov 2025 02:48:27 -0800 (PST)
-Message-ID: <f7ed51e6-c3f6-402c-b328-8af5f970006d@arm.com>
-Date: Mon, 10 Nov 2025 11:48:24 +0100
+	s=arc-20240116; t=1762773857; c=relaxed/simple;
+	bh=t7oYPr0nA5k7sctEhM/hJB7ljC3f9ZRuI/DqK+KCKaM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ntL+VskuwEBFCIr34zs3aJT5s8Shp2Ek29miaXvQ6atdXy6NxgZBi5kbrqh55n9QyRgmdhaXHLUfUESmI6kOP8eEFBH0P03INARw/cTUW+nLQ//xkfi7nnIRJHQMIDQpqbgOo7z1yQ4HbNZphWSmlpRDuZ+GlTM5mX9pc/ffLZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=DXEFd4Uj; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=OGD8oKbf; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="DXEFd4Uj";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="OGD8oKbf"
+Date: Mon, 10 Nov 2025 12:24:13 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1762773853;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p96pAwq/VC3UfPWRsm0wtdyMQb6nexxAkpfro+m18b4=;
+	b=DXEFd4UjN9Qd6hW+g2n27mHddszaRAS18B/aA/XIVGLJc2KTiyMZLtg5QqpWMb8uU/H3B9
+	KxnWzKfryNbO05muzqQ3EH/Qy5Ex39fIt9aYPvZwzk7tYaYM0Ga4rAGfDqmWVm/ijDiqJe
+	UreuQgu+ljTfyt03fyLMCP2q72vQK65Yg3bTwRjrhywPiUNs3bonCC/dovrLW3yrxbzRLi
+	SEetB1OBIOrzMR9Pm7BKtsFVVl7zaT8kZoGkXTgYkXKJlzu5u5qpoGroxIRpsPxffobOnp
+	2wiRdJptvgJPn1+5yi2wq0KxIAFgq0y5/TLYt4qlSVLaw1erJhuu6jtNQWRfXw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1762773853;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p96pAwq/VC3UfPWRsm0wtdyMQb6nexxAkpfro+m18b4=;
+	b=OGD8oKbfgNkv/Z96N3ixFCGRB4K/UzZRB9Pseb2rl8K66Ye5pHYKSiQNyZcS40WSC4Ian5
+	duIbPgXrooL+qfDQ==
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+To: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
+	Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Nick Alcock <nick.alcock@oracle.com>, 
+	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Shuah Khan <shuah@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>, 
+	Russell King <linux@armlinux.org.uk>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Huacai Chen <chenhuacai@kernel.org>, 
+	WANG Xuerui <kernel@xen0n.name>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Shannon Nelson <sln@onemain.com>, linux-kernel@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
+	linux-mips@vger.kernel.org, linux-s390@vger.kernel.org
+Subject: Re: [PATCH v5 19/34] random: vDSO: only access vDSO datapage after
+ random_init()
+Message-ID: <20251110114550-a3f2afa8-4f86-4048-be5b-2dc4f4ef340d@linutronix.de>
+References: <20251106-vdso-sparc64-generic-2-v5-0-97ff2b6542f7@linutronix.de>
+ <20251106-vdso-sparc64-generic-2-v5-19-97ff2b6542f7@linutronix.de>
+ <aQ6EvdukQytvqK-u@zx2c4.com>
+ <20251110094555-353883a9-1950-4cc6-a774-bb0ef5db11c5@linutronix.de>
+ <aRHAU7bVAIyaOrpA@zx2c4.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 12/12] mm: bail out of lazy_mmu_mode_* in interrupt
- context
-To: Ryan Roberts <ryan.roberts@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Suren Baghdasaryan
- <surenb@google.com>, Thomas Gleixner <tglx@linutronix.de>,
- Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
- Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
- xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-13-kevin.brodsky@arm.com>
- <8a38db66-4d1a-4296-a2dc-e0276c6cdde8@arm.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <8a38db66-4d1a-4296-a2dc-e0276c6cdde8@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <aRHAU7bVAIyaOrpA@zx2c4.com>
 
-On 07/11/2025 15:42, Ryan Roberts wrote:
-> On 29/10/2025 10:09, Kevin Brodsky wrote:
->> The lazy MMU mode cannot be used in interrupt context. This is
->> documented in <linux/pgtable.h>, but isn't consistently handled
->> across architectures.
->>
->> arm64 ensures that calls to lazy_mmu_mode_* have no effect in
->> interrupt context, because such calls do occur in certain
->> configurations - see commit b81c688426a9 ("arm64/mm: Disable barrier
->> batching in interrupt contexts"). Other architectures do not check
->> this situation, most likely because it hasn't occurred so far.
->>
->> Both arm64 and x86/Xen also ensure that any lazy MMU optimisation is
->> disabled while in interrupt mode (see queue_pte_barriers() and
->> xen_get_lazy_mode() respectively).
->>
->> Let's handle this in the new generic lazy_mmu layer, in the same
->> fashion as arm64: bail out of lazy_mmu_mode_* if in_interrupt(), and
->> have in_lazy_mmu_mode() return false to disable any optimisation.
->> Also remove the arm64 handling that is now redundant; x86/Xen has
->> its own internal tracking so it is left unchanged.
->>
->> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
->> ---
->>  arch/arm64/include/asm/pgtable.h | 17 +----------------
->>  include/linux/pgtable.h          | 16 ++++++++++++++--
->>  include/linux/sched.h            |  3 +++
->>  3 files changed, 18 insertions(+), 18 deletions(-)
->>
->> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
->> index 61ca88f94551..96987a49e83b 100644
->> --- a/arch/arm64/include/asm/pgtable.h
->> +++ b/arch/arm64/include/asm/pgtable.h
->> @@ -62,37 +62,22 @@ static inline void emit_pte_barriers(void)
->>  
->>  static inline void queue_pte_barriers(void)
->>  {
->> -	if (in_interrupt()) {
->> -		emit_pte_barriers();
->> -		return;
->> -	}
->> -
->>  	if (in_lazy_mmu_mode())
->>  		test_and_set_thread_flag(TIF_LAZY_MMU_PENDING);
->>  	else
->>  		emit_pte_barriers();
->>  }
->>  
->> -static inline void arch_enter_lazy_mmu_mode(void)
->> -{
->> -	if (in_interrupt())
->> -		return;
->> -}
->> +static inline void arch_enter_lazy_mmu_mode(void) {}
->>  
->>  static inline void arch_flush_lazy_mmu_mode(void)
->>  {
->> -	if (in_interrupt())
->> -		return;
->> -
->>  	if (test_and_clear_thread_flag(TIF_LAZY_MMU_PENDING))
->>  		emit_pte_barriers();
->>  }
->>  
->>  static inline void arch_leave_lazy_mmu_mode(void)
->>  {
->> -	if (in_interrupt())
->> -		return;
->> -
->>  	arch_flush_lazy_mmu_mode();
->>  }
-> Ahh ok, by the time you get to the final state, I think a most of my
-> comments/concerns are solved. Certainly this now looks safe for the interrupt
-> case, whereas I think the intermediate state when you initially introduce
-> nesting is broken. So perhaps you want to look at how to rework it to prevent that.
+On Mon, Nov 10, 2025 at 11:37:07AM +0100, Jason A. Donenfeld wrote:
+> On Mon, Nov 10, 2025 at 10:04:17AM +0100, Thomas Weißschuh wrote:
+> > On Sat, Nov 08, 2025 at 12:46:05AM +0100, Jason A. Donenfeld wrote:
+> > > I'm not a huge fan of this change:
+> > > 
+> > > On Thu, Nov 06, 2025 at 11:02:12AM +0100, Thomas Weißschuh wrote:
+> > > > +static DEFINE_STATIC_KEY_FALSE(random_vdso_is_ready);
+> > > >  
+> > > >  /* Control how we warn userspace. */
+> > > >  static struct ratelimit_state urandom_warning =
+> > > > @@ -252,6 +253,9 @@ static void random_vdso_update_generation(unsigned long next_gen)
+> > > >  	if (!IS_ENABLED(CONFIG_VDSO_GETRANDOM))
+> > > >  		return;
+> > > >  
+> > > > +	if (!static_branch_likely(&random_vdso_is_ready))
+> > > > +		return;
+> > > > +
+> > > >  	/* base_crng.generation's invalid value is ULONG_MAX, while
+> > > >  	 * vdso_k_rng_data->generation's invalid value is 0, so add one to the
+> > > >  	 * former to arrive at the latter. Use smp_store_release so that this
+> > > > @@ -274,6 +278,9 @@ static void random_vdso_set_ready(void)
+> > > >  	if (!IS_ENABLED(CONFIG_VDSO_GETRANDOM))
+> > > >  		return;
+> > > >  
+> > > > +	if (!static_branch_likely(&random_vdso_is_ready))
+> > > > +		return;
+> > > > +
+> > > >  	WRITE_ONCE(vdso_k_rng_data->is_ready, true);
+> > > >  }
+> > > >  
+> > > > @@ -925,6 +932,9 @@ void __init random_init(void)
+> > > >  	_mix_pool_bytes(&entropy, sizeof(entropy));
+> > > >  	add_latent_entropy();
+> > > >  
+> > > > +	if (IS_ENABLED(CONFIG_VDSO_GETRANDOM))
+> > > > +		static_branch_enable(&random_vdso_is_ready);
+> > > > +
+> > > >  	/*
+> > > >  	 * If we were initialized by the cpu or bootloader before jump labels
+> > > >  	 * or workqueues are initialized, then we should enable the static
+> > > > @@ -934,8 +944,10 @@ void __init random_init(void)
+> > > >  		crng_set_ready(NULL);
+> > > >  
+> > > >  	/* Reseed if already seeded by earlier phases. */
+> > > > -	if (crng_ready())
+> > > > +	if (crng_ready()) {
+> > > >  		crng_reseed(NULL);
+> > > > +		random_vdso_set_ready();
+> > > > +	}
+> > > 
+> > > The fact that the vdso datapage is set up by the time random_init() is
+> > > called seems incredibly contingent on init details. Why not, instead,
+> > > make this a necessary part of the structure of vdso setup code, which
+> > > can actually know about what happens when?
+> > 
+> > The whole early init is "carefully" ordered in any case. I would have been
+> > happy to allocate the data pages before the random initialization, but the
+> > allocator is not yet usable by then.
+> > We could also make the ordering more visible by having the vDSO datastore call
+> > into a dedicated function to allow the random core to touch the data pages:
+> > random_vdso_enable_datapages().
+> > 
+> > > For example, one clean way of
+> > > doing that would be to make vdso_k_rng_data always valid by having it
+> > > initially point to __initdata memory, and then when it's time to
+> > > initialize the real datapage, memcpy() the __initdata memory to the new
+> > > specially allocated memory. Then we don't need the complex state
+> > > tracking that this commit and the prior one introduce.
+> > 
+> > Wouldn't that require synchronization between the update path and the memcpy()
+> > path? Also if the pointer is going to change at some point we'll probably need
+> > to use READ_ONCE()/WRITE_ONCE(). In general I would be happy about a cleaner
+> > solution for this but didn't find a great one.
+> 
+> This is still before userspace has started, and interrupts are disabled,
+> so I don't think so?
+
+Interrupts being disabled is a good point. But we are still leaking
+implementation details from the random code into the vdso datastore.
+
+> Also, you only care about being after
+> mm_core_init(), right? So move your thing before sched_init() and then
+> you'll really have nothing to worry about.
+
+The callchains random_init_early() -> crng_reseed()/_credit_init_bits() could
+still touch the datapage before it is allocated.
+Adding conditionals to prevent those is essentially what my patch does.
+
+> But I think globally I agree with Andy/Arnd -- this is kind of ugly and
+> not worth it. Disable vDSO for these old CPUs with cache aliasing
+> issues.
+
+(I obviously still need to properly respond to Andy and Arnd)
+
+The dynamic allocation does more.
+1) It is a preparation for mlockall() for the datapages [0].
+2) On the SPARC T4 Niagara this was tested on, the MMU would send an exception,
+if userspace accessed the mapped kernel .data page. Even compensating for dcache
+aliasing did not prevent this, so that is not the reason. It is not clear why
+it happens. At some point I gave up investigating as point 1) would still hold
+true.
+
+[0] https://lore.kernel.org/lkml/20250901-vdso-mlockall-v2-0-68f5a6f03345@linutronix.de/
+    (This revision used 'struct page' with .data memory, but that doesn't
+    actually work everywhere)
 
 
-Agreed, as discussed on patch 7. I might split this patch - first add
-the in_interrupt() checks before patch 7, and then remove the
-now-redundant checks on arm64.
-
-- Kevin
+Thomas
