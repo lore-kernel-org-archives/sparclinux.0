@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 918AF3064A3;
-	Mon, 10 Nov 2025 10:37:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 324E93054C4;
+	Mon, 10 Nov 2025 10:37:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762771043; cv=none; b=Ms7uic+kuz+aUb8Qhq4IQ/bF2eCbLBzrkhefgzOuHloyHBw6GQGHYYhvJrOR9mVUBq31oeeMbk/8FEXr+5mGjUyuWO+wspNUPgMKzZClhXYrYhAUU13buUQombmDFmYzvOYJmyRY+GKyeBoCqSe/zM+6BTpiqx+1UOK7GNdCS5A=
+	t=1762771073; cv=none; b=FpeWxy8Zeq+sYFNK9PZjdIKM1UK6G1SR+37vA0ek9aTcd0YaebyjESpw+HGWJZDQw5xTA2KWw8EtWGHu8VIU7L2YP/Jze0iu4aqerYQDDuzz46ttPUbyxHKEExGG9BJqPtBzBISU369oaV56gyn84WuKh5/Vlx2gZJBXX+M43TA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762771043; c=relaxed/simple;
-	bh=wwdS1VB3vgYSOM1P254K506c5LfSj/vi1RAI9w6ktio=;
+	s=arc-20240116; t=1762771073; c=relaxed/simple;
+	bh=eoFD0YFTsJTKbLlfwzGMf+Jg0P/3aPzXI9tcKHy77Yc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=E6QjOFoGK5P5mnHc3pCVFeIVNdMktznrVh1SGD+bK1GwtHWLpePYreEh3+6z9quc9WP240SRKkC044/3ohImW2DWgYsh88M/V2zoqoYKzyfYHKGA6isgsJ1eTQ5fZTj562d9TWrB8GAp8q+OtaUfcTGAddaQNug9b/HHXKMvSqM=
+	 In-Reply-To:Content-Type; b=iOO+XAThnNsWHWqcldKG5nrhTRqUtNP+crJgpMgcNRmQS0EThiD+ogUlu/dFjifIOsfw+Atk32itRhuDr+f9kPjgXcDgXpXsckJR3K9ARWOBqpgRNuoKz967GWQUh37xSbAN2z9p/egilDcPtTYgnRVxqugAQhyTpsKbPDg2HRw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CEEFE497;
-	Mon, 10 Nov 2025 02:37:12 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B4A3CFEC;
+	Mon, 10 Nov 2025 02:37:43 -0800 (PST)
 Received: from [10.57.39.147] (unknown [10.57.39.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E4913F66E;
-	Mon, 10 Nov 2025 02:37:12 -0800 (PST)
-Message-ID: <b21fb5b9-2e7f-4cbc-ae62-015b1317a9bd@arm.com>
-Date: Mon, 10 Nov 2025 11:36:52 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0EB953F66E;
+	Mon, 10 Nov 2025 02:37:43 -0800 (PST)
+Message-ID: <0d00dd6e-9e39-4ac6-8ea4-9407e75947eb@arm.com>
+Date: Mon, 10 Nov 2025 11:37:41 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,7 +27,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 02/12] x86/xen: simplify flush_lazy_mmu()
+Subject: Re: [PATCH v4 05/12] mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
 To: Ryan Roberts <ryan.roberts@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -52,45 +52,29 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-3-kevin.brodsky@arm.com>
- <b165098a-8164-4664-aaaf-1e8c4391d797@arm.com>
+ <20251029100909.3381140-6-kevin.brodsky@arm.com>
+ <6a9c846f-22b6-4d5f-81dc-6cdcd4905952@arm.com>
 Content-Language: en-GB
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <b165098a-8164-4664-aaaf-1e8c4391d797@arm.com>
+In-Reply-To: <6a9c846f-22b6-4d5f-81dc-6cdcd4905952@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 07/11/2025 12:31, Ryan Roberts wrote:
-> On 29/10/2025 10:08, Kevin Brodsky wrote:
->> arch_flush_lazy_mmu_mode() is called when outstanding batched
->> pgtable operations must be completed immediately. There should
->> however be no need to leave and re-enter lazy MMU completely. The
->> only part of that sequence that we really need is xen_mc_flush();
->> call it directly.
->>
->> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> This looks functionally equivalent to me, so:
->
-> Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
->
-> But I don't think this tidy up is strictly necessary for your series to work?
-> (perhaps I'll change my mind on that as I go through it).
+On 07/11/2025 13:56, Ryan Roberts wrote:
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index 6663ffd23f25..e6bf5c7311b5 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -122,6 +122,7 @@ config ARM64
+>>  	select ARCH_WANTS_NO_INSTR
+>>  	select ARCH_WANTS_THP_SWAP if ARM64_4K_PAGES
+>>  	select ARCH_HAS_UBSAN
+>> +	select ARCH_HAS_LAZY_MMU_MODE
+> nit: This list is mostly in alphabetical order. Further up the list there are a
+> lot of ARCH_HAS_* entries. Perhaps move it to the correct position in that lot?
+> Then ARCH_HAS_UBSAN stays out of order on its own.
 
-I initially thought it might be, but in the end I think you're right -
-it should still work fine without this patch.
-
-Still, I'd rather avoid unnecessary calls to arch_enter() and
-arch_leave() as it makes it harder to reason about what is called where.
-Namely, keeping them here means that a nested call to
-lazy_mmu_mode_disable() would cause arch_leave() then arch_enter() to be
-called - rather unexpected.
-
-The only calls to arch_enter() and arch_leave() that are left after this
-series are the ones in <linux/pgtable.h> and the Xen context-switching
-logic (the one case where calling arch hooks directly is justified, see
-discussion on v3 [1]).
+That's fair, it does look like it's mostly in order apart from
+ARCH_HAS_UBSAN. Will move it further up.
 
 - Kevin
-
-[1]
-https://lore.kernel.org/all/390e41ae-4b66-40c1-935f-7a1794ba0b71@arm.com/
