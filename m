@@ -1,110 +1,161 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7D87D303A39;
-	Mon, 10 Nov 2025 13:18:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C8152737F9
+	for <sparclinux@vger.kernel.org>; Mon, 10 Nov 2025 15:43:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762780715; cv=none; b=fp0MTvktxFF8dSU3CkfndM2eae22QhODfJIveOwviPFp1y4vd55kFcHBR/cZ4GIeABlaadtC3F+Wp9BgtYhE22ISTqrj0tnuoiQkFaE0sXS8w/Xf2czXzWLWs5BbrQbhHq9meOr86yFsxYN5k+2wRKUoM2lkvnCOmBY8xIe7mjI=
+	t=1762789421; cv=none; b=PVvo1+iWkLpkUqwda/q8L3lrQlFvZXWt5cQ97J1oP3gJ/kwlOlAZIhNU8HygWU9Wc8P6vX6BY7AQ9gYSnRxcYEYGbBqcNj1RUVT3azBcN+22VCbf4twvCcwUJkvermHfgkOnkfQIL2/wa9TtVXM1n+2HaOhwGTa3cllKGT5sTJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762780715; c=relaxed/simple;
-	bh=e61PmBuBpKPW0kEFbYkXrje4f08ptI1Bgty+XwFb8EM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cLJu9lgvmcujp4KL4nZKWZ9+i4COOoilkH88sg2ypvqCl3ox4jsiinU9o6Af+qq9MTjcIhW+wJ4HJ7xaZfPqHtZR+iWMUncR01eVL+Sd3B6qlZVhArmDkD58mRkHfiy65lD4STnyUrvFOS3hH26uhhbKYew60+0ZFr13QV/egvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E7B25497;
-	Mon, 10 Nov 2025 05:18:22 -0800 (PST)
-Received: from [10.57.39.147] (unknown [10.57.39.147])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D493F3F63F;
-	Mon, 10 Nov 2025 05:18:22 -0800 (PST)
-Message-ID: <d0ce35ad-bfcd-496b-996d-17e59a1d5a73@arm.com>
-Date: Mon, 10 Nov 2025 14:18:20 +0100
+	s=arc-20240116; t=1762789421; c=relaxed/simple;
+	bh=lJGQMZvZZc4KMFQn1KPcnjNaqLnQgvkqHDsdmDw6EPk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mgjKKThP5qxbDB1kOiU8j6F7GrV3Vj145vwx1xAnNDY25KdltT7RdwYssD8orsb378DsMiaxtvsgOkCvSEYjFK5C8RgakhL9XxCgixh76KKl+yiawrwLXCONO4sUW6G5E3ZEoeHK4UjRmf9HX/Kc2ntOJ3Z9mLieA9/f/kB0Ohc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mkRT/c49; arc=none smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mkRT/c49"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-29808a9a96aso13112235ad.1
+        for <sparclinux@vger.kernel.org>; Mon, 10 Nov 2025 07:43:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1762789419; x=1763394219; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gLAK+1utwDQJnW79jqnXsBU1gEdDxofO6NOCNqDBYAA=;
+        b=mkRT/c49ATaJmYRGOCcdSx3Rr7VjO5+jPdDXtzpbvc9iY4QftAbWyBGfpLQPl5pIBX
+         sJzAiuV0qbShW417k65mSybcc6F/0IXDieBkSkNBSdrhZh9gMQN1LdLhl3glO+pTUIht
+         sg4wQMkRDFrE20VfmXUsqh2up7ZYEYWPu/CD8yPSQAaWQoHcPn5RN3Ay0C8ZdCTS1w7D
+         5OIOVabfYLAVjeqmx9hsVGIQR13zqF9S8qOjvGlQfN4wiujfgZ4i85fvYEP/ipOZZZdL
+         8x6pQxTkYFBgfnLIppUtxXOmxlIS6kfVe1xpoAHAwIQEShLDf9MFJhDCojb/hVO7zJTC
+         dTqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1762789419; x=1763394219;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=gLAK+1utwDQJnW79jqnXsBU1gEdDxofO6NOCNqDBYAA=;
+        b=Myg8POJAK58xOCujp4qNSVwrtFXY3rhR4UpjECBQd9YsjD4BVt9m77tJttL1xFiHsx
+         WS/1eXsfve3RywTGBEP4vrhjEomq/lWTMwmMl/xlJ5KWJJjXOUXhp1EFyv2iCglr5WY/
+         /EXr6i6eSVKgmly5JPtGEGIBL8v066aFcWu0ct4cXKlq2P995NqfalH0XTRhIeXsU9hR
+         gr6G9++3VImYL5sIlpBsGaFt+kPL4AW0yp5e9/jpvIi8ttzDFtz3ecGq2ZOtbszFNOpo
+         /qKPyWpe/sLAZNynMEIsrI/gTnzY9y1mXUaSzS+gHvWi89nFNcQDBF5L4X72B/Y66XKE
+         G9tQ==
+X-Forwarded-Encrypted: i=1; AJvYcCW4QE2or2CgHS4QFUXEc4pXLvZ7drHrqGfivl+J8wqb/06zacPfGZkc2GEP111mU1a0xPYkOV+8/FAa@vger.kernel.org
+X-Gm-Message-State: AOJu0YweQ7FSBa6IXkxtCIzzYWaqg2MadV+ZMJv0s9LW79sOiG0CThvv
+	5kgVk7Aq95OqWi4Dr3TQj2BVA9ZuYwVZC0bHrrnm72iZ+jbRhyLSXlKw
+X-Gm-Gg: ASbGncv1481yDqrQdGpx7EDhRMrXLITLph6cbEaQanerPol+6TqU+LZIddN1FfRiBT3
+	H13wZXFgA89FJFc64Yj+jGuxS0M9Z993hmnOn6tycuRp0LFkJFu+Jh4LDL1le4etqKVJdCPiH7w
+	Y5gL0T7bLFgk50oMrrwOlrh66k/gwlWmoD2zZHwcM1mD/aicXm19y0i0F3An1sXfTXad23oLMI7
+	l0jlDDlp0z594HaPziDRRpENOqV95riWguzSMO8qZSjhQSTbZX/a0wDeWx5fFp3dcTIP5ISfbys
+	lO5yufpTzwtDz4JAQHKUOsks1YEcHHY6cNyNNAHdmtsmc1xf+2pqIzKWdII+15TTLN8+Coj5uuO
+	LxRd0+gkQt5Mtiw6G6u9ncxzwYy/gZY8iuP1M8iejmVzriUnn/JulB4UzIOVzReDPKMgTbhDaYu
+	WBivHQLafDaCWqZrvXq1AQV7WMRqz413tN9z8=
+X-Google-Smtp-Source: AGHT+IFhicyH9W7Mg5DiwE8MVpN4/er0oaakdgICmjAbGBgQnJD5pAHwQ51RtSmFFQvyQKJ0R4B9cg==
+X-Received: by 2002:a17:902:ea09:b0:269:ed31:6c50 with SMTP id d9443c01a7336-297e5408bbdmr106752805ad.10.1762789419238;
+        Mon, 10 Nov 2025 07:43:39 -0800 (PST)
+Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-297d6859a92sm101566725ad.88.2025.11.10.07.43.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 10 Nov 2025 07:43:38 -0800 (PST)
+From: Xie Yuanbin <qq570070308@gmail.com>
+To: arnd@arndb.de,
+	david@redhat.com,
+	tglx@linutronix.de,
+	segher@kernel.crashing.org,
+	riel@surriel.com,
+	peterz@infradead.org,
+	linux@armlinux.org.uk,
+	mathieu.desnoyers@efficios.com,
+	paulmck@kernel.org,
+	pjw@kernel.org,
+	palmer@dabbelt.com,
+	aou@eecs.berkeley.edu,
+	alex@ghiti.fr,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	agordeev@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	luto@kernel.org,
+	mingo@redhat.com,
+	bp@alien8.de,
+	dave.hansen@linux.intel.com,
+	hpa@zytor.com,
+	acme@kernel.org,
+	namhyung@kernel.org,
+	mark.rutland@arm.com,
+	alexander.shishkin@linux.intel.com,
+	jolsa@kernel.org,
+	irogers@google.com,
+	adrian.hunter@intel.com,
+	james.clark@linaro.org,
+	anna-maria@linutronix.de,
+	frederic@kernel.org,
+	juri.lelli@redhat.com,
+	vincent.guittot@linaro.org,
+	dietmar.eggemann@arm.com,
+	rostedt@goodmis.org,
+	bsegall@google.com,
+	mgorman@suse.de,
+	vschneid@redhat.com,
+	nathan@kernel.org,
+	nick.desaulniers+lkml@gmail.com,
+	morbo@google.com,
+	justinstitt@google.com,
+	qq570070308@gmail.com,
+	thuth@redhat.com,
+	brauner@kernel.org,
+	jlayton@kernel.org,
+	aalbersh@redhat.com,
+	akpm@linux-foundation.org,
+	david@kernel.org,
+	lorenzo.stoakes@oracle.com,
+	max.kellermann@ionos.com,
+	ryan.roberts@arm.com,
+	nysal@linux.ibm.com,
+	urezki@gmail.com
+Cc: x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	llvm@lists.linux.dev,
+	will@kernel.org
+Subject: Re: [PATCH v2 3/4] Provide the always inline version of some functions
+Date: Mon, 10 Nov 2025 23:43:01 +0800
+Message-ID: <20251110154301.1930-1-qq570070308@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <a034a57e-d9f1-4c56-87f0-e9126246849d@app.fastmail.com>
+References: <a034a57e-d9f1-4c56-87f0-e9126246849d@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 01/12] powerpc/64s: Do not re-activate batched TLB
- flush
-To: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>, Ryan Roberts <ryan.roberts@arm.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner
- <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-2-kevin.brodsky@arm.com>
- <87qzud42n1.ritesh.list@gmail.com>
- <b3e4a92f-5b51-4eee-bfb8-c454add0f0d2@arm.com>
- <87cy5t4b0a.ritesh.list@gmail.com>
-Content-Language: en-GB
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-In-Reply-To: <87cy5t4b0a.ritesh.list@gmail.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On 08/11/2025 00:35, Ritesh Harjani (IBM) wrote:
-> Kevin Brodsky <kevin.brodsky@arm.com> writes:
->
->> [...]
->>
->>> With this analysis - the patch looks good to me. I will give this entire
->>> patch series a try on Power HW with Hash mmu too (which uses lazy mmu and
->>> let you know the results of that)!
->> That'd be very appreciated, thanks a lot!
->>
-> I did give this patch series a run on Power10 with Hash MMU. I ran the
-> following stress-ng tests and didn't observe any issues (kernel warnings) so far.
->
-> stress-ng --all 0 -t 60s --perf -v --verify \
-> --tlb-shootdown 0 \
-> --fault 0 \
-> --userfaultfd 0 \
-> --fork 0 \
-> --exec 0 \
-> --memfd 0 \
-> --numa 0 \
-> --pkey 0 \
-> --remap 0 \
-> --vm 0 \
-> --rmap 0 \
-> -x swap,pagemove
-> (Note not all options shown here will work with --verify)
+On Sun, 09 Nov 2025 18:35:23 +0100, Arnd Bergmann wrote:
+> You can mark the caller as __attribute__((flatten)) to force all
+> functions to be inlined into that one if possible. I don't know
+> if that would be helpful or desired here though.
+Thanks, you made me aware of this attribute for the first time, it is
+really a great attribute, and it has been already added to the kernel
+public header. However, it's rarely used in the kernel, which I really
+think is a pity.
 
-That's great, many thanks!
+Perhaps, I can try adding this attribute to some hot functions in
+another patch. For this patch, I think this is sufficient. There are some
+cold if branches inside `__schedule`, __flatten will inline the function
+calls in this part of the code, which may cause some unexpected
+performance degradation.
 
-> Let me know what else I can run for validation?
-> Do you know of any specific tests for validation of lazy mmu feature?
+>     Arnd
 
-I don't think there is - lazy MMU is not supposed to have any observable
-effect, all we can do is exercise the paths that use it and check that
-nothing explodes.
-
-That said it wouldn't hurt to run the mm kselftests:
-
-    make -C tools/testing/selftests/ TARGETS=mm
-
-Thanks!
-
-- Kevin
+Xie Yuanbin
