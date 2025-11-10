@@ -1,166 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 281D6268C40;
-	Mon, 10 Nov 2025 10:37:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 918AF3064A3;
+	Mon, 10 Nov 2025 10:37:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762771038; cv=none; b=F68jjMSfiV9bek5OkvHvnic76gtqRNiVlvgq90nNeWUpxAgsxLHGY21e2a46jG7hjxPZBOgu3H1RA24gXp23Cjk9kKoy3DRl+9KuiBVmOcfm0FVfEaYs4jHVZsvn/mn66QT56hjPwhqmI4dG9wmPdVFVJv7UZ5D+QBTo5gOWHB4=
+	t=1762771043; cv=none; b=Ms7uic+kuz+aUb8Qhq4IQ/bF2eCbLBzrkhefgzOuHloyHBw6GQGHYYhvJrOR9mVUBq31oeeMbk/8FEXr+5mGjUyuWO+wspNUPgMKzZClhXYrYhAUU13buUQombmDFmYzvOYJmyRY+GKyeBoCqSe/zM+6BTpiqx+1UOK7GNdCS5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762771038; c=relaxed/simple;
-	bh=5mJ5SG0Gwip7t2njbKaSVt8yyYamxwQDSTZJ66MYxYk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PpHQ3ZVTYc0Xuroqr4pUy6LyWTz1LTxzNAJBk+/mv9uNMpk8y8z2tvffO1ke8TrgY59aP6mjB1oDQ1EoOV9bSmmxtlDdizAVLEfi/undNfJJWXBvFAf0/VynblYuDyY91BJNMl9tQxj6fgve13vLgNUf0opaZf7anWMFeJl2Fmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b=WTAHFhLQ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="WTAHFhLQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E76C4CEF5;
-	Mon, 10 Nov 2025 10:37:14 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-	dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="WTAHFhLQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-	t=1762771032;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1WrguxH4pokigxxkQ8JIMem650725yeeLwdoGz6ziPQ=;
-	b=WTAHFhLQBM9L4uVZANImYYYEpEwrJCJmpUsPeVS7opyWT3kewXLiJpB+S7cWvpyOqmRlk0
-	jOvTCsms0UYDa7uYKl2FQdhRurOUoi+bCEX1pnKZador3BykkqFb6xAp1lo4cuCgYvgUtd
-	mk8NOd2uY8oXx8TZ6HnEj3LlqXVn94g=
-Received: 
-	by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 190dbf96 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-	Mon, 10 Nov 2025 10:37:11 +0000 (UTC)
-Date: Mon, 10 Nov 2025 11:37:07 +0100
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-To: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-Cc: Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>,
-	Vincenzo Frascino <vincenzo.frascino@arm.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Nick Alcock <nick.alcock@oracle.com>,
-	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Shuah Khan <shuah@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>,
-	Russell King <linux@armlinux.org.uk>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Shannon Nelson <sln@onemain.com>, linux-kernel@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-	linux-s390@vger.kernel.org
-Subject: Re: [PATCH v5 19/34] random: vDSO: only access vDSO datapage after
- random_init()
-Message-ID: <aRHAU7bVAIyaOrpA@zx2c4.com>
-References: <20251106-vdso-sparc64-generic-2-v5-0-97ff2b6542f7@linutronix.de>
- <20251106-vdso-sparc64-generic-2-v5-19-97ff2b6542f7@linutronix.de>
- <aQ6EvdukQytvqK-u@zx2c4.com>
- <20251110094555-353883a9-1950-4cc6-a774-bb0ef5db11c5@linutronix.de>
+	s=arc-20240116; t=1762771043; c=relaxed/simple;
+	bh=wwdS1VB3vgYSOM1P254K506c5LfSj/vi1RAI9w6ktio=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=E6QjOFoGK5P5mnHc3pCVFeIVNdMktznrVh1SGD+bK1GwtHWLpePYreEh3+6z9quc9WP240SRKkC044/3ohImW2DWgYsh88M/V2zoqoYKzyfYHKGA6isgsJ1eTQ5fZTj562d9TWrB8GAp8q+OtaUfcTGAddaQNug9b/HHXKMvSqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CEEFE497;
+	Mon, 10 Nov 2025 02:37:12 -0800 (PST)
+Received: from [10.57.39.147] (unknown [10.57.39.147])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E4913F66E;
+	Mon, 10 Nov 2025 02:37:12 -0800 (PST)
+Message-ID: <b21fb5b9-2e7f-4cbc-ae62-015b1317a9bd@arm.com>
+Date: Mon, 10 Nov 2025 11:36:52 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20251110094555-353883a9-1950-4cc6-a774-bb0ef5db11c5@linutronix.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 02/12] x86/xen: simplify flush_lazy_mmu()
+To: Ryan Roberts <ryan.roberts@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>, Suren Baghdasaryan
+ <surenb@google.com>, Thomas Gleixner <tglx@linutronix.de>,
+ Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+ Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org, x86@kernel.org
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
+ <20251029100909.3381140-3-kevin.brodsky@arm.com>
+ <b165098a-8164-4664-aaaf-1e8c4391d797@arm.com>
+Content-Language: en-GB
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+In-Reply-To: <b165098a-8164-4664-aaaf-1e8c4391d797@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 10, 2025 at 10:04:17AM +0100, Thomas Weißschuh wrote:
-> On Sat, Nov 08, 2025 at 12:46:05AM +0100, Jason A. Donenfeld wrote:
-> > I'm not a huge fan of this change:
-> > 
-> > On Thu, Nov 06, 2025 at 11:02:12AM +0100, Thomas Weißschuh wrote:
-> > > +static DEFINE_STATIC_KEY_FALSE(random_vdso_is_ready);
-> > >  
-> > >  /* Control how we warn userspace. */
-> > >  static struct ratelimit_state urandom_warning =
-> > > @@ -252,6 +253,9 @@ static void random_vdso_update_generation(unsigned long next_gen)
-> > >  	if (!IS_ENABLED(CONFIG_VDSO_GETRANDOM))
-> > >  		return;
-> > >  
-> > > +	if (!static_branch_likely(&random_vdso_is_ready))
-> > > +		return;
-> > > +
-> > >  	/* base_crng.generation's invalid value is ULONG_MAX, while
-> > >  	 * vdso_k_rng_data->generation's invalid value is 0, so add one to the
-> > >  	 * former to arrive at the latter. Use smp_store_release so that this
-> > > @@ -274,6 +278,9 @@ static void random_vdso_set_ready(void)
-> > >  	if (!IS_ENABLED(CONFIG_VDSO_GETRANDOM))
-> > >  		return;
-> > >  
-> > > +	if (!static_branch_likely(&random_vdso_is_ready))
-> > > +		return;
-> > > +
-> > >  	WRITE_ONCE(vdso_k_rng_data->is_ready, true);
-> > >  }
-> > >  
-> > > @@ -925,6 +932,9 @@ void __init random_init(void)
-> > >  	_mix_pool_bytes(&entropy, sizeof(entropy));
-> > >  	add_latent_entropy();
-> > >  
-> > > +	if (IS_ENABLED(CONFIG_VDSO_GETRANDOM))
-> > > +		static_branch_enable(&random_vdso_is_ready);
-> > > +
-> > >  	/*
-> > >  	 * If we were initialized by the cpu or bootloader before jump labels
-> > >  	 * or workqueues are initialized, then we should enable the static
-> > > @@ -934,8 +944,10 @@ void __init random_init(void)
-> > >  		crng_set_ready(NULL);
-> > >  
-> > >  	/* Reseed if already seeded by earlier phases. */
-> > > -	if (crng_ready())
-> > > +	if (crng_ready()) {
-> > >  		crng_reseed(NULL);
-> > > +		random_vdso_set_ready();
-> > > +	}
-> > 
-> > The fact that the vdso datapage is set up by the time random_init() is
-> > called seems incredibly contingent on init details. Why not, instead,
-> > make this a necessary part of the structure of vdso setup code, which
-> > can actually know about what happens when?
-> 
-> The whole early init is "carefully" ordered in any case. I would have been
-> happy to allocate the data pages before the random initialization, but the
-> allocator is not yet usable by then.
-> We could also make the ordering more visible by having the vDSO datastore call
-> into a dedicated function to allow the random core to touch the data pages:
-> random_vdso_enable_datapages().
-> 
-> > For example, one clean way of
-> > doing that would be to make vdso_k_rng_data always valid by having it
-> > initially point to __initdata memory, and then when it's time to
-> > initialize the real datapage, memcpy() the __initdata memory to the new
-> > specially allocated memory. Then we don't need the complex state
-> > tracking that this commit and the prior one introduce.
-> 
-> Wouldn't that require synchronization between the update path and the memcpy()
-> path? Also if the pointer is going to change at some point we'll probably need
-> to use READ_ONCE()/WRITE_ONCE(). In general I would be happy about a cleaner
-> solution for this but didn't find a great one.
+On 07/11/2025 12:31, Ryan Roberts wrote:
+> On 29/10/2025 10:08, Kevin Brodsky wrote:
+>> arch_flush_lazy_mmu_mode() is called when outstanding batched
+>> pgtable operations must be completed immediately. There should
+>> however be no need to leave and re-enter lazy MMU completely. The
+>> only part of that sequence that we really need is xen_mc_flush();
+>> call it directly.
+>>
+>> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+> This looks functionally equivalent to me, so:
+>
+> Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+>
+> But I don't think this tidy up is strictly necessary for your series to work?
+> (perhaps I'll change my mind on that as I go through it).
 
-This is still before userspace has started, and interrupts are disabled,
-so I don't think so? Also, you only care about being after
-mm_core_init(), right? So move your thing before sched_init() and then
-you'll really have nothing to worry about.
+I initially thought it might be, but in the end I think you're right -
+it should still work fine without this patch.
 
-But I think globally I agree with Andy/Arnd -- this is kind of ugly and
-not worth it. Disable vDSO for these old CPUs with cache aliasing
-issues.
+Still, I'd rather avoid unnecessary calls to arch_enter() and
+arch_leave() as it makes it harder to reason about what is called where.
+Namely, keeping them here means that a nested call to
+lazy_mmu_mode_disable() would cause arch_leave() then arch_enter() to be
+called - rather unexpected.
 
-Jason
+The only calls to arch_enter() and arch_leave() that are left after this
+series are the ones in <linux/pgtable.h> and the Xen context-switching
+logic (the one case where calling arch hooks directly is justified, see
+discussion on v3 [1]).
+
+- Kevin
+
+[1]
+https://lore.kernel.org/all/390e41ae-4b66-40c1-935f-7a1794ba0b71@arm.com/
