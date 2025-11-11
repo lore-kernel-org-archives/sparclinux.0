@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5EAB23126D2;
-	Tue, 11 Nov 2025 10:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E4AE2727EB;
+	Tue, 11 Nov 2025 12:16:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762856664; cv=none; b=JSUMQoeK1JnDQIbspAVwSEKg29ZaFH+kibrn9/Sj7hF2/Vu+nZooM0ymiqKlDNJWy6CHlbvRgVituKCEkC+K/7hIbC9cWcMyhHEc2co2nTenTrZqBdTgad7iUoF8O40bPf4QfrPNJE2LoJ9XwlvkdjqhRF09AlcQLaNmXgSXMms=
+	t=1762863373; cv=none; b=FcwrhqxMibYc0x74mPDlzHieTBWhmKH8vfDucoNNxHZ38vl+cqHfLpplS1EVX7tX6vNV2KUjKkw5hF6vVN9wBfsFvDeKfZNI4s8XP8sOQ7TxvrCRxOYmz1dzb9vXPKcZ7P0dQO91r6CmXzmTpL/8mopTdT+L28xLJMwei9LQzM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762856664; c=relaxed/simple;
-	bh=8E5jyiAlod2Zje+S/isjaGW7V3L+d31zAl1RYozlpeM=;
+	s=arc-20240116; t=1762863373; c=relaxed/simple;
+	bh=PIgstgd4buWJzHaXU+CcNBXqTQqNTu4JSwpP1XmmIo4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QBTMqCKva8YRk9aAuYvkpcMwhF+q5/YzzcSqK/7zDunx7q1Uh7+va7hnm7J2N8L8ZmCW0fX7IgOe6d8Dg0cXdakIgMOG1ZdZm/FZeLpfuqbMVnr3ZAcyumxIKfYl2blL2ONGq/DNeT2Lt2PDQNdfHk4xB/4DR4yK+zej1rXvV/s=
+	 In-Reply-To:Content-Type; b=AfYIyi4MtfSv+3t57JmLGWNom7KL/CErY73t3dusuy9eSbe3mrOwZxh2I08Iod0J13EvAdDbxuI/qOAItKVmEtnOvxb7MmvIDCalgc1yj0lEmK5DMpwI48ntmMIA2VO42zK5G2MSjkbjCnQMEXtCcwFAAGYVGFbX01kY/NxOP3E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EEC872F;
-	Tue, 11 Nov 2025 02:24:13 -0800 (PST)
-Received: from [10.57.88.30] (unknown [10.57.88.30])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 11C6E3F63F;
-	Tue, 11 Nov 2025 02:24:15 -0800 (PST)
-Message-ID: <824bf705-e9d6-4eeb-9532-9059fa56427f@arm.com>
-Date: Tue, 11 Nov 2025 10:24:14 +0000
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B4FDA2F;
+	Tue, 11 Nov 2025 04:16:01 -0800 (PST)
+Received: from [10.1.31.216] (XHFQ2J9959.cambridge.arm.com [10.1.31.216])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 976253F63F;
+	Tue, 11 Nov 2025 04:16:04 -0800 (PST)
+Message-ID: <b7581d35-29a1-44d4-bf81-395949bd4da1@arm.com>
+Date: Tue, 11 Nov 2025 12:16:03 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,22 +27,22 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 07/12] mm: enable lazy_mmu sections to nest
+Subject: Re: [PATCH v4 06/12] mm: introduce generic lazy_mmu helpers
 Content-Language: en-GB
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
+To: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: "David Hildenbrand (Red Hat)" <davidhildenbrandkernel@gmail.com>,
+ Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
  Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
  <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
  Christophe Leroy <christophe.leroy@csgroup.eu>,
  Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>,
+ Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
+ Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
+ <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
  Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
@@ -53,232 +53,210 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
- <20251029100909.3381140-8-kevin.brodsky@arm.com>
- <999feffa-5d1d-42e3-bd3a-d949f2a9de9d@arm.com>
- <cc9dc398-b9c5-4bb8-94ad-7e7f3ddd5b4f@arm.com>
+ <20251029100909.3381140-7-kevin.brodsky@arm.com>
+ <71418b31-aedb-4600-9558-842515dd6c44@arm.com>
+ <c764489e-0626-4a50-87b5-39e15d9db733@gmail.com>
+ <645178fd-df4e-42fe-b55e-97d9506499be@arm.com>
+ <413b2c49-f124-4cda-8fea-a6cc165f6326-agordeev@linux.ibm.com>
+ <e428b1d5-65a8-49bc-92dc-ec4a4d933dec@arm.com>
+ <92eca53f-eb5d-4bd0-ad6c-56c65fdcea86-agordeev@linux.ibm.com>
 From: Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <cc9dc398-b9c5-4bb8-94ad-7e7f3ddd5b4f@arm.com>
+In-Reply-To: <92eca53f-eb5d-4bd0-ad6c-56c65fdcea86-agordeev@linux.ibm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 10/11/2025 10:47, Kevin Brodsky wrote:
-> On 07/11/2025 14:59, Ryan Roberts wrote:
->> On 29/10/2025 10:09, Kevin Brodsky wrote:
->>> [...]
+On 11/11/2025 08:01, Alexander Gordeev wrote:
+> On Mon, Nov 10, 2025 at 09:19:40AM +0000, Ryan Roberts wrote:
+>> On 10/11/2025 08:11, Alexander Gordeev wrote:
+>>> On Fri, Nov 07, 2025 at 03:22:54PM +0000, Ryan Roberts wrote:
 >>>
->>> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
->>> index b5fdf32c437f..e6064e00b22d 100644
->>> --- a/include/linux/pgtable.h
->>> +++ b/include/linux/pgtable.h
->>> @@ -228,27 +228,86 @@ static inline int pmd_dirty(pmd_t pmd)
->>>   * of the lazy mode. So the implementation must assume preemption may be enabled
->>>   * and cpu migration is possible; it must take steps to be robust against this.
->>>   * (In practice, for user PTE updates, the appropriate page table lock(s) are
->>> - * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
->>> - * and the mode cannot be used in interrupt context.
->>> + * held, but for kernel PTE updates, no lock is held). The mode cannot be used
->>> + * in interrupt context.
->> "The mode cannot be used in interrupt context"; except it is for arm64. KFENCE
->> and/or DEBUG_PAGEALLOC will request the arch to change linear map permissions,
->> which will enter lazy mmu (now using the new generic API). This can happen in
->> softirq context.
-> 
-> Are you happy with the wording update in patch 12?
-
-Yes!
-
-> 
->>> + *
->>> + * The lazy MMU mode is enabled for a given block of code using:
->>> + *
->>> + *   lazy_mmu_mode_enable();
->>> + *   <code>
->>> + *   lazy_mmu_mode_disable();
->>> + *
->>> + * Nesting is permitted: <code> may itself use an enable()/disable() pair.
->>> + * A nested call to enable() has no functional effect; however disable() causes
->>> + * any batched architectural state to be flushed regardless of nesting. After a
->>> + * call to disable(), the caller can therefore rely on all previous page table
->>> + * modifications to have taken effect, but the lazy MMU mode may still be
->>> + * enabled.
->>> + *
->>> + * In certain cases, it may be desirable to temporarily pause the lazy MMU mode.
->>> + * This can be done using:
->>> + *
->>> + *   lazy_mmu_mode_pause();
->>> + *   <code>
->>> + *   lazy_mmu_mode_resume();
->>> + *
->>> + * This sequence must only be used if the lazy MMU mode is already enabled.
->>> + * pause() ensures that the mode is exited regardless of the nesting level;
->>> + * resume() re-enters the mode at the same nesting level. <code> must not modify
->>> + * the lazy MMU state (i.e. it must not call any of the lazy_mmu_mode_*
->>> + * helpers).
->>> + *
->>> + * in_lazy_mmu_mode() can be used to check whether the lazy MMU mode is
->>> + * currently enabled.
->>>   */
->> Nice documentation!
-> 
-> Thanks!
-> 
->>>  #ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->>>  static inline void lazy_mmu_mode_enable(void)
->>>  {
->>> -	arch_enter_lazy_mmu_mode();
->>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>> +
->>> +	VM_WARN_ON_ONCE(state->nesting_level == U8_MAX);
->>> +	/* enable() must not be called while paused */
->>> +	VM_WARN_ON(state->nesting_level > 0 && !state->active);
->>> +
->>> +	if (state->nesting_level++ == 0) {
->> Hmm... for the arm64 case of calling this in an interrupt, Is it safe?
+>>> Hi Ryan,
+>>>
+>>>> On 07/11/2025 14:34, David Hildenbrand (Red Hat) wrote:
+>>>>>>>   #ifndef pte_batch_hint
+>>>>>>> diff --git a/mm/kasan/shadow.c b/mm/kasan/shadow.c
+>>>>>>> index 5d2a876035d6..c49b029d3593 100644
+>>>>>>> --- a/mm/kasan/shadow.c
+>>>>>>> +++ b/mm/kasan/shadow.c
+>>>>>>> @@ -305,7 +305,7 @@ static int kasan_populate_vmalloc_pte(pte_t *ptep,
+>>>>>>> unsigned long addr,
+>>>>>>>       pte_t pte;
+>>>>>>>       int index;
+>>>>>>>   -    arch_leave_lazy_mmu_mode();
+>>>>>>> +    lazy_mmu_mode_pause();
+>>>>>>
+>>>>>> I wonder if there really are use cases that *require* pause/resume? I think
+>>>>>> these kasan cases could be correctly implemented using a new nest level instead?
+>>>>>> Are there cases where the effects really need to be immediate or do the effects
+>>>>>> just need to be visible when you get to where the resume is?
+>>>>>>
+>>>>>> If the latter, that could just be turned into a nested disable (e.g. a flush).
+>>>>>> In this case, there is only 1 PTE write so no benefit, but I wonder if other
+>>>>>> cases may have more PTE writes that could then still be batched. It would be
+>>>>>> nice to simplify the API by removing pause/resume if we can?
+>>>>>
+>>>>> It has clear semantics, clearer than some nest-disable IMHO.
+>>>>>
+>>>>> Maybe you can elaborate how you would change ("simplify") the API in that
+>>>>> regard? What would the API look like?
+>>>>
+>>>> By simplify, I just meant can we remove lazy_mmu_mode_pause() and
+>>>> lazy_mmu_mode_resume() ?
+>>>>
+>>>>
+>>>> We currently have:
+>>>>
+>>>> apply_to_page_range
+>>>>   lazy_mmu_mode_enable()
+>>>>     kasan_populate_vmalloc_pte()
+>>>>       lazy_mmu_mode_pause()
+>>>>       <code>
+>>>>       lazy_mmu_mode_resume()
+>>>>   lazy_mmu_mode_disable()
+>>>>
+>>>> Where <code> is setting ptes. But if <code> doesn't need the effects to be
+>>>> visible until lazy_mmu_mode_resume(), then you could replace the block with:
+>>>>
+>>>> apply_to_page_range
+>>>>   lazy_mmu_mode_enable()
+>>>>     kasan_populate_vmalloc_pte()
+>>>>       lazy_mmu_mode_enable()
+>>>>       <code>
+>>>>       lazy_mmu_mode_disable()
+>>>>   lazy_mmu_mode_disable()
+>>>>
+>>>> However, looking at this more closely, I'm not really clear on why we need *any*
+>>>> special attention to lazy mmu inside of kasan_populate_vmalloc_pte() and
+>>>> kasan_depopulate_vmalloc_pte().
+>>>>
+>>>> I *think* that the original concern was that we were doing ptep_get(ptep) inside
+>>>> of a lazy_mmu block? So we need to flush so that the getter returns the most
+>>>> recent value? But given we have never written to that particular ptep while in
+>>>> the lazy mmu block, there is surely no hazard in the first place?
+>>>
+>>> There is, please see:
+>>> https://lore.kernel.org/linux-mm/cover.1755528662.git.agordeev@linux.ibm.com/
 >>
->> If a task is calling this function and gets interrupted here, nesting_level==1
->> but active==false. The interrupt then calls this function and increments from 1
->> to 2 but arch_enter_lazy_mmu_mode() hasn't been called.
+>> I've stared at this for a while, but I'm afraid I still don't see the problem.
+>> This all looks safe to me. Could you explain exactly what this issue is?
 >>
->> More dangerously (I think), when the interrupt handler calls
->> lazy_mmu_mode_disable(), it will end up calling arch_flush_lazy_mmu_mode() which
->> could be an issue because as far as the arch is concerned, it's not in lazy mode.
+>> If I've understood correctly, kasan_populate_vmalloc() is called during virtual
+>> range allocation by vmalloc. This is not in a nested lazy mmu block (but it
+>> wouldn't matter if it was once we have Kevin's nested changes to ensure flush
+>> when exiting the nested scope). kasan_populate_vmalloc() calls
+>> apply_to_page_range(), which will walk the set of ptes, calling
+>> kasan_populate_vmalloc_pte() for each one. kasan_populate_vmalloc_pte() does a
+>> ptep_get() then, if none, calls set_pte_at().
 >>
->> The current arm64 implementation works because setting and clearing the thread
->> flags is atomic.
->>
->> Perhaps you need to disable preemption around the if block?
+>> That's not a hazard since you're calling get before the set and you only visit
+>> each pte once for the apply_to_page_range() lazy mmu block.
 > 
-> As you found out this is addressed in patch 12, but indeed I hadn't
-> realised that this patch leaves the generic API in an unsafe situation
-> w.r.t. interrupts. We at least need to have in_interrupt() checks in the
-> generic layer by the time we get to this patch.
-
-Yeah that should solve it.
-
+> I have to admit I do not remember every detail and would have to recreate
+> the issue - which is specific to s390 lazy_mmu implementation I think.
+> Both kasan_populate_vmalloc_pte() and kasan_depopulate_vmalloc_pte() do:
 > 
->>> +		state->active = true;
->>> +		arch_enter_lazy_mmu_mode();
->>> +	}
->>>  }
->>>  
->>>  static inline void lazy_mmu_mode_disable(void)
->>>  {
->>> -	arch_leave_lazy_mmu_mode();
->>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>> +
->>> +	VM_WARN_ON_ONCE(state->nesting_level == 0);
->>> +	VM_WARN_ON(!state->active);
->>> +
->>> +	if (--state->nesting_level == 0) {
->>> +		state->active = false;
->>> +		arch_leave_lazy_mmu_mode();
->>> +	} else {
->>> +		/* Exiting a nested section */
->>> +		arch_flush_lazy_mmu_mode();
->>> +	}
->>>  }
->>>  
->>>  static inline void lazy_mmu_mode_pause(void)
->>>  {
->>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>> +
->>> +	VM_WARN_ON(state->nesting_level == 0 || !state->active);
->> nit: do you need the first condition? I think when nesting_level==0, we expect
->> to be !active?
+> apply_to_page_range()
+> {
+>     arch_enter_lazy_mmu_mode();
 > 
-> I suppose this should never happen indeed - I was just being extra
-> defensive.
+>     kasan_de|populate_vmalloc_pte()
+>     {
+>         arch_leave_lazy_mmu_mode();             <--- remove?
 > 
-> Either way David suggested allowing pause()/resume() to be called
-> outside of any section so the next version will bail out on
-> nesting_level == 0.
-
-Ignoring my current opinion that we don't need pause/resume at all for now; Are
-you suggesting that pause/resume will be completely independent of
-enable/disable? I think that would be best. So enable/disable increment and
-decrement the nesting_level counter regardless of whether we are paused.
-nesting_level 0 => 1 enables if not paused. nesting_level 1 => 0 disables if not
-paused. pause disables nesting_level >= 1, resume enables if nesting_level >= 1.
-
-Perhaps we also need nested pause/resume? Then you just end up with 2 counters;
-enable_count and pause_count. Sorry if this has already been discussed.
-
+>         spin_lock(&init_mm.page_table_lock);
+>         <PTE update>
+>         spin_unlock(&init_mm.page_table_lock);	<--- PTE store should be done
 > 
->>> +
->>> +	state->active = false;
->>>  	arch_leave_lazy_mmu_mode();
->>>  }
->>>  
->>>  static inline void lazy_mmu_mode_resume(void)
->>>  {
->>> +	struct lazy_mmu_state *state = &current->lazy_mmu_state;
->>> +
->>> +	VM_WARN_ON(state->nesting_level == 0 || state->active);
->> Similar argument?
->>
->>> +
->>> +	state->active = true;
->>>  	arch_enter_lazy_mmu_mode();
->>>  }
->>>  #else
->>> diff --git a/include/linux/sched.h b/include/linux/sched.h
->>> index cbb7340c5866..11566d973f42 100644
->>> --- a/include/linux/sched.h
->>> +++ b/include/linux/sched.h
->>> @@ -1441,6 +1441,10 @@ struct task_struct {
->>>  
->>>  	struct page_frag		task_frag;
->>>  
->>> +#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->>> +	struct lazy_mmu_state		lazy_mmu_state;
->>> +#endif
->>> +
->>>  #ifdef CONFIG_TASK_DELAY_ACCT
->>>  	struct task_delay_info		*delays;
->>>  #endif
->>> @@ -1724,6 +1728,18 @@ static inline char task_state_to_char(struct task_struct *tsk)
->>>  	return task_index_to_char(task_state_index(tsk));
->>>  }
->>>  
->>> +#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->>> +static inline bool in_lazy_mmu_mode(void)
->>> +{
->>> +	return current->lazy_mmu_state.active;
->>> +}
->>> +#else
->>> +static inline bool in_lazy_mmu_mode(void)
->>> +{
->>> +	return false;
->> Just pointing out that this isn't really a correct implementation:
->>
->> lazy_mmu_mode_enable()
->> ASSERT(in_lazy_mmu_mode()) << triggers for arches without lazy mmu
->> lazy_mmu_mode_disable()
->>
->> Although it probably doesn't matter in practice?
+>         arch_enter_lazy_mmu_mode();             <--- remove?
+>     }
 > 
-> I'd say that the expectation is invalid - lazy MMU mode can only be
-> enabled if the architecture supports it. In fact as you pointed out
-> above the API may be called in interrupt context but it will have no
-> effect, so this sequence would always fail in interrupt context.
-
-Yep, but previously there was no way to query the current state so it didn't
-matter. Now you have a query API so it might matter if/when people come along
-and use it in unexpected ways.
-
+>     arch_leave_lazy_mmu_mode();
+> }
 > 
-> Worth nothing that in_lazy_mmu_mode() is only ever called from arch code
-> where lazy MMU is implemented. I added the fallback as a matter of
-> principle, but it isn't actually required.
+> Upon return from spin_unlock() both kasan callbacks expect the PTE contains
+> an updated value to be stored to pgtable. That is true unless we remove
+> arch_leave|enter_lazy_mmu_mode() brackets. If we do the value is continued
+> to be cached and only stored when the outer arch_leave_lazy_mmu_mode() is
+> called. That results in a race between concurrent PTE updaters.
 
-Yes, I agree that's the intent. I'm just wondering if it's possible to enforce
-that only arch code uses this. Perhaps add some docs to explain that it's only
-intended for arches that implement lazy_mmu, and don't define it for arches that
-don't, which would catch any generic users?
+OK, I've been staring at the code and KASAN docs and believe I understand the
+problem now. Thanks for your patience!
+
+The core of the problem is that the shadow memory which is being allocated here
+is 1/8th the size of the virtual range it covers, and so a single page of shadow
+memory can be shared by multiple vmalloc areas. The implication here is that
+multiple concurrent vmalloc() calls can allocate adjacent areas and both will
+race to allocate the same shadow page. That's why we have the spin lock and the
+check for pte_none(); the winner is the one that sees pte_none() == true and
+will perform the mapping.
+
+And so yes, this does indeed create a read hazzard; there are 2 racing threads,
+both reading and writing the pte.
+
+One alternative solution would be to grab the spin lock around the whole
+apply_to_page_range(), but for the populate call, that would imply holding the
+lock during __memset(). And for depopulate, it would imply holding it during
+__free_page(). Neither of these are desirable.
+
+So I agree pause/resume are required here. Sorry for the noise!
 
 Thanks,
 Ryan
 
+
 > 
-> - Kevin
+>>>> apply_to_existing_page_range() will only call kasan_depopulate_vmalloc_pte()
+>>>> once per pte, right? So given we read the ptep before writing it, there should
+>>>> be no hazard? If so we can remove pause/resume.
+>>>
+>>> Unfortunately, we rather not, please see:
+>>> https://lore.kernel.org/linux-mm/d407a381-099b-4ec6-a20e-aeff4f3d750f@arm.com/
+>>
+>> Sorry but I don't see anything relavent to my point in this mail. Perhaps there
+>> is some s390-specific detail that I'm failing to understand?
+> 
+> Sorry, with this message I meant the branch where it was discussed,
+> I will try to C&P some excerpts and summarize it here.
+> 
+> * lazy_mmu_mode_enable()
+> 
+> This helper is parameter-free, assuming the MMU unit does not need any
+> configuration other than turning it on/off. That is currently true, but
+> (as I noted in my other mail) I am going to introduce a friend enable
+> function that accepts parameters, creates an arch-specific state and
+> uses it while the lazy mmu mode is active:
+> 
+> static inline void arch_enter_lazy_mmu_mode_pte(struct mm_struct *mm,
+> 						unsigned long addr,
+> 						unsigned long end,
+> 						pte_t *ptep)
+> {
+> 	...
+> }
+> 
+> * lazy_mmu_mode_resume() -> arch_enter_lazy_mmu_mode()
+> 
+> Conversely, this needs to be -> arch_resume_lazy_mmu_mode(). And it can not
+> be arch_enter_lazy_mmu_mode(), since a lazy_mmu_mode_resume() caller does
+> not know the parameters passed to the original lazy_mmu_mode_enable(...)-
+> friend.
+> 
+>>
+>> Thanks,
+>> Ryan
+> 
+> Thanks!
+> 
+>>>
+>>> The problem is kasan code invokes apply_to_page_range(), which enters lazy_mmu
+>>> mode unconditionally. I would claim that is rather an obstacle for the kasan
+>>> code, not a benefit. But it needs to be tackled.
+>>>> Should apply_to_page_range() had an option not to enter the lazy_mmu mode
+>>> (e.g. an extra "bool skip_lazy" parameter) - the pause/resume could have
+>>> been avoided.
+>>>
+>>>> Thanks,
+>>>> Ryan
+>>>
+>>> Thanks!
 
