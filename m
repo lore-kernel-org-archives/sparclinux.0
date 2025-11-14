@@ -1,279 +1,106 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D3A2F90C5;
-	Thu, 13 Nov 2025 15:56:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1147C2877D6;
+	Fri, 14 Nov 2025 04:23:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763049391; cv=none; b=nHVhUhCbFVPh10zeUONRaR+hU4kOO3Rr6fd9R6u/iwIW3lEsF/MKrnS1VeLIqXuW0Gfw+NWh9uDMPdPeVrtrSuEcA4vnaQc5SjT06zaPxjwdz7mabScR/N2uH97d22t6ydHreamRaQeDrpPzViFatB6z2ct6NqbVEuxAOc6LjfQ=
+	t=1763094184; cv=none; b=PD/2JruQNOOF0gRmWNMj5+QwX+zqXmkhAg1vc8wVhFjFwpVbmznJo7Vd2/nmGwCMmcgy/Oy19KDc0FrbYFWGlYcyAhFIBT9QPiVJcThP1jwXPxaDTwxX6rEhwJWgnxtjPI78lCWGQ3jyXcPeyIGUsy/toSz40vo8WoWE9BcUknI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763049391; c=relaxed/simple;
-	bh=qi0VduJ3q4LlN3ypA1D4cqv/xmGMRFYGUvSvvFXqbEg=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=ntJIEVBMx+EhP3kWucFhFP6jvtBDwBVwguWreqX04DEg8dFxom46mW7uW8NataQ3qZNbH7naQUAWhL3th6w/24pO63kqbtZDYaX3pcCSTm1i4dbZJ9xM2oEJ38OSKPLV0z3JQiOsjepQKn0dTPzdoWexLT5LMnrUgBwVgipshwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Crqr6pJ2; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1763094184; c=relaxed/simple;
+	bh=RobVRCgZWKDAOE0gDSu7wYFNPR+HLgdW/UejZYDDlGE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HwosUN2xICIV0XvSLPmJSh10yrAGl9HL/ZHukSmc9/CccjnO8ZnpJNdMmxZ/EtnA+cM4byD5VX2vBe/VUz9M1WreN9Nye9kr0rmkmsY23olojpug/jS8Ukyops8E4KUtmkRaw8z0NalEExrnkcjI9yIeFvzC6HF2p7sCslLCNBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JpQ9qeou; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Crqr6pJ2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1763049390; x=1794585390;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=qi0VduJ3q4LlN3ypA1D4cqv/xmGMRFYGUvSvvFXqbEg=;
-  b=Crqr6pJ2W+PZvqn+mOt9CaOIelD/w9Fd5JGSfb1+KaW52v108UC171fF
-   etZqgYMzDuHl78AdbwNKP2OtSFdBJTWeasdXTgsApCVqd+32M8+D06jpg
-   6eQ3ETwo1n7plhC4IatxsptmXuK8+FLAIETMHbHZoHx04P4BYLCCN2gLp
-   3z45xiP00LOJQp2S0J+6lolK5w5lkDgX5f2eTsHwYvQFjHA3ygiVpdKUH
-   8q1a4jvOooVIpyNiy7xnhtOpOk3FY5LQxWvE8q3Vf+rXEvEu+oSr3lraF
-   zNhg75oc4Avu66QsgHpUkwiYnpC/07uP0czv+LAVS/y6TNf0RKSs0eXVq
-   Q==;
-X-CSE-ConnectionGUID: Abrg1aBSSkekJlwe2fPqDw==
-X-CSE-MsgGUID: m1/ttwsjTRiYrT7I+D3clQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11612"; a="75449599"
-X-IronPort-AV: E=Sophos;i="6.19,302,1754982000"; 
-   d="scan'208";a="75449599"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2025 07:56:29 -0800
-X-CSE-ConnectionGUID: 5Q3fWISCQ1is7ToHEb2EBw==
-X-CSE-MsgGUID: FzBA1utJSVaatum3p4QUZw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,302,1754982000"; 
-   d="scan'208";a="220182536"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.164])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2025 07:56:20 -0800
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Thu, 13 Nov 2025 17:56:16 +0200 (EET)
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-cc: Andreas Larsson <andreas@gaisler.com>, Bjorn Helgaas <bhelgaas@google.com>, 
-    "David S. Miller" <davem@davemloft.net>, 
-    Geert Uytterhoeven <geert@linux-m68k.org>, linux-m68k@lists.linux-m68k.org, 
-    linux-mips@vger.kernel.org, linux-pci@vger.kernel.org, 
-    sparclinux@vger.kernel.org, 
-    Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-    =?ISO-8859-15?Q?Christian_K=F6nig?= <christian.koenig@amd.com>, 
-    Yinghai Lu <yinghai@kernel.org>, Igor Mammedov <imammedo@redhat.com>, 
-    "Rafael J . Wysocki" <rafael@kernel.org>, 
-    Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-    Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, 
-    =?ISO-8859-2?Q?Krzysztof_Wilczy=F1ski?= <kw@linux.com>, 
-    LKML <linux-kernel@vger.kernel.org>, 
-    =?ISO-8859-2?Q?Micha=B3_Winiarski?= <michal.winiarski@intel.com>, 
-    linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH 02/24] sparc/PCI: Remove pcibios_enable_device() as they
- do nothing extra
-In-Reply-To: <d221be13-f652-cc75-90d1-92cf38e0110e@linux.intel.com>
-Message-ID: <f8231cc3-a3ba-fc58-077e-90cce1a94429@linux.intel.com>
-References: <20250822145605.18172-1-ilpo.jarvinen@linux.intel.com>  <20250822145605.18172-3-ilpo.jarvinen@linux.intel.com> <8fcc0fd4b74f99d5c4d80d3907e7607a7d4c89da.camel@physik.fu-berlin.de> <d221be13-f652-cc75-90d1-92cf38e0110e@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JpQ9qeou"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C574FC16AAE;
+	Fri, 14 Nov 2025 04:22:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1763094183;
+	bh=RobVRCgZWKDAOE0gDSu7wYFNPR+HLgdW/UejZYDDlGE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JpQ9qeouOkhcbiv4XbYPE+RA9hjIDmMQ+z1O63pqvJGFha1JCpQaMOcKWJgzbo8tk
+	 XJ4yA30qSWHnrF0Xbwx9XxwaF0nqeyeu8ltfDqZPbN3oex3L07o5IThMLseHcDg6Bv
+	 1fAuESBIcya76J7XaQggkHMa4Yk+pn7g9Vu2i9/p55spB0NQ8CVygWnFp30/HA2jVh
+	 P2AYeyhI/xe9XkmCwZgHndjonZMsbW6q7wfnGOteYAV8PYxLE0bQz5bLBmRsnPFe95
+	 PgIaRb96v6thoR4zQ8OxMZQCYI5p7PTlsPB72vjiLqaxbzH5FAExUCREc5KTbvjwxG
+	 7NLMjsjSUxLpA==
+Date: Thu, 13 Nov 2025 21:22:54 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <thomas.weissschuh@linutronix.de>
+Cc: Nicolas Schier <nsc@kernel.org>, Paul Walmsley <pjw@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, linux-kbuild@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Masahiro Yamada <masahiroy@kernel.org>,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH v2 00/10] kbuild: userprogs: introduce
+ architecture-specific CC_CAN_LINK and userprog flags
+Message-ID: <20251114042254.GB2566209@ax162>
+References: <20251014-kbuild-userprogs-bits-v2-0-faeec46e887a@linutronix.de>
+ <aRToC77bNUy2sKAK@derry.ads.avm.de>
+ <20251113102307-ca2180c8-4876-46ea-8678-aaedd9ba36f0@linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323328-135835264-1763049376=:1464"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251113102307-ca2180c8-4876-46ea-8678-aaedd9ba36f0@linutronix.de>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Thu, Nov 13, 2025 at 10:31:10AM +0100, Thomas Weißschuh wrote:
+> On Wed, Nov 12, 2025 at 09:03:23PM +0100, Nicolas Schier wrote:
+> > Thanks for the patch set and all the work behind!  I found only one
+> > issue in patch 3, the rest looks good to me as they are.
+> > 
+> > I haven't reviewed the compiler flags for the archs, but from the formal
+> > point of view they look good to me, too.
+> > 
+> > How shall we proceed with here?  I think, easiest would be if we get
+> > appropriate acks from the architecture maintainers, so we could take
+> > this via kbuild.
+> 
+> That would surely be the best option. Unfortunately quite frequently it is hard
+> to get architecture maintainer's feedback on a cross-architecture series.
+> 
+> > Other opinions?
+> 
+> It would also work to only take the first three patches through the kbuild tree
+> and push the other ones through the architecture trees.
+> 
+> I don't really have a clear preference.
 
---8323328-135835264-1763049376=:1464
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+If you do not have a preference, I think it would be easier if Nicolas
+picks up the first three patches (which I will go review formally
+shortly, sorry again for the delay on that) to make sure they make
+6.19-rc1 then you can send out the architecture changes individually
+with plans to pick up any ones that have been left behind after a
+development cycle? That should give architecture maintainers enough time
+to properly react and review the series (since they will know if those
+flags are appropriate). We could probably send the last patch as a fix
+if those changes do not land until 6.20-rc1.
 
-On Mon, 10 Nov 2025, Ilpo J=C3=A4rvinen wrote:
-
-> On Thu, 6 Nov 2025, John Paul Adrian Glaubitz wrote:
->=20
-> > Hello Ilpo,
-> >=20
-> > On Fri, 2025-08-22 at 17:55 +0300, Ilpo J=C3=A4rvinen wrote:
-> > > Under arch/sparc/ there are multiple copies of pcibios_enable_device(=
-)
-> > > but none of those seem to do anything extra beyond what
-> > > pci_enable_resources() is supposed to do. These functions could lead =
-to
-> > > inconsistencies in behavior, especially now as pci_enable_resources()
-> > > and the bridge window resource flags behavior are going to be altered
-> > > by upcoming changes.
-> > >=20
-> > > Remove all pcibios_enable_device() from arch/sparc/ so that PCI core
-> > > can simply call into pci_enable_resources() instead using it's __weak
-> > > version of pcibios_enable_device().
-> > >=20
-> > > Signed-off-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
-> > > ---
-> > >  arch/sparc/kernel/leon_pci.c | 27 ---------------------------
-> > >  arch/sparc/kernel/pci.c      | 27 ---------------------------
-> > >  arch/sparc/kernel/pcic.c     | 27 ---------------------------
-> > >  3 files changed, 81 deletions(-)
-> > >=20
-> > > diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pc=
-i.c
-> > > index 8de6646e9ce8..10934dfa987a 100644
-> > > --- a/arch/sparc/kernel/leon_pci.c
-> > > +++ b/arch/sparc/kernel/leon_pci.c
-> > > @@ -60,30 +60,3 @@ void leon_pci_init(struct platform_device *ofdev, =
-struct leon_pci_info *info)
-> > >  =09pci_assign_unassigned_resources();
-> > >  =09pci_bus_add_devices(root_bus);
-> > >  }
-> > > -
-> > > -int pcibios_enable_device(struct pci_dev *dev, int mask)
-> > > -{
-> > > -=09struct resource *res;
-> > > -=09u16 cmd, oldcmd;
-> > > -=09int i;
-> > > -
-> > > -=09pci_read_config_word(dev, PCI_COMMAND, &cmd);
-> > > -=09oldcmd =3D cmd;
-> > > -
-> > > -=09pci_dev_for_each_resource(dev, res, i) {
-> > > -=09=09/* Only set up the requested stuff */
-> > > -=09=09if (!(mask & (1<<i)))
-> > > -=09=09=09continue;
-> > > -
-> > > -=09=09if (res->flags & IORESOURCE_IO)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_IO;
-> > > -=09=09if (res->flags & IORESOURCE_MEM)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_MEMORY;
-> > > -=09}
-> > > -
-> > > -=09if (cmd !=3D oldcmd) {
-> > > -=09=09pci_info(dev, "enabling device (%04x -> %04x)\n", oldcmd, cmd)=
-;
-> > > -=09=09pci_write_config_word(dev, PCI_COMMAND, cmd);
-> > > -=09}
-> > > -=09return 0;
-> > > -}
-> > > diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-> > > index ddac216a2aff..a9448088e762 100644
-> > > --- a/arch/sparc/kernel/pci.c
-> > > +++ b/arch/sparc/kernel/pci.c
-> > > @@ -722,33 +722,6 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_=
-info *pbm,
-> > >  =09return bus;
-> > >  }
-> > > =20
-> > > -int pcibios_enable_device(struct pci_dev *dev, int mask)
-> > > -{
-> > > -=09struct resource *res;
-> > > -=09u16 cmd, oldcmd;
-> > > -=09int i;
-> > > -
-> > > -=09pci_read_config_word(dev, PCI_COMMAND, &cmd);
-> > > -=09oldcmd =3D cmd;
-> > > -
-> > > -=09pci_dev_for_each_resource(dev, res, i) {
-> > > -=09=09/* Only set up the requested stuff */
-> > > -=09=09if (!(mask & (1<<i)))
-> > > -=09=09=09continue;
-> > > -
-> > > -=09=09if (res->flags & IORESOURCE_IO)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_IO;
-> > > -=09=09if (res->flags & IORESOURCE_MEM)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_MEMORY;
-> > > -=09}
-> > > -
-> > > -=09if (cmd !=3D oldcmd) {
-> > > -=09=09pci_info(dev, "enabling device (%04x -> %04x)\n", oldcmd, cmd)=
-;
-> > > -=09=09pci_write_config_word(dev, PCI_COMMAND, cmd);
-> > > -=09}
-> > > -=09return 0;
-> > > -}
-> > > -
-> > >  /* Platform support for /proc/bus/pci/X/Y mmap()s. */
-> > >  int pci_iobar_pfn(struct pci_dev *pdev, int bar, struct vm_area_stru=
-ct *vma)
-> > >  {
-> > > diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-> > > index 25fe0a061732..3d54ad5656a4 100644
-> > > --- a/arch/sparc/kernel/pcic.c
-> > > +++ b/arch/sparc/kernel/pcic.c
-> > > @@ -641,33 +641,6 @@ void pcibios_fixup_bus(struct pci_bus *bus)
-> > >  =09}
-> > >  }
-> > > =20
-> > > -int pcibios_enable_device(struct pci_dev *dev, int mask)
-> > > -{
-> > > -=09struct resource *res;
-> > > -=09u16 cmd, oldcmd;
-> > > -=09int i;
-> > > -
-> > > -=09pci_read_config_word(dev, PCI_COMMAND, &cmd);
-> > > -=09oldcmd =3D cmd;
-> > > -
-> > > -=09pci_dev_for_each_resource(dev, res, i) {
-> > > -=09=09/* Only set up the requested stuff */
-> > > -=09=09if (!(mask & (1<<i)))
-> > > -=09=09=09continue;
-> > > -
-> > > -=09=09if (res->flags & IORESOURCE_IO)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_IO;
-> > > -=09=09if (res->flags & IORESOURCE_MEM)
-> > > -=09=09=09cmd |=3D PCI_COMMAND_MEMORY;
-> > > -=09}
-> > > -
-> > > -=09if (cmd !=3D oldcmd) {
-> > > -=09=09pci_info(dev, "enabling device (%04x -> %04x)\n", oldcmd, cmd)=
-;
-> > > -=09=09pci_write_config_word(dev, PCI_COMMAND, cmd);
-> > > -=09}
-> > > -=09return 0;
-> > > -}
-> > > -
-> > >  /* Makes compiler happy */
-> > >  static volatile int pcic_timer_dummy;
-> >=20
-> > This change actually broke driver initialization on SPARC, see:
-> >=20
-> > https://github.com/sparclinux/issues/issues/22
->=20
-> Does the attached patch help?
-
-Second fixup patch attached.
-
---=20
- i.
-
---8323328-135835264-1763049376=:1464
-Content-Type: text/x-diff; name=sparc-pref2.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <474a4557-bd2d-a362-a883-08ba47f89a36@linux.intel.com>
-Content-Description: 
-Content-Disposition: attachment; filename=sparc-pref2.patch
-
-RnJvbTogSWxwbyBKw6RydmluZW4gPGlscG8uamFydmluZW5AbGludXguaW50
-ZWwuY29tPg0KU3ViamVjdDogW1BBVENIXSBTUEFSQy9QQ0k6IENvcnJlY3Qg
-NjQtYml0IG5vbi1wcmVmIC0+IHByZWYNCg0KU2lnbmVkLW9mZi1ieTogSWxw
-byBKw6RydmluZW4gPGlscG8uamFydmluZW5AbGludXguaW50ZWwuY29tPg0K
-DQotLS0NCiBhcmNoL3NwYXJjL2tlcm5lbC9wY2kuYyB8IDE5ICsrKysrKysr
-KysrKysrKysrKysNCiAxIGZpbGUgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygr
-KQ0KDQpkaWZmIC0tZ2l0IGEvYXJjaC9zcGFyYy9rZXJuZWwvcGNpLmMgYi9h
-cmNoL3NwYXJjL2tlcm5lbC9wY2kuYw0KaW5kZXggYTk0NDgwODhlNzYyLi4z
-Yjg1NzU4OTEwMDYgMTAwNjQ0DQotLS0gYS9hcmNoL3NwYXJjL2tlcm5lbC9w
-Y2kuYw0KKysrIGIvYXJjaC9zcGFyYy9rZXJuZWwvcGNpLmMNCkBAIC0xODEs
-NiArMTgxLDI0IEBAIHN0YXRpYyBpbnQgX19pbml0IG9mcGNpX2RlYnVnKGNo
-YXIgKnN0cikNCiANCiBfX3NldHVwKCJvZnBjaV9kZWJ1Zz0iLCBvZnBjaV9k
-ZWJ1Zyk7DQogDQorc3RhdGljIHZvaWQgb2ZfZml4dXBfcGNpX3ByZWYoc3Ry
-dWN0IHBjaV9kZXYgKmRldiwgaW50IGluZGV4LA0KKwkJCSAgICAgIHN0cnVj
-dCByZXNvdXJjZSAqcmVzKQ0KK3sNCisJaWYgKCEocmVzLT5mbGFncyAmIElP
-UkVTT1VSQ0VfTUVNXzY0KSkNCisJCXJldHVybjsNCisNCisJaWYgKCFyZXNv
-dXJjZV9zaXplKHJlcykpDQorCQlyZXR1cm47DQorCWlmIChyZXMtPmVuZCA8
-PSB+KCh1MzIpMCkpDQorCQlyZXR1cm47DQorDQorCWlmICghKHJlcy0+Zmxh
-Z3MgJiBJT1JFU09VUkNFX1BSRUZFVENIKSkgew0KKwkJcmVzLT5mbGFncyB8
-PSBJT1JFU09VUkNFX1BSRUZFVENIOw0KKwkJcGNpX2luZm8oZGV2LCAicmVn
-IDB4JXg6IGZpeHVwOiBwcmVmIGFkZGVkIHRvIDY0LWJpdCByZXNvdXJjZVxu
-IiwNCisJCQkgaW5kZXgpOw0KKwl9DQorfQ0KKw0KIHN0YXRpYyB1bnNpZ25l
-ZCBsb25nIHBjaV9wYXJzZV9vZl9mbGFncyh1MzIgYWRkcjApDQogew0KIAl1
-bnNpZ25lZCBsb25nIGZsYWdzID0gMDsNCkBAIC0yNDQsNiArMjYyLDcgQEAg
-c3RhdGljIHZvaWQgcGNpX3BhcnNlX29mX2FkZHJzKHN0cnVjdCBwbGF0Zm9y
-bV9kZXZpY2UgKm9wLA0KIAkJcmVzLT5lbmQgPSBvcF9yZXMtPmVuZDsNCiAJ
-CXJlcy0+ZmxhZ3MgPSBmbGFnczsNCiAJCXJlcy0+bmFtZSA9IHBjaV9uYW1l
-KGRldik7DQorCQlvZl9maXh1cF9wY2lfcHJlZihkZXYsIGksIHJlcyk7DQog
-DQogCQlwY2lfaW5mbyhkZXYsICJyZWcgMHgleDogJXBSXG4iLCBpLCByZXMp
-Ow0KIAl9DQoNCi0tIA0KdGc6ICgzYTg2NjA4Nzg4MzkuLikgc3BhcmMvZHQt
-Zml4dXAtcHJlZiAoZGVwZW5kcyBvbjogbWFpbikNCg==
-
---8323328-135835264-1763049376=:1464--
+Cheers,
+Nathan
