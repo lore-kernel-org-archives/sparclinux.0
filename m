@@ -1,64 +1,64 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E318F29BDB5
-	for <sparclinux@vger.kernel.org>; Sat, 15 Nov 2025 14:01:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00374298CAF
+	for <sparclinux@vger.kernel.org>; Sat, 15 Nov 2025 15:09:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763215316; cv=none; b=RzI4ie59YuS8b9H3X6/TCYcqnTBEEVcTTfkSPexb2VhvUss6GzM78va5WdvjuVqDfBBcITSgQzM7q5ug6T6mO7/j/nLE95fTR3nJ1M9Jn6nKPKcsTpmCcwYfgFBgSqABWLNtHMm1wLyh5L9CEaOeVu+xjhI+K0H/Uh0V5+5rfwU=
+	t=1763219401; cv=none; b=Zl6fHFnyvT0N+gDGRFneksQPqxLgSEjvJSAvJIaJYq1hpbEqLT0Nt2nHuuk/0t/GiJTmaG52pxevOVHqUBaTCVq+I+IUUtFNzWOn9Z1xtxlRDDbYKO7xhFleJckn3tPxdnggwIvvoPE02MPSyLQh/jy6fvSPxuwdLI2r00l2jYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763215316; c=relaxed/simple;
-	bh=olQBQzbLF3fdlc7j5Y7W4kleJFMfa0UsHIk6o2GsAbQ=;
+	s=arc-20240116; t=1763219401; c=relaxed/simple;
+	bh=9SA9SEdpJyHPt8tsp4kccmbvrFG5gu2WIbEuJq7mvJw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gzxfQvy6KCJ1ixUK42z45/Gmz/Idz+vGQ1/uN/gm1ifH7L+0ZyA8vKUdMCy1rLk0av1OO27yi2urq0wzIgILbUrvaYhPDWOqJj3B3sLufhQWtjBrig+wbWo6v/GGHPBilU8qqjnvxJWcQIidl3SI8YT94PpJSZAwNJVheVBX4q8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WPPlpPN8; arc=none smtp.client-ip=209.85.216.46
+	 MIME-Version; b=YieQqajqyDPs6LrIkVKi+RqxfNfGkhbOcWIhnazd+8xxK4bkdhb1DXTMHWq7HjcSquoOOn6GefLBRcT1gurd20YHMBufZ57Xz/Jo2NtZjYB3tq9H1k6wO+GEkX7IgAt10zRQr7LfgT+dCVyt8Wf10+5oPgkfpcK/b6ySmzFK4NI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FJbErLXt; arc=none smtp.client-ip=209.85.210.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WPPlpPN8"
-Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-34372216275so3296377a91.2
-        for <sparclinux@vger.kernel.org>; Sat, 15 Nov 2025 06:01:54 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FJbErLXt"
+Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-7bb710d1d1dso1598251b3a.1
+        for <sparclinux@vger.kernel.org>; Sat, 15 Nov 2025 07:09:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763215314; x=1763820114; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1763219398; x=1763824198; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=olQBQzbLF3fdlc7j5Y7W4kleJFMfa0UsHIk6o2GsAbQ=;
-        b=WPPlpPN87Ut1s2/7ePShZv+unovnrmjl++p2y0sOrL6ijb2W3eLmkY5dbhUJwBiZoj
-         049wrgkwzXlsr6qr//qLRiIh0aplcRrEvxwr367byGGwURdHE32MdNmGt7iISbGnYC/F
-         X0MxzIjDTE4Lg/5hVTa8bYpHHbf58X9x0s/09kS8MKBagRfZrcfl4pzWYOGveaukOTNp
-         +vZoSdiXBIF0qIzMj+zUhOxFHPHYUvAEBfuGuxKhzERqLfQMGCu4rZJ9QK5+KcUhg6cX
-         9uu2+kly+2QoIeRxr6AEcnpDwW+7YVkkv2FfnozxEmHVEBu9eni8+j8ug2gQLRtpKv3f
-         FK+g==
+        bh=9SA9SEdpJyHPt8tsp4kccmbvrFG5gu2WIbEuJq7mvJw=;
+        b=FJbErLXtU8bgqxHLdctt8zbwJon845Uu5fz6ysLb2rJa5T7Ab5Vo8beiZkbvJHFqA7
+         zpFdgwr82ImS0hvpgydizMysAfTNyP3fFskBZ/qj1o07UwM4TwkqAtI9+bEb69LNM+Rx
+         BwPVySwULjjg7bfakaWVU2koQIa4gF4L7AvxAetvPCJKBIvEvyiXRw2ZY+85JU+tBxOc
+         G+NwvS293UzoTEUFt8OD1oEjxJ+yqc2PALzTghq/gNUT/Rq+koMEhfo/1rrM5/adsOcF
+         LO+zdTe4in6D/AdRRnqCNP4CWk6x/zFjAutbnv/RJqrP8lFmJMoGd0OvrHw/izY27Vm5
+         PwCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763215314; x=1763820114;
+        d=1e100.net; s=20230601; t=1763219398; x=1763824198;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=olQBQzbLF3fdlc7j5Y7W4kleJFMfa0UsHIk6o2GsAbQ=;
-        b=JieK4JCq9Z3V4bnM50Y0KeTP5D5OZWCvd3ldKjozsDZt0LJMYWZrHVckb6QQ8GhpRf
-         WSGEuNwHZ3770WlOdRi36EtEDi2dUyItlQHXiFyiqNRCWMZMFCNlrdlTwKccDFW11379
-         IOXFRuOYGKoBcqIsC9nRsTaduySyoyVG40ScQeTng7cW2vpm0Z+1tWAFCbGdRv65zu3N
-         CE5+W8pL9ZJlvw2REqmIXfj/R6638iN3UpmIb84eQ8QB29X36MMllAoK5izdVWUdMQvA
-         f2aamHz1qslZzSfgsfqE0/fgQLIpsJVQCePWJGXArySRWLFSbxXYKztikibM+O7iwwR4
-         yS8Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVJmBgjSCAhB09y0GxhwtuQM7H49zKsDACrO6fKL+MtPxQ216/+saj3S7uF0QtdwNdrM5xChkbU8oNe@vger.kernel.org
-X-Gm-Message-State: AOJu0YyzLMnghT2+7Ykvm/K1goCQqYFb3DtqlDWgMf/P0cHn2lkwKVQF
-	9qfcSkTxOaR+Gn63Kfaij2LqCebqMgbNA8HyFOGtCNFpunBT+BF6l7vP
-X-Gm-Gg: ASbGncswk9uAdyPX9e9hQv0zgCKnUjd+SGIATrKsBgyCKy+SD4aLT+Qx2jNQeHgzwpg
-	O9AsxGkRJNgfGsbu7UmiV6DoPrW2rYE//5oVimVpR32XzXHvAG4BOMlx+r1TG8CdNHVgeZe1T6C
-	lHBKN4AUtahCyOPG9LN7ts5VfMZ3gjQC/T0ceKXRXSSaa7Acj/DuISS9WSoJvivE+e9TLBRANHM
-	cAfpiPJIqCUgStdncTpxZnnFvfV0qHUQICYnCszhF6y+nw/cftP4QIv7WdApAX8F51uyjC81JBo
-	kK/IeyY05SifuyLwdIfpIn2+03aWHIV4Kaa3q8pFnRCvkBVLmYWZD3q/uDnTCgmVujEZP7oJUe8
-	9LNb3In6WX14wiPHRs1l+QD8tNwDQaAsVJ8BVmfTgupxp4Ngz3uoz/XMTj2jksFJLuJgt+sEu1Z
-	2WOmp+QPNL6E1qefEPNI2dpro2bxoo4403hqw=
-X-Google-Smtp-Source: AGHT+IG/TnOO0qzjxK2iaqcK1w8zb7Sll+uP2m9bSS0pCypnuHepcTcVoR++oPZWg3RSEvlIe1E8yg==
-X-Received: by 2002:a17:90b:1dce:b0:33b:d74b:179 with SMTP id 98e67ed59e1d1-343fa74c2f3mr7051205a91.27.1763215313855;
-        Sat, 15 Nov 2025 06:01:53 -0800 (PST)
+        bh=9SA9SEdpJyHPt8tsp4kccmbvrFG5gu2WIbEuJq7mvJw=;
+        b=paiOJ+mGcftwDx58Pax7AQvGcWpY7WxurxcKDnER1yNXW6idNgtCIGTGsRfNSwcj/Y
+         zHfJfSu2qHJD2oARSyhJy2Q/6oeQaBsLpsd3EKXaM4rzB9E6QsmsaS8WIW/Pz5tOAYfV
+         V430kZgnmUKcx/TxO2ep7/rHRPdZxIt52eCIAyU0SL8pQalVOo+CF2sPOSDV+FpoYln+
+         ZPLyZldVA+/SaGtTJy9MFwIbjXSRytAlkKAM4Ix9a1+pESK7eEf5YUZQCjoSTVYRYBmw
+         RGxLGhvGLAo8tU73wNJUp6C5A0w/o7uywsuD6On8FhQwudLcO4EF6/ZFK5f8yYMiYqFQ
+         5lfg==
+X-Forwarded-Encrypted: i=1; AJvYcCVureUam8A4dixWa8kQIKG0vSmphFEWnfw9pRxcNhSaDUwiYlQQCX1Ibk4V80+L427sq+sN7DFXqWJ9@vger.kernel.org
+X-Gm-Message-State: AOJu0Yym3gplpwDvnmB9iVFkH1HYopw3DThjD92lXLOR9rpZ/HPXVaEk
+	qEetQgWGHCeHYLQQnWF23pKmKEp7xrg8lUEK5ZPz0pqBILgTmZ8Txbsx
+X-Gm-Gg: ASbGnctxCbfiG7xrJeo6vO4CZlqNZK/m9HiGQPU1/gGdCrHdj/3jkg4PH6JT/xoz1jf
+	ZZ1krn7V7oX2vjF+ljGDYHoP3dWpR7NEtKN4XV4ZNu1dRfgOaGyFY3bxNObQxtLORCLUxGBYziN
+	lWuNEcxPWIKOZdhlzo9HOefpd72MSrjYdRgaKRZTji6VflZkzXxLwTW34q1cpmRi6RvLmI+RyCG
+	myHJ1jn7c5JRxkf8QOQk0D6lamEYxlnuHEtTeVEoyx8BqKEP0drumZmBdxhQTqEIn7c1zcXOn5j
+	IlSzrPdpIUG8b6MuahzhtVwPeE1eNDYeipZkIHdb0axDVGgLeZfwXoQfmXE3cE6O5y5N0+4H3uu
+	Akoc6VUZt0o730EfQEDt33IzStBoVGNB2pnkVUk9Bqv60sxv4s3FwQf5pUODBZ9XxH72GpSdDPM
+	HLLCGIMqkbAYh9k+zludfxzA3rEpCfLU6ejM8=
+X-Google-Smtp-Source: AGHT+IHWcY+GtYxvT2QkvWrdoG6nA29trQIRuLrsD8pNdWPYP/nxv4eW9O/LAvnZtRfQqFwuGVp1RA==
+X-Received: by 2002:a05:6a20:a109:b0:34f:c83b:b3f6 with SMTP id adf61e73a8af0-35ba2598aebmr8896833637.43.1763219398046;
+        Sat, 15 Nov 2025 07:09:58 -0800 (PST)
 Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bc37526d91fsm7478366a12.22.2025.11.15.06.01.21
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7b927d1c413sm8266986b3a.69.2025.11.15.07.09.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 15 Nov 2025 06:01:52 -0800 (PST)
+        Sat, 15 Nov 2025 07:09:57 -0800 (PST)
 From: Xie Yuanbin <qq570070308@gmail.com>
 To: tglx@linutronix.de
 Cc: aalbersh@redhat.com,
@@ -133,12 +133,12 @@ Cc: aalbersh@redhat.com,
 	vschneid@redhat.com,
 	will@kernel.org,
 	x86@kernel.org
-Subject: Re: [PATCH v3 2/3] Make raw_spin_rq_unlock inline
-Date: Sat, 15 Nov 2025 22:01:08 +0800
-Message-ID: <20251115140108.543-1-qq570070308@gmail.com>
+Subject: Re: [PATCH v3 3/3] Make finish_task_switch and its subfuncs inline in context switching
+Date: Sat, 15 Nov 2025 23:09:28 +0800
+Message-ID: <20251115150928.649-1-qq570070308@gmail.com>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <875xbcbdrm.ffs@tglx>
-References: <875xbcbdrm.ffs@tglx>
+In-Reply-To: <87346gbd04.ffs@tglx>
+References: <87346gbd04.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -147,12 +147,66 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On Fri, 14 Nov 2025 20:44:13 +0100, Thomas Gleixner wrote:
-> That inline does not guarantee that the compiler actually inlines
-> it. clang is obnoxiously bad at that.
+On Fri, 14 Nov 2025 21:00:43 +0100, Thomas Gleixner wrote:
+> What are subfuncs? This is not a SMS service. Use proper words and not
+> made up abbreviations.
+>
+> Again you mark them __always_inline and not inline. Most of them are
+> already 'inline'. Can you please precise in your wording?
+>
+> This really can go into the comment section below the first '---'
+> separator. No point in having this in the change log.
 
-Yes, I know it. I modified it to __always_inline in patch 3.
-This patch making it as inline to make the context look more harmonious.
-Thanks!
+Thanks for pointing it out, I will improve it in v4 patch.
+
+>> After `finish_task_switch` is changed to an inline function, the number of
+>> calls to the subfunctions (called by `finish_task_switch`) increases in
+>> this translation unit due to the inline expansion of `finish_task_switch`.
+>> Due to compiler optimization strategies, these functions may transition
+>> from inline functions to non inline functions, which can actually lead to
+>> performance degradation.
+>
+> I'm having a hard time to understand this word salad.
+
+I think the description is very important here, because it explains why
+it needs to make the subfunctions as __always_inline.
+Where is difficult to understand specifically? Please point it out,
+and I will improve the description in v4 patch. Thank you very much!
+
+> What means (rdtsc)?
+
+This is a high-precision timestamp acquisition method in x86.
+The description here is not sufficient, thanks for pointing it out, I
+will improve it in v4 patch.
+
+> So the real benefit is observable when spectre_v2_user mitigations are
+> enabled. You completely fail to explain that.
+
+What kind of explanation is needed here?
+```txt
+When spectre_v2_user mitigation is enabled, kernel is likely to
+preform branch prediction hardening inside switch_mm_irq_off, which can
+drastically increase the branch prediction misses in subsequently
+executed code.
+
+On x86, this mitigation is enabled conditionally by default, but on other
+architectures, for example arm32/aarch64, the mitigation may be fully
+enabled by default.
+
+`finish_task_switch` is right after `switch_mm_irq_off`, so makeing it
+inline can achieve high performance benefits.
+```
+Is it ok? Thanks very much!
+
+> bzImage size is completely irrelevant. What's interesting is how the
+> size of the actual function changes.
+
+I think the bzImage size is meaningful, at least for many embedded
+devices. Due to compression algorithms, code size cannot directly reflect
+to the compressed size.
+
+Anyway, I will supplement the size of the .text section in the v4 patch.
+
+Thanks very much!
 
 Xie Yuanbin
