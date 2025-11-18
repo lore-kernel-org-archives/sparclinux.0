@@ -1,98 +1,98 @@
-Received: from exactco.de (exactco.de [176.9.10.151])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC063659E6
-	for <sparclinux@vger.kernel.org>; Tue, 18 Nov 2025 15:25:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=176.9.10.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B1852AD00
+	for <sparclinux@vger.kernel.org>; Tue, 18 Nov 2025 15:55:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763479522; cv=none; b=Yr7lrTcTFSg7cbi3gYwokMwYa3ipWUeo1P576rvthwT5D1pJLwpJR5n/NKmWYtOJmvau4cJWjO5rRe5gh1h5RnitWV3bogQsfIg3xp3P85E5DqbNrF9/5JoGATYtQ8/qmYbDNwuVgmg0tJPDhG44tbUfxLuO3GvA8D2g99YNUws=
+	t=1763481344; cv=none; b=IUQ13OtBodBYf25piBBkLfPHbX0zZ9TjncK6zUjGe9++d3zsKsVzijvxwyPOL4B3WTLqXcT03OoLl9oeCACQD5+qoWHo8/Xke6NAhKBJHXh2FeVyNKPPZ12I+F79d8QGH2QvbFFI+58rG54RdaClidIq37TVGpMvquWeNj8pe70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763479522; c=relaxed/simple;
-	bh=YBGHMl1kOtXCCtldS7WVgn0Y5V0FHkHPE/4GYONKEA0=;
-	h=Date:Message-Id:To:Cc:Subject:From:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=DmY57Hzku6tsram3eI6vM6bfvsa+0KIR1GmIV+nURFslDbp1Upf+F6JT8mbfzGlpe9tglzgwDg+Zi6CqQM3LQzBy6Oq0FstXphCN7FhA1gzzllQSzN8/lsvxn8nfhAYEoyy2HRLFFlQXdH9QxvJMUyQ526RWOAZke+i4u7QlNS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=exactco.de; spf=pass smtp.mailfrom=exactco.de; dkim=pass (2048-bit key) header.d=exactco.de header.i=@exactco.de header.b=w7RTFdid; arc=none smtp.client-ip=176.9.10.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=exactco.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=exactco.de
+	s=arc-20240116; t=1763481344; c=relaxed/simple;
+	bh=bf7Sn+bBMVXQNyZ19L3RgdpaHpaUlCI5A/pkoWsH1z0=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=G+knYknQErzXQGj5ucVZKb3oVuqWBp6pDsFZOFmVzgjZ4EFmpB7lyXv349F9j1cyH1n9UBiZCLA3XnrU9GovxKI/40eT2sMc0FaQxknQlm80C+vwkLnKXCnu5XevZBiUjf/8u0M1scRd7Jws3uVu8qKUYuUCovFmpXZ9YHEWo0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=X4T0Lnry; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=exactco.de header.i=@exactco.de header.b="w7RTFdid"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=exactco.de;
-	s=x; h=Content-Transfer-Encoding:Content-Type:Mime-Version:References:
-	In-Reply-To:From:Subject:Cc:To:Message-Id:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ySqOKpeKfulcUmtqazA975aDUynfPt9n1Uipxl0c3mA=; b=w7RTFdidNPFcihX18UREKAapZI
-	4hsHG/JgeQ8hjLXPEoFDwfcLrLNKE0coPWN/oLuYZX8siDWXVZy6taFJAaZqSa2XSipbatd8Kk9yT
-	eEsAmp9LP4T4+r4skgeVzo74WwDwk+swAtUxClt6zRQTnDTsfWoPphQfpHbezb0szHFFH2qe4qrO4
-	AFciPzQlHr0XxG7VRy15leCwp4BjoryLrOpIg2Gv6d9cU77BIz5ahp+wG3ariVNONkpJh31KodaB/
-	fOgw9DHTB+AVdMNYzbAwe8v9UFsgLb7WXe4q3QD0ZRepn0wiW62312kipKv+Kwpxg2C8DhFyz+fV3
-	Gspm8ECw==;
-Date: Tue, 18 Nov 2025 16:25:29 +0100 (CET)
-Message-Id: <20251118.162529.193664192018749438.rene@exactco.de>
-To: glaubitz@physik.fu-berlin.de
-Cc: sparclinux@vger.kernel.org, joe.moriarty@oracle.com,
- david.j.aldridge@oracle.com, allen.pais@oracle.com, davem@davemloft.net,
- andreas@gaisler.com
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="X4T0Lnry"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=MSQjZYGjxmHoqyC1/epkXGCr2/PqTp/r73ts7qR++mI=; t=1763481341;
+	x=1764086141; b=X4T0LnrypgWlkH3dB7LbrkpAkt7G/zZfbKKbTLvcg5vTKlc94bFqmEsmnDEJF
+	Dt7Vx35/aD3adjBj5N1G41fCrAqg0kOhzFBL6Q9aTuGRxHRVkwp9uDWiKeoJtkFvdMfuKPHECLgXh
+	eP9Ojqx9KKxaX8Os8B6a3hRwDJ0L0XV4fKPiMsyYtP9dnB/O9WUkKTFu/6Z+q8fzIOe7ldN5NHXvu
+	9h719VrhgN5AaYyBtNLSUphCgB2DiZ59103w8IARcCSgK3yG+Il9CUgta16M9+IV7DzJKVdXhmH6X
+	oQgtNgfbN7rNjUHt7GVu5HCgX4y5Qh+kqv1WiknQir3Tt0dyYg==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.98)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1vLO0D-000000013RG-2HJo; Tue, 18 Nov 2025 16:52:21 +0100
+Received: from p5b13aa34.dip0.t-ipconnect.de ([91.19.170.52] helo=suse-laptop.fritz.box)
+          by inpost2.zedat.fu-berlin.de (Exim 4.98)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1vLO0D-00000003QvV-1EKz; Tue, 18 Nov 2025 16:52:21 +0100
+Message-ID: <4eb320510cf615a84db959cce8f73bc755dbf712.camel@physik.fu-berlin.de>
 Subject: Re: [PATCH] sparc: Correctly recognize Sonoma S7/S8 cpus and perf
-From: =?iso-8859-1?Q?Ren=E9?= Rebe <rene@exactco.de>
-In-Reply-To: <baf12ef8dcf7ec72423bc2795d4824c06ed32adf.camel@physik.fu-berlin.de>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: =?ISO-8859-1?Q?Ren=E9?= Rebe <rene@exactco.de>
+Cc: sparclinux@vger.kernel.org, joe.moriarty@oracle.com, 
+	david.j.aldridge@oracle.com, allen.pais@oracle.com, davem@davemloft.net, 
+	andreas@gaisler.com
+Date: Tue, 18 Nov 2025 16:52:20 +0100
+In-Reply-To: <20251118.162529.193664192018749438.rene@exactco.de>
 References: <20251118.142521.973960159957848254.rene@exactco.de>
-	<baf12ef8dcf7ec72423bc2795d4824c06ed32adf.camel@physik.fu-berlin.de>
-X-Mailer: Mew version 6.10 on Emacs 30.2
+		<baf12ef8dcf7ec72423bc2795d4824c06ed32adf.camel@physik.fu-berlin.de>
+	 <20251118.162529.193664192018749438.rene@exactco.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.58.1 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-Hi Adrian,
+Hello,
 
-On Tue, 18 Nov 2025 16:10:30 +0100, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
+On Tue, 2025-11-18 at 16:25 +0100, Ren=C3=A9 Rebe wrote:
+> Thank you for taking a look and bringing this up. IMHO they modified
+> the GPL licensed Linux kernel and thereby agreed the GPL license
+> terms, shipped and Signed-off-by it. I don't really see any legal
+> issue here and as Guenter Roeck lectured me the other day, there is no
+> real Copyright for few lines changes[1], anyway ...
 
-> Hello,
-> 
-> On Tue, 2025-11-18 at 14:25 +0100, René Rebe wrote:
-> > Fix SPARC Sonoma S7 incorrectly identify as M7. Orabug: 23041
-> > 
-> > Add support for Sonoma S7 into perf to ensure that perf will
-> > recognise that it is running on a Sonoma device and initialize
-> > correctly. Orabug: 24931042
-> > 
-> > Rename SN to correctly identifying Sonoma 2 systems. Orabug: 22960812
-> > 
-> > While at it, fix S8 to use M7 optimizations instead of Niagra4, too.
-> > 
-> > Signed-off-by: René Rebe <rene@exactco.de>
-> > Originally-by: Joe Moriarty <joe.moriarty@oracle.com>
-> > Originally-by: Dave Aldridge <david.j.aldridge@oracle.com>
-> > Originally-by: Allen Pais <allen.pais@oracle.com>
-> 
-> This should be approved by someone from Oracle so that we don't run into
-> any risks of copyright litigation.
-> 
-> Furthermore, it would be nice to get an approval for the other patches
-> that are part of Oracle's UEK kernel which have not been upstreamed yet.
+Oracle started a copyright litigation over Java headers which were GPL
+licensed, please keep that in mind. Although they lost the case in the
+end, Google had to spend considerable amounts of money to win the lawsuit.
 
-Thank you for taking a look and bringing this up. IMHO they modified
-the GPL licensed Linux kernel and thereby agreed the GPL license
-terms, shipped and Signed-off-by it. I don't really see any legal
-issue here and as Guenter Roeck lectured me the other day, there is no
-real Copyright for few lines changes[1], anyway ...
+> I also significantly re-based and fixed this S7 patch and if it was
+> for me we could remove the SN/S8 bits as this appears to be unreleased
+> hardware that nobody probably ever had? I or a friend could also
+> retype the SN to S7 rename perf and asm wire-up, it really is just one
+> hex number and sed, ...
 
-I also significantly re-based and fixed this S7 patch and if it was
-for me we could remove the SN/S8 bits as this appears to be unreleased
-hardware that nobody probably ever had? I or a friend could also
-retype the SN to S7 rename perf and asm wire-up, it really is just one
-hex number and sed, ...
+I understand all that. Yet, there is nothing urgent about these patches
+to get a formal clarification first so that we don't run into any possible
+problems in the future.
 
-      René
+Having an official approval will also enable use to upstream all the other
+patches such as the one for kexec support or Linux LDOM server support.
 
-[1] https://lore.kernel.org/linux-watchdog/20251116.145908.308086523429052446.rene@exactcode.com/T/#mc50846bb4a7df87068e2bfa51d76cd09ef024929
+Adrian
 
--- 
-René Rebe, ExactCODE GmbH, Berlin, Germany
-https://exactco.de • https://t2linux.com • https://patreon.com/renerebe
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
