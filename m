@@ -1,124 +1,345 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD3D32F5A22;
-	Wed, 19 Nov 2025 08:48:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A5D1BFE00
+	for <sparclinux@vger.kernel.org>; Sun, 23 Nov 2025 12:19:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763542121; cv=none; b=UIhGxSsXSddWnOiH+kHLW6HK75fd1X/An2U4og3RtIMda8tJ+CikDeMZwKI0IG6F4uxQ7AiOqfq0ICO4FhqMEyYdVwOlNeR2cVubzWmBRnniIy6E97JYkQdP8VRhFxtKm50gHRdspq4ucLmPIjK5+1CLU6lgQJydLLlQbkN/8nY=
+	t=1763900378; cv=none; b=uIzFK4lTd+oUWdrN1Ge1QHeno4Ij7al4Pp+Laxfu1V1oFmgFC7gdJXsaBydDlT02RbsdQj5MZpkZxk4yiop2GGkUURo01y/fVw6SncKu1OzYc/CpMu/ZPAaGAh7sQXpLuoVJYfPOock9ZzCdsG7HA0v6236J7ZQUee5pUQzHPwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763542121; c=relaxed/simple;
-	bh=ZXDJCTG0a3wVBGkMR+gySyKqlObDwQn/SbGAsOSvlsc=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=aijpIE+vbn8DeUn0fO2WOr1zDmz+VdWb7S9YWx2WEXkSZU3s+LjPcYBJM5vTTwSsCrj1V84kGy89XgvjA1xMUJHOkgOhu5GLrVRGyoSR/SEcgAcyUG+Ih8zMSrEY4roh+JvVQPmDy3+W7Mx4ofzEA7OHqonnhcmXiL6O5BW9X9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=n05BBwMM; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1763900378; c=relaxed/simple;
+	bh=fMAYCzcpWyauo+apNc+9ppC2lUGQLtHtVV7tfYAy+68=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tOIEYmRZsZFIlvtwVTlrUhft5DtClA8r3+ibcvX8g6OWb3OAt+lS78wLtA0dULd7A1cLSdWYPlptDTrCwI1DUs4J9su9OTWIZwNW5R+Tizx8Ig4u6k1P7vQ86HfHxS5vrU7VsqeE8V+IfmgllxFAkrsYvySsozo+pFy55P9Ou8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lEyIhhis; arc=none smtp.client-ip=209.85.210.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="n05BBwMM"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=ufP6pvj4SMFKi7WHnDZB+3cQCZeOtNt9XW3iW+AYQSI=; t=1763542117;
-	x=1764146917; b=n05BBwMMMbOTne81dp8UlC7tW1JMMbcP/04eVh9MvUkxm6KU7zdd9gllxvhmu
-	Yo3Ut6DARy2s7gxViPpfHuG964QEOo4LeXN2iuSjQTFIF6tiwG3Pm1bXq8afEJBavc6EBV0Er/bPC
-	LXBtreCutjZBT9SAbDjTe/8ZSm9qTpEduHSyEp9q5NpJWJcpUzLjuLTBsipq7KFxqtyTCNqFiPeKF
-	uIugfEGEkWrq3kbHZ7Nsjzlf+8pSjDohbkapmIcgVhL0u2SlUcldd6rVnbI/GVA69V9UadUxRonko
-	E86ZcCQ4LdtembBwZuegzCkWT4ztblb/mhQr6E8Jgb6I0pUxeg==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.98)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vLdrY-00000001IS2-2p4x; Wed, 19 Nov 2025 09:48:28 +0100
-Received: from tmo-084-142.customers.d1-online.com ([80.187.84.142] helo=[172.20.10.2])
-          by inpost2.zedat.fu-berlin.de (Exim 4.98)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vLdrY-00000001YKa-1o91; Wed, 19 Nov 2025 09:48:28 +0100
-Message-ID: <bb9b0a6720b8bba08981fb0d0d0de5e61b0cbb2d.camel@physik.fu-berlin.de>
-Subject: Re: PROBLEM: errors mounting /dev/fd0 on sparc64 (regression)
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Nick Bowler <nbowler@draconx.ca>, linux-block@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>, regressions@lists.linux.dev
-Date: Wed, 19 Nov 2025 09:48:24 +0100
-In-Reply-To: <u3aaz4bx7xwlboyppeg4y3eixzgxbcodlmw7cwqloskmg6oqw2@j437p47sfww6>
-References: 
-	<u3aaz4bx7xwlboyppeg4y3eixzgxbcodlmw7cwqloskmg6oqw2@j437p47sfww6>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.1 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lEyIhhis"
+Received: by mail-pf1-f169.google.com with SMTP id d2e1a72fcca58-7ade456b6abso2679870b3a.3
+        for <sparclinux@vger.kernel.org>; Sun, 23 Nov 2025 04:19:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763900376; x=1764505176; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=tCYrQqEvztHYX2R5Z02I20mOYhdh9Ir99v7aCp1zUe4=;
+        b=lEyIhhisixfYUq1Pd94j1XkQJyHmvaj4B/e23ZxIrb56YlhcnuMj5qAoShgL5rb2Rd
+         zfIfvhCIRemic2BerYu3sJeTmB9LDsOTLsjwA6yvJawq1Ey/ZPds1DhLGApiIvt5xjcY
+         FHG7Q46mKcjQDcAURfzLaC7nxI4Ok3xRpmGYxXTGkNOO9yA1o7H9h7sqACYHlyPBFxIU
+         bDAj6eO1nHHby+qtqMwDngg/FRqsftzuHcBKY+8/gNGNJL1s96JvXxNLJsK6y/yf7C53
+         2ieqLQnHveYEqRejJjrFga8IbtZ7+1YNXS84Sw5xlQow+3MA4iSykgf3HLNxAGipRqDx
+         6hhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763900376; x=1764505176;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tCYrQqEvztHYX2R5Z02I20mOYhdh9Ir99v7aCp1zUe4=;
+        b=nemo0LRe3q0kFvX9kKQ+q3enJoqG0wSIlEE8ow7wVrdG5M3py+uYHqqXnV3VsqBcYU
+         LTiXkOIe3hiP63jqIWKwIOl5aLnUnW4bIn8Y8YQdal50QnaSWOfbnC2oOPvLARfi50Tw
+         ASVb6JLx+D6TFn0pK0ykG8Y2BFNuOFSJKedvmFGR1usUalnaQsmPiJAvNq+tiiQTab28
+         thLfLOms3XYxehrdavHycJuE6gPdRlYqoMh7k7T1nH0L9OHVYg5GEoET/7zvhK9eVud8
+         DCcTb+qS/Ozj91n0JEk2RBr7SYOLsyCwJBo22I0gVXlZLZ3JCNuoUe5KdBX+0aiKnt6M
+         UYCg==
+X-Forwarded-Encrypted: i=1; AJvYcCUs755swLmFKsoaDKlJu4uPKUxRzEcwEqXxQUDalfbr1AhdYamPV3l87WxhiKpKlYvaBLLNWVtHIpYp@vger.kernel.org
+X-Gm-Message-State: AOJu0YzYDhfKBvTN66r9WZV6uiOEgv/X/zKhKpOJqtJHHC/ZKBv4uVGB
+	aXK++hab96V5S+vdRtg0P+OkOBwnhGQROsMI3+qU/iVABk7s4pbloiD5
+X-Gm-Gg: ASbGncuCs7QdBe6UHTLnDKSM8GxsXnrsGnVJxZiSvDknIPGRf3tpNh8t5BmHYi3PB18
+	jW2swZj9tIPbaEVx8MuFZbs8oe4H9dHK6sfu8xqBpBslQateSqmWsA1PmfcTsDm/AApCcKQq0xE
+	iLbZLfRVKd2+SAaYHgPi9Yt9OEQ5RPVKaAdkETuCFoM3PfydIGShccV90crF9OIXi8BvezljUNE
+	7vIcigFv8VCkG13ZaMPcA4XFKY0vnpDLGdmJAp1jHfabDEKuNMChtSvB934FKXTMZY2miy8MnRy
+	jy5FgdlqBSFG0+GI1pn7+CEl+kEF8LyU6JLFtONi997e/NPlDLjwtDFQo9Rz5fvPwwEP54VT/16
+	4La0u8tBNvrGGGJ6JhokfV56sohpOERWxhYWKi6/I8rkt6JE4+eIp5fH1p1uHFgxWWQD9i8bZvq
+	+sPwK/NjXgNf5ezkBp3V8ITsGsTI67XKGs6SHdOsDxCbY02Xba
+X-Google-Smtp-Source: AGHT+IGf6ygH8Jb4cf01QxiqfQEDJ29a6hRUllFevQDvAG//mWFJqgi9wfdZ9zJBDAoD7TvOdP34+g==
+X-Received: by 2002:a05:6a00:1aca:b0:781:9ae1:1be6 with SMTP id d2e1a72fcca58-7c58c2b0d3amr10154323b3a.6.1763900375746;
+        Sun, 23 Nov 2025 04:19:35 -0800 (PST)
+Received: from DESKTOP-8TIG9K0.localdomain ([45.121.215.197])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7c3f0b63aefsm11410178b3a.52.2025.11.23.04.19.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 23 Nov 2025 04:19:35 -0800 (PST)
+From: Xie Yuanbin <qq570070308@gmail.com>
+To: tglx@linutronix.de,
+	peterz@infradead.org,
+	david@kernel.org,
+	riel@surriel.com,
+	segher@kernel.crashing.org,
+	hpa@zytor.com,
+	arnd@arndb.de,
+	mingo@redhat.com,
+	juri.lelli@redhat.com,
+	vincent.guittot@linaro.org,
+	dietmar.eggemann@arm.com,
+	rostedt@goodmis.org,
+	bsegall@google.com,
+	mgorman@suse.de,
+	vschneid@redhat.com,
+	bp@alien8.de,
+	dave.hansen@linux.intel.com,
+	luto@kernel.org,
+	linux@armlinux.org.uk,
+	mathieu.desnoyers@efficios.com,
+	paulmck@kernel.org,
+	pjw@kernel.org,
+	palmer@dabbelt.com,
+	aou@eecs.berkeley.edu,
+	alex@ghiti.fr,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	agordeev@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	davem@davemloft.net,
+	andreas@gaisler.com,
+	acme@kernel.org,
+	namhyung@kernel.org,
+	mark.rutland@arm.com,
+	alexander.shishkin@linux.intel.com,
+	jolsa@kernel.org,
+	irogers@google.com,
+	adrian.hunter@intel.com,
+	james.clark@linaro.org,
+	anna-maria@linutronix.de,
+	frederic@kernel.org,
+	nathan@kernel.org,
+	nick.desaulniers+lkml@gmail.com,
+	morbo@google.com,
+	justinstitt@google.com,
+	thuth@redhat.com,
+	akpm@linux-foundation.org,
+	lorenzo.stoakes@oracle.com,
+	anshuman.khandual@arm.com,
+	nysal@linux.ibm.com,
+	max.kellermann@ionos.com,
+	urezki@gmail.com,
+	ryan.roberts@arm.com
+Cc: linux-kernel@vger.kernel.org,
+	x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	llvm@lists.linux.dev,
+	Xie Yuanbin <qq570070308@gmail.com>
+Subject: [PATCH v4 0/3] Optimize code generation during context switching
+Date: Sun, 23 Nov 2025 20:18:24 +0800
+Message-ID: <20251123121827.1304-1-qq570070308@gmail.com>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Transfer-Encoding: 8bit
 
-Hi Nick,
+The purpose of this series of patches is to optimize the performance of
+context switching. It does not change the code logic, but only modifies
+the inline attributes of some functions.
 
-On Wed, 2025-11-19 at 03:04 -0500, Nick Bowler wrote:
-> With current kernels on my sparc64 system, I can no longer mount floppy
-> disks via /dev/fd0.  Mounting the specific-format device /dev/fd0u1440
-> works ok, and if I do that once then /dev/fd0 works afterwards.
->=20
->   # mount -t vfat /dev/fd0 /mnt
->   mount: mounting /dev/fd0 on /mnt failed: No such device or address
->=20
->   # dmesg
->   [...]
->   mount: attempt to access beyond end of device
->   fd0: rw=3D0, sector=3D0, nr_sectors =3D 16 limit=3D8
->   floppy: error 10 while reading block 0
->   /dev/fd0: Can't open blockdev
->=20
->   # mount -t vfat /dev/fd0u1440 /mnt
->   [works]
->=20
->   # umount /mnt
->   # mount -t vfat /dev/fd0 /mnt
->   [works]
->=20
-> I bisected the failure to this old commit:
->=20
->   commit 74d46992e0d9dee7f1f376de0d56d31614c8a17a
->   Author: Christoph Hellwig <hch@lst.de>
->   Date:   Wed Aug 23 19:10:32 2017 +0200
->  =20
->       block: replace bi_bdev with a gendisk pointer and partitions index
->=20
-> And digging in a bit further, prior to this commit the maxsector value
-> in bio_check_eod (which prints this error) was calculated as 0, which
-> would seem to effectively disable the check, but now it is 8.  This 8
-> is coming from the set_capacity call in floppy_open, which in turn
-> comes from the entry in the floppy_sizes table which is initially
-> set to MAX_DISK_SIZE*2 (a constant 8).
->=20
-> Using the latest 6.18-rc6, if I change the definition of MAX_DISK_SIZE
-> in floppy.c from 4 to 8, then mounting /dev/fd0 works again, but I'm
-> unsure if this is a proper fix.
+It is found that finish_task_switch() is not inlined even in the O2 level
+optimization. This may affect performance for the following reasons:
+1. It is in the context switching code, which is a hot code path.
+2. Because of the modern CPU vulnerabilities, kernel is likely to perform
+some mitigations inside switch_mm_irq_off(), such as branch prediction
+hardening or l1d flushing, the instruction pipeline and cache may be
+flushed. finish_task_switch() is right after that, so the performance
+here is greatly affected by function calls and branch jumps.
+3. The __schedule function has __sched attribute, which makes it be
+placed in the ".sched.text" section, while finish_task_switch() does not,
+which causes their distance to be very far in binary, aggravating the
+above performance degradation.
 
-This is a known problem and documented here [1] in the sparclinux issue tra=
-cker.
+This series of patches primarily make some functions called in context
+switching as always inline to optimize performance. Here is the
+performance test data for these patches:
+Time spent on calling finish_task_switch(), the unit is tsc from x86:
+ | test scenario             | old   | new   | delta          |
+ | gcc 15.2                  | 13.94 | 12.40 | 1.54  (-11.1%) |
+ | gcc 15.2 + spectre_v2     | 24.78 | 13.70 | 11.08 (-44.7%) |
+ | clang 21.1.4              | 13.90 | 12.71 | 1.19  (- 8.6%) |
+ | clang 21.1.4 + spectre_v2 | 29.01 | 18.91 | 10.1  (-34.8%) |
 
-The problem is basically that the floppy driver assumes that the page size =
-is
-always 4k which fails on any target using larger page sizes such as SPARC w=
-here
-the default page size is 8k.
+Additional information:
+1. The testing kernel source is commit 9c0826a5d9aa4d52206d ("Add
+linux-next specific files for 20251107") from linux-next branch.
 
-Adrian
+2. Testing machine:
+cpu: intel i5-8300h@4Ghz
+mem: DDR4 2666MHz
+Bare-metal boot, non-virtualized environment
 
-> [1] https://github.com/sparclinux/issues/issues/18
+3. Testing compiler:
+gcc: gcc version 15.2.0 (Debian 15.2.0-7) with
+GNU ld (GNU Binutils for Debian) 2.45
+clang: Debian clang version 21.1.4 (8) with
+Debian LLD 21.1.4 (compatible with GNU linkers)
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+4. Testing config:
+base on default x86_64_defconfig, and setting:
+CONFIG_HZ=100
+CONFIG_DEBUG_ENTRY=n
+CONFIG_X86_DEBUG_FPU=n
+CONFIG_EXPERT=y
+CONFIG_MODIFY_LDT_SYSCALL=n
+CONFIG_CGROUPS=n
+CONFIG_BLK_DEV_NVME=y
+
+5. Test method:
+Use rdtsc (cntvct_el0 can be use on arm64/arm) to obtain timestamps
+before and after finish_task_switch() calling point, and created multiple
+processes to trigger context switches, then calculated the average
+duration of the finish_task_switch() call.
+Note that using multiple processes rather than threads is recommended for
+testing, because this will trigger switch_mm_irqs_off(), where
+spectre_v2 mitigations may be performed, during context switching.
+
+6. Testing code:
+kernel:
+```patch
+diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
+index 8a4ac4841be6..5a42ec008620 100644
+--- a/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -395,6 +395,7 @@
+ 468	common	file_getattr		sys_file_getattr
+ 469	common	file_setattr		sys_file_setattr
+ 470	common	listns			sys_listns
++471	common	sched_test		sys_sched_test
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 81cf8452449a..d7e2095aeb7d 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -5195,6 +5195,36 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+ 	calculate_sigpending();
+ }
+ 
++static DEFINE_PER_CPU(uint64_t, start_time);
++static DEFINE_PER_CPU(uint64_t, total_time);
++static DEFINE_PER_CPU(uint64_t, total_count);
++
++static __always_inline uint64_t test_rdtsc(void)
++{
++    register uint64_t rax __asm__("rax");
++    register uint64_t rdx __asm__("rdx");
++
++    __asm__ __volatile__ ("rdtsc" : "=a"(rax), "=d"(rdx));
++    return rax | (rdx << 32);
++}
++
++static __always_inline void test_start(void)
++{
++	raw_cpu_write(start_time, test_rdtsc());
++}
++
++static __always_inline void test_end(void)
++{
++	const uint64_t end_time = test_rdtsc();
++	const uint64_t cost_time = end_time - raw_cpu_read(start_time);
++
++	raw_cpu_add(total_time, cost_time);
++	if (unlikely(raw_cpu_inc_return(total_count) % (1 << 20) == 0)) {
++		pr_emerg("cpu %d total_time %llu\n", raw_smp_processor_id(), raw_cpu_read(total_time));
++		raw_cpu_write(total_time, 0);
++	}
++}
++
+ /*
+  * context_switch - switch to the new MM and the new thread's register state.
+  */
+@@ -5264,7 +5294,10 @@ context_switch(struct rq *rq, struct task_struct *prev,
+ 	switch_to(prev, next, prev);
+ 	barrier();
+ 
+-	return finish_task_switch(prev);
++	test_start();
++	rq = finish_task_switch(prev);
++	test_end();
++	return rq;
+ }
+ 
+ /*
+@@ -10861,3 +10894,18 @@ void sched_change_end(struct sched_change_ctx *ctx)
+ 		p->sched_class->prio_changed(rq, p, ctx->prio);
+ 	}
+ }
++
++static struct task_struct *wait_task;
++
++SYSCALL_DEFINE0(sched_test)
++{
++	preempt_disable();
++	while (1) {
++		if (likely(wait_task))
++			wake_up_process(wait_task);
++		wait_task = current;
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		__schedule(SM_NONE);
++	}
++	return 0;
++}
+```
+
+User program:
+```c
+int main()
+{
+	cpu_set_t mask;
+	if (fork())
+		sleep(1);
+
+	CPU_ZERO(&mask);
+	CPU_SET(5, &mask); // Assume that cpu5 exists
+	assert(sched_setaffinity(0, sizeof(mask), &mask) == 0);
+	syscall(471);
+	// unreachable
+	return 0;
+}
+```
+
+Usage:
+1. set core5 as isolated cpu: add "isolcpus=5" to cmdline
+2. run user programe
+3. wait for kernel print
+
+v3->v4: https://lore.kernel.org/20251113105227.57650-1-qq570070308@gmail.com
+  - Improve the commit message
+
+v2->v3: https://lore.kernel.org/20251108172346.263590-1-qq570070308@gmail.com
+  - Fix building error in patch 1
+  - Simply add the __always_inline attribute to the existing function,
+    Instead of adding the always inline version functions
+
+v1->v2: https://lore.kernel.org/20251024182628.68921-1-qq570070308@gmail.com
+  - Make raw_spin_rq_unlock() inline
+  - Make __balance_callbacks() inline
+  - Add comments for always inline functions
+  - Add Performance Test Data
+
+Xie Yuanbin (3):
+  x86/mm/tlb: Make enter_lazy_tlb() always inline on x86
+  sched: Make raw_spin_rq_unlock() inline
+  sched/core: Make finish_task_switch() and its subfunctions always
+    inline
+
+ arch/arm/include/asm/mmu_context.h      |  2 +-
+ arch/riscv/include/asm/sync_core.h      |  2 +-
+ arch/s390/include/asm/mmu_context.h     |  2 +-
+ arch/sparc/include/asm/mmu_context_64.h |  2 +-
+ arch/x86/include/asm/mmu_context.h      | 23 ++++++++++++++++++++++-
+ arch/x86/include/asm/sync_core.h        |  2 +-
+ arch/x86/mm/tlb.c                       | 21 ---------------------
+ include/linux/perf_event.h              |  2 +-
+ include/linux/sched/mm.h                | 10 +++++-----
+ include/linux/tick.h                    |  4 ++--
+ include/linux/vtime.h                   |  8 ++++----
+ kernel/sched/core.c                     | 19 +++++++------------
+ kernel/sched/sched.h                    | 24 ++++++++++++++----------
+ 13 files changed, 60 insertions(+), 61 deletions(-)
+
+-- 
+2.51.0
+
