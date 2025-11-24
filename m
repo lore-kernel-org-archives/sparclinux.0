@@ -1,33 +1,25 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 747082AD0C;
-	Mon, 24 Nov 2025 14:18:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 301B427BF93;
+	Mon, 24 Nov 2025 14:36:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763993895; cv=none; b=n4XxLhfFe6JomoTCBxN6ys/qrGLk18hQkVZyBIN0X+B6B1vrhMb3YdgyrQDdhigMWuF9iZBLasDYHwSZ5HeZ9ipp5dRy6+CKIL7fFetM3+Y/dHq0TF43OO50viEumrLdyyyIwwsbIUC+9DxKEyX1AnycGvbutFTS/vS6y19tNvU=
+	t=1763995003; cv=none; b=d4IY9xe3t7aOrQMO7Gks447tR1ayAA3Hh4U+YnnmqaLpUEQjibFMfPMZLGrN54ZbuFaYlgzDuatYP+1tdrfQzf3fw6FlfD9FfB9Mrt7Exxw+xRzRB/Cic7ztZU6axMJcf7aMN+mc4JIvGNC343LyfKa9MhOy41MM8MJK++a8JLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763993895; c=relaxed/simple;
-	bh=a/6C0mF2h1YMNLw+DoImoO4DgoQDEX8r5mtUDpbvJqc=;
+	s=arc-20240116; t=1763995003; c=relaxed/simple;
+	bh=/avnOwJGnCE/I+ECkDiV4qvIHPnVbrWaWjEEGhk7X68=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=D+X65q6a23/WohtC6cUpmitYflvcVR+5AKAaz1zG5uVdiE3p7Em+u3u355t1MQDmaROqU/8HbvcOM+dqzQwifz7961F6ZocsMQqkqzTrjUSCJLKwcKDnBBO0Iyq6npmigKAgrDWqH0kvFTTBunA7sP/rE09Rk+Xue8jU2C2Sqcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jwY/4Czd; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jwY/4Czd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77C2BC4CEF1;
-	Mon, 24 Nov 2025 14:18:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763993894;
-	bh=a/6C0mF2h1YMNLw+DoImoO4DgoQDEX8r5mtUDpbvJqc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=jwY/4CzdWYY3yql3el0w+panwPS8eTjG7NM5YCf3L3YhAsy5JwYjh7Es6LPXbY89K
-	 UzT72wJIiWxPTXvC40ejjtyyoevI1urf2RHf3q2IQUAdx3ePP+T4aUCoLSuGBW+5t9
-	 AyiGGmZu06pHbDaUwcXprsC2/AOzkRIQV4P+9nx22kKeJxYI/6ZX91Ahx+H6MJ6otw
-	 r5N1JbHHbfGXrrxqIl8Vle4agRInm92WILAzWl7GR78JqldJ+4Ahy0TaoQXDl+8qyU
-	 P/r56C1XkT4MDr3u/nrxsHIOTWIbg9bUxLNNU6+mmG6IXjp3Uu9lJEaRSB+6XeQQRZ
-	 piKMF1RKiWZwg==
-Message-ID: <53a032d0-a394-4040-ba9b-79610ec4b791@kernel.org>
-Date: Mon, 24 Nov 2025 15:18:02 +0100
+	 In-Reply-To:Content-Type; b=FV9jEWxFTWlKTU53ycnWq2w9+H0ZknnEOV39wMEgJOr0OCSjlmve0Ii+rLJRA8wRkgD/+ldUGlXPYP1UwlxlBfCOjRrZT/HbG8xIcjuYQxkxsiSAyPpIMJ8lbxoHVtPQLO3tQrRmT1zMK6hjolP6Y52/xWuBYY0aBzbdL1j1bGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 80775497;
+	Mon, 24 Nov 2025 06:36:32 -0800 (PST)
+Received: from [10.57.88.238] (unknown [10.57.88.238])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 94CBA3F6A8;
+	Mon, 24 Nov 2025 06:36:34 -0800 (PST)
+Message-ID: <b52726c7-ea9c-4743-a68d-3eafce4e5c61@arm.com>
+Date: Mon, 24 Nov 2025 14:36:32 +0000
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,8 +27,8 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 12/12] x86/xen: use lazy_mmu_state when
- context-switching
+Subject: Re: [PATCH v4 06/12] mm: introduce generic lazy_mmu helpers
+Content-Language: en-GB
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -45,49 +37,75 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
  Christophe Leroy <christophe.leroy@csgroup.eu>,
  Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
  Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Gleixner <tglx@linutronix.de>,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
+ Peter Zijlstra <peterz@infradead.org>, Suren Baghdasaryan
+ <surenb@google.com>, Thomas Gleixner <tglx@linutronix.de>,
  Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
  Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251124132228.622678-1-kevin.brodsky@arm.com>
- <20251124132228.622678-13-kevin.brodsky@arm.com>
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Content-Language: en-US
-In-Reply-To: <20251124132228.622678-13-kevin.brodsky@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20251029100909.3381140-1-kevin.brodsky@arm.com>
+ <20251029100909.3381140-7-kevin.brodsky@arm.com>
+ <71418b31-aedb-4600-9558-842515dd6c44@arm.com>
+ <b44825dd-aef9-4d3e-91fd-a44122264c23@arm.com>
+ <f36ebc15-c724-487a-8e4a-9ca95edc544a@arm.com>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <f36ebc15-c724-487a-8e4a-9ca95edc544a@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 11/24/25 14:22, Kevin Brodsky wrote:
-> We currently set a TIF flag when scheduling out a task that is in
-> lazy MMU mode, in order to restore it when the task is scheduled
-> again.
+On 24/11/2025 12:47, Kevin Brodsky wrote:
+> On 10/11/2025 11:45, Kevin Brodsky wrote:
+>>>> diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
+>>>> index b8d37eb037fc..d9c8e94f140f 100644
+>>>> --- a/arch/arm64/mm/mmu.c
+>>>> +++ b/arch/arm64/mm/mmu.c
+>>>> @@ -731,7 +731,7 @@ int split_kernel_leaf_mapping(unsigned long start, unsigned long end)
+>>>>  		return -EINVAL;
+>>>>  
+>>>>  	mutex_lock(&pgtable_split_lock);
+>>>> -	arch_enter_lazy_mmu_mode();
+>>>> +	lazy_mmu_mode_enable();
+>>>>  
+>>>>  	/*
+>>>>  	 * The split_kernel_leaf_mapping_locked() may sleep, it is not a
+>>> This is a bit unfortunate, IMHO. The rest of this comment explains that although
+>>> you're not supposed to sleep inside lazy mmu mode, it's fine for arm64's
+>>> implementation. But we are no longer calling arm64's implementation; we are
+>>> calling a generic function, which does who knows what.
+>>>
+>>> I think it all still works, but we are no longer containing our assumptions in
+>>> arm64 code. We are relying on implementation details of generic code.
+>> I see your point. The change itself is still correct (and required
+>> considering patch 8), but maybe the documentation of the generic
+>> interface should be clarified to guarantee that the generic layer can
+>> itself cope with sleeping - without any guarantee regarding the
+>> behaviour of arch_*_lazy_mmu_mode.
 > 
-> The generic lazy_mmu layer now tracks whether a task is in lazy MMU
-> mode in task_struct::lazy_mmu_state. We can therefore check that
-> state when switching to the new task, instead of using a separate
-> TIF flag.
+> Re-reading the existing comment in <linux/pgtable.h>, I think it already
+> makes clear that sleeping is not forbidden by design:
 > 
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
+>>  * In the general case, no lock is guaranteed to be held between entry
+>> and exit
+>>  * of the lazy mode. So the implementation must assume preemption may
+>> be enabled
+>>  * and cpu migration is possible; it must take steps to be robust
+>> against this.
+> 
+> The arch implementation may disable preemption, but arm64 code can rely
+> on the arm64 implementation allowing sleeping.
 
-Nothing jumped at me, hoping for another pair of eyes from the XEN folks
+Yeah ok, I buy that!
 
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+> 
+> - Kevin
+> 
 
--- 
-Cheers
-
-David
