@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 52F788632B;
-	Mon, 24 Nov 2025 13:22:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A844C155C87;
+	Mon, 24 Nov 2025 13:22:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763990576; cv=none; b=GoY10Dr2XPlaRjS3FLl7AfiDk35mjKn87VS8XupO2AoP8WPqLBm5Q+b8oQYwlof3pFgSwPWfz0+DOa2i1WH6n7yykfFacEhX5jFBXvjRkXyMPM84yXdt/9eABDrJTnMwVy4EduUQcluSZTnG+g/Sa4AP7eLuQAZkdUa6kkHxJd8=
+	t=1763990581; cv=none; b=uLFq/feSfeeZ/6I8xmscIFwpHEF3BqC2B7VQFoZlnEEoZj3JzCk3Ghx4F2t5iO6OQpAfFSRuAK+s4N6YFH9iGjjCjsCmRewJJlxm0LmfUHLIfwhVhGU7YOcVyA+px9NGoU4NqJLqCBpHqSt8hKjcR03VWHX68mlIaUNo9Zzu1ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763990576; c=relaxed/simple;
-	bh=fT6XYkwjjFkvKQ0d3pxDlQh178BBZVOC/iuww96QRbA=;
+	s=arc-20240116; t=1763990581; c=relaxed/simple;
+	bh=kpzM6P3TmINE9vnj46CtL5nqLNYsJoIMRHmZdB+noFo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=G8xmLJ3D5vXnpjk3Up0d29165tSHFuH0dDDAjBrDdMpn1++mPjzfNMAB8WUVL3HxOcpZKrl8s4fSFEfDkSOB73mIM8h8hh0IzTmUXqch1yy69kapjiWMESa86DbmOqFpjo7OXhYbLNPAC0No0m9hfsqCfiQFrQGxsRUKcn8lDU0=
+	 MIME-Version; b=f/+ZyN4wuCvKpOJa2ZaxYvOAu3FkdMpZunHXoijnAIIipk0SKSGdUuViGbZ3QkQ9In+bcghZ2bQhIJe+YcOH1+T88Zx6d8FccQNR24T9oXQ+WEKsYlGfQSPtzyJ/7qKrxg9dbndQnQybXlfECp0Ax9qCT9a6lJxA88hIx3HQblU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 351551515;
-	Mon, 24 Nov 2025 05:22:46 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A86B71516;
+	Mon, 24 Nov 2025 05:22:51 -0800 (PST)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 85C673F73B;
-	Mon, 24 Nov 2025 05:22:48 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0518D3F73B;
+	Mon, 24 Nov 2025 05:22:53 -0800 (PST)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -58,9 +58,9 @@ Cc: linux-kernel@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	x86@kernel.org
-Subject: [PATCH v5 02/12] x86/xen: simplify flush_lazy_mmu()
-Date: Mon, 24 Nov 2025 13:22:18 +0000
-Message-ID: <20251124132228.622678-3-kevin.brodsky@arm.com>
+Subject: [PATCH v5 03/12] powerpc/mm: implement arch_flush_lazy_mmu_mode()
+Date: Mon, 24 Nov 2025 13:22:19 +0000
+Message-ID: <20251124132228.622678-4-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251124132228.622678-1-kevin.brodsky@arm.com>
 References: <20251124132228.622678-1-kevin.brodsky@arm.com>
@@ -72,37 +72,63 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-arch_flush_lazy_mmu_mode() is called when outstanding batched
-pgtable operations must be completed immediately. There should
-however be no need to leave and re-enter lazy MMU completely. The
-only part of that sequence that we really need is xen_mc_flush();
-call it directly.
+Upcoming changes to the lazy_mmu API will cause
+arch_flush_lazy_mmu_mode() to be called when leaving a nested
+lazy_mmu section.
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
+Move the relevant logic from arch_leave_lazy_mmu_mode() to
+arch_flush_lazy_mmu_mode() and have the former call the latter. The
+radix_enabled() check is required in both as
+arch_flush_lazy_mmu_mode() will be called directly from the generic
+layer in a subsequent patch.
+
+Note: the additional this_cpu_ptr() and radix_enabled() calls on the
+arch_leave_lazy_mmu_mode() path will be removed in a subsequent
+patch.
+
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/x86/xen/mmu_pv.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/xen/mmu_pv.c b/arch/x86/xen/mmu_pv.c
-index 2a4a8deaf612..7a35c3393df4 100644
---- a/arch/x86/xen/mmu_pv.c
-+++ b/arch/x86/xen/mmu_pv.c
-@@ -2139,10 +2139,8 @@ static void xen_flush_lazy_mmu(void)
+diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+index 146287d9580f..2d45f57df169 100644
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
++++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
+@@ -41,7 +41,7 @@ static inline void arch_enter_lazy_mmu_mode(void)
+ 	batch->active = 1;
+ }
+ 
+-static inline void arch_leave_lazy_mmu_mode(void)
++static inline void arch_flush_lazy_mmu_mode(void)
  {
- 	preempt_disable();
+ 	struct ppc64_tlb_batch *batch;
  
--	if (xen_get_lazy_mode() == XEN_LAZY_MMU) {
--		arch_leave_lazy_mmu_mode();
--		arch_enter_lazy_mmu_mode();
--	}
-+	if (xen_get_lazy_mode() == XEN_LAZY_MMU)
-+		xen_mc_flush();
+@@ -51,12 +51,21 @@ static inline void arch_leave_lazy_mmu_mode(void)
  
+ 	if (batch->index)
+ 		__flush_tlb_pending(batch);
++}
++
++static inline void arch_leave_lazy_mmu_mode(void)
++{
++	struct ppc64_tlb_batch *batch;
++
++	if (radix_enabled())
++		return;
++	batch = this_cpu_ptr(&ppc64_tlb_batch);
++
++	arch_flush_lazy_mmu_mode();
+ 	batch->active = 0;
  	preempt_enable();
  }
+ 
+-#define arch_flush_lazy_mmu_mode()      do {} while (0)
+-
+ extern void hash__tlbiel_all(unsigned int action);
+ 
+ extern void flush_hash_page(unsigned long vpn, real_pte_t pte, int psize,
 -- 
 2.51.2
 
