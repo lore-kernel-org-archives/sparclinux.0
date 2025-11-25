@@ -1,181 +1,272 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E66915CD74;
-	Mon, 24 Nov 2025 17:04:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770553770B
+	for <sparclinux@vger.kernel.org>; Tue, 25 Nov 2025 13:39:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764003866; cv=none; b=e9euimfQhkHUOX09JjIPRwQqLzwdls2A/rMMTRD3npiC39gl/f/X6LKGQ152HBQx3cKZIsjL0TsWypdAGAcfln/xlAGR38G9OfnDgAqN0EeibvhHspE62rp0G690qVrNR0r7q2YDk3CYMPMsdgifb3KxQFP0zwdLC7cs7tSIBAs=
+	t=1764078001; cv=none; b=tiNT2YRo3rrGmJOHyZ/OVnad6nEa1gc24p1IzKJIEUHEq2BIL5YR6F1PzPmiu5SPEoS6Tpr17fofAjhms+UZyw8SZFPbS9/Hqqm78rp+N7thicUGuAdSgaWXmFpQNk/KnYFdP6PO4KotHuaQcdCSWqTfGk1F9BIQboojtpyrfqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764003866; c=relaxed/simple;
-	bh=YY50eJzr4IS/BlZOaKPxeusBqwn7f+tKcxS5KLWsEAM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=nqj5Q+mJx2YU93gurTktWqQXVg/FnNFd0su1a/JbvJGWbLWHSx6DSqMJ7zDt5Tj2PNt2ZETvFETw/sHdbuUeL/1iC0rikmIVTtA1TSiSJHzTxjmB+RYOsaRHbdAJAZYYBuq+Er291svjpTiK3yrKVXPnblX8iOhvyPDeEbR2T7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BYmAFR4i; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1764078001; c=relaxed/simple;
+	bh=t9k46YKiR0yToOqPC8tJLWldUv3bkY2Nm4TLf+L1CEI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=IwZWSxm2XvkqnwBK8ejKAU/afSl6QFXrxp7/1JK+Ks3VxGzvlUFUjKOg9fpsBhuKET6oQnUzQs/gzxVBnelml6Hf97rwyQvvi+sbGHNKQF9+2IRrcskW6I+LZM0JSaaB7BGinj2Kon0g6qAvPCmiPh5vP+UJ+mur4pmDx1/FjaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=L508VV+r; arc=none smtp.client-ip=209.85.208.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BYmAFR4i"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1764003865; x=1795539865;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=YY50eJzr4IS/BlZOaKPxeusBqwn7f+tKcxS5KLWsEAM=;
-  b=BYmAFR4ifuFPLk/ki5xU0pSbSnoMSj+4XN8i5pH31hSaeowdENktgs8M
-   SEPuYUzMkLBgkhymIb3IGcuR80mJJEzScb3r8pPEZVBC4/czfcmteE8RH
-   wl7+iXjgNmhtjE6JsTCrPauds6jx7DOvcwB4L/ZEbdKLx4xR3l5s6653v
-   u5LjbDaNUtt3y1B502ADhCaTJWM3UaKOt92QlOBvCnxYjRGlOhq1zxwjJ
-   FhV3CJtnoySr3DHlsvvHAXOQ9KrFZxrnO5KkLBnU3WGYoJmqFpFIhTkzX
-   qjO/jqwbJybcyLX/S0Hj8DL/kOTVPi0p5LB/DE8av0FpYV8SY06IHxcIV
-   A==;
-X-CSE-ConnectionGUID: UD4ritntS1O4gp1HkwV4NQ==
-X-CSE-MsgGUID: NeYcqoIzTP+1a07Lctmgag==
-X-IronPort-AV: E=McAfee;i="6800,10657,11623"; a="65707762"
-X-IronPort-AV: E=Sophos;i="6.20,223,1758610800"; 
-   d="scan'208";a="65707762"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2025 09:04:24 -0800
-X-CSE-ConnectionGUID: 8TKuqc5STjSVBqT3mI3Iww==
-X-CSE-MsgGUID: 5Uaapji9Tq2oe3c+yKXuiA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.20,223,1758610800"; 
-   d="scan'208";a="192622096"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.97])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2025 09:04:19 -0800
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: Rob Herring <robh@kernel.org>,
-	linux-pci@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Nathaniel Roach <nroach44@gmail.com>
-Subject: [PATCH RESEND 1/1] SPARC/PCI: Correct 64-bit non-pref -> pref BAR resources
-Date: Mon, 24 Nov 2025 19:04:11 +0200
-Message-Id: <20251124170411.3709-1-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="L508VV+r"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-645a13e2b17so4242219a12.2
+        for <sparclinux@vger.kernel.org>; Tue, 25 Nov 2025 05:39:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1764077998; x=1764682798; darn=vger.kernel.org;
+        h=in-reply-to:autocrypt:from:content-language:references:cc:to
+         :subject:user-agent:mime-version:date:message-id:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=t9k46YKiR0yToOqPC8tJLWldUv3bkY2Nm4TLf+L1CEI=;
+        b=L508VV+rxFog9t3rX3L1ZL4DaMOKbVSrl/3oM4dK7C1RSoaqMwJTAH0bDPprn+WEaG
+         qHvrTdjarKFEN7SEcR/uV9wNYJlLQecQrjZD9df+gf/3zNrcp9wpbdnHdkDVvfsjGM5K
+         0JNczGRhqNDBVjgYl0Awx5GyZeAE691FlH5Z9ZoyR7iO+6L2Ea/RNwI9/E8aU6UikgrW
+         bDDi+kXXqbmZn4mCcvcFn9CAfRH77jDVkC3nzxaAj3/eDqpk2Lf2ajPoTrfOKtqEOX57
+         vRt2XeRSRyS4Hy57cf1ROkeRZteDAZqYBI/a90M7ctJjz+Uu3G6GWZOFTHo5e3EBj4g7
+         a+Gg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764077998; x=1764682798;
+        h=in-reply-to:autocrypt:from:content-language:references:cc:to
+         :subject:user-agent:mime-version:date:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=t9k46YKiR0yToOqPC8tJLWldUv3bkY2Nm4TLf+L1CEI=;
+        b=cKs8HwjIJRyo7QOl9BWG+PuLjzVmyusEnDycGYr9mqRmLCV95o6FxBKEjwEbzFwIq2
+         h2L63zc34h+mRVHd1fNU8MaGAvIpZJOMSi4E7AF8RfU2UX3gA8c1xIKc+jlQjAvt7Lln
+         OYu3ok9uRiZn/OC6Uy8CvkUKQrz+1xrxcRcXAbuDxHXk9wP+qJYag78nC3ZcZu5qWKtA
+         iHiJ2aKvQyE0/Y/Xxly7VWuPdmxl3Ugh16L64Ffoumxc6+h+ZEtFD8VXcPLFeC5pGnPD
+         O4cSZTObBjusFlS4fW8KoAanTKijM3fPzVrJjPBMLTzspMUjZe2jlW83609RozhnIntJ
+         iEDg==
+X-Forwarded-Encrypted: i=1; AJvYcCVThDJPK83M2aUlGkekCcoSKISklT1MnQR2GKpMQM5TyUigC7uw2CiSVzO4JdOJ1CzAO/ux9Ejyz/Ar@vger.kernel.org
+X-Gm-Message-State: AOJu0YxovAJMeQFVWK+vWtqRDfebeQSs+rP1m1ls7dKzwAojWjasPbiI
+	6HM4IddtNfbyeIuKd8LQKYZPsN5VAqTMqbCg/yjqBUnxrNy3P0fVSIHSwrMFnWSMcgw=
+X-Gm-Gg: ASbGncuBavbfMVqUTnX7/l65igUgRYUuPTg0elGsIGJSjfhoaYUEM3qQdzjgmZqKDG3
+	QtefOCGXYIgvWj171fOM5oGa2tC3dOJg+yF0xPTH/f/dt2UFG2Z1JUwi/ddFNlzCpdQbVJervsu
+	fcl17s/R25diIoC7PcitD5eAB1V3QzaoabQ0bl3ecugC6vhe1P0KfoEJc8G8wdCDYGUi39v2u/V
+	r+k00mVlCZQnP1z71d2R3aLRVq1J6vtEJEVyPJ3WYQPCXQgV4EdHihrsqsBKfKuvqTpjP7hDF+m
+	sZUbOuhyNElga5NBQkM1tZaZ34FYH5VZryhD9vqxF9VrcYC7FEI6pYLl9V9972ocUGVK4XQ1z3L
+	+20GiKANMDP4on8USn7kwhvzMNCE9JuHvEWYAIh151K3rwrkKjnTSCRcV74jIo8bdSFjKAM/k/i
+	MfWomE/GKOTQLYb+cz8xNyvp4TXWLn7D9X4rUELfEzBqL9C6ZjfOTSj1conJmMB5WPfqiOUzfTX
+	fN2rFYt08UPc+jnZZs6FwYflCp1uf+6kM7wVahcxtdfsV7v5w==
+X-Google-Smtp-Source: AGHT+IFEyicFSi+PL/7sV+Rr65T6PnnmK37s9BQnogitw6aYlavVnxgivz8dWx5vdwjWsip7TwnDGQ==
+X-Received: by 2002:a05:6402:1d50:b0:640:cd2a:3cc1 with SMTP id 4fb4d7f45d1cf-645eaf9e5d6mr2598230a12.0.1764077997753;
+        Tue, 25 Nov 2025 05:39:57 -0800 (PST)
+Received: from ?IPV6:2003:e5:871a:de00:dd24:7204:f00a:bf44? (p200300e5871ade00dd247204f00abf44.dip0.t-ipconnect.de. [2003:e5:871a:de00:dd24:7204:f00a:bf44])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-64536443a9csm14940329a12.29.2025.11.25.05.39.56
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 25 Nov 2025 05:39:57 -0800 (PST)
+Message-ID: <263d6867-bf94-40b5-87f8-96b40e797ebe@suse.com>
+Date: Tue, 25 Nov 2025 14:39:56 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 12/12] x86/xen: use lazy_mmu_state when
+ context-switching
+To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>,
+ "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
+ Thomas Gleixner <tglx@linutronix.de>,
+ Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+ Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org, x86@kernel.org
+References: <20251124132228.622678-1-kevin.brodsky@arm.com>
+ <20251124132228.622678-13-kevin.brodsky@arm.com>
+Content-Language: en-US
+From: =?UTF-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>
+Autocrypt: addr=jgross@suse.com; keydata=
+ xsBNBFOMcBYBCACgGjqjoGvbEouQZw/ToiBg9W98AlM2QHV+iNHsEs7kxWhKMjrioyspZKOB
+ ycWxw3ie3j9uvg9EOB3aN4xiTv4qbnGiTr3oJhkB1gsb6ToJQZ8uxGq2kaV2KL9650I1SJve
+ dYm8Of8Zd621lSmoKOwlNClALZNew72NjJLEzTalU1OdT7/i1TXkH09XSSI8mEQ/ouNcMvIJ
+ NwQpd369y9bfIhWUiVXEK7MlRgUG6MvIj6Y3Am/BBLUVbDa4+gmzDC9ezlZkTZG2t14zWPvx
+ XP3FAp2pkW0xqG7/377qptDmrk42GlSKN4z76ELnLxussxc7I2hx18NUcbP8+uty4bMxABEB
+ AAHNH0p1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT7CwHkEEwECACMFAlOMcK8CGwMH
+ CwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAKCRCw3p3WKL8TL8eZB/9G0juS/kDY9LhEXseh
+ mE9U+iA1VsLhgDqVbsOtZ/S14LRFHczNd/Lqkn7souCSoyWsBs3/wO+OjPvxf7m+Ef+sMtr0
+ G5lCWEWa9wa0IXx5HRPW/ScL+e4AVUbL7rurYMfwCzco+7TfjhMEOkC+va5gzi1KrErgNRHH
+ kg3PhlnRY0Udyqx++UYkAsN4TQuEhNN32MvN0Np3WlBJOgKcuXpIElmMM5f1BBzJSKBkW0Jc
+ Wy3h2Wy912vHKpPV/Xv7ZwVJ27v7KcuZcErtptDevAljxJtE7aJG6WiBzm+v9EswyWxwMCIO
+ RoVBYuiocc51872tRGywc03xaQydB+9R7BHPzsBNBFOMcBYBCADLMfoA44MwGOB9YT1V4KCy
+ vAfd7E0BTfaAurbG+Olacciz3yd09QOmejFZC6AnoykydyvTFLAWYcSCdISMr88COmmCbJzn
+ sHAogjexXiif6ANUUlHpjxlHCCcELmZUzomNDnEOTxZFeWMTFF9Rf2k2F0Tl4E5kmsNGgtSa
+ aMO0rNZoOEiD/7UfPP3dfh8JCQ1VtUUsQtT1sxos8Eb/HmriJhnaTZ7Hp3jtgTVkV0ybpgFg
+ w6WMaRkrBh17mV0z2ajjmabB7SJxcouSkR0hcpNl4oM74d2/VqoW4BxxxOD1FcNCObCELfIS
+ auZx+XT6s+CE7Qi/c44ibBMR7hyjdzWbABEBAAHCwF8EGAECAAkFAlOMcBYCGwwACgkQsN6d
+ 1ii/Ey9D+Af/WFr3q+bg/8v5tCknCtn92d5lyYTBNt7xgWzDZX8G6/pngzKyWfedArllp0Pn
+ fgIXtMNV+3t8Li1Tg843EXkP7+2+CQ98MB8XvvPLYAfW8nNDV85TyVgWlldNcgdv7nn1Sq8g
+ HwB2BHdIAkYce3hEoDQXt/mKlgEGsLpzJcnLKimtPXQQy9TxUaLBe9PInPd+Ohix0XOlY+Uk
+ QFEx50Ki3rSDl2Zt2tnkNYKUCvTJq7jvOlaPd6d/W0tZqpyy7KVay+K4aMobDsodB3dvEAs6
+ ScCnh03dDAFgIq5nsB11j3KPKdVoPlfucX2c7kGNH+LUMbzqV6beIENfNexkOfxHfw==
+In-Reply-To: <20251124132228.622678-13-kevin.brodsky@arm.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------aG2Ac2AfdT2tzwl0XdLF1SjN"
 
-SPARC T5-2 dts describes some PCI BARs as 64-bit resources without
-pref(etchable) bit (0x83... vs 0xc3... in assigned-addresses) for
-address ranges above the 4G threshold. Such resources cannot be placed
-into a non-prefetchable PCI bridge window that is capable only to
-32-bit addressing. As such, it looks the platform is improperly
-describe by dts.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------aG2Ac2AfdT2tzwl0XdLF1SjN
+Content-Type: multipart/mixed; boundary="------------uiRZ28tjJaLdZE5TT0DoL5p0";
+ protected-headers="v1"
+From: =?UTF-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>
+To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>,
+ "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
+ Thomas Gleixner <tglx@linutronix.de>,
+ Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+ Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org, x86@kernel.org
+Message-ID: <263d6867-bf94-40b5-87f8-96b40e797ebe@suse.com>
+Subject: Re: [PATCH v5 12/12] x86/xen: use lazy_mmu_state when
+ context-switching
+References: <20251124132228.622678-1-kevin.brodsky@arm.com>
+ <20251124132228.622678-13-kevin.brodsky@arm.com>
+In-Reply-To: <20251124132228.622678-13-kevin.brodsky@arm.com>
 
-Kernel detect this problem (see the IORESOURCE_PREFETCH check in
-pci_find_parent_resource()) and fails to assign these BAR resources to
-the resource tree due to lack of a compatible bridge window.
+--------------uiRZ28tjJaLdZE5TT0DoL5p0
+Content-Type: multipart/mixed; boundary="------------yTa6J58m2WgehpiHUf7cxco6"
 
-Prior to the commit 754babaaf333 ("sparc/PCI: Remove
-pcibios_enable_device() as they do nothing extra") SPARC arch code did
-not test whether device resources were successfully in the resource
-tree when enabling a device, effectively hiding the problem. After
-removing the arch specific enable code, PCI core's
-pci_enable_resources() refuses to enable the device when it finds not
-all mem resources are assigned, and therefore mpt3sas can't be enabled:
+--------------yTa6J58m2WgehpiHUf7cxco6
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-pci 0001:04:00.0: reg 0x14: [mem 0x801110000000-0x80111000ffff 64bit]
-pci 0001:04:00.0: reg 0x1c: [mem 0x801110040000-0x80111007ffff 64bit]
-pci 0001:04:00.0: BAR 1 [mem 0x801110000000-0x80111000ffff 64bit]: can't claim; no compatible bridge window
-pci 0001:04:00.0: BAR 3 [mem 0x801110040000-0x80111007ffff 64bit]: can't claim; no compatible bridge window
-mpt3sas 0001:04:00.0: BAR 1 [mem size 0x00010000 64bit]: not assigned; can't enable device
+T24gMjQuMTEuMjUgMTQ6MjIsIEtldmluIEJyb2Rza3kgd3JvdGU6DQo+IFdlIGN1cnJlbnRs
+eSBzZXQgYSBUSUYgZmxhZyB3aGVuIHNjaGVkdWxpbmcgb3V0IGEgdGFzayB0aGF0IGlzIGlu
+DQo+IGxhenkgTU1VIG1vZGUsIGluIG9yZGVyIHRvIHJlc3RvcmUgaXQgd2hlbiB0aGUgdGFz
+ayBpcyBzY2hlZHVsZWQNCj4gYWdhaW4uDQo+IA0KPiBUaGUgZ2VuZXJpYyBsYXp5X21tdSBs
+YXllciBub3cgdHJhY2tzIHdoZXRoZXIgYSB0YXNrIGlzIGluIGxhenkgTU1VDQo+IG1vZGUg
+aW4gdGFza19zdHJ1Y3Q6OmxhenlfbW11X3N0YXRlLiBXZSBjYW4gdGhlcmVmb3JlIGNoZWNr
+IHRoYXQNCj4gc3RhdGUgd2hlbiBzd2l0Y2hpbmcgdG8gdGhlIG5ldyB0YXNrLCBpbnN0ZWFk
+IG9mIHVzaW5nIGEgc2VwYXJhdGUNCj4gVElGIGZsYWcuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5
+OiBLZXZpbiBCcm9kc2t5IDxrZXZpbi5icm9kc2t5QGFybS5jb20+DQoNClJldmlld2VkLWJ5
+OiBKdWVyZ2VuIEdyb3NzIDxqZ3Jvc3NAc3VzZS5jb20+DQoNCg0KSnVlcmdlbg0K
+--------------yTa6J58m2WgehpiHUf7cxco6
+Content-Type: application/pgp-keys; name="OpenPGP_0xB0DE9DD628BF132F.asc"
+Content-Disposition: attachment; filename="OpenPGP_0xB0DE9DD628BF132F.asc"
+Content-Description: OpenPGP public key
+Content-Transfer-Encoding: quoted-printable
 
-For clarity, this filtered log only shows failures for one mpt3sas
-device but other devices fail similarly. In the reported case, the end
-result with all the failures is an unbootable system.
+-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-Things appeared to "work" before the commit 754babaaf333 ("sparc/PCI:
-Remove pcibios_enable_device() as they do nothing extra") because the
-resource tree is agnostic to whether PCI BAR resources are properly in
-the tree or not. So as long as there was a parent resource (e.g. a root
-bus resource) that contains the address range, the resource tree code
-just places resource request underneath it without any consideration to
-the intermediate BAR resource. While it worked, it's incorrect setup
-still.
+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
+kt+z4drzFUyEjLM1vVvIMjkUoJs=3D
+=3DeeAB
+-----END PGP PUBLIC KEY BLOCK-----
 
-Add of fixup to set IORESOURCE_PREFETCH flag for a 64-bit PCI resource
-that has the end address above 4G requiring placement into the
-prefetchable window. Also log the issue.
+--------------yTa6J58m2WgehpiHUf7cxco6--
 
-Fixes: 754babaaf333 ("sparc/PCI: Remove pcibios_enable_device() as they do nothing extra")
-Reported-by: Nathaniel Roach <nroach44@gmail.com>
-Tested-by: Nathaniel Roach <nroach44@gmail.com>
-Closes: https://github.com/sparclinux/issues/issues/22
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
+--------------uiRZ28tjJaLdZE5TT0DoL5p0--
 
-Resending with linux-pci@ ML.
+--------------aG2Ac2AfdT2tzwl0XdLF1SjN
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature.asc"
 
-Any comments on the approach are welcome. E.g., is the fixup done at a
-correct level? Should it be targeted specifically to the known failures
-(how?) to avoid hiding more platform description problems?
+-----BEGIN PGP SIGNATURE-----
 
-It seems VF BARs still have 64-bit non-pref despite this change, AFAICT,
-those are read directly from the device's config space so would require
-ordinary quirks. None of them result in device enable failing though so the
-issue is orthogonal to the one being fixed here.
+wsB5BAABCAAjFiEEhRJncuj2BJSl0Jf3sN6d1ii/Ey8FAmklsawFAwAAAAAACgkQsN6d1ii/Ey9M
+5gf9EkkVr+UGKF/wariaJTMLeEayZP1qBy09TFMvwrlbuCyD1J20iKHWJ2c/xfac/xcQdvzxGK3Y
+nMX8Dg+6nWgGk7tT/9p0s2dcvsYF2fnh4WI7yS6FTimnkkmwDCj9T7zl1nziZEYUlj7oSea1hRVz
+v5iiijrTDLW6L4D3oVzmqLK1XGNpOTClCzJcn9gz45Pw5+8laVmiYBcktiYFOT/TcJvnIeHTH8Fx
+P0/i23ndybO8Xtkp5yj+KAjX+75J2bEJOx79yOSaRu5z3yYhY2XBKE9tsxsVb7uoaIhxnhc2Z5ZH
+ms+Hk03X+jeJhvbey+a5MrddNG95o9MtcKNcDmNH6g==
+=ph6L
+-----END PGP SIGNATURE-----
 
-If suggesting a different approach, please do realize my knowledge
-about OF code is generally very limited (and I'm not sure how directly
-the fixup code in other archs, mainly ppc, can be used as an example
-how to do fixups with sparc).
----
- arch/sparc/kernel/pci.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index a9448088e762..b290107170e9 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -181,6 +181,28 @@ static int __init ofpci_debug(char *str)
- 
- __setup("ofpci_debug=", ofpci_debug);
- 
-+static void of_fixup_pci_pref(struct pci_dev *dev, int index,
-+			      struct resource *res)
-+{
-+	struct pci_bus_region region;
-+
-+	if (!(res->flags & IORESOURCE_MEM_64))
-+		return;
-+
-+	if (!resource_size(res))
-+		return;
-+
-+	pcibios_resource_to_bus(dev->bus, &region, res);
-+	if (region.end <= ~((u32)0))
-+		return;
-+
-+	if (!(res->flags & IORESOURCE_PREFETCH)) {
-+		res->flags |= IORESOURCE_PREFETCH;
-+		pci_info(dev, "reg 0x%x: fixup: pref added to 64-bit resource\n",
-+			 index);
-+	}
-+}
-+
- static unsigned long pci_parse_of_flags(u32 addr0)
- {
- 	unsigned long flags = 0;
-@@ -244,6 +266,7 @@ static void pci_parse_of_addrs(struct platform_device *op,
- 		res->end = op_res->end;
- 		res->flags = flags;
- 		res->name = pci_name(dev);
-+		of_fixup_pci_pref(dev, i, res);
- 
- 		pci_info(dev, "reg 0x%x: %pR\n", i, res);
- 	}
-
-base-commit: 3a8660878839faadb4f1a6dd72c3179c1df56787
--- 
-2.39.5
-
+--------------aG2Ac2AfdT2tzwl0XdLF1SjN--
