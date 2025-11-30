@@ -1,204 +1,220 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F9FF23C8A0;
-	Fri, 28 Nov 2025 13:56:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53FA52727E6
+	for <sparclinux@vger.kernel.org>; Sun, 30 Nov 2025 12:43:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764338217; cv=none; b=AaW7Lc7ZcNFxc5sijfYdWyw2rvwnmIhGeQ1UOi2IJE7buh1wmIb8gZoQApe8wBfMeHlkaHlM+Ljo6I+L8BKWCwwxOXZlUzgfOBctiJaVrwxrPZnIKk9YvxUXQvTo+3sfwD1Y1FWr+JKATf8EVD/eIBEsHJy1AJbK2p1Ro9OgtiY=
+	t=1764506619; cv=none; b=geu7xms+tiXaX1BL8tb8Rd9PcyEbMt7PXTwF0bOTjOuCiO+NeF680AShmeWlcFSSBYOAlImvZ0ZrqqOVFqrg7sWgJyUwdQF4QTBtxJzLUwA5wTCgV/slmfNQRTWJDfOOvZQftsZDrCF+sdJ5G2LfIc8v0ibaxK3FjaVKy9mwqNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764338217; c=relaxed/simple;
-	bh=RUhE4qB8uDGhDK4SiR49zHc+YvSKZzV2as1/p/DRcBE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V3IneaGVALlWrWp+C2YFr400EKJBodHKxTm6N6qQzy4AhUX9VpF1qBGupyh0hQWWAdyHVLAJ6DuFMXR07+fkTIOlfwr2HbCBFexoXJg5Lyx9zy9eNx4BYxD2hd8wEMvqOnilEgVM+Z1dIbyq+kyeb5FnRMBsLw4Y8PVnJI95vwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=nfuSb531; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1764506619; c=relaxed/simple;
+	bh=3eNjw+pPA7bOdESCTn99iE1l6IYo9w6olvIBrN4F95s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=tE/wmIsldqE+R9jZ/tQfOAeo1NtKVn4AQT5gyi8pz6W+J9GuMsxz5zDXwuyxxgq2xCF9ptLvnE74a0/aEEsFtNuElhI21kkMpQlWTBZ3uVSYtq364NWFBS8UIe+nSe2799dMyVhEXsNJrU9Ty7uuP17/a5uNORwfpRgZg70LJac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gRwYcmTf; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="nfuSb531"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5ARNulWW017020;
-	Fri, 28 Nov 2025 13:56:04 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=wuc3Pms4+K3aWFusIGvCSQgbvYf1no
-	IU83gft25Y0Jk=; b=nfuSb531tk/ek8JrdBpnHmvTEUDTGbCOp0mphA7ZrbDjev
-	BoWgzhxao1BJFJ59KJWq6mU5zymb5DM0QmNtdKaLoycmcEjymQLzMJV/TgfJJzco
-	x72Yvin16SARaWpet5dCakug5hQt6Tv3ziLwE724GmNpAat1fUldsTgBmAGjUWvw
-	qa8kw+7V9U9fBKvVz1m5BZgU8xpkzn4262BQtEgONlaRwL64IR0LfDkCSyvx8nkI
-	sDg9UvJ4tHfUID1Q+oblXNoCYf6305+ge0nzqdrEOkRZ4n4+jKR7y6mgw/6K6xW8
-	6lOcMGox4kBO0S6c5bfbGrgZ8yMnmXl9ytTmhifw==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4ak4uvpnu3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 28 Nov 2025 13:56:04 +0000 (GMT)
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 5ASDu3As032077;
-	Fri, 28 Nov 2025 13:56:03 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4ak4uvpntw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 28 Nov 2025 13:56:03 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 5ASBu8XO000831;
-	Fri, 28 Nov 2025 13:56:01 GMT
-Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4akqvydb5g-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 28 Nov 2025 13:56:01 +0000
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 5ASDtvda33423852
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 28 Nov 2025 13:55:57 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2F99720043;
-	Fri, 28 Nov 2025 13:55:57 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E38D220040;
-	Fri, 28 Nov 2025 13:55:55 +0000 (GMT)
-Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
-	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Fri, 28 Nov 2025 13:55:55 +0000 (GMT)
-Date: Fri, 28 Nov 2025 14:55:54 +0100
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-To: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        Andreas Larsson <andreas@gaisler.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Woodhouse <dwmw2@infradead.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
-        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-        Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-        Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
-        Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
-        Ryan Roberts <ryan.roberts@arm.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
-        Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
-        Yeoreum Yun <yeoreum.yun@arm.com>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-        x86@kernel.org
-Subject: Re: [PATCH v5 08/12] mm: enable lazy_mmu sections to nest
-Message-ID: <23dcf752-0b75-45a7-84f8-25bddf97af08-agordeev@linux.ibm.com>
-References: <20251124132228.622678-1-kevin.brodsky@arm.com>
- <20251124132228.622678-9-kevin.brodsky@arm.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gRwYcmTf"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2957850c63bso23770655ad.0
+        for <sparclinux@vger.kernel.org>; Sun, 30 Nov 2025 04:43:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1764506616; x=1765111416; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Q24/I9SndBUdDUiodRkHdhfBwRhvK6inDO5OAxEgMow=;
+        b=gRwYcmTfWk1FhF39UzHAdscoeR6GuuCq0cDJHpjZxcvuBYWFZueMIGwsyIg+5FxGRA
+         8SRKa7ebscQfIXuSr3MqBUDQwV8/mN5KukBl2mM1/TrouVCHSn09Dbcerm4QGgyTYexl
+         4vSc5VC3PgarzuxL3l2dQiqILyKd5vaQbtUpBqwGUvKEf6Rps7rpLzUdlNkzjdyA2ssA
+         m2+8KWOCPrFUhEIaXgF90uI6rYg2dt3O51IKmIxHfwdsXFcq5yI6fmQpI3nHWYiS0XOS
+         wj3DapH42BscyCV4ujggoXQOQQeYR9NL+Xdg2UH8ne/JJiUxp7+7tp/RvKRtgqjEYmYf
+         FD7w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764506616; x=1765111416;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Q24/I9SndBUdDUiodRkHdhfBwRhvK6inDO5OAxEgMow=;
+        b=vsJm6ikOrb25fYIhX2x1CmJHeZz/v0NpNB3RKQ7k2K1sorAn3KUuTaxBomMpx37xir
+         I6QI243FAbJHQ6c1CzViqIqpZgRFxAemLqdXP/Bthd5WS/IGtCJWa8Uvlou2m1Zgs9UO
+         sSsGrvZva1DxC2PdYfeEzWcn6232wwKeQSnmEtXfRLffwDQBcka9kMx6nRsBCXgj6IPk
+         k0F7xUgP9Pv7wHX2613cbIweK8s4wdK5G1qlGF4xHDyJtOkn4M0KmO8NaxeacpSINrM8
+         3KLBv3YSKHUII1dSFl4G51F5BkWfUek51zsLkwyA3yEhtJ+lmFoq5X11Q6qS1ZBX9ndd
+         q8lA==
+X-Forwarded-Encrypted: i=1; AJvYcCVIXPRT7Z0JXaXX/CoPulSMi4glIEGlcNLtz1XM0MgHT+hUw3nsiC05odo+MT7ZfV1mqilsGXrD2Exg@vger.kernel.org
+X-Gm-Message-State: AOJu0YyEmjhn9bvZUi3/qHylNLVzKg1N6/syldmC3MtQjbB/d9uqygfg
+	fued/dF0AMU6KSG7pLkPREiX4UO6Fo655VobzTse4VEXIXRHyGb4fBcS
+X-Gm-Gg: ASbGnctHUZxKxmiVwhFtknm5MkLNK3PMLU2xoRPo7WL9vpAHv8uT1VFiu6xw5Tm0Kou
+	rDyfr97wqgp9zJFhGovyG10tj8mhgO76hd9LVUXNBIWBYtqwXl3ZLt2q7qHapVjEq7Naxjq9SsF
+	bVbRQog7B75/qrAvqNiqpFye96118fm2oguZgIzgwSTshPufS58uNOen4RFcIvhB91tH8aO11dw
+	ddaOldTl2f/NCAEyFTaH+wbf2O19qD1ZFEGUmlBvTMplwh3FlrHWyfnyimwEjIeoDpHGw5na0Rp
+	QQJzsBlbSw2PGu0ttgSHwhyusEgrVRZmAVOfsKNFzY0eJdeBtjysIk6w8sUlRR78FfSqZdiRaKE
+	Jry1yCY5ZIPjnHs7uDh6rlgL5IVWbZOLyVCDAqpNsQRQ4EyR9JtGiY70vkL3me4uAD6kbz6mB2L
+	U6fjClmN/26ZE/XKs5EcPKz3PZ3hzfWP8=
+X-Google-Smtp-Source: AGHT+IHQ1s8urnjdyeSUProWKNYbFdFfSSoKWTRTrBGlC3S9nSYGdG5k/0wJBSlO6lDVv0ToPmYK9Q==
+X-Received: by 2002:a17:902:f547:b0:294:8c99:f318 with SMTP id d9443c01a7336-29b6beeda0fmr397752515ad.3.1764506616356;
+        Sun, 30 Nov 2025 04:43:36 -0800 (PST)
+Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29bceb52d14sm94230235ad.82.2025.11.30.04.43.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 30 Nov 2025 04:43:35 -0800 (PST)
+From: Xie Yuanbin <qq570070308@gmail.com>
+To: acme@kernel.org,
+	adrian.hunter@intel.com,
+	agordeev@linux.ibm.com,
+	akpm@linux-foundation.org,
+	alex@ghiti.fr,
+	alexander.shishkin@linux.intel.com,
+	andreas@gaisler.com,
+	anna-maria@linutronix.de,
+	anshuman.khandual@arm.com,
+	aou@eecs.berkeley.edu,
+	arnd@arndb.de,
+	borntraeger@linux.ibm.com,
+	bp@alien8.de,
+	bsegall@google.com,
+	dave.hansen@linux.intel.com,
+	davem@davemloft.net,
+	david@kernel.org,
+	dietmar.eggemann@arm.com,
+	frederic@kernel.org,
+	gor@linux.ibm.com,
+	hca@linux.ibm.com,
+	hpa@zytor.com,
+	irogers@google.com,
+	james.clark@linaro.org,
+	jolsa@kernel.org,
+	juri.lelli@redhat.com,
+	justinstitt@google.com,
+	lorenzo.stoakes@oracle.com,
+	luto@kernel.org,
+	mark.rutland@arm.com,
+	mathieu.desnoyers@efficios.com,
+	max.kellermann@ionos.com,
+	mgorman@suse.de,
+	mingo@redhat.com,
+	morbo@google.com,
+	namhyung@kernel.org,
+	nathan@kernel.org,
+	nick.desaulniers+lkml@gmail.com,
+	nysal@linux.ibm.com,
+	palmer@dabbelt.com,
+	paulmck@kernel.org,
+	peterz@infradead.org,
+	pjw@kernel.org,
+	riel@surriel.com,
+	rostedt@goodmis.org,
+	ryan.roberts@arm.com,
+	segher@kernel.crashing.org,
+	svens@linux.ibm.com,
+	tglx@linutronix.de,
+	thuth@redhat.com,
+	urezki@gmail.com,
+	vincent.guittot@linaro.org,
+	vschneid@redhat.com,
+	linux@armlinux.org.uk
+Cc: linux-kernel@vger.kernel.org,
+	x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	llvm@lists.linux.dev
+Subject: Re: [PATCH v4 0/3] Optimize code generation during context switching
+Date: Sun, 30 Nov 2025 20:43:04 +0800
+Message-ID: <20251130124304.184107-1-qq570070308@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251123121827.1304-1-qq570070308@gmail.com>
+References: <20251123121827.1304-1-qq570070308@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251124132228.622678-9-kevin.brodsky@arm.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMTIyMDAyMSBTYWx0ZWRfX384OntFmUues
- dIOJyCctOD7nT813bCm/GhJf1ZL6CQOs24jDcqmIzdmwQ5T0RXoegg27XMRfiI/9rumngr6NMHx
- tl4nQN+mvmC+VcOHvBu4um686d8ss4oR9DYJ5Ixwx22asl3RT+5FAdIGmztRh+XF2zs4cr6A6QQ
- 2iJfQR9W19UY77K6hY2ve4BgoptnP483ec00f8cJVrDJ8H4kjr1jbZu+2pYFaT3+wJs+yp2bpxN
- Z2mA9gIRx8y/C6JYy4/N+CX6k84tbzt6buSUWK1JGk7/Kg3P14z/anrGpqdlT7BTI/og3OVkJqE
- hlGzPPlMS7WwIcss+Fa5oKUZR6EVsKg4LDkTSZbq+j+4sF4jCL4HPpqSwmzRhTJdfHsyh20fqJg
- JHubqHqdjGvQbJ9GegZsZoMEJOKyzg==
-X-Authority-Analysis: v=2.4 cv=PLoCOPqC c=1 sm=1 tr=0 ts=6929a9f4 cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=kj9zAlcOel0A:10 a=6UeiqGixMTsA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=h1tPiQvNrzWZOeg10D8A:9 a=CjuIK1q_8ugA:10
-X-Proofpoint-ORIG-GUID: 9jG27-IvFUYEwqeWcDa4RUx8C7I3n3xe
-X-Proofpoint-GUID: 3YWVV-kCMzKLLzypHTUX-OcmdogqNxWJ
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
- definitions=2025-11-28_03,2025-11-27_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 lowpriorityscore=0 spamscore=0 adultscore=0 impostorscore=0
- priorityscore=1501 bulkscore=0 malwarescore=0 clxscore=1015 suspectscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.19.0-2510240000 definitions=main-2511220021
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 24, 2025 at 01:22:24PM +0000, Kevin Brodsky wrote:
-...
-> + * Nesting is permitted: <code> may itself use an enable()/disable() pair.
-> + * A nested call to enable() has no functional effect; however disable() causes
-> + * any batched architectural state to be flushed regardless of nesting. After a
-> + * call to disable(), the caller can therefore rely on all previous page table
-> + * modifications to have taken effect, but the lazy MMU mode may still be
-> + * enabled.
-> + *
-> + * In certain cases, it may be desirable to temporarily pause the lazy MMU mode.
-> + * This can be done using:
-> + *
-> + *   lazy_mmu_mode_pause();
-> + *   <code>
-> + *   lazy_mmu_mode_resume();
-> + *
-> + * pause() ensures that the mode is exited regardless of the nesting level;
-> + * resume() re-enters the mode at the same nesting level. Any call to the
-> + * lazy_mmu_mode_* API between those two calls has no effect. In particular,
-> + * this means that pause()/resume() pairs may nest.
-> + *
-> + * in_lazy_mmu_mode() can be used to check whether the lazy MMU mode is
-> + * currently enabled.
+On Sun, 23 Nov 2025 20:18:24 +0800, Xie Yuanbin wrote:
+> This series of patches primarily make some functions called in context
+> switching as always inline to optimize performance. Here is the
+> performance test data for these patches:
+> Time spent on calling finish_task_switch(), the unit is tsc from x86:
+>  | test scenario             | old   | new   | delta          |
+>  | gcc 15.2                  | 13.94 | 12.40 | 1.54  (-11.1%) |
+>  | gcc 15.2 + spectre_v2     | 24.78 | 13.70 | 11.08 (-44.7%) |
+>  | clang 21.1.4              | 13.90 | 12.71 | 1.19  (- 8.6%) |
+>  | clang 21.1.4 + spectre_v2 | 29.01 | 18.91 | 10.1  (-34.8%) |
 
-The in_lazy_mmu_mode() name looks ambiguous to me. When the lazy MMU mode
-is paused are we still in lazy MMU mode? The __task_lazy_mmu_mode_active()
-implementation suggests we are not, while one could still assume we are,
-just paused.
+Hi everyone, I also conducted a performance test on raspberry pi 3b. I
+hope this will be helpful in merging the patch.
+The following is the test data:
+Time spent on calling finish_task_switch(), the clocksource and unit is
+cntvct_el0 from aarch64:
+ | test scenario             | old  | new  | delta         |
+ | gcc 15.2                  | 2.00 | 1.68 | 0.32 (-16.0%) |
+ | clang 21.1.6              | 2.15 | 1.68 | 0.47 (-23.5%) |
 
-Should in_lazy_mmu_mode() be named e.g. as in_active_lazy_mmu_mode() such
-a confusion would not occur in the first place.
+Since raspberry pi 3b use a cortex-a53 processor, it is not affected by
+the spectre v2 vulnerability, as is defined in
+arch/arm64/kernel/proton-pack.c:
+```c
+	static const struct midr_range spectre_v2_safe_list[] = {
+		MIDR_ALL_VERSIONS(MIDR_CORTEX_A35),
+		MIDR_ALL_VERSIONS(MIDR_CORTEX_A53),
+		MIDR_ALL_VERSIONS(MIDR_CORTEX_A55),
+		MIDR_ALL_VERSIONS(MIDR_BRAHMA_B53),
+		MIDR_ALL_VERSIONS(MIDR_HISI_TSV110),
+		MIDR_ALL_VERSIONS(MIDR_QCOM_KRYO_2XX_SILVER),
+		MIDR_ALL_VERSIONS(MIDR_QCOM_KRYO_3XX_SILVER),
+		MIDR_ALL_VERSIONS(MIDR_QCOM_KRYO_4XX_SILVER),
+		{ /* sentinel */ }
+	};
+```
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/tree/arch/arm64/kernel/proton-pack.c?id=7d31f578f3230f3b7b33b0930b08f9afd8429817#n152
 
->   */
-...
-> +#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
-> +/**
-> + * __task_lazy_mmu_mode_active() - Test the lazy MMU mode state for a task.
-> + * @tsk: The task to check.
-> + *
-> + * Test whether @tsk has its lazy MMU mode state set to active (i.e. enabled
-> + * and not paused).
-> + *
-> + * This function only considers the state saved in task_struct; to test whether
-> + * current actually is in lazy MMU mode, in_lazy_mmu_mode() should be used
-> + * instead.
-> + *
-> + * This function is intended for architectures that implement the lazy MMU
-> + * mode; it must not be called from generic code.
-> + */
-> +static inline bool __task_lazy_mmu_mode_active(struct task_struct *tsk)
-> +{
-> +	struct lazy_mmu_state *state = &tsk->lazy_mmu_state;
-> +
-> +	return state->enable_count > 0 && state->pause_count == 0;
-> +}
-> +
-> +/**
-> + * in_lazy_mmu_mode() - Test whether we are currently in lazy MMU mode.
-> + *
-> + * Test whether the current context is in lazy MMU mode. This is true if both:
-> + * 1. We are not in interrupt context
-> + * 2. Lazy MMU mode is active for the current task
-> + *
-> + * This function is intended for architectures that implement the lazy MMU
-> + * mode; it must not be called from generic code.
-> + */
-> +static inline bool in_lazy_mmu_mode(void)
-> +{
-> +	if (in_interrupt())
-> +		return false;
-> +
-> +	return __task_lazy_mmu_mode_active(current);
-> +}
-> +#endif
-...
+Perhaps I can test the performace with spectre_v2 mitigation enabled on
+a raspberry pi 4b in the future.
+
+In order to make the test result stable, I fixed the cpu frequency by
+setting config.txt as following:
+```config
+core_freq_fixed=1
+arm_freq=800
+arm_freq_min=800
+gpu_freq=300
+core_freq=300
+h264_freq=300
+isp_freq=300
+v3d_freq=300
+hevc_freq=300
+sdram_freq=400
+gpu_freq_min=300
+core_freq_min=300
+h264_freq_min=300
+isp_freq_min=300
+v3d_freq_min=300
+hevc_freq_min=300
+sdram_freq_min=400
+```
+
+The test source is commit 7d31f578f323 ("Add linux-next specific files
+for 20251128") from liunx-next branch. Using default defconfig config,
+and setting:
+CONFIG_ARM64_SVE=n
+CONFIG_COMPAT=n
+CONFIG_COMPAT_32BIT_TIME=n
+CONFIG_ARM64_PTR_AUTH=n
+CONFIG_ARM64_GCS=n
+CONFIG_ARM64_MTE=n
+CONFIG_SHADOW_CALL_STACK=y
+CONFIG_SCHED_AUTOGROUP=n
+CONFIG_CGROUPS=n
+CONFIG_KVM=n
+CONFIG_HZ_100=y
+CONFIG_HZ=100
+
+Thanks very much!
+
+Xie Yuanbin
