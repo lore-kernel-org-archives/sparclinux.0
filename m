@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3BC022E8B66;
-	Fri,  5 Dec 2025 12:47:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 979CF33554D;
+	Fri,  5 Dec 2025 12:50:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764938847; cv=none; b=TXeCxtaxYACbPQPWrZmWw0Ic7/WWyMQQDZtoqPqbuJ21qXxRJss6ARuJIzQTD9A/s0OJE4IRUmrVr0j3AM2sr3c/UZDsObAU75VPiwpHci+eav8oK2M9sStyZZp3OPour/+p+v0O9JofRb0HGD35K0hISND7Z+JR6WfTZpKR+j0=
+	t=1764939061; cv=none; b=pioLHgkXkXU7mEGM9qf3QQcbs5Zl8GeFVouv0XawCbSlf63FfEGiWT6LefUNqNIUMw6k0oA5eDWs2wl/hQJyWnzSMlzoYIIqHI/8kc45A9coXB3+HTcmgbO5sCK8bpM2qFvmfojo68W/vrP/TX+8VnXQJPQefyTNJI+Y6EE3Xmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764938847; c=relaxed/simple;
-	bh=JJeIvK3HAabq88aBjXlSgNd8kvCZeiN2mpPzAxjpuEE=;
+	s=arc-20240116; t=1764939061; c=relaxed/simple;
+	bh=j4UjFMdcuPchwkA3lmeDso5ij/iOMhTFMDd348T6uyc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=W40ZpncSZjkTcSvlgVzpsVaVbdejnPfVG7ME6vl2VDdBEFySCMBvuSpV64qzUyNJ82FKR7oqleEZ42vq56Sj6CmkTboWZ1AAB6GuH8ZxFtth85CIFfZiRrgbpgyFZ6TrYCFC7aY351Of5z/hgqBfnI59ElP/CLyVsJkA+JBTUR8=
+	 In-Reply-To:Content-Type; b=OGjBrYvbknqElqWlIVQh4BOEzOMcQ9q7wtI/myCQVd5HLh0b6h3oxxN32zPA//6MICAf3TwI1HsoV4LQNncLtDJg52/OpnGklcPbF1UnD4+CmQqfjpVMHGviF+Hn43qEK+aZFcXimUFA73lNmd6jzWYOX/JKEBqz2Xxds0u4iY4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DD460339;
-	Fri,  5 Dec 2025 04:47:15 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 02DB31063;
+	Fri,  5 Dec 2025 04:50:43 -0800 (PST)
 Received: from [10.44.160.68] (e126510-lin.lund.arm.com [10.44.160.68])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A5F6D3F86F;
-	Fri,  5 Dec 2025 04:47:15 -0800 (PST)
-Message-ID: <573881f1-60f7-4eb3-a484-1df4858aa1b4@arm.com>
-Date: Fri, 5 Dec 2025 13:47:12 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 02CD63F86F;
+	Fri,  5 Dec 2025 04:50:42 -0800 (PST)
+Message-ID: <093f814e-ce49-43c9-951b-b0d0ef583cea@arm.com>
+Date: Fri, 5 Dec 2025 13:50:40 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,8 +27,9 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 06/12] mm: introduce generic lazy_mmu helpers
-To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org
+Subject: Re: [PATCH v5 08/12] mm: enable lazy_mmu sections to nest
+To: "David Hildenbrand (Red Hat)" <david@kernel.org>,
+ Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -36,12 +37,11 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
  Christophe Leroy <christophe.leroy@csgroup.eu>,
  Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>,
+ Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
+ Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
+ <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Madhavan Srinivasan <maddy@linux.ibm.com>,
  Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
  Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
@@ -55,101 +55,152 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251124132228.622678-1-kevin.brodsky@arm.com>
- <20251124132228.622678-7-kevin.brodsky@arm.com>
- <e43c147f-bff8-462a-88dc-4345500f4ed7@arm.com>
+ <20251124132228.622678-9-kevin.brodsky@arm.com>
+ <2dfd54d7-fe2a-4921-85ff-a581392a777a@arm.com>
+ <93d04ef8-0364-4013-8839-ba599d930cb2@kernel.org>
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 Content-Language: en-GB
-In-Reply-To: <e43c147f-bff8-462a-88dc-4345500f4ed7@arm.com>
+In-Reply-To: <93d04ef8-0364-4013-8839-ba599d930cb2@kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 04/12/2025 05:17, Anshuman Khandual wrote:
-> On 24/11/25 6:52 PM, Kevin Brodsky wrote:
->> The implementation of the lazy MMU mode is currently entirely
->> arch-specific; core code directly calls arch helpers:
->> arch_{enter,leave}_lazy_mmu_mode().
+On 04/12/2025 12:52, David Hildenbrand (Red Hat) wrote:
+> Some comments from my side:
+>
+>
+>>>   static inline void arch_enter_lazy_mmu_mode(void)
+>>>   {
+>>> -    /*
+>>> -     * lazy_mmu_mode is not supposed to permit nesting. But in
+>>> practice this
+>>> -     * does happen with CONFIG_DEBUG_PAGEALLOC, where a page
+>>> allocation
+>>> -     * inside a lazy_mmu_mode section (such as zap_pte_range())
+>>> will change
+>>> -     * permissions on the linear map with apply_to_page_range(), which
+>>> -     * re-enters lazy_mmu_mode. So we tolerate nesting in our
+>>> -     * implementation. The first call to arch_leave_lazy_mmu_mode()
+>>> will
+>>> -     * flush and clear the flag such that the remainder of the work
+>>> in the
+>>> -     * outer nest behaves as if outside of lazy mmu mode. This is
+>>> safe and
+>>> -     * keeps tracking simple.
+>>> -     */
+>>> -
+>>>       set_thread_flag(TIF_LAZY_MMU);>  }
 >>
->> We are about to introduce support for nested lazy MMU sections.
->> As things stand we'd have to duplicate that logic in every arch
->> implementing lazy_mmu - adding to a fair amount of logic
->> already duplicated across lazy_mmu implementations.
->>
->> This patch therefore introduces a new generic layer that calls the
->> existing arch_* helpers. Two pair of calls are introduced:
->>
->> * lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
->>     This is the standard case where the mode is enabled for a given
->>     block of code by surrounding it with enable() and disable()
->>     calls.
->>
->> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
->>     This is for situations where the mode is temporarily disabled
->>     by first calling pause() and then resume() (e.g. to prevent any
->>     batching from occurring in a critical section).
->>
->> The documentation in <linux/pgtable.h> will be updated in a
->> subsequent patch.
->>> No functional change should be introduced at this stage.
->> The implementation of enable()/resume() and disable()/pause() is
->> currently identical, but nesting support will change that.
->>
->> Most of the call sites have been updated using the following
->> Coccinelle script:
->>
->> @@
->> @@
->> {
->> ...
->> - arch_enter_lazy_mmu_mode();
->> + lazy_mmu_mode_enable();
->> ...
->> - arch_leave_lazy_mmu_mode();
->> + lazy_mmu_mode_disable();
->> ...
->> }
->>
->> @@
->> @@
->> {
->> ...
->> - arch_leave_lazy_mmu_mode();
->> + lazy_mmu_mode_pause();
->> ...
->> - arch_enter_lazy_mmu_mode();
->> + lazy_mmu_mode_resume();
->> ...
->> }
-> At this point arch_enter/leave_lazy_mmu_mode() helpers are still
-> present on a given platform but now being called from new generic
-> helpers lazy_mmu_mode_enable/disable(). Well except x86, there is
-> direct call sites for those old helpers.
+>> Should not platform specific changes be deferred to subsequent
+>> patches until
+>> nesting is completely enabled in generic first ? Although no problem
+>> as such
+>> but would be bit cleaner.
+>
+> This could indeed be done in a separate patch. But I also don't see a
+> problem with updating the doc in this patch.
 
-Indeed, see notes below regarding x86. The direct calls to arch_flush()
-are specific to x86 and there shouldn't be a need for a generic abstraction.
+I think it is consistent to remove that comment in this patch, since
+nesting is fully supported from this patch onwards. Subsequent patches
+are cleanups/optimisations that aren't functionally required.
+
+Patch 7 takes the same approach: add handling in the generic layer,
+remove anything now superfluous from arm64.
+
+>
+>>
+>>>   diff --git a/include/linux/mm_types_task.h
+>>> b/include/linux/mm_types_task.h
+>>> index a82aa80c0ba4..11bf319d78ec 100644
+>>> --- a/include/linux/mm_types_task.h
+>>> +++ b/include/linux/mm_types_task.h
+>>> @@ -88,4 +88,9 @@ struct tlbflush_unmap_batch {
+>>>   #endif
+>>>   };
+>>>   +struct lazy_mmu_state {
+>>> +    u8 enable_count;
+>>> +    u8 pause_count;
+>>> +};
+>>> +
+>>
+>> Should not this be wrapped with CONFIG_ARCH_HAS_LAZY_MMU_MODE as the
+>> task_struct
+>> element 'lazy_mmu_state' is only available with the feature.
+>
+> No strong opinion; the compiler will ignore it either way. And less
+> ifdef is good, right? :)
+>
+> ... and there is nothing magical in there that would result in other
+> dependencies. 
+
+Agreed, #ifdef'ing types should only be done if necessary.
+
+>
+>> Besides, is a depth
+>> of 256 really expected here ? 4 bits for each element would not be
+>> sufficient for
+>> a depth of 16 ?
+>
+>
+> We could indeed use something like
+>
+> struct lazy_mmu_state {
+>     u8 enable_count : 4;
+>     u8 pause_count : 4;
+> };
+>
+> but then, the individual operations on enable_count/pause_count need
+> more instructions.
+
+Indeed.
+
+>
+> Further, as discussed, this 1 additional byte barely matters given the
+> existing size of the task struct.
+
+In fact it would almost certainly make no difference (depending on
+randomized_struct) since almost all members in task_struct have an
+alignment of at least 2.
+
+>
+> [...]
+>
+>>> +/**
+>>> + * lazy_mmu_mode_pause() - Resume the lazy MMU mode.
+>>> + *
+>>> + * Resumes the lazy MMU mode; if it was active at the point where
+>>> the matching
+>>> + * call to lazy_mmu_mode_pause() was made, re-enables it and calls
+>>> + * arch_enter_lazy_mmu_mode().
+>>> + *
+>>> + * Must match a call to lazy_mmu_mode_pause().
+>>> + *
+>>> + * Has no effect if called:
+>>> + * - While paused (inside another pause()/resume() pair)
+>>> + * - In interrupt context
+>>> + */
+>>>   static inline void lazy_mmu_mode_resume(void)
+>>>   {
+>>> +    struct lazy_mmu_state *state = &current->lazy_mmu_state;
+>>> +
+>>>       if (in_interrupt())
+>>>           return;
+>>>   -    arch_enter_lazy_mmu_mode();
+>>> +    VM_WARN_ON_ONCE(state->pause_count == 0);
+>>> +
+>>> +    if (--state->pause_count == 0 && state->enable_count > 0)
+>>> +        arch_enter_lazy_mmu_mode();
+>>>   }
+>>
+>> Should not state->pause/enable_count tests and increment/decrement be
+>> handled
+>> inside include/linux/sched via helpers like in_lazy_mmu_mode() ? This
+>> is will
+>> ensure cleaner abstraction with respect to task_struct.
+>
+> I don't think this is required given that this code here implements
+> CONFIG_ARCH_HAS_LAZY_MMU_MODE support.
+
+Agreed, in fact I'd rather not expose helpers that should only be used
+in the lazy_mmu implementation itself.
 
 - Kevin
-
-> arch/arm64/include/asm/pgtable.h:static inline void arch_enter_lazy_mmu_mode(void)
-> arch/arm64/include/asm/pgtable.h:static inline void arch_leave_lazy_mmu_mode(void)
->
-> arch/arm64/mm/mmu.c:    lazy_mmu_mode_enable();
-> arch/arm64/mm/pageattr.c:       lazy_mmu_mode_enable();
->
-> arch/arm64/mm/mmu.c:    lazy_mmu_mode_disable();
-> arch/arm64/mm/pageattr.c:       lazy_mmu_mode_disable();
->
->> A couple of notes regarding x86:
->>
->> * Xen is currently the only case where explicit handling is required
->>   for lazy MMU when context-switching. This is purely an
->>   implementation detail and using the generic lazy_mmu_mode_*
->>   functions would cause trouble when nesting support is introduced,
->>   because the generic functions must be called from the current task.
->>   For that reason we still use arch_leave() and arch_enter() there.
->>
->> * x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
->>   places, but only defines it if PARAVIRT_XXL is selected, and we
->>   are removing the fallback in <linux/pgtable.h>. Add a new fallback
->>   definition to <asm/pgtable.h> to keep things building.
->>
->> [...]
