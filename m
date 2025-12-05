@@ -1,65 +1,155 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83CE9398F8E;
-	Thu,  4 Dec 2025 16:24:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3BC022E8B66;
+	Fri,  5 Dec 2025 12:47:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764865464; cv=none; b=qu3e5dHkFNwUCdCKLND0FK+mI96K3/IwXloju7xax7Ne6ZaHCPFNDoFfbUc5vGjBWPObX1+t7S7dsU+RMe8tkDpJwATjm7tQ2rHoS3qWLHkQDQhgSdStOEKLe1Mnd8D1qEAjkoegp9JobTmkOU4bQyaOapkiYKbt06R2AiDihn8=
+	t=1764938847; cv=none; b=TXeCxtaxYACbPQPWrZmWw0Ic7/WWyMQQDZtoqPqbuJ21qXxRJss6ARuJIzQTD9A/s0OJE4IRUmrVr0j3AM2sr3c/UZDsObAU75VPiwpHci+eav8oK2M9sStyZZp3OPour/+p+v0O9JofRb0HGD35K0hISND7Z+JR6WfTZpKR+j0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764865464; c=relaxed/simple;
-	bh=cBAi73k5M/LbMrvTmfP21IpHLK7WakRe8SwnFy7o3bc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l9SeyW7eG0yQPjZfTXUuvnzZuloxvInGA83Ky6ErbulnRyLkQY+Ptl3pPHgxbdK3nNyYSlK8Nz1hxomMs1HL0tYsr/FBOOq7rlGl3aGDQ4prM2Qu4u0CMCeBlT90LOFwfhwS1ZTVlC3IUoutYw3ptmadgH1cKDQWGxfe3uXex0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=KKUff5LU; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="KKUff5LU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7559CC4CEFB;
-	Thu,  4 Dec 2025 16:24:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1764865464;
-	bh=cBAi73k5M/LbMrvTmfP21IpHLK7WakRe8SwnFy7o3bc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KKUff5LUeI/VcFh6i9GXwXGyRw//sRfM/MTup7vsDPfgot+c1IfB/tFTp5UXSshU0
-	 HEQA45rEwDOg5aROJ3s4XcRqIFSHloXgVD8BfYik6ldXylAYEVExZ9DJKQq1OIUv7r
-	 fuhFBXGVGGEMHGuVCiC/VQs6TnI/+nj8ZrocU6hQ=
-Date: Thu, 4 Dec 2025 17:24:21 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: stable@vger.kernel.org, patches@lists.linux.dev,
-	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	akpm@linux-foundation.org, linux@roeck-us.net, shuah@kernel.org,
-	patches@kernelci.org, lkft-triage@lists.linaro.org, pavel@denx.de,
-	jonathanh@nvidia.com, f.fainelli@gmail.com,
-	sudipm.mukherjee@gmail.com, rwarsow@gmx.de, conor@kernel.org,
-	hargar@microsoft.com, broonie@kernel.org, achill@achill.org,
-	sr@sladewatkins.com, Adrian Hunter <adrian.hunter@intel.com>,
-	Svyatoslav Ryhel <clamor95@gmail.com>,
-	Mikko Perttunen <mperttunen@nvidia.com>,
-	Thierry Reding <treding@nvidia.com>, Arnd Bergmann <arnd@arndb.de>,
-	Dan Carpenter <dan.carpenter@linaro.org>,
-	Anders Roxell <anders.roxell@linaro.org>,
-	Ben Copeland <benjamin.copeland@linaro.org>,
-	sparclinux@vger.kernel.org
-Subject: Re: [PATCH 6.1 000/568] 6.1.159-rc1 review
-Message-ID: <2025120401-sturdy-passable-859c@gregkh>
-References: <20251203152440.645416925@linuxfoundation.org>
- <CA+G9fYuoT9s1cx3tOoczbCJDf2rtrmT1xSg-wut5ii6LG6ieMg@mail.gmail.com>
+	s=arc-20240116; t=1764938847; c=relaxed/simple;
+	bh=JJeIvK3HAabq88aBjXlSgNd8kvCZeiN2mpPzAxjpuEE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=W40ZpncSZjkTcSvlgVzpsVaVbdejnPfVG7ME6vl2VDdBEFySCMBvuSpV64qzUyNJ82FKR7oqleEZ42vq56Sj6CmkTboWZ1AAB6GuH8ZxFtth85CIFfZiRrgbpgyFZ6TrYCFC7aY351Of5z/hgqBfnI59ElP/CLyVsJkA+JBTUR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DD460339;
+	Fri,  5 Dec 2025 04:47:15 -0800 (PST)
+Received: from [10.44.160.68] (e126510-lin.lund.arm.com [10.44.160.68])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A5F6D3F86F;
+	Fri,  5 Dec 2025 04:47:15 -0800 (PST)
+Message-ID: <573881f1-60f7-4eb3-a484-1df4858aa1b4@arm.com>
+Date: Fri, 5 Dec 2025 13:47:12 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+G9fYuoT9s1cx3tOoczbCJDf2rtrmT1xSg-wut5ii6LG6ieMg@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 06/12] mm: introduce generic lazy_mmu helpers
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
+ <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ David Hildenbrand <david@redhat.com>, "David S. Miller"
+ <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+ Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
+ Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
+ Peter Zijlstra <peterz@infradead.org>,
+ "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
+ Thomas Gleixner <tglx@linutronix.de>,
+ Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+ Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+ linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+ xen-devel@lists.xenproject.org, x86@kernel.org
+References: <20251124132228.622678-1-kevin.brodsky@arm.com>
+ <20251124132228.622678-7-kevin.brodsky@arm.com>
+ <e43c147f-bff8-462a-88dc-4345500f4ed7@arm.com>
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Content-Language: en-GB
+In-Reply-To: <e43c147f-bff8-462a-88dc-4345500f4ed7@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 04, 2025 at 04:13:58PM +0530, Naresh Kamboju wrote:
-> ### Commit pointing to arm build errors
->   soc/tegra: fuse: Add Tegra114 nvmem cells and fuse lookups
->   [ Upstream commit b9c01adedf38c69abb725a60a05305ef70dbce03 ]
+On 04/12/2025 05:17, Anshuman Khandual wrote:
+> On 24/11/25 6:52 PM, Kevin Brodsky wrote:
+>> The implementation of the lazy MMU mode is currently entirely
+>> arch-specific; core code directly calls arch helpers:
+>> arch_{enter,leave}_lazy_mmu_mode().
+>>
+>> We are about to introduce support for nested lazy MMU sections.
+>> As things stand we'd have to duplicate that logic in every arch
+>> implementing lazy_mmu - adding to a fair amount of logic
+>> already duplicated across lazy_mmu implementations.
+>>
+>> This patch therefore introduces a new generic layer that calls the
+>> existing arch_* helpers. Two pair of calls are introduced:
+>>
+>> * lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
+>>     This is the standard case where the mode is enabled for a given
+>>     block of code by surrounding it with enable() and disable()
+>>     calls.
+>>
+>> * lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
+>>     This is for situations where the mode is temporarily disabled
+>>     by first calling pause() and then resume() (e.g. to prevent any
+>>     batching from occurring in a critical section).
+>>
+>> The documentation in <linux/pgtable.h> will be updated in a
+>> subsequent patch.
+>>> No functional change should be introduced at this stage.
+>> The implementation of enable()/resume() and disable()/pause() is
+>> currently identical, but nesting support will change that.
+>>
+>> Most of the call sites have been updated using the following
+>> Coccinelle script:
+>>
+>> @@
+>> @@
+>> {
+>> ...
+>> - arch_enter_lazy_mmu_mode();
+>> + lazy_mmu_mode_enable();
+>> ...
+>> - arch_leave_lazy_mmu_mode();
+>> + lazy_mmu_mode_disable();
+>> ...
+>> }
+>>
+>> @@
+>> @@
+>> {
+>> ...
+>> - arch_leave_lazy_mmu_mode();
+>> + lazy_mmu_mode_pause();
+>> ...
+>> - arch_enter_lazy_mmu_mode();
+>> + lazy_mmu_mode_resume();
+>> ...
+>> }
+> At this point arch_enter/leave_lazy_mmu_mode() helpers are still
+> present on a given platform but now being called from new generic
+> helpers lazy_mmu_mode_enable/disable(). Well except x86, there is
+> direct call sites for those old helpers.
 
-Now dropped from all queues, thanks!
+Indeed, see notes below regarding x86. The direct calls to arch_flush()
+are specific to x86 and there shouldn't be a need for a generic abstraction.
 
-greg k-h
+- Kevin
+
+> arch/arm64/include/asm/pgtable.h:static inline void arch_enter_lazy_mmu_mode(void)
+> arch/arm64/include/asm/pgtable.h:static inline void arch_leave_lazy_mmu_mode(void)
+>
+> arch/arm64/mm/mmu.c:    lazy_mmu_mode_enable();
+> arch/arm64/mm/pageattr.c:       lazy_mmu_mode_enable();
+>
+> arch/arm64/mm/mmu.c:    lazy_mmu_mode_disable();
+> arch/arm64/mm/pageattr.c:       lazy_mmu_mode_disable();
+>
+>> A couple of notes regarding x86:
+>>
+>> * Xen is currently the only case where explicit handling is required
+>>   for lazy MMU when context-switching. This is purely an
+>>   implementation detail and using the generic lazy_mmu_mode_*
+>>   functions would cause trouble when nesting support is introduced,
+>>   because the generic functions must be called from the current task.
+>>   For that reason we still use arch_leave() and arch_enter() there.
+>>
+>> * x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
+>>   places, but only defines it if PARAVIRT_XXL is selected, and we
+>>   are removing the fallback in <linux/pgtable.h>. Add a new fallback
+>>   definition to <asm/pgtable.h> to keep things building.
+>>
+>> [...]
