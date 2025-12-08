@@ -1,25 +1,38 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B03A133B6FB;
-	Fri,  5 Dec 2025 13:00:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F821EA84;
+	Mon,  8 Dec 2025 14:35:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.237.130.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764939659; cv=none; b=AnF2q3WsQlj38kTYz37ydFwoDmzJGakJSZRzb5VFJmRkuA0Vsu7nsVQqxlFub53qeLi4/RvnbsOXsjNfN1bXi6AxHuVWGoPaVbVH3QFeBhqXYLiKQGd5IcfuVw4vvbFRyYVQwBvi0zYo3LiZFjjANPtQ3U+qCZst8MG5pPfK6Uw=
+	t=1765204546; cv=none; b=CliW7j+2fWJyKKsr0/2DEzyPmGN0tMF50oz4MJrJ57plNN/Kwem8UeO9vYn3+/2HjBoL82MJMM2o1HuUjNB6XsfY5uDZoxP8EbrmjgKdgpccUu/uNlxC3qAx6N3H5yJcaz/vD9duZAT52Zi5Wsddz3RJX0zBo+i3tg2T9HiL5hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764939659; c=relaxed/simple;
-	bh=O/A7vZpgIBnKA8LnxsqL7KkP6nyGfOKKNJo36CMVlRE=;
+	s=arc-20240116; t=1765204546; c=relaxed/simple;
+	bh=xO8dU7UTBPxQOjnMZaRCLB/JI4X0kHsARttn4ZBj7MM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HzCde1TrpwcCvTBELup0BfXqbH8NLEB5Zk6nukqPK8co48GKqTA6oDc6jwmg3lvaie45yZRuQBmNeU9+tq0V9p2epE5d7LqwxNesTtf59I8F/6Q07XtuOR0n9vros2HpguryK7D3I9zKLKEQeseddEKHg/DTGNz5sj+P/h4QIHQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A482F19F6;
-	Fri,  5 Dec 2025 05:00:42 -0800 (PST)
-Received: from [10.44.160.68] (e126510-lin.lund.arm.com [10.44.160.68])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 164973F59E;
-	Fri,  5 Dec 2025 05:00:39 -0800 (PST)
-Message-ID: <f07f5f70-eb4c-4e45-b7d6-96c8455255d2@arm.com>
-Date: Fri, 5 Dec 2025 14:00:37 +0100
+	 In-Reply-To:Content-Type; b=Ot+h6EqAudLKUZGplTsGZyRdvOf7n+tBbJCd8R2NLMcZENPDD2+f+3fWjyX51u+SuPm6HC38ZLqAPPvLR8pQIHSM7T/kiz9YeSoU/Ejza2sY5nhg6Fv+Y0o96zmb4YCaLQ9Q+e62Atu2ftCOqxS4g6RcI3CvLRE2Lga1N1QfRe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=hXmRSfSs; arc=none smtp.client-ip=80.237.130.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="hXmRSfSs"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=leemhuis.info; s=he214686; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:From:
+	Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=Ba46iqGvPVxQZaXq9WNEuTq1PH6XqEj/ZP2zxUaVvwI=; t=1765204545;
+	x=1765636545; b=hXmRSfSs4IQmLAgk0mXKuMmkey7EYvODbZWFEVfOx6Cm+aRbBnsrmElemaMMK
+	iNhY9538uwbcSCNlBV9PWbP27VyMFQ/BtubDVM522jRZOJi0yjPF9N8jddt0dSUTEbu66F9B87w5n
+	orp86R6GV+rqExAnPYnm/TJv2t8Qgm53HNGyABBfUZxevsvERTdjNsywLeEeuRZ91rHReyAozCQsA
+	6Hw59mXs+pKudA69g/DsKLN46k+Ufi5QCshzHN8Vb64hgeBoKMB5UIF6dQi6W9Bew42GVLjhVaIV0
+	+DzVc8s+/riXkhkun0aQRxjZcWbcDa5roLHwdaVRLBcdP6v+Iw==;
+Received: from [2a02:8108:8984:1d00:a0cf:1912:4be:477f]; authenticated
+	by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128)
+	id 1vScL0-004U9y-37;
+	Mon, 08 Dec 2025 15:35:43 +0100
+Message-ID: <48db01b1-f4e5-4687-8ffb-472981d153ed@leemhuis.info>
+Date: Mon, 8 Dec 2025 15:35:42 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -27,65 +40,83 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 00/12] Nesting support for lazy MMU mode
-To: Venkat <venkat88@linux.ibm.com>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>,
- linux-arm-kernel@lists.infradead.org,
- linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, sparclinux@vger.kernel.org,
- xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251124132228.622678-1-kevin.brodsky@arm.com>
- <94889730-1AEF-458F-B623-04092C0D6819@linux.ibm.com>
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Content-Language: en-GB
-In-Reply-To: <94889730-1AEF-458F-B623-04092C0D6819@linux.ibm.com>
+Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
+To: Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org,
+ regressions@lists.linux.dev, linux-rtc@vger.kernel.org
+Cc: Esben Haabendal <esben@geanix.com>, stable@vger.kernel.org,
+ sparclinux@vger.kernel.org
+References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
+ <gfwdg244bcmkv7l44fknfi4osd2b23unwaos7rnlirkdy2rrrt@yovd2vewdviv>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: <gfwdg244bcmkv7l44fknfi4osd2b23unwaos7rnlirkdy2rrrt@yovd2vewdviv>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1765204545;f93b2119;
+X-HE-SMSGID: 1vScL0-004U9y-37
 
-On 03/12/2025 17:08, Venkat wrote:
-> [...]
-> Tested this patch series by applying on top of mm-unstable, on both HASH and RADIX MMU, and all tests are passed on both MMU’s.
->
-> Ran: cache_shape, copyloops, mm from linux source, selftests/powerpc/ and ran memory-hotplug from selftests/. Also ran below tests from avocado misc-test repo.
->
-> Link to repo: https://github.com/avocado-framework-tests/avocado-misc-tests
->
-> avocado-misc-tests/memory/stutter.py
-> avocado-misc-tests/memory/eatmemory.py
-> avocado-misc-tests/memory/hugepage_sanity.py
-> avocado-misc-tests/memory/fork_mem.py
-> avocado-misc-tests/memory/memory_api.py
-> avocado-misc-tests/memory/mprotect.py
-> avocado-misc-tests/memory/vatest.py avocado-misc-tests/memory/vatest.py.data/vatest.yaml
-> avocado-misc-tests/memory/transparent_hugepages.py
-> avocado-misc-tests/memory/transparent_hugepages_swapping.py
-> avocado-misc-tests/memory/transparent_hugepages_defrag.py
-> avocado-misc-tests/memory/ksm_poison.py
->
-> If its good enough, please add below tag for PowerPC changes.
->
-> Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Lo!
 
-Many thanks for the testing! Will add your tag to patch 1, 3 and 10.
+On 11/26/25 04:18, Nick Bowler wrote:
+> Any thoughts?
 
-- Kevin
+Not really, just a vague idea (and reminder, this is not my area or
+expertise, I'm just tracking regressions):
+
+Two fixes were proposed for the culprit, see:
+
+https://lore.kernel.org/all/BN0PR08MB69510928028C933749F4139383D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
+https://lore.kernel.org/all/BN0PR08MB6951415A751F236375A2945683D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
+
+Wondering if they might help. Esben might have an idea, but in case
+Esben does not reply maybe just give them a spin if you have a minute.
+
+Ciao, Thorsten
+
+> The problem is still present in 6.18-rc7 and reverting the commit
+> indicated below still fixes it.
+> 
+> I am also seeing the same failure on a totally different system with
+> Dallas DS1286 RTC, which is also fixed by reverting this commit.
+> 
+> Since the initial report this regression has been further backported
+> to all the remaining longterm kernel series.
+> 
+> Thanks,
+>   Nick
+> 
+> On Thu, Oct 23, 2025 at 12:45:13AM -0400, Nick Bowler wrote:
+>> Hi,
+>>
+>> After a stable kernel update, the hwclock command seems no longer
+>> functional on my SPARC system with an ST M48T59Y-70PC1 RTC:
+>>
+>>   # hwclock
+>>   [...long delay...]
+>>   hwclock: select() to /dev/rtc0 to wait for clock tick timed out
+>>
+>> On prior kernels, there is no problem:
+>>
+>>   # hwclock
+>>   2025-10-22 22:21:04.806992-04:00
+>>
+>> I reproduced the same failure on 6.18-rc2 and bisected to this commit:
+>>
+>>   commit 795cda8338eab036013314dbc0b04aae728880ab
+>>   Author: Esben Haabendal <esben@geanix.com>
+>>   Date:   Fri May 16 09:23:35 2025 +0200
+>>   
+>>       rtc: interface: Fix long-standing race when setting alarm
+>>
+>> This commit was backported to all current 6.x stable branches,
+>> as well as 5.15.x, so they all have the same regression.
+>>
+>> Reverting this commit on top of 6.18-rc2 corrects the problem.
+>>
+>> Let me know if you need any more info!
+>>
+>> Thanks,
+>>   Nick
+> 
+> 
+
