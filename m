@@ -1,85 +1,104 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A003D22D785
-	for <sparclinux@vger.kernel.org>; Mon,  8 Dec 2025 16:37:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44AFB1E49F;
+	Tue,  9 Dec 2025 05:03:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765211864; cv=none; b=JwQ+JwvCfedRsil4nZSsWP+9J3DYJjpwD0DA9THynEeVwgtIkf1oFRYx+VTcKSdJ4BclJYN+QPHOdYVJg399DCB3KyX0wHRs7Pv0xnyi+q/XYjcBv+fDYKbkUYChhAYgraBh5nnAFby519LyZhCNzk9J6efm6ZKHyPBpHHtcoTM=
+	t=1765256619; cv=none; b=pTN1icwm0O+3J1jZ40FXAbMolwNZtlODiDobDIjgM5NbbeFhjIrUmp30nlIhTOa44iZfcBcXc6IM+thO8oi55Y4+QhKY9lIt1vBAYiPg7cIdp8014wXsI1mQgOL9t2cWfDZ5VPP0QyQjB6QLXEyiFlnnkGtWCzS28OQ37ED6C6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765211864; c=relaxed/simple;
-	bh=z7Ym+IoG4qLSCdESxlcgpxQ31QyMAnYVbaNtlYEu1kE=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=Z3tjFG5SKV32gwOa4hEgv0bcjcANDPD6jjbgADhGOM1q5pijAllyudRI7iAl2hSjQ588dLTdB34DpeEXs6eE55KzsYfLz7zdWVkIh64cJOs6U5DNEHAAvEqSXTMfEOET6RA/blNo4fj8Br3xriak4mfbyjIoJ0eM1DiU5Vl7/2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=WA4oGc1U; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1765256619; c=relaxed/simple;
+	bh=0+GA1cRnNAJc78pUN75444gW3RaeI1k+dDWM0FyTSRc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n1mgEjUKH9XSXwtqhghyhhtUw6kZCiwtgDYYe5gvKZOv9kXsrqvEULqw4HYD+6wTsb/9EeOvIT6OaW5LPT8wxdU5ueWeNpbpKN0gHG/vPsr5u4b9DzW1jx2osucsWv6hyaI4xHuB3uRuRV+4GpZW71C/FAXvNZQrbOqTDhv87SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WqALmlCP; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="WA4oGc1U"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WqALmlCP"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
 	Content-ID:Content-Description:In-Reply-To:References;
-	bh=0gRW/Q7VKZBVgzrLLgOk/Eh6evAlQB/46dLp4yxA5sw=; t=1765211861; x=1765816661; 
-	b=WA4oGc1U6IhEPOwSuPw0DhNBNUEHVRBbUC3vDuxb6yz7CdQy7kHFau1JHoTvD5jsCfo8CISpSp4
-	tiqKVOi/ZBMM63PsRQA0We5zY7TH4S7cVB4oeAsvCije1UtQ550eLBVJGlLSNYdepfdqsptcfavPL
-	jwrSEqUxexnWG52cExRl29sJjGRETmyvfnPgQafBFt0Le5hJV0n1vIn3h/zuSw+KidgmEnDEFE/Aq
-	sjenLO7vKg27E7sqZHvaY1j5g1K0EtnL7g8mwVkaFB0Dbjml/0cnHeMvCxpN4tpM+8PiF+tyOv+kg
-	rISmyp89vBXfZ/kV4SpKV/md0086kDAXS2Vg==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.99)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vSeEu-00000000ecX-2FW7; Mon, 08 Dec 2025 17:37:32 +0100
-Received: from p5dc55f29.dip0.t-ipconnect.de ([93.197.95.41] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.99)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vSeEu-00000001mQ2-1OLy; Mon, 08 Dec 2025 17:37:32 +0100
-Message-ID: <d5c589096ad59058be99bfde42808f2c1bc06c5d.camel@physik.fu-berlin.de>
-Subject: New potential regression on Niagara 2 with 6.18.0
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: sparclinux <sparclinux@vger.kernel.org>
-Cc: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>, 
- gentoo-sparc <gentoo-sparc@lists.gentoo.org>
-Date: Mon, 08 Dec 2025 17:37:31 +0100
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.2 
+	bh=mj+SnfzBIiBDaWi/pdexuvICTBtqP6QbVHcggxF0hPs=; b=WqALmlCPtANRWS8tywiMRYCIej
+	TAjOl8Vw+vOADyaDMzw1JdIHrEbsn8v9S8zFQzQlKWaX2SURzoYVA32phTH/I2F7N8rVqFOEGv5Ad
+	FjcqcYYXgn26cZBYjhAejJla3b0r4IP3k6NzIH1eEST5mUGbpijDanGav42HGmJwO833w9pO6i1Lt
+	zwv2UARihsCqAreHUpvYrwFDcTmzPVAiC792HP7T5/CAMx23nYTzTb2h/MK3zYHOnry86MamZjetO
+	8d1HUEta8PE/40wLq2AYn6Tk/nJ18YcIk88OABZcvkFK2ZenP6DLaBAkOadUO7yqgnlfttSQ+bNNQ
+	WA5Ma3Uw==;
+Received: from [50.53.43.113] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vSpss-0000000DpKL-3yny;
+	Tue, 09 Dec 2025 05:03:35 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org
+Subject: [PATCH] sparc/vdso: add missing prototypes
+Date: Mon,  8 Dec 2025 21:03:32 -0800
+Message-ID: <20251209050332.881348-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Transfer-Encoding: 8bit
 
-Hi,
+On sparc64, when CONFIG_WERROR=y, there are a few missing-prototype
+build errors. Fix them.
 
-I just tried booting Linux 6.18.0 on a SPARC T5120 server and noticed the k=
-ernel buffer
-was spammed with the following error messages:
+Add the 4 missing prototypes to <asm/vdso.h> and include that header
+file in vclock_gettime.c.
 
-[   14.756781] iommu_batch_flush: IOMMU map of [00000000:00000005:1:1:e0660=
-00] failed with status -8
-[   14.756959] iommu_batch_flush: IOMMU map of [00000000:00000006:1:1:e0660=
-00] failed with status -8
-[   14.757133] iommu_batch_flush: IOMMU map of [00000000:00000007:1:1:e0660=
-00] failed with status -8
+Fixes these build errors:
+In file included from ../arch/sparc/vdso/vdso32/vclock_gettime.c:22:
+../arch/sparc/vdso/vdso32/../vclock_gettime.c:274:1: error: no previous
+ prototype for '__vdso_clock_gettime' [-Werror=missing-prototypes]
+../arch/sparc/vdso/vdso32/../vclock_gettime.c:302:1: error: no previous
+ prototype for '__vdso_clock_gettime_stick' [-Werror=missing-prototypes]
+../arch/sparc/vdso/vdso32/../vclock_gettime.c:327:1: error: no previous
+ prototype for '__vdso_gettimeofday' [-Werror=missing-prototypes]
+../arch/sparc/vdso/vdso32/../vclock_gettime.c:363:1: error: no previous
+ prototype for '__vdso_gettimeofday_stick' [-Werror=missing-prototypes]
 
-This was accompanied by the ethernet and USB controllers being unable to in=
-itialize.
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+---
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/include/asm/vdso.h    |   11 +++++++++++
+ arch/sparc/vdso/vclock_gettime.c |    1 +
+ 2 files changed, 12 insertions(+)
 
-I will file a sparclinux issue for that. I have not bisected the bad commit=
- yet.
-
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+--- linux-next-20251205.orig/arch/sparc/vdso/vclock_gettime.c
++++ linux-next-20251205/arch/sparc/vdso/vclock_gettime.c
+@@ -19,6 +19,7 @@
+ #include <asm/unistd.h>
+ #include <asm/timex.h>
+ #include <asm/clocksource.h>
++#include <asm/vdso.h>
+ #include <asm/vvar.h>
+ 
+ #ifdef	CONFIG_SPARC64
+--- linux-next-20251205.orig/arch/sparc/include/asm/vdso.h
++++ linux-next-20251205/arch/sparc/include/asm/vdso.h
+@@ -19,4 +19,15 @@ extern const struct vdso_image vdso_imag
+ extern const struct vdso_image vdso_image_32_builtin;
+ #endif
+ 
++struct __kernel_old_timespec;
++struct timezone;
++notrace int
++__vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts);
++notrace int
++__vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts);
++notrace int
++__vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz);
++notrace int
++__vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz);
++
+ #endif /* _ASM_SPARC_VDSO_H */
