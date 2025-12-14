@@ -1,105 +1,118 @@
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from shelob.surriel.com (shelob.surriel.com [96.67.55.147])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106EE299AB4
-	for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 22:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23CEA19A2A3;
+	Sun, 14 Dec 2025 23:53:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=96.67.55.147
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765749885; cv=none; b=uGtJxISLWjyI9LtXbgDZfWUYHphQoiXsYXNNggpfRUE0CglMWxzF3nL1iGlV8DpzRWdHQaQi1dcMVjG1XNDLQBjmsfCIX0Ib5cZQhpsJ34rrYsSh33vsHnB/M/+fsF4M7hjDM7CcxoXnD/wVsjEFbGNbPTqplfNVjP2MchCviCM=
+	t=1765756431; cv=none; b=KEDCDsov/lPv+5y25uTAbrgs4YNels7PY2DC1twNR0Nd2TP/A8QiENiza5cDsVMuzn72h9AnPIGrgcmqkkaU9KT1kKQDb/V0RJuQSR5B3+dqd/h0UVvNkA8FhoUxaIdRtyvi4EKAX9NsdH6mO0cfMonG2+nYFk0lVzl5Ly6pBA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765749885; c=relaxed/simple;
-	bh=OsZtNvC57Q0MTvQ0L0dGnqvyWUsxJxn5my2UaWA/0e0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qAZxX5zrupV/bRsSirUNmIFv2N/38pTyxkS7ldr5e3nECe6yy0WTdSZLo5wRZkU1YN282DKMzZttvCXgBJ73tKGPjKgsbecCeK318jYx3KNo1d9DikRXnuYkvdsTk0G6MfmOmO4Sx53aaZ7bW8AXmFhm0sVOJxOc6eSfE1w+6nU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=POEj1WJ/; arc=none smtp.client-ip=209.85.219.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
+	s=arc-20240116; t=1765756431; c=relaxed/simple;
+	bh=24kY9Nr5wlYZDF7jnKs9v6WeM4iMH9sHuTP5M2EV7I8=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=eB5TfJpKK9rQJIQBNyVQV2fAlkzTy9qVWT0/pCP381KlWKKghC+O9XR+hX1GKJNwlw7VnvI8a7bRkO/SAGQgmjJlAUH4sKUfLL/5jGZUpgHxOtU88eimYaoRnBHKtfj+Em7X2SzqWOpkR9Fl9T9CuNkUmMWZjDIFh1OOcDUlZfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=surriel.com; spf=pass smtp.mailfrom=surriel.com; dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b=WXbduQIY; arc=none smtp.client-ip=96.67.55.147
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=surriel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=surriel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="POEj1WJ/"
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-8887f43b224so35544436d6.1
-        for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 14:04:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1765749883; x=1766354683; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=/cTj72ha+a5XJMJvRmgDZDY2gaP3p8aX5U73ylQ5QC8=;
-        b=POEj1WJ/MCTEcFpJB7A/t/8hB8kN4iW+jypO9pdrCDiMmXktoDW1uimdy/TlbOpWWE
-         Qcj1fyl5Vl3Ba+T9Zv3ByfhWtvlA8GZGEiaR+qRXTJsFVN7Og10c6nr/4evqUM7kmRj4
-         hD9CLYFB+bL5AE7UEGIQ+bkxeKAYcyDIK4lU+nMrYyiNK5OdOHsihUit1U3I9bsgfCE8
-         weriQ36ITho+DB/T/2vf+ai29+0iUK8kIN8lb8qv4XJKOkKUPGmEE4U1RWFSiAWB70Bq
-         zmjzEYGxHURk2Sa3eQXyPLTVuNMxb4Es7hJMJjzhgjCQn2e1PQjwEphvB29OSYF1jGSU
-         EtLw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765749883; x=1766354683;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/cTj72ha+a5XJMJvRmgDZDY2gaP3p8aX5U73ylQ5QC8=;
-        b=A9JbXqLQ2sYy5ew4kzl7udVOiz/PhXgP87PTsq5hst5jABSL8YwVbp0hs2F+EpccXi
-         P7Xk4vk57upq0NdvcuPvyWzmTnfCvNWtqx1T66Iz0jOXVMxxAUJEntLsanthlh8HIF2S
-         mDWVZh+UXon6Z+la2vdxmWe97+QzXS0sQrFppMx/iTnWgZ+ETBbIZEoTz/Pk9/9uCK4v
-         sQr1Oj7jR8dsvtcGeFKnuzKzZYrD6L1nKiHjaKzeFp3mSE70uzTeICxj4sLEJ0RlzPqn
-         lhwiHfQwLgwvGmwejEnuQi5EXjjm1EN9AG+U2jmYkq0Zp6bSS3j+t1rcpZK6BVSzZlbC
-         SRkw==
-X-Forwarded-Encrypted: i=1; AJvYcCWb0+Q4PLsfolqJcN6uVJ78sl+DFphPraTH7MXcSwK1qmI2gYF7CDbuEtMszz3lhXrAAv891PNkOro/@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy08UxnAcOHmZats8FtZR4CunA6tprJUbtdv3k627prKuIYZ9sE
-	v9bk+22IYK7Z/BhRS8kVrWrtlNpFb5U/8lY6CGbyXnzw4kShXuLz+zPGorHu8+n1Qnk=
-X-Gm-Gg: AY/fxX7liBrk+oZvW7Wc1wuHTqObHBNhYPp74zKgWPxKx98jbpcV/R/cdH8eN5o/MQq
-	FmvYoLel7Tkb/53rnh7qb8P6+8murwTDaFd6prKBFCwovOjDR1oKfkEzQfi+2qFTZtoK27qUSFl
-	8Wz6nRRVC5QnMyloT9K1Z4+0HcGrBNALp9deJ7MUXGVTe+KJW0nSzWAQQ4f3tKTDW1yYaiyRCOJ
-	EQVTudPXtyaCUybmvywdKZD1VLYS4pwibXC5zTGa9IxTDUIxviqDdpoQUcsd9WOqcGZxFJ9ne9+
-	8ANawT01575vVUyVd7BamnekYkV+q5xOg0srLGvn5TM0bWaody0bUyXjssBFfJTVIV3Qf60/1P1
-	6C1myiXdOviTXOX/6+PUpVmTmHPcYiLRBrJ0xzVYCb2tDCsFIajBZjJ87kZC9UCd9GclPHmDo/p
-	Vabs2C5nJczksiohhRsdMJcj+3vk9RHRCTFVsDCK03
-X-Google-Smtp-Source: AGHT+IEDFcxqfAIv8Lzvd0GjECj/WpfJVYeBMCOAIQ4Nzc4ZxKDvXtd5bV1zeaqceaQ7pMz4WHhP1g==
-X-Received: by 2002:ad4:5c48:0:b0:880:5cc1:692c with SMTP id 6a1803df08f44-8887e1957ccmr128935286d6.17.1765749882988;
-        Sun, 14 Dec 2025 14:04:42 -0800 (PST)
-Received: from localhost (ip-24-156-181-135.user.start.ca. [24.156.181.135])
-        by smtp.gmail.com with UTF8SMTPSA id 6a1803df08f44-88993b597f7sm39205576d6.14.2025.12.14.14.04.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 14 Dec 2025 14:04:42 -0800 (PST)
-Date: Sun, 14 Dec 2025 17:04:41 -0500
-From: Nick Bowler <nbowler@draconx.ca>
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: linux-kernel@vger.kernel.org, regressions@lists.linux.dev, 
-	linux-rtc@vger.kernel.org, Esben Haabendal <esben@geanix.com>, stable@vger.kernel.org, 
-	sparclinux@vger.kernel.org
-Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
-Message-ID: <2t6bhs4udbu55ctbemkhlluchz2exrwown7kmu2gss6zukaxdm@ughygemahmem>
-References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
- <gfwdg244bcmkv7l44fknfi4osd2b23unwaos7rnlirkdy2rrrt@yovd2vewdviv>
- <48db01b1-f4e5-4687-8ffb-472981d153ed@leemhuis.info>
+	dkim=pass (2048-bit key) header.d=surriel.com header.i=@surriel.com header.b="WXbduQIY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=surriel.com
+	; s=mail; h=MIME-Version:Content-Transfer-Encoding:Content-Type:References:
+	In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=24kY9Nr5wlYZDF7jnKs9v6WeM4iMH9sHuTP5M2EV7I8=; b=WXbduQIYx6FgowO4SUfZ6UQl8P
+	es6kKDSIyUC81IRgmPtsbh+zvONXuh8F1ntYsGSJ8xdAThIZdkwX9XlhvtqzPCbuBM1D4cxC2xKwA
+	opuECmoBWHf337R/5oq41e1VeSiKyHsglXCKnuPrghV5bxnd3CqEFW6jxaaPMPLi7wTF8qQtdJbAS
+	B9u9iNZDrTMvqVOoPBRu6RRtycVbFB1OY/IuCcsQjEm/75/P7FxC/6jOKZ8vI5+CZxc6AaGP5rkYo
+	gUCxc0xFH5f4buE701MUd96DxLK5EJ8SxwPRYSCYnXsBWlfzFYY0SQtprriLKSo/yXcJ9dFI30JQr
+	/IKZRalA==;
+Received: from fangorn.home.surriel.com ([10.0.13.7])
+	by shelob.surriel.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.97.1)
+	(envelope-from <riel@surriel.com>)
+	id 1vUvgx-000000003ch-1imb;
+	Sun, 14 Dec 2025 18:39:56 -0500
+Message-ID: <ce226891413fe9c1d6f0c02697a32b646b4e0a0c.camel@surriel.com>
+Subject: Re: [PATCH v5 2/3] sched: Make raw_spin_rq_unlock() inline
+From: Rik van Riel <riel@surriel.com>
+To: Xie Yuanbin <qq570070308@gmail.com>, tglx@linutronix.de, 
+	peterz@infradead.org, segher@kernel.crashing.org, david@kernel.org,
+ hpa@zytor.com, 	arnd@arndb.de, acme@kernel.org, adrian.hunter@intel.com,
+ agordeev@linux.ibm.com, 	akpm@linux-foundation.org, alex@ghiti.fr,
+ alexander.shishkin@linux.intel.com, 	andreas@gaisler.com,
+ anshuman.khandual@arm.com, aou@eecs.berkeley.edu, 
+	borntraeger@linux.ibm.com, bp@alien8.de, bsegall@google.com, 
+	dave.hansen@linux.intel.com, davem@davemloft.net, dietmar.eggemann@arm.com,
+ 	frederic@kernel.org, gor@linux.ibm.com, hca@linux.ibm.com,
+ irogers@google.com, 	james.clark@linaro.org, jolsa@kernel.org,
+ juri.lelli@redhat.com, 	justinstitt@google.com, lorenzo.stoakes@oracle.com,
+ luto@kernel.org, 	mark.rutland@arm.com, mathieu.desnoyers@efficios.com,
+ max.kellermann@ionos.com, 	mgorman@suse.de, mingo@redhat.com,
+ morbo@google.com, namhyung@kernel.org, 	nathan@kernel.org,
+ nick.desaulniers+lkml@gmail.com, nysal@linux.ibm.com, 	palmer@dabbelt.com,
+ paulmck@kernel.org, pjw@kernel.org, rostedt@goodmis.org, 
+	ryan.roberts@arm.com, svens@linux.ibm.com, thuth@redhat.com,
+ urezki@gmail.com, 	vincent.guittot@linaro.org, vschneid@redhat.com,
+ linux@armlinux.org.uk
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, llvm@lists.linux.dev
+Date: Sun, 14 Dec 2025 18:39:56 -0500
+In-Reply-To: <20251214190907.184793-3-qq570070308@gmail.com>
+References: <20251214190907.184793-1-qq570070308@gmail.com>
+	 <20251214190907.184793-3-qq570070308@gmail.com>
+Autocrypt: addr=riel@surriel.com; prefer-encrypt=mutual;
+ keydata=mQENBFIt3aUBCADCK0LicyCYyMa0E1lodCDUBf6G+6C5UXKG1jEYwQu49cc/gUBTTk33A
+ eo2hjn4JinVaPF3zfZprnKMEGGv4dHvEOCPWiNhlz5RtqH3SKJllq2dpeMS9RqbMvDA36rlJIIo47
+ Z/nl6IA8MDhSqyqdnTY8z7LnQHqq16jAqwo7Ll9qALXz4yG1ZdSCmo80VPetBZZPw7WMjo+1hByv/
+ lvdFnLfiQ52tayuuC1r9x2qZ/SYWd2M4p/f5CLmvG9UcnkbYFsKWz8bwOBWKg1PQcaYHLx06sHGdY
+ dIDaeVvkIfMFwAprSo5EFU+aes2VB2ZjugOTbkkW2aPSWTRsBhPHhV6dABEBAAG0HlJpayB2YW4gU
+ mllbCA8cmllbEByZWRoYXQuY29tPokBHwQwAQIACQUCW5LcVgIdIAAKCRDOed6ShMTeg05SB/986o
+ gEgdq4byrtaBQKFg5LWfd8e+h+QzLOg/T8mSS3dJzFXe5JBOfvYg7Bj47xXi9I5sM+I9Lu9+1XVb/
+ r2rGJrU1DwA09TnmyFtK76bgMF0sBEh1ECILYNQTEIemzNFwOWLZZlEhZFRJsZyX+mtEp/WQIygHV
+ WjwuP69VJw+fPQvLOGn4j8W9QXuvhha7u1QJ7mYx4dLGHrZlHdwDsqpvWsW+3rsIqs1BBe5/Itz9o
+ 6y9gLNtQzwmSDioV8KhF85VmYInslhv5tUtMEppfdTLyX4SUKh8ftNIVmH9mXyRCZclSoa6IMd635
+ Jq1Pj2/Lp64tOzSvN5Y9zaiCc5FucXtB9SaWsgdmFuIFJpZWwgPHJpZWxAc3VycmllbC5jb20+iQE
+ +BBMBAgAoBQJSLd2lAhsjBQkSzAMABgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRDOed6ShMTe
+ g4PpB/0ZivKYFt0LaB22ssWUrBoeNWCP1NY/lkq2QbPhR3agLB7ZXI97PF2z/5QD9Fuy/FD/jddPx
+ KRTvFCtHcEzTOcFjBmf52uqgt3U40H9GM++0IM0yHusd9EzlaWsbp09vsAV2DwdqS69x9RPbvE/Ne
+ fO5subhocH76okcF/aQiQ+oj2j6LJZGBJBVigOHg+4zyzdDgKM+jp0bvDI51KQ4XfxV593OhvkS3z
+ 3FPx0CE7l62WhWrieHyBblqvkTYgJ6dq4bsYpqxxGJOkQ47WpEUx6onH+rImWmPJbSYGhwBzTo0Mm
+ G1Nb1qGPG+mTrSmJjDRxrwf1zjmYqQreWVSFEt26tBpSaWsgdmFuIFJpZWwgPHJpZWxAZmIuY29tP
+ okBPgQTAQIAKAUCW5LbiAIbIwUJEswDAAYLCQgHAwIGFQgCCQoLBBYCAwECHgECF4AACgkQznneko
+ TE3oOUEQgAsrGxjTC1bGtZyuvyQPcXclap11Ogib6rQywGYu6/Mnkbd6hbyY3wpdyQii/cas2S44N
+ cQj8HkGv91JLVE24/Wt0gITPCH3rLVJJDGQxprHTVDs1t1RAbsbp0XTksZPCNWDGYIBo2aHDwErhI
+ omYQ0Xluo1WBtH/UmHgirHvclsou1Ks9jyTxiPyUKRfae7GNOFiX99+ZlB27P3t8CjtSO831Ij0Ip
+ QrfooZ21YVlUKw0Wy6Ll8EyefyrEYSh8KTm8dQj4O7xxvdg865TLeLpho5PwDRF+/mR3qi8CdGbkE
+ c4pYZQO8UDXUN4S+pe0aTeTqlYw8rRHWF9TnvtpcNzZw==
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2 (3.56.2-2.fc42) 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <48db01b1-f4e5-4687-8ffb-472981d153ed@leemhuis.info>
 
-On Mon, Dec 08, 2025 at 03:35:42PM +0100, Thorsten Leemhuis wrote:
-> Lo!
-> 
-> On 11/26/25 04:18, Nick Bowler wrote:
-> > Any thoughts?
-> 
-> Not really, just a vague idea (and reminder, this is not my area or
-> expertise, I'm just tracking regressions):
-> 
-> Two fixes were proposed for the culprit, see:
-> 
-> https://lore.kernel.org/all/BN0PR08MB69510928028C933749F4139383D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
-> https://lore.kernel.org/all/BN0PR08MB6951415A751F236375A2945683D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
+On Mon, 2025-12-15 at 03:09 +0800, Xie Yuanbin wrote:
+> raw_spin_rq_unlock() is short, and is called in some hot code paths
+> such as finish_lock_switch.
+>=20
+> Make raw_spin_rq_unlock() inline to optimize performance.
+>=20
+> Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Rik van Riel <riel@surriel.com>
+> Cc: Segher Boessenkool <segher@kernel.crashing.org>
+> Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
 
-The first link is a patch for a totally different driver, as far as I
-know not relevant to any system I have, but I guess that makes at least
-3 different systems which have regressed...
+Reviewed-by: Rik van Riel <riel@surriel.com>
 
-I can't figure out how to turn the second link into a correctly-
-formatted patch file, but since it is a one-line change I just manually
-applied it on top of 6.19-rc1.  This appears to fix the problem.
-
-Thanks,
-  Nick
+--=20
+All Rights Reversed.
