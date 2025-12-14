@@ -1,554 +1,105 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2517F30E83F
-	for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 19:13:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106EE299AB4
+	for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 22:04:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765739613; cv=none; b=mQEbBy7oQ23A6aoq3DqOKicTUbcias4V8OnB/GINX6aY30/CStA5GfKODHFMvn1J5Y2b/tQA5/dO4cruDvTyJlL9o+pAkwaZ4asAqY+Clp+WLXPqc5cNLVbrHXO/DNw7VF6MO/KjShQ0Ibi6QLyQFo3Pl/XCzyavHXcS9Hcme2E=
+	t=1765749885; cv=none; b=uGtJxISLWjyI9LtXbgDZfWUYHphQoiXsYXNNggpfRUE0CglMWxzF3nL1iGlV8DpzRWdHQaQi1dcMVjG1XNDLQBjmsfCIX0Ib5cZQhpsJ34rrYsSh33vsHnB/M/+fsF4M7hjDM7CcxoXnD/wVsjEFbGNbPTqplfNVjP2MchCviCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765739613; c=relaxed/simple;
-	bh=xmG3/PRlSstyTQZDxMH8tbMZ6volASb8bJiStIxq6BM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Cz+rXN4y3nWTLWPbnAFUUgVM+zi/Ncs6WcQkzmtcrLiLHd7uIMqSxM0m4txhhMHwRnD7hFR8MhBOj7z0kCZyEE/IpaCoc0ePJJt6VeeTFCHcClXF7e/5EHrrlnrBkxxZEveQRPUeUINP4BUF6fTl+QmNLzhvwHs3UTm4r89NySQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fh0qaiR+; arc=none smtp.client-ip=209.85.214.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1765749885; c=relaxed/simple;
+	bh=OsZtNvC57Q0MTvQ0L0dGnqvyWUsxJxn5my2UaWA/0e0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qAZxX5zrupV/bRsSirUNmIFv2N/38pTyxkS7ldr5e3nECe6yy0WTdSZLo5wRZkU1YN282DKMzZttvCXgBJ73tKGPjKgsbecCeK318jYx3KNo1d9DikRXnuYkvdsTk0G6MfmOmO4Sx53aaZ7bW8AXmFhm0sVOJxOc6eSfE1w+6nU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca; spf=none smtp.mailfrom=draconx.ca; dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b=POEj1WJ/; arc=none smtp.client-ip=209.85.219.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=draconx.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=draconx.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fh0qaiR+"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2a0d52768ccso5685175ad.1
-        for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 11:13:30 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=draconx-ca.20230601.gappssmtp.com header.i=@draconx-ca.20230601.gappssmtp.com header.b="POEj1WJ/"
+Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-8887f43b224so35544436d6.1
+        for <sparclinux@vger.kernel.org>; Sun, 14 Dec 2025 14:04:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1765739610; x=1766344410; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fl9yzitEzWMnip+yhMTSxm/r3KEx/d9qv1UD8LhQoS4=;
-        b=fh0qaiR+kz2/v5NcTpdInCv1/a+7oZHeq9gdMEHGEFD7xfsRSU/HMYbxY/+pAVVpCq
-         OUPB3JYA0JgVk7vnZ+LiT6+7ta4D5oDQdPSGGrZS2msDXsPgVyUvuHJ6XUMZLqUanZMD
-         YS3psMQfMDMgKvmfHEdyFspRzvZpknYJ6DCI3Q7NV9hV4Va/tivWmLwNYj/Hzb3uoZ0i
-         QQkZ5c+WN5Fv/pELXjY1YaHjoflYqRMWCURdnhwGoQhdngYYYVbrrbUx0uHwqsJLwmis
-         aoW/+yP2jp3KY4G8Xo8vtP6D/ftOhdnI/t4w2kwvWMqSQbNonTIYO36KPjEOeBd5gV2p
-         Koiw==
+        d=draconx-ca.20230601.gappssmtp.com; s=20230601; t=1765749883; x=1766354683; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=/cTj72ha+a5XJMJvRmgDZDY2gaP3p8aX5U73ylQ5QC8=;
+        b=POEj1WJ/MCTEcFpJB7A/t/8hB8kN4iW+jypO9pdrCDiMmXktoDW1uimdy/TlbOpWWE
+         Qcj1fyl5Vl3Ba+T9Zv3ByfhWtvlA8GZGEiaR+qRXTJsFVN7Og10c6nr/4evqUM7kmRj4
+         hD9CLYFB+bL5AE7UEGIQ+bkxeKAYcyDIK4lU+nMrYyiNK5OdOHsihUit1U3I9bsgfCE8
+         weriQ36ITho+DB/T/2vf+ai29+0iUK8kIN8lb8qv4XJKOkKUPGmEE4U1RWFSiAWB70Bq
+         zmjzEYGxHURk2Sa3eQXyPLTVuNMxb4Es7hJMJjzhgjCQn2e1PQjwEphvB29OSYF1jGSU
+         EtLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765739610; x=1766344410;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=fl9yzitEzWMnip+yhMTSxm/r3KEx/d9qv1UD8LhQoS4=;
-        b=tpi6mGnn6MEZfCzUPv5jEGi+i7YYlqgHA2HBAAs3eQH2SasF5GaEO51KtZy8Ne2/zg
-         9sg5epnajQIARrdxcIgs22vGjsBSTyJEprliNjSZvFqfU8RTH9eI8jsT+C0aUzs3Z8M3
-         NFnUqfJZffeWSTljMmuLGP8Y6Pg36tPI1RHivB4b86DhkAqemQGYqvlaGFxQbBvAulq9
-         tSPsF1aBKS9pcuSY8CL+cm6Y28ug+ZflOPNb3Md8u70NPxTMRem37+kVQZWOULlEQ3hN
-         wVtwkiU06UAaDhHzpZ3AqwQWWNwIaq7sHgeVN/kjcis6rJR7hWcNXPgIOPWXF53mpCel
-         cVEw==
-X-Forwarded-Encrypted: i=1; AJvYcCW6ywXJNhVnESGb1e+Uh4ZUVKhu4u8VXnpzPvbet8Ajq8/CQ4hWvuMtAZ5fgkeiV/asRb11NkkUMU5D@vger.kernel.org
-X-Gm-Message-State: AOJu0YwYib1lVKZYFlu09J3UdmlhEALX/tBiOIYymK9O7/TsU9UDH6Ib
-	eRuUmdSpQD92bcfHp//vsgYc/1y/YO5ETFAsX9FtHt15ojjAO4CglvOT
-X-Gm-Gg: AY/fxX4r0hIXRTbsVKAA4Z+BLyQwmg9lsOC+tJ61J4IHtXhSVlPzfF5wWhIBk1/S9Tw
-	oTwQMbipQf5vMtAbUxgHGSGiJTUh/h3gO3f3Mugi++tV6Tz0mpPx7Or/6FCFWrGHoPGj77GeiAd
-	GYpgszrjXJDSkUmPqwmUZuOlutbRRHCMIjOZ+Xoea/6xxXR5ytdPpYE6796uR0mOiUcvh63Bqie
-	GN20cdd8nzRijzMYQlc6oA6Zxok9ZwMmFUleSyCfTclHjHNKI5hWQG8yQ8iNhKt3DEi1yg+x4Hn
-	AcslYsmCi50kQsjUl6g6ROMKIAi4cHT7y+Iywi6C6qgE8FtK4DRYFPSAjr3kkRTJdBsvNDByoSj
-	c67OliMIoHv7h8QIhf+xhwV8ydoVrzUqQNp32Q2QwArJJUf/PlGJNNDj9o/T3J2PxpbK+msOVvj
-	saZkzI3oGcM3EK3QjIrqSDCV0BohfQhB9Ga83hojZnhQ==
-X-Google-Smtp-Source: AGHT+IFkPAgo+F+nh8G1sroML+5G+v23BEpyf+YWaLQCqZKpFQmfga1RZx5fSxm2YZQbILgHdSsDbg==
-X-Received: by 2002:a17:902:ebd1:b0:298:3aa6:c03d with SMTP id d9443c01a7336-29f244cca9emr85496425ad.57.1765739610184;
-        Sun, 14 Dec 2025 11:13:30 -0800 (PST)
-Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7f4c50974a7sm10524213b3a.53.2025.12.14.11.13.16
+        d=1e100.net; s=20230601; t=1765749883; x=1766354683;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/cTj72ha+a5XJMJvRmgDZDY2gaP3p8aX5U73ylQ5QC8=;
+        b=A9JbXqLQ2sYy5ew4kzl7udVOiz/PhXgP87PTsq5hst5jABSL8YwVbp0hs2F+EpccXi
+         P7Xk4vk57upq0NdvcuPvyWzmTnfCvNWtqx1T66Iz0jOXVMxxAUJEntLsanthlh8HIF2S
+         mDWVZh+UXon6Z+la2vdxmWe97+QzXS0sQrFppMx/iTnWgZ+ETBbIZEoTz/Pk9/9uCK4v
+         sQr1Oj7jR8dsvtcGeFKnuzKzZYrD6L1nKiHjaKzeFp3mSE70uzTeICxj4sLEJ0RlzPqn
+         lhwiHfQwLgwvGmwejEnuQi5EXjjm1EN9AG+U2jmYkq0Zp6bSS3j+t1rcpZK6BVSzZlbC
+         SRkw==
+X-Forwarded-Encrypted: i=1; AJvYcCWb0+Q4PLsfolqJcN6uVJ78sl+DFphPraTH7MXcSwK1qmI2gYF7CDbuEtMszz3lhXrAAv891PNkOro/@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy08UxnAcOHmZats8FtZR4CunA6tprJUbtdv3k627prKuIYZ9sE
+	v9bk+22IYK7Z/BhRS8kVrWrtlNpFb5U/8lY6CGbyXnzw4kShXuLz+zPGorHu8+n1Qnk=
+X-Gm-Gg: AY/fxX7liBrk+oZvW7Wc1wuHTqObHBNhYPp74zKgWPxKx98jbpcV/R/cdH8eN5o/MQq
+	FmvYoLel7Tkb/53rnh7qb8P6+8murwTDaFd6prKBFCwovOjDR1oKfkEzQfi+2qFTZtoK27qUSFl
+	8Wz6nRRVC5QnMyloT9K1Z4+0HcGrBNALp9deJ7MUXGVTe+KJW0nSzWAQQ4f3tKTDW1yYaiyRCOJ
+	EQVTudPXtyaCUybmvywdKZD1VLYS4pwibXC5zTGa9IxTDUIxviqDdpoQUcsd9WOqcGZxFJ9ne9+
+	8ANawT01575vVUyVd7BamnekYkV+q5xOg0srLGvn5TM0bWaody0bUyXjssBFfJTVIV3Qf60/1P1
+	6C1myiXdOviTXOX/6+PUpVmTmHPcYiLRBrJ0xzVYCb2tDCsFIajBZjJ87kZC9UCd9GclPHmDo/p
+	Vabs2C5nJczksiohhRsdMJcj+3vk9RHRCTFVsDCK03
+X-Google-Smtp-Source: AGHT+IEDFcxqfAIv8Lzvd0GjECj/WpfJVYeBMCOAIQ4Nzc4ZxKDvXtd5bV1zeaqceaQ7pMz4WHhP1g==
+X-Received: by 2002:ad4:5c48:0:b0:880:5cc1:692c with SMTP id 6a1803df08f44-8887e1957ccmr128935286d6.17.1765749882988;
+        Sun, 14 Dec 2025 14:04:42 -0800 (PST)
+Received: from localhost (ip-24-156-181-135.user.start.ca. [24.156.181.135])
+        by smtp.gmail.com with UTF8SMTPSA id 6a1803df08f44-88993b597f7sm39205576d6.14.2025.12.14.14.04.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 14 Dec 2025 11:13:29 -0800 (PST)
-From: Xie Yuanbin <qq570070308@gmail.com>
-To: tglx@linutronix.de,
-	peterz@infradead.org,
-	riel@surriel.com,
-	segher@kernel.crashing.org,
-	david@kernel.org,
-	hpa@zytor.com,
-	arnd@arndb.de,
-	acme@kernel.org,
-	adrian.hunter@intel.com,
-	agordeev@linux.ibm.com,
-	akpm@linux-foundation.org,
-	alex@ghiti.fr,
-	alexander.shishkin@linux.intel.com,
-	andreas@gaisler.com,
-	anshuman.khandual@arm.com,
-	aou@eecs.berkeley.edu,
-	borntraeger@linux.ibm.com,
-	bp@alien8.de,
-	bsegall@google.com,
-	dave.hansen@linux.intel.com,
-	davem@davemloft.net,
-	dietmar.eggemann@arm.com,
-	frederic@kernel.org,
-	gor@linux.ibm.com,
-	hca@linux.ibm.com,
-	irogers@google.com,
-	james.clark@linaro.org,
-	jolsa@kernel.org,
-	juri.lelli@redhat.com,
-	justinstitt@google.com,
-	lorenzo.stoakes@oracle.com,
-	luto@kernel.org,
-	mark.rutland@arm.com,
-	mathieu.desnoyers@efficios.com,
-	max.kellermann@ionos.com,
-	mgorman@suse.de,
-	mingo@redhat.com,
-	morbo@google.com,
-	namhyung@kernel.org,
-	nathan@kernel.org,
-	nick.desaulniers+lkml@gmail.com,
-	nysal@linux.ibm.com,
-	palmer@dabbelt.com,
-	paulmck@kernel.org,
-	pjw@kernel.org,
-	rostedt@goodmis.org,
-	ryan.roberts@arm.com,
-	svens@linux.ibm.com,
-	thuth@redhat.com,
-	urezki@gmail.com,
-	vincent.guittot@linaro.org,
-	vschneid@redhat.com,
-	linux@armlinux.org.uk
-Cc: linux-kernel@vger.kernel.org,
-	x86@kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-perf-users@vger.kernel.org,
-	llvm@lists.linux.dev
-Subject: [PATCH v5 3/3] sched/core: Make finish_task_switch() and its subfunctions always inline
-Date: Mon, 15 Dec 2025 03:13:07 +0800
-Message-ID: <20251214191307.184897-1-qq570070308@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251214190907.184793-1-qq570070308@gmail.com>
-References: <20251214190907.184793-1-qq570070308@gmail.com>
+        Sun, 14 Dec 2025 14:04:42 -0800 (PST)
+Date: Sun, 14 Dec 2025 17:04:41 -0500
+From: Nick Bowler <nbowler@draconx.ca>
+To: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: linux-kernel@vger.kernel.org, regressions@lists.linux.dev, 
+	linux-rtc@vger.kernel.org, Esben Haabendal <esben@geanix.com>, stable@vger.kernel.org, 
+	sparclinux@vger.kernel.org
+Subject: Re: PROBLEM: hwclock busted w/ M48T59 RTC (regression)
+Message-ID: <2t6bhs4udbu55ctbemkhlluchz2exrwown7kmu2gss6zukaxdm@ughygemahmem>
+References: <krmiwpwogrvpehlqdrugb5glcmsu54qpw3mteonqeqymrvzz37@dzt7mes7qgxt>
+ <gfwdg244bcmkv7l44fknfi4osd2b23unwaos7rnlirkdy2rrrt@yovd2vewdviv>
+ <48db01b1-f4e5-4687-8ffb-472981d153ed@leemhuis.info>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <48db01b1-f4e5-4687-8ffb-472981d153ed@leemhuis.info>
 
-finish_task_switch() is a hot code path in context switching.
+On Mon, Dec 08, 2025 at 03:35:42PM +0100, Thorsten Leemhuis wrote:
+> Lo!
+> 
+> On 11/26/25 04:18, Nick Bowler wrote:
+> > Any thoughts?
+> 
+> Not really, just a vague idea (and reminder, this is not my area or
+> expertise, I'm just tracking regressions):
+> 
+> Two fixes were proposed for the culprit, see:
+> 
+> https://lore.kernel.org/all/BN0PR08MB69510928028C933749F4139383D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
+> https://lore.kernel.org/all/BN0PR08MB6951415A751F236375A2945683D1A@BN0PR08MB6951.namprd08.prod.outlook.com/
 
-Depending on the cpu's vulnerability and mitigation configuration, kernel
-will likely perform mitigations in switch_mm_irqs_off() and switch_to(),
-which may include branch prediction hardening, clearing the instruction
-cache and L1D cache, etc.
+The first link is a patch for a totally different driver, as far as I
+know not relevant to any system I have, but I guess that makes at least
+3 different systems which have regressed...
 
-finish_task_switch() is right after switch_mm_irqs_off() and switch_to(),
-the performance here is greatly affected by function calls and branch
-jumps.
+I can't figure out how to turn the second link into a correctly-
+formatted patch file, but since it is a one-line change I just manually
+applied it on top of 6.19-rc1.  This appears to fix the problem.
 
-Make finish_task_switch() always inline to optimize performance.
-
-After finish_task_switch() is changed as always inline, the number of
-calling points of subfunctions increases. According to the compiler
-optimization strategy, subfunctions that were originally inline may no
-longer be inline.
-
-Also make the subfunctions of finish_task_stwitch() always inline to
-prevent performance degradation.
-
-Performance test data - time spent on calling finish_task_switch():
-1. x86-64: Intel i5-8300h@4Ghz, DDR4@2666mhz; unit: x86's tsc
- | test scenario                     |    old |   new |           delta |
- | gcc 15.2                          |  27.50 | 25.45 |  -2.05 ( -7.5%) |
- | gcc 15.2     + spectre_v2_user=on |  46.75 | 25.96 | -20.79 (-44.5%) |
- | clang 21.1.7                      |  27.25 | 25.45 |  -1.80 ( -6.6%) |
- | clang 21.1.7 + spectre_v2_user=on |  39.50 | 26.00 | -13.50 (-34.2%) |
-
-2. x86-64: AMD 9600x@5.45Ghz, DDR5@4800mhz; unit: x86's tsc
- | test scenario                     |    old |   new |           delta |
- | gcc 15.2                          |  27.51 | 27.51 |      0 (    0%) |
- | gcc 15.2     + spectre_v2_user=on | 105.21 | 67.89 | -37.32 (-35.5%) |
- | clang 21.1.7                      |  27.51 | 27.51 |      0 (    0%) |
- | clang 21.1.7 + spectre_v2_user=on | 104.15 | 67.52 | -36.63 (-35.2%) |
-
-3. arm64: Raspberry Pi 3b Rev 1.2, Cortex-A53@1.2Ghz; unit: cntvct_el0
- | test scenario                     |    old |   new |           delta |
- | gcc 15.2                          |  1.453 | 1.115 | -0.338 (-23.3%) |
- | clang 21.1.7                      |  1.532 | 1.123 | -0.409 (-26.7%) |
-
-4. arm32: Raspberry Pi 3b Rev 1.2, Cortex-A53@1.2Ghz; unit: cntvct_el0
- | test scenario                     |    old |   new |           delta |
- | gcc 15.2                          |  1.421 | 1.187 | -0.234 (-16.5%) |
- | clang 21.1.7                      |  1.437 | 1.200 | -0.237 (-16.5%) |
-
-Size test data:
-1. bzImage size:
- | test scenario             | old      | new      | delta |
- | gcc 15.2     + -Os        | 12604416 | 12604416 |     0 |
- | gcc 15.2     + -O2        | 14500864 | 14500864 |     0 |
- | clang 21.1.7 + -Os        | 13718528 | 13718528 |     0 |
- | clang 21.1.7 + -O2        | 14558208 | 14566400 |  8192 |
-
-2. sizeof .text section from vmlinx:
- | test scenario             | old      | new      | delta |
- | gcc 15.2     + -Os        | 16180040 | 16180616 |   576 |
- | gcc 15.2     + -O2        | 19556424 | 19561352 |  4928 |
- | clang 21.1.7 + -Os        | 17917832 | 17918664 |   832 |
- | clang 21.1.7 + -O2        | 20030856 | 20035784 |  4928 |
-
-Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
----
-The detailed information of the test can be found in the cover letter:
-Link: https://lore.kernel.org/20251214190907.184793-1-qq570070308@gmail.com
-
- arch/arm/include/asm/mmu_context.h      |  2 +-
- arch/riscv/include/asm/sync_core.h      |  2 +-
- arch/s390/include/asm/mmu_context.h     |  2 +-
- arch/sparc/include/asm/mmu_context_64.h |  2 +-
- arch/x86/include/asm/sync_core.h        |  2 +-
- include/linux/perf_event.h              |  2 +-
- include/linux/sched/mm.h                | 10 +++++-----
- include/linux/tick.h                    |  4 ++--
- include/linux/vtime.h                   |  8 ++++----
- kernel/sched/core.c                     | 14 +++++++-------
- kernel/sched/sched.h                    | 20 ++++++++++----------
- 11 files changed, 34 insertions(+), 34 deletions(-)
-
-diff --git a/arch/arm/include/asm/mmu_context.h b/arch/arm/include/asm/mmu_context.h
-index db2cb06aa8cf..bebde469f81a 100644
---- a/arch/arm/include/asm/mmu_context.h
-+++ b/arch/arm/include/asm/mmu_context.h
-@@ -80,7 +80,7 @@ static inline void check_and_switch_context(struct mm_struct *mm,
- #ifndef MODULE
- #define finish_arch_post_lock_switch \
- 	finish_arch_post_lock_switch
--static inline void finish_arch_post_lock_switch(void)
-+static __always_inline void finish_arch_post_lock_switch(void)
- {
- 	struct mm_struct *mm = current->mm;
- 
-diff --git a/arch/riscv/include/asm/sync_core.h b/arch/riscv/include/asm/sync_core.h
-index 9153016da8f1..2fe6b7fe6b12 100644
---- a/arch/riscv/include/asm/sync_core.h
-+++ b/arch/riscv/include/asm/sync_core.h
-@@ -6,7 +6,7 @@
-  * RISC-V implements return to user-space through an xRET instruction,
-  * which is not core serializing.
-  */
--static inline void sync_core_before_usermode(void)
-+static __always_inline void sync_core_before_usermode(void)
- {
- 	asm volatile ("fence.i" ::: "memory");
- }
-diff --git a/arch/s390/include/asm/mmu_context.h b/arch/s390/include/asm/mmu_context.h
-index d9b8501bc93d..c124ef6a01b3 100644
---- a/arch/s390/include/asm/mmu_context.h
-+++ b/arch/s390/include/asm/mmu_context.h
-@@ -97,7 +97,7 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
- }
- 
- #define finish_arch_post_lock_switch finish_arch_post_lock_switch
--static inline void finish_arch_post_lock_switch(void)
-+static __always_inline void finish_arch_post_lock_switch(void)
- {
- 	struct task_struct *tsk = current;
- 	struct mm_struct *mm = tsk->mm;
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 78bbacc14d2d..d1967214ef25 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -160,7 +160,7 @@ static inline void arch_start_context_switch(struct task_struct *prev)
- }
- 
- #define finish_arch_post_lock_switch	finish_arch_post_lock_switch
--static inline void finish_arch_post_lock_switch(void)
-+static __always_inline void finish_arch_post_lock_switch(void)
- {
- 	/* Restore the state of MCDPER register for the new process
- 	 * just switched to.
-diff --git a/arch/x86/include/asm/sync_core.h b/arch/x86/include/asm/sync_core.h
-index 96bda43538ee..4b55fa353bb5 100644
---- a/arch/x86/include/asm/sync_core.h
-+++ b/arch/x86/include/asm/sync_core.h
-@@ -93,7 +93,7 @@ static __always_inline void sync_core(void)
-  * to user-mode. x86 implements return to user-space through sysexit,
-  * sysrel, and sysretq, which are not core serializing.
-  */
--static inline void sync_core_before_usermode(void)
-+static __always_inline void sync_core_before_usermode(void)
- {
- 	/* With PTI, we unconditionally serialize before running user code. */
- 	if (static_cpu_has(X86_FEATURE_PTI))
-diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
-index 9870d768db4c..d9de20c20f38 100644
---- a/include/linux/perf_event.h
-+++ b/include/linux/perf_event.h
-@@ -1624,7 +1624,7 @@ static inline void perf_event_task_migrate(struct task_struct *task)
- 		task->sched_migrated = 1;
- }
- 
--static inline void perf_event_task_sched_in(struct task_struct *prev,
-+static __always_inline void perf_event_task_sched_in(struct task_struct *prev,
- 					    struct task_struct *task)
- {
- 	if (static_branch_unlikely(&perf_sched_events))
-diff --git a/include/linux/sched/mm.h b/include/linux/sched/mm.h
-index 0e1d73955fa5..e7787a6e7d22 100644
---- a/include/linux/sched/mm.h
-+++ b/include/linux/sched/mm.h
-@@ -44,7 +44,7 @@ static inline void smp_mb__after_mmgrab(void)
- 
- extern void __mmdrop(struct mm_struct *mm);
- 
--static inline void mmdrop(struct mm_struct *mm)
-+static __always_inline void mmdrop(struct mm_struct *mm)
- {
- 	/*
- 	 * The implicit full barrier implied by atomic_dec_and_test() is
-@@ -71,14 +71,14 @@ static inline void __mmdrop_delayed(struct rcu_head *rhp)
-  * Invoked from finish_task_switch(). Delegates the heavy lifting on RT
-  * kernels via RCU.
-  */
--static inline void mmdrop_sched(struct mm_struct *mm)
-+static __always_inline void mmdrop_sched(struct mm_struct *mm)
- {
- 	/* Provides a full memory barrier. See mmdrop() */
- 	if (atomic_dec_and_test(&mm->mm_count))
- 		call_rcu(&mm->delayed_drop, __mmdrop_delayed);
- }
- #else
--static inline void mmdrop_sched(struct mm_struct *mm)
-+static __always_inline void mmdrop_sched(struct mm_struct *mm)
- {
- 	mmdrop(mm);
- }
-@@ -104,7 +104,7 @@ static inline void mmdrop_lazy_tlb(struct mm_struct *mm)
- 	}
- }
- 
--static inline void mmdrop_lazy_tlb_sched(struct mm_struct *mm)
-+static __always_inline void mmdrop_lazy_tlb_sched(struct mm_struct *mm)
- {
- 	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT))
- 		mmdrop_sched(mm);
-@@ -531,7 +531,7 @@ enum {
- #include <asm/membarrier.h>
- #endif
- 
--static inline void membarrier_mm_sync_core_before_usermode(struct mm_struct *mm)
-+static __always_inline void membarrier_mm_sync_core_before_usermode(struct mm_struct *mm)
- {
- 	/*
- 	 * The atomic_read() below prevents CSE. The following should
-diff --git a/include/linux/tick.h b/include/linux/tick.h
-index ac76ae9fa36d..fce16aa10ba2 100644
---- a/include/linux/tick.h
-+++ b/include/linux/tick.h
-@@ -175,7 +175,7 @@ extern cpumask_var_t tick_nohz_full_mask;
- #ifdef CONFIG_NO_HZ_FULL
- extern bool tick_nohz_full_running;
- 
--static inline bool tick_nohz_full_enabled(void)
-+static __always_inline bool tick_nohz_full_enabled(void)
- {
- 	if (!context_tracking_enabled())
- 		return false;
-@@ -299,7 +299,7 @@ static inline void __tick_nohz_task_switch(void) { }
- static inline void tick_nohz_full_setup(cpumask_var_t cpumask) { }
- #endif
- 
--static inline void tick_nohz_task_switch(void)
-+static __always_inline void tick_nohz_task_switch(void)
- {
- 	if (tick_nohz_full_enabled())
- 		__tick_nohz_task_switch();
-diff --git a/include/linux/vtime.h b/include/linux/vtime.h
-index 29dd5b91dd7d..428464bb81b3 100644
---- a/include/linux/vtime.h
-+++ b/include/linux/vtime.h
-@@ -67,24 +67,24 @@ static __always_inline void vtime_account_guest_exit(void)
-  * For now vtime state is tied to context tracking. We might want to decouple
-  * those later if necessary.
-  */
--static inline bool vtime_accounting_enabled(void)
-+static __always_inline bool vtime_accounting_enabled(void)
- {
- 	return context_tracking_enabled();
- }
- 
--static inline bool vtime_accounting_enabled_cpu(int cpu)
-+static __always_inline bool vtime_accounting_enabled_cpu(int cpu)
- {
- 	return context_tracking_enabled_cpu(cpu);
- }
- 
--static inline bool vtime_accounting_enabled_this_cpu(void)
-+static __always_inline bool vtime_accounting_enabled_this_cpu(void)
- {
- 	return context_tracking_enabled_this_cpu();
- }
- 
- extern void vtime_task_switch_generic(struct task_struct *prev);
- 
--static inline void vtime_task_switch(struct task_struct *prev)
-+static __always_inline void vtime_task_switch(struct task_struct *prev)
- {
- 	if (vtime_accounting_enabled_this_cpu())
- 		vtime_task_switch_generic(prev);
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 20146da3f181..9f3e8fe0c5b8 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -4864,7 +4864,7 @@ static inline void prepare_task(struct task_struct *next)
- 	WRITE_ONCE(next->on_cpu, 1);
- }
- 
--static inline void finish_task(struct task_struct *prev)
-+static __always_inline void finish_task(struct task_struct *prev)
- {
- 	/*
- 	 * This must be the very last reference to @prev from this CPU. After
-@@ -4880,7 +4880,7 @@ static inline void finish_task(struct task_struct *prev)
- 	smp_store_release(&prev->on_cpu, 0);
- }
- 
--static void do_balance_callbacks(struct rq *rq, struct balance_callback *head)
-+static __always_inline void do_balance_callbacks(struct rq *rq, struct balance_callback *head)
- {
- 	void (*func)(struct rq *rq);
- 	struct balance_callback *next;
-@@ -4915,7 +4915,7 @@ struct balance_callback balance_push_callback = {
- 	.func = balance_push,
- };
- 
--static inline struct balance_callback *
-+static __always_inline struct balance_callback *
- __splice_balance_callbacks(struct rq *rq, bool split)
- {
- 	struct balance_callback *head = rq->balance_callback;
-@@ -4945,7 +4945,7 @@ struct balance_callback *splice_balance_callbacks(struct rq *rq)
- 	return __splice_balance_callbacks(rq, true);
- }
- 
--static void __balance_callbacks(struct rq *rq)
-+static __always_inline void __balance_callbacks(struct rq *rq)
- {
- 	do_balance_callbacks(rq, __splice_balance_callbacks(rq, false));
- }
-@@ -4978,7 +4978,7 @@ prepare_lock_switch(struct rq *rq, struct task_struct *next, struct rq_flags *rf
- #endif
- }
- 
--static inline void finish_lock_switch(struct rq *rq)
-+static __always_inline void finish_lock_switch(struct rq *rq)
- {
- 	/*
- 	 * If we are tracking spinlock dependencies then we have to
-@@ -5010,7 +5010,7 @@ static inline void kmap_local_sched_out(void)
- #endif
- }
- 
--static inline void kmap_local_sched_in(void)
-+static __always_inline void kmap_local_sched_in(void)
- {
- #ifdef CONFIG_KMAP_LOCAL
- 	if (unlikely(current->kmap_ctrl.idx))
-@@ -5063,7 +5063,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
-  * past. 'prev == current' is still correct but we need to recalculate this_rq
-  * because prev may have moved to another CPU.
-  */
--static struct rq *finish_task_switch(struct task_struct *prev)
-+static __always_inline struct rq *finish_task_switch(struct task_struct *prev)
- 	__releases(rq->lock)
- {
- 	struct rq *rq = this_rq();
-diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index bef6cb13266d..4ba122a15fb2 100644
---- a/kernel/sched/sched.h
-+++ b/kernel/sched/sched.h
-@@ -1381,12 +1381,12 @@ static inline struct cpumask *sched_group_span(struct sched_group *sg);
- 
- DECLARE_STATIC_KEY_FALSE(__sched_core_enabled);
- 
--static inline bool sched_core_enabled(struct rq *rq)
-+static __always_inline bool sched_core_enabled(struct rq *rq)
- {
- 	return static_branch_unlikely(&__sched_core_enabled) && rq->core_enabled;
- }
- 
--static inline bool sched_core_disabled(void)
-+static __always_inline bool sched_core_disabled(void)
- {
- 	return !static_branch_unlikely(&__sched_core_enabled);
- }
-@@ -1395,7 +1395,7 @@ static inline bool sched_core_disabled(void)
-  * Be careful with this function; not for general use. The return value isn't
-  * stable unless you actually hold a relevant rq->__lock.
-  */
--static inline raw_spinlock_t *rq_lockp(struct rq *rq)
-+static __always_inline raw_spinlock_t *rq_lockp(struct rq *rq)
- {
- 	if (sched_core_enabled(rq))
- 		return &rq->core->__lock;
-@@ -1403,7 +1403,7 @@ static inline raw_spinlock_t *rq_lockp(struct rq *rq)
- 	return &rq->__lock;
- }
- 
--static inline raw_spinlock_t *__rq_lockp(struct rq *rq)
-+static __always_inline raw_spinlock_t *__rq_lockp(struct rq *rq)
- {
- 	if (rq->core_enabled)
- 		return &rq->core->__lock;
-@@ -1497,12 +1497,12 @@ static inline bool sched_core_disabled(void)
- 	return true;
- }
- 
--static inline raw_spinlock_t *rq_lockp(struct rq *rq)
-+static __always_inline raw_spinlock_t *rq_lockp(struct rq *rq)
- {
- 	return &rq->__lock;
- }
- 
--static inline raw_spinlock_t *__rq_lockp(struct rq *rq)
-+static __always_inline raw_spinlock_t *__rq_lockp(struct rq *rq)
- {
- 	return &rq->__lock;
- }
-@@ -1552,23 +1552,23 @@ static inline void lockdep_assert_rq_held(struct rq *rq)
- extern void raw_spin_rq_lock_nested(struct rq *rq, int subclass);
- extern bool raw_spin_rq_trylock(struct rq *rq);
- 
--static inline void raw_spin_rq_lock(struct rq *rq)
-+static __always_inline void raw_spin_rq_lock(struct rq *rq)
- {
- 	raw_spin_rq_lock_nested(rq, 0);
- }
- 
--static inline void raw_spin_rq_unlock(struct rq *rq)
-+static __always_inline void raw_spin_rq_unlock(struct rq *rq)
- {
- 	raw_spin_unlock(rq_lockp(rq));
- }
- 
--static inline void raw_spin_rq_lock_irq(struct rq *rq)
-+static __always_inline void raw_spin_rq_lock_irq(struct rq *rq)
- {
- 	local_irq_disable();
- 	raw_spin_rq_lock(rq);
- }
- 
--static inline void raw_spin_rq_unlock_irq(struct rq *rq)
-+static __always_inline void raw_spin_rq_unlock_irq(struct rq *rq)
- {
- 	raw_spin_rq_unlock(rq);
- 	local_irq_enable();
--- 
-2.51.0
-
+Thanks,
+  Nick
