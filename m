@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1AA4335089;
-	Mon, 15 Dec 2025 15:04:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9D976334373;
+	Mon, 15 Dec 2025 15:04:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765811087; cv=none; b=VBvfBaSQFe+D39/1BojoOXyeIQRLTxFIp5kaZ5jogQeRdsJr2WwZJjPIuQ3zN9bteJbDo7pVJUFv6e0BrelC0Pfi2t+Tlwie6OusBlGBFqjsSbwwJLlQdUpXFG9zvfoXh059wz46hwba9jZKvvjOgGpbWx23PwrKQuNwT+SMlWk=
+	t=1765811093; cv=none; b=XORvgWHq9+cbvBdPDtFmAXufRPvaS493tongIkCUNd6mvDFbOxiktyBL8aZCeCSTmnGnZR8n4AJ7GXMiQs42tR/QyqF9TWV4Ly2WJ0yJYIB5Yi7EQ3Im4LmX0WMLxX1hELPFUgQGLUjsgjt+K7sdo2bBIjBYMpRDBt3x87KCKAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765811087; c=relaxed/simple;
-	bh=PY2BoVw7LD0zrC8pdiqNv3FrvXmiKm4QDYVHtVdAaw8=;
+	s=arc-20240116; t=1765811093; c=relaxed/simple;
+	bh=SkQRSo4quAm87O9InyuAZz0iR7CSa/+9rhyfGhbC5WE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LNeaYLnulL/aONwhaNLoLz2fJHCGRNosml+wytiqMP1oIc0iTgkrA20PNk8rj5bG/+9/EClYHf9i6kmg0vgYjKn7iN35BvTGYJAYslQ6HuwE2yvGVpGZURJtpvwzcziR29DJVpKtO2bWHmWw6Ikir114ePJqm4TuDbRLMUOrXN4=
+	 MIME-Version; b=g5GYnCbgkRZtQat2KZ+22NReOZnf1pmZtd4jdGZfHoysOcFifyQHOXYH9DmiTOivvcqDossXs8WZo/f9MmvJq4PeAVFx+U1MnmdWmjrDpywPFrsRuaOLtCZvV6RQhGgDy5K42s1BVb+eRMwJKttbHzs3CVdcohhI6UqLeE5PkEM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 12E5216F2;
-	Mon, 15 Dec 2025 07:04:38 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C3DCB16F3;
+	Mon, 15 Dec 2025 07:04:43 -0800 (PST)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CA2463F73B;
-	Mon, 15 Dec 2025 07:04:39 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 858633F73B;
+	Mon, 15 Dec 2025 07:04:45 -0800 (PST)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -60,9 +60,9 @@ Cc: linux-kernel@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	x86@kernel.org,
 	"David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: [PATCH v6 12/14] sparc/mm: replace batch->active with is_lazy_mmu_mode_active()
-Date: Mon, 15 Dec 2025 15:03:21 +0000
-Message-ID: <20251215150323.2218608-13-kevin.brodsky@arm.com>
+Subject: [PATCH v6 13/14] x86/xen: use lazy_mmu_state when context-switching
+Date: Mon, 15 Dec 2025 15:03:22 +0000
+Message-ID: <20251215150323.2218608-14-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251215150323.2218608-1-kevin.brodsky@arm.com>
 References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
@@ -74,71 +74,66 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A per-CPU batch struct is activated when entering lazy MMU mode; its
-lifetime is the same as the lazy MMU section (it is deactivated when
-leaving the mode). Preemption is disabled in that interval to ensure
-that the per-CPU reference remains valid.
+We currently set a TIF flag when scheduling out a task that is in
+lazy MMU mode, in order to restore it when the task is scheduled
+again.
 
 The generic lazy_mmu layer now tracks whether a task is in lazy MMU
-mode. We can therefore use the generic helper
-is_lazy_mmu_mode_active() to tell whether a batch struct is active
-instead of tracking it explicitly.
+mode in task_struct::lazy_mmu_state. We can therefore check that
+state when switching to the new task, instead of using a separate
+TIF flag.
 
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Juergen Gross <jgross@suse.com>
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/sparc/include/asm/tlbflush_64.h | 1 -
- arch/sparc/mm/tlb.c                  | 9 +--------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ arch/x86/include/asm/thread_info.h | 4 +---
+ arch/x86/xen/enlighten_pv.c        | 3 +--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
-index 4e1036728e2f..6133306ba59a 100644
---- a/arch/sparc/include/asm/tlbflush_64.h
-+++ b/arch/sparc/include/asm/tlbflush_64.h
-@@ -12,7 +12,6 @@ struct tlb_batch {
- 	unsigned int hugepage_shift;
- 	struct mm_struct *mm;
- 	unsigned long tlb_nr;
--	unsigned long active;
- 	unsigned long vaddrs[TLB_BATCH_NR];
- };
+diff --git a/arch/x86/include/asm/thread_info.h b/arch/x86/include/asm/thread_info.h
+index e71e0e8362ed..0067684afb5b 100644
+--- a/arch/x86/include/asm/thread_info.h
++++ b/arch/x86/include/asm/thread_info.h
+@@ -100,8 +100,7 @@ struct thread_info {
+ #define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
+ #define TIF_SINGLESTEP		25	/* reenable singlestep on user return*/
+ #define TIF_BLOCKSTEP		26	/* set when we want DEBUGCTLMSR_BTF */
+-#define TIF_LAZY_MMU_UPDATES	27	/* task is updating the mmu lazily */
+-#define TIF_ADDR32		28	/* 32-bit address space on 64 bits */
++#define TIF_ADDR32		27	/* 32-bit address space on 64 bits */
  
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index 7b5dfcdb1243..3a852071d260 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -52,11 +52,7 @@ void flush_tlb_pending(void)
+ #define _TIF_SSBD		BIT(TIF_SSBD)
+ #define _TIF_SPEC_IB		BIT(TIF_SPEC_IB)
+@@ -114,7 +113,6 @@ struct thread_info {
+ #define _TIF_FORCED_TF		BIT(TIF_FORCED_TF)
+ #define _TIF_BLOCKSTEP		BIT(TIF_BLOCKSTEP)
+ #define _TIF_SINGLESTEP		BIT(TIF_SINGLESTEP)
+-#define _TIF_LAZY_MMU_UPDATES	BIT(TIF_LAZY_MMU_UPDATES)
+ #define _TIF_ADDR32		BIT(TIF_ADDR32)
  
- void arch_enter_lazy_mmu_mode(void)
- {
--	struct tlb_batch *tb;
--
- 	preempt_disable();
--	tb = this_cpu_ptr(&tlb_batch);
--	tb->active = 1;
- }
+ /* flags to check in __switch_to() */
+diff --git a/arch/x86/xen/enlighten_pv.c b/arch/x86/xen/enlighten_pv.c
+index 4806cc28d7ca..98dbb6a61087 100644
+--- a/arch/x86/xen/enlighten_pv.c
++++ b/arch/x86/xen/enlighten_pv.c
+@@ -426,7 +426,6 @@ static void xen_start_context_switch(struct task_struct *prev)
  
- void arch_flush_lazy_mmu_mode(void)
-@@ -69,10 +65,7 @@ void arch_flush_lazy_mmu_mode(void)
- 
- void arch_leave_lazy_mmu_mode(void)
- {
--	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
--
- 	arch_flush_lazy_mmu_mode();
--	tb->active = 0;
- 	preempt_enable();
- }
- 
-@@ -93,7 +86,7 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
- 		nr = 0;
+ 	if (this_cpu_read(xen_lazy_mode) == XEN_LAZY_MMU) {
+ 		arch_leave_lazy_mmu_mode();
+-		set_ti_thread_flag(task_thread_info(prev), TIF_LAZY_MMU_UPDATES);
  	}
+ 	enter_lazy(XEN_LAZY_CPU);
+ }
+@@ -437,7 +436,7 @@ static void xen_end_context_switch(struct task_struct *next)
  
--	if (!tb->active) {
-+	if (!is_lazy_mmu_mode_active()) {
- 		flush_tsb_user_page(mm, vaddr, hugepage_shift);
- 		global_flush_tlb_page(mm, vaddr);
- 		goto out;
+ 	xen_mc_flush();
+ 	leave_lazy(XEN_LAZY_CPU);
+-	if (test_and_clear_ti_thread_flag(task_thread_info(next), TIF_LAZY_MMU_UPDATES))
++	if (__task_lazy_mmu_mode_active(next))
+ 		arch_enter_lazy_mmu_mode();
+ }
+ 
 -- 
 2.51.2
 
