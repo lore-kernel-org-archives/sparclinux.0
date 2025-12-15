@@ -1,199 +1,140 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ECC353385B8;
-	Mon, 15 Dec 2025 15:04:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B8930F941;
+	Mon, 15 Dec 2025 15:42:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765811102; cv=none; b=ZVgjaoPXjrspYGK9paKPldFb82PTywgWuh14/z6Z3a8crdVguEQ3EvMNY+mBJCIFwCJU1BCRqtWs8/sZSvbSRSx120UptHvxFuXZVVwouxoccqTAkRkk9mn2J/wGRUSA/gKBIlit1o0pgcrDh3QdVNmIWRzBj7GQph1cXlCZgE0=
+	t=1765813338; cv=none; b=aL4mVVZMQYs5j4wogBFzGAjsxhygz9ge1IbmiHvpNn5wYUZ4qI63ElJsZAe6TU0okDShNhfxWScpS6KjCcwd/O0HbJmBpgbzcyZMaL6zYkBFpq0n0o4oHITJs2wDxIxPHMghwhl7vcfRkEY73vaFqbXj03egD75UBfJG3lELNV0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765811102; c=relaxed/simple;
-	bh=Ce76RNBgMRqCzmVaPKcHwIxkfgsnqnEGf99tuVD0wv4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QL8kZcML+KciHir8QCOVbIYsZvERh1K6h7oN0MKsoJ0pfwjmm4VnK8iyBn3/htSBLXp7zQlabBXCP4g0NkXfJmgsWVVHUGa386KPxVF43SJ9kgFRbj/qEtHgLd2rmZOJOWfsjf4/PwZdtOiH+W4RKskh4FXYc61mPI1zjxF3wB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 62D991713;
-	Mon, 15 Dec 2025 07:04:49 -0800 (PST)
-Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 41F803F73B;
-	Mon, 15 Dec 2025 07:04:51 -0800 (PST)
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Woodhouse <dwmw2@infradead.org>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jann Horn <jannh@google.com>,
-	Juergen Gross <jgross@suse.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>,
-	Mike Rapoport <rppt@kernel.org>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Will Deacon <will@kernel.org>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	xen-devel@lists.xenproject.org,
-	x86@kernel.org
-Subject: [PATCH v6 14/14] mm: Add basic tests for lazy_mmu
-Date: Mon, 15 Dec 2025 15:03:23 +0000
-Message-ID: <20251215150323.2218608-15-kevin.brodsky@arm.com>
-X-Mailer: git-send-email 2.51.2
-In-Reply-To: <20251215150323.2218608-1-kevin.brodsky@arm.com>
-References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
+	s=arc-20240116; t=1765813338; c=relaxed/simple;
+	bh=dJS6PDNzy5SX9DFgslkRBMWCk8nU43CN1Eb994NOW2Y=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=n9Noq2S+jw0T7r30x4oJZZ1/BJBvUHh8KdJ0o0Pk0w42TkiskEDhphRm/7Q3Bem+O3Oh9zP/72R7dbkGtsHNBsH+QJ3dzYuA60OP5nkToVNKq5Oz7NAL4TBIbvi11F+fG3OzydVYaIhJC2blWMKyc/7ITBrGNVeAIiXZzzT1Y/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=l6o1JL8E; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=5XRdeOdi; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="l6o1JL8E";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="5XRdeOdi"
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1765813335;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qNQsIHP9fHBp8xC+0dW3l0G1EY9NhEVbQNXrV3I9Txo=;
+	b=l6o1JL8EEW9krcVDf/3SVEqIOq7qu5Lmvn1vrETvn5YQEo8YFjol7JUHrEknz8K6RNgPQN
+	FKW7BQUnYRVVDVRlT7YQN4De/Ldapy+1xEp3lgFvjvbu7yu0mQ86emPtfMyk+rHxcwseJ2
+	yLvH05FPZoAZ2xsPfmi3wNh0H7OUuLqyE8Mf9Sq1U4GjHn1x4qwrcFfRNiz6jvUow9nbze
+	xXyMx8FfgNWS3qnYTsP4fR78CQUG5d8UGl6d1hpq1EImwAXNw8p2lOtrR7clMYG1nDxPHB
+	m9QPbt56w6aBOHWkJO359PC+76vqXyJ4Co57cxuMJgJZGqVHpGS3nbScA6/X+g==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1765813335;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qNQsIHP9fHBp8xC+0dW3l0G1EY9NhEVbQNXrV3I9Txo=;
+	b=5XRdeOdi7Z8jPn2I8e0wJwRxbmi816hPnPyZ//AKwL4kDs/uSE6sqgSXzo/PDUUV+r1rSZ
+	B92xvrm4+KVuAcCQ==
+To: Xie Yuanbin <qq570070308@gmail.com>, peterz@infradead.org,
+ riel@surriel.com, segher@kernel.crashing.org, david@kernel.org,
+ hpa@zytor.com, arnd@arndb.de, acme@kernel.org, adrian.hunter@intel.com,
+ agordeev@linux.ibm.com, akpm@linux-foundation.org, alex@ghiti.fr,
+ alexander.shishkin@linux.intel.com, andreas@gaisler.com,
+ anshuman.khandual@arm.com, aou@eecs.berkeley.edu,
+ borntraeger@linux.ibm.com, bp@alien8.de, bsegall@google.com,
+ dave.hansen@linux.intel.com, davem@davemloft.net,
+ dietmar.eggemann@arm.com, frederic@kernel.org, gor@linux.ibm.com,
+ hca@linux.ibm.com, irogers@google.com, james.clark@linaro.org,
+ jolsa@kernel.org, juri.lelli@redhat.com, justinstitt@google.com,
+ lorenzo.stoakes@oracle.com, luto@kernel.org, mark.rutland@arm.com,
+ mathieu.desnoyers@efficios.com, max.kellermann@ionos.com, mgorman@suse.de,
+ mingo@redhat.com, morbo@google.com, namhyung@kernel.org,
+ nathan@kernel.org, nick.desaulniers+lkml@gmail.com, nysal@linux.ibm.com,
+ palmer@dabbelt.com, paulmck@kernel.org, pjw@kernel.org,
+ rostedt@goodmis.org, ryan.roberts@arm.com, svens@linux.ibm.com,
+ thuth@redhat.com, urezki@gmail.com, vincent.guittot@linaro.org,
+ vschneid@redhat.com, linux@armlinux.org.uk
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, llvm@lists.linux.dev
+Subject: Re: [PATCH v5 1/3] x86/mm/tlb: Make enter_lazy_tlb() always inline
+ on x86
+In-Reply-To: <20251214190907.184793-2-qq570070308@gmail.com>
+References: <20251214190907.184793-1-qq570070308@gmail.com>
+ <20251214190907.184793-2-qq570070308@gmail.com>
+Date: Mon, 15 Dec 2025 16:42:13 +0100
+Message-ID: <87345beoq2.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-Add basic KUnit tests for the generic aspects of the lazy MMU mode:
-ensure that it appears active when it should, depending on how
-enable/disable and pause/resume pairs are nested.
+On Mon, Dec 15 2025 at 03:09, Xie Yuanbin wrote:
+> enter_lazy_tlb() on x86 is short enough, and is called in context
+> switching, which is the hot code path.
+>
+> Make enter_lazy_tlb() always inline on x86 to optimize performance.
+>
+> Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
+> Reviewed-by: Rik van Riel <riel@surriel.com>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/202511091959.kfmo9kPB-lkp@intel.com/
+> Closes: https://lore.kernel.org/oe-kbuild-all/202511092219.73aMMES4-lkp@intel.com/
+> Closes: https://lore.kernel.org/oe-kbuild-all/202511100042.ZklpqjOY-lkp@intel.com/
 
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
----
- mm/Kconfig                     | 12 ++++++
- mm/Makefile                    |  1 +
- mm/tests/lazy_mmu_mode_kunit.c | 71 ++++++++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+)
- create mode 100644 mm/tests/lazy_mmu_mode_kunit.c
+These Reported-by and Closes tags are just wrong. This is a new patch
+and the robot reported failures against earlier versions. The robot
+report is very clear about that:
 
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 62073bd61544..ac48deb44884 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -1471,6 +1471,18 @@ config ARCH_HAS_LAZY_MMU_MODE
- 	  MMU-related architectural state to be deferred until the mode is
- 	  exited. See <linux/pgtable.h> for details.
- 
-+config LAZY_MMU_MODE_KUNIT_TEST
-+	tristate "KUnit tests for the lazy MMU mode" if !KUNIT_ALL_TESTS
-+	depends on ARCH_HAS_LAZY_MMU_MODE
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to check that the lazy MMU mode interface behaves
-+	  as expected. Only tests for the generic interface are included (not
-+	  architecture-specific behaviours).
-+
-+	  If unsure, say N.
-+
- source "mm/damon/Kconfig"
- 
- endmenu
-diff --git a/mm/Makefile b/mm/Makefile
-index 2d0570a16e5b..9175f8cc6565 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
- obj-$(CONFIG_EXECMEM) += execmem.o
- obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
- obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
-+obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
-diff --git a/mm/tests/lazy_mmu_mode_kunit.c b/mm/tests/lazy_mmu_mode_kunit.c
-new file mode 100644
-index 000000000000..2720eb995714
---- /dev/null
-+++ b/mm/tests/lazy_mmu_mode_kunit.c
-@@ -0,0 +1,71 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <kunit/test.h>
-+#include <linux/pgtable.h>
-+
-+static void expect_not_active(struct kunit *test)
-+{
-+	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
-+}
-+
-+static void expect_active(struct kunit *test)
-+{
-+	KUNIT_EXPECT_TRUE(test, is_lazy_mmu_mode_active());
-+}
-+
-+static void lazy_mmu_mode_active(struct kunit *test)
-+{
-+	expect_not_active(test);
-+
-+	lazy_mmu_mode_enable();
-+	expect_active(test);
-+
-+	{
-+		/* Nested section */
-+		lazy_mmu_mode_enable();
-+		expect_active(test);
-+
-+		lazy_mmu_mode_disable();
-+		expect_active(test);
-+	}
-+
-+	{
-+		/* Paused section */
-+		lazy_mmu_mode_pause();
-+		expect_not_active(test);
-+
-+		{
-+			/* No effect (paused) */
-+			lazy_mmu_mode_enable();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_disable();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_pause();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_resume();
-+			expect_not_active(test);
-+		}
-+
-+		lazy_mmu_mode_resume();
-+		expect_active(test);
-+	}
-+
-+	lazy_mmu_mode_disable();
-+	expect_not_active(test);
-+}
-+
-+static struct kunit_case lazy_mmu_mode_test_cases[] = {
-+	KUNIT_CASE(lazy_mmu_mode_active),
-+	{}
-+};
-+
-+static struct kunit_suite lazy_mmu_mode_test_suite = {
-+	.name = "lazy_mmu_mode",
-+	.test_cases = lazy_mmu_mode_test_cases,
-+};
-+kunit_test_suite(lazy_mmu_mode_test_suite);
-+
-+MODULE_DESCRIPTION("Tests for the lazy MMU mode");
-+MODULE_LICENSE("GPL");
--- 
-2.51.2
+  "If you fix the issue in a separate patch/commit (i.e. not just a new version of
+   the same patch/commit), kindly add following tags
+     Reported-by:...
+     Closes:..."
 
+No?
+
+> +/*
+> + * Please ignore the name of this function.  It should be called
+> + * switch_to_kernel_thread().
+
+And why is it not renamed then?
+
+> + *
+> + * enter_lazy_tlb() is a hint from the scheduler that we are entering a
+
+We enter a kernel thread? AFAIK the metaverse has been canceled.
+
+> + * kernel thread or other context without an mm.  Acceptable implementations
+> + * include doing nothing whatsoever, switching to init_mm, or various clever
+> + * lazy tricks to try to minimize TLB flushes.
+> + *
+> + * The scheduler reserves the right to call enter_lazy_tlb() several times
+> + * in a row.  It will notify us that we're going back to a real mm by
+
+It will notify us by sending email or what?
+
+> + * calling switch_mm_irqs_off().
+> + */
+>  #define enter_lazy_tlb enter_lazy_tlb
+> -extern void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk);
+> +#ifndef MODULE
+> +static __always_inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+> +{
+> +	if (this_cpu_read(cpu_tlbstate.loaded_mm) == &init_mm)
+> +		return;
+> +
+> +	this_cpu_write(cpu_tlbstate_shared.is_lazy, true);
+> +}
+
+Please move the '#define enter_....' under the inline function. That's
+way simpler to read.
+
+Thanks,
+
+        tglx
