@@ -1,189 +1,341 @@
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95682DF6F4
-	for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 14:27:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2F864331223;
+	Mon, 15 Dec 2025 15:03:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765808822; cv=none; b=MryVyYivdYEAXs5hcK8Ay2NkbShseqkbIc7OBxF54cWq4xS90YJF66Uh592FB/+KOYdAboE4BfaEuDOtelwNaXcwN9xrfQhmf4BXSwPiGve327G7I81Km9suMqvWQ7CgWOYl4pzlvnm+VX/DqO9f+OptWGI/P22NUCSAsJmMIfY=
+	t=1765811020; cv=none; b=G7TRWd//NVoIr2Z73om5cnORCkBtFs6NDc8EYGIrR3lrFDkLjeHNm86w8LBdH/91CS47fOEOM1imfYh4XfkB6Ww4dVs10B10QDsgTdFNwpQeK589TRi7Q2Q6rwQm8u0p/StwbnGi5hvmSlZXaoFBWxJMeHuMOwK4S0a2Fle2iIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765808822; c=relaxed/simple;
-	bh=a+opE07zuPxOMEv2JsJd9eHphXCCcd8mt0lFqJKDZ80=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=mGtmZjQ5eoMOC/OGD3bJ8VBZ3/8B2NfObTGTa6EQ1gayEN+vZYU72rXnE+6XwOTfSwbXKpS+yp0xqx5cQ7hkHNHz8/RZTxzZ+zEAfbBGeFHGnB18H4Q7oeBdMTVdVCsjsl4TZhtIN1aWpDCMkXBCj2Heesz0Fkh69wGx9yx9vgw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qo3ojefs; arc=none smtp.client-ip=209.85.128.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qo3ojefs"
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-78d6eb6956cso30123127b3.3
-        for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 06:27:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1765808820; x=1766413620; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:to:subject:user-agent:mime-version:date:message-id:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=dcq1j6544AWTrXFS++mwFnDhDMKc8xPfVFYYuvKVzWQ=;
-        b=Qo3ojefs8TogJLJuXutSeHcDjLSPQWZRjllT+uMh4+lzyRCSfnGSkdXwY/oTy+YR9j
-         eOypG6ynchmXv9t9CsDD7iBU1S5nZiH4g90JTMITBWg2152z4g9O45VnvECyC75iQaRd
-         1tnmi0odecSetkr7j7RQY01O6OHQOUzGXTvIWN7KUbOxs3FTtBnSaVZIyEJ0jvWiI747
-         kTZurN73M11MokZvjoN0Ex8qr7x8BWeXRgbEU2IBSV13zzEdg+2dwKatCL3lvPoaocip
-         j3WY526cfbz5Pg9mBXDBzI7IBp4XxqGnpqR4sm5wUWEMUhT0jVKnYj/iUU/VPjA7IxnR
-         nSKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765808820; x=1766413620;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=dcq1j6544AWTrXFS++mwFnDhDMKc8xPfVFYYuvKVzWQ=;
-        b=NiJwpwGFN3rjugpZHW6C99O1p9I8+mVKsVUIWxvwjbXVeToDvDqCzPgFq1JXw0lpPz
-         BLA+iEJHGd3F4v3ALv4eILHfDkMNCRyHiVX6SDzwb8Mb4CQTWgFH/JywuZafAOirtL/U
-         1Jq41Pr1EnX0WXywXiF5/yiscpatkO4HcYl7WkNAOc0dGRmMm1WTFH6NpYnxCMngkzSV
-         Q9a0wDQZ+FvHAwARBNFqmL5lM/wKT9VovHy5OeRsiSAd2EiklbNC+cjNGVWa6MCj9Njc
-         B48amkYZ4pEl4k0GEwNvnbSmxxAmChrUbgKTNYcWTi+C1vZ+nSQVUgBNYH8PLmODYwcl
-         jBEA==
-X-Forwarded-Encrypted: i=1; AJvYcCXZACLeaDdKwS0Wu+t2/acsI9tCnFIfZAS+pX+w8BRvEmYqD8wHedLvzVTukBO1+2+vWPfIZrkEgcvZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YztovWaK4OvBK0NyVm4W0LanbHh42Du2h6JFkvyLXI4aFwZDb/R
-	JzzWbUJ75DJhwKaIt1H60WEawBrOk0HKFfpAjnLjZ8Boj0MHfwL2jQIj
-X-Gm-Gg: AY/fxX6IM/mSloVUuz+llK8/KCGUnny+/oLX1d/UxQPIOboM+32bpHsySajZgLqrrBI
-	H4OAdEz1ZLydmlhNaXprGAmY3yz9cJjBAH5l1fH2h48PZNxOMR0KgyHNhv//7IrpqNPFCVofWyy
-	XJSALrYaf7qme5Lw1Vg10nEVD4J2p9EyilGqHTzyMV8MAMy+BcJgwXrYA5AGPrfHR1gJcUtsoEx
-	elLZkYSv8r54zbVmBxUdN9ccl+f8KChv3CvrlaiyH+AMGFsYZEn4HseaOi0DbCL+3Fmbog9aDuf
-	BI2pv8VBVHc32lntBRlmCsx7I0I+2sNOKGleg4M/Uz5Z6KBsSxVFfDsGsSIBGTeS4RkxlYOVNxV
-	3DTiftZlxt+38wf1Db06twC5uevN2vYVCl9zQn9iLqkNSsd1N0z/ixJnBY/a0okGSdDYD8YP4vw
-	m9KtDeXq110nQ+KOMdXORPtfWLAab4XYM98q3QUg==
-X-Google-Smtp-Source: AGHT+IF4a51y57BzF37Vo9369cXMn6T0B92c877kSdcZ6vwpnS/AOu/LuwtwBmWQVHYV+/9EHDVqvg==
-X-Received: by 2002:a05:690c:dd6:b0:787:e015:8561 with SMTP id 00721157ae682-78e66d8030cmr89937457b3.20.1765808819563;
-        Mon, 15 Dec 2025 06:26:59 -0800 (PST)
-Received: from [192.168.2.226] (104.194.78.75.16clouds.com. [104.194.78.75])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-78e749e55edsm28402847b3.33.2025.12.15.06.26.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 15 Dec 2025 06:26:59 -0800 (PST)
-Message-ID: <b9e3921a-2a54-4adb-b19c-802e2aa1aa75@gmail.com>
-Date: Mon, 15 Dec 2025 22:26:42 +0800
+	s=arc-20240116; t=1765811020; c=relaxed/simple;
+	bh=8ZiuHFFsOCBYDlBn797Az62eNr+lBiVe2JnGamhNjwg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=U7KE665oqKNpHgWMp+0TkQJANMVx+A0JpW5XYIAgE8R1/fb4FE+Y15LXo8QNSLdCMVeg88aJqIlmRMRdcNcui3uP+ad9YGFAmOm1TL0udpjkvta+f2X2+vd8cagAaPx5K+VVZUi1uxHGTykhH/+sf7/Fi014ot0PyJ4mEk8wq1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 52D58497;
+	Mon, 15 Dec 2025 07:03:30 -0800 (PST)
+Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2EB8D3F73B;
+	Mon, 15 Dec 2025 07:03:32 -0800 (PST)
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+To: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Woodhouse <dwmw2@infradead.org>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Ingo Molnar <mingo@redhat.com>,
+	Jann Horn <jannh@google.com>,
+	Juergen Gross <jgross@suse.com>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Hocko <mhocko@suse.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	"Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Will Deacon <will@kernel.org>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org,
+	sparclinux@vger.kernel.org,
+	xen-devel@lists.xenproject.org,
+	x86@kernel.org
+Subject: [PATCH v6 00/14] Nesting support for lazy MMU mode
+Date: Mon, 15 Dec 2025 15:03:09 +0000
+Message-ID: <20251215150323.2218608-1-kevin.brodsky@arm.com>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/2] mm/pgtable: use ptdesc for pmd_huge_pte
-To: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, alexs@kernel.org,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>,
- Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
- <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- David Hildenbrand <david@kernel.org>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R . Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Lance Yang <lance.yang@linux.dev>, Matthew Brost <matthew.brost@intel.com>,
- Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
- Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
- Ying Huang <ying.huang@linux.alibaba.com>,
- Alistair Popple <apopple@nvidia.com>, Thomas Huth <thuth@redhat.com>,
- Will Deacon <will@kernel.org>, Matthew Wilcox <willy@infradead.org>,
- Magnus Lindholm <linmag7@gmail.com>, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
-References: <20251214065546.156209-1-alexs@kernel.org>
- <686b85ff-6a5a-4608-af97-55aee1582c5c@kernel.org>
-Content-Language: en-US
-From: Alex Shi <seakeel@gmail.com>
-In-Reply-To: <686b85ff-6a5a-4608-af97-55aee1582c5c@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
+When the lazy MMU mode was introduced eons ago, it wasn't made clear
+whether such a sequence was legal:
+
+	arch_enter_lazy_mmu_mode()
+	...
+		arch_enter_lazy_mmu_mode()
+		...
+		arch_leave_lazy_mmu_mode()
+	...
+	arch_leave_lazy_mmu_mode()
+
+It seems fair to say that nested calls to
+arch_{enter,leave}_lazy_mmu_mode() were not expected, and most
+architectures never explicitly supported it.
+
+Nesting does in fact occur in certain configurations, and avoiding it
+has proved difficult. This series therefore enables lazy_mmu sections to
+nest, on all architectures.
+
+Nesting is handled using a counter in task_struct (patch 8), like other
+stateless APIs such as pagefault_{disable,enable}(). This is fully
+handled in a new generic layer in <linux/pgtable.h>; the arch_* API
+remains unchanged. A new pair of calls, lazy_mmu_mode_{pause,resume}(),
+is also introduced to allow functions that are called with the lazy MMU
+mode enabled to temporarily pause it, regardless of nesting.
+
+An arch now opts in to using the lazy MMU mode by selecting
+CONFIG_ARCH_LAZY_MMU; this is more appropriate now that we have a
+generic API, especially with state conditionally added to task_struct.
+
+---
+
+Background: Ryan Roberts' series from March [1] attempted to prevent
+nesting from ever occurring, and mostly succeeded. Unfortunately, a
+corner case (DEBUG_PAGEALLOC) may still cause nesting to occur on arm64.
+Ryan proposed [2] to address that corner case at the generic level but
+this approach received pushback; [3] then attempted to solve the issue
+on arm64 only, but it was deemed too fragile.
+
+It feels generally difficult to guarantee that lazy_mmu sections don't
+nest, because callers of various standard mm functions do not know if
+the function uses lazy_mmu itself.
+
+The overall approach in v3/v4 is very close to what David Hildenbrand
+proposed on v2 [4].
+
+Unlike in v1/v2, no special provision is made for architectures to
+save/restore extra state when entering/leaving the mode. Based on the
+discussions so far, this does not seem to be required - an arch can
+store any relevant state in thread_struct during arch_enter() and
+restore it in arch_leave(). Nesting is not a concern as these functions
+are only called at the top level, not in nested sections.
+
+The introduction of a generic layer, and tracking of the lazy MMU state
+in task_struct, also allows to streamline the arch callbacks - this
+series removes 67 lines from arch/.
+
+Patch overview:
+
+* Patch 1: cleanup - avoids having to deal with the powerpc
+  context-switching code
+
+* Patch 2-4: prepare arch_flush_lazy_mmu_mode() to be called from the
+  generic layer (patch 9)
+
+* Patch 5: documentation clarification (not directly related to the
+  changes in this series)
+
+* Patch 6-7: new API + CONFIG_ARCH_LAZY_MMU
+
+* Patch 8: ensure correctness in interrupt context
+
+* Patch 9: nesting support
+
+* Patch 10-13: replace arch-specific tracking of lazy MMU mode with
+  generic API
+
+* Patch 14: basic tests to ensure that the state added in patch 9 is
+  tracked correctly
+
+This series has been tested by running the mm kselftests on arm64 with
+DEBUG_VM, DEBUG_PAGEALLOC, KFENCE and KASAN. Extensive testing on
+powerpc was also kindly provided by Venkat Rao Bagalkote [5]. It was
+build-tested on other architectures (with and without XEN_PV on x86).
+
+- Kevin
+
+[1] https://lore.kernel.org/all/20250303141542.3371656-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/all/20250530140446.2387131-1-ryan.roberts@arm.com/
+[3] https://lore.kernel.org/all/20250606135654.178300-1-ryan.roberts@arm.com/
+[4] https://lore.kernel.org/all/ef343405-c394-4763-a79f-21381f217b6c@redhat.com/
+[5] https://lore.kernel.org/all/94889730-1AEF-458F-B623-04092C0D6819@linux.ibm.com/
+---
+Changelog
+
+v5..v6:
+
+- Rebased on v6.19-rc1
+- Overall: no functional change
+- Patch 5: new patch clarifying that generic code may not sleep while in lazy
+  MMU mode [Alexander Gordeev]
+- Patch 6: added description for the ARCH_HAS_LAZY_MMU_MODE option
+  [Anshuman Khandual]
+- Patch 9: rename in_lazy_mmu_mode() to is_lazy_mmu_mode_active() [Alexander]
+- Patch 14: new patch with basic KUnit tests [Anshuman]
+- Collected R-b/A-b/T-b tags
+
+v5: https://lore.kernel.org/all/20251124132228.622678-1-kevin.brodsky@arm.com/
+
+v4..v5:
+
+- Rebased on mm-unstable
+- Patch 3: added missing radix_enabled() check in arch_flush()
+  [Ritesh Harjani]
+- Patch 6: declare arch_flush_lazy_mmu_mode() as static inline on x86
+  [Ryan Roberts]
+- Patch 7 (formerly 12): moved before patch 8 to ensure correctness in
+  interrupt context [Ryan]. The diffs in in_lazy_mmu_mode() and
+  queue_pte_barriers() are moved to patch 8 and 9 resp.
+- Patch 8:
+  * Removed all restrictions regarding lazy_mmu_mode_{pause,resume}().
+    They may now be called even when lazy MMU isn't enabled, and
+    any call to lazy_mmu_mode_* may be made while paused (such calls
+    will be ignored). [David, Ryan]
+  * lazy_mmu_state.{nesting_level,active} are replaced with
+    {enable_count,pause_count} to track arbitrary nesting of both
+    enable/disable and pause/resume [Ryan]
+  * Added __task_lazy_mmu_mode_active() for use in patch 12 [David]
+  * Added documentation for all the functions [Ryan]
+- Patch 9: keep existing test + set TIF_LAZY_MMU_PENDING instead of
+  atomic RMW [David, Ryan]
+- Patch 12: use __task_lazy_mmu_mode_active() instead of accessing
+  lazy_mmu_state directly [David]
+- Collected R-b/A-b tags
+
+v4: https://lore.kernel.org/all/20251029100909.3381140-1-kevin.brodsky@arm.com/
+
+v3..v4:
+
+- Patch 2: restored ordering of preempt_{disable,enable}() [Dave Hansen]
+- Patch 5 onwards: s/ARCH_LAZY_MMU/ARCH_HAS_LAZY_MMU_MODE/ [Mike Rapoport]
+- Patch 7: renamed lazy_mmu_state members, removed VM_BUG_ON(),
+  reordered writes to lazy_mmu_state members [David Hildenbrand]
+- Dropped patch 13 as it doesn't seem justified [David H]
+- Various improvements to commit messages [David H]
+
+v3: https://lore.kernel.org/all/20251015082727.2395128-1-kevin.brodsky@arm.com/
+
+v2..v3:
+
+- Full rewrite; dropped all Acked-by/Reviewed-by.
+- Rebased on v6.18-rc1.
+
+v2: https://lore.kernel.org/all/20250908073931.4159362-1-kevin.brodsky@arm.com/
+
+v1..v2:
+- Rebased on mm-unstable.
+- Patch 2: handled new calls to enter()/leave(), clarified how the "flush"
+  pattern (leave() followed by enter()) is handled.
+- Patch 5,6: removed unnecessary local variable [Alexander Gordeev's
+  suggestion].
+- Added Mike Rapoport's Acked-by.
+
+v1: https://lore.kernel.org/all/20250904125736.3918646-1-kevin.brodsky@arm.com/
+---
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Cc: xen-devel@lists.xenproject.org
+Cc: x86@kernel.org
+---
+Alexander Gordeev (1):
+  powerpc/64s: Do not re-activate batched TLB flush
+
+Kevin Brodsky (13):
+  x86/xen: simplify flush_lazy_mmu()
+  powerpc/mm: implement arch_flush_lazy_mmu_mode()
+  sparc/mm: implement arch_flush_lazy_mmu_mode()
+  mm: clarify lazy_mmu sleeping constraints
+  mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
+  mm: introduce generic lazy_mmu helpers
+  mm: bail out of lazy_mmu_mode_* in interrupt context
+  mm: enable lazy_mmu sections to nest
+  arm64: mm: replace TIF_LAZY_MMU with is_lazy_mmu_mode_active()
+  powerpc/mm: replace batch->active with is_lazy_mmu_mode_active()
+  sparc/mm: replace batch->active with is_lazy_mmu_mode_active()
+  x86/xen: use lazy_mmu_state when context-switching
+  mm: Add basic tests for lazy_mmu
+
+ arch/arm64/Kconfig                            |   1 +
+ arch/arm64/include/asm/pgtable.h              |  41 +----
+ arch/arm64/include/asm/thread_info.h          |   3 +-
+ arch/arm64/mm/mmu.c                           |   8 +-
+ arch/arm64/mm/pageattr.c                      |   4 +-
+ .../include/asm/book3s/64/tlbflush-hash.h     |  20 +--
+ arch/powerpc/include/asm/thread_info.h        |   2 -
+ arch/powerpc/kernel/process.c                 |  25 ---
+ arch/powerpc/mm/book3s64/hash_tlb.c           |  10 +-
+ arch/powerpc/mm/book3s64/subpage_prot.c       |   4 +-
+ arch/powerpc/platforms/Kconfig.cputype        |   1 +
+ arch/sparc/Kconfig                            |   1 +
+ arch/sparc/include/asm/tlbflush_64.h          |   5 +-
+ arch/sparc/mm/tlb.c                           |  14 +-
+ arch/x86/Kconfig                              |   1 +
+ arch/x86/boot/compressed/misc.h               |   1 +
+ arch/x86/boot/startup/sme.c                   |   1 +
+ arch/x86/include/asm/paravirt.h               |   1 -
+ arch/x86/include/asm/pgtable.h                |   1 +
+ arch/x86/include/asm/thread_info.h            |   4 +-
+ arch/x86/xen/enlighten_pv.c                   |   3 +-
+ arch/x86/xen/mmu_pv.c                         |   6 +-
+ fs/proc/task_mmu.c                            |   4 +-
+ include/linux/mm_types_task.h                 |   5 +
+ include/linux/pgtable.h                       | 158 +++++++++++++++++-
+ include/linux/sched.h                         |  45 +++++
+ mm/Kconfig                                    |  19 +++
+ mm/Makefile                                   |   1 +
+ mm/kasan/shadow.c                             |   8 +-
+ mm/madvise.c                                  |  18 +-
+ mm/memory.c                                   |  16 +-
+ mm/migrate_device.c                           |   8 +-
+ mm/mprotect.c                                 |   4 +-
+ mm/mremap.c                                   |   4 +-
+ mm/tests/lazy_mmu_mode_kunit.c                |  71 ++++++++
+ mm/userfaultfd.c                              |   4 +-
+ mm/vmalloc.c                                  |  12 +-
+ mm/vmscan.c                                   |  12 +-
+ 38 files changed, 380 insertions(+), 166 deletions(-)
+ create mode 100644 mm/tests/lazy_mmu_mode_kunit.c
 
 
-On 2025/12/15 14:06, Christophe Leroy (CS GROUP) wrote:
-> 
-> Le 14/12/2025 à 07:55, alexs@kernel.org a écrit :
->> From: Alex Shi <alexs@kernel.org>
->>
->> 'pmd_huge_pte' are pgtable variables, but used 'pgtable->lru'
->> instead of pgtable->pt_list in pgtable_trans_huge_deposit/withdraw
->> functions, That's a bit weird.
->>
->> So let's convert the pgtable_t to precise 'struct ptdesc *' for
->> ptdesc->pmd_huge_pte, and mm->pmd_huge_pte, then convert function
->> pgtable_trans_huge_deposit() to use correct ptdesc.
->>
->> This convertion works for most of arch, but failed on s390/sparc/powerpc
->> since they use 'pte_t *' as pgtable_t. Is there any suggestion for these
->> archs? If we could have a solution, we may remove the pgtable_t for other
->> archs.
-> 
-> The use of struct ptdesc * assumes that a pagetable is contained in one 
-> (or several) page(s).
-> 
-> On powerpc, there can be several page tables in one page. For instance, 
-> on powerpc 8xx the hardware require page tables to be 4k at all time, 
-> allthough page sizes can be either 4k or 16k. So in the 16k case there 
-> are 4 pages tables in one page.
+base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
+-- 
+2.51.2
 
-Hi Christophe,
-
-Thanks a lot for the info.
-
-> 
-> There is some logic in arch/powerpc/mm/pgtable-frag.c to handle that but 
-> this is only for last levels (PTs and PMDs). For other levels 
-> kmem_cache_alloc() is used to provide a PxD of the right size. Maybe the 
-> solution is to convert all levels to using pgtable-frag, but this 
-> doesn't look trivial. Probably it should be done at core level not at 
-> arch level.
-
-Uh, glad to hear some idea for this, would you like to give more 
-detailed explanation of your ideas?
-
-Thanks a lot
-
-> 
-> Christophe
-> 
->>
->> Signed-off-by: Alex Shi <alexs@kernel.org>
->> ---
->>
->> diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/ 
->> powerpc/include/asm/book3s/64/pgtable.h
->> index aac8ce30cd3b..f10736af296d 100644
->> --- a/arch/powerpc/include/asm/book3s/64/pgtable.h
->> +++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
->> @@ -1320,11 +1320,11 @@ pud_t pudp_huge_get_and_clear_full(struct 
->> vm_area_struct *vma,
->>   #define __HAVE_ARCH_PGTABLE_DEPOSIT
->>   static inline void pgtable_trans_huge_deposit(struct mm_struct *mm,
->> -                          pmd_t *pmdp, pgtable_t pgtable)
->> +                          pmd_t *pmdp, struct ptdesc *pgtable)
->>   {
->>       if (radix_enabled())
->> -        return radix__pgtable_trans_huge_deposit(mm, pmdp, pgtable);
->> -    return hash__pgtable_trans_huge_deposit(mm, pmdp, pgtable);
->> +        return radix__pgtable_trans_huge_deposit(mm, pmdp, 
->> page_ptdesc(pgtable));
->> +    return hash__pgtable_trans_huge_deposit(mm, pmdp, 
->> page_ptdesc(pgtable));
->>   }
-> 
-> I can't understand this change.
-> 
-> pgtable is a pointer to a page table, and you want to replace it to 
-> something that returns a pointer to a struct page, how can it work ?
-
-Sorry for the bothering. Right, it can't work as I mentioned in commit 
-log. I just want to bring up this issue, and hope you expert to give 
-some ideas.
-
-Thanks
