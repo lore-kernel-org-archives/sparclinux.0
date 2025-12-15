@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2509A335089;
-	Mon, 15 Dec 2025 15:04:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1AA4335089;
+	Mon, 15 Dec 2025 15:04:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765811082; cv=none; b=nughVdnSRNCTQ2RVk0SaJQS8m3+i8aC64v2FdWzLabD5/5+v4aMhGyiZDGqjswYbrhRCQZDngzpZUcyHTWSyDGWacZN7/4VmAYWuvyKFaqIuKF0Qvp1k8HFj4xxE0Z54equ2HFSsqYM/cFVRAwYS/wpQ/xyXESr/vfgpUSATer4=
+	t=1765811087; cv=none; b=VBvfBaSQFe+D39/1BojoOXyeIQRLTxFIp5kaZ5jogQeRdsJr2WwZJjPIuQ3zN9bteJbDo7pVJUFv6e0BrelC0Pfi2t+Tlwie6OusBlGBFqjsSbwwJLlQdUpXFG9zvfoXh059wz46hwba9jZKvvjOgGpbWx23PwrKQuNwT+SMlWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765811082; c=relaxed/simple;
-	bh=MJUyBXKBAaeuwDqu799pG7TZ2957TO9Ka30me3CmT4g=;
+	s=arc-20240116; t=1765811087; c=relaxed/simple;
+	bh=PY2BoVw7LD0zrC8pdiqNv3FrvXmiKm4QDYVHtVdAaw8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jpWyohuPNue0Li9sXFpG3hu7asMbTBDeVJQVvodaDX84HuPpSgLOba82Oezz5BZ0NGNEtsZ1J1eGv5d+vMZomdV8Ml/jSXY45MCHs4yGT1TtakkmPmrpOMe7nUTF5uj/9YAffnbbdO20PKYdmFOGRoaHlZgGHpw0k/e+N0yqyho=
+	 MIME-Version; b=LNeaYLnulL/aONwhaNLoLz2fJHCGRNosml+wytiqMP1oIc0iTgkrA20PNk8rj5bG/+9/EClYHf9i6kmg0vgYjKn7iN35BvTGYJAYslQ6HuwE2yvGVpGZURJtpvwzcziR29DJVpKtO2bWHmWw6Ikir114ePJqm4TuDbRLMUOrXN4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5B0D916A3;
-	Mon, 15 Dec 2025 07:04:32 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 12E5216F2;
+	Mon, 15 Dec 2025 07:04:38 -0800 (PST)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3A02B3F73B;
-	Mon, 15 Dec 2025 07:04:34 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CA2463F73B;
+	Mon, 15 Dec 2025 07:04:39 -0800 (PST)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -58,10 +58,11 @@ Cc: linux-kernel@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
-	x86@kernel.org
-Subject: [PATCH v6 11/14] powerpc/mm: replace batch->active with is_lazy_mmu_mode_active()
-Date: Mon, 15 Dec 2025 15:03:20 +0000
-Message-ID: <20251215150323.2218608-12-kevin.brodsky@arm.com>
+	x86@kernel.org,
+	"David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: [PATCH v6 12/14] sparc/mm: replace batch->active with is_lazy_mmu_mode_active()
+Date: Mon, 15 Dec 2025 15:03:21 +0000
+Message-ID: <20251215150323.2218608-13-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251215150323.2218608-1-kevin.brodsky@arm.com>
 References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
@@ -83,73 +84,61 @@ mode. We can therefore use the generic helper
 is_lazy_mmu_mode_active() to tell whether a batch struct is active
 instead of tracking it explicitly.
 
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- arch/powerpc/include/asm/book3s/64/tlbflush-hash.h | 9 ---------
- arch/powerpc/mm/book3s64/hash_tlb.c                | 2 +-
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ arch/sparc/include/asm/tlbflush_64.h | 1 -
+ arch/sparc/mm/tlb.c                  | 9 +--------
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-index 565c1b7c3eae..6cc9abcd7b3d 100644
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-+++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-@@ -12,7 +12,6 @@
- #define PPC64_TLB_BATCH_NR 192
+diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
+index 4e1036728e2f..6133306ba59a 100644
+--- a/arch/sparc/include/asm/tlbflush_64.h
++++ b/arch/sparc/include/asm/tlbflush_64.h
+@@ -12,7 +12,6 @@ struct tlb_batch {
+ 	unsigned int hugepage_shift;
+ 	struct mm_struct *mm;
+ 	unsigned long tlb_nr;
+-	unsigned long active;
+ 	unsigned long vaddrs[TLB_BATCH_NR];
+ };
  
- struct ppc64_tlb_batch {
--	int			active;
- 	unsigned long		index;
- 	struct mm_struct	*mm;
- 	real_pte_t		pte[PPC64_TLB_BATCH_NR];
-@@ -26,8 +25,6 @@ extern void __flush_tlb_pending(struct ppc64_tlb_batch *batch);
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index 7b5dfcdb1243..3a852071d260 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -52,11 +52,7 @@ void flush_tlb_pending(void)
  
- static inline void arch_enter_lazy_mmu_mode(void)
+ void arch_enter_lazy_mmu_mode(void)
  {
--	struct ppc64_tlb_batch *batch;
+-	struct tlb_batch *tb;
 -
- 	if (radix_enabled())
- 		return;
- 	/*
-@@ -35,8 +32,6 @@ static inline void arch_enter_lazy_mmu_mode(void)
- 	 * operating on kernel page tables.
- 	 */
  	preempt_disable();
--	batch = this_cpu_ptr(&ppc64_tlb_batch);
--	batch->active = 1;
+-	tb = this_cpu_ptr(&tlb_batch);
+-	tb->active = 1;
  }
  
- static inline void arch_flush_lazy_mmu_mode(void)
-@@ -53,14 +48,10 @@ static inline void arch_flush_lazy_mmu_mode(void)
+ void arch_flush_lazy_mmu_mode(void)
+@@ -69,10 +65,7 @@ void arch_flush_lazy_mmu_mode(void)
  
- static inline void arch_leave_lazy_mmu_mode(void)
+ void arch_leave_lazy_mmu_mode(void)
  {
--	struct ppc64_tlb_batch *batch;
+-	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
 -
- 	if (radix_enabled())
- 		return;
--	batch = this_cpu_ptr(&ppc64_tlb_batch);
- 
  	arch_flush_lazy_mmu_mode();
--	batch->active = 0;
+-	tb->active = 0;
  	preempt_enable();
  }
  
-diff --git a/arch/powerpc/mm/book3s64/hash_tlb.c b/arch/powerpc/mm/book3s64/hash_tlb.c
-index 787f7a0e27f0..fbdeb8981ae7 100644
---- a/arch/powerpc/mm/book3s64/hash_tlb.c
-+++ b/arch/powerpc/mm/book3s64/hash_tlb.c
-@@ -100,7 +100,7 @@ void hpte_need_flush(struct mm_struct *mm, unsigned long addr,
- 	 * Check if we have an active batch on this CPU. If not, just
- 	 * flush now and return.
- 	 */
--	if (!batch->active) {
+@@ -93,7 +86,7 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ 		nr = 0;
+ 	}
+ 
+-	if (!tb->active) {
 +	if (!is_lazy_mmu_mode_active()) {
- 		flush_hash_page(vpn, rpte, psize, ssize, mm_is_thread_local(mm));
- 		put_cpu_var(ppc64_tlb_batch);
- 		return;
+ 		flush_tsb_user_page(mm, vaddr, hugepage_shift);
+ 		global_flush_tlb_page(mm, vaddr);
+ 		goto out;
 -- 
 2.51.2
 
