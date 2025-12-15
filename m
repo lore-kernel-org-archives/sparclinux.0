@@ -1,183 +1,189 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536BF2D0C97
-	for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 13:10:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95682DF6F4
+	for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 14:27:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765804225; cv=none; b=QvnBi1K+ouDvIFohlicFyq1I4MSye1CkO1rCCOyQPtvODzI4T0xDFz+qP2udMpZSFKjZOZVKLlbSO0uG4kUy1CZvcB6haDw36PXHtuTH8/e+RMRXt+Sr3/TjjvbNBelCkSt6knY53QGv808e1ZGCVTxQ039gy7RYnsCvAANUv0k=
+	t=1765808822; cv=none; b=MryVyYivdYEAXs5hcK8Ay2NkbShseqkbIc7OBxF54cWq4xS90YJF66Uh592FB/+KOYdAboE4BfaEuDOtelwNaXcwN9xrfQhmf4BXSwPiGve327G7I81Km9suMqvWQ7CgWOYl4pzlvnm+VX/DqO9f+OptWGI/P22NUCSAsJmMIfY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765804225; c=relaxed/simple;
-	bh=BM/PVPr4BUoxQ98yubiOVvCOB+UxL8diHIpcrjRnF1s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PnePyMDe99WqvjIx8pYKWMxags0Bx49ZZLO0V0WdpDTnDIL606QozoovyNbdg7LidOImGmt+9GOMbqUZfsmuK1excYunccwRgl3kx6ICaiB4prdC9XX/dr2TgFfjC08vhNqzYsEUKozjXJpQDc0WiV4ADsoJj+QfEICfwUqHwCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=loCxvn4p; arc=none smtp.client-ip=209.85.210.179
+	s=arc-20240116; t=1765808822; c=relaxed/simple;
+	bh=a+opE07zuPxOMEv2JsJd9eHphXCCcd8mt0lFqJKDZ80=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=mGtmZjQ5eoMOC/OGD3bJ8VBZ3/8B2NfObTGTa6EQ1gayEN+vZYU72rXnE+6XwOTfSwbXKpS+yp0xqx5cQ7hkHNHz8/RZTxzZ+zEAfbBGeFHGnB18H4Q7oeBdMTVdVCsjsl4TZhtIN1aWpDCMkXBCj2Heesz0Fkh69wGx9yx9vgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qo3ojefs; arc=none smtp.client-ip=209.85.128.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="loCxvn4p"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-7b8eff36e3bso5191878b3a.2
-        for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 05:10:24 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qo3ojefs"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-78d6eb6956cso30123127b3.3
+        for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 06:27:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1765804224; x=1766409024; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BM/PVPr4BUoxQ98yubiOVvCOB+UxL8diHIpcrjRnF1s=;
-        b=loCxvn4pp1giegHZGB8fCdyZonBe6RjK89pU1bnxQ6C2Dg3U2MZ8QEBBuUXr6fuGVP
-         O8ysMPDkY6cIgArWwKqjvO8OhyLB+myMY7TaiSSujqdOETR2q02gAxg5AFZOnKQhqPri
-         z52wlgpRd74s14zGeJUjFCbgib5kV4bZTlJxawaDmpJiVn0/MWNRAGArN4H/OmYwh2ZD
-         TxBVUB4ie643IZnMsU2ypXWuA8+urx3QzgF/Tkq/lAlwojVMImCBu2G4GPfOE/ISY1nz
-         q+HoEE8GhzvfSd/rM+42L4Q3QRNexxVo6Q7zNKpG6H0CzCDXqfgqz8ZDsjk8w7rnNoLH
-         5vSA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765804224; x=1766409024;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+        d=gmail.com; s=20230601; t=1765808820; x=1766413620; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=BM/PVPr4BUoxQ98yubiOVvCOB+UxL8diHIpcrjRnF1s=;
-        b=SEe3Cee6+bNazMXOCWu8c5nd6y4Sfkt/mJ7SbrO4/UfwnFr899bG+IvuXPr8JLKAxW
-         DuSiT5OxQ04mxT1L9jReqSvYb/XQEBT08V+v9oXeAl1GoIVGvJbNOAaJJ1u2qD9HU5Hx
-         gzvta59WJgTy1FstbLJl8Wfyci03hOau0T366+KEV8pyAL9Qqd88EudNy4cHlFpzYzs+
-         xtl+y31LxobVcgf972knT/7BZwV90X2sXTNjooSu9NGzsaVc6FQT0RESjvbFgBDGq6Zp
-         Az0rzJ9h3U4m6QgDdGihruPD/f+o4QKy4rBwZ/XMAQBAMZSRFqJoREzX+XD8s5s8vKDV
-         H78w==
-X-Forwarded-Encrypted: i=1; AJvYcCV2O7rffKxji9b+jgyEMK5C+YPs0ws0gQJkqKv0jfIJDiKQHiL6vWgvHMhnpUk0eEM1MuZhg/HM6c+E@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx8+ZKLeZsdfwjImfZwjOGrFEyJHURWR8S3p9efi7gjLIdLQDu6
-	VTCo0Grmneit1hoQbWtSiHE30D5KUvB+zv17hnGlqlY5Mc4CM7rpq/Vf
-X-Gm-Gg: AY/fxX7OIZONgtjhsIkTZvYTNOXGe/bDGajyofQsAK0qC/gRvNuNccnmUFwrGt522es
-	cigOjfrpvubF7/XTT8wHCuk+Yc59MqMRcrj2NCzENmbKS1WFSELLK60Yr6p8qvrnZwcNG67ETcC
-	u/HttLBDqbRjjAKHTirj38Ho2I2rnRd8r8MkmW4sb8vnlVryo5y4k65XeuAugqoMEv1wiuCVJax
-	a1HTsS2x30oiE3lpnThzGNZPdgOsWwoH1VktdQEMvCHSKy83JmqQXduPKI+lhFjol7oLIQhue0c
-	0CDVRMm/blcsplU4xdBQv7tMqs6Fixt+Pox05KtYvkZJQxM+xRDbs5J5dRwT51RyJlP7uZ3Gp0E
-	atyXd9ln5O7JPpDD4he/Fx0MeKt4xhrjOd7rll1M5IoyrweVUy0S7XGsXwHGDjJxfmzEgH8XtWL
-	vjvPJ61fMPrOLVE0wwK+6RaZfQ6CBHKr4=
-X-Google-Smtp-Source: AGHT+IG3VwDpkA1WmQaMbo19+RTJgzIpgUIvYpPpKARDCY4wBFScDx5yKp0n9nH8m2HxqssodBKlAQ==
-X-Received: by 2002:a05:6a00:b904:b0:7b9:d7c2:fdf6 with SMTP id d2e1a72fcca58-7f6679326b4mr10674588b3a.24.1765804223544;
-        Mon, 15 Dec 2025 05:10:23 -0800 (PST)
-Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7f4c22848a7sm12761222b3a.3.2025.12.15.05.10.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Dec 2025 05:10:22 -0800 (PST)
-From: Xie Yuanbin <qq570070308@gmail.com>
-To: tglx@linutronix.de,
-	peterz@infradead.org,
-	riel@surriel.com,
-	segher@kernel.crashing.org,
-	david@kernel.org,
-	hpa@zytor.com,
-	arnd@arndb.de,
-	akpm@linux-foundation.org,
-	acme@kernel.org,
-	adrian.hunter@intel.com,
-	agordeev@linux.ibm.com,
-	alex@ghiti.fr,
-	alexander.shishkin@linux.intel.com,
-	andreas@gaisler.com,
-	anshuman.khandual@arm.com,
-	aou@eecs.berkeley.edu,
-	borntraeger@linux.ibm.com,
-	bp@alien8.de,
-	bsegall@google.com,
-	dave.hansen@linux.intel.com,
-	davem@davemloft.net,
-	dietmar.eggemann@arm.com,
-	frederic@kernel.org,
-	gor@linux.ibm.com,
-	hca@linux.ibm.com,
-	irogers@google.com,
-	james.clark@linaro.org,
-	jolsa@kernel.org,
-	juri.lelli@redhat.com,
-	justinstitt@google.com,
-	lorenzo.stoakes@oracle.com,
-	luto@kernel.org,
-	mark.rutland@arm.com,
-	mathieu.desnoyers@efficios.com,
-	max.kellermann@ionos.com,
-	mgorman@suse.de,
-	mingo@redhat.com,
-	morbo@google.com,
-	namhyung@kernel.org,
-	nathan@kernel.org,
-	nick.desaulniers+lkml@gmail.com,
-	nysal@linux.ibm.com,
-	palmer@dabbelt.com,
-	paulmck@kernel.org,
-	pjw@kernel.org,
-	rostedt@goodmis.org,
-	ryan.roberts@arm.com,
-	svens@linux.ibm.com,
-	thuth@redhat.com,
-	urezki@gmail.com,
-	vincent.guittot@linaro.org,
-	vschneid@redhat.com,
-	linux@armlinux.org.uk
-Cc: linux-kernel@vger.kernel.org,
-	x86@kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	linux-perf-users@vger.kernel.org,
-	llvm@lists.linux.dev
-Subject: Re: [PATCH v5 0/3] Optimize code generation during context switching
-Date: Mon, 15 Dec 2025 21:10:01 +0800
-Message-ID: <20251215131001.1021-1-qq570070308@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251214190907.184793-1-qq570070308@gmail.com>
-References: <20251214190907.184793-1-qq570070308@gmail.com>
+        bh=dcq1j6544AWTrXFS++mwFnDhDMKc8xPfVFYYuvKVzWQ=;
+        b=Qo3ojefs8TogJLJuXutSeHcDjLSPQWZRjllT+uMh4+lzyRCSfnGSkdXwY/oTy+YR9j
+         eOypG6ynchmXv9t9CsDD7iBU1S5nZiH4g90JTMITBWg2152z4g9O45VnvECyC75iQaRd
+         1tnmi0odecSetkr7j7RQY01O6OHQOUzGXTvIWN7KUbOxs3FTtBnSaVZIyEJ0jvWiI747
+         kTZurN73M11MokZvjoN0Ex8qr7x8BWeXRgbEU2IBSV13zzEdg+2dwKatCL3lvPoaocip
+         j3WY526cfbz5Pg9mBXDBzI7IBp4XxqGnpqR4sm5wUWEMUhT0jVKnYj/iUU/VPjA7IxnR
+         nSKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765808820; x=1766413620;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=dcq1j6544AWTrXFS++mwFnDhDMKc8xPfVFYYuvKVzWQ=;
+        b=NiJwpwGFN3rjugpZHW6C99O1p9I8+mVKsVUIWxvwjbXVeToDvDqCzPgFq1JXw0lpPz
+         BLA+iEJHGd3F4v3ALv4eILHfDkMNCRyHiVX6SDzwb8Mb4CQTWgFH/JywuZafAOirtL/U
+         1Jq41Pr1EnX0WXywXiF5/yiscpatkO4HcYl7WkNAOc0dGRmMm1WTFH6NpYnxCMngkzSV
+         Q9a0wDQZ+FvHAwARBNFqmL5lM/wKT9VovHy5OeRsiSAd2EiklbNC+cjNGVWa6MCj9Njc
+         B48amkYZ4pEl4k0GEwNvnbSmxxAmChrUbgKTNYcWTi+C1vZ+nSQVUgBNYH8PLmODYwcl
+         jBEA==
+X-Forwarded-Encrypted: i=1; AJvYcCXZACLeaDdKwS0Wu+t2/acsI9tCnFIfZAS+pX+w8BRvEmYqD8wHedLvzVTukBO1+2+vWPfIZrkEgcvZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YztovWaK4OvBK0NyVm4W0LanbHh42Du2h6JFkvyLXI4aFwZDb/R
+	JzzWbUJ75DJhwKaIt1H60WEawBrOk0HKFfpAjnLjZ8Boj0MHfwL2jQIj
+X-Gm-Gg: AY/fxX6IM/mSloVUuz+llK8/KCGUnny+/oLX1d/UxQPIOboM+32bpHsySajZgLqrrBI
+	H4OAdEz1ZLydmlhNaXprGAmY3yz9cJjBAH5l1fH2h48PZNxOMR0KgyHNhv//7IrpqNPFCVofWyy
+	XJSALrYaf7qme5Lw1Vg10nEVD4J2p9EyilGqHTzyMV8MAMy+BcJgwXrYA5AGPrfHR1gJcUtsoEx
+	elLZkYSv8r54zbVmBxUdN9ccl+f8KChv3CvrlaiyH+AMGFsYZEn4HseaOi0DbCL+3Fmbog9aDuf
+	BI2pv8VBVHc32lntBRlmCsx7I0I+2sNOKGleg4M/Uz5Z6KBsSxVFfDsGsSIBGTeS4RkxlYOVNxV
+	3DTiftZlxt+38wf1Db06twC5uevN2vYVCl9zQn9iLqkNSsd1N0z/ixJnBY/a0okGSdDYD8YP4vw
+	m9KtDeXq110nQ+KOMdXORPtfWLAab4XYM98q3QUg==
+X-Google-Smtp-Source: AGHT+IF4a51y57BzF37Vo9369cXMn6T0B92c877kSdcZ6vwpnS/AOu/LuwtwBmWQVHYV+/9EHDVqvg==
+X-Received: by 2002:a05:690c:dd6:b0:787:e015:8561 with SMTP id 00721157ae682-78e66d8030cmr89937457b3.20.1765808819563;
+        Mon, 15 Dec 2025 06:26:59 -0800 (PST)
+Received: from [192.168.2.226] (104.194.78.75.16clouds.com. [104.194.78.75])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-78e749e55edsm28402847b3.33.2025.12.15.06.26.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 15 Dec 2025 06:26:59 -0800 (PST)
+Message-ID: <b9e3921a-2a54-4adb-b19c-802e2aa1aa75@gmail.com>
+Date: Mon, 15 Dec 2025 22:26:42 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 1/2] mm/pgtable: use ptdesc for pmd_huge_pte
+To: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, alexs@kernel.org,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@kernel.org>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Thomas Huth <thuth@redhat.com>,
+ Will Deacon <will@kernel.org>, Matthew Wilcox <willy@infradead.org>,
+ Magnus Lindholm <linmag7@gmail.com>, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+References: <20251214065546.156209-1-alexs@kernel.org>
+ <686b85ff-6a5a-4608-af97-55aee1582c5c@kernel.org>
+Content-Language: en-US
+From: Alex Shi <seakeel@gmail.com>
+In-Reply-To: <686b85ff-6a5a-4608-af97-55aee1582c5c@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-There is some additional testing information that needs to be
-supplemented:
-1.
-On Mon, 15 Dec 2025 03:09:04 +0800, Xie Yuanbin Wrote:
-> 2. Testing config:
-> x86-64: `make x86_64_defconfig` first, then menuconfig setting:
-> CONFIG_HZ=100
-> CONFIG_DEBUG_ENTRY=n
-> CONFIG_X86_DEBUG_FPU=n
-> CONFIG_EXPERT=y
-> CONFIG_MODIFY_LDT_SYSCALL=n
-> CONFIG_STACKPROTECTOR=n
-> CONFIG_BLK_DEV_NVME=y (just for boot)
->
-> arm64: `make defconfig` first, then menuconfig setting:
-> CONFIG_KVM=n
-> CONFIG_HZ=100
-> CONFIG_SHADOW_CALL_STACK=y
->
-> arm32: `make multi_v7_defconfig` first, then menuconfig setting:
-> CONFIG_ARCH_OMAP2PLUS_TYPICAL=n
-> CONFIG_HIGHMEM=n
 
-The above is the config for performance test, when testing for size, the
-config is: `make x86_64_defconfig` first, then menuconfig setting:
-CONFIG_SCHED_CORE=y
-CONFIG_NO_HZ_FULL=y
-CONFIG_CC_OPTIMIZE_FOR_SIZE=y (optional)
 
-Enable CONFIG_SCHED_CORE and CONFIG_NO_HZ_FULL to test the modified code.
+On 2025/12/15 14:06, Christophe Leroy (CS GROUP) wrote:
+> 
+> Le 14/12/2025 à 07:55, alexs@kernel.org a écrit :
+>> From: Alex Shi <alexs@kernel.org>
+>>
+>> 'pmd_huge_pte' are pgtable variables, but used 'pgtable->lru'
+>> instead of pgtable->pt_list in pgtable_trans_huge_deposit/withdraw
+>> functions, That's a bit weird.
+>>
+>> So let's convert the pgtable_t to precise 'struct ptdesc *' for
+>> ptdesc->pmd_huge_pte, and mm->pmd_huge_pte, then convert function
+>> pgtable_trans_huge_deposit() to use correct ptdesc.
+>>
+>> This convertion works for most of arch, but failed on s390/sparc/powerpc
+>> since they use 'pte_t *' as pgtable_t. Is there any suggestion for these
+>> archs? If we could have a solution, we may remove the pgtable_t for other
+>> archs.
+> 
+> The use of struct ptdesc * assumes that a pagetable is contained in one 
+> (or several) page(s).
+> 
+> On powerpc, there can be several page tables in one page. For instance, 
+> on powerpc 8xx the hardware require page tables to be 4k at all time, 
+> allthough page sizes can be either 4k or 16k. So in the 16k case there 
+> are 4 pages tables in one page.
 
-2. When testing with Raspberry Pi 3b, in order to make the test result
-stable, the CPU frequency should be fixed. In detail, setting in
-config.txt:
-```config.txt
-arm_boost=0
-core_freq_fixed=1
-arm_freq=1200
-gpu_freq=250
-sdram_freq=400
-arm_freq_min=1200
-gpu_freq_min=250
-sdram_freq_min=400
-```
+Hi Christophe,
 
-Thanks!
+Thanks a lot for the info.
+
+> 
+> There is some logic in arch/powerpc/mm/pgtable-frag.c to handle that but 
+> this is only for last levels (PTs and PMDs). For other levels 
+> kmem_cache_alloc() is used to provide a PxD of the right size. Maybe the 
+> solution is to convert all levels to using pgtable-frag, but this 
+> doesn't look trivial. Probably it should be done at core level not at 
+> arch level.
+
+Uh, glad to hear some idea for this, would you like to give more 
+detailed explanation of your ideas?
+
+Thanks a lot
+
+> 
+> Christophe
+> 
+>>
+>> Signed-off-by: Alex Shi <alexs@kernel.org>
+>> ---
+>>
+>> diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/ 
+>> powerpc/include/asm/book3s/64/pgtable.h
+>> index aac8ce30cd3b..f10736af296d 100644
+>> --- a/arch/powerpc/include/asm/book3s/64/pgtable.h
+>> +++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
+>> @@ -1320,11 +1320,11 @@ pud_t pudp_huge_get_and_clear_full(struct 
+>> vm_area_struct *vma,
+>>   #define __HAVE_ARCH_PGTABLE_DEPOSIT
+>>   static inline void pgtable_trans_huge_deposit(struct mm_struct *mm,
+>> -                          pmd_t *pmdp, pgtable_t pgtable)
+>> +                          pmd_t *pmdp, struct ptdesc *pgtable)
+>>   {
+>>       if (radix_enabled())
+>> -        return radix__pgtable_trans_huge_deposit(mm, pmdp, pgtable);
+>> -    return hash__pgtable_trans_huge_deposit(mm, pmdp, pgtable);
+>> +        return radix__pgtable_trans_huge_deposit(mm, pmdp, 
+>> page_ptdesc(pgtable));
+>> +    return hash__pgtable_trans_huge_deposit(mm, pmdp, 
+>> page_ptdesc(pgtable));
+>>   }
+> 
+> I can't understand this change.
+> 
+> pgtable is a pointer to a page table, and you want to replace it to 
+> something that returns a pointer to a struct page, how can it work ?
+
+Sorry for the bothering. Right, it can't work as I mentioned in commit 
+log. I just want to bring up this issue, and hope you expert to give 
+some ideas.
+
+Thanks
