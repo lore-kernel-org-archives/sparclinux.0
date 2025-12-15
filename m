@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F3FE8332902;
-	Mon, 15 Dec 2025 15:03:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA03B33375C;
+	Mon, 15 Dec 2025 15:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765811036; cv=none; b=cywF5qMUI6qotBHIZtS1l/HyDd7Yi3KREmWCvYOh1u/hd03+Epb6CxSLg/vKUNPAxkx8t7QnnSzZiowzIt2hc44/g8pmsPGSeBckVUAlEjkhHZzSQ96DRKSeq0HsCo4T3hWHXGXqLDIs+b5uDqK2e3AFlsDRrzu2HIPB9HAi6BU=
+	t=1765811047; cv=none; b=QFiGQIPjmXYFUBAMj118JFy81f1p1vSb4d8gc8w69YTupM2fzcwI1K4MblJHnutt2ARncyc5nrzOpjY484fsCEbNLRXI8tcMqhmwFLOP5FoQapHZkqhCPEk5PIA8tMzVXB1X8emBUoscJru1AAm44b9KtNrRR8xyUwKyyQdTREo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765811036; c=relaxed/simple;
-	bh=b3ghA7FymwAlaXb+hvBmBZL3S7aJ6Kwth1qbl25PPeI=;
+	s=arc-20240116; t=1765811047; c=relaxed/simple;
+	bh=ZQ1iti6W8jPqW5TKHNxB7bKJihvjMjTws70qh7QOsa0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PjOkvpFpzxT+ZFTjTKTSFjlwLT84FdSew4Bpoa/UNkjEq9mjvFY7jYNQc1rOXWT555FCr0SjUucisXy6Pm/zNNEKcrvAsndW+INJPuwTRLrj4MLbK4Gf4Hj+tqbqU2xxlVknzHWW4AsFxDlfUmo5x6J7QyFjOwwj7/oyTxUNPYo=
+	 MIME-Version; b=tLzHh71q4MNxTL+jfDSzkS8wWkD6BiCWINsZjPkpd7cn0xXkHP2q0tF5os2TQYr70Pc1zsAUnqV2dQKJf2FxLVu2Ap7t8Kj+vIBGj3/wBOhpgxTUbc/vZ/+j6xVW1qmdPj6me9qDvN2EvcHHPjo+DoAFrvye8XsrMMfZXahaSt4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1DD31165C;
-	Mon, 15 Dec 2025 07:03:47 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4B751168F;
+	Mon, 15 Dec 2025 07:03:58 -0800 (PST)
 Received: from e123572-lin.arm.com (e123572-lin.cambridge.arm.com [10.1.194.54])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F099A3F73B;
-	Mon, 15 Dec 2025 07:03:48 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2A0493F73B;
+	Mon, 15 Dec 2025 07:04:00 -0800 (PST)
 From: Kevin Brodsky <kevin.brodsky@arm.com>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -59,9 +59,9 @@ Cc: linux-kernel@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	xen-devel@lists.xenproject.org,
 	x86@kernel.org
-Subject: [PATCH v6 03/14] powerpc/mm: implement arch_flush_lazy_mmu_mode()
-Date: Mon, 15 Dec 2025 15:03:12 +0000
-Message-ID: <20251215150323.2218608-4-kevin.brodsky@arm.com>
+Subject: [PATCH v6 05/14] mm: clarify lazy_mmu sleeping constraints
+Date: Mon, 15 Dec 2025 15:03:14 +0000
+Message-ID: <20251215150323.2218608-6-kevin.brodsky@arm.com>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251215150323.2218608-1-kevin.brodsky@arm.com>
 References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
@@ -73,64 +73,44 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Upcoming changes to the lazy_mmu API will cause
-arch_flush_lazy_mmu_mode() to be called when leaving a nested
-lazy_mmu section.
+The lazy MMU mode documentation makes clear that an implementation
+should not assume that preemption is disabled or any lock is held
+upon entry to the mode; however it says nothing about what code
+using the lazy MMU interface should expect.
 
-Move the relevant logic from arch_leave_lazy_mmu_mode() to
-arch_flush_lazy_mmu_mode() and have the former call the latter. The
-radix_enabled() check is required in both as
-arch_flush_lazy_mmu_mode() will be called directly from the generic
-layer in a subsequent patch.
+In practice sleeping is forbidden (for generic code) while the lazy
+MMU mode is active: say it explicitly.
 
-Note: the additional this_cpu_ptr() and radix_enabled() calls on the
-arch_leave_lazy_mmu_mode() path will be removed in a subsequent
-patch.
-
-Acked-by: David Hildenbrand <david@redhat.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
- .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-index 146287d9580f..2d45f57df169 100644
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-+++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-@@ -41,7 +41,7 @@ static inline void arch_enter_lazy_mmu_mode(void)
- 	batch->active = 1;
- }
- 
--static inline void arch_leave_lazy_mmu_mode(void)
-+static inline void arch_flush_lazy_mmu_mode(void)
- {
- 	struct ppc64_tlb_batch *batch;
- 
-@@ -51,12 +51,21 @@ static inline void arch_leave_lazy_mmu_mode(void)
- 
- 	if (batch->index)
- 		__flush_tlb_pending(batch);
-+}
-+
-+static inline void arch_leave_lazy_mmu_mode(void)
-+{
-+	struct ppc64_tlb_batch *batch;
-+
-+	if (radix_enabled())
-+		return;
-+	batch = this_cpu_ptr(&ppc64_tlb_batch);
-+
-+	arch_flush_lazy_mmu_mode();
- 	batch->active = 0;
- 	preempt_enable();
- }
- 
--#define arch_flush_lazy_mmu_mode()      do {} while (0)
--
- extern void hash__tlbiel_all(unsigned int action);
- 
- extern void flush_hash_page(unsigned long vpn, real_pte_t pte, int psize,
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index 652f287c1ef6..1abc4a1c3d72 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -225,11 +225,15 @@ static inline int pmd_dirty(pmd_t pmd)
+  * up to date.
+  *
+  * In the general case, no lock is guaranteed to be held between entry and exit
+- * of the lazy mode. So the implementation must assume preemption may be enabled
+- * and cpu migration is possible; it must take steps to be robust against this.
+- * (In practice, for user PTE updates, the appropriate page table lock(s) are
+- * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
+- * and the mode cannot be used in interrupt context.
++ * of the lazy mode. (In practice, for user PTE updates, the appropriate page
++ * table lock(s) are held, but for kernel PTE updates, no lock is held).
++ * The implementation must therefore assume preemption may be enabled upon
++ * entry to the mode and cpu migration is possible; it must take steps to be
++ * robust against this. An implementation may handle this by disabling
++ * preemption, as a consequence generic code may not sleep while the lazy MMU
++ * mode is active.
++ *
++ * Nesting is not permitted and the mode cannot be used in interrupt context.
+  */
+ #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+ static inline void arch_enter_lazy_mmu_mode(void) {}
 -- 
 2.51.2
 
