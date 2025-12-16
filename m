@@ -1,125 +1,184 @@
 Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E01632E738
-	for <sparclinux@vger.kernel.org>; Tue, 16 Dec 2025 05:16:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C547733985A
+	for <sparclinux@vger.kernel.org>; Tue, 16 Dec 2025 15:50:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765862224; cv=none; b=MA1xqdTcrdTGvwmNSVT6F/WKt4R++pbBGtcvlOay5+KN+9C65xs9+BgjE/wYF0p91PL0yf2s8Vd02E31ZcfuXret6VwnaYrk7FpGZ9TUOaNGgM4j7K4RjL+N7Q3x5WNEFjHHAbTfXF22gOEW6o+z8x8wQG9Bok5/PfO5Bp4AVww=
+	t=1765900221; cv=none; b=ipyDE6EENKsuHRsxS7fddc4VFXBVKCtGAF3byUReG1aFaIsW+A0Od11cxKA1DME1WtsOwefdMyQrO6W+SqGA1SVNGtDpnYRhtL5oDRi4fhwRogn96JhsjJNcS/rymTGoH1I/mSnwzy3ZzZlvhGF33qBmwx0tOXStKDFzzEb+ozI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765862224; c=relaxed/simple;
-	bh=4mIT6zYV5aYOwoCqi6mBDFljI6pEkAQxYIyKHnYjXEY=;
-	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
-	 MIME-Version:Content-Type; b=YpeqWgBqdLnyvo4tBQWevQTt78QM//YOVnVLNJknwI0dcFuT3PVlroXlgwg9FVxGB0QKjcavzeMBl/ayffhAdEQKd/E04OBUuTCPufJo6aKCEGorBidGRtNHWBCOTwnlvaNrNPEYMA7O+OkEs1Snv0hZ3LbzzjPLvPClfEWX730=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DpD09eHT; arc=none smtp.client-ip=209.85.210.182
+	s=arc-20240116; t=1765900221; c=relaxed/simple;
+	bh=/J6SJIgVFXi6M7XjQHV29kxITg2wGyGnqWzglUUHx6k=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=JTaabpar2mCJ99dW1pg9G8yyFDdK5MwCcZm2kTiiDZvlbzcaZjD+bWVPavyhdRhCMu3YqHSTpCZ4NP3LD7gu5XVg/cR0i+Y4+JDEBFI3PluhJKzEcnhxDfGxrJys54qvnsOLyEh8JYF582alxqo4FDoLZKk0SkTmuvuNu8CSqDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bGV/CYXM; arc=none smtp.client-ip=209.85.210.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DpD09eHT"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-7ba55660769so3234703b3a.1
-        for <sparclinux@vger.kernel.org>; Mon, 15 Dec 2025 21:16:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bGV/CYXM"
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-7baf61be569so5646617b3a.3
+        for <sparclinux@vger.kernel.org>; Tue, 16 Dec 2025 07:50:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1765862214; x=1766467014; darn=vger.kernel.org;
-        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=xjD+cNbyJGOMAKpBo5e8LJBh9aFpu4/6uuuLCwZXOF0=;
-        b=DpD09eHT0SSxatXw2WFgOfB74+Vw9Ihf67PFLENOuwdg2/wGxaepZMZ2PpOV9eIgNj
-         x9u0ZlfJvkh/vrLJrqy6+P746QIAq8ZvbvSd0Rfe2NX6pJ0LNWYUFZNTlWXje5vsaCHD
-         qEIMsh/UQMYtwqwMHKbaVWEJXd/InOCq6qHBgjQm/+87QHJCJ2I3ELot+l0k+OAQrw5l
-         xuPMv60wX1JmgEztTDw5oOh1mf6TLnA5KxUPcE5HIhGpIGAzAso806pybjMm3LOcjUOI
-         kuFutuzFhzmnJvneYxD8lIiEuTqdfFhYbNVUGcV5X9ZWuyS6oBSn5rd19UPNFiD2sMnN
-         cN+Q==
+        d=gmail.com; s=20230601; t=1765900219; x=1766505019; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AezLWqLpD6CrSSZ20H0ppmyNNXbXENPGR4Qr/3w4H5M=;
+        b=bGV/CYXMtgbehq5c4PcpZ1TUatnxDo+paxHNbJnmZrGo+JtqVS/FS+Ai+d35k4wRn3
+         615M26PUGby9OUXQFfmT7Sen4qS/ju6ezEJPGI1jeUY4fQNZjzSYme279xLmi8UaXonu
+         rDRcH58sNFQBX5xVNy/0o5KpuhNDXBAZGf0xOicZahW7HCwsK4HEbYeir1pwilRxa9Au
+         jBSWTc3i7j1Vp/TEhQDsiomkYLxMduJseNsfcf+V9cnCMboBWfOlE0+YF+dDnElxA1rV
+         qjHZO1i21uWaHhONLCO0UirdVOKaMEL12QAA+7yAqALQBSGqv2mElBYPYS2ahFMz0HJe
+         q62A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765862214; x=1766467014;
-        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=xjD+cNbyJGOMAKpBo5e8LJBh9aFpu4/6uuuLCwZXOF0=;
-        b=Jx7qQr3nV+3AYHJFZfR5MyiVoRT08YXC58RjcANN0XSpENeI3i4A9CGudwHqtpQEpQ
-         qzVL9s6tVQc0yoNYKM6+GUNGYnsVTcw9kMocxcT2fOVVR4FMQB9ck9gOVZHPwVcxsUsn
-         VxStjGiF2eBaAU+MYeJGfCWVHvJEuxTv7JUunTljh3b5alSMykDJ9Z9mOV0mBhSKwogj
-         KE/4r/Zimm556JVG1rBc7uI4m/lOgeN6xdKQMzBpBU1tjrisbFRqfhG+deK8uP3ii1Ms
-         qPoceBOBJPC3FoNkN3CjeP+MCwYdpY2vwu8rcKVffFrroVKBNQYkX5fnFHBMnj5E7be1
-         1nSQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWEwl2ppxHZSXDLbOldxBuRf/5aPG6ha0u/iXJpAjy1A/M5evUUcdOz75dYJ3iENM4/keQa7M188YCD@vger.kernel.org
-X-Gm-Message-State: AOJu0YySOS78z4yiMiCtN/0zFE/TdL6Pz5osnmiu81KH6MLXxGgpjppG
-	mWXmd2jW3hAJ3ZvBhBSdwCf7Urjq38OK3Wof8hOhOq8YBfGMsrcBMyVm
-X-Gm-Gg: AY/fxX4v/JRC3IJg83baBqEm0hw2B4ZK+B4Gz2NDbU1dIjRMceMct8ezcQJi2fUr7vR
-	Q40tY2Omk6CcuqjaK9ZVgba0faScayulTHpMIr5F44GpEc0kuK0In1CkYJuRv4F0bbzA6tQgbgL
-	QYrXWPAexigoO2TaE/tCqkEedsf3oiZY4J6BXDZiPHknlOud0x5xRSWZk4NltbKdvRpQULEeBX7
-	d8OBRDg+hcUy8v+Rej5g6C05AoTYokQQrXmAkwhLz0wBiUYnWh3+wORevZCfWxP8T741uHiu0mW
-	OYorZ0+//QSO5GHx+ZqGP/c1nRLo9RcUMeVaRsEDGuwczV/tkgbBXTlNsc6v423CUr3iee18ezg
-	1raF+sxma7avJ470d7/G4FFalX5Ybg9EF/6jq8EYl3SwyPfhfDPQRrFS14HnSjJvnSDqxe5HbBR
-	nD3j45
-X-Google-Smtp-Source: AGHT+IFRNBpu36xO7SS++RmJSf+Yd0YivNXXnhzhZN3Px6CmR0fp7AX2KZRojw083jfNpLsrb718Lg==
-X-Received: by 2002:a05:6a20:5491:b0:366:14b0:4b05 with SMTP id adf61e73a8af0-369afc00407mr13380900637.65.1765862214371;
-        Mon, 15 Dec 2025 21:16:54 -0800 (PST)
-Received: from dw-tp ([203.81.242.64])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c0c25a87487sm14064659a12.7.2025.12.15.21.16.42
+        d=1e100.net; s=20230601; t=1765900219; x=1766505019;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=AezLWqLpD6CrSSZ20H0ppmyNNXbXENPGR4Qr/3w4H5M=;
+        b=PbK6AQELT3aucvplIunFvgD1mcQjOzUSD5oRCcb2EMGd9NAoIw9PUfBWnICAT9W4h6
+         AGaCg1JWqmKAiixhbuZNEZcnxuJE/w1BwkracjQPEjYUIazJl3CiHJ0umfkrsc8WX3iA
+         hegM8tD0VvZb+WR8zuRpHE4CbM2ADbMq/xd4hopYWnmHyLL3vo/c1KH9k+dYKyVKO8Ys
+         puq/0lhucH38w+12RSFgEcjShXLwXn3lRBwiZ/m0Td4dslbODHG9WxcGEWvldlbYwvWh
+         D1uABLVWLOJK0ekQlelfx9CVLnLjrEozot+mudvOLtZ7hujxRftq2Lat1gr1G4YMmO88
+         x4EA==
+X-Forwarded-Encrypted: i=1; AJvYcCWGgaQC351jTbWR46s14i7N3oke71usLBdpBgGPqITxaZITUs9j7ybV3V2TVZtqluXqj2Op5kJLyPkS@vger.kernel.org
+X-Gm-Message-State: AOJu0YyvVaBEWNG0I0C4ijlNjvQ/EDVLJMgBIyDwKWxxT+df5V/UjhHJ
+	WhgBLbRZ8ZZJ/zpNmbJ31d/dATZxG0v7oztw8Lwfak2jNdM+KdpCMO36
+X-Gm-Gg: AY/fxX56Eia3fjfyB61Bd6MKs8JimlkZ4XafvaYL7yBA+XqYiEu9JTYk8Gu7xLeTYaE
+	UyXSmlBfc/pLyhIQueDYwpedbuP5AOF7ts2WbrzXwZ429qDxE8ZNzyjSsPevzFG0Osu1s5RErdY
+	m6RgAvxLCA19WiKmbQGtMp7noCcXTpoLsOzJlS1zrjs4Ytj65deCbKvUPfiIzCkAjk6aeABPMt8
+	r0iD0ALPGYWvh7An6nXTzN4K2l/f30GGMvYevoD9cEarf7AWSgGI3BQl8rAVjM6Ye1Rze7OWqFa
+	/K0zEOR7LalHU9p0X2Is79W0iI3WaADHIIgi5D3VCs/TvzyvLBwP+lWzTuw27QksG1Yt5cOOewd
+	VvhocamjuR3ITouPPQxETJDtQSte1ORVli45u3F0pdwrDr0pTK/iJWK0M2TvpmR2lQ594c3bDDF
+	diy23CNH5jEqD7NXErDaRu8ZWLIVU59PU=
+X-Google-Smtp-Source: AGHT+IEoNHdZ1DEBYEdZ8Fi4jzaSzQZOk4zYX1IY5OzpnLVZluq/HgR2KLlvGI9RonLCmUXvHnMZDA==
+X-Received: by 2002:a05:6a20:258b:b0:366:c321:9fc6 with SMTP id adf61e73a8af0-369afa082a3mr14434795637.48.1765900218667;
+        Tue, 16 Dec 2025 07:50:18 -0800 (PST)
+Received: from DESKTOP-8TIG9K0.localdomain ([119.28.20.50])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7f4c5093a4bsm15829494b3a.50.2025.12.16.07.50.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Dec 2025 21:16:53 -0800 (PST)
-From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, 
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov <bp@alien8.de>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, 
-	"David S. Miller" <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>, 
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>, 
-	Juergen Gross <jgross@suse.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, Mike Rapoport <rppt@kernel.org>, 
-	Nicholas Piggin <npiggin@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>, 
-	Thomas Gleixner <tglx@linutronix.de>, Venkat Rao Bagalkote <venkat88@linux.ibm.com>, 
-	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>, Yeoreum Yun <yeoreum.yun@arm.com>, 
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
-	sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Subject: Re: [PATCH v6 03/14] powerpc/mm: implement arch_flush_lazy_mmu_mode()
-In-Reply-To: <20251215150323.2218608-4-kevin.brodsky@arm.com>
-Date: Tue, 16 Dec 2025 10:44:45 +0530
-Message-ID: <87345b6m9m.ritesh.list@gmail.com>
-References: <20251215150323.2218608-1-kevin.brodsky@arm.com> <20251215150323.2218608-4-kevin.brodsky@arm.com>
+        Tue, 16 Dec 2025 07:50:17 -0800 (PST)
+From: Xie Yuanbin <qq570070308@gmail.com>
+To: tglx@linutronix.de
+Cc: acme@kernel.org,
+	adrian.hunter@intel.com,
+	agordeev@linux.ibm.com,
+	akpm@linux-foundation.org,
+	alex@ghiti.fr,
+	alexander.shishkin@linux.intel.com,
+	andreas@gaisler.com,
+	anshuman.khandual@arm.com,
+	aou@eecs.berkeley.edu,
+	arnd@arndb.de,
+	borntraeger@linux.ibm.com,
+	bp@alien8.de,
+	bsegall@google.com,
+	dave.hansen@linux.intel.com,
+	davem@davemloft.net,
+	david@kernel.org,
+	dietmar.eggemann@arm.com,
+	frederic@kernel.org,
+	gor@linux.ibm.com,
+	hca@linux.ibm.com,
+	hpa@zytor.com,
+	irogers@google.com,
+	james.clark@linaro.org,
+	jolsa@kernel.org,
+	juri.lelli@redhat.com,
+	justinstitt@google.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux@armlinux.org.uk,
+	llvm@lists.linux.dev,
+	lorenzo.stoakes@oracle.com,
+	luto@kernel.org,
+	mark.rutland@arm.com,
+	mathieu.desnoyers@efficios.com,
+	max.kellermann@ionos.com,
+	mgorman@suse.de,
+	mingo@redhat.com,
+	morbo@google.com,
+	namhyung@kernel.org,
+	nathan@kernel.org,
+	nick.desaulniers+lkml@gmail.com,
+	nysal@linux.ibm.com,
+	palmer@dabbelt.com,
+	paulmck@kernel.org,
+	peterz@infradead.org,
+	pjw@kernel.org,
+	qq570070308@gmail.com,
+	riel@surriel.com,
+	rostedt@goodmis.org,
+	ryan.roberts@arm.com,
+	segher@kernel.crashing.org,
+	sparclinux@vger.kernel.org,
+	svens@linux.ibm.com,
+	thuth@redhat.com,
+	urezki@gmail.com,
+	vincent.guittot@linaro.org,
+	vschneid@redhat.com,
+	x86@kernel.org
+Subject: Re: [PATCH v5 1/3] x86/mm/tlb: Make enter_lazy_tlb() always inline on x86
+Date: Tue, 16 Dec 2025 23:49:51 +0800
+Message-ID: <20251216154951.631-1-qq570070308@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <87345beoq2.ffs@tglx>
+References: <87345beoq2.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 
-Kevin Brodsky <kevin.brodsky@arm.com> writes:
-
-> Upcoming changes to the lazy_mmu API will cause
-> arch_flush_lazy_mmu_mode() to be called when leaving a nested
-> lazy_mmu section.
+On Mon, 15 Dec 2025 16:42:13 +0100, Thomas Gleixner wrote:
+> These Reported-by and Closes tags are just wrong. This is a new patch
+> and the robot reported failures against earlier versions. The robot
+> report is very clear about that:
 >
-> Move the relevant logic from arch_leave_lazy_mmu_mode() to
-> arch_flush_lazy_mmu_mode() and have the former call the latter. The
-> radix_enabled() check is required in both as
-> arch_flush_lazy_mmu_mode() will be called directly from the generic
-> layer in a subsequent patch.
+>   "If you fix the issue in a separate patch/commit (i.e. not just a new version of
+>    the same patch/commit), kindly add following tags
+>      Reported-by:...
+>      Closes:..."
 >
-> Note: the additional this_cpu_ptr() and radix_enabled() calls on the
-> arch_leave_lazy_mmu_mode() path will be removed in a subsequent
-> patch.
+> No?
 >
-> Acked-by: David Hildenbrand <david@redhat.com>
-> Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
->  .../powerpc/include/asm/book3s/64/tlbflush-hash.h | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
+> [...]
+>
+> Please move the '#define enter_....' under the inline function. That's
+> way simpler to read.
 
-Sorry I was away for a while. 
+Thanks for replying, I will improve it in the V6 patch.
 
-Thanks for taking care of the radix path as we had discussed previously
-here [1]. 
+>> +/*
+>> + * Please ignore the name of this function.  It should be called
+>> + * switch_to_kernel_thread().
+>
+> And why is it not renamed then?
+>
+>> + *
+>> + * enter_lazy_tlb() is a hint from the scheduler that we are entering a
+>
+> We enter a kernel thread? AFAIK the metaverse has been canceled.
+>
+>> + * kernel thread or other context without an mm.  Acceptable implementations
+>> + * include doing nothing whatsoever, switching to init_mm, or various clever
+>> + * lazy tricks to try to minimize TLB flushes.
+>> + *
+>> + * The scheduler reserves the right to call enter_lazy_tlb() several times
+>> + * in a row.  It will notify us that we're going back to a real mm by
+>
+> It will notify us by sending email or what?
 
-[1]: https://lore.kernel.org/all/87jz044xn4.ritesh.list@gmail.com/
+I didn't write any comments, I just moved its location.
 
-The change looks good to me. So, please feel free to add:
+As for the content of the comment, I think it has nothing to do with this
+patch. If the content of the comment needs to be modified, it should be
+modified in another patch?
 
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Thanks!
