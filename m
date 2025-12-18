@@ -1,173 +1,107 @@
-Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C058630F816
-	for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 09:18:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25E12BE7C6;
+	Thu, 18 Dec 2025 10:02:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766049504; cv=none; b=GunrPTW9m8stdF9fhLTnaNSNQcsULGItcWFuLV7j8B6VKmmIRm+RZ/3mGtk3OgWigWJOxL5WjhXCZng+rejjPk/yDNjF1Slrh9V5jDaFNmShxLWro7EXn7BSF5aFzxCDrVo0i+P1wRze67DrhrwJeTXDkZ9BSGemHZRjfLrud/s=
+	t=1766052131; cv=none; b=PZgJ7VwrrJbgbebgQW24FpyyUCgprS/iCltll9Zc2osd9fF58mszOWq9e+IjPQu1gDaruvBpgQXgsKO0txZ20zVK/HNUVLmme5YAcBauUvKeCrfQWDrWtQZNLAV5VHBKVUl684Rta0hp3szzT6rGdUN957Qsow5ygvLa6VumsPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766049504; c=relaxed/simple;
-	bh=RyEgzxI8oPffOHkVVOIZhsjUU0Nu1XWYtTHFe1Aa1ZE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LxehrS9zu9phqIl52dw98PdT+xv2aVKcu+IutL3zPe1ckw9iumIQTmJI9TbXYWJPXS0bqGVAM2DGcUy9qpsuz4AzZqBPXHQ6kxQk2vRP+xtUj02da3m43NluI9bTk3lGjiXTuHYYRwZinjYmcslGVEQJEDVOmc+IicCOMXRB7+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ff3f/CoS; arc=none smtp.client-ip=209.85.219.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1766052131; c=relaxed/simple;
+	bh=Nw8/xPqRtJ3jr9PSKxoQ1BcdKB0FWuTnbRQXps9AJuA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=FPkf+ofgJ5onTMVaOPWAmA/afjIv4VYF66/iMcJStxSAFpG4tMKhuWabN+1+e1xsH1psOK9ZMazstNwF6lRQ53fGLct1OgBoZaxUchVtUpwaTEKkf/KE27h2aY0pPRTgjSYAM/ANWpwD4q0a573671E/+lkrf8cV32ilPA1cWTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qUxR5p9n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ff3f/CoS"
-Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-88a22eb38edso2798866d6.2
-        for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 01:18:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766049501; x=1766654301; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:feedback-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xrxnNnWxI4nS0YOrpBWcQANh5SNRLcQSO0aWER1QbrU=;
-        b=ff3f/CoSZIyY8Yp+aNjFhuiGt8Qjx/bywKPCZPifz1HR7J6M4F9+mknbF2EBZUEnwr
-         PNPPh/FfmW08lN/b4B8kkjikAyNh8NLW6/yOhPRl3Dvbw5Z0SoTfYjwvV8iCNWh6TB/4
-         bhLSakQipGLykNwFbF1/ELIjNwtH/fL836We1unBdPypk8J0m768TwRJI7eU8Up2BOy8
-         AFOmUf+23UaSmoBVOJfUgQLj9sXrEQnjPAdjP1MbtMCidCZ+rW2QY/qAzYRme+Z+hdLP
-         7VGT5W82nnVHvXIBRwkVtc/zD3mqvkCGSjcQCh1CwSgVhhLBNWTeY92Os3gtOOSETlFb
-         scTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766049501; x=1766654301;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:feedback-id:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=xrxnNnWxI4nS0YOrpBWcQANh5SNRLcQSO0aWER1QbrU=;
-        b=uZEEoc1x+pyK4t7RYmEkmRPYEagUCmCCOjBPvGjCnvwemrSUlNxIXpU9+qA7TEnRF9
-         c1/+5BqG7XcfMxhEMyCc6gyI5E23wQ0O1PhCpxEcs69RFahhkIMXvFDEbI2DTBsANZ88
-         iQkFkznnfSpLebnTjxQ66POR0O1dwWvDHTkDYcks5hz9Jj2L6U6PWdF01bkixhUtEfV3
-         AhFTKpXvE+ZYR5m7Hd+Drow+lhzGPgNSKV+S+nqHcscmkeEgzxNLrvMTApNrUB15ORtk
-         DuHtdLK4gfrtmyk7ubZa+XO2RGNgOl0LKig/GClfYoNGVTs1IPU0DxrKA7N7GUkWzukJ
-         KpXQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV5l6QlH05CKiA3mIy5LJXcXC8b3m9ZN+BhiV6p5yYWgJLocRKENwtpgXNEpVHhj9GrPX9GmzTtr4IL@vger.kernel.org
-X-Gm-Message-State: AOJu0YxitLlrVZPM1wFFn3EEJKvoUdyfMO3rnQ3/05hHIN5amWwsSVJP
-	3gk6DWFRL2IEvDbNYhWEEX+17p5cdqVOhHcBhwEuxB62/gtNinzS+bYe
-X-Gm-Gg: AY/fxX64ILCgp3fVMhEWyUSHxb4TOKYGLznBWgs6wDmv7L7bSkA2K4a0smMS4p8zalp
-	ScBuqmH+kh8WIs/ZaltOwpQ0O7SFkBqy2Z5YUA2AcYIKyNhfLTFLV3SemPMJw/7VUwxWZ78aIPN
-	vxn7D+gXF3I83DYr7HSk4sgYyv/cmvkbLicyJZyw/lKfbnVtSyXxFeCDUFPbzXRuVbGLVm0nb8+
-	tSqvzeklULKJuyDYAOOvhhgPSgMwZIK8ryZ6nVP5lBtzxYztlzUdr/D3zp5EI7MBdwBSFAW+5Tg
-	9pomMK+VIehtNr6C3QTCDApUfqHj9SBKTNVq0GyCNcJAP3G0e63gThfxDofXknsHWWgeaHo1UaV
-	jjolDeTpB8ISdRnNVcCa0q0f8poPBnyjyVeBf7qcG/r89IDUfWYnvuZ0o2gvFrV/YYgytXcwe5w
-	YPO1iaRoJUIlIhs9x4t4TRdnldcaMqEjZMmzegefLCDomVGEWJLGSx0+J6BZ/zweD6HOqReR/3Y
-	2uFglBUAdbn0G0=
-X-Google-Smtp-Source: AGHT+IGcCSZ2GTde4aBCYX1t8a7toNqTh87um5AM7sqyimiK1IjG5xXwzjeXHFVeUXoPi5AeBf7daw==
-X-Received: by 2002:a05:6214:3f88:b0:888:f03f:3d60 with SMTP id 6a1803df08f44-888f03f3fd4mr298428876d6.23.1766049500611;
-        Thu, 18 Dec 2025 01:18:20 -0800 (PST)
-Received: from fauth-a2-smtp.messagingengine.com (fauth-a2-smtp.messagingengine.com. [103.168.172.201])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-88c6089a7c3sm13752156d6.27.2025.12.18.01.18.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Dec 2025 01:18:20 -0800 (PST)
-Received: from phl-compute-03.internal (phl-compute-03.internal [10.202.2.43])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 93062F4007D;
-	Thu, 18 Dec 2025 04:18:19 -0500 (EST)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-03.internal (MEProxy); Thu, 18 Dec 2025 04:18:19 -0500
-X-ME-Sender: <xms:28ZDaYZEfJvWf-SbMYzrwGR3XiBc9nchrwXFhKQR8GJSSPC5Ar8EDQ>
-    <xme:28ZDaQ3X24tbFZCKSuy5BC9I-mJ6F97xHygLeYsX0Q24WXatFCtqulZ7k7xDXldMD
-    w8thToUOyrSqYEOYVh9FeLhsV3yHiaH4wNjMKNGLA9kWLxJNQIW5A>
-X-ME-Received: <xmr:28ZDaS76HLTNf9hsmzSKKCFzqme6tSv1wQBubRlahd7SzJkjvySDN_JZ4AwY>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdeghedtgecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpeffhffvvefukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpeeuohhquhhnucfh
-    vghnghcuoegsohhquhhnrdhfvghnghesghhmrghilhdrtghomheqnecuggftrfgrthhtvg
-    hrnhephedugfduffffteeutddvheeuveelvdfhleelieevtdeguefhgeeuveeiudffiedv
-    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepsghoqh
-    hunhdomhgvshhmthhprghuthhhphgvrhhsohhnrghlihhthidqieelvdeghedtieegqddu
-    jeejkeehheehvddqsghoqhhunhdrfhgvnhhgpeepghhmrghilhdrtghomhesfhhigihmvg
-    drnhgrmhgvpdhnsggprhgtphhtthhopedviedpmhhouggvpehsmhhtphhouhhtpdhrtghp
-    thhtohepfhhujhhithgrrdhtohhmohhnohhrihesghhmrghilhdrtghomhdprhgtphhtth
-    hopehojhgvuggrsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehpvghtvghriiesihhn
-    fhhrrgguvggrugdrohhrghdprhgtphhtthhopeifihhllheskhgvrhhnvghlrdhorhhgpd
-    hrtghpthhtoheprggtohhurhgsohhtsehnvhhiughirgdrtghomhdprhgtphhtthhopegr
-    rdhhihhnuggsohhrgheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprghlihgtvghrhi
-    hhlhesghhoohhglhgvrdgtohhmpdhrtghpthhtohepsghjohhrnhefpghghhesphhrohht
-    ohhnmhgrihhlrdgtohhmpdhrtghpthhtohepuggrkhhrsehkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:28ZDaURyyKmDQ4rzO87pKe_8fgOq1CvxIA38rZW58_FyV787JuMOoA>
-    <xmx:28ZDaToXdtq1vvHJfqWGgCi5IrxlFpN9arJc7JnP0gCVwOlnuJ_8BA>
-    <xmx:28ZDaW8x_MNLpH_gvIPSydRn1Oxq4VIuot4c-gyvDK1ojt2oOdljwQ>
-    <xmx:28ZDaYMv8CQExp0AUKVWhGPIMDC66fwr1u9bQ-Paapulqomq_rU8JQ>
-    <xmx:28ZDaQlMxy_vd7Y9jFbADfvmvXTPmU_Nc3DIq04M5dpRvhc5Lkr_GE4M>
-Feedback-ID: iad51458e:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 18 Dec 2025 04:18:18 -0500 (EST)
-Date: Thu, 18 Dec 2025 18:18:17 +0900
-From: Boqun Feng <boqun.feng@gmail.com>
-To: FUJITA Tomonori <fujita.tomonori@gmail.com>
-Cc: ojeda@kernel.org, peterz@infradead.org, will@kernel.org,
-	acourbot@nvidia.com, a.hindborg@kernel.org, aliceryhl@google.com,
-	bjorn3_gh@protonmail.com, dakr@kernel.org, gary@garyguo.net,
-	lossin@kernel.org, mark.rutland@arm.com, tmgross@umich.edu,
-	rust-for-linux@vger.kernel.org,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
-	Vineet Gupta <vgupta@kernel.org>,
-	linux-snps-arc@lists.infradead.org, Brian Cain <bcain@kernel.org>,
-	linux-hexagon@vger.kernel.org, linux-arch@vger.kernel.org
-Subject: Re: [PATCH v1 0/4] rust: Add i8/i16 atomic xchg helpers
-Message-ID: <aUPG2Q_sSPDnlQ0G@tardis-2.local>
-References: <20251217213742.639812-1-fujita.tomonori@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qUxR5p9n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05ADCC4CEFB;
+	Thu, 18 Dec 2025 10:02:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1766052130;
+	bh=Nw8/xPqRtJ3jr9PSKxoQ1BcdKB0FWuTnbRQXps9AJuA=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=qUxR5p9nLaGIa2IPol7GwO939YNt4cI6BRodAmVjF0+8L62Ffd2H5W0CeL07eFj3X
+	 5farBmoQooRnqvZDzrtSUiOU43l64FLfBe4wILCSDYkNOXbYuEgUsUT8X6CXQYq2cQ
+	 Maxo/huPBXAcATB8n7EoL9p7yl22QHDPL1PZ4p/EnQPnyzHfHNGXaFyCdixFqMSukR
+	 dBoQm42UODTkVcUfdc8SdQw/3dmKFNwPiEa9rLlZ/tgVTTPCYWK3JR+UMJpxPMp2mz
+	 y0Ox1jt27Qr7NiXyK6nzHn5U7juAH31r1UuHLge7X4DKioWpwQCiZx0bJFhjs7FUNw
+	 XxqgeEWeLeGTg==
+Message-ID: <ee42b057-b2d1-4a61-a6b0-39f81f78a918@kernel.org>
+Date: Thu, 18 Dec 2025 11:01:59 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251217213742.639812-1-fujita.tomonori@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 1/2] mm/pgtable: use ptdesc for pmd_huge_pte
+To: Alex Shi <seakeel@gmail.com>, alexs@kernel.org,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <chleroy@kernel.org>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Thomas Huth <thuth@redhat.com>,
+ Will Deacon <will@kernel.org>, Matthew Wilcox <willy@infradead.org>,
+ Magnus Lindholm <linmag7@gmail.com>, linuxppc-dev@lists.ozlabs.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+References: <20251214065546.156209-1-alexs@kernel.org>
+ <52e2c1eb-67cf-41ee-9088-760fb6258153@gmail.com>
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Content-Language: en-US
+In-Reply-To: <52e2c1eb-67cf-41ee-9088-760fb6258153@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-[Cc parisc, sparc32, arc and hexagon]
+On 12/15/25 01:53, Alex Shi wrote:
+> 
+> 
+> On 2025/12/14 14:55, alexs@kernel.org wrote:
+>> From: Alex Shi<alexs@kernel.org>
+>>
+>> 'pmd_huge_pte' are pgtable variables, but used 'pgtable->lru'
+>> instead of pgtable->pt_list in pgtable_trans_huge_deposit/withdraw
+>> functions, That's a bit weird.
+>>
+>> So let's convert the pgtable_t to precise 'struct ptdesc *' for
+>> ptdesc->pmd_huge_pte, and mm->pmd_huge_pte, then convert function
+>> pgtable_trans_huge_deposit() to use correct ptdesc.
+>>
+>> This convertion works for most of arch, but failed on s390/sparc/powerpc
+>> since they use 'pte_t *' as pgtable_t. Is there any suggestion for these
+>> archs? If we could have a solution, we may remove the pgtable_t for other
+>> archs.
+> 
+> If s390/sparc/powerpc can't align pgtable_t with others, we have to keep
+> the pgtable_t to bridge different types. But we could take step to
+> change pgtable_t as 'struct ptdesc *' in other archs. That could
+> simplify and clarify related code too, isn't it?
 
-On Thu, Dec 18, 2025 at 06:37:38AM +0900, FUJITA Tomonori wrote:
-> This adds atomic xchg helpers with full, acquire, release, and relaxed
-> orderings in preparation for i8/i16 atomic xchg support.
-> 
-> The architectures supporting Rust, implement atomic xchg families
-> using architecture-specific instructions. So the helpers just call
-> them.
-> 
-> Note that the architectures that support Rust handle xchg differently:
-> 
-> - arm64 and riscv support xchg with all the orderings.
-> 
-> - x86_64 and loongarch support only full-ordering xchg. They calls the
->   full-ordering xchg for any orderings.
-> 
-> - arm v7 supports only relaxed-odering xchg. It uses __atomic_op_
->  macros to add barriers properly.
-> 
+Not sure. s390 and friends squeeze multiple actual page tables into a 
+single page and that single page has a single ptdesc.
 
-Thanks for the work! And please do Cc linux-arch next time when doing
-architecture-related changes. We would get more experts to take a look.
+I was rather hoping that we can make the code more consistent by making 
+everybody just point at the start of the page table? (that is, make it 
+consistent for all, not use ptdesc for some and pte_t * for others)
 
-I think the current implementation expects that xchg() work with normal
-store/load, and that requires ARCH_SUPPORTS_ATOMIC_RMW. So could you add
-a comment saying the current implementation only support
-ARCH_SUPPORTS_ATOMIC_RMW architectures? And when you wire up the rust
-helpers, I think using #[cfg(CONFIG_ARCH_SUPPORTS_ATOMIC_RMW)] is a good
-idea. This will at least let the !ARCH_SUPPORTS_ATOMIC_RMW archs know
-that something is missing here.
+-- 
+Cheers
 
-Regards,
-Boqun
-
-> FUJITA Tomonori (4):
->   rust: helpers: Add i8/i16 atomic xchg helpers
->   rust: helpers: Add i8/i16 atomic xchg_acquire helpers
->   rust: helpers: Add i8/i16 atomic xchg_release helpers
->   rust: helpers: Add i8/i16 atomic xchg_relaxed helpers
-> 
->  rust/helpers/atomic_ext.c | 41 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 41 insertions(+)
-> 
-> 
-> base-commit: 02c5c8c11bbd34cdd9c566dd4ecca48995c09621
-> -- 
-> 2.43.0
-> 
+David
