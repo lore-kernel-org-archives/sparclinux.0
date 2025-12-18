@@ -1,107 +1,257 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25E12BE7C6;
-	Thu, 18 Dec 2025 10:02:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7589431353D
+	for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 11:02:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766052131; cv=none; b=PZgJ7VwrrJbgbebgQW24FpyyUCgprS/iCltll9Zc2osd9fF58mszOWq9e+IjPQu1gDaruvBpgQXgsKO0txZ20zVK/HNUVLmme5YAcBauUvKeCrfQWDrWtQZNLAV5VHBKVUl684Rta0hp3szzT6rGdUN957Qsow5ygvLa6VumsPM=
+	t=1766055772; cv=none; b=aBA5ZkLnRC4Uvi3urAGj9ke8C1CwvcSU4uoJa0J7EK98tMuqAyAji2DzEdnyjjmSSGJlsCJfnbpi9sgFKnPprCRu5bWIiXCqyEwNTYXmQ7lEBirGjHj8fTYlzUG05xpYJ11uqJMk+UWdZeoaiJHf26srE739FgCedkBAeafEM6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766052131; c=relaxed/simple;
-	bh=Nw8/xPqRtJ3jr9PSKxoQ1BcdKB0FWuTnbRQXps9AJuA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=FPkf+ofgJ5onTMVaOPWAmA/afjIv4VYF66/iMcJStxSAFpG4tMKhuWabN+1+e1xsH1psOK9ZMazstNwF6lRQ53fGLct1OgBoZaxUchVtUpwaTEKkf/KE27h2aY0pPRTgjSYAM/ANWpwD4q0a573671E/+lkrf8cV32ilPA1cWTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qUxR5p9n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766055772; c=relaxed/simple;
+	bh=MY11Aj6Je8xCLlSecCA9metsKmBglYUSv1YI+81TBWU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Ds7Mr97yY+l1xAHY3YZ/T2n8NIBMZT86KOyQIfM+fr/D5vu7/aFa9zCHqvkL8Bc6iuNaYyAakEVM9j82TXLofj/t/YZU4RrhwtU5Zb81MxjR/8U4tvUMy3VJ+nIU3bLqRt/Ipg2X/275wnBfUT26VjpWOR9H6NUyKExS0jZTfm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WEw73wuM; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qUxR5p9n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05ADCC4CEFB;
-	Thu, 18 Dec 2025 10:02:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766052130;
-	bh=Nw8/xPqRtJ3jr9PSKxoQ1BcdKB0FWuTnbRQXps9AJuA=;
-	h=Date:Subject:To:References:From:In-Reply-To:From;
-	b=qUxR5p9nLaGIa2IPol7GwO939YNt4cI6BRodAmVjF0+8L62Ffd2H5W0CeL07eFj3X
-	 5farBmoQooRnqvZDzrtSUiOU43l64FLfBe4wILCSDYkNOXbYuEgUsUT8X6CXQYq2cQ
-	 Maxo/huPBXAcATB8n7EoL9p7yl22QHDPL1PZ4p/EnQPnyzHfHNGXaFyCdixFqMSukR
-	 dBoQm42UODTkVcUfdc8SdQw/3dmKFNwPiEa9rLlZ/tgVTTPCYWK3JR+UMJpxPMp2mz
-	 y0Ox1jt27Qr7NiXyK6nzHn5U7juAH31r1UuHLge7X4DKioWpwQCiZx0bJFhjs7FUNw
-	 XxqgeEWeLeGTg==
-Message-ID: <ee42b057-b2d1-4a61-a6b0-39f81f78a918@kernel.org>
-Date: Thu, 18 Dec 2025 11:01:59 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WEw73wuM"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2a0d6f647e2so7833705ad.1
+        for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 03:02:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1766055770; x=1766660570; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=En+EeawiMP0LdiaonSFSpPBJQktT87DSvgUkdcBwHPI=;
+        b=WEw73wuM26ezDkT/HmQqnq2hPJgngFdFNBQa5wcNgGYZZ6Jy46zU6SxFV5HNsdavQk
+         jzE4hRaj6nH8mPWB2TBah5e7jlT973VM15VVcBoEqpjpF6aJtKwHgGZHqrons/CEy6H3
+         kxtuWrS4VZJTp/DhTWZn3tF7S9yST6BCVoi6muhDNhdsDbH9QNL3GeCyr0snEiXBuW6z
+         athnJ/OLXuZXQ+GVHgCD+Wo9Ir6OIQD04YMwGySrb0dQjNn89CNh2YtUcF/O3hNfBYcG
+         UAg/j1mPcM2/5idSqa1jeFED23n5m6n9LCnmva2Q4oPdYILd07EXWW9uDuBsNFHGxb43
+         8MTA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1766055770; x=1766660570;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=En+EeawiMP0LdiaonSFSpPBJQktT87DSvgUkdcBwHPI=;
+        b=S5K6L9zbgbn9WLvegASZeyOFerQe+0PUEblHDdr97+CuHJPz8I/mRWEPWPj08/Ho0H
+         c9RwZMJ5B0dKBoBCbzNGyp+HPjaCrIUzF87f+ehypYAbXB8slI85SgADmB7HVbsDMaL7
+         qBMZkybx5FouIrVnDcqF/E3ViYyoN6Oqu9zGOxGR/LidynJ3UQ7upGBDXNgCJe1epBae
+         w8YSHLJ9NhdAmpYu0oQlBcreyG2Bfs6OVecAXtKHAHc2hup01doNxEwtg8amOAPMVTpV
+         dKnVwp1TUmcCR4AtVr4rLsvoeWxk8FEO0G7lWS5ROQ88Pj2BJfM0c04BpQ41c3HMVxpY
+         NmDA==
+X-Forwarded-Encrypted: i=1; AJvYcCUG+5VO5yKBAORv+j4uGpJZV1UFmMCghAGHrRUegCJqhs0XLDTfz9FdjWHHKkGOs7NGlWwX7DNT+2Jf@vger.kernel.org
+X-Gm-Message-State: AOJu0YzKPuZGWEm9IWErk0agH55QAI1IDwgVfqxiX8OV2zkjPwtzFKYJ
+	NjxXkJv2gY6/XD8N19qzseexNioKBaP7V44KZf6I4598bMJERLxnbHVNP2tcT9k6mpIVzLwpfuF
+	jddc1djuKrDi4/Luc4FVhYg7UHqJbXDo=
+X-Gm-Gg: AY/fxX5Tgz+NV14eanNGPVdEFimYEXx6ayDhcgUE6SeyKKkzEZnRp/KCJfCba+svBsy
+	yCq8zia7flBIuyA8MEymPaG9BOREWICFa1yAU1geVBk/UJ13Gld6KpUPUtr8WpVrZJWBl4Q9sjj
+	NFSugQnLvslYppjuEeEfijIjb9LPGSTc5qFITl3OZpkQP+tzQ8OxQWpsV4+40G2IqA1pRKkg2VJ
+	9OPO83b9POBEsPIrVXZKobycJ/usk5QQm+dhv/EcOgN8z2Rlihuz4kRvYCLNCQB2YL4+w==
+X-Google-Smtp-Source: AGHT+IH1/DrYChO2Gun9o9bXvGbxXOFiFy9ttJqooM/uiUGdaYOlzL1RUFDLa7LiwEssz2HZQDik54yEGJN9oN42ooI=
+X-Received: by 2002:a17:90b:3912:b0:33b:be31:8194 with SMTP id
+ 98e67ed59e1d1-34abd7bae4bmr17935657a91.34.1766055769647; Thu, 18 Dec 2025
+ 03:02:49 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/2] mm/pgtable: use ptdesc for pmd_huge_pte
-To: Alex Shi <seakeel@gmail.com>, alexs@kernel.org,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <chleroy@kernel.org>,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>,
- Sven Schnelle <svens@linux.ibm.com>, "David S . Miller"
- <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R . Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Lance Yang <lance.yang@linux.dev>, Matthew Brost <matthew.brost@intel.com>,
- Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
- Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
- Ying Huang <ying.huang@linux.alibaba.com>,
- Alistair Popple <apopple@nvidia.com>, Thomas Huth <thuth@redhat.com>,
- Will Deacon <will@kernel.org>, Matthew Wilcox <willy@infradead.org>,
- Magnus Lindholm <linmag7@gmail.com>, linuxppc-dev@lists.ozlabs.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
-References: <20251214065546.156209-1-alexs@kernel.org>
- <52e2c1eb-67cf-41ee-9088-760fb6258153@gmail.com>
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Content-Language: en-US
-In-Reply-To: <52e2c1eb-67cf-41ee-9088-760fb6258153@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20251217120858.18713-1-pilgrimtao@gmail.com> <d373f7b0-f822-4c31-990c-41a6cdc76db3@kernel.org>
+In-Reply-To: <d373f7b0-f822-4c31-990c-41a6cdc76db3@kernel.org>
+From: Tao pilgrim <pilgrimtao@gmail.com>
+Date: Thu, 18 Dec 2025 19:02:38 +0800
+X-Gm-Features: AQt7F2p1oM-UBi3ufPsqgWlQ-JAwKfsIrRnsxPaSt1TZSRjeGmYZiIlx4BsjFqA
+Message-ID: <CAAWJmAYJdEJyybVgD7erzZgvwufZ8gSmP_FCohmZLYozbhbb3g@mail.gmail.com>
+Subject: Re: [PATCH] sparc: Use vmemmap_populate_hugepages for vmemmap_populate
+To: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org, 
+	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz, 
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com, kevin.brodsky@arm.com, 
+	dave.hansen@linux.intel.com, ziy@nvidia.com, chengkaitao@kylinos.cn, 
+	willy@infradead.org, zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 12/15/25 01:53, Alex Shi wrote:
-> 
-> 
-> On 2025/12/14 14:55, alexs@kernel.org wrote:
->> From: Alex Shi<alexs@kernel.org>
->>
->> 'pmd_huge_pte' are pgtable variables, but used 'pgtable->lru'
->> instead of pgtable->pt_list in pgtable_trans_huge_deposit/withdraw
->> functions, That's a bit weird.
->>
->> So let's convert the pgtable_t to precise 'struct ptdesc *' for
->> ptdesc->pmd_huge_pte, and mm->pmd_huge_pte, then convert function
->> pgtable_trans_huge_deposit() to use correct ptdesc.
->>
->> This convertion works for most of arch, but failed on s390/sparc/powerpc
->> since they use 'pte_t *' as pgtable_t. Is there any suggestion for these
->> archs? If we could have a solution, we may remove the pgtable_t for other
->> archs.
-> 
-> If s390/sparc/powerpc can't align pgtable_t with others, we have to keep
-> the pgtable_t to bridge different types. But we could take step to
-> change pgtable_t as 'struct ptdesc *' in other archs. That could
-> simplify and clarify related code too, isn't it?
+On Thu, Dec 18, 2025 at 4:44=E2=80=AFPM David Hildenbrand (Red Hat)
+<david@kernel.org> wrote:
+>
+> On 12/17/25 13:08, chengkaitao wrote:
+> > From: Chengkaitao <chengkaitao@kylinos.cn>
+> >
+> > 1. Added the vmemmap_false_pmd function to accommodate architectures
+> > that do not support basepages.
+> > 2. In the SPARC architecture, reimplemented vmemmap_populate using
+> > vmemmap_populate_hugepages.
+> >
+> > Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+> > ---
+> >   arch/sparc/mm/init_64.c | 56 ++++++++++++++++------------------------=
+-
+> >   include/linux/mm.h      |  1 +
+> >   mm/sparse-vmemmap.c     |  7 +++++-
+> >   3 files changed, 28 insertions(+), 36 deletions(-)
+> >
+> > diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> > index df9f7c444c39..a80cdfa6ba98 100644
+> > --- a/arch/sparc/mm/init_64.c
+> > +++ b/arch/sparc/mm/init_64.c
+> > @@ -5,7 +5,7 @@
+> >    *  Copyright (C) 1996-1999 David S. Miller (davem@caip.rutgers.edu)
+> >    *  Copyright (C) 1997-1999 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+> >    */
+> > -
+> > +
+> >   #include <linux/extable.h>
+> >   #include <linux/kernel.h>
+> >   #include <linux/sched.h>
+> > @@ -2397,11 +2397,11 @@ void __init paging_init(void)
+> >        * work.
+> >        */
+> >       init_mm.pgd +=3D ((shift) / (sizeof(pgd_t)));
+> > -
+> > +
+> >       memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
+> >
+> >       inherit_prom_mappings();
+> > -
+> > +
+> >       /* Ok, we can use our TLB miss and window trap handlers safely.  =
+*/
+> >       setup_tba();
+> >
+>
+> Bunch of unrelated changes that should not go in here.
 
-Not sure. s390 and friends squeeze multiple actual page tables into a 
-single page and that single page has a single ptdesc.
+This indeed contains some unrelated code changes and removal of
+extra whitespace. These could be split into a separate patch,
+but the new patch might be somewhat redundant, lol. If you'd
+like me to proceed this way, please reply confirming.
 
-I was rather hoping that we can make the code more consistent by making 
-everybody just point at the start of the page table? (that is, make it 
-consistent for all, not use ptdesc for some and pte_t * for others)
+> > @@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+> >   EXPORT_SYMBOL(_PAGE_CACHE);
+> >
+> >   #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> > -int __meminit vmemmap_populate(unsigned long vstart, unsigned long ven=
+d,
+> > -                            int node, struct vmem_altmap *altmap)
+> > +void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+> > +                            unsigned long addr, unsigned long next)
+> >   {
+> >       unsigned long pte_base;
+> >
+> > @@ -2595,39 +2595,25 @@ int __meminit vmemmap_populate(unsigned long vs=
+tart, unsigned long vend,
+> >
+> >       pte_base |=3D _PAGE_PMD_HUGE;
+> >
+> > -     vstart =3D vstart & PMD_MASK;
+> > -     vend =3D ALIGN(vend, PMD_SIZE);
+> > -     for (; vstart < vend; vstart +=3D PMD_SIZE) {
+> > -             pgd_t *pgd =3D vmemmap_pgd_populate(vstart, node);
+> > -             unsigned long pte;
+> > -             p4d_t *p4d;
+> > -             pud_t *pud;
+> > -             pmd_t *pmd;
+> > -
+> > -             if (!pgd)
+> > -                     return -ENOMEM;
+> > -
+> > -             p4d =3D vmemmap_p4d_populate(pgd, vstart, node);
+> > -             if (!p4d)
+> > -                     return -ENOMEM;
+> > -
+> > -             pud =3D vmemmap_pud_populate(p4d, vstart, node);
+> > -             if (!pud)
+> > -                     return -ENOMEM;
+> > -
+> > -             pmd =3D pmd_offset(pud, vstart);
+> > -             pte =3D pmd_val(*pmd);
+> > -             if (!(pte & _PAGE_VALID)) {
+> > -                     void *block =3D vmemmap_alloc_block(PMD_SIZE, nod=
+e);
+> > +     pmd_val(*pmd) =3D pte_base | __pa(p);
+> > +}
+> >
+> > -                     if (!block)
+> > -                             return -ENOMEM;
+> > +bool __meminit vmemmap_false_pmd(pmd_t *pmd, int node)
+> > +{
+> > +     return true;
+> > +}
+> >
+> > -                     pmd_val(*pmd) =3D pte_base | __pa(block);
+> > -             }
+> > -     }
+> > +int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+> > +                             unsigned long addr, unsigned long next)
+> > +{
+> > +     vmemmap_verify((pte_t *)pmdp, node, addr, next);
+> > +     return 1;
+> > +}
+> >
+> > -     return 0;
+> > +int __meminit vmemmap_populate(unsigned long vstart, unsigned long ven=
+d,
+> > +                            int node, struct vmem_altmap *altmap)
+> > +{
+> > +     return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+> >   }
+> >   #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+> >
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index 15076261d0c2..5e005b0f947d 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> > @@ -4248,6 +4248,7 @@ void *vmemmap_alloc_block_buf(unsigned long size,=
+ int node,
+> >   void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+> >   void vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+> >                    unsigned long addr, unsigned long next);
+> > +bool vmemmap_false_pmd(pmd_t *pmd, int node);
+> >   int vmemmap_check_pmd(pmd_t *pmd, int node,
+> >                     unsigned long addr, unsigned long next);
+> >   int vmemmap_populate_basepages(unsigned long start, unsigned long end=
+,
+> > diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+> > index 37522d6cb398..bd54b8c6f56e 100644
+> > --- a/mm/sparse-vmemmap.c
+> > +++ b/mm/sparse-vmemmap.c
+> > @@ -407,6 +407,11 @@ void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, =
+void *p, int node,
+> >   {
+> >   }
+> >
+> > +bool __weak __meminit vmemmap_false_pmd(pmd_t *pmd, int node)
+> > +{
+> > +     return 0;
+> > +}
+> > +
+>
+> Reading that function I have absolutely no clue what this is supposed to
+> do. :)
+>
+> Also, why are you passing pmd+node when sparc ignores them completely
+> and statically returns "true" ?
 
--- 
-Cheers
+The pmd+node is indeed unnecessary. My original intention was
+to provide convenience for future architecture extensions, but
+upon reflection, this appears to be a case of over-engineering.
 
-David
+> If you can tell me what the semantics of that function should be, maybe
+> we can come up with a more descriptive name.
+
+In the SPARC architecture, the original vmemmap_populate
+function does not retry with vmemmap_populate_basepages
+after vmemmap_alloc_block fails. I suspect SPARC doesn't
+support basepages, which is why we need to modify
+vmemmap_populate_hugepages to provide an interface that
+skips basepages handling.
+
+--=20
+Yours,
+Kaitao Cheng
