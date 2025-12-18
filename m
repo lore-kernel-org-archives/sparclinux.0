@@ -1,140 +1,126 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FC9932E697
-	for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 12:11:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A643B32142A
+	for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 12:29:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766059919; cv=none; b=iKSNLktzYJ5HM5FYZV2d57cl4KRXwX0F/tOql9NyB2DO0wsAX/gvEeC4zYi3b6LvbDXHC+Radnm7aQw+2qmk+UbKMQnuc273hydByCZ3Wxyw10uxuEfAOUbH4DgBsD65/p32pyoKtjAJ3N1JoYhFHI1yunkigWMZaIFvc2GATJQ=
+	t=1766060981; cv=none; b=Y5DgjK+IeLZcAF1MxtHkKz7l6M1HxWF2kNNeKbOLKtR3AuX0qCIZIE/cNxIvtw3I3jk0rzuDxMLSyNT+slfNYYuAvLdgd6bMme30OQ3r9+Bl7GS79PAY/ShgF8mTCzK1u3IdtwZLRevsa8Rtue5A9c+RnmavWDY6TEBWUfsd3hQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766059919; c=relaxed/simple;
-	bh=XGQ+7SgEew4iClGYURs+C9L0stXJTBsZbjZ2oG7UIc0=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=YRdfYpCNxAaam9pGra/t9G2qZWf/aJ7gb64lr2loN01Q+4qobPMzOxK1IRp19ErBbXrdZGqe7FOrjrWwbOlotR6Xt1/pKLFrC3hQMlNFn2uNnUSP7TVN/9NUiOy0UwJHGi8QwcClgrZviYh6CMncJLQigmtvgV9EIR6yX1LZ8WE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Pbfm1N29; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766060981; c=relaxed/simple;
+	bh=ffPTyuiEVHWwTCiNfJpfvcZQat/klsCzHR7/EM+Qf10=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GIZFHbzpenFFLAqklHZgzstuVr8zDpXg5V3/2GWloXlfU3T6yDfLF0r/DpATTS1WZYJg5LwmL5CV3YfdXG3+lnLkabOsnAn01bwvTD74FijMteS/FDYxXkaVI4JRV0qMb93t3nQgWe2oMUmLuF/ftdJg1ul9Lq1hXjJHngPZ6aI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V0faqMlq; arc=none smtp.client-ip=209.85.214.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Pbfm1N29"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0079C116B1;
-	Thu, 18 Dec 2025 12:11:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766059918;
-	bh=XGQ+7SgEew4iClGYURs+C9L0stXJTBsZbjZ2oG7UIc0=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=Pbfm1N29OV600qM6UTmHFrWBgKAAPaEIi8H31U8/D7Fy4/yQH7DtTr8fjL1JU2ZGr
-	 6nwz3dwH1V2m2ot6sPml3YHiTkco7la+c2nu+l+SxzciJta8kjjah21YI0wd4vAeV1
-	 isA2l1yKhqypiDWu4LQeHt4ykcmpaBp/ImSwyvJVre9a3pRs4GXVsIRHvw6x+1fCZ3
-	 aTjQTA27ccRELqk9h2L0kraeNtbMTR5EzRmpbnJomxT+NeArdctTyUhXcuNcwN7S86
-	 MwPNLvKu3CLTwt2KbzjkGo2I4spjFwLzTY0Numflrkc7wTVrfPPFNtqzCFaA++T+6a
-	 inlbyNZVWvrqA==
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfauth.phl.internal (Postfix) with ESMTP id BD61AF40069;
-	Thu, 18 Dec 2025 07:11:56 -0500 (EST)
-Received: from phl-imap-08 ([10.202.2.84])
-  by phl-compute-04.internal (MEProxy); Thu, 18 Dec 2025 07:11:56 -0500
-X-ME-Sender: <xms:jO9DafeY02D3zYoswm455JApvwyXo9N__fUotOJi51wAZtuEx-h72w>
-    <xme:jO9DaQDfyGYFoXV11b_RfSRExwBkMCEzZBimiIe7NMQwesYYigYemrJGclZL6-nUN
-    5nH6_xmiiK7evyXwi9tI-nHYYwNuyJSE2e3okgtOjc_KJ6UT8WLB40>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdegheeflecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdfnvghonhcu
-    tfhomhgrnhhovhhskhihfdcuoehlvghonheskhgvrhhnvghlrdhorhhgqeenucggtffrrg
-    htthgvrhhnpeekgfduveffueffveduleefgfejhfevfeduueeiueetleeugeeivdfhfedv
-    geeuhfenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivg
-    eptdenucfrrghrrghmpehmrghilhhfrhhomheplhgvohhnodhmvghsmhhtphgruhhthhhp
-    vghrshhonhgrlhhithihqdduvdeftdehfeelkeegqddvjeejleejjedvkedqlhgvohhnpe
-    epkhgvrhhnvghlrdhorhhgsehlvghonhdrnhhupdhnsggprhgtphhtthhopeefiedpmhho
-    uggvpehsmhhtphhouhhtpdhrtghpthhtohepsghpsegrlhhivghnkedruggvpdhrtghpth
-    htohepthhssghoghgvnhgusegrlhhphhgrrdhfrhgrnhhkvghnrdguvgdprhgtphhtthho
-    pehrohgsihhnrdhmuhhrphhhhiesrghrmhdrtghomhdprhgtphhtthhopehlihhnuhigse
-    grrhhmlhhinhhugidrohhrghdruhhkpdhrtghpthhtoheptghhrhhishhtohhphhgvrdhl
-    vghrohihsegtshhgrhhouhhprdgvuhdprhgtphhtthhopegurghvvghmsegurghvvghmlh
-    hofhhtrdhnvghtpdhrtghpthhtohepmhhpvgesvghllhgvrhhmrghnrdhiugdrrghupdhr
-    tghpthhtohepohhlvghkshgrnhgurhgpthihshhhtghhvghnkhhosegvphgrmhdrtghomh
-    dprhgtphhtthhopegrnhgurhgvrghssehgrghishhlvghrrdgtohhm
-X-ME-Proxy: <xmx:jO9DaW3ei8lQ9gcPxNPUeQZve5kN2H4YDdliFX36bDRD9uMeDsZ4KA>
-    <xmx:jO9DaUpMFxuOPj7_hGyyy_s579il17M-kR5TgcqcXniyOzdDRg_9ow>
-    <xmx:jO9DaWJBfSyOkp-S-guhU4sCQMQj21t9ZeDTKlB6MTu_eAniobrx8g>
-    <xmx:jO9DaQMmPwxjAIxGEGDyRXW1Dza8HIb57oy-5TquwYRW4FNWdPdjfg>
-    <xmx:jO9DaU3nohCadRXkzPkJY71Xjbbz3hpclv3AJ-2YED3d89Ht1quCx0PH>
-Feedback-ID: i927946fb:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 7DD622CE0072; Thu, 18 Dec 2025 07:11:56 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V0faqMlq"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2a0bb2f093aso5995935ad.3
+        for <sparclinux@vger.kernel.org>; Thu, 18 Dec 2025 04:29:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1766060979; x=1766665779; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ffPTyuiEVHWwTCiNfJpfvcZQat/klsCzHR7/EM+Qf10=;
+        b=V0faqMlqLPPqIDrihHodxm064xbKtegyNJtiRgMAXZiuOVXmBpeYrXTmb9BvPCjerg
+         Taw59kv2VOTpN6UiZs+cJw2zdl6B01gEh8afLVbDJ85CktQEvYiDEtkNrQ9IYLDv2BFo
+         /7H6b24pELOPVll7XcIxH9k+EqsbzwjBFKht5IgGQoIQ46I5Rx48y1gH2m9GIXfqzWIX
+         04AWLPr18TwPHKKwasAdTYsGvqu+gNx/CM67i58yFMxxEeQ2l9/swRZIphbkFX4rAaMH
+         k4fbMZwr2Kaci5rm8lM6lvEahG4SE9F81CzTkCuBgINwLwlvub0pxrCz/Ir1x1LBZSbU
+         FaEg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1766060979; x=1766665779;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=ffPTyuiEVHWwTCiNfJpfvcZQat/klsCzHR7/EM+Qf10=;
+        b=Ydy9YB5LGVyr4K7G3ExDNgTTJrpnFmKyUEf7UXWDZjSYTnvlXjSPvPcCwpKvlQqFBc
+         4IoyHwlJtC2nHNF6olCLsUi7fKIOfZgjZUASz92W4thHTW0UN90GThKD7EKIdP4NLWZ1
+         nDszRe4oHqJHwLCbyleN5CwkCYCeeqdbWX6rboKViBybDJHsGHrsh0w/LjN9sqtinLVZ
+         VoO/PtefysvyxOyktT99PLK8P4yUu3iglGDqhMYGe7FA3N6hAYNvdFW9N8xRoDhiZKnG
+         HHZTam3dA3QHgl4QB6zmloUmKr/eMrqDngw2bgu5IqbNsmXAPDH91gdBS6ZOe5kJzhzj
+         h7xg==
+X-Forwarded-Encrypted: i=1; AJvYcCUzzP5VuU1DtobbQT5SqsfIjmc+7UxM1lTQ4+QZGD30iCGhsOIiMb0P4LcC0+pYZPV4rsgJozp5NGGX@vger.kernel.org
+X-Gm-Message-State: AOJu0YwC5AYkw1DMh7cgicX7GqZGHz6lfY31BBd5XT5Pb84JDF/GeOlD
+	Q+TBGycRK448nqz8iWKEZ1p3PUVD/sQTWah0csSy4jF3X+ziubced8YLnCiTzLRfz6/B7ly5Yt0
+	ckuLmQL/g7KEcW8Cvockazhrg+dy/Eig=
+X-Gm-Gg: AY/fxX62hMgOeEuYilLNnji1smSOeRHtnUWgxoLbfZp71xaIe0saslur1ME6pyphhJy
+	hB+WLJMYZ1ESEZwz1k5xmWgO35asgMqPlBIiu+xOG1iI0xBDqfThCOyjhDf/3+W9DI/zQlTqZNz
+	bKa+p/IvVpjML8AYp20oGq7RIdwVL5S7wfqKLU0cYOmGry3RVsBHn4kKxiJQsYS1bB3V6UwCbye
+	d9YsLV3A7hcRxC6bzWLAYPXKEwm1mL70hGzqgxrGm35k9+B20P6z74hwiwXGf0dpr6YyN2bUAEx
+	3WZn
+X-Google-Smtp-Source: AGHT+IEttbzL3TgeISd4JSQbWLlcIpr31jHSAc4dl7Ysmfw70BtvwM2g27MIdwEy92Jtor9ZBzlV7nCoDMgSPn0w63c=
+X-Received: by 2002:a17:903:1a03:b0:2a0:afeb:fbb6 with SMTP id
+ d9443c01a7336-2a0afec014amr148642795ad.8.1766060978829; Thu, 18 Dec 2025
+ 04:29:38 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AsrGuGndWMm3
-Date: Thu, 18 Dec 2025 14:11:35 +0200
-From: "Leon Romanovsky" <leon@kernel.org>
-To: "Guenter Roeck" <linux@roeck-us.net>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
- "Robin Murphy" <robin.murphy@arm.com>,
- "Russell King" <linux@armlinux.org.uk>,
- "Juergen Gross" <jgross@suse.com>,
- "Stefano Stabellini" <sstabellini@kernel.org>,
- "Oleksandr Tyshchenko" <oleksandr_tyshchenko@epam.com>,
- "Richard Henderson" <richard.henderson@linaro.org>,
- "Matt Turner" <mattst88@gmail.com>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Helge Deller" <deller@gmx.de>,
- "Madhavan Srinivasan" <maddy@linux.ibm.com>,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Nicholas Piggin" <npiggin@gmail.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Geoff Levand" <geoff@infradead.org>,
- "David Miller" <davem@davemloft.net>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "Thomas Gleixner" <tglx@linutronix.de>, "Ingo Molnar" <mingo@redhat.com>,
- "Borislav Petkov" <bp@alien8.de>,
- "Dave Hansen" <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, iommu@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- xen-devel@lists.xenproject.org, linux-alpha@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
- "Jason Gunthorpe" <jgg@ziepe.ca>, "Jason Gunthorpe" <jgg@nvidia.com>
-Message-Id: <77e73a01-9f7e-475b-a810-278f931910ed@app.fastmail.com>
-In-Reply-To: <20251218084002.GD39046@unreal>
-References: <20251015-remove-map-page-v5-0-3bbfe3a25cdf@kernel.org>
- <20251015-remove-map-page-v5-9-3bbfe3a25cdf@kernel.org>
- <b184f1bf-96dc-4546-8512-9cba5ecb58f7@roeck-us.net>
- <20251218084002.GD39046@unreal>
-Subject: Re: [PATCH v5 09/14] parisc: Convert DMA map_page to map_phys interface [qemu
- test failure]
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+References: <20251217120858.18713-1-pilgrimtao@gmail.com> <aUPiFbuaglcjqiB1@kernel.org>
+ <CAAWJmAaxtKY50BEm3N8V1QTwpyCgQLfLFarrVfPVVpXg9ftmcw@mail.gmail.com> <aUPvecgVj8XXBcw5@kernel.org>
+In-Reply-To: <aUPvecgVj8XXBcw5@kernel.org>
+From: Tao pilgrim <pilgrimtao@gmail.com>
+Date: Thu, 18 Dec 2025 20:29:27 +0800
+X-Gm-Features: AQt7F2qe4Pk_SuV9V8zg1gW8M29Sp6bxxmJHkeChyw-ETnoQVSTJAeHwFR1AQTE
+Message-ID: <CAAWJmAa44SF=dj+FTiXn0aZwLLGbSTAieb8Cy73RE0sGAkAYLQ@mail.gmail.com>
+Subject: Re: [PATCH] sparc: Use vmemmap_populate_hugepages for vmemmap_populate
+To: Mike Rapoport <rppt@kernel.org>
+Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org, 
+	david@kernel.org, lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, 
+	vbabka@suse.cz, surenb@google.com, mhocko@suse.com, kevin.brodsky@arm.com, 
+	dave.hansen@linux.intel.com, ziy@nvidia.com, chengkaitao@kylinos.cn, 
+	willy@infradead.org, zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-
-On Thu, Dec 18, 2025, at 10:40, Leon Romanovsky wrote:
-> On Wed, Dec 17, 2025 at 04:17:38AM -0800, Guenter Roeck wrote:
->> Hi,
->> 
->> On Wed, Oct 15, 2025 at 12:12:55PM +0300, Leon Romanovsky wrote:
->> > From: Leon Romanovsky <leonro@nvidia.com>
->> > 
->> > Perform mechanical conversion from .map_page to .map_phys callback.
->> > 
->> > Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
->> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
->> 
->> This patch causes all my 32-bit parisc qemu tests with C3700 machine
->> to fail. Network interface tests fail, and all boot attempts from
->> any kind of hard drive (scsi, usb) fail with this patch in the tree.
+On Thu, Dec 18, 2025 at 8:11=E2=80=AFPM Mike Rapoport <rppt@kernel.org> wro=
+te:
 >
-> Thanks for the report. I have a fix ready; I'll clean it up and send it out
-> by EOD.
-
-The fix is available here
-https://lore.kernel.org/all/20251218-fix-parisc-conversion-v1-1-4a04d26b0168@nvidia.com/T/#u
-
-Thanks
-
+> On Thu, Dec 18, 2025 at 07:45:52PM +0800, Tao pilgrim wrote:
+> > On Thu, Dec 18, 2025 at 7:14=E2=80=AFPM Mike Rapoport <rppt@kernel.org>=
+ wrote:
+> > >
+> > > On Wed, Dec 17, 2025 at 08:08:58PM +0800, chengkaitao wrote:
+> > > > From: Chengkaitao <chengkaitao@kylinos.cn>
+> > > >
+> > > > 1. Added the vmemmap_false_pmd function to accommodate architecture=
+s
+> > > > that do not support basepages.
+> > > > 2. In the SPARC architecture, reimplemented vmemmap_populate using
+> > > > vmemmap_populate_hugepages.
+> > >
+> > > What problem this patch is trying to solve?
+> >
+> > Following the pattern established by other architectures, vmemmap_popul=
+ate
+> > is reimplemented using vmemmap_populate_hugepages in the SPARC architec=
+ture,
+> > which fulfills the intended purpose of vmemmap_populate_hugepages.
 >
->> 
->> Guenter
+> But what's wrong with the current sparc::vmemmap_populate()?
+
+The current implementation of sparc::vmemmap_populate() is correct
+and functional.
+
+However, I believe that generalizing vmemmap_populate_hugepages()
+still results in certain architectures requiring special-case handling
+branches, which is contrary to our goal of a unified implementation.
+
+Another benefit is that it allows us to eliminate the external
+declarations of vmemmap_p?d_populate functions and convert
+them to static functions.
+
+> > The functional logic remains unchanged.
+> >
+> > > > Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+> > > > ---
+
+--=20
+Yours,
+Kaitao Cheng
