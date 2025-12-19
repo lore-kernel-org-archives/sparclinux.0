@@ -1,104 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BAB72E2846;
-	Fri, 19 Dec 2025 08:13:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA8A230270;
+	Fri, 19 Dec 2025 09:29:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766131992; cv=none; b=oNZ0GlqcgKn6CrKtrpaDLEIiIP4YVB1/OCPsSlEQViA0OxLCLPdUaE3JVQNrsOF9DIFOpMY3UoDfUx3z2XTwr+P6u0cEY3B8AdSTOqCyOxUHsyJPgpQ2xl38qmO50viYcnCXGw9QfsiNvtwvEego7U4yHMoRbqeSVlmGJjideVU=
+	t=1766136597; cv=none; b=MZCiFY0M0RCjTCu7AS0V5bfADX1sdGJPmr7KppxJzVSxX2lMsg3WL9iqmUEZu3Qsbu+/ihMtP+X/bEX2M9YqDVSVjrzH3WW5deTLOnxfBW4dXP3dkjF5hTiZU3EqWlJJyBich3jrsQLlwtslb4lLg6VBCeKo3fVIjW5vSfg897k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766131992; c=relaxed/simple;
-	bh=VHoS82AXfCFO1ejAKfSVVHRYub84nw1PWg6S5l2Exag=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=LVY5QcYHJVQ/+GlT0peSC2qjl4+57jHjORYXl8ctxeFj8fNIDujNxL6/tW3OeD9tRy/eC54+jnKQOQZJ+ONO89ndzDK3aXGzGGmcJFxtObUFG5FQjVutsppPnovYIkAtWLVK95XU2/gQ5Z8NcLemybnzLLFJUIPfI393BRKMxUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IaLW4S1t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766136597; c=relaxed/simple;
+	bh=V/6lQG6kh+DJ+F+maEx/cpf9+v1suaX8xw+gTbpt5Cs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lrbLdrRb0zj12QFI3Hq2HqPiBJN1ZKmK7pEx90OPrHSHG3YdcgYbQYCq5d9LcZfb31lUNyhSIKJZz3tn97BZI6dtWLju4nLKU+J6HC+gtb0Wh80SMp842lO3IAOmcHhGIAvRHRswWOmNlHVjdoNwiGemkNDiM3Lzgvwaxcs5vTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bWBUCWFN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IaLW4S1t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830A6C4CEF1;
-	Fri, 19 Dec 2025 08:13:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bWBUCWFN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41525C116D0;
+	Fri, 19 Dec 2025 09:29:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766131991;
-	bh=VHoS82AXfCFO1ejAKfSVVHRYub84nw1PWg6S5l2Exag=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=IaLW4S1tN6Y5d0CEwtYrP7pEFFatg4+zyVk42le/G1ucAiucsqwdqRrXSmIZwetfz
-	 2zs60fMbWBsq8viNHscFfmAKLsGTsX8ViZtlMfKG9WYxS113c6NsRFI8XmO0QqXa/c
-	 G0kwrN1ENE+XMTcx1FH3lNlIq0qG47mawO0dWLcFaANMO7XG7pRpYaBN+N0AlY0L56
-	 ULFhlpqrcbAvM1rLyzbhF9iEwedS5paG2uV9+u0arVl40hVQMgM6e0mGyCZneg8EU8
-	 smrcfl6UIkPgQ9go9rjfopU/D3bUCirJ/35nYbjYY0piCkggs9AMgBsGaHp6htqpnM
-	 PkespiJB9S78Q==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B5C24380AA50;
-	Fri, 19 Dec 2025 08:10:01 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20201202; t=1766136597;
+	bh=V/6lQG6kh+DJ+F+maEx/cpf9+v1suaX8xw+gTbpt5Cs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bWBUCWFNVeHiQZOp92aMo6bJbzBD3M61Yti8z0C2cvo71wg0c7Gm/GjgYbma3XIKE
+	 N1UEqpp2lVbUeK1kfjsENB3Aowo0dor0psKQ0UCYvTu+r/KZJkEcrl6S3yM25gTFXK
+	 SeUhIB4V40M5wckR4NtXg8/X4Sz5OAvyf06uzMdy27IdKtG9snvKJd1Mdn3Gp4G6kY
+	 uGTKpP2e0pzCzYAu7Irg6lhs6HBjpVLoekXOcawnSk3VkrWe6csdbLEAcDYQYyxqVJ
+	 HCviAwXQYxoQSZiIYwQVv20tigNKIG2g1h7aywqG4UHItiVTtXIDTUpoN9E3gGxH5Z
+	 g9MraE2fxb15A==
+Date: Fri, 19 Dec 2025 11:29:47 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: chengkaitao <pilgrimtao@gmail.com>
+Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
+	david@kernel.org, lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com, vbabka@suse.cz, surenb@google.com,
+	mhocko@suse.com, kevin.brodsky@arm.com, dave.hansen@linux.intel.com,
+	ziy@nvidia.com, chengkaitao@kylinos.cn, willy@infradead.org,
+	zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v3 0/3] Generalize vmemmap_populate_hugepages to sparc
+Message-ID: <aUUbC4QWMZn_BO8L@kernel.org>
+References: <20251218174749.45965-1-pilgrimtao@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 00/10] kbuild: userprogs: introduce
- architecture-specific CC_CAN_LINK and userprog flags
-From: patchwork-bot+linux-riscv@kernel.org
-Message-Id: 
- <176613180027.3684357.16322390150390680475.git-patchwork-notify@kernel.org>
-Date: Fri, 19 Dec 2025 08:10:00 +0000
-References: <20251014-kbuild-userprogs-bits-v2-0-faeec46e887a@linutronix.de>
-In-Reply-To: <20251014-kbuild-userprogs-bits-v2-0-faeec46e887a@linutronix.de>
-To: =?utf-8?q?Thomas_Wei=C3=9Fschuh_=3Cthomas=2Eweissschuh=40linutronix=2Ede=3E?=@aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org
-Cc: linux-riscv@lists.infradead.org, nathan@kernel.org,
- nicolas.schier@linux.dev, nsc@kernel.org, pjw@kernel.org, palmer@dabbelt.com,
- aou@eecs.berkeley.edu, alex@ghiti.fr, hca@linux.ibm.com, gor@linux.ibm.com,
- agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
- maddy@linux.ibm.com, mpe@ellerman.id.au, npiggin@gmail.com,
- christophe.leroy@csgroup.eu, tsbogend@alpha.franken.de, tglx@linutronix.de,
- mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
- hpa@zytor.com, davem@davemloft.net, andreas@gaisler.com,
- linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
- masahiroy@kernel.org, linux-s390@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org,
- sparclinux@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251218174749.45965-1-pilgrimtao@gmail.com>
 
-Hello:
+On Fri, Dec 19, 2025 at 01:47:46AM +0800, chengkaitao wrote:
+> Sparc implement vmemmap_populate using vmemmap_populate_hugepages
+> to streamline the code. Another benefit is that it allows us to
 
-This series was applied to riscv/linux.git (fixes)
-by Nicolas Schier <nsc@kernel.org>:
+If this is merged via mm tree, the cover letter would be a part of git
+history so I'd suggest slightly rephrasing the first sentence:
 
-On Tue, 14 Oct 2025 15:05:15 +0200 you wrote:
-> The current logic to inherit -m32/-m64 from the kernel build only works
-> for a few architectures. It does not handle byte order differences,
-> architectures using different compiler flags or different kinds of ABIs.
+Change sparc's implementation of vmemmap_populate() using
+vmemmap_populate_hugepages() to streamline the code.
+
+> eliminate the external declarations of vmemmap_p?d_populate
+> functions and convert them to static functions.
 > 
-> Introduce a per-architecture override mechanism to set CC_CAN_LINK and
-> the flags used for userprogs.
+> Since vmemmap_populate_hugepages may fallback to vmemmap_populate-
+> _basepages, which differs from sparc's original implementation.
+> During the v1 discussion with Mike Rapoport, sparc uses base pages
+> in the kernel page tables, so it should be able to use them in
+> vmemmap as well. Consequently, no additional special handling is
+> required.
 > 
-> [...]
+> Remove unnecessary whitespace from sparc.
+> 
+> Changes in v3:
+> - Allow sparc to fallback to vmemmap_populate_basepages
+> - Convert vmemmap_p?d_populate() to static functions
+> - Split the v1 patch
+> 
+> Changes in v2:
+> - Revert the whitespace deletions
+> - Change vmemmap_false_pmd to vmemmap_pte_fallback_allowed
+> 
+> Link to V1:
+> https://lore.kernel.org/all/20251217120858.18713-1-pilgrimtao@gmail.com/
+> 
+> Chengkaitao (3):
+>   sparc: Use vmemmap_populate_hugepages for vmemmap_populate
+>   mm: Convert vmemmap_p?d_populate() to static functions
+>   sparc: Remove unnecessary whitespace
+> 
+>  arch/sparc/mm/fault_64.c   |  4 +--
+>  arch/sparc/mm/hypersparc.S |  4 +--
+>  arch/sparc/mm/init_64.c    | 53 ++++++++++++--------------------------
+>  arch/sparc/mm/io-unit.c    | 12 ++++-----
+>  arch/sparc/mm/iommu.c      |  2 +-
+>  arch/sparc/mm/swift.S      |  2 +-
+>  arch/sparc/mm/ultra.S      |  4 +--
+>  include/linux/mm.h         |  7 -----
+>  mm/sparse-vmemmap.c        | 10 +++----
+>  9 files changed, 36 insertions(+), 62 deletions(-)
+> 
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
 
-Here is the summary with links:
-  - [v2,01/10] kbuild: don't enable CC_CAN_LINK if the dummy program generates warnings
-    https://git.kernel.org/riscv/c/d81d9d389b9b
-  - [v2,02/10] init: deduplicate cc-can-link.sh invocations
-    https://git.kernel.org/riscv/c/80623f2c83d7
-  - [v2,03/10] kbuild: allow architectures to override CC_CAN_LINK
-    (no matching commit)
-  - [v2,04/10] riscv: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,05/10] s390: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,06/10] powerpc: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,07/10] MIPS: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,08/10] x86/Kconfig: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,09/10] sparc: Implement custom CC_CAN_LINK
-    (no matching commit)
-  - [v2,10/10] kbuild: simplify CC_CAN_LINK
-    (no matching commit)
-
-You are awesome, thank you!
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Sincerely yours,
+Mike.
