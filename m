@@ -1,62 +1,64 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 127E832BF43
-	for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 11:58:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F6F32D0DA
+	for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 11:58:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766145510; cv=none; b=I7aqvBINak2Jrz7o3bK3tY/a7v/u7A/PtOsmh4XUKKoKn7wo0O58/cTTVMkCH+5PbVNw3fWBqB7CRpX8D8WahJp5614ngDv93gV7VnEEkfKVNm5WGzzFlx1bvQPuRe+PIduovWc+8qt7XvbbMYSjEL+BlQplKxk06AcIhYCzVto=
+	t=1766145519; cv=none; b=YSfArdqwz66Ipst/fVQFfFAOlTkmzzEtO04x3zr/iOgYqamETLoTiM7FitndcPDYApz2EudobDPYSCYabISKpsy6BK7PI0Ir0wQTRed4RAlTlJLm2myLzOyfSG9pJBaAt43Bt1OQ8grf5s0aZqWDJBmOeQKx7JJjwr5mRW2J0t4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766145510; c=relaxed/simple;
-	bh=6h4/cg/hBitAahRBHySYeWkoinWztbgolq8rszgHKQI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QoRjtcNk1dYFvf5+fHHXyaOMqPHhy8ad9/ln+M+BAY86GEFNohG3TQXXH3Ktm7VhUAeVcpoXH04C9PI4pGf7BQ0tgxrO2GwQnlsWec89NkbBFrzwhdUWR+nuTlOKf1D/f9n6L2l6zj9L/xeUln1MYLKxm7+crkcQ8p2Tmwwcbmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X52R/YgC; arc=none smtp.client-ip=209.85.210.179
+	s=arc-20240116; t=1766145519; c=relaxed/simple;
+	bh=3pWw4P0odQo6+R2d7TtcfhVeRyfUHqzonKgWsY3PvHU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Vxzyg9aLhgmDdRNf0zMC8PnD4iaQQY/1G8SL5asRexn1ruKrMfzbzMbIoBqE7M0d7iCA5Cyy+Vupth8z4ULzCiF0OKpF0INGuFqUX+5SO+GteGZixP/qgk3lvpv5hLoKMFm3ew3e425YTjuF5eK5pBamO5nufc+1OIqt8oBft4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=K7GJz7VO; arc=none smtp.client-ip=209.85.210.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X52R/YgC"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-7acd9a03ba9so1858574b3a.1
-        for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 03:58:28 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K7GJz7VO"
+Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-7b9215e55e6so1127486b3a.2
+        for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 03:58:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766145508; x=1766750308; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=M982etOTK0HIgjHmN9suIouTW3J7DDmDwah1Juiharc=;
-        b=X52R/YgCWfxQlVs9+K9OsojJ3zbxwAp6PlfY5WLuYVUct0yhQU7FX7qkn1xtaE1BQn
-         BYLy8AZOinVWpUzjcAwgjX9DGN/DP9FrFSQXikvUxhPQ66U2m9XW2iNFXRxSm9SDaYGF
-         vLgDMKG8pROaZVytM4BqXhGn6gbL2/906US/tXDZj2lb+nr09xspkK68DChT1PqhFx05
-         g9iTiVsdVpEa+tF53KN0lDF6YIJQZGfuJwLMZ328Pd1FVk9EFLdBst0tCBl/1Tn4DtqC
-         AUiPyaoXE2FeD5/zFUqwINqL7UH7VxKzjjmYmNoYPznWEKiSJxaIKFtLlPWdLgSrN+IV
-         J5GQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766145508; x=1766750308;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1766145516; x=1766750316; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=M982etOTK0HIgjHmN9suIouTW3J7DDmDwah1Juiharc=;
-        b=laJFkl+jE/biqii7FLyjRuyit+LkqoPMw4sqxkCzS9kZB96NYSdcJBJCLM6mnHCLo6
-         AgOwGxyoEJI3VRok2d6Ni/eImxg2Ir/ID3i8Ia5OoO4PMogkMBFZajmxFqT6uLx3XyG2
-         m0CCQ6uXgKvYxFDVlpK3x0NYmgYGdjVseJzgGkemWGQMJ6FP6Xpsu7swIl04malgamPz
-         sYFqRn/OFcfMV+EiIY547xcKra8X+0QB2Ho28t9AtUBliGCj31SeuMCbJseJzVBcDRBg
-         2nax3/j+3gIkho8NvbzzRdYV4KYYoJSxHZhC6k+GYoXfvf0fo5/dLO8eWesA/wGvN80g
-         N6aw==
-X-Forwarded-Encrypted: i=1; AJvYcCVYtnfiU1nWMm1HkrLyTSBNI5pSXIKBypsEUnuuYaEE7SOJY2LGMRMd8dkbi8lak3BpXdLgBcSDtKVT@vger.kernel.org
-X-Gm-Message-State: AOJu0YzTzGH2rz2uTAW9XlJUW236on1VZCFKp9rcpAbzcGx3iM4yYEjf
-	JngGAuPk3bGzkKTqyUDHAnEogbZYNV5PH0P85O/0WJKjNg3yBIZq58WW
-X-Gm-Gg: AY/fxX4isVjuMSYFgGAhAR5nIYwobpK1oM1lzr8bJTR1QJQ3x6v+mzZr6fU8D+7gMjA
-	fBe3M9XygA2cEjm41ZfRV0w/aCDetHCv3CxgI01PFFw9nhEcgFlfkFu8CyCwSy5dM+YLNF0e8mq
-	SOycbGYbjtoz/Rf27l4BTWUNhBVuhA9M/O+lj0Q2MwZsBIcfyEyBbk3HwIw8fuRDWgNZSgFkXik
-	z9F3qohVBqGX36SVxe2Xl2y/aImb53sXpSXNnUiK7FWqMqiQFRubJWBOFsJH3VwWDi0sCaAaSE4
-	w0YNIUtn0/eYFN5nh+Upy6JyexnDXw9nQRbNp6+cFpKKhuwck9ORpxGiSi5DM1CkDwP4vt4dh7Y
-	AatxSP+e+G+mS81IzjkvOe+FkZ7/9meJGablaMLPDBR5wSFu+tPfVNcqLb+ubkmu0jCy/fd7z0w
-	Bvmg6jc+CvqHGIC8L6KYf+7QlKdSL8c3h6FNsdgVxN1g==
-X-Google-Smtp-Source: AGHT+IEgMBfun3xWsqk3fBKYqgWJUFSdZSnFF+VmVblUrbz1oZvITOpgUCt5kp+9ojxYz1Jr4XV3Nw==
-X-Received: by 2002:a05:6a00:4295:b0:781:17fb:d3ca with SMTP id d2e1a72fcca58-7ff648e71c8mr2512389b3a.15.1766145508304;
-        Fri, 19 Dec 2025 03:58:28 -0800 (PST)
+        bh=XKBIZ7X3YGqQjD1QrQoyKYVgf0OWXgKlCuUAkiD9UlQ=;
+        b=K7GJz7VOfZ6fQMUy2/56+SzcOcM6Ts+w8/NEkoxrH4LIDueE7PpPryn3lPuOYzFH9C
+         Gd7FpQI4MmL8oNwcIIoUHpMlyge1Pue9GgMCrboIAGJeXK2KR57pIZ0R7NcngJkEbgDz
+         dPuiOFNZQCUrme59JUJEP8wHeDrrLqhh7oUu1RJ1Bpod2ipG5xB6nFYg6tg7rCXbdoLk
+         U3jWdUMy5XykfHfEQueqkZ8qCUU31kTG+D5smG0/UXCYudDKyVpg6X2l/ruJpn3lunfS
+         /dV4yWChbIraCzyU9daeyINdln/1N7WMS4W2k/VkV8VCqj/A/6mDcaS+QtR/EWI+lr+a
+         1fyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1766145516; x=1766750316;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=XKBIZ7X3YGqQjD1QrQoyKYVgf0OWXgKlCuUAkiD9UlQ=;
+        b=QWucaAEg+a+Fyr5RDXkwkCS5g6WrUC0S8DKJ6AexEqckpz6rxGR2moCKg55X4VBlXy
+         gQ0hsDoPNj5BvIB4uXXr06qTRw9qwx44uN0sBhNttKbnujVO6wSaj+okl2FhQ/MVfH9s
+         J3G5bu/jY2S4TA4R2oAy2wWxs0z7C/PySgmZ4AjEUgtk2ip1Zvd4meSGXUkaATAmkxRa
+         8iqEWVOSLDQmDmw2Vc+s/h4/2mbkhWvBBbHRedoTHBQaOOAJ0B5aEpC8DPJj659I31mP
+         mccMlxNTV6HUh8OBjVdk68RFOrvETCNeOUVdqWKTM/JbYH6AnnZGRBRxitZKRzfWgCkr
+         zktg==
+X-Forwarded-Encrypted: i=1; AJvYcCXftPtmzvZcp4U5S6lXlRi356rKjUeWs0Xl/Ll8ldm1CvoT7hG6lP2GH0zW972q1O2pBIAXfxfHaaf1@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxdl43t9WaV8wR/jlfeQ0ELN9XorC7w+oaKbRc5/ZM8vHYKr/Om
+	YsiSKwJpVg4OC/BZ/PYzA9Rk5YnGmion0P66GgQGQ20y70JjrCWoIYYp
+X-Gm-Gg: AY/fxX4FaK8pb9MzA3TwzZ4EEmARzcaEjgaF5jeio1kCTPVrHxWOgMafIMXvGstUb/F
+	9cwZAmnYho0bqmkYoLlqu/mmc16mCKyyqtN4lIr4kEQmFR6eNGxaGVruujvQ4RIj5pR6meylpVO
+	nbHkA39AK8wMmCOGtrWFgpi3um1q5Deg3uPjfzLrJhY88ZolhGFEyToyxp5HoeQC4fV+ZOiyGCZ
+	I14ixBxoY6t7/FTR9tZT13FCLm/V1ARyZ27L3u/jgHWwIT7YG7rOySxAf7FFXKkcqhcgxqXCVC2
+	alMM4PvJwmpiUmqkbpbWPy26HsI+3b3gZ7KEthJIf4upZHBwLp4NDDRUjdOvPJR84AxOc8NNKwc
+	f6Ad4uVPy77lrdEZrVvfABHeSHUNGfqeoR8agAJIh2n0jq54GFnP/gIHnL9AT3UdrGM9GsYD7Qs
+	mQivHobzUt72dLK+ZGiqbGi4AuzHuWm6AmZhxSwHd21IM9tIlBPJZQ
+X-Google-Smtp-Source: AGHT+IGo8qcsBU7nnRMisHe+3/ZdYryGUHrh6G2oCtGYAIPB39ve/9QZxztOzFs0p/0RxiDANxcA3Q==
+X-Received: by 2002:a05:6a00:801b:b0:7e8:4587:e8cf with SMTP id d2e1a72fcca58-7ff66a6ea42mr2101088b3a.66.1766145515736;
+        Fri, 19 Dec 2025 03:58:35 -0800 (PST)
 Received: from localhost.localdomain ([116.128.244.171])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7ff7b127b00sm2258560b3a.21.2025.12.19.03.58.19
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7ff7b127b00sm2258560b3a.21.2025.12.19.03.58.28
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 19 Dec 2025 03:58:27 -0800 (PST)
+        Fri, 19 Dec 2025 03:58:35 -0800 (PST)
 From: chengkaitao <pilgrimtao@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com,
@@ -76,12 +78,13 @@ Cc: kevin.brodsky@arm.com,
 	zhengqi.arch@bytedance.com,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	chengkaitao <pilgrimtao@gmail.com>
-Subject: [PATCH v4 0/3] Generalize vmemmap_populate_hugepages to sparc
-Date: Fri, 19 Dec 2025 19:58:09 +0800
-Message-ID: <20251219115812.65855-1-pilgrimtao@gmail.com>
+	linux-mm@kvack.org
+Subject: [PATCH v4 1/3] sparc: Use vmemmap_populate_hugepages for vmemmap_populate
+Date: Fri, 19 Dec 2025 19:58:10 +0800
+Message-ID: <20251219115812.65855-2-pilgrimtao@gmail.com>
 X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20251219115812.65855-1-pilgrimtao@gmail.com>
+References: <20251219115812.65855-1-pilgrimtao@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -90,57 +93,87 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Change sparc's implementation of vmemmap_populate() using
-vmemmap_populate_hugepages() to streamline the code. Another
-benefit is that it allows us to eliminate the external declarations
-of vmemmap_p?d_populate functions and convert them to static functions.
+From: Chengkaitao <chengkaitao@kylinos.cn>
 
-Since vmemmap_populate_hugepages may fallback to vmemmap_populate-
-_basepages, which differs from sparc's original implementation.
-During the v1 discussion with Mike Rapoport, sparc uses base pages
-in the kernel page tables, so it should be able to use them in
-vmemmap as well. Consequently, no additional special handling is
-required.
+1. In the SPARC architecture, reimplemented vmemmap_populate using
+vmemmap_populate_hugepages.
+2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
+when vmemmap_alloc_block returns NULL.
 
-Remove unnecessary whitespace from sparc.
+Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+---
+ arch/sparc/mm/init_64.c | 47 ++++++++++++++---------------------------
+ 1 file changed, 16 insertions(+), 31 deletions(-)
 
-Changes in v4:
-- Add commit message
-- Add verification that pmd actually maps a large page in the
-vmemmap_check_pmd function
-
-Changes in v3:
-- Allow sparc to fallback to vmemmap_populate_basepages
-- Convert vmemmap_p?d_populate() to static functions
-- Split the v1 patch
-
-Changes in v2:
-- Revert the whitespace deletions
-- Change vmemmap_false_pmd to vmemmap_pte_fallback_allowed
-
-Link to V3:
-https://lore.kernel.org/all/20251218174749.45965-1-pilgrimtao@gmail.com/
-Link to V2:
-https://lore.kernel.org/all/20251218130957.36892-1-pilgrimtao@gmail.com/
-Link to V1:
-https://lore.kernel.org/all/20251217120858.18713-1-pilgrimtao@gmail.com/
-
-Chengkaitao (3):
-  sparc: Use vmemmap_populate_hugepages for vmemmap_populate
-  mm: Convert vmemmap_p?d_populate() to static functions
-  sparc: Remove unnecessary whitespace
-
- arch/sparc/mm/fault_64.c   |  4 +--
- arch/sparc/mm/hypersparc.S |  4 +--
- arch/sparc/mm/init_64.c    | 53 ++++++++++++++------------------------
- arch/sparc/mm/io-unit.c    | 12 ++++-----
- arch/sparc/mm/iommu.c      |  2 +-
- arch/sparc/mm/swift.S      |  2 +-
- arch/sparc/mm/ultra.S      |  4 +--
- include/linux/mm.h         |  7 -----
- mm/sparse-vmemmap.c        | 10 +++----
- 9 files changed, 38 insertions(+), 60 deletions(-)
-
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index df9f7c444c39..858eaa6615ea 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+ EXPORT_SYMBOL(_PAGE_CACHE);
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+-			       int node, struct vmem_altmap *altmap)
++void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++			       unsigned long addr, unsigned long next)
+ {
+ 	unsigned long pte_base;
+ 
+@@ -2595,39 +2595,24 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 
+ 	pte_base |= _PAGE_PMD_HUGE;
+ 
+-	vstart = vstart & PMD_MASK;
+-	vend = ALIGN(vend, PMD_SIZE);
+-	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+-		unsigned long pte;
+-		p4d_t *p4d;
+-		pud_t *pud;
+-		pmd_t *pmd;
+-
+-		if (!pgd)
+-			return -ENOMEM;
+-
+-		p4d = vmemmap_p4d_populate(pgd, vstart, node);
+-		if (!p4d)
+-			return -ENOMEM;
+-
+-		pud = vmemmap_pud_populate(p4d, vstart, node);
+-		if (!pud)
+-			return -ENOMEM;
++	pmd_val(*pmd) = pte_base | __pa(p);
++}
+ 
+-		pmd = pmd_offset(pud, vstart);
+-		pte = pmd_val(*pmd);
+-		if (!(pte & _PAGE_VALID)) {
+-			void *block = vmemmap_alloc_block(PMD_SIZE, node);
++int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
++				unsigned long addr, unsigned long next)
++{
++	int large = pmd_leaf(*pmdp);
+ 
+-			if (!block)
+-				return -ENOMEM;
++	if (large)
++		vmemmap_verify((pte_t *)pmdp, node, addr, next);
+ 
+-			pmd_val(*pmd) = pte_base | __pa(block);
+-		}
+-	}
++	return large;
++}
+ 
+-	return 0;
++int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
++			       int node, struct vmem_altmap *altmap)
++{
++	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+ }
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
 -- 
 2.50.1 (Apple Git-155)
 
