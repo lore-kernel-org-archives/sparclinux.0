@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA8A230270;
-	Fri, 19 Dec 2025 09:29:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7774B1CD2C;
+	Fri, 19 Dec 2025 09:33:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766136597; cv=none; b=MZCiFY0M0RCjTCu7AS0V5bfADX1sdGJPmr7KppxJzVSxX2lMsg3WL9iqmUEZu3Qsbu+/ihMtP+X/bEX2M9YqDVSVjrzH3WW5deTLOnxfBW4dXP3dkjF5hTiZU3EqWlJJyBich3jrsQLlwtslb4lLg6VBCeKo3fVIjW5vSfg897k=
+	t=1766136814; cv=none; b=u9x7Ngv2/FzGgOVRClDMih/z9LUZK849ISXXOJNBsCBRtAAO7QtIPrFYBaPelbJIjPXHM6oH0BeVV+/ssPh2sW9MWMHV238FDW9G8pfjm2irdc9V/PRxUgndNWdDGUGmJ8oMosTU9zGPPPeH6N2ShSmDYFLPkAy+pzL4tV19t8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766136597; c=relaxed/simple;
-	bh=V/6lQG6kh+DJ+F+maEx/cpf9+v1suaX8xw+gTbpt5Cs=;
+	s=arc-20240116; t=1766136814; c=relaxed/simple;
+	bh=8gogU4puAS1Eixl5xxRff+w5BC9Gk8ktr3c7vX414Ek=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lrbLdrRb0zj12QFI3Hq2HqPiBJN1ZKmK7pEx90OPrHSHG3YdcgYbQYCq5d9LcZfb31lUNyhSIKJZz3tn97BZI6dtWLju4nLKU+J6HC+gtb0Wh80SMp842lO3IAOmcHhGIAvRHRswWOmNlHVjdoNwiGemkNDiM3Lzgvwaxcs5vTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bWBUCWFN; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=W7CsehCAJuCSYIbyCKHbAB1RwJeFLX/ABwVgCyD1WnbEJJJCCOYQe9fn7WkKgVHGwftfp16cMVHHha9Ani3eNG6I0Ig1MkBJEXjKhk5BnbcSTknfD00bCRYu1aOdi4+Q4gbAm+Sd4tQR/BFkZMcsSHfBHcxVV+g9Z8LjC7ZuFI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zuh6QYOA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bWBUCWFN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41525C116D0;
-	Fri, 19 Dec 2025 09:29:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zuh6QYOA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 862DCC116D0;
+	Fri, 19 Dec 2025 09:33:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766136597;
-	bh=V/6lQG6kh+DJ+F+maEx/cpf9+v1suaX8xw+gTbpt5Cs=;
+	s=k20201202; t=1766136814;
+	bh=8gogU4puAS1Eixl5xxRff+w5BC9Gk8ktr3c7vX414Ek=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bWBUCWFNVeHiQZOp92aMo6bJbzBD3M61Yti8z0C2cvo71wg0c7Gm/GjgYbma3XIKE
-	 N1UEqpp2lVbUeK1kfjsENB3Aowo0dor0psKQ0UCYvTu+r/KZJkEcrl6S3yM25gTFXK
-	 SeUhIB4V40M5wckR4NtXg8/X4Sz5OAvyf06uzMdy27IdKtG9snvKJd1Mdn3Gp4G6kY
-	 uGTKpP2e0pzCzYAu7Irg6lhs6HBjpVLoekXOcawnSk3VkrWe6csdbLEAcDYQYyxqVJ
-	 HCviAwXQYxoQSZiIYwQVv20tigNKIG2g1h7aywqG4UHItiVTtXIDTUpoN9E3gGxH5Z
-	 g9MraE2fxb15A==
-Date: Fri, 19 Dec 2025 11:29:47 +0200
+	b=Zuh6QYOAWUvaiFNc1+kuSjpiYs3pjbjJ3Csu4iZZciekNaLP+wHcr3huE7B51cq7A
+	 XCy2GoY/9siUVelznccVcqkr/TOAdqEbIOjTScA7H+NXGQieAGDI8ze/HFfBK+RP3i
+	 55TnbAvYDcT+pVGl74NAqmFDb/zu2OWf5hM7dKB5JHfZ7ZRAotDMLnCfEV9YDnYXTt
+	 brZSd34Bi5e9O+BZm1bKE/WZEQ/W38LIcPpJiwBR+eIPQSq4g1cjXqONwl/1GhC+HP
+	 tE76QBIZCXDJiQm93GUZ4FaAWIqXdm7QfhkMauUB0ng04S1xfsNoKeZ7HGARq3jpkb
+	 F1zkulauKJObA==
+Date: Fri, 19 Dec 2025 11:33:25 +0200
 From: Mike Rapoport <rppt@kernel.org>
 To: chengkaitao <pilgrimtao@gmail.com>
 Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
@@ -36,9 +36,11 @@ Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
 	ziy@nvidia.com, chengkaitao@kylinos.cn, willy@infradead.org,
 	zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v3 0/3] Generalize vmemmap_populate_hugepages to sparc
-Message-ID: <aUUbC4QWMZn_BO8L@kernel.org>
+Subject: Re: [PATCH v3 1/3] sparc: Use vmemmap_populate_hugepages for
+ vmemmap_populate
+Message-ID: <aUUb5RvsLLfPlrcN@kernel.org>
 References: <20251218174749.45965-1-pilgrimtao@gmail.com>
+ <20251218174749.45965-2-pilgrimtao@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -47,58 +49,92 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251218174749.45965-1-pilgrimtao@gmail.com>
+In-Reply-To: <20251218174749.45965-2-pilgrimtao@gmail.com>
 
-On Fri, Dec 19, 2025 at 01:47:46AM +0800, chengkaitao wrote:
-> Sparc implement vmemmap_populate using vmemmap_populate_hugepages
-> to streamline the code. Another benefit is that it allows us to
+On Fri, Dec 19, 2025 at 01:47:47AM +0800, chengkaitao wrote:
+> From: Chengkaitao <chengkaitao@kylinos.cn>
+> 
+> 1. In the SPARC architecture, reimplemented vmemmap_populate using
+> vmemmap_populate_hugepages.
+> 2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
+> when vmemmap_alloc_block returns NULL.
+> 
+> Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+> ---
+>  arch/sparc/mm/init_64.c | 47 ++++++++++++-----------------------------
+>  1 file changed, 14 insertions(+), 33 deletions(-)
+> 
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index df9f7c444c39..f477ab1b4f08 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+>  EXPORT_SYMBOL(_PAGE_CACHE);
+>  
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> -int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> -			       int node, struct vmem_altmap *altmap)
+> +void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+> +			       unsigned long addr, unsigned long next)
+>  {
+>  	unsigned long pte_base;
+>  
+> @@ -2595,39 +2595,20 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+>  
+>  	pte_base |= _PAGE_PMD_HUGE;
+>  
+> -	vstart = vstart & PMD_MASK;
+> -	vend = ALIGN(vend, PMD_SIZE);
+> -	for (; vstart < vend; vstart += PMD_SIZE) {
+> -		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+> -		unsigned long pte;
+> -		p4d_t *p4d;
+> -		pud_t *pud;
+> -		pmd_t *pmd;
+> -
+> -		if (!pgd)
+> -			return -ENOMEM;
+> -
+> -		p4d = vmemmap_p4d_populate(pgd, vstart, node);
+> -		if (!p4d)
+> -			return -ENOMEM;
+> -
+> -		pud = vmemmap_pud_populate(p4d, vstart, node);
+> -		if (!pud)
+> -			return -ENOMEM;
+> -
+> -		pmd = pmd_offset(pud, vstart);
+> -		pte = pmd_val(*pmd);
+> -		if (!(pte & _PAGE_VALID)) {
+> -			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+> -
+> -			if (!block)
+> -				return -ENOMEM;
+> +	pmd_val(*pmd) = pte_base | __pa(p);
+> +}
+>  
+> -			pmd_val(*pmd) = pte_base | __pa(block);
+> -		}
+> -	}
+> +int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+> +				unsigned long addr, unsigned long next)
+> +{
+> +	vmemmap_verify((pte_t *)pmdp, node, addr, next);
+> +	return 1;
 
-If this is merged via mm tree, the cover letter would be a part of git
-history so I'd suggest slightly rephrasing the first sentence:
+This should return 1 only if the pmd actually maps a large page, see x86
+and powerpc implementations for example.
 
-Change sparc's implementation of vmemmap_populate() using
-vmemmap_populate_hugepages() to streamline the code.
-
-> eliminate the external declarations of vmemmap_p?d_populate
-> functions and convert them to static functions.
-> 
-> Since vmemmap_populate_hugepages may fallback to vmemmap_populate-
-> _basepages, which differs from sparc's original implementation.
-> During the v1 discussion with Mike Rapoport, sparc uses base pages
-> in the kernel page tables, so it should be able to use them in
-> vmemmap as well. Consequently, no additional special handling is
-> required.
-> 
-> Remove unnecessary whitespace from sparc.
-> 
-> Changes in v3:
-> - Allow sparc to fallback to vmemmap_populate_basepages
-> - Convert vmemmap_p?d_populate() to static functions
-> - Split the v1 patch
-> 
-> Changes in v2:
-> - Revert the whitespace deletions
-> - Change vmemmap_false_pmd to vmemmap_pte_fallback_allowed
-> 
-> Link to V1:
-> https://lore.kernel.org/all/20251217120858.18713-1-pilgrimtao@gmail.com/
-> 
-> Chengkaitao (3):
->   sparc: Use vmemmap_populate_hugepages for vmemmap_populate
->   mm: Convert vmemmap_p?d_populate() to static functions
->   sparc: Remove unnecessary whitespace
-> 
->  arch/sparc/mm/fault_64.c   |  4 +--
->  arch/sparc/mm/hypersparc.S |  4 +--
->  arch/sparc/mm/init_64.c    | 53 ++++++++++++--------------------------
->  arch/sparc/mm/io-unit.c    | 12 ++++-----
->  arch/sparc/mm/iommu.c      |  2 +-
->  arch/sparc/mm/swift.S      |  2 +-
->  arch/sparc/mm/ultra.S      |  4 +--
->  include/linux/mm.h         |  7 -----
->  mm/sparse-vmemmap.c        | 10 +++----
->  9 files changed, 36 insertions(+), 62 deletions(-)
-> 
+> +}
+>  
+> -	return 0;
+> +int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> +			       int node, struct vmem_altmap *altmap)
+> +{
+> +	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+>  }
+>  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+>  
 > -- 
 > 2.50.1 (Apple Git-155)
 > 
