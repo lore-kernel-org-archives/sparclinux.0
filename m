@@ -1,64 +1,64 @@
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F6F32D0DA
-	for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 11:58:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 273A932E14D
+	for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 11:58:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766145519; cv=none; b=YSfArdqwz66Ipst/fVQFfFAOlTkmzzEtO04x3zr/iOgYqamETLoTiM7FitndcPDYApz2EudobDPYSCYabISKpsy6BK7PI0Ir0wQTRed4RAlTlJLm2myLzOyfSG9pJBaAt43Bt1OQ8grf5s0aZqWDJBmOeQKx7JJjwr5mRW2J0t4=
+	t=1766145525; cv=none; b=W8hldGM3dz5Qhv+151EylnMbt/s/VzpzBkLif4TN9LRT+B+Fr+xUeKJzVJgRpfMu2ffl+oH4TUCGLYeIYk4og6zPeOlNmbhQQG0/vukqJlhx08h0tt1dmsSwUCt0FJH+qULI5G1nDYqPM27vfdOaeQlz/XBTfnS6ERhqBECFQA0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766145519; c=relaxed/simple;
-	bh=3pWw4P0odQo6+R2d7TtcfhVeRyfUHqzonKgWsY3PvHU=;
+	s=arc-20240116; t=1766145525; c=relaxed/simple;
+	bh=JSNCFCGCnTJ5C/s6JqxpKX2kZcgQfa5SddswCGob0dU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Vxzyg9aLhgmDdRNf0zMC8PnD4iaQQY/1G8SL5asRexn1ruKrMfzbzMbIoBqE7M0d7iCA5Cyy+Vupth8z4ULzCiF0OKpF0INGuFqUX+5SO+GteGZixP/qgk3lvpv5hLoKMFm3ew3e425YTjuF5eK5pBamO5nufc+1OIqt8oBft4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=K7GJz7VO; arc=none smtp.client-ip=209.85.210.175
+	 MIME-Version; b=mn8BgDBaE+nj03JU5ynL9xoM9WtC8fBwkZ/wwvLExPhxM6cCeCfPsrk/Loq7F0Cx5UafhvlG0zNznnNxZlwlyg5R3/OpqPgJ/2umAk1rJduLHxHpJEeqiu0x1ChM7MRBbnXEb/+dQ0/lNkIohxIRjql+W1M1UTrZ2a2Us/ORHsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WgDIjA5x; arc=none smtp.client-ip=209.85.210.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K7GJz7VO"
-Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-7b9215e55e6so1127486b3a.2
-        for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 03:58:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WgDIjA5x"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-7acd9a03ba9so1858779b3a.1
+        for <sparclinux@vger.kernel.org>; Fri, 19 Dec 2025 03:58:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766145516; x=1766750316; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1766145523; x=1766750323; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=XKBIZ7X3YGqQjD1QrQoyKYVgf0OWXgKlCuUAkiD9UlQ=;
-        b=K7GJz7VOfZ6fQMUy2/56+SzcOcM6Ts+w8/NEkoxrH4LIDueE7PpPryn3lPuOYzFH9C
-         Gd7FpQI4MmL8oNwcIIoUHpMlyge1Pue9GgMCrboIAGJeXK2KR57pIZ0R7NcngJkEbgDz
-         dPuiOFNZQCUrme59JUJEP8wHeDrrLqhh7oUu1RJ1Bpod2ipG5xB6nFYg6tg7rCXbdoLk
-         U3jWdUMy5XykfHfEQueqkZ8qCUU31kTG+D5smG0/UXCYudDKyVpg6X2l/ruJpn3lunfS
-         /dV4yWChbIraCzyU9daeyINdln/1N7WMS4W2k/VkV8VCqj/A/6mDcaS+QtR/EWI+lr+a
-         1fyQ==
+        bh=kVePrI9HNUUUrQXi6c3AiF1RzNZZo1pMhE3QtRBD0Es=;
+        b=WgDIjA5x5ycgzUxrH9NKVaQ1T2vjigrdswo90qXMg/MY/aN+xJDukQSKInWsuwxcHE
+         JqKjzZwFJ6BzZHRi2v1SRE8Qo0ZofiHhV240ReCj76Udonsw6I1zyJTe6VmGbm4o//W7
+         xJZ3AVZ34qfwXK0vVo6hiW4JJrsC+MlEyOQHgBy4aZ5rwbcTCzI83B6qCOs/J4rx6s6k
+         tIhD3pQ1QwifCruuG0/1/mqGgpjilbSv1mX1cWxgdC7bEzAWS15wxmUqL6ly+imY9D4O
+         kJjAFzvf+QoZsiiHocoSNVWJukQm8qOOloJ7AXPkYZUywSVjPjzwvSQGLKGbhkc1Z4YI
+         YB8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766145516; x=1766750316;
+        d=1e100.net; s=20230601; t=1766145523; x=1766750323;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=XKBIZ7X3YGqQjD1QrQoyKYVgf0OWXgKlCuUAkiD9UlQ=;
-        b=QWucaAEg+a+Fyr5RDXkwkCS5g6WrUC0S8DKJ6AexEqckpz6rxGR2moCKg55X4VBlXy
-         gQ0hsDoPNj5BvIB4uXXr06qTRw9qwx44uN0sBhNttKbnujVO6wSaj+okl2FhQ/MVfH9s
-         J3G5bu/jY2S4TA4R2oAy2wWxs0z7C/PySgmZ4AjEUgtk2ip1Zvd4meSGXUkaATAmkxRa
-         8iqEWVOSLDQmDmw2Vc+s/h4/2mbkhWvBBbHRedoTHBQaOOAJ0B5aEpC8DPJj659I31mP
-         mccMlxNTV6HUh8OBjVdk68RFOrvETCNeOUVdqWKTM/JbYH6AnnZGRBRxitZKRzfWgCkr
-         zktg==
-X-Forwarded-Encrypted: i=1; AJvYcCXftPtmzvZcp4U5S6lXlRi356rKjUeWs0Xl/Ll8ldm1CvoT7hG6lP2GH0zW972q1O2pBIAXfxfHaaf1@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxdl43t9WaV8wR/jlfeQ0ELN9XorC7w+oaKbRc5/ZM8vHYKr/Om
-	YsiSKwJpVg4OC/BZ/PYzA9Rk5YnGmion0P66GgQGQ20y70JjrCWoIYYp
-X-Gm-Gg: AY/fxX4FaK8pb9MzA3TwzZ4EEmARzcaEjgaF5jeio1kCTPVrHxWOgMafIMXvGstUb/F
-	9cwZAmnYho0bqmkYoLlqu/mmc16mCKyyqtN4lIr4kEQmFR6eNGxaGVruujvQ4RIj5pR6meylpVO
-	nbHkA39AK8wMmCOGtrWFgpi3um1q5Deg3uPjfzLrJhY88ZolhGFEyToyxp5HoeQC4fV+ZOiyGCZ
-	I14ixBxoY6t7/FTR9tZT13FCLm/V1ARyZ27L3u/jgHWwIT7YG7rOySxAf7FFXKkcqhcgxqXCVC2
-	alMM4PvJwmpiUmqkbpbWPy26HsI+3b3gZ7KEthJIf4upZHBwLp4NDDRUjdOvPJR84AxOc8NNKwc
-	f6Ad4uVPy77lrdEZrVvfABHeSHUNGfqeoR8agAJIh2n0jq54GFnP/gIHnL9AT3UdrGM9GsYD7Qs
-	mQivHobzUt72dLK+ZGiqbGi4AuzHuWm6AmZhxSwHd21IM9tIlBPJZQ
-X-Google-Smtp-Source: AGHT+IGo8qcsBU7nnRMisHe+3/ZdYryGUHrh6G2oCtGYAIPB39ve/9QZxztOzFs0p/0RxiDANxcA3Q==
-X-Received: by 2002:a05:6a00:801b:b0:7e8:4587:e8cf with SMTP id d2e1a72fcca58-7ff66a6ea42mr2101088b3a.66.1766145515736;
-        Fri, 19 Dec 2025 03:58:35 -0800 (PST)
+        bh=kVePrI9HNUUUrQXi6c3AiF1RzNZZo1pMhE3QtRBD0Es=;
+        b=JnTr8g/YE7QqHeSQIsp5pQFc7sTECoE00CzD2jAQyJVUJ1iO9PzAthywfvA5h9/hKi
+         GLc9K5enaNpQlnxLbJH2XVkWs4nu6b0FYHn6zElHEs2o3Bpar0K5EwBnMXv/xUanIJGb
+         kqG6ub6C2JfddzmVsxusWPUfOCI/1lycoxoDfFvjrTwdjQ7fifwewFwUwcnFYTihOAyd
+         GrtVRuJPm41/HmbEvEOsBWdgph6u/fx3WI9IjURGkP/UuNjfl763ceRjjf3rXJbZVFcJ
+         DPuUjsjxHvGucvJ2+C1F7t3PDCnqoY1OS/h/vp/DAC8eUbbmlcRp7Jwv9Tz9HUjTG+gn
+         R78Q==
+X-Forwarded-Encrypted: i=1; AJvYcCU7HSSVfE6DNN8/rF9pGX/e6C+VVD9lbKGwf7BCS0zslf69nzu8Lr1NXiWtsAnA4RC8Bzd8rWiDWWBg@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxw+2pYU5pHR3PQt2tCftb6lxJzaaaBkzhRMroy7SjMh8lvQLxW
+	wpMx46fvUDh5jdAsbsyPcZNiVUdcJ1GK4hsJ8lWqqLYUJ9D5fZw4fpxe
+X-Gm-Gg: AY/fxX51DbMK316pgJXZbGSvg53y0lDUN57RtFxMpDFmJV5N1/YOElJ9sdg1jAYuxbt
+	UWOdqis4XsnJNmt5qapuQAEzJo7Nrzbov/J7MNUYk2EGwiwUJXUJMvnXFiFF/smU2aelQBhJBWj
+	qqGRtbIlSqDEGBXBaDEBDp3NBvGXm1AmFVjptniijylkG3WA584xOP7onhgLo9oXcfdiXZLKcVk
+	fdW9+RC8tFnkyGBdTAoqOYwYlg2uyNbUXjHjJ6cBCL8UQr55OvQCmoEq9zKZLp0LJCm4leT4PQ3
+	jNgl25s7rpnafeoSRJdYt/5zXnOSQmcS6FQr7PGbQNoU0Cgm2XAy0cI1Q35QQt2IY7bkgU+LkO4
+	fWPG0fkV0DvqdJL7pbk0jsH846N551Bhz4idnbcnXUg3i8JG55ekQ+ZLrA/puRJK2xPcW8VbQHK
+	ChLFOSJrIlU7Uw0/mDGJCbpUNsO1KMihvrUC0OlQujug==
+X-Google-Smtp-Source: AGHT+IEssKL24IcA70xxc4mhVvvw4D6teK050VKbdzvFCYfVJoKpYEGbrW4olo5yzEO8AY5fL8eV1g==
+X-Received: by 2002:a05:6a00:1bca:b0:7e8:4398:b358 with SMTP id d2e1a72fcca58-7ff6607b228mr1844327b3a.43.1766145523337;
+        Fri, 19 Dec 2025 03:58:43 -0800 (PST)
 Received: from localhost.localdomain ([116.128.244.171])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7ff7b127b00sm2258560b3a.21.2025.12.19.03.58.28
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7ff7b127b00sm2258560b3a.21.2025.12.19.03.58.36
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 19 Dec 2025 03:58:35 -0800 (PST)
+        Fri, 19 Dec 2025 03:58:43 -0800 (PST)
 From: chengkaitao <pilgrimtao@gmail.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com,
@@ -79,9 +79,9 @@ Cc: kevin.brodsky@arm.com,
 	sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [PATCH v4 1/3] sparc: Use vmemmap_populate_hugepages for vmemmap_populate
-Date: Fri, 19 Dec 2025 19:58:10 +0800
-Message-ID: <20251219115812.65855-2-pilgrimtao@gmail.com>
+Subject: [PATCH v4 2/3] mm: Convert vmemmap_p?d_populate() to static functions
+Date: Fri, 19 Dec 2025 19:58:11 +0800
+Message-ID: <20251219115812.65855-3-pilgrimtao@gmail.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20251219115812.65855-1-pilgrimtao@gmail.com>
 References: <20251219115812.65855-1-pilgrimtao@gmail.com>
@@ -95,85 +95,83 @@ Content-Transfer-Encoding: 8bit
 
 From: Chengkaitao <chengkaitao@kylinos.cn>
 
-1. In the SPARC architecture, reimplemented vmemmap_populate using
-vmemmap_populate_hugepages.
-2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
-when vmemmap_alloc_block returns NULL.
+Since the vmemmap_p?d_populate functions are unused outside the mm
+subsystem, we can remove their external declarations and convert
+them to static functions.
 
 Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
 ---
- arch/sparc/mm/init_64.c | 47 ++++++++++++++---------------------------
- 1 file changed, 16 insertions(+), 31 deletions(-)
+ include/linux/mm.h  |  7 -------
+ mm/sparse-vmemmap.c | 10 +++++-----
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index df9f7c444c39..858eaa6615ea 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
- EXPORT_SYMBOL(_PAGE_CACHE);
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
--			       int node, struct vmem_altmap *altmap)
-+void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-+			       unsigned long addr, unsigned long next)
- {
- 	unsigned long pte_base;
- 
-@@ -2595,39 +2595,24 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
- 
- 	pte_base |= _PAGE_PMD_HUGE;
- 
--	vstart = vstart & PMD_MASK;
--	vend = ALIGN(vend, PMD_SIZE);
--	for (; vstart < vend; vstart += PMD_SIZE) {
--		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
--		unsigned long pte;
--		p4d_t *p4d;
--		pud_t *pud;
--		pmd_t *pmd;
--
--		if (!pgd)
--			return -ENOMEM;
--
--		p4d = vmemmap_p4d_populate(pgd, vstart, node);
--		if (!p4d)
--			return -ENOMEM;
--
--		pud = vmemmap_pud_populate(p4d, vstart, node);
--		if (!pud)
--			return -ENOMEM;
-+	pmd_val(*pmd) = pte_base | __pa(p);
-+}
- 
--		pmd = pmd_offset(pud, vstart);
--		pte = pmd_val(*pmd);
--		if (!(pte & _PAGE_VALID)) {
--			void *block = vmemmap_alloc_block(PMD_SIZE, node);
-+int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
-+				unsigned long addr, unsigned long next)
-+{
-+	int large = pmd_leaf(*pmdp);
- 
--			if (!block)
--				return -ENOMEM;
-+	if (large)
-+		vmemmap_verify((pte_t *)pmdp, node, addr, next);
- 
--			pmd_val(*pmd) = pte_base | __pa(block);
--		}
--	}
-+	return large;
-+}
- 
--	return 0;
-+int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
-+			       int node, struct vmem_altmap *altmap)
-+{
-+	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 15076261d0c2..d98a38a6ac0e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -4234,13 +4234,6 @@ unsigned long section_map_size(void);
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+-pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+-p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+-pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+-pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+-pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-			    struct vmem_altmap *altmap, unsigned long ptpfn,
+-			    unsigned long flags);
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index 37522d6cb398..67f9a08c2376 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -151,7 +151,7 @@ void __meminit vmemmap_verify(pte_t *pte, int node,
+ 			start, end - 1);
  }
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
  
+-pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
++static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+ 				       struct vmem_altmap *altmap,
+ 				       unsigned long ptpfn, unsigned long flags)
+ {
+@@ -195,7 +195,7 @@ static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
+ 	return p;
+ }
+ 
+-pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
++static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	if (pmd_none(*pmd)) {
+@@ -208,7 +208,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ 	return pmd;
+ }
+ 
+-pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
++static pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+@@ -221,7 +221,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ 	return pud;
+ }
+ 
+-p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
++static p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+@@ -234,7 +234,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ 	return p4d;
+ }
+ 
+-pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
++static pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ {
+ 	pgd_t *pgd = pgd_offset_k(addr);
+ 	if (pgd_none(*pgd)) {
 -- 
 2.50.1 (Apple Git-155)
 
