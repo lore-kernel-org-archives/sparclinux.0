@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0991FB1;
-	Sun, 28 Dec 2025 21:00:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4391FB1;
+	Sun, 28 Dec 2025 21:01:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766955647; cv=none; b=QMu/aun7xabNcUWOodIIjz7GzIyJlmJqBNHc6aBOeQFx17jCMyfF1bOEBKLEyhPNgjE7FZ+8GnTnXxryvCiGF1rEVmYqqTVqzQfvy7oEJvtAN3tTeyUqEFPCDcTIahFGbaM9nWfBGsPK1YVv1xQ0oph/8wUWGH27qACgfHaeT7Y=
+	t=1766955694; cv=none; b=LadPM6g4VwojDxPtH/FYlWQDFFibyW9lgFv/F6X65Jw9oUHjMISVNNACVyrBNOanEH+th5+jjaPqtX+2ah4Ska0XSr8jk2U/tNX0iVglbUBWLS4ccXcCKrc4EByhqAsokTwlLf5ptJaxopAFWF0N3W0EXI6LLEs8vvAGk1foYDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766955647; c=relaxed/simple;
-	bh=D9/7cYqcpU72WPvnsrQXQKGY0dbbqapVo4LdFuNSb08=;
+	s=arc-20240116; t=1766955694; c=relaxed/simple;
+	bh=E40TfozfMTRWLVhTkV2adBCHelIThaQvQ1777er0xX4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TwBFaQ/RSuIXus3awbd2PP8RFIwl7NtYHPK2Km7eqfKTcc2NxemTSxlsKWR9fl0SIvDy8uEd6ADQgJmQL+7LsGzBz4D+JaCWJReJu4qwTpwO301Mg7IeFj1iqyQsYQ+vhWcXs2fXtokiPS5cA0hybN2niNCIMesPvn/zlu0vtxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Pz/cWfeG; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=GOhRp3FZWwb7zlD52OrKMhIC2ftFhiyytpZQGgWSqCZkPsb7zXolJPIRZysgGYD/ae669MhL0Puzg+8MYYoTNJUaeKUW9GZdavIAotmvEulEyA/uFYI0F/ymbHq5XTyZVOltE2Rfo5/96IQjZnjKi9hQVDbzajb2KQhcChD+ylo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bFWZMLhh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Pz/cWfeG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DC60C4CEFB;
-	Sun, 28 Dec 2025 21:00:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bFWZMLhh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9092CC4CEFB;
+	Sun, 28 Dec 2025 21:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766955646;
-	bh=D9/7cYqcpU72WPvnsrQXQKGY0dbbqapVo4LdFuNSb08=;
+	s=k20201202; t=1766955693;
+	bh=E40TfozfMTRWLVhTkV2adBCHelIThaQvQ1777er0xX4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Pz/cWfeGaOlqPEHlhhXG6Lhj7deT0Ud3PVeSR++oVG9RaxfSe/r9CBg21L+ZJX9fV
-	 XD/HLmJ1qAMgMZZTYDr7uAq0zlTAViAAOki//bTr89HHkLv7xq3gHkIgnYIzcXpA9h
-	 Rh89PbVbTYFRainlKrNqWQmW5eWLqzSPH58V+EQEeILIaDf+h6mvlnVUnMn/X/fGs7
-	 DXfUZNpk8756GqH+F9viNvqnMyWCLIJTML+MJv+/8jnNTUq/bdLQa77F+ZUI4L5Ixf
-	 RHzeGLjDaIVdoGo2bNcsobT/N9AjN3ELRmMstIE/hZAxSGtvfmFKnwdhfF1D9lZOlV
-	 Ng5tRyZKD/uaA==
-Date: Sun, 28 Dec 2025 23:00:36 +0200
+	b=bFWZMLhhI3RJJiSLADl8BpMm0BnLpwhbEOOJBd3TJEaErP26PcymDPdJB8E0wNQGX
+	 LQri8Y9MhXUjljPf8CBpX8MYh0c305UBBWQaKV/8DNAk0siTJYEH5X5l/qa4PuAB4J
+	 g3Ywaj8l911WWFB9uSVchXMVdsIOLCgQUjy4vv8kN/EOHlg1NGKb3AQUcim4Kq54s8
+	 hBRaWcdK0VCiBVDWTtafozyrIn+fbNeuJxqZDC8kjakUY2n9h4AqMwjg42eOCxiRdZ
+	 zQSGSrm9UG+tKzprdCJgRPZbV2//qkUbJ4jtY/WivRUzbqP4nQlVvubZ//5oP32m1I
+	 xgF1E7r3+kc7Q==
+Date: Sun, 28 Dec 2025 23:01:23 +0200
 From: Mike Rapoport <rppt@kernel.org>
 To: chengkaitao <pilgrimtao@gmail.com>
 Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
@@ -36,11 +36,11 @@ Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
 	ziy@nvidia.com, chengkaitao@kylinos.cn, willy@infradead.org,
 	zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v4 2/3] mm: Convert vmemmap_p?d_populate() to static
- functions
-Message-ID: <aVGadJAlS0Z6LLEl@kernel.org>
+Subject: Re: [PATCH v4 1/3] sparc: Use vmemmap_populate_hugepages for
+ vmemmap_populate
+Message-ID: <aVGao3KAyKxXrIo6@kernel.org>
 References: <20251219115812.65855-1-pilgrimtao@gmail.com>
- <20251219115812.65855-3-pilgrimtao@gmail.com>
+ <20251219115812.65855-2-pilgrimtao@gmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -49,91 +49,93 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251219115812.65855-3-pilgrimtao@gmail.com>
+In-Reply-To: <20251219115812.65855-2-pilgrimtao@gmail.com>
 
-On Fri, Dec 19, 2025 at 07:58:11PM +0800, chengkaitao wrote:
+On Fri, Dec 19, 2025 at 07:58:10PM +0800, chengkaitao wrote:
 > From: Chengkaitao <chengkaitao@kylinos.cn>
 > 
-> Since the vmemmap_p?d_populate functions are unused outside the mm
-> subsystem, we can remove their external declarations and convert
-> them to static functions.
+> 1. In the SPARC architecture, reimplemented vmemmap_populate using
+> vmemmap_populate_hugepages.
+> 2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
+> when vmemmap_alloc_block returns NULL.
 > 
 > Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
 
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 
 > ---
->  include/linux/mm.h  |  7 -------
->  mm/sparse-vmemmap.c | 10 +++++-----
->  2 files changed, 5 insertions(+), 12 deletions(-)
+>  arch/sparc/mm/init_64.c | 47 ++++++++++++++---------------------------
+>  1 file changed, 16 insertions(+), 31 deletions(-)
 > 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 15076261d0c2..d98a38a6ac0e 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -4234,13 +4234,6 @@ unsigned long section_map_size(void);
->  struct page * __populate_section_memmap(unsigned long pfn,
->  		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
->  		struct dev_pagemap *pgmap);
-> -pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
-> -p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
-> -pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
-> -pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
-> -pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-> -			    struct vmem_altmap *altmap, unsigned long ptpfn,
-> -			    unsigned long flags);
->  void *vmemmap_alloc_block(unsigned long size, int node);
->  struct vmem_altmap;
->  void *vmemmap_alloc_block_buf(unsigned long size, int node,
-> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-> index 37522d6cb398..67f9a08c2376 100644
-> --- a/mm/sparse-vmemmap.c
-> +++ b/mm/sparse-vmemmap.c
-> @@ -151,7 +151,7 @@ void __meminit vmemmap_verify(pte_t *pte, int node,
->  			start, end - 1);
->  }
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index df9f7c444c39..858eaa6615ea 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+>  EXPORT_SYMBOL(_PAGE_CACHE);
 >  
-> -pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-> +static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
->  				       struct vmem_altmap *altmap,
->  				       unsigned long ptpfn, unsigned long flags)
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> -int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> -			       int node, struct vmem_altmap *altmap)
+> +void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+> +			       unsigned long addr, unsigned long next)
 >  {
-> @@ -195,7 +195,7 @@ static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
->  	return p;
->  }
+>  	unsigned long pte_base;
 >  
-> -pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
-> +static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
->  {
->  	pmd_t *pmd = pmd_offset(pud, addr);
->  	if (pmd_none(*pmd)) {
-> @@ -208,7 +208,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
->  	return pmd;
->  }
+> @@ -2595,39 +2595,24 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
 >  
-> -pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
-> +static pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
->  {
->  	pud_t *pud = pud_offset(p4d, addr);
->  	if (pud_none(*pud)) {
-> @@ -221,7 +221,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
->  	return pud;
->  }
+>  	pte_base |= _PAGE_PMD_HUGE;
 >  
-> -p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
-> +static p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
->  {
->  	p4d_t *p4d = p4d_offset(pgd, addr);
->  	if (p4d_none(*p4d)) {
-> @@ -234,7 +234,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
->  	return p4d;
->  }
+> -	vstart = vstart & PMD_MASK;
+> -	vend = ALIGN(vend, PMD_SIZE);
+> -	for (; vstart < vend; vstart += PMD_SIZE) {
+> -		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+> -		unsigned long pte;
+> -		p4d_t *p4d;
+> -		pud_t *pud;
+> -		pmd_t *pmd;
+> -
+> -		if (!pgd)
+> -			return -ENOMEM;
+> -
+> -		p4d = vmemmap_p4d_populate(pgd, vstart, node);
+> -		if (!p4d)
+> -			return -ENOMEM;
+> -
+> -		pud = vmemmap_pud_populate(p4d, vstart, node);
+> -		if (!pud)
+> -			return -ENOMEM;
+> +	pmd_val(*pmd) = pte_base | __pa(p);
+> +}
 >  
-> -pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
-> +static pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
->  {
->  	pgd_t *pgd = pgd_offset_k(addr);
->  	if (pgd_none(*pgd)) {
+> -		pmd = pmd_offset(pud, vstart);
+> -		pte = pmd_val(*pmd);
+> -		if (!(pte & _PAGE_VALID)) {
+> -			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+> +int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+> +				unsigned long addr, unsigned long next)
+> +{
+> +	int large = pmd_leaf(*pmdp);
+>  
+> -			if (!block)
+> -				return -ENOMEM;
+> +	if (large)
+> +		vmemmap_verify((pte_t *)pmdp, node, addr, next);
+>  
+> -			pmd_val(*pmd) = pte_base | __pa(block);
+> -		}
+> -	}
+> +	return large;
+> +}
+>  
+> -	return 0;
+> +int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> +			       int node, struct vmem_altmap *altmap)
+> +{
+> +	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+>  }
+>  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+>  
 > -- 
 > 2.50.1 (Apple Git-155)
 > 
