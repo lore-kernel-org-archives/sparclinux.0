@@ -1,145 +1,156 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4391FB1;
-	Sun, 28 Dec 2025 21:01:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F5121FF25
+	for <sparclinux@vger.kernel.org>; Mon, 29 Dec 2025 01:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766955694; cv=none; b=LadPM6g4VwojDxPtH/FYlWQDFFibyW9lgFv/F6X65Jw9oUHjMISVNNACVyrBNOanEH+th5+jjaPqtX+2ah4Ska0XSr8jk2U/tNX0iVglbUBWLS4ccXcCKrc4EByhqAsokTwlLf5ptJaxopAFWF0N3W0EXI6LLEs8vvAGk1foYDY=
+	t=1766971557; cv=none; b=kA/IaZOAD87c10KqZzksX/UpTGCT9LLPDyI3Us+rURtCJUcno0Ph+TUDOGBHHTQH6oY6wUINpNpL5Oq7ZPlyrhbwjA/Dw4MdkPcjfiDVFM17f7qs/qJNmBSLr14Ek43LcpNUGK9C/1UYY753Vt3vtuPB3agpRwIJKse/EmazR8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766955694; c=relaxed/simple;
-	bh=E40TfozfMTRWLVhTkV2adBCHelIThaQvQ1777er0xX4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GOhRp3FZWwb7zlD52OrKMhIC2ftFhiyytpZQGgWSqCZkPsb7zXolJPIRZysgGYD/ae669MhL0Puzg+8MYYoTNJUaeKUW9GZdavIAotmvEulEyA/uFYI0F/ymbHq5XTyZVOltE2Rfo5/96IQjZnjKi9hQVDbzajb2KQhcChD+ylo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bFWZMLhh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766971557; c=relaxed/simple;
+	bh=QcHUIuYE7RQs56jGjmqpy2oUOjx983YRYnPBuaD4boU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RvwFvRm6sU8ABb4hVriDwxfFoKVz2PTkKVpSADDbh68JM/E9yU0vfmtGnsyibTfcFnZUntFMDO2mw4utXrsefThf/xgARVsdu0h/2Whdiqi4pJBeDJi+3QI1durHs1+oK9k07jMkdYDCJMaHz9SYvFflAUXf/0zuCEdr5wvI1Ag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JRFWKJxz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bFWZMLhh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9092CC4CEFB;
-	Sun, 28 Dec 2025 21:01:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JRFWKJxz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB5B2C113D0
+	for <sparclinux@vger.kernel.org>; Mon, 29 Dec 2025 01:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1766955693;
-	bh=E40TfozfMTRWLVhTkV2adBCHelIThaQvQ1777er0xX4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bFWZMLhhI3RJJiSLADl8BpMm0BnLpwhbEOOJBd3TJEaErP26PcymDPdJB8E0wNQGX
-	 LQri8Y9MhXUjljPf8CBpX8MYh0c305UBBWQaKV/8DNAk0siTJYEH5X5l/qa4PuAB4J
-	 g3Ywaj8l911WWFB9uSVchXMVdsIOLCgQUjy4vv8kN/EOHlg1NGKb3AQUcim4Kq54s8
-	 hBRaWcdK0VCiBVDWTtafozyrIn+fbNeuJxqZDC8kjakUY2n9h4AqMwjg42eOCxiRdZ
-	 zQSGSrm9UG+tKzprdCJgRPZbV2//qkUbJ4jtY/WivRUzbqP4nQlVvubZ//5oP32m1I
-	 xgF1E7r3+kc7Q==
-Date: Sun, 28 Dec 2025 23:01:23 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: chengkaitao <pilgrimtao@gmail.com>
-Cc: davem@davemloft.net, andreas@gaisler.com, akpm@linux-foundation.org,
-	david@kernel.org, lorenzo.stoakes@oracle.com,
-	Liam.Howlett@oracle.com, vbabka@suse.cz, surenb@google.com,
-	mhocko@suse.com, kevin.brodsky@arm.com, dave.hansen@linux.intel.com,
-	ziy@nvidia.com, chengkaitao@kylinos.cn, willy@infradead.org,
-	zhengqi.arch@bytedance.com, sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v4 1/3] sparc: Use vmemmap_populate_hugepages for
- vmemmap_populate
-Message-ID: <aVGao3KAyKxXrIo6@kernel.org>
-References: <20251219115812.65855-1-pilgrimtao@gmail.com>
- <20251219115812.65855-2-pilgrimtao@gmail.com>
+	s=k20201202; t=1766971556;
+	bh=QcHUIuYE7RQs56jGjmqpy2oUOjx983YRYnPBuaD4boU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=JRFWKJxzPMVQR44/fR5nIIhozZE+LgKUESPHybZ8wZno197JiHenXGKVJkNpSqguw
+	 2xLe+veDDWm8kNDY+BiuQ6SvvVwq4Hpcc3W1hwbZp+jfRAR1nDJPVP4EK59344ImkK
+	 wlsii6F/eZYefoyYAw2fXzJjRbRH+kzlnYLQAY1eO5Ubr8qm60ldJqs+pPD1ZsFSsg
+	 NrY0alhp0ugdEFKLyzrY3OxKA1u0ctAhx1QBGvs/z6tbv8fsSbtYftMz3kEpB6/lKF
+	 BZtMwOxmk5Eoyviyb7mYDSTLqm3LFsfpO0X0ux1I+BeIUazvoB3riY6Caw19+VvfnP
+	 zpfyrSVDOV9qA==
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-42fbc305552so6952047f8f.0
+        for <sparclinux@vger.kernel.org>; Sun, 28 Dec 2025 17:25:56 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCUMs5/JnAC6QgNRA1fxQ+0oDvLLX7c/0ygOoIq5w3cJFI1X49eqaRL8Nt0wy3RfX0IM4jaO4uIW6OUC@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxqr4yqJbmChrD5LB/7S4FpfC7A95NAxWkWtS0KSNk9mlu8Ni5f
+	TUP5UIMCNNIROTUZMwJIAIGIpzgCHlBfvwxnmecmSPkFgN6HrVhrD3KFqg/xvJ4BfmXDIQ49+wo
+	c8mxG7Y8cazuEZlDmYT/Xki+1SwcX1TE=
+X-Google-Smtp-Source: AGHT+IH0/4lM/7b5Nef4Fb6rn6mJpOxGdWgk9AqK9LZQSl+6Va320QICtWgPPv8KCBU6m5HaJgurTChUGp2fBhZ8S4E=
+X-Received: by 2002:a05:6000:2308:b0:430:ff0c:35f9 with SMTP id
+ ffacd0b85a97d-4324e50d989mr31524498f8f.48.1766971554637; Sun, 28 Dec 2025
+ 17:25:54 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251219115812.65855-2-pilgrimtao@gmail.com>
+References: <20251228124001.3624742-1-rppt@kernel.org> <20251228124001.3624742-6-rppt@kernel.org>
+In-Reply-To: <20251228124001.3624742-6-rppt@kernel.org>
+From: Guo Ren <guoren@kernel.org>
+Date: Mon, 29 Dec 2025 09:25:42 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTSMLhnqQeZB=oEwLGzXfJwxPh+vJvTuz-OFGrwJi5uPSA@mail.gmail.com>
+X-Gm-Features: AQt7F2ovPXIqQiKDAgz2Iigjc3UdRKj7ty_Tsln8fN_MKzmJJ5LWRy6ejtLdRVA
+Message-ID: <CAJF2gTSMLhnqQeZB=oEwLGzXfJwxPh+vJvTuz-OFGrwJi5uPSA@mail.gmail.com>
+Subject: Re: [PATCH 05/28] csky: introduce arch_zone_limits_init()
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alex Shi <alexs@kernel.org>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, 
+	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	"David S. Miller" <davem@davemloft.net>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	David Hildenbrand <david@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, 
+	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Jonathan Corbet <corbet@lwn.net>, 
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
+	Magnus Lindholm <linmag7@gmail.com>, Matt Turner <mattst88@gmail.com>, 
+	Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, 
+	Michal Simek <monstr@monstr.eu>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Pratyush Yadav <pratyush@kernel.org>, Richard Weinberger <richard@nod.at>, 
+	Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, 
+	Suren Baghdasaryan <surenb@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>, 
+	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>, x86@kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-mm@kvack.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
+	linux-um@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
+	loongarch@lists.linux.dev, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 19, 2025 at 07:58:10PM +0800, chengkaitao wrote:
-> From: Chengkaitao <chengkaitao@kylinos.cn>
-> 
-> 1. In the SPARC architecture, reimplemented vmemmap_populate using
-> vmemmap_populate_hugepages.
-> 2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
-> when vmemmap_alloc_block returns NULL.
-> 
-> Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
-
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-
+On Sun, Dec 28, 2025 at 8:41=E2=80=AFPM Mike Rapoport <rppt@kernel.org> wro=
+te:
+>
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+>
+> Move calculations of zone limits to a dedicated arch_zone_limits_init()
+> function.
+>
+> Later MM core will use this function as an architecture specific callback
+> during nodes and zones initialization and thus there won't be a need to
+> call free_area_init() from every architecture.
+>
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
->  arch/sparc/mm/init_64.c | 47 ++++++++++++++---------------------------
->  1 file changed, 16 insertions(+), 31 deletions(-)
-> 
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index df9f7c444c39..858eaa6615ea 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
->  EXPORT_SYMBOL(_PAGE_CACHE);
->  
->  #ifdef CONFIG_SPARSEMEM_VMEMMAP
-> -int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
-> -			       int node, struct vmem_altmap *altmap)
-> +void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-> +			       unsigned long addr, unsigned long next)
->  {
->  	unsigned long pte_base;
->  
-> @@ -2595,39 +2595,24 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
->  
->  	pte_base |= _PAGE_PMD_HUGE;
->  
-> -	vstart = vstart & PMD_MASK;
-> -	vend = ALIGN(vend, PMD_SIZE);
-> -	for (; vstart < vend; vstart += PMD_SIZE) {
-> -		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
-> -		unsigned long pte;
-> -		p4d_t *p4d;
-> -		pud_t *pud;
-> -		pmd_t *pmd;
-> -
-> -		if (!pgd)
-> -			return -ENOMEM;
-> -
-> -		p4d = vmemmap_p4d_populate(pgd, vstart, node);
-> -		if (!p4d)
-> -			return -ENOMEM;
-> -
-> -		pud = vmemmap_pud_populate(p4d, vstart, node);
-> -		if (!pud)
-> -			return -ENOMEM;
-> +	pmd_val(*pmd) = pte_base | __pa(p);
-> +}
->  
-> -		pmd = pmd_offset(pud, vstart);
-> -		pte = pmd_val(*pmd);
-> -		if (!(pte & _PAGE_VALID)) {
-> -			void *block = vmemmap_alloc_block(PMD_SIZE, node);
-> +int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
-> +				unsigned long addr, unsigned long next)
-> +{
-> +	int large = pmd_leaf(*pmdp);
->  
-> -			if (!block)
-> -				return -ENOMEM;
-> +	if (large)
-> +		vmemmap_verify((pte_t *)pmdp, node, addr, next);
->  
-> -			pmd_val(*pmd) = pte_base | __pa(block);
-> -		}
-> -	}
-> +	return large;
-> +}
->  
-> -	return 0;
-> +int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
-> +			       int node, struct vmem_altmap *altmap)
-> +{
-> +	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+>  arch/csky/kernel/setup.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/csky/kernel/setup.c b/arch/csky/kernel/setup.c
+> index e0d6ca86ea8c..8968815d93e6 100644
+> --- a/arch/csky/kernel/setup.c
+> +++ b/arch/csky/kernel/setup.c
+> @@ -51,6 +51,14 @@ static void __init setup_initrd(void)
 >  }
->  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
->  
-> -- 
-> 2.50.1 (Apple Git-155)
-> 
+>  #endif
+>
+> +void __init arch_zone_limits_init(unsigned long *max_zone_pfns)
+> +{
+> +       max_zone_pfns[ZONE_NORMAL] =3D max_low_pfn;
+> +#ifdef CONFIG_HIGHMEM
+> +       max_zone_pfns[ZONE_HIGHMEM] =3D max_pfn;
+> +#endif
+> +}
+> +
+LGTM!
 
--- 
-Sincerely yours,
-Mike.
+Acked-by: Guo Ren <guoren@kernel.org>
+
+>  static void __init csky_memblock_init(void)
+>  {
+>         unsigned long lowmem_size =3D PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET=
+_OFFSET);
+> @@ -83,12 +91,9 @@ static void __init csky_memblock_init(void)
+>         setup_initrd();
+>  #endif
+>
+> -       max_zone_pfn[ZONE_NORMAL] =3D max_low_pfn;
+> -
+>         mmu_init(min_low_pfn, max_low_pfn);
+>
+>  #ifdef CONFIG_HIGHMEM
+> -       max_zone_pfn[ZONE_HIGHMEM] =3D max_pfn;
+>
+>         highstart_pfn =3D max_low_pfn;
+>         highend_pfn   =3D max_pfn;
+> @@ -97,6 +102,7 @@ static void __init csky_memblock_init(void)
+>
+>         dma_contiguous_reserve(0);
+>
+> +       arch_zone_limits_init(max_zone_pfn);
+>         free_area_init(max_zone_pfn);
+>  }
+>
+> --
+> 2.51.0
+>
+
+
+--=20
+Best Regards
+ Guo Ren
