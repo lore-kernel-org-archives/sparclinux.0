@@ -1,219 +1,291 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E923530F942;
-	Fri,  2 Jan 2026 07:07:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767337628; cv=none; b=Mhi9JNJpjZCzMJxbeMKCLF3mIVzyfbhyR2w6WbuO1T2wPyKmMkRGBdc36SW+aTdIWChkSt3QWIXO42+QZEYHzNxUnYLKBI/T8AHVNgfNiYJHeY1rBZ0ZM5nqNyCK7Z9+jA0CwXJlOd5pg9EkrJweEYHSuofpM2PE1XgZ4Hsve1M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767337628; c=relaxed/simple;
-	bh=HRLMNbJfcIyzccjy/sfTD1k/8iARayV6dPdQfJTMnWo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sq367tkA+3HKdqfRoijh3muQRiSM54dyQ+gOj0T0ATLhs8aZ810gZBv8n+nzsXr+uzO/VyDLOL/gjeUtjXxC1lTBiwpRAt6gvg6L7ox6oMBrpFLNjKeyJsRpgGoo+skMUfCQCFh8Wo+mmHcGXz+aQ1d+xYdQkNI7flrrrbh4eOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CxvPssLF; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0C230AAD6
+	for <sparclinux@vger.kernel.org>; Fri,  2 Jan 2026 18:04:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.181
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1767377052; cv=pass; b=AISCPjTeQRlQamD+gvxMVQl2+siouyl/zAZbSaGnCYZICjIJVs/Jyq9XUhjLulntWvr/a3TCfE3WfWlCGH6vsYxH4n05Ox+0Qiaod1rJL+zsR5WQUjtdeK126YTsDQX+yU9kbiGdSGo78x8z6AjXdJwMkgRgDbp61ZrRTDMbzhg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1767377052; c=relaxed/simple;
+	bh=ksPuzDhEsNwwadpdao9ypfLnzBz9TXOr7Qq8wOanBfg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=FyD3tv/lD4fyZpwZQP0gakeE4b2Z5PderSeIUR8RVTRSjnBgg6hAGSbDVODkSE0bHuRdaHOxq1O9yZ+Q6UbbsSPqOoJze+qj6Y12paS/ISm2W0JhTnF1CxvgrohMyM9WXkoaSGMzf4QJ4OwO7W/0rdoYtMThVNdMV99DLEWL7AE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=HdS5VSkM; arc=pass smtp.client-ip=209.85.160.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CxvPssLF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E504C116B1;
-	Fri,  2 Jan 2026 07:06:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767337627;
-	bh=HRLMNbJfcIyzccjy/sfTD1k/8iARayV6dPdQfJTMnWo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CxvPssLFALKnAzAlXBll5rTphhZU7lG8jhoItNzn1fDH5h3/PSapvXks4U3zBNKEd
-	 Gjt8HaJNmGMQm+aKOWUJhnKIeCQ7VO+u8fAo/doIZz/Il+9XwBm8RvGrlfHBY4wksj
-	 Cq6GIEs4nXBSlEFiuN6ruwU2ocb72rmtMW/CPlqo0QaPKgGKxexcSr/e058WN5u+vt
-	 lU7HuQVp28/ddYn1T2PDlLul6PCmb+/cdQqpBV+UeDT6K9x9v670twTwtzSruR1eek
-	 5EbuXWwPo0AdoPZsDEj9liyOPfYpCx9mEEd3RXrrfPHn5OQecwQijHHNqnHYPLSYBm
-	 a5OWg4z3pZQcw==
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alex Shi <alexs@kernel.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Brian Cain <bcain@kernel.org>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@kernel.org>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guo Ren <guoren@kernel.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Helge Deller <deller@gmx.de>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	Magnus Lindholm <linmag7@gmail.com>,
-	Matt Turner <mattst88@gmail.com>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Michal Hocko <mhocko@suse.com>,
-	Michal Simek <monstr@monstr.eu>,
-	Mike Rapoport <rppt@kernel.org>,
-	Muchun Song <muchun.song@linux.dev>,
-	Oscar Salvador <osalvador@suse.de>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Pratyush Yadav <pratyush@kernel.org>,
-	Richard Weinberger <richard@nod.at>,
-	Russell King <linux@armlinux.org.uk>,
-	Stafford Horne <shorne@gmail.com>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Vineet Gupta <vgupta@kernel.org>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Will Deacon <will@kernel.org>,
-	x86@kernel.org,
-	linux-alpha@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-csky@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-hexagon@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-mips@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-openrisc@vger.kernel.org,
-	linux-parisc@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	linux-snps-arc@lists.infradead.org,
-	linux-um@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	loongarch@lists.linux.dev,
-	sparclinux@vger.kernel.org
-Subject: [PATCH v2 28/28] Revert "mm/hugetlb: deal with multiple calls to hugetlb_bootmem_alloc"
-Date: Fri,  2 Jan 2026 09:00:04 +0200
-Message-ID: <20260102070005.65328-29-rppt@kernel.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260102070005.65328-1-rppt@kernel.org>
-References: <20260102070005.65328-1-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="HdS5VSkM"
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-4ee147baf7bso10821cf.1
+        for <sparclinux@vger.kernel.org>; Fri, 02 Jan 2026 10:04:04 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1767377042; cv=none;
+        d=google.com; s=arc-20240605;
+        b=DRvl6daO3MnTnbaQI9OZCoJ1VbRoT/RNELQOMjeLQENWhdiM+wJniVDWStcAiD/12P
+         SD5MYIxF8fOrkAII/d3J51qZLn+ggrBOj3tMtTKTPI5oXvRADRqcggIcSiGV6OPpe70G
+         muUVc+GmFwlDQvQaKt5M/HAlS0C+UPnR8SSwIUL3UtzhsqcYjkKle9D8hpNYZ4nAJeKL
+         f1bLLSke+3vaSQK7J6/UP+WBoqFumY+Maof8sO0w2qu8i7Z5zqdULhSdt+BlcGo4NqiO
+         XGxYMVbAuQiK4zX6ehhKrUI5hZlTcN0ZRFmaPaBq8eEJUml7rlw6KIFUwYl2zO3UWIER
+         kJwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=VF7Ncw4qUW1QvZXNeYN2PHKmriSnoyG5jmMgiKLYwBI=;
+        fh=86fgcPT2ItirWEdtoXsfVoFFVuHwkAA6n5NU1RKZoBw=;
+        b=i00Elu5s7X6jK10k0LG8zQsTcNx5i2i2DVruTFLdU6cMLw1Hbk4yrp3KQmYUKGdbpP
+         +jU8g1/m3bF9dCYcnc8iXkFLJQlU1BtCiGUdfbL6ACkweSYlLpip01FNDhWJKSmA3xZg
+         nSEwAKz/qUz0T1Xs3rRgNA3tciwaxIjQLTOK+3Fi3BIlpiz+0EpxcECl9wKWzn1+94fW
+         aT4v1KWNPF5QIZ4ndJKoc+9pwJSZUCBWyZKTH00eRDCK1PBCqCqzaTBshrCAs2Gg8YU1
+         0WLaX5JCIaPRHBz5FJta5+TrOYiY4JnU4uyY5CBhIsrUBUXiuAjRiYznUYRUc9AWMSpG
+         rTVw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1767377042; x=1767981842; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VF7Ncw4qUW1QvZXNeYN2PHKmriSnoyG5jmMgiKLYwBI=;
+        b=HdS5VSkMl2fMvmYmBbhT/8bhZzDSgMLHBPooEAVzZaA2KhwWXpAsATKal+yDrYJFyW
+         TsgNIKvbRz0AapI/c5ccL4QdkAiPoYIlFpWcV+zR9Y5vNcohp9rtvEFrPHpjgngO0nZ7
+         V1bAPX0/7mnEwt0mNgAOEhpDMR3MSfUh+ZQ3QPXimeLalCGJ0uu7SODshg2WPqQy8Bdz
+         W26QyDDP6cezxmOEP9xMJ/W5L07cZkyPMGJ5K3VQFcQetq6fJHFzI876wnCaFlQWksIl
+         JMWqyRnvAI4xRryENHltmewZL8GO9iTvMwcz9TolLRPC3wqBcDe67kFnBVYL+bSw/Z1o
+         1Jmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767377042; x=1767981842;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=VF7Ncw4qUW1QvZXNeYN2PHKmriSnoyG5jmMgiKLYwBI=;
+        b=Foz2aBzqRMxzjCDfchWRB3DWTSCGTp0N98Tba1tW1RO525iE0+3Zc2QeE+6nwcNgTS
+         yUWYpryuKf7YvFhZZC0XlXzH1aWPXDt6S2586rzfGTMiXbfAefBncDpPNy+wPjBhTWia
+         ipb0P/warOQpQRdTJFIpHRc4mpOWpSX5RyqU6lsV/D94oot7NVQv8GIcRjhwRTiqu4o/
+         VPFZrfacWr2bjHPzzG3K4B0BprfS8+X271qAtzFjIRtBylee1M4xylQW8F0IWeeseJAu
+         SCTLM7CqJmoJTNtnngx3onAH0aqn/EDLhVwigof4f5ptSWf9dWuTZk6N4LyjOa0OkRbk
+         dFFA==
+X-Forwarded-Encrypted: i=1; AJvYcCVOFgCFvwHWsGLCo+JnV7EFmCydrjltfeTgHxC4LdmUr8pnYM0KFqZZwebnk7cWZok1XFfUGwigLI9m@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIgyo6T22xdvGuKngzseeUzJ7zQkKjCjLgK3IYFvI2EDK0Uud1
+	geUcsUWjlNfSl3zvpt1rRWSap6paTaQ0NfJk2EZpo/Pl7+B94m1DBizs206/QmSkioe1mZ/tfSy
+	6RkpXW/yWudE+OSL47Ri5gNHcyOj6ZW8Q5taWE5Rq
+X-Gm-Gg: AY/fxX4ItERCtk2+WgL04ysZ0Z29X8ARKtKhVGucQ0QFkgF/GJwqeUei/IDv2QKQTGZ
+	yf+bMQSstczRd31eZcyOtuIgM8NLuyup6sabXX5GGXQFSb7h0CD9PvbAAVQuc6RJHbaBebvz6f4
+	sZrZxdzT+j+KeFXnOG259OgtZRV475IIPZvwxFBa8qv+fcN/Xuk2pwfzdhKEdqb4fzecCkHMIXi
+	MTXMqZjrJb0iXK3BrwLQojxOdab4nYHLqbtfMNMq0nMdD0GXNOImdBm6aEWuitcG/VV7ks=
+X-Google-Smtp-Source: AGHT+IE626c1niVbXfJuRnnEKb/XVpUT3xgOsgVHvUYmmAhOToE2K50Gpbsa48xtp+jOGlgqExM/NP3EnDee4koBR/0=
+X-Received: by 2002:a05:622a:8016:b0:4fb:e3b0:aae6 with SMTP id
+ d75a77b69052e-4fbe3b0ad54mr14392961cf.1.1767377041692; Fri, 02 Jan 2026
+ 10:04:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260102070005.65328-1-rppt@kernel.org>
+In-Reply-To: <20260102070005.65328-1-rppt@kernel.org>
+From: Frank van der Linden <fvdl@google.com>
+Date: Fri, 2 Jan 2026 10:03:49 -0800
+X-Gm-Features: AQt7F2qPng5Y0NvX0my5UG4cpefC6iiH19nIvMPHQLdOtt1JmQ_l0Tjv8FxQEzo
+Message-ID: <CAPTztWaZZt_ygCDNaDdW9A_TtT1FNZW6hFzyiq2b6_xxMw38gQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/28] arch, mm: consolidate hugetlb early reservation
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alex Shi <alexs@kernel.org>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, 
+	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	"David S. Miller" <davem@davemloft.net>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	David Hildenbrand <david@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Guo Ren <guoren@kernel.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Jonathan Corbet <corbet@lwn.net>, 
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
+	Magnus Lindholm <linmag7@gmail.com>, Matt Turner <mattst88@gmail.com>, 
+	Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, 
+	Michal Simek <monstr@monstr.eu>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Pratyush Yadav <pratyush@kernel.org>, Richard Weinberger <richard@nod.at>, 
+	Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, 
+	Suren Baghdasaryan <surenb@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>, 
+	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>, x86@kernel.org, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-csky@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-hexagon@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-mips@vger.kernel.org, linux-mm@kvack.org, 
+	linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
+	linux-um@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
+	loongarch@lists.linux.dev, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On Thu, Jan 1, 2026 at 11:00=E2=80=AFPM Mike Rapoport <rppt@kernel.org> wro=
+te:
+>
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+>
+> Hi,
+>
+> Order in which early memory reservation for hugetlb happens depends on
+> architecture, on configuration options and on command line parameters.
+>
+> Some architectures rely on the core MM to call hugetlb_bootmem_alloc()
+> while others call it very early to allow pre-allocation of HVO-style
+> vmemmap.
+>
+> When hugetlb_cma is supported by an architecture it is initialized during
+> setup_arch() and then later hugetlb_init code needs to understand did it
+> happen or not.
+>
+> To make everything consistent and unified, both reservation of hugetlb
+> memory from bootmem and creation of CMA areas for hugetlb must be called
+> from core MM initialization and it would have been a simple change.
+> However, HVO-style pre-initialization ordering requirements slightly
+> complicate things and for HVO pre-init to work sparse and memory map shou=
+ld
+> be initialized after hugetlb reservations.
+>
+> This required pulling out the call to free_area_init() out of setup_arch(=
+)
+> path and moving it MM initialization and this is what the first 23 patche=
+s
+> do.
+>
+> These changes are deliberately split into per-arch patches that change ho=
+w
+> the zone limits are calculated for each architecture and the patches 22 a=
+nd
+> 23 just remove the calls to free_area_init() and sprase_init() from arch/=
+*.
+>
+> Patch 24 is a simple cleanup for MIPS.
+>
+> Patches 25 and 26 actually consolidate hugetlb reservations and patches 2=
+7
+> and 28 perform some aftermath cleanups.
+>
+> I tried to trim the distribution list and although it's still quite long
+> if you feel that someone was wrongly excluded please add them back.
+>
+> The changes also available in git:
+> https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git/log/?h=3Dh=
+ugetlb-init/v2
+>
+> v2 changes:
+> * move the hugetlb and memory map initializaion to mm_core_init_early()
+> * add Acks
+>
+> v1: https://lore.kernel.org/all/20251228124001.3624742-1-rppt@kernel.org
+>
+> Mike Rapoport (Microsoft) (28):
+>   alpha: introduce arch_zone_limits_init()
+>   arc: introduce arch_zone_limits_init()
+>   arm: introduce arch_zone_limits_init()
+>   arm64: introduce arch_zone_limits_init()
+>   csky: introduce arch_zone_limits_init()
+>   hexagon: introduce arch_zone_limits_init()
+>   loongarch: introduce arch_zone_limits_init()
+>   m68k: introduce arch_zone_limits_init()
+>   microblaze: introduce arch_zone_limits_init()
+>   mips: introduce arch_zone_limits_init()
+>   nios2: introduce arch_zone_limits_init()
+>   openrisc: introduce arch_zone_limits_init()
+>   parisc: introduce arch_zone_limits_init()
+>   powerpc: introduce arch_zone_limits_init()
+>   riscv: introduce arch_zone_limits_init()
+>   s390: introduce arch_zone_limits_init()
+>   sh: introduce arch_zone_limits_init()
+>   sparc: introduce arch_zone_limits_init()
+>   um: introduce arch_zone_limits_init()
+>   x86: introduce arch_zone_limits_init()
+>   xtensa: introduce arch_zone_limits_init()
+>   arch, mm: consolidate initialization of nodes, zones and memory map
+>   arch, mm: consolidate initialization of SPARSE memory model
+>   mips: drop paging_init()
+>   x86: don't reserve hugetlb memory in setup_arch()
+>   mm, arch: consolidate hugetlb CMA reservation
+>   mm/hugetlb: drop hugetlb_cma_check()
+>   Revert "mm/hugetlb: deal with multiple calls to hugetlb_bootmem_alloc"
+>
+>  .../driver-api/cxl/linux/early-boot.rst       |  2 +-
+>  Documentation/mm/memory-model.rst             |  3 --
+>  .../translations/zh_CN/mm/memory-model.rst    |  2 -
+>  arch/alpha/kernel/setup.c                     |  1 -
+>  arch/alpha/mm/init.c                          | 16 ++++----
+>  arch/arc/mm/init.c                            | 37 +++++++++---------
+>  arch/arm/mm/init.c                            | 25 ++----------
+>  arch/arm64/include/asm/hugetlb.h              |  2 -
+>  arch/arm64/mm/hugetlbpage.c                   | 10 ++---
+>  arch/arm64/mm/init.c                          | 39 ++++++++-----------
+>  arch/csky/kernel/setup.c                      | 16 ++++----
+>  arch/hexagon/mm/init.c                        | 19 +++------
+>  arch/loongarch/include/asm/pgtable.h          |  2 -
+>  arch/loongarch/kernel/setup.c                 | 10 -----
+>  arch/loongarch/mm/init.c                      |  6 +--
+>  arch/m68k/mm/init.c                           |  8 ++--
+>  arch/m68k/mm/mcfmmu.c                         |  3 --
+>  arch/m68k/mm/motorola.c                       |  6 +--
+>  arch/m68k/mm/sun3mmu.c                        |  9 -----
+>  arch/microblaze/mm/init.c                     | 22 +++++------
+>  arch/mips/include/asm/pgalloc.h               |  2 -
+>  arch/mips/include/asm/pgtable.h               |  2 +-
+>  arch/mips/kernel/setup.c                      | 15 +------
+>  arch/mips/loongson64/numa.c                   | 10 ++---
+>  arch/mips/mm/init.c                           |  8 +---
+>  arch/mips/sgi-ip27/ip27-memory.c              |  8 +---
+>  arch/nios2/mm/init.c                          | 12 +++---
+>  arch/openrisc/mm/init.c                       | 10 +----
+>  arch/parisc/mm/init.c                         | 11 +-----
+>  arch/powerpc/include/asm/hugetlb.h            |  5 ---
+>  arch/powerpc/include/asm/setup.h              |  4 ++
+>  arch/powerpc/kernel/setup-common.c            |  1 -
+>  arch/powerpc/mm/hugetlbpage.c                 | 11 ++----
+>  arch/powerpc/mm/mem.c                         | 27 +++++--------
+>  arch/powerpc/mm/numa.c                        |  2 -
+>  arch/riscv/mm/hugetlbpage.c                   |  8 ++++
+>  arch/riscv/mm/init.c                          | 10 +----
+>  arch/s390/kernel/setup.c                      |  2 -
+>  arch/s390/mm/hugetlbpage.c                    |  8 ++++
+>  arch/s390/mm/init.c                           | 13 +++----
+>  arch/sh/mm/init.c                             | 12 +++---
+>  arch/sparc/mm/init_64.c                       | 17 +++-----
+>  arch/sparc/mm/srmmu.c                         | 17 ++++----
+>  arch/um/kernel/mem.c                          | 10 ++---
+>  arch/x86/kernel/setup.c                       |  5 ---
+>  arch/x86/mm/hugetlbpage.c                     |  8 ++++
+>  arch/x86/mm/init.c                            |  8 +---
+>  arch/x86/mm/init_32.c                         |  2 -
+>  arch/x86/mm/init_64.c                         |  4 --
+>  arch/x86/mm/mm_internal.h                     |  1 -
+>  arch/xtensa/mm/init.c                         | 14 +++----
+>  include/linux/hugetlb.h                       | 12 ++----
+>  include/linux/mm.h                            |  5 ++-
+>  include/linux/mmzone.h                        |  2 -
+>  init/main.c                                   |  1 +
+>  mm/hugetlb.c                                  | 13 -------
+>  mm/hugetlb_cma.c                              | 33 ++++++++--------
+>  mm/hugetlb_cma.h                              |  5 ---
+>  mm/hugetlb_vmemmap.c                          | 11 ------
+>  mm/internal.h                                 |  6 +++
+>  mm/mm_init.c                                  | 20 ++++++----
+>  61 files changed, 219 insertions(+), 394 deletions(-)
+>
+>
+> base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
+> --
+> 2.51.0
+>
 
-This reverts commit d58b2498200724e4f8c12d71a5953da03c8c8bdf.
+Thanks for this series. When I introduced HVO pre-init, I noticed the
+inconsistencies in init order, but shied away from attempting any
+general cleanup, as I had only tested pre-init on x86.
 
-hugetlb_bootmem_alloc() is called only once, no need to check if it was
-called already at its entry.
+With this, it should be possible to enable
+ARCH_WANT_HUGETLB_VMEMMAP_PREINIT on architectures that support HVO. I
+think that's only riscv and loongarch right now. But that's out of
+scope here, though.
 
-Other checks performed during HVO initialization are also no longer
-necessary because sparse_init() that calls hugetlb_vmemmap_init_early()
-and hugetlb_vmemmap_init_late() is always called after
-hugetlb_bootmem_alloc().
-
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
----
- include/linux/hugetlb.h |  6 ------
- mm/hugetlb.c            | 12 ------------
- mm/hugetlb_vmemmap.c    | 11 -----------
- 3 files changed, 29 deletions(-)
-
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 08fc332e88a7..c8b1a6dd2d46 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -175,7 +175,6 @@ extern int sysctl_hugetlb_shm_group __read_mostly;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
- void hugetlb_bootmem_alloc(void);
--bool hugetlb_bootmem_allocated(void);
- extern nodemask_t hugetlb_bootmem_nodes;
- void hugetlb_bootmem_set_nodes(void);
- 
-@@ -1300,11 +1299,6 @@ static inline bool hugetlbfs_pagecache_present(
- static inline void hugetlb_bootmem_alloc(void)
- {
- }
--
--static inline bool hugetlb_bootmem_allocated(void)
--{
--	return false;
--}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index 82b322ae3fdc..e5a350c83d75 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -4470,21 +4470,11 @@ void __init hugetlb_bootmem_set_nodes(void)
- 	}
- }
- 
--static bool __hugetlb_bootmem_allocated __initdata;
--
--bool __init hugetlb_bootmem_allocated(void)
--{
--	return __hugetlb_bootmem_allocated;
--}
--
- void __init hugetlb_bootmem_alloc(void)
- {
- 	struct hstate *h;
- 	int i;
- 
--	if (__hugetlb_bootmem_allocated)
--		return;
--
- 	hugetlb_bootmem_set_nodes();
- 
- 	for (i = 0; i < MAX_NUMNODES; i++)
-@@ -4498,8 +4488,6 @@ void __init hugetlb_bootmem_alloc(void)
- 		if (hstate_is_gigantic(h))
- 			hugetlb_hstate_alloc_pages(h);
- 	}
--
--	__hugetlb_bootmem_allocated = true;
- }
- 
- /*
-diff --git a/mm/hugetlb_vmemmap.c b/mm/hugetlb_vmemmap.c
-index 9d01f883fd71..a9280259e12a 100644
---- a/mm/hugetlb_vmemmap.c
-+++ b/mm/hugetlb_vmemmap.c
-@@ -794,14 +794,6 @@ void __init hugetlb_vmemmap_init_early(int nid)
- 	struct huge_bootmem_page *m = NULL;
- 	void *map;
- 
--	/*
--	 * Noting to do if bootmem pages were not allocated
--	 * early in boot, or if HVO wasn't enabled in the
--	 * first place.
--	 */
--	if (!hugetlb_bootmem_allocated())
--		return;
--
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
- 		return;
- 
-@@ -847,9 +839,6 @@ void __init hugetlb_vmemmap_init_late(int nid)
- 	struct hstate *h;
- 	void *map;
- 
--	if (!hugetlb_bootmem_allocated())
--		return;
--
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
- 		return;
- 
--- 
-2.51.0
-
+- Frank
