@@ -1,87 +1,145 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [78.32.30.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4BF32E88AE
-	for <sparclinux@vger.kernel.org>; Sun,  4 Jan 2026 12:30:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A792882C9;
+	Sun,  4 Jan 2026 20:58:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.32.30.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767529847; cv=none; b=T5X38+7l4TgGUp5hIPeaa7gL6Hv44rI0H3VL76GHz4zi4xjuaWZcXFbmAfMBY5AwWi4BGyNS920E6b9DyAg5segpRppUrgdSip1dBS9EJnWNOm3it+1yD+aKIhXhnIqsQ7S/3x2urUQCoNFu+mNnLc08oL798N9AXh1TZUQNrd8=
+	t=1767560295; cv=none; b=qnMn9eamLCpFD6BxK3hZGkdop7vnrfrK6p2whspqtdYZaQjRvCi66Vf/BNbTIvSdtvzxGuV8ne07J355dfetbkZ/G2USdA4xfM9JlDGpf+aya8XLONx4BKnA4dER5oHTpDWVXlkhHHS7pxMoGWYZ0QShOo/TTXqz/HR8WH3gpWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767529847; c=relaxed/simple;
-	bh=8Z7DyaX2NofNZ29WpKkBq31DPpOe/xdetm9jTspJHo0=;
-	h=Message-ID:Subject:From:To:Cc:Date:Content-Type:MIME-Version; b=JXOZflCDqRIS7WQ6vdajKwpf4x9opZA2QiZyQ048loE56br8MWaLiyVYTagKg/dJfm/EpjZgOMfp3HHCGhpBkzEzN0L+38o6jmDOY9JE4HSX7EcLw7tG/q1IdZRx1yYeJKUEX0HSiQ4ov1wwEdzrlNIxpv0i0HoAVwHP2XlTz6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=l5XAwHWk; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1767560295; c=relaxed/simple;
+	bh=zsNkllQtFPstvC0JmaISPDmi9Nm6BaIOMpzu48l2M4M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JWpgyKogkSBdeXAxjUY+YGtxQRdLpCCH/rtDi/GSNse3nUsyw71gnUWlNrYHjvqScVYmfpu3n9KrjIJ9UIsPmDkukVUnkDtU6o1gW72hsfRroQ6zUfMgh0zFxbCk7ZAmJYnRR8ixqNcQzLwAEmZjL/7ZHwZY2PZQyOtPobL6uDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk; spf=none smtp.mailfrom=armlinux.org.uk; dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b=PQx51yTY; arc=none smtp.client-ip=78.32.30.218
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=armlinux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="l5XAwHWk"
+	dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="PQx51yTY"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:Date:Cc:To:From:Subject:Message-ID:From:Reply-To:Subject:Date:
-	Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=jxu3fNPoJg9OMUESUXDeX+LSjNjxjfI2AhXfa8tRwf0=; t=1767529844; x=1768134644; 
-	b=l5XAwHWk5BJMZtpSBDZH+3BU+VuNVTAuBjNrUwReupcQB0EgCoqUVicDengin/tLIt5lhzmWBkw
-	YLVMDddxA8jbnC4n7L2tjLx2/q95P9pgEkhvXUkX/jHr+gwKYxUJUSmZQHuyth9VQuG+TR5RaeEyg
-	qbL02EppV6CwlIiNgv+9iM7Ux1U/nKQioW9vW+3heQT9kmn6mwzzrwrEFUcXsFf0vljJ6pnLk+JtY
-	TZrRi+L7WP29euqYm3O1LyH8ehqC3cmkmGhN8DyDas7VF8C8H/herb/+qHrNihEC8OLonx2gcygyD
-	D6Pe2n4izREsSO5kWHbIFEOHM5jmblgHCqKg==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.99)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vcNFl-00000003lO6-1K3s; Sun, 04 Jan 2026 13:30:37 +0100
-Received: from p5dc55f29.dip0.t-ipconnect.de ([93.197.95.41] helo=[192.168.178.61])
-          by inpost2.zedat.fu-berlin.de (Exim 4.99)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vcNFl-00000002mtT-0TPU; Sun, 04 Jan 2026 13:30:37 +0100
-Message-ID: <cfe80c9b88601c65e1cc91104da23f7644fed48c.camel@physik.fu-berlin.de>
-Subject: Updated firefox package available for sparc64
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: "<debian-sparc@lists.debian.org>" <debian-sparc@lists.debian.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
-Date: Sun, 04 Jan 2026 13:30:36 +0100
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.2 
+	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=I1gCbeyIrlCt5J2/Bjwg6Lr/ehCAIvx4DrMKPGr0mIk=; b=PQx51yTYkgAaIUXq0xW7qPDXV/
+	l2XTuAum3C4YTdjh59Zd9jjet7ae799URg+ZV8rmTkWl+kVHfkxUYw1s/dRjs9aTXD7D6Ho4syQaF
+	UUWur1xKtbiRo01UTGcAE17bVwa7Q1raKrI86aomWrm1nziVTW376kzGUJt7sSCvBg/iJuo8+kzDd
+	nyMzCE7bdEmvI/HMHy4otFSPHCGqcEajEQ2/jkcO2mu5bn1Ymv/9fmd0dXa7MO9wYyaIe2D76FfaF
+	n5lZTtrjJRF5D9eduOTkj4eWKLscCmoWno8MdEQ6ghyWUX2t1zONW89YiFsB5z/4C0opIIXPgMGiC
+	0kKrZFQA==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:60852)
+	by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <linux@armlinux.org.uk>)
+	id 1vcV9l-000000007Jz-1ZeD;
+	Sun, 04 Jan 2026 20:56:57 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.98.2)
+	(envelope-from <linux@shell.armlinux.org.uk>)
+	id 1vcV9Z-000000007Df-1tyX;
+	Sun, 04 Jan 2026 20:56:45 +0000
+Date: Sun, 4 Jan 2026 20:56:45 +0000
+From: "Russell King (Oracle)" <linux@armlinux.org.uk>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Klara Modin <klarasmodin@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Alex Shi <alexs@kernel.org>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@kernel.org>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@kernel.org>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guo Ren <guoren@kernel.org>, Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Magnus Lindholm <linmag7@gmail.com>,
+	Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Hocko <mhocko@suse.com>, Michal Simek <monstr@monstr.eu>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Richard Weinberger <richard@nod.at>,
+	Stafford Horne <shorne@gmail.com>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vasily Gorbik <gor@linux.ibm.com>, Vineet Gupta <vgupta@kernel.org>,
+	Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
+	x86@kernel.org, linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+	linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+	linux-mm@kvack.org, linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH 3.5] arm: make initialization of zero page independent of
+ the memory map (was Re: [PATCH v2 22/28] arch, mm: consolidate
+ initialization of nodes, zones and memory map)
+Message-ID: <aVrUDeSkqqY9ZCtS@shell.armlinux.org.uk>
+References: <20260102070005.65328-1-rppt@kernel.org>
+ <20260102070005.65328-23-rppt@kernel.org>
+ <aVhN2NgQEKe0yzva@soda.int.kasm.eu>
+ <aVll339wim7dCIaQ@kernel.org>
+ <aVlwOyicOLPB9SOa@parmesan.int.kasm.eu>
+ <aVpWpLV4Dut5Muo2@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aVpWpLV4Dut5Muo2@kernel.org>
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 
-Hi,
+On Sun, Jan 04, 2026 at 02:01:40PM +0200, Mike Rapoport wrote:
+> From 35d016bbf5da7c08cc5c5547c85558fc50cb63aa Mon Sep 17 00:00:00 2001
+> From: Klara Modin <klarasmodin@gmail.com>
+> Date: Sat, 3 Jan 2026 20:40:09 +0200
+> Subject: [PATCH] arm: make initialization of zero page independent of the
+>  memory map
+> 
+> Unlike most architectures, arm keeps a struct page pointer to the
+> empty_zero_page and to initialize it requires conversion of a virtual
+> address to page which makes it necessary to have memory map initialized
+> before creating the empty_zero_page.
+> 
+> Make empty_zero_page a stataic array in BSS to decouple it's
+> initialization from the initialization of the memory map.
 
-I have successfully built and uploaded the latest version of the firefox pa=
-ckage
-for sparc64. The package has been verified to work fine (see screenshot in =
-[1]).
+I see you haven't considered _why_ ARM does this.
 
-This package was built with the help of QuickJS instead of NodeJS, the form=
-er being
-available on all architectures in Debian. See this discussion [2] in the sp=
-arclinux
-tracker for more.
+You are getting rid of the flush_dcache_page() call, which ensures
+that the zeroed contents of the page are pushed out of the cache
+into memory. This is necessary.
 
-All patches required to build the firefox package for sparc64 can be found =
-in [3].
+BSS is very similar. It's memset() during the kernel boot _after_
+the caches are enabled. Without an explicit flush, nothing
+guarantees that those writes will be visible to userspace.
 
-Cheers,
-Adrian
+To me, this seems like a bad idea, which will cause userspace to
+break.
 
-> [1] https://github.com/sparclinux/issues/issues/59#issuecomment-370559561=
-3
-> [2] https://github.com/sparclinux/issues/issues/59
-> [3] https://people.debian.org/~glaubitz/firefox-sparc64/
+We need to call flush_dcache_page(), and _that_ requires a struct
+page.
 
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 80Mbps down 10Mbps up. Decent connectivity at last!
