@@ -1,36 +1,70 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f182.google.com (mail-pg1-f182.google.com [209.85.215.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65D9C32F741;
-	Mon,  5 Jan 2026 05:15:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00522238C33
+	for <sparclinux@vger.kernel.org>; Mon,  5 Jan 2026 07:47:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767590114; cv=none; b=a/X2DOVc0YA/RpKw02YIn2Ca5u5GqdPk9ibPGaIQitpOPGKVO93fVoJXTF/yO6wONxyKg2ogT5scb/p1jDFLhWeXUEBC8PLWut9BqC8vBeVxa18XF8n5xN2bFxpFuF+9jqJ4WUNmt71bBuXmOgpnUZd7cA1n6wr+LQkF8EClipA=
+	t=1767599254; cv=none; b=MhHSOkVlK+xo3SuorY8nnDO/C9MsNgfSipj/0ENL8YphcvERHXT4kTyNHwusA4yeSI31KUwRquV7Idkg/0YkpPjbqOLLzDenZ/igi8CJFL2zwbkB1Ie9m1AW0pDYpnykiK16RnYynBNWO3lNT0r/8ZGo4qpfCCBoNOknQn88DH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767590114; c=relaxed/simple;
-	bh=0EBUEmVTe0e4bzKdqvPELWwoIgTHdjzdDZHfkwljOsg=;
+	s=arc-20240116; t=1767599254; c=relaxed/simple;
+	bh=nZVAqheaPq5rGRSWmaOVnJe8g46n6sKwiOrt8BkPTmg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Lm97XRvcDiyoXXCGC22LV60+RMYYG3EP1/nb6UKvfoIhoRDSOWuawkj1NXSyfniKUnY/k8XllSTvUV/y5LZB8QYI+6yXJI8f4AOPmSTYxqasNVcubCNLrp+kKHAsRrvmhvJ9Nb3nhmNyuddSTNYE8BvvqlOIVfpdfrANqG/kqI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rOAhnKYR; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=ss4e+Ugx9DwmJ/c5eBHO1LjjKyXeOUNelB9ok87wbGNj+r9dp3F6ZnGZZDbtdBzhnNDy0I03vHqCRrH3I3dyFtRIz58m99tLV/Ck3LHI2cukPNwnpQNXfZsSHHOnu7/4MSpRTjZkp5SnN0Nqj8tSWo4ADVXo65q+SclO1aWZs5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XDKMJWyr; arc=none smtp.client-ip=209.85.215.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rOAhnKYR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF948C19421;
-	Mon,  5 Jan 2026 05:15:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767590114;
-	bh=0EBUEmVTe0e4bzKdqvPELWwoIgTHdjzdDZHfkwljOsg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rOAhnKYROQMEoMD81Em7mWQ61HyLgE3WDv40a+uauy0zXQQ0mHHhwqwczGz06JzjM
-	 BdNHtV7nIaURBKsF+oSa2rFdIAEXQ7LByXqGJRKmIrdfOf6QiEc5WT1lC9vh/BhW9a
-	 IQ9OEsk+eGFsSOCFKi5iDvmfEmKDGx5jd+GTG1pUfu7myy1vVeHI3pUsbThA4X2oyu
-	 lJCDZSbKqwRYYUw6a5frOfQp/Jv2FxRovn8kxjvrIGakLOdH6Z1+7/6yA/2TAaFePp
-	 BbafT19y5VWI6JSqqbcyOypU34Iu6dDnPvbkNn++RQT2plgft3r939P/tX35BnbGzF
-	 L9/mowQabouBA==
-From: Eric Biggers <ebiggers@kernel.org>
-To: linux-crypto@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XDKMJWyr"
+Received: by mail-pg1-f182.google.com with SMTP id 41be03b00d2f7-c1e4a9033abso12231512a12.3
+        for <sparclinux@vger.kernel.org>; Sun, 04 Jan 2026 23:47:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1767599252; x=1768204052; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2Smn7G9NNF4TKpSBrLZt6/rkru/ozPf2jYkxgsCOt/U=;
+        b=XDKMJWyrvDbiwDOfmQKLltH6IiyxEaweMnOAZFBZVGTYC2GOqTfKh3n04lf5GJ84qu
+         5s0gbg4aU+QvgUmtV7ytpI0dXCqPB+akAz5slCfWkIk9tIcmZWrmUxBoEwmp6kRQeVdB
+         mWGTurcze4OqqRw5CUYJ8rQ8v9uWuLvqfyqXF/tOyXXg/195fsYvebVWZJ6Ki+oIuXZa
+         lq8f2FsrXZaPRS0o17VkIPhBt2cfSseITAlkOoe59bKGSK7ub90fst0TVAjIauffDcOP
+         3+BOPMFIVMQjTL+v2cHEnTNRAFpbbJ/cCITAJrPSRtrSDdpNrBJvN+U/6tGxmjdBBmBl
+         8Xvw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767599252; x=1768204052;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=2Smn7G9NNF4TKpSBrLZt6/rkru/ozPf2jYkxgsCOt/U=;
+        b=n+ut2LYZDKXgMkiDZSwRAoOoduAh/q6OYXFR1HqVWDLPofEwve/yuDnlbnjqd6BI5R
+         /1H7uQAJpqppu2/RnnQpC0EtdwExy3zokcDccgWchLM+owlxn5yrvxAgrav1gCWn8mrq
+         +DXyeC4/pXb6geyFjlmT9s25SvDyljmtvtL2wIb8vq+TkZjbbeFI8YejsIsO0Ulfj1YA
+         gwTibJYtW5F2apaHPXsDQjz3WyIdUdkLcliZr9zq+08zc2+lZiCCYQRTUEszXLNyfftG
+         t3hIj+9W2Lmp8XMt6xmC3KqgS7BZ8m1Vfbouv4QqwxAyUN8LsxaWN/CgMxSDfq4NKsd7
+         o8SQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWjo1hcjt+vgJl8vSQzTyDRAsrv6W2rqDP3pmagsuVJ/UnUqbh7yjQm8Gx0SXQMv9uZ3J6XPO2NsPOz@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxyhtwp7tuswuFQBpS/1YMsktcYA4bdN7TlqVb5qBziEw7V3YFG
+	1ADh1IAU9dWoIn41Q4+ldcJG3Sn1DXlfGxC+KZtFKUSBI+1VWz3OA0Z1
+X-Gm-Gg: AY/fxX4snTVes30HBoZEKyddeNFnEe/9R/CtYpqrq4TEZpi3VXZxCDKB0MBh14oOjes
+	5M/UeouoF9y3dgGmQdQ5h/GM4/6r3o89nOXLsk5Jm4r0lkpPw5kUHvrvblk6m3OkJNwan7CSUiT
+	yGrZPWrQPf0nsqx6X7YnPWWbvsxFYlW1zdQpl30HF5nrSPNLAgTMpU0lDZrMGKwbZPj94iozuRR
+	CWa1irsvR5ijGhy44+tj/NjLwocIDTPdb8Xyvi2nRy7tLGQniTMEExiPq7IFnyYzPM6FyHzeykp
+	mXg/o4zaJJBir7v1T3279WcPdCh0F3097J0sTiKZgyGALtt4ofjvH/7AuBa/tCKHOpVKWx29Ehh
+	MM5FB2s1Dzdh83fNk6dezifAHwH5UQgICkIPyDzqVoj2QxBt8yEAAAvQ8Zkb+I+8trwF6YOFmQA
+	==
+X-Google-Smtp-Source: AGHT+IHVaBHzL3ldcoq10mQ0DvSoQNAzO29+h1IBrSy2gZY7Qh6quSoh5XWNmgIvhDzcT+gz+HyNHQ==
+X-Received: by 2002:a05:693c:8008:b0:2b0:4f8e:3273 with SMTP id 5a478bee46e88-2b05ebd7223mr36936529eec.6.1767599252090;
+        Sun, 04 Jan 2026 23:47:32 -0800 (PST)
+Received: from gmail.com ([2a09:bac5:1f0f:28::4:33f])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b05ffad66fsm101610210eec.4.2026.01.04.23.47.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 04 Jan 2026 23:47:31 -0800 (PST)
+From: Qingfang Deng <dqfext@gmail.com>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: linux-crypto@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
 	Ard Biesheuvel <ardb@kernel.org>,
-	"Jason A . Donenfeld" <Jason@zx2c4.com>,
+	"Jason A. Donenfeld" <Jason@zx2c4.com>,
 	Herbert Xu <herbert@gondor.apana.org.au>,
 	linux-arm-kernel@lists.infradead.org,
 	linuxppc-dev@lists.ozlabs.org,
@@ -39,14 +73,13 @@ Cc: linux-kernel@vger.kernel.org,
 	sparclinux@vger.kernel.org,
 	x86@kernel.org,
 	Holger Dengler <dengler@linux.ibm.com>,
-	Harald Freudenberger <freude@linux.ibm.com>,
-	Eric Biggers <ebiggers@kernel.org>
-Subject: [PATCH 36/36] lib/crypto: aes: Drop 'volatile' from aes_sbox and aes_inv_sbox
-Date: Sun,  4 Jan 2026 21:13:09 -0800
-Message-ID: <20260105051311.1607207-37-ebiggers@kernel.org>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260105051311.1607207-1-ebiggers@kernel.org>
-References: <20260105051311.1607207-1-ebiggers@kernel.org>
+	Harald Freudenberger <freude@linux.ibm.com>
+Subject: Re: [PATCH 02/36] lib/crypto: aes: Introduce improved AES library
+Date: Mon,  5 Jan 2026 15:47:12 +0800
+Message-ID: <20260105074712.498-1-dqfext@gmail.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260105051311.1607207-3-ebiggers@kernel.org>
+References: <20260105051311.1607207-1-ebiggers@kernel.org> <20260105051311.1607207-3-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -55,63 +88,18 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The volatile keyword is no longer necessary or useful on aes_sbox and
-aes_inv_sbox, since the table prefetching is now done using a helper
-function that casts to volatile itself and also includes an optimization
-barrier.  Since it prevents some compiler optimizations, remove it.
-
-Signed-off-by: Eric Biggers <ebiggers@kernel.org>
----
- lib/crypto/aes.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/lib/crypto/aes.c b/lib/crypto/aes.c
-index 98ade1758735..e85c905296f1 100644
---- a/lib/crypto/aes.c
-+++ b/lib/crypto/aes.c
-@@ -9,15 +9,11 @@
- #include <linux/crypto.h>
- #include <linux/export.h>
- #include <linux/module.h>
- #include <linux/unaligned.h>
+On 4 Jan 2026 21:12:35 -0800, Eric Biggers wrote:
+>  extern const u8 crypto_aes_sbox[];
+>  extern const u8 crypto_aes_inv_sbox[];
+> +extern const u32 __cacheline_aligned aes_enc_tab[256];
+> +extern const u32 __cacheline_aligned aes_dec_tab[256];
  
--/*
-- * Emit the sbox as volatile const to prevent the compiler from doing
-- * constant folding on sbox references involving fixed indexes.
-- */
--static volatile const u8 __cacheline_aligned aes_sbox[] = {
-+static const u8 __cacheline_aligned aes_sbox[] = {
- 	0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5,
- 	0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
- 	0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0,
- 	0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
- 	0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc,
-@@ -48,11 +44,11 @@ static volatile const u8 __cacheline_aligned aes_sbox[] = {
- 	0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
- 	0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68,
- 	0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
- };
- 
--static volatile const u8 __cacheline_aligned aes_inv_sbox[] = {
-+static const u8 __cacheline_aligned aes_inv_sbox[] = {
- 	0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38,
- 	0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
- 	0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87,
- 	0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
- 	0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d,
-@@ -428,11 +424,11 @@ static void __maybe_unused aes_decrypt_generic(const u32 inv_rndkeys[],
- 		w[1] = w1;
- 		w[2] = w2;
- 		w[3] = w3;
- 	} while (--n);
- 
--	aes_prefetch((const void *)aes_inv_sbox, sizeof(aes_inv_sbox));
-+	aes_prefetch(aes_inv_sbox, sizeof(aes_inv_sbox));
- 	put_unaligned_le32(declast_quarterround(w, 0, *rkp++), &out[0]);
- 	put_unaligned_le32(declast_quarterround(w, 1, *rkp++), &out[4]);
- 	put_unaligned_le32(declast_quarterround(w, 2, *rkp++), &out[8]);
- 	put_unaligned_le32(declast_quarterround(w, 3, *rkp++), &out[12]);
- }
--- 
-2.52.0
+__cacheline_aligned puts the array in ".data..cacheline_aligned"
+section. As a const array, it should be in ".rodata" section, so
+____cacheline_aligned (note the extra underscores) should be used
+instead.
+You can also apply the same to crypto_aes_sbox and crypto_aes_inv_sbox
+while at it.
 
+Regards,
+Qingfang
