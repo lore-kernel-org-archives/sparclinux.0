@@ -1,102 +1,117 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A20A1326933;
-	Wed,  7 Jan 2026 10:30:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11CC932F774;
+	Wed,  7 Jan 2026 10:42:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767781819; cv=none; b=tSFmpAhYG6Jnwt1p5O0feAcRYa+Fd9jrA72fSYvQFXmN9m5KR+N0tCEXAtgWnct0thsVOBafW1mnSk8IlgYxMzPz5IMiE+nGYzW45DVey+t65iLxuN6iUjSKIWWDJZbuB8lE99MhDCySGdoatb4zbnxBlzLS0IvuId40J4hI7VA=
+	t=1767782548; cv=none; b=BMAYPJps3L2JT1P5QJqGg24v6bD0Xm5+OOzCWZAOZscYhfSxcqaBM8V2kU28YbIQT9yHL8zM5BgDqtj1BzxkoH83nExh0pH7SGsphOLcmuWTHCrlEkJukkgj1icGCIsiPIMon7eqye3gdH6CQLDwG/QUiL/umlHCCPsqbesxoqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767781819; c=relaxed/simple;
-	bh=QDNik1P9OvsgAtFchTw4BckF/mSE1cSKBVO0iEJIHME=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mzm63Kc2/EyFtIP7D43GS3+oqppwzBuC1PWMzdpv+tsy2xMirsMcmABJ8FWinKmSYxaRllfxQclfe/O0adFOnVHEQvua182APa5IxC79EMy/ISgKuUVHuLCYjJWkgckfKT9MGi1+ETAsy74wHmaxv56diRDhDOVV8eN9SzzWzf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=GapqslJR reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1767782548; c=relaxed/simple;
+	bh=l3Mol18O1O3dGTzBtcAc8uE/dCFe/Q7JtlvbdQwtpcM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SlyLs53a0c314pbcsyUoC41psptUb/fiJ7gmg3AbOFK0nWXGS/inkcaXCNwCKw4tEAbVvVouLCVTY898wD0Si/u76TDZVBjqT+oCN1j4/ysmkcEVdKAIBCxIWZEOf5FEzcgLKRKDr3rQ94h+natqEQaevKFm6Wm+5V7fgeQoWT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dM3Aij/h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="GapqslJR"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4dmPHX1tZwz1DDr1;
-	Wed,  7 Jan 2026 11:22:48 +0100 (CET)
-Received: from [10.10.15.21] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4dmPHS5YrMz1DDdR;
-	Wed,  7 Jan 2026 11:22:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1767781367;
-	bh=5sCdqnj/RCGcOZ4N1FNFLLmFTy7auxTIhL2QEEcNqFg=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=GapqslJRt7PAo/OPdy40/uiS8yl/fdKamd8Ti7v8KhTSWM+dyJpM0kA09WqDkvmTF
-	 JDac2AP0hk4IXLuaOc19G85CIClqVXmQFScccHC7rgNcYdl16DovAFndj0u/scyZuZ
-	 rFnlzmQeoXkgQ81qRhHQTXrNih6T2iluIH43PJMds/ZZIo6rm/VM9YDeYihibbVdmg
-	 uDvdrF41naRrcWhAD/3/BJoa7qr9vCUPqLxuLP48CDDioxfF0rw5/F8n0Js/OfpQsy
-	 f1VR1SCUMB9l0JY24lstr5qvSKP50VGC6KkhF0cw5Ng7hX+p9V4PT5L0p7hEJpFlek
-	 UmVwAHzAgacCA==
-Message-ID: <836139d1-1425-4381-bb84-6c2654a4d239@gaisler.com>
-Date: Wed, 7 Jan 2026 11:22:44 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dM3Aij/h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2E0CC4CEF7;
+	Wed,  7 Jan 2026 10:42:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1767782547;
+	bh=l3Mol18O1O3dGTzBtcAc8uE/dCFe/Q7JtlvbdQwtpcM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dM3Aij/hxvpsln3d9kZKfztgWjlc/yCCzdxhpzd3wRs3cWGm5J/RUd+Bxv5V8RiX5
+	 ZiYCSMJa69C/MdU5S6q/wFOzfjfCxBJIaKOzx8NmkAPyqO1Hw2cJDyRcFDc3THxhYS
+	 BlYKSbZXNLlFp4LLIccK02bHBmzEag1fYCcPI1GfidMUea5O9nZ8bV9vdPD5hbPpHj
+	 K9nmsKBiKJjwYq4s6mPKm3P2FID1LBJYLlw4kfTagBgk28oBczcl9VrTT6pAdXZHtS
+	 vOd0/tFKGoDyuOsoEI+/bRWUyX7wKnkfxlmP8joBuTKYCr39fyIuoS+PBpyhOnYx1g
+	 d0RkYNKBrGpdA==
+From: alexs@kernel.org
+To: "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	sparclinux@vger.kernel.org (open list:SPARC + UltraSPARC (sparc/sparc64)),
+	linux-kernel@vger.kernel.org (open list)
+Cc: Alex Shi <alexs@kernel.org>,
+	kernel test robot <lkp@intel.com>,
+	sparclinux@vger.kernel.org,
+	Matthew Wilcox <willy@infradead.org>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v2] arch/sparc: fix unused variable warning
+Date: Wed,  7 Jan 2026 18:41:44 +0800
+Message-ID: <20260107104145.51416-1-alexs@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/19] printk cleanup - part 3
-To: Marcos Paulo de Souza <mpdesouza@suse.com>,
- Richard Weinberger <richard@nod.at>,
- Anton Ivanov <anton.ivanov@cambridgegreys.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Jason Wessel <jason.wessel@windriver.com>,
- Daniel Thompson <danielt@kernel.org>,
- Douglas Anderson <dianders@chromium.org>, Petr Mladek <pmladek@suse.com>,
- Steven Rostedt <rostedt@goodmis.org>, John Ogness
- <john.ogness@linutronix.de>, Sergey Senozhatsky <senozhatsky@chromium.org>,
- Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Geert Uytterhoeven <geert@linux-m68k.org>, Kees Cook <kees@kernel.org>,
- Tony Luck <tony.luck@intel.com>, "Guilherme G. Piccoli"
- <gpiccoli@igalia.com>, Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>,
- Jacky Huang <ychuang3@nuvoton.com>, Shan-Chun Hung <schung@nuvoton.com>,
- Laurentiu Tudor <laurentiu.tudor@nxp.com>
-Cc: linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
- kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
- netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
- linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- sparclinux@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 2025-12-27 13:16, Marcos Paulo de Souza wrote:
-> The parts 1 and 2 can be found here [1] and here[2].
-> 
-> The changes proposed in this part 3 are mostly to clarify the usage of
-> the interfaces for NBCON, and use the printk helpers more broadly.
-> Besides it, it also introduces a new way to register consoles
-> and drop thes the CON_ENABLED flag. It seems too much, but in reality
-> the changes are not complex, and as the title says, it's basically a
-> cleanup without changing the functional changes.
+From: Alex Shi <alexs@kernel.org>
 
-Hi,
+   arch/sparc/mm/init_64.c: In function 'arch_hugetlb_valid_size':
+   arch/sparc/mm/init_64.c:361:24: warning: variable 'hv_pgsz_idx' set but not used [-Wunused-but-set-variable]
+     361 |         unsigned short hv_pgsz_idx;
+         |                        ^~~~~~~~~~~
 
-Patches 7-17 all say "replacing the CON_ENABLE flag" in their
-descriptions, which should rather be "replacing the CON_ENABLED flag".
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Alex Shi <alexs@kernel.org>
+Cc: sparclinux@vger.kernel.org
+Cc: Matthew Wilcox  <willy@infradead.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Mike Rapoport  <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/init_64.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-Cheers,
-Andreas
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index df9f7c444c39..ba19d23d4040 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -358,30 +358,24 @@ static void __init pud_huge_patch(void)
+ bool __init arch_hugetlb_valid_size(unsigned long size)
+ {
+ 	unsigned int hugepage_shift = ilog2(size);
+-	unsigned short hv_pgsz_idx;
+ 	unsigned int hv_pgsz_mask;
+ 
+ 	switch (hugepage_shift) {
+ 	case HPAGE_16GB_SHIFT:
+ 		hv_pgsz_mask = HV_PGSZ_MASK_16GB;
+-		hv_pgsz_idx = HV_PGSZ_IDX_16GB;
+ 		pud_huge_patch();
+ 		break;
+ 	case HPAGE_2GB_SHIFT:
+ 		hv_pgsz_mask = HV_PGSZ_MASK_2GB;
+-		hv_pgsz_idx = HV_PGSZ_IDX_2GB;
+ 		break;
+ 	case HPAGE_256MB_SHIFT:
+ 		hv_pgsz_mask = HV_PGSZ_MASK_256MB;
+-		hv_pgsz_idx = HV_PGSZ_IDX_256MB;
+ 		break;
+ 	case HPAGE_SHIFT:
+ 		hv_pgsz_mask = HV_PGSZ_MASK_4MB;
+-		hv_pgsz_idx = HV_PGSZ_IDX_4MB;
+ 		break;
+ 	case HPAGE_64K_SHIFT:
+ 		hv_pgsz_mask = HV_PGSZ_MASK_64K;
+-		hv_pgsz_idx = HV_PGSZ_IDX_64K;
+ 		break;
+ 	default:
+ 		hv_pgsz_mask = 0;
+-- 
+2.43.0
 
