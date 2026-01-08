@@ -1,67 +1,67 @@
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
+Received: from mail-ua1-f45.google.com (mail-ua1-f45.google.com [209.85.222.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A05827EC7C
-	for <sparclinux@vger.kernel.org>; Thu,  8 Jan 2026 03:18:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EFECBA21
+	for <sparclinux@vger.kernel.org>; Thu,  8 Jan 2026 04:10:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767842297; cv=none; b=heWl0ypXqH35YyhvtaevLexArt8tQrVDxbmlRdBnZzelPJafJgkv4N3jFi6NSDjlkVI0AWv39tZeFo9LT12tFY58ZuP0IVkVugfk5yFJgOflL5Gr6O2vVpewm5t5R/Wz0MdaiHFWqb5zhICBPV8+7uWe20Ekqi37EFlOKQy+q3E=
+	t=1767845408; cv=none; b=kKa6JUNZJtpCXgDstixY498mgG6TsNuwNsrH4kzrmxDe11HSDcmD6jK0rd+0gjc0xYQ40HHVtuuYPM6pWZl+WHSLvv0dE4a0Zt9XxFDphwvsXG48GdG0Pqbhsb/WZXqcLDVfetY9vMnN6JCNJQgmZvnskmitfJNweK3jSkqDZ8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767842297; c=relaxed/simple;
-	bh=SGsW3RrCaecKqg2d4HlFgNCObq+wXvt+qhfrwhJ4ZxI=;
+	s=arc-20240116; t=1767845408; c=relaxed/simple;
+	bh=EpVfcDPQ5tvvWmjPAb0alVXp8D2aw1sjVxS73dMYTuc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lUkrA4rSe1AEMIAsXxMli4cFUXp1/W5BmvuOIQSzbc93YaPRg99mEneZXwByUjkdTpfdVkp1JOdVYVzmLtwYM+OoF8XzoOfEPViuBnNSHlSsB2HmWYkj76OtMUcQ73ecYg7Ip7xX04HZwCfQu3oc6AcAGnJjCPkOqlQ++Us7y14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j1FJ7rKr; arc=none smtp.client-ip=74.125.82.181
+	 In-Reply-To:Content-Type; b=C5NbOZdh0+Obk5CdR0w/3BSOFVmkVK9pf17QoJtCp9Qztv4ydOSY4d+zAsz+8OISOHrFZH0LdUTX2P/vk0F23pbykp3LvzMYUWlC6hjemH8t4CeSpJLiiKpVwlnYFVM4l6ZQdWSQ3oz8Fh8kXQa19mq0osrj4w3qG6w4Q8vv4Dk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cx3f9emh; arc=none smtp.client-ip=209.85.222.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j1FJ7rKr"
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-2abe15d8a4bso7787eec.0
-        for <sparclinux@vger.kernel.org>; Wed, 07 Jan 2026 19:18:15 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cx3f9emh"
+Received: by mail-ua1-f45.google.com with SMTP id a1e0cc1a2514c-944168e8c5fso1340687241.2
+        for <sparclinux@vger.kernel.org>; Wed, 07 Jan 2026 20:10:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767842295; x=1768447095; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1767845405; x=1768450205; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=TaSaOdpXMbWrSlJwcrlyjrxLNGS6q5kwuPmkpwrLbXc=;
-        b=j1FJ7rKrodFYGYOaliGjlEblnBDB8+lFBFwJaYaDcLaWZ1gKHh5AMI+fYQjCRUVhjz
-         HpFV8olwymSwMyWPnY+qUIwTQvEKtz0oMWwjglOcOEuYB14NYEk54NhFdzimFIE8Ncps
-         v8EE9wxf3496WJSee9iF7IS5iQw/2ESIcRXHEc0JGnFOZ4Lk4R0+MO7cUXXDEzoFMRax
-         smucfgxklVmjXAnv67YEHZhxItcB1ugOWQIdJvMC54Tz2sqSECb9/kwBbiQaZmQU2Ixm
-         7Rk5qNg8xj3xiSO1lq5B7BX9/oqImRR+IeNtEly//wBlpsbcT8ZvmSVtU7zHGWFQkpLG
-         D5rg==
+        bh=LmM6ehlWdWJ6KDGXGbQV7OhRBapAye0Ge5k72n2kA68=;
+        b=Cx3f9emhLvFOe5Mr/2RPWnlzHe5ph9TYiZnyH5nkhPVglznGAxu+byju2UkloDkgiE
+         AGmcGQwBsTLjV5jZoraJ6kDe/WYK6pkoCNJ/gO2Q5cxwcK8DCcH3HtWU7M9LfrVhClQ+
+         UFKsuT3CpiibeXDlx3+6lUFa44vc80Jrs2BjZjqPTFI5IZ/gQCz9HZMG3/UD+lKogaT4
+         hj71NegomVrGkpEzIEu02cSZM3FekCbfsFGxDGZySU8QkCfuzQm0c2JyvDfpJGUtzxIN
+         HJkwVuuZcbFnukDoCsI0KS39xnCGIQOokwt+/Lg1Xg/GMmGGXsprzMjKGFNEs4aAMh5/
+         BKJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767842295; x=1768447095;
+        d=1e100.net; s=20230601; t=1767845405; x=1768450205;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=TaSaOdpXMbWrSlJwcrlyjrxLNGS6q5kwuPmkpwrLbXc=;
-        b=AJ2QCluDLRAmWiTyFU15ovqtPNo8ikQkiXlL7BYxFdAr32NGIF6zzLbnOLWB0OfSqq
-         war1ZmcTJ200GGeKFcAAgvpduLFMWObTBGK2MjwcWJe7saTdwuR3Tyhsb1GzPKko9/Vs
-         fPT3s2Kq1FIGJxgWsPfcYb0vkUV2itm+/ITPZ9lrUEwGOTMHt4OZDa3l0XiH4QssOxS7
-         M4wjIRtk+u7C+T+UYKcfHgjgE2DEBnmcnDEOgDhLKut1DJ2vvM+5TPC+PIzrWaAiXVYk
-         j7W0p451cvVAxBe1rRbjUHyNtilGUJmjc4lfT3FQP8XKfcJMZ9KYRQwaGUH5Ley63mjJ
-         gDkQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVgR5lwQFYph32pGDkyT3oOSc9WMwV1iFuEshOFN19mBYe+nXKIY/gxgUrDvbkducat+xjUAwxjZxS1@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRL+tOdNKciZ8cljfFncg2ojmuCkfZ4BRJtvkbMBr4szokZdRN
-	UmFOBlvZGJcUO48OTaBAQOafkeVZxQbbjwVsLtPPm6f8EI6/ZzMnaOT8
-X-Gm-Gg: AY/fxX741/J0L+PdvolCh9Fw2swZT7rAYEzo69EpeG4dKaPGGX/AsgzepmCqYt9Isd4
-	bOEbMFhJ5f7aP2wwZ1mN33kw1VnIQTWhfKu+kHLA60L8JeRZBx4zx8hz/O001dssotor+O1GLg4
-	xuXpgns3JBjFyniNKxVr3Ytc1U6dpybEgnkIgVIdJDN771OwFG9iWCWKhAWDnFVF1s41pREM20p
-	cPopECvuEWl12uiFF9S6DPE7/pKyKm8uZHyHavs3bpo19N8CnTXxXkox4IJjWsbwqETceqdE+M2
-	BM+B3AZkgJ/0Uvg+FRY51rE43s3UrTOH1/cXiUqDQZfhi0/XiSz7wPN3lQYeyxobfoRjRnG3gz0
-	r3jt4FTbOwInmOkcvntCX66IDFelyBaacN65AxZeM8B/WB/aQQnQWQL+IBtZooT2J7xLgaWx343
-	FKs2GiHWOeOhtWY4rAjw6bzKydhJBnPe4yEketWQ==
-X-Google-Smtp-Source: AGHT+IG6vHjZJF3iuCC3/lZlP5mplVCNe/UUIZCU6laystWobF3zaNSE5S04nOJRMMq5iPd0ITbh5g==
-X-Received: by 2002:a05:690c:4044:b0:78d:6a71:76c5 with SMTP id 00721157ae682-790b55c0b56mr30974207b3.10.1767835599219;
-        Wed, 07 Jan 2026 17:26:39 -0800 (PST)
-Received: from [192.168.2.226] (104.194.78.75.16clouds.com. [104.194.78.75])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-790aa592cdcsm24600547b3.25.2026.01.07.17.26.32
+        bh=LmM6ehlWdWJ6KDGXGbQV7OhRBapAye0Ge5k72n2kA68=;
+        b=BGrDS/S4mykBSepIxGUomAX6fT2Iuys4t3hWnYAHpUwZfPxiSTdf4rnRllcGaezQT9
+         lM3uSBfhcAdYhWl38wjxNYByhwaKJY8BEAFMw02sXweka8D4z7Lg90ALWa7WOUHfel6S
+         Nq9S4/MjHqFOWBRYBQzwPLZxO2ChWHdvYEemXHkerxBU63tSqZ8V0Czs/ctmzCJFdQkq
+         +JwnxltSaOguXhkRW0FpvcNdYXCM3sXrZ93yW3Iojfw+aBQRJdr2K8opE+uVzHZlaQX/
+         IjocfnP55y9JYUhODgBMjkjBQodor3gh1Nr8t4JAkUmHyzX5STmsEUCkpIcYDJiqi8qY
+         Ur4A==
+X-Forwarded-Encrypted: i=1; AJvYcCXwiQteE9w39hykh1rM+N8YkZsF/WAf1CuuVqMze1ERFKtZ0sEGDGq1Iqs5ooCBn4t6HcJ+wIXQOs92@vger.kernel.org
+X-Gm-Message-State: AOJu0YxPRElpf5vYbaDuhNwgqW/kx/fX6gBoqWB9wDYLZtvN+kkhrtMZ
+	Sq8MzMesXOhd1Yi7dVFU5ciBMG7oUZ+acb8+nqiOdNvKmbgF3HOiOtTt9F11Sbna
+X-Gm-Gg: AY/fxX6XNlghXYOhf+PzLyWl+MfETOkoQ86QWd/UwyUXe5FyIWqKR2m1264HjW0qdlt
+	Tk81CHgMf4ktorcknO9tcSrB6XYljmxt77f90YCS59EMaZoLUdT4A/7A3nV5ToMffu1lxhV94Gn
+	tZGfsmbEuprxttby9MIZdYHROQ7ypm3EWmwDLbWGCNYtvnY5vSe0RT7/Uu8y6XXok/de1MHcfSW
+	1xUoPbxBkkN/YRVmQQWGVrbMOmA+NJfxuF10R+SBcR1kMOaaHQtd0cDo6UiHxKTgRRV7ZzPnVuC
+	EPvGpavqUgkPGae6JXZhKbgpm5g0iTehrdbErLHG34TlQ0gZN4NMHu3JW9E1+/dUpkRmEqMHTAE
+	YNmFBC583euz4qaK2vLcxlQnZZ4QuOSecY4CFMRlV3zH/JNMUEq+nnJql3oRX0DzqGuIblbJTX/
+	UMD0ZEB4dKYqICRhoO1kw=
+X-Google-Smtp-Source: AGHT+IEB1LNTFlrPb+jcREkk5sKdys2DwRYUxfkYu64MLXUtH4B+YCOuboycYqblRdviAUDJwGzL4A==
+X-Received: by 2002:a17:90a:c88b:b0:34c:6124:3616 with SMTP id 98e67ed59e1d1-34f68cdd6bemr4185279a91.27.1767839464598;
+        Wed, 07 Jan 2026 18:31:04 -0800 (PST)
+Received: from [192.168.2.226] ([114.92.45.6])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34f5f7c6f4dsm6226851a91.8.2026.01.07.18.31.00
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Jan 2026 17:26:38 -0800 (PST)
-Message-ID: <da4e67bf-e671-46a6-8b09-19193c747c37@gmail.com>
-Date: Thu, 8 Jan 2026 09:26:28 +0800
+        Wed, 07 Jan 2026 18:31:04 -0800 (PST)
+Message-ID: <3bc5964f-b4a6-4792-a3e3-beeeb986b12a@gmail.com>
+Date: Thu, 8 Jan 2026 10:30:55 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -106,10 +106,11 @@ On 2026/1/7 22:46, Matthew Wilcox wrote:
 Thanks for the feedback, Matthew. You're right—the script was too 
 aggressive for such a localized fix.
 
-I used 'scripts/get_maintainer.pl' without enough manual filtering. 
-Besides '--nogit-fallback', are there specific parameters or workflows 
-you recommend to keep the CC list lean for trivial cleanups like this?
+I used scripts/get_maintainer.pl without enough manual filtering. Are 
+there specific parameters or workflows you recommend to keep the CC list 
+lean for trivial cleanups like this?
 
 I'll be more surgical with the CC list on the next version.
 
-Thanks!
+Thanks
+Alex
