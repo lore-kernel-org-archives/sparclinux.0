@@ -1,33 +1,67 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA912231836;
-	Thu,  8 Jan 2026 02:56:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A05827EC7C
+	for <sparclinux@vger.kernel.org>; Thu,  8 Jan 2026 03:18:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767840994; cv=none; b=oSZlZcklT2Xw7eV4fIcOZBSBcMLPXu0mYP92TjFo/FJGviSfCCS6Wf6Q79hwhHV9BosmChLxf592thXEaKvh2nUZReIvdVNoFyHNhg68YhGHEdxOI+Ioc53RjWmuoXgeEFsKsXf6AQvhNj5njVvm9nzoHPkkBqJRfbPZbcM2O2I=
+	t=1767842297; cv=none; b=heWl0ypXqH35YyhvtaevLexArt8tQrVDxbmlRdBnZzelPJafJgkv4N3jFi6NSDjlkVI0AWv39tZeFo9LT12tFY58ZuP0IVkVugfk5yFJgOflL5Gr6O2vVpewm5t5R/Wz0MdaiHFWqb5zhICBPV8+7uWe20Ekqi37EFlOKQy+q3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767840994; c=relaxed/simple;
-	bh=bb09VXEHSGVuDvACYJHsjuF/qKdFpVlUXhZlI58yIwU=;
+	s=arc-20240116; t=1767842297; c=relaxed/simple;
+	bh=SGsW3RrCaecKqg2d4HlFgNCObq+wXvt+qhfrwhJ4ZxI=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=YWeTggRijzeilZTc/TpfnINLHouXg4/4Hktkegy4gpv3zNeGgnLNOnc8mYDhewttnVvw3un6aZeLoNQUV8vl4/efO1Ee36shzqSB/XBSXm1uy2cTOL3ikrfHYt3k239OIPwvyyrVH55BqfbHWl5KiypCOZiNQG0lLOOlzAgxZBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VO9+Hp/X; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=lUkrA4rSe1AEMIAsXxMli4cFUXp1/W5BmvuOIQSzbc93YaPRg99mEneZXwByUjkdTpfdVkp1JOdVYVzmLtwYM+OoF8XzoOfEPViuBnNSHlSsB2HmWYkj76OtMUcQ73ecYg7Ip7xX04HZwCfQu3oc6AcAGnJjCPkOqlQ++Us7y14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j1FJ7rKr; arc=none smtp.client-ip=74.125.82.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VO9+Hp/X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97908C4CEF1;
-	Thu,  8 Jan 2026 02:56:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767840993;
-	bh=bb09VXEHSGVuDvACYJHsjuF/qKdFpVlUXhZlI58yIwU=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VO9+Hp/XVRs8XQB3IDBstup2R+DaU4I6K4mDp34Wm113uMcakMBKaj2eTx55ExHtE
-	 nBWUzkdaWvlhDxELVvEA3C6puD6nUZG5J+gpcQ61WkLHnhj+M05LSE5AZcHJamwhvc
-	 j/BMfPrbYmdBOqJI5BeEugABP3Mc/vfHCk9GLrpJscoyfLAOJwB+2t8XFPTPsEybag
-	 xGnWNL183qpjfSIH8SOBIaB8sVnhazL4Rw/1WNvWFQdpTNcIdnvnpj/0Brkneg1BPR
-	 7qMuhdE1AoXtCk2F775jaiAkT9nh2gM4h7JiM3GPN+qLCo8vxQs/u1WGbxiPYaxbeg
-	 hV7kgr+lj43kw==
-Message-ID: <dc57f648-524c-4fdc-9fce-73f1bab2fee4@kernel.org>
-Date: Wed, 7 Jan 2026 18:56:29 -0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j1FJ7rKr"
+Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-2abe15d8a4bso7787eec.0
+        for <sparclinux@vger.kernel.org>; Wed, 07 Jan 2026 19:18:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1767842295; x=1768447095; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=TaSaOdpXMbWrSlJwcrlyjrxLNGS6q5kwuPmkpwrLbXc=;
+        b=j1FJ7rKrodFYGYOaliGjlEblnBDB8+lFBFwJaYaDcLaWZ1gKHh5AMI+fYQjCRUVhjz
+         HpFV8olwymSwMyWPnY+qUIwTQvEKtz0oMWwjglOcOEuYB14NYEk54NhFdzimFIE8Ncps
+         v8EE9wxf3496WJSee9iF7IS5iQw/2ESIcRXHEc0JGnFOZ4Lk4R0+MO7cUXXDEzoFMRax
+         smucfgxklVmjXAnv67YEHZhxItcB1ugOWQIdJvMC54Tz2sqSECb9/kwBbiQaZmQU2Ixm
+         7Rk5qNg8xj3xiSO1lq5B7BX9/oqImRR+IeNtEly//wBlpsbcT8ZvmSVtU7zHGWFQkpLG
+         D5rg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767842295; x=1768447095;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=TaSaOdpXMbWrSlJwcrlyjrxLNGS6q5kwuPmkpwrLbXc=;
+        b=AJ2QCluDLRAmWiTyFU15ovqtPNo8ikQkiXlL7BYxFdAr32NGIF6zzLbnOLWB0OfSqq
+         war1ZmcTJ200GGeKFcAAgvpduLFMWObTBGK2MjwcWJe7saTdwuR3Tyhsb1GzPKko9/Vs
+         fPT3s2Kq1FIGJxgWsPfcYb0vkUV2itm+/ITPZ9lrUEwGOTMHt4OZDa3l0XiH4QssOxS7
+         M4wjIRtk+u7C+T+UYKcfHgjgE2DEBnmcnDEOgDhLKut1DJ2vvM+5TPC+PIzrWaAiXVYk
+         j7W0p451cvVAxBe1rRbjUHyNtilGUJmjc4lfT3FQP8XKfcJMZ9KYRQwaGUH5Ley63mjJ
+         gDkQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVgR5lwQFYph32pGDkyT3oOSc9WMwV1iFuEshOFN19mBYe+nXKIY/gxgUrDvbkducat+xjUAwxjZxS1@vger.kernel.org
+X-Gm-Message-State: AOJu0YyRL+tOdNKciZ8cljfFncg2ojmuCkfZ4BRJtvkbMBr4szokZdRN
+	UmFOBlvZGJcUO48OTaBAQOafkeVZxQbbjwVsLtPPm6f8EI6/ZzMnaOT8
+X-Gm-Gg: AY/fxX741/J0L+PdvolCh9Fw2swZT7rAYEzo69EpeG4dKaPGGX/AsgzepmCqYt9Isd4
+	bOEbMFhJ5f7aP2wwZ1mN33kw1VnIQTWhfKu+kHLA60L8JeRZBx4zx8hz/O001dssotor+O1GLg4
+	xuXpgns3JBjFyniNKxVr3Ytc1U6dpybEgnkIgVIdJDN771OwFG9iWCWKhAWDnFVF1s41pREM20p
+	cPopECvuEWl12uiFF9S6DPE7/pKyKm8uZHyHavs3bpo19N8CnTXxXkox4IJjWsbwqETceqdE+M2
+	BM+B3AZkgJ/0Uvg+FRY51rE43s3UrTOH1/cXiUqDQZfhi0/XiSz7wPN3lQYeyxobfoRjRnG3gz0
+	r3jt4FTbOwInmOkcvntCX66IDFelyBaacN65AxZeM8B/WB/aQQnQWQL+IBtZooT2J7xLgaWx343
+	FKs2GiHWOeOhtWY4rAjw6bzKydhJBnPe4yEketWQ==
+X-Google-Smtp-Source: AGHT+IG6vHjZJF3iuCC3/lZlP5mplVCNe/UUIZCU6laystWobF3zaNSE5S04nOJRMMq5iPd0ITbh5g==
+X-Received: by 2002:a05:690c:4044:b0:78d:6a71:76c5 with SMTP id 00721157ae682-790b55c0b56mr30974207b3.10.1767835599219;
+        Wed, 07 Jan 2026 17:26:39 -0800 (PST)
+Received: from [192.168.2.226] (104.194.78.75.16clouds.com. [104.194.78.75])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-790aa592cdcsm24600547b3.25.2026.01.07.17.26.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 07 Jan 2026 17:26:38 -0800 (PST)
+Message-ID: <da4e67bf-e671-46a6-8b09-19193c747c37@gmail.com>
+Date: Thu, 8 Jan 2026 09:26:28 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,66 +69,47 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 02/28] arc: introduce arch_zone_limits_init()
-To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Alex Shi <alexs@kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
- Brian Cain <bcain@kernel.org>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>,
- "David S. Miller" <davem@davemloft.net>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>,
- Geert Uytterhoeven <geert@linux-m68k.org>, Guo Ren <guoren@kernel.org>,
- Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>,
- Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Jonathan Corbet <corbet@lwn.net>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Magnus Lindholm <linmag7@gmail.com>, Matt Turner <mattst88@gmail.com>,
- Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Michal Hocko <mhocko@suse.com>, Michal Simek <monstr@monstr.eu>,
- Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
- Palmer Dabbelt <palmer@dabbelt.com>, Pratyush Yadav <pratyush@kernel.org>,
- Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>,
- Stafford Horne <shorne@gmail.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
- Vineet Gupta <vgupta@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, x86@kernel.org, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- sparclinux@vger.kernel.org
-References: <20260102070005.65328-1-rppt@kernel.org>
- <20260102070005.65328-3-rppt@kernel.org>
+Subject: Re: [PATCH v2] arch/sparc: fix unused variable warning
+To: Matthew Wilcox <willy@infradead.org>, alexs@kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
+ "open list:SPARC + UltraSPARC (sparc/sparc64)" <sparclinux@vger.kernel.org>,
+ open list <linux-kernel@vger.kernel.org>, kernel test robot <lkp@intel.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Qi Zheng <zhengqi.arch@bytedance.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Zi Yan <ziy@nvidia.com>,
+ Kevin Brodsky <kevin.brodsky@arm.com>, Mike Rapoport <rppt@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+References: <20260107104145.51416-1-alexs@kernel.org>
+ <aV5xv0PfUvdc5QFE@casper.infradead.org>
 Content-Language: en-US
-From: Vineet Gupta <vgupta@kernel.org>
-In-Reply-To: <20260102070005.65328-3-rppt@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Alex Shi <seakeel@gmail.com>
+In-Reply-To: <aV5xv0PfUvdc5QFE@casper.infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
 
 
-On 1/1/26 22:59, Mike Rapoport wrote:
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
->
-> Move calculations of zone limits to a dedicated arch_zone_limits_init()
-> function.
->
-> Later MM core will use this function as an architecture specific callback
-> during nodes and zones initialization and thus there won't be a need to
-> call free_area_init() from every architecture.
->
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+On 2026/1/7 22:46, Matthew Wilcox wrote:
+> On Wed, Jan 07, 2026 at 06:41:44PM +0800,alexs@kernel.org wrote:
+>> From: Alex Shi<alexs@kernel.org>
+>>
+>>     arch/sparc/mm/init_64.c: In function 'arch_hugetlb_valid_size':
+>>     arch/sparc/mm/init_64.c:361:24: warning: variable 'hv_pgsz_idx' set but not used [-Wunused-but-set-variable]
+>>       361 |         unsigned short hv_pgsz_idx;
+>>           |                        ^~~~~~~~~~~
+> Looks like it's been unused since introduction in c7d9f77d33a7 ?
+> 
+> As such, why cc all these people who have absolutely nothing to do with
+> it?  Use your brain, not a stupid script.
 
-Thx !
+Thanks for the feedback, Matthew. You're right—the script was too 
+aggressive for such a localized fix.
 
-Acked-by: Vineet Gupta <vgupta@kernel.org>
+I used 'scripts/get_maintainer.pl' without enough manual filtering. 
+Besides '--nogit-fallback', are there specific parameters or workflows 
+you recommend to keep the CC list lean for trivial cleanups like this?
+
+I'll be more surgical with the CC list on the next version.
+
+Thanks!
