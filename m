@@ -1,106 +1,148 @@
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7CE81339A4
-	for <sparclinux@vger.kernel.org>; Fri,  9 Jan 2026 07:15:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEFA32FA3D
+	for <sparclinux@vger.kernel.org>; Fri,  9 Jan 2026 09:08:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767942963; cv=none; b=nB/druuQ+gPGKaABt/LYptMFD0n+uhmNBNhUQqZ5zHXsGSdP43x+BZULlZ9Od1px+5mAwyGBY2Ipysw85jGQo2wfC81o8z5enGR2Smk0NTYr17nnT3GSLhndtQej421sw1TVs6c/uN9ccuLUvDWxk2TF2onnUFAd/SjBC5FecSQ=
+	t=1767949694; cv=none; b=e2aKRVJKmAQxw+vbSFRIKIebFaLNqdRm6EL17J34uPyVmpqHBNzj6cO4q0ATX2jC+0WB6+rbBw5ynYfNFpD3Y/Kswwk9CeVgfpM0UCo/+k5ZaZohrh1W1NyvuqjrXPWmES5eFvaMg53oBy0+f4nPjqjR2G/OojqRZMqy08/Tats=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767942963; c=relaxed/simple;
-	bh=UNf9tFdQd8R2a7ihiu3j86MISI97WQXMMSGM3nhsAaw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=O4MDHzBZc6uFP8fkRNDV68hYfCCDGW1v+DhxHGioPm2FGDN09xO0xtQeJDX+hy+bqedB6A7sGZLZ0LVdyYZSV805yz6Atl2dsBRIDTRSDgAl39tSRaWp/ZB6tmLL2G2sPjcvpUayckzMDWVdbfAHYkNotuLUOtBP98IhnRjoXh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=KHkX3pdZ; arc=none smtp.client-ip=130.133.4.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
+	s=arc-20240116; t=1767949694; c=relaxed/simple;
+	bh=goiI1ZxyIEI3mcfeHTSEAz7enxjoJAjvK6SpyVAMJNs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=B6gUpQQQVuSIRSC3oLUX/SAp5svfI4c87cxlxmTp2GRnspq394DMd6mj/IPZdrKjX8WARLjM259+ukAaY9iJlvCqqFyd2ErifO1iNB5YqI4msPX9YXYWZmenpV4gCfT9EZV39Puqd29DyQvvisvs40J9awdyhrZkbx7/lYhnX8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WIGhG3sg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="KHkX3pdZ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
-	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
-	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
-	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=e1hIC0njmPIjzGs4Fu5P3WqZbVWOgcCfGYAzV9XZO1U=; t=1767942959;
-	x=1768547759; b=KHkX3pdZz77oqK8WGWl8wwCyYAoi0la4SwP19S5eJ1I5yIw8kCXdvjUjpxgUP
-	0B7m97llGwSNiH7Leq6Mt8ydCGDM5RSSvnQ+AuyMzvNe80nG0/KDcW8VyF/w1QSwXLt4IMqmcZ1LA
-	XWoFdcozsBYIF2uPEGrL5ONP7Sc2OI1AbhUorC/RJsKJt0RdhPs0/dpE9A3ziOpeLLmY5HdiIjESV
-	hXxGsFIQRYQTg5Z+wjYIajUn7FgMiiMtXTOMb3kCA6QNoq6sjOKVediO/J8Me6axYz/OBaS+wzr/P
-	K63cPIWMxJR3i9tuMIfQZeEYOp9K7ZMsoxcTvCQe17y2X4lKRQ==;
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.99)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1ve6iz-000000015eH-2R99; Fri, 09 Jan 2026 08:15:57 +0100
-Received: from p5dc55f29.dip0.t-ipconnect.de ([93.197.95.41] helo=suse-laptop.fritz.box)
-          by inpost2.zedat.fu-berlin.de (Exim 4.99)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1ve6iz-000000029Af-1ThR; Fri, 09 Jan 2026 08:15:57 +0100
-Message-ID: <8563d30d63a5156647ec8b968f8a9574a4f2b5bd.camel@physik.fu-berlin.de>
-Subject: Re: Updated firefox package available for sparc64
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To: Gregor Riepl <onitake@gmail.com>, "<debian-sparc@lists.debian.org>"
-	 <debian-sparc@lists.debian.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
-Date: Fri, 09 Jan 2026 08:15:56 +0100
-In-Reply-To: <fd2f7767-6c86-4796-acbe-7a30ef5d8adf@gmail.com>
-References: 
-	<cfe80c9b88601c65e1cc91104da23f7644fed48c.camel@physik.fu-berlin.de>
-	 <fd2f7767-6c86-4796-acbe-7a30ef5d8adf@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.2 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WIGhG3sg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F0D1C4CEF7
+	for <sparclinux@vger.kernel.org>; Fri,  9 Jan 2026 09:08:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1767949694;
+	bh=goiI1ZxyIEI3mcfeHTSEAz7enxjoJAjvK6SpyVAMJNs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=WIGhG3sgki+KEoz1vXOR2kR3tB1EB73l3CF5edZGAclsEhVnW+MFWjTMXqfV7GEI6
+	 zQgT4YjabyJ7LWa0lp7M6x6hfaA8DQNCTQN1NNYT+o3fm+w2JaH0NLp6PEIx3bf1q1
+	 TzO5jLn7lUUx5vFHwxyMbeTKV0azO209foiogdr0ZA5CoY0r4o64woui0oxNWJLL20
+	 HYsni/IYgPj253gmaaKlTFuIDAiebwcY1Cx6bE0IzDPaAr+W4Ihox47gg0cM/Npeev
+	 rhL2V31+zMVTkjz233e1ZBCunhubLUJiaYIL2QcP5QJ56aXMlRzVsvhA666bTqMHu8
+	 vvLYrbMRF3uYw==
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-34c5f0222b0so2494976a91.3
+        for <sparclinux@vger.kernel.org>; Fri, 09 Jan 2026 01:08:14 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCW4cMVlukU9GMMXluzdC4WhCcO5GrXClPfU/xGOsJl0jPokGZrHMJvbiA/C9ZYHBL62M6OHK2sc++33@vger.kernel.org
+X-Gm-Message-State: AOJu0YzdjbQX2MN120HkND8VsXli3iZ5WMFpmaLMywqvHABGlagYZseB
+	V0SfyOPFE2vTBnG7IYmTL9zqkfx6sdcYSD5+8r9aNcJlMnaDrLkPPotiZPB8OuwGey7pFAFeRoH
+	pSE9wkmEZH4giuUx/kBbdrpZHkyieacc=
+X-Google-Smtp-Source: AGHT+IFcD0rfNOJ4GvG+wPYTAWMVc/s2zy/BvRbkZK4bJO5tmt19sPbsMOldrWreI07DtS/l8EUtweFn+GaepdyG9dA=
+X-Received: by 2002:a17:90b:3a8d:b0:34a:adf1:677d with SMTP id
+ 98e67ed59e1d1-34f68b64d7cmr8233808a91.9.1767949694052; Fri, 09 Jan 2026
+ 01:08:14 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-ZEDAT-Hint: PO
+References: <20260105051311.1607207-1-ebiggers@kernel.org> <CAMj1kXGRTfyXPD3+Ravr7O5ZUMAUeabQw455sW5g7aRy3BU+2Q@mail.gmail.com>
+ <20260108202618.GA2687@sol> <20260109012712.GA730896@google.com>
+In-Reply-To: <20260109012712.GA730896@google.com>
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Fri, 9 Jan 2026 10:08:02 +0100
+X-Gmail-Original-Message-ID: <CAMj1kXGQae+SWEgvZTHvoTJueScbqfei1ie_HSC9WyByOwvJUw@mail.gmail.com>
+X-Gm-Features: AQt7F2ruRWMLxfzcb-WM7H3sakD6ZAGLYL1ZhftKy0m5nypWRiiegTKEJVDmsew
+Message-ID: <CAMj1kXGQae+SWEgvZTHvoTJueScbqfei1ie_HSC9WyByOwvJUw@mail.gmail.com>
+Subject: Re: [PATCH 00/36] AES library improvements
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	"Jason A . Donenfeld" <Jason@zx2c4.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+	sparclinux@vger.kernel.org, x86@kernel.org, 
+	Holger Dengler <dengler@linux.ibm.com>, Harald Freudenberger <freude@linux.ibm.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Gregor,
+On Fri, 9 Jan 2026 at 02:27, Eric Biggers <ebiggers@kernel.org> wrote:
+>
+> On Thu, Jan 08, 2026 at 12:26:18PM -0800, Eric Biggers wrote:
+> > On Thu, Jan 08, 2026 at 12:32:00PM +0100, Ard Biesheuvel wrote:
+> > > On Mon, 5 Jan 2026 at 06:14, Eric Biggers <ebiggers@kernel.org> wrote:
+> > > >
+> > > > This series applies to libcrypto-next.  It can also be retrieved from:
+> > > >
+> > > >     git fetch https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git aes-lib-v1
+> > > >
+> > > > This series makes three main improvements to the kernel's AES library:
+> > > >
+> > > >   1. Make it use the kernel's existing architecture-optimized AES code,
+> > > >      including AES instructions, when available.  Previously, only the
+> > > >      traditional crypto API gave access to the optimized AES code.
+> > > >      (As a reminder, AES instructions typically make AES over 10 times
+> > > >      as fast as the generic code.  They also make it constant-time.)
+> > > >
+> > > >   2. Support preparing an AES key for only the forward direction of the
+> > > >      block cipher, using about half as much memory.  This is a helpful
+> > > >      optimization for many common AES modes of operation.  It also helps
+> > > >      keep structs small enough to be allocated on the stack, especially
+> > > >      considering potential future library APIs for AES modes.
+> > > >
+> > > >   3. Replace the library's generic AES implementation with a much faster
+> > > >      one that is almost as fast as "aes-generic", while still keeping
+> > > >      the table size reasonably small and maintaining some constant-time
+> > > >      hardening.  This allows removing "aes-generic", unifying the
+> > > >      current two generic AES implementations in the kernel tree.
+> > > >
+> > >
+> > > Architectures that support memory operands will be impacted by
+> > > dropping the pre-rotated lookup tables, especially if they have few
+> > > GPRs.
+> > >
+> > > I suspect that doesn't really matter in practice: if your pre-AESNI
+> > > IA-32 workload has a bottleneck on "aes-generic", you would have
+> > > probably moved it to a different machine by now. But the performance
+> > > delta will likely be noticeable so it is something that deserves a
+> > > mention.
+> >
+> > Sure.  I only claimed that the new implementation is "almost as fast" as
+> > aes-generic, not "as fast".
+> >
+> > By the way, these are the results I get for crypto_cipher_encrypt_one()
+> > and crypto_cipher_decrypt_one() (averaged together) in a loop on an i386
+> > kernel patched to not use AES-NI:
+> >
+> >     aes-fixed-time: 77 MB/s
+> >     aes-generic: 192 MB/s
+> >     aes-lib: 185 MB/s
+> >
+> > I'm not sure how relevant these are, considering that this was collected
+> > on a modern CPU, not one of the (very) old ones that would actually be
+> > running i386 non-AESNI code.  But if they are even vaguely
+> > representative, this suggests the new code does quite well: little
+> > slowdown over aes-generic, while adding some constant-time hardening
+> > (which arguably was an undeserved shortcut to not include before) and
+> > also using a lot less dcache.
+> >
+> > At the same time, there's clearly a large speedup vs. aes-fixed-time.
+> > So this will actually be a significant performance improvement on
+> > systems that were using aes-fixed-time.  Many people may have been doing
+> > that unintentionally, due to it being set to a higher priority than
+> > aes-generic in the crypto_cipher API.
+> >
+> > I'll also note that the state of the art for parallelizable AES modes on
+> > CPUs without AES instructions is bit-slicing with vector registers.  The
+> > kernel has such code for arm and arm64, but not for x86.  If x86 without
+> > AES-NI was actually important, we should be adding that.  But it seems
+> > clear that x86 CPUs have moved on, and hardly anyone cares anymore.  If
+> > for now we can just provide something that's almost as fast as before
+> > (and maybe even a lot faster in some cases!), that seems fine.
+>
+> It's also worth emphasizing that there are likely to be systems that
+> support AES instructions but are not using them due to the corresponding
+> kconfig options (e.g. CONFIG_CRYPTO_AES_NI_INTEL) not being set to 'y'.
+> As we know, missing the crypto optimization kconfig options is a common
+> mistake.  This series fixes that for single-block AES.
+>
+> So (in addition to the aes-fixed-time case) that's another case that
+> just gets faster, and where the difference between aes-generic and the
+> new generic code isn't actually relevant.
+>
 
-On Fri, 2026-01-09 at 02:15 +0100, Gregor Riepl wrote:
-> Thanks a lot for that!
->=20
-> > I have successfully built and uploaded the latest version of the firefo=
-x package
-> > for sparc64. The package has been verified to work fine (see screenshot=
- in [1]).
->=20
-> Unfortunately it segfaults very quickly on my Ultra 10:
-> nect.cpp:107
-
-That's unfortunate. However, I could confirm it works fine on a SPARC T4:
-
-https://github.com/sparclinux/issues/issues/59#issuecomment-3705595613
-
->=20
-> It was quite hard to get even a stack trace, because of excessive memory =
-usage
-> (gdb eats 4.5GB just for tracing a core dump, and the box only has 512MB)=
-.
->=20
-> I suspected that the crash was memory-related at first, but it looks like=
- it might
-> be an issue with the JS runtime? If it is in fact memory-related, I wonde=
-r why this
-> would happen. There's plenty of swap space available.
-
-Firefox is large and takes a lot of memory. It could indeed just be that yo=
-u run into
-these problems due to insufficient memory but it's hard to say.
-
-Have you ever tested the memory on this machine?
-
-Adrian
-
---=20
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Fair enough. Thanks for the elaboration.
