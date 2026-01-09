@@ -1,253 +1,96 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE4C4594A;
-	Fri,  9 Jan 2026 15:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103EB272803;
+	Fri,  9 Jan 2026 16:20:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767971290; cv=none; b=MpI3UlVDs5+7ftTJwbuDaPsOwDS2IpfL4+jiDFTNybeHYAY5Q27Bd8XEfExkWkTz+NVoFF6N7F55JvrxGJfYpf69rz9PiKmPnrc3+pHW1pHEFMUiaSGyMAtSVVegtgtIsLpq59smZaf1GECpI31FDAOw1tJbOj4J2/UnOh2C+c4=
+	t=1767975652; cv=none; b=hFkLUHodo9tH/YQLP9EieBVx9A9ytNW0a+1/hNcnCgLdDPS5gTtw+LyTu+IV6RIDCDQf+Ft/6fHXtqu3GqaCI0ZMxwIngU97HI3lXN8pV2MadOqe9T3JMtr2UH2r5tOvqfh3X7k+KdgIPVNSTAcfYsvQ2AsibIR97aE520DJQmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767971290; c=relaxed/simple;
-	bh=3Z8L26dcTskZ3ZdCQN0iSI+dIODX6q9MdBtGUwgu/Fc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=IaQr1lGN+K3aYuRyXy0/ZseZLj6i0Wmky7NcE9ngt5QrOv9YGfuXR2Gh+tqRIoxgZS4Ue24tgAN0nvyLcTrKhNN7jNJt3xNKJD/EDbM8IwjTCc9SeD1LEmsznj+vKrDw6l5BrrzKkaizovCB1aqn7h2gtbMnEX4ZO0LucDvw19Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D5A49i8X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767975652; c=relaxed/simple;
+	bh=2fQfYVzcR/8Py3Ur3ShAZ57iS1mSDN6S2USvgq3iYxY=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=rkEujRQAUOtva3uMeds0OU+5FDc4v0A4bxGrt4rJ6ZxsPKXnhN66cXMVkLmO5kA0kFQ0Abt/tni1pkC3cbz2uQbGupi2jAOLHjAdXtcQXcAjI1svznd30RETBBT3Xbro+lOIeiV4GjcXgVlItOcu11dBWu19wd9DlrtBxr04JIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sNBCFpkP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D5A49i8X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1067FC4CEF1;
-	Fri,  9 Jan 2026 15:07:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sNBCFpkP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B769C4CEF1;
+	Fri,  9 Jan 2026 16:20:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767971290;
-	bh=3Z8L26dcTskZ3ZdCQN0iSI+dIODX6q9MdBtGUwgu/Fc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=D5A49i8XZ+WWgc3yo8WpoToMpiFiiYIORsD5kdhtfLHgOWLJ+teHa3YKmPfqvZQto
-	 EOjbH06xY/Y2D1tuKVkl4Bn9mfBj2pRUINZJHsmiBlwwDKMfmgPNBdydHY/WcoODaP
-	 hXTbfv9bYAipERXqMFeW7thazUf0MBtEe10dcKDUEhB49l5TpS6DuQJGLnLWIPw35L
-	 /A7EpMCyhB3OpiWJ4xcCGJauiqHLzHAPYo90gEXDJEGp6mJ/mQ/yOKD0hyaBuAIhmW
-	 2g9u3gE5rzMBGVklkmAIGwRJV3u8nzhfd1IwpNssclwPUhgU0okSyNsciYIOrvSviH
-	 Q73z6sh0NFzwA==
-Message-ID: <1e123306-0efe-457f-953b-d4a27ce6bc60@kernel.org>
-Date: Fri, 9 Jan 2026 16:07:57 +0100
+	s=k20201202; t=1767975651;
+	bh=2fQfYVzcR/8Py3Ur3ShAZ57iS1mSDN6S2USvgq3iYxY=;
+	h=Date:From:To:Cc:Subject:From;
+	b=sNBCFpkPqzRCWARX/RHZd9YJ5yEIb7t1CCBIlzjNMb4WDpjWAxJLgla+vt1qi1KZo
+	 xm/AJG+41H6T3pGTEpGwzAhccDmq5r4nurzxTZm1lt5Adf37ITswEgGhQT2AV5PovV
+	 A+HjbcoqI/BWrTcPPkTyLkR1yvd14t8l21SLHtS1RlakA2ttgEkWKwyAewyGe5Lcg2
+	 P6AJNrJQjNMmXK7Hhk6agpacMpOV8cUovys1iqqDbRC7FixrRAIHQzIxXQtmm+AHh+
+	 tqC7L4rlMHUJKyX3UBWeMqJ1RQk6dnxy2HtMyN898S/4ewMimgleBlGuIQRMVxTxW3
+	 DobKY2AOA660A==
+Date: Fri, 9 Jan 2026 10:20:50 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
+	Nathaniel Roach <nroach44@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
+	Linnaea Lavia <linnaea-von-lavia@live.com>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
+	Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+Subject: [GIT PULL] PCI fixes for v6.19
+Message-ID: <20260109162050.GA548294@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 14/14] mm: Add basic tests for lazy_mmu
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Anshuman Khandual <anshuman.khandual@arm.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>,
- Ingo Molnar <mingo@redhat.com>, Jann Horn <jannh@google.com>,
- Juergen Gross <jgross@suse.com>, "Liam R. Howlett"
- <Liam.Howlett@oracle.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Gleixner <tglx@linutronix.de>,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
- Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
- Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
- xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
- <20251215150323.2218608-15-kevin.brodsky@arm.com>
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
-In-Reply-To: <20251215150323.2218608-15-kevin.brodsky@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-On 12/15/25 16:03, Kevin Brodsky wrote:
-> Add basic KUnit tests for the generic aspects of the lazy MMU mode:
-> ensure that it appears active when it should, depending on how
-> enable/disable and pause/resume pairs are nested.
-> 
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
->   mm/Kconfig                     | 12 ++++++
->   mm/Makefile                    |  1 +
->   mm/tests/lazy_mmu_mode_kunit.c | 71 ++++++++++++++++++++++++++++++++++
->   3 files changed, 84 insertions(+)
->   create mode 100644 mm/tests/lazy_mmu_mode_kunit.c
-> 
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index 62073bd61544..ac48deb44884 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -1471,6 +1471,18 @@ config ARCH_HAS_LAZY_MMU_MODE
->   	  MMU-related architectural state to be deferred until the mode is
->   	  exited. See <linux/pgtable.h> for details.
->   
-> +config LAZY_MMU_MODE_KUNIT_TEST
-> +	tristate "KUnit tests for the lazy MMU mode" if !KUNIT_ALL_TESTS
-> +	depends on ARCH_HAS_LAZY_MMU_MODE
-> +	depends on KUNIT
-> +	default KUNIT_ALL_TESTS
-> +	help
-> +	  Enable this option to check that the lazy MMU mode interface behaves
-> +	  as expected. Only tests for the generic interface are included (not
-> +	  architecture-specific behaviours).
-> +
-> +	  If unsure, say N.
-> +
->   source "mm/damon/Kconfig"
->   
->   endmenu
-> diff --git a/mm/Makefile b/mm/Makefile
-> index 2d0570a16e5b..9175f8cc6565 100644
-> --- a/mm/Makefile
-> +++ b/mm/Makefile
-> @@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
->   obj-$(CONFIG_EXECMEM) += execmem.o
->   obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
->   obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
-> +obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
-> diff --git a/mm/tests/lazy_mmu_mode_kunit.c b/mm/tests/lazy_mmu_mode_kunit.c
-> new file mode 100644
-> index 000000000000..2720eb995714
-> --- /dev/null
-> +++ b/mm/tests/lazy_mmu_mode_kunit.c
-> @@ -0,0 +1,71 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +#include <kunit/test.h>
-> +#include <linux/pgtable.h>
-> +
-> +static void expect_not_active(struct kunit *test)
-> +{
-> +	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
-> +}
-> +
-> +static void expect_active(struct kunit *test)
-> +{
-> +	KUNIT_EXPECT_TRUE(test, is_lazy_mmu_mode_active());
-> +}
-> +
-> +static void lazy_mmu_mode_active(struct kunit *test)
-> +{
-> +	expect_not_active(test);
-> +
-> +	lazy_mmu_mode_enable();
-> +	expect_active(test);
-> +
-> +	{
-> +		/* Nested section */
-> +		lazy_mmu_mode_enable();
-> +		expect_active(test);
-> +
-> +		lazy_mmu_mode_disable();
-> +		expect_active(test);
-> +	}
-> +
-> +	{
-> +		/* Paused section */
-> +		lazy_mmu_mode_pause();
-> +		expect_not_active(test);
-> +
-> +		{
-> +			/* No effect (paused) */
-> +			lazy_mmu_mode_enable();
-> +			expect_not_active(test);
-> +
-> +			lazy_mmu_mode_disable();
-> +			expect_not_active(test);
-> +
-> +			lazy_mmu_mode_pause();
-> +			expect_not_active(test);
-> +
-> +			lazy_mmu_mode_resume();
-> +			expect_not_active(test);
-> +		}
-> +
-> +		lazy_mmu_mode_resume();
-> +		expect_active(test);
-> +	}
-> +
-> +	lazy_mmu_mode_disable();
-> +	expect_not_active(test);
-> +}
-> +
-> +static struct kunit_case lazy_mmu_mode_test_cases[] = {
-> +	KUNIT_CASE(lazy_mmu_mode_active),
-> +	{}
-> +};
-> +
-> +static struct kunit_suite lazy_mmu_mode_test_suite = {
-> +	.name = "lazy_mmu_mode",
-> +	.test_cases = lazy_mmu_mode_test_cases,
-> +};
-> +kunit_test_suite(lazy_mmu_mode_test_suite);
-> +
-> +MODULE_DESCRIPTION("Tests for the lazy MMU mode");
-> +MODULE_LICENSE("GPL");
+The following changes since commit 8f0b4cce4481fb22653697cced8d0d04027cb1e8:
 
+  Linux 6.19-rc1 (2025-12-14 16:05:07 +1200)
 
-Very nice test :)
+are available in the Git repository at:
 
-I think I prefer the EXPORT_SYMBOL_IF_KUNIT over disabling the test for 
-PPC and over making lazy_mmu_mode_enable() non-inlined functions with an 
-exported symbol.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git pci-v6.19-fixes-2
 
-With the EXPORT_SYMBOL_IF_KUNIT stuff added
+for you to fetch changes up to bdb32359eab94013e80cf7e3d40a3fd4972da93a:
 
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+  sparc/PCI: Correct 64-bit non-pref -> pref BAR resources (2026-01-07 14:22:32 -0600)
 
--- 
-Cheers
+----------------------------------------------------------------
 
-David
+- Remove ASPM L0s support for MSM8996 SoC since we now enable L0s when
+  advertised, and it caused random hangs on this device (Manivannan
+  Sadhasivam)
+
+- Fix meson-pcie to report that the link is up while in ASPM L0s or L1,
+  since those are active states from the software point of view, and
+  treating the link as down caused config access failures (Bjorn Helgaas)
+
+- Fix up sparc DTS BAR descriptions that are above 4GB but not marked as
+  prefetchable, which caused resource assignment and driver probe failures
+  after we converted from the SPARC pcibios_enable_device() to the generic
+  version (Ilpo Järvinen)
+
+----------------------------------------------------------------
+Bjorn Helgaas (1):
+      PCI: meson: Report that link is up while in ASPM L0s and L1 states
+
+Ilpo Järvinen (1):
+      sparc/PCI: Correct 64-bit non-pref -> pref BAR resources
+
+Manivannan Sadhasivam (1):
+      PCI: qcom: Remove ASPM L0s support for MSM8996 SoC
+
+ arch/sparc/kernel/pci.c                | 23 +++++++++++++++++++++
+ drivers/pci/controller/dwc/pci-meson.c | 37 +++-------------------------------
+ drivers/pci/controller/dwc/pcie-qcom.c |  4 +++-
+ 3 files changed, 29 insertions(+), 35 deletions(-)
