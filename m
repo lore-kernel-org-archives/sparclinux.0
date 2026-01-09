@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 223CC312816;
-	Fri,  9 Jan 2026 15:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE4C4594A;
+	Fri,  9 Jan 2026 15:08:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767971038; cv=none; b=MAGIjkc6VvzH/hEO289SaDrVUgD9ILtVZD93QDSIoBagUDPEiMxIsX+BqMgLnglKJMhCkRr0X9sCapv4qw8wq7Jiv690sXkvplCYxffd+Yr0WJK234Z0DOnChy7PQ6fdpMEpWcx9HUxDP0EwA8fHyTw8ebkFcr2MoxscVf3fWGY=
+	t=1767971290; cv=none; b=MpI3UlVDs5+7ftTJwbuDaPsOwDS2IpfL4+jiDFTNybeHYAY5Q27Bd8XEfExkWkTz+NVoFF6N7F55JvrxGJfYpf69rz9PiKmPnrc3+pHW1pHEFMUiaSGyMAtSVVegtgtIsLpq59smZaf1GECpI31FDAOw1tJbOj4J2/UnOh2C+c4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767971038; c=relaxed/simple;
-	bh=9LFMVxyFsOw43Q6k6Eff0i7Pwixa+RzRx4DsbI5AqD4=;
+	s=arc-20240116; t=1767971290; c=relaxed/simple;
+	bh=3Z8L26dcTskZ3ZdCQN0iSI+dIODX6q9MdBtGUwgu/Fc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=exfY/517dvlmpswazlcDL6ffORPdU2W5Jo/8J8zckyd+oLX0lxIqPeaWqphlbmQGOiwcE9MS5dOKovXF8ILiwQxOmK5DwSDpyVVNnEbQn/XR+NKhIcvTgMRbUQaqSlTPSP+gc1GG+rSPf8BAaA/6kYUz8mu3jZLB1jcrteUv4GY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uu2xDZmK; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=IaQr1lGN+K3aYuRyXy0/ZseZLj6i0Wmky7NcE9ngt5QrOv9YGfuXR2Gh+tqRIoxgZS4Ue24tgAN0nvyLcTrKhNN7jNJt3xNKJD/EDbM8IwjTCc9SeD1LEmsznj+vKrDw6l5BrrzKkaizovCB1aqn7h2gtbMnEX4ZO0LucDvw19Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D5A49i8X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uu2xDZmK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B859DC4CEF1;
-	Fri,  9 Jan 2026 15:03:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D5A49i8X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1067FC4CEF1;
+	Fri,  9 Jan 2026 15:07:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767971038;
-	bh=9LFMVxyFsOw43Q6k6Eff0i7Pwixa+RzRx4DsbI5AqD4=;
+	s=k20201202; t=1767971290;
+	bh=3Z8L26dcTskZ3ZdCQN0iSI+dIODX6q9MdBtGUwgu/Fc=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Uu2xDZmK3PKrblsrsZL8LIcmnB0lca1ztGkSrwKnR3k1T+w3GGUw72vEWmRnJLC84
-	 04PN8WJ3tZU0qJxzKPXK/jIY9eHM/FkWJFfqFlKmAMwFCu8bAOMnLGGisVhDa+VPC1
-	 Hkm58qx6FwRjuIwh2iTdkxqN5OiOQDU6WIuS4LlqAy4eDc3QabNZxuLBa/iS/+tV6V
-	 fS5P07RUWs0rl3AKweG2OOOgL7ak053o/aoA2ECEjLInVqvpv88XZvchTU2IlUt4fg
-	 Y4VqP9kXVaCjmME3a4NjLke27874qGSfQHgAkzTpVnrAxfNYoR24aDyxZOKRFuYlCS
-	 Zo9TfPAXHUzMg==
-Message-ID: <0c72913e-9708-4675-a421-06ed82b7802a@kernel.org>
-Date: Fri, 9 Jan 2026 16:03:45 +0100
+	b=D5A49i8XZ+WWgc3yo8WpoToMpiFiiYIORsD5kdhtfLHgOWLJ+teHa3YKmPfqvZQto
+	 EOjbH06xY/Y2D1tuKVkl4Bn9mfBj2pRUINZJHsmiBlwwDKMfmgPNBdydHY/WcoODaP
+	 hXTbfv9bYAipERXqMFeW7thazUf0MBtEe10dcKDUEhB49l5TpS6DuQJGLnLWIPw35L
+	 /A7EpMCyhB3OpiWJ4xcCGJauiqHLzHAPYo90gEXDJEGp6mJ/mQ/yOKD0hyaBuAIhmW
+	 2g9u3gE5rzMBGVklkmAIGwRJV3u8nzhfd1IwpNssclwPUhgU0okSyNsciYIOrvSviH
+	 Q73z6sh0NFzwA==
+Message-ID: <1e123306-0efe-457f-953b-d4a27ce6bc60@kernel.org>
+Date: Fri, 9 Jan 2026 16:07:57 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 05/14] mm: clarify lazy_mmu sleeping constraints
+Subject: Re: [PATCH v6 14/14] mm: Add basic tests for lazy_mmu
 To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -63,7 +63,7 @@ Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
  linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
  xen-devel@lists.xenproject.org, x86@kernel.org
 References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
- <20251215150323.2218608-6-kevin.brodsky@arm.com>
+ <20251215150323.2218608-15-kevin.brodsky@arm.com>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -109,49 +109,141 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <20251215150323.2218608-6-kevin.brodsky@arm.com>
+In-Reply-To: <20251215150323.2218608-15-kevin.brodsky@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 12/15/25 16:03, Kevin Brodsky wrote:
-> The lazy MMU mode documentation makes clear that an implementation
-> should not assume that preemption is disabled or any lock is held
-> upon entry to the mode; however it says nothing about what code
-> using the lazy MMU interface should expect.
-> 
-> In practice sleeping is forbidden (for generic code) while the lazy
-> MMU mode is active: say it explicitly.
+> Add basic KUnit tests for the generic aspects of the lazy MMU mode:
+> ensure that it appears active when it should, depending on how
+> enable/disable and pause/resume pairs are nested.
 > 
 > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 > ---
->   include/linux/pgtable.h | 14 +++++++++-----
->   1 file changed, 9 insertions(+), 5 deletions(-)
+>   mm/Kconfig                     | 12 ++++++
+>   mm/Makefile                    |  1 +
+>   mm/tests/lazy_mmu_mode_kunit.c | 71 ++++++++++++++++++++++++++++++++++
+>   3 files changed, 84 insertions(+)
+>   create mode 100644 mm/tests/lazy_mmu_mode_kunit.c
 > 
-> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-> index 652f287c1ef6..1abc4a1c3d72 100644
-> --- a/include/linux/pgtable.h
-> +++ b/include/linux/pgtable.h
-> @@ -225,11 +225,15 @@ static inline int pmd_dirty(pmd_t pmd)
->    * up to date.
->    *
->    * In the general case, no lock is guaranteed to be held between entry and exit
-> - * of the lazy mode. So the implementation must assume preemption may be enabled
-> - * and cpu migration is possible; it must take steps to be robust against this.
-> - * (In practice, for user PTE updates, the appropriate page table lock(s) are
-> - * held, but for kernel PTE updates, no lock is held). Nesting is not permitted
-> - * and the mode cannot be used in interrupt context.
-> + * of the lazy mode. (In practice, for user PTE updates, the appropriate page
-> + * table lock(s) are held, but for kernel PTE updates, no lock is held).
-> + * The implementation must therefore assume preemption may be enabled upon
-> + * entry to the mode and cpu migration is possible; it must take steps to be
-> + * robust against this. An implementation may handle this by disabling
-> + * preemption, as a consequence generic code may not sleep while the lazy MMU
-> + * mode is active.
-> + *
-> + * Nesting is not permitted and the mode cannot be used in interrupt context.
->    */
->   #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
->   static inline void arch_enter_lazy_mmu_mode(void) {}
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 62073bd61544..ac48deb44884 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -1471,6 +1471,18 @@ config ARCH_HAS_LAZY_MMU_MODE
+>   	  MMU-related architectural state to be deferred until the mode is
+>   	  exited. See <linux/pgtable.h> for details.
+>   
+> +config LAZY_MMU_MODE_KUNIT_TEST
+> +	tristate "KUnit tests for the lazy MMU mode" if !KUNIT_ALL_TESTS
+> +	depends on ARCH_HAS_LAZY_MMU_MODE
+> +	depends on KUNIT
+> +	default KUNIT_ALL_TESTS
+> +	help
+> +	  Enable this option to check that the lazy MMU mode interface behaves
+> +	  as expected. Only tests for the generic interface are included (not
+> +	  architecture-specific behaviours).
+> +
+> +	  If unsure, say N.
+> +
+>   source "mm/damon/Kconfig"
+>   
+>   endmenu
+> diff --git a/mm/Makefile b/mm/Makefile
+> index 2d0570a16e5b..9175f8cc6565 100644
+> --- a/mm/Makefile
+> +++ b/mm/Makefile
+> @@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
+>   obj-$(CONFIG_EXECMEM) += execmem.o
+>   obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
+>   obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
+> +obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
+> diff --git a/mm/tests/lazy_mmu_mode_kunit.c b/mm/tests/lazy_mmu_mode_kunit.c
+> new file mode 100644
+> index 000000000000..2720eb995714
+> --- /dev/null
+> +++ b/mm/tests/lazy_mmu_mode_kunit.c
+> @@ -0,0 +1,71 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +#include <kunit/test.h>
+> +#include <linux/pgtable.h>
+> +
+> +static void expect_not_active(struct kunit *test)
+> +{
+> +	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
+> +}
+> +
+> +static void expect_active(struct kunit *test)
+> +{
+> +	KUNIT_EXPECT_TRUE(test, is_lazy_mmu_mode_active());
+> +}
+> +
+> +static void lazy_mmu_mode_active(struct kunit *test)
+> +{
+> +	expect_not_active(test);
+> +
+> +	lazy_mmu_mode_enable();
+> +	expect_active(test);
+> +
+> +	{
+> +		/* Nested section */
+> +		lazy_mmu_mode_enable();
+> +		expect_active(test);
+> +
+> +		lazy_mmu_mode_disable();
+> +		expect_active(test);
+> +	}
+> +
+> +	{
+> +		/* Paused section */
+> +		lazy_mmu_mode_pause();
+> +		expect_not_active(test);
+> +
+> +		{
+> +			/* No effect (paused) */
+> +			lazy_mmu_mode_enable();
+> +			expect_not_active(test);
+> +
+> +			lazy_mmu_mode_disable();
+> +			expect_not_active(test);
+> +
+> +			lazy_mmu_mode_pause();
+> +			expect_not_active(test);
+> +
+> +			lazy_mmu_mode_resume();
+> +			expect_not_active(test);
+> +		}
+> +
+> +		lazy_mmu_mode_resume();
+> +		expect_active(test);
+> +	}
+> +
+> +	lazy_mmu_mode_disable();
+> +	expect_not_active(test);
+> +}
+> +
+> +static struct kunit_case lazy_mmu_mode_test_cases[] = {
+> +	KUNIT_CASE(lazy_mmu_mode_active),
+> +	{}
+> +};
+> +
+> +static struct kunit_suite lazy_mmu_mode_test_suite = {
+> +	.name = "lazy_mmu_mode",
+> +	.test_cases = lazy_mmu_mode_test_cases,
+> +};
+> +kunit_test_suite(lazy_mmu_mode_test_suite);
+> +
+> +MODULE_DESCRIPTION("Tests for the lazy MMU mode");
+> +MODULE_LICENSE("GPL");
+
+
+Very nice test :)
+
+I think I prefer the EXPORT_SYMBOL_IF_KUNIT over disabling the test for 
+PPC and over making lazy_mmu_mode_enable() non-inlined functions with an 
+exported symbol.
+
+With the EXPORT_SYMBOL_IF_KUNIT stuff added
 
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 
