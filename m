@@ -1,105 +1,136 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 773A327703E;
-	Mon, 12 Jan 2026 10:09:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DC3835FF78
+	for <sparclinux@vger.kernel.org>; Mon, 12 Jan 2026 17:53:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768212563; cv=none; b=j6Ed34meTD0/cLUXyNZxfdst7mWihPheOfxT7ea+3H6nzYTpjC2n2QwlvU2AASgV8V20eeHSfPHOIaWp/Q8gQwoDTedlpBbPMLafVo8QO8bOwu8k3VmOF5jgwfW4zdO3Lb7sJN8OGfVM95WSpo09TQ7sxswF8DdZUXLUMXfvFrU=
+	t=1768240414; cv=none; b=tRbIWw+SCuQpIBDyKIv74oQZaFxyrzg7ThVQH8JW3T8PUV6A7Ik5AClAxclbbk3keGVwXDNiU8JfCdM61oa3Iff6oFNAaVd1Dg/J0+KJxhRtFVOSCpJJRAVXVr0luJrSIIXL6jUsrlD9A+phLkcMQg+0DPNMM39y/pcsOucj78A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768212563; c=relaxed/simple;
-	bh=zVbE2YDMvok5WZS14hV3iS5sDhPr6OqtWfoQw6P5ksU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=S2F4Lfhwgw+o9WwsPsaeSxpW8EaCRgQairqUcGz6TbXwHj73Zs0rrOrIasRkcEfEN2uNs3YOzXuIstRw+U+br2qE35+hSCr81MmWEmTgepTFcZYlJ7bjQt0pZn9ZlzpRfttXIuV3YyfMEW8aLANAUqxsOvW0L5vGFo/jqkD7a68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 325ED497;
-	Mon, 12 Jan 2026 02:09:15 -0800 (PST)
-Received: from [10.57.48.185] (unknown [10.57.48.185])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id AD67E3F5A1;
-	Mon, 12 Jan 2026 02:09:20 -0800 (PST)
-Message-ID: <3ae6e07c-c99e-476e-b9d8-49b999e87197@arm.com>
-Date: Mon, 12 Jan 2026 11:09:18 +0100
+	s=arc-20240116; t=1768240414; c=relaxed/simple;
+	bh=y6BPssvuqQ/qH26ZtP7OKYRtO9FGOS74oztLC07SRNg=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=pXLcuNGU7O6E43WPIWN4Amc0mUf7ZBddJJFr+gUDkh5S7Z02TRIvCX3cQLoRrd02UQ/Jtmnv7Hrzzm/RiIU19lgN0XNU5nn45Vv4MUIRVAlGwiRifa293mEaO2xIkau90EBFwgoqoniCGqmM904MWoOWe4D6J/2YqOq6si/dgV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=HIrT55Tp; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="HIrT55Tp"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-47755de027eso38648565e9.0
+        for <sparclinux@vger.kernel.org>; Mon, 12 Jan 2026 09:53:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1768240410; x=1768845210; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=y6BPssvuqQ/qH26ZtP7OKYRtO9FGOS74oztLC07SRNg=;
+        b=HIrT55Tppvg0XFYV5zS20v5xaWtuqbHwmR0+5GnSOqV3Zkqr+5e4bRVOWGa7T+G+dc
+         d5rshviEoUDadI8tfAjFRPSFxopu/3PZCFonHcYWFfwYqBaRD1P2ccUPAZOw57poJIgk
+         2o8Rq8MaIxKEDfVpi5OxW0oI7odIOVqyt0hNuhOTtPiDtjFXs91fI/lOWlNPLoY/ZaeM
+         mV7icrjbWluhuD2o9cvBSF4+skVjcVoRRmaIlc9BDsb4AbDqtsuQdXMpggf1CiXHQlfo
+         0FMj/pO63Bpync6rTiNgO02fKipgreSs9DrEqYwDCCSf/g0s+4H5xMDOF0UtZgbuZmby
+         4Rrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768240410; x=1768845210;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=y6BPssvuqQ/qH26ZtP7OKYRtO9FGOS74oztLC07SRNg=;
+        b=g0w07zEgc/uAMiJ2b30COvcJfQWz8VUETAbpwpa6c4dpHOF49m6qaFxH/Sqdipp4uz
+         tmUip4WFW4unUrsDSdteqyUrbVObtogdljVNxnchVbqpNCWK09YcKQTJEn+d9VCHsVCQ
+         r7pjADsQY/kAdiydM+pjYOYysdkqPvUSM9cEgLlDeY0dz8lMREevFCNRA1ldzYWl+orS
+         zqxRpyT+GiSYbquhHozqWIGkoJAM1TNSnxINDz02fK7hIU0tsWBBXE+5rQo1kFf+0eum
+         64s5G1Aou1Fz8MbWcqA6esxe55tpVOIAwC5bWTab4HGTiC1txGarieoehneM62xleHvy
+         GRkg==
+X-Forwarded-Encrypted: i=1; AJvYcCVJIQFYmIks0XQRLqWL9/fFijYfUpHsHv1bXvWnqHVeo9tGNMPsy1SqSiVgj6wNiKwo/5ljmO2yO4Hz@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyq6sc5Fgqpm996uLQfor7FPapNJommKno5QHcusVsyfkardMLS
+	rOdUYljZDJPyV1cLPdOnLUNzDGaRMRoDVsa2oEdxy+jlhfVxa4mqoqbbmMb0MajnUJU=
+X-Gm-Gg: AY/fxX69Z4wvSqf3twZG9jhp/LmaprLlaJzEo3v6InxZ4swS4PCQOt5tFYNptv/Z+tw
+	8M3wOH1AhUxNv1e+4q+ob1hkz0HDc+oDTtuflCYS3nsV2Ix3Z74tJurFSnTQvqUXWxPG2YX6T1/
+	TzAhCZGnvu7QOlaixh/5uckPJYNHS+F8+sM/BJy/XuicGIbfFEoSWm07JH7nmungnREAxCPQkbJ
+	UYg8Tzru1SjBtsV6VDj2+/h+xenknb78PL94LuZ8TiLVFpy41N7+ICEHsBleoBC4iLMW9f/F0d+
+	nBLruTj8stz3eHShKBt2VtLOWhNjZeeqs67NWBKWh2OTWNPg0+g0saYrNtqLITdMCuPMCgAhX9F
+	mPY7sDzg9aT+JZsKXtdIt7EvbxNf03ha9xkdu9IH6uvmfxwU23PslZGUiA28/GT4oCmjTejBYaL
+	xz1HuUXsM+eARSnI98RGXsnOdTM9Gm+RCmYvPNYpxizw==
+X-Google-Smtp-Source: AGHT+IGfCgsoYudB43gyY5VgiMyajRCyMKVvdA/K1TPc0FTW2J7Pqnzu3xNux2u9C7uenfxIM0LM/g==
+X-Received: by 2002:a05:600c:4e8a:b0:479:1b0f:dfff with SMTP id 5b1f17b1804b1-47d84b170famr247229235e9.10.1768240410449;
+        Mon, 12 Jan 2026 09:53:30 -0800 (PST)
+Received: from [192.168.3.33] (218.37.160.45.gramnet.com.br. [45.160.37.218])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-47d7f69e13bsm368953115e9.7.2026.01.12.09.53.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Jan 2026 09:53:30 -0800 (PST)
+Message-ID: <0585581cd2f19544c5e1565a9d241697d812b5f9.camel@suse.com>
+Subject: Re: [PATCH 00/19] printk cleanup - part 3
+From: Marcos Paulo de Souza <mpdesouza@suse.com>
+To: Andreas Larsson <andreas@gaisler.com>, Richard Weinberger
+ <richard@nod.at>,  Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes
+ Berg <johannes@sipsolutions.net>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Jason Wessel <jason.wessel@windriver.com>,
+ Daniel Thompson	 <danielt@kernel.org>, Douglas Anderson
+ <dianders@chromium.org>, Petr Mladek	 <pmladek@suse.com>, Steven Rostedt
+ <rostedt@goodmis.org>, John Ogness	 <john.ogness@linutronix.de>, Sergey
+ Senozhatsky <senozhatsky@chromium.org>,  Jiri Slaby <jirislaby@kernel.org>,
+ Breno Leitao <leitao@debian.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kees Cook	
+ <kees@kernel.org>, Tony Luck <tony.luck@intel.com>, "Guilherme G. Piccoli"	
+ <gpiccoli@igalia.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, Michael
+ Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy	 <christophe.leroy@csgroup.eu>, Alexander Shishkin	
+ <alexander.shishkin@linux.intel.com>, Maxime Coquelin	
+ <mcoquelin.stm32@gmail.com>, Alexandre Torgue
+ <alexandre.torgue@foss.st.com>,  Jacky Huang <ychuang3@nuvoton.com>,
+ Shan-Chun Hung <schung@nuvoton.com>, Laurentiu Tudor	
+ <laurentiu.tudor@nxp.com>
+Cc: linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	sparclinux@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
+Date: Mon, 12 Jan 2026 14:53:12 -0300
+In-Reply-To: <836139d1-1425-4381-bb84-6c2654a4d239@gaisler.com>
+References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
+	 <836139d1-1425-4381-bb84-6c2654a4d239@gaisler.com>
+Autocrypt: addr=mpdesouza@suse.com; prefer-encrypt=mutual;
+ keydata=mDMEZ/0YqhYJKwYBBAHaRw8BAQdA4JZz0FED+JD5eKlhkNyjDrp6lAGmgR3LPTduPYGPT
+ Km0Kk1hcmNvcyBQYXVsbyBkZSBTb3V6YSA8bXBkZXNvdXphQHN1c2UuY29tPoiTBBMWCgA7FiEE2g
+ gC66iLbhUsCBoBemssEuRpLLUFAmf9GKoCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgk
+ QemssEuRpLLWGxwD/S1I0bjp462FlKb81DikrOfWbeJ0FOJP44eRzmn20HmEBALBZIMrfIH2dJ5eM
+ GO8seNG8sYiP6JfRjl7Hyqca6YsE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.58.2 (by Flathub.org) 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] sparc/mm: export symbols for lazy_mmu_mode KUnit tests
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- "David Hildenbrand (Red Hat)" <david@kernel.org>, sparclinux@vger.kernel.org
-References: <20251216201403.4647a4f9861d3122ee9e90d7@linux-foundation.org>
- <20251218100541.2667405-1-kevin.brodsky@arm.com>
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20251218100541.2667405-1-kevin.brodsky@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 18/12/2025 11:05, Kevin Brodsky wrote:
-> Upcoming KUnit tests will call lazy_mmu_mode_{enable,disable}.
-> These tests may be built as a module, and because of inlining this
-> means that arch_{enter,flush,leave}_lazy_mmu_mode need to be
-> exported.
->
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
->
-> The CI reports that sparc needs pretty much the same time treatment as
-> powerpc... Here's another patch to take care of that.
->
-> Andrew, could you please add it after the powerpc one? At this point it's
-> probably best to remove the comment above MODULE_IMPORT_NS() in
-> mm/tests/lazy_mmu_mode_kunit.c. Thank you and sorry for the noise!
+On Wed, 2026-01-07 at 11:22 +0100, Andreas Larsson wrote:
+> On 2025-12-27 13:16, Marcos Paulo de Souza wrote:
+> > The parts 1 and 2 can be found here [1] and here[2].
+> >=20
+> > The changes proposed in this part 3 are mostly to clarify the usage
+> > of
+> > the interfaces for NBCON, and use the printk helpers more broadly.
+> > Besides it, it also introduces a new way to register consoles
+> > and drop thes the CON_ENABLED flag. It seems too much, but in
+> > reality
+> > the changes are not complex, and as the title says, it's basically
+> > a
+> > cleanup without changing the functional changes.
+>=20
+> Hi,
+>=20
+> Patches 7-17 all say "replacing the CON_ENABLE flag" in their
+> descriptions, which should rather be "replacing the CON_ENABLED
+> flag".
 
-Gentle ping - I think we need this patch in mm-unstable, the CI has been
-complaining as well. Thanks!
+That's true, thanks for spotting!
 
-- Kevin
-
-> ---
->  arch/sparc/mm/tlb.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-> index 3a852071d260..6d9dd5eb1328 100644
-> --- a/arch/sparc/mm/tlb.c
-> +++ b/arch/sparc/mm/tlb.c
-> @@ -11,6 +11,8 @@
->  #include <linux/preempt.h>
->  #include <linux/pagemap.h>
->  
-> +#include <kunit/visibility.h>
-> +
->  #include <asm/tlbflush.h>
->  #include <asm/cacheflush.h>
->  #include <asm/mmu_context.h>
-> @@ -54,6 +56,8 @@ void arch_enter_lazy_mmu_mode(void)
->  {
->  	preempt_disable();
->  }
-> +/* For lazy_mmu_mode KUnit tests */
-> +EXPORT_SYMBOL_IF_KUNIT(arch_enter_lazy_mmu_mode);
->  
->  void arch_flush_lazy_mmu_mode(void)
->  {
-> @@ -62,12 +66,14 @@ void arch_flush_lazy_mmu_mode(void)
->  	if (tb->tlb_nr)
->  		flush_tlb_pending();
->  }
-> +EXPORT_SYMBOL_IF_KUNIT(arch_flush_lazy_mmu_mode);
->  
->  void arch_leave_lazy_mmu_mode(void)
->  {
->  	arch_flush_lazy_mmu_mode();
->  	preempt_enable();
->  }
-> +EXPORT_SYMBOL_IF_KUNIT(arch_leave_lazy_mmu_mode);
->  
->  static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
->  			      bool exec, unsigned int hugepage_shift)
->
-> base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
+>=20
+> Cheers,
+> Andreas
