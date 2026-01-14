@@ -1,280 +1,246 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD5D35FF44;
-	Wed, 14 Jan 2026 07:27:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B4A37BE77
+	for <sparclinux@vger.kernel.org>; Wed, 14 Jan 2026 08:20:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768375676; cv=none; b=TKk/bU5scl4QaUM5kt/wRE+zelHBhC/SWg/yeH8Tt8QupIXqypqj6X7MmPGiOh+cssnCtTODbNQWv/9c6unNHPNj5ZwTJ6ac+HIWmlMlNgUui+gcH9QcbHTc0AJXDsojFnfpRdqyRXa48uaqZffLKdZ/sIeHwfT/McelvSsuCS4=
+	t=1768378838; cv=none; b=VMprJ/b1jehoS1Z7lxrq7lBbJ7zX781Zt07SKGPBIfDjyhOt0A49SfxH5wuwoOuGLgAKGrgrHfwvo/WtFo+Bi1LBMyOga+yDHpLXBM6nujwc5QEuUxYpcfsMBX1jYs6NPXgWjF081D7g+f/rIu8WfmHvNAZ3NCSDbaxQAalr47k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768375676; c=relaxed/simple;
-	bh=hK2NV6Geo5iXZ8nzudfYs/PSGDhnCRzp8YiwenoUw5A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mknlhTMcdFqen+ymgo4mEwS9aose9mO3CJvnOCi41AtfqBw6hAE3c+X6EBEOyT9A27sqlnZZwM98vDlZxtlL8uWJtpCRWpZCJVmP/ETQZAox68OFX8Zp3eMJzN2Ku/KLUWkteOICuwxtz25dIKKd/lD6BYHlOpz4vR6bFv72eVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=U/MxLTb8 reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1768378838; c=relaxed/simple;
+	bh=cVeFdKo0k7nGdWRXnAwflkhPHd9OUkqReF3689rtABc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MGZ+r0xvfdubRvCrHcTWa9MW9gCs51ptCYe1ilsoJLKm+1eX0Q8E2vJZE+299wKj2cXkNV1IvLjhO3SC8ipUoiyGj7SZ1ty/hADmSpcKijsH0hew5ksqygI/7dqYDyC5iJ+qPp1czvPlaKZ/KuCpNW+ThMYmlIuuVzWim1y26Fw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=HAqBZOWJ; arc=none smtp.client-ip=209.85.221.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="U/MxLTb8"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4drd4P0pSdz1DR2x;
-	Wed, 14 Jan 2026 08:27:49 +0100 (CET)
-Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4drd4M6G39z1DDdR;
-	Wed, 14 Jan 2026 08:27:47 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1768375668;
-	bh=JoLWp43HOYjwRJyNJsc67cs6D8z3kCKzn/0ykuDh8HA=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=U/MxLTb8zVdLMDfDaOBJbtayShpVqfmLzNsYBnvb64wtspGFMsgZTsrPC3wOoIaLu
-	 kywwgDewFftKwA6/dELQHSxQdr6U4eCgbU5b2Xv1hnprAYzD6M28R5fasXD6TsgefO
-	 KmidDVQEATQE2TP78neAQZVbaqPpTu5dP9dDpFmN85FmL+ftYaO/Rrjcs0ASbXQD2y
-	 W24XwIYxbWV0LDjwKC7UzmRqMIEpZwEprXedMxQaZGak44dCLvtMH16KyfU1yvIpsR
-	 AKhv2uLMHt2sI3Gcd+z9fbTl4EjeW/ZFS3inFDmkwr/j1qOMllDjqxmUZAxnM2akcS
-	 wSePWEQv/mSSw==
-Message-ID: <45e4a43d-8996-4296-9df9-d5f2a8efcefd@gaisler.com>
-Date: Wed, 14 Jan 2026 08:27:47 +0100
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="HAqBZOWJ"
+Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-42fb2314f52so4521079f8f.0
+        for <sparclinux@vger.kernel.org>; Wed, 14 Jan 2026 00:20:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1768378824; x=1768983624; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=kOjWICKElajAktcnLTxDO0a0hjOrXuTPJG+TIiIDMlE=;
+        b=HAqBZOWJEIe4297o2nch9K7sfY2e3rwSW4KHYoclvUMAcEcNUg91l/u9/l2DhoiKDh
+         5mQ4Tmk8jFbK+/ztvvC3fxPmXlgYD014LA9iSPLwBDMuy8spbBC9T3FxGQkvef8OP8yL
+         5krZhcAQbya3VX03HlBzNsj5j1anLNi/SLLzwCVbgydydZrz9pEmavTs0dhxYagPzWPj
+         vZBG6qWsx5kDlz0+Tvb7GqDpEQKTyncmmIMrZ5k0T2lHxekITQnL8QuQx/vLfEIhqPca
+         Dpt5fKyRvxPTTBOTsr8GTUOiBe9YP3PjjL0zcPKr4ijCiy8fYXe+4Q1ggtB4RE1/+Bq5
+         1o/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768378824; x=1768983624;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=kOjWICKElajAktcnLTxDO0a0hjOrXuTPJG+TIiIDMlE=;
+        b=LCYh1hbW242e+VHYyj8Xif+qe2E8lSXYnYlyjxdtndTB7pO5i9q/ZsGkpPRmAEjQwp
+         HdbmJA28/0y9O7tb88lHxBuZCz8JREE+JtDXLFNtGPgqz/je2djMrLgOQiE5iW5imf20
+         J5XJNaXkw/XXkPKYRDclN39EOX8ONLXUkHJ3xe5yUAUWzTHV9wV2af2/0jOUeLbjf/Ru
+         Co/Q65QqEyFXVNBZeODFowcjx7K9WqAVGBm+zcRt3GlnOM5z++UxEQnv5SqyZdUuaK3D
+         /US2WBXKdHVAaCuS3SdoCiBfXyMwxYWhLWJMpBSJqNZVie+6sbR8o9l9+43NgN353xmh
+         OAjg==
+X-Forwarded-Encrypted: i=1; AJvYcCVVceFXnaxVYBtEy35M0y+D4vRmqFLukJw1wizMVuMxCshSprWS26s3krhWlc+Pfclli7fjiC7GdlUd@vger.kernel.org
+X-Gm-Message-State: AOJu0YzpqnPaTXNfCNGHUoykx+HueeMhwRmcb2F8gc+TXJkBhlERO2ps
+	bti8TiK9YEKkXpp1AvRmDtet8y2gXGKZgJDB+UF0usRukznHbttSsehVdWm6NgI6UWQ=
+X-Gm-Gg: AY/fxX7JeoLQwPQs0SiuNYI6lvL6RuPEaZXOvvoBnj0h6+3fne3CJn3GEWV5PJkarrY
+	BmbnvhEZysVEtfLtg+K4ORZ12JIDrBs4aWiKY+Styas1t9C1xox6mvLCD+U4rKuo0u9za4ZHq+g
+	9CCPt4rw1Rt37R+ne+mJxDif8TGo4bUAp96/oX+4uj7IDoA5QJzgitauF9v42LT6azlrr2Gtnox
+	uv5JZrgfQNEHjr68lKfolXDv6AhjjPnIPhrGNZqxry+aDNEX8HLM5BfNoReTlVCI/UnYhzq3vow
+	vlzALpdHMNCdOx2T9AOpFYhhRJZWvNAEZTh+daUejKqQOxJJu6KwqLO2uxRwHYLITbGdj4d1tvc
+	AJkO71hMr2Cd/FL8e/yCPkyIug+DNqeN3tDuS0iGUM75l09DueIRO4UuH8xRfuwdnYg9Ko6Ey/S
+	/h7R3ZOy4RDViCJg==
+X-Received: by 2002:a05:6000:40e1:b0:432:5b81:498 with SMTP id ffacd0b85a97d-4342c4f4a32mr1782744f8f.23.1768378823922;
+        Wed, 14 Jan 2026 00:20:23 -0800 (PST)
+Received: from pathway.suse.cz ([176.114.240.130])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-432bd0dad8bsm49346913f8f.8.2026.01.14.00.20.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 14 Jan 2026 00:20:23 -0800 (PST)
+Date: Wed, 14 Jan 2026 09:20:20 +0100
+From: Petr Mladek <pmladek@suse.com>
+To: Marcos Paulo de Souza <mpdesouza@suse.com>
+Cc: Daniel Thompson <daniel@riscstar.com>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jason Wessel <jason.wessel@windriver.com>,
+	Daniel Thompson <danielt@kernel.org>,
+	Douglas Anderson <dianders@chromium.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	John Ogness <john.ogness@linutronix.de>,
+	Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Kees Cook <kees@kernel.org>, Tony Luck <tony.luck@intel.com>,
+	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+	Alexandre Torgue <alexandre.torgue@foss.st.com>,
+	Jacky Huang <ychuang3@nuvoton.com>,
+	Shan-Chun Hung <schung@nuvoton.com>,
+	Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+	linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
+	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
+	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	sparclinux@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 00/19] printk cleanup - part 3
+Message-ID: <aWdRxBbJOEIZ-KjE@pathway.suse.cz>
+References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
+ <aVuz_hpbrk8oSCVC@aspen.lan>
+ <aVvF2hivCm0vIlfE@aspen.lan>
+ <a5d83903fe2d2c2eb21de1527007913ff00847c5.camel@suse.com>
+ <89409a0f48e6998ff6dd2245691b9954f0e1e435.camel@suse.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 06/14] mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
-To: Kevin Brodsky <kevin.brodsky@arm.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Anshuman Khandual <anshuman.khandual@arm.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov
- <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>,
- "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
- Jann Horn <jannh@google.com>, Juergen Gross <jgross@suse.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>,
- Mike Rapoport <rppt@kernel.org>, Nicholas Piggin <npiggin@gmail.com>,
- Peter Zijlstra <peterz@infradead.org>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Suren Baghdasaryan <surenb@google.com>,
- Thomas Gleixner <tglx@linutronix.de>,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
- Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will@kernel.org>,
- Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
- xen-devel@lists.xenproject.org, x86@kernel.org
-References: <20251215150323.2218608-1-kevin.brodsky@arm.com>
- <20251215150323.2218608-7-kevin.brodsky@arm.com>
-Content-Language: en-US
-From: Andreas Larsson <andreas@gaisler.com>
-In-Reply-To: <20251215150323.2218608-7-kevin.brodsky@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <89409a0f48e6998ff6dd2245691b9954f0e1e435.camel@suse.com>
 
-On 2025-12-15 16:03, Kevin Brodsky wrote:
-> Architectures currently opt in for implementing lazy_mmu helpers by
-> defining __HAVE_ARCH_ENTER_LAZY_MMU_MODE.
+On Tue 2026-01-13 21:32:33, Marcos Paulo de Souza wrote:
+> On Tue, 2026-01-13 at 09:41 -0300, Marcos Paulo de Souza wrote:
+> > On Mon, 2026-01-05 at 14:08 +0000, Daniel Thompson wrote:
+> > > On Mon, Jan 05, 2026 at 12:52:14PM +0000, Daniel Thompson wrote:
+> > > > Hi Marcos
+> > > > 
+> > > > On Sat, Dec 27, 2025 at 09:16:07AM -0300, Marcos Paulo de Souza
+> > > > wrote:
+> > > > > The parts 1 and 2 can be found here [1] and here[2].
+> > > > > 
+> > > > > The changes proposed in this part 3 are mostly to clarify the
+> > > > > usage of
+> > > > > the interfaces for NBCON, and use the printk helpers more
+> > > > > broadly.
+> > > > > Besides it, it also introduces a new way to register consoles
+> > > > > and drop thes the CON_ENABLED flag. It seems too much, but in
+> > > > > reality
+> > > > > the changes are not complex, and as the title says, it's
+> > > > > basically a
+> > > > > cleanup without changing the functional changes.
+> > > > 
+> > > > I ran this patchset through the kgdb test suite and I'm afraid it
+> > > > is
+> > > > reporting functional changes.
+> > > > 
+> > > > Specifically the earlycon support for kdb has regressed (FWIW the
+> > > > problem bisects down to the final patch in the series where
+> > > > CON_ENABLED
+> > > > is removed).
+> > > > 
+> > > > Reproduction on x86-64 KVM outside of the test suite should be
+> > > > easy:
+> > > > 
+> > > >     make defconfig
+> > > >     scripts/config \
+> > > >         --enable DEBUG_INFO \
+> > > > 	--enable DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT \
+> > > > 	--enable DEBUG_FS \
+> > > > 	--enable KALLSYMS_ALL \
+> > > > 	--enable MAGIC_SYSRQ \
+> > > > 	--enable KGDB \
+> > > > 	--enable KGDB_TESTS \
+> > > > 	--enable KGDB_KDB \
+> > > > 	--enable KDB_KEYBOARD \
+> > > > 	--enable LKDTM \
+> > > > 	--enable SECURITY_LOCKDOWN_LSM
+> > > >     make olddefconfig
+> > > >     make -j$(nproc)
+> > > >     qemu-system-x86_64 \
+> > > >         -m 1G -smp 2 -nographic \
+> > > > 	-kernel arch/x86/boot/bzImage \
+> > > > 	-append "console=ttyS0,115200 kgdboc=ttyS0
+> > > > earlycon=uart8250,io,0x3f8 kgdboc_earlycon kgdbwait"
+> > > 
+> > > Actually I realized there was a simpler reproduction (hinted at by
+> > > the
+> > > missing "printk: legacy bootconsole [uart8250] enabled" in the
+> > > regressed
+> > > case). It looks like the earlycon simply doesn't work and that
+> > > means
+> > > the
+> > > reproduction doesn't require anything related to kgdb at all.
+> > > Simply:
+> > > 
+> > >     make defconfig
+> > >     make -j$(nproc)
+> > >     qemu-system-x86_64 -m 1G -smp 2 -nographic -kernel
+> > > arch/x86/boot/bzImage \
+> > >         -append "earlycon=uart8250,io,0x3f8"
+> > > 
+> > > With the part 3 patchset applied I get no output from the earlycon
+> > > (without the patch set I get the early boot messages which, as
+> > > expected,
+> > > stop when tty0 comes up).
+> > 
+> > Hi Daniel, sorry for the late reply! Lots of things to check lately
+> > :)
+> > 
+> > Ok, I reproduced here, thanks a lot for testing kgdboc, it's a quick
+> > way to check that the new register_console_force is not working. Let
+> > me
+> > take a look to find what's wrong. Thanks a lot for finding this
+> > issue!
 > 
-> In preparation for introducing a generic lazy_mmu layer that will
-> require storage in task_struct, let's switch to a cleaner approach:
-> instead of defining a macro, select a CONFIG option.
+> Ok, I did a bisect and found out that the issue lies in the last
+> commit, where CON_ENABLED was removed. After it, I then checked what
+> was wrong, since everything was being plumbed correctly (tm), and then
+> I found that it was not:
 > 
-> This patch introduces CONFIG_ARCH_HAS_LAZY_MMU_MODE and has each
-> arch select it when it implements lazy_mmu helpers.
-> __HAVE_ARCH_ENTER_LAZY_MMU_MODE is removed and <linux/pgtable.h>
-> relies on the new CONFIG instead.
+> On _register_console, the function try_enable_default_console is called
+> when there are not registered consoles, and then it sets CON_ENABLED
+> for the console. Later on, try_enable_preferred_console it checks if
+> the console was specified by the user, and at the same time it had
+> CON_ENABLED set.
 > 
-> On x86, lazy_mmu helpers are only implemented if PARAVIRT_XXL is
-> selected. This creates some complications in arch/x86/boot/, because
-> a few files manually undefine PARAVIRT* options. As a result
-> <asm/paravirt.h> does not define the lazy_mmu helpers, but this
-> breaks the build as <linux/pgtable.h> only defines them if
-> !CONFIG_ARCH_HAS_LAZY_MMU_MODE. There does not seem to be a clean
-> way out of this - let's just undefine that new CONFIG too.
-> 
-> Acked-by: David Hildenbrand <david@redhat.com>
-> Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-> Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-> Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> ---
->  arch/arm64/Kconfig                                 | 1 +
->  arch/arm64/include/asm/pgtable.h                   | 1 -
->  arch/powerpc/include/asm/book3s/64/tlbflush-hash.h | 2 --
->  arch/powerpc/platforms/Kconfig.cputype             | 1 +
->  arch/sparc/Kconfig                                 | 1 +
->  arch/sparc/include/asm/tlbflush_64.h               | 2 --
->  arch/x86/Kconfig                                   | 1 +
->  arch/x86/boot/compressed/misc.h                    | 1 +
->  arch/x86/boot/startup/sme.c                        | 1 +
->  arch/x86/include/asm/paravirt.h                    | 1 -
->  include/linux/pgtable.h                            | 2 +-
->  mm/Kconfig                                         | 7 +++++++
->  12 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 93173f0a09c7..3fb4603c0e16 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -35,6 +35,7 @@ config ARM64
->  	select ARCH_HAS_KCOV
->  	select ARCH_HAS_KERNEL_FPU_SUPPORT if KERNEL_MODE_NEON
->  	select ARCH_HAS_KEEPINITRD
-> +	select ARCH_HAS_LAZY_MMU_MODE
->  	select ARCH_HAS_MEMBARRIER_SYNC_CORE
->  	select ARCH_HAS_MEM_ENCRYPT
->  	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
-> diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-> index 64d5f1d9cce9..f7d66c261347 100644
-> --- a/arch/arm64/include/asm/pgtable.h
-> +++ b/arch/arm64/include/asm/pgtable.h
-> @@ -80,7 +80,6 @@ static inline void queue_pte_barriers(void)
->  	}
->  }
->  
-> -#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
->  static inline void arch_enter_lazy_mmu_mode(void)
->  {
->  	/*
-> diff --git a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> index 2d45f57df169..565c1b7c3eae 100644
-> --- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> +++ b/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-> @@ -24,8 +24,6 @@ DECLARE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
->  
->  extern void __flush_tlb_pending(struct ppc64_tlb_batch *batch);
->  
-> -#define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-> -
->  static inline void arch_enter_lazy_mmu_mode(void)
->  {
->  	struct ppc64_tlb_batch *batch;
-> diff --git a/arch/powerpc/platforms/Kconfig.cputype b/arch/powerpc/platforms/Kconfig.cputype
-> index 4c321a8ea896..f399917c17bd 100644
-> --- a/arch/powerpc/platforms/Kconfig.cputype
-> +++ b/arch/powerpc/platforms/Kconfig.cputype
-> @@ -93,6 +93,7 @@ config PPC_BOOK3S_64
->  	select IRQ_WORK
->  	select PPC_64S_HASH_MMU if !PPC_RADIX_MMU
->  	select KASAN_VMALLOC if KASAN
-> +	select ARCH_HAS_LAZY_MMU_MODE
->  
->  config PPC_BOOK3E_64
->  	bool "Embedded processors"
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index a630d373e645..2bad14744ca4 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -112,6 +112,7 @@ config SPARC64
->  	select NEED_PER_CPU_PAGE_FIRST_CHUNK
->  	select ARCH_SUPPORTS_SCHED_SMT if SMP
->  	select ARCH_SUPPORTS_SCHED_MC  if SMP
-> +	select ARCH_HAS_LAZY_MMU_MODE
->  
->  config ARCH_PROC_KCORE_TEXT
->  	def_bool y
-> diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
-> index 925bb5d7a4e1..4e1036728e2f 100644
-> --- a/arch/sparc/include/asm/tlbflush_64.h
-> +++ b/arch/sparc/include/asm/tlbflush_64.h
-> @@ -39,8 +39,6 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
->  
->  void flush_tlb_kernel_range(unsigned long start, unsigned long end);
->  
-> -#define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-> -
->  void flush_tlb_pending(void);
->  void arch_enter_lazy_mmu_mode(void);
->  void arch_flush_lazy_mmu_mode(void);
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 80527299f859..2427a66cb0fe 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -808,6 +808,7 @@ config PARAVIRT
->  config PARAVIRT_XXL
->  	bool
->  	depends on X86_64
-> +	select ARCH_HAS_LAZY_MMU_MODE
->  
->  config PARAVIRT_DEBUG
->  	bool "paravirt-ops debugging"
-> diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
-> index fd855e32c9b9..4f86c5903e03 100644
-> --- a/arch/x86/boot/compressed/misc.h
-> +++ b/arch/x86/boot/compressed/misc.h
-> @@ -11,6 +11,7 @@
->  #undef CONFIG_PARAVIRT
->  #undef CONFIG_PARAVIRT_XXL
->  #undef CONFIG_PARAVIRT_SPINLOCKS
-> +#undef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->  #undef CONFIG_KASAN
->  #undef CONFIG_KASAN_GENERIC
->  
-> diff --git a/arch/x86/boot/startup/sme.c b/arch/x86/boot/startup/sme.c
-> index e7ea65f3f1d6..b76a7c95dfe1 100644
-> --- a/arch/x86/boot/startup/sme.c
-> +++ b/arch/x86/boot/startup/sme.c
-> @@ -24,6 +24,7 @@
->  #undef CONFIG_PARAVIRT
->  #undef CONFIG_PARAVIRT_XXL
->  #undef CONFIG_PARAVIRT_SPINLOCKS
-> +#undef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->  
->  /*
->   * This code runs before CPU feature bits are set. By default, the
-> diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
-> index b5e59a7ba0d0..13f9cd31c8f8 100644
-> --- a/arch/x86/include/asm/paravirt.h
-> +++ b/arch/x86/include/asm/paravirt.h
-> @@ -526,7 +526,6 @@ static inline void arch_end_context_switch(struct task_struct *next)
->  	PVOP_VCALL1(cpu.end_context_switch, next);
->  }
->  
-> -#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
->  static inline void arch_enter_lazy_mmu_mode(void)
->  {
->  	PVOP_VCALL0(mmu.lazy_mode.enter);
-> diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-> index 1abc4a1c3d72..d46d86959bd6 100644
-> --- a/include/linux/pgtable.h
-> +++ b/include/linux/pgtable.h
-> @@ -235,7 +235,7 @@ static inline int pmd_dirty(pmd_t pmd)
->   *
->   * Nesting is not permitted and the mode cannot be used in interrupt context.
->   */
-> -#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-> +#ifndef CONFIG_ARCH_HAS_LAZY_MMU_MODE
->  static inline void arch_enter_lazy_mmu_mode(void) {}
->  static inline void arch_leave_lazy_mmu_mode(void) {}
->  static inline void arch_flush_lazy_mmu_mode(void) {}
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index bd0ea5454af8..62073bd61544 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -1464,6 +1464,13 @@ config PT_RECLAIM
->  config FIND_NORMAL_PAGE
->  	def_bool n
->  
-> +config ARCH_HAS_LAZY_MMU_MODE
-> +	bool
-> +	help
-> +	  The architecture uses the lazy MMU mode. This allows changes to
-> +	  MMU-related architectural state to be deferred until the mode is
-> +	  exited. See <linux/pgtable.h> for details.
-> +
->  source "mm/damon/Kconfig"
->  
->  endmenu
+> It worked by chance, but now, we don't have this flag anymore, and then
+> we are not _marking_ the console on try_enable_default_console so
+> try_enable_preferred_console returns ENOENT.
 
-Acked-by: Andreas Larsson <andreas@gaisler.com> # sparc
+Great catch! Yeah, it worked just by chance.
 
-Cheers,
-Andreas
+> So, without any console kgdb is activated much later in the boot
+> process, as you found it.
+> 
+> I talked with Petr Mladek and it would need to rework the way that we
+> register a console, and he's already working on it.
 
+Yes, I have some patches in early stages of developnent of another
+feature which would help here.
+
+> For now I believe
+> that we could take a look in all the patches besides the last one that
+> currently breaks the earlycon with kgdb and maybe other usecases.
+
+I agree. I am going to review this patchset first. Then I'll try to
+clean up the patches which remove the ugly side effect from
+try_enable_preferred_console(). Then we could discuss how
+to move forward. It might make sense to push this patchset
+first without the last patch...
+
+> Sorry for not catching this issue before. I'll use kgdb next time to
+> make sure that it keeps working :)
+
+Do not worry at all. It was a well hidden catch. It is great that
+Daniel found the regression in time...
+
+Best Regards,
+Petr
