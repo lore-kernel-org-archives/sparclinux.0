@@ -1,191 +1,298 @@
-Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD7053806A1
-	for <sparclinux@vger.kernel.org>; Tue, 13 Jan 2026 17:37:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D06A17BA2
+	for <sparclinux@vger.kernel.org>; Wed, 14 Jan 2026 00:32:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768325844; cv=none; b=aXNtNkFPDSf4CvtPKbWXvyzpnSGparMMYAChGukT2LRN+vjGHUnGVhQcgUdOLoAFyQswFsGUs2HaXgPPzrn/3iYQ681I4XfxNDuuwSjjVJ2SFpnG0hzZCEwkXGv7Ks6unnzQcC75kPGI9qb8Praa9y0svGI4hD3rSspcsOZ8y4A=
+	t=1768350771; cv=none; b=odkQ2FBve+bl55J1DJ1LMMAb6u29Tmat/ywFIDD+0moT8whM8iij4V0fgthbTWSD+cKWJM4ZRKmpF6qNKbcf5kxXdnGjID+LIO0lxeDsKzAUg3+xlfg6mEcDgW7lPZfbwJKR+1vuhM+uJn1dYOX35JOdUOcmE1HNxVsAzoNFKEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768325844; c=relaxed/simple;
-	bh=ICK4ui9NDNRZmZPvqUFhVVRYDzu3U7vjvh8uoefFqv4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uPnS1Jo4Xor7iO0oJQpiBwAlwCL4avP0VkUdTKkMOwcsE/u20aYqfKWWS1sFgvbnFVmvwF6dMyLa5Kkydoqtt5Xx8OiMEc5+KKn+NX/zpS2n0+Eax0o4IwDpubl3a43E6njDNhfhtYGygfrqP4WNdzKe84p+n518jPFXKlDnoM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Ru2sEbeo; arc=none smtp.client-ip=209.85.221.53
+	s=arc-20240116; t=1768350771; c=relaxed/simple;
+	bh=nGJ2jPxKcBzN+czMyCvoFnCk3OT6uIqZnT2Tcb9ddPo=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=b9oVGiBw5utf/nxg7eJjDXHErBHfWWQRGGh0dfvbvmNhDEvKebgM965NcZMyDmMR478JBN4lIq5lEKI5nP7zvAZEfk1x5nKz6HJiP0lT50LGGt8TsjZKQEthtl/4QR8dHyVhbeCaNc3QpDrJqJ3N7Iv82J/CRv4eCsvvYdtDot8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=WdCE0cSe; arc=none smtp.client-ip=209.85.128.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Ru2sEbeo"
-Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-42fb0fc5aa9so3710210f8f.1
-        for <sparclinux@vger.kernel.org>; Tue, 13 Jan 2026 09:37:21 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="WdCE0cSe"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-47ed987d51aso12094885e9.2
+        for <sparclinux@vger.kernel.org>; Tue, 13 Jan 2026 16:32:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1768325840; x=1768930640; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=/CVOy4tPw1zWY0e6rYcKRwtfrfRvUlKFzd8YTNoGp5w=;
-        b=Ru2sEbeo3aF1V5dVdmZ8y7qebfvXyJmIOu3zKjZ0L9VDAaRDnX70AwM7BG2MTCNZwb
-         Wt2M0HgSorW10TpGQfsg9caRtjEHGygzZnBCUoVZVtJ9cb0vr93mesbIAhkVPGacjxdE
-         7HU2OwKQxMCRd8/BsuI9FzZju+1UH8Go43H+kiq9CHCnMXgCIpF7/w0CTdPzN1DW1Rpm
-         vJFnt7QVkUwAiqmRpO4P0wQ4QtHunX4dgFkC5Y5pl2pjWjZOPmVYlIv+L2228OrXc7FR
-         T3QgLrVe14c5TYcEkEJYXN3hig3ZqFkIKuc/jaTuv7lqME1z4P3n4adyHDJ+f9c9YNAe
-         Bvig==
+        d=suse.com; s=google; t=1768350768; x=1768955568; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=gaWdSFFdOKkEXTHGFmdiT7EpMTfrWly43NlKkw7Tnic=;
+        b=WdCE0cSequz4kIsG0Bvq20O469ENKrlgcuLe6iZhfbc48iN5hskoBU+uCQld9TT/LJ
+         RijnSGKQJYxvX+j0y3/1ojflKfiS/a77faj1fUfor2Ta7sEhipGVYlqDZjVlfccuCvrr
+         Xkq8WgV7Nrb8vAuVAMHqsGmXZ/F/7H2/9pWP6Kx0QXTOeLxpROE9bKCTptHgARxEJWPu
+         7z7w07hyrzIe/L5B6npYw4SXT99LEqKPQ/c+FwQ1pvr+fQbwl0MEOk3XUBotQb6b+oaC
+         kVqxF0TecSwhJPrrbHM1G42WU7rsjgfKnn4r007pP0WoVwM2kfqA4Lbj8OYs5ef9pNAV
+         sGjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768325840; x=1768930640;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/CVOy4tPw1zWY0e6rYcKRwtfrfRvUlKFzd8YTNoGp5w=;
-        b=jNza1gCZWURgZ8esuALbbinbEV3hayf31s128AKDRpuzRoA9zvm9HbJHI0uBDOo/CI
-         Oxu4FpTX2MA733J05w2cLoQHhLWJKMgEF8GlTnlD3wNdrVBopF8VP+Kjqpp1FiFHCSSn
-         HBDDD+Y4kwzgUkH9GnREz5nAOdwTgvylUMhfGe31yICQ9ViAeJVagnAm9tBLLn0em5AY
-         SPZEyTfAhj1pGrWPqWNKE/1sHHTeUjjh6chw8ONvA7hCgPO1HvsKVuRThl3wlgqlFwhw
-         ABxAvWXxwjyKYxD2kY8aw+YVgDfVUnNFrdLFftIEmQ/POJFUXckcBaz3TCZYHYaC8YTo
-         Ewgg==
-X-Forwarded-Encrypted: i=1; AJvYcCXIzvFyGE5Sf0FSHGYU1MtxFBkeU5TEhJ/WFeg1BWFqijnA9Cd6Vk8j67oiFYDf+mKgBFaJhfETNmZu@vger.kernel.org
-X-Gm-Message-State: AOJu0YzO+PNMYZI5c11H0qL4aQjalvTaxu+FzWEhyBk6+Xl88QUANSau
-	AtI9IwhFEwLMlOOjPd930ZLwoIipg3fU3PNR+aiuYukKNdu5sDrTxvBgUgKzgJAQCBA=
-X-Gm-Gg: AY/fxX6gX/Vfk/VzKfI5UjvachE4EGayYQn27VtfjvNH5V4XVFHIzLjhL7HJKcWWa5T
-	S47JfW9pfDXL7VcCxD9G4H4UfVDAlefrbJy32hWZnKNEfkLwMlfMj0rZ+jVQOK1O7Lbx+gNvK2Q
-	wbfTeBy/Bz1kVFEWtBhCl+/oHJR17Q1kyqz3s/G5ssLGkLTDJHIWZXeVlCnVyww5UwbfdOQzvy/
-	OoHdrRySMAtZoXWoJLuLRkyclY9NOO+ffqv2HJTMaFu2LswwEPb1UaFewtbKdLXexR2G1ISU/B0
-	1a+HTjDEJ/KX60JRV2uybjFPHpcdNBrAIBP7Ux4Y1ZoSOn+qeLgBJVF5xSrVD4LwVUFCP8gL8wc
-	sfb+0OtqYHNyPG22ExCxaDYTsJIBxzhApDz138jQDx9wFa+o7Elcrxadqfin7APn6UwxDvXpBVG
-	uhxQq9EtMamBX3iA==
-X-Google-Smtp-Source: AGHT+IHUReQqvVgC0db5F0/UgqAPwHgCcpq2ZD0lhm0g7XnDeEa3Phlj1/GEitKl8zvqkUFbSZC6XA==
-X-Received: by 2002:a05:6000:2dc9:b0:430:fced:902 with SMTP id ffacd0b85a97d-432c36436fbmr29258778f8f.26.1768325840268;
-        Tue, 13 Jan 2026 09:37:20 -0800 (PST)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-432d9610671sm28342147f8f.34.2026.01.13.09.37.18
+        d=1e100.net; s=20230601; t=1768350768; x=1768955568;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=gaWdSFFdOKkEXTHGFmdiT7EpMTfrWly43NlKkw7Tnic=;
+        b=SZyMfHeDlIlfHSM5BVwsIsd1wIbcZgcDOKj6xoDdAoqJPwHcnsWvlF0JbSDJpoYfV0
+         QAQGPK4qVdCG09aw3DMjH2LL1xj/hJAXYs0v/DqzfmUw9FBDuUcGszNwNrOQYgReTO12
+         xhzNojHlE0SagvAY4uK+jZeLDDuYCj5/JqYSECT+ydVMBuLxBj7CNMoTd7ZAG9y4PlGD
+         xP/A/7IbWbKf3pckUT4GsCYwMKlia27jqmVHqXRp3FCt0Jd7IIj5jB5gM6rfMekZs/ZF
+         gmd2jzCIYOf8wpDr7MoYkNxCbcYMh1I/0BvsiErU/tGg4HMG0+Y8qkGoq89YQKLNsqv0
+         YAeA==
+X-Forwarded-Encrypted: i=1; AJvYcCUqRwOuRv20T2pnE/3Z5gQUImV3+FxUQ9hPQko6NxnuEDTLqSPeUdEEFPdiQn8T7mbh64JbjrVIwXIj@vger.kernel.org
+X-Gm-Message-State: AOJu0YwQaOUDFirretDQw7Pe/DIrtSpxMaa60QOMqsYjJlZmVXAZi3++
+	K/c/CA076PS4g8mFbLPlNts3tlDW4fRW2lyGfYPVyZIoi1QAcfGRnyvkCiruuuhwxkk=
+X-Gm-Gg: AY/fxX6USrGjfLeZ0b5rNvS7TMsxFLQnvCCtu1LZ4E6JUxCZ+mpbsr1SjsW6ldhUcrT
+	8lcJ6NWa36YEyvifHBIvYq4Ip0QTJXu8LoApZDBS35nBE01JNPFROKQtsrfwZ/bcIODL7Y+3Tpr
+	qRRAvJb2DXJN8ld/i8NzmHtEaoGc10RScCY1XVi9QwJgidNUO5mjVdjZqFxX1/Y2VwBsDOiSD8D
+	SU7pOsSnHB4YvzR9dArAeFScTSxGZS1NkvjIAkDYVVvoDMTSGrrB20VhtLluHVltVBbqZhqin8C
+	lw5BM7uz70PfE0JUd6RtZOKhBDLZTaLp6XEsYJS0pxAyKW9aUq69orq0pj9UPp7eItXZRANznSL
+	q32M1ntOtMF3zRol4gOprGzMtrjUE04xLUYWSI4ICoW/qV01wQndx6ig421R0XLMM1IL0//EZYp
+	srD+7zF6tQrVy9ZdRKz1/Ac7BJ4/81EySuhIymnTVnng==
+X-Received: by 2002:a05:600c:a101:b0:47e:e48b:506d with SMTP id 5b1f17b1804b1-47ee48b510fmr2972975e9.16.1768350767989;
+        Tue, 13 Jan 2026 16:32:47 -0800 (PST)
+Received: from [192.168.3.33] (218.37.160.45.gramnet.com.br. [45.160.37.218])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-432bd5df9c5sm48257391f8f.22.2026.01.13.16.32.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Jan 2026 09:37:19 -0800 (PST)
-Date: Tue, 13 Jan 2026 18:37:17 +0100
-From: Petr Mladek <pmladek@suse.com>
-To: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jason Wessel <jason.wessel@windriver.com>,
-	Daniel Thompson <danielt@kernel.org>,
-	Douglas Anderson <dianders@chromium.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	John Ogness <john.ogness@linutronix.de>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Kees Cook <kees@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>,
-	Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-	linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
-	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
+        Tue, 13 Jan 2026 16:32:47 -0800 (PST)
+Message-ID: <89409a0f48e6998ff6dd2245691b9954f0e1e435.camel@suse.com>
+Subject: Re: [PATCH 00/19] printk cleanup - part 3
+From: Marcos Paulo de Souza <mpdesouza@suse.com>
+To: Daniel Thompson <daniel@riscstar.com>
+Cc: Richard Weinberger <richard@nod.at>, Anton Ivanov	
+ <anton.ivanov@cambridgegreys.com>, Johannes Berg
+ <johannes@sipsolutions.net>,  Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Jason Wessel <jason.wessel@windriver.com>,
+ Daniel Thompson	 <danielt@kernel.org>, Douglas Anderson
+ <dianders@chromium.org>, Petr Mladek	 <pmladek@suse.com>, Steven Rostedt
+ <rostedt@goodmis.org>, John Ogness	 <john.ogness@linutronix.de>, Sergey
+ Senozhatsky <senozhatsky@chromium.org>,  Jiri Slaby <jirislaby@kernel.org>,
+ Breno Leitao <leitao@debian.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Kees Cook	
+ <kees@kernel.org>, Tony Luck <tony.luck@intel.com>, "Guilherme G. Piccoli"	
+ <gpiccoli@igalia.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, Michael
+ Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy	 <christophe.leroy@csgroup.eu>, Andreas Larsson
+ <andreas@gaisler.com>,  Alexander Shishkin
+ <alexander.shishkin@linux.intel.com>, Maxime Coquelin
+ <mcoquelin.stm32@gmail.com>, Alexandre Torgue	
+ <alexandre.torgue@foss.st.com>, Jacky Huang <ychuang3@nuvoton.com>, 
+ Shan-Chun Hung <schung@nuvoton.com>, Laurentiu Tudor
+ <laurentiu.tudor@nxp.com>, linux-um@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, 
+	linux-serial@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-hardening@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, 
 	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 02/19] printk: Introduce console_is_nbcon
-Message-ID: <aWaCzZ8_UuyAa6xp@pathway.suse.cz>
+ linux-arm-kernel@lists.infradead.org, 	linux-fsdevel@vger.kernel.org
+Date: Tue, 13 Jan 2026 21:32:33 -0300
+In-Reply-To: <a5d83903fe2d2c2eb21de1527007913ff00847c5.camel@suse.com>
 References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
- <20251227-printk-cleanup-part3-v1-2-21a291bcf197@suse.com>
+		 <aVuz_hpbrk8oSCVC@aspen.lan> <aVvF2hivCm0vIlfE@aspen.lan>
+	 <a5d83903fe2d2c2eb21de1527007913ff00847c5.camel@suse.com>
+Autocrypt: addr=mpdesouza@suse.com; prefer-encrypt=mutual;
+ keydata=mDMEZ/0YqhYJKwYBBAHaRw8BAQdA4JZz0FED+JD5eKlhkNyjDrp6lAGmgR3LPTduPYGPT
+ Km0Kk1hcmNvcyBQYXVsbyBkZSBTb3V6YSA8bXBkZXNvdXphQHN1c2UuY29tPoiTBBMWCgA7FiEE2g
+ gC66iLbhUsCBoBemssEuRpLLUFAmf9GKoCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgk
+ QemssEuRpLLWGxwD/S1I0bjp462FlKb81DikrOfWbeJ0FOJP44eRzmn20HmEBALBZIMrfIH2dJ5eM
+ GO8seNG8sYiP6JfRjl7Hyqca6YsE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.58.2 (by Flathub.org) 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251227-printk-cleanup-part3-v1-2-21a291bcf197@suse.com>
 
-On Sat 2025-12-27 09:16:09, Marcos Paulo de Souza wrote:
-> Besides checking if the current console is NBCON or not, console->flags
-> is also being read in order to serve as argument of the console_is_usable
-> function.
-> 
-> But CON_NBCON flag is unique: it's set just once in the console
-> registration and never cleared. In this case it can be possible to read
-> the flag when console_srcu_lock is held (which is the case when using
-> for_each_console).
-> 
-> This change makes possible to remove the flags argument from
-> console_is_usable in the next patches.
-> 
-> Signed-off-by: Petr Mladek <pmladek@suse.com>
-> Signed-off-by: Marcos Paulo de Souza <mpdesouza@suse.com>
-> ---
->  include/linux/console.h   | 27 +++++++++++++++++++++++++++
->  kernel/debug/kdb/kdb_io.c |  2 +-
->  kernel/printk/nbcon.c     |  2 +-
->  kernel/printk/printk.c    | 15 ++++++---------
->  4 files changed, 35 insertions(+), 11 deletions(-)
-> 
-> diff --git a/include/linux/console.h b/include/linux/console.h
-> index 35c03fc4ed51..dd4ec7a5bff9 100644
-> --- a/include/linux/console.h
-> +++ b/include/linux/console.h
-> @@ -561,6 +561,33 @@ static inline void console_srcu_write_flags(struct console *con, short flags)
->  	WRITE_ONCE(con->flags, flags);
->  }
->  
-> +/**
-> + * console_srcu_is_nbcon - Locklessly check whether the console is nbcon
+On Tue, 2026-01-13 at 09:41 -0300, Marcos Paulo de Souza wrote:
+> On Mon, 2026-01-05 at 14:08 +0000, Daniel Thompson wrote:
+> > On Mon, Jan 05, 2026 at 12:52:14PM +0000, Daniel Thompson wrote:
+> > > Hi Marcos
+> > >=20
+> > > On Sat, Dec 27, 2025 at 09:16:07AM -0300, Marcos Paulo de Souza
+> > > wrote:
+> > > > The parts 1 and 2 can be found here [1] and here[2].
+> > > >=20
+> > > > The changes proposed in this part 3 are mostly to clarify the
+> > > > usage of
+> > > > the interfaces for NBCON, and use the printk helpers more
+> > > > broadly.
+> > > > Besides it, it also introduces a new way to register consoles
+> > > > and drop thes the CON_ENABLED flag. It seems too much, but in
+> > > > reality
+> > > > the changes are not complex, and as the title says, it's
+> > > > basically a
+> > > > cleanup without changing the functional changes.
+> > >=20
+> > > I ran this patchset through the kgdb test suite and I'm afraid it
+> > > is
+> > > reporting functional changes.
+> > >=20
+> > > Specifically the earlycon support for kdb has regressed (FWIW the
+> > > problem bisects down to the final patch in the series where
+> > > CON_ENABLED
+> > > is removed).
+> > >=20
+> > > Reproduction on x86-64 KVM outside of the test suite should be
+> > > easy:
+> > >=20
+> > > =C2=A0=C2=A0=C2=A0 make defconfig
+> > > =C2=A0=C2=A0=C2=A0 scripts/config \
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 --enable DEBUG_INFO \
+> > > 	--enable DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT \
+> > > 	--enable DEBUG_FS \
+> > > 	--enable KALLSYMS_ALL \
+> > > 	--enable MAGIC_SYSRQ \
+> > > 	--enable KGDB \
+> > > 	--enable KGDB_TESTS \
+> > > 	--enable KGDB_KDB \
+> > > 	--enable KDB_KEYBOARD \
+> > > 	--enable LKDTM \
+> > > 	--enable SECURITY_LOCKDOWN_LSM
+> > > =C2=A0=C2=A0=C2=A0 make olddefconfig
+> > > =C2=A0=C2=A0=C2=A0 make -j$(nproc)
+> > > =C2=A0=C2=A0=C2=A0 qemu-system-x86_64 \
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 -m 1G -smp 2 -nographic \
+> > > 	-kernel arch/x86/boot/bzImage \
+> > > 	-append "console=3DttyS0,115200 kgdboc=3DttyS0
+> > > earlycon=3Duart8250,io,0x3f8 kgdboc_earlycon kgdbwait"
+> >=20
+> > Actually I realized there was a simpler reproduction (hinted at by
+> > the
+> > missing "printk: legacy bootconsole [uart8250] enabled" in the
+> > regressed
+> > case). It looks like the earlycon simply doesn't work and that
+> > means
+> > the
+> > reproduction doesn't require anything related to kgdb at all.
+> > Simply:
+> >=20
+> > =C2=A0=C2=A0=C2=A0 make defconfig
+> > =C2=A0=C2=A0=C2=A0 make -j$(nproc)
+> > =C2=A0=C2=A0=C2=A0 qemu-system-x86_64 -m 1G -smp 2 -nographic -kernel
+> > arch/x86/boot/bzImage \
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 -append "earlycon=3Duart8250=
+,io,0x3f8"
+> >=20
+> > With the part 3 patchset applied I get no output from the earlycon
+> > (without the patch set I get the early boot messages which, as
+> > expected,
+> > stop when tty0 comes up).
+>=20
+> Hi Daniel, sorry for the late reply! Lots of things to check lately
+> :)
+>=20
+> Ok, I reproduced here, thanks a lot for testing kgdboc, it's a quick
+> way to check that the new register_console_force is not working. Let
+> me
+> take a look to find what's wrong. Thanks a lot for finding this
+> issue!
 
-There is _srcu in the function name, see below.
+Ok, I did a bisect and found out that the issue lies in the last
+commit, where CON_ENABLED was removed. After it, I then checked what
+was wrong, since everything was being plumbed correctly (tm), and then
+I found that it was not:
 
-> + * @con:	struct console pointer of console to check
-> + *
-> + * Requires console_srcu_read_lock to be held, which implies that @con might
-> + * be a registered console. The purpose of holding console_srcu_read_lock is
-> + * to guarantee that no exit/cleanup routines will run if the console
-> + * is currently undergoing unregistration.
-> + *
-> + * If the caller is holding the console_list_lock or it is _certain_ that
-> + * @con is not and will not become registered, the caller may read
-> + * @con->flags directly instead.
-> + *
-> + * Context: Any context.
-> + * Return: True when CON_NBCON flag is set.
-> + */
-> +static inline bool console_is_nbcon(const struct console *con)
+On _register_console, the function try_enable_default_console is called
+when there are not registered consoles, and then it sets CON_ENABLED
+for the console. Later on, try_enable_preferred_console it checks if
+the console was specified by the user, and at the same time it had
+CON_ENABLED set.
 
-And here it is without _srcu.
+It worked by chance, but now, we don't have this flag anymore, and then
+we are not _marking_ the console on try_enable_default_console so
+try_enable_preferred_console returns ENOENT.
 
-I would prefer the variant with _srcu to make it clear that it
-can be called only under _srcu. Similar to console_srcu_read_flags(con).
+I have added logs for both cases first the case with the patchset
+applied but the last one patch, and it works:
 
-> +{
-> +	WARN_ON_ONCE(!console_srcu_read_lock_is_held());
-> +
-> +	/*
-> +	 * The CON_NBCON flag is statically initialized and is never
-> +	 * set or cleared at runtime.
-> +	 */
-> +	return data_race(con->flags & CON_NBCON);
-> +}
-> +
->  /* Variant of console_is_registered() when the console_list_lock is held. */
->  static inline bool console_is_registered_locked(const struct console *con)
->  {
+$ vng --append "console=3DttyS0,115200 earlyprintk=3DttyS0,115200
+kgdboc=3DttyS0 earlycon=3Duart8250,io,0x3f8 kgdboc_earlycon kgdbwait" --
+verbose
 
-Otherwise, it looks good to me.
+Decompressing Linux... Parsing ELF... Performing relocations... done.
+Booting the kernel (entry_offset: 0x000000000450d530).
+XXX register_console earlyser
+XXX try_enable_default_console earlyser enabled
+XXX try_enable_preferred_console earlyser user_specified 1 returned -
+ENOENT
+XXX try_enable_preferred_console earlyser user_specified 0 returned 0
+because flags was ENABLED
 
-With a consistent name, feel free to use:
+^^ here, returning 0 means that the console was accepted and will be
+registered
 
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+XXX __register_console earlyser registered
+XXX register_console uart
+XXX try_enable_default_console uart enabled
+XXX try_enable_preferred_console uart user_specified 1 returned -ENOENT
+XXX try_enable_preferred_console uart user_specified 0 returned 0
+because flags was ENABLED
+XXX __register_console uart registered
 
-Best Regards,
-Petr
+^^^^ same here
+
+Going to register kgdb with earlycon 'uart'
+Entering kdb (current=3D0x0000000000000000, pid 0)=20
+
+
+Now, the logs of the patchset with the last patch also applied:
+
+
+Decompressing Linux... Parsing ELF... Performing relocations... done.
+Booting the kernel (entry_offset: 0x000000000450d530).
+XXX register_console earlyser
+XXX try_enable_default_console earlyser enabled
+XXX try_enable_preferred_console earlyser user_specified 1 returned -
+ENOENT
+XXX try_enable_preferred_console earlyser user_specified 0 returned -
+ENOENT
+XXX register_console uart
+XXX try_enable_default_console uart enabled
+XXX try_enable_preferred_console uart user_specified 1 returned -ENOENT
+XXX try_enable_preferred_console uart user_specified 0 returned -ENOENT
+
+^^^^ here, it should have registered the console
+
+XXX console_setup hvc0
+XXX __add_preferred_console hvc added, idx 0 i 0
+XXX console_setup ttyS0,115200
+XXX __add_preferred_console ttyS added, idx 0 i 1
+Poking KASLR using RDRAND RDTSC...
+XXX register_console tty
+XXX try_enable_preferred_console tty user_specified 1 returned -ENOENT
+XXX try_enable_preferred_console tty user_specified 0 returned -ENOENT
+
+
+^^^ again, it fails because we don't flag the console with CON_ENABLED
+as before.
+
+XXX register_console hvc
+XXX register_console ttyS
+XXX try_enable_preferred_console ttyS user_specified 1 returned 0 with
+user specified
+XXX __register_console ttyS registered
+[    0.000000] Linux version 6.18.0+ (mpdesouza@daedalus) (clang
+version 21.1.7, LLD 21.1.7) #374 SMP PREEMPT_RT Tue J
+an 13 21:08:34 -03 2026 reserved
+[    0.000000] earlycon: uart8250 at I/O port 0x3f8 (options '')     =20
+[    0.000000] kgdboc: No suitable earlycon yet, will try later       =20
+
+
+So, without any console kgdb is activated much later in the boot
+process, as you found it.
+
+I talked with Petr Mladek and it would need to rework the way that we
+register a console, and he's already working on it. For now I believe
+that we could take a look in all the patches besides the last one that
+currently breaks the earlycon with kgdb and maybe other usecases.
+
+Sorry for not catching this issue before. I'll use kgdb next time to
+make sure that it keeps working :)
