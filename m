@@ -1,182 +1,119 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9AD637F728
-	for <sparclinux@vger.kernel.org>; Wed, 14 Jan 2026 08:44:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B4B2DECB2;
+	Wed, 14 Jan 2026 09:20:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768380264; cv=none; b=srNi5k1vAKx1pWtIu2rFko2Vmc3JYBDRDp6yJOl6mEhoCMI6tYnpSWAUO6mDI0sK/jEXmz3GdPBXGg5f1bcbCLsv5WCuRJDSl5fx8Nsj/tCJDgvuP606dyJnLJqaDrePSdvHER93Wab9iOw3jXVg6zXCnaEl4crE4pftS8OuJiE=
+	t=1768382441; cv=none; b=BTn08BXgjtqrinj5M/SXaMH9/8lUZE0R151O1bc9VrIWJ1+9El1elrdvr7Q0jYWdGTYyDFndq7VcNkgbhAn96C789C2HOh1qoEUHqB0vRuDXhNK5hNv7VgP0S5HHk0nTWdZHllsZlxV1Ec5vlfIXXJDl9VXn0pqOZBgOKf3vYbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768380264; c=relaxed/simple;
-	bh=ysd4WYTvCh9+HsQ1AtbOfW5FzL4/iKQHwd6lm5bPF7A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oeLHKfxyS473Wuy9Hf6RPy3wOPjgDWdWU9em4KB/4X2Wr9OaRanOzXV4TGrARvc9CKUmmoifUt2RgC03NeHSEoVxMWu6XTdeYBYH7X+aJclDql1SPX6xk1AJ5JDC3kIOAMYensPajYifX0Mp/pI0WPdS18A5OKUfNVtXQvJyKe4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=UJDpRkoJ; arc=none smtp.client-ip=209.85.221.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1768382441; c=relaxed/simple;
+	bh=AGidN8rHxYVYrRfPkhxcLscYC3zh/M2+Vo3Rgs6UAFA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Q4jOFyAo7Zc3JeFu5H5Vtx47svA1kutvxixDbUOwVxbuEc9vqPgCGuPY7+wFTjVw47EJ+ooPKGW0qqmcZWE9yZWKfBwlNbdU6OZKkjNCfrAY7uN6yQpocrtk41AgwKMqDHuCkTdwkj2TDBnW267A6dQHYJHJcE6mMQE3u6dwC+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=n4HWMf4v reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="UJDpRkoJ"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-432d2c7dd52so4502160f8f.2
-        for <sparclinux@vger.kernel.org>; Wed, 14 Jan 2026 00:44:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1768380255; x=1768985055; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=/Nn9M/VPDoeuifL+P7no8o5FApQZk7zNKYvSR+p2CRU=;
-        b=UJDpRkoJ07RgspaR1NhfCpR626ZyVYHDm/91x63cM8gsy5+B8MAqHavRm979cqv826
-         adfCBmE4P0x6kfOJf6QVKQ+F73K8lwHrXn3rzPWHcqFa3N4E1nvvheWr+fvWlsfjnG3d
-         q5I4aa3r8n+1bnVHkuJKjH4VnxEE0Ax/OlO+0AlsTNmjx9JmMpIQmGfXyFrUV7bjE4AG
-         b+aIpJVdS5yOciq4wFCdKoOH2ygYDkIIMtINtTrq5bEwn2hZxdIsOnH1Mevl7p3aXRkT
-         mmHrpfvAEIKMqwJsI6Dxxcv5mSGvyKeQIfwtfaMbksOr61rqb70D/17uospsX2LrpTOB
-         fjgA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768380255; x=1768985055;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/Nn9M/VPDoeuifL+P7no8o5FApQZk7zNKYvSR+p2CRU=;
-        b=KCbRiQ3FuHnbpVZ6C+PT/87vcwhvRQtngvC4Fuyf2eeldmj1YpQ6dzRUGPEqnjCQ1Z
-         WnlxZOfUtA/Q4KsvsPHwVSGNptwYUxNxaHvkQRAmtznhgJMOWJZ1WEdjmgsST4/2UJ97
-         CeEP1C45s+pB1cZAJwghxhBR9ctIV7ogUSd0bKoVbCozY3a1/lwyrS51xH1541s/38oR
-         WUbJlutljzBpPd0nccS81uIwdiclG87NMATIvCV5pBpuMp6NKuoGVE0qe9/StFwhqeO6
-         q+RX/iVbmxFQj4G9XK4czfTS23tpaNWSu4JzrCt/lWia9BXR7+ud3M25y1Ms71BGtN/T
-         u95Q==
-X-Forwarded-Encrypted: i=1; AJvYcCW9tiC7a0sIeq7YZX7xwE/RjGCNl8HZYFXsaH9KwBDbhcHS0KyTuAiEPauoXMCNSCrovbmD8WQkmmax@vger.kernel.org
-X-Gm-Message-State: AOJu0YxWRChX57KrqkS4XSudiWrsHxsZV61c+53fz4xhgaAXOmXbJA8b
-	Uo8Uxpqz5x7uh912/5kd1BlXrJHv3xs9ZSsYdu/6vbyvBpkrowA3wFEdex1TRAGmOPw=
-X-Gm-Gg: AY/fxX6ZkSjw0NJRLMVZ/CrP92HJx0Z7kfxwKB9jdHbYnf9PGcU3PA0LXwNE4Fn1iSP
-	fqEBI2/67mgzDO6rj8P2eepouJRd9hdZbO5ITGJ/VBszsHt1Uo4ahL6lOiBB7YsxGCgOrvrMBVc
-	JnZXzDvPy1pPg1YEj56cfpIe7bTut5yteiXxJ1PG7bsYHkWBJuXGt9E3PHtBahAd1vOuwCs0rQe
-	0LIbn2nW/v4VvrVIjLmCN/6wFyAX6TvqpufqOfgADUMajUPSv54LMB1j1EoKwTgM2vvqHRjScd/
-	pc2ImEJMb0SrdVJlLdPvpKqcLVNKHx12rHJqDpQklrysjHAXzFbBnAa0dUhtNu1hve2WPMeW0yg
-	zQLbgQKkuKzwffQWbQRomlZd4q69ZEdoTFAoqN9/+6fhwmgLEqpzg50oY4pUzVeLjlGxse/gfm/
-	4TsB0EetXN0weprA==
-X-Received: by 2002:a05:6000:61e:b0:431:a38:c2f7 with SMTP id ffacd0b85a97d-4342c574bedmr1500621f8f.59.1768380254886;
-        Wed, 14 Jan 2026 00:44:14 -0800 (PST)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-432bd5ee5e3sm48685590f8f.35.2026.01.14.00.44.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jan 2026 00:44:14 -0800 (PST)
-Date: Wed, 14 Jan 2026 09:44:11 +0100
-From: Petr Mladek <pmladek@suse.com>
-To: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jason Wessel <jason.wessel@windriver.com>,
-	Daniel Thompson <danielt@kernel.org>,
-	Douglas Anderson <dianders@chromium.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	John Ogness <john.ogness@linutronix.de>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Kees Cook <kees@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>,
-	Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-	linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
-	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 03/19] printk: Drop flags argument from console_is_usable
-Message-ID: <aWdXW6ohfQ7_z2B_@pathway.suse.cz>
-References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
- <20251227-printk-cleanup-part3-v1-3-21a291bcf197@suse.com>
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="n4HWMf4v"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4drgZX6HB6z1FDXH;
+	Wed, 14 Jan 2026 10:20:36 +0100 (CET)
+Received: from [192.168.0.25] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4drgZX4kb9z1DQs3;
+	Wed, 14 Jan 2026 10:20:36 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=simplycom2; t=1768382436;
+	bh=htXKSCfwi/rRlWCimVMkpN3SKdsCeXQPXerxlhbzfq8=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=n4HWMf4vQ4+AK7sXrSJ1x+E4ZyVzqSOm2U01Nk5yXiv+SdO0872bjMHKIg0C3ao7w
+	 qcSZ3JSufZFoetXUFCLIR16YzpTYvzFyEYfiYyXUVZJe6E4vAQJlRcJmOS5vzaTMYP
+	 JsPgHWKPp8e8Y+BsxIqUBb5zhxZF76GajNyBMr/TEn46HYtuh9XCbCaxDxKbV0mZpC
+	 +35yzbFj4FX9cSSGy4UDTl2kN2IyOe+m6tY0wS44jXptZI81trByTEQBt6G4ieCWOb
+	 RhgCqycMUmi5XpUhfaZ3x8RQM7OILfjHesA0nlntkVUK4Xcss2DISwf2QVZBSRg3Mg
+	 0wbG0YGFLlBkw==
+Message-ID: <123e6a3a-6360-45cb-8eef-23b1660b9253@gaisler.com>
+Date: Wed, 14 Jan 2026 10:20:35 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251227-printk-cleanup-part3-v1-3-21a291bcf197@suse.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] sparc: don't reference obsolete termio struct for TC*
+ constants
+To: Sam James <sam@gentoo.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Stian Halseth <stian@itx.no>, sparclinux@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <99f1a93cf8cd4f0ece8611be2860677084663aac.1759359610.git.sam@gentoo.org>
+ <e11ecaf723594bf01c66fc5c80c25bda0621f34f.1759359616.git.sam@gentoo.org>
+ <87ecqyaefl.fsf@gentoo.org>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <87ecqyaefl.fsf@gentoo.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Sat 2025-12-27 09:16:10, Marcos Paulo de Souza wrote:
-> The flags argument was also used to check if CON_NBCON was set, but their
-> usage was fixed in the last commit. All current users are reading the
-> variable just to call console_is_usable.
+On 2025-10-19 21:18, Sam James wrote:
+> Sam James <sam@gentoo.org> writes:
+>> Similar in nature to ab107276607af90b13a5994997e19b7b9731e251. glibc-2.42
+
+Please refer to the referenced commit also with "commit", the SHA ID and
+the oneline summary of the commit, like so:
+
+commit ab107276607a ("powerpc: Fix struct termio related ioctl macros")
+
+>> drops the legacy termio struct, but the ioctls.h header still defines some
+>> TC* constants in terms of termio (via sizeof). Hardcode the values instead.
+>>
+>> This fixes building Python for example, which falls over like:
+>>   ./Modules/termios.c:1119:16: error: invalid application of 'sizeof' to incomplete type 'struct termio'
+>>
+>> Link: https://bugs.gentoo.org/961769
+>> Link: https://bugs.gentoo.org/962600
+>> Co-authored-by: Stian Halseth <stian@itx.no>
+>> Signed-off-by: Sam James <sam@gentoo.org>
+>> ---
+>> v3: Fix constants.
+>> v2: Fix title.
+>>
+>>  arch/sparc/include/uapi/asm/ioctls.h | 8 ++++----
+>>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> By calling console_srcu_read_flags inside console_is_usable makes the
-> code cleaner and removes one argument from the function.
+> Ping.
 > 
-> Along with it, create a variant called __console_is_usable that can be
-> used under console_list_lock(), like unregister_console_locked.
-> 
-> --- a/include/linux/console.h
-> +++ b/include/linux/console.h
-> @@ -656,13 +656,8 @@ extern bool nbcon_kdb_try_acquire(struct console *con,
->  				  struct nbcon_write_context *wctxt);
->  extern void nbcon_kdb_release(struct nbcon_write_context *wctxt);
->  
-> -/*
-> - * Check if the given console is currently capable and allowed to print
-> - * records. Note that this function does not consider the current context,
-> - * which can also play a role in deciding if @con can be used to print
-> - * records.
-> - */
-> -static inline bool console_is_usable(struct console *con, short flags,
-> +/* Variant of console_is_usable() when the console_list_lock is held. */
+>>
+>> diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
+>> index 7fd2f5873c9e7..f26befbf690fb 100644
+>> --- a/arch/sparc/include/uapi/asm/ioctls.h
+>> +++ b/arch/sparc/include/uapi/asm/ioctls.h
+>> @@ -5,10 +5,10 @@
+>>  #include <asm/ioctl.h>
+>>  
+>>  /* Big T */
+>> -#define TCGETA		_IOR('T', 1, struct termio)
+>> -#define TCSETA		_IOW('T', 2, struct termio)
+>> -#define TCSETAW		_IOW('T', 3, struct termio)
+>> -#define TCSETAF		_IOW('T', 4, struct termio)
+>> +#define TCGETA          0x40125401
+>> +#define TCSETA          0x80125402
+>> +#define TCSETAW         0x80125403
+>> +#define TCSETAF         0x80125404
+>>  #define TCSBRK		_IO('T', 5)
+>>  #define TCXONC		_IO('T', 6)
+>>  #define TCFLSH		_IO('T', 7)
 
-Nit: The comment is a bit misleading because this function is called
-     also from console_is_usable() under console_srcu_read_lock().
+Please also, like in commit ab107276607a ("powerpc: Fix struct termio
+related ioctl macros"), add the previous definitions as comments in
+order to be able to know in the future what these hard coded constants
+really should correspond to.
 
-     I would say something like:
+Don't forget to make sure that the subject gets a [PATCH v4].
 
-/*
- * The caller must ensure that @con can't disappear either by taking
- * console_list_lock() or console_srcu_read_lock(). See also
- * console_is_usable().
- */
-> +static inline bool __console_is_usable(struct console *con, short flags,
->  				     enum nbcon_write_cb nwc)
->  {
->  	if (!(flags & CON_ENABLED))
-> @@ -707,6 +702,18 @@ static inline bool console_is_usable(struct console *con, short flags,
->  	return true;
->  }
->  
-> +/*
-> + * Check if the given console is currently capable and allowed to print
-> + * records. Note that this function does not consider the current context,
-> + * which can also play a role in deciding if @con can be used to print
-> + * records.
+Thanks,
+Andreas
 
-And I would add here something like:
-
- *
- * Context: Must be called under console_srcu_read_lock().
-
-> + */
-> +static inline bool console_is_usable(struct console *con,
-> +				     enum nbcon_write_cb nwc)
-> +{
-> +	return __console_is_usable(con, console_srcu_read_flags(con), nwc);
-> +}
-> +
->  #else
->  static inline void nbcon_cpu_emergency_enter(void) { }
->  static inline void nbcon_cpu_emergency_exit(void) { }
-
-Otherwise, it looks good. It is a nice clean up.
-
-Best Regards,
-Petr
