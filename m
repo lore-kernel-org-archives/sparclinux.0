@@ -1,104 +1,45 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41E034216C
-	for <sparclinux@vger.kernel.org>; Thu, 15 Jan 2026 16:28:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3543D27F72C;
+	Thu, 15 Jan 2026 20:45:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768494534; cv=none; b=thFVLuM5sdwAkJqBMmPkp2Vzi8fZAiJ8aq82fCC696rrQNIKJTu2p1XlGB6EQWy9lrnYeHL2xdNYNHVhLK6UyVDys42xADuLUb8WIqzNUqFefKpgZax0VaYGMaiekcvj3aCqVKr4XBod4CEaZFwOpLRZv2rVz/+VTnqD1Mi0RFk=
+	t=1768509940; cv=none; b=XQLK2VXc/dUoT7389H+VlASSVyymMXHdopYmfZ0XRbK5+fAjYmNoI7yaVSc3Qibux82ogcuRFjVs8pDDKx4/t8ORZxjqWzVemZ2Lu2JDQNs+QVbQ28mf0EkoK6YJ6imAmUC9wcvDqQ68kb10p2PKPUx56o0j3+Ovn8tjvr83E6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768494534; c=relaxed/simple;
-	bh=JFb4SbeyltssbTkVrC2fePq+++qLD9rMapcGslFduHk=;
+	s=arc-20240116; t=1768509940; c=relaxed/simple;
+	bh=TrVJ81gNlKGWflE9lzJbsnP9K0M2Q7j3JRWiu7197P4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SHsJDH81oLL1ZqoSGl3ew8bCPiLNvvvFswlC8w8HihTIVgs9fpqfVvhZGJpolTX/jUVfR2Y2tnSGf0KrfwulBtBZ9kKgJcea6PTCvElmkhz1ccGNNpXNnKw18rv95bB4EoshRkzW+G5d8VsHdNYXVZRN+3qcQTenYH6+pMQl2p8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=PPZfacP/; arc=none smtp.client-ip=209.85.221.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=GWdoU1t6+obKKeL/nt7xObD62LhzAbzj8oOxXAP2TGTKANYrzwRatKZTOtha1pelLcSHlFHDL5fM/m63umGtkt2CNsoIFSoh43ZaZujsa5fK9Rl7tUbPYHx4TNuT7sJLci+Me58MsQWCow0GTTRHFaNr4e121a2CEHIeTtq8lGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u+snff/V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="PPZfacP/"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-432d256c2e6so892728f8f.3
-        for <sparclinux@vger.kernel.org>; Thu, 15 Jan 2026 08:28:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1768494529; x=1769099329; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=URJX5xTHolO9FC46ryjpGruJ5TGEDEyfrbwATuqwgLQ=;
-        b=PPZfacP/bGzplc0450JH455dYiEUnNfUxQqSjlpjqIKonKjZZywOVZdLqzEqshSlls
-         Ng7iaUezeoXcgC+iB7m0WMJ6ykwFWxA8At1owBUUOwZAxNVxjbgWzjhlXwNMYvqZi2OE
-         1qLM/T5yL/TBaIDqILptRNIvkdq6D6rKbWpYKWU4BDWKEnYE4+NZWzUF6Y9lq57tHzDw
-         Axkb44kDQ4rki3qmMn5r1sROBVEhjCLZfJOCj4iqJnE0/pl5vp5aJ9SiE7GDxUnHkjis
-         zWUX/6b8cJF2C2PSJU45/ekSzDP88TQ0YgX721XUAeD0HKGBg8j+H+zy+GVab8afwPsu
-         0QUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768494529; x=1769099329;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=URJX5xTHolO9FC46ryjpGruJ5TGEDEyfrbwATuqwgLQ=;
-        b=axBf3JOvoE2sEOhM9nwVH9pnchmmKFskBWahK1WHTAFcvHxb42kNUJ49E0F98D+AZ3
-         Ae8z8WMYYOsF5FAn5DLaK3PakH+9guuxGPL4OP5OmEfyEp6Sp/9DIuCnwqiOSbJleJeb
-         dyJntsjJ32WFh9+Y3YXUwRR3o2tIESgGPiJ0+wgb3sW0qegsRlja8HUXUBpXPXJ2nWOG
-         xghtAt4+IdEWuBLfXKeAEaEyFpmQuQnhknW9i3W5mXqALiqpgFqbEGsKzhTmhEX027cN
-         0aBefS8n8RmnvxkD2tVKQQC2WjzT3MBcUAwK7vcFX963DNDpr0u2NUV5YoixoE8BiTcC
-         1Qdg==
-X-Forwarded-Encrypted: i=1; AJvYcCUAZThWZRHCeYmdiRfbe33HDD/PJ3l9lS+pNB4W5fZVrZnRIJSH/Yir4jYSCs/dOMZeprebp5zmFDSG@vger.kernel.org
-X-Gm-Message-State: AOJu0YyXH/bgoBe1qZQ3g0YpqY5/E5mgWiG3z9UTG9a72TZzAwq6BAUJ
-	ErQG7uG5p/3FaPhINeKOSaqySZuLyJ68kUTob7EnCvsUqcBH5B5crVfNnm/zXaBXd/4=
-X-Gm-Gg: AY/fxX5Tge6TpoxPzf+x3MJVTQHnIA1unNarAiLA7a5TIbpBAnYF9yr4HXDew4IuCDF
-	VT9hPX3fX2rH7hljix1xMNqlgwusdXtHXpYRRK5GyP5Jl6JwqeMdggsuG1aoN6EBaqq/78ZBeW5
-	oa5TR2PrQXC3whi41Vr0QOk7j0MVoUT9Fs3oOiPBYU3sxkHK2amKyKlIFTNX5K1DoIErEmq1z92
-	N9DeOupSTUeCvDzZajPQ/MEDHnPnjxTx1JZXkcCv3Vpi9EQtgEOli90fkV9Q7if3GCEsNTphr0c
-	74+sZepDdplzcbOyOKSUDP8RjWmLhypoJyV4vhtFbEjsOo3h38lFWgUgJGyVTRcZTghuc0g3t4r
-	V3g1B4MRnY4DDlTmdgANzXVPzL/8MQ+c8QKutA+uiLY7uXCC0JXuUUPXF0EWaQ3yX6t+r6b6PsS
-	BYkaG1PeA2fz+1sg==
-X-Received: by 2002:a5d:64c5:0:b0:430:fd0f:2910 with SMTP id ffacd0b85a97d-4342c501a57mr9777353f8f.26.1768494528600;
-        Thu, 15 Jan 2026 08:28:48 -0800 (PST)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-434af6e148bsm6604069f8f.33.2026.01.15.08.28.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Jan 2026 08:28:47 -0800 (PST)
-Date: Thu, 15 Jan 2026 17:28:44 +0100
-From: Petr Mladek <pmladek@suse.com>
-To: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jason Wessel <jason.wessel@windriver.com>,
-	Daniel Thompson <danielt@kernel.org>,
-	Douglas Anderson <dianders@chromium.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	John Ogness <john.ogness@linutronix.de>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Kees Cook <kees@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>, linux-um@lists.infradead.org,
-	linux-kernel@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
-	linux-serial@vger.kernel.org, netdev@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org, linux-hardening@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 16/19] drivers: tty: serial: ma35d1_serial: Migrate to
- register_console_force helper
-Message-ID: <aWkVvCu74HhV7W9s@pathway.suse.cz>
-References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
- <20251227-printk-cleanup-part3-v1-16-21a291bcf197@suse.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u+snff/V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 144BAC116D0;
+	Thu, 15 Jan 2026 20:45:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768509939;
+	bh=TrVJ81gNlKGWflE9lzJbsnP9K0M2Q7j3JRWiu7197P4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=u+snff/V7iHtCcygjYFJPTDIRB2va5QWcv2YTvthzYkkKO1dcLaPj0r1cWb+Qb0Ai
+	 ZVpOJ/eQka5sAfYC6lulUHJjHAJpvcWXM+J1c9dpGfWO8QtlVm/Cw2UmGDfsxb+hb2
+	 IyAaokiFcv3t0x5Ft7gH2uq7nPZ/1cVZRdTZbS2YPI+uHUJfIZ2X9X7c3kyukr5qNM
+	 R+2zdGs48Km5Khd4oVNLQDGIKWfd0F+kukNy4BH3hlSFRi//OC1itB5pkumE0828um
+	 nikeLbBlI0f+FnI5/oQ1XMHlgzziQOiqCsrTkLzNGbBUcWTeyZjD33D9GwKuEKNpfZ
+	 SyUTiXJoNf48g==
+Date: Thu, 15 Jan 2026 12:45:37 -0800
+From: Eric Biggers <ebiggers@kernel.org>
+To: linux-crypto@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+	"Jason A . Donenfeld" <Jason@zx2c4.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, x86@kernel.org,
+	Holger Dengler <dengler@linux.ibm.com>,
+	Harald Freudenberger <freude@linux.ibm.com>
+Subject: Re: [PATCH v2 00/35] AES library improvements
+Message-ID: <20260115204537.GB3138@quark>
+References: <20260112192035.10427-1-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -107,112 +48,17 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251227-printk-cleanup-part3-v1-16-21a291bcf197@suse.com>
+In-Reply-To: <20260112192035.10427-1-ebiggers@kernel.org>
 
-On Sat 2025-12-27 09:16:23, Marcos Paulo de Souza wrote:
-> The register_console_force function was introduced to register consoles
-> even on the presence of default consoles, replacing the CON_ENABLE flag
-> that was forcing the same behavior.
+On Mon, Jan 12, 2026 at 11:19:58AM -0800, Eric Biggers wrote:
+> This series applies to libcrypto-next.  It can also be retrieved from:
 > 
-> No functional changes.
+>     git fetch https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git aes-lib-v2
 > 
-> Signed-off-by: Marcos Paulo de Souza <mpdesouza@suse.com>
-> ---
->  drivers/tty/serial/ma35d1_serial.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/tty/serial/ma35d1_serial.c b/drivers/tty/serial/ma35d1_serial.c
-> index 285b0fe41a86..d1e03dee5579 100644
-> --- a/drivers/tty/serial/ma35d1_serial.c
-> +++ b/drivers/tty/serial/ma35d1_serial.c
-> @@ -633,7 +633,7 @@ static struct console ma35d1serial_console = {
->  	.write   = ma35d1serial_console_write,
->  	.device  = uart_console_device,
->  	.setup   = ma35d1serial_console_setup,
-> -	.flags   = CON_PRINTBUFFER | CON_ENABLED,
-> +	.flags   = CON_PRINTBUFFER,
->  	.index   = -1,
->  	.data    = &ma35d1serial_reg,
->  };
-> @@ -657,7 +657,7 @@ static void ma35d1serial_console_init_port(void)
->  static int __init ma35d1serial_console_init(void)
->  {
->  	ma35d1serial_console_init_port();
-> -	register_console(&ma35d1serial_console);
-> +	register_console_force(&ma35d1serial_console);
+> This series makes three main improvements to the kernel's AES library:
 
-Sigh, I am afraid that this is not enough.
+FYI, applied to https://git.kernel.org/pub/scm/linux/kernel/git/ebiggers/linux.git/log/?h=libcrypto-next
 
-I double checked how "ma35d1serial_console" was used. I guess
-that it could get registered also via the generic uart device
-driver code. I see the following:
+As always, additional reviews still appreciated!
 
-#ifdef CONFIG_SERIAL_NUVOTON_MA35D1_CONSOLE
-[...]
-#define MA35D1SERIAL_CONSOLE    (&ma35d1serial_console)
-#else
-#define MA35D1SERIAL_CONSOLE    NULL
-#endif
-
-static struct uart_driver ma35d1serial_reg = {
-[...]
-	.cons         = MA35D1SERIAL_CONSOLE,
-[...]
-};
-
-static int __init ma35d1serial_init(void)
-{
-[...]
-	ret = uart_register_driver(&ma35d1serial_reg);
-[...]
-	ret = platform_driver_register(&ma35d1serial_driver);
-[...]
-}
-
-And the gneric code:
-
-uart_configure_port(struct uart_driver *drv, struct uart_state *state,
-		    struct uart_port *port)
-{
-[...]
-		/*
-		 * If this driver supports console, and it hasn't been
-		 * successfully registered yet, try to re-register it.
-		 * It may be that the port was not available.
-		 */
-		if (port->cons && !console_is_registered(port->cons))
-			register_console(port->cons);
-
-[...]
-}
-
-, which can called via from:
-
-  + mux_probe()
-    + uart_add_one_port()
-      + serial_ctrl_register_port()
-	+serial_core_register_port()
-	  + serial_core_add_one_port()
-	    + uart_configure_port()
-	      + register_console()
-
-
-Honestly, I am not 100% sure. The struct console is assigned to
-.cons in struct uart_driver. And uart_configure_port() function
-passes port->cons from struct uart_port *port. But I believe
-that they can get assigned somewhere in the maze of
-the init/probe code.
-
-I would feel more comfortable if we kept the information as
-as flag in struct console so that even the generic callbacks
-could use it.
-
-Anyway, it makes sense to create a sepate flag for this
-purpose, e.g. CON_FORCE or CON_FORCE_ENABLE.
-
->  	return 0;
->  }
->  console_initcall(ma35d1serial_console_init);
-
-Best Regards,
-Petr
+- Eric
