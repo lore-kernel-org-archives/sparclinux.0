@@ -1,42 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADBF3A1E66;
-	Wed, 14 Jan 2026 16:38:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 687472D7DF8
+	for <sparclinux@vger.kernel.org>; Thu, 15 Jan 2026 10:16:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768408731; cv=none; b=rMf1vW6i2jYUWYNYa733bzP6Qw+S0psSNcYl0ybMr4GrZbJ6WSG1T7iAJSXxeQdv9LmKIUsixDh8ovAi5/oDdXgATuSjAYTxgukwHht/o3sSZCIuq35gGOmLrxiWKJT6Z4TKmJ6bjJUiw3OVn8pTRVmMqo9IhFKpgAU/ZgyCdq8=
+	t=1768472200; cv=none; b=GNVld6qkA10DREVgBRL5WWXJxhrK+YJCGz71/XtO0d8TvugkUQT3UkAmY6aRwkeXXMV+/KLaonto8T5bQZmfs6K7N/kX3D8odojQAOcipF/K2aaC9Yj2iTxzwGHYnpaTH8WL0IVMwqlzc1HTPa7mH5xqoH3acPVfoBNEUjhLli8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768408731; c=relaxed/simple;
-	bh=3O46Pj7m8kkRm5o6FCiKeQjNffkaPKNOyTPfHDTuyTM=;
+	s=arc-20240116; t=1768472200; c=relaxed/simple;
+	bh=zwLrvsF0GMvPSCBeAjAWQZcmbWMJVYh05GZu4CqMmyk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c5hEBzqDtt1U8oUVdYPvxTikb4nXM3C4ZdF42WdUK9KtSXqV+lbzD9wdsLOWxUdFqvEsbTqK17oG+Ib0qmiv87KMoKukXdG9oXH5fyNWHwsOmTCLIe5UR0PM8ElvZ/9z/fYBI95e3vwp/MHJKQdnzzHQFg5sFJniJJzHBPaLejI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rX3NXa+Z; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=G5WtWgKAEYHEydSGyRLzub0j6gYWMFWlY1ITN7mErGUjKnECbzLiraeXqTWVOuOJF1fQ+hliXjxFXobBbFq+cwhKFBvYAHiJYyVIAJSA5fbfpE59JnG+4cgiA5UE04eL35NyHjDbdaLYz2J0r2FxCfcwYwQjVw4kKB/DQfhullk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=O1AfzI1f; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rX3NXa+Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80489C4CEF7;
-	Wed, 14 Jan 2026 16:38:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768408730;
-	bh=3O46Pj7m8kkRm5o6FCiKeQjNffkaPKNOyTPfHDTuyTM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rX3NXa+ZIaH3nFwhK4UUCK7Tl+BkdrM7lAWylErEBVX8n4+UiQ4G9G3ZhsgmdM3kk
-	 vN8PXFoQ+O9dscO4bKZ3M3QWmyyXJXre63JLVYqnzZ2NTakKl+OU0g0oj8iEefzjr3
-	 mgengyjgYNSq8vnqi/nIcJdbHx722ODGLyY8W8WF4jD1J44QYJo3q7W39OBPor2Wnp
-	 mtMB1YriAKD7oAMO5DENXpRw1aefTtMKh3nXtSKTmIbbZIhuLzX4/xt9jCGtUk6R4U
-	 0bsnyWbYeo3xcvSjczR5clmShq482fExnV7dzxGfD2Q4FGvs3AgYwtJ9KizIe5aoQq
-	 liWKl6bOegsTQ==
-Date: Wed, 14 Jan 2026 16:38:39 +0000
-From: Daniel Thompson <danielt@kernel.org>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="O1AfzI1f"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4801d24d91bso257995e9.2
+        for <sparclinux@vger.kernel.org>; Thu, 15 Jan 2026 02:16:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1768472195; x=1769076995; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=zwLrvsF0GMvPSCBeAjAWQZcmbWMJVYh05GZu4CqMmyk=;
+        b=O1AfzI1fLMDVa3SD3LO45cvIiavE+LKVM93UrB7hJYcD0m6yOptHdhokkT8bTYka6C
+         3sXJ7mv88zLWCKOA1K4tTNEUpgl5sRbxQkPkY/JxJ39NJl8UGOMFq8kcmDmf/klRNfzu
+         nJ2y1cuRJKr4oZuTg+fls6YXgf7Cmk8scFvR14UdHkOvJCMLVgfHdOWaDArlFHS8i+in
+         /rjDe30x+8k/vU2nriXmVzYvgsK75zbtsHQliWEWoqaCQIzSRCmZBSVIuTAHgBAk/qqa
+         BhvMnVF7Ni7MX4Rr/TPuFFrwopkxq3IhJQiQJ1qEZjzsylkwRiXGFMLOKcT5/GAwd0bX
+         FnhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768472195; x=1769076995;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zwLrvsF0GMvPSCBeAjAWQZcmbWMJVYh05GZu4CqMmyk=;
+        b=l9Vdl4xApXvpLgJhX2mG0bjcR4BFOVnumr0OcdhRaKl8cWY66nnqlSCBAHMSlQPVtP
+         RijnLXFl7XWQx6fHFtidXts7q25brV5KbMqtxV9fTIcjTPowNfdCYfQeOOdLbMvAyLy0
+         XP/P9Io/RPX4mgvm+8KeVWn8I/ADHMbUZd25Elx8flm1+CTI0uBQDbkXY9klbtQWjTn8
+         PTywYrHMDqVQK5KBZNCMx11CBGvq95UvHOB7TZV2iyMTIe+n5IxYIXc3ZQcSESW27llk
+         8JObrR5/McbQ6EKq8FIBLi2JjN9mpqskanGquKB+ql0+fUudz/SxRIvAheQikgpwjLot
+         gmng==
+X-Forwarded-Encrypted: i=1; AJvYcCW+RSF+gezGnmLRRqh//F3oF/ia2QAniBaZksTBUTGEbuqkrwvzfcdYSemvz8IfUFO1NTAM+7/3/S6r@vger.kernel.org
+X-Gm-Message-State: AOJu0YzphE93GcF1AfNhDyZwmq8XsaSjrZxdYLmHYvUHmnKLCHARc9cA
+	FLd+jJBBsrHqVihkoWfeTEEIZfMvjrsWDXbojtRWK7LbxUDHZOLPQXxAaY1EpvQFTy8=
+X-Gm-Gg: AY/fxX6lLCLg7PpRwve0uFLvVaQ5t6Y2CkQnWNVmg9zTecK0+rzN2S5fapYOaewuw3/
+	1jdtg9cP54/LMLbk2OwreotnUJexb64L7mN+HMG09iBjPscx9AFF/v6YOdP5mwhVRRgxUvKXKja
+	+DVdtEu+4KkVJ9K5RUsOrxxsUFiJsFI9dV9rr4suuDcR+SLt+YtPb2Vb77jIBdjBEzXZcDfm1q7
+	7/Uglakj1A0/PED31z7JfX9SxwrQVp3S6+B8KUnP7juXegVL5HXbBPEj2q/U5IsUAVI9RDxs0uA
+	MXS3262j2/bVkhpA8fR/BMgccsWWVEufs/4mRGTuk7Lt8q6O+myXe5fCBvrfCypLFpEWgVASr3w
+	s0XQfWGq0JEZ9h/vSV3bFzRw/GkuXcVZT8yubtZb35xfEdUrPPC7tu/a7jgTTTTDxLIeP5DlAm+
+	Im/pkEc6Ie5da+/YEmTYFqzust
+X-Received: by 2002:a05:600c:608c:b0:477:a246:8398 with SMTP id 5b1f17b1804b1-47ee32e0829mr58296485e9.2.1768472195426;
+        Thu, 15 Jan 2026 02:16:35 -0800 (PST)
+Received: from pathway.suse.cz ([176.114.240.130])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-47ee28144aasm39739585e9.11.2026.01.15.02.16.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Jan 2026 02:16:34 -0800 (PST)
+Date: Thu, 15 Jan 2026 11:16:31 +0100
+From: Petr Mladek <pmladek@suse.com>
 To: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Daniel Thompson <daniel@riscstar.com>,
-	Richard Weinberger <richard@nod.at>,
+Cc: Richard Weinberger <richard@nod.at>,
 	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
 	Johannes Berg <johannes@sipsolutions.net>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	Jason Wessel <jason.wessel@windriver.com>,
+	Daniel Thompson <danielt@kernel.org>,
 	Douglas Anderson <dianders@chromium.org>,
-	Petr Mladek <pmladek@suse.com>,
 	Steven Rostedt <rostedt@goodmis.org>,
 	John Ogness <john.ogness@linutronix.de>,
 	Sergey Senozhatsky <senozhatsky@chromium.org>,
@@ -57,22 +87,18 @@ Cc: Daniel Thompson <daniel@riscstar.com>,
 	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
 	Alexandre Torgue <alexandre.torgue@foss.st.com>,
 	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>,
-	Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-	linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
-	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
+	Shan-Chun Hung <schung@nuvoton.com>, linux-um@lists.infradead.org,
+	linux-kernel@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
+	linux-serial@vger.kernel.org, netdev@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org, linux-hardening@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
 	linux-stm32@st-md-mailman.stormreply.com,
 	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 00/19] printk cleanup - part 3
-Message-ID: <aWfGj1eQhj2fAWB-@aspen.lan>
+Subject: Re: [PATCH 07/19] drivers: netconsole: Migrate to
+ register_console_force helper
+Message-ID: <aWi-f9LBJtxGWgWs@pathway.suse.cz>
 References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
- <aVuz_hpbrk8oSCVC@aspen.lan>
- <aVvF2hivCm0vIlfE@aspen.lan>
- <a5d83903fe2d2c2eb21de1527007913ff00847c5.camel@suse.com>
- <89409a0f48e6998ff6dd2245691b9954f0e1e435.camel@suse.com>
+ <20251227-printk-cleanup-part3-v1-7-21a291bcf197@suse.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -81,26 +107,21 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <89409a0f48e6998ff6dd2245691b9954f0e1e435.camel@suse.com>
+In-Reply-To: <20251227-printk-cleanup-part3-v1-7-21a291bcf197@suse.com>
 
-On Tue, Jan 13, 2026 at 09:32:33PM -0300, Marcos Paulo de Souza wrote:
-> I talked with Petr Mladek and it would need to rework the way that we
-> register a console, and he's already working on it. For now I believe
-> that we could take a look in all the patches besides the last one that
-> currently breaks the earlycon with kgdb and maybe other usecases.
->
-> Sorry for not catching this issue before. I'll use kgdb next time to
-> make sure that it keeps working :)
+On Sat 2025-12-27 09:16:14, Marcos Paulo de Souza wrote:
+> The register_console_force function was introduced to register consoles
+> even on the presence of default consoles, replacing the CON_ENABLE flag
+> that was forcing the same behavior.
 
-As I understood things the bug was in earlycon rather then kgdb.
+I would add "No functional changes." like you did in the other
+similar patches ;-)
 
-It was picked up by the kgdbtest suite since kgdb does some cool things
-with earlycon (thanks to Doug Anderson) so I added a few earlycon tests
-to the kgdbtest suite. However it wasn't kgdb itself that failed here.
+> Signed-off-by: Marcos Paulo de Souza <mpdesouza@suse.com>
 
-So... if you want to run https://gitlab.com/daniel-thompson/kgdbtest
-then certainly feel free but its probably less effort just to include
-a couple of earlycon checks in your testing.
+Nice clean up!
 
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 
-Daniel.
+Best Regards,
+Petr
