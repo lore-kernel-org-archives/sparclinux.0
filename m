@@ -1,166 +1,178 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1AB93587CE
-	for <sparclinux@vger.kernel.org>; Fri, 16 Jan 2026 10:00:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29AC337BE8D;
+	Fri, 16 Jan 2026 12:10:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768557605; cv=none; b=LuG4A9h9Vd4ssMHGBtEdyVTg+avTyrjKtNzzr99EE+etYbtjdmGYjRCKscJhvd+lfKvvF7tHalqH6JBc8MhLpfcmleT3H5wH+hfdE6Jf+ZrmzKrb43ocOoEXm816KymEbMeEO0Fd55Zxzp8N/8r2CjabHSfrg0KqN83wK+ZOy2A=
+	t=1768565449; cv=none; b=s/8XJzU+mGOClqYOqQFdQ7imOb32Sz5CboyZKl26OibW4UH4zrOPyvirYfNH4Yc7tMGlvzY4RuKo4lAlbtkuDdmEoiTedoSzoigSiDHHs0A314/xsPvS0QzhjAIneNZBzIKQG9f+/QauX54tvYwxcIOPyHzO3fVrG+rTSlGu9vU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768557605; c=relaxed/simple;
-	bh=fW48aaLNkBbdqH7KvcMJgixNgMqvTRK+gAl5/GVTNZ0=;
+	s=arc-20240116; t=1768565449; c=relaxed/simple;
+	bh=M8rYp98Yrm3kjvDcLQr1N9Xzxwxh+1FYXNegcG1Z3gw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YMAbcBkse428wPi3yMsi9+6LmEMJjP39fe+3ggmVuRBlbM8DmwkTTkjUKlfNgJmnnHS8QjQGRf2wvuRtVomBsuTXEC7JH9UaGREdmBz/V0vzDyniPmH8boFggZTTzg7JAFQUKL15TWYxZMAUHAxJk1gl3jmFBu0CTYq3Ih56iRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=WCF7cVDD; arc=none smtp.client-ip=209.85.221.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=rdb5Lh8jQBTUpgTwWkf6zUtCKMbdhuaKu82uEMESFYRQXhNURt8OfcIfUa6vx9DmbRDE+Sy36//2hmAoOPcKFnExefMFnpJTZq/dvSwTA6yy2bU4tloxjcQbjXKNcLGtmjwz9wpTfYgdYlZOh8I2DWRUAgIVP7n8V9yM9D46dzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=tcY57Ktk; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=RoLHU8R2; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="WCF7cVDD"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-432d2c7dd52so1639859f8f.2
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jan 2026 02:00:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1768557601; x=1769162401; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ik7nBSUvqjiZji8p0UMpcxyJ9CmKYvj/STnQwZRmw6o=;
-        b=WCF7cVDDVoB7pSe59ofWaHYm6WNWzgeCXj8b+qY0A56i1sLhU7jfZqSVNd09WGg+iP
-         f4eR9gPxvQR5/pHfAGNpik4PCuv6aKvY6ouYfZtAaHwrnRuZFJw3FTz4pmkHEG86FoB7
-         TMmoYc+q95nONQi9si31m7D047LidkhP8UUnwP+UOdoThlMX5CJcYB04BF9WOnets/Tg
-         L5dlHcJONq2vPjUjHvC1mCTJQ2urla/2xjO+iH5DEdnk4eUv+OCuOjTemCPEY2alMOZa
-         fWYcpaR3qVDtomJZhGypYpkv6zIeBvXluZfpLRi9Y+0snNxTaupLZlVdQB6Xr29r1t2X
-         AIQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768557601; x=1769162401;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ik7nBSUvqjiZji8p0UMpcxyJ9CmKYvj/STnQwZRmw6o=;
-        b=buIqv8MtKgjWznXzNk4LLhlPh1uuJHIYJRGD2xzG9/5s3wDIZC+fCpKum/90ZH5LDw
-         UKSX9FI6boVkSzVIjwMSJbgooAOJjtFx67c1UriM/MUhETmVQc14OrqKFXPZG+x7kwPK
-         qwmpQliW76/dg7wmASrb3n9lAS4albDOP7fbzQMqD6smPuvbroXDBQ3gtvEKsOKvHeDi
-         S3CEaxfD+tybFJlpe/40cVV7akXQfKERmhVRhL7n9oCv0b2OHcZTmlg+ulXf+X0FVhJ6
-         1ugg/BpabqKR4xZW5wxKw+smbDbzN05IBIA00/AAYNNE6OmBK7NfgtWxrQ/UkDWpN2Td
-         jEVw==
-X-Forwarded-Encrypted: i=1; AJvYcCUEeym0jTb7FM4RTQCaGQQfVHugWXHRZG5nWiuCevJw92nVmuLCvHjV5CQotbzRLr+2nc2UrNYWmhgf@vger.kernel.org
-X-Gm-Message-State: AOJu0YxXm6mpqkkVU8+aXuXq1z8WHByV9TlZPggfjj6QGLIN3RjpYfWB
-	QZuzSB4xVIj5ct4CznVcMRZHF5gc2Gdw5pSD3RuBmNHqkEeYdBi7q8fQNmyu5yvwZLs=
-X-Gm-Gg: AY/fxX6ecKCMOpZO0epGRiYIwGdRLI0qLYoZJa39hPUnOVmYw2EPrgLCo4S/iyBh+Gm
-	G6An1CZHm5tPaRY/TmksszZl8TjgrQqbZBPWlfGWcGRbwz5n7IqOc7br5qVcMH292y98/OdHJdK
-	7JQKvN6UpFcpey7QqfvothqUioLpWs7zg5hLXoKQHRrhBOziiw87x63o2ZjmbmfB4oBwsEMUXQj
-	TPJyi2HPypXXFHJ+Nrvcvor/sLzG6Ho1masQXaNI4Pgb1SCHnN33eEYPFmqVXtyo1ihegWF2kUb
-	hdOwi2esCi//czPo7W/ckT4xbmt7X6xBuvI36QM0ZjbO8vy96GiOjuNHDXRNlF7Wsp4XLYj+0jy
-	tOKbzPOiNcofSB6P7dO+auupbWT7+wYJBXlLQYqhE1txWnaQxEWgUjtrXI0KB/9G1HuVBy+Cgnf
-	uougR2MnR6ng0Www==
-X-Received: by 2002:a05:6000:26ce:b0:432:dfea:1fa8 with SMTP id ffacd0b85a97d-43569bc5767mr3019291f8f.45.1768557601174;
-        Fri, 16 Jan 2026 02:00:01 -0800 (PST)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43569921f6esm4337797f8f.4.2026.01.16.01.59.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Jan 2026 02:00:00 -0800 (PST)
-Date: Fri, 16 Jan 2026 10:59:57 +0100
-From: Petr Mladek <pmladek@suse.com>
-To: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jason Wessel <jason.wessel@windriver.com>,
-	Daniel Thompson <danielt@kernel.org>,
-	Douglas Anderson <dianders@chromium.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	John Ogness <john.ogness@linutronix.de>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Jiri Slaby <jirislaby@kernel.org>, Breno Leitao <leitao@debian.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Kees Cook <kees@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>,
-	Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-	linux-um@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kgdb-bugreport@lists.sourceforge.net, linux-serial@vger.kernel.org,
-	netdev@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-hardening@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 15/19] drivers: tty: serial: mux.c: Migrate to
- register_console_force helper
-Message-ID: <aWoMHbbn-BmmbZMg@pathway.suse.cz>
-References: <20251227-printk-cleanup-part3-v1-0-21a291bcf197@suse.com>
- <20251227-printk-cleanup-part3-v1-15-21a291bcf197@suse.com>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="tcY57Ktk";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="RoLHU8R2"
+Date: Fri, 16 Jan 2026 13:10:42 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1768565444;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=m4xj4CRpx5Rn02x3ca442JNSKW3N63XvSapnCzBXF8o=;
+	b=tcY57KtkxrC2Kv4y0HkpbJbC/pQS5RHj9Kp4rg1YyeKUZFPhAszR0J9jXDYqU8XKMRt5yy
+	/cxA+qFjtYuGq3R5ue0ASh4BzD6PkPogDxaC3NG7jOvQXfc6a8y1Mj7UjwdcpmtWm6QmMF
+	P4JSJneYYVjhf0ropRohWWEJusj5z7WghKS+mseOsE/SiZUELdvQaP4mmZXIUcYfG0KM1J
+	SyKqrKtvAZQtbn0EioFiC39BcksrufdUvJKV41PHxEM0/XUOhtZ5Su8mpUxN4BGoJ8QcpA
+	pDPq2VQryd3zYOIkU4e5rPmQSuL5HuVQPwsqa2yeFNGSwpwptypePDBSAzdFGA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1768565444;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=m4xj4CRpx5Rn02x3ca442JNSKW3N63XvSapnCzBXF8o=;
+	b=RoLHU8R2m4lh+TOUGYaYUhiHbsJz60UbhmEfkq+Ri9skt252VpVK6rulxmT2CKH3E9ZPhM
+	NY+TbhTMPWk9blDA==
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+To: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, 
+	Vincenzo Frascino <vincenzo.frascino@arm.com>, Arnd Bergmann <arnd@arndb.de>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Nick Alcock <nick.alcock@oracle.com>, John Stultz <jstultz@google.com>, 
+	Stephen Boyd <sboyd@kernel.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Shuah Khan <shuah@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Theodore Ts'o <tytso@mit.edu>, 
+	"Jason A. Donenfeld" <Jason@zx2c4.com>, "Russell King (Oracle)" <linux@armlinux.org.uk>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Shannon Nelson <sln@onemain.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, 
+	sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev, 
+	linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>
+Subject: Re: [PATCH v5 00/34] sparc64: vdso: Switch to the generic vDSO
+ library
+Message-ID: <20260116124847-4bbc0b99-fa0c-4bd1-a229-1bd248ee8c6b@linutronix.de>
+References: <20251106-vdso-sparc64-generic-2-v5-0-97ff2b6542f7@linutronix.de>
+ <b870aa47-5ed4-4dcf-a407-eca83d1733d8@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20251227-printk-cleanup-part3-v1-15-21a291bcf197@suse.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b870aa47-5ed4-4dcf-a407-eca83d1733d8@app.fastmail.com>
 
-On Sat 2025-12-27 09:16:22, Marcos Paulo de Souza wrote:
-> The register_console_force function was introduced to register consoles
-> even on the presence of default consoles, replacing the CON_ENABLE flag
-> that was forcing the same behavior.
+Hi Andy,
+
+sorry for the long delay.
+
+On Fri, Nov 07, 2025 at 04:17:14PM -0800, Andy Lutomirski wrote:
+> On Thu, Nov 6, 2025, at 2:01 AM, Thomas Weißschuh wrote:
+> > The generic vDSO provides a lot common functionality shared between
+> > different architectures. SPARC is the last architecture not using it,
+> > preventing some necessary code cleanup.
+> >
+> > Make use of the generic infrastructure.
+> >
+> > Follow-up to and replacement for Arnd's SPARC vDSO removal patches:
+> > https://lore.kernel.org/lkml/20250707144726.4008707-1-arnd@kernel.org/
+> >
+> > SPARC64 can not map .bss into userspace, so the vDSO datapages are
+> > switched over to be allocated dynamically. This requires changes to the
+> > s390 and random subsystem vDSO initialization as preparation.
+> > The random subsystem changes in turn require some cleanup of the vDSO
+> > headers to not end up as ugly #ifdef mess.
+> >
 > 
-> --- a/drivers/tty/serial/mux.c
-> +++ b/drivers/tty/serial/mux.c
-> @@ -390,7 +390,7 @@ static struct console mux_console = {
->  	.write =	mux_console_write,
->  	.device =	uart_console_device,
->  	.setup =	mux_console_setup,
-> -	.flags =	CON_ENABLED | CON_PRINTBUFFER,
-> +	.flags =	CON_PRINTBUFFER,
->  	.index =	0,
->  	.data =		&mux_driver,
->  };
-> @@ -547,7 +547,7 @@ static int __init mux_init(void)
->  		mod_timer(&mux_timer, jiffies + MUX_POLL_DELAY);
->  
->  #ifdef CONFIG_SERIAL_MUX_CONSOLE
-> -	        register_console(&mux_console);
-> +		register_console_force(&mux_console);
+> I hate to say it, but this patch series seems like a step backwards.  You're
+> adding a whole lot of complexity and opportunity for screwups (boot failure?
+> corruption?) to support SPARC, where other architectures have no problem with
+> the existing code.  And this complexity appears to infect basically every
+> kernel subsystem that supplies data to the vDSO.
 
-The situation here is the same as in 16th patch for
-ma35d1serial_console().
+Ack.
 
-Also "mux_console" is assigned to
+> Can you at least explain what the problem is and maybe give some discussion
+> of why SPARC has no workaround available?  The closest I found was this bit
+> from "[PATCH v4 24/35] vdso/datastore: Allocate data pages dynamically":
+> 
+> > Allocating the datapages as part of the kernel image does not work on
+> SPARC. It is also problematic with regards to dcache aliasing as there is
+> no guarantee that the virtual addresses used by the kernel are compatible
+> with those used by userspace.
+> 
+> Now I'm not an expert on any architecture that has these aliasing (coloring?)
+> issues, but from my limited understanding, it ought to be possible to choose
+> a correctly colored address to map the vdso data given where it's being
+> mapped from.  If there's an issue with gathering a bunch of basically
+> arbitrarily relatively positioned physical pages into their necessary
+> arrangement in usermode, you could presumably fix it either with some linker
+> script magic or by rearranging the C code to stick everything into a
+> multipage structure.
 
-static int __init mux_probe(struct parisc_device *dev)
-{
-[...]
-		mux_driver.cons = MUX_CONSOLE;
+After I wrote that commit message it turned out to probably not be an
+aliasing issue. Even with matching alignments the error would persist.
+The real reason is unknown. Nobody came up with an explanatin so far.
 
-		status = uart_register_driver(&mux_driver);
-[...]
-		status = uart_add_one_port(&mux_driver, port);
-[...]
-}
+But another advantage of this dynamic allocation is to enable mlockall()
+on these VMAs. This avoids unexpected page faults and latency spikes for
+realtime applications.
+ 
+> Or maybe you could arrange to allocate all these pages during early boot and
+> to fudge up some relocation to get all the existing generic code to find
+> them.  Or create some pointers that all the generic code will use that, on
+> non-sparc architectures, will be statically populated with the right
+> addresses by the linker.  IOW, conceptually,
+> 
+> struct the_type some_vdso_thing;
+> 
+> could change to:
+> 
+> const struct the_type some_vdso_thing = &the_actual_data;
+> 
+> and SPARC could fix up the initialization of the pointer. And generic code
+> would use the pointer instead of the_actual_data.
 
-So, that it can get registered also by:
+These pointers alread exist and are used by the generic code:
+vdso_k_time_data, vdso_k_rng_data, vdso_k_arch_data.
+As proposed elsewhere in this thread, these can point to statically allocated
+memory at first so they can be accessed by the other kernel subsystems.
+Then they after the dynamic allocation we do a mempcy from the static storage
+to the dynamic one and update the pointer. I have the code for that which
+does work nicely.
 
-  + mux_probe()
-    + uart_add_one_port()
-      + serial_ctrl_register_port()
-	+ serial_core_register_port()
-	  + serial_core_add_one_port()
-	    + uart_configure_port()
-	      + register_console()
+While we could limit this treatment to SPARC, I prefer to keep the code
+aligned between the different architectures. Otherwise we would need
+duplicate implementations as one uses PFN maps and the other 'struct page'
+maps. Also the mlockall() usecase is architecture-agnostic.
 
-And we would need to pass the "force" information via CON_FORCE flag.
+Does this sound acceptable?
 
-Best Regards,
-Petr
+> If you really really really need to have non-arch-specific kernel C code
+> running before the vdso data is allocated, can you give a very clear
+> explanation of what, exactly, is wrong on sparc?  And maybe put that
+> explanation into an appropriate comment somewhere so that future kernel
+> programmers don't look at the headers and the code and think "wow, what I
+> mess -- I bet I can clean this up by using statically allocated data".
+
+Ack, will do. But as I mentioned, I do not have an actual root cause.
+
+> (Can SPARC really not map things that existed during early boot into userspace?)
+
+It looks like it.
+
+
+Thomas
