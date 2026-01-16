@@ -1,37 +1,36 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA0833A03F;
-	Fri, 16 Jan 2026 15:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D01D933A038;
+	Fri, 16 Jan 2026 15:30:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768577461; cv=none; b=QA2ObTyIoTUh2tVHLTVSQfEesJfd1E3bUIb5Ed7TOg7udcZl1OfgUIXCN4+xtgftVwbBDNjJ2rhoRc8BumEySR0e4yHYXO3BrQuRg3VClQ+rUe09Bw5TVIVcpNa1zOMHp7e+ADuIven52umSNSnvtOPTCYlFByIlmDvkwm1k4KM=
+	t=1768577462; cv=none; b=RWKXu8UDzCVt7xTF4T4XmM5T99+Es0SuH3hM8kAxCfAuUT3omQzrj3GMg6zpdRZ6GKZ9TXWE4tcGfeoRHjs/2TtlNHLOPf/tsgSLkrxlirpHfF1RQkdewEeGAjZoUBt4RL0wAeq1qPDujd+MKahKtfSJ2sU0k9so4Tb9bAYRipc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768577461; c=relaxed/simple;
-	bh=IpZZ8A/8vRhXhWckaz1NwuJhiZ+fEaPg96F8nlsuS2g=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oJ2d/hvx8/YLm/bT9AlFgCSZxZakFkTPJKDAL2MBj7/PyJ6GbQyHvRQiHOMLueCMc/Un1wSM/CRvGB25Kevzoel1pDsjB7TwagmA6IKeu2yqnqc2mIwGPmQ71Vcc4N3I3BRCJVNyAitTAO/jNheol7VW52MB3PfP/SVgB3SOMaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=Qdj1nn/b reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+	s=arc-20240116; t=1768577462; c=relaxed/simple;
+	bh=RY6pfNgV1RdOj/4RK6+IpUtx77UH9DxhG3jpaG0qipg=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Pha1CzMDPq/Aa+t/BKAzYTQt6rV+ZNZVX+zZQKaS8zlTH0lzP4Rk81S+80OMYFIBFrS+GDJiRFnR+fCSsYtqHRLXveP+e8P3lxe1ZQ8ZQvjMkZFCkj4eYdEUjt3cQKcqlYT55tDk+ryRO9iLXbBqUZG5PJL3bATxv3xPzM2CrH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=W2tpy9u5 reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="Qdj1nn/b"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="W2tpy9u5"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4dt3hr0nRHz1FQVr;
-	Fri, 16 Jan 2026 16:30:52 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4dt3hq3l50z1FRly;
+	Fri, 16 Jan 2026 16:30:51 +0100 (CET)
 Received: from ludwig.got.gaisler.com (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	by smtp.simply.com (Simply.com) with ESMTPA id 4dt3hq5dslz1DDFM;
+	by smtp.simply.com (Simply.com) with ESMTPA id 4dt3hq1N9hz1DDgV;
 	Fri, 16 Jan 2026 16:30:51 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1768577452;
-	bh=4g2nxBOyYfkdzGSQ0inwR35X22JbYjY4qn7TdUVrjIU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Qdj1nn/b/Qi4pkVeDE3zMn/TjSMs/38o958jz6eojkiSlCGfLFeuCn9ql6XnzJ2SQ
-	 9/89I6jOWkzv0igZaMK7bH8aruIToM4IOEMyRdcKYgmtO9UzVPEe2wf8HbIYpVAjkM
-	 5fQRbuF0sGAYH6rzmzEFeZ3LGOC5WKLTM/HR20bnp0cpiyKx0P4+vN1UaVYKA6Cy/d
-	 sVHeEhv/RpgPPP+JnGKsuyWose8BguuRxBd4dVXJ6u4g3fr3icn1l82nIzT0Bx7Iom
-	 KHSXs0yDzYdIwHDegvFo2NcTQRNqOg6cw8L+jyP8y0LpxzYVFVPMzqCAssRYrk7lBL
-	 SCer2MFSJa7oQ==
+	s=simplycom2; t=1768577451;
+	bh=LhDUPw2qXMIkqdF+jPUkW4WGVV/SiP/4Sdj49M3ShNM=;
+	h=From:To:Cc:Subject:Date;
+	b=W2tpy9u5In7kOuEtCivz64aa1lPLwTZqKFVrTMMLqR89JK+1noXNT8CRwukztjaTU
+	 rKGIshF9vJl7rstqpzXjO51f5UghrdiG2LtxR8kgXKVCtIWUQN6NEjvAO+mduikOSr
+	 s6Y1pshnGBobLdpx9SVJSQyM+TkKc+OxhYPSLhscmQwWkBO6ZoFOE9hYXO07vINwlt
+	 JZCgsdh+/oJH1Ydm+t3Hv3sfgn6t9zuNYfagz6FHYEOt4SliJIler9DDPsSOhReGAD
+	 uQHfo/wql571ankiIGJOBKsn4HSYBClcuGo2uINCWncqOHtqBE0cbSMo6GcvJGBs6K
+	 X4G3oCI8XrteA==
 From: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com,
@@ -44,12 +43,10 @@ Cc: sparclinux@vger.kernel.org,
 	glaubitz@physik.fu-berlin.de,
 	geert@linux-m68k.org,
 	schuster.simon@siemens-energy.com
-Subject: [PATCH 2/3] sparc: Add architecture support for clone3
-Date: Fri, 16 Jan 2026 16:30:50 +0100
-Message-Id: <20260116153051.21678-3-ludwig.rydberg@gaisler.com>
+Subject: [PATCH 0/3] sparc: Add architecture support for clone3
+Date: Fri, 16 Jan 2026 16:30:48 +0100
+Message-Id: <20260116153051.21678-1-ludwig.rydberg@gaisler.com>
 X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20260116153051.21678-1-ludwig.rydberg@gaisler.com>
-References: <20260116153051.21678-1-ludwig.rydberg@gaisler.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -58,199 +55,128 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add support for the clone3 system call to the SPARC architectures.
+Hi all,
 
-The implementation follows the pattern of the original clone syscall.
-However, instead of explicitly calling kernel_clone, the clone3
-handler calls the generic sys_clone3 handler in kernel/fork.
-In case no stack is provided, the parents stack is reused.
+This series adds support for the clone3 system call to the SPARC{32|64}
+architectures and also adds a related patch for clone/fork/vfork that fix an
+issue previously reported[1] that could result in -EFAULT for no good reason.
+Without this patch, the clone3 system call would need the same mitigation as
+introduced in glibc[2] for the clone system call.
 
-The return call conventions for clone on SPARC are kept for clone3:
-  Parent -->  %o0 == child's  pid, %o1 == 0
-  Child  -->  %o0 == parent's pid, %o1 == 1
+About "sparc: Synchronize user stack on fork and clone"
+---------------------------------------------------------
 
-Closes: https://github.com/sparclinux/issues/issues/10
-Signed-off-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
----
- arch/sparc/include/asm/syscalls.h      |  1 +
- arch/sparc/include/asm/unistd.h        |  2 --
- arch/sparc/kernel/entry.S              | 15 +++++++++++++++
- arch/sparc/kernel/kernel.h             |  1 +
- arch/sparc/kernel/process.c            | 25 +++++++++++++++++++++++++
- arch/sparc/kernel/process_32.c         |  2 +-
- arch/sparc/kernel/process_64.c         |  2 +-
- arch/sparc/kernel/syscalls.S           |  6 ++++++
- arch/sparc/kernel/syscalls/syscall.tbl |  2 +-
- 9 files changed, 51 insertions(+), 5 deletions(-)
+The clone3 implementation is developed on top of a fix for an issue reported
+by Adrian Glaubitz[1], where a clone call could return -EFAULT. This problem
+has since been mitigated in glibc[2] by synchronizing the user stack before
+calling clone.
 
-diff --git a/arch/sparc/include/asm/syscalls.h b/arch/sparc/include/asm/syscalls.h
-index 35575fbfb9dc..282e62b66518 100644
---- a/arch/sparc/include/asm/syscalls.h
-+++ b/arch/sparc/include/asm/syscalls.h
-@@ -7,5 +7,6 @@ struct pt_regs;
- asmlinkage long sparc_fork(struct pt_regs *regs);
- asmlinkage long sparc_vfork(struct pt_regs *regs);
- asmlinkage long sparc_clone(struct pt_regs *regs);
-+asmlinkage long sparc_clone3(struct pt_regs *regs);
- 
- #endif /* _SPARC64_SYSCALLS_H */
-diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
-index 3380411a4537..d6bc76706a7a 100644
---- a/arch/sparc/include/asm/unistd.h
-+++ b/arch/sparc/include/asm/unistd.h
-@@ -49,8 +49,6 @@
- #define __ARCH_WANT_COMPAT_STAT
- #endif
- 
--#define __ARCH_BROKEN_SYS_CLONE3
--
- #ifdef __32bit_syscall_numbers__
- /* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-  * it never had the plain ones and there is no value to adding those
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index a3fdee4cd6fa..ea51ef52c952 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -907,6 +907,21 @@ flush_patch_four:
- 	jmpl	%l1 + %lo(sparc_vfork), %g0
- 	 add	%sp, STACKFRAME_SZ, %o0
- 
-+	.globl	__sys_clone3, flush_patch_five
-+__sys_clone3:
-+	mov	%o7, %l5
-+flush_patch_five:
-+	FLUSH_ALL_KERNEL_WINDOWS;
-+	ld	[%curptr + TI_TASK], %o4
-+	rd	%psr, %g4
-+	WRITE_PAUSE
-+	rd	%wim, %g5
-+	WRITE_PAUSE
-+	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
-+	add	%sp, STACKFRAME_SZ, %o0
-+	call	sparc_clone3
-+	 mov	%l5, %o7
-+
-         .align  4
- linux_sparc_ni_syscall:
- 	sethi   %hi(sys_ni_syscall), %l7
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 8328a3b78a44..4ee85051521a 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -18,6 +18,7 @@ extern int ncpus_probed;
- asmlinkage long sparc_clone(struct pt_regs *regs);
- asmlinkage long sparc_fork(struct pt_regs *regs);
- asmlinkage long sparc_vfork(struct pt_regs *regs);
-+asmlinkage long sparc_clone3(struct pt_regs *regs);
- 
- #ifdef CONFIG_SPARC64
- /* setup_64.c */
-diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
-index 7d69877511fa..b8e23295db69 100644
---- a/arch/sparc/kernel/process.c
-+++ b/arch/sparc/kernel/process.c
-@@ -12,6 +12,7 @@
- #include <linux/sched/task.h>
- #include <linux/sched/task_stack.h>
- #include <linux/signal.h>
-+#include <linux/syscalls.h>
- 
- #include "kernel.h"
- 
-@@ -118,3 +119,27 @@ asmlinkage long sparc_clone(struct pt_regs *regs)
- 
- 	return ret;
- }
-+
-+asmlinkage long sparc_clone3(struct pt_regs *regs)
-+{
-+	unsigned long sz;
-+	long ret;
-+	struct clone_args __user *cl_args;
-+
-+	synchronize_user_stack();
-+
-+	cl_args = (struct clone_args __user *)regs->u_regs[UREG_I0];
-+	sz = regs->u_regs[UREG_I1];
-+
-+	ret = sys_clone3(cl_args, sz);
-+
-+	/* If we get an error and potentially restart the system
-+	 * call, we're screwed because copy_thread() clobbered
-+	 * the parent's %o1.  So detect that case and restore it
-+	 * here.
-+	 */
-+	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
-+		regs->u_regs[UREG_I1] = sz;
-+
-+	return ret;
-+}
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 5a28c0e91bf1..216c07971c81 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -261,11 +261,11 @@ extern void ret_from_kernel_thread(void);
- int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- {
- 	u64 clone_flags = args->flags;
--	unsigned long sp = args->stack;
- 	unsigned long tls = args->tls;
- 	struct thread_info *ti = task_thread_info(p);
- 	struct pt_regs *childregs, *regs = current_pt_regs();
- 	char *new_stack;
-+	unsigned long sp = args->stack ? args->stack : regs->u_regs[UREG_FP];
- 
- #ifndef CONFIG_SMP
- 	if(last_task_used_math == current) {
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 25781923788a..885d617ba29d 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -568,13 +568,13 @@ void fault_in_user_windows(struct pt_regs *regs)
- int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- {
- 	u64 clone_flags = args->flags;
--	unsigned long sp = args->stack;
- 	unsigned long tls = args->tls;
- 	struct thread_info *t = task_thread_info(p);
- 	struct pt_regs *regs = current_pt_regs();
- 	struct sparc_stackf *parent_sf;
- 	unsigned long child_stack_sz;
- 	char *child_trap_frame;
-+	unsigned long sp = args->stack ? args->stack : regs->u_regs[UREG_FP];
- 
- 	/* Calculate offset to stack_frame & pt_regs */
- 	child_stack_sz = (STACKFRAME_SZ + TRACEREG_SZ);
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index 0e8ab0602c36..c8d374a37f98 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -103,6 +103,12 @@ sys_clone:
- 	ba,pt	%xcc, sparc_clone
- 	 add	%sp, PTREGS_OFF, %o0
- 
-+	.align	32
-+__sys_clone3:
-+	flushw
-+	ba,pt	%xcc, sparc_clone3
-+	 add	%sp, PTREGS_OFF, %o0
-+
- 	.globl	ret_from_fork
- ret_from_fork:
- 	/* Clear current_thread_info()->new_child. */
-diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
-index 39aa26b6a50b..c0307bb09892 100644
---- a/arch/sparc/kernel/syscalls/syscall.tbl
-+++ b/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -480,7 +480,7 @@
- 432	common	fsmount				sys_fsmount
- 433	common	fspick				sys_fspick
- 434	common	pidfd_open			sys_pidfd_open
--# 435 reserved for clone3
-+435	common	clone3				__sys_clone3
- 436	common	close_range			sys_close_range
- 437	common	openat2			sys_openat2
- 438	common	pidfd_getfd			sys_pidfd_getfd
+The root cause analysis of the kernel side when running the program in [1]
+shows that the window spill handler routine on both SPARC{32|64} is unable to
+flush a user window to the stack (due to MMU related faults) when flushing all
+windows before handling the syscall. This then results in a -EFAULT when
+copy_thread() fails to clone the uncommited stackframe of the parent.
+
+For SPARC32:
+Prior to calling the syscall wrappers for clone/fork/vork all windows are
+flushed by a macro (FLUSH_ALL_KERNEL_WINDOWS).
+In the window spill trap handler, MMU fault-handling is temporarily
+disabled while storing the window. If the window can't be stored
+(which normally would have triggered a fault trap) the routine
+backups the user window and increments a thread counter (wsaved).
+
+For SPARC64:
+Prior to calling the syscall wrappers for clone/fork/vork all windows are
+flushed by issuing the flushw instruction.
+In the window spill trap handler, if an exception triggers, then the user
+window is added to the thread's user window buffer (in kernel memory) and
+a thread counter (wsaved) counter is incremented.
+
+Both SPARC{32|64}:
+Eventually copy_thread will be called, which then will fail to clone the parent
+stackframe to the child as the user window has not been flushed to the stack.
+
+Fixed by adding a call to synchronize_user_stack() prior to calling
+kernel_clone(). The patch has been tested both with and without the mitigation
+in glibc by running the program mentioned in [1].
+
+SPARC32:
+- Tested in QEMU emulating sun4m using Buildroot 2025.02
+  (qemu_sparc_ss10_defconfig).
+- Tested on LEON using a GR-CPCI-GR740 development board from
+  Frontgrade Gaisler.
+
+SPARC64:
+- Tested in QEMU emulating sun4u using Buildroot 2025.02
+  (qemu_sparc64_sun4u_defconfig).
+
+About the clone3 implementation:
+--------------------------------
+
+The implementation in the architectural port follows the same pattern as for the
+original clone syscall. But instead of explicitly calling kernel_clone (as in
+sparc_clone) the clone3 handler calls the generic sys_clone3 handler
+(in kernel/fork). To get this to work without a user provided stack,
+the copy_thread functions had to be updated to handle cl_args.stack == NULL.
+In this case the stack of the parent is re-used.
+
+When applying the patch series on top of v6.19-rc1 the relevant clone3 tests of
+kselftest pass:
+
+# /usr/lib/kselftests/run_kselftest.sh -c clone3 -s
+kselftest: Running tests in clone3
+TAP version 13
+1..4
+# selftests: clone3: clone3
+ok 1 selftests: clone3: clone3
+# selftests: clone3: clone3_clear_sighand
+ok 2 selftests: clone3: clone3_clear_sighand
+# selftests: clone3: clone3_set_tid
+ok 3 selftests: clone3: clone3_set_tid
+# selftests: clone3: clone3_cap_checkpoint_restore
+ok 4 selftests: clone3: clone3_cap_checkpoint_restore
+
+Note that the clone3_cap_checkpoint test failed in the same way as mentioned in
+[3] (due to incompatibility with the libcap version on my system).
+When applying the patch from [4] or by downgrading libcap to 2.59 the test pass.
+
+SPARC32:
+- Tested in QEMU emulating sun4m using Buildroot 2025.02
+  (qemu_sparc_ss10_defconfig).
+- Tested on LEON using a GR-CPCI-GR740 development board from
+  Frontgrade Gaisler.
+
+SPARC64:
+- Tested in QEMU emulating sun4u using Buildroot 2025.02
+  (qemu_sparc64_sun4u_defconfig).
+- Tested on UltraSparc T4
+
+[1]: https://lore.kernel.org/sparclinux/3ae4130c-c5aa-428e-b819-44cf2daf2af1@mkarcher.dialup.fu-berlin.de/
+[2]: https://sourceware.org/bugzilla/show_bug.cgi?id=31394
+[3]: https://lore.kernel.org/all/20250901-nios2-implement-clone3-v2-0-53fcf5577d57@siemens-energy.com/
+[4]: https://lore.kernel.org/all/20241105062948.1037011-1-zhouyuhang1010@163.com/
+
+Andreas Larsson (1):
+  sparc: Synchronize user stack on fork and clone
+
+Ludwig Rydberg (2):
+  sparc: Add architecture support for clone3
+  selftests/clone3: Add sys_clone3 wrapper for SPARC
+
+ arch/sparc/include/asm/syscalls.h             |  1 +
+ arch/sparc/include/asm/unistd.h               |  2 -
+ arch/sparc/kernel/entry.S                     | 15 ++++
+ arch/sparc/kernel/kernel.h                    |  1 +
+ arch/sparc/kernel/process.c                   | 63 ++++++++++++----
+ arch/sparc/kernel/process_32.c                |  2 +-
+ arch/sparc/kernel/process_64.c                |  2 +-
+ arch/sparc/kernel/syscalls.S                  |  6 ++
+ arch/sparc/kernel/syscalls/syscall.tbl        |  2 +-
+ .../selftests/clone3/clone3_selftests.h       | 75 +++++++++++++++++++
+ 10 files changed, 150 insertions(+), 19 deletions(-)
+
+
+base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
 -- 
 2.35.3
 
