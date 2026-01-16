@@ -1,135 +1,111 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9623A17DE36;
-	Thu, 15 Jan 2026 22:00:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1904288530;
+	Fri, 16 Jan 2026 07:40:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768514429; cv=none; b=CyJlpM3bDT4ArS/MnZv/MNQ8NFahzCGd+D/mSAej4x+REO/fGRwAywFY6alXgszWo3rXI6rn3HkrTjUrD4Atvw8BGyXdwHiQUjmj6PeNx3J3ITlUVSMdNPScyy7vSPOhMOUxQcKr6WwWw7WtDaHEalPBDimJrHQWOKTE+tz37sI=
+	t=1768549253; cv=none; b=ViChyQtfNzfreiEvcKUO2WTnjJE9njiGFxksxyXQZCRng3Qy02SgQFs8da+3IsQIJEMPbCBplHc4dIo+oBz1AFMag4buQMSXrbJELOAyMDzWycAVpV//WEB/ou+c43yCJlSxbTWwEtZjoDsr6l5DD4Q7YNOWor2ceXKzmKiVLVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768514429; c=relaxed/simple;
-	bh=uCcMDX+KcMcVK9jDx0HRSAVf1RwvYT3EyiUCgA4+zgU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mzCnKqWvtLCgFhf5YWqe51mSHsdCmjYpr68mO9TzjZYGDkS1aipNKPSmXNs675NsjbL/dvHWmDo+KUi3yHU/aOzY8LMyF17mX/xw4piMRyl2adeNr8p+GwhHlt/3K1O2AuDFIxDEhypLaYX8xDgOfC1HnDm2p+tDBYeiCH9VeZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=UhWJ1/AD; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1768549253; c=relaxed/simple;
+	bh=kt3CvuNn1vmevL7BAYsXxXqmblyxRHDlhsiDvWPlU10=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=PZcEuEQEFLE9UcTwVvvwrCMQh2I+Rh2ApoNwXK5JpDh/Dg2dUowza/7RoJT2vT+XNLLNIBot9Dfdl1bzYZrbgK1c1A4kFawWY6Jiq1x7rFmqo+PNW2VnYCokto/7IumSr5rotjJRxnbZVrqNgwd6SHTiuQ6Kpzz/ggcTpI6KEQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=MeZlsSQ1; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Db0rjIAH; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="UhWJ1/AD"
-Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 60FHEjlW023973;
-	Thu, 15 Jan 2026 22:00:16 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=fn2sWs
-	9rsdbV0vxeRVrjmzY9BmEC+XTCv1XXSHerLL8=; b=UhWJ1/AD1XNfi2W0E653MX
-	rWZ+eYl1wyhuYHNXvRBwfqnQcJBJKmgA74Jf0/kUgkcmeHe/8SH7NJyLR8QZTf5d
-	aOOI1LZEJrl6W61v8hK+vC/CK7c0e2LMKgEU9Ofk0672o5Dpv9Vakg9XGuol6vgO
-	eARfjFasmy52XTIeOhomSw6z8EYo6++NggXM8w1EXcectmP+2Rlr5b1Xk+Fj8/nU
-	pO7pK8Jl2szqf/da1q4WNVGbwL6Jk0mNl/sCr3e1np+rimYa7OBQGJxvLx6X93cg
-	iK7o+oUuDtt+GjO1TLdfqg1ufeFKqdeYkot8h9G+F+JjU4cU87CpInckkGyjhN3Q
-	==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4bkd6egeye-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 15 Jan 2026 22:00:16 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 60FKkCfH014255;
-	Thu, 15 Jan 2026 22:00:15 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4bm1fyjsh3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 15 Jan 2026 22:00:15 +0000
-Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 60FM0DTZ60162344
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 15 Jan 2026 22:00:13 GMT
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 37DDF20040;
-	Thu, 15 Jan 2026 22:00:13 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D33902004B;
-	Thu, 15 Jan 2026 22:00:12 +0000 (GMT)
-Received: from [9.111.195.181] (unknown [9.111.195.181])
-	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 15 Jan 2026 22:00:12 +0000 (GMT)
-Message-ID: <03ba58e6-0eaf-4970-8d27-ffe29bc9a7bf@linux.ibm.com>
-Date: Thu, 15 Jan 2026 23:00:12 +0100
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="MeZlsSQ1";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Db0rjIAH"
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1768549249;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=LAw4SEgm1iYpfHS2Ouzdt/ovhQF+PmdRD53d7/vg21k=;
+	b=MeZlsSQ1s2qfGUEKRXsJvSvhTKRA0FrkZRItOT7mS6hZGxOEtYuBcBnUi6zaRIpzPuCnaD
+	KTceVf1Q60SlAVBmGOn+pKZsaXzYpjkidrk8iV+fXleYDz01FwihtBu/djyS9FWGWEVohD
+	owrvcd6ajsQ+nGIWVSb3+5Sc1wpYaeTnZ4cypfvvZsMkQbp72JhYN4Rnk61fLhtb81vrpZ
+	XnrJ8BLE2piOSOu76Iez8TfWi5T64eVXTznNGQswoXZdK7XxvIl5BSsCmiD41qVDTmsVFp
+	RAmo8Fu6fPyoes+5yTwj0IqAee8Lzo/yvIgDXk/Un77+lEDZ/D7p++LGTivi7g==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1768549249;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=LAw4SEgm1iYpfHS2Ouzdt/ovhQF+PmdRD53d7/vg21k=;
+	b=Db0rjIAH6+WFttd10HLcSKZHKrtM5QO/QqcYiGFo2inQjubN4HfXpzJ1MugcH5WkLbh+ht
+	ZNPH58ys0bSXPEDg==
+Subject: [PATCH 0/4] vDSO: Use 32-bit CHECKFLAGS for compat vDSO
+Date: Fri, 16 Jan 2026 08:40:23 +0100
+Message-Id: <20260116-vdso-compat-checkflags-v1-0-4a83b4fbb0d3@linutronix.de>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 15/35] lib/crypto: s390/aes: Migrate optimized code
- into library
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
-        "Jason A . Donenfeld" <Jason@zx2c4.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org,
-        Harald Freudenberger <freude@linux.ibm.com>,
-        linux-crypto@vger.kernel.org
-References: <20260112192035.10427-1-ebiggers@kernel.org>
- <20260112192035.10427-16-ebiggers@kernel.org>
-From: Holger Dengler <dengler@linux.ibm.com>
-Content-Language: de-DE
-In-Reply-To: <20260112192035.10427-16-ebiggers@kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 6p5z8nBCPsT3_rpKVRy3lnJhFN25wKw4
-X-Authority-Analysis: v=2.4 cv=LLxrgZW9 c=1 sm=1 tr=0 ts=69696370 cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=IkcTkHD0fZMA:10 a=vUbySO9Y5rIA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8 a=w4HzK-rsqA_2YikTyBoA:9 a=3ZKOabzyN94A:10
- a=QEXdDO2ut3YA:10 a=0lgtpPvCYYIA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMTE1MDE3MSBTYWx0ZWRfXz5BoL5J7pcUU
- EZ3HWHibhHjFOAoKQCeCAZQZFMw/rVxT3IT4w9ASJsDdLE0sXatur5m8WX/gRMd2Mvjk9EaFY5D
- C/Y4bvVEpB3VqE2+10CoQfUpEs64m3duyFEDGkeNQ4xeUUr2AEUG0ynVzNXFgKzknUbAS2y45W1
- dA34Ek0N1Un5SPKN09kDdU7nbue+a4UqMMJjlQn3bIyoNUk9mRpfFnYqdetqw7Nw1y7ntYTzKNI
- BcddjFCun4THIVcuAjbj91UfZX3GenM7j++LCuimK57ylm2xCH1S4KQzxPnj6RsL9R2HbSYujVK
- uvRKRDYg4HGrPP/KnsIX8bLXU6I40Het/QKY/mhLxoOshgIjE4/phJIiOKwt/3Rw7wNztuDmfZT
- 1Lr8WlCzPTGKSsXxJT+I/p/uJbjtxbpFvRqsk4x7QlvgLbabrSlm0K6nh/BMNn3NUmYgv/OZiLz
- uZY40rcvNmYBRee4FVw==
-X-Proofpoint-ORIG-GUID: 6p5z8nBCPsT3_rpKVRy3lnJhFN25wKw4
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
- definitions=2026-01-15_06,2026-01-15_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 suspectscore=0 clxscore=1015 spamscore=0 impostorscore=0
- malwarescore=0 phishscore=0 adultscore=0 lowpriorityscore=0 bulkscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.19.0-2512120000 definitions=main-2601150171
+X-B4-Tracking: v=1; b=H4sIAGfraWkC/x3MQQqEMAxA0atI1hOwnSmCV5FZtGnUMGpLIzIg3
+ t3i8i3+P0G5CCv0zQmFD1FJW4V5NUCz3yZGidVgW+uMaTs8oiaktGa/I81Mv3Hxk6KLoXPhHT7
+ BE9Q4Fx7l/4yH73Xd+cHd8GgAAAA=
+X-Change-ID: 20251107-vdso-compat-checkflags-5db75b3b4bac
+To: "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+ Arnd Bergmann <arnd@arndb.de>, Heiko Carstens <hca@linux.ibm.com>, 
+ Vasily Gorbik <gor@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Sven Schnelle <svens@linux.ibm.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
+ kernel test robot <lkp@intel.com>, Sun Jian <sun.jian.kdev@gmail.com>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1768549244; l=1326;
+ i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
+ bh=kt3CvuNn1vmevL7BAYsXxXqmblyxRHDlhsiDvWPlU10=;
+ b=nY6udk/40JJAZYyFQWQkS3swjpPXvepYYMH/581rN/ew8hk0e07KhSWLT7UYX4CwZuKJ2IVMn
+ xB0WUe1U+rqAXol8v6gAmkPyg/qW0JRyTHFnaqyEM+5+9rRecQ6WN6D
+X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
+ pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-On 12/01/2026 20:20, Eric Biggers wrote:
-> Implement aes_preparekey_arch(), aes_encrypt_arch(), and
-> aes_decrypt_arch() using the CPACF AES instructions.
-> 
-> Then, remove the superseded "aes-s390" crypto_cipher.
-> 
-> The result is that both the AES library and crypto_cipher APIs use the
-> CPACF AES instructions, whereas previously only crypto_cipher did (and
-> it wasn't enabled by default, which this commit fixes as well).
-> 
-> Note that this preserves the optimization where the AES key is stored in
-> raw form rather than expanded form.  CPACF just takes the raw key.
-> 
-> Acked-by: Ard Biesheuvel <ardb@kernel.org>
-> Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+When building the compat vDSO the CHECKFLAGS from the 64-bit kernel
+are used. These are combined with the 32-bit CFLAGS. This confuses
+sparse, producing false-positive warnings or potentially missing
+real issues.
 
-Thanks!
+Manually override the CHECKFLAGS for the compat vDSO with the correct
+32-bit configuration.
 
-Tested-by: Holger Dengler <dengler@linux.ibm.com>
-Reviewed-by: Holger Dengler <dengler@linux.ibm.com>
+Not all architectures are supported, as many do not use sparse for their
+(compat) vDSO. These can be enabled later.
 
+Also add some checks to bitsperlong.h to detect such issues earlier.
+
+Based on tip/timers/vdso.
+
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+---
+Thomas Weißschuh (4):
+      sparc64: vdso: Use 32-bit CHECKFLAGS for compat vDSO
+      x86/vdso: Use 32-bit CHECKFLAGS for compat vDSO
+      s390/vdso: Trim includes in linker script
+      asm-generic/bitsperlong.h: Add sanity checks for __BITS_PER_LONG
+
+ arch/s390/kernel/vdso/vdso.lds.S       |  3 +--
+ arch/sparc/vdso/Makefile               |  3 +++
+ arch/x86/entry/vdso/Makefile           |  3 +++
+ include/uapi/asm-generic/bitsperlong.h | 14 ++++++++++++++
+ 4 files changed, 21 insertions(+), 2 deletions(-)
+---
+base-commit: a37abd052c0bd9d1194710a39008801379f8ff5a
+change-id: 20251107-vdso-compat-checkflags-5db75b3b4bac
+
+Best regards,
 -- 
-Mit freundlichen Grüßen / Kind regards
-Holger Dengler
---
-IBM Systems, Linux on IBM Z Development
-dengler@linux.ibm.com
+Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 
