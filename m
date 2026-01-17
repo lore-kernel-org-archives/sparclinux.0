@@ -1,56 +1,56 @@
 Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 838A233B95A;
-	Fri, 16 Jan 2026 17:19:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC95E27587D;
+	Sat, 17 Jan 2026 06:57:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768583976; cv=none; b=CtqoY9dBT3ztUw8oxVV21VyQkIZ5ni1DcHitIxi5Jik9TmKIwqHaJh0r6xgNOxGr+3SVwF+WT7pjAtohZIVTD4PACdJ/grjAlz590yeNx6xURvORuMbXWb53sAaG+lL9JSLQ0W4GJLmue+5H0IKv4uhJwwpcnCKrINggd09amyQ=
+	t=1768633041; cv=none; b=RT+0MHkyUukAauGhP+jY083xGeBUpvte/Tt5xMHmAaGjIfGnSKk883ZJ9Tc04GM6iiRmIDHstjQT1FQoipAYM3kcbVsghKRdLAXPLzKDBPDhJcQe8NlsRUxihmURqc0NCmHhW8ggtUEBE2eFdWG93kfVvCUMEkzriRJhUqJnI2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768583976; c=relaxed/simple;
-	bh=XpDpPoWzbNPEaCNFY4nueroDruTKYy0mxr6Vpho7Iao=;
+	s=arc-20240116; t=1768633041; c=relaxed/simple;
+	bh=tGr90zFNMekewX80u46IaJjfbclVi8Nm270mq+K0NFc=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=UP4FtrhFX1Li1kf2KFV8o5mW60+l9OQEW8g8KCUc7JNWcH/iaettOp8FOlFYQ7LNZNzYncn1XowsOrRw8DtIk+zzx4GoAyNcVF+D9dTRNEJ6KDGYNaRC8IL8s9UPX/W1/WCmEkjuej14TM+dvvgAuP9Hv5afHcy3PUiKVt71vuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=d5Z0XwF9; arc=none smtp.client-ip=130.133.4.66
+	 Content-Type:MIME-Version; b=X4vh22p/detcOJ+OBykc/xvYbUIM3nxc5AprVMsSkwhaRR1iD+DIffTSAZdj926rsLCgryUxD43hEFZRRldi2Bd7stscjURpLE431+p8+si6XosifJKs7SUllsItb4+1vvqX65gRRtB/lCXPyFr24Ejhn7YpGiRYNTMhDgQww4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=VuZuNj1v; arc=none smtp.client-ip=130.133.4.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="d5Z0XwF9"
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="VuZuNj1v"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
 	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
 	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
 	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
-	References; bh=5Pr7/xueEK3tP328BBekBdOt85PazUkdjcprj8yio4c=; t=1768583974;
-	x=1769188774; b=d5Z0XwF9l50Wsb+vDOJzeHiC18+eZi8JMAGT7dn+PC5YWcOlmffECKFKy30sJ
-	piZN87ieKoGg/6SbTXpw95oHf6ieZ6FydHNNOR/qqC93fZTIkcYc0gMlj2tKlrrwtZu6v7FrzSbvO
-	Es2pqzNGI7XdLeqn2Qn/k7Gq7RaqlNpOVufmlAG2esxosqeWlnZZZToqbW74803+RorqoPfnSKK3O
-	XyuAV6lvNpC1gHRMB6OYIzL7iLdbDMrxFLFWO/xhZrxuaIPmzplkVCWwVq6E1quPTFxAFDKrzCT2P
-	rJUe4+BNlijKtiZcc96Hqigv9mk04ItCMAIN7w4kpdOTjr7JlA==;
+	References; bh=Tt7APqQdcTp0OKPhSWKGv0F3In/S3ezBee9OAcFtGZw=; t=1768633037;
+	x=1769237837; b=VuZuNj1vnQ4dxaNn/gqrSvN7MOWdg3WYvwOfCT4e0CdA0bseipeR8ShEuUXGD
+	IJhHCaSEnMKITOYT6ZWzLccXud9p6DAhUXkN+TMhovD5t9pgdrroMYxlUgMLh9cT81AChIAfvigAO
+	uk2hLvSoTw9HK3axkUG8/PDCgrEM4XYBpsDzNhftmvAqgyviV9dykxyIFRwxxrF4yl81ZzOd7dooo
+	wSQ1jtfIQ7IcU1K5Yfewdj5wX76ACkifANGzGLWJTG6tRhEKyTqvNg6T9rseoZwBzUFNl201qlMeO
+	+hmhe0EI9e04+vNl/BkfRPx9s0xEN1AF+iM6GwZTrtT2x83qhQ==;
 Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
           by outpost.zedat.fu-berlin.de (Exim 4.99)
           with esmtps (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1vgnTw-00000003d7y-3Mck; Fri, 16 Jan 2026 18:19:32 +0100
+          id 1vh0FF-000000028zN-3ram; Sat, 17 Jan 2026 07:57:13 +0100
 Received: from p5dc55f29.dip0.t-ipconnect.de ([93.197.95.41] helo=[192.168.178.61])
           by inpost2.zedat.fu-berlin.de (Exim 4.99)
           with esmtpsa (TLS1.3)
           tls TLS_AES_256_GCM_SHA384
           (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1vgnTw-00000000j8J-26SM; Fri, 16 Jan 2026 18:19:32 +0100
-Message-ID: <ab9a570f5c3098237a82f6e0dca61d284eb2d072.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH 2/3] sparc: Add architecture support for clone3
+          id 1vh0FF-000000021xh-2oow; Sat, 17 Jan 2026 07:57:13 +0100
+Message-ID: <e4eb5ddf57ef5f3a01ee76fe397c5f714a9d7626.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH 1/3] sparc: Synchronize user stack on fork and clone
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 To: Ludwig Rydberg <ludwig.rydberg@gaisler.com>, davem@davemloft.net, 
 	andreas@gaisler.com, brauner@kernel.org, shuah@kernel.org
 Cc: sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, arnd@arndb.de, geert@linux-m68k.org, 
-	schuster.simon@siemens-energy.com
-Date: Fri, 16 Jan 2026 18:19:31 +0100
-In-Reply-To: <20260116153051.21678-3-ludwig.rydberg@gaisler.com>
+	schuster.simon@siemens-energy.com, kernel@mkarcher.dialup.fu-berlin.de
+Date: Sat, 17 Jan 2026 07:57:12 +0100
+In-Reply-To: <20260116153051.21678-2-ludwig.rydberg@gaisler.com>
 References: <20260116153051.21678-1-ludwig.rydberg@gaisler.com>
-	 <20260116153051.21678-3-ludwig.rydberg@gaisler.com>
+	 <20260116153051.21678-2-ludwig.rydberg@gaisler.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.58.2 
@@ -66,326 +66,245 @@ X-ZEDAT-Hint: PO
 Hi Ludwig,
 
 On Fri, 2026-01-16 at 16:30 +0100, Ludwig Rydberg wrote:
-> Add support for the clone3 system call to the SPARC architectures.
+> From: Andreas Larsson <andreas@gaisler.com>
 >=20
-> The implementation follows the pattern of the original clone syscall.
-> However, instead of explicitly calling kernel_clone, the clone3
-> handler calls the generic sys_clone3 handler in kernel/fork.
-> In case no stack is provided, the parents stack is reused.
+> Flush all uncommitted user windows before calling the generic syscall
+> handlers for clone, fork, and vfork.
 >=20
-> The return call conventions for clone on SPARC are kept for clone3:
->   Parent -->  %o0 =3D=3D child's  pid, %o1 =3D=3D 0
->   Child  -->  %o0 =3D=3D parent's pid, %o1 =3D=3D 1
+> Prior to entering the arch common handlers sparc_{clone|fork|vfork}, the
+> arch-specific syscall wrappers for these syscalls will attempt to flush
+> all windows (including user windows).
 >=20
-> Closes: https://github.com/sparclinux/issues/issues/10
+> In the window overflow trap handlers on both SPARC{32|64},
+> if the window can't be stored (i.e due to MMU related faults) the routine
+> backups the user window and increments a thread counter (wsaved).
+>=20
+> By adding a synchronization point after the flush attempt, when fault
+> handling is enabled, any uncommitted user windows will be flushed.
+>=20
+> Link: https://sourceware.org/bugzilla/show_bug.cgi?id=3D31394
+> Closes: https://lore.kernel.org/sparclinux/fe5cc47167430007560501aabb28ba=
+154985b661.camel@physik.fu-berlin.de/
+> Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 > Signed-off-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 > ---
->  arch/sparc/include/asm/syscalls.h      |  1 +
->  arch/sparc/include/asm/unistd.h        |  2 --
->  arch/sparc/kernel/entry.S              | 15 +++++++++++++++
->  arch/sparc/kernel/kernel.h             |  1 +
->  arch/sparc/kernel/process.c            | 25 +++++++++++++++++++++++++
->  arch/sparc/kernel/process_32.c         |  2 +-
->  arch/sparc/kernel/process_64.c         |  2 +-
->  arch/sparc/kernel/syscalls.S           |  6 ++++++
->  arch/sparc/kernel/syscalls/syscall.tbl |  2 +-
->  9 files changed, 51 insertions(+), 5 deletions(-)
+>  arch/sparc/kernel/process.c | 38 +++++++++++++++++++++++--------------
+>  1 file changed, 24 insertions(+), 14 deletions(-)
 >=20
-> diff --git a/arch/sparc/include/asm/syscalls.h b/arch/sparc/include/asm/s=
-yscalls.h
-> index 35575fbfb9dc..282e62b66518 100644
-> --- a/arch/sparc/include/asm/syscalls.h
-> +++ b/arch/sparc/include/asm/syscalls.h
-> @@ -7,5 +7,6 @@ struct pt_regs;
->  asmlinkage long sparc_fork(struct pt_regs *regs);
->  asmlinkage long sparc_vfork(struct pt_regs *regs);
->  asmlinkage long sparc_clone(struct pt_regs *regs);
-> +asmlinkage long sparc_clone3(struct pt_regs *regs);
-> =20
->  #endif /* _SPARC64_SYSCALLS_H */
-> diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/uni=
-std.h
-> index 3380411a4537..d6bc76706a7a 100644
-> --- a/arch/sparc/include/asm/unistd.h
-> +++ b/arch/sparc/include/asm/unistd.h
-> @@ -49,8 +49,6 @@
->  #define __ARCH_WANT_COMPAT_STAT
->  #endif
-> =20
-> -#define __ARCH_BROKEN_SYS_CLONE3
-> -
->  #ifdef __32bit_syscall_numbers__
->  /* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
->   * it never had the plain ones and there is no value to adding those
-> diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-> index a3fdee4cd6fa..ea51ef52c952 100644
-> --- a/arch/sparc/kernel/entry.S
-> +++ b/arch/sparc/kernel/entry.S
-> @@ -907,6 +907,21 @@ flush_patch_four:
->  	jmpl	%l1 + %lo(sparc_vfork), %g0
->  	 add	%sp, STACKFRAME_SZ, %o0
-> =20
-> +	.globl	__sys_clone3, flush_patch_five
-> +__sys_clone3:
-> +	mov	%o7, %l5
-> +flush_patch_five:
-> +	FLUSH_ALL_KERNEL_WINDOWS;
-> +	ld	[%curptr + TI_TASK], %o4
-> +	rd	%psr, %g4
-> +	WRITE_PAUSE
-> +	rd	%wim, %g5
-> +	WRITE_PAUSE
-> +	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
-> +	add	%sp, STACKFRAME_SZ, %o0
-> +	call	sparc_clone3
-> +	 mov	%l5, %o7
-> +
->          .align  4
->  linux_sparc_ni_syscall:
->  	sethi   %hi(sys_ni_syscall), %l7
-> diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-> index 8328a3b78a44..4ee85051521a 100644
-> --- a/arch/sparc/kernel/kernel.h
-> +++ b/arch/sparc/kernel/kernel.h
-> @@ -18,6 +18,7 @@ extern int ncpus_probed;
->  asmlinkage long sparc_clone(struct pt_regs *regs);
->  asmlinkage long sparc_fork(struct pt_regs *regs);
->  asmlinkage long sparc_vfork(struct pt_regs *regs);
-> +asmlinkage long sparc_clone3(struct pt_regs *regs);
-> =20
->  #ifdef CONFIG_SPARC64
->  /* setup_64.c */
 > diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
-> index 7d69877511fa..b8e23295db69 100644
+> index 0442ab00518d..7d69877511fa 100644
 > --- a/arch/sparc/kernel/process.c
 > +++ b/arch/sparc/kernel/process.c
-> @@ -12,6 +12,7 @@
->  #include <linux/sched/task.h>
->  #include <linux/sched/task_stack.h>
->  #include <linux/signal.h>
-> +#include <linux/syscalls.h>
+> @@ -17,14 +17,18 @@
 > =20
->  #include "kernel.h"
+>  asmlinkage long sparc_fork(struct pt_regs *regs)
+>  {
+> -	unsigned long orig_i1 =3D regs->u_regs[UREG_I1];
+> +	unsigned long orig_i1;
+>  	long ret;
+>  	struct kernel_clone_args args =3D {
+>  		.exit_signal	=3D SIGCHLD,
+> -		/* Reuse the parent's stack for the child. */
+> -		.stack		=3D regs->u_regs[UREG_FP],
+>  	};
 > =20
-> @@ -118,3 +119,27 @@ asmlinkage long sparc_clone(struct pt_regs *regs)
-> =20
->  	return ret;
->  }
-> +
-> +asmlinkage long sparc_clone3(struct pt_regs *regs)
-> +{
-> +	unsigned long sz;
-> +	long ret;
-> +	struct clone_args __user *cl_args;
-> +
 > +	synchronize_user_stack();
 > +
-> +	cl_args =3D (struct clone_args __user *)regs->u_regs[UREG_I0];
-> +	sz =3D regs->u_regs[UREG_I1];
+> +	orig_i1 =3D regs->u_regs[UREG_I1];
+> +	/* Reuse the parent's stack for the child. */
+> +	args.stack =3D regs->u_regs[UREG_FP];
 > +
-> +	ret =3D sys_clone3(cl_args, sz);
-> +
-> +	/* If we get an error and potentially restart the system
-> +	 * call, we're screwed because copy_thread() clobbered
-> +	 * the parent's %o1.  So detect that case and restore it
-> +	 * here.
-> +	 */
-> +	if ((unsigned long)ret >=3D -ERESTART_RESTARTBLOCK)
-> +		regs->u_regs[UREG_I1] =3D sz;
-> +
-> +	return ret;
-> +}
-> diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_3=
-2.c
-> index 5a28c0e91bf1..216c07971c81 100644
-> --- a/arch/sparc/kernel/process_32.c
-> +++ b/arch/sparc/kernel/process_32.c
-> @@ -261,11 +261,11 @@ extern void ret_from_kernel_thread(void);
->  int copy_thread(struct task_struct *p, const struct kernel_clone_args *a=
-rgs)
+>  	ret =3D kernel_clone(&args);
+> =20
+>  	/* If we get an error and potentially restart the system
+> @@ -40,16 +44,19 @@ asmlinkage long sparc_fork(struct pt_regs *regs)
+> =20
+>  asmlinkage long sparc_vfork(struct pt_regs *regs)
 >  {
->  	u64 clone_flags =3D args->flags;
-> -	unsigned long sp =3D args->stack;
->  	unsigned long tls =3D args->tls;
->  	struct thread_info *ti =3D task_thread_info(p);
->  	struct pt_regs *childregs, *regs =3D current_pt_regs();
->  	char *new_stack;
-> +	unsigned long sp =3D args->stack ? args->stack : regs->u_regs[UREG_FP];
+> -	unsigned long orig_i1 =3D regs->u_regs[UREG_I1];
+> +	unsigned long orig_i1;
+>  	long ret;
+> -
+>  	struct kernel_clone_args args =3D {
+>  		.flags		=3D CLONE_VFORK | CLONE_VM,
+>  		.exit_signal	=3D SIGCHLD,
+> -		/* Reuse the parent's stack for the child. */
+> -		.stack		=3D regs->u_regs[UREG_FP],
+>  	};
 > =20
->  #ifndef CONFIG_SMP
->  	if(last_task_used_math =3D=3D current) {
-> diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_6=
-4.c
-> index 25781923788a..885d617ba29d 100644
-> --- a/arch/sparc/kernel/process_64.c
-> +++ b/arch/sparc/kernel/process_64.c
-> @@ -568,13 +568,13 @@ void fault_in_user_windows(struct pt_regs *regs)
->  int copy_thread(struct task_struct *p, const struct kernel_clone_args *a=
-rgs)
->  {
->  	u64 clone_flags =3D args->flags;
-> -	unsigned long sp =3D args->stack;
->  	unsigned long tls =3D args->tls;
->  	struct thread_info *t =3D task_thread_info(p);
->  	struct pt_regs *regs =3D current_pt_regs();
->  	struct sparc_stackf *parent_sf;
->  	unsigned long child_stack_sz;
->  	char *child_trap_frame;
-> +	unsigned long sp =3D args->stack ? args->stack : regs->u_regs[UREG_FP];
-> =20
->  	/* Calculate offset to stack_frame & pt_regs */
->  	child_stack_sz =3D (STACKFRAME_SZ + TRACEREG_SZ);
-> diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-> index 0e8ab0602c36..c8d374a37f98 100644
-> --- a/arch/sparc/kernel/syscalls.S
-> +++ b/arch/sparc/kernel/syscalls.S
-> @@ -103,6 +103,12 @@ sys_clone:
->  	ba,pt	%xcc, sparc_clone
->  	 add	%sp, PTREGS_OFF, %o0
-> =20
-> +	.align	32
-> +__sys_clone3:
-> +	flushw
-> +	ba,pt	%xcc, sparc_clone3
-> +	 add	%sp, PTREGS_OFF, %o0
+> +	synchronize_user_stack();
 > +
->  	.globl	ret_from_fork
->  ret_from_fork:
->  	/* Clear current_thread_info()->new_child. */
-> diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/s=
-yscalls/syscall.tbl
-> index 39aa26b6a50b..c0307bb09892 100644
-> --- a/arch/sparc/kernel/syscalls/syscall.tbl
-> +++ b/arch/sparc/kernel/syscalls/syscall.tbl
-> @@ -480,7 +480,7 @@
->  432	common	fsmount				sys_fsmount
->  433	common	fspick				sys_fspick
->  434	common	pidfd_open			sys_pidfd_open
-> -# 435 reserved for clone3
-> +435	common	clone3				__sys_clone3
->  436	common	close_range			sys_close_range
->  437	common	openat2			sys_openat2
->  438	common	pidfd_getfd			sys_pidfd_getfd
+> +	orig_i1 =3D regs->u_regs[UREG_I1];
+> +	/* Reuse the parent's stack for the child. */
+> +	args.stack =3D regs->u_regs[UREG_FP];
+> +
+>  	ret =3D kernel_clone(&args);
+> =20
+>  	/* If we get an error and potentially restart the system
+> @@ -65,15 +72,18 @@ asmlinkage long sparc_vfork(struct pt_regs *regs)
+> =20
+>  asmlinkage long sparc_clone(struct pt_regs *regs)
+>  {
+> -	unsigned long orig_i1 =3D regs->u_regs[UREG_I1];
+> -	unsigned int flags =3D lower_32_bits(regs->u_regs[UREG_I0]);
+> +	unsigned long orig_i1;
+> +	unsigned int flags;
+>  	long ret;
+> +	struct kernel_clone_args args =3D {0};
+> =20
+> -	struct kernel_clone_args args =3D {
+> -		.flags		=3D (flags & ~CSIGNAL),
+> -		.exit_signal	=3D (flags & CSIGNAL),
+> -		.tls		=3D regs->u_regs[UREG_I3],
+> -	};
+> +	synchronize_user_stack();
+> +
+> +	orig_i1 =3D regs->u_regs[UREG_I1];
+> +	flags =3D lower_32_bits(regs->u_regs[UREG_I0]);
+> +	args.flags		=3D (flags & ~CSIGNAL);
+> +	args.exit_signal	=3D (flags & CSIGNAL);
+> +	args.tls		=3D regs->u_regs[UREG_I3];
+> =20
+>  #ifdef CONFIG_COMPAT
+>  	if (test_thread_flag(TIF_32BIT)) {
 
-Applied on top of 6.19-rc5, tested on a Sun Netra 240 (UltraSPARC IIIi).
+I have tested the patch with the following test program written by Michael =
+Karcher
+on a Sun Netra 240 running kernel version 6.19-rc5 by applying the patch on=
+ top:
 
-Running the kernel selftest for clone3 works fine:
+glaubitz@raverin:~$ cat attack_on_the_clone.c
+// SPARC64 clone problem demonstration
+//
+// the sparc64 Linux kernel fails to execute clone if %sp points into uncom=
+mitted memory (e.g. due to lazy
+// stack committing). This program uses a variable length array on the stac=
+k to position the stack pointer when
+// invoking the library function clone just at a page boundary. The library=
+ function clone allocates a stack frame
+// that is completely in uncommitted memory before entering the kernel call=
+ clone.
 
-root@raverin:/usr/src/linux/tools/testing/selftests/clone3# uname -a
-Linux raverin 6.19.0-rc5+ #18 Fri Jan 16 16:02:10 UTC 2026 sparc64 GNU/Linu=
+// to probe for the correct size of the VLA, a test function is called firs=
+t. This function records the %fp value it
+// receives (which will be the %fp value in the library function clone, too=
+, if the VLA size is equal)
+
+// (c) Michael Karcher (kernel@mkarcher.dialup.fu-berlin.de) , 2024, GPLv2 =
+or later
+
+#define _GNU_SOURCE
+
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <sched.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#define SPARC64_STACK_BIAS 0x7FF
+
+typedef int fn_t(void*);
+typedef pid_t clone_t(fn_t* entry, void* stack, int flags, void* arg, ...);
+
+
+// very simple function invoked using clone
+int nop(void* bar)
+{
+        return 0;
+}
+
+
+// clone substitute that records %fp
+uint64_t call_clone_sp;
+
+pid_t dummy_clone(fn_t* entry, void* stack, int flags, void* arg, ...)
+{
+        register uint64_t frameptr asm("fp");
+        call_clone_sp =3D frameptr + SPARC64_STACK_BIAS;  // sp in call_clo=
+ne is fp in dummy_clone / clone
+        return -1;
+}
+
+
+// function to invoke clone with (im)properly aligned stack
+void* child_stack;
+
+int call_clone(int waste_qwords, clone_t* clonefn)
+{
+        void* volatile waste[waste_qwords+2];  // volatile to not optimize =
+the array away
+        waste[waste_qwords+1] =3D NULL;
+
+        pid_t child_pid =3D clonefn(nop,
+                       child_stack,
+                       CLONE_VM | SIGCHLD,
+                       0);
+        if (child_pid > 0)
+        {
+                pid_t waitresult =3D waitpid(child_pid, NULL, 0);
+                // before fork-bombing anything if this doesn't go to plan,=
+ exit
+                if (waitresult !=3D child_pid) abort();
+                return 0;
+        }
+        else
+        {
+                return -1;
+        }
+}
+
+int main(void)
+{
+        int wasteamount;
+        child_stack =3D mmap(NULL, 16384, PROT_READ | PROT_WRITE, MAP_ANON =
+| MAP_PRIVATE, -1, 0);
+        call_clone(0, dummy_clone);
+        printf("effective FP in clone() with waste 0 =3D %llx\n", call_clon=
+e_sp);
+        wasteamount =3D 1024 + (call_clone_sp & 0xFFF) / 8;
+        printf("this is %d 64-bit words above the page boundary at least 8K=
+ away\n", wasteamount);
+        child_stack =3D (void*)((char*)child_stack + 16000);
+        clone(NULL, NULL, 0, 0); // fails, but resolves "clone"
+        // failes for wasteamount-22 to wasteamount+22 (only even values te=
+sted)
+        if (call_clone(wasteamount, clone) < 0)
+        {
+                perror("clone");
+        }
+        else
+        {
+                puts("Congratulations, clone succeeded\n");
+        }
+}
+
+glaubitz@raverin:~$ gcc -o attack_on_the_clone attack_on_the_clone.c
+glaubitz@raverin:~$
+
+Without the patch:
+
+glaubitz@raverin:~$ uname -a
+Linux raverin 6.19.0-rc5 #19 Sat Jan 17 06:32:58 UTC 2026 sparc64 GNU/Linux
+glaubitz@raverin:~$ ./attack_on_the_clone=20
+effective FP in clone() with waste 0 =3D 7feffe60de0
+this is 1468 64-bit words above the page boundary at least 8K away
+clone: Bad address
+glaubitz@raverin:~$
+
+With the patch:
+
+glaubitz@raverin:~$ uname -a
+Linux raverin 6.19.0-rc5+ #20 Sat Jan 17 06:40:52 UTC 2026 sparc64 GNU/Linu=
 x
-root@raverin:/usr/src/linux/tools/testing/selftests/clone3# make
-  CC       clone3
-  CC       clone3_clear_sighand
-  CC       clone3_set_tid
-  CC       clone3_cap_checkpoint_restore
-root@raverin:/usr/src/linux/tools/testing/selftests/clone3# ./clone3
-TAP version 13
-1..19
-# clone3() syscall supported
-# Running test 'simple clone3()'
-# [1385] Trying clone3() with flags 0 (size 0)
-# I am the parent (1385). My child's pid is 1386
-# I am the child, my PID is 1386
-# [1385] clone3() with flags says: 0 expected 0
-ok 1 simple clone3()
-# Running test 'clone3() in a new PID_NS'
-# [1385] Trying clone3() with flags 0x20000000 (size 0)
-# I am the child, my PID is 1
-# I am the parent (1385). My child's pid is 1387
-# [1385] clone3() with flags says: 0 expected 0
-ok 2 clone3() in a new PID_NS
-# Running test 'CLONE_ARGS_SIZE_VER0'
-# [1385] Trying clone3() with flags 0 (size 64)
-# I am the parent (1385). My child's pid is 1388
-# I am the child, my PID is 1388
-# [1385] clone3() with flags says: 0 expected 0
-ok 3 CLONE_ARGS_SIZE_VER0
-# Running test 'CLONE_ARGS_SIZE_VER0 - 8'
-# [1385] Trying clone3() with flags 0 (size 56)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 4 CLONE_ARGS_SIZE_VER0 - 8
-# Running test 'sizeof(struct clone_args) + 8'
-# [1385] Trying clone3() with flags 0 (size 96)
-# I am the parent (1385). My child's pid is 1389
-# I am the child, my PID is 1389
-# [1385] clone3() with flags says: 0 expected 0
-ok 5 sizeof(struct clone_args) + 8
-# Running test 'exit_signal with highest 32 bits non-zero'
-# [1385] Trying clone3() with flags 0 (size 0)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 6 exit_signal with highest 32 bits non-zero
-# Running test 'negative 32-bit exit_signal'
-# [1385] Trying clone3() with flags 0 (size 0)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 7 negative 32-bit exit_signal
-# Running test 'exit_signal not fitting into CSIGNAL mask'
-# [1385] Trying clone3() with flags 0 (size 0)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 8 exit_signal not fitting into CSIGNAL mask
-# Running test 'NSIG < exit_signal < CSIG'
-# [1385] Trying clone3() with flags 0 (size 0)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 9 NSIG < exit_signal < CSIG
-# Running test 'Arguments sizeof(struct clone_args) + 8'
-# [1385] Trying clone3() with flags 0 (size 96)
-# I am the parent (1385). My child's pid is 1390
-# I am the child, my PID is 1390
-# [1385] clone3() with flags says: 0 expected 0
-ok 10 Arguments sizeof(struct clone_args) + 8
-# Running test 'Arguments sizeof(struct clone_args) + 16'
-# [1385] Trying clone3() with flags 0 (size 104)
-# Argument list too long - Failed to create new process
-# [1385] clone3() with flags says: -7 expected -7
-ok 11 Arguments sizeof(struct clone_args) + 16
-# Running test 'Arguments sizeof(struct clone_arg) * 2'
-# [1385] Trying clone3() with flags 0 (size 104)
-# Argument list too long - Failed to create new process
-# [1385] clone3() with flags says: -7 expected -7
-ok 12 Arguments sizeof(struct clone_arg) * 2
-# Running test 'Arguments > page size'
-# [1385] Trying clone3() with flags 0 (size 8200)
-# Argument list too long - Failed to create new process
-# [1385] clone3() with flags says: -7 expected -7
-ok 13 Arguments > page size
-# Running test 'CLONE_ARGS_SIZE_VER0 in a new PID NS'
-# [1385] Trying clone3() with flags 0x20000000 (size 64)
-# I am the parent (1385). My child's pid is 1391
-# I am the child, my PID is 1
-# [1385] clone3() with flags says: 0 expected 0
-ok 14 CLONE_ARGS_SIZE_VER0 in a new PID NS
-# Running test 'CLONE_ARGS_SIZE_VER0 - 8 in a new PID NS'
-# [1385] Trying clone3() with flags 0x20000000 (size 56)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 15 CLONE_ARGS_SIZE_VER0 - 8 in a new PID NS
-# Running test 'sizeof(struct clone_args) + 8 in a new PID NS'
-# [1385] Trying clone3() with flags 0x20000000 (size 96)
-# I am the parent (1385). My child's pid is 1392
-# I am the child, my PID is 1
-# [1385] clone3() with flags says: 0 expected 0
-ok 16 sizeof(struct clone_args) + 8 in a new PID NS
-# Running test 'Arguments > page size in a new PID NS'
-# [1385] Trying clone3() with flags 0x20000000 (size 8200)
-# Argument list too long - Failed to create new process
-# [1385] clone3() with flags says: -7 expected -7
-ok 17 Arguments > page size in a new PID NS
-# Time namespaces are not supported
-ok 18 # SKIP New time NS
-# Running test 'exit signal (SIGCHLD) in flags'
-# [1385] Trying clone3() with flags 0x14 (size 0)
-# Invalid argument - Failed to create new process
-# [1385] clone3() with flags says: -22 expected -22
-ok 19 exit signal (SIGCHLD) in flags
-# 1 skipped test(s) detected. Consider enabling relevant config options to =
-improve coverage.
-# Totals: pass:18 fail:0 xfail:0 xpass:0 skip:1 error:0
-root@raverin:/usr/src/linux/tools/testing/selftests/clone3#
+glaubitz@raverin:~$ ./attack_on_the_clone=20
+effective FP in clone() with waste 0 =3D 7fefffaede0
+this is 1468 64-bit words above the page boundary at least 8K away
+Congratulations, clone succeeded
+
+glaubitz@raverin:~$
+
+I can therefore confirm that this patch fixes the bug.
 
 Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 
