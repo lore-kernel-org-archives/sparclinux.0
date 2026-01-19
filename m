@@ -1,37 +1,36 @@
 Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63F8F1E531;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D07A37E307;
 	Mon, 19 Jan 2026 14:47:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768834081; cv=none; b=iiEAojx0BtQdD6sGxHLtVsOmxUjZVWixaNTCKLBlT/MyDk1kEoKCMEy1u7Y39VNcOoeEqbcivYgWLV879oXh1dcrcNeSoIlIXbbRF0GIX/RW7p6fXkQTw2Ehl+fIgZrVA+8AxHz2sl/pFA9ldrQfbYlceCXGjSD0wjkqeA8h1cI=
+	t=1768834082; cv=none; b=qgoYhq6GnQnffF6eVkkELSXAkhTyTOgAH9daAHkBexakFzJ5Uoi/1/1FovMj8p8sapdYMyf0XxWNMjh81dsSHyLWAppBH6ldj2dBNG9KhTeJ5XpVBvoTWf1AIweJKdpJRVZV2DeYp/+rWmm7Hi8168gByfM/WDw1ECT+EUGNkyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768834081; c=relaxed/simple;
-	bh=Pe3RNVaiFeDp5+sCxGJDBB2QzlxcDNyTyJJ1oXBcLHY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lgAZFQ+XgMGXW9E6IU4dmDY/9c4V2z+tHb6FuKEOPj48ZQJrIGS5BDXrBt0EAtuJY9hugyEwVBTcp1LUL0dbVbycHHItvMx7SvagmbGK94AN0MaNqqbNN/9hAmeBTaQDBuxZKgUa3UOK1AoYZN9+7fRVtz8ugGEHhOXbzFkN/zA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=brm6ueQL reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+	s=arc-20240116; t=1768834082; c=relaxed/simple;
+	bh=uDd8MiQA27O4LxKde4FCSElUpVXwtFGGsD/yuIyKElo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pBU6I+dlPp3daG7eXs9V7y8mLN/FB7NhgRH7ciSfS0T7SvFwxXnqqQk2fYXbV5g3hvUxlhuZuWWPGS6kXCXo5MDxvz0Z1epR7Yt7cq8AM+JaGFpcDsJNzRHjTmGgeP5bVX0f3L2PHJm/6rEC0dUSyFgiXYxXpJk/ivM2ckbnWyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=YW03cCuF reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="brm6ueQL"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="YW03cCuF"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4dvtbv2DpKz1Fg8d;
-	Mon, 19 Jan 2026 15:47:55 +0100 (CET)
+	by smtp.simply.com (Simply.com) with ESMTP id 4dvtbt3mYdz1Fg8F;
+	Mon, 19 Jan 2026 15:47:54 +0100 (CET)
 Received: from ludwig.got.gaisler.com (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	by smtp.simply.com (Simply.com) with ESMTPA id 4dvtbt5qFyz1DDgY;
+	by smtp.simply.com (Simply.com) with ESMTPA id 4dvtbt16Vjz1DDgY;
 	Mon, 19 Jan 2026 15:47:54 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1768834075;
-	bh=j4yDMOEg6XIfZw3APHo4V+HY8OEIMSKNw1iXWOzBq3A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=brm6ueQLAocf6FouHpxZlQgnQDWYvaeouWO9eEQ70JRG77w7l1n4+W62OXQqy84Sf
-	 ssOfxuzrMVGPRaH2YWMZ1b159XVDh1VkLMjA5qqLqOEN2kloPxwWo1/O9g5wK4a42t
-	 f52YT3qnjdPw/5vZUH4dkHHWYN3s8MXHrlbjRQK6Q1H+aDcV2gRQj5epFVCciVwFEb
-	 RB5HbvpHZL8rcW4fLrnHjaXy37Hseqdcc5gqF6Jfn/YH2RowtLUaijvonGyYHJEria
-	 XAfEZlodMVwiFSWjR//bQAk0MMM3vS/8uk8J4jUmZAww1lOmbWJg0IYYz3TQTlO1hA
-	 4s8L8Z3NIgm4A==
+	s=simplycom2; t=1768834074;
+	bh=hD/sYbENU9n8pjIP0AZIl3G8lES0piJGCBXxHhfEnt8=;
+	h=From:To:Cc:Subject:Date;
+	b=YW03cCuFE7vdKRXd9bYxt2wa3JEBtwhyRtO3ri89uQV+79YAIdaq1xv/Ru/HyEX91
+	 8v18XIxAX+yBjC0AVVjFF9+9zCZvsHN1t/7BU0orNzpwQAKS+F5JT/NDV8ObZOwA1s
+	 wEkcBJU4BWgAhegB4LePw84UDDILeMW+RG9GaFdx0CSA0ylPEfo0fSRXwzKWw/o5mp
+	 weUFefhbKTjEHrSJxXcS3ZJyJJUmnvHUDZ2wx1lJf4LdMcK7l+Qc+w86d/EhwZ9guy
+	 7Vvk6ChCcTwfuGgBFEpNHmkYQH/4OPaFwQVqCCGwhieEmbzk2dYV8IT418AraQmrDc
+	 UnBApUKOoWj3Q==
 From: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
 To: davem@davemloft.net,
 	andreas@gaisler.com,
@@ -45,12 +44,10 @@ Cc: sparclinux@vger.kernel.org,
 	geert@linux-m68k.org,
 	schuster.simon@siemens-energy.com,
 	jrtc27@jrtc27.com
-Subject: [PATCH v2 2/2] sparc: Add architecture support for clone3
-Date: Mon, 19 Jan 2026 15:47:53 +0100
-Message-Id: <20260119144753.27945-3-ludwig.rydberg@gaisler.com>
+Subject: [PATCH v2 0/2] sparc: Add architecture support for clone3
+Date: Mon, 19 Jan 2026 15:47:51 +0100
+Message-Id: <20260119144753.27945-1-ludwig.rydberg@gaisler.com>
 X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20260119144753.27945-1-ludwig.rydberg@gaisler.com>
-References: <20260119144753.27945-1-ludwig.rydberg@gaisler.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -59,270 +56,141 @@ List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add support for the clone3 system call to the SPARC architectures.
+Hi all,
 
-The implementation follows the pattern of the original clone syscall.
-However, instead of explicitly calling kernel_clone, the clone3
-handler calls the generic sys_clone3 handler in kernel/fork.
-In case no stack is provided, the parents stack is reused.
+This series adds support for the clone3 system call to the SPARC{32|64}
+architectures and also adds a related patch for clone/fork/vfork that fix an
+issue previously reported[1] that could result in -EFAULT for no good reason.
+Without this patch, the clone3 system call would need the same mitigation as
+introduced in glibc[2] for the clone system call.
+
+About "sparc: Synchronize user stack on fork and clone"
+---------------------------------------------------------
+
+The clone3 implementation is developed on top of a fix for an issue reported
+by Adrian Glaubitz[1], where a clone call could return -EFAULT. This problem
+has since been mitigated in glibc[2] by synchronizing the user stack before
+calling clone.
+
+The root cause analysis of the kernel side when running the program in [1]
+shows that the window spill handler routine on both SPARC{32|64} is unable to
+flush a user window to the stack (due to MMU related faults) when flushing all
+windows before handling the syscall. This then results in a -EFAULT when
+copy_thread() fails to clone the uncommitted stackframe of the parent.
+
+For SPARC32:
+Prior to calling the syscall wrappers for clone/fork/vork all windows are
+flushed by a macro (FLUSH_ALL_KERNEL_WINDOWS).
+In the window spill trap handler, MMU fault-handling is temporarily
+disabled while storing the window. If the window can't be stored
+(which normally would have triggered a fault trap) the routine
+backups the user window and increments a thread counter (wsaved).
+
+For SPARC64:
+Prior to calling the syscall wrappers for clone/fork/vork all windows are
+flushed by issuing the flushw instruction.
+In the window spill trap handler, if an exception triggers, then the user
+window is added to the thread's user window buffer (in kernel memory) and
+a thread counter (wsaved) counter is incremented.
+
+Both SPARC{32|64}:
+Eventually copy_thread will be called, which then will fail to clone the parent
+stackframe to the child as the user window has not been flushed to the stack.
+
+Fixed by adding a call to synchronize_user_stack() prior to calling
+kernel_clone(). The patch has been tested both with and without the mitigation
+in glibc by running the program mentioned in [1].
+
+SPARC32:
+- Tested in QEMU emulating sun4m using Buildroot 2025.02
+  (qemu_sparc_ss10_defconfig).
+- Tested on LEON using a GR-CPCI-GR740 development board from
+  Frontgrade Gaisler.
+
+SPARC64:
+- Tested in QEMU emulating sun4u using Buildroot 2025.02
+  (qemu_sparc64_sun4u_defconfig).
+
+About the clone3 implementation:
+--------------------------------
+
+The implementation in the architectural port follows the same pattern as for the
+original clone syscall. But instead of explicitly calling kernel_clone (as in
+sparc_clone) the clone3 handler calls the generic sys_clone3 handler
+(in kernel/fork). To get this to work without a user provided stack,
+the copy_thread functions had to be updated to handle cl_args.stack == NULL.
+In this case the stack of the parent is re-used.
 
 The return value convention for clone3 follows the regular kernel return
 value convention (in contrast to the original clone/fork on SPARC).
 
-Closes: https://github.com/sparclinux/issues/issues/10
-Signed-off-by: Ludwig Rydberg <ludwig.rydberg@gaisler.com>
----
- arch/sparc/include/asm/syscalls.h      |  1 +
- arch/sparc/include/asm/unistd.h        |  2 --
- arch/sparc/kernel/entry.S              | 15 ++++++++++++++
- arch/sparc/kernel/kernel.h             |  1 +
- arch/sparc/kernel/process.c            | 14 +++++++++++++
- arch/sparc/kernel/process_32.c         | 23 ++++++++++++++++------
- arch/sparc/kernel/process_64.c         | 27 ++++++++++++++++++++------
- arch/sparc/kernel/syscalls.S           |  8 ++++++++
- arch/sparc/kernel/syscalls/syscall.tbl |  2 +-
- 9 files changed, 78 insertions(+), 15 deletions(-)
+In sparc_{clone|vfork|fork} there is a workaround due to the SunOS
+return value convention which is not needed for clone3.
 
-diff --git a/arch/sparc/include/asm/syscalls.h b/arch/sparc/include/asm/syscalls.h
-index 35575fbfb9dc..282e62b66518 100644
---- a/arch/sparc/include/asm/syscalls.h
-+++ b/arch/sparc/include/asm/syscalls.h
-@@ -7,5 +7,6 @@ struct pt_regs;
- asmlinkage long sparc_fork(struct pt_regs *regs);
- asmlinkage long sparc_vfork(struct pt_regs *regs);
- asmlinkage long sparc_clone(struct pt_regs *regs);
-+asmlinkage long sparc_clone3(struct pt_regs *regs);
- 
- #endif /* _SPARC64_SYSCALLS_H */
-diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
-index 3380411a4537..d6bc76706a7a 100644
---- a/arch/sparc/include/asm/unistd.h
-+++ b/arch/sparc/include/asm/unistd.h
-@@ -49,8 +49,6 @@
- #define __ARCH_WANT_COMPAT_STAT
- #endif
- 
--#define __ARCH_BROKEN_SYS_CLONE3
--
- #ifdef __32bit_syscall_numbers__
- /* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-  * it never had the plain ones and there is no value to adding those
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index a3fdee4cd6fa..ea51ef52c952 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -907,6 +907,21 @@ flush_patch_four:
- 	jmpl	%l1 + %lo(sparc_vfork), %g0
- 	 add	%sp, STACKFRAME_SZ, %o0
- 
-+	.globl	__sys_clone3, flush_patch_five
-+__sys_clone3:
-+	mov	%o7, %l5
-+flush_patch_five:
-+	FLUSH_ALL_KERNEL_WINDOWS;
-+	ld	[%curptr + TI_TASK], %o4
-+	rd	%psr, %g4
-+	WRITE_PAUSE
-+	rd	%wim, %g5
-+	WRITE_PAUSE
-+	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
-+	add	%sp, STACKFRAME_SZ, %o0
-+	call	sparc_clone3
-+	 mov	%l5, %o7
-+
-         .align  4
- linux_sparc_ni_syscall:
- 	sethi   %hi(sys_ni_syscall), %l7
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 8328a3b78a44..4ee85051521a 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -18,6 +18,7 @@ extern int ncpus_probed;
- asmlinkage long sparc_clone(struct pt_regs *regs);
- asmlinkage long sparc_fork(struct pt_regs *regs);
- asmlinkage long sparc_vfork(struct pt_regs *regs);
-+asmlinkage long sparc_clone3(struct pt_regs *regs);
- 
- #ifdef CONFIG_SPARC64
- /* setup_64.c */
-diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
-index 7d69877511fa..d72fa0665943 100644
---- a/arch/sparc/kernel/process.c
-+++ b/arch/sparc/kernel/process.c
-@@ -12,6 +12,7 @@
- #include <linux/sched/task.h>
- #include <linux/sched/task_stack.h>
- #include <linux/signal.h>
-+#include <linux/syscalls.h>
- 
- #include "kernel.h"
- 
-@@ -118,3 +119,16 @@ asmlinkage long sparc_clone(struct pt_regs *regs)
- 
- 	return ret;
- }
-+
-+asmlinkage long sparc_clone3(struct pt_regs *regs)
-+{
-+	unsigned long sz;
-+	struct clone_args __user *cl_args;
-+
-+	synchronize_user_stack();
-+
-+	cl_args = (struct clone_args __user *)regs->u_regs[UREG_I0];
-+	sz = regs->u_regs[UREG_I1];
-+
-+	return sys_clone3(cl_args, sz);
-+}
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 5a28c0e91bf1..dd8c6c02b0f1 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -247,6 +247,8 @@ clone_stackframe(struct sparc_stackf __user *dst,
-  * Parent -->  %o0 == childs  pid, %o1 == 0
-  * Child  -->  %o0 == parents pid, %o1 == 1
-  *
-+ * clone3() - Uses regular kernel return value conventions
-+ *
-  * NOTE: We have a separate fork kpsr/kwim because
-  *       the parent could change these values between
-  *       sys_fork invocation and when we reach here
-@@ -261,11 +263,11 @@ extern void ret_from_kernel_thread(void);
- int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- {
- 	u64 clone_flags = args->flags;
--	unsigned long sp = args->stack;
- 	unsigned long tls = args->tls;
- 	struct thread_info *ti = task_thread_info(p);
- 	struct pt_regs *childregs, *regs = current_pt_regs();
- 	char *new_stack;
-+	unsigned long sp = args->stack ? args->stack : regs->u_regs[UREG_FP];
- 
- #ifndef CONFIG_SMP
- 	if(last_task_used_math == current) {
-@@ -350,13 +352,22 @@ int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- 	childregs->psr &= ~PSR_EF;
- 	clear_tsk_thread_flag(p, TIF_USEDFPU);
- #endif
-+	/* Handle return value conventions */
-+	if (regs->u_regs[UREG_G1] == __NR_clone3) {
-+		/* clone3() - use regular kernel return value convention */
-+
-+		/* Set the return value for the child. */
-+		childregs->u_regs[UREG_I0] = 0;
-+	} else {
-+		/* clone()/fork() - use SunOS return value convention */
- 
--	/* Set the return value for the child. */
--	childregs->u_regs[UREG_I0] = current->pid;
--	childregs->u_regs[UREG_I1] = 1;
-+		/* Set the return value for the child. */
-+		childregs->u_regs[UREG_I0] = current->pid;
-+		childregs->u_regs[UREG_I1] = 1;
- 
--	/* Set the return value for the parent. */
--	regs->u_regs[UREG_I1] = 0;
-+		/* Set the return value for the parent. */
-+		regs->u_regs[UREG_I1] = 0;
-+	}
- 
- 	if (clone_flags & CLONE_SETTLS)
- 		childregs->u_regs[UREG_G7] = tls;
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 25781923788a..e889da8e4835 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -564,17 +564,19 @@ void fault_in_user_windows(struct pt_regs *regs)
-  * under SunOS are nothing short of bletcherous:
-  * Parent -->  %o0 == childs  pid, %o1 == 0
-  * Child  -->  %o0 == parents pid, %o1 == 1
-+ *
-+ * clone3() - Uses regular kernel return value conventions
-  */
- int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- {
- 	u64 clone_flags = args->flags;
--	unsigned long sp = args->stack;
- 	unsigned long tls = args->tls;
- 	struct thread_info *t = task_thread_info(p);
- 	struct pt_regs *regs = current_pt_regs();
- 	struct sparc_stackf *parent_sf;
- 	unsigned long child_stack_sz;
- 	char *child_trap_frame;
-+	unsigned long sp = args->stack ? args->stack : regs->u_regs[UREG_FP];
- 
- 	/* Calculate offset to stack_frame & pt_regs */
- 	child_stack_sz = (STACKFRAME_SZ + TRACEREG_SZ);
-@@ -616,12 +618,25 @@ int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
- 	if (t->utraps)
- 		t->utraps[0]++;
- 
--	/* Set the return value for the child. */
--	t->kregs->u_regs[UREG_I0] = current->pid;
--	t->kregs->u_regs[UREG_I1] = 1;
-+	/* Handle return value conventions */
-+	if (regs->u_regs[UREG_G1] == __NR_clone3) {
-+		/* clone3() - use regular kernel return value convention */
-+
-+		/* Set the return value for the child. */
-+		t->kregs->u_regs[UREG_I0] = 0;
-+
-+		/* Clear g1 to indicate user thread */
-+		t->kregs->u_regs[UREG_G1] = 0;
-+	} else {
-+		/* clone()/fork() - use SunOS return value convention */
-+
-+		/* Set the return value for the child. */
-+		t->kregs->u_regs[UREG_I0] = current->pid;
-+		t->kregs->u_regs[UREG_I1] = 1;
- 
--	/* Set the second return value for the parent. */
--	regs->u_regs[UREG_I1] = 0;
-+		/* Set the second return value for the parent. */
-+		regs->u_regs[UREG_I1] = 0;
-+	}
- 
- 	if (clone_flags & CLONE_SETTLS)
- 		t->kregs->u_regs[UREG_G7] = tls;
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index 0e8ab0602c36..96fe8763d70c 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -103,6 +103,12 @@ sys_clone:
- 	ba,pt	%xcc, sparc_clone
- 	 add	%sp, PTREGS_OFF, %o0
- 
-+	.align	32
-+__sys_clone3:
-+	flushw
-+	ba,pt	%xcc, sparc_clone3
-+	 add	%sp, PTREGS_OFF, %o0
-+
- 	.globl	ret_from_fork
- ret_from_fork:
- 	/* Clear current_thread_info()->new_child. */
-@@ -113,6 +119,8 @@ ret_from_fork:
- 	brnz,pt	%o0, ret_sys_call
- 	 ldx	[%g6 + TI_FLAGS], %l0
- 	ldx	[%sp + PTREGS_OFF + PT_V9_G1], %l1
-+	brz,pt	%l1, ret_sys_call
-+	 nop
- 	call	%l1
- 	 ldx	[%sp + PTREGS_OFF + PT_V9_G2], %o0
- 	ba,pt	%xcc, ret_sys_call
-diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
-index 39aa26b6a50b..c0307bb09892 100644
---- a/arch/sparc/kernel/syscalls/syscall.tbl
-+++ b/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -480,7 +480,7 @@
- 432	common	fsmount				sys_fsmount
- 433	common	fspick				sys_fspick
- 434	common	pidfd_open			sys_pidfd_open
--# 435 reserved for clone3
-+435	common	clone3				__sys_clone3
- 436	common	close_range			sys_close_range
- 437	common	openat2			sys_openat2
- 438	common	pidfd_getfd			sys_pidfd_getfd
+When applying the patch series on top of v6.19-rc1 the relevant clone3 tests of
+kselftest pass:
+
+# /usr/lib/kselftests/run_kselftest.sh -c clone3 -s
+kselftest: Running tests in clone3
+TAP version 13
+1..4
+# selftests: clone3: clone3
+ok 1 selftests: clone3: clone3
+# selftests: clone3: clone3_clear_sighand
+ok 2 selftests: clone3: clone3_clear_sighand
+# selftests: clone3: clone3_set_tid
+ok 3 selftests: clone3: clone3_set_tid
+# selftests: clone3: clone3_cap_checkpoint_restore
+ok 4 selftests: clone3: clone3_cap_checkpoint_restore
+
+Note that the clone3_cap_checkpoint test failed in the same way as mentioned in
+[3] (due to incompatibility with the libcap version on my system).
+When applying the patch from [4] or by downgrading libcap to 2.59 the test pass.
+
+SPARC32:
+- Tested in QEMU emulating sun4m using Buildroot 2025.02
+  (qemu_sparc_ss10_defconfig).
+- Tested on LEON using a GR-CPCI-GR740 development board from
+  Frontgrade Gaisler.
+
+SPARC64:
+- Tested in QEMU emulating sun4u using Buildroot 2025.02
+  (qemu_sparc64_sun4u_defconfig).
+- Tested on UltraSparc T4
+
+[1]: https://lore.kernel.org/sparclinux/3ae4130c-c5aa-428e-b819-44cf2daf2af1@mkarcher.dialup.fu-berlin.de/
+[2]: https://sourceware.org/bugzilla/show_bug.cgi?id=31394
+[3]: https://lore.kernel.org/all/20250901-nios2-implement-clone3-v2-0-53fcf5577d57@siemens-energy.com/
+[4]: https://lore.kernel.org/all/20241105062948.1037011-1-zhouyuhang1010@163.com/
+
+---
+Changes in v2:
+- Added Tested-by tag from Adrian Glaubitz
+- Implement generic Linux return value convention for clone3
+- Drop SPARC handling for sys_clone3 in selftests
+- Remove legacy ABI return value handling in sparc_clone3
+- Link to v1: https://lore.kernel.org/sparclinux/20260116153051.21678-1-ludwig.rydberg@gaisler.com/
+---
+
+Andreas Larsson (1):
+  sparc: Synchronize user stack on fork and clone
+
+Ludwig Rydberg (1):
+  sparc: Add architecture support for clone3
+
+ arch/sparc/include/asm/syscalls.h      |  1 +
+ arch/sparc/include/asm/unistd.h        |  2 -
+ arch/sparc/kernel/entry.S              | 15 ++++++++
+ arch/sparc/kernel/kernel.h             |  1 +
+ arch/sparc/kernel/process.c            | 52 +++++++++++++++++++-------
+ arch/sparc/kernel/process_32.c         | 23 +++++++++---
+ arch/sparc/kernel/process_64.c         | 27 ++++++++++---
+ arch/sparc/kernel/syscalls.S           |  8 ++++
+ arch/sparc/kernel/syscalls/syscall.tbl |  2 +-
+ 9 files changed, 102 insertions(+), 29 deletions(-)
+
+
+base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
 -- 
 2.35.3
 
