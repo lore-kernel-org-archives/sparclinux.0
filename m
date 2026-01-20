@@ -1,154 +1,100 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E9039E6D5;
-	Tue, 20 Jan 2026 07:23:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAC73AE711;
+	Tue, 20 Jan 2026 07:57:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=130.133.4.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768893832; cv=none; b=Q6ane6yQjP+7g54svv9Vys0ZtgVKkJdo9lIKC1I3rMbxCnf1P4VAgQoktfNy8BickPTrrDeE0yG3lE7/ioasl02j09P1ZFqqQylcOVZvwB3zQG6UKeaztdzV7SCBrni1lh6Dk/PyPIwbCEKV7lpEQBtbUyzFrO+mmyYCKocoDqE=
+	t=1768895849; cv=none; b=ISaVUVcsWGktRKGDIOwq1D7GJkeCwcls0LOfUdfMlVsTtrGm935RRHfhUVNOmXsfQ4NHKXIl8e4K1f1ocI5X9Qo6zgfJOI/GRa3CPi25lboHDSnVM6SsbCQvJiZPR7DWfAW2s1d5ykoD8s98TXiusfD+dLU0FGInf8nHiVLcD60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768893832; c=relaxed/simple;
-	bh=Ljz+Gi83a+JjPR+sLBysbfNI9oaAQkIfbhdX/r1AD/U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SnJxQLDfc6K9nQp+UxRv8IXY0EIXIyp6XLiGbg9QXxBqAhVM7V/FmidHFDuV2rESvR3BuyQ/HC9+BB53j+BlqNvAfTuBe98/pb7JlKQ0LnTG71qu6UIL1EMch2q3L8puY7+PmD5GxHPRXG37HR1QEqJ6zv5MILtDrwdM35XCypU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=qRtM2/LI; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ux0BDTS3; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1768895849; c=relaxed/simple;
+	bh=73aF+Gs0h1WhiEj29a8BjiazJYxWxsmFN2pNxL8Wtag=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=AcvILXz/lPgvS5TE49Hqy4vUEUUZ2g5n+ylfHirRYf9Y791jFq6UoMBZs1Y4EBShkMvzBGymS4g/GEuinzpTkLiMR5qb5bmMBUFNKz1pxCJAZYUwrL/F/LS5VMXuDa2ipQO4mr4vCjR28rGk4ACnlzk89gooq+6SBdMScFeQ9Tc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de; spf=pass smtp.mailfrom=zedat.fu-berlin.de; dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b=BCtYGoTe; arc=none smtp.client-ip=130.133.4.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=physik.fu-berlin.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zedat.fu-berlin.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="qRtM2/LI";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ux0BDTS3"
-Date: Tue, 20 Jan 2026 08:23:39 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1768893820;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jdrEJPqx1MFOvrLI5OPYmPHWL96zfvhnQqnu+2d5v4w=;
-	b=qRtM2/LICWrYpv7CqHVGjW3oNUf5zeSQFvVn7pxVIbqfRjNlWsKtowiCAuo7wPw4bTMhZF
-	vZ7kyPZkvRrJ6SFbDfsGauMu/yAWoXgh0+otpAtdHkwjXeaXrDj/ddU+0M796ldT3py2FA
-	H/J7J6LCXcTjNsypVemOAhQjSwu2xYplIpe6Lc3xHt+S8d6b/6GQKP4HK12fl9yyDBYG6e
-	iXHhGl4u+cbf0LkeSEz1Ot2nLWG1O1Kprw+SAXFWTU2YORD/K1EdiTmK96nQ5VbnNr6FGb
-	9OBJg+7ZhGSfG8bRIjWQ7Wn9oLuHZOTx6IEK0JDbJ3KblXlfJH61VFq0pkxfIw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1768893820;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jdrEJPqx1MFOvrLI5OPYmPHWL96zfvhnQqnu+2d5v4w=;
-	b=ux0BDTS3LJjapFbL4YTAJJf8nKUPpr8oWdyJfad7Z3Tu4BKdj46czIj7hpk/EJnJHSsTDa
-	K9T/V5n3wFQW6oAA==
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, 
-	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Linux-Arch <linux-arch@vger.kernel.org>, linux-s390@vger.kernel.org
-Subject: Re: [PATCH 4/4] asm-generic/bitsperlong.h: Add sanity checks for
- __BITS_PER_LONG
-Message-ID: <20260120081136-f413a6d5-05a5-4adc-a687-474ae349e771@linutronix.de>
-References: <20260116-vdso-compat-checkflags-v1-0-4a83b4fbb0d3@linutronix.de>
- <20260116-vdso-compat-checkflags-v1-4-4a83b4fbb0d3@linutronix.de>
- <20260119100619.479bcff3@pumpkin>
- <20260119111037-4decf57f-2094-4fac-bcf4-03506791b197@linutronix.de>
- <20260119103758.3afb5927@pumpkin>
- <20260119114526-a15e7172-fc4c-40d0-a651-7c4a21acb1c8@linutronix.de>
- <72a2744a-debc-4d8f-b418-5d6a595c2578@app.fastmail.com>
- <20260119143735-ca5b7901-b501-4cb8-8e5d-10f4e2f8b650@linutronix.de>
- <4e4b1b5b-5f7d-4604-b5ef-0d0726263843@app.fastmail.com>
- <20260119174730.5a20169d@pumpkin>
+	dkim=pass (2048-bit key) header.d=fu-berlin.de header.i=@fu-berlin.de header.b="BCtYGoTe"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=fu-berlin.de; s=fub01; h=MIME-Version:Content-Transfer-Encoding:
+	Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:From:
+	Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+	Content-Transfer-Encoding:Content-ID:Content-Description:In-Reply-To:
+	References; bh=Jcrt9Ua+MyPDHExSKEJ8bQmAoVgn0rj02MVVo4Wnt30=; t=1768895846;
+	x=1769500646; b=BCtYGoTedZ9RHeJGRl08crwtpMeZCohQT51y0DStcRGt7X5yXe8+2E5eTLa9q
+	xbjflWCYGpFGqey3t5GzDr4yN1AY3VJYYwiyiALxzQ6wZ62fJb5oTAa7X0IAYRZgFfJBssKUc2PZW
+	a9tYNk/vJwROb+IF01Moum/SHa6Zpp0+oow/VD3kxno/OVqPUxoRWxg8MfhQzyT3q8rSC+Cr45XCd
+	FQWqCZ905e6yIPql9Y3pSB+IXvkXibofrIdyH2Fg5yS3psXF6ODK6aaxNnkDjd42x89TbCRgyRuMU
+	ZEwOLTCMR1yhr45OYy3Zsmwvkm0fFRBnnlBMkABbJnd4eRDbcw==;
+Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
+          by outpost.zedat.fu-berlin.de (Exim 4.99)
+          with esmtps (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@zedat.fu-berlin.de>)
+          id 1vi6c1-000000044St-19R3; Tue, 20 Jan 2026 08:57:17 +0100
+Received: from dynamic-077-011-137-220.77.11.pool.telefonica.de ([77.11.137.220] helo=[192.168.178.50])
+          by inpost2.zedat.fu-berlin.de (Exim 4.99)
+          with esmtpsa (TLS1.3)
+          tls TLS_AES_256_GCM_SHA384
+          (envelope-from <glaubitz@physik.fu-berlin.de>)
+          id 1vi6c1-000000035uo-0B3R; Tue, 20 Jan 2026 08:57:17 +0100
+Message-ID: <a5950b61a63677c789bc91d44357ff8226d3ef77.camel@physik.fu-berlin.de>
+Subject: Re: [PATCH 1/3] sparc: Synchronize user stack on fork and clone
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+To: Ludwig Rydberg <ludwig.rydberg@gaisler.com>, 
+	kernel@mkarcher.dialup.fu-berlin.de
+Cc: sparclinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, arnd@arndb.de, geert@linux-m68k.org, 
+	schuster.simon@siemens-energy.com, davem@davemloft.net,
+ andreas@gaisler.com, 	brauner@kernel.org, shuah@kernel.org
+Date: Tue, 20 Jan 2026 08:57:16 +0100
+In-Reply-To: <ed3c9379-55e3-43bb-b2f0-9d51d44a2e40@gaisler.com>
+References: <20260116153051.21678-1-ludwig.rydberg@gaisler.com>
+	 <20260116153051.21678-2-ludwig.rydberg@gaisler.com>
+	 <e4eb5ddf57ef5f3a01ee76fe397c5f714a9d7626.camel@physik.fu-berlin.de>
+	 <6529fbe6e6af7b87fdc92912b0b6a8878796bb6e.camel@physik.fu-berlin.de>
+	 <ed3c9379-55e3-43bb-b2f0-9d51d44a2e40@gaisler.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.58.2 
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260119174730.5a20169d@pumpkin>
+X-Original-Sender: glaubitz@physik.fu-berlin.de
+X-ZEDAT-Hint: PO
 
-On Mon, Jan 19, 2026 at 05:47:30PM +0000, David Laight wrote:
-> On Mon, 19 Jan 2026 15:57:49 +0100
-> "Arnd Bergmann" <arnd@arndb.de> wrote:
-> 
-> > On Mon, Jan 19, 2026, at 14:41, Thomas Weißschuh wrote:
-> > > On Mon, Jan 19, 2026 at 01:45:04PM +0100, Arnd Bergmann wrote:  
-> > >> On Mon, Jan 19, 2026, at 11:56, Thomas Weißschuh wrote:  
-> > >> > On Mon, Jan 19, 2026 at 10:37:58AM +0000, David Laight wrote:  
-> > >> >> 
-> > >> >> Don't you need a check that it isn't wrong on a user system?
-> > >> >> Which is what I thought it was doing.  
-> > >> >
-> > >> > Not really. The overrides defined by arch/*/include/uapi/asm/bitsperlong.h are
-> > >> > being tested here. If they work in the kernel build I assume they also work
-> > >> > in userspace.  
-> > >> 
-> > >> I think You could just move check into include/asm-generic/bitsperlong.h
-> > >> to make this more obvious with the #ifdef __KERNEL__, and remove the
-> > >> disabled check from my original version there.  
-> > >
-> > > Ok. I'd like to keep your existing test though, as it tests something different
-> > > and it would be nice to have that too at some point.  
-> > 
-> > Sure, that works too. I wonder if one of the recent vdso cleanups
-> > also happened to address the problem with the incorrect BITS_PER_LONG
-> > being visible in the vdso code. Maybe we can already turn that on again.
-> 
-> There is vdso/bits.h, but everything actually includes linux/bits.h first.
+Hi Ludwig,
 
-These cleanups do not help unfortunately. We can skip the check for BUILD_VDSO,
-but there are still plenty other places where it will break.
+On Mon, 2026-01-19 at 14:05 +0100, Ludwig Rydberg wrote:
+> > >=20
+> > > I can therefore confirm that this patch fixes the bug.
+> > >=20
+> > > Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+> >=20
+>=20
+> Thank you for testing the patches. Appreciate it!
+>=20
+> The test program from Michael was of great help when
+> I analyzed the root cause. Thanks for sharing it on the list.
 
-> I was wondering what happens if you are actually using the 'uapi' headers
-> to build programs (may nolibc ones).
-> On x86-64, 'gcc foo.c' might work, but 'gcc -m32 foo.c' will find exactly
-> the same headers and go badly wrong unless everything is based on
-> compiler defines.
+Credits go to Michael for digging the problem up during our last FOSDEM tri=
+p ;-).
 
-I can't follow. __BITS_PER_LONG automatically adapts.
+> I'll send a new version of the series (this patch will however
+> remain unchanged, so I'll pick up your test tag).
+> If you have the possibility to re-run the clone3-tests on it
+> would be great. Thanks!
 
-From arch/x86/include/uapi/asm/bitsperlong.h:
+Absolutely. Will report back later today!
 
-#if defined(__x86_64__) && !defined(__ILP32__)
-# define __BITS_PER_LONG 64
-#else
-# define __BITS_PER_LONG 32
-#endif
+Adrian
 
-
-BITS_PER_LONG on the other hand is never exposed in the uapi headers.
-
-> An assert (of some kind) that checks the pre-processor BITS_PER_LONG
-> constant actually matches sizof (long) seems reasonable for all build.
-> The alternative is to (somehow) manage to avoid needing a pre-processor
-> constant at all, moving everything to 'integer constant expressions'
-> instead (good luck with that...).
-
-We do have exactly that assertion in include/asm-generic/bitsperlong.h.
-(As mentioned in the patch description we are discussing)
-The assertion is disabled because it fails. There are multiple places where
-we build 32-bit code with a 64-bit kernel configuration.
-The compat vDSO, early boot code and probably more I don't know about.
-Is it ugly? Yes. Should we '#define BITS_PER_LONG __BITS_PER_LONG' at some
-point? Yes. But we first need to audit all the users to check if it is safe
-to do so. At some point in the future in another series.
-
-> I'm most of the way through a 'de-bloat' patchset for bits.h.
-> I'm sure there is a good reason why GENMASK(hi, lo) isn't defined
-> as '((type)2 << hi) - ((type)1 << lo)'.
-> Since that definition doesn't need the bit-width in any form.
-> (Just beat up any static checker that objects to '2 << hi' being zero.)
-> I've only made that change for ASM files - IIRC the assembler only
-> supports one size of signed integer.
-
-No idea, and I don't see the relation to the patches under discussion.
-
-
-Thomas
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer
+`. `'   Physicist
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
