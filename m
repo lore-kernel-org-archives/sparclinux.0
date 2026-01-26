@@ -1,180 +1,190 @@
-Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
+Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F42286D5C
-	for <sparclinux@vger.kernel.org>; Mon, 26 Jan 2026 07:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E55F33066B;
+	Mon, 26 Jan 2026 14:50:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769410817; cv=none; b=tv+0kxDVr7y/x5MEq75Ik+YXfq0PH1r+pErRZSu1Fl5tm/OxFV6WTmhCTqB5LZNGoL7WwQ6wnn2k1uXX3L+Yt6MkTabXWe99xBlDbTX2xPoTzfLQcSqVEfu113Iq48nssFOiEawJGNOBCqdofVdQM2yeCWtDKwYwy4vBvFfwVwQ=
+	t=1769439047; cv=none; b=RKRS7k2N1N12zeQ5DMKO5kDX1qQObdOWEp0ra65eTJ/FRVXO214qJjpqynce1RDuzOOQ6d2z5fjpktt9MGejQrNVIfa8VzDAr75X2/PFT1vVfu0sxFKhcImVDx5ZHTbz8bdfmyemwaB8OigXctCxtgdBq+wlJbqfEm1dmnoem14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769410817; c=relaxed/simple;
-	bh=hIVMICCOrwOEHb7O10TcOjpQqCQ90wHru/xyyTPnNZQ=;
+	s=arc-20240116; t=1769439047; c=relaxed/simple;
+	bh=HnGqafQ0+df/3DEFU6leLP3NzQ+ys68JEG986c5pxSY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Gl/BUXxfXn5csTgmEUCyKbd1yZEgcjq08yw+eMbUgI/GPJTmHugh6nUSdUD7NOpybQColXEoqYeTx6HC5MlnYlUd9FncRITpU95QL6j8Oif7lv/N6j+hOdAJ9np5Dq6h35PF2/v0BPpYvDgeuhoOOn3zD90fSPEAKT6HvgShKis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=io0Jn+3N; arc=none smtp.client-ip=91.218.175.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	 In-Reply-To:Content-Type; b=VEpQ5HxheMdLDTJQuFGaPXA13RzNtuL02JtOdk3mc8sFBtbliYaLhmRhphvx3vvmm5COnBBwP/P1/XSSTpYyNfAuXz9Ha361JhpUj5kkeZqa+ebk9NApGKALl/OaGPaErJdDNwpbMB9+t07686c84w4bWhuf2E6eIeS6veTo4ZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=D8+GIGWK reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="io0Jn+3N"
-Message-ID: <646d9b5c-453c-4db8-b578-0f343e170379@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1769410802;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hybAGJDtwUTQyBJLSE6cgT3x4CprzyvIGdy1i62DoMg=;
-	b=io0Jn+3NajuPHPI4XjqNt9sYHPn2FyPfP/1eLMYG5oEK9p8YQ2ayv0ii4eZsQi7AY5Kxh/
-	8bRt82NClUXSKr1V31d6I/GqCfQd+DB4Ux8EDoCg31zgpyKNNatRAU/WP75QWfFgYjHG7n
-	Oc4aJiIqhIpd+iDcwrxRH5wDMzgILbU=
-Date: Mon, 26 Jan 2026 14:59:43 +0800
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="D8+GIGWK"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp.simply.com (Simply.com) with ESMTP id 4f0BKl5YR7z1DPk2;
+	Mon, 26 Jan 2026 15:50:35 +0100 (CET)
+Received: from [10.10.15.30] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by smtp.simply.com (Simply.com) with ESMTPSA id 4f0BKk6h2Fz1DDV2;
+	Mon, 26 Jan 2026 15:50:34 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
+	s=simplycom2; t=1769439035;
+	bh=ARP0Pw/Fo5FtnRzlhI9dsRF360HgZtwUjmen8yDukTk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=D8+GIGWKbpOYGKqPOqVI+1SKk+U1HacWqBBdSlIWTlvf+ZpgAe7caqNNkYbV4pLHJ
+	 NbbLeq7u3X2qDdnwgtask4C9cOxmPGV3oH3cnb/NXmRfPDug4rzXS+ur1sgJyYHG+H
+	 XQgiYcE9WXsaObs2wL9UsNFqibjRxQ0UnoJKA0RDyJyEvLb3ytcizSFESPplkfE7rn
+	 WnXbg0p3S8ll1Chxrf2fxvqshC/osR2PIfU5BpkILcSyxSxJdF6+FzMnzMBe0Vhuoy
+	 NSshafDDO9d77JX7vQNDZnGcSc9uEj5JF9pl7g0VPKBxlDhj/mp1rC5pqn76Sf8EQj
+	 NFsrz6sR+mRsw==
+Message-ID: <aaf30e1e-be55-4212-b096-69f71bafd406@gaisler.com>
+Date: Mon, 26 Jan 2026 15:50:34 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v3 7/7] mm: make PT_RECLAIM depends on
- MMU_GATHER_RCU_TABLE_FREE
-To: Andreas Larsson <andreas@gaisler.com>, david@kernel.org
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, linux-alpha@vger.kernel.org, loongarch@lists.linux.dev,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- linux-um@lists.infradead.org, Qi Zheng <zhengqi.arch@bytedance.com>,
- sparclinux <sparclinux@vger.kernel.org>, will@kernel.org,
- peterz@infradead.org, akpm@linux-foundation.org, aneesh.kumar@kernel.org,
- npiggin@gmail.com, dev.jain@arm.com, ioworker0@gmail.com, linmag7@gmail.com
-References: <cover.1765963770.git.zhengqi.arch@bytedance.com>
- <ac2bdb2a66da1edb24f60d1da1099e2a0b734880.1765963770.git.zhengqi.arch@bytedance.com>
- <9199f28e-e2b7-48c8-b61f-0b787e322443@gaisler.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Qi Zheng <qi.zheng@linux.dev>
-In-Reply-To: <9199f28e-e2b7-48c8-b61f-0b787e322443@gaisler.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 1/2] sparc: Use vmemmap_populate_hugepages for
+ vmemmap_populate
+To: chengkaitao <pilgrimtao@gmail.com>, davem@davemloft.net,
+ akpm@linux-foundation.org, david@kernel.org, lorenzo.stoakes@oracle.com,
+ Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org, surenb@google.com,
+ mhocko@suse.com
+Cc: kevin.brodsky@arm.com, dave.hansen@linux.intel.com, ziy@nvidia.com,
+ chengkaitao@kylinos.cn, willy@infradead.org, zhengqi.arch@bytedance.com,
+ sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+References: <20260111074453.66728-1-pilgrimtao@gmail.com>
+ <20260111074453.66728-2-pilgrimtao@gmail.com>
+Content-Language: en-US
+From: Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20260111074453.66728-2-pilgrimtao@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 
-
-
-On 1/23/26 11:15 PM, Andreas Larsson wrote:
-> On 2025-12-17 10:45, Qi Zheng wrote:
->> From: Qi Zheng <zhengqi.arch@bytedance.com>
->>
->> The PT_RECLAIM can work on all architectures that support
->> MMU_GATHER_RCU_TABLE_FREE, so make PT_RECLAIM depends on
->> MMU_GATHER_RCU_TABLE_FREE.
->>
->> BTW, change PT_RECLAIM to be enabled by default, since nobody should want
->> to turn it off.
->>
->> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
->> ---
->>   arch/x86/Kconfig | 1 -
->>   mm/Kconfig       | 9 ++-------
->>   2 files changed, 2 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
->> index 80527299f859a..0d22da56a71b0 100644
->> --- a/arch/x86/Kconfig
->> +++ b/arch/x86/Kconfig
->> @@ -331,7 +331,6 @@ config X86
->>   	select FUNCTION_ALIGNMENT_4B
->>   	imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
->>   	select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
->> -	select ARCH_SUPPORTS_PT_RECLAIM		if X86_64
->>   	select ARCH_SUPPORTS_SCHED_SMT		if SMP
->>   	select SCHED_SMT			if SMP
->>   	select ARCH_SUPPORTS_SCHED_CLUSTER	if SMP
->> diff --git a/mm/Kconfig b/mm/Kconfig
->> index bd0ea5454af82..fc00b429b7129 100644
->> --- a/mm/Kconfig
->> +++ b/mm/Kconfig
->> @@ -1447,14 +1447,9 @@ config ARCH_HAS_USER_SHADOW_STACK
->>   	  The architecture has hardware support for userspace shadow call
->>             stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
->>   
->> -config ARCH_SUPPORTS_PT_RECLAIM
->> -	def_bool n
->> -
->>   config PT_RECLAIM
->> -	bool "reclaim empty user page table pages"
->> -	default y
->> -	depends on ARCH_SUPPORTS_PT_RECLAIM && MMU && SMP
->> -	select MMU_GATHER_RCU_TABLE_FREE
->> +	def_bool y
->> +	depends on MMU_GATHER_RCU_TABLE_FREE
->>   	help
->>   	  Try to reclaim empty user page table pages in paths other than munmap
->>   	  and exit_mmap path.
+On 2026-01-11 08:44, chengkaitao wrote:
+> From: Chengkaitao <chengkaitao@kylinos.cn>
 > 
-> Hi,
-> 
-> This patch unfortunately results in a WARN_ON_ONCE and unaligned
-> accesses on sparc64:
-> 
-> $ stress-ng --mmaphuge 20 -t 60
-> stress-ng: info:  [559] setting to a 1 min run per stressor
-> stress-ng: info:  [559] dispatching hogs: 20 mmaphuge
-> [  560.592569] ------------[ cut here ]------------
-> [  560.592663] WARNING: kernel/rcu/tree.c:3098 at __call_rcu_common.constprop.0+0x200/0x760, CPU#4: stress-ng-mmaph/568
-> [  560.592777] CPU: 4 UID: 1000 PID: 568 Comm: stress-ng-mmaph Not tainted 6.19.0-rc5-00127-g62fc9f6ccb97 #8 VOLUNTARY
-> [  560.592805] Call Trace:
-> [  560.592812] [<00000000004368b8>] dump_stack+0x8/0x60
-> [  560.592844] [<0000000000482a60>] __warn+0xe0/0x140
-> [  560.592878] [<0000000000482b64>] warn_slowpath_fmt+0xa4/0x120
-> [  560.592901] [<0000000000526a40>] __call_rcu_common.constprop.0+0x200/0x760
-> [  560.592931] [<0000000000526fd0>] call_rcu+0x10/0x20
-> [  560.592954] [<0000000000730838>] tlb_remove_table+0x98/0xc0
-> [  560.592986] [<000000000071bec4>] free_pgd_range+0x224/0x4c0
-> [  560.593021] [<000000000071c35c>] free_pgtables+0x1fc/0x240
-> [  560.593042] [<000000000074a6f0>] vms_clear_ptes+0x110/0x140
-> [  560.593068] [<000000000074c3dc>] vms_complete_munmap_vmas+0x5c/0x280
-> [  560.593094] [<000000000074de5c>] do_vmi_align_munmap+0x1dc/0x260
-> [  560.593117] [<000000000074df80>] do_vmi_munmap+0xa0/0x140
-> [  560.593142] [<000000000074fb2c>] __vm_munmap+0x8c/0x160
-> [  560.593168] [<000000000072cfd4>] vm_munmap+0x14/0x40
-> [  560.593190] [<00000000004402a8>] sys_64_munmap+0x88/0xa0
-> [  560.593221] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
-> [  560.593274] ---[ end trace 0000000000000000 ]---
-> [  560.593960] log_unaligned: 209 callbacks suppressed
-> [  560.593979] Kernel unaligned access at TPC[526a4c] __call_rcu_common.constprop.0+0x20c/0x760
-> [  560.594121] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
-> [  560.594198] Kernel unaligned access at TPC[52b3c4] rcu_segcblist_enqueue+0x24/0x40
-> [  560.594275] Kernel unaligned access at TPC[526860] __call_rcu_common.constprop.0+0x20/0x760
-> [  560.594360] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
-> [  567.054127] log_unaligned: 1105 callbacks suppressed
-> [  567.054167] Kernel unaligned access at TPC[526860] __call_rcu_common.constprop.0+0x20/0x760
-> [  567.054331] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
-> [  567.054410] Kernel unaligned access at TPC[52b3c4] rcu_segcblist_enqueue+0x24/0x40
+> 1. In the SPARC architecture, reimplemented vmemmap_populate using
+> vmemmap_populate_hugepages.
+> 2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
+> when vmemmap_alloc_block returns NULL.
 
-Thanks for your report!
+This patch seems to potentially make more functional changes than what
+the descriptions gives impression of.
 
-On sparc64, pmd and pud levels are not of struct page:
+Given the amount of changes this seems to introduce, more on that below,
+I'd like to see more description on the changes and why they can be done
+than this.
 
-__pmd_free_tlb/__pud_free_tlb
---> pgtable_free_tlb(tlb, pud/pmd, false). <=== is_page == false
-     --> tlb_remove_table
+Nit: use active language, "reimplement", not "reimplemented".
 
-So in __tlb_remove_table_one(), the table cannot be treated as
-ptdesc because it does not have an pt_rcu_head member.
 
-Hi David, it seems we still need to keep ARCH_SUPPORTS_PT_RECLAIM?
+> Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+> Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> ---
+>  arch/sparc/mm/init_64.c | 47 ++++++++++++++---------------------------
+>  1 file changed, 16 insertions(+), 31 deletions(-)
+> 
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index df9f7c444c39..858eaa6615ea 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2581,8 +2581,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+>  EXPORT_SYMBOL(_PAGE_CACHE);
+>  
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+> -int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> -			       int node, struct vmem_altmap *altmap)
+> +void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+> +			       unsigned long addr, unsigned long next)
+>  {
+>  	unsigned long pte_base;
+>  
+> @@ -2595,39 +2595,24 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+>  
+>  	pte_base |= _PAGE_PMD_HUGE;
+>  
+> -	vstart = vstart & PMD_MASK;
+> -	vend = ALIGN(vend, PMD_SIZE);
 
-Thanks,
-Qi
+It seems that this patch removes alignment of both start and end. Is
+this a functional change in practice or are these always aligned for
+some other reason?
 
-> ...
-> 
-> I bisected to this one on mm-unstable from approximately 2026-01-12.
-> 
-> The warning is from
-> 
-> 	/* Misaligned rcu_head! */
-> 	WARN_ON_ONCE((unsigned long)head & (sizeof(void *) - 1));
-> 
-> in __call_rcu_common() and the unaligned accesses follows from there.
-> 
-> Regards,
-> Andreas
-> 
+
+> -	for (; vstart < vend; vstart += PMD_SIZE) {
+> -		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+> -		unsigned long pte;
+> -		p4d_t *p4d;
+> -		pud_t *pud;
+> -		pmd_t *pmd;
+> -
+> -		if (!pgd)
+> -			return -ENOMEM;
+> -
+> -		p4d = vmemmap_p4d_populate(pgd, vstart, node);
+> -		if (!p4d)
+> -			return -ENOMEM;
+> -
+> -		pud = vmemmap_pud_populate(p4d, vstart, node);
+> -		if (!pud)
+> -			return -ENOMEM;
+> +	pmd_val(*pmd) = pte_base | __pa(p);
+> +}
+>  
+> -		pmd = pmd_offset(pud, vstart);
+> -		pte = pmd_val(*pmd);
+> -		if (!(pte & _PAGE_VALID)) {
+
+It is not the same thing, but is this equivalent to if
+(pmd_none(pmdp_get(pmd))) at this point?
+
+
+> -			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+> +int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+> +				unsigned long addr, unsigned long next)
+> +{
+> +	int large = pmd_leaf(*pmdp);
+>  
+> -			if (!block)
+> -				return -ENOMEM;
+> +	if (large)
+> +		vmemmap_verify((pte_t *)pmdp, node, addr, next);
+>  
+> -			pmd_val(*pmd) = pte_base | __pa(block);
+> -		}
+> -	}
+> +	return large;
+> +}
+>  
+> -	return 0;
+> +int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+> +			       int node, struct vmem_altmap *altmap)
+> +{
+> +	return vmemmap_populate_hugepages(vstart, vend, node, altmap);
+>  }
+>  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+>  
+
+
+This change introduces using vmemmap_alloc_block_buf() instead of
+vmemmap_alloc_block() seems to introduce two new behaviours that was not
+in use for sparc64 before:
+
+1) Using altmap_alloc_block_buf() for a non-null altmap, that was not
+   used before. Also the fallback to vmemmap_populate_basepages() passes
+   on altmap.
+
+2) Trying sparse_buffer_alloc() before vmemmap_alloc_block(), which was
+   not done before.
+
+Neither the commit message nor the cover letter touches upon this. Could
+you elaborate here?
+
+
+Given all the (at least seeming) functional changes could you share how
+you tested this change?
+
+Cheers,
+Andreas
 
