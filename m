@@ -1,181 +1,180 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51543FEF;
-	Sat, 24 Jan 2026 10:16:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F42286D5C
+	for <sparclinux@vger.kernel.org>; Mon, 26 Jan 2026 07:00:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769249762; cv=none; b=T6YXFfb/AkFjPlxz4QILvU21ci8f/n15sxixdNJe+wEHkYnhQdngOhvjZs1JqMPih2B26nK8FfCwt/kZOksKOassWIsl64g6cA4DDzPOTqBRMgfVbLtTMHL1ZaEFdvR5bmAK+9Y44EWYyDunmQ+UInOUOJ2DWwu+z7FHhdJyKLo=
+	t=1769410817; cv=none; b=tv+0kxDVr7y/x5MEq75Ik+YXfq0PH1r+pErRZSu1Fl5tm/OxFV6WTmhCTqB5LZNGoL7WwQ6wnn2k1uXX3L+Yt6MkTabXWe99xBlDbTX2xPoTzfLQcSqVEfu113Iq48nssFOiEawJGNOBCqdofVdQM2yeCWtDKwYwy4vBvFfwVwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769249762; c=relaxed/simple;
-	bh=UPTxfV10NFGsFNMLbllwwGihhByrD9Chz5Ya/aU4aSQ=;
+	s=arc-20240116; t=1769410817; c=relaxed/simple;
+	bh=hIVMICCOrwOEHb7O10TcOjpQqCQ90wHru/xyyTPnNZQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Zsp40bhcDr++uYgWGeiaMLvCwjfXnsY9kxbxtPExS7ApmuBAnkiWlItiui2XZR9+vGTEiBAhKJ9m+/1KFZs7S011v8fGfWYZoa0gkdQqVjO5vSnAPoTTzZab5Oy2TM14Erl0LdRqNn/tGp+9QYf4OT4Yn5N2oIYl+wGbjQRZPSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BG+9wd2o; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=Gl/BUXxfXn5csTgmEUCyKbd1yZEgcjq08yw+eMbUgI/GPJTmHugh6nUSdUD7NOpybQColXEoqYeTx6HC5MlnYlUd9FncRITpU95QL6j8Oif7lv/N6j+hOdAJ9np5Dq6h35PF2/v0BPpYvDgeuhoOOn3zD90fSPEAKT6HvgShKis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=io0Jn+3N; arc=none smtp.client-ip=91.218.175.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BG+9wd2o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D83BC116D0;
-	Sat, 24 Jan 2026 10:15:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769249762;
-	bh=UPTxfV10NFGsFNMLbllwwGihhByrD9Chz5Ya/aU4aSQ=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=BG+9wd2ovrMG5pu7KsxBmuHPlYw48y+qEQuXSOmuaQ786O9ubyptVjzd3TPikqKEV
-	 MtPvuwrKZtwGgD5G4X1PGRfnjjFohKmYb3O3Y4u5BFFb01X2hKPytrs6tuQ52Dm9nS
-	 fmDIq7vs8J8McangAIFv826LCzRZLNgtf/9d3q8GVASVYzXNiEOedwA61U/TSPBRLw
-	 B/uNVy9iMafbxhVtHeEUGbMQNxTqlAJ8n51n6Tyk+R2myqLHAu834xSBnmo1UVELl7
-	 eeika37+zLOWSlLAtg5QwuglP1fRf1menyZ0BPn8+f6CDzm2bJ29YHmoNsPqWpbZ5/
-	 er2PErNhz4kjQ==
-Message-ID: <02784e9a-d934-44c3-ae24-a83a1bcf678d@kernel.org>
-Date: Sat, 24 Jan 2026 11:15:47 +0100
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="io0Jn+3N"
+Message-ID: <646d9b5c-453c-4db8-b578-0f343e170379@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1769410802;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=hybAGJDtwUTQyBJLSE6cgT3x4CprzyvIGdy1i62DoMg=;
+	b=io0Jn+3NajuPHPI4XjqNt9sYHPn2FyPfP/1eLMYG5oEK9p8YQ2ayv0ii4eZsQi7AY5Kxh/
+	8bRt82NClUXSKr1V31d6I/GqCfQd+DB4Ux8EDoCg31zgpyKNNatRAU/WP75QWfFgYjHG7n
+	Oc4aJiIqhIpd+iDcwrxRH5wDMzgILbU=
+Date: Mon, 26 Jan 2026 14:59:43 +0800
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH mm-unstable] arch, mm: consolidate empty_zero_page
-To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
- Brian Cain <bcain@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
- "David S. Miller" <davem@davemloft.net>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@kernel.org>, Dinh Nguyen <dinguyen@kernel.org>,
- Geert Uytterhoeven <geert@linux-m68k.org>, Guo Ren <guoren@kernel.org>,
- Helge Deller <deller@gmx.de>, Huacai Chen <chenhuacai@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Johannes Berg <johannes@sipsolutions.net>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Magnus Lindholm <linmag7@gmail.com>, Matt Turner <mattst88@gmail.com>,
- Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Michal Hocko <mhocko@suse.com>, Michal Simek <monstr@monstr.eu>,
- Palmer Dabbelt <palmer@dabbelt.com>, Richard Weinberger <richard@nod.at>,
- Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>,
- Suren Baghdasaryan <surenb@google.com>, Thomas Gleixner <tglx@kernel.org>,
- Vineet Gupta <vgupta@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
- Will Deacon <will@kernel.org>, linux-alpha@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-openrisc@vger.kernel.org,
- linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
- linux-mm@kvack.org, x86@kernel.org
-References: <20260124095628.668870-1-rppt@kernel.org>
-Content-Language: fr-FR
-From: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-In-Reply-To: <20260124095628.668870-1-rppt@kernel.org>
+Subject: Re: [PATCH v3 7/7] mm: make PT_RECLAIM depends on
+ MMU_GATHER_RCU_TABLE_FREE
+To: Andreas Larsson <andreas@gaisler.com>, david@kernel.org
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-mm@kvack.org, linux-alpha@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linux-um@lists.infradead.org, Qi Zheng <zhengqi.arch@bytedance.com>,
+ sparclinux <sparclinux@vger.kernel.org>, will@kernel.org,
+ peterz@infradead.org, akpm@linux-foundation.org, aneesh.kumar@kernel.org,
+ npiggin@gmail.com, dev.jain@arm.com, ioworker0@gmail.com, linmag7@gmail.com
+References: <cover.1765963770.git.zhengqi.arch@bytedance.com>
+ <ac2bdb2a66da1edb24f60d1da1099e2a0b734880.1765963770.git.zhengqi.arch@bytedance.com>
+ <9199f28e-e2b7-48c8-b61f-0b787e322443@gaisler.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Qi Zheng <qi.zheng@linux.dev>
+In-Reply-To: <9199f28e-e2b7-48c8-b61f-0b787e322443@gaisler.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
 
 
-Le 24/01/2026 à 10:56, Mike Rapoport a écrit :
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On 1/23/26 11:15 PM, Andreas Larsson wrote:
+> On 2025-12-17 10:45, Qi Zheng wrote:
+>> From: Qi Zheng <zhengqi.arch@bytedance.com>
+>>
+>> The PT_RECLAIM can work on all architectures that support
+>> MMU_GATHER_RCU_TABLE_FREE, so make PT_RECLAIM depends on
+>> MMU_GATHER_RCU_TABLE_FREE.
+>>
+>> BTW, change PT_RECLAIM to be enabled by default, since nobody should want
+>> to turn it off.
+>>
+>> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+>> ---
+>>   arch/x86/Kconfig | 1 -
+>>   mm/Kconfig       | 9 ++-------
+>>   2 files changed, 2 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>> index 80527299f859a..0d22da56a71b0 100644
+>> --- a/arch/x86/Kconfig
+>> +++ b/arch/x86/Kconfig
+>> @@ -331,7 +331,6 @@ config X86
+>>   	select FUNCTION_ALIGNMENT_4B
+>>   	imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
+>>   	select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
+>> -	select ARCH_SUPPORTS_PT_RECLAIM		if X86_64
+>>   	select ARCH_SUPPORTS_SCHED_SMT		if SMP
+>>   	select SCHED_SMT			if SMP
+>>   	select ARCH_SUPPORTS_SCHED_CLUSTER	if SMP
+>> diff --git a/mm/Kconfig b/mm/Kconfig
+>> index bd0ea5454af82..fc00b429b7129 100644
+>> --- a/mm/Kconfig
+>> +++ b/mm/Kconfig
+>> @@ -1447,14 +1447,9 @@ config ARCH_HAS_USER_SHADOW_STACK
+>>   	  The architecture has hardware support for userspace shadow call
+>>             stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
+>>   
+>> -config ARCH_SUPPORTS_PT_RECLAIM
+>> -	def_bool n
+>> -
+>>   config PT_RECLAIM
+>> -	bool "reclaim empty user page table pages"
+>> -	default y
+>> -	depends on ARCH_SUPPORTS_PT_RECLAIM && MMU && SMP
+>> -	select MMU_GATHER_RCU_TABLE_FREE
+>> +	def_bool y
+>> +	depends on MMU_GATHER_RCU_TABLE_FREE
+>>   	help
+>>   	  Try to reclaim empty user page table pages in paths other than munmap
+>>   	  and exit_mmap path.
 > 
-> Reduce 22 declarations of empty_zero_page to 3 and 23 declarations of
-> ZERO_PAGE() to 4.
+> Hi,
 > 
-> Every architecture defines empty_zero_page that way or another, but for the
-> most of them it is always a page aligned page in BSS and most definitions
-> of ZERO_PAGE do virt_to_page(empty_zero_page).
+> This patch unfortunately results in a WARN_ON_ONCE and unaligned
+> accesses on sparc64:
 > 
-> Move Linus vetted x86 definition of empty_zero_page and ZERO_PAGE() to the
-> core MM and drop these definitions in architectures that do not implement
-> colored zero page (MIPS and s390).
-> 
-> ZERO_PAGE() remains a macro because turning it to a wrapper for a static
-> inline causes severe pain in header dependencies.
-> 
-> For the most part the change is mechanical, with these being noteworthy:
-> 
-> * alpha: aliased empty_zero_page with ZERO_PGE that was also used for boot
->    parameters. Switching to a generic empty_zero_page removes the aliasing
->    and keeps ZERO_PGE for boot parameters only
-> * arm64: uses __pa_symbol() in ZERO_PAGE() so that definition of
->    ZERO_PAGE() is kept intact.
-> * m68k/parisc/sparc64/um: allocated empty_zero_page from memblock,
->    although they do not support zero page coloring and having it in BSS
->    will work fine.
-> * sh: used empty_zero_page for boot parameters at the very early boot.
->    Rename the parameters page to boot_params_page and let sh use the generic
->    empty_zero_page.
-> * hexagon: had an amusing comment about empty_zero_page
-> 
-> 	/* A handy thing to have if one has the RAM. Declared in head.S */
-> 
->    that unfortunately had to go :)
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> ---
->   arch/alpha/include/asm/pgtable.h          |  6 ------
->   arch/arc/include/asm/pgtable.h            |  3 ---
->   arch/arc/mm/init.c                        |  2 --
->   arch/arm/include/asm/pgtable.h            |  9 ---------
->   arch/arm/mm/mmu.c                         |  7 -------
->   arch/arm/mm/nommu.c                       |  7 -------
->   arch/arm64/include/asm/pgtable.h          |  1 -
->   arch/arm64/mm/mmu.c                       |  7 -------
->   arch/csky/include/asm/pgtable.h           |  3 ---
->   arch/csky/mm/init.c                       |  3 ---
->   arch/hexagon/include/asm/pgtable.h        |  6 ------
->   arch/hexagon/kernel/head.S                |  5 -----
->   arch/hexagon/kernel/hexagon_ksyms.c       |  1 -
->   arch/loongarch/include/asm/pgtable.h      |  9 ---------
->   arch/loongarch/mm/init.c                  |  3 ---
->   arch/m68k/include/asm/pgtable_mm.h        |  9 ---------
->   arch/m68k/include/asm/pgtable_no.h        |  7 -------
->   arch/m68k/mm/init.c                       |  9 ---------
->   arch/m68k/mm/mcfmmu.c                     |  2 --
->   arch/m68k/mm/motorola.c                   |  6 ------
->   arch/m68k/mm/sun3mmu.c                    |  2 --
->   arch/microblaze/include/asm/pgtable.h     | 10 ----------
->   arch/microblaze/kernel/head.S             |  4 ----
->   arch/microblaze/kernel/microblaze_ksyms.c |  2 --
->   arch/nios2/include/asm/pgtable.h          |  7 -------
->   arch/nios2/kernel/head.S                  | 10 ----------
->   arch/nios2/kernel/nios2_ksyms.c           |  1 -
->   arch/openrisc/include/asm/pgtable.h       |  4 ----
->   arch/openrisc/kernel/head.S               |  3 ---
->   arch/openrisc/kernel/or32_ksyms.c         |  1 -
->   arch/openrisc/mm/init.c                   |  3 ---
->   arch/parisc/include/asm/pgtable.h         | 11 -----------
->   arch/parisc/mm/init.c                     |  6 ------
->   arch/powerpc/include/asm/pgtable.h        |  6 ------
->   arch/powerpc/mm/mem.c                     |  3 ---
+> $ stress-ng --mmaphuge 20 -t 60
+> stress-ng: info:  [559] setting to a 1 min run per stressor
+> stress-ng: info:  [559] dispatching hogs: 20 mmaphuge
+> [  560.592569] ------------[ cut here ]------------
+> [  560.592663] WARNING: kernel/rcu/tree.c:3098 at __call_rcu_common.constprop.0+0x200/0x760, CPU#4: stress-ng-mmaph/568
+> [  560.592777] CPU: 4 UID: 1000 PID: 568 Comm: stress-ng-mmaph Not tainted 6.19.0-rc5-00127-g62fc9f6ccb97 #8 VOLUNTARY
+> [  560.592805] Call Trace:
+> [  560.592812] [<00000000004368b8>] dump_stack+0x8/0x60
+> [  560.592844] [<0000000000482a60>] __warn+0xe0/0x140
+> [  560.592878] [<0000000000482b64>] warn_slowpath_fmt+0xa4/0x120
+> [  560.592901] [<0000000000526a40>] __call_rcu_common.constprop.0+0x200/0x760
+> [  560.592931] [<0000000000526fd0>] call_rcu+0x10/0x20
+> [  560.592954] [<0000000000730838>] tlb_remove_table+0x98/0xc0
+> [  560.592986] [<000000000071bec4>] free_pgd_range+0x224/0x4c0
+> [  560.593021] [<000000000071c35c>] free_pgtables+0x1fc/0x240
+> [  560.593042] [<000000000074a6f0>] vms_clear_ptes+0x110/0x140
+> [  560.593068] [<000000000074c3dc>] vms_complete_munmap_vmas+0x5c/0x280
+> [  560.593094] [<000000000074de5c>] do_vmi_align_munmap+0x1dc/0x260
+> [  560.593117] [<000000000074df80>] do_vmi_munmap+0xa0/0x140
+> [  560.593142] [<000000000074fb2c>] __vm_munmap+0x8c/0x160
+> [  560.593168] [<000000000072cfd4>] vm_munmap+0x14/0x40
+> [  560.593190] [<00000000004402a8>] sys_64_munmap+0x88/0xa0
+> [  560.593221] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
+> [  560.593274] ---[ end trace 0000000000000000 ]---
+> [  560.593960] log_unaligned: 209 callbacks suppressed
+> [  560.593979] Kernel unaligned access at TPC[526a4c] __call_rcu_common.constprop.0+0x20c/0x760
+> [  560.594121] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
+> [  560.594198] Kernel unaligned access at TPC[52b3c4] rcu_segcblist_enqueue+0x24/0x40
+> [  560.594275] Kernel unaligned access at TPC[526860] __call_rcu_common.constprop.0+0x20/0x760
+> [  560.594360] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
+> [  567.054127] log_unaligned: 1105 callbacks suppressed
+> [  567.054167] Kernel unaligned access at TPC[526860] __call_rcu_common.constprop.0+0x20/0x760
+> [  567.054331] Kernel unaligned access at TPC[526864] __call_rcu_common.constprop.0+0x24/0x760
+> [  567.054410] Kernel unaligned access at TPC[52b3c4] rcu_segcblist_enqueue+0x24/0x40
 
-For powerpc:
+Thanks for your report!
 
-Reviewed-by: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
+On sparc64, pmd and pud levels are not of struct page:
 
->   arch/riscv/include/asm/pgtable.h          |  7 -------
->   arch/riscv/mm/init.c                      |  4 ----
->   arch/sh/include/asm/pgtable.h             |  8 --------
->   arch/sh/include/asm/setup.h               |  3 ++-
->   arch/sh/kernel/head_32.S                  |  4 ++--
->   arch/sh/kernel/sh_ksyms_32.c              |  1 -
->   arch/sh/mm/init.c                         |  1 -
->   arch/sparc/include/asm/pgtable_32.h       |  8 --------
->   arch/sparc/include/asm/pgtable_64.h       |  3 ---
->   arch/sparc/include/asm/setup.h            |  2 --
->   arch/sparc/kernel/head_32.S               |  7 -------
->   arch/sparc/mm/init_32.c                   |  4 ----
->   arch/sparc/mm/init_64.c                   | 15 ---------------
->   arch/um/include/asm/pgtable.h             |  9 ---------
->   arch/um/include/shared/kern_util.h        |  1 -
->   arch/um/kernel/mem.c                      | 16 ----------------
->   arch/um/kernel/um_arch.c                  |  1 -
->   arch/x86/include/asm/pgtable.h            |  8 --------
->   arch/x86/kernel/head_32.S                 |  4 ----
->   arch/x86/kernel/head_64.S                 |  7 -------
->   arch/xtensa/include/asm/pgtable.h         |  4 ----
->   arch/xtensa/kernel/head.S                 |  3 ---
->   arch/xtensa/kernel/xtensa_ksyms.c         |  2 --
->   include/linux/pgtable.h                   |  8 ++++++++
->   mm/mm_init.c                              |  9 +++++++++
->   60 files changed, 21 insertions(+), 296 deletions(-)
+__pmd_free_tlb/__pud_free_tlb
+--> pgtable_free_tlb(tlb, pud/pmd, false). <=== is_page == false
+     --> tlb_remove_table
+
+So in __tlb_remove_table_one(), the table cannot be treated as
+ptdesc because it does not have an pt_rcu_head member.
+
+Hi David, it seems we still need to keep ARCH_SUPPORTS_PT_RECLAIM?
+
+Thanks,
+Qi
+
+> ...
 > 
+> I bisected to this one on mm-unstable from approximately 2026-01-12.
+> 
+> The warning is from
+> 
+> 	/* Misaligned rcu_head! */
+> 	WARN_ON_ONCE((unsigned long)head & (sizeof(void *) - 1));
+> 
+> in __call_rcu_common() and the unaligned accesses follows from there.
+> 
+> Regards,
+> Andreas
+> 
+
