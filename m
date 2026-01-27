@@ -1,253 +1,94 @@
-Received: from out-181.mta1.migadu.com (out-181.mta1.migadu.com [95.215.58.181])
+Received: from out-180.mta1.migadu.com (out-180.mta1.migadu.com [95.215.58.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36010341046;
-	Tue, 27 Jan 2026 11:47:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D5730DD3A
+	for <sparclinux@vger.kernel.org>; Tue, 27 Jan 2026 12:16:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769514474; cv=none; b=KZYOsHg9H1CIaYWK+xNlVRVnpCJEsZ2Ee4S20I3mFP/dRrzLvN6aIx09qLS+WHqnWICnhqcakgB4C76aKs2G8JtaoXl9D0x/xtTUjzXg+NGx9uvUVtLi9utUqrTPTaVpcFB/2GJV5IqtCVEna3LOc7dh+Vrhz+U8YqTGbvWdwxo=
+	t=1769516179; cv=none; b=WnsXu5ubs7OYOahy8Tkg0KmpnOZ5es1P+YvXFOSA38OVG8BFEV1sed8HP6t/LtOo4ZnQTsWCfuKudWIsqXXN3WMrXRZCc9rbMjupK5BF/uee8QFcdQgskqi2QaGeKIOTMzLfR2IpjjnhTb/wlY+zJ6TWl3aB/IbfI8XNLwHEsdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769514474; c=relaxed/simple;
-	bh=riaTe/SlktwhJ8T7R7Qk1enyVIGOcF8GgZzEMfX/esU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MEW2jeBbqHFVKp72YC0so94hyQVFF6Tu/x25WQYwv6vM6PPcJqF5k+QiW6HH5qslcuTeEUCLTPmnRdasFHpKaHNlXzBRzj6iP2lg1MCSP4qCjsE7k4WGQq01VIQznCE/fFRapQYg+LC8x8BYYflUwf+HvhAXauNUoq6TxLfAba0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=geIbgcmQ; arc=none smtp.client-ip=95.215.58.181
+	s=arc-20240116; t=1769516179; c=relaxed/simple;
+	bh=JhxM1xZytB9dQTFt30KTFN8eef9XC2zTXIh3BIBrr74=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=RGFmab82xTTIcx5l7OdJyhk2HEMwDxZW4u+mkbsRjsEMvPV/pf+CSfua6Ssuyh3o6h1afVIdFGC709eWTIg9Rr06i7HWvj4qUJfXVBFT7F+vJheEvaczSFI1phHy4hNkaWQbtHmOr1BCtfp/ieTu31zldcG1QbTRW++8Jz2N8J0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=hUKjvELb; arc=none smtp.client-ip=95.215.58.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="geIbgcmQ"
-Message-ID: <d0ebcc3d-ba81-49ca-899a-34206f8dd71f@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="hUKjvELb"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1769514460;
+	t=1769516175;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=7pWWrBw/g6wBSDR+KZLdDDHjBjIgHxTRlg2xMP60T9Q=;
-	b=geIbgcmQzqM7jMAtwh7suxlzdM+imDNke2ssJ2XrenGeaGRiSbpGgfg4Kt8aZ9muFstd3u
-	ZvqUATxGyeqBX9IfOacg4mCXYEHURuT2xaf3eXzxzb4SfsxTDp5Z490BRVAd6RxrlSxsuK
-	aZEhRTgen2VeL1mG/aI5EuEO2ei/aIQ=
-Date: Tue, 27 Jan 2026 19:47:16 +0800
+	bh=bw+1Lau4jkXgNGH1w/oSy1pnIcM7wv7myPLVDHR+sFs=;
+	b=hUKjvELbABSmnUqrI5qPQ9bSnsP89+zBRGMs7qv4H7R27UKdLDXzwCU/gg9o3BfqeT7gST
+	gcwTCrZEx5j4Uez+P67ltUVh1b+5YlRCzUPEJQdC9fITO2OWcyB+9wYkoAHOxFLz1rkNYN
+	VeJ1wvGnl78/SABD8IsL0/mjfl6wMPk=
+From: Qi Zheng <qi.zheng@linux.dev>
+To: david@kernel.org,
+	andreas@gaisler.com,
+	richard.weiyang@gmail.com,
+	will@kernel.org,
+	peterz@infradead.org,
+	aneesh.kumar@kernel.org,
+	npiggin@gmail.com,
+	dev.jain@arm.com,
+	ioworker0@gmail.com,
+	linmag7@gmail.com,
+	akpm@linux-foundation.org
+Cc: linux-arch@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-alpha@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	sparclinux@vger.kernel.org,
+	Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: [PATCH v4 1/8] mm: change mm/pt_reclaim.c to use asm/tlb.h instead of asm-generic/tlb.h
+Date: Tue, 27 Jan 2026 20:12:54 +0800
+Message-ID: <befca537d10c6bf8d531b1ee0a8af1e3b31352b0.1769515122.git.zhengqi.arch@bytedance.com>
+In-Reply-To: <cover.1769515122.git.zhengqi.arch@bytedance.com>
+References: <cover.1769515122.git.zhengqi.arch@bytedance.com>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v3 7/7] mm: make PT_RECLAIM depends on
- MMU_GATHER_RCU_TABLE_FREE
-To: "David Hildenbrand (Red Hat)" <david@kernel.org>,
- Andreas Larsson <andreas@gaisler.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, linux-alpha@vger.kernel.org, loongarch@lists.linux.dev,
- linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
- linux-um@lists.infradead.org, Qi Zheng <zhengqi.arch@bytedance.com>,
- sparclinux <sparclinux@vger.kernel.org>, will@kernel.org,
- peterz@infradead.org, akpm@linux-foundation.org, aneesh.kumar@kernel.org,
- npiggin@gmail.com, dev.jain@arm.com, ioworker0@gmail.com, linmag7@gmail.com
-References: <cover.1765963770.git.zhengqi.arch@bytedance.com>
- <ac2bdb2a66da1edb24f60d1da1099e2a0b734880.1765963770.git.zhengqi.arch@bytedance.com>
- <9199f28e-e2b7-48c8-b61f-0b787e322443@gaisler.com>
- <646d9b5c-453c-4db8-b578-0f343e170379@linux.dev>
- <b95f042f-8fc8-4b6c-b9db-b198efdd0973@kernel.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Qi Zheng <qi.zheng@linux.dev>
-In-Reply-To: <b95f042f-8fc8-4b6c-b9db-b198efdd0973@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
+From: Qi Zheng <zhengqi.arch@bytedance.com>
 
+Generally, the asm/tlb.h will include asm-generic/tlb.h, so change
+mm/pt_reclaim.c to use asm/tlb.h instead of asm-generic/tlb.h. This is a
+preparation for enabling CONFIG_PT_RECLAIM on other architectures, such as
+alpha.
 
-On 1/27/26 7:29 PM, David Hildenbrand (Red Hat) wrote:
-> On 1/26/26 07:59, Qi Zheng wrote:
->>
->>
->> On 1/23/26 11:15 PM, Andreas Larsson wrote:
->>> On 2025-12-17 10:45, Qi Zheng wrote:
->>>> From: Qi Zheng <zhengqi.arch@bytedance.com>
->>>>
->>>> The PT_RECLAIM can work on all architectures that support
->>>> MMU_GATHER_RCU_TABLE_FREE, so make PT_RECLAIM depends on
->>>> MMU_GATHER_RCU_TABLE_FREE.
->>>>
->>>> BTW, change PT_RECLAIM to be enabled by default, since nobody should 
->>>> want
->>>> to turn it off.
->>>>
->>>> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
->>>> ---
->>>>    arch/x86/Kconfig | 1 -
->>>>    mm/Kconfig       | 9 ++-------
->>>>    2 files changed, 2 insertions(+), 8 deletions(-)
->>>>
->>>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
->>>> index 80527299f859a..0d22da56a71b0 100644
->>>> --- a/arch/x86/Kconfig
->>>> +++ b/arch/x86/Kconfig
->>>> @@ -331,7 +331,6 @@ config X86
->>>>        select FUNCTION_ALIGNMENT_4B
->>>>        imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
->>>>        select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
->>>> -    select ARCH_SUPPORTS_PT_RECLAIM        if X86_64
->>>>        select ARCH_SUPPORTS_SCHED_SMT        if SMP
->>>>        select SCHED_SMT            if SMP
->>>>        select ARCH_SUPPORTS_SCHED_CLUSTER    if SMP
->>>> diff --git a/mm/Kconfig b/mm/Kconfig
->>>> index bd0ea5454af82..fc00b429b7129 100644
->>>> --- a/mm/Kconfig
->>>> +++ b/mm/Kconfig
->>>> @@ -1447,14 +1447,9 @@ config ARCH_HAS_USER_SHADOW_STACK
->>>>          The architecture has hardware support for userspace shadow 
->>>> call
->>>>              stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
->>>> -config ARCH_SUPPORTS_PT_RECLAIM
->>>> -    def_bool n
->>>> -
->>>>    config PT_RECLAIM
->>>> -    bool "reclaim empty user page table pages"
->>>> -    default y
->>>> -    depends on ARCH_SUPPORTS_PT_RECLAIM && MMU && SMP
->>>> -    select MMU_GATHER_RCU_TABLE_FREE
->>>> +    def_bool y
->>>> +    depends on MMU_GATHER_RCU_TABLE_FREE
->>>>        help
->>>>          Try to reclaim empty user page table pages in paths other 
->>>> than munmap
->>>>          and exit_mmap path.
->>>
->>> Hi,
->>>
->>> This patch unfortunately results in a WARN_ON_ONCE and unaligned
->>> accesses on sparc64:
->>>
->>> $ stress-ng --mmaphuge 20 -t 60
->>> stress-ng: info:  [559] setting to a 1 min run per stressor
->>> stress-ng: info:  [559] dispatching hogs: 20 mmaphuge
->>> [  560.592569] ------------[ cut here ]------------
->>> [  560.592663] WARNING: kernel/rcu/tree.c:3098 at 
->>> __call_rcu_common.constprop.0+0x200/0x760, CPU#4: stress-ng-mmaph/568
->>> [  560.592777] CPU: 4 UID: 1000 PID: 568 Comm: stress-ng-mmaph Not 
->>> tainted 6.19.0-rc5-00127-g62fc9f6ccb97 #8 VOLUNTARY
->>> [  560.592805] Call Trace:
->>> [  560.592812] [<00000000004368b8>] dump_stack+0x8/0x60
->>> [  560.592844] [<0000000000482a60>] __warn+0xe0/0x140
->>> [  560.592878] [<0000000000482b64>] warn_slowpath_fmt+0xa4/0x120
->>> [  560.592901] [<0000000000526a40>] 
->>> __call_rcu_common.constprop.0+0x200/0x760
->>> [  560.592931] [<0000000000526fd0>] call_rcu+0x10/0x20
->>> [  560.592954] [<0000000000730838>] tlb_remove_table+0x98/0xc0
->>> [  560.592986] [<000000000071bec4>] free_pgd_range+0x224/0x4c0
->>> [  560.593021] [<000000000071c35c>] free_pgtables+0x1fc/0x240
->>> [  560.593042] [<000000000074a6f0>] vms_clear_ptes+0x110/0x140
->>> [  560.593068] [<000000000074c3dc>] vms_complete_munmap_vmas+0x5c/0x280
->>> [  560.593094] [<000000000074de5c>] do_vmi_align_munmap+0x1dc/0x260
->>> [  560.593117] [<000000000074df80>] do_vmi_munmap+0xa0/0x140
->>> [  560.593142] [<000000000074fb2c>] __vm_munmap+0x8c/0x160
->>> [  560.593168] [<000000000072cfd4>] vm_munmap+0x14/0x40
->>> [  560.593190] [<00000000004402a8>] sys_64_munmap+0x88/0xa0
->>> [  560.593221] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
->>> [  560.593274] ---[ end trace 0000000000000000 ]---
->>> [  560.593960] log_unaligned: 209 callbacks suppressed
->>> [  560.593979] Kernel unaligned access at TPC[526a4c] 
->>> __call_rcu_common.constprop.0+0x20c/0x760
->>> [  560.594121] Kernel unaligned access at TPC[526864] 
->>> __call_rcu_common.constprop.0+0x24/0x760
->>> [  560.594198] Kernel unaligned access at TPC[52b3c4] 
->>> rcu_segcblist_enqueue+0x24/0x40
->>> [  560.594275] Kernel unaligned access at TPC[526860] 
->>> __call_rcu_common.constprop.0+0x20/0x760
->>> [  560.594360] Kernel unaligned access at TPC[526864] 
->>> __call_rcu_common.constprop.0+0x24/0x760
->>> [  567.054127] log_unaligned: 1105 callbacks suppressed
->>> [  567.054167] Kernel unaligned access at TPC[526860] 
->>> __call_rcu_common.constprop.0+0x20/0x760
->>> [  567.054331] Kernel unaligned access at TPC[526864] 
->>> __call_rcu_common.constprop.0+0x24/0x760
->>> [  567.054410] Kernel unaligned access at TPC[52b3c4] 
->>> rcu_segcblist_enqueue+0x24/0x40
->>
->> Thanks for your report!
->>
->> On sparc64, pmd and pud levels are not of struct page:
-> 
-> Can you elaborate, I don't understand what you mean :)
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+---
+ mm/pt_reclaim.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On sparc64:
-
-static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, 
-bool is_page)
-{
-	unsigned long pgf = (unsigned long)table;
-	if (is_page)
-		pgf |= 0x1UL;
-	tlb_remove_table(tlb, (void *)pgf);
-}
-
-static inline void __tlb_remove_table(void *_table)
-{
-	void *table = (void *)((unsigned long)_table & ~0x1UL);
-	bool is_page = false;
-
-	if ((unsigned long)_table & 0x1UL)
-		is_page = true;
-	pgtable_free(table, is_page);
-}
-
-void pgtable_free(void *table, bool is_page)
-{
-	if (is_page)
-		__pte_free(table);
-	else
-		kmem_cache_free(pgtable_cache, table);
-}
-
-For pmd and pud levels, is_page is false, so we can not do the
-following in __tlb_remove_table_one().
-
-```
-	ptdesc = table;
-	call_rcu(&ptdesc->pt_rcu_head, __tlb_remove_table_one_rcu);
-```
-
-> 
-> Is it also a problem on architectures like s390x and ppc, where we 
-> squeeze multiple page tables into a physical pages?
-
-For ppc, it's the same as for sparc64.
-
-For s390x, it supports MMU_GATHER_RCU_TABLE_FREE and define its own
-pxx_free_tlb(), but these all call tlb_remove_ptdesc(), so there is no
-problem.
-
-> 
->>
->> __pmd_free_tlb/__pud_free_tlb
->> --> pgtable_free_tlb(tlb, pud/pmd, false). <=== is_page == false
->>       --> tlb_remove_table
->>
->> So in __tlb_remove_table_one(), the table cannot be treated as
->> ptdesc because it does not have an pt_rcu_head member.
->>
->> Hi David, it seems we still need to keep ARCH_SUPPORTS_PT_RECLAIM?
-> 
-> Or we invert it and only disable it for the known-problematic 
-> architectures?
-
-Yes, the problem lies with those architectures that support
-MMU_GATHER_RCU_TABLE_FREE and define their own _tlb_remove_table().
-
-So my plan is as follows:
-
-1. convert __HAVE_ARCH_TLB_REMOVE_TABLE to 
-CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config
-2. make PT_RECLAIM depends on MMU_GATHER_RCU_TABLE_FREE && 
-!HAVE_ARCH_TLB_REMOVE_TABLE
-
-I'll send v4 soon.
-
-Thanks,
-Qi
-
-> 
+diff --git a/mm/pt_reclaim.c b/mm/pt_reclaim.c
+index 0d9cfbf4fe5d8..46771cfff8239 100644
+--- a/mm/pt_reclaim.c
++++ b/mm/pt_reclaim.c
+@@ -2,7 +2,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/pgalloc.h>
+ 
+-#include <asm-generic/tlb.h>
++#include <asm/tlb.h>
+ 
+ #include "internal.h"
+ 
+-- 
+2.20.1
 
