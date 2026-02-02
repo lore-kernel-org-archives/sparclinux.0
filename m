@@ -1,159 +1,138 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 799BF1DF751
-	for <sparclinux@vger.kernel.org>; Sun,  1 Feb 2026 22:01:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 008C2274B35
+	for <sparclinux@vger.kernel.org>; Mon,  2 Feb 2026 06:57:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769983306; cv=pass; b=DepbA4H5eXbCgr46MxkMynfP7RLjnHL2w7guS6uHMwdspxYlOlzHCu52w8Hc9tB+zh2cRrUSYx/6gspLDCvC5IWPHgx+r0FgsnLKTYN19IWhnBx35GVSv3lR6nOP1ZGnkrpwVp7ESruj3LVPFTU26gPxKbOmE4EisctxMQa39hg=
+	t=1770015457; cv=pass; b=bi1pEqVMCny7Tmocutz3TFz2rb/PGNGEFbKfAKmzVU8LjoHJWLzNJ160bWXqkZKNv9wc+pbM7t8GFnR4rTEl3FadYbQp4+0Wl2NKaHJ+3haMOnGJ/HtRYkV9CiQ0o9wL+NXLLArzA4dxonrhV/Gs56N8n1IwRklP9yKhxKn+4vk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769983306; c=relaxed/simple;
-	bh=wl7Jk6JsU5yKG4duQoEsXxxYC+OIwiJhzlKIg8HfxyQ=;
+	s=arc-20240116; t=1770015457; c=relaxed/simple;
+	bh=8aSn8GmDakEMqNqPDJbCPU0l6WKLAkD9Z/71St/ZQYk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QoP5pBJyOuam4sAHnbhHKemdYS2wKOADevHwqzvOi3Q/j05va+k8w5OFEHVREF28uZvQYnoVq02+8VeHtfiVQxxPKeBZ7eiY/9yeNWfH01okL0l6U6Zf+PS2OqhSjJhxtopOAToEtgfZs2/GMg1aulnIPCAFLVeSNUMkZKl5uOs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YUP16xwB; arc=pass smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=u6mieewJ2JXOfaqWhpM1nIedouFPT7b8DoatOuOQS+TQxVadTWXBLBV1dnuR4nKj9NB2Ink0ee4XmeuGsnZjZNlzM74WeM6cOvZ/2Tji9W6GILv0HvCMLt4V2GJcGwIVw69fCw+06n8HZx8O8b5ei13ff2th7uT9URNrzH7NZCg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AQjvJLqA; arc=pass smtp.client-ip=209.85.218.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YUP16xwB"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6580dbdb41eso5832183a12.0
-        for <sparclinux@vger.kernel.org>; Sun, 01 Feb 2026 14:01:43 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1769983302; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AQjvJLqA"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b885d8f4092so703501366b.2
+        for <sparclinux@vger.kernel.org>; Sun, 01 Feb 2026 22:57:35 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1770015454; cv=none;
         d=google.com; s=arc-20240605;
-        b=RKMR4k/5uyJWNUg4+iIKNX6aAmlMs4WO031MlRU3Qe6Jcuwo7FlGkvaHh+JqyIeR03
-         +N2nIrsaTyhMmAJGNs1Fx1kL1L+WxwZHSrnRXYgO2Ua5Z3e4brTG2c677PnMUYnva2qu
-         4RrvR10fPKWXrdKtWIJ1OBfSmGqSX9h+SThs5+IF+9SGRvSGHsvOzYICVXNEVbOr/aAB
-         8UOymYFknAjYvlzwZ2G3d0aWVqJbGiilEyptaa9eWVupohxTZOIUvODUQJew/QrxeuE6
-         dc8cjqBe47/7qriM64G0wGcHGEzGN8fbNtoLKbRQ4f8tMv+q4oLsirIrshKBRdIoDCcD
-         Snew==
+        b=iZmDH1ZRJnRX7mrDjsKuANcwwqFBDw2hwavpWbO6Gfu42JpKsj0NqtSZIr/I/l8BQq
+         EUJrsL/uosnS1CVcS4ZZsTD99GT1CVwrSviHrIsXtVoc8K0o95Oe/YNU6bbJonJ8f24+
+         0Ur0zaLbPbEUASLSDbBQWCAL1Y/iIzmyxHudPWNnw66d3Tzjxz5myCa+yzKxUvcaig7w
+         mXHm1uzExawYoIOjz8eb0WLzCVaGNMdH4CjEzkYvBiL6R4TYnHQdDr9h0X7I3kOylqqA
+         AJoPzyQlDzH1w9voIlgaz0EABifOXCqKAPoLV7NQPynz7wtn77ShSdNTYUszaBbU9mk5
+         xyGw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=nxxXeMZ2Mj2NhEcakAGevZjWJ8Zk/OwUaMBA61xjWow=;
-        fh=MPlq+OHoljNPzWlzBOEIZnJ9LvvpIZArq5uN7tN755E=;
-        b=WuWUjIstvwvlH2rzpePqZqoW2sO67O32dzmD6tXtzj3RdmNd0WPwC1IuPqXtIDNTkl
-         AQusDIy7FBP+IsR25jcDYcmGm9v5tR+Q7jNaSlz6rMimT/+CLI1PIkelT+xXPGHgDb88
-         JFfqiXv0rdFlQyaRWK9CA5dl2zRl1dIGyH5ecDYKmHBKbkkFbASltw0OJAuAhLNcn6xJ
-         Uzt3llITMbAYDKE6i2v7EAgNo2QfojeZhh26R0xV0Wq1xdeWD30+wsK8SXMHiHnnUTN9
-         2BJ/rFfe7d9Y4VhzsZT2bT5GeLc5JFdweKGpMWN7cYwl6VWyeblGQIs1eoA8VQjO5ipI
-         Xy9A==;
+        bh=MTmRA3Phy/tCo2380dNzzOdOfqKMLKnjbdMnyqMlppk=;
+        fh=P+/czFgFcIhNRGhFMTBkov1EdZyS+FZI1Mpbhfmk06g=;
+        b=O6kVl5cKZZzUSLfL6ow5EFrYXU/s9zS2cYcRFSnhhVLQ+GZzitNYaF1gf6cTcJe7U4
+         NlhGnXVh3mJL1se0bHgXGAjV2Fy7B9UV9vVMdnz5fFGI+Hfx0pM7IsJSag7/2DxNXvRM
+         ZeRvvnohNZPhf7CMgf9IJJ0HiMIpj35yb7vxyy1P3/A+z7t7F5X7Sa77CNbcwPobPzLS
+         KCFBaYk6Fs1BOcrh6GXpnVmjDBkJLlfx7MNjhTJw7mBAQhOmPsaVO8rlzS7dfH7Un3Rr
+         Dy0IKRLADnPPh7LgqHYDXe4Zn/lguw1Y/A54UzDh3qftMyq1sbHkenZ0MQkMtevRscal
+         iwiA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769983302; x=1770588102; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1770015454; x=1770620254; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=nxxXeMZ2Mj2NhEcakAGevZjWJ8Zk/OwUaMBA61xjWow=;
-        b=YUP16xwBByuCeANUpL+tqGPZtwW0ekBJQXjxvYHrQ+BVuJhzXlLPUbdngsjT9o0vf6
-         uYUmzrEUKPWDyYwqImODBU03rkq/5q2r1ZRse77/5jbzZ2ZbdPfRWoEgDFXi7tvZQDib
-         KKiwOMyTyPNTlE6DbDFUXbRkge9P5LbCelPWFufvSIQsld51sSM4Eb+aQDvPUDu+HqZ5
-         c/EuzGYP26bua1tM6AhlMjxuishxSbB0C/tRmJtMEllP01kG1m4La3rFduj7FChnHhy9
-         DMXci+K0JH5BarH9OsbnSb+egVIt1mbKSHqf6Rg3thvWSqfOWPIJWg6A+uJuZWSkOoYT
-         3FYg==
+        bh=MTmRA3Phy/tCo2380dNzzOdOfqKMLKnjbdMnyqMlppk=;
+        b=AQjvJLqA0DEO1SF7Mu4XBIFTIONyKvuR2RdtXAEHbjhUhbLcpw55rxBSXj7E2HxMX/
+         38Oo8aZJR2xG4pm2LlGCFQy7/Auvy5TB5F5Nk7eGbuEA4ZXACVYubGWSHXDWy5MbC4ih
+         5LA7JmnQfQUv3Pti/nWpcWNhBE6nBdjCFHf8yEfpG/DGDSqOllOKaJxSsDIGcNZiQDBs
+         ykSGWgxwWPNrDEyI3MW0DXUsyluaoEca/9eWf1xxjvw9R+9KLgOFOobOFf0/Z+FkAeC7
+         juftAgzIyxy1ZvvmQr18rdjNgllEJdtJPq8jM/ozfwglGq7kB3t3sE3fl0hsQF+LjwGU
+         XHmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769983302; x=1770588102;
+        d=1e100.net; s=20230601; t=1770015454; x=1770620254;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=nxxXeMZ2Mj2NhEcakAGevZjWJ8Zk/OwUaMBA61xjWow=;
-        b=YVZXlcyW7763V/8FKC5xa6bKgTpF6qlVibmf7L+hLiIzCImDK5EkPHq8ztqUMi1vox
-         h7rj6XTf0JLhdHEm9WS2KHwfyzKrD0tsrPcb4g274tG11Mcdr9rjmgJcfKWikOaj3T5l
-         OUCz0Q0Q6L/WRShoeWACBl61Xb4165Ft+HwY5BHcZ7OWMZ01F/PV56a3+xDH2ySCxC6Q
-         1XH4iFwBP4H6il7WhDkXWpaos1lRYdcd0aMeXcYxH4E7s6AJS2fM2nyMLqHayO0xuD2Z
-         ycMxNpGXM8D0Gk4HrYp6YCgj9PsCrVl/HPykcVdX9GPcT5P6K+Wka+wkVVw9I0J3aPAF
-         UQlA==
-X-Forwarded-Encrypted: i=1; AJvYcCUqRE9fJY9pJXKlBvxEeBBQpHdH2ZYVLEUDmO8kOTuTU+KLcpijG2OK8GT7Sm5bfaZvSfQNATcYGuVs@vger.kernel.org
-X-Gm-Message-State: AOJu0YzoTBs8xXa3+h6cit5DnwLKQM14fGsn7bmpvF+oJe4izaswFfWg
-	y6cuEOS9ToST7bZQtdXiziMSSnY50kkoORmnLAXkxFk95v9je52jY5jB/Pl0BtowfntKcW/SjDS
-	lbRPBLwySFlr7+O1gUD1oJnNDMBu8160=
-X-Gm-Gg: AZuq6aIegyKANIF6/S1nUzoMYFMHjBUHRmr90ivxjuGDURvPoChaZEvnj2CXVw4JiQ3
-	Ws1xgh7eLTpuh67reyZDHNdWlLfsAUKQeRdpN5OyNDcMb0GHqoopl9N2/aJUpdiI+D7KRs53XjB
-	rV/QcPWaodpt8ktP9q4UapQmUzeDHgIJT85YwIgmMxWI03Uvcvjft5U9kipK0WF4fxdYBF6fgrH
-	ckir9H5DHpcCDM3ekuUf+1PnZyAEqxTujuXJ3DWRLnZk30QYluVybVwSDqA+B+1xU1dMUMle8IJ
-	iehD8xdmulD+nZkPPjFBO4Tg9p08
-X-Received: by 2002:a05:6402:90b:b0:64c:9e19:9858 with SMTP id
- 4fb4d7f45d1cf-658de58d61fmr5598076a12.22.1769983301701; Sun, 01 Feb 2026
- 14:01:41 -0800 (PST)
+        bh=MTmRA3Phy/tCo2380dNzzOdOfqKMLKnjbdMnyqMlppk=;
+        b=k7jfqA87D1iU/5DLNY9mUvFArb30J57C1LJd75IeMhQMjMPPJq8zwNMNuRZCDLSo7a
+         VFrcdzoG0+5QEy9xOHmXH81d3KPzG06Tsz0ngaN63ibRr9iqVJk52inOoIr8svRTJ9Zz
+         Vwn2FQjSGYgKxmG3K25T4/bJsHj7IzoJ80SjTBbEQu1p5jUxrJUxOuRkmv05PKvapMPJ
+         br3XqHYlwMEwxlUfHNjnZrDyUmRWySi5sip6syXp11WTURhclBE0bKJNNJ5R1XOSyyD0
+         ukREEzh+G/ceAZMzC6WZhMEuU4rKREtJiAdfU9knGEm1Xf45iAX0P7YWGVtwsrQupw9A
+         HkUA==
+X-Forwarded-Encrypted: i=1; AJvYcCUDIAPwjPmiLdd3W2OJaaEdr7cEX+UuzCpYAtzeOg8Are5eJ4EZ5ivo5qdvJUJJDalTI7MSU7RFqZ4l@vger.kernel.org
+X-Gm-Message-State: AOJu0YzEEpm8JS3S2ahexvja9rpa4qDAW189j8w4nOwaNj2yfGJziKjx
+	oJL+yFdyQi0R5U5xy8VHL9CrbxvN9OSCBtEE74nC2k7EgUkISdiA93lzKNTJKegpdDK2UrmipeB
+	OA9i5HOv6/22dZc9ABlMhoLQdY7e2x4I=
+X-Gm-Gg: AZuq6aICyVzX6DSh4TfqGwoY8vCQaBh+HrL+FA41E+Bih3Q7wPz5iIPqEbvsVwTS7az
+	0Bm0V2cs2wICNF73xXmez3tOtyyk7wiDeaquaiIHXWuNU9hoBIoqaTG0Ddjl/bH9QJYJCvcHtdk
+	rWz0fU3bzAbvsWx6Knza9kPfS8dNHgMXiJj2j3IS/q0f4rnT3vR9GyKAo9CRj9wTCf41ox+0CPP
+	LcQD4p84rT0L3McRx0TDeiFraGqWvBUruXDB+w1u+iGq4kTqzTfqmtF2CEGF6JTRYaAJMw=
+X-Received: by 2002:a17:907:e110:b0:b8e:4790:d7cf with SMTP id
+ a640c23a62f3a-b8e4790db6dmr207191066b.53.1770015454252; Sun, 01 Feb 2026
+ 22:57:34 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1769515122.git.zhengqi.arch@bytedance.com> <3380f40a89b73c488202c85f9a8abf99fb08543b.1769515122.git.zhengqi.arch@bytedance.com>
-In-Reply-To: <3380f40a89b73c488202c85f9a8abf99fb08543b.1769515122.git.zhengqi.arch@bytedance.com>
-From: Magnus Lindholm <linmag7@gmail.com>
-Date: Sun, 1 Feb 2026 23:01:30 +0100
-X-Gm-Features: AZwV_Qj9VNkT5OuGD6ka3IvGbnZ780_iMCZkDjCZeudKZ-RrGhxplhYBmunMjcY
-Message-ID: <CA+=Fv5RhxvyxKr2t+pHd1tbGrK57P-+b3pGe1nVaK_OLiFt2wg@mail.gmail.com>
-Subject: Re: [PATCH v4 2/8] alpha: mm: enable MMU_GATHER_RCU_TABLE_FREE
-To: Qi Zheng <qi.zheng@linux.dev>
-Cc: david@kernel.org, andreas@gaisler.com, richard.weiyang@gmail.com, 
-	will@kernel.org, peterz@infradead.org, aneesh.kumar@kernel.org, 
-	npiggin@gmail.com, dev.jain@arm.com, ioworker0@gmail.com, 
-	akpm@linux-foundation.org, linux-arch@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-alpha@vger.kernel.org, 
-	loongarch@lists.linux.dev, linux-mips@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linux-um@lists.infradead.org, 
-	sparclinux@vger.kernel.org, Qi Zheng <zhengqi.arch@bytedance.com>, 
-	Richard Henderson <richard.henderson@linaro.org>, Matt Turner <mattst88@gmail.com>
+References: <20260107104145.51416-1-alexs@kernel.org> <494e98fe-0fa6-416c-b136-9c444c03f769@gaisler.com>
+In-Reply-To: <494e98fe-0fa6-416c-b136-9c444c03f769@gaisler.com>
+From: Alex Shi <seakeel@gmail.com>
+Date: Mon, 2 Feb 2026 14:56:56 +0800
+X-Gm-Features: AZwV_Qgh3Nd_faBL-MCprpIw-IeL2AVjcXbPcNnv0ru8cJ8Gz0P3WM1DMxQ1KGg
+Message-ID: <CAJy-Amkx=EgsyZq3pdpg8Ucgb_=07evL-tSigZw5T=_F1EmT6g@mail.gmail.com>
+Subject: Re: [PATCH v2] arch/sparc: fix unused variable warning
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: alexs@kernel.org, "David S. Miller" <davem@davemloft.net>, 
+	"open list:SPARC + UltraSPARC (sparc/sparc64)" <sparclinux@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, 
+	kernel test robot <lkp@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 27, 2026 at 1:16=E2=80=AFPM Qi Zheng <qi.zheng@linux.dev> wrote=
-:
+Andreas Larsson <andreas@gaisler.com> =E4=BA=8E2026=E5=B9=B41=E6=9C=8827=E6=
+=97=A5=E5=91=A8=E4=BA=8C 00:44=E5=86=99=E9=81=93=EF=BC=9A
 >
-> From: Qi Zheng <zhengqi.arch@bytedance.com>
+> On 2026-01-07 11:41, alexs@kernel.org wrote:
+> > From: Alex Shi <alexs@kernel.org>
+> >
+> >    arch/sparc/mm/init_64.c: In function 'arch_hugetlb_valid_size':
+> >    arch/sparc/mm/init_64.c:361:24: warning: variable 'hv_pgsz_idx' set =
+but not used [-Wunused-but-set-variable]
+> >      361 |         unsigned short hv_pgsz_idx;
+> >          |                        ^~~~~~~~~~~
+> >
+> > Reported-by: kernel test robot <lkp@intel.com>
 >
-> On a 64-bit system, madvise(MADV_DONTNEED) may cause a large number of
-> empty PTE page table pages (such as 100GB+). To resolve this problem,
-> first enable MMU_GATHER_RCU_TABLE_FREE to prepare for enabling the
-> PT_RECLAIM feature, which resolves this problem.
->
-> Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-> Cc: Richard Henderson <richard.henderson@linaro.org>
-> Cc: Matt Turner <mattst88@gmail.com>
-> ---
->  arch/alpha/Kconfig           | 1 +
->  arch/alpha/include/asm/tlb.h | 6 +++---
->  2 files changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-> index 80367f2cf821c..6c7dbf0adad62 100644
-> --- a/arch/alpha/Kconfig
-> +++ b/arch/alpha/Kconfig
-> @@ -38,6 +38,7 @@ config ALPHA
->         select OLD_SIGSUSPEND
->         select CPU_NO_EFFICIENT_FFS if !ALPHA_EV67
->         select MMU_GATHER_NO_RANGE
-> +       select MMU_GATHER_RCU_TABLE_FREE
->         select SPARSEMEM_EXTREME if SPARSEMEM
->         select ZONE_DMA
->         help
-> diff --git a/arch/alpha/include/asm/tlb.h b/arch/alpha/include/asm/tlb.h
-> index 4f79e331af5ea..ad586b898fd6b 100644
-> --- a/arch/alpha/include/asm/tlb.h
-> +++ b/arch/alpha/include/asm/tlb.h
-> @@ -4,7 +4,7 @@
->
->  #include <asm-generic/tlb.h>
->
-> -#define __pte_free_tlb(tlb, pte, address)              pte_free((tlb)->m=
-m, pte)
-> -#define __pmd_free_tlb(tlb, pmd, address)              pmd_free((tlb)->m=
-m, pmd)
-> -
-> +#define __pte_free_tlb(tlb, pte, address)      tlb_remove_ptdesc((tlb), =
-page_ptdesc(pte))
-> +#define __pmd_free_tlb(tlb, pmd, address)      tlb_remove_ptdesc((tlb), =
-virt_to_ptdesc(pmd))
-> +
->  #endif
-> --
-> 2.20.1
->
+> Did the kernel test robot also suggest a "Closes:" line as well? If so,
+> please also add that.
 
-Looks good from an Alpha perspective.
+No, I found this issue in a lkp report for my testing code on sparc.
+In that report, lkp just focus on my another issue.
 
-Acked-by: Magnus Lindholm <linmag7@gmail.com>
+>
+> > Signed-off-by: Alex Shi <alexs@kernel.org>
+> > Cc: sparclinux@vger.kernel.org
+> > Cc: Matthew Wilcox  <willy@infradead.org>
+> > Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> > Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> > Cc: Zi Yan <ziy@nvidia.com>
+> > Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+> > Cc: Mike Rapoport  <rppt@kernel.org>
+> > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > Cc: Andreas Larsson <andreas@gaisler.com>
+> > Cc: David S. Miller <davem@davemloft.net>
+> > ---
+>
+> It's helpful if you put changes between versions in between --- lines
+> here.
+
+Thanks for suggestion, will do it in next version.
+
+Thanks
+Alex
