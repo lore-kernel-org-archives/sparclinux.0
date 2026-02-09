@@ -1,119 +1,189 @@
-Received: from smtp-out3.simply.com (smtp-out3.simply.com [94.231.106.210])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1653F2459EA;
-	Mon,  9 Feb 2026 12:21:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.231.106.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80952276028;
+	Mon,  9 Feb 2026 14:41:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770639712; cv=none; b=stDkdUgXZSUDWFHG+1apK09svXvZV5ObqRM3SUZq1Rl0f04bMxwowch9iN5FRLfU6/lBWn/6V6H3RVdB9f4dJzl4ScU9vWZzm+1I1Uo4LFrDLbKXOgTnEcy8qT5YV/hJHTgf2jV46GpT/7Sr+l4SozLgqHWjQ988muV02Ahr1Z8=
+	t=1770648074; cv=none; b=pzEFBGW/+/fYH7pMxJE4ktNFtjSVTjaQMyo/ipsvuM33hUjfpPgXSH7eEaECFEtopl7maJWXAHNhTcVnQSzsy0QdSAvThtOxjoT3Fb0DDQnnHbFp/Cgns7I0KUPV0/IATmwsJcoFThxRuaI1BRwWtUBsV6A9ARCNyNoVdnbnBOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770639712; c=relaxed/simple;
-	bh=hyl0K/7LsnGv+e8ziO3GQpyZsgBnOiWZP7RLpu+hI50=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=UEKkcPOL/YOgMRBTC4FcOUwWWHsteRFPR9a8DbG9qcOqMzJTUi0vtvk2MwOXwzx99zmj7bKAM5Vc0v5CWEx1vFUi2H4NoEFFD2SD9DPeZOXsxcE4htjSuVwQ2naVlHhpvW4jzAH4W+pZNjpurBHYDIATVo542fv1PtvlhkMGRRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com; spf=pass smtp.mailfrom=gaisler.com; dkim=fail (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b=i9aMrw/z reason="key not found in DNS"; arc=none smtp.client-ip=94.231.106.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gaisler.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gaisler.com
+	s=arc-20240116; t=1770648074; c=relaxed/simple;
+	bh=B2mkA4JyLV5P+26Kji7kOaADSMAhZAUHx96+BlD9dVA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CX+Gb2aGdQfbocNBgVdCKOGJ01BSnrhgI9DnvUxE28DDWhvtl3Vs0QvlcmcHYQxmkIgU+zqI2SfuPc1cPJV3JqSVFwhzBkdM7XFB8s5hZIqKWGoYK8E/eBTCjzBYypUp1sTLu8yNDuY7qC+dR72PflhkQDxJXl3WMKS013cwLk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lNIMGaab; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=gaisler.com header.i=@gaisler.com header.b="i9aMrw/z"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp.simply.com (Simply.com) with ESMTP id 4f8kMd5HxPz1DR2Z;
-	Mon,  9 Feb 2026 13:21:49 +0100 (CET)
-Received: from [10.10.15.18] (h-98-128-223-123.NA.cust.bahnhof.se [98.128.223.123])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by smtp.simply.com (Simply.com) with ESMTPSA id 4f8kMd3Kp6z1FDXT;
-	Mon,  9 Feb 2026 13:21:49 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gaisler.com;
-	s=simplycom2; t=1770639709;
-	bh=Y6hQaPBkiNg0SXtGmllyDcVnytfY8lXRUfemZWLc1I8=;
-	h=Date:To:Cc:From:Subject;
-	b=i9aMrw/zOG8ta4QrOM01XpLlmzE2scljuqhUmWFTEWgdrjpAZGNg6/L0Iwi4KTHEI
-	 /PFGKZI/PVuLmSAFdBf5ZxdG7dkn0ClzmcDJajveq5IuGSx49IhALT/JGuzchSyWk1
-	 bIkhgOGCEQmi+zhBO0YlzpOgmdCpRaza7iMd3OciStVuL5XXLltiA64L0Q2HO7PTb9
-	 DUA1PkEJ8LKYZh0TD3foGgeIJecoF75BJtMkFNao0HL7mM1gu/t+DWI/2I8ODFgHcn
-	 zZLLzVUqIYe5IKFfsfXHRD0EmLRQv0uNP3h7ku+ZyMnz/4InJqu2afnq8NRbBM+fHL
-	 vKtqgJFwdJC1g==
-Message-ID: <4908fe5d-4d42-45e0-9dba-e78e8a5b084f@gaisler.com>
-Date: Mon, 9 Feb 2026 13:21:49 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lNIMGaab"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 803B4C19422;
+	Mon,  9 Feb 2026 14:41:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770648074;
+	bh=B2mkA4JyLV5P+26Kji7kOaADSMAhZAUHx96+BlD9dVA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=lNIMGaabE0qBHyKmiQQ82ePHeKOk12FZcvy7uIhl99+FK8xY+dvBmwJnHq448tgU5
+	 yWCM6YFfxDvwT1wI5+Rt+hhXZLLV4D0u0LeJHpDec1IByx2uLPHCfHaX3Y6XpJ+rsw
+	 JJVxqM5D44XNcn4x0x+Kh3J6eZihZBMhmxySUsLGosdfZbLuXcXqIysNK+I7TUQbg9
+	 O8HeuEegeOHjXjoPICHlHeBzr1Z+8ulczKwGXjAXkwEVNlDEDH7KqeCc5+hLTfRZaH
+	 Codl9ykicppLg+KhR0t3MGY3QhvKdyqCU/tVEiccSKm1jaUu/OhlXAz7EKTzkg5T6F
+	 18AZs0Gxi+VGg==
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Larsson <andreas@gaisler.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Brian Cain <bcain@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	David Hildenbrand <david@kernel.org>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guo Ren <guoren@kernel.org>,
+	Helge Deller <deller@gmx.de>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Magnus Lindholm <linmag7@gmail.com>,
+	Matt Turner <mattst88@gmail.com>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michal Hocko <mhocko@suse.com>,
+	Michal Simek <monstr@monstr.eu>,
+	Mike Rapoport <rppt@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Richard Weinberger <richard@nod.at>,
+	Russell King <linux@armlinux.org.uk>,
+	Stafford Horne <shorne@gmail.com>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Vineet Gupta <vgupta@kernel.org>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Will Deacon <will@kernel.org>,
+	linux-alpha@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-mm@kvack.org,
+	x86@kernel.org
+Subject: [PATCH v2 0/4] arch, mm: consolidate empty_zero_page
+Date: Mon,  9 Feb 2026 16:40:53 +0200
+Message-ID: <20260209144058.2092871-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org,
- linux-kernel@vger.kernel.org
-From: Andreas Larsson <andreas@gaisler.com>
-Subject: [GIT PULL] sparc updates for v7.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi Linus,
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 
-The following changes since commit 8f0b4cce4481fb22653697cced8d0d04027cb1e8:
+Hi,
 
-  Linux 6.19-rc1 (2025-12-14 16:05:07 +1200)
+These patches cleanup handling of ZERO_PAGE() and zero_pfn.
 
-are available in the Git repository at:
+v2 changes:
+* add patches that cleanup zero_pfn code a bit (patches 1,2)
+* add a patch that caches struct page for empty_zero_page (patch 4)
+* use uint8_t instead of unsigned long for empty_zero_page
+* fix sparc64 changes in patch 3
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/alarsson/linux-sparc.git tags/sparc-for-7.0-tag1
+v1: https://lore.kernel.org/all/20260124095628.668870-1-rppt@kernel.org
 
-for you to fetch changes up to d844152d85cfcc7d2ef9430a25882604c12da279:
+Mike Rapoport (Microsoft) (4):
+  mm: don't special case !MMU for is_zero_pfn() and my_zero_pfn()
+  mm: rename my_zero_pfn() to zero_pfn()
+  arch, mm: consolidate empty_zero_page
+  mm: cache struct page for empty_zero_page and return it from ZERO_PAGE()
 
-  sparc: remove unused variable strtab (2026-02-06 15:16:22 +0100)
+ arch/alpha/include/asm/pgtable.h          |  6 ---
+ arch/arc/include/asm/pgtable.h            |  3 --
+ arch/arc/mm/init.c                        |  2 -
+ arch/arm/include/asm/pgtable.h            |  9 -----
+ arch/arm/mm/mmu.c                         |  7 ----
+ arch/arm/mm/nommu.c                       |  7 ----
+ arch/arm64/include/asm/pgtable.h          |  7 ----
+ arch/arm64/mm/init.c                      |  5 +++
+ arch/arm64/mm/mmu.c                       |  7 ----
+ arch/csky/include/asm/pgtable.h           |  3 --
+ arch/csky/mm/init.c                       |  3 --
+ arch/hexagon/include/asm/pgtable.h        |  6 ---
+ arch/hexagon/kernel/head.S                |  5 ---
+ arch/hexagon/kernel/hexagon_ksyms.c       |  1 -
+ arch/loongarch/include/asm/pgtable.h      |  9 -----
+ arch/loongarch/mm/init.c                  |  3 --
+ arch/m68k/include/asm/pgtable_mm.h        |  9 -----
+ arch/m68k/include/asm/pgtable_no.h        |  7 ----
+ arch/m68k/mm/init.c                       |  9 -----
+ arch/m68k/mm/mcfmmu.c                     |  2 -
+ arch/m68k/mm/motorola.c                   |  6 ---
+ arch/m68k/mm/sun3mmu.c                    |  2 -
+ arch/microblaze/include/asm/pgtable.h     | 10 -----
+ arch/microblaze/kernel/head.S             |  4 --
+ arch/microblaze/kernel/microblaze_ksyms.c |  2 -
+ arch/mips/mm/init.c                       | 11 +-----
+ arch/nios2/include/asm/pgtable.h          |  7 ----
+ arch/nios2/kernel/head.S                  | 10 -----
+ arch/nios2/kernel/nios2_ksyms.c           |  1 -
+ arch/openrisc/include/asm/pgtable.h       |  4 --
+ arch/openrisc/kernel/head.S               |  3 --
+ arch/openrisc/kernel/or32_ksyms.c         |  1 -
+ arch/openrisc/mm/init.c                   |  3 --
+ arch/parisc/include/asm/pgtable.h         | 11 ------
+ arch/parisc/mm/init.c                     |  6 ---
+ arch/powerpc/include/asm/pgtable.h        |  6 ---
+ arch/powerpc/mm/mem.c                     |  3 --
+ arch/riscv/include/asm/pgtable.h          |  7 ----
+ arch/riscv/mm/init.c                      |  4 --
+ arch/s390/mm/init.c                       |  4 +-
+ arch/sh/include/asm/pgtable.h             |  8 ----
+ arch/sh/include/asm/setup.h               |  3 +-
+ arch/sh/kernel/head_32.S                  |  4 +-
+ arch/sh/kernel/sh_ksyms_32.c              |  1 -
+ arch/sh/mm/init.c                         |  1 -
+ arch/sparc/include/asm/pgtable_32.h       |  8 ----
+ arch/sparc/include/asm/pgtable_64.h       |  3 --
+ arch/sparc/include/asm/setup.h            |  2 -
+ arch/sparc/kernel/head_32.S               |  7 ----
+ arch/sparc/mm/init_32.c                   |  4 --
+ arch/sparc/mm/init_64.c                   | 24 +++++-------
+ arch/um/include/asm/pgtable.h             |  9 -----
+ arch/um/include/shared/kern_util.h        |  1 -
+ arch/um/kernel/mem.c                      | 16 --------
+ arch/um/kernel/um_arch.c                  |  1 -
+ arch/x86/include/asm/pgtable.h            |  8 ----
+ arch/x86/kernel/head_32.S                 |  4 --
+ arch/x86/kernel/head_64.S                 |  7 ----
+ arch/x86/kvm/mmu/spte.h                   |  2 +-
+ arch/xtensa/include/asm/pgtable.h         |  4 --
+ arch/xtensa/kernel/head.S                 |  3 --
+ arch/xtensa/kernel/xtensa_ksyms.c         |  2 -
+ fs/dax.c                                  |  2 +-
+ fs/proc/vmcore.c                          |  2 +-
+ include/linux/pgtable.h                   | 48 ++++++++++++++---------
+ mm/huge_memory.c                          |  2 +-
+ mm/memory.c                               | 15 +------
+ mm/migrate.c                              |  2 +-
+ mm/mm_init.c                              | 28 +++++++++++++
+ mm/userfaultfd.c                          |  4 +-
+ 70 files changed, 86 insertions(+), 354 deletions(-)
 
-----------------------------------------------------------------
-This includes the following changes related to sparc for v7.0:
 
-- Hardcode uapi ioctls.h TC* constants to not rely upon struct termio
-  that has been dropped by glibc
-
-- Fix bug for fork/clone and add support for clone3
-
-- Add ARCH_HAS_CC_CAN_LINK
-
-- API choice improvements and cleanup of unused variables
-
-----------------------------------------------------------------
-Alex Shi (2):
-      sparc64: fix unused variable warning
-      sparc: remove unused variable strtab
-
-Andreas Larsson (1):
-      sparc: Synchronize user stack on fork and clone
-
-Ludwig Rydberg (1):
-      sparc: Add architecture support for clone3
-
-Sam James (1):
-      sparc: don't reference obsolete termio struct for TC* constants
-
-Thomas Weißschuh (1):
-      sparc: Implement ARCH_HAS_CC_CAN_LINK
-
-Thorsten Blum (1):
-      sparc: vio: Replace snprintf with strscpy in vio_create_one
-
- arch/sparc/Kconfig                     | 11 +++++++
- arch/sparc/include/asm/syscalls.h      |  1 +
- arch/sparc/include/asm/unistd.h        |  2 --
- arch/sparc/include/uapi/asm/ioctls.h   |  8 +++---
- arch/sparc/kernel/entry.S              | 15 ++++++++++
- arch/sparc/kernel/kernel.h             |  1 +
- arch/sparc/kernel/module.c             |  2 --
- arch/sparc/kernel/process.c            | 52 +++++++++++++++++++++++++---------
- arch/sparc/kernel/process_32.c         | 23 +++++++++++----
- arch/sparc/kernel/process_64.c         | 27 ++++++++++++++----
- arch/sparc/kernel/syscalls.S           |  8 ++++++
- arch/sparc/kernel/syscalls/syscall.tbl |  2 +-
- arch/sparc/kernel/vio.c                |  4 +--
- arch/sparc/mm/init_64.c                |  6 ----
- 14 files changed, 119 insertions(+), 43 deletions(-)
-
-Thanks,
-Andreas
-
+base-commit: 50c7f34c5c7403a12003c6759f6f6ca9a5a10872
+--
+2.51.0
