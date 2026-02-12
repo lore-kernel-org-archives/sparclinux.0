@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D76E19E96D;
-	Thu, 12 Feb 2026 08:58:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9F83EBF14;
+	Thu, 12 Feb 2026 09:01:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770886723; cv=none; b=QvctUmaBjkpBDNqh/GL8TkQqfD/30HeMqiDBdUuMYvMnpKYL2dxDlMu30l10ddjtKS99R8UDT4dFFsnD40M2NUBkrxmDeepXWrxXPAxfpVQwsSZrfWJaoQxUFb+Vd9MbuuS8nuOsb0ANzmG++4hxkpvNt0SemZawShlS42cZbF4=
+	t=1770886907; cv=none; b=qiot1VsWpAAJy3pU289ZM1FOznZ4f2cNY4U7WdNpHDp/YjjDp1Y3o+T7T9rISqPzf9gHvtNwJnWte6DxbPI52uQOyvml/GBHRPomeA4tLY86un2IKPryNTg+aKrHH+UsvugANQyvfc5nI52MpeJWMP6y6nM/3OU1OK+7cx3EJ4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770886723; c=relaxed/simple;
-	bh=O72aDxD0jjZlGGwbJFSDSKCAXe0FHSLzulcP/3B+3gA=;
+	s=arc-20240116; t=1770886907; c=relaxed/simple;
+	bh=mbeyKAvym1Evnd03SXCqu1tAKf52BxUCYkSrs6de9OY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=qctnPQL/zyUMXv9IRWEDHM9jnVB69EMSt0Vi/Q84DR7Y7vqn6NX3Brrl0f6qKRg1o50EKHK8VtD0ATBRWrqPyFQ9ahLQRmLjyb5324uWG/Adm/cp9RL2rmeO34qls5b3CqsPLKY2phswU5xiV5oK1QdslqWTmtgVA9c6gasgcLE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HT5R6kpv; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=ETBeisnxd+2UHCn9UzdjqDJFihIYRWBpoH3Kn9toEmy615a0eAvbK9L9wh31uguwBpu206qoeNDNkdr9n0r2qFawDULoEhTImkQs/TcR8vv/BW4bgxWJuiZRQC7S8b4zdCv6MFxXAdXQfrUINFvaOuXUK9ld0s3MC+q4rFhS/QU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EzC7pZZ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HT5R6kpv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0155DC16AAE;
-	Thu, 12 Feb 2026 08:58:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EzC7pZZ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B128C4CEF7;
+	Thu, 12 Feb 2026 09:01:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770886723;
-	bh=O72aDxD0jjZlGGwbJFSDSKCAXe0FHSLzulcP/3B+3gA=;
+	s=k20201202; t=1770886907;
+	bh=mbeyKAvym1Evnd03SXCqu1tAKf52BxUCYkSrs6de9OY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=HT5R6kpvSukfg5IN9nlS4YbpAP2leknMovU4Qa/hAHCkiDLHNZCK/gaEeXQHxyP1T
-	 EeaWGdiI6XLZNPc7qylXP4VxUBbfiWCiPR0OOrU3ukw4sHt8o/tbgJHm1EXYuVKv5l
-	 TBZNfkmh8mxb3m+xGctyA2sWLPBXy+8bVH6k/ChG6pgU9xLYtMCirmrNSdekZUSMr1
-	 rcLqmGD6U2Zf3RltXhzmv3O0aVtAoGjJuEnP61CUcxzzuUEYvxoWOwO1f80x8bs6UX
-	 gPY2bh3g5BAn1TNdodmkMMpjKpSAgB1l7qIcZJmbGe5SiaAuLLViJ5jFEfzgOeHrZb
-	 3ef+PtYkktc6A==
-Message-ID: <a9834da2-67c5-4641-8ca1-fc5ba067572e@kernel.org>
-Date: Thu, 12 Feb 2026 09:58:24 +0100
+	b=EzC7pZZ31+AvqkeNbZ+v1uBdrrQu/Ug8+evZxdKrZiDdRxVQ9FJ6YzrNMAOjK6l1l
+	 lmA2Vqe7Yd2Y1fOK/Gf/bHij4F99vPL/NoVeb/p4w5i3b0ZJOx0+iUhnJYpQoDl79S
+	 vvU8wl5F2oYQ0e22bB7hT79dtpzdPxIQO89tikEAnB0VTGRwU2yhWdh4sD6hFlZMj8
+	 HpUICv7+9ultjVQRagyYsoL6VB2fxPVVT5hFfxy0PlrOl41v9xEYNuIAuSVc1vAmlJ
+	 JDfwSZ+HNeo4rjkOTyrcFsmfy2SUffMK2Adtr7i2FrD0mIutj8T5KgIQM6xp8QRIZa
+	 Mu5waAMtsSfSw==
+Message-ID: <74103a51-cada-4645-91d3-e0807b32c2a7@kernel.org>
+Date: Thu, 12 Feb 2026 10:01:27 +0100
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/4] mm: don't special case !MMU for is_zero_pfn() and
- my_zero_pfn()
+Subject: Re: [PATCH v3 2/4] mm: rename my_zero_pfn() to zero_pfn()
 To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
  Brian Cain <bcain@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
@@ -68,7 +67,7 @@ Cc: Andreas Larsson <andreas@gaisler.com>, Borislav Petkov <bp@alien8.de>,
  sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
  linux-mm@kvack.org, x86@kernel.org
 References: <20260211103141.3215197-1-rppt@kernel.org>
- <20260211103141.3215197-2-rppt@kernel.org>
+ <20260211103141.3215197-3-rppt@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -115,22 +114,20 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260211103141.3215197-2-rppt@kernel.org>
+In-Reply-To: <20260211103141.3215197-3-rppt@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 2/11/26 11:31, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> nommu architectures have empty_zero_page and define ZERO_PAGE() and
-> although they don't really use it to populate page tables, there is no
-> reason to hardwire !MMU implementation of is_zero_pfn() and my_zero_pfn()
-> to 0.
+> my_zero_pfn() is a silly name.
 > 
-> Drop #ifdef CONFIG_MMU around implementations of is_zero_pfn() and
-> my_zero_pfn() and remove !MMU version.
+> Rename zero_pfn variable to zero_page_pfn and my_zero_pfn() function to
+> zero_pfn().
 > 
-> While on it, make zero_pfn __ro_after_init.
+> While on it, move extern declarations of zero_page_pfn outside the
+> functions that use it and add a comment about what ZERO_PAGE is.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
