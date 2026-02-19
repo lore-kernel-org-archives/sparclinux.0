@@ -1,108 +1,113 @@
-Received: from mx.itxnorge.no (itx-kvm-14.itxnorge.no [91.189.121.228])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2C42F6591;
-	Wed, 18 Feb 2026 12:02:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.121.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F32296BAF;
+	Thu, 19 Feb 2026 17:31:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771416165; cv=none; b=A2hEuTAPv7wnUC4PPuQ2OZA0uX0K3V0mRLo7iKZNnhls9jus1apKN/stAICf346URbDb1qcxXuBwhy5AbMN1cRK8+QtRsOGGyO34hXlEPHhS6ihMDHhGarxXMC24OmJL8RhHkmw2sdaJxqgKGb+2zmQvlOnI3SU3JfvEw9gRZ8M=
+	t=1771522311; cv=none; b=qIt/h4ME7mRIPXJBHaKmmEMR4YphRfP42G6xgFBGjp42W3zYCzevzWirxRf9yLbmLu70v0OX9XaZfwjomARrUY6JpM6xboPRJheEgIkfyuSItcE5Dw9sxFPm72J3wOfFHnwG2LyE/nP6YbqqeqZgSfqas8a74LoxLC6EiGn6sq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771416165; c=relaxed/simple;
-	bh=lFVcKWp7lydqdzf2fycmrgJTC3hAP/pyYAFfQTkreao=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G+GlkUKNK4XMrDAOo/kQkvQhBHy99FbtBwmxGmTKixCaJFqq+BDDlnyJqRyG+3CxChi7SBF5jlvpOrAWD0/Ar0NkzMK0r2mMztfKAOi5RVikndqxxlh2HpX5vCdJ9z8vVStdwDMtFuJi9whYfMB3iml+WmsCgXYnyrvlYey1yGk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no; spf=pass smtp.mailfrom=itx.no; dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b=TrhCyfh+; arc=none smtp.client-ip=91.189.121.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=itx.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itx.no
+	s=arc-20240116; t=1771522311; c=relaxed/simple;
+	bh=0dApmxehIq0f8g9XqkVrjuvILuR13XJVXhzmBt9EhFs=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=axft+X8WaELV6d2lj+owYoA/tMqf5fR81kZC1WwZgR1+lAt4nrECYuSh93mH2b5vVHhAd6s+bdbjQvBlYJQfDPFTJ54xUgxXYbBRKhsTP9tZuKUjNUkUZZejlbvNreI3UCIDmrPwXabM46Uy6XLWL0YJv644dZaGVYRalsRiovI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EE1AbYSe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itx.no header.i=@itx.no header.b="TrhCyfh+"
-From: stian@itx.no
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itx.no; s=mx.itx.no;
-	t=1771416162;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=YceTr2EILPmfYE2DJGVNspLLsigq/xxpHiCraazo8xc=;
-	b=TrhCyfh+isMfpP8qmLUfteE5t2uwdHhpkyFQxMRJksu1eZie0FIpo+9p+jobvdDo1P/iCp
-	mkMbErYuRQToE/cdyTVyswLJZJ7KeeKWNlyDdyIPvoGHyKFWlQMgcSpBJBIXbsudr50M7m
-	3EU/juLv2auFF9ft2vZ9V7ILp59oXEE=
-To: sparclinux@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Stian Halseth <stian@itx.no>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH v3] sparc: Fix page alignment in dma mapping
-Date: Wed, 18 Feb 2026 13:00:24 +0100
-Message-ID: <20260218120056.3366-2-stian@itx.no>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EE1AbYSe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC62C4CEF7;
+	Thu, 19 Feb 2026 17:31:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771522311;
+	bh=0dApmxehIq0f8g9XqkVrjuvILuR13XJVXhzmBt9EhFs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=EE1AbYSeKETi2ThDlSv0TnnumMJA/WnZ349B6kNnGdpgA9LW/9+vC7JayIZNWGJSZ
+	 hEs+ayWmYXnxhqOQLanbr2uZHkKEDjAA9D6xvTp7fL0IePQVB2XeboRqLwoV82QKtw
+	 ZLK5YLmh8GHnmmahCi+0QjAjEZmIk2meP4n3FFiP9rZFrhicOFDwFMY5feIqmkwiq8
+	 idKz/foFLrSwzQtL8BkTL9L+4XBl59WRnJSr/iU5D9g3UiZGyX4QrJI2aS36gc0iOv
+	 hVOUqM+A9TH5uJeDCATcOfemJe+0O08Cl8OQKJd5zu/yjepam7Xlc5ZNQWHbZ3aFhP
+	 QJw4S7nCQjCrQ==
+Date: Thu, 19 Feb 2026 11:31:49 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Nilay Shroff <nilay@linux.ibm.com>, Thomas Gleixner <tglx@kernel.org>
+Cc: linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
+	wangruikang@iscas.ac.cn, tglx@kernel.org, maddy@linux.ibm.com,
+	mpe@ellerman.id.au, npiggin@gmail.com, chleroy@kernel.org,
+	gjoyce@ibm.com, "David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org
+Subject: Re: [PATCH] powerpc/pci: Initialize msi_addr_mask for OF-created PCI
+ devices
+Message-ID: <20260219173149.GA3486808@bhelgaas>
 Precedence: bulk
 X-Mailing-List: sparclinux@vger.kernel.org
 List-Id: <sparclinux.vger.kernel.org>
 List-Subscribe: <mailto:sparclinux+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:sparclinux+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260217174537.1154686-1-nilay@linux.ibm.com>
 
-From: Stian Halseth <stian@itx.no>
+[+cc sparc folks, PCI enumeration via OF likely broken]
 
-'phys' may include an offset within the page, while 'base_paddr' is already
-page-aligned. This caused incorrect DMA mapping in dma_4u_map_phys and
-dma_4v_map_phys.
+On Tue, Feb 17, 2026 at 11:15:26PM +0530, Nilay Shroff wrote:
+> Recent changes [1] replaced the use of no_64bit_msi with msi_addr_mask.
+> As a result, msi_addr_mask is now expected to be initialized to
+> DMA_BIT_MASK(64) when a pci_dev is set up. However, this initialization
+> was missed on powerpc due to differences in the device initialization
+> path compared to other architectures. Due to this, now pci device probe
+> method fails on powerpc system.
 
-Fix both functions by masking phys with IO_PAGE_MASK or subtracting the
-page offset, covering both generic SPARC code and sun4v.
+s/pci/PCI/ to match below.
 
-Fixes: 38c0d0ebf520 ("sparc: Use physical address DMA mapping")
-Reported-by: Stian Halseth <stian@itx.no>
-Closes: https://github.com/sparclinux/issues/issues/75
-Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Stian Halseth <stian@itx.no>
----
-Changelog:
-v3:
-- Use IO_PAGE_MASK for alignment in both dma_4u_map_phys and dma_4v_map_phys
-- Align phys before the loop in pci_sun4v.c
-- Drop masking inside iommu_batch_add()
+> On powerpc systems, struct pci_dev instances are created from device
+> tree nodes via of_create_pci_dev(). Because msi_addr_mask was not
+> initialized there, it remained zero. Later, during MSI setup,
+> msi_verify_entries() validates the programmed MSI address against
+> pdev->msi_addr_mask. Since the mask was not set correctly, the
+> validation fails, causing PCI driver probe failures for devices on
+> powerpc systems.
+> 
+> Initialize pdev->msi_addr_mask to DMA_BIT_MASK(64) in
+> of_create_pci_dev() so that MSI address validation succeeds and device
+> probe works as expected.
+> 
+> [1] https://lore.kernel.org/all/20260129-pci-msi-addr-mask-v4-0-70da998f2750@iscas.ac.cn/
+> 
+> Fixes: 386ced19e9a3 ("PCI/MSI: Convert the boolean no_64bit_msi flag to a DMA address mask")
+> Signed-off-by: Nilay Shroff <nilay@linux.ibm.com>
 
-v2: https://lore.kernel.org/all/20260217171104.5643-3-stian@itx.no/
-- Add Fixes tag
-- Add Closes tag
-- Trim commit message to 80-column lines
-- Remove newlines
-- Subject: Remove the "iommu/pci_sun4v:" (generic sparc patch, not specific to sun4v)
+Looks like this and a similar sparc fix need to be in v7.0.  Would be
+great if they could make v7.0-rc1 (Sunday), but that's pretty close.
 
-v1: https://lore.kernel.org/all/20260217150350.3541-2-stian@itx.no/ 
----
- arch/sparc/kernel/iommu.c     | 2 ++
- arch/sparc/kernel/pci_sun4v.c | 2 ++
- 2 files changed, 4 insertions(+)
+Thomas, you merged 386ced19e9a3.  I'm happy to merge the powerpc and
+sparc fixes, given acks from you and the powerpc & sparc folks, or
+feel free to take them yourself.
 
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 46ef88bc9c26..7613ab0ffb89 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -312,6 +312,8 @@ static dma_addr_t dma_4u_map_phys(struct device *dev, phys_addr_t phys,
- 	if (direction != DMA_TO_DEVICE)
- 		iopte_protection |= IOPTE_WRITE;
- 
-+	phys &= IO_PAGE_MASK;
-+
- 	for (i = 0; i < npages; i++, base++, phys += IO_PAGE_SIZE)
- 		iopte_val(*base) = iopte_protection | phys;
- 
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 791f0a76665f..58ca4148f86b 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -410,6 +410,8 @@ static dma_addr_t dma_4v_map_phys(struct device *dev, phys_addr_t phys,
- 
- 	iommu_batch_start(dev, prot, entry);
- 
-+	phys &= IO_PAGE_MASK;
-+
- 	for (i = 0; i < npages; i++, phys += IO_PAGE_SIZE) {
- 		long err = iommu_batch_add(phys, mask);
- 		if (unlikely(err < 0L))
--- 
-2.53.0
+> ---
+>  arch/powerpc/kernel/pci_of_scan.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
+> index 756043dd06e9..26ec97ce6b40 100644
+> --- a/arch/powerpc/kernel/pci_of_scan.c
+> +++ b/arch/powerpc/kernel/pci_of_scan.c
+> @@ -211,6 +211,12 @@ struct pci_dev *of_create_pci_dev(struct device_node *node,
+>  	dev->current_state = PCI_UNKNOWN;	/* unknown power state */
+>  	dev->error_state = pci_channel_io_normal;
+>  	dev->dma_mask = 0xffffffff;
 
+It's typical to add a blank line between the code above and the
+comment below, as was done in 386ced19e9a3.
+
+> +	/*
+> +	 * Assume 64-bit addresses for MSI initially. Will be changed to 32-bit
+> +	 * if MSI (rather than MSI-X) capability does not have
+> +	 * PCI_MSI_FLAGS_64BIT. Can also be overridden by driver.
+> +	 */
+> +	dev->msi_addr_mask = DMA_BIT_MASK(64);
+>  
+>  	/* Early fixups, before probing the BARs */
+>  	pci_fixup_device(pci_fixup_early, dev);
+> -- 
+> 2.52.0
+> 
